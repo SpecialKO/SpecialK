@@ -21,7 +21,6 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/resource.h>
-#include <imgui/imgui_user.inl>
 
 
 std::string

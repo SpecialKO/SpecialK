@@ -22,7 +22,6 @@
 #include <SpecialK/stdafx.h>
 #include <imgui/font_awesome.h>
 #include <filesystem>
-#include <imgui/imgui_user.inl>
 
 extern iSK_INI* osd_ini;
 

@@ -390,7 +390,12 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
                 ((UINT)((b * a) * 255U)       );
 
         cmd_list->VtxBuffer.Data[i].col =
+          /// XXX: FIXME
+#if 0
           (ImVec4)ImColor (color);
+#else
+          ImColor (color);
+#endif
       }
     }
 
@@ -1140,7 +1145,11 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     D3D11_INPUT_ELEMENT_DESC    local_layout [] = {
       { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,       0, (size_t)(&((ImDrawVert *)nullptr)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
       { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, (size_t)(&((ImDrawVert *)nullptr)->uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+#if 0 // NO HDR ImGui Yet
       { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, (size_t)(&((ImDrawVert *)nullptr)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+#else
+      { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM,     0, (size_t)(&((ImDrawVert *)nullptr)->col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+#endif
     };
 
     if (_P->pInputLayout == nullptr)

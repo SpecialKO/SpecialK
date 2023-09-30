@@ -9271,7 +9271,7 @@ static void ImGui::ErrorCheckNewFrameSanityChecks()
     //  This is a common C/C++ idiom to allow multiple statements macros to be used in control flow blocks.)
     // #define IM_ASSERT(EXPR)   if (SomeCode(EXPR)) SomeMoreCode();                    // Wrong!
     // #define IM_ASSERT(EXPR)   do { if (SomeCode(EXPR)) SomeMoreCode(); } while (0)   // Correct!
-    if (true) IM_ASSERT(1); else IM_ASSERT(0);
+    if (true) IM_ASSERT(1) else IM_ASSERT(0);
 
     // Emscripten backends are often imprecise in their submission of DeltaTime. (#6114, #3644)
     // Ideally the Emscripten app/backend should aim to fix or smooth this value and avoid feeding zero, but we tolerate it.
@@ -15122,6 +15122,7 @@ void ImGui::UpdateDebugToolStackQueries() {}
 // XXX: Special K Addition
 bool ImGui::IsNavDragging (int stick_no, float lock_threshold)
 {
+#if 0
   stick_no = 0;
   ///IM_ASSERT (ImGuiNavInput_PadScrollUp == ImGuiNavInput_PadUp + 4);
   ///IM_ASSERT (stick_no >= 0 && stick_no < 2);
@@ -15140,41 +15141,8 @@ bool ImGui::IsNavDragging (int stick_no, float lock_threshold)
     if (delta.x != 0.0 || delta.y != 0.0)// >= lock_threshold * lock_threshold)
       return true;
   }
+#endif
 
   return false;
 }
 
-#if 0
-static ImGuiContext     GImDefaultContext;
-ImGuiContext* GImGui = &GImDefaultContext;
-void SK_ImGui_Init (void) { };
-#else
-ImGuiContext* GImGui = nullptr;
-
-ImGuiContext* SK_GImDefaultContext (void)
-{
-  static ImGuiContext** GImDefaultContext = &GImGui;
-  return               *GImDefaultContext;
-}
-
-void SK_ImGui_Init (void)
-{
-  GImGui =
-    ImGui::CreateContext ();
-
-  ImGui::StyleColorsClassic (&SK_GImDefaultContext ()->Style);
-
-  ImGuiIO& io =
-    ImGui::GetIO ();
-
-  io.ConfigFlags |= ( ImGuiConfigFlags_NavEnableKeyboard |
-                      ImGuiConfigFlags_NavEnableGamepad  |
-                      ImGuiConfigFlags_NavEnableSetMousePos );
-
-  io.BackendFlags |= ( ImGuiBackendFlags_HasGamepad |
-                     /*ImGuiBackendFlags_HasMouseCursors |*/
-                       ImGuiBackendFlags_HasSetMousePos );
-
-  SK_ImGui_LoadFonts ();
-}
-#endif

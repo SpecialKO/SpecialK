@@ -20,7 +20,6 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <imgui/imgui_user.inl>
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
 

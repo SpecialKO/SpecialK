@@ -119,7 +119,7 @@
 //---- Debug Tools: Enable slower asserts
 //#define IMGUI_DEBUG_PARANOID
 
-#define IMGUI_OVERRIDE_DRAWVERT_STRUCT_LAYOUT
+//#define IMGUI_OVERRIDE_DRAWVERT_STRUCT_LAYOUT
 
 #define IM_MSVC_RUNTIME_CHECKS_OFF      __pragma(runtime_checks("",off))     __pragma(check_stack(off)) __pragma(strict_gs_check(push,off))
 #define IM_MSVC_RUNTIME_CHECKS_RESTORE  __pragma(runtime_checks("",restore)) __pragma(check_stack())    __pragma(strict_gs_check(pop))
@@ -153,9 +153,9 @@ struct ImVec4
 };
 IM_MSVC_RUNTIME_CHECKS_RESTORE
 
-struct ImDrawVert
-{
-  ImVec2 pos;
-  ImVec2 uv;
-  ImVec4 col;
-};
+////////struct ImDrawVert
+////////{
+////////  ImVec2 pos;
+////////  ImVec2 uv;
+////////  ImVec4 col;
+////////};

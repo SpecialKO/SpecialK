@@ -113,10 +113,12 @@ ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data)
     {
       for (INT i = 0; i < cmd_list->VtxBuffer.Size; i++)
       {
+#if 0 /// XXX:FIXME
         SK_ReleaseAssert (cmd_list->VtxBuffer.Data [i].col.x < 1.0 &&
                           cmd_list->VtxBuffer.Data [i].col.y < 1.0 &&
                           cmd_list->VtxBuffer.Data [i].col.z < 1.0 &&
                           cmd_list->VtxBuffer.Data [i].col.w < 1.0 );
+#endif
         ImColor color (
           cmd_list->VtxBuffer.Data [i].col
         );
@@ -413,11 +415,19 @@ ImGui_ImplGlfwGL3_CreateDeviceObjects (void)
                               GL_FALSE, sizeof (ImDrawVert),
   reinterpret_cast <GLvoid *> ( OFFSETOF       (ImDrawVert, uv) )
                         );
+#if 0 // NO HDR ImGui Yet
   glVertexAttribPointer ( g_AttribLocationColor,
                             4, GL_FLOAT,// GL_UNSIGNED_BYTE,
                                FALSE,  sizeof (ImDrawVert),
   reinterpret_cast <GLvoid *> ( OFFSETOF       (ImDrawVert, col) )
                         );
+#else
+  glVertexAttribPointer ( g_AttribLocationColor,
+                            4, GL_UNSIGNED_BYTE,
+                               FALSE,  sizeof (ImDrawVert),
+  reinterpret_cast <GLvoid *> ( OFFSETOF       (ImDrawVert, col) )
+                        );
+#endif
 #undef OFFSETOF
 
   ImGui_ImplGL3_CreateFontsTexture ();

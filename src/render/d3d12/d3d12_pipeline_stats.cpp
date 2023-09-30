@@ -20,7 +20,6 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <imgui/imgui_user.inl>
 #include <../depends/include/DirectXTex/d3dx12.h>
 
 #ifdef  __SK_SUBSYSTEM__

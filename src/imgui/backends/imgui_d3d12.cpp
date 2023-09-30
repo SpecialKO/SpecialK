@@ -243,8 +243,14 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
                   ((UINT)((g * a) * 255U) <<  8U) |
                   ((UINT)((b * a) * 255U)       );
 
+#if 0
           cmd_list->VtxBuffer.Data[i].col =
             (ImVec4)ImColor (color);
+#else
+          cmd_list->VtxBuffer.Data[i].col =
+            ImColor (color);
+          /// XXX: FIXME
+#endif
         }
       }
 
@@ -759,7 +765,11 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
     static D3D12_INPUT_ELEMENT_DESC local_layout [] = {
       { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,       0, sk::narrow_cast<UINT>((size_t)(&((ImDrawVert*)0)->pos)), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
       { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, sk::narrow_cast<UINT>((size_t)(&((ImDrawVert*)0)->uv)),  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+#if 0 // NO HDR ImGui Yet
       { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sk::narrow_cast<UINT>((size_t)(&((ImDrawVert*)0)->col)), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+#else
+      { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM,     0, sk::narrow_cast<UINT>((size_t)(&((ImDrawVert*)0)->col)), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+#endif
     };
 
       psoDesc.InputLayout = {       local_layout, 3   };

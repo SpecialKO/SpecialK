@@ -20,7 +20,6 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <imgui/imgui_user.inl>
 
 extern iSK_INI* osd_ini;
 
