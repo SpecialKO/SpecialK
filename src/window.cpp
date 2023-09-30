@@ -6612,6 +6612,35 @@ SK_InstallWindowHook (HWND hWnd)
       SK_GetCommandProcessor ()
     );
 
+    class CursorListener : public SK_IVariableListener
+    {
+    public:
+      bool cursor_visible = false;
+
+      virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr)
+      {
+        if (val != nullptr && var != nullptr )
+        {
+          if (var->getValuePointer () == &cursor_visible)
+          {
+            cursor_visible = *(bool *)val;
+
+            static constexpr auto          _MaxTries = 25;
+            for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
+            {
+              if (   cursor_visible  && ShowCursor (TRUE) >= 0)
+                break;
+              if ((! cursor_visible) && ShowCursor (FALSE) < 0)
+                break;
+            }
+          }
+        }
+
+        return true;
+      }
+    } static cursor_control;
+
+    cmd->AddVariable ("Cursor.Visible",          SK_CreateVar (SK_IVariable::Boolean, (bool *)&cursor_control.cursor_visible, &cursor_control));
     cmd->AddVariable ("Cursor.Manage",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.manage));
     cmd->AddVariable ("Cursor.Timeout",          SK_CreateVar (SK_IVariable::Int,     (int  *)&config.input.cursor.timeout));
     cmd->AddVariable ("Cursor.KeysActivate",     SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.keys_activate));
