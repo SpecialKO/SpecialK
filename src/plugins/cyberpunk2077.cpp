@@ -81,7 +81,7 @@ bool SK_CP2077_PlugInCfg (void)
 
     if (changed)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f));
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
       ImGui::BulletText     ("Game Restart Required");
       ImGui::PopStyleColor  ();
     }
