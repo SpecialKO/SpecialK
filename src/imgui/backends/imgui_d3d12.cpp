@@ -1993,6 +1993,12 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
     {
       return false;
     }
+
+    SK_ComPtr <ID3D12Device>                           pNativeDev12;
+    if (SK_slGetNativeInterface (_pDevice.p, (void **)&pNativeDev12.p) == sl::Result::eOk)
+    {
+      _pDevice = pNativeDev12;
+    }
   }
 
   if (_pDevice.p != nullptr)
@@ -2020,6 +2026,12 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         if (_pCommandQueue != nullptr)
         {
           _pCommandQueue->GetDevice (IID_PPV_ARGS (&_pDevice.p));
+
+          SK_ComPtr <ID3D12Device>                         pNativeDev12;
+          if (SK_slGetNativeInterface (_pDevice, (void **)&pNativeDev12.p) == sl::Result::eOk)
+          {
+            _pDevice = pNativeDev12;
+          }
         }
 #endif
       }

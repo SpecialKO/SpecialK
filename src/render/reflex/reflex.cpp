@@ -443,11 +443,18 @@ SK_RenderBackend_V2::driverSleepNV (int site)
          lastParams.bUseMarkersToOptimize != sleepParams.bUseMarkersToOptimize ||
          lastOverride                     != applyOverride )
     {
-      if ( NVAPI_OK !=
-             SK_NvAPI_D3D_SetSleepMode (
-               device.p, &sleepParams
-             )
-         ) valid = false;
+      NvAPI_Status status =
+        SK_NvAPI_D3D_SetSleepMode (
+           device.p, &sleepParams );
+
+      if (status != NVAPI_OK)
+      {
+        SK_LOG0 ( ( L"NVIDIA Reflex SetSleepMode Invalid State "
+            L"( NvAPI_Status = %i )", status ),
+            __SK_SUBSYSTEM__ );
+
+        valid = false;
+      }
 
       else
       {
@@ -468,13 +475,17 @@ SK_RenderBackend_V2::driverSleepNV (int site)
     //
     if (! config.nvidia.reflex.native)
     {
-      if ( NVAPI_OK != NvAPI_D3D_Sleep (device.p) )
+      NvAPI_Status status =
+        NvAPI_D3D_Sleep (device.p);
+
+      if ( status != NVAPI_OK )
         valid = false;
 
       if ((! valid) && ( api == SK_RenderAPI::D3D11 ||
                          api == SK_RenderAPI::D3D12 ))
       {
-        SK_LOG0 ( ( L"NVIDIA Reflex Sleep Invalid State" ),
+        SK_LOG0 ( ( L"NVIDIA Reflex Sleep Invalid State "
+                    L"( NvAPI_Status = %i )", status ),
                     __SK_SUBSYSTEM__ );
       }
     }
