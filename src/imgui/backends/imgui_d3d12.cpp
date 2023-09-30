@@ -1917,65 +1917,54 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 {
-  //SK_ComPtr <IDXGISwapChain> pSwapChain_ (pSwapChain);
-  //
-  //UINT _size =
-  //      sizeof (LPVOID);
-  //
-  //SK_ComPtr <IUnknown> pUnwrapped;
-  //
-  //if ( pSwapChain != nullptr &&
-  //     SUCCEEDED (
-  //       pSwapChain->GetPrivateData (
-  //         IID_IUnwrappedDXGISwapChain, &_size,
-  //            &pUnwrapped
-  //               )                   )
-  //   )
-  //{
-  //}
-
-  if ( (_pSwapChain.p != nullptr && pSwapChain == nullptr) ||
-        _pSwapChain.IsEqualObject  (pSwapChain)            )//||
-        //_pSwapChain.IsEqualObject  (pUnwrapped) )
+  if (! ((_pSwapChain.p != nullptr && pSwapChain == nullptr) ||
+         (_pSwapChain.p == nullptr && pSwapChain != nullptr) ||
+          _pSwapChain.IsEqualObject  (pSwapChain)            ))
   {
-    if (SK_IsDebuggerPresent ())
-    {
-      SK_ComQIPtr <ID3D12DebugDevice>
-                        pDebugDevice (_pDevice.p);
-
-      if (pDebugDevice)
-          pDebugDevice->ReportLiveDeviceObjects ( D3D12_RLDO_SUMMARY | D3D12_RLDO_DETAIL|
-                                                  D3D12_RLDO_IGNORE_INTERNAL );
-    }
-
-    SK_D3D12_EndFrame (SK_TLS_Bottom ());
-
-
-    ImGui_ImplDX12_Shutdown ();
-
-    ///// 1 frame delay for re-init
-    ///frame_delay.fetch_add (1);
-
-    // Steam overlay is releasing references to the SwapChain it did not acquire (!!)
-    if (! SK_ValidatePointer (_pSwapChain.p, true))
-                              _pSwapChain.p = nullptr;
-
-    if (! SK_ValidatePointer (_pDevice.p, true))
-                              _pDevice.p = nullptr;
-
-    frames_.clear ();
-
-    // Do this after closing the command lists (frames_.clear ())
-    pHDRPipeline.Release                 ();
-    pHDRSignature.Release                ();
-
-    descriptorHeaps.pBackBuffers.Release ();
-    descriptorHeaps.pImGui.Release       ();
-    descriptorHeaps.pHDR.Release         ();
-
-    _pSwapChain.Release ();
-    _pDevice.Release    ();
+    SK_LOGi0 (
+      L"Unexpected SwapChain (%p) encountered in SK_D3D12_RenderCtx::release (...); expected %p!",
+                  pSwapChain,
+                 _pSwapChain.p
+    );
   }
+
+  if (SK_IsDebuggerPresent ())
+  {
+    SK_ComQIPtr <ID3D12DebugDevice>
+                      pDebugDevice (_pDevice.p);
+
+    if (pDebugDevice)
+        pDebugDevice->ReportLiveDeviceObjects ( D3D12_RLDO_SUMMARY | D3D12_RLDO_DETAIL|
+                                                D3D12_RLDO_IGNORE_INTERNAL );
+  }
+
+  SK_D3D12_EndFrame (SK_TLS_Bottom ());
+
+
+  ImGui_ImplDX12_Shutdown ();
+
+  ///// 1 frame delay for re-init
+  ///frame_delay.fetch_add (1);
+
+  // Steam overlay is releasing references to the SwapChain it did not acquire (!!)
+  if (! SK_ValidatePointer (_pSwapChain.p, true))
+                            _pSwapChain.p = nullptr;
+
+  if (! SK_ValidatePointer (_pDevice.p, true))
+                            _pDevice.p = nullptr;
+
+  frames_.clear ();
+
+  // Do this after closing the command lists (frames_.clear ())
+  pHDRPipeline.Release                 ();
+  pHDRSignature.Release                ();
+
+  descriptorHeaps.pBackBuffers.Release ();
+  descriptorHeaps.pImGui.Release       ();
+  descriptorHeaps.pHDR.Release         ();
+
+  _pSwapChain.Release ();
+  _pDevice.Release    ();
 }
 
 bool

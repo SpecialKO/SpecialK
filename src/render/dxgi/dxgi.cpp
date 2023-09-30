@@ -5483,15 +5483,24 @@ auto _PushInitialDWMColorSpace = [](IDXGISwapChain* pSwapChain, SK_RenderBackend
   }
 };
 
+bool
+SK_COMPAT_IsFrameGenLoaded (void)
+{
+  const bool bHasFrameGenDLL =
+    false;//( SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr ||
+    //  SK_GetModuleHandleW (L"LmFSRB.dll")    != nullptr );
+
+  return bHasFrameGenDLL;
+}
+
 IWrapDXGISwapChain*
 SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
                         IDXGISwapChain  *pSwapChain,
                         IDXGISwapChain **ppDest,
                         DXGI_FORMAT      original_format )
 {
-  bool bDontWrap =                   SK_IsInjected () &&
-    SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
-             config.system.global_inject_delay == 0.0f;
+  bool bDontWrap =
+    SK_COMPAT_IsFrameGenLoaded ();
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -5517,7 +5526,6 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
       bDontWrap ? (IWrapDXGISwapChain *)pSwapChain :
                new IWrapDXGISwapChain ((ID3D11Device *)pDev12.p, pSwapChain);
 
-    rb.swapchain           = ret;
     rb.setDevice            (pDev12.p);
     rb.d3d12.command_queue = pCmdQueue.p;
 
@@ -5574,9 +5582,8 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
 
-  bool bDontWrap =                   SK_IsInjected () &&
-    SK_GetModuleHandleW (L"sl.dlss_g.dll") != nullptr &&
-             config.system.global_inject_delay == 0.0f;
+  bool bDontWrap =
+    SK_COMPAT_IsFrameGenLoaded ();
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();

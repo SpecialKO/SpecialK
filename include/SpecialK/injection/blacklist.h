@@ -222,8 +222,10 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"tobii.eyex.engine.exe",
   L"ipoint.exe",
   L"itype.exe",
+  L"msedge.exe",
   L"msedgewebview2.exe",
   L"powershell.exe",
+  L"devenv.exe",
 
   // OBS Stuff
   L"obs-browser-page.exe",
