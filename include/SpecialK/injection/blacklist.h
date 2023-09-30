@@ -215,6 +215,7 @@ static constexpr constexpr_module_s::list_type __blacklist = {
 
   L"pwahelper.exe",
 
+  L"epicgameslauncher.exe",
   L"epicwebhelper.exe",
   L"steamwebhelper.exe",
   L"galaxyclient helper.exe",
