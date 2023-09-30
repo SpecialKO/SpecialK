@@ -14,9 +14,11 @@
 
 #pragma once
 
+#include <SpecialK/config.h>
+
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. } while (0)' block so it can be used as a single statement.
-#define IM_ASSERT(_EXPR)  SK_ReleaseAssert(_EXPR)
+#define IM_ASSERT(_EXPR)  if (config.system.log_level > 0) SK_ReleaseAssert(_EXPR)
 //#define IM_ASSERT(_EXPR)  ((void)(_EXPR))     // Disable asserts
 
 //---- Define attributes of all API symbols declarations, e.g. for DLL under Windows
@@ -119,12 +121,30 @@
 //---- Debug Tools: Enable slower asserts
 //#define IMGUI_DEBUG_PARANOID
 
-//#define IMGUI_OVERRIDE_DRAWVERT_STRUCT_LAYOUT
+//---- Use 32-bit vertex indices (default is 16-bit) is one way to allow large meshes with more than 64K vertices.
+// Your renderer backend will need to support it (most example renderer backends support both 16/32-bit indices).
+// Another way to allow large meshes while keeping 16-bit indices is to handle ImDrawCmd::VtxOffset in your renderer.
+// Read about ImGuiBackendFlags_RendererHasVtxOffset for details.
+#define ImDrawIdx unsigned int
+
+//---- Override ImDrawCallback signature (will need to modify renderer backends accordingly)
+//struct ImDrawList;
+//struct ImDrawCmd;
+//typedef void (*MyImDrawCallback)(const ImDrawList* draw_list, const ImDrawCmd* cmd, void* my_renderer_user_data);
+//#define ImDrawCallback MyImDrawCallback
+
+//---- Debug Tools: Macro to break in Debugger (we provide a default implementation of this in the codebase)
+// (use 'Metrics->Tools->Item Picker' to pick widgets with the mouse and break into them for easy debugging.)
+//#define IM_DEBUG_BREAK  IM_ASSERT(0)
+//#define IM_DEBUG_BREAK  __debugbreak()
+
+//---- Debug Tools: Enable slower asserts
+//#define IMGUI_DEBUG_PARANOID
+
+#define IMGUI_INCLUDE_IMGUI_USER_INL
 
 #define IM_MSVC_RUNTIME_CHECKS_OFF      __pragma(runtime_checks("",off))     __pragma(check_stack(off)) __pragma(strict_gs_check(push,off))
 #define IM_MSVC_RUNTIME_CHECKS_RESTORE  __pragma(runtime_checks("",restore)) __pragma(check_stack())    __pragma(strict_gs_check(pop))
-
-#include <SpecialK/utility.h>
 
 // ImVec2: 2D vector used to store positions, sizes etc. [Compile-time configurable type]
 // This is a frequently used type in the API. Consider using IM_VEC2_CLASS_EXTRA to create implicit cast from/to our preferred type.
@@ -152,10 +172,3 @@ struct ImVec4
 #endif
 };
 IM_MSVC_RUNTIME_CHECKS_RESTORE
-
-////////struct ImDrawVert
-////////{
-////////  ImVec2 pos;
-////////  ImVec2 uv;
-////////  ImVec4 col;
-////////};

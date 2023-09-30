@@ -419,10 +419,10 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 
   // Setup orthographic projection matrix into our constant buffer
   {
-    float L = 0.0f;
-    float R = io.DisplaySize.x;
-    float B = io.DisplaySize.y;
-    float T = 0.0f;
+    float L = draw_data->DisplayPos.x;
+    float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
+    float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
+    float T = draw_data->DisplayPos.y;
 
     alignas (__m128d) float mvp [4][4] =
     {
@@ -526,8 +526,8 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     // Setup viewport
     D3D11_VIEWPORT vp = { };
 
-    vp.Height   = io.DisplaySize.y;
-    vp.Width    = io.DisplaySize.x;
+    vp.Height   = draw_data->DisplaySize.y;
+    vp.Width    = draw_data->DisplaySize.x;
     vp.MinDepth = 0.0f;
     vp.MaxDepth = 1.0f;
     vp.TopLeftX = vp.TopLeftY = 0.0f;
@@ -573,45 +573,61 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     int vtx_offset = 0;
     int idx_offset = 0;
 
+    ImVec2 clip_off = draw_data->DisplayPos;
+
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
       const ImDrawList* cmd_list =
         draw_data->CmdLists [n];
-
+    
       for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
       {
         const ImDrawCmd* pcmd =
           &cmd_list->CmdBuffer [cmd_i];
-
+    
         if (pcmd->UserCallback)
+        {
+          // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
+          if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+            SK_ReleaseAssert (!L"ImDrawCallback_ResetRenderState = Not Implemented")// ImGui_ImplDX11_SetupRenderState (draw_data, pDevCtx);
+          else
             pcmd->UserCallback (cmd_list, pcmd);
-
+        }
+    
         else
         {
-          const D3D11_RECT r = {
-            static_cast <LONG> (pcmd->ClipRect.x), static_cast <LONG> (pcmd->ClipRect.y),
-            static_cast <LONG> (pcmd->ClipRect.z), static_cast <LONG> (pcmd->ClipRect.w)
-          };
+          // Project scissor/clipping rectangles into framebuffer space
+          ImVec2 clip_min (pcmd->ClipRect.x - clip_off.x, pcmd->ClipRect.y - clip_off.y);
+          ImVec2 clip_max (pcmd->ClipRect.z - clip_off.x, pcmd->ClipRect.w - clip_off.y);
 
+          if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
+              continue;
+
+          // Apply scissor/clipping rectangle
+          const D3D11_RECT r = { 
+            static_cast <LONG> (clip_min.x), static_cast <LONG> (clip_min.y),
+            static_cast <LONG> (clip_max.x), static_cast <LONG> (clip_max.y)
+          };
+    
           extern ID3D11ShaderResourceView*
             SK_HDR_GetUnderlayResourceView (void);
-
+    
           ID3D11ShaderResourceView* views [2] =
           {
-             *(ID3D11ShaderResourceView **)&pcmd->TextureId,
-             SK_HDR_GetUnderlayResourceView ()
+            (ID3D11ShaderResourceView *)pcmd->GetTexID (),
+            SK_HDR_GetUnderlayResourceView ()
           };
-
+    
           pDevCtx->PSSetSamplers        (0, 1, &_P->pFontSampler_wrap);
           pDevCtx->PSSetShaderResources (0, 2, views);
           pDevCtx->RSSetScissorRects    (1, &r);
-
-          pDevCtx->DrawIndexed          (pcmd->ElemCount, idx_offset, vtx_offset);
+    
+          pDevCtx->DrawIndexed          (pcmd->ElemCount, pcmd->IdxOffset + idx_offset,
+                                                          pcmd->VtxOffset + vtx_offset);
         }
-
-        idx_offset += pcmd->ElemCount;
       }
 
+      idx_offset += cmd_list->IdxBuffer.Size;
       vtx_offset += cmd_list->VtxBuffer.Size;
     }
   }
@@ -1621,7 +1637,12 @@ ImGui_ImplDX11_Init ( IDXGISwapChain*      pSwapChain,
   g_frameBufferWidth     = swap_desc.BufferDesc.Width;
   g_frameBufferHeight    = swap_desc.BufferDesc.Height;
   g_hWnd                 = swap_desc.OutputWindow;
-//io.ImeWindowHandle     = g_hWnd;
+
+  //// FIXME
+  ////ImGui_ImplDX11_Data* bd = IM_NEW(ImGui_ImplDX11_Data)();
+  ////io.BackendRendererUserData = (void*)bd;
+  io.BackendRendererName = "imgui_impl_dx11";
+  io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -1635,8 +1656,16 @@ ImGui_ImplDX11_Init ( IDXGISwapChain*      pSwapChain,
 void
 ImGui_ImplDX11_Shutdown (void)
 {
+  ImGuiIO& io =
+    ImGui::GetIO ();
+
   ImGui_ImplDX11_InvalidateDeviceObjects ();
   ImGui::Shutdown                        ();
+
+  io.BackendRendererName     = nullptr;
+  io.BackendRendererUserData = nullptr;
+
+  io.BackendFlags &= ~ImGuiBackendFlags_RendererHasVtxOffset;
 }
 
 #include <SpecialK/window.h>

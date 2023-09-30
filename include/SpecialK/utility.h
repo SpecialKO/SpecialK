@@ -397,9 +397,9 @@ void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,
                                  L"First-Chance Assertion Failure" )      \
                  );                }                               }      }
 
-#define SK_ReleaseAssert(expr) { SK_ReleaseAssertEx ( (expr),L#expr,    \
+#define SK_ReleaseAssert(expr) do { SK_ReleaseAssertEx ( (expr),L#expr, \
                                                     __FILEW__,__LINE__, \
-                                                    __FUNCSIG__ ) }
+                                                    __FUNCSIG__ ) } while (0);
 
 
 struct SK_ThreadSuspension_Ctx {

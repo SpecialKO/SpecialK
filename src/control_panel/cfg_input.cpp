@@ -24,7 +24,6 @@
 #include <SpecialK/control_panel/input.h>
 
 #include <imgui/font_awesome.h>
-#include <imgui/imgui_user.inl>
 
 bool cursor_vis = false;
 
