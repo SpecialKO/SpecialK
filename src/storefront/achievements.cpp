@@ -1609,7 +1609,7 @@ SK_AchievementManager::drawPopups (void)
           ImGui::BeginGroup    (  );
           ImGui::TextColored   (ImColor (1.0f, 1.0f, 1.0f, 1.0f),
                  SK_WideCharToUTF8 (text->human_name).c_str ());
-          ImGui::PushStyleColor(ImGuiCol_Text, ImColor (0.7f, 0.7f, 0.7f, 1.0f));
+          ImGui::PushStyleColor(ImGuiCol_Text, ImColor (0.7f, 0.7f, 0.7f, 1.0f).Value);
           auto size =
             ImGui::CalcTextSize(text_desc.c_str (), nullptr, false, 313.0f);
           ImGui::SetCursorPosY ( fTopY  + (128.0f - size.y) / 2.0f );

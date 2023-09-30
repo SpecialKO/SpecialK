@@ -477,7 +477,7 @@ ImGui_ImplGL3_Init (void)
   auto& io =
     ImGui::GetIO ();
 
-  io.ImeWindowHandle    = game_window.hWnd;
+  //io.ImeWindowHandle    = game_window.hWnd;
   //io.SetClipboardTextFn = ImGui_ImplGL3_SetClipboardText;
   //io.GetClipboardTextFn = ImGui_ImplGL3_GetClipboardText;
   io.ClipboardUserData  = game_window.hWnd;

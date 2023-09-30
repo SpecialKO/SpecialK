@@ -7093,8 +7093,8 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
 
   if (ImGui::IsMouseHoveringRect (list->last_min, list->last_max))
   {
-         if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
-    else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+         if (ImGui::IsKeyPressed (ImGuiKey_LeftBracket,  false)) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+    else if (ImGui::IsKeyPressed (ImGuiKey_RightBracket, false)) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
   }
 
   ImGui::PushStyleVar   (ImGuiStyleVar_WindowRounding, 0.0f);
@@ -7115,8 +7115,8 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
     ImGui::BulletText   ("Press ] while the mouse is hovering this list to select the next shader");
     ImGui::EndTooltip   ();
 
-         if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
-    else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+         if (ImGui::IsKeyPressed (ImGuiKey_LeftBracket,  false)) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+    else if (ImGui::IsKeyPressed (ImGuiKey_RightBracket, false)) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
   }
 
   if (! shaders.empty ())
@@ -7175,8 +7175,8 @@ SK_D3D9_LiveShaderClassView (SK::D3D9::ShaderClass shader_type, bool& can_scroll
   ImGui::BeginGroup    ();
 
   if (ImGui::IsItemHovered (ImGuiHoveredFlags_RectOnly)) {
-         if (ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) list->sel--;
-    else if (ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) list->sel++;
+         if (ImGui::IsKeyPressed (ImGuiKey_LeftBracket,  false)) list->sel--;
+    else if (ImGui::IsKeyPressed (ImGuiKey_RightBracket, false)) list->sel++;
   }
 
   if (tracker->crc32c != 0x00)
@@ -7520,8 +7520,8 @@ SK_LiveVertexStreamView (bool& can_scroll)
 
   if (ImGui::IsMouseHoveringRect (list->last_min, list->last_max))
   {
-         if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
-    else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+         if (ImGui::IsKeyPressed (ImGuiKey_LeftBracket,  false)) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+    else if (ImGui::IsKeyPressed (ImGuiKey_RightBracket, false)) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
   }
 
   ImGui::PushStyleVar   (ImGuiStyleVar_ChildRounding, 0.0f);
@@ -7543,8 +7543,8 @@ SK_LiveVertexStreamView (bool& can_scroll)
     ImGui::BulletText   ("Press ] while the mouse is hovering this list to select the next shader");
     ImGui::EndTooltip   ();
 
-         if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
-    else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+         if (ImGui::IsKeyPressed (ImGuiKey_LeftBracket,  false)) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+    else if (ImGui::IsKeyPressed (ImGuiKey_RightBracket, false)) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
   }
 
   if (! buffers.empty ())
@@ -7607,12 +7607,12 @@ SK_LiveVertexStreamView (bool& can_scroll)
 
   if (ImGui::IsItemHovered (ImGuiHoveredFlags_RectOnly))
   {
-         if (ImGui::GetIO ().KeysDown [VK_OEM_4] && ImGui::GetIO ().KeysDownDuration [VK_OEM_4] == 0.0f) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
-    else if (ImGui::GetIO ().KeysDown [VK_OEM_6] && ImGui::GetIO ().KeysDownDuration [VK_OEM_6] == 0.0f) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+         if (ImGui::IsKeyPressed (ImGuiKey_LeftBracket,  false)) { list->sel--;  ImGui::GetIO ().WantCaptureKeyboard = true; }
+    else if (ImGui::IsKeyPressed (ImGuiKey_RightBracket, false)) { list->sel++;  ImGui::GetIO ().WantCaptureKeyboard = true; }
 
-    if ( ImGui::GetIO ().KeysDownDuration [    'W'   ] == 0.0f &&
-         ImGui::GetIO ().KeysDown         [VK_CONTROL]         &&
-         ImGui::GetIO ().KeysDown         [VK_SHIFT  ]            )
+    if ( ImGui::IsKeyPressed (ImGuiKey_W, false) &&
+         ImGui::GetIO ().KeysDown [VK_CONTROL]   &&
+         ImGui::GetIO ().KeysDown [VK_SHIFT  ] )
     {
       ImGui::GetIO ().WantCaptureKeyboard = true;
 
@@ -7954,11 +7954,11 @@ SK_D3D9_TextureModDlg (void)
   {
     extern std::set <uint32_t> textures_used_last_dump;
 
-    if ( io.KeysDownDuration [VK_OEM_6] == 0.0f ||
-         io.KeysDownDuration [VK_OEM_4] == 0.0f )
+    if ( ImGui::IsKeyPressed (ImGuiKey_RightBracket, false) ||
+         ImGui::IsKeyPressed (ImGuiKey_LeftBracket,  false) )
     {
-      tex_dbg_idx += (io.KeysDownDuration [VK_OEM_6] == 0.0f) ? 1 : 0;
-      tex_dbg_idx -= (io.KeysDownDuration [VK_OEM_4] == 0.0f) ? 1 : 0;
+      tex_dbg_idx += (ImGui::IsKeyPressed (ImGuiKey_RightBracket, false)) ? 1 : 0;
+      tex_dbg_idx -= (ImGui::IsKeyPressed (ImGuiKey_LeftBracket,  false)) ? 1 : 0;
 
       if (tex_dbg_idx < 0 || (textures_used_last_dump.empty ()))
       {

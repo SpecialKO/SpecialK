@@ -671,7 +671,7 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
 
     if ( ImGui::InputFloat (
            "Luminance Clipping Point (cd/m²)###SK_HDR_LUMINANCE",
-             &peak_nits, 1.0f, 10.0f, 2, ImGuiInputTextFlags_CharsDecimal )
+             &peak_nits, 1.0f, 10.0f, "%.3f", ImGuiInputTextFlags_CharsDecimal)
        )
     {
       __SK_HDR_Luma =
@@ -1760,7 +1760,7 @@ public:
             StrCatBuffA (hashed_name, "###SK_HDR_PresetSel_",      128);
             StrCatBuffA (hashed_name, std::to_string (i).c_str (), 128);
 
-            ImGui::SetNextTreeNodeOpen (false, ImGuiCond_Always);
+            ImGui::SetNextItemOpen (false, ImGuiCond_Always);
 
             if (ImGui::TreeNodeEx (hashed_name, ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_AllowOverlap | selected))
             {
@@ -2071,7 +2071,7 @@ public:
             static bool changed_once = false;
                    bool changed      = false;
 
-            ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV (0.15f, 0.95f, 0.55f));
+            ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV (0.15f, 0.95f, 0.55f).Value);
 
             if (SK_API_IsLayeredOnD3D11 (rb.api))
             {
@@ -2218,7 +2218,7 @@ public:
                 ImGui::SameLine    ();
               
                 if (__SK_HDR_AdaptiveToneMap)
-                  ImGui::SetNextTreeNodeOpen (true, ImGuiCond_Once);
+                  ImGui::SetNextItemOpen (true, ImGuiCond_Once);
               }
 
               bExperimental =
@@ -2509,7 +2509,7 @@ public:
                      swap_desc1.Format     == DXGI_FORMAT_R10G10B10A2_UNORM &&
                      rb.scanout.getEOTF () != SK_RenderBackend::scan_out_s::SMPTE_2084 ) ) )
           {
-            ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.05f, .8f, .9f));
+            ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.05f, .8f, .9f).Value);
             ImGui::BulletText     ("HDR May Not be Working Correctly Until you Restart the Game...");
             ImGui::PopStyleColor  ();
           }

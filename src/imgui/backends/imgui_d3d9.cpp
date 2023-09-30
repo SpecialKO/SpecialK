@@ -408,7 +408,7 @@ ImGui_ImplDX9_Init ( void*                  hwnd,
     ImGui::GetIO ();
 
   // Alternatively you can set this to NULL and call ImGui::GetDrawData() after ImGui::Render() to get the same ImDrawData pointer.
-  io.ImeWindowHandle = g_hWnd;
+//io.ImeWindowHandle = g_hWnd;
 
   float width  = 0.0f,
         height = 0.0f;

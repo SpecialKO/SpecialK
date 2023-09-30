@@ -1612,7 +1612,7 @@ ImGui_ImplDX11_Init ( IDXGISwapChain*      pSwapChain,
   g_frameBufferWidth     = swap_desc.BufferDesc.Width;
   g_frameBufferHeight    = swap_desc.BufferDesc.Height;
   g_hWnd                 = swap_desc.OutputWindow;
-  io.ImeWindowHandle     = g_hWnd;
+//io.ImeWindowHandle     = g_hWnd;
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();

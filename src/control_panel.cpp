@@ -331,11 +331,11 @@ namespace SK_ImGui
                 0.166f + (0.5f + (sin ((float)(current_time % 2000) / 2000.0f)) * 0.5f) / 2.0f :
                 0.666f;
 
-          ImGui::PushStyleColor (ImGuiCol_PlotHistogram,  (unsigned int)ImColor::HSV (battery_ratio * 0.278f, 0.88f, luminance));
-          ImGui::PushStyleColor (ImGuiCol_Text,           (unsigned int)ImColor (255, 255, 255));
-          ImGui::PushStyleColor (ImGuiCol_FrameBg,        (unsigned int)ImColor ( 0.3f,  0.3f,  0.3f, 0.7f));
-          ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, (unsigned int)ImColor ( 0.6f,  0.6f,  0.6f, 0.8f));
-          ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  (unsigned int)ImColor ( 0.9f,  0.9f,  0.9f, 0.9f));
+          ImGui::PushStyleColor (ImGuiCol_PlotHistogram,  ImColor::HSV (battery_ratio * 0.278f, 0.88f, luminance).Value);
+          ImGui::PushStyleColor (ImGuiCol_Text,           ImColor (255, 255, 255).Value);
+          ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor ( 0.3f,  0.3f,  0.3f, 0.7f).Value);
+          ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor ( 0.6f,  0.6f,  0.6f, 0.8f).Value);
+          ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor ( 0.9f,  0.9f,  0.9f, 0.9f).Value);
 
           ImGui::ProgressBar ( battery_ratio,
                                  ImVec2 (-1, 0),
@@ -574,7 +574,8 @@ SK_ImGui_IsItemClicked (void)
     auto& io =
       ImGui::GetIO ();
 
-    if (io.NavInputsDownDuration [ImGuiNavInput_Activate] == 0.0f)
+    /// XXX: FIXME
+    if (io.NavInputs [ImGuiNavInput_Activate] == 0.0f)
     {
       return true;
     }
@@ -594,8 +595,9 @@ SK_ImGui_IsItemRightClicked (void)
     auto& io =
       ImGui::GetIO ();
 
-    if (io.NavInputsDownDuration [ImGuiNavInput_Activate] > 0.4f)
-    {   io.NavInputsDownDuration [ImGuiNavInput_Activate] = 0.0f;
+    /// XXX: FIXME
+    if (io.NavInputs [ImGuiNavInput_Activate] > 0.4f)
+    {   io.NavInputs [ImGuiNavInput_Activate] = 0.0f;
       return true;
     }
   }
@@ -3248,7 +3250,7 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::SameLine       ();
 
-          ImGui::PushStyleColor (ImGuiCol_Text, ImColor (1.0f, .7f, .3f));
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor (1.0f, .7f, .3f).Value);
           ImGui::BulletText     ("HDR Is Not Currently Enabled");
           ImGui::PopStyleColor  ();
         }
@@ -4551,8 +4553,8 @@ SK_ImGui_ControlPanel (void)
           float target_mag = fabs (target);
 
           ImGui::PushStyleColor ( ImGuiCol_Text,
-            ( active ? ImColor (1.00f, 1.00f, 1.00f)
-                     : ImColor (0.73f, 0.73f, 0.73f) ) );
+            ( active ? ImColor (1.00f, 1.00f, 1.00f).Value
+                     : ImColor (0.73f, 0.73f, 0.73f).Value ) );
 
           if ( ImGui::DragFloat ( label, &target_mag,
                                       1.0f, 24.0f, 166.0f, target > 0 ?
@@ -6487,9 +6489,12 @@ SK_ImGui_StageNextFrame (void)
         ImGui::GetIO ().NavActive  = true;
         ImGui::GetIO ().NavVisible = true;
 
+        /// XXX: FIXME
+#if 0
         ImGui::SetNavID (
           ImGui::GetItemID (), 0
         );
+#endif
 
         GImGui->NavDisableHighlight  = false;
         GImGui->NavDisableMouseHover =  true;
@@ -6601,9 +6606,12 @@ SK_ImGui_StageNextFrame (void)
       ImGui::GetIO ().NavActive  = true;
       ImGui::GetIO ().NavVisible = true;
 
+      /// XXX: FIXME
+#if 0
       ImGui::SetNavID (
         ImGui::GetItemID (), 0
       );
+#endif
 
       GImGui->NavDisableHighlight  = false;
       GImGui->NavDisableMouseHover =  true;
@@ -6739,9 +6747,12 @@ SK_ImGui_StageNextFrame (void)
         ImGui::GetIO ().NavActive  = true;
         ImGui::GetIO ().NavVisible = true;
 
+        /// XXX: FIXME
+#if 0
         ImGui::SetNavID (
           ImGui::GetItemID (), 0
         );
+#endif
 
         GImGui->NavDisableHighlight  = false;
         GImGui->NavDisableMouseHover =  true;

@@ -2619,7 +2619,7 @@ SK_ShutdownCore (const wchar_t* backend)
   if (ImGui::GetCurrentContext () != nullptr)
   {
     ImGui::Shutdown (
-      ImGui::GetCurrentContext ()
+      //ImGui::GetCurrentContext ()
     );
   }
 

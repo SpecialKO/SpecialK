@@ -940,9 +940,9 @@ CODE
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include "imgui.h"
+#include <imgui/imgui.h>
 #ifndef IMGUI_DISABLE
-#include "imgui_internal.h"
+#include <imgui/imgui_internal.h>
 
 // System includes
 #include <stdio.h>      // vsnprintf, sscanf, printf
@@ -15114,3 +15114,67 @@ void ImGui::UpdateDebugToolStackQueries() {}
 //-----------------------------------------------------------------------------
 
 #endif // #ifndef IMGUI_DISABLE
+
+
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
+
+// XXX: Special K Addition
+bool ImGui::IsNavDragging (int stick_no, float lock_threshold)
+{
+  stick_no = 0;
+  ///IM_ASSERT (ImGuiNavInput_PadScrollUp == ImGuiNavInput_PadUp + 4);
+  ///IM_ASSERT (stick_no >= 0 && stick_no < 2);
+
+  ImGuiContext& g = *GImGui;
+
+  if (g.NavWindowingTarget != nullptr)
+  {
+    ImVec2 delta (
+      GetNavInputAmount (ImGuiNavInput_DpadRight + stick_no * 4, ImGuiInputReadMode_Down) - GetNavInputAmount (ImGuiNavInput_DpadLeft + stick_no * 4, ImGuiInputReadMode_Down),
+      GetNavInputAmount (ImGuiNavInput_DpadDown  + stick_no * 4, ImGuiInputReadMode_Down) - GetNavInputAmount (ImGuiNavInput_DpadUp   + stick_no * 4, ImGuiInputReadMode_Down)
+    );
+
+    if (lock_threshold < 0.0f)
+      lock_threshold = g.IO.MouseDragThreshold;
+    if (delta.x != 0.0 || delta.y != 0.0)// >= lock_threshold * lock_threshold)
+      return true;
+  }
+
+  return false;
+}
+
+#if 0
+static ImGuiContext     GImDefaultContext;
+ImGuiContext* GImGui = &GImDefaultContext;
+void SK_ImGui_Init (void) { };
+#else
+ImGuiContext* GImGui = nullptr;
+
+ImGuiContext* SK_GImDefaultContext (void)
+{
+  static ImGuiContext** GImDefaultContext = &GImGui;
+  return               *GImDefaultContext;
+}
+
+void SK_ImGui_Init (void)
+{
+  GImGui =
+    ImGui::CreateContext ();
+
+  ImGui::StyleColorsClassic (&SK_GImDefaultContext ()->Style);
+
+  ImGuiIO& io =
+    ImGui::GetIO ();
+
+  io.ConfigFlags |= ( ImGuiConfigFlags_NavEnableKeyboard |
+                      ImGuiConfigFlags_NavEnableGamepad  |
+                      ImGuiConfigFlags_NavEnableSetMousePos );
+
+  io.BackendFlags |= ( ImGuiBackendFlags_HasGamepad |
+                     /*ImGuiBackendFlags_HasMouseCursors |*/
+                       ImGuiBackendFlags_HasSetMousePos );
+
+  SK_ImGui_LoadFonts ();
+}
+#endif

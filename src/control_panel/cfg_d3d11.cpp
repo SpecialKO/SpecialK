@@ -737,8 +737,8 @@ SK::ControlPanel::D3D11::Draw (void)
 
           ImGui::PushStyleColor ( ImGuiCol_Text,
             currentFrame > lastFrame - _RECENT_USE_THRESHOLD   ?
-                                 ImColor (0.5f,0.5f,0.5f,1.0f) :
-                                 ImColor (1.0f,1.0f,1.0f,1.0f) );
+                           ImColor (0.5f,0.5f,0.5f,1.0f).Value :
+                           ImColor (1.0f,1.0f,1.0f,1.0f).Value );
 
           if ( UINT                                               uiStrLen = MAX_PATH ;
         FAILED ( ps->GetPrivateData ( WKPDID_D3DDebugObjectName, &uiStrLen, name.data () )
@@ -1752,10 +1752,13 @@ SK::ControlPanel::D3D11::Draw (void)
         static float limit =
           config.render.dxgi.warn_if_vram_exceeds;
 
+        /// XXX: FIXME
+#if 0
         SK_ImGui::SliderFloatDeferred (
           "###VRAM_QUOTA", &config.render.dxgi.warn_if_vram_exceeds,
                            &limit, 15.0f, 105.0f, "%2.2f%% of Available",
                                     2.0f );
+#endif
 
         if (config.render.dxgi.warned_low_vram)
         {

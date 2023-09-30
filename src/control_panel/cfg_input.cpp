@@ -24,6 +24,7 @@
 #include <SpecialK/control_panel/input.h>
 
 #include <imgui/font_awesome.h>
+#include <imgui/imgui_user.inl>
 
 bool cursor_vis = false;
 
@@ -1558,12 +1559,12 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
            i == VK_LMENU    || i == VK_RMENU    || i == VK_MENU )
         continue;
 
-      if ( io.KeysDownDuration [i] == 0.0 )
+      if (ImGui::IsKeyPressed (ImGui_ImplWin32_VirtualKeyToImGuiKey (i), false))
         break;
     }
 
     bool bEscape =
-      io.KeysDownDuration [VK_ESCAPE] == 0.0f;
+      ImGui::IsKeyPressed (ImGuiKey_Escape, false);
 
     if (i != 256)
     {
@@ -1690,8 +1691,9 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
 
         for (int i = 0; i < 16; i++)
         {
-          io.NavInputsDownDuration     [i] = 0.1f;
-          io.NavInputsDownDurationPrev [i] = 0.1f;
+          ///XXX FIXME
+/////////io.NavInputsDownDuration     [i] = 0.1f;
+/////////io.NavInputsDownDurationPrev [i] = 0.1f;
         }
 
         SK_ImGui_GamepadComboDialogActive = false;

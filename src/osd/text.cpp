@@ -1954,14 +1954,14 @@ SK_TextOverlay::update (const char* szText)
         ImGui::GetFont     (),
         ImGui::GetFontSize (), ImVec2 (x            + 1.f,
                                        y + baseline + 1.f),
-                               shadow,         line,
+                     ImColor (shadow),         line,
                               NULL, 0.0f, nullptr );
       // Then the foreground
       //
       draw_list->AddText (
         ImGui::GetFont     (),
         ImGui::GetFontSize (), ImVec2 (x, y + baseline),
-                               foreground,        line,
+                     ImColor (foreground),        line,
                                  NULL, 0.0f, nullptr );
     }
 
