@@ -3235,7 +3235,7 @@ SK_Window_RepositionIfNeeded (void)
           SK_SetWindowStyleEx (
             SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE)
           );
-        })
+        });
       }
 
       static constexpr DWORD _WorkSignal = WAIT_OBJECT_0 + 1;

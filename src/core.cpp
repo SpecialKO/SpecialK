@@ -2975,7 +2975,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
               game_window.active |=
                 (SK_GetForegroundWindow () == game_window.hWnd);
-            })
+            });
           }
         }
 

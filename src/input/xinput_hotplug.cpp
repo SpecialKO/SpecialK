@@ -182,7 +182,7 @@ SK_XInput_NotifyDeviceArrival (void)
 
                     SK_ReleaseAssert (
                       pDevHdr->dbch_size >= sizeof (DEV_BROADCAST_DEVICEINTERFACE_W)
-                    )
+                    );
 
                     DEV_BROADCAST_DEVICEINTERFACE_W *pDev =
                       (DEV_BROADCAST_DEVICEINTERFACE_W *)pDevHdr;
@@ -346,7 +346,7 @@ SK_XInput_NotifyDeviceArrival (void)
         return 0;
       }, L"[SK] HID Hotplug Dispatch", (LPVOID)SK_XInputHot_NotifyEvent
     );
-  })
+  });
 }
 
 

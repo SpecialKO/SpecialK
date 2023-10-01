@@ -1268,7 +1268,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
       SK_LOGi0 (
         L" *** SK_D3D11_BltCopySurface (...) from src w/ %d mip levels to dst w/ %d",
            srcTexDesc.MipLevels, dstTexDesc.MipLevels )
-    )
+    );
   }
 
   struct {

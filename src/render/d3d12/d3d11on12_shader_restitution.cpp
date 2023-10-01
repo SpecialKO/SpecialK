@@ -223,7 +223,7 @@ struct ShaderBase
     {
 #pragma warning (push)
 #pragma warning (disable: 4130) // No @#$% sherlock
-      SK_ReleaseAssert ("WTF?!" == nullptr)
+      SK_ReleaseAssert ("WTF?!" == nullptr);
 #pragma warning (pop)
     }
 

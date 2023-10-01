@@ -463,7 +463,7 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
            // NVIDIA's User-Mode D3D Frontend
            StrStrI  (lpFileName, SK_TEXT("nvd3dum.dll")) ||
            StrStrIW (wszModName,        L"nvd3dum.dll")  ) )
-      SK_RunOnce (SK_BootD3D9   ())
+      SK_RunOnce (SK_BootD3D9   ());
 #ifdef _M_IX86
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::D3D8)) && config.apis.d3d8.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d8.dll")) ||
@@ -477,50 +477,50 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d11.dll")) ||
                 StrStrIW (wszModName,        L"d3d11.dll") ))
-      SK_RunOnce (SK_BootDXGI   ())
+      SK_RunOnce (SK_BootDXGI   ());
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d11.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("dxcore.dll")) || // Unity?! WTF are you doing?
                 StrStrIW (wszModName,        L"dxcore.dll") ))
-      SK_RunOnce (SK_BootDXGI   ())
+      SK_RunOnce (SK_BootDXGI   ());
     else if ( (! (SK_GetDLLRole () & DLL_ROLE::DXGI)) && config.apis.dxgi.d3d12.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("d3d12.dll")) ||
                 StrStrIW (wszModName,        L"d3d12.dll") ))
-      SK_RunOnce (SK_BootDXGI   ())
+      SK_RunOnce (SK_BootDXGI   ());
 #ifdef _M_AMD64
     else if (   StrStrI  (lpFileName, SK_TEXT("vulkan-1.dll")) ||
                 StrStrIW (wszModName,        L"vulkan-1.dll")  )
-      SK_RunOnce (SK_BootVulkan ())
+      SK_RunOnce (SK_BootVulkan ());
 #endif
     else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) && config.apis.OpenGL.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("OpenGL32.dll")) ||
                 StrStrIW (wszModName,        L"OpenGL32.dll") ))
-      SK_RunOnce (SK_BootOpenGL ())
+      SK_RunOnce (SK_BootOpenGL ());
     else if (   //SK_XInput_LinkedVersion.empty () &&
                 StrStrI (lpFileName, SK_TEXT("xinput1_3.dll")) )
-                     SK_RunOnce (SK_Input_HookXInput1_3 ())
+                     SK_RunOnce (SK_Input_HookXInput1_3 ());
     else if (   //SK_XInput_LinkedVersion.empty () &&
                 StrStrI (lpFileName, SK_TEXT("xinput1_4.dll")) )
-                     SK_RunOnce (SK_Input_HookXInput1_4 ())
+                     SK_RunOnce (SK_Input_HookXInput1_4 ());
     else if (   //SK_XInput_LinkedVersion.empty () &&
                 StrStrI (lpFileName, SK_TEXT("xinput9_1_0.dll")) )
-                     SK_RunOnce (SK_Input_HookXInput9_1_0 ())
+                     SK_RunOnce (SK_Input_HookXInput9_1_0 ());
     else if (   StrStrI (lpFileName, SK_TEXT("dinput8.dll")) )
-      SK_RunOnce (SK_Input_HookDI8 ())
+      SK_RunOnce (SK_Input_HookDI8 ());
     else if (   StrStrI (lpFileName, SK_TEXT("dinput.dll")) )
-      SK_RunOnce (SK_Input_HookDI7 ())
+      SK_RunOnce (SK_Input_HookDI7 ());
     else if (   StrStrI (lpFileName, SK_TEXT("hid.dll")) )
-      SK_RunOnce (SK_Input_HookHID ())
+      SK_RunOnce (SK_Input_HookHID ());
     else if (   StrStrI ( lpFileName, SK_TEXT("EOSSDK-Win")) ||
                 StrStrIW (wszModName,        L"EOSSDK-Win") )
-      SK_RunOnce (SK::EOS::Init (false))
+      SK_RunOnce (SK::EOS::Init (false));
     else if (   StrStrI ( lpFileName, SK_TEXT("libScePad")) ||
                 StrStrIW (wszModName,        L"libScePad") )
-      SK_RunOnce (SK_Input_HookScePad ())
+      SK_RunOnce (SK_Input_HookScePad ());
     else if (   StrStrI ( lpFileName, SK_TEXT("dstorage.dll")) ||
                 StrStrIW (wszModName,        L"dstorage.dll") )
     {
       extern void SK_DStorage_Init (void);
-      SK_RunOnce (SK_DStorage_Init ())
+      SK_RunOnce (SK_DStorage_Init ());
     }
     else if (   StrStrI ( lpFileName, SK_TEXT("sl.interposer.dll")) ||
                 StrStrIW (wszModName,        L"sl.interposer.dll") )

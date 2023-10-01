@@ -2202,18 +2202,10 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
 
   if (bHasStreamline)
   {
-    SK_LOGi0 (L"Hooking Streamline Native Interface for ID3D12Device...");
-    
-    if (SK_slGetNativeInterface (pDevice12, (void **)&pDev12.p) != sl::Result::eOk)
-    {
-      SK_LOGi0 (L"Failed to Get Native Interface for D3D12 Device!");
-
-      pDev12 = pDevice12;
-    }
-  }
-
-  else
-    pDev12 = pDevice12;
+    if (SK_slGetNativeInterface (pDevice12, (void **)&pDev12.p) == sl::Result::eOk)
+      SK_LOGi0 (L"Hooking Streamline Native Interface for ID3D12Device...");
+    else pDev12 = pDevice12;
+  } else pDev12 = pDevice12;
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateCommandAllocator",
                             *(void ***)*(&pDev12), 9,

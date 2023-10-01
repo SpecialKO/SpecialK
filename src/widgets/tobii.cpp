@@ -836,7 +836,7 @@ SK_Tobii_Startup ( tobii_api_t*&    api,
                                    SK_Tobii_Callback_GazePoint,
                                      nullptr );
 
-  SK_ReleaseAssert (error == TOBII_ERROR_NO_ERROR)
+  SK_ReleaseAssert (error == TOBII_ERROR_NO_ERROR);
 
   if (error != TOBII_ERROR_NO_ERROR)
   {

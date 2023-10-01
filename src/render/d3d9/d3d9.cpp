@@ -803,12 +803,12 @@ SK_D3DX9_GetModule (bool acquire = false)
 
   if ( nullptr == hModD3DX9_43 && acquire )
   {  SK_RunOnce ( hModD3DX9_43 =
-                   SK_D3DX9_Unpack () )   }
+                   SK_D3DX9_Unpack () );  }
 
   if ( nullptr != hModD3DX9_43 )
   { 
     SK_RunOnce (  std::atexit ( []
-    {FreeLibrary (hModD3DX9_43);}) )
+    {FreeLibrary (hModD3DX9_43);}) );
   }
 
   return

@@ -146,7 +146,7 @@ SK_Debug_LoadHelper (void)
   else
     SK_Thread_SpinUntilAtomicMin (&__init, 2);
 
-  SK_ReleaseAssert (hModDbgHelp != nullptr)
+  SK_ReleaseAssert (hModDbgHelp != nullptr);
 
   return
     hModDbgHelp;
