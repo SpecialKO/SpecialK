@@ -203,7 +203,7 @@
 #include <SpecialK/injection/injection.h>
 #include <SpecialK/plugin/reshade.h>
 
-#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
+//#define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 #include <imgui/imgui.h>
 
 #include <mmsystem.h>

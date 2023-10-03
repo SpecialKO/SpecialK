@@ -1,4 +1,10 @@
-﻿23.9.30.2
+﻿23.10.2
+=======
+ + Experimental version with ImGui render code updated
+ + A number of input-related features have been broken by this update, and
+     will be fixed over time.
+
+23.9.30.2
 =========
  + Added command console variable to control cursor visibility using macros
 
