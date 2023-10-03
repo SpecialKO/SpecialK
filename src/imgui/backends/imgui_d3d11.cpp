@@ -588,8 +588,8 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
         if (pcmd->UserCallback)
         {
           // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
-          if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
-            SK_ReleaseAssert (!L"ImDrawCallback_ResetRenderState = Not Implemented")// ImGui_ImplDX11_SetupRenderState (draw_data, pDevCtx);
+        if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+            SK_ReleaseAssert(!L"ImDrawCallback_ResetRenderState = Not Implemented"); // ImGui_ImplDX11_SetupRenderState (draw_data, pDevCtx);
           else
             pcmd->UserCallback (cmd_list, pcmd);
         }
