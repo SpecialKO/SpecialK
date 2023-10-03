@@ -351,8 +351,8 @@ SK_GetBitness (void)
 
 // Avoid the C++ stdlib and use CPU interlocked instructions instead, so this
 //   is safe to use even by parts of the DLL that run before the CRT initializes
-#define SK_RunOnce(x)    { static volatile LONG __once = TRUE; \
-               if (InterlockedCompareExchange (&__once, FALSE, TRUE)) { x; } }
+#define SK_RunOnce(x) do { static volatile LONG __once = TRUE; \
+               if (InterlockedCompareExchange (&__once, FALSE, TRUE)) { x; } } while (0)
 static inline auto
         SK_RunOnceEx =
               [](auto x){ static std::once_flag the_wuncler;
@@ -360,12 +360,12 @@ static inline auto
 
 #define SK_RunIf32Bit(x)         { SK_GetBitness () == ThirtyTwoBit  ? (x) :  0; }
 #define SK_RunIf64Bit(x)         { SK_GetBitness () == SixtyFourBit  ? (x) :  0; }
-#define SK_RunLHIfBitness(b,l,r)   SK_GetBitness () == (b)           ? (l) : (r)
+#define SK_RunLHIfBitness(b,l,r)  (SK_GetBitness () == (b)           ? (l) : (r))
 
 
-#define SK_LOG_FIRST_CALL { SK_RunOnce ({                                             \
+#define SK_LOG_FIRST_CALL SK_RunOnce ({                                               \
         SK_LOG0 ( (L"[!] > First Call: %34s", __FUNCTIONW__),      __SK_SUBSYSTEM__); \
-        SK_LOG1 ( (L"    <*> %s", SK_SummarizeCaller ().c_str ()), __SK_SUBSYSTEM__); }); }
+        SK_LOG1 ( (L"    <*> %s", SK_SummarizeCaller ().c_str ()), __SK_SUBSYSTEM__); });
 
 
 void SK_ImGui_Warning          (const wchar_t* wszMessage);
@@ -399,7 +399,7 @@ void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,
 
 #define SK_ReleaseAssert(expr) do { SK_ReleaseAssertEx ( (expr),L#expr, \
                                                     __FILEW__,__LINE__, \
-                                                    __FUNCSIG__ ) } while (0);
+                                                    __FUNCSIG__ ) } while (0)
 
 
 struct SK_ThreadSuspension_Ctx {

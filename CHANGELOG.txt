@@ -1,4 +1,84 @@
-﻿23.9.28
+﻿23.9.30.2
+=========
+ + Added command console variable to control cursor visibility using macros
+
+     Cursor.Visible {true|false}
+
+23.9.30.1
+=========
+ + Fixed D3D12 SwapChain resize failures in FSR3 Frame Generation games.
+
+23.9.30
+=======
+ + Added OBS executables to SK's internal injection blacklist to prevent
+     SK from injecting into the Steam version w/o users whitelisting it.
+
+23.9.29.4
+=========
+ + Set Starfield's Resolution Scale setting accordingly when selecting a
+     DLSS Mode in FSR2Streamline.
+
+23.9.29.3
+=========
+ + Framepacing graph now displays the dim "NV" text whenever Reflex's framerate
+     limiter is active, even if the user is not manually using DLSS-G Pacing.
+
+23.9.29.2
+=========
+ + Implicitly override a game's Reflex settings if DLSS-G is active and
+     a framerate limit is set, but user has not requested Reflex override.
+ + Correctly handle Reflex overrides in games (i.e. The Witcher 3) that set
+     NvSleep parameters EVERY frame despite documented performance penalties.
+
+23.9.29.1
+=========
+ + Run all of Starfield's Steam callbacks on its main thread
+
+23.9.29
+=======
+ + Added DLSS-G detection for all D3D12 games; false positives may happen
+     when using menus in some games that switch DLSS-G off in menus.
+
+23.9.28.5
+=========
+ + Fixed potential initialization issues in Nixxes games that use
+     Streamline + DLSS-G
+
+23.9.28.4
+=========
+ + Added Reflex + SK Framerate Limiter back to FSR2Streamline's DLSS-G
+     control panel.
+
+    >> Enabled by default, this may temporarily increase latency after
+         opening menus (DLSS-G turns off) and closing them. But latency
+           will come down during gameplay.
+
+    * Should produce DLSS Frame Generation frame pacing nearly as good as
+        SK native framerate limiting.
+
+23.9.28.3
+=========
+ + Disabled Streamline compatibility mode for FSR2Streamline in Starfield,
+     reset SK's config file if using an updated version of FSR2Streamline.
+
+23.9.28.2
+=========
+ + Handle Auto-DLSS-G pacing mode better when using FSR2Streamline
+
+    >> Previous implementation did not auto-activate DLSS-G Pacing mode
+         without first opening the control panel...
+
+23.9.28.1
+=========
+ + Added alternate thread scheduling mode for Starfield:
+
+    * Prevents CreationRender threads from rapidly raising and lowering priority
+    * Disables likely errant SetThreadPriorityBoost (..., TRUE) on I/O threads
+    * Raises priority on game save thread to reduce hitching
+
+   Enabled by default, see the Performance section of Starfield's control panel
+
+23.9.28
 =======
  + Automatically load FSR2Streamline.asi w/ lazy load order if it is present
      in a game's directory

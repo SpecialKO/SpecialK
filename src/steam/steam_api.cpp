@@ -2782,6 +2782,15 @@ SK_Steam_DrawOSD (void)
 bool
 SK_Steam_ShouldThrottleCallbacks (void)
 {
+  static const bool
+      bOnlyRunOnMainThread = SK_IsCurrentGame (SK_GAME_ID::Starfield);
+  if (bOnlyRunOnMainThread)
+  {
+    // Eliminate this call; main thread will pick up the slack
+    if (SK_GetCurrentThreadId () != SK_GetMainThreadID ())
+      return true;
+  }
+
   if (ReadAcquire (&__SK_Steam_init))
   {
     InterlockedIncrement64 (&SK_SteamAPI_CallbackRunCount);

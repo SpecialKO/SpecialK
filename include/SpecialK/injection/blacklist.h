@@ -227,6 +227,7 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"displayhdrcompliancetests.exe",
   L"scriptedsandbox64.exe",
   L"crashreportclient.exe",
+  L"blizzarderror.exe",
   L"crs-handler.exe",
 
   L"gamebar.exe",
@@ -242,7 +243,6 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"windowsterminal.exe",
   L"cmd.exe",
   L"steam.exe",
-  L"powershell.exe",
   L"openconsole.exe",
   L"epicwebhelper.exe",
   L"steamwebhelper.exe",
@@ -260,8 +260,13 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"esrv.exe",
   L"ipoint.exe",
   L"itype.exe",
-  L"devenv.exe",
   L"msedge.exe",
   L"vsgraphics.exe",
-  L"msedgewebview2.exe"
+  L"msedgewebview2.exe",
+  L"powershell.exe",
+  L"devenv.exe",
+
+  // OBS Stuff
+  L"obs-browser-page.exe",
+  L"obs64.exe"
 };

@@ -8503,7 +8503,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
   //  * This is recoverable and by the next full frame
   //      all of SK's Critical Sections will be setup
   //
-  SK_ReleaseAssert (cs_render_view != nullptr)
+  SK_ReleaseAssert (cs_render_view != nullptr);
 
   if (!cs_render_view)      // Skip this frame, we'll get it
   {                         //   on the next go-around.

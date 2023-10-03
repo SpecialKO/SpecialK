@@ -197,5 +197,5 @@ SK_Persona4_InitPlugin (void)
 
     plugin_mgr->config_fns.insert    (SK_Persona4_PlugInCfg);
     plugin_mgr->end_frame_fns.insert (SK_Persona4_EndFrame);
-  })
+  });
 }

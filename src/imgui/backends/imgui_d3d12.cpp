@@ -1996,45 +1996,45 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
                   pSwapChain,
                  _pSwapChain.p
     );
-
-    if (SK_IsDebuggerPresent ())
-    {
-      SK_ComQIPtr <ID3D12DebugDevice>
-                        pDebugDevice (_pDevice.p);
-
-      if (pDebugDevice)
-          pDebugDevice->ReportLiveDeviceObjects ( D3D12_RLDO_SUMMARY | D3D12_RLDO_DETAIL|
-                                                  D3D12_RLDO_IGNORE_INTERNAL );
-    }
-
-    SK_D3D12_EndFrame (SK_TLS_Bottom ());
-
-
-    ImGui_ImplDX12_Shutdown ();
-
-    ///// 1 frame delay for re-init
-    ///frame_delay.fetch_add (1);
-
-    // Steam overlay is releasing references to the SwapChain it did not acquire (!!)
-    if (! SK_ValidatePointer (_pSwapChain.p, true))
-                              _pSwapChain.p = nullptr;
-
-    if (! SK_ValidatePointer (_pDevice.p, true))
-                              _pDevice.p = nullptr;
-
-    frames_.clear ();
-
-    // Do this after closing the command lists (frames_.clear ())
-    pHDRPipeline.Release                 ();
-    pHDRSignature.Release                ();
-
-    descriptorHeaps.pBackBuffers.Release ();
-    descriptorHeaps.pImGui.Release       ();
-    descriptorHeaps.pHDR.Release         ();
-
-    _pSwapChain.Release ();
-    _pDevice.Release    ();
   }
+
+  if (SK_IsDebuggerPresent ())
+  {
+    SK_ComQIPtr <ID3D12DebugDevice>
+                      pDebugDevice (_pDevice.p);
+
+    if (pDebugDevice)
+        pDebugDevice->ReportLiveDeviceObjects ( D3D12_RLDO_SUMMARY | D3D12_RLDO_DETAIL|
+                                                D3D12_RLDO_IGNORE_INTERNAL );
+  }
+
+  SK_D3D12_EndFrame (SK_TLS_Bottom ());
+
+
+  ImGui_ImplDX12_Shutdown ();
+
+  ///// 1 frame delay for re-init
+  ///frame_delay.fetch_add (1);
+
+  // Steam overlay is releasing references to the SwapChain it did not acquire (!!)
+  if (! SK_ValidatePointer (_pSwapChain.p, true))
+                            _pSwapChain.p = nullptr;
+
+  if (! SK_ValidatePointer (_pDevice.p, true))
+                            _pDevice.p = nullptr;
+
+  frames_.clear ();
+
+  // Do this after closing the command lists (frames_.clear ())
+  pHDRPipeline.Release                 ();
+  pHDRSignature.Release                ();
+
+  descriptorHeaps.pBackBuffers.Release ();
+  descriptorHeaps.pImGui.Release       ();
+  descriptorHeaps.pHDR.Release         ();
+
+  _pSwapChain.Release ();
+  _pDevice.Release    ();
 }
 
 bool
@@ -2063,6 +2063,10 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
     {
       return false;
     }
+
+    SK_ComPtr <ID3D12Device>                           pNativeDev12;
+    if (SK_slGetNativeInterface (_pDevice.p, (void **)&pNativeDev12.p) == sl::Result::eOk)
+                                 _pDevice =            pNativeDev12;
   }
 
   if (_pDevice.p != nullptr)
@@ -2088,8 +2092,11 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         _pCommandQueue = pCommandQueue;
 
         if (_pCommandQueue != nullptr)
-        {
-          _pCommandQueue->GetDevice (IID_PPV_ARGS (&_pDevice.p));
+        {   _pCommandQueue->GetDevice (IID_PPV_ARGS (&_pDevice.p));
+
+          SK_ComPtr <ID3D12Device>                         pNativeDev12;
+          if (SK_slGetNativeInterface (_pDevice, (void **)&pNativeDev12.p) == sl::Result::eOk)
+                                       _pDevice =          pNativeDev12;
         }
 #endif
       }

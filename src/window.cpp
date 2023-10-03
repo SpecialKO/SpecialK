@@ -103,9 +103,9 @@ GetSystemMetrics_pfn     GetSystemMetrics_Original     = nullptr;
 GetWindowRect_pfn        GetWindowRect_Original        = nullptr;
 GetClientRect_pfn        GetClientRect_Original        = nullptr;
 
-using GetWindowInfo_pfn = BOOL (WINAPI *)(HWND, PWINDOWINFO);
-      GetWindowInfo_pfn
-      GetWindowInfo_Original = nullptr;
+using  GetWindowInfo_pfn = BOOL (WINAPI *)(HWND, PWINDOWINFO);
+static GetWindowInfo_pfn
+       GetWindowInfo_Original = nullptr;
 
 bool
 SK_EarlyDispatchMessage (MSG *lpMsg, bool remove, bool peek = false);
@@ -1908,22 +1908,20 @@ BOOL
 WINAPI
 SK_GetWindowRect (HWND hWnd, LPRECT rect)
 {
-  if (GetWindowRect_Original != nullptr)
-    return GetWindowRect_Original (hWnd, rect);
-
   return
-    GetWindowRect (hWnd, rect);
+    GetWindowRect_Original != nullptr   ?
+    GetWindowRect_Original (hWnd, rect) :
+    GetWindowRect          (hWnd, rect);
 }
 
 BOOL
 WINAPI
 SK_GetClientRect (HWND hWnd, LPRECT rect)
 {
-  if (GetClientRect_Original != nullptr)
-    return GetClientRect_Original (hWnd, rect);
-
   return
-    GetClientRect (hWnd, rect);
+    GetClientRect_Original != nullptr   ?
+    GetClientRect_Original (hWnd, rect) :
+    GetClientRect          (hWnd, rect);
 }
 
 static
@@ -2444,11 +2442,10 @@ SK_GetWindowLongA (
   _In_ HWND hWnd,
   _In_ int  nIndex)
 {
-  if (GetWindowLongA_Original != nullptr)
-    return GetWindowLongA_Original (hWnd, nIndex);
-
   return
-    GetWindowLongA (hWnd, nIndex);
+    GetWindowLongA_Original != nullptr     ?
+    GetWindowLongA_Original (hWnd, nIndex) :
+    GetWindowLongA          (hWnd, nIndex);
 }
 
 DECLSPEC_NOINLINE
@@ -2474,11 +2471,10 @@ SK_GetWindowLongW (
   _In_ HWND hWnd,
   _In_ int  nIndex)
 {
-  if (GetWindowLongW_Original != nullptr)
-    return GetWindowLongW_Original (hWnd, nIndex);
-
   return
-    GetWindowLongW (hWnd, nIndex);
+    GetWindowLongW_Original != nullptr     ?
+    GetWindowLongW_Original (hWnd, nIndex) :
+    GetWindowLongW          (hWnd, nIndex);
 }
 
 DECLSPEC_NOINLINE
@@ -2880,10 +2876,10 @@ SK_GetWindowLongPtrA (
   _In_ HWND     hWnd,
   _In_ int      nIndex   )
 {
-  if (GetWindowLongPtrA_Original != nullptr)
-    return GetWindowLongPtrA_Original (hWnd, nIndex);
-
-  return GetWindowLongPtrA (hWnd, nIndex);
+  return
+    GetWindowLongPtrA_Original != nullptr     ?
+    GetWindowLongPtrA_Original (hWnd, nIndex) :
+    GetWindowLongPtrA          (hWnd, nIndex);
 }
 
 DECLSPEC_NOINLINE
@@ -2909,10 +2905,9 @@ SK_GetWindowLongPtrW   (
   _In_ HWND     hWnd,
   _In_ int      nIndex )
 {
-  if (GetWindowLongPtrW_Original != nullptr)
-    return GetWindowLongPtrW_Original (hWnd, nIndex);
-
-  return GetWindowLongPtrW (hWnd, nIndex);
+  return GetWindowLongPtrW_Original != nullptr     ?
+         GetWindowLongPtrW_Original (hWnd, nIndex) :
+         GetWindowLongPtrW          (hWnd, nIndex);
 }
 
 DECLSPEC_NOINLINE
@@ -3240,7 +3235,7 @@ SK_Window_RepositionIfNeeded (void)
           SK_SetWindowStyleEx (
             SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE)
           );
-        })
+        });
       }
 
       static constexpr DWORD _WorkSignal = WAIT_OBJECT_0 + 1;
@@ -3923,11 +3918,10 @@ int
 WINAPI
 SK_GetSystemMetrics (_In_ int nIndex)
 {
-  if (     GetSystemMetrics_Original != nullptr)
-    return GetSystemMetrics_Original (nIndex);
-
   return
-    GetSystemMetrics (nIndex);
+    GetSystemMetrics_Original != nullptr ?
+    GetSystemMetrics_Original (nIndex)   :
+    GetSystemMetrics          (nIndex);
 }
 
 BOOL
@@ -3958,11 +3952,10 @@ BOOL
 WINAPI
 SK_GetWindowInfo (HWND hwnd, PWINDOWINFO pwi)
 {
-  if (     GetWindowInfo_Original != nullptr)
-    return GetWindowInfo_Original (hwnd, pwi);
-
   return
-    GetWindowInfo (hwnd, pwi);
+    GetWindowInfo_Original != nullptr  ?
+    GetWindowInfo_Original (hwnd, pwi) :
+    GetWindowInfo          (hwnd, pwi);
 }
 
 
@@ -3988,19 +3981,19 @@ BOOL (NTAPI *)(
   _In_     UINT  wRemoveMsg
   );
 
-TranslateMessage_pfn TranslateMessage_Original = nullptr;
+static TranslateMessage_pfn      TranslateMessage_Original = nullptr;
 
-NtUserPeekMessage_pfn     NtUserPeekMessage     = nullptr;
-NtUserGetMessage_pfn      NtUserGetMessage      = nullptr;
-//NtUserDispatchMessage_pfn NtUserDispatchMessage = nullptr;
+static NtUserPeekMessage_pfn     NtUserPeekMessage         = nullptr;
+static NtUserGetMessage_pfn      NtUserGetMessage          = nullptr;
+//static NtUserDispatchMessage_pfn NtUserDispatchMessage = nullptr;
 
-NtUserPeekMessage_pfn     PeekMessageA_Original     = nullptr;
-NtUserGetMessage_pfn      GetMessageA_Original      = nullptr;
-NtUserDispatchMessage_pfn DispatchMessageA_Original = nullptr;
+static NtUserPeekMessage_pfn     PeekMessageA_Original     = nullptr;
+static NtUserGetMessage_pfn      GetMessageA_Original      = nullptr;
+static NtUserDispatchMessage_pfn DispatchMessageA_Original = nullptr;
 
-NtUserPeekMessage_pfn     PeekMessageW_Original     = nullptr;
-NtUserGetMessage_pfn      GetMessageW_Original      = nullptr;
-NtUserDispatchMessage_pfn DispatchMessageW_Original = nullptr;
+static NtUserPeekMessage_pfn     PeekMessageW_Original     = nullptr;
+static NtUserGetMessage_pfn      GetMessageW_Original      = nullptr;
+static NtUserDispatchMessage_pfn DispatchMessageW_Original = nullptr;
 
 BOOL
 WINAPI
@@ -4113,8 +4106,11 @@ PeekMessageA_Detour (
                                        "PeekMessageA"
                                     )          );
 
-    PeekFunc =
+    NtUserPeekMessage_pfn early =
       early_PeekMessageA;
+
+    PeekFunc = early != nullptr ?
+               early : PeekFunc;
 
     if (PeekFunc != nullptr)
     {
@@ -4296,10 +4292,13 @@ SK_PeekMessageW (
   _In_     UINT  wMsgFilterMax,
   _In_     UINT  wRemoveMsg )
 {
-  if (PeekMessageW_Original != nullptr)
-    return PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
-
-  return PeekMessageW (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
+  return
+    PeekMessageW_Original != nullptr ?
+    PeekMessageW_Original (lpMsg, hWnd, wMsgFilterMin,
+                                        wMsgFilterMax, wRemoveMsg)
+                                     :
+    PeekMessageW          (lpMsg, hWnd, wMsgFilterMin,
+                                        wMsgFilterMax, wRemoveMsg);
 }
 
 #define WM_NCMOUSEFIRST  WM_NCMOUSEMOVE
@@ -4353,32 +4352,35 @@ GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterM
 
 BOOL
 WINAPI
-SK_GetMessageW (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
+SK_GetMessageW ( LPMSG lpMsg,
+                  HWND  hWnd,
+                  UINT  wMsgFilterMin,
+                  UINT  wMsgFilterMax )
 {
-  if (GetMessageW_Original != nullptr)
-    return GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
-
-  return GetMessageW (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
+  return
+    GetMessageW_Original != nullptr                                  ?
+    GetMessageW_Original (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax) :
+    GetMessageW          (lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax);
 }
 
 LRESULT
 WINAPI
 SK_DispatchMessageW (_In_ const MSG *lpMsg)
 {
-  if (DispatchMessageW_Original != nullptr)
-    return DispatchMessageW_Original (lpMsg);
-
-  return DispatchMessageW (lpMsg);
+  return
+    DispatchMessageW_Original != nullptr ?
+    DispatchMessageW_Original (lpMsg)    :
+    DispatchMessageW          (lpMsg);
 }
 
 BOOL
 WINAPI
 SK_TranslateMessage (_In_ const MSG *lpMsg)
 {
-  if (TranslateMessage_Original != nullptr)
-    return TranslateMessage_Original (lpMsg);
-
-  return TranslateMessage (lpMsg);
+  return
+    TranslateMessage_Original != nullptr ?
+    TranslateMessage_Original (lpMsg)    :
+    TranslateMessage          (lpMsg);
 }
 
 BOOL
@@ -4479,18 +4481,18 @@ DispatchMessageW_Detour (_In_ const MSG* lpMsg)
 }
 
 
-typedef HWND (WINAPI* GetFocus_pfn)(void);
-                      GetFocus_pfn
-                      GetFocus_Original = nullptr;
+using  GetFocus_pfn = HWND (WINAPI *)(void);
+static GetFocus_pfn
+       GetFocus_Original = nullptr;
 
 HWND
 WINAPI
 SK_GetFocus (void)
 {
-  if (GetFocus_Original != nullptr)
-    return GetFocus_Original ();
-
-  return GetFocus ();
+  return
+    GetFocus_Original != nullptr ?
+    GetFocus_Original ()         :
+    GetFocus          ();
 }
 
 HWND
@@ -4537,9 +4539,9 @@ GetFocus_Detour (void)
     SK_GetFocus ();
 }
 
-using GetGUIThreadInfo_pfn = BOOL (WINAPI *)(DWORD,PGUITHREADINFO);
-      GetGUIThreadInfo_pfn
-      GetGUIThreadInfo_Original = nullptr;
+using  GetGUIThreadInfo_pfn = BOOL (WINAPI *)(DWORD,PGUITHREADINFO);
+static GetGUIThreadInfo_pfn
+       GetGUIThreadInfo_Original = nullptr;
 
 BOOL
 WINAPI
@@ -4547,7 +4549,9 @@ SK_GetGUIThreadInfo ( _In_    DWORD          idThread,
                       _Inout_ PGUITHREADINFO pgui )
 {
   return
-    GetGUIThreadInfo_Original (idThread, pgui);
+    GetGUIThreadInfo_Original != nullptr       ?
+    GetGUIThreadInfo_Original (idThread, pgui) :
+    GetGUIThreadInfo          (idThread, pgui);
 }
 
 BOOL
@@ -4582,13 +4586,13 @@ GetGUIThreadInfo_Detour ( _In_    DWORD          idThread,
     SK_GetGUIThreadInfo (idThread, pgui);
 }
 
-typedef HWND (WINAPI *GetActiveWindow_pfn)(void);
-                      GetActiveWindow_pfn
-                      GetActiveWindow_Original = nullptr;
+using  GetActiveWindow_pfn = HWND (WINAPI *)(void);
+using  SetActiveWindow_pfn = HWND (WINAPI *)(HWND);
 
-typedef HWND (WINAPI *SetActiveWindow_pfn)(HWND);
-                      SetActiveWindow_pfn
-                      SetActiveWindow_Original = nullptr;
+static GetActiveWindow_pfn
+       GetActiveWindow_Original = nullptr;
+static SetActiveWindow_pfn
+       SetActiveWindow_Original = nullptr;
 
 BOOL
 WINAPI
@@ -4719,19 +4723,18 @@ SetActiveWindow_Detour (HWND hWnd)
 }
 
 
-typedef HWND (WINAPI *GetForegroundWindow_pfn)(void);
-                      GetForegroundWindow_pfn
-                      GetForegroundWindow_Original = nullptr;
+using  GetForegroundWindow_pfn = HWND (WINAPI *)(void);
+static GetForegroundWindow_pfn
+       GetForegroundWindow_Original = nullptr;
 
 HWND
 WINAPI
 SK_GetForegroundWindow (void)
 {
-  if (GetForegroundWindow_Original != nullptr)
-    return GetForegroundWindow_Original ();
-
   return
-    GetForegroundWindow ();
+    GetForegroundWindow_Original != nullptr ?
+    GetForegroundWindow_Original ()         :
+    GetForegroundWindow          ();
 }
 
 HWND
@@ -4756,9 +4759,9 @@ GetForegroundWindow_Detour (void)
     SK_GetForegroundWindow ();
 }
 
-typedef BOOL (WINAPI *BringWindowToTop_pfn)(HWND);
-                      BringWindowToTop_pfn
-                      BringWindowToTop_Original = nullptr;
+using  BringWindowToTop_pfn = BOOL (WINAPI *)(HWND);
+static BringWindowToTop_pfn
+       BringWindowToTop_Original = nullptr;
 
 BOOL
 WINAPI
@@ -4784,9 +4787,9 @@ BringWindowToTop_Detour (HWND hWnd)
 #endif
 }
 
-typedef BOOL (WINAPI *SetForegroundWindow_pfn)(HWND);
-                      SetForegroundWindow_pfn
-                      SetForegroundWindow_Original = nullptr;
+using  SetForegroundWindow_pfn = BOOL (WINAPI *)(HWND);
+static SetForegroundWindow_pfn
+       SetForegroundWindow_Original = nullptr;
 
 BOOL
 WINAPI
@@ -5053,6 +5056,13 @@ bool __ignore = false;
 #ifndef WM_NCUAHDRAWFRAME
 #define WM_NCUAHDRAWFRAME   (0x00AF)
 #endif
+
+#include <initguid.h>
+#include <Ntddkbd.h>
+#include <Ntddmou.h>
+#include <Ntddvdeo.h>
+#include <Hidclass.h>
+#include <Bthdef.h>
 
 __declspec (noinline)
 LRESULT
@@ -5414,16 +5424,40 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             const auto pDevW =
               (DEV_BROADCAST_DEVICEINTERFACE_W *)pDevHdr;
 
-            static constexpr GUID GUID_DEVINTERFACE_HID     =
-              { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
-
             static constexpr GUID GUID_XUSB_INTERFACE_CLASS =
               { 0xEC87F1E3L, 0xC13B, 0x4100, { 0xB5, 0xF7, 0x8B, 0x84, 0xD5, 0x42, 0x60, 0xCB } };
 
-            if (IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_HID) ||
-                IsEqualGUID (pDevW->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS))
+            // Input Devices
+            if (IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_HID)      ||
+                IsEqualGUID (pDevW->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS)  ||
+                IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_KEYBOARD) ||
+                IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_MOUSE)    ||
+                IsEqualGUID (pDevW->dbcc_classguid, GUID_BTHPORT_DEVICE_INTERFACE))
             {
               bIgnore = false;
+            }
+
+            // Audio Devices
+            else if (IsEqualGUID (pDevW->dbcc_classguid, KSCATEGORY_CAPTURE) ||
+                     IsEqualGUID (pDevW->dbcc_classguid, KSCATEGORY_RENDER)  ||
+                     IsEqualGUID (pDevW->dbcc_classguid, KSCATEGORY_MIXER))
+            {
+              bIgnore = false;
+            }
+
+            // Display Hardware
+            else if (IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_MONITOR) ||
+                     IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_DISPLAY_ADAPTER))
+            {
+              bIgnore = false;
+            }
+
+            else
+            {
+              wchar_t                                 wszGUID [41] = { };
+              StringFromGUID2 (pDevW->dbcc_classguid, wszGUID, 40);
+
+              SK_LOGi0 (L" || Device=%ws", wszGUID);
             }
           }
         } break;
@@ -5577,11 +5611,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             if (! last_active)
               SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
                           L"Window Mgr" );
-
+        
             if (SK_WantBackgroundRender ())
               SK_DetourWindowProc ( hWnd, WM_SETFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
           }
-
+        
           else
           {
             if (last_active)
@@ -5604,7 +5638,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
               HWND hWndForeground =
                 SK_GetForegroundWindow ();
 
-              // Only block the message if we're transferring activation to a different app
+              //// Only block the message if we're transferring activation to a different app
               if (hWnd != hWndForeground && (! IsChild (hWnd, hWndForeground)))
                 return 0;
 
@@ -5615,12 +5649,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
         else
         {
-          GUITHREADINFO gti        =        {   };
-                        gti.cbSize = sizeof (gti);
-          GetGUIThreadInfo ((DWORD)lParam,  &gti);
-
+          GUITHREADINFO gti         =          {   };
+                        gti.cbSize  =   sizeof (gti);
+          SK_GetGUIThreadInfo ((DWORD)lParam,  &gti);
+          
           ActivateWindow (hWnd, wParam, gti.hwndActive);
-
+          
           if (wParam == FALSE)
           {
             if (  (! rb.fullscreen_exclusive) &&
@@ -5629,17 +5663,17 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             {
               game_window.DefWindowProc ( hWnd, uMsg,
                                             wParam, lParam );
-
+          
               SK_COMPAT_SafeCallProc (&game_window,
                 hWnd, uMsg, TRUE, 0
               );
-
+          
               SK_DetourWindowProc ( hWnd, WM_KILLFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
-
+          
               return 0;
             }
           }
-
+          
           else if (SK_WantBackgroundRender ())
             SK_DetourWindowProc ( hWnd, WM_SETFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
         }
@@ -6023,19 +6057,19 @@ using AdjustWindowRectExForDpi_pfn      = BOOL (WINAPI *)(LPRECT lpRect,
                                                           DWORD  dwExStyle,
                                                           UINT   dpi);
 
-GetDpiForSystem_pfn                GetDpiForSystem_Original               = nullptr;
-GetDpiForWindow_pfn                GetDpiForWindow_Original               = nullptr;
-GetSystemDpiForProcess_pfn         GetSystemDpiForProcess_Original        = nullptr;
-GetSystemMetricsForDpi_pfn         GetSystemMetricsForDpi_Original        = nullptr;
-AdjustWindowRectExForDpi_pfn       AdjustWindowRectExForDpi_Original      = nullptr;
-EnableNonClientDpiScaling_pfn      EnableNonClientDpiScaling_Original     = nullptr;
-SystemParametersInfoForDpi_pfn     SystemParametersInfoForDpi_Original    = nullptr;
-SetThreadDpiHostingBehavior_pfn    SetThreadDpiHostingBehavior_Original   = nullptr;
-SetThreadDpiAwarenessContext_pfn   SetThreadDpiAwarenessContext_Original  = nullptr;
-SetProcessDpiAwarenessContext_pfn  SetProcessDpiAwarenessContext_Original = nullptr;
+static GetDpiForSystem_pfn                GetDpiForSystem_Original               = nullptr;
+static GetDpiForWindow_pfn                GetDpiForWindow_Original               = nullptr;
+static GetSystemDpiForProcess_pfn         GetSystemDpiForProcess_Original        = nullptr;
+static GetSystemMetricsForDpi_pfn         GetSystemMetricsForDpi_Original        = nullptr;
+static AdjustWindowRectExForDpi_pfn       AdjustWindowRectExForDpi_Original      = nullptr;
+static EnableNonClientDpiScaling_pfn      EnableNonClientDpiScaling_Original     = nullptr;
+static SystemParametersInfoForDpi_pfn     SystemParametersInfoForDpi_Original    = nullptr;
+static SetThreadDpiHostingBehavior_pfn    SetThreadDpiHostingBehavior_Original   = nullptr;
+static SetThreadDpiAwarenessContext_pfn   SetThreadDpiAwarenessContext_Original  = nullptr;
+static SetProcessDpiAwarenessContext_pfn  SetProcessDpiAwarenessContext_Original = nullptr;
 
-GetThreadDpiAwarenessContext_pfn        GetThreadDpiAwarenessContext        = nullptr;
-GetAwarenessFromDpiAwarenessContext_pfn GetAwarenessFromDpiAwarenessContext = nullptr;
+static GetThreadDpiAwarenessContext_pfn        GetThreadDpiAwarenessContext        = nullptr;
+static GetAwarenessFromDpiAwarenessContext_pfn GetAwarenessFromDpiAwarenessContext = nullptr;
 
 DPI_AWARENESS_CONTEXT
 SK_GetThreadDpiAwarenessContext (void)
@@ -6609,6 +6643,35 @@ SK_InstallWindowHook (HWND hWnd)
       SK_GetCommandProcessor ()
     );
 
+    class CursorListener : public SK_IVariableListener
+    {
+    public:
+      bool cursor_visible = false;
+
+      virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr)
+      {
+        if (val != nullptr && var != nullptr )
+        {
+          if (var->getValuePointer () == &cursor_visible)
+          {
+            cursor_visible = *(bool *)val;
+
+            static constexpr auto          _MaxTries = 25;
+            for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
+            {
+              if (   cursor_visible  && ShowCursor (TRUE) >= 0)
+                break;
+              if ((! cursor_visible) && ShowCursor (FALSE) < 0)
+                break;
+            }
+          }
+        }
+
+        return true;
+      }
+    } static cursor_control;
+
+    cmd->AddVariable ("Cursor.Visible",          SK_CreateVar (SK_IVariable::Boolean, (bool *)&cursor_control.cursor_visible, &cursor_control));
     cmd->AddVariable ("Cursor.Manage",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.manage));
     cmd->AddVariable ("Cursor.Timeout",          SK_CreateVar (SK_IVariable::Int,     (int  *)&config.input.cursor.timeout));
     cmd->AddVariable ("Cursor.KeysActivate",     SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.keys_activate));
@@ -7255,22 +7318,20 @@ BOOL
 WINAPI
 SK_ClipCursor (const RECT *lpRect)
 {
-  if (ClipCursor_Original != nullptr)
-    return ClipCursor_Original (lpRect);
-
   return
-    ClipCursor (lpRect);
+    ClipCursor_Original != nullptr ?
+    ClipCursor_Original (lpRect)   :
+    ClipCursor          (lpRect);
 }
 
 BOOL
 WINAPI
 SK_GetCursorPos (LPPOINT lpPoint)
 {
-  if (GetCursorPos_Original != nullptr)
-    return GetCursorPos_Original (lpPoint);
-
   return
-    GetCursorPos (lpPoint);
+    GetCursorPos_Original != nullptr ?
+    GetCursorPos_Original (lpPoint)  :
+    GetCursorPos          (lpPoint);
 }
 
 BOOL

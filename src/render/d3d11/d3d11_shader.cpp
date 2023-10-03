@@ -751,7 +751,7 @@ SK_D3D11_SetShaderResources_Impl (
   // Static analysis seems to think this is possible:
   //   ( Both are FALSE or Both are TRUE ),
   // but I am pretty sure it never happens.
-  SK_ReleaseAssert (hooked ^ ( _vftable != nullptr ) )
+  SK_ReleaseAssert (hooked ^ ( _vftable != nullptr ) );
 
   if ((! hooked) && (! _vftable))
     return;

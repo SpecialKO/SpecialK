@@ -797,7 +797,7 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
       {
                              stack_scratch.size = (uint32_t)size;
         RtlSecureZeroMemory (stack_scratch.storage,         size);
-      } else SK_ReleaseAssert (false)
+      } else SK_ReleaseAssert (false);
     }
   }
 
@@ -906,7 +906,7 @@ SK_D3D11_ThreadContext::allocScreenshotMemory (size_t bytesNeeded)
 uint8_t*
 SK_DXTex_ThreadContext::alignedAlloc (size_t alignment, size_t elems)
 {
-  SK_ReleaseAssert (alignment == 16)
+  SK_ReleaseAssert (alignment == 16);
 
   bool new_alloc = true;
 

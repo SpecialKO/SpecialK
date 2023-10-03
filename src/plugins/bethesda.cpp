@@ -23,10 +23,10 @@
 #include <string>
 #include <json/json.hpp>
 
-bool __SK_HasDLSSGStatusSupport = false;
-bool __SK_IsDLSSGActive         = false;
-bool __SK_DoubleUpOnReflex      = false;
-bool __SK_ForceDLSSGPacing      = false;
+extern bool __SK_HasDLSSGStatusSupport;
+extern bool __SK_IsDLSSGActive;
+extern bool __SK_DoubleUpOnReflex;
+extern bool __SK_ForceDLSSGPacing;
 
 static iSK_INI* game_ini       = nullptr;
 static iSK_INI* gameCustom_ini = nullptr;
@@ -77,6 +77,7 @@ struct {
   bool bRemasterExtendedRTs    = false;
   bool bRemasterHDRRTs         = false;
   bool bPhotoModeCompatibility = false;
+  bool bAlternateThreadSched   = true;
 
   struct {
     sk::ParameterBool* basic_remastering        = nullptr;
@@ -84,6 +85,8 @@ struct {
     sk::ParameterBool* hdr_remastering          = nullptr;
     sk::ParameterBool* photo_mode_compatibility = nullptr;
     sk::ParameterBool* disable_fps_limit        = nullptr;
+    sk::ParameterBool* alternate_thread_sched   = nullptr;
+    sk::ParameterBool* combined_reflex_sk_limit = nullptr;
 
     sk::ParameterInt64* image_addr      = nullptr;
     sk::ParameterInt64* buffer_def_addr = nullptr;
@@ -94,9 +97,10 @@ struct {
   } ini;
 
   struct {
-    sk::ParameterFloat* sf_1stFOV  = nullptr;
-    sk::ParameterFloat* sf_3rdFOV  = nullptr;
-    sk::ParameterFloat* sf_MipBias = nullptr;
+    sk::ParameterFloat* sf_1stFOV   = nullptr;
+    sk::ParameterFloat* sf_3rdFOV   = nullptr;
+    sk::ParameterFloat* sf_MipBias  = nullptr;
+    sk::ParameterFloat* sf_ResScale = nullptr;
   } game_ini;
 
   std::unordered_map < std::wstring,
@@ -429,9 +433,17 @@ static DLSSGInfo dlssg_state;
 
 void __stdcall SK_SF_ResolutionCallback (ResolutionInfo *info, void *);
 
-void
+bool
 SK_SF_InitFSR2Streamline (void)
 {
+  if (f2sRegisterResolutionErrorCallback != nullptr)
+    return true;
+
+  static constexpr int _MAX_INIT_ATTEMPTS = 30;
+  static int tries = 0;
+  if (     ++tries >   _MAX_INIT_ATTEMPTS )
+    return false;
+
   if (f2sRegisterResolutionErrorCallback == nullptr)
   {
     HMODULE hMod =
@@ -465,8 +477,12 @@ SK_SF_InitFSR2Streamline (void)
 
         f2sRegisterResolutionErrorCallback (SK_SF_ResolutionCallback, nullptr, &callback_id);
       }
+
+      return true;
     }
   }
+
+  return true;
 }
 
 bool SK_SF_PlugInCfg (void)
@@ -477,7 +493,7 @@ bool SK_SF_PlugInCfg (void)
   static std::string  utf8VersionString =
     SK_WideCharToUTF8 (SK_GetDLLVersionStr (SK_GetHostApp ()));
 
-  SK_RunOnce (SK_SF_InitFSR2Streamline ());
+  SK_SF_InitFSR2Streamline ();
 
   if (ImGui::CollapsingHeader (utf8VersionString.data (), ImGuiTreeNodeFlags_DefaultOpen))
   {
@@ -610,6 +626,29 @@ bool SK_SF_PlugInCfg (void)
           plugin.ini.disable_fps_limit->store (plugin.bDisableFPSLimit);
 
           dll_ini->write ();
+        }
+
+        static bool game_restart_required = false;
+
+        if (ImGui::Checkbox ("Use Alternate Thread Scheduling", &plugin.bAlternateThreadSched))
+        {
+          game_restart_required = true;
+
+          plugin.ini.alternate_thread_sched->store (plugin.bAlternateThreadSched);
+
+          dll_ini->write ();
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ("May improve disk throughput and general CPU efficiency.");
+        }
+
+        if (game_restart_required)
+        {
+          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
+          ImGui::BulletText     ("Game Restart Required");
+          ImGui::PopStyleColor  ();
         }
 
         ImGui::TreePop ();
@@ -767,26 +806,44 @@ bool SK_SF_PlugInCfg (void)
             f2sSetConfigValue (&cfg_val);
           }
 
-          //if (dlssg_state.dlssgEnabled)
-          //{
-          //  ImGui::Checkbox ("Enable SK + Reflex Limiter", &__SK_DoubleUpOnReflex);
-          //}
+          if (dlssg_state.dlssgEnabled)
+          {
+            if (ImGui::Checkbox ("Combine SK + Reflex Limiter", &__SK_DoubleUpOnReflex))
+            {
+              plugin.ini.combined_reflex_sk_limit->store (__SK_DoubleUpOnReflex);
+
+              dll_ini->write ();
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::SetTooltip ("May improve frame pacing, for marginal increase in latency.");
+            }
+          }
         }
 
-        changed |=
+        bool changed_scale =
           ImGui::Combo ("DLSS Mode", (int *)&dlss_prefs.mode, "Off\0"
                                                               "Max Performance\t(50% Scale)\0"
                                                               "Balanced\t\t\t\t  (58% Scale)\0"
                                                               "Max Quality\t\t\t  (66% Scale)\0"
                                                               "DLAA\t\t\t\t\t\t(100% Scale)\0\0");
 
+        changed |= changed_scale;
+
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip (
-            "The %% scale numbers indicate the setting you must use in the game's "
-            "resolution scaling for these DLSS modes to work." );
+        {
+          ImGui::BeginTooltip ();
+          ImGui::TextUnformatted (
+            "The % indicates the DLSS Mode's ideal resolution scale." );
+          ImGui::Separator ();
+          ImGui::BulletText ("The game's settings will be changed, but may not apply immediately.");
+          ImGui::BulletText ("To apply changes, move the resolution slider in the settings menu.");
+          ImGui::EndTooltip ();
+        }
 
         changed |=
-          ImGui::Combo ("DLSS Preset", (int *)&dlss_prefs.preset, "Default\0"
+          ImGui::Combo ("DLSS Preset", (int *)&dlss_prefs.preset, "Default\t(For Current DLSS Mode)\0"
                                                                   "A\0"
                                                                   "B\0"
                                                                   "C\0"
@@ -812,9 +869,9 @@ bool SK_SF_PlugInCfg (void)
 
         if (changed)
         {
-          f2s_config ["enabled"]                  = dlss_prefs.mode != DLSSMode::eOff;
+        //f2s_config ["enabled"]                  = dlss_prefs.mode != DLSSMode::eOff;
           if (dlss_prefs.mode == DLSSMode::eOff)
-              dlss_prefs.mode = DLSSMode::eBalanced; // Set a safe default value to prevent crashing
+              dlss_prefs.mode = DLSSMode::eDLAA; // Set a safe default value to prevent crashing
           f2s_config ["dlssMode"]                 = dlss_prefs.mode;
           f2s_config ["dlssPreset"]               = dlss_prefs.preset;
           f2s_config ["enableFrameGeneration"]    = dlss_prefs.enable_frame_gen;
@@ -828,6 +885,27 @@ bool SK_SF_PlugInCfg (void)
           {
             if (std::ofstream of (config_file); of)
               of << std::setw (4) << f2s_config;
+          }
+
+          if (changed_scale)
+          {
+            switch (dlss_prefs.mode)
+            {
+              case DLSSMode::eMaxPerformance:
+                plugin.game_ini.sf_ResScale->store (0.5f);
+                break;
+              case DLSSMode::eBalanced:
+                plugin.game_ini.sf_ResScale->store (0.58f);
+                break;
+              case DLSSMode::eMaxQuality:
+                plugin.game_ini.sf_ResScale->store (0.66f);
+                break;
+              case DLSSMode::eDLAA:
+                plugin.game_ini.sf_ResScale->store (1.0f);
+                break;
+            }
+
+            game_ini->write ();
           }
         }
       }
@@ -846,6 +924,55 @@ bool SK_SF_PlugInCfg (void)
   }
 
   return true;
+}
+
+static SetThreadPriority_pfn
+       SetThreadPriority_Original      = nullptr;
+static SetThreadPriorityBoost_pfn
+       SetThreadPriorityBoost_Original = nullptr;
+
+BOOL
+WINAPI
+SK_SF_SetThreadPriorityHook ( HANDLE hThread,
+                              int    nPriority )
+{
+  SK_SetThreadPriorityBoost (hThread, FALSE);
+
+  //if (SK_Thread_GetCurrentPriority () > nPriority)
+  //  return TRUE;
+
+  return
+    SetThreadPriority_Original (hThread, nPriority);
+}
+
+BOOL
+WINAPI
+SK_SF_SetThreadPriorityBoostHook ( HANDLE hThread,
+                                   BOOL   bDisableBoost )
+{
+  wchar_t                                          *wszThreadName = nullptr;
+  if (SUCCEEDED (SK_GetThreadDescription (hThread, &wszThreadName)))
+  {
+    if (StrStrW (wszThreadName, L"FileStreamerControl"))
+    {
+      SK_SetThreadPriority (hThread, THREAD_PRIORITY_ABOVE_NORMAL);
+    }
+
+    else if (StrStrW (wszThreadName, L"IOManager"))
+    {
+      SK_SetThreadPriority (hThread, THREAD_PRIORITY_HIGHEST);
+    }
+
+    else if (StrStrW (wszThreadName, L"SaveLoad thread"))
+    {
+      SK_SetThreadPriority (hThread, THREAD_PRIORITY_TIME_CRITICAL);
+    }
+  }
+
+  std::ignore = bDisableBoost;
+
+  return
+    SetThreadPriorityBoost_Original (hThread, FALSE);
 }
 
 void SK_SF_InitFPS (void)
@@ -1358,7 +1485,7 @@ SK_SF_ResolutionCallback (ResolutionInfo *info, void*)
     DXGI_SWAP_CHAIN_DESC  swapDesc = { };
     pSwapChain->GetDesc (&swapDesc);
 
-    rcMonitor.left = 0;
+    rcMonitor.left  = 0;
     rcMonitor.right = swapDesc.BufferDesc.Width;
 
     rcMonitor.top    = 0;
@@ -1381,6 +1508,8 @@ void
 __stdcall
 SK_SF_EndOfFrame (void)
 {
+  SK_SF_InitFSR2Streamline ();
+
   if (f2sGetDLSSGInfo != nullptr)
   {
     if (f2sGetDLSSGInfo (&dlssg_state))
@@ -1416,8 +1545,11 @@ SK_SEH_InitStarfieldUntrusted (void)
 #endif
 
 void
-SK_BGS_InitPlugin(void)
+SK_BGS_InitPlugin (void)
 {
+  if (PathFileExistsW (L"SpecialK.NoPlugIns"))
+    return;
+
   SK_GAME_ID gameID =
     SK_GetCurrentGameID ();
   
@@ -1430,7 +1562,7 @@ SK_BGS_InitPlugin(void)
     plugin.game_ver_str =
       SK_GetDLLVersionStr (SK_GetHostApp ());
 
-    SK_RunOnce (SK_SF_InitFSR2Streamline ());
+    SK_SF_InitFSR2Streamline ();
 
     // Default these to on if user is using HDR
     plugin.bRemasterHDRRTs      = (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap);
@@ -1491,6 +1623,45 @@ SK_BGS_InitPlugin(void)
                                     L"MipBiasAddr",
                          plugin.cachedMipBiasAddr );
 
+    plugin.ini.alternate_thread_sched =
+      _CreateConfigParameterBool ( L"Starfield.PlugIn",
+                                   L"AlternateThreadScheduling",
+                         plugin.bAlternateThreadSched );
+
+    // Default this to on, it works well in Starfield.
+    __SK_DoubleUpOnReflex = true;
+
+    plugin.ini.combined_reflex_sk_limit =
+      _CreateConfigParameterBool ( L"Starfield.PlugIn",
+                                   L"CombineReflexAndSKLimiters",
+                         __SK_DoubleUpOnReflex );
+
+    if (plugin.bAlternateThreadSched)
+    {
+      extern BOOL WINAPI
+      SetThreadPriority_Detour ( HANDLE hThread,
+                                 int    nPriority );
+      extern DWORD WINAPI
+      SetThreadPriorityBoost_Detour ( HANDLE hThread,
+                                      BOOL   bDisableBoost );
+
+      SK_CreateFuncHook ( L"SetThreadPriorityBoost_Detour",
+                            SetThreadPriorityBoost_Detour,
+                      SK_SF_SetThreadPriorityBoostHook,
+                  (void **)&SetThreadPriorityBoost_Original );
+
+      SK_CreateFuncHook ( L"SetThreadPriority_Detour",
+                            SetThreadPriority_Detour,
+                      SK_SF_SetThreadPriorityHook,
+                  (void **)&SetThreadPriority_Original );
+
+      MH_QueueEnableHook (SetThreadPriorityBoost_Detour);
+      MH_QueueEnableHook (SetThreadPriority_Detour);
+
+      SK_ApplyQueuedHooks ();
+    }
+
+
     auto iBaseAddr =
       (int64_t)SK_Debug_GetImageBaseAddr ();
 
@@ -1506,28 +1677,28 @@ SK_BGS_InitPlugin(void)
     //if (plugin.cachedImageAddr0 == -1)
       threads = SK_SuspendAllOtherThreads ();
 
-    SK_SF_PlugIn.addresses [L"Starfield  1.7.23.0"].steam =
+    plugin.addresses [L"Starfield  1.7.23.0"].steam =
     {
       { "image_def_addr",  0x00000000 }, { "buffer_def_addr", 0x00000000 },
       { "fps_limit_addr",  0x00000000 }, { "fov_1st_addr",    0x00000000 },
       { "fov_3rd_addr",    0x00000000 }, { "mip_bias_addr",   0x00000000 }
     };
 
-    SK_SF_PlugIn.addresses [L"Starfield  1.7.29.0"].steam =
+    plugin.addresses [L"Starfield  1.7.29.0"].steam =
     {
       { "image_def_addr",  0x00000000 }, { "buffer_def_addr", 0x00000000 },
       { "fps_limit_addr",  0x00000000 }, { "fov_1st_addr",    0x00000000 },
       { "fov_3rd_addr",    0x00000000 }, { "mip_bias_addr",   0x00000000 }
     };
 
-    SK_SF_PlugIn.addresses [L"Starfield  1.7.33.0"].steam =
+    plugin.addresses [L"Starfield  1.7.33.0"].steam =
     {
       { "image_def_addr",  0x3287B88 }, { "buffer_def_addr", 0x33516FA },
       { "fps_limit_addr",  0x23FA5E9 }, { "fov_1st_addr",    0x1F82668 },
       { "fov_3rd_addr",    0x1F838C1 }, { "mip_bias_addr",   0x32D6ED2 }
     };
 
-    SK_SF_PlugIn.addresses [L"Starfield  1.7.33.0"].microsoft =
+    plugin.addresses [L"Starfield  1.7.33.0"].microsoft =
     {
       { "image_def_addr",  0x32A79E8 }, { "buffer_def_addr", 0x337155A },
       { "fps_limit_addr",  0x23F7F61 }, { "fov_1st_addr",    0x1F806E8 },
@@ -1536,17 +1707,19 @@ SK_BGS_InitPlugin(void)
 
     SK_SEH_InitStarfieldUntrusted ();
 
-    plugin.ini.image_addr->store      (plugin.cachedImageAddr0    - iBaseAddr);
-    plugin.ini.buffer_def_addr->store (plugin.cachedBufferDefAddr - iBaseAddr);
-    plugin.ini.fps_limit_addr->store  (plugin.cachedFPSLimitAddr  - iBaseAddr);
-    plugin.ini.fov_1st_addr->store    (plugin.cached1stFOVAddr    - iBaseAddr);
-    plugin.ini.fov_3rd_addr->store    (plugin.cached3rdFOVAddr    - iBaseAddr);
-    plugin.ini.mip_bias_addr->store   (plugin.cachedMipBiasAddr   - iBaseAddr);
+    plugin.ini.image_addr->store               (plugin.cachedImageAddr0    - iBaseAddr);
+    plugin.ini.buffer_def_addr->store          (plugin.cachedBufferDefAddr - iBaseAddr);
+    plugin.ini.fps_limit_addr->store           (plugin.cachedFPSLimitAddr  - iBaseAddr);
+    plugin.ini.fov_1st_addr->store             (plugin.cached1stFOVAddr    - iBaseAddr);
+    plugin.ini.fov_3rd_addr->store             (plugin.cached3rdFOVAddr    - iBaseAddr);
+    plugin.ini.mip_bias_addr->store            (plugin.cachedMipBiasAddr   - iBaseAddr);
+    plugin.ini.alternate_thread_sched->store   (plugin.bAlternateThreadSched);
+    plugin.ini.combined_reflex_sk_limit->store (__SK_DoubleUpOnReflex);
 
     dll_ini->write ();
   
     if (game_ini == nullptr) {
-        game_ini = SK_CreateINI (LR"(.\Starfield.ini)");
+        game_ini = SK_CreateINI ((SK_GetDocumentsDir () + LR"(\My Games\Starfield\StarfieldPrefs.ini)").c_str ());
     }
   
     if (gameCustom_ini == nullptr) {
@@ -1556,13 +1729,15 @@ SK_BGS_InitPlugin(void)
     game_ini->set_encoding       (iSK_INI::INI_UTF8NOBOM);
     gameCustom_ini->set_encoding (iSK_INI::INI_UTF8NOBOM);
   
-    plugin.game_ini.sf_1stFOV  = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"First Person FOV"));
-    plugin.game_ini.sf_3rdFOV  = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Third Person FOV"));
-    plugin.game_ini.sf_MipBias = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Mipmap Bias"));
+    plugin.game_ini.sf_1stFOV   = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"First Person FOV"));
+    plugin.game_ini.sf_3rdFOV   = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Third Person FOV"));
+    plugin.game_ini.sf_MipBias  = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Mipmap Bias"));
+    plugin.game_ini.sf_ResScale = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Resolution Scale"));
     
-    plugin.game_ini.sf_1stFOV->register_to_ini  (gameCustom_ini, L"Camera",  L"fFPWorldFOV");
-    plugin.game_ini.sf_3rdFOV->register_to_ini  (gameCustom_ini, L"Camera",  L"fTPWorldFOV");
-    plugin.game_ini.sf_MipBias->register_to_ini (gameCustom_ini, L"Display", L"fMipBiasOffset");
+    plugin.game_ini.sf_1stFOV->register_to_ini   (gameCustom_ini, L"Camera",  L"fFPWorldFOV");
+    plugin.game_ini.sf_3rdFOV->register_to_ini   (gameCustom_ini, L"Camera",  L"fTPWorldFOV");
+    plugin.game_ini.sf_MipBias->register_to_ini  (gameCustom_ini, L"Display", L"fMipBiasOffset");
+    plugin.game_ini.sf_ResScale->register_to_ini (game_ini,       L"Display", L"fRenderResolutionScaleFactor");
 
     //else
     //  SK_LOGs0 (L"Starfield ", L"Incompatible Executable Detected");

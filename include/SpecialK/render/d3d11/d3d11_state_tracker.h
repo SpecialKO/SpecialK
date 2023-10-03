@@ -573,7 +573,7 @@ SK_D3D11_CreateShader_Impl (
         SK_RunOnce (
         {
           SK_LOG0 ( ( L"Steam Replacement Pixel Shader <PQ %f nits>",
-                             config.platform.overlay_hdr_luminance ),
+                             config.platform.overlay_hdr_luminance * 80.0f ),
                       L"SteamRange" );
         });
 

@@ -486,9 +486,8 @@ SK_Thread_GetMainId (void)
     ( dwMainTid = result );
 }
 
-using SetThreadIdealProcessor_pfn = DWORD (WINAPI *)(HANDLE,DWORD);
-      SetThreadIdealProcessor_pfn
-      SetThreadIdealProcessor_Original = nullptr;
+static SetThreadIdealProcessor_pfn
+       SetThreadIdealProcessor_Original = nullptr;
 
 DWORD
 WINAPI
@@ -498,6 +497,31 @@ SK_SetThreadIdealProcessor (HANDLE hThread, DWORD dwIdealProcessor)
     return SetThreadIdealProcessor_Original (hThread, dwIdealProcessor);
 
   return SetThreadIdealProcessor (hThread, dwIdealProcessor);
+}
+
+static SetThreadPriorityBoost_pfn
+       SetThreadPriorityBoost_Original = nullptr;
+
+BOOL
+WINAPI
+SK_SetThreadPriorityBoost ( HANDLE hThread,
+                            BOOL   bDisableBoost )
+{
+  if (     SetThreadPriorityBoost_Original != nullptr)
+    return SetThreadPriorityBoost_Original (hThread, bDisableBoost);
+
+  return
+    SetThreadPriorityBoost (hThread, bDisableBoost);
+}
+
+DWORD
+WINAPI
+SetThreadPriorityBoost_Detour (HANDLE hThread, BOOL bDisableBoost)
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    SetThreadPriorityBoost_Original (hThread, bDisableBoost);
 }
 
 DWORD
@@ -516,12 +540,23 @@ SetThreadIdealProcessor_Detour (HANDLE hThread, DWORD dwIdealProcessor)
     SetThreadIdealProcessor_Original (hThread, dwIdealProcessor);
 }
 
-      SetThreadAffinityMask_pfn
-      SetThreadAffinityMask_Original = nullptr;
+static SetThreadAffinityMask_pfn
+       SetThreadAffinityMask_Original = nullptr;
 
-using SetThreadPriority_pfn = BOOL (WINAPI *)(HANDLE, int);
-      SetThreadPriority_pfn
-      SetThreadPriority_Original = nullptr;
+static SetThreadPriority_pfn
+       SetThreadPriority_Original = nullptr;
+
+BOOL
+WINAPI
+SK_SetThreadPriority ( HANDLE hThread,
+                       int    nPriority )
+{
+  if (     SetThreadPriority_Original != nullptr)
+    return SetThreadPriority_Original (hThread, nPriority);
+
+  return
+    SetThreadPriority (hThread, nPriority);
+}
 
 BOOL
 WINAPI
@@ -532,7 +567,7 @@ SetThreadPriority_Detour ( HANDLE hThread,
 
   if (hThread == nullptr)
   {
-    SK_LOGi0 (
+    SK_LOGi1 (
       L"Game called SetThreadPriority (...) with an invalid handle [%ws]",
         SK_GetCallerName ().c_str ()
     );
@@ -660,6 +695,10 @@ SK_Thread_InitDebugExtras (void)
     SK_CreateDLLHook2 ( L"kernel32", "SetThreadIdealProcessor",
                                       SetThreadIdealProcessor_Detour,
              static_cast_p2p <void> (&SetThreadIdealProcessor_Original) );
+
+    SK_CreateDLLHook2 ( L"kernel32", "SetThreadPriorityBoost",
+                                      SetThreadPriorityBoost_Detour,
+             static_cast_p2p <void> (&SetThreadPriorityBoost_Original) );
 
     InterlockedIncrementRelease (&_InitDebugExtrasOnce);
   }
@@ -1088,6 +1127,11 @@ SK_GetRenderThreadID (void)
 DWORD
 SK_GetMainThreadID (void)
 {
+  static DWORD tid = 0;
+
+  if (tid != 0)
+    return tid;
+
   SK_AutoHandle hThreadSnapshot (
     CreateToolhelp32Snapshot (TH32CS_SNAPTHREAD, 0)
   );
@@ -1102,7 +1146,6 @@ SK_GetMainThreadID (void)
     tent        = { };
     tent.dwSize = sizeof (THREADENTRY32);
 
-  DWORD tid = 0;
   DWORD pid = GetCurrentProcessId ();
 
   if (Thread32First (hThreadSnapshot, &tent))

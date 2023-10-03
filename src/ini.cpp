@@ -91,7 +91,7 @@ iSK_INI::reload (const wchar_t *fname)
 
   if (fname == nullptr)
   {
-    SK_ReleaseAssert (name.size  () > 0)
+    SK_ReleaseAssert (name.size  () > 0);
     if (              name.empty ()) return false; // Empty String -> Dummy INI
 
     fname = name.c_str ();
@@ -151,11 +151,11 @@ iSK_INI::reload (const wchar_t *fname)
       sk::narrow_cast <long> (SK_File_GetSize (fname));
 
     // A 4 MiB INI file seems pretty dman unlikely...
-    SK_ReleaseAssert (size >= 0 && size < (4L * 1024L * 1024L))
+    SK_ReleaseAssert (size >= 0 && size < (4L * 1024L * 1024L));
 
     data.resize (size + 3);
 
-    SK_ReleaseAssert (data.size () > 0)
+    SK_ReleaseAssert (data.size () > 0);
 
     if (data.size () == 0)
     {
@@ -220,7 +220,7 @@ iSK_INI::reload (const wchar_t *fname)
       char*           string =
         pTLS->scratch_memory->ini.utf8_string.alloc (real_size + 3, true);
 
-      SK_ReleaseAssert (string != nullptr)
+      SK_ReleaseAssert (string != nullptr);
 
       if (string == nullptr)
       {
@@ -253,7 +253,7 @@ iSK_INI::reload (const wchar_t *fname)
       if (data.size () < converted_size + 3)
           data.resize   (converted_size + 3);
 
-      SK_ReleaseAssert (data.size () > 0)
+      SK_ReleaseAssert (data.size () > 0);
 
       if (data.size () > 0)
       {
@@ -284,7 +284,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
   AddRef ();
 
   SK_ReleaseAssert (
-          filename != nullptr)
+          filename != nullptr);
   if (    filename == nullptr) return;
   if (   *filename == L'\0'  ) return; // Empty String -> Dummy INI
 
@@ -308,7 +308,7 @@ iSK_INI::~iSK_INI (void)
   ULONG refs =
     Release ();
 
-  SK_ReleaseAssert (refs == 0) // Memory leak?
+  SK_ReleaseAssert (refs == 0); // Memory leak?
 
   if (refs == 0)
   {
@@ -388,7 +388,7 @@ Process_Section ( iSK_INISection  &kSection,
 
       for (wchar_t* l = value; l <= end; l < end ? l = CharNextW (l) : nullptr)
       {
-        SK_ReleaseAssert (l != nullptr)
+        SK_ReleaseAssert (l != nullptr);
 
         if (l == nullptr) break;
 
@@ -516,7 +516,7 @@ void
 __stdcall
 iSK_INI::parse (void)
 {
-  SK_ReleaseAssert (data.size () > 0)
+  SK_ReleaseAssert (data.size () > 0);
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
@@ -1202,7 +1202,7 @@ iSK_INI::get_section_f ( _In_z_ _Printf_format_string_
     // ASSERT: Length <= 127 characters
     len += vswprintf (wszFormatted, _Format, _ArgList);
 
-    SK_ReleaseAssert (len <= 127)
+    SK_ReleaseAssert (len <= 127);
   }
   va_end   (_ArgList);
 
@@ -1684,7 +1684,7 @@ iSK_INI::import_file (const wchar_t* fname)
       }
 
       SK_ReleaseAssert (
-          wszImportData != nullptr)
+          wszImportData != nullptr);
       if (wszImportData != nullptr)
       {
         MultiByteToWideChar ( CP_UTF8, 0, string, real_size,

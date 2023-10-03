@@ -146,7 +146,7 @@ SK_Debug_LoadHelper (void)
   else
     SK_Thread_SpinUntilAtomicMin (&__init, 2);
 
-  SK_ReleaseAssert (hModDbgHelp != nullptr)
+  SK_ReleaseAssert (hModDbgHelp != nullptr);
 
   return
     hModDbgHelp;
@@ -4906,58 +4906,12 @@ using LdrGetDllHandleEx_pfn =
 bool
 SK_IsModuleLoaded (const wchar_t* wszModule)
 {
-  static LdrGetDllHandleEx_pfn
-         LdrGetDllHandleEx =
-        (LdrGetDllHandleEx_pfn)SK_GetProcAddress (L"NtDll.dll",
-        "LdrGetDllHandleEx");
+  HMODULE hModule = nullptr;
 
-  // Indeterminate, so ... I guess no?
-  if (! LdrGetDllHandleEx)
-    return FALSE;
-
-  ULONG                      ldrLockState = 0x0;
-//PLDR_DATA_TABLE_ENTRY__SK pLdrEntry  = { };
-  ULONG_PTR                  ldrCookie = 0;
-  SK_Module_LockLoader     (&ldrCookie, LDR_LOCK_LOADER_LOCK_FLAG_TRY_ONLY, &ldrLockState);
-
-  HMODULE hMods [256] = { };
-  DWORD  cbNeeded     =   0;
-
-  SK_AutoHandle hProcess
-           ( OpenProcess ( PROCESS_QUERY_INFORMATION |
-                           PROCESS_VM_READ,
-                             FALSE,
-                               GetCurrentProcessId ()
-           )             );
-
-  if (! hProcess.isValid ())
-  {
-    SK_Module_UnlockLoader (0x0, ldrCookie);
-    return false; // ... what?!
-  }
-
-  if ( EnumProcessModules ( hProcess, hMods,
-                              sizeof (hMods), &cbNeeded ) )
-  {
-    for ( UINT i = 0; i < (cbNeeded / sizeof (HMODULE)); ++i )
-    {
-      wchar_t                     wszModName [MAX_PATH + 2] = { };
-      if ( GetModuleFileNameEx (
-             hProcess, hMods [i], wszModName,
-                          sizeof (wszModName) / sizeof (wchar_t)) )
-      {
-        PathStripPathW (wszModName);
-        if (StrStrIW (  wszModName, wszModule ) == wszModName )
-        {
-          SK_Module_UnlockLoader (0x0, ldrCookie);
-
-          return true;
-        }
-      }
-    }
-  }
-
-  SK_Module_UnlockLoader (0x0, ldrCookie);
-
-  return false;
+  return
+    GetModuleHandleExW (
+      GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+       wszModule,
+        &hModule
+    ) != FALSE && hModule != nullptr;
 }

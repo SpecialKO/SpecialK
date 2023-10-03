@@ -1024,6 +1024,15 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     }
   }
 
+  if (game_id == SK_GAME_ID::Starfield)
+  {
+    if (dwMilliseconds == 0)
+    {
+      return
+        SwitchToThread ();
+    }
+  }
+
   const bool sleepless_render = config.render.framerate.sleepless_render;
   const bool sleepless_window = config.render.framerate.sleepless_window;
 
@@ -1248,6 +1257,42 @@ WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
 {
   SleepEx_Detour (dwMilliseconds, FALSE);
+}
+
+using SleepConditionVariableSRW_pfn = BOOL (WINAPI *)(
+  _Inout_ PCONDITION_VARIABLE ConditionVariable,
+  _Inout_ PSRWLOCK            SRWLock,
+  _In_    DWORD               dwMilliseconds,
+  _In_    ULONG               Flags
+);
+
+static SleepConditionVariableSRW_pfn
+       SleepConditionVariableSRW_Original = nullptr;
+
+BOOL
+WINAPI
+SleepConditionVariableSRW_Detour (
+  _Inout_ PCONDITION_VARIABLE ConditionVariable,
+  _Inout_ PSRWLOCK            SRWLock,
+  _In_    DWORD               dwMilliseconds,
+  _In_    ULONG               Flags )
+{
+  //SK_LOG_FIRST_CALL
+
+#if 0
+  if (SK_IsCurrentGame (SK_GAME_ID::Starfield))
+  {
+    SK_LOGs0 ( L"Scheduler ",
+                 L"SleepConditionVariableSRW (..., ..., %d, %x) - %ws",
+              dwMilliseconds, Flags,
+              SK_Thread_GetName (SK_GetCurrentThreadId ()).c_str () );
+  }
+#endif
+
+  return
+    SleepConditionVariableSRW_Original (
+         ConditionVariable, SRWLock, dwMilliseconds, Flags
+    );
 }
 
 BOOL
@@ -1608,6 +1653,11 @@ void SK_Scheduler_Init (void)
                               "SleepEx",
                                SleepEx_Detour,
       static_cast_p2p <void> (&SleepEx_Original) );
+
+    SK_CreateDLLHook2 (      L"Kernel32",
+                              "SleepConditionVariableSRW",
+                               SleepConditionVariableSRW_Detour,
+      static_cast_p2p <void> (&SleepConditionVariableSRW_Original) );
 
     SK_CreateDLLHook2 (      L"Kernel32",
                               "SwitchToThread",
