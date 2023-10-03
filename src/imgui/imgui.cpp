@@ -13651,16 +13651,19 @@ void ImGui::DebugRenderKeyboardPreview(ImDrawList* draw_list)
     const ImVec2 key_step = ImVec2(key_size.x - 1.0f, key_size.y - 1.0f);
     const float  key_row_offset = 9.0f;
 
+    const int    key_column_max = 8;
+    const int    key_row_max    = 3;
+
     ImVec2 board_min = GetCursorScreenPos();
-    ImVec2 board_max = ImVec2(board_min.x + 3 * key_step.x + 2 * key_row_offset + 10.0f, board_min.y + 3 * key_step.y + 10.0f);
+    ImVec2 board_max = ImVec2(board_min.x + key_column_max * key_step.x + 2 * key_row_offset + 10.0f, board_min.y + key_row_max * key_step.y + 10.0f);
     ImVec2 start_pos = ImVec2(board_min.x + 5.0f - key_step.x, board_min.y);
 
     struct KeyLayoutData { int Row, Col; const char* Label; ImGuiKey Key; };
     const KeyLayoutData keys_to_display[] =
     {
-        { 0, 0, "", ImGuiKey_Tab },      { 0, 1, "Q", ImGuiKey_Q }, { 0, 2, "W", ImGuiKey_W }, { 0, 3, "E", ImGuiKey_E }, { 0, 4, "R", ImGuiKey_R },
-        { 1, 0, "", ImGuiKey_CapsLock }, { 1, 1, "A", ImGuiKey_A }, { 1, 2, "S", ImGuiKey_S }, { 1, 3, "D", ImGuiKey_D }, { 1, 4, "F", ImGuiKey_F },
-        { 2, 0, "", ImGuiKey_LeftShift },{ 2, 1, "Z", ImGuiKey_Z }, { 2, 2, "X", ImGuiKey_X }, { 2, 3, "C", ImGuiKey_C }, { 2, 4, "V", ImGuiKey_V }
+        { 0, 0, "Tab",    ImGuiKey_Tab      }, { 0, 1, "Q", ImGuiKey_Q }, { 0, 2, "W", ImGuiKey_W }, { 0, 3, "E", ImGuiKey_E }, { 0, 4, "R", ImGuiKey_R }, { 0, 5, "T", ImGuiKey_T }, { 0, 6, "Y", ImGuiKey_Y }, { 0, 7, "U", ImGuiKey_U },
+        { 1, 0, "Caps",   ImGuiKey_CapsLock }, { 1, 1, "A", ImGuiKey_A }, { 1, 2, "S", ImGuiKey_S }, { 1, 3, "D", ImGuiKey_D }, { 1, 4, "F", ImGuiKey_F }, { 1, 5, "G", ImGuiKey_G }, { 1, 6, "H", ImGuiKey_H }, { 1, 7, "J", ImGuiKey_J },
+        { 2, 0, "Shift",  ImGuiKey_ModShift }, { 2, 1, "Z", ImGuiKey_Z }, { 2, 2, "X", ImGuiKey_X }, { 2, 3, "C", ImGuiKey_C }, { 2, 4, "V", ImGuiKey_V }, { 2, 5, "B", ImGuiKey_B }, { 2, 6, "N", ImGuiKey_N }, { 2, 7, "M", ImGuiKey_M }
     };
 
     // Elements rendered manually via ImDrawList API are not clipped automatically.
