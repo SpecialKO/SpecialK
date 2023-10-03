@@ -1,4 +1,8 @@
-﻿23.10.2
+﻿23.10.3
+=======
+ + Fixed most broken keyboard functionality following the ImGui codebase update
+
+23.10.2
 =======
  + Experimental version with ImGui render code updated
  + A number of input-related features have been broken by this update, and

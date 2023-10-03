@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <mmsystem.h>
 #include <Windows.h>
@@ -47,7 +47,7 @@ SK_ImGui_GetGlyphRangesDefaultEx (void)
     0x2100, 0x21FF, // Letterlike Symbols
     0x2600, 0x26FF, // Misc. Characters
     0x2700, 0x27BF, // Dingbats
-    0xc2b1, 0xc2b3, // �
+    0xc2b1, 0xc2b3, // ²
     0
   };
   return &ranges [0];
@@ -2649,71 +2649,107 @@ SK_ImGui_User_NewFrame (void)
 
     delta = 0.0;
 
-    io.KeyMap [ImGuiKey_Tab]         = VK_TAB;
-    io.KeyMap [ImGuiKey_LeftArrow]   = VK_LEFT;
-    io.KeyMap [ImGuiKey_RightArrow]  = VK_RIGHT;
-    io.KeyMap [ImGuiKey_UpArrow]     = VK_UP;
-    io.KeyMap [ImGuiKey_DownArrow]   = VK_DOWN;
-    io.KeyMap [ImGuiKey_PageUp]      = VK_PRIOR;
-    io.KeyMap [ImGuiKey_PageDown]    = VK_NEXT;
-    io.KeyMap [ImGuiKey_Home]        = VK_HOME;
-    io.KeyMap [ImGuiKey_End]         = VK_END;
-    io.KeyMap [ImGuiKey_Insert]      = VK_INSERT;
-    io.KeyMap [ImGuiKey_Delete]      = VK_DELETE;
-    io.KeyMap [ImGuiKey_Backspace]   = VK_BACK;
-    io.KeyMap [ImGuiKey_Space]       = VK_SPACE;
-    io.KeyMap [ImGuiKey_Enter]       = VK_RETURN;
-    io.KeyMap [ImGuiKey_Escape]      = VK_ESCAPE;
-    io.KeyMap [ImGuiKey_ScrollLock]  = VK_SCROLL;
-    io.KeyMap [ImGuiKey_PrintScreen] = VK_PRINT;
-    io.KeyMap [ImGuiKey_Pause]       = VK_PAUSE;
-    io.KeyMap [ImGuiKey_F1]          = VK_F1;
-    io.KeyMap [ImGuiKey_F2]          = VK_F2;
-    io.KeyMap [ImGuiKey_F3]          = VK_F3;
-    io.KeyMap [ImGuiKey_F4]          = VK_F4;
-    io.KeyMap [ImGuiKey_F5]          = VK_F5;
-    io.KeyMap [ImGuiKey_F6]          = VK_F6;
-    io.KeyMap [ImGuiKey_F7]          = VK_F7;
-    io.KeyMap [ImGuiKey_F8]          = VK_F8;
-    io.KeyMap [ImGuiKey_F9]          = VK_F9;
-    io.KeyMap [ImGuiKey_F10]         = VK_F10;
-    io.KeyMap [ImGuiKey_F11]         = VK_F11;
-    io.KeyMap [ImGuiKey_F12]         = VK_F12;
-    io.KeyMap [ImGuiKey_0]           = '0';
-    io.KeyMap [ImGuiKey_1]           = '1';
-    io.KeyMap [ImGuiKey_2]           = '2';
-    io.KeyMap [ImGuiKey_3]           = '3';
-    io.KeyMap [ImGuiKey_4]           = '4';
-    io.KeyMap [ImGuiKey_5]           = '5';
-    io.KeyMap [ImGuiKey_6]           = '6';
-    io.KeyMap [ImGuiKey_7]           = '7';
-    io.KeyMap [ImGuiKey_8]           = '8';
-    io.KeyMap [ImGuiKey_9]           = '9';
-    io.KeyMap [ImGuiKey_A]           = 'A';
-    io.KeyMap [ImGuiKey_B]           = 'B';
-    io.KeyMap [ImGuiKey_C]           = 'C';
-    io.KeyMap [ImGuiKey_D]           = 'D';
-    io.KeyMap [ImGuiKey_E]           = 'E';
-    io.KeyMap [ImGuiKey_F]           = 'F';
-    io.KeyMap [ImGuiKey_G]           = 'G';
-    io.KeyMap [ImGuiKey_H]           = 'H';
-    io.KeyMap [ImGuiKey_I]           = 'I';
-    io.KeyMap [ImGuiKey_J]           = 'J';
-    io.KeyMap [ImGuiKey_K]           = 'K';
-    io.KeyMap [ImGuiKey_L]           = 'L';
-    io.KeyMap [ImGuiKey_M]           = 'M';
-    io.KeyMap [ImGuiKey_N]           = 'N';
-    io.KeyMap [ImGuiKey_O]           = 'O';
-    io.KeyMap [ImGuiKey_P]           = 'P';
-    io.KeyMap [ImGuiKey_Q]           = 'Q';
-    io.KeyMap [ImGuiKey_R]           = 'R';
-    io.KeyMap [ImGuiKey_S]           = 'S';
-    io.KeyMap [ImGuiKey_T]           = 'T';
-    io.KeyMap [ImGuiKey_U]           = 'U';
-    io.KeyMap [ImGuiKey_V]           = 'V';
-    io.KeyMap [ImGuiKey_X]           = 'X';
-    io.KeyMap [ImGuiKey_Y]           = 'Y';
-    io.KeyMap [ImGuiKey_Z]           = 'Z';
+    io.KeyMap [ImGuiKey_Tab]            = VK_TAB;
+    io.KeyMap [ImGuiKey_LeftArrow]      = VK_LEFT;
+    io.KeyMap [ImGuiKey_RightArrow]     = VK_RIGHT;
+    io.KeyMap [ImGuiKey_UpArrow]        = VK_UP;
+    io.KeyMap [ImGuiKey_DownArrow]      = VK_DOWN;
+    io.KeyMap [ImGuiKey_PageUp]         = VK_PRIOR;
+    io.KeyMap [ImGuiKey_PageDown]       = VK_NEXT;
+    io.KeyMap [ImGuiKey_Home]           = VK_HOME;
+    io.KeyMap [ImGuiKey_End]            = VK_END;
+    io.KeyMap [ImGuiKey_Insert]         = VK_INSERT;
+    io.KeyMap [ImGuiKey_Delete]         = VK_DELETE;
+    io.KeyMap [ImGuiKey_Backspace]      = VK_BACK;
+    io.KeyMap [ImGuiKey_Space]          = VK_SPACE;
+    io.KeyMap [ImGuiKey_Enter]          = VK_RETURN;
+    io.KeyMap [ImGuiKey_Escape]         = VK_ESCAPE;
+    io.KeyMap [ImGuiKey_ScrollLock]     = VK_SCROLL;
+    io.KeyMap [ImGuiKey_PrintScreen]    = VK_PRINT;
+    io.KeyMap [ImGuiKey_Pause]          = VK_PAUSE;
+    io.KeyMap [ImGuiKey_CapsLock]       = VK_CAPITAL;
+    io.KeyMap [ImGuiKey_NumLock]        = VK_NUMLOCK;
+    io.KeyMap [ImGuiKey_Apostrophe]     = '\'';
+    io.KeyMap [ImGuiKey_Comma]          = VK_OEM_COMMA;
+    io.KeyMap [ImGuiKey_Minus]          = VK_OEM_MINUS;
+    io.KeyMap [ImGuiKey_Period]         = VK_OEM_PERIOD;
+    io.KeyMap [ImGuiKey_Slash]          = '/';
+    io.KeyMap [ImGuiKey_Semicolon]      = VK_OEM_1;
+    io.KeyMap [ImGuiKey_Equal]          = VK_OEM_PLUS;
+    io.KeyMap [ImGuiKey_LeftBracket]    = VK_OEM_4;
+    io.KeyMap [ImGuiKey_RightBracket]   = VK_OEM_6;
+    io.KeyMap [ImGuiKey_Backslash]      = '\\';
+    io.KeyMap [ImGuiKey_GraveAccent]    = VK_OEM_3;
+    io.KeyMap [ImGuiKey_KeypadMultiply] = VK_MULTIPLY;
+    io.KeyMap [ImGuiKey_KeypadSubtract] = VK_SUBTRACT;
+    io.KeyMap [ImGuiKey_KeypadAdd]      = VK_ADD;
+    io.KeyMap [ImGuiKey_KeypadEnter]    = VK_RETURN;
+    io.KeyMap [ImGuiKey_KeypadEqual]    = VK_OEM_PLUS;
+    io.KeyMap [ImGuiKey_Tab]            = VK_TAB;
+    io.KeyMap [ImGuiKey_UpArrow]        = VK_UP;
+    io.KeyMap [ImGuiKey_DownArrow]      = VK_DOWN;
+    io.KeyMap [ImGuiKey_LeftArrow]      = VK_LEFT;
+    io.KeyMap [ImGuiKey_RightArrow]     = VK_RIGHT;
+    io.KeyMap [ImGuiKey_F1]             = VK_F1;
+    io.KeyMap [ImGuiKey_F2]             = VK_F2;
+    io.KeyMap [ImGuiKey_F3]             = VK_F3;
+    io.KeyMap [ImGuiKey_F4]             = VK_F4;
+    io.KeyMap [ImGuiKey_F5]             = VK_F5;
+    io.KeyMap [ImGuiKey_F6]             = VK_F6;
+    io.KeyMap [ImGuiKey_F7]             = VK_F7;
+    io.KeyMap [ImGuiKey_F8]             = VK_F8;
+    io.KeyMap [ImGuiKey_F9]             = VK_F9;
+    io.KeyMap [ImGuiKey_F10]            = VK_F10;
+    io.KeyMap [ImGuiKey_F11]            = VK_F11;
+    io.KeyMap [ImGuiKey_F12]            = VK_F12;
+    io.KeyMap [ImGuiKey_F13]            = VK_F13;
+    io.KeyMap [ImGuiKey_F14]            = VK_F14;
+    io.KeyMap [ImGuiKey_F15]            = VK_F15;
+    io.KeyMap [ImGuiKey_F16]            = VK_F16;
+    io.KeyMap [ImGuiKey_F17]            = VK_F17;
+    io.KeyMap [ImGuiKey_F18]            = VK_F18;
+    io.KeyMap [ImGuiKey_F19]            = VK_F19;
+    io.KeyMap [ImGuiKey_F20]            = VK_F20;
+    io.KeyMap [ImGuiKey_F21]            = VK_F21;
+    io.KeyMap [ImGuiKey_F22]            = VK_F22;
+    io.KeyMap [ImGuiKey_F23]            = VK_F23;
+    io.KeyMap [ImGuiKey_F24]            = VK_F24;
+    io.KeyMap [ImGuiKey_0]              = '0';
+    io.KeyMap [ImGuiKey_1]              = '1';
+    io.KeyMap [ImGuiKey_2]              = '2';
+    io.KeyMap [ImGuiKey_3]              = '3';
+    io.KeyMap [ImGuiKey_4]              = '4';
+    io.KeyMap [ImGuiKey_5]              = '5';
+    io.KeyMap [ImGuiKey_6]              = '6';
+    io.KeyMap [ImGuiKey_7]              = '7';
+    io.KeyMap [ImGuiKey_8]              = '8';
+    io.KeyMap [ImGuiKey_9]              = '9';
+    io.KeyMap [ImGuiKey_A]              = 'A';
+    io.KeyMap [ImGuiKey_B]              = 'B';
+    io.KeyMap [ImGuiKey_C]              = 'C';
+    io.KeyMap [ImGuiKey_D]              = 'D';
+    io.KeyMap [ImGuiKey_E]              = 'E';
+    io.KeyMap [ImGuiKey_F]              = 'F';
+    io.KeyMap [ImGuiKey_G]              = 'G';
+    io.KeyMap [ImGuiKey_H]              = 'H';
+    io.KeyMap [ImGuiKey_I]              = 'I';
+    io.KeyMap [ImGuiKey_J]              = 'J';
+    io.KeyMap [ImGuiKey_K]              = 'K';
+    io.KeyMap [ImGuiKey_L]              = 'L';
+    io.KeyMap [ImGuiKey_M]              = 'M';
+    io.KeyMap [ImGuiKey_N]              = 'N';
+    io.KeyMap [ImGuiKey_O]              = 'O';
+    io.KeyMap [ImGuiKey_P]              = 'P';
+    io.KeyMap [ImGuiKey_Q]              = 'Q';
+    io.KeyMap [ImGuiKey_R]              = 'R';
+    io.KeyMap [ImGuiKey_S]              = 'S';
+    io.KeyMap [ImGuiKey_T]              = 'T';
+    io.KeyMap [ImGuiKey_U]              = 'U';
+    io.KeyMap [ImGuiKey_V]              = 'V';
+    io.KeyMap [ImGuiKey_W]              = 'W';
+    io.KeyMap [ImGuiKey_X]              = 'X';
+    io.KeyMap [ImGuiKey_Y]              = 'Y';
+    io.KeyMap [ImGuiKey_Z]              = 'Z';
   }
 
   static auto ticks_per_sec =
