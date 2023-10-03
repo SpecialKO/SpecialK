@@ -671,7 +671,7 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
 
     if ( ImGui::InputFloat (
            "Luminance Clipping Point (cd/m²)###SK_HDR_LUMINANCE",
-             &peak_nits, 1.0f, 10.0f, 2, ImGuiInputTextFlags_CharsDecimal )
+             &peak_nits, 1.0f, 10.0f, "%.3f", ImGuiInputTextFlags_CharsDecimal)
        )
     {
       __SK_HDR_Luma =
@@ -1378,8 +1378,8 @@ public:
         auto vTextSize =
           ImGui::CalcTextSize (szProcessingText);
 
-        float fx = ImGui::GetCursorPosX              (),
-              fw = ImGui::GetContentRegionAvailWidth ();
+        float fx = ImGui::GetCursorPosX         (),
+              fw = ImGui::GetContentRegionAvail ().x;
 
         ImGui::SetCursorPosX (fx - ImGui::GetStyle ().ItemInnerSpacing.x +
                               fw -                           vTextSize.x);
@@ -1742,12 +1742,12 @@ public:
           {
             ImGui::BulletText ("No Image Processing is Implemented by the Current Tonemap");
           }
-          ImGui::EndGroup   ();
-          ImGui::SameLine   ();
-          ImGui::VerticalSeparator ();
-          ImGui::SameLine   ();
-          ImGui::BeginGroup ();
-          ImGui::BeginGroup ();
+          ImGui::EndGroup    ();
+          ImGui::SameLine    ();
+          ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+          ImGui::SameLine    ();
+          ImGui::BeginGroup  ();
+          ImGui::BeginGroup  ();
           for ( int i = 0 ; i < MAX_HDR_PRESETS ; i++ )
           {
             const int selected =
@@ -1760,9 +1760,9 @@ public:
             StrCatBuffA (hashed_name, "###SK_HDR_PresetSel_",      128);
             StrCatBuffA (hashed_name, std::to_string (i).c_str (), 128);
 
-            ImGui::SetNextTreeNodeOpen (false, ImGuiCond_Always);
+            ImGui::SetNextItemOpen (false, ImGuiCond_Always);
 
-            if (ImGui::TreeNodeEx (hashed_name, ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_AllowItemOverlap | selected))
+            if (ImGui::TreeNodeEx (hashed_name, ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_Bullet | ImGuiTreeNodeFlags_AllowOverlap | selected))
             {
               hdr_presets [i].activate ();
             }
@@ -2071,7 +2071,7 @@ public:
             static bool changed_once = false;
                    bool changed      = false;
 
-            ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV (0.15f, 0.95f, 0.55f));
+            ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV (0.15f, 0.95f, 0.55f).Value);
 
             if (SK_API_IsLayeredOnD3D11 (rb.api))
             {
@@ -2092,9 +2092,9 @@ public:
                     ImGui::EndTooltip    ();
                 }
 
-                ImGui::SameLine          ();
-                ImGui::VerticalSeparator ();
-                ImGui::SameLine          ();
+                ImGui::SameLine    ();
+                ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+                ImGui::SameLine    ();
               }
 
               const auto _SummarizeTargets =
@@ -2213,12 +2213,12 @@ public:
             {
               if (SK_API_IsLayeredOnD3D11 (rb.api))
               {
-                ImGui::SameLine          ();
-                ImGui::VerticalSeparator ();
-                ImGui::SameLine          ();
+                ImGui::SameLine    ();
+                ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+                ImGui::SameLine    ();
               
                 if (__SK_HDR_AdaptiveToneMap)
-                  ImGui::SetNextTreeNodeOpen (true, ImGuiCond_Once);
+                  ImGui::SetNextItemOpen (true, ImGuiCond_Once);
               }
 
               bExperimental =
@@ -2279,7 +2279,7 @@ public:
 
                   if (! __SK_HDR_AdaptiveToneMap)
                   {
-                    ImGui::SameLine (); ImGui::VerticalSeparator ();
+                    ImGui::SameLine (); ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
                     ImGui::SameLine ();
                     ImGui::BulletText ("Gamut Visualizer Requires Adaptive Tone Mapping");
                   }
@@ -2294,8 +2294,8 @@ public:
                 
                 if ((! bRawImageMode) && SK_API_IsLayeredOnD3D11 (rb.api))
                 {
-                  ImGui::SameLine          ();
-                  ImGui::VerticalSeparator ();
+                  ImGui::SameLine    ();
+                  ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
 
                   extern SK_ComPtr <ID3D11ShaderResourceView>
                     SK_HDR_GetGamutSRV     (void);
@@ -2509,7 +2509,7 @@ public:
                      swap_desc1.Format     == DXGI_FORMAT_R10G10B10A2_UNORM &&
                      rb.scanout.getEOTF () != SK_RenderBackend::scan_out_s::SMPTE_2084 ) ) )
           {
-            ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.05f, .8f, .9f));
+            ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.05f, .8f, .9f).Value);
             ImGui::BulletText     ("HDR May Not be Working Correctly Until you Restart the Game...");
             ImGui::PopStyleColor  ();
           }
@@ -2617,9 +2617,6 @@ SK_ImGui_DrawGamut (void)
 
 
   const ImVec4 col (0.25f, 0.25f, 0.25f, 0.8f);
-
-  const ImU32 col32 =
-    ImColor (col);
 
   ImDrawList* draw_list =
     ImGui::GetWindowDrawList ();
@@ -2756,7 +2753,7 @@ SK_ImGui_DrawGamut (void)
                              0.0f,
                      (float)(0.66f + (current_time % 830) / 830.0f ) );
 
-  const ImU32 self_outline =
+  const auto& self_outline =
     self_outline_v4;
 
   ImGui::TextColored     (self_outline_v4, "%s", rb.displays [rb.active_display].full_name);
@@ -2800,7 +2797,7 @@ SK_ImGui_DrawGamut (void)
                 text_offset   = max_len - space.summary.text_len,
                 fIdx          =           space.summary.fIdx / num_spaces;
 
-    ImGui::PushStyleColor(ImGuiCol_Text, ImColor::HSV (fIdx, 0.85f, 0.98f));
+    ImGui::PushStyleColor(ImGuiCol_Text, (ImVec4)ImColor::HSV (fIdx, 0.85f, 0.98f));
     ImGui::PushID        (static_cast <int> (space.summary.fIdx));
 
     ImGui::SetCursorPosX (x_pos  + style.ItemSpacing.x   + text_offset);
@@ -2868,7 +2865,7 @@ SK_ImGui_DrawGamut (void)
       _MakeTriangleVerts (r, g, b, w);
 
     draw_list->AddTriangleFilled ( display_pts [0], display_pts [1], display_pts [2],
-                                     col32 );
+                                     ImGui::ColorConvertFloat4ToU32 (col) );
 
     for (auto& space : color_spaces)
     {

@@ -205,7 +205,7 @@ SK::ControlPanel::Platform::Draw (void)
 
           // TODO: Implement popup for non-Steam
           const bool uncollapsed =
-            bSteam ? ImGui::CollapsingHeader ("Enhanced Popup", ImGuiTreeNodeFlags_AllowItemOverlap)
+            bSteam ? ImGui::CollapsingHeader ("Enhanced Popup", ImGuiTreeNodeFlags_AllowOverlap)
                    : false;
 
           if (bSteam) {

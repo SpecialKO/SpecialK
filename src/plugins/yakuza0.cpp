@@ -716,7 +716,7 @@ SK_Yakuza0_PlugInCfg (void)
   if ( (yakuza0           && ImGui::CollapsingHeader ("Yakuza 0",                  ImGuiTreeNodeFlags_DefaultOpen)) ||
        (yakuza_cant_count && ImGui::CollapsingHeader ("Yakuza: Trouble Counting?", ImGuiTreeNodeFlags_DefaultOpen)) ||
                              ImGui::CollapsingHeader ("Yakuza Kiwami 2",           ImGuiTreeNodeFlags_DefaultOpen |
-                                                                                   ImGuiTreeNodeFlags_AllowItemOverlap) )
+                                                                                   ImGuiTreeNodeFlags_AllowOverlap) )
   {
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.02f, 0.68f, 0.90f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.07f, 0.72f, 0.90f, 0.80f));
@@ -735,7 +735,7 @@ SK_Yakuza0_PlugInCfg (void)
       }
     }
 
-    ImGui::TreePush ();
+    ImGui::TreePush ("");
 
     bool leak =
       ImGui::Checkbox ( "Enable (small) Memory Leaks to Prevent Crashing",
@@ -778,7 +778,7 @@ SK_Yakuza0_PlugInCfg (void)
 
       if (ImGui::CollapsingHeader ("Post-Processing", ImGuiTreeNodeFlags_DefaultOpen))
       {
-        ImGui::TreePush ();
+        ImGui::TreePush ("");
 
         //// Debug setting, hide it from normal users.
         //if (config.system.log_level > 0)
@@ -842,10 +842,10 @@ SK_Yakuza0_PlugInCfg (void)
       ImGui::BeginGroup   ();
 
       if (ImGui::CollapsingHeader ("Anti-Aliasing", ImGuiTreeNodeFlags_DefaultOpen |
-                                                    ImGuiTreeNodeFlags_AllowItemOverlap))
+                                                    ImGuiTreeNodeFlags_AllowOverlap))
       {
-        ImGui::TreePush   ();
-        ImGui::BeginGroup ();
+        ImGui::TreePush   ("");
+        ImGui::BeginGroup (  );
 
         ImGui::Checkbox   ("Disable Built-In FXAA/SMAA", &blur_shader0->Enable);
 
@@ -961,7 +961,7 @@ SK_Yakuza0_PlugInCfg (void)
 
       if (ImGui::CollapsingHeader ("Input Management", ImGuiTreeNodeFlags_DefaultOpen))
       {
-        ImGui::TreePush ();
+        ImGui::TreePush ("");
 
         bool toggle_scepad =
           ImGui::Checkbox ("Disable libScePad", &disable_scepad);
@@ -1191,7 +1191,7 @@ SK_Yakuza0_PlugInCfg (void)
     {
       static bool tex_changed = false;
 
-      ImGui::TreePush ();
+      ImGui::TreePush ("");
 
       bool new_change = false;
 
@@ -1222,7 +1222,7 @@ SK_Yakuza0_PlugInCfg (void)
     {
       if (ImGui::CollapsingHeader ("Screenshots###YAKUZA_SCREENSHOTS"))
       {
-        ImGui::TreePush  ();
+        ImGui::TreePush  ("");
         ImGui::PushID    ("Y0_Screenshots");
 
         auto Keybinding = [] (SK_Keybind* binding, sk::ParameterStringW* param) ->
@@ -1289,8 +1289,8 @@ SK_Yakuza0_PlugInCfg (void)
           const SK_ScreenshotManager::screenshot_repository_s& repo =
             rb.screenshot_mgr->getRepoStats (png_changed);
 
-          ImGui::BeginGroup ();
-          ImGui::TreePush   ();
+          ImGui::BeginGroup (  );
+          ImGui::TreePush   ("");
           ImGui::Text ( "%lu files using %ws",
                                              repo.files,
                        SK_File_SizeToString (repo.liSize.QuadPart).data ()

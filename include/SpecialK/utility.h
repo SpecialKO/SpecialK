@@ -24,6 +24,8 @@
 #ifndef __SK__UTILITY_H__
 #define __SK__UTILITY_H__
 
+#include <SpecialK/log.h>
+
 BOOL SK_IsHandleValid   (HANDLE hHandle);
 BOOL SK_SafeCloseHandle (HANDLE hHandle) noexcept;
 
@@ -377,7 +379,7 @@ void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,
                    (_msg), (_file), (_line), (_func)                      \
               ), L" SpecialK ");                                          \
                                                                           \
-    if (config.system.log_level > 1)                                      \
+    if (sk::logs::base_log_lvl > 1)                                       \
     {                                                                     \
       if (SK_IsDebuggerPresent ())                                        \
              __debugbreak      ();                                        \

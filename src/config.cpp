@@ -6833,3 +6833,11 @@ SK_Render_GetAPIHookMask (void)
 }
 
 sk_config_t config;
+
+namespace sk
+{
+  namespace logs
+  {
+    int base_log_lvl = 0;
+  };
+};

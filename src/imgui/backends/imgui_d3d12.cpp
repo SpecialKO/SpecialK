@@ -78,11 +78,15 @@ void
 ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
               SK_D3D12_RenderCtx::FrameCtx* pFrame )
 {
+  // Avoid rendering when minimized
+  if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
+    return;
+
   if (! ( _d3d12_rbk->_pSwapChain.p || _d3d12_rbk->_pDevice.p ) )
     return;
 
-  ImGuiIO& io =
-    ImGui::GetIO ();
+  //ImGuiIO& io =
+  //  ImGui::GetIO ();
 
   // The cmd list is either closed and needs resetting, or just wants pipeline state.
   if (! pFrame->begin_cmd_list (/*g_PipelineState*/))
@@ -243,10 +247,22 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
                   ((UINT)((g * a) * 255U) <<  8U) |
                   ((UINT)((b * a) * 255U)       );
 
+#if 0
           cmd_list->VtxBuffer.Data[i].col =
             (ImVec4)ImColor (color);
+#else
+          cmd_list->VtxBuffer.Data[i].col =
+            ImColor (color);
+          /// XXX: FIXME
+#endif
         }
       }
+
+      //memcpy (vtx_ptr, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof (ImDrawVert));
+      //memcpy (idx_ptr, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof (ImDrawIdx));
+      //
+      //vtx_ptr += cmd_list->VtxBuffer.Size;
+      //idx_ptr += cmd_list->IdxBuffer.Size;
 
       vtx_ptr = std::copy_n (cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size, vtx_ptr);
       idx_ptr = std::copy_n (cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size, idx_ptr);
@@ -304,11 +320,11 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
   VERTEX_CONSTANT_BUFFER* constant_buffer =
                   &vertex_constant_buffer;
 
-  float L = 0.0f;
-  float R = 0.0f + io.DisplaySize.x;
-  float T = 0.0f;
-  float B = 0.0f + io.DisplaySize.y;
-  float mvp[4][4] =
+  float L = draw_data->DisplayPos.x;
+  float R = draw_data->DisplayPos.x + draw_data->DisplaySize.x;
+  float B = draw_data->DisplayPos.y + draw_data->DisplaySize.y;
+  float T = draw_data->DisplayPos.y;
+  float mvp [4][4] =
   {
     { 2.0f/(R-L),     0.0f,         0.0f,       0.0f },
     {  0.0f,          2.0f/(T-B),   0.0f,       0.0f },
@@ -348,9 +364,9 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
   // Setup viewport
   ctx->RSSetViewports (         1,
     std::array <D3D12_VIEWPORT, 1> (
-    {             0.0f, 0.0f,
-      io.DisplaySize.x, io.DisplaySize.y,
-                  0.0f, 1.0f
+    {                     0.0f, 0.0f,
+      draw_data->DisplaySize.x, draw_data->DisplaySize.y,
+                          0.0f, 1.0f
     }                              ).data ()
   );
 
@@ -380,9 +396,9 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
   ctx->SetGraphicsRoot32BitConstants (0, 24, &vertex_constant_buffer, 0);
   ctx->SetGraphicsRoot32BitConstants ( 2, 4,
                        std::array <float, 4> (
-      { 0.0f, 0.0f,
-        hdr_display ? (float)io.DisplaySize.x : 0.0f,
-        hdr_display ? (float)io.DisplaySize.y : 0.0f }
+      {                draw_data->DisplayPos.x,  draw_data->DisplayPos.y,
+        hdr_display ? draw_data->DisplaySize.x - draw_data->DisplayPos.x : 0.0f,
+        hdr_display ? draw_data->DisplaySize.y - draw_data->DisplayPos.y : 0.0f }
                                              ).data (),
                                           0
   );
@@ -395,6 +411,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
   int    vtx_offset = 0;
   int    idx_offset = 0;
   ImVec2 pos        = ImVec2 (0.0f, 0.0f);
+  ImVec2 clip_off   = draw_data->DisplayPos;
 
   for ( int n = 0;
             n < draw_data->CmdListsCount;
@@ -411,28 +428,48 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
         &cmd_list->CmdBuffer [cmd_i];
 
       if (pcmd->UserCallback)
+      {
+        // User callback, registered via ImDrawList::AddCallback()
+        // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
+        if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+        {
+          SK_ReleaseAssert (false && "ImGui_ImplDX12_SetupRenderState (...) not implemented");
+                                  // "ImGui_ImplDX12_SetupRenderState (draw_data, ctx, fr);
+        }
+        else
           pcmd->UserCallback (cmd_list, pcmd);
+      }
 
       else
       {
+        // Project scissor/clipping rectangles into framebuffer space
+        ImVec2 clip_min (pcmd->ClipRect.x - clip_off.x, pcmd->ClipRect.y - clip_off.y);
+        ImVec2 clip_max (pcmd->ClipRect.z - clip_off.x, pcmd->ClipRect.w - clip_off.y);
+        
+        if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
+          continue;
+
         const D3D12_RECT r =
         {
-          (LONG)(pcmd->ClipRect.x - pos.x), (LONG)(pcmd->ClipRect.y - pos.y),
-          (LONG)(pcmd->ClipRect.z - pos.x), (LONG)(pcmd->ClipRect.w - pos.y)
+          static_cast <LONG> (clip_min.x), static_cast <LONG> (clip_min.y),
+          static_cast <LONG> (clip_max.x), static_cast <LONG> (clip_max.y)
         };
 
         SK_ReleaseAssert (r.left <= r.right && r.top <= r.bottom);
 
-        ctx->SetGraphicsRootDescriptorTable ( 1,
-              *(D3D12_GPU_DESCRIPTOR_HANDLE*)&pcmd->TextureId    );
-        ctx->RSSetScissorRects              ( 1,              &r );
-        ctx->DrawIndexedInstanced           ( pcmd->ElemCount, 1,
-                                              idx_offset,
-                                              vtx_offset,      0 );
-      }
+        const D3D12_GPU_DESCRIPTOR_HANDLE
+          texture_handle ((UINT64)(pcmd->GetTexID ()));
 
-      idx_offset += pcmd->ElemCount;
-    } vtx_offset +=  cmd_list->VtxBuffer.Size;
+        ctx->SetGraphicsRootDescriptorTable ( 1, texture_handle );
+        ctx->RSSetScissorRects              ( 1,             &r );
+        ctx->DrawIndexedInstanced           ( pcmd->ElemCount, 1,
+                                              pcmd->IdxOffset + idx_offset,
+                                              pcmd->VtxOffset + vtx_offset, 0 );
+      }
+    }
+
+    idx_offset += cmd_list->IdxBuffer.Size;
+    vtx_offset += cmd_list->VtxBuffer.Size;
   }
 
   extern bool SK_D3D12_ShouldSkipHUD (void);
@@ -641,8 +678,10 @@ ImGui_ImplDX12_CreateFontsTexture (void)
       _imgui_d3d12.pFontTexture.p, L"ImGui D3D12 FontTexture"
     );
 
-    io.Fonts->TexID =
-      (ImTextureID)_imgui_d3d12.hFontSrvGpuDescHandle.ptr;
+    //static_assert(sizeof(ImTextureID) >= sizeof(bd->hFontSrvGpuDescHandle.ptr), "Can't pack descriptor handle into TexID, 32-bit not supported yet.");
+    io.Fonts->SetTexID (
+      (ImTextureID)_imgui_d3d12.hFontSrvGpuDescHandle.ptr
+    );
   }
 
   catch (const SK_ComException& e) {
@@ -759,7 +798,11 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
     static D3D12_INPUT_ELEMENT_DESC local_layout [] = {
       { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,       0, sk::narrow_cast<UINT>((size_t)(&((ImDrawVert*)0)->pos)), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
       { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, sk::narrow_cast<UINT>((size_t)(&((ImDrawVert*)0)->uv)),  D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+#if 0 // NO HDR ImGui Yet
       { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sk::narrow_cast<UINT>((size_t)(&((ImDrawVert*)0)->col)), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+#else
+      { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM,     0, sk::narrow_cast<UINT>((size_t)(&((ImDrawVert*)0)->col)), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+#endif
     };
 
       psoDesc.InputLayout = {       local_layout, 3   };
@@ -846,7 +889,7 @@ ImGui_ImplDX12_InvalidateDeviceObjects (void)
   // We copied g_pFontTextureView to io.Fonts->TexID so let's clear that as well.
   _imgui_d3d12.pFontTexture.Release ();
 
-  ImGui::GetIO ().Fonts->TexID = nullptr;
+  ImGui::GetIO ().Fonts->SetTexID (0);
 
   for ( auto& frame : _imgui_d3d12.frame_heaps )
   {
@@ -863,6 +906,20 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
                       D3D12_GPU_DESCRIPTOR_HANDLE font_srv_gpu_desc_handle,
                       HWND                        hwnd )
 {
+  ImGuiIO& io =
+    ImGui::GetIO ();
+
+  IM_ASSERT (io.BackendRendererUserData == nullptr && "Already initialized a renderer backend!");
+
+  // Setup backend capabilities flags
+  //ImGui_ImplDX12_Data* bd = IM_NEW(ImGui_ImplDX12_Data)();
+  io.BackendRendererUserData = nullptr;/// XXX FIXME (void *)bd;
+  io.BackendRendererName     = "imgui_impl_dx12";
+
+  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
+  io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;
+
+
   SK_LOG0 ( ( L"(+) Acquiring D3D12 Render Context: Device=%08xh, SwapChain: {%lu x %hs, HWND=%08xh}",
                 device, num_frames_in_flight,
                                       SK_DXGI_FormatToStr (rtv_format).data (),
@@ -891,6 +948,12 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
 void
 ImGui_ImplDX12_Shutdown (void)
 {
+  ///ImGui_ImplDX12_Data* bd = ImGui_ImplDX12_GetBackendData();
+  ///IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
+
+  ImGuiIO& io =
+    ImGui::GetIO ();
+
   ImGui_ImplDX12_InvalidateDeviceObjects ();
 
   if (_imgui_d3d12.pDevice.p != nullptr)
@@ -905,6 +968,13 @@ ImGui_ImplDX12_Shutdown (void)
   _imgui_d3d12.pDevice.Release ();
   _imgui_d3d12.hFontSrvCpuDescHandle.ptr = 0;
   _imgui_d3d12.hFontSrvGpuDescHandle.ptr = 0;
+
+  io.BackendRendererName     = nullptr;
+  io.BackendRendererUserData = nullptr;
+
+  io.BackendFlags &= ~ImGuiBackendFlags_RendererHasVtxOffset;
+  
+//IM_DELETE(bd);
 }
 
 void

@@ -439,9 +439,9 @@ SK::ControlPanel::Window::Draw (void)
           ImGui::EndTooltip   ();
         }
 
-        ImGui::SameLine          ();
-        ImGui::VerticalSeparator ();
-        ImGui::SameLine          ();
+        ImGui::SameLine    ();
+        ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine    ();
 
         ImGui::Checkbox ("Treat Foreground as Active", &config.window.treat_fg_as_active);
 

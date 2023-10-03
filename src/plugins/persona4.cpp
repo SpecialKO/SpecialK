@@ -125,11 +125,11 @@ SK_Persona4_PlugInCfg (void)
     if (! SK_PE32_IsLargeAddressAware ())
     {
       ImGui::BeginChildFrame (ImGui::GetID ("###LAAPATCH"), ImVec2 (0.f, ImGui::GetTextLineHeightWithSpacing () * 2.1f));
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImColor::HSV(0.08F, 0.99F, 1.F));
+      ImGui::PushStyleColor  (ImGuiCol_Text, (ImVec4)ImColor::HSV(0.08F, 0.99F, 1.F));
       ImGui::BulletText      ("Executable is not Large Address Aware");
       ImGui::PopStyleColor   ();
 
-      ImGui::TreePush        ();
+      ImGui::TreePush        ("");
       ImGui::TextUnformatted ("Game will be unstable until manually patched, click here for details.");
       if (ImGui::IsItemClicked ())
       {

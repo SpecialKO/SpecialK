@@ -1022,7 +1022,7 @@ ImGui_ImplVulkan_Init (ImGui_ImplVulkan_Init_Data* init_data)
   io.KeyMap [ImGuiKey_Z]          = 'Z';
 
   io.ClipboardUserData = game_window.hWnd;
-  io.ImeWindowHandle   = game_window.hWnd;
+//io.ImeWindowHandle   = game_window.hWnd;
 
   ImGui_ImplVulkan_CreateDeviceObjects ();
 

@@ -566,20 +566,18 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
       ImGui::EndTooltip   ();
     }
 
-         if ( io.NavInputs             [ImGuiNavInput_FocusPrev] != 0.0f &&
-              io.NavInputsDownDuration [ImGuiNavInput_FocusPrev] == 0.0f )
-         { dir = -1; }
-    else if ( io.NavInputs             [ImGuiNavInput_FocusNext] != 0.0f &&
-              io.NavInputsDownDuration [ImGuiNavInput_FocusNext] == 0.0f )
-         { dir =  1; }
-
-    else
+    ////     if ( io.NavInputs             [ImGuiNavInput_FocusPrev] != 0.0f &&
+    ////          io.NavInputsDownDuration [ImGuiNavInput_FocusPrev] == 0.0f )
+    ////     { dir = -1; }
+    ////else if ( io.NavInputs             [ImGuiNavInput_FocusNext] != 0.0f &&
+    ////          io.NavInputsDownDuration [ImGuiNavInput_FocusNext] == 0.0f )
+    ////     { dir =  1; }
+    ////
+    ////else
     {
-           if ( io.KeysDown         [VK_OEM_4] &&
-                io.KeysDownDuration [VK_OEM_4] == 0.0f )
+           if (ImGui::IsKeyPressed (ImGuiKey_LeftBracket, false))
            { dir = -1;  io.WantCaptureKeyboard = true; }
-      else if ( io.KeysDown         [VK_OEM_6] &&
-                io.KeysDownDuration [VK_OEM_6] == 0.0f )
+      else if (ImGui::IsKeyPressed (ImGuiKey_RightBracket, false))
            { dir =  1;  io.WantCaptureKeyboard = true; }
     }
 

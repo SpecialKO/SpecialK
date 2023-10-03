@@ -673,23 +673,23 @@ bool SK_SF_PlugInCfg (void)
             switch (dlssg_state.currentMode)
             {
               case DLSSGMode::eOn:
-                ImGui::TextColored       (ImVec4 (0.f, 1.f, 0.f, 1.f), "Active");
-                ImGui::SameLine          ();
-                ImGui::VerticalSeparator ();
-                ImGui::SameLine          ();
-                ImGui::Text              ("Frame Generation Rate: %dx", dlssg_state.numFramesActuallyPresented);
+                ImGui::TextColored (ImVec4 (0.f, 1.f, 0.f, 1.f), "Active");
+                ImGui::SameLine    ();
+                ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+                ImGui::SameLine    ();
+                ImGui::Text        ("Frame Generation Rate: %dx", dlssg_state.numFramesActuallyPresented);
                 break;
               case DLSSGMode::eOff:
-                ImGui::TextColored       (ImVec4 (1.f, 1.f, 0.f, 1.f), "Inactive");
+                ImGui::TextColored (ImVec4 (1.f, 1.f, 0.f, 1.f), "Inactive");
                 break;
               case DLSSGMode::eCount:
               default:
-                ImGui::TextColored       (ImVec4 (1.f, 0.f, 0.f, 1.f), "Unknown?!");
+                ImGui::TextColored (ImVec4 (1.f, 0.f, 0.f, 1.f), "Unknown?!");
                 break;
             }
-          else  ImGui::TextColored       (ImColor::HSV (0.1f, 1.f, 1.f), "Disabled by User");
+          else  ImGui::TextColored (ImColor::HSV (0.1f, 1.f, 1.f), "Disabled by User");
         }
-      } else    ImGui::Text              ("Unknown Malfunction");
+      } else    ImGui::Text        ("Unknown Malfunction");
 
       static nlohmann::json f2s_config;
 

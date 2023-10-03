@@ -35,21 +35,6 @@ struct IUnknown;
 
 #include <imgui/imgui.h>
 
-#ifndef IM_VEC2_DEFINED
-#define IM_VEC2_DEFINED
-struct ImVec2
-{
-    float x, y;
-
-    ImVec2 (void)               noexcept { x = y = 0.0f;   }
-    ImVec2 (float _x, float _y) noexcept { x = _x; y = _y; }
-
-#ifdef IM_VEC2_CLASS_EXTRA          // Define constructor and implicit cast operators in imconfig.h to convert back<>forth from your math types and ImVec2.
-    IM_VEC2_CLASS_EXTRA
-#endif
-};
-#endif
-
 interface iSK_INI;
 
 namespace sk

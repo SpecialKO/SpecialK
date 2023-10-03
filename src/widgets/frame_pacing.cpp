@@ -744,7 +744,7 @@ public:
       changed |= ImGui::Checkbox ("Use Short-Term (~15-30 seconds) Data", &SK_FramePercentiles->display_most_recent);
 
       ImGui::Separator ();
-      ImGui::TreePush  ();
+      ImGui::TreePush  ("");
 
       if ( ImGui::SliderFloat (
              "Percentile Class 0 Cutoff",
@@ -840,7 +840,8 @@ void ValueBar(const char *label, const float value, const ImVec2 &size, const fl
         rect_start + ImVec2{0, is_h ? 0 : (1 - fraction) * rect_size.y},
         rect_start + rect_size * ImVec2{is_h ? fraction : 1, 1},
         GetColorU32(ImGuiCol_PlotHistogram),
-        style.FrameRounding, is_h ? ImDrawCornerFlags_Left : ImDrawCornerFlags_Bot
+      /// XXX: Is this accurate?
+        style.FrameRounding, is_h ? ImDrawFlags_RoundCornersTopLeft : ImDrawFlags_RoundCornersBottomRight
     );
     const string value_text = is_h ? format("{:.2f}", value) : format("{:.1f}", value);
     draw_list->AddText(rect_start + (rect_size - CalcTextSize(value_text.c_str())) / 2, GetColorU32(ImGuiCol_Text), value_text.c_str());
@@ -1260,8 +1261,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
     fGaugeSizes += fDISKSize * fUIScale;
 
   const ImVec2 border_dims (
-    std::max (                  (500.0f * fUIScale) - fGaugeSizes,
-               ImGui::GetContentRegionAvailWidth () - fGaugeSizes ),
+    std::max (               (500.0f * fUIScale) - fGaugeSizes,
+               ImGui::GetContentRegionAvail ().x - fGaugeSizes ),
       font_size * 7.0f
   );
 
@@ -1271,7 +1272,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
   ImGui::PushStyleColor ( ImGuiCol_PlotLines,
                              ImColor::HSV ( 0.31f - 0.31f *
                      std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
-                                             1.0f,   1.0f ) );
+                                             1.0f,   1.0f ).Value );
 
   ImGui::PushStyleVar   (ImGuiStyleVar_FrameRounding, 0.0f);
   ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImVec4 (.66f, .66f, .66f, .75f));
@@ -1365,9 +1366,9 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
     ImGui::BeginGroup     (); // 2 frames is intentional to match the opacity of the rest of the graph
     ImGui::RenderFrame    (frame_bb.Min, frame_bb.Max, ImGui::GetColorU32 (ImGuiCol_FrameBg), false);
-    ImGui::PushStyleColor (ImGuiCol_FrameBg,           ImGui::GetColorU32 (ImGuiCol_ChildBg));
+    ImGui::PushStyleColor (ImGuiCol_FrameBg,     ImGui::GetStyleColorVec4 (ImGuiCol_ChildBg));
     ImGui::PushStyleColor (ImGuiCol_Text,          ImVec4 (1.f,  1.f,  1.f, 1.f));
-    ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fGPULoadPercent) / 100.0f * 0.278f, .88f, .75f));
+    ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fGPULoadPercent) / 100.0f * 0.278f, .88f, .75f).Value);
     if (bDrawProcessorLoad)
     {
       if (               fGPULoadPercent > 0.0f)
@@ -1375,7 +1376,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
         ValueBar ("GPU", fGPULoadPercent, ImVec2 (5.0f * fUIScale, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
         ImGui::SetCursorPos (ImVec2 (GetCursorPosX () + fGPUSize * fUIScale, fY));
       }
-      ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fCPULoadPercent) / 100.0f * 0.278f, .88f, .75f));
+      ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fCPULoadPercent) / 100.0f * 0.278f, .88f, .75f).Value);
       ValueBar ("CPU", fCPULoadPercent, ImVec2 (5.0f * fUIScale, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
       ImGui::PopStyleColor  ();
       ImGui::SetCursorPos   (ImVec2 (GetCursorPosX () + fCPUSize * fUIScale, fY));
@@ -1406,7 +1407,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
       float     fDisk = (static_cast <float> (3 * std::min (counterValue.doubleValue, 100.0)) + fLastDisk) / 4.0f;
             fLastDisk = fDisk;
 
-      ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fDisk) / 100.0f * 0.278f, .88f, .75f));
+      ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV ((100.0f - fDisk) / 100.0f * 0.278f, .88f, .75f).Value);
       ValueBar ("DISK", fDisk, ImVec2 (5.0f * fUIScale, font_size * 7.0f), 0.0f, 100.0f, ValueBarFlags_Vertical);
       ImGui::PopStyleColor  ();
     }
@@ -1477,10 +1478,10 @@ SK_ImGui_DrawFramePercentiles (void)
             frame_history->calcDataTimespan () :
            snapshots->mean.calcDataTimespan () );
 
-  ImGui::PushStyleColor (ImGuiCol_Text,           (unsigned int)ImColor (255, 255, 255));
-  ImGui::PushStyleColor (ImGuiCol_FrameBg,        (unsigned int)ImColor ( 0.3f,  0.3f,  0.3f, 0.7f));
-  ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, (unsigned int)ImColor ( 0.6f,  0.6f,  0.6f, 0.8f));
-  ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  (unsigned int)ImColor ( 0.9f,  0.9f,  0.9f, 0.9f));
+  ImGui::PushStyleColor (ImGuiCol_Text,           ImColor (255, 255, 255).Value);
+  ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor ( 0.3f,  0.3f,  0.3f, 0.7f).Value);
+  ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor ( 0.6f,  0.6f,  0.6f, 0.8f).Value);
+  ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor ( 0.9f,  0.9f,  0.9f, 0.9f).Value);
 
   percentile0.computeFPS (                             show_immediate ?
     frame_history->calcPercentile   (percentile0.cutoff, all_samples) :
@@ -1592,7 +1593,7 @@ SK_ImGui_DrawFramePercentiles (void)
       else snapshots->reset ();
     }
 
-    unsigned int     p0_color  (
+    ImVec4           p0_color  (
       ImColor::HSV ( p0_ratio * 0.278f,
               0.88f, luminance )
                    );
@@ -1624,7 +1625,7 @@ SK_ImGui_DrawFramePercentiles (void)
       float p1_ratio =
           percentile1.computed_fps / mean.computed_fps;
 
-      unsigned       p1_color  (
+      ImVec4         p1_color  (
       ImColor::HSV ( p1_ratio * 0.278f,
               0.88f, luminance )
                    );

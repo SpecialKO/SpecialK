@@ -294,14 +294,14 @@ SK_ImGui_DrawVRAMGauge (void)
   label_txt [ std::max ((size_t)0,
               std::min ((size_t)max_len * 2, label_len)) ] = '\0';
   
-  ImColor label_color =
+  ImVec4 label_color =
     ImColor::HSV ((1.0f - vram_used_percent) * 0.278f, 0.88f, 0.666f);
   
   if (config.render.dxgi.warn_if_vram_exceeds > 0)
   {
     float x_pos =
       ImGui::GetCursorPosX ();
-    ImGui::PushStyleColor  (ImGuiCol_PlotHistogram, ImColor (0.3f, 0.3f, 0.3f, 1.0f));
+    ImGui::PushStyleColor  (ImGuiCol_PlotHistogram, (const ImVec4&)ImColor (0.3f, 0.3f, 0.3f, 1.0f));
     ImGui::ProgressBar     (
       static_cast <float>
         ( static_cast <double> (vram_quota) /
@@ -312,7 +312,7 @@ SK_ImGui_DrawVRAMGauge (void)
     ImGui::SetCursorPosX   (x_pos);
   }
   
-  ImGui::PushStyleColor (ImGuiCol_FrameBg,       ImColor (0.0f, 0.0f, 0.0f, 0.0f));
+  ImGui::PushStyleColor (ImGuiCol_FrameBg,       (const ImVec4&)ImColor (0.0f, 0.0f, 0.0f, 0.0f));
   ImGui::PushStyleColor (ImGuiCol_PlotHistogram, label_color);
   ImGui::ProgressBar    (
     static_cast <float>
@@ -737,8 +737,8 @@ SK::ControlPanel::D3D11::Draw (void)
 
           ImGui::PushStyleColor ( ImGuiCol_Text,
             currentFrame > lastFrame - _RECENT_USE_THRESHOLD   ?
-                                 ImColor (0.5f,0.5f,0.5f,1.0f) :
-                                 ImColor (1.0f,1.0f,1.0f,1.0f) );
+                           ImColor (0.5f,0.5f,0.5f,1.0f).Value :
+                           ImColor (1.0f,1.0f,1.0f,1.0f).Value );
 
           if ( UINT                                               uiStrLen = MAX_PATH ;
         FAILED ( ps->GetPrivateData ( WKPDID_D3DDebugObjectName, &uiStrLen, name.data () )
@@ -897,7 +897,7 @@ SK::ControlPanel::D3D11::Draw (void)
       ImGui::ItemSize   (ImVec2 (50.0f * ui_scale, 0.0f));
       ImGui::SameLine   ();
       
-      ImGui::VerticalSeparator ();
+      ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
 
       ImGui::SameLine   ();
       ImGui::ItemSize   (ImVec2 (50.0f * ui_scale, 0.0f));
@@ -1327,7 +1327,7 @@ SK::ControlPanel::D3D11::Draw (void)
             {
               ImGui::Text ("Debug Message Configuration");
 
-              ImGui::TreePush   ();
+              ImGui::TreePush ("");
 
               bool deny =
                 std::find (deny_ids.begin (), deny_ids.end (), _debug_id) != deny_ids.end ();
@@ -1752,10 +1752,13 @@ SK::ControlPanel::D3D11::Draw (void)
         static float limit =
           config.render.dxgi.warn_if_vram_exceeds;
 
+        /// XXX: FIXME
+#if 0
         SK_ImGui::SliderFloatDeferred (
           "###VRAM_QUOTA", &config.render.dxgi.warn_if_vram_exceeds,
                            &limit, 15.0f, 105.0f, "%2.2f%% of Available",
                                     2.0f );
+#endif
 
         if (config.render.dxgi.warned_low_vram)
         {

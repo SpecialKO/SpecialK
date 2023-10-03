@@ -2866,8 +2866,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
   if (ImGui::IsMouseHoveringRect (list->last_min, list->last_max))
   {
-         if (io.KeysDown [VK_OEM_4] && io.KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  io.WantCaptureKeyboard = true; scrolled = true; }
-    else if (io.KeysDown [VK_OEM_6] && io.KeysDownDuration [VK_OEM_6] == 0.0f) { dir = +1;  io.WantCaptureKeyboard = true; scrolled = true; }
+         if (ImGui::IsKeyPressed (ImGuiKey_LeftBracket,  false)) { dir = -1;  io.WantCaptureKeyboard = true; scrolled = true; }
+    else if (ImGui::IsKeyPressed (ImGuiKey_RightBracket, false)) { dir = +1;  io.WantCaptureKeyboard = true; scrolled = true; }
   }
 
   ImGui::BeginGroup   ();
@@ -3234,13 +3234,16 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
 
     if (! scrolled)
     {
+#if 0
+      /// XXX: FIXME
            if (io.NavInputs [ImGuiNavInput_FocusPrev] != 0.0f && io.NavInputsDownDuration [ImGuiNavInput_FocusPrev] == 0.0f) { dir = -1; }
       else if (io.NavInputs [ImGuiNavInput_FocusNext] != 0.0f && io.NavInputsDownDuration [ImGuiNavInput_FocusNext] == 0.0f) { dir =  1; }
 
       else
+#endif
       {
-             if (io.KeysDown [VK_OEM_4] && io.KeysDownDuration [VK_OEM_4] == 0.0f) { dir = -1;  io.WantCaptureKeyboard = true; scrolled = true; }
-        else if (io.KeysDown [VK_OEM_6] && io.KeysDownDuration [VK_OEM_6] == 0.0f) { dir = +1;  io.WantCaptureKeyboard = true; scrolled = true; }
+             if (ImGui::IsKeyPressed (ImGuiKey_LeftBracket,  false)) { dir = -1;  io.WantCaptureKeyboard = true; scrolled = true; }
+        else if (ImGui::IsKeyPressed (ImGuiKey_RightBracket, false)) { dir = +1;  io.WantCaptureKeyboard = true; scrolled = true; }
       }
     }
   }
@@ -3598,8 +3601,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   {
     if (! scrolled)
     {
-           if (io.KeysDownDuration [VK_OEM_4] == 0.0f) list->sel--;
-      else if (io.KeysDownDuration [VK_OEM_6] == 0.0f) list->sel++;
+           if (ImGui::IsKeyPressed (ImGuiKey_LeftBracket,  false)) list->sel--;
+      else if (ImGui::IsKeyPressed (ImGuiKey_RightBracket, false)) list->sel++;
     }
   }
 
@@ -4361,17 +4364,17 @@ SK_D3D11_LiveShaderView (bool& can_scroll)
       if (used_last_frame)
       {
         if (ui_link_activated)
-          ImGui::SetNextTreeNodeOpen (true, ImGuiCond_Always);
+          ImGui::SetNextItemOpen (true, ImGuiCond_Always);
 
         static auto& colors =
           SK_D3D11_ShaderColors ();
 
         ImGui::PushStyleColor ( std::get <0> (colors [shader_type]).first,
-                                std::get <0> (colors [shader_type]).second );
+                        (ImVec4)std::get <0> (colors [shader_type]).second );
         ImGui::PushStyleColor ( std::get <1> (colors [shader_type]).first,
-                                std::get <1> (colors [shader_type]).second );
+                        (ImVec4)std::get <1> (colors [shader_type]).second );
         ImGui::PushStyleColor ( std::get <2> (colors [shader_type]).first,
-                                std::get <2> (colors [shader_type]).second );
+                        (ImVec4)std::get <2> (colors [shader_type]).second );
 
         if (ImGui::CollapsingHeader (label))
         {
@@ -4455,11 +4458,11 @@ SK_D3D11_ShaderModDlg_RTVContributors (void)
   [&](sk_shader_class type)
   {
     ImGui::PushStyleColor ( std::get <0> (colors [type]).first,
-                            std::get <0> (colors [type]).second );
+                            std::get <0> (colors [type]).second.Value );
     ImGui::PushStyleColor ( std::get <1> (colors [type]).first,
-                            std::get <1> (colors [type]).second );
+                            std::get <1> (colors [type]).second.Value );
     ImGui::PushStyleColor ( std::get <2> (colors [type]).first,
-                            std::get <2> (colors [type]).second );
+                            std::get <2> (colors [type]).second.Value );
   };
 
   struct ref_list_base {

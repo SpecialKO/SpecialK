@@ -1,4 +1,5 @@
-﻿/**
+﻿
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -330,11 +331,11 @@ namespace SK_ImGui
                 0.166f + (0.5f + (sin ((float)(current_time % 2000) / 2000.0f)) * 0.5f) / 2.0f :
                 0.666f;
 
-          ImGui::PushStyleColor (ImGuiCol_PlotHistogram,  (unsigned int)ImColor::HSV (battery_ratio * 0.278f, 0.88f, luminance));
-          ImGui::PushStyleColor (ImGuiCol_Text,           (unsigned int)ImColor (255, 255, 255));
-          ImGui::PushStyleColor (ImGuiCol_FrameBg,        (unsigned int)ImColor ( 0.3f,  0.3f,  0.3f, 0.7f));
-          ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, (unsigned int)ImColor ( 0.6f,  0.6f,  0.6f, 0.8f));
-          ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  (unsigned int)ImColor ( 0.9f,  0.9f,  0.9f, 0.9f));
+          ImGui::PushStyleColor (ImGuiCol_PlotHistogram,  ImColor::HSV (battery_ratio * 0.278f, 0.88f, luminance).Value);
+          ImGui::PushStyleColor (ImGuiCol_Text,           ImColor (255, 255, 255).Value);
+          ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImColor ( 0.3f,  0.3f,  0.3f, 0.7f).Value);
+          ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImColor ( 0.6f,  0.6f,  0.6f, 0.8f).Value);
+          ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImColor ( 0.9f,  0.9f,  0.9f, 0.9f).Value);
 
           ImGui::ProgressBar ( battery_ratio,
                                  ImVec2 (-1, 0),
@@ -573,7 +574,8 @@ SK_ImGui_IsItemClicked (void)
     auto& io =
       ImGui::GetIO ();
 
-    if (io.NavInputsDownDuration [ImGuiNavInput_Activate] == 0.0f)
+    /// XXX: FIXME
+    if (io.NavInputs [ImGuiNavInput_Activate] == 0.0f)
     {
       return true;
     }
@@ -593,8 +595,9 @@ SK_ImGui_IsItemRightClicked (void)
     auto& io =
       ImGui::GetIO ();
 
-    if (io.NavInputsDownDuration [ImGuiNavInput_Activate] > 0.4f)
-    {   io.NavInputsDownDuration [ImGuiNavInput_Activate] = 0.0f;
+    /// XXX: FIXME
+    if (io.NavInputs [ImGuiNavInput_Activate] > 0.4f)
+    {   io.NavInputs [ImGuiNavInput_Activate] = 0.0f;
       return true;
     }
   }
@@ -1052,7 +1055,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   display_list += '\0';
 
-  ImGui::TreePush ();
+  ImGui::TreePush ("");
 
   int active_display = rb.active_display;
 
@@ -1616,7 +1619,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   ImGui::EndGroup    ();
   ImGui::SameLine    ();
-  ImGui::VerticalSeparator ();
+  ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
   ImGui::SameLine    ();
   ImGui::BeginGroup  ();
 
@@ -2632,12 +2635,12 @@ SK_NV_LatencyControlPanel (void)
         ImGui::SetTooltip ("Use the Display menu to assign Primary monitors");
   }
 
-  ImGui::TreePush   ();
+  ImGui::TreePush ("");
 
   SK_ImGui_DrawConfig_Latency ();
   SK_ImGui_DrawGraph_Latency  ();
 
-  ImGui::TreePop    ();
+  ImGui::TreePop  (  );
 }
 
 void
@@ -2654,7 +2657,7 @@ SK_NV_GSYNCControlPanel ()
     {
       ImGui::Text ("NVIDIA G-Sync Configuration");
 
-      ImGui::TreePush   ();
+      ImGui::TreePush ("");
 
       static bool bEnableFastSync =
              SK_NvAPI_GetFastSync ();
@@ -3247,7 +3250,7 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::SameLine       ();
 
-          ImGui::PushStyleColor (ImGuiCol_Text, ImColor (1.0f, .7f, .3f));
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor (1.0f, .7f, .3f).Value);
           ImGui::BulletText     ("HDR Is Not Currently Enabled");
           ImGui::PopStyleColor  ();
         }
@@ -3901,12 +3904,12 @@ SK_ImGui_ControlPanel (void)
       {
         if (effective_power_mode != EffectivePowerModeNone)
         {
-          ImGui::SameLine          ();
-          ImGui::VerticalSeparator ();
-          ImGui::SameLine          ();
-          ImGui::BeginGroup        ();
-          ImGui::Text              ("\tEffective Power Mode:\t %hs",
-                                    SK_Power_GetEffectiveModeStr (effective_power_mode));
+          ImGui::SameLine    ();
+          ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+          ImGui::SameLine    ();
+          ImGui::BeginGroup  ();
+          ImGui::Text        ("\tEffective Power Mode:\t %hs",
+                              SK_Power_GetEffectiveModeStr (effective_power_mode));
 
           if (effective_power_mode != EffectivePowerModeGameMode)
           {
@@ -4550,8 +4553,8 @@ SK_ImGui_ControlPanel (void)
           float target_mag = fabs (target);
 
           ImGui::PushStyleColor ( ImGuiCol_Text,
-            ( active ? ImColor (1.00f, 1.00f, 1.00f)
-                     : ImColor (0.73f, 0.73f, 0.73f) ) );
+            ( active ? ImColor (1.00f, 1.00f, 1.00f).Value
+                     : ImColor (0.73f, 0.73f, 0.73f).Value ) );
 
           if ( ImGui::DragFloat ( label, &target_mag,
                                       1.0f, 24.0f, 166.0f, target > 0 ?
@@ -5087,9 +5090,9 @@ SK_ImGui_ControlPanel (void)
                 ImGui::SetTooltip ("Always Present Newest Frame (DXGI Flip Model)");
               }
 
-              ImGui::SameLine          ();
-              ImGui::VerticalSeparator ();
-              ImGui::SameLine          ();
+              ImGui::SameLine    ();
+              ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+              ImGui::SameLine    ();
             }
 
             if (sk::NVAPI::nv_hardware)
@@ -5171,7 +5174,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::EndGroup     ();
             ImGui::PopItemWidth ();
             ImGui::SameLine     (0.0f, 20.0f);
-            ImGui::VerticalSeparator ();
+            ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
             ImGui::SameLine     (0.0f, 20.0f);
           }
 
@@ -5226,7 +5229,7 @@ SK_ImGui_ControlPanel (void)
             case THREAD_PRIORITY_TIME_CRITICAL: min_render_prio = 6; break;
           }
 
-          ImGui::PushItemWidth (ImGui::GetContentRegionAvailWidth ());
+          ImGui::PushItemWidth (ImGui::GetContentRegionAvail ().x);
 
           if (ImGui::Combo ( "###Render Thread Priority", &min_render_prio,
                                 "Render Priority:\tIdle\0"
@@ -6320,9 +6323,9 @@ SK_ImGui_StageNextFrame (void)
 
     ImGui::TextUnformatted (  "to open Special K's configuration menu. " );
 
-    ImGui::SameLine (); ImGui::Spacing           ();
-    ImGui::SameLine (); ImGui::VerticalSeparator ();
-    ImGui::SameLine (); ImGui::Spacing           ();
+    ImGui::SameLine (); ImGui::Spacing     ();
+    ImGui::SameLine (); ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine (); ImGui::Spacing     ();
     ImGui::SameLine ();
     ImGui::TextColored  (ImVec4 (0.999f, 0.666f, 0.333f, 1.f), ICON_FA_INFO_CIRCLE);
     ImGui::SameLine ();
@@ -6479,9 +6482,12 @@ SK_ImGui_StageNextFrame (void)
         ImGui::GetIO ().NavActive  = true;
         ImGui::GetIO ().NavVisible = true;
 
+        /// XXX: FIXME
+#if 0
         ImGui::SetNavID (
           ImGui::GetItemID (), 0
         );
+#endif
 
         GImGui->NavDisableHighlight  = false;
         GImGui->NavDisableMouseHover =  true;
@@ -6593,9 +6599,12 @@ SK_ImGui_StageNextFrame (void)
       ImGui::GetIO ().NavActive  = true;
       ImGui::GetIO ().NavVisible = true;
 
+      /// XXX: FIXME
+#if 0
       ImGui::SetNavID (
         ImGui::GetItemID (), 0
       );
+#endif
 
       GImGui->NavDisableHighlight  = false;
       GImGui->NavDisableMouseHover =  true;
@@ -6731,9 +6740,12 @@ SK_ImGui_StageNextFrame (void)
         ImGui::GetIO ().NavActive  = true;
         ImGui::GetIO ().NavVisible = true;
 
+        /// XXX: FIXME
+#if 0
         ImGui::SetNavID (
           ImGui::GetItemID (), 0
         );
+#endif
 
         GImGui->NavDisableHighlight  = false;
         GImGui->NavDisableMouseHover =  true;

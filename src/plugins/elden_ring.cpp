@@ -454,8 +454,8 @@ SK_ER_PlugInCfg (void)
 
           ImGui::PushStyleColor ( ImGuiCol_Text,
             currentFrame > lastFrame - _RECENT_USE_THRESHOLD   ?
-                                 ImColor (0.5f,0.5f,0.5f,1.0f) :
-                                 ImColor (1.0f,1.0f,1.0f,1.0f) );
+                                  ImVec4 (0.5f,0.5f,0.5f,1.0f) :
+                                  ImVec4 (1.0f,1.0f,1.0f,1.0f) );
 
           if ( UINT                                               uiStrLen = MAX_PATH ;
         FAILED ( ps->GetPrivateData ( WKPDID_D3DDebugObjectName, &uiStrLen, name.data () )

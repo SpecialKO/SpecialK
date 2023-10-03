@@ -766,6 +766,8 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
 static POINTS last_pos;
 
+ImGuiContext* SK_GImDefaultContext (void);
+
 bool
 MessageProc ( const HWND&   hWnd,
               const UINT&   msg,
@@ -1829,15 +1831,13 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
     io.KeyCtrl  = Ctrl;
 
     bToggleNav |=
-       ( SK_ImGui_Visible                 &&
-         io.KeysDown         [VK_CAPITAL] &&
-         io.KeysDownDuration [VK_CAPITAL] == 0.0f );
+       ( SK_ImGui_Visible &&
+         ImGui::IsKeyPressed (ImGuiKey_CapsLock, false) );
 
     bToggleVis |=
-       ( io.KeyCtrl                    &&
-         io.KeyShift                   &&
-         io.KeysDown         [VK_BACK] &&
-         io.KeysDownDuration [VK_BACK] == 0.0f );
+       ( io.KeyCtrl  &&
+         io.KeyShift &&
+         ImGui::IsKeyPressed (ImGuiKey_Backspace, false) );
   }
 
   bool bUseGamepad =
@@ -2300,12 +2300,10 @@ SK_ImGui_PollGamepad (void)
   if (io.NavActive)
   {
     io.NavInputs [ImGuiNavInput_FocusPrev] +=
-      (io.KeyCtrl && io.KeyShift && io.KeysDown [VK_TAB] &&
-                            io.KeysDownDuration [VK_TAB] == 0.0f)  ? 1.0f : 0.0f;
-
+      (io.KeyCtrl && io.KeyShift && ImGui::IsKeyPressed (ImGuiKey_Tab, false))
+                                                                ? 1.0f : 0.0f;
     io.NavInputs [ImGuiNavInput_FocusNext] +=
-      (io.KeyCtrl                && io.KeysDown [VK_TAB] &&
-                            io.KeysDownDuration [VK_TAB] == 0.0f)  ? 1.0f : 0.0f;
+      (io.KeyCtrl && ImGui::IsKeyPressed (ImGuiKey_Tab, false)) ? 1.0f : 0.0f;
   }
 
 
@@ -2317,6 +2315,8 @@ SK_ImGui_PollGamepad (void)
 
   static ULONG64 last_toggle = 0ULL;
 
+  /// FIXME
+#if 0
   if ( ( io.NavInputs             [ImGuiNavInput_TweakSlow] != 0.0f &&
          io.NavInputs             [ImGuiNavInput_TweakFast] != 0.0f )   &&
        ( io.NavInputsDownDuration [ImGuiNavInput_TweakSlow] == 0.0f ||
@@ -2328,11 +2328,8 @@ SK_ImGui_PollGamepad (void)
       last_toggle                =    SK_GetFramesDrawn ();
     }
   }
+#endif
 }
-
-
-
-
 
 void
 ImGui::PlotCEx ( ImGuiPlotType,                               const char* label,
@@ -2412,7 +2409,7 @@ ImGui::PlotCEx ( ImGuiPlotType,                               const char* label,
 
   RenderFrame ( frame_bb.Min,
                 frame_bb.Max,
-                  GetStyleColorVec4 (ImGuiCol_FrameBg),
+                  ImColor (GetStyleColorVec4 (ImGuiCol_FrameBg)),
                     true,
                       style.FrameRounding );
 
@@ -2652,27 +2649,71 @@ SK_ImGui_User_NewFrame (void)
 
     delta = 0.0;
 
-    io.KeyMap [ImGuiKey_Tab]        = VK_TAB;
-    io.KeyMap [ImGuiKey_LeftArrow]  = VK_LEFT;
-    io.KeyMap [ImGuiKey_RightArrow] = VK_RIGHT;
-    io.KeyMap [ImGuiKey_UpArrow]    = VK_UP;
-    io.KeyMap [ImGuiKey_DownArrow]  = VK_DOWN;
-    io.KeyMap [ImGuiKey_PageUp]     = VK_PRIOR;
-    io.KeyMap [ImGuiKey_PageDown]   = VK_NEXT;
-    io.KeyMap [ImGuiKey_Home]       = VK_HOME;
-    io.KeyMap [ImGuiKey_End]        = VK_END;
-    io.KeyMap [ImGuiKey_Insert]     = VK_INSERT;
-    io.KeyMap [ImGuiKey_Delete]     = VK_DELETE;
-    io.KeyMap [ImGuiKey_Backspace]  = VK_BACK;
-    io.KeyMap [ImGuiKey_Space]      = VK_SPACE;
-    io.KeyMap [ImGuiKey_Enter]      = VK_RETURN;
-    io.KeyMap [ImGuiKey_Escape]     = VK_ESCAPE;
-    io.KeyMap [ImGuiKey_A]          = 'A';
-    io.KeyMap [ImGuiKey_C]          = 'C';
-    io.KeyMap [ImGuiKey_V]          = 'V';
-    io.KeyMap [ImGuiKey_X]          = 'X';
-    io.KeyMap [ImGuiKey_Y]          = 'Y';
-    io.KeyMap [ImGuiKey_Z]          = 'Z';
+    io.KeyMap [ImGuiKey_Tab]         = VK_TAB;
+    io.KeyMap [ImGuiKey_LeftArrow]   = VK_LEFT;
+    io.KeyMap [ImGuiKey_RightArrow]  = VK_RIGHT;
+    io.KeyMap [ImGuiKey_UpArrow]     = VK_UP;
+    io.KeyMap [ImGuiKey_DownArrow]   = VK_DOWN;
+    io.KeyMap [ImGuiKey_PageUp]      = VK_PRIOR;
+    io.KeyMap [ImGuiKey_PageDown]    = VK_NEXT;
+    io.KeyMap [ImGuiKey_Home]        = VK_HOME;
+    io.KeyMap [ImGuiKey_End]         = VK_END;
+    io.KeyMap [ImGuiKey_Insert]      = VK_INSERT;
+    io.KeyMap [ImGuiKey_Delete]      = VK_DELETE;
+    io.KeyMap [ImGuiKey_Backspace]   = VK_BACK;
+    io.KeyMap [ImGuiKey_Space]       = VK_SPACE;
+    io.KeyMap [ImGuiKey_Enter]       = VK_RETURN;
+    io.KeyMap [ImGuiKey_Escape]      = VK_ESCAPE;
+    io.KeyMap [ImGuiKey_ScrollLock]  = VK_SCROLL;
+    io.KeyMap [ImGuiKey_PrintScreen] = VK_PRINT;
+    io.KeyMap [ImGuiKey_Pause]       = VK_PAUSE;
+    io.KeyMap [ImGuiKey_F1]          = VK_F1;
+    io.KeyMap [ImGuiKey_F2]          = VK_F2;
+    io.KeyMap [ImGuiKey_F3]          = VK_F3;
+    io.KeyMap [ImGuiKey_F4]          = VK_F4;
+    io.KeyMap [ImGuiKey_F5]          = VK_F5;
+    io.KeyMap [ImGuiKey_F6]          = VK_F6;
+    io.KeyMap [ImGuiKey_F7]          = VK_F7;
+    io.KeyMap [ImGuiKey_F8]          = VK_F8;
+    io.KeyMap [ImGuiKey_F9]          = VK_F9;
+    io.KeyMap [ImGuiKey_F10]         = VK_F10;
+    io.KeyMap [ImGuiKey_F11]         = VK_F11;
+    io.KeyMap [ImGuiKey_F12]         = VK_F12;
+    io.KeyMap [ImGuiKey_0]           = '0';
+    io.KeyMap [ImGuiKey_1]           = '1';
+    io.KeyMap [ImGuiKey_2]           = '2';
+    io.KeyMap [ImGuiKey_3]           = '3';
+    io.KeyMap [ImGuiKey_4]           = '4';
+    io.KeyMap [ImGuiKey_5]           = '5';
+    io.KeyMap [ImGuiKey_6]           = '6';
+    io.KeyMap [ImGuiKey_7]           = '7';
+    io.KeyMap [ImGuiKey_8]           = '8';
+    io.KeyMap [ImGuiKey_9]           = '9';
+    io.KeyMap [ImGuiKey_A]           = 'A';
+    io.KeyMap [ImGuiKey_B]           = 'B';
+    io.KeyMap [ImGuiKey_C]           = 'C';
+    io.KeyMap [ImGuiKey_D]           = 'D';
+    io.KeyMap [ImGuiKey_E]           = 'E';
+    io.KeyMap [ImGuiKey_F]           = 'F';
+    io.KeyMap [ImGuiKey_G]           = 'G';
+    io.KeyMap [ImGuiKey_H]           = 'H';
+    io.KeyMap [ImGuiKey_I]           = 'I';
+    io.KeyMap [ImGuiKey_J]           = 'J';
+    io.KeyMap [ImGuiKey_K]           = 'K';
+    io.KeyMap [ImGuiKey_L]           = 'L';
+    io.KeyMap [ImGuiKey_M]           = 'M';
+    io.KeyMap [ImGuiKey_N]           = 'N';
+    io.KeyMap [ImGuiKey_O]           = 'O';
+    io.KeyMap [ImGuiKey_P]           = 'P';
+    io.KeyMap [ImGuiKey_Q]           = 'Q';
+    io.KeyMap [ImGuiKey_R]           = 'R';
+    io.KeyMap [ImGuiKey_S]           = 'S';
+    io.KeyMap [ImGuiKey_T]           = 'T';
+    io.KeyMap [ImGuiKey_U]           = 'U';
+    io.KeyMap [ImGuiKey_V]           = 'V';
+    io.KeyMap [ImGuiKey_X]           = 'X';
+    io.KeyMap [ImGuiKey_Y]           = 'Y';
+    io.KeyMap [ImGuiKey_Z]           = 'Z';
   }
 
   static auto ticks_per_sec =
@@ -2903,8 +2944,8 @@ SK_ImGui_User_NewFrame (void)
     {
       if ( io.KeyAlt                     &&
            io.KeysDown         [VK_F4  ] &&
-       ( ( io.KeysDownDuration [VK_MENU] > 0.0f ) ^
-         ( io.KeysDownDuration [VK_F4  ] > 0.0f ) ) )
+       ( ImGui::IsKeyPressed (ImGuiKey_F4,   false) ^
+         ImGui::IsKeyPressed (ImGuiKey_Menu, false) ) )
       {
         extern bool SK_ImGui_WantExit;
                     SK_ImGui_WantExit = true;

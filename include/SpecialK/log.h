@@ -131,6 +131,12 @@ public:
   bool             unlock   (void) { if (! lockless) { LeaveCriticalSection (&log_mutex); return true; } return false; }
 };
 
+namespace sk {
+  namespace logs {
+    extern int base_log_lvl;
+  };
+};
+
 interface iSK_Logger*
 __stdcall
 SK_CreateLog (const wchar_t* const wszName);
