@@ -2667,6 +2667,8 @@ SK_ImGui_User_NewFrame (void)
     io.KeyMap [ImGuiKey_ScrollLock]  = VK_SCROLL;
     io.KeyMap [ImGuiKey_PrintScreen] = VK_PRINT;
     io.KeyMap [ImGuiKey_Pause]       = VK_PAUSE;
+    io.KeyMap [ImGuiKey_CapsLock]    = VK_CAPITAL;
+    io.KeyMap [ImGuiKey_Tab]         = VK_TAB;
     io.KeyMap [ImGuiKey_F1]          = VK_F1;
     io.KeyMap [ImGuiKey_F2]          = VK_F2;
     io.KeyMap [ImGuiKey_F3]          = VK_F3;
@@ -2711,6 +2713,7 @@ SK_ImGui_User_NewFrame (void)
     io.KeyMap [ImGuiKey_T]           = 'T';
     io.KeyMap [ImGuiKey_U]           = 'U';
     io.KeyMap [ImGuiKey_V]           = 'V';
+    io.KeyMap [ImGuiKey_W]           = 'W';
     io.KeyMap [ImGuiKey_X]           = 'X';
     io.KeyMap [ImGuiKey_Y]           = 'Y';
     io.KeyMap [ImGuiKey_Z]           = 'Z';
