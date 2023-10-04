@@ -285,12 +285,15 @@ SK_NGX_UpdateDLSSGStatus (void)
                        uiNumberOfFrames >= 1 &&
                        uiEnableDLSSGInterp   && uiEnableOFA;
 
-  static UINT        uiLastDLSSGState = UINT_MAX;
-  if (std::exchange (uiLastDLSSGState, (UINT)__SK_IsDLSSGActive) != (UINT)__SK_IsDLSSGActive)
+  if (SK_NGX_DLSSG_Handle != nullptr)
   {
-    SK_LOGi0 ( L"DLSS-G Feature %ws!",
-                __SK_IsDLSSGActive ? L"Enabled"
-                                   : L"Disabled" );
+    static UINT        uiLastDLSSGState = UINT_MAX;
+    if (std::exchange (uiLastDLSSGState, (UINT)__SK_IsDLSSGActive) != (UINT)__SK_IsDLSSGActive)
+    {
+      SK_LOGi0 ( L"DLSS-G Feature %ws!",
+                  __SK_IsDLSSGActive ? L"Enabled"
+                                     : L"Disabled" );
+    }
   }
 
   __SK_ForceDLSSGPacing = __SK_IsDLSSGActive;
