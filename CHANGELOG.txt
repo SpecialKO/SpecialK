@@ -1,4 +1,8 @@
-﻿23.10.4
+﻿23.10.4.1
+=========
+ + Renamed Reflex timing plot to Simulation, Draw Calls, GPU Render
+
+23.10.4
 =======
  + Added experimental ImPlot visualization for Reflex timing data:
 

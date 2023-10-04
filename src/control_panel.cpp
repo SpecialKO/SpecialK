@@ -28,6 +28,7 @@
 #include <imgui/backends/imgui_d3d12.h>
 #include <imgui/backends/imgui_d3d9.h>
 #include <imgui/backends/imgui_gl3.h>
+#include <implot/implot.h>
 
 #include <SpecialK/control_panel/compatibility.h>
 #include <SpecialK/control_panel/d3d11.h>
@@ -61,6 +62,7 @@ bool imgui_demo    = false;
 bool imgui_debug   = false;
 bool imgui_metrics = false;
 bool imgui_about   = false;
+bool implot_demo   = false;
 
 extern float g_fDPIScale;
 
@@ -3663,6 +3665,9 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::MenuItem ("ImGui -> About",     "ImGui Debug", &selected))
           imgui_about   = true;
 
+        if (ImGui::MenuItem ("ImPlot -> Demo",     "ImPlot Debug",&selected))
+          implot_demo   = true;
+
         ImGui::Separator ();
 
         if (SK::SteamAPI::AppID () != 0x0)
@@ -6122,6 +6127,7 @@ SK_ImGui_StageNextFrame (void)
     if (imgui_debug)   ImGui::ShowDebugLogWindow ( );
     if (imgui_metrics) ImGui::ShowMetricsWindow  ( );
     if (imgui_about)   ImGui::ShowAboutWindow    ( );
+    if (implot_demo)   ImPlot::ShowDemoWindow    ( );
   }
 
 

@@ -222,28 +222,32 @@ SK_ImGui_DrawGraph_Latency ()
     static bool show_lines = true;
     static bool show_fills = true;
 
-    if (ImPlot::BeginPlot ("Stage Time"))
+
+    if (ImPlot::BeginPlot ("##Stage Time", ImVec2 (-1, 0), ImPlotFlags_NoTitle | ImPlotFlags_NoInputs | ImPlotFlags_NoMouseText
+                                                                               | ImPlotFlags_NoMenus  | ImPlotFlags_NoBoxSelect))
     {
       auto flags =
-        ImPlotAxisFlags_NoMenus | ImPlotAxisFlags_AutoFit |
-        ImPlotAxisFlags_NoTickLabels;
+        ImPlotAxisFlags_NoMenus | ImPlotAxisFlags_AutoFit;
       
-      ImPlot::SetupAxes ("Frame", "Milliseconds", flags, flags);
-      ImPlot::SetupAxesLimits (0, 64, 0, 10000.0 * total.avg / static_cast <double> (SK_QpcFreq));
+      ImPlot::SetupAxes       ("Frame", "Milliseconds", flags | ImPlotAxisFlags_NoLabel |
+                                                                ImPlotAxisFlags_NoTickLabels, flags & ~ImPlotAxisFlags_AutoFit);
+      ImPlot::SetupAxesLimits (0, 63, 0, 10000.0 * total.avg / static_cast <double> (SK_QpcFreq), ImPlotCond_Always);
+      ImPlot::SetupLegend     (ImPlotLocation_SouthWest, ImPlotLegendFlags_Horizontal);
 
       if (show_fills)
       {
-        ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.25f);
-        ImPlot::PlotShaded   ("CPU", xs1, ys1, 64, -INFINITY, flags);
-        ImPlot::PlotShaded   ("API", xs1, ys2, 64, -INFINITY, flags);
-        ImPlot::PlotShaded   ("GPU", xs1, ys3, 64, -INFINITY, flags);
+        ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.15f);
+        ImPlot::PlotShaded   ("Simulation", xs1, ys1, 64, -INFINITY, flags);
+        ImPlot::PlotShaded   ("Draw Calls", xs1, ys2, 64, -INFINITY, flags);
+        ImPlot::PlotShaded   ("GPU Render", xs1, ys3, 64, -INFINITY, flags);
         ImPlot::PopStyleVar  ();
       }
+
       if (show_lines)
       {
-        ImPlot::PlotLine ("CPU", xs1, ys1, 64);
-        ImPlot::PlotLine ("API", xs1, ys2, 64);
-        ImPlot::PlotLine ("GPU", xs1, ys3, 64);
+        ImPlot::PlotLine ("Simulation", xs1, ys1, 64);
+        ImPlot::PlotLine ("Draw Calls", xs1, ys2, 64);
+        ImPlot::PlotLine ("GPU Render", xs1, ys3, 64);
       }
       ImPlot::EndPlot ();
     }
