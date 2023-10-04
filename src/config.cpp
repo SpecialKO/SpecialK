@@ -3209,6 +3209,14 @@ auto DeclKeybind =
 #ifdef _M_AMD64
   apis.Vulkan.hook->load (config.apis.Vulkan.hook);
 #endif
+  
+  // Variables used to indicate changes for next launch
+  config.apis.d3d9.hook_next       = config.apis.d3d9.hook;
+  config.apis.d3d9ex.hook_next     = config.apis.d3d9ex.hook;
+  config.apis.dxgi.d3d11.hook_next = config.apis.dxgi.d3d11.hook;
+  config.apis.dxgi.d3d12.hook_next = config.apis.dxgi.d3d12.hook;
+  config.apis.OpenGL.hook_next     = config.apis.OpenGL.hook;
+  config.apis.Vulkan.hook_next     = config.apis.Vulkan.hook;
 
   init = TRUE;
 }
@@ -4891,14 +4899,14 @@ SK_SaveConfig ( std::wstring name,
   apis.ddraw.hook->store                      (config.apis.ddraw.hook);
   apis.d3d8.hook->store                       (config.apis.d3d8.hook);
 #endif
-  apis.d3d9.hook->store                       (config.apis.d3d9.hook);
-  apis.d3d9ex.hook->store                     (config.apis.d3d9ex.hook);
+  apis.d3d9.hook->store                       (config.apis.d3d9.hook_next);
+  apis.d3d9ex.hook->store                     (config.apis.d3d9ex.hook_next);
   apis.dxvk9.enable->store                    (config.apis.d3d9.native_dxvk);
-  apis.d3d11.hook->store                      (config.apis.dxgi.d3d11.hook);
-  apis.d3d12.hook->store                      (config.apis.dxgi.d3d12.hook);
-  apis.OpenGL.hook->store                     (config.apis.OpenGL.hook);
+  apis.d3d11.hook->store                      (config.apis.dxgi.d3d11.hook_next);
+  apis.d3d12.hook->store                      (config.apis.dxgi.d3d12.hook_next);
+  apis.OpenGL.hook->store                     (config.apis.OpenGL.hook_next);
 #ifdef _M_AMD64
-  apis.Vulkan.hook->store                     (config.apis.Vulkan.hook);
+  apis.Vulkan.hook->store                     (config.apis.Vulkan.hook_next);
 #endif
 
   nvidia.api.disable_hdr->store               (config.apis.NvAPI.disable_hdr);

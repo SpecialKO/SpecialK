@@ -1002,19 +1002,22 @@ struct sk_config_t
       bool   hook        =  true;
       bool   translated  = false;
       int    native_dxvk = SK_NoPreference;
+      bool   hook_next   =  true;
     } d3d9,
       d3d9ex;
 
     struct dxgi_s {
       struct d3d11or12_s{
-        bool hook = true;
+        bool hook      = true;
+        bool hook_next = true;
       } d3d12,
         d3d11;
     } dxgi;
 
     struct khronos_s {
-      bool   hook      = true;
-      bool   translate = true;
+      bool   hook       = true;
+      bool   translate  = true;
+      bool   hook_next  = true;
     } Vulkan,
       OpenGL;
 
