@@ -1,4 +1,15 @@
-﻿23.10.3
+﻿23.10.3.1
+=========
+ + Added a 2 frame latency to DLSS-G engagement checks
+
+    A game must "evaluate" the DLSS-G feature within 2 SwapChain presents, or
+      SK will assume that it has reverted to normal presentation and fallback
+        to normal framerate limiting strategies.
+
+    This eliminates most false-positive DLSS-G status while games are in menu
+      screens but have not technically disabled DLSS-G.
+
+23.10.3
 =======
  + Fixed most broken keyboard functionality following the ImGui codebase update
 

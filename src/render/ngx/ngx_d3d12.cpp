@@ -41,8 +41,11 @@ bool __SK_IsDLSSGActive         = false;
 bool __SK_DoubleUpOnReflex      = false;
 bool __SK_ForceDLSSGPacing      = false;
 
+typedef void (NVSDK_CONV *PFN_NVSDK_NGX_ProgressCallback)(float InCurrentProgress, bool &OutShouldCancel);
+
 NVSDK_NGX_Handle*    SK_NGX_DLSSG_Handle     = nullptr;
 NVSDK_NGX_Parameter* SK_NGX_DLSSG_Parameters = nullptr;
+volatile ULONG64     SK_NGX_DLSSG_LastFrame  = 0ULL;
 
 // NGX return-code conversion-to-string utility only as a helper for debugging/logging - not for official use.
 using  GetNGXResultAsString_pfn = const wchar_t* (NVSDK_CONV *)(NVSDK_NGX_Result InNGXResult);
@@ -63,6 +66,11 @@ using NVSDK_NGX_D3D12_CreateFeature_pfn =
 
 using NVSDK_NGX_D3D12_ReleaseFeature_pfn =
       NVSDK_NGX_Result (NVSDK_CONV *)( NVSDK_NGX_Handle *InHandle );
+using NVSDK_NGX_D3D12_EvaluateFeature_pfn =
+      NVSDK_NGX_Result (NVSDK_CONV *)( ID3D12GraphicsCommandList *InCmdList,
+                                 const NVSDK_NGX_Handle          *InFeatureHandle,
+                                 const NVSDK_NGX_Parameter       *InParameters,
+                                   PFN_NVSDK_NGX_ProgressCallback InCallback );
 
 // This is not API-specific...
 using NVSDK_NGX_UpdateFeature_pfn =
@@ -71,6 +79,8 @@ using NVSDK_NGX_UpdateFeature_pfn =
 
 static NVSDK_NGX_D3D12_CreateFeature_pfn
        NVSDK_NGX_D3D12_CreateFeature_Original = nullptr;
+static NVSDK_NGX_D3D12_EvaluateFeature_pfn
+       NVSDK_NGX_D3D12_EvaluateFeature_Original = nullptr;
 static NVSDK_NGX_UpdateFeature_pfn
        NVSDK_NGX_UpdateFeature_Original = nullptr;
 static NVSDK_NGX_D3D12_DestroyParameters_pfn
@@ -165,6 +175,25 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
 
 NVSDK_NGX_Result
 NVSDK_CONV
+NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, const NVSDK_NGX_Handle *InFeatureHandle, const NVSDK_NGX_Parameter *InParameters, PFN_NVSDK_NGX_ProgressCallback InCallback)
+{
+  NVSDK_NGX_Result ret =
+    NVSDK_NGX_D3D12_EvaluateFeature_Original (InCmdList, InFeatureHandle, InParameters, InCallback);
+
+  if (ret == NVSDK_NGX_Result_Success)
+  {
+    if (InFeatureHandle == SK_NGX_DLSSG_Handle)
+    {
+      WriteULong64Release (&SK_NGX_DLSSG_LastFrame, SK_GetFramesDrawn ());
+    }
+  }
+
+  return ret;
+}
+
+
+NVSDK_NGX_Result
+NVSDK_CONV
 NVSDK_NGX_D3D12_ReleaseFeature_Detour (NVSDK_NGX_Handle *InHandle)
 {
   SK_LOG_FIRST_CALL
@@ -230,13 +259,30 @@ SK_NGX_UpdateDLSSGStatus (void)
     SK_NGX_DLSSG_Parameters->Get ("DLSSG.EnableInterp",           &uiEnableDLSSGInterp);
     SK_NGX_DLSSG_Parameters->Get ("DLSSG.NumFrames",              &uiNumberOfFrames);
 
+#if 0
+    ID3D12Resource*                               pMvecsRes = nullptr;
+    SK_NGX_DLSSG_Parameters->Get ("DLSSG.MVecs", &pMvecsRes);
+
+    if (pMvecsRes != nullptr)
+    {
+      SK_LOGi0 (
+        L"DLSS-G Motion Vectors: %hs, Format: %hs",
+          pMvecsRes->GetDesc ().Dimension ==  D3D12_RESOURCE_DIMENSION_TEXTURE3D ? "3D"
+                                                                                 : "2D",
+        SK_DXGI_FormatToStr (pMvecsRes->GetDesc ().Format).data ()
+      );
+    }
+#endif
+
     //{
     //  SK_LOGi0 (L"Failure to get DLSS-G Parameters During SK_NGX_UpdateDLSSGStatus (...)");
     //}
     //
   }
 
-  __SK_IsDLSSGActive = uiNumberOfFrames >= 1 &&
+  __SK_IsDLSSGActive =
+    ReadULong64Acquire (&SK_NGX_DLSSG_LastFrame) >= SK_GetFramesDrawn () - 2 &&
+                       uiNumberOfFrames >= 1 &&
                        uiEnableDLSSGInterp   && uiEnableOFA;
 
   static UINT        uiLastDLSSGState = UINT_MAX;
@@ -287,6 +333,11 @@ SK_NGX_InitD3D12 (void)
                            "NVSDK_NGX_D3D12_ReleaseFeature",
                             NVSDK_NGX_D3D12_ReleaseFeature_Detour,
                   (void **)&NVSDK_NGX_D3D12_ReleaseFeature_Original );
+
+    SK_CreateDLLHook2 ( L"_nvngx.dll",
+                           "NVSDK_NGX_D3D12_EvaluateFeature",
+                            NVSDK_NGX_D3D12_EvaluateFeature_Detour,
+                  (void **)&NVSDK_NGX_D3D12_EvaluateFeature_Original );
 
     SK_CreateDLLHook2 ( L"_nvngx.dll",
                            "NVSDK_NGX_D3D12_DestroyParameters",
