@@ -21,10 +21,22 @@
 
 #include <SpecialK/stdafx.h>
 
+#include <implot/implot.h>
+
 extern iSK_INI* osd_ini;
 
 #include <SpecialK/nvapi.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
+
+namespace ImPlot {
+
+template <typename T>
+inline T RandomRange(T min, T max) {
+    T scale = rand() / (T) RAND_MAX;
+    return min + scale * ( max - min );
+}
+
+}
 
 void
 SK_ImGui_DrawGraph_Latency ()
@@ -59,6 +71,8 @@ SK_ImGui_DrawGraph_Latency ()
     NvU64   end = 0;
     ImColor color;
 
+    double frames [64] = { };
+
     void reset (void)
     {
       min     = std::numeric_limits <NvU64>::max (),
@@ -68,6 +82,8 @@ SK_ImGui_DrawGraph_Latency ()
       samples = 0;
       start   = 0;
       end     = 0;
+
+      memset (frames, 0, sizeof (double) * 64);
     }
   };
   
@@ -130,6 +146,8 @@ SK_ImGui_DrawGraph_Latency ()
           {
             stage->samples++;
 
+            stage->frames [idx] = 10000.0 * (static_cast <double> (duration) / static_cast <double> (SK_QpcFreq));
+
             stage->sum += duration;
             stage->min = static_cast <NvU64>
                        ( (duration < stage->min) ?
@@ -188,6 +206,46 @@ SK_ImGui_DrawGraph_Latency ()
 
     if (input.avg > total.avg) {
         input.avg = 0.0;
+    }
+
+    static double xs1[64], ys1[64],
+                  ys2[64], ys3[64];
+
+    for (int i = 0; i < 64; ++i)
+    {
+      xs1[i] = (float)i;
+      ys1[i] = sim.frames    [i];
+      ys2[i] = render.frames [i];
+      ys3[i] = gpu.frames    [i];
+    }
+
+    static bool show_lines = true;
+    static bool show_fills = true;
+
+    if (ImPlot::BeginPlot ("Stage Time"))
+    {
+      auto flags =
+        ImPlotAxisFlags_NoMenus | ImPlotAxisFlags_AutoFit |
+        ImPlotAxisFlags_NoTickLabels;
+      
+      ImPlot::SetupAxes ("Frame", "Milliseconds", flags, flags);
+      ImPlot::SetupAxesLimits (0, 64, 0, 10000.0 * total.avg / static_cast <double> (SK_QpcFreq));
+
+      if (show_fills)
+      {
+        ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.25f);
+        ImPlot::PlotShaded   ("CPU", xs1, ys1, 64, -INFINITY, flags);
+        ImPlot::PlotShaded   ("API", xs1, ys2, 64, -INFINITY, flags);
+        ImPlot::PlotShaded   ("GPU", xs1, ys3, 64, -INFINITY, flags);
+        ImPlot::PopStyleVar  ();
+      }
+      if (show_lines)
+      {
+        ImPlot::PlotLine ("CPU", xs1, ys1, 64);
+        ImPlot::PlotLine ("API", xs1, ys2, 64);
+        ImPlot::PlotLine ("GPU", xs1, ys3, 64);
+      }
+      ImPlot::EndPlot ();
     }
 
     ImGui::BeginGroup ();

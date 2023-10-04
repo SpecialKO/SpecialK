@@ -367,6 +367,9 @@
     <Filter Include="Header Files\Backends\Render\ngx">
       <UniqueIdentifier>{a4df6929-d3cc-4bbe-926a-71d3ac795da0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ImGui\ImPlot">
+      <UniqueIdentifier>{84465bfd-90fa-4634-a18e-ef17beb53938}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -3538,6 +3541,15 @@
     </ClCompile>
     <ClCompile Include="src\imgui\imgui_tables.cpp">
       <Filter>Source Files\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="depends\src\implot\implot.cpp">
+      <Filter>Source Files\ImGui\ImPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="depends\src\implot\implot_demo.cpp">
+      <Filter>Source Files\ImGui\ImPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="depends\src\implot\implot_items.cpp">
+      <Filter>Source Files\ImGui\ImPlot</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1140,7 +1140,10 @@ static ImGuiContext     GImDefaultContext;
 ImGuiContext* GImGui = &GImDefaultContext;
 void SK_ImGui_Init (void) { };
 #else
-ImGuiContext* GImGui = nullptr;
+#include <implot/implot.h>
+
+ImGuiContext*  GImGui  = nullptr;
+ImPlotContext* GImPlot = nullptr;
 
 ImGuiContext* SK_GImDefaultContext (void)
 {
@@ -1152,6 +1155,8 @@ void SK_ImGui_Init (void)
 {
   GImGui =
     ImGui::CreateContext ();
+
+  ImPlot::CreateContext ();
 
   ImGui::StyleColorsClassic (&SK_GImDefaultContext ()->Style);
 
@@ -13652,16 +13657,19 @@ void ImGui::DebugRenderKeyboardPreview(ImDrawList* draw_list)
     const ImVec2 key_step = ImVec2(key_size.x - 1.0f, key_size.y - 1.0f);
     const float  key_row_offset = 9.0f;
 
+    const int    key_column_max = 14;
+    const int    key_row_max    = 3;
+
     ImVec2 board_min = GetCursorScreenPos();
-    ImVec2 board_max = ImVec2(board_min.x + 3 * key_step.x + 2 * key_row_offset + 10.0f, board_min.y + 3 * key_step.y + 10.0f);
+    ImVec2 board_max = ImVec2(board_min.x + key_column_max * key_step.x + 2 * key_row_offset + 10.0f, board_min.y + key_row_max * key_step.y + 10.0f);
     ImVec2 start_pos = ImVec2(board_min.x + 5.0f - key_step.x, board_min.y);
 
     struct KeyLayoutData { int Row, Col; const char* Label; ImGuiKey Key; };
     const KeyLayoutData keys_to_display[] =
     {
-        { 0, 0, "", ImGuiKey_Tab },      { 0, 1, "Q", ImGuiKey_Q }, { 0, 2, "W", ImGuiKey_W }, { 0, 3, "E", ImGuiKey_E }, { 0, 4, "R", ImGuiKey_R },
-        { 1, 0, "", ImGuiKey_CapsLock }, { 1, 1, "A", ImGuiKey_A }, { 1, 2, "S", ImGuiKey_S }, { 1, 3, "D", ImGuiKey_D }, { 1, 4, "F", ImGuiKey_F },
-        { 2, 0, "", ImGuiKey_LeftShift },{ 2, 1, "Z", ImGuiKey_Z }, { 2, 2, "X", ImGuiKey_X }, { 2, 3, "C", ImGuiKey_C }, { 2, 4, "V", ImGuiKey_V }
+        { 0, 0, "Tab",    ImGuiKey_Tab       }, { 0, 1, "Q", ImGuiKey_Q }, { 0, 2, "W", ImGuiKey_W }, { 0, 3, "E", ImGuiKey_E }, { 0, 4, "R", ImGuiKey_R }, { 0, 5, "T", ImGuiKey_T }, { 0, 6, "Y", ImGuiKey_Y }, { 0, 7, "U", ImGuiKey_U }, { 0, 8, "I", ImGuiKey_I },     { 0, 9, "O", ImGuiKey_O },      { 0, 10, "P", ImGuiKey_P },         { 0, 11, "[", ImGuiKey_LeftBracket }, { 0, 12, "]",      ImGuiKey_RightBracket }, { 0, 13, "\\", ImGuiKey_Backslash },
+        { 1, 0, "Caps",   ImGuiKey_CapsLock  }, { 1, 1, "A", ImGuiKey_A }, { 1, 2, "S", ImGuiKey_S }, { 1, 3, "D", ImGuiKey_D }, { 1, 4, "F", ImGuiKey_F }, { 1, 5, "G", ImGuiKey_G }, { 1, 6, "H", ImGuiKey_H }, { 1, 7, "J", ImGuiKey_J }, { 1, 8, "K", ImGuiKey_K },     { 1, 9, "L", ImGuiKey_L },      { 1, 10, ";", ImGuiKey_Semicolon }, { 1, 11, "'", ImGuiKey_Apostrophe },  { 1, 12, "Return", ImGuiKey_Enter },
+        { 2, 0, "LShift", ImGuiKey_LeftShift }, { 2, 1, "Z", ImGuiKey_Z }, { 2, 2, "X", ImGuiKey_X }, { 2, 3, "C", ImGuiKey_C }, { 2, 4, "V", ImGuiKey_V }, { 2, 5, "B", ImGuiKey_B }, { 2, 6, "N", ImGuiKey_N }, { 2, 7, "M", ImGuiKey_M }, { 2, 8, ",", ImGuiKey_Comma }, { 2, 9, ".", ImGuiKey_Period }, { 2, 10, "/", ImGuiKey_Slash },     { 2, 11, "RShift", ImGuiKey_RightShift }
     };
 
     // Elements rendered manually via ImDrawList API are not clipped automatically.

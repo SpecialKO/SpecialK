@@ -2106,15 +2106,15 @@ SK_ImGui_PollGamepad (void)
         float uLY = (LY / 32767.0f) * unit;
 
         // Close Menu/PopUp/Child, Clear Selection      // e.g. Cross button
-        if ( (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0 &&
-        (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_B) == 0)
+        if ( (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0) //&&
+        //(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_B) == 0)
         {
           io.NavInputs [ImGuiNavInput_Cancel] = 1.0f;
         }
 
         // Text Input                                   // e.g. Triangle button
-        if ( (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0 &&
-        (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) == 0)
+        if ( (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0) //&&
+        //(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) == 0)
         {
           io.NavInputs [ImGuiNavInput_Input] = 1.0f;
         }
@@ -2213,6 +2213,11 @@ SK_ImGui_PollGamepad (void)
 
   // Don't cycle window elements when Alt+Tabbing
   if (io.KeyAlt || (! io.NavActive)) io.KeysDown [VK_TAB] = false;
+  
+  //
+  // Also don't process tab unless navigation is active, or the control panel
+  //   will activate the framerate limiter input and block keyboard to the game...
+  //
 
 
   //
@@ -2286,8 +2291,8 @@ SK_ImGui_PollGamepad (void)
       }
     }
 
-    if (io.KeysDown [VK_RETURN])
-      io.NavInputs  [ImGuiNavInput_Activate] = 1.0f;
+    ////if (io.KeysDown [VK_RETURN])
+    ////  io.NavInputs  [ImGuiNavInput_Activate] = 1.0f;
 
     if (io.KeysDown [VK_ESCAPE])
       io.NavInputs  [ImGuiNavInput_Cancel]   = 1.0f;
@@ -2307,10 +2312,10 @@ SK_ImGui_PollGamepad (void)
   }
 
 
-  if (io.NavInputs [ImGuiNavInput_Activate] != 0.0f)
-    io.MouseDown [4] = true;
-  else
-    io.MouseDown [4] = false;
+  //if (io.NavInputs [ImGuiNavInput_Activate] != 0.0f)
+  //  io.MouseDown [4] = true;
+  //else
+  //  io.MouseDown [4] = false;
 
 
   static ULONG64 last_toggle = 0ULL;
@@ -2669,27 +2674,33 @@ SK_ImGui_User_NewFrame (void)
     io.KeyMap [ImGuiKey_Pause]          = VK_PAUSE;
     io.KeyMap [ImGuiKey_CapsLock]       = VK_CAPITAL;
     io.KeyMap [ImGuiKey_NumLock]        = VK_NUMLOCK;
-    io.KeyMap [ImGuiKey_Apostrophe]     = '\'';
     io.KeyMap [ImGuiKey_Comma]          = VK_OEM_COMMA;
     io.KeyMap [ImGuiKey_Minus]          = VK_OEM_MINUS;
     io.KeyMap [ImGuiKey_Period]         = VK_OEM_PERIOD;
-    io.KeyMap [ImGuiKey_Slash]          = '/';
-    io.KeyMap [ImGuiKey_Semicolon]      = VK_OEM_1;
     io.KeyMap [ImGuiKey_Equal]          = VK_OEM_PLUS;
-    io.KeyMap [ImGuiKey_LeftBracket]    = VK_OEM_4;
-    io.KeyMap [ImGuiKey_RightBracket]   = VK_OEM_6;
-    io.KeyMap [ImGuiKey_Backslash]      = '\\';
+    io.KeyMap [ImGuiKey_Semicolon]      = VK_OEM_1;
+    io.KeyMap [ImGuiKey_Slash]          = VK_OEM_2;
     io.KeyMap [ImGuiKey_GraveAccent]    = VK_OEM_3;
+    io.KeyMap [ImGuiKey_LeftBracket]    = VK_OEM_4;
+    io.KeyMap [ImGuiKey_Backslash]      = VK_OEM_5;
+    io.KeyMap [ImGuiKey_RightBracket]   = VK_OEM_6;
+    io.KeyMap [ImGuiKey_Apostrophe]     = VK_OEM_7;
+    io.KeyMap [ImGuiKey_KeypadDivide]   = VK_DIVIDE;
     io.KeyMap [ImGuiKey_KeypadMultiply] = VK_MULTIPLY;
     io.KeyMap [ImGuiKey_KeypadSubtract] = VK_SUBTRACT;
+    io.KeyMap [ImGuiKey_KeypadDecimal]  = VK_DECIMAL;
     io.KeyMap [ImGuiKey_KeypadAdd]      = VK_ADD;
-    io.KeyMap [ImGuiKey_KeypadEnter]    = VK_RETURN;
     io.KeyMap [ImGuiKey_KeypadEqual]    = VK_OEM_PLUS;
-    io.KeyMap [ImGuiKey_Tab]            = VK_TAB;
-    io.KeyMap [ImGuiKey_UpArrow]        = VK_UP;
-    io.KeyMap [ImGuiKey_DownArrow]      = VK_DOWN;
-    io.KeyMap [ImGuiKey_LeftArrow]      = VK_LEFT;
-    io.KeyMap [ImGuiKey_RightArrow]     = VK_RIGHT;
+    io.KeyMap [ImGuiKey_Keypad0]        = VK_NUMPAD0;
+    io.KeyMap [ImGuiKey_Keypad1]        = VK_NUMPAD1;
+    io.KeyMap [ImGuiKey_Keypad2]        = VK_NUMPAD2;
+    io.KeyMap [ImGuiKey_Keypad3]        = VK_NUMPAD3;
+    io.KeyMap [ImGuiKey_Keypad4]        = VK_NUMPAD4;
+    io.KeyMap [ImGuiKey_Keypad5]        = VK_NUMPAD5;
+    io.KeyMap [ImGuiKey_Keypad6]        = VK_NUMPAD6;
+    io.KeyMap [ImGuiKey_Keypad7]        = VK_NUMPAD7;
+    io.KeyMap [ImGuiKey_Keypad8]        = VK_NUMPAD8;
+    io.KeyMap [ImGuiKey_Keypad9]        = VK_NUMPAD9;
     io.KeyMap [ImGuiKey_F1]             = VK_F1;
     io.KeyMap [ImGuiKey_F2]             = VK_F2;
     io.KeyMap [ImGuiKey_F3]             = VK_F3;
@@ -2750,6 +2761,15 @@ SK_ImGui_User_NewFrame (void)
     io.KeyMap [ImGuiKey_X]              = 'X';
     io.KeyMap [ImGuiKey_Y]              = 'Y';
     io.KeyMap [ImGuiKey_Z]              = 'Z';
+    io.KeyMap [ImGuiKey_LeftShift]      = VK_LSHIFT;
+    io.KeyMap [ImGuiKey_RightShift]     = VK_RSHIFT;
+    io.KeyMap [ImGuiKey_LeftAlt]        = VK_LMENU;
+    io.KeyMap [ImGuiKey_RightAlt]       = VK_RMENU;
+    io.KeyMap [ImGuiKey_LeftCtrl]       = VK_LCONTROL;
+    io.KeyMap [ImGuiKey_RightCtrl]      = VK_RCONTROL;
+    io.KeyMap [ImGuiKey_LeftSuper]      = VK_LWIN;
+    io.KeyMap [ImGuiKey_RightSuper]     = VK_RWIN;
+    io.KeyMap [ImGuiKey_Menu]           = VK_APPS;
   }
 
   static auto ticks_per_sec =

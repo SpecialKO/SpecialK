@@ -57,6 +57,11 @@ LONG imgui_staged_frames   = 0;
 LONG imgui_finished_frames = 0;
 BOOL imgui_staged          = FALSE;
 
+bool imgui_demo    = false;
+bool imgui_debug   = false;
+bool imgui_metrics = false;
+bool imgui_about   = false;
+
 extern float g_fDPIScale;
 
 using namespace SK::ControlPanel;
@@ -3645,6 +3650,20 @@ SK_ImGui_ControlPanel (void)
           eula.show = true;
 
         ImGui::Separator ();
+        
+        if (ImGui::MenuItem ("ImGui -> Demo",      "ImGui Debug", &selected))
+          imgui_demo    = true;
+
+        if (ImGui::MenuItem ("ImGui -> Debug Log", "ImGui Debug", &selected))
+          imgui_debug   = true;
+
+        if (ImGui::MenuItem ("ImGui -> Metrics",   "ImGui Debug", &selected))
+          imgui_metrics = true;
+
+        if (ImGui::MenuItem ("ImGui -> About",     "ImGui Debug", &selected))
+          imgui_about   = true;
+
+        ImGui::Separator ();
 
         if (SK::SteamAPI::AppID () != 0x0)
         {
@@ -6098,6 +6117,11 @@ SK_ImGui_StageNextFrame (void)
   {
     SK_ControlPanel_Activated = true;
     keep_open                 = SK_ImGui_ControlPanel ();
+
+    if (imgui_demo)    ImGui::ShowDemoWindow     ( );
+    if (imgui_debug)   ImGui::ShowDebugLogWindow ( );
+    if (imgui_metrics) ImGui::ShowMetricsWindow  ( );
+    if (imgui_about)   ImGui::ShowAboutWindow    ( );
   }
 
 

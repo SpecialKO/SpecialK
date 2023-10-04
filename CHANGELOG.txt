@@ -1,4 +1,10 @@
-﻿23.10.3.1
+﻿23.10.4
+=======
+ + Added experimental ImPlot visualization for Reflex timing data:
+
+     * CPU/API/GPU time per-frame for the last 64 frames
+
+23.10.3.1
 =========
  + Added a 2 frame latency to DLSS-G engagement checks
 
