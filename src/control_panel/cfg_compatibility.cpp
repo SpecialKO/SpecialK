@@ -233,7 +233,7 @@ SK::ControlPanel::Compatibility::Draw (void)
           (render_api == SK_RenderAPI::Vulkan && !config.apis.Vulkan.hook_next     ) ||
           (                     SK_GL_OnD3D11 && !config.apis.OpenGL.hook_next     ))
       {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor (1.0f, .7f, .3f));
+        ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, .7f, .3f, 1.f));
         ImGui::BulletText     ("The current configuration may prevent Special K from working properly!");
         ImGui::PopStyleColor  ();
 
