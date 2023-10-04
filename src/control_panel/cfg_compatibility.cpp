@@ -59,40 +59,40 @@ SK::ControlPanel::Compatibility::Draw (void)
         switch (api)
         {
           case SK_RenderAPI::D3D9Ex:
-            config.apis.d3d9ex.hook_new     = true; // Fallthrough, D3D9Ex
-          case SK_RenderAPI::D3D9:              //      implies D3D9!
-            config.apis.d3d9.hook_new       = true;
+            config.apis.d3d9ex.hook_next     = true; // Fallthrough, D3D9Ex
+          case SK_RenderAPI::D3D9:                   //      implies D3D9!
+            config.apis.d3d9.hook_next       = true;
             break;
 
           case SK_RenderAPI::D3D12:
-            config.apis.dxgi.d3d12.hook_new = true;
+            config.apis.dxgi.d3d12.hook_next = true;
           case SK_RenderAPI::D3D11:
-            config.apis.dxgi.d3d11.hook_new = true; // Shared logic, both are needed
+            config.apis.dxgi.d3d11.hook_next = true; // Shared logic, both are needed
             break;
 
 #ifdef _M_IX86
           case SK_RenderAPI::DDrawOn12:
-            config.apis.dxgi.d3d12.hook = true;
+            config.apis.dxgi.d3d12.hook  = true;
           case SK_RenderAPI::DDrawOn11:
-            config.apis.dxgi.d3d11.hook = true; // Shared logic, both are needed
-            config.apis.ddraw.hook      = true;
+            config.apis.dxgi.d3d11.hook  = true; // Shared logic, both are needed
+            config.apis.ddraw.hook       = true;
             break;
 
           case SK_RenderAPI::D3D8On12:
-            config.apis.dxgi.d3d12.hook = true;
+            config.apis.dxgi.d3d12.hook  = true;
           case SK_RenderAPI::D3D8On11:
-            config.apis.dxgi.d3d11.hook = true; // Shared logic, both are needed
-            config.apis.d3d8.hook       = true;
+            config.apis.dxgi.d3d11.hook  = true; // Shared logic, both are needed
+            config.apis.d3d8.hook        = true;
             break;
 #endif
 
           case SK_RenderAPI::OpenGL:
-            config.apis.OpenGL.hook_new = true;
+            config.apis.OpenGL.hook_next = true;
             break;
 
 #ifdef _M_AMD64
           case SK_RenderAPI::Vulkan:
-            config.apis.Vulkan.hook_new = true;
+            config.apis.Vulkan.hook_next = true;
             break;
 #endif
           default:
@@ -101,9 +101,9 @@ SK::ControlPanel::Compatibility::Draw (void)
 
         if (SK_GL_OnD3D11)
         {
-          config.apis.dxgi.d3d11.hook_new = true;
-          config.apis.OpenGL.hook_new     = true;
-          config.apis.OpenGL.translate    = true;
+          config.apis.dxgi.d3d11.hook_next = true;
+          config.apis.OpenGL.hook_next     = true;
+          config.apis.OpenGL.translate     = true;
         }
       };
 
@@ -147,13 +147,13 @@ SK::ControlPanel::Compatibility::Draw (void)
 
       ImGui::Columns    ( 2 );
 
-      ImGui_CheckboxEx ("Direct3D 9",   &config.apis.d3d9.hook_new);
-      ImGui_CheckboxEx ("Direct3D 9Ex", &config.apis.d3d9ex.hook_new, config.apis.d3d9.hook_new);
+      ImGui_CheckboxEx ("Direct3D 9",   &config.apis.d3d9.hook_next);
+      ImGui_CheckboxEx ("Direct3D 9Ex", &config.apis.d3d9ex.hook_next, config.apis.d3d9.hook_next);
 
       ImGui::NextColumn (   );
 
-      ImGui_CheckboxEx ("Direct3D 11",  &config.apis.dxgi.d3d11.hook_new);
-      ImGui_CheckboxEx ("Direct3D 12",  &config.apis.dxgi.d3d12.hook_new, config.apis.dxgi.d3d11.hook_new);
+      ImGui_CheckboxEx ("Direct3D 11",  &config.apis.dxgi.d3d11.hook_next);
+      ImGui_CheckboxEx ("Direct3D 12",  &config.apis.dxgi.d3d12.hook_next, config.apis.dxgi.d3d11.hook_next);
 
       ImGui::Columns    ( 1 );
       ImGui::Separator  (   );
@@ -198,9 +198,9 @@ SK::ControlPanel::Compatibility::Draw (void)
 
       ImGui::Columns    ( 2 );
 
-      ImGui::Checkbox   ("OpenGL ", &config.apis.OpenGL.hook_new); ImGui::SameLine ();
+      ImGui::Checkbox   ("OpenGL ", &config.apis.OpenGL.hook_next); ImGui::SameLine ();
 #ifdef _M_AMD64
-      ImGui::Checkbox   ("Vulkan ", &config.apis.Vulkan.hook_new);
+      ImGui::Checkbox   ("Vulkan ", &config.apis.Vulkan.hook_next);
 #endif
 
       ImGui::NextColumn (  );
@@ -208,11 +208,11 @@ SK::ControlPanel::Compatibility::Draw (void)
       // The active API will be re-enabled immediately
       if (ImGui::Button (" Disable All But the Active API "))
       {
-        config.apis.d3d9ex.hook_new     = false; config.apis.d3d9.hook_new       = false;
-        config.apis.dxgi.d3d11.hook_new = false; config.apis.dxgi.d3d12.hook_new = false;
-        config.apis.OpenGL.hook_new     = false;
+        config.apis.d3d9ex.hook_next     = false; config.apis.d3d9.hook_next       = false;
+        config.apis.dxgi.d3d11.hook_next = false; config.apis.dxgi.d3d12.hook_next = false;
+        config.apis.OpenGL.hook_next     = false;
 #ifdef _M_AMD64
-        config.apis.Vulkan.hook_new     = false;
+        config.apis.Vulkan.hook_next     = false;
 #else
         config.apis.d3d8.hook           = false; config.apis.ddraw.hook          = false;
 #endif
@@ -225,13 +225,13 @@ SK::ControlPanel::Compatibility::Draw (void)
       ImGui::Columns    ( 1 );
 
       // Show a warning to the user about the possible consequences if the current active render API is being disabled
-      if ((render_api == SK_RenderAPI::D3D9Ex && !config.apis.d3d9ex.hook_new     ) || 
-          (render_api == SK_RenderAPI::D3D9   && !config.apis.d3d9.hook_new       ) || 
-          (render_api == SK_RenderAPI::D3D11  && !config.apis.dxgi.d3d11.hook_new ) ||
-          (render_api == SK_RenderAPI::D3D12  && !config.apis.dxgi.d3d12.hook_new ) ||
-          (render_api == SK_RenderAPI::OpenGL && !config.apis.OpenGL.hook_new     ) ||
-          (render_api == SK_RenderAPI::Vulkan && !config.apis.Vulkan.hook_new     ) ||
-          (                     SK_GL_OnD3D11 && !config.apis.OpenGL.hook_new     ))
+      if ((render_api == SK_RenderAPI::D3D9Ex && !config.apis.d3d9ex.hook_next     ) || 
+          (render_api == SK_RenderAPI::D3D9   && !config.apis.d3d9.hook_next       ) || 
+          (render_api == SK_RenderAPI::D3D11  && !config.apis.dxgi.d3d11.hook_next ) ||
+          (render_api == SK_RenderAPI::D3D12  && !config.apis.dxgi.d3d12.hook_next ) ||
+          (render_api == SK_RenderAPI::OpenGL && !config.apis.OpenGL.hook_next     ) ||
+          (render_api == SK_RenderAPI::Vulkan && !config.apis.Vulkan.hook_next     ) ||
+          (                     SK_GL_OnD3D11 && !config.apis.OpenGL.hook_next     ))
       {
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor (1.0f, .7f, .3f));
         ImGui::BulletText     ("The current configuration may prevent Special K from working properly!");
@@ -239,10 +239,10 @@ SK::ControlPanel::Compatibility::Draw (void)
 
         if (ImGui::IsItemHovered ())
         {
-          if      (SK_GL_OnD3D11 && !config.apis.OpenGL.hook_new)
+          if      (SK_GL_OnD3D11 && !config.apis.OpenGL.hook_next)
             ImGui::SetTooltip ("OpenGL-IK is currently being used, but OpenGL has been disabled for future launches!\n"
                                 "This may prevent Special K from working properly on the next launch.");
-          else if (SK_GL_OnD3D11 && !config.apis.dxgi.d3d11.hook_new)
+          else if (SK_GL_OnD3D11 && !config.apis.dxgi.d3d11.hook_next)
             ImGui::SetTooltip ("OpenGL-IK is currently being used, but Direct3D 11 has been disabled for future launches!\n"
                                 "This may cause Special K to fall back on OpenGL on the next launch.");
           else
