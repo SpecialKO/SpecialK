@@ -237,17 +237,17 @@ SK_ImGui_DrawGraph_Latency ()
       if (show_fills)
       {
         ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.15f);
-        ImPlot::PlotShaded   ("Simulation", xs1, ys1, 64, -INFINITY, flags);
-        ImPlot::PlotShaded   ("Draw Calls", xs1, ys2, 64, -INFINITY, flags);
-        ImPlot::PlotShaded   ("GPU Render", xs1, ys3, 64, -INFINITY, flags);
+        ImPlot::PlotShaded   ("Simulation",    xs1, ys1, 64, -INFINITY, flags);
+        ImPlot::PlotShaded   ("Render Submit", xs1, ys2, 64, -INFINITY, flags);
+        ImPlot::PlotShaded   ("GPU Render",    xs1, ys3, 64, -INFINITY, flags);
         ImPlot::PopStyleVar  ();
       }
 
       if (show_lines)
       {
-        ImPlot::PlotLine ("Simulation", xs1, ys1, 64);
-        ImPlot::PlotLine ("Draw Calls", xs1, ys2, 64);
-        ImPlot::PlotLine ("GPU Render", xs1, ys3, 64);
+        ImPlot::PlotLine ("Simulation",    xs1, ys1, 64);
+        ImPlot::PlotLine ("Render Submit", xs1, ys2, 64);
+        ImPlot::PlotLine ("GPU Render",    xs1, ys3, 64);
       }
       ImPlot::EndPlot ();
     }
