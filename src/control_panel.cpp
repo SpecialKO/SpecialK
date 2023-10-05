@@ -1233,17 +1233,20 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       }
 
       static bool bWarnOnce = false;
-             bool bNeedWarn = config.render.framerate.present_interval    > 1 &&
-                              config.render.framerate.sync_interval_clamp > 0;
+             bool bNeedUnclamp = config.render.framerate.present_interval    > 1 &&
+                                 config.render.framerate.sync_interval_clamp != SK_NoPreference;
 
-      if ( bNeedWarn && std::exchange (bWarnOnce, true) == false )
+      if ( bNeedUnclamp && std::exchange (bWarnOnce, true) == false )
       {
         SK_ImGui_Warning (
           L"Fractional VSYNC Rates Will Prevent VRR From Working\r\n\r\n\t>>"
           L"SyncIntervalClamp Has Been Disabled (required to use 1/n Refresh VSYNC)"
         );
+      }
 
-        config.render.framerate.sync_interval_clamp = 0;
+      if (bNeedUnclamp)
+      {
+        config.render.framerate.sync_interval_clamp = SK_NoPreference;
       }
 
       // Device reset is needed to change VSYNC mode in D3D9...
@@ -4988,41 +4991,46 @@ SK_ImGui_ControlPanel (void)
 
             if (ImGui::Combo ("Mode", &mode, szModeList))
             {
+              struct vsync_prefs_s {
+                int present_interval = config.render.framerate.present_interval;
+              } static original_vsync_settings;
+
               struct reflex_prefs_s {
-                bool use_limiter      = config.nvidia.reflex.use_limiter;
-                bool low_latency      = config.nvidia.reflex.low_latency;
-                bool override         = config.nvidia.reflex.override;
-                bool enable           = config.nvidia.reflex.enable;
-                int  present_interval = config.render.framerate.present_interval;
-                bool changed          = false;
+                bool use_limiter = config.nvidia.reflex.use_limiter;
+                bool low_latency = config.nvidia.reflex.low_latency;
+                bool override    = config.nvidia.reflex.override;
+                bool enable      = config.nvidia.reflex.enable;
+                bool changed     = false;
               } static original_reflex_settings;
 
               switch ((limiter_mode_e)mode)
               {
                 default:
                 case limiter_mode_e::Normal:
-                  if (__SK_ForceDLSSGPacing)
-                  {
-                    if (config.render.framerate.target_fps < 0.0f)
-                        config.render.framerate.target_fps = -config.render.framerate.target_fps;
-                  }
-                  else
-                  {
-                    config.render.framerate.enforcement_policy = 4;
+                  config.render.framerate.enforcement_policy = 4;
 
-                    if (config.render.framerate.present_interval == 0) // Turn VSYNC -on-
-                        config.render.framerate.present_interval  = 1;
-                  }
+                  if (config.render.framerate.present_interval == 0) // Turn VSYNC -on-
+                      config.render.framerate.present_interval  = original_vsync_settings.present_interval;
+
+                  original_vsync_settings.present_interval = config.render.framerate.present_interval;
                   break;
 
                 case limiter_mode_e::LowLatency:
                   config.render.framerate.enforcement_policy = 2;
 
                   if (config.render.framerate.present_interval == 0) // Turn VSYNC -on-
-                      config.render.framerate.present_interval  = 1;
+                      config.render.framerate.present_interval  = original_vsync_settings.present_interval;
+
+                  original_vsync_settings.present_interval = config.render.framerate.present_interval;
+
+                  if (config.render.framerate.present_interval > 1)
+                  {
+                    SK_ImGui_Warning (L"VRR Does Not Work When Using 1/2, 1/3 or 1/4 rate VSYNC!");
+                  }
                   break;
 
                 case limiter_mode_e::LatentSync:
+                  original_vsync_settings.present_interval   = config.render.framerate.present_interval;
                   config.render.framerate.present_interval   = 0;    // Turn VSYNC -off-
                   config.render.framerate.enforcement_policy = 4;
 
@@ -5034,17 +5042,17 @@ SK_ImGui_ControlPanel (void)
                 case limiter_mode_e::Reflex:
                   if (! std::exchange (original_reflex_settings.changed, true))
                   {
-                    original_reflex_settings.low_latency      = config.nvidia.reflex.low_latency;
-                    original_reflex_settings.override         = config.nvidia.reflex.override;
-                    original_reflex_settings.enable           = config.nvidia.reflex.enable;
-                    original_reflex_settings.present_interval = config.render.framerate.present_interval;
+                    original_reflex_settings.low_latency = config.nvidia.reflex.low_latency;
+                    original_reflex_settings.override    = config.nvidia.reflex.override;
+                    original_reflex_settings.enable      = config.nvidia.reflex.enable;
                   }
 
-                  config.nvidia.reflex.use_limiter         = true;
-                  config.nvidia.reflex.low_latency         = true;
-                  config.nvidia.reflex.override            = true;
-                  config.nvidia.reflex.enable              = true;
-                  config.render.framerate.present_interval =    1;   // Turn VSYNC -on- and hope DLSS-G works
+                  config.nvidia.reflex.use_limiter = true;
+                  config.nvidia.reflex.low_latency = true;
+                  config.nvidia.reflex.override    = true;
+                  config.nvidia.reflex.enable      = true;
+
+                  config.render.framerate.present_interval = original_vsync_settings.present_interval;
                   break;
               }
 
@@ -5054,10 +5062,9 @@ SK_ImGui_ControlPanel (void)
 
                 if (std::exchange (original_reflex_settings.changed, false))
                 {
-                  config.nvidia.reflex.low_latency         = original_reflex_settings.low_latency;
-                  config.nvidia.reflex.override            = original_reflex_settings.override;
-                  config.nvidia.reflex.enable              = original_reflex_settings.enable;
-                  config.render.framerate.present_interval = original_reflex_settings.present_interval;
+                  config.nvidia.reflex.low_latency = original_reflex_settings.low_latency;
+                  config.nvidia.reflex.override    = original_reflex_settings.override;
+                  config.nvidia.reflex.enable      = original_reflex_settings.enable;
                 }
               }
 

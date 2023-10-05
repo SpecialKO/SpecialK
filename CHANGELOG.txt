@@ -1,4 +1,16 @@
-﻿23.10.4.1
+﻿23.10.5
+=======
+ + Selecting non-Latent Sync Framerate Limiter modes will revert to
+     original VSYNC settings rather than forcing 1:1 VSYNC on.
+ + Selecting VRR Optimized Framerate Limiter mode while 1/n VSYNC is
+     on will warn the user that this prevents VRR from working.
+ + Selecting DLSS-G Framerate Limiter mode no longer changes VSYNC
+     setting.
+ + Renamed "Draw Calls to "Render Submit" in Reflex timing plot
+ + Restored original LT+RT / L2+R2 widget toggle behavior when
+     SK's control panel has been opened using a gamepad
+
+23.10.4.1
 =========
  + Renamed Reflex timing plot to Simulation, Draw Calls, GPU Render
 
