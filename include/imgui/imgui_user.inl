@@ -2039,6 +2039,9 @@ SK_ImGui_PollGamepad (void)
          XINPUT_STATE state    = {      };
   static XINPUT_STATE last_state { 1, 0 };
 
+  float                          LastNavInputs [16];
+  std::copy_n (io.NavInputs, 16, LastNavInputs);
+
   for ( float& NavInput : io.NavInputs )
     NavInput = 0.0f;
 
@@ -2067,8 +2070,8 @@ SK_ImGui_PollGamepad (void)
     //MAP_BUTTON (ImGuiNavInput_DpadDown,   XINPUT_GAMEPAD_DPAD_DOWN);      // D-Pad Down
     //MAP_BUTTON (ImGuiNavInput_FocusPrev,  XINPUT_GAMEPAD_LEFT_SHOULDER);  // L1 / LB
     //MAP_BUTTON (ImGuiNavInput_FocusNext,  XINPUT_GAMEPAD_RIGHT_SHOULDER); // R1 / RB
-    //MAP_BUTTON (ImGuiNavInput_TweakSlow,  XINPUT_GAMEPAD_LEFT_SHOULDER);  // L1 / LB
-    //MAP_BUTTON (ImGuiNavInput_TweakFast,  XINPUT_GAMEPAD_RIGHT_SHOULDER); // R1 / RB
+    //MAP_BUTTON (ImGuiNavInput_TweakSlow,  XINPUT_GAMEPAD_LEFT_TRIGGER);   // L2 / LT
+    //MAP_BUTTON (ImGuiNavInput_TweakFast,  XINPUT_GAMEPAD_RIGHT_TRIGGER);  // R2 / RT
 //  ---------------------------------------------------------------------==================
     //MAP_ANALOG (ImGuiNavInput_LStickLeft, gamepad.sThumbLX, -XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, -32768);
     //MAP_ANALOG (ImGuiNavInput_LStickRight,gamepad.sThumbLX, +XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE, +32767);
@@ -2318,22 +2321,14 @@ SK_ImGui_PollGamepad (void)
   //  io.MouseDown [4] = false;
 
 
-  static ULONG64 last_toggle = 0ULL;
-
-  /// FIXME
-#if 0
-  if ( ( io.NavInputs             [ImGuiNavInput_TweakSlow] != 0.0f &&
-         io.NavInputs             [ImGuiNavInput_TweakFast] != 0.0f )   &&
-       ( io.NavInputsDownDuration [ImGuiNavInput_TweakSlow] == 0.0f ||
-         io.NavInputsDownDuration [ImGuiNavInput_TweakFast] == 0.0f )      )
+  if ( io.NavInputs [ImGuiNavInput_TweakSlow] != 0.0f &&
+       io.NavInputs [ImGuiNavInput_TweakFast] != 0.0f &&
+       ( LastNavInputs [ImGuiNavInput_TweakSlow] == 0.0f ||
+         LastNavInputs [ImGuiNavInput_TweakFast] == 0.0f )
+     )
   {
-    if (last_toggle < SK_GetFramesDrawn () - 1)
-    {
-      SK_ImGui_Widgets->hide_all = (! SK_ImGui_Widgets->hide_all);
-      last_toggle                =    SK_GetFramesDrawn ();
-    }
+    SK_ImGui_Widgets->hide_all = (! SK_ImGui_Widgets->hide_all);
   }
-#endif
 }
 
 void

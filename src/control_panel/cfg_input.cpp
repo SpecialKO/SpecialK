@@ -1611,11 +1611,15 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
 
   const  float font_size = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
 
-  ImGui::SetNextWindowSizeConstraints ( ImVec2   (font_size *  9, font_size * 3),
-                                          ImVec2 (font_size * 30, font_size * 6) );
+  ImGui::SetNextWindowSizeConstraints ( ImVec2 (font_size *  9, font_size * 3 ),
+                                        ImVec2 (font_size * 30, font_size * 6));
 
-  if (ImGui::BeginPopupModal (combo->combo_name.c_str (), nullptr, ImGuiWindowFlags_AlwaysAutoResize |
-                                                                   ImGuiWindowFlags_NoCollapse       | ImGuiWindowFlags_NoSavedSettings))
+  if ( ImGui::BeginPopupModal (
+        combo->combo_name.c_str (), nullptr,
+         ImGuiWindowFlags_AlwaysAutoResize |
+         ImGuiWindowFlags_NoCollapse       | ImGuiWindowFlags_NoSavedSettings
+       )
+     )
   {
     SK_ImGui_GamepadComboDialogActive = true;
     nav_usable                        = false;
@@ -1690,9 +1694,7 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
 
         for (int i = 0; i < 16; i++)
         {
-          ///XXX FIXME
-/////////io.NavInputsDownDuration     [i] = 0.1f;
-/////////io.NavInputsDownDurationPrev [i] = 0.1f;
+          io.NavInputs [i] = 0.1f;
         }
 
         SK_ImGui_GamepadComboDialogActive = false;
