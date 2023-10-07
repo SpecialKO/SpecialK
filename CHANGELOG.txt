@@ -1,5 +1,17 @@
-﻿23.10.7.1
+﻿23.10.8
+=======
+ + Merge pull request #105 from Aemony/tlr-steamapi-fix
+    * Expect 85 KB minimum for steam_api.dll 
+ + Merge pull request #104 from Aemony/pcgw-link-fix
+    * Improved PCGW link
+     - Don't use app ID for Non-Steam games
+     - Naively fall back to using window title for other games
+ + Merge pull request #103 from Aemony/better-debug-menu
+    * Moved ImGui debug options to a submenu
+
+23.10.7.1
 =========
+ + Disabled imgui.ini code in new version of ImGui
  + Automatically enable Multitasking-On-Top when using Aspect Ratio Stretch
 
 23.10.7
@@ -24,7 +36,7 @@
 
 23.10.4.1
 =========
- + Renamed Reflex timing plot to Simulation, Draw Calls, GPU Render
+ + Renamed Reflex timing plot to `1 2`  3 Simulation, Draw Calls, GPU Render
 
 23.10.4
 =======

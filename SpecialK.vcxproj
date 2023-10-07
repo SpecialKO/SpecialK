@@ -411,6 +411,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
       <IntelJCCErratum>false</IntelJCCErratum>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -531,6 +532,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
       <IntelJCCErratum>false</IntelJCCErratum>
       <OmitFramePointers>false</OmitFramePointers>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -644,6 +646,8 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="depends\include\adl\adl_defines.h" />
     <ClInclude Include="depends\include\adl\adl_sdk.h" />
     <ClInclude Include="depends\include\adl\adl_structures.h" />
+    <ClInclude Include="depends\include\avif\avif.h" />
+    <ClInclude Include="depends\include\avif\internal.h" />
     <ClInclude Include="depends\include\boost\align.hpp" />
     <ClInclude Include="depends\include\boost\aligned_storage.hpp" />
     <ClInclude Include="depends\include\boost\any.hpp" />

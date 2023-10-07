@@ -370,6 +370,9 @@
     <Filter Include="Source Files\ImGui\ImPlot">
       <UniqueIdentifier>{84465bfd-90fa-4634-a18e-ef17beb53938}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\External Libraries\avif">
+      <UniqueIdentifier>{1958ca27-6d90-4274-95f7-7e7143620231}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -2969,6 +2972,12 @@
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\ngx\ngx_defs.h">
       <Filter>Header Files\Backends\Render\ngx</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\avif\avif.h">
+      <Filter>Header Files\External Libraries\avif</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\avif\internal.h">
+      <Filter>Header Files\External Libraries\avif</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
