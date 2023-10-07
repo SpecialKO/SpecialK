@@ -3672,17 +3672,24 @@ SK_ImGui_ControlPanel (void)
 
         ImGui::Separator ();
 
-        if (SK::SteamAPI::AppID () != 0x0)
+        if ( (0 < config.steam.appid && config.steam.appid <= INT32_MAX) ||
+              0 < wcslen (rb.windows.focus.title))
         {
           if (ImGui::MenuItem ( "Check PCGamingWiki for this Game", "Third-Party Site", &selected ))
           {
             SK_SteamOverlay_GoToURL (
-              SK_FormatString (
-                "http://pcgamingwiki.com/api/appid.php?appid=%lu",
-                                           SK::SteamAPI::AppID ()
+                ((0 < config.steam.appid && config.steam.appid <= INT32_MAX)
+                  ? SK_FormatString (
+                      "https://pcgamingwiki.com/api/appid.php?appid=%lu",
+                                            SK::SteamAPI::AppID ())
+                  : SK_FormatString (
+                      "https://www.pcgamingwiki.com/w/index.php?search=%hs",
+                                            SK_WideCharToUTF8 (rb.windows.focus.title).c_str())
               ).c_str (), true
             );
           }
+
+          ImGui::Separator ();
         }
 
         if (sk::NVAPI::nv_hardware)
