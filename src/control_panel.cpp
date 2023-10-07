@@ -3654,21 +3654,25 @@ SK_ImGui_ControlPanel (void)
           eula.show = true;
 
         ImGui::Separator ();
-        
-        if (ImGui::MenuItem ("ImGui -> Demo",      "ImGui Debug", &selected))
-          imgui_demo    = true;
 
-        if (ImGui::MenuItem ("ImGui -> Debug Log", "ImGui Debug", &selected))
-          imgui_debug   = true;
+        if (ImGui::BeginMenu ("ImGui Debug"))
+        {
+          ImGui::SeparatorText ("ImGui Debug");
 
-        if (ImGui::MenuItem ("ImGui -> Metrics",   "ImGui Debug", &selected))
-          imgui_metrics = true;
+          ImGui::MenuItem  ("Demo",      "", &imgui_demo);
 
-        if (ImGui::MenuItem ("ImGui -> About",     "ImGui Debug", &selected))
-          imgui_about   = true;
+          ImGui::MenuItem  ("Debug Log", "", &imgui_debug);
 
-        if (ImGui::MenuItem ("ImPlot -> Demo",     "ImPlot Debug",&selected))
-          implot_demo   = true;
+          ImGui::MenuItem  ("Metrics",   "", &imgui_metrics);
+
+          ImGui::MenuItem  ("About",     "", &imgui_about);
+
+          ImGui::SeparatorText ("ImPlot Debug");
+
+          ImGui::MenuItem  (" Demo",     "",&implot_demo);
+
+          ImGui::EndMenu   ( );
+        }
 
         ImGui::Separator ();
 
