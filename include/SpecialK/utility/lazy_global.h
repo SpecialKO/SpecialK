@@ -78,7 +78,7 @@ public:
     if (     pRet != nullptr)
       return pRet;
 
-    const volatile ULONG lock_val =
+    const volatile LONG lock_val =
       InterlockedCompareExchange (&_initlock, Reserved, Uninitialized);
 
     if (lock_val == Uninitialized)
