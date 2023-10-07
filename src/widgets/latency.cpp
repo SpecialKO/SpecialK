@@ -230,8 +230,8 @@ SK_ImGui_DrawGraph_Latency ()
         ImPlotAxisFlags_NoMenus | ImPlotAxisFlags_AutoFit;
       
       ImPlot::SetupAxes       ("Frame", "Milliseconds", flags | ImPlotAxisFlags_NoLabel |
-                                                                ImPlotAxisFlags_NoTickLabels, flags & ~ImPlotAxisFlags_AutoFit);
-      ImPlot::SetupAxesLimits (0, 63, 0, 10000.0 * total.avg / static_cast <double> (SK_QpcFreq), ImPlotCond_Always);
+                                                                ImPlotAxisFlags_NoTickLabels, flags/*& ~ImPlotAxisFlags_AutoFit*/);
+      //ImPlot::SetupAxesLimits (0, 63, 0, 10000.0 * total.avg / static_cast <double> (SK_QpcFreq), ImPlotCond_Always);
       ImPlot::SetupLegend     (ImPlotLocation_SouthWest, ImPlotLegendFlags_Horizontal);
 
       if (show_fills)

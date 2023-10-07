@@ -484,6 +484,13 @@ SK_ImGui_LatentSyncConfig (void)
         ImGui::EndTooltip   ();
       }
 
+      ImGui::Checkbox ("Auto Delay Bias", &config.render.framerate.latent_sync.auto_bias);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ("Experimental, may lead to visible tearing during extreme CPU/GPU load changes.");
+      }
+
       ImGui::Separator ();
 
       if (config.render.dxgi.allow_tearing)
@@ -1841,6 +1848,70 @@ SK::Framerate::Limiter::wait (void)
           __scanline.lock.acquired = true;
           __scanline.lock.resetSignals ();
         }
+      }
+
+      else if (config.render.framerate.latent_sync.auto_bias)
+      {
+        static constexpr int _MAX_FRAMES = 8;
+
+        struct {
+          double input   [_MAX_FRAMES] = { };
+          double display [_MAX_FRAMES] = { };
+
+          int frames = 0;
+
+          double getInput (void) noexcept
+          {
+            double avg     = 0.0,
+                   samples = 0.0;
+
+            for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
+            {
+              ++samples; avg += input [i];
+            }
+
+            return
+              ( avg / samples );
+          }
+
+          double getDisplay (void) noexcept
+          {
+            double avg     = 0.0,
+                   samples = 0.0;
+
+            for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
+            {
+              ++samples; avg += display [i];
+            }
+
+            return
+              ( avg / samples );
+          }
+        } static latency_avg;
+
+        latency_avg.input [latency_avg.frames     % _MAX_FRAMES] =
+          (1000.0 / get_limit           ()) -
+                    effective_frametime ();
+        latency_avg.display [latency_avg.frames++ % _MAX_FRAMES] =
+                    effective_frametime ();
+
+        if (latency_avg.getInput () > 0.333)
+        {
+          config.render.framerate.latent_sync.delay_bias += 0.003f;
+        }
+
+        else
+          config.render.framerate.latent_sync.delay_bias -= 0.01f;
+
+        config.render.framerate.latent_sync.delay_bias =
+          std::clamp (config.render.framerate.latent_sync.delay_bias, 0.0f, 1.0f);
+
+        __SK_LatentSyncPostDelay =
+          (config.render.framerate.latent_sync.delay_bias == 0.0f) ? 0
+                                                                   :
+          static_cast <LONGLONG> (
+            static_cast <double> (get_ticks_per_frame ()) *
+                         config.render.framerate.latent_sync.delay_bias );
       }
 
       __SK_LatentSyncFrame++;

@@ -1359,9 +1359,9 @@ SK_ImGui_DrawGraph_FramePacing (void)
         std::max (0.0f, new_sample. getPercentLoad ()) ) / 2.0f;
 
     ImRect frame_bb
-      ( window_pos.x + cursor_pos.x - 1, window_pos.y + cursor_pos.y + 1 - scroll_y,
-        window_pos.x + cursor_pos.x - 1 +
-            fGaugeSizes,                 window_pos.y + cursor_pos.y +
+      ( window_pos.x + cursor_pos.x - 2, window_pos.y + cursor_pos.y + 1 - scroll_y,
+        window_pos.x + cursor_pos.x - 2 +
+            fGaugeSizes + 1,             window_pos.y + cursor_pos.y +
                                                     font_size * 7.0f - 1 - scroll_y );
 
     ImGui::BeginGroup     (); // 2 frames is intentional to match the opacity of the rest of the graph

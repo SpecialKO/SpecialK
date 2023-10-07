@@ -1,4 +1,12 @@
-﻿23.10.5
+﻿23.10.7
+=======
+ + Added experimental auto-bias mode to Latent Sync to minimize latency;
+     potential visible tearing is possible until the algorithm is polished
+ + Changed the graph scale for Reflex's timing to adjust to single-frame
+     outliers
+ + Fixed abnormal pixel spacing on framepacing widget after ImGui upgrade
+
+23.10.5
 =======
  + Selecting non-Latent Sync Framerate Limiter modes will revert to
      original VSYNC settings rather than forcing 1:1 VSYNC on.
@@ -6,7 +14,7 @@
      on will warn the user that this prevents VRR from working.
  + Selecting DLSS-G Framerate Limiter mode no longer changes VSYNC
      setting.
- + Renamed "Draw Calls to "Render Submit" in Reflex timing plot
+ + Renamed "Draw Calls" to "Render Submit" in Reflex timing plot
  + Restored original LT+RT / L2+R2 widget toggle behavior when
      SK's control panel has been opened using a gamepad
 
