@@ -1691,16 +1691,15 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   if (ImGui::Checkbox ("Aspect Ratio Stretch", &config.display.aspect_ratio_stretch))
   {
-    if (config.display.aspect_ratio_stretch)
-      config.window.background_render = true; // Required for this to work reliably
-
     config.window.center =
       config.display.aspect_ratio_stretch;
 
     if (config.display.aspect_ratio_stretch)
     {
-      config.window.borderless = true;
-      config.window.fullscreen = false;
+      config.window.borderless        = true;
+      config.window.fullscreen        = false;
+      config.window.background_render = true;             // Required for this to work reliably
+      config.window.always_on_top     = SmartAlwaysOnTop; // Needed to fix taskbar visibility
     }
 
     else
