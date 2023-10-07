@@ -5015,7 +5015,7 @@ SK_Steam_PiratesAhoy (void)
 
   // DLL is too small to be legit, don't enable SteamAPI features
   if ( SK::SteamAPI::steam_size > 0LL &&
-       SK::SteamAPI::steam_size < (1024LL * 92LL) )
+       SK::SteamAPI::steam_size < (1024LL * 85LL) )
   {
     verdict = 0x68992;
   }
