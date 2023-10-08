@@ -720,6 +720,8 @@ struct {
       sk::ParameterInt*   error                   = nullptr;
       sk::ParameterFloat* bias                    = nullptr;
       sk::ParameterBool*  auto_bias               = nullptr;
+      sk::ParameterFloat* max_auto_bias           = nullptr;
+      sk::ParameterFloat* auto_bias_target        = nullptr;
     } latent_sync;
   } framerate;
 
@@ -1557,7 +1559,11 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.latent_sync.resync,    L"Frequency (in frames) to Resync Timing",                    dll_ini,         L"FrameRate.LatentSync",  L"ResyncFrequency"),
     ConfigEntry (render.framerate.latent_sync.error,     L"Expected Error (in QPC ticks) of Refresh Rate Calculation", dll_ini,         L"FrameRate.LatentSync",  L"RoundingError"),
     ConfigEntry (render.framerate.latent_sync.bias,      L"Controls Distribution of Idle Time Per-Delayed Frame",      dll_ini,         L"FrameRate.LatentSync",  L"DelayBias"),
-    ConfigEntry (render.framerate.latent_sync.auto_bias, L"Automatically Sets Delay Bias For Minimum Latency",         dll_ini,         L"FrameRate.latentSync",  L"AutoBias"),
+    ConfigEntry (render.framerate.latent_sync.auto_bias, L"Automatically Sets Delay Bias For Minimum Latency",         dll_ini,         L"FrameRate.LatentSync",  L"AutoBias"),
+      ConfigEntry (render.framerate.latent_sync.
+                                       auto_bias_target, L"Target input latency (in milliseconds) for auto-bias",      dll_ini,         L"FrameRate.LatentSync",  L"AutoBiasTargetInMs"),
+    ConfigEntry (render.framerate.latent_sync.
+                                          max_auto_bias, L"Maximum percentage to bias towards low input latency",      dll_ini,         L"FrameRate.LatentSync",  L"MaxAutoBias"),
 
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
     ConfigEntry (render.framerate.drop_late_frames,      L"Enable Flip Model to Render (and drop) frames at rates >"
@@ -3366,6 +3372,10 @@ auto DeclKeybind =
   render.framerate.latent_sync.error->load    (config.render.framerate.latent_sync.scanline_error);
   render.framerate.latent_sync.bias->load     (config.render.framerate.latent_sync.delay_bias);
   render.framerate.latent_sync.auto_bias->load(config.render.framerate.latent_sync.auto_bias);
+  render.framerate.latent_sync.max_auto_bias
+                                       ->load (config.render.framerate.latent_sync.max_auto_bias);
+  render.framerate.latent_sync.auto_bias_target
+                                       ->load (config.render.framerate.latent_sync.auto_bias_target);
 
 
 
@@ -5178,6 +5188,10 @@ SK_SaveConfig ( std::wstring name,
     render.framerate.latent_sync.error->store     (config.render.framerate.latent_sync.scanline_error);
     render.framerate.latent_sync.bias->store      (config.render.framerate.latent_sync.delay_bias);
     render.framerate.latent_sync.auto_bias->store (config.render.framerate.latent_sync.auto_bias);
+    render.framerate.latent_sync.max_auto_bias
+                                          ->store (config.render.framerate.latent_sync.max_auto_bias);
+    render.framerate.latent_sync.auto_bias_target
+                                          ->store (config.render.framerate.latent_sync.auto_bias_target);
 
     texture.d3d9.clamp_lod_bias->store            (config.textures.clamp_lod_bias);
 

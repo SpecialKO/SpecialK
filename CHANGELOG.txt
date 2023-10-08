@@ -1,4 +1,9 @@
-﻿23.10.8
+﻿23.10.8.1
+=========
+ + Added Auto-Bias tuning parameters to Latent Sync to control the maximum
+     input bias to apply, as well as the target input latency.
+
+23.10.8
 =======
  + Merge pull request #105 from Aemony/tlr-steamapi-fix
     * Expect 85 KB minimum for steam_api.dll 

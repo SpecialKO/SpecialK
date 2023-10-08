@@ -589,6 +589,8 @@ struct sk_config_t
         int   scanline_error       =     1;
         float delay_bias           =  0.0f;
         bool  auto_bias            = false;
+        float max_auto_bias        = 0.75f;
+        float auto_bias_target     = 0.85f;
         bool  show_fcat_bars       = false; // Not INI-persistent
 
         bool flush_before_present  = true;

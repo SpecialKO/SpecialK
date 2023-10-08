@@ -472,6 +472,34 @@ SK_ImGui_LatentSyncConfig (void)
       ImGui::SameLine ();
       ImGui::Spacing  ();
       ImGui::SameLine ();
+
+      ImGui::Checkbox ("Auto Bias", &config.render.framerate.latent_sync.auto_bias);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ("Experimental, may lead to visible tearing during extreme CPU/GPU load changes.");
+      }
+
+      if (config.render.framerate.latent_sync.auto_bias)
+      {
+        float fBiasPercent = config.render.framerate.latent_sync.max_auto_bias * 100.0f;
+
+        if (ImGui::SliderFloat ("Maximum Bias", &fBiasPercent, 0.0f, 90.0f, "%4.1f%%"))
+          config.render.framerate.latent_sync.max_auto_bias = fBiasPercent > 0.0f ? fBiasPercent / 100.0f
+                                                                                  : 0.0f;
+
+        if (ImGui::InputFloat ("Target Input Latency (ms)", &config.render.framerate.latent_sync.auto_bias_target))
+        {
+          config.render.framerate.latent_sync.auto_bias_target =
+            std::clamp (config.render.framerate.latent_sync.auto_bias_target, 0.0f, 25.0f);
+        }
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Setting this too low is likely to cause visible tearing and possible framerate instability.");
+      }
+
+      ImGui::Separator ();
+
       ImGui::Checkbox ("Allow Tearing", &config.render.dxgi.allow_tearing);
 
       if (ImGui::IsItemHovered ())
@@ -484,17 +512,12 @@ SK_ImGui_LatentSyncConfig (void)
         ImGui::EndTooltip   ();
       }
 
-      ImGui::Checkbox ("Auto Delay Bias", &config.render.framerate.latent_sync.auto_bias);
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::SetTooltip ("Experimental, may lead to visible tearing during extreme CPU/GPU load changes.");
-      }
-
-      ImGui::Separator ();
-
       if (config.render.dxgi.allow_tearing)
       {
+        ImGui::SameLine ();
+        ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine ();
+
         ImGui::Checkbox ("Visualize Tearlines", &config.render.framerate.latent_sync.show_fcat_bars);
 
         if (ImGui::IsItemHovered ())
@@ -1852,7 +1875,7 @@ SK::Framerate::Limiter::wait (void)
 
       else if (config.render.framerate.latent_sync.auto_bias)
       {
-        static constexpr int _MAX_FRAMES = 8;
+        static constexpr int _MAX_FRAMES = 6;
 
         struct {
           double input   [_MAX_FRAMES] = { };
@@ -1895,16 +1918,16 @@ SK::Framerate::Limiter::wait (void)
         latency_avg.display [latency_avg.frames++ % _MAX_FRAMES] =
                     effective_frametime ();
 
-        if (latency_avg.getInput () > 0.333)
+        if (latency_avg.getInput () > (config.render.framerate.latent_sync.auto_bias_target * 1.05f))
         {
-          config.render.framerate.latent_sync.delay_bias += 0.003f;
+          config.render.framerate.latent_sync.delay_bias += static_cast <float> (effective_frametime () * 0.00025);
         }
 
-        else
-          config.render.framerate.latent_sync.delay_bias -= 0.01f;
+        else if (latency_avg.getInput () < (config.render.framerate.latent_sync.auto_bias_target * .95f))
+          config.render.framerate.latent_sync.delay_bias -= static_cast <float> (effective_frametime () * 0.001);
 
         config.render.framerate.latent_sync.delay_bias =
-          std::clamp (config.render.framerate.latent_sync.delay_bias, 0.0f, 1.0f);
+          std::clamp (config.render.framerate.latent_sync.delay_bias, 0.0f, config.render.framerate.latent_sync.max_auto_bias);
 
         __SK_LatentSyncPostDelay =
           (config.render.framerate.latent_sync.delay_bias == 0.0f) ? 0
