@@ -396,6 +396,30 @@ SK_ImGui_Warning (const wchar_t* wszMessage)
 }
 
 void
+SKIF_ImGui_PushDisableState (void)
+{
+  // Push the states in a specific order
+  ImGui::PushItemFlag   (ImGuiItemFlags_Disabled, true);
+  //ImGui::PushStyleVar (ImGuiStyleVar_Alpha,     ImGui::GetStyle ().Alpha * 0.5f); // [UNUSED]
+  ImGui::PushStyleColor (ImGuiCol_Text,           ImGui::GetStyleColorVec4 (ImGuiCol_TextDisabled));
+  ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImLerp (ImGui::GetStyleColorVec4 (ImGuiCol_WindowBg), ImGui::GetStyleColorVec4 (ImGuiCol_TextDisabled), 0.50f));
+  ImGui::PushStyleColor (ImGuiCol_CheckMark,      ImLerp (ImGui::GetStyleColorVec4 (ImGuiCol_WindowBg), ImGui::GetStyleColorVec4 (ImGuiCol_TextDisabled), 0.50f));
+  ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImLerp (ImGui::GetStyleColorVec4 (ImGuiCol_WindowBg), ImGui::GetStyleColorVec4 (ImGuiCol_FrameBg),      0.25f));
+}
+
+void
+SKIF_ImGui_PopDisableState (void)
+{
+  // Pop the states in the reverse order that we pushed them in
+  ImGui::PopStyleColor ( ); // ImGuiCol_FrameBg
+  ImGui::PopStyleColor ( ); // ImGuiCol_CheckMark
+  ImGui::PopStyleColor ( ); // ImGuiCol_SliderGrab
+  ImGui::PopStyleColor ( ); // ImGuiCol_Text
+  //ImGui::PopStyleVar ( ); // ImGuiStyleVar_Alpha [UNUSED]
+  ImGui::PopItemFlag   ( ); // ImGuiItemFlags_Disabled
+}
+
+void
 SK_ImGui_SetNextWindowPosCenter (ImGuiCond cond)
 {
   static const auto& io =
