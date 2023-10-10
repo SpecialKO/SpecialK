@@ -151,6 +151,10 @@ struct sk_config_t
     bool   show           = true;
   } time;
 
+  struct title_s {
+    bool   show           = true;
+  } title;
+
   struct mem_osd_s {
     float  reserve        = 0.0F;// Unused / Unlimited
     float  interval       = 0.25F;

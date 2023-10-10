@@ -137,11 +137,32 @@ SK::ControlPanel::OSD::Draw (void)
       ImGui::TreePush ("");
 
       ImGui::BeginGroup ();
-      ImGui::Checkbox   ("Title/Clock ", &config.time.show);
+      ImGui::Checkbox   ("Title ",       &config.title.show);
       ImGui::SameLine   ();
-      ImGui::Checkbox   ("GPU Stats",    &config.gpu.show);
+      ImGui::Checkbox   ("Clock ",       &config.time.show);
+      ImGui::SameLine   ();
+      ImGui::Checkbox   ("Framerate",    &config.fps.show);
+      ImGui::EndGroup   ();
+      
+      ImGui::BeginGroup ();
+      if (config.fps.show)
+      {
+        int idx =  config.fps.compact ? 0 :
+                   config.fps.show + config.fps.frametime + config.fps.advanced;
+
+        ImGui::SameLine ();
+        ImGui::Combo    ("Details", &idx, "Compact\0Simple FPS\0FPS + Frame Time (ms)\0Advanced Frame Pacing Analysis\0\0", 4);
+
+             if (idx == 3) { config.fps.show = config.fps.frametime = config.fps.advanced       = true;  config.fps.compact = false; }
+        else if (idx == 2) { config.fps.show = config.fps.frametime = true; config.fps.advanced = false; config.fps.compact = false; }
+        else if (idx == 1) { config.fps.show = true; config.fps.frametime = config.fps.advanced = false; config.fps.compact = false; }
+        else if (idx == 0) { config.fps.show = true; config.fps.frametime = config.fps.advanced = false; config.fps.compact = true;  }
+      }
       ImGui::EndGroup   ();
 
+      // New line
+
+      ImGui::Checkbox   ("GPU Stats",    &config.gpu.show);
       ImGui::SameLine   ();
       ImGui::BeginGroup ();
       if (config.gpu.show)
@@ -161,23 +182,8 @@ SK::ControlPanel::OSD::Draw (void)
 
         ImGui::TreePop  ();
       }
-
-      ImGui::Checkbox   ("Framerate",      &config.fps.show);
-
-      if (config.fps.show)
-      {
-        int idx =  config.fps.compact ? 0 :
-                   config.fps.show + config.fps.frametime + config.fps.advanced;
-
-        ImGui::SameLine ();
-        ImGui::Combo    ("Details", &idx, "Compact\0Simple FPS\0FPS + Frame Time (ms)\0Advanced Frame Pacing Analysis\0\0", 4);
-
-             if (idx == 3) { config.fps.show = config.fps.frametime = config.fps.advanced       = true;  config.fps.compact = false; }
-        else if (idx == 2) { config.fps.show = config.fps.frametime = true; config.fps.advanced = false; config.fps.compact = false; }
-        else if (idx == 1) { config.fps.show = true; config.fps.frametime = config.fps.advanced = false; config.fps.compact = false; }
-        else if (idx == 0) { config.fps.show = true; config.fps.frametime = config.fps.advanced = false; config.fps.compact = true;  }
-      }
       ImGui::EndGroup   ();
+
       ImGui::TreePop    ();
     }
 
@@ -195,56 +201,63 @@ SK::ControlPanel::OSD::Draw (void)
       bool spawn = false;
 
       ImGui::Separator ( );
-      ImGui::Columns   (3);
+      ImGui::BeginColumns ("ExtendedMonitoringColumns", 3, ImGuiOldColumnFlags_NoResize);
 
       spawn |= ImGui::Checkbox ("CPU Stats",         &config.cpu.show);
 
-      if (config.cpu.show)
-      {
-        ImGui::TreePush ("");
-        ImGui::Checkbox (" Simplified View",         &config.cpu.simple);
-        ImGui::TreePop  (  );
-      }
+      if (! config.cpu.show)
+        SKIF_ImGui_PushDisableState ( );
+
+      ImGui::TreePush ("");
+      ImGui::Checkbox (" Simplified View",           &config.cpu.simple);
+      ImGui::TreePop  (  );
+
+      if (! config.cpu.show)
+        SKIF_ImGui_PopDisableState ( );
+      
+      spawn |= ImGui::Checkbox ("General I/O Stats", &config.io.show);
+
+      ImGui::NextColumn (  );
 
       spawn |= ImGui::Checkbox ("Memory Stats",      &config.mem.show);
+      spawn |= ImGui::Checkbox ("Disk Stats",        &config.disk.show);
+      
+      if (! config.disk.show)
+        SKIF_ImGui_PushDisableState ( );
+
+      ImGui::TreePush ("");
+      bool hovered;
+
+      ImGui::RadioButton (" Logical",                &config.disk.type, 1);
+      hovered = ImGui::IsItemHovered ();
+      ImGui::SameLine    ( );
+      ImGui::RadioButton (" Physical",               &config.disk.type, 0);
+      hovered |= ImGui::IsItemHovered ();
+      ImGui::TreePop  ();
+
+      if (config.disk.show && hovered)
+        ImGui::SetTooltip ("Requires Application Restart");
+
+      if (! config.disk.show)
+        SKIF_ImGui_PopDisableState ( );
 
       ImGui::NextColumn (  );
 
-      spawn |= ImGui::Checkbox ("General I/O Stats", &config.io.show);
       spawn |= ImGui::Checkbox ("Pagefile Stats",    &config.pagefile.show);
 
-      ImGui::NextColumn (  );
-
-      spawn |= ImGui::Checkbox ("Disk Stats",        &config.disk.show);
-
-      if (config.disk.show)
-      {
-        ImGui::TreePush ("");
-        bool hovered;
-
-        ImGui::RadioButton (" Logical Disks",  &config.disk.type, 1);
-        hovered = ImGui::IsItemHovered ();
-        ImGui::RadioButton (" Physical Disks", &config.disk.type, 0);
-        hovered |= ImGui::IsItemHovered ();
-        ImGui::TreePop  ();
-
-        if (hovered)
-          ImGui::SetTooltip ("Requires Application Restart");
-      }
-
-      else { ImGui::NewLine (); ImGui::NewLine (); }
+      ImGui::NewLine (); ImGui::NewLine ();
 
       if (spawn)
         SK_StartPerfMonThreads ();
 
-      ImGui::Columns     (1);
-      ImGui::Separator   ( );
+      ImGui::EndColumns  ();
+      ImGui::Separator   ();
 
       ImGui::Columns     (3, "", false);
       ImGui::NextColumn  ();
       ImGui::NextColumn  ();
       ImGui::Checkbox    ("Remember These Settings", &config.osd.remember_state);
-      ImGui::Columns     (1);
+      ImGui::EndColumns  ();
 
       ImGui::EndChild    ();
       ImGui::PopStyleVar ();

@@ -52,6 +52,9 @@ void SK_ImGui_Warning          (const wchar_t* wszMessage);
 void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,
                                 const wchar_t* wszTitle);
 
+void SKIF_ImGui_PushDisableState (void);
+void SKIF_ImGui_PopDisableState  (void);
+
 bool SK_ImGui_IsItemClicked      (void);
 bool SK_ImGui_IsItemRightClicked (void);
 void SK_ImGui_AdjustCursor       (void);

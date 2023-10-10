@@ -406,6 +406,10 @@ struct {
 
   struct {
     sk::ParameterBool*    show                    = nullptr;
+  } title;
+
+  struct {
+    sk::ParameterBool*    show                    = nullptr;
     sk::ParameterFloat*   interval                = nullptr;
   } io;
 
@@ -1341,6 +1345,7 @@ auto DeclKeybind =
     ConfigEntry (monitoring.fps.advanced,                L"Show Advanced Statistics in Framerate Counter",             osd_ini,         L"Monitor.FPS",           L"AdvancedStatistics"),
     ConfigEntry (monitoring.fps.compact,                 L"Show FRAPS-like ('120') Statistics in Framerate Counter",   osd_ini,         L"Monitor.FPS",           L"CompactStatistics"),
     ConfigEntry (monitoring.time.show,                   L"Show System Clock",                                         osd_ini,         L"Monitor.Time",          L"Show"),
+    ConfigEntry (monitoring.title.show,                  L"Show Special K Title",                                      osd_ini,         L"Monitor.Title",         L"Show"),
 
     ConfigEntry (prefer_fahrenheit,                      L"Prefer Fahrenheit Units",                                   osd_ini,         L"SpecialK.OSD",          L"PreferFahrenheit"),
 
@@ -3314,9 +3319,10 @@ auto DeclKeybind =
                          monitoring.disk.type->load      (config.disk.type);
 
   monitoring.pagefile.interval->load (config.pagefile.interval);
-
-  monitoring.time.show->load (config.time.show);
-  monitoring.SLI.show->load  (config.sli.show);
+  
+  monitoring.title.show->load (config.title.show);
+  monitoring.time.show->load  (config.time.show);
+  monitoring.SLI.show->load   (config.sli.show);
 
   if (nvidia.api.disable->load (config.apis.NvAPI.enable))
      config.apis.NvAPI.enable = (! nvidia.api.disable->get_value ());
@@ -4903,6 +4909,7 @@ SK_SaveConfig ( std::wstring name,
 
   monitoring.SLI.show->store                  (config.sli.show);
   monitoring.time.show->store                 (config.time.show);
+  monitoring.title.show->store                (config.title.show);
 
   osd.version_banner.duration->store          (config.version_banner.duration);
   osd.show->store                             (config.osd.show);
