@@ -259,6 +259,36 @@ NVSDK_NGX_D3D11_EvaluateFeature_Detour (ID3D11DeviceContext *InDevCtx, const NVS
 {
   SK_NGX_DLSS11.apis_called = true;
 
+  if (InFeatureHandle == SK_NGX_DLSS11.super_sampling.Handle)
+  {
+    if (config.nvidia.dlss.forced_preset != -1)
+    {
+      unsigned int dlss_mode;
+
+      InParameters->Get (NVSDK_NGX_Parameter_PerfQualityValue, &dlss_mode);
+
+      unsigned int preset =
+        static_cast <unsigned int> (config.nvidia.dlss.forced_preset);
+
+      const char *szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;
+
+      switch (dlss_mode)
+      {
+        case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance;      break;
+        case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced;         break;
+        case NVSDK_NGX_PerfQuality_Value_MaxQuality:        szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality;          break;
+        // Extended PerfQuality modes                                  
+        case NVSDK_NGX_PerfQuality_Value_UltraPerformance:  szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance; break;
+        case NVSDK_NGX_PerfQuality_Value_UltraQuality:      szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraQuality;     break;
+        case NVSDK_NGX_PerfQuality_Value_DLAA:              szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;             break;
+        default:
+          break;
+      }
+
+      NVSDK_NGX_Parameter_SetUI_Original ((NVSDK_NGX_Parameter *)InParameters, szPresetHint, preset);
+    }
+  }
+
   NVSDK_NGX_Result ret =
     NVSDK_NGX_D3D11_EvaluateFeature_Original (InDevCtx, InFeatureHandle, InParameters, InCallback);
 

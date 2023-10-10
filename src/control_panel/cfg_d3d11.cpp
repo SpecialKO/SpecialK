@@ -388,12 +388,15 @@ SK_DX_DLSS_ControlPanel (void)
           TextUnformatted ("Internal Resolution: ");
         ImGui::
           TextUnformatted ("Upscaled Resolution: ");
+        ImGui::
+          TextUnformatted ("DLSS Perf/Quality:   ");
+        ImGui::
+          TextUnformatted ("DLSS Preset:         ");
         ImGui::EndGroup   ();
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
         ImGui::Text       ("%dx%d",     width,     height);
         ImGui::Text       ("%dx%d", out_width, out_height);
-        ImGui::EndGroup   ();
   
         switch (perf_quality)
         {
@@ -419,20 +422,87 @@ SK_DX_DLSS_ControlPanel (void)
             ImGui::TextUnformatted ("Unknown Performance/Quality Mode");
             break;
         }
-  
+
         ImGui::SameLine ();
-  
+
         if (ImGui::Checkbox ("Force DLAA", &config.nvidia.dlss.force_dlaa))
         {
           restart_required = true;
 
           SK_SaveConfig ();
         }
-  
+        
         if (ImGui::IsItemHovered ())
         {
           ImGui::SetTooltip ("For best results, make sure to update nvngx_dlss.dll and set game's DLSS mode = Auto/Ultra Performance if it has them.");
         }
+
+        const char *szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;
+
+        switch (perf_quality)
+        {
+          case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance;      break;
+          case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced;         break;
+          case NVSDK_NGX_PerfQuality_Value_MaxQuality:        szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality;          break;
+          // Extended PerfQuality modes                                  
+          case NVSDK_NGX_PerfQuality_Value_UltraPerformance:  szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance; break;
+          case NVSDK_NGX_PerfQuality_Value_UltraQuality:      szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraQuality;     break;
+          case NVSDK_NGX_PerfQuality_Value_DLAA:              szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;             break;
+          default:
+            break;
+        }
+
+        unsigned int preset;
+
+        NVSDK_NGX_Parameter_GetUI_Original (params, szPresetHint, &preset);
+
+        const char *szPreset = "Default";
+
+        switch (preset)
+        {
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_Default: szPreset = "Default"; break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_A:       szPreset = "A";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_B:       szPreset = "B";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_C:       szPreset = "C";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_D:       szPreset = "D";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_E:       szPreset = "E";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_F:       szPreset = "F";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       szPreset = "G";       break;
+          default:
+            break;
+        }
+
+        ImGui::TextUnformatted (szPreset);
+        
+        ImGui::EndGroup ();
+
+#if 0
+        int preset_override = config.nvidia.dlss.forced_preset + 1;
+
+        if ( ImGui::Combo ( "Preset Override",
+                            &preset_override, "N/A\0"
+                                              "Default\0"
+                                              "A\0"
+                                              "B\0"
+                                              "C\0"
+                                              "D\0"
+                                              "E\0"
+                                              "F\0"
+                                              "G\0" )
+           )
+        {
+          config.nvidia.dlss.forced_preset = preset_override - 1;
+
+          if (config.nvidia.dlss.forced_preset != -1)
+          {
+            NVSDK_NGX_Parameter_SetUI_Original (params, szPresetHint, config.nvidia.dlss.forced_preset);
+          }
+
+          restart_required = true;
+
+          SK_SaveConfig ();
+        }
+#endif
   
         float                                        fSharpness;
         params->Get (NVSDK_NGX_Parameter_Sharpness, &fSharpness);

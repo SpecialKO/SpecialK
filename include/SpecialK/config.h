@@ -818,6 +818,7 @@ struct sk_config_t
       int     use_sharpening      =     -1;
       float   forced_sharpness    =   0.0f;
       bool    auto_redirect_dlss  =  false;
+      int     forced_preset       =     -1;
     } dlss;
   } nvidia;
 
