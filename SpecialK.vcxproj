@@ -1464,7 +1464,9 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\SpecialK\render\dxgi\dxgi_swapchain.h" />
     <ClInclude Include="include\SpecialK\render\backend.h" />
     <ClInclude Include="include\SpecialK\render\gl\opengl_screenshot.h" />
+    <ClInclude Include="include\SpecialK\render\ngx\ngx.h" />
     <ClInclude Include="include\SpecialK\render\ngx\ngx_defs.h" />
+    <ClInclude Include="include\SpecialK\render\ngx\ngx_dlss.h" />
     <ClInclude Include="include\SpecialK\render\present_mon\Debug.hpp" />
     <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_D3D9.h" />
     <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_Dwm_Core.h" />
@@ -1759,6 +1761,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClCompile Include="src\render\gl\opengl_screenshot.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'"> /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="src\render\ngx\ngx.cpp" />
     <ClCompile Include="src\render\ngx\ngx_d3d11.cpp" />
     <ClCompile Include="src\render\ngx\ngx_d3d12.cpp" />
     <ClCompile Include="src\render\present_mon\CommandLine.cpp">

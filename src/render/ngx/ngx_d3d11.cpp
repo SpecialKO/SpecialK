@@ -21,92 +21,22 @@
 
 #include <SpecialK/stdafx.h>
 
-#include <SpecialK/render/ngx/ngx_defs.h>
+#include <SpecialK/render/ngx/ngx.h>
+#include <SpecialK/render/ngx/ngx_dlss.h>
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
 #endif
 #define __SK_SUBSYSTEM__ L" NGX DX11 "
 
-struct NGX_ThreadSafety {
-  struct {
-    SK_Thread_HybridSpinlock Params;
-  } locks;
-};
-
-extern SK_LazyGlobal <NGX_ThreadSafety> SK_NGX_Threading;
-
-extern bool __SK_HasDLSSGStatusSupport;
-extern bool __SK_IsDLSSGActive;
-extern bool __SK_DoubleUpOnReflex;
-extern bool __SK_ForceDLSSGPacing;
-
-extern void
-NVSDK_CONV
-NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* InName, int InValue);
-
-using NVSDK_NGX_DLSS_GetStatsCallback_pfn           = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParams);
-using NVSDK_NGX_DLSS_GetOptimalSettingsCallback_pfn = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParams);
-
-NVSDK_NGX_Result NVSDK_CONV NVSDK_NGX_DLSS_GetOptimalSettingsCallback (NVSDK_NGX_Parameter* InParams);
-NVSDK_NGX_Result NVSDK_CONV NVSDK_NGX_DLSS_GetStatsCallback           (NVSDK_NGX_Parameter* InParams);
-
-static bool SK_NGX11_APIsCalled = false;
-
-struct SK_DLSS_Context
-{
-  struct dlss_s {
-    NVSDK_NGX_Handle*    Handle     = nullptr;
-    NVSDK_NGX_Parameter* Parameters = nullptr;
-    volatile ULONG64     LastFrame  = 0ULL;
-
-    struct callbacks_s {
-      NVSDK_NGX_DLSS_GetStatsCallback_pfn           GetStatsCallback_Original           = nullptr;
-      NVSDK_NGX_DLSS_GetOptimalSettingsCallback_pfn GetOptimalSettingsCallback_Original = nullptr;
-
-      static NVSDK_NGX_Result NVSDK_CONV GetOptimalSettingsCallback_Override (NVSDK_NGX_Parameter *InParams)
-      {
-        SK_LOG_FIRST_CALL
-
-        if (SK_NGX_DLSS11.super_sampling.callbacks.GetOptimalSettingsCallback_Original != nullptr)
-        {
-          NVSDK_NGX_Result result =
-            SK_NGX_DLSS11.super_sampling.callbacks.GetOptimalSettingsCallback_Original (InParams);
-
-          if (NVSDK_NGX_Result_Success == result)
-          {
-          }
-
-          return result;
-        }
-
-        SK_LOGi0 (L"No DLSS Optimal Settings Callback Detected");
-
-        return NVSDK_NGX_Result_Success;
-      }
-    } callbacks;
-  } super_sampling;
-
-  struct dlssg_s {
-    NVSDK_NGX_Handle*    Handle     = nullptr;
-    NVSDK_NGX_Parameter* Parameters = nullptr;
-    volatile ULONG64     LastFrame  = 0ULL;
-  } frame_gen;
-} SK_NGX_DLSS11;
+SK_DLSS_Context SK_NGX_DLSS11;
 
 typedef void (NVSDK_CONV *PFN_NVSDK_NGX_ProgressCallback)(float InCurrentProgress, bool &OutShouldCancel);
 
-// NGX return-code conversion-to-string utility only as a helper for debugging/logging - not for official use.
-using  GetNGXResultAsString_pfn = const wchar_t* (NVSDK_CONV *)(NVSDK_NGX_Result InNGXResult);
-static GetNGXResultAsString_pfn
-       GetNGXResultAsString = nullptr;
-
 using NVSDK_NGX_D3D11_DestroyParameters_pfn       = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter*   InParameters);
+using NVSDK_NGX_D3D11_GetParameters_pfn           = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter** OutParameters);
 using NVSDK_NGX_D3D11_GetCapabilityParameters_pfn = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter** OutParameters);
 using NVSDK_NGX_D3D11_AllocateParameters_pfn      = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter** OutParameters);
-
-using NVSDK_NGX_D3D11_GetParameters_pfn =
-      NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter **OutParameters);
 
 using NVSDK_NGX_D3D11_CreateFeature_pfn =
       NVSDK_NGX_Result (NVSDK_CONV *)( ID3D11DeviceContext       *InDevCtx,
@@ -123,25 +53,25 @@ using NVSDK_NGX_D3D11_EvaluateFeature_pfn =
                                    PFN_NVSDK_NGX_ProgressCallback InCallback );
 
 static NVSDK_NGX_D3D11_CreateFeature_pfn
-       NVSDK_NGX_D3D11_CreateFeature_Original = nullptr;
-static NVSDK_NGX_D3D11_EvaluateFeature_pfn
-       NVSDK_NGX_D3D11_EvaluateFeature_Original = nullptr;
-static NVSDK_NGX_D3D11_AllocateParameters_pfn
-       NVSDK_NGX_D3D11_AllocateParameters_Original = nullptr;
-static NVSDK_NGX_D3D11_DestroyParameters_pfn
-       NVSDK_NGX_D3D11_DestroyParameters_Original = nullptr;
+       NVSDK_NGX_D3D11_CreateFeature_Original           = nullptr;
+static NVSDK_NGX_D3D11_EvaluateFeature_pfn              
+       NVSDK_NGX_D3D11_EvaluateFeature_Original         = nullptr;
+static NVSDK_NGX_D3D11_AllocateParameters_pfn           
+       NVSDK_NGX_D3D11_AllocateParameters_Original      = nullptr;
+static NVSDK_NGX_D3D11_DestroyParameters_pfn            
+       NVSDK_NGX_D3D11_DestroyParameters_Original       = nullptr;
 static NVSDK_NGX_D3D11_GetCapabilityParameters_pfn
        NVSDK_NGX_D3D11_GetCapabilityParameters_Original = nullptr;
 static NVSDK_NGX_D3D11_GetParameters_pfn
-       NVSDK_NGX_D3D11_GetParameters_Original = nullptr;
-static NVSDK_NGX_D3D11_ReleaseFeature_pfn
-       NVSDK_NGX_D3D11_ReleaseFeature_Original = nullptr;
+       NVSDK_NGX_D3D11_GetParameters_Original           = nullptr;
+static NVSDK_NGX_D3D11_ReleaseFeature_pfn               
+       NVSDK_NGX_D3D11_ReleaseFeature_Original          = nullptr;
 
 NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D11_GetParameters_Detour (NVSDK_NGX_Parameter **InParameters)
 {
-  SK_NGX11_APIsCalled = true;
+  SK_NGX_DLSS11.apis_called = true;
 
   SK_LOG_FIRST_CALL
 
@@ -165,7 +95,7 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D11_GetCapabilityParameters_Detour (NVSDK_NGX_Parameter **InParameters)
 {
-  SK_NGX11_APIsCalled = true;
+  SK_NGX_DLSS11.apis_called = true;
 
   SK_LOG_FIRST_CALL
 
@@ -189,7 +119,7 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D11_AllocateParameters_Detour (NVSDK_NGX_Parameter** InParameters)
 {
-  SK_NGX11_APIsCalled = true;
+  SK_NGX_DLSS11.apis_called = true;
 
   SK_LOG_FIRST_CALL
 
@@ -213,7 +143,7 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D11_DestroyParameters_Detour (NVSDK_NGX_Parameter* InParameters)
 {
-  SK_NGX11_APIsCalled = true;
+  SK_NGX_DLSS11.apis_called = true;
 
   SK_LOG_FIRST_CALL
 
@@ -250,7 +180,7 @@ NVSDK_NGX_D3D11_CreateFeature_Detour ( ID3D11DeviceContext       *InDevCtx,
                                        NVSDK_NGX_Parameter       *InParameters,
                                        NVSDK_NGX_Handle         **OutHandle )
 {
-  SK_NGX11_APIsCalled = true;
+  SK_NGX_DLSS11.apis_called = true;
 
   SK_LOG_FIRST_CALL
 
@@ -327,7 +257,7 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D11_EvaluateFeature_Detour (ID3D11DeviceContext *InDevCtx, const NVSDK_NGX_Handle *InFeatureHandle, const NVSDK_NGX_Parameter *InParameters, PFN_NVSDK_NGX_ProgressCallback InCallback)
 {
-  SK_NGX11_APIsCalled = true;
+  SK_NGX_DLSS11.apis_called = true;
 
   NVSDK_NGX_Result ret =
     NVSDK_NGX_D3D11_EvaluateFeature_Original (InDevCtx, InFeatureHandle, InParameters, InCallback);
@@ -353,7 +283,7 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D11_ReleaseFeature_Detour (NVSDK_NGX_Handle *InHandle)
 {
-  SK_NGX11_APIsCalled = true;
+  SK_NGX_DLSS11.apis_called = true;
 
   SK_LOG_FIRST_CALL
 
@@ -390,7 +320,7 @@ NVSDK_NGX_D3D11_ReleaseFeature_Detour (NVSDK_NGX_Handle *InHandle)
 void
 SK_NGX11_UpdateDLSSGStatus (void)
 {
-  if (! SK_NGX11_APIsCalled)
+  if (! SK_NGX_DLSS11.apis_called)
     return;
 
   std::lock_guard
@@ -441,10 +371,6 @@ NVSDK_NGX_D3D11_Shutdown1 (ID3D11Device *InDevice);
 
 NVSDK_NGX_Result
 NVSDK_CONV
-NVSDK_NGX_D3D11_AllocateParameters (NVSDK_NGX_Parameter** OutParameters);
-
-NVSDK_NGX_Result
-NVSDK_CONV
 NVSDK_NGX_D3D11_GetFeatureRequirements ( IDXGIAdapter                   *Adapter,
                                    const NVSDK_NGX_FeatureDiscoveryInfo *FeatureDiscoveryInfo,
                                          NVSDK_NGX_FeatureRequirement   *OutSupported );
@@ -488,11 +414,5 @@ SK_NGX_InitD3D11 (void)
                            "NVSDK_NGX_D3D11_GetCapabilityParameters",
                             NVSDK_NGX_D3D11_GetCapabilityParameters_Detour,
                   (void **)&NVSDK_NGX_D3D11_GetCapabilityParameters_Original );
-
-    SK_ApplyQueuedHooks ();
-
-    GetNGXResultAsString =
-   (GetNGXResultAsString_pfn)SK_GetProcAddress ( L"_nvngx.dll",
-   "GetNGXResultAsString" );
   });
 }

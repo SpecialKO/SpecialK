@@ -19,6 +19,8 @@
 *
 **/
 
+#pragma once
+
 #ifndef __cplusplus
 #include <stddef.h> // For size_t
 #include <stdbool.h> 
@@ -664,16 +666,3 @@ typedef NVSDK_NGX_Result (NVSDK_CONV *PFN_NVSDK_NGX_Parameter_GetD3d12Resource)(
 NVSDK_NGX_Result NVSDK_CONV NVSDK_NGX_Parameter_GetD3d12Resource(NVSDK_NGX_Parameter *InParameter, const char * InName, ID3D12Resource **OutValue);
 typedef NVSDK_NGX_Result (NVSDK_CONV *PFN_NVSDK_NGX_Parameter_GetVoidPointer)(NVSDK_NGX_Parameter *InParameter, const char * InName, void **OutValue);
 NVSDK_NGX_Result NVSDK_CONV NVSDK_NGX_Parameter_GetVoidPointer(NVSDK_NGX_Parameter *InParameter, const char * InName, void **OutValue);
-
-
-NVSDK_NGX_Parameter*
-SK_NGX_GetDLSSParameters (void);
-
-bool
-SK_NGX_IsUsingDLSS (void);
-
-void
-SK_NGX_HookParameters (NVSDK_NGX_Parameter *Params);
-
-void
-SK_NGX_DLSS_CreateFeatureOverrideParams (NVSDK_NGX_Parameter *InParameters);

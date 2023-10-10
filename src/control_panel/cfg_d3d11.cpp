@@ -30,7 +30,8 @@
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/dstorage/dstorage.h>
-#include <SpecialK/render/ngx/ngx_defs.h>
+#include <SpecialK/render/ngx/ngx.h>
+#include <SpecialK/render/ngx/ngx_dlss.h>
 
 #include <imgui/font_awesome.h>
 

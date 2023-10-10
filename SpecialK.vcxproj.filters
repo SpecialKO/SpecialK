@@ -2979,6 +2979,12 @@
     <ClInclude Include="depends\include\avif\internal.h">
       <Filter>Header Files\External Libraries\avif</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\render\ngx\ngx.h">
+      <Filter>Header Files\Backends\Render\ngx</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\render\ngx\ngx_dlss.h">
+      <Filter>Header Files\Backends\Render\ngx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3559,6 +3565,9 @@
     </ClCompile>
     <ClCompile Include="depends\src\implot\implot_items.cpp">
       <Filter>Source Files\ImGui\ImPlot</Filter>
+    </ClCompile>
+    <ClCompile Include="src\render\ngx\ngx.cpp">
+      <Filter>Source Files\Backends\Render\NGX</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
