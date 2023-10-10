@@ -1,4 +1,10 @@
-﻿23.10.9.1
+﻿23.10.9.2
+=========
+ + Fixed DLSS overrides in Baldur's Gate 3
+ + Added DLSS version number to control panel
+ + Added button to open a file explorer window in the DLSS DLL's directory
+
+23.10.9.1
 =========
  + Write DLSS setting changes to INI immediately after changing them
 

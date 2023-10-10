@@ -346,27 +346,42 @@ SK_DX_DLSS_ControlPanel (void)
   
     if (ImGui::CollapsingHeader ("NVIDIA DLSS", ImGuiTreeNodeFlags_DefaultOpen))
     {
-      ImGui::TreePush       ("");
+      ImGui::TreePush     ("");
 
       auto params =
         SK_NGX_GetDLSSParameters ();
   
       if (params != nullptr)
       {
+        using NVSDK_NGX_Parameter_SetF_pfn           = void             (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName,          float InValue);
+        using NVSDK_NGX_Parameter_SetI_pfn           = void             (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName,          int   InValue);
+        using NVSDK_NGX_Parameter_SetUI_pfn          = void             (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName, unsigned int   InValue);
+        using NVSDK_NGX_Parameter_GetUI_pfn          = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName, unsigned int* OutValue);
+        using NVSDK_NGX_Parameter_GetVoidPointer_pfn = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName, void**        OutValue);
+
+        extern NVSDK_NGX_Parameter_SetF_pfn  NVSDK_NGX_Parameter_SetF_Original;
+        extern NVSDK_NGX_Parameter_SetI_pfn  NVSDK_NGX_Parameter_SetI_Original;
+        extern NVSDK_NGX_Parameter_SetUI_pfn NVSDK_NGX_Parameter_SetUI_Original;
+        extern NVSDK_NGX_Parameter_GetUI_pfn NVSDK_NGX_Parameter_GetUI_Original;
+
         static bool restart_required = false;
   
         unsigned int     width,     height;
         unsigned int out_width, out_height;
   
-        params->Get (NVSDK_NGX_Parameter_Width,     &width);
-        params->Get (NVSDK_NGX_Parameter_Height,    &height);
-        params->Get (NVSDK_NGX_Parameter_OutWidth,  &out_width);
-        params->Get (NVSDK_NGX_Parameter_OutHeight, &out_height);
+        NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_Width,     &width);
+        NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_Height,    &height);
+        NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_OutWidth,  &out_width);
+        NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_OutHeight, &out_height);
+
+        out_width  = std::max ( width,  out_width);
+        out_height = std::max (height, out_height);
   
         unsigned int perf_quality = NVSDK_NGX_PerfQuality_Value_MaxPerf;
   
-        params->Get (NVSDK_NGX_Parameter_PerfQualityValue, &perf_quality);
+        NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_PerfQualityValue, &perf_quality);
   
+        ImGui::BeginGroup ();
         ImGui::BeginGroup ();
         ImGui::
           TextUnformatted ("Internal Resolution: ");
@@ -402,11 +417,6 @@ SK_DX_DLSS_ControlPanel (void)
           default:
             ImGui::TextUnformatted ("Unknown Performance/Quality Mode");
             break;
-        }
-
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::SetTooltip ("This is the mode the game THINKS it is running, not the override mode.");
         }
   
         ImGui::SameLine ();
@@ -466,9 +476,34 @@ SK_DX_DLSS_ControlPanel (void)
         if (restart_required)
         {
           ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
-          ImGui::BulletText     ("Game Restart Required");
+          ImGui::BulletText     ("Game Restart May Be Required");
           ImGui::PopStyleColor  ();
         }
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
+
+        static std::wstring path_to_dlss =
+          SK_GetModuleFullName (SK_GetModuleHandleW (L"nvngx_dlss.dll"));
+
+        static std::wstring dlss_version =
+          SK_GetDLLVersionStr (L"nvngx_dlss.dll");
+
+        static std::filesystem::path dlss_directory;
+
+        SK_RunOnce (
+        {
+          dlss_directory =
+            std::filesystem::path (path_to_dlss).remove_filename ();
+        });
+
+        ImGui::Text ("%ws", dlss_version.c_str ());
+
+        if (ImGui::Button ("Browse DLSS Directory"))
+        {
+          SK_Util_ExplorePath (dlss_directory.wstring ().c_str ());
+        }
+        ImGui::EndGroup   ();
       }
 
       ImGui::TreePop     ( );

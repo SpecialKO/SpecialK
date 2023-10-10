@@ -139,6 +139,30 @@ static NVSDK_NGX_D3D11_ReleaseFeature_pfn
 
 NVSDK_NGX_Result
 NVSDK_CONV
+NVSDK_NGX_D3D11_GetParameters_Detour (NVSDK_NGX_Parameter **InParameters)
+{
+  SK_NGX11_APIsCalled = true;
+
+  SK_LOG_FIRST_CALL
+
+  std::lock_guard
+    lock (SK_NGX_Threading->locks.Params);
+
+  NVSDK_NGX_Result ret =
+    NVSDK_NGX_D3D11_GetParameters_Original (InParameters);
+
+  if (ret == NVSDK_NGX_Result_Success)
+  {
+    SK_RunOnce (
+      SK_NGX_HookParameters (*InParameters)
+    );
+  }
+
+  return ret;
+}
+
+NVSDK_NGX_Result
+NVSDK_CONV
 NVSDK_NGX_D3D11_GetCapabilityParameters_Detour (NVSDK_NGX_Parameter **InParameters)
 {
   SK_NGX11_APIsCalled = true;
@@ -239,18 +263,7 @@ NVSDK_NGX_D3D11_CreateFeature_Detour ( ID3D11DeviceContext       *InDevCtx,
 
   if (InFeatureID == NVSDK_NGX_Feature_SuperSampling)
   {
-    int                                                                create_flags = 0x0;
-    InParameters->Get (NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags, &create_flags);
-
-    // Trigger our hook in case we missed the setup of creation flags earlier
-    NVSDK_NGX_Parameter_SetI_Detour (InParameters, NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags, create_flags);
-
-    if (config.nvidia.dlss.use_sharpening == 1)
-      InParameters->Set (NVSDK_NGX_Parameter_Sharpness, config.nvidia.dlss.forced_sharpness);
-
-    //InParameters->Set (NVSDK_NGX_Parameter_PerfQualityValue, NVSDK_NGX_PerfQuality_Value_DLAA);
-    //InParameters->Set (NVSDK_NGX_Parameter_RTXValue,         false);
-    //InParameters->Set (NVSDK_NGX_Parameter_Sharpness,        1.0f);
+    SK_NGX_DLSS_CreateFeatureOverrideParams (InParameters);
   }
 
   NVSDK_NGX_Result ret =
@@ -465,6 +478,11 @@ SK_NGX_InitD3D11 (void)
                            "NVSDK_NGX_D3D11_AllocateParameters",
                             NVSDK_NGX_D3D11_AllocateParameters_Detour,
                   (void **)&NVSDK_NGX_D3D11_AllocateParameters_Original );
+
+    SK_CreateDLLHook2 ( L"_nvngx.dll",
+                           "NVSDK_NGX_D3D11_GetParameters",
+                            NVSDK_NGX_D3D11_GetParameters_Detour,
+                  (void **)&NVSDK_NGX_D3D11_GetParameters_Original );
 
     SK_CreateDLLHook2 ( L"_nvngx.dll",
                            "NVSDK_NGX_D3D11_GetCapabilityParameters",

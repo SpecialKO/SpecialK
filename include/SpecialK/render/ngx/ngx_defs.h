@@ -571,7 +571,7 @@ typedef struct NVSDK_NGX_FeatureRequirement
 #define NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Height          "DLSS.Get.Dynamic.Max.Render.Height"
 #define NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Width           "DLSS.Get.Dynamic.Min.Render.Width"
 #define NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Height          "DLSS.Get.Dynamic.Min.Render.Height"
-                                                                        
+
 #define NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA                "DLSS.Hint.Render.Preset.DLAA"
 #define NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality             "DLSS.Hint.Render.Preset.Quality"
 #define NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced            "DLSS.Hint.Render.Preset.Balanced"
@@ -674,3 +674,6 @@ SK_NGX_IsUsingDLSS (void);
 
 void
 SK_NGX_HookParameters (NVSDK_NGX_Parameter *Params);
+
+void
+SK_NGX_DLSS_CreateFeatureOverrideParams (NVSDK_NGX_Parameter *InParameters);
