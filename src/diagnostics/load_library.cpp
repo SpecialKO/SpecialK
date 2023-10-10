@@ -881,6 +881,35 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
         hMod = nullptr;
       }
 
+      else if (config.nvidia.dlss.auto_redirect_dlss && StrStrIW (compliant_path, L"nvngx_dlss.dll"))
+      {
+        static auto path_to_plugin_dlss =
+          std::filesystem::path (
+            SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
+          ) / L"NVIDIA" / L"nvngx_dlss.dll";
+
+        std::error_code                                   ec;
+        if (std::filesystem::exists (path_to_plugin_dlss, ec))
+        {
+          dll_log->Log (
+            L"[DLL Loader]  ** Redirecting NVIDIA DLSS DLL (%ws) to (%ws)",
+              compliant_path,
+                        path_to_plugin_dlss.c_str ()
+          );
+
+          hMod =
+            SK_LoadLibraryW (path_to_plugin_dlss.c_str ());
+
+          if (! hMod)
+          {
+            dll_log->Log (L"[DLL Loader]  # Plug-In Load Failed, using original DLL!");
+
+            hMod =
+              SK_LoadLibraryW (compliant_path);
+          }
+        }
+      }
+
       else
         hMod =
           SK_LoadLibraryW (compliant_path);
@@ -1199,8 +1228,40 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
   try
   {
 #endif
-    hMod =
-      SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
+    if (config.nvidia.dlss.auto_redirect_dlss && StrStrIW (compliant_path, L"nvngx_dlss.dll"))
+    {
+      static auto path_to_plugin_dlss =
+        std::filesystem::path (
+          SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
+        ) / L"NVIDIA" / L"nvngx_dlss.dll";
+
+      std::error_code                                   ec;
+      if (std::filesystem::exists (path_to_plugin_dlss, ec))
+      {
+        dll_log->Log (
+          L"[DLL Loader]  ** Redirecting NVIDIA DLSS DLL (%ws) to (%ws)",
+            compliant_path,
+                      path_to_plugin_dlss.c_str ()
+        );
+
+        hMod =
+          SK_LoadLibraryW (path_to_plugin_dlss.c_str ());
+
+        if (! hMod)
+        {
+          dll_log->Log (L"[DLL Loader]  # Plug-In Load Failed, using original DLL!");
+
+          hMod =
+            SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
+        }
+      }
+    }
+
+    else
+    {
+      hMod =
+        SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
+    }
 #ifdef _DEBUG
   }
   catch (const SK_SEH_IgnoredException&)

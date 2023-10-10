@@ -653,6 +653,7 @@ struct {
     sk::ParameterBool*    force_dlaa              = nullptr;
     sk::ParameterInt*     use_sharpening          = nullptr;
     sk::ParameterFloat*   forced_sharpness        = nullptr;
+    sk::ParameterBool*    auto_redirect_dll       = nullptr;
   } dlss;
 } nvidia;
 
@@ -1592,6 +1593,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.dlss.force_dlaa,                 L"Force DLAA in games that do not normally support it",       dll_ini,         L"NVIDIA.DLSS",           L"ForceDLAA"),
     ConfigEntry (nvidia.dlss.use_sharpening,             L"Override DLSS Sharpening Mode",                             dll_ini,         L"NVIDIA.DLSS",           L"UseSharpening"),
     ConfigEntry (nvidia.dlss.forced_sharpness,           L"Sharpness Value to Use",                                    dll_ini,         L"NVIDIA.DLSS",           L"ForcedSharpness"),
+    ConfigEntry (nvidia.dlss.auto_redirect_dll,          L"Always load SK's Plug-In DLSS DLL instead of the game's",   dll_ini,         L"NVIDIA.DLSS",           L"AutoRedirectDLL"),
 
     ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
 
@@ -3414,6 +3416,7 @@ auto DeclKeybind =
   nvidia.dlss.force_dlaa->load               (config.nvidia.dlss.force_dlaa);
   nvidia.dlss.use_sharpening->load           (config.nvidia.dlss.use_sharpening);
   nvidia.dlss.forced_sharpness->load         (config.nvidia.dlss.forced_sharpness);
+  nvidia.dlss.auto_redirect_dll->load        (config.nvidia.dlss.auto_redirect_dlss);
 
   render.hdr.enable_32bpc->load              (config.render.hdr.enable_32bpc);
 
@@ -5239,6 +5242,7 @@ SK_SaveConfig ( std::wstring name,
       nvidia.dlss.force_dlaa->store               (config.nvidia.dlss.force_dlaa);
       nvidia.dlss.use_sharpening->store           (config.nvidia.dlss.use_sharpening);
       nvidia.dlss.forced_sharpness->store         (config.nvidia.dlss.forced_sharpness);
+      nvidia.dlss.auto_redirect_dll->store        (config.nvidia.dlss.auto_redirect_dlss);
       render.framerate.max_delta_time->store      (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.flip_sequential->store     (config.render.framerate.flip_sequential);

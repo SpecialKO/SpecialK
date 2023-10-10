@@ -483,25 +483,88 @@ SK_DX_DLSS_ControlPanel (void)
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
 
-        static std::wstring path_to_dlss =
+        static auto path_to_plugin_dlss =
+          std::filesystem::path (
+            SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
+          ) / L"NVIDIA" / L"nvngx_dlss.dll";
+
+        static std::error_code                          ec;
+        static bool bHasPlugInDLSS =
+          std::filesystem::exists (path_to_plugin_dlss, ec);
+
+        static std::wstring path_to_dlss = bHasPlugInDLSS  ?
+                            path_to_plugin_dlss.wstring () :
           SK_GetModuleFullName (SK_GetModuleHandleW (L"nvngx_dlss.dll"));
 
         static std::wstring dlss_version =
           SK_GetDLLVersionStr (L"nvngx_dlss.dll");
 
-        static std::filesystem::path dlss_directory;
-
-        SK_RunOnce (
-        {
-          dlss_directory =
-            std::filesystem::path (path_to_dlss).remove_filename ();
-        });
+        static std::filesystem::path dlss_directory =
+          std::filesystem::path (path_to_dlss).remove_filename ();
 
         ImGui::Text ("%ws", dlss_version.c_str ());
 
-        if (ImGui::Button ("Browse DLSS Directory"))
+        static bool bRestartNeeded = false;
+
+        if (bHasPlugInDLSS)
         {
-          SK_Util_ExplorePath (dlss_directory.wstring ().c_str ());
+          if (ImGui::Checkbox ("Use Special K's DLSS instead of Game's DLL", &config.nvidia.dlss.auto_redirect_dlss))
+          {
+            bRestartNeeded = true;
+          }
+        }
+
+        else
+        {
+          static bool clicked_once = false;
+
+          bool bClicked =
+            ImGui::Selectable (ICON_FA_INFO_CIRCLE " Auto-Load a Newer DLSS DLL...");
+
+          clicked_once |= bClicked;
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::BulletText   ("Click to Create the Plug-In Directory for Auto-Load.");
+            ImGui::BulletText   ("Place nvngx_dlss.dll in the Directory.");
+            ImGui::EndTooltip   ();
+          }
+
+          if (bClicked)
+          {
+            static std::filesystem::path dlss_plugin_directory =
+                   std::filesystem::path (path_to_plugin_dlss).remove_filename ();
+
+            SK_CreateDirectories (       dlss_plugin_directory.c_str ());
+            if (std::filesystem::exists (dlss_plugin_directory, ec))
+              SK_Util_ExplorePath (      dlss_plugin_directory.wstring ().c_str ());
+            else
+            {
+              clicked_once = false;
+            }
+          }
+
+          if (clicked_once)
+          {
+            bHasPlugInDLSS =
+              std::filesystem::exists (path_to_plugin_dlss, ec);
+          }
+        }
+
+        if (bRestartNeeded)
+        {
+          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.1f, .8f, .9f));
+          ImGui::BulletText     ("Game Restart Required");
+          ImGui::PopStyleColor  ();
+        }
+
+        if ((! bHasPlugInDLSS) || (! config.nvidia.dlss.auto_redirect_dlss))
+        {
+          if (ImGui::Button ("Browse Game's DLSS Directory"))
+          {
+            SK_Util_ExplorePath (dlss_directory.wstring ().c_str ());
+          }
         }
         ImGui::EndGroup   ();
       }

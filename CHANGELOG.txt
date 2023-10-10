@@ -1,4 +1,19 @@
-﻿23.10.9.2
+﻿23.10.9.3
+=========
+ + Added option to auto-load an updated DLSS DLL from SK's Plug-In Directory
+
+    >> This can be done from the DLSS Control Panel, or can be done manually.
+
+    1. Create the directory: SpecialK\PlugIns\ThirdParty\NVIDIA
+    2. Place an updated version of nvngx_dlss.dll there
+    3. Set [NVIDIA.DLSS] AutoRedirectDLL=true in SpecialK.ini
+
+    Now SK will always load the Plug-In DLL instead of a game's DLL.
+
+    If you want this by default, you can set it in Global\default_SpecialK.ini
+      after setting up the correct file location.
+
+23.10.9.2
 =========
  + Fixed DLSS overrides in Baldur's Gate 3
  + Added DLSS version number to control panel

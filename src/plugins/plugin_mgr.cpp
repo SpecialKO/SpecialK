@@ -78,8 +78,8 @@ SK_GetPlugInDirectory ( SK_PlugIn_Type type )
   if (base_dir.empty ())
   {
     base_dir    = SK_GetDebugSymbolPath ();
-    third_party = base_dir + LR"(PlugIns\ThirdParty\)";
-    unofficial  = base_dir + LR"(PlugIns\Unofficial\)";
+    third_party = base_dir + LR"(\PlugIns\ThirdParty\)";
+    unofficial  = base_dir + LR"(\PlugIns\Unofficial\)";
   }
 
   switch (type)
