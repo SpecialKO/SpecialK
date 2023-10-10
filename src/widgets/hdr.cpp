@@ -2267,15 +2267,12 @@ public:
 
                 if (SK_API_IsLayeredOnD3D11 (rb.api))
                 {
+#ifdef SK_SHOW_DEBUG_OPTIONS
                   if ( ImGui::Checkbox (
-                         "Enable 128-bit HDR Remastering",
+                         "Enable 32-bpc HDR Remastering",
                            &config.render.hdr.enable_32bpc
                      )                 ) SK_SaveConfig ();
-
-                  if (ImGui::IsItemHovered ())
-                  {
-                    ImGui::SetTooltip ("Requires a game restart, may not work, and may hurt performance... hurray!");
-                  }
+#endif
 
                   if (! __SK_HDR_AdaptiveToneMap)
                   {
