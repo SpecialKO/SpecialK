@@ -809,6 +809,11 @@ struct sk_config_t
       bool    native              =  false;
       bool    override            =  false;
     } reflex;
+    struct dlss_s {
+      bool    force_dlaa          =  false;
+      int     use_sharpening      =     -1;
+      float   forced_sharpness    =   0.0f;
+    } dlss;
   } nvidia;
 
   struct input_s {

@@ -535,8 +535,8 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     else if (   StrStrI ( lpFileName, SK_TEXT("_nvngx.dll")) ||
                 StrStrIW (wszModName,        L"_nvngx.dll") )
     {
-      extern void SK_NGX_InitD3D12 (void);
-                  SK_NGX_InitD3D12 ();
+      extern void SK_NGX_Init (void);
+                  SK_NGX_Init ();
     }
 
 #if 0

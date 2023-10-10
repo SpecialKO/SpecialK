@@ -145,6 +145,56 @@ typedef enum NVSDK_NGX_PerfQuality_Value
   NVSDK_NGX_PerfQuality_Value_DLAA,
 } NVSDK_NGX_PerfQuality_Value;
 
+typedef enum NVSDK_NGX_DLSS_Feature_Flags
+{
+  NVSDK_NGX_DLSS_Feature_Flags_IsInvalid      = 1 << 31,
+  
+  NVSDK_NGX_DLSS_Feature_Flags_None           = 0,
+  NVSDK_NGX_DLSS_Feature_Flags_IsHDR          = 1 << 0,
+  NVSDK_NGX_DLSS_Feature_Flags_MVLowRes       = 1 << 1,
+  NVSDK_NGX_DLSS_Feature_Flags_MVJittered     = 1 << 2,
+  NVSDK_NGX_DLSS_Feature_Flags_DepthInverted  = 1 << 3,
+  NVSDK_NGX_DLSS_Feature_Flags_Reserved_0     = 1 << 4,
+  NVSDK_NGX_DLSS_Feature_Flags_DoSharpening   = 1 << 5,
+  NVSDK_NGX_DLSS_Feature_Flags_AutoExposure   = 1 << 6,
+} NVSDK_NGX_DLSS_Feature_Flags;
+
+typedef enum NVSDK_NGX_GBufferType
+{
+  NVSDK_NGX_GBUFFER_ALBEDO = 0,
+  NVSDK_NGX_GBUFFER_ROUGHNESS,
+  NVSDK_NGX_GBUFFER_METALLIC,
+  NVSDK_NGX_GBUFFER_SPECULAR,
+  NVSDK_NGX_GBUFFER_SUBSURFACE,
+  NVSDK_NGX_GBUFFER_NORMALS,
+  NVSDK_NGX_GBUFFER_SHADINGMODELID,  /* unique identifier for drawn object or how the object is drawn */
+  NVSDK_NGX_GBUFFER_MATERIALID, /* unique identifier for material */
+  NVSDK_NGX_GBUFFER_SPECULAR_ALBEDO,
+  NVSDK_NGX_GBUFFER_INDIRECT_ALBEDO,
+  NVSDK_NGX_GBUFFER_SPECULAR_MVEC,
+  NVSDK_NGX_GBUFFER_DISOCCL_MASK,
+  NVSDK_NGX_GBUFFER_EMISSIVE,
+  NVSDK_NGX_GBUFFERTYPE_NUM = 16
+} NVSDK_NGX_GBufferType;
+
+typedef struct NVSDK_NGX_Coordinates
+{
+  unsigned int X;
+  unsigned int Y;
+} NVSDK_NGX_Coordinates;
+
+typedef struct NVSDK_NGX_Dimensions
+{
+  unsigned int Width;
+  unsigned int Height;
+} NVSDK_NGX_Dimensions;
+
+typedef enum NVSDK_NGX_RTX_Value
+{
+  NVSDK_NGX_RTX_Value_Off,
+  NVSDK_NGX_RTX_Value_On,
+} NVSDK_NGX_RTX_Value;
+
 typedef enum NVSDK_NGX_ToneMapperType
 {
   NVSDK_NGX_TONEMAPPER_STRING = 0,
@@ -558,25 +608,25 @@ typedef struct NVSDK_NGX_DLDenoise_Create_Params
 #ifdef __cplusplus
 typedef struct NVSDK_NGX_Parameter
 {
-  virtual void             Set (const char* InName, unsigned long long InValue) = 0;
-  virtual void             Set (const char* InName, float              InValue) = 0;
-  virtual void             Set (const char* InName, double             InValue) = 0;
-  virtual void             Set (const char* InName, unsigned int       InValue) = 0;
-  virtual void             Set (const char* InName, int                InValue) = 0;    
-  virtual void             Set (const char* InName, ID3D11Resource    *InValue) = 0;
-  virtual void             Set (const char* InName, ID3D12Resource    *InValue) = 0;
-  virtual void             Set (const char* InName, void              *InValue) = 0;
+  /*[ 7]*/ virtual void             Set   (const char* InName, unsigned long long InValue)         = 0;
+  /*[ 6]*/ virtual void             Set   (const char* InName, float              InValue)         = 0;
+  /*[ 5]*/ virtual void             Set   (const char* InName, double             InValue)         = 0;
+  /*[ 4]*/ virtual void             Set   (const char* InName, unsigned int       InValue)         = 0;
+  /*[ 3]*/ virtual void             Set   (const char* InName, int                InValue)         = 0;
+  /*[ 2]*/ virtual void             Set   (const char* InName, ID3D11Resource    *InValue)         = 0;
+  /*[ 1]*/ virtual void             Set   (const char* InName, ID3D12Resource    *InValue)         = 0;
+  /*[ 0]*/ virtual void             Set   (const char* InName, void              *InValue)         = 0;
   
-  virtual NVSDK_NGX_Result Get (const char* InName, unsigned long long *OutValue) const = 0;
-  virtual NVSDK_NGX_Result Get (const char* InName, float              *OutValue) const = 0;
-  virtual NVSDK_NGX_Result Get (const char* InName, double             *OutValue) const = 0;
-  virtual NVSDK_NGX_Result Get (const char* InName, unsigned int       *OutValue) const = 0;
-  virtual NVSDK_NGX_Result Get (const char* InName, int                *OutValue) const = 0;
-  virtual NVSDK_NGX_Result Get (const char* InName, ID3D11Resource    **OutValue) const = 0;
-  virtual NVSDK_NGX_Result Get (const char* InName, ID3D12Resource    **OutValue) const = 0;
-  virtual NVSDK_NGX_Result Get (const char* InName, void              **OutValue) const = 0;
+  /*[15]*/ virtual NVSDK_NGX_Result Get   (const char* InName, unsigned long long *OutValue) const = 0;
+  /*[14]*/ virtual NVSDK_NGX_Result Get   (const char* InName, float              *OutValue) const = 0;
+  /*[13]*/ virtual NVSDK_NGX_Result Get   (const char* InName, double             *OutValue) const = 0;
+  /*[12]*/ virtual NVSDK_NGX_Result Get   (const char* InName, unsigned int       *OutValue) const = 0;
+  /*[11]*/ virtual NVSDK_NGX_Result Get   (const char* InName, int                *OutValue) const = 0;
+  /*[10]*/ virtual NVSDK_NGX_Result Get   (const char* InName, ID3D11Resource    **OutValue) const = 0;
+  /*[ 9]*/ virtual NVSDK_NGX_Result Get   (const char* InName, ID3D12Resource    **OutValue) const = 0;
+  /*[ 8]*/ virtual NVSDK_NGX_Result Get   (const char* InName, void              **OutValue) const = 0;
   
-  virtual void           Reset (void) = 0;
+  /*[16]*/ virtual void             Reset (void)                                                   = 0;
 } NVSDK_NGX_Parameter;
 #else
 typedef struct NVSDK_NGX_Parameter NVSDK_NGX_Parameter;
@@ -614,3 +664,13 @@ typedef NVSDK_NGX_Result (NVSDK_CONV *PFN_NVSDK_NGX_Parameter_GetD3d12Resource)(
 NVSDK_NGX_Result NVSDK_CONV NVSDK_NGX_Parameter_GetD3d12Resource(NVSDK_NGX_Parameter *InParameter, const char * InName, ID3D12Resource **OutValue);
 typedef NVSDK_NGX_Result (NVSDK_CONV *PFN_NVSDK_NGX_Parameter_GetVoidPointer)(NVSDK_NGX_Parameter *InParameter, const char * InName, void **OutValue);
 NVSDK_NGX_Result NVSDK_CONV NVSDK_NGX_Parameter_GetVoidPointer(NVSDK_NGX_Parameter *InParameter, const char * InName, void **OutValue);
+
+
+NVSDK_NGX_Parameter*
+SK_NGX_GetDLSSParameters (void);
+
+bool
+SK_NGX_IsUsingDLSS (void);
+
+void
+SK_NGX_HookParameters (NVSDK_NGX_Parameter *Params);

@@ -647,6 +647,13 @@ struct {
     sk::ParameterBool*    override_native         = nullptr;
     sk::ParameterBool*    use_limiter             = nullptr;
   } reflex;
+
+  struct
+  {
+    sk::ParameterBool*    force_dlaa              = nullptr;
+    sk::ParameterInt*     use_sharpening          = nullptr;
+    sk::ParameterFloat*   forced_sharpness        = nullptr;
+  } dlss;
 } nvidia;
 
 struct {
@@ -1581,6 +1588,10 @@ auto DeclKeybind =
     ConfigEntry (nvidia.reflex.engagement_policy,        L"When to apply Reflex's magic",                              dll_ini,         L"NVIDIA.Reflex",         L"EngagementPolicy"),
     ConfigEntry (nvidia.reflex.override_native,          L"Use SK's Reflex Mode options instead of the game's",        dll_ini,         L"NVIDIA.Reflex",         L"OverrideNativeMode"),
     ConfigEntry (nvidia.reflex.use_limiter,              L"Use Reflex's framerate limiter (SK's target) instead of SK",dll_ini,         L"NVIDIA.Reflex",         L"UseFramerateLimiter"),
+
+    ConfigEntry (nvidia.dlss.force_dlaa,                 L"Force DLAA in games that do not normally support it",       dll_ini,         L"NVIDIA.DLSS",           L"ForceDLAA"),
+    ConfigEntry (nvidia.dlss.use_sharpening,             L"Override DLSS Sharpening Mode",                             dll_ini,         L"NVIDIA.DLSS",           L"UseSharpening"),
+    ConfigEntry (nvidia.dlss.forced_sharpness,           L"Sharpness Value to Use",                                    dll_ini,         L"NVIDIA.DLSS",           L"ForcedSharpness"),
 
     ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
 
@@ -3399,6 +3410,10 @@ auto DeclKeybind =
   nvidia.reflex.engagement_policy->load      (config.nvidia.reflex.enforcement_site);
   nvidia.reflex.override_native->load        (config.nvidia.reflex.override);
   nvidia.reflex.use_limiter->load            (config.nvidia.reflex.use_limiter);
+
+  nvidia.dlss.force_dlaa->load               (config.nvidia.dlss.force_dlaa);
+  nvidia.dlss.use_sharpening->load           (config.nvidia.dlss.use_sharpening);
+  nvidia.dlss.forced_sharpness->load         (config.nvidia.dlss.forced_sharpness);
 
   render.hdr.enable_32bpc->load              (config.render.hdr.enable_32bpc);
 
@@ -5221,6 +5236,9 @@ SK_SaveConfig ( std::wstring name,
       nvidia.reflex.marker_optimization->store    (config.nvidia.reflex.marker_optimization);
       nvidia.reflex.override_native->store        (config.nvidia.reflex.override);
       nvidia.reflex.use_limiter->store            (config.nvidia.reflex.use_limiter);
+      nvidia.dlss.force_dlaa->store               (config.nvidia.dlss.force_dlaa);
+      nvidia.dlss.use_sharpening->store           (config.nvidia.dlss.use_sharpening);
+      nvidia.dlss.forced_sharpness->store         (config.nvidia.dlss.forced_sharpness);
       render.framerate.max_delta_time->store      (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.flip_sequential->store     (config.render.framerate.flip_sequential);

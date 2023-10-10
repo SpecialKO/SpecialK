@@ -71,7 +71,7 @@ SK_ImGui_DrawGraph_Latency ()
     NvU64   end = 0;
     ImColor color;
 
-    double frames [64] = { };
+    double durations [64] = { };
 
     void reset (void)
     {
@@ -83,14 +83,19 @@ SK_ImGui_DrawGraph_Latency ()
       start   = 0;
       end     = 0;
 
-      memset (frames, 0, sizeof (double) * 64);
+      memset (durations, 0, sizeof (double) * 64);
     }
   };
+
+  struct frame_timing_s {
+    NvU32 gpuActiveRenderTimeUs;
+    NvU32 gpuFrameTimeUs;
+  } gpu_frame_times [64];
   
-  static stage_timing_s sim      { "Simulation"       }; static stage_timing_s render  { "Render Submit"   };
-  static stage_timing_s specialk { "Special K"        }; static stage_timing_s present { "Present"         };
-  static stage_timing_s driver   { "Driver"           }; static stage_timing_s os      { "OS Render Queue" };
-  static stage_timing_s gpu      { "GPU Render"       };
+  static stage_timing_s sim      { "Simulation"       }; static stage_timing_s render   { "Render Submit"   };
+  static stage_timing_s specialk { "Special K"        }; static stage_timing_s present  { "Present"         };
+  static stage_timing_s driver   { "Driver"           }; static stage_timing_s os       { "OS Render Queue" };
+  static stage_timing_s gpu      { "GPU Render"       }; static stage_timing_s gpu_busy { "GPU Busy"        };
   static stage_timing_s total    { "Total Frame Time" };
   static stage_timing_s input    { "Input Age"        };
 
@@ -100,7 +105,7 @@ SK_ImGui_DrawGraph_Latency ()
   stage_timing_s* stages [] = {
     &sim,     &render, &specialk,
     &present, &driver, &os,
-    &gpu,
+    &gpu
   };
 
   specialk.desc = "Includes drawing SK's overlay and framerate limiting";
@@ -130,6 +135,9 @@ SK_ImGui_DrawGraph_Latency ()
         latencyResults.frameReport
               [idx];
 
+      gpu_frame_times [idx].gpuActiveRenderTimeUs = frame.gpuActiveRenderTimeUs;
+      gpu_frame_times [idx].gpuFrameTimeUs        = frame.gpuFrameTimeUs;
+
       auto _UpdateStat =
       [&]( NvU64           start,
            NvU64           end,
@@ -142,11 +150,11 @@ SK_ImGui_DrawGraph_Latency ()
                  (
              end - start
                  );
-          if (duration >= 0 && duration < static_cast <NvU64> (SK_QpcFreq / 3))
+          if (duration >= 0 && duration < 666666)
           {
             stage->samples++;
 
-            stage->frames [idx] = 10000.0 * (static_cast <double> (duration) / static_cast <double> (SK_QpcFreq));
+            stage->durations [idx] = static_cast <double> (duration) / 1000.0;
 
             stage->sum += duration;
             stage->min = static_cast <NvU64>
@@ -165,15 +173,15 @@ SK_ImGui_DrawGraph_Latency ()
         }
       };
 
-      _UpdateStat (frame.simStartTime,           frame.simEndTime,           &sim);
-      _UpdateStat (frame.renderSubmitStartTime,  frame.renderSubmitEndTime,  &render);
-      _UpdateStat (frame.presentStartTime,       frame.presentEndTime,       &present);
-      _UpdateStat (frame.driverStartTime,        frame.driverEndTime,        &driver);
-      _UpdateStat (frame.osRenderQueueStartTime, frame.osRenderQueueEndTime, &os);
-      _UpdateStat (frame.gpuRenderStartTime,     frame.gpuRenderEndTime,     &gpu);
-      _UpdateStat (frame.simStartTime,           frame.gpuRenderEndTime,     &total);
-      _UpdateStat (frame.inputSampleTime,        frame.gpuRenderEndTime,     &input);
-      _UpdateStat (frame.renderSubmitEndTime,    frame.presentStartTime,     &specialk);
+      _UpdateStat (frame.simStartTime,           frame.simEndTime,            &sim);
+      _UpdateStat (frame.renderSubmitStartTime,  frame.renderSubmitEndTime,   &render);
+      _UpdateStat (frame.presentStartTime,       frame.presentEndTime,        &present);
+      _UpdateStat (frame.driverStartTime,        frame.driverEndTime,         &driver);
+      _UpdateStat (frame.osRenderQueueStartTime, frame.osRenderQueueEndTime,  &os);
+      _UpdateStat (frame.gpuRenderStartTime,     frame.gpuRenderEndTime,      &gpu);
+      _UpdateStat (frame.simStartTime,           frame.gpuRenderEndTime,      &total);
+      _UpdateStat (frame.inputSampleTime,        frame.gpuRenderEndTime,      &input);
+      _UpdateStat (frame.renderSubmitEndTime,    frame.presentStartTime,      &specialk);
     }
 
     auto _UpdateAverages = [&](stage_timing_s* stage)
@@ -201,6 +209,10 @@ SK_ImGui_DrawGraph_Latency ()
       }
     }
 
+    gpu_busy.start = latencyResults.frameReport [63].gpuRenderEndTime - gpu_frame_times [63].gpuActiveRenderTimeUs;
+    gpu_busy.end   = latencyResults.frameReport [63].gpuRenderEndTime;
+    gpu_busy.avg   = static_cast <double> (gpu_busy.end - gpu_busy.start);
+
     _UpdateAverages (&input);
     _UpdateAverages (&total);
 
@@ -209,14 +221,15 @@ SK_ImGui_DrawGraph_Latency ()
     }
 
     static double xs1[64], ys1[64],
-                  ys2[64], ys3[64];
+                  ys2[64], ys3[64], ys4[64];
 
     for (int i = 0; i < 64; ++i)
     {
       xs1[i] = (float)i;
-      ys1[i] = sim.frames    [i];
-      ys2[i] = render.frames [i];
-      ys3[i] = gpu.frames    [i];
+      ys1[i] = sim.durations    [i];
+      ys2[i] = render.durations [i];
+      ys3[i] = static_cast <double> (gpu_frame_times [i].gpuActiveRenderTimeUs) / 1000.0;
+      ys4[i] = gpu.durations    [i];
     }
 
     static bool show_lines = true;
@@ -234,20 +247,23 @@ SK_ImGui_DrawGraph_Latency ()
       //ImPlot::SetupAxesLimits (0, 63, 0, 10000.0 * total.avg / static_cast <double> (SK_QpcFreq), ImPlotCond_Always);
       ImPlot::SetupLegend     (ImPlotLocation_SouthWest, ImPlotLegendFlags_Horizontal);
 
-      if (show_fills)
-      {
-        ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.15f);
-        ImPlot::PlotShaded   ("Simulation",    xs1, ys1, 64, -INFINITY, flags);
-        ImPlot::PlotShaded   ("Render Submit", xs1, ys2, 64, -INFINITY, flags);
-        ImPlot::PlotShaded   ("GPU Render",    xs1, ys3, 64, -INFINITY, flags);
-        ImPlot::PopStyleVar  ();
-      }
-
       if (show_lines)
       {
         ImPlot::PlotLine ("Simulation",    xs1, ys1, 64);
         ImPlot::PlotLine ("Render Submit", xs1, ys2, 64);
-        ImPlot::PlotLine ("GPU Render",    xs1, ys3, 64);
+        ImPlot::PlotLine ("GPU Scheduled", xs1, ys4, 64);
+        ImPlot::PlotLine ("GPU Busy",      xs1, ys3, 64);
+      }
+
+      if (show_fills)
+      {
+        ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.1f);
+        ImPlot::PlotShaded   ("Simulation",    xs1, ys1, 64, -INFINITY, flags);
+      //ImPlot::PlotShaded   ("Render Submit", xs1, ys2, 64, -INFINITY, flags);
+      //ImPlot::PlotShaded   ("GPU Scheduled", xs1, ys4, 64, -INFINITY, flags);
+        ImPlot::PlotShaded   ("GPU Busy",      xs1, ys3, 64, -INFINITY, flags);
+      //ImPlot::PlotShaded   ("GPU Idle",      xs1, ys3, ys4, 64, flags);
+        ImPlot::PopStyleVar  ();
       }
       ImPlot::EndPlot ();
     }
@@ -316,15 +332,12 @@ SK_ImGui_DrawGraph_Latency ()
         pStage == max_stage ? ImColor (1.0f, 0.6f, 0.6f) :
                               ImColor (0.9f, 0.9f, 0.9f),
           "%4.2f ms",
-            10000.0 * ( pStage->avg /
-                          static_cast <double> (SK_QpcFreq)
-                      )
+            pStage->avg / 1000.0
       );
     }
     ImGui::Separator   ();
 
-    double frametime = 10000.0 *
-      total.avg / static_cast <double> (SK_QpcFreq);
+    double frametime = total.avg / 1000.0;
 
     fLegendY =
       ImGui::GetCursorScreenPos ().y;
@@ -332,8 +345,7 @@ SK_ImGui_DrawGraph_Latency ()
     ImGui::TextColored (
       ImColor (1.f, 1.f, 1.f),
         "%4.2f ms",
-          frametime, 1000.0 / frametime
-                       );
+          frametime    );
 
     static bool
         input_sampled = false;
@@ -343,8 +355,7 @@ SK_ImGui_DrawGraph_Latency ()
         ImColor (1.f, 1.f, 1.f),
           input.avg != 0.0 ?
                 "%4.2f ms" : "--",
-            10000.0 *
-              input.avg / static_cast <double> (SK_QpcFreq)
+              input.avg / 1000.0
                          );
 
       fLegendY +=

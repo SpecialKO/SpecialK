@@ -30,6 +30,7 @@
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/dstorage/dstorage.h>
+#include <SpecialK/render/ngx/ngx_defs.h>
 
 #include <imgui/font_awesome.h>
 
@@ -332,6 +333,145 @@ using SK_ReShade_OnDrawD3D11_pfn =
 void (__stdcall *)(void*, ID3D11DeviceContext*, unsigned int);
 
 //extern SK_RESHADE_CALLBACK_DRAW SK_ReShade_DrawCallback;
+
+void
+SK_DX_DLSS_ControlPanel (void)
+{
+  if (SK_NGX_IsUsingDLSS ())
+  {
+    ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+    ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+    ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+    ImGui::TreePush       ("");
+  
+    if (ImGui::CollapsingHeader ("NVIDIA DLSS", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+      ImGui::TreePush       ("");
+
+      auto params =
+        SK_NGX_GetDLSSParameters ();
+  
+      if (params != nullptr)
+      {
+        static bool restart_required = false;
+  
+        unsigned int     width,     height;
+        unsigned int out_width, out_height;
+  
+        params->Get (NVSDK_NGX_Parameter_Width,     &width);
+        params->Get (NVSDK_NGX_Parameter_Height,    &height);
+        params->Get (NVSDK_NGX_Parameter_OutWidth,  &out_width);
+        params->Get (NVSDK_NGX_Parameter_OutHeight, &out_height);
+  
+        unsigned int perf_quality = NVSDK_NGX_PerfQuality_Value_MaxPerf;
+  
+        params->Get (NVSDK_NGX_Parameter_PerfQualityValue, &perf_quality);
+  
+        ImGui::BeginGroup ();
+        ImGui::
+          TextUnformatted ("Internal Resolution: ");
+        ImGui::
+          TextUnformatted ("Upscaled Resolution: ");
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
+        ImGui::Text       ("%dx%d",     width,     height);
+        ImGui::Text       ("%dx%d", out_width, out_height);
+        ImGui::EndGroup   ();
+  
+        switch (perf_quality)
+        {
+          case NVSDK_NGX_PerfQuality_Value_MaxPerf:
+            ImGui::TextUnformatted ("Maximum Performance");
+            break;
+          case NVSDK_NGX_PerfQuality_Value_Balanced:
+            ImGui::TextUnformatted ("Balanced");
+            break;
+          case NVSDK_NGX_PerfQuality_Value_MaxQuality:
+            ImGui::TextUnformatted ("Maximum Quality");
+            break;
+          case NVSDK_NGX_PerfQuality_Value_UltraPerformance:
+            ImGui::TextUnformatted ("Ultra Performance");
+            break;
+          case NVSDK_NGX_PerfQuality_Value_UltraQuality:
+            ImGui::TextUnformatted ("Ultra Quality");
+            break;
+          case NVSDK_NGX_PerfQuality_Value_DLAA:
+            ImGui::TextUnformatted ("DLAA");
+            break;
+          default:
+            ImGui::TextUnformatted ("Unknown Performance/Quality Mode");
+            break;
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ("This is the mode the game THINKS it is running, not the override mode.");
+        }
+  
+        ImGui::SameLine ();
+  
+        restart_required |=
+          ImGui::Checkbox ("Force DLAA", &config.nvidia.dlss.force_dlaa);
+  
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ("For best results, make sure to update nvngx_dlss.dll and set game's DLSS mode = Auto/Ultra Performance if it has them.");
+        }
+  
+        float fSharpness;
+  
+        params->Get (NVSDK_NGX_Parameter_Sharpness, &fSharpness);
+  
+        int use_sharpening =
+          config.nvidia.dlss.use_sharpening + 1;
+  
+        if ( ImGui::Combo (
+               "Sharpening",
+           &use_sharpening, "Game Default\0"
+                            "Force On\0"
+                            "Force Off\0\0") )
+        {
+          config.nvidia.dlss.use_sharpening =
+            use_sharpening - 1;
+          restart_required = true;
+        }
+  
+        int                                               dlss_creation_flags = 0x0;
+        params->Get (
+          NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags, &dlss_creation_flags);
+  
+        if (use_sharpening == 0 && (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_DoSharpening))
+          ImGui::Text ("Sharpness: %4.2f", fSharpness);
+        else if (use_sharpening == 1)
+        {
+          fSharpness = config.nvidia.dlss.forced_sharpness;
+
+          if (ImGui::SliderFloat ("Sharpness", &fSharpness, -1.0f, 1.0f))
+          {
+            config.nvidia.dlss.forced_sharpness = fSharpness;
+  
+            params->Set (NVSDK_NGX_Parameter_Sharpness, fSharpness);
+
+            restart_required = true;
+          }
+        }
+  
+        if (restart_required)
+        {
+          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
+          ImGui::BulletText     ("Game Restart Required");
+          ImGui::PopStyleColor  ();
+        }
+      }
+
+      ImGui::TreePop     ( );
+    }
+  
+    ImGui::TreePop       ( );
+    ImGui::PopStyleColor (3);
+  }
+}
 
 bool
 SK::ControlPanel::D3D11::Draw (void)
@@ -758,6 +898,8 @@ SK::ControlPanel::D3D11::Draw (void)
       }
 #pragma endregion
     }
+
+    SK_DX_DLSS_ControlPanel ();
 
     ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));

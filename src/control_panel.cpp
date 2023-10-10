@@ -5002,7 +5002,8 @@ SK_ImGui_ControlPanel (void)
             if (ImGui::Combo ("Mode", &mode, szModeList))
             {
               struct vsync_prefs_s {
-                int present_interval = config.render.framerate.present_interval;
+                int present_interval = config.render.framerate.present_interval == 0 ? -1 :
+                                       config.render.framerate.present_interval;
               } static original_vsync_settings;
 
               struct reflex_prefs_s {

@@ -280,8 +280,8 @@ SK_LoadGPUVendorAPIs (void)
 
     if (SK_GetModuleHandleW (L"_nvngx.dll") != nullptr)
     {
-      extern void SK_NGX_InitD3D12 (void);
-                  SK_NGX_InitD3D12 ();
+      extern void SK_NGX_Init (void);
+                  SK_NGX_Init ();
     }
 
     const int num_sli_gpus =

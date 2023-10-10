@@ -1,4 +1,10 @@
-﻿23.10.8.1
+﻿23.10.9
+=======
+ + Added a DLSS control panel section for D3D11/12 games that are using it
+ + Added options to force DLAA in DLSS games that don't normally support it
+ + Added options to override DLSS sharpening
+
+23.10.8.1
 =========
  + Added Auto-Bias tuning parameters to Latent Sync to control the maximum
      input bias to apply, as well as the target input latency.
@@ -41,7 +47,7 @@
 
 23.10.4.1
 =========
- + Renamed Reflex timing plot to `1 2`  3 Simulation, Draw Calls, GPU Render
+ + Renamed Reflex timing plot to Simulation, Draw Calls, GPU Render
 
 23.10.4
 =======

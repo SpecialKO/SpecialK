@@ -22,7 +22,12 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/render/d3d12/d3d12_screenshot.h>
 
+#ifdef _USE_AVIF
 #include <../depends/include/DirectXTex/d3dx12.h>
+#pragma comment (lib, R"(depends\lib\avif\x64\avif.lib)")
+#endif
+
+#include <../depends/include/avif/avif.h>
 
 #ifndef __SK_SUBSYSTEM__
 #define __SK_SUBSYSTEM__ L"D3D12SShot"
@@ -1843,12 +1848,12 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                   colLum = XMVectorZero ();
 
-                  SK_LOG0 ( (L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0] * 80.0f,
-                                                                      maxLum.m128_f32 [0] * 80.0f), L"D3D11SShot" );
+                  SK_LOGi0 ( L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0] * 80.0f,
+                                                                      maxLum.m128_f32 [0] * 80.0f );
 
-                  SK_LOG0 ( (L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0f * ( maxLum.m128_f32 [0] +
+                  SK_LOGi0 ( L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0f * ( maxLum.m128_f32 [0] +
                                                                                           minLum.m128_f32 [0] ) / 2.0f,
-                                                                                  80.0f * expf ( (1.0f / N) * lumTotal ) ), L"D3D11SShot");
+                                                                                80.0f * expf ( (1.0f / N) * lumTotal ) );
 
                   hr =               un_srgb.GetImageCount () == 1 ?
                     TransformImage ( un_srgb.GetImages     (),
@@ -2318,6 +2323,86 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         else
                           hdr = false; // Couldn't undo HDR10, don't store a .jxr
                       }
+
+#ifdef _USE_AVIF
+                      if (hdr)
+                      {
+                        uint32_t width  = sk::narrow_cast <uint32_t> (un_srgb.GetMetadata ().width);
+                        uint32_t height = sk::narrow_cast <uint32_t> (un_srgb.GetMetadata ().height);
+
+                        avifRWData   avifOutput = AVIF_DATA_EMPTY;
+                        avifRGBImage rgb        = { };
+                        avifImage*   image      =
+                          avifImageCreate (width, height, 12, AVIF_PIXEL_FORMAT_YUV444);
+
+                        image->yuvRange                = AVIF_RANGE_FULL;
+                        image->colorPrimaries          = AVIF_COLOR_PRIMARIES_BT709;
+                        image->transferCharacteristics = AVIF_TRANSFER_CHARACTERISTICS_LINEAR;
+                        image->matrixCoefficients      = AVIF_MATRIX_COEFFICIENTS_BT709;
+
+                        avifRGBImageSetDefaults    (&rgb, image);
+
+                        rgb.depth       = 16;
+                        rgb.ignoreAlpha = true;
+                        rgb.isFloat     = false;//true;
+                        rgb.format      = AVIF_RGB_FORMAT_RGBA;
+
+                        avifRGBImageAllocatePixels (&rgb);
+
+                        memcpy (rgb.pixels, un_srgb.GetPixels (), un_srgb.GetPixelsSize ());
+
+                        for ( UINT j  = 0                          ;
+                                   j < pFrameData->PackedDstPitch  ;
+                                   j += 8 )
+                          {
+                            glm::vec4 color =
+                              glm::unpackHalf4x16 (*((uint64 *)&(rgb.pixels [j])));
+
+                            ((uint16_t *)&(rgb.pixels [j]))[0] = (uint16_t)((float)UINT16_MAX * (glm::clamp (color.r, 0.0f, 125.0f)/125.0f));
+                            ((uint16_t *)&(rgb.pixels [j]))[1] = (uint16_t)((float)UINT16_MAX * (glm::clamp (color.g, 0.0f, 125.0f)/125.0f));
+                            ((uint16_t *)&(rgb.pixels [j]))[2] = (uint16_t)((float)UINT16_MAX * (glm::clamp (color.b, 0.0f, 125.0f)/125.0f));
+                            ((uint16_t *)&(rgb.pixels [j]))[3] = (uint16_t)((float)UINT16_MAX * (glm::clamp (color.a, 0.0f, 125.0f)/125.0f));
+                          }
+
+                        avifResult rgbToYuvResult = avifImageRGBToYUV      (image, &rgb);
+
+                        avifEncoder *encoder = avifEncoderCreate ();
+
+                        encoder->quality         = AVIF_QUALITY_LOSSLESS;
+                        encoder->qualityAlpha    = AVIF_QUALITY_LOSSLESS;
+                        encoder->timescale       = 1;
+                        encoder->repetitionCount = AVIF_REPETITION_COUNT_INFINITE;
+                        encoder->maxThreads      = 0;
+                        encoder->speed           = AVIF_SPEED_DEFAULT;
+
+                        avifResult addResult    = avifEncoderAddImage (encoder, image, 1, AVIF_ADD_IMAGE_FLAG_SINGLE);
+                        avifResult encodeResult = avifEncoderFinish   (encoder, &avifOutput);
+
+                        wchar_t    wszAVIFPath [MAX_PATH + 2] = { };
+                        wcsncpy_s (wszAVIFPath, wszAbsolutePathToLossless, MAX_PATH);
+
+                        SK_LOGi0 (L"rgbToYUV: %d, addImage: %d, encode: %d", rgbToYuvResult, addResult, encodeResult);
+
+                        if (encodeResult == 0)
+                        {
+                          PathRemoveExtensionW (wszAVIFPath);
+                          PathAddExtensionW    (wszAVIFPath, L".avif");
+
+                          FILE* fAVIF =
+                            _wfopen (wszAVIFPath, L"wb");
+
+                          if (fAVIF != nullptr)
+                          {
+                            fwrite (avifOutput.data, 1, avifOutput.size, fAVIF);
+                            fclose (fAVIF);
+                          }
+                        }
+
+                        avifImageDestroy       (image);
+                        avifEncoderDestroy     (encoder);
+                        avifRGBImageFreePixels (&rgb);
+                      }
+#endif
 
                       HRESULT hrSaveToWIC =   un_srgb.GetImages () ?
                               SaveToWICFile (*un_srgb.GetImages (), WIC_FLAGS_DITHER,
