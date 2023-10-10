@@ -1,8 +1,12 @@
-﻿23.10.9
+﻿23.10.9.1
+=========
+ + Write DLSS setting changes to INI immediately after changing them
+
+23.10.9
 =======
  + Added a DLSS control panel section for D3D11/12 games that are using it
- + Added options to force DLAA in DLSS games that don't normally support it
- + Added options to override DLSS sharpening
+ + Added option to force DLAA in DLSS games that don't normally support it
+ + Added option to override DLSS sharpening
 
 23.10.8.1
 =========

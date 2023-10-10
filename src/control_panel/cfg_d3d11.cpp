@@ -411,16 +411,19 @@ SK_DX_DLSS_ControlPanel (void)
   
         ImGui::SameLine ();
   
-        restart_required |=
-          ImGui::Checkbox ("Force DLAA", &config.nvidia.dlss.force_dlaa);
+        if (ImGui::Checkbox ("Force DLAA", &config.nvidia.dlss.force_dlaa))
+        {
+          restart_required = true;
+
+          SK_SaveConfig ();
+        }
   
         if (ImGui::IsItemHovered ())
         {
           ImGui::SetTooltip ("For best results, make sure to update nvngx_dlss.dll and set game's DLSS mode = Auto/Ultra Performance if it has them.");
         }
   
-        float fSharpness;
-  
+        float                                        fSharpness;
         params->Get (NVSDK_NGX_Parameter_Sharpness, &fSharpness);
   
         int use_sharpening =
@@ -429,12 +432,14 @@ SK_DX_DLSS_ControlPanel (void)
         if ( ImGui::Combo (
                "Sharpening",
            &use_sharpening, "Game Default\0"
-                            "Force On\0"
-                            "Force Off\0\0") )
+                            "Force Off\0"
+                            "Force On\0\0") )
         {
           config.nvidia.dlss.use_sharpening =
             use_sharpening - 1;
           restart_required = true;
+
+          SK_SaveConfig ();
         }
   
         int                                               dlss_creation_flags = 0x0;
@@ -443,17 +448,18 @@ SK_DX_DLSS_ControlPanel (void)
   
         if (use_sharpening == 0 && (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_DoSharpening))
           ImGui::Text ("Sharpness: %4.2f", fSharpness);
-        else if (use_sharpening == 1)
+        else if (use_sharpening == 2)
         {
           fSharpness = config.nvidia.dlss.forced_sharpness;
 
           if (ImGui::SliderFloat ("Sharpness", &fSharpness, -1.0f, 1.0f))
           {
-            config.nvidia.dlss.forced_sharpness = fSharpness;
-  
+                  config.nvidia.dlss.forced_sharpness = fSharpness;
             params->Set (NVSDK_NGX_Parameter_Sharpness, fSharpness);
 
             restart_required = true;
+
+            SK_SaveConfig ();
           }
         }
   
