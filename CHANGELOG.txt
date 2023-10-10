@@ -1,4 +1,13 @@
-﻿23.10.9.3
+﻿23.10.10
+========
+ + Optimized NVIDIA NGX hook initialization
+ + Merge pull request #107 from Aemony / osd_improvements
+  * Split Title and Clock into two separate options.
+  * Rearranged Extended Monitoring section to follow the same order that the OSD components appear in.
+  * Made hidden options visible at all times, just not interactable, to make it clearer that some options have sub-options.
+  * Made column separators unmovable.
+
+23.10.9.3
 =========
  + Added option to auto-load an updated DLSS DLL from SK's Plug-In Directory
 
