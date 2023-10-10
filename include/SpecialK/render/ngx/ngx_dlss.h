@@ -25,6 +25,7 @@
 
 NVSDK_NGX_Parameter* SK_NGX_GetDLSSParameters (void);
 bool                 SK_NGX_IsUsingDLSS       (void);
+bool                 SK_NGX_IsUsingDLSS_RR    (void);
 void                 SK_NGX_DLSS_CreateFeatureOverrideParams (NVSDK_NGX_Parameter *InParameters);
 
 extern bool __SK_HasDLSSGStatusSupport;

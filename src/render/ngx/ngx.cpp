@@ -284,6 +284,14 @@ SK_NGX_IsUsingDLSS (void)
 }
 
 bool
+SK_NGX_IsUsingDLSS_RR (void)
+{
+  return                 SK_NGX_DLSS12.super_sampling.Handle     != nullptr &&
+    ReadULong64Acquire (&SK_NGX_DLSS12.super_sampling.LastFrame) >= SK_GetFramesDrawn () - 8 &&
+                         SK_NGX_DLSS12.super_sampling.DLSS_Type == NVSDK_NGX_Feature_RayReconstruction;
+}
+
+bool
 SK_NGX_HookParameters (NVSDK_NGX_Parameter* Params)
 {
   if (Params == nullptr)

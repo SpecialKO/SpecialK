@@ -345,7 +345,10 @@ SK_DX_DLSS_ControlPanel (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
     ImGui::TreePush       ("");
   
-    if (ImGui::CollapsingHeader ("NVIDIA DLSS", ImGuiTreeNodeFlags_DefaultOpen))
+    const char* szLabel = SK_NGX_IsUsingDLSS_RR () ? "NVIDIA DLSS-RR" :
+                                                     "NVIDIA DLSS";
+
+    if (ImGui::CollapsingHeader (szLabel, ImGuiTreeNodeFlags_DefaultOpen))
     {
       ImGui::TreePush     ("");
 

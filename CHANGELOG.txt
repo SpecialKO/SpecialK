@@ -1,4 +1,8 @@
-﻿23.10.10.1
+﻿23.10.10.2
+==========
+ + Added initial support for DLSS-RR (Ray Reconstruction) in D3D12 games
+
+23.10.10.1
 ==========
  + Added DLSS Preset Indicator (no override yet)
 
@@ -7,8 +11,10 @@
  + Optimized NVIDIA NGX hook initialization
  + Merge pull request #107 from Aemony/osd_improvements
   * Split Title and Clock into two separate options.
-  * Rearranged Extended Monitoring section to follow the same order that the OSD components appear in.
-  * Made hidden options visible at all times, just not interactable, to make it clearer that some options have sub-options.
+  * Rearranged Extended Monitoring section to follow the same order that the
+      OSD components appear in.
+  * Made hidden options visible at all times, just not interactable, to make
+      it clearer that some options have sub-options.
   * Made column separators unmovable.
 
 23.10.9.3

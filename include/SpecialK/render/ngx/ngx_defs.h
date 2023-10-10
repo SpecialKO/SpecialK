@@ -123,7 +123,8 @@ typedef enum NVSDK_NGX_Feature
   NVSDK_NGX_Feature_DeepResolve           = 10,
   NVSDK_NGX_Feature_FrameGeneration       = 11,
   NVSDK_NGX_Feature_DeepDVC               = 12,
-  NVSDK_NGX_Feature_Reserved13            = 13,
+  NVSDK_NGX_Feature_RayReconstruction     = 13,
+//NVSDK_NGX_Feature_Reserved13            = 13,
 
   // New features go here
   NVSDK_NGX_Feature_Count,

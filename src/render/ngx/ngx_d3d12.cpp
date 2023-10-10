@@ -179,6 +179,8 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
                                        NVSDK_NGX_Parameter       *InParameters,
                                        NVSDK_NGX_Handle         **OutHandle )
 {
+  //SK_LOGi0 (L"D3D12_CreateFeature (InFeatureID=%d)", InFeatureID);
+
   SK_NGX_DLSS12.apis_called = true;
 
   SK_LOG_FIRST_CALL
@@ -227,13 +229,17 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
       SK_LOGi1 (L"DLSS-G Feature Created!");
     }
 
-    else if (InFeatureID == NVSDK_NGX_Feature_SuperSampling)
+    // These won't be used at the same time, so treat them as if they're
+    //   the same feature, just with extra stuff.
+    else if (InFeatureID == NVSDK_NGX_Feature_SuperSampling ||
+             InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
     {
       //SK_ReleaseAssert ( SK_NGX_DLSS12.super_sampling.Handle == *OutHandle ||
       //                   SK_NGX_DLSS12.super_sampling.Handle == nullptr );
 
       SK_NGX_DLSS12.super_sampling.Handle     = *OutHandle;
       SK_NGX_DLSS12.super_sampling.Parameters = InParameters;
+      SK_NGX_DLSS12.super_sampling.DLSS_Type  = InFeatureID;
 
       SK_LOGi1 (L"DLSS Feature Created!");
     }

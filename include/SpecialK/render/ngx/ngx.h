@@ -44,6 +44,7 @@ struct SK_DLSS_Context
     NVSDK_NGX_Handle*    Handle     = nullptr;
     NVSDK_NGX_Parameter* Parameters = nullptr;
     volatile ULONG64     LastFrame  = 0ULL;
+    NVSDK_NGX_Feature    DLSS_Type  = NVSDK_NGX_Feature_SuperSampling;
   } super_sampling;
 
   struct dlssg_s {
