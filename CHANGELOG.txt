@@ -1,4 +1,9 @@
-﻿23.10.10.2
+﻿23.10.11
+========
+ + DLSS sharpness settings are hidden if DLL version is >= 2.5.1
+ + DLSS DLL override preferences are saved immediately after changing them
+
+23.10.10.2
 ==========
  + Added initial support for DLSS-RR (Ray Reconstruction) in D3D12 games
 

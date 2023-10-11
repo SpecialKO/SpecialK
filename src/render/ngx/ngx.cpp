@@ -53,7 +53,7 @@ NVSDK_NGX_Parameter_SetF_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGi0 (L"NGX_Parameter_SetF (%hs, %f) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
+  SK_LOGi1 (L"NGX_Parameter_SetF (%hs, %f) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
 
   if (! _stricmp (InName, NVSDK_NGX_Parameter_Sharpness))
   {
@@ -83,7 +83,7 @@ NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGi0 (L"NGX_Parameter_SetI (%hs, %i) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
+  SK_LOGi1 (L"NGX_Parameter_SetI (%hs, %i) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
 
   if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags))
   {
@@ -131,7 +131,7 @@ NVSDK_NGX_Parameter_SetUI_Detour (NVSDK_NGX_Parameter* InParameter, const char* 
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGi0 (L"NGX_Parameter_SetUI (%hs, %u) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
+  SK_LOGi1 (L"NGX_Parameter_SetUI (%hs, %u) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
 
   if (! _stricmp (InName, NVSDK_NGX_Parameter_PerfQualityValue))
   {
@@ -189,7 +189,7 @@ NVSDK_NGX_Parameter_GetVoidPointer_Detour (NVSDK_NGX_Parameter *InParameter, con
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGi0 (L"NGX_Parameter_GetVoidPointer (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
+  SK_LOGi1 (L"NGX_Parameter_GetVoidPointer (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
 
   return
     NVSDK_NGX_Parameter_GetVoidPointer_Original (InParameter, InName, OutValue);
@@ -206,7 +206,7 @@ NVSDK_NGX_Parameter_GetUI_Detour (NVSDK_NGX_Parameter *InParameter, const char *
 
   if (ret == NVSDK_NGX_Result_Success)
   {
-    SK_LOGi0 (L"NGX_Parameter_GetUI (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
+    SK_LOGi1 (L"NGX_Parameter_GetUI (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
 
     if (config.nvidia.dlss.force_dlaa)
     {
@@ -446,13 +446,13 @@ SK_NGX_DLSS_ControlPanel (void)
 
     if (ImGui::CollapsingHeader ("NVIDIA DLSS", ImGuiTreeNodeFlags_DefaultOpen))
     {
-      ImGui::TreePush     ("");
+      ImGui::SameLine ();
 
       const bool bFrameGen = SK_NGX_IsUsingDLSS_G ();
       const bool bRayRecon = SK_NGX_IsUsingDLSS_D ();
 
       ImGui::TextColored     ( bFrameGen ? ImVec4 (0.0f, 0.8f, 0.0f, 1.0f) : ImVec4 (0.8f, 0.0f, 0.0f, 1.0f),
-                               bFrameGen ? ICON_FA_CHECK                   : ICON_FA_XMARK );
+                               bFrameGen ? "     " ICON_FA_CHECK   : "     " ICON_FA_XMARK );
       ImGui::SameLine        ();
       ImGui::TextUnformatted ("Frame Generation\t");
       ImGui::SameLine        ();
@@ -461,11 +461,48 @@ SK_NGX_DLSS_ControlPanel (void)
       ImGui::SameLine        ();
       ImGui::TextUnformatted ("Ray Reconstruction");
 
+      ImGui::TreePush     ("");
+
       auto params =
         SK_NGX_GetDLSSParameters ();
   
       if (params != nullptr)
       {
+        static auto path_to_plugin_dlss =
+          std::filesystem::path (
+            SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
+          ) / L"NVIDIA" / L"nvngx_dlss.dll";
+
+        static std::error_code                          ec;
+        static bool bHasPlugInDLSS =
+          std::filesystem::exists (path_to_plugin_dlss, ec);
+
+        static std::wstring path_to_dlss = bHasPlugInDLSS  ?
+                            path_to_plugin_dlss.wstring () :
+          SK_GetModuleFullName (SK_GetModuleHandleW (L"nvngx_dlss.dll"));
+
+        static std::wstring dlss_version =
+          SK_GetDLLVersionStr (L"nvngx_dlss.dll");
+
+        static std::filesystem::path dlss_directory =
+          std::filesystem::path (path_to_dlss).remove_filename ();
+
+        static unsigned int major_ver, minor_ver,
+                                build, revision;
+
+        SK_RunOnce (
+        {
+          std::swscanf (
+            SK_GetDLLVersionShort (L"nvngx_dlss.dll").c_str (), L"%d,%d,%d,%d",
+              &major_ver, &minor_ver,
+                  &build, &revision
+          );
+        });
+
+        // Removed in 2.5.1
+        static const bool bHasSharpening =
+          major_ver <= 2 && ( major_ver != 2 || minor_ver < 5 || build < 1 );
+
         using NVSDK_NGX_Parameter_SetF_pfn           = void             (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName,          float InValue);
         using NVSDK_NGX_Parameter_SetI_pfn           = void             (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName,          int   InValue);
         using NVSDK_NGX_Parameter_SetUI_pfn          = void             (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName, unsigned int   InValue);
@@ -501,14 +538,51 @@ SK_NGX_DLSS_ControlPanel (void)
         ImGui::
           TextUnformatted ("Upscaled Resolution: ");
         ImGui::
-          TextUnformatted ("DLSS Perf/Quality:   ");
-        ImGui::
           TextUnformatted ("DLSS Preset:         ");
+        ImGui::
+          TextUnformatted ("DLSS Perf/Quality:   ");
         ImGui::EndGroup   ();
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
         ImGui::Text       ("%dx%d",     width,     height);
         ImGui::Text       ("%dx%d", out_width, out_height);
+
+        unsigned int preset;
+
+        const char *szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;
+
+        switch (perf_quality)
+        {
+          case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance;      break;
+          case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced;         break;
+          case NVSDK_NGX_PerfQuality_Value_MaxQuality:        szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality;          break;
+          // Extended PerfQuality modes                                  
+          case NVSDK_NGX_PerfQuality_Value_UltraPerformance:  szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance; break;
+          case NVSDK_NGX_PerfQuality_Value_UltraQuality:      szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraQuality;     break;
+          case NVSDK_NGX_PerfQuality_Value_DLAA:              szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;             break;
+          default:
+            break;
+        }
+
+        NVSDK_NGX_Parameter_GetUI_Original (params, szPresetHint, &preset);
+
+        const char *szPreset = "Default";
+
+        switch (preset)
+        {
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_Default: szPreset = "Default"; break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_A:       szPreset = "A";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_B:       szPreset = "B";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_C:       szPreset = "C";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_D:       szPreset = "D";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_E:       szPreset = "E";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_F:       szPreset = "F";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       szPreset = "G";       break;
+          default:
+            break;
+        }
+
+        ImGui::TextUnformatted (szPreset);
   
         switch (perf_quality)
         {
@@ -549,43 +623,6 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::SetTooltip ("For best results, make sure to update nvngx_dlss.dll and set game's DLSS mode = Auto/Ultra Performance if it has them.");
         }
 
-        const char *szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;
-
-        switch (perf_quality)
-        {
-          case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance;      break;
-          case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced;         break;
-          case NVSDK_NGX_PerfQuality_Value_MaxQuality:        szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality;          break;
-          // Extended PerfQuality modes                                  
-          case NVSDK_NGX_PerfQuality_Value_UltraPerformance:  szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance; break;
-          case NVSDK_NGX_PerfQuality_Value_UltraQuality:      szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraQuality;     break;
-          case NVSDK_NGX_PerfQuality_Value_DLAA:              szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;             break;
-          default:
-            break;
-        }
-
-        unsigned int preset;
-
-        NVSDK_NGX_Parameter_GetUI_Original (params, szPresetHint, &preset);
-
-        const char *szPreset = "Default";
-
-        switch (preset)
-        {
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_Default: szPreset = "Default"; break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_A:       szPreset = "A";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_B:       szPreset = "B";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_C:       szPreset = "C";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_D:       szPreset = "D";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_E:       szPreset = "E";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_F:       szPreset = "F";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       szPreset = "G";       break;
-          default:
-            break;
-        }
-
-        ImGui::TextUnformatted (szPreset);
-        
         ImGui::EndGroup ();
 
 #if 0
@@ -616,43 +653,46 @@ SK_NGX_DLSS_ControlPanel (void)
         }
 #endif
   
-        float                                        fSharpness;
-        params->Get (NVSDK_NGX_Parameter_Sharpness, &fSharpness);
-  
-        int use_sharpening =
-          config.nvidia.dlss.use_sharpening + 1;
-  
-        if ( ImGui::Combo (
-               "Sharpening",
-           &use_sharpening, "Game Default\0"
-                            "Force Off\0"
-                            "Force On\0\0") )
+        if (bHasSharpening)
         {
-          config.nvidia.dlss.use_sharpening =
-            use_sharpening - 1;
-          restart_required = true;
-
-          SK_SaveConfig ();
-        }
+          float                                        fSharpness;
+          params->Get (NVSDK_NGX_Parameter_Sharpness, &fSharpness);
   
-        int                                               dlss_creation_flags = 0x0;
-        params->Get (
-          NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags, &dlss_creation_flags);
+          int use_sharpening =
+            config.nvidia.dlss.use_sharpening + 1;
   
-        if (use_sharpening == 0 && (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_DoSharpening))
-          ImGui::Text ("Sharpness: %4.2f", fSharpness);
-        else if (use_sharpening == 2)
-        {
-          fSharpness = config.nvidia.dlss.forced_sharpness;
-
-          if (ImGui::SliderFloat ("Sharpness", &fSharpness, -1.0f, 1.0f))
+          if ( ImGui::Combo (
+                 "Sharpening",
+             &use_sharpening, "Game Default\0"
+                              "Force Off\0"
+                              "Force On\0\0") )
           {
-                  config.nvidia.dlss.forced_sharpness = fSharpness;
-            params->Set (NVSDK_NGX_Parameter_Sharpness, fSharpness);
-
+            config.nvidia.dlss.use_sharpening =
+              use_sharpening - 1;
             restart_required = true;
 
             SK_SaveConfig ();
+          }
+  
+          int                                               dlss_creation_flags = 0x0;
+          params->Get (
+            NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags, &dlss_creation_flags);
+  
+          if (use_sharpening == 0 && (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_DoSharpening))
+            ImGui::Text ("Sharpness: %4.2f", fSharpness);
+          else if (use_sharpening == 2)
+          {
+            fSharpness = config.nvidia.dlss.forced_sharpness;
+
+            if (ImGui::SliderFloat ("Sharpness", &fSharpness, -1.0f, 1.0f))
+            {
+                    config.nvidia.dlss.forced_sharpness = fSharpness;
+              params->Set (NVSDK_NGX_Parameter_Sharpness, fSharpness);
+
+              restart_required = true;
+
+              SK_SaveConfig ();
+            }
           }
         }
   
@@ -666,25 +706,6 @@ SK_NGX_DLSS_ControlPanel (void)
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
 
-        static auto path_to_plugin_dlss =
-          std::filesystem::path (
-            SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)
-          ) / L"NVIDIA" / L"nvngx_dlss.dll";
-
-        static std::error_code                          ec;
-        static bool bHasPlugInDLSS =
-          std::filesystem::exists (path_to_plugin_dlss, ec);
-
-        static std::wstring path_to_dlss = bHasPlugInDLSS  ?
-                            path_to_plugin_dlss.wstring () :
-          SK_GetModuleFullName (SK_GetModuleHandleW (L"nvngx_dlss.dll"));
-
-        static std::wstring dlss_version =
-          SK_GetDLLVersionStr (L"nvngx_dlss.dll");
-
-        static std::filesystem::path dlss_directory =
-          std::filesystem::path (path_to_dlss).remove_filename ();
-
         ImGui::Text ("%ws", dlss_version.c_str ());
 
         static bool bRestartNeeded = false;
@@ -694,6 +715,8 @@ SK_NGX_DLSS_ControlPanel (void)
           if (ImGui::Checkbox ("Use Special K's DLSS instead of Game's DLL", &config.nvidia.dlss.auto_redirect_dlss))
           {
             bRestartNeeded = true;
+
+            SK_SaveConfig ();
           }
         }
 
