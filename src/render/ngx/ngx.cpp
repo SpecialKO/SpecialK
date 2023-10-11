@@ -558,6 +558,35 @@ SK_NGX_DLSS_ControlPanel (void)
 
         out_width  = std::max ( width,  out_width);
         out_height = std::max (height, out_height);
+
+        //
+        // Get the ACTUAL internal resolution by querying the underlying Direct3D resources
+        //   and using their desc. Many games are not setting the Height/Width parameters.
+        //
+        ID3D12Resource                           *pD3D12Resource = nullptr;
+        params->Get (NVSDK_NGX_Parameter_Color, &pD3D12Resource);
+        ID3D11Resource                           *pD3D11Resource = nullptr;
+        params->Get (NVSDK_NGX_Parameter_Color, &pD3D11Resource);
+
+        if (pD3D12Resource != nullptr)
+        {
+          width  = sk::narrow_cast <unsigned int> (pD3D12Resource->GetDesc ().Width);
+          height = sk::narrow_cast <unsigned int> (pD3D12Resource->GetDesc ().Height);
+        }
+
+        else if (pD3D11Resource != nullptr)
+        {
+          SK_ComQIPtr <ID3D11Texture2D> pTex2D (pD3D11Resource);
+
+          if (pTex2D != nullptr)
+          {
+            D3D11_TEXTURE2D_DESC texDesc = { };
+            pTex2D->GetDesc    (&texDesc);
+
+            width  = texDesc.Width;
+            height = texDesc.Height;
+          }
+        }
   
         unsigned int perf_quality = NVSDK_NGX_PerfQuality_Value_MaxPerf;
   
@@ -616,6 +645,13 @@ SK_NGX_DLSS_ControlPanel (void)
 
         ImGui::TextUnformatted (szPreset);
   
+        ImGui::BeginGroup ();
+        if (config.nvidia.dlss.force_dlaa && (! SK_DLSS_Context::dlss_s::hasDLAAQualityLevel ()))
+        {
+          ImGui::TextColored (ImVec4 (.55f, .55f, 1.f, 1.f), ICON_FA_INFO);
+          ImGui::SameLine ();
+        }
+
         switch (perf_quality)
         {
           case NVSDK_NGX_PerfQuality_Value_MaxPerf:
@@ -639,6 +675,18 @@ SK_NGX_DLSS_ControlPanel (void)
           default:
             ImGui::TextUnformatted ("Unknown Performance/Quality Mode");
             break;
+        }
+        ImGui::EndGroup ();
+
+        if (config.nvidia.dlss.force_dlaa && (! SK_DLSS_Context::dlss_s::hasDLAAQualityLevel ()))
+        {
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip (
+              "The DLSS version in-use does not have a DLAA Pref/Quality level, "
+              "but DLAA is active if Internal/Upscaled resolution are equal."
+            );
+          }
         }
 
         ImGui::SameLine ();
@@ -733,7 +781,7 @@ SK_NGX_DLSS_ControlPanel (void)
   
         if (restart_required)
         {
-          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
           ImGui::BulletText     ("Game Restart May Be Required");
           ImGui::PopStyleColor  ();
         }
@@ -741,8 +789,8 @@ SK_NGX_DLSS_ControlPanel (void)
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
 
-        ImGui::Text ( "DLSS Version:\t%d.%d.%d.%d", dlss_version.major, dlss_version.minor,
-                                                    dlss_version.build, dlss_version.revision );
+        ImGui::Text ( "DLSS Version:\t%d.%d.%d", dlss_version.major, dlss_version.minor,
+                                                 dlss_version.build/*, dlss_version.revision*/ );
 
         static bool bRestartNeeded = false;
 
@@ -803,7 +851,7 @@ SK_NGX_DLSS_ControlPanel (void)
 
         if ((! bHasPlugInDLSS) || (! config.nvidia.dlss.auto_redirect_dlss))
         {
-          if (ImGui::Button ("Browse Game's DLSS Directory"))
+          if (ImGui::Button ("Browse DLSS Directory"))
           {
             SK_Util_ExplorePath (dlss_directory.wstring ().c_str ());
           }

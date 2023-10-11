@@ -1,4 +1,10 @@
-﻿23.10.11.1
+﻿23.10.11.2
+==========
+ + Report the DLSS internal resolution by querying NVSDK_NGX_Parameter_Color
+     and using the D3D11/12 resource desc instead of NGX's Width/Height params,
+       because many games do not set those correctly.
+
+23.10.11.1
 ==========
  + Only set DLAA Perf/Quality Level if DLSS version is >= 3.1.13 because it
      did not exist prior (DLAA was implicitly Input Res == Output Res) and
