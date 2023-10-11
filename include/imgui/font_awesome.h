@@ -1008,6 +1008,8 @@
 #define ICON_FA_WON_SIGN                            "\xef\x85\x99"  // U+f159
 #define ICON_FA_WRENCH                              "\xef\x82\xad"  // U+f0ad
 #define ICON_FA_X_RAY                               "\xef\x92\x97"  // U+f497
+#define ICON_FA_X_RAY                               "\xef\x92\x97"  // U+f497
+#define ICON_FA_XMARK                               "\xef\x80\x8d"  // U+f00d
 #define ICON_FA_YEN_SIGN                            "\xef\x85\x97"  // U+f157
 #define ICON_FA_YIN_YANG                            "\xef\x9a\xad"  // U+f6ad
 
