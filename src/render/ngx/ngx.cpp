@@ -473,7 +473,106 @@ SK_NGX_Init (void)
   });
 }
 
+DWORD SK_DLSS_Context::dlss_s::IndicatorFlags  = DWORD_MAX;
+DWORD SK_DLSS_Context::dlssg_s::IndicatorFlags = DWORD_MAX;
 
+void
+SK_DLSS_Context::dlss_s::showIndicator (bool show)
+{
+  const wchar_t* wszPath =
+    LR"(HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\Global\NGXCore)";
+  const wchar_t *wszKey  = L"ShowDlssIndicator";
+  const wchar_t *wszType = L"dword";
+  
+  DWORD dwValue =
+    ( show ? 0x400 : 0x0 );
+
+  wchar_t   wszValue [64] = { };
+  wsprintf (wszValue, L"%08x", dwValue);
+
+  SK_ImportRegistryValue (wszPath, wszKey, wszType, wszValue, true);
+
+  SK_DLSS_Context::dlss_s::IndicatorFlags = dwValue;
+}
+
+bool
+SK_DLSS_Context::dlss_s::isIndicatorShown (void)
+{
+  if (SK_DLSS_Context::dlss_s::IndicatorFlags != DWORD_MAX)
+  {
+    return
+      (SK_DLSS_Context::dlss_s::IndicatorFlags & 0x400) == 0x400;
+  }
+
+  DWORD     len    =      MAX_PATH;
+  LSTATUS   status =
+    RegGetValueW ( HKEY_LOCAL_MACHINE,
+                     LR"(SOFTWARE\NVIDIA Corporation\Global\NGXCore\)",
+                                      L"ShowDlssIndicator",
+                       RRF_RT_REG_DWORD,
+                         nullptr,
+                           (PVOID)&SK_DLSS_Context::dlss_s::IndicatorFlags,
+                             (LPDWORD)&len );
+
+  if (status == ERROR_SUCCESS)
+    return (SK_DLSS_Context::dlss_s::IndicatorFlags & 0x400) == 0x400;
+  else
+  {
+    // Don't call this repeatedly on failure
+    SK_DLSS_Context::dlss_s::IndicatorFlags = 0x0;
+
+    return false;
+  }
+}
+
+void
+SK_DLSS_Context::dlssg_s::showIndicator (bool show)
+{
+  const wchar_t* wszPath =
+    LR"(HKEY_LOCAL_MACHINE\SOFTWARE\NVIDIA Corporation\Global\NGXCore)";
+  const wchar_t *wszKey  = L"DLSSG_IndicatorText";
+  const wchar_t *wszType = L"dword";
+
+  DWORD dwValue =
+    ( show ? 0x2 : 0x0 );
+
+  wchar_t   wszValue [64] = { };
+  wsprintf (wszValue, L"%08x", dwValue);
+
+  SK_ImportRegistryValue (wszPath, wszKey, wszType, wszValue, true);
+
+  SK_DLSS_Context::dlssg_s::IndicatorFlags = dwValue;
+}
+
+bool
+SK_DLSS_Context::dlssg_s::isIndicatorShown (void)
+{
+  if (SK_DLSS_Context::dlssg_s::IndicatorFlags != DWORD_MAX)
+  {
+    return
+      (SK_DLSS_Context::dlssg_s::IndicatorFlags & 0x2) == 0x2;
+  }
+
+  DWORD     len    =      MAX_PATH;
+  LSTATUS   status =
+    RegGetValueW ( HKEY_LOCAL_MACHINE,
+                     LR"(SOFTWARE\NVIDIA Corporation\Global\NGXCore\)",
+                                      L"DLSSG_IndicatorText",
+                       RRF_RT_REG_DWORD,
+                         nullptr,
+                           (PVOID)&SK_DLSS_Context::dlssg_s::IndicatorFlags,
+                             (LPDWORD)&len );
+
+  if (status == ERROR_SUCCESS)
+    return (SK_DLSS_Context::dlssg_s::IndicatorFlags & 0x2) == 0x2;
+  else
+  {
+    // Don't call this repeatedly on failure
+    SK_DLSS_Context::dlssg_s::IndicatorFlags = 0x0;
+
+    return false;
+  }
+}
 
 void
 SK_NGX_DLSS_ControlPanel (void)
@@ -586,11 +685,11 @@ SK_NGX_DLSS_ControlPanel (void)
             height = texDesc.Height;
           }
         }
-  
+
         unsigned int perf_quality = NVSDK_NGX_PerfQuality_Value_MaxPerf;
-  
+
         NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_PerfQualityValue, &perf_quality);
-  
+
         ImGui::BeginGroup ();
         ImGui::BeginGroup ();
         ImGui::
@@ -682,7 +781,7 @@ SK_NGX_DLSS_ControlPanel (void)
           if (ImGui::IsItemHovered ())
           {
             ImGui::SetTooltip (
-              "The DLSS version in-use does not have a DLAA Pref/Quality level, "
+              "The DLSS version in-use does not have a DLAA Perf/Quality level, "
               "but DLAA is active if Internal/Upscaled resolution are equal."
             );
           }
@@ -841,6 +940,40 @@ SK_NGX_DLSS_ControlPanel (void)
           }
         }
 
+        if ((! bHasPlugInDLSS) || (! config.nvidia.dlss.auto_redirect_dlss))
+        {
+          if (ImGui::Button ("Browse DLSS Directory"))
+          {
+            SK_Util_ExplorePath (dlss_directory.wstring ().c_str ());
+          }
+
+          ImGui::SameLine ();
+        }
+
+        if (ImGui::TreeNode ("DLSS Indicators"))
+        {
+          bool show_dlss =
+            SK_DLSS_Context::dlss_s::isIndicatorShown ();
+          bool show_dlssg =
+            SK_DLSS_Context::dlssg_s::isIndicatorShown ();
+
+          if (ImGui::Checkbox ("Show DLSS", &show_dlss))
+          {
+            SK_DLSS_Context::dlss_s::showIndicator (show_dlss);
+
+            bRestartNeeded = true;
+          }
+
+          if (ImGui::Checkbox ("Show DLSS-G", &show_dlssg))
+          {
+            SK_DLSS_Context::dlssg_s::showIndicator (show_dlssg);
+
+            bRestartNeeded = true;
+          }
+
+          if (bRestartNeeded) ImGui::SameLine ();
+        }
+
         if (bRestartNeeded)
         {
           ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.1f, .8f, .9f));
@@ -848,13 +981,6 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::PopStyleColor  ();
         }
 
-        if ((! bHasPlugInDLSS) || (! config.nvidia.dlss.auto_redirect_dlss))
-        {
-          if (ImGui::Button ("Browse DLSS Directory"))
-          {
-            SK_Util_ExplorePath (dlss_directory.wstring ().c_str ());
-          }
-        }
         ImGui::EndGroup   ();
       }
 

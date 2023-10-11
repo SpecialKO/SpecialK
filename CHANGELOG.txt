@@ -1,4 +1,8 @@
-﻿23.10.11.4
+﻿23.10.12
+========
+ + Added DLSS and DLSS-G text overlay toggles to "DLSS Indicators" section
+
+23.10.11.4
 ==========
  + Use 95th percentile luminance when tonemapping screenshots to prevent
      third-party overlays with 10k nits text from dimming things excessively.

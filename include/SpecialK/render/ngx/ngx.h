@@ -47,21 +47,29 @@ struct SK_DLSS_Context
   };
 
   struct dlss_s {
-    NVSDK_NGX_Handle*    Handle     = nullptr;
-    NVSDK_NGX_Parameter* Parameters = nullptr;
-    volatile ULONG64     LastFrame  = 0ULL;
-    NVSDK_NGX_Feature    DLSS_Type  = NVSDK_NGX_Feature_SuperSampling;
+    NVSDK_NGX_Handle*    Handle         = nullptr;
+    NVSDK_NGX_Parameter* Parameters     = nullptr;
+    volatile ULONG64     LastFrame      = 0ULL;
+    NVSDK_NGX_Feature    DLSS_Type      = NVSDK_NGX_Feature_SuperSampling;
+    static DWORD         IndicatorFlags;
     static version_s     Version;
 
     static bool hasSharpening       (void) { return ( Version.major <= 2 && ( Version.major != 2 ||   Version.minor < 5 ||   Version.build < 1 ) );                             };
     static bool hasDLAAQualityLevel (void) { return ( Version.major  > 3 || ( Version.major == 3 && ( Version.minor > 1 || ( Version.minor == 1 && Version.build >= 13 ) ) ) ); };
+
+    static void showIndicator    (bool show);
+    static bool isIndicatorShown (void);
   } super_sampling;
 
   struct dlssg_s {
-    NVSDK_NGX_Handle*    Handle     = nullptr;
-    NVSDK_NGX_Parameter* Parameters = nullptr;
-    volatile ULONG64     LastFrame  = 0ULL;
+    NVSDK_NGX_Handle*    Handle         = nullptr;
+    NVSDK_NGX_Parameter* Parameters     = nullptr;
+    volatile ULONG64     LastFrame      = 0ULL;
+    static DWORD         IndicatorFlags;
     static version_s     Version;
+
+    static void showIndicator    (bool show);
+    static bool isIndicatorShown (void);
   } frame_gen;
 
   inline void log_call (void) noexcept { apis_called = true; SK_NGX_EstablishDLSSVersion (); };
