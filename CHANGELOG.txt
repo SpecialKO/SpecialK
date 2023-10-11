@@ -1,4 +1,10 @@
-﻿23.10.11
+﻿23.10.11.1
+==========
+ + Only set DLAA Perf/Quality Level if DLSS version is >= 3.1.13 because it
+     did not exist prior (DLAA was implicitly Input Res == Output Res) and
+       would cause black screens in games.
+
+23.10.11
 ========
  + DLSS sharpness settings are hidden if DLL version is >= 2.5.1
  + DLSS DLL override preferences are saved immediately after changing them

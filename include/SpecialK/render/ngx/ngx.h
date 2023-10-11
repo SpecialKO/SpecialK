@@ -34,24 +34,37 @@ struct NGX_ThreadSafety {
 
 extern SK_LazyGlobal <NGX_ThreadSafety> SK_NGX_Threading;
 
+void SK_NGX_EstablishDLSSVersion (void) noexcept;
+
 struct SK_DLSS_Context
 {
   // Has the DLSS context for this API (i.e. D3D11, D3D12, CUDA)
   //   made any API calls?
   bool apis_called                  = false;
 
+  struct version_s {
+    unsigned int major, minor, build, revision;
+  };
+
   struct dlss_s {
     NVSDK_NGX_Handle*    Handle     = nullptr;
     NVSDK_NGX_Parameter* Parameters = nullptr;
     volatile ULONG64     LastFrame  = 0ULL;
     NVSDK_NGX_Feature    DLSS_Type  = NVSDK_NGX_Feature_SuperSampling;
+    static version_s     Version;
+
+    static bool hasSharpening       (void) { return ( Version.major <= 2 && ( Version.major != 2 ||   Version.minor < 5 ||   Version.build < 1 ) );                             };
+    static bool hasDLAAQualityLevel (void) { return ( Version.major  > 3 || ( Version.major == 3 && ( Version.minor > 1 || ( Version.minor == 1 && Version.build >= 13 ) ) ) ); };
   } super_sampling;
 
   struct dlssg_s {
     NVSDK_NGX_Handle*    Handle     = nullptr;
     NVSDK_NGX_Parameter* Parameters = nullptr;
     volatile ULONG64     LastFrame  = 0ULL;
+    static version_s     Version;
   } frame_gen;
+
+  inline void log_call (void) noexcept { apis_called = true; SK_NGX_EstablishDLSSVersion (); };
 };
 
 extern SK_DLSS_Context SK_NGX_DLSS12;

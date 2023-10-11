@@ -70,9 +70,9 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D12_GetParameters_Detour (NVSDK_NGX_Parameter **InParameters)
 {
-  SK_NGX_DLSS12.apis_called = true;
-
   SK_LOG_FIRST_CALL
+
+  SK_NGX_DLSS12.log_call ();
 
   std::lock_guard
     lock (SK_NGX_Threading->locks.Params);
@@ -94,9 +94,9 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D12_GetCapabilityParameters_Detour (NVSDK_NGX_Parameter **InParameters)
 {
-  SK_NGX_DLSS12.apis_called = true;
-
   SK_LOG_FIRST_CALL
+
+  SK_NGX_DLSS12.log_call ();
 
   std::lock_guard
     lock (SK_NGX_Threading->locks.Params);
@@ -118,9 +118,9 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D12_AllocateParameters_Detour (NVSDK_NGX_Parameter** InParameters)
 {
-  SK_NGX_DLSS12.apis_called = true;
-
   SK_LOG_FIRST_CALL
+
+  SK_NGX_DLSS12.log_call ();
 
   std::lock_guard
     lock (SK_NGX_Threading->locks.Params);
@@ -142,9 +142,9 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D12_DestroyParameters_Detour (NVSDK_NGX_Parameter* InParameters)
 {
-  SK_NGX_DLSS12.apis_called = true;
-
   SK_LOG_FIRST_CALL
+
+  SK_NGX_DLSS12.log_call ();
 
   std::lock_guard
     lock (SK_NGX_Threading->locks.Params);
@@ -181,9 +181,9 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
 {
   //SK_LOGi0 (L"D3D12_CreateFeature (InFeatureID=%d)", InFeatureID);
 
-  SK_NGX_DLSS12.apis_called = true;
-
   SK_LOG_FIRST_CALL
+
+  SK_NGX_DLSS12.log_call ();
 
   std::lock_guard
     lock (SK_NGX_Threading->locks.Params);
@@ -262,7 +262,9 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, const NVSDK_NGX_Handle *InFeatureHandle, const NVSDK_NGX_Parameter *InParameters, PFN_NVSDK_NGX_ProgressCallback InCallback)
 {
-  SK_NGX_DLSS12.apis_called = true;
+  SK_LOG_FIRST_CALL
+
+  SK_NGX_DLSS12.log_call ();
 
   if (InFeatureHandle == SK_NGX_DLSS12.super_sampling.Handle)
   {
@@ -318,9 +320,9 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D12_ReleaseFeature_Detour (NVSDK_NGX_Handle *InHandle)
 {
-  SK_NGX_DLSS12.apis_called = true;
-
   SK_LOG_FIRST_CALL
+
+  SK_NGX_DLSS12.log_call ();
 
   std::lock_guard
     lock (SK_NGX_Threading->locks.Params);
@@ -430,6 +432,8 @@ SK_NGX_InitD3D12 (void)
 {
   SK_RunOnce (
   {
+    SK_NGX_EstablishDLSSVersion ();
+
     SK_CreateDLLHook2 ( L"_nvngx.dll",
                          "NVSDK_NGX_D3D12_CreateFeature",
                           NVSDK_NGX_D3D12_CreateFeature_Detour,

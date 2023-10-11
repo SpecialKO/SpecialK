@@ -71,9 +71,9 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D11_GetParameters_Detour (NVSDK_NGX_Parameter **InParameters)
 {
-  SK_NGX_DLSS11.apis_called = true;
-
   SK_LOG_FIRST_CALL
+
+  SK_NGX_DLSS11.log_call ();
 
   std::lock_guard
     lock (SK_NGX_Threading->locks.Params);
@@ -95,9 +95,9 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D11_GetCapabilityParameters_Detour (NVSDK_NGX_Parameter **InParameters)
 {
-  SK_NGX_DLSS11.apis_called = true;
-
   SK_LOG_FIRST_CALL
+
+  SK_NGX_DLSS11.log_call ();
 
   std::lock_guard
     lock (SK_NGX_Threading->locks.Params);
@@ -119,9 +119,9 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D11_AllocateParameters_Detour (NVSDK_NGX_Parameter** InParameters)
 {
-  SK_NGX_DLSS11.apis_called = true;
-
   SK_LOG_FIRST_CALL
+
+  SK_NGX_DLSS11.log_call ();
 
   std::lock_guard
     lock (SK_NGX_Threading->locks.Params);
@@ -143,9 +143,9 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D11_DestroyParameters_Detour (NVSDK_NGX_Parameter* InParameters)
 {
-  SK_NGX_DLSS11.apis_called = true;
-
   SK_LOG_FIRST_CALL
+
+  SK_NGX_DLSS11.log_call ();
 
   std::lock_guard
     lock (SK_NGX_Threading->locks.Params);
@@ -180,9 +180,9 @@ NVSDK_NGX_D3D11_CreateFeature_Detour ( ID3D11DeviceContext       *InDevCtx,
                                        NVSDK_NGX_Parameter       *InParameters,
                                        NVSDK_NGX_Handle         **OutHandle )
 {
-  SK_NGX_DLSS11.apis_called = true;
-
   SK_LOG_FIRST_CALL
+
+  SK_NGX_DLSS11.log_call ();
 
   std::lock_guard
     lock (SK_NGX_Threading->locks.Params);
@@ -257,7 +257,9 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D11_EvaluateFeature_Detour (ID3D11DeviceContext *InDevCtx, const NVSDK_NGX_Handle *InFeatureHandle, const NVSDK_NGX_Parameter *InParameters, PFN_NVSDK_NGX_ProgressCallback InCallback)
 {
-  SK_NGX_DLSS11.apis_called = true;
+  SK_LOG_FIRST_CALL
+
+  SK_NGX_DLSS11.log_call ();
 
   if (InFeatureHandle == SK_NGX_DLSS11.super_sampling.Handle)
   {
@@ -313,9 +315,9 @@ NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_D3D11_ReleaseFeature_Detour (NVSDK_NGX_Handle *InHandle)
 {
-  SK_NGX_DLSS11.apis_called = true;
-
   SK_LOG_FIRST_CALL
+
+  SK_NGX_DLSS11.log_call ();
 
   std::lock_guard
     lock (SK_NGX_Threading->locks.Params);
@@ -410,6 +412,8 @@ SK_NGX_InitD3D11 (void)
 {
   SK_RunOnce (
   {
+    SK_NGX_EstablishDLSSVersion ();
+
     SK_CreateDLLHook2 ( L"_nvngx.dll",
                          "NVSDK_NGX_D3D11_CreateFeature",
                           NVSDK_NGX_D3D11_CreateFeature_Detour,

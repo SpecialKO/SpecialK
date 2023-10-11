@@ -118,7 +118,10 @@ NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
 
     if (config.nvidia.dlss.force_dlaa)
     {
-      InValue = NVSDK_NGX_PerfQuality_Value_DLAA;
+      if (SK_DLSS_Context::dlss_s::hasDLAAQualityLevel ())
+      {
+        InValue = NVSDK_NGX_PerfQuality_Value_DLAA;
+      }
     }
   }
 
@@ -139,7 +142,10 @@ NVSDK_NGX_Parameter_SetUI_Detour (NVSDK_NGX_Parameter* InParameter, const char* 
 
     if (config.nvidia.dlss.force_dlaa)
     {
-      InValue = NVSDK_NGX_PerfQuality_Value_DLAA;
+      if (SK_DLSS_Context::dlss_s::hasDLAAQualityLevel ())
+      {
+        InValue = NVSDK_NGX_PerfQuality_Value_DLAA;
+      }
     }
 
     if (config.nvidia.dlss.forced_preset != -1)
@@ -299,6 +305,38 @@ SK_NGX_IsUsingDLSS_G (void)
     __SK_IsDLSSGActive;
 }
 
+SK_DLSS_Context::version_s SK_DLSS_Context::dlss_s::Version;
+SK_DLSS_Context::version_s SK_DLSS_Context::dlssg_s::Version;
+
+void
+SK_NGX_EstablishDLSSVersion (void) noexcept
+{
+  static bool bHasVersion = false;
+
+  if (bHasVersion)
+    return;
+
+  if (! GetModuleHandleW (L"nvngx_dlss.dll"))
+    return;
+
+  std::swscanf (
+    SK_GetDLLVersionShort (L"nvngx_dlss.dll").c_str (), L"%d,%d,%d,%d",
+      &SK_DLSS_Context::dlss_s::Version.major, &SK_DLSS_Context::dlss_s::Version.minor,
+      &SK_DLSS_Context::dlss_s::Version.build, &SK_DLSS_Context::dlss_s::Version.revision
+  );
+
+  bHasVersion = true;
+}
+
+SK_DLSS_Context::version_s
+SK_NGX_GetDLSSVersion (void)
+{
+  if (     SK_NGX_DLSS12.apis_called)
+    return SK_NGX_DLSS12.super_sampling.Version;
+
+  return SK_NGX_DLSS11.super_sampling.Version;
+}
+
 bool
 SK_NGX_HookParameters (NVSDK_NGX_Parameter* Params)
 {
@@ -373,10 +411,13 @@ SK_NGX_DLSS_CreateFeatureOverrideParams (NVSDK_NGX_Parameter *InParameters)
     NVSDK_NGX_Parameter_SetUI_Original (InParameters, NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance,      preset);
     NVSDK_NGX_Parameter_SetUI_Original (InParameters, NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance, preset);
 
-    int perf_quality =
-      NVSDK_NGX_PerfQuality_Value_DLAA;
+    if (SK_DLSS_Context::dlss_s::hasDLAAQualityLevel ())
+    {
+      int perf_quality =
+        NVSDK_NGX_PerfQuality_Value_DLAA;
 
-    NVSDK_NGX_Parameter_SetI_Original (InParameters, NVSDK_NGX_Parameter_PerfQualityValue, perf_quality);
+      NVSDK_NGX_Parameter_SetI_Original (InParameters, NVSDK_NGX_Parameter_PerfQualityValue, perf_quality);
+    }
   }
 }
 
@@ -481,27 +522,18 @@ SK_NGX_DLSS_ControlPanel (void)
                             path_to_plugin_dlss.wstring () :
           SK_GetModuleFullName (SK_GetModuleHandleW (L"nvngx_dlss.dll"));
 
-        static std::wstring dlss_version =
-          SK_GetDLLVersionStr (L"nvngx_dlss.dll");
-
         static std::filesystem::path dlss_directory =
           std::filesystem::path (path_to_dlss).remove_filename ();
 
-        static unsigned int major_ver, minor_ver,
-                                build, revision;
-
-        SK_RunOnce (
-        {
-          std::swscanf (
-            SK_GetDLLVersionShort (L"nvngx_dlss.dll").c_str (), L"%d,%d,%d,%d",
-              &major_ver, &minor_ver,
-                  &build, &revision
-          );
-        });
+        static auto dlss_version =
+          SK_NGX_GetDLSSVersion ();
 
         // Removed in 2.5.1
         static const bool bHasSharpening =
-          major_ver <= 2 && ( major_ver != 2 || minor_ver < 5 || build < 1 );
+          SK_DLSS_Context::dlss_s::hasSharpening ();
+
+        static const bool bHasDLAAQualityLevel =
+          SK_DLSS_Context::dlss_s::hasDLAAQualityLevel ();
 
         using NVSDK_NGX_Parameter_SetF_pfn           = void             (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName,          float InValue);
         using NVSDK_NGX_Parameter_SetI_pfn           = void             (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName,          int   InValue);
@@ -620,7 +652,10 @@ SK_NGX_DLSS_ControlPanel (void)
         
         if (ImGui::IsItemHovered ())
         {
-          ImGui::SetTooltip ("For best results, make sure to update nvngx_dlss.dll and set game's DLSS mode = Auto/Ultra Performance if it has them.");
+          if (bHasDLAAQualityLevel)
+            ImGui::SetTooltip ("For best results, set game's DLSS mode = Auto/Ultra Performance if it has them.");
+          else
+            ImGui::SetTooltip ("For best results, upgrade DLSS DLL to 3.1.13 or newer.");
         }
 
         ImGui::EndGroup ();
@@ -706,7 +741,8 @@ SK_NGX_DLSS_ControlPanel (void)
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
 
-        ImGui::Text ("%ws", dlss_version.c_str ());
+        ImGui::Text ( "DLSS Version:\t%d.%d.%d.%d", dlss_version.major, dlss_version.minor,
+                                                    dlss_version.build, dlss_version.revision );
 
         static bool bRestartNeeded = false;
 
