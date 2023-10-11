@@ -26,6 +26,10 @@
 #include <ranges>
 #include <valarray>
 
+#ifndef __SK_SUBSYSTEM__
+#define __SK_SUBSYSTEM__ L"D3D11SShot"
+#endif
+
 extern volatile LONG  SK_D3D11_DrawTrackingReqs;
 
 SK_D3D11_Screenshot& SK_D3D11_Screenshot::operator= (SK_D3D11_Screenshot&& moveFrom)
@@ -1452,14 +1456,48 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     }
                   ) : E_POINTER;
 
+                  XMVECTOR p95 =
+                    XMVectorMultiply (maxLum,
+                      XMVectorReplicate (0.95f)
+                    );
+
+                  XMVECTOR maxLum95 = XMVectorZero ();
+
+                  hr =              un_srgb.GetImageCount () == 1 ?
+                    EvaluateImage ( un_srgb.GetImages     (),
+                                    un_srgb.GetImageCount (),
+                                    un_srgb.GetMetadata   (),
+                    [&](const XMVECTOR* pixels, size_t width, size_t y)
+                    {
+                      UNREFERENCED_PARAMETER(y);
+
+                      for (size_t j = 0; j < width; ++j)
+                      {
+                        static const XMVECTORF32 s_luminance =
+                          { 0.2126729, 0.7151522, 0.0721750, 0.f };
+
+                        XMVECTOR v = *pixels++;
+
+                        v =
+                          XMVector3Dot (v, s_luminance);
+
+                        if (v.m128_f32 [0] <= p95.m128_f32 [0])
+                        {
+                          maxLum95 =
+                            XMVectorMax (v, maxLum95);
+                        }
+                      }
+                    }
+                  ) : E_POINTER;
+
                   colLum = XMVectorZero ();
 
-                  SK_LOG0 ( (L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0] * 80.0f,
-                                                                      maxLum.m128_f32 [0] * 80.0f), L"D3D11SShot" );
+                  SK_LOGi0 ( L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0] * 80.0f,
+                                                                      maxLum.m128_f32 [0] * 80.0f );
 
-                  SK_LOG0 ( (L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0f * ( maxLum.m128_f32 [0] +
+                  SK_LOGi0 ( L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0f * ( maxLum.m128_f32 [0] +
                                                                                           minLum.m128_f32 [0] ) / 2.0f,
-                                                                                  80.0f * expf ( (1.0f / N) * lumTotal ) ), L"D3D11SShot");
+                                                                                80.0f * expf ( (1.0f / N) * lumTotal ) );
 
                   hr =               un_srgb.GetImageCount () == 1 ?
                     TransformImage ( un_srgb.GetImages     (),
@@ -1478,7 +1516,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                               g_XMOne,
                                 XMVectorDivide (
                                   value,
-                                    maxLum
+                                    maxLum95
                                 )
                             ),
                             XMVectorAdd ( g_XMOne,
@@ -1501,13 +1539,13 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   ) : E_POINTER;
 
                   static const XMVECTORF32 c_SdrPower =
-                  { 0.7f, 0.7f, 0.7f, 1.f };
+                  { 0.54f, 0.54f, 0.54f, 1.f };
 
                   const auto xmColMax =
-                    XMVectorReplicate ( 7.0f *
+                    XMVectorReplicate (
                        std::max (   colLum.m128_f32 [0],
                          std::max ( colLum.m128_f32 [1],
-                                    colLum.m128_f32 [2] ) ) / 8.0f
+                                    colLum.m128_f32 [2] ) )
                       );
 
                   hr =               un_scrgb.GetImageCount () == 1 ?

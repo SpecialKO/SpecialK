@@ -1,4 +1,9 @@
-﻿23.10.11.3
+﻿23.10.11.4
+==========
+ + Use 95th percentile luminance when tonemapping screenshots to prevent
+     third-party overlays with 10k nits text from dimming things excessively.
+
+23.10.11.3
 ==========
  + Changed the Browse DLSS Directory button to use the actively loaded DLL
 
