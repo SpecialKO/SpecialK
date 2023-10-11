@@ -518,12 +518,11 @@ SK_NGX_DLSS_ControlPanel (void)
         static bool bHasPlugInDLSS =
           std::filesystem::exists (path_to_plugin_dlss, ec);
 
-        static std::wstring path_to_dlss = bHasPlugInDLSS  ?
-                            path_to_plugin_dlss.wstring () :
+        static std::wstring path_to_dlss =
           SK_GetModuleFullName (SK_GetModuleHandleW (L"nvngx_dlss.dll"));
 
         static std::filesystem::path dlss_directory =
-          std::filesystem::path (path_to_dlss).remove_filename ();
+               std::filesystem::path (path_to_dlss).remove_filename ();
 
         static auto dlss_version =
           SK_NGX_GetDLSSVersion ();

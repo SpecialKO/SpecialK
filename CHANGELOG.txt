@@ -1,4 +1,8 @@
-﻿23.10.11.2
+﻿23.10.11.3
+==========
+ + Changed the Browse DLSS Directory button to use the actively loaded DLL
+
+23.10.11.2
 ==========
  + Report the DLSS internal resolution by querying NVSDK_NGX_Parameter_Color
      and using the D3D11/12 resource desc instead of NGX's Width/Height params,
