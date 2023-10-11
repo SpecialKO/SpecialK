@@ -5333,3 +5333,63 @@ SK_SafeCloseHandle (HANDLE hHandle) noexcept
 
 	return TRUE;
 }
+
+void
+SK_ImportRegistryValue ( const wchar_t *wszPath,
+                         const wchar_t *wszKey,
+                         const wchar_t *wszType,
+                         const wchar_t *wszValue,
+                         bool           admin )
+{
+  FILE *fReg = _wfopen (L"SK_RegistryKey.reg", L"rw+");
+
+  if (fReg != nullptr)
+  {
+    fputws   (L"Windows Registry Editor Version 5.00\r\n", fReg);
+    fwprintf (fReg, L"[%ws]\r\n\"%ws\"=%ws:%ws\r\n", wszPath, wszKey, wszType, wszValue);
+    fclose   (fReg);
+
+    SK_AutoCOMInit auto_com;
+
+    const wchar_t *wszCommand                   = L"/s import SK_RegistryKey.reg";
+    const wchar_t *wszRegedit                   = L"regedit.exe";
+    wchar_t        wszCurrentDir [MAX_PATH + 2] = { };
+
+    GetCurrentDirectory (MAX_PATH, wszCurrentDir);
+
+    SHELLEXECUTEINFO
+      sexec_info;
+      sexec_info.cbSize       = sizeof (SHELLEXECUTEINFO);
+      sexec_info.fMask        = SEE_MASK_NOCLOSEPROCESS;
+      sexec_info.hwnd         = nullptr;
+      sexec_info.lpFile       = wszRegedit;
+      sexec_info.lpParameters = wszCommand;
+      sexec_info.lpDirectory  = wszCurrentDir;
+      sexec_info.lpVerb       = L"open";
+      sexec_info.nShow        = SW_SHOWNORMAL;
+      sexec_info.hInstApp     = nullptr;
+
+    if (admin && (! SK_IsAdmin ()))
+    {
+      if ( SK_COM_UAC_AdminShellExec (
+           wszRegedit,
+             wszCommand,
+               wszCurrentDir )
+         )
+      {
+        DeleteFileW (L"SK_RegistryKey.reg");
+        return;
+      }
+
+      sexec_info.lpVerb = L"runas";
+    }
+    
+    if (ShellExecuteEx (&sexec_info))
+    {
+      SK_WaitForSingleObject (sexec_info.hProcess, 750UL);
+      SK_CloseHandle         (sexec_info.hProcess);
+    }
+
+    DeleteFileW (L"SK_RegistryKey.reg");
+  }
+}

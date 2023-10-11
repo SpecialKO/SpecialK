@@ -913,6 +913,14 @@ SK_Util_ExplorePath (
   const std::wstring_view& path);
 
 
+void
+SK_ImportRegistryValue ( const wchar_t *wszPath,
+                         const wchar_t *wszKey,
+                         const wchar_t *wszType,
+                         const wchar_t *wszValue,
+                         bool           admin = true );
+
+
 
 namespace SK
 {
