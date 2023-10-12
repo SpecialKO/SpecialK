@@ -1273,9 +1273,6 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
           hMod = nullptr;
         }
 
-        hMod =
-          SK_LoadLibraryW (path_to_plugin_dlss.c_str ());
-
         if (! hMod)
         {
           dll_log->Log (L"[DLL Loader]  # Plug-In Load Failed, using original DLL!");
