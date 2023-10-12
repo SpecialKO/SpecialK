@@ -1,4 +1,11 @@
-﻿23.10.12
+﻿23.10.12.1
+==========
+ + Added CPU Bound / GPU Bound indicator to Latency Analysis graph
+
+    * Currently, games are considered bounded by CPU or GPU if there is
+        more than a 25% difference in CPU and GPU time per-frame.
+
+23.10.12
 ========
  + Added DLSS and DLSS-G text overlay toggles to "DLSS Indicators" section
 

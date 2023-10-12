@@ -221,16 +221,26 @@ SK_ImGui_DrawGraph_Latency ()
     }
 
     static double xs1[64], ys1[64],
-                  ys2[64], ys3[64], ys4[64];
+                  ys2[64], ys3[64], ys4[64], ys5[64];
+
+    double dCPU = 0.0;
+    double dGPU = 0.0;
 
     for (int i = 0; i < 64; ++i)
     {
       xs1[i] = (float)i;
       ys1[i] = sim.durations    [i];
       ys2[i] = render.durations [i];
-      ys3[i] = static_cast <double> (gpu_frame_times [i].gpuActiveRenderTimeUs) / 1000.0;
-      ys4[i] = gpu.durations    [i];
+      ys3[i] = gpu.durations    [i];
+      ys4[i] = static_cast <double> (gpu_frame_times [i].gpuActiveRenderTimeUs) / 1000.0;
+      ys5[i] = ys1[i]+ys2[i]; // Start of GPU-only workload
+
+      dCPU += ys5 [i];
+      dGPU += ys4 [i];
     }
+
+    dCPU /= 64.0;
+    dGPU /= 64.0;
 
     static bool show_lines = true;
     static bool show_fills = true;
@@ -251,17 +261,27 @@ SK_ImGui_DrawGraph_Latency ()
       {
         ImPlot::PlotLine ("Simulation",    xs1, ys1, 64);
         ImPlot::PlotLine ("Render Submit", xs1, ys2, 64);
-        ImPlot::PlotLine ("GPU Scheduled", xs1, ys4, 64);
-        ImPlot::PlotLine ("GPU Busy",      xs1, ys3, 64);
+        ImPlot::PlotLine ("GPU Scheduled", xs1, ys3, 64);
+        ImPlot::PlotLine ("GPU Busy",      xs1, ys4, 64);
       }
 
       if (show_fills)
       {
+        ImPlot::DragLineY (0,&dGPU,ImVec4(1,0,0,1),1,ImPlotDragToolFlags_NoFit);
+        ImPlot::DragLineY (0,&dCPU,ImVec4(0,0,1,1),1,ImPlotDragToolFlags_NoFit);
+
+        if (dGPU > dCPU * 1.25f)
+          ImPlot::TagY (dGPU, ImVec4 (1,0,0,1), "GPU Bound");
+        else if (dCPU > dGPU * 1.25f)
+          ImPlot::TagY (dCPU, ImVec4 (0,0,1,1), "CPU Bound");
+
         ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.1f);
-        ImPlot::PlotShaded   ("Simulation",    xs1, ys1, 64, -INFINITY, flags);
+      //ImPlot::PlotShaded   ("Simulation",    xs1, ys1, 64, -INFINITY, flags);
       //ImPlot::PlotShaded   ("Render Submit", xs1, ys2, 64, -INFINITY, flags);
-      //ImPlot::PlotShaded   ("GPU Scheduled", xs1, ys4, 64, -INFINITY, flags);
-        ImPlot::PlotShaded   ("GPU Busy",      xs1, ys3, 64, -INFINITY, flags);
+      //ImPlot::PlotShaded   ("GPU Scheduled", xs1, ys3, 64, -INFINITY, flags);
+      //ImPlot::PlotShaded   ("GPU Busy",      xs1, ys4, 64, -INFINITY, flags);
+        ImPlot::PlotShaded   ("GPU Busy",      xs1, ys4, ys5, 64, flags);
+        ImPlot::PlotShaded   ("CPU Busy",      xs1, ys5, 64, -INFINITY, flags);
       //ImPlot::PlotShaded   ("GPU Idle",      xs1, ys3, ys4, 64, flags);
         ImPlot::PopStyleVar  ();
       }
