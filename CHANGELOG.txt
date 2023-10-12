@@ -1,4 +1,8 @@
-﻿23.10.12.2
+﻿23.10.12.3
+==========
+ + Disable DLAA option in DLSS 1.x games
+
+23.10.12.2
 ==========
  + Added safeguards against overriding DLSS DLLs in DLSS 1.x games
 
