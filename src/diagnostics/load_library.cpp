@@ -891,14 +891,25 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
         std::error_code                                   ec;
         if (std::filesystem::exists (path_to_plugin_dlss, ec))
         {
-          dll_log->Log (
-            L"[DLL Loader]  ** Redirecting NVIDIA DLSS DLL (%ws) to (%ws)",
-              compliant_path,
-                        path_to_plugin_dlss.c_str ()
-          );
+          if (*SK_GetDLLVersionShort (compliant_path).c_str () > L'1')
+          {
+            dll_log->Log (
+              L"[DLL Loader]  ** Redirecting NVIDIA DLSS DLL (%ws) to (%ws)",
+                compliant_path,
+                          path_to_plugin_dlss.c_str ()
+            );
 
-          hMod =
-            SK_LoadLibraryW (path_to_plugin_dlss.c_str ());
+            hMod =
+              SK_LoadLibraryW (path_to_plugin_dlss.c_str ());
+          }
+
+          else
+          {
+            dll_log->Log (
+              L"[DLL Loader]  ** Game's DLSS version (%ws) is too old to replace.",
+                SK_GetDLLVersionShort (compliant_path).c_str ()
+            );
+          }
 
           if (! hMod)
           {
@@ -1238,11 +1249,25 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
       std::error_code                                   ec;
       if (std::filesystem::exists (path_to_plugin_dlss, ec))
       {
-        dll_log->Log (
-          L"[DLL Loader]  ** Redirecting NVIDIA DLSS DLL (%ws) to (%ws)",
-            compliant_path,
-                      path_to_plugin_dlss.c_str ()
-        );
+        if (*SK_GetDLLVersionShort (compliant_path).c_str () > L'1')
+        {
+          dll_log->Log (
+            L"[DLL Loader]  ** Redirecting NVIDIA DLSS DLL (%ws) to (%ws)",
+              compliant_path,
+                        path_to_plugin_dlss.c_str ()
+          );
+
+          hMod =
+            SK_LoadLibraryW (path_to_plugin_dlss.c_str ());
+        }
+
+        else
+        {
+          dll_log->Log (
+            L"[DLL Loader]  ** Game's DLSS version (%ws) is too old to replace.",
+              SK_GetDLLVersionShort (compliant_path).c_str ()
+          );
+        }
 
         hMod =
           SK_LoadLibraryW (path_to_plugin_dlss.c_str ());
