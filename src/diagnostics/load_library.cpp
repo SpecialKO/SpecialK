@@ -909,6 +909,8 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
               L"[DLL Loader]  ** Game's DLSS version (%ws) is too old to replace.",
                 SK_GetDLLVersionShort (compliant_path).c_str ()
             );
+
+            hMod = nullptr;
           }
 
           if (! hMod)
@@ -1267,6 +1269,8 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
             L"[DLL Loader]  ** Game's DLSS version (%ws) is too old to replace.",
               SK_GetDLLVersionShort (compliant_path).c_str ()
           );
+
+          hMod = nullptr;
         }
 
         hMod =
