@@ -326,6 +326,15 @@ SK_NGX_EstablishDLSSVersion (void) noexcept
   );
 
   bHasVersion = true;
+
+  // Turn off overrides before we break stuff!
+  if (SK_DLSS_Context::dlss_s::Version.major < 2)
+  {
+    config.nvidia.dlss.auto_redirect_dlss = false;
+    config.nvidia.dlss.forced_preset      = -1;
+    config.nvidia.dlss.use_sharpening     = -1;
+    config.nvidia.dlss.force_dlaa         = false;
+  }
 }
 
 SK_DLSS_Context::version_s
@@ -789,19 +798,22 @@ SK_NGX_DLSS_ControlPanel (void)
 
         ImGui::SameLine ();
 
-        if (ImGui::Checkbox ("Force DLAA", &config.nvidia.dlss.force_dlaa))
+        if (dlss_version.major > 1)
         {
-          restart_required = true;
+          if (ImGui::Checkbox ("Force DLAA", &config.nvidia.dlss.force_dlaa))
+          {
+            restart_required = true;
 
-          SK_SaveConfig ();
-        }
-        
-        if (ImGui::IsItemHovered ())
-        {
-          if (bHasDLAAQualityLevel)
-            ImGui::SetTooltip ("For best results, set game's DLSS mode = Auto/Ultra Performance if it has them.");
-          else
-            ImGui::SetTooltip ("For best results, upgrade DLSS DLL to 3.1.13 or newer.");
+            SK_SaveConfig ();
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            if (bHasDLAAQualityLevel)
+              ImGui::SetTooltip ("For best results, set game's DLSS mode = Auto/Ultra Performance if it has them.");
+            else
+              ImGui::SetTooltip ("For best results, upgrade DLSS DLL to 3.1.13 or newer.");
+          }
         }
 
         ImGui::EndGroup ();

@@ -1281,6 +1281,9 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
             SK_LoadLibraryExW (compliant_path, hFile, dwFlags);
         }
       }
+      
+      extern void SK_NGX_EstablishDLSSVersion (void);
+                  SK_NGX_EstablishDLSSVersion ();
     }
 
     else
