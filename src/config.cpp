@@ -659,6 +659,14 @@ struct {
     sk::ParameterFloat*   forced_sharpness        = nullptr;
     sk::ParameterBool*    auto_redirect_dll       = nullptr;
     sk::ParameterInt*     forced_preset           = nullptr;
+    sk::ParameterBool*    show_active_features    = nullptr;
+    sk::ParameterFloat*   performance_scale       = nullptr;
+    sk::ParameterFloat*   balanced_scale          = nullptr;
+    sk::ParameterFloat*   quality_scale           = nullptr;
+    sk::ParameterFloat*   ultra_performance_scale = nullptr;
+    sk::ParameterFloat*   ultra_quality_scale     = nullptr;
+    sk::ParameterFloat*   dynamic_resolution_min  = nullptr;
+    sk::ParameterFloat*   dynamic_resolution_max  = nullptr;
   } dlss;
 } nvidia;
 
@@ -1601,6 +1609,13 @@ auto DeclKeybind =
     ConfigEntry (nvidia.dlss.forced_sharpness,           L"Sharpness Value to Use",                                    dll_ini,         L"NVIDIA.DLSS",           L"ForcedSharpness"),
     ConfigEntry (nvidia.dlss.auto_redirect_dll,          L"Always load SK's Plug-In DLSS DLL instead of the game's",   dll_ini,         L"NVIDIA.DLSS",           L"AutoRedirectDLL"),
     ConfigEntry (nvidia.dlss.forced_preset,              L"Override DLSS Perf/Quality Level's Preset",                 dll_ini,         L"NVIDIA.DLSS",           L"ForcePreset"),
+    ConfigEntry (nvidia.dlss.performance_scale,          L"Custom scale factor (if != 0.0f) to use for Performance",   dll_ini,         L"NVIDIA.DLSS",           L"CustomPerformanceScale"),
+    ConfigEntry (nvidia.dlss.balanced_scale,             L"Custom scale factor (if != 0.0f) to use for Balanced",      dll_ini,         L"NVIDIA.DLSS",           L"CustomBalancedScale"),
+    ConfigEntry (nvidia.dlss.quality_scale,              L"Custom scale factor (if != 0.0f) to use for Quality",       dll_ini,         L"NVIDIA.DLSS",           L"CustomQualityScale"),
+    ConfigEntry (nvidia.dlss.ultra_performance_scale,    L"Custom scale factor (if != 0.0f) to use for Ultra Perf.",   dll_ini,         L"NVIDIA.DLSS",           L"CustomUltraPerfScale"),
+    ConfigEntry (nvidia.dlss.dynamic_resolution_min,     L"Minimum Dynamic Resolution (scale) used by custom scales",  dll_ini,         L"NVIDIA.DLSS",           L"CustomMinDynamicRes"),
+    ConfigEntry (nvidia.dlss.dynamic_resolution_max,     L"Maximum Dynamic Resolution (scale) used by custom scales",  dll_ini,         L"NVIDIA.DLSS",           L"CustomMaxDynamicRes"),
+    ConfigEntry (nvidia.dlss.show_active_features,       L"Show the in-use features in the DLSS settings tab",         osd_ini,         L"NVIDIA.DLSS",           L"ShowActiveFeatures"),
 
     ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
 
@@ -3426,6 +3441,13 @@ auto DeclKeybind =
   nvidia.dlss.forced_sharpness->load         (config.nvidia.dlss.forced_sharpness);
   nvidia.dlss.auto_redirect_dll->load        (config.nvidia.dlss.auto_redirect_dlss);
   nvidia.dlss.forced_preset->load            (config.nvidia.dlss.forced_preset);
+  nvidia.dlss.performance_scale->load        (config.nvidia.dlss.scale.performance);
+  nvidia.dlss.balanced_scale->load           (config.nvidia.dlss.scale.balanced);
+  nvidia.dlss.quality_scale->load            (config.nvidia.dlss.scale.quality);
+  nvidia.dlss.ultra_performance_scale->load  (config.nvidia.dlss.scale.ultra_performance);
+  nvidia.dlss.dynamic_resolution_min->load   (config.nvidia.dlss.scale.dynamic_min);
+  nvidia.dlss.dynamic_resolution_max->load   (config.nvidia.dlss.scale.dynamic_max);
+  nvidia.dlss.show_active_features->load     (config.nvidia.dlss.show_active_features);
 
   render.hdr.enable_32bpc->load              (config.render.hdr.enable_32bpc);
 
@@ -5254,6 +5276,13 @@ SK_SaveConfig ( std::wstring name,
       nvidia.dlss.forced_sharpness->store         (config.nvidia.dlss.forced_sharpness);
       nvidia.dlss.auto_redirect_dll->store        (config.nvidia.dlss.auto_redirect_dlss);
       nvidia.dlss.forced_preset->store            (config.nvidia.dlss.forced_preset);
+      nvidia.dlss.performance_scale->store        (config.nvidia.dlss.scale.performance);
+      nvidia.dlss.balanced_scale->store           (config.nvidia.dlss.scale.balanced);
+      nvidia.dlss.quality_scale->store            (config.nvidia.dlss.scale.quality);
+      nvidia.dlss.ultra_performance_scale->store  (config.nvidia.dlss.scale.ultra_performance);
+      nvidia.dlss.dynamic_resolution_min->store   (config.nvidia.dlss.scale.dynamic_min);
+      nvidia.dlss.dynamic_resolution_max->store   (config.nvidia.dlss.scale.dynamic_max);
+      nvidia.dlss.show_active_features->store     (config.nvidia.dlss.show_active_features);
       render.framerate.max_delta_time->store      (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.flip_sequential->store     (config.render.framerate.flip_sequential);

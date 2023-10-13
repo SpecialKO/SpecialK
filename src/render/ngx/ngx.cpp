@@ -198,10 +198,41 @@ NVSDK_NGX_Parameter_GetUI_Detour (NVSDK_NGX_Parameter *InParameter, const char *
     {
       if (! _stricmp (InName, NVSDK_NGX_Parameter_OutWidth))                           { NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_Width,     OutValue); }
       if (! _stricmp (InName, NVSDK_NGX_Parameter_OutHeight))                          { NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_Height,    OutValue); }
-      if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Width))  { NVSDK_NGX_Parameter_GetUI_Detour   (InParameter, NVSDK_NGX_Parameter_OutWidth,  OutValue); *OutValue += 1; }
-      if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Height)) { NVSDK_NGX_Parameter_GetUI_Detour   (InParameter, NVSDK_NGX_Parameter_OutHeight, OutValue); *OutValue += 1; }
-      if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Width))  { NVSDK_NGX_Parameter_GetUI_Detour   (InParameter, NVSDK_NGX_Parameter_OutWidth,  OutValue); *OutValue -= 1; }
-      if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Height)) { NVSDK_NGX_Parameter_GetUI_Detour   (InParameter, NVSDK_NGX_Parameter_OutHeight, OutValue); *OutValue -= 1; }
+      if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Width))  { NVSDK_NGX_Parameter_GetUI_Detour   (InParameter, NVSDK_NGX_Parameter_OutWidth,  OutValue); *OutValue += 2; }
+      if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Height)) { NVSDK_NGX_Parameter_GetUI_Detour   (InParameter, NVSDK_NGX_Parameter_OutHeight, OutValue); *OutValue += 2; }
+      if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Width))  { NVSDK_NGX_Parameter_GetUI_Detour   (InParameter, NVSDK_NGX_Parameter_OutWidth,  OutValue); *OutValue -= 2; }
+      if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Height)) { NVSDK_NGX_Parameter_GetUI_Detour   (InParameter, NVSDK_NGX_Parameter_OutHeight, OutValue); *OutValue -= 2; }
+    }
+
+    else if (StrStrIA (InName, "Width") || StrStrIA (InName, "Height"))
+    {
+      unsigned int dlss_perf_qual;
+
+      InParameter->Get (NVSDK_NGX_Parameter_PerfQualityValue, &dlss_perf_qual);
+
+      float scale         = 0.0f;
+      float default_scale = 1.0f;
+
+      switch (dlss_perf_qual)
+      {
+        case NVSDK_NGX_PerfQuality_Value_MaxPerf:          scale = config.nvidia.dlss.scale.performance;       default_scale = 0.5f;      break;
+        case NVSDK_NGX_PerfQuality_Value_Balanced:         scale = config.nvidia.dlss.scale.balanced;          default_scale = 0.58f;     break;
+        case NVSDK_NGX_PerfQuality_Value_MaxQuality:       scale = config.nvidia.dlss.scale.quality;           default_scale = 0.666667f; break;
+        case NVSDK_NGX_PerfQuality_Value_UltraPerformance: scale = config.nvidia.dlss.scale.ultra_performance; default_scale = 0.333333f; break;
+        default:
+          break;
+      }
+
+      if (scale != 0.0f)
+      {
+        if (! _stricmp (InName, NVSDK_NGX_Parameter_OutWidth))  { NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_Width,  OutValue); *OutValue = sk::narrow_cast <UINT> (*OutValue * scale); NVSDK_NGX_Parameter_SetUI_Original (InParameter, NVSDK_NGX_Parameter_OutWidth,  *OutValue); }
+        if (! _stricmp (InName, NVSDK_NGX_Parameter_OutHeight)) { NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_Height, OutValue); *OutValue = sk::narrow_cast <UINT> (*OutValue * scale); NVSDK_NGX_Parameter_SetUI_Original (InParameter, NVSDK_NGX_Parameter_OutHeight, *OutValue); }
+
+        if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Width))  { NVSDK_NGX_Parameter_GetUI_Detour (InParameter, NVSDK_NGX_Parameter_OutWidth,  OutValue); *OutValue = sk::narrow_cast <UINT> (*OutValue * config.nvidia.dlss.scale.dynamic_max) + 2; }
+        if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Height)) { NVSDK_NGX_Parameter_GetUI_Detour (InParameter, NVSDK_NGX_Parameter_OutHeight, OutValue); *OutValue = sk::narrow_cast <UINT> (*OutValue * config.nvidia.dlss.scale.dynamic_max) + 2; }
+        if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Width))  { NVSDK_NGX_Parameter_GetUI_Detour (InParameter, NVSDK_NGX_Parameter_OutWidth,  OutValue); *OutValue = sk::narrow_cast <UINT> (*OutValue * config.nvidia.dlss.scale.dynamic_min) - 2; }
+        if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Height)) { NVSDK_NGX_Parameter_GetUI_Detour (InParameter, NVSDK_NGX_Parameter_OutHeight, OutValue); *OutValue = sk::narrow_cast <UINT> (*OutValue * config.nvidia.dlss.scale.dynamic_min) - 2; }
+      }
     }
 
     if (! _stricmp (InName, NVSDK_NGX_Parameter_PerfQualityValue))
@@ -579,20 +610,23 @@ SK_NGX_DLSS_ControlPanel (void)
 
     if (ImGui::CollapsingHeader ("NVIDIA DLSS", ImGuiTreeNodeFlags_DefaultOpen))
     {
-      ImGui::SameLine ();
+      if (config.nvidia.dlss.show_active_features)
+      {
+        ImGui::SameLine ();
 
-      const bool bFrameGen = SK_NGX_IsUsingDLSS_G ();
-      const bool bRayRecon = SK_NGX_IsUsingDLSS_D ();
+        const bool bFrameGen = SK_NGX_IsUsingDLSS_G ();
+        const bool bRayRecon = SK_NGX_IsUsingDLSS_D ();
 
-      ImGui::TextColored     ( bFrameGen ? ImVec4 (0.0f, 0.8f, 0.0f, 1.0f) : ImVec4 (0.8f, 0.0f, 0.0f, 1.0f),
-                               bFrameGen ? "     " ICON_FA_CHECK   : "     " ICON_FA_XMARK );
-      ImGui::SameLine        ();
-      ImGui::TextUnformatted ("Frame Generation\t");
-      ImGui::SameLine        ();
-      ImGui::TextColored     ( bRayRecon ? ImVec4 (0.0f, 0.8f, 0.0f, 1.0f) : ImVec4 (0.8f, 0.0f, 0.0f, 1.0f),
-                               bRayRecon ? ICON_FA_CHECK                   : ICON_FA_XMARK );
-      ImGui::SameLine        ();
-      ImGui::TextUnformatted ("Ray Reconstruction");
+        ImGui::TextColored     ( bFrameGen ? ImVec4 (0.0f, 0.8f, 0.0f, 1.0f) : ImVec4 (0.8f, 0.0f, 0.0f, 1.0f),
+                                 bFrameGen ? "     " ICON_FA_CHECK   : "     " ICON_FA_XMARK );
+        ImGui::SameLine        ();
+        ImGui::TextUnformatted ("Frame Generation\t");
+        ImGui::SameLine        ();
+        ImGui::TextColored     ( bRayRecon ? ImVec4 (0.0f, 0.8f, 0.0f, 1.0f) : ImVec4 (0.8f, 0.0f, 0.0f, 1.0f),
+                                 bRayRecon ? ICON_FA_CHECK                   : ICON_FA_XMARK );
+        ImGui::SameLine        ();
+        ImGui::TextUnformatted ("Ray Reconstruction");
+      }
 
       ImGui::TreePush     ("");
 
@@ -689,10 +723,24 @@ SK_NGX_DLSS_ControlPanel (void)
           TextUnformatted ("Internal Resolution: ");
         ImGui::
           TextUnformatted ("Upscaled Resolution: ");
+        ImGui::Spacing ();
         ImGui::
           TextUnformatted ("DLSS Preset:         ");
+        ImGui::Spacing ();
         ImGui::
           TextUnformatted ("DLSS Perf/Quality:   ");
+        if (! config.nvidia.dlss.force_dlaa)
+        {
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Right-click to define custom resolution scales.");
+          }
+
+          if (ImGui::IsItemClicked (ImGuiPopupFlags_MouseButtonRight))
+          {
+            ImGui::OpenPopup ("DLSS_PerfQuality_Popup");
+          }
+        }
         ImGui::EndGroup   ();
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
@@ -734,7 +782,10 @@ SK_NGX_DLSS_ControlPanel (void)
             break;
         }
 
+        ImGui::BeginGroup      ();
+        ImGui::Spacing         ();
         ImGui::TextUnformatted (szPreset);
+        ImGui::EndGroup        ();
 
         ImGui::SameLine ();
 
@@ -771,6 +822,7 @@ SK_NGX_DLSS_ControlPanel (void)
         }
   
         ImGui::BeginGroup ();
+        ImGui::Spacing    ();
         if (config.nvidia.dlss.force_dlaa && (! SK_DLSS_Context::dlss_s::hasDLAAQualityLevel ()))
         {
           ImGui::TextColored (ImVec4 (.55f, .55f, 1.f, 1.f), ICON_FA_INFO);
@@ -780,13 +832,13 @@ SK_NGX_DLSS_ControlPanel (void)
         switch (perf_quality)
         {
           case NVSDK_NGX_PerfQuality_Value_MaxPerf:
-            ImGui::TextUnformatted ("Maximum Performance");
+            ImGui::TextUnformatted ("Performance");
             break;
           case NVSDK_NGX_PerfQuality_Value_Balanced:
             ImGui::TextUnformatted ("Balanced");
             break;
           case NVSDK_NGX_PerfQuality_Value_MaxQuality:
-            ImGui::TextUnformatted ("Maximum Quality");
+            ImGui::TextUnformatted ("Quality");
             break;
           case NVSDK_NGX_PerfQuality_Value_UltraPerformance:
             ImGui::TextUnformatted ("Ultra Performance");
@@ -811,6 +863,112 @@ SK_NGX_DLSS_ControlPanel (void)
               "The DLSS version in-use does not have a DLAA Perf/Quality level, "
               "but DLAA is active if Internal/Upscaled resolution are equal."
             );
+          }
+        }
+
+        else if (! config.nvidia.dlss.force_dlaa)
+        {
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Right-click to define custom resolution scales.");
+          }
+
+          if (ImGui::IsItemClicked (ImGuiPopupFlags_MouseButtonRight))
+          {
+            ImGui::OpenPopup ("DLSS_PerfQuality_Popup");
+          }
+
+          if (ImGui::BeginPopup ("DLSS_PerfQuality_Popup"))
+          {
+            static auto& rb =
+              SK_GetCurrentRenderBackend ();
+
+            SK_ComQIPtr <IDXGISwapChain>
+               pSwapChain (rb.swapchain);
+
+            DXGI_SWAP_CHAIN_DESC swapDesc = { };
+
+            if (pSwapChain.p != nullptr)
+                pSwapChain->GetDesc (&swapDesc);
+
+            auto _ScaleOverride = [&](float &cfg_var, float fDefaultScale, const char *szName)
+            {
+              bool override = cfg_var != 0.0f;
+
+              ImGui::PushID (szName);
+              if (ImGui::Checkbox ("", &override))
+              {
+                if (override)
+                  cfg_var = fDefaultScale;
+                else
+                  cfg_var = 0.0f;
+
+                restart_required = true;
+
+                SK_SaveConfig ();
+              }
+
+              ImGui::SameLine ();
+
+              if (! override)
+                ImGui::BeginDisabled ();
+
+              float* scale = override ?
+                             &cfg_var : &fDefaultScale;
+
+              char      fmt [128] = { };
+              sprintf ( fmt, "%%6.4f\t(%ux%u)", static_cast <UINT> (swapDesc.BufferDesc.Width  * *scale),
+                                                static_cast <UINT> (swapDesc.BufferDesc.Height * *scale) );
+
+              if (ImGui::SliderFloat (szName, scale, 0.01f, 0.999f, fmt))
+              {
+                restart_required = true;
+
+                SK_SaveConfig ();
+              }
+
+              if (! override)
+                ImGui::EndDisabled ();
+              ImGui::PopID ();
+            };
+
+            ImGui::BeginGroup ();
+            _ScaleOverride (config.nvidia.dlss.scale.ultra_performance, 0.333333f, "Ultra Performance");
+            _ScaleOverride (config.nvidia.dlss.scale.performance,       0.5f,      "Performance");
+            _ScaleOverride (config.nvidia.dlss.scale.balanced,          0.58f,     "Balanced");
+            _ScaleOverride (config.nvidia.dlss.scale.quality,           0.666667f, "Quality");
+            ImGui::EndGroup  ();
+            ImGui::Separator ();
+
+            ImGui::BulletText ("Dynamic Resolution Min/Max Applies only to Overridden Resolution Scales");
+            ImGui::BulletText ("Set both to 100%% to disable Dynamic Resolution Scaling");
+            ImGui::BulletText ("These settings do nothing if the game does not use DRS");
+
+            float percent =
+              config.nvidia.dlss.scale.dynamic_min * 100.0f;
+
+            if (ImGui::SliderFloat ("Dynamic Resolution Minimum", &percent, 1.0f, 100.0f, "%6.2f%%"))
+            {
+              config.nvidia.dlss.scale.dynamic_min = percent / 100.0f;
+
+              restart_required = true;
+
+              SK_SaveConfig ();
+            }
+
+            percent =
+              config.nvidia.dlss.scale.dynamic_max * 100.0f;
+
+            if (ImGui::SliderFloat ("Dynamic Resolution Maximum", &percent, 100.0f, 200.0f, "%6.2f%%"))
+            {
+              config.nvidia.dlss.scale.dynamic_max = percent / 100.0f;
+
+              restart_required = true;
+
+              SK_SaveConfig ();
+            }
+
+            ImGui::EndPopup ();
           }
         }
 
@@ -894,7 +1052,7 @@ SK_NGX_DLSS_ControlPanel (void)
         ImGui::BeginGroup ();
 
         ImGui::Text ( "DLSS Version:\t%d.%d.%d", dlss_version.major, dlss_version.minor,
-                                                 dlss_version.build/*, dlss_version.revision*/ );
+                                                 dlss_version.build );
 
         static bool bRestartNeeded = false;
 
@@ -959,9 +1117,11 @@ SK_NGX_DLSS_ControlPanel (void)
             ImGui::SameLine ();
           }
         }
-
+        
         if (ImGui::TreeNode ("DLSS Indicators"))
         {
+          ImGui::BeginGroup ();
+
           bool show_dlss =
             SK_DLSS_Context::dlss_s::isIndicatorShown ();
           bool show_dlssg =
@@ -974,6 +1134,11 @@ SK_NGX_DLSS_ControlPanel (void)
             bRestartNeeded = true;
           }
 
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Shows the official NVIDIA text overlay (bottom-left) for DLSS / DLSS Ray Reconstruction.");
+          }
+
           if (ImGui::Checkbox ("Show DLSS-G", &show_dlssg))
           {
             SK_DLSS_Context::dlssg_s::showIndicator (show_dlssg);
@@ -981,8 +1146,28 @@ SK_NGX_DLSS_ControlPanel (void)
             bRestartNeeded = true;
           }
 
-          if (bRestartNeeded) ImGui::SameLine ();
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Shows the official NVIDIA text overlay (top-left) for DLSS Frame Generation.");
+          }
+
+          ImGui::EndGroup    ();
+          ImGui::SameLine    ();
+          ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+          ImGui::SameLine    ();
+          ImGui::BeginGroup  ();
+          if (ImGui::Checkbox ("Show Active Features", &config.nvidia.dlss.show_active_features))
+          {
+            SK_SaveConfig ();
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Displays which DLSS extensions are in use in the DLSS header.");
+          }
         }
+        else
+          ImGui::BeginGroup ();
 
         if (bRestartNeeded)
         {
@@ -990,7 +1175,7 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::BulletText     ("Game Restart Required");
           ImGui::PopStyleColor  ();
         }
-
+        ImGui::EndGroup   ();
         ImGui::EndGroup   ();
       }
 

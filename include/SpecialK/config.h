@@ -819,6 +819,17 @@ struct sk_config_t
       float   forced_sharpness    =   0.0f;
       bool    auto_redirect_dlss  =  false;
       int     forced_preset       =     -1;
+      bool    show_active_features=   true;
+      int     forced_autoexposure =     -1;
+      struct {
+        float performance         =   0.0f;
+        float balanced            =   0.0f;
+        float quality             =   0.0f;
+        float ultra_performance   =   0.0f;
+        float ultra_quality       =   0.0f;
+        float dynamic_max         =   1.0f;
+        float dynamic_min         =   1.0f;
+      } scale;
     } dlss;
   } nvidia;
 

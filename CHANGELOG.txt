@@ -1,4 +1,9 @@
-﻿23.10.13.1
+﻿23.10.13.2
+==========
+ + Added DLSS Resolution Scale override; game restart almost always required
+ + Added DLSS Dynamic Resolution Scale override
+
+23.10.13.1
 ==========
  + Changed DLSS Preset override names from N/A to Game Default and
      Default to DLSS Default
