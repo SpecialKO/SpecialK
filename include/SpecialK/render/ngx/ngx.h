@@ -50,6 +50,7 @@ struct SK_DLSS_Context
     NVSDK_NGX_Handle*    Handle         = nullptr;
     NVSDK_NGX_Parameter* Parameters     = nullptr;
     volatile ULONG64     LastFrame      = 0ULL;
+    volatile ULONG64     ResetFrame     = 0ULL; // If >= Current Frame, issue a DLSS Reset
     NVSDK_NGX_Feature    DLSS_Type      = NVSDK_NGX_Feature_SuperSampling;
     static DWORD         IndicatorFlags;
     static version_s     Version;
@@ -101,3 +102,4 @@ using  GetNGXResultAsString_pfn = const wchar_t* (NVSDK_CONV *)(NVSDK_NGX_Result
 extern GetNGXResultAsString_pfn GetNGXResultAsString;
 
 bool SK_NGX_HookParameters (NVSDK_NGX_Parameter *Params);
+void SK_NGX_Reset          (void);

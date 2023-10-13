@@ -289,6 +289,15 @@ NVSDK_NGX_D3D11_EvaluateFeature_Detour (ID3D11DeviceContext *InDevCtx, const NVS
 
       NVSDK_NGX_Parameter_SetUI_Original ((NVSDK_NGX_Parameter *)InParameters, szPresetHint, preset);
     }
+
+    if (InFeatureHandle == SK_NGX_DLSS11.super_sampling.Handle)
+    {
+      if (ReadULong64Acquire (&SK_NGX_DLSS11.super_sampling.ResetFrame) >
+          ReadULong64Acquire (&SK_NGX_DLSS11.super_sampling.LastFrame))
+      {
+        NVSDK_NGX_Parameter_SetI_Original ((NVSDK_NGX_Parameter *)InParameters, "Reset", 1);
+      }
+    }
   }
 
   NVSDK_NGX_Result ret =

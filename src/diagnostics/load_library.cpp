@@ -920,6 +920,9 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
             hMod =
               SK_LoadLibraryW (compliant_path);
           }
+
+          extern void SK_NGX_EstablishDLSSVersion (void);
+                      SK_NGX_EstablishDLSSVersion ();
         }
       }
 

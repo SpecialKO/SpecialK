@@ -147,31 +147,6 @@ NVSDK_NGX_Parameter_SetUI_Detour (NVSDK_NGX_Parameter* InParameter, const char* 
         InValue = NVSDK_NGX_PerfQuality_Value_DLAA;
       }
     }
-
-    if (config.nvidia.dlss.forced_preset != -1)
-    {
-      unsigned int dlss_mode = InValue;
-
-      unsigned int preset =
-        static_cast <unsigned int> (config.nvidia.dlss.forced_preset);
-
-      const char *szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;
-
-      switch (dlss_mode)
-      {
-        case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance;      break;
-        case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced;         break;
-        case NVSDK_NGX_PerfQuality_Value_MaxQuality:        szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality;          break;
-        // Extended PerfQuality modes                                  
-        case NVSDK_NGX_PerfQuality_Value_UltraPerformance:  szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance; break;
-        case NVSDK_NGX_PerfQuality_Value_UltraQuality:      szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraQuality;     break;
-        case NVSDK_NGX_PerfQuality_Value_DLAA:              szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;             break;
-        default:
-          break;
-      }
-
-      NVSDK_NGX_Parameter_SetUI_Original ((NVSDK_NGX_Parameter *)InParameter, szPresetHint, preset);
-    }
   }
 
   if ((! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA))        ||
@@ -183,6 +158,11 @@ NVSDK_NGX_Parameter_SetUI_Detour (NVSDK_NGX_Parameter* InParameter, const char* 
     if (config.nvidia.dlss.force_dlaa && (config.nvidia.dlss.forced_preset == -1))
     {
       InValue = NVSDK_NGX_DLSS_Hint_Render_Preset_F;
+    }
+
+    else if (config.nvidia.dlss.forced_preset != -1)
+    {
+      InValue = config.nvidia.dlss.forced_preset;
     }
   }
 
@@ -227,6 +207,11 @@ NVSDK_NGX_Parameter_GetUI_Detour (NVSDK_NGX_Parameter *InParameter, const char *
     if (! _stricmp (InName, NVSDK_NGX_Parameter_PerfQualityValue))
     {
       *OutValue = SK_NGX_GameSetPerfQuality;
+    }
+
+    if (config.nvidia.dlss.forced_preset != -1 && StrStrIA (InName, "DLSS.Hint.Render.Preset."))
+    {
+      *OutValue = config.nvidia.dlss.forced_preset;
     }
   }
 
@@ -405,20 +390,19 @@ SK_NGX_DLSS_CreateFeatureOverrideParams (NVSDK_NGX_Parameter *InParameters)
   if (config.nvidia.dlss.use_sharpening == 1)
     InParameters->Set (NVSDK_NGX_Parameter_Sharpness, config.nvidia.dlss.forced_sharpness);
 
-  //InParameters->Set (NVSDK_NGX_Parameter_PerfQualityValue, NVSDK_NGX_PerfQuality_Value_DLAA);
-  //InParameters->Set (NVSDK_NGX_Parameter_RTXValue,         false);
-  //InParameters->Set (NVSDK_NGX_Parameter_Sharpness,        1.0f);
-
   if (config.nvidia.dlss.force_dlaa)
   {
-    unsigned int preset =
-      NVSDK_NGX_DLSS_Hint_Render_Preset_F;
+    if (config.nvidia.dlss.forced_preset == -1)
+    {
+      unsigned int preset =
+        NVSDK_NGX_DLSS_Hint_Render_Preset_F;
 
-    NVSDK_NGX_Parameter_SetUI_Original (InParameters, NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA,             preset);
-    NVSDK_NGX_Parameter_SetUI_Original (InParameters, NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality,          preset);
-    NVSDK_NGX_Parameter_SetUI_Original (InParameters, NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced,         preset);
-    NVSDK_NGX_Parameter_SetUI_Original (InParameters, NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance,      preset);
-    NVSDK_NGX_Parameter_SetUI_Original (InParameters, NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance, preset);
+      NVSDK_NGX_Parameter_SetUI_Original (InParameters, NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA,             preset);
+      NVSDK_NGX_Parameter_SetUI_Original (InParameters, NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality,          preset);
+      NVSDK_NGX_Parameter_SetUI_Original (InParameters, NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced,         preset);
+      NVSDK_NGX_Parameter_SetUI_Original (InParameters, NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance,      preset);
+      NVSDK_NGX_Parameter_SetUI_Original (InParameters, NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance, preset);
+    }
 
     if (SK_DLSS_Context::dlss_s::hasDLAAQualityLevel ())
     {
@@ -804,6 +788,8 @@ SK_NGX_DLSS_ControlPanel (void)
           {
             restart_required = true;
 
+            SK_NGX_Reset ();
+
             SK_SaveConfig ();
           }
 
@@ -818,7 +804,7 @@ SK_NGX_DLSS_ControlPanel (void)
 
         ImGui::EndGroup ();
 
-#if 0
+#if 1
         int preset_override = config.nvidia.dlss.forced_preset + 1;
 
         if ( ImGui::Combo ( "Preset Override",
@@ -839,6 +825,8 @@ SK_NGX_DLSS_ControlPanel (void)
           {
             NVSDK_NGX_Parameter_SetUI_Original (params, szPresetHint, config.nvidia.dlss.forced_preset);
           }
+
+          SK_NGX_Reset ();
 
           restart_required = true;
 
@@ -884,6 +872,8 @@ SK_NGX_DLSS_ControlPanel (void)
 
               restart_required = true;
 
+              SK_NGX_Reset ();
+
               SK_SaveConfig ();
             }
           }
@@ -892,7 +882,7 @@ SK_NGX_DLSS_ControlPanel (void)
         if (restart_required)
         {
           ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
-          ImGui::BulletText     ("Game Restart May Be Required");
+          ImGui::BulletText     ("Game Restart (or Alt+Enter) May Be Required");
           ImGui::PopStyleColor  ();
         }
         ImGui::EndGroup   ();
@@ -1006,4 +996,11 @@ SK_NGX_DLSS_ControlPanel (void)
     ImGui::TreePop       ( );
     ImGui::PopStyleColor (3);
   }
+}
+
+void
+SK_NGX_Reset (void)
+{
+  WriteULong64Release (&SK_NGX_DLSS11.super_sampling.ResetFrame, SK_GetFramesDrawn () + 1);
+  WriteULong64Release (&SK_NGX_DLSS12.super_sampling.ResetFrame, SK_GetFramesDrawn () + 1);
 }
