@@ -3569,6 +3569,9 @@
     <ClCompile Include="src\render\ngx\ngx.cpp">
       <Filter>Source Files\Backends\Render\NGX</Filter>
     </ClCompile>
+    <ClCompile Include="src\plugins\lords_of_the_fallen2.cpp">
+      <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

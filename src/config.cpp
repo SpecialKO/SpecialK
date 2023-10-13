@@ -238,7 +238,8 @@ SK_GetCurrentGameID (void)
           { L"Fallout3.exe",                           SK_GAME_ID::Fallout3                     },
           { L"GECK.exe",                               SK_GAME_ID::GECK                         },
           { L"CreationKit.exe",                        SK_GAME_ID::CreationKit                  },
-          { L"TESConstructionSet.exe",                 SK_GAME_ID::ConstructionSet              }
+          { L"TESConstructionSet.exe",                 SK_GAME_ID::ConstructionSet              },
+          { L"LOTF2.exe",                              SK_GAME_ID::EasyAntiCheat                }
         };
 
     first_check  = false;
@@ -355,6 +356,13 @@ SK_GetCurrentGameID (void)
             extern void
             SK_SEH_LaunchArmoredCoreVI (void);
             SK_SEH_LaunchArmoredCoreVI (    );
+          }
+
+          else if (std::filesystem::exists (LR"(LOTF2\Binaries\Win64\LOTF2-Win64-Shipping.exe)", ec))
+          {
+            extern void
+            SK_SEH_LaunchLordsOfTheFallen2 (void);
+            SK_SEH_LaunchLordsOfTheFallen2 (    );
           }
         }
       }
