@@ -1,4 +1,9 @@
-﻿23.10.13.3
+﻿23.10.13.4
+==========
+ + Fixed potential crash when querying DLSS internal resolution while
+     DLSS Frame Generation is enabled
+
+23.10.13.3
 ==========
  + Added EAC Bypass for Lords of the Fallen 2 (or whatever it's called)
 

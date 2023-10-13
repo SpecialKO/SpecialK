@@ -598,6 +598,45 @@ SK_DLSS_Context::dlssg_s::isIndicatorShown (void)
   }
 }
 
+// We do not know the lifetime of these resources, expect them to occasionally be invalid pointers.
+void
+SK_SEH_NGX_GetInternalResolutionFromDLSS ( ID3D12Resource* pD3D12, ID3D11Resource* pD3D11,
+                                           unsigned int&   width,  unsigned int&   height )
+{
+  __try
+  {
+    if (pD3D12 != nullptr)
+    {
+      width  = sk::narrow_cast <unsigned int> (pD3D12->GetDesc ().Width);
+      height = sk::narrow_cast <unsigned int> (pD3D12->GetDesc ().Height);
+    }
+
+    else if (pD3D11 != nullptr)
+    {
+      ID3D11Texture2D *pTex2D = nullptr;
+
+      pD3D11->QueryInterface <ID3D11Texture2D> (&pTex2D);
+
+      if (pTex2D != nullptr)
+      {
+        D3D11_TEXTURE2D_DESC texDesc = { };
+        pTex2D->GetDesc (&texDesc);
+
+        width  = texDesc.Width;
+        height = texDesc.Height;
+
+        pTex2D->Release ();
+      }
+    }
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    width  = 0;
+    height = 0;
+  }
+}
+
 void
 SK_NGX_DLSS_ControlPanel (void)
 {
@@ -693,25 +732,7 @@ SK_NGX_DLSS_ControlPanel (void)
         ID3D11Resource                           *pD3D11Resource = nullptr;
         params->Get (NVSDK_NGX_Parameter_Color, &pD3D11Resource);
 
-        if (pD3D12Resource != nullptr)
-        {
-          width  = sk::narrow_cast <unsigned int> (pD3D12Resource->GetDesc ().Width);
-          height = sk::narrow_cast <unsigned int> (pD3D12Resource->GetDesc ().Height);
-        }
-
-        else if (pD3D11Resource != nullptr)
-        {
-          SK_ComQIPtr <ID3D11Texture2D> pTex2D (pD3D11Resource);
-
-          if (pTex2D != nullptr)
-          {
-            D3D11_TEXTURE2D_DESC texDesc = { };
-            pTex2D->GetDesc    (&texDesc);
-
-            width  = texDesc.Width;
-            height = texDesc.Height;
-          }
-        }
+        SK_SEH_NGX_GetInternalResolutionFromDLSS (pD3D12Resource, pD3D11Resource, width, height);
 
         unsigned int perf_quality = NVSDK_NGX_PerfQuality_Value_MaxPerf;
 
