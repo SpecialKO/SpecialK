@@ -673,76 +673,77 @@ SK_ImGui_ControlPanelTitle (void)
   const         bool bSteam        = (SK::SteamAPI::AppID () != 0x0);
   static const  bool bEpic         = StrStrIA (GetCommandLineA (), "-epicapp");
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  static bool bTBFix = SK_GetModuleHandle (L"tbfix.dll") != nullptr;
+
+  static std::string title;
+                     title.clear ();
+
+  if (SK_HasPlugin () && (! bTBFix))
+    title += SK_WideCharToUTF8 (SK_GetPluginName ());
+  else
   {
-    // TEMP HACK
-    static HMODULE hModTBFix = SK_GetModuleHandle (L"tbfix.dll");
+    title += "Special K  (v ";
+    title += SK_GetVersionStrA ();
+    title += ")";
+  }
 
-    static std::string title;
-                       title.clear ();
+  title += "  Control Panel";
 
-  //extern std::wstring __stdcall SK_GetPluginName (void);
-  //extern bool         __stdcall SK_HasPlugin     (void);
+  extern __time64_t __SK_DLL_AttachTime;
 
-    if (SK_HasPlugin () && hModTBFix == (HMODULE)nullptr)
-      title += SK_WideCharToUTF8 (SK_GetPluginName ());
-    else
+  __time64_t now     = 0ULL;
+   _time64 (&now);
+
+  auto       elapsed = sk::narrow_cast <uint32_t> (now - __SK_DLL_AttachTime);
+
+  uint32_t   secs    =  elapsed % 60ULL;
+  uint32_t   mins    = (elapsed / 60ULL) % 60ULL;
+  uint32_t   hours   =  elapsed / 3600ULL;
+
+  if (bSteam || bEpic || *rb.windows.focus.title != L'\0')
+  {
+    static std::string window_title =
+      SK_WideCharToUTF8 (rb.windows.focus.title);
+
+    std::string appname = bSteam ?
+      SK::SteamAPI::AppName ()   :
+                          bEpic  ?
+      SK::EOS::AppName       ()  : (! window_title.empty ()) ?
+                                      window_title.c_str ()  : "";
+
+    if (! appname.empty ())
+      title += "      -      ";
+
+    if (config.platform.show_playtime)
     {
-      title += "Special K  (v ";
-      title += SK_GetVersionStrA ();
-      title += ")";
-    }
-
-    title += "  Control Panel";
-
-    extern __time64_t __SK_DLL_AttachTime;
-
-    __time64_t now     = 0ULL;
-     _time64 (&now);
-
-    auto       elapsed = sk::narrow_cast <uint32_t> (now - __SK_DLL_AttachTime);
-
-    uint32_t   secs    =  elapsed % 60ULL;
-    uint32_t   mins    = (elapsed / 60ULL) % 60ULL;
-    uint32_t   hours   =  elapsed / 3600ULL;
-
-    if (bSteam || bEpic)
-    {
-      std::string appname = bSteam ?
-        SK::SteamAPI::AppName ()   :
-                            bEpic  ?
-        SK::EOS::AppName       ()  : "";
-
-      if (appname.length ())
-        title += "      -      ";
-
-      if (config.platform.show_playtime)
-      {
-        snprintf ( szTitle, 511, "%hs%hs     (%01u:%02u:%02u)###SK_MAIN_CPL",
-                     title.c_str (), appname.c_str (),
-                       hours, mins, secs );
-      }
-
-      else
-      {
-        snprintf ( szTitle, 511, "%hs%s###SK_MAIN_CPL",
-                     title.c_str (), appname.c_str () );
-      }
+      snprintf ( szTitle, 511, "%hs%hs     (%01u:%02u:%02u)###SK_MAIN_CPL",
+                   title.c_str (), appname.c_str (),
+                     hours, mins, secs );
     }
 
     else
     {
-      if (config.platform.show_playtime)
-      {
-        title += "      -      ";
-
-        snprintf ( szTitle, 511, "%hs(%01u:%02u:%02u)###SK_MAIN_CPL",
-                     title.c_str (),
-                       hours, mins, secs );
-      }
-
-      else
-        snprintf (szTitle, 511, "%hs###SK_MAIN_CPL", title.c_str ());
+      snprintf ( szTitle, 511, "%hs%s###SK_MAIN_CPL",
+                   title.c_str (), appname.c_str () );
     }
+  }
+
+  else
+  {
+    if (config.platform.show_playtime)
+    {
+      title += "      -      ";
+
+      snprintf ( szTitle, 511, "%hs(%01u:%02u:%02u)###SK_MAIN_CPL",
+                   title.c_str (),
+                     hours, mins, secs );
+    }
+
+    else
+      snprintf (szTitle, 511, "%hs###SK_MAIN_CPL", title.c_str ());
   }
 
   return szTitle;
@@ -3701,7 +3702,7 @@ SK_ImGui_ControlPanel (void)
         ImGui::Separator ();
 
         if ( (0 < config.steam.appid && config.steam.appid <= INT32_MAX) ||
-              0 < wcslen (rb.windows.focus.title))
+              *rb.windows.focus.title != L'\0')
         {
           if (ImGui::MenuItem ( "Check PCGamingWiki for this Game", "Third-Party Site", &selected ))
           {

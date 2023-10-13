@@ -718,23 +718,57 @@ SK_NGX_DLSS_ControlPanel (void)
 
         NVSDK_NGX_Parameter_GetUI_Original (params, szPresetHint, &preset);
 
-        const char *szPreset = "Default";
+        const char *szPreset = "DLSS Default";
 
         switch (preset)
         {
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_Default: szPreset = "Default"; break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_A:       szPreset = "A";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_B:       szPreset = "B";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_C:       szPreset = "C";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_D:       szPreset = "D";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_E:       szPreset = "E";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_F:       szPreset = "F";       break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       szPreset = "G";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_Default: szPreset = "DLSS Default"; break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_A:       szPreset = "A";            break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_B:       szPreset = "B";            break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_C:       szPreset = "C";            break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_D:       szPreset = "D";            break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_E:       szPreset = "E";            break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_F:       szPreset = "F";            break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       szPreset = "G";            break;
           default:
             break;
         }
 
         ImGui::TextUnformatted (szPreset);
+
+        ImGui::SameLine ();
+
+        int preset_override = config.nvidia.dlss.forced_preset + 1;
+
+        ImGui::SetNextItemWidth (
+          ImGui::CalcTextSize ("DLSS Default\t  ").x + ImGui::GetStyle ().FramePadding.x * 2
+        );
+
+        if ( ImGui::Combo ( "",
+                            &preset_override, "Game Default\0"
+                                              "DLSS Default\0"
+                                              "Override: A\0"
+                                              "Override: B\0"
+                                              "Override: C\0"
+                                              "Override: D\0"
+                                              "Override: E\0"
+                                              "Override: F\0"
+                                              "Override: G\0" )
+           )
+        {
+          config.nvidia.dlss.forced_preset = preset_override - 1;
+
+          if (config.nvidia.dlss.forced_preset != -1)
+          {
+            NVSDK_NGX_Parameter_SetUI_Original (params, szPresetHint, config.nvidia.dlss.forced_preset);
+          }
+
+          SK_NGX_Reset ();
+
+          restart_required = true;
+
+          SK_SaveConfig ();
+        }
   
         ImGui::BeginGroup ();
         if (config.nvidia.dlss.force_dlaa && (! SK_DLSS_Context::dlss_s::hasDLAAQualityLevel ()))
@@ -803,36 +837,6 @@ SK_NGX_DLSS_ControlPanel (void)
         }
 
         ImGui::EndGroup ();
-
-#if 1
-        int preset_override = config.nvidia.dlss.forced_preset + 1;
-
-        if ( ImGui::Combo ( "Preset Override",
-                            &preset_override, "N/A\0"
-                                              "Default\0"
-                                              "A\0"
-                                              "B\0"
-                                              "C\0"
-                                              "D\0"
-                                              "E\0"
-                                              "F\0"
-                                              "G\0" )
-           )
-        {
-          config.nvidia.dlss.forced_preset = preset_override - 1;
-
-          if (config.nvidia.dlss.forced_preset != -1)
-          {
-            NVSDK_NGX_Parameter_SetUI_Original (params, szPresetHint, config.nvidia.dlss.forced_preset);
-          }
-
-          SK_NGX_Reset ();
-
-          restart_required = true;
-
-          SK_SaveConfig ();
-        }
-#endif
   
         if (bHasSharpening)
         {

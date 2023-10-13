@@ -1,4 +1,10 @@
-﻿23.10.13
+﻿23.10.13.1
+==========
+ + Changed DLSS Preset override names from N/A to Game Default and
+     Default to DLSS Default
+ + Use a game's window title in the control panel if it is not Steam or EGS
+
+23.10.13
 ========
  + Added DLSS Preset override; requires game restart or Alt+Enter usually
 
