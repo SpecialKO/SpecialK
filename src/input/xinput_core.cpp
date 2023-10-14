@@ -2396,13 +2396,16 @@ SK_XInput_PulseController ( INT   iJoyID,
   if (ReadULongAcquire (&xinput_ctx.LastSlotState [iJoyID]) != ERROR_SUCCESS)
     return false;
 
-  auto* pCtx =
-    static_cast <SK_XInputContext::instance_s *>
-      (ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook));
+  static XInputEnable_pfn
+         XInputEnable_SK =
+        (XInputEnable_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
+        "XInputEnable"                      );
 
-  if ( pCtx                        != nullptr &&
-       pCtx->XInputEnable_Original != nullptr )
-       pCtx->XInputEnable_Original (true);
+  XInputEnable_pfn XInputEnable =
+                   XInputEnable_SK;
+
+  if (XInputEnable != nullptr)
+      XInputEnable (true);
 
   if (config.input.gamepad.disable_rumble)
     return false;
@@ -2418,47 +2421,43 @@ SK_XInput_PulseController ( INT   iJoyID,
         sk::narrow_cast <WORD>(std::min (0.99999f, fStrengthRight) * 65535.0f)
     };
 
-  if ( pCtx                          != nullptr &&
-       pCtx->XInputSetState_Original != nullptr )
+  if (__xi_pulse_set_values.count (iJoyID))
   {
-    if (__xi_pulse_set_values.count (iJoyID))
-    {
-      auto& last_val =
-        __xi_pulse_set_values [iJoyID];
-      auto& last_frame =
-        __xi_pulse_set_frames [iJoyID];
+    auto& last_val =
+      __xi_pulse_set_values [iJoyID];
+    auto& last_frame =
+      __xi_pulse_set_frames [iJoyID];
 
-      // Avoid redundant call and performance bottleneck caused by Steam overlay
-      if ( last_val.wLeftMotorSpeed  == vibes.wLeftMotorSpeed  &&
-           last_val.wRightMotorSpeed == vibes.wRightMotorSpeed &&
-           last_frame                > ( SK_GetFramesDrawn () - 2 )
-         )
-      {
-        return true;
-      }
-    }
-
-    __xi_pulse_set_values [iJoyID] = vibes;
-    __xi_pulse_set_frames [iJoyID] = SK_GetFramesDrawn ();
-
-    static XInputSetState_pfn
-           XInputSetState_SK =
-          (XInputSetState_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
-          "XInputSetState"                      );
-
-    XInputSetState_pfn XInputSetState =
-                       XInputSetState_SK;
-
-    DWORD dwRet = XInputSetState == nullptr ? ERROR_DEVICE_NOT_CONNECTED :
-      SK_XINPUT_CALL ( xinput_ctx.cs_haptic [iJoyID],
-                                             iJoyID,
-                             XInputSetState (iJoyID, &vibes) );
-
-    if ( ERROR_SUCCESS ==
-           dwRet )
+    // Avoid redundant call and performance bottleneck caused by Steam overlay
+    if ( last_val.wLeftMotorSpeed  == vibes.wLeftMotorSpeed  &&
+         last_val.wRightMotorSpeed == vibes.wRightMotorSpeed &&
+         last_frame                > ( SK_GetFramesDrawn () - 2 )
+       )
     {
       return true;
     }
+  }
+
+  __xi_pulse_set_values [iJoyID] = vibes;
+  __xi_pulse_set_frames [iJoyID] = SK_GetFramesDrawn ();
+
+  static XInputSetState_pfn
+         XInputSetState_SK =
+        (XInputSetState_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
+        "XInputSetState"                      );
+
+  XInputSetState_pfn XInputSetState =
+                     XInputSetState_SK;
+
+  DWORD dwRet = XInputSetState == nullptr ? ERROR_DEVICE_NOT_CONNECTED :
+    SK_XINPUT_CALL ( xinput_ctx.cs_haptic [iJoyID],
+                                           iJoyID,
+                           XInputSetState (iJoyID, &vibes) );
+
+  if ( ERROR_SUCCESS ==
+         dwRet )
+  {
+    return true;
   }
 
   return false;
@@ -2637,13 +2636,22 @@ SK_XInput_PollController ( INT           iJoyID,
   if (_ShouldRecheckStatus (iJoyID))
   {
     // Steam does not disable XInput 1.1, awesome!
+    static XInputEnable_pfn
+           XInputEnable_SK =
+          (XInputEnable_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
+          "XInputEnable"                      );
     static XInputGetState_pfn
            XInputGetState_SK =
           (XInputGetState_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
           "XInputGetState"                      );
 
+    XInputEnable_pfn   XInputEnable =
+                       XInputEnable_SK;
     XInputGetState_pfn XInputGetState =
                        XInputGetState_SK;
+
+    if (XInputEnable != nullptr)
+        XInputEnable (true);
 
     if (XInputGetState != nullptr)
     {
