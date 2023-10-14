@@ -1,5 +1,6 @@
 ﻿23.10.13.x
 ==========
+ [.6] + Added descriptions to DLSS preset overrides
  [.5] + Added DLSS-G DLL version to DLSS control panel
  [.4] + Fixed potential crash when querying DLSS internal resolution while
           DLSS Frame Generation is enabled

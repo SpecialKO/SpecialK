@@ -817,14 +817,14 @@ SK_NGX_DLSS_ControlPanel (void)
 
         switch (preset)
         {
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_Default: szPreset = "DLSS Default"; break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_A:       szPreset = "A";            break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_B:       szPreset = "B";            break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_C:       szPreset = "C";            break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_D:       szPreset = "D";            break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_E:       szPreset = "E";            break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_F:       szPreset = "F";            break;
-          case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       szPreset = "G";            break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_Default: szPreset = "Default"; break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_A:       szPreset = "A";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_B:       szPreset = "B";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_C:       szPreset = "C";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_D:       szPreset = "D";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_E:       szPreset = "E";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_F:       szPreset = "F";       break;
+          case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       szPreset = "G";       break;
           default:
             break;
         }
@@ -849,9 +849,9 @@ SK_NGX_DLSS_ControlPanel (void)
                                               "Override: B\0"
                                               "Override: C\0"
                                               "Override: D\0"
-                                              "Override: E\0"
+                                              "Override: E (Invalid)\0"
                                               "Override: F\0"
-                                              "Override: G\0" )
+                                              "Override: G (Invalid)\0", 9 )
            )
         {
           config.nvidia.dlss.forced_preset = preset_override - 1;
@@ -866,6 +866,75 @@ SK_NGX_DLSS_ControlPanel (void)
           restart_required = true;
 
           SK_SaveConfig ();
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+          ImGui::TextUnformatted ("Preset A");
+          ImGui::PopStyleColor   ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+          ImGui::BulletText      ("Intended for Performance/Balanced/Quality modes.");
+          ImGui::BulletText      ("An older variant best suited to combat ghosting for elements with missing inputs, such as motion vectors.");
+          ImGui::PopStyleColor   ();
+          ImGui::Spacing         ();
+          ImGui::Spacing         ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+          ImGui::TextUnformatted ("Preset B");
+          ImGui::PopStyleColor   ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+          ImGui::BulletText      ("Intended for Ultra Performance mode.");
+          ImGui::BulletText      ("Similar to Preset A but for Ultra Performance mode.");
+          ImGui::PopStyleColor   ();
+          ImGui::Spacing         ();
+          ImGui::Spacing         ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+          ImGui::TextUnformatted ("Preset C");
+          ImGui::PopStyleColor   ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+          ImGui::BulletText      ("Intended for Performance/Balanced/Quality modes.");
+          ImGui::BulletText      ("Generally favors current frame information; well suited for fast - paced game content.");
+          ImGui::PopStyleColor   ();
+          ImGui::Spacing         ();
+          ImGui::Spacing         ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+          ImGui::TextUnformatted ("Preset D");
+          ImGui::PopStyleColor   ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+          ImGui::BulletText      ("Default preset for Performance/Balanced/Quality modes; generally favors image stability.");
+          ImGui::PopStyleColor   ();
+          ImGui::Spacing         ();
+          ImGui::Spacing         ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+          ImGui::TextUnformatted ("Preset E");
+          ImGui::PopStyleColor   ();
+          ImGui::SameLine        ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.5f, .5f, .5f, 1.f));
+          ImGui::TextUnformatted ("\tNot currently used");
+          ImGui::PopStyleColor   ();
+          ImGui::Spacing         ();
+          ImGui::Spacing         ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+          ImGui::TextUnformatted ("Preset F");
+          ImGui::PopStyleColor   ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+          ImGui::BulletText      ("Default preset for Ultra Performance and DLAA modes.");
+          ImGui::PopStyleColor   ();
+          ImGui::Spacing         ();
+          ImGui::Spacing         ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+          ImGui::TextUnformatted ("Preset G");
+          ImGui::PopStyleColor   ();
+          ImGui::SameLine        ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.5f, .5f, .5f, 1.f));
+          ImGui::TextUnformatted ("\tNot currently used");
+          ImGui::PopStyleColor   ();
+          ImGui::Separator       ();
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.62f, .62f, .62f, 1.f));
+          ImGui::TextUnformatted ("Descriptions valid as of DLSS 3.5, defaults refer to 'DLSS Default' and are subject to change between DLL versions.");
+          ImGui::PopStyleColor   ();
+          ImGui::EndTooltip      ();
         }
   
         ImGui::BeginGroup ();
