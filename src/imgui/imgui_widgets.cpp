@@ -4331,7 +4331,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
 
     // Process mouse inputs and character inputs
     int backup_current_text_length = 0;
-    if (g.ActiveId == id)
+    if (g.ActiveId == id && state != nullptr)
     {
         IM_ASSERT(state != NULL);
         backup_current_text_length = state->CurLenA;
@@ -4962,7 +4962,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         }
 
         // Draw blinking cursor
-        if (render_cursor)
+        if (render_cursor && state != nullptr)
         {
             state->CursorAnim += io.DeltaTime;
             bool cursor_is_visible = (!g.IO.ConfigInputTextCursorBlink) || (state->CursorAnim <= 0.0f) || ImFmod(state->CursorAnim, 1.20f) <= 0.80f;

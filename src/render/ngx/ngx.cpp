@@ -1157,13 +1157,21 @@ SK_NGX_DLSS_ControlPanel (void)
           }
         }
 
-        if (ImGui::TreeNode ("Compat Hacks"))
-        {
-          bool bDLAAMinus1 = config.nvidia.dlss.compat.extra_pixels != 0;
+        bool bShowCompatHacks =
+          ImGui::TreeNode ("Compat Hacks");
 
-          if (ImGui::Checkbox ("DLAA -2 Pixels", &bDLAAMinus1))
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ("Compatibility hacks to fix DLSS black screens in some games");
+        }
+
+        if (bShowCompatHacks)
+        {
+          bool bDLAAMinus2 = config.nvidia.dlss.compat.extra_pixels != 0;
+
+          if (ImGui::Checkbox ("DLAA -2 Pixels", &bDLAAMinus2))
           {
-            if (! bDLAAMinus1)
+            if (! bDLAAMinus2)
               config.nvidia.dlss.compat.extra_pixels = 0;
             else
               config.nvidia.dlss.compat.extra_pixels = -2;

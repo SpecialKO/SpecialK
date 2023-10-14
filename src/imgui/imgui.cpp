@@ -13089,6 +13089,8 @@ void ImGui::ClearIniSettings()
 
 void ImGui::LoadIniSettingsFromDisk(const char* ini_filename)
 {
+  return;
+
     size_t file_data_size = 0;
     char* file_data = (char*)ImFileLoadToMemory(ini_filename, "rb", &file_data_size);
     if (!file_data)
@@ -13102,6 +13104,8 @@ void ImGui::LoadIniSettingsFromDisk(const char* ini_filename)
 // Set ini_size==0 to let us use strlen(ini_data). Do not call this function with a 0 if your buffer is actually empty!
 void ImGui::LoadIniSettingsFromMemory(const char* ini_data, size_t ini_size)
 {
+  return;
+
     ImGuiContext& g = *GImGui;
     IM_ASSERT(g.Initialized);
     //IM_ASSERT(!g.WithinFrameScope && "Cannot be called between NewFrame() and EndFrame()");
@@ -13172,6 +13176,8 @@ void ImGui::LoadIniSettingsFromMemory(const char* ini_data, size_t ini_size)
 
 void ImGui::SaveIniSettingsToDisk(const char* ini_filename)
 {
+  return;
+
     ImGuiContext& g = *GImGui;
     g.SettingsDirtyTimer = 0.0f;
     if (!ini_filename)
@@ -13189,6 +13195,8 @@ void ImGui::SaveIniSettingsToDisk(const char* ini_filename)
 // Call registered handlers (e.g. SettingsHandlerWindow_WriteAll() + custom handlers) to write their stuff into a text buffer
 const char* ImGui::SaveIniSettingsToMemory(size_t* out_size)
 {
+  return "";
+
     ImGuiContext& g = *GImGui;
     g.SettingsDirtyTimer = 0.0f;
     g.SettingsIniData.Buf.resize(0);
