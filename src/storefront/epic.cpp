@@ -652,6 +652,10 @@ void
 EOS_CALL
 EOS_Platform_Tick_Detour (EOS_HPlatform Handle)
 {
+  // Bail-out, or we might crash
+  if (ReadAcquire (&__SK_DLL_Ending) != 0)
+    return;
+
   // Temporarily incompatible
   SK_RunOnce (config.platform.reuse_overlay_pause = false);
   SK_RunOnce (epic_log->Log (L"EOS_Platform_Tick"));
