@@ -1,4 +1,8 @@
-﻿23.10.14.1
+﻿23.10.14.2
+==========
+ + Fixed Steam API Frame Counter not being right-clickable after ImGui upgrade
+
+23.10.14.1
 ==========
  + Fixed DLSS AppID override option not turning off when unchecked
  + Hooked additional D3D11/D3D12 NGX Init functions

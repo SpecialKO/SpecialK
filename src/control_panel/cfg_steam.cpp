@@ -529,7 +529,8 @@ SK::ControlPanel::Steam::DrawFooter (void)
     bool pause =
       SK_SteamAPI_GetOverlayState (false);
 
-    if (ImGui::Selectable ( "SteamAPI Frame", &pause, SK::SteamAPI::IsOverlayAware () ? 0 : ImGuiSelectableFlags_Disabled) &&
+    // New version of ImGui doesn't allow right-clicking disabled items, so we have to break this to fix it.
+    if (ImGui::Selectable ( "SteamAPI Frame", &pause/*, SK::SteamAPI::IsOverlayAware () ? 0 : ImGuiSelectableFlags_Disabled*/) &&
                                                       SK::SteamAPI::IsOverlayAware ())
     {
       SK_SteamAPI_SetOverlayState (pause);
