@@ -38,7 +38,7 @@ using NVSDK_NGX_D3D12_Init_Ext_pfn                = NVSDK_NGX_Result (NVSDK_CONV
 <<<<<<< HEAD
 using NVSDK_NGX_D3D12_Init_ProjectID_pfn = NVSDK_NGX_Result (NVSDK_CONV *)(const char *InProjectId, NVSDK_NGX_EngineType InEngineType, const char *InEngineVersion, const wchar_t *InApplicationDataPath, ID3D12Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion);
 =======
-using NVSDK_NGX_D3D12_Init_ProjectID_pfn = NVSDK_NGX_Result (NVSDK_CONV *)(const char *InProjectId, NVSDK_NGX_EngineType InEngineType, const char *InEngineVersion, const wchar_t *InApplicationDataPath, class ID3D12Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion);
+using NVSDK_NGX_D3D12_Init_ProjectID_pfn = NVSDK_NGX_Result (NVSDK_CONV *)(const char *InProjectId, NVSDK_NGX_EngineType InEngineType, const char *InEngineVersion, const wchar_t *InApplicationDataPath, ID3D12Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion);
 >>>>>>> a8ab4b7cb75a64c628871a58c3c071c28a755e29
 
 using NVSDK_NGX_D3D12_DestroyParameters_pfn       = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter*   InParameters);
@@ -112,11 +112,7 @@ NVSDK_NGX_D3D12_Init_Ext_Detour (unsigned long long InApplicationId, const wchar
 
 NVSDK_NGX_Result
 NVSDK_CONV
-<<<<<<< HEAD
 NVSDK_NGX_D3D12_Init_ProjectID_Detour (const char *InProjectId, NVSDK_NGX_EngineType InEngineType, const char *InEngineVersion, const wchar_t *InApplicationDataPath, ID3D12Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion)
-=======
-NVSDK_NGX_D3D12_Init_ProjectID_Detour (const char *InProjectId, NVSDK_NGX_EngineType InEngineType, const char *InEngineVersion, const wchar_t *InApplicationDataPath, class ID3D12Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion)
->>>>>>> a8ab4b7cb75a64c628871a58c3c071c28a755e29
 {
   SK_LOG_FIRST_CALL
 

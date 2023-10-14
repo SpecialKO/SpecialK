@@ -35,11 +35,7 @@ typedef void (NVSDK_CONV *PFN_NVSDK_NGX_ProgressCallback)(float InCurrentProgres
 
 using NVSDK_NGX_D3D11_Init_pfn                    = NVSDK_NGX_Result (NVSDK_CONV *)(unsigned long long InApplicationId, const wchar_t *InApplicationDataPath, ID3D11Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion);
 using NVSDK_NGX_D3D11_Init_Ext_pfn                = NVSDK_NGX_Result (NVSDK_CONV *)(unsigned long long InApplicationId, const wchar_t *InApplicationDataPath, ID3D11Device *InDevice, void* Unknown4, void* Unknown5);
-<<<<<<< HEAD
 using NVSDK_NGX_D3D11_Init_ProjectID_pfn          = NVSDK_NGX_Result (NVSDK_CONV *)(const char *InProjectId, NVSDK_NGX_EngineType InEngineType, const char *InEngineVersion, const wchar_t *InApplicationDataPath, ID3D11Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion);
-=======
-using NVSDK_NGX_D3D11_Init_ProjectID_pfn          = NVSDK_NGX_Result (NVSDK_CONV *)(const char *InProjectId, NVSDK_NGX_EngineType InEngineType, const char *InEngineVersion, const wchar_t *InApplicationDataPath, class ID3D11Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion);
->>>>>>> a8ab4b7cb75a64c628871a58c3c071c28a755e29
 
 using NVSDK_NGX_D3D11_DestroyParameters_pfn       = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter*   InParameters);
 using NVSDK_NGX_D3D11_GetParameters_pfn           = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter** OutParameters);
