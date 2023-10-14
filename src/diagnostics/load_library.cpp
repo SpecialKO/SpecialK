@@ -538,6 +538,12 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
       extern void SK_NGX_Init (void);
                   SK_NGX_Init ();
     }
+    else if (   StrStrI ( lpFileName, SK_TEXT("nvngx_dlssg.dll")) ||
+                StrStrIW (wszModName,        L"nvngx_dlssg.dll") )
+    {
+      extern void SK_NGX_EstablishDLSSGVersion (void) noexcept;
+                  SK_NGX_EstablishDLSSGVersion ();
+    }
 
 #if 0
     if (! config.platform.silent) {

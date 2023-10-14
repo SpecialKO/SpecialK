@@ -207,6 +207,8 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
   {
     if (InFeatureID == NVSDK_NGX_Feature_FrameGeneration)
     {
+      SK_NGX_EstablishDLSSGVersion ();
+
       SK_ReleaseAssert ( SK_NGX_DLSS12.frame_gen.Handle == *OutHandle ||
                          SK_NGX_DLSS12.frame_gen.Handle == nullptr );
 
@@ -253,6 +255,12 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
                           GetNGXResultAsString (ret)      :
                           L"Unknown Result"
     );
+
+    if (ret == NVSDK_NGX_Result_FAIL_InvalidParameter ||
+        ret == NVSDK_NGX_Result_FAIL_UnsupportedParameter)
+    {
+      SK_RunOnce (SK_NGX_DumpParameters (InParameters));
+    }
   }
 
   return ret;
@@ -318,6 +326,28 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
     else if (InFeatureHandle == SK_NGX_DLSS12.super_sampling.Handle)
     {
       WriteULong64Release (&SK_NGX_DLSS12.super_sampling.LastFrame, SK_GetFramesDrawn ());
+    }
+  }
+
+  else
+  {
+    const wchar_t* wszFeatureName =
+      (InFeatureHandle == SK_NGX_DLSS12.frame_gen.Handle)      ? L"DLSS Frame Generation" :
+      (InFeatureHandle == SK_NGX_DLSS12.super_sampling.Handle) ? L"DLSS"                  :
+                                                                 L"Unknown Feature";
+
+    SK_LOGi0 (
+      L"NVSDK_NGX_D3D12_EvaluateFeature (%p, %ws, %p, %p) Failed - %x (%ws)",
+        InCmdList, wszFeatureName, InParameters, InCallback, ret,
+                          GetNGXResultAsString != nullptr ?
+                          GetNGXResultAsString (ret)      :
+                          L"Unknown Result"
+    );
+
+    if (ret == NVSDK_NGX_Result_FAIL_InvalidParameter ||
+        ret == NVSDK_NGX_Result_FAIL_UnsupportedParameter)
+    {
+      SK_RunOnce (SK_NGX_DumpParameters (InParameters));
     }
   }
 

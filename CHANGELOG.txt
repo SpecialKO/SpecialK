@@ -1,22 +1,14 @@
-﻿23.10.13.4
+﻿23.10.13.x
 ==========
- + Fixed potential crash when querying DLSS internal resolution while
-     DLSS Frame Generation is enabled
-
-23.10.13.3
-==========
- + Added EAC Bypass for Lords of the Fallen 2 (or whatever it's called)
-
-23.10.13.2
-==========
- + Added DLSS Resolution Scale override; game restart almost always required
- + Added DLSS Dynamic Resolution Scale override
-
-23.10.13.1
-==========
- + Changed DLSS Preset override names from N/A to Game Default and
-     Default to DLSS Default
- + Use a game's window title in the control panel if it is not Steam or EGS
+ [.5] + Added DLSS-G DLL version to DLSS control panel
+ [.4] + Fixed potential crash when querying DLSS internal resolution while
+          DLSS Frame Generation is enabled
+ [.3] + Added EAC Bypass for Lords of the Fallen 2 (or whatever it's called)
+ [.2] + Added DLSS Resolution Scale override; game restart almost always required
+ [.2] + Added DLSS Dynamic Resolution Scale override
+ [.1] + Changed DLSS Preset override names from N/A to Game Default and
+          Default to DLSS Default
+ [.1] + Use a game's window title in the control panel if it is not Steam or EGS
 
 23.10.13
 ========

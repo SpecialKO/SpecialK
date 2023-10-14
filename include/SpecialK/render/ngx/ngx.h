@@ -34,7 +34,8 @@ struct NGX_ThreadSafety {
 
 extern SK_LazyGlobal <NGX_ThreadSafety> SK_NGX_Threading;
 
-void SK_NGX_EstablishDLSSVersion (void) noexcept;
+void SK_NGX_EstablishDLSSVersion  (void) noexcept;
+void SK_NGX_EstablishDLSSGVersion (void) noexcept;
 
 struct SK_DLSS_Context
 {
@@ -79,17 +80,17 @@ struct SK_DLSS_Context
 extern SK_DLSS_Context SK_NGX_DLSS12;
 extern SK_DLSS_Context SK_NGX_DLSS11;
 
-void             NVSDK_CONV NVSDK_NGX_Parameter_SetI_Detour           (NVSDK_NGX_Parameter* InParameter, const char* InName, int            InValue);
-void             NVSDK_CONV NVSDK_NGX_Parameter_SetUI_Detour          (NVSDK_NGX_Parameter* InParameter, const char* InName, unsigned int   InValue);
-void             NVSDK_CONV NVSDK_NGX_Parameter_SetF_Detour           (NVSDK_NGX_Parameter* InParameter, const char* InName, float          InValue);
-NVSDK_NGX_Result NVSDK_CONV NVSDK_NGX_Parameter_GetVoidPointer_Detour (NVSDK_NGX_Parameter* InParameter, const char* InName, void        **OutValue);
-NVSDK_NGX_Result NVSDK_CONV NVSDK_NGX_Parameter_GetUI_Detour          (NVSDK_NGX_Parameter* InParameter, const char* InName, unsigned int *OutValue);
+void             NVSDK_CONV NVSDK_NGX_Parameter_SetI_Detour           (      NVSDK_NGX_Parameter* InParameter, const char* InName, int            InValue);
+void             NVSDK_CONV NVSDK_NGX_Parameter_SetUI_Detour          (      NVSDK_NGX_Parameter* InParameter, const char* InName, unsigned int   InValue);
+void             NVSDK_CONV NVSDK_NGX_Parameter_SetF_Detour           (      NVSDK_NGX_Parameter* InParameter, const char* InName, float          InValue);
+NVSDK_NGX_Result NVSDK_CONV NVSDK_NGX_Parameter_GetVoidPointer_Detour (const NVSDK_NGX_Parameter* InParameter, const char* InName, void        **OutValue);
+NVSDK_NGX_Result NVSDK_CONV NVSDK_NGX_Parameter_GetUI_Detour          (const NVSDK_NGX_Parameter* InParameter, const char* InName, unsigned int *OutValue);
 
-using NVSDK_NGX_Parameter_SetF_pfn           = void             (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName,          float InValue);
-using NVSDK_NGX_Parameter_SetI_pfn           = void             (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName,          int   InValue);
-using NVSDK_NGX_Parameter_SetUI_pfn          = void             (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName, unsigned int   InValue);
-using NVSDK_NGX_Parameter_GetUI_pfn          = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName, unsigned int* OutValue);
-using NVSDK_NGX_Parameter_GetVoidPointer_pfn = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName, void**        OutValue);
+using NVSDK_NGX_Parameter_SetF_pfn           = void             (NVSDK_CONV *)(      NVSDK_NGX_Parameter *InParameter, const char* InName,          float InValue);
+using NVSDK_NGX_Parameter_SetI_pfn           = void             (NVSDK_CONV *)(      NVSDK_NGX_Parameter *InParameter, const char* InName,          int   InValue);
+using NVSDK_NGX_Parameter_SetUI_pfn          = void             (NVSDK_CONV *)(      NVSDK_NGX_Parameter *InParameter, const char* InName, unsigned int   InValue);
+using NVSDK_NGX_Parameter_GetUI_pfn          = NVSDK_NGX_Result (NVSDK_CONV *)(const NVSDK_NGX_Parameter *InParameter, const char* InName, unsigned int* OutValue);
+using NVSDK_NGX_Parameter_GetVoidPointer_pfn = NVSDK_NGX_Result (NVSDK_CONV *)(const NVSDK_NGX_Parameter *InParameter, const char* InName, void**        OutValue);
 
 extern NVSDK_NGX_Parameter_SetF_pfn           NVSDK_NGX_Parameter_SetF_Original;
 extern NVSDK_NGX_Parameter_SetI_pfn           NVSDK_NGX_Parameter_SetI_Original;
@@ -103,3 +104,5 @@ extern GetNGXResultAsString_pfn GetNGXResultAsString;
 
 bool SK_NGX_HookParameters (NVSDK_NGX_Parameter *Params);
 void SK_NGX_Reset          (void);
+
+void SK_NGX_DumpParameters (const NVSDK_NGX_Parameter *Params);

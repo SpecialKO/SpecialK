@@ -171,7 +171,7 @@ NVSDK_NGX_Parameter_SetUI_Detour (NVSDK_NGX_Parameter* InParameter, const char* 
 
 NVSDK_NGX_Result
 NVSDK_CONV
-NVSDK_NGX_Parameter_GetVoidPointer_Detour (NVSDK_NGX_Parameter *InParameter, const char *InName, void **OutValue)
+NVSDK_NGX_Parameter_GetVoidPointer_Detour (const NVSDK_NGX_Parameter *InParameter, const char *InName, void **OutValue)
 {
   SK_LOG_FIRST_CALL
 
@@ -183,7 +183,7 @@ NVSDK_NGX_Parameter_GetVoidPointer_Detour (NVSDK_NGX_Parameter *InParameter, con
 
 NVSDK_NGX_Result
 NVSDK_CONV
-NVSDK_NGX_Parameter_GetUI_Detour (NVSDK_NGX_Parameter *InParameter, const char *InName, unsigned int *OutValue)
+NVSDK_NGX_Parameter_GetUI_Detour (const NVSDK_NGX_Parameter *InParameter, const char *InName, unsigned int *OutValue)
 {
   SK_LOG_FIRST_CALL
 
@@ -204,7 +204,8 @@ NVSDK_NGX_Parameter_GetUI_Detour (NVSDK_NGX_Parameter *InParameter, const char *
       if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Height)) { NVSDK_NGX_Parameter_GetUI_Detour   (InParameter, NVSDK_NGX_Parameter_OutHeight, OutValue); *OutValue -= 2; }
     }
 
-    else if (StrStrIA (InName, "Width") || StrStrIA (InName, "Height"))
+    else if ( StrStrIA (InName, "Width") ||
+              StrStrIA (InName, "Height") )
     {
       unsigned int dlss_perf_qual;
 
@@ -225,13 +226,17 @@ NVSDK_NGX_Parameter_GetUI_Detour (NVSDK_NGX_Parameter *InParameter, const char *
 
       if (scale != 0.0f)
       {
-        if (! _stricmp (InName, NVSDK_NGX_Parameter_OutWidth))  { NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_Width,  OutValue); *OutValue = sk::narrow_cast <UINT> (*OutValue * scale); NVSDK_NGX_Parameter_SetUI_Original (InParameter, NVSDK_NGX_Parameter_OutWidth,  *OutValue); }
-        if (! _stricmp (InName, NVSDK_NGX_Parameter_OutHeight)) { NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_Height, OutValue); *OutValue = sk::narrow_cast <UINT> (*OutValue * scale); NVSDK_NGX_Parameter_SetUI_Original (InParameter, NVSDK_NGX_Parameter_OutHeight, *OutValue); }
+        if (! _stricmp (InName, NVSDK_NGX_Parameter_OutWidth))  { NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_Width,  OutValue); *OutValue = sk::narrow_cast <UINT> (*OutValue * scale); NVSDK_NGX_Parameter_SetUI_Original ((NVSDK_NGX_Parameter *)InParameter, NVSDK_NGX_Parameter_OutWidth,  *OutValue); }
+        if (! _stricmp (InName, NVSDK_NGX_Parameter_OutHeight)) { NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_Height, OutValue); *OutValue = sk::narrow_cast <UINT> (*OutValue * scale); NVSDK_NGX_Parameter_SetUI_Original ((NVSDK_NGX_Parameter *)InParameter, NVSDK_NGX_Parameter_OutHeight, *OutValue); }
 
-        if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Width))  { NVSDK_NGX_Parameter_GetUI_Detour (InParameter, NVSDK_NGX_Parameter_OutWidth,  OutValue); *OutValue = sk::narrow_cast <UINT> (*OutValue * config.nvidia.dlss.scale.dynamic_max) + 2; }
-        if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Height)) { NVSDK_NGX_Parameter_GetUI_Detour (InParameter, NVSDK_NGX_Parameter_OutHeight, OutValue); *OutValue = sk::narrow_cast <UINT> (*OutValue * config.nvidia.dlss.scale.dynamic_max) + 2; }
-        if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Width))  { NVSDK_NGX_Parameter_GetUI_Detour (InParameter, NVSDK_NGX_Parameter_OutWidth,  OutValue); *OutValue = sk::narrow_cast <UINT> (*OutValue * config.nvidia.dlss.scale.dynamic_min) - 2; }
-        if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Height)) { NVSDK_NGX_Parameter_GetUI_Detour (InParameter, NVSDK_NGX_Parameter_OutHeight, OutValue); *OutValue = sk::narrow_cast <UINT> (*OutValue * config.nvidia.dlss.scale.dynamic_min) - 2; }
+        if (!_stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Width))  { unsigned int ui_max_width = 0; NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Width, &ui_max_width); 
+         NVSDK_NGX_Parameter_GetUI_Detour (InParameter, NVSDK_NGX_Parameter_OutWidth, OutValue); *OutValue = std::max (1u, std::min (sk::narrow_cast <UINT> (*OutValue * config.nvidia.dlss.scale.dynamic_max)  + 2, ui_max_width));  }
+        if (!_stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Height)) { unsigned int ui_max_height = 0; NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Height, &ui_max_height); 
+         NVSDK_NGX_Parameter_GetUI_Detour (InParameter, NVSDK_NGX_Parameter_OutHeight, OutValue); *OutValue = std::max (1u, std::min (sk::narrow_cast <UINT> (*OutValue * config.nvidia.dlss.scale.dynamic_max) + 2, ui_max_height)); }
+        if (!_stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Width))  { unsigned int ui_min_width = 0; NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Width, &ui_min_width); 
+         NVSDK_NGX_Parameter_GetUI_Detour (InParameter, NVSDK_NGX_Parameter_OutWidth, OutValue); *OutValue = std::max (1u, std::max (sk::narrow_cast <UINT> (*OutValue * config.nvidia.dlss.scale.dynamic_min)  - 2, ui_min_width));  }
+        if (!_stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Height)) { unsigned int ui_min_height = 0; NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Height, &ui_min_height); 
+         NVSDK_NGX_Parameter_GetUI_Detour (InParameter, NVSDK_NGX_Parameter_OutHeight, OutValue); *OutValue = std::max (1u, std::max (sk::narrow_cast <UINT> (*OutValue * config.nvidia.dlss.scale.dynamic_min) - 2, ui_min_height)); }
       }
     }
 
@@ -353,13 +358,42 @@ SK_NGX_EstablishDLSSVersion (void) noexcept
   }
 }
 
+void
+SK_NGX_EstablishDLSSGVersion (void) noexcept
+{
+  static bool bHasVersion = false;
+
+  if (bHasVersion)
+    return;
+
+  if (! GetModuleHandleW (L"nvngx_dlssg.dll"))
+    return;
+
+  std::swscanf (
+    SK_GetDLLVersionShort (L"nvngx_dlssg.dll").c_str (), L"%d,%d,%d,%d",
+      &SK_DLSS_Context::dlssg_s::Version.major, &SK_DLSS_Context::dlssg_s::Version.minor,
+      &SK_DLSS_Context::dlssg_s::Version.build, &SK_DLSS_Context::dlssg_s::Version.revision
+  );
+
+  bHasVersion = true;
+}
+
 SK_DLSS_Context::version_s
-SK_NGX_GetDLSSVersion (void)
+SK_NGX_GetDLSSVersion (void) noexcept
 {
   if (     SK_NGX_DLSS12.apis_called)
     return SK_NGX_DLSS12.super_sampling.Version;
 
   return SK_NGX_DLSS11.super_sampling.Version;
+}
+
+SK_DLSS_Context::version_s
+SK_NGX_GetDLSSGVersion (void) noexcept
+{
+  if (     SK_NGX_DLSS12.apis_called)
+    return SK_NGX_DLSS12.frame_gen.Version;
+
+  return SK_NGX_DLSS11.frame_gen.Version;
 }
 
 bool
@@ -692,23 +726,15 @@ SK_NGX_DLSS_ControlPanel (void)
         static auto dlss_version =
           SK_NGX_GetDLSSVersion ();
 
+        static auto dlssg_version =
+          SK_NGX_GetDLSSGVersion ();
+
         // Removed in 2.5.1
         static const bool bHasSharpening =
           SK_DLSS_Context::dlss_s::hasSharpening ();
 
         static const bool bHasDLAAQualityLevel =
           SK_DLSS_Context::dlss_s::hasDLAAQualityLevel ();
-
-        using NVSDK_NGX_Parameter_SetF_pfn           = void             (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName,          float InValue);
-        using NVSDK_NGX_Parameter_SetI_pfn           = void             (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName,          int   InValue);
-        using NVSDK_NGX_Parameter_SetUI_pfn          = void             (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName, unsigned int   InValue);
-        using NVSDK_NGX_Parameter_GetUI_pfn          = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName, unsigned int* OutValue);
-        using NVSDK_NGX_Parameter_GetVoidPointer_pfn = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter *InParameter, const char* InName, void**        OutValue);
-
-        extern NVSDK_NGX_Parameter_SetF_pfn  NVSDK_NGX_Parameter_SetF_Original;
-        extern NVSDK_NGX_Parameter_SetI_pfn  NVSDK_NGX_Parameter_SetI_Original;
-        extern NVSDK_NGX_Parameter_SetUI_pfn NVSDK_NGX_Parameter_SetUI_Original;
-        extern NVSDK_NGX_Parameter_GetUI_pfn NVSDK_NGX_Parameter_GetUI_Original;
 
         static bool restart_required = false;
   
@@ -1072,8 +1098,16 @@ SK_NGX_DLSS_ControlPanel (void)
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
 
-        ImGui::Text ( "DLSS Version:\t%d.%d.%d", dlss_version.major, dlss_version.minor,
-                                                 dlss_version.build );
+        ImGui::Text ( "DLSS Version:\t%d.%d.%d\t", dlss_version.major, dlss_version.minor,
+                                                   dlss_version.build );
+
+        if (dlssg_version.major > 0)
+        {
+          ImGui::SameLine ();
+
+          ImGui::Text ( "DLSS-G Version:\t%d.%d.%d", dlssg_version.major, dlssg_version.minor,
+                                                     dlssg_version.build );
+        }
 
         static bool bRestartNeeded = false;
 
@@ -1213,4 +1247,266 @@ SK_NGX_Reset (void)
 {
   WriteULong64Release (&SK_NGX_DLSS11.super_sampling.ResetFrame, SK_GetFramesDrawn () + 1);
   WriteULong64Release (&SK_NGX_DLSS12.super_sampling.ResetFrame, SK_GetFramesDrawn () + 1);
+}
+
+void
+SK_NGX_DumpParameters (const NVSDK_NGX_Parameter *Params)
+{
+  auto param_list = std::vector <const char *> {
+    NVSDK_NGX_Parameter_OptLevel                                   ,
+    NVSDK_NGX_Parameter_IsDevSnippetBranch                         ,
+    NVSDK_NGX_Parameter_SuperSampling_ScaleFactor                  ,
+    NVSDK_NGX_Parameter_ImageSignalProcessing_ScaleFactor          ,
+    NVSDK_NGX_Parameter_SuperSampling_Available                    ,
+    NVSDK_NGX_Parameter_InPainting_Available                       ,
+    NVSDK_NGX_Parameter_ImageSuperResolution_Available             ,
+    NVSDK_NGX_Parameter_SlowMotion_Available                       ,
+    NVSDK_NGX_Parameter_VideoSuperResolution_Available             ,
+    NVSDK_NGX_Parameter_ImageSignalProcessing_Available            ,
+    NVSDK_NGX_Parameter_DeepResolve_Available                      ,
+    NVSDK_NGX_Parameter_DeepDVC_Available                          ,
+    NVSDK_NGX_Parameter_SuperSampling_NeedsUpdatedDriver           ,
+    NVSDK_NGX_Parameter_InPainting_NeedsUpdatedDriver              ,
+    NVSDK_NGX_Parameter_ImageSuperResolution_NeedsUpdatedDriver    ,
+    NVSDK_NGX_Parameter_SlowMotion_NeedsUpdatedDriver              ,
+    NVSDK_NGX_Parameter_VideoSuperResolution_NeedsUpdatedDriver    ,
+    NVSDK_NGX_Parameter_ImageSignalProcessing_NeedsUpdatedDriver   ,
+    NVSDK_NGX_Parameter_DeepResolve_NeedsUpdatedDriver             ,
+    NVSDK_NGX_Parameter_DeepDVC_NeedsUpdatedDriver                 ,
+    NVSDK_NGX_Parameter_FrameInterpolation_NeedsUpdatedDriver      ,
+    NVSDK_NGX_Parameter_SuperSampling_MinDriverVersionMajor        ,
+    NVSDK_NGX_Parameter_InPainting_MinDriverVersionMajor           ,
+    NVSDK_NGX_Parameter_ImageSuperResolution_MinDriverVersionMajor ,
+    NVSDK_NGX_Parameter_SlowMotion_MinDriverVersionMajor           ,
+    NVSDK_NGX_Parameter_VideoSuperResolution_MinDriverVersionMajor ,
+    NVSDK_NGX_Parameter_ImageSignalProcessing_MinDriverVersionMajor,
+    NVSDK_NGX_Parameter_DeepResolve_MinDriverVersionMajor          ,
+    NVSDK_NGX_Parameter_DeepDVC_MinDriverVersionMajor              ,
+    NVSDK_NGX_Parameter_FrameInterpolation_MinDriverVersionMajor   ,
+    NVSDK_NGX_Parameter_SuperSampling_MinDriverVersionMinor        ,
+    NVSDK_NGX_Parameter_InPainting_MinDriverVersionMinor           ,
+    NVSDK_NGX_Parameter_ImageSuperResolution_MinDriverVersionMinor ,
+    NVSDK_NGX_Parameter_SlowMotion_MinDriverVersionMinor           ,
+    NVSDK_NGX_Parameter_VideoSuperResolution_MinDriverVersionMinor ,
+    NVSDK_NGX_Parameter_ImageSignalProcessing_MinDriverVersionMinor,
+    NVSDK_NGX_Parameter_DeepResolve_MinDriverVersionMinor          ,
+    NVSDK_NGX_Parameter_DeepDVC_MinDriverVersionMinor              ,
+    NVSDK_NGX_Parameter_SuperSampling_FeatureInitResult            ,
+    NVSDK_NGX_Parameter_InPainting_FeatureInitResult               ,
+    NVSDK_NGX_Parameter_ImageSuperResolution_FeatureInitResult     ,
+    NVSDK_NGX_Parameter_SlowMotion_FeatureInitResult               ,
+    NVSDK_NGX_Parameter_VideoSuperResolution_FeatureInitResult     ,
+    NVSDK_NGX_Parameter_ImageSignalProcessing_FeatureInitResult    ,
+    NVSDK_NGX_Parameter_DeepResolve_FeatureInitResult              ,
+    NVSDK_NGX_Parameter_DeepDVC_FeatureInitResult                  ,
+    NVSDK_NGX_Parameter_FrameInterpolation_FeatureInitResult       ,
+    NVSDK_NGX_Parameter_ImageSuperResolution_ScaleFactor_2_1       ,
+    NVSDK_NGX_Parameter_ImageSuperResolution_ScaleFactor_3_1       ,
+    NVSDK_NGX_Parameter_ImageSuperResolution_ScaleFactor_3_2       ,
+    NVSDK_NGX_Parameter_ImageSuperResolution_ScaleFactor_4_3       ,
+    NVSDK_NGX_Parameter_DeepDVC_Strength                           ,
+    NVSDK_NGX_Parameter_NumFrames                                  ,
+    NVSDK_NGX_Parameter_Scale                                      ,
+    NVSDK_NGX_Parameter_Width                                      ,
+    NVSDK_NGX_Parameter_Height                                     ,
+    NVSDK_NGX_Parameter_OutWidth                                   ,
+    NVSDK_NGX_Parameter_OutHeight                                  ,
+    NVSDK_NGX_Parameter_Sharpness                                  ,
+    NVSDK_NGX_Parameter_Scratch                                    ,
+    NVSDK_NGX_Parameter_Scratch_SizeInBytes                        ,
+    NVSDK_NGX_Parameter_Input1                                     ,
+    NVSDK_NGX_Parameter_Input1_Format                              ,
+    NVSDK_NGX_Parameter_Input1_SizeInBytes                         ,
+    NVSDK_NGX_Parameter_Input2                                     ,
+    NVSDK_NGX_Parameter_Input2_Format                              ,
+    NVSDK_NGX_Parameter_Input2_SizeInBytes                         ,
+    NVSDK_NGX_Parameter_Color                                      ,
+    NVSDK_NGX_Parameter_Color_Format                               ,
+    NVSDK_NGX_Parameter_Color_SizeInBytes                          ,
+    NVSDK_NGX_Parameter_FI_Color1                                  ,
+    NVSDK_NGX_Parameter_FI_Color2                                  ,
+    NVSDK_NGX_Parameter_Albedo                                     ,
+    NVSDK_NGX_Parameter_Output                                     ,
+    NVSDK_NGX_Parameter_Output_SizeInBytes                         ,
+    NVSDK_NGX_Parameter_FI_Output1                                 ,
+    NVSDK_NGX_Parameter_FI_Output2                                 ,
+    NVSDK_NGX_Parameter_FI_Output3                                 ,
+    NVSDK_NGX_Parameter_Reset                                      ,
+    NVSDK_NGX_Parameter_BlendFactor                                ,
+    NVSDK_NGX_Parameter_MotionVectors                              ,
+    NVSDK_NGX_Parameter_FI_MotionVectors1                          ,
+    NVSDK_NGX_Parameter_FI_MotionVectors2                          ,
+    NVSDK_NGX_Parameter_Rect_X                                     ,
+    NVSDK_NGX_Parameter_Rect_Y                                     ,
+    NVSDK_NGX_Parameter_Rect_W                                     ,
+    NVSDK_NGX_Parameter_Rect_H                                     ,
+    NVSDK_NGX_Parameter_MV_Scale_X                                 ,
+    NVSDK_NGX_Parameter_MV_Scale_Y                                 ,
+    NVSDK_NGX_Parameter_Model                                      ,
+    NVSDK_NGX_Parameter_Format                                     ,
+    NVSDK_NGX_Parameter_SizeInBytes                                ,
+    NVSDK_NGX_Parameter_ResourceAllocCallback                      ,
+    NVSDK_NGX_Parameter_BufferAllocCallback                        ,
+    NVSDK_NGX_Parameter_Tex2DAllocCallback                         ,
+    NVSDK_NGX_Parameter_ResourceReleaseCallback                    ,
+    NVSDK_NGX_Parameter_CreationNodeMask                           ,
+    NVSDK_NGX_Parameter_VisibilityNodeMask                         ,
+    NVSDK_NGX_Parameter_MV_Offset_X                                ,
+    NVSDK_NGX_Parameter_MV_Offset_Y                                ,
+    NVSDK_NGX_Parameter_Hint_UseFireflySwatter                     ,
+    NVSDK_NGX_Parameter_Resource_Width                             ,
+    NVSDK_NGX_Parameter_Resource_Height                            ,
+    NVSDK_NGX_Parameter_Resource_OutWidth                          ,
+    NVSDK_NGX_Parameter_Resource_OutHeight                         ,
+    NVSDK_NGX_Parameter_Depth                                      ,
+    NVSDK_NGX_Parameter_FI_Depth1                                  ,
+    NVSDK_NGX_Parameter_FI_Depth2                                  ,
+    NVSDK_NGX_Parameter_DLSSOptimalSettingsCallback                ,
+    NVSDK_NGX_Parameter_DLSSGetStatsCallback                       ,
+    NVSDK_NGX_Parameter_PerfQualityValue                           ,
+    NVSDK_NGX_Parameter_RTXValue                                   ,
+    NVSDK_NGX_Parameter_DLSSMode                                   ,
+    NVSDK_NGX_Parameter_FI_Mode                                    ,
+    NVSDK_NGX_Parameter_FI_OF_Preset                               ,
+    NVSDK_NGX_Parameter_FI_OF_GridSize                             ,
+    NVSDK_NGX_Parameter_Jitter_Offset_X                            ,
+    NVSDK_NGX_Parameter_Jitter_Offset_Y                            ,
+    NVSDK_NGX_Parameter_Denoise                                    ,
+    NVSDK_NGX_Parameter_TransparencyMask                           ,
+    NVSDK_NGX_Parameter_ExposureTexture                            ,
+    NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags                  ,
+    NVSDK_NGX_Parameter_DLSS_Checkerboard_Jitter_Hack              ,
+    NVSDK_NGX_Parameter_GBuffer_Normals                            ,
+    NVSDK_NGX_Parameter_GBuffer_Albedo                             ,
+    NVSDK_NGX_Parameter_GBuffer_Roughness                          ,
+    NVSDK_NGX_Parameter_GBuffer_DiffuseAlbedo                      ,
+    NVSDK_NGX_Parameter_GBuffer_SpecularAlbedo                     ,
+    NVSDK_NGX_Parameter_GBuffer_IndirectAlbedo                     ,
+    NVSDK_NGX_Parameter_GBuffer_SpecularMvec                       ,
+    NVSDK_NGX_Parameter_GBuffer_DisocclusionMask                   ,
+    NVSDK_NGX_Parameter_GBuffer_Metallic                           ,
+    NVSDK_NGX_Parameter_GBuffer_Specular                           ,
+    NVSDK_NGX_Parameter_GBuffer_Subsurface                         ,
+    NVSDK_NGX_Parameter_GBuffer_ShadingModelId                     ,
+    NVSDK_NGX_Parameter_GBuffer_MaterialId                         ,
+    NVSDK_NGX_Parameter_GBuffer_Atrrib_8                           ,
+    NVSDK_NGX_Parameter_GBuffer_Atrrib_9                           ,
+    NVSDK_NGX_Parameter_GBuffer_Atrrib_10                          ,
+    NVSDK_NGX_Parameter_GBuffer_Atrrib_11                          ,
+    NVSDK_NGX_Parameter_GBuffer_Atrrib_12                          ,
+    NVSDK_NGX_Parameter_GBuffer_Atrrib_13                          ,
+    NVSDK_NGX_Parameter_GBuffer_Atrrib_14                          ,
+    NVSDK_NGX_Parameter_GBuffer_Atrrib_15                          ,
+    NVSDK_NGX_Parameter_TonemapperType                             ,
+    NVSDK_NGX_Parameter_FreeMemOnReleaseFeature                    ,
+    NVSDK_NGX_Parameter_MotionVectors3D                            ,
+    NVSDK_NGX_Parameter_IsParticleMask                             ,
+    NVSDK_NGX_Parameter_AnimatedTextureMask                        ,
+    NVSDK_NGX_Parameter_DepthHighRes                               ,
+    NVSDK_NGX_Parameter_Position_ViewSpace                         ,
+    NVSDK_NGX_Parameter_FrameTimeDeltaInMsec                       ,
+    NVSDK_NGX_Parameter_RayTracingHitDistance                      ,
+    NVSDK_NGX_Parameter_MotionVectorsReflection                    ,
+    NVSDK_NGX_Parameter_DLSS_Enable_Output_Subrects                ,
+    NVSDK_NGX_Parameter_DLSS_Input_Color_Subrect_Base_X            ,
+    NVSDK_NGX_Parameter_DLSS_Input_Color_Subrect_Base_Y            ,
+    NVSDK_NGX_Parameter_DLSS_Input_Depth_Subrect_Base_X            ,
+    NVSDK_NGX_Parameter_DLSS_Input_Depth_Subrect_Base_Y            ,
+    NVSDK_NGX_Parameter_DLSS_Input_MV_SubrectBase_X                ,
+    NVSDK_NGX_Parameter_DLSS_Input_MV_SubrectBase_Y                ,
+    NVSDK_NGX_Parameter_DLSS_Input_Translucency_SubrectBase_X      ,
+    NVSDK_NGX_Parameter_DLSS_Input_Translucency_SubrectBase_Y      ,
+    NVSDK_NGX_Parameter_DLSS_Output_Subrect_Base_X                 ,
+    NVSDK_NGX_Parameter_DLSS_Output_Subrect_Base_Y                 ,
+    NVSDK_NGX_Parameter_DLSS_Render_Subrect_Dimensions_Width       ,
+    NVSDK_NGX_Parameter_DLSS_Render_Subrect_Dimensions_Height      ,
+    NVSDK_NGX_Parameter_DLSS_Pre_Exposure                          ,
+    NVSDK_NGX_Parameter_DLSS_Exposure_Scale                        ,
+    NVSDK_NGX_Parameter_DLSS_Input_Bias_Current_Color_Mask         ,
+    NVSDK_NGX_Parameter_DLSS_Input_Bias_Current_Color_SubrectBase_X,
+    NVSDK_NGX_Parameter_DLSS_Input_Bias_Current_Color_SubrectBase_Y,
+    NVSDK_NGX_Parameter_DLSS_Indicator_Invert_Y_Axis               ,
+    NVSDK_NGX_Parameter_DLSS_Indicator_Invert_X_Axis               ,
+    NVSDK_NGX_Parameter_DLSS_INV_VIEW_PROJECTION_MATRIX            ,
+    NVSDK_NGX_Parameter_DLSS_CLIP_TO_PREV_CLIP_MATRIX              ,
+
+    NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Width          ,
+    NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Height         ,
+    NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Width          ,
+    NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Height         ,
+
+    NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA               ,
+    NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality            ,
+    NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced           ,
+    NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance        ,
+    NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance   ,
+    NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraQuality
+  };
+
+  for ( auto& param : param_list )
+  {
+    unsigned int ui_value;
+
+    if ( NVSDK_NGX_Result_Success ==
+           NVSDK_NGX_Parameter_GetUI_Original (Params, param, &ui_value) )
+    {
+      SK_LOGi0 (L"%hs -> %u", param, ui_value);
+    }
+  }
+
+  for ( auto& param : param_list )
+  {
+    int i_value;
+
+    if ( NVSDK_NGX_Result_Success ==
+           Params->Get (param, &i_value) )
+           //NVSDK_NGX_Parameter_GetI_Original (Params, param, &i_value) )
+    {
+      SK_LOGi0 (L"%hs -> %i", param, i_value);
+    }
+  }
+
+  for ( auto& param : param_list )
+  {
+    void* p_value;
+
+    if ( NVSDK_NGX_Result_Success ==
+           Params->Get (param, &p_value) )
+    {
+      SK_LOGi0 (L"%hs -> %p", param, p_value);
+    }
+  }
+
+  for ( auto& param : param_list )
+  {
+    float f_value;
+
+    if ( NVSDK_NGX_Result_Success ==
+           Params->Get (param, &f_value) )
+    {
+      SK_LOGi0 (L"%hs -> %f", param, f_value);
+    }
+  }
+
+  for ( auto& param : param_list )
+  {
+    float d_value;
+
+    if ( NVSDK_NGX_Result_Success ==
+           Params->Get (param, &d_value) )
+    {
+      SK_LOGi0 (L"%hs -> %f", param, d_value);
+    }
+  }
+
+  for ( auto& param : param_list )
+  {
+    unsigned long long ull_value;
+
+    if ( NVSDK_NGX_Result_Success ==
+           Params->Get (param, &ull_value) )
+    {
+      SK_LOGi0 (L"%hs -> %llu", param, ull_value);
+    }
+  }
 }
