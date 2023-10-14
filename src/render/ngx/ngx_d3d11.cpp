@@ -109,11 +109,7 @@ NVSDK_NGX_D3D11_Init_Ext_Detour (unsigned long long InApplicationId, const wchar
 
 NVSDK_NGX_Result
 NVSDK_CONV
-<<<<<<< HEAD
 NVSDK_NGX_D3D11_Init_ProjectID_Detour (const char *InProjectId, NVSDK_NGX_EngineType InEngineType, const char *InEngineVersion, const wchar_t *InApplicationDataPath, ID3D11Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion)
-=======
-NVSDK_NGX_D3D11_Init_ProjectID_Detour (const char *InProjectId, NVSDK_NGX_EngineType InEngineType, const char *InEngineVersion, const wchar_t *InApplicationDataPath, class ID3D11Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion)
->>>>>>> a8ab4b7cb75a64c628871a58c3c071c28a755e29
 {
   SK_LOG_FIRST_CALL
 
