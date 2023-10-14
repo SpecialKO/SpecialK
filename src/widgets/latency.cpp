@@ -220,23 +220,44 @@ SK_ImGui_DrawGraph_Latency ()
         input.avg = 0.0;
     }
 
-    static double xs1[64], ys1[64],
-                  ys2[64], ys3[64], ys4[64], ys5[64];
+    static double frame_id [64], simulation [64],
+             render_submit [64], gpu_total  [64],
+                gpu_active [64], gpu_start  [64],
+                 fill_cpu0 [64], fill_gpu0  [64],
+                 fill_cpu1 [64], fill_gpu1  [64];
 
     double dCPU = 0.0;
     double dGPU = 0.0;
 
-    for (int i = 0; i < 64; ++i)
+    for (int i = 63; i >= 0; --i)
     {
-      xs1[i] = (float)i;
-      ys1[i] = sim.durations    [i];
-      ys2[i] = render.durations [i];
-      ys3[i] = gpu.durations    [i];
-      ys4[i] = static_cast <double> (gpu_frame_times [i].gpuActiveRenderTimeUs) / 1000.0;
-      ys5[i] = ys1[i]+ys2[i]; // Start of GPU-only workload
+      frame_id      [i] = (float)i;
+      simulation    [i] = sim.durations    [i];
+      render_submit [i] = render.durations [i];
+      gpu_total     [i] = gpu.durations    [i];
+      gpu_active    [i] = static_cast <double> (gpu_frame_times [i].gpuActiveRenderTimeUs) / 1000.0;
+      gpu_start     [i] = simulation    [i] +
+                          render_submit [i]; // Start of GPU-only workload
 
-      dCPU += ys5 [i];
-      dGPU += ys4 [i];
+      // 5% margin to prevent rapid graph shading inversion
+      if (gpu_active [i] * 1.05 < gpu_start [i])
+      {
+        fill_cpu0 [i] = gpu_start  [i];
+        fill_cpu1 [i] = gpu_active [i];
+        fill_gpu0 [i] = gpu_active [i];
+        fill_gpu1 [i] = 0.0;
+      }
+
+      else
+      {
+        fill_cpu0 [i] = 0.0;
+        fill_cpu1 [i] = gpu_start  [i];
+        fill_gpu0 [i] = gpu_start  [i];
+        fill_gpu1 [i] = gpu_active [i];
+      }
+
+      dCPU += gpu_start  [i];
+      dGPU += gpu_active [i];
     }
 
     dCPU /= 64.0;
@@ -259,10 +280,11 @@ SK_ImGui_DrawGraph_Latency ()
 
       if (show_lines)
       {
-        ImPlot::PlotLine ("Simulation",    xs1, ys1, 64);
-        ImPlot::PlotLine ("Render Submit", xs1, ys2, 64);
-        ImPlot::PlotLine ("GPU Scheduled", xs1, ys3, 64);
-        ImPlot::PlotLine ("GPU Busy",      xs1, ys4, 64);
+        ImPlot::PlotLine ("Simulation",    frame_id, simulation,    64);
+        ImPlot::PlotLine ("Render Submit", frame_id, render_submit, 64);
+        ImPlot::PlotLine ("GPU Scheduled", frame_id, gpu_total,     64);
+        ImPlot::PlotLine ("GPU Busy",      frame_id, gpu_active,    64);
+        ImPlot::PlotLine ("CPU Busy",      frame_id, gpu_start,     64);
       }
 
       if (show_fills)
@@ -270,19 +292,14 @@ SK_ImGui_DrawGraph_Latency ()
         ImPlot::DragLineY (0,&dGPU,ImVec4(1,0,0,1),1,ImPlotDragToolFlags_NoFit);
         ImPlot::DragLineY (0,&dCPU,ImVec4(0,0,1,1),1,ImPlotDragToolFlags_NoFit);
 
-        if (dGPU > dCPU * 1.25f)
+        if      (dGPU > dCPU * 1.333f)
           ImPlot::TagY (dGPU, ImVec4 (1,0,0,1), "GPU Bound");
-        else if (dCPU > dGPU * 1.25f)
+        else if (dCPU > dGPU * 1.333f)
           ImPlot::TagY (dCPU, ImVec4 (0,0,1,1), "CPU Bound");
 
-        ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.1f);
-      //ImPlot::PlotShaded   ("Simulation",    xs1, ys1, 64, -INFINITY, flags);
-      //ImPlot::PlotShaded   ("Render Submit", xs1, ys2, 64, -INFINITY, flags);
-      //ImPlot::PlotShaded   ("GPU Scheduled", xs1, ys3, 64, -INFINITY, flags);
-      //ImPlot::PlotShaded   ("GPU Busy",      xs1, ys4, 64, -INFINITY, flags);
-        ImPlot::PlotShaded   ("GPU Busy",      xs1, ys4, ys5, 64, flags);
-        ImPlot::PlotShaded   ("CPU Busy",      xs1, ys5, 64, -INFINITY, flags);
-      //ImPlot::PlotShaded   ("GPU Idle",      xs1, ys3, ys4, 64, flags);
+        ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.15f);
+        ImPlot::PlotShaded   ("GPU Busy", frame_id, fill_gpu0, fill_gpu1, 64, flags);
+        ImPlot::PlotShaded   ("CPU Busy", frame_id, fill_cpu0, fill_cpu1, 64, flags);
         ImPlot::PopStyleVar  ();
       }
       ImPlot::EndPlot ();

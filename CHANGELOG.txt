@@ -1,4 +1,9 @@
-﻿23.10.14.3
+﻿23.10.14.4
+==========
+ + Improved latency analysis graph's CPU/GPU Bound function and handling of
+     CPU/GPU load inversion.
+
+23.10.14.3
 ==========
  + Fixed Steam achievement screenshots not actually capturing the popup
  + Fixed haptic rumble not working in menus in games that don't use XInput

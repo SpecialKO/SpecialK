@@ -46,6 +46,10 @@
 #pragma fp_contract   (         off)
 #pragma fenv_access   (         off)
 
+float SK_LatentSyncAlpha             = 0.991f;
+float SK_LatentSyncDeltaMultiplier   = 0.075f;
+float SK_LatentSyncBackOffMultiplier = 1.010f;
+
 bool SK_HasHighResWaitableTimer = false;
 
 extern NtQueryTimerResolution_pfn NtQueryTimerResolution;
@@ -349,6 +353,17 @@ SK_ImGui_LatentSyncConfig (void)
     if (config.render.framerate.target_fps > 0.0f)
     {
       ImGui::TreePush ("");
+
+      static bool show_hidden = false;
+      if (ImGui::IsItemClicked (1))
+        show_hidden = true;
+
+      if (show_hidden)
+      {
+        ImGui::InputFloat ("Alpha",    &SK_LatentSyncAlpha);
+        ImGui::InputFloat ("DeltaMul", &SK_LatentSyncDeltaMultiplier);
+        ImGui::InputFloat ("BackOff",  &SK_LatentSyncBackOffMultiplier);
+      }
 
       const bool
         readjust_offset =
@@ -1494,7 +1509,7 @@ SK::Framerate::Limiter::wait (void)
     {
       extern bool
              __SK_DoubleUpOnReflex;
-      if ((! __SK_DoubleUpOnReflex) || SK_GetCurrentGameID () != SK_GAME_ID::Starfield)
+      if ((! __SK_DoubleUpOnReflex) || (SK_GetCurrentGameID () != SK_GAME_ID::Starfield && (! config.nvidia.reflex.combined_limiter)))
         return;
     }
   }
@@ -1918,13 +1933,24 @@ SK::Framerate::Limiter::wait (void)
         latency_avg.display [latency_avg.frames++ % _MAX_FRAMES] =
                     effective_frametime ();
 
+        float delta = 0.0f;
+
         if (latency_avg.getInput () > (config.render.framerate.latent_sync.auto_bias_target * 1.05f))
         {
-          config.render.framerate.latent_sync.delay_bias += static_cast <float> (effective_frametime () * 0.00025);
+          delta = (float)effective_frametime () * SK_LatentSyncDeltaMultiplier;
+
+          config.render.framerate.latent_sync.delay_bias =
+            SK_LatentSyncAlpha * config.render.framerate.latent_sync.delay_bias + (1.0f - SK_LatentSyncAlpha) * delta;
         }
 
         else if (latency_avg.getInput () < (config.render.framerate.latent_sync.auto_bias_target * .95f))
-          config.render.framerate.latent_sync.delay_bias -= static_cast <float> (effective_frametime () * 0.001);
+        {
+          delta = (float)effective_frametime () * SK_LatentSyncDeltaMultiplier * SK_LatentSyncBackOffMultiplier;
+
+          config.render.framerate.latent_sync.delay_bias =
+            SK_LatentSyncAlpha * config.render.framerate.latent_sync.delay_bias - (1.0f - SK_LatentSyncAlpha) * delta;
+          //config.render.framerate.latent_sync.delay_bias -= static_cast <float> (effective_frametime () * 0.000666);
+        }
 
         config.render.framerate.latent_sync.delay_bias =
           std::clamp (config.render.framerate.latent_sync.delay_bias, 0.0f, config.render.framerate.latent_sync.max_auto_bias);
