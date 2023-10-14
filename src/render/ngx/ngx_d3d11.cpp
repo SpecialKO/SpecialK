@@ -34,6 +34,7 @@ SK_DLSS_Context SK_NGX_DLSS11;
 typedef void (NVSDK_CONV *PFN_NVSDK_NGX_ProgressCallback)(float InCurrentProgress, bool &OutShouldCancel);
 
 using NVSDK_NGX_D3D11_Init_pfn                    = NVSDK_NGX_Result (NVSDK_CONV *)(unsigned long long InApplicationId, const wchar_t *InApplicationDataPath, ID3D11Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion);
+using NVSDK_NGX_D3D11_Init_Ext_pfn                = NVSDK_NGX_Result (NVSDK_CONV *)(unsigned long long InApplicationId, const wchar_t *InApplicationDataPath, ID3D11Device *InDevice, void* Unknown4, void* Unknown5);
 using NVSDK_NGX_D3D11_DestroyParameters_pfn       = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter*   InParameters);
 using NVSDK_NGX_D3D11_GetParameters_pfn           = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter** OutParameters);
 using NVSDK_NGX_D3D11_GetCapabilityParameters_pfn = NVSDK_NGX_Result (NVSDK_CONV *)(NVSDK_NGX_Parameter** OutParameters);
@@ -55,6 +56,8 @@ using NVSDK_NGX_D3D11_EvaluateFeature_pfn =
 
 static NVSDK_NGX_D3D11_Init_pfn
        NVSDK_NGX_D3D11_Init_Original                    = nullptr;
+static NVSDK_NGX_D3D11_Init_Ext_pfn
+       NVSDK_NGX_D3D11_Init_Ext_Original                = nullptr;
 static NVSDK_NGX_D3D11_CreateFeature_pfn
        NVSDK_NGX_D3D11_CreateFeature_Original           = nullptr;
 static NVSDK_NGX_D3D11_EvaluateFeature_pfn              
@@ -83,6 +86,21 @@ NVSDK_NGX_D3D11_Init_Detour (unsigned long long InApplicationId, const wchar_t *
 
   return
     NVSDK_NGX_D3D11_Init_Original (InApplicationId, InApplicationDataPath, InDevice, InFeatureInfo, InSDKVersion);
+}
+
+NVSDK_NGX_Result
+NVSDK_CONV
+NVSDK_NGX_D3D11_Init_Ext_Detour (unsigned long long InApplicationId, const wchar_t *InApplicationDataPath, ID3D11Device *InDevice, void* Unknown4, void* Unknown5)
+{
+  SK_LOG_FIRST_CALL
+
+  if (config.nvidia.dlss.compat.override_appid != -1)
+  {
+    InApplicationId = config.nvidia.dlss.compat.override_appid;
+  }
+
+  return
+    NVSDK_NGX_D3D11_Init_Ext_Original (InApplicationId, InApplicationDataPath, InDevice, Unknown4, Unknown5);
 }
 
 NVSDK_NGX_Result
@@ -475,6 +493,11 @@ SK_NGX_InitD3D11 (void)
                          "NVSDK_NGX_D3D11_Init",
                           NVSDK_NGX_D3D11_Init_Detour,
                 (void **)&NVSDK_NGX_D3D11_Init_Original );
+
+    SK_CreateDLLHook2 ( L"_nvngx.dll",
+                         "NVSDK_NGX_D3D11_Init_Ext",
+                          NVSDK_NGX_D3D11_Init_Ext_Detour,
+                (void **)&NVSDK_NGX_D3D11_Init_Ext_Original );
 
     SK_CreateDLLHook2 ( L"_nvngx.dll",
                          "NVSDK_NGX_D3D11_CreateFeature",

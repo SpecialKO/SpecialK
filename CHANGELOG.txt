@@ -1,6 +1,7 @@
 ﻿23.10.14.1
 ==========
  + Fixed DLSS AppID override option not turning off when unchecked
+ + Hooked additional D3D11/D3D12 NGX Init functions
 
 23.10.14
 ========

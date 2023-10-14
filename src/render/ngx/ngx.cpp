@@ -1159,14 +1159,14 @@ SK_NGX_DLSS_ControlPanel (void)
 
         if (ImGui::TreeNode ("Compat Hacks"))
         {
-          bool bDLAAPlus1 = config.nvidia.dlss.compat.extra_pixels > 0;
+          bool bDLAAPlus2 = config.nvidia.dlss.compat.extra_pixels > 0;
 
-          if (ImGui::Checkbox ("DLAA + 1 Pixel", &bDLAAPlus1))
+          if (ImGui::Checkbox ("DLAA + 2 Pixels", &bDLAAPlus2))
           {
-            if (! bDLAAPlus1)
+            if (! bDLAAPlus2)
               config.nvidia.dlss.compat.extra_pixels = 0;
             else
-              config.nvidia.dlss.compat.extra_pixels = 1;
+              config.nvidia.dlss.compat.extra_pixels = 2;
 
             restart_required = true;
 
