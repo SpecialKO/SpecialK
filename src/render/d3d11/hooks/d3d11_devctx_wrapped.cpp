@@ -498,8 +498,12 @@ public:
       pReal->QueryInterface (riid, ppvObj);
 
     if ( riid == IID_ID3D11VideoContext )
-      SK_LOG0 ( (L" * Game is using ID3D11VideoContext..."),
-                 L"D3D11Video" );
+    {
+      SK_RunOnce (
+        SK_LOG0 ( (L" * Game is using ID3D11VideoContext..."),
+                   L"D3D11Video" )
+      );
+    }
 
     if ( riid != IID_ID3DUserDefinedAnnotation &&
          riid != IID_ID3D11Multithread         &&
