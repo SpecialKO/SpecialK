@@ -1,4 +1,10 @@
-﻿23.10.14.2
+﻿23.10.14.3
+==========
+ + Fixed Steam achievement screenshots not actually capturing the popup
+ + Fixed haptic rumble not working in menus in games that don't use XInput
+ + Fixed potential nullptr dereferences in ImGui's updated codebase
+
+23.10.14.2
 ==========
  + Fixed Steam API Frame Counter not being right-clickable after ImGui upgrade
 
