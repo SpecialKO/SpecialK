@@ -1179,7 +1179,7 @@ SK_NGX_DLSS_ControlPanel (void)
           if (ImGui::Checkbox ("Fake Generic AppID", &bFakeGenericAppID))
           {
             if (bFakeGenericAppID)
-              config.nvidia.dlss.compat.override_appid = 0xE658703;
+              config.nvidia.dlss.compat.override_appid = 0x24480451;
             else
               config.nvidia.dlss.compat.override_appid = -1;
 
