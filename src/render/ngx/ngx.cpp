@@ -196,8 +196,8 @@ NVSDK_NGX_Parameter_GetUI_Detour (const NVSDK_NGX_Parameter *InParameter, const 
 
     if (config.nvidia.dlss.force_dlaa)
     {
-      if (! _stricmp (InName, NVSDK_NGX_Parameter_OutWidth))                           { NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_Width,     OutValue); }
-      if (! _stricmp (InName, NVSDK_NGX_Parameter_OutHeight))                          { NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_Height,    OutValue); }
+      if (! _stricmp (InName, NVSDK_NGX_Parameter_OutWidth))                           { NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_Width,     OutValue); *OutValue += config.nvidia.dlss.compat.extra_pixels; }
+      if (! _stricmp (InName, NVSDK_NGX_Parameter_OutHeight))                          { NVSDK_NGX_Parameter_GetUI_Original (InParameter, NVSDK_NGX_Parameter_Height,    OutValue); *OutValue += config.nvidia.dlss.compat.extra_pixels; }
       if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Width))  { NVSDK_NGX_Parameter_GetUI_Detour   (InParameter, NVSDK_NGX_Parameter_OutWidth,  OutValue); *OutValue += 2; }
       if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Max_Render_Height)) { NVSDK_NGX_Parameter_GetUI_Detour   (InParameter, NVSDK_NGX_Parameter_OutHeight, OutValue); *OutValue += 2; }
       if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Get_Dynamic_Min_Render_Width))  { NVSDK_NGX_Parameter_GetUI_Detour   (InParameter, NVSDK_NGX_Parameter_OutWidth,  OutValue); *OutValue -= 2; }
@@ -894,7 +894,7 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::PopStyleColor   ();
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
           ImGui::BulletText      ("Intended for Performance/Balanced/Quality modes.");
-          ImGui::BulletText      ("Generally favors current frame information; well suited for fast - paced game content.");
+          ImGui::BulletText      ("Generally favors current frame information; well suited for fast-paced game content.");
           ImGui::PopStyleColor   ();
           ImGui::Spacing         ();
           ImGui::Spacing         ();
@@ -1155,6 +1155,37 @@ SK_NGX_DLSS_ControlPanel (void)
               SK_SaveConfig ();
             }
           }
+        }
+
+        if (ImGui::TreeNode ("Compat Hacks"))
+        {
+          bool bDLAAPlus1 = config.nvidia.dlss.compat.extra_pixels > 0;
+
+          if (ImGui::Checkbox ("DLAA + 1 Pixel", &bDLAAPlus1))
+          {
+            if (! bDLAAPlus1)
+              config.nvidia.dlss.compat.extra_pixels = 0;
+            else
+              config.nvidia.dlss.compat.extra_pixels = 1;
+
+            restart_required = true;
+
+            SK_SaveConfig ();
+          }
+
+          bool bFakeGenericAppID =
+            config.nvidia.dlss.compat.override_appid != -1;
+
+          if (ImGui::Checkbox ("Fake Generic AppID", &bFakeGenericAppID))
+          {
+            config.nvidia.dlss.compat.override_appid = 0xE658703;
+
+            restart_required = true;
+
+            SK_SaveConfig ();
+          }
+
+          ImGui::TreePop ();
         }
   
         if (restart_required)

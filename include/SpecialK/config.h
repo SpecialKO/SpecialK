@@ -818,6 +818,10 @@ struct sk_config_t
       int     use_sharpening      =     -1;
       float   forced_sharpness    =   0.0f;
       bool    auto_redirect_dlss  =  false;
+      std::wstring
+              dlss_dll            =    L"";
+      std::wstring
+              dlssg_dll           =    L"";
       int     forced_preset       =     -1;
       bool    show_active_features=   true;
       int     forced_autoexposure =     -1;
@@ -830,6 +834,10 @@ struct sk_config_t
         float dynamic_max         =   1.0f;
         float dynamic_min         =   1.0f;
       } scale;
+      struct {
+        int   extra_pixels        =      0;
+        int   override_appid      =     -1;
+      } compat;
     } dlss;
   } nvidia;
 
