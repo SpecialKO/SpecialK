@@ -123,6 +123,7 @@ SK_SEH_NGX_D3D11_Init_Ext (unsigned long long InApplicationId, const wchar_t *In
 
   __except (EXCEPTION_CONTINUE_EXECUTION)
   {
+    return NVSDK_NGX_Result_FAIL_UnableToInitializeFeature;
   }
 }
 
@@ -156,6 +157,7 @@ SK_SEH_NGX_D3D11_Init_ProjectID (const char *InProjectId, NVSDK_NGX_EngineType I
 
   __except (EXCEPTION_CONTINUE_EXECUTION)
   {
+    return NVSDK_NGX_Result_FAIL_UnableToInitializeFeature;
   }
 }
 
