@@ -229,6 +229,8 @@ SK_ImGui_DrawGraph_Latency ()
     double dCPU = 0.0;
     double dGPU = 0.0;
 
+    double dMaxStage = 0.0;
+
     for (int i = 63; i >= 0; --i)
     {
       frame_id      [i] = (float)i;
@@ -256,9 +258,24 @@ SK_ImGui_DrawGraph_Latency ()
         fill_gpu1 [i] = gpu_active [i];
       }
 
+      dMaxStage = std::max (simulation    [i], dMaxStage);
+      dMaxStage = std::max (render_submit [i], dMaxStage);
+      dMaxStage = std::max (gpu_total     [i], dMaxStage);
+      dMaxStage = std::max (gpu_active    [i], dMaxStage);
+      dMaxStage = std::max (gpu_start     [i], dMaxStage);
+
       dCPU += gpu_start  [i];
       dGPU += gpu_active [i];
     }
+
+    dMaxStage =
+      std::max (10000.0 * total.avg / static_cast <double> (SK_QpcFreq), dMaxStage);
+
+    static double dLastMaxScale = dMaxStage;
+
+    dLastMaxScale += dLastMaxScale;
+    dLastMaxScale += dMaxStage;
+    dLastMaxScale /= 3.0;
 
     dCPU /= 64.0;
     dGPU /= 64.0;
@@ -274,17 +291,35 @@ SK_ImGui_DrawGraph_Latency ()
         ImPlotAxisFlags_NoMenus | ImPlotAxisFlags_AutoFit;
       
       ImPlot::SetupAxes       ("Frame", "Milliseconds", flags | ImPlotAxisFlags_NoLabel |
-                                                                ImPlotAxisFlags_NoTickLabels, flags/*& ~ImPlotAxisFlags_AutoFit*/);
-      //ImPlot::SetupAxesLimits (0, 63, 0, 10000.0 * total.avg / static_cast <double> (SK_QpcFreq), ImPlotCond_Always);
+                                                                ImPlotAxisFlags_NoTickLabels, (flags & ~ImPlotAxisFlags_AutoFit) | ImPlotAxisFlags_NoLabel);
+      ImPlot::SetupAxesLimits (0, 63, 0, dLastMaxScale, ImPlotCond_Always);
+      ImPlot::SetupAxisFormat (ImAxis_Y1, "%4.1f ms");
       ImPlot::SetupLegend     (ImPlotLocation_SouthWest, ImPlotLegendFlags_Horizontal);
+
+      auto FramerateFormatter = [](double milliseconds, char* buff, int size, void* data) -> int
+      {
+        const char *unit =
+          (const char *)data;
+
+        auto fps =
+          static_cast <unsigned int> (1000.0/milliseconds);
+
+        return (milliseconds <= 0.0 || fps == 0) ?
+          snprintf (buff, size, " ")             :
+          snprintf (buff, size, "%d %s", fps, unit);
+      };
+
+      ImPlot::SetupAxis       (ImAxis_Y2, nullptr, ImPlotAxisFlags_AuxDefault | ImPlotAxisFlags_NoLabel);
+      ImPlot::SetupAxisLimits (ImAxis_Y2, 0.0, dLastMaxScale, ImPlotCond_Always);
+      ImPlot::SetupAxisFormat (ImAxis_Y2, FramerateFormatter, (void *)"fps");
 
       if (show_lines)
       {
-        ImPlot::PlotLine ("Simulation",    frame_id, simulation,    64);
-        ImPlot::PlotLine ("Render Submit", frame_id, render_submit, 64);
-        ImPlot::PlotLine ("GPU Scheduled", frame_id, gpu_total,     64);
-        ImPlot::PlotLine ("GPU Busy",      frame_id, gpu_active,    64);
-        ImPlot::PlotLine ("CPU Busy",      frame_id, gpu_start,     64);
+        ImPlot::PlotLine ("Simulation",      frame_id, simulation,    64);
+        ImPlot::PlotLine ("Render Submit",   frame_id, render_submit, 64);
+        ImPlot::PlotLine ("Display Scanout", frame_id, gpu_total,     64);
+        ImPlot::PlotLine ("GPU Busy",        frame_id, gpu_active,    64);
+        ImPlot::PlotLine ("CPU Busy",        frame_id, gpu_start,     64);
       }
 
       if (show_fills)
@@ -292,16 +327,32 @@ SK_ImGui_DrawGraph_Latency ()
         ImPlot::DragLineY (0,&dGPU,ImVec4(1,0,0,1),1,ImPlotDragToolFlags_NoFit);
         ImPlot::DragLineY (0,&dCPU,ImVec4(0,0,1,1),1,ImPlotDragToolFlags_NoFit);
 
-        if      (dGPU > dCPU * 1.333f)
+        if      (dGPU > dCPU * 1.25f)
           ImPlot::TagY (dGPU, ImVec4 (1,0,0,1), "GPU Bound");
-        else if (dCPU > dGPU * 1.333f)
+        else if (dCPU > dGPU * 1.25f)
           ImPlot::TagY (dCPU, ImVec4 (0,0,1,1), "CPU Bound");
+        else
+          ImPlot::TagY ((dCPU +dGPU)/2.0, ImVec4 (0,1,0,1)," Balanced");
 
         ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.15f);
         ImPlot::PlotShaded   ("GPU Busy", frame_id, fill_gpu0, fill_gpu1, 64, flags);
         ImPlot::PlotShaded   ("CPU Busy", frame_id, fill_cpu0, fill_cpu1, 64, flags);
         ImPlot::PopStyleVar  ();
       }
+
+#if 0
+      static std::string utf8_gpu_name =
+        SK_WideCharToUTF8 (sk::NVAPI::EnumGPUs_DXGI()[0].Description);
+      static std::string utf8_cpu_name =
+        InstructionSet::Brand ().c_str ();
+
+      ImPlot::PushStyleColor (ImPlotCol_InlayText, ImVec4 (1,0,0,1));
+      ImPlot::PlotText (utf8_gpu_name.c_str (),  0.0, dLastMaxScale - ImGui::CalcTextSize (utf8_gpu_name.c_str ()).y/2.0f, ImVec2 ( 1.0f + ImGui::CalcTextSize (utf8_gpu_name.c_str ()).x/2.0f, 0.0f));
+      ImPlot::PushStyleColor (ImPlotCol_InlayText, ImVec4 (0,0,1,1));
+      ImPlot::PlotText (utf8_cpu_name.c_str (), 63.0, dLastMaxScale - ImGui::CalcTextSize (utf8_cpu_name.c_str ()).y/2.0f, ImVec2 (-1.0f - ImGui::CalcTextSize (utf8_cpu_name.c_str ()).x/2.0f, 0.0f));
+      ImPlot::PopStyleColor (2);
+#endif
+
       ImPlot::EndPlot ();
     }
 

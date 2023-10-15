@@ -1,4 +1,9 @@
-﻿23.10.14.4
+﻿23.10.15
+========
+ + Added effective fps to latency analysis graph, CPU and GPU framerate are
+     both visible by looking for the blue and red bars respectively.
+
+23.10.14.4
 ==========
  + Improved latency analysis graph's CPU/GPU Bound function and handling of
      CPU/GPU load inversion.
