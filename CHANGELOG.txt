@@ -1,40 +1,26 @@
-﻿23.10.15.3
+﻿23.10.15.x
 ==========
- + Fixed startup crash in Control HDR related to DLSS initialization
-
-23.10.15.2
-==========
- + Added CPU and GPU name to Latency Analysis Graph
- + Increased thickness of bounding lines on Latency Analysis Graph
-
-23.10.15.1
-==========
- + Fixed rare crash if a game restarts EOS (Epic Online Services) during exit.
+ [.4] + Condensed NVIDIA Reflex control panel and added tooltips to mode selection
+ [.3] + Fixed startup crash in Control HDR related to DLSS initialization
+ [.2] + Added CPU and GPU name to Latency Analysis Graph
+ [.2] + Increased thickness of bounding lines on Latency Analysis Graph
+ [.1] + Fixed rare crash if a game restarts EOS (Epic Online Services) during exit.
 
 23.10.15
 ========
  + Added effective fps to latency analysis graph, CPU and GPU framerate are
      both visible by looking for the blue and red bars respectively.
 
-23.10.14.4
+23.10.14.x
 ==========
- + Improved latency analysis graph's CPU/GPU Bound function and handling of
-     CPU/GPU load inversion.
-
-23.10.14.3
-==========
- + Fixed Steam achievement screenshots not actually capturing the popup
- + Fixed haptic rumble not working in menus in games that don't use XInput
- + Fixed potential nullptr dereferences in ImGui's updated codebase
-
-23.10.14.2
-==========
- + Fixed Steam API Frame Counter not being right-clickable after ImGui upgrade
-
-23.10.14.1
-==========
- + Fixed DLSS AppID override option not turning off when unchecked
- + Hooked additional D3D11/D3D12 NGX Init functions
+ [.4] + Improved latency analysis graph's CPU/GPU Bound function and handling of
+          CPU/GPU load inversion.
+ [.3] + Fixed Steam achievement screenshots not actually capturing the popup
+ [.3] + Fixed haptic rumble not working in menus in games that don't use XInput
+ [.3] + Fixed potential nullptr dereferences in ImGui's updated codebase
+ [.2] + Fixed Steam API Frame Counter not being right-clickable after ImGui upgrade
+ [.1] + Fixed DLSS AppID override option not turning off when unchecked
+ [.1] + Hooked additional D3D11/D3D12 NGX Init functions
 
 23.10.14
 ========

@@ -2649,8 +2649,10 @@ SK_NV_LatencyControlPanel (void)
   if (! (sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (rb.api)))
     return;
 
-  ImGui::Separator  ();
-  ImGui::Text       ("NVIDIA Latency Management");
+  ImGui::Separator ();
+
+  if (! ImGui::TreeNodeEx ("NVIDIA Latency Management", ImGuiTreeNodeFlags_DefaultOpen))
+    return;
 
   if ((! rb.displays [rb.active_display].primary) && config.nvidia.reflex.low_latency
                                                   && config.nvidia.reflex.enable)
@@ -2669,12 +2671,10 @@ SK_NV_LatencyControlPanel (void)
         ImGui::SetTooltip ("Use the Display menu to assign Primary monitors");
   }
 
-  ImGui::TreePush ("");
-
   SK_ImGui_DrawConfig_Latency ();
   SK_ImGui_DrawGraph_Latency  ();
 
-  ImGui::TreePop  (  );
+  ImGui::TreePop  ();
 }
 
 void

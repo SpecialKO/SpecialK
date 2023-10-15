@@ -652,7 +652,7 @@ void
 EOS_CALL
 SK_EOS_Platform_Tick (EOS_HPlatform Handle)
 {
-  if (WaitForSingleObject (__SK_DLL_TeardownEvent, 0) == WAIT_OBJECT_0)
+  if (ReadAcquire (&__SK_DLL_Ending))
     return;
 
   // Temporarily incompatible
@@ -1022,7 +1022,7 @@ bool
 SK_EOSContext::InitEpicOnlineServices ( HMODULE       hEOSDLL,
                                         EOS_HPlatform platform )
 {
-  if (WaitForSingleObject (__SK_DLL_TeardownEvent, 0) == WAIT_OBJECT_0)
+  if (ReadAcquire (&__SK_DLL_Ending))
     return false;
 
   // If we were a registered EOS product, this is where we would init...

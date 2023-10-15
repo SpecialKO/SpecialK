@@ -22,6 +22,7 @@
 #include <SpecialK/stdafx.h>
 
 #include <implot/implot.h>
+#include <imgui/font_awesome.h>
 
 extern iSK_INI* osd_ini;
 
@@ -672,6 +673,13 @@ SK_ImGui_DrawConfig_Latency ()
     }
 
     show_mode_select = config.nvidia.reflex.override;
+
+    if (show_mode_select)
+    {
+      ImGui::SameLine    ();
+      ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine    ();
+    }
   }
 
   if (show_mode_select)
@@ -683,14 +691,22 @@ SK_ImGui_DrawConfig_Latency ()
                               reflex_mode == 0 ? 0
                                                : 1;
 
+    ImGui::BeginGroup      ();
+    ImGui::Spacing         ();
+    ImGui::TextUnformatted ("Reflex Mode");
+    ImGui::EndGroup        ();
+    ImGui::SameLine        ();
+
+    ImGui::SetNextItemWidth (ImGui::GetContentRegionAvail ().x / 3.0f);
+
     bool selected =
       rb.isReflexSupported () ?
-        ImGui::Combo ( "NVIDIA Reflex Mode", &reflex_mode,
+        ImGui::Combo ( "###Reflex Mode", &reflex_mode,
                           "Off\0Low Latency\0"
                                "Low Latency + Boost\0"
                                  "Nothing But Boost\0\0" )
                               :
-        ImGui::Combo ( "NVIDIA Reflex Mode", &reflex_mode,
+        ImGui::Combo ( "###Reflex Mode", &reflex_mode,
                           "Off\0Nothing But Boost\0\0" );
 
     if (selected)
@@ -732,8 +748,30 @@ SK_ImGui_DrawConfig_Latency ()
       rb.driverSleepNV (config.nvidia.reflex.enforcement_site);
     }
 
-    if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("NOTE: Reflex has greatest impact on G-Sync users -- it may lower peak framerate to minimize latency.");
+    if (ImGui::IsItemHovered () && config.nvidia.reflex.low_latency)
+    {
+      double dRefreshRate =
+        static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
+        static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator);
+
+      ImGui::BeginTooltip ();
+      ImGui::TextColored     (ImVec4 (0.333f, 0.666f, 0.999f, 1.f), ICON_FA_INFO_CIRCLE);
+      ImGui::SameLine        ();
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+      ImGui::TextUnformatted ("Reflex Low Latency FPS Limit (VRR)");
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.6f, .6f, .6f, 1.f));
+      ImGui::Spacing         ();
+      ImGui::Text            ("\tRefresh (%4.1f Hz) - Refresh (%4.1f Hz) * Refresh (%4.1f Hz) / 3600.0",
+                                dRefreshRate,        dRefreshRate,        dRefreshRate);
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.8f, .8f, .8f, 1.f));
+      ImGui::Spacing         ();
+      ImGui::Text            (       "\t\tReflexFPS:\t%4.1f FPS",
+                                dRefreshRate        -dRefreshRate        *dRefreshRate        / 3600.0);
+      ImGui::PopStyleColor   (3);
+      ImGui::Separator       ();
+      ImGui::TextUnformatted ("To pace VRR framerate while using Reflex, set third-party limits below ReflexFPS");
+      ImGui::EndTooltip      ();
+    }
   }
 
   if (config.nvidia.reflex.enable && config.nvidia.reflex.low_latency && (! config.nvidia.reflex.native) && bFullReflexSupport)
@@ -741,8 +779,30 @@ SK_ImGui_DrawConfig_Latency ()
     config.nvidia.reflex.enforcement_site =
       std::clamp (config.nvidia.reflex.enforcement_site, 0, 1);
 
-    ImGui::Combo ( "NVIDIA Reflex Trigger Point", &config.nvidia.reflex.enforcement_site,
+    ImGui::SameLine ();
+
+    ImGui::SetNextItemWidth (ImGui::GetContentRegionAvail ().x / 3.0f);
+
+    ImGui::Combo ( "Trigger Point", &config.nvidia.reflex.enforcement_site,
                      "End-of-Frame\0Start-of-Frame\0" );
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip    ();
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+      ImGui::TextUnformatted ("Start of Frame");
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+      ImGui::BulletText      ("Minimizes Latency");
+      ImGui::PopStyleColor   (2);
+      ImGui::Spacing         ();
+      ImGui::Spacing         ();
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+      ImGui::TextUnformatted ("End of Frame");
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+      ImGui::BulletText      ("Stabilizes Framerate");
+      ImGui::PopStyleColor   (2);
+      ImGui::EndTooltip      ();
+    }
 
   //bool unlimited =
   //  config.nvidia.reflex.frame_interval_us == 0;
@@ -762,18 +822,18 @@ SK_ImGui_DrawConfig_Latency ()
        config.nvidia.reflex.low_latency_boost && ((! config.nvidia.reflex.native) || config.nvidia.reflex.override)
                                               && rb.isReflexSupported () )
   {
-    ImGui::Checkbox ("Use Latency Marker Trained Optimization", &config.nvidia.reflex.marker_optimization);
+    ImGui::SameLine ();
+    ImGui::Checkbox ("Boost Using Latency Markers", &config.nvidia.reflex.marker_optimization);
 
     if (ImGui::IsItemHovered ())
     {
       ImGui::SetTooltip (
         "Uses timing data collected by SK (i.e. game's first draw call) to aggressively reduce latency"
-        " at the expense of frame pacing."
+        " at the expense of frame pacing in boost mode."
       );
     }
   }
   ImGui::EndGroup   ();
-  ImGui::Separator  ();
 }
 
 class SKWG_Latency : public SK_Widget
