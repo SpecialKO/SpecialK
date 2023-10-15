@@ -1621,3 +1621,41 @@ SK_NGX_DumpParameters (const NVSDK_NGX_Parameter *Params)
     }
   }
 }
+
+
+const char*
+SK_NGX_FeatureToStr (NVSDK_NGX_Feature feature) noexcept
+{
+  switch (feature)
+  {
+    case NVSDK_NGX_Feature_Reserved0:             return "Reserved0";
+    case NVSDK_NGX_Feature_SuperSampling:         return "DLSS";
+    case NVSDK_NGX_Feature_InPainting:            return "InPainting";
+    case NVSDK_NGX_Feature_ImageSuperResolution:  return "Image Super Resolution";
+    case NVSDK_NGX_Feature_SlowMotion:            return "Slow Motion";
+    case NVSDK_NGX_Feature_VideoSuperResolution:  return "Video Super Resolution";
+    case NVSDK_NGX_Feature_Reserved1:             return "Reserved1";
+    case NVSDK_NGX_Feature_Reserved2:             return "Reserved2";
+    case NVSDK_NGX_Feature_Reserved3:             return "Reserved3";
+    case NVSDK_NGX_Feature_ImageSignalProcessing: return "Image Signal Processing (DLISP)";
+    case NVSDK_NGX_Feature_DeepResolve:           return "Deep Resolve";
+    case NVSDK_NGX_Feature_FrameGeneration:       return "DLSS Frame Generation";
+    case NVSDK_NGX_Feature_DeepDVC:               return "Deep VC";
+    case NVSDK_NGX_Feature_RayReconstruction:     return "DLSS Ray Reconstruction";
+    default:                                      return "Unknown Feature";
+  }
+}
+
+void
+NVSDK_CONV
+SK_NGX_LogCallback ( const char*             message,
+                     NVSDK_NGX_Logging_Level loggingLevel,
+                     NVSDK_NGX_Feature       sourceComponent )
+{
+  std::ignore = loggingLevel;
+
+  game_debug->Log (
+    LR"([%ws] SK_NGX_LogCallback (%hs) => "%hs")", __SK_SUBSYSTEM__,
+              SK_NGX_FeatureToStr (sourceComponent),
+          message );
+}

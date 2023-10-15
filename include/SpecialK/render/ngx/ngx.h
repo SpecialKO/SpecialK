@@ -106,3 +106,12 @@ bool SK_NGX_HookParameters (NVSDK_NGX_Parameter *Params);
 void SK_NGX_Reset          (void);
 
 void SK_NGX_DumpParameters (const NVSDK_NGX_Parameter *Params);
+
+void
+NVSDK_CONV
+SK_NGX_LogCallback ( const char*             message,
+                     NVSDK_NGX_Logging_Level loggingLevel,
+                     NVSDK_NGX_Feature       sourceComponent );
+
+const char*
+SK_NGX_FeatureToStr (NVSDK_NGX_Feature feature) noexcept;

@@ -289,29 +289,37 @@ SK_ImGui_DrawGraph_Latency ()
     {
       auto flags =
         ImPlotAxisFlags_NoMenus | ImPlotAxisFlags_AutoFit;
-      
-      ImPlot::SetupAxes       ("Frame", "Milliseconds", flags | ImPlotAxisFlags_NoLabel |
-                                                                ImPlotAxisFlags_NoTickLabels, (flags & ~ImPlotAxisFlags_AutoFit) | ImPlotAxisFlags_NoLabel);
-      ImPlot::SetupAxesLimits (0, 63, 0, dLastMaxScale, ImPlotCond_Always);
-      ImPlot::SetupAxisFormat (ImAxis_Y1, "%4.1f ms");
-      ImPlot::SetupLegend     (ImPlotLocation_SouthWest, ImPlotLegendFlags_Horizontal);
 
-      auto FramerateFormatter = [](double milliseconds, char* buff, int size, void* data) -> int
+      auto FramerateFormatter = [](double milliseconds, char* buff, int size, void*) -> int
       {
-        const char *unit =
-          (const char *)data;
-
         auto fps =
           static_cast <unsigned int> (1000.0/milliseconds);
 
         return (milliseconds <= 0.0 || fps == 0) ?
           snprintf (buff, size, " ")             :
-          snprintf (buff, size, "%d %s", fps, unit);
+          snprintf (buff, size, "%d fps", fps);
       };
 
-      ImPlot::SetupAxis       (ImAxis_Y2, nullptr, ImPlotAxisFlags_AuxDefault | ImPlotAxisFlags_NoLabel);
-      ImPlot::SetupAxisLimits (ImAxis_Y2, 0.0, dLastMaxScale, ImPlotCond_Always);
-      ImPlot::SetupAxisFormat (ImAxis_Y2, FramerateFormatter, (void *)"fps");
+      auto MillisecondFormatter = [](double milliseconds, char* buff, int size, void*) -> int
+      {
+        return (milliseconds <= 0.0) ?
+          snprintf (buff, size, " ") :
+          snprintf (buff, size, "%4.1f ms", milliseconds);
+      };
+      
+      ImPlot::SetupAxes       ("Frame", "Milliseconds", flags | ImPlotAxisFlags_NoLabel |
+                                                                ImPlotAxisFlags_NoTickLabels,
+                                                       (flags &~ImPlotAxisFlags_AutoFit)|
+                                                                ImPlotAxisFlags_NoLabel);
+      ImPlot::SetupAxisLimits (ImAxis_X1, 0, 63,                ImPlotCond_Always);
+      ImPlot::SetupAxisLimits (ImAxis_Y1, 0, dLastMaxScale,     ImPlotCond_Always);
+      ImPlot::SetupAxisFormat (ImAxis_Y1, MillisecondFormatter);
+      ImPlot::SetupLegend     (ImPlotLocation_SouthWest,        ImPlotLegendFlags_Horizontal);
+
+      ImPlot::SetupAxis       (ImAxis_Y2, nullptr,              ImPlotAxisFlags_AuxDefault |
+                                                                ImPlotAxisFlags_NoLabel);
+      ImPlot::SetupAxisLimits (ImAxis_Y2, 0, dLastMaxScale,     ImPlotCond_Always);
+      ImPlot::SetupAxisFormat (ImAxis_Y2, FramerateFormatter);
 
       if (show_lines)
       {
@@ -324,15 +332,15 @@ SK_ImGui_DrawGraph_Latency ()
 
       if (show_fills)
       {
-        ImPlot::DragLineY (0,&dGPU,ImVec4(1,0,0,1),1,ImPlotDragToolFlags_NoFit);
-        ImPlot::DragLineY (0,&dCPU,ImVec4(0,0,1,1),1,ImPlotDragToolFlags_NoFit);
+        ImPlot::DragLineY (0, &dGPU, ImVec4 (1,0,0,1), 1, ImPlotDragToolFlags_NoFit);
+        ImPlot::DragLineY (0, &dCPU, ImVec4 (0,0,1,1), 1, ImPlotDragToolFlags_NoFit);
 
-        if      (dGPU > dCPU * 1.25f)
+        if      (dGPU > dCPU * 1.25)
           ImPlot::TagY (dGPU, ImVec4 (1,0,0,1), "GPU Bound");
-        else if (dCPU > dGPU * 1.25f)
+        else if (dCPU > dGPU * 1.25)
           ImPlot::TagY (dCPU, ImVec4 (0,0,1,1), "CPU Bound");
         else
-          ImPlot::TagY ((dCPU +dGPU)/2.0, ImVec4 (0,1,0,1)," Balanced");
+          ImPlot::TagY ((dCPU + dGPU) / 2.0, ImVec4 (0,1,0,1)," Balanced");
 
         ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.15f);
         ImPlot::PlotShaded   ("GPU Busy", frame_id, fill_gpu0, fill_gpu1, 64, flags);
