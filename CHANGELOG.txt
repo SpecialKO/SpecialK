@@ -1,4 +1,8 @@
-﻿23.10.15
+﻿23.10.15.1
+==========
+ + Fixed rare crash if a game restarts EOS (Epic Online Services) during exit.
+
+23.10.15
 ========
  + Added effective fps to latency analysis graph, CPU and GPU framerate are
      both visible by looking for the blue and red bars respectively.

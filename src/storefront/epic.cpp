@@ -650,10 +650,9 @@ SK::EOS::GetTicksRetired (void)
 
 void
 EOS_CALL
-EOS_Platform_Tick_Detour (EOS_HPlatform Handle)
+SK_EOS_Platform_Tick (EOS_HPlatform Handle)
 {
-  // Bail-out, or we might crash
-  if (ReadAcquire (&__SK_DLL_Ending) != 0)
+  if (WaitForSingleObject (__SK_DLL_TeardownEvent, 0) == WAIT_OBJECT_0)
     return;
 
   // Temporarily incompatible
@@ -669,18 +668,21 @@ EOS_Platform_Tick_Detour (EOS_HPlatform Handle)
     }
   }
 
-  // Initialize various things on the first s.uccessful tick,
+  static bool init_once = false;
+
+  // Initialize various things on the first successful tick,
   //   this may happen multiple times until actual log-in...
   if ( epic->Platform () == nullptr ||
        epic->UserId   () == nullptr )
   {
-    epic->InitEpicOnlineServices (nullptr, Handle);
+    if (! init_once)
+      epic->InitEpicOnlineServices (nullptr, Handle);
   }
 
-  else if (epic->UserId () != nullptr && (! has_unlock_callback))
+  else if (init_once = true; epic->UserId () != nullptr && (! has_unlock_callback))
   {
-    if (epic->Achievements      () != nullptr &&
-        epic->UserId            () != nullptr)
+    if ( epic->Achievements () != nullptr &&
+         epic->UserId       () != nullptr )
     {
       constexpr auto EOS_ACHIEVEMENTS_QUERYDEFINITIONS_API_MINIMUM = 2;
 
@@ -749,8 +751,24 @@ EOS_Platform_Tick_Detour (EOS_HPlatform Handle)
 
   SK_EOS_SetNotifyCorner ();
 
-  return
-    EOS_Platform_Tick_Original (Handle);
+  EOS_Platform_Tick_Original (Handle);
+}
+
+void
+EOS_CALL
+EOS_Platform_Tick_Detour (EOS_HPlatform Handle)
+{
+  __try
+  {
+    return
+      SK_EOS_Platform_Tick (Handle);
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    if (epic_log.isAllocated ())
+        epic_log->Log (L"Structured Exception Caught during EOS_Platform_Tick Hook Execution!");
+  }
 }
 
 EOS_HPlatform
@@ -1004,6 +1022,9 @@ bool
 SK_EOSContext::InitEpicOnlineServices ( HMODULE       hEOSDLL,
                                         EOS_HPlatform platform )
 {
+  if (WaitForSingleObject (__SK_DLL_TeardownEvent, 0) == WAIT_OBJECT_0)
+    return false;
+
   // If we were a registered EOS product, this is where we would init...
   if (platform == nullptr)
   {
