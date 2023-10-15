@@ -1,4 +1,9 @@
-﻿23.10.15.1
+﻿23.10.15.2
+==========
+ + Added CPU and GPU name to Latency Analysis Graph
+ + Increased thickness of bounding lines on Latency Analysis Graph
+
+23.10.15.1
 ==========
  + Fixed rare crash if a game restarts EOS (Epic Online Services) during exit.
 

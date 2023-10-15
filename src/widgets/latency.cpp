@@ -332,15 +332,42 @@ SK_ImGui_DrawGraph_Latency ()
 
       if (show_fills)
       {
-        ImPlot::DragLineY (0, &dGPU, ImVec4 (1,0,0,1), 1, ImPlotDragToolFlags_NoFit);
-        ImPlot::DragLineY (0, &dCPU, ImVec4 (0,0,1,1), 1, ImPlotDragToolFlags_NoFit);
+        static constexpr
+          auto dragline_flags =
+            ImPlotDragToolFlags_NoFit    |
+            ImPlotDragToolFlags_NoInputs |
+            ImPlotDragToolFlags_NoCursors;
+
+        ImPlot::DragLineY (0, &dGPU, ImVec4 (1,0,0,1), 3.333, dragline_flags);
+        ImPlot::DragLineY (0, &dCPU, ImVec4 (0,0,1,1), 3.333, dragline_flags);
+
+        static std::string utf8_gpu_name;
+        static std::string utf8_cpu_name;
+
+        SK_RunOnce (
+        {
+          wchar_t    wszGPU [128] = { };
+          wcsncpy_s (wszGPU, 128, sk::NVAPI::EnumGPUs_DXGI()[0].Description,_TRUNCATE);
+          char        szCPU [ 64] = { };
+          strncpy_s ( szCPU,  64, InstructionSet::Brand().c_str(),          _TRUNCATE);
+
+          PathRemoveBlanksA ( szCPU);
+          PathRemoveBlanksW (wszGPU);
+
+          utf8_gpu_name =
+            SK_WideCharToUTF8 (wszGPU);
+          utf8_cpu_name =       szCPU;
+        });
+
+        ImPlot::Annotation (0.0, dLastMaxScale, ImVec4 (.75,0,0,1), ImVec2 (0.0,0.0), true, "%hs", utf8_gpu_name.c_str ());
+        ImPlot::Annotation (63.0,dLastMaxScale, ImVec4 (0,0,.75,1), ImVec2 (0.0,0.0), true, "%hs", utf8_cpu_name.c_str ());
 
         if      (dGPU > dCPU * 1.25)
           ImPlot::TagY (dGPU, ImVec4 (1,0,0,1), "GPU Bound");
         else if (dCPU > dGPU * 1.25)
           ImPlot::TagY (dCPU, ImVec4 (0,0,1,1), "CPU Bound");
         else
-          ImPlot::TagY ((dCPU + dGPU) / 2.0, ImVec4 (0,1,0,1)," Balanced");
+          ImPlot::TagY ((dCPU + dGPU) / 2.0, ImVec4 (0,1,0,1),"\tBalanced");
 
         ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.15f);
         ImPlot::PlotShaded   ("GPU Busy", frame_id, fill_gpu0, fill_gpu1, 64, flags);
@@ -349,10 +376,6 @@ SK_ImGui_DrawGraph_Latency ()
       }
 
 #if 0
-      static std::string utf8_gpu_name =
-        SK_WideCharToUTF8 (sk::NVAPI::EnumGPUs_DXGI()[0].Description);
-      static std::string utf8_cpu_name =
-        InstructionSet::Brand ().c_str ();
 
       ImPlot::PushStyleColor (ImPlotCol_InlayText, ImVec4 (1,0,0,1));
       ImPlot::PlotText (utf8_gpu_name.c_str (),  0.0, dLastMaxScale - ImGui::CalcTextSize (utf8_gpu_name.c_str ()).y/2.0f, ImVec2 ( 1.0f + ImGui::CalcTextSize (utf8_gpu_name.c_str ()).x/2.0f, 0.0f));
