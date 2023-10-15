@@ -78,8 +78,10 @@ static NVSDK_NGX_D3D12_ReleaseFeature_pfn
 
 NVSDK_NGX_Result
 NVSDK_CONV
-SK_SEH_NGX_D3D12_Init (unsigned long long InApplicationId, const wchar_t *InApplicationDataPath, ID3D12Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion)
+NVSDK_NGX_D3D12_Init_Detour (unsigned long long InApplicationId, const wchar_t *InApplicationDataPath, ID3D12Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion)
 {
+  SK_LOG_FIRST_CALL
+
   if (config.nvidia.dlss.compat.override_appid != -1)
   {
     InApplicationId = config.nvidia.dlss.compat.override_appid;
@@ -93,71 +95,19 @@ SK_SEH_NGX_D3D12_Init (unsigned long long InApplicationId, const wchar_t *InAppl
 
 NVSDK_NGX_Result
 NVSDK_CONV
-NVSDK_NGX_D3D12_Init_Detour (unsigned long long InApplicationId, const wchar_t *InApplicationDataPath, ID3D12Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion)
-{
-  SK_LOG_FIRST_CALL
-
-  return
-    SK_SEH_NGX_D3D12_Init (
-      InApplicationId, InApplicationDataPath,
-             InDevice, InFeatureInfo, InSDKVersion );
-}
-
-NVSDK_NGX_Result
-NVSDK_CONV
-SK_SEH_NGX_D3D12_Init_Ext (unsigned long long InApplicationId, const wchar_t *InApplicationDataPath, ID3D12Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, void *Unknown5)
-{
-  __try
-  {
-    if (config.nvidia.dlss.compat.override_appid != -1)
-    {
-      InApplicationId = config.nvidia.dlss.compat.override_appid;
-    }
-
-    return
-      NVSDK_NGX_D3D12_Init_Ext_Original (
-        InApplicationId, InApplicationDataPath,
-        InDevice, InFeatureInfo, Unknown5);
-  }
-
-  __except (EXCEPTION_CONTINUE_EXECUTION)
-  {
-    return NVSDK_NGX_Result_FAIL_UnableToInitializeFeature;
-  }
-}
-
-NVSDK_NGX_Result
-NVSDK_CONV
 NVSDK_NGX_D3D12_Init_Ext_Detour (unsigned long long InApplicationId, const wchar_t *InApplicationDataPath, ID3D12Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, void* Unknown5)
 {
   SK_LOG_FIRST_CALL
 
-  return
-    SK_SEH_NGX_D3D12_Init_Ext (
-      InApplicationId, InApplicationDataPath,
-      InDevice, InFeatureInfo, Unknown5);
-}
-
-NVSDK_NGX_Result
-NVSDK_CONV
-SK_SEH_NGX_D3D12_Init_ProjectID (const char *InProjectId, NVSDK_NGX_EngineType InEngineType, const char *InEngineVersion, const wchar_t *InApplicationDataPath, ID3D12Device *InDevice, const NVSDK_NGX_FeatureCommonInfo *InFeatureInfo, NVSDK_NGX_Version InSDKVersion)
-{
-  __try {
-    if (config.nvidia.dlss.compat.override_appid != -1)
-    {
-      InProjectId = "24480451-f00d-face-1304-0308dabad187";
-    }
-
-    return
-      NVSDK_NGX_D3D12_Init_ProjectID_Original (
-        InProjectId, InEngineType, InEngineVersion,
-          InApplicationDataPath, InDevice, InFeatureInfo, InSDKVersion );
-  }
-
-  __except (EXCEPTION_CONTINUE_EXECUTION)
+  if (config.nvidia.dlss.compat.override_appid != -1)
   {
-    return NVSDK_NGX_Result_FAIL_UnableToInitializeFeature;
+    InApplicationId = config.nvidia.dlss.compat.override_appid;
   }
+
+  return
+    NVSDK_NGX_D3D12_Init_Ext_Original (
+      InApplicationId, InApplicationDataPath,
+             InDevice, InFeatureInfo, Unknown5 );
 }
 
 NVSDK_NGX_Result
@@ -166,8 +116,13 @@ NVSDK_NGX_D3D12_Init_ProjectID_Detour (const char *InProjectId, NVSDK_NGX_Engine
 {
   SK_LOG_FIRST_CALL
 
+  if (config.nvidia.dlss.compat.override_appid != -1)
+  {
+    InProjectId = "24480451-f00d-face-1304-0308dabad187";
+  }
+
   return
-    SK_SEH_NGX_D3D12_Init_ProjectID (
+    NVSDK_NGX_D3D12_Init_ProjectID_Original (
       InProjectId, InEngineType, InEngineVersion,
         InApplicationDataPath, InDevice, InFeatureInfo, InSDKVersion );
 }
