@@ -812,6 +812,7 @@ struct sk_config_t
       bool    enable              =  false;
       bool    native              =  false;
       bool    override            =  false;
+      bool    combined_limiter    =  false;
     } reflex;
     struct dlss_s {
       bool    force_dlaa          =  false;

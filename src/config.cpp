@@ -658,6 +658,7 @@ struct {
     sk::ParameterInt*     engagement_policy       = nullptr;
     sk::ParameterBool*    override_native         = nullptr;
     sk::ParameterBool*    use_limiter             = nullptr;
+    sk::ParameterBool*    combined_limiter        = nullptr;
   } reflex;
 
   struct
@@ -1613,6 +1614,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.reflex.engagement_policy,        L"When to apply Reflex's magic",                              dll_ini,         L"NVIDIA.Reflex",         L"EngagementPolicy"),
     ConfigEntry (nvidia.reflex.override_native,          L"Use SK's Reflex Mode options instead of the game's",        dll_ini,         L"NVIDIA.Reflex",         L"OverrideNativeMode"),
     ConfigEntry (nvidia.reflex.use_limiter,              L"Use Reflex's framerate limiter (SK's target) instead of SK",dll_ini,         L"NVIDIA.Reflex",         L"UseFramerateLimiter"),
+    ConfigEntry (nvidia.reflex.combined_limiter,         L"Use Reflex's framerate limiter (AND SK's)",                 dll_ini,         L"NVIDIA.Reflex",         L"CombineFramerateLimiters"),
 
     ConfigEntry (nvidia.dlss.force_dlaa,                 L"Force DLAA in games that do not normally support it",       dll_ini,         L"NVIDIA.DLSS",           L"ForceDLAA"),
     ConfigEntry (nvidia.dlss.use_sharpening,             L"Override DLSS Sharpening Mode",                             dll_ini,         L"NVIDIA.DLSS",           L"UseSharpening"),
@@ -3447,6 +3449,7 @@ auto DeclKeybind =
   nvidia.reflex.engagement_policy->load      (config.nvidia.reflex.enforcement_site);
   nvidia.reflex.override_native->load        (config.nvidia.reflex.override);
   nvidia.reflex.use_limiter->load            (config.nvidia.reflex.use_limiter);
+  nvidia.reflex.combined_limiter->load       (config.nvidia.reflex.combined_limiter);
 
   nvidia.dlss.force_dlaa->load               (config.nvidia.dlss.force_dlaa);
   nvidia.dlss.use_sharpening->load           (config.nvidia.dlss.use_sharpening);
@@ -5285,6 +5288,7 @@ SK_SaveConfig ( std::wstring name,
       nvidia.reflex.marker_optimization->store    (config.nvidia.reflex.marker_optimization);
       nvidia.reflex.override_native->store        (config.nvidia.reflex.override);
       nvidia.reflex.use_limiter->store            (config.nvidia.reflex.use_limiter);
+      nvidia.reflex.combined_limiter->store       (config.nvidia.reflex.combined_limiter);
       nvidia.dlss.force_dlaa->store               (config.nvidia.dlss.force_dlaa);
       nvidia.dlss.use_sharpening->store           (config.nvidia.dlss.use_sharpening);
       nvidia.dlss.forced_sharpness->store         (config.nvidia.dlss.forced_sharpness);
