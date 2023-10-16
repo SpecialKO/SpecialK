@@ -1,4 +1,8 @@
-﻿23.10.15.x
+﻿23.10.16
+========
+ + Smoothed data display range changes on latency analysis graph
+
+23.10.15.x
 ==========
  [.6] + Removed Cyberpunk 2077 plug-in from Special K
  [.5] + Removed Starfield plug-in's FOV settings
