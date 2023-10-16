@@ -1156,48 +1156,6 @@ SK_NGX_DLSS_ControlPanel (void)
             }
           }
         }
-
-        bool bShowCompatHacks =
-          ImGui::TreeNode ("Compat Hacks");
-
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::SetTooltip ("Compatibility hacks to fix DLSS black screens in some games");
-        }
-
-        if (bShowCompatHacks)
-        {
-          bool bDLAAMinus2 = config.nvidia.dlss.compat.extra_pixels != 0;
-
-          if (ImGui::Checkbox ("DLAA -2 Pixels", &bDLAAMinus2))
-          {
-            if (! bDLAAMinus2)
-              config.nvidia.dlss.compat.extra_pixels = 0;
-            else
-              config.nvidia.dlss.compat.extra_pixels = -2;
-
-            restart_required = true;
-
-            SK_SaveConfig ();
-          }
-
-          bool bFakeGenericAppID =
-            config.nvidia.dlss.compat.override_appid != -1;
-
-          if (ImGui::Checkbox ("Fake Generic AppID", &bFakeGenericAppID))
-          {
-            if (bFakeGenericAppID)
-              config.nvidia.dlss.compat.override_appid = 0x24480451;
-            else
-              config.nvidia.dlss.compat.override_appid = -1;
-
-            restart_required = true;
-
-            SK_SaveConfig ();
-          }
-
-          ImGui::TreePop ();
-        }
   
         if (restart_required)
         {
@@ -1205,9 +1163,11 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::BulletText     ("Game Restart (or Alt+Enter) May Be Required");
           ImGui::PopStyleColor  ();
         }
-        ImGui::EndGroup   ();
-        ImGui::SameLine   ();
-        ImGui::BeginGroup ();
+        ImGui::EndGroup    ();
+        ImGui::SameLine    ();
+        ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine    ();
+        ImGui::BeginGroup  ();
 
         ImGui::Text ( "DLSS Version:\t%d.%d.%d\t", dlss_version.major, dlss_version.minor,
                                                    dlss_version.build );
@@ -1334,6 +1294,48 @@ SK_NGX_DLSS_ControlPanel (void)
         }
         else
           ImGui::BeginGroup ();
+
+        bool bShowCompatHacks =
+          ImGui::TreeNode ("Compatibility Hacks");
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ("Compatibility hacks to fix DLSS black screens in some games");
+        }
+
+        if (bShowCompatHacks)
+        {
+          bool bDLAAMinus2 = config.nvidia.dlss.compat.extra_pixels != 0;
+
+          if (ImGui::Checkbox ("DLAA -2 Pixels", &bDLAAMinus2))
+          {
+            if (! bDLAAMinus2)
+              config.nvidia.dlss.compat.extra_pixels = 0;
+            else
+              config.nvidia.dlss.compat.extra_pixels = -2;
+
+            restart_required = true;
+
+            SK_SaveConfig ();
+          }
+
+          bool bFakeGenericAppID =
+            config.nvidia.dlss.compat.override_appid != -1;
+
+          if (ImGui::Checkbox ("Fake Generic AppID", &bFakeGenericAppID))
+          {
+            if (bFakeGenericAppID)
+              config.nvidia.dlss.compat.override_appid = 0x24480451;
+            else
+              config.nvidia.dlss.compat.override_appid = -1;
+
+            restart_required = true;
+
+            SK_SaveConfig ();
+          }
+
+          ImGui::TreePop ();
+        }
 
         if (bRestartNeeded)
         {
