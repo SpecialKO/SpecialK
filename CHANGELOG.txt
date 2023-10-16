@@ -1,5 +1,6 @@
 ﻿23.10.15.x
 ==========
+ [.5] + Removed Starfield plug-in's FOV settings
  [.4] + Condensed NVIDIA Reflex control panel and added tooltips to mode selection
  [.3] + Fixed startup crash in Control HDR related to DLSS initialization
  [.2] + Added CPU and GPU name to Latency Analysis Graph

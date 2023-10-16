@@ -62,16 +62,12 @@ struct {
 
   bool   bDisableFPSLimit = false; // Assume DLSS-G mods already do this
 
-  float* pf1stFOV         = nullptr;
-  float* pf3rdFOV         = nullptr;
   float* pfMipBias        = nullptr;
 
   int64_t cachedImageAddr0     = -1;
   int64_t cachedBufferDefAddr  = -1;
   int64_t cachedFPSLimitAddr   = -1;
   int64_t cachedMipBiasAddr    = -1;
-  int64_t cached1stFOVAddr     = -1;
-  int64_t cached3rdFOVAddr     = -1;
 
   bool bRemasterBasicRTs       = true;
   bool bRemasterExtendedRTs    = false;
@@ -91,14 +87,10 @@ struct {
     sk::ParameterInt64* image_addr      = nullptr;
     sk::ParameterInt64* buffer_def_addr = nullptr;
     sk::ParameterInt64* fps_limit_addr  = nullptr;
-    sk::ParameterInt64* fov_1st_addr    = nullptr;
-    sk::ParameterInt64* fov_3rd_addr    = nullptr;
     sk::ParameterInt64* mip_bias_addr   = nullptr;
   } ini;
 
   struct {
-    sk::ParameterFloat* sf_1stFOV   = nullptr;
-    sk::ParameterFloat* sf_3rdFOV   = nullptr;
     sk::ParameterFloat* sf_MipBias  = nullptr;
     sk::ParameterFloat* sf_ResScale = nullptr;
   } game_ini;
@@ -587,29 +579,6 @@ bool SK_SF_PlugInCfg (void)
         ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
         ImGui::BulletText     ("Game Restart Required");
         ImGui::PopStyleColor  ();
-      }
-    }
-
-    if (plugin.pf1stFOV != nullptr)
-    {
-      bool changed = false;
-
-      if (ImGui::CollapsingHeader ("Field of View"))
-      {
-        ImGui::TreePush ("");
-
-        changed |= ImGui::SliderFloat ("1st Person FOV", plugin.pf1stFOV, 1, 120, "%.0f");
-        changed |= ImGui::SliderFloat ("3rd Person FOV", plugin.pf3rdFOV, 1, 120, "%.0f");
-
-        ImGui::TreePop ();
-      }
-
-      if (changed)
-      {
-        plugin.game_ini.sf_1stFOV->store (*plugin.pf1stFOV);
-        plugin.game_ini.sf_3rdFOV->store (*plugin.pf3rdFOV);
-
-        gameCustom_ini->write ();
       }
     }
 
@@ -1266,7 +1235,7 @@ void SK_SF_InitRTs (void)
   }
 }
 
-void SK_SF_InitFOV (void)
+void SK_SF_InitMipLODs (void)
 {
   static auto& plugin =
     SK_SF_PlugIn;
@@ -1279,9 +1248,7 @@ void SK_SF_InitFOV (void)
     auto& known_addresses =
       plugin.getAddresses (bIsSteam);
 
-    for ( auto& addr : { std::pair <int64_t&, const char *> (plugin.cached1stFOVAddr,  "fov_1st_addr"),
-                         std::pair <int64_t&, const char *> (plugin.cached3rdFOVAddr,  "fov_3rd_addr"),
-                         std::pair <int64_t&, const char *> (plugin.cachedMipBiasAddr, "mip_bias_addr") } )
+    for ( auto& addr : { std::pair <int64_t&, const char *> (plugin.cachedMipBiasAddr, "mip_bias_addr") } )
 
     {
       if (           known_addresses.contains (addr.second) &&
@@ -1333,110 +1300,11 @@ void SK_SF_InitFOV (void)
       reinterpret_cast <float *> ((uintptr_t)*ptr + rip);
   }
 
-  scan = nullptr;
-
-  static const char *ac1stFOVPattern =
-    "\x40\x53\x48\x83\xEC\x20\xC5\xFA\x10\x05\x00\x00\x00\x00\x84\xC9\x74\x57\xC5\xFA\x59\x05"
-    "\x00\x00\x00\x00\x48\x8B\x1D\x00\x00\x00\x00\xE8\x00\x00\x00\x00\xC5\xFA\x59\x05\x00\x00"
-    "\x00\x00\xE8";
-  static const char *ac1stFOVMask =
-    "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF"
-    "\x00\x00\x00\x00\xFF\xFF\xFF\x00\x00\x00\x00\xFF\x00\x00\x00\x00\xFF\xFF\xFF\xFF\x00\x00"
-    "\x00\x00\xFF";
-
-  // Try previously cached address first
-  if (plugin.cached1stFOVAddr > 0)
-  {
-    scan =
-      SK_ScanAlignedExec (
-        ac1stFOVPattern, 47,
-        ac1stFOVMask, (void *)((uintptr_t)plugin.cached1stFOVAddr - 1)
-      );
-  }
-
-  if (scan == nullptr)
-  {
-    scan =
-      SK_ScanAlignedExec (
-        ac1stFOVPattern, 47,
-        ac1stFOVMask );
-  }
-
-  SK_LOGs0 (L"Starfield ", L"Scanned 1st Person FOV Address: %p", scan);
-
-  auto _CalcFirstPersonFOVAddr = [&](void)
-  {
-    if (scan != nullptr)
-    {
-      plugin.cached1stFOVAddr = (uintptr_t)scan;
-
-      const uintptr_t offset   = 10;                // From base of scanned pattern
-      const uintptr_t ptr_size = sizeof (uint32_t); // Instruction's address size
-      const uint32_t* ptr      = (uint32_t *)(plugin.cached1stFOVAddr + offset);
-
-      // Next instruction's address for RIP-relative addressing
-      uintptr_t rip =
-        plugin.cached1stFOVAddr + offset + ptr_size;
-
-      plugin.pf1stFOV =
-        reinterpret_cast <float *> ((uintptr_t)*ptr + rip);
-    }
-  };
-
-  _CalcFirstPersonFOVAddr ();
-
-  scan = nullptr;
-
-  static const char *ac3rdFOVPattern =
-    "\x89\x41\x24\xC5\xFA\x10\x05\x00\x00\x00\x00\x48\x8B\x01\xC5\xFA\x11\x41\x28\x48\xFF\x60";
-  static const char *ac3rdFOVMask =
-    "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x00\x00\x00\x00\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF";
-
-  // Try previously cached address first
-  if (plugin.cached3rdFOVAddr > 0)
-  {
-    scan =
-      SK_ScanAlignedExec (
-        ac3rdFOVPattern, 22,
-        ac3rdFOVMask, (void *)((uintptr_t)plugin.cached3rdFOVAddr - 1)
-      );
-  }
-
-  if (scan == nullptr)
-  {
-    scan =
-      SK_ScanAlignedExec (
-        ac3rdFOVPattern, 22,
-        ac3rdFOVMask );
-  }
-
-  SK_LOGs0 (L"Starfield ", L"Scanned 3rd Person FOV Address: %p", scan);
-
-  if (scan != nullptr)
-  {
-    plugin.cached3rdFOVAddr = (uintptr_t)scan;
-
-    const uintptr_t offset   = 7;                 // From base of scanned pattern
-    const uintptr_t ptr_size = sizeof (uint32_t); // Instruction's address size
-    const uint32_t* ptr      = (uint32_t *)(plugin.cached3rdFOVAddr + offset);
-
-    // Next instruction's address for RIP-relative addressing
-    uintptr_t rip =
-      plugin.cached3rdFOVAddr + offset + ptr_size;
-
-    plugin.pf3rdFOV =
-      reinterpret_cast <float *> ((uintptr_t)*ptr + rip);
-  }
-
-  if (plugin.pf1stFOV  != nullptr &&
-      plugin.pf3rdFOV  != nullptr &&
-      plugin.pfMipBias != nullptr)
+  if (plugin.pfMipBias != nullptr)
   {
     return;
   }
 
-  plugin.cached1stFOVAddr  = 0;
-  plugin.cached3rdFOVAddr  = 0;
   plugin.cachedMipBiasAddr = 0;
 }
 
@@ -1525,9 +1393,9 @@ bool
 SK_SEH_InitStarfieldUntrusted (void)
 {
   __try {
-    SK_SF_InitRTs ();
-    SK_SF_InitFPS ();
-    SK_SF_InitFOV ();
+    SK_SF_InitRTs     ();
+    SK_SF_InitFPS     ();
+    SK_SF_InitMipLODs ();
   }
 
   __except (EXCEPTION_EXECUTE_HANDLER)
@@ -1608,16 +1476,6 @@ SK_BGS_InitPlugin (void)
                                     L"FPSLimitAddr",
                          plugin.cachedFPSLimitAddr );
 
-    plugin.ini.fov_1st_addr =
-      _CreateConfigParameterInt64 ( L"Starfield.PlugIn",
-                                    L"FOV1stAddr",
-                         plugin.cached1stFOVAddr );
-
-    plugin.ini.fov_3rd_addr =
-      _CreateConfigParameterInt64 ( L"Starfield.PlugIn",
-                                    L"FOV3rdAddr",
-                         plugin.cached3rdFOVAddr );
-
     plugin.ini.mip_bias_addr =
       _CreateConfigParameterInt64 ( L"Starfield.PlugIn",
                                     L"MipBiasAddr",
@@ -1668,8 +1526,6 @@ SK_BGS_InitPlugin (void)
     if (plugin.cachedImageAddr0    > 0) plugin.cachedImageAddr0    += iBaseAddr;
     if (plugin.cachedBufferDefAddr > 0) plugin.cachedBufferDefAddr += iBaseAddr;
     if (plugin.cachedFPSLimitAddr  > 0) plugin.cachedFPSLimitAddr  += iBaseAddr;
-    if (plugin.cached1stFOVAddr    > 0) plugin.cached1stFOVAddr    += iBaseAddr;
-    if (plugin.cached3rdFOVAddr    > 0) plugin.cached3rdFOVAddr    += iBaseAddr;
     if (plugin.cachedMipBiasAddr   > 0) plugin.cachedMipBiasAddr   += iBaseAddr;
   
     SK_ThreadSuspension_Ctx threads;
@@ -1680,29 +1536,25 @@ SK_BGS_InitPlugin (void)
     plugin.addresses [L"Starfield  1.7.23.0"].steam =
     {
       { "image_def_addr",  0x00000000 }, { "buffer_def_addr", 0x00000000 },
-      { "fps_limit_addr",  0x00000000 }, { "fov_1st_addr",    0x00000000 },
-      { "fov_3rd_addr",    0x00000000 }, { "mip_bias_addr",   0x00000000 }
+      { "fps_limit_addr",  0x00000000 }, { "mip_bias_addr",   0x00000000 }
     };
 
     plugin.addresses [L"Starfield  1.7.29.0"].steam =
     {
       { "image_def_addr",  0x00000000 }, { "buffer_def_addr", 0x00000000 },
-      { "fps_limit_addr",  0x00000000 }, { "fov_1st_addr",    0x00000000 },
-      { "fov_3rd_addr",    0x00000000 }, { "mip_bias_addr",   0x00000000 }
+      { "fps_limit_addr",  0x00000000 }, { "mip_bias_addr",   0x00000000 }
     };
 
     plugin.addresses [L"Starfield  1.7.33.0"].steam =
     {
       { "image_def_addr",  0x3287B88 }, { "buffer_def_addr", 0x33516FA },
-      { "fps_limit_addr",  0x23FA5E9 }, { "fov_1st_addr",    0x1F82668 },
-      { "fov_3rd_addr",    0x1F838C1 }, { "mip_bias_addr",   0x32D6ED2 }
+      { "fps_limit_addr",  0x23FA5E9 }, { "mip_bias_addr",   0x32D6ED2 }
     };
 
     plugin.addresses [L"Starfield  1.7.33.0"].microsoft =
     {
       { "image_def_addr",  0x32A79E8 }, { "buffer_def_addr", 0x337155A },
-      { "fps_limit_addr",  0x23F7F61 }, { "fov_1st_addr",    0x1F806E8 },
-      { "fov_3rd_addr",    0x1F81941 }, { "mip_bias_addr",   0x32F6D32 }
+      { "fps_limit_addr",  0x23F7F61 }, { "mip_bias_addr",   0x32F6D32 }
     };
 
     SK_SEH_InitStarfieldUntrusted ();
@@ -1710,8 +1562,6 @@ SK_BGS_InitPlugin (void)
     plugin.ini.image_addr->store               (plugin.cachedImageAddr0    - iBaseAddr);
     plugin.ini.buffer_def_addr->store          (plugin.cachedBufferDefAddr - iBaseAddr);
     plugin.ini.fps_limit_addr->store           (plugin.cachedFPSLimitAddr  - iBaseAddr);
-    plugin.ini.fov_1st_addr->store             (plugin.cached1stFOVAddr    - iBaseAddr);
-    plugin.ini.fov_3rd_addr->store             (plugin.cached3rdFOVAddr    - iBaseAddr);
     plugin.ini.mip_bias_addr->store            (plugin.cachedMipBiasAddr   - iBaseAddr);
     plugin.ini.alternate_thread_sched->store   (plugin.bAlternateThreadSched);
     plugin.ini.combined_reflex_sk_limit->store (__SK_DoubleUpOnReflex);
@@ -1729,13 +1579,9 @@ SK_BGS_InitPlugin (void)
     game_ini->set_encoding       (iSK_INI::INI_UTF8NOBOM);
     gameCustom_ini->set_encoding (iSK_INI::INI_UTF8NOBOM);
   
-    plugin.game_ini.sf_1stFOV   = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"First Person FOV"));
-    plugin.game_ini.sf_3rdFOV   = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Third Person FOV"));
     plugin.game_ini.sf_MipBias  = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Mipmap Bias"));
     plugin.game_ini.sf_ResScale = dynamic_cast <sk::ParameterFloat *> (g_ParameterFactory->create_parameter <float> (L"Resolution Scale"));
     
-    plugin.game_ini.sf_1stFOV->register_to_ini   (gameCustom_ini, L"Camera",  L"fFPWorldFOV");
-    plugin.game_ini.sf_3rdFOV->register_to_ini   (gameCustom_ini, L"Camera",  L"fTPWorldFOV");
     plugin.game_ini.sf_MipBias->register_to_ini  (gameCustom_ini, L"Display", L"fMipBiasOffset");
     plugin.game_ini.sf_ResScale->register_to_ini (game_ini,       L"Display", L"fRenderResolutionScaleFactor");
 
