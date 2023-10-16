@@ -232,8 +232,9 @@ SK_ImGui_DrawGraph_Latency ()
 
     double dMaxStage = 0.0;
 
-    for (int i = 63; i >= 0; --i)
+    //for (int i = 63; i >= 0; --i)
     {
+      int i = 63;
       frame_id      [i] = (float)i;
       simulation    [i] = sim.durations    [i];
       render_submit [i] = render.durations [i];
@@ -259,6 +260,7 @@ SK_ImGui_DrawGraph_Latency ()
         fill_gpu1 [i] = gpu_active [i];
       }
 
+#if 0
       dMaxStage = std::max (simulation    [i], dMaxStage);
       dMaxStage = std::max (render_submit [i], dMaxStage);
       dMaxStage = std::max (gpu_total     [i], dMaxStage);
@@ -267,6 +269,103 @@ SK_ImGui_DrawGraph_Latency ()
 
       dCPU += gpu_start  [i];
       dGPU += gpu_active [i];
+#endif
+    }
+
+
+
+    static constexpr auto _MAX_FRAME_HISTORY = 512;
+
+    struct { double 
+                  simulation [_MAX_FRAME_HISTORY],
+               render_submit [_MAX_FRAME_HISTORY], gpu_total  [_MAX_FRAME_HISTORY],
+                  gpu_active [_MAX_FRAME_HISTORY], gpu_start  [_MAX_FRAME_HISTORY],
+                   fill_cpu0 [_MAX_FRAME_HISTORY], fill_gpu0  [_MAX_FRAME_HISTORY],
+                   fill_cpu1 [_MAX_FRAME_HISTORY], fill_gpu1  [_MAX_FRAME_HISTORY];
+           INT64 sample_time [_MAX_FRAME_HISTORY];
+      int frames = 0;
+    } static frame_history;
+
+    auto frame_idx =
+      (frame_history.frames++ % _MAX_FRAME_HISTORY);
+
+    frame_history.simulation    [frame_idx] = simulation    [63];
+    frame_history.render_submit [frame_idx] = render_submit [63];
+    frame_history.gpu_total     [frame_idx] = gpu_total     [63];
+    frame_history.gpu_active    [frame_idx] = gpu_active    [63];
+    frame_history.gpu_start     [frame_idx] = gpu_start     [63];
+    frame_history.fill_cpu0     [frame_idx] = fill_cpu0     [63];
+    frame_history.fill_gpu0     [frame_idx] = fill_gpu0     [63];
+    frame_history.fill_cpu1     [frame_idx] = fill_cpu1     [63];
+    frame_history.fill_gpu1     [frame_idx] = fill_gpu1     [63];
+    frame_history.sample_time   [frame_idx] = SK_QueryPerf ().QuadPart;
+
+    static double 
+                    frame_id2 [_MAX_FRAME_HISTORY],
+                  simulation2 [_MAX_FRAME_HISTORY],
+               render_submit2 [_MAX_FRAME_HISTORY], gpu_total2  [_MAX_FRAME_HISTORY],
+                  gpu_active2 [_MAX_FRAME_HISTORY], gpu_start2  [_MAX_FRAME_HISTORY],
+                   fill_cpu02 [_MAX_FRAME_HISTORY], fill_gpu02  [_MAX_FRAME_HISTORY],
+                   fill_cpu12 [_MAX_FRAME_HISTORY], fill_gpu12  [_MAX_FRAME_HISTORY];
+
+    int num_frames = 0;
+
+    auto qpcNow = SK_QueryPerf ().QuadPart;
+
+    for (INT i = frame_idx ; i >= 0 ; --i)
+    {
+      if (frame_history.sample_time [i] > qpcNow - SK_QpcFreq)
+      {
+        simulation2    [num_frames] = frame_history.simulation    [i];
+        render_submit2 [num_frames] = frame_history.render_submit [i];
+        gpu_total2     [num_frames] = frame_history.gpu_total     [i];
+        gpu_active2    [num_frames] = frame_history.gpu_active    [i];
+        gpu_start2     [num_frames] = frame_history.gpu_start     [i];
+        fill_cpu02     [num_frames] = frame_history.fill_cpu0     [i];
+        fill_gpu02     [num_frames] = frame_history.fill_gpu0     [i];
+        fill_cpu12     [num_frames] = frame_history.fill_cpu1     [i];
+        fill_gpu12     [num_frames] = frame_history.fill_gpu1     [i];
+        frame_id2      [num_frames] = num_frames;
+
+        dCPU += gpu_start2  [num_frames];
+        dGPU += gpu_active2 [num_frames];
+
+        dMaxStage = std::max (simulation2    [num_frames], dMaxStage);
+        dMaxStage = std::max (render_submit2 [num_frames], dMaxStage);
+        dMaxStage = std::max (gpu_total2     [num_frames], dMaxStage);
+        dMaxStage = std::max (gpu_active2    [num_frames], dMaxStage);
+        dMaxStage = std::max (gpu_start2     [num_frames], dMaxStage);
+
+        num_frames++;
+      }
+    }
+
+    for (INT i = _MAX_FRAME_HISTORY-1 ; i > frame_idx ; --i)
+    {
+      if (frame_history.sample_time [i] > qpcNow - SK_QpcFreq)
+      {
+        simulation2    [num_frames] = frame_history.simulation    [i];
+        render_submit2 [num_frames] = frame_history.render_submit [i];
+        gpu_total2     [num_frames] = frame_history.gpu_total     [i];
+        gpu_active2    [num_frames] = frame_history.gpu_active    [i];
+        gpu_start2     [num_frames] = frame_history.gpu_start     [i];
+        fill_cpu02     [num_frames] = frame_history.fill_cpu0     [i];
+        fill_gpu02     [num_frames] = frame_history.fill_gpu0     [i];
+        fill_cpu12     [num_frames] = frame_history.fill_cpu1     [i];
+        fill_gpu12     [num_frames] = frame_history.fill_gpu1     [i];
+        frame_id2      [num_frames] = num_frames;
+
+        dCPU += gpu_start2  [num_frames];
+        dGPU += gpu_active2 [num_frames];
+
+        dMaxStage = std::max (simulation2    [num_frames], dMaxStage);
+        dMaxStage = std::max (render_submit2 [num_frames], dMaxStage);
+        dMaxStage = std::max (gpu_total2     [num_frames], dMaxStage);
+        dMaxStage = std::max (gpu_active2    [num_frames], dMaxStage);
+        dMaxStage = std::max (gpu_start2     [num_frames], dMaxStage);
+
+        num_frames++;
+      }
     }
 
     dMaxStage =
@@ -287,8 +386,18 @@ SK_ImGui_DrawGraph_Latency ()
     double dScale =
       std::max (dMaxStage, dAvgScale);
 
+    static double
+              dLastScale = dScale;
+    dScale = (dLastScale * 1.75 + dScale * .25) / 2.0;
+              dLastScale = dScale;
+
+#if 0
     dCPU /= 64.0;
     dGPU /= 64.0;
+#else
+    dCPU /= num_frames;
+    dGPU /= num_frames;
+#endif
 
     static bool show_lines = true;
     static bool show_fills = true;
@@ -321,7 +430,7 @@ SK_ImGui_DrawGraph_Latency ()
                                                                 ImPlotAxisFlags_NoTickLabels,
                                                        (flags &~ImPlotAxisFlags_AutoFit)|
                                                                 ImPlotAxisFlags_NoLabel);
-      ImPlot::SetupAxisLimits (ImAxis_X1, 0, 63,                ImPlotCond_Always);
+      ImPlot::SetupAxisLimits (ImAxis_X1, 0, num_frames-1/*63*/,                ImPlotCond_Always);
       ImPlot::SetupAxisLimits (ImAxis_Y1, 0, dScale,            ImPlotCond_Always);
       ImPlot::SetupAxisFormat (ImAxis_Y1, MillisecondFormatter);
       ImPlot::SetupLegend     (ImPlotLocation_SouthWest,        ImPlotLegendFlags_Horizontal);
@@ -333,11 +442,19 @@ SK_ImGui_DrawGraph_Latency ()
 
       if (show_lines)
       {
+#if 0
         ImPlot::PlotLine ("Simulation",      frame_id, simulation,    64);
         ImPlot::PlotLine ("Render Submit",   frame_id, render_submit, 64);
         ImPlot::PlotLine ("Display Scanout", frame_id, gpu_total,     64);
         ImPlot::PlotLine ("GPU Busy",        frame_id, gpu_active,    64);
         ImPlot::PlotLine ("CPU Busy",        frame_id, gpu_start,     64);
+#else
+        ImPlot::PlotLine ("Simulation",      frame_id2, simulation2,    num_frames);
+        ImPlot::PlotLine ("Render Submit",   frame_id2, render_submit2, num_frames);
+        ImPlot::PlotLine ("Display Scanout", frame_id2, gpu_total2,     num_frames);
+        ImPlot::PlotLine ("GPU Busy",        frame_id2, gpu_active2,    num_frames);
+        ImPlot::PlotLine ("CPU Busy",        frame_id2, gpu_start2,     num_frames);
+#endif
       }
 
       if (show_fills)
@@ -370,7 +487,8 @@ SK_ImGui_DrawGraph_Latency ()
         });
 
         ImPlot::Annotation (0.0, dScale, ImVec4 (.75,0,0,1), ImVec2 (0.0,0.0), true, "%hs", utf8_gpu_name.c_str ());
-        ImPlot::Annotation (63.0,dScale, ImVec4 (0,0,.75,1), ImVec2 (0.0,0.0), true, "%hs", utf8_cpu_name.c_str ());
+      //ImPlot::Annotation (63.0,dScale, ImVec4 (0,0,.75,1), ImVec2 (0.0,0.0), true, "%hs", utf8_cpu_name.c_str ());
+        ImPlot::Annotation (num_frames-1,dScale, ImVec4 (0,0,.75,1), ImVec2 (0.0,0.0), true, "%hs", utf8_cpu_name.c_str ());
 
         if      (dGPU > dCPU * 1.25)
           ImPlot::TagY (dGPU, ImVec4 (1,0,0,1), "GPU Bound");
@@ -380,8 +498,13 @@ SK_ImGui_DrawGraph_Latency ()
           ImPlot::TagY ((dCPU + dGPU) / 2.0, ImVec4 (0,1,0,1),"\tBalanced");
 
         ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.15f);
+#if 0
         ImPlot::PlotShaded   ("GPU Busy", frame_id, fill_gpu0, fill_gpu1, 64, flags);
         ImPlot::PlotShaded   ("CPU Busy", frame_id, fill_cpu0, fill_cpu1, 64, flags);
+#else
+        ImPlot::PlotShaded   ("GPU Busy", frame_id2, fill_gpu02, fill_gpu12, num_frames, flags);
+        ImPlot::PlotShaded   ("CPU Busy", frame_id2, fill_cpu02, fill_cpu12, num_frames, flags);
+#endif
         ImPlot::PopStyleVar  ();
       }
 
