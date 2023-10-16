@@ -1371,7 +1371,6 @@ enum class SK_GAME_ID
   HorizonZeroDawn,              // HorizonZeroDawn.exe
   BaldursGate3,                 // bg3.exe
   AssassinsCreed_Valhalla,      // ACValhalla.exe / ACValhalla_Plus.exe
-  Cyberpunk2077,                // Cyberpunk2077.exe
   AtelierRyza2,                 // Atelier_Ryza_2.exe
   Nioh2,                        // nioh2.exe
   HuniePop2,                    // HuniePop 2 - Double Date.exe

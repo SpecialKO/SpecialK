@@ -193,7 +193,6 @@ SK_GetCurrentGameID (void)
           { L"HorizonZeroDawn.exe",                    SK_GAME_ID::HorizonZeroDawn              },
           { L"bg3.exe",                                SK_GAME_ID::BaldursGate3                 },
           { L"bg3_dx11.exe",                           SK_GAME_ID::BaldursGate3                 },
-          { L"Cyberpunk2077.exe",                      SK_GAME_ID::Cyberpunk2077                },
           { L"Atelier_Ryza_2.exe",                     SK_GAME_ID::AtelierRyza2                 },
           { L"nioh2.exe",                              SK_GAME_ID::Nioh2                        },
           { L"HuniePop 2 - Double Date.exe",           SK_GAME_ID::HuniePop2                    },
@@ -2836,12 +2835,6 @@ auto DeclKeybind =
       {
         config.window.dont_hook_wndproc = true;
         config.platform.silent          = true;
-      } break;
-
-      case SK_GAME_ID::Cyberpunk2077:
-      {
-        extern void SK_CP2077_InitPlugin (void);
-                    SK_CP2077_InitPlugin (    );
       } break;
 
       case SK_GAME_ID::AtelierRyza2:

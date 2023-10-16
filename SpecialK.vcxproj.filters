@@ -3374,9 +3374,6 @@
     <ClCompile Include="src\render\d3d12\d3d12_pipeline_stats.cpp">
       <Filter>Source Files\Backends\Render\D3D12</Filter>
     </ClCompile>
-    <ClCompile Include="src\plugins\cyberpunk2077.cpp">
-      <Filter>Source Files\Plugins</Filter>
-    </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d11on12_shader_restitution.cpp">
       <Filter>Source Files\Backends\Render\D3D12</Filter>
     </ClCompile>
