@@ -1,10 +1,15 @@
-﻿23.10.16
+﻿23.10.16.1
+==========
+ + Restored hold gamepad activate to right-click behavior lost in ImGui upgrade
+ + Fixed control panel slider activation when using a gamepad
+
+23.10.16
 ========
  + Smoothed data display range changes on latency analysis graph
+ + Removed Cyberpunk 2077 plug-in from Special K
 
 23.10.15.x
 ==========
- [.6] + Removed Cyberpunk 2077 plug-in from Special K
  [.5] + Removed Starfield plug-in's FOV settings
  [.4] + Condensed NVIDIA Reflex control panel and added tooltips to mode selection
  [.3] + Fixed startup crash in Control HDR related to DLSS initialization

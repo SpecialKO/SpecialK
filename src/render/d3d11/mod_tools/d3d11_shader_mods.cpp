@@ -899,11 +899,10 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                if (ImGui::IsKeyPressed (ImGuiKey_LeftBracket,  false)) { direction--;  io.WantCaptureKeyboard = true; }
           else if (ImGui::IsKeyPressed (ImGuiKey_RightBracket, false)) { direction++;  io.WantCaptureKeyboard = true; }
 
-               /// XXX: Fixme
-          ///else {
-          ///       if (io.NavInputs [ImGuiNavInput_FocusPrev] && io.NavInputsDownDuration [ImGuiNavInput_FocusPrev] == 0.0f) { direction--; }
-          ///  else if (io.NavInputs [ImGuiNavInput_FocusNext] && io.NavInputsDownDuration [ImGuiNavInput_FocusNext] == 0.0f) { direction++; }
-          ///}
+          else {
+                 if (io.NavInputs [ImGuiNavInput_FocusPrev] != 0.0f) { direction--; }
+            else if (io.NavInputs [ImGuiNavInput_FocusNext] != 0.0f) { direction++; }
+          }
 
           int neutral_idx = 0;
 

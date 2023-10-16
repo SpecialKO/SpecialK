@@ -600,17 +600,21 @@ SK_ImGui_IsItemClicked (void)
   if (ImGui::IsItemClicked ())
     return true;
 
+  // Not possible to implement the original behavior following ImGui
+  //   codebase changes... plan on removing this.
+#if 0
   if (ImGui::IsItemHovered ())
   {
-    auto& io =
-      ImGui::GetIO ();
+    //auto& io =
+    //  ImGui::GetIO ();
 
     /// XXX: FIXME
-    if (io.NavInputs [ImGuiNavInput_Activate] == 0.0f)
-    {
-      return true;
-    }
+    //if (io.NavInputs [ImGuiNavInput_Activate] == 0.0f)
+    //{
+    //  return true;
+    //}
   }
+#endif
 
   return false;
 }
@@ -626,7 +630,7 @@ SK_ImGui_IsItemRightClicked (void)
     auto& io =
       ImGui::GetIO ();
 
-    /// XXX: FIXME
+    // Activate button held for >= .4 seconds -> right-click
     if (io.NavInputs [ImGuiNavInput_Activate] > 0.4f)
     {   io.NavInputs [ImGuiNavInput_Activate] = 0.0f;
       return true;
@@ -7109,7 +7113,7 @@ SK_ImGui_Toggle (void)
   // Clear navigation focus on window close
   if (! SK_ImGui_Visible)
   {
-    // Reuse the game's overlay activation callback (if it hase one)
+    // Reuse the game's overlay activation callback (if it has one)
     if (config.platform.reuse_overlay_pause)
       SK::SteamAPI::SetOverlayState (false);
 

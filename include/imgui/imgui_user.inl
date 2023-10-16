@@ -2043,7 +2043,9 @@ SK_ImGui_PollGamepad (void)
   std::copy_n (io.NavInputs, 16, LastNavInputs);
 
   for ( float& NavInput : io.NavInputs )
+  {
     NavInput = 0.0f;
+  }
 
   if (SK_ImGui_PollGamepad_EndFrame (state))
   {
@@ -2112,14 +2114,14 @@ SK_ImGui_PollGamepad (void)
         if ( (state.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0) //&&
         //(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_B) == 0)
         {
-          io.NavInputs [ImGuiNavInput_Cancel] = 1.0f;
+          io.NavInputs [ImGuiNavInput_Cancel] = LastNavInputs [ImGuiNavInput_Cancel] + io.DeltaTime;
         }
 
         // Text Input                                   // e.g. Triangle button
         if ( (state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0) //&&
         //(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) == 0)
         {
-          io.NavInputs [ImGuiNavInput_Input] = 1.0f;
+          io.NavInputs [ImGuiNavInput_Input] = LastNavInputs [ImGuiNavInput_Input] + io.DeltaTime;
         }
 
         io.NavInputs [ImGuiNavInput_LStickDown]    = 0.0f;
@@ -2156,13 +2158,13 @@ SK_ImGui_PollGamepad (void)
             (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) == 0
           );
 
-        io.NavInputs [ImGuiNavInput_TweakSlow] +=
+        io.NavInputs [ImGuiNavInput_TweakSlow]   +=
           static_cast <float> (
             SK_Threshold ( state.Gamepad.bLeftTrigger,
                            XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) ) /
                 ( 255.0f - XINPUT_GAMEPAD_TRIGGER_THRESHOLD     );
 
-        io.NavInputs [ImGuiNavInput_TweakFast] +=
+        io.NavInputs [ImGuiNavInput_TweakFast]   +=
           static_cast <float> (
             SK_Threshold ( state.Gamepad.bRightTrigger,
                            XINPUT_GAMEPAD_TRIGGER_THRESHOLD ) ) /
@@ -2174,11 +2176,11 @@ SK_ImGui_PollGamepad (void)
 
         // Press Button, Tweak Value                    // e.g. Circle button
         if ((state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0)
-          io.NavInputs [ImGuiNavInput_Activate] = 1.0f;
+          io.NavInputs [ImGuiNavInput_Activate] = LastNavInputs [ImGuiNavInput_Activate] + io.DeltaTime;
 
         // Access Menu, Focus, Move, Resize             // e.g. Square button
         if ((state.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0)
-          io.NavInputs [ImGuiNavInput_Menu] = 1.0f;
+          io.NavInputs [ImGuiNavInput_Menu] = LastNavInputs [ImGuiNavInput_Menu] + io.DeltaTime;
 
         // Move Up, Resize Window (with PadMenu held)   // e.g. D-pad up/down/left/right
         io.NavInputs [ImGuiNavInput_DpadUp]    +=  0.001f *
@@ -2294,11 +2296,11 @@ SK_ImGui_PollGamepad (void)
       }
     }
 
-    ////if (io.KeysDown [VK_RETURN])
-    ////  io.NavInputs  [ImGuiNavInput_Activate] = 1.0f;
+    if (io.KeysDown [VK_RETURN])
+      io.NavInputs  [ImGuiNavInput_Activate] = LastNavInputs [ImGuiNavInput_Activate] + io.DeltaTime;
 
     if (io.KeysDown [VK_ESCAPE])
-      io.NavInputs  [ImGuiNavInput_Cancel]   = 1.0f;
+      io.NavInputs  [ImGuiNavInput_Cancel]   = LastNavInputs [ImGuiNavInput_Cancel] + io.DeltaTime;
   }
 
   else
@@ -2315,10 +2317,10 @@ SK_ImGui_PollGamepad (void)
   }
 
 
-  //if (io.NavInputs [ImGuiNavInput_Activate] != 0.0f)
-  //  io.MouseDown [4] = true;
-  //else
-  //  io.MouseDown [4] = false;
+  if (io.NavInputs [ImGuiNavInput_Activate] != 0.0f)
+    io.MouseDown [4] = true;
+  else
+    io.MouseDown [4] = false;
 
 
   if ( io.NavInputs [ImGuiNavInput_TweakSlow] != 0.0f &&
@@ -2644,6 +2646,9 @@ SK_ImGui_User_NewFrame (void)
   static bool        first = true;
   if (std::exchange (first, false))
   {
+    io.BackendUsingLegacyKeyArrays     = (ImS8)1;
+    io.BackendUsingLegacyNavInputArray = true;
+
     g_TicksPerSecond = SK_PerfFreq;
     g_Time           = current_time;
 

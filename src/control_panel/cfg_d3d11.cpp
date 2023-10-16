@@ -1757,12 +1757,9 @@ SK::ControlPanel::D3D11::Draw (void)
           config.render.dxgi.warn_if_vram_exceeds;
 
         /// XXX: FIXME
-#if 0
         SK_ImGui::SliderFloatDeferred (
           "###VRAM_QUOTA", &config.render.dxgi.warn_if_vram_exceeds,
-                           &limit, 15.0f, 105.0f, "%2.2f%% of Available",
-                                    2.0f );
-#endif
+                           &limit, 15.0f, 105.0f, "%2.2f%% of Available" );
 
         if (config.render.dxgi.warned_low_vram)
         {
