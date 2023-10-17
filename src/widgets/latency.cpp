@@ -39,6 +39,75 @@ inline T RandomRange(T min, T max) {
 
 }
 
+struct reflex_frame_s {
+  double simulation    = 0.0;
+  double render_submit = 0.0;
+  double gpu_total     = 0.0;
+  double gpu_active    = 0.0;
+  double gpu_start     = 0.0;
+  
+  struct {
+    double cpu0 = 0.0, gpu0 = 0.0;
+    double cpu1 = 0.0, gpu1 = 0.0;
+  } fill;
+} static reflex;
+
+static constexpr auto _MAX_FRAME_HISTORY = 512;
+
+struct {
+  double frame_id   [_MAX_FRAME_HISTORY] = { };
+  double simulation [_MAX_FRAME_HISTORY] = { },
+      render_submit [_MAX_FRAME_HISTORY] = { }, gpu_total  [_MAX_FRAME_HISTORY] = { },
+         gpu_active [_MAX_FRAME_HISTORY] = { }, gpu_start  [_MAX_FRAME_HISTORY] = { },
+          fill_cpu0 [_MAX_FRAME_HISTORY] = { }, fill_gpu0  [_MAX_FRAME_HISTORY] = { },
+          fill_cpu1 [_MAX_FRAME_HISTORY] = { }, fill_gpu1  [_MAX_FRAME_HISTORY] = { };
+  INT64 sample_time [_MAX_FRAME_HISTORY] = { };
+  int   frames = 0;
+} static frame_history,
+         frame_graph;
+
+struct stage_timing_s
+{
+  const char* label = nullptr;
+  const char*
+         desc = nullptr;
+  NvU64   min = std::numeric_limits <NvU64>::max (),
+          max = std::numeric_limits <NvU64>::min (),
+          sum = 0;
+  double  avg = 0.0;
+  int samples = 0;
+  NvU64 start = 0;
+  NvU64   end = 0;
+  ImColor color;
+
+  double durations [64] = { };
+
+  void reset (void)
+  {
+    min     = std::numeric_limits <NvU64>::max (),
+    max     = std::numeric_limits <NvU64>::min (),
+    sum     = 0;
+    avg     = 0.0;
+    samples = 0;
+    start   = 0;
+    end     = 0;
+
+    memset (durations, 0, sizeof (double) * 64);
+  }
+};
+
+struct frame_timing_s {
+  NvU32 gpuActiveRenderTimeUs = 0;
+  NvU32 gpuFrameTimeUs        = 0;
+} static gpu_frame_times [64];
+
+static stage_timing_s sim      { "Simulation"       }; static stage_timing_s render   { "Render Submit"   };
+static stage_timing_s specialk { "Special K"        }; static stage_timing_s present  { "Present"         };
+static stage_timing_s driver   { "Driver"           }; static stage_timing_s os       { "OS Render Queue" };
+static stage_timing_s gpu      { "GPU Render"       }; static stage_timing_s gpu_busy { "GPU Busy"        };
+static stage_timing_s total    { "Total Frame Time" };
+static stage_timing_s input    { "Input Age"        };
+
 void
 SK_ImGui_DrawGraph_Latency ()
 {
@@ -57,48 +126,6 @@ SK_ImGui_DrawGraph_Latency ()
   NV_LATENCY_RESULT_PARAMS
     latencyResults         = {                          };
     latencyResults.version = NV_LATENCY_RESULT_PARAMS_VER;
-
-  struct stage_timing_s
-  {
-    const char* label = nullptr;
-    const char*
-           desc = nullptr;
-    NvU64   min = std::numeric_limits <NvU64>::max (),
-            max = std::numeric_limits <NvU64>::min (),
-            sum = 0;
-    double  avg = 0.0;
-    int samples = 0;
-    NvU64 start = 0;
-    NvU64   end = 0;
-    ImColor color;
-
-    double durations [64] = { };
-
-    void reset (void)
-    {
-      min     = std::numeric_limits <NvU64>::max (),
-      max     = std::numeric_limits <NvU64>::min (),
-      sum     = 0;
-      avg     = 0.0;
-      samples = 0;
-      start   = 0;
-      end     = 0;
-
-      memset (durations, 0, sizeof (double) * 64);
-    }
-  };
-
-  struct frame_timing_s {
-    NvU32 gpuActiveRenderTimeUs;
-    NvU32 gpuFrameTimeUs;
-  } gpu_frame_times [64];
-  
-  static stage_timing_s sim      { "Simulation"       }; static stage_timing_s render   { "Render Submit"   };
-  static stage_timing_s specialk { "Special K"        }; static stage_timing_s present  { "Present"         };
-  static stage_timing_s driver   { "Driver"           }; static stage_timing_s os       { "OS Render Queue" };
-  static stage_timing_s gpu      { "GPU Render"       }; static stage_timing_s gpu_busy { "GPU Busy"        };
-  static stage_timing_s total    { "Total Frame Time" };
-  static stage_timing_s input    { "Input Age"        };
 
   total.reset ();
   input.reset ();
@@ -220,19 +247,11 @@ SK_ImGui_DrawGraph_Latency ()
     if (input.avg > total.avg) {
         input.avg = 0.0;
     }
+    
+    auto& graph   = frame_graph;
+    auto& history = frame_history;
 
-    struct reflex_frame_s {
-      double simulation;
-      double render_submit;
-      double gpu_total;
-      double gpu_active;
-      double gpu_start;
-      
-      struct {
-        double cpu0, gpu0;
-        double cpu1, gpu1;
-      } fill;
-    } static reflex;
+    static double dScale = 0.0;
 
     static double dCPU = 0.0;
     static double dGPU = 0.0;
@@ -266,31 +285,12 @@ SK_ImGui_DrawGraph_Latency ()
     static auto lastFrame =
       SK_GetFramesDrawn () - 1;
 
-    static constexpr auto _MAX_FRAME_HISTORY = 512;
-
-    struct { double 
-                  simulation [_MAX_FRAME_HISTORY],
-               render_submit [_MAX_FRAME_HISTORY], gpu_total  [_MAX_FRAME_HISTORY],
-                  gpu_active [_MAX_FRAME_HISTORY], gpu_start  [_MAX_FRAME_HISTORY],
-                   fill_cpu0 [_MAX_FRAME_HISTORY], fill_gpu0  [_MAX_FRAME_HISTORY],
-                   fill_cpu1 [_MAX_FRAME_HISTORY], fill_gpu1  [_MAX_FRAME_HISTORY];
-           INT64 sample_time [_MAX_FRAME_HISTORY];
-      int frames = 0;
-    } static frame_history;
-
-    static double  frame_id [_MAX_FRAME_HISTORY],
-                 simulation [_MAX_FRAME_HISTORY],
-              render_submit [_MAX_FRAME_HISTORY], gpu_total  [_MAX_FRAME_HISTORY],
-                 gpu_active [_MAX_FRAME_HISTORY], gpu_start  [_MAX_FRAME_HISTORY],
-                  fill_cpu0 [_MAX_FRAME_HISTORY], fill_gpu0  [_MAX_FRAME_HISTORY],
-                  fill_cpu1 [_MAX_FRAME_HISTORY], fill_gpu1  [_MAX_FRAME_HISTORY];
-
-    static int num_frames = 0;
-    static double dScale  = 0.0;
-
     if (std::exchange (lastFrame, SK_GetFramesDrawn ()) < SK_GetFramesDrawn ())
     {
-      num_frames = 0;
+      const auto qpcNow =
+        SK_QueryPerf ().QuadPart;
+
+      frame_graph.frames = 0;
 
       dCPU       = 0.0;
       dGPU       = 0.0;
@@ -298,86 +298,83 @@ SK_ImGui_DrawGraph_Latency ()
       dMaxStage  = 0.0;
 
       auto frame_idx =
-        (frame_history.frames++ % _MAX_FRAME_HISTORY);
+        (history.frames++ % _MAX_FRAME_HISTORY);
 
-      frame_history.simulation    [frame_idx] = reflex.simulation;
-      frame_history.render_submit [frame_idx] = reflex.render_submit;
-      frame_history.gpu_total     [frame_idx] = reflex.gpu_total;
-      frame_history.gpu_active    [frame_idx] = reflex.gpu_active;
-      frame_history.gpu_start     [frame_idx] = reflex.gpu_start;
-      frame_history.fill_cpu0     [frame_idx] = reflex.fill.cpu0;
-      frame_history.fill_gpu0     [frame_idx] = reflex.fill.gpu0;
-      frame_history.fill_cpu1     [frame_idx] = reflex.fill.cpu1;
-      frame_history.fill_gpu1     [frame_idx] = reflex.fill.gpu1;
-      frame_history.sample_time   [frame_idx] = SK_QueryPerf ().QuadPart;
-
-      const auto qpcNow =
-        SK_QueryPerf ().QuadPart;
+      history.simulation    [frame_idx] = reflex.simulation;
+      history.render_submit [frame_idx] = reflex.render_submit;
+      history.gpu_total     [frame_idx] = reflex.gpu_total;
+      history.gpu_active    [frame_idx] = reflex.gpu_active;
+      history.gpu_start     [frame_idx] = reflex.gpu_start;
+      history.fill_cpu0     [frame_idx] = reflex.fill.cpu0;
+      history.fill_gpu0     [frame_idx] = reflex.fill.gpu0;
+      history.fill_cpu1     [frame_idx] = reflex.fill.cpu1;
+      history.fill_gpu1     [frame_idx] = reflex.fill.gpu1;
+      history.sample_time   [frame_idx] = qpcNow;
 
       for ( int i = frame_idx ; i >= 0 ; --i )
       {
-        if (frame_history.sample_time [i] > qpcNow - SK_QpcFreq)
+        if (history.sample_time [i] > qpcNow - SK_QpcFreq)
         {
-          simulation    [num_frames] = frame_history.simulation    [i];
-          render_submit [num_frames] = frame_history.render_submit [i];
-          gpu_total     [num_frames] = frame_history.gpu_total     [i];
-          gpu_active    [num_frames] = frame_history.gpu_active    [i];
-          gpu_start     [num_frames] = frame_history.gpu_start     [i];
-          fill_cpu0     [num_frames] = frame_history.fill_cpu0     [i];
-          fill_gpu0     [num_frames] = frame_history.fill_gpu0     [i];
-          fill_cpu1     [num_frames] = frame_history.fill_cpu1     [i];
-          fill_gpu1     [num_frames] = frame_history.fill_gpu1     [i];
-          frame_id      [num_frames] = num_frames;
+          graph.simulation    [graph.frames] = history.simulation    [i];
+          graph.render_submit [graph.frames] = history.render_submit [i];
+          graph.gpu_total     [graph.frames] = history.gpu_total     [i];
+          graph.gpu_active    [graph.frames] = history.gpu_active    [i];
+          graph.gpu_start     [graph.frames] = history.gpu_start     [i];
+          graph.fill_cpu0     [graph.frames] = history.fill_cpu0     [i];
+          graph.fill_gpu0     [graph.frames] = history.fill_gpu0     [i];
+          graph.fill_cpu1     [graph.frames] = history.fill_cpu1     [i];
+          graph.fill_gpu1     [graph.frames] = history.fill_gpu1     [i];
+          graph.frame_id      [graph.frames] = graph.frames;
 
-          dCPU += gpu_start  [num_frames];
-          dGPU += gpu_active [num_frames];
+          dCPU += graph.gpu_start  [graph.frames];
+          dGPU += graph.gpu_active [graph.frames];
 
-          dMaxStage = std::max (simulation    [num_frames], dMaxStage);
-          dMaxStage = std::max (render_submit [num_frames], dMaxStage);
-          dMaxStage = std::max (gpu_total     [num_frames], dMaxStage);
-          dMaxStage = std::max (gpu_active    [num_frames], dMaxStage);
-          dMaxStage = std::max (gpu_start     [num_frames], dMaxStage);
+          dMaxStage = std::max (graph.simulation    [graph.frames], dMaxStage);
+          dMaxStage = std::max (graph.render_submit [graph.frames], dMaxStage);
+          dMaxStage = std::max (graph.gpu_total     [graph.frames], dMaxStage);
+          dMaxStage = std::max (graph.gpu_active    [graph.frames], dMaxStage);
+          dMaxStage = std::max (graph.gpu_start     [graph.frames], dMaxStage);
 
-          num_frames++;
+          graph.frames++;
         }
       }
 
       for ( int i = _MAX_FRAME_HISTORY-1 ; i > frame_idx ; --i )
       {
-        if (frame_history.sample_time [i] > qpcNow - SK_QpcFreq)
+        if (history.sample_time [i] > qpcNow - SK_QpcFreq)
         {
-          simulation    [num_frames] = frame_history.simulation    [i];
-          render_submit [num_frames] = frame_history.render_submit [i];
-          gpu_total     [num_frames] = frame_history.gpu_total     [i];
-          gpu_active    [num_frames] = frame_history.gpu_active    [i];
-          gpu_start     [num_frames] = frame_history.gpu_start     [i];
-          fill_cpu0     [num_frames] = frame_history.fill_cpu0     [i];
-          fill_gpu0     [num_frames] = frame_history.fill_gpu0     [i];
-          fill_cpu1     [num_frames] = frame_history.fill_cpu1     [i];
-          fill_gpu1     [num_frames] = frame_history.fill_gpu1     [i];
-          frame_id      [num_frames] = num_frames;
+          graph.simulation    [graph.frames] = history.simulation    [i];
+          graph.render_submit [graph.frames] = history.render_submit [i];
+          graph.gpu_total     [graph.frames] = history.gpu_total     [i];
+          graph.gpu_active    [graph.frames] = history.gpu_active    [i];
+          graph.gpu_start     [graph.frames] = history.gpu_start     [i];
+          graph.fill_cpu0     [graph.frames] = history.fill_cpu0     [i];
+          graph.fill_gpu0     [graph.frames] = history.fill_gpu0     [i];
+          graph.fill_cpu1     [graph.frames] = history.fill_cpu1     [i];
+          graph.fill_gpu1     [graph.frames] = history.fill_gpu1     [i];
+          graph.frame_id      [graph.frames] = graph.frames;
 
-          dCPU += gpu_start  [num_frames];
-          dGPU += gpu_active [num_frames];
+          dCPU += graph.gpu_start  [graph.frames];
+          dGPU += graph.gpu_active [graph.frames];
 
-          dMaxStage = std::max (simulation    [num_frames], dMaxStage);
-          dMaxStage = std::max (render_submit [num_frames], dMaxStage);
-          dMaxStage = std::max (gpu_total     [num_frames], dMaxStage);
-          dMaxStage = std::max (gpu_active    [num_frames], dMaxStage);
-          dMaxStage = std::max (gpu_start     [num_frames], dMaxStage);
+          dMaxStage = std::max (graph.simulation    [graph.frames], dMaxStage);
+          dMaxStage = std::max (graph.render_submit [graph.frames], dMaxStage);
+          dMaxStage = std::max (graph.gpu_total     [graph.frames], dMaxStage);
+          dMaxStage = std::max (graph.gpu_active    [graph.frames], dMaxStage);
+          dMaxStage = std::max (graph.gpu_start     [graph.frames], dMaxStage);
 
-          num_frames++;
+          graph.frames++;
         }
       }
 
       // Reverse the data direction
-      for ( int i = 0 ; i < num_frames ; ++i )
+      for ( int i = 0 ; i < graph.frames ; ++i )
       {
-        frame_id [i] = num_frames - 1 - i;
+        graph.frame_id [i] = graph.frames - 1 - i;
       }
 
-      dCPU /= num_frames;
-      dGPU /= num_frames;
+      dCPU /= graph.frames;
+      dGPU /= graph.frames;
 
       dMaxStage =
         std::max (10000.0 * total.avg / static_cast <double> (SK_QpcFreq), dMaxStage);
@@ -435,7 +432,7 @@ SK_ImGui_DrawGraph_Latency ()
                                                                 ImPlotAxisFlags_NoGridLines,
                                                        (flags &~ImPlotAxisFlags_AutoFit)|
                                                                 ImPlotAxisFlags_NoLabel);
-      ImPlot::SetupAxisLimits (ImAxis_X1, 0, num_frames-1,      ImPlotCond_Always);
+      ImPlot::SetupAxisLimits (ImAxis_X1, 0, graph.frames - 1,  ImPlotCond_Always);
       ImPlot::SetupAxisLimits (ImAxis_Y1, 0, dScale,            ImPlotCond_Always);
       ImPlot::SetupAxisFormat (ImAxis_Y1, MillisecondFormatter);
       ImPlot::SetupLegend     (ImPlotLocation_SouthWest,        ImPlotLegendFlags_Horizontal);
@@ -447,11 +444,11 @@ SK_ImGui_DrawGraph_Latency ()
 
       if (show_lines)
       {
-        ImPlot::PlotLine ("Simulation",      frame_id, simulation,    num_frames);
-        ImPlot::PlotLine ("Render Submit",   frame_id, render_submit, num_frames);
-        ImPlot::PlotLine ("Display Scanout", frame_id, gpu_total,     num_frames);
-        ImPlot::PlotLine ("GPU Busy",        frame_id, gpu_active,    num_frames);
-        ImPlot::PlotLine ("CPU Busy",        frame_id, gpu_start,     num_frames);
+        ImPlot::PlotLine ("Simulation",      graph.frame_id, graph.simulation,    graph.frames);
+        ImPlot::PlotLine ("Render Submit",   graph.frame_id, graph.render_submit, graph.frames);
+        ImPlot::PlotLine ("Display Scanout", graph.frame_id, graph.gpu_total,     graph.frames);
+        ImPlot::PlotLine ("GPU Busy",        graph.frame_id, graph.gpu_active,    graph.frames);
+        ImPlot::PlotLine ("CPU Busy",        graph.frame_id, graph.gpu_start,     graph.frames);
       }
 
       if (show_fills)
@@ -486,12 +483,12 @@ SK_ImGui_DrawGraph_Latency ()
         double dFpsCpu = isfinite (1000.0 / dCPU) ? 1000.0 / dCPU : 0.0;
         double dFpsGpu = isfinite (1000.0 / dGPU) ? 1000.0 / dGPU : 0.0;
 
-        ImPlot::Annotation (0.0,         dScale, ImVec4 (.75,0,0,1), ImVec2 (0.0,0.0), true, "%hs",                                                                   utf8_gpu_name.c_str ());
-        ImPlot::Annotation (num_frames-1,dScale, ImVec4 (0,0,.75,1), ImVec2 (-ImGui::CalcTextSize (SK_FormatString ("%.1f ", dFpsCpu).c_str ()).x, 0.0), true, "%hs", utf8_cpu_name.c_str ());
+        ImPlot::Annotation (0.0,           dScale, ImVec4 (.75,0,0,1), ImVec2 (0.0,0.0), true, "%hs",                                                                   utf8_gpu_name.c_str ());
+        ImPlot::Annotation (graph.frames-1,dScale, ImVec4 (0,0,.75,1), ImVec2 (-ImGui::CalcTextSize (SK_FormatString ("%.1f ", dFpsCpu).c_str ()).x, 0.0), true, "%hs", utf8_cpu_name.c_str ());
         ImPlot::PushStyleColor (ImPlotCol_InlayText, ImVec4 (1,1,1,1));
-        ImPlot::Annotation (0.0,         dScale, ImVec4 (1,1,1,1), ImVec2 ( ImGui::CalcTextSize ( utf8_gpu_name.c_str () ).x + 
-                                                                            ImGui::CalcTextSize (" ")                     .x,0.0), true, "%.1f", dFpsGpu);
-        ImPlot::Annotation (num_frames-1,dScale, ImVec4 (1,1,1,1), ImVec2 (0.0,0.0),                                               true, "%.1f", dFpsCpu);
+        ImPlot::Annotation (0.0,           dScale, ImVec4 (1,1,1,1), ImVec2 ( ImGui::CalcTextSize ( utf8_gpu_name.c_str () ).x + 
+                                                                              ImGui::CalcTextSize (" ")                     .x,0.0), true, "%.1f", dFpsGpu);
+        ImPlot::Annotation (graph.frames-1,dScale, ImVec4 (1,1,1,1), ImVec2 (0.0,0.0),                                               true, "%.1f", dFpsCpu);
         ImPlot::PopStyleColor ();
 
         if      (dGPU > dCPU * 1.15)
@@ -502,8 +499,10 @@ SK_ImGui_DrawGraph_Latency ()
           ImPlot::TagY ((dCPU + dGPU) / 2.0, ImVec4 (0,1,0,1),"\tBalanced");
 
         ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.15f);
-        ImPlot::PlotShaded   ("GPU Busy", frame_id, fill_gpu0, fill_gpu1, num_frames, flags);
-        ImPlot::PlotShaded   ("CPU Busy", frame_id, fill_cpu0, fill_cpu1, num_frames, flags);
+        ImPlot::PlotShaded   ("GPU Busy", graph.frame_id, graph.fill_gpu0,
+                                                          graph.fill_gpu1, graph.frames, flags);
+        ImPlot::PlotShaded   ("CPU Busy", graph.frame_id, graph.fill_cpu0,
+                                                          graph.fill_cpu1, graph.frames, flags);
         ImPlot::PopStyleVar  ();
       }
 
