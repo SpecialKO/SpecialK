@@ -39,6 +39,13 @@ SK_SEH_LaunchLordsOfTheFallen2 (void)
     //   to inherit that (!!)
     SetEnvironmentVariable (L"SteamNoOverlayUIDrawing", L"0");
 
+    wchar_t     wszEACLauncher [MAX_PATH * 2 + 1] = { };
+    _snwprintf (wszEACLauncher, MAX_PATH * 2, LR"(%ws\*%ws\)",
+                          SK_GetHostPath (),
+                          SK_GetHostPath ());
+
+    SetEnvironmentVariable (L"EAC_LAUNCHERDIR", wszEACLauncher);
+
     CreateProcess ( LR"(LOTF2\Binaries\Win64\LOTF2-Win64-Shipping.exe)", nullptr, nullptr, nullptr,
                     TRUE,    CREATE_SUSPENDED, nullptr, SK_GetHostPath (),
                     &sinfo,  &pinfo );
