@@ -826,6 +826,7 @@ struct sk_config_t
       int     forced_preset       =     -1;
       bool    show_active_features=   true;
       int     forced_autoexposure =     -1;
+      bool    disable_ota_updates =  false;
       struct {
         float performance         =   0.0f;
         float balanced            =   0.0f;

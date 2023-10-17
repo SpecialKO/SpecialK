@@ -1,4 +1,12 @@
-﻿23.10.16.3
+﻿23.10.17
+========
+ + Added option to disable DLSS OTA Updates to the Compatibility Hack section
+     of the DLSS control panel.
+
+    Games that use OTA updates spawn background processes to do version checks
+      -every- game launch, sometimes multiple times (i.e. after changing settings).
+
+23.10.16.3
 ==========
  + Added CPU / GPU FPS to Latency Analysis Graph's annotations
 
@@ -32,7 +40,7 @@
  + Added effective fps to latency analysis graph, CPU and GPU framerate are
      both visible by looking for the blue and red bars respectively.
 
-23.10.14.x'
+23.10.14.x
 ==========
  [.4] + Improved latency analysis graph's CPU/GPU Bound function and handling of
           CPU/GPU load inversion.

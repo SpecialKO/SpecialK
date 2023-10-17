@@ -268,6 +268,13 @@ NVSDK_NGX_UpdateFeature_Detour ( const NVSDK_NGX_Application_Identifier *Applica
 {
   SK_LOG_FIRST_CALL
 
+  if (config.nvidia.dlss.disable_ota_updates)
+  {
+    SK_LOGi0 (L"DLSS OTA Updates Forced OFF");
+
+    return NVSDK_NGX_Result_Success;
+  }
+
   NVSDK_NGX_Result ret =
     NVSDK_NGX_UpdateFeature_Original (ApplicationId, FeatureID);
 
@@ -1331,6 +1338,11 @@ SK_NGX_DLSS_ControlPanel (void)
 
             restart_required = true;
 
+            SK_SaveConfig ();
+          }
+
+          if (ImGui::Checkbox ("Disable Over-The-Air Updates", &config.nvidia.dlss.disable_ota_updates))
+          {
             SK_SaveConfig ();
           }
 
