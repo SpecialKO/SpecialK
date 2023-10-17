@@ -1,7 +1,7 @@
 ﻿23.10.16.2
 ==========
  + Changed latency analysis graph to sample the last 1 second worth of frames
-     up to 512 fps instead of using the constant 64 frames Reflex returns.
+     (up to 512 fps) instead of using the constant 64 frames Reflex returns.
 
 23.10.16.1
 ==========
