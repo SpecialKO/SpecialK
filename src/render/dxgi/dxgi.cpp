@@ -5491,11 +5491,17 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
 {
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
-
-  SK_ComPtr <IDXGISwapChain>                         pNativeSwapChain;
-  if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
+  
+  const bool bHasStreamline =
+    SK_IsModuleLoaded (L"sl.interposer.dll");
+  
+  SK_ComPtr <IDXGISwapChain>                           pNativeSwapChain;
+  if (bHasStreamline)
   {
-    pSwapChain = pNativeSwapChain;
+    if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
+    {
+      pSwapChain = pNativeSwapChain;
+    }
   }
 
   static auto& rb =
@@ -5521,14 +5527,17 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
     SK_ComPtr <ID3D12Device>             pDev12;
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
-    if (SK_slGetNativeInterface (pDev12, (void **)&pNativeDev12.p) == sl::Result::eOk)
+    if (bHasStreamline)
     {
-      pDev12 = pNativeDev12;
-    }
+      if (SK_slGetNativeInterface (pDev12, (void **)&pNativeDev12.p) == sl::Result::eOk)
+      {
+        pDev12 = pNativeDev12;
+      }
 
-    if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
-    {
-      pCmdQueue = pNativeCmdQueue;
+      if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
+      {
+        pCmdQueue = pNativeCmdQueue;
+      }
     }
 
     ret =
@@ -5545,9 +5554,12 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
 
   else if ( pDev11 != nullptr )
   {
-    if (SK_slGetNativeInterface (pDev11, (void **)&pNativeDev11.p) == sl::Result::eOk)
+    if (bHasStreamline)
     {
-      pDev11 = pNativeDev11;
+      if (SK_slGetNativeInterface (pDev11, (void **)&pNativeDev11.p) == sl::Result::eOk)
+      {
+        pDev11 = pNativeDev11;
+      }
     }
 
     ret =
@@ -5594,10 +5606,16 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
 
-  SK_ComPtr <IDXGISwapChain1>                        pNativeSwapChain;
-  if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
+  const bool bHasStreamline =
+    SK_IsModuleLoaded (L"sl.interposer.dll");
+
+  SK_ComPtr <IDXGISwapChain1>                          pNativeSwapChain;
+  if (bHasStreamline)
   {
-    pSwapChain = pNativeSwapChain;
+    if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
+    {
+      pSwapChain = pNativeSwapChain;
+    }
   }
 
   static auto& rb =
@@ -5623,14 +5641,17 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
     SK_ComPtr <ID3D12Device>             pDev12;
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
-    if (SK_slGetNativeInterface (pDev12, (void **)&pNativeDev12.p) == sl::Result::eOk)
+    if (bHasStreamline)
     {
-      pDev12 = pNativeDev12;
-    }
+      if (SK_slGetNativeInterface (pDev12, (void **)&pNativeDev12.p) == sl::Result::eOk)
+      {
+        pDev12 = pNativeDev12;
+      }
 
-    if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
-    {
-      pCmdQueue = pNativeCmdQueue;
+      if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
+      {
+        pCmdQueue = pNativeCmdQueue;
+      }
     }
 
     ret = // TODO: Put these in a list somewhere for proper destruction
@@ -5647,9 +5668,12 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
 
   else if ( pDev11 != nullptr )
   {
-    if (SK_slGetNativeInterface (pDev11, (void **)&pNativeDev11.p) == sl::Result::eOk)
+    if (bHasStreamline)
     {
-      pDev11 = pNativeDev11;
+      if (SK_slGetNativeInterface (pDev11, (void **)&pNativeDev11.p) == sl::Result::eOk)
+      {
+        pDev11 = pNativeDev11;
+      }
     }
 
     ret =
