@@ -24,44 +24,38 @@
 #include <implot/implot.h>
 #include <imgui/font_awesome.h>
 
+#include <immintrin.h>
+
 extern iSK_INI* osd_ini;
 
 #include <SpecialK/nvapi.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
-namespace ImPlot {
-
-template <typename T>
-inline T RandomRange(T min, T max) {
-    T scale = rand() / (T) RAND_MAX;
-    return min + scale * ( max - min );
-}
-
-}
-
 struct reflex_frame_s {
-  double simulation    = 0.0;
-  double render_submit = 0.0;
-  double gpu_total     = 0.0;
-  double gpu_active    = 0.0;
-  double gpu_start     = 0.0;
+  float simulation    = 0.0f;
+  float render_submit = 0.0f;
+  float gpu_total     = 0.0f;
+  float gpu_active    = 0.0f;
+  float gpu_start     = 0.0f;
   
   struct {
-    double cpu0 = 0.0, gpu0 = 0.0;
-    double cpu1 = 0.0, gpu1 = 0.0;
+    float cpu0 = 0.0f, gpu0 = 0.0f;
+    float cpu1 = 0.0f, gpu1 = 0.0f;
   } fill;
 } static reflex;
 
-static constexpr auto _MAX_FRAME_HISTORY = 512;
+static constexpr auto _MAX_FRAME_HISTORY = 384;
 
-struct {
-  double frame_id   [_MAX_FRAME_HISTORY] = { };
-  double simulation [_MAX_FRAME_HISTORY] = { },
-      render_submit [_MAX_FRAME_HISTORY] = { }, gpu_total  [_MAX_FRAME_HISTORY] = { },
-         gpu_active [_MAX_FRAME_HISTORY] = { }, gpu_start  [_MAX_FRAME_HISTORY] = { },
-          fill_cpu0 [_MAX_FRAME_HISTORY] = { }, fill_gpu0  [_MAX_FRAME_HISTORY] = { },
-          fill_cpu1 [_MAX_FRAME_HISTORY] = { }, fill_gpu1  [_MAX_FRAME_HISTORY] = { };
-  INT64 sample_time [_MAX_FRAME_HISTORY] = { };
+#pragma warning (disable:4324)
+struct alignas (64) {
+  float  simulation [_MAX_FRAME_HISTORY+1] = { },
+      render_submit [_MAX_FRAME_HISTORY+1] = { }, gpu_total  [_MAX_FRAME_HISTORY+1] = { },
+         gpu_active [_MAX_FRAME_HISTORY+1] = { }, gpu_start  [_MAX_FRAME_HISTORY+1] = { },
+          fill_cpu0 [_MAX_FRAME_HISTORY+1] = { }, fill_gpu0  [_MAX_FRAME_HISTORY+1] = { },
+          fill_cpu1 [_MAX_FRAME_HISTORY+1] = { }, fill_gpu1  [_MAX_FRAME_HISTORY+1] = { },
+          max_stage [_MAX_FRAME_HISTORY+1] = { };
+  INT64 sample_time [_MAX_FRAME_HISTORY+1] = { };
+  float  sample_age [_MAX_FRAME_HISTORY+1] = { };
   int   frames = 0;
 } static frame_history,
          frame_graph;
@@ -74,25 +68,25 @@ struct stage_timing_s
   NvU64   min = std::numeric_limits <NvU64>::max (),
           max = std::numeric_limits <NvU64>::min (),
           sum = 0;
-  double  avg = 0.0;
+  float   avg = 0.0f;
   int samples = 0;
   NvU64 start = 0;
   NvU64   end = 0;
   ImColor color;
 
-  double durations [64] = { };
+  float durations [64] = { };
 
   void reset (void)
   {
     min     = std::numeric_limits <NvU64>::max (),
     max     = std::numeric_limits <NvU64>::min (),
     sum     = 0;
-    avg     = 0.0;
+    avg     = 0.0f;
     samples = 0;
     start   = 0;
     end     = 0;
 
-    memset (durations, 0, sizeof (double) * 64);
+    memset (durations, 0, sizeof (float) * 64);
   }
 };
 
@@ -109,7 +103,7 @@ static stage_timing_s total    { "Total Frame Time" };
 static stage_timing_s input    { "Input Age"        };
 
 void
-SK_ImGui_DrawGraph_Latency ()
+SK_ImGui_DrawGraph_Latency (bool predraw)
 {
   if (! sk::NVAPI::nv_hardware) {
     return;
@@ -121,172 +115,194 @@ SK_ImGui_DrawGraph_Latency ()
   if (! rb.isReflexSupported ())
     return;
 
-  ImGui::BeginGroup ();
+  static auto lastWidgetFrame = 0ULL;
+  static auto lastDataFrame   =
+    SK_GetFramesDrawn () - 1;
 
-  NV_LATENCY_RESULT_PARAMS
+  static float fScale = 0.0f;
+
+  static double dCPU = 0.0;
+  static double dGPU = 0.0;
+
+  static float fMaxAge   = 0.0f;
+  static float fMaxStage = 0.0f;
+
+  static auto& graph   = frame_graph;
+  static auto& history = frame_history;
+
+  static stage_timing_s *min_stage = &sim;
+  static stage_timing_s *max_stage = &sim;
+
+  static NV_LATENCY_RESULT_PARAMS
     latencyResults         = {                          };
     latencyResults.version = NV_LATENCY_RESULT_PARAMS_VER;
 
-  total.reset ();
-  input.reset ();
+  static float fLegendY = 0.0f; // Anchor pt to align latency timing legend w/ text
 
-  stage_timing_s* stages [] = {
+  static stage_timing_s* stages [] = {
     &sim,     &render, &specialk,
     &present, &driver, &os,
     &gpu
   };
 
-  specialk.desc = "Includes drawing SK's overlay and framerate limiting";
-
-  float fLegendY = 0.0f; // Anchor pt to align latency timing legend w/ text
-  int   id       = 0;
-
-  for ( auto* stage : stages )
+  if (! predraw)
   {
-    stage->color =
-      ImColor::HSV ( ( ++id ) /
-        static_cast <float> (
-             sizeof ( stages) /
-             sizeof (*stages) ), 0.5f,
-                                 1.0f );
-
-    stage->reset ();
+    lastWidgetFrame =
+      SK_GetFramesDrawn ();
   }
 
-  if (rb.getLatencyReportNV (&latencyResults))
+  struct span_s {
+    int tail = 0;
+    int head = 0;
+  } static span0,
+           span1;
+
+  // Precache data if the widget has recently been drawn, otherwise skip...
+  if ( predraw &&               (lastWidgetFrame > SK_GetFramesDrawn ()  - 240)
+               && std::exchange (lastDataFrame,    SK_GetFramesDrawn ()) < SK_GetFramesDrawn () )
   {
-    for ( auto idx  = 63 ;
-               idx >= 0  ;
-             --idx )
+    latencyResults         = {                          };
+    latencyResults.version = NV_LATENCY_RESULT_PARAMS_VER;
+
+    total.reset ();
+    input.reset ();
+
+    specialk.desc = "Includes drawing SK's overlay and framerate limiting";
+
+    int id = 0;
+
+    for ( auto* stage : stages )
     {
-      auto& frame =
-        latencyResults.frameReport
-              [idx];
+      stage->color =
+        ImColor::HSV ( ( ++id ) /
+          static_cast <float> (
+               sizeof ( stages) /
+               sizeof (*stages) ), 0.5f,
+                                   1.0f );
 
-      gpu_frame_times [idx].gpuActiveRenderTimeUs = frame.gpuActiveRenderTimeUs;
-      gpu_frame_times [idx].gpuFrameTimeUs        = frame.gpuFrameTimeUs;
+      stage->reset ();
+    }
 
-      auto _UpdateStat =
-      [&]( NvU64           start,
-           NvU64           end,
-           stage_timing_s* stage )
+    if (rb.getLatencyReportNV (&latencyResults))
+    {
+      for ( auto idx  = 63 ;
+                 idx >= 0  ;
+               --idx )
       {
-        if (start != 0 && end != 0)
+        const auto& frame =
+          latencyResults.frameReport
+                [idx];
+
+        gpu_frame_times [idx].gpuActiveRenderTimeUs = frame.gpuActiveRenderTimeUs;
+        gpu_frame_times [idx].gpuFrameTimeUs        = frame.gpuFrameTimeUs;
+
+        auto _UpdateStat =
+        [&]( NvU64           start,
+             NvU64           end,
+             stage_timing_s* stage )
         {
-          auto
-              duration =
-                 (
-             end - start
-                 );
-          if (duration >= 0 && duration < 666666)
+          if (start != 0 && end != 0)
           {
-            stage->samples++;
-
-            stage->durations [idx] = static_cast <double> (duration) / 1000.0;
-
-            stage->sum += duration;
-            stage->min = static_cast <NvU64>
-                       ( (duration < stage->min) ?
-                          duration : stage->min );
-            stage->max = static_cast <NvU64>
-                       ( (duration > stage->max) ?
-                          duration : stage->max );
-
-            if (idx == 63)
+            auto
+                duration =
+                   (
+               end - start
+                   );
+            if (duration >= 0 && duration < 666666)
             {
-              stage->start = start;
-              stage->end   = end;
+              stage->samples++;
+
+              stage->durations [idx] = static_cast <float> (duration) / 1000.0f;
+
+              stage->sum += duration;
+              stage->min = static_cast <NvU64>
+                         ( (duration < stage->min) ?
+                            duration : stage->min );
+              stage->max = static_cast <NvU64>
+                         ( (duration > stage->max) ?
+                            duration : stage->max );
+
+              if (idx == 63)
+              {
+                stage->start = start;
+                stage->end   = end;
+              }
             }
           }
+        };
+
+        _UpdateStat (frame.simStartTime,           frame.simEndTime,            &sim);
+        // Unreal Engine gives some wacky timing data in its Reflex implementation, suggesting that
+        //   it is continuing to render the same frame during and -after- present...?! What? :P
+        _UpdateStat (frame.renderSubmitStartTime,  frame.presentStartTime < frame.renderSubmitEndTime ?
+                                                   frame.presentStartTime : frame.renderSubmitEndTime,
+                                                                                &render);
+        _UpdateStat (frame.presentStartTime,       frame.presentEndTime,        &present);
+        _UpdateStat (frame.driverStartTime,        frame.driverEndTime,         &driver);
+        _UpdateStat (frame.osRenderQueueStartTime, frame.osRenderQueueEndTime,  &os);
+        _UpdateStat (frame.gpuRenderStartTime,     frame.gpuRenderEndTime,      &gpu);
+        _UpdateStat (frame.simStartTime,           frame.gpuRenderEndTime,      &total);
+        _UpdateStat (frame.inputSampleTime,        frame.gpuRenderEndTime,      &input);
+        _UpdateStat (frame.renderSubmitEndTime,    frame.presentStartTime,      &specialk);
+      }
+
+      auto _UpdateAverages = [&](stage_timing_s* stage)
+      {
+        if (stage->samples != 0)
+        {
+          stage->avg = static_cast <float> (stage->sum) /
+                       static_cast <float> (stage->samples);
         }
       };
 
-      _UpdateStat (frame.simStartTime,           frame.simEndTime,            &sim);
-      _UpdateStat (frame.renderSubmitStartTime,  frame.renderSubmitEndTime,   &render);
-      _UpdateStat (frame.presentStartTime,       frame.presentEndTime,        &present);
-      _UpdateStat (frame.driverStartTime,        frame.driverEndTime,         &driver);
-      _UpdateStat (frame.osRenderQueueStartTime, frame.osRenderQueueEndTime,  &os);
-      _UpdateStat (frame.gpuRenderStartTime,     frame.gpuRenderEndTime,      &gpu);
-      _UpdateStat (frame.simStartTime,           frame.gpuRenderEndTime,      &total);
-      _UpdateStat (frame.inputSampleTime,        frame.gpuRenderEndTime,      &input);
-      _UpdateStat (frame.renderSubmitEndTime,    frame.presentStartTime,      &specialk);
-    }
-
-    auto _UpdateAverages = [&](stage_timing_s* stage)
-    {
-      if (stage->samples != 0)
+      for (auto* pStage : stages)
       {
-        stage->avg = static_cast <double> (stage->sum) /
-                     static_cast <double> (stage->samples);
-      }
-    };
+        _UpdateAverages (    pStage     );
 
-    stage_timing_s *min_stage = &sim;
-    stage_timing_s *max_stage = &sim;
+        if (min_stage->avg > pStage->avg) {
+            min_stage      = pStage;
+        }
 
-    for (auto* pStage : stages)
-    {
-      _UpdateAverages (    pStage     );
-
-      if (min_stage->avg > pStage->avg) {
-          min_stage      = pStage;
+        if (max_stage->avg < pStage->avg) {
+            max_stage      = pStage;
+        }
       }
 
-      if (max_stage->avg < pStage->avg) {
-          max_stage      = pStage;
+      gpu_busy.start = latencyResults.frameReport [63].gpuRenderEndTime - gpu_frame_times [63].gpuActiveRenderTimeUs;
+      gpu_busy.end   = latencyResults.frameReport [63].gpuRenderEndTime;
+      gpu_busy.avg   = static_cast <float> (gpu_busy.end - gpu_busy.start);
+
+      _UpdateAverages (&input);
+      _UpdateAverages (&total);
+
+      if (input.avg > total.avg) {
+          input.avg = 0.0f;
       }
-    }
+      
+      reflex.simulation    = sim.durations    [63];
+      reflex.render_submit = render.durations [63];
+      reflex.gpu_total     = gpu.durations    [63];
+      reflex.gpu_active    = static_cast <float> (gpu_frame_times [63].gpuActiveRenderTimeUs) / 1000.0f;
+      reflex.gpu_start     = reflex.simulation +
+                             reflex.render_submit; // Start of GPU-only workload
 
-    gpu_busy.start = latencyResults.frameReport [63].gpuRenderEndTime - gpu_frame_times [63].gpuActiveRenderTimeUs;
-    gpu_busy.end   = latencyResults.frameReport [63].gpuRenderEndTime;
-    gpu_busy.avg   = static_cast <double> (gpu_busy.end - gpu_busy.start);
+      // 5% margin to prevent rapid graph shading inversion
+      if (reflex.gpu_active * 1.05 < reflex.gpu_start)
+      {
+        reflex.fill.cpu0 = reflex.gpu_start;
+        reflex.fill.cpu1 = reflex.gpu_active;
+        reflex.fill.gpu0 = reflex.gpu_active;
+        reflex.fill.gpu1 = 0.0;
+      }
 
-    _UpdateAverages (&input);
-    _UpdateAverages (&total);
+      else
+      {
+        reflex.fill.cpu0 = 0.0;
+        reflex.fill.cpu1 = reflex.gpu_start;
+        reflex.fill.gpu0 = reflex.gpu_start;
+        reflex.fill.gpu1 = reflex.gpu_active;
+      }
 
-    if (input.avg > total.avg) {
-        input.avg = 0.0;
-    }
-    
-    auto& graph   = frame_graph;
-    auto& history = frame_history;
-
-    static double dScale = 0.0;
-
-    static double dCPU = 0.0;
-    static double dGPU = 0.0;
-
-    static double dMaxStage = 0.0;
-
-    reflex.simulation    = sim.durations    [63];
-    reflex.render_submit = render.durations [63];
-    reflex.gpu_total     = gpu.durations    [63];
-    reflex.gpu_active    = static_cast <double> (gpu_frame_times [63].gpuActiveRenderTimeUs) / 1000.0;
-    reflex.gpu_start     = reflex.simulation +
-                           reflex.render_submit; // Start of GPU-only workload
-
-    // 5% margin to prevent rapid graph shading inversion
-    if (reflex.gpu_active * 1.05 < reflex.gpu_start)
-    {
-      reflex.fill.cpu0 = reflex.gpu_start;
-      reflex.fill.cpu1 = reflex.gpu_active;
-      reflex.fill.gpu0 = reflex.gpu_active;
-      reflex.fill.gpu1 = 0.0;
-    }
-
-    else
-    {
-      reflex.fill.cpu0 = 0.0;
-      reflex.fill.cpu1 = reflex.gpu_start;
-      reflex.fill.gpu0 = reflex.gpu_start;
-      reflex.fill.gpu1 = reflex.gpu_active;
-    }
-
-    static auto lastFrame =
-      SK_GetFramesDrawn () - 1;
-
-    if (std::exchange (lastFrame, SK_GetFramesDrawn ()) < SK_GetFramesDrawn ())
-    {
       const auto qpcNow =
         SK_QueryPerf ().QuadPart;
 
@@ -295,7 +311,8 @@ SK_ImGui_DrawGraph_Latency ()
       dCPU       = 0.0;
       dGPU       = 0.0;
 
-      dMaxStage  = 0.0;
+      fMaxStage  = 0.0f;
+      fMaxAge    = 0.0f;
 
       auto frame_idx =
         (history.frames++ % _MAX_FRAME_HISTORY);
@@ -309,207 +326,294 @@ SK_ImGui_DrawGraph_Latency ()
       history.fill_gpu0     [frame_idx] = reflex.fill.gpu0;
       history.fill_cpu1     [frame_idx] = reflex.fill.cpu1;
       history.fill_gpu1     [frame_idx] = reflex.fill.gpu1;
+      history.max_stage     [frame_idx] = std::max ( reflex.simulation,
+                                          std::max ( reflex.render_submit,
+                                          std::max ( reflex.gpu_total,
+                                          std::max ( reflex.gpu_active,
+                                                     reflex.gpu_start ) ) ) );
+
       history.sample_time   [frame_idx] = qpcNow;
 
-      for ( int i = frame_idx ; i >= 0 ; --i )
+      auto _ProcessGraphFrameSpan =
+      [&](span_s& span)
       {
-        if (history.sample_time [i] > qpcNow - SK_QpcFreq)
+        const auto end   = span.tail;
+        const auto begin = span.head;
+
+        const int count =
+          end - begin + 1;
+
+        dCPU += std::accumulate ( &history.gpu_start  [begin],
+                                  &history.gpu_start  [end], 0.0f );
+        dGPU += std::accumulate ( &history.gpu_active [begin],
+                                  &history.gpu_active [end], 0.0f );
+
+        auto* sample_age  = &history.sample_age  [begin];
+        auto* sample_time = &history.sample_time [begin];
+        auto *_max_stage  = &history.max_stage   [begin];
+
+        for (INT i = 0; i < count; i++)
         {
-          graph.simulation    [graph.frames] = history.simulation    [i];
-          graph.render_submit [graph.frames] = history.render_submit [i];
-          graph.gpu_total     [graph.frames] = history.gpu_total     [i];
-          graph.gpu_active    [graph.frames] = history.gpu_active    [i];
-          graph.gpu_start     [graph.frames] = history.gpu_start     [i];
-          graph.fill_cpu0     [graph.frames] = history.fill_cpu0     [i];
-          graph.fill_gpu0     [graph.frames] = history.fill_gpu0     [i];
-          graph.fill_cpu1     [graph.frames] = history.fill_cpu1     [i];
-          graph.fill_gpu1     [graph.frames] = history.fill_gpu1     [i];
-          graph.frame_id      [graph.frames] = graph.frames;
+          *sample_age =
+            static_cast <float> (qpcNow - *(sample_time++)) /
+            static_cast <float> (SK_QpcFreq);
 
-          dCPU += graph.gpu_start  [graph.frames];
-          dGPU += graph.gpu_active [graph.frames];
+          fMaxStage = std::max (*(_max_stage++), fMaxStage);
+          fMaxAge   = std::max (*(sample_age++),   fMaxAge);
+        }
 
-          dMaxStage = std::max (graph.simulation    [graph.frames], dMaxStage);
-          dMaxStage = std::max (graph.render_submit [graph.frames], dMaxStage);
-          dMaxStage = std::max (graph.gpu_total     [graph.frames], dMaxStage);
-          dMaxStage = std::max (graph.gpu_active    [graph.frames], dMaxStage);
-          dMaxStage = std::max (graph.gpu_start     [graph.frames], dMaxStage);
+        graph.frames += count;
+      };
 
-          graph.frames++;
+      span0.tail = frame_idx,              span0.head = span0.tail,
+      span1.tail = _MAX_FRAME_HISTORY - 1, span1.head = span1.tail;
+
+      // 1 Second Worth of Samples
+      const auto
+         oldest_sample_time = qpcNow - SK_QpcFreq;
+      auto&     sample_time =
+        history.sample_time;
+
+      for ( auto frame  = span0.tail;
+                 frame >= 0  &&  sample_time [frame]
+                       >= oldest_sample_time; 
+                          span0.head     =    frame-- );
+             span1.head = span0.head;
+      for ( auto frame  = span1.tail;
+                 frame  > span0.tail
+                              && sample_time [frame]
+                       >= oldest_sample_time;
+                          span1.head     =    frame-- );
+
+      if ( span1.head >
+           span0.head ) _ProcessGraphFrameSpan (span1);
+                        _ProcessGraphFrameSpan (span0);
+
+      for (int i = span0.head; i <= span0.tail; ++i)
+      {
+                   history.sample_age [i] =
+        (fMaxAge - history.sample_age [i]);
+      }
+
+      if (span1.head > span0.head)
+      {
+        for (int i = span1.head; i <= span1.tail; ++i)
+        {
+                     history.sample_age [i] =
+          (fMaxAge - history.sample_age [i]);
         }
       }
 
-      for ( int i = _MAX_FRAME_HISTORY-1 ; i > frame_idx ; --i )
-      {
-        if (history.sample_time [i] > qpcNow - SK_QpcFreq)
-        {
-          graph.simulation    [graph.frames] = history.simulation    [i];
-          graph.render_submit [graph.frames] = history.render_submit [i];
-          graph.gpu_total     [graph.frames] = history.gpu_total     [i];
-          graph.gpu_active    [graph.frames] = history.gpu_active    [i];
-          graph.gpu_start     [graph.frames] = history.gpu_start     [i];
-          graph.fill_cpu0     [graph.frames] = history.fill_cpu0     [i];
-          graph.fill_gpu0     [graph.frames] = history.fill_gpu0     [i];
-          graph.fill_cpu1     [graph.frames] = history.fill_cpu1     [i];
-          graph.fill_gpu1     [graph.frames] = history.fill_gpu1     [i];
-          graph.frame_id      [graph.frames] = graph.frames;
+      //
+      // Add a repeat of the 1st element at the end, so we can wrap-around and
+      //   continue graph connectivity
+      //
+      history.fill_cpu0     [_MAX_FRAME_HISTORY] = history.fill_cpu0     [0];
+      history.fill_gpu0     [_MAX_FRAME_HISTORY] = history.fill_gpu0     [0];
+      history.fill_cpu1     [_MAX_FRAME_HISTORY] = history.fill_cpu1     [0];
+      history.fill_gpu1     [_MAX_FRAME_HISTORY] = history.fill_gpu1     [0];
+      history.gpu_active    [_MAX_FRAME_HISTORY] = history.gpu_active    [0];
+      history.gpu_start     [_MAX_FRAME_HISTORY] = history.gpu_start     [0];
+      history.gpu_total     [_MAX_FRAME_HISTORY] = history.gpu_total     [0];
+      history.max_stage     [_MAX_FRAME_HISTORY] = history.max_stage     [0];
+      history.render_submit [_MAX_FRAME_HISTORY] = history.render_submit [0];
+      history.sample_age    [_MAX_FRAME_HISTORY] = history.sample_age    [0];
+      history.sample_time   [_MAX_FRAME_HISTORY] = history.sample_time   [0];
+      history.simulation    [_MAX_FRAME_HISTORY] = history.simulation    [0];
 
-          dCPU += graph.gpu_start  [graph.frames];
-          dGPU += graph.gpu_active [graph.frames];
-
-          dMaxStage = std::max (graph.simulation    [graph.frames], dMaxStage);
-          dMaxStage = std::max (graph.render_submit [graph.frames], dMaxStage);
-          dMaxStage = std::max (graph.gpu_total     [graph.frames], dMaxStage);
-          dMaxStage = std::max (graph.gpu_active    [graph.frames], dMaxStage);
-          dMaxStage = std::max (graph.gpu_start     [graph.frames], dMaxStage);
-
-          graph.frames++;
-        }
-      }
-
-      // Reverse the data direction
-      for ( int i = 0 ; i < graph.frames ; ++i )
-      {
-        graph.frame_id [i] = graph.frames - 1 - i;
-      }
-
-      dCPU /= graph.frames;
-      dGPU /= graph.frames;
-
-      dMaxStage =
-        std::max (10000.0 * total.avg / static_cast <double> (SK_QpcFreq), dMaxStage);
-
-      static constexpr auto              _HistorySize  = 32;
-      static double       dScaleHistory [_HistorySize] = { 0.0 };
-      static unsigned int iScaleIdx                    = 0;
-
-      double dAvgScale =
-        std::accumulate ( &dScaleHistory [0],
-                          &dScaleHistory [_HistorySize - 1], 0.0 ) /
-                    static_cast <double> (_HistorySize);
-
-      dScaleHistory [iScaleIdx++ % _HistorySize] =
-        (dMaxStage * 1.25f + dAvgScale * .75f) / 2.0;
-
-      dScale =
-        std::max (dMaxStage, dAvgScale);
-
-      static double
-                dLastScale = dScale;
-      dScale = (dLastScale * 1.75 + dScale * .25) / 2.0;
-                dLastScale = dScale;
+      dCPU /= static_cast <double> (graph.frames);
+      dGPU /= static_cast <double> (graph.frames);
     }
 
-    static bool show_lines = true;
-    static bool show_fills = true;
+    fMaxStage =
+      std::max (10000.0f * total.avg / static_cast <float> (SK_QpcFreq), fMaxStage);
 
-    if (ImPlot::BeginPlot ("##Stage Time", ImVec2 (-1, 0), ImPlotFlags_NoTitle | ImPlotFlags_NoInputs | ImPlotFlags_NoMouseText
-                                                                               | ImPlotFlags_NoMenus  | ImPlotFlags_NoBoxSelect))
+    static constexpr auto              _HistorySize  = 32;
+    static float        fScaleHistory [_HistorySize] = { 0.0f };
+    static unsigned int iScaleIdx                    = 0;
+
+    float fAvgScale =
+      std::accumulate ( &fScaleHistory [0],
+                        &fScaleHistory [_HistorySize - 1], 0.0f ) /
+                   static_cast <float> (_HistorySize);
+
+    fScaleHistory [iScaleIdx++ % _HistorySize] =
+      (fMaxStage * 1.25f + fAvgScale * .75f) * 0.5f;
+
+    fScale =
+      std::max (fMaxStage, fAvgScale);
+
+    static float         fLastScale = fScale;
+       fScale = (1.75f * fLastScale + fScale * .25f) * 0.5f;
+                         fLastScale = fScale;
+  }
+
+  if (predraw)
+    return;
+
+  bool detailed =
+    SK_ImGui_Active () || config.nvidia.reflex.show_detailed_widget;
+
+  ImGui::BeginGroup ();
+
+  const float fPlotXPos =
+    ImGui::GetCursorPosX ();
+
+  if ( ImPlot::BeginPlot ( "##Stage Time", ImVec2 (-1, 0),
+                  ImPlotFlags_NoTitle     | ImPlotFlags_NoInputs |
+                  ImPlotFlags_NoMouseText | ImPlotFlags_NoMenus  |
+                  ImPlotFlags_NoBoxSelect )
+     )
+  {
+    static constexpr
+      auto dragline_flags =
+        ImPlotDragToolFlags_NoFit    |
+        ImPlotDragToolFlags_NoInputs |
+        ImPlotDragToolFlags_NoCursors;
+
+    auto flags =
+      ImPlotAxisFlags_NoMenus | ImPlotAxisFlags_AutoFit;
+
+    auto FramerateFormatter = [](double milliseconds, char* buff, int size, void*) -> int
     {
-      auto flags =
-        ImPlotAxisFlags_NoMenus | ImPlotAxisFlags_AutoFit;
+      const auto fps =
+        static_cast <unsigned int> (1000.0/milliseconds);
 
-      auto FramerateFormatter = [](double milliseconds, char* buff, int size, void*) -> int
-      {
-        const auto fps =
-          static_cast <unsigned int> (1000.0/milliseconds);
+      return (milliseconds <= 0.0 || fps == 0) ?
+        snprintf (buff, size, " ")             :
+        snprintf (buff, size, "%u fps", fps);
+    };
 
-        return (milliseconds <= 0.0 || fps == 0) ?
-          snprintf (buff, size, " ")             :
-          snprintf (buff, size, "%u fps", fps);
-      };
+    auto MillisecondFormatter = [](double milliseconds, char* buff, int size, void*) -> int
+    {
+      return (milliseconds <= 0.0) ?
+        snprintf (buff, size, " ") :
+        snprintf (buff, size, "%4.1f ms", milliseconds);
+    };
+    
+    ImPlot::SetupAxes       ("Frame", "Milliseconds", flags | ImPlotAxisFlags_NoLabel      |
+                                                              ImPlotAxisFlags_NoTickLabels |
+                                                              ImPlotAxisFlags_NoTickMarks  |
+                                                              ImPlotAxisFlags_NoGridLines,
+                                                     (flags &~ImPlotAxisFlags_AutoFit)|
+                                                              ImPlotAxisFlags_NoLabel);
+    ImPlot::SetupAxisLimits (ImAxis_X1, 0, fMaxAge,           ImPlotCond_Always);
+    ImPlot::SetupAxisLimits (ImAxis_Y1, 0, fScale,            ImPlotCond_Always);
+    ImPlot::SetupAxisFormat (ImAxis_Y1, MillisecondFormatter);
+    ImPlot::SetupLegend     (ImPlotLocation_SouthWest,        ImPlotLegendFlags_Horizontal);
 
-      auto MillisecondFormatter = [](double milliseconds, char* buff, int size, void*) -> int
-      {
-        return (milliseconds <= 0.0) ?
-          snprintf (buff, size, " ") :
-          snprintf (buff, size, "%4.1f ms", milliseconds);
-      };
-      
-      ImPlot::SetupAxes       ("Frame", "Milliseconds", flags | ImPlotAxisFlags_NoLabel      |
-                                                                ImPlotAxisFlags_NoTickLabels |
-                                                                ImPlotAxisFlags_NoTickMarks  |
-                                                                ImPlotAxisFlags_NoGridLines,
-                                                       (flags &~ImPlotAxisFlags_AutoFit)|
-                                                                ImPlotAxisFlags_NoLabel);
-      ImPlot::SetupAxisLimits (ImAxis_X1, 0, graph.frames - 1,  ImPlotCond_Always);
-      ImPlot::SetupAxisLimits (ImAxis_Y1, 0, dScale,            ImPlotCond_Always);
-      ImPlot::SetupAxisFormat (ImAxis_Y1, MillisecondFormatter);
-      ImPlot::SetupLegend     (ImPlotLocation_SouthWest,        ImPlotLegendFlags_Horizontal);
+    ImPlot::SetupAxis       (ImAxis_Y2, nullptr,              ImPlotAxisFlags_AuxDefault |
+                                                              ImPlotAxisFlags_NoLabel);
+    ImPlot::SetupAxisLimits (ImAxis_Y2, 0, fScale,            ImPlotCond_Always);
+    ImPlot::SetupAxisFormat (ImAxis_Y2, FramerateFormatter);
 
-      ImPlot::SetupAxis       (ImAxis_Y2, nullptr,              ImPlotAxisFlags_AuxDefault |
-                                                                ImPlotAxisFlags_NoLabel);
-      ImPlot::SetupAxisLimits (ImAxis_Y2, 0, dScale,            ImPlotCond_Always);
-      ImPlot::SetupAxisFormat (ImAxis_Y2, FramerateFormatter);
+    auto _PlotLineData =
+    [&](auto head, auto tail, bool wraparound = false)
+     {
+       const int elements =
+        (tail - head + 1) +
+         (wraparound ? 1  :  0);
+     
+       ImPlot::PlotLine ("Simulation",      &history.sample_age [head], &history.simulation    [head], elements);
+       ImPlot::PlotLine ("Render Submit",   &history.sample_age [head], &history.render_submit [head], elements);
+       ImPlot::PlotLine ("Display Scanout", &history.sample_age [head], &history.gpu_total     [head], elements);
+       ImPlot::PlotLine ("GPU Busy",        &history.sample_age [head], &history.gpu_active    [head], elements);
+       ImPlot::PlotLine ("CPU Busy",        &history.sample_age [head], &history.gpu_start     [head], elements);
+     };
 
-      if (show_lines)
-      {
-        ImPlot::PlotLine ("Simulation",      graph.frame_id, graph.simulation,    graph.frames);
-        ImPlot::PlotLine ("Render Submit",   graph.frame_id, graph.render_submit, graph.frames);
-        ImPlot::PlotLine ("Display Scanout", graph.frame_id, graph.gpu_total,     graph.frames);
-        ImPlot::PlotLine ("GPU Busy",        graph.frame_id, graph.gpu_active,    graph.frames);
-        ImPlot::PlotLine ("CPU Busy",        graph.frame_id, graph.gpu_start,     graph.frames);
-      }
+    auto _PlotShadedData =
+    [&](auto head, auto tail, bool wraparound = false)
+     {
+       const int elements =
+        (tail - head + 1) +
+         (wraparound ? 1  :  0);
+       
+       ImPlot::PlotShaded   ("GPU Busy", &history.sample_age [head], &history.fill_gpu0 [head],
+                                                                     &history.fill_gpu1 [head], elements, flags);
+       ImPlot::PlotShaded   ("CPU Busy", &history.sample_age [head], &history.fill_cpu0 [head],
+                                                                     &history.fill_cpu1 [head], elements, flags);
+     };
 
-      if (show_fills)
-      {
-        static constexpr
-          auto dragline_flags =
-            ImPlotDragToolFlags_NoFit    |
-            ImPlotDragToolFlags_NoInputs |
-            ImPlotDragToolFlags_NoCursors;
+    // Handle the circular buffer's wrap-around data first
+    if ( span1.head >
+         span0.head ) _PlotLineData (span1.head, span1.tail, true);
+                      _PlotLineData (span0.head, span0.tail); // Contiguous
 
-        ImPlot::DragLineY (0, &dGPU, ImVec4 (1,0,0,1), 3.333, dragline_flags);
-        ImPlot::DragLineY (0, &dCPU, ImVec4 (0,0,1,1), 3.333, dragline_flags);
+    ImPlot::DragLineY (0, &dGPU, ImVec4 (1,0,0,1), 3.333, dragline_flags);
+    ImPlot::DragLineY (0, &dCPU, ImVec4 (0,0,1,1), 3.333, dragline_flags);
 
-        static std::string utf8_gpu_name;
-        static std::string utf8_cpu_name;
+    static std::string utf8_gpu_name;
+    static std::string utf8_cpu_name;
 
-        SK_RunOnce (
-        {
-          wchar_t    wszGPU [128] = { };
-          wcsncpy_s (wszGPU, 128, sk::NVAPI::EnumGPUs_DXGI()[0].Description,_TRUNCATE);
-          char        szCPU [ 64] = { };
-          strncpy_s ( szCPU,  64, InstructionSet::Brand().c_str(),          _TRUNCATE);
+    SK_RunOnce (
+    {
+      wchar_t    wszGPU [128] = { };
+      wcsncpy_s (wszGPU, 128, sk::NVAPI::EnumGPUs_DXGI()[0].Description,_TRUNCATE);
+      char        szCPU [ 64] = { };
+      strncpy_s ( szCPU,  64, InstructionSet::Brand().c_str(),          _TRUNCATE);
 
-          PathRemoveBlanksA ( szCPU);
-          PathRemoveBlanksW (wszGPU);
+      PathRemoveBlanksA ( szCPU);
+      PathRemoveBlanksW (wszGPU);
 
-          utf8_gpu_name =
-            SK_WideCharToUTF8 (wszGPU);
-          utf8_cpu_name =       szCPU;
-        });
+      utf8_gpu_name =
+        SK_WideCharToUTF8 (wszGPU);
+      utf8_cpu_name =       szCPU;
+    });
 
-        double dFpsCpu = isfinite (1000.0 / dCPU) ? 1000.0 / dCPU : 0.0;
-        double dFpsGpu = isfinite (1000.0 / dGPU) ? 1000.0 / dGPU : 0.0;
+    double dFpsCpu = isfinite (1000.0 / dCPU) ? 1000.0 / dCPU : 0.0;
+    double dFpsGpu = isfinite (1000.0 / dGPU) ? 1000.0 / dGPU : 0.0;
 
-        ImPlot::Annotation (0.0,           dScale, ImVec4 (.75,0,0,1), ImVec2 (0.0,0.0), true, "%hs",                                                                   utf8_gpu_name.c_str ());
-        ImPlot::Annotation (graph.frames-1,dScale, ImVec4 (0,0,.75,1), ImVec2 (-ImGui::CalcTextSize (SK_FormatString ("%.1f ", dFpsCpu).c_str ()).x, 0.0), true, "%hs", utf8_cpu_name.c_str ());
-        ImPlot::PushStyleColor (ImPlotCol_InlayText, ImVec4 (1,1,1,1));
-        ImPlot::Annotation (0.0,           dScale, ImVec4 (1,1,1,1), ImVec2 ( ImGui::CalcTextSize ( utf8_gpu_name.c_str () ).x + 
-                                                                              ImGui::CalcTextSize (" ")                     .x,0.0), true, "%.1f", dFpsGpu);
-        ImPlot::Annotation (graph.frames-1,dScale, ImVec4 (1,1,1,1), ImVec2 (0.0,0.0),                                               true, "%.1f", dFpsCpu);
-        ImPlot::PopStyleColor ();
+    ImPlot::Annotation     (0.0,     fScale, ImVec4 (.75,0,0,1), ImVec2 (0.0,0.0), true, "%hs", utf8_gpu_name.c_str ());
+    ImPlot::Annotation     (fMaxAge, fScale, ImVec4 (0,0,.75,1), ImVec2 (-ImGui::CalcTextSize (SK_FormatString ("%.1f ", dFpsCpu).c_str ()).x, 0.0),
+                                                                                   true, "%hs", utf8_cpu_name.c_str ());
+    ImPlot::PushStyleColor (
+                        ImPlotCol_InlayText, ImVec4 (1,1,1,1));
+    ImPlot::Annotation     (0.0,     fScale, ImVec4 (1,1,1,1),   ImVec2 ( ImGui::CalcTextSize ( utf8_gpu_name.c_str () ).x + 
+                                                                          ImGui::CalcTextSize (" ")                     .x, 0.0), true, "%.1f", dFpsGpu);
+    ImPlot::Annotation     (fMaxAge, fScale, ImVec4 (1,1,1,1),   ImVec2 (0.0,0.0),                                                true, "%.1f", dFpsCpu);
+    ImPlot::PopStyleColor  ();
 
-        if      (dGPU > dCPU * 1.15)
-          ImPlot::TagY (dGPU, ImVec4 (1,0,0,1), "GPU Bound");
-        else if (dCPU > dGPU * 1.15)
-          ImPlot::TagY (dCPU, ImVec4 (0,0,1,1), "CPU Bound");
-        else
-          ImPlot::TagY ((dCPU + dGPU) / 2.0, ImVec4 (0,1,0,1),"\tBalanced");
+    if      (dGPU > dCPU * 1.15)
+      ImPlot::TagY (dGPU, ImVec4 (1,0,0,1), "GPU Bound");
+    else if (dCPU > dGPU * 1.15)
+      ImPlot::TagY (dCPU, ImVec4 (0,0,1,1), "CPU Bound");
+    else
+      ImPlot::TagY ((dCPU + dGPU) * 0.5, ImVec4 (0,1,0,1),"\tBalanced");
 
-        ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.15f);
-        ImPlot::PlotShaded   ("GPU Busy", graph.frame_id, graph.fill_gpu0,
-                                                          graph.fill_gpu1, graph.frames, flags);
-        ImPlot::PlotShaded   ("CPU Busy", graph.frame_id, graph.fill_cpu0,
-                                                          graph.fill_cpu1, graph.frames, flags);
-        ImPlot::PopStyleVar  ();
-      }
+    ImPlot::PushStyleVar (ImPlotStyleVar_FillAlpha, 0.15f);
 
-      ImPlot::EndPlot ();
+    // Handle the circular buffer's wrap-around data first
+    if ( span1.head >
+         span0.head ) _PlotShadedData (span1.head, span1.tail, true);
+                      _PlotShadedData (span0.head, span0.tail); // Contiguous
+
+    ImPlot::PopStyleVar ();
+    ImPlot::EndPlot     ();
+
+    if (detailed)
+    {
+      ImGui::SameLine ();
+      ImGui::SetCursorScreenPos (
+        ImVec2 (fPlotXPos, ImGui::GetCursorScreenPos ().y)
+      );
+    }
+  }
+
+  if (detailed)
+  {
+    if (ImGui::Checkbox ("", &config.nvidia.reflex.show_detailed_widget))
+    {
+      SK_SaveConfig ();
     }
 
-    ImGui::BeginGroup ();
+    if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Show render pipeline timing diagram in widget");
+  }
+
+  ImGui::BeginGroup ();
+
+  if (detailed)
+  {
     for ( auto* pStage : stages )
     {
       ImGui::TextColored (
@@ -526,19 +630,23 @@ SK_ImGui_DrawGraph_Latency ()
       }
     }
     ImGui::Separator   ();
-    ImGui::TextColored (
-      ImColor (1.f, 1.f, 1.f), "Total Frame Time"
-    );
-    if (input.avg != 0.0) {
+  }
+  ImGui::TextColored (
+    ImColor (1.f, 1.f, 1.f), "Total Frame Time"
+  );
+  if (input.avg > 0.0f)
+  {
     ImGui::TextColored (
       ImColor (1.f, 1.f, 1.f), "Input Age"
     );
-    }
-    ImGui::EndGroup    ();
-    ImGui::SameLine    ();
-    ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
-    ImGui::SameLine    (0.0f, 10.0f);
-    ImGui::BeginGroup  ();
+  }
+  ImGui::EndGroup    ();
+  ImGui::SameLine    ();
+  ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+  ImGui::SameLine    (0.0f, 10.0f);
+  ImGui::BeginGroup  ();
+  if (detailed)
+  {
     ////for (auto* pStage : stages)
     ////{
     ////  ImGui::TextColored (
@@ -573,137 +681,136 @@ SK_ImGui_DrawGraph_Latency ()
         pStage == max_stage ? ImColor (1.0f, 0.6f, 0.6f) :
                               ImColor (0.9f, 0.9f, 0.9f),
           "%4.2f ms",
-            pStage->avg / 1000.0
+            pStage->avg / 1000.0f
       );
     }
-    ImGui::Separator   ();
 
-    double frametime = total.avg / 1000.0;
+    ImGui::Separator ();
+  }
 
-    fLegendY =
-      ImGui::GetCursorScreenPos ().y;
+  const float frametime =
+    ( total.avg / 1000.0f );
 
+  fLegendY =
+    ImGui::GetCursorScreenPos ().y;
+
+  ImGui::TextColored (
+    ImColor (1.f, 1.f, 1.f),
+      "%4.2f ms",
+        frametime    );
+
+  static bool
+      input_sampled = false;
+  if (input_sampled || input.avg > 0.0f)
+  {   input_sampled = true;
     ImGui::TextColored (
       ImColor (1.f, 1.f, 1.f),
-        "%4.2f ms",
-          frametime    );
+        input.avg != 0.0f ?
+               "%4.2f ms" : "--",
+             input.avg / 1000.0f
+                       );
 
-    static bool
-        input_sampled = false;
-    if (input_sampled || input.avg != 0.0)
-    {   input_sampled = true;
-      ImGui::TextColored (
-        ImColor (1.f, 1.f, 1.f),
-          input.avg != 0.0 ?
-                "%4.2f ms" : "--",
-              input.avg / 1000.0
-                         );
-
-      fLegendY +=
-        ImGui::GetTextLineHeightWithSpacing () / 2.0f;
-    }
-    ImGui::EndGroup    ();
-
-    ImGui::SameLine    ();
-    ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+    fLegendY +=
+      ImGui::GetTextLineHeightWithSpacing () * 0.5f;
   }
+  ImGui::EndGroup    ();
+
+  ImGui::SameLine    ();
+  ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
 
   ImGui::SameLine   (0, 10.0f);
   ImGui::BeginGroup ();
 
-  extern void
-  SK_NV_AdaptiveSyncControl ();
-  SK_NV_AdaptiveSyncControl ();
+  if (detailed)
+  {
+    extern void
+    SK_NV_AdaptiveSyncControl ();
+    SK_NV_AdaptiveSyncControl ();
 
+    float fMaxWidth  = ImGui::GetContentRegionAvail        ().x;
+    float fMaxHeight = ImGui::GetTextLineHeightWithSpacing () * 2.8f;
+    float fInset     = fMaxWidth  *  0.025f;
+    float X0         = ImGui::GetCursorScreenPos ().x;
+    float Y0         = ImGui::GetCursorScreenPos ().y - ImGui::GetTextLineHeightWithSpacing ();
+          fMaxWidth *= 0.95f;
 
-  float fMaxWidth  = ImGui::GetContentRegionAvail        ().x;
-  float fMaxHeight = ImGui::GetTextLineHeightWithSpacing () * 2.8f;
-  float fInset     = fMaxWidth  *  0.025f;
-  float X0         = ImGui::GetCursorScreenPos ().x;
-  float Y0         = ImGui::GetCursorScreenPos ().y - ImGui::GetTextLineHeightWithSpacing ();
-        fMaxWidth *= 0.95f;
+    static DWORD                                  dwLastUpdate = 0;
+    static float                                  scale        = 1.0f;
+    static std::vector <stage_timing_s>           sorted_stages;
+    static _NV_LATENCY_RESULT_PARAMS::FrameReport frame_report;
 
-  static DWORD                                  dwLastUpdate = 0;
-  static float                                  scale        = 1.0f;
-  static std::vector <stage_timing_s>           sorted_stages;
-  static _NV_LATENCY_RESULT_PARAMS::FrameReport frame_report;
+    if (dwLastUpdate < SK::ControlPanel::current_time - 266)
+    {   dwLastUpdate = SK::ControlPanel::current_time;
 
-  if (dwLastUpdate < SK::ControlPanel::current_time - 266)
-  {   dwLastUpdate = SK::ControlPanel::current_time;
+      frame_report =
+        latencyResults.frameReport [63];
 
-    frame_report =
-      latencyResults.frameReport [63];
+      sorted_stages.clear ();
 
-    sorted_stages.clear ();
+      for (auto* stage : stages)
+      {
+        sorted_stages.push_back (*stage);
+      }
 
-    for (auto* stage : stages)
-    {
-      sorted_stages.push_back (*stage);
+      scale = fMaxWidth /
+        static_cast <float> ( frame_report.gpuRenderEndTime -
+                              frame_report.simStartTime );
+
+      std::sort ( std::begin (sorted_stages),
+                  std::end   (sorted_stages),
+                  [](stage_timing_s& a, stage_timing_s& b)
+                  {
+                    return ( a.start < b.start );
+                  }
+                );
     }
 
-    scale = fMaxWidth /
-      static_cast <float> ( frame_report.gpuRenderEndTime -
-                            frame_report.simStartTime );
+    ImDrawList* draw_list =
+      ImGui::GetWindowDrawList ();
 
-    std::sort ( std::begin (sorted_stages),
-                std::end   (sorted_stages),
-                [](stage_timing_s& a, stage_timing_s& b)
-                {
-                  return ( a.start < b.start );
-                }
-              );
-  }
+    float x  = X0 + fInset;
+    float y  = Y0;
+    float dY = fMaxHeight / 7.0f;
 
-  ImDrawList* draw_list =
-    ImGui::GetWindowDrawList ();
-
- ///draw_list->PushClipRect ( //ImVec2 (0.0f, 0.0f), ImVec2 (ImGui::GetIO ().DisplaySize.x, ImGui::GetIO ().DisplaySize.y) );
- ///                          ImVec2 (X0,                                     Y0),
- ///                          ImVec2 (X0 + ImGui::GetContentRegionAvail ().x, Y0 + fMaxHeight) );
-
-  float x  = X0 + fInset;
-  float y  = Y0;
-  float dY = fMaxHeight / 7.0f;
-
-  for ( auto& kStage : sorted_stages )
-  {
-    x = X0 + fInset +
-    ( kStage.start - frame_report.simStartTime )
-                   * scale;
-
-    float duration =
-      (kStage.end - kStage.start) * scale;
-
-    ImVec2 r0 (x,            y);
-    ImVec2 r1 (x + duration, y + dY);
-
-    draw_list->AddRectFilled ( r0, r1, kStage.color );
-
-    if (ImGui::IsMouseHoveringRect (r0, r1))
+    for ( auto& kStage : sorted_stages )
     {
-      ImGui::SetTooltip ("%s", kStage.label);
+      x = X0 + fInset +
+      ( kStage.start - frame_report.simStartTime )
+                     * scale;
+
+      float duration =
+        (kStage.end - kStage.start) * scale;
+
+      ImVec2 r0 (x,            y);
+      ImVec2 r1 (x + duration, y + dY);
+
+      draw_list->AddRectFilled ( r0, r1, kStage.color );
+
+      if (ImGui::IsMouseHoveringRect (r0, r1))
+      {
+        ImGui::SetTooltip ("%s", kStage.label);
+      }
+
+      y += dY;
     }
 
-    y += dY;
+    if (frame_report.inputSampleTime != 0)
+    {
+      x = X0 + fInset + ( frame_report.inputSampleTime -
+                          frame_report.simStartTime )  *  scale;
+
+      draw_list->AddCircle (
+        ImVec2  (x, Y0 + fMaxHeight / 2.0f), 4,
+        ImColor (1.0f, 1.0f, 1.0f, 1.0f),    12, 2
+      );
+    }
   }
-
-  if (frame_report.inputSampleTime != 0)
-  {
-    x = X0 + fInset + ( frame_report.inputSampleTime -
-                        frame_report.simStartTime )  *  scale;
-
-    draw_list->AddCircle (
-      ImVec2  (x, Y0 + fMaxHeight / 2.0f), 4,
-      ImColor (1.0f, 1.0f, 1.0f, 1.0f),    12, 2
-    );
-  }
-
- ///draw_list->PopClipRect ();
 
   ImGui::SetCursorScreenPos (
     ImVec2 (ImGui::GetCursorScreenPos ().x, fLegendY)
   );
 
+  ImGui::BeginGroup ();
   for ( auto *pStage : stages )
   {
     ImGui::TextColored (pStage->color, "%s", pStage->label);
@@ -715,8 +822,13 @@ SK_ImGui_DrawGraph_Latency ()
       }
     }
 
-    ImGui::SameLine    (0.0f, 12.0f);
+    ImGui::SameLine (0.0f, 12.0f);
+
+    ImGui::SetCursorScreenPos (
+      ImVec2 (ImGui::GetCursorScreenPos ().x, fLegendY)
+    );
   }
+  ImGui::EndGroup   ();
 
   ImGui::Spacing    ();
 
@@ -1028,7 +1140,7 @@ public:
       move = false;
     }
 
-    SK_ImGui_DrawGraph_Latency ();
+    SK_ImGui_DrawGraph_Latency (false);
   }
 
 

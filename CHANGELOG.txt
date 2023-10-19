@@ -1,4 +1,11 @@
-﻿23.10.17
+﻿23.10.18
+========
+ + Optimized Latency Analysis Graph's statistics storage for high framerates
+ + Simplified the Latency Analysis Widget when the control panel is closed
+ + Added checkbox to show detailed timing diagram in the Latency Analysis Widget
+ + Added debug option to INI to disable a game's native Reflex implementation
+
+23.10.17
 ========
  + Added option to disable DLSS OTA Updates to the Compatibility Hack section
      of the DLSS control panel.

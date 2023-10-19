@@ -85,14 +85,18 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
   SK_ReleaseAssert (pDev == SK_GetCurrentRenderBackend ().device);
 #endif
 
-  // Shutdown our own Reflex implementation
-  if (! std::exchange (config.nvidia.reflex.native, true))
+  if (! config.nvidia.reflex.disable_native)
   {
-    PCLSTATS_SHUTDOWN ();
+    // Shutdown our own Reflex implementation
+    if (! std::exchange (config.nvidia.reflex.native, true))
+    {
+      PCLSTATS_SHUTDOWN ();
 
-    SK_LOG0 ( ( L"# Game is using NVIDIA Reflex natively..." ),
-                L"  Reflex  " );
+      SK_LOG0 ( ( L"# Game is using NVIDIA Reflex natively..." ),
+                  L"  Reflex  " );
+    }
   }
+  else return NVAPI_OK;
 
   if (pSetLatencyMarkerParams != nullptr)
   {
@@ -432,6 +436,19 @@ SK_RenderBackend_V2::driverSleepNV (int site)
     if ( ReadULong64Acquire (&_frames_drawn) ==
          ReadULong64Acquire  (&frames_drawn) )
       return;
+
+    //if ( config.nvidia.reflex.native              &&
+    //     applyOverride                            &&
+    //     config.nvidia.reflex.marker_optimization &&
+    //     SK_GetCurrentRenderBackend ().windows.unreal )
+    //{
+    //  SK_RunOnce (
+    //    SK_LOGi0 ( L"Disabling bUseMarkersToOptimize in Unreal Engine"
+    //               L"because of incompatible RHI threading..." )
+    //  );
+    //
+    //  config.nvidia.reflex.marker_optimization = false;
+    //}
 
     if ( lastParams.version               != sleepParams.version               ||
          lastSwapChain                    != swapchain.p                       ||

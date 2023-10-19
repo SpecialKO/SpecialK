@@ -36,7 +36,8 @@ bool __SK_ForceDLSSGPacing      = false;
 
 SK_LazyGlobal <NGX_ThreadSafety> SK_NGX_Threading;
 
-static unsigned int SK_NGX_GameSetPerfQuality = 0;
+static  unsigned  int SK_NGX_GameSetPerfQuality = 0;
+static constexpr bool SK_NGX_LogAllParams       = false;
 
 // NGX return-code conversion-to-string utility only as a helper for debugging/logging - not for official use.
 GetNGXResultAsString_pfn                  GetNGXResultAsString                     = nullptr;
@@ -53,7 +54,8 @@ NVSDK_NGX_Parameter_SetF_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGi1 (L"NGX_Parameter_SetF (%hs, %f) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
+  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
+              L"NGX_Parameter_SetF (%hs, %f) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
 
   if (! _stricmp (InName, NVSDK_NGX_Parameter_Sharpness))
   {
@@ -64,14 +66,35 @@ NVSDK_NGX_Parameter_SetF_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
 
       if (InValue != sharpness)
       {
-        SK_LOGi0 (
-          L"Overriding DLSS Sharpness (Requested: %4.2f, Forced: %4.2f)",
-            InValue, sharpness
-        );
+        SK_RunOnce (
+        {
+          SK_LOGi0 (
+            L"Overriding DLSS Sharpness (Requested: %4.2f, Forced: %4.2f)",
+              InValue, sharpness
+          );
+        });
 
         InValue = sharpness;
       }
     }
+  }
+
+  if (!_stricmp (InName, NVSDK_NGX_Parameter_FrameTimeDeltaInMsec))
+  {
+    static auto &rb =
+      SK_GetCurrentRenderBackend ();
+
+    const double dFrameTimeDeltaInMsec =
+      1000.0 * ( static_cast <double> (rb.frame_delta.getDeltaTime ()) /
+                 static_cast <double> (SK_QpcFreq) );
+
+    InParameter->Set (InName, dFrameTimeDeltaInMsec);
+
+#if 0
+    SK_LOGi0 (L"Frame Time Delta: Game=%f, SK=%f -- %f difference", InValue, dFrameTimeDeltaInMsec, fabs (InValue - dFrameTimeDeltaInMsec));
+#endif
+
+    return;
   }
 
   NVSDK_NGX_Parameter_SetF_Original (InParameter, InName, InValue);
@@ -83,7 +106,8 @@ NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGi1 (L"NGX_Parameter_SetI (%hs, %i) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
+  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
+              L"NGX_Parameter_SetI (%hs, %i) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
 
   if (! _stricmp (InName, NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags))
   {
@@ -134,7 +158,8 @@ NVSDK_NGX_Parameter_SetUI_Detour (NVSDK_NGX_Parameter* InParameter, const char* 
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGi1 (L"NGX_Parameter_SetUI (%hs, %u) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
+  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
+              L"NGX_Parameter_SetUI (%hs, %u) - %ws", InName, InValue, SK_GetCallerName ().c_str ());
 
   if (! _stricmp (InName, NVSDK_NGX_Parameter_PerfQualityValue))
   {
@@ -175,7 +200,8 @@ NVSDK_NGX_Parameter_GetVoidPointer_Detour (const NVSDK_NGX_Parameter *InParamete
 {
   SK_LOG_FIRST_CALL
 
-  SK_LOGi1 (L"NGX_Parameter_GetVoidPointer (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
+  SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
+              L"NGX_Parameter_GetVoidPointer (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
 
   return
     NVSDK_NGX_Parameter_GetVoidPointer_Original (InParameter, InName, OutValue);
@@ -192,7 +218,8 @@ NVSDK_NGX_Parameter_GetUI_Detour (const NVSDK_NGX_Parameter *InParameter, const 
 
   if (ret == NVSDK_NGX_Result_Success)
   {
-    SK_LOGi1 (L"NGX_Parameter_GetUI (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
+    SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
+                L"NGX_Parameter_GetUI (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
 
     if (config.nvidia.dlss.force_dlaa)
     {

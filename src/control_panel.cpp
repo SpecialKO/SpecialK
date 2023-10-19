@@ -2639,7 +2639,7 @@ extern float __target_fps;
 extern float __target_fps_bg;
 
 extern void SK_ImGui_DrawGraph_FramePacing (void);
-extern void SK_ImGui_DrawGraph_Latency     (void);
+extern void SK_ImGui_DrawGraph_Latency     (bool predraw);
 extern void SK_ImGui_DrawConfig_Latency    (void);
 
 extern void SK_Framerate_EnergyControlPanel (void);
@@ -2676,7 +2676,7 @@ SK_NV_LatencyControlPanel (void)
   }
 
   SK_ImGui_DrawConfig_Latency ();
-  SK_ImGui_DrawGraph_Latency  ();
+  SK_ImGui_DrawGraph_Latency  (false);
 
   ImGui::TreePop  ();
 }

@@ -339,16 +339,16 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
   {
     if (config.nvidia.dlss.forced_preset != -1)
     {
-      unsigned int dlss_mode;
+      unsigned int dlss_perf_qual;
 
-      InParameters->Get (NVSDK_NGX_Parameter_PerfQualityValue, &dlss_mode);
+      InParameters->Get (NVSDK_NGX_Parameter_PerfQualityValue, &dlss_perf_qual);
 
-      unsigned int preset =
+      const unsigned int preset =
         static_cast <unsigned int> (config.nvidia.dlss.forced_preset);
 
       const char *szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;
 
-      switch (dlss_mode)
+      switch (dlss_perf_qual)
       {
         case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance;      break;
         case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced;         break;
@@ -364,15 +364,21 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
       NVSDK_NGX_Parameter_SetUI_Original ((NVSDK_NGX_Parameter *)InParameters, szPresetHint, preset);
     }
 
-    if (InFeatureHandle == SK_NGX_DLSS12.super_sampling.Handle)
+    if (ReadULong64Acquire (&SK_NGX_DLSS12.super_sampling.ResetFrame) >
+        ReadULong64Acquire (&SK_NGX_DLSS12.super_sampling.LastFrame))
     {
-      if (ReadULong64Acquire (&SK_NGX_DLSS12.super_sampling.ResetFrame) >
-          ReadULong64Acquire (&SK_NGX_DLSS12.super_sampling.LastFrame))
-      {
-        NVSDK_NGX_Parameter_SetI_Original ((NVSDK_NGX_Parameter *)InParameters, "Reset", 1);
-      }
+      NVSDK_NGX_Parameter_SetI_Original ((NVSDK_NGX_Parameter *)InParameters, "Reset", 1);
     }
   }
+
+  static auto &rb =
+    SK_GetCurrentRenderBackend ();
+
+  const double dFrameTimeDeltaInMsec =
+    1000.0 * ( static_cast <double> (rb.frame_delta.getDeltaTime ()) /
+               static_cast <double> (SK_QpcFreq) );
+
+  ((NVSDK_NGX_Parameter *)InParameters)->Set (NVSDK_NGX_Parameter_FrameTimeDeltaInMsec, dFrameTimeDeltaInMsec);
 
   NVSDK_NGX_Result ret =
     NVSDK_NGX_D3D12_EvaluateFeature_Original (InCmdList, InFeatureHandle, InParameters, InCallback);
