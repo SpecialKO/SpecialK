@@ -860,6 +860,8 @@ private:
   };
 };
 
+void SK_AVX2_memcpy (void *pvDst, void *pvSrc, size_t nBytes);
+
 auto constexpr CountSetBits = [](ULONG_PTR bitMask) noexcept ->
 DWORD
 {

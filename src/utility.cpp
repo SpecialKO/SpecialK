@@ -5398,3 +5398,29 @@ SK_ImportRegistryValue ( const wchar_t *wszPath,
     }
   }
 }
+
+void SK_AVX2_memcpy (void *pvDst, void *pvSrc, size_t nBytes)
+{
+  if ( (! InstructionSet::AVX2 ()) || (           nBytes % 32  != 0) ||
+                                      ((intptr_t (pvSrc) & 31) != 0) ||
+                                      ((intptr_t (pvDst) & 31) != 0) )
+  {
+    std::memcpy (pvDst, pvSrc, nBytes);
+    return;
+  }
+
+  const __m256i *pSrc = (const __m256i *)(pvSrc);
+        __m256i *pDst = (      __m256i *)(pvDst);
+
+  for ( int64_t nVects =
+                nBytes / sizeof (*pSrc) ;
+                nVects > 0              ;
+              --nVects, ++pSrc, ++pDst )
+  {
+    const __m256i loaded =
+      _mm256_stream_load_si256 (pSrc);
+      _mm256_stream_si256      (pDst, loaded);
+  }
+
+  _mm_sfence ();
+};
