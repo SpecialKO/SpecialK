@@ -37,6 +37,7 @@ struct reflex_frame_s {
   float gpu_total     = 0.0f;
   float gpu_active    = 0.0f;
   float gpu_start     = 0.0f;
+  float present       = 0.0f;
   
   struct {
     float cpu0 = 0.0f, gpu0 = 0.0f;
@@ -279,12 +280,14 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
           input.avg = 0.0f;
       }
       
-      reflex.simulation    = sim.durations    [63];
-      reflex.render_submit = render.durations [63];
-      reflex.gpu_total     = gpu.durations    [63];
+      reflex.simulation    = sim.durations     [63];
+      reflex.render_submit = render.durations  [63];
+      reflex.gpu_total     = gpu.durations     [63];
+      reflex.present       = present.durations [63];
       reflex.gpu_active    = static_cast <float> (gpu_frame_times [63].gpuActiveRenderTimeUs) / 1000.0f;
       reflex.gpu_start     = reflex.simulation +
-                             reflex.render_submit; // Start of GPU-only workload
+                             reflex.render_submit +
+                             reflex.present; // Start of GPU-only workload
 
       // 5% margin to prevent rapid graph shading inversion
       if (reflex.gpu_active * 1.05 < reflex.gpu_start)
@@ -343,10 +346,10 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
         const int count =
           end - begin + 1;
 
-        dCPU += std::accumulate ( &history.gpu_start  [begin],
-                                  &history.gpu_start  [end], 0.0f );
-        dGPU += std::accumulate ( &history.gpu_active [begin],
-                                  &history.gpu_active [end], 0.0f );
+        dCPU = std::accumulate ( &history.gpu_start  [begin],
+                                 &history.gpu_start  [end], dCPU );
+        dGPU = std::accumulate ( &history.gpu_active [begin],
+                                 &history.gpu_active [end], dGPU );
 
         auto* sample_age  = &history.sample_age  [begin];
         auto* sample_time = &history.sample_time [begin];
