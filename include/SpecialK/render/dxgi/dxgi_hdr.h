@@ -159,4 +159,6 @@ SK_D3D11_SanitizeFP16RenderTargets ( ID3D11DeviceContext *pDevCtx,
 void
 SK_D3D11_EndFrameHDR (void);
 
+void SK_HDR_DisableOverridesForGame (void);
+
 #endif /*__SK__DXGI_HDR_H__*/

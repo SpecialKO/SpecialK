@@ -2965,3 +2965,12 @@ SK_ImGui_DrawGamut (void)
     _DrawCharts (ImVec2 (0.0f, 0.0f), ImGui::GetIO ().DisplaySize, 0);
   }
 }
+
+void SK_HDR_DisableOverridesForGame (void)
+{
+  __SK_HDR_16BitSwap = false;
+  __SK_HDR_10BitSwap = false;
+
+  _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
+  _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
+}

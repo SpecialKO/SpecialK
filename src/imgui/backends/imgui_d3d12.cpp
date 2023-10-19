@@ -2040,6 +2040,19 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 bool
 SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pCommandQueue)
 {
+  static SK_Thread_HybridSpinlock                   _init_lock;
+  std::scoped_lock <SK_Thread_HybridSpinlock> lock (_init_lock);
+
+  // Turn HDR off in dgVoodoo2 so it does not crash
+#ifdef _M_IX86
+  if ( __SK_HDR_16BitSwap ||
+       __SK_HDR_10BitSwap )
+  {
+    SK_HDR_DisableOverridesForGame ();
+    SK_RestartGame                 ();
+  }
+#endif
+
   // This is the first time we've seen this device (unless something really funky's going on)
   if ( _pCommandQueue.p == nullptr &&
         pCommandQueue   != nullptr )
@@ -2113,7 +2126,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
     return false;
   }
 
-  else
+  else if (_pDevice != nullptr && _pSwapChain != nullptr)
   {
     DXGI_SWAP_CHAIN_DESC1  swapDesc1 = { };
     pSwapChain->GetDesc1 (&swapDesc1);
@@ -2428,7 +2441,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                               swapDesc1.BufferCount,
                                 swapDesc1.Format,
           descriptorHeaps.pImGui->GetCPUDescriptorHandleForHeapStart (),
-          descriptorHeaps.pImGui->GetGPUDescriptorHandleForHeapStart (), hWnd)
+          descriptorHeaps.pImGui->GetGPUDescriptorHandleForHeapStart (), HWND_BROADCAST)
          )
       {
         ImGui_ImplDX12_CreateDeviceObjects ();
