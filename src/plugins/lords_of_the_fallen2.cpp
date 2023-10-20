@@ -24,7 +24,7 @@
 #include <SpecialK/utility.h>
 
 void
-SK_LOF2_EnableAchievements (void)
+SK_LOF2_EnableEAC (bool enable)
 {
   auto& local_app_data_dir =
     SK_GetLocalAppDataDir ();
@@ -40,7 +40,7 @@ SK_LOF2_EnableAchievements (void)
     ini->parse ();
 
     ini->get_section (L"EpicOnlineServices").
-      add_key_value (L"EnableAntiCheat", L"False");
+      add_key_value (L"EnableAntiCheat", enable ? L"True" : L"False");
 
     ini->write ();
 
@@ -53,7 +53,7 @@ void
 SK_SEH_LaunchLordsOfTheFallen2 (void)
 {
   __try {
-    SK_LOF2_EnableAchievements ();
+    SK_LOF2_EnableEAC (false);
 
     STARTUPINFOW        sinfo = { };
     PROCESS_INFORMATION pinfo = { };
@@ -124,4 +124,18 @@ SK_SEH_LaunchLordsOfTheFallen2 (void)
   __except (EXCEPTION_EXECUTE_HANDLER) {
     // Swallow _all_ exceptions, EAC deserves a swift death
   }
+}
+
+void
+__stdcall
+SK_LOTF2_ExitGame (void)
+{
+  // Restore EAC on exit
+  SK_LOF2_EnableEAC (true);
+}
+
+void
+SK_LOTF2_InitPlugin (void)
+{
+  plugin_mgr->exit_game_fns.emplace (SK_LOTF2_ExitGame);
 }

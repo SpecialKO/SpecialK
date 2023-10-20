@@ -1,4 +1,10 @@
-﻿23.10.20.2
+﻿23.10.20.3
+==========
+ + Added new callback game plug-ins can register for on game exit to handle
+     various shutdown tasks (on clean exit).
+ + EAC bypass is disabled in Lords of the Fallen when the game exits.
+
+23.10.20.2
 ==========
  + Added DLSS-G option back to Lords of the Fallen when launched using SK
     >> If you enable DLSS FG, it's critical that you do not disable native Reflex

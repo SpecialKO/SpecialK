@@ -1418,6 +1418,7 @@ enum class SK_GAME_ID
   GECK,                         // GECK.exe
   ConstructionSet,              // TESConstructionSet.exe
   CreationKit,                  // ConstructionKit.exe
+  LordsOfTheFallen2,            // LOTF2-Win64-Shipping.exe
 
   UNKNOWN_GAME               = 0xffff
 };

@@ -648,10 +648,14 @@ extern void BasicInit (void);
     case SK_GAME_ID::Starfield:
     case SK_GAME_ID::Oblivion:
     case SK_GAME_ID::Fallout3:
-    case SK_GAME_ID::FalloutNewVegas: {
-        SK_BGS_InitPlugin();
-        break;
-    }
+    case SK_GAME_ID::FalloutNewVegas:
+    {
+      SK_BGS_InitPlugin ();
+    } break;
+    case SK_GAME_ID::LordsOfTheFallen2:
+    {
+      SK_LOTF2_InitPlugin ();
+    } break;
 #else
     case SK_GAME_ID::SecretOfMana:
       SK_SOM_InitPlugin ();
@@ -2794,6 +2798,18 @@ SK_ShutdownCore (const wchar_t* backend)
       dll_log->LogEx           (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
     }
 #endif
+
+    if (! plugin_mgr->exit_game_fns.empty ())
+    {
+      dll_log->LogEx           (true, L"[ SpecialK ] Shutting down game specific plug-ins...      ");
+      dwTime = SK_timeGetTime  ();
+      // Invoke any plug-in's exit callback
+      for ( auto exit_plugin_fn : plugin_mgr->exit_game_fns )
+      {
+        exit_plugin_fn ();
+      }
+      dll_log->LogEx           (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
+    }
 
     dll_log->LogEx             (true, L"[ SpecialK ] Shutting down MinHook...                     ");
 

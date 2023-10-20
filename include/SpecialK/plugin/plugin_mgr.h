@@ -52,6 +52,7 @@ SK_HasPlugin (void);
 using SK_EndFrame_pfn                  = void   (__stdcall *)( void        );
 using SK_EndFrameEx_pfn                = void   (__stdcall *)( BOOL
                                                                bWaitOnFail );
+using SK_ExitGame_pfn                 = void    (__stdcall *)( void        );
 using SK_BeginFrame_pfn                = void   (__stdcall *)( void        );
 using SK_ReleaseGfx_pfn                = void   (__stdcall *)( void        );
 using SK_PlugIn_ControlPanelWidget_pfn = void   (__stdcall *)( void        );
@@ -83,6 +84,7 @@ struct SK_PluginRegistry
   std::set <SK_EndFrame_pfn>                   end_frame_fns;
   std::set <SK_BeginFrame_pfn>               begin_frame_fns;
   std::set <SK_ReleaseGfx_pfn>               release_gfx_fns;
+  std::set <SK_ExitGame_pfn>                   exit_game_fns;
 
   std::wstring plugin_name;
 };
@@ -143,7 +145,8 @@ void SK_ELEX2_InitPlugin    (void);
 void __stdcall
      SK_HatsuneMiku_BeginFrame (void);
 
-void SK_BGS_InitPlugin(void);
+void SK_BGS_InitPlugin   (void);
+void SK_LOTF2_InitPlugin (void);
 
 #else
 HRESULT __stdcall
