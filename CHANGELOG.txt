@@ -1,4 +1,9 @@
-﻿23.10.19
+﻿23.10.20
+========
+ + Added option to disable native Reflex in games, and an explanation why you might
+     want to do this, rather than simply overriding the game's Reflex settings.
+
+23.10.19
 ========
  + Disable HDR support in 32-bit D3D12 software to prevent dgVoodoo2 from crashing.
      >> If you want HDR in dgVoodoo2, use D3D11

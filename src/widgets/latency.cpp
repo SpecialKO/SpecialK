@@ -209,7 +209,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
                    (
                end - start
                    );
-            if (duration >= 0 && duration < 666666)
+            if (duration >= 0 && duration < 6666666)
             {
               stage->samples++;
 
@@ -229,13 +229,18 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
                 stage->end   = end;
               }
             }
+
+            else
+            {
+              stage->durations [idx] = 0.0;
+            }
           }
         };
 
         _UpdateStat (frame.simStartTime,           frame.simEndTime,            &sim);
         // Unreal Engine gives some wacky timing data in its Reflex implementation, suggesting that
         //   it is continuing to render the same frame during and -after- present...?! What? :P
-        _UpdateStat (frame.renderSubmitStartTime,  frame.presentStartTime < frame.renderSubmitEndTime ?
+        _UpdateStat (frame.renderSubmitStartTime, (frame.presentStartTime < frame.renderSubmitEndTime) ?
                                                    frame.presentStartTime : frame.renderSubmitEndTime,
                                                                                 &render);
         _UpdateStat (frame.presentStartTime,       frame.presentEndTime,        &present);
@@ -285,9 +290,17 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       reflex.gpu_total     = gpu.durations     [63];
       reflex.present       = present.durations [63];
       reflex.gpu_active    = static_cast <float> (gpu_frame_times [63].gpuActiveRenderTimeUs) / 1000.0f;
-      reflex.gpu_start     = reflex.simulation +
-                             reflex.render_submit +
-                             reflex.present; // Start of GPU-only workload
+      //// Workaround for Unreal Engine, it actually submits GPU work in its "Present" marker
+      //reflex.gpu_start     = ( ( reflex.simulation > reflex.present ) ?
+      //                           reflex.simulation : reflex.present ) +
+      //                           reflex.render_submit; // Start of GPU-only workload
+
+      reflex.gpu_start = reflex.simulation + reflex.render_submit + reflex.present;
+
+      //SK_LOGs0 ( L"Test",
+      //  L"Simulation: %.1f ms, Render: %.1f ms, Present: %.1f ms : CPU %.1f fps", reflex.simulation, reflex.render_submit, reflex.present,
+      //    1000.0f / reflex.gpu_start
+      //);
 
       // 5% margin to prevent rapid graph shading inversion
       if (reflex.gpu_active * 1.05 < reflex.gpu_start)
@@ -889,7 +902,7 @@ SK_ImGui_DrawConfig_Latency ()
 
   bool show_mode_select = true;
 
-  if (config.nvidia.reflex.native)
+  if (config.nvidia.reflex.native && (! config.nvidia.reflex.disable_native))
   {
     ImGui::Bullet   ();
     ImGui::SameLine ();
@@ -1010,7 +1023,8 @@ SK_ImGui_DrawConfig_Latency ()
     }
   }
 
-  if (config.nvidia.reflex.enable && config.nvidia.reflex.low_latency && (! config.nvidia.reflex.native) && bFullReflexSupport)
+  if ( config.nvidia.reflex.enable      && bFullReflexSupport &&
+       config.nvidia.reflex.low_latency && ((! config.nvidia.reflex.native) || config.nvidia.reflex.disable_native) )
   {
     config.nvidia.reflex.enforcement_site =
       std::clamp (config.nvidia.reflex.enforcement_site, 0, 1);
@@ -1055,7 +1069,10 @@ SK_ImGui_DrawConfig_Latency ()
   
   if ( config.nvidia.reflex.enable            &&
        config.nvidia.reflex.low_latency       &&
-       config.nvidia.reflex.low_latency_boost && ((! config.nvidia.reflex.native) || config.nvidia.reflex.override)
+       config.nvidia.reflex.low_latency_boost &&
+           ( (! config.nvidia.reflex.native)  ||
+                config.nvidia.reflex.override ||
+                config.nvidia.reflex.disable_native )
                                               && rb.isReflexSupported () )
   {
     ImGui::SameLine ();
@@ -1069,6 +1086,7 @@ SK_ImGui_DrawConfig_Latency ()
       );
     }
   }
+
   ImGui::EndGroup   ();
 }
 

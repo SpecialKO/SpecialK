@@ -2655,7 +2655,52 @@ SK_NV_LatencyControlPanel (void)
 
   ImGui::Separator ();
 
-  if (! ImGui::TreeNodeEx ("NVIDIA Latency Management", ImGuiTreeNodeFlags_DefaultOpen))
+  bool bLatencyManagement =
+    ImGui::TreeNodeEx ("NVIDIA Latency Management", ImGuiTreeNodeFlags_DefaultOpen);
+
+  static bool     native_disabled =
+    config.nvidia.reflex.disable_native;
+
+  if ((config.nvidia.reflex.native && config.nvidia.reflex.override) || native_disabled)
+  {
+    ImGui::SameLine ();
+
+           bool changed      = false;
+    static bool need_restart = false;
+
+    changed |=
+      ImGui::Checkbox ("Disable This Game's Native Reflex", &config.nvidia.reflex.disable_native);
+
+    if (changed)
+    {
+      need_restart = true;
+
+      SK_SaveConfig ();
+    }
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip    ();
+      ImGui::TextUnformatted ("Some games have -really- broken implementations of Reflex.");
+      ImGui::Separator       ();
+      ImGui::BulletText      ("It may be better to disable native Reflex and use SK's implementation in some cases.");
+      ImGui::BulletText      ("If using SK's Latency Analysis to quantify CPU/GPU-bound state and dial-in game settings\r\n\t"
+                              " for best performance, it is important to disable native Reflex.");
+      ImGui::EndTooltip      ();
+    }
+
+    if (need_restart)
+    {
+      ImGui::SameLine       ();
+      ImGui::SeparatorEx    (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine       ();
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+      ImGui::BulletText     ("Game Restart Required");
+      ImGui::PopStyleColor  ();
+    }
+  }
+
+  if (! bLatencyManagement)
     return;
 
   if ((! rb.displays [rb.active_display].primary) && config.nvidia.reflex.low_latency
@@ -2678,7 +2723,7 @@ SK_NV_LatencyControlPanel (void)
   SK_ImGui_DrawConfig_Latency ();
   SK_ImGui_DrawGraph_Latency  (false);
 
-  ImGui::TreePop  ();
+  ImGui::TreePop ();
 }
 
 void
