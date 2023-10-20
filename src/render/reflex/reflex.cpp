@@ -42,9 +42,13 @@ using  NvAPI_D3D_SetLatencyMarker_pfn =
 using  NvAPI_D3D_SetSleepMode_pfn     =
   NvAPI_Status (__cdecl *)(__in IUnknown                 *pDev,
                            __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams);
+using  NvAPI_D3D_Sleep_pfn            =
+  NvAPI_Status (__cdecl *)(__in IUnknown                 *pDev);
 
 // Keep track of the last input marker, so we can trigger flashes correctly.
 NvU64                    SK_Reflex_LastInputFrameId          = 0ULL;
+NvU64                    SK_Reflex_LastNativeMarkerFrame     = 0ULL;
+NvU64                    SK_Reflex_LastNativeSleepFrame      = 0ULL;
 static constexpr auto    SK_Reflex_MinimumFramesBeforeNative = 150;
 NV_SET_SLEEP_MODE_PARAMS SK_Reflex_NativeSleepModeParams     = { };
 
@@ -55,6 +59,7 @@ NV_SET_SLEEP_MODE_PARAMS SK_Reflex_NativeSleepModeParams     = { };
 
 static NvAPI_D3D_SetLatencyMarker_pfn NvAPI_D3D_SetLatencyMarker_Original = nullptr;
 static NvAPI_D3D_SetSleepMode_pfn     NvAPI_D3D_SetSleepMode_Original     = nullptr;
+static NvAPI_D3D_Sleep_pfn            NvAPI_D3D_Sleep_Original            = nullptr;
 
 NVAPI_INTERFACE
 SK_NvAPI_D3D_SetLatencyMarker ( __in IUnknown                 *pDev,
@@ -64,6 +69,30 @@ SK_NvAPI_D3D_SetLatencyMarker ( __in IUnknown                 *pDev,
     return NvAPI_D3D_SetLatencyMarker_Original (pDev, pSetLatencyMarkerParams);
 
   return NVAPI_NOT_SUPPORTED;
+}
+
+NVAPI_INTERFACE
+SK_NvAPI_D3D_Sleep (__in IUnknown *pDev)
+{
+  if (     NvAPI_D3D_Sleep_Original != nullptr)
+    return NvAPI_D3D_Sleep_Original (pDev);
+
+  return NVAPI_NOT_SUPPORTED;
+}
+
+NVAPI_INTERFACE
+NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
+{
+  SK_LOG_FIRST_CALL
+
+  SK_Reflex_LastNativeSleepFrame =
+    SK_GetFramesDrawn ();
+
+  if (config.nvidia.reflex.disable_native)
+    return NVAPI_OK;
+
+  return
+    SK_NvAPI_D3D_Sleep (pDev);
 }
 
 NVAPI_INTERFACE
@@ -80,6 +109,8 @@ NVAPI_INTERFACE
 NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
                                     __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
 {
+  SK_LOG_FIRST_CALL
+
 #ifdef _DEBUG
   // Naive test, proper test for equality would involve QueryInterface
   SK_ReleaseAssert (pDev == SK_GetCurrentRenderBackend ().device);
@@ -95,6 +126,9 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
       SK_LOG0 ( ( L"# Game is using NVIDIA Reflex natively..." ),
                   L"  Reflex  " );
     }
+
+    SK_Reflex_LastNativeMarkerFrame =
+      SK_GetFramesDrawn ();
   }
   else return NVAPI_OK;
 
@@ -116,6 +150,8 @@ NVAPI_INTERFACE
 NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
                                 __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams )
 {
+  SK_LOG_FIRST_CALL
+
   if (pSetSleepModeParams != nullptr)
   {
     SK_ReleaseAssert (
@@ -129,7 +165,22 @@ NvAPI_D3D_SetSleepMode_Detour ( __in IUnknown                 *pDev,
     (__SK_ForceDLSSGPacing && __target_fps > 10.0f) || config.nvidia.reflex.override;
 
   if (applyOverride)
-    return NVAPI_OK;
+  {
+    pSetSleepModeParams->bLowLatencyBoost      = config.nvidia.reflex.low_latency_boost;
+    pSetSleepModeParams->bLowLatencyMode       = config.nvidia.reflex.low_latency;
+    pSetSleepModeParams->bUseMarkersToOptimize = config.nvidia.reflex.marker_optimization;
+
+    if ((__SK_ForceDLSSGPacing && __target_fps > 10.0f) || config.nvidia.reflex.use_limiter)
+    {
+      config.nvidia.reflex.frame_interval_us =
+            (UINT)(1000000.0 / __target_fps) + ( __SK_ForceDLSSGPacing ? 24
+                                                                       : 0 );
+    }
+    else
+      config.nvidia.reflex.frame_interval_us = 0;
+
+    pSetSleepModeParams->minimumIntervalUs     = config.nvidia.reflex.frame_interval_us;
+  }
 
   return
     SK_NvAPI_D3D_SetSleepMode (pDev, pSetSleepModeParams);
@@ -175,6 +226,12 @@ SK_NvAPI_HookReflex (void)
                                  NvAPI_D3D_SetSleepMode_Detour,
         static_cast_p2p <void> (&NvAPI_D3D_SetSleepMode_Original) );
       MH_QueueEnableHook (       NvAPI_QueryInterface (D3D_SET_SLEEP_MODE));
+
+      SK_CreateFuncHook (      L"NvAPI_D3D_Sleep",
+                                 NvAPI_QueryInterface (D3D_SLEEP),
+                                 NvAPI_D3D_Sleep_Detour,
+        static_cast_p2p <void> (&NvAPI_D3D_Sleep_Original) );
+      MH_QueueEnableHook (       NvAPI_QueryInterface (D3D_SLEEP));
 
       SK_ApplyQueuedHooks ();
     }
@@ -340,7 +397,10 @@ SK_RenderBackend_V2::driverSleepNV (int site)
     return;
 
   static bool
-    lastOverride = true;
+    lastOverride = false;
+
+  bool nativeSleepRecently =
+    SK_Reflex_LastNativeSleepFrame > SK_GetFramesDrawn () - 10;
 
   bool applyOverride =
     (__SK_ForceDLSSGPacing && __target_fps > 10.0f) || config.nvidia.reflex.override;
@@ -363,9 +423,9 @@ SK_RenderBackend_V2::driverSleepNV (int site)
                NvAPI_D3D_GetSleepStatus (device.p, &sleepStatusParams)
            )
         {
-          SK_Reflex_NativeSleepModeParams.bLowLatencyMode =
+          SK_Reflex_NativeSleepModeParams.bLowLatencyMode  =
             sleepStatusParams.bLowLatencyMode;
-          SK_Reflex_NativeSleepModeParams.version         =
+          SK_Reflex_NativeSleepModeParams.version          =
             NV_SET_SLEEP_MODE_PARAMS_VER;
         }
       }
@@ -374,7 +434,8 @@ SK_RenderBackend_V2::driverSleepNV (int site)
                device.p, &SK_Reflex_NativeSleepModeParams );
     }
 
-    return;
+    if (nativeSleepRecently)
+      return;
   }
 
   if (site == 2 && (! config.nvidia.reflex.native))
@@ -490,10 +551,10 @@ SK_RenderBackend_V2::driverSleepNV (int site)
 
     // Our own implementation
     //
-    if (! config.nvidia.reflex.native)
+    if ((! config.nvidia.reflex.native) || config.nvidia.reflex.disable_native || (! nativeSleepRecently))
     {
       NvAPI_Status status =
-        NvAPI_D3D_Sleep (device.p);
+        SK_NvAPI_D3D_Sleep (device.p);
 
       if ( status != NVAPI_OK )
         valid = false;

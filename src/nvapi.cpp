@@ -1385,88 +1385,87 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
     GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll",   &hLib);
 #endif
 
-  if (hLib != nullptr)
-  {
-    static auto NvAPI_QueryInterface =
-      reinterpret_cast <NvAPI_QueryInterface_pfn> (
-        SK_GetProcAddress (hLib, "nvapi_QueryInterface")
-      );
-
-    NvAPI_GPU_GetRamType =
-      (NvAPI_GPU_GetRamType_pfn)NvAPI_QueryInterface            (0x57F7CAACu);
-    NvAPI_GPU_GetFBWidthAndLocation =
-      (NvAPI_GPU_GetFBWidthAndLocation_pfn)NvAPI_QueryInterface (0x11104158u);
-    NvAPI_GPU_GetPCIEInfo =
-      (NvAPI_GPU_GetPCIEInfo_pfn)NvAPI_QueryInterface           (0xE3795199u);
-    NvAPI_GetGPUIDFromPhysicalGPU =
-      (NvAPI_GetGPUIDFromPhysicalGPU_pfn)NvAPI_QueryInterface   (0x6533EA3Eu);
-
-    NvAPI_Disp_SetDitherControl =
-      (NvAPI_Disp_SetDitherControl_pfn)NvAPI_QueryInterface (__NvAPI_Disp_SetDitherControl);
-    NvAPI_Disp_GetDitherControl =
-      (NvAPI_Disp_GetDitherControl_pfn)NvAPI_QueryInterface (__NvAPI_Disp_GetDitherControl);
-
-    if (NvAPI_GPU_GetRamType == nullptr) {
-      dll_log->LogEx (false, L"missing NvAPI_GPU_GetRamType ");
-      nv_hardware = false;
-    }
-
-    if (NvAPI_GPU_GetFBWidthAndLocation == nullptr) {
-      dll_log->LogEx (false, L"missing NvAPI_GPU_GetFBWidthAndLocation ");
-      nv_hardware = false;
-    }
-
-    if (NvAPI_GPU_GetPCIEInfo == nullptr) {
-      dll_log->LogEx (false, L"missing NvAPI_GPU_GetPCIEInfo ");
-      nv_hardware = false;
-    }
-
-    if (NvAPI_GetPhysicalGPUFromGPUID == nullptr) {
-      dll_log->LogEx (false, L"missing NvAPI_GetPhysicalGPUFromGPUID ");
-      nv_hardware = false;
-    }
-
-    if (NvAPI_GetGPUIDFromPhysicalGPU == nullptr) {
-      dll_log->LogEx (false, L"missing NvAPI_GetGPUIDFromPhysicalGPU ");
-      nv_hardware = false;
-    }
-
-    if ( NvU32                                     gpu_count = 0;
-         NVAPI_NO_IMPLEMENTATION ==
-           NvAPI_EnumPhysicalGPUs (_nv_dxgi_gpus, &gpu_count) )
+    if (hLib != nullptr)
     {
-      dll_log->LogEx (false, L"no implementation for NvAPI_EnumPhysicalGPUs ");
-      nv_hardware = false;
-    }
+      static auto NvAPI_QueryInterface =
+        reinterpret_cast <NvAPI_QueryInterface_pfn> (
+          SK_GetProcAddress (hLib, "nvapi_QueryInterface")
+        );
 
+      NvAPI_GPU_GetRamType =
+        (NvAPI_GPU_GetRamType_pfn)NvAPI_QueryInterface            (0x57F7CAACu);
+      NvAPI_GPU_GetFBWidthAndLocation =
+        (NvAPI_GPU_GetFBWidthAndLocation_pfn)NvAPI_QueryInterface (0x11104158u);
+      NvAPI_GPU_GetPCIEInfo =
+        (NvAPI_GPU_GetPCIEInfo_pfn)NvAPI_QueryInterface           (0xE3795199u);
+      NvAPI_GetGPUIDFromPhysicalGPU =
+        (NvAPI_GetGPUIDFromPhysicalGPU_pfn)NvAPI_QueryInterface   (0x6533EA3Eu);
 
-    if (NvAPI_Disp_HdrColorControl_Original == nullptr)
-    {
-      SK_CreateFuncHook ( L"NvAPI_Disp_HdrColorControl",
-                            NvAPI_QueryInterface (891134500),
-                            NvAPI_Disp_HdrColorControl_Override,
-   static_cast_p2p <void> (&NvAPI_Disp_HdrColorControl_Original) );
+      NvAPI_Disp_SetDitherControl =
+        (NvAPI_Disp_SetDitherControl_pfn)NvAPI_QueryInterface (__NvAPI_Disp_SetDitherControl);
+      NvAPI_Disp_GetDitherControl =
+        (NvAPI_Disp_GetDitherControl_pfn)NvAPI_QueryInterface (__NvAPI_Disp_GetDitherControl);
 
-      SK_CreateFuncHook ( L"NvAPI_Disp_GetHdrCapabilities",
-                            NvAPI_QueryInterface (2230495455),
-                            NvAPI_Disp_GetHdrCapabilities_Override,
-   static_cast_p2p <void> (&NvAPI_Disp_GetHdrCapabilities_Original) );
+      if (NvAPI_GPU_GetRamType == nullptr) {
+        dll_log->LogEx (false, L"missing NvAPI_GPU_GetRamType ");
+        nv_hardware = false;
+      }
 
-      MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
-      MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
-    }
+      if (NvAPI_GPU_GetFBWidthAndLocation == nullptr) {
+        dll_log->LogEx (false, L"missing NvAPI_GPU_GetFBWidthAndLocation ");
+        nv_hardware = false;
+      }
 
-    // Admin privileges are required to do this...
-    if (SK_IsAdmin ())
-      SK_NvAPI_AllowGFEOverlay (false, L"SKIF", L"SKIF.exe");
+      if (NvAPI_GPU_GetPCIEInfo == nullptr) {
+        dll_log->LogEx (false, L"missing NvAPI_GPU_GetPCIEInfo ");
+        nv_hardware = false;
+      }
 
-   SK_CreateDLLHook2 ( SK_RunLHIfBitness (64, L"nvapi64.dll",
-                                              L"nvapi.dll"),
-                        "nvapi_QueryInterface",
-                         NvAPI_QueryInterface_Detour,
-  static_cast_p2p <void> (&NvAPI_QueryInterface_Original) );
+      if (NvAPI_GetPhysicalGPUFromGPUID == nullptr) {
+        dll_log->LogEx (false, L"missing NvAPI_GetPhysicalGPUFromGPUID ");
+        nv_hardware = false;
+      }
 
-   SK_ApplyQueuedHooks ();
+      if (NvAPI_GetGPUIDFromPhysicalGPU == nullptr) {
+        dll_log->LogEx (false, L"missing NvAPI_GetGPUIDFromPhysicalGPU ");
+        nv_hardware = false;
+      }
+
+      if ( NvU32                                     gpu_count = 0;
+           NVAPI_NO_IMPLEMENTATION ==
+             NvAPI_EnumPhysicalGPUs (_nv_dxgi_gpus, &gpu_count) )
+      {
+        dll_log->LogEx (false, L"no implementation for NvAPI_EnumPhysicalGPUs ");
+        nv_hardware = false;
+      }
+
+      if (NvAPI_Disp_HdrColorControl_Original == nullptr)
+      {
+        SK_CreateFuncHook (      L"NvAPI_Disp_HdrColorControl",
+                                   NvAPI_QueryInterface (891134500),
+                                   NvAPI_Disp_HdrColorControl_Override,
+          static_cast_p2p <void> (&NvAPI_Disp_HdrColorControl_Original) );
+
+             SK_CreateFuncHook ( L"NvAPI_Disp_GetHdrCapabilities",
+                                   NvAPI_QueryInterface (2230495455),
+                                   NvAPI_Disp_GetHdrCapabilities_Override,
+          static_cast_p2p <void> (&NvAPI_Disp_GetHdrCapabilities_Original) );
+
+        MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
+        MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
+      }
+
+      // Admin privileges are required to do this...
+      if (SK_IsAdmin ())
+        SK_NvAPI_AllowGFEOverlay (false, L"SKIF", L"SKIF.exe");
+
+      SK_CreateDLLHook2 ( SK_RunLHIfBitness (64, L"nvapi64.dll",
+                                                 L"nvapi.dll"),
+                                "nvapi_QueryInterface",
+                                 NvAPI_QueryInterface_Detour,
+        static_cast_p2p <void> (&NvAPI_QueryInterface_Original) );
+
+      SK_ApplyQueuedHooks ();
 
 //#ifdef SK_AGGRESSIVE_HOOKS
 //      SK_ApplyQueuedHooks ();
