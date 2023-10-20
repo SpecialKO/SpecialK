@@ -1,4 +1,8 @@
-﻿23.10.20.3
+﻿23.10.20.4
+==========
+ + Only parse LOTF's INI file once per-launch :)
+
+23.10.20.3
 ==========
  + Added new callback game plug-ins can register for on game exit to handle
      various shutdown tasks (on clean exit).

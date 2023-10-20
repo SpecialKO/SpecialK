@@ -37,10 +37,14 @@ SK_LOF2_EnableEAC (bool enable)
 
   if (ini != nullptr)
   {
-    ini->parse ();
+    auto& sec =
+      ini->get_section (L"EpicOnlineServices");
 
-    ini->get_section (L"EpicOnlineServices").
-      add_key_value (L"EnableAntiCheat", enable ? L"True" : L"False");
+    if ( sec.contains_key  (L"EnableAntiCheat"))
+         sec.get_value     (L"EnableAntiCheat") = enable ?
+                                                 L"True" : L"False";
+    else sec.add_key_value (L"EnableAntiCheat",   enable ?
+                                                 L"True" : L"False");
 
     ini->write ();
 
