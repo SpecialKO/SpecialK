@@ -1,4 +1,9 @@
-﻿23.10.20
+﻿23.10.20.1
+==========
+ + Improved HDR10 screenshot tonemapping
+ + Added achievement enabler for Lords of the Fallen's EAC bypass
+
+23.10.20
 ========
  + Added option to disable native Reflex in games, and an explanation why you might
      want to do this, rather than simply overriding the game's Reflex settings.

@@ -200,6 +200,7 @@ const wchar_t* SK_GetBlacklistFilename      (void);
 
 bool           SK_GetDocumentsDir           (_Out_opt_ wchar_t* buf, _Inout_ uint32_t* pdwLen);
 std::wstring&  SK_GetDocumentsDir           (void);
+std::wstring&  SK_GetLocalAppDataDir        (void);
 std::wstring   SK_GetFontsDir               (void);
 std::wstring   SK_GetRTSSInstallDir         (void);
 bool

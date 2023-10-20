@@ -23,11 +23,38 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/utility.h>
 
+void
+SK_LOF2_EnableAchievements (void)
+{
+  auto& local_app_data_dir =
+    SK_GetLocalAppDataDir ();
+  
+  std::filesystem::path
+    ini_file_name (local_app_data_dir);
+  
+  auto ini =
+    SK_CreateINI ((ini_file_name / L"LOTF2/Saved/Config/Windows/Engine.ini").c_str ());
+
+  if (ini != nullptr)
+  {
+    ini->parse ();
+
+    ini->get_section (L"EpicOnlineServices").
+      add_key_value (L"EnableAntiCheat", L"False");
+
+    ini->write ();
+
+    delete ini;
+  }
+}
+
 // 32-bit Launcher Bypass Code
 void
 SK_SEH_LaunchLordsOfTheFallen2 (void)
 {
   __try {
+    SK_LOF2_EnableAchievements ();
+
     STARTUPINFOW        sinfo = { };
     PROCESS_INFORMATION pinfo = { };
 
