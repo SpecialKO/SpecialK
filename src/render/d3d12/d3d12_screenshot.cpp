@@ -1826,12 +1826,13 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         static const XMVECTORF32 s_luminance =
                           { 0.2126729, 0.7151522, 0.0721750, 0.f };
 
-                        XMVECTOR v = *pixels++;
+                        XMVECTOR v =
+                          XMVectorMax (*pixels++, g_XMZero);
 
                         colLum =
                           XMVectorMax (v, colLum);
 
-                        v = XMVector3Dot (v, s_luminance);
+                        v = XMVectorMultiply (v, s_luminance);
 
                         maxLum =
                           XMVectorMax (v, maxLum);
@@ -1846,12 +1847,12 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     }
                   ) : E_POINTER;
 
-                  XMVECTOR p95 =
-                    XMVectorMultiply (maxLum,
-                      XMVectorReplicate (0.95f)
+                  XMVECTOR p99 =
+                    XMVectorMultiply (colLum,
+                      XMVectorReplicate (0.999f)
                     );
 
-                  XMVECTOR maxLum95 = XMVectorZero ();
+                  XMVECTOR maxLum99 = XMVectorZero ();
 
                   hr =              un_srgb.GetImageCount () == 1 ?
                     EvaluateImage ( un_srgb.GetImages     (),
@@ -1866,15 +1867,16 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         static const XMVECTORF32 s_luminance =
                           { 0.2126729, 0.7151522, 0.0721750, 0.f };
 
-                        XMVECTOR v = *pixels++;
+                        XMVECTOR v =
+                          XMVectorMax (*pixels++, g_XMZero);
 
-                        v =
-                          XMVector3Dot (v, s_luminance);
+                        //v =
+                        //  XMVectorMultiply (v, s_luminance);
 
-                        if (v.m128_f32 [0] <= p95.m128_f32 [0])
+                        if (v.m128_f32 [0] <= p99.m128_f32 [0])
                         {
-                          maxLum95 =
-                            XMVectorMax (v, maxLum95);
+                          maxLum99 =
+                            XMVectorMax (v, maxLum99);
                         }
                       }
                     }
@@ -1906,7 +1908,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                               g_XMOne,
                                 XMVectorDivide (
                                   value,
-                                    maxLum95
+                                    maxLum99
                                 )
                             ),
                             XMVectorAdd ( g_XMOne,
@@ -1929,14 +1931,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   ) : E_POINTER;
 
                   static const XMVECTORF32 c_SdrPower =
-                  { 0.54f, 0.54f, 0.54f, 1.f };
-
-                  const auto xmColMax =
-                    XMVectorReplicate (
-                       std::max (   colLum.m128_f32 [0],
-                         std::max ( colLum.m128_f32 [1],
-                                    colLum.m128_f32 [2] ) )
-                      );
+                  { .725f, 0.725f, 0.725f, 1.f };
 
                   hr =               un_scrgb.GetImageCount () == 1 ?
                     TransformImage ( un_scrgb.GetImages     (),
@@ -1948,9 +1943,10 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                       for (size_t j = 0; j < width; ++j)
                       {
-                        outPixels [j] =
-                          XMVectorClamp ( XMVectorPow ( XMVectorDivide ( inPixels [j], xmColMax ), c_SdrPower ),
-                                        g_XMZero,     g_XMOne );
+                        outPixels [j] = 
+                          XMVectorClamp (
+                            XMVectorPow ( XMVectorMax (inPixels [j], g_XMZero), c_SdrPower ),
+                                                                     g_XMZero,     g_XMOne );
                       }
                     }, final_sdr
                   ) : E_POINTER;
