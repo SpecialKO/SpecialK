@@ -1,4 +1,9 @@
-﻿23.10.20.1
+﻿23.10.20.2
+==========
+ + Added DLSS-G option back to Lords of the Fallen when launched using SK
+    >> If you enable DLSS FG, it's critical that you do not disable native Reflex
+
+23.10.20.1
 ==========
  + Improved HDR10 screenshot tonemapping
  + Added achievement enabler for Lords of the Fallen's EAC bypass

@@ -73,8 +73,14 @@ SK_SEH_LaunchLordsOfTheFallen2 (void)
 
     SetEnvironmentVariable (L"EAC_LAUNCHERDIR", wszEACLauncher);
 
-    CreateProcess ( LR"(LOTF2\Binaries\Win64\LOTF2-Win64-Shipping.exe)", nullptr, nullptr, nullptr,
-                    TRUE,    CREATE_SUSPENDED, nullptr, SK_GetHostPath (),
+    wchar_t                         wszArgs [MAX_PATH * 2] = { };
+    GetCurrentDirectoryW (MAX_PATH, wszArgs);
+    wcscat (                        wszArgs,
+            LR"(\LOTF2\Binaries\Win64\LOTF2-Win64-Shipping.exe -DLSSFG)"
+    );
+
+    CreateProcess ( LR"(LOTF2\Binaries\Win64\LOTF2-Win64-Shipping.exe)", wszArgs,
+                    nullptr, nullptr, TRUE, CREATE_SUSPENDED, nullptr, SK_GetHostPath (),
                     &sinfo,  &pinfo );
 
     if (pinfo.hProcess != 0)
