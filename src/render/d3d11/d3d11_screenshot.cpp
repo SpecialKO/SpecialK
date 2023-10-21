@@ -1457,43 +1457,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     }
                   ) : E_POINTER;
 
-                  XMVECTOR p99 =
-                    XMVectorMultiply (colLum,
-                      XMVectorReplicate (0.999f)
-                    );
-
-                  XMVECTOR maxLum99 = XMVectorZero ();
-
-                  hr =              un_srgb.GetImageCount () == 1 ?
-                    EvaluateImage ( un_srgb.GetImages     (),
-                                    un_srgb.GetImageCount (),
-                                    un_srgb.GetMetadata   (),
-                    [&](const XMVECTOR* pixels, size_t width, size_t y)
-                    {
-                      UNREFERENCED_PARAMETER(y);
-
-                      for (size_t j = 0; j < width; ++j)
-                      {
-                        static const XMVECTORF32 s_luminance =
-                          { 0.2126729, 0.7151522, 0.0721750, 0.f };
-
-                        XMVECTOR v =
-                          XMVectorMax (*pixels++, g_XMZero);
-
-                        //v =
-                        //  XMVector3Dot (v, s_luminance);
-
-                        if (v.m128_f32 [0] <= p99.m128_f32 [0])
-                        {
-                          maxLum99 =
-                            XMVectorMax (v, maxLum99);
-                        }
-                      }
-                    }
-                  ) : E_POINTER;
-
-                  colLum = XMVectorZero ();
-
                   SK_LOGi0 ( L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0] * 80.0f,
                                                                       maxLum.m128_f32 [0] * 80.0f );
 
@@ -1518,7 +1481,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                               g_XMOne,
                                 XMVectorDivide (
                                   value,
-                                    maxLum99
+                                    XMVectorMultiply (colLum, colLum)
                                 )
                             ),
                             XMVectorAdd ( g_XMOne,
@@ -1541,7 +1504,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   ) : E_POINTER;
 
                   static const XMVECTORF32 c_SdrPower =
-                  { .725f, .725f, .725f, 1.f };
+                  { .78f, .78f, .78f, 1.f };
 
                   hr =               un_scrgb.GetImageCount () == 1 ?
                     TransformImage ( un_scrgb.GetImages     (),

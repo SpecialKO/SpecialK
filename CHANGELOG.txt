@@ -1,4 +1,11 @@
-﻿23.10.20.4
+﻿23.10.21
+========
+ + Experimental alpha blending overhaul for HDR10
+
+    >> Font and various graphs should be more legible when using HDR10, but
+         SK's UI might be brighter than the configured luminance target.
+
+23.10.20.4
 ==========
  + Only parse LOTF's INI file once per-launch :)
 

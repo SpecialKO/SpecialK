@@ -28,7 +28,7 @@ float4 main (PS_INPUT input) : SV_Target
         orig_col =
          out_col;
 
-  float  ui_alpha = saturate (input.col.a ) * saturate (out_col.a);
+  float  ui_alpha = saturate (input.col.a ) * saturate (out_col.a );
   float3 ui_color =           input.col.rgb *           out_col.rgb;
 
   //
@@ -65,18 +65,19 @@ float4 main (PS_INPUT input) : SV_Target
     float4 hdr_out =
       float4 (   ( hdr10 ?
         LinearToST2084 (
-          REC709toREC2020 (              saturate (out_col.rgb) ) * hdr_scale          ) :
+          REC709toREC2020 (              saturate (out_col.rgb) * saturate (out_col.a) ) * hdr_scale ) :
      Clamp_scRGB_StripNaN ( expandGamut (          out_col.rgb    * hdr_scale, 0.0333) )
-                 )                                                + hdr_offset,
-                                                   out_col.a );
+                 )                                                + hdr_offset, 
+                   hdr10 ?                              LinearToPQY (       out_col.a, 5.0)
+                         :                                                  out_col.a);
 
-    hdr_out.r = (orig_col.r <= 0.00013 && orig_col.r >= -0.00013) ? 0.0f : hdr_out.r;
     hdr_out.g = (orig_col.g <= 0.00013 && orig_col.g >= -0.00013) ? 0.0f : hdr_out.g;
+    hdr_out.r = (orig_col.r <= 0.00013 && orig_col.r >= -0.00013) ? 0.0f : hdr_out.r;
     hdr_out.b = (orig_col.b <= 0.00013 && orig_col.b >= -0.00013) ? 0.0f : hdr_out.b;
     hdr_out.a = (orig_col.a <= 0.00013 && orig_col.a >= -0.00013) ? 0.0f : hdr_out.a;
 
     float alpha_mul =
-      ( hdr10 ? hdr_out.a
+      ( hdr10 ? 1.0
               : ui_alpha ); // Use linear alpha in scRGB
         
     return
