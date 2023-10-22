@@ -4681,6 +4681,7 @@ SK_DXGI_CreateSwapChain_PreInit (
                pDesc->SwapEffect =                         DXGI_SWAP_EFFECT_SEQUENTIAL;
 
       pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+      pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
     }
 
     if (! config.window.res.override.isZero ())
