@@ -1817,6 +1817,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
                   &swap_flag_count     );
 
       extern UINT uiOriginalBltSampleCount;
+      extern DXGI_SWAP_CHAIN_DESC _ORIGINAL_SWAP_CHAIN_DESC;
 
       ImGui::BeginTooltip      ();
       ImGui::PushStyleColor    (ImGuiCol_Text, ImVec4 (0.95f, 0.95f, 0.45f, 1.0f));
@@ -1854,7 +1855,14 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
       ImGui::Text            ("%hs",                SK_DXGI_FormatToStr (swap_desc.Format).data ());
       ImGui::Text            ("%ux%u",                                   swap_desc.Width, swap_desc.Height);
-      ImGui::Text            ("%lu",                                     std::max (1U, swap_desc.BufferCount));
+      
+      if (_ORIGINAL_SWAP_CHAIN_DESC.OutputWindow == SK_GetGameWindow ( ) &&
+          _ORIGINAL_SWAP_CHAIN_DESC.BufferCount  != swap_desc.BufferCount)
+        ImGui::Text            ("%lu %hs %lu",                             std::max (1U, _ORIGINAL_SWAP_CHAIN_DESC.BufferCount),  (const char*)u8"\u2192",
+                                                                           std::max (1U, swap_desc.BufferCount));
+      else
+        ImGui::Text            ("%lu",                                     std::max (1U, swap_desc.BufferCount));
+
       if ((! fullscreen_desc.Windowed) && fullscreen_desc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
         ImGui::Text          ("%hs",        SK_DXGI_DescribeScalingMode (fullscreen_desc.Scaling));
       if ((! fullscreen_desc.Windowed) && fullscreen_desc.ScanlineOrdering != DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED)
@@ -1865,7 +1873,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       if (rb.present_interval == 0)
         ImGui::Text          ("%u: VSYNC OFF",                           rb.present_interval);
       else if (rb.present_interval == 1)
-        ImGui::Text ("%u: Normal V-SYNC", rb.present_interval);
+        ImGui::Text          ("%u: Normal V-SYNC",                       rb.present_interval);
       else if (rb.present_interval == 2)
         ImGui::Text          ("%u: 1/2 Refresh V-SYNC",                  rb.present_interval);
       else if (rb.present_interval == 3)
@@ -1874,7 +1882,15 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
         ImGui::Text          ("%u: 1/4 Refresh V-SYNC",                  rb.present_interval);
       else
         ImGui::Text          ("%u: UNKNOWN or Invalid",                  0);
-      ImGui::Text            ("%hs",            SK_DXGI_DescribeSwapEffect (swap_desc.SwapEffect));
+
+      if (_ORIGINAL_SWAP_CHAIN_DESC.OutputWindow == SK_GetGameWindow ( ) &&
+          _ORIGINAL_SWAP_CHAIN_DESC.SwapEffect   != swap_desc.SwapEffect)
+        ImGui::Text            ("%hs %hs %hs",    SK_DXGI_DescribeSwapEffect (_ORIGINAL_SWAP_CHAIN_DESC.SwapEffect), (const char*)u8"\u2192",
+                                                  SK_DXGI_DescribeSwapEffect (swap_desc.SwapEffect));
+      else
+        ImGui::Text            ("%hs",            SK_DXGI_DescribeSwapEffect (swap_desc.SwapEffect));
+
+
       if  (swap_desc.SampleDesc.Count > 1)
         ImGui::Text          ("%u",                                         swap_desc.SampleDesc.Count);
       else if (uiOriginalBltSampleCount > 1)

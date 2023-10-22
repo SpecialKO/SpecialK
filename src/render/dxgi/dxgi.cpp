@@ -50,6 +50,7 @@
 #include <VersionHelpers.h>
 
 BOOL _NO_ALLOW_MODE_SWITCH = FALSE;
+DXGI_SWAP_CHAIN_DESC _ORIGINAL_SWAP_CHAIN_DESC = { };
 
 #include <../depends/include/DirectXTex/d3dx12.h>
 
@@ -4556,6 +4557,7 @@ SK_DXGI_CreateSwapChain_PreInit (
   if (pDesc != nullptr)
   {
     orig_desc = *pDesc;
+    _ORIGINAL_SWAP_CHAIN_DESC = orig_desc;
 
     if (SK_GetCurrentGameID () == SK_GAME_ID::Elex2)
     {
