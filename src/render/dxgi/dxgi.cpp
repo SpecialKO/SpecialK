@@ -4679,6 +4679,8 @@ SK_DXGI_CreateSwapChain_PreInit (
                pDesc->SwapEffect =                         DXGI_SWAP_EFFECT_DISCARD;
       else if (pDesc->SwapEffect == (DXGI_SWAP_EFFECT)DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL)
                pDesc->SwapEffect =                         DXGI_SWAP_EFFECT_SEQUENTIAL;
+
+      pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
     }
 
     if (! config.window.res.override.isZero ())
