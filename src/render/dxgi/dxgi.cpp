@@ -50,7 +50,8 @@
 #include <VersionHelpers.h>
 
 BOOL _NO_ALLOW_MODE_SWITCH = FALSE;
-DXGI_SWAP_CHAIN_DESC _ORIGINAL_SWAP_CHAIN_DESC = { };
+DXGI_SWAP_CHAIN_DESC  _ORIGINAL_SWAP_CHAIN_DESC = { };
+DXGI_SWAP_CHAIN_DESC1 _ORIGINAL_SWAP_CHAIN_DESC1 = { };
 
 #include <../depends/include/DirectXTex/d3dx12.h>
 
@@ -2881,7 +2882,8 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     if (interval == SK_NoPreference)
         interval = SyncInterval;
 
-    rb.present_interval = interval;
+    rb.present_interval      = interval;
+    rb.present_interval_orig = SyncInterval;
 
     if (interval != 0 || rb.fullscreen_exclusive) // FSE can't use this flag
       flags &= ~DXGI_PRESENT_ALLOW_TEARING;
@@ -4557,7 +4559,7 @@ SK_DXGI_CreateSwapChain_PreInit (
   if (pDesc != nullptr)
   {
     orig_desc = *pDesc;
-    _ORIGINAL_SWAP_CHAIN_DESC = orig_desc;
+    _ORIGINAL_SWAP_CHAIN_DESC = *pDesc;
 
     if (SK_GetCurrentGameID () == SK_GAME_ID::Elex2)
     {
@@ -5046,6 +5048,8 @@ SK_DXGI_CreateSwapChain_PreInit (
   if ( pDesc1 != nullptr &&
        pDesc  != nullptr && translated )
   {
+    _ORIGINAL_SWAP_CHAIN_DESC1 = *pDesc1;
+
     pDesc1->BufferCount = pDesc->BufferCount;
     pDesc1->BufferUsage = pDesc->BufferUsage;
     pDesc1->Flags       = pDesc->Flags;

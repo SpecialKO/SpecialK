@@ -207,6 +207,7 @@ public:
   bool                    fullscreen_exclusive = false;
   uint64_t                framebuffer_flags    = 0x00;
   int                     present_interval     = 0; // Present interval on last call to present
+  int                     present_interval_orig = 0; // Application preference
   float                   ui_luminance         = 325.0_Nits;
   bool                    ui_srgb              = true;
   bool                    srgb_stripped        = false; // sRGB may be stripped from swapchains for advanced features to work
