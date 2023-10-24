@@ -781,6 +781,7 @@ struct {
     sk::ParameterInt*     srgb_behavior           = nullptr;
     sk::ParameterBool*    low_spec_mode           = nullptr;
     sk::ParameterBool*    hide_hdr_support        = nullptr;
+    sk::ParameterInt*     hdr_metadata_override   = nullptr;
     sk::ParameterBool*    enable_factory_cache    = nullptr;
     sk::ParameterBool*    skip_redundant_modes    = nullptr;
     sk::ParameterBool*    temporary_dwm_hdr       = nullptr;
@@ -1690,6 +1691,7 @@ auto DeclKeybind =
                                                          L" Flip Model support (-1=Passthrough, 0=Strip, 1=Apply)",    dll_ini,         L"Render.DXGI",           L"sRGBBypassBehavior"),
     ConfigEntry (render.dxgi.low_spec_mode,              L"Disable D3D11 Render Mods (for slight perf. increase)",     dll_ini,         L"Render.DXGI",           L"LowSpecMode"),
     ConfigEntry (render.dxgi.hide_hdr_support,           L"Prevent games from detecting monitor HDR support",          dll_ini,         L"Render.DXGI",           L"HideHDRSupport"),
+    ConfigEntry (render.dxgi.hdr_metadata_override,      L"Override the HDR header metadata type set by a game",       dll_ini,         L"Render.DXGI",           L"HDRMetadataType"),
     ConfigEntry (render.dxgi.enable_factory_cache,       L"Cache DXGI Factories to reduce display mode list overhead", dll_ini,         L"Render.DXGI",           L"UseFactoryCache"),
     ConfigEntry (render.dxgi.skip_redundant_modes,       L"Try to keep resolution setting changes to a minimum",       dll_ini,         L"Render.DXGI",           L"SkipRedundantModeChanges"),
     ConfigEntry (render.dxgi.temporary_dwm_hdr,          L"Temporarily Enable DWM-based HDR while the game runs",      dll_ini,         L"Render.DXGI",           L"TemporaryDesktopHDRMode"),
@@ -3723,6 +3725,7 @@ auto DeclKeybind =
   render.dxgi.srgb_behavior->load        (config.render.dxgi.srgb_behavior);
   render.dxgi.low_spec_mode->load        (config.render.dxgi.low_spec_mode);
   render.dxgi.hide_hdr_support->load     (config.render.dxgi.hide_hdr_support);
+  render.dxgi.hdr_metadata_override->load(config.render.dxgi.hdr_metadata_override);
   render.dxgi.temporary_dwm_hdr->load    (config.render.dxgi.temporary_dwm_hdr);
   render.dxgi.disable_virtual_vbi->load  (config.render.dxgi.disable_virtual_vbi);
   render.dxgi.clear_buffers_after_flip->
@@ -5406,6 +5409,7 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.srgb_behavior->store        (config.render.dxgi.srgb_behavior);
       render.dxgi.low_spec_mode->store        (config.render.dxgi.low_spec_mode);
       render.dxgi.hide_hdr_support->store     (config.render.dxgi.hide_hdr_support);
+      render.dxgi.hdr_metadata_override->store(config.render.dxgi.hdr_metadata_override);
       render.dxgi.temporary_dwm_hdr->store    (config.render.dxgi.temporary_dwm_hdr);
       render.dxgi.disable_virtual_vbi->store  (config.render.dxgi.disable_virtual_vbi);
       render.dxgi.clear_buffers_after_flip->
