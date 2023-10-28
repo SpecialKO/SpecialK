@@ -5699,7 +5699,8 @@ DXGIFactory_CreateSwapChain_Override (
   SK_ReleaseAssert (pDesc       != nullptr);
 //SK_ReleaseAssert (ppSwapChain != nullptr); // This happens from time to time
 
-  if (SK_GetCallingDLL () == SK_GetModuleHandleW (L"sl.dlss_g.dll"))
+  if (SK_GetCallingDLL () == SK_GetModuleHandleW (L"sl.dlss_g.dll") ||
+                             SK_GetModuleHandleW (L"nvngx_dlssg.dll") != nullptr)
   {
     if (__SK_HDR_16BitSwap && (! config.nvidia.dlss.allow_scrgb))
     {

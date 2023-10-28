@@ -1,4 +1,8 @@
-﻿23.10.28.2
+﻿23.10.28.3
+==========
+ + Fixed stability problems caused by Epic overlay in DLSS-G games
+
+23.10.28.2
 ==========
  + Added warnings if attempting to launch Alan Wake 2 without EOS Overlay or with
      RTSS and EOS Overlay simultaneously, since the faulty overlay check has been
