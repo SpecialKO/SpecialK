@@ -1,4 +1,15 @@
-﻿23.10.28.4
+﻿23.10.29
+========
+ + Fixed Alan Wake 2 mouse input stutter caused by INPUT_SAMPLE Reflex Latency Markers
+     being issued outside of SIMULATION_START / SIMULATION_END.
+
+    NOTE: There's still a bit of stutter when moving the mouse if that triggers a
+            switch between gamepad and KB&M input icons.
+            
+          If you only use one input device type you are encouraged to disable the
+            others under SK's Input Management section so that it never switches icons.
+
+23.10.28.4
 ==========
  + Added SK calculated Reflex input latency marker for native Reflex games that are
      missing this (i.e. Alan Wake 2)

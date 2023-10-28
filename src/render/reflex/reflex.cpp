@@ -116,6 +116,66 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
   SK_ReleaseAssert (pDev == SK_GetCurrentRenderBackend ().device);
 #endif
 
+  static const bool bAlanWake2 =
+    SK_GetCurrentGameID () == SK_GAME_ID::AlanWake2;
+
+  if (bAlanWake2)
+  {
+    static bool                   bQueueInput    = false;
+    static NV_LATENCY_MARKER_TYPE lastMarkerType =
+      OUT_OF_BAND_PRESENT_END;
+
+    if (pSetLatencyMarkerParams->markerType == INPUT_SAMPLE)
+    {
+      // This is an invalid place to put an input latency marker,
+      //   we'll try to fudge with things and insert it at an appropriate time
+      if (lastMarkerType != SIMULATION_START)
+      {
+        bQueueInput = true;
+
+        return NVAPI_OK;
+      }
+
+      // Last marker was SIMULATION_START, input is valid!
+      else
+      {
+        bQueueInput = false;
+      }
+    }
+
+    // Input Sample has to come between SIMULATION_START and SIMULATION_END, or it's invalid.
+    //
+    //   So take this opportunity to re-order some events if necessary
+    if ( ( (pSetLatencyMarkerParams->markerType == SIMULATION_START) ||
+           (pSetLatencyMarkerParams->markerType == SIMULATION_END) ) && std::exchange (bQueueInput, false) )
+    {
+      if (pSetLatencyMarkerParams->markerType == SIMULATION_START)
+      {
+        SK_NvAPI_D3D_SetLatencyMarker (pDev, pSetLatencyMarkerParams);
+      }
+
+      NV_LATENCY_MARKER_PARAMS              input_params = *pSetLatencyMarkerParams;
+                                            input_params.markerType = INPUT_SAMPLE;
+      SK_NvAPI_D3D_SetLatencyMarker (pDev, &input_params);
+
+      if (pSetLatencyMarkerParams->markerType == SIMULATION_END)
+      {
+        SK_NvAPI_D3D_SetLatencyMarker (pDev, pSetLatencyMarkerParams);
+      }
+
+      lastMarkerType = pSetLatencyMarkerParams->markerType;
+
+      SK_Reflex_LastInputFrameId = pSetLatencyMarkerParams->frameID;
+
+      SK_Reflex_LastNativeMarkerFrame =
+        SK_GetFramesDrawn ();
+
+      return NVAPI_OK;
+    }
+
+    lastMarkerType = pSetLatencyMarkerParams->markerType;
+  }
+
   if (! config.nvidia.reflex.disable_native)
   {
     // Shutdown our own Reflex implementation
@@ -329,7 +389,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
     }
 
     // Only do this if game is not Reflex native, or if the marker is a flash
-    if (sk::NVAPI::nv_hardware && ((! config.nvidia.reflex.native) || marker == TRIGGER_FLASH || marker == INPUT_SAMPLE))
+    if (sk::NVAPI::nv_hardware && ((! config.nvidia.reflex.native) || marker == TRIGGER_FLASH))
     {
       NV_LATENCY_MARKER_PARAMS
         markerParams            = {                          };
@@ -345,12 +405,6 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
         {
           markerParams.frameID =
             SK_Reflex_LastInputFrameId;
-        }
-
-        else if (marker == INPUT_SAMPLE && SK_Reflex_LastInputFrameId < SK_Reflex_LastNativeMarkerFrame - 1)
-        {
-          markerParams.frameID =
-            SK_Reflex_LastNativeMarkerFrame + 1;
         }
 
         else
