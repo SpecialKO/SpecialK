@@ -66,11 +66,11 @@ float4 main (PS_INPUT input) : SV_Target
     float4 hdr_out =
       float4 (   ( hdr10 ?
         LinearToST2084 (
-          REC709toREC2020 (              saturate (out_col.rgb) * saturate (out_col.a) ) * hdr_scale ) :
-     Clamp_scRGB_StripNaN ( expandGamut (          out_col.rgb    * hdr_scale, 0.0333) )
-                 )                                                + hdr_offset, 
-                   hdr10 ?                              LinearToPQY (       out_col.a, 4.75)
-                         :                                                  out_col.a);
+          REC709toREC2020 (              out_col.rgb * ui_alpha ) * hdr_scale ) :
+     Clamp_scRGB_StripNaN ( expandGamut (out_col.rgb * hdr_scale, 0.0333) )
+                 )                                   + hdr_offset, 
+                   hdr10 ?         LinearToPQY (       ui_alpha, 5.5)
+                         :                             out_col.a );
 
     hdr_out.g = (orig_col.g <= 0.00013 && orig_col.g >= -0.00013) ? 0.0f : hdr_out.g;
     hdr_out.r = (orig_col.r <= 0.00013 && orig_col.r >= -0.00013) ? 0.0f : hdr_out.r;

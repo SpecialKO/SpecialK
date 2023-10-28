@@ -310,45 +310,46 @@ struct ShaderBase
 using namespace SK::D3D11On12;
 
 namespace SK::D3D11On12::ShaderTask {
-class SDR_to_HDR
-{
-  public:
-    SDR_to_HDR ( const std::wstring& _name,
-                       uint32_t      vs_crc32c,
-                       uint32_t      ps_crc32c ) : name (_name)
-    {
-      *(&vertexOverride._Myfirst._Val) = vs_crc32c;
-      *(&pixelOverride._Myfirst._Val)  = ps_crc32c;
-    }
-
-    std::wstring name;
-  protected:
-    std::tuple <
-       uint32_t,  VertexShader,
-     ID3D10Blob*> vertexOverride;
-
-    std::tuple <
-       uint32_t,  PixelShader,
-     ID3D10Blob*> pixelOverride;
-
-  private:
-    SK_ComPtr <ID3D11VertexShader> pVS;
-    SK_ComPtr <ID3D11PixelShader>  pPS;
+  class SDR_to_HDR
+  {
+    public:
+      SDR_to_HDR ( const std::wstring& _name,
+                         uint32_t      vs_crc32c,
+                         uint32_t      ps_crc32c ) : name (_name)
+      {
+        *(&vertexOverride._Myfirst._Val) = vs_crc32c;
+        *(&pixelOverride._Myfirst._Val)  = ps_crc32c;
+      }
+  
+      std::wstring name;
+    protected:
+      std::tuple <
+         uint32_t,  VertexShader,
+       ID3D10Blob*> vertexOverride;
+  
+      std::tuple <
+         uint32_t,  PixelShader,
+       ID3D10Blob*> pixelOverride;
+  
+    private:
+      SK_ComPtr <ID3D11VertexShader> pVS;
+      SK_ComPtr <ID3D11PixelShader>  pPS;
+  };
 };
-};
 
 
-#define   STEAM_OVERLAY_VS_CRC32C 0xf48cf597
-#define   STEAM_OVERLAY_PS_CRC32C 0xdeadbeef
+#define  STEAM_OVERLAY_VS_CRC32C   0xf48cf597
+#define  STEAM_OVERLAY_PS_CRC32C   0xdeadbeef
 
-#define    RTSS_OVERLAY_VS_CRC32C 0xdeadbeef
-#define    RTSS_OVERLAY_PS_CRC32C 0xdeadbeef
+#define  RTSS_OVERLAY_VS_CRC32C    0x671afc2f
+#define  RTSS_OVERLAY_PS_CRC32C    0x995f6505
+#define  RTSS_OVERLAY_PS1_CRC32C   0x4777629e // Simpler pixel shader, just uses vtx colors
 
-#define DISCORD_OVERLAY_VS_CRC32C 0xdeadbeef
-#define DISCORD_OVERLAY_PS_CRC32C 0xdeadbeef
+#define  DISCORD_OVERLAY_VS_CRC32C 0xdeadbeef
+#define  DISCORD_OVERLAY_PS_CRC32C 0xdeadbeef
 
-#define   UPLAY_OVERLAY_VS_CRC32C 0xdeadbeef
-#define   UPLAY_OVERLAY_PS_CRC32C 0xdeadbeef
+#define  UPLAY_OVERLAY_VS_CRC32C   0xdeadbeef
+#define  UPLAY_OVERLAY_PS_CRC32C   0xdeadbeef
 
 
 SK::D3D11On12::ShaderTask::SDR_to_HDR
@@ -439,10 +440,11 @@ __SK_MakeSteamPS ( bool  hdr10,
     "    PS_QUAD_Texture2D.Sample (PS_QUAD_Sampler, input.uv);\n"
     "                                                         \n"
     "  out_col =                                              \n"
-    "    float4 (                                             \n"
-    "      RemoveSRGBCurve ( input.col.rgb * out_col.rgb ),   \n"
-    "                        input.col.a   * out_col.a        \n"
-    "           );                                            \n"
+    "    saturate (                                           \n"
+    "      float4 (                                           \n"
+    "        RemoveSRGBCurve ( input.col.rgb * out_col.rgb ), \n"
+    "                          input.col.a   * out_col.a)     \n"
+    "             );                                          \n"
     "                                                         \n";
 
     if (hdr10)
@@ -496,5 +498,285 @@ __SK_MakeSteamPS_Bytecode ( bool  hdr10,
                "main", "ps_5_0", true
   );
 
-  return steam_hdr.shaderBlob;
+  return
+    steam_hdr.shaderBlob;
+}
+
+std::string
+__SK_MakeEpicPS ( bool  hdr10,
+                  bool  scRGB,
+                  float max_luma )
+{
+  std::string out =
+    "\n"
+    "#pragma warning ( disable : 3571 )              \n"
+    "struct PS_INPUT                                 \n"
+    "{                                               \n"
+    "  float4 pos : SV_POSITION;                     \n"
+    "  float2 uv  : TEXCOORD0;                       \n"
+    "};                                              \n"
+    "                                                \n"
+    "sampler   Sampler        : register (s0);       \n"
+    "Texture2D OverlayTexture : register (t0);       \n"
+    "                                                \n"
+    "float3 RemoveSRGBCurve (float3 x)               \n"
+    "{                                               \n"
+    "  x =                                           \n"
+    "    max ( 0.0, isfinite (x) ? x : 0.0 );        \n"
+    "                                                \n"
+    "  return ( x < 0.04045f ) ?                     \n"
+    "          (x / 12.92f)    :                     \n"
+    "    pow ( (x + 0.055f) / 1.055f, 2.4f );        \n"
+    "}                                               \n"
+    "                                                \n";
+
+    if (hdr10)
+    { out +=
+      "float3 ApplyREC2084Curve (float3 L, float maxLuminance)\n"
+      "{                                                      \n"
+      "  float m1 = 2610.0 / 4096.0 / 4;                      \n"
+      "  float m2 = 2523.0 / 4096.0 * 128;                    \n"
+      "  float c1 = 3424.0 / 4096.0;                          \n"
+      "  float c2 = 2413.0 / 4096.0 * 32;                     \n"
+      "  float c3 = 2392.0 / 4096.0 * 32;                     \n"
+      "                                                       \n"
+      "  float maxLuminanceScale = maxLuminance / 10000.0f;   \n"
+      "   L *= maxLuminanceScale;                             \n"
+      "                                                       \n"
+      "  float3 Lp = pow (L, m1);                             \n"
+      "                                                       \n"
+      "  return pow ((c1 + c2 * Lp) / (1 + c3 * Lp), m2);     \n"
+      "}                                                      \n"
+      "                                                       \n"
+      "float3 REC709toREC2020 (float3 RGB709)                 \n"
+      "{                                                      \n"
+      "  static const float3x3 ConvMat =                      \n"
+      "  {                                                    \n"
+      "    0.627402, 0.329292, 0.043306,                      \n"
+      "    0.069095, 0.919544, 0.011360,                      \n"
+      "    0.016394, 0.088028, 0.895578                       \n"
+      "  };                                                   \n"
+      "  return mul (ConvMat, RGB709);                        \n"
+      "}                                                      \n"
+      "                                                       \n";
+    }
+
+
+    out +=
+    "                                                         \n"
+    "float4 main (PS_INPUT input) : SV_Target                 \n"
+    "{                                                        \n"
+    "  float4 out_col =                                       \n"
+    "    OverlayTexture.Sample (Sampler, input.uv);           \n"
+    "                                                         \n"
+    "  out_col =                                              \n"
+    "    saturate (                                           \n"
+    "      float4 (                                           \n"
+    "        RemoveSRGBCurve ( out_col.rgb ),                 \n"
+    "                          out_col.a )                    \n"
+    "             );                                          \n"
+    "                                                         \n";
+
+    if (hdr10)
+    { out +=
+      "                                                       \n"
+      "  out_col.rgb =                                        \n"
+      "    ApplyREC2084Curve (                                \n"
+      "         REC709toREC2020 ( out_col.rgb ),              \n";
+
+      out    += std::to_string (max_luma);
+      out    +=                                              "\n";
+
+      out    +=
+      "                    );                                 \n"
+      "                                                       \n";
+    }
+
+    if (scRGB)
+    {
+      out += "  out_col *= float4 (" +
+                   std::to_string (max_luma) + ", " +
+                   std::to_string (max_luma) + ", " +
+                   std::to_string (max_luma) + ", 1.0);      \n";
+             "                                               \n";
+    }
+
+    out +=
+    "  return                                                \n"
+    "    float4 (           out_col.rgb,                     \n"
+    "             saturate (out_col.a)                       \n"
+    "           );                                           \n"
+    "}                                                       \n";
+
+  return out;
+}
+
+ID3D10Blob*
+__SK_MakeEpicPS_Bytecode ( bool  hdr10,
+                           bool  scRGB,
+                           float max_luma )
+{
+  static ShaderBase <ID3D11PixelShader> epic_hdr;
+                                        epic_hdr.releaseResources ();
+
+  std::string epic_ps =
+        __SK_MakeEpicPS (hdr10, scRGB, max_luma);
+
+  epic_hdr.assembleShaderString (
+              epic_ps.c_str (),
+            L"Epic HDR PS",
+               "main", "ps_4_0", true
+  );
+
+  return
+    epic_hdr.shaderBlob;
+}
+
+std::string
+__SK_MakeRTSSPS ( bool  hdr10,
+                  bool  scRGB,
+                  float max_luma )
+{
+  std::string out =
+    "\n"
+    "#pragma warning ( disable : 3571 )              \n"
+    "struct PS_INPUT                                 \n"
+    "{                                               \n"
+    "  float4 pos   : SV_POSITION;                   \n"
+    "  float4 color : COLOR;                         \n"
+    "  float2 uv    : TEXCOORD0;                     \n"
+    "};                                              \n"
+    "                                                \n"
+    "float3 RemoveSRGBCurve (float3 x)               \n"
+    "{                                               \n"
+    "  x =                                           \n"
+    "    max ( 0.0, isfinite (x) ? x : 0.0 );        \n"
+    "                                                \n"
+    "  return ( x < 0.04045f ) ?                     \n"
+    "          (x / 12.92f)    :                     \n"
+    "    pow ( (x + 0.055f) / 1.055f, 2.4f );        \n"
+    "}                                               \n"
+    "                                                \n";
+
+    if (hdr10)
+    { out +=
+      "float3 ApplyREC2084Curve (float3 L, float maxLuminance)\n"
+      "{                                                      \n"
+      "  float m1 = 2610.0 / 4096.0 / 4;                      \n"
+      "  float m2 = 2523.0 / 4096.0 * 128;                    \n"
+      "  float c1 = 3424.0 / 4096.0;                          \n"
+      "  float c2 = 2413.0 / 4096.0 * 32;                     \n"
+      "  float c3 = 2392.0 / 4096.0 * 32;                     \n"
+      "                                                       \n"
+      "  float maxLuminanceScale = maxLuminance / 10000.0f;   \n"
+      "   L *= maxLuminanceScale;                             \n"
+      "                                                       \n"
+      "  float3 Lp = pow (L, m1);                             \n"
+      "                                                       \n"
+      "  return pow ((c1 + c2 * Lp) / (1 + c3 * Lp), m2);     \n"
+      "}                                                      \n"
+      "                                                       \n"
+      "float3 REC709toREC2020 (float3 RGB709)                 \n"
+      "{                                                      \n"
+      "  static const float3x3 ConvMat =                      \n"
+      "  {                                                    \n"
+      "    0.627402, 0.329292, 0.043306,                      \n"
+      "    0.069095, 0.919544, 0.011360,                      \n"
+      "    0.016394, 0.088028, 0.895578                       \n"
+      "  };                                                   \n"
+      "  return mul (ConvMat, RGB709);                        \n"
+      "}                                                      \n"
+      "                                                       \n";
+    }
+
+
+    out +=
+    "                                                         \n"
+    "float4 main (PS_INPUT input) : SV_Target                 \n"
+    "{                                                        \n"
+    "  float4 out_col = input.color;                          \n"
+    "                                                         \n"
+    "  out_col =                                              \n"
+    "    saturate (                                           \n"
+    "      float4 (                                           \n"
+    "        RemoveSRGBCurve ( out_col.rgb ),                 \n"
+    "                          out_col.a                      \n"
+    "             )                                           \n"
+    "             );                                          \n"
+    "                                                         \n";
+
+    if (hdr10)
+    { out +=
+      "                                                       \n"
+      "  out_col.rgb =                                        \n"
+      "    ApplyREC2084Curve (                                \n"
+      "         REC709toREC2020 ( out_col.rgb ),              \n";
+
+      out    += std::to_string (max_luma);
+      out    +=                                              "\n";
+
+      out    +=
+      "                    );                                 \n"
+      "                                                       \n";
+    }
+
+    if (scRGB)
+    {
+      out += "  out_col *= float4 (" +
+                   std::to_string (max_luma) + ", " +
+                   std::to_string (max_luma) + ", " +
+                   std::to_string (max_luma) + ", 1.0);      \n";
+             "                                               \n";
+    }
+
+    out +=
+    "  return                                                \n"
+    "    float4 (           out_col.rgb,                     \n"
+    "             saturate (out_col.a)                       \n"
+    "           );                                           \n"
+    "}                                                       \n";
+
+  return out;
+}
+
+ID3D10Blob*
+__SK_MakeRTSS_PS_Bytecode ( bool  hdr10,
+                            bool  scRGB,
+                            float max_luma )
+{
+  static ShaderBase <ID3D11PixelShader> rtss_hdr;
+                                        rtss_hdr.releaseResources ();
+
+  std::string rtss_ps =
+        __SK_MakeSteamPS (hdr10, scRGB, max_luma);
+
+  rtss_hdr.assembleShaderString (
+              rtss_ps.c_str (),
+            L"RTSS HDR PS",
+               "main", "ps_5_0", true
+  );
+
+  return
+    rtss_hdr.shaderBlob;
+}
+
+ID3D10Blob*
+__SK_MakeRTSS_PS1_Bytecode ( bool  hdr10,
+                             bool  scRGB,
+                             float max_luma )
+{
+  static ShaderBase <ID3D11PixelShader> rtss1_hdr;
+                                        rtss1_hdr.releaseResources ();
+
+  std::string rtss1_ps =
+        __SK_MakeRTSSPS (hdr10, scRGB, max_luma);
+
+  rtss1_hdr.assembleShaderString (
+              rtss1_ps.c_str (),
+            L"RTSS HDR PS (Vtx Color Only)",
+               "main", "ps_5_0", true
+  );
+
+  return
+    rtss1_hdr.shaderBlob;
 }

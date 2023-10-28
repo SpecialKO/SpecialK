@@ -458,6 +458,35 @@ extern
                               bool  scRGB,
                               float max_luma );
 
+
+extern std::string
+__SK_MakeEpicPS ( bool  hdr10,
+                  bool  scRGB,
+                  float max_luma );
+
+extern
+  ID3D10Blob*
+  __SK_MakeEpicPS_Bytecode ( bool  hdr10,
+                             bool  scRGB,
+                             float max_luma );
+
+extern
+  ID3D10Blob*
+  __SK_MakeRTSS_PS1_Bytecode ( bool  hdr10,
+                               bool  scRGB,
+                               float max_luma );
+
+extern std::string
+__SK_MakeRTSSPS ( bool  hdr10,
+                  bool  scRGB,
+                  float max_luma );
+
+extern
+  ID3D10Blob*
+  __SK_MakeRTSS_PS_Bytecode ( bool  hdr10,
+                              bool  scRGB,
+                              float max_luma );
+
 void
 SK_D3D11_ReleaseCachedShaders (ID3D11Device *This, sk_shader_class type);
 
@@ -537,10 +566,95 @@ SK_D3D11_CreateShader_Impl (
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  bool hash_only = (rb.api == SK_RenderAPI::D3D12);
+  const bool hash_only =
+    (                                             rb.api == SK_RenderAPI::D3D12||
+     (SK_GetFramesDrawn () < 2 && config.apis.last_known == SK_RenderAPI::D3D12));
+
   if ( hash_only )
   {
-    if (type == sk_shader_class::Pixel && checksum == 0x9aefe985)
+#define STEAM_OVERLAY_PS_CRC32C   0x9aefe985
+#define RTSS_OVERLAY_PS_CRC32C    0x995f6505
+#define RTSS_OVERLAY_PS1_CRC32C   0x4777629e
+#define EPIC_OVERLAY_PS_CRC32C    0xbff8dffc
+
+    // RTSS
+    //
+    if (type == sk_shader_class::Pixel && ( checksum == RTSS_OVERLAY_PS_CRC32C ||
+                                            checksum == RTSS_OVERLAY_PS1_CRC32C ))
+    {
+      extern bool __SK_HDR_16BitSwap;
+      extern bool __SK_HDR_10BitSwap;
+      if (        __SK_HDR_16BitSwap || ( rb.hdr_capable &&
+                                          rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ))
+      {
+        static std::string rtss_ps_scRGB =
+          __SK_MakeSteamPS (false, true, config.rtss.overlay_luminance);
+        static std::string rtss1_ps_scRGB =
+          __SK_MakeRTSSPS  (false, true, config.rtss.overlay_luminance);
+
+        SK_RunOnce (
+           SK_LOG0 ( ( L"RTSS Replacement Pixel Shader <scRGB %f nits>",
+                          config.rtss.overlay_luminance * 80.0 ),
+                       L"RTSS Range" )
+        );
+
+        static ID3D10Blob* rtss_blob_scRGB =
+        __SK_MakeSteamPS_Bytecode  (false, true, config.rtss.overlay_luminance);
+        static ID3D10Blob* rtss1_blob_scRGB =
+        __SK_MakeRTSS_PS1_Bytecode (false, true, config.rtss.overlay_luminance);
+
+        switch (checksum)
+        {
+          case RTSS_OVERLAY_PS_CRC32C:
+            pShaderBytecode = rtss_blob_scRGB->GetBufferPointer ();
+            BytecodeLength  = rtss_blob_scRGB->GetBufferSize    ();
+            break;
+          default:
+          case RTSS_OVERLAY_PS1_CRC32C:
+            pShaderBytecode = rtss1_blob_scRGB->GetBufferPointer ();
+            BytecodeLength  = rtss1_blob_scRGB->GetBufferSize    ();
+            break;
+        }
+      }
+
+      else if ( __SK_HDR_10BitSwap || ( rb.hdr_capable &&
+                                        rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ))
+      {
+        static std::string rtss_ps_PQ =
+          __SK_MakeSteamPS (true, false, config.rtss.overlay_luminance * 80.0f);
+        static std::string rtss1_ps_PQ =
+          __SK_MakeRTSSPS  (true, false, config.rtss.overlay_luminance * 80.0f);
+
+        SK_RunOnce (
+        {
+          SK_LOG0 ( ( L"RTSS Replacement Pixel Shader <PQ %f nits>",
+                             config.rtss.overlay_luminance * 80.0f ),
+                      L"RTSS Range" );
+        });
+
+        static ID3D10Blob* rtss_blob_PQ =
+          __SK_MakeSteamPS_Bytecode  (true, false, config.rtss.overlay_luminance * 80.0f);
+        static ID3D10Blob* rtss1_blob_PQ =
+          __SK_MakeRTSS_PS1_Bytecode (true, false, config.rtss.overlay_luminance * 80.0f);
+
+        switch (checksum)
+        {
+          case RTSS_OVERLAY_PS_CRC32C:
+            pShaderBytecode = rtss_blob_PQ->GetBufferPointer ();
+            BytecodeLength  = rtss_blob_PQ->GetBufferSize    ();
+            break;
+          default:
+          case RTSS_OVERLAY_PS1_CRC32C:
+            pShaderBytecode = rtss1_blob_PQ->GetBufferPointer ();
+            BytecodeLength  = rtss1_blob_PQ->GetBufferSize    ();
+            break;
+        }
+      }
+    }
+
+    // Steam
+    //
+    else if (type == sk_shader_class::Pixel && checksum == STEAM_OVERLAY_PS_CRC32C)
     {
       extern bool __SK_HDR_16BitSwap;
       extern bool __SK_HDR_10BitSwap;
@@ -584,6 +698,60 @@ SK_D3D11_CreateShader_Impl (
         BytecodeLength  = steam_blob_PQ->GetBufferSize    ();
       }
     }
+
+    // Epic
+    //
+    else if (type == sk_shader_class::Pixel && checksum == EPIC_OVERLAY_PS_CRC32C)
+    {
+      extern bool __SK_HDR_16BitSwap;
+      extern bool __SK_HDR_10BitSwap;
+      if (        __SK_HDR_16BitSwap || ( rb.hdr_capable &&
+                                          rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ))
+      {
+        static std::string epic_ps_scRGB =
+          __SK_MakeEpicPS (false, true, config.platform.overlay_hdr_luminance);
+
+        SK_RunOnce (
+           SK_LOG0 ( ( L"Epic Replacement Pixel Shader <scRGB %f nits>",
+                          config.platform.overlay_hdr_luminance * 80.0 ),
+                       L"Epic Range" )
+        );
+
+        static ID3D10Blob* epic_blob_scRGB =
+        __SK_MakeEpicPS_Bytecode (false, true, config.platform.overlay_hdr_luminance);
+
+        pShaderBytecode = epic_blob_scRGB->GetBufferPointer ();
+        BytecodeLength  = epic_blob_scRGB->GetBufferSize    ();
+
+      }
+
+      else if ( __SK_HDR_10BitSwap || ( rb.hdr_capable &&
+                                        rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ))
+      {
+        static std::string epic_ps_PQ =
+          __SK_MakeEpicPS (true, false, config.platform.overlay_hdr_luminance * 80.0f);
+
+        SK_RunOnce (
+        {
+          SK_LOG0 ( ( L"Epic Replacement Pixel Shader <PQ %f nits>",
+                             config.platform.overlay_hdr_luminance * 80.0f ),
+                      L"Epic Range" );
+        });
+
+        static ID3D10Blob* epic_blob_PQ =
+          __SK_MakeEpicPS_Bytecode (true, false, config.platform.overlay_hdr_luminance * 80.0f);
+
+        pShaderBytecode = epic_blob_PQ->GetBufferPointer ();
+        BytecodeLength  = epic_blob_PQ->GetBufferSize    ();
+      }
+    }
+
+#if 0
+    else if (type == sk_shader_class::Pixel)
+    {
+      SK_LOGs0 (L"DX12Shader", L"Pixel Shader: %x created by %ws", checksum, SK_GetCallerName ().c_str ());
+    }
+#endif
 
     return
       InvokeCreateRoutine ();

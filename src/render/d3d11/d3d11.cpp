@@ -4130,6 +4130,21 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
                  RTSS_OVERLAY_VS_CRC32C == vs_crc ||
                  EPIC_OVERLAY_VS_CRC32C == vs_crc )
     {
+      if (RTSS_OVERLAY_VS_CRC32C == vs_crc)
+      {
+        uint32_t ps_crc =
+          SK_D3D11_Shaders->pixel.current.shader [dev_idx];
+
+        SK_LOGi0 (L"RTSS Overlay VS Paired with %x for PS", ps_crc);
+      }
+
+      if (EPIC_OVERLAY_VS_CRC32C == vs_crc)
+      {
+        uint32_t ps_crc =
+          SK_D3D11_Shaders->pixel.current.shader [dev_idx];
+
+        SK_LOGi0 (L"Epic Overlay VS Paired with %x for PS", ps_crc);
+      }
       if ( SUCCEEDED (
              SK_D3D11_InjectGenericHDROverlay ( pDevCtx, VertexCount,
                                                   StartVertexLocation,

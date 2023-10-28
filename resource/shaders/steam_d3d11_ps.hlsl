@@ -22,8 +22,10 @@ float4 main (PS_INPUT input) : SV_Target
     PS_QUAD_Texture2D.Sample (PS_QUAD_Sampler, input.uv);
 
   out_col =
-    float4 (RemoveSRGBCurve (input.col.rgb * out_col.rgb),
-                             input.col.a   * out_col.a);
+    saturate (
+      float4 ( RemoveSRGBCurve ( input.col.rgb * out_col.rgb),
+                                 input.col.a   * out_col.a )
+             );
 
   // Negative = HDR10
   if (linear_mul.x < 0.0)

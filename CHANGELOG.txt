@@ -1,4 +1,13 @@
-﻿23.10.28.1
+﻿23.10.28.2
+==========
+ + Added warnings if attempting to launch Alan Wake 2 without EOS Overlay or with
+     RTSS and EOS Overlay simultaneously, since the faulty overlay check has been
+       removed.
+ + Colorspace fixes for RTSS's overlay in HDR work in D3D12 now;
+     the luminance level is only configurable from D3D11 (in the HDR menu), but
+       D3D12 will use the values you set in any D3D11 game while RTSS was visible.
+
+23.10.28.1
 ==========
  + Completely automated bypass of Alan Wake 2's broken Third-Party Overlay check
 
