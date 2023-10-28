@@ -3229,8 +3229,7 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::AlanWake2:
-      {
-        void *pOverlayCheck =
+      {        void *pOverlayCheck =
           (void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x1E74B09);
 
         DWORD                                                          dwOriginal = 0;
@@ -3241,6 +3240,47 @@ auto DeclKeybind =
             memcpy (        pOverlayCheck, "\x90\x90\x90\x90\x90", 5);
           }
         } VirtualProtect (  pOverlayCheck, 5, dwOriginal, &dwOriginal);
+
+        plugin_mgr->first_frame_fns.emplace (
+        [](IUnknown *, UINT, UINT) -> HRESULT
+        {
+          if (  GetModuleHandleW (L"RTSSHooks64.dll") != nullptr &&
+              (! PathFileExistsW (L"SpecialK.RTSSWarned")) )
+          {
+            SK_ImGui_Warning (
+              L"RTSS disables the Epic overlay, which is required to activate this game.\r\n\r\n"
+              L"\t>> This warning will not be shown again."
+            );
+        
+            FILE *fWarned =
+              fopen ("SpecialK.RTSSWarned", "w");
+        
+            if (         fWarned != nullptr)
+            { fputc  (0, fWarned);
+              fclose (   fWarned);
+            }
+          }
+        
+          if ( ! GetModuleHandleW (L"EOSOVH-Win64-Shipping.dll") && 
+              (! PathFileExistsW  (L"SpecialK.RTSSWarned")) )
+          {
+            SK_ImGui_Warning (
+              L"The EOS Overlay is required once to activate this game.\r\n\r\n"
+              L"\t>> This warning will not be shown again."
+            );
+        
+            FILE *fWarned =
+              fopen ("SpecialK.EOSWarned", "w");
+        
+            if (         fWarned != nullptr)
+            { fputc  (0, fWarned);
+              fclose (   fWarned);
+            }
+          }
+        
+          return S_OK;
+        });
+
       } break;
     }
   }
