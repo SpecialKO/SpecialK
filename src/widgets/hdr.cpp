@@ -2979,3 +2979,13 @@ void SK_HDR_DisableOverridesForGame (void)
   _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
   _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
 }
+
+void
+SK_HDR_SetOverridesForGame (bool bScRGB, bool bHDR10)
+{
+  __SK_HDR_16BitSwap = bScRGB;
+  __SK_HDR_10BitSwap = bHDR10;
+
+  _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
+  _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
+}

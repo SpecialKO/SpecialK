@@ -5706,10 +5706,12 @@ DXGIFactory_CreateSwapChain_Override (
       __SK_HDR_10BitSwap =  true;
       __SK_HDR_16BitSwap = false;
 
+      SK_HDR_SetOverridesForGame (__SK_HDR_16BitSwap, __SK_HDR_10BitSwap);
+
       SK_ImGui_Warning (
-        L"scRGB HDR has been changed to HDR10 because NVIDIA Streamline/DLSS Frame Generation was detected."
+        L"scRGB HDR has been changed to HDR10 because DLSS Frame Generation was detected."
         L"\r\n\r\n\t"
-        L"If you are not using Frame Generation, you can turn this back on by clicking scRGB in the HDR widget."
+        L"If not using Frame Generation, you can turn scRGB back on by clicking scRGB in the HDR widget and this warning will not be shown again."
       );
     }
   }

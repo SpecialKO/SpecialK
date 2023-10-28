@@ -239,7 +239,8 @@ SK_GetCurrentGameID (void)
           { L"CreationKit.exe",                        SK_GAME_ID::CreationKit                  },
           { L"TESConstructionSet.exe",                 SK_GAME_ID::ConstructionSet              },
           { L"LOTF2.exe",                              SK_GAME_ID::EasyAntiCheat                },
-          { L"LOTF2-Win64-Shipping.exe",               SK_GAME_ID::LordsOfTheFallen2            }
+          { L"LOTF2-Win64-Shipping.exe",               SK_GAME_ID::LordsOfTheFallen2            },
+          { L"AlanWake2.exe",                          SK_GAME_ID::AlanWake2                    }
         };
 
     first_check  = false;

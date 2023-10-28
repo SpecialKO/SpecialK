@@ -1,5 +1,9 @@
 ﻿23.10.28
 ========
+ + Added bypass for Alan Wake 2's faulty third-party overlay check.
+ 
+    >> Just click Quit and SK will ignore it and allow you to play the game.
+
  + Automatically disable scRGB if DLSS-G is detected; clicking the scRGB
      radio button after the automatic disable will ignore auto-disable
        behavior in the future for the game.

@@ -1420,6 +1420,7 @@ enum class SK_GAME_ID
   ConstructionSet,              // TESConstructionSet.exe
   CreationKit,                  // ConstructionKit.exe
   LordsOfTheFallen2,            // LOTF2-Win64-Shipping.exe
+  AlanWake2,                    // AlanWake2.exe
 
   UNKNOWN_GAME               = 0xffff
 };

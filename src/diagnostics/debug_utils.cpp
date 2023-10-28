@@ -1085,6 +1085,16 @@ TerminateProcess_Detour ( HANDLE hProcess,
       return FALSE;
     }
 
+    if (SK_GetCurrentGameID () == SK_GAME_ID::AlanWake2)
+    {
+      // This is the game's faulty third-party overlay detection code,
+      //   since it's broken even without SK, we might as well bypass it.
+      if (uExitCode == 0xbaadda7a)
+      {
+        return FALSE;
+      }
+    }
+
     if (! abnormal_dll_state)
     {
       SK_LOG0 ( ( L"Software Is Terminating Itself With Exit Code (%x)",
