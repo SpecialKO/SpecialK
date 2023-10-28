@@ -329,7 +329,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
     }
 
     // Only do this if game is not Reflex native, or if the marker is a flash
-    if (sk::NVAPI::nv_hardware && ((! config.nvidia.reflex.native) || marker == TRIGGER_FLASH))
+    if (sk::NVAPI::nv_hardware && ((! config.nvidia.reflex.native) || marker == TRIGGER_FLASH || marker == INPUT_SAMPLE))
     {
       NV_LATENCY_MARKER_PARAMS
         markerParams            = {                          };
@@ -339,10 +339,22 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
              ReadULong64Acquire (&frames_drawn)       );
 
       // Triggered input flash, in a Reflex-native game
-      if (config.nvidia.reflex.native && marker == TRIGGER_FLASH)
+      if (config.nvidia.reflex.native)
       {
-        markerParams.frameID =
-          SK_Reflex_LastInputFrameId;
+        if (marker == TRIGGER_FLASH)
+        {
+          markerParams.frameID =
+            SK_Reflex_LastInputFrameId;
+        }
+
+        else if (marker == INPUT_SAMPLE && SK_Reflex_LastInputFrameId < SK_Reflex_LastNativeMarkerFrame - 1)
+        {
+          markerParams.frameID =
+            SK_Reflex_LastNativeMarkerFrame + 1;
+        }
+
+        else
+          return true;
       }
 
       SK_PCL_Heartbeat (markerParams);

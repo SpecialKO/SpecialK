@@ -1,4 +1,9 @@
-﻿23.10.28.3
+﻿23.10.28.4
+==========
+ + Added SK calculated Reflex input latency marker for native Reflex games that are
+     missing this (i.e. Alan Wake 2)
+
+23.10.28.3
 ==========
  + Fixed stability problems caused by Epic overlay in DLSS-G games
 
