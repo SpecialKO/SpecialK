@@ -1,4 +1,9 @@
-﻿23.10.29
+﻿23.10.29.1
+==========
+ + Apply the Alan Wake 2 Reflex out-of-band input processing fix to SK's own Reflex
+     implementation to handle rare edge cases.
+
+23.10.29
 ========
  + Fixed Alan Wake 2 mouse input stutter caused by INPUT_SAMPLE Reflex Latency Markers
      being issued outside of SIMULATION_START / SIMULATION_END.

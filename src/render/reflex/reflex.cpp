@@ -353,6 +353,70 @@ SK_RenderBackend_V2::isReflexSupported (void)
     SK_Render_GetVulkanInteropSwapChainType      (swapchain) == SK_DXGI_VK_INTEROP_TYPE_NONE;
 }
 
+// If this returns true, we submitted the latency marker(s) ourselves and normal processing
+//   logic should be skipped.
+bool
+SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* pDevice)
+{
+  // If true, we submitted the latency marker(s) ourselves and the normal processing
+  //   should be ignored.
+  bool bFixed = false;
+
+  static bool                   bQueueInput    = false;
+  static NV_LATENCY_MARKER_TYPE lastMarkerType =
+    OUT_OF_BAND_PRESENT_END;
+  
+  if (markerParams.markerType == INPUT_SAMPLE)
+  {
+    // bQueueInput=true denotes an invalid place to put an input latency marker,
+    //   we will try to fudge with things and insert it at an appropriate time
+    bQueueInput =
+      (lastMarkerType != SIMULATION_START);
+
+    return
+      bQueueInput;
+  }
+  
+  // Input Sample has to come between SIMULATION_START and SIMULATION_END, or it's invalid.
+  //
+  //   So take this opportunity to re-order some events if necessary
+  if ( ( (markerParams.markerType == SIMULATION_START) ||
+         (markerParams.markerType == SIMULATION_END) ) && std::exchange (bQueueInput, false) )
+  {
+    NV_LATENCY_MARKER_PARAMS
+      input_params            = markerParams;
+      input_params.markerType = INPUT_SAMPLE;
+
+    bool bPreSubmit =
+      (markerParams.markerType == SIMULATION_START);
+
+    auto _SubmitMarker = [&](NV_LATENCY_MARKER_PARAMS& marker)
+    {
+         NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
+      SK_NvAPI_D3D_SetLatencyMarker (pDevice, &marker);
+  
+      SK_PCL_Heartbeat (markerParams);
+    };
+
+    if (bPreSubmit)
+      _SubmitMarker (markerParams);
+
+    // Submit our generated input marker in-between the possible real markers
+    _SubmitMarker (input_params);
+  
+    if (! bPreSubmit)
+      _SubmitMarker (markerParams);
+  
+    bFixed = true;
+  }
+  
+  lastMarkerType =
+    markerParams.markerType;
+
+  return
+    bFixed;
+}
+
 bool
 SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
 {
@@ -410,6 +474,10 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
         else
           return true;
       }
+
+      // Make sure input events get pushed into the appropriate Simulation stage
+      if (SK_Reflex_FixOutOfBandInput (markerParams, device.p))
+        return true;
 
       SK_PCL_Heartbeat (markerParams);
 
