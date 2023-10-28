@@ -1,4 +1,8 @@
-﻿23.10.28
+﻿23.10.28.1
+==========
+ + Completely automated bypass of Alan Wake 2's broken Third-Party Overlay check
+
+23.10.28
 ========
  + Added bypass for Alan Wake 2's faulty third-party overlay check.
  

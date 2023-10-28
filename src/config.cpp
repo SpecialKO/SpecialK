@@ -3227,6 +3227,21 @@ auto DeclKeybind =
       case SK_GAME_ID::Starfield:
         config.compatibility.reshade_mode = false;
         break;
+
+      case SK_GAME_ID::AlanWake2:
+      {
+        void *pOverlayCheck =
+          (void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x1E74B09);
+
+        DWORD                                                          dwOriginal = 0;
+        if (VirtualProtect (pOverlayCheck, 5, PAGE_EXECUTE_READWRITE, &dwOriginal))
+        { if (! memcmp (    pOverlayCheck, "\xE8\x42\xB5\x1E\xFF", 5))
+          {
+            SK_LOGi0 (L"Disabled Alan Wake 2 Overlay Check");
+            memcpy (        pOverlayCheck, "\x90\x90\x90\x90\x90", 5);
+          }
+        } VirtualProtect (  pOverlayCheck, 5, dwOriginal, &dwOriginal);
+      } break;
     }
   }
 
