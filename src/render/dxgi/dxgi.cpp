@@ -5699,6 +5699,21 @@ DXGIFactory_CreateSwapChain_Override (
   SK_ReleaseAssert (pDesc       != nullptr);
 //SK_ReleaseAssert (ppSwapChain != nullptr); // This happens from time to time
 
+  if (SK_GetCallingDLL () == SK_GetModuleHandleW (L"sl.dlss_g.dll"))
+  {
+    if (__SK_HDR_16BitSwap && (! config.nvidia.dlss.allow_scrgb))
+    {
+      __SK_HDR_10BitSwap =  true;
+      __SK_HDR_16BitSwap = false;
+
+      SK_ImGui_Warning (
+        L"scRGB HDR has been changed to HDR10 because NVIDIA Streamline/DLSS Frame Generation was detected."
+        L"\r\n\r\n\t"
+        L"If you are not using Frame Generation, you can turn this back on by clicking scRGB in the HDR widget."
+      );
+    }
+  }
+
   auto *pOrigDesc =
     (DXGI_SWAP_CHAIN_DESC *)pDesc;
 

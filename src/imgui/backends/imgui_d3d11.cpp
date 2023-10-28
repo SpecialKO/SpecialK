@@ -504,6 +504,13 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     ((float *)mapped_resource.pData)[2] = hdr_display ? (float)backbuffer_desc.Width  : 0.0f;
     ((float *)mapped_resource.pData)[3] = hdr_display ? (float)backbuffer_desc.Height : 0.0f;
 
+    D3D11_TEXTURE2D_DESC             tex2d_desc = { };
+    _P->pBackBuffer->GetDesc       (&tex2d_desc);
+
+    // For temporarily disabled Linear sRGB mode
+    ((float *)mapped_resource.pData)[4] = 0.0F;//DirectX::MakeTypeless (tex2d_desc.Format) == DXGI_FORMAT_R8G8B8A8_TYPELESS ? (float)1.0f :
+                                               //DirectX::MakeTypeless (tex2d_desc.Format) == DXGI_FORMAT_B8G8R8A8_TYPELESS ? (float)1.0f : 0.0f;
+
     pDevCtx->Unmap (_P->pPixelConstantBuffer, 0);
   }
 
@@ -1197,7 +1204,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
                                           L"ImGui Vertex Constant Buffer");
       }
 
-      desc.ByteWidth         = sizeof (float) * 4;
+      desc.ByteWidth         = sizeof (float) * 8;
 
       if (_P->pPixelConstantBuffer == nullptr)
       {
@@ -1368,13 +1375,13 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     {
       case DXGI_FORMAT_R8G8B8A8_TYPELESS:
       {
-        rt_desc.Format        = DXGI_FORMAT_R8G8B8A8_UNORM;
+        rt_desc.Format        = DXGI_FORMAT_R8G8B8A8_UNORM;//_SRGB;
         rt_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
       } break;
 
       case DXGI_FORMAT_B8G8R8A8_TYPELESS:
       {
-        rt_desc.Format        = DXGI_FORMAT_B8G8R8A8_UNORM;
+        rt_desc.Format        = DXGI_FORMAT_B8G8R8A8_UNORM;//_SRGB;
         rt_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
       } break;
 

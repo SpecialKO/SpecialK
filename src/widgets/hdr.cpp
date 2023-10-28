@@ -1178,6 +1178,11 @@ public:
 
         changed = true;
 
+        if (__SK_HDR_10BitSwap)
+        {
+          config.nvidia.dlss.allow_scrgb = true;
+        }
+
         __SK_HDR_16BitSwap = true;
         __SK_HDR_10BitSwap = false;
       }

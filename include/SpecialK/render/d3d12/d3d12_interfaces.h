@@ -471,6 +471,8 @@ struct SK_D3D12_StateTransition : D3D12_RESOURCE_BARRIER
 };
 
 struct SK_D3D12_RenderCtx {
+  SK_Thread_HybridSpinlock                _ctx_lock;
+
   SK_ComPtr <ID3D12Device>                _pDevice          = nullptr;
   SK_ComPtr <ID3D12CommandQueue>          _pCommandQueue    = nullptr;
   SK_ComPtr <IDXGISwapChain3>             _pSwapChain       = nullptr;

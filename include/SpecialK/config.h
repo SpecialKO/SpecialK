@@ -842,6 +842,7 @@ struct sk_config_t
         int   extra_pixels        =      0;
         int   override_appid      =     -1;
       } compat;
+      bool    allow_scrgb         =  false;
     } dlss;
   } nvidia;
 

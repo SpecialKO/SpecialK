@@ -681,6 +681,7 @@ struct {
     sk::ParameterInt*     override_appid          = nullptr;
     sk::ParameterInt*     extra_pixels            = nullptr;
     sk::ParameterBool*    disable_ota_updates     = nullptr;
+    sk::ParameterBool*    allow_scrgb             = nullptr;
   } dlss;
 } nvidia;
 
@@ -1636,6 +1637,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.dlss.extra_pixels,               L"Add extra pixels when forcing DLAA",                        dll_ini,         L"NVIDIA.DLSS",           L"ExtraPixelsForDLAA"),
     ConfigEntry (nvidia.dlss.disable_ota_updates,        L"Disable OTA updates (i.e. NVIDIA phone-home every launch)", dll_ini,         L"NVIDIA.DLSS",           L"DisableOTAUpdates"),
     ConfigEntry (nvidia.dlss.show_active_features,       L"Show the in-use features in the DLSS settings tab",         osd_ini,         L"NVIDIA.DLSS",           L"ShowActiveFeatures"),
+    ConfigEntry (nvidia.dlss.allow_scrgb,                L"Allow scRGB even if DLSS-G DLLs are detected",              dll_ini,         L"NVIDIA.DLSS",           L"AllowSCRGBinDLSSG"),
 
     ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
 
@@ -3468,6 +3470,7 @@ auto DeclKeybind =
   nvidia.dlss.override_appid->load           (config.nvidia.dlss.compat.override_appid);
   nvidia.dlss.disable_ota_updates->load      (config.nvidia.dlss.disable_ota_updates);
   nvidia.dlss.show_active_features->load     (config.nvidia.dlss.show_active_features);
+  nvidia.dlss.allow_scrgb->load              (config.nvidia.dlss.allow_scrgb);
 
   render.hdr.enable_32bpc->load              (config.render.hdr.enable_32bpc);
 
@@ -5309,12 +5312,14 @@ SK_SaveConfig ( std::wstring name,
       nvidia.dlss.override_appid->store           (config.nvidia.dlss.compat.override_appid);
       nvidia.dlss.disable_ota_updates->store      (config.nvidia.dlss.disable_ota_updates);
       nvidia.dlss.show_active_features->store     (config.nvidia.dlss.show_active_features);
+      nvidia.dlss.allow_scrgb->store              (config.nvidia.dlss.allow_scrgb);
       render.framerate.max_delta_time->store      (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.flip_sequential->store     (config.render.framerate.flip_sequential);
       render.framerate.disable_flip_model->store  (config.render.framerate.disable_flip);
       render.framerate.allow_dwm_tearing->store   (config.render.dxgi.allow_tearing);
       render.framerate.drop_late_frames->store    (config.render.framerate.drop_late_flips);
+      if                                          (config.render.hdr.enable_32bpc)
       render.hdr.enable_32bpc->store              (config.render.hdr.enable_32bpc);
 
       texture.d3d11.cache->store                  (config.textures.d3d11.cache);

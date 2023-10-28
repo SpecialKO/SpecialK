@@ -14,6 +14,7 @@ struct PS_INPUT
 cbuffer viewportDims : register (b0)
 {
   float4 viewport;
+  float4 rtv_type;
 };
 
 sampler   sampler0    : register (s0);
@@ -68,7 +69,7 @@ float4 main (PS_INPUT input) : SV_Target
           REC709toREC2020 (              saturate (out_col.rgb) * saturate (out_col.a) ) * hdr_scale ) :
      Clamp_scRGB_StripNaN ( expandGamut (          out_col.rgb    * hdr_scale, 0.0333) )
                  )                                                + hdr_offset, 
-                   hdr10 ?                              LinearToPQY (       out_col.a, 5.0)
+                   hdr10 ?                              LinearToPQY (       out_col.a, 4.75)
                          :                                                  out_col.a);
 
     hdr_out.g = (orig_col.g <= 0.00013 && orig_col.g >= -0.00013) ? 0.0f : hdr_out.g;
@@ -77,18 +78,27 @@ float4 main (PS_INPUT input) : SV_Target
     hdr_out.a = (orig_col.a <= 0.00013 && orig_col.a >= -0.00013) ? 0.0f : hdr_out.a;
 
     float alpha_mul =
-      ( hdr10 ? 1.0
-              : ui_alpha ); // Use linear alpha in scRGB
-        
+      (hdr10 ? 1.0
+             : ui_alpha ); // Use linear alpha in scRGB
+
     return
       float4 ( hdr_out.rgb * alpha_mul,
                hdr_out.a );
   }
 
   //
-  // SDR (sRGB/Rec 709)
+  // SDR (sRGB/Rec 709) -- We use a linear view for consistency with HDR blending
   //
-  return
-    float4 ( ui_color * ui_alpha,
-                        ui_alpha );
+  if (rtv_type.x != 0.0f) // sRGB View
+  {
+    out_col = float4 ( RemoveSRGBCurve (       ui_color) * (1.0f - RemoveSRGBAlpha (1.0f - ui_alpha)),
+                1.0f - RemoveSRGBAlpha (1.0f - ui_alpha) );
+  }
+  else
+  {
+    out_col = float4 (ui_color * ui_alpha,
+                                 ui_alpha);
+  }
+  
+  return out_col;
 };

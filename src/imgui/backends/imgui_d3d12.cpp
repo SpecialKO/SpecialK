@@ -78,6 +78,8 @@ void
 ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
               SK_D3D12_RenderCtx::FrameCtx* pFrame )
 {
+  std::scoped_lock <SK_Thread_HybridSpinlock> lock (_d3d12_rbk->_ctx_lock);
+
   // Avoid rendering when minimized
   if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
     return;
@@ -1509,6 +1511,8 @@ _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList)
 void
 SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource* pResource)
 {
+  std::scoped_lock <SK_Thread_HybridSpinlock> lock (_d3d12_rbk->_ctx_lock);
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -1590,6 +1594,8 @@ SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource
 void
 SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 {
+  std::scoped_lock <SK_Thread_HybridSpinlock> lock (_ctx_lock);
+
   if (! _pDevice.p || frames_.empty ())
   {
     if (! init (pSwapChain, _pCommandQueue.p))
@@ -1859,6 +1865,8 @@ SK_D3D12_RenderCtx::FrameCtx::begin_cmd_list (const SK_ComPtr <ID3D12PipelineSta
 bool
 SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 {
+  std::scoped_lock <SK_Thread_HybridSpinlock> lock (_d3d12_rbk->_ctx_lock);
+
   assert (bCmdListRecording);
 
   if (pCmdList == nullptr)
@@ -1898,6 +1906,8 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 bool
 SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void) noexcept
 {
+  std::scoped_lock <SK_Thread_HybridSpinlock> lock (_d3d12_rbk->_ctx_lock);
+
   // Flush command list, to avoid it still referencing resources that may be destroyed after this call
   if (bCmdListRecording)
   {
@@ -2096,20 +2106,30 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       //   and then creates a new SwapChain
       if (rb.swapchain != nullptr)
       {
-        SK_LOGi0 (
-          L"# Transitioning active ImGui SwapChain from %p to %p",
-            rb.swapchain.p, pSwapChain );
+        HWND hWnd = (HWND)-1;
+
+        SK_ComQIPtr <IDXGISwapChain1>
+                         pSwapChain1 (rb.swapchain.p);
+        if (             pSwapChain1.p != nullptr )
+                         pSwapChain1->GetHwnd (&hWnd);
 
 #if 1   // Likley the device is always the same due to D3D12 adapters being singletons
-        _pDevice       = nullptr;
-        _pCommandQueue = pCommandQueue;
+        if (! IsWindow (hWnd))
+        {
+          SK_LOGi0 (
+            L"# Transitioning active ImGui SwapChain from %p to %p because game window was destroyed",
+              rb.swapchain.p, pSwapChain );
 
-        if (_pCommandQueue != nullptr)
-        {   _pCommandQueue->GetDevice (IID_PPV_ARGS (&_pDevice.p));
+          _pDevice       = nullptr;
+          _pCommandQueue = pCommandQueue;
 
-          SK_ComPtr <ID3D12Device>                         pNativeDev12;
-          if (SK_slGetNativeInterface (_pDevice, (void **)&pNativeDev12.p) == sl::Result::eOk)
-                                       _pDevice =          pNativeDev12;
+          if (_pCommandQueue != nullptr)
+          {   _pCommandQueue->GetDevice (IID_PPV_ARGS (&_pDevice.p));
+
+            SK_ComPtr <ID3D12Device>                         pNativeDev12;
+            if (SK_slGetNativeInterface (_pDevice, (void **)&pNativeDev12.p) == sl::Result::eOk)
+                                         _pDevice =          pNativeDev12;
+          }
         }
 #endif
       }

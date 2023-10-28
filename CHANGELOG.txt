@@ -1,4 +1,10 @@
-﻿23.10.21
+﻿23.10.28
+========
+ + Automatically disable scRGB if DLSS-G is detected; clicking the scRGB
+     radio button after the automatic disable will ignore auto-disable
+       behavior in the future for the game.
+
+23.10.21
 ========
  + Experimental alpha blending overhaul for HDR10
 
