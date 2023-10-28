@@ -409,9 +409,14 @@ SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* p
   
     bFixed = true;
   }
-  
-  lastMarkerType =
-    markerParams.markerType;
+
+  // We don't care about these, they can happen multiple times... they just
+  //   can't happen anywhere outside of Simulation Start / End.
+  if (markerParams.markerType != INPUT_SAMPLE)
+  {
+    lastMarkerType =
+      markerParams.markerType;
+  }
 
   return
     bFixed;
