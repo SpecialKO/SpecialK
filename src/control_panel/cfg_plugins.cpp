@@ -456,6 +456,40 @@ SK::ControlPanel::PlugIns::Draw (void)
 
       if (reshade_official)
       {
+        std::wstring reshade_ini  = 
+          SK_FormatStringW (LR"(%ws\ReShade.ini)",      SK_GetConfigPath ( )),
+                     shader_dir   = 
+          SK_FormatStringW (LR"(%ws\ReShade\Shaders\)", SK_GetConfigPath ( )),
+                     textures_dir = 
+          SK_FormatStringW (LR"(%ws\ReShade\Textures)", SK_GetConfigPath ( ));
+
+        if (! PathFileExists (reshade_ini.c_str()))
+        {
+          std::wofstream reshade_ini_fs (reshade_ini.c_str());
+          if (reshade_ini_fs.is_open())
+          {
+            std::wstring reshade_ini_base = SK_FormatStringW (
+LR"([GENERAL]
+EffectSearchPaths=.\ReShade\Shaders\**,%ws\PlugIns\ThirdParty\ReShade\Shaders\**
+TextureSearchPaths=.\ReShade\Textures\**,%ws\PlugIns\ThirdParty\ReShade\Textures\**)",
+            SK_GetInstallPath ( ), SK_GetInstallPath ( ));
+
+            // Create any missing directories
+            std::error_code ec;
+            if (! std::filesystem::exists (            shader_dir,   ec))
+                  std::filesystem::create_directories (shader_dir,   ec);
+            if (! std::filesystem::exists (            textures_dir, ec))
+                  std::filesystem::create_directories (textures_dir, ec);
+
+            reshade_ini_fs.write (
+              reshade_ini_base.c_str(),
+              reshade_ini_base.length()
+            );
+
+            reshade_ini_fs.close();
+          }
+        }
+
         // Non-Unity engines benefit from a small (0 ms) injection delay
         if (config.system.global_inject_delay < 0.001)
         {   config.system.global_inject_delay = 0.001;
