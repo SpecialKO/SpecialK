@@ -1420,8 +1420,11 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                            minLum = XMVectorSplatInfinity (),
                            colLum = XMVectorZero          ();
 
-                  float lumTotal = 0.0f;
-                  float N        = 0.0f;
+                  static const XMVECTORF32 s_luminance =
+                    { 0.2126729, 0.7151522, 0.0721750, 0.f };
+
+                  float lumTotal   = 0.0f;
+                  float N          = 0.0f;
 
                   hr =              un_srgb.GetImageCount () == 1 ?
                     EvaluateImage ( un_srgb.GetImages     (),
@@ -1433,9 +1436,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                       for (size_t j = 0; j < width; ++j)
                       {
-                        static const XMVECTORF32 s_luminance =
-                          { 0.2126729, 0.7151522, 0.0721750, 0.f };
-
                         XMVECTOR v =
                           XMVectorMax (*pixels++, g_XMZero);
 
@@ -1472,54 +1472,51 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     {
                       UNREFERENCED_PARAMETER(y);
 
+                      static const XMVECTORF32 c_SdrPower =
+                        { 0.77f, 0.77f, 0.77f, 1.f };
+
+                      XMVECTOR maxLumExp =
+                        XMVectorMultiply ( maxLum,
+                                           maxLum );
+
                       for (size_t j = 0; j < width; ++j)
                       {
                         XMVECTOR value = XMVectorMax (inPixels [j], g_XMZero);
-                        XMVECTOR scale =
-                          XMVectorDivide (
-                            XMVectorAdd (
-                              g_XMOne,
-                                XMVectorDivide (
-                                  value,
-                                    XMVectorMultiply (colLum, colLum)
-                                )
-                            ),
-                            XMVectorAdd ( g_XMOne,
-                                            value
-                                        )
+                        XMVECTOR luma  = XMVector3Dot ( value, s_luminance );
+
+                        XMVECTOR numerator = 
+                          XMVectorAdd (
+                            g_XMOne,
+                              XMVectorDivide (
+                                luma, maxLumExp
+                              )
                           );
-                        
+
+                        XMVECTOR scale0 =
+                          XMVectorDivide (
+                            numerator, XMVectorAdd (
+                              g_XMOne, luma
+                            )
+                          );
+
+                        XMVECTOR scale1 =
+                          XMVectorDivide (
+                            numerator, XMVectorAdd (
+                              g_XMOne, value
+                            )
+                          );
+
                         XMVECTOR nvalue =
-                          XMVectorMultiply (value, scale);
+                          XMVectorMultiply (value, XMVectorLerp (scale1, scale0, luma.m128_f32 [0] /
+                                                                               maxLum.m128_f32 [0]));
                                   value =
                           XMVectorSelect   (value, nvalue, g_XMSelect1110);
                         
                         outPixels [j] =
-                          value;
+                          XMVectorPow ( value, c_SdrPower );
 
                         colLum =
                           XMVectorMax (outPixels [j], colLum);
-                      }
-                    }, un_scrgb
-                  ) : E_POINTER;
-
-                  static const XMVECTORF32 c_SdrPower =
-                  { .78f, .78f, .78f, 1.f };
-
-                  hr =               un_scrgb.GetImageCount () == 1 ?
-                    TransformImage ( un_scrgb.GetImages     (),
-                                     un_scrgb.GetImageCount (),
-                                     un_scrgb.GetMetadata   (),
-                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
-                    {
-                      UNREFERENCED_PARAMETER(y);
-
-                      for (size_t j = 0; j < width; ++j)
-                      {
-                        outPixels [j] = 
-                          XMVectorClamp (
-                            XMVectorPow ( XMVectorMax (inPixels [j], g_XMZero), c_SdrPower ),
-                                                                     g_XMZero,     g_XMOne );
                       }
                     }, final_sdr
                   ) : E_POINTER;

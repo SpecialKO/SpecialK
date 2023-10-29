@@ -2287,7 +2287,7 @@ public:
                   }
                 }
 
-#if 0
+#if 1
                 extern UINT filterFlags;
                 ImGui::InputInt ("Filter Flags", (int *)&filterFlags, 1, 100, ImGuiInputTextFlags_CharsHexadecimal);
 #endif
@@ -2818,7 +2818,7 @@ SK_ImGui_DrawGamut (void)
     ImGui::PopStyleColor ();
   }
   ImGui::EndGroup        ();
-  ImGui::SameLine        ();
+  ImGui::SameLine        (0.0f, 10.0f);
 
   const auto _DrawCharts = [&](ImVec2 pos         = ImGui::GetCursorScreenPos    (),
                                ImVec2 size        = ImGui::GetContentRegionAvail (),

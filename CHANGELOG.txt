@@ -1,4 +1,14 @@
-﻿23.10.29.1
+﻿23.10.29.2
+==========
+ + Apply Reflex out-of-band input processing fixes to all Reflex games
+ + Added HDR colorspace correction for Epic Overlay in D3D12
+
+    * Luminance setting is shared with the Steam overlay, configure it by running
+        a game in D3D11 using Steam or EOS Overlay and the slider in the HDR menu.
+
+        >> Slider and real-time adjustment are not available in D3D12
+
+23.10.29.1
 ==========
  + Apply the Alan Wake 2 Reflex out-of-band input processing fix to SK's own Reflex
      implementation to handle rare edge cases.

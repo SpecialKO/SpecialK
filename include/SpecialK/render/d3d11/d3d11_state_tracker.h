@@ -572,10 +572,13 @@ SK_D3D11_CreateShader_Impl (
 
   if ( hash_only )
   {
-#define STEAM_OVERLAY_PS_CRC32C   0x9aefe985
-#define RTSS_OVERLAY_PS_CRC32C    0x995f6505
-#define RTSS_OVERLAY_PS1_CRC32C   0x4777629e
-#define EPIC_OVERLAY_PS_CRC32C    0xbff8dffc
+#define STEAM_OVERLAY_PS_CRC32C      0x9aefe985
+#define RTSS_OVERLAY_PS_CRC32C       0x995f6505
+#define RTSS_OVERLAY_PS1_CRC32C      0x4777629e
+    // Not sure why Epic uses a different pixel shader for
+    //   D3D12 and D3D11, when both codepaths are layered on D3D11...
+#define EPIC_OVERLAY_PS_CRC32C       0xbff8dffc
+#define EPIC_OVERLAY_D3D12_PS_CRC32C 0x51c67279
 
     // RTSS
     //
@@ -701,8 +704,37 @@ SK_D3D11_CreateShader_Impl (
 
     // Epic
     //
-    else if (type == sk_shader_class::Pixel && checksum == EPIC_OVERLAY_PS_CRC32C)
+    else if (type == sk_shader_class::Pixel && checksum == EPIC_OVERLAY_D3D12_PS_CRC32C)
     {
+      SK_ComPtr <ID3DBlob> pColorDisasm = nullptr;
+
+      if ( SUCCEEDED (
+             SK_D3D_Disassemble ( pShaderBytecode,
+                                  BytecodeLength,
+                                     D3D_DISASM_ENABLE_COLOR_CODE |
+                                     D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pColorDisasm ) ) )
+      {
+        auto path =
+          SK_FormatStringW (
+            LR"(%ws\dump\shaders\ps_%8x.html)",
+              SK_D3D11_res_root->c_str (),
+                checksum
+          );
+
+        SK_CreateDirectories (path.c_str ());
+
+        FILE *fShader =
+          _wfopen (path.c_str (), L"w");
+
+        if (fShader != nullptr)
+        {
+          fwrite (               pColorDisasm->GetBufferPointer (),
+            strlen ((const char*)pColorDisasm->GetBufferPointer ()),
+               1, fShader);
+          fclose (fShader);
+        }
+      }
+
       extern bool __SK_HDR_16BitSwap;
       extern bool __SK_HDR_10BitSwap;
       if (        __SK_HDR_16BitSwap || ( rb.hdr_capable &&
@@ -746,7 +778,7 @@ SK_D3D11_CreateShader_Impl (
       }
     }
 
-#if 0
+#if 1
     else if (type == sk_shader_class::Pixel)
     {
       SK_LOGs0 (L"DX12Shader", L"Pixel Shader: %x created by %ws", checksum, SK_GetCallerName ().c_str ());
