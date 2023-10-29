@@ -778,7 +778,7 @@ SK_D3D11_CreateShader_Impl (
       }
     }
 
-#if 1
+#if 0
     else if (type == sk_shader_class::Pixel)
     {
       SK_LOGs0 (L"DX12Shader", L"Pixel Shader: %x created by %ws", checksum, SK_GetCallerName ().c_str ());
