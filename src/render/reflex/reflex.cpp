@@ -52,6 +52,8 @@ NvU64                    SK_Reflex_LastNativeSleepFrame      = 0ULL;
 static constexpr auto    SK_Reflex_MinimumFramesBeforeNative = 150;
 NV_SET_SLEEP_MODE_PARAMS SK_Reflex_NativeSleepModeParams     = { };
 
+void SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker);
+
 //
 // NOTE: All hooks currently assume a game only has one D3D device, and that it is the
 //       same one as SK's Render Backend is using.
@@ -105,6 +107,83 @@ SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
   return NVAPI_NOT_SUPPORTED;
 }
 
+// If this returns true, we submitted the latency marker(s) ourselves and normal processing
+//   logic should be skipped.
+bool
+SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* pDevice, bool native = false)
+{
+  // If true, we submitted the latency marker(s) ourselves and the normal processing
+  //   should be ignored.
+  bool bFixed  = false;
+  bool bNative = native && (! config.nvidia.reflex.disable_native);
+
+  static std::atomic_bool bQueueInput    = false;
+  static std::atomic_long lastMarkerType = OUT_OF_BAND_PRESENT_END;
+  
+  if (markerParams.markerType == INPUT_SAMPLE)
+  {
+    // bQueueInput=true denotes an invalid place to put an input latency marker,
+    //   we will try to fudge with things and insert it at an appropriate time
+    bQueueInput.store (
+      (lastMarkerType.load () != SIMULATION_START)
+    );
+
+    return
+      bQueueInput;
+  }
+  
+  // Input Sample has to come between SIMULATION_START and SIMULATION_END, or it's invalid.
+  //
+  //   So take this opportunity to re-order some events if necessary
+  if ( ( (markerParams.markerType == SIMULATION_START) ||
+         (markerParams.markerType == SIMULATION_END) ) && bQueueInput.exchange (false) )
+  {
+    NV_LATENCY_MARKER_PARAMS
+      input_params            = markerParams;
+      input_params.markerType = INPUT_SAMPLE;
+
+    bool bPreSubmit =
+      (markerParams.markerType == SIMULATION_START);
+
+    auto _SubmitMarker = [&](NV_LATENCY_MARKER_PARAMS& marker)
+    {
+         NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
+      SK_NvAPI_D3D_SetLatencyMarker (pDevice, &marker);
+  
+      if (! bNative)
+        SK_PCL_Heartbeat (markerParams);
+    };
+
+    if (bPreSubmit)
+      _SubmitMarker (markerParams);
+
+    // Submit our generated input marker in-between the possible real markers
+    _SubmitMarker (input_params);
+  
+    if (! bPreSubmit)
+      _SubmitMarker (markerParams);
+
+    // We're fixing a game's native Reflex... make note of its internal frame id
+    if (bNative)
+      SK_Reflex_LastInputFrameId = markerParams.frameID;
+  
+    bFixed = true;
+  }
+
+  // We don't care about these, they can happen multiple times... they just
+  //   can't happen anywhere outside of Simulation Start / End.
+  if (markerParams.markerType != INPUT_SAMPLE)
+  {
+    lastMarkerType.store (markerParams.markerType);
+  }
+
+  if (bNative)
+    SK_Reflex_LastNativeMarkerFrame = SK_GetFramesDrawn ();
+
+  return
+    bFixed;
+}
+
 NVAPI_INTERFACE
 NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
                                     __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
@@ -115,66 +194,6 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
   // Naive test, proper test for equality would involve QueryInterface
   SK_ReleaseAssert (pDev == SK_GetCurrentRenderBackend ().device);
 #endif
-
-  static const bool bAlanWake2 =
-    SK_GetCurrentGameID () == SK_GAME_ID::AlanWake2;
-
-  if (bAlanWake2)
-  {
-    static bool                   bQueueInput    = false;
-    static NV_LATENCY_MARKER_TYPE lastMarkerType =
-      OUT_OF_BAND_PRESENT_END;
-
-    if (pSetLatencyMarkerParams->markerType == INPUT_SAMPLE)
-    {
-      // This is an invalid place to put an input latency marker,
-      //   we'll try to fudge with things and insert it at an appropriate time
-      if (lastMarkerType != SIMULATION_START)
-      {
-        bQueueInput = true;
-
-        return NVAPI_OK;
-      }
-
-      // Last marker was SIMULATION_START, input is valid!
-      else
-      {
-        bQueueInput = false;
-      }
-    }
-
-    // Input Sample has to come between SIMULATION_START and SIMULATION_END, or it's invalid.
-    //
-    //   So take this opportunity to re-order some events if necessary
-    if ( ( (pSetLatencyMarkerParams->markerType == SIMULATION_START) ||
-           (pSetLatencyMarkerParams->markerType == SIMULATION_END) ) && std::exchange (bQueueInput, false) )
-    {
-      if (pSetLatencyMarkerParams->markerType == SIMULATION_START)
-      {
-        SK_NvAPI_D3D_SetLatencyMarker (pDev, pSetLatencyMarkerParams);
-      }
-
-      NV_LATENCY_MARKER_PARAMS              input_params = *pSetLatencyMarkerParams;
-                                            input_params.markerType = INPUT_SAMPLE;
-      SK_NvAPI_D3D_SetLatencyMarker (pDev, &input_params);
-
-      if (pSetLatencyMarkerParams->markerType == SIMULATION_END)
-      {
-        SK_NvAPI_D3D_SetLatencyMarker (pDev, pSetLatencyMarkerParams);
-      }
-
-      lastMarkerType = pSetLatencyMarkerParams->markerType;
-
-      SK_Reflex_LastInputFrameId = pSetLatencyMarkerParams->frameID;
-
-      SK_Reflex_LastNativeMarkerFrame =
-        SK_GetFramesDrawn ();
-
-      return NVAPI_OK;
-    }
-
-    lastMarkerType = pSetLatencyMarkerParams->markerType;
-  }
 
   if (! config.nvidia.reflex.disable_native)
   {
@@ -197,6 +216,9 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
     SK_ReleaseAssert (
       pSetLatencyMarkerParams->version <= NV_LATENCY_MARKER_PARAMS_VER
     );
+
+    if (SK_Reflex_FixOutOfBandInput (*pSetLatencyMarkerParams, pDev, true))
+      return NVAPI_OK;
 
     if (pSetLatencyMarkerParams->markerType == INPUT_SAMPLE)
       SK_Reflex_LastInputFrameId = pSetLatencyMarkerParams->frameID;
@@ -299,7 +321,7 @@ SK_NvAPI_HookReflex (void)
 }
 
 void
-SK_PCL_Heartbeat (NV_LATENCY_MARKER_PARAMS marker)
+SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
 {
   if (config.nvidia.reflex.native)
     return;
@@ -351,75 +373,6 @@ SK_RenderBackend_V2::isReflexSupported (void)
   return 
     sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (api) && 
     SK_Render_GetVulkanInteropSwapChainType      (swapchain) == SK_DXGI_VK_INTEROP_TYPE_NONE;
-}
-
-// If this returns true, we submitted the latency marker(s) ourselves and normal processing
-//   logic should be skipped.
-bool
-SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* pDevice)
-{
-  // If true, we submitted the latency marker(s) ourselves and the normal processing
-  //   should be ignored.
-  bool bFixed = false;
-
-  static bool                   bQueueInput    = false;
-  static NV_LATENCY_MARKER_TYPE lastMarkerType =
-    OUT_OF_BAND_PRESENT_END;
-  
-  if (markerParams.markerType == INPUT_SAMPLE)
-  {
-    // bQueueInput=true denotes an invalid place to put an input latency marker,
-    //   we will try to fudge with things and insert it at an appropriate time
-    bQueueInput =
-      (lastMarkerType != SIMULATION_START);
-
-    return
-      bQueueInput;
-  }
-  
-  // Input Sample has to come between SIMULATION_START and SIMULATION_END, or it's invalid.
-  //
-  //   So take this opportunity to re-order some events if necessary
-  if ( ( (markerParams.markerType == SIMULATION_START) ||
-         (markerParams.markerType == SIMULATION_END) ) && std::exchange (bQueueInput, false) )
-  {
-    NV_LATENCY_MARKER_PARAMS
-      input_params            = markerParams;
-      input_params.markerType = INPUT_SAMPLE;
-
-    bool bPreSubmit =
-      (markerParams.markerType == SIMULATION_START);
-
-    auto _SubmitMarker = [&](NV_LATENCY_MARKER_PARAMS& marker)
-    {
-         NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
-      SK_NvAPI_D3D_SetLatencyMarker (pDevice, &marker);
-  
-      SK_PCL_Heartbeat (markerParams);
-    };
-
-    if (bPreSubmit)
-      _SubmitMarker (markerParams);
-
-    // Submit our generated input marker in-between the possible real markers
-    _SubmitMarker (input_params);
-  
-    if (! bPreSubmit)
-      _SubmitMarker (markerParams);
-  
-    bFixed = true;
-  }
-
-  // We don't care about these, they can happen multiple times... they just
-  //   can't happen anywhere outside of Simulation Start / End.
-  if (markerParams.markerType != INPUT_SAMPLE)
-  {
-    lastMarkerType =
-      markerParams.markerType;
-  }
-
-  return
-    bFixed;
 }
 
 bool

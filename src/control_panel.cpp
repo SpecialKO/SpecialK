@@ -2685,7 +2685,7 @@ SK_NV_LatencyControlPanel (void)
       ImGui::Separator       ();
       ImGui::BulletText      ("It may be better to disable native Reflex and use SK's implementation in some cases.");
       ImGui::BulletText      ("If using SK's Latency Analysis to quantify CPU/GPU-bound state and dial-in game settings\r\n\t"
-                              " for best performance, it is important to disable native Reflex.");
+                              " for best performance, it is important to temporarily disable native Reflex.");
       ImGui::EndTooltip      ();
     }
 
