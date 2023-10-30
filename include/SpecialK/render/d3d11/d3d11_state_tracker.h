@@ -706,34 +706,6 @@ SK_D3D11_CreateShader_Impl (
     //
     else if (type == sk_shader_class::Pixel && checksum == EPIC_OVERLAY_D3D12_PS_CRC32C)
     {
-      SK_ComPtr <ID3DBlob> pColorDisasm = nullptr;
-
-      if ( SUCCEEDED (
-             SK_D3D_Disassemble ( pShaderBytecode,
-                                  BytecodeLength,
-                                     D3D_DISASM_ENABLE_COLOR_CODE |
-                                     D3D_DISASM_ENABLE_DEFAULT_VALUE_PRINTS, "", &pColorDisasm ) ) )
-      {
-        auto path =
-          SK_FormatStringW (
-            LR"(%ws\dump\shaders\ps_%8x.html)",
-              SK_D3D11_res_root->c_str (),
-                checksum
-          );
-
-        SK_CreateDirectories (path.c_str ());
-
-        FILE *fShader =
-          _wfopen (path.c_str (), L"w");
-
-        if (fShader != nullptr)
-        {
-          fwrite (               pColorDisasm->GetBufferPointer (),
-            strlen ((const char*)pColorDisasm->GetBufferPointer ()),
-               1, fShader);
-          fclose (fShader);
-        }
-      }
 
       extern bool __SK_HDR_16BitSwap;
       extern bool __SK_HDR_10BitSwap;
@@ -778,7 +750,7 @@ SK_D3D11_CreateShader_Impl (
       }
     }
 
-#if 0
+#ifdef OVERLAY_DEBUG
     else if (type == sk_shader_class::Pixel)
     {
       SK_LOGs0 (L"DX12Shader", L"Pixel Shader: %x created by %ws", checksum, SK_GetCallerName ().c_str ());
