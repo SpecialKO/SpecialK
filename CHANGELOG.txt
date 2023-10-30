@@ -1,4 +1,23 @@
-﻿23.10.29.2
+﻿23.10.30
+========
+ + Added ReShade AddOn integration to control whether ReShade draws before (default)
+     SK in D3D11 and D3D12 games.
+
+     >> This allows running HDR analysis shaders on SK's output (if disabled), or
+          using HDR processing shaders such as Pumbo's AutoHDR without affecting
+            SK's UI or SK's custom luminance control for third-party overlays.
+
+  + In AddOn capable versions of ReShade, SK defaults to searching Effect / Textures
+      from <SK Install Path>\Global\ReShade\Shaders, and ...\Textures if they exist.
+
+     >> Use this to store ReShade Shaders and Textures in a central location instead
+          of duplicating them for every game.
+
+     * NOTE: This setup will be performed only for empty ReShade.ini files because of
+               a bug in current versions of ReShade that will not allow adding
+                 directories to an existing search path.
+
+23.10.29.2
 ==========
  + Apply Reflex out-of-band input processing fixes to all Reflex games
  + Added HDR colorspace correction for Epic Overlay in D3D12

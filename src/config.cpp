@@ -617,6 +617,7 @@ struct {
   {
     sk::ParameterFloat*   hdr_luminance           = nullptr;
   } overlay;
+  sk::ParameterBool*      draw_first              = nullptr;
 } reshade;
 
 struct {
@@ -1744,6 +1745,8 @@ auto DeclKeybind =
 
     ConfigEntry (amd.adl.disable,                        L"Disable AMD's ADL library",                                 dll_ini,         L"AMD.ADL",               L"Disable"),
     ConfigEntry (microsoft.d3dkmt.disable_perfdata,      L"Disable Microsoft's D3DKMT Performance Data",               dll_ini,         L"Microsoft.D3DKMT",      L"DisablePerfData"),
+
+    ConfigEntry (reshade.draw_first,                     L"Draw ReShade before SK's overlay in AddOn capable versions",dll_ini,         L"ReShade.System",        L"DrawFirst"),
 
     ConfigEntry (imgui.show_eula,                        L"Show Software EULA",                                        dll_ini,         L"SpecialK.System",       L"ShowEULA"),
     ConfigEntry (imgui.disable_alpha,                    L"Disable Alpha Transparency (reduce flicker)",               dll_ini,         L"ImGui.Render",          L"DisableAlpha"),
@@ -3429,6 +3432,7 @@ auto DeclKeybind =
   if (microsoft.d3dkmt.disable_perfdata->load (config.apis.D3DKMT.enable_perfdata))
      config.apis.D3DKMT.enable_perfdata = (! microsoft.d3dkmt.disable_perfdata->get_value ());
 
+  reshade.draw_first->load                  (config.reshade.draw_first);
 
   display.force_fullscreen->load            (config.display.force_fullscreen);
   display.force_windowed->load              (config.display.force_windowed);
@@ -5493,9 +5497,13 @@ SK_SaveConfig ( std::wstring name,
     }
   }
 
+  // Don't write this setting unless an AddOn capable version of ReShade is loaded
+  if (config.reshade.is_addon)
+    reshade.draw_first->store                 (config.reshade.draw_first);
+
   if (SK_GetFramesDrawn ())
   {
-    render.osd.draw_in_vidcap->store            (config.render.osd.draw_in_vidcap);
+    render.osd.draw_in_vidcap->store          (config.render.osd.draw_in_vidcap);
 
     config.render.osd.hdr_luminance = rb.ui_luminance;
     render.osd.hdr_luminance->store  (rb.ui_luminance);

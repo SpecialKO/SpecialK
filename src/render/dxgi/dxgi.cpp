@@ -2885,12 +2885,25 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     if (interval != 0 || rb.fullscreen_exclusive) // FSE can't use this flag
       flags &= ~DXGI_PRESENT_ALLOW_TEARING;
 
+
+    if (config.reshade.draw_first)
+    {
+      SK_ComQIPtr <IDXGISwapChain1>      pSwapChain1 (This);
+      SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p);
+    }
+
     if (     _IsBackendD3D12 (rb.api)) SK_ImGui_DrawD3D12 (This);
     else if (_IsBackendD3D11 (rb.api)) SK_ImGui_DrawD3D11 (This);
 
     if ( pDev != nullptr || pDev12 != nullptr )
     {
       SK_BeginBufferSwapEx (bWaitOnFailure);
+    }
+
+    if (! config.reshade.draw_first)
+    {
+      SK_ComQIPtr <IDXGISwapChain1>      pSwapChain1 (This);
+      SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p);
     }
 
 

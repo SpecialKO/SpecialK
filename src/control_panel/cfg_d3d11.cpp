@@ -1187,12 +1187,35 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::SetTooltip ("Try changing this option if textures / shaders are missing from the mod tools.");
     }
 
-    // This only works when we have wrapped SwapChains
-    if ( ReadAcquire (&SK_DXGI_LiveWrappedSwapChains)  != 0 ||
-         ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) != 0 )
+    if (! config.reshade.is_addon)
+    {
+      // This only works when we have wrapped SwapChains
+      if ( ReadAcquire (&SK_DXGI_LiveWrappedSwapChains)  != 0 ||
+           ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) != 0 )
+      {
+        if (d3d11 && !indirect) ImGui::SameLine ();
+        OSD::DrawVideoCaptureOptions ();
+      }
+    }
+
+    else
     {
       if (d3d11 && !indirect) ImGui::SameLine ();
-      OSD::DrawVideoCaptureOptions ();
+      bool changed =
+        ImGui::Checkbox ("Draw ReShade First", &config.reshade.draw_first);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("Apply ReShade Before SK Image Processing");
+        ImGui::Separator       ();
+        ImGui::BulletText      ("Enabling prevents ReShade from processing SK's overlay");
+        ImGui::BulletText      ("Disable this to do HDR analysis on SK's processed image");
+        ImGui::EndTooltip      ();
+      }
+
+      if (changed)
+        SK_SaveConfig ();
     }
 
     if (d3d11 && (! indirect)) ImGui::SameLine ();

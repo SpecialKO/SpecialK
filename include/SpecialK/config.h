@@ -398,6 +398,8 @@ struct sk_config_t
   struct reshade_s {
     float       overlay_luminance     = 4.375F; // 350 nits
     bool        present               = false;  // Is the overlay detected?
+    bool        draw_first            = true;
+    bool        is_addon              = false;  // True if ReShade AddOn registration succeeded
   } reshade;
 
   struct sound_s {
