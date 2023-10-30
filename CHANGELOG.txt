@@ -1,4 +1,9 @@
-﻿23.10.31
+﻿23.10.31.1
+==========
+ + Added CPU command queue sync when triggering ReShade in D3D12 to ensure that
+    temporary rendertargets are not destroyed before ReShade's effects complete.
+
+23.10.31
 ========
  + Fixed WaitForDebugger not blocking DllMain due to attach state not being set
  + Apply ReShade basepath override only for plug-in DLLs with ReShade in the name

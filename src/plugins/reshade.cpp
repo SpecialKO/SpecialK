@@ -365,9 +365,15 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
     if (! device->create_resource_view (backbuffer, reshade::api::resource_usage::render_target, rtvDesc, &rtv))
       return false;
 
+    auto cmd_queue =
+      runtime->get_command_queue ();
+
     runtime->render_effects (
-      runtime->get_command_queue ()->get_immediate_command_list (), rtv, { 0 }
+      cmd_queue->get_immediate_command_list (), rtv, { 0 }
     );
+
+    cmd_queue->flush_immediate_command_list ();
+    cmd_queue->wait_idle                    (); // The temporary RTV created above must live to completion
 
     return true;
   }
