@@ -206,6 +206,17 @@ SK_LoadImportModule (import_s& import)
       }
     }
   }
+
+  if (import.hLibrary != nullptr)
+  {
+    // Scans all loaded DLLs, and initializes SK as an Add-On to ReShade
+    //   for the first ReShade DLL found.
+    //
+    //  This is done here to catch implicit loads of ReShade by some
+    //    .asi-based mods.
+    //
+    SK_ReShadeAddOn_Init ();
+  }
 };
 
 HMODULE

@@ -382,25 +382,26 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 {
   static bool registered = false;
 
-  SK_RunOnce ({
-    registered =
-      reshade::register_addon (SK_GetDLL (), reshade_module);
+  if (registered)
+    return true;
 
-    if (registered)
-    {
-      std::wstring shared_base_path =
-        SK_FormatStringW (LR"(%ws\Global\ReShade\)", SK_GetInstallPath ());
+  registered =
+    reshade::register_addon (SK_GetDLL (), reshade_module);
 
-      // Create this directory so users have an easier time putting Textures and Shaders in-place.
-      SK_CreateDirectories (shared_base_path.c_str ());
+  if (registered)
+  {
+    std::wstring shared_base_path =
+      SK_FormatStringW (LR"(%ws\Global\ReShade\)", SK_GetInstallPath ());
 
-      config.reshade.is_addon = true;
+    // Create this directory so users have an easier time putting Textures and Shaders in-place.
+    SK_CreateDirectories (shared_base_path.c_str ());
 
-      reshade::register_event <reshade::addon_event::init_effect_runtime>        (SK_ReShadeAddOn_InitRuntime);
-      reshade::register_event <reshade::addon_event::destroy_effect_runtime>     (SK_ReShadeAddOn_DestroyRuntime);
-      reshade::register_event <reshade::addon_event::reshade_overlay_activation> (SK_ReShadeAddOn_OverlayActivation);
-    }
-  });
+    config.reshade.is_addon = true;
+
+    reshade::register_event <reshade::addon_event::init_effect_runtime>        (SK_ReShadeAddOn_InitRuntime);
+    reshade::register_event <reshade::addon_event::destroy_effect_runtime>     (SK_ReShadeAddOn_DestroyRuntime);
+    reshade::register_event <reshade::addon_event::reshade_overlay_activation> (SK_ReShadeAddOn_OverlayActivation);
+  }
 
   return
     registered;

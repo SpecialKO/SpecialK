@@ -1,4 +1,9 @@
-﻿23.10.30.2
+﻿23.10.30.3
+==========
+ + Improved ReShade add-on registration reliability when using Lazy or Plug-In
+     load order.
+
+23.10.30.2
 ==========
  + Added support for new ReShade add-on event to monitor overlay activation state
 
