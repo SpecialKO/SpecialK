@@ -49,6 +49,7 @@ using  NvAPI_D3D_Sleep_pfn            =
 NvU64                    SK_Reflex_LastInputFrameId          = 0ULL;
 NvU64                    SK_Reflex_LastNativeMarkerFrame     = 0ULL;
 NvU64                    SK_Reflex_LastNativeSleepFrame      = 0ULL;
+NvU64                    SK_Reflex_LastNativeFramePresented  = 0ULL;
 static constexpr auto    SK_Reflex_MinimumFramesBeforeNative = 150;
 NV_SET_SLEEP_MODE_PARAMS SK_Reflex_NativeSleepModeParams     = { };
 
@@ -209,7 +210,6 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
     SK_Reflex_LastNativeMarkerFrame =
       SK_GetFramesDrawn ();
   }
-  else return NVAPI_OK;
 
   if (pSetLatencyMarkerParams != nullptr)
   {
@@ -217,11 +217,27 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
       pSetLatencyMarkerParams->version <= NV_LATENCY_MARKER_PARAMS_VER
     );
 
+    const bool bWantAccuratePresentTiming =
+      ( config.render.framerate.target_fps > 0.0f ||
+                              __target_fps > 0.0f ) && config.nvidia.reflex.native && (! config.nvidia.reflex.marker_optimization);
+
+    if ( pSetLatencyMarkerParams->markerType == PRESENT_START ||
+         pSetLatencyMarkerParams->markerType == PRESENT_END )
+    {
+      SK_Reflex_LastNativeFramePresented = pSetLatencyMarkerParams->frameID;
+
+      if (bWantAccuratePresentTiming)
+        return NVAPI_OK;
+    }
+
     if (SK_Reflex_FixOutOfBandInput (*pSetLatencyMarkerParams, pDev, true))
       return NVAPI_OK;
 
     if (pSetLatencyMarkerParams->markerType == INPUT_SAMPLE)
       SK_Reflex_LastInputFrameId = pSetLatencyMarkerParams->frameID;
+
+    if (config.nvidia.reflex.disable_native)
+      return NVAPI_OK;
   }
 
   return
@@ -381,6 +397,10 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
   if (SK_GetFramesDrawn () < SK_Reflex_MinimumFramesBeforeNative)
     return true;
 
+  const bool bWantAccuratePresentTiming =
+    ( config.render.framerate.target_fps > 0.0f ||
+                            __target_fps > 0.0f ) && config.nvidia.reflex.native && (! config.nvidia.reflex.marker_optimization);
+
   NvAPI_Status ret =
     NVAPI_INVALID_CONFIGURATION;
 
@@ -411,7 +431,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
     }
 
     // Only do this if game is not Reflex native, or if the marker is a flash
-    if (sk::NVAPI::nv_hardware && ((! config.nvidia.reflex.native) || marker == TRIGGER_FLASH))
+    if (sk::NVAPI::nv_hardware && ((! config.nvidia.reflex.native) || marker == TRIGGER_FLASH || (bWantAccuratePresentTiming && (marker == PRESENT_START || marker == PRESENT_END))))
     {
       NV_LATENCY_MARKER_PARAMS
         markerParams            = {                          };
@@ -427,6 +447,24 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
         {
           markerParams.frameID =
             SK_Reflex_LastInputFrameId;
+        }
+
+        else if (marker == PRESENT_START && bWantAccuratePresentTiming)
+        {
+          if (config.nvidia.reflex.native)
+          {
+            markerParams.frameID =
+              SK_Reflex_LastNativeFramePresented;
+          }
+        }
+
+        else if (marker == PRESENT_END && bWantAccuratePresentTiming)
+        {
+          if (config.nvidia.reflex.native)
+          {
+            markerParams.frameID =
+              SK_Reflex_LastNativeFramePresented;
+          }
         }
 
         else

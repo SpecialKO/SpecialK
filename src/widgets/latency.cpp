@@ -237,19 +237,23 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
           }
         };
 
+        extern float __target_fps;
+
+        const bool bWantAccuratePresentTiming =
+          ( config.render.framerate.target_fps > 0.0f ||
+                                  __target_fps > 0.0f );
+
         _UpdateStat (frame.simStartTime,           frame.simEndTime,            &sim);
-        // Unreal Engine gives some wacky timing data in its Reflex implementation, suggesting that
-        //   it is continuing to render the same frame during and -after- present...?! What? :P
-        _UpdateStat (frame.renderSubmitStartTime, (frame.presentStartTime < frame.renderSubmitEndTime) ?
-                                                   frame.presentStartTime : frame.renderSubmitEndTime,
-                                                                                &render);
+        _UpdateStat (frame.renderSubmitStartTime,  frame.renderSubmitEndTime,   &render);
         _UpdateStat (frame.presentStartTime,       frame.presentEndTime,        &present);
         _UpdateStat (frame.driverStartTime,        frame.driverEndTime,         &driver);
         _UpdateStat (frame.osRenderQueueStartTime, frame.osRenderQueueEndTime,  &os);
         _UpdateStat (frame.gpuRenderStartTime,     frame.gpuRenderEndTime,      &gpu);
         _UpdateStat (frame.simStartTime,           frame.gpuRenderEndTime,      &total);
         _UpdateStat (frame.inputSampleTime,        frame.gpuRenderEndTime,      &input);
-        _UpdateStat (frame.renderSubmitEndTime,    frame.presentStartTime,      &specialk);
+        _UpdateStat (frame.renderSubmitEndTime,   
+                      bWantAccuratePresentTiming ? frame.presentEndTime
+                                                 : frame.presentStartTime,      &specialk);
       }
 
       auto _UpdateAverages = [&](stage_timing_s* stage)
