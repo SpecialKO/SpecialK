@@ -4695,34 +4695,32 @@ auto DeclKeybind =
   if (! migrate_platform_config.empty ())
     platform_ini->rename (migrate_platform_config.c_str ());
 
-  if (ReadAcquire (&__SK_DLL_Attached))
+
+  // Config opted-in to debugger wait
+  if (config.system.wait_for_debugger)
   {
-    // Config opted-in to debugger wait
-    if (config.system.wait_for_debugger)
-    {
-      SK_ApplyQueuedHooks ();
+    SK_ApplyQueuedHooks ();
 
-      extern void NTAPI RtlAcquirePebLock_Detour (void);
-      extern void NTAPI RtlReleasePebLock_Detour (void);
-      extern bool   SK_Debug_CheckDebugFlagInPEB (void);
+    extern void NTAPI RtlAcquirePebLock_Detour (void);
+    extern void NTAPI RtlReleasePebLock_Detour (void);
+    extern bool   SK_Debug_CheckDebugFlagInPEB (void);
 
-      if (      ! SK_IsDebuggerPresent ())
-      { while ((! SK_IsDebuggerPresent ()))
-        {
-          bool  _break = false;
+    if (      ! SK_IsDebuggerPresent ())
+    { while ((! SK_IsDebuggerPresent ()))
+      {
+        bool  _break = false;
 
-          RtlAcquirePebLock_Detour ();
-                SK_SleepEx (50, TRUE);
-                _break =
-                  SK_Debug_CheckDebugFlagInPEB ();
-          RtlReleasePebLock_Detour ();
+        RtlAcquirePebLock_Detour ();
+              SK_SleepEx (50, TRUE);
+              _break =
+                SK_Debug_CheckDebugFlagInPEB ();
+        RtlReleasePebLock_Detour ();
 
-          if (_break)
-            break;
-        }
-
-        __debugbreak ();
+        if (_break)
+          break;
       }
+
+      __debugbreak ();
     }
   }
 
