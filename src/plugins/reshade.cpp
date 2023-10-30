@@ -230,6 +230,109 @@ SK_ReShadeAddOn_DestroyRuntime (reshade::api::effect_runtime *runtime)
   ReShadeRuntimes [(HWND)runtime->get_hwnd ()] = nullptr;
 }
 
+static bool ReShadeOverlayActive = false;
+
+void
+SK_ReShadeAddOn_ActivateOverlay (bool activate)
+{
+  static auto &rb =
+    SK_GetCurrentRenderBackend ();
+
+  SK_ComQIPtr <IDXGISwapChain1> pSwapChain1 (rb.swapchain);
+
+  if (pSwapChain1.p != nullptr)
+  {
+    HWND                   hWnd = 0;
+    pSwapChain1->GetHwnd (&hWnd);
+
+    if (ReShadeRuntimes.count (hWnd))
+    {
+      reshade::activate_overlay (ReShadeRuntimes [hWnd], activate, reshade::api::input_source::keyboard);
+    }
+  }
+}
+
+bool
+__cdecl
+SK_ReShadeAddOn_OverlayActivation (reshade::api::effect_runtime *runtime, bool *activate, reshade::api::input_source source)
+{
+  std::ignore = runtime;
+
+  // Block Keyboard Activation?
+  if (source == reshade::api::input_source::keyboard && ( SK_ImGui_WantKeyboardCapture () ||
+                                                          SK_ImGui_WantTextCapture     () ))
+  {
+    *activate = !*activate;
+    return true;
+  }
+
+  // Block Gamepad Activation?
+  if (source == reshade::api::input_source::gamepad && SK_ImGui_WantGamepadCapture ())
+  {
+    *activate = !*activate;
+    return true;
+  }
+
+  auto& io =
+    ImGui::GetIO ();
+  
+  static bool capture_keys      = io.WantCaptureKeyboard;
+  static bool capture_text      = io.WantTextInput;
+  static bool capture_mouse     = io.WantCaptureMouse;
+  static bool nav_active        = io.NavActive;
+  static bool imgui_visible     = SK_ImGui_Visible;
+  static bool imgui_vis_changed = false;
+
+  static bool last_active = !(*activate);
+  
+  if (std::exchange (last_active, *activate) != *activate)
+  {
+    // When the overlay activates, stop blocking
+    //   input !!
+    if (*activate)
+    {
+      capture_keys  =
+        io.WantCaptureKeyboard;
+        io.WantCaptureKeyboard = false;
+    
+      capture_text  =
+        io.WantTextInput;
+        io.WantTextInput       = false;
+    
+      capture_mouse =
+        io.WantCaptureMouse;
+        io.WantCaptureMouse    = false;
+    
+      nav_active    =
+        io.NavActive;
+        io.NavActive           = false;
+    
+       ImGui::SetWindowFocus (nullptr);
+
+       ReShadeOverlayActive    = true;
+    }
+    
+    else
+    {
+      io.WantCaptureKeyboard = SK_ImGui_Visible ? capture_keys  : false;
+      io.WantCaptureMouse    = SK_ImGui_Visible ? capture_mouse : false;
+      io.NavActive           = SK_ImGui_Visible ? nav_active    : false;
+    
+      ImGui::SetWindowFocus (nullptr);
+      io.WantTextInput       = false;//capture_text;
+
+      ReShadeOverlayActive   = false;
+    }
+  }
+
+  return false;
+}
+
+bool SK_ReShadeAddOn_IsOverlayActive (void)
+{
+  return ReShadeOverlayActive;
+}
+
 bool
 SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
 {
@@ -265,7 +368,7 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
       return false;
 
     runtime->render_effects (
-      runtime->get_command_queue ()->get_immediate_command_list (), rtv
+      runtime->get_command_queue ()->get_immediate_command_list (), rtv, { 0 }
     );
 
     return true;
@@ -293,8 +396,9 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
       config.reshade.is_addon = true;
 
-      reshade::register_event <reshade::addon_event::init_effect_runtime>    (SK_ReShadeAddOn_InitRuntime);
-      reshade::register_event <reshade::addon_event::destroy_effect_runtime> (SK_ReShadeAddOn_DestroyRuntime);
+      reshade::register_event <reshade::addon_event::init_effect_runtime>        (SK_ReShadeAddOn_InitRuntime);
+      reshade::register_event <reshade::addon_event::destroy_effect_runtime>     (SK_ReShadeAddOn_DestroyRuntime);
+      reshade::register_event <reshade::addon_event::reshade_overlay_activation> (SK_ReShadeAddOn_OverlayActivation);
     }
   });
 

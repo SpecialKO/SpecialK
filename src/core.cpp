@@ -4256,7 +4256,8 @@ SK_GetStoreOverlayState (bool bReal)
 {
   return
     SK::SteamAPI::GetOverlayState (bReal) ||
-    SK::EOS::     GetOverlayState (bReal);
+    SK::EOS::     GetOverlayState (bReal) ||
+    SK_ReShadeAddOn_IsOverlayActive ();
 }
 
 SK_LazyGlobal <iSK_Logger> dll_log;

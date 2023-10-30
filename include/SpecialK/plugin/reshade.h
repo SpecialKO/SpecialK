@@ -35,5 +35,7 @@ SK_ReShade_LoadIfPresent (void);
 
 bool SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain);
 bool SK_ReShadeAddOn_Init              (HMODULE          reshade_module = nullptr);
+void SK_ReShadeAddOn_ActivateOverlay   (bool             activate);
+bool SK_ReShadeAddOn_IsOverlayActive   (void);
 
 #endif /* __SK__RESHADE_H__ */

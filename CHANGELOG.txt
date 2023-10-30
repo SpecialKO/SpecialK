@@ -1,4 +1,13 @@
-﻿23.10.30.1
+﻿23.10.30.2
+==========
+ + Added support for new ReShade add-on event to monitor overlay activation state
+
+     >> SK will hide its own overlay and stop blocking mouse/keyboard/gamepad input
+          to ReShade while its config overlay is active.
+
+        * This requires a yet unreleased version of ReShade (5.9.x+); see Discord.
+
+23.10.30.1
 ==========
  + Add recursive pattern to ReShade Shader / Effects search path
 

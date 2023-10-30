@@ -490,6 +490,7 @@ SK_ImGui_ProcessWarnings (void)
     if (ImGui::Button ("Okay"))
     {
       SK_ReShade_Visible = false;
+      SK_ReShadeAddOn_ActivateOverlay (false);
 
       warning.message.clear ();
 
@@ -6742,6 +6743,7 @@ SK_ImGui_StageNextFrame (void)
       SK_ImGui_WantExit    = false;
       SK_ImGui_WantRestart = false;
       SK_ReShade_Visible   = false;
+      SK_ReShadeAddOn_ActivateOverlay (false);
       nav_usable           = orig_nav_state;
       ImGui::CloseCurrentPopup ();
     }
@@ -6816,6 +6818,7 @@ SK_ImGui_StageNextFrame (void)
         SK_ImGui_WantExit    = false;
         SK_ImGui_WantRestart = false;
         SK_ReShade_Visible   = false;
+        SK_ReShadeAddOn_ActivateOverlay (false);
         nav_usable           = orig_nav_state;
         ImGui::CloseCurrentPopup ();
       };
@@ -7131,6 +7134,8 @@ SK_ImGui_Toggle (void)
       SK::SteamAPI::SetOverlayState (true);
 
     SK_Console::getInstance ()->visible = false;
+
+    SK_ReShadeAddOn_ActivateOverlay (false);
   }
 
 

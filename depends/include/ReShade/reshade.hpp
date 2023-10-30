@@ -11,7 +11,7 @@
 #include <Windows.h>
 
 // Current version of the ReShade API
-#define RESHADE_API_VERSION 8
+#define RESHADE_API_VERSION 9
 
 // Optionally import ReShade API functions when 'RESHADE_API_LIBRARY' is defined instead of using header-only mode
 #if defined(RESHADE_API_LIBRARY) || defined(RESHADE_API_LIBRARY_EXPORT)
@@ -37,6 +37,8 @@ RESHADE_API_LIBRARY_DECLSPEC void ReShadeUnregisterEvent(reshade::addon_event ev
 
 RESHADE_API_LIBRARY_DECLSPEC void ReShadeRegisterOverlay(const char *title, void(*callback)(reshade::api::effect_runtime *runtime));
 RESHADE_API_LIBRARY_DECLSPEC void ReShadeUnregisterOverlay(const char *title, void(*callback)(reshade::api::effect_runtime *runtime));
+
+RESHADE_API_LIBRARY_DECLSPEC bool ReShadeActivateOverlay(reshade::api::effect_runtime *runtime, bool activate, reshade::api::input_source source);
 
 #else
 
@@ -92,9 +94,21 @@ namespace reshade
 	/// </summary>
 	enum class log_level
 	{
+		/// <summary>
+		/// | [ERROR] | ...
+		/// </summary>
 		error = 1,
+		/// <summary>
+		/// | [WARN]  | ...
+		/// </summary>
 		warning = 2,
+		/// <summary>
+		/// | [INFO]  | ...
+		/// </summary>
 		info = 3,
+		/// <summary>
+		/// | [DEBUG] | ...
+		/// </summary>
 		debug = 4
 	};
 
@@ -115,9 +129,9 @@ namespace reshade
 	}
 
 	/// <summary>
-	/// Gets the file path ReShade uses to resolve relative paths.
+	/// Gets the base path ReShade uses to resolve relative paths.
 	/// </summary>
-	/// <param name="path">Pointer to a string buffer that is filled with the file path to the preset, or <see langword="nullptr"/> to query the necessary size.</param>
+	/// <param name="path">Pointer to a string buffer that is filled with the base path, or <see langword="nullptr"/> to query the necessary size.</param>
 	/// <param name="path_size">Pointer to an integer that contains the size of the string buffer and is set to the actual length of the string, including the null-terminator.</param>
 	inline void get_reshade_base_path(char *path, size_t *path_size)
 	{
@@ -132,6 +146,7 @@ namespace reshade
 
 	/// <summary>
 	/// Gets a value from one of ReShade's config files.
+	/// This can use either the global config file (ReShade.ini next to the application executable), or one local to an effect runtime (ReShade[index].ini in the base path).
 	/// </summary>
 	/// <param name="runtime">Optional effect runtime to use the config file from, or <see langword="nullptr"/> to use the global config file.</param>
 	/// <param name="section">Name of the config section.</param>
@@ -171,6 +186,7 @@ namespace reshade
 
 	/// <summary>
 	/// Sets and saves a value in one of ReShade's config files.
+	/// This can use either the global config file (ReShade.ini next to the application executable), or one local to an effect runtime (ReShade[index].ini in the base path).
 	/// </summary>
 	/// <param name="runtime">Optional effect runtime to use the config file from, or <see langword="nullptr"/> to use the global config file.</param>
 	/// <param name="section">Name of the config section.</param>
@@ -240,7 +256,7 @@ namespace reshade
 #endif
 	}
 	/// <summary>
-	/// Unregisters this module.
+	/// Unregisters this module as an add-on.
 	/// Call this in 'AddonUninit' or 'DllMain' during process detach, after any of the other API functions.
 	/// </summary>
 	/// <param name="addon_module">Handle of the current module.</param>
@@ -267,10 +283,11 @@ namespace reshade
 	}
 
 	/// <summary>
-	/// Registers a callback for the specified event (via template) with ReShade.
+	/// Registers a callback for the specified event with ReShade.
 	/// <para>The callback function is then called whenever the application performs a task associated with this event (see also the <see cref="addon_event"/> enumeration).</para>
 	/// </summary>
 	/// <param name="callback">Pointer to the callback function.</param>
+	/// <typeparam name="ev">Event to register the callback for.</typeparam>
 	template <reshade::addon_event ev>
 	inline void register_event(typename reshade::addon_event_traits<ev>::decl callback)
 	{
@@ -286,9 +303,10 @@ namespace reshade
 #endif
 	}
 	/// <summary>
-	/// Unregisters a callback for the specified event (via template) that was previously registered via <see cref="register_event"/>.
+	/// Unregisters a callback from the specified event that was previously registered via <see cref="register_event"/>.
 	/// </summary>
 	/// <param name="callback">Pointer to the callback function.</param>
+	/// <typeparam name="ev">Event to unregister the callback from.</typeparam>
 	template <reshade::addon_event ev>
 	inline void unregister_event(typename reshade::addon_event_traits<ev>::decl callback)
 	{
@@ -342,5 +360,26 @@ namespace reshade
 		UNREFERENCED_PARAMETER(title);
 		UNREFERENCED_PARAMETER(callback);
 #endif
+	}
+	/// <summary>
+	/// Activates ReShade's overlay programatically.
+	/// </summary>
+	/// <param name="runtime">The runtime whose overlay to activate or deactivate.</param>
+	/// <param name="activate">Activation state to request.</param>
+	/// <param name="source">Source of activation request.</param>
+	inline bool activate_overlay(reshade::api::effect_runtime *runtime, bool activate, reshade::api::input_source source)
+	{
+#if defined(RESHADE_API_LIBRARY) || (defined(RESHADE_API_LIBRARY_EXPORT) && RESHADE_ADDON && RESHADE_GUI)
+		return ReShadeActivateOverlay(runtime, activate, source);
+#elif !defined(RESHADE_API_LIBRARY_EXPORT)
+		static const auto func = reinterpret_cast<bool(*)(reshade::api::effect_runtime *, bool, reshade::api::input_source)>(
+			GetProcAddress(internal::get_reshade_module_handle(), "ReShadeActivateOverlay"));
+		if (func != nullptr)
+			return func(runtime, activate, source);
+#else
+		UNREFERENCED_PARAMETER(title);
+		UNREFERENCED_PARAMETER(callback);
+#endif
+		return false;
 	}
 }
