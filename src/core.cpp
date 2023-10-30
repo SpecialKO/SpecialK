@@ -3302,18 +3302,6 @@ SK_Input_PollKeyboard (void)
   {
     if (! toggle_time)
     {
-      //
-      // HACK: Test Achievement Unlock (TODO: REMOVE)
-      //
-      static bool
-          bSteam = (SK::SteamAPI::AppID () != 0);
-      if (bSteam)
-        SK_Steam_UnlockAchievement (0);
-
-      else if (SK::EOS::GetTicksRetired ( ) > 0)
-               SK_EOS_UnlockAchievement (0);
-
-
       config.time.show =
         (! config.time.show);
     }
