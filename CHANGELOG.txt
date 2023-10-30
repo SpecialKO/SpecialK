@@ -2,6 +2,9 @@
 ==========
  + Improved ReShade add-on registration reliability when using Lazy or Plug-In
      load order.
+ + Request ReShade add-on API version 8 during initialization so that the overlay
+     activation feature is -optional- and SK will work as intended with older
+       versions of ReShade that lack support for API version 9.
 
 23.10.30.2
 ==========
