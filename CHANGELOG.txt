@@ -1,4 +1,9 @@
-﻿23.10.30.4
+﻿23.10.31
+========
+ + Fixed WaitForDebugger not blocking DllMain due to attach state not being set
+ + Apply ReShade basepath override only for plug-in DLLs with ReShade in the name
+
+23.10.30.4
 ==========
  + Removed debug code that was dumping disassembled EOS overlay shaders in D3D12
  + Removed hard-coded Ctrl+Shift+T debug keybind to test Steam/EOS Achievement 0

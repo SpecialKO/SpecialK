@@ -377,8 +377,9 @@ namespace reshade
 		if (func != nullptr)
 			return func(runtime, activate, source);
 #else
-		UNREFERENCED_PARAMETER(title);
-		UNREFERENCED_PARAMETER(callback);
+    UNREFERENCED_PARAMETER(runtime);
+		UNREFERENCED_PARAMETER(activate);
+		UNREFERENCED_PARAMETER(source);
 #endif
 		return false;
 	}

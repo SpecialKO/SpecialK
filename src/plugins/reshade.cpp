@@ -138,85 +138,83 @@ SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
 
   SK_LOGs0 (L"ReShadeExt", L"Runtime Initialized");
 
-  SK_RunOnce (
+  size_t search_path_len = 0;
+
+  static char search_path_buf [   MAX_PATH * 16] = { };
+  memset (    search_path_buf, 0, MAX_PATH * 16);
+
+  reshade::get_config_value (runtime, "GENERAL", "EffectSearchPaths", nullptr,         &search_path_len);
+  reshade::get_config_value (runtime, "GENERAL", "EffectSearchPaths", search_path_buf, &search_path_len);
+
+  static std::filesystem::path install_path (SK_GetInstallPath ());
+  static std::filesystem::path shader_path =
+    install_path / LR"(Global\ReShade\Shaders\)";
+  static std::filesystem::path texture_path =
+    install_path / LR"(Global\ReShade\Textures\)";
+
+  if (search_path_len == 0 || !StrStrIA (search_path_buf, (const char *)shader_path.u8string ().data ()))
   {
-    size_t search_path_len = 0;
+    ////// Default search path is ".\", we can ignore it
+    if (search_path_len <= 3)
+        search_path_len = 0;
 
-    static char search_path_buf [   MAX_PATH * 16] = { };
-    memset (    search_path_buf, 0, MAX_PATH * 16);
-
-    reshade::get_config_value (runtime, "GENERAL", "EffectSearchPaths", nullptr,         &search_path_len);
-    reshade::get_config_value (runtime, "GENERAL", "EffectSearchPaths", search_path_buf, &search_path_len);
-
-    static std::string install_path (SK_WideCharToUTF8 (SK_GetInstallPath ()));
-
-    if (search_path_len == 0 || !StrStrIA (search_path_buf, install_path.c_str ()))
+    // There is a bug in ReShade's INI setter for std::filesystem::path lists, we cannot
+    //   append entries to that list without breaking the INI file... so only do this when
+    //     initializing ReShade's INI.
+    if (search_path_len == 0 && PathFileExistsW (shader_path.c_str ()))
     {
-      //// Default search path is ".\", we can ignore it
-      if (search_path_len <= 3)
-          search_path_len = 0;
-
-      std::string shared_path =
-        SK_FormatString (R"(%ws\Global\ReShade\Shaders\)", SK_GetInstallPath ());
-
-      // There is a bug in ReShade's INI setter for std::filesystem::path lists, we cannot
-      //   append entries to that list without breaking the INI file... so only do this when
-      //     initializing ReShade's INI.
-      if (search_path_len == 0 && PathFileExistsA (shared_path.c_str ()))
-      {
-        std::string search_path =
-          SK_FormatString ( search_path_len == 0 ? R"(%hs**)"
-                                                 : R"(%hs**,%*hs)", shared_path.c_str (),
+      std::string search_path =
+        SK_FormatString ( search_path_len == 0 ? R"(%ws**)"
+                                               : R"(%ws**,%*hs)", shader_path.c_str (),
                                                                   search_path_len,
                                                                   search_path_buf );
 
-        reshade::set_config_value (runtime, "GENERAL", "EffectSearchPaths", search_path.c_str ());
-        SK_LOGs0 (L"ReShadeExt", L"Updated Global Effect Search Path: %hs", search_path.c_str ());
+      reshade::set_config_value (runtime, "GENERAL", "EffectSearchPaths", search_path.c_str ());
+      SK_LOGs0 (L"ReShadeExt", L"Updated Global Effect Search Path: %hs", search_path.c_str ());
 
-        changed = true;
-      }
+      changed = true;
     }
+  }
 
-    memset (search_path_buf, 0, MAX_PATH * 16);
-            search_path_len = 0;
-
-    reshade::get_config_value (runtime, "GENERAL", "TextureSearchPaths", nullptr,         &search_path_len);
-    reshade::get_config_value (runtime, "GENERAL", "TextureSearchPaths", search_path_buf, &search_path_len);
-
-    if (search_path_len == 0 || !StrStrIA (search_path_buf, install_path.c_str ()))
-    {
-      // Default search path is ".\", we can ignore it
-      if (search_path_len <= 3)
+  memset (search_path_buf, 0, MAX_PATH * 16);
           search_path_len = 0;
 
-      std::string shared_path =
-        SK_FormatString (R"(%ws\Global\ReShade\Textures\)", SK_GetInstallPath ());
+  reshade::get_config_value (runtime, "GENERAL", "TextureSearchPaths", nullptr,         &search_path_len);
+  reshade::get_config_value (runtime, "GENERAL", "TextureSearchPaths", search_path_buf, &search_path_len);
 
-      // There is a bug in ReShade's INI setter for std::filesystem::path lists, we cannot
-      //   append entries to that list without breaking the INI file... so only do this when
-      //     initializing ReShade's INI.
-      if (search_path_len == 0 && PathFileExistsA (shared_path.c_str ()))
-      {
+  if (search_path_len == 0 || !StrStrIA (search_path_buf, (const char *)texture_path.u8string ().data ()))
+  {
+    //// Default search path is ".\", we can ignore it
+    if (search_path_len <= 3)
+        search_path_len = 0;
 
-        std::string search_path =
-          SK_FormatString ( search_path_len == 0 ? R"(%hs**)"
-                                                 : R"(%hs**,%*hs)", shared_path.c_str (),
-                                                                    search_path_len,
-                                                                    search_path_buf );
+    // There is a bug in ReShade's INI setter for std::filesystem::path lists, we cannot
+    //   append entries to that list without breaking the INI file... so only do this when
+    //     initializing ReShade's INI.
+    if (search_path_len == 0 && PathFileExistsW (texture_path.c_str ()))
+    {
+      std::string search_path =
+        SK_FormatString ( search_path_len == 0 ? R"(%ws**)"
+                                               : R"(%ws**,%*hs)", texture_path.c_str (),
+                                                                  search_path_len,
+                                                                  search_path_buf );
 
-        reshade::set_config_value (runtime, "GENERAL", "TextureSearchPaths", search_path.c_str ());
-        SK_LOGs0 (L"ReShadeExt", L"Updated Global Texture Search Path: %hs", search_path.c_str ());
+      reshade::set_config_value (runtime, "GENERAL", "TextureSearchPaths", search_path.c_str ());
+      SK_LOGs0 (L"ReShadeExt", L"Updated Global Texture Search Path: %hs", search_path.c_str ());
 
-        changed = true;
-      }
+      changed = true;
     }
-  });
+  }
 
   ReShadeRuntimes [(HWND)runtime->get_hwnd ()] = runtime;
 
   // ReShade doesn't properly handle changes to this without a full restart
   if (changed)
   {
+    reshade::set_config_value (runtime, "OVERLAY", "TutorialProgress", "4");
+
+    _flushall ();
+
     SK_ImGui_Warning (L"ReShade Effect Reload Required for AddOn Setup To Complete");
   }
 }
