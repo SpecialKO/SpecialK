@@ -1,4 +1,17 @@
-﻿23.10.30.3
+﻿23.10.30.4
+==========
+ + Removed debug code that was dumping disassembled EOS overlay shaders in D3D12
+ + Removed hard-coded Ctrl+Shift+T debug keybind to test Steam/EOS Achievement 0
+ + Added console command to debug Steam/EOS Achievement # (trigger unlock popup)
+
+     "Platform.AchievementTest <achievement_id>"
+
+   If you want the original debug keybind back, add this to Global\macros.ini:
+
+     [Macro.SpecialK_Debug]
+     Ctrl+Shift+T=Platform.AchievementTest 0
+
+23.10.30.3
 ==========
  + Improved ReShade add-on registration reliability when using Lazy or Plug-In
      load order.

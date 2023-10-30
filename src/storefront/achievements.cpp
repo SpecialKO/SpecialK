@@ -1860,3 +1860,36 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
   return popup->window;
 #endif
 }
+
+bool
+SK_AchievementManager::OnVarChange (SK_IVariable *var, void *val)
+{
+  if (var == achievement_test)
+  {
+    auto iAchievement = *(int *)val;
+
+    static bool
+        bSteam = (SK::SteamAPI::AppID () != 0);
+    if (bSteam)
+      SK_Steam_UnlockAchievement (iAchievement);
+
+    else if (SK::EOS::GetTicksRetired ( ) > 0)
+             SK_EOS_UnlockAchievement (iAchievement);
+
+    return true;
+  }
+
+  return false;
+}
+
+SK_AchievementManager::SK_AchievementManager (void)
+{
+  SK_RunOnce ({
+    static int achievement_id = 0;
+
+    achievement_test =
+      SK_CreateVar (SK_IVariable::Int, &achievement_id, this);
+
+    SK_GetCommandProcessor ()->AddVariable ("Platform.AchievementTest", achievement_test);
+              });
+}
