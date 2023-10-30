@@ -1,4 +1,8 @@
-﻿23.10.30
+﻿23.10.30.1
+==========
+ + Add recursive pattern to ReShade Shader / Effects search path
+
+23.10.30
 ========
  + Added ReShade AddOn integration to control whether ReShade draws before (default)
      SK in D3D11 and D3D12 games.

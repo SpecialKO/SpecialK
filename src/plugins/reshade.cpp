@@ -152,7 +152,7 @@ SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
 
     if (search_path_len == 0 || !StrStrIA (search_path_buf, install_path.c_str ()))
     {
-      // Default search path is ".\", we can ignore it
+      //// Default search path is ".\", we can ignore it
       if (search_path_len <= 3)
           search_path_len = 0;
 
@@ -165,8 +165,8 @@ SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
       if (search_path_len == 0 && PathFileExistsA (shared_path.c_str ()))
       {
         std::string search_path =
-          SK_FormatString ( search_path_len == 0 ? R"(%hs)"
-                                                 : R"(%hs,%*hs)", shared_path.c_str (),
+          SK_FormatString ( search_path_len == 0 ? R"(%hs**)"
+                                                 : R"(%hs**,%*hs)", shared_path.c_str (),
                                                                   search_path_len,
                                                                   search_path_buf );
 
@@ -199,10 +199,10 @@ SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
       {
 
         std::string search_path =
-          SK_FormatString ( search_path_len == 0 ? R"(%hs)"
-                                                 : R"(%hs,%*hs)", shared_path.c_str (),
-                                                                  search_path_len,
-                                                                  search_path_buf );
+          SK_FormatString ( search_path_len == 0 ? R"(%hs**)"
+                                                 : R"(%hs**,%*hs)", shared_path.c_str (),
+                                                                    search_path_len,
+                                                                    search_path_buf );
 
         reshade::set_config_value (runtime, "GENERAL", "TextureSearchPaths", search_path.c_str ());
         SK_LOGs0 (L"ReShadeExt", L"Updated Global Texture Search Path: %hs", search_path.c_str ());
