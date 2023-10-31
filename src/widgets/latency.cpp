@@ -243,17 +243,22 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
           ( config.render.framerate.target_fps > 0.0f ||
                                   __target_fps > 0.0f );
 
-        _UpdateStat (frame.simStartTime,           frame.simEndTime,            &sim);
-        _UpdateStat (frame.renderSubmitStartTime,  frame.renderSubmitEndTime,   &render);
-        _UpdateStat (frame.presentStartTime,       frame.presentEndTime,        &present);
-        _UpdateStat (frame.driverStartTime,        frame.driverEndTime,         &driver);
-        _UpdateStat (frame.osRenderQueueStartTime, frame.osRenderQueueEndTime,  &os);
-        _UpdateStat (frame.gpuRenderStartTime,     frame.gpuRenderEndTime,      &gpu);
-        _UpdateStat (frame.simStartTime,           frame.gpuRenderEndTime,      &total);
-        _UpdateStat (frame.inputSampleTime,        frame.gpuRenderEndTime,      &input);
+        //auto end =
+        //  std::max ( { frame.simEndTime,           frame.renderSubmitEndTime,
+        //               frame.presentEndTime,       frame.driverEndTime,
+        //               frame.osRenderQueueEndTime, frame.gpuRenderEndTime } );
+
+        _UpdateStat (frame.simStartTime,           frame.simEndTime,           &sim);
+        _UpdateStat (frame.renderSubmitStartTime,  frame.renderSubmitEndTime,  &render);
+        _UpdateStat (frame.presentStartTime,       frame.presentEndTime,       &present);
+        _UpdateStat (frame.driverStartTime,        frame.driverEndTime,        &driver);
+        _UpdateStat (frame.osRenderQueueStartTime, frame.osRenderQueueEndTime, &os);
+        _UpdateStat (frame.gpuRenderStartTime,     frame.gpuRenderEndTime,     &gpu);
+        _UpdateStat (frame.simStartTime,           frame.gpuRenderEndTime,     &total);
+        _UpdateStat (frame.inputSampleTime,        frame.gpuRenderEndTime,     &input);
         _UpdateStat (frame.renderSubmitEndTime,   
                       bWantAccuratePresentTiming ? frame.presentEndTime
-                                                 : frame.presentStartTime,      &specialk);
+                                                 : frame.presentStartTime,     &specialk);
       }
 
       auto _UpdateAverages = [&](stage_timing_s* stage)

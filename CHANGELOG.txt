@@ -1,4 +1,10 @@
-﻿23.10.31.1
+﻿23.10.31.2
+==========
+ + Avoid potential deadlock in D3D12 games that use Fullscreen mode when
+     "skip redundant mode changes" is enabled.
+ + Skip ReShade effect processing if no effects are enabled.
+
+23.10.31.1
 ==========
  + Added CPU command queue sync when triggering ReShade in D3D12 to ensure that
     temporary rendertargets are not destroyed before ReShade's effects complete.

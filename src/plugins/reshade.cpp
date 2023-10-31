@@ -351,29 +351,34 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
 
   if (runtime != nullptr)
   {
-    auto device =
-      runtime->get_device ();
+    if (runtime->get_effects_state ())
+    {
+      auto device =
+        runtime->get_device ();
 
-    auto backbuffer =
-      runtime->get_back_buffer (runtime->get_current_back_buffer_index ());
+      auto backbuffer =
+        runtime->get_back_buffer (runtime->get_current_back_buffer_index ());
 
-    auto rtvDesc =
-      reshade::api::resource_view_desc ((reshade::api::format)swapDesc.BufferDesc.Format);
+      auto rtvDesc =
+        reshade::api::resource_view_desc ((reshade::api::format)swapDesc.BufferDesc.Format);
 
-    reshade::api::resource_view rtv;
+      reshade::api::resource_view rtv;
 
-    if (! device->create_resource_view (backbuffer, reshade::api::resource_usage::render_target, rtvDesc, &rtv))
-      return false;
+      if (! device->create_resource_view (backbuffer, reshade::api::resource_usage::render_target, rtvDesc, &rtv))
+        return false;
 
-    auto cmd_queue =
-      runtime->get_command_queue ();
+      auto cmd_queue =
+        runtime->get_command_queue ();
 
-    runtime->render_effects (
-      cmd_queue->get_immediate_command_list (), rtv, { 0 }
-    );
+      runtime->render_effects (
+        cmd_queue->get_immediate_command_list (), rtv, { 0 }
+      );
 
-    cmd_queue->flush_immediate_command_list ();
-    cmd_queue->wait_idle                    (); // The temporary RTV created above must live to completion
+      cmd_queue->flush_immediate_command_list ();
+      cmd_queue->wait_idle                    (); // The temporary RTV created above must live to completion
+
+      device->destroy_resource_view (rtv);
+    }
 
     return true;
   }
