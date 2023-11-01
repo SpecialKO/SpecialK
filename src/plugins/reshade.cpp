@@ -228,7 +228,8 @@ SK_ReShadeAddOn_DestroyRuntime (reshade::api::effect_runtime *runtime)
   ReShadeRuntimes [(HWND)runtime->get_hwnd ()] = nullptr;
 }
 
-static bool ReShadeOverlayActive = false;
+static          bool ReShadeOverlayActive     = false; // Current overlay state
+static volatile LONG ReShadeOverlayActivating = 0;     // Allow keyboard activation even if keyboard input is blocked
 
 void
 SK_ReShadeAddOn_ActivateOverlay (bool activate)
@@ -245,9 +246,17 @@ SK_ReShadeAddOn_ActivateOverlay (bool activate)
 
     if (ReShadeRuntimes.count (hWnd))
     {
+      InterlockedExchange (&ReShadeOverlayActivating, TRUE);
+
       reshade::activate_overlay (ReShadeRuntimes [hWnd], activate, reshade::api::input_source::keyboard);
     }
   }
+}
+
+void
+SK_ReShadeAddOn_ToggleOverlay (void)
+{
+  SK_ReShadeAddOn_ActivateOverlay (!ReShadeOverlayActive);
 }
 
 bool
@@ -260,8 +269,13 @@ SK_ReShadeAddOn_OverlayActivation (reshade::api::effect_runtime *runtime, bool *
   if (source == reshade::api::input_source::keyboard && ( SK_ImGui_WantKeyboardCapture () ||
                                                           SK_ImGui_WantTextCapture     () ))
   {
-    *activate = !*activate;
-    return true;
+    // Allow activation via keyboard if we are expecting it...
+    if (! InterlockedCompareExchange (&ReShadeOverlayActivating, FALSE, TRUE))
+    {
+      *activate = !*activate;
+
+      return true;
+    }
   }
 
   // Block Gamepad Activation?

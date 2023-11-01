@@ -1412,6 +1412,7 @@ auto DeclKeybind =
     Keybind ( &config.sound.game_volume_down_keybind,    L"Decrease Game Volume 10%",                                  osd_ini,         L"Sound.Mixing"),
 
     Keybind ( &config.widgets.hide_all_widgets_keybind,  L"Temporarily hide all widgets",                              osd_ini,         L"Widgets.Global"),
+    Keybind ( &config.reshade.toggle_overlay_keybind,    L"Toggle ReShade Overlay (Add-On version)",                   osd_ini,         L"ReShade.AddOn"),
 
 
     // Input
@@ -4538,6 +4539,7 @@ auto DeclKeybind =
   LoadKeybind (&config.sound.game_volume_down_keybind);
 
   LoadKeybind (&config.widgets.hide_all_widgets_keybind);
+  LoadKeybind (&config.reshade.toggle_overlay_keybind);
 
 
   if (config.steam.dll_path.empty ())

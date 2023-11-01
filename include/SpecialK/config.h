@@ -400,6 +400,13 @@ struct sk_config_t
     bool        present               = false;  // Is the overlay detected?
     bool        draw_first            = true;
     bool        is_addon              = false;  // True if ReShade AddOn registration succeeded
+    SK_ConfigSerializedKeybind
+                toggle_overlay_keybind= {
+                    SK_Keybind {
+                      "Toggle ReShade Overlay", L"Shift+Home",
+                        true, false, false, VK_HOME
+                    }, L"ToggleReShadeOverlay"
+    };
   } reshade;
 
   struct sound_s {

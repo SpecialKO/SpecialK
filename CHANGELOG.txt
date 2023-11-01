@@ -1,4 +1,16 @@
-﻿23.10.31.2
+﻿23.11.1
+=======
+ + Added keybind to toggle ReShade overlay, this keybind works even if keyboard
+     input is being blocked to the game.
+
+     Keybind: Shift+Home , it can be configured in Global\osd.ini
+
+ + While the ReShade overlay is active, SK will stop blocking keyboard and mouse
+     input to the game so that the user can interact with it.
+
+  >> Both of these features require ReShade 5.9.3+ (unreleased; see Discord).
+
+23.10.31.2
 ==========
  + Avoid potential deadlock in D3D12 games that use Fullscreen mode when
      "skip redundant mode changes" is enabled.

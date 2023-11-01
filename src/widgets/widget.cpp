@@ -885,6 +885,8 @@ SK_HDR_KeyPress ( BOOL Control,
                   BOOL Alt,
                   BYTE vkCode );
 
+extern void SK_ReShadeAddOn_ToggleOverlay (void);
+
 BOOL
 SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
                                             BOOL Shift,
@@ -944,7 +946,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
 
   static
-    std::array <SK_ConfigSerializedKeybind *, 17>
+    std::array <SK_ConfigSerializedKeybind *, 18>
         special_keys = {
           &config.screenshots.game_hud_free_keybind,
           &config.screenshots.sk_osd_free_keybind,
@@ -966,7 +968,9 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
           &config.sound.game_volume_up_keybind,
           &config.sound.game_volume_down_keybind,
 
-          &config.widgets.hide_all_widgets_keybind
+          &config.widgets.hide_all_widgets_keybind,
+
+          &config.reshade.toggle_overlay_keybind
         };
 
   if ( config.render.keys.hud_toggle.masked_code == uiMaskedKeyCode )
@@ -1163,6 +1167,11 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
       else if ( keybind == &config.widgets.hide_all_widgets_keybind )
       {
         SK_ImGui_Widgets->hide_all = !SK_ImGui_Widgets->hide_all;
+      }
+
+      else if ( keybind == &config.reshade.toggle_overlay_keybind )
+      {
+        SK_ReShadeAddOn_ToggleOverlay ();
       }
 
       dispatched = TRUE;
