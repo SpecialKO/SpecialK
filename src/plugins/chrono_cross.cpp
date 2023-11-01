@@ -165,6 +165,38 @@ void
 __stdcall
 SK_CC_EndFrame (void)
 {
+  static auto base =
+    SK_Debug_GetImageBaseAddr ();
+  
+  auto _ApplyPatch = [&]()->void
+  {
+    if (memcmp ((((uint8_t*)base) + 0x7116F), "\x83\x46\x14\x02", 4) == 0)
+    {
+      SK_LOG0 ((L"Chrono Cross Patches applied at +7116Fh"), L"ChronoCros");
+  
+      DWORD                                                           dwOldProt;
+      VirtualProtect (
+              ((uint8_t*)base) + 0x7116F, 4, PAGE_EXECUTE_READWRITE, &dwOldProt);
+      memcpy (((uint8_t*)base) + 0x7116F, "\x83\x46\x14\x01", 4);
+      VirtualProtect (
+              ((uint8_t*)base) + 0x7116F, 4, dwOldProt,              &dwOldProt);
+  
+      VirtualProtect (
+              ((uint8_t*)base) + 0x71B16, 4, PAGE_EXECUTE_READWRITE, &dwOldProt);
+      memcpy (((uint8_t*)base) + 0x71B16, "\x83\x46\x14\x01", 4);
+      VirtualProtect (
+              ((uint8_t*)base) + 0x71B16, 4, dwOldProt,              &dwOldProt);
+  
+      //83 46 14 02 to 83 46 14 01
+    }
+  };
+  
+  if (SK_GetFramesDrawn () > 5)
+  {
+    SK_RunOnce (_ApplyPatch ());
+  }
+
+
   if (SK_CC_PlugIn.fResolutionScale != 1.0f)
   {
     // Need state tracking to fix misaligned samplers
@@ -449,50 +481,10 @@ SK_CC_InitConfig (void)
   SK_CC_PlugIn.clock_check.replacement.inst_bytes = code_bytes_t <4> {0x3B,0xC7,0x74,0x18};
 }
 
-void __stdcall
-SK_CC_EndFrame (void)
-{
-  static auto base =
-    SK_Debug_GetImageBaseAddr ();
-  
-  auto _ApplyPatch = [&]()->void
-  {
-    if (memcmp ((((uint8_t*)base) + 0x7116F), "\x83\x46\x14\x02", 4) == 0)
-    {
-      SK_LOG0 ((L"Chrono Cross Patches applied at +7116Fh"), L"ChronoCros");
-  
-      DWORD                                                           dwOldProt;
-      VirtualProtect (
-              ((uint8_t*)base) + 0x7116F, 4, PAGE_EXECUTE_READWRITE, &dwOldProt);
-      memcpy (((uint8_t*)base) + 0x7116F, "\x83\x46\x14\x01", 4);
-      VirtualProtect (
-              ((uint8_t*)base) + 0x7116F, 4, dwOldProt,              &dwOldProt);
-  
-      VirtualProtect (
-              ((uint8_t*)base) + 0x71B16, 4, PAGE_EXECUTE_READWRITE, &dwOldProt);
-      memcpy (((uint8_t*)base) + 0x71B16, "\x83\x46\x14\x01", 4);
-      VirtualProtect (
-              ((uint8_t*)base) + 0x71B16, 4, dwOldProt,              &dwOldProt);
-  
-      //83 46 14 02 to 83 46 14 01
-    }
-  };
-  
-  if (SK_GetFramesDrawn () > 5)
-  {
-    _ApplyPatch ();
-
-    // Remove this callback, we're done.
-    plugin_mgr->end_frame_fns.erase (SK_CC_EndFrame);
-  }
-}
-
 void
 SK_CC_InitPlugin (void)
 {
   SK_CC_InitConfig ();
-
-  plugin_mgr->end_frame_fns.emplace (SK_CC_EndFrame);
 
   auto& addr_cache =
     SK_CC_PlugIn.addresses [SK_GetDLLVersionStr (SK_GetHostApp ())].cached;
