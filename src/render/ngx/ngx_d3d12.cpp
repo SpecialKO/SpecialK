@@ -253,7 +253,8 @@ NVSDK_NGX_D3D12_CreateFeature_Detour ( ID3D12GraphicsCommandList *InCmdList,
     SK_NGX_HookParameters (InParameters)
   );
 
-  if (InFeatureID == NVSDK_NGX_Feature_SuperSampling)
+  if (InFeatureID == NVSDK_NGX_Feature_SuperSampling ||
+      InFeatureID == NVSDK_NGX_Feature_RayReconstruction)
   {
     SK_NGX_DLSS_CreateFeatureOverrideParams (InParameters);
   }
