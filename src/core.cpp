@@ -645,6 +645,9 @@ extern void BasicInit (void);
     case SK_GAME_ID::Elex2:
       SK_ELEX2_InitPlugin ();
       break;
+    case SK_GAME_ID::EldenRing:
+      SK_ER_InitPlugin ();
+      break;
     case SK_GAME_ID::Starfield:
     case SK_GAME_ID::Oblivion:
     case SK_GAME_ID::Fallout3:
@@ -2954,6 +2957,16 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         _last_priority = priority;
       }
 
+      // This is going to fail on Steam Deck EVERY time, so limit the number of attempts...
+      //   try for up to 15 seconds, once every 250 ms.
+      static DWORD                                   last_init         = SK_timeGetTime ();
+      static int                                   wasapi_init_tries   = 0;
+      if (last_init < SK_timeGetTime () - 250UL && wasapi_init_tries++ < 60)
+      {
+        if (SK_WASAPI_Init ()) wasapi_init_tries = INT_MAX;
+        else                     last_init       = SK_timeGetTime ();
+      }
+
       // Delayed Init  (Elden Ring vs. Flawless Widescreen compat hack)
       if (frames_drawn > 15)
       {
@@ -2961,10 +2974,6 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         {
           if (game_window.hWnd != 0)
           {
-            // This is going to fail on Steam Deck, so do it once and that's it.
-            //
-            SK_RunOnce (SK_WASAPI_Init ());
-
             if (config.window.activate_at_start || config.window.background_render)
             {
               // Activate the game window one time
@@ -2996,49 +3005,6 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         }
 
         SK_RunOnce (SK_Input_HookScePad ());
-
-        static const auto game_id =
-              SK_GetCurrentGameID ();
-        
-        switch (game_id)
-        {
-#ifdef _WIN64
-          case SK_GAME_ID::EldenRing:
-            SK_RunOnce (SK_ER_InitPlugin ());
-            break;
-#else
-          case SK_GAME_ID::ChronoCross:
-          {
-            static auto base =
-              SK_Debug_GetImageBaseAddr ();
-
-            auto _ApplyPatch = [&]()->void
-            {
-              if (memcmp ((((uint8_t*)base) + 0x7116F), "\x83\x46\x14\x02", 4) == 0)
-              {
-                SK_LOG0 ((L"Chrono Cross Patches applied at +7116Fh"), L"ChronoCros");
-
-                DWORD                                                           dwOldProt;
-                VirtualProtect (
-                        ((uint8_t*)base) + 0x7116F, 4, PAGE_EXECUTE_READWRITE, &dwOldProt);
-                memcpy (((uint8_t*)base) + 0x7116F, "\x83\x46\x14\x01", 4);
-                VirtualProtect (
-                        ((uint8_t*)base) + 0x7116F, 4, dwOldProt,              &dwOldProt);
-
-                VirtualProtect (
-                        ((uint8_t*)base) + 0x71B16, 4, PAGE_EXECUTE_READWRITE, &dwOldProt);
-                memcpy (((uint8_t*)base) + 0x71B16, "\x83\x46\x14\x01", 4);
-                VirtualProtect (
-                        ((uint8_t*)base) + 0x71B16, 4, dwOldProt,              &dwOldProt);
-
-                //83 46 14 02 to 83 46 14 01
-              }
-            };
-
-            SK_RunOnce (_ApplyPatch ());
-          } break;
-#endif
-        }
 
         if (rb.api != SK_RenderAPI::D3D11  &&
             rb.api != SK_RenderAPI::D3D9Ex &&
