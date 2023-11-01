@@ -1,4 +1,11 @@
-﻿23.11.1
+﻿23.11.2
+=======
+ + Fixed audio management keybinds not applying in some games if sound is not
+     initialized successfully by the third frame drawn.
+ + Improved HDR->SDR screenshot tonemapping blend between luma preserving and
+     chroma preserving for really bright scenes in D3D11 and D3D12
+
+23.11.1
 =======
  + Added keybind to toggle ReShade overlay, this keybind works even if keyboard
      input is being blocked to the game.

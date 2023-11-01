@@ -1473,7 +1473,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       UNREFERENCED_PARAMETER(y);
 
                       static const XMVECTORF32 c_SdrPower =
-                        { 0.77f, 0.77f, 0.77f, 1.f };
+                        { 0.765f, 0.765f, 0.765f, 1.f };
 
                       XMVECTOR maxLumExp =
                         XMVectorMultiply ( maxLum,
@@ -1508,7 +1508,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                         XMVECTOR nvalue =
                           XMVectorMultiply (value, XMVectorLerp (scale1, scale0, luma.m128_f32 [0] /
-                                                                               maxLum.m128_f32 [0]));
+                                                                               maxLum.m128_f32 [0] / 1.4f));
                                   value =
                           XMVectorSelect   (value, nvalue, g_XMSelect1110);
                         
