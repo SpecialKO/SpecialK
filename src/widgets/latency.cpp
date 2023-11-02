@@ -103,6 +103,15 @@ static stage_timing_s gpu      { "GPU Render"       }; static stage_timing_s gpu
 static stage_timing_s total    { "Total Frame Time" };
 static stage_timing_s input    { "Input Age"        };
 
+NvU64
+SK_Reflex_GetFrameEndTime (const _NV_LATENCY_RESULT_PARAMS::FrameReport& report)
+{
+  return
+    std::max ( { report.simEndTime,           report.renderSubmitEndTime,
+                 report.presentEndTime,       report.driverEndTime,
+                 report.osRenderQueueEndTime, report.gpuRenderEndTime } );
+}
+
 void
 SK_ImGui_DrawGraph_Latency (bool predraw)
 {
@@ -243,10 +252,8 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
           ( config.render.framerate.target_fps > 0.0f ||
                                   __target_fps > 0.0f );
 
-        //auto end =
-        //  std::max ( { frame.simEndTime,           frame.renderSubmitEndTime,
-        //               frame.presentEndTime,       frame.driverEndTime,
-        //               frame.osRenderQueueEndTime, frame.gpuRenderEndTime } );
+        auto end =
+          SK_Reflex_GetFrameEndTime (frame);
 
         _UpdateStat (frame.simStartTime,           frame.simEndTime,           &sim);
         _UpdateStat (frame.renderSubmitStartTime,  frame.renderSubmitEndTime,  &render);
@@ -254,8 +261,8 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
         _UpdateStat (frame.driverStartTime,        frame.driverEndTime,        &driver);
         _UpdateStat (frame.osRenderQueueStartTime, frame.osRenderQueueEndTime, &os);
         _UpdateStat (frame.gpuRenderStartTime,     frame.gpuRenderEndTime,     &gpu);
-        _UpdateStat (frame.simStartTime,           frame.gpuRenderEndTime,     &total);
-        _UpdateStat (frame.inputSampleTime,        frame.gpuRenderEndTime,     &input);
+        _UpdateStat (frame.simStartTime,           end,                        &total);
+        _UpdateStat (frame.inputSampleTime,        end,                        &input);
         _UpdateStat (frame.renderSubmitEndTime,   
                       bWantAccuratePresentTiming ? frame.presentEndTime
                                                  : frame.presentStartTime,     &specialk);
@@ -778,8 +785,8 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       }
 
       scale = fMaxWidth /
-        static_cast <float> ( frame_report.gpuRenderEndTime -
-                              frame_report.simStartTime );
+        static_cast <float> ( SK_Reflex_GetFrameEndTime (frame_report) -
+                                                         frame_report.simStartTime );
 
       std::sort ( std::begin (sorted_stages),
                   std::end   (sorted_stages),
