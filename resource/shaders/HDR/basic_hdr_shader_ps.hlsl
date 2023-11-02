@@ -262,15 +262,29 @@ float4 main (PS_INPUT input) : SV_TARGET
 #endif
 
 
-  hdr_color.rgb = Clamp_scRGB (
+  hdr_color.rgb =
 #ifdef INCLUDE_HDR10
     bIsHDR10 ?
       REC2020toREC709 (RemoveREC2084Curve ( hdr_color.rgb )) :
 #endif
                          SK_ProcessColor4 ( hdr_color.rgba,
                                             xRGB_to_Linear,
-                             sdrIsImplicitlysRGB ).rgb
-                      );
+                             sdrIsImplicitlysRGB ).rgb;
+
+#ifdef INCLUDE_HDR10
+  if (! bIsHDR10)
+  {
+#endif
+    // Clamp scRGB source image to Rec 709, unless using passthrough mode
+    if (input.color.x != 1.0)
+    {
+      hdr_color.rgb =
+        Clamp_scRGB (hdr_color.rgb);
+    }
+#ifdef INCLUDE_HDR10
+  }
+#endif
+
 
   ///hdr_color.rgb =
   ///  sRGB_to_ACES (hdr_color.rgb);
@@ -359,7 +373,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     {
       hdr_color.rgb  *= float3 (125.0, 125.0, 125.0);
       hdr_color.rgb   =
-        Clamp_scRGB (hdr_color.rgb);
+        min (hdr_color.rgb, 125.0f);
 
       if (input.color.y != 1.0)
       {

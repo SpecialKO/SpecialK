@@ -1,4 +1,8 @@
-﻿23.11.2
+﻿23.11.2.1
+=========
+ + Removed unintentional Rec.709 color clamp on HDR10 and scRGB Passthrough
+
+23.11.2
 =======
  + Fixed audio management keybinds not applying in some games if sound is not
      initialized successfully by the third frame drawn.
