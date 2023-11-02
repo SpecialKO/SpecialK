@@ -2959,12 +2959,18 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
       // This is going to fail on Steam Deck EVERY time, so limit the number of attempts...
       //   try for up to 15 seconds, once every 250 ms.
-      static DWORD                                   last_init         = SK_timeGetTime ();
-      static int                                   wasapi_init_tries   = 0;
-      if (last_init < SK_timeGetTime () - 250UL && wasapi_init_tries++ < 60)
+      static DWORD last_init_try   = 0;
+      static int wasapi_init_tries = 0;
+      if (       wasapi_init_tries < 60 &&
+                   last_init_try   < SK_timeGetTime () - 250UL)
       {
         if (SK_WASAPI_Init ()) wasapi_init_tries = INT_MAX;
-        else                     last_init       = SK_timeGetTime ();
+
+        else
+        {
+          wasapi_init_tries++;
+            last_init_try = SK_timeGetTime ();
+        }
       }
 
       // Delayed Init  (Elden Ring vs. Flawless Widescreen compat hack)

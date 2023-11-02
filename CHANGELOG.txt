@@ -1,4 +1,10 @@
-﻿23.11.2.1
+﻿23.11.2.2
+=========
+ + Removed overhead at the end of every frame caused by 23.11.2's audio changes
+ + Extend Reflex latency pipeline graph to fit "Driver" time if it is the longest
+     render stage in a frame (i.e. Frame Generation)
+
+23.11.2.1
 =========
  + Removed unintentional Rec.709 color clamp on HDR10 and scRGB Passthrough
 
