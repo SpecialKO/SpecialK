@@ -358,11 +358,12 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       history.fill_gpu0     [frame_idx] = reflex.fill.gpu0;
       history.fill_cpu1     [frame_idx] = reflex.fill.cpu1;
       history.fill_gpu1     [frame_idx] = reflex.fill.gpu1;
-      history.max_stage     [frame_idx] = std::max ( reflex.simulation,
-                                          std::max ( reflex.render_submit,
-                                          std::max ( reflex.gpu_total,
-                                          std::max ( reflex.gpu_active,
-                                                     reflex.gpu_start ) ) ) );
+      history.max_stage     [frame_idx] =
+                             std::max ( { reflex.simulation,
+                                          reflex.render_submit,
+                                          reflex.gpu_total,
+                                          reflex.gpu_active,
+                                          reflex.gpu_start } );
 
       history.sample_time   [frame_idx] = qpcNow;
 
@@ -416,6 +417,9 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
                               && sample_time [frame]
                        >= oldest_sample_time;
                           span1.head     =    frame-- );
+
+      span0.head = std::max (0, span0.head);
+      span1.head = std::max (0, span1.head);
 
       if ( span1.head >
            span0.head ) _ProcessGraphFrameSpan (span1);
