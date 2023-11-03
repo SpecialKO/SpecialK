@@ -225,12 +225,10 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
               stage->durations [idx] = static_cast <float> (duration) / 1000.0f;
 
               stage->sum += duration;
-              stage->min = static_cast <NvU64>
-                         ( (duration < stage->min) ?
-                            duration : stage->min );
-              stage->max = static_cast <NvU64>
-                         ( (duration > stage->max) ?
-                            duration : stage->max );
+              stage->min = (duration < stage->min) ?
+                            duration : stage->min;
+              stage->max = (duration > stage->max) ?
+                            duration : stage->max;
 
               if (idx == 63)
               {
@@ -513,7 +511,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
     auto FramerateFormatter = [](double milliseconds, char* buff, int size, void*) -> int
     {
       const auto fps =
-        static_cast <unsigned int> (1000.0/milliseconds);
+        static_cast <unsigned int> (std::max (0.0, 1000.0/milliseconds));
 
       return (milliseconds <= 0.0 || fps == 0) ?
         snprintf (buff, size, " ")             :
@@ -650,6 +648,12 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
 
   if (detailed)
   {
+    for ( auto* pStage : stages )
+    {
+      if (pStage->avg < min_stage->avg) min_stage = pStage;
+      if (pStage->avg > max_stage->avg) max_stage = pStage;
+    }
+
     for ( auto* pStage : stages )
     {
       ImGui::TextColored (

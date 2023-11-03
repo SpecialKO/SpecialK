@@ -345,6 +345,46 @@ bool SK_ReShadeAddOn_IsOverlayActive (void)
   return ReShadeOverlayActive;
 }
 
+reshade::api::resource_view dxgi_rtv;
+
+void
+SK_ReShadeAddOn_FinishFrameDXGI (IDXGISwapChain1 *pSwapChain)
+{
+  std::ignore = pSwapChain;
+
+  //if (! pSwapChain)
+  //  return;
+  //
+  //HWND                  hWnd = 0;
+  //pSwapChain->GetHwnd (&hWnd);
+  //
+  //if (! hWnd)
+  //  return;
+  //
+  //DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+  //pSwapChain->GetDesc (&swapDesc);
+  //
+  //auto runtime =
+  //  ReShadeRuntimes [hWnd];
+  //
+  //if (runtime != nullptr)
+  //{
+  //  const auto device =
+  //    runtime->get_device ();
+  //
+  //  const auto cmd_queue =
+  //    runtime->get_command_queue ();
+  //
+  //  if (dxgi_rtv.handle != 0)
+  //  {
+  //    cmd_queue->wait_idle          (        ); // The temporary RTV created above must live to completion
+  //    device->destroy_resource_view (dxgi_rtv);
+  //
+  //    dxgi_rtv.handle = 0;
+  //  }
+  //}
+}
+
 bool
 SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
 {
@@ -374,7 +414,22 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
     const auto cmd_queue =
       runtime->get_command_queue ();
 
-    reshade::api::resource_view rtv = { 0 };
+    if (dxgi_rtv.handle != 0)
+    {
+      //
+      // Cyberpunk 2077 needs a full CPU-side wait or it will crash,
+      //   other games generally don't need this...
+      //
+      //  A fence would be best, but ReShade has no support for that.
+      //
+      if (SK_GetCurrentGameID () == SK_GAME_ID::Cyberpunk2077)
+      {
+        cmd_queue->wait_idle ();
+      }
+
+      device->destroy_resource_view (dxgi_rtv);
+                                     dxgi_rtv.handle = 0;
+    }
 
     if (has_effects)
     {
@@ -384,21 +439,15 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
       auto rtvDesc =
         reshade::api::resource_view_desc (static_cast <reshade::api::format> (swapDesc.BufferDesc.Format));
 
-      if (! device->create_resource_view (backbuffer, reshade::api::resource_usage::render_target, rtvDesc, &rtv))
+      if (! device->create_resource_view (backbuffer, reshade::api::resource_usage::render_target, rtvDesc, &dxgi_rtv))
         return false;
 
       runtime->render_effects (
-        cmd_queue->get_immediate_command_list (), rtv, { 0 }
+        cmd_queue->get_immediate_command_list (), dxgi_rtv, { 0 }
       );
     }
 
     cmd_queue->flush_immediate_command_list ();
-
-    if (has_effects)
-    {
-      cmd_queue->wait_idle          (   ); // The temporary RTV created above must live to completion
-      device->destroy_resource_view (rtv);
-    }
 
     return true;
   }

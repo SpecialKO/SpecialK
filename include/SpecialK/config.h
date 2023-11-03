@@ -1430,6 +1430,7 @@ enum class SK_GAME_ID
   CreationKit,                  // ConstructionKit.exe
   LordsOfTheFallen2,            // LOTF2-Win64-Shipping.exe
   AlanWake2,                    // AlanWake2.exe
+  Cyberpunk2077,                // Cyberpunk2077.exe
 
   UNKNOWN_GAME               = 0xffff
 };

@@ -240,7 +240,8 @@ SK_GetCurrentGameID (void)
           { L"TESConstructionSet.exe",                 SK_GAME_ID::ConstructionSet              },
           { L"LOTF2.exe",                              SK_GAME_ID::EasyAntiCheat                },
           { L"LOTF2-Win64-Shipping.exe",               SK_GAME_ID::LordsOfTheFallen2            },
-          { L"AlanWake2.exe",                          SK_GAME_ID::AlanWake2                    }
+          { L"AlanWake2.exe",                          SK_GAME_ID::AlanWake2                    },
+          { L"Cyberpunk2077.exe",                      SK_GAME_ID::Cyberpunk2077                }
         };
 
     first_check  = false;
