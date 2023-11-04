@@ -1993,6 +1993,7 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 
 #include <d3d12sdklayers.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
+#include <SpecialK/plugin/reshade.h>
 
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
@@ -2006,7 +2007,11 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
                   pSwapChain,
                  _pSwapChain.p
     );
+
+    SK_ReShadeAddOn_CleanupRTVs (SK_ReShadeAddOn_GetRuntimeForSwapChain (_pSwapChain.p), true);
   }
+
+  SK_ReShadeAddOn_CleanupRTVs (SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain), true);
 
   if (SK_IsDebuggerPresent ())
   {

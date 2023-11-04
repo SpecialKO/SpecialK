@@ -11,7 +11,7 @@
 #include <Windows.h>
 
 // Current version of the ReShade API
-#define RESHADE_API_VERSION 8 // SK uses stuff from version 9, but will run feature-reduced on 8
+#define RESHADE_API_VERSION 10
 
 // Optionally import ReShade API functions when 'RESHADE_API_LIBRARY' is defined instead of using header-only mode
 #if defined(RESHADE_API_LIBRARY) || defined(RESHADE_API_LIBRARY_EXPORT)
@@ -377,9 +377,9 @@ namespace reshade
 		if (func != nullptr)
 			return func(runtime, activate, source);
 #else
-    UNREFERENCED_PARAMETER(runtime);
+		UNREFERENCED_PARAMETER(runtime);
 		UNREFERENCED_PARAMETER(activate);
-		UNREFERENCED_PARAMETER(source);
+		UNREFERENCED_PARAMETER(input_source);
 #endif
 		return false;
 	}

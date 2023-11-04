@@ -26,6 +26,8 @@
 
 #include <Windows.h>
 
+#include <ReShade/reshade_api.hpp>
+
 HMODULE
 __stdcall
 SK_ReShade_GetDLL (void);
@@ -37,5 +39,9 @@ bool SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain);
 bool SK_ReShadeAddOn_Init              (HMODULE          reshade_module = nullptr);
 void SK_ReShadeAddOn_ActivateOverlay   (bool             activate);
 bool SK_ReShadeAddOn_IsOverlayActive   (void);
+
+reshade::api::effect_runtime*
+     SK_ReShadeAddOn_GetRuntimeForSwapChain (IDXGISwapChain* pSwapChain);
+void SK_ReShadeAddOn_CleanupRTVs            (reshade::api::effect_runtime *runtime, bool must_wait = false);
 
 #endif /* __SK__RESHADE_H__ */

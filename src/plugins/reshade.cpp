@@ -219,13 +219,127 @@ SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
   }
 }
 
+struct dxgi_rtv_s {
+  reshade::api::resource_view rtv;
+  reshade::api::fence         fence;
+};
+
+Concurrency::concurrent_queue <dxgi_rtv_s> dxgi_rtvs;
+
+reshade::api::effect_runtime*
+SK_ReShadeAddOn_GetRuntimeForSwapChain (IDXGISwapChain* pSwapChain)
+{
+  if (! pSwapChain)
+    return nullptr;
+
+  SK_ComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+
+  HWND                  hWnd = 0;
+  pSwapChain1->GetHwnd (&hWnd);
+
+  if (! hWnd)
+    return nullptr;
+
+  DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+  pSwapChain->GetDesc (&swapDesc);
+
+  auto runtime =
+    ReShadeRuntimes [hWnd];
+
+  return runtime;
+}
+
+void
+SK_ReShadeAddOn_CleanupRTVs (reshade::api::effect_runtime *runtime, bool must_wait)
+{
+  if (! runtime)
+    return;
+
+  dxgi_rtv_s  dxgi_rtv;
+  std::queue <dxgi_rtv_s> busy_rtvs;
+
+  const auto device =
+    runtime->get_device ();
+
+  const auto cmd_queue =
+    runtime->get_command_queue ();
+  
+  while (! dxgi_rtvs.empty ())
+  {
+    while (! dxgi_rtvs.try_pop (dxgi_rtv))
+      ;
+
+    if ( dxgi_rtv.rtv.handle   != 0 &&
+         dxgi_rtv.fence.handle != 0 )
+    {
+      std::ignore = must_wait;
+
+      if (device->get_completed_fence_value (dxgi_rtv.fence) == 1 || (must_wait && cmd_queue->wait (dxgi_rtv.fence, 1)))
+      {
+        device->destroy_resource_view (dxgi_rtv.rtv);
+        device->destroy_fence         (dxgi_rtv.fence);
+
+        dxgi_rtv.rtv.handle   = 0;
+        dxgi_rtv.fence.handle = 0;
+
+        SK_LOGs2 (L"ReShadeExt", L"Destroyed RTV");
+      }
+
+      else
+      {
+        busy_rtvs.push (dxgi_rtv);
+      }
+    }
+  }
+
+  while (! busy_rtvs.empty ())
+  {
+    dxgi_rtvs.push (busy_rtvs.front ());
+                    busy_rtvs.pop   ();
+  }
+}
+
 void
 __cdecl
 SK_ReShadeAddOn_DestroyRuntime (reshade::api::effect_runtime *runtime)
 {
   SK_LOGs0 (L"ReShadeExt", L"Runtime Destroyed");
 
+  SK_ReShadeAddOn_CleanupRTVs (runtime, true);
+
   ReShadeRuntimes [(HWND)runtime->get_hwnd ()] = nullptr;
+}
+
+void
+__cdecl
+SK_ReShadeAddOn_DestroyCmdQueue (reshade::api::command_queue *queue)
+{
+  auto device =
+    queue->get_device ();
+
+  dxgi_rtv_s  dxgi_rtv;
+  std::queue <dxgi_rtv_s> busy_rtvs;
+  
+  while (! dxgi_rtvs.empty ())
+  {
+    while (! dxgi_rtvs.try_pop (dxgi_rtv))
+      ;
+
+    if ( dxgi_rtv.rtv.handle   != 0 &&
+         dxgi_rtv.fence.handle != 0 )
+    {
+      if (device->get_completed_fence_value (dxgi_rtv.fence) == 1 || (queue->wait (dxgi_rtv.fence, 1)))
+      {
+        device->destroy_resource_view (dxgi_rtv.rtv);
+        device->destroy_fence         (dxgi_rtv.fence);
+
+        dxgi_rtv.rtv.handle   = 0;
+        dxgi_rtv.fence.handle = 0;
+
+        SK_LOGs0 (L"ReShadeExt", L"Destroyed RTV (Cmd Queue Destroyed)");
+      }
+    }
+  }
 }
 
 static          bool ReShadeOverlayActive     = false; // Current overlay state
@@ -234,6 +348,9 @@ static volatile LONG ReShadeOverlayActivating = 0;     // Allow keyboard activat
 void
 SK_ReShadeAddOn_ActivateOverlay (bool activate)
 {
+  std::ignore = activate;
+
+#if 1
   static auto &rb =
     SK_GetCurrentRenderBackend ();
 
@@ -251,6 +368,7 @@ SK_ReShadeAddOn_ActivateOverlay (bool activate)
       reshade::activate_overlay (ReShadeRuntimes [hWnd], activate, reshade::api::input_source::keyboard);
     }
   }
+#endif
 }
 
 void
@@ -345,8 +463,6 @@ bool SK_ReShadeAddOn_IsOverlayActive (void)
   return ReShadeOverlayActive;
 }
 
-reshade::api::resource_view dxgi_rtv;
-
 void
 SK_ReShadeAddOn_FinishFrameDXGI (IDXGISwapChain1 *pSwapChain)
 {
@@ -388,20 +504,11 @@ SK_ReShadeAddOn_FinishFrameDXGI (IDXGISwapChain1 *pSwapChain)
 bool
 SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
 {
-  if (! pSwapChain)
-    return false;
-
-  HWND                  hWnd = 0;
-  pSwapChain->GetHwnd (&hWnd);
-
-  if (! hWnd)
-    return false;
+  auto runtime =
+    SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
 
   DXGI_SWAP_CHAIN_DESC  swapDesc = { };
   pSwapChain->GetDesc (&swapDesc);
-
-  auto runtime =
-    ReShadeRuntimes [hWnd];
 
   if (runtime != nullptr)
   {
@@ -414,37 +521,37 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
     const auto cmd_queue =
       runtime->get_command_queue ();
 
-    if (dxgi_rtv.handle != 0)
-    {
-      //
-      // Cyberpunk 2077 needs a full CPU-side wait or it will crash,
-      //   other games generally don't need this...
-      //
-      //  A fence would be best, but ReShade has no support for that.
-      //
-      if (SK_GetCurrentGameID () == SK_GAME_ID::Cyberpunk2077)
-      {
-        cmd_queue->wait_idle ();
-      }
 
-      device->destroy_resource_view (dxgi_rtv);
-                                     dxgi_rtv.handle = 0;
-    }
+    SK_ReShadeAddOn_CleanupRTVs (runtime);
+
 
     if (has_effects)
     {
+      dxgi_rtv_s dxgi_rtv;
+
       auto backbuffer =
         runtime->get_back_buffer (runtime->get_current_back_buffer_index ());
 
       auto rtvDesc =
         reshade::api::resource_view_desc (static_cast <reshade::api::format> (swapDesc.BufferDesc.Format));
 
-      if (! device->create_resource_view (backbuffer, reshade::api::resource_usage::render_target, rtvDesc, &dxgi_rtv))
+      if (! device->create_fence (0, reshade::api::fence_flags::none, &dxgi_rtv.fence))
         return false;
 
+      if (! device->create_resource_view (backbuffer, reshade::api::resource_usage::render_target, rtvDesc, &dxgi_rtv.rtv))
+      {
+        device->destroy_fence (dxgi_rtv.fence);
+        return false;
+      }
+
       runtime->render_effects (
-        cmd_queue->get_immediate_command_list (), dxgi_rtv, { 0 }
+        cmd_queue->get_immediate_command_list (), dxgi_rtv.rtv, { 0 }
       );
+
+      if (cmd_queue->signal (dxgi_rtv.fence, 1))
+      {
+        dxgi_rtvs.push (dxgi_rtv);
+      }
     }
 
     cmd_queue->flush_immediate_command_list ();
@@ -478,6 +585,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
     reshade::register_event <reshade::addon_event::init_effect_runtime>        (SK_ReShadeAddOn_InitRuntime);
     reshade::register_event <reshade::addon_event::destroy_effect_runtime>     (SK_ReShadeAddOn_DestroyRuntime);
+    reshade::register_event <reshade::addon_event::destroy_command_queue>      (SK_ReShadeAddOn_DestroyCmdQueue);
     reshade::register_event <reshade::addon_event::reshade_overlay_activation> (SK_ReShadeAddOn_OverlayActivation);
   }
 

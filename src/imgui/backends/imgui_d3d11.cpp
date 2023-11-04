@@ -1888,6 +1888,8 @@ SK_D3D11_ResetTexCache (void);
 void
 SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
 {
+  SK_ReShadeAddOn_CleanupRTVs (SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain), true);
+
   //SK_ComPtr <IDXGISwapChain> pSwapChain_ (pSwapChain);
   //
   //UINT _size =
