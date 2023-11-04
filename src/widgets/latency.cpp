@@ -244,12 +244,6 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
           }
         };
 
-        extern float __target_fps;
-
-        const bool bWantAccuratePresentTiming =
-          ( config.render.framerate.target_fps > 0.0f ||
-                                  __target_fps > 0.0f );
-
         auto end =
           SK_Reflex_GetFrameEndTime (frame);
 
@@ -261,9 +255,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
         _UpdateStat (frame.gpuRenderStartTime,     frame.gpuRenderEndTime,     &gpu);
         _UpdateStat (frame.simStartTime,           end,                        &total);
         _UpdateStat (frame.inputSampleTime,        end,                        &input);
-        _UpdateStat (frame.renderSubmitEndTime,   
-                      bWantAccuratePresentTiming ? frame.presentEndTime
-                                                 : frame.presentStartTime,     &specialk);
+        _UpdateStat (frame.renderSubmitEndTime,    frame.presentStartTime,     &specialk);
       }
 
       auto _UpdateAverages = [&](stage_timing_s* stage)
@@ -767,12 +759,13 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
     SK_NV_AdaptiveSyncControl ();
     SK_NV_AdaptiveSyncControl ();
 
-    float fMaxWidth  = ImGui::GetContentRegionAvail        ().x;
-    float fMaxHeight = ImGui::GetTextLineHeightWithSpacing () * 2.8f;
+    float fMaxWidth  = ImGui::GetContentRegionAvail ().x;
+    float fMaxHeight = ImGui::GetTextLineHeightWithSpacing () * 2.9f;
     float fInset     = fMaxWidth  *  0.025f;
     float X0         = ImGui::GetCursorScreenPos ().x;
     float Y0         = ImGui::GetCursorScreenPos ().y - ImGui::GetTextLineHeightWithSpacing ();
-          fMaxWidth *= 0.95f;
+          fMaxWidth  *= 0.95f;
+          fMaxHeight *= 0.92f;
 
     static DWORD                                  dwLastUpdate = 0;
     static float                                  scale        = 1.0f;
