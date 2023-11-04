@@ -221,17 +221,17 @@ SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
 
 struct dxgi_rtv_s {
   // Parent Information
-  reshade::api::device*       device;
+  reshade::api::device*       device = nullptr;
 
   // Resource and Fence
-  reshade::api::resource_view rtv;
-  reshade::api::fence         fence;
+  reshade::api::resource_view rtv    = { 0 };
+  reshade::api::fence         fence  = { 0 };
 
   bool isFinished (void) { return device->get_completed_fence_value (fence) == 1; }
   bool isValid (void)    { return device       != nullptr &&
                                   rtv.handle   != 0       &&
                                   fence.handle != 0; }
-  bool waitForGPU (void) { while (device->get_completed_fence_value (fence) < 1) { SK_Sleep (0); } return true; }
+  bool waitForGPU (void) { while (device->get_completed_fence_value (fence) < 1) { SK_Sleep (1); } return true; }
 };
 
 Concurrency::concurrent_queue <dxgi_rtv_s> dxgi_rtvs;
@@ -612,9 +612,11 @@ SK_ReShadeAddOn_FinishFrameDXGI (IDXGISwapChain1 *pSwapChain)
   }
 }
 
-bool
-SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
+UINT64
+SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain, ID3D12Fence* pFence)
 {
+  UINT64 uiFenceVal = 0;
+
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
 
@@ -633,7 +635,11 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
       runtime->get_command_queue ();
 
 
-    SK_ReShadeAddOn_CleanupRTVs (runtime, SK_GetCurrentGameID () == SK_GAME_ID::Cyberpunk2077);
+    __time64_t now = 0ULL;
+    _time64  (&now);
+    extern __time64_t __SK_DLL_AttachTime;
+
+    SK_ReShadeAddOn_CleanupRTVs (runtime, sk::narrow_cast <uint32_t> (now - __SK_DLL_AttachTime) < 20);
 
 
     if (has_effects)
@@ -673,6 +679,12 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
         dxgi_rtv.device = device;
 
         dxgi_rtvs.push (dxgi_rtv);
+
+        if (pFence != nullptr)
+        {
+          cmd_queue->signal (reshade::api::fence { (uint64_t)pFence }, ++uiFenceVal);
+          return uiFenceVal;
+        }
       }
 
       else
@@ -686,10 +698,10 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
       }
     }
 
-    return true;
+    return 0;
   }
 
-  return false;
+  return 0;
 }
 
 bool

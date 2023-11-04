@@ -1726,6 +1726,20 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
                         pHDRPipeline.p   != nullptr &&
                         pHDRSignature.p  != nullptr );
 
+  UINT64 uiFenceVal = 0;
+
+  if (config.reshade.is_addon && config.reshade.draw_first)
+  {
+    SK_ComQIPtr <IDXGISwapChain1>        pSwapChain1 (_pSwapChain);
+    uiFenceVal =
+      SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p, stagingFrame.reshade_fence);
+
+    if (uiFenceVal != 0)
+    {
+      _pCommandQueue->Wait (stagingFrame.reshade_fence, uiFenceVal);
+    }
+  }
+
   if (bHDR)
   {
     SK_RunOnce (
@@ -1838,6 +1852,18 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     {
       stagingFrame.fence.value =
         sync_value;
+    }
+  }
+
+  if (config.reshade.is_addon && (! config.reshade.draw_first))
+  {
+    SK_ComQIPtr <IDXGISwapChain1>        pSwapChain1 (_pSwapChain);
+    uiFenceVal =
+      SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p, stagingFrame.reshade_fence);
+  
+    if (uiFenceVal != 0)
+    {
+      _pCommandQueue->Wait (stagingFrame.reshade_fence, uiFenceVal);
     }
   }
 
@@ -2221,6 +2247,8 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
         ThrowIfFailed (
           _pDevice->CreateFence (0, D3D12_FENCE_FLAG_NONE,          IID_PPV_ARGS (&frame.fence.p)));
+        ThrowIfFailed (
+          _pDevice->CreateFence (0, D3D12_FENCE_FLAG_NONE,          IID_PPV_ARGS (&frame.reshade_fence.p)));
         ThrowIfFailed (
           _pDevice->CreateCommandAllocator (
                                     D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS (&frame.pCmdAllocator.p)));

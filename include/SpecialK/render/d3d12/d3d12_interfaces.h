@@ -496,7 +496,7 @@ struct SK_D3D12_RenderCtx {
 
       HRESULT SignalSequential (ID3D12CommandQueue *pCmdQueue);
       HRESULT WaitSequential   (void);
-    } fence;
+    } fence, reshade_fence;
 
     SK_ComPtr <ID3D12GraphicsCommandList> pCmdList          = nullptr;
 		SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator     = nullptr;
