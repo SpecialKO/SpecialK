@@ -1,4 +1,10 @@
-﻿23.11.4.1
+﻿23.11.5
+=======
+ + Removed various latency measurements that are broken on systems with WDDM3.0
+     Hardware Flip Queue (Recent NVIDIA Drivers)
+ + Improved stability in Cyberpunk 2077
+
+23.11.4.1
 =========
  + Fixed incorrect wait on ReShade fences when the fence has not signaled yet.
  + Fixed rare HDR10/scRGB buffer copy failure in D3D12 in games like Cyberpunk 2077

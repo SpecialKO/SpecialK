@@ -1105,7 +1105,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
     }
   }
 
-  if (valid_latency)
+  if (valid_latency && (! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled))
   {
     snprintf
       ( szAvg,
@@ -1269,6 +1269,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
   float fX = ImGui::GetCursorPosX (),
         fY = ImGui::GetCursorPosY ();
 
+  if (! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled)
+  {
   ImGui::PushStyleColor ( ImGuiCol_PlotLines,
                              ImColor::HSV ( 0.31f - 0.31f *
                      std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
@@ -1291,6 +1293,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   ImGui::SameLine      (  );
   ImGui::SetCursorPosX (fX);
+  }
   ImGui::BeginGroup    (  );
 
   // We don't want a second background dimming things even more...
@@ -1361,7 +1364,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
     ImRect frame_bb
       ( window_pos.x + cursor_pos.x - 2, window_pos.y + cursor_pos.y + 1 - scroll_y,
         window_pos.x + cursor_pos.x - 2 +
-            fGaugeSizes + 1,             window_pos.y + cursor_pos.y +
+         fGaugeSizes + 1,                window_pos.y + cursor_pos.y +
                                                     font_size * 7.0f - 1 - scroll_y );
 
     ImGui::BeginGroup     (); // 2 frames is intentional to match the opacity of the rest of the graph
