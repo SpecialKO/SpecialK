@@ -1105,7 +1105,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
     }
   }
 
-  if (valid_latency && (! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled))
+  if (valid_latency &&  (! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled))
   {
     snprintf
       ( szAvg,
@@ -1126,7 +1126,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
                       ((double)max-(double)min)/(1000.0f/(sum/frames)) );
   }
 
-  else
+  else if (! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled)
   {
     snprintf
       ( szAvg,
@@ -1137,6 +1137,20 @@ SK_ImGui_DrawGraph_FramePacing (void)
               sum / frames,
                 target_frametime,
                   min, max,
+            (double)max - (double)min,
+                    1000.0f / (sum / frames),
+                      ((double)max-(double)min)/(1000.0f/(sum/frames)) );
+  }
+
+  else
+  {
+    snprintf
+      ( szAvg,
+          511, (const char *)
+          u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
+          u8"\n\n\n\n"
+          u8"Variation:  %8.5f ms        %.1f FPS  ±  %3.1f frames",
+              sum / frames, target_frametime,
             (double)max - (double)min,
                     1000.0f / (sum / frames),
                       ((double)max-(double)min)/(1000.0f/(sum/frames)) );
@@ -1269,8 +1283,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
   float fX = ImGui::GetCursorPosX (),
         fY = ImGui::GetCursorPosY ();
 
-  if (! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled)
-  {
   ImGui::PushStyleColor ( ImGuiCol_PlotLines,
                              ImColor::HSV ( 0.31f - 0.31f *
                      std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
@@ -1281,7 +1293,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
   ImGui::PlotHistogram ( SK_ImGui_Visible ? "###ControlPanel_LatencyHistogram" :
                                             "###Floating_LatencyHistogram",
                            SK_RenderBackend_V2::latency.stats.History,
-                                          valid_latency ?
+                                          valid_latency && (! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled) ?
              IM_ARRAYSIZE (SK_RenderBackend_V2::latency.stats.History)
                                                         : 0,
                                SK_GetFramesDrawn () % 120,
@@ -1293,7 +1305,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   ImGui::SameLine      (  );
   ImGui::SetCursorPosX (fX);
-  }
   ImGui::BeginGroup    (  );
 
   // We don't want a second background dimming things even more...
