@@ -1,6 +1,19 @@
-﻿23.11.3
+﻿23.11.4
 =======
- +
+ + Fixed yet more unintended Rec.709 color clamping for HDR10 and scRGB Passthrough
+ + Disabled ReShade add-on support for all versions of ReShade older than 5.9.3.1024
+ + Integrated fence-based resource lifetime management added in 5.9.3.1024
+ + Cyberpunk 2077 works now, but you will have to be careful because of Streamline,
+     to avoid crashes, load ReShade's DLL as ReShade64.dll and be aware that ReShade
+       will post-process its own UI.
+
+23.11.3
+=======
+ + Removed CPU-side wait for ReShade to execute GPU commands, and only use that
+     code in Cyberpunk 2077. A fence-based synchronization method is needed, but
+       does not exist in current versions of ReShade.
+
+    >> Avoid using ReShade in Cyberpunk 2077 for performance issues for now.
 
 23.11.2.2
 =========

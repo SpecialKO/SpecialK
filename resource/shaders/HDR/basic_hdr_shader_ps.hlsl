@@ -341,11 +341,11 @@ float4 main (PS_INPUT input) : SV_TARGET
     if ( input.color.x < 0.0125f - FLT_EPSILON ||
          input.color.x > 0.0125f + FLT_EPSILON )
     {
-      hdr_color.rgb = clamp (LinearToLogC (hdr_color.rgb), 0.0, 125.0);
+      hdr_color.rgb = LinearToLogC (hdr_color.rgb);
       hdr_color.rgb =        Contrast     (hdr_color.rgb,
               0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f,
                        (sdrLuminance_NonStd / 0.0125f) / 100.0f);
-      hdr_color.rgb = clamp (LogCToLinear (hdr_color.rgb), 0.0, 125.0);
+      hdr_color.rgb = LogCToLinear (hdr_color.rgb);
     }
   }
 
@@ -401,9 +401,12 @@ float4 main (PS_INPUT input) : SV_TARGET
   if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
 #endif
   {
-    hdr_color.rgb =
-      PositivePow ( hdr_color.rgb,
-                  input.color.yyy );
+    if (input.color.y != 1.0f)
+    {
+      hdr_color.rgb =
+        PositivePow ( hdr_color.rgb,
+                    input.color.yyy );
+    }
   }
 
   if (pqBoostParams.x > 0.1f)
@@ -431,18 +434,18 @@ float4 main (PS_INPUT input) : SV_TARGET
 #ifdef INCLUDE_HDR10
   if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
 #endif
-  {
-    if ( hdrSaturation >= 1.0f + FLT_EPSILON ||
-         hdrSaturation <= 1.0f - FLT_EPSILON || uiToneMapper == TONEMAP_ACES_FILMIC )
-    {
-      float saturation =
-        hdrSaturation + 0.05 * ( uiToneMapper == TONEMAP_ACES_FILMIC );
-
-      hdr_color.rgb =
-        Saturation ( hdr_color.rgb,
-                     saturation );
-    }
-  }
+  //{
+  //  if ( hdrSaturation >= 1.0f + FLT_EPSILON ||
+  //       hdrSaturation <= 1.0f - FLT_EPSILON || uiToneMapper == TONEMAP_ACES_FILMIC )
+  //  {
+  //    float saturation =
+  //      hdrSaturation + 0.05 * ( uiToneMapper == TONEMAP_ACES_FILMIC );
+  //
+  //    hdr_color.rgb =
+  //      Saturation ( hdr_color.rgb,
+  //                   saturation );
+  //  }
+  //}
     
 #if 0
   float3 vNormalColor =
