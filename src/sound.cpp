@@ -517,9 +517,23 @@ SK_WASAPI_GetAudioSessionControl ( EDataFlow data_flow     = eRender,
 
   catch (const std::exception& e)
   {
-    SK_LOG0 ( ( L"%ws (...) Failed "
-                L"During Enumerator Setup : %hs", __FUNCTIONW__, e.what ()
-              ),L"  WASAPI  " );
+    auto _LogException = [&](void)
+    {
+      SK_LOG0 ( ( L"%ws (...) Failed "
+                  L"During Enumerator Setup : %hs", __FUNCTIONW__, e.what ()
+                ),L"  WASAPI  " );
+    };
+
+    if (config.system.log_level > 0)
+    {
+      _LogException ();
+    }
+
+    else
+    {
+      // This will happen a lot, just log it once...
+      SK_RunOnce (_LogException ());
+    }
 
     return nullptr;
   }
