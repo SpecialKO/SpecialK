@@ -220,11 +220,30 @@ SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
 }
 
 struct dxgi_rtv_s {
+  // Parent Information
+  reshade::api::device*       device;
+
+  // Resource and Fence
   reshade::api::resource_view rtv;
   reshade::api::fence         fence;
+
+  bool isFinished (void) { return device->get_completed_fence_value (fence) == 1; }
+  bool isValid (void)    { return device       != nullptr &&
+                                  rtv.handle   != 0       &&
+                                  fence.handle != 0; }
+  bool waitForGPU (void) { while (device->get_completed_fence_value (fence) < 1) { SK_Sleep (0); } return true; }
 };
 
 Concurrency::concurrent_queue <dxgi_rtv_s> dxgi_rtvs;
+
+reshade::api::effect_runtime*
+SK_ReShadeAddOn_GetRuntimeForHWND (HWND hWnd)
+{
+  if (     ReShadeRuntimes.count (hWnd))
+    return ReShadeRuntimes       [hWnd];
+
+  return nullptr;
+}
 
 reshade::api::effect_runtime*
 SK_ReShadeAddOn_GetRuntimeForSwapChain (IDXGISwapChain* pSwapChain)
@@ -250,45 +269,47 @@ SK_ReShadeAddOn_GetRuntimeForSwapChain (IDXGISwapChain* pSwapChain)
 }
 
 void
-SK_ReShadeAddOn_CleanupRTVs (reshade::api::effect_runtime *runtime, bool must_wait)
+SK_ReShadeAddOn_CleanupRTVs (reshade::api::device *device, bool must_wait)
 {
-  if (! runtime)
+  if (! device)
     return;
 
   dxgi_rtv_s  dxgi_rtv;
   std::queue <dxgi_rtv_s> busy_rtvs;
 
-  const auto device =
-    runtime->get_device ();
+  auto api =
+    device->get_api ();
 
-  const auto cmd_queue =
-    runtime->get_command_queue ();
+  if (api != reshade::api::device_api::d3d12 &&
+      api != reshade::api::device_api::d3d11 &&
+      api != reshade::api::device_api::d3d10)
+  {
+    return;
+  }
   
   while (! dxgi_rtvs.empty ())
   {
     while (! dxgi_rtvs.try_pop (dxgi_rtv))
       ;
 
-    if ( dxgi_rtv.rtv.handle   != 0 &&
-         dxgi_rtv.fence.handle != 0 )
+    if (dxgi_rtv.isValid ())
     {
-      std::ignore = must_wait;
-
-      if (device->get_completed_fence_value (dxgi_rtv.fence) == 1 || (must_wait && cmd_queue->wait (dxgi_rtv.fence, 1)))
+      if (dxgi_rtv.isFinished () || (must_wait && dxgi_rtv.waitForGPU ()))
       {
         device->destroy_resource_view (dxgi_rtv.rtv);
         device->destroy_fence         (dxgi_rtv.fence);
 
         dxgi_rtv.rtv.handle   = 0;
         dxgi_rtv.fence.handle = 0;
+        dxgi_rtv.device       = nullptr;
 
-        SK_LOGs2 (L"ReShadeExt", L"Destroyed RTV");
+        continue;
       }
+    }
 
-      else
-      {
-        busy_rtvs.push (dxgi_rtv);
-      }
+    if (dxgi_rtv.isValid ())
+    {
+      busy_rtvs.push (dxgi_rtv);
     }
   }
 
@@ -297,6 +318,28 @@ SK_ReShadeAddOn_CleanupRTVs (reshade::api::effect_runtime *runtime, bool must_wa
     dxgi_rtvs.push (busy_rtvs.front ());
                     busy_rtvs.pop   ();
   }
+}
+
+void
+SK_ReShadeAddOn_CleanupRTVs (reshade::api::effect_runtime *runtime, bool must_wait)
+{
+  if (! runtime)
+    return;
+
+  const auto device =
+    runtime->get_device ();
+
+  auto api =
+    device->get_api ();
+
+  if (api != reshade::api::device_api::d3d12 &&
+      api != reshade::api::device_api::d3d11 &&
+      api != reshade::api::device_api::d3d10)
+  {
+    return;
+  }
+
+  SK_ReShadeAddOn_CleanupRTVs (device, must_wait);
 }
 
 void
@@ -312,12 +355,81 @@ SK_ReShadeAddOn_DestroyRuntime (reshade::api::effect_runtime *runtime)
 
 void
 __cdecl
+SK_ReShadeAddOn_DestroyDevice (reshade::api::device *device)
+{
+  if (! device) return;
+
+  auto api =
+    device->get_api ();
+
+  switch (api)
+  {
+    case reshade::api::device_api::d3d10:
+    case reshade::api::device_api::d3d11:
+    case reshade::api::device_api::d3d12:
+    {
+      SK_ReShadeAddOn_CleanupRTVs (
+        device, true
+      );
+    } break;
+
+    default:
+      // Ignore D3D9, OpenGL and Vulkan
+      break;
+  }
+}
+
+void
+__cdecl
+SK_ReShadeAddOn_DestroySwapChain (reshade::api::swapchain *swapchain)
+{
+  if (! swapchain) return;
+
+  auto api =
+    swapchain->get_device ()->get_api ();
+
+  switch (api)
+  {
+    case reshade::api::device_api::d3d10:
+    case reshade::api::device_api::d3d11:
+    case reshade::api::device_api::d3d12:
+    {
+      IDXGISwapChain *pSwapChain =
+        reinterpret_cast <IDXGISwapChain *> (swapchain->get_native ());
+
+      if (pSwapChain != nullptr)
+      {
+        SK_ReShadeAddOn_CleanupRTVs (
+          SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain), true
+        );
+      }
+
+    } break;
+
+    default:
+      // Ignore D3D9, OpenGL and Vulkan
+      break;
+  }
+}
+
+void
+__cdecl
 SK_ReShadeAddOn_DestroyCmdQueue (reshade::api::command_queue *queue)
 {
   auto device =
     queue->get_device ();
 
-  dxgi_rtv_s  dxgi_rtv;
+  auto api =
+    device->get_api ();
+
+  if (api != reshade::api::device_api::d3d12 &&
+      api != reshade::api::device_api::d3d11 &&
+      api != reshade::api::device_api::d3d10)
+  {
+    return;
+  }
+
+  dxgi_rtv_s              dxgi_rtv;
   std::queue <dxgi_rtv_s> busy_rtvs;
   
   while (! dxgi_rtvs.empty ())
@@ -325,20 +437,31 @@ SK_ReShadeAddOn_DestroyCmdQueue (reshade::api::command_queue *queue)
     while (! dxgi_rtvs.try_pop (dxgi_rtv))
       ;
 
-    if ( dxgi_rtv.rtv.handle   != 0 &&
-         dxgi_rtv.fence.handle != 0 )
+    if (dxgi_rtv.isValid ())
     {
-      if (device->get_completed_fence_value (dxgi_rtv.fence) == 1 || (queue->wait (dxgi_rtv.fence, 1)))
+      if (dxgi_rtv.isFinished () || dxgi_rtv.waitForGPU ())
       {
         device->destroy_resource_view (dxgi_rtv.rtv);
         device->destroy_fence         (dxgi_rtv.fence);
 
         dxgi_rtv.rtv.handle   = 0;
         dxgi_rtv.fence.handle = 0;
+        dxgi_rtv.device       = nullptr;
 
-        SK_LOGs0 (L"ReShadeExt", L"Destroyed RTV (Cmd Queue Destroyed)");
+        continue;
       }
     }
+
+    else if (dxgi_rtv.isValid ())
+    {
+      busy_rtvs.push (dxgi_rtv);
+    }
+  }
+
+  while (! busy_rtvs.empty ())
+  {
+    dxgi_rtvs.push (busy_rtvs.front ());
+                    busy_rtvs.pop   ();
   }
 }
 
@@ -468,37 +591,25 @@ SK_ReShadeAddOn_FinishFrameDXGI (IDXGISwapChain1 *pSwapChain)
 {
   std::ignore = pSwapChain;
 
-  //if (! pSwapChain)
-  //  return;
-  //
-  //HWND                  hWnd = 0;
-  //pSwapChain->GetHwnd (&hWnd);
-  //
-  //if (! hWnd)
-  //  return;
-  //
-  //DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-  //pSwapChain->GetDesc (&swapDesc);
-  //
-  //auto runtime =
-  //  ReShadeRuntimes [hWnd];
-  //
-  //if (runtime != nullptr)
-  //{
-  //  const auto device =
-  //    runtime->get_device ();
-  //
-  //  const auto cmd_queue =
-  //    runtime->get_command_queue ();
-  //
-  //  if (dxgi_rtv.handle != 0)
-  //  {
-  //    cmd_queue->wait_idle          (        ); // The temporary RTV created above must live to completion
-  //    device->destroy_resource_view (dxgi_rtv);
-  //
-  //    dxgi_rtv.handle = 0;
-  //  }
-  //}
+  if (! pSwapChain)
+    return;
+  
+  HWND                  hWnd = 0;
+  pSwapChain->GetHwnd (&hWnd);
+  
+  if (! hWnd)
+    return;
+  
+  DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+  pSwapChain->GetDesc (&swapDesc);
+  
+  auto runtime =
+    ReShadeRuntimes [hWnd];
+  
+  if (runtime != nullptr)
+  {
+    SK_ReShadeAddOn_CleanupRTVs (runtime);
+  }
 }
 
 bool
@@ -512,7 +623,7 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
 
   if (runtime != nullptr)
   {
-    bool has_effects =
+    const bool has_effects =
       runtime->get_effects_state ();
 
     const auto device =
@@ -522,7 +633,7 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
       runtime->get_command_queue ();
 
 
-    SK_ReShadeAddOn_CleanupRTVs (runtime);
+    SK_ReShadeAddOn_CleanupRTVs (runtime, SK_GetCurrentGameID () == SK_GAME_ID::Cyberpunk2077);
 
 
     if (has_effects)
@@ -544,17 +655,36 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain)
         return false;
       }
 
+      auto cmd_list =
+        cmd_queue->get_immediate_command_list ();
+
+      cmd_list->barrier ( backbuffer, reshade::api::resource_usage::present,
+                                      reshade::api::resource_usage::render_target );
+
       runtime->render_effects (
-        cmd_queue->get_immediate_command_list (), dxgi_rtv.rtv, { 0 }
+        cmd_list, dxgi_rtv.rtv, { 0 }
       );
+
+      cmd_list->barrier ( backbuffer, reshade::api::resource_usage::render_target,
+                                      reshade::api::resource_usage::present );
 
       if (cmd_queue->signal (dxgi_rtv.fence, 1))
       {
+        dxgi_rtv.device = device;
+
         dxgi_rtvs.push (dxgi_rtv);
       }
-    }
 
-    cmd_queue->flush_immediate_command_list ();
+      else
+      {
+        SK_LOGs0 (L"ReShadeExt", L"Failed to signal RTV's fence!");
+
+        cmd_queue->wait_idle ();
+
+        device->destroy_fence         (dxgi_rtv.fence);
+        device->destroy_resource_view (dxgi_rtv.rtv);
+      }
+    }
 
     return true;
   }
@@ -585,6 +715,8 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
     reshade::register_event <reshade::addon_event::init_effect_runtime>        (SK_ReShadeAddOn_InitRuntime);
     reshade::register_event <reshade::addon_event::destroy_effect_runtime>     (SK_ReShadeAddOn_DestroyRuntime);
+    reshade::register_event <reshade::addon_event::destroy_device>             (SK_ReShadeAddOn_DestroyDevice);
+    reshade::register_event <reshade::addon_event::destroy_swapchain>          (SK_ReShadeAddOn_DestroySwapChain);
     reshade::register_event <reshade::addon_event::destroy_command_queue>      (SK_ReShadeAddOn_DestroyCmdQueue);
     reshade::register_event <reshade::addon_event::reshade_overlay_activation> (SK_ReShadeAddOn_OverlayActivation);
   }

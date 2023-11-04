@@ -1,4 +1,9 @@
-﻿23.11.4
+﻿23.11.4.1
+=========
+ + Fixed incorrect wait on ReShade fences when the fence has not signaled yet.
+ + Fixed rare HDR10/scRGB buffer copy failure in D3D12 in games like Cyberpunk 2077
+
+23.11.4
 =======
  + Fixed yet more unintended Rec.709 color clamping for HDR10 and scRGB Passthrough
  + Disabled ReShade add-on support for all versions of ReShade older than 5.9.3.1024

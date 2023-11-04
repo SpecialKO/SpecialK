@@ -1938,7 +1938,19 @@ SK_ImGui_DrawD3D12 (IDXGISwapChain* This)
     io.DisplayFramebufferScale.x = static_cast <float> (swapDesc1.Width);
     io.DisplayFramebufferScale.y = static_cast <float> (swapDesc1.Height);
 
+    if (config.reshade.is_addon && config.reshade.draw_first)
+    {
+      SK_ComQIPtr <IDXGISwapChain1>      pSwapChain1 (This);
+      SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p);
+    }
+
     _d3d12_rbk->present ((IDXGISwapChain3 *)This);
+
+    if (config.reshade.is_addon && (! config.reshade.draw_first))
+    {
+      SK_ComQIPtr <IDXGISwapChain1>      pSwapChain1 (This);
+      SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p);
+    }
   }
 }
 
@@ -2109,7 +2121,19 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
           }
         }
 
+        if (config.reshade.is_addon && config.reshade.draw_first)
+        {
+          SK_ComQIPtr <IDXGISwapChain1>      pSwapChain1 (This);
+          SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p);
+        }
+
         _d3d11_rbk->present (This);
+
+        if (config.reshade.is_addon && (! config.reshade.draw_first))
+        {
+          SK_ComQIPtr <IDXGISwapChain1>      pSwapChain1 (This);
+          SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p);
+        }
       }
     }
   }
@@ -2884,14 +2908,6 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
     if (interval != 0 || rb.fullscreen_exclusive) // FSE can't use this flag
       flags &= ~DXGI_PRESENT_ALLOW_TEARING;
-
-
-    if (config.reshade.draw_first)
-    {
-      SK_ComQIPtr <IDXGISwapChain1>      pSwapChain1 (This);
-      SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p);
-    }
-
     if (     _IsBackendD3D12 (rb.api)) SK_ImGui_DrawD3D12 (This);
     else if (_IsBackendD3D11 (rb.api)) SK_ImGui_DrawD3D11 (This);
 
@@ -2899,13 +2915,6 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     {
       SK_BeginBufferSwapEx (bWaitOnFailure);
     }
-
-    if (! config.reshade.draw_first)
-    {
-      SK_ComQIPtr <IDXGISwapChain1>      pSwapChain1 (This);
-      SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p);
-    }
-
 
     rb.setLatencyMarkerNV (PRESENT_START);
 

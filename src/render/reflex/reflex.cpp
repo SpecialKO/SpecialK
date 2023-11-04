@@ -217,9 +217,9 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
       pSetLatencyMarkerParams->version <= NV_LATENCY_MARKER_PARAMS_VER
     );
 
-    const bool bWantAccuratePresentTiming =
-      ( config.render.framerate.target_fps > 0.0f ||
-                              __target_fps > 0.0f ) && config.nvidia.reflex.native && (! config.nvidia.reflex.marker_optimization);
+    const bool bWantAccuratePresentTiming = false;
+      //( config.render.framerate.target_fps > 0.0f ||
+      //                        __target_fps > 0.0f ) && config.nvidia.reflex.native && (! config.nvidia.reflex.disable_native);
 
     if ( pSetLatencyMarkerParams->markerType == PRESENT_START ||
          pSetLatencyMarkerParams->markerType == PRESENT_END )
@@ -397,9 +397,9 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
   if (SK_GetFramesDrawn () < SK_Reflex_MinimumFramesBeforeNative)
     return true;
 
-  const bool bWantAccuratePresentTiming =
-    ( config.render.framerate.target_fps > 0.0f ||
-                            __target_fps > 0.0f ) && config.nvidia.reflex.native && (! config.nvidia.reflex.marker_optimization);
+  const bool bWantAccuratePresentTiming = false;
+    //( config.render.framerate.target_fps > 0.0f ||
+    //                        __target_fps > 0.0f ) && config.nvidia.reflex.native && (! config.nvidia.reflex.disable_native);
 
   NvAPI_Status ret =
     NVAPI_INVALID_CONFIGURATION;

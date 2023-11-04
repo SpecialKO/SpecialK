@@ -41,6 +41,8 @@ void SK_ReShadeAddOn_ActivateOverlay   (bool             activate);
 bool SK_ReShadeAddOn_IsOverlayActive   (void);
 
 reshade::api::effect_runtime*
+     SK_ReShadeAddOn_GetRuntimeForHWND      (HWND hWnd);
+reshade::api::effect_runtime*
      SK_ReShadeAddOn_GetRuntimeForSwapChain (IDXGISwapChain* pSwapChain);
 void SK_ReShadeAddOn_CleanupRTVs            (reshade::api::effect_runtime *runtime, bool must_wait = false);
 
