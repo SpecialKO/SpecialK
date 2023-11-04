@@ -1513,11 +1513,20 @@ SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource
 {
   std::scoped_lock <SK_Thread_HybridSpinlock> lock (_d3d12_rbk->_ctx_lock);
 
+  if (_d3d12_rbk->frames_.empty ())
+  {
+    SK_LOGi0 (L"Cannot perform HDR CopyBuffer because ImGui D3D12 Render Backend is not initialized yet...");
+    return;
+  }
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (! _d3d12_rbk->_pCommandQueue.p)
+  if (_d3d12_rbk->_pCommandQueue.p == nullptr ||
+      _d3d12_rbk->_pSwapChain.p    == nullptr)
+  {
     return;
+  }
 
   SK_ComPtr <ID3D12Device>
              pD3D12Device;
