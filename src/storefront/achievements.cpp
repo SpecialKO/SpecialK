@@ -1719,6 +1719,15 @@ SK_AchievementManager::drawPopups (void)
           std::exchange (
               it->icon_texture, nullptr)->Release ();
         }
+
+        else
+        {
+          if (it->d3d12_tex != nullptr)
+          {
+            std::exchange (
+              it->d3d12_tex, nullptr)->Release ();
+          }
+        }
       }
 
       removed = true;
@@ -1839,6 +1848,8 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
         {
           popup->icon_texture =
             (IUnknown *)(texture.hTextureSrvGpuDescHandle.ptr);
+          popup->d3d12_tex =
+            texture.pTexture;
         }
       }
     }

@@ -485,7 +485,6 @@ struct SK_D3D12_RenderCtx {
     SK_ComPtr <ID3D12DescriptorHeap>      pImGui            = nullptr;
     SK_ComPtr <ID3D12DescriptorHeap>      pHDR              = nullptr;
     SK_ComPtr <ID3D12DescriptorHeap>      pHDR_CopyAssist   = nullptr;
-    SK_ComPtr <ID3D12DescriptorHeap>      pTextures         = nullptr;
   } descriptorHeaps;
 
 	struct FrameCtx {
