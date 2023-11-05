@@ -145,7 +145,13 @@ FinalOutput (float4 vColor)
   if (visualFunc.y == 1)
   {
     vColor.rgb =
-      LinearToPQ (REC709toREC2020 (vColor.rgb), 125.0f);
+      clamp (LinearToPQ (REC709toREC2020 (vColor.rgb), 125.0f), 0.0, 1.0);
+    
+    vColor.rgb *=
+      smoothstep ( 0.006978,
+                   0.016667, vColor.rgb);
+    
+    vColor.a = 1.0;
   }
     
   return vColor;
@@ -434,18 +440,18 @@ float4 main (PS_INPUT input) : SV_TARGET
 #ifdef INCLUDE_HDR10
   if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
 #endif
-  //{
-  //  if ( hdrSaturation >= 1.0f + FLT_EPSILON ||
-  //       hdrSaturation <= 1.0f - FLT_EPSILON || uiToneMapper == TONEMAP_ACES_FILMIC )
-  //  {
-  //    float saturation =
-  //      hdrSaturation + 0.05 * ( uiToneMapper == TONEMAP_ACES_FILMIC );
-  //
-  //    hdr_color.rgb =
-  //      Saturation ( hdr_color.rgb,
-  //                   saturation );
-  //  }
-  //}
+  {
+    if ( hdrSaturation >= 1.0f + FLT_EPSILON ||
+         hdrSaturation <= 1.0f - FLT_EPSILON || uiToneMapper == TONEMAP_ACES_FILMIC )
+    {
+      float saturation =
+        hdrSaturation + 0.05 * ( uiToneMapper == TONEMAP_ACES_FILMIC );
+  
+      hdr_color.rgb =
+        Saturation ( hdr_color.rgb,
+                     saturation );
+    }
+  }
     
 #if 0
   float3 vNormalColor =

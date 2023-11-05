@@ -80,6 +80,14 @@ float4 main (PS_INPUT input) : SV_Target
     float alpha_mul =
       (hdr10 ? 1.0
              : ui_alpha ); // Use linear alpha in scRGB
+    
+    if (hdr10)
+    {
+      hdr_out.rgba =    clamp (hdr_out.rgba, 0.0, 1.0);
+      hdr_out.rgba *=
+        smoothstep ( 0.006978,
+                     0.016667, hdr_out.rgba );
+    }
 
     return
       float4 ( hdr_out.rgb * alpha_mul,
