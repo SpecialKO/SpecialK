@@ -1111,8 +1111,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
       ( szAvg,
           511, (const char *)
           u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
-          u8"         Render latency:           %lu Frame%s | %3.1f / %3.1f ms |  %lu Hz\n\n\n\n"
-          u8"Variation:  %8.5f ms     %5.1f FPS  ±  %3.1f frames",
+          u8"         Render latency:           %lu Frame%s | %3.1f / %3.1f ms |  %lu Hz \n\n\n\n"
+          u8"Variation:  %9.5f ms    %5.1f FPS  ±  %3.1f frames",
               sum / frames,
                 target_frametime,
                     SK_RenderBackend_V2::latency.delays.PresentQueue,
@@ -1133,7 +1133,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
           511, (const char *)
           u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
           u8"    Extreme frame times:     %6.3f min, %6.3f max\n\n\n\n"
-          u8"Variation:  %8.5f ms     %5.1f FPS  ±  %3.1f frames",
+          u8"Variation:  %9.5f ms    %5.1f FPS  ±  %3.1f frames",
               sum / frames,
                 target_frametime,
                   min, max,
@@ -1148,8 +1148,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
       ( szAvg,
           511, (const char *)
           u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
-          u8"         Render latency:          %lu Frame%s | HW Flip Q |  %lu Hz\n\n\n\n"
-          u8"Variation:  %8.5f ms     %5.1f FPS  ±  %3.1f frames",
+          u8"         Render latency:          %lu Frame%s | HW Flip Q |  %lu Hz \n\n\n\n"
+          u8"Variation:  %9.5f ms    %5.1f FPS  ±  %3.1f frames",
               sum / frames,
                 target_frametime,
                     SK_RenderBackend_V2::latency.delays.PresentQueue,

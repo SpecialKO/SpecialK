@@ -637,9 +637,9 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain, ID3D12Fence* pFe
 
     __time64_t now = 0ULL;
     _time64  (&now);
-    extern __time64_t __SK_DLL_AttachTime;
-
-    SK_ReShadeAddOn_CleanupRTVs (runtime, sk::narrow_cast <uint32_t> (now - __SK_DLL_AttachTime) < 20);
+    
+    extern __time64_t                                                       __SK_DLL_AttachTime;
+    SK_ReShadeAddOn_CleanupRTVs (runtime, sk::narrow_cast <uint32_t> (now - __SK_DLL_AttachTime) < 30);
 
 
     if (has_effects)

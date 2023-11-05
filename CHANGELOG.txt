@@ -1,4 +1,9 @@
-﻿23.11.5.2
+﻿23.11.5.3
+=========
+ + Fixed (worked around) Thread Local Storage corruption when loading ReShade
+     as dxgi.dll in some Steam games
+
+23.11.5.2
 =========
  + Added D3D12 achievement icons for Steam games
  + Added smoothstep near-black and lowered HDR10 black level to 0 when using SK's

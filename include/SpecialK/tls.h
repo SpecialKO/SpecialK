@@ -118,14 +118,23 @@ class SK_TLS_HeapDataStore
 public:
   _T*    alloc   (size_t needed, bool zero_fill = false)
   {
+    if (needed <= 0)
+      return data;
+
     if (data == nullptr || len < needed)
     {
       if (data != nullptr && len > 0)
         _aligned_free (data);
 
+      if ((sizeof (_T) % 16) != 0)
+      {
+        needed++;
+      }
+
       len  = std::max (len, needed);
+
       data = static_cast <_T *> (
-        _aligned_malloc (len * sizeof (_T), 16)
+        _aligned_malloc (len * sizeof (_T) + (16 - (len * sizeof (_T)) % 16), 16)
       );
 
       if (data == nullptr)

@@ -342,21 +342,26 @@ SK_TLS_Bottom (void)
   //   before DllMain (...) returns.
   ////SK_RunOnce (SK_TLS_Acquire ());
 
+  SK_TLS *pTLS = nullptr;
+
   // This doesn't work for WOW64 executables, so
   //   basically any 32-bit program on a modern
   //     OS has to take the slow path.
 #ifdef _M_AMD64
   // ----------- Fast Path ------------
-  ULONG dwTLSIndex =
-    ReadULongAcquire (&__SK_TLS_INDEX);
-
-  SK_TLS *pTLS =
-    SK_TLS_FastTEBLookup (dwTLSIndex);
-
-  if (pTLS != nullptr) return pTLS;
+  // 
+  //  Disabled because This + Steam Overlay + Local ReShade + Cyberpunk 2077 = crash
+  // 
+#if 0
+    ULONG dwTLSIndex =
+      ReadULongAcquire (&__SK_TLS_INDEX);
+  
+    SK_TLS *pTLS =
+      SK_TLS_FastTEBLookup (dwTLSIndex);
+  
+    if (pTLS != nullptr) return pTLS;
+#endif
   // ----------- Fast Path ------------
-#else
-  SK_TLS* pTLS = nullptr;
 #endif
 
   InterlockedIncrement (&_SK_IgnoreTLSAlloc);
