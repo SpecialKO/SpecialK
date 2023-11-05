@@ -19,6 +19,8 @@
 #include <shaders/vs_colorutil.h>
 #include <shaders/uber_hdr_shader_ps.h>
 
+#include <DirectXTex/d3dx12.h>
+
 struct SK_ImGui_D3D12Ctx
 {
   SK_ComPtr <ID3D12Device>        pDevice;
@@ -690,6 +692,231 @@ ImGui_ImplDX12_CreateFontsTexture (void)
     SK_LOG0 ( ( L" Exception: %hs [%ws]", e.what (), __FUNCTIONW__ ),
                 L"ImGuiD3D12" );
   };
+}
+
+int sk_d3d12_texture_s::num_textures = 0;
+
+sk_d3d12_texture_s
+SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
+                       DirectX::ScratchImage& image )
+{
+  sk_d3d12_texture_s texture = { };
+
+  if (! _imgui_d3d12.pDevice)
+    return texture;
+
+  unsigned char* pixels = image.GetImage (0, 0, 0)->pixels;
+  int            width  = static_cast <int> (metadata.width),
+                 height = static_cast <int> (metadata.height);
+
+  try {
+    SK_ComPtr <ID3D12Resource>            pTexture;
+    SK_ComPtr <ID3D12Resource>            uploadBuffer;
+
+    SK_ComPtr <ID3D12Fence>               pFence;
+    SK_AutoHandle                         hEvent (
+                                  SK_CreateEvent ( nullptr, FALSE,
+                                                            FALSE, nullptr )
+                                                 );
+
+    SK_ComPtr <ID3D12CommandQueue>        cmdQueue;
+    SK_ComPtr <ID3D12CommandAllocator>    cmdAlloc;
+    SK_ComPtr <ID3D12GraphicsCommandList> cmdList;
+
+
+    ThrowIfFailed ( hEvent.m_h != 0 ?
+                               S_OK : E_UNEXPECTED );
+
+    // Upload texture to graphics system
+    D3D12_HEAP_PROPERTIES
+      props                      = { };
+      props.Type                 = D3D12_HEAP_TYPE_DEFAULT;
+      props.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+      props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+    D3D12_RESOURCE_DESC
+      desc                       = { };
+      desc.Dimension             = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+      desc.Alignment             = 0;
+      desc.Width                 = width;
+      desc.Height                = height;
+      desc.DepthOrArraySize      = 1;
+      desc.MipLevels             = 1;
+      desc.Format                = metadata.format;
+      desc.SampleDesc.Count      = 1;
+      desc.SampleDesc.Quality    = 0;
+      desc.Layout                = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+      desc.Flags                 = D3D12_RESOURCE_FLAG_NONE;
+
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommittedResource (
+        &props, D3D12_HEAP_FLAG_NONE,
+        &desc,  D3D12_RESOURCE_STATE_COPY_DEST,
+        nullptr, IID_PPV_ARGS (&pTexture.p))
+    );
+
+    UINT uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
+                                & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
+    UINT uploadSize  = height * uploadPitch;
+
+    desc.Dimension             = D3D12_RESOURCE_DIMENSION_BUFFER;
+    desc.Alignment             = 0;
+    desc.Width                 = uploadSize;
+    desc.Height                = 1;
+    desc.DepthOrArraySize      = 1;
+    desc.MipLevels             = 1;
+    desc.Format                = DXGI_FORMAT_UNKNOWN;
+    desc.SampleDesc.Count      = 1;
+    desc.SampleDesc.Quality    = 0;
+    desc.Layout                = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    desc.Flags                 = D3D12_RESOURCE_FLAG_NONE;
+
+    props.Type                 = D3D12_HEAP_TYPE_UPLOAD;
+    props.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommittedResource (
+        &props, D3D12_HEAP_FLAG_NONE,
+        &desc,  D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr, IID_PPV_ARGS (&uploadBuffer.p))
+    ); SK_D3D12_SetDebugName (  uploadBuffer.p,
+          L"SK D3D12 Texture Upload Buffer" );
+
+    void        *mapped = nullptr;
+    D3D12_RANGE  range  = { 0, uploadSize };
+
+    ThrowIfFailed (uploadBuffer->Map (0, &range, &mapped));
+
+    for ( int y = 0; y < height; y++ )
+    {
+      memcpy ( (void*) ((uintptr_t) mapped + y * uploadPitch),
+                                    pixels + y * width * 4,
+                                                 width * 4 );
+    }
+
+    uploadBuffer->Unmap (0, &range);
+
+    D3D12_TEXTURE_COPY_LOCATION
+      srcLocation                                    = { };
+      srcLocation.pResource                          = uploadBuffer;
+      srcLocation.Type                               = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+      srcLocation.PlacedFootprint.Footprint.Format   = metadata.format;
+      srcLocation.PlacedFootprint.Footprint.Width    = width;
+      srcLocation.PlacedFootprint.Footprint.Height   = height;
+      srcLocation.PlacedFootprint.Footprint.Depth    = 1;
+      srcLocation.PlacedFootprint.Footprint.RowPitch = uploadPitch;
+
+    D3D12_TEXTURE_COPY_LOCATION
+      dstLocation                  = { };
+      dstLocation.pResource        = pTexture;
+      dstLocation.Type             = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+      dstLocation.SubresourceIndex = 0;
+
+    D3D12_RESOURCE_BARRIER
+      barrier                        = { };
+      barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+      barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+      barrier.Transition.pResource   = pTexture;
+      barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+      barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+      barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |
+                                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateFence (
+        0, D3D12_FENCE_FLAG_NONE,
+                  IID_PPV_ARGS (&pFence.p))
+     ); SK_D3D12_SetDebugName  ( pFence.p,
+     L"SK D3D12 Texture Upload Fence");
+
+    D3D12_COMMAND_QUEUE_DESC
+      queueDesc          = { };
+      queueDesc.Type     = D3D12_COMMAND_LIST_TYPE_DIRECT;
+      queueDesc.Flags    = D3D12_COMMAND_QUEUE_FLAG_NONE;
+      queueDesc.NodeMask = 1;
+
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommandQueue (
+           &queueDesc, IID_PPV_ARGS (&cmdQueue.p))
+      ); SK_D3D12_SetDebugName (      cmdQueue.p,
+        L"SK D3D12 Texture Upload Cmd Queue");
+
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommandAllocator (
+        D3D12_COMMAND_LIST_TYPE_DIRECT,
+                    IID_PPV_ARGS (&cmdAlloc.p))
+    ); SK_D3D12_SetDebugName (     cmdAlloc.p,
+      L"SK D3D12 Texture Upload Cmd Allocator");
+
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommandList (
+        0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+           cmdAlloc, nullptr,
+                  IID_PPV_ARGS (&cmdList.p))
+    ); SK_D3D12_SetDebugName (   cmdList.p,
+    L"SK D3D12 Texture Upload Cmd List");
+
+    cmdList->CopyTextureRegion ( &dstLocation, 0, 0, 0,
+                                 &srcLocation, nullptr );
+    cmdList->ResourceBarrier   ( 1, &barrier           );
+
+    ThrowIfFailed (                     cmdList->Close ());
+
+                   cmdQueue->ExecuteCommandLists (1,
+                             (ID3D12CommandList* const*)
+                                       &cmdList);
+
+    ThrowIfFailed (
+      cmdQueue->Signal (pFence,                       1));
+                        pFence->SetEventOnCompletion (1,
+                                  hEvent.m_h);
+    SK_WaitForSingleObject       (hEvent.m_h, INFINITE);
+
+    // Create texture view
+    D3D12_SHADER_RESOURCE_VIEW_DESC
+      srvDesc                           = { };
+      srvDesc.Format                    = metadata.format;
+      srvDesc.ViewDimension             = D3D12_SRV_DIMENSION_TEXTURE2D;
+      srvDesc.Texture2D.MipLevels       = desc.MipLevels;
+      srvDesc.Texture2D.MostDetailedMip = 0;
+      srvDesc.Shader4ComponentMapping   = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+    const auto  srvDescriptorSize =
+      _imgui_d3d12.pDevice->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+    auto& descriptorHeaps =
+      _d3d12_rbk->frames_ [0].pRoot->descriptorHeaps;
+
+    auto      srvHandleCPU     =
+      descriptorHeaps.pImGui->GetCPUDescriptorHandleForHeapStart ();
+    auto      srvHandleGPU     =
+      descriptorHeaps.pImGui->GetGPUDescriptorHandleForHeapStart ();
+
+    texture.hTextureSrvCpuDescHandle.ptr =
+              srvHandleCPU.ptr + ++texture.num_textures * srvDescriptorSize;
+
+    texture.hTextureSrvGpuDescHandle.ptr =
+              srvHandleGPU.ptr +   texture.num_textures * srvDescriptorSize;
+
+    _imgui_d3d12.pDevice->CreateShaderResourceView (
+      pTexture, &srvDesc, texture.hTextureSrvCpuDescHandle
+    );
+
+    texture.pTexture =
+      pTexture.Detach ();
+
+    SK_D3D12_SetDebugName (
+      texture.pTexture, L"SK D3D12 Texture"
+    );
+  }
+
+  catch (const SK_ComException& e) {
+    SK_LOG0 ( ( L" Exception: %hs [%ws]", e.what (), __FUNCTIONW__ ),
+                L"ImGuiD3D12" );
+  };
+
+  return texture;
 }
 
 bool
@@ -1666,6 +1893,10 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   auto pCommandList =
     stagingFrame.pCmdList.p;
 
+  ///
+  pCommandList->AddRef ();
+  ///
+
   // Make sure all commands for this command allocator have finished executing before reseting it
   if (stagingFrame.fence->GetCompletedValue () < stagingFrame.fence.value)
   {
@@ -2199,7 +2430,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       ThrowIfFailed (
         _pDevice->CreateDescriptorHeap (
           std::array < D3D12_DESCRIPTOR_HEAP_DESC,                1 >
-            {          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,    swapDesc1.BufferCount,
+            {          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,    swapDesc1.BufferCount * 1024,
                        D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 }.data (),
                                        IID_PPV_ARGS (&descriptorHeaps.pImGui.p)));
                               SK_D3D12_SetDebugName ( descriptorHeaps.pImGui.p,

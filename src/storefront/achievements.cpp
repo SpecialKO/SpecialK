@@ -23,6 +23,7 @@
 #include <SpecialK/storefront/achievements.h>
 #include <SpecialK/storefront/epic.h>
 #include <SpecialK/resource.h>
+#include <imgui/backends/imgui_d3d12.h> // For D3D12 Texture Mgmt
 
 #include <imgui/font_awesome.h>
 
@@ -1713,8 +1714,11 @@ SK_AchievementManager::drawPopups (void)
 
       if (it->icon_texture != nullptr)
       {
-        std::exchange (
-            it->icon_texture, nullptr)->Release ();
+        if (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12)
+        {
+          std::exchange (
+              it->icon_texture, nullptr)->Release ();
+        }
       }
 
       removed = true;
@@ -1777,8 +1781,16 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ( ( static_cast <int> (rb.api) &
-         static_cast <int> (SK_RenderAPI::D3D11) ) != 0x0 )
+  const bool bIsNativeOrLayeredD3D11 =
+    ( static_cast <int> (rb.api) &
+      static_cast <int> (SK_RenderAPI::D3D11) ) != 0x0;
+
+  const bool bIsNativeOrLayeredD3D12 =
+    ( static_cast <int> (rb.api) &
+      static_cast <int> (SK_RenderAPI::D3D12) ) != 0x0;
+
+  if ( bIsNativeOrLayeredD3D11 ||
+       bIsNativeOrLayeredD3D12 )
   {
     DirectX::TexMetadata  metadata = {};
     DirectX::ScratchImage image    = {};
@@ -1790,8 +1802,7 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
          )
        )
     {
-      if ( ( static_cast <int> (rb.api) &
-             static_cast <int> (SK_RenderAPI::D3D11) ) != 0x0 )
+      if (bIsNativeOrLayeredD3D11)
       {
         SK_ComPtr <ID3D11Resource> pIconTex;
 
@@ -1816,6 +1827,18 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
               pSRV;
               pSRV.p->AddRef ();
           }
+        }
+      }
+
+      else
+      {
+        auto texture =
+          SK_D3D12_CreateDXTex (metadata, image);
+
+        if (texture.pTexture != nullptr)
+        {
+          popup->icon_texture =
+            (IUnknown *)(texture.hTextureSrvGpuDescHandle.ptr);
         }
       }
     }

@@ -1,4 +1,10 @@
-﻿23.11.5.1
+﻿23.11.5.2
+=========
+ + Added D3D12 achievement icons for Steam games
+ + Added smoothstep near-black and lowered HDR10 black level to 0 when using SK's
+     HDR10 output mode (all tonemaps except Raw Framebuffer).
+
+23.11.5.1
 =========
  + Added some latency measurements back when HW Flip Queue is active, but with
      avg / max frame queue time replaced with 'HW Flip Q'
