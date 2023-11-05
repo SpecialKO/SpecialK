@@ -1,4 +1,9 @@
-﻿23.11.5
+﻿23.11.5.1
+=========
+ + Added some latency measurements back when HW Flip Queue is active, but with
+     avg / max frame queue time replaced with 'HW Flip Q'
+
+23.11.5
 =======
  + Removed various latency measurements that are broken on systems with WDDM3.0
      Hardware Flip Queue (Recent NVIDIA Drivers)
