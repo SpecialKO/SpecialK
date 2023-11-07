@@ -633,6 +633,9 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage& src_image, const wchar_t* wszFile
   return
     ( encodeResult == AVIF_RESULT_OK );
 #else
+  std::ignore = src_image;
+  std::ignore = wszFilePath;
+
   return false;
 #endif
 }
