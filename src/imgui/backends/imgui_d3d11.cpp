@@ -2030,6 +2030,12 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 
   CreateStateblock (_pDeviceCtx, sb);
 
+  if (config.reshade.is_addon && config.reshade.draw_first)
+  {
+    SK_ComQIPtr <IDXGISwapChain1>       pSwapChain1 (_pSwapChain.p);
+    SK_ReShadeAddOn_RenderEffectsD3D11 (pSwapChain1.p);
+  }
+
   _pDeviceCtx->OMSetRenderTargetsAndUnorderedAccessViews (0, nullptr, nullptr, 0, 0, nullptr, nullptr);
 
   // Not necessarily having anything to do with HDR, this is a placeholder for now.

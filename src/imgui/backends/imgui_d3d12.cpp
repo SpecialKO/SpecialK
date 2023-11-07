@@ -1893,10 +1893,6 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   auto pCommandList =
     stagingFrame.pCmdList.p;
 
-  ///
-  pCommandList->AddRef ();
-  ///
-
   // Make sure all commands for this command allocator have finished executing before reseting it
   if (stagingFrame.fence->GetCompletedValue () < stagingFrame.fence.value)
   {
@@ -1961,9 +1957,9 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
   if (config.reshade.is_addon && config.reshade.draw_first)
   {
-    SK_ComQIPtr <IDXGISwapChain1>        pSwapChain1 (_pSwapChain);
+    SK_ComQIPtr <IDXGISwapChain1>         pSwapChain1 (_pSwapChain);
     uiFenceVal =
-      SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p, stagingFrame.reshade_fence);
+      SK_ReShadeAddOn_RenderEffectsD3D12 (pSwapChain1.p, stagingFrame.pRenderOutput, stagingFrame.reshade_fence);
 
     if (uiFenceVal != 0)
     {
@@ -2083,18 +2079,6 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     {
       stagingFrame.fence.value =
         sync_value;
-    }
-  }
-
-  if (config.reshade.is_addon && (! config.reshade.draw_first))
-  {
-    SK_ComQIPtr <IDXGISwapChain1>        pSwapChain1 (_pSwapChain);
-    uiFenceVal =
-      SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p, stagingFrame.reshade_fence);
-  
-    if (uiFenceVal != 0)
-    {
-      _pCommandQueue->Wait (stagingFrame.reshade_fence, uiFenceVal);
     }
   }
 

@@ -227,12 +227,28 @@ struct dxgi_rtv_s {
   reshade::api::resource_view rtv    = { 0 };
   reshade::api::fence         fence  = { 0 };
 
-  bool isFinished (void) { return device->get_completed_fence_value (fence) == 1; }
-  bool isValid (void)    { return device       != nullptr &&
-                                  rtv.handle   != 0       &&
-                                  fence.handle != 0; }
-  bool waitForGPU (void) { while (device->get_completed_fence_value (fence) < 1) { SK_Sleep (1); } return true; }
+  static
+  SK_LazyGlobal <std::mutex> fence_sync_mutex;
+
+  bool isFinished (void) const { return device->get_completed_fence_value (fence) == 1; }
+  bool isValid    (void) const { return device       != nullptr &&
+                                        rtv.handle   != 0       &&
+                                        fence.handle != 0; }
+  bool waitForGPU (void) const
+  {
+    std::lock_guard <std::mutex>
+        _lockFences (dxgi_rtv_s::fence_sync_mutex);
+
+    while (device->get_completed_fence_value (fence) < 1)
+    {
+      SK_Sleep (0);
+    }
+    
+    return true;
+  }
 };
+
+SK_LazyGlobal <std::mutex> dxgi_rtv_s::fence_sync_mutex;
 
 Concurrency::concurrent_queue <dxgi_rtv_s> dxgi_rtvs;
 
@@ -411,6 +427,7 @@ SK_ReShadeAddOn_DestroySwapChain (reshade::api::swapchain *swapchain)
       break;
   }
 }
+
 
 void
 __cdecl
@@ -612,11 +629,9 @@ SK_ReShadeAddOn_FinishFrameDXGI (IDXGISwapChain1 *pSwapChain)
   }
 }
 
-UINT64
-SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain, ID3D12Fence* pFence)
+bool
+SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
 {
-  UINT64 uiFenceVal = 0;
-
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
 
@@ -635,11 +650,7 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain, ID3D12Fence* pFe
       runtime->get_command_queue ();
 
 
-    __time64_t now = 0ULL;
-    _time64  (&now);
-    
-    extern __time64_t                                                       __SK_DLL_AttachTime;
-    SK_ReShadeAddOn_CleanupRTVs (runtime, sk::narrow_cast <uint32_t> (now - __SK_DLL_AttachTime) < 30);
+    SK_ReShadeAddOn_CleanupRTVs (runtime, false);
 
 
     if (has_effects)
@@ -674,6 +685,93 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain, ID3D12Fence* pFe
       cmd_list->barrier ( backbuffer, reshade::api::resource_usage::render_target,
                                       reshade::api::resource_usage::present );
 
+      cmd_queue->flush_immediate_command_list ();
+
+      if (cmd_queue->signal (dxgi_rtv.fence, 1))
+      {
+        dxgi_rtv.device = device;
+
+        dxgi_rtvs.push (dxgi_rtv);
+
+        return true;
+      }
+
+      else
+      {
+        SK_LOGs0 (L"ReShadeExt", L"Failed to signal RTV's fence!");
+
+        cmd_queue->flush_immediate_command_list ();
+        cmd_queue->wait_idle ();
+
+        device->destroy_fence         (dxgi_rtv.fence);
+        device->destroy_resource_view (dxgi_rtv.rtv);
+
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+UINT64
+SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource* pResource, ID3D12Fence* pFence)
+{
+  static UINT64 uiFenceVal = 0;
+
+  auto runtime =
+    SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
+
+
+  if (runtime != nullptr)
+  {
+    const bool has_effects =
+      runtime->get_effects_state ();
+
+    const auto device =
+      runtime->get_device ();
+
+    const auto cmd_queue =
+      runtime->get_command_queue ();
+
+
+    SK_ReShadeAddOn_CleanupRTVs (runtime, pFence == nullptr);
+
+
+    if (has_effects)
+    {
+      dxgi_rtv_s dxgi_rtv;
+
+      auto buffer =
+        reshade::api::resource { (uint64_t)pResource };
+
+      auto rtvDesc =
+        reshade::api::resource_view_desc (static_cast <reshade::api::format> (pResource->GetDesc ().Format));
+
+      if (! device->create_fence (0, reshade::api::fence_flags::none, &dxgi_rtv.fence))
+        return false;
+
+      if (! device->create_resource_view (buffer, reshade::api::resource_usage::render_target, rtvDesc, &dxgi_rtv.rtv))
+      {
+        device->destroy_fence (dxgi_rtv.fence);
+        return false;
+      }
+
+      auto cmd_list =
+        cmd_queue->get_immediate_command_list ();
+
+      cmd_list->barrier ( buffer, reshade::api::resource_usage::present,
+                                  reshade::api::resource_usage::render_target );
+
+      runtime->render_effects (
+        cmd_list, dxgi_rtv.rtv, { 0 }
+      );
+
+      cmd_list->barrier ( buffer, reshade::api::resource_usage::render_target,
+                                  reshade::api::resource_usage::present );
+
+      cmd_queue->flush_immediate_command_list ();
+
       if (cmd_queue->signal (dxgi_rtv.fence, 1))
       {
         dxgi_rtv.device = device;
@@ -683,6 +781,7 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain, ID3D12Fence* pFe
         if (pFence != nullptr)
         {
           cmd_queue->signal (reshade::api::fence { (uint64_t)pFence }, ++uiFenceVal);
+
           return uiFenceVal;
         }
       }
@@ -691,6 +790,7 @@ SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain, ID3D12Fence* pFe
       {
         SK_LOGs0 (L"ReShadeExt", L"Failed to signal RTV's fence!");
 
+        cmd_queue->flush_immediate_command_list ();
         cmd_queue->wait_idle ();
 
         device->destroy_fence         (dxgi_rtv.fence);

@@ -1939,12 +1939,6 @@ SK_ImGui_DrawD3D12 (IDXGISwapChain* This)
     io.DisplayFramebufferScale.y = static_cast <float> (swapDesc1.Height);
 
     _d3d12_rbk->present ((IDXGISwapChain3 *)This);
-
-    //if (config.reshade.is_addon && (! config.reshade.draw_first))
-    //{
-    //  SK_ComQIPtr <IDXGISwapChain1>      pSwapChain1 (This);
-    //  SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p);
-    //}
   }
 }
 
@@ -2115,19 +2109,7 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
           }
         }
 
-        if (config.reshade.is_addon && config.reshade.draw_first)
-        {
-          SK_ComQIPtr <IDXGISwapChain1>      pSwapChain1 (This);
-          SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p);
-        }
-
         _d3d11_rbk->present (This);
-
-        if (config.reshade.is_addon && (! config.reshade.draw_first))
-        {
-          SK_ComQIPtr <IDXGISwapChain1>      pSwapChain1 (This);
-          SK_ReShadeAddOn_RenderEffectsDXGI (pSwapChain1.p);
-        }
       }
     }
   }

@@ -35,10 +35,11 @@ SK_ReShade_GetDLL (void);
 void
 SK_ReShade_LoadIfPresent (void);
 
-UINT64 SK_ReShadeAddOn_RenderEffectsDXGI (IDXGISwapChain1 *pSwapChain, ID3D12Fence *pFence = nullptr);
-bool   SK_ReShadeAddOn_Init              (HMODULE          reshade_module = nullptr);
-void   SK_ReShadeAddOn_ActivateOverlay   (bool             activate);
-bool   SK_ReShadeAddOn_IsOverlayActive   (void);
+UINT64 SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource *pResource, ID3D12Fence *pFence);
+bool   SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain); // TODO: Make generic to post-process non-SwapChain buffers
+bool   SK_ReShadeAddOn_Init               (HMODULE          reshade_module = nullptr);
+void   SK_ReShadeAddOn_ActivateOverlay    (bool             activate);
+bool   SK_ReShadeAddOn_IsOverlayActive    (void);
 
 reshade::api::effect_runtime*
      SK_ReShadeAddOn_GetRuntimeForHWND      (HWND hWnd);
