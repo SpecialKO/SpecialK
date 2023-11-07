@@ -1828,6 +1828,11 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         un_srgb;
                         un_srgb.InitializeFromImage (raw_img);
 
+                      if (hdr)
+                      {
+                        SK_Screenshot_SaveAVIF (un_srgb, wszAbsolutePathToLossless);
+                      }
+
                       HRESULT hrSaveToWIC =     un_srgb.GetImages () ?
                                 SaveToWICFile (*un_srgb.GetImages (), WIC_FLAGS_DITHER,
                                         GetWICCodec (hdr ? WIC_CODEC_WMP :

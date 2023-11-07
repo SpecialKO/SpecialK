@@ -22,13 +22,6 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/render/d3d12/d3d12_screenshot.h>
 
-#ifdef _USE_AVIF
-#include <../depends/include/DirectXTex/d3dx12.h>
-#pragma comment (lib, R"(depends\lib\avif\x64\avif.lib)")
-#endif
-
-#include <../depends/include/avif/avif.h>
-
 #ifndef __SK_SUBSYSTEM__
 #define __SK_SUBSYSTEM__ L"D3D12SShot"
 #endif
@@ -1724,42 +1717,40 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                   struct ParamsPQ
                   {
-                    float N, M;
-                    float C1, C2, C3;
+                    XMVECTOR N, M;
+                    XMVECTOR C1, C2, C3;
+                    XMVECTOR MaxPQ;
                   };
                   
                   static const ParamsPQ PQ =
                   {
-                    2610.0 / 4096.0 / 4.0,   // N
-                    2523.0 / 4096.0 * 128.0, // M
-                    3424.0 / 4096.0,         // C1
-                    2413.0 / 4096.0 * 32.0,  // C2
-                    2392.0 / 4096.0 * 32.0,  // C3
+                    XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
+                    XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
+                    XMVectorReplicate (3424.0 / 4096.0),         // C1
+                    XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
+                    XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
+                    XMVectorReplicate (125.0),
                   };
 
                   auto PQToLinear = [](XMVECTOR N)
                   {
                     XMVECTOR ret;
 
-                    ret.m128_f32 [0] =
-                      std::pow (N.m128_f32 [0], 1.0f / PQ.M);
-                    ret.m128_f32 [1] =
-                      std::pow (N.m128_f32 [1], 1.0f / PQ.M);
-                    ret.m128_f32 [2] =
-                      std::pow (N.m128_f32 [2], 1.0f / PQ.M);
+                    ret =
+                      XMVectorPow (N, XMVectorDivide (g_XMOne, PQ.M));
 
                     XMVECTOR nd;
 
-                    nd.m128_f32 [0] = std::max (ret.m128_f32 [0] - PQ.C1, 0.0f) /
-                                                                  (PQ.C2 - (PQ.C3 * ret.m128_f32 [0]));
-                    nd.m128_f32 [1] = std::max (ret.m128_f32 [1] - PQ.C1, 0.0f) /
-                                                                  (PQ.C2 - (PQ.C3 * ret.m128_f32 [1]));
-                    nd.m128_f32 [2] = std::max (ret.m128_f32 [2] - PQ.C1, 0.0f) /
-                                                                  (PQ.C2 - (PQ.C3 * ret.m128_f32 [2]));
+                    nd =
+                      XMVectorDivide (
+                        XMVectorMax (XMVectorSubtract (ret, PQ.C1), g_XMZero),
+                                     XMVectorSubtract (     PQ.C2,
+                              XMVectorMultiply (PQ.C3, ret)));
 
-                    ret.m128_f32 [0] = std::pow (nd.m128_f32 [0], 1.0f / PQ.N) * 125.0f;
-                    ret.m128_f32 [1] = std::pow (nd.m128_f32 [1], 1.0f / PQ.N) * 125.0f;
-                    ret.m128_f32 [2] = std::pow (nd.m128_f32 [2], 1.0f / PQ.N) * 125.0f;
+                    ret =
+                      XMVectorMultiply (
+                        XMVectorPow (nd, XMVectorDivide (g_XMOne, PQ.N)), PQ.MaxPQ
+                      );
 
                     return ret;
                   };
@@ -2219,6 +2210,11 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         un_srgb;
                         un_srgb.InitializeFromImage (raw_img);
 
+                      if (hdr)
+                      {
+                        SK_Screenshot_SaveAVIF (un_srgb, wszAbsolutePathToLossless);
+                      }
+
                       if (hdr && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT)
                       {
                         auto hdr10_metadata        = un_srgb.GetMetadata ();
@@ -2313,86 +2309,6 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         else
                           hdr = false; // Couldn't undo HDR10, don't store a .jxr
                       }
-
-#ifdef _USE_AVIF
-                      if (hdr)
-                      {
-                        uint32_t width  = sk::narrow_cast <uint32_t> (un_srgb.GetMetadata ().width);
-                        uint32_t height = sk::narrow_cast <uint32_t> (un_srgb.GetMetadata ().height);
-
-                        avifRWData   avifOutput = AVIF_DATA_EMPTY;
-                        avifRGBImage rgb        = { };
-                        avifImage*   image      =
-                          avifImageCreate (width, height, 12, AVIF_PIXEL_FORMAT_YUV444);
-
-                        image->yuvRange                = AVIF_RANGE_FULL;
-                        image->colorPrimaries          = AVIF_COLOR_PRIMARIES_BT709;
-                        image->transferCharacteristics = AVIF_TRANSFER_CHARACTERISTICS_LINEAR;
-                        image->matrixCoefficients      = AVIF_MATRIX_COEFFICIENTS_BT709;
-
-                        avifRGBImageSetDefaults    (&rgb, image);
-
-                        rgb.depth       = 16;
-                        rgb.ignoreAlpha = true;
-                        rgb.isFloat     = false;//true;
-                        rgb.format      = AVIF_RGB_FORMAT_RGBA;
-
-                        avifRGBImageAllocatePixels (&rgb);
-
-                        memcpy (rgb.pixels, un_srgb.GetPixels (), un_srgb.GetPixelsSize ());
-
-                        for ( UINT j  = 0                          ;
-                                   j < pFrameData->PackedDstPitch  ;
-                                   j += 8 )
-                          {
-                            glm::vec4 color =
-                              glm::unpackHalf4x16 (*((uint64 *)&(rgb.pixels [j])));
-
-                            ((uint16_t *)&(rgb.pixels [j]))[0] = (uint16_t)((float)UINT16_MAX * (glm::clamp (color.r, 0.0f, 125.0f)/125.0f));
-                            ((uint16_t *)&(rgb.pixels [j]))[1] = (uint16_t)((float)UINT16_MAX * (glm::clamp (color.g, 0.0f, 125.0f)/125.0f));
-                            ((uint16_t *)&(rgb.pixels [j]))[2] = (uint16_t)((float)UINT16_MAX * (glm::clamp (color.b, 0.0f, 125.0f)/125.0f));
-                            ((uint16_t *)&(rgb.pixels [j]))[3] = (uint16_t)((float)UINT16_MAX * (glm::clamp (color.a, 0.0f, 125.0f)/125.0f));
-                          }
-
-                        avifResult rgbToYuvResult = avifImageRGBToYUV      (image, &rgb);
-
-                        avifEncoder *encoder = avifEncoderCreate ();
-
-                        encoder->quality         = AVIF_QUALITY_LOSSLESS;
-                        encoder->qualityAlpha    = AVIF_QUALITY_LOSSLESS;
-                        encoder->timescale       = 1;
-                        encoder->repetitionCount = AVIF_REPETITION_COUNT_INFINITE;
-                        encoder->maxThreads      = 0;
-                        encoder->speed           = AVIF_SPEED_DEFAULT;
-
-                        avifResult addResult    = avifEncoderAddImage (encoder, image, 1, AVIF_ADD_IMAGE_FLAG_SINGLE);
-                        avifResult encodeResult = avifEncoderFinish   (encoder, &avifOutput);
-
-                        wchar_t    wszAVIFPath [MAX_PATH + 2] = { };
-                        wcsncpy_s (wszAVIFPath, wszAbsolutePathToLossless, MAX_PATH);
-
-                        SK_LOGi0 (L"rgbToYUV: %d, addImage: %d, encode: %d", rgbToYuvResult, addResult, encodeResult);
-
-                        if (encodeResult == 0)
-                        {
-                          PathRemoveExtensionW (wszAVIFPath);
-                          PathAddExtensionW    (wszAVIFPath, L".avif");
-
-                          FILE* fAVIF =
-                            _wfopen (wszAVIFPath, L"wb");
-
-                          if (fAVIF != nullptr)
-                          {
-                            fwrite (avifOutput.data, 1, avifOutput.size, fAVIF);
-                            fclose (fAVIF);
-                          }
-                        }
-
-                        avifImageDestroy       (image);
-                        avifEncoderDestroy     (encoder);
-                        avifRGBImageFreePixels (&rgb);
-                      }
-#endif
 
                       HRESULT hrSaveToWIC =   un_srgb.GetImages () ?
                               SaveToWICFile (*un_srgb.GetImages (), WIC_FLAGS_DITHER,

@@ -1,4 +1,11 @@
-﻿23.11.7
+﻿23.11.7.1
+=========
+ + Added experimental .avif screenshot support for 64-bit HDR games
+
+    >> This format is supported by Chrome (displayable in HDR) and
+         Firefox (SDR only), Edge does not support it, nor does HDR + WCG.
+
+23.11.7
 =======
  + Removed dgVoodoo2 D3D12 init. workaround that causes issues on Intel drivers
 

@@ -438,3 +438,201 @@ SK_Screenshot::SK_Screenshot (bool clipboard_only)
   framebuffer.AllowCopyToClipboard = bCopyToClipboard;
   framebuffer.AllowSaveToDisk      = bSaveToDisk;
 }
+
+//#define _USE_AVIF
+#ifdef _USE_AVIF
+#include <../depends/include/DirectXTex/d3dx12.h>
+#pragma comment (lib, R"(depends\lib\avif\x64\avif.lib)")
+#endif
+
+#include <../depends/include/avif/avif.h>
+
+using namespace DirectX;
+
+bool
+SK_Screenshot_SaveAVIF (DirectX::ScratchImage& src_image, const wchar_t* wszFilePath)
+{
+#ifdef _USE_AVIF
+  uint32_t width  = sk::narrow_cast <uint32_t> (src_image.GetMetadata ().width);
+  uint32_t height = sk::narrow_cast <uint32_t> (src_image.GetMetadata ().height);
+  
+  avifRWData   avifOutput = AVIF_DATA_EMPTY;
+  avifRGBImage rgb        = { };
+  avifImage*   image      =
+    avifImageCreate (width, height, 10, AVIF_PIXEL_FORMAT_YUV444);
+  
+  image->yuvRange = AVIF_RANGE_FULL;
+
+  switch (src_image.GetMetadata ().format)
+  {
+    case DXGI_FORMAT_R10G10B10A2_UNORM:
+      image->colorPrimaries          = AVIF_COLOR_PRIMARIES_BT2020;
+      image->transferCharacteristics = AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084;
+      image->matrixCoefficients      = AVIF_MATRIX_COEFFICIENTS_BT2020_NCL;
+      break;
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:
+      image->colorPrimaries          = AVIF_COLOR_PRIMARIES_BT709;
+      image->transferCharacteristics = AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084;
+      image->matrixCoefficients      = AVIF_MATRIX_COEFFICIENTS_IDENTITY;
+      break;
+    default:
+      return false;
+  }
+  
+  avifRGBImageSetDefaults (&rgb, image);
+  
+  rgb.depth       = src_image.GetMetadata ().format == DXGI_FORMAT_R10G10B10A2_UNORM ? 10 : 16;
+  rgb.ignoreAlpha = true;
+  rgb.isFloat     = false;
+  rgb.format      = AVIF_RGB_FORMAT_RGB;
+  
+  avifRGBImageAllocatePixels (&rgb);
+  
+  switch (src_image.GetMetadata ().format)
+  {
+    case DXGI_FORMAT_R10G10B10A2_UNORM:
+    {
+      uint16_t* rgb_pixels = (uint16_t *)rgb.pixels;
+
+      EvaluateImage ( src_image.GetImages     (),
+                      src_image.GetImageCount (),
+                      src_image.GetMetadata   (),
+      [&](const DirectX::XMVECTOR* pixels, size_t width, size_t y)
+      {
+        UNREFERENCED_PARAMETER(y);
+      
+        for (size_t j = 0; j < width; ++j)
+        {
+          DirectX::XMVECTOR v = *pixels++;
+      
+          *(rgb_pixels++) = static_cast <uint16_t> (v.m128_f32 [0] * 1023.0f);
+          *(rgb_pixels++) = static_cast <uint16_t> (v.m128_f32 [1] * 1023.0f);
+          *(rgb_pixels++) = static_cast <uint16_t> (v.m128_f32 [2] * 1023.0f);
+        }
+      } );
+    } break;
+
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:
+    {
+      static const DirectX::XMMATRIX c_from709to2020 =
+      {
+        { 0.627225305694944,  0.329476882715808,  0.0432978115892484, 0.0, },
+        { 0.0690418812810714, 0.919605681354755,  0.0113524373641739, 0.0, },
+        { 0.0163911702607078, 0.0880887513437058, 0.895520078395586,  0.0  },
+        { 0.0,                0.0,                0.0,                1.0  },
+      };
+
+      static const DirectX::XMMATRIX c_fromXYZto2020 =
+      {
+        {  1.7166511880, -0.3556707838, -0.2533662814, 0.0 },
+        { -0.6666843518,  1.6164812366,  0.0157685458, 0.0 },
+        {  0.0176398574, -0.0427706133,  0.9421031212, 0.0 },
+        {  0.0,           0.0,           0.0,          1.0 },
+      };
+
+      struct ParamsPQ
+      {
+        XMVECTOR N, M;
+        XMVECTOR C1, C2, C3;
+        XMVECTOR MaxPQ;
+      };
+      
+      static const ParamsPQ PQ =
+      {
+        XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
+        XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
+        XMVectorReplicate (3424.0 / 4096.0),         // C1
+        XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
+        XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
+        XMVectorReplicate (125.0),
+      };
+                        
+      auto LinearToPQ = [](XMVECTOR N)
+      {
+        XMVECTOR ret;
+      
+        ret =
+          XMVectorPow (N, PQ.N);
+        
+        XMVECTOR nd =
+          XMVectorDivide (
+             XMVectorAdd (  PQ.C1, XMVectorMultiply (PQ.C2, ret)),
+             XMVectorAdd (g_XMOne, XMVectorMultiply (PQ.C3, ret))
+          );
+
+        return
+          XMVectorPow (nd, PQ.M);
+      };
+
+      uint16_t* rgb_pixels = (uint16_t *)rgb.pixels;
+
+      EvaluateImage ( src_image.GetImages     (),
+                      src_image.GetImageCount (),
+                      src_image.GetMetadata   (),
+      [&](const XMVECTOR* pixels, size_t width, size_t y)
+      {
+        UNREFERENCED_PARAMETER(y);
+        
+        for (size_t j = 0; j < width; ++j) 
+        {
+          XMVECTOR  value = XMVectorDivide (pixels [j], PQ.MaxPQ);
+          XMVECTOR nvalue = LinearToPQ (value);
+                    value = XMVectorSelect (value, nvalue, g_XMSelect1110);
+
+          *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [0] * 65535.0f);
+          *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [1] * 65535.0f);
+          *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [2] * 65535.0f);
+        }
+      } );
+    } break;
+  }
+  
+  avifResult rgbToYuvResult = avifImageRGBToYUV (image, &rgb);
+  
+  avifEncoder *encoder = avifEncoderCreate ();
+  
+  encoder->quality         = AVIF_QUALITY_LOSSLESS;
+  encoder->qualityAlpha    = AVIF_QUALITY_LOSSLESS;
+  encoder->timescale       = 1;
+  encoder->repetitionCount = AVIF_REPETITION_COUNT_INFINITE;
+  encoder->maxThreads      = 3;
+  encoder->speed           = src_image.GetMetadata ().format == DXGI_FORMAT_R10G10B10A2_UNORM ? 9 : 8;
+  
+  avifResult addResult    = avifEncoderAddImage (encoder, image, 1, AVIF_ADD_IMAGE_FLAG_SINGLE);
+  avifResult encodeResult = avifEncoderFinish   (encoder, &avifOutput);
+  
+  wchar_t    wszAVIFPath [MAX_PATH + 2] = { };
+  wcsncpy_s (wszAVIFPath, wszFilePath, MAX_PATH);
+  
+  if ( rgbToYuvResult != AVIF_RESULT_OK ||
+       addResult      != AVIF_RESULT_OK ||
+       encodeResult   != AVIF_RESULT_OK )
+  {
+    SK_LOGi0 (L"rgbToYUV: %d, addImage: %d, encode: %d", rgbToYuvResult, addResult, encodeResult);
+  }
+  
+  if (encodeResult == AVIF_RESULT_OK)
+  {
+    PathRemoveExtensionW (wszAVIFPath);
+    PathAddExtensionW    (wszAVIFPath, L".avif");
+  
+    FILE* fAVIF =
+      _wfopen (wszAVIFPath, L"wb");
+  
+    if (fAVIF != nullptr)
+    {
+      fwrite (avifOutput.data, 1, avifOutput.size, fAVIF);
+      fclose (fAVIF);
+    }
+  }
+  
+  avifImageDestroy       (image);
+  avifEncoderDestroy     (encoder);
+  avifRGBImageFreePixels (&rgb);
+
+  return
+    ( encodeResult == AVIF_RESULT_OK );
+#else
+  return false;
+#endif
+}

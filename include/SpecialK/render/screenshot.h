@@ -222,3 +222,5 @@ protected:
 
 void SK_Steam_CatastropicScreenshotFail (void);
 void SK_Screenshot_PlaySound            (void);
+
+bool SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFilePath);
