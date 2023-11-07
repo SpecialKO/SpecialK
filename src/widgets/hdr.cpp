@@ -1063,13 +1063,13 @@ public:
     static SKTL_BidirectionalHashMap <unsigned char, int>
       __SK_HDR_ColorSpaceMap =
       {
-        {   0ui8, 0 }, //L"  sRGB Passthrough\t(SDR -> HDR or Native scRGB HDR) "
+        {   0ui8, 0 }, //L"  sRGB Inverse\t\t\t(SDR -> HDR or Native scRGB HDR) "
         {   2ui8, 1 }, //L"HDR10 Passthrough\t(Native HDR)" },
         { 255ui8, 2 }, //L"  Raw Framebuffer\t(Requires ReShade to Process)" }
       };
 
     static const char* __SK_HDR_ColorSpaceComboStr =
-      (const char *)u8"  sRGB Passthrough\t(SDR -> HDR or Native scRGB HDR) \0"
+      (const char *)u8"  sRGB Inverse\t\t\t(SDR -> HDR or Native scRGB HDR) \0"
                     u8"HDR10 Passthrough\t(Native HDR10)\0"
                     u8"     Raw Framebuffer\t(Requires ReShade to Process)\0\0";
 
@@ -1167,7 +1167,7 @@ public:
 
       ImGui::SameLine ();
 
-      if (ImGui::RadioButton ("scRGB HDR (16-bit)###SK_HDR_scRGB", &sel, 2))
+      if (ImGui::RadioButton ("scRGB HDR (16-bpc)###SK_HDR_scRGB", &sel, 2))
       {
         // Insert games that need specific settings here...
         if (SK_GetCurrentGameID () == SK_GAME_ID::Disgaea5)

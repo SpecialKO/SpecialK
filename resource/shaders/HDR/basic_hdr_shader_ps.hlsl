@@ -348,7 +348,7 @@ float4 main (PS_INPUT input) : SV_TARGET
          input.color.x > 0.0125f + FLT_EPSILON )
     {
       hdr_color.rgb = LinearToLogC (hdr_color.rgb);
-      hdr_color.rgb =        Contrast     (hdr_color.rgb,
+      hdr_color.rgb = Contrast     (hdr_color.rgb,
               0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f,
                        (sdrLuminance_NonStd / 0.0125f) / 100.0f);
       hdr_color.rgb = LogCToLinear (hdr_color.rgb);
@@ -453,29 +453,10 @@ float4 main (PS_INPUT input) : SV_TARGET
     }
   }
     
-#if 0
-  float3 vNormalColor =
-    normalize (hdr_color.rgb);
-
-  float fLuma =
-    max (Luminance (vNormalColor), 0.0f);
-
-  hdr_color.rgb *=
-#ifdef INCLUDE_HDR10
-    uiToneMapper != TONEMAP_HDR10_to_scRGB ?
-#endif
-    (                          //hdrPaperWhite +
-      fLuma * (input.color.xxx/*-hdrPaperWhite*/))
-#ifdef INCLUDE_HDR10
-                        :        hdrPaperWhite
-#endif
-    ;
-#else
   hdr_color.rgb *=
     input.color.xxx;
 
   float fLuma = 0.0f;
-#endif
 
 #ifdef INCLUDE_VISUALIZATIONS
   if (visualFunc.x != VISUALIZE_NONE) // Expand Gamut before visualization
