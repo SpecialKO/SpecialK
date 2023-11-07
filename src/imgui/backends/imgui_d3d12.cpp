@@ -80,8 +80,6 @@ void
 ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
               SK_D3D12_RenderCtx::FrameCtx* pFrame )
 {
-  std::scoped_lock <SK_Thread_HybridSpinlock> lock (_d3d12_rbk->_ctx_lock);
-
   // Avoid rendering when minimized
   if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
     return;
@@ -1738,8 +1736,6 @@ _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList)
 void
 SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource* pResource)
 {
-  std::scoped_lock <SK_Thread_HybridSpinlock> lock (_d3d12_rbk->_ctx_lock);
-
   if (_d3d12_rbk->frames_.empty ())
   {
     SK_LOGi0 (L"Cannot perform HDR CopyBuffer because ImGui D3D12 Render Backend is not initialized yet...");
@@ -1830,8 +1826,6 @@ SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource
 void
 SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 {
-  std::scoped_lock <SK_Thread_HybridSpinlock> lock (_ctx_lock);
-
   if (! _pDevice.p || frames_.empty ())
   {
     if (! init (pSwapChain, _pCommandQueue.p))
@@ -2115,8 +2109,6 @@ SK_D3D12_RenderCtx::FrameCtx::begin_cmd_list (const SK_ComPtr <ID3D12PipelineSta
 bool
 SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 {
-  std::scoped_lock <SK_Thread_HybridSpinlock> lock (_d3d12_rbk->_ctx_lock);
-
   assert (bCmdListRecording);
 
   if (pCmdList == nullptr)
@@ -2156,8 +2148,6 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 bool
 SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void) noexcept
 {
-  std::scoped_lock <SK_Thread_HybridSpinlock> lock (_d3d12_rbk->_ctx_lock);
-
   // Flush command list, to avoid it still referencing resources that may be destroyed after this call
   if (bCmdListRecording)
   {
@@ -2305,9 +2295,6 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 bool
 SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pCommandQueue)
 {
-  static SK_Thread_HybridSpinlock                   _init_lock;
-  std::scoped_lock <SK_Thread_HybridSpinlock> lock (_init_lock);
-
   // Turn HDR off in dgVoodoo2 so it does not crash
 #ifdef _M_IX86
   if ( __SK_HDR_16BitSwap ||
