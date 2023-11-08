@@ -450,7 +450,7 @@ SK_Screenshot::SK_Screenshot (bool clipboard_only)
 using namespace DirectX;
 
 bool
-SK_Screenshot_SaveAVIF (DirectX::ScratchImage& src_image, const wchar_t* wszFilePath)
+SK_Screenshot_SaveAVIF (DirectX::ScratchImage& src_image, const wchar_t* wszFilePath, uint16_t max_cll, uint16_t max_pall)
 {
 #ifdef _USE_AVIF
   uint32_t width  = sk::narrow_cast <uint32_t> (src_image.GetMetadata ().width);
@@ -582,6 +582,9 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage& src_image, const wchar_t* wszFile
   encoder->maxThreads      = 3;
   encoder->speed           = src_image.GetMetadata ().format == DXGI_FORMAT_R10G10B10A2_UNORM ? 9 : 8;
 
+  image->clli.maxCLL  = max_cll;
+  image->clli.maxPALL = max_pall;
+
   avifResult addResult    = avifEncoderAddImage (encoder, image, 1, AVIF_ADD_IMAGE_FLAG_SINGLE);
   avifResult encodeResult = avifEncoderFinish   (encoder, &avifOutput);
 
@@ -619,6 +622,9 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage& src_image, const wchar_t* wszFile
 #else
   std::ignore = src_image;
   std::ignore = wszFilePath;
+
+  std::ignore = max_pall;
+  std::ignore = max_cll;
 
   return false;
 #endif

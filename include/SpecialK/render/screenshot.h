@@ -164,6 +164,11 @@ public:
     size_t          PackedDstPitch       = 0L,
                     PackedDstSlicePitch  = 0L;
 
+    struct {
+      float         max_cll_nits = 0.0f;
+      float         avg_cll_nits = 0.0f;
+    } hdr;
+
     std::unique_ptr
       <uint8_t []>  PixelBuffer          = nullptr;
 
@@ -223,4 +228,4 @@ protected:
 void SK_Steam_CatastropicScreenshotFail (void);
 void SK_Screenshot_PlaySound            (void);
 
-bool SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFilePath);
+bool SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFilePath, uint16_t max_cll, uint16_t max_pall);

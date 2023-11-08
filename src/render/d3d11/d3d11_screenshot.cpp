@@ -69,6 +69,9 @@ SK_D3D11_Screenshot& SK_D3D11_Screenshot::operator= (SK_D3D11_Screenshot&& moveF
     framebuffer.dxgi.AlphaMode       = std::exchange (fromBuffer.dxgi.AlphaMode,    DXGI_ALPHA_MODE_UNSPECIFIED);
     framebuffer.dxgi.NativeFormat    = std::exchange (fromBuffer.dxgi.NativeFormat, DXGI_FORMAT_UNKNOWN);
 
+    framebuffer.hdr.avg_cll_nits     = std::exchange (fromBuffer.hdr.avg_cll_nits, 0.0f);
+    framebuffer.hdr.max_cll_nits     = std::exchange (fromBuffer.hdr.max_cll_nits, 0.0f);
+
     bPlaySound                       = moveFrom.bPlaySound;
     bSaveToDisk                      = moveFrom.bSaveToDisk;
     bCopyToClipboard                 = moveFrom.bCopyToClipboard;
@@ -1268,7 +1271,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               delete pop_off;
               continue;
             }
-            
+
             SK_Screenshot::framebuffer_s* pFrameData =
               pop_off->getFinishedData ();
 
@@ -1460,9 +1463,12 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   SK_LOGi0 ( L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0] * 80.0f,
                                                                       maxLum.m128_f32 [0] * 80.0f );
 
-                  SK_LOGi0 ( L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0f * ( maxLum.m128_f32 [0] +
-                                                                                          minLum.m128_f32 [0] ) / 2.0f,
+                  SK_LOGi0 ( L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0f * ( minLum.m128_f32 [0] + maxLum.m128_f32 [0] ) * 0.5f,
                                                                                 80.0f * expf ( (1.0f / N) * lumTotal ) );
+
+                  pFrameData->hdr.max_cll_nits = maxLum.m128_f32 [0] * 80.0f;
+                  pFrameData->hdr.avg_cll_nits = 80.0f * ( minLum.m128_f32 [0] + maxLum.m128_f32 [0] ) * 0.5f + 
+                                                 80.0f * expf ( (1.0f / N) * lumTotal );
 
                   hr =               un_srgb.GetImageCount () == 1 ?
                     TransformImage ( un_srgb.GetImages     (),
@@ -1667,6 +1673,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               fb_copy->Width                = fb_orig->Width;
               fb_copy->dxgi.NativeFormat    = fb_orig->dxgi.NativeFormat;
               fb_copy->dxgi.AlphaMode       = fb_orig->dxgi.AlphaMode;
+              fb_copy->hdr.max_cll_nits     = fb_orig->hdr.max_cll_nits;
+              fb_copy->hdr.avg_cll_nits     = fb_orig->hdr.avg_cll_nits;
               fb_copy->PBufferSize          = fb_orig->PBufferSize;
               fb_copy->PackedDstPitch       = fb_orig->PackedDstPitch;
               fb_copy->PackedDstSlicePitch  = fb_orig->PackedDstSlicePitch;
@@ -1830,7 +1838,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                       if (hdr)
                       {
-                        SK_Screenshot_SaveAVIF (un_srgb, wszAbsolutePathToLossless);
+                        SK_Screenshot_SaveAVIF (un_srgb, wszAbsolutePathToLossless, static_cast <uint16_t> (pFrameData->hdr.max_cll_nits),
+                                                                                    static_cast <uint16_t> (pFrameData->hdr.avg_cll_nits));
                       }
 
                       HRESULT hrSaveToWIC =     un_srgb.GetImages () ?
