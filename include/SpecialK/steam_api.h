@@ -63,12 +63,12 @@ namespace SK
     bool  __stdcall TakeScreenshot   (SK_ScreenshotStage when = SK_ScreenshotStage::EndOfFrame, bool allow_sound = true);
 
 
-    AppId64_t   AppID           (void);
-    std::string AppName         (void);
+    AppId64_t    AppID           (void);
+    std::string& AppName         (void);
 
-    CSteamID    UserSteamID     (void);
+    CSteamID     UserSteamID     (void);
 
-    LONGLONG    GetCallbacksRun (void);
+    LONGLONG     GetCallbacksRun (void);
 
 
     // The state that we are explicitly telling the game

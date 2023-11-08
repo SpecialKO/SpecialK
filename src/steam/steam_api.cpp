@@ -3477,7 +3477,7 @@ SK_UseManifestToGetDepotManifest (AppId64_t appid, DepotId_t depot)
   return 0;
 }
 
-std::string
+std::string&
 SK::SteamAPI::AppName (void)
 {
   if (AppID () != 0x00)
@@ -3489,7 +3489,9 @@ SK::SteamAPI::AppName (void)
     return app_name;
   }
 
-  return "";
+  static std::string
+         _empty ("");
+  return _empty;
 }
 
 

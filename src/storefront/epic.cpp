@@ -1193,7 +1193,7 @@ SK::EOS::UserID (void)
 
 #include <filesystem>
 
-std::string
+std::string&
 SK::EOS::AppName (void)
 {
   static std::string name = "";

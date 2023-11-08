@@ -713,11 +713,23 @@ SK_ImGui_ControlPanelTitle (void)
     static std::string window_title =
       SK_WideCharToUTF8 (rb.windows.focus.title);
 
-    std::string appname = bSteam ?
-      SK::SteamAPI::AppName ()   :
-                          bEpic  ?
-      SK::EOS::AppName       ()  : (! window_title.empty ()) ?
-                                      window_title.c_str ()  : "";
+    // For non-Steam/Epic games, if the window title changes, then update
+    //   the control panel's title...
+    if (! (bSteam || bEpic))
+    {
+      static ULONG64     last_changed = 0;
+      if (std::exchange (last_changed, rb.windows.focus.last_changed) !=
+                                       rb.windows.focus.last_changed)
+      {
+        window_title =
+          SK_WideCharToUTF8 (rb.windows.focus.title);
+      }
+    }
+
+    std::string& appname = bSteam ?
+       SK::SteamAPI::AppName ()   :
+                           bEpic  ?
+            SK::EOS::AppName ()   : window_title;
 
     if (! appname.empty ())
       title += "      -      ";
