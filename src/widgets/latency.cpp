@@ -34,7 +34,7 @@ extern iSK_INI* osd_ini;
 struct reflex_frame_s {
   float simulation    = 0.0f;
   float render_submit = 0.0f;
-  float gpu_total     = 0.0f;
+  float frame_total   = 0.0f;
   float gpu_active    = 0.0f;
   float gpu_start     = 0.0f;
   float present       = 0.0f;
@@ -50,10 +50,10 @@ static constexpr auto _MAX_FRAME_HISTORY = 384;
 #pragma warning (disable:4324)
 struct alignas (64) {
   float  simulation [_MAX_FRAME_HISTORY+1] = { },
-      render_submit [_MAX_FRAME_HISTORY+1] = { }, gpu_total  [_MAX_FRAME_HISTORY+1] = { },
-         gpu_active [_MAX_FRAME_HISTORY+1] = { }, gpu_start  [_MAX_FRAME_HISTORY+1] = { },
-          fill_cpu0 [_MAX_FRAME_HISTORY+1] = { }, fill_gpu0  [_MAX_FRAME_HISTORY+1] = { },
-          fill_cpu1 [_MAX_FRAME_HISTORY+1] = { }, fill_gpu1  [_MAX_FRAME_HISTORY+1] = { },
+      render_submit [_MAX_FRAME_HISTORY+1] = { }, frame_total [_MAX_FRAME_HISTORY+1] = { },
+         gpu_active [_MAX_FRAME_HISTORY+1] = { }, gpu_start   [_MAX_FRAME_HISTORY+1] = { },
+          fill_cpu0 [_MAX_FRAME_HISTORY+1] = { }, fill_gpu0   [_MAX_FRAME_HISTORY+1] = { },
+          fill_cpu1 [_MAX_FRAME_HISTORY+1] = { }, fill_gpu1   [_MAX_FRAME_HISTORY+1] = { },
           max_stage [_MAX_FRAME_HISTORY+1] = { };
   INT64 sample_time [_MAX_FRAME_HISTORY+1] = { };
   float  sample_age [_MAX_FRAME_HISTORY+1] = { };
@@ -293,9 +293,9 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       
       reflex.simulation    = sim.durations     [63];
       reflex.render_submit = render.durations  [63];
-      reflex.gpu_total     = gpu.durations     [63];
       reflex.present       = present.durations [63];
       reflex.gpu_active    = static_cast <float> (gpu_frame_times [63].gpuActiveRenderTimeUs) / 1000.0f;
+      reflex.frame_total   = static_cast <float> (os.end - sim.start) / 1000.0f;
       //// Workaround for Unreal Engine, it actually submits GPU work in its "Present" marker
       //reflex.gpu_start     = ( ( reflex.simulation > reflex.present ) ?
       //                           reflex.simulation : reflex.present ) +
@@ -341,7 +341,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
 
       history.simulation    [frame_idx] = reflex.simulation;
       history.render_submit [frame_idx] = reflex.render_submit;
-      history.gpu_total     [frame_idx] = reflex.gpu_total;
+      history.frame_total   [frame_idx] = reflex.frame_total;
       history.gpu_active    [frame_idx] = reflex.gpu_active;
       history.gpu_start     [frame_idx] = reflex.gpu_start;
       history.fill_cpu0     [frame_idx] = reflex.fill.cpu0;
@@ -351,7 +351,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       history.max_stage     [frame_idx] =
                              std::max ( { reflex.simulation,
                                           reflex.render_submit,
-                                          reflex.gpu_total,
+                                          reflex.frame_total,
                                           reflex.gpu_active,
                                           reflex.gpu_start } );
 
@@ -440,7 +440,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       history.fill_gpu1     [_MAX_FRAME_HISTORY] = history.fill_gpu1     [0];
       history.gpu_active    [_MAX_FRAME_HISTORY] = history.gpu_active    [0];
       history.gpu_start     [_MAX_FRAME_HISTORY] = history.gpu_start     [0];
-      history.gpu_total     [_MAX_FRAME_HISTORY] = history.gpu_total     [0];
+      history.frame_total   [_MAX_FRAME_HISTORY] = history.frame_total   [0];
       history.max_stage     [_MAX_FRAME_HISTORY] = history.max_stage     [0];
       history.render_submit [_MAX_FRAME_HISTORY] = history.render_submit [0];
       history.sample_age    [_MAX_FRAME_HISTORY] = history.sample_age    [0];
@@ -542,7 +542,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
      
        ImPlot::PlotLine ("Simulation",      &history.sample_age [head], &history.simulation    [head], elements);
        ImPlot::PlotLine ("Render Submit",   &history.sample_age [head], &history.render_submit [head], elements);
-       ImPlot::PlotLine ("Display Scanout", &history.sample_age [head], &history.gpu_total     [head], elements);
+       ImPlot::PlotLine ("Display Scanout", &history.sample_age [head], &history.frame_total   [head], elements);
        ImPlot::PlotLine ("GPU Busy",        &history.sample_age [head], &history.gpu_active    [head], elements);
        ImPlot::PlotLine ("CPU Busy",        &history.sample_age [head], &history.gpu_start     [head], elements);
      };

@@ -1,4 +1,14 @@
-﻿23.11.7.1
+﻿23.11.7.2
+=========
+ + Changed Display Scanout time in Latency Analysis to measure the time
+     between the CPU simulation start and finished image display.
+
+    * Prior, it only measured the time between the GPU starting work
+        and the image being displayed on screen.
+
+   Outside of Frame Generation, this is almost always total frametime.
+
+23.11.7.1
 =========
  + Added experimental .avif screenshot support for 64-bit HDR games
 
