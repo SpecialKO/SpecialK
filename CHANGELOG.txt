@@ -1,4 +1,10 @@
-﻿23.11.7.2
+﻿23.11.7.3
+=========
+ + Added HDR metadata to AVIF screenshots for proper tonemapping
+ + Fixed frametime spikes causing Latency Analysis graph to potentially
+     scale to billions of milliseconds.
+
+23.11.7.2
 =========
  + Changed Display Scanout time in Latency Analysis to measure the time
      between the CPU simulation start and finished image display.

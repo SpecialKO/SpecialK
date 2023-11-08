@@ -350,8 +350,8 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       history.fill_gpu1     [frame_idx] = reflex.fill.gpu1;
       history.max_stage     [frame_idx] =
                              std::max ( { reflex.simulation,
-                                          reflex.render_submit,
-                                          reflex.frame_total,
+                                          reflex.render_submit,/*
+                                          reflex.frame_total,   */
                                           reflex.gpu_active,
                                           reflex.gpu_start } );
 
