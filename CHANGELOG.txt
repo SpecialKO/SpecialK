@@ -1,4 +1,10 @@
-﻿23.11.9
+﻿23.11.9.1
+=========
+ + Always flush ReShade's D3D12 "immediate context" after drawing, because
+     it does not see native DXGI SwapChain presents in games using
+       NVIDIA Streamline and it is not safe to defer execution until present.
+
+23.11.9
 =======
  + Reduced D3D12 CPU performance overhead when using ReShade add-on mode
      to draw ReShade before SK does HDR image processing.

@@ -2322,12 +2322,13 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
   frames_.clear ();
 
   // Do this after closing the command lists (frames_.clear ())
-  pHDRPipeline.Release                 ();
-  pHDRSignature.Release                ();
+  pHDRPipeline.Release                    ();
+  pHDRSignature.Release                   ();
 
-  descriptorHeaps.pBackBuffers.Release ();
-  descriptorHeaps.pImGui.Release       ();
-  descriptorHeaps.pHDR.Release         ();
+  descriptorHeaps.pBackBuffers.Release    ();
+  descriptorHeaps.pImGui.Release          ();
+  descriptorHeaps.pHDR.Release            ();
+  descriptorHeaps.pHDR_CopyAssist.Release ();
 
   _pSwapChain.Release ();
   _pDevice.Release    ();

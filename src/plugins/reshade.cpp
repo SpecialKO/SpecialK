@@ -735,23 +735,25 @@ SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource*
       const auto fence  = reshade::api::fence         { reinterpret_cast <uint64_t> (pFence)    };
 
       // Barriers won't be needed if we call this from the correct pre-transitioned state
-    //cmd_list->barrier ( buffer, reshade::api::resource_usage::present,
-    //                            reshade::api::resource_usage::render_target );
+      //cmd_list->barrier ( buffer, reshade::api::resource_usage::present,
+      //                            reshade::api::resource_usage::render_target );
       {
         runtime->render_effects (
           cmd_list, rtv, { 0 }
         );
       }
-    //cmd_list->barrier ( buffer, reshade::api::resource_usage::render_target,
-    //                            reshade::api::resource_usage::present );
+      //cmd_list->barrier ( buffer, reshade::api::resource_usage::render_target,
+      //                            reshade::api::resource_usage::present );
 
       if (pFence != nullptr)
       {
         const UINT64 uiNextFenceVal =
-          InterlockedIncrement (&uiFenceVal) + 1;
+          InterlockedIncrement (&uiFenceVal);
 
         if (cmd_queue->signal (fence, uiNextFenceVal))
         {
+          cmd_queue->flush_immediate_command_list ();
+
           return
             uiNextFenceVal;
         }
