@@ -1040,31 +1040,32 @@ struct sk_config_t
 
 #ifdef _M_IX86
     struct legacy_dx_s {
-      bool   hook = true;
+      bool   hook      = true;
+      int    hook_next = SK_NoPreference;
     } d3d8,
       ddraw;
 #endif
 
     struct d3d9_s {
-      bool   hook        =  true;
-      bool   translated  = false;
+      bool   hook        =            true;
+      bool   translated  =           false;
       int    native_dxvk = SK_NoPreference;
-      bool   hook_next   =  true;
+      int    hook_next   = SK_NoPreference;
     } d3d9,
       d3d9ex;
 
     struct dxgi_s {
-      struct d3d11or12_s{
+      struct d3d11or12_s {
         bool hook      = true;
-        bool hook_next = true;
+        int  hook_next = SK_NoPreference;
       } d3d12,
         d3d11;
     } dxgi;
 
     struct khronos_s {
-      bool   hook       = true;
-      bool   translate  = true;
-      bool   hook_next  = true;
+      bool   hook      = true;
+      bool   translate = true;
+      int    hook_next = SK_NoPreference;
     } Vulkan,
       OpenGL;
 

@@ -59,15 +59,15 @@ SK::ControlPanel::Compatibility::Draw (void)
         switch (api)
         {
           case SK_RenderAPI::D3D9Ex:
-            config.apis.d3d9ex.hook_next     = true; // Fallthrough, D3D9Ex
-          case SK_RenderAPI::D3D9:                   //      implies D3D9!
-            config.apis.d3d9.hook_next       = true;
+            config.apis.d3d9ex.hook_next     = 1; // Fallthrough, D3D9Ex
+          case SK_RenderAPI::D3D9:                //      implies D3D9!
+            config.apis.d3d9.hook_next       = 1;
             break;
 
           case SK_RenderAPI::D3D12:
-            config.apis.dxgi.d3d12.hook_next = true;
+            config.apis.dxgi.d3d12.hook_next = 1;
           case SK_RenderAPI::D3D11:
-            config.apis.dxgi.d3d11.hook_next = true; // Shared logic, both are needed
+            config.apis.dxgi.d3d11.hook_next = 1; // Shared logic, both are needed
             break;
 
 #ifdef _M_IX86
@@ -87,12 +87,12 @@ SK::ControlPanel::Compatibility::Draw (void)
 #endif
 
           case SK_RenderAPI::OpenGL:
-            config.apis.OpenGL.hook_next = true;
+            config.apis.OpenGL.hook_next = 1;
             break;
 
 #ifdef _M_AMD64
           case SK_RenderAPI::Vulkan:
-            config.apis.Vulkan.hook_next = true;
+            config.apis.Vulkan.hook_next = 1;
             break;
 #endif
           default:
@@ -101,8 +101,8 @@ SK::ControlPanel::Compatibility::Draw (void)
 
         if (SK_GL_OnD3D11)
         {
-          config.apis.dxgi.d3d11.hook_next = true;
-          config.apis.OpenGL.hook_next     = true;
+          config.apis.dxgi.d3d11.hook_next = 1;
+          config.apis.OpenGL.hook_next     = 1;
           config.apis.OpenGL.translate     = true;
         }
       };
@@ -112,14 +112,17 @@ SK::ControlPanel::Compatibility::Draw (void)
       auto ImGui_CheckboxEx =
       [ ]( const char* szName, bool* pVar,
                                bool  enabled = true,
-           Tooltip_pfn tooltip_disabled      = nullptr )
+           Tooltip_pfn tooltip_disabled      = nullptr ) -> bool
       {
+        bool clicked = false;
+
         if (! pVar)
-          return;
+          return clicked;
 
         if (enabled)
         {
-          ImGui::Checkbox (szName, pVar);
+          clicked =
+            ImGui::Checkbox (szName, pVar);
         }
 
         else
@@ -134,6 +137,8 @@ SK::ControlPanel::Compatibility::Draw (void)
 
           *pVar = false;
         }
+
+        return clicked;
       };
 
 #ifdef _M_AMD64
@@ -147,13 +152,23 @@ SK::ControlPanel::Compatibility::Draw (void)
 
       ImGui::Columns    ( 2 );
 
-      ImGui_CheckboxEx ("Direct3D 9",   &config.apis.d3d9.hook_next);
-      ImGui_CheckboxEx ("Direct3D 9Ex", &config.apis.d3d9ex.hook_next, config.apis.d3d9.hook_next);
+      bool hook_d3d9   = (config.apis.d3d9.hook_next   == SK_NoPreference) ?  config.apis.d3d9.hook
+                                                                           : (config.apis.d3d9.hook_next   == 1);
+      bool hook_d3d9ex = (config.apis.d3d9ex.hook_next == SK_NoPreference) ?  config.apis.d3d9ex.hook
+                                                                           : (config.apis.d3d9ex.hook_next == 1);
+
+      if (ImGui_CheckboxEx ("Direct3D 9",   &hook_d3d9))              config.apis.d3d9.hook_next   = (hook_d3d9   ? 1 : 0);
+      if (ImGui_CheckboxEx ("Direct3D 9Ex", &hook_d3d9ex, hook_d3d9)) config.apis.d3d9ex.hook_next = (hook_d3d9ex ? 1 : 0);
 
       ImGui::NextColumn (   );
 
-      ImGui_CheckboxEx ("Direct3D 11",  &config.apis.dxgi.d3d11.hook_next);
-      ImGui_CheckboxEx ("Direct3D 12",  &config.apis.dxgi.d3d12.hook_next, config.apis.dxgi.d3d11.hook_next);
+      bool hook_d3d11 = (config.apis.dxgi.d3d11.hook_next == SK_NoPreference) ?  config.apis.dxgi.d3d11.hook
+                                                                              : (config.apis.dxgi.d3d11.hook_next == 1);
+      bool hook_d3d12 = (config.apis.dxgi.d3d12.hook_next == SK_NoPreference) ?  config.apis.dxgi.d3d12.hook
+                                                                              : (config.apis.dxgi.d3d12.hook_next == 1);
+
+      if (ImGui_CheckboxEx ("Direct3D 11",  &hook_d3d11))             config.apis.dxgi.d3d11.hook_next = (hook_d3d11 ? 1 : 0);
+      if (ImGui_CheckboxEx ("Direct3D 12",  &hook_d3d12, hook_d3d11)) config.apis.dxgi.d3d12.hook_next = (hook_d3d12 ? 1 : 0);
 
       ImGui::Columns    ( 1 );
       ImGui::Separator  (   );
@@ -186,11 +201,16 @@ SK::ControlPanel::Compatibility::Draw (void)
         }
       };
 
-      ImGui_CheckboxEx ("Direct3D 8", &config.apis.d3d8.hook,   has_dgvoodoo2, Tooltip_dgVoodoo2);
+      bool hook_d3d8  = (config.apis.d3d8.hook_next  == SK_NoPreference) ?  config.apis.d3d8.hook
+                                                                         : (config.apis.d3d8.hook_next  == 1);
+      bool hook_ddraw = (config.apis.ddraw.hook_next == SK_NoPreference) ?  config.apis.ddraw.hook
+                                                                         : (config.apis.ddraw.hook_next == 1);
+
+      if (ImGui_CheckboxEx ("Direct3D 8", &hook_d3d8,   has_dgvoodoo2, Tooltip_dgVoodoo2)) config.apis.d3d8.hook_next  = (hook_d3d8  ? 1 : 0);
 
       ImGui::NextColumn (  );
 
-      ImGui_CheckboxEx ("Direct Draw", &config.apis.ddraw.hook, has_dgvoodoo2, Tooltip_dgVoodoo2);
+      if (ImGui_CheckboxEx ("Direct Draw", &hook_ddraw, has_dgvoodoo2, Tooltip_dgVoodoo2)) config.apis.ddraw.hook_next = (hook_ddraw ? 1 : 0);
 
       ImGui::Columns    ( 1 );
       ImGui::Separator  (   );
@@ -198,9 +218,17 @@ SK::ControlPanel::Compatibility::Draw (void)
 
       ImGui::Columns    ( 2 );
 
-      ImGui::Checkbox   ("OpenGL ", &config.apis.OpenGL.hook_next); ImGui::SameLine ();
+      bool hook_gl = (config.apis.OpenGL.hook_next == SK_NoPreference) ?  config.apis.OpenGL.hook
+                                                                       : (config.apis.OpenGL.hook_next == 1);
+
+      if (ImGui::Checkbox ("OpenGL ", &hook_gl)) config.apis.OpenGL.hook_next = (hook_gl ? 1 : 0);
+      
+      ImGui::SameLine ();
 #ifdef _M_AMD64
-      ImGui::Checkbox   ("Vulkan ", &config.apis.Vulkan.hook_next);
+      bool hook_vk = (config.apis.Vulkan.hook_next == SK_NoPreference) ?  config.apis.Vulkan.hook
+                                                                       : (config.apis.Vulkan.hook_next == 1);
+
+      if (ImGui::Checkbox ("Vulkan",  &hook_vk)) config.apis.Vulkan.hook_next = (hook_vk ? 1 : 0);
 #endif
 
       ImGui::NextColumn (  );
@@ -214,9 +242,9 @@ SK::ControlPanel::Compatibility::Draw (void)
 #ifdef _M_AMD64
         config.apis.Vulkan.hook_next     = false;
 #else
-        config.apis.d3d8.hook           = false; config.apis.ddraw.hook          = false;
+        config.apis.d3d8.hook_next       = false; config.apis.ddraw.hook_next      = false;
 #endif
-        EnableActiveAPI   (render_api);
+        EnableActiveAPI (render_api);
       }
 
       if (ImGui::IsItemHovered ())

@@ -3329,14 +3329,6 @@ auto DeclKeybind =
 #ifdef _M_AMD64
   apis.Vulkan.hook->load (config.apis.Vulkan.hook);
 #endif
-  
-  // Variables used to indicate changes for next launch
-  config.apis.d3d9.hook_next       = config.apis.d3d9.hook;
-  config.apis.d3d9ex.hook_next     = config.apis.d3d9ex.hook;
-  config.apis.dxgi.d3d11.hook_next = config.apis.dxgi.d3d11.hook;
-  config.apis.dxgi.d3d12.hook_next = config.apis.dxgi.d3d12.hook;
-  config.apis.OpenGL.hook_next     = config.apis.OpenGL.hook;
-  config.apis.Vulkan.hook_next     = config.apis.Vulkan.hook;
 
   init = TRUE;
 }
@@ -5043,17 +5035,29 @@ SK_SaveConfig ( std::wstring name,
   apis.last_known->store                      (static_cast <int> (config.apis.last_known));
 
 #ifdef _M_IX86
+  if (config.apis.ddraw.hook_next != SK_NoPreference) config.apis.ddraw.hook = config.apis.ddraw.hook_next != 0;
+  if (config.apis.d3d8.hook_next  != SK_NoPreference) config.apis.d3d8.hook  = config.apis.d3d8.hook_next  != 0;
+
   apis.ddraw.hook->store                      (config.apis.ddraw.hook);
   apis.d3d8.hook->store                       (config.apis.d3d8.hook);
 #endif
-  apis.d3d9.hook->store                       (config.apis.d3d9.hook_next);
-  apis.d3d9ex.hook->store                     (config.apis.d3d9ex.hook_next);
+  // Change the settings now if the user changed them from the control panel
+  if (config.apis.d3d9.hook_next       != SK_NoPreference) config.apis.d3d9.hook       = config.apis.d3d9.hook_next       != 0;
+  if (config.apis.d3d9ex.hook_next     != SK_NoPreference) config.apis.d3d9ex.hook     = config.apis.d3d9ex.hook_next     != 0;
+  if (config.apis.dxgi.d3d11.hook_next != SK_NoPreference) config.apis.dxgi.d3d11.hook = config.apis.dxgi.d3d11.hook_next != 0;
+  if (config.apis.dxgi.d3d12.hook_next != SK_NoPreference) config.apis.dxgi.d3d12.hook = config.apis.dxgi.d3d12.hook_next != 0;
+  if (config.apis.OpenGL.hook_next     != SK_NoPreference) config.apis.OpenGL.hook     = config.apis.OpenGL.hook_next     != 0;
+
+  apis.d3d9.hook->store                       (config.apis.d3d9.hook);
+  apis.d3d9ex.hook->store                     (config.apis.d3d9ex.hook);
   apis.dxvk9.enable->store                    (config.apis.d3d9.native_dxvk);
-  apis.d3d11.hook->store                      (config.apis.dxgi.d3d11.hook_next);
-  apis.d3d12.hook->store                      (config.apis.dxgi.d3d12.hook_next);
-  apis.OpenGL.hook->store                     (config.apis.OpenGL.hook_next);
+  apis.d3d11.hook->store                      (config.apis.dxgi.d3d11.hook);
+  apis.d3d12.hook->store                      (config.apis.dxgi.d3d12.hook);
+  apis.OpenGL.hook->store                     (config.apis.OpenGL.hook);
 #ifdef _M_AMD64
-  apis.Vulkan.hook->store                     (config.apis.Vulkan.hook_next);
+  if (config.apis.Vulkan.hook_next != SK_NoPreference) config.apis.Vulkan.hook = config.apis.Vulkan.hook_next != 0;
+
+  apis.Vulkan.hook->store                     (config.apis.Vulkan.hook);
 #endif
 
   nvidia.api.disable_hdr->store               (config.apis.NvAPI.disable_hdr);

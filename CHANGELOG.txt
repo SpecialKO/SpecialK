@@ -1,4 +1,11 @@
-﻿23.11.7.3
+﻿23.11.8
+=======
+ + Disabled AVIF screenshots; they'll be re-enabled when the encoder
+     is changed to be an optional plug-in.
+ + Fixed problems changing render API hook settings caused by merge of
+    "Added temp parameters for toggled render APIs (#99)"
+
+23.11.7.3
 =========
  + Added HDR metadata to AVIF screenshots for proper tonemapping
  + Fixed frametime spikes causing Latency Analysis graph to potentially
