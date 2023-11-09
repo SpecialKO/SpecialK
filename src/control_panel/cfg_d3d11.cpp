@@ -1209,8 +1209,22 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::BeginTooltip    ();
         ImGui::TextUnformatted ("Apply ReShade Before SK Image Processing");
         ImGui::Separator       ();
-        ImGui::BulletText      ("Enabling prevents ReShade from processing SK's overlay");
-        ImGui::BulletText      ("Disable this to do HDR analysis on SK's processed image");
+        ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+        ImGui::TextUnformatted ("Draw First");
+        ImGui::PopStyleColor   ();
+        ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+        ImGui::BulletText      ("Intended for use with SDR, Native HDR and SK Inverse Tonemapped HDR.");
+        ImGui::BulletText      ("This mode has highest performance and should be used by default.");
+        ImGui::PopStyleColor   ();
+        ImGui::Spacing         ();
+        ImGui::Spacing         ();
+        ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+        ImGui::TextUnformatted ("Draw After");
+        ImGui::PopStyleColor   ();
+        ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+        ImGui::BulletText      ("Required if using ReShade to analyze SK's HDR Tonemapping.");
+        ImGui::BulletText      ("This mode has a slight performance penalty in D3D12.");
+        ImGui::PopStyleColor   ();
         ImGui::EndTooltip      ();
       }
 

@@ -2030,11 +2030,18 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 
   CreateStateblock (_pDeviceCtx, sb);
 
-  if (config.reshade.is_addon && config.reshade.draw_first)
+  auto _DrawAllReShadeEffects = [&](bool draw_first)
   {
-    SK_ComQIPtr <IDXGISwapChain1>       pSwapChain1 (_pSwapChain.p);
-    SK_ReShadeAddOn_RenderEffectsD3D11 (pSwapChain1.p);
-  }
+    if ( config.reshade.is_addon   &&
+         config.reshade.draw_first == draw_first )
+    {
+      SK_ComQIPtr <IDXGISwapChain1>       pSwapChain1 (_pSwapChain.p);
+      SK_ReShadeAddOn_RenderEffectsD3D11 (pSwapChain1.p);
+    }
+  };
+
+  // Draw ReShade before HDR image processing
+  _DrawAllReShadeEffects (true);
 
   _pDeviceCtx->OMSetRenderTargetsAndUnorderedAccessViews (0, nullptr, nullptr, 0, 0, nullptr, nullptr);
 
@@ -2088,8 +2095,17 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 
     if (_pSwapChain == pSwapChain || ImGui_DX11Startup (_pSwapChain))
     {
+      // Draw ReShade after HDR image processing, but before SK's UI
+      _DrawAllReShadeEffects (false);
+
       // Queue-up Pre-SK OSD Screenshots
       SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD, rb);
+
+      if (config.reshade.is_addon && config.reshade.draw_first == false)
+      {
+        SK_ComQIPtr <IDXGISwapChain1>       pSwapChain1 (_pSwapChain.p);
+        SK_ReShadeAddOn_RenderEffectsD3D11 (pSwapChain1.p);
+      }
       
       SK_ImGui_DrawFrame (0x00, nullptr);
     }

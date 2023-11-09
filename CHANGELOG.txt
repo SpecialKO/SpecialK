@@ -1,4 +1,13 @@
-﻿23.11.8
+﻿23.11.9
+=======
+ + Reduced D3D12 CPU performance overhead when using ReShade add-on mode
+     to draw ReShade before SK does HDR image processing.
+ + Changed "Draw ReShade First" option to control whether ReShade runs
+     before or after SK's HDR processing.
+     
+    * ReShade will always draw before SK's UI now (when add-on compatible).
+
+23.11.8
 =======
  + Disabled AVIF screenshots; they'll be re-enabled when the encoder
      is changed to be an optional plug-in.

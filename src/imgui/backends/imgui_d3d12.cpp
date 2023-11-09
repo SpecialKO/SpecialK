@@ -1947,19 +1947,36 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
                         pHDRPipeline.p   != nullptr &&
                         pHDRSignature.p  != nullptr );
 
-  UINT64 uiFenceVal = 0;
-
-  if (config.reshade.is_addon && config.reshade.draw_first)
+  auto _DrawAllReShadeEffects = [&](bool draw_first)
   {
-    SK_ComQIPtr <IDXGISwapChain1>         pSwapChain1 (_pSwapChain);
-    uiFenceVal =
-      SK_ReShadeAddOn_RenderEffectsD3D12 (pSwapChain1.p, stagingFrame.pRenderOutput, stagingFrame.reshade_fence);
-
-    if (uiFenceVal != 0)
+    if ( config.reshade.is_addon   &&
+         config.reshade.draw_first == draw_first )
     {
-      _pCommandQueue->Wait (stagingFrame.reshade_fence, uiFenceVal);
+      if (! draw_first)
+      {
+        // Split the command list (flush existing, begin new, draw ReShade in-between)
+        if ( stagingFrame.flush_cmd_list () == false ||
+             stagingFrame.begin_cmd_list () == false )
+        {
+          // Uh oh... skip ReShade.
+          return;
+        }
+      }
+
+      UINT64 uiFenceVal = 0;
+
+      SK_ComQIPtr <IDXGISwapChain1>          pSwapChain1 (_pSwapChain);
+      uiFenceVal =
+        SK_ReShadeAddOn_RenderEffectsD3D12 ( pSwapChain1.p, stagingFrame.pRenderOutput,
+                                                            stagingFrame.reshade_fence,
+                                                            stagingFrame.hRenderOutput );
+
+      if (uiFenceVal != 0)
+      {
+        _pCommandQueue->Wait ( stagingFrame.reshade_fence, uiFenceVal );
+      }
     }
-  }
+  };
 
   if (bHDR)
   {
@@ -2028,6 +2045,10 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     pCommandList->CopyResource                      (     stagingFrame.hdr.pSwapChainCopy.p,
                                                           stagingFrame.     pRenderOutput.p          );
     pCommandList->ResourceBarrier                   ( 2,  stagingFrame.hdr.barriers.process          );
+
+    // Draw ReShade before HDR image processing
+    _DrawAllReShadeEffects (true);
+
     pCommandList->SetDescriptorHeaps                ( 1, &descriptorHeaps.pHDR.p                     );
     pCommandList->SetGraphicsRootDescriptorTable    ( 2,  stagingFrame.hdr.hSwapChainCopy_GPU        );
     pCommandList->OMSetRenderTargets                ( 1, &stagingFrame.hRenderOutput, FALSE, nullptr );
@@ -2035,12 +2056,20 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     pCommandList->RSSetScissorRects                 ( 1, &stagingFrame.hdr.scissor                   );
     pCommandList->DrawInstanced                     ( 3, 1, 0, 0                                     );
     pCommandList->ResourceBarrier                   ( 1,  stagingFrame.hdr.barriers.copy_end         );
+
+    // Draw ReShade after HDR image processing, but before SK's UI
+    _DrawAllReShadeEffects (false);
   }
 
   else
+  {
     transition_state (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_PRESENT,
                                                                 D3D12_RESOURCE_STATE_RENDER_TARGET,
                                                                 D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
+
+    // No HDR, so trigger ReShade now (draw_first is meaningless in this context)
+    _DrawAllReShadeEffects (config.reshade.draw_first);
+  }
 
   // Queue-up Pre-SK OSD Screenshots
   SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::BeforeGameHUD, rb); // Before Game HUD (meaningless in D3D12)
@@ -2062,19 +2091,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
                                                                   D3D12_RESOURCE_STATE_PRESENT,
                                                                   D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
 
-  if (stagingFrame.exec_cmd_list ())
-  {
-    if ( const UINT64 sync_value = stagingFrame.fence.value + 1;
-           SUCCEEDED ( _pCommandQueue->Signal (
-                                   stagingFrame.fence.p,
-                      sync_value              )
-                     )
-       )
-    {
-      stagingFrame.fence.value =
-        sync_value;
-    }
-  }
+  stagingFrame.flush_cmd_list ();
 
   SK_RunOnce (SK_ApplyQueuedHooks ());
 }
@@ -2141,8 +2158,32 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
   {
     _d3d12_rbk->release (pRoot->_pSwapChain.p);
 
+    SK_LOGi0 (L"SwapChain Backbuffer changed while command lists were recording!");
+
     return false;
   }
+}
+
+bool
+SK_D3D12_RenderCtx::FrameCtx::flush_cmd_list (void)
+{
+  if (exec_cmd_list ())
+  {
+    if ( const UINT64 sync_value = fence.value + 1;
+           SUCCEEDED ( pRoot->_pCommandQueue->Signal (
+                                   fence.p,
+                      sync_value              )
+                     )
+       )
+    {
+      fence.value =
+       sync_value;
+    }
+
+    return true;
+  }
+
+  return false;
 }
 
 bool

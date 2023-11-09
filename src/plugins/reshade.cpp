@@ -227,18 +227,12 @@ struct dxgi_rtv_s {
   reshade::api::resource_view rtv    = { 0 };
   reshade::api::fence         fence  = { 0 };
 
-  static
-  SK_LazyGlobal <std::mutex> fence_sync_mutex;
-
   bool isFinished (void) const { return device->get_completed_fence_value (fence) == 1; }
   bool isValid    (void) const { return device       != nullptr &&
                                         rtv.handle   != 0       &&
                                         fence.handle != 0; }
   bool waitForGPU (void) const
   {
-    std::lock_guard <std::mutex>
-        _lockFences (dxgi_rtv_s::fence_sync_mutex);
-
     while (device->get_completed_fence_value (fence) < 1)
     {
       SK_Sleep (0);
@@ -247,8 +241,6 @@ struct dxgi_rtv_s {
     return true;
   }
 };
-
-SK_LazyGlobal <std::mutex> dxgi_rtv_s::fence_sync_mutex;
 
 Concurrency::concurrent_queue <dxgi_rtv_s> dxgi_rtvs;
 
@@ -715,90 +707,61 @@ SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
 }
 
 UINT64
-SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource* pResource, ID3D12Fence* pFence)
+SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource* pResource, ID3D12Fence* pFence, D3D12_CPU_DESCRIPTOR_HANDLE hRTV)
 {
-  static UINT64 uiFenceVal = 0;
+  static volatile UINT64 uiFenceVal = 0;
 
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
 
-
   if (runtime != nullptr)
   {
-    const bool has_effects =
-      runtime->get_effects_state ();
+    const bool has_effects = runtime->get_effects_state ();
+    const auto cmd_queue   = runtime->get_command_queue ();
+          auto cmd_list    = (reshade::api::command_list *)nullptr;
 
-    const auto device =
-      runtime->get_device ();
-
-    const auto cmd_queue =
-      runtime->get_command_queue ();
-
+    if ( nullptr ==             cmd_queue ||
+         nullptr == (cmd_list = cmd_queue->get_immediate_command_list ()) )
+    {
+      return 0;
+    }
 
     SK_ReShadeAddOn_CleanupRTVs (runtime, pFence == nullptr);
 
-
     if (has_effects)
     {
-      dxgi_rtv_s dxgi_rtv;
+      const auto buffer = reshade::api::resource      { reinterpret_cast <uint64_t> (pResource) };
+      const auto rtv    = reshade::api::resource_view { static_cast      <uint64_t> (hRTV.ptr)  };
+      const auto fence  = reshade::api::fence         { reinterpret_cast <uint64_t> (pFence)    };
 
-      auto buffer =
-        reshade::api::resource { (uint64_t)pResource };
-
-      auto rtvDesc =
-        reshade::api::resource_view_desc (static_cast <reshade::api::format> (pResource->GetDesc ().Format));
-
-      if (! device->create_fence (0, reshade::api::fence_flags::none, &dxgi_rtv.fence))
-        return false;
-
-      if (! device->create_resource_view (buffer, reshade::api::resource_usage::render_target, rtvDesc, &dxgi_rtv.rtv))
+      // Barriers won't be needed if we call this from the correct pre-transitioned state
+    //cmd_list->barrier ( buffer, reshade::api::resource_usage::present,
+    //                            reshade::api::resource_usage::render_target );
       {
-        device->destroy_fence (dxgi_rtv.fence);
-        return false;
+        runtime->render_effects (
+          cmd_list, rtv, { 0 }
+        );
       }
+    //cmd_list->barrier ( buffer, reshade::api::resource_usage::render_target,
+    //                            reshade::api::resource_usage::present );
 
-      auto cmd_list =
-        cmd_queue->get_immediate_command_list ();
-
-      cmd_list->barrier ( buffer, reshade::api::resource_usage::present,
-                                  reshade::api::resource_usage::render_target );
-
-      runtime->render_effects (
-        cmd_list, dxgi_rtv.rtv, { 0 }
-      );
-
-      cmd_list->barrier ( buffer, reshade::api::resource_usage::render_target,
-                                  reshade::api::resource_usage::present );
-
-      cmd_queue->flush_immediate_command_list ();
-
-      if (cmd_queue->signal (dxgi_rtv.fence, 1))
+      if (pFence != nullptr)
       {
-        dxgi_rtv.device = device;
+        const UINT64 uiNextFenceVal =
+          InterlockedIncrement (&uiFenceVal) + 1;
 
-        dxgi_rtvs.push (dxgi_rtv);
-
-        if (pFence != nullptr)
+        if (cmd_queue->signal (fence, uiNextFenceVal))
         {
-          cmd_queue->signal (reshade::api::fence { (uint64_t)pFence }, ++uiFenceVal);
-
-          return uiFenceVal;
+          return
+            uiNextFenceVal;
         }
       }
 
-      else
-      {
-        SK_LOGs0 (L"ReShadeExt", L"Failed to signal RTV's fence!");
+      SK_LOGs0 (L"ReShadeExt", L"Failed to signal RTV's fence!");
 
-        cmd_queue->flush_immediate_command_list ();
-        cmd_queue->wait_idle ();
-
-        device->destroy_fence         (dxgi_rtv.fence);
-        device->destroy_resource_view (dxgi_rtv.rtv);
-      }
+      cmd_queue->flush_immediate_command_list ();
+      cmd_queue->wait_idle ();
     }
-
-    return 0;
   }
 
   return 0;
