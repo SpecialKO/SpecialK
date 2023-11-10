@@ -1882,66 +1882,6 @@ SK_D3D11_MakeDrawableCopy ( ID3D11Device              *pDevice,
 }
 
 
-
-
-#pragma region ReShadeStuff
-SK_LazyGlobal <SK_ReShadeDrawCallback_s>
-               SK_ReShade_PresentCallback;
-
-__declspec (noinline)
-IMGUI_API
-void
-SK_ReShade_InstallPresentCallback (SK_ReShade_PresentCallback_pfn fn, void* user)
-{
-  SK_ReShade_PresentCallback->fn                = fn;
-  SK_ReShade_PresentCallback->explicit_draw.ptr = user;
-}
-
-__declspec (noinline)
-IMGUI_API
-void
-SK_ReShade_InstallDrawCallback (SK_ReShade_OnDrawD3D11_pfn fn, void* user)
-{
-  SK_ReShade_DrawCallback.fn   = fn;
-  SK_ReShade_DrawCallback.data = user;
-}
-
-__declspec (noinline)
-IMGUI_API
-void
-SK_ReShade_InstallSetDepthStencilViewCallback (SK_ReShade_OnSetDepthStencilViewD3D11_pfn fn, void* user)
-{
-  SK_ReShade_SetDepthStencilViewCallback.fn   = fn;
-  SK_ReShade_SetDepthStencilViewCallback.data = user;
-}
-
-__declspec (noinline)
-IMGUI_API
-void
-SK_ReShade_InstallGetDepthStencilViewCallback (SK_ReShade_OnGetDepthStencilViewD3D11_pfn fn, void* user)
-{
-  SK_ReShade_GetDepthStencilViewCallback.fn   = fn;
-  SK_ReShade_GetDepthStencilViewCallback.data = user;
-}
-
-__declspec (noinline)
-IMGUI_API
-void
-SK_ReShade_InstallClearDepthStencilViewCallback (SK_ReShade_OnClearDepthStencilViewD3D11_pfn fn, void* user)
-{
-  SK_ReShade_ClearDepthStencilViewCallback.fn   = fn;
-  SK_ReShade_ClearDepthStencilViewCallback.data = user;
-}
-
-__declspec (noinline)
-IMGUI_API
-void
-SK_ReShade_InstallCopyResourceCallback (SK_ReShade_OnCopyResourceD3D11_pfn fn, void* user)
-{
-  SK_ReShade_CopyResourceCallback.fn   = fn;
-  SK_ReShade_CopyResourceCallback.data = user;
-}
-
 class SK_ExecuteReShadeOnReturn
 {
 public:
@@ -1973,7 +1913,7 @@ public:
       const UINT dev_idx =
         _ctx_handle;
 
-      if ((! SK_D3D11_IsDevCtxDeferred (_ctx)) && SK_ReShade_PresentCallback->fn && (! shaders->reshade_triggered))
+      if ((! SK_D3D11_IsDevCtxDeferred (_ctx)) && config.reshade.is_addon && (! shaders->reshade_triggered))
       {
         //SK_ComPtr <ID3D11DepthStencilView>  pDSV = nullptr;
         //SK_ComPtr <ID3D11DepthStencilState> pDSS = nullptr;
@@ -2035,9 +1975,7 @@ public:
                     SK_D3D11_DeclareTexInjectScope (pTLS)
                   );
 
-                  SK_ReShade_PresentCallback->explicit_draw.calls++;
-                  SK_ReShade_PresentCallback->explicit_draw.src_ctx = _ctx;
-                  SK_ReShade_PresentCallback->fn (&SK_ReShade_PresentCallback->explicit_draw);
+                  SK_ReShadeAddOn_RenderEffectsD3D11 ((IDXGISwapChain1 *)SK_GetCurrentRenderBackend ().swapchain.p);
                 }
                 break;
               }
@@ -3804,7 +3742,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       ImGui::Columns  (1);
     }
 
-    if (SK_ReShade_PresentCallback->fn != nullptr && shader_type != sk_shader_class::Compute)
+    if (config.reshade.is_addon && shader_type != sk_shader_class::Compute)
     {
       bool reshade_before = pShader->trigger_reshade.before.count (tracker->crc32c) != 0;
       bool reshade_after  = pShader->trigger_reshade.after.count  (tracker->crc32c) != 0;

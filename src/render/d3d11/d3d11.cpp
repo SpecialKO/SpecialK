@@ -92,15 +92,6 @@ extern HRESULT
                             _In_ INT                   BaseVertexLocation,
                             _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed );
 
-extern HRESULT
-  SK_D3D11_Inject_ReShadeHDR ( _In_ ID3D11DeviceContext           *pDevCtx,
-                               _In_ UINT                           IndexCountPerInstance,
-                               _In_ UINT                           InstanceCount,
-                               _In_ UINT                           StartIndexLocation,
-                               _In_ INT                            BaseVertexLocation,
-                               _In_ UINT                           StartInstanceLocation,
-                               _In_ D3D11_DrawIndexedInstanced_pfn pfnD3D11DrawIndexedInstanced );
-
 extern bool SK_D3D11_ShowShaderModDlg (void);
 
 LPVOID pfnD3D11CreateDevice             = nullptr;
@@ -755,25 +746,6 @@ void WaitForInitD3D11 (void)
   if (        0 == ReadAcquire (&__d3d11_ready))
     SK_Thread_SpinUntilFlagged (&__d3d11_ready);
 }
-
-
-struct reshade_coeffs_s {
-  int indexed                    = 1;
-  int draw                       = 1;
-  int auto_draw                  = 0;
-  int indexed_instanced          = 1;
-  int indexed_instanced_indirect = 4096;
-  int instanced                  = 1;
-  int instanced_indirect         = 4096;
-  int dispatch                   = 1;
-  int dispatch_indirect          = 1;
-} SK_D3D11_ReshadeDrawFactors;
-
-SK_RESHADE_CALLBACK_DRAW         SK_ReShade_DrawCallback;
-SK_RESHADE_CALLBACK_SetDSV       SK_ReShade_SetDepthStencilViewCallback;
-SK_RESHADE_CALLBACK_GetDSV       SK_ReShade_GetDepthStencilViewCallback;
-SK_RESHADE_CALLBACK_ClearDSV     SK_ReShade_ClearDepthStencilViewCallback;
-SK_RESHADE_CALLBACK_CopyResource SK_ReShade_CopyResourceCallback;
 
 uint32_t
 __stdcall
@@ -2685,8 +2657,7 @@ const
   TriggerReShade_Before = [&]
   {
 
-    if (              nullptr != SK_ReShade_PresentCallback->fn &&
-         (pDevCtx->GetType () != D3D11_DEVICE_CONTEXT_DEFERRED) &&
+    if ( (pDevCtx->GetType () != D3D11_DEVICE_CONTEXT_DEFERRED) &&
                              (! shaders->reshade_triggered )       )
     {
       if (_reshade_trigger_before [dev_idx])
@@ -2704,22 +2675,26 @@ const
 
           if (*ppTLS != nullptr)
           {
-            SK_ScopedBool auto_bool1 (&(*ppTLS)->imgui->drawing);
-                                       (*ppTLS)->imgui->drawing = true;
+            SK_ComPtr <ID3D11RenderTargetView> pRTV;
+            pDevCtx->OMGetRenderTargets ( 1,  &pRTV, nullptr );
 
-            SK_ScopedBool decl_tex_scope (
-              SK_D3D11_DeclareTexInjectScope ()
-            );
+            if (pRTV != nullptr)
+            {
+              SK_ScopedBool auto_bool1 (&(*ppTLS)->imgui->drawing);
+                                         (*ppTLS)->imgui->drawing = true;
 
-            shaders->reshade_triggered                = true;
-                    _reshade_trigger_before [dev_idx] = false;
+              SK_ScopedBool decl_tex_scope (
+                SK_D3D11_DeclareTexInjectScope ()
+              );
 
-            SK_ReShade_PresentCallback->explicit_draw.calls++;
-            SK_ReShade_PresentCallback->explicit_draw.src_ctx = pDevCtx;
+              shaders->reshade_triggered                = true;
+                      _reshade_trigger_before [dev_idx] = false;
 
-            SK_ReShade_PresentCallback->fn (
-           &SK_ReShade_PresentCallback->explicit_draw
-            );
+              extern bool
+              SK_ReShadeAddOn_RenderEffectsD3D11Ex (IDXGISwapChain1 *pSwapChain, ID3D11RenderTargetView* pRTV);
+
+              SK_ReShadeAddOn_RenderEffectsD3D11Ex ((IDXGISwapChain1 *)rb.swapchain.p, pRTV.p);
+            }
           }
         }
       }
@@ -3737,7 +3712,7 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ((! bWrapped) && pDevCtx != rb.d3d11.immediate_ctx) [[unlikely]]
+  if ((! bWrapped) && ( pDevCtx != rb.d3d11.immediate_ctx && !config.reshade.is_addon)) [[unlikely]]
   {
     if ( rb.d3d11.immediate_ctx == nullptr ||
          rb.device.p            == nullptr )
@@ -3756,7 +3731,7 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
 
     // TOO HIGH OVERHEAD: Use direct compare and expect a few misses
     //if (! rb.getDevice <ID3D11Device> ().IsEqualObject (pDevice))
-    if (rb.device.p != pDevice.p)
+    if (rb.device.p != pDevice.p && (!config.reshade.is_addon))
     {
       if (! SK_D3D11_EnsureMatchingDevices ((ID3D11Device *)rb.device.p, pDevice.p))
       {
@@ -4414,43 +4389,6 @@ SK_D3D11_DrawIndexedInstanced_Impl (
   {
     return
       _Finish ();
-  }
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
-  //------
-
-  // Render-state tracking needs to be forced-on for the
-  //   ReShade Overlay HDR fix to work.
-  if ( rb.isHDRCapable ()  &&
-       rb.isHDRActive  () )
-  {
-#define RESHADE_OVERLAY_VS_CRC32C 0xe944408b
-
-    if (dev_idx == UINT_MAX)
-    {
-      dev_idx =
-        SK_D3D11_GetDeviceContextHandle (pDevCtx);
-    }
-
-    switch (SK_D3D11_Shaders->vertex.current.shader [dev_idx])
-    {
-      case RESHADE_OVERLAY_VS_CRC32C:
-        if ( SUCCEEDED (
-               SK_D3D11_Inject_ReShadeHDR ( pDevCtx, IndexCountPerInstance,
-                                              InstanceCount, StartIndexLocation,
-                                                BaseVertexLocation, StartInstanceLocation,
-                                                  D3D11_DrawIndexedInstanced_Original )
-             )
-           )
-        {
-          return;
-        }
-        break;
-      default:
-        break;
-    }
   }
 
   if (! SK_D3D11_ShouldTrackDrawCall (pDevCtx, SK_D3D11DrawType::IndexedInstanced))

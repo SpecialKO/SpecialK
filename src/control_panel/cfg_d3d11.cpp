@@ -382,7 +382,7 @@ SK::ControlPanel::D3D11::Draw (void)
         bool tracking = false;
 
         if ( ( ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 ||
-              SK_ReShade_DrawCallback.fn != nullptr  )        )
+              config.reshade.is_addon  )        )
         {
           tracking = true;
 
@@ -391,7 +391,7 @@ SK::ControlPanel::D3D11::Draw (void)
 
           else
           {
-            if (SK_ReShade_DrawCallback.fn != nullptr)
+            if (config.reshade.is_addon)
               lstrcatA (szThreadLocalStr, "  Draw Calls  ( Generic & ReShade Trigger ) ");
             else
               lstrcatA (szThreadLocalStr, "  Draw Calls  ( Generic ) ");
@@ -408,10 +408,6 @@ SK::ControlPanel::D3D11::Draw (void)
         {
           tracking = true;
           lstrcatA (szThreadLocalStr, "  Memory-Mapped I/O ");
-        }
-
-        if (SK_ReShade_DrawCallback.fn != nullptr)
-        {
         }
 
         ImGui::TextUnformatted (tracking ? szThreadLocalStr : " ");

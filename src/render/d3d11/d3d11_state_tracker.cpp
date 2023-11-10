@@ -562,8 +562,8 @@ SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
              draw_type == SK_D3D11DrawType::Indexed );
   };
 
-  if ( SK_ReShade_DrawCallback.fn != nullptr &&
-                               reshadable () &&
+  if ( config.reshade.is_addon &&
+                 reshadable () &&
        (! SK_D3D11_Shaders->reshade_triggered) )
   {
     process = true;

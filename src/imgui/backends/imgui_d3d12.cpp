@@ -1920,8 +1920,13 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   ///  (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
 
   SK_RunOnce (
-    _InitDrawCommandHooks (pCommandList)
-  );
+  {
+    // This level of state tracking is unnecessary normally
+    if (config.render.dxgi.allow_d3d12_footguns)
+    {
+      _InitDrawCommandHooks (pCommandList);
+    }
+  });
 
   static std::error_code ec;
   static bool inject_textures =
@@ -2079,6 +2084,20 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
               SK_D3D12_WriteResources ();
 
   SK_D3D12_CommitUploadQueue (pCommandList);
+
+  ///if (config.reshade.is_addon)
+  ///{
+  ///  transition_state   (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_RENDER_TARGET,
+  ///                                                                D3D12_RESOURCE_STATE_PRESENT,
+  ///                                                                D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
+  ///
+  ///  void SK_ReShadeAddOn_Present (IDXGISwapChain *pSwapChain);
+  ///       SK_ReShadeAddOn_Present (               _pSwapChain);
+  ///
+  ///  transition_state (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_PRESENT,
+  ///                                                            D3D12_RESOURCE_STATE_RENDER_TARGET,
+  ///                                                              D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
+  ///}
 
   extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
                SK_ImGui_DrawFrame (       0x00,          nullptr );

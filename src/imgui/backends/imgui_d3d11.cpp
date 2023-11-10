@@ -31,9 +31,6 @@
 #include <shaders/uplay_d3d11_vs.h>
 #include <shaders/uplay_d3d11_ps.h>
 
-#include <shaders/reshade_d3d11_vs.h>
-#include <shaders/reshade_d3d11_ps.h>
-
 // DirectX
 #include <d3d11.h>
 
@@ -59,11 +56,9 @@ struct SK_ImGui_D3D11_BackbufferResourceIsolation {
   ID3D11VertexShader*       pVertexShaderRTSSHDR    = nullptr;
   ID3D11VertexShader*       pVertexShaderuPlayHDR   = nullptr;
   ID3D11VertexShader*       pVertexShaderEpicHDR    = nullptr;
-  ID3D11VertexShader*       pVertexShaderReShadeHDR = nullptr;
   ID3D11PixelShader*        pPixelShaderuPlayHDR    = nullptr;
   ID3D11PixelShader*        pPixelShaderSteamHDR    = nullptr;
   ID3D11PixelShader*        pPixelShaderDiscordHDR  = nullptr;
-  ID3D11PixelShader*        pPixelShaderReShadeHDR  = nullptr;
   ID3D11InputLayout*        pInputLayout            = nullptr;
   ID3D11Buffer*             pVertexConstantBuffer   = nullptr;
   ID3D11Buffer*             pPixelConstantBuffer    = nullptr;
@@ -154,8 +149,7 @@ struct VERTEX_CONSTANT_BUFFER
   float steam_luminance   [4];
   float discord_luminance [2];
   float rtss_luminance    [2];
-  float reshade_luminance [2];
-  float unused_padding    [2];
+  float unused_padding    [4];
 };
 
 
@@ -454,7 +448,6 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
       constant_buffer->steam_luminance   [2] = 1.0f; constant_buffer->steam_luminance   [3] = 1.0f;
       constant_buffer->discord_luminance [0] = 1.0f; constant_buffer->discord_luminance [1] = 1.0f;
       constant_buffer->rtss_luminance    [0] = 1.0f; constant_buffer->rtss_luminance    [1] = 1.0f;
-      constant_buffer->reshade_luminance [0] = 1.0f; constant_buffer->reshade_luminance [1] = 1.0f;
     }
 
     else
@@ -490,10 +483,6 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
       constant_buffer->discord_luminance [0] = ( bEOTF_is_PQ ? -80.0f * config.discord.overlay_luminance :
                                                                         config.discord.overlay_luminance );
       constant_buffer->discord_luminance [1] = 2.2f;
-
-      constant_buffer->reshade_luminance [0] = ( bEOTF_is_PQ ? -80.0f * config.reshade.overlay_luminance :
-                                                                        config.reshade.overlay_luminance );
-      constant_buffer->reshade_luminance [1] = 2.2f;
     }
 
     pDevCtx->Unmap (_P->pVertexConstantBuffer, 0);
@@ -856,63 +845,10 @@ SK_D3D11_Inject_uPlayHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
     E_NOT_VALID_STATE;
 }
 
-HRESULT
-SK_D3D11_Inject_ReShadeHDR ( _In_ ID3D11DeviceContext           *pDevCtx,
-                             _In_ UINT                           IndexCountPerInstance,
-                             _In_ UINT                           InstanceCount,
-                             _In_ UINT                           StartIndexLocation,
-                             _In_ INT                            BaseVertexLocation,
-                             _In_ UINT                           StartInstanceLocation,
-                             _In_ D3D11_DrawIndexedInstanced_pfn pfnD3D11DrawIndexedInstanced )
-{
-  // If SK is already doing SDR->HDR, then it controls the luminance
-  //   of ReShade's UI... the code below is only for games with native HDR.
-  //if (__SK_HDR_16BitSwap)
-  //  return E_NOTIMPL;
-
-  if (! SK_D3D11_EnsureMatchingDevices (pDevCtx, _d3d11_rbk->_pDevice))
-    return E_NOT_VALID_STATE;
-
-  auto* _P =
-    &_Frame [g_frameIndex % g_numFramesInSwapChain];
-
-  if ( _P->pVertexShaderReShadeHDR != nullptr &&
-       _P->pVertexConstantBuffer   != nullptr &&
-       _P->pPixelShaderReShadeHDR  != nullptr    )
-  {
-    auto flag_result =
-      SK_ImGui_FlagDrawing_OnD3D11Ctx (
-        SK_D3D11_GetDeviceContextHandle (pDevCtx)
-      );
-
-    SK_ScopedBool auto_bool0 (flag_result.first);
-                             *flag_result.first = flag_result.second;
-
-    pDevCtx->VSSetShader          ( _P->pVertexShaderReShadeHDR,
-                                      nullptr, 0 );
-    pDevCtx->PSSetShader          ( _P->pPixelShaderReShadeHDR,
-                                      nullptr, 0 );
-    pDevCtx->VSSetConstantBuffers ( 1, 1,
-                                    &_P->pVertexConstantBuffer );
-    pfnD3D11DrawIndexedInstanced  ( pDevCtx, IndexCountPerInstance, InstanceCount,
-                                      StartIndexLocation, BaseVertexLocation,
-                                        StartInstanceLocation );
-
-    config.reshade.present = true;
-
-    return
-      S_OK;
-  }
-
-  return
-    E_NOT_VALID_STATE;
-}
-
 #define STEAM_OVERLAY_VS_CRC32C   0xf48cf597
 #define EPIC_OVERLAY_VS_CRC32C    0xa7ee5199
 #define DISCORD_OVERLAY_VS_CRC32C 0x085ee17b
 #define RTSS_OVERLAY_VS_CRC32C    0x671afc2f
-#define RESHADE_OVERLAY_VS_CRC32C 0xe944408b
 
 HRESULT
 SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
@@ -1153,17 +1089,6 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
                                 L"Epic Overlay HDR Vertex Shader");
     }
 
-    if (_P->pVertexShaderReShadeHDR == nullptr)
-    {
-      ThrowIfFailed (
-        pDev->CreateVertexShader ( (void *)(reshade_d3d11_vs_bytecode),
-                                    sizeof (reshade_d3d11_vs_bytecode) /
-                                    sizeof (reshade_d3d11_vs_bytecode [0]),
-                                      nullptr, &_P->pVertexShaderReShadeHDR));
-      SK_D3D11_SetDebugName (                   _P->pVertexShaderReShadeHDR,
-                                L"ReShade Overlay HDR Vertex Shader");
-    }
-
     // Create the input layout
     D3D11_INPUT_ELEMENT_DESC    local_layout [] = {
       { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,       0, (size_t)(&((ImDrawVert *)nullptr)->pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -1257,17 +1182,6 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
                                       nullptr, &_P->pPixelShaderuPlayHDR ));
       SK_D3D11_SetDebugName (                   _P->pPixelShaderuPlayHDR,
                                  L"uPlay Overlay HDR Pixel Shader");
-    }
-
-    if (_P->pPixelShaderReShadeHDR == nullptr)
-    {
-      ThrowIfFailed (
-        pDev->CreatePixelShader ( (void *)(reshade_d3d11_ps_bytecode),
-                                   sizeof (reshade_d3d11_ps_bytecode) /
-                                   sizeof (reshade_d3d11_ps_bytecode [0]),
-                                     nullptr, &_P->pPixelShaderReShadeHDR));
-      SK_D3D11_SetDebugName (                  _P->pPixelShaderReShadeHDR,
-                                L"ReShade Overlay HDR Pixel Shader");
     }
 
     // Create the blending setup
@@ -1600,7 +1514,6 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
     if (_P->pPixelShaderuPlayHDR)    { _ReleaseAndCountRefs (&_P->pPixelShaderuPlayHDR);    assert (refs == 0); }
     if (_P->pPixelShaderSteamHDR)    { _ReleaseAndCountRefs (&_P->pPixelShaderSteamHDR);    assert (refs == 0); }
     if (_P->pPixelShaderDiscordHDR)  { _ReleaseAndCountRefs (&_P->pPixelShaderDiscordHDR);  assert (refs == 0); }
-    if (_P->pPixelShaderReShadeHDR)  { _ReleaseAndCountRefs (&_P->pPixelShaderReShadeHDR);  assert (refs == 0); }
     if (_P->pVertexConstantBuffer)   { _ReleaseAndCountRefs (&_P->pVertexConstantBuffer);   assert (refs == 0); }
     if (_P->pPixelConstantBuffer)    { _ReleaseAndCountRefs (&_P->pPixelConstantBuffer);    assert (refs == 0); }
     if (_P->pInputLayout)            { _ReleaseAndCountRefs (&_P->pInputLayout);            assert (refs == 0); }
@@ -1610,7 +1523,6 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
     if (_P->pVertexShaderRTSSHDR)    { _ReleaseAndCountRefs (&_P->pVertexShaderRTSSHDR);    assert (refs == 0); }
     if (_P->pVertexShaderuPlayHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderuPlayHDR);   assert (refs == 0); }
     if (_P->pVertexShaderEpicHDR)    { _ReleaseAndCountRefs (&_P->pVertexShaderEpicHDR);    assert (refs == 0); }
-    if (_P->pVertexShaderReShadeHDR) { _ReleaseAndCountRefs (&_P->pVertexShaderReShadeHDR); assert (refs == 0); }
 #endif
 
     if (_P->pRenderTargetView.p)

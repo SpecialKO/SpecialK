@@ -294,6 +294,12 @@ SK_ReShadeAddOn_CleanupRTVs (reshade::api::device *device, bool must_wait)
   {
     return;
   }
+
+  if (must_wait)
+  {
+    for ( auto& frame : _d3d12_rbk->frames_ )
+      frame.wait_for_gpu ();
+  }
   
   while (! dxgi_rtvs.empty ())
   {
@@ -358,6 +364,14 @@ SK_ReShadeAddOn_DestroyRuntime (reshade::api::effect_runtime *runtime)
 
   SK_ReShadeAddOn_CleanupRTVs (runtime, true);
 
+  if (! _d3d12_rbk->frames_.empty ())
+  {
+    for ( auto& frame : _d3d12_rbk->frames_ )
+    {
+      frame.wait_for_gpu ();
+    }
+  }
+
   ReShadeRuntimes [(HWND)runtime->get_hwnd ()] = nullptr;
 }
 
@@ -366,6 +380,14 @@ __cdecl
 SK_ReShadeAddOn_DestroyDevice (reshade::api::device *device)
 {
   if (! device) return;
+
+  if (! _d3d12_rbk->frames_.empty ())
+  {
+    for ( auto& frame : _d3d12_rbk->frames_ )
+    {
+      frame.wait_for_gpu ();
+    }
+  }
 
   auto api =
     device->get_api ();
@@ -392,6 +414,14 @@ __cdecl
 SK_ReShadeAddOn_DestroySwapChain (reshade::api::swapchain *swapchain)
 {
   if (! swapchain) return;
+
+  if (! _d3d12_rbk->frames_.empty ())
+  {
+    for ( auto& frame : _d3d12_rbk->frames_ )
+    {
+      frame.wait_for_gpu ();
+    }
+  }
 
   auto api =
     swapchain->get_device ()->get_api ();
@@ -704,6 +734,114 @@ SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
   }
 
   return false;
+}
+
+bool
+SK_ReShadeAddOn_RenderEffectsD3D11Ex (IDXGISwapChain1 *pSwapChain, ID3D11RenderTargetView* pRTV)
+{
+  auto runtime =
+    SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
+
+  DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+  pSwapChain->GetDesc (&swapDesc);
+
+  if (runtime != nullptr && pRTV != nullptr)
+  {
+    const bool has_effects =
+      runtime->get_effects_state ();
+
+    const auto device =
+      runtime->get_device ();
+
+    const auto cmd_queue =
+      runtime->get_command_queue ();
+
+
+    SK_ReShadeAddOn_CleanupRTVs (runtime, false);
+
+
+    if (has_effects)
+    {
+      dxgi_rtv_s dxgi_rtv;
+
+      SK_ComPtr <ID3D11Resource> pResource;
+             pRTV->GetResource (&pResource.p);
+
+      SK_ComQIPtr <ID3D11Texture2D> pTexture (pResource);
+
+      if (! pTexture.p)
+        return false;
+
+      D3D11_TEXTURE2D_DESC texDesc = { };
+      pTexture->GetDesc  (&texDesc);
+
+      auto backbuffer =
+        reshade::api::resource { (uint64_t)pResource.p };
+
+      auto rtvDesc =
+        reshade::api::resource_view_desc (static_cast <reshade::api::format> (texDesc.Format));
+
+      if (! device->create_fence (0, reshade::api::fence_flags::none, &dxgi_rtv.fence))
+        return false;
+
+      if (! device->create_resource_view (backbuffer, reshade::api::resource_usage::render_target, rtvDesc, &dxgi_rtv.rtv))
+      {
+        device->destroy_fence (dxgi_rtv.fence);
+        return false;
+      }
+
+      auto cmd_list =
+        cmd_queue->get_immediate_command_list ();
+
+      cmd_list->barrier ( backbuffer, reshade::api::resource_usage::present,
+                                      reshade::api::resource_usage::render_target );
+
+      runtime->render_effects (
+        cmd_list, dxgi_rtv.rtv, { 0 }
+      );
+
+      cmd_list->barrier ( backbuffer, reshade::api::resource_usage::render_target,
+                                      reshade::api::resource_usage::present );
+
+      cmd_queue->flush_immediate_command_list ();
+
+      if (cmd_queue->signal (dxgi_rtv.fence, 1))
+      {
+        dxgi_rtv.device = device;
+
+        dxgi_rtvs.push (dxgi_rtv);
+
+        return true;
+      }
+
+      else
+      {
+        SK_LOGs0 (L"ReShadeExt", L"Failed to signal RTV's fence!");
+
+        cmd_queue->flush_immediate_command_list ();
+        cmd_queue->wait_idle ();
+
+        device->destroy_fence         (dxgi_rtv.fence);
+        device->destroy_resource_view (dxgi_rtv.rtv);
+
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+void
+SK_ReShadeAddOn_Present (IDXGISwapChain *pSwapChain)
+{
+  auto runtime =
+    SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
+
+  if (runtime != nullptr)
+  {
+    runtime->render_effects ( nullptr, { 0 }, { 0 });
+  }
 }
 
 UINT64

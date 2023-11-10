@@ -3192,23 +3192,6 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
-        if (config.reshade.present)
-        {
-          float reshade_nits =
-            config.reshade.overlay_luminance / 1.0_Nits;
-
-          if ( ImGui::SliderFloat ( "ReShade Overlay Luminance###RESHADE_LUMINANCE",
-                                     &reshade_nits,
-                                      80.0f, rb.display_gamut.maxAverageY,
-                                        (const char *)u8"%.1f cd/m²" ) )
-          {
-            config.reshade.overlay_luminance =
-                                   reshade_nits * 1.0_Nits;
-
-            SK_SaveConfig ();
-          }
-        }
-
         static bool uplay_overlay = false;
 
         if ((! uplay_overlay) && ((SK_GetFramesDrawn () - first_try) < 240))

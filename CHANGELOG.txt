@@ -1,4 +1,17 @@
-﻿23.11.9.1
+﻿23.11.10
+========
+ + Added support for triggering ReShade on specific Pixel/Vertex shaders in
+     D3D11, the same way it used to work for the custom version of ReShade.
+
+    * Requires an add-on compatible version of ReShade (5.9.3+).
+
+  Use the D3D11 Render Mod Tools and run through the Pixel Shaders trying
+    "Trigger ReShade On First Draw" until you find one that draws ReShade
+      before the game's UI.
+
+    -> Save the Current State when done.
+
+23.11.9.1
 =========
  + Always flush ReShade's D3D12 "immediate context" after drawing, because
      it does not see native DXGI SwapChain presents in games using
