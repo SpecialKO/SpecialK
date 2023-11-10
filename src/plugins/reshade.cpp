@@ -651,6 +651,9 @@ SK_ReShadeAddOn_FinishFrameDXGI (IDXGISwapChain1 *pSwapChain)
   }
 }
 
+#include <SpecialK/render/d3d11/d3d11_core.h>
+extern SK_LazyGlobal <SK_D3D11_KnownShaders> SK_D3D11_Shaders;
+
 bool
 SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
 {
@@ -671,9 +674,24 @@ SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
     const auto cmd_queue =
       runtime->get_command_queue ();
 
+    const auto cmd_list =
+      cmd_queue->get_immediate_command_list ();
+
 
     SK_ReShadeAddOn_CleanupRTVs (runtime, false);
 
+    //
+    // We have ReShade triggers, but none of them triggered... pass a null rtv for both
+    //   linear and sRGB, and ReShade will skip processing this frame.
+    //
+    if (SK_D3D11_Shaders->hasReShadeTriggers () && (! SK_D3D11_Shaders->reshade_triggered))
+    {
+      runtime->render_effects (
+        cmd_list, { 0 }, { 0 }
+      );
+
+      return false;
+    }
 
     if (has_effects)
     {
@@ -693,9 +711,6 @@ SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
         device->destroy_fence (dxgi_rtv.fence);
         return false;
       }
-
-      auto cmd_list =
-        cmd_queue->get_immediate_command_list ();
 
       cmd_list->barrier ( backbuffer, reshade::api::resource_usage::present,
                                       reshade::api::resource_usage::render_target );
@@ -742,28 +757,38 @@ SK_ReShadeAddOn_RenderEffectsD3D11Ex (IDXGISwapChain1 *pSwapChain, ID3D11RenderT
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
 
-  DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-  pSwapChain->GetDesc (&swapDesc);
-
   if (runtime != nullptr && pRTV != nullptr)
   {
     const bool has_effects =
       runtime->get_effects_state ();
 
-    const auto device =
-      runtime->get_device ();
-
     const auto cmd_queue =
       runtime->get_command_queue ();
+
+    const auto cmd_list =
+      cmd_queue->get_immediate_command_list ();
 
 
     SK_ReShadeAddOn_CleanupRTVs (runtime, false);
 
 
+
+    //
+    // We have ReShade triggers, but none of them triggered... pass a null rtv for both
+    //   linear and sRGB, and ReShade will skip processing this frame.
+    //
+    if (SK_D3D11_Shaders->hasReShadeTriggers () && (! SK_D3D11_Shaders->reshade_triggered))
+    {
+      runtime->render_effects (
+        cmd_list, { 0 }, { 0 }
+      );
+
+      return false;
+    }
+
+
     if (has_effects)
     {
-      dxgi_rtv_s dxgi_rtv;
-
       SK_ComPtr <ID3D11Resource> pResource;
              pRTV->GetResource (&pResource.p);
 
@@ -772,60 +797,13 @@ SK_ReShadeAddOn_RenderEffectsD3D11Ex (IDXGISwapChain1 *pSwapChain, ID3D11RenderT
       if (! pTexture.p)
         return false;
 
-      D3D11_TEXTURE2D_DESC texDesc = { };
-      pTexture->GetDesc  (&texDesc);
-
-      auto backbuffer =
-        reshade::api::resource { (uint64_t)pResource.p };
-
-      auto rtvDesc =
-        reshade::api::resource_view_desc (static_cast <reshade::api::format> (texDesc.Format));
-
-      if (! device->create_fence (0, reshade::api::fence_flags::none, &dxgi_rtv.fence))
-        return false;
-
-      if (! device->create_resource_view (backbuffer, reshade::api::resource_usage::render_target, rtvDesc, &dxgi_rtv.rtv))
-      {
-        device->destroy_fence (dxgi_rtv.fence);
-        return false;
-      }
-
-      auto cmd_list =
-        cmd_queue->get_immediate_command_list ();
-
-      cmd_list->barrier ( backbuffer, reshade::api::resource_usage::present,
-                                      reshade::api::resource_usage::render_target );
-
       runtime->render_effects (
-        cmd_list, dxgi_rtv.rtv, { 0 }
+        cmd_list, reshade::api::resource_view { (uint64_t)pRTV }, { 0 }
       );
-
-      cmd_list->barrier ( backbuffer, reshade::api::resource_usage::render_target,
-                                      reshade::api::resource_usage::present );
 
       cmd_queue->flush_immediate_command_list ();
 
-      if (cmd_queue->signal (dxgi_rtv.fence, 1))
-      {
-        dxgi_rtv.device = device;
-
-        dxgi_rtvs.push (dxgi_rtv);
-
-        return true;
-      }
-
-      else
-      {
-        SK_LOGs0 (L"ReShadeExt", L"Failed to signal RTV's fence!");
-
-        cmd_queue->flush_immediate_command_list ();
-        cmd_queue->wait_idle ();
-
-        device->destroy_fence         (dxgi_rtv.fence);
-        device->destroy_resource_view (dxgi_rtv.rtv);
-
-        return true;
-      }
+      return true;
     }
   }
 

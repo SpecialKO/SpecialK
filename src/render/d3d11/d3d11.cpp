@@ -2761,9 +2761,9 @@ const
     if (active)
     {
       if (pDevCtx->GetType () != D3D11_DEVICE_CONTEXT_DEFERRED)
-        tracker->use (nullptr);
+        tracker->use (pDevCtx);
       else
-        tracker->use_cmdlist (nullptr);
+        tracker->use_cmdlist (pDevCtx);
 
       if (tracker->cancel_draws)
       {

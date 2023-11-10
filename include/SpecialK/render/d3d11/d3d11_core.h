@@ -1382,6 +1382,8 @@ struct d3d11_shader_tracking_s
     set_of_res.clear   ();
     set_of_views.clear ();
 
+    first_rtv = { };
+
     std::scoped_lock <SK_Thread_HybridSpinlock>
          auto_lock (*shader_class_crit_sec ());
 
@@ -1392,8 +1394,8 @@ struct d3d11_shader_tracking_s
     //used_textures.clear ();
   }
 
-  void use        ( IUnknown* pShader );
-  void use_cmdlist( IUnknown* pShader ); // Deferred draw, cannot be timed
+  void use        ( ID3D11DeviceContext* pDevCtx );
+  void use_cmdlist( ID3D11DeviceContext* pDevCtx ); // Deferred draw, cannot be timed
 
   // Used for timing queries and interface tracking
   void activate   ( ID3D11DeviceContext        *pDevContext,
@@ -1488,6 +1490,8 @@ struct d3d11_shader_tracking_s
     SK_ComPtr <ID3D11Resource>             > set_of_res;
   concurrency::concurrent_unordered_set <
     SK_ComPtr <ID3D11ShaderResourceView>   > set_of_views;
+
+  D3D11_TEXTURE2D_DESC first_rtv;
 
 
   struct cbuffer_override_s {
@@ -1677,7 +1681,13 @@ struct SK_D3D11_KnownShaders
     }
   };
 
-
+  bool hasReShadeTriggers (void)
+  {
+    return
+      config.reshade.is_addon &&
+        ( (! pixel.trigger_reshade.before.empty  ()) ||
+          (! vertex.trigger_reshade.before.empty ()) );
+  }
   //static std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1> reshade_triggered;
   static bool                           reshade_triggered;
 

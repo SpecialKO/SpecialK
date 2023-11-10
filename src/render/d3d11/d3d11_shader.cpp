@@ -1274,7 +1274,9 @@ SK_D3D11_LoadShaderStateEx (const std::wstring& name, bool clear)
     {
       requested [name] = false;
 
+#if 0
       SK_ReleaseAssert (! sections.empty ());
+#endif
 
       to_dec =
         SK_D3D11_TrackingCount->Always;
@@ -3742,13 +3744,25 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
       ImGui::Columns  (1);
     }
 
-    if (config.reshade.is_addon && shader_type != sk_shader_class::Compute)
+    if (config.reshade.is_addon && ( tracker->first_rtv.Format != DXGI_FORMAT_UNKNOWN &&
+                                     ( static_cast <float> (tracker->first_rtv.Width) /
+                                       static_cast <float> (tracker->first_rtv.Height) ) < (io.DisplaySize.x / io.DisplaySize.y) + 0.1f &&
+                                     ( static_cast <float> (tracker->first_rtv.Width) /
+                                       static_cast <float> (tracker->first_rtv.Height) ) > (io.DisplaySize.x / io.DisplaySize.y) - 0.1f ) && shader_type != sk_shader_class::Compute)
     {
       bool reshade_before = pShader->trigger_reshade.before.count (tracker->crc32c) != 0;
-      bool reshade_after  = pShader->trigger_reshade.after.count  (tracker->crc32c) != 0;
+    //bool reshade_after  = pShader->trigger_reshade.after.count  (tracker->crc32c) != 0;
 
-      if (ImGui::Checkbox ("Trigger ReShade On First Draw", &reshade_before))
+      bool toggle_by_keyboard =
+        (io.KeyCtrl && ImGui::GetKeyData (ImGuiKey_R)->DownDuration == 0.0f);
+
+      if (ImGui::Checkbox ("Trigger ReShade On First Draw", &reshade_before) || toggle_by_keyboard)
       {
+        if (toggle_by_keyboard)
+        {
+          reshade_before = !reshade_before;
+        }
+
         if (reshade_before)
         {
           pShader->addTrackingRef (pShader->trigger_reshade.before, tracker->crc32c);
@@ -3762,6 +3776,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         }
       }
 
+#if 0
       if (ImGui::Checkbox ("Trigger ReShade After First Draw", &reshade_after))
       {
         if (reshade_after)
@@ -3776,6 +3791,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           } while (! pShader->releaseTrackingRef (pShader->trigger_reshade.after, tracker->crc32c));
         }
       }
+#endif
     }
 
     ///else

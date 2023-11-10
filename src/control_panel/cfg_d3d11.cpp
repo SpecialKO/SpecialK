@@ -382,7 +382,7 @@ SK::ControlPanel::D3D11::Draw (void)
         bool tracking = false;
 
         if ( ( ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 ||
-              config.reshade.is_addon  )        )
+               SK_D3D11_Shaders->hasReShadeTriggers () ) )
         {
           tracking = true;
 
@@ -391,7 +391,7 @@ SK::ControlPanel::D3D11::Draw (void)
 
           else
           {
-            if (config.reshade.is_addon)
+            if (SK_D3D11_Shaders->hasReShadeTriggers ())
               lstrcatA (szThreadLocalStr, "  Draw Calls  ( Generic & ReShade Trigger ) ");
             else
               lstrcatA (szThreadLocalStr, "  Draw Calls  ( Generic ) ");

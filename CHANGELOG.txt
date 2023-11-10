@@ -1,4 +1,31 @@
-﻿23.11.10
+﻿23.11.10.1
+==========
+ + Optimize D3D11 ReShade add-on render path to avoid creating unnecessary
+     temporary Render Target Views.
+ + Added Ctrl+R keyboard shortcut to toggle ReShade trigger behavior for the
+     selected shader in D3D11 Render Mod Tools.
+ + Only show "Trigger ReShade On First Draw" for shaders that have compatible
+     aspect ratio.
+ + Skip ReShade post-processing altogether if trigger shaders are setup, but
+     the game does not activate any of the triggers in a frame.
+
+    * This is intended to skip post-processing when the ONLY thing on screen
+        is the game's UI.
+
+  Example d3d11_shaders.ini (Baldur's Gate 3) to apply ReShade before HUD:
+
+    [DrawState.Vertex]
+    5dcbb1c5=HUD
+    73199e2e=HUD
+    a8226121=HUD
+    c9ce2d35=HUD
+    d2650529=HUD
+
+    [DrawState.Pixel]
+    2a588cb1=TriggerReShade
+    2bf49536=TriggerReShade
+
+23.11.10
 ========
  + Added support for triggering ReShade on specific Pixel/Vertex shaders in
      D3D11, the same way it used to work for the custom version of ReShade.

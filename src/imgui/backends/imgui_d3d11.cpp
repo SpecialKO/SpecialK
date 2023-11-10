@@ -2015,8 +2015,8 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 
       if (config.reshade.is_addon && config.reshade.draw_first == false)
       {
-        SK_ComQIPtr <IDXGISwapChain1>       pSwapChain1 (_pSwapChain.p);
-        SK_ReShadeAddOn_RenderEffectsD3D11 (pSwapChain1.p);
+        SK_ComQIPtr <IDXGISwapChain1>         pSwapChain1 (_pSwapChain.p);
+        SK_ReShadeAddOn_RenderEffectsD3D11Ex (pSwapChain1.p, _Frame [0].pRenderTargetView.p);
       }
       
       SK_ImGui_DrawFrame (0x00, nullptr);

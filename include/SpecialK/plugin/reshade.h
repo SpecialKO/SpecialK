@@ -35,8 +35,9 @@ SK_ReShade_GetDLL (void);
 void
 SK_ReShade_LoadIfPresent (void);
 
-UINT64 SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1*, ID3D12Resource*, ID3D12Fence*, D3D12_CPU_DESCRIPTOR_HANDLE);
-bool   SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1*); // TODO: Make generic to post-process non-SwapChain buffers
+UINT64 SK_ReShadeAddOn_RenderEffectsD3D12   (IDXGISwapChain1*, ID3D12Resource*, ID3D12Fence*, D3D12_CPU_DESCRIPTOR_HANDLE);
+bool   SK_ReShadeAddOn_RenderEffectsD3D11   (IDXGISwapChain1*); // TODO: Make generic to post-process non-SwapChain buffers
+bool   SK_ReShadeAddOn_RenderEffectsD3D11Ex (IDXGISwapChain1 *pSwapChain, ID3D11RenderTargetView *pRTV);
 bool   SK_ReShadeAddOn_Init               (HMODULE          reshade_module = nullptr);
 void   SK_ReShadeAddOn_ActivateOverlay    (bool             activate);
 bool   SK_ReShadeAddOn_IsOverlayActive    (void);

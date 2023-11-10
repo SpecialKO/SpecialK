@@ -174,7 +174,8 @@ bool SK_D3D11_IsTrackingRequired (void)
 {
   return
     ReadAcquire (&SK_D3D11_DrawTrackingReqs)    > 0 ||
-    ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0;
+    ReadAcquire (&SK_D3D11_CBufferTrackingReqs) > 0 ||
+    (SK_D3D11_Shaders->hasReShadeTriggers () && (! SK_D3D11_Shaders->reshade_triggered));
 }
 
 bool
@@ -494,17 +495,65 @@ d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
 }
 
 void
-d3d11_shader_tracking_s::use (IUnknown* pShader)
+d3d11_shader_tracking_s::use (ID3D11DeviceContext* pDevCtx)
 {
-  UNREFERENCED_PARAMETER (pShader);
+  if (pDevCtx != nullptr && first_rtv.Format == DXGI_FORMAT_UNKNOWN)
+  {
+    SK_ComPtr <ID3D11RenderTargetView> pRTV;
+    pDevCtx->OMGetRenderTargets (  1, &pRTV, nullptr  );
+  
+    if (pRTV != nullptr)
+    {
+      SK_ComPtr <ID3D11Resource>
+                          pResource;
+      pRTV->GetResource (&pResource.p);
+  
+      SK_ComQIPtr <ID3D11Texture2D>
+                        pTexture2D (pResource);
+  
+      if (pTexture2D != nullptr)
+      {
+        D3D11_TEXTURE2D_DESC  texDesc = { };
+        pTexture2D->GetDesc (&texDesc);
+  
+        first_rtv.Format = texDesc.Format;
+        first_rtv.Width  = texDesc.Width;
+        first_rtv.Height = texDesc.Height;
+      }
+    }
+  }
 
   num_draws++;
 }
 
 void
-d3d11_shader_tracking_s::use_cmdlist (IUnknown* pShader)
+d3d11_shader_tracking_s::use_cmdlist (ID3D11DeviceContext* pDevCtx)
 {
-  UNREFERENCED_PARAMETER (pShader);
+  if (pDevCtx != nullptr && first_rtv.Format == DXGI_FORMAT_UNKNOWN)
+  {
+    SK_ComPtr <ID3D11RenderTargetView> pRTV;
+    pDevCtx->OMGetRenderTargets (  1, &pRTV, nullptr  );
+  
+    if (pRTV != nullptr)
+    {
+      SK_ComPtr <ID3D11Resource>
+                          pResource;
+      pRTV->GetResource (&pResource.p);
+  
+      SK_ComQIPtr <ID3D11Texture2D>
+                        pTexture2D (pResource);
+  
+      if (pTexture2D != nullptr)
+      {
+        D3D11_TEXTURE2D_DESC  texDesc = { };
+        pTexture2D->GetDesc (&texDesc);
+  
+        first_rtv.Format = texDesc.Format;
+        first_rtv.Width  = texDesc.Width;
+        first_rtv.Height = texDesc.Height;
+      }
+    }
+  }
 
   num_deferred_draws++;
 }
@@ -563,6 +612,7 @@ SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
   };
 
   if ( config.reshade.is_addon &&
+          SK_D3D11_Shaders->hasReShadeTriggers () &&
                  reshadable () &&
        (! SK_D3D11_Shaders->reshade_triggered) )
   {
