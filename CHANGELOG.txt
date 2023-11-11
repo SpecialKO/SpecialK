@@ -1,6 +1,11 @@
-﻿23.11.10.1
+﻿23.11.10.2
 ==========
- + Optimize D3D11 ReShade add-on render path to avoid creating unnecessary
+ + Add workaround for games that poll keyboard input for Alt+F4 rather than using
+     the correct WM_SYSCOMMAND message.
+
+23.11.10.1
+==========
+ + Optimized D3D11 ReShade add-on render path to avoid creating unnecessary
      temporary Render Target Views.
  + Added Ctrl+R keyboard shortcut to toggle ReShade trigger behavior for the
      selected shader in D3D11 Render Mod Tools.

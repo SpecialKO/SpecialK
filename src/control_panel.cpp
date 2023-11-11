@@ -203,7 +203,7 @@ void SK_DPI_Update (void)
 
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
        bool IMGUI_API SK_ImGui_Visible          = false;
-       bool           SK_ReShade_Visible        = false;
+       bool           SK_ImGuiEx_Visible        = false;
        bool           SK_ControlPanel_Activated = false;
 
 extern void ImGui_ToggleCursor (void);
@@ -461,7 +461,7 @@ SK_ImGui_ProcessWarnings (void)
     ImGui::GetIO ();
 
   // Stupid hack to show ImGui windows without the control panel open
-  SK_ReShade_Visible = true;
+  SK_ImGui_Visible = true;
 
   SK_ImGui_SetNextWindowPosCenter     (ImGuiCond_Always);
   ImGui::SetNextWindowSizeConstraints ( ImVec2 (360.0f, 40.0f),
@@ -478,6 +478,8 @@ SK_ImGui_ProcessWarnings (void)
                                     ImGuiWindowFlags_NoScrollWithMouse )
      )
   {
+    SK_ImGuiEx_Visible = true;
+
     ImGui::TextColored ( ImColor::HSV (0.075f, 1.0f, 1.0f),
                            "\n\t%hs\t\n\n", SK_WideCharToUTF8 (warning.message).c_str () );
 
@@ -489,7 +491,7 @@ SK_ImGui_ProcessWarnings (void)
 
     if (ImGui::Button ("Okay"))
     {
-      SK_ReShade_Visible = false;
+      SK_ImGuiEx_Visible = false;
       SK_ReShadeAddOn_ActivateOverlay (false);
 
       warning.message.clear ();
@@ -6050,7 +6052,7 @@ SK_ImGui_KeyboardProc (int       code, WPARAM wParam, LPARAM lParam)
     if (SK_ImGui_Active () || config.input.keyboard.catch_alt_f4 || config.input.keyboard.override_alt_f4 || SK_ImGui_WantKeyboardCapture ())
         SK_ImGui_WantExit = true;
 
-    if (SK_ImGui_Active () || SK_ImGui_WantKeyboardCapture ()) return 1;
+    if (SK_ImGui_Visible || SK_ImGui_WantKeyboardCapture ()) return 1;
   }
 
   if (SK_ImGui_WantKeyboardCapture () && (! io.WantTextInput))
@@ -6477,11 +6479,11 @@ SK_ImGui_StageNextFrame (void)
         }
       }
 
-      SK_ReShade_Visible = true;
+      SK_ImGuiEx_Visible = true;
     }
 
     else
-      SK_ReShade_Visible = false;
+      SK_ImGuiEx_Visible = false;
   }
 
   if (d3d11)
@@ -6644,7 +6646,7 @@ SK_ImGui_StageNextFrame (void)
   if (SK_ImGui_WantExit)
   {
     // Uncomment this to always display a confirmation dialog
-    //SK_ReShade_Visible = true; // Make into user config option
+    //SK_ImGuiEx_Visible = true; // Make into user config option
 
     if (config.input.keyboard.catch_alt_f4 || SK_ImGui_Visible)
       SK_ImGui_ConfirmExit ();             // ^^ Control Panel In Use
@@ -6663,6 +6665,7 @@ SK_ImGui_StageNextFrame (void)
                                     ImGuiWindowFlags_NoScrollWithMouse )
      )
   {
+    SK_ImGuiEx_Visible = true;
     nav_usable = true;
 
     static const char* szConfirmExit    = " Confirm Exit? ";
@@ -6702,6 +6705,8 @@ SK_ImGui_StageNextFrame (void)
 
     if (ImGui::Button  ("Okay"))
     {
+      SK_ImGuiEx_Visible = false;
+
       if (SK_ImGui_WantRestart)
       {
         SK_RestartGame ();
@@ -6737,7 +6742,7 @@ SK_ImGui_StageNextFrame (void)
     {
       SK_ImGui_WantExit    = false;
       SK_ImGui_WantRestart = false;
-      SK_ReShade_Visible   = false;
+      SK_ImGuiEx_Visible   = false;
       SK_ReShadeAddOn_ActivateOverlay (false);
       nav_usable           = orig_nav_state;
       ImGui::CloseCurrentPopup ();
@@ -6812,7 +6817,7 @@ SK_ImGui_StageNextFrame (void)
         shown_once           = true;
         SK_ImGui_WantExit    = false;
         SK_ImGui_WantRestart = false;
-        SK_ReShade_Visible   = false;
+        SK_ImGuiEx_Visible   = false;
         SK_ReShadeAddOn_ActivateOverlay (false);
         nav_usable           = orig_nav_state;
         ImGui::CloseCurrentPopup ();

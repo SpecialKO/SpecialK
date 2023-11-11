@@ -1555,8 +1555,8 @@ SK_ImGui_WantKeyboardCapture (void)
 
   if (SK_IsGameWindowActive () || SK_WantBackgroundRender ())
   {
-    if (nav_usable || io.WantCaptureKeyboard || io.WantTextInput)
-      imgui_capture = true;
+    if ((nav_usable || io.WantCaptureKeyboard || io.WantTextInput) && (! SK_ImGuiEx_Visible))
+      imgui_capture = true;                                        // Don't block keyboard input on popups, or stupid games can miss Alt+F4
 
     if (SK_IsConsoleVisible ())
       imgui_capture = true;

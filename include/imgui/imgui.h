@@ -3207,10 +3207,10 @@ extern IMGUI_API void __stdcall SK_PlugIn_ControlPanelWidget (void);
 #endif
 
 extern IMGUI_API bool SK_ImGui_Visible;
-extern           bool SK_ReShade_Visible;
+extern           bool SK_ImGuiEx_Visible;
 extern           bool nav_usable;
 
-static inline bool SK_ImGui_Active (void) noexcept { return SK_ImGui_Visible || SK_ReShade_Visible; };
+static inline bool SK_ImGui_Active (void) noexcept { return SK_ImGui_Visible || SK_ImGuiEx_Visible; };
               void SK_ImGui_Warning (const wchar_t* wszMessage);
 
 // Fixed-width font
