@@ -1,4 +1,10 @@
-﻿23.11.10.2
+﻿23.11.12
+========
+ + Fixed an issue in D3D12 on AMD GPUs that might render ImGui's UI in sRGB
+ + Fixed colorspace conversion to Rec2020+PQ from scRGB in AVIF screenshots
+ + Clamp colors when converting HDR10 to scRGB for JXR screenshots to Rec2020
+
+23.11.10.2
 ==========
  + Add workaround for games that poll keyboard input for Alt+F4 rather than using
      the correct WM_SYSCOMMAND message.

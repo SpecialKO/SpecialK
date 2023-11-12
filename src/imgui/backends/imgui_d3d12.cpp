@@ -396,11 +396,12 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
   ctx->IASetPrimitiveTopology        (D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
   ctx->SetGraphicsRoot32BitConstants (0, 24, &vertex_constant_buffer, 0);
-  ctx->SetGraphicsRoot32BitConstants ( 2, 4,
-                       std::array <float, 4> (
+  ctx->SetGraphicsRoot32BitConstants ( 2, 8,
+                       std::array <float, 8> (
       {                draw_data->DisplayPos.x,  draw_data->DisplayPos.y,
         hdr_display ? draw_data->DisplaySize.x - draw_data->DisplayPos.x : 0.0f,
-        hdr_display ? draw_data->DisplaySize.y - draw_data->DisplayPos.y : 0.0f }
+        hdr_display ? draw_data->DisplaySize.y - draw_data->DisplayPos.y : 0.0f,
+                                                                           0.0f, 0.0f, 0.0f, 0.0f }
                                              ).data (),
                                           0
   );
