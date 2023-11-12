@@ -1405,10 +1405,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     
                       for (size_t j = 0; j < width; ++j)
                       {
-                        XMVECTOR value  = inPixels [j];
-                        XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
-                                  value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
-                        outPixels [j]   =                     value;
+                        XMVECTOR value = inPixels [j];
+                        outPixels [j]  = XMVector3Transform (value, c_from2020to709);
                       }
                     }, un_scrgb
                   );
@@ -1421,7 +1419,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                 {
                   XMVECTOR maxLum = XMVectorZero          (),
                            minLum = XMVectorSplatInfinity (),
-                           colLum = XMVectorZero          ();
+                           maxRGB = XMVectorZero          ();
 
                   static const XMVECTORF32 s_luminance =
                     { 0.2126729, 0.7151522, 0.0721750, 0.f };
@@ -1442,8 +1440,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         XMVECTOR v =
                           XMVectorMax (*pixels++, g_XMZero);
 
-                        colLum =
-                          XMVectorMax (v, colLum);
+                        maxRGB =
+                          XMVectorMax (v, maxRGB);
 
                         v = XMVector3Dot (v, s_luminance);
 
@@ -1512,17 +1510,12 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                             )
                           );
 
-                        XMVECTOR nvalue =
+                        value =
                           XMVectorMultiply (value, XMVectorLerp (scale1, scale0, luma.m128_f32 [0] /
                                                                                maxLum.m128_f32 [0] / 1.4f));
-                                  value =
-                          XMVectorSelect   (value, nvalue, g_XMSelect1110);
                         
                         outPixels [j] =
                           XMVectorPow ( value, c_SdrPower );
-
-                        colLum =
-                          XMVectorMax (outPixels [j], colLum);
                       }
                     }, final_sdr
                   ) : E_POINTER;

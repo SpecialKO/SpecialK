@@ -1774,11 +1774,9 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                         for (size_t j = 0; j < width; ++j)
                         {
-                          XMVECTOR value  = PQToLinear (inPixels [j]);
-                          XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
-                                    value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
+                          XMVECTOR value = inPixels [j];
 
-                          outPixels [j] = value;
+                          outPixels [j] = XMVector3Transform (PQToLinear (value), c_from2020to709);;
                           outPixels [j].m128_f32 [3] = 1.0f;
                         }
                       }, un_hdr10    )
@@ -1802,7 +1800,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                 {
                   XMVECTOR maxLum = XMVectorZero          (),
                            minLum = XMVectorSplatInfinity (),
-                           colLum = XMVectorZero          ();
+                           maxRGB = XMVectorZero          ();
 
                   static const XMVECTORF32 s_luminance =
                     { 0.2126729, 0.7151522, 0.0721750, 0.f };
@@ -1823,8 +1821,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         XMVECTOR v =
                           XMVectorMax (*pixels++, g_XMZero);
 
-                        colLum =
-                          XMVectorMax (v, colLum);
+                        maxRGB =
+                          XMVectorMax (v, maxRGB);
 
                         v = XMVector3Dot (v, s_luminance);
 
@@ -1893,17 +1891,12 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                             )
                           );
 
-                        XMVECTOR nvalue =
+                        value =
                           XMVectorMultiply (value, XMVectorLerp (scale1, scale0, luma.m128_f32 [0] /
                                                                                maxLum.m128_f32 [0] / 1.4f));
-                                  value =
-                          XMVectorSelect   (value, nvalue, g_XMSelect1110);
                         
                         outPixels [j] =
                           XMVectorPow ( value, c_SdrPower );
-
-                        colLum =
-                          XMVectorMax (outPixels [j], colLum);
                       }
                     }, final_sdr
                   ) : E_POINTER;
@@ -2244,45 +2237,51 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           { 0.f,          0.f,         0.f,        1.f }
                         };
 
+                        static const XMMATRIX c_from709to2020 =
+                        {
+                          { 0.627225305694944,  0.329476882715808,  0.0432978115892484, 0.0 },
+                          { 0.0690418812810714, 0.919605681354755,  0.0113524373641739, 0.0 },
+                          { 0.0163911702607078, 0.0880887513437058, 0.895520078395586,  0.0 },
+                          { 0.0,                0.0,                0.0,                1.0 }
+                        };
+
                         struct ParamsPQ
                         {
-                          float N, M;
-                          float C1, C2, C3;
+                          XMVECTOR N, M;
+                          XMVECTOR C1, C2, C3;
+                          XMVECTOR MaxPQ;
                         };
-                        
+
                         static const ParamsPQ PQ =
                         {
-                          2610.0 / 4096.0 / 4.0,   // N
-                          2523.0 / 4096.0 * 128.0, // M
-                          3424.0 / 4096.0,         // C1
-                          2413.0 / 4096.0 * 32.0,  // C2
-                          2392.0 / 4096.0 * 32.0,  // C3
+                          XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
+                          XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
+                          XMVectorReplicate (3424.0 / 4096.0),         // C1
+                          XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
+                          XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
+                          XMVectorReplicate (125.0),
                         };
-                        
+
                         auto PQToLinear = [](XMVECTOR N)
                         {
                           XMVECTOR ret;
-                        
-                          ret.m128_f32 [0] =
-                            std::pow (N.m128_f32 [0], 1.0f / PQ.M);
-                          ret.m128_f32 [1] =
-                            std::pow (N.m128_f32 [1], 1.0f / PQ.M);
-                          ret.m128_f32 [2] =
-                            std::pow (N.m128_f32 [2], 1.0f / PQ.M);
-                        
+
+                          ret =
+                            XMVectorPow (N, XMVectorDivide (g_XMOne, PQ.M));
+
                           XMVECTOR nd;
-                        
-                          nd.m128_f32 [0] = std::max (ret.m128_f32 [0] - PQ.C1, 0.0f) /
-                                                                        (PQ.C2 - (PQ.C3 * ret.m128_f32 [0]));
-                          nd.m128_f32 [1] = std::max (ret.m128_f32 [1] - PQ.C1, 0.0f) /
-                                                                        (PQ.C2 - (PQ.C3 * ret.m128_f32 [1]));
-                          nd.m128_f32 [2] = std::max (ret.m128_f32 [2] - PQ.C1, 0.0f) /
-                                                                        (PQ.C2 - (PQ.C3 * ret.m128_f32 [2]));
-                        
-                          ret.m128_f32 [0] = std::pow (nd.m128_f32 [0], 1.0f / PQ.N) * 125.0f;
-                          ret.m128_f32 [1] = std::pow (nd.m128_f32 [1], 1.0f / PQ.N) * 125.0f;
-                          ret.m128_f32 [2] = std::pow (nd.m128_f32 [2], 1.0f / PQ.N) * 125.0f;
-                        
+
+                          nd =
+                            XMVectorDivide (
+                              XMVectorMax (XMVectorSubtract (ret, PQ.C1), g_XMZero),
+                                           XMVectorSubtract (     PQ.C2,
+                                    XMVectorMultiply (PQ.C3, ret)));
+
+                          ret =
+                            XMVectorMultiply (
+                              XMVectorPow (nd, XMVectorDivide (g_XMOne, PQ.N)), PQ.MaxPQ
+                            );
+
                           return ret;
                         };
 
@@ -2302,11 +2301,9 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                               for (size_t j = 0; j < width; ++j)
                               {
-                                XMVECTOR value  = PQToLinear (inPixels [j]);
-                                XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
-                                          value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
+                                XMVECTOR value = inPixels [j];
 
-                                outPixels [j] = value;
+                                outPixels [j] = XMVector3Transform (PQToLinear (XMVectorClamp (value, g_XMZero, g_XMOne)), c_from2020to709);
                                 outPixels [j].m128_f32 [3] = 1.0f;
                               }
                             }, un_hdr10    )

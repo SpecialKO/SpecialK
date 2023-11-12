@@ -466,14 +466,10 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage& src_image, const wchar_t* wszFile
   switch (src_image.GetMetadata ().format)
   {
     case DXGI_FORMAT_R10G10B10A2_UNORM:
+    case DXGI_FORMAT_R16G16B16A16_FLOAT:
       image->colorPrimaries          = AVIF_COLOR_PRIMARIES_BT2020;
       image->transferCharacteristics = AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084;
       image->matrixCoefficients      = AVIF_MATRIX_COEFFICIENTS_BT2020_NCL;
-      break;
-    case DXGI_FORMAT_R16G16B16A16_FLOAT:
-      image->colorPrimaries          = AVIF_COLOR_PRIMARIES_BT709;
-      image->transferCharacteristics = AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084;
-      image->matrixCoefficients      = AVIF_MATRIX_COEFFICIENTS_IDENTITY;
       break;
     default:
       return false;
@@ -514,6 +510,14 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage& src_image, const wchar_t* wszFile
 
     case DXGI_FORMAT_R16G16B16A16_FLOAT:
     {
+      static const XMMATRIX c_from709to2020 =
+      {
+        { 0.627225305694944,  0.329476882715808,  0.0432978115892484, 0.0 },
+        { 0.0690418812810714, 0.919605681354755,  0.0113524373641739, 0.0 },
+        { 0.0163911702607078, 0.0880887513437058, 0.895520078395586,  0.0 },
+        { 0.0,                0.0,                0.0,                1.0 }
+      };
+
       struct ParamsPQ
       {
         XMVECTOR N, M;
@@ -557,11 +561,12 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage& src_image, const wchar_t* wszFile
       {
         UNREFERENCED_PARAMETER(y);
 
-        for (size_t j = 0; j < width; ++j) 
+        for (size_t j = 0; j < width; ++j)
         {
-          XMVECTOR  value = XMVectorDivide (pixels [j], PQ.MaxPQ);
-          XMVECTOR nvalue = LinearToPQ (value);
-                    value = XMVectorSelect (value, nvalue, g_XMSelect1110);
+          XMVECTOR  value = pixels [j];
+          XMVECTOR nvalue = XMVectorDivide ( XMVector3Transform (   value, c_from709to2020),
+                                             XMVector3Transform (PQ.MaxPQ, c_from709to2020) );
+                    value = LinearToPQ (XMVectorClamp (nvalue, g_XMZero, g_XMOne));
 
           *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [0] * 65535.0f);
           *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [1] * 65535.0f);
