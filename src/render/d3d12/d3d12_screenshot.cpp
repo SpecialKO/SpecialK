@@ -1795,11 +1795,45 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                 hr = S_OK;
 
+                static const XMVECTORF32 s_luminance_2020 =
+                  { 0.2627,   0.678,    0.0593,   0.f };
+
+                static const XMMATRIX c_from709to2020 =
+                {
+                  { 0.627225305694944,  0.329476882715808,  0.0432978115892484, 0.0 },
+                  { 0.0690418812810714, 0.919605681354755,  0.0113524373641739, 0.0 },
+                  { 0.0163911702607078, 0.0880887513437058, 0.895520078395586,  0.0 },
+                  { 0.0,                0.0,                0.0,                1.0 }
+                };
+
+                if ( un_srgb.GetImageCount () == 1 &&
+                     hdr                      && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT &&
+                     rb.scanout.getEOTF    () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
+                { // ^^^ EOTF is not always accurate, but we know SMPTE 2084 is not used w/ FP16 color
+                  TransformImage ( un_srgb.GetImages     (),
+                                   un_srgb.GetImageCount (),
+                                   un_srgb.GetMetadata   (),
+                    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                    {
+                      UNREFERENCED_PARAMETER(y);
+                    
+                      for (size_t j = 0; j < width; ++j)
+                      {
+                        XMVECTOR value = inPixels [j];
+                        outPixels [j]  = XMVector3Transform (value, c_from2020to709);
+                      }
+                    }, un_scrgb
+                  );
+
+                  std::swap (un_scrgb, un_srgb);
+                }
+
                 if ( un_srgb.GetImageCount () == 1 &&
                      hdr )
                 {
                   XMVECTOR maxLum = XMVectorZero          (),
                            minLum = XMVectorSplatInfinity (),
+                           maxCLL = XMVectorZero          (),
                            maxRGB = XMVectorZero          ();
 
                   static const XMVECTORF32 s_luminance =
@@ -1819,10 +1853,13 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       for (size_t j = 0; j < width; ++j)
                       {
                         XMVECTOR v =
-                          XMVectorMax (*pixels++, g_XMZero);
+                          XMVectorMax (*pixels, g_XMZero);
 
                         maxRGB =
                           XMVectorMax (v, maxRGB);
+
+                        maxCLL =
+                          XMVectorMax (XMVectorMultiply (v, s_luminance), maxCLL);
 
                         v = XMVector3Dot (v, s_luminance);
 
@@ -1835,9 +1872,16 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         lumTotal +=
                           logf ( std::max (0.000001f, 0.000001f + v.m128_f32 [0]) ),
                         ++N;
+
+                        pixels++;
                       }
                     }
                   ) : E_POINTER;
+
+                  maxCLL =
+                    XMVectorReplicate (
+                      std::max ({ maxCLL.m128_f32 [0], maxCLL.m128_f32 [1], maxCLL.m128_f32 [2] })
+                    );
 
                   SK_LOGi0 ( L"Min Luminance: %f, Max Luminance: %f", minLum.m128_f32 [0] * 80.0f,
                                                                       maxLum.m128_f32 [0] * 80.0f );
@@ -1845,9 +1889,12 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   SK_LOGi0 ( L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0f * ( minLum.m128_f32 [0] + maxLum.m128_f32 [0] ) * 0.5f,
                                                                                 80.0f * expf ( (1.0f / N) * lumTotal ) );
 
-                  pFrameData->hdr.max_cll_nits = maxLum.m128_f32 [0] * 80.0f;
+                  pFrameData->hdr.max_cll_nits = maxCLL.m128_f32 [0] * 80.0f;
                   pFrameData->hdr.avg_cll_nits = 80.0f * ( minLum.m128_f32 [0] + maxLum.m128_f32 [0] ) * 0.5f + 
                                                  80.0f * expf ( (1.0f / N) * lumTotal );
+
+                  extern float _cLerpScale;
+                  extern float _cSdrPower;
 
                   hr =               un_srgb.GetImageCount () == 1 ?
                     TransformImage ( un_srgb.GetImages     (),
@@ -1857,30 +1904,31 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     {
                       UNREFERENCED_PARAMETER(y);
 
-                      static const XMVECTORF32 c_SdrPower =
-                        { 0.765f, 0.765f, 0.765f, 1.f };
+                      const XMVECTORF32 c_SdrPower =
+                        { _cSdrPower, _cSdrPower, _cSdrPower, 1.f };
 
-                      XMVECTOR maxLumExp =
-                        XMVectorMultiply ( maxLum,
-                                           maxLum );
+                      XMVECTOR maxCLLExp =
+                        XMVectorMultiply ( maxCLL,
+                                           maxCLL );
 
                       for (size_t j = 0; j < width; ++j)
                       {
-                        XMVECTOR value = XMVectorMax (inPixels [j], g_XMZero);
-                        XMVECTOR luma  = XMVector3Dot ( value, s_luminance );
+
+                        XMVECTOR value = inPixels [j];
+                        XMVECTOR lum   = XMVector3Dot (XMVectorMax  (g_XMZero, inPixels [j]), s_luminance);
 
                         XMVECTOR numerator = 
                           XMVectorAdd (
                             g_XMOne,
                               XMVectorDivide (
-                                luma, maxLumExp
+                                lum, maxCLLExp
                               )
                           );
 
                         XMVECTOR scale0 =
                           XMVectorDivide (
                             numerator, XMVectorAdd (
-                              g_XMOne, luma
+                              g_XMOne, lum
                             )
                           );
 
@@ -1892,11 +1940,14 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           );
 
                         value =
-                          XMVectorMultiply (value, XMVectorLerp (scale1, scale0, luma.m128_f32 [0] /
-                                                                               maxLum.m128_f32 [0] / 1.4f));
+                           XMVectorMultiply (value, XMVectorLerp (scale1, scale0, lum.m128_f32 [0] /
+                                                                               maxCLL.m128_f32 [0] / _cLerpScale));
+                        
+                        value =
+                          XMVectorPow ( value, c_SdrPower );
                         
                         outPixels [j] =
-                          XMVectorPow ( value, c_SdrPower );
+                          value;
                       }
                     }, final_sdr
                   ) : E_POINTER;

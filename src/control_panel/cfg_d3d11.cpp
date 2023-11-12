@@ -554,7 +554,7 @@ SK::ControlPanel::D3D11::Draw (void)
         SK_GetFramesDrawn ();
 
       #pragma region "Advanced"
-      if ( config.render.dxgi.allow_d3d12_footguns &&
+      if ( (config.render.dxgi.allow_d3d12_footguns || config.reshade.is_addon) &&
            ImGui::TreeNode ("Recently Used Shaders")
          )
       {

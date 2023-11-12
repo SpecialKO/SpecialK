@@ -2287,9 +2287,15 @@ public:
                   }
                 }
 
-#if 1
+#if 0
                 extern UINT filterFlags;
                 ImGui::InputInt ("Filter Flags", (int *)&filterFlags, 1, 100, ImGuiInputTextFlags_CharsHexadecimal);
+
+                extern float _cSdrPower;
+                extern float _cLerpScale;
+
+                ImGui::InputFloat ("Sdr Power",  &_cSdrPower);
+                ImGui::InputFloat ("Lerp Scale", &_cLerpScale);
 #endif
 
                 ImGui::EndGroup ();

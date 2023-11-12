@@ -3748,7 +3748,8 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
                                      ( static_cast <float> (tracker->first_rtv.Width) /
                                        static_cast <float> (tracker->first_rtv.Height) ) < (io.DisplaySize.x / io.DisplaySize.y) + 0.1f &&
                                      ( static_cast <float> (tracker->first_rtv.Width) /
-                                       static_cast <float> (tracker->first_rtv.Height) ) > (io.DisplaySize.x / io.DisplaySize.y) - 0.1f ) && shader_type != sk_shader_class::Compute)
+                                       static_cast <float> (tracker->first_rtv.Height) ) > (io.DisplaySize.x / io.DisplaySize.y) - 0.1f && ( DirectX::BitsPerColor (tracker->first_rtv.Format) * 3 <=
+                                                                                                                                             DirectX::BitsPerPixel (tracker->first_rtv.Format) ) ) && shader_type != sk_shader_class::Compute)
     {
       bool reshade_before = pShader->trigger_reshade.before.count (tracker->crc32c) != 0;
     //bool reshade_after  = pShader->trigger_reshade.after.count  (tracker->crc32c) != 0;

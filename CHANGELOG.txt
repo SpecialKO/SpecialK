@@ -1,4 +1,11 @@
-﻿23.11.12
+﻿23.11.13
+========
+ + AVIF screenshot support is now optionally enabled by placing libavif_x64.dll
+     in SpecialK\PlugIns\ThirdParty\Image Codecs\libavif\
+
+    * Later versions will support 32-bit, and will have encoder quality options
+
+23.11.12
 ========
  + Fixed an issue in D3D12 on AMD GPUs that might render ImGui's UI in sRGB
  + Fixed colorspace conversion to Rec2020+PQ from scRGB in AVIF screenshots

@@ -8753,8 +8753,8 @@ HookDXGI (LPVOID user)
 
     dll_log->Log (L"[   DXGI   ]   Installing Deferred DXGI / D3D11 / D3D12 Hooks");
 
-    D3D_FEATURE_LEVEL            levels [] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1,
-                                               D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1 };
+    D3D_FEATURE_LEVEL            levels [] = { D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0,
+                                               D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_10_0 };
 
     D3D_FEATURE_LEVEL            featureLevel = D3D_FEATURE_LEVEL_11_1;
     SK_ComPtr <ID3D11Device>        pDevice           = nullptr;
@@ -8886,7 +8886,7 @@ HookDXGI (LPVOID user)
             SK_GetProcAddress (L"d3d12.dll",
                               "D3D12CreateDevice");
 
-        if (SUCCEEDED (D3D12CreateDevice (pAdapter0, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS (&pDevice12.p))))
+        if (SUCCEEDED (D3D12CreateDevice (pAdapter0, D3D_FEATURE_LEVEL_11_1, IID_PPV_ARGS (&pDevice12.p))))
         {
           if (sl::Result::eOk == SK_slUpgradeInterface ((void **)&pDevice12.p))
             SK_LOGi0 (L"Upgraded D3D12 Device to Streamline Proxy...");

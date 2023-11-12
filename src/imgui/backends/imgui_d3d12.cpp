@@ -1308,6 +1308,46 @@ using D3D12GraphicsCommandList_ExecuteIndirect_pfn = void
                        UINT64 );
       D3D12GraphicsCommandList_ExecuteIndirect_pfn
       D3D12GraphicsCommandList_ExecuteIndirect_Original = nullptr;
+using D3D12GraphicsCommandList_OMSetRenderTargets_pfn = void
+(STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
+                       UINT,
+                 const D3D12_CPU_DESCRIPTOR_HANDLE*,
+                       BOOL,
+                 const D3D12_CPU_DESCRIPTOR_HANDLE*);
+      D3D12GraphicsCommandList_OMSetRenderTargets_pfn
+      D3D12GraphicsCommandList_OMSetRenderTargets_Original = nullptr;
+
+void
+STDMETHODCALLTYPE
+D3D12GraphicsCommandList_OMSetRenderTargets_Detour (
+        ID3D12GraphicsCommandList   *This,
+        UINT                         NumRenderTargetDescriptors,
+  const D3D12_CPU_DESCRIPTOR_HANDLE *pRenderTargetDescriptors,
+        BOOL                         RTsSingleHandleToDescriptorRange,
+  const D3D12_CPU_DESCRIPTOR_HANDLE *pDepthStencilDescriptor )
+{
+  SK_LOG_FIRST_CALL
+
+  if (config.reshade.is_addon)
+  {
+    UINT                        size       = sizeof (D3D12_CPU_DESCRIPTOR_HANDLE);
+    D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = { 0 };
+
+    if (NumRenderTargetDescriptors > 0)
+    {
+      rtv_handle.ptr = pRenderTargetDescriptors [0].ptr;
+    }
+
+    This->SetPrivateData (
+      SKID_D3D12RenderTarget0, size, &rtv_handle );
+  }
+
+  return
+    D3D12GraphicsCommandList_OMSetRenderTargets_Original (
+      This, NumRenderTargetDescriptors, pRenderTargetDescriptors,
+      RTsSingleHandleToDescriptorRange, pDepthStencilDescriptor
+    );
+}
 
 void
 STDMETHODCALLTYPE
@@ -1326,8 +1366,31 @@ D3D12GraphicsCommandList_DrawInstanced_Detour (
   if ( SUCCEEDED ( This->GetPrivateData ( SKID_D3D12DisablePipelineState, &size, &disable ) ) )
   {
     if (disable)
-      return;
+    {
+                                  size       = sizeof (D3D12_CPU_DESCRIPTOR_HANDLE);
+      D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = { 0 };
+
+      if (SUCCEEDED (This->GetPrivateData (SKID_D3D12RenderTarget0, &size, &rtv_handle)) && rtv_handle.ptr != 0)
+      {
+        SK_ReShadeAddOn_RenderEffectsD3D12 ((IDXGISwapChain1 *)SK_GetCurrentRenderBackend ().swapchain.p, nullptr, nullptr, rtv_handle);
+      }
+
+      //return;
+    }
   }
+
+  //     size            = sizeof (bool);
+  //bool trigger_reshade = false;
+  //
+  //This->GetPrivateData (
+  //  SKID_D3D12TriggerReShadeOnDraw, &size, &trigger_reshade );
+  //          This->SetPrivateData (
+  //  SKID_D3D12TriggerReShadeOnDraw,  sizeof (bool),
+  //                                         &trigger_reshade );
+  //
+  //if (trigger_reshade)
+  //{
+  //}
 
   return
     D3D12GraphicsCommandList_DrawInstanced_Original (
@@ -1353,7 +1416,17 @@ D3D12GraphicsCommandList_DrawIndexedInstanced_Detour (
   if ( SUCCEEDED ( This->GetPrivateData ( SKID_D3D12DisablePipelineState, &size, &disable ) ) )
   {
     if (disable)
-      return;
+    {
+                                  size       = sizeof (D3D12_CPU_DESCRIPTOR_HANDLE);
+      D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = { 0 };
+
+      if (SUCCEEDED (This->GetPrivateData (SKID_D3D12RenderTarget0, &size, &rtv_handle)) && rtv_handle.ptr != 0)
+      {
+        SK_ReShadeAddOn_RenderEffectsD3D12 ((IDXGISwapChain1 *)SK_GetCurrentRenderBackend ().swapchain.p, nullptr, nullptr, rtv_handle);
+      }
+
+      //return;
+    }
   }
 
   return
@@ -1381,7 +1454,17 @@ D3D12GraphicsCommandList_ExecuteIndirect_Detour (
   if ( SUCCEEDED ( This->GetPrivateData ( SKID_D3D12DisablePipelineState, &size, &disable ) ) )
   {
     if (disable)
-      return;
+    {
+                                  size       = sizeof (D3D12_CPU_DESCRIPTOR_HANDLE);
+      D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = { 0 };
+
+      if (SUCCEEDED (This->GetPrivateData (SKID_D3D12RenderTarget0, &size, &rtv_handle)) && rtv_handle.ptr != 0)
+      {
+        SK_ReShadeAddOn_RenderEffectsD3D12 ((IDXGISwapChain1 *)SK_GetCurrentRenderBackend ().swapchain.p, nullptr, nullptr, rtv_handle);
+      }
+
+      //return;
+    }
   }
 
   return
@@ -1451,6 +1534,14 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
   // 57 BeginEvent
   // 58 EndEvent
   // 59 ExecuteIndirect
+
+  if (D3D12GraphicsCommandList_OMSetRenderTargets_Original == nullptr)
+  {
+    SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::OMSetRenderTargets",
+                            *(void***)*(&pCmdList), 46,
+                               D3D12GraphicsCommandList_OMSetRenderTargets_Detour,
+                     (void **)&D3D12GraphicsCommandList_OMSetRenderTargets_Original );
+  }
 
   if (D3D12GraphicsCommandList_ExecuteIndirect_Original == nullptr)
   {
@@ -1923,7 +2014,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   SK_RunOnce (
   {
     // This level of state tracking is unnecessary normally
-    if (config.render.dxgi.allow_d3d12_footguns)
+    if (config.render.dxgi.allow_d3d12_footguns)// || config.reshade.is_addon)
     {
       _InitDrawCommandHooks (pCommandList);
     }

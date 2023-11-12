@@ -439,27 +439,87 @@ SK_Screenshot::SK_Screenshot (bool clipboard_only)
   framebuffer.AllowSaveToDisk      = bSaveToDisk;
 }
 
-//#define _USE_AVIF
-#ifdef _USE_AVIF
 #include <../depends/include/DirectXTex/d3dx12.h>
-#pragma comment (lib, R"(depends\lib\avif\x64\avif.lib)")
-#endif
-
 #include <../depends/include/avif/avif.h>
 
 using namespace DirectX;
 
+using avifImageCreate_pfn            = avifImage*  (*)(uint32_t width, uint32_t height, uint32_t depth, avifPixelFormat yuvFormat);
+using avifRGBImageSetDefaults_pfn    = void        (*)(avifRGBImage* rgb, const avifImage* image);
+using avifRGBImageAllocatePixels_pfn = avifResult  (*)(avifRGBImage* rgb);
+using avifImageRGBToYUV_pfn          = avifResult  (*)(avifImage* image, const avifRGBImage* rgb);
+using avifEncoderCreate_pfn          = avifEncoder*(*)(void);
+using avifEncoderAddImage_pfn        = avifResult  (*)(avifEncoder* encoder, const avifImage* image, uint64_t durationInTimescales, avifAddImageFlags addImageFlags);
+using avifEncoderFinish_pfn          = avifResult  (*)(avifEncoder* encoder, avifRWData* output);
+using avifImageDestroy_pfn           = void        (*)(avifImage* image);
+using avifEncoderDestroy_pfn         = void        (*)(avifEncoder* encoder);
+using avifRGBImageFreePixels_pfn     = void        (*)(avifRGBImage* rgb);
+
+static avifImageCreate_pfn            SK_avifImageCreate            = nullptr;
+static avifRGBImageSetDefaults_pfn    SK_avifRGBImageSetDefaults    = nullptr;
+static avifRGBImageAllocatePixels_pfn SK_avifRGBImageAllocatePixels = nullptr;
+static avifImageRGBToYUV_pfn          SK_avifImageRGBToYUV          = nullptr;
+static avifEncoderCreate_pfn          SK_avifEncoderCreate          = nullptr;
+static avifEncoderAddImage_pfn        SK_avifEncoderAddImage        = nullptr;
+static avifEncoderFinish_pfn          SK_avifEncoderFinish          = nullptr;
+static avifImageDestroy_pfn           SK_avifImageDestroy           = nullptr;
+static avifEncoderDestroy_pfn         SK_avifEncoderDestroy         = nullptr;
+static avifRGBImageFreePixels_pfn     SK_avifRGBImageFreePixels     = nullptr;
+
 bool
-SK_Screenshot_SaveAVIF (DirectX::ScratchImage& src_image, const wchar_t* wszFilePath, uint16_t max_cll, uint16_t max_pall)
+SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFilePath, uint16_t max_cll, uint16_t max_pall)
 {
-#ifdef _USE_AVIF
+  static bool init = false;
+
+  SK_RunOnce (
+  {
+    std::filesystem::path avif_dll =
+      SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty);
+
+    avif_dll /=
+      SK_RunLHIfBitness ( 64, LR"(Image Codecs\libavif\libavif_x64.dll)",
+                              LR"(Image Codecs\libavif\libavif_x86.dll)" );
+
+    HMODULE hModAVIF =
+      SK_LoadLibraryW (avif_dll.c_str ());
+
+    if (hModAVIF != 0)
+    {
+      SK_avifImageCreate            = (avifImageCreate_pfn)           SK_GetProcAddress (hModAVIF, "avifImageCreate");
+      SK_avifRGBImageSetDefaults    = (avifRGBImageSetDefaults_pfn)   SK_GetProcAddress (hModAVIF, "avifRGBImageSetDefaults");
+      SK_avifRGBImageAllocatePixels = (avifRGBImageAllocatePixels_pfn)SK_GetProcAddress (hModAVIF, "avifRGBImageAllocatePixels");
+      SK_avifImageRGBToYUV          = (avifImageRGBToYUV_pfn)         SK_GetProcAddress (hModAVIF, "avifImageRGBToYUV");
+      SK_avifEncoderCreate          = (avifEncoderCreate_pfn)         SK_GetProcAddress (hModAVIF, "avifEncoderCreate");
+      SK_avifEncoderAddImage        = (avifEncoderAddImage_pfn)       SK_GetProcAddress (hModAVIF, "avifEncoderAddImage");
+      SK_avifEncoderFinish          = (avifEncoderFinish_pfn)         SK_GetProcAddress (hModAVIF, "avifEncoderFinish");
+      SK_avifImageDestroy           = (avifImageDestroy_pfn)          SK_GetProcAddress (hModAVIF, "avifImageDestroy");
+      SK_avifEncoderDestroy         = (avifEncoderDestroy_pfn)        SK_GetProcAddress (hModAVIF, "avifEncoderDestroy");
+      SK_avifRGBImageFreePixels     = (avifRGBImageFreePixels_pfn)    SK_GetProcAddress (hModAVIF, "avifRGBImageFreePixels");
+
+      init =
+        ( SK_avifImageCreate            != nullptr &&
+          SK_avifRGBImageSetDefaults    != nullptr &&
+          SK_avifRGBImageAllocatePixels != nullptr &&
+          SK_avifImageRGBToYUV          != nullptr &&
+          SK_avifEncoderCreate          != nullptr &&
+          SK_avifEncoderAddImage        != nullptr &&
+          SK_avifEncoderFinish          != nullptr &&
+          SK_avifImageDestroy           != nullptr &&
+          SK_avifEncoderDestroy         != nullptr &&
+          SK_avifRGBImageFreePixels     != nullptr );
+    }
+  });
+
+  if (! init)
+    return false;
+
   uint32_t width  = sk::narrow_cast <uint32_t> (src_image.GetMetadata ().width);
   uint32_t height = sk::narrow_cast <uint32_t> (src_image.GetMetadata ().height);
 
   avifRWData   avifOutput = AVIF_DATA_EMPTY;
   avifRGBImage rgb        = { };
   avifImage*   image      =
-    avifImageCreate (width, height, 10, AVIF_PIXEL_FORMAT_YUV444);
+    SK_avifImageCreate (width, height, 10, AVIF_PIXEL_FORMAT_YUV444);
 
   image->yuvRange = AVIF_RANGE_FULL;
 
@@ -475,14 +535,14 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage& src_image, const wchar_t* wszFile
       return false;
   }
 
-  avifRGBImageSetDefaults (&rgb, image);
+  SK_avifRGBImageSetDefaults (&rgb, image);
 
   rgb.depth       = src_image.GetMetadata ().format == DXGI_FORMAT_R10G10B10A2_UNORM ? 10 : 16;
   rgb.ignoreAlpha = true;
   rgb.isFloat     = false;
   rgb.format      = AVIF_RGB_FORMAT_RGB;
 
-  avifRGBImageAllocatePixels (&rgb);
+  SK_avifRGBImageAllocatePixels (&rgb);
 
   switch (src_image.GetMetadata ().format)
   {
@@ -576,9 +636,9 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage& src_image, const wchar_t* wszFile
     } break;
   }
 
-  avifResult rgbToYuvResult = avifImageRGBToYUV (image, &rgb);
+  avifResult rgbToYuvResult = SK_avifImageRGBToYUV (image, &rgb);
 
-  avifEncoder *encoder = avifEncoderCreate ();
+  avifEncoder *encoder = SK_avifEncoderCreate ();
 
   encoder->quality         = AVIF_QUALITY_LOSSLESS;
   encoder->qualityAlpha    = AVIF_QUALITY_LOSSLESS;
@@ -590,8 +650,8 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage& src_image, const wchar_t* wszFile
   image->clli.maxCLL  = max_cll;
   image->clli.maxPALL = max_pall;
 
-  avifResult addResult    = avifEncoderAddImage (encoder, image, 1, AVIF_ADD_IMAGE_FLAG_SINGLE);
-  avifResult encodeResult = avifEncoderFinish   (encoder, &avifOutput);
+  avifResult addResult    = SK_avifEncoderAddImage (encoder, image, 1, AVIF_ADD_IMAGE_FLAG_SINGLE);
+  avifResult encodeResult = SK_avifEncoderFinish   (encoder, &avifOutput);
 
   wchar_t    wszAVIFPath [MAX_PATH + 2] = { };
   wcsncpy_s (wszAVIFPath, wszFilePath, MAX_PATH);
@@ -618,19 +678,10 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage& src_image, const wchar_t* wszFile
     }
   }
 
-  avifImageDestroy       (image);
-  avifEncoderDestroy     (encoder);
-  avifRGBImageFreePixels (&rgb);
+  SK_avifImageDestroy       (image);
+  SK_avifEncoderDestroy     (encoder);
+  SK_avifRGBImageFreePixels (&rgb);
 
   return
     ( encodeResult == AVIF_RESULT_OK );
-#else
-  std::ignore = src_image;
-  std::ignore = wszFilePath;
-
-  std::ignore = max_pall;
-  std::ignore = max_cll;
-
-  return false;
-#endif
 }

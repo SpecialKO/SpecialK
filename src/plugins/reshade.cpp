@@ -825,6 +825,11 @@ SK_ReShadeAddOn_Present (IDXGISwapChain *pSwapChain)
 UINT64
 SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource* pResource, ID3D12Fence* pFence, D3D12_CPU_DESCRIPTOR_HANDLE hRTV)
 {
+  static volatile LONG64 lLastFrame = 0;
+
+  if (InterlockedExchange64 (&lLastFrame, (LONG64)SK_GetFramesDrawn ()) == (LONG64)SK_GetFramesDrawn ())
+    return 0;
+
   static volatile UINT64 uiFenceVal = 0;
 
   auto runtime =
@@ -846,17 +851,32 @@ SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource*
 
     if (has_effects)
     {
-      const auto buffer = reshade::api::resource      { reinterpret_cast <uint64_t> (pResource) };
+            auto buffer = reshade::api::resource      { reinterpret_cast <uint64_t> (pResource) };
       const auto rtv    = reshade::api::resource_view { static_cast      <uint64_t> (hRTV.ptr)  };
       const auto fence  = reshade::api::fence         { reinterpret_cast <uint64_t> (pFence)    };
+
+      if (pResource == nullptr)
+      {
+        buffer = runtime->get_device ()->get_resource_from_view (rtv);
+      }
+
 
       // Barriers won't be needed if we call this from the correct pre-transitioned state
       //cmd_list->barrier ( buffer, reshade::api::resource_usage::present,
       //                            reshade::api::resource_usage::render_target );
       {
-        runtime->render_effects (
-          cmd_list, rtv, { 0 }
-        );
+        if (runtime->get_device ()->get_resource_desc (buffer).texture.width  == ImGui::GetIO ().DisplaySize.x &&
+            runtime->get_device ()->get_resource_desc (buffer).texture.height == ImGui::GetIO ().DisplaySize.y)
+        {
+          runtime->render_effects (
+            cmd_list, rtv, { 0 }
+          );
+        }
+
+        else
+        {
+          InterlockedExchange64 (&lLastFrame, (LONG64)SK_GetFramesDrawn () - 1);
+        }
       }
       //cmd_list->barrier ( buffer, reshade::api::resource_usage::render_target,
       //                            reshade::api::resource_usage::present );
