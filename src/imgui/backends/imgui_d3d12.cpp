@@ -944,7 +944,7 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
       param [0].ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
       param [0].Constants.ShaderRegister            = 0;
       param [0].Constants.RegisterSpace             = 0;
-      param [0].Constants.Num32BitValues            = 24;//16;
+      param [0].Constants.Num32BitValues            = 24;
       param [0].ShaderVisibility                    = D3D12_SHADER_VISIBILITY_VERTEX;
 
       param [1].ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
@@ -954,7 +954,7 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
 
       param [2].ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
       param [2].Constants.ShaderRegister            = 0; // b0
-      param [2].Constants.Num32BitValues            = 4;
+      param [2].Constants.Num32BitValues            = 8;
       param [2].ShaderVisibility                    = D3D12_SHADER_VISIBILITY_PIXEL;
 
     D3D12_STATIC_SAMPLER_DESC
