@@ -1124,8 +1124,8 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
 UINT filterFlags =
   0x100000FF;
 
-float _cSdrPower  = 0.84f;
-float _cLerpScale = 2.5f;
+float _cSdrPower  = 0.75f;//0.84f;
+float _cLerpScale = 2.3f; //2.5f;
 
 void
 SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage::EndOfFrame,
@@ -1504,28 +1504,27 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       const XMVECTORF32 c_SdrPower =
                         { _cSdrPower, _cSdrPower, _cSdrPower, 1.f };
 
-                      XMVECTOR maxCLLExp =
-                        XMVectorMultiply ( maxCLL,
-                                           maxCLL );
+                      XMVECTOR maxLumExp =
+                        XMVectorMultiply ( maxLum,
+                                           maxLum );
 
                       for (size_t j = 0; j < width; ++j)
                       {
-
-                        XMVECTOR value = inPixels [j];
-                        XMVECTOR lum   = XMVector3Dot (XMVectorMax  (g_XMZero, inPixels [j]), s_luminance);
+                        XMVECTOR value = XMVectorMax (inPixels [j], g_XMZero);
+                        XMVECTOR luma  = XMVector3Dot ( value, s_luminance );
 
                         XMVECTOR numerator = 
                           XMVectorAdd (
                             g_XMOne,
                               XMVectorDivide (
-                                lum, maxCLLExp
+                                luma, maxLumExp
                               )
                           );
 
                         XMVECTOR scale0 =
                           XMVectorDivide (
                             numerator, XMVectorAdd (
-                              g_XMOne, lum
+                              g_XMOne, luma
                             )
                           );
 
@@ -1537,14 +1536,11 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           );
 
                         value =
-                           XMVectorMultiply (value, XMVectorLerp (scale1, scale0, lum.m128_f32 [0] /
-                                                                               maxCLL.m128_f32 [0] / _cLerpScale));
-                        
-                        value =
-                          XMVectorPow ( value, c_SdrPower );
+                          XMVectorMultiply (value, XMVectorLerp (scale1, scale0, luma.m128_f32 [0] /
+                                                                               maxLum.m128_f32 [0] / _cLerpScale));
                         
                         outPixels [j] =
-                          value;
+                          XMVectorPow ( value, c_SdrPower );
                       }
                     }, final_sdr
                   ) : E_POINTER;

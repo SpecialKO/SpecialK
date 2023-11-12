@@ -1,4 +1,8 @@
-﻿23.11.13
+﻿23.11.13.1
+==========
+ + Fixed Yellow/Green shift in tonemapped screenshots introduced in 23.11.13
+
+23.11.13
 ========
  + AVIF screenshot support is now optionally enabled by placing libavif_x64.dll
      in SpecialK\PlugIns\ThirdParty\Image Codecs\libavif\
