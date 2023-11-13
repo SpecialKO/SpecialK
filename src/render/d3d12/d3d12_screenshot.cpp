@@ -1908,8 +1908,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         { _cSdrPower, _cSdrPower, _cSdrPower, 1.f };
 
                       XMVECTOR maxLumExp =
-                        XMVectorMultiply ( maxLum,
-                                           maxLum );
+                        XMVectorMultiply ( maxCLL,
+                                           maxCLL );
 
                       for (size_t j = 0; j < width; ++j)
                       {
@@ -2258,7 +2258,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         un_srgb;
                         un_srgb.InitializeFromImage (raw_img);
 
-                      if (hdr)
+                      if (hdr && config.screenshots.use_avif)
                       {
                         SK_Screenshot_SaveAVIF (un_srgb, wszAbsolutePathToLossless, static_cast <uint16_t> (pFrameData->hdr.max_cll_nits),
                                                                                     static_cast <uint16_t> (pFrameData->hdr.avg_cll_nits));
@@ -2348,9 +2348,12 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                               for (size_t j = 0; j < width; ++j)
                               {
-                                XMVECTOR value = inPixels [j];
-
-                                outPixels [j] = XMVector3Transform (PQToLinear (XMVectorClamp (value, g_XMZero, g_XMOne)), c_from2020to709);
+                                outPixels [j] =
+                                  XMVector3Transform (
+                                    PQToLinear (
+                                      XMVectorClamp (inPixels [j], g_XMZero, g_XMOne)
+                                    ), c_from2020to709
+                                  );
                                 outPixels [j].m128_f32 [3] = 1.0f;
                               }
                             }, un_hdr10    )
@@ -2363,16 +2366,21 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           hdr = false; // Couldn't undo HDR10, don't store a .jxr
                       }
 
-                      HRESULT hrSaveToWIC =   un_srgb.GetImages () ?
-                              SaveToWICFile (*un_srgb.GetImages (), WIC_FLAGS_DITHER,
-                                      GetWICCodec (hdr ? WIC_CODEC_WMP :
-                                                         WIC_CODEC_PNG),
-                                           wszAbsolutePathToLossless,
-                                             hdr ? &GUID_WICPixelFormat64bppRGBAHalf :
-                                                     pFrameData->dxgi.NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
-                                                                                       &GUID_WICPixelFormat48bppRGB :
-                                                                                       &GUID_WICPixelFormat24bppBGR)
-                                                                   : E_POINTER;
+                      HRESULT hrSaveToWIC = S_OK;
+                      
+                      if ((! hdr) || (! config.screenshots.use_avif))
+                      {
+                        hrSaveToWIC =     un_srgb.GetImages () ?
+                          SaveToWICFile (*un_srgb.GetImages (), WIC_FLAGS_DITHER,
+                                  GetWICCodec (hdr ? WIC_CODEC_WMP :
+                                                     WIC_CODEC_PNG),
+                                       wszAbsolutePathToLossless,
+                                         hdr ? &GUID_WICPixelFormat64bppRGBAHalf :
+                                                 pFrameData->dxgi.NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
+                                                                                   &GUID_WICPixelFormat48bppRGB :
+                                                                                   &GUID_WICPixelFormat24bppBGR)
+                                                               : E_POINTER;
+                      }
 
                       if (SUCCEEDED (hrSaveToWIC))
                       {

@@ -436,11 +436,21 @@ struct sk_config_t
   } sound;
 
   struct screenshots_s {
+    bool         use_avif              = false;
     bool         png_compress          =  true;
     bool         show_osd_by_default   =  true;
     bool         play_sound            =  true;
     bool         copy_to_clipboard     =  true;
     std::wstring override_path         =   L"";
+
+    struct avif_s {
+      int        scrgb_bit_depth       =    10;
+      int        yuv_subsampling       =   444;
+      bool       full_range            =  true;
+      int        compression_quality   =   100;
+      int        compression_speed     =     8;
+      int        max_threads           =     3;
+    } avif;
 
     SK_ConfigSerializedKeybind
          game_hud_free_keybind = {

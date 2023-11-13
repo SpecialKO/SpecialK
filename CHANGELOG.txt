@@ -1,4 +1,10 @@
-﻿23.11.13.1
+﻿23.11.13.2
+==========
+ + Added AVIF encoder configuration to HDR menu in control panel
+ + AVIF codec will automatically download the first time it is selected
+ + AVIF still unsupported in 32-bit software, sorry :)
+
+23.11.13.1
 ==========
  + Fixed Yellow/Green shift in tonemapped screenshots introduced in 23.11.13
 

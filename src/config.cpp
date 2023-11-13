@@ -590,6 +590,16 @@ struct {
   sk::ParameterBool*      play_sound              = nullptr;
   sk::ParameterBool*      copy_to_clipboard       = nullptr;
   sk::ParameterStringW*   override_path           = nullptr;
+
+  struct {
+    sk::ParameterBool*    use_avif                = nullptr;
+    sk::ParameterInt*     scrgb_bit_depth         = nullptr;
+    sk::ParameterInt*     yuv_subsampling         = nullptr;
+    sk::ParameterInt*     compression_quality     = nullptr;
+    sk::ParameterInt*     compression_speed       = nullptr;
+    //bool                full_range              =  true;
+    //int                 max_threads             =     3;
+  } avif;
 } screenshots;
 
 struct {
@@ -1386,6 +1396,11 @@ auto DeclKeybind =
     ConfigEntry (screenshots.play_sound,                 L"Play a Sound when triggeirng Screenshot Capture",           osd_ini,         L"Screenshot.System",     L"PlaySoundOnCapture"),
     ConfigEntry (screenshots.copy_to_clipboard,          L"Copy an LDR copy to the Windows Clipboard",                 osd_ini,         L"Screenshot.System",     L"CopyToClipboard"),
     ConfigEntry (screenshots.override_path,              L"Where to store screenshots (if non-empty)",                 osd_ini,         L"Screenshot.System",     L"OverridePath"),
+    ConfigEntry (screenshots.avif.use_avif,              L"Use AVIF file format for HDR screenshots",                  osd_ini,         L"Screenshot.System",     L"UseAVIF"),
+    ConfigEntry (screenshots.avif.yuv_subsampling,       L"Chroma Subsampling (444, 422, 420, 400)",                   osd_ini,         L"Screenshot.AVIF",       L"SubsampleYUV"),
+    ConfigEntry (screenshots.avif.scrgb_bit_depth,       L"Bits to use for scRGB to PQ encoded images",                osd_ini,         L"Screenshot.AVIF",       L"scRGBtoPQBits"),
+    ConfigEntry (screenshots.avif.compression_quality,   L"Compression Quality: 0=Worst, 100=Lossless",                osd_ini,         L"Screenshot.AVIF",       L"Quality"),
+    ConfigEntry (screenshots.avif.compression_speed,     L"Compression Speed: 0=Slowest (Smallest File), 10=Fastest",  osd_ini,         L"Screenshot.AVIF",       L"Speed"),
     Keybind ( &config.render.keys.hud_toggle,            L"Toggle Game's HUD",                                         osd_ini,         L"Game.HUD"),
     Keybind ( &config.screenshots.game_hud_free_keybind, L"Take a screenshot without the HUD",                         osd_ini,         L"Screenshot.System"),
     Keybind ( &config.screenshots.sk_osd_free_keybind,   L"Take a screenshot without SK's OSD",                        osd_ini,         L"Screenshot.System"),
@@ -4510,6 +4525,16 @@ auto DeclKeybind =
   screenshots.copy_to_clipboard->load         (config.screenshots.copy_to_clipboard);
   screenshots.override_path->load             (config.screenshots.override_path);
 
+  screenshots.avif.use_avif->load             (config.screenshots.use_avif);
+  screenshots.avif.yuv_subsampling->load      (config.screenshots.avif.yuv_subsampling);
+  screenshots.avif.scrgb_bit_depth->load      (config.screenshots.avif.scrgb_bit_depth);
+  screenshots.avif.compression_quality->load  (config.screenshots.avif.compression_quality);
+  screenshots.avif.compression_speed->load    (config.screenshots.avif.compression_speed);
+
+  // AVIF Unsupported in 32-bit
+  if (SK_GetBitness () == SK_Bitness::ThirtyTwoBit)
+    config.screenshots.use_avif = false;
+
   LoadKeybind (&config.render.keys.hud_toggle);
   LoadKeybind (&config.screenshots.game_hud_free_keybind);
   LoadKeybind (&config.screenshots.sk_osd_free_keybind);
@@ -5626,6 +5651,16 @@ SK_SaveConfig ( std::wstring name,
   screenshots.play_sound->store                (config.screenshots.play_sound);
   screenshots.copy_to_clipboard->store         (config.screenshots.copy_to_clipboard);
   screenshots.override_path->store             (config.screenshots.override_path);
+
+  // AVIF Unsupported in 32-bit
+  if (SK_GetBitness () != SK_Bitness::ThirtyTwoBit)
+  {
+    screenshots.avif.use_avif->store           (config.screenshots.use_avif);
+    screenshots.avif.yuv_subsampling->store    (config.screenshots.avif.yuv_subsampling);
+    screenshots.avif.scrgb_bit_depth->store    (config.screenshots.avif.scrgb_bit_depth);
+    screenshots.avif.compression_quality->store(config.screenshots.avif.compression_quality);
+    screenshots.avif.compression_speed->store  (config.screenshots.avif.compression_speed);
+  }
 
   uplay.overlay.hdr_luminance->store           (config.uplay.overlay_luminance);
   discord.overlay.hdr_luminance->store         (config.discord.overlay_luminance);

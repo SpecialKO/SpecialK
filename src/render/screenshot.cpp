@@ -513,148 +513,202 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
   if (! init)
     return false;
 
-  uint32_t width  = sk::narrow_cast <uint32_t> (src_image.GetMetadata ().width);
-  uint32_t height = sk::narrow_cast <uint32_t> (src_image.GetMetadata ().height);
+  auto& metadata =
+    src_image.GetMetadata ();
+
+  uint32_t width  = sk::narrow_cast <uint32_t> (metadata.width);
+  uint32_t height = sk::narrow_cast <uint32_t> (metadata.height);
+
+  int             bit_depth  = 10;
+  avifPixelFormat yuv_format = AVIF_PIXEL_FORMAT_YUV444;
+
+  switch (config.screenshots.avif.yuv_subsampling)
+  {
+    default:
+      config.screenshots.avif.yuv_subsampling = 444; // Write a valid value to INI
+      [[fallthrough]];
+    case 444:
+      yuv_format = AVIF_PIXEL_FORMAT_YUV444;
+      break;
+    case 422:
+      yuv_format = AVIF_PIXEL_FORMAT_YUV422;
+      break;
+    case 420:
+      yuv_format = AVIF_PIXEL_FORMAT_YUV420;
+      break;
+    case 400: // lol
+      yuv_format = AVIF_PIXEL_FORMAT_YUV400;
+      break;
+  }
+
+  if (metadata.format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+  {
+    bit_depth =
+      std::clamp (config.screenshots.avif.scrgb_bit_depth, 8, 12);
+
+    // 8, 10, 12... nothing else.
+    if ( bit_depth == 9 ||
+         bit_depth == 11 )
+         bit_depth++;
+
+    // Write a valid value back to INI
+    config.screenshots.avif.scrgb_bit_depth = bit_depth;
+  }
+
+  avifResult rgbToYuvResult = AVIF_RESULT_NO_CONTENT;
+  avifResult addResult      = AVIF_RESULT_NO_CONTENT;
+  avifResult encodeResult   = AVIF_RESULT_NO_CONTENT;
 
   avifRWData   avifOutput = AVIF_DATA_EMPTY;
   avifRGBImage rgb        = { };
+  avifEncoder* encoder    = nullptr;
   avifImage*   image      =
-    SK_avifImageCreate (width, height, 10, AVIF_PIXEL_FORMAT_YUV444);
+    SK_avifImageCreate (width, height, bit_depth, yuv_format);
 
-  image->yuvRange = AVIF_RANGE_FULL;
-
-  switch (src_image.GetMetadata ().format)
+  if (image != nullptr)
   {
-    case DXGI_FORMAT_R10G10B10A2_UNORM:
-    case DXGI_FORMAT_R16G16B16A16_FLOAT:
-      image->colorPrimaries          = AVIF_COLOR_PRIMARIES_BT2020;
-      image->transferCharacteristics = AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084;
-      image->matrixCoefficients      = AVIF_MATRIX_COEFFICIENTS_BT2020_NCL;
-      break;
-    default:
-      return false;
+    image->yuvRange =
+      config.screenshots.avif.full_range ? AVIF_RANGE_FULL
+                                         : AVIF_RANGE_LIMITED;
+
+    switch (metadata.format)
+    {
+      case DXGI_FORMAT_R10G10B10A2_UNORM:
+      case DXGI_FORMAT_R16G16B16A16_FLOAT:
+        image->colorPrimaries          = AVIF_COLOR_PRIMARIES_BT2020;
+        image->transferCharacteristics = AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084;
+        image->matrixCoefficients      = AVIF_MATRIX_COEFFICIENTS_BT2020_NCL;
+        break;
+      default:
+        return false;
+    }
+
+    SK_avifRGBImageSetDefaults (&rgb, image);
+
+    rgb.depth       = metadata.format == DXGI_FORMAT_R10G10B10A2_UNORM ? 10 : 16;
+    rgb.ignoreAlpha = true;
+    rgb.isFloat     = false;
+    rgb.format      = AVIF_RGB_FORMAT_RGB;
+
+    SK_avifRGBImageAllocatePixels (&rgb);
+
+    switch (metadata.format)
+    {
+      case DXGI_FORMAT_R10G10B10A2_UNORM:
+      {
+        uint16_t* rgb_pixels = (uint16_t *)rgb.pixels;
+
+        EvaluateImage ( src_image.GetImages     (),
+                        src_image.GetImageCount (),
+                        metadata,
+        [&](const DirectX::XMVECTOR* pixels, size_t width, size_t y)
+        {
+          UNREFERENCED_PARAMETER(y);
+
+          for (size_t j = 0; j < width; ++j)
+          {
+            DirectX::XMVECTOR v = *pixels++;
+
+            *(rgb_pixels++) = static_cast <uint16_t> (v.m128_f32 [0] * 1023.0f);
+            *(rgb_pixels++) = static_cast <uint16_t> (v.m128_f32 [1] * 1023.0f);
+            *(rgb_pixels++) = static_cast <uint16_t> (v.m128_f32 [2] * 1023.0f);
+          }
+        } );
+      } break;
+
+      case DXGI_FORMAT_R16G16B16A16_FLOAT:
+      {
+        static const XMMATRIX c_from709to2020 =
+        {
+          { 0.627225305694944,  0.329476882715808,  0.0432978115892484, 0.0 },
+          { 0.0690418812810714, 0.919605681354755,  0.0113524373641739, 0.0 },
+          { 0.0163911702607078, 0.0880887513437058, 0.895520078395586,  0.0 },
+          { 0.0,                0.0,                0.0,                1.0 }
+        };
+
+        struct ParamsPQ
+        {
+          XMVECTOR N, M;
+          XMVECTOR C1, C2, C3;
+          XMVECTOR MaxPQ;
+        };
+
+        static const ParamsPQ PQ =
+        {
+          XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
+          XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
+          XMVectorReplicate (3424.0 / 4096.0),         // C1
+          XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
+          XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
+          XMVectorReplicate (125.0),
+        };
+
+        auto LinearToPQ = [](XMVECTOR N)
+        {
+          XMVECTOR ret;
+
+          ret =
+            XMVectorPow (N, PQ.N);
+
+          XMVECTOR nd =
+            XMVectorDivide (
+               XMVectorAdd (  PQ.C1, XMVectorMultiply (PQ.C2, ret)),
+               XMVectorAdd (g_XMOne, XMVectorMultiply (PQ.C3, ret))
+            );
+
+          return
+            XMVectorPow (nd, PQ.M);
+        };
+
+        uint16_t* rgb_pixels = (uint16_t *)rgb.pixels;
+
+        EvaluateImage ( src_image.GetImages     (),
+                        src_image.GetImageCount (),
+                        metadata,
+        [&](const XMVECTOR* pixels, size_t width, size_t y)
+        {
+          UNREFERENCED_PARAMETER(y);
+
+          for (size_t j = 0; j < width; ++j)
+          {
+            XMVECTOR  value = pixels [j];
+            XMVECTOR nvalue = XMVectorDivide ( XMVector3Transform (   value, c_from709to2020),
+                                               XMVector3Transform (PQ.MaxPQ, c_from709to2020) );
+                      value = LinearToPQ (XMVectorClamp (nvalue, g_XMZero, g_XMOne));
+
+            *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [0] * 65535.0f);
+            *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [1] * 65535.0f);
+            *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [2] * 65535.0f);
+          }
+        } );
+      } break;
+    }
+
+    rgbToYuvResult =
+      SK_avifImageRGBToYUV (image, &rgb);
   }
 
-  SK_avifRGBImageSetDefaults (&rgb, image);
-
-  rgb.depth       = src_image.GetMetadata ().format == DXGI_FORMAT_R10G10B10A2_UNORM ? 10 : 16;
-  rgb.ignoreAlpha = true;
-  rgb.isFloat     = false;
-  rgb.format      = AVIF_RGB_FORMAT_RGB;
-
-  SK_avifRGBImageAllocatePixels (&rgb);
-
-  switch (src_image.GetMetadata ().format)
+  if (rgbToYuvResult == AVIF_RESULT_OK)
   {
-    case DXGI_FORMAT_R10G10B10A2_UNORM:
+    encoder =
+      SK_avifEncoderCreate ();
+
+    if (encoder != nullptr)
     {
-      uint16_t* rgb_pixels = (uint16_t *)rgb.pixels;
+      encoder->quality         = config.screenshots.avif.compression_quality;
+      encoder->qualityAlpha    = config.screenshots.avif.compression_quality; // N/A?
+      encoder->timescale       = 1;
+      encoder->repetitionCount = AVIF_REPETITION_COUNT_INFINITE;
+      encoder->maxThreads      = config.screenshots.avif.max_threads;
+      encoder->speed           = config.screenshots.avif.compression_speed;
 
-      EvaluateImage ( src_image.GetImages     (),
-                      src_image.GetImageCount (),
-                      src_image.GetMetadata   (),
-      [&](const DirectX::XMVECTOR* pixels, size_t width, size_t y)
-      {
-        UNREFERENCED_PARAMETER(y);
+      image->clli.maxCLL  = max_cll;
+      image->clli.maxPALL = max_pall;
 
-        for (size_t j = 0; j < width; ++j)
-        {
-          DirectX::XMVECTOR v = *pixels++;
-
-          *(rgb_pixels++) = static_cast <uint16_t> (v.m128_f32 [0] * 1023.0f);
-          *(rgb_pixels++) = static_cast <uint16_t> (v.m128_f32 [1] * 1023.0f);
-          *(rgb_pixels++) = static_cast <uint16_t> (v.m128_f32 [2] * 1023.0f);
-        }
-      } );
-    } break;
-
-    case DXGI_FORMAT_R16G16B16A16_FLOAT:
-    {
-      static const XMMATRIX c_from709to2020 =
-      {
-        { 0.627225305694944,  0.329476882715808,  0.0432978115892484, 0.0 },
-        { 0.0690418812810714, 0.919605681354755,  0.0113524373641739, 0.0 },
-        { 0.0163911702607078, 0.0880887513437058, 0.895520078395586,  0.0 },
-        { 0.0,                0.0,                0.0,                1.0 }
-      };
-
-      struct ParamsPQ
-      {
-        XMVECTOR N, M;
-        XMVECTOR C1, C2, C3;
-        XMVECTOR MaxPQ;
-      };
-
-      static const ParamsPQ PQ =
-      {
-        XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
-        XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
-        XMVectorReplicate (3424.0 / 4096.0),         // C1
-        XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
-        XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
-        XMVectorReplicate (125.0),
-      };
-
-      auto LinearToPQ = [](XMVECTOR N)
-      {
-        XMVECTOR ret;
-
-        ret =
-          XMVectorPow (N, PQ.N);
-
-        XMVECTOR nd =
-          XMVectorDivide (
-             XMVectorAdd (  PQ.C1, XMVectorMultiply (PQ.C2, ret)),
-             XMVectorAdd (g_XMOne, XMVectorMultiply (PQ.C3, ret))
-          );
-
-        return
-          XMVectorPow (nd, PQ.M);
-      };
-
-      uint16_t* rgb_pixels = (uint16_t *)rgb.pixels;
-
-      EvaluateImage ( src_image.GetImages     (),
-                      src_image.GetImageCount (),
-                      src_image.GetMetadata   (),
-      [&](const XMVECTOR* pixels, size_t width, size_t y)
-      {
-        UNREFERENCED_PARAMETER(y);
-
-        for (size_t j = 0; j < width; ++j)
-        {
-          XMVECTOR  value = pixels [j];
-          XMVECTOR nvalue = XMVectorDivide ( XMVector3Transform (   value, c_from709to2020),
-                                             XMVector3Transform (PQ.MaxPQ, c_from709to2020) );
-                    value = LinearToPQ (XMVectorClamp (nvalue, g_XMZero, g_XMOne));
-
-          *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [0] * 65535.0f);
-          *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [1] * 65535.0f);
-          *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [2] * 65535.0f);
-        }
-      } );
-    } break;
+      addResult    = SK_avifEncoderAddImage (encoder, image, 1, AVIF_ADD_IMAGE_FLAG_SINGLE);
+      encodeResult = SK_avifEncoderFinish   (encoder, &avifOutput);
+    }
   }
-
-  avifResult rgbToYuvResult = SK_avifImageRGBToYUV (image, &rgb);
-
-  avifEncoder *encoder = SK_avifEncoderCreate ();
-
-  encoder->quality         = AVIF_QUALITY_LOSSLESS;
-  encoder->qualityAlpha    = AVIF_QUALITY_LOSSLESS;
-  encoder->timescale       = 1;
-  encoder->repetitionCount = AVIF_REPETITION_COUNT_INFINITE;
-  encoder->maxThreads      = 3;
-  encoder->speed           = src_image.GetMetadata ().format == DXGI_FORMAT_R10G10B10A2_UNORM ? 9 : 8;
-
-  image->clli.maxCLL  = max_cll;
-  image->clli.maxPALL = max_pall;
-
-  avifResult addResult    = SK_avifEncoderAddImage (encoder, image, 1, AVIF_ADD_IMAGE_FLAG_SINGLE);
-  avifResult encodeResult = SK_avifEncoderFinish   (encoder, &avifOutput);
-
-  wchar_t    wszAVIFPath [MAX_PATH + 2] = { };
-  wcsncpy_s (wszAVIFPath, wszFilePath, MAX_PATH);
 
   if ( rgbToYuvResult != AVIF_RESULT_OK ||
        addResult      != AVIF_RESULT_OK ||
@@ -665,6 +719,9 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
 
   if (encodeResult == AVIF_RESULT_OK)
   {
+    wchar_t    wszAVIFPath [MAX_PATH + 2] = { };
+    wcsncpy_s (wszAVIFPath, wszFilePath, MAX_PATH);
+
     PathRemoveExtensionW (wszAVIFPath);
     PathAddExtensionW    (wszAVIFPath, L".avif");
 
@@ -678,8 +735,9 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
     }
   }
 
-  SK_avifImageDestroy       (image);
-  SK_avifEncoderDestroy     (encoder);
+  if (image   != nullptr) SK_avifImageDestroy   (image);
+  if (encoder != nullptr) SK_avifEncoderDestroy (encoder);
+
   SK_avifRGBImageFreePixels (&rgb);
 
   return

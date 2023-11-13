@@ -3223,8 +3223,160 @@ SK_ImGui_ControlPanel (void)
         ImGui::Separator ();
 
         bool hdr_changed =
-            ImGui::Checkbox ( "Keep Full-Range JPEG-XR HDR Screenshots (.JXR)",
+            ImGui::Checkbox ( "Keep Full-Range HDR Screenshots",
                                 &config.screenshots.png_compress );
+
+        if (config.screenshots.png_compress && SK_GetBitness () == SK_Bitness::SixtyFourBit)
+        {
+          static bool bFetchingAVIF = false;
+
+          int selection =
+            ( config.screenshots.use_avif ?
+                                        1 : 0 );
+
+          if (
+            ImGui::Combo ( "HDR File Format", &selection,
+                           "JPEG-XR (.jxr)\0"
+                           "AVIF\t\t(.avif)\0\0" )
+             )
+          {
+            if (selection == 1)
+            {
+              if (! bFetchingAVIF)
+              {
+                static std::filesystem::path avif_dll =
+                       std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) /
+                    SK_RunLHIfBitness ( 64, LR"(Image Codecs\libavif\libavif_x64.dll)",
+                                            LR"(Image Codecs\libavif\libavif_x86.dll)" );
+
+                std::error_code                          ec;
+                if (! std::filesystem::exists (avif_dll, ec))
+                {
+                  bFetchingAVIF = true;
+
+                  SK_Network_EnqueueDownload (
+                       sk_download_request_s (
+                         avif_dll.wstring (),
+                           R"(https://sk-data.special-k.info/addon/ImageCodecs/)"
+                                     R"(libavif/libavif_x64.dll)",
+                  []( const std::vector <uint8_t>&&,
+                      const std::wstring_view )
+                   -> bool
+                      {
+                        bFetchingAVIF               = false;
+                        config.screenshots.use_avif = true;
+                  
+                        return false;
+                      }
+                    ), true
+                  );
+                }
+                else
+                {
+                  config.screenshots.use_avif = true;
+                }
+              }
+            }
+            else
+            {
+              config.screenshots.use_avif = false;
+            }
+          }
+
+          if (bFetchingAVIF)
+          {
+            ImGui::TextColored (ImVec4 (.1f,.9f,.1f,1.f), "Downloading AVIF Plug-In...");
+          }
+
+          if (config.screenshots.use_avif)
+          {
+            ImGui::TreePush ("");
+            
+            int subsampling = ( config.screenshots.avif.yuv_subsampling == 400 ? 3 :
+                                config.screenshots.avif.yuv_subsampling == 420 ? 2 :
+                                config.screenshots.avif.yuv_subsampling == 422 ? 1 :
+                                                                               0 );
+
+            if (ImGui::Combo ("YUV Subsampling", &subsampling, " 4:4:4\0 4:2:2\0 4:2:0\0 4:0:0 (Black & White)\0\0"))
+            {
+              switch (subsampling)
+              {
+                default:
+                case 0:
+                  config.screenshots.avif.yuv_subsampling = 444;
+                  break;
+                case 1:
+                  config.screenshots.avif.yuv_subsampling = 422;
+                  break;
+                case 2:
+                  config.screenshots.avif.yuv_subsampling = 420;
+                  break;
+                case 3:
+                  config.screenshots.avif.yuv_subsampling = 400;
+                  break;
+              }
+
+              SK_SaveConfig ();
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip ();
+              ImGui::BulletText   ("Windows natively supports 10-bit and 12-bit AVIF images at 4:2:0, or 8-bit at up to 4:4:4");
+              ImGui::BulletText   ("Higher quality chroma subsampled AVIF images will only render correctly in Chrome.");
+              ImGui::EndTooltip   ();
+            }
+
+            int scrgb_bits = ( config.screenshots.avif.scrgb_bit_depth == 8  ? 0 :
+                               config.screenshots.avif.scrgb_bit_depth == 10 ? 1 :
+                                                                               2 );
+
+            if (__SK_HDR_16BitSwap)
+            {
+              if (ImGui::Combo ("scRGB->PQ Bit Depth", &scrgb_bits, " 8-bit\0 10-bit\0 12-bit\0\0"))
+              {
+                config.screenshots.avif.scrgb_bit_depth =
+                  ( scrgb_bits == 0 ? 8  :
+                    scrgb_bits == 1 ? 10 :
+                                      12 );
+
+                SK_SaveConfig ();
+              }
+            }
+
+            const char* szCompressionQualityFormat =
+              ( config.screenshots.avif.compression_quality == 100 ? "100 (Lossless)"
+                                                                   : "%d" );
+
+            bool changed = false;
+
+            changed |=
+              ImGui::SliderInt ("Compression Quality", &config.screenshots.avif.compression_quality, 80, 100, szCompressionQualityFormat);
+
+            if (ImGui::IsItemHovered ())
+              ImGui::SetTooltip ("You can manually enter values < 80 using ctrl+click, but the results will be terrible.");
+            
+            changed |=
+              ImGui::SliderInt ("Compression Speed",   &config.screenshots.avif.compression_speed,   0, 10);
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip    ();
+              ImGui::TextUnformatted ("How long to dedicate to compressing the image for smallest file size");
+              ImGui::BulletText      ("Values < 7 are VERY slow, potentially taking minutes.");
+              ImGui::BulletText      ("The compression is done on a background thread, unlikely to consume excessive CPU.");
+              ImGui::BulletText      ("If you set the speed too low, HDR screenshots might not finish by the time you exit.");
+              ImGui::EndTooltip      ();
+            }
+
+            if (changed)
+            {
+              SK_SaveConfig ();
+            }
+
+            ImGui::TreePop ();
+          }
+        }
 
         if ( rb.screenshot_mgr->getRepoStats ().files > 0 )
         {
