@@ -2006,11 +2006,22 @@ auto DeclKeybind =
           sec->first,
             L"Blacklist" );
 
+      import_.mode =
+         dynamic_cast <sk::ParameterStringW *>
+             (g_ParameterFactory->create_parameter <std::wstring> (
+                L"Plug-In Mode (application defined)")
+             );
+      import_.mode->register_to_ini (
+        dll_ini,
+          sec->first,
+            L"Mode" );
+
       static_cast <sk::iParameter *> (import_.filename    )->load ();
       static_cast <sk::iParameter *> (import_.when        )->load ();
       static_cast <sk::iParameter *> (import_.role        )->load ();
       static_cast <sk::iParameter *> (import_.architecture)->load ();
       static_cast <sk::iParameter *> (import_.blacklist   )->load ();
+      static_cast <sk::iParameter *> (import_.mode        )->load ();
 
       import_.hLibrary = nullptr;
 

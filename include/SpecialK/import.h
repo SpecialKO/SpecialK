@@ -50,6 +50,7 @@ struct import_s
   sk::ParameterStringW* role         = nullptr; // 0 = dxgi,   1 = d3d11
   sk::ParameterStringW* architecture = nullptr; // 0 = 64-bit, 1 = 32-bit
   sk::ParameterStringW* blacklist    = nullptr;
+  sk::ParameterStringW* mode         = nullptr;
 };
 
 

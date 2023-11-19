@@ -1,4 +1,13 @@
-﻿23.11.19.1
+﻿23.11.19.3
+==========
+ + Fixed potential crash in ReShade's "Generic Depth" Add-On
+
+23.11.19.2
+==========
+ + Added "Compatibility Mode" option to ReShade Plug-In
+ + Removed Unofficial Plug-In category
+
+23.11.19.1
 ==========
  + Fixed unintended ReShade device context code in D3D12 games without
     ReShade loaded.

@@ -5836,10 +5836,16 @@ SK_ImGui_ControlPanel (void)
 
     png_changed =
       ImGui::Checkbox (
-        rb.isHDRCapable () ? "Keep HDR .JXR Screenshots     " :
+        rb.isHDRCapable () ? "Keep HDR Screenshots          " :
                         "Keep Lossless .PNG Screenshots",
                                     &config.screenshots.png_compress
                       );
+
+    if (rb.isHDRCapable ())
+    {
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("See the HDR Menu to configure HDR Screenshot Format and Compression Settings.");
+    }
 
     ImGui::EndGroup ();
 

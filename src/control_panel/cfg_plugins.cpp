@@ -29,7 +29,7 @@ extern iSK_INI* dll_ini;
 
 using namespace SK::ControlPanel;
 bool
-SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_name, const wchar_t* role, SK_Import_LoadOrder order, const wchar_t* path)
+SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_name, const wchar_t* role, SK_Import_LoadOrder order, const wchar_t* path, const wchar_t* mode)
 {
   if (! ini)
     return false;
@@ -54,13 +54,14 @@ SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_
 #endif
                                  L"Role=%s\n"
                                  L"When=%s\n"
-                                 L"Filename=%s\n\n",
+                                 L"Filename=%s\n"
+                                 L"Mode=%s\n\n",
                                    import_name,
                                      role,
       order == SK_Import_LoadOrder::Early  ? L"Early"  :
       order == SK_Import_LoadOrder::PlugIn ? L"PlugIn" :
                                              L"Lazy",
-                                         path );
+                                         path, mode );
 
     ini->import (wszImportRecord);
     ini->write  ();
@@ -225,16 +226,58 @@ SK::ControlPanel::PlugIns::Draw (void)
     if (ImGui::CollapsingHeader ("Third-Party"))
     {
       ImGui::TreePush    ("");
+
       changed |=
           SK_ImGui_PlugInSelector (
-            dll_ini, "ReShade (Official)", imp_path_reshade, imp_name_reshade, reshade_official, order,
+            dll_ini, "ReShade (Un|Official)", imp_path_reshade, imp_name_reshade, reshade_official, order,
               SK_IsInjected () ? SK_Import_LoadOrder::Lazy :
                                  SK_Import_LoadOrder::PlugIn );
 
+      bool compatibility = false;
+
+      if (reshade_official)
+      {
+        auto& mode =
+          dll_ini->get_section (imp_name_reshade).get_cvalue (L"Mode");
+
+        if (mode.empty () || mode._Equal (L"Compatibility"))
+        {
+          compatibility = true;
+        }
+      }
+
+      ImGui::TreePush ("");
+
+      if (ImGui::Checkbox ("Compatibility Mode", &compatibility))
+      {
+        dll_ini->get_section (imp_name_reshade).get_value (L"Mode").assign (
+          compatibility ? L"Compatibility" :
+                          L"Normal"
+        );
+
+        dll_ini->write ();
+
+        SK_SaveConfig ();
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("Compatibility mode should be preferred unless you need a specific Add-On.");
+        ImGui::Separator       ();
+        ImGui::BulletText      ("Load-Order is irrelevant in Compatibility mode.");
+        ImGui::BulletText      ("Frame Generation games are more stable in Compatibility mode.");
+        ImGui::BulletText      ("May disable support for some ReShade Add-Ons.");
+        ImGui::BulletText      ("Very little support can be offered for non-Compatibility mode.");
+        ImGui::EndTooltip      ();
+      }
+
+      ImGui::TreePop     (  );
       ImGui::TreePop     (  );
     }
     ImGui::PopStyleColor ( 3);
 
+#if 0
     if (SK_IsInjected () || StrStrIW (SK_GetModuleName (SK_GetDLL ()).c_str (), L"dxgi.dll")     ||
                             StrStrIW (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d11.dll")    ||
                             StrStrIW (SK_GetModuleName (SK_GetDLL ()).c_str (), L"d3d9.dll")     ||
@@ -262,6 +305,7 @@ SK::ControlPanel::PlugIns::Draw (void)
       }
       ImGui::PopStyleColor ( 3);
     }
+#endif
 
     struct import_s {
       wchar_t             path     [MAX_PATH + 2] = { };
@@ -271,6 +315,7 @@ SK::ControlPanel::PlugIns::Draw (void)
       SK_Import_LoadOrder order                   = SK_Import_LoadOrder::PlugIn;
       bool                enabled                 = true;
       bool                loaded                  = false;
+      std::wstring        mode                    = L"";
     };
 
     static ImGui::FileBrowser                          fileDialog (ImGuiFileBrowserFlags_MultipleSelection);
@@ -373,7 +418,8 @@ SK::ControlPanel::PlugIns::Draw (void)
 
         SK_ImGui_SavePlugInPreference ( dll_ini,
                                             import.enabled, import.ini_name,
-                             L"ThirdParty", import.order,   import.path );
+                             L"ThirdParty", import.order,   import.path,
+                                                            import.mode.c_str () );
       }
 
       fileDialog.ClearSelected ();
@@ -401,7 +447,8 @@ SK::ControlPanel::PlugIns::Draw (void)
       {
         SK_ImGui_SavePlugInPreference ( dll_ini,
                                           import.enabled, import.ini_name,
-                           L"ThirdParty", import.order,   import.path );
+                           L"ThirdParty", import.order,   import.path,
+                                                          import.mode.c_str () );
       }
     }
 
@@ -451,8 +498,8 @@ SK::ControlPanel::PlugIns::Draw (void)
       if (reshade_official)
         reshade_unofficial = false;
 
-      SK_ImGui_SavePlugInPreference (dll_ini, reshade_official,   imp_name_reshade,    L"ThirdParty", order,    imp_path_reshade   );
-      SK_ImGui_SavePlugInPreference (dll_ini, reshade_unofficial, imp_name_reshade_ex, L"Unofficial", order_ex, imp_path_reshade_ex);
+      SK_ImGui_SavePlugInPreference (dll_ini, reshade_official,   imp_name_reshade,    L"ThirdParty", order,    imp_path_reshade   , L"");
+      SK_ImGui_SavePlugInPreference (dll_ini, reshade_unofficial, imp_name_reshade_ex, L"Unofficial", order_ex, imp_path_reshade_ex, L"");
 
       if (reshade_official)
       {

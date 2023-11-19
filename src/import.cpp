@@ -133,7 +133,11 @@ SK_LoadImportModule (import_s& import)
   {
     SK_RunOnce (
     {
-      SetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", L"1");
+      if (import.mode->empty () || 0==_wcsicmp (import.mode->get_value_str ().c_str (), L"Compatibility"))
+      {
+        SetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", L"1");
+      }
+
       SetEnvironmentVariableW (L"RESHADE_DISABLE_LOADING_CHECK", L"1");
 
       // If user already has a local ReShade.ini file, prefer the default ReShade behavior
