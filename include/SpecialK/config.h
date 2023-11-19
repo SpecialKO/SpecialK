@@ -449,7 +449,7 @@ struct sk_config_t
       bool       full_range            =  true;
       int        compression_quality   =   100;
       int        compression_speed     =     8;
-      int        max_threads           =     3;
+      int        max_threads           =     6;
     } avif;
 
     SK_ConfigSerializedKeybind

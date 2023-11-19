@@ -2228,6 +2228,8 @@ struct SK_D3D11_RenderCtx {
   SK_ComPtr <ID3D11DeviceContext>           _pDeviceCtx       = nullptr;
   SK_ComPtr <IDXGISwapChain>                _pSwapChain       = nullptr;
 
+  reshade::api::effect_runtime*             _pReShadeRuntime  = nullptr;
+
   struct FrameCtx {
     SK_D3D11_RenderCtx*                     pRoot             = nullptr;  
 

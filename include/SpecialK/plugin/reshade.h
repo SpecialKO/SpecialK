@@ -26,7 +26,7 @@
 
 #include <Windows.h>
 
-#include <ReShade/reshade_api.hpp>
+#include <../depends/include/ReShade/reshade_api.hpp>
 
 HMODULE
 __stdcall
@@ -47,5 +47,14 @@ reshade::api::effect_runtime*
 reshade::api::effect_runtime*
      SK_ReShadeAddOn_GetRuntimeForSwapChain (IDXGISwapChain* pSwapChain);
 void SK_ReShadeAddOn_CleanupRTVs            (reshade::api::effect_runtime *runtime, bool must_wait = false);
+
+reshade::api::effect_runtime*
+SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (ID3D12Device *pDevice, ID3D12CommandQueue *pCmdQueue, IDXGISwapChain *pSwapChain);
+
+reshade::api::effect_runtime*
+SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceContext *pDevCtx, IDXGISwapChain *pSwapChain);
+
+void SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *runtime);
+void SK_ReShadeAddOn_DestroyEffectRuntime          (reshade::api::effect_runtime *runtime);
 
 #endif /* __SK__RESHADE_H__ */

@@ -2066,7 +2066,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       uiFenceVal =
         SK_ReShadeAddOn_RenderEffectsD3D12 ( pSwapChain1.p, stagingFrame.pRenderOutput,
                                                             stagingFrame.reshade_fence,
-                                                            stagingFrame.hRenderOutput );
+                                                            stagingFrame.hReShadeOutput );//hRenderOutput );
 
       if (uiFenceVal != 0)
       {
@@ -2177,20 +2177,6 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
   SK_D3D12_CommitUploadQueue (pCommandList);
 
-  ///if (config.reshade.is_addon)
-  ///{
-  ///  transition_state   (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_RENDER_TARGET,
-  ///                                                                D3D12_RESOURCE_STATE_PRESENT,
-  ///                                                                D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
-  ///
-  ///  void SK_ReShadeAddOn_Present (IDXGISwapChain *pSwapChain);
-  ///       SK_ReShadeAddOn_Present (               _pSwapChain);
-  ///
-  ///  transition_state (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_PRESENT,
-  ///                                                            D3D12_RESOURCE_STATE_RENDER_TARGET,
-  ///                                                              D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
-  ///}
-
   extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
                SK_ImGui_DrawFrame (       0x00,          nullptr );
 
@@ -2202,7 +2188,18 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
                                                                   D3D12_RESOURCE_STATE_PRESENT,
                                                                   D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
 
-  stagingFrame.flush_cmd_list ();
+  if (stagingFrame.flush_cmd_list ())
+  {
+    if (_pReShadeRuntime != nullptr)
+    {
+      _pReShadeRuntime->get_command_queue ()->wait (
+        reshade::api::fence { (uint64_t)stagingFrame.fence.p },
+                                        stagingFrame.fence.value
+      );
+
+      SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (_pReShadeRuntime);
+    }
+  }
 
   SK_RunOnce (SK_ApplyQueuedHooks ());
 }
@@ -2418,6 +2415,12 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
   SK_D3D12_EndFrame (SK_TLS_Bottom ());
 
 
+  if (_pReShadeRuntime != nullptr)
+  {
+    SK_ReShadeAddOn_DestroyEffectRuntime (_pReShadeRuntime);
+                                          _pReShadeRuntime = nullptr;
+  }
+
   ImGui_ImplDX12_Shutdown ();
 
   ///// 1 frame delay for re-init
@@ -2595,6 +2598,16 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
       int bufferIdx = 0;
 
+
+      if (_pReShadeRuntime == nullptr)
+      {
+        _pReShadeRuntime =
+          SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (_pDevice, _pCommandQueue, _pSwapChain);
+
+        _pReShadeRuntime->get_command_queue ()->wait_idle ();
+      }
+
+
       for ( auto& frame : frames_ )
       {
         frame.iBufferIdx =
@@ -2629,8 +2642,32 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         frame.hRenderOutput.ptr =
                   rtvHandle.ptr + frame.iBufferIdx * rtvDescriptorSize;
 
-        _pDevice->CreateRenderTargetView ( frame.pRenderOutput, nullptr,
-                                           frame.hRenderOutput );
+        //
+        // Wrap this using ReShade's internal device, so that it can map the CPU descriptor back to a resource
+        //   and we can use this Render Target in non-Render Hook versions of ReShade.
+        //
+        if (_pReShadeRuntime != nullptr)
+        {
+          reshade::api::resource_view rtv;
+
+          _pReShadeRuntime->get_device ()->create_resource_view (
+            reshade::api::resource { (uint64_t)frame.pRenderOutput.p },
+            reshade::api::resource_usage::render_target,
+            reshade::api::resource_view_desc ((reshade::api::format)frame.pRenderOutput->GetDesc ().Format),
+                                     &rtv
+          );
+
+          _pDevice->CopyDescriptorsSimple (
+            1, frame.hRenderOutput,   (D3D12_CPU_DESCRIPTOR_HANDLE)rtv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
+               frame.hReShadeOutput = (D3D12_CPU_DESCRIPTOR_HANDLE)rtv.handle;
+        }
+
+        // Hookless ReShade is not in use, do the normal thing.
+        else
+        {
+          _pDevice->CreateRenderTargetView ( frame.pRenderOutput, nullptr,
+                                             frame.hRenderOutput );
+        }
 
         ThrowIfFailed (
           _pDevice->CreateCommittedResource (

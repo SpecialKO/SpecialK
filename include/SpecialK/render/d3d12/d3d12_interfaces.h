@@ -22,6 +22,7 @@
 #pragma once
 
 #include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/plugin/reshade.h>
 
 #include <Unknwnbase.h>
 
@@ -477,6 +478,8 @@ struct SK_D3D12_RenderCtx {
   SK_ComPtr <ID3D12CommandQueue>          _pCommandQueue    = nullptr;
   SK_ComPtr <IDXGISwapChain3>             _pSwapChain       = nullptr;
 
+  reshade::api::effect_runtime*           _pReShadeRuntime  = nullptr;
+
   SK_ComPtr <ID3D12PipelineState>         pHDRPipeline      = nullptr;
   SK_ComPtr <ID3D12RootSignature>         pHDRSignature     = nullptr;
 
@@ -504,6 +507,7 @@ struct SK_D3D12_RenderCtx {
 
 		SK_ComPtr <ID3D12Resource>            pRenderOutput     = nullptr;
 		D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutput     =  { 0 };
+    D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeOutput    =  { 0 };
     UINT                                  iBufferIdx        =UINT_MAX;
 
     struct {

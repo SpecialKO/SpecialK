@@ -1775,6 +1775,9 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
       _pDevice    = pDevice;
       _pDeviceCtx = pDeviceCtx;
 
+      _pReShadeRuntime =
+        SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (_pDevice, _pDeviceCtx, _pSwapChain);
+
       return true;
     }
   }
@@ -1834,6 +1837,12 @@ SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
                    SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data (),
                                         swapDesc.OutputWindow),
             L"D3D11BkEnd" );
+
+    if (_pReShadeRuntime != nullptr)
+    {
+      SK_ReShadeAddOn_DestroyEffectRuntime (_pReShadeRuntime);
+                                            _pReShadeRuntime = nullptr;
+    }
 
 #ifdef REFERENCE_COUNT_FIXUP
     // Release residual references that should have been released following SwapChain Present
@@ -2025,6 +2034,9 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 
   // Queue-up Post-SK OSD Screenshots  (If done here, will not include ReShade)
   SK_Screenshot_ProcessQueue (SK_ScreenshotStage::PrePresent, rb);
+
+  if (_pReShadeRuntime != nullptr)
+    SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (_pReShadeRuntime);
 
   ApplyStateblock (_pDeviceCtx, sb);
 

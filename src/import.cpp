@@ -133,13 +133,44 @@ SK_LoadImportModule (import_s& import)
   {
     SK_RunOnce (
     {
+      SetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", L"1");
       SetEnvironmentVariableW (L"RESHADE_DISABLE_LOADING_CHECK", L"1");
 
       // If user already has a local ReShade.ini file, prefer the default ReShade behavior
       if (! PathFileExistsW (L"ReShade.ini"))
       {
+        std::filesystem::path
+          reshade_path (SK_GetConfigPath ());
+          reshade_path /= L"ReShade";
+
         // Otherwise, use SK's per-game config path
-        SetEnvironmentVariableW (L"RESHADE_BASE_PATH_OVERRIDE", SK_GetConfigPath ());
+        SetEnvironmentVariableW (L"RESHADE_BASE_PATH_OVERRIDE", reshade_path.c_str ());
+
+        reshade_path /= L"ReShade.ini";
+
+        SK_CreateDirectories  (reshade_path.c_str ());
+        if (! PathFileExistsW (reshade_path.c_str ()))
+        {
+          FILE *fReShadeINI =
+            _wfopen (reshade_path.c_str (), L"w");
+
+          if (fReShadeINI != nullptr)
+          {
+            std::wstring shared_base_path =
+              SK_FormatStringW (LR"(%ws\Global\ReShade\)", SK_GetInstallPath ());
+
+            fputws (L"[GENERAL]\n",                                                                                                                     fReShadeINI);
+            fputws (SK_FormatStringW (LR"(EffectSearchPaths=%wsShaders\**,.\reshade-shaders\Shaders\**)"    L"\n", shared_base_path.c_str ()).c_str (), fReShadeINI);
+            fputws (SK_FormatStringW (LR"(TextureSearchPaths=%wsTextures\**,.\reshade-shaders\Textures\**)" L"\n", shared_base_path.c_str ()).c_str (), fReShadeINI);
+
+            fputws (L"\n",                   fReShadeINI);
+
+            fputws (L"[OVERLAY]\n",          fReShadeINI);
+            fputws (L"TutorialProgress=4\n", fReShadeINI);
+
+            fclose (fReShadeINI);
+          }
+        }
       }
     });
   }

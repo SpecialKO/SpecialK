@@ -1124,8 +1124,8 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
 UINT filterFlags =
   0x100000FF;
 
-float _cSdrPower  = 0.71f;//0.84f;
-float _cLerpScale = 1.6f; //2.5f;
+float _cSdrPower  = 0.74f;//0.84f;
+float _cLerpScale = 1.3f; //2.5f;
 
 void
 SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage::EndOfFrame,

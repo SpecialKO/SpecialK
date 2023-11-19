@@ -165,11 +165,6 @@ namespace reshade { namespace api
 		/// </summary>
 		resolve_depth_stencil,
 		/// <summary>
-		/// Specfies whether synchronization via fences is supported.
-		/// If this feature is not present, <see cref="device::create_fence"/>, <see cref="device::destroy_fence"/>, <see cref="device::get_completed_fence_value"/>, <see cref="command_queue::wait"/> and <see cref="command_queue::signal"/> must not be used.
-		/// </summary>
-		fence,
-		/// <summary>
 		/// Specifies whether fence sharing is supported.
 		/// If this feature is not present, <see cref="fence_flags::shared"/> must not be used.
 		/// </summary>
@@ -179,6 +174,17 @@ namespace reshade { namespace api
 		/// If this feature is not present, <see cref="fence_flags::shared_nt_handle"/> must not be used.
 		/// </summary>
 		shared_fence_nt_handle,
+	};
+
+	/// <summary>
+	/// Describes an adapter/physical device.
+	/// </summary>
+	struct device_properties
+	{
+		unsigned int api_version = 0;
+		unsigned int driver_version = 0;
+		unsigned int vendor_id = 0, device_id = 0;
+		char description[256] = "";
 	};
 
 	/// <summary>
@@ -222,9 +228,9 @@ namespace reshade { namespace api
 		/// <summary>
 		/// Allocates user-defined data and stores it in the object.
 		/// </summary>
-		template <typename T> inline T &create_private_data()
+		template <typename T, typename... Args> inline T &create_private_data(Args... args)
 		{
-			uint64_t res = reinterpret_cast<uintptr_t>(new T());
+			uint64_t res = reinterpret_cast<uintptr_t>(new T(std::forward<Args>(args)...));
 			set_private_data(reinterpret_cast<const uint8_t *>(&__uuidof(T)),  res);
 			return *reinterpret_cast<T *>(static_cast<uintptr_t>(res));
 		}
@@ -511,7 +517,28 @@ namespace reshade { namespace api
 		/// <summary>
 		/// Gets the current value of the specified fence.
 		/// </summary>
-		virtual uint64_t get_completed_fence_value(fence fence) = 0;
+		virtual uint64_t get_completed_fence_value(fence fence) const = 0;
+
+		/// <summary>
+		/// Wait until the specified fence reached the specified value.
+		/// </summary>
+		/// <param name="fence">Fence to wait on.</param>
+		/// <param name="value">Value the fence has to each or exceed.</param>
+		/// <param name="timeout">Return early after the specified time in nanoseconds, or set to UINT64_MAX to never time out.</param>
+		/// <returns><see langword="true"/> if the wait operation was successful, <see langword="false"/> otherwise.</returns>
+		virtual bool wait(fence fence, uint64_t value, uint64_t timeout = UINT64_MAX) = 0;
+		/// <summary>
+		/// Updates the specified fence to the specified value.
+		/// </summary>
+		/// <param name="fence">Fence to update.</param>
+		/// <param name="value">Value the fence should be set to.</param>
+		/// <returns><see langword="true"/> if the signal operation was successful, <see langword="false"/> otherwise.</returns>
+		virtual bool signal(fence fence, uint64_t value) = 0;
+
+		/// <summary>
+		/// Gets information about the primary adapter associated with this logical render device.
+		/// </summary>
+		virtual device_properties get_properties() const = 0;
 	};
 
 	/// <summary>
@@ -1005,9 +1032,14 @@ namespace reshade { namespace api
 		/// Queues a GPU-side update of the specified fence to the specified value after previous operations finished executing.
 		/// </summary>
 		/// <param name="fence">Fence to update.</param>
-		/// <param name="value">Value the fence should be updated to.</param>
+		/// <param name="value">Value the fence should be set to.</param>
 		/// <returns><see langword="true"/> if the signal operation was successfully enqueued, <see langword="false"/> otherwise.</returns>
 		virtual bool signal(fence fence, uint64_t value) = 0;
+
+		/// <summary>
+		/// Queries the GPU timestamp frequency in ticks per second.
+		/// </summary>
+		virtual uint64_t get_timestamp_frequency() const = 0;
 	};
 
 	/// <summary>
@@ -1068,5 +1100,15 @@ namespace reshade { namespace api
 		/// Gets the index of the back buffer resource that can currently be rendered into.
 		/// </summary>
 		virtual uint32_t get_current_back_buffer_index() const = 0;
+
+		/// <summary>
+		/// Checks whether the specified color space is supported for presentation.
+		/// </summary>
+		virtual bool check_color_space_support(color_space color_space) const = 0;
+
+		/// <summary>
+		/// Gets the color space used for presentation.
+		/// </summary>
+		virtual color_space get_color_space() const = 0;
 	};
 } }

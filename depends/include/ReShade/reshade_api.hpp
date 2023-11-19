@@ -36,10 +36,10 @@ namespace reshade { namespace api
 	/// </summary>
 	enum class input_source
 	{
-		none      = 0,
-		mouse     = 1,
-		keyboard  = 2,
-		gamepad   = 3,
+		none = 0,
+		mouse = 1,
+		keyboard = 2,
+		gamepad = 3,
 		clipboard = 4,
 	};
 
@@ -47,8 +47,29 @@ namespace reshade { namespace api
 	/// A post-processing effect runtime, used to control effects.
 	/// <para>ReShade associates an independent post-processing effect runtime with most swap chains.</para>
 	/// </summary>
-	struct __declspec(novtable) effect_runtime : public swapchain
+	struct __declspec(novtable) effect_runtime : public device_object
 	{
+		/// <summary>
+		/// Gets the handle of the window associated with this effect runtime.
+		/// </summary>
+		virtual void *get_hwnd() const = 0;
+
+		/// <summary>
+		/// Gets the back buffer resource at the specified <paramref name="index"/> in the swap chain associated with this effect runtime.
+		/// </summary>
+		/// <param name="index">Index of the back buffer. This has to be between zero and the value returned by <see cref="get_back_buffer_count"/>.</param>
+		virtual resource get_back_buffer(uint32_t index) = 0;
+
+		/// <summary>
+		/// Gets the number of back buffer resources in the swap chain associated with this effect runtime.
+		/// </summary>
+		virtual uint32_t get_back_buffer_count() const = 0;
+
+		/// <summary>
+		/// Gets the index of the back buffer resource that can currently be rendered into.
+		/// </summary>
+		virtual uint32_t get_current_back_buffer_index() const = 0;
+
 		/// <summary>
 		/// Gets the main graphics command queue associated with this effect runtime.
 		/// This may potentially be different from the presentation queue and should be used to execute graphics commands on.
@@ -757,13 +778,16 @@ namespace reshade { namespace api
 		virtual void set_preprocessor_definition_for_effect(const char *effect_name, const char *name, const char *value) = 0;
 
 		/// <summary>
-		/// Activates ReShade's overlay programatically.
+		/// Open or close the ReShade overlay.
 		/// </summary>
-		/// <param name="activate">Activation state to request.</param>
-		/// <param name="source">Source of activation request.</param>
-		/// <remarks>
-		/// Returns <see langword="true"/> if the activation was accepted, otherwise returns <see langword="false"/>.
-		/// </remarks>
-		virtual bool activate_overlay(bool activate, reshade::api::input_source source) = 0;
+		/// <param name="open">Requested overlay state.</param>
+		/// <param name="source">Source of this request.</param>
+		/// <returns><see langword="true"/> if the overlay state was changed, <see langword="false"/> otherwise.</returns>
+		virtual bool open_overlay(bool open, input_source source) = 0;
+
+		/// <summary>
+		/// Overrides the color space used for presentation.
+		/// </summary>
+		virtual void set_color_space(color_space color_space) = 0;
 	};
 } }

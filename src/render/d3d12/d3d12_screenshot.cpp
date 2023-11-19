@@ -2349,11 +2349,12 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                               for (size_t j = 0; j < width; ++j)
                               {
                                 outPixels [j] =
-                                  XMVector3Transform (
-                                    PQToLinear (
-                                      XMVectorClamp (inPixels [j], g_XMZero, g_XMOne)
-                                    ), c_from2020to709
-                                  );
+                                  PQToLinear (
+                                    XMVectorClamp (
+                                      XMVector3Transform (inPixels [j], c_from2020to709),
+                                        g_XMZero,
+                                        g_XMOne )
+                                    );
                                 outPixels [j].m128_f32 [3] = 1.0f;
                               }
                             }, un_hdr10    )

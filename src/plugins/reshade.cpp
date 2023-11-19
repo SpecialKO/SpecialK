@@ -131,13 +131,12 @@ void
 __cdecl
 SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
 {
-  bool changed = false;
-
   static SK_Thread_HybridSpinlock                   _init_lock;
   std::scoped_lock <SK_Thread_HybridSpinlock> lock (_init_lock);
 
   SK_LOGs0 (L"ReShadeExt", L"Runtime Initialized");
 
+#if 0
   size_t search_path_len = 0;
 
   static char search_path_buf [   MAX_PATH * 16] = { };
@@ -205,9 +204,11 @@ SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
       changed = true;
     }
   }
+#endif
 
   ReShadeRuntimes [(HWND)runtime->get_hwnd ()] = runtime;
 
+#if 0
   // ReShade doesn't properly handle changes to this without a full restart
   if (changed)
   {
@@ -217,6 +218,7 @@ SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
 
     SK_ImGui_Warning (L"ReShade Effect Reload Required for AddOn Setup To Complete");
   }
+#endif
 }
 
 struct dxgi_rtv_s {
@@ -527,7 +529,7 @@ SK_ReShadeAddOn_ActivateOverlay (bool activate)
     {
       InterlockedExchange (&ReShadeOverlayActivating, TRUE);
 
-      reshade::activate_overlay (ReShadeRuntimes [hWnd], activate, reshade::api::input_source::keyboard);
+      //reshade::activate_overlay (ReShadeRuntimes [hWnd], activate, reshade::api::input_source::keyboard);
     }
   }
 #endif
@@ -541,7 +543,7 @@ SK_ReShadeAddOn_ToggleOverlay (void)
 
 bool
 __cdecl
-SK_ReShadeAddOn_OverlayActivation (reshade::api::effect_runtime *runtime, bool *activate, reshade::api::input_source source)
+SK_ReShadeAddOn_OverlayActivation (reshade::api::effect_runtime *runtime, bool open, reshade::api::input_source source)
 {
   std::ignore = runtime;
 
@@ -552,17 +554,20 @@ SK_ReShadeAddOn_OverlayActivation (reshade::api::effect_runtime *runtime, bool *
     // Allow activation via keyboard if we are expecting it...
     if (! InterlockedCompareExchange (&ReShadeOverlayActivating, FALSE, TRUE))
     {
-      *activate = !*activate;
-
-      return true;
+      if (open)
+      {
+        return true;
+      }
     }
   }
 
   // Block Gamepad Activation?
   if (source == reshade::api::input_source::gamepad && SK_ImGui_WantGamepadCapture ())
   {
-    *activate = !*activate;
-    return true;
+    if (open)
+    {
+      return true;
+    }
   }
 
   auto& io =
@@ -575,13 +580,13 @@ SK_ReShadeAddOn_OverlayActivation (reshade::api::effect_runtime *runtime, bool *
   static bool imgui_visible     = SK_ImGui_Visible;
   static bool imgui_vis_changed = false;
 
-  static bool last_active = !(*activate);
+  static bool last_open = open;
   
-  if (std::exchange (last_active, *activate) != *activate)
+  if (std::exchange (last_open, open) != open)
   {
     // When the overlay activates, stop blocking
     //   input !!
-    if (*activate)
+    if (open)
     {
       capture_keys  =
         io.WantCaptureKeyboard;
@@ -825,6 +830,9 @@ SK_ReShadeAddOn_Present (IDXGISwapChain *pSwapChain)
 UINT64
 SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource* pResource, ID3D12Fence* pFence, D3D12_CPU_DESCRIPTOR_HANDLE hRTV)
 {
+  if (! _d3d12_rbk->_pReShadeRuntime)
+    return 0;
+
   static volatile LONG64 lLastFrame = 0;
 
   if (InterlockedExchange64 (&lLastFrame, (LONG64)SK_GetFramesDrawn ()) == (LONG64)SK_GetFramesDrawn ())
@@ -865,18 +873,18 @@ SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource*
       //cmd_list->barrier ( buffer, reshade::api::resource_usage::present,
       //                            reshade::api::resource_usage::render_target );
       {
-        if (runtime->get_device ()->get_resource_desc (buffer).texture.width  == ImGui::GetIO ().DisplaySize.x &&
-            runtime->get_device ()->get_resource_desc (buffer).texture.height == ImGui::GetIO ().DisplaySize.y)
+        //if (runtime->get_device ()->get_resource_desc (buffer).texture.width  == ImGui::GetIO ().DisplaySize.x &&
+        //    runtime->get_device ()->get_resource_desc (buffer).texture.height == ImGui::GetIO ().DisplaySize.y)
         {
           runtime->render_effects (
             cmd_list, rtv, { 0 }
           );
         }
 
-        else
-        {
-          InterlockedExchange64 (&lLastFrame, (LONG64)SK_GetFramesDrawn () - 1);
-        }
+        //else
+        //{
+        //  InterlockedExchange64 (&lLastFrame, (LONG64)SK_GetFramesDrawn () - 1);
+        //}
       }
       //cmd_list->barrier ( buffer, reshade::api::resource_usage::render_target,
       //                            reshade::api::resource_usage::present );
@@ -905,6 +913,23 @@ SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource*
   return 0;
 }
 
+void SK_ReShadeAddOn_Present (reshade::api::command_queue *queue, reshade::api::swapchain *swapchain, const reshade::api::rect *source_rect, const reshade::api::rect *dest_rect, uint32_t dirty_rect_count, const reshade::api::rect *dirty_rects)
+{
+  if (swapchain->get_device ()->get_api () == reshade::api::device_api::d3d12)
+  {
+    auto runtime =
+      SK_ReShadeAddOn_GetRuntimeForHWND ((HWND)swapchain->get_hwnd ());
+
+    SK_ReShadeAddOn_CleanupRTVs (runtime, false);
+  }
+
+  std::ignore = dirty_rects;
+  std::ignore = dirty_rect_count;
+  std::ignore = dest_rect;
+  std::ignore = source_rect;
+  std::ignore = queue;
+}
+
 bool
 SK_ReShadeAddOn_Init (HMODULE reshade_module)
 {
@@ -926,14 +951,126 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
     config.reshade.is_addon = true;
 
-    reshade::register_event <reshade::addon_event::init_effect_runtime>        (SK_ReShadeAddOn_InitRuntime);
-    reshade::register_event <reshade::addon_event::destroy_effect_runtime>     (SK_ReShadeAddOn_DestroyRuntime);
-    reshade::register_event <reshade::addon_event::destroy_device>             (SK_ReShadeAddOn_DestroyDevice);
-    reshade::register_event <reshade::addon_event::destroy_swapchain>          (SK_ReShadeAddOn_DestroySwapChain);
-    reshade::register_event <reshade::addon_event::destroy_command_queue>      (SK_ReShadeAddOn_DestroyCmdQueue);
-    reshade::register_event <reshade::addon_event::reshade_overlay_activation> (SK_ReShadeAddOn_OverlayActivation);
+    reshade::register_event <reshade::addon_event::present>                (SK_ReShadeAddOn_Present);
+    reshade::register_event <reshade::addon_event::init_effect_runtime>    (SK_ReShadeAddOn_InitRuntime);
+    reshade::register_event <reshade::addon_event::destroy_effect_runtime> (SK_ReShadeAddOn_DestroyRuntime);
+    reshade::register_event <reshade::addon_event::destroy_device>         (SK_ReShadeAddOn_DestroyDevice);
+    reshade::register_event <reshade::addon_event::destroy_swapchain>      (SK_ReShadeAddOn_DestroySwapChain);
+    reshade::register_event <reshade::addon_event::destroy_command_queue>  (SK_ReShadeAddOn_DestroyCmdQueue);
+    reshade::register_event <reshade::addon_event::reshade_open_overlay>   (SK_ReShadeAddOn_OverlayActivation);
   }
 
   return
     registered;
+}
+
+
+void
+SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *runtime)
+{
+  static auto &rb =
+    SK_GetCurrentRenderBackend ();
+
+  if ( rb.isHDRCapable () &&
+       rb.isHDRActive  () )
+  {
+    switch (rb.scanout.getEOTF ())// == SK_RenderBackend::scan_out_s::SMPTE_2084)
+    {
+      case SK_RenderBackend::scan_out_s::sRGB:
+      case SK_RenderBackend::scan_out_s::G22:
+        runtime->set_color_space (reshade::api::color_space::srgb_nonlinear);
+        break;
+      case SK_RenderBackend::scan_out_s::Linear:
+        runtime->set_color_space (reshade::api::color_space::extended_srgb_linear);
+        break;
+      case SK_RenderBackend::scan_out_s::SMPTE_2084:
+        runtime->set_color_space (reshade::api::color_space::hdr10_st2084);
+        break;
+      default:
+        runtime->set_color_space (reshade::api::color_space::unknown);
+        break;
+    }
+  }
+
+  else
+  {
+    runtime->set_color_space (reshade::api::color_space::srgb_nonlinear);
+  }
+
+  reshade::update_and_present_effect_runtime (runtime);
+}
+
+void
+SK_ReShadeAddOn_DestroyEffectRuntime (reshade::api::effect_runtime *runtime)
+{
+  runtime->get_command_queue ()->wait_idle ();
+
+  reshade::destroy_effect_runtime (runtime);
+}
+
+void SK_ReShadeAddOn_SetupInitialINI (const wchar_t* wszINIFile)
+{
+  if (! PathFileExistsW (wszINIFile))
+  {
+    FILE *fReShadeINI =
+      _wfopen (wszINIFile, L"w");
+
+    if (fReShadeINI != nullptr)
+    {
+      std::wstring shared_base_path =
+        SK_FormatStringW (LR"(%ws\Global\ReShade\)", SK_GetInstallPath ());
+
+      fputws (L"[GENERAL]",                                                                                                                 fReShadeINI);
+      fputws (SK_FormatStringW (LR"(EffectSearchPaths=%wsShaders\**,.\reshade-shaders\Shaders\**)",    shared_base_path.c_str ()).c_str (), fReShadeINI);
+      fputws (SK_FormatStringW (LR"(TextureSearchPaths=%wsTextures\**,.\reshade-shaders\Textures\**)", shared_base_path.c_str ()).c_str (), fReShadeINI);
+
+      fclose (fReShadeINI);
+    }
+  }
+}
+
+reshade::api::effect_runtime*
+SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceContext *pDevCtx, IDXGISwapChain *pSwapChain)
+{
+  SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
+
+  std::filesystem::path
+    reshade_path (PathFileExistsW (L"ReShade.ini") ?
+                                   L"ReShade.ini"  : SK_GetConfigPath ());
+
+  if (! PathFileExistsW (L"ReShade.ini"))
+    reshade_path /= L"ReShade/ReShade.ini";
+
+  reshade::api::effect_runtime *runtime = nullptr;
+
+  if (! reshade::create_effect_runtime (reshade::api::device_api::d3d11, pDevice, pDevCtx, swapchain, (const char *)reshade_path.u8string ().c_str (), &runtime))
+  {
+    return nullptr;
+  }
+
+  return runtime;
+}
+
+reshade::api::effect_runtime*
+SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (ID3D12Device *pDevice, ID3D12CommandQueue *pCmdQueue, IDXGISwapChain *pSwapChain)
+{
+  SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
+
+  std::filesystem::path
+    reshade_path (PathFileExistsW (L"ReShade.ini") ?
+                                   L"ReShade.ini"  : SK_GetConfigPath ());
+
+  if (! PathFileExistsW (L"ReShade.ini"))
+    reshade_path /= L"ReShade/ReShade.ini";
+
+  reshade::api::effect_runtime *runtime = nullptr;
+
+  if (! reshade::create_effect_runtime (reshade::api::device_api::d3d12, pDevice, pCmdQueue, swapchain, (const char *)reshade_path.u8string ().c_str (), &runtime))
+  {
+    return nullptr;
+  }
+
+  runtime->get_command_queue ()->wait_idle ();
+
+  return runtime;
 }
