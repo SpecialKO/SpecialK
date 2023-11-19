@@ -2599,12 +2599,13 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       int bufferIdx = 0;
 
 
-      if (_pReShadeRuntime == nullptr)
+      if (_pReShadeRuntime == nullptr && config.reshade.is_addon)
       {
         _pReShadeRuntime =
           SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (_pDevice, _pCommandQueue, _pSwapChain);
 
-        _pReShadeRuntime->get_command_queue ()->wait_idle ();
+        if (_pReShadeRuntime != nullptr)
+          _pReShadeRuntime->get_command_queue ()->wait_idle ();
       }
 
 
@@ -2658,8 +2659,8 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
           );
 
           _pDevice->CopyDescriptorsSimple (
-            1, frame.hRenderOutput,   (D3D12_CPU_DESCRIPTOR_HANDLE)rtv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
-               frame.hReShadeOutput = (D3D12_CPU_DESCRIPTOR_HANDLE)rtv.handle;
+            1, frame.hRenderOutput,   (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
+               frame.hReShadeOutput = (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv.handle;
         }
 
         // Hookless ReShade is not in use, do the normal thing.

@@ -1,11 +1,16 @@
-﻿23.11.19
+﻿23.11.19.1
+==========
+ + Fixed unintended ReShade device context code in D3D12 games without
+    ReShade loaded.
+
+23.11.19
 ========
  + Loading ReShade DLL as ReShade{32|64}.dll will rebase its config to
      SpecialK\Profiles\<game>\ReShade\ReShade.ini if ReShade.ini does not
        already exist in the game's directory.
 
  + ReShade v 5.9.3.2048+ disables all of ReShade's render hook code for
-     D3D11 and D3D12 and does the rendering for ReShade.
+     D3D11 and D3D12 and SK does the rendering for ReShade.
 
     * Significantly improves stability in DLSS-G games, properly handles
         HDR UI colorspace, always draws ReShade's UI after SK's UI.
@@ -13,7 +18,7 @@
  + When loading ReShade as a plug-in, Global\ReShade\Textures and
      Global\ReShade\Shaders are the default search paths for effects/textures.
 
- + ReShade load-order no longer matters when using version of 5.9.3.2048+.
+ + ReShade load-order no longer matters when using version 5.9.3.2048+.
         
 
 23.11.13.2
