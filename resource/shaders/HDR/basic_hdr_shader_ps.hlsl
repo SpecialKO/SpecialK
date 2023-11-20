@@ -77,7 +77,7 @@ SK_ProcessColor4 ( float4 color,
   float4 out_color =
     float4 (
       (strip_srgb && func != sRGB_to_Linear) ?
-                 RemoveSRGBCurve (color.rgb) : color.rgb,
+                PositivePow (color.rgb, 2.2) : color.rgb,
                                                color.a
     );
 
@@ -89,7 +89,7 @@ SK_ProcessColor4 ( float4 color,
     return     AnyIsNan (out_color) ?
     float4 (0.0f, 0.0f, 0.0f, 0.0f) : out_color;
 #endif
-                                
+
   return
     float4 (0.0f, 0.0f, 0.0f, 0.0f);
 }

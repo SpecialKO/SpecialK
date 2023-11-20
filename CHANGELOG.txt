@@ -1,4 +1,9 @@
-﻿23.11.19.4
+﻿23.11.20
+========
+ + Default non-Linear SDR games to 2.2 power-law when linearizing
+     their SwapChain for HDR inverse tonemapping
+
+23.11.19.4
 ==========
  + Default missing Mode= entry in ReShade plug-in Import INI entry
      to mean "Compatibility"
