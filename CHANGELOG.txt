@@ -1,6 +1,10 @@
-﻿23.11.20.1
+﻿23.11.20.2
 ==========
- + Added Steam Input pesticide to restore XInput support to
+ + Removed smoothing from percentile calculations in framepacing widget
+
+23.11.20.1
+==========
+ + Added Steam Input pesticide to restore native XInput support to
      Tales of Arise for more reliable input.
      
     * Enable XInput by placing CDE62E66.dds in SK_Res\inject\textures

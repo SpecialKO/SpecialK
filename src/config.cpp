@@ -2878,7 +2878,7 @@ auto DeclKeybind =
         if (PathFileExistsW ((std::filesystem::path (SK_D3D11_res_root->c_str ()) / LR"(inject\textures\CDE62E66.dds)").c_str ()))
         {
           void *pSteamInput001 =
-            SK_Scan ("SteamInput001", 13, "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff");
+            SK_Scan ("SteamInput001", 13, "SteamInput001");
 
           if (pSteamInput001 != nullptr)
           {

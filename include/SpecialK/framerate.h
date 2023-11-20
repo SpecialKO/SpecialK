@@ -328,14 +328,8 @@ namespace SK
             std::round ((float)samples_used / 100.0f)
           );
 
-        const double
-            one_percent_avg_ms =
-              std::accumulate ( sampled_lows.begin (),
-                                sampled_lows.begin ()  + end_sample_idx,
-                                        0.0 ) / (double)(end_sample_idx);
-
         return
-          one_percent_avg_ms;
+          sampled_lows [end_sample_idx];
       }
 
       double calcPointOnePercentLow (LARGE_INTEGER start)
@@ -351,14 +345,8 @@ namespace SK
             std::round ((float)samples_used / 1000.0f)
           );
 
-        const double
-            point_one_percent_avg_ms =
-              std::accumulate ( sampled_lows.begin (),
-                                sampled_lows.begin ()  + end_sample_idx,
-                                        0.0 ) / (double)(end_sample_idx);
-
         return
-          point_one_percent_avg_ms;
+          sampled_lows [end_sample_idx];
       }
 
       double calcSqStdDev (double mean, LARGE_INTEGER start) noexcept
