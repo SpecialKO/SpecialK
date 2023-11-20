@@ -240,7 +240,7 @@ SK::ControlPanel::PlugIns::Draw (void)
         auto& mode =
           dll_ini->get_section (imp_name_reshade).get_cvalue (L"Mode");
 
-        if (mode.empty () || mode._Equal (L"Compatibility"))
+        if (! mode._Equal (L"Normal"))
         {
           compatibility = true;
         }

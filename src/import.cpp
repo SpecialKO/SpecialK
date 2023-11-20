@@ -133,7 +133,7 @@ SK_LoadImportModule (import_s& import)
   {
     SK_RunOnce (
     {
-      if (import.mode->empty () || 0==_wcsicmp (import.mode->get_value_str ().c_str (), L"Compatibility"))
+      if (0 != _wcsicmp (import.mode->get_value_str ().c_str (), L"Normal"))
       {
         SetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", L"1");
       }

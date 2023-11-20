@@ -1,4 +1,9 @@
-﻿23.11.19.3
+﻿23.11.19.4
+==========
+ + Default missing Mode= entry in ReShade plug-in Import INI entry
+     to mean "Compatibility"
+
+23.11.19.3
 ==========
  + Fixed potential crash in ReShade's "Generic Depth" Add-On
 
