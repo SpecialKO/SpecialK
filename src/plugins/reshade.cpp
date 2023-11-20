@@ -1032,20 +1032,23 @@ void SK_ReShadeAddOn_SetupInitialINI (const wchar_t* wszINIFile)
 reshade::api::effect_runtime*
 SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceContext *pDevCtx, IDXGISwapChain *pSwapChain)
 {
-  SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
-
-  std::filesystem::path
-    reshade_path (PathFileExistsW (L"ReShade.ini") ?
-                                   L"ReShade.ini"  : SK_GetConfigPath ());
-
-  if (! PathFileExistsW (L"ReShade.ini"))
-    reshade_path /= L"ReShade/ReShade.ini";
-
   reshade::api::effect_runtime *runtime = nullptr;
 
-  if (! reshade::create_effect_runtime (reshade::api::device_api::d3d11, pDevice, pDevCtx, swapchain, (const char *)reshade_path.u8string ().c_str (), &runtime))
+  if (GetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", nullptr, 1) != 0)
   {
-    return nullptr;
+    SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
+
+    std::filesystem::path
+      reshade_path (PathFileExistsW (L"ReShade.ini") ?
+                                     L"ReShade.ini"  : SK_GetConfigPath ());
+
+    if (! PathFileExistsW (L"ReShade.ini"))
+      reshade_path /= L"ReShade/ReShade.ini";
+
+    if (! reshade::create_effect_runtime (reshade::api::device_api::d3d11, pDevice, pDevCtx, swapchain, (const char *)reshade_path.u8string ().c_str (), &runtime))
+    {
+      return nullptr;
+    }
   }
 
   return runtime;
@@ -1054,23 +1057,26 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceCo
 reshade::api::effect_runtime*
 SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (ID3D12Device *pDevice, ID3D12CommandQueue *pCmdQueue, IDXGISwapChain *pSwapChain)
 {
-  SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
-
-  std::filesystem::path
-    reshade_path (PathFileExistsW (L"ReShade.ini") ?
-                                   L"ReShade.ini"  : SK_GetConfigPath ());
-
-  if (! PathFileExistsW (L"ReShade.ini"))
-    reshade_path /= L"ReShade/ReShade.ini";
-
   reshade::api::effect_runtime *runtime = nullptr;
 
-  if (! reshade::create_effect_runtime (reshade::api::device_api::d3d12, pDevice, pCmdQueue, swapchain, (const char *)reshade_path.u8string ().c_str (), &runtime))
+  if (GetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", nullptr, 1) != 0)
   {
-    return nullptr;
-  }
+    SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
 
-  runtime->get_command_queue ()->wait_idle ();
+    std::filesystem::path
+      reshade_path (PathFileExistsW (L"ReShade.ini") ?
+                                     L"ReShade.ini"  : SK_GetConfigPath ());
+
+    if (! PathFileExistsW (L"ReShade.ini"))
+      reshade_path /= L"ReShade/ReShade.ini";
+
+    if (! reshade::create_effect_runtime (reshade::api::device_api::d3d12, pDevice, pCmdQueue, swapchain, (const char *)reshade_path.u8string ().c_str (), &runtime))
+    {
+      return nullptr;
+    }
+
+    runtime->get_command_queue ()->wait_idle ();
+  }
 
   return runtime;
 }
