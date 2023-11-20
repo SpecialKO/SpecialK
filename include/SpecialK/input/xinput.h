@@ -228,5 +228,8 @@ SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps);
  void
  SK_XInput_DeferredStatusChecks (void);
 
+void
+SK_XInput_TalesOfAriseButtonSwap (XINPUT_STATE *pState);
+
 
 #endif /* __SK__XINPUT_H__ */

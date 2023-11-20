@@ -2870,6 +2870,26 @@ auto DeclKeybind =
         config.window.borderless = true;
         config.window.center     = true;
         config.window.fullscreen = true;
+
+        void WINAPI
+          SK_D3D11_SetResourceRoot (const wchar_t *root);
+          SK_D3D11_SetResourceRoot (config.textures.d3d11.res_root.c_str ());
+
+        if (PathFileExistsW ((std::filesystem::path (SK_D3D11_res_root->c_str ()) / LR"(inject\textures\CDE62E66.dds)").c_str ()))
+        {
+          void *pSteamInput001 =
+            SK_Scan ("SteamInput001", 13, "\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff");
+
+          if (pSteamInput001 != nullptr)
+          {
+            DWORD                                                            dwOriginal = 0;
+            if (VirtualProtect (pSteamInput001, 13, PAGE_EXECUTE_READWRITE, &dwOriginal))
+            {
+                        memcpy (pSteamInput001, "SteamInputDie", 13);
+                VirtualProtect (pSteamInput001, 13, dwOriginal,             &dwOriginal);
+            }
+          }
+        }
       } break;
 
       case SK_GAME_ID::MonsterHunterWorld:
