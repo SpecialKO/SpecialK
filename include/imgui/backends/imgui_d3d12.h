@@ -34,3 +34,15 @@ void     ImGui_ImplDX12_RenderDrawData ( ImDrawData*                draw_data,
 // Use if you want to reset your rendering device without losing ImGui state.
 void     ImGui_ImplDX12_InvalidateDeviceObjects (void);
 bool     ImGui_ImplDX12_CreateDeviceObjects     (void);
+
+struct sk_d3d12_texture_s {
+  ID3D12Resource             *pTexture                 = nullptr;
+  D3D12_CPU_DESCRIPTOR_HANDLE hTextureSrvCpuDescHandle = { };
+  D3D12_GPU_DESCRIPTOR_HANDLE hTextureSrvGpuDescHandle = { };
+
+  static int num_textures;
+};
+
+sk_d3d12_texture_s
+SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
+                       DirectX::ScratchImage& image );

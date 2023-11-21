@@ -49,8 +49,11 @@ using  NvAPI_D3D_Sleep_pfn            =
 NvU64                    SK_Reflex_LastInputFrameId          = 0ULL;
 NvU64                    SK_Reflex_LastNativeMarkerFrame     = 0ULL;
 NvU64                    SK_Reflex_LastNativeSleepFrame      = 0ULL;
+NvU64                    SK_Reflex_LastNativeFramePresented  = 0ULL;
 static constexpr auto    SK_Reflex_MinimumFramesBeforeNative = 150;
 NV_SET_SLEEP_MODE_PARAMS SK_Reflex_NativeSleepModeParams     = { };
+
+void SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker);
 
 //
 // NOTE: All hooks currently assume a game only has one D3D device, and that it is the
@@ -105,6 +108,83 @@ SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
   return NVAPI_NOT_SUPPORTED;
 }
 
+// If this returns true, we submitted the latency marker(s) ourselves and normal processing
+//   logic should be skipped.
+bool
+SK_Reflex_FixOutOfBandInput (NV_LATENCY_MARKER_PARAMS& markerParams, IUnknown* pDevice, bool native = false)
+{
+  // If true, we submitted the latency marker(s) ourselves and the normal processing
+  //   should be ignored.
+  bool bFixed  = false;
+  bool bNative = native && (! config.nvidia.reflex.disable_native);
+
+  static std::atomic_bool bQueueInput    = false;
+  static std::atomic_long lastMarkerType = OUT_OF_BAND_PRESENT_END;
+  
+  if (markerParams.markerType == INPUT_SAMPLE)
+  {
+    // bQueueInput=true denotes an invalid place to put an input latency marker,
+    //   we will try to fudge with things and insert it at an appropriate time
+    bQueueInput.store (
+      (lastMarkerType.load () != SIMULATION_START)
+    );
+
+    return
+      bQueueInput;
+  }
+  
+  // Input Sample has to come between SIMULATION_START and SIMULATION_END, or it's invalid.
+  //
+  //   So take this opportunity to re-order some events if necessary
+  if ( ( (markerParams.markerType == SIMULATION_START) ||
+         (markerParams.markerType == SIMULATION_END) ) && bQueueInput.exchange (false) )
+  {
+    NV_LATENCY_MARKER_PARAMS
+      input_params            = markerParams;
+      input_params.markerType = INPUT_SAMPLE;
+
+    bool bPreSubmit =
+      (markerParams.markerType == SIMULATION_START);
+
+    auto _SubmitMarker = [&](NV_LATENCY_MARKER_PARAMS& marker)
+    {
+         NvAPI_D3D_SetLatencyMarker_Original == nullptr ? NVAPI_OK :
+      SK_NvAPI_D3D_SetLatencyMarker (pDevice, &marker);
+  
+      if (! bNative)
+        SK_PCL_Heartbeat (markerParams);
+    };
+
+    if (bPreSubmit)
+      _SubmitMarker (markerParams);
+
+    // Submit our generated input marker in-between the possible real markers
+    _SubmitMarker (input_params);
+  
+    if (! bPreSubmit)
+      _SubmitMarker (markerParams);
+
+    // We're fixing a game's native Reflex... make note of its internal frame id
+    if (bNative)
+      SK_Reflex_LastInputFrameId = markerParams.frameID;
+  
+    bFixed = true;
+  }
+
+  // We don't care about these, they can happen multiple times... they just
+  //   can't happen anywhere outside of Simulation Start / End.
+  if (markerParams.markerType != INPUT_SAMPLE)
+  {
+    lastMarkerType.store (markerParams.markerType);
+  }
+
+  if (bNative)
+    SK_Reflex_LastNativeMarkerFrame = SK_GetFramesDrawn ();
+
+  return
+    bFixed;
+}
+
 NVAPI_INTERFACE
 NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
                                     __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
@@ -130,7 +210,6 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
     SK_Reflex_LastNativeMarkerFrame =
       SK_GetFramesDrawn ();
   }
-  else return NVAPI_OK;
 
   if (pSetLatencyMarkerParams != nullptr)
   {
@@ -138,8 +217,27 @@ NvAPI_D3D_SetLatencyMarker_Detour ( __in IUnknown                 *pDev,
       pSetLatencyMarkerParams->version <= NV_LATENCY_MARKER_PARAMS_VER
     );
 
+    const bool bWantAccuratePresentTiming = false;
+      //( config.render.framerate.target_fps > 0.0f ||
+      //                        __target_fps > 0.0f ) && config.nvidia.reflex.native && (! config.nvidia.reflex.disable_native);
+
+    if ( pSetLatencyMarkerParams->markerType == PRESENT_START ||
+         pSetLatencyMarkerParams->markerType == PRESENT_END )
+    {
+      SK_Reflex_LastNativeFramePresented = pSetLatencyMarkerParams->frameID;
+
+      if (bWantAccuratePresentTiming)
+        return NVAPI_OK;
+    }
+
+    if (SK_Reflex_FixOutOfBandInput (*pSetLatencyMarkerParams, pDev, true))
+      return NVAPI_OK;
+
     if (pSetLatencyMarkerParams->markerType == INPUT_SAMPLE)
       SK_Reflex_LastInputFrameId = pSetLatencyMarkerParams->frameID;
+
+    if (config.nvidia.reflex.disable_native)
+      return NVAPI_OK;
   }
 
   return
@@ -239,7 +337,7 @@ SK_NvAPI_HookReflex (void)
 }
 
 void
-SK_PCL_Heartbeat (NV_LATENCY_MARKER_PARAMS marker)
+SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
 {
   if (config.nvidia.reflex.native)
     return;
@@ -299,6 +397,10 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
   if (SK_GetFramesDrawn () < SK_Reflex_MinimumFramesBeforeNative)
     return true;
 
+  const bool bWantAccuratePresentTiming = false;
+    //( config.render.framerate.target_fps > 0.0f ||
+    //                        __target_fps > 0.0f ) && config.nvidia.reflex.native && (! config.nvidia.reflex.disable_native);
+
   NvAPI_Status ret =
     NVAPI_INVALID_CONFIGURATION;
 
@@ -329,7 +431,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
     }
 
     // Only do this if game is not Reflex native, or if the marker is a flash
-    if (sk::NVAPI::nv_hardware && ((! config.nvidia.reflex.native) || marker == TRIGGER_FLASH))
+    if (sk::NVAPI::nv_hardware && ((! config.nvidia.reflex.native) || marker == TRIGGER_FLASH || (bWantAccuratePresentTiming && (marker == PRESENT_START || marker == PRESENT_END))))
     {
       NV_LATENCY_MARKER_PARAMS
         markerParams            = {                          };
@@ -339,11 +441,39 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
              ReadULong64Acquire (&frames_drawn)       );
 
       // Triggered input flash, in a Reflex-native game
-      if (config.nvidia.reflex.native && marker == TRIGGER_FLASH)
+      if (config.nvidia.reflex.native)
       {
-        markerParams.frameID =
-          SK_Reflex_LastInputFrameId;
+        if (marker == TRIGGER_FLASH)
+        {
+          markerParams.frameID =
+            SK_Reflex_LastInputFrameId;
+        }
+
+        else if (marker == PRESENT_START && bWantAccuratePresentTiming)
+        {
+          if (config.nvidia.reflex.native)
+          {
+            markerParams.frameID =
+              SK_Reflex_LastNativeFramePresented;
+          }
+        }
+
+        else if (marker == PRESENT_END && bWantAccuratePresentTiming)
+        {
+          if (config.nvidia.reflex.native)
+          {
+            markerParams.frameID =
+              SK_Reflex_LastNativeFramePresented;
+          }
+        }
+
+        else
+          return true;
       }
+
+      // Make sure input events get pushed into the appropriate Simulation stage
+      if (SK_Reflex_FixOutOfBandInput (markerParams, device.p))
+        return true;
 
       SK_PCL_Heartbeat (markerParams);
 

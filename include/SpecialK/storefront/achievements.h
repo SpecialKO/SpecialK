@@ -85,9 +85,11 @@ struct SK_Achievement
 
 struct ImGuiWindow;
 
-class SK_AchievementManager
+class SK_AchievementManager : public SK_IVariableListener
 {
 public:
+  SK_AchievementManager (void);
+
   class Achievement : public SK_Achievement
   {
   public:
@@ -129,6 +131,8 @@ public:
     }
   };
 
+  bool OnVarChange (SK_IVariable* var, void* val = nullptr) override;
+
   float getPercentOfAchievementsUnlocked (void) const;
   int   getNumberOfAchievementsUnlocked  (void) const;
 
@@ -148,11 +152,12 @@ public:
 protected:
   struct SK_AchievementPopup
   {
-    IUnknown*    icon_texture; // Native graphics API texture handle (e.g. SRV)
-    ImGuiWindow* window;
-    DWORD        time;
-    bool         final_pos;    // When the animation is finished, this will be set.
-    Achievement* achievement;
+    IUnknown*       icon_texture; // Native graphics API texture handle (e.g. SRV)
+    ID3D12Resource* d3d12_tex;    // D3D12 Texture, for proper cleanup
+    ImGuiWindow*    window;
+    DWORD           time;
+    bool            final_pos;    // When the animation is finished, this will be set.
+    Achievement*    achievement;
   };
 
   ImGuiWindow* createPopupWindow (SK_AchievementPopup* popup);
@@ -165,6 +170,8 @@ protected:
 
   std::vector <SK_AchievementPopup> popups;
   int                               lifetime_popups;
+
+  SK_IVariable*         achievement_test = nullptr;
 
   bool                  default_loaded = false;
   std::vector <uint8_t> unlock_sound; // A .WAV (PCM) file

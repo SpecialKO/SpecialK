@@ -471,6 +471,9 @@ XInputGetState1_4_Detour (
   if (dwUserIndex == config.input.gamepad.xinput.ui_slot && ReadAcquire (&SK_ScePad_Backend->reads [2]) > 0)
     return ERROR_DEVICE_NOT_CONNECTED;
 
+  // Game-specific hacks (i.e. button swap)
+  if (dwRet == ERROR_SUCCESS) SK_XInput_TalesOfAriseButtonSwap (pState);
+
   return dwRet;
 }
 
@@ -2899,4 +2902,30 @@ SK_XInput_ZeroHaptics (INT iJoyID)
 
   SK_XInput_PulseController (iJoyID, 0.0f, 0.0f);
   SK_XInput_Enable          (orig_enable);
+}
+
+void
+SK_XInput_TalesOfAriseButtonSwap (XINPUT_STATE* pState)
+{
+  static bool bIsTalesOfArise =
+    (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Arise);
+
+  if (! bIsTalesOfArise)
+    return;
+
+  // Swap B and A buttons in Tales of Arise
+  //
+  bool A = (pState->Gamepad.wButtons & XINPUT_GAMEPAD_A);
+  bool B = (pState->Gamepad.wButtons & XINPUT_GAMEPAD_B);
+
+  pState->Gamepad.wButtons &= ~(XINPUT_GAMEPAD_A | XINPUT_GAMEPAD_B);
+
+  if (A) pState->Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+  if (B) pState->Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+
+  if (SK_GetFramesDrawn () > 200)
+  {
+    extern int            SK_D3D11_ReloadAllTextures (void);
+    if (A||B) SK_RunOnce (SK_D3D11_ReloadAllTextures ());
+  }
 }

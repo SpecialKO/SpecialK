@@ -1540,6 +1540,10 @@ SK_ImGui_WantKeyboardCapture (void)
   if (SK::SteamAPI::GetOverlayState (true))
     return false;
 
+  // Allow keyboard input while ReShade overlay is active
+  if (SK_ReShadeAddOn_IsOverlayActive ())
+    return false;
+
   if (! SK_GImDefaultContext ())
     return false;
 
@@ -1551,8 +1555,8 @@ SK_ImGui_WantKeyboardCapture (void)
 
   if (SK_IsGameWindowActive () || SK_WantBackgroundRender ())
   {
-    if (nav_usable || io.WantCaptureKeyboard || io.WantTextInput)
-      imgui_capture = true;
+    if ((nav_usable || io.WantCaptureKeyboard || io.WantTextInput) && (! SK_ImGuiEx_Visible))
+      imgui_capture = true;                                        // Don't block keyboard input on popups, or stupid games can miss Alt+F4
 
     if (SK_IsConsoleVisible ())
       imgui_capture = true;
@@ -1570,6 +1574,10 @@ SK_ImGui_WantTextCapture (void)
 {
   // Allow keyboard input while Steam overlay is active
   if (SK::SteamAPI::GetOverlayState (true))
+    return false;
+
+  // Allow keyboard input while ReShade overlay is active
+  if (SK_ReShadeAddOn_IsOverlayActive ())
     return false;
 
   if (! SK_GImDefaultContext ())
@@ -1642,6 +1650,10 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
   // Allow mouse input while Steam overlay is active
   if (SK::SteamAPI::GetOverlayState (true))
+    return false;
+
+  // Allow mouse input while ReShade overlay is active
+  if (SK_ReShadeAddOn_IsOverlayActive ())
     return false;
 
   if (! SK_GImDefaultContext ())

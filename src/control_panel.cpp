@@ -203,7 +203,7 @@ void SK_DPI_Update (void)
 
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
        bool IMGUI_API SK_ImGui_Visible          = false;
-       bool           SK_ReShade_Visible        = false;
+       bool           SK_ImGuiEx_Visible        = false;
        bool           SK_ControlPanel_Activated = false;
 
 extern void ImGui_ToggleCursor (void);
@@ -461,7 +461,7 @@ SK_ImGui_ProcessWarnings (void)
     ImGui::GetIO ();
 
   // Stupid hack to show ImGui windows without the control panel open
-  SK_ReShade_Visible = true;
+  SK_ImGui_Visible = true;
 
   SK_ImGui_SetNextWindowPosCenter     (ImGuiCond_Always);
   ImGui::SetNextWindowSizeConstraints ( ImVec2 (360.0f, 40.0f),
@@ -478,6 +478,8 @@ SK_ImGui_ProcessWarnings (void)
                                     ImGuiWindowFlags_NoScrollWithMouse )
      )
   {
+    SK_ImGuiEx_Visible = true;
+
     ImGui::TextColored ( ImColor::HSV (0.075f, 1.0f, 1.0f),
                            "\n\t%hs\t\n\n", SK_WideCharToUTF8 (warning.message).c_str () );
 
@@ -489,7 +491,8 @@ SK_ImGui_ProcessWarnings (void)
 
     if (ImGui::Button ("Okay"))
     {
-      SK_ReShade_Visible = false;
+      SK_ImGuiEx_Visible = false;
+      SK_ReShadeAddOn_ActivateOverlay (false);
 
       warning.message.clear ();
 
@@ -712,11 +715,23 @@ SK_ImGui_ControlPanelTitle (void)
     static std::string window_title =
       SK_WideCharToUTF8 (rb.windows.focus.title);
 
-    std::string appname = bSteam ?
-      SK::SteamAPI::AppName ()   :
-                          bEpic  ?
-      SK::EOS::AppName       ()  : (! window_title.empty ()) ?
-                                      window_title.c_str ()  : "";
+    // For non-Steam/Epic games, if the window title changes, then update
+    //   the control panel's title...
+    if (! (bSteam || bEpic))
+    {
+      static ULONG64     last_changed = 0;
+      if (std::exchange (last_changed, rb.windows.focus.last_changed) !=
+                                       rb.windows.focus.last_changed)
+      {
+        window_title =
+          SK_WideCharToUTF8 (rb.windows.focus.title);
+      }
+    }
+
+    std::string& appname = bSteam ?
+       SK::SteamAPI::AppName ()   :
+                           bEpic  ?
+            SK::EOS::AppName ()   : window_title;
 
     if (! appname.empty ())
       title += "      -      ";
@@ -2685,7 +2700,7 @@ SK_NV_LatencyControlPanel (void)
       ImGui::Separator       ();
       ImGui::BulletText      ("It may be better to disable native Reflex and use SK's implementation in some cases.");
       ImGui::BulletText      ("If using SK's Latency Analysis to quantify CPU/GPU-bound state and dial-in game settings\r\n\t"
-                              " for best performance, it is important to disable native Reflex.");
+                              " for best performance, it is important to temporarily disable native Reflex.");
       ImGui::EndTooltip      ();
     }
 
@@ -3179,23 +3194,6 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
-        if (config.reshade.present)
-        {
-          float reshade_nits =
-            config.reshade.overlay_luminance / 1.0_Nits;
-
-          if ( ImGui::SliderFloat ( "ReShade Overlay Luminance###RESHADE_LUMINANCE",
-                                     &reshade_nits,
-                                      80.0f, rb.display_gamut.maxAverageY,
-                                        (const char *)u8"%.1f cd/m²" ) )
-          {
-            config.reshade.overlay_luminance =
-                                   reshade_nits * 1.0_Nits;
-
-            SK_SaveConfig ();
-          }
-        }
-
         static bool uplay_overlay = false;
 
         if ((! uplay_overlay) && ((SK_GetFramesDrawn () - first_try) < 240))
@@ -3225,8 +3223,160 @@ SK_ImGui_ControlPanel (void)
         ImGui::Separator ();
 
         bool hdr_changed =
-            ImGui::Checkbox ( "Keep Full-Range JPEG-XR HDR Screenshots (.JXR)",
+            ImGui::Checkbox ( "Keep Full-Range HDR Screenshots",
                                 &config.screenshots.png_compress );
+
+        if (config.screenshots.png_compress && SK_GetBitness () == SK_Bitness::SixtyFourBit)
+        {
+          static bool bFetchingAVIF = false;
+
+          int selection =
+            ( config.screenshots.use_avif ?
+                                        1 : 0 );
+
+          if (
+            ImGui::Combo ( "HDR File Format", &selection,
+                           "JPEG-XR (.jxr)\0"
+                           "AVIF\t\t(.avif)\0\0" )
+             )
+          {
+            if (selection == 1)
+            {
+              if (! bFetchingAVIF)
+              {
+                static std::filesystem::path avif_dll =
+                       std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) /
+                    SK_RunLHIfBitness ( 64, LR"(Image Codecs\libavif\libavif_x64.dll)",
+                                            LR"(Image Codecs\libavif\libavif_x86.dll)" );
+
+                std::error_code                          ec;
+                if (! std::filesystem::exists (avif_dll, ec))
+                {
+                  bFetchingAVIF = true;
+
+                  SK_Network_EnqueueDownload (
+                       sk_download_request_s (
+                         avif_dll.wstring (),
+                           R"(https://sk-data.special-k.info/addon/ImageCodecs/)"
+                                     R"(libavif/libavif_x64.dll)",
+                  []( const std::vector <uint8_t>&&,
+                      const std::wstring_view )
+                   -> bool
+                      {
+                        bFetchingAVIF               = false;
+                        config.screenshots.use_avif = true;
+                  
+                        return false;
+                      }
+                    ), true
+                  );
+                }
+                else
+                {
+                  config.screenshots.use_avif = true;
+                }
+              }
+            }
+            else
+            {
+              config.screenshots.use_avif = false;
+            }
+          }
+
+          if (bFetchingAVIF)
+          {
+            ImGui::TextColored (ImVec4 (.1f,.9f,.1f,1.f), "Downloading AVIF Plug-In...");
+          }
+
+          if (config.screenshots.use_avif)
+          {
+            ImGui::TreePush ("");
+            
+            int subsampling = ( config.screenshots.avif.yuv_subsampling == 400 ? 3 :
+                                config.screenshots.avif.yuv_subsampling == 420 ? 2 :
+                                config.screenshots.avif.yuv_subsampling == 422 ? 1 :
+                                                                               0 );
+
+            if (ImGui::Combo ("YUV Subsampling", &subsampling, " 4:4:4\0 4:2:2\0 4:2:0\0 4:0:0 (Black & White)\0\0"))
+            {
+              switch (subsampling)
+              {
+                default:
+                case 0:
+                  config.screenshots.avif.yuv_subsampling = 444;
+                  break;
+                case 1:
+                  config.screenshots.avif.yuv_subsampling = 422;
+                  break;
+                case 2:
+                  config.screenshots.avif.yuv_subsampling = 420;
+                  break;
+                case 3:
+                  config.screenshots.avif.yuv_subsampling = 400;
+                  break;
+              }
+
+              SK_SaveConfig ();
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip ();
+              ImGui::BulletText   ("Windows natively supports 10-bit and 12-bit AVIF images at 4:2:0, or 8-bit at up to 4:4:4");
+              ImGui::BulletText   ("Higher quality chroma subsampled AVIF images will only render correctly in Chrome.");
+              ImGui::EndTooltip   ();
+            }
+
+            int scrgb_bits = ( config.screenshots.avif.scrgb_bit_depth == 8  ? 0 :
+                               config.screenshots.avif.scrgb_bit_depth == 10 ? 1 :
+                                                                               2 );
+
+            if (__SK_HDR_16BitSwap)
+            {
+              if (ImGui::Combo ("scRGB->PQ Bit Depth", &scrgb_bits, " 8-bit\0 10-bit\0 12-bit\0\0"))
+              {
+                config.screenshots.avif.scrgb_bit_depth =
+                  ( scrgb_bits == 0 ? 8  :
+                    scrgb_bits == 1 ? 10 :
+                                      12 );
+
+                SK_SaveConfig ();
+              }
+            }
+
+            const char* szCompressionQualityFormat =
+              ( config.screenshots.avif.compression_quality == 100 ? "100 (Lossless)"
+                                                                   : "%d" );
+
+            bool changed = false;
+
+            changed |=
+              ImGui::SliderInt ("Compression Quality", &config.screenshots.avif.compression_quality, 80, 100, szCompressionQualityFormat);
+
+            if (ImGui::IsItemHovered ())
+              ImGui::SetTooltip ("You can manually enter values < 80 using ctrl+click, but the results will be terrible.");
+            
+            changed |=
+              ImGui::SliderInt ("Compression Speed",   &config.screenshots.avif.compression_speed,   0, 10);
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip    ();
+              ImGui::TextUnformatted ("How long to dedicate to compressing the image for smallest file size");
+              ImGui::BulletText      ("Values < 7 are VERY slow, potentially taking minutes.");
+              ImGui::BulletText      ("The compression is done on a background thread, unlikely to consume excessive CPU.");
+              ImGui::BulletText      ("If you set the speed too low, HDR screenshots might not finish by the time you exit.");
+              ImGui::EndTooltip      ();
+            }
+
+            if (changed)
+            {
+              SK_SaveConfig ();
+            }
+
+            ImGui::TreePop ();
+          }
+        }
 
         if ( rb.screenshot_mgr->getRepoStats ().files > 0 )
         {
@@ -5686,10 +5836,16 @@ SK_ImGui_ControlPanel (void)
 
     png_changed =
       ImGui::Checkbox (
-        rb.isHDRCapable () ? "Keep HDR .JXR Screenshots     " :
+        rb.isHDRCapable () ? "Keep HDR Screenshots          " :
                         "Keep Lossless .PNG Screenshots",
                                     &config.screenshots.png_compress
                       );
+
+    if (rb.isHDRCapable ())
+    {
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("See the HDR Menu to configure HDR Screenshot Format and Compression Settings.");
+    }
 
     ImGui::EndGroup ();
 
@@ -6054,7 +6210,7 @@ SK_ImGui_KeyboardProc (int       code, WPARAM wParam, LPARAM lParam)
     if (SK_ImGui_Active () || config.input.keyboard.catch_alt_f4 || config.input.keyboard.override_alt_f4 || SK_ImGui_WantKeyboardCapture ())
         SK_ImGui_WantExit = true;
 
-    if (SK_ImGui_Active () || SK_ImGui_WantKeyboardCapture ()) return 1;
+    if (SK_ImGui_Visible || SK_ImGui_WantKeyboardCapture ()) return 1;
   }
 
   if (SK_ImGui_WantKeyboardCapture () && (! io.WantTextInput))
@@ -6481,11 +6637,11 @@ SK_ImGui_StageNextFrame (void)
         }
       }
 
-      SK_ReShade_Visible = true;
+      SK_ImGuiEx_Visible = true;
     }
 
     else
-      SK_ReShade_Visible = false;
+      SK_ImGuiEx_Visible = false;
   }
 
   if (d3d11)
@@ -6648,7 +6804,7 @@ SK_ImGui_StageNextFrame (void)
   if (SK_ImGui_WantExit)
   {
     // Uncomment this to always display a confirmation dialog
-    //SK_ReShade_Visible = true; // Make into user config option
+    //SK_ImGuiEx_Visible = true; // Make into user config option
 
     if (config.input.keyboard.catch_alt_f4 || SK_ImGui_Visible)
       SK_ImGui_ConfirmExit ();             // ^^ Control Panel In Use
@@ -6667,6 +6823,7 @@ SK_ImGui_StageNextFrame (void)
                                     ImGuiWindowFlags_NoScrollWithMouse )
      )
   {
+    SK_ImGuiEx_Visible = true;
     nav_usable = true;
 
     static const char* szConfirmExit    = " Confirm Exit? ";
@@ -6706,6 +6863,8 @@ SK_ImGui_StageNextFrame (void)
 
     if (ImGui::Button  ("Okay"))
     {
+      SK_ImGuiEx_Visible = false;
+
       if (SK_ImGui_WantRestart)
       {
         SK_RestartGame ();
@@ -6741,7 +6900,8 @@ SK_ImGui_StageNextFrame (void)
     {
       SK_ImGui_WantExit    = false;
       SK_ImGui_WantRestart = false;
-      SK_ReShade_Visible   = false;
+      SK_ImGuiEx_Visible   = false;
+      SK_ReShadeAddOn_ActivateOverlay (false);
       nav_usable           = orig_nav_state;
       ImGui::CloseCurrentPopup ();
     }
@@ -6815,7 +6975,8 @@ SK_ImGui_StageNextFrame (void)
         shown_once           = true;
         SK_ImGui_WantExit    = false;
         SK_ImGui_WantRestart = false;
-        SK_ReShade_Visible   = false;
+        SK_ImGuiEx_Visible   = false;
+        SK_ReShadeAddOn_ActivateOverlay (false);
         nav_usable           = orig_nav_state;
         ImGui::CloseCurrentPopup ();
       };
@@ -7131,6 +7292,8 @@ SK_ImGui_Toggle (void)
       SK::SteamAPI::SetOverlayState (true);
 
     SK_Console::getInstance ()->visible = false;
+
+    SK_ReShadeAddOn_ActivateOverlay (false);
   }
 
 

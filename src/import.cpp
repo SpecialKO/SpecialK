@@ -129,16 +129,55 @@ void
 SK_LoadImportModule (import_s& import)
 {
   // Allow ReShade 5.2+ to be loaded globally, and rebase its config
-  SK_RunOnce (
+  if (StrStrIW (import.filename->get_value_ref ().c_str (), L"ReShade") != nullptr)
   {
-    // If user already has a local ReShade.ini file, prefer the default ReShade behavior
-    if (! PathFileExistsW (L"ReShade.ini"))
+    SK_RunOnce (
     {
-      // Otherwise, use SK's per-game config path
-      SetEnvironmentVariableW (L"RESHADE_BASE_PATH_OVERRIDE",    SK_GetConfigPath ());
+      if (0 != _wcsicmp (import.mode->get_value_str ().c_str (), L"Normal"))
+      {
+        SetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", L"1");
+      }
+
       SetEnvironmentVariableW (L"RESHADE_DISABLE_LOADING_CHECK", L"1");
-    }
-  });
+
+      // If user already has a local ReShade.ini file, prefer the default ReShade behavior
+      if (! PathFileExistsW (L"ReShade.ini"))
+      {
+        std::filesystem::path
+          reshade_path (SK_GetConfigPath ());
+          reshade_path /= L"ReShade";
+
+        // Otherwise, use SK's per-game config path
+        SetEnvironmentVariableW (L"RESHADE_BASE_PATH_OVERRIDE", reshade_path.c_str ());
+
+        reshade_path /= L"ReShade.ini";
+
+        SK_CreateDirectories  (reshade_path.c_str ());
+        if (! PathFileExistsW (reshade_path.c_str ()))
+        {
+          FILE *fReShadeINI =
+            _wfopen (reshade_path.c_str (), L"w");
+
+          if (fReShadeINI != nullptr)
+          {
+            std::wstring shared_base_path =
+              SK_FormatStringW (LR"(%ws\Global\ReShade\)", SK_GetInstallPath ());
+
+            fputws (L"[GENERAL]\n",                                                                                                                     fReShadeINI);
+            fputws (SK_FormatStringW (LR"(EffectSearchPaths=%wsShaders\**,.\reshade-shaders\Shaders\**)"    L"\n", shared_base_path.c_str ()).c_str (), fReShadeINI);
+            fputws (SK_FormatStringW (LR"(TextureSearchPaths=%wsTextures\**,.\reshade-shaders\Textures\**)" L"\n", shared_base_path.c_str ()).c_str (), fReShadeINI);
+
+            fputws (L"\n",                   fReShadeINI);
+
+            fputws (L"[OVERLAY]\n",          fReShadeINI);
+            fputws (L"TutorialProgress=4\n", fReShadeINI);
+
+            fclose (fReShadeINI);
+          }
+        }
+      }
+    });
+  }
 
   if (config.system.central_repository)
   {
@@ -205,6 +244,17 @@ SK_LoadImportModule (import_s& import)
         }
       }
     }
+  }
+
+  if (import.hLibrary != nullptr)
+  {
+    // Scans all loaded DLLs, and initializes SK as an Add-On to ReShade
+    //   for the first ReShade DLL found.
+    //
+    //  This is done here to catch implicit loads of ReShade by some
+    //    .asi-based mods.
+    //
+    SK_ReShadeAddOn_Init ();
   }
 };
 

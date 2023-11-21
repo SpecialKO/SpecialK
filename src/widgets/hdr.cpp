@@ -1063,13 +1063,13 @@ public:
     static SKTL_BidirectionalHashMap <unsigned char, int>
       __SK_HDR_ColorSpaceMap =
       {
-        {   0ui8, 0 }, //L"  sRGB Passthrough\t(SDR -> HDR or Native scRGB HDR) "
+        {   0ui8, 0 }, //L"  sRGB Inverse\t\t\t(SDR -> HDR or Native scRGB HDR) "
         {   2ui8, 1 }, //L"HDR10 Passthrough\t(Native HDR)" },
         { 255ui8, 2 }, //L"  Raw Framebuffer\t(Requires ReShade to Process)" }
       };
 
     static const char* __SK_HDR_ColorSpaceComboStr =
-      (const char *)u8"  sRGB Passthrough\t(SDR -> HDR or Native scRGB HDR) \0"
+      (const char *)u8"  sRGB Inverse\t\t\t(SDR -> HDR or Native scRGB HDR) \0"
                     u8"HDR10 Passthrough\t(Native HDR10)\0"
                     u8"     Raw Framebuffer\t(Requires ReShade to Process)\0\0";
 
@@ -1167,7 +1167,7 @@ public:
 
       ImGui::SameLine ();
 
-      if (ImGui::RadioButton ("scRGB HDR (16-bit)###SK_HDR_scRGB", &sel, 2))
+      if (ImGui::RadioButton ("scRGB HDR (16-bpc)###SK_HDR_scRGB", &sel, 2))
       {
         // Insert games that need specific settings here...
         if (SK_GetCurrentGameID () == SK_GAME_ID::Disgaea5)
@@ -1177,6 +1177,11 @@ public:
         }
 
         changed = true;
+
+        if (__SK_HDR_10BitSwap)
+        {
+          config.nvidia.dlss.allow_scrgb = true;
+        }
 
         __SK_HDR_16BitSwap = true;
         __SK_HDR_10BitSwap = false;
@@ -2285,6 +2290,12 @@ public:
 #if 0
                 extern UINT filterFlags;
                 ImGui::InputInt ("Filter Flags", (int *)&filterFlags, 1, 100, ImGuiInputTextFlags_CharsHexadecimal);
+
+                extern float _cSdrPower;
+                extern float _cLerpScale;
+
+                ImGui::InputFloat ("Sdr Power",  &_cSdrPower);
+                ImGui::InputFloat ("Lerp Scale", &_cLerpScale);
 #endif
 
                 ImGui::EndGroup ();
@@ -2813,7 +2824,7 @@ SK_ImGui_DrawGamut (void)
     ImGui::PopStyleColor ();
   }
   ImGui::EndGroup        ();
-  ImGui::SameLine        ();
+  ImGui::SameLine        (0.0f, 10.0f);
 
   const auto _DrawCharts = [&](ImVec2 pos         = ImGui::GetCursorScreenPos    (),
                                ImVec2 size        = ImGui::GetContentRegionAvail (),
@@ -2970,6 +2981,16 @@ void SK_HDR_DisableOverridesForGame (void)
 {
   __SK_HDR_16BitSwap = false;
   __SK_HDR_10BitSwap = false;
+
+  _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
+  _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
+}
+
+void
+SK_HDR_SetOverridesForGame (bool bScRGB, bool bHDR10)
+{
+  __SK_HDR_16BitSwap = bScRGB;
+  __SK_HDR_10BitSwap = bHDR10;
 
   _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
   _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);

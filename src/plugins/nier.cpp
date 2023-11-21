@@ -2549,7 +2549,8 @@ SK_FAR_PlugInCfg (void)
               L"Import.ReShade64_Custom",
                 L"Unofficial",
                   load_order,
-                    wszReShadePath
+                    wszReShadePath,
+                      L"Normal"
         );
       }
       ImGui::TreePop       (  );

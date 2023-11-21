@@ -2866,7 +2866,7 @@ SK_ImGui_User_NewFrame (void)
     SK_ImGui_Cursor.last_move = SK::ControlPanel::current_time;
 
   bool bFocused =
-    SK_IsGameWindowActive  (),//SK_IsGameWindowFocused (),
+    SK_IsGameWindowFocused (),
        bActive  =
     SK_IsGameWindowActive  ();
 
@@ -2998,10 +2998,13 @@ SK_ImGui_User_NewFrame (void)
   {
     if (config.input.keyboard.catch_alt_f4)
     {
-      if ( io.KeyAlt                     &&
-           io.KeysDown         [VK_F4  ] &&
-       ( ImGui::IsKeyPressed (ImGuiKey_F4,   false) ^
-         ImGui::IsKeyPressed (ImGuiKey_Menu, false) ) )
+      if ( io.KeyAlt                                  &&
+           io.KeysDown             [VK_F4]            &&
+       ( ImGui::IsKeyPressed (ImGuiKey_F4,   false)   &&
+         ImGui::IsKeyPressed (ImGuiKey_Menu, false) ) &&
+       ( ImGui::GetKeyData   (ImGuiKey_F4  )->DownDuration == 0.0f ||
+         ImGui::GetKeyData   (ImGuiKey_Menu)->DownDuration == 0.0f )
+         )
       {
         extern bool SK_ImGui_WantExit;
                     SK_ImGui_WantExit = true;

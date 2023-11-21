@@ -77,7 +77,7 @@ SK_ProcessColor4 ( float4 color,
   float4 out_color =
     float4 (
       (strip_srgb && func != sRGB_to_Linear) ?
-                 RemoveSRGBCurve (color.rgb) : color.rgb,
+                PositivePow (color.rgb, 2.2) : color.rgb,
                                                color.a
     );
 
@@ -89,7 +89,7 @@ SK_ProcessColor4 ( float4 color,
     return     AnyIsNan (out_color) ?
     float4 (0.0f, 0.0f, 0.0f, 0.0f) : out_color;
 #endif
-                                
+
   return
     float4 (0.0f, 0.0f, 0.0f, 0.0f);
 }
@@ -145,7 +145,13 @@ FinalOutput (float4 vColor)
   if (visualFunc.y == 1)
   {
     vColor.rgb =
-      LinearToPQ (REC709toREC2020 (vColor.rgb), 125.0f);
+      clamp (LinearToPQ (REC709toREC2020 (vColor.rgb), 125.0f), 0.0, 1.0);
+    
+    vColor.rgb *=
+      smoothstep ( 0.006978,
+                   0.016667, vColor.rgb);
+    
+    vColor.a = 1.0;
   }
     
   return vColor;
@@ -262,15 +268,29 @@ float4 main (PS_INPUT input) : SV_TARGET
 #endif
 
 
-  hdr_color.rgb = Clamp_scRGB (
+  hdr_color.rgb =
 #ifdef INCLUDE_HDR10
     bIsHDR10 ?
       REC2020toREC709 (RemoveREC2084Curve ( hdr_color.rgb )) :
 #endif
                          SK_ProcessColor4 ( hdr_color.rgba,
                                             xRGB_to_Linear,
-                             sdrIsImplicitlysRGB ).rgb
-                      );
+                             sdrIsImplicitlysRGB ).rgb;
+
+#ifdef INCLUDE_HDR10
+  if (! bIsHDR10)
+  {
+#endif
+    // Clamp scRGB source image to Rec 709, unless using passthrough mode
+    if (input.color.x != 1.0)
+    {
+      hdr_color.rgb =
+        Clamp_scRGB (hdr_color.rgb);
+    }
+#ifdef INCLUDE_HDR10
+  }
+#endif
+
 
   ///hdr_color.rgb =
   ///  sRGB_to_ACES (hdr_color.rgb);
@@ -327,11 +347,11 @@ float4 main (PS_INPUT input) : SV_TARGET
     if ( input.color.x < 0.0125f - FLT_EPSILON ||
          input.color.x > 0.0125f + FLT_EPSILON )
     {
-      hdr_color.rgb = clamp (LinearToLogC (hdr_color.rgb), 0.0, 125.0);
-      hdr_color.rgb =        Contrast     (hdr_color.rgb,
+      hdr_color.rgb = LinearToLogC (hdr_color.rgb);
+      hdr_color.rgb = Contrast     (hdr_color.rgb,
               0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f,
                        (sdrLuminance_NonStd / 0.0125f) / 100.0f);
-      hdr_color.rgb = clamp (LogCToLinear (hdr_color.rgb), 0.0, 125.0);
+      hdr_color.rgb = LogCToLinear (hdr_color.rgb);
     }
   }
 
@@ -359,7 +379,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     {
       hdr_color.rgb  *= float3 (125.0, 125.0, 125.0);
       hdr_color.rgb   =
-        Clamp_scRGB (hdr_color.rgb);
+        min (hdr_color.rgb, 125.0f);
 
       if (input.color.y != 1.0)
       {
@@ -387,9 +407,12 @@ float4 main (PS_INPUT input) : SV_TARGET
   if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
 #endif
   {
-    hdr_color.rgb =
-      PositivePow ( hdr_color.rgb,
-                  input.color.yyy );
+    if (input.color.y != 1.0f)
+    {
+      hdr_color.rgb =
+        PositivePow ( hdr_color.rgb,
+                    input.color.yyy );
+    }
   }
 
   if (pqBoostParams.x > 0.1f)
@@ -423,36 +446,17 @@ float4 main (PS_INPUT input) : SV_TARGET
     {
       float saturation =
         hdrSaturation + 0.05 * ( uiToneMapper == TONEMAP_ACES_FILMIC );
-
+  
       hdr_color.rgb =
         Saturation ( hdr_color.rgb,
                      saturation );
     }
   }
     
-#if 0
-  float3 vNormalColor =
-    normalize (hdr_color.rgb);
-
-  float fLuma =
-    max (Luminance (vNormalColor), 0.0f);
-
-  hdr_color.rgb *=
-#ifdef INCLUDE_HDR10
-    uiToneMapper != TONEMAP_HDR10_to_scRGB ?
-#endif
-    (                          //hdrPaperWhite +
-      fLuma * (input.color.xxx/*-hdrPaperWhite*/))
-#ifdef INCLUDE_HDR10
-                        :        hdrPaperWhite
-#endif
-    ;
-#else
   hdr_color.rgb *=
     input.color.xxx;
 
   float fLuma = 0.0f;
-#endif
 
 #ifdef INCLUDE_VISUALIZATIONS
   if (visualFunc.x != VISUALIZE_NONE) // Expand Gamut before visualization

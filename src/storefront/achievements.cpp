@@ -23,6 +23,7 @@
 #include <SpecialK/storefront/achievements.h>
 #include <SpecialK/storefront/epic.h>
 #include <SpecialK/resource.h>
+#include <imgui/backends/imgui_d3d12.h> // For D3D12 Texture Mgmt
 
 #include <imgui/font_awesome.h>
 
@@ -1713,8 +1714,20 @@ SK_AchievementManager::drawPopups (void)
 
       if (it->icon_texture != nullptr)
       {
-        std::exchange (
-            it->icon_texture, nullptr)->Release ();
+        if (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12)
+        {
+          std::exchange (
+              it->icon_texture, nullptr)->Release ();
+        }
+
+        else
+        {
+          if (it->d3d12_tex != nullptr)
+          {
+            std::exchange (
+              it->d3d12_tex, nullptr)->Release ();
+          }
+        }
       }
 
       removed = true;
@@ -1777,8 +1790,16 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ( ( static_cast <int> (rb.api) &
-         static_cast <int> (SK_RenderAPI::D3D11) ) != 0x0 )
+  const bool bIsNativeOrLayeredD3D11 =
+    ( static_cast <int> (rb.api) &
+      static_cast <int> (SK_RenderAPI::D3D11) ) != 0x0;
+
+  const bool bIsNativeOrLayeredD3D12 =
+    ( static_cast <int> (rb.api) &
+      static_cast <int> (SK_RenderAPI::D3D12) ) != 0x0;
+
+  if ( bIsNativeOrLayeredD3D11 ||
+       bIsNativeOrLayeredD3D12 )
   {
     DirectX::TexMetadata  metadata = {};
     DirectX::ScratchImage image    = {};
@@ -1790,8 +1811,7 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
          )
        )
     {
-      if ( ( static_cast <int> (rb.api) &
-             static_cast <int> (SK_RenderAPI::D3D11) ) != 0x0 )
+      if (bIsNativeOrLayeredD3D11)
       {
         SK_ComPtr <ID3D11Resource> pIconTex;
 
@@ -1816,6 +1836,20 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
               pSRV;
               pSRV.p->AddRef ();
           }
+        }
+      }
+
+      else
+      {
+        auto texture =
+          SK_D3D12_CreateDXTex (metadata, image);
+
+        if (texture.pTexture != nullptr)
+        {
+          popup->icon_texture =
+            (IUnknown *)(texture.hTextureSrvGpuDescHandle.ptr);
+          popup->d3d12_tex =
+            texture.pTexture;
         }
       }
     }
@@ -1859,4 +1893,37 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
 
   return popup->window;
 #endif
+}
+
+bool
+SK_AchievementManager::OnVarChange (SK_IVariable *var, void *val)
+{
+  if (var == achievement_test)
+  {
+    auto iAchievement = *(int *)val;
+
+    static bool
+        bSteam = (SK::SteamAPI::AppID () != 0);
+    if (bSteam)
+      SK_Steam_UnlockAchievement (iAchievement);
+
+    else if (SK::EOS::GetTicksRetired ( ) > 0)
+             SK_EOS_UnlockAchievement (iAchievement);
+
+    return true;
+  }
+
+  return false;
+}
+
+SK_AchievementManager::SK_AchievementManager (void)
+{
+  SK_RunOnce ({
+    static int achievement_id = 0;
+
+    achievement_test =
+      SK_CreateVar (SK_IVariable::Int, &achievement_id, this);
+
+    SK_GetCommandProcessor ()->AddVariable ("Platform.AchievementTest", achievement_test);
+              });
 }

@@ -396,8 +396,15 @@ struct sk_config_t
   } rtss;
 
   struct reshade_s {
-    float       overlay_luminance     = 4.375F; // 350 nits
-    bool        present               = false;  // Is the overlay detected?
+    bool        draw_first            = true;
+    bool        is_addon              = false;  // True if ReShade AddOn registration succeeded
+    SK_ConfigSerializedKeybind
+                toggle_overlay_keybind= {
+                    SK_Keybind {
+                      "Toggle ReShade Overlay", L"Shift+Home",
+                        true, false, false, VK_HOME
+                    }, L"ToggleReShadeOverlay"
+    };
   } reshade;
 
   struct sound_s {
@@ -429,11 +436,21 @@ struct sk_config_t
   } sound;
 
   struct screenshots_s {
+    bool         use_avif              = false;
     bool         png_compress          =  true;
     bool         show_osd_by_default   =  true;
     bool         play_sound            =  true;
     bool         copy_to_clipboard     =  true;
     std::wstring override_path         =   L"";
+
+    struct avif_s {
+      int        scrgb_bit_depth       =    10;
+      int        yuv_subsampling       =   444;
+      bool       full_range            =  true;
+      int        compression_quality   =   100;
+      int        compression_speed     =     8;
+      int        max_threads           =     6;
+    } avif;
 
     SK_ConfigSerializedKeybind
          game_hud_free_keybind = {
@@ -843,6 +860,7 @@ struct sk_config_t
         int   extra_pixels        =      0;
         int   override_appid      =     -1;
       } compat;
+      bool    allow_scrgb         =  false;
     } dlss;
   } nvidia;
 
@@ -1031,31 +1049,32 @@ struct sk_config_t
 
 #ifdef _M_IX86
     struct legacy_dx_s {
-      bool   hook = true;
+      bool   hook      = true;
+      int    hook_next = SK_NoPreference;
     } d3d8,
       ddraw;
 #endif
 
     struct d3d9_s {
-      bool   hook        =  true;
-      bool   translated  = false;
+      bool   hook        =            true;
+      bool   translated  =           false;
       int    native_dxvk = SK_NoPreference;
-      bool   hook_next   =  true;
+      int    hook_next   = SK_NoPreference;
     } d3d9,
       d3d9ex;
 
     struct dxgi_s {
-      struct d3d11or12_s{
+      struct d3d11or12_s {
         bool hook      = true;
-        bool hook_next = true;
+        int  hook_next = SK_NoPreference;
       } d3d12,
         d3d11;
     } dxgi;
 
     struct khronos_s {
-      bool   hook       = true;
-      bool   translate  = true;
-      bool   hook_next  = true;
+      bool   hook      = true;
+      bool   translate = true;
+      int    hook_next = SK_NoPreference;
     } Vulkan,
       OpenGL;
 
@@ -1420,6 +1439,8 @@ enum class SK_GAME_ID
   ConstructionSet,              // TESConstructionSet.exe
   CreationKit,                  // ConstructionKit.exe
   LordsOfTheFallen2,            // LOTF2-Win64-Shipping.exe
+  AlanWake2,                    // AlanWake2.exe
+  Cyberpunk2077,                // Cyberpunk2077.exe
 
   UNKNOWN_GAME               = 0xffff
 };

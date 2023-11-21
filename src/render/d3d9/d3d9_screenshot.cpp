@@ -648,13 +648,13 @@ SK_D3D9_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStag
 
                     for (size_t j = 0; j < width; ++j)
                     {
-                      XMVECTOR value  = inPixels [j];
-                      XMVECTOR nvalue = XMVector3Transform (value, c_from2020to709);
-                                value = XMVectorSelect     (value, nvalue, g_XMSelect1110);
+                      XMVECTOR value = inPixels [j];
+                               value =
+                        XMVector3Transform (value, c_from2020to709);
 
                       ApplyGamma_sRGB (value);
 
-                      outPixels [j]   =                     value;
+                      outPixels [j]  = value;
                     }
                   }, un_scrgb);
 
@@ -721,11 +721,7 @@ SK_D3D9_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStag
                                         )
                           );
 
-                        XMVECTOR nvalue =
-                          XMVectorMultiply (value, scale);
-                                  value =
-                          XMVectorSelect   (value, nvalue, g_XMSelect1110);
-                        outPixels [j]   =   value;
+                        outPixels [j]   = XMVectorMultiply (value, scale);
                       }
                     }, un_scrgb)                             : E_POINTER;
 

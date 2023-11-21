@@ -5182,7 +5182,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   }
 
 
-  extern bool SK_ImGui_WantExit;
+  //extern bool SK_ImGui_WantExit;
 
   // HDR caps, Refresh Rate and Display Mode may have changed,
   //   let's try to be smart about this (for a change)...
@@ -5355,6 +5355,26 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         }
       }
       break;
+
+    case WM_SETTEXT:
+    {
+      auto _UpdateTitle = [&](sk_hwnd_cache_s& cache)
+      {
+        if (cache.hwnd == hWnd)
+        {
+          wcsncpy_s ( cache.title,
+            SK_FormatStringW (
+              IsWindowUnicode (hWnd) ? L"%ws"
+                                     : L"%hs", (char *)lParam
+                             ).c_str (), 127
+          );
+          cache.last_changed = SK_GetFramesDrawn ();
+        }
+      };
+
+      _UpdateTitle (rb.windows.device);
+      _UpdateTitle (rb.windows.focus);
+    } break;
 
     case WM_SETCURSOR:
     {

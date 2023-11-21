@@ -1,4 +1,391 @@
-﻿23.10.20.4
+﻿23.11.20.3
+==========
+ + Fixed displaying DXGI Present Statistics in D3D9 games if
+     WDDM3 HW Flip Queue is enabled.
+
+23.11.20.2
+==========
+ + Removed smoothing from percentile calculations in framepacing widget
+
+23.11.20.1
+==========
+ + Added Steam Input pesticide to restore native XInput support to
+     Tales of Arise for more reliable input.
+     
+    * Enable XInput by placing CDE62E66.dds in SK_Res\inject\textures
+
+23.11.20
+========
+ + Default non-Linear SDR games to 2.2 power-law when linearizing
+     their SwapChain for HDR inverse tonemapping
+
+23.11.19.4
+==========
+ + Default missing Mode= entry in ReShade plug-in Import INI entry
+     to mean "Compatibility"
+
+23.11.19.3
+==========
+ + Fixed potential crash in ReShade's "Generic Depth" Add-On
+
+23.11.19.2
+==========
+ + Added "Compatibility Mode" option to ReShade Plug-In
+ + Removed Unofficial Plug-In category
+
+23.11.19.1
+==========
+ + Fixed unintended ReShade device context code in D3D12 games without
+    ReShade loaded.
+
+23.11.19
+========
+ + Loading ReShade DLL as ReShade{32|64}.dll will rebase its config to
+     SpecialK\Profiles\<game>\ReShade\ReShade.ini if ReShade.ini does not
+       already exist in the game's directory.
+
+ + ReShade v 5.9.3.2048+ disables all of ReShade's render hook code for
+     D3D11 and D3D12 and SK does the rendering for ReShade.
+
+    * Significantly improves stability in DLSS-G games, properly handles
+        HDR UI colorspace, always draws ReShade's UI after SK's UI.
+
+ + When loading ReShade as a plug-in, Global\ReShade\Textures and
+     Global\ReShade\Shaders are the default search paths for effects/textures.
+
+ + ReShade load-order no longer matters when using version 5.9.3.2048+.
+        
+
+23.11.13.2
+==========
+ + Added AVIF encoder configuration to HDR menu in control panel
+ + AVIF codec will automatically download the first time it is selected
+ + AVIF still unsupported in 32-bit software, sorry :)
+
+23.11.13.1
+==========
+ + Fixed Yellow/Green shift in tonemapped screenshots introduced in 23.11.13
+
+23.11.13
+========
+ + AVIF screenshot support is now optionally enabled by placing libavif_x64.dll
+     in SpecialK\PlugIns\ThirdParty\Image Codecs\libavif\
+
+    * Later versions will support 32-bit, and will have encoder quality options
+
+23.11.12
+========
+ + Fixed an issue in D3D12 on AMD GPUs that might render ImGui's UI in sRGB
+ + Fixed colorspace conversion to Rec2020+PQ from scRGB in AVIF screenshots
+ + Clamp colors to Rec2020 when converting HDR10 to scRGB for JXR screenshots
+
+23.11.10.2
+==========
+ + Add workaround for games that poll keyboard input for Alt+F4 rather than
+     using the correct WM_SYSCOMMAND message.
+
+23.11.10.1
+==========
+ + Optimized D3D11 ReShade add-on render path to avoid creating unnecessary
+     temporary Render Target Views.
+ + Added Ctrl+R keyboard shortcut to toggle ReShade trigger behavior for the
+     selected shader in D3D11 Render Mod Tools.
+ + Only show "Trigger ReShade On First Draw" for shaders that have compatible
+     aspect ratio.
+ + Skip ReShade post-processing altogether if trigger shaders are setup, but
+     the game does not activate any of the triggers in a frame.
+
+    * This is intended to skip post-processing when the ONLY thing on screen
+        is the game's UI.
+
+  Example d3d11_shaders.ini (Baldur's Gate 3) to apply ReShade before HUD:
+
+    [DrawState.Vertex]
+    5dcbb1c5=HUD
+    73199e2e=HUD
+    a8226121=HUD
+    c9ce2d35=HUD
+    d2650529=HUD
+
+    [DrawState.Pixel]
+    2a588cb1=TriggerReShade
+    2bf49536=TriggerReShade
+
+23.11.10
+========
+ + Added support for triggering ReShade on specific Pixel/Vertex shaders in
+     D3D11, the same way it used to work for the custom version of ReShade.
+
+    * Requires an add-on compatible version of ReShade (5.9.3+).
+
+  Use the D3D11 Render Mod Tools and run through the Pixel Shaders trying
+    "Trigger ReShade On First Draw" until you find one that draws ReShade
+      before the game's UI.
+
+    -> Save the Current State when done.
+
+23.11.9.1
+=========
+ + Always flush ReShade's D3D12 "immediate context" after drawing, because
+     it does not see native DXGI SwapChain presents in games using
+       NVIDIA Streamline and it is not safe to defer execution until present.
+
+23.11.9
+=======
+ + Reduced D3D12 CPU performance overhead when using ReShade add-on mode
+     to draw ReShade before SK does HDR image processing.
+ + Changed "Draw ReShade First" option to control whether ReShade runs
+     before or after SK's HDR processing.
+     
+    * ReShade will always draw before SK's UI now (when add-on compatible).
+
+23.11.8
+=======
+ + Disabled AVIF screenshots; they'll be re-enabled when the encoder
+     is changed to be an optional plug-in.
+ + Fixed problems changing render API hook settings caused by merge of
+    "Added temp parameters for toggled render APIs (#99)"
+
+23.11.7.3
+=========
+ + Added HDR metadata to AVIF screenshots for proper tonemapping
+ + Fixed frametime spikes causing Latency Analysis graph to potentially
+     scale to billions of milliseconds.
+
+23.11.7.2
+=========
+ + Changed Display Scanout time in Latency Analysis to measure the time
+     between the CPU simulation start and finished image display.
+
+    * Prior, it only measured the time between the GPU starting work
+        and the image being displayed on screen.
+
+   Outside of Frame Generation, this is almost always total frametime.
+
+23.11.7.1
+=========
+ + Added experimental .avif screenshot support for 64-bit HDR games
+
+    >> This format is supported by Chrome (displayable in HDR) and
+         Firefox (SDR only), Edge does not support it, nor does HDR + WCG.
+
+23.11.7
+=======
+ + Removed dgVoodoo2 D3D12 init. workaround that causes issues on Intel drivers
+
+23.11.6
+=======
+ + Improved ReShade add-on stability in D3D12 games that use NVIDIA Streamline
+ + Renamed "sRGB Passthrough" tonemap mode to "sRGB Inverse"
+
+23.11.5.3
+=========
+ + Fixed (worked around) Thread Local Storage corruption when loading ReShade
+     as dxgi.dll in some Steam games
+
+23.11.5.2
+=========
+ + Added D3D12 achievement icons for Steam games
+ + Added smoothstep near-black and lowered HDR10 black level to 0 when using SK's
+     HDR10 output mode (all tonemaps except Raw Framebuffer).
+
+23.11.5.1
+=========
+ + Added some latency measurements back when HW Flip Queue is active, but with
+     avg / max frame queue time replaced with 'HW Flip Q'
+
+23.11.5
+=======
+ + Removed various latency measurements that are broken on systems with WDDM3.0
+     Hardware Flip Queue (Recent NVIDIA Drivers)
+ + Improved ReShade add-on stability in Cyberpunk 2077
+
+23.11.4.1
+=========
+ + Fixed incorrect wait on ReShade fences when the fence has not signaled yet.
+ + Fixed rare HDR10/scRGB buffer copy failure in D3D12 in games like Cyberpunk 2077
+
+23.11.4
+=======
+ + Fixed yet more unintended Rec.709 color clamping for HDR10 and scRGB Passthrough
+ + Disabled ReShade add-on support for all versions of ReShade older than 5.9.3.1024
+ + Integrated fence-based resource lifetime management added in 5.9.3.1024
+ + Cyberpunk 2077 works now, but you will have to be careful because of Streamline,
+     to avoid crashes, load ReShade's DLL as ReShade64.dll and be aware that ReShade
+       will post-process its own UI.
+
+23.11.3
+=======
+ + Removed CPU-side wait for ReShade to execute GPU commands, and only use that
+     code in Cyberpunk 2077. A fence-based synchronization method is needed, but
+       does not exist in current versions of ReShade.
+
+    >> Avoid using ReShade in Cyberpunk 2077 for performance issues for now.
+
+23.11.2.2
+=========
+ + Removed overhead at the end of every frame caused by 23.11.2's audio changes
+ + Extend Reflex latency pipeline graph to fit "Driver" time if it is the longest
+     render stage in a frame (i.e. Frame Generation)
+
+23.11.2.1
+=========
+ + Removed unintentional Rec.709 color clamp on HDR10 and scRGB Passthrough
+
+23.11.2
+=======
+ + Fixed audio management keybinds not applying in some games if sound is not
+     initialized successfully by the third frame drawn.
+ + Improved HDR->SDR screenshot tonemapping blend between luma preserving and
+     chroma preserving for really bright scenes in D3D11 and D3D12.
+
+23.11.1
+=======
+ + Added keybind to toggle ReShade overlay, this keybind works even if keyboard
+     input is being blocked to the game.
+
+     Keybind: Shift+Home , it can be configured in Global\osd.ini
+
+ + While the ReShade overlay is active, SK will stop blocking keyboard and mouse
+     input to the game so that the user can interact with it.
+
+  >> Both of these features require ReShade 5.9.3+ (unreleased; see Discord).
+
+23.10.31.2
+==========
+ + Avoid potential deadlock in D3D12 games that use Fullscreen mode when
+     "skip redundant mode changes" is enabled.
+ + Skip ReShade effect processing if no effects are enabled.
+
+23.10.31.1
+==========
+ + Added CPU command queue sync when triggering ReShade in D3D12 to ensure that
+    temporary rendertargets are not destroyed before ReShade's effects complete.
+
+23.10.31
+========
+ + Fixed WaitForDebugger not blocking DllMain due to attach state not being set
+ + Apply ReShade basepath override only for plug-in DLLs with ReShade in the name
+
+23.10.30.4
+==========
+ + Removed debug code that was dumping disassembled EOS overlay shaders in D3D12
+ + Removed hard-coded Ctrl+Shift+T debug keybind to test Steam/EOS Achievement 0
+ + Added console command to debug Steam/EOS Achievement # (trigger unlock popup)
+
+     "Platform.AchievementTest <achievement_id>"
+
+   If you want the original debug keybind back, add this to Global\macros.ini:
+
+     [Macro.SpecialK_Debug]
+     Ctrl+Shift+T=Platform.AchievementTest 0
+
+23.10.30.3
+==========
+ + Improved ReShade add-on registration reliability when using Lazy or Plug-In
+     load order.
+ + Request ReShade add-on API version 8 during initialization so that the overlay
+     activation feature is -optional- and SK will work as intended with older
+       versions of ReShade that lack support for API version 9.
+
+23.10.30.2
+==========
+ + Added support for new ReShade add-on event to monitor overlay activation state
+
+     >> SK will hide its own overlay and stop blocking mouse/keyboard/gamepad input
+          to ReShade while its config overlay is active.
+
+        * This requires a yet unreleased version of ReShade (5.9.x+); see Discord.
+
+23.10.30.1
+==========
+ + Add recursive pattern to ReShade Shader / Effects search path
+
+23.10.30
+========
+ + Added ReShade AddOn integration to control whether ReShade draws before (default)
+     SK in D3D11 and D3D12 games.
+
+     >> This allows running HDR analysis shaders on SK's output (if disabled), or
+          using HDR processing shaders such as Pumbo's AutoHDR without affecting
+            SK's UI or SK's custom luminance control for third-party overlays.
+
+  + In AddOn capable versions of ReShade, SK defaults to searching Effect / Textures
+      from <SK Install Path>\Global\ReShade\Shaders, and ...\Textures if they exist.
+
+     >> Use this to store ReShade Shaders and Textures in a central location instead
+          of duplicating them for every game.
+
+     * NOTE: This setup will be performed only for empty ReShade.ini files because of
+               a bug in current versions of ReShade that will not allow adding
+                 directories to an existing search path.
+
+23.10.29.2
+==========
+ + Apply Reflex out-of-band input processing fixes to all Reflex games
+ + Added HDR colorspace correction for Epic Overlay in D3D12
+
+    * Luminance setting is shared with the Steam overlay, configure it by running
+        a game in D3D11 using Steam or EOS Overlay and the slider in the HDR menu.
+
+        >> Slider and real-time adjustment are not available in D3D12
+
+23.10.29.1
+==========
+ + Apply the Alan Wake 2 Reflex out-of-band input processing fix to SK's own Reflex
+     implementation to handle rare edge cases.
+
+23.10.29
+========
+ + Fixed Alan Wake 2 mouse input stutter caused by INPUT_SAMPLE Reflex Latency Markers
+     being issued outside of SIMULATION_START / SIMULATION_END.
+
+    NOTE: There's still a bit of stutter when moving the mouse if that triggers a
+            switch between gamepad and KB&M input icons.
+            
+          If you only use one input device type you are encouraged to disable the
+            others under SK's Input Management section so that it never switches icons.
+
+23.10.28.4
+==========
+ + Added SK calculated Reflex input latency marker for native Reflex games that are
+     missing this (i.e. Alan Wake 2)
+
+23.10.28.3
+==========
+ + Fixed stability problems caused by Epic overlay in DLSS-G games
+
+23.10.28.2
+==========
+ + Added warnings if attempting to launch Alan Wake 2 without EOS Overlay or with
+     RTSS and EOS Overlay simultaneously, since the faulty overlay check has been
+       removed.
+ + Colorspace fixes for RTSS's overlay in HDR work in D3D12 now;
+     the luminance level is only configurable from D3D11 (in the HDR menu), but
+       D3D12 will use the values you set in any D3D11 game while RTSS was visible.
+
+23.10.28.1
+==========
+ + Completely automated bypass of Alan Wake 2's broken Third-Party Overlay check
+
+23.10.28
+========
+ + Added bypass for Alan Wake 2's faulty third-party overlay check.
+ 
+    >> Just click Quit and SK will ignore it and allow you to play the game.
+
+ + Automatically disable scRGB if DLSS-G is detected; clicking the scRGB
+     radio button after the automatic disable will ignore auto-disable
+       behavior in the future for the game.
+
+23.10.21
+========
+ + Experimental alpha blending overhaul for HDR10
+
+    >> Font and various graphs should be more legible when using HDR10, but
+         SK's UI might be brighter than the configured luminance target.
+
+23.10.20.4
 ==========
  + Only parse LOTF's INI file once per-launch :)
 

@@ -2884,7 +2884,6 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
     if (interval != 0 || rb.fullscreen_exclusive) // FSE can't use this flag
       flags &= ~DXGI_PRESENT_ALLOW_TEARING;
-
     if (     _IsBackendD3D12 (rb.api)) SK_ImGui_DrawD3D12 (This);
     else if (_IsBackendD3D11 (rb.api)) SK_ImGui_DrawD3D11 (This);
 
@@ -2892,7 +2891,6 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     {
       SK_BeginBufferSwapEx (bWaitOnFailure);
     }
-
 
     rb.setLatencyMarkerNV (PRESENT_START);
 
@@ -5698,6 +5696,24 @@ DXGIFactory_CreateSwapChain_Override (
 {
   SK_ReleaseAssert (pDesc       != nullptr);
 //SK_ReleaseAssert (ppSwapChain != nullptr); // This happens from time to time
+
+  if (SK_GetCallingDLL () == SK_GetModuleHandleW (L"sl.dlss_g.dll") ||
+                             SK_GetModuleHandleW (L"nvngx_dlssg.dll") != nullptr)
+  {
+    if (__SK_HDR_16BitSwap && (! config.nvidia.dlss.allow_scrgb))
+    {
+      __SK_HDR_10BitSwap =  true;
+      __SK_HDR_16BitSwap = false;
+
+      SK_HDR_SetOverridesForGame (__SK_HDR_16BitSwap, __SK_HDR_10BitSwap);
+
+      SK_ImGui_Warning (
+        L"scRGB HDR has been changed to HDR10 because DLSS Frame Generation was detected."
+        L"\r\n\r\n\t"
+        L"If not using Frame Generation, you can turn scRGB back on by clicking scRGB in the HDR widget and this warning will not be shown again."
+      );
+    }
+  }
 
   auto *pOrigDesc =
     (DXGI_SWAP_CHAIN_DESC *)pDesc;
@@ -8767,8 +8783,8 @@ HookDXGI (LPVOID user)
 
     dll_log->Log (L"[   DXGI   ]   Installing Deferred DXGI / D3D11 / D3D12 Hooks");
 
-    D3D_FEATURE_LEVEL            levels [] = { D3D_FEATURE_LEVEL_11_0, D3D_FEATURE_LEVEL_11_1,
-                                               D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1 };
+    D3D_FEATURE_LEVEL            levels [] = { D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0,
+                                               D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_10_0 };
 
     D3D_FEATURE_LEVEL            featureLevel = D3D_FEATURE_LEVEL_11_1;
     SK_ComPtr <ID3D11Device>        pDevice           = nullptr;
@@ -8900,7 +8916,7 @@ HookDXGI (LPVOID user)
             SK_GetProcAddress (L"d3d12.dll",
                               "D3D12CreateDevice");
 
-        if (SUCCEEDED (D3D12CreateDevice (pAdapter0, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS (&pDevice12.p))))
+        if (SUCCEEDED (D3D12CreateDevice (pAdapter0, D3D_FEATURE_LEVEL_11_1, IID_PPV_ARGS (&pDevice12.p))))
         {
           if (sl::Result::eOk == SK_slUpgradeInterface ((void **)&pDevice12.p))
             SK_LOGi0 (L"Upgraded D3D12 Device to Streamline Proxy...");

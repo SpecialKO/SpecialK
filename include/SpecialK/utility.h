@@ -58,15 +58,7 @@ public:
     //   such as -2 = Current Thread, -1 = Current Process
     if (m_h != nullptr)
     {
-      __try {
-        CloseHandle (
-          std::exchange (m_h, nullptr)
-        );
-      }
-      
-      __except (EXCEPTION_EXECUTE_HANDLER)
-      {
-      }
+      Close ();
     }
   }
 
@@ -114,7 +106,7 @@ public:
   }
 
   // Close the handle.
-  void Close (void)
+  void Close (void) noexcept
   {
     __try
     {

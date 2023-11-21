@@ -46,7 +46,7 @@ namespace SK
     bool  __stdcall GetOverlayState  (bool real);
     bool  __stdcall IsOverlayAware   (void); // Did the game install a callback?
 
-    std::string       AppName         (void);
+    std::string&      AppName         (void);
     std::string_view  PlayerName      (void);
     std::string_view  PlayerNickname  (void);
 

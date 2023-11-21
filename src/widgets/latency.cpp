@@ -34,7 +34,7 @@ extern iSK_INI* osd_ini;
 struct reflex_frame_s {
   float simulation    = 0.0f;
   float render_submit = 0.0f;
-  float gpu_total     = 0.0f;
+  float frame_total   = 0.0f;
   float gpu_active    = 0.0f;
   float gpu_start     = 0.0f;
   float present       = 0.0f;
@@ -50,10 +50,10 @@ static constexpr auto _MAX_FRAME_HISTORY = 384;
 #pragma warning (disable:4324)
 struct alignas (64) {
   float  simulation [_MAX_FRAME_HISTORY+1] = { },
-      render_submit [_MAX_FRAME_HISTORY+1] = { }, gpu_total  [_MAX_FRAME_HISTORY+1] = { },
-         gpu_active [_MAX_FRAME_HISTORY+1] = { }, gpu_start  [_MAX_FRAME_HISTORY+1] = { },
-          fill_cpu0 [_MAX_FRAME_HISTORY+1] = { }, fill_gpu0  [_MAX_FRAME_HISTORY+1] = { },
-          fill_cpu1 [_MAX_FRAME_HISTORY+1] = { }, fill_gpu1  [_MAX_FRAME_HISTORY+1] = { },
+      render_submit [_MAX_FRAME_HISTORY+1] = { }, frame_total [_MAX_FRAME_HISTORY+1] = { },
+         gpu_active [_MAX_FRAME_HISTORY+1] = { }, gpu_start   [_MAX_FRAME_HISTORY+1] = { },
+          fill_cpu0 [_MAX_FRAME_HISTORY+1] = { }, fill_gpu0   [_MAX_FRAME_HISTORY+1] = { },
+          fill_cpu1 [_MAX_FRAME_HISTORY+1] = { }, fill_gpu1   [_MAX_FRAME_HISTORY+1] = { },
           max_stage [_MAX_FRAME_HISTORY+1] = { };
   INT64 sample_time [_MAX_FRAME_HISTORY+1] = { };
   float  sample_age [_MAX_FRAME_HISTORY+1] = { };
@@ -102,6 +102,15 @@ static stage_timing_s driver   { "Driver"           }; static stage_timing_s os 
 static stage_timing_s gpu      { "GPU Render"       }; static stage_timing_s gpu_busy { "GPU Busy"        };
 static stage_timing_s total    { "Total Frame Time" };
 static stage_timing_s input    { "Input Age"        };
+
+NvU64
+SK_Reflex_GetFrameEndTime (const _NV_LATENCY_RESULT_PARAMS::FrameReport& report)
+{
+  return
+    std::max ( { report.simEndTime,           report.renderSubmitEndTime,
+                 report.presentEndTime,       report.driverEndTime,
+                 report.osRenderQueueEndTime, report.gpuRenderEndTime } );
+}
 
 void
 SK_ImGui_DrawGraph_Latency (bool predraw)
@@ -216,12 +225,10 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
               stage->durations [idx] = static_cast <float> (duration) / 1000.0f;
 
               stage->sum += duration;
-              stage->min = static_cast <NvU64>
-                         ( (duration < stage->min) ?
-                            duration : stage->min );
-              stage->max = static_cast <NvU64>
-                         ( (duration > stage->max) ?
-                            duration : stage->max );
+              stage->min = (duration < stage->min) ?
+                            duration : stage->min;
+              stage->max = (duration > stage->max) ?
+                            duration : stage->max;
 
               if (idx == 63)
               {
@@ -237,19 +244,18 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
           }
         };
 
-        _UpdateStat (frame.simStartTime,           frame.simEndTime,            &sim);
-        // Unreal Engine gives some wacky timing data in its Reflex implementation, suggesting that
-        //   it is continuing to render the same frame during and -after- present...?! What? :P
-        _UpdateStat (frame.renderSubmitStartTime, (frame.presentStartTime < frame.renderSubmitEndTime) ?
-                                                   frame.presentStartTime : frame.renderSubmitEndTime,
-                                                                                &render);
-        _UpdateStat (frame.presentStartTime,       frame.presentEndTime,        &present);
-        _UpdateStat (frame.driverStartTime,        frame.driverEndTime,         &driver);
-        _UpdateStat (frame.osRenderQueueStartTime, frame.osRenderQueueEndTime,  &os);
-        _UpdateStat (frame.gpuRenderStartTime,     frame.gpuRenderEndTime,      &gpu);
-        _UpdateStat (frame.simStartTime,           frame.gpuRenderEndTime,      &total);
-        _UpdateStat (frame.inputSampleTime,        frame.gpuRenderEndTime,      &input);
-        _UpdateStat (frame.renderSubmitEndTime,    frame.presentStartTime,      &specialk);
+        auto end =
+          SK_Reflex_GetFrameEndTime (frame);
+
+        _UpdateStat (frame.simStartTime,           frame.simEndTime,           &sim);
+        _UpdateStat (frame.renderSubmitStartTime,  frame.renderSubmitEndTime,  &render);
+        _UpdateStat (frame.presentStartTime,       frame.presentEndTime,       &present);
+        _UpdateStat (frame.driverStartTime,        frame.driverEndTime,        &driver);
+        _UpdateStat (frame.osRenderQueueStartTime, frame.osRenderQueueEndTime, &os);
+        _UpdateStat (frame.gpuRenderStartTime,     frame.gpuRenderEndTime,     &gpu);
+        _UpdateStat (frame.simStartTime,           end,                        &total);
+        _UpdateStat (frame.inputSampleTime,        end,                        &input);
+        _UpdateStat (frame.renderSubmitEndTime,    frame.presentStartTime,     &specialk);
       }
 
       auto _UpdateAverages = [&](stage_timing_s* stage)
@@ -287,9 +293,9 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       
       reflex.simulation    = sim.durations     [63];
       reflex.render_submit = render.durations  [63];
-      reflex.gpu_total     = gpu.durations     [63];
       reflex.present       = present.durations [63];
       reflex.gpu_active    = static_cast <float> (gpu_frame_times [63].gpuActiveRenderTimeUs) / 1000.0f;
+      reflex.frame_total   = static_cast <float> (os.end - sim.start) / 1000.0f;
       //// Workaround for Unreal Engine, it actually submits GPU work in its "Present" marker
       //reflex.gpu_start     = ( ( reflex.simulation > reflex.present ) ?
       //                           reflex.simulation : reflex.present ) +
@@ -335,18 +341,19 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
 
       history.simulation    [frame_idx] = reflex.simulation;
       history.render_submit [frame_idx] = reflex.render_submit;
-      history.gpu_total     [frame_idx] = reflex.gpu_total;
+      history.frame_total   [frame_idx] = reflex.frame_total;
       history.gpu_active    [frame_idx] = reflex.gpu_active;
       history.gpu_start     [frame_idx] = reflex.gpu_start;
       history.fill_cpu0     [frame_idx] = reflex.fill.cpu0;
       history.fill_gpu0     [frame_idx] = reflex.fill.gpu0;
       history.fill_cpu1     [frame_idx] = reflex.fill.cpu1;
       history.fill_gpu1     [frame_idx] = reflex.fill.gpu1;
-      history.max_stage     [frame_idx] = std::max ( reflex.simulation,
-                                          std::max ( reflex.render_submit,
-                                          std::max ( reflex.gpu_total,
-                                          std::max ( reflex.gpu_active,
-                                                     reflex.gpu_start ) ) ) );
+      history.max_stage     [frame_idx] =
+                             std::max ( { reflex.simulation,
+                                          reflex.render_submit,/*
+                                          reflex.frame_total,   */
+                                          reflex.gpu_active,
+                                          reflex.gpu_start } );
 
       history.sample_time   [frame_idx] = qpcNow;
 
@@ -401,6 +408,9 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
                        >= oldest_sample_time;
                           span1.head     =    frame-- );
 
+      span0.head = std::max (0, span0.head);
+      span1.head = std::max (0, span1.head);
+
       if ( span1.head >
            span0.head ) _ProcessGraphFrameSpan (span1);
                         _ProcessGraphFrameSpan (span0);
@@ -430,7 +440,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       history.fill_gpu1     [_MAX_FRAME_HISTORY] = history.fill_gpu1     [0];
       history.gpu_active    [_MAX_FRAME_HISTORY] = history.gpu_active    [0];
       history.gpu_start     [_MAX_FRAME_HISTORY] = history.gpu_start     [0];
-      history.gpu_total     [_MAX_FRAME_HISTORY] = history.gpu_total     [0];
+      history.frame_total   [_MAX_FRAME_HISTORY] = history.frame_total   [0];
       history.max_stage     [_MAX_FRAME_HISTORY] = history.max_stage     [0];
       history.render_submit [_MAX_FRAME_HISTORY] = history.render_submit [0];
       history.sample_age    [_MAX_FRAME_HISTORY] = history.sample_age    [0];
@@ -493,7 +503,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
     auto FramerateFormatter = [](double milliseconds, char* buff, int size, void*) -> int
     {
       const auto fps =
-        static_cast <unsigned int> (1000.0/milliseconds);
+        static_cast <unsigned int> (std::max (0.0, 1000.0/milliseconds));
 
       return (milliseconds <= 0.0 || fps == 0) ?
         snprintf (buff, size, " ")             :
@@ -530,11 +540,11 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
         (tail - head + 1) +
          (wraparound ? 1  :  0);
      
-       ImPlot::PlotLine ("Simulation",      &history.sample_age [head], &history.simulation    [head], elements);
-       ImPlot::PlotLine ("Render Submit",   &history.sample_age [head], &history.render_submit [head], elements);
-       ImPlot::PlotLine ("Display Scanout", &history.sample_age [head], &history.gpu_total     [head], elements);
-       ImPlot::PlotLine ("GPU Busy",        &history.sample_age [head], &history.gpu_active    [head], elements);
-       ImPlot::PlotLine ("CPU Busy",        &history.sample_age [head], &history.gpu_start     [head], elements);
+       ImPlot::PlotLine ("Simulation",    &history.sample_age [head], &history.simulation    [head], elements);
+       ImPlot::PlotLine ("Render Submit", &history.sample_age [head], &history.render_submit [head], elements);
+       ImPlot::PlotLine ("Composite",     &history.sample_age [head], &history.frame_total   [head], elements);
+       ImPlot::PlotLine ("GPU Busy",      &history.sample_age [head], &history.gpu_active    [head], elements);
+       ImPlot::PlotLine ("CPU Busy",      &history.sample_age [head], &history.gpu_start     [head], elements);
      };
 
     auto _PlotShadedData =
@@ -630,6 +640,12 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
 
   if (detailed)
   {
+    for ( auto* pStage : stages )
+    {
+      if (pStage->avg < min_stage->avg) min_stage = pStage;
+      if (pStage->avg > max_stage->avg) max_stage = pStage;
+    }
+
     for ( auto* pStage : stages )
     {
       ImGui::TextColored (
@@ -743,12 +759,13 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
     SK_NV_AdaptiveSyncControl ();
     SK_NV_AdaptiveSyncControl ();
 
-    float fMaxWidth  = ImGui::GetContentRegionAvail        ().x;
-    float fMaxHeight = ImGui::GetTextLineHeightWithSpacing () * 2.8f;
+    float fMaxWidth  = ImGui::GetContentRegionAvail ().x;
+    float fMaxHeight = ImGui::GetTextLineHeightWithSpacing () * 2.9f;
     float fInset     = fMaxWidth  *  0.025f;
     float X0         = ImGui::GetCursorScreenPos ().x;
     float Y0         = ImGui::GetCursorScreenPos ().y - ImGui::GetTextLineHeightWithSpacing ();
-          fMaxWidth *= 0.95f;
+          fMaxWidth  *= 0.95f;
+          fMaxHeight *= 0.92f;
 
     static DWORD                                  dwLastUpdate = 0;
     static float                                  scale        = 1.0f;
@@ -769,8 +786,8 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       }
 
       scale = fMaxWidth /
-        static_cast <float> ( frame_report.gpuRenderEndTime -
-                              frame_report.simStartTime );
+        static_cast <float> ( SK_Reflex_GetFrameEndTime (frame_report) -
+                                                         frame_report.simStartTime );
 
       std::sort ( std::begin (sorted_stages),
                   std::end   (sorted_stages),

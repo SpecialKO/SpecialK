@@ -382,7 +382,7 @@ SK::ControlPanel::D3D11::Draw (void)
         bool tracking = false;
 
         if ( ( ReadAcquire (&SK_D3D11_DrawTrackingReqs) > 0 ||
-              SK_ReShade_DrawCallback.fn != nullptr  )        )
+               SK_D3D11_Shaders->hasReShadeTriggers () ) )
         {
           tracking = true;
 
@@ -391,7 +391,7 @@ SK::ControlPanel::D3D11::Draw (void)
 
           else
           {
-            if (SK_ReShade_DrawCallback.fn != nullptr)
+            if (SK_D3D11_Shaders->hasReShadeTriggers ())
               lstrcatA (szThreadLocalStr, "  Draw Calls  ( Generic & ReShade Trigger ) ");
             else
               lstrcatA (szThreadLocalStr, "  Draw Calls  ( Generic ) ");
@@ -408,10 +408,6 @@ SK::ControlPanel::D3D11::Draw (void)
         {
           tracking = true;
           lstrcatA (szThreadLocalStr, "  Memory-Mapped I/O ");
-        }
-
-        if (SK_ReShade_DrawCallback.fn != nullptr)
-        {
         }
 
         ImGui::TextUnformatted (tracking ? szThreadLocalStr : " ");
@@ -558,7 +554,7 @@ SK::ControlPanel::D3D11::Draw (void)
         SK_GetFramesDrawn ();
 
       #pragma region "Advanced"
-      if ( config.render.dxgi.allow_d3d12_footguns &&
+      if ( (config.render.dxgi.allow_d3d12_footguns || config.reshade.is_addon) &&
            ImGui::TreeNode ("Recently Used Shaders")
          )
       {
@@ -1187,12 +1183,49 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::SetTooltip ("Try changing this option if textures / shaders are missing from the mod tools.");
     }
 
-    // This only works when we have wrapped SwapChains
-    if ( ReadAcquire (&SK_DXGI_LiveWrappedSwapChains)  != 0 ||
-         ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) != 0 )
+    if (! config.reshade.is_addon)
+    {
+      // This only works when we have wrapped SwapChains
+      if ( ReadAcquire (&SK_DXGI_LiveWrappedSwapChains)  != 0 ||
+           ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) != 0 )
+      {
+        if (d3d11 && !indirect) ImGui::SameLine ();
+        OSD::DrawVideoCaptureOptions ();
+      }
+    }
+
+    else
     {
       if (d3d11 && !indirect) ImGui::SameLine ();
-      OSD::DrawVideoCaptureOptions ();
+      bool changed =
+        ImGui::Checkbox ("Draw ReShade First", &config.reshade.draw_first);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("Apply ReShade Before SK Image Processing");
+        ImGui::Separator       ();
+        ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+        ImGui::TextUnformatted ("Draw First");
+        ImGui::PopStyleColor   ();
+        ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+        ImGui::BulletText      ("Intended for use with SDR, Native HDR and SK Inverse Tonemapped HDR.");
+        ImGui::BulletText      ("This mode has highest performance and should be used by default.");
+        ImGui::PopStyleColor   ();
+        ImGui::Spacing         ();
+        ImGui::Spacing         ();
+        ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+        ImGui::TextUnformatted ("Draw After");
+        ImGui::PopStyleColor   ();
+        ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+        ImGui::BulletText      ("Required if using ReShade to analyze SK's HDR Tonemapping.");
+        ImGui::BulletText      ("This mode has a slight performance penalty in D3D12.");
+        ImGui::PopStyleColor   ();
+        ImGui::EndTooltip      ();
+      }
+
+      if (changed)
+        SK_SaveConfig ();
     }
 
     if (d3d11 && (! indirect)) ImGui::SameLine ();

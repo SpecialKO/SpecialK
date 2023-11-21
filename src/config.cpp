@@ -239,7 +239,9 @@ SK_GetCurrentGameID (void)
           { L"CreationKit.exe",                        SK_GAME_ID::CreationKit                  },
           { L"TESConstructionSet.exe",                 SK_GAME_ID::ConstructionSet              },
           { L"LOTF2.exe",                              SK_GAME_ID::EasyAntiCheat                },
-          { L"LOTF2-Win64-Shipping.exe",               SK_GAME_ID::LordsOfTheFallen2            }
+          { L"LOTF2-Win64-Shipping.exe",               SK_GAME_ID::LordsOfTheFallen2            },
+          { L"AlanWake2.exe",                          SK_GAME_ID::AlanWake2                    },
+          { L"Cyberpunk2077.exe",                      SK_GAME_ID::Cyberpunk2077                }
         };
 
     first_check  = false;
@@ -588,6 +590,16 @@ struct {
   sk::ParameterBool*      play_sound              = nullptr;
   sk::ParameterBool*      copy_to_clipboard       = nullptr;
   sk::ParameterStringW*   override_path           = nullptr;
+
+  struct {
+    sk::ParameterBool*    use_avif                = nullptr;
+    sk::ParameterInt*     scrgb_bit_depth         = nullptr;
+    sk::ParameterInt*     yuv_subsampling         = nullptr;
+    sk::ParameterInt*     compression_quality     = nullptr;
+    sk::ParameterInt*     compression_speed       = nullptr;
+    //bool                full_range              =  true;
+    //int                 max_threads             =     3;
+  } avif;
 } screenshots;
 
 struct {
@@ -616,7 +628,8 @@ struct {
   {
     sk::ParameterFloat*   hdr_luminance           = nullptr;
   } overlay;
-} reshade;
+  sk::ParameterBool*      draw_first              = nullptr;
+} reshade_cfg;
 
 struct {
   sk::ParameterBool*      per_monitor_aware       = nullptr;
@@ -681,6 +694,7 @@ struct {
     sk::ParameterInt*     override_appid          = nullptr;
     sk::ParameterInt*     extra_pixels            = nullptr;
     sk::ParameterBool*    disable_ota_updates     = nullptr;
+    sk::ParameterBool*    allow_scrgb             = nullptr;
   } dlss;
 } nvidia;
 
@@ -1333,7 +1347,7 @@ auto DeclKeybind =
     ConfigEntry (uplay.overlay.hdr_luminance,            L"Make the uPlay Overlay visible in HDR mode!",               osd_ini,         L"uPlay.Overlay",         L"Luminance_scRGB"),
     ConfigEntry (rtss.overlay.hdr_luminance,             L"Make the RTSS Overlay visible in HDR mode!",                osd_ini,         L"RTSS.Overlay",          L"Luminance_scRGB"),
     ConfigEntry (discord.overlay.hdr_luminance,          L"Make the Discord Overlay visible in HDR mode!",             osd_ini,         L"Discord.Overlay",       L"Luminance_scRGB"),
-    ConfigEntry (reshade.overlay.hdr_luminance,          L"Make the ReShade Overlay visible in HDR mode!",             osd_ini,         L"ReShade.Overlay",       L"Luminance_scRGB"),
+    ConfigEntry (reshade_cfg.overlay.hdr_luminance,      L"Make the ReShade Overlay visible in HDR mode!",             osd_ini,         L"ReShade.Overlay",       L"Luminance_scRGB"),
 
     ConfigEntry (display.confirm_mode_changes,           L"Show Confirmation Dialog when Changing Display Modes",      osd_ini,         L"Display.Settings",      L"ConfirmChanges"),
     ConfigEntry (display.save_monitor_prefs,             L"Remember Monitor Preferences for the Current Game",         dll_ini,         L"Display.Monitor",       L"RememberPreference"),
@@ -1383,6 +1397,11 @@ auto DeclKeybind =
     ConfigEntry (screenshots.play_sound,                 L"Play a Sound when triggeirng Screenshot Capture",           osd_ini,         L"Screenshot.System",     L"PlaySoundOnCapture"),
     ConfigEntry (screenshots.copy_to_clipboard,          L"Copy an LDR copy to the Windows Clipboard",                 osd_ini,         L"Screenshot.System",     L"CopyToClipboard"),
     ConfigEntry (screenshots.override_path,              L"Where to store screenshots (if non-empty)",                 osd_ini,         L"Screenshot.System",     L"OverridePath"),
+    ConfigEntry (screenshots.avif.use_avif,              L"Use AVIF file format for HDR screenshots",                  osd_ini,         L"Screenshot.System",     L"UseAVIF"),
+    ConfigEntry (screenshots.avif.yuv_subsampling,       L"Chroma Subsampling (444, 422, 420, 400)",                   osd_ini,         L"Screenshot.AVIF",       L"SubsampleYUV"),
+    ConfigEntry (screenshots.avif.scrgb_bit_depth,       L"Bits to use for scRGB to PQ encoded images",                osd_ini,         L"Screenshot.AVIF",       L"scRGBtoPQBits"),
+    ConfigEntry (screenshots.avif.compression_quality,   L"Compression Quality: 0=Worst, 100=Lossless",                osd_ini,         L"Screenshot.AVIF",       L"Quality"),
+    ConfigEntry (screenshots.avif.compression_speed,     L"Compression Speed: 0=Slowest (Smallest File), 10=Fastest",  osd_ini,         L"Screenshot.AVIF",       L"Speed"),
     Keybind ( &config.render.keys.hud_toggle,            L"Toggle Game's HUD",                                         osd_ini,         L"Game.HUD"),
     Keybind ( &config.screenshots.game_hud_free_keybind, L"Take a screenshot without the HUD",                         osd_ini,         L"Screenshot.System"),
     Keybind ( &config.screenshots.sk_osd_free_keybind,   L"Take a screenshot without SK's OSD",                        osd_ini,         L"Screenshot.System"),
@@ -1410,6 +1429,7 @@ auto DeclKeybind =
     Keybind ( &config.sound.game_volume_down_keybind,    L"Decrease Game Volume 10%",                                  osd_ini,         L"Sound.Mixing"),
 
     Keybind ( &config.widgets.hide_all_widgets_keybind,  L"Temporarily hide all widgets",                              osd_ini,         L"Widgets.Global"),
+    Keybind ( &config.reshade.toggle_overlay_keybind,    L"Toggle ReShade Overlay (Add-On version)",                   osd_ini,         L"ReShade.AddOn"),
 
 
     // Input
@@ -1637,6 +1657,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.dlss.extra_pixels,               L"Add extra pixels when forcing DLAA",                        dll_ini,         L"NVIDIA.DLSS",           L"ExtraPixelsForDLAA"),
     ConfigEntry (nvidia.dlss.disable_ota_updates,        L"Disable OTA updates (i.e. NVIDIA phone-home every launch)", dll_ini,         L"NVIDIA.DLSS",           L"DisableOTAUpdates"),
     ConfigEntry (nvidia.dlss.show_active_features,       L"Show the in-use features in the DLSS settings tab",         osd_ini,         L"NVIDIA.DLSS",           L"ShowActiveFeatures"),
+    ConfigEntry (nvidia.dlss.allow_scrgb,                L"Allow scRGB even if DLSS-G DLLs are detected",              dll_ini,         L"NVIDIA.DLSS",           L"AllowSCRGBinDLSSG"),
 
     ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
 
@@ -1743,6 +1764,8 @@ auto DeclKeybind =
 
     ConfigEntry (amd.adl.disable,                        L"Disable AMD's ADL library",                                 dll_ini,         L"AMD.ADL",               L"Disable"),
     ConfigEntry (microsoft.d3dkmt.disable_perfdata,      L"Disable Microsoft's D3DKMT Performance Data",               dll_ini,         L"Microsoft.D3DKMT",      L"DisablePerfData"),
+
+    ConfigEntry (reshade_cfg.draw_first,                 L"Draw ReShade before SK's overlay in AddOn capable versions",dll_ini,         L"ReShade.System",        L"DrawFirst"),
 
     ConfigEntry (imgui.show_eula,                        L"Show Software EULA",                                        dll_ini,         L"SpecialK.System",       L"ShowEULA"),
     ConfigEntry (imgui.disable_alpha,                    L"Disable Alpha Transparency (reduce flicker)",               dll_ini,         L"ImGui.Render",          L"DisableAlpha"),
@@ -1985,11 +2008,22 @@ auto DeclKeybind =
           sec->first,
             L"Blacklist" );
 
+      import_.mode =
+         dynamic_cast <sk::ParameterStringW *>
+             (g_ParameterFactory->create_parameter <std::wstring> (
+                L"Plug-In Mode (application defined)")
+             );
+      import_.mode->register_to_ini (
+        dll_ini,
+          sec->first,
+            L"Mode" );
+
       static_cast <sk::iParameter *> (import_.filename    )->load ();
       static_cast <sk::iParameter *> (import_.when        )->load ();
       static_cast <sk::iParameter *> (import_.role        )->load ();
       static_cast <sk::iParameter *> (import_.architecture)->load ();
       static_cast <sk::iParameter *> (import_.blacklist   )->load ();
+      static_cast <sk::iParameter *> (import_.mode        )->load ();
 
       import_.hLibrary = nullptr;
 
@@ -2838,6 +2872,26 @@ auto DeclKeybind =
         config.window.borderless = true;
         config.window.center     = true;
         config.window.fullscreen = true;
+
+        void WINAPI
+          SK_D3D11_SetResourceRoot (const wchar_t *root);
+          SK_D3D11_SetResourceRoot (config.textures.d3d11.res_root.c_str ());
+
+        if (PathFileExistsW ((std::filesystem::path (SK_D3D11_res_root->c_str ()) / LR"(inject\textures\CDE62E66.dds)").c_str ()))
+        {
+          void *pSteamInput001 =
+            SK_Scan ("SteamInput001", 13, "SteamInput001");
+
+          if (pSteamInput001 != nullptr)
+          {
+            DWORD                                                            dwOriginal = 0;
+            if (VirtualProtect (pSteamInput001, 13, PAGE_EXECUTE_READWRITE, &dwOriginal))
+            {
+                        memcpy (pSteamInput001, "SteamInputDie", 13);
+                VirtualProtect (pSteamInput001, 13, dwOriginal,             &dwOriginal);
+            }
+          }
+        }
       } break;
 
       case SK_GAME_ID::MonsterHunterWorld:
@@ -3226,6 +3280,61 @@ auto DeclKeybind =
       case SK_GAME_ID::Starfield:
         config.compatibility.reshade_mode = false;
         break;
+
+      case SK_GAME_ID::AlanWake2:
+      {        void *pOverlayCheck =
+          (void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x1E74B09);
+
+        DWORD                                                          dwOriginal = 0;
+        if (VirtualProtect (pOverlayCheck, 5, PAGE_EXECUTE_READWRITE, &dwOriginal))
+        { if (! memcmp (    pOverlayCheck, "\xE8\x42\xB5\x1E\xFF", 5))
+          {
+            SK_LOGi0 (L"Disabled Alan Wake 2 Overlay Check");
+            memcpy (        pOverlayCheck, "\x90\x90\x90\x90\x90", 5);
+          }
+        } VirtualProtect (  pOverlayCheck, 5, dwOriginal, &dwOriginal);
+
+        plugin_mgr->first_frame_fns.emplace (
+        [](IUnknown *, UINT, UINT) -> HRESULT
+        {
+          if (  GetModuleHandleW (L"RTSSHooks64.dll") != nullptr &&
+              (! PathFileExistsW (L"SpecialK.RTSSWarned")) )
+          {
+            SK_ImGui_Warning (
+              L"RTSS disables the Epic overlay, which is required to activate this game.\r\n\r\n"
+              L"\t>> This warning will not be shown again."
+            );
+        
+            FILE *fWarned =
+              fopen ("SpecialK.RTSSWarned", "w");
+        
+            if (         fWarned != nullptr)
+            { fputc  (0, fWarned);
+              fclose (   fWarned);
+            }
+          }
+        
+          if ( ! GetModuleHandleW (L"EOSOVH-Win64-Shipping.dll") && 
+              (! PathFileExistsW  (L"SpecialK.RTSSWarned")) )
+          {
+            SK_ImGui_Warning (
+              L"The EOS Overlay is required once to activate this game.\r\n\r\n"
+              L"\t>> This warning will not be shown again."
+            );
+        
+            FILE *fWarned =
+              fopen ("SpecialK.EOSWarned", "w");
+        
+            if (         fWarned != nullptr)
+            { fputc  (0, fWarned);
+              fclose (   fWarned);
+            }
+          }
+        
+          return S_OK;
+        });
+
+      } break;
     }
   }
 
@@ -3268,14 +3377,6 @@ auto DeclKeybind =
 #ifdef _M_AMD64
   apis.Vulkan.hook->load (config.apis.Vulkan.hook);
 #endif
-  
-  // Variables used to indicate changes for next launch
-  config.apis.d3d9.hook_next       = config.apis.d3d9.hook;
-  config.apis.d3d9ex.hook_next     = config.apis.d3d9ex.hook;
-  config.apis.dxgi.d3d11.hook_next = config.apis.dxgi.d3d11.hook;
-  config.apis.dxgi.d3d12.hook_next = config.apis.dxgi.d3d12.hook;
-  config.apis.OpenGL.hook_next     = config.apis.OpenGL.hook;
-  config.apis.Vulkan.hook_next     = config.apis.Vulkan.hook;
 
   init = TRUE;
 }
@@ -3373,6 +3474,7 @@ auto DeclKeybind =
   if (microsoft.d3dkmt.disable_perfdata->load (config.apis.D3DKMT.enable_perfdata))
      config.apis.D3DKMT.enable_perfdata = (! microsoft.d3dkmt.disable_perfdata->get_value ());
 
+  reshade_cfg.draw_first->load              (config.reshade.draw_first);
 
   display.force_fullscreen->load            (config.display.force_fullscreen);
   display.force_windowed->load              (config.display.force_windowed);
@@ -3470,6 +3572,7 @@ auto DeclKeybind =
   nvidia.dlss.override_appid->load           (config.nvidia.dlss.compat.override_appid);
   nvidia.dlss.disable_ota_updates->load      (config.nvidia.dlss.disable_ota_updates);
   nvidia.dlss.show_active_features->load     (config.nvidia.dlss.show_active_features);
+  nvidia.dlss.allow_scrgb->load              (config.nvidia.dlss.allow_scrgb);
 
   render.hdr.enable_32bpc->load              (config.render.hdr.enable_32bpc);
 
@@ -4456,6 +4559,16 @@ auto DeclKeybind =
   screenshots.copy_to_clipboard->load         (config.screenshots.copy_to_clipboard);
   screenshots.override_path->load             (config.screenshots.override_path);
 
+  screenshots.avif.use_avif->load             (config.screenshots.use_avif);
+  screenshots.avif.yuv_subsampling->load      (config.screenshots.avif.yuv_subsampling);
+  screenshots.avif.scrgb_bit_depth->load      (config.screenshots.avif.scrgb_bit_depth);
+  screenshots.avif.compression_quality->load  (config.screenshots.avif.compression_quality);
+  screenshots.avif.compression_speed->load    (config.screenshots.avif.compression_speed);
+
+  // AVIF Unsupported in 32-bit
+  if (SK_GetBitness () == SK_Bitness::ThirtyTwoBit)
+    config.screenshots.use_avif = false;
+
   LoadKeybind (&config.render.keys.hud_toggle);
   LoadKeybind (&config.screenshots.game_hud_free_keybind);
   LoadKeybind (&config.screenshots.sk_osd_free_keybind);
@@ -4478,6 +4591,7 @@ auto DeclKeybind =
   LoadKeybind (&config.sound.game_volume_down_keybind);
 
   LoadKeybind (&config.widgets.hide_all_widgets_keybind);
+  LoadKeybind (&config.reshade.toggle_overlay_keybind);
 
 
   if (config.steam.dll_path.empty ())
@@ -4635,34 +4749,32 @@ auto DeclKeybind =
   if (! migrate_platform_config.empty ())
     platform_ini->rename (migrate_platform_config.c_str ());
 
-  if (ReadAcquire (&__SK_DLL_Attached))
+
+  // Config opted-in to debugger wait
+  if (config.system.wait_for_debugger)
   {
-    // Config opted-in to debugger wait
-    if (config.system.wait_for_debugger)
-    {
-      SK_ApplyQueuedHooks ();
+    SK_ApplyQueuedHooks ();
 
-      extern void NTAPI RtlAcquirePebLock_Detour (void);
-      extern void NTAPI RtlReleasePebLock_Detour (void);
-      extern bool   SK_Debug_CheckDebugFlagInPEB (void);
+    extern void NTAPI RtlAcquirePebLock_Detour (void);
+    extern void NTAPI RtlReleasePebLock_Detour (void);
+    extern bool   SK_Debug_CheckDebugFlagInPEB (void);
 
-      if (      ! SK_IsDebuggerPresent ())
-      { while ((! SK_IsDebuggerPresent ()))
-        {
-          bool  _break = false;
+    if (      ! SK_IsDebuggerPresent ())
+    { while ((! SK_IsDebuggerPresent ()))
+      {
+        bool  _break = false;
 
-          RtlAcquirePebLock_Detour ();
-                SK_SleepEx (50, TRUE);
-                _break =
-                  SK_Debug_CheckDebugFlagInPEB ();
-          RtlReleasePebLock_Detour ();
+        RtlAcquirePebLock_Detour ();
+              SK_SleepEx (50, TRUE);
+              _break =
+                SK_Debug_CheckDebugFlagInPEB ();
+        RtlReleasePebLock_Detour ();
 
-          if (_break)
-            break;
-        }
-
-        __debugbreak ();
+        if (_break)
+          break;
       }
+
+      __debugbreak ();
     }
   }
 
@@ -4982,17 +5094,29 @@ SK_SaveConfig ( std::wstring name,
   apis.last_known->store                      (static_cast <int> (config.apis.last_known));
 
 #ifdef _M_IX86
+  if (config.apis.ddraw.hook_next != SK_NoPreference) config.apis.ddraw.hook = config.apis.ddraw.hook_next != 0;
+  if (config.apis.d3d8.hook_next  != SK_NoPreference) config.apis.d3d8.hook  = config.apis.d3d8.hook_next  != 0;
+
   apis.ddraw.hook->store                      (config.apis.ddraw.hook);
   apis.d3d8.hook->store                       (config.apis.d3d8.hook);
 #endif
-  apis.d3d9.hook->store                       (config.apis.d3d9.hook_next);
-  apis.d3d9ex.hook->store                     (config.apis.d3d9ex.hook_next);
+  // Change the settings now if the user changed them from the control panel
+  if (config.apis.d3d9.hook_next       != SK_NoPreference) config.apis.d3d9.hook       = config.apis.d3d9.hook_next       != 0;
+  if (config.apis.d3d9ex.hook_next     != SK_NoPreference) config.apis.d3d9ex.hook     = config.apis.d3d9ex.hook_next     != 0;
+  if (config.apis.dxgi.d3d11.hook_next != SK_NoPreference) config.apis.dxgi.d3d11.hook = config.apis.dxgi.d3d11.hook_next != 0;
+  if (config.apis.dxgi.d3d12.hook_next != SK_NoPreference) config.apis.dxgi.d3d12.hook = config.apis.dxgi.d3d12.hook_next != 0;
+  if (config.apis.OpenGL.hook_next     != SK_NoPreference) config.apis.OpenGL.hook     = config.apis.OpenGL.hook_next     != 0;
+
+  apis.d3d9.hook->store                       (config.apis.d3d9.hook);
+  apis.d3d9ex.hook->store                     (config.apis.d3d9ex.hook);
   apis.dxvk9.enable->store                    (config.apis.d3d9.native_dxvk);
-  apis.d3d11.hook->store                      (config.apis.dxgi.d3d11.hook_next);
-  apis.d3d12.hook->store                      (config.apis.dxgi.d3d12.hook_next);
-  apis.OpenGL.hook->store                     (config.apis.OpenGL.hook_next);
+  apis.d3d11.hook->store                      (config.apis.dxgi.d3d11.hook);
+  apis.d3d12.hook->store                      (config.apis.dxgi.d3d12.hook);
+  apis.OpenGL.hook->store                     (config.apis.OpenGL.hook);
 #ifdef _M_AMD64
-  apis.Vulkan.hook->store                     (config.apis.Vulkan.hook_next);
+  if (config.apis.Vulkan.hook_next != SK_NoPreference) config.apis.Vulkan.hook = config.apis.Vulkan.hook_next != 0;
+
+  apis.Vulkan.hook->store                     (config.apis.Vulkan.hook);
 #endif
 
   nvidia.api.disable_hdr->store               (config.apis.NvAPI.disable_hdr);
@@ -5312,12 +5436,14 @@ SK_SaveConfig ( std::wstring name,
       nvidia.dlss.override_appid->store           (config.nvidia.dlss.compat.override_appid);
       nvidia.dlss.disable_ota_updates->store      (config.nvidia.dlss.disable_ota_updates);
       nvidia.dlss.show_active_features->store     (config.nvidia.dlss.show_active_features);
+      nvidia.dlss.allow_scrgb->store              (config.nvidia.dlss.allow_scrgb);
       render.framerate.max_delta_time->store      (config.render.framerate.max_delta_time);
       render.framerate.flip_discard->store        (config.render.framerate.flip_discard);
       render.framerate.flip_sequential->store     (config.render.framerate.flip_sequential);
       render.framerate.disable_flip_model->store  (config.render.framerate.disable_flip);
       render.framerate.allow_dwm_tearing->store   (config.render.dxgi.allow_tearing);
       render.framerate.drop_late_frames->store    (config.render.framerate.drop_late_flips);
+      if                                          (config.render.hdr.enable_32bpc)
       render.hdr.enable_32bpc->store              (config.render.hdr.enable_32bpc);
 
       texture.d3d11.cache->store                  (config.textures.d3d11.cache);
@@ -5436,9 +5562,13 @@ SK_SaveConfig ( std::wstring name,
     }
   }
 
+  // Don't write this setting unless an AddOn capable version of ReShade is loaded
+  if (config.reshade.is_addon)
+    reshade_cfg.draw_first->store             (config.reshade.draw_first);
+
   if (SK_GetFramesDrawn ())
   {
-    render.osd.draw_in_vidcap->store            (config.render.osd.draw_in_vidcap);
+    render.osd.draw_in_vidcap->store          (config.render.osd.draw_in_vidcap);
 
     config.render.osd.hdr_luminance = rb.ui_luminance;
     render.osd.hdr_luminance->store  (rb.ui_luminance);
@@ -5556,6 +5686,16 @@ SK_SaveConfig ( std::wstring name,
   screenshots.play_sound->store                (config.screenshots.play_sound);
   screenshots.copy_to_clipboard->store         (config.screenshots.copy_to_clipboard);
   screenshots.override_path->store             (config.screenshots.override_path);
+
+  // AVIF Unsupported in 32-bit
+  if (SK_GetBitness () != SK_Bitness::ThirtyTwoBit)
+  {
+    screenshots.avif.use_avif->store           (config.screenshots.use_avif);
+    screenshots.avif.yuv_subsampling->store    (config.screenshots.avif.yuv_subsampling);
+    screenshots.avif.scrgb_bit_depth->store    (config.screenshots.avif.scrgb_bit_depth);
+    screenshots.avif.compression_quality->store(config.screenshots.avif.compression_quality);
+    screenshots.avif.compression_speed->store  (config.screenshots.avif.compression_speed);
+  }
 
   uplay.overlay.hdr_luminance->store           (config.uplay.overlay_luminance);
   discord.overlay.hdr_luminance->store         (config.discord.overlay_luminance);

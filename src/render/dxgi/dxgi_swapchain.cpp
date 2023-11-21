@@ -1750,12 +1750,19 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
 
   if (config.render.dxgi.skip_mode_changes)
   {
+    // Never skip buffer resizes if we have encountered a fullscreen SwapChain
+    static bool was_ever_fullscreen = false;
+
+    was_ever_fullscreen |=
+      (swap_desc.Windowed == false);
+
     if (! ((swap_desc.BufferDesc.Width  == Width)                                                   &&
            (swap_desc.BufferDesc.Height == Height)                                                  &&
            (swap_desc.BufferDesc.Format == NewFormat      || NewFormat      == DXGI_FORMAT_UNKNOWN) &&
            (swap_desc.BufferCount       == BufferCount    || BufferCount    == 0)                   &&
            (swap_desc.Flags             == SwapChainFlags || SwapChainFlags == 0x0))
-        || (state_cache._stalebuffers)
+        || (state_cache._stalebuffers) ||
+            was_ever_fullscreen
        )
     {
       skippable = false;
@@ -1854,6 +1861,9 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
     bool d3d12 =
       (pD3D12Dev.p != nullptr);
 
+    SK_ComQIPtr <IDXGISwapChain3>
+             pSwap3 (pSwapChain);
+
     // When skipping resize operations in D3D12, there's an important side-effect that
     //   must be reproduced:
     // 
@@ -1861,7 +1871,7 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
     //
     //  --> We need to make several unsynchronized Present calls until we advance back to
     //        backbuffer index 0.
-    if (d3d12)
+    if (d3d12 && pSwap3->GetCurrentBackBufferIndex () != 0)
     {
       int iUnsyncedPresents = 0;
 
@@ -1873,13 +1883,11 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
       {
         ++iUnsyncedPresents;
 
+        if (pSwap3->GetCurrentBackBufferIndex () == 0)
+          break;
+
         hrUnsynced =
           pSwapChain->Present (0, DXGI_PRESENT_RESTART | DXGI_PRESENT_DO_NOT_WAIT);
-
-        SK_ComQIPtr <IDXGISwapChain3>
-            pSwap3 (pSwapChain);
-        if (pSwap3                               == nullptr
-         || pSwap3->GetCurrentBackBufferIndex () == 0) break;
       }
 
       SK_LOGi0 (

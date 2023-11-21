@@ -331,9 +331,6 @@
     <Filter Include="Header Files\Backends\Render\D3D12">
       <UniqueIdentifier>{3e923e07-48d4-4ac9-bf42-013e95361c6d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Plugins\Stats">
-      <UniqueIdentifier>{46b35bbb-43dd-4ec7-83ea-39ec6981e286}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\External Libraries\Tobii">
       <UniqueIdentifier>{3ed5eb19-e630-4601-8755-13c12f7d0de1}</UniqueIdentifier>
     </Filter>
@@ -373,6 +370,9 @@
     <Filter Include="Header Files\External Libraries\avif">
       <UniqueIdentifier>{1958ca27-6d90-4274-95f7-7e7143620231}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Stats">
+      <UniqueIdentifier>{46b35bbb-43dd-4ec7-83ea-39ec6981e286}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -397,10 +397,10 @@
       <Filter>Header Files\External Libraries\DirectXTex</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\adl.h">
-      <Filter>Header Files\Plugins\Stats</Filter>
+      <Filter>Header Files\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\nvapi.h">
-      <Filter>Header Files\Plugins\Stats</Filter>
+      <Filter>Header Files\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\framerate.h">
       <Filter>Header Files\Utility</Filter>
@@ -547,10 +547,10 @@
       <Filter>Header Files\Backends\Render</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\performance\gpu_monitor.h">
-      <Filter>Header Files\Plugins\Stats</Filter>
+      <Filter>Header Files\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\performance\io_monitor.h">
-      <Filter>Header Files\Plugins\Stats</Filter>
+      <Filter>Header Files\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\d3d9\d3d9_texmgr.h">
       <Filter>Header Files\Backends\Render\D3D9</Filter>
@@ -691,16 +691,16 @@
       <Filter>Header Files\Backends</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\memory.h">
-      <Filter>Header Files\Plugins\Stats</Filter>
+      <Filter>Header Files\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\network.h">
-      <Filter>Header Files\Plugins\Stats</Filter>
+      <Filter>Header Files\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\cpu.h">
-      <Filter>Header Files\Plugins\Stats</Filter>
+      <Filter>Header Files\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\file.h">
-      <Filter>Header Files\Plugins\Stats</Filter>
+      <Filter>Header Files\Stats</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\input.h">
       <Filter>Header Files\Config</Filter>
@@ -712,9 +712,6 @@
       <Filter>Header Files\Control Panel</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\plugins.h">
-      <Filter>Header Files\Control Panel</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SpecialK\plugin\reshade.h">
       <Filter>Header Files\Control Panel</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\osd.h">
@@ -2985,6 +2982,9 @@
     <ClInclude Include="include\SpecialK\render\ngx\ngx_dlss.h">
       <Filter>Header Files\Backends\Render\ngx</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\plugin\reshade.h">
+      <Filter>Header Files\Plugins</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -4633,12 +4633,6 @@
     </FxCompile>
     <FxCompile Include="resource\shaders\HDR\common_defs.hlsl">
       <Filter>Resource Files\Shaders\HDR</Filter>
-    </FxCompile>
-    <FxCompile Include="resource\shaders\reshade_d3d11_vs.hlsl">
-      <Filter>Resource Files\Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="resource\shaders\reshade_d3d11_ps.hlsl">
-      <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

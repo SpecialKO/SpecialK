@@ -263,140 +263,6 @@ struct shader_stage_s
   real_bindings    = { };
 };
 
-
-using SK_ReShade_PresentCallback_pfn              =
-     bool (__stdcall *)( void *user );
-using SK_ReShade_OnGetDepthStencilViewD3D11_pfn   =
-  void (__stdcall *)(void *user, ID3D11DepthStencilView *&depthstencil);
-using SK_ReShade_OnSetDepthStencilViewD3D11_pfn   =
-  void (__stdcall *)(void *user, ID3D11DepthStencilView *&depthstencil);
-using SK_ReShade_OnDrawD3D11_pfn                  =
-  void (__stdcall *)(void *user, ID3D11DeviceContext     *context,
-                                 unsigned int             vertices);
-using SK_ReShade_OnCopyResourceD3D11_pfn          =
-     void (__stdcall *)( void *user, ID3D11Resource *&dest,
-                                     ID3D11Resource *&source );
-using SK_ReShade_OnClearDepthStencilViewD3D11_pfn =
-     void (__stdcall *)( void *user, ID3D11DepthStencilView *&depthstencil);
-
-struct SK_RESHADE_CALLBACK_DRAW
-{
-  SK_ReShade_OnDrawD3D11_pfn fn   = nullptr;
-  void*                      data = nullptr;
-  __forceinline void call (
-    ID3D11DeviceContext *context,
-    unsigned int         vertices,
-    UINT                 dev_idx = (UINT)-1,
-    SK_TLS              *pTLS    = nullptr
-  )
-  {
-    if (dev_idx == (UINT)-1)
-    {   dev_idx =
-          SK_D3D11_GetDeviceContextHandle (context); }
-
-    if (SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx, context))
-      return;
-
-    if ( data != nullptr && fn != nullptr &&
-        (pTLS == nullptr || (  ! pTLS->imgui->drawing)) )
-    {
-      if (pTLS == nullptr)
-          pTLS = SK_TLS_Bottom ();
-
-      if (pTLS != nullptr)
-      {
-        SK_ScopedBool autobool0
-        (&pTLS->imgui->drawing);
-          pTLS->imgui->drawing = true;
-
-        SK_ScopedBool decl_tex_scope (
-          SK_D3D11_DeclareTexInjectScope (pTLS)
-        );
-      }
-
-      fn (data, context, vertices);
-    }
-  }
-} extern SK_ReShade_DrawCallback;
-
-struct SK_RESHADE_CALLBACK_SetDSV
-{
-  SK_ReShade_OnSetDepthStencilViewD3D11_pfn fn   = nullptr;
-  void*                                     data = nullptr;
-
-  __forceinline void try_call (ID3D11DepthStencilView *&depthstencil)
-  {
-    if ((uintptr_t)data + (uintptr_t)fn != 0)
-      return call (depthstencil);
-  }
-
-  __forceinline void call (ID3D11DepthStencilView *&depthstencil,
-                           SK_TLS                 *pTLS = nullptr)
-  {
-    if ( data != nullptr && fn != nullptr &&
-        (pTLS == nullptr || (  ! pTLS->imgui->drawing)) )
-    {
-      fn (data, depthstencil);
-    }
-  }
-} extern SK_ReShade_SetDepthStencilViewCallback;
-
-struct SK_RESHADE_CALLBACK_GetDSV
-{
-  SK_ReShade_OnGetDepthStencilViewD3D11_pfn fn   = nullptr;
-  void*                                     data = nullptr;
-
-  __forceinline void try_call (ID3D11DepthStencilView *&depthstencil)
-  {
-    if ((uintptr_t)data + (uintptr_t)fn != 0)
-      return call (depthstencil);
-  }
-
-  __forceinline void call ( ID3D11DepthStencilView *&depthstencil,
-                            SK_TLS                 *pTLS = nullptr )
-  {
-    if ( data != nullptr && fn != nullptr &&
-        (pTLS == nullptr || (  ! pTLS->imgui->drawing)) )
-    {
-      fn (data, depthstencil);
-    }
-  }
-} extern SK_ReShade_GetDepthStencilViewCallback;
-
-struct SK_RESHADE_CALLBACK_ClearDSV
-{
-  SK_ReShade_OnClearDepthStencilViewD3D11_pfn fn   = nullptr;
-  void*                                       data = nullptr;
-
-  __forceinline void try_call (ID3D11DepthStencilView *&depthstencil)
-  {
-    if ((uintptr_t)data + (uintptr_t)fn != 0)
-      return call (depthstencil);
-  }
-
-  __forceinline void call ( ID3D11DepthStencilView *&depthstencil,
-                            SK_TLS                 *pTLS = nullptr )
-  {
-    if ( data != nullptr && fn != nullptr &&
-        (pTLS == nullptr || (  ! pTLS->imgui->drawing)) )
-    {
-      fn (data, depthstencil);
-    }
-  }
-} extern SK_ReShade_ClearDepthStencilViewCallback;
-
-struct SK_RESHADE_CALLBACK_CopyResource
-{
-  SK_ReShade_OnCopyResourceD3D11_pfn fn   = nullptr;
-  void*                              data = nullptr;
-  __forceinline void call ( ID3D11Resource *&dest,
-                            ID3D11Resource *&source,
-                            SK_TLS          *pTLS = nullptr )
-  { if (data != nullptr && fn != nullptr && (pTLS == nullptr ||
-(! pTLS->imgui->drawing))) fn (data, dest, source); }
-} extern SK_ReShade_CopyResourceCallback;
-
-
 uint32_t
 __cdecl
 SK_D3D11_ChecksumShaderBytecode (
@@ -1516,6 +1382,8 @@ struct d3d11_shader_tracking_s
     set_of_res.clear   ();
     set_of_views.clear ();
 
+    first_rtv = { };
+
     std::scoped_lock <SK_Thread_HybridSpinlock>
          auto_lock (*shader_class_crit_sec ());
 
@@ -1526,8 +1394,8 @@ struct d3d11_shader_tracking_s
     //used_textures.clear ();
   }
 
-  void use        ( IUnknown* pShader );
-  void use_cmdlist( IUnknown* pShader ); // Deferred draw, cannot be timed
+  void use        ( ID3D11DeviceContext* pDevCtx );
+  void use_cmdlist( ID3D11DeviceContext* pDevCtx ); // Deferred draw, cannot be timed
 
   // Used for timing queries and interface tracking
   void activate   ( ID3D11DeviceContext        *pDevContext,
@@ -1622,6 +1490,8 @@ struct d3d11_shader_tracking_s
     SK_ComPtr <ID3D11Resource>             > set_of_res;
   concurrency::concurrent_unordered_set <
     SK_ComPtr <ID3D11ShaderResourceView>   > set_of_views;
+
+  D3D11_TEXTURE2D_DESC first_rtv;
 
 
   struct cbuffer_override_s {
@@ -1811,7 +1681,13 @@ struct SK_D3D11_KnownShaders
     }
   };
 
-
+  bool hasReShadeTriggers (void)
+  {
+    return
+      config.reshade.is_addon &&
+        ( (! pixel.trigger_reshade.before.empty  ()) ||
+          (! vertex.trigger_reshade.before.empty ()) );
+  }
   //static std::array <bool, SK_D3D11_MAX_DEV_CONTEXTS+1> reshade_triggered;
   static bool                           reshade_triggered;
 
@@ -2351,6 +2227,8 @@ struct SK_D3D11_RenderCtx {
   SK_ComPtr <ID3D11Device>                  _pDevice          = nullptr;
   SK_ComPtr <ID3D11DeviceContext>           _pDeviceCtx       = nullptr;
   SK_ComPtr <IDXGISwapChain>                _pSwapChain       = nullptr;
+
+  reshade::api::effect_runtime*             _pReShadeRuntime  = nullptr;
 
   struct FrameCtx {
     SK_D3D11_RenderCtx*                     pRoot             = nullptr;  

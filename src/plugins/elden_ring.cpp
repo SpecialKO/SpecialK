@@ -688,101 +688,112 @@ SK_ER_InitConfig (void)
   }
 }
 
-void
-SK_ER_InitPlugin (void)
+void __stdcall
+SK_ER_DeferredInit (void)
 {
-  SK_ER_InitConfig ();
-
-  auto& addr_cache =
-    SK_ER_PlugIn.addresses [SK_GetDLLVersionStr (SK_GetHostApp ())].cached;
-
-  if (             const auto* pClockTick0 = (uint8_t *)
-       SK_Debug_GetImageBaseAddr () +
-                            addr_cache ["clock_tick0"] ;
-       SK_ValidatePointer     (pClockTick0) &&
-       SK_IsAddressExecutable (pClockTick0) &&
-                              *pClockTick0  == 0xC7 )
+  if (SK_GetFramesDrawn () > 15)
   {
-    auto *cp =
-      SK_Render_InitializeSharedCVars ();
+    plugin_mgr->end_frame_fns.erase (SK_ER_DeferredInit);
 
-    if (! cp)
+    SK_ER_InitConfig ();
+
+    auto& addr_cache =
+      SK_ER_PlugIn.addresses [SK_GetDLLVersionStr (SK_GetHostApp ())].cached;
+
+    if (             const auto* pClockTick0 = (uint8_t *)
+         SK_Debug_GetImageBaseAddr () +
+                              addr_cache ["clock_tick0"] ;
+         SK_ValidatePointer     (pClockTick0) &&
+         SK_IsAddressExecutable (pClockTick0) &&
+                                *pClockTick0  == 0xC7 )
     {
-      SK_ImGui_Warning (L"Special K Command Processor is Busted...");
+      auto *cp =
+        SK_Render_InitializeSharedCVars ();
+
+      if (! cp)
+      {
+        SK_ImGui_Warning (L"Special K Command Processor is Busted...");
+
+        return;
+      }
+
+      cp->AddVariable (
+        "EldenRing.fClockMultiplier", SK_CreateVar ( SK_IVariable::Float,
+                                                    &SK_ER_PlugIn.fSpeed )
+                                         );
+
+      for ( auto &[patch, name] :
+          std::initializer_list <
+            std::pair <code_patch_s&, std::string> >
+              { { SK_ER_PlugIn.clock_tick0, "clock_tick0" },
+                { SK_ER_PlugIn.clock_tick1, "clock_tick1" },
+                { SK_ER_PlugIn.clock_tick2, "clock_tick2" },
+                { SK_ER_PlugIn.clock_tick3, "clock_tick3" },
+                { SK_ER_PlugIn.clock_tick4, "clock_tick4" },
+                { SK_ER_PlugIn.clock_tick5, "clock_tick5" } } )
+      {
+        patch.pAddr = (void *)addr_cache [name];
+
+        (uintptr_t&)patch.pAddr +=
+          (uintptr_t)SK_Debug_GetImageBaseAddr ();
+
+        memcpy (
+          patch.original.inst_bytes.data (),
+          patch.pAddr, 7
+        );
+
+        patch.apply ( SK_ER_PlugIn.bUncapFramerate ?
+                                &patch.replacement : &patch.original );
+      }
+
+
+      if (addr_cache.contains ("write_delta"))
+      {
+        DWORD dwOldProt = 0x0;
+        uint8_t* pNOP   = (uint8_t *)SK_Debug_GetImageBaseAddr () + addr_cache ["write_delta"];
+
+        // Disable the code that writes delta time every frame
+        VirtualProtect (pNOP,  8, PAGE_EXECUTE_READWRITE, &dwOldProt);
+        memcpy (        pNOP, "\x90\x90\x90\x90\x90\x90\x90\x90",  8);
+        VirtualProtect (pNOP,  8,              dwOldProt, &dwOldProt);
+      }
+
+
+      // Added in 1.3.1.0
+      if (addr_cache.contains ("write_delta0"))
+      {
+        DWORD dwOldProt = 0x0;
+        uint8_t* pNOP   = (uint8_t *)SK_Debug_GetImageBaseAddr () + addr_cache ["write_delta0"];
+      
+        // Disable the code that writes delta time every frame
+        VirtualProtect (pNOP,  6, PAGE_EXECUTE_READWRITE, &dwOldProt);
+        memcpy (        pNOP, "\x90\x90\x90\x90\x90\x90",          6);
+        VirtualProtect (pNOP,  6,              dwOldProt, &dwOldProt);
+
+                 pNOP   = (uint8_t *)SK_Debug_GetImageBaseAddr () + addr_cache ["write_delta1"];
+        
+        VirtualProtect (pNOP,  6, PAGE_EXECUTE_READWRITE, &dwOldProt);
+        memcpy (        pNOP, "\x90\x90\x90\x90\x90\x90",          6);
+        VirtualProtect (pNOP,  6,              dwOldProt, &dwOldProt);
+      }
+
+
+      plugin_mgr->end_frame_fns.emplace (SK_ER_EndFrame );
+      plugin_mgr->config_fns.emplace    (SK_ER_PlugInCfg);
 
       return;
     }
 
-    cp->AddVariable (
-      "EldenRing.fClockMultiplier", SK_CreateVar ( SK_IVariable::Float,
-                                                  &SK_ER_PlugIn.fSpeed )
-                                       );
-
-    for ( auto &[patch, name] :
-        std::initializer_list <
-          std::pair <code_patch_s&, std::string> >
-            { { SK_ER_PlugIn.clock_tick0, "clock_tick0" },
-              { SK_ER_PlugIn.clock_tick1, "clock_tick1" },
-              { SK_ER_PlugIn.clock_tick2, "clock_tick2" },
-              { SK_ER_PlugIn.clock_tick3, "clock_tick3" },
-              { SK_ER_PlugIn.clock_tick4, "clock_tick4" },
-              { SK_ER_PlugIn.clock_tick5, "clock_tick5" } } )
-    {
-      patch.pAddr = (void *)addr_cache [name];
-
-      (uintptr_t&)patch.pAddr +=
-        (uintptr_t)SK_Debug_GetImageBaseAddr ();
-
-      memcpy (
-        patch.original.inst_bytes.data (),
-        patch.pAddr, 7
-      );
-
-      patch.apply ( SK_ER_PlugIn.bUncapFramerate ?
-                              &patch.replacement : &patch.original );
-    }
-
-
-    if (addr_cache.contains ("write_delta"))
-    {
-      DWORD dwOldProt = 0x0;
-      uint8_t* pNOP   = (uint8_t *)SK_Debug_GetImageBaseAddr () + addr_cache ["write_delta"];
-
-      // Disable the code that writes delta time every frame
-      VirtualProtect (pNOP,  8, PAGE_EXECUTE_READWRITE, &dwOldProt);
-      memcpy (        pNOP, "\x90\x90\x90\x90\x90\x90\x90\x90",  8);
-      VirtualProtect (pNOP,  8,              dwOldProt, &dwOldProt);
-    }
-
-
-    // Added in 1.3.1.0
-    if (addr_cache.contains ("write_delta0"))
-    {
-      DWORD dwOldProt = 0x0;
-      uint8_t* pNOP   = (uint8_t *)SK_Debug_GetImageBaseAddr () + addr_cache ["write_delta0"];
-    
-      // Disable the code that writes delta time every frame
-      VirtualProtect (pNOP,  6, PAGE_EXECUTE_READWRITE, &dwOldProt);
-      memcpy (        pNOP, "\x90\x90\x90\x90\x90\x90",          6);
-      VirtualProtect (pNOP,  6,              dwOldProt, &dwOldProt);
-
-               pNOP   = (uint8_t *)SK_Debug_GetImageBaseAddr () + addr_cache ["write_delta1"];
-      
-      VirtualProtect (pNOP,  6, PAGE_EXECUTE_READWRITE, &dwOldProt);
-      memcpy (        pNOP, "\x90\x90\x90\x90\x90\x90",          6);
-      VirtualProtect (pNOP,  6,              dwOldProt, &dwOldProt);
-    }
-
-
-    plugin_mgr->end_frame_fns.emplace (SK_ER_EndFrame );
-    plugin_mgr->config_fns.emplace    (SK_ER_PlugInCfg);
-
-    return;
+    SK_ImGui_Warning (
+      L"This version of Elden Ring is not Compatible with Special K"
+    );
   }
+}
 
-  SK_ImGui_Warning (
-    L"This version of Elden Ring is not Compatible with Special K"
-  );
+void
+SK_ER_InitPlugin (void)
+{
+  plugin_mgr->end_frame_fns.emplace (SK_ER_DeferredInit);
 }
 
 

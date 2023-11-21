@@ -69,29 +69,6 @@ struct shader_disasm_s {
 void* SK_D3D11_InitShaderMods  (void) noexcept;
 void  SK_D3D11_LoadShaderState (bool clear = true);
 
-struct SK_ReShadeDrawCallback_s
-{
-  constexpr SK_ReShadeDrawCallback_s (void) = default;
-
-  SK_ReShade_PresentCallback_pfn fn   = nullptr;
-  void*                          data = nullptr;
-
-  struct explict_draw_s
-  {
-    constexpr explict_draw_s (void) = default;
-
-    void*                   ptr     = nullptr;
-    ID3D11RenderTargetView* pRTV    = nullptr;
-    bool                    pass    = false;
-    int                     calls   = 0;
-    ID3D11DeviceContext*    src_ctx = nullptr;
-  } explicit_draw;
-};
-
-extern
-SK_LazyGlobal <SK_ReShadeDrawCallback_s>
-               SK_ReShade_PresentCallback;
-
   #define ShaderColorDecl(idx) {                                                                             \
   { ImGuiCol_Header,        ImColor::HSV ( (static_cast <float> (idx) + 1.0f) / 6.0f, 0.5f,  0.45f).Value }, \
   { ImGuiCol_HeaderHovered, ImColor::HSV ( (static_cast <float> (idx) + 1.0f) / 6.0f, 0.55f, 0.6f ).Value }, \

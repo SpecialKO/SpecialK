@@ -19,6 +19,8 @@
 #include <shaders/vs_colorutil.h>
 #include <shaders/uber_hdr_shader_ps.h>
 
+#include <DirectXTex/d3dx12.h>
+
 struct SK_ImGui_D3D12Ctx
 {
   SK_ComPtr <ID3D12Device>        pDevice;
@@ -394,11 +396,12 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
   ctx->IASetPrimitiveTopology        (D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
   ctx->SetGraphicsRoot32BitConstants (0, 24, &vertex_constant_buffer, 0);
-  ctx->SetGraphicsRoot32BitConstants ( 2, 4,
-                       std::array <float, 4> (
+  ctx->SetGraphicsRoot32BitConstants ( 2, 8,
+                       std::array <float, 8> (
       {                draw_data->DisplayPos.x,  draw_data->DisplayPos.y,
         hdr_display ? draw_data->DisplaySize.x - draw_data->DisplayPos.x : 0.0f,
-        hdr_display ? draw_data->DisplaySize.y - draw_data->DisplayPos.y : 0.0f }
+        hdr_display ? draw_data->DisplaySize.y - draw_data->DisplayPos.y : 0.0f,
+                                                                           0.0f, 0.0f, 0.0f, 0.0f }
                                              ).data (),
                                           0
   );
@@ -690,6 +693,231 @@ ImGui_ImplDX12_CreateFontsTexture (void)
   };
 }
 
+int sk_d3d12_texture_s::num_textures = 0;
+
+sk_d3d12_texture_s
+SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
+                       DirectX::ScratchImage& image )
+{
+  sk_d3d12_texture_s texture = { };
+
+  if (! _imgui_d3d12.pDevice)
+    return texture;
+
+  unsigned char* pixels = image.GetImage (0, 0, 0)->pixels;
+  int            width  = static_cast <int> (metadata.width),
+                 height = static_cast <int> (metadata.height);
+
+  try {
+    SK_ComPtr <ID3D12Resource>            pTexture;
+    SK_ComPtr <ID3D12Resource>            uploadBuffer;
+
+    SK_ComPtr <ID3D12Fence>               pFence;
+    SK_AutoHandle                         hEvent (
+                                  SK_CreateEvent ( nullptr, FALSE,
+                                                            FALSE, nullptr )
+                                                 );
+
+    SK_ComPtr <ID3D12CommandQueue>        cmdQueue;
+    SK_ComPtr <ID3D12CommandAllocator>    cmdAlloc;
+    SK_ComPtr <ID3D12GraphicsCommandList> cmdList;
+
+
+    ThrowIfFailed ( hEvent.m_h != 0 ?
+                               S_OK : E_UNEXPECTED );
+
+    // Upload texture to graphics system
+    D3D12_HEAP_PROPERTIES
+      props                      = { };
+      props.Type                 = D3D12_HEAP_TYPE_DEFAULT;
+      props.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+      props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+    D3D12_RESOURCE_DESC
+      desc                       = { };
+      desc.Dimension             = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+      desc.Alignment             = 0;
+      desc.Width                 = width;
+      desc.Height                = height;
+      desc.DepthOrArraySize      = 1;
+      desc.MipLevels             = 1;
+      desc.Format                = metadata.format;
+      desc.SampleDesc.Count      = 1;
+      desc.SampleDesc.Quality    = 0;
+      desc.Layout                = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+      desc.Flags                 = D3D12_RESOURCE_FLAG_NONE;
+
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommittedResource (
+        &props, D3D12_HEAP_FLAG_NONE,
+        &desc,  D3D12_RESOURCE_STATE_COPY_DEST,
+        nullptr, IID_PPV_ARGS (&pTexture.p))
+    );
+
+    UINT uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
+                                & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
+    UINT uploadSize  = height * uploadPitch;
+
+    desc.Dimension             = D3D12_RESOURCE_DIMENSION_BUFFER;
+    desc.Alignment             = 0;
+    desc.Width                 = uploadSize;
+    desc.Height                = 1;
+    desc.DepthOrArraySize      = 1;
+    desc.MipLevels             = 1;
+    desc.Format                = DXGI_FORMAT_UNKNOWN;
+    desc.SampleDesc.Count      = 1;
+    desc.SampleDesc.Quality    = 0;
+    desc.Layout                = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+    desc.Flags                 = D3D12_RESOURCE_FLAG_NONE;
+
+    props.Type                 = D3D12_HEAP_TYPE_UPLOAD;
+    props.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommittedResource (
+        &props, D3D12_HEAP_FLAG_NONE,
+        &desc,  D3D12_RESOURCE_STATE_GENERIC_READ,
+        nullptr, IID_PPV_ARGS (&uploadBuffer.p))
+    ); SK_D3D12_SetDebugName (  uploadBuffer.p,
+          L"SK D3D12 Texture Upload Buffer" );
+
+    void        *mapped = nullptr;
+    D3D12_RANGE  range  = { 0, uploadSize };
+
+    ThrowIfFailed (uploadBuffer->Map (0, &range, &mapped));
+
+    for ( int y = 0; y < height; y++ )
+    {
+      memcpy ( (void*) ((uintptr_t) mapped + y * uploadPitch),
+                                    pixels + y * width * 4,
+                                                 width * 4 );
+    }
+
+    uploadBuffer->Unmap (0, &range);
+
+    D3D12_TEXTURE_COPY_LOCATION
+      srcLocation                                    = { };
+      srcLocation.pResource                          = uploadBuffer;
+      srcLocation.Type                               = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+      srcLocation.PlacedFootprint.Footprint.Format   = metadata.format;
+      srcLocation.PlacedFootprint.Footprint.Width    = width;
+      srcLocation.PlacedFootprint.Footprint.Height   = height;
+      srcLocation.PlacedFootprint.Footprint.Depth    = 1;
+      srcLocation.PlacedFootprint.Footprint.RowPitch = uploadPitch;
+
+    D3D12_TEXTURE_COPY_LOCATION
+      dstLocation                  = { };
+      dstLocation.pResource        = pTexture;
+      dstLocation.Type             = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+      dstLocation.SubresourceIndex = 0;
+
+    D3D12_RESOURCE_BARRIER
+      barrier                        = { };
+      barrier.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+      barrier.Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+      barrier.Transition.pResource   = pTexture;
+      barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+      barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+      barrier.Transition.StateAfter  = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE |
+                                       D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateFence (
+        0, D3D12_FENCE_FLAG_NONE,
+                  IID_PPV_ARGS (&pFence.p))
+     ); SK_D3D12_SetDebugName  ( pFence.p,
+     L"SK D3D12 Texture Upload Fence");
+
+    D3D12_COMMAND_QUEUE_DESC
+      queueDesc          = { };
+      queueDesc.Type     = D3D12_COMMAND_LIST_TYPE_DIRECT;
+      queueDesc.Flags    = D3D12_COMMAND_QUEUE_FLAG_NONE;
+      queueDesc.NodeMask = 1;
+
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommandQueue (
+           &queueDesc, IID_PPV_ARGS (&cmdQueue.p))
+      ); SK_D3D12_SetDebugName (      cmdQueue.p,
+        L"SK D3D12 Texture Upload Cmd Queue");
+
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommandAllocator (
+        D3D12_COMMAND_LIST_TYPE_DIRECT,
+                    IID_PPV_ARGS (&cmdAlloc.p))
+    ); SK_D3D12_SetDebugName (     cmdAlloc.p,
+      L"SK D3D12 Texture Upload Cmd Allocator");
+
+    ThrowIfFailed (
+      _imgui_d3d12.pDevice->CreateCommandList (
+        0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+           cmdAlloc, nullptr,
+                  IID_PPV_ARGS (&cmdList.p))
+    ); SK_D3D12_SetDebugName (   cmdList.p,
+    L"SK D3D12 Texture Upload Cmd List");
+
+    cmdList->CopyTextureRegion ( &dstLocation, 0, 0, 0,
+                                 &srcLocation, nullptr );
+    cmdList->ResourceBarrier   ( 1, &barrier           );
+
+    ThrowIfFailed (                     cmdList->Close ());
+
+                   cmdQueue->ExecuteCommandLists (1,
+                             (ID3D12CommandList* const*)
+                                       &cmdList);
+
+    ThrowIfFailed (
+      cmdQueue->Signal (pFence,                       1));
+                        pFence->SetEventOnCompletion (1,
+                                  hEvent.m_h);
+    SK_WaitForSingleObject       (hEvent.m_h, INFINITE);
+
+    // Create texture view
+    D3D12_SHADER_RESOURCE_VIEW_DESC
+      srvDesc                           = { };
+      srvDesc.Format                    = metadata.format;
+      srvDesc.ViewDimension             = D3D12_SRV_DIMENSION_TEXTURE2D;
+      srvDesc.Texture2D.MipLevels       = desc.MipLevels;
+      srvDesc.Texture2D.MostDetailedMip = 0;
+      srvDesc.Shader4ComponentMapping   = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+    const auto  srvDescriptorSize =
+      _imgui_d3d12.pDevice->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+    auto& descriptorHeaps =
+      _d3d12_rbk->frames_ [0].pRoot->descriptorHeaps;
+
+    auto      srvHandleCPU     =
+      descriptorHeaps.pImGui->GetCPUDescriptorHandleForHeapStart ();
+    auto      srvHandleGPU     =
+      descriptorHeaps.pImGui->GetGPUDescriptorHandleForHeapStart ();
+
+    texture.hTextureSrvCpuDescHandle.ptr =
+              srvHandleCPU.ptr + ++texture.num_textures * srvDescriptorSize;
+
+    texture.hTextureSrvGpuDescHandle.ptr =
+              srvHandleGPU.ptr +   texture.num_textures * srvDescriptorSize;
+
+    _imgui_d3d12.pDevice->CreateShaderResourceView (
+      pTexture, &srvDesc, texture.hTextureSrvCpuDescHandle
+    );
+
+    texture.pTexture =
+      pTexture.Detach ();
+
+    SK_D3D12_SetDebugName (
+      texture.pTexture, L"SK D3D12 Texture"
+    );
+  }
+
+  catch (const SK_ComException& e) {
+    SK_LOG0 ( ( L" Exception: %hs [%ws]", e.what (), __FUNCTIONW__ ),
+                L"ImGuiD3D12" );
+  };
+
+  return texture;
+}
+
 bool
 ImGui_ImplDX12_CreateDeviceObjects (void)
 {
@@ -716,7 +944,7 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
       param [0].ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
       param [0].Constants.ShaderRegister            = 0;
       param [0].Constants.RegisterSpace             = 0;
-      param [0].Constants.Num32BitValues            = 24;//16;
+      param [0].Constants.Num32BitValues            = 24;
       param [0].ShaderVisibility                    = D3D12_SHADER_VISIBILITY_VERTEX;
 
       param [1].ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
@@ -726,7 +954,7 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
 
       param [2].ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
       param [2].Constants.ShaderRegister            = 0; // b0
-      param [2].Constants.Num32BitValues            = 4;
+      param [2].Constants.Num32BitValues            = 8;
       param [2].ShaderVisibility                    = D3D12_SHADER_VISIBILITY_PIXEL;
 
     D3D12_STATIC_SAMPLER_DESC
@@ -1080,6 +1308,46 @@ using D3D12GraphicsCommandList_ExecuteIndirect_pfn = void
                        UINT64 );
       D3D12GraphicsCommandList_ExecuteIndirect_pfn
       D3D12GraphicsCommandList_ExecuteIndirect_Original = nullptr;
+using D3D12GraphicsCommandList_OMSetRenderTargets_pfn = void
+(STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
+                       UINT,
+                 const D3D12_CPU_DESCRIPTOR_HANDLE*,
+                       BOOL,
+                 const D3D12_CPU_DESCRIPTOR_HANDLE*);
+      D3D12GraphicsCommandList_OMSetRenderTargets_pfn
+      D3D12GraphicsCommandList_OMSetRenderTargets_Original = nullptr;
+
+void
+STDMETHODCALLTYPE
+D3D12GraphicsCommandList_OMSetRenderTargets_Detour (
+        ID3D12GraphicsCommandList   *This,
+        UINT                         NumRenderTargetDescriptors,
+  const D3D12_CPU_DESCRIPTOR_HANDLE *pRenderTargetDescriptors,
+        BOOL                         RTsSingleHandleToDescriptorRange,
+  const D3D12_CPU_DESCRIPTOR_HANDLE *pDepthStencilDescriptor )
+{
+  SK_LOG_FIRST_CALL
+
+  if (config.reshade.is_addon)
+  {
+    UINT                        size       = sizeof (D3D12_CPU_DESCRIPTOR_HANDLE);
+    D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = { 0 };
+
+    if (NumRenderTargetDescriptors > 0)
+    {
+      rtv_handle.ptr = pRenderTargetDescriptors [0].ptr;
+    }
+
+    This->SetPrivateData (
+      SKID_D3D12RenderTarget0, size, &rtv_handle );
+  }
+
+  return
+    D3D12GraphicsCommandList_OMSetRenderTargets_Original (
+      This, NumRenderTargetDescriptors, pRenderTargetDescriptors,
+      RTsSingleHandleToDescriptorRange, pDepthStencilDescriptor
+    );
+}
 
 void
 STDMETHODCALLTYPE
@@ -1098,8 +1366,31 @@ D3D12GraphicsCommandList_DrawInstanced_Detour (
   if ( SUCCEEDED ( This->GetPrivateData ( SKID_D3D12DisablePipelineState, &size, &disable ) ) )
   {
     if (disable)
-      return;
+    {
+                                  size       = sizeof (D3D12_CPU_DESCRIPTOR_HANDLE);
+      D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = { 0 };
+
+      if (SUCCEEDED (This->GetPrivateData (SKID_D3D12RenderTarget0, &size, &rtv_handle)) && rtv_handle.ptr != 0)
+      {
+        SK_ReShadeAddOn_RenderEffectsD3D12 ((IDXGISwapChain1 *)SK_GetCurrentRenderBackend ().swapchain.p, nullptr, nullptr, rtv_handle);
+      }
+
+      //return;
+    }
   }
+
+  //     size            = sizeof (bool);
+  //bool trigger_reshade = false;
+  //
+  //This->GetPrivateData (
+  //  SKID_D3D12TriggerReShadeOnDraw, &size, &trigger_reshade );
+  //          This->SetPrivateData (
+  //  SKID_D3D12TriggerReShadeOnDraw,  sizeof (bool),
+  //                                         &trigger_reshade );
+  //
+  //if (trigger_reshade)
+  //{
+  //}
 
   return
     D3D12GraphicsCommandList_DrawInstanced_Original (
@@ -1125,7 +1416,17 @@ D3D12GraphicsCommandList_DrawIndexedInstanced_Detour (
   if ( SUCCEEDED ( This->GetPrivateData ( SKID_D3D12DisablePipelineState, &size, &disable ) ) )
   {
     if (disable)
-      return;
+    {
+                                  size       = sizeof (D3D12_CPU_DESCRIPTOR_HANDLE);
+      D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = { 0 };
+
+      if (SUCCEEDED (This->GetPrivateData (SKID_D3D12RenderTarget0, &size, &rtv_handle)) && rtv_handle.ptr != 0)
+      {
+        SK_ReShadeAddOn_RenderEffectsD3D12 ((IDXGISwapChain1 *)SK_GetCurrentRenderBackend ().swapchain.p, nullptr, nullptr, rtv_handle);
+      }
+
+      //return;
+    }
   }
 
   return
@@ -1153,7 +1454,17 @@ D3D12GraphicsCommandList_ExecuteIndirect_Detour (
   if ( SUCCEEDED ( This->GetPrivateData ( SKID_D3D12DisablePipelineState, &size, &disable ) ) )
   {
     if (disable)
-      return;
+    {
+                                  size       = sizeof (D3D12_CPU_DESCRIPTOR_HANDLE);
+      D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = { 0 };
+
+      if (SUCCEEDED (This->GetPrivateData (SKID_D3D12RenderTarget0, &size, &rtv_handle)) && rtv_handle.ptr != 0)
+      {
+        SK_ReShadeAddOn_RenderEffectsD3D12 ((IDXGISwapChain1 *)SK_GetCurrentRenderBackend ().swapchain.p, nullptr, nullptr, rtv_handle);
+      }
+
+      //return;
+    }
   }
 
   return
@@ -1223,6 +1534,14 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
   // 57 BeginEvent
   // 58 EndEvent
   // 59 ExecuteIndirect
+
+  if (D3D12GraphicsCommandList_OMSetRenderTargets_Original == nullptr)
+  {
+    SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::OMSetRenderTargets",
+                            *(void***)*(&pCmdList), 46,
+                               D3D12GraphicsCommandList_OMSetRenderTargets_Detour,
+                     (void **)&D3D12GraphicsCommandList_OMSetRenderTargets_Original );
+  }
 
   if (D3D12GraphicsCommandList_ExecuteIndirect_Original == nullptr)
   {
@@ -1509,11 +1828,20 @@ _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList)
 void
 SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource* pResource)
 {
+  if (_d3d12_rbk->frames_.empty ())
+  {
+    SK_LOGi0 (L"Cannot perform HDR CopyBuffer because ImGui D3D12 Render Backend is not initialized yet...");
+    return;
+  }
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (! _d3d12_rbk->_pCommandQueue.p)
+  if (_d3d12_rbk->_pCommandQueue.p == nullptr ||
+      _d3d12_rbk->_pSwapChain.p    == nullptr)
+  {
     return;
+  }
 
   SK_ComPtr <ID3D12Device>
              pD3D12Device;
@@ -1684,8 +2012,13 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   ///  (rb.isHDRCapable () && (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_HDR));
 
   SK_RunOnce (
-    _InitDrawCommandHooks (pCommandList)
-  );
+  {
+    // This level of state tracking is unnecessary normally
+    if (config.render.dxgi.allow_d3d12_footguns)// || config.reshade.is_addon)
+    {
+      _InitDrawCommandHooks (pCommandList);
+    }
+  });
 
   static std::error_code ec;
   static bool inject_textures =
@@ -1710,6 +2043,37 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
        stagingFrame.hdr.pSwapChainCopy.p->GetDesc ().Format == DXGI_FORMAT_R10G10B10A2_UNORM &&
                         pHDRPipeline.p   != nullptr &&
                         pHDRSignature.p  != nullptr );
+
+  auto _DrawAllReShadeEffects = [&](bool draw_first)
+  {
+    if ( config.reshade.is_addon   &&
+         config.reshade.draw_first == draw_first )
+    {
+      if (! draw_first)
+      {
+        // Split the command list (flush existing, begin new, draw ReShade in-between)
+        if ( stagingFrame.flush_cmd_list () == false ||
+             stagingFrame.begin_cmd_list () == false )
+        {
+          // Uh oh... skip ReShade.
+          return;
+        }
+      }
+
+      UINT64 uiFenceVal = 0;
+
+      SK_ComQIPtr <IDXGISwapChain1>          pSwapChain1 (_pSwapChain);
+      uiFenceVal =
+        SK_ReShadeAddOn_RenderEffectsD3D12 ( pSwapChain1.p, stagingFrame.pRenderOutput,
+                                                            stagingFrame.reshade_fence,
+                                                            stagingFrame.hReShadeOutput );//hRenderOutput );
+
+      if (uiFenceVal != 0)
+      {
+        _pCommandQueue->Wait ( stagingFrame.reshade_fence, uiFenceVal );
+      }
+    }
+  };
 
   if (bHDR)
   {
@@ -1778,6 +2142,10 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     pCommandList->CopyResource                      (     stagingFrame.hdr.pSwapChainCopy.p,
                                                           stagingFrame.     pRenderOutput.p          );
     pCommandList->ResourceBarrier                   ( 2,  stagingFrame.hdr.barriers.process          );
+
+    // Draw ReShade before HDR image processing
+    _DrawAllReShadeEffects (true);
+
     pCommandList->SetDescriptorHeaps                ( 1, &descriptorHeaps.pHDR.p                     );
     pCommandList->SetGraphicsRootDescriptorTable    ( 2,  stagingFrame.hdr.hSwapChainCopy_GPU        );
     pCommandList->OMSetRenderTargets                ( 1, &stagingFrame.hRenderOutput, FALSE, nullptr );
@@ -1785,12 +2153,20 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     pCommandList->RSSetScissorRects                 ( 1, &stagingFrame.hdr.scissor                   );
     pCommandList->DrawInstanced                     ( 3, 1, 0, 0                                     );
     pCommandList->ResourceBarrier                   ( 1,  stagingFrame.hdr.barriers.copy_end         );
+
+    // Draw ReShade after HDR image processing, but before SK's UI
+    _DrawAllReShadeEffects (false);
   }
 
   else
+  {
     transition_state (pCommandList, stagingFrame.pRenderOutput, D3D12_RESOURCE_STATE_PRESENT,
                                                                 D3D12_RESOURCE_STATE_RENDER_TARGET,
                                                                 D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
+
+    // No HDR, so trigger ReShade now (draw_first is meaningless in this context)
+    _DrawAllReShadeEffects (config.reshade.draw_first);
+  }
 
   // Queue-up Pre-SK OSD Screenshots
   SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::BeforeGameHUD, rb); // Before Game HUD (meaningless in D3D12)
@@ -1812,17 +2188,16 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
                                                                   D3D12_RESOURCE_STATE_PRESENT,
                                                                   D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES);
 
-  if (stagingFrame.exec_cmd_list ())
+  if (stagingFrame.flush_cmd_list ())
   {
-    if ( const UINT64 sync_value = stagingFrame.fence.value + 1;
-           SUCCEEDED ( _pCommandQueue->Signal (
-                                   stagingFrame.fence.p,
-                      sync_value              )
-                     )
-       )
+    if (_pReShadeRuntime != nullptr)
     {
-      stagingFrame.fence.value =
-        sync_value;
+      _pReShadeRuntime->get_command_queue ()->wait (
+        reshade::api::fence { (uint64_t)stagingFrame.fence.p },
+                                        stagingFrame.fence.value
+      );
+
+      SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (_pReShadeRuntime);
     }
   }
 
@@ -1891,8 +2266,32 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
   {
     _d3d12_rbk->release (pRoot->_pSwapChain.p);
 
+    SK_LOGi0 (L"SwapChain Backbuffer changed while command lists were recording!");
+
     return false;
   }
+}
+
+bool
+SK_D3D12_RenderCtx::FrameCtx::flush_cmd_list (void)
+{
+  if (exec_cmd_list ())
+  {
+    if ( const UINT64 sync_value = fence.value + 1;
+           SUCCEEDED ( pRoot->_pCommandQueue->Signal (
+                                   fence.p,
+                      sync_value              )
+                     )
+       )
+    {
+      fence.value =
+       sync_value;
+    }
+
+    return true;
+  }
+
+  return false;
 }
 
 bool
@@ -1983,6 +2382,7 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 
 #include <d3d12sdklayers.h>
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
+#include <SpecialK/plugin/reshade.h>
 
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
@@ -1996,7 +2396,11 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
                   pSwapChain,
                  _pSwapChain.p
     );
+
+    SK_ReShadeAddOn_CleanupRTVs (SK_ReShadeAddOn_GetRuntimeForSwapChain (_pSwapChain.p), true);
   }
+
+  SK_ReShadeAddOn_CleanupRTVs (SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain), true);
 
   if (SK_IsDebuggerPresent ())
   {
@@ -2010,6 +2414,12 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 
   SK_D3D12_EndFrame (SK_TLS_Bottom ());
 
+
+  if (_pReShadeRuntime != nullptr)
+  {
+    SK_ReShadeAddOn_DestroyEffectRuntime (_pReShadeRuntime);
+                                          _pReShadeRuntime = nullptr;
+  }
 
   ImGui_ImplDX12_Shutdown ();
 
@@ -2026,12 +2436,13 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
   frames_.clear ();
 
   // Do this after closing the command lists (frames_.clear ())
-  pHDRPipeline.Release                 ();
-  pHDRSignature.Release                ();
+  pHDRPipeline.Release                    ();
+  pHDRSignature.Release                   ();
 
-  descriptorHeaps.pBackBuffers.Release ();
-  descriptorHeaps.pImGui.Release       ();
-  descriptorHeaps.pHDR.Release         ();
+  descriptorHeaps.pBackBuffers.Release    ();
+  descriptorHeaps.pImGui.Release          ();
+  descriptorHeaps.pHDR.Release            ();
+  descriptorHeaps.pHDR_CopyAssist.Release ();
 
   _pSwapChain.Release ();
   _pDevice.Release    ();
@@ -2040,9 +2451,6 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 bool
 SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pCommandQueue)
 {
-  static SK_Thread_HybridSpinlock                   _init_lock;
-  std::scoped_lock <SK_Thread_HybridSpinlock> lock (_init_lock);
-
   // Turn HDR off in dgVoodoo2 so it does not crash
 #ifdef _M_IX86
   if ( __SK_HDR_16BitSwap ||
@@ -2096,20 +2504,30 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       //   and then creates a new SwapChain
       if (rb.swapchain != nullptr)
       {
-        SK_LOGi0 (
-          L"# Transitioning active ImGui SwapChain from %p to %p",
-            rb.swapchain.p, pSwapChain );
+        HWND hWnd = (HWND)-1;
+
+        SK_ComQIPtr <IDXGISwapChain1>
+                         pSwapChain1 (rb.swapchain.p);
+        if (             pSwapChain1.p != nullptr )
+                         pSwapChain1->GetHwnd (&hWnd);
 
 #if 1   // Likley the device is always the same due to D3D12 adapters being singletons
-        _pDevice       = nullptr;
-        _pCommandQueue = pCommandQueue;
+        if (! IsWindow (hWnd))
+        {
+          SK_LOGi0 (
+            L"# Transitioning active ImGui SwapChain from %p to %p because game window was destroyed",
+              rb.swapchain.p, pSwapChain );
 
-        if (_pCommandQueue != nullptr)
-        {   _pCommandQueue->GetDevice (IID_PPV_ARGS (&_pDevice.p));
+          _pDevice       = nullptr;
+          _pCommandQueue = pCommandQueue;
 
-          SK_ComPtr <ID3D12Device>                         pNativeDev12;
-          if (SK_slGetNativeInterface (_pDevice, (void **)&pNativeDev12.p) == sl::Result::eOk)
-                                       _pDevice =          pNativeDev12;
+          if (_pCommandQueue != nullptr)
+          {   _pCommandQueue->GetDevice (IID_PPV_ARGS (&_pDevice.p));
+
+            SK_ComPtr <ID3D12Device>                         pNativeDev12;
+            if (SK_slGetNativeInterface (_pDevice, (void **)&pNativeDev12.p) == sl::Result::eOk)
+                                         _pDevice =          pNativeDev12;
+          }
         }
 #endif
       }
@@ -2139,7 +2557,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       ThrowIfFailed (
         _pDevice->CreateDescriptorHeap (
           std::array < D3D12_DESCRIPTOR_HEAP_DESC,                1 >
-            {          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,    swapDesc1.BufferCount,
+            {          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,    swapDesc1.BufferCount * 1024,
                        D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 }.data (),
                                        IID_PPV_ARGS (&descriptorHeaps.pImGui.p)));
                               SK_D3D12_SetDebugName ( descriptorHeaps.pImGui.p,
@@ -2180,6 +2598,17 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
       int bufferIdx = 0;
 
+
+      if (_pReShadeRuntime == nullptr && config.reshade.is_addon)
+      {
+        _pReShadeRuntime =
+          SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (_pDevice, _pCommandQueue, _pSwapChain);
+
+        if (_pReShadeRuntime != nullptr)
+          _pReShadeRuntime->get_command_queue ()->wait_idle ();
+      }
+
+
       for ( auto& frame : frames_ )
       {
         frame.iBufferIdx =
@@ -2187,6 +2616,8 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
         ThrowIfFailed (
           _pDevice->CreateFence (0, D3D12_FENCE_FLAG_NONE,          IID_PPV_ARGS (&frame.fence.p)));
+        ThrowIfFailed (
+          _pDevice->CreateFence (0, D3D12_FENCE_FLAG_NONE,          IID_PPV_ARGS (&frame.reshade_fence.p)));
         ThrowIfFailed (
           _pDevice->CreateCommandAllocator (
                                     D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS (&frame.pCmdAllocator.p)));
@@ -2212,8 +2643,32 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         frame.hRenderOutput.ptr =
                   rtvHandle.ptr + frame.iBufferIdx * rtvDescriptorSize;
 
-        _pDevice->CreateRenderTargetView ( frame.pRenderOutput, nullptr,
-                                           frame.hRenderOutput );
+        //
+        // Wrap this using ReShade's internal device, so that it can map the CPU descriptor back to a resource
+        //   and we can use this Render Target in non-Render Hook versions of ReShade.
+        //
+        if (_pReShadeRuntime != nullptr)
+        {
+          reshade::api::resource_view rtv;
+
+          _pReShadeRuntime->get_device ()->create_resource_view (
+            reshade::api::resource { (uint64_t)frame.pRenderOutput.p },
+            reshade::api::resource_usage::render_target,
+            reshade::api::resource_view_desc ((reshade::api::format)frame.pRenderOutput->GetDesc ().Format),
+                                     &rtv
+          );
+
+          _pDevice->CopyDescriptorsSimple (
+            1, frame.hRenderOutput,   (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
+               frame.hReShadeOutput = (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv.handle;
+        }
+
+        // Hookless ReShade is not in use, do the normal thing.
+        else
+        {
+          _pDevice->CreateRenderTargetView ( frame.pRenderOutput, nullptr,
+                                             frame.hRenderOutput );
+        }
 
         ThrowIfFailed (
           _pDevice->CreateCommittedResource (

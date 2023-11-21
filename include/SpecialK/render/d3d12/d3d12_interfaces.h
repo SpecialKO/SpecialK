@@ -22,6 +22,7 @@
 #pragma once
 
 #include <SpecialK/render/dxgi/dxgi_backend.h>
+#include <SpecialK/plugin/reshade.h>
 
 #include <Unknwnbase.h>
 
@@ -471,9 +472,13 @@ struct SK_D3D12_StateTransition : D3D12_RESOURCE_BARRIER
 };
 
 struct SK_D3D12_RenderCtx {
+  SK_Thread_HybridSpinlock                _ctx_lock;
+
   SK_ComPtr <ID3D12Device>                _pDevice          = nullptr;
   SK_ComPtr <ID3D12CommandQueue>          _pCommandQueue    = nullptr;
   SK_ComPtr <IDXGISwapChain3>             _pSwapChain       = nullptr;
+
+  reshade::api::effect_runtime*           _pReShadeRuntime  = nullptr;
 
   SK_ComPtr <ID3D12PipelineState>         pHDRPipeline      = nullptr;
   SK_ComPtr <ID3D12RootSignature>         pHDRSignature     = nullptr;
@@ -494,7 +499,7 @@ struct SK_D3D12_RenderCtx {
 
       HRESULT SignalSequential (ID3D12CommandQueue *pCmdQueue);
       HRESULT WaitSequential   (void);
-    } fence;
+    } fence, reshade_fence;
 
     SK_ComPtr <ID3D12GraphicsCommandList> pCmdList          = nullptr;
 		SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator     = nullptr;
@@ -502,6 +507,7 @@ struct SK_D3D12_RenderCtx {
 
 		SK_ComPtr <ID3D12Resource>            pRenderOutput     = nullptr;
 		D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutput     =  { 0 };
+    D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeOutput    =  { 0 };
     UINT                                  iBufferIdx        =UINT_MAX;
 
     struct {
@@ -526,6 +532,7 @@ struct SK_D3D12_RenderCtx {
     bool wait_for_gpu   (void) noexcept;
     bool begin_cmd_list (const SK_ComPtr <ID3D12PipelineState> &state = nullptr);
 	  bool exec_cmd_list  (void);
+    bool flush_cmd_list (void);
 
               ~FrameCtx (void);
 	};

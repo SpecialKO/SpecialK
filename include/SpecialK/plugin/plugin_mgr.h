@@ -239,7 +239,8 @@ enum class SK_Import_LoadOrder {
 
 bool
 SK_ImGui_SavePlugInPreference ( iSK_INI* ini, bool enable, const wchar_t* import_name,
-                                const wchar_t* role, SK_Import_LoadOrder order, const wchar_t* path );
+                                const wchar_t* role, SK_Import_LoadOrder order, const wchar_t* path,
+                                const wchar_t* mode );
 
 void
 SK_ImGui_PlugInDisclaimer     ( void );
