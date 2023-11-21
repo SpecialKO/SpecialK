@@ -1126,7 +1126,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
                       ((double)max-(double)min)/(1000.0f/(sum/frames)) );
   }
 
-  else if (! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled)
+  else if (valid_latency && (! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled))
   {
     snprintf
       ( szAvg,
