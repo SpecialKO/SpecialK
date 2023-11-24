@@ -153,15 +153,15 @@ iSK_INI::reload (const wchar_t *fname)
     // A 4 MiB INI file seems pretty dman unlikely...
     SK_ReleaseAssert (size >= 0 && size < (4L * 1024L * 1024L));
 
-    data.resize (size + 3);
-
-    SK_ReleaseAssert (data.size () > 0);
-
     if (data.size () == 0)
     {
       fclose (fINI);
       return false;
     }
+
+    data.resize (size + 3);
+
+    SK_ReleaseAssert (data.size () > 0);
 
     fread  (data.data (), size, 1, fINI);
     fclose (fINI);
