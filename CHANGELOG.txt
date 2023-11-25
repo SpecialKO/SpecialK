@@ -1,4 +1,9 @@
-﻿23.11.20.3
+﻿23.11.24
+========
+ + Don't display Render Latency statistics in D3D9 games, for real this time
+ + When encountering corrupted INI files, backup to <ini>.bak before recovering
+
+23.11.20.3
 ==========
  + Fixed displaying DXGI Present Statistics in D3D9 games if
      WDDM3 HW Flip Queue is enabled.
