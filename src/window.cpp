@@ -1643,7 +1643,7 @@ ClipCursor_Detour (const RECT *lpRect)
         {
           SK_RunOnce (
             SK_LOGi0 (
-              L"Game requested a cursor clip rect that would move the cursor over "
+              L"Game requested a cursor clip rect that would move the cursor "
               L"over a different window, saving the requested rect and skipping..."
             )
           );
