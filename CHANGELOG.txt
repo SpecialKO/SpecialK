@@ -1,4 +1,10 @@
-﻿23.11.24
+﻿23.12.5
+=======
+ + Fixed issues in Unity games where the mouse cursor could move to the
+     center of the screen and stay there if they are launched in the background
+       and another application takes window activation during game startup.
+
+23.11.24
 ========
  + Don't display Render Latency statistics in D3D9 games, for real this time
  + When encountering corrupted INI files, backup to <ini>.bak before recovering
