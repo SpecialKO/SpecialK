@@ -178,7 +178,7 @@ iSK_INI::reload (const wchar_t *fname)
     // UTF16-BE  (Somehow we are swapped)
     else if (*data.data () == 0xFFFE)
     {
-      SK_LOG0 ( ( L"Encountered Byte - Swapped Unicode INI "
+      SK_LOG0 ( ( L"Encountered Byte-Swapped Unicode INI "
                   L"file ('%s'), attempting to recover...",
                                                    fname ),
                   L"INI Parser" );
