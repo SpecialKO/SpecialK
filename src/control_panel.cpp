@@ -299,9 +299,15 @@ namespace SK_ImGui
   {
     static bool has_battery = true;
 
-    SYSTEM_POWER_STATUS sps = { };
+    SYSTEM_POWER_STATUS  sps = { };
+    SYSTEM_BATTERY_STATE sbs = { };
 
-    if (has_battery)
+    const NTSTATUS ntStatus =
+      CallNtPowerInformation ( SystemBatteryState,
+                               nullptr, 0,
+                               &sbs, sizeof (sbs) );
+
+    if (has_battery || (SUCCEEDED (ntStatus) && sbs.Rate != 0))
     {
       if (GetSystemPowerStatus (&sps))
       {
@@ -316,7 +322,7 @@ namespace SK_ImGui
                            (sps.BatteryFlag & 4) ) ? sps.BatteryLifePercent
                                                    : 255;
 
-        if (battery_level < 255) // 255 = Running on AC (not charging)
+        if (battery_level < 255 || sbs.Rate != 0) // 255 = Running on AC (not charging)
         {
           if (battery_level  > 100)
               battery_level -= 100;
@@ -326,12 +332,12 @@ namespace SK_ImGui
           static char szBatteryLevel [128] = { };
 
           if (sps.BatteryLifeTime != -1)
-            snprintf (szBatteryLevel, 127, "%hhu%% Battery Remaining\t\t[%lu Minutes]",
-                      battery_level, sps.BatteryLifeTime / 60);
+            snprintf (szBatteryLevel, 127, "%hhu%% Battery Remaining\t\t[%lu Minutes, %luW]",
+                      battery_level, sps.BatteryLifeTime / 60, sbs.Rate);
           else if (charging)
-            snprintf (szBatteryLevel, 127, "%hhu%% Battery Charged",   battery_level);
+            snprintf (szBatteryLevel, 127, "%hhu%% Battery Charged, %luW",   battery_level, sbs.Rate);
           else
-            snprintf (szBatteryLevel, 127, "%hhu%% Battery Remaining", battery_level);
+            snprintf (szBatteryLevel, 127, "%hhu%% Battery Remaining, %luW", battery_level, sbs.Rate);
 
           float luminance =
             charging ?

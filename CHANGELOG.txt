@@ -1,4 +1,9 @@
-﻿23.12.5
+﻿23.12.5.1
+=========
+ + Added battery (dis)charge rate to battery meter while running a
+     battery-powered device off of battery or charging it.
+
+23.12.5
 =======
  + Fixed issues in Unity games where the mouse cursor could move to the
      center of the screen and stay there if they are launched in the background
