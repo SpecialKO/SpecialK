@@ -1,4 +1,9 @@
-﻿23.12.5.4
+﻿23.12.5.5
+=========
+ + Added necessary DWORD -> LONG cast before converting charge rate from
+     integer mW to decimal W.
+
+23.12.5.4
 =========
  + Ignore native resolution rendertargets when considering promotion from
      8-bpc to 16-bpc for HDR remasters in Star Ocean The Second Story R.

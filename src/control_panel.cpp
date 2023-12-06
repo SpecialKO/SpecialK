@@ -339,17 +339,23 @@ namespace SK_ImGui
                                                          : "%hhu%% Battery Remaining\t\t[%lu Minutes]",
                                                                                battery_level,
                                                                     sps.BatteryLifeTime / 60,
-                                                        static_cast <double> (sbs.Rate) / 1000.0);
+                                                        static_cast <double> (
+                                                          static_cast <LONG> (sbs.Rate)
+                                                                             )         / 1000.0);
           else if (charging)
             snprintf (szBatteryLevel, 127, sbs.Rate != 0 ? "%hhu%% Battery Charged, %5.1f W" :
                                                            "%hhu%% Battery Charged",
                                                                                battery_level,
-                                                        static_cast <double> (sbs.Rate) / 1000.0);
+                                                        static_cast <double> (
+                                                          static_cast <LONG> (sbs.Rate)
+                                                                             )         / 1000.0);
           else
             snprintf (szBatteryLevel, 127, sbs.Rate != 0 ? "%hhu%% Battery Remaining, %5.1f W" :
                                                            "%hhu%% Battery Remaining",
                                                                                battery_level,
-                                                        static_cast <double> (sbs.Rate) / 1000.0);
+                                                        static_cast <double> (
+                                                          static_cast <LONG> (sbs.Rate)
+                                                                             )         / 1000.0);
 
           float luminance =
             charging ?
