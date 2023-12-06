@@ -327,17 +327,20 @@ namespace SK_ImGui
           if (battery_level  > 100)
               battery_level -= 100;
 
+          if (battery_level  > 100) // If we're still > 100, it's because running on AC.
+              battery_level  = 100;
+
           const float battery_ratio = (float)battery_level/100.0f;
 
           static char szBatteryLevel [128] = { };
 
           if (sps.BatteryLifeTime != -1)
-            snprintf (szBatteryLevel, 127, "%hhu%% Battery Remaining\t\t[%lu Minutes, %luW]",
+            snprintf (szBatteryLevel, 127, "%hhu%% Battery Remaining\t\t[%lu Minutes, %liW]",
                       battery_level, sps.BatteryLifeTime / 60, sbs.Rate);
           else if (charging)
-            snprintf (szBatteryLevel, 127, "%hhu%% Battery Charged, %luW",   battery_level, sbs.Rate);
+            snprintf (szBatteryLevel, 127, "%hhu%% Battery Charged, %liW",   battery_level, sbs.Rate);
           else
-            snprintf (szBatteryLevel, 127, "%hhu%% Battery Remaining, %luW", battery_level, sbs.Rate);
+            snprintf (szBatteryLevel, 127, "%hhu%% Battery Remaining, %liW", battery_level, sbs.Rate);
 
           float luminance =
             charging ?

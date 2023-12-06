@@ -1,4 +1,8 @@
-﻿23.12.5.1
+﻿23.12.5.2
+=========
+ + Fixed signed vs. unsigned issues in discharge rate reporting
+
+23.12.5.1
 =========
  + Added battery (dis)charge rate to battery meter while running a
      battery-powered device off of battery or charging it.
