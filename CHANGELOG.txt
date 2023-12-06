@@ -1,4 +1,16 @@
-﻿23.12.6.1
+﻿23.12.6.2
+=========
+ + Replaced "Bypass sRGB Gamma" option in HDR calibration with Content EOTF.
+
+    >> Old default behavior (no bypass) is equal to sRGB Content EOTF.
+
+    * Linear is equivalent to "Bypass sRGB Gamma"
+    * 2.2 is an approximation of sRGB that more closely matches how most
+        SDR displays would display sRGB framebuffer content produced by D3D
+
+       >> 2.2 is NOT how the DWM composites SDR content, it ALWAYS uses sRGB.
+
+23.12.6.1
 =========
  + Remove 2-space left-padding from text OSD when the title/clock is not shown
  + Fixed pagefile monitor displaying on a single line of text

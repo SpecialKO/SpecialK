@@ -64,7 +64,7 @@ Texture2D texLastFrame0 : register (t1);
 float4
 SK_ProcessColor4 ( float4 color,
                       int func,
-                      int strip_srgb = 1 )
+                      int strip_eotf = 1 )
 {
 #ifdef INCLUDE_NAN_MITIGATION
   color = float4
@@ -76,9 +76,11 @@ SK_ProcessColor4 ( float4 color,
 
   float4 out_color =
     float4 (
-      (strip_srgb && func != sRGB_to_Linear) ?
-                PositivePow (color.rgb, 2.2) : color.rgb,
-                                               color.a
+      (strip_eotf && func != sRGB_to_Linear) ?
+                     sdrContentEOTF != -2.2f ? XYZtosRGB (PositivePow     (max (0.0f, sRGBtoXYZ (color.rgb)),
+                     sdrContentEOTF))        : XYZtosRGB (RemoveSRGBCurve (max (0.0f, sRGBtoXYZ (color.rgb)))) :
+                                                                                                 color.rgb,
+                                                                                                 color.a
     );
 
   // Straight Pass-Through
@@ -275,7 +277,7 @@ float4 main (PS_INPUT input) : SV_TARGET
 #endif
                          SK_ProcessColor4 ( hdr_color.rgba,
                                             xRGB_to_Linear,
-                             sdrIsImplicitlysRGB ).rgb;
+                             sdrContentEOTF != 1.0f ).rgb;
 
 #ifdef INCLUDE_HDR10
   if (! bIsHDR10)

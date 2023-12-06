@@ -79,7 +79,7 @@ struct SK_DXGI_HDRControl
     float    hdrGamutExpansion     = 0.015f;
     float    currentTime           =       0.0f;
     float    sdrLuminance_NonStd   = 100.0_Nits;
-    BOOL     sdrIsImplicitlysRGB   =       TRUE;
+    float    sdrContentEOTF        =      -2.2f;
     uint32_t uiToneMapper          =          0;
     float    pqBoostParams [4]     =        { };
   };
@@ -123,6 +123,7 @@ extern float __SK_HDR_Luma;
 extern float __SK_HDR_Exp;
 extern float __SK_HDR_Saturation;
 extern float __SK_HDR_Gamut;
+extern float __SK_HDR_Content_EOTF;
 extern float __SK_HDR_user_sdr_Y;
 extern float __SK_HDR_MiddleLuma;
 extern int   __SK_HDR_Preset;
@@ -135,7 +136,6 @@ extern float __SK_HDR_VertCoverage;
 
 extern int   __SK_HDR_tonemap;
 extern int   __SK_HDR_visualization;
-extern int   __SK_HDR_Bypass_sRGB;
 extern float __SK_HDR_PaperWhite;
 extern float __SK_HDR_user_sdr_Y;
 

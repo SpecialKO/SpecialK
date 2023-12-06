@@ -36,7 +36,7 @@ cbuffer colorSpaceTransform : register (b0)
   //float  hdrExposure;
   float  currentTime;
   float  sdrLuminance_NonStd;
-  uint   sdrIsImplicitlysRGB;
+  float  sdrContentEOTF;
   uint   uiToneMapper;
 
   float4 pqBoostParams;
