@@ -335,12 +335,21 @@ namespace SK_ImGui
           static char szBatteryLevel [128] = { };
 
           if (sps.BatteryLifeTime != -1)
-            snprintf (szBatteryLevel, 127, "%hhu%% Battery Remaining\t\t[%lu Minutes, %liW]",
-                      battery_level, sps.BatteryLifeTime / 60, sbs.Rate);
+            snprintf (szBatteryLevel, 127, sbs.Rate != 0 ? "%hhu%% Battery Remaining\t\t[%lu Minutes, %5.1f W]" 
+                                                         : "%hhu%% Battery Remaining\t\t[%lu Minutes]",
+                                                                               battery_level,
+                                                                    sps.BatteryLifeTime / 60,
+                                                        static_cast <double> (sbs.Rate) / 1000.0);
           else if (charging)
-            snprintf (szBatteryLevel, 127, "%hhu%% Battery Charged, %liW",   battery_level, sbs.Rate);
+            snprintf (szBatteryLevel, 127, sbs.Rate != 0 ? "%hhu%% Battery Charged, %5.1f W" :
+                                                           "%hhu%% Battery Charged",
+                                                                               battery_level,
+                                                        static_cast <double> (sbs.Rate) / 1000.0);
           else
-            snprintf (szBatteryLevel, 127, "%hhu%% Battery Remaining, %liW", battery_level, sbs.Rate);
+            snprintf (szBatteryLevel, 127, sbs.Rate != 0 ? "%hhu%% Battery Remaining, %5.1f W" :
+                                                           "%hhu%% Battery Remaining",
+                                                                               battery_level,
+                                                        static_cast <double> (sbs.Rate) / 1000.0);
 
           float luminance =
             charging ?

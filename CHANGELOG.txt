@@ -1,4 +1,9 @@
-﻿23.12.5.2
+﻿23.12.5.3
+=========
+ + Changed (dis)charge rate reporting from milliwats to watts, and
+     hide the rate if for some reason it is 0.0.
+
+23.12.5.2
 =========
  + Fixed signed vs. unsigned issues in discharge rate reporting
 
