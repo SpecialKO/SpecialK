@@ -1,6 +1,11 @@
-﻿23.12.5.3
+﻿23.12.5.4
 =========
- + Changed (dis)charge rate reporting from milliwats to watts, and
+ + Ignore native resolution rendertargets when considering promotion from
+     8-bpc to 16-bpc for HDR remasters in Star Ocean The Second Story R.
+
+23.12.5.3
+=========
+ + Changed (dis)charge rate reporting from milliwatts to watts, and
      hide the rate if for some reason it is 0.0.
 
 23.12.5.2

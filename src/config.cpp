@@ -158,6 +158,7 @@ SK_GetCurrentGameID (void)
           { L"hackGU.exe",                             SK_GAME_ID::DotHackGU                    },
           { L"WOFF.exe",                               SK_GAME_ID::WorldOfFinalFantasy          },
           { L"StarOceanTheLastHope.exe",               SK_GAME_ID::StarOcean4                   },
+          { L"SO2R.exe",                               SK_GAME_ID::StarOcean2R                  },
           { L"LEGOMARVEL2_DX11.exe",                   SK_GAME_ID::LEGOMarvelSuperheroes2       },
           { L"okami.exe",                              SK_GAME_ID::Okami                        },
           { L"DuckTales.exe",                          SK_GAME_ID::DuckTalesRemastered          },

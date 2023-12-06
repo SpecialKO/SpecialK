@@ -1357,6 +1357,7 @@ enum class SK_GAME_ID
   DotHackGU,                    // hackGU.exe
   WorldOfFinalFantasy,          // WOFF.exe
   StarOcean4,                   // StarOceanTheLastHope.exe
+  StarOcean2R,                  // SO2R.exe
   LEGOMarvelSuperheroes2,       // LEGOMARVEL2_DX11.exe
   Okami,                        // okami.exe
   DuckTalesRemastered,          // DuckTales.exe

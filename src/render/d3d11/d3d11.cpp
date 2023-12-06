@@ -5141,6 +5141,9 @@ D3D11Dev_CreateTexture2D_Impl (
     ( __SK_HDR_16BitSwap ||
       __SK_HDR_10BitSwap );
 
+  static const bool bUpgradeNonNativeTargets =
+    SK_GetCurrentGameID () != SK_GAME_ID::StarOcean2R;
+
   if (                                 bHDROverride &&
                          bIgnoreThisUpload == false &&
        pDesc                 != nullptr             &&
@@ -5274,7 +5277,7 @@ D3D11Dev_CreateTexture2D_Impl (
             //@TODO: Should R8G8 and R8 also be considered for FP16 upgrade?
 
             // 8-bit RGB(x) -> 16-bit FP
-            if (rgba)
+            if (rgba && ((pDesc->Width != swapDesc.BufferDesc.Width || pDesc->Height != swapDesc.BufferDesc.Height) || bUpgradeNonNativeTargets))
             {
               // NieR: Automata is tricky, do not change the format of the bloom
               //   reduction series of targets.
