@@ -985,13 +985,19 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
         // Ys 8 crashes if this nonsense isn't here
         bool bInvalidType =
           (pDesc != nullptr && DirectX::IsTypeless (pDesc->Format));
-          
-        if ( bInvalidType || FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format)) )
-        {
-          D3D11_TEXTURE2D_DESC  tex_desc = { };
-          pTex->GetDesc       (&tex_desc);
+        
+        bool bManipulated =
+          (! bInvalidType) && FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format));
 
-          if (                                                            bInvalidType ||
+        D3D11_TEXTURE2D_DESC  tex_desc = { };
+        pTex->GetDesc       (&tex_desc);
+
+        bool bInvalidCast =
+          DirectX::MakeTypeless (tex_desc.Format) != DirectX::MakeTypeless (desc.Format) && desc.Format != DXGI_FORMAT_UNKNOWN;
+
+        if (bInvalidType || bManipulated || bInvalidCast)
+        {
+          if (                                                            bInvalidType || bInvalidCast ||
                (                                   (desc.Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (tex_desc.Format)) &&
                 (! SK_D3D11_IsDirectCopyCompatible (desc.Format,                                               tex_desc.Format)))
              )
@@ -1106,6 +1112,38 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
               desc.Format = newFormat;
 
             bool bErrorCorrection = false;
+
+            //
+            // If we changed the format of the underlying resource and the code above was unable to
+            //   fix format mismatch, then assign the RTV the changed format.
+            //
+            if (bManipulated || bInvalidCast)
+            {
+              if (desc.Format != DXGI_FORMAT_UNKNOWN && DirectX::MakeTypeless (tex_desc.Format) != DirectX::MakeTypeless (desc.Format))
+              {
+                if (bManipulated)
+                {
+                  bool log_this =
+                    config.system.log_level > 0;
+
+                  // Log first occurrence regardless of log level
+                  SK_RunOnce (log_this = true);
+
+                  if (log_this)
+                  {
+                    SK_LOGi0 (
+                      L"RTV Format changed from %hs to %hs because of SK format "
+                      L"manipulation on the underlying D3D11 resource.",
+
+                      SK_DXGI_FormatToStr (desc.Format    ).data (),
+                      SK_DXGI_FormatToStr (tex_desc.Format).data ()
+                    );
+                  }
+                }
+
+                desc.Format = tex_desc.Format;
+              }
+            }
 
             // If we got this far, the problem wasn't created by Special K, however...
             //   Special K can still try to fix it.
@@ -5141,7 +5179,7 @@ D3D11Dev_CreateTexture2D_Impl (
     ( __SK_HDR_16BitSwap ||
       __SK_HDR_10BitSwap );
 
-  static const bool bUpgradeNonNativeTargets =
+  static const bool bUpgradeNativeTargetsToFP =
     SK_GetCurrentGameID () != SK_GAME_ID::StarOcean2R;
 
   if (                                 bHDROverride &&
@@ -5277,7 +5315,7 @@ D3D11Dev_CreateTexture2D_Impl (
             //@TODO: Should R8G8 and R8 also be considered for FP16 upgrade?
 
             // 8-bit RGB(x) -> 16-bit FP
-            if (rgba && ((pDesc->Width != swapDesc.BufferDesc.Width || pDesc->Height != swapDesc.BufferDesc.Height) || bUpgradeNonNativeTargets))
+            if (rgba)
             {
               // NieR: Automata is tricky, do not change the format of the bloom
               //   reduction series of targets.
@@ -5306,6 +5344,18 @@ D3D11Dev_CreateTexture2D_Impl (
                   //else if (_typeless == DXGI_FORMAT_R8_TYPELESS)
                   //  pDesc->Format     = DXGI_FORMAT_R16_FLOAT;
                   //else
+
+                  //
+                  // Sometimes rendering into an FP RenderTarget is going to produce invalid blend results,
+                  //   but we can still upgrade targets to a UNORM format with greater precision and get some
+                  //     remastering benefits...
+                  //
+                  if (( pDesc->Width  == swapDesc.BufferDesc.Width    &&
+                        pDesc->Height == swapDesc.BufferDesc.Height ) && (! bUpgradeNativeTargetsToFP) )
+                  {
+                    hdr_fmt_override = DXGI_FORMAT_R16G16B16A16_UNORM;
+                  }
+
                   pDesc->Format = hdr_fmt_override;
                   bManipulated  = true;
                 }

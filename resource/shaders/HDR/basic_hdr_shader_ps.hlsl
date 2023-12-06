@@ -74,13 +74,16 @@ SK_ProcessColor4 ( float4 color,
       (! IsNan (color.a)) * (! IsInf (color.a)) * color.a );
 #endif
 
+  // This looks weird because power-law EOTF does not work as intended on negative colors, and
+  //   we may very well have negative colors on WCG SDR input.
+  //
   float4 out_color =
     float4 (
       (strip_eotf && func != sRGB_to_Linear) ?
-                     sdrContentEOTF != -2.2f ? XYZtosRGB (PositivePow     (max (0.0f, sRGBtoXYZ (color.rgb)),
-                     sdrContentEOTF))        : XYZtosRGB (RemoveSRGBCurve (max (0.0f, sRGBtoXYZ (color.rgb)))) :
-                                                                                                 color.rgb,
-                                                                                                 color.a
+                     sdrContentEOTF != -2.2f ? sign (color.rgb) * pow             (abs (color.rgb),
+                     sdrContentEOTF)         :                    RemoveSRGBCurve (     color.rgb) :
+                                                                                        color.rgb,
+                                                                                        color.a
     );
 
   // Straight Pass-Through

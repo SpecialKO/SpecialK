@@ -1,4 +1,15 @@
-﻿23.12.6.2
+﻿23.12.6.3
+=========
+ + Fixed potential black pixel artifacts caused by changes in 23.12.6.2
+ + Added support for HDR10 in Star Ocean Second Story R
+ + Added internal support for upgrading Render Targets to 16-bpc UNORM instead
+     of 16-bpc FLOAT when remastering render passes, for engines that have
+       floating-point blending problems (i.e. Unity).
+
+    >> The only known game that needs this is Star Ocean 2, if the are more,
+         an INI option will be added.
+
+23.12.6.2
 =========
  + Replaced "Bypass sRGB Gamma" option in HDR calibration with Content EOTF.
 

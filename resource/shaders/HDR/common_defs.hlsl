@@ -397,44 +397,32 @@ transformRGBtoLogY (float3 rgb)
 float3
 RemoveSRGBCurve (float3 x)
 {
-  // Negative values can come back negative after gamma, unlike pow (...).
-  x = /* High-Pass filter the input to clip negative values to 0 */
-    max ( 0.0, isfinite (x) ? x : 0.0 );
-
-  // Piecewise is more accurate, but the fitted power-law curve will not
-  //   create near-black noise when expanding LDR -> HDR
-#define ACCURATE_AND_NOISY
-#ifdef  ACCURATE_AND_NOISY
-  return ( x < 0.04045f ) ?
-          (x / 12.92f)    : // High-pass filter x or gamma will return negative!
-    PositivePow ( (x + 0.055f) / 1.055f, 2.4f );
-#else
-  // This suffers the same problem as piecewise; x * x * x allows negative color.
-  return x * (x * (x * 0.305306011 + 0.682171111) + 0.012522878);
-#endif
+  return ( abs (x) < 0.04045f ) ?
+          sign (x) *               (abs (x) / 12.92f) :
+          sign (x) * PositivePow ( (abs (x) + 0.055f) / 1.055f, 2.4f );
 }
 
 float
 RemoveSRGBAlpha (float a)
 {
-  return        ( a < 0.04045f ) ?
-                  a / 12.92f     :
-  PositivePow ( ( a + 0.055f   ) / 1.055f,
-                                   2.4f );
+  return ( abs (a) < 0.04045f ) ?
+          sign (a) *               (abs (a) / 12.92f)     :
+          sign (a) * PositivePow ( (abs (a) + 0.055f) / 1.055f,
+                                         2.4f );
 }
 
 float3
 ApplySRGBCurve (float3 x)
 {
-  return ( x < 0.0031308f ? 12.92f * x :
-                            1.055f * PositivePow ( x, 1.0 / 2.4f ) - 0.55f );
+  return ( abs (x) < 0.0031308f ? sign (x) * ( 12.92f *             abs (x) ) :
+                                  sign (x) * 1.055f * PositivePow ( abs (x), 1.0 / 2.4f ) - 0.55f );
 }
 
 float
 ApplySRGBAlpha (float a)
 {
-    return ( a < 0.0031308f ? 12.92f * a :
-                              1.055f * PositivePow ( a, 1.0 / 2.4f ) - 0.55f );
+  return ( abs (a) < 0.0031308f ? sign (a) * ( 12.92f *             abs (a) ) :
+                                  sign (a) * 1.055f * PositivePow ( abs (a), 1.0 / 2.4f ) - 0.55f );
 }
 
 //
