@@ -1,4 +1,9 @@
-﻿23.12.6
+﻿23.12.6.1
+=========
+ + Remove 2-space left-padding from text OSD when the title/clock is not shown
+ + Fixed pagefile monitor displaying on a single line of text
+
+23.12.6
 =======
  + Added "Load Now" button to ReShade plug-in selector in SK's control panel.
 

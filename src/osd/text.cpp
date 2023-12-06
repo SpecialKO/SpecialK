@@ -686,6 +686,12 @@ SK_DrawOSD (void)
   char* pszOSD = szOSD;
        *pszOSD = '\0';
 
+  int         left_padding =  0;
+  const char *pad_str      = "";
+
+  if (config.title.show || config.time.show)
+      left_padding = 2;
+
   static io_perf_t
     io_counter;
 
@@ -796,7 +802,6 @@ SK_DrawOSD (void)
        rb.gsync_state.capable &&
        rb.gsync_state.active  );
 
-
     if (fabs (mean - INFINITY) > std::numeric_limits <double>::epsilon ())
     {
       const char* format = "";
@@ -808,7 +813,7 @@ SK_DrawOSD (void)
 
       if (config.fps.compact)
       {
-        OSD_PRINTF((config.title.show || config.time.show) ? "   %2.0f\n" : "%2.0f\n"), fps
+        OSD_PRINTF("%*hs%2.0f\n"), left_padding, pad_str, fps
         OSD_END
       }
 
@@ -819,10 +824,10 @@ SK_DrawOSD (void)
             ( config.fps.frametime  ?
                 config.fps.advanced ?
                   has_cpu_frametime ?
-                    "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>" :
-                    "  %-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)"                           :
-                    "  %-7ws:  %#4.01f FPS, %#13.01f ms"                                                                    :
-                    "  %-7ws:  %#4.01f FPS"
+                    "%*hs%-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>" :
+                    "%*hs%-7ws:  %#4.01f FPS, %#13.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)"                           :
+                    "%*hs%-7ws:  %#4.01f FPS, %#13.01f ms"                                                                    :
+                    "%*hs%-7ws:  %#4.01f FPS"
             );
         }
 
@@ -832,16 +837,16 @@ SK_DrawOSD (void)
             ( config.fps.frametime ?
               config.fps.advanced  ?
                 has_cpu_frametime  ?
-                  "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>" :
-                  "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)"                           :
-                  "  %-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms"                                                                    :
-                  "  %-7ws:  %#4.01f FPS (G-Sync)"
+                  "%*hs%-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>" :
+                  "%*hs%-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)"                           :
+                  "%*hs%-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms"                                                                    :
+                  "%*hs%-7ws:  %#4.01f FPS (G-Sync)"
             );
         }
 
         if (has_cpu_frametime)
         {
-          OSD_PRINTF format,
+          OSD_PRINTF format, left_padding, pad_str,
             rb.name,
               fps,
                 mean,
@@ -856,7 +861,7 @@ SK_DrawOSD (void)
 
         else
         {
-          OSD_PRINTF format,
+          OSD_PRINTF format, left_padding, pad_str,
             rb.name,
               fps,
                 mean,
@@ -878,19 +883,19 @@ SK_DrawOSD (void)
       {
         format =
           ( config.fps.frametime                   ?
-              "  %-7ws:  %#4.01f FPS, %#13.01f ms" :
-              "  %-7ws:  %#4.01f FPS"                );
+              "%*hs%-7ws:  %#4.01f FPS, %#13.01f ms" :
+              "%*hs%-7ws:  %#4.01f FPS"                );
       }
 
       else
       {
         format =
           ( config.fps.frametime                         ?
-              "  %-7ws:  %#4.01f FPS (G-Sync),%5.01f ms" :
-              "  %-7ws:  %#4.01f FPS (G-Sync)"             );
+              "%*hs%-7ws:  %#4.01f FPS (G-Sync),%5.01f ms" :
+              "%*hs%-7ws:  %#4.01f FPS (G-Sync)"             );
       }
 
-      OSD_PRINTF format,
+      OSD_PRINTF format, left_padding, pad_str,
         rb.name,
           // Cast to FP to avoid integer division by zero.
           1000.0f * 0.0f / 1.0f, 0.0f
@@ -915,7 +920,7 @@ SK_DrawOSD (void)
   {
     for (int i = 0; i < gpu_stats->num_gpus; i++)
     {
-      OSD_G_PRINTF "  GPU%i   :            %#3u%%",
+      OSD_G_PRINTF "%*hsGPU%i   :            %#3u%%", left_padding, pad_str,
         i, gpu_stats->gpus [i].loads_percent.gpu / 1000
       OSD_END
 
@@ -1042,7 +1047,7 @@ SK_DrawOSD (void)
       {
         if (nvapi_init)
         {
-          OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3u%%: %#5.01lf GiB/s)",
+          OSD_G_PRINTF "%*hsVRAM%i  : %#5llu MiB (%#3u%%: %#5.01lf GiB/s)", left_padding, pad_str,
             i,
                                  dxgi_mem_info [buffer].local    [i].CurrentUsage            >>   20ULL,
                                                  gpu_stats->gpus [i].loads_percent.fb / 1000,
@@ -1055,7 +1060,7 @@ SK_DrawOSD (void)
 
         else
         {
-          OSD_G_PRINTF "  VRAM%i  : %#5llu MiB",
+          OSD_G_PRINTF "%*hsVRAM%i  : %#5llu MiB", left_padding, pad_str,
             i, dxgi_mem_info [buffer].local [i].CurrentUsage >> 20ULL
           OSD_END
         }
@@ -1095,7 +1100,7 @@ SK_DrawOSD (void)
 
         if (nvapi_init)
         {
-          OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3u%%: %#5.02lf GiB/s), PCIe %i.0x%u\n",
+          OSD_G_PRINTF "%*hsSHARE%i : %#5llu MiB (%#3u%%: %#5.02lf GiB/s), PCIe %i.0x%u\n", left_padding, pad_str,
             i,
         dxgi_mem_info [buffer].nonlocal [i].CurrentUsage               >>  20ULL,
                          gpu_stats->gpus [i].loads_percent.bus / 1000,
@@ -1109,7 +1114,7 @@ SK_DrawOSD (void)
 
         else if (pcie_gen > 0 && gpu_stats->gpus [i].hwinfo.pcie_lanes > 0)
         {
-          OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%lu\n",
+          OSD_G_PRINTF "%*hsSHARE%i : %#5llu MiB, PCIe %i.0x%lu\n", left_padding, pad_str,
             i,
        dxgi_mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL,
             pcie_gen,
@@ -1119,7 +1124,7 @@ SK_DrawOSD (void)
 
         else
         {
-          OSD_G_PRINTF "  SHARE%i : %#5llu MiB      \n",
+          OSD_G_PRINTF "%*hsSHARE%i : %#5llu MiB      \n", left_padding, pad_str,
             i,
        dxgi_mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL
           OSD_END
@@ -1139,7 +1144,7 @@ SK_DrawOSD (void)
       {
         if (nvapi_init)
         {
-          OSD_G_PRINTF "  VRAM%i  : %#5llu MiB (%#3u%%: %#5.01lf GiB/s)",
+          OSD_G_PRINTF "%*hsVRAM%i  : %#5llu MiB (%#3u%%: %#5.01lf GiB/s)", left_padding, pad_str,
             i,
        dxgi_mem_info [buffer].local     [i].CurrentUsage >> 20ULL,
                         gpu_stats->gpus [i].loads_percent.fb / 1000,
@@ -1152,7 +1157,7 @@ SK_DrawOSD (void)
 
         else
         {
-          OSD_G_PRINTF "  VRAM%i  : %#5llu MiB",
+          OSD_G_PRINTF "%*hsVRAM%i  : %#5llu MiB", left_padding, pad_str,
             i, gpu_stats->gpus [i].memory_B.local >> 20ULL
           OSD_END
         }
@@ -1174,7 +1179,7 @@ SK_DrawOSD (void)
 
         if (nvapi_init)
         {
-          OSD_G_PRINTF "  SHARE%i : %#5llu MiB (%#3u%%: %#5.02lf GiB/s), PCIe %i.0x%u\n",
+          OSD_G_PRINTF "%*hsSHARE%i : %#5llu MiB (%#3u%%: %#5.02lf GiB/s), PCIe %i.0x%u\n", left_padding, pad_str,
             i,
                          gpu_stats->gpus [i].memory_B.nonlocal          >> 20ULL,
                          gpu_stats->gpus [i].loads_percent.bus / 1000,
@@ -1188,7 +1193,7 @@ SK_DrawOSD (void)
 
         else if (gpu_stats->gpus [i].hwinfo.pcie_lanes > 0 && pcie_gen > 0)
         {
-          OSD_G_PRINTF "  SHARE%i : %#5llu MiB, PCIe %i.0x%u\n",
+          OSD_G_PRINTF "%*hsSHARE%i : %#5llu MiB, PCIe %i.0x%u\n", left_padding, pad_str,
             i,
             gpu_stats->gpus [i].memory_B.nonlocal    >> 20ULL,
             pcie_gen,
@@ -1198,7 +1203,7 @@ SK_DrawOSD (void)
 
         else
         {
-          OSD_G_PRINTF "  SHARE%i : %#5llu MiB       \n",
+          OSD_G_PRINTF "%*hsSHARE%i : %#5llu MiB       \n", left_padding, pad_str,
             i,
             gpu_stats->gpus [i].memory_B.nonlocal    >> 20ULL
           OSD_END
@@ -1267,8 +1272,8 @@ SK_DrawOSD (void)
     const auto& cpus     = cpu_stats.cpus;
     const auto& num_cpus = cpu_stats.num_cpus;
 
-    OSD_C_PRINTF "  Total  : %#3li%%  -  (Kernel: %#3li%%   "
-                   "User: %#3li%%   Interrupt: %#3li%%)\n",
+    OSD_C_PRINTF "%*hsTotal  : %#3li%%  -  (Kernel: %#3li%%   "
+                   "User: %#3li%%   Interrupt: %#3li%%)\n", left_padding, pad_str,
         static_cast <long> (      cpus [64].getPercentLoad      ()),
           static_cast <long> (    cpus [64].getPercentKernel    ()),
             static_cast <long> (  cpus [64].getPercentUser      ()),
@@ -1281,8 +1286,8 @@ SK_DrawOSD (void)
     {
       if (! config.cpu.simple)
       {
-        OSD_C_PRINTF "  CPU%0*lu%-*s: %#3li%%  -  (Kernel: %#3li%%   "
-                     "User: %#3li%%   Interrupt: %#3li%%)\n",
+        OSD_C_PRINTF "%*hsCPU%0*lu%-*s: %#3li%%  -  (Kernel: %#3li%%   "
+                     "User: %#3li%%   Interrupt: %#3li%%)\n", left_padding, pad_str,
           digits, i, 4-digits, "",
             static_cast <long> (      cpus [i].getPercentLoad      ()),
               static_cast <long> (    cpus [i].getPercentKernel    ()),
@@ -1293,7 +1298,7 @@ SK_DrawOSD (void)
 
       else
       {
-        OSD_C_PRINTF "  CPU%0*lu%-*s: %#3li%%\n",
+        OSD_C_PRINTF "%*hsCPU%0*lu%-*s: %#3li%%\n", left_padding, pad_str,
           digits, i, 4-digits, "",
             static_cast <long> (cpus [i].getPercentLoad ())
         OSD_END
@@ -1307,13 +1312,16 @@ SK_DrawOSD (void)
   if (config.io.show)
     SK_CountIO (io_counter, 0);//config.io.interval / 1.0e-7);
 
-  OSD_I_PRINTF "  Read   :%#6.02f MiB/s - (%#7.01f IOP/s)\n"
-               "  Write  :%#6.02f MiB/s - (%#7.01f IOP/s)\n"
-             //"  Other  :%#6.02f MiB/s - (%#7.01f IOP/s)\n",
+  OSD_I_PRINTF "%*hsRead   :%#6.02f MiB/s - (%#7.01f IOP/s)\n"
+               "%*hsWrite  :%#6.02f MiB/s - (%#7.01f IOP/s)\n"
+             //"%*hsOther  :%#6.02f MiB/s - (%#7.01f IOP/s)\n",
                "\n",
+               left_padding, pad_str,
                io_counter.read_mb_sec,  io_counter.read_iop_sec,
+               left_padding, pad_str,
                io_counter.write_mb_sec, io_counter.write_iop_sec//,
-               //io_counter.other_mb_sec, io_counter.other_iop_sec
+               //io_counter.other_mb_sec, io_counter.other_iop_sec,
+               //left_padding, pad_str
   OSD_END
 
   if (nodes > 0 && nodes < 4)
@@ -1326,8 +1334,8 @@ SK_DrawOSD (void)
 
     while (i < nodes)
     {
-      OSD_M_PRINTF "  %8s %i  (Reserve:  %#5llu / %#5llu MiB  - "
-                   " Budget:  %#5llu / %#5llu MiB)",
+      OSD_M_PRINTF "%*hs%8s %i  (Reserve:  %#5llu / %#5llu MiB  - "
+                   " Budget:  %#5llu / %#5llu MiB)", left_padding, pad_str,
                   nodes > 1 ? (nvapi_init ? "SLI Node" : "CFX Node") : "GPU",
                   i,
              dxgi_mem_info [buffer].local [i].CurrentReservation      >> 20ULL,
@@ -1363,8 +1371,8 @@ SK_DrawOSD (void)
     {
       if ((dxgi_mem_info [buffer].nonlocal [i].CurrentUsage >> 20ULL) > 0)
       {
-        OSD_M_PRINTF "  %8s %i  (Reserve:  %#5llu / %#5llu MiB  -  "
-                     "Budget:  %#5llu / %#5llu MiB)\n",
+        OSD_M_PRINTF "%*hs%8s %i  (Reserve:  %#5llu / %#5llu MiB  -  "
+                     "Budget:  %#5llu / %#5llu MiB)\n", left_padding, pad_str,
                          nodes > 1 ? "SLI Node" : "GPU",
                          i,
            dxgi_mem_info [buffer].nonlocal [i].CurrentReservation      >> 20ULL,
@@ -1504,8 +1512,8 @@ SK_DrawOSD (void)
 
       if (i == 0)
       {
-        OSD_D_PRINTF "  Disk %16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
-                                                 "Write %#3llu%%: %ws/s)\n",
+        OSD_D_PRINTF "%*hsDisk %16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
+                                                 "Write %#3llu%%: %ws/s)\n", left_padding, pad_str,
           disk_stats.disks [i].name,
             disk_stats.disks [i].percent_load,
               disk_stats.disks [i].percent_read,
@@ -1517,8 +1525,8 @@ SK_DrawOSD (void)
 
       else
       {
-        OSD_D_PRINTF "  Disk %-16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
-                                                "Write %#3llu%%: %ws/s)\n",
+        OSD_D_PRINTF "%*hsDisk %-16s %#3llu%%  -  (Read %#3llu%%: %ws/s, "
+                                                  "Write %#3llu%%: %ws/s)\n", left_padding, pad_str,
           disk_stats.disks [i].name,
             disk_stats.disks [i].percent_load,
               disk_stats.disks [i].percent_read,
@@ -1574,7 +1582,7 @@ SK_DrawOSD (void)
       peak.assign  (
         SK_File_SizeToStringF (pagefile_stats.pagefiles [i].usage_peak, 5, 2, Auto, pTLS).data ());
 
-      OSD_P_PRINTF "  Pagefile %20s  %ws / %ws  (Peak: %ws)",
+      OSD_P_PRINTF "\n%*hsPagefile %20s  %ws / %ws  (Peak: %ws)", left_padding, pad_str,
         pagefile_stats.pagefiles [i].name,
           usage.c_str    (),
             size.c_str   (),
