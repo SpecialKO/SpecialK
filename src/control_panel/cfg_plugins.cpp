@@ -81,6 +81,9 @@ SK_ImGui_PlugInDisclaimer (void)
   ImGui::PopStyleColor  ();
 }
 
+extern HMODULE
+SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode = L"Normal");
+
 bool
 SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* path, const wchar_t* import_name, bool& enable, SK_Import_LoadOrder& order, SK_Import_LoadOrder default_order)
 {
@@ -243,6 +246,33 @@ SK::ControlPanel::PlugIns::Draw (void)
         if (! mode._Equal (L"Normal"))
         {
           compatibility = true;
+        }
+      }
+
+      if (! GetModuleHandleW (imp_path_reshade))
+      {
+        ImGui::SameLine ();
+
+        if (ImGui::Button ("Load Now"))
+        {
+          HMODULE hModReShade =
+            SK_ReShade_LoadDLL (imp_path_reshade, L"Compatibility");
+
+          if (hModReShade != 0)
+          {
+            if (SK_ReShadeAddOn_Init (hModReShade))
+            {
+              //
+            }
+          }
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip (
+            "If using a version of ReShade 5.9.3 or newer, you can "
+            "hot-load ReShade without restarting the game."
+          );
         }
       }
 

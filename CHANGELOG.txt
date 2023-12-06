@@ -1,4 +1,13 @@
-﻿23.12.5.5
+﻿23.12.6
+=======
+ + Added "Load Now" button to ReShade plug-in selector in SK's control panel.
+
+   * Allows loading ReShade into running games without restarting the game.
+
+    >> Requires an OpenGL/D3D11/D3D12 game and a version of ReShade 5.9.3 or
+         newer installed to PlugIns\ThirdParty\ReShade\ReShade{32|64}.dll
+
+23.12.5.5
 =========
  + Added necessary DWORD -> LONG cast before converting charge rate from
      integer mW to decimal W.

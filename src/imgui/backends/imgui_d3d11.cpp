@@ -2037,6 +2037,12 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 
   if (_pReShadeRuntime != nullptr)
     SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (_pReShadeRuntime);
+  else if (config.reshade.is_addon)
+  {
+    // Lazy initialize the runtime so that we can hot-inject ReShade
+    _pReShadeRuntime =
+      SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (_pDevice, _pDeviceCtx, _pSwapChain);
+  }
 
   ApplyStateblock (_pDeviceCtx, sb);
 

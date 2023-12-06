@@ -125,15 +125,15 @@ SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
   return false;
 }
 
-void
-SK_LoadImportModule (import_s& import)
+HMODULE
+SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
 {
   // Allow ReShade 5.2+ to be loaded globally, and rebase its config
-  if (StrStrIW (import.filename->get_value_ref ().c_str (), L"ReShade") != nullptr)
+  if (StrStrIW (wszDllFile, L"ReShade") != nullptr)
   {
     SK_RunOnce (
     {
-      if (0 != _wcsicmp (import.mode->get_value_str ().c_str (), L"Normal"))
+      if (0 != _wcsicmp (wszMode, L"Normal"))
       {
         SetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", L"1");
       }
@@ -176,7 +176,22 @@ SK_LoadImportModule (import_s& import)
           }
         }
       }
+
+      return
+        SK_LoadLibraryW (wszDllFile);
     });
+  }
+
+  return nullptr;
+}
+
+void
+SK_LoadImportModule (import_s& import)
+{
+  if (StrStrIW (import.filename->get_value_ref ().c_str (), L"ReShade") != nullptr)
+  {
+    SK_ReShade_LoadDLL ( import.filename->get_value_ref ().c_str (),
+                             import.mode->get_value_str ().c_str () );
   }
 
   if (config.system.central_repository)

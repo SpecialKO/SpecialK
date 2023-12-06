@@ -2199,6 +2199,13 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
       SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (_pReShadeRuntime);
     }
+
+    else if (config.reshade.is_addon)
+    {
+      // Lazy initialize the runtime so that we can hot-inject ReShade
+      _pReShadeRuntime =
+        SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (_pDevice, _pCommandQueue, _pSwapChain);
+    }
   }
 
   SK_RunOnce (SK_ApplyQueuedHooks ());
