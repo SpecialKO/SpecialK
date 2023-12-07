@@ -1,4 +1,9 @@
-﻿23.12.6.4
+﻿23.12.7
+=======
+ + Merge pull request #122 from Nustat0/auto-bias-target-percent
+    * Added ability to specify target input latency in (ms) or (%)
+
+23.12.6.4
 =========
  + Expanded the ReShade Plug-Ins section of the control panel by default
  + Changed overlays such as Steam, RTSS, uPlay, Discord to use 2.2 gamma
