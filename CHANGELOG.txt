@@ -1,4 +1,9 @@
-﻿23.12.7
+﻿23.12.7.1
+=========
+ + For NVIDIA users with drivers 546.31 or newer, re-enable various
+     latency stats in the framepacing graph even when HW Flip Queue is active
+
+23.12.7
 =======
  + Merge pull request #122 from Nustat0/auto-bias-target-percent
     * Added ability to specify target input latency in (ms) or (%)

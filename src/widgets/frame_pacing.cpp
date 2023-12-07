@@ -30,6 +30,7 @@ extern void SK_ImGui_DrawGraph_FramePacing (void);
 
 #include <SpecialK/adl.h>
 #include <SpecialK/render/present_mon/PresentMon.hpp>
+#include <SpecialK/nvapi.h>
 
 #include <Pdh.h>
 #include <PdhMsg.h>
@@ -1081,6 +1082,29 @@ SK_ImGui_DrawGraph_FramePacing (void)
   bool valid_latency =
     (! SK_RenderBackend_V2::latency.stale);
 
+
+  static int ver_major = { },
+             ver_minor = { };
+
+  static bool has_stable_hw_flip_queue = false;
+
+  if (sk::NVAPI::nv_hardware)
+  {
+    if ( ver_major == 0 && 2 == swscanf ( sk::NVAPI::GetDriverVersion (nullptr).c_str (),
+                                            L"%d.%d", &ver_major, &ver_minor ) )
+    {
+      has_stable_hw_flip_queue =
+        ( ver_major  > 546 ||
+          ver_major == 546 && ver_minor >= 31 );
+    }
+
+    else
+    {
+      ver_major = -1;
+    }
+  }
+
+
   if (valid_latency)
   {
     SK_RenderBackend_V2::latency.stats.MaxMs =
@@ -1107,7 +1131,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   if (valid_latency)
   {
-    if (! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled)
+    if ((! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled) || has_stable_hw_flip_queue)
     {
       snprintf
         ( szAvg,
@@ -1301,7 +1325,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
   ImGui::PlotHistogram ( SK_ImGui_Visible ? "###ControlPanel_LatencyHistogram" :
                                             "###Floating_LatencyHistogram",
                            SK_RenderBackend_V2::latency.stats.History,
-                                          valid_latency && (! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled) ?
+                                          valid_latency && ((! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled) || has_stable_hw_flip_queue) ?
              IM_ARRAYSIZE (SK_RenderBackend_V2::latency.stats.History)
                                                         : 0,
                                SK_GetFramesDrawn () % 120,
