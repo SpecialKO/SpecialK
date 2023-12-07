@@ -452,6 +452,9 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
   NvAPI_Status ret =
     NvAPI_Disp_GetHdrCapabilities_Original ( displayId, pHdrCapabilities );
 
+  const SK_RenderBackend_V2::output_s* const pBackendDisplay =
+    SK_GetCurrentRenderBackend ().displays->nvapi.getDisplayFromId (displayId);
+
   dll_log->LogEx ( true,
       L"[ HDR Caps ]\n"
       L"  +-----------------+---------------------\n"
@@ -459,19 +462,24 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
       L"  | Green Primary.. |  %f, %f\n"
       L"  | Blue Primary... |  %f, %f\n"
       L"  | White Point.... |  %f, %f\n"
-      L"  | Min Luminance.. |  %f\n"
-      L"  | Max Luminance.. |  %f\n"
-      L"  |  \"  FullFrame.. |  %f\n"
-      L"  | EDR Support.... |  %s\n"
-      L"  | ST2084 Gamma... |  %s\n"
-      L"  | HDR Gamma...... |  %s\n"
-      L"  | SDR Gamma...... |  %s\n"
-      L"  | Dolby Vision... |  %s\n"
+      L"  | =============== |\n"
+      L"  | Min Luminance.. |  %10.5f nits\n"
+      L"  | Max Luminance.. |  %10.5f nits\n"
+      L"  |  |- FullFrame.. |  %10.5f nits\n"
+      L"  | SDR Luminance.. |  %10.5f nits\n"
+      L"  | =============== |\n"
+      L"  | ST2084 EOTF.... |  %s\n"
+      L"  | CTA-861.3 HDR.. |  %s\n"
+      L"  | CTA-861.3 SDR.. |  %s\n"
+      L"  | =============== |\n"
       L"  | HDR10+......... |  %s\n"
       L"  | HDR10+ Gaming.. |  %s\n"
-      L"  |  ?  4:4:4 10bpc |  %s\n"
-      L"  |  ?  4:4:4 12bpc |  %s\n"
+      L"  | =============== |\n"
+      L"  | Dolby Vision... |  %s\n"
       L"  | YUV 4:2:2 12bpc |  %s\n"
+      L"  | Low Latency.... |  %s\n"
+      L"  |  |- 4:4:4 10bpc |  %s\n"
+      L"  |  |- 4:4:4 12bpc |  %s\n"
       L"  +-----------------+---------------------\n",
         (float)pHdrCapabilities->display_data.displayPrimary_x0   / (float)0xC350, (float)pHdrCapabilities->display_data.displayPrimary_y0   / (float)0xC350,
         (float)pHdrCapabilities->display_data.displayPrimary_x1   / (float)0xC350, (float)pHdrCapabilities->display_data.displayPrimary_y1   / (float)0xC350,
@@ -480,16 +488,20 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
        ((float)pHdrCapabilities->display_data.desired_content_min_luminance               / (float)0xFFFF) * 6.55350f,
        ((float)pHdrCapabilities->display_data.desired_content_max_luminance               / (float)0xFFFF) * 65535.0f,
        ((float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance / (float)0xFFFF) * 65535.0f,
-               pHdrCapabilities->isEdrSupported                                 ? L"Yes" : L"No",
+               pBackendDisplay != nullptr ?
+               pBackendDisplay->hdr.white_level : 
+       ((float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance / (float)0xFFFF) * 65535.0f,
                pHdrCapabilities->isST2084EotfSupported                          ? L"Yes" : L"No",
                pHdrCapabilities->isTraditionalHdrGammaSupported                 ? L"Yes" : L"No",
                pHdrCapabilities->isTraditionalSdrGammaSupported                 ? L"Yes" : L"No",
-               pHdrCapabilities->isDolbyVisionSupported                         ? L"Yes" : L"No",
                pHdrCapabilities->isHdr10PlusSupported                           ? L"Yes" : L"No",
                pHdrCapabilities->isHdr10PlusGamingSupported                     ? L"Yes" : L"No",
+               pHdrCapabilities->isDolbyVisionSupported                         ? L"Yes" : L"No",
+               pHdrCapabilities->dv_static_metadata.supports_YUV422_12bit       ? L"Yes" : L"No",
+              (pHdrCapabilities->dv_static_metadata.interface_supported_by_sink
+                                                                         & 0x2) ? L"Yes" : L"No",
               (pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x1) ? L"Yes" : L"No",
-              (pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x2) ? L"Yes" : L"No",
-               pHdrCapabilities->dv_static_metadata.supports_YUV422_12bit       ? L"Yes" : L"No");
+              (pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x2) ? L"Yes" : L"No");
 
   return ret;
 }

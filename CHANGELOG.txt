@@ -1,7 +1,10 @@
 ﻿23.12.7.1
 =========
- + For NVIDIA users with drivers 546.31 or newer, re-enable various
-     latency stats in the framepacing graph even when HW Flip Queue is active
+ + SDR/HDR Splitter now uses the Windows SDR White Level setting to scale
+     the non-HDR tonemapped SDR image to match what Windows would have done.
+ + Added Windows SDR White Level and Dolby Vision Low Latency info to logs.
+ + Added option to set overlay luminance to match Windows SDR by right-clicking
+     HDR overlay luminance sliders (see HDR menu).
 
 23.12.7
 =======

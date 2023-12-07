@@ -1031,9 +1031,34 @@ IWrapDXGISwapChain::GetMaximumFrameLatency (UINT *pMaxLatency)
 
 HANDLE
 STDMETHODCALLTYPE
-IWrapDXGISwapChain::GetFrameLatencyWaitableObject(void)
+IWrapDXGISwapChain::GetFrameLatencyWaitableObject (void)
 {
   assert(ver_ >= 2);
+
+#if 0
+  static auto &rb =
+    SK_GetCurrentRenderBackend ();
+
+  // Disable waitable SwapChains when HW Flip Queue is active, they don't work right...
+  if (true)//rb.windows.unity || rb.windows.unreal || rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled)
+  {
+    static HANDLE fake_waitable =
+      SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
+
+    if ( SetHandleInformation ( fake_waitable, HANDLE_FLAG_PROTECT_FROM_CLOSE,
+                                               HANDLE_FLAG_PROTECT_FROM_CLOSE ) )
+    {
+      SetEvent (fake_waitable);
+      return    fake_waitable;
+    }
+
+    else
+    {
+      return
+        SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
+    }
+  }
+#endif
 
   return
     static_cast <IDXGISwapChain2 *>(pReal)->GetFrameLatencyWaitableObject ();

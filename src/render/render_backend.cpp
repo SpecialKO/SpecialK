@@ -621,6 +621,50 @@ SK_BootVulkan (void)
   _SK_HookVulkan ();
 }
 
+SK_RenderBackend_V2::output_s*
+SK_RenderBackend_V2::output_s::nvapi_ctx_s::getDisplayFromId (NvU32 display_id) noexcept
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  const auto active_display =
+    rb.active_display;
+
+  // Try the active display first, most of the time it's the one we're looking for.
+  if (      gsl::at (rb.displays, active_display).nvapi.display_id == display_id)
+    return &gsl::at (rb.displays, active_display);
+
+  // Exhaustive search otherwise
+  for ( auto& display : rb.displays )
+    if (      display.nvapi.display_id == display_id)
+      return &display;
+
+  // Uh-Oh! Spaghetti O's
+  return nullptr;
+}
+
+SK_RenderBackend_V2::output_s*
+SK_RenderBackend_V2::output_s::nvapi_ctx_s::getDisplayFromHandle (NvDisplayHandle display_handle) noexcept
+{
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  const auto active_display =
+    rb.active_display;
+
+  // Try the active display first, most of the time it's the one we're looking for.
+  if (      gsl::at (rb.displays, active_display).nvapi.display_handle == display_handle)
+    return &gsl::at (rb.displays, active_display);
+
+  // Exhaustive search otherwise
+  for ( auto& display : rb.displays )
+    if (      display.nvapi.display_handle == display_handle)
+      return &display;
+
+  // Uh-Oh! Spaghetti O's
+  return nullptr;
+}
+
 void
 SK_RenderBackend_V2::gsync_s::update (bool force)
 {
@@ -3933,9 +3977,10 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         L"  | Green Primary... |  %f, %f\n"
         L"  | Blue Primary.... |  %f, %f\n"
         L"  | White Point..... |  %f, %f\n"
-        L"  | Min Luminance... |  %f\n"
-        L"  | Max Luminance... |  %f\n"
-        L"  | Max FullFrame... |  %f\n"
+        L"  | SDR White Level. |  %10.5f nits\n"
+        L"  | Min Luminance... |  %10.5f nits\n"
+        L"  | Max Luminance... |  %10.5f nits\n"
+        L"  | Max FullFrame... |  %10.5f nits\n"
         L"  +------------------+---------------------------------------------------------------------\n",
           display.full_name,
           display.gdi_name, display.monitor,
@@ -3947,6 +3992,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           display.gamut.xg,    display.gamut.yg,
           display.gamut.xb,    display.gamut.yb,
           display.gamut.Xw,    display.gamut.Yw,
+          display.hdr.white_level,
           display.gamut.minY,  display.gamut.maxY,
           display.gamut.maxAverageY
       );

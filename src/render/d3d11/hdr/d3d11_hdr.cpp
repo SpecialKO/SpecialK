@@ -943,7 +943,8 @@ SK_HDR_SnapshotSwapchain (void)
     cbuffer_cspace.sdrContentEOTF         =   __SK_HDR_Content_EOTF;
     cbuffer_cspace.visualFunc [0]         = (uint32_t)__SK_HDR_visualization;
     cbuffer_cspace.visualFunc [1]         = (uint32_t)__SK_HDR_10BitSwap ? 1 : 0;
-    cbuffer_cspace.visualFunc [2]         = (uint32_t)__SK_HDR_visualization;
+    cbuffer_cspace.sdrLuminance_White     =
+      std::max (1.0f, rb.displays [rb.active_display].hdr.white_level * 1.0_Nits);
 
     cbuffer_cspace.hdrLuminance_MaxAvg   = __SK_HDR_tonemap == 2 ?
                                     rb.working_gamut.maxAverageY != 0.0f ?

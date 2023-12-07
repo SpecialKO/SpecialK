@@ -23,12 +23,13 @@ struct tileData
 
 cbuffer colorSpaceTransform : register (b0)
 {
-  uint3  visualFunc;
+  uint2  visualFunc;
 
   float  hdrSaturation;
   float  hdrLuminance_MaxAvg;   // Display property
   float  hdrLuminance_MaxLocal; // Display property
   float  hdrLuminance_Min;      // Display property
+  float  sdrLuminance_White;    // Windows SDR whitepoint pref.
 
 //float  hdrContrast;
   float  hdrGamutExpansion;

@@ -260,16 +260,16 @@ float4 main (PS_INPUT input) : SV_TARGET
       input.uv.x * float4 (1.0f, 1.0f, 1.0f, 1.0f);
   }
 
-  float4 over_range =
-    float4 ( 0.0f, 0.0f,
-             0.0f, 1.0f );
+  float3 hdr_rgb2 =
+    hdr_color.rgb * 2.0f;
 
-  if (hdr_color.r <  0.0 || hdr_color.r > 1.0)
-     over_range.r = hdr_color.r;
-  if (hdr_color.g <  0.0 || hdr_color.g > 1.0)
-     over_range.g = hdr_color.g;
-  if (hdr_color.b <  0.0 || hdr_color.b > 1.0)
-     over_range.b = hdr_color.b;
+  float4 over_range =
+    float4 (   hdr_color.rgb,      1.0f ) *
+    float4 ( ( hdr_color.rgb > hdr_rgb2 ) +
+             (           2.0 < hdr_rgb2 ), 1.0f );
+  
+  over_range.a =
+    any (over_range.rgb);
 #endif
 
 
@@ -296,16 +296,13 @@ float4 main (PS_INPUT input) : SV_TARGET
   }
 #endif
 
-
-  ///hdr_color.rgb =
-  ///  sRGB_to_ACES (hdr_color.rgb);
- 
+  
 #ifdef INCLUDE_SPLITTER
   if ( input.coverage.x < input.uv.x ||
        input.coverage.y < input.uv.y )
   {
     return
-      FinalOutput (float4 (hdr_color.rgb * 3.75, 1.0f));
+      FinalOutput (float4 (hdr_color.rgb * sdrLuminance_White, 1.0f));
   }
 #endif
 
