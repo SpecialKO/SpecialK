@@ -405,6 +405,13 @@ struct sk_config_t
                         true, false, false, VK_HOME
                     }, L"ToggleReShadeOverlay"
     };
+    SK_ConfigSerializedKeybind
+                inject_reshade_keybind  = {
+                    SK_Keybind {
+                      "Inject ReShade (5.9.3+)", L"Ctrl+Alt+Shift+R",
+                      true, true, true, 'R'
+                    }, L"InjectReShade"
+    };
   } reshade;
 
   struct sound_s {

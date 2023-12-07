@@ -1,4 +1,11 @@
-﻿23.12.7.3
+﻿23.12.7.4
+=========
+ + Added keybind (Ctrl+Alt+Shift+R) to inject ReShade on-demand into any
+     OpenGL/D3D11/D3D12 game, see the Plug-Ins control panel section for more.
+
+    * Requires ReShade 5.9.3+
+
+23.12.7.3
 =========
  + Clamp non-black pixels to smallest FP16 subnormal value rather than normal;
      fixes raised black level on the SDR side of SDR/HDR split view.

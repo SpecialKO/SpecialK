@@ -946,7 +946,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
 
   static
-    std::array <SK_ConfigSerializedKeybind *, 18>
+    std::array <SK_ConfigSerializedKeybind *, 19>
         special_keys = {
           &config.screenshots.game_hud_free_keybind,
           &config.screenshots.sk_osd_free_keybind,
@@ -970,7 +970,8 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
           &config.widgets.hide_all_widgets_keybind,
 
-          &config.reshade.toggle_overlay_keybind
+          &config.reshade.toggle_overlay_keybind,
+          &config.reshade.inject_reshade_keybind,
         };
 
   if ( config.render.keys.hud_toggle.masked_code == uiMaskedKeyCode )
@@ -1172,6 +1173,35 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
       else if ( keybind == &config.reshade.toggle_overlay_keybind )
       {
         SK_ReShadeAddOn_ToggleOverlay ();
+      }
+
+      else if (keybind == &config.reshade.inject_reshade_keybind)
+      {
+        if (! config.reshade.is_addon)
+        {
+          wchar_t imp_path_reshade [MAX_PATH + 2] = { };
+
+#ifdef _M_AMD64
+          swprintf (imp_path_reshade, LR"(%ws\PlugIns\ThirdParty\ReShade\ReShade64.dll)",
+                                      SK_GetInstallPath ());
+#else
+          swprintf (imp_path_reshade, LR"(%ws\PlugIns\ThirdParty\ReShade\ReShade32.dll)",
+                                      SK_GetInstallPath ());
+#endif
+          HMODULE
+          SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode);
+
+          HMODULE hModReShade =
+            SK_ReShade_LoadDLL (imp_path_reshade, L"Compatibility");
+
+          if (hModReShade != 0)
+          {
+            if (SK_ReShadeAddOn_Init (hModReShade))
+            {
+              //
+            }
+          }
+        }
       }
 
       dispatched = TRUE;

@@ -207,8 +207,8 @@ float Clamp_scRGB (float c, bool strip_nan = false)
   if (strip_nan)
     c = (! IsNan (c)) * (! IsInf (c)) * c;
 
-  return clamp (c + FastSign (c) * FP16_MIN, -125.0f,
-                                              125.0f);
+  return clamp (c + sign (c) * FP16_MIN, -125.0f,
+                                          125.0f);
 }
 
 // Using pow often result to a warning like this
@@ -238,8 +238,8 @@ float3 LinearToST2084 (float3 normalizedLinearValue)
 {
   return
     PositivePow (
-      (0.8359375f + 18.8515625f * FastSign (normalizedLinearValue) * pow (abs (normalizedLinearValue), 0.1593017578f)) /
-            (1.0f + 18.6875f    * FastSign (normalizedLinearValue) * pow (abs (normalizedLinearValue), 0.1593017578f)), 78.84375f
+      (0.8359375f + 18.8515625f * sign (normalizedLinearValue) * pow (abs (normalizedLinearValue), 0.1593017578f)) /
+            (1.0f + 18.6875f    * sign (normalizedLinearValue) * pow (abs (normalizedLinearValue), 0.1593017578f)), 78.84375f
         );
 }
 
@@ -492,7 +492,7 @@ transformRGBtoY (float3 rgb)
 {
   return
     //RGB_to_ICtCp (max (REC709toREC2020 (rgb), FP16_MIN)).x * 12.5f;
-    dot (rgb, FastSign (rgb) * float3 (0.2126729, 0.7151522, 0.0721750));
+    dot (rgb, sign (rgb) * float3 (0.2126729, 0.7151522, 0.0721750));
 }
 
 float
@@ -510,8 +510,8 @@ RemoveSRGBCurve (float3 x)
 {
   return     AnyIsNegative (x) ?
                      ( abs (x) < 0.04045f ) ?
-FastSign (x) *       ( abs (x) / 12.92f   ) :
-FastSign (x) * pow ( ( abs (x) + 0.055f   ) / 1.055f, 2.4f )
+    sign (x) *       ( abs (x) / 12.92f   ) :
+    sign (x) * pow ( ( abs (x) + 0.055f   ) / 1.055f, 2.4f )
                                :
                           ((x) < 0.04045f ) ?
                           ((x) / 12.92f   ) :
@@ -523,8 +523,8 @@ RemoveSRGBAlpha (float a)
 {
   return        IsNegative (a) ?
                      ( abs (a) < 0.04045f ) ?
-FastSign (a) *       ( abs (a) / 12.92f   ) :
-FastSign (a) * pow ( ( abs (a) + 0.055f   ) / 1.055f, 2.4f )
+    sign (a) *       ( abs (a) / 12.92f   ) :
+    sign (a) * pow ( ( abs (a) + 0.055f   ) / 1.055f, 2.4f )
                                :
                           ((a) < 0.04045f ) ?
                           ((a) / 12.92f   ) :
@@ -536,7 +536,7 @@ RemoveGammaExp (float3 x, float exp)
 {
   return
     AnyIsNegative (x) ?
-         FastSign (x) *
+             sign (x) *
          pow (abs (x), exp)
        : pow (    (x), exp);
 }
@@ -548,7 +548,7 @@ RemoveAlphaGammaExp (float a, float exp)
 {
   return
     IsNegative (a) ?
-      FastSign (a) *
+          sign (a) *
       pow (abs (a), exp)
     : pow (    (a), exp);
 }
@@ -558,8 +558,8 @@ ApplySRGBCurve (float3 x)
 {
   return
     AnyIsNegative (x) ? ( abs (x) < 0.0031308f ?
-                     FastSign (x) * ( 12.92f *       abs (x) ) :
-                     FastSign (x) *   1.055f * pow ( abs (x), 1.0 / 2.4f ) - 0.55f )
+                         sign (x) * ( 12.92f *       abs (x) ) :
+                         sign (x) *   1.055f * pow ( abs (x), 1.0 / 2.4f ) - 0.55f )
                       : (      x  < 0.0031308f ?
                                     ( 12.92f *            x )  :
                                       1.055f * pow (      x,  1.0 / 2.4f ) - 0.55f );
@@ -570,8 +570,8 @@ ApplySRGBAlpha (float a)
 {
   return
     IsNegative (a) ? ( abs (a) < 0.0031308f ?
-                  FastSign (a) * ( 12.92f *       abs (a) ) :
-                  FastSign (a) *   1.055f * pow ( abs (a), 1.0 / 2.4f ) - 0.55f )
+                      sign (a) * ( 12.92f *       abs (a) ) :
+                      sign (a) *   1.055f * pow ( abs (a), 1.0 / 2.4f ) - 0.55f )
                    : (      a  < 0.0031308f ?
                                  ( 12.92f *            a )  :
                                    1.055f * pow (      a,  1.0 / 2.4f ) - 0.55f );
@@ -582,7 +582,7 @@ ApplyGammaExp (float3 x, float exp)
 {
   return
     AnyIsNegative (x) ?
-         FastSign (x) *
+             sign (x) *
          pow (abs (x), 1.0f / exp)
        : pow (    (x), exp);
 }
@@ -594,7 +594,7 @@ ApplyAlphaGammaExp (float a, float exp)
 {
   return
     IsNegative (a) ?
-      FastSign (a) *
+          sign (a) *
       pow (abs (a), 1.0f / exp)
     : pow (    (a),        exp);
 }

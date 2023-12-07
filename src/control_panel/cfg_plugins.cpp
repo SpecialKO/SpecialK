@@ -154,6 +154,39 @@ SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* p
   return changed;
 }
 
+static const auto Keybinding =
+[] (SK_ConfigSerializedKeybind* binding, sk::ParameterStringW* param) ->
+auto
+{
+  if (! (binding != nullptr && param != nullptr))
+    return false;
+
+  std::string label =
+    SK_WideCharToUTF8 (binding->human_readable);
+
+  ImGui::PushID (binding->bind_name);
+
+  if (SK_ImGui_KeybindSelect (binding, label.c_str ()))
+  {
+    ImGui::OpenPopup (        binding->bind_name);
+                              binding->assigning = true;
+  }
+
+  std::wstring original_binding = binding->human_readable;
+
+  SK_ImGui_KeybindDialog (binding);
+
+  ImGui::PopID ();
+
+  if (original_binding != binding->human_readable)
+  {
+    param->store (binding->human_readable);
+
+    return true;
+  }
+
+  return false;
+};
 
 bool
 SK::ControlPanel::PlugIns::Draw (void)
@@ -301,6 +334,29 @@ SK::ControlPanel::PlugIns::Draw (void)
         ImGui::BulletText      ("Very little support can be offered for non-Compatibility mode.");
         ImGui::EndTooltip      ();
       }
+
+      ImGui::SameLine ();
+
+      static std::set <SK_ConfigSerializedKeybind *>
+        keybinds = {
+          &config.reshade.inject_reshade_keybind,
+          //&config.reshade.toggle_overlay_keybind,
+        };
+
+      ImGui::BeginGroup ();
+      ImGui::BeginGroup ();
+      for ( auto& keybind : keybinds )
+      {
+        ImGui::Text
+        ( "%s:  ",keybind->bind_name );
+      }
+      ImGui::EndGroup   ();
+      ImGui::SameLine   ();
+      ImGui::BeginGroup ();
+      for ( auto& keybind : keybinds )
+      {Keybinding(keybind,  keybind->param);}
+      ImGui::EndGroup   ();
+      ImGui::EndGroup   ();
 
       ImGui::TreePop     (  );
       ImGui::TreePop     (  );

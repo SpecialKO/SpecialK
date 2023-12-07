@@ -1430,6 +1430,7 @@ auto DeclKeybind =
 
     Keybind ( &config.widgets.hide_all_widgets_keybind,  L"Temporarily hide all widgets",                              osd_ini,         L"Widgets.Global"),
     Keybind ( &config.reshade.toggle_overlay_keybind,    L"Toggle ReShade Overlay (Add-On version)",                   osd_ini,         L"ReShade.AddOn"),
+    Keybind ( &config.reshade.inject_reshade_keybind,    L"Inject ReShade (5.9.3+) as a Global PlugIn",                osd_ini,         L"ReShade.AddOn"),
 
 
     // Input
@@ -4604,6 +4605,7 @@ auto DeclKeybind =
 
   LoadKeybind (&config.widgets.hide_all_widgets_keybind);
   LoadKeybind (&config.reshade.toggle_overlay_keybind);
+  LoadKeybind (&config.reshade.inject_reshade_keybind);
 
 
   if (config.steam.dll_path.empty ())
