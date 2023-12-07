@@ -60,17 +60,15 @@ LuminanceResponse ( uint3 globalIdx : SV_DispatchThreadID,
           float3 color =
             texBackbufferHDR [pos].rgb;
 
-          if (avg < fMax / 2.166f)
+          if (avg < fMax / 1.8f)
           {
-            color *= (1.0f - smoothstep (0.2f * fMax, fMax / 2.166f, avg) * .05f);
+            color *= (1.0f - smoothstep (0.2f * fMax, fMax / 1.8f, avg) * .05f);
           }
 
           else
           {
             color =
-              ST2084ToLinear (
-                LinearToST2084 ( color / avg )
-                             ) * (fMax / 2.166f);
+              ( color / avg ) * (fMax / 1.8f);
 
             texBackbufferHDR [pos].rgba =
               float4 ( color.r,

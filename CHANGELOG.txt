@@ -1,4 +1,8 @@
-﻿23.12.7.1
+﻿23.12.7.2
+=========
+ + Removed Rec 709 gamut clamp from D3D11 HDR Adaptive Tonemapping
+
+23.12.7.1
 =========
  + SDR/HDR Splitter now uses the Windows SDR White Level setting to scale
      the non-HDR tonemapped SDR image to match what Windows would have done.

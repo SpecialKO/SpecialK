@@ -2146,7 +2146,7 @@ public:
                 {   ImGui::BeginTooltip  ();
                     ImGui::Text          ("Adhere to HGIG Design Guidelines");
                     ImGui::Separator     ();
-                    ImGui::BulletText    ("Tonemap keeps Average Frame Light Level from exceeding 'Paper White'");
+                    ImGui::BulletText    ("Tonemap keeps Average Frame Light Level from exceeding 1/3 MaxCLL");
                     ImGui::BulletText    ("User-calibrated MaxCLL is enforced");
                     ImGui::EndTooltip    ();
                 }

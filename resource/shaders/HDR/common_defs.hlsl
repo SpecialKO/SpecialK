@@ -173,7 +173,8 @@ float4 FastSign (float4 x)
     saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
 }
 
-#define FP16_MIN 0.00000009
+#define FP16_MIN     0.000061 // Minimum normal positive fp16 value
+#define FP16_EPSILON 0.000488 // Smallest positive number, such that 1.0 + FP16_EPSILON != 1.0
 
 float3 REC2020toREC709 (float3 c);
 float3 REC709toREC2020 (float3 c);
@@ -183,7 +184,7 @@ float3 Clamp_scRGB (float3 c)
   // Clamp to Rec 2020
   return
     REC2020toREC709 (
-      max (REC709toREC2020 (c), FP16_MIN)
+      max (REC709toREC2020 (c), FP16_EPSILON)
     );
 }
 
@@ -196,7 +197,7 @@ float3 Clamp_scRGB_StripNaN (float3 c)
     float3 ( (! IsNan (c.r)) * (! IsInf (c.r)) * c.r,
              (! IsNan (c.g)) * (! IsInf (c.g)) * c.g,
              (! IsNan (c.b)) * (! IsInf (c.b)) * c.b );
-   
+
   return Clamp_scRGB (c);
 }
 
@@ -205,9 +206,9 @@ float Clamp_scRGB (float c, bool strip_nan = false)
   // No colorspace clamp here, just keep it away from 0.0
   if (strip_nan)
     c = (! IsNan (c)) * (! IsInf (c)) * c;
-    
-  return clamp (c + sign (c) * FLT_EPSILON, -125.0f,
-                                             125.0f);
+
+  return clamp (c + FastSign (c) * FP16_EPSILON, -125.0f,
+                                                  125.0f);
 }
 
 // Using pow often result to a warning like this
@@ -237,8 +238,8 @@ float3 LinearToST2084 (float3 normalizedLinearValue)
 {
   return
     PositivePow (
-      (0.8359375f + 18.8515625f * PositivePow (abs (normalizedLinearValue), 0.1593017578f)) /
-            (1.0f + 18.6875f    * PositivePow (abs (normalizedLinearValue), 0.1593017578f)), 78.84375f
+      (0.8359375f + 18.8515625f * FastSign (normalizedLinearValue) * PositivePow (abs (normalizedLinearValue), 0.1593017578f)) /
+            (1.0f + 18.6875f    * FastSign (normalizedLinearValue) * PositivePow (abs (normalizedLinearValue), 0.1593017578f)), 78.84375f
         );
 }
 
@@ -378,11 +379,120 @@ SK_Color_xyY_from_RGB ( const SK_ColorSpace cs, float3 RGB )
                    - ( XYZ.y / ( XYZ.x + XYZ.y + XYZ.z ) ) );
 }
 
+float3 RGB_to_XYZ (float3 RGB)
+{
+  static const float3x3 ConvMat =
+  {
+    0.6369580483012914, 0.14461690358620832,  0.1688809751641721,
+    0.2627002120112671, 0.6779980715188708,   0.05930171646986196,
+    0.000000000000000,  0.028072693049087428, 1.060985057710791
+  };
+
+  return
+    mul (ConvMat, RGB);
+}
+
+float3 XYZ_to_RGB (float3 XYZ)
+{
+  static const float3x3 ConvMat =
+  {
+     1.716651187971268, -0.355670783776392, -0.253366281373660,
+    -0.666684351832489,  1.616481236634939,  0.0157685458139111,
+     0.017639857445311, -0.042770613257809,  0.942103121235474
+  };
+
+  return
+    mul (ConvMat, XYZ);
+}
+
+float3 XYZ_to_LMS (float3 XYZ)
+{
+  static const float3x3 ConvMat =
+  {
+     0.3592, 0.6976, -0.0358,
+    -0.1922, 1.1004,  0.0755,
+     0.0070, 0.0749,  0.8434
+  };
+
+  return
+    mul (ConvMat, XYZ);
+}
+
+float3 LMS_to_XYZ (float3 LMS)
+{
+  static const float3x3 ConvMat =
+  {
+     2.070180056695613509600, -1.326456876103021025500,  0.206616006847855170810,
+     0.364988250032657479740,  0.680467362852235141020, -0.045421753075853231409,
+    -0.049595542238932107896, -0.049421161186757487412,  1.187995941732803439400
+  };
+
+  return
+    mul (ConvMat, LMS);
+}
+
+float3 LMS_to_ICtCp (float3 LMS)
+{
+  LMS =
+    LinearToST2084 (LMS);
+
+  static const float3x3 ConvMat =
+  {
+     2048.0,   2048.0,    0.0,
+     6610.0, -13613.0, 7003.0,
+    17933.0, -17390.0, -543.0
+  };
+
+  return
+    mul (mul (ConvMat, 1.0 / 4096.0), LMS);
+}
+
+float3 ICtCp_to_LMS (float3 ICtCp)
+{
+  static const float3x3 ConvMat =
+  {
+    0.99998889656284013833,  0.00860505014728705821,  0.11103437159861647860,
+    1.00001110343715986160, -0.00860505014728705821, -0.11103437159861647860,
+    1.00003206339100541200,  0.56004913547279000113, -0.32063391005412026469
+  };
+
+  ICtCp =
+    mul (ConvMat, ICtCp);
+
+  ICtCp =
+    ST2084ToLinear (ICtCp);
+
+  return ICtCp;
+}
+
+float3 RGB_to_ICtCp (float3 color)
+{
+  color /= 125.0f;
+
+  color = RGB_to_XYZ   (color);
+  color = XYZ_to_LMS   (color);
+  color = LMS_to_ICtCp (color);
+
+  return color;
+}
+
+float3 ICtCp_to_RGB (float3 color)
+{
+  color = ICtCp_to_LMS (color);
+  color = LMS_to_XYZ   (color);
+  color = XYZ_to_RGB   (color);
+
+  color *= 125.0f;
+
+  return color;
+}
+
 float
 transformRGBtoY (float3 rgb)
 {
   return
-    dot (rgb, float3 (0.2126729, 0.7151522, 0.0721750));
+    //RGB_to_ICtCp (max (REC709toREC2020 (rgb), FP16_MIN)).x * 12.5f;
+    dot (rgb, FastSign (rgb) * float3 (0.2126729, 0.7151522, 0.0721750));
 }
 
 float
@@ -400,8 +510,8 @@ RemoveSRGBCurve (float3 x)
 {
   return     AnyIsNegative (x) ?
                      ( abs (x) < 0.04045f ) ?
-    sign (x) *       ( abs (x) / 12.92f   ) :
-    sign (x) * pow ( ( abs (x) + 0.055f   ) / 1.055f, 2.4f )
+FastSign (x) *       ( abs (x) / 12.92f   ) :
+FastSign (x) * pow ( ( abs (x) + 0.055f   ) / 1.055f, 2.4f )
                                :
                           ((x) < 0.04045f ) ?
                           ((x) / 12.92f   ) :
@@ -413,8 +523,8 @@ RemoveSRGBAlpha (float a)
 {
   return        IsNegative (a) ?
                      ( abs (a) < 0.04045f ) ?
-    sign (a) *       ( abs (a) / 12.92f   ) :
-    sign (a) * pow ( ( abs (a) + 0.055f   ) / 1.055f, 2.4f )
+FastSign (a) *       ( abs (a) / 12.92f   ) :
+FastSign (a) * pow ( ( abs (a) + 0.055f   ) / 1.055f, 2.4f )
                                :
                           ((a) < 0.04045f ) ?
                           ((a) / 12.92f   ) :
@@ -426,7 +536,7 @@ RemoveGammaExp (float3 x, float exp)
 {
   return
     AnyIsNegative (x) ?
-             sign (x) *
+         FastSign (x) *
          pow (abs (x), exp)
        : pow (    (x), exp);
 }
@@ -438,7 +548,7 @@ RemoveAlphaGammaExp (float a, float exp)
 {
   return
     IsNegative (a) ?
-          sign (a) *
+      FastSign (a) *
       pow (abs (a), exp)
     : pow (    (a), exp);
 }
@@ -448,8 +558,8 @@ ApplySRGBCurve (float3 x)
 {
   return
     AnyIsNegative (x) ? ( abs (x) < 0.0031308f ?
-                         sign (x) * ( 12.92f *       abs (x) ) :
-                         sign (x) *   1.055f * pow ( abs (x), 1.0 / 2.4f ) - 0.55f )
+                     FastSign (x) * ( 12.92f *       abs (x) ) :
+                     FastSign (x) *   1.055f * pow ( abs (x), 1.0 / 2.4f ) - 0.55f )
                       : (      x  < 0.0031308f ?
                                     ( 12.92f *            x )  :
                                       1.055f * pow (      x,  1.0 / 2.4f ) - 0.55f );
@@ -460,8 +570,8 @@ ApplySRGBAlpha (float a)
 {
   return
     IsNegative (a) ? ( abs (a) < 0.0031308f ?
-                      sign (a) * ( 12.92f *       abs (a) ) :
-                      sign (a) *   1.055f * pow ( abs (a), 1.0 / 2.4f ) - 0.55f )
+                  FastSign (a) * ( 12.92f *       abs (a) ) :
+                  FastSign (a) *   1.055f * pow ( abs (a), 1.0 / 2.4f ) - 0.55f )
                    : (      a  < 0.0031308f ?
                                  ( 12.92f *            a )  :
                                    1.055f * pow (      a,  1.0 / 2.4f ) - 0.55f );
@@ -472,7 +582,7 @@ ApplyGammaExp (float3 x, float exp)
 {
   return
     AnyIsNegative (x) ?
-             sign (x) *
+         FastSign (x) *
          pow (abs (x), 1.0f / exp)
        : pow (    (x), exp);
 }
@@ -484,7 +594,7 @@ ApplyAlphaGammaExp (float a, float exp)
 {
   return
     IsNegative (a) ?
-          sign (a) *
+      FastSign (a) *
       pow (abs (a), 1.0f / exp)
     : pow (    (a),        exp);
 }
