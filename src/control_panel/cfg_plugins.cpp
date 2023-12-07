@@ -226,7 +226,7 @@ SK::ControlPanel::PlugIns::Draw (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
 
-    if (ImGui::CollapsingHeader ("Third-Party"))
+    if (ImGui::CollapsingHeader ("Third-Party", ImGuiTreeNodeFlags_DefaultOpen))
     {
       ImGui::TreePush    ("");
 
