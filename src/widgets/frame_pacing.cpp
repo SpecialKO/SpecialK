@@ -1088,6 +1088,8 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   static bool has_stable_hw_flip_queue = false;
 
+  // NVIDIA's drivers are still broken for now
+#if 0
   if (sk::NVAPI::nv_hardware)
   {
     if ( ver_major == 0 && 2 == swscanf ( sk::NVAPI::GetDriverVersion (nullptr).c_str (),
@@ -1103,6 +1105,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
       ver_major = -1;
     }
   }
+#endif
 
 
   if (valid_latency)
