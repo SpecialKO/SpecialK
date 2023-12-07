@@ -173,8 +173,8 @@ float4 FastSign (float4 x)
     saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
 }
 
-#define FP16_MIN     0.000061 // Minimum normal positive fp16 value
-#define FP16_EPSILON 0.000488 // Smallest positive number, such that 1.0 + FP16_EPSILON != 1.0
+#define FP16_MIN     0.000000059604645 // Minimum subnormal positive fp16 value
+#define FP16_EPSILON 0.000488          // Smallest positive number, such that 1.0 + FP16_EPSILON != 1.0
 
 float3 REC2020toREC709 (float3 c);
 float3 REC709toREC2020 (float3 c);
@@ -184,7 +184,7 @@ float3 Clamp_scRGB (float3 c)
   // Clamp to Rec 2020
   return
     REC2020toREC709 (
-      max (REC709toREC2020 (c), FP16_EPSILON)
+      max (REC709toREC2020 (c), FP16_MIN)
     );
 }
 
@@ -207,8 +207,8 @@ float Clamp_scRGB (float c, bool strip_nan = false)
   if (strip_nan)
     c = (! IsNan (c)) * (! IsInf (c)) * c;
 
-  return clamp (c + FastSign (c) * FP16_EPSILON, -125.0f,
-                                                  125.0f);
+  return clamp (c + FastSign (c) * FP16_MIN, -125.0f,
+                                              125.0f);
 }
 
 // Using pow often result to a warning like this
@@ -217,36 +217,36 @@ float Clamp_scRGB (float c, bool strip_nan = false)
 float PositivePow (float base, float power)
 {
   return
-    pow ( max (abs (base), float (FLT_EPSILON)), power );
+    pow ( max (abs (base), float (FLT_MIN)), power );
 }
 
 float3 PositivePow (float3 base, float3 power)
 {
   return
-    pow (max (abs (base), float3 ( FLT_EPSILON, FLT_EPSILON,
-                                   FLT_EPSILON )), power );
+    pow (max (abs (base), float3 ( FLT_MIN, FLT_MIN,
+                                   FLT_MIN )), power );
 }
 
 float4 PositivePow (float4 base, float4 power)
 {
   return
-    pow (max (abs (base), float4 ( FLT_EPSILON, FLT_EPSILON,
-                                   FLT_EPSILON, FLT_EPSILON )), power );
+    pow (max (abs (base), float4 ( FLT_MIN, FLT_MIN,
+                                   FLT_MIN, FLT_MIN )), power );
 }
 
 float3 LinearToST2084 (float3 normalizedLinearValue)
 {
   return
     PositivePow (
-      (0.8359375f + 18.8515625f * FastSign (normalizedLinearValue) * PositivePow (abs (normalizedLinearValue), 0.1593017578f)) /
-            (1.0f + 18.6875f    * FastSign (normalizedLinearValue) * PositivePow (abs (normalizedLinearValue), 0.1593017578f)), 78.84375f
+      (0.8359375f + 18.8515625f * FastSign (normalizedLinearValue) * pow (abs (normalizedLinearValue), 0.1593017578f)) /
+            (1.0f + 18.6875f    * FastSign (normalizedLinearValue) * pow (abs (normalizedLinearValue), 0.1593017578f)), 78.84375f
         );
 }
 
 float3 ST2084ToLinear (float3 ST2084)
 {
   return
-    PositivePow ( max (
+    pow ( max (
       PositivePow ( ST2084, 1.0f / 78.84375f) - 0.8359375f, 0.0f) / (18.8515625f - 18.6875f *
       PositivePow ( ST2084, 1.0f / 78.84375f)),
                             1.0f / 0.1593017578f

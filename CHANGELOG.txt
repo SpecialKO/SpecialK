@@ -1,4 +1,9 @@
-﻿23.12.7.2
+﻿23.12.7.3
+=========
+ + Clamp non-black pixels to smallest FP16 subnormal value rather than normal;
+     fixes raised black level on the SDR side of SDR/HDR split view.
+
+23.12.7.2
 =========
  + Removed Rec 709 gamut clamp from D3D11 HDR Adaptive Tonemapping
 

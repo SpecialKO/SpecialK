@@ -386,7 +386,7 @@ float4 main (PS_INPUT input) : SV_TARGET
       if (input.color.y != 1.0)
       {
         float fLuma =
-          length (hdr_color.rgb);
+          dot (hdr_color.rgb, FastSign (hdr_color.rgb) * float3 (0.2126729, 0.7151522, 0.0721750));
 
         // Clip to 0.35 nits, because lower than that produces garbage
         if (fLuma < 0.004375)
