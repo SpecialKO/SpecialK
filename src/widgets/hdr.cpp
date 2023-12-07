@@ -1530,8 +1530,8 @@ public:
             );
 
             enum {
-              ContentEotf_sRGB   = 0,
-              ContentEotf_Linear = 1,
+              ContentEotf_Linear = 0,
+              ContentEotf_sRGB   = 1,
               ContentEotf_2_2    = 2,
               ContentEotf_2_4    = 3,
               ContentEotf_Custom = 4
@@ -1562,8 +1562,8 @@ public:
             }
 
             if ( ImGui::Combo ( "Content EOTF###SDR_EOTF_COMBO", &eotf_sel,
-                                "sRGB\0"
                                 "Linear\0"
+                                "sRGB\0"
                                 "2.2\0"
                                 "2.4\0"
                                 "Custom (set in INI)\0\0") )
@@ -1572,8 +1572,8 @@ public:
               {
                 switch (eotf_sel)
                 {
-                  case ContentEotf_sRGB:   __SK_HDR_Content_EOTF = -2.2f; break;
                   case ContentEotf_Linear: __SK_HDR_Content_EOTF =  1.0f; break;
+                  case ContentEotf_sRGB:   __SK_HDR_Content_EOTF = -2.2f; break;
                   case ContentEotf_2_2:    __SK_HDR_Content_EOTF =  2.2f; break;
                   case ContentEotf_2_4:    __SK_HDR_Content_EOTF =  2.4f; break;
                 }

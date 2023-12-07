@@ -1,4 +1,9 @@
-﻿23.12.6.3
+﻿23.12.6.4
+=========
+ + Expanded the ReShade Plug-Ins section of the control panel by default
+ + Changed overlays such as Steam, RTSS, uPlay, Discord to use 2.2 gamma
+
+23.12.6.3
 =========
  + Fixed potential black pixel artifacts caused by changes in 23.12.6.2
  + Added support for HDR10 in Star Ocean Second Story R

@@ -397,32 +397,95 @@ transformRGBtoLogY (float3 rgb)
 float3
 RemoveSRGBCurve (float3 x)
 {
-  return ( abs (x) < 0.04045f ) ?
-          sign (x) *               (abs (x) / 12.92f) :
-          sign (x) * PositivePow ( (abs (x) + 0.055f) / 1.055f, 2.4f );
+  return     AnyIsNegative (x) ?
+                     ( abs (x) < 0.04045f ) ?
+    sign (x) *       ( abs (x) / 12.92f   ) :
+    sign (x) * pow ( ( abs (x) + 0.055f   ) / 1.055f, 2.4f )
+                               :
+                          ((x) < 0.04045f ) ?
+                          ((x) / 12.92f   ) :
+               pow (      ((x) + 0.055f   ) / 1.055f, 2.4f );
 }
 
 float
 RemoveSRGBAlpha (float a)
 {
-  return ( abs (a) < 0.04045f ) ?
-          sign (a) *               (abs (a) / 12.92f)     :
-          sign (a) * PositivePow ( (abs (a) + 0.055f) / 1.055f,
-                                         2.4f );
+  return        IsNegative (a) ?
+                     ( abs (a) < 0.04045f ) ?
+    sign (a) *       ( abs (a) / 12.92f   ) :
+    sign (a) * pow ( ( abs (a) + 0.055f   ) / 1.055f, 2.4f )
+                               :
+                          ((a) < 0.04045f ) ?
+                          ((a) / 12.92f   ) :
+               pow (      ((a) + 0.055f   ) / 1.055f, 2.4f );
+}
+
+float3
+RemoveGammaExp (float3 x, float exp)
+{
+  return
+    AnyIsNegative (x) ?
+             sign (x) *
+         pow (abs (x), exp)
+       : pow (    (x), exp);
+}
+
+// Alpha blending works best in linear-space, so -removing- gamma,
+//   assuming the source even had any gamma is useful.
+float
+RemoveAlphaGammaExp (float a, float exp)
+{
+  return
+    IsNegative (a) ?
+          sign (a) *
+      pow (abs (a), exp)
+    : pow (    (a), exp);
 }
 
 float3
 ApplySRGBCurve (float3 x)
 {
-  return ( abs (x) < 0.0031308f ? sign (x) * ( 12.92f *             abs (x) ) :
-                                  sign (x) * 1.055f * PositivePow ( abs (x), 1.0 / 2.4f ) - 0.55f );
+  return
+    AnyIsNegative (x) ? ( abs (x) < 0.0031308f ?
+                         sign (x) * ( 12.92f *       abs (x) ) :
+                         sign (x) *   1.055f * pow ( abs (x), 1.0 / 2.4f ) - 0.55f )
+                      : (      x  < 0.0031308f ?
+                                    ( 12.92f *            x )  :
+                                      1.055f * pow (      x,  1.0 / 2.4f ) - 0.55f );
 }
 
 float
 ApplySRGBAlpha (float a)
 {
-  return ( abs (a) < 0.0031308f ? sign (a) * ( 12.92f *             abs (a) ) :
-                                  sign (a) * 1.055f * PositivePow ( abs (a), 1.0 / 2.4f ) - 0.55f );
+  return
+    IsNegative (a) ? ( abs (a) < 0.0031308f ?
+                      sign (a) * ( 12.92f *       abs (a) ) :
+                      sign (a) *   1.055f * pow ( abs (a), 1.0 / 2.4f ) - 0.55f )
+                   : (      a  < 0.0031308f ?
+                                 ( 12.92f *            a )  :
+                                   1.055f * pow (      a,  1.0 / 2.4f ) - 0.55f );
+}
+
+float3
+ApplyGammaExp (float3 x, float exp)
+{
+  return
+    AnyIsNegative (x) ?
+             sign (x) *
+         pow (abs (x), 1.0f / exp)
+       : pow (    (x), exp);
+}
+
+// Alpha blending works best in linear-space, so -removing- gamma,
+//   assuming the source even had any gamma is useful.
+float
+ApplyAlphaGammaExp (float a, float exp)
+{
+  return
+    IsNegative (a) ?
+          sign (a) *
+      pow (abs (a), 1.0f / exp)
+    : pow (    (a),        exp);
 }
 
 //

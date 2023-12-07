@@ -21,8 +21,8 @@ float4 main (PS_INPUT input) : SV_Target
     PS_QUAD_Texture2D.Sample (PS_QUAD_Sampler, input.uv);
 
   out_col =
-    float4 (RemoveSRGBCurve (out_col.rgb),out_col.a)  *
-                                                 linear_mul;
+    float4 (RemoveGammaExp (out_col.rgb, 2.2f), out_col.a)  *
+                                                linear_mul;
 
   return
     float4 (out_col.rgb, saturate (out_col.a));
