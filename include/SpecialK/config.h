@@ -611,7 +611,10 @@ struct sk_config_t
         float delay_bias           =  0.0f;
         bool  auto_bias            = false;
         float max_auto_bias        = 0.75f;
-        float auto_bias_target     = 0.85f;
+        struct auto_bias_target_s {
+          float ms                 = 0.85f;
+          float percent            = 0.0F;
+        } auto_bias_target;
         bool  show_fcat_bars       = false; // Not INI-persistent
 
         bool flush_before_present  = true;
