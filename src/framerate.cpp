@@ -537,7 +537,7 @@ SK_ImGui_LatentSyncConfig (void)
         }
 
         if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Setting this too low is likely to cause visible tearing and possible framerate instability.");
+          ImGui::SetTooltip ("Setting this too low (ms) or too high (%) is likely to cause visible tearing and possible framerate instability.");
       }
 
       ImGui::Separator ();
