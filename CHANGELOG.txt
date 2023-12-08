@@ -2,6 +2,7 @@
 =======
  + Added support for default_ReShade.ini and master_ReShade.ini in Global\ReShade\
      >> Works the same as default_SpecialK.ini and master_SpecialK.ini
+ + Added support for default_ReShadePreset.ini in Global\ReShade\
  + Added button to browse to the directory where ReShade config/logs are stored
  + Added warning (in plug-in control panel) if a local ReShade.ini is found and
      is overriding SK's normal behavior for ReShade config file management

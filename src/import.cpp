@@ -153,7 +153,10 @@ SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
         // Otherwise, use SK's per-game config path
         SetEnvironmentVariableW (L"RESHADE_BASE_PATH_OVERRIDE", reshade_path.c_str ());
 
-        reshade_path /= L"ReShade.ini";
+        std::filesystem::path
+          reshade_cfg_path    = reshade_path / L"ReShade.ini";
+        std::filesystem::path
+          reshade_preset_path = reshade_path / L"ReShadePreset.ini";
 
         std::wstring shared_base_path =
           SK_FormatStringW (LR"(%ws\Global\ReShade\)", SK_GetInstallPath ());
@@ -161,16 +164,27 @@ SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
           shared_base_path + L"default_ReShade.ini";
         std::wstring shared_master_config =
           shared_base_path + L"master_ReShade.ini";
+        std::wstring shared_default_preset =
+          shared_base_path + L"default_ReShadePreset.ini";
 
-        bool bHasMasterConfig = PathFileExistsW (shared_master_config.c_str ());
-        bool bHasBaseConfig   =
-             PathFileExistsW (reshade_path.c_str ());
-        SK_CreateDirectories (reshade_path.c_str ());
+        bool bHasDefaultPreset = PathFileExistsW (shared_default_preset.c_str ());
+        bool bHasMasterConfig  = PathFileExistsW (shared_master_config.c_str  ());
+        bool bHasBasePreset    =
+             PathFileExistsW (reshade_preset_path.c_str ());
+        bool bHasBaseConfig    =
+             PathFileExistsW (reshade_cfg_path.c_str ());
+        SK_CreateDirectories (reshade_cfg_path.c_str ());
 
-        if (!bHasBaseConfig || bHasMasterConfig)
+        if ((! bHasBasePreset) && bHasDefaultPreset)
+        {
+          CopyFile ( shared_default_preset.c_str (),
+                            reshade_preset_path.c_str (), FALSE );
+        }
+
+        if ((! bHasBaseConfig) || bHasMasterConfig)
         {
           auto pINI =
-            SK_CreateINI (reshade_path.c_str ());
+            SK_CreateINI (reshade_cfg_path.c_str ());
 
           if (pINI != nullptr)
           {
