@@ -5408,8 +5408,10 @@ SK_ImGui_ControlPanel (void)
               ImGui::EndTooltip   ();
             }
 
-            if ( rb.api == SK_RenderAPI::D3D11 ||
-                 rb.api == SK_RenderAPI::D3D12 )
+            if ( static_cast <int> (rb.api) &
+                 static_cast <int> (SK_RenderAPI::D3D11) ||
+                 static_cast <int> (rb.api) &
+                 static_cast <int> (SK_RenderAPI::D3D12) )
             {
               if (ImGui::Checkbox ("Drop Late Frames", &config.render.framerate.drop_late_flips))
                 _ResetLimiter ();
