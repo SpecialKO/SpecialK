@@ -140,8 +140,11 @@ SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
 
       SetEnvironmentVariableW (L"RESHADE_DISABLE_LOADING_CHECK", L"1");
 
+      config.reshade.has_local_ini =
+        PathFileExistsW (L"ReShade.ini");
+
       // If user already has a local ReShade.ini file, prefer the default ReShade behavior
-      if (! PathFileExistsW (L"ReShade.ini"))
+      if (! config.reshade.has_local_ini)
       {
         std::filesystem::path
           reshade_path (SK_GetConfigPath ());
@@ -152,27 +155,63 @@ SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
 
         reshade_path /= L"ReShade.ini";
 
-        SK_CreateDirectories  (reshade_path.c_str ());
-        if (! PathFileExistsW (reshade_path.c_str ()))
+        std::wstring shared_base_path =
+          SK_FormatStringW (LR"(%ws\Global\ReShade\)", SK_GetInstallPath ());
+        std::wstring shared_default_config =
+          shared_base_path + L"default_ReShade.ini";
+        std::wstring shared_master_config =
+          shared_base_path + L"master_ReShade.ini";
+
+        bool bHasMasterConfig = PathFileExistsW (shared_master_config.c_str ());
+        bool bHasBaseConfig   =
+             PathFileExistsW (reshade_path.c_str ());
+        SK_CreateDirectories (reshade_path.c_str ());
+
+        if (!bHasBaseConfig || bHasMasterConfig)
         {
-          FILE *fReShadeINI =
-            _wfopen (reshade_path.c_str (), L"w");
+          auto pINI =
+            SK_CreateINI (reshade_path.c_str ());
 
-          if (fReShadeINI != nullptr)
+          if (pINI != nullptr)
           {
-            std::wstring shared_base_path =
-              SK_FormatStringW (LR"(%ws\Global\ReShade\)", SK_GetInstallPath ());
+            if (! bHasBaseConfig)
+            {
+              if (PathFileExistsW (shared_default_config.c_str ()))
+                pINI->import_file (shared_default_config.c_str ());
 
-            fputws (L"[GENERAL]\n",                                                                                                                     fReShadeINI);
-            fputws (SK_FormatStringW (LR"(EffectSearchPaths=%wsShaders\**,.\reshade-shaders\Shaders\**)"    L"\n", shared_base_path.c_str ()).c_str (), fReShadeINI);
-            fputws (SK_FormatStringW (LR"(TextureSearchPaths=%wsTextures\**,.\reshade-shaders\Textures\**)" L"\n", shared_base_path.c_str ()).c_str (), fReShadeINI);
+              auto& general_section =
+                pINI->get_section (L"GENERAL");
 
-            fputws (L"\n",                   fReShadeINI);
+              if (! general_section.contains_key  (L"EffectSearchPaths"))
+                    general_section.add_key_value (L"EffectSearchPaths", L"");
 
-            fputws (L"[OVERLAY]\n",          fReShadeINI);
-            fputws (L"TutorialProgress=4\n", fReShadeINI);
+              if (! general_section.contains_key  (L"TextureSearchPaths"))
+                    general_section.add_key_value (L"TextureSearchPaths", L"");
 
-            fclose (fReShadeINI);
+              auto& effect_search_paths =
+                general_section.get_value (L"EffectSearchPaths");
+              auto& texture_search_paths =
+                general_section.get_value (L"TextureSearchPaths");
+
+              effect_search_paths = effect_search_paths.empty () ?
+                SK_FormatStringW (LR"(%wsShaders\**,.\reshade-shaders\Shaders\**)",     shared_base_path.c_str ()) :
+                SK_FormatStringW (LR"(%wsShaders\**,.\reshade-shaders\Shaders\**,%ws)", shared_base_path.c_str (),
+                                                                                     effect_search_paths.c_str ());
+
+              texture_search_paths = texture_search_paths.empty () ?
+                SK_FormatStringW (LR"(%wsTextures\**,.\reshade-shaders\Textures\**)",     shared_base_path.c_str ()) :
+                SK_FormatStringW (LR"(%wsTextures\**,.\reshade-shaders\Textures\**,%ws)", shared_base_path.c_str (),
+                                                                                      texture_search_paths.c_str ());
+
+              pINI->get_section (L"OVERLAY").add_key_value (L"TutorialProgress", L"4");
+            }
+
+            if (bHasMasterConfig)
+            {
+              pINI->import_file (shared_master_config.c_str ());
+            }
+
+            pINI->write ();
           }
         }
       }

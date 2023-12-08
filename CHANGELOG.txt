@@ -1,4 +1,12 @@
-﻿23.12.7.4
+﻿23.12.8
+=======
+ + Added support for default_ReShade.ini and master_ReShade.ini in Global\ReShade\
+     >> Works the same as default_SpecialK.ini and master_SpecialK.ini
+ + Added button to browse to the directory where ReShade config/logs are stored
+ + Added warning (in plug-in control panel) if a local ReShade.ini is found and
+     is overriding SK's normal behavior for ReShade config file management
+
+23.12.7.4
 =========
  + Added keybind (Ctrl+Alt+Shift+R) to inject ReShade on-demand into any
      OpenGL/D3D11/D3D12 game, see the Plug-Ins control panel section for more.

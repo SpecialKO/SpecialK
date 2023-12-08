@@ -76,8 +76,8 @@ SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_
 void
 SK_ImGui_PlugInDisclaimer (void)
 {
-  ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.15f, 0.95f, 0.98f));
-  ImGui::TextWrapped    ("If you run into problems with a Plug-In, pressing and holding Ctrl + Shift at game startup can disable them.");
+  ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.15f, 0.95f, 0.98f).Value);
+  ImGui::TextWrapped    ("If you run into problems with a Plug-In, press and hold Ctrl + Shift at game startup to disable them.");
   ImGui::PopStyleColor  ();
 }
 
@@ -357,6 +357,43 @@ SK::ControlPanel::PlugIns::Draw (void)
       {Keybinding(keybind,  keybind->param);}
       ImGui::EndGroup   ();
       ImGui::EndGroup   ();
+
+      if (ImGui::Button ("Browse ReShade Config / Logs"))
+      {
+        std::wstring reshade_profile_path =
+          std::wstring (SK_GetConfigPath ()) + LR"(\ReShade)";
+
+        if (config.reshade.has_local_ini)
+        {
+          wchar_t                        wszWorkingDir [MAX_PATH + 2] = { };
+          GetCurrentDirectory (MAX_PATH, wszWorkingDir);
+
+          reshade_profile_path = wszWorkingDir;
+        }
+
+        SK_Util_ExplorePath (reshade_profile_path.c_str ());
+      }
+
+      if (config.reshade.has_local_ini)
+      {
+        ImGui::BeginGroup  ( );
+        ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.0f, 1.f), "%s",
+                               ICON_FA_EXCLAMATION_TRIANGLE " NOTE: " );
+        ImGui::SameLine    ( );
+        ImGui::TextColored ( ImColor::HSV (.15f, .8f, .9f), "%s",
+                               "There is a ReShade.ini file in the game's directory." );
+        ImGui::EndGroup    ( );
+        
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::TextUnformatted ("All ReShade Config, Logs and Presets will use the game's install directory");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("Global config defaults/masters (Global/ReShade/{default_|master_}ReShade.ini) will not work");
+          ImGui::BulletText      ("Delete local ReShade.ini file to opt-in to SK managed configuration");
+          ImGui::EndTooltip      ();
+        }
+      }
 
       ImGui::TreePop     (  );
       ImGui::TreePop     (  );

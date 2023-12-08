@@ -398,6 +398,7 @@ struct sk_config_t
   struct reshade_s {
     bool        draw_first            = true;
     bool        is_addon              = false;  // True if ReShade AddOn registration succeeded
+    bool        has_local_ini         = false;  // Using local ReShade.ini instead of SK's
     SK_ConfigSerializedKeybind
                 toggle_overlay_keybind= {
                     SK_Keybind {
