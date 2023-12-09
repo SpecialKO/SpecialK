@@ -115,9 +115,113 @@ public:
   virtual HRESULT STDMETHODCALLTYPE ClearAllPersistedApplicationDefaultEndpoints    (void);
 };
 
-class SK_WASAPI_EndPointManager
+class SK_WASAPI_EndPointManager : public IMMNotificationClient
 {
+private:
+  void resetSessionManager (void)
+  {
+    extern void SK_WASAPI_ResetSessionManager (void);
+                SK_WASAPI_ResetSessionManager ();
+  }
+
 public:
+  // IUnknown
+  HRESULT
+  STDMETHODCALLTYPE
+  QueryInterface (REFIID riid, void **ppv) override
+  {
+    if (! ppv)
+      return E_INVALIDARG;
+
+    if (IID_IUnknown == riid)
+    {
+      AddRef ();
+      *ppv = (IUnknown *)this;
+    }
+
+    else if (__uuidof (IMMNotificationClient) == riid)
+    {
+      AddRef ();
+      *ppv = (IMMNotificationClient *)this;
+    }
+
+    else
+    {
+      *ppv = nullptr;
+      return E_NOINTERFACE;
+    }
+
+    return S_OK;
+  }
+
+  ULONG STDMETHODCALLTYPE AddRef (void) noexcept override
+  {
+    return
+      InterlockedIncrement (&refs_);
+  }
+
+  ULONG STDMETHODCALLTYPE Release (void) noexcept override
+  {
+    const ULONG ulRef =
+      InterlockedDecrement (&refs_);
+
+    if (ulRef == 0)
+      delete this;
+
+    return ulRef;
+  }
+
+  HRESULT STDMETHODCALLTYPE OnDeviceStateChanged (_In_ LPCWSTR pwstrDeviceId, _In_ DWORD dwNewState) override
+  {
+    std::ignore = pwstrDeviceId;
+    std::ignore = dwNewState;
+
+    resetSessionManager ();
+
+    return S_OK;
+  }
+
+  HRESULT STDMETHODCALLTYPE OnDeviceAdded (_In_ LPCWSTR pwstrDeviceId) override
+  {
+    std::ignore = pwstrDeviceId;
+
+    resetSessionManager ();
+
+    return S_OK;
+  }
+
+  HRESULT STDMETHODCALLTYPE OnDeviceRemoved (_In_ LPCWSTR pwstrDeviceId) override
+  {
+    std::ignore = pwstrDeviceId;
+
+    resetSessionManager ();
+
+    return S_OK;
+  }
+
+  HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged (_In_ EDataFlow flow, _In_ ERole role, _In_ LPCWSTR pwstrDefaultDeviceId) override
+  {
+    std::ignore = role;
+    std::ignore = pwstrDefaultDeviceId;
+
+    if (flow == eAll || flow == eRender)
+    {
+      resetSessionManager ();
+    }
+
+    return S_OK;
+  }
+  
+  HRESULT STDMETHODCALLTYPE OnPropertyValueChanged (_In_ LPCWSTR pwstrDeviceId, _In_ const PROPERTYKEY key) override
+  {
+    std::ignore = pwstrDeviceId;
+    std::ignore = key;
+
+    resetSessionManager ();
+
+    return S_OK;
+  }
+
   struct endpoint_s
   {
     DWORD        endpoint_state_ = DEVICE_STATE_NOTPRESENT;
@@ -143,12 +247,18 @@ protected:
   std::vector <endpoint_s> render_devices_;
   std::vector <endpoint_s> capture_devices_;
 
+  volatile LONG            refs_;
+
 public:
-  SK_WASAPI_EndPointManager (void)
+  SK_WASAPI_EndPointManager (void) : refs_ (1)
   {
     initAudioPolicyConfigFactory ();
 
     Activate ();
+  }
+
+  virtual ~SK_WASAPI_EndPointManager (void)
+  {
   }
 
   void Activate (void)
@@ -159,6 +269,8 @@ public:
 
     SK_ComPtr <IMMDeviceCollection>                                dev_collection;
     pDevEnum->EnumAudioEndpoints (eRender,  DEVICE_STATEMASK_ALL, &dev_collection.p);
+
+    SK_RunOnce (pDevEnum->RegisterEndpointNotificationCallback (this));
 
     if (dev_collection.p != nullptr)
     {
@@ -248,7 +360,7 @@ public:
   size_t      getNumRenderEndpoints  (void) const { return render_devices_.size (); }
   endpoint_s& getRenderEndpoint      (UINT idx)   { static endpoint_s invalid = {}; return idx < render_devices_.size  () ? render_devices_  [idx] : invalid; }
 
-  size_t      getNumCaptureEndPoints (void) const { return capture_devices_.size  (); }
+  size_t      getNumCaptureEndpoints (void) const { return capture_devices_.size  (); }
   endpoint_s& getCaptureEndpoint     (UINT idx)   { static endpoint_s invalid = {}; return idx < capture_devices_.size () ? capture_devices_ [idx] : invalid; }
 
   bool setPersistedDefaultAudioEndpoint (int pid, EDataFlow flow, std::wstring deviceId)
@@ -556,13 +668,15 @@ public:
   ~SK_WASAPI_SessionManager (void) noexcept (false)
   {
     Deactivate ();
-
-    if (session_mgr_ != nullptr)
-      session_mgr_->UnregisterSessionNotification (this);
   }
 
   void Deactivate (void)
   {
+    std::scoped_lock <SK_Thread_HybridSpinlock> lock (deactivation_lock_);
+
+    if (session_mgr_ != nullptr)
+        session_mgr_->UnregisterSessionNotification (this);
+
     for ( auto& session : sessions_ )
     {
       session->Release ();
@@ -585,6 +699,8 @@ public:
 
   void Activate (void)
   {
+    std::scoped_lock <SK_Thread_HybridSpinlock> lock (activation_lock_);
+
     if (meter_info_ == nullptr)
       sessions_.clear ();
 
@@ -879,6 +995,9 @@ protected:
 private:
   volatile LONG                      refs_;
   std::set <SK_WASAPI_AudioSession*> sessions_;
+
+  SK_Thread_HybridSpinlock           activation_lock_;
+  SK_Thread_HybridSpinlock           deactivation_lock_;
 
   struct {
     using session_set_t         =

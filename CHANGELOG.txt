@@ -1,4 +1,9 @@
-﻿23.12.9
+﻿23.12.9.1
+=========
+ + Properly transition to the game's active device if the audio session is
+     stream re-routed so volume control works correctly after changing devs
+
+23.12.9
 =======
  + Added button to change the device the game outputs to in Audio Management
 

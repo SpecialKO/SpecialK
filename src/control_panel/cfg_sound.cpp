@@ -46,6 +46,12 @@ SK_WASAPI_GetAudioSession (void)
   return                         audio_session;
 }
 
+void
+SK_WASAPI_ResetSessionManager (void)
+{
+  SK_WASAPI_GetSessionManager ().Deactivate ();
+}
+
 #define sessions      SK_WASAPI_GetSessionManager ()
 #define audio_session SK_WASAPI_GetAudioSession   ()
 
@@ -250,7 +256,6 @@ SK_ImGui_SelectAudioDeviceDlg (void)
           );
 
           sessions.Deactivate ();
-          sessions.Activate   ();
 
           ImGui::CloseCurrentPopup ();
 
