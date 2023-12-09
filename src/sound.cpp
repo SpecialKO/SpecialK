@@ -1050,3 +1050,7 @@ SK_WASAPI_AudioSession::getAutoGainControl (void)
   return
     parent_->auto_gain_;
 }
+
+std::wstring SK_WASAPI_EndPointManager::MMDEVAPI_DEVICE_PREFIX   = LR"(\\?\SWD#MMDEVAPI#)";
+std::wstring SK_WASAPI_EndPointManager::MMDEVAPI_RENDER_POSTFIX  = L"#{e6327cad-dcec-4949-ae8a-991e976a79d2}";
+std::wstring SK_WASAPI_EndPointManager::MMDEVAPI_CAPTURE_POSTFIX = L"#{2eef81be-33fa-4800-9670-1cd474972c3f}";

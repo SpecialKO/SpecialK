@@ -1,4 +1,8 @@
-﻿23.12.8.1
+﻿23.12.9
+=======
+ + Added button to change the device the game outputs to in Audio Management
+
+23.12.8.1
 =========
  + Fixed HDR MaxLuminance values set using Profile Display Capabilities sometimes
      not applying correctly.

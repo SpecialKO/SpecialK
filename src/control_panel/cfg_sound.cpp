@@ -208,6 +208,68 @@ SK_ImGui_SelectAudioSessionDlg (void)
   return changed;
 }
 
+bool
+SK_ImGui_SelectAudioDeviceDlg (void)
+{
+  const ImGuiIO&
+    io (ImGui::GetIO ());
+
+  bool changed = false;
+
+  static const float fMinX = 400.0f;
+  static const float fMinY = 150.0f;
+
+  ImGui::SetNextWindowSizeConstraints ( ImVec2 (fMinX, fMinY),
+                                        ImVec2 (std::max (io.DisplaySize.x * 0.75f, fMinX),
+                                                std::max (io.DisplaySize.y * 0.666f,fMinY)) );
+
+  if (ImGui::BeginPopupModal ("Audio Device Selector", nullptr, ImGuiWindowFlags_AlwaysAutoResize |
+                                                                ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse))
+  {
+    size_t count = SK_WASAPI_EndPointMgr->getNumRenderEndpoints ();
+
+    std::wstring endpoint_id =
+      SK_WASAPI_EndPointMgr->getPersistedDefaultAudioEndpoint (
+        audio_session->getProcessId (), eRender
+      );
+
+    for ( UINT i = 0 ; i < count ; ++i )
+    {
+      auto& device =
+        SK_WASAPI_EndPointMgr->getRenderEndpoint (i);
+
+      if (device.endpoint_state_ == DEVICE_STATE_ACTIVE)
+      {
+        bool selected =
+          device.endpoint_id_._Equal (endpoint_id);
+
+        if (ImGui::Selectable (device.friendly_name_.c_str (), selected))
+        {
+          SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (
+            audio_session->getProcessId (), eRender, device.endpoint_id_
+          );
+
+          sessions.Deactivate ();
+          sessions.Activate   ();
+
+          ImGui::CloseCurrentPopup ();
+
+          changed = true;
+
+          break;
+        }
+      }
+    }
+
+    if (count == 0)
+      ImGui::CloseCurrentPopup ();
+
+    ImGui::EndPopup     ();
+  }
+
+  return changed;
+}
+
 class SK_MMDev_AudioEndpointVolumeCallback :
   public IAudioEndpointVolumeCallback
 {
@@ -573,6 +635,19 @@ SK_ImGui_VolumeManager (void)
 
       pVolume->GetMasterVolume (&master_vol);
       pVolume->GetMute         (&master_mute);
+
+
+      static std::string label = "Switch Audio Device";
+
+      SK_ImGui_SelectAudioDeviceDlg ();
+
+      if (ImGui::Button (label.c_str ()))
+      {
+        ImGui::OpenPopup ("Audio Device Selector");
+      }
+
+      ImGui::SameLine ();
+
 
       IAudioEndpointVolume* pEndVol =
         audio_session->getEndpointVolume ();
