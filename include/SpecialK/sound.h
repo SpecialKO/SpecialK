@@ -242,6 +242,8 @@ public:
   };
 
 protected:
+  SK_Thread_HybridSpinlock  activation_lock_;
+
   IAudioPolicyConfigFactory *policy_cfg_factory = nullptr;
 
   std::vector <endpoint_s> render_devices_;
@@ -263,65 +265,87 @@ public:
 
   void Activate (void)
   {
-    SK_ComPtr <IMMDeviceEnumerator> pDevEnum;
-    if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
-      return;
+    std::scoped_lock <SK_Thread_HybridSpinlock> lock0 (activation_lock_);
 
-    SK_ComPtr <IMMDeviceCollection>                                dev_collection;
-    pDevEnum->EnumAudioEndpoints (eRender,  DEVICE_STATEMASK_ALL, &dev_collection.p);
-
-    if (dev_collection.p != nullptr)
+    try
     {
-      render_devices_.clear ();
+      SK_ComPtr <IMMDeviceEnumerator> pDevEnum;
 
-      UINT                       uiDevices = 0;
-      dev_collection->GetCount (&uiDevices);
+      ThrowIfFailed (
+        pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
-      for ( UINT i = 0 ; i < uiDevices ; ++i )
+      SK_ComPtr <IMMDeviceCollection>                                dev_collection;
+      ThrowIfFailed (
+        pDevEnum->EnumAudioEndpoints (eRender, DEVICE_STATE_ACTIVE, &dev_collection.p));
+
+      if (dev_collection.p != nullptr)
       {
-        endpoint_s endpoint;
+        render_devices_.clear ();
 
-        SK_ComPtr <IMMDevice>     pDevice;
-        dev_collection->Item (i, &pDevice.p);
+        UINT                         uiDevices = 0;
+        ThrowIfFailed (
+          dev_collection->GetCount (&uiDevices));
 
-        if (pDevice.p != nullptr)
+        for ( UINT i = 0 ; i < uiDevices ; ++i )
         {
-          wchar_t*         wszId = nullptr;
-          pDevice->GetId (&wszId);
+          endpoint_s endpoint;
 
-          if (wszId != nullptr)
+          SK_ComPtr <IMMDevice>       pDevice;
+          ThrowIfFailed (
+            dev_collection->Item (i, &pDevice.p));
+
+          if (pDevice.p != nullptr)
           {
-            SK_ComPtr <IPropertyStore>              props;
-            pDevice->OpenPropertyStore (STGM_READ, &props.p);
+            wchar_t*           wszId = nullptr;
+            ThrowIfFailed (
+              pDevice->GetId (&wszId));
 
-            if (props.p != nullptr)
+            if (wszId != nullptr)
             {
-              PROPVARIANT       propvarName;
-              PropVariantInit (&propvarName);
+              SK_ComPtr <IPropertyStore>                props;
+              ThrowIfFailed (
+                pDevice->OpenPropertyStore (STGM_READ, &props.p));
 
-              props->GetValue (PKEY_Device_FriendlyName, &propvarName);
+              if (props.p != nullptr)
+              {
+                PROPVARIANT       propvarName;
+                PropVariantInit (&propvarName);
 
-              endpoint.endpoint_id_   = wszId;
-              endpoint.friendly_name_ = SK_WideCharToUTF8 (propvarName.pwszVal);
+                ThrowIfFailed (
+                  props->GetValue (PKEY_Device_FriendlyName, &propvarName));
 
-              pDevice->GetState (&endpoint.endpoint_state_);
+                endpoint.endpoint_id_   = wszId;
+                endpoint.friendly_name_ = SK_WideCharToUTF8 (propvarName.pwszVal);
 
-              PropVariantClear (&propvarName);
+                ThrowIfFailed (
+                  pDevice->GetState (&endpoint.endpoint_state_));
 
-              render_devices_.emplace_back (endpoint);
+                PropVariantClear (&propvarName);
+
+                render_devices_.push_back (endpoint);
+              }
+
+              CoTaskMemFree (wszId);
             }
-
-            CoTaskMemFree (wszId);
           }
         }
       }
+      //pDevEnum->EnumAudioEndpoints (eCapture, DEVICE_STATEMASK_ALL, &dev_collection.p);
     }
-    //pDevEnum->EnumAudioEndpoints (eCapture, DEVICE_STATEMASK_ALL, &dev_collection.p);
+
+    catch (const std::exception& e)
+    {
+      SK_LOG0 ( ( L"%ws (...) Failed "
+                  L"During Endpoint Enumeration : %hs", __FUNCTIONW__, e.what ()
+                ),L"  WASAPI  " );
+
+      return;
+    }
   }
 
-  static std::wstring MMDEVAPI_DEVICE_PREFIX; 
-  static std::wstring MMDEVAPI_RENDER_POSTFIX;
-  static std::wstring MMDEVAPI_CAPTURE_POSTFIX;
+  static const wchar_t* MMDEVAPI_DEVICE_PREFIX; 
+  static const wchar_t* MMDEVAPI_RENDER_POSTFIX;
+  static const wchar_t* MMDEVAPI_CAPTURE_POSTFIX;
 
   bool initAudioPolicyConfigFactory (void)
   {
@@ -342,12 +366,15 @@ public:
 
     hr =
       RoGetActivationFactory   (hClassName, __uuidof (IAudioPolicyConfigFactory),       (void **)&policy_cfg_factory);
-
+    
+    // Fallback does not work.
+#if 0
     if (hr == E_NOINTERFACE)
     {
       hr =
         RoGetActivationFactory (hClassName, __uuidof (IAudioPolicyConfigFactoryLegacy), (void **)&policy_cfg_factory);
     }
+#endif
 
     WindowsDeleteString        (hClassName);
 
@@ -361,7 +388,7 @@ public:
   size_t      getNumCaptureEndpoints (void) const { return capture_devices_.size  (); }
   endpoint_s& getCaptureEndpoint     (UINT idx)   { static endpoint_s invalid = {}; return idx < capture_devices_.size () ? capture_devices_ [idx] : invalid; }
 
-  bool setPersistedDefaultAudioEndpoint (int pid, EDataFlow flow, std::wstring deviceId)
+  bool setPersistedDefaultAudioEndpoint (int pid, EDataFlow flow, std::wstring_view deviceId)
   {
     if (policy_cfg_factory == nullptr)
       return false;
@@ -370,10 +397,10 @@ public:
 
     if (! deviceId.empty ())
     {
-      std::wstring fullDeviceId (
-        MMDEVAPI_DEVICE_PREFIX + deviceId + (flow == eRender ?
-                                     MMDEVAPI_RENDER_POSTFIX : MMDEVAPI_CAPTURE_POSTFIX)
-                                );
+      std::wstring fullDeviceId =
+        SK_FormatStringW ( L"%ws%ws%ws", MMDEVAPI_DEVICE_PREFIX, deviceId.data (),
+                       flow == eRender ? MMDEVAPI_RENDER_POSTFIX
+                                       : MMDEVAPI_CAPTURE_POSTFIX );
 
       auto hr =
         WindowsCreateString ( fullDeviceId.c_str  (),
@@ -656,7 +683,7 @@ public:
   SK_WASAPI_SessionManager (void) noexcept : refs_ (1)
   {
     reset_event_.m_h =
-      SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
+      SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
   };
 
   virtual
@@ -677,19 +704,6 @@ public:
     if (session_mgr_ != nullptr)
         session_mgr_->UnregisterSessionNotification (this);
 
-    for ( auto& session : sessions_ )
-    {
-      session->Release ();
-    }
-
-    sessions_.clear ();
-
-    active_sessions_.data.clear ();
-    active_sessions_.view.clear ();
-
-    inactive_sessions_.data.clear ();
-    inactive_sessions_.view.clear ();
-
     meter_info_   = nullptr;
     endpoint_vol_ = nullptr;
     auto_gain_    = nullptr;
@@ -703,11 +717,6 @@ public:
 
     if (reset_event_.isValid () && WaitForSingleObject (reset_event_, 0) != WAIT_TIMEOUT)
     {
-      SK_ComPtr <IMMDeviceEnumerator> pDevEnum;
-      if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
-        return;
-
-      pDevEnum->UnregisterEndpointNotificationCallback (SK_WASAPI_EndPointMgr.getPtr ());
       Deactivate ();
     }
 
@@ -812,14 +821,14 @@ public:
 
     session_mgr_->RegisterSessionNotification (this);
 
+    SK_RunOnce (pDevEnum->RegisterEndpointNotificationCallback (SK_WASAPI_EndPointMgr.getPtr ()));
+
     endpoint_vol_.Attach (SK_MMDev_GetEndpointVolumeControl ().Detach ());
     auto_gain_.   Attach (SK_MMDev_GetAutoGainControl       ().Detach ());
     loudness_.    Attach (SK_MMDev_GetLoudness              ().Detach ());
     audio_client_.Attach (SK_WASAPI_GetAudioClient          ().Detach ());
 
     SK_WASAPI_EndPointMgr->Activate ();
-
-    pDevEnum->RegisterEndpointNotificationCallback (SK_WASAPI_EndPointMgr.getPtr ());
   }
 
   // IUnknown
