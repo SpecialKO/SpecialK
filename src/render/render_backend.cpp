@@ -2763,8 +2763,6 @@ SK_GetKeyPathFromHKEY (HKEY& key)
     keyPath;
 }
 
-//static volatile LONG lUpdatingOutputs = 0;
-
 void
 SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
                               DXGI_OUTPUT_DESC&              outDesc )
@@ -2985,6 +2983,100 @@ SK_RenderBackend_V2::queueUpdateOutputs (void)
   update_outputs = true;
 }
 
+void
+SK_RenderBackend_V2::updateWDDMCaps (SK_RenderBackend_V2::output_s *pDisplay)
+{
+  if (D3DKMTOpenAdapterFromGdiDisplayName == nullptr)
+      D3DKMTOpenAdapterFromGdiDisplayName = SK_GetProcAddress (L"gdi32.dll",
+     "D3DKMTOpenAdapterFromGdiDisplayName");
+
+  if (D3DKMTOpenAdapterFromGdiDisplayName != nullptr)
+  {
+    if (adapter.d3dkmt != 0)
+    {
+      D3DKMT_CLOSEADAPTER
+        closeAdapter;
+        closeAdapter.hAdapter = adapter.d3dkmt;
+
+      if (SUCCEEDED (SK_D3DKMT_CloseAdapter (&closeAdapter)))
+      {
+        SK_LOG1 ( ( L"SK_D3DKMT_CloseAdapter successful for %ws", pDisplay->gdi_name ),
+                      __SK_SUBSYSTEM__ );
+
+        adapter.d3dkmt        = 0;
+        adapter.VidPnSourceId = 0;
+        adapter.luid.HighPart = 0;
+        adapter.luid.LowPart  = 0;
+      }
+    }
+
+    D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME
+      openAdapter = { };
+
+    wcsncpy_s ( openAdapter.DeviceName, 32,
+                    pDisplay->gdi_name, _TRUNCATE );
+
+    if ( STATUS_SUCCESS ==
+           ((D3DKMTOpenAdapterFromGdiDisplayName_pfn)
+             D3DKMTOpenAdapterFromGdiDisplayName)(&openAdapter) )
+    {
+      SK_LOG1 ( (L"D3DKMTOpenAdapterFromGdiDisplayName successful for %ws, VidPnSourceId=%lu",
+                 pDisplay->gdi_name, openAdapter.VidPnSourceId ),
+                 __SK_SUBSYSTEM__ );
+
+      adapter.d3dkmt        = openAdapter.hAdapter;
+      adapter.VidPnSourceId = openAdapter.VidPnSourceId;
+      adapter.luid.HighPart = openAdapter.AdapterLuid.HighPart;
+      adapter.luid.LowPart  = openAdapter.AdapterLuid.LowPart;
+
+    //SK_ReleaseAssert (adapter.luid == openAdapter.AdapterLuid);
+    }
+
+    else
+    {
+      SK_LOG0 ( (L"D3DKMTOpenAdapterFromGdiDisplayName unsuccessful for %ws", pDisplay->gdi_name ),
+                 __SK_SUBSYSTEM__ );
+
+      adapter.d3dkmt        = 0;
+      adapter.VidPnSourceId = 0;
+      adapter.luid.HighPart = 0;
+      adapter.luid.LowPart  = 0;
+    }
+
+    if (adapter.d3dkmt != 0)
+    {
+      if (D3DKMTGetMultiPlaneOverlayCaps == nullptr)
+          D3DKMTGetMultiPlaneOverlayCaps = SK_GetProcAddress (L"gdi32.dll",
+         "D3DKMTGetMultiPlaneOverlayCaps");
+
+      pDisplay->mpo_planes = 0;
+
+      if (D3DKMTGetMultiPlaneOverlayCaps != nullptr)
+      {
+        D3DKMT_GET_MULTIPLANE_OVERLAY_CAPS caps = {};
+
+        caps.hAdapter      = openAdapter.hAdapter;
+        caps.VidPnSourceId = adapter.VidPnSourceId;
+
+        if ( ((D3DKMTGetMultiPlaneOverlayCaps_pfn)
+               D3DKMTGetMultiPlaneOverlayCaps)(&caps) == STATUS_SUCCESS )
+        {
+          pDisplay->mpo_planes = caps.MaxRGBPlanes; // Don't care about YUV planes, this is a game!
+
+          if (pDisplay == &displays [active_display] && config.display.warn_no_mpo_planes && pDisplay->mpo_planes <= 1)
+          {
+            SK_RunOnce (
+              SK_ImGui_Warning (L"MPOs are not active, consider restarting your driver.")
+            );
+          }
+        }
+      }
+
+      pDisplay->wddm_caps.init (adapter.d3dkmt);
+    }
+  }
+}
+
 bool
 SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
 {
@@ -3025,95 +3117,7 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
   {
     auto& display = *pOutput;
 
-    if (D3DKMTOpenAdapterFromGdiDisplayName == nullptr)
-        D3DKMTOpenAdapterFromGdiDisplayName = SK_GetProcAddress (L"gdi32.dll",
-       "D3DKMTOpenAdapterFromGdiDisplayName");
-
-    if (D3DKMTOpenAdapterFromGdiDisplayName != nullptr)
-    {
-      if (adapter.d3dkmt != 0)
-      {
-        D3DKMT_CLOSEADAPTER
-          closeAdapter;
-          closeAdapter.hAdapter = adapter.d3dkmt;
-
-        if (SUCCEEDED (SK_D3DKMT_CloseAdapter (&closeAdapter)))
-        {
-          SK_LOG1 ( ( L"SK_D3DKMT_CloseAdapter successful for %ws", display.gdi_name ),
-                        __SK_SUBSYSTEM__ );
-
-          adapter.d3dkmt        = 0;
-          adapter.VidPnSourceId = 0;
-          adapter.luid.HighPart = 0;
-          adapter.luid.LowPart  = 0;
-        }
-      }
-
-      D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME
-        openAdapter = { };
-
-      wcsncpy_s ( openAdapter.DeviceName, 32,
-                      display.gdi_name,  _TRUNCATE );
-
-      if ( STATUS_SUCCESS ==
-             ((D3DKMTOpenAdapterFromGdiDisplayName_pfn)
-               D3DKMTOpenAdapterFromGdiDisplayName)(&openAdapter) )
-      {
-        SK_LOG1 ( (L"D3DKMTOpenAdapterFromGdiDisplayName successful for %ws, VidPnSourceId=%lu",
-                   display.gdi_name, openAdapter.VidPnSourceId ),
-                   __SK_SUBSYSTEM__ );
-
-        adapter.d3dkmt        = openAdapter.hAdapter;
-        adapter.VidPnSourceId = openAdapter.VidPnSourceId;
-        adapter.luid.HighPart = openAdapter.AdapterLuid.HighPart;
-        adapter.luid.LowPart  = openAdapter.AdapterLuid.LowPart;
-
-      //SK_ReleaseAssert (adapter.luid == openAdapter.AdapterLuid);
-      }
-
-      else
-      {
-        SK_LOG0 ( (L"D3DKMTOpenAdapterFromGdiDisplayName unsuccessful for %ws", display.gdi_name ),
-                   __SK_SUBSYSTEM__ );
-
-        adapter.d3dkmt        = 0;
-        adapter.VidPnSourceId = 0;
-        adapter.luid.HighPart = 0;
-        adapter.luid.LowPart  = 0;
-      }
-
-      if (adapter.d3dkmt != 0)
-      {
-        if (D3DKMTGetMultiPlaneOverlayCaps == nullptr)
-            D3DKMTGetMultiPlaneOverlayCaps = SK_GetProcAddress (L"gdi32.dll",
-           "D3DKMTGetMultiPlaneOverlayCaps");
-
-        display.mpo_planes = 0;
-
-        if (D3DKMTGetMultiPlaneOverlayCaps != nullptr)
-        {
-          D3DKMT_GET_MULTIPLANE_OVERLAY_CAPS caps = {};
-
-          caps.hAdapter      = openAdapter.hAdapter;
-          caps.VidPnSourceId = adapter.VidPnSourceId;
-
-          if ( ((D3DKMTGetMultiPlaneOverlayCaps_pfn)
-                 D3DKMTGetMultiPlaneOverlayCaps)(&caps) == STATUS_SUCCESS )
-          {
-            display.mpo_planes = caps.MaxRGBPlanes; // Don't care about YUV planes, this is a game!
-
-            if (config.display.warn_no_mpo_planes && display.mpo_planes <= 1)
-            {
-              SK_RunOnce (
-                SK_ImGui_Warning (L"MPOs are not active, consider restarting your driver.")
-              );
-            }
-          }
-        }
-
-        display.wddm_caps.init (adapter.d3dkmt);
-      }
-    }
+    updateWDDMCaps (pOutput);
 
     wcsncpy_s ( display_name,        128,
                 display.name, _TRUNCATE );
@@ -3165,6 +3169,14 @@ sizeof (output_s));
       {
         SK_RunOnce (SK_Display_EnableHDR (pOutput));
       }
+
+      //
+      // Reload the MaxLuminance setting from hdr.ini so that it overrides
+      //   whatever values we just got from DXGI
+      //
+      extern void
+      SK_HDR_UpdateMaxLuminanceForActiveDisplay (bool forced = false);
+      SK_HDR_UpdateMaxLuminanceForActiveDisplay (true);
 
       if ((! isHDRCapable ()) && ( __SK_HDR_16BitSwap ||
                                    __SK_HDR_10BitSwap ))
@@ -3463,16 +3475,10 @@ SK_RenderBackend_V2::updateOutputTopology (void)
       ( pAdapter.p != nullptr );
   };
 
-
-//  while (InterlockedCompareExchange (&lUpdatingOutputs, 1, 0) != 0)
-//    ;
-
-
   if (! _GetAdapter (swapchain.p, pAdapter))
   {
     // Try without the SwapChain (FF7 Remake workaround)
     if (! _GetAdapter (nullptr, pAdapter))
-  //InterlockedCompareExchange (&lUpdatingOutputs, 0, 1);
       return;
   }
 
@@ -3953,18 +3959,41 @@ SK_RenderBackend_V2::updateOutputTopology (void)
     auto old_crc =
      display_crc [idx];
 
+
+    updateWDDMCaps (&display);
+
+
+    //
+    // Do not include this in the hash, because "supportULMB" weirdly
+    //   varies every time the caps are queried...
+    //
+    auto            monitor_caps_data =
+      display.nvapi.monitor_caps.data;
+      display.nvapi.monitor_caps.data = {};
+
      display_crc [idx] =
-             crc32c ( 0,
-    &display,
-     display_size   );
+             crc32c ( 0, &display,
+                          display_size );
 
     display_changed [idx] =
       old_crc != display_crc [idx];
+
+    display.nvapi.monitor_caps.data =
+                  monitor_caps_data;
 
     last_count = enum_count;
 
     if (display_changed [idx])
     {
+      const bool bIsActiveDisplay =
+        (display.idx == displays [active_display].idx);
+
+      if (bIsActiveDisplay)
+      {
+        extern void SK_HDR_UpdateMaxLuminanceForActiveDisplay (bool forced = false);
+                    SK_HDR_UpdateMaxLuminanceForActiveDisplay (true);
+      }
+
       dll_log->LogEx ( true,
         L"[Output Dev]\n"
         L"  +------------------+---------------------------------------------------------------------\n"
@@ -3977,10 +4006,10 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         L"  | Green Primary... |  %f, %f\n"
         L"  | Blue Primary.... |  %f, %f\n"
         L"  | White Point..... |  %f, %f\n"
-        L"  | SDR White Level. |  %10.5f nits\n"
-        L"  | Min Luminance... |  %10.5f nits\n"
-        L"  | Max Luminance... |  %10.5f nits\n"
-        L"  | Max FullFrame... |  %10.5f nits\n"
+        L"  | SDR White Level. |  %10.5f cd/m²\n"
+        L"  | Min Luminance... |  %10.5f cd/m²   %ws\n"
+        L"  | Max Luminance... |  %10.5f cd/m²   %ws\n"
+        L"  | Max FullFrame... |  %10.5f cd/m²   %ws\n"
         L"  +------------------+---------------------------------------------------------------------\n",
           display.full_name,
           display.gdi_name, display.monitor,
@@ -3993,32 +4022,42 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           display.gamut.xb,    display.gamut.yb,
           display.gamut.Xw,    display.gamut.Yw,
           display.hdr.white_level,
-          display.gamut.minY,  display.gamut.maxY,
-          display.gamut.maxAverageY
+          display.gamut.minY,
+          display.gamut.minY != display_gamut.minY               && display_gamut.minY > 0.0f        && bIsActiveDisplay
+           ? SK_FormatStringW (L"(Profile Override: %10.5f cd/m²)", display_gamut.minY).c_str ()
+           :                   L"",
+          display.gamut.maxY,
+          display.gamut.maxY != display_gamut.maxLocalY          && display_gamut.maxLocalY > 0.0f   && bIsActiveDisplay
+           ? SK_FormatStringW (L"(Profile Override: %10.5f cd/m²)", display_gamut.maxLocalY).c_str ()
+           :                   L"",
+          display.gamut.maxAverageY,
+          display.gamut.maxAverageY != display_gamut.maxAverageY && display_gamut.maxAverageY > 0.0f && bIsActiveDisplay
+           ? SK_FormatStringW (L"(Profile Override: %10.5f cd/m²)", display_gamut.maxAverageY).c_str ()
+           :                   L""
       );
     }
   }
 
-  bool any_changed =
+  const bool any_changed =
     std::count ( std::begin (display_changed),
                  std::end   (display_changed), true ) > 0;
 
   if (any_changed)
   {
-    SK_ComQIPtr <IDXGISwapChain>
-        pChain (swapchain.p);
-    if (pChain.p != nullptr)
-    {
-      DXGI_SWAP_CHAIN_DESC  swapDesc = { };
-      pChain->GetDesc     (&swapDesc);
-      assignOutputFromHWND (swapDesc.OutputWindow);
-    }
-
-    else
-      assignOutputFromHWND (game_window.hWnd);
-
     for ( UINT i = 0 ; i < enum_count; ++i )
     {
+      SK_ComQIPtr <IDXGISwapChain>
+          pChain (swapchain.p);
+      if (pChain.p != nullptr)
+      {
+        DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+        pChain->GetDesc     (&swapDesc);
+        assignOutputFromHWND (swapDesc.OutputWindow);
+      }
+
+      else
+        assignOutputFromHWND (game_window.hWnd);
+
       SK_LOG0 ( ( L"%s Monitor %i: [ %ix%i | (%5i,%#5i) ] %16ws :: %s",
                     displays [i].primary ? L"*" : L" ",
                     displays [i].idx,
@@ -4037,16 +4076,11 @@ SK_RenderBackend_V2::updateOutputTopology (void)
   {
     stale_display_info = false;
   }
-
-//InterlockedDecrement (&lUpdatingOutputs);
 }
 
 const SK_RenderBackend_V2::output_s*
 SK_RenderBackend_V2::getContainingOutput (const RECT& rkRect)
 {
-  //while (InterlockedCompareExchange (&lUpdatingOutputs, 1, 0) != 0)
-  //  ;
-
   const output_s* pOutput = nullptr;
 
   float bestIntersectArea = -1.0f;
@@ -4076,8 +4110,6 @@ SK_RenderBackend_V2::getContainingOutput (const RECT& rkRect)
       }
     }
   }
-
-  //InterlockedDecrement (&lUpdatingOutputs);
 
   return pOutput;
 }

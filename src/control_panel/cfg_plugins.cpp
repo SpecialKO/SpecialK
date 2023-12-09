@@ -335,7 +335,9 @@ SK::ControlPanel::PlugIns::Draw (void)
         ImGui::EndTooltip      ();
       }
 
-      ImGui::SameLine ();
+      ImGui::SameLine    ();
+      ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine    ();
 
       static std::set <SK_ConfigSerializedKeybind *>
         keybinds = {

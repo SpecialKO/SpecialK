@@ -538,6 +538,47 @@ SK_Display_ComparePathNameGUIDs ( const wchar_t *wszPathName0,
 }
 
 void
+SK_HDR_UpdateMaxLuminanceForActiveDisplay (bool forced = false)
+{
+  static auto pINI =
+      SK_CreateINI (
+        (std::wstring (SK_GetInstallPath ()) + LR"(\Global\hdr.ini)").c_str ()
+      );
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  static std::wstring
+        last_path = L"";
+  if (! last_path._Equal (rb.displays [rb.active_display].path_name) || forced)
+  {
+    pINI->reload ();
+
+    auto guid =
+      SK_Display_GetDeviceNameAndGUID (rb.displays [rb.active_display].path_name);
+
+    if (pINI->contains_section (guid))
+    {
+      auto& sec =
+        pINI->get_section (guid);
+
+      if (sec.contains_key (L"MaxLuminance"))
+      {
+        rb.display_gamut.maxLocalY =
+          std::max (80.0f, static_cast <float> (_wtof (sec.get_cvalue (L"MaxLuminance").c_str ())));
+        rb.display_gamut.maxY      =
+          rb.display_gamut.maxLocalY;
+
+        if (rb.display_gamut.maxAverageY > rb.display_gamut.maxY / 2)
+            rb.display_gamut.maxAverageY = rb.display_gamut.maxY / 2;
+
+        last_path = rb.displays [rb.active_display].path_name;
+      }
+    }
+  }
+}
+
+void
 SK_HDR_DisplayProfilerDialog (bool draw = true)
 {
   static auto pINI =
@@ -550,32 +591,7 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
   
   if (! draw)
   {
-    static std::wstring
-          last_path = L"";
-    if (! last_path._Equal (rb.displays [rb.active_display].path_name))
-    {
-      auto guid =
-        SK_Display_GetDeviceNameAndGUID (rb.displays [rb.active_display].path_name);
-
-      if (pINI->contains_section (guid))
-      {
-        auto& sec =
-          pINI->get_section (guid);
-
-        if (sec.contains_key (L"MaxLuminance"))
-        {
-          rb.display_gamut.maxLocalY =
-            std::max (80.0f, static_cast <float> (_wtof (sec.get_cvalue (L"MaxLuminance").c_str ())));
-          rb.display_gamut.maxY      =
-            rb.display_gamut.maxLocalY;
-
-          if (rb.display_gamut.maxAverageY > rb.display_gamut.maxY / 2)
-              rb.display_gamut.maxAverageY = rb.display_gamut.maxY / 2;
-
-          last_path = rb.displays [rb.active_display].path_name;
-        }
-      }
-    }
+    SK_HDR_UpdateMaxLuminanceForActiveDisplay (false);
 
     return;
   }
@@ -2505,7 +2521,7 @@ public:
                   preset.cfg_eotf->store (preset.eotf);
                 }
                 if (ImGui::IsItemHovered ())
-                  ImGui::SetTooltip ("Ubisoft games (e.g. Watch Dogs Legions) use 0.34 nits as SDR black for video and UI, which is gray in HDR...");
+                  ImGui::SetTooltip ((const char *)u8"Ubisoft games (e.g. Watch Dogs Legions) use 0.34 cd/m² as SDR black for video and UI, which is gray in HDR...");
                 //ImGui::BulletText ("Gamma Correction Unsupported for Current Tonemap");
               }
 

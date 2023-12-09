@@ -658,6 +658,7 @@ public:
   void            queueUpdateOutputs   (void);
   void            updateOutputTopology (void);
   const output_s* getContainingOutput  (const RECT& rkRect);
+  void            updateWDDMCaps       (output_s *pOutput);
   bool            assignOutputFromHWND (HWND hWndContainer);
 
   bool isReflexSupported  (void);
