@@ -270,8 +270,6 @@ public:
     SK_ComPtr <IMMDeviceCollection>                                dev_collection;
     pDevEnum->EnumAudioEndpoints (eRender,  DEVICE_STATEMASK_ALL, &dev_collection.p);
 
-    SK_RunOnce (pDevEnum->RegisterEndpointNotificationCallback (this));
-
     if (dev_collection.p != nullptr)
     {
       render_devices_.clear ();
@@ -585,12 +583,7 @@ public:
 
   HRESULT
   STDMETHODCALLTYPE
-  OnDisplayNameChanged (PCWSTR NewDisplayName, LPCGUID EventContext)  override {
-    UNREFERENCED_PARAMETER (NewDisplayName);
-    UNREFERENCED_PARAMETER (EventContext);
-
-    return S_OK;
-  };
+  OnDisplayNameChanged (PCWSTR NewDisplayName, LPCGUID EventContext)  override;
 
   HRESULT
   STDMETHODCALLTYPE
@@ -662,6 +655,8 @@ class SK_WASAPI_SessionManager : public IAudioSessionNotification
 public:
   SK_WASAPI_SessionManager (void) noexcept : refs_ (1)
   {
+    reset_event_.m_h =
+      SK_CreateEvent (nullptr, FALSE, TRUE, nullptr);
   };
 
   virtual
@@ -670,9 +665,14 @@ public:
     Deactivate ();
   }
 
+  void signalReset (void)
+  {
+    SetEvent (reset_event_);
+  }
+
   void Deactivate (void)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> lock (deactivation_lock_);
+    std::scoped_lock <SK_Thread_HybridSpinlock> lock0 (deactivation_lock_);
 
     if (session_mgr_ != nullptr)
         session_mgr_->UnregisterSessionNotification (this);
@@ -699,7 +699,17 @@ public:
 
   void Activate (void)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> lock (activation_lock_);
+    std::scoped_lock <SK_Thread_HybridSpinlock> lock1 (activation_lock_);
+
+    if (reset_event_.isValid () && WaitForSingleObject (reset_event_, 0) != WAIT_TIMEOUT)
+    {
+      SK_ComPtr <IMMDeviceEnumerator> pDevEnum;
+      if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
+        return;
+
+      pDevEnum->UnregisterEndpointNotificationCallback (SK_WASAPI_EndPointMgr.getPtr ());
+      Deactivate ();
+    }
 
     if (meter_info_ == nullptr)
       sessions_.clear ();
@@ -808,6 +818,8 @@ public:
     audio_client_.Attach (SK_WASAPI_GetAudioClient          ().Detach ());
 
     SK_WASAPI_EndPointMgr->Activate ();
+
+    pDevEnum->RegisterEndpointNotificationCallback (SK_WASAPI_EndPointMgr.getPtr ());
   }
 
   // IUnknown
@@ -998,6 +1010,8 @@ private:
 
   SK_Thread_HybridSpinlock           activation_lock_;
   SK_Thread_HybridSpinlock           deactivation_lock_;
+
+  SK_AutoHandle                      reset_event_;
 
   struct {
     using session_set_t         =

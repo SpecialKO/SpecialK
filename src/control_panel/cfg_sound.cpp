@@ -49,7 +49,7 @@ SK_WASAPI_GetAudioSession (void)
 void
 SK_WASAPI_ResetSessionManager (void)
 {
-  SK_WASAPI_GetSessionManager ().Deactivate ();
+  SK_WASAPI_GetSessionManager ().signalReset ();
 }
 
 #define sessions      SK_WASAPI_GetSessionManager ()
@@ -114,10 +114,19 @@ SK_ImGui_SelectAudioSessionDlg (void)
       ImGui::BeginGroup ();//"SessionSelectData");
       ImGui::Columns    (2);
 
+      std::set <DWORD> sessions_listed;
+
       for (int i = 0; i < count; i++)
       {
         SK_WASAPI_AudioSession* pSession =
           pSessions [i];
+
+        auto pChannelVolume =
+          pSession->getChannelAudioVolume ();
+
+        // No duplicates please
+        if (pChannelVolume == nullptr || (! sessions_listed.emplace (pSession->getProcessId ()).second))
+          continue;
 
         //bool selected     = false;
         const bool drawing_self =
@@ -255,7 +264,7 @@ SK_ImGui_SelectAudioDeviceDlg (void)
             audio_session->getProcessId (), eRender, device.endpoint_id_
           );
 
-          sessions.Deactivate ();
+          sessions.signalReset ();
 
           ImGui::CloseCurrentPopup ();
 

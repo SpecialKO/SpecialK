@@ -1013,9 +1013,25 @@ SK_WASAPI_Init (void)
 #include <SpecialK/sound.h>
 
 HRESULT
+STDMETHODCALLTYPE
+SK_WASAPI_AudioSession::OnDisplayNameChanged (PCWSTR NewDisplayName, LPCGUID EventContext)
+{
+  UNREFERENCED_PARAMETER (NewDisplayName);
+  UNREFERENCED_PARAMETER (EventContext);
+
+  this->app_name_ =
+    SK_WideCharToUTF8 (NewDisplayName);
+
+  parent_->signalReset ();
+
+  return S_OK;
+};
+
+HRESULT
 SK_WASAPI_AudioSession::OnStateChanged (AudioSessionState NewState)
 {
   parent_->SetSessionState (this, NewState);
+  parent_->signalReset     ();
 
   return S_OK;
 }
@@ -1026,6 +1042,7 @@ SK_WASAPI_AudioSession::OnSessionDisconnected (AudioSessionDisconnectReason Disc
   UNREFERENCED_PARAMETER (DisconnectReason);
 
   parent_->RemoveSession (this);
+  parent_->signalReset   ();
 
   return S_OK;
 }
