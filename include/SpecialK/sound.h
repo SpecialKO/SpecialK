@@ -395,9 +395,11 @@ public:
 
     HSTRING hDeviceId = nullptr;
 
+    std::wstring fullDeviceId;
+
     if (! deviceId.empty ())
     {
-      std::wstring fullDeviceId =
+      fullDeviceId =
         SK_FormatStringW ( L"%ws%ws%ws", MMDEVAPI_DEVICE_PREFIX, deviceId.data (),
                        flow == eRender ? MMDEVAPI_RENDER_POSTFIX
                                        : MMDEVAPI_CAPTURE_POSTFIX );
@@ -410,10 +412,23 @@ public:
         return false;
     }
 
-    auto hrConsole    = policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eConsole,    hDeviceId);
-    auto hrMultimedia = policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eMultimedia, hDeviceId);
+    HSTRING hExistingDeviceId = nullptr;
 
-    WindowsDeleteString (hDeviceId);
+    policy_cfg_factory->GetPersistedDefaultAudioEndpoint (pid, flow, eMultimedia | eConsole, &hExistingDeviceId);
+
+    UINT32                                           len;
+    std::wstring existing_device =
+      WindowsGetStringRawBuffer (hExistingDeviceId, &len);
+
+    bool needs_change =
+      !(         existing_device.empty () && fullDeviceId.empty ()) &&
+      !StrStrIW (existing_device.c_str (),   fullDeviceId.c_str ());
+
+    auto hrConsole    = needs_change ? policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eConsole,    hDeviceId) : S_OK;
+    auto hrMultimedia = needs_change ? policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eMultimedia, hDeviceId) : S_OK;
+
+    WindowsDeleteString (        hDeviceId);
+    WindowsDeleteString (hExistingDeviceId);
 
     return
       SUCCEEDED (hrConsole) &&

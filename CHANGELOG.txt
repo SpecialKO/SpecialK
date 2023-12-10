@@ -1,4 +1,8 @@
-﻿23.12.10
+﻿23.12.10.1
+==========
+ + Fixed unnecessary audio device changes causing brief audio drop-outs during Alt+Tab
+
+23.12.10
 ========
  + Added option to associate monitors with audio devices, such that SK will change
      the game's output audio device depending on which monitor the game is using.
