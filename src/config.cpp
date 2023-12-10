@@ -429,6 +429,7 @@ struct {
     sk::ParameterBool*    frametime               = nullptr;
     sk::ParameterBool*    advanced                = nullptr;
     sk::ParameterBool*    compact                 = nullptr;
+    sk::ParameterBool*    framenumber             = nullptr;
   } fps;
 
   struct {
@@ -1382,6 +1383,7 @@ auto DeclKeybind =
     ConfigEntry (monitoring.fps.frametime,               L"Show Frametime in Framerate Counter",                       osd_ini,         L"Monitor.FPS",           L"DisplayFrametime"),
     ConfigEntry (monitoring.fps.advanced,                L"Show Advanced Statistics in Framerate Counter",             osd_ini,         L"Monitor.FPS",           L"AdvancedStatistics"),
     ConfigEntry (monitoring.fps.compact,                 L"Show FRAPS-like ('120') Statistics in Framerate Counter",   osd_ini,         L"Monitor.FPS",           L"CompactStatistics"),
+    ConfigEntry (monitoring.fps.framenumber,             L"Show Frame Number",                                         osd_ini,         L"Monitor.FPS",           L"DisplayFrameNumber"),
     ConfigEntry (monitoring.time.show,                   L"Show System Clock",                                         osd_ini,         L"Monitor.Time",          L"Show"),
     ConfigEntry (monitoring.title.show,                  L"Show Special K Title",                                      osd_ini,         L"Monitor.Title",         L"Show"),
 
@@ -3429,10 +3431,11 @@ auto DeclKeybind =
     config.io.show =     monitoring.io.show->get_value ();
                          monitoring.io.interval->load  (config.io.interval);
 
-  monitoring.fps.show->load      (config.fps.show);
-  monitoring.fps.frametime->load (config.fps.frametime);
-  monitoring.fps.advanced->load  (config.fps.advanced);
-  monitoring.fps.compact->load   (config.fps.compact);
+  monitoring.fps.show->load        (config.fps.show);
+  monitoring.fps.frametime->load   (config.fps.frametime);
+  monitoring.fps.framenumber->load (config.fps.framenumber);
+  monitoring.fps.advanced->load    (config.fps.advanced);
+  monitoring.fps.compact->load     (config.fps.compact);
 
   if (((sk::iParameter *)monitoring.memory.show)->load     () && config.osd.remember_state)
        config.mem.show = monitoring.memory.show->get_value ();
@@ -5059,6 +5062,7 @@ SK_SaveConfig ( std::wstring name,
   monitoring.fps.compact->store               (config.fps.compact);
   monitoring.fps.advanced->store              (config.fps.advanced);
   monitoring.fps.frametime->store             (config.fps.frametime);
+  monitoring.fps.framenumber->store           (config.fps.framenumber);
 
   monitoring.io.show->set_value               (config.io.show);
   monitoring.io.interval->store               (config.io.interval);

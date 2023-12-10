@@ -802,6 +802,12 @@ SK_DrawOSD (void)
        rb.gsync_state.capable &&
        rb.gsync_state.active  );
 
+    if (config.fps.framenumber)
+    {
+      OSD_PRINTF ("%llu  "), SK_GetFramesDrawn ()
+      OSD_END
+    }
+
     if (fabs (mean - INFINITY) > std::numeric_limits <double>::epsilon ())
     {
       const char* format = "";

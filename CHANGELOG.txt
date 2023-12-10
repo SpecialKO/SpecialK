@@ -1,4 +1,8 @@
-﻿23.12.9.2
+﻿23.12.9.3
+=========
+ + Added Frame Counter option to OSD's FPS reporting
+
+23.12.9.2
 =========
  + Fixed crash in IMMDeviceEnumerator::EnumAudioEndpoints (...) on some drivers
 

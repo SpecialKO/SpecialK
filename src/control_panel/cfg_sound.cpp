@@ -378,7 +378,20 @@ SK_ImGui_VolumeManager (void)
     audio_session = nullptr;
 
   if (audio_session != nullptr)
+  {
+    float fLevelDB = 0.0f;
+
+    auto pEndpointVolume =
+      audio_session->getEndpointVolume ();
+
+    if ( pEndpointVolume == nullptr || FAILED (
+           pEndpointVolume->GetMasterVolumeLevel (&fLevelDB)) )
+    {
+      sessions.signalReset ();
+      return;
+    }
     app_name = audio_session->getName ();
+  }
 
   app_name += "##AudioSessionAppName";
 

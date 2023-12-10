@@ -226,6 +226,7 @@ struct sk_config_t
     bool   compact        = false;
     bool   advanced       = false;
     bool   frametime      = true;
+    bool   framenumber    = false;
 
     struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'F', 0 };
