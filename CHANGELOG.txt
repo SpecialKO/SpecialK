@@ -1,5 +1,12 @@
 ﻿23.12.10.2
 ==========
+ + Added sRGB support to ReShade when loaded as a plug-in, which is necessary
+     for various edge-detect shaders (SMAA, AMD CAS, ...) that require sRGB.
+
+    >> Partial support has been added to D3D12; all formats except R10G10B10A2
+
+     * In HDR, sRGB is unnecessary. Just make sure ReShade is set to "Draw First".
+
  + Custom SDR EOTF can be configured in-game, rather than requiring a manual INI edit,
      by selecting "Custom" from the HDR Content EOTF combo box.
 

@@ -2728,10 +2728,7 @@ const
               shaders->reshade_triggered                = true;
                       _reshade_trigger_before [dev_idx] = false;
 
-              extern bool
-              SK_ReShadeAddOn_RenderEffectsD3D11Ex (IDXGISwapChain1 *pSwapChain, ID3D11RenderTargetView* pRTV);
-
-              SK_ReShadeAddOn_RenderEffectsD3D11Ex ((IDXGISwapChain1 *)rb.swapchain.p, pRTV.p);
+              SK_ReShadeAddOn_RenderEffectsD3D11Ex ((IDXGISwapChain1 *)rb.swapchain.p, pRTV.p, nullptr);
             }
           }
         }

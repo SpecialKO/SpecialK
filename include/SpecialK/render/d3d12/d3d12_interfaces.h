@@ -501,26 +501,28 @@ struct SK_D3D12_RenderCtx {
       HRESULT WaitSequential   (void);
     } fence, reshade_fence;
 
-    SK_ComPtr <ID3D12GraphicsCommandList> pCmdList          = nullptr;
-		SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator     = nullptr;
-    bool                                  bCmdListRecording =   false;
+    SK_ComPtr <ID3D12GraphicsCommandList> pCmdList           = nullptr;
+		SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator      = nullptr;
+    bool                                  bCmdListRecording  =   false;
 
-		SK_ComPtr <ID3D12Resource>            pRenderOutput     = nullptr;
-		D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutput     =  { 0 };
-    D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeOutput    =  { 0 };
-    UINT                                  iBufferIdx        =UINT_MAX;
+		SK_ComPtr <ID3D12Resource>            pRenderOutput      = nullptr;
+		D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutput      =  { 0 };
+    D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutputsRGB  =  { 0 };
+    D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeOutput     =  { 0 };
+    D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeOutputsRGB =  { 0 };
+    UINT                                  iBufferIdx         =UINT_MAX;
 
     struct {
-      SK_ComPtr <ID3D12Resource>          pSwapChainCopy    = nullptr;
+      SK_ComPtr <ID3D12Resource>          pSwapChainCopy     = nullptr;
       D3D12_CPU_DESCRIPTOR_HANDLE         hSwapChainCopy_CPU = { 0 };
       D3D12_GPU_DESCRIPTOR_HANDLE         hSwapChainCopy_GPU = { 0 };
-      D3D12_CPU_DESCRIPTOR_HANDLE         hBufferCopy_CPU   =  { 0 };
-      D3D12_GPU_DESCRIPTOR_HANDLE         hBufferCopy_GPU   =  { 0 };
-      D3D12_RECT                          scissor           = {     };
-      D3D12_VIEWPORT                      vp                = {     };
+      D3D12_CPU_DESCRIPTOR_HANDLE         hBufferCopy_CPU    =  { 0 };
+      D3D12_GPU_DESCRIPTOR_HANDLE         hBufferCopy_GPU    =  { 0 };
+      D3D12_RECT                          scissor            = {     };
+      D3D12_VIEWPORT                      vp                 = {     };
 
       struct {
-        SK_D3D12_StateTransition          process  [2]      = {
+        SK_D3D12_StateTransition          process  [2]       = {
           { D3D12_RESOURCE_STATE_COPY_DEST,   D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE },
           { D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET         }
         },                                copy_end [1]      = {

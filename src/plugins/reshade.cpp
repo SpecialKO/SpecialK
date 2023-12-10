@@ -223,11 +223,12 @@ SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
 
 struct dxgi_rtv_s {
   // Parent Information
-  reshade::api::device*       device = nullptr;
+  reshade::api::device*       device   = nullptr;
 
   // Resource and Fence
-  reshade::api::resource_view rtv    = { 0 };
-  reshade::api::fence         fence  = { 0 };
+  reshade::api::resource_view rtv      = { 0 };
+  reshade::api::resource_view rtv_srgb = { 0 };
+  reshade::api::fence         fence    = { 0 };
 
   bool isFinished (void) const { return device->get_completed_fence_value (fence) == 1; }
   bool isValid    (void) const { return device       != nullptr &&
@@ -312,12 +313,14 @@ SK_ReShadeAddOn_CleanupRTVs (reshade::api::device *device, bool must_wait)
     {
       if (dxgi_rtv.isFinished () || (must_wait && dxgi_rtv.waitForGPU ()))
       {
-        device->destroy_resource_view (dxgi_rtv.rtv);
         device->destroy_fence         (dxgi_rtv.fence);
+        device->destroy_resource_view (dxgi_rtv.rtv);
+        device->destroy_resource_view (dxgi_rtv.rtv_srgb);
 
-        dxgi_rtv.rtv.handle   = 0;
-        dxgi_rtv.fence.handle = 0;
-        dxgi_rtv.device       = nullptr;
+        dxgi_rtv.rtv.handle      = 0;
+        dxgi_rtv.rtv_srgb.handle = 0;
+        dxgi_rtv.fence.handle    = 0;
+        dxgi_rtv.device          = nullptr;
 
         continue;
       }
@@ -482,12 +485,14 @@ SK_ReShadeAddOn_DestroyCmdQueue (reshade::api::command_queue *queue)
     {
       if (dxgi_rtv.isFinished () || dxgi_rtv.waitForGPU ())
       {
-        device->destroy_resource_view (dxgi_rtv.rtv);
         device->destroy_fence         (dxgi_rtv.fence);
+        device->destroy_resource_view (dxgi_rtv.rtv);
+        device->destroy_resource_view (dxgi_rtv.rtv_srgb);
 
-        dxgi_rtv.rtv.handle   = 0;
-        dxgi_rtv.fence.handle = 0;
-        dxgi_rtv.device       = nullptr;
+        dxgi_rtv.rtv.handle      = 0;
+        dxgi_rtv.rtv_srgb.handle = 0;
+        dxgi_rtv.fence.handle    = 0;
+        dxgi_rtv.device          = nullptr;
 
         continue;
       }
@@ -711,17 +716,48 @@ SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
       if (! device->create_fence (0, reshade::api::fence_flags::none, &dxgi_rtv.fence))
         return false;
 
-      if (! device->create_resource_view (backbuffer, reshade::api::resource_usage::render_target, rtvDesc, &dxgi_rtv.rtv))
+      if (DirectX::IsSRGB ((DXGI_FORMAT)rtvDesc.format))
       {
-        device->destroy_fence (dxgi_rtv.fence);
-        return false;
+        if (! device->create_resource_view (backbuffer, reshade::api::resource_usage::render_target, rtvDesc, &dxgi_rtv.rtv_srgb))
+        {
+          device->destroy_fence (dxgi_rtv.fence);
+          return false;
+        }
+
+        rtvDesc.format = reshade::api::format_to_default_typed (rtvDesc.format, 0);
+
+        if (! device->create_resource_view (backbuffer, reshade::api::resource_usage::render_target, rtvDesc, &dxgi_rtv.rtv))
+        {
+          device->destroy_fence (dxgi_rtv.fence);
+          return false;
+        }
+      }
+
+      else
+      {
+        if (! device->create_resource_view (backbuffer, reshade::api::resource_usage::render_target, rtvDesc, &dxgi_rtv.rtv))
+        {
+          device->destroy_fence (dxgi_rtv.fence);
+          return false;
+        }
+
+        if (DirectX::MakeSRGB (swapDesc.BufferDesc.Format) != swapDesc.BufferDesc.Format)
+        {
+          rtvDesc.format = reshade::api::format_to_default_typed (rtvDesc.format, 1);
+
+          if (! device->create_resource_view (backbuffer, reshade::api::resource_usage::render_target, rtvDesc, &dxgi_rtv.rtv_srgb))
+          {
+            device->destroy_fence (dxgi_rtv.fence);
+            return false;
+          }
+        }
       }
 
       cmd_list->barrier ( backbuffer, reshade::api::resource_usage::present,
                                       reshade::api::resource_usage::render_target );
 
       runtime->render_effects (
-        cmd_list, dxgi_rtv.rtv, { 0 }
+        cmd_list, dxgi_rtv.rtv, dxgi_rtv.rtv_srgb
       );
 
       cmd_list->barrier ( backbuffer, reshade::api::resource_usage::render_target,
@@ -747,6 +783,7 @@ SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
 
         device->destroy_fence         (dxgi_rtv.fence);
         device->destroy_resource_view (dxgi_rtv.rtv);
+        device->destroy_resource_view (dxgi_rtv.rtv_srgb);
 
         return true;
       }
@@ -757,7 +794,9 @@ SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
 }
 
 bool
-SK_ReShadeAddOn_RenderEffectsD3D11Ex (IDXGISwapChain1 *pSwapChain, ID3D11RenderTargetView* pRTV)
+SK_ReShadeAddOn_RenderEffectsD3D11Ex ( IDXGISwapChain1        *pSwapChain,
+                                       ID3D11RenderTargetView *pRTV,
+                                       ID3D11RenderTargetView *pRTV_sRGB )
 {
   auto runtime =
     SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain);
@@ -797,16 +836,65 @@ SK_ReShadeAddOn_RenderEffectsD3D11Ex (IDXGISwapChain1 *pSwapChain, ID3D11RenderT
       SK_ComPtr <ID3D11Resource> pResource;
              pRTV->GetResource (&pResource.p);
 
+      D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = { };
+      pRTV->GetDesc               (&rtvDesc);
+
       SK_ComQIPtr <ID3D11Texture2D> pTexture (pResource);
 
       if (! pTexture.p)
         return false;
 
+      bool bHasTemporaryRTV_sRGB =
+        false;
+
+      if (pRTV_sRGB == nullptr)
+      {
+          D3D11_RENDER_TARGET_VIEW_DESC
+                             rtvDesc_sRGB = rtvDesc;
+
+          if (rtvDesc_sRGB.Format == DXGI_FORMAT_UNKNOWN)
+          {
+            D3D11_TEXTURE2D_DESC texDesc = { };
+            pTexture->GetDesc  (&texDesc);
+
+            rtvDesc_sRGB.Format = texDesc.Format;
+          }
+
+          if (DirectX::IsTypeless        (rtvDesc_sRGB.Format))
+                                          rtvDesc_sRGB.Format =
+              DirectX::MakeTypelessUNORM (rtvDesc_sRGB.Format);
+
+                             rtvDesc_sRGB.Format =
+          DirectX::MakeSRGB (rtvDesc_sRGB.Format);
+        if (DirectX::IsSRGB (rtvDesc_sRGB.Format))
+        {
+          SK_ComPtr <ID3D11Device> pDev;
+                 pRTV->GetDevice (&pDev);
+
+          if (pDev.p != nullptr)
+          {
+            if (
+              SUCCEEDED (
+                pDev->CreateRenderTargetView (pResource, &rtvDesc_sRGB, &pRTV_sRGB)
+                        )
+               )
+            {
+              bHasTemporaryRTV_sRGB = true;
+            }
+          }
+        }
+      }
+
       runtime->render_effects (
-        cmd_list, reshade::api::resource_view { (uint64_t)pRTV }, { 0 }
+        cmd_list, reshade::api::resource_view { (uint64_t) pRTV                      },
+                                              { (uint64_t)(pRTV_sRGB != nullptr ?
+                                                           pRTV_sRGB            : 0) }
       );
 
       cmd_queue->flush_immediate_command_list ();
+
+      if (bHasTemporaryRTV_sRGB)
+        pRTV_sRGB->Release ();
 
       return true;
     }
@@ -828,7 +916,7 @@ SK_ReShadeAddOn_Present (IDXGISwapChain *pSwapChain)
 }
 
 UINT64
-SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource* pResource, ID3D12Fence* pFence, D3D12_CPU_DESCRIPTOR_HANDLE hRTV)
+SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource* pResource, ID3D12Fence* pFence, D3D12_CPU_DESCRIPTOR_HANDLE hRTV, D3D12_CPU_DESCRIPTOR_HANDLE hRTV_sRGB)
 {
   if (! _d3d12_rbk->_pReShadeRuntime)
     return 0;
@@ -859,9 +947,10 @@ SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource*
 
     if (has_effects)
     {
-            auto buffer = reshade::api::resource      { reinterpret_cast <uint64_t> (pResource) };
-      const auto rtv    = reshade::api::resource_view { static_cast      <uint64_t> (hRTV.ptr)  };
-      const auto fence  = reshade::api::fence         { reinterpret_cast <uint64_t> (pFence)    };
+            auto buffer   = reshade::api::resource      { reinterpret_cast <uint64_t> (pResource)     };
+      const auto rtv      = reshade::api::resource_view { static_cast      <uint64_t> (hRTV.     ptr) };
+      const auto rtv_srgb = reshade::api::resource_view { static_cast      <uint64_t> (hRTV_sRGB.ptr) };
+      const auto fence    = reshade::api::fence         { reinterpret_cast <uint64_t> (pFence)        };
 
       if (pResource == nullptr)
       {
@@ -877,7 +966,7 @@ SK_ReShadeAddOn_RenderEffectsD3D12 (IDXGISwapChain1 *pSwapChain, ID3D12Resource*
         //    runtime->get_device ()->get_resource_desc (buffer).texture.height == ImGui::GetIO ().DisplaySize.y)
         {
           runtime->render_effects (
-            cmd_list, rtv, { 0 }
+            cmd_list, rtv, rtv_srgb
           );
         }
 

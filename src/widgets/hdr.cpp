@@ -1605,17 +1605,10 @@ public:
 
             if (ImGui::BeginPopup ("Gamma Selector"))
             {
-              if (ImGui::InputFloat ("Custom EOTF", &__SK_HDR_Content_EOTF, 0.01f, 0.0f, "%4.2f"))
+              if (ImGui::SliderFloat ("Custom EOTF", &__SK_HDR_Content_EOTF, 1.01f, 2.8f, "%4.2f"))
               {
-                if (ImGui::IsItemDeactivatedAfterEdit ())
-                {
-                  _SK_HDR_ContentEOTF->store (__SK_HDR_Content_EOTF);
-
-                  ImGui::CloseCurrentPopup ();
-                }
+                _SK_HDR_ContentEOTF->store (__SK_HDR_Content_EOTF);
               }
-
-              ImGui::SetTooltip ("Press Enter when done.");
 
               ImGui::EndPopup ();
             }
