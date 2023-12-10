@@ -159,11 +159,8 @@ SK::ControlPanel::OSD::Draw (void)
         else if (idx == 0) { config.fps.show = true; config.fps.frametime = config.fps.advanced = false; config.fps.compact =  true; }
       }
 
-      if (config.fps.show)
-      {
-        ImGui::SameLine ();
-        ImGui::Checkbox ("Frame Number", &config.fps.framenumber);
-      }
+      ImGui::SameLine   ();
+      ImGui::Checkbox   ("Frame Number", &config.fps.framenumber);
       ImGui::EndGroup   ();
 
       // New line

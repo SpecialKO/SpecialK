@@ -756,10 +756,36 @@ SK_DrawOSD (void)
     OSD_END
   }
 
-  if ((config.title.show || config.time.show) && (! config.fps.show || ! config.fps.compact))
+  if ((config.title.show || config.time.show) && (! (config.fps.show || config.fps.framenumber) || ! config.fps.compact))
   {
     OSD_PRINTF "\n\n" OSD_END
   }
+
+  auto _DrawFrameCountIf = [&](bool predicate = true)
+  {
+    if (! (config.fps.framenumber && predicate))
+      return;
+
+    const auto frame_count =
+      SK_GetFramesDrawn ();
+    
+    const int padding =
+      config.fps.show
+       ? ( config.fps.compact ? left_padding
+                              : 0 )
+       :                        left_padding;
+    
+    const char* szFormat =
+      config.fps.compact 
+       ? ( config.fps.show ? "%*hs%llu"
+                           : "%*hs%llu\n\n" )
+       : ( config.fps.show ? "%*hs  (Frame: %llu)\n"
+                           : "%*hs%llu\n\n" );
+    
+    OSD_PRINTF (szFormat), padding, pad_str, frame_count OSD_END
+  };
+
+  _DrawFrameCountIf (config.fps.compact);
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -802,12 +828,6 @@ SK_DrawOSD (void)
        rb.gsync_state.capable &&
        rb.gsync_state.active  );
 
-    if (config.fps.framenumber)
-    {
-      OSD_PRINTF ("%llu  "), SK_GetFramesDrawn ()
-      OSD_END
-    }
-
     if (fabs (mean - INFINITY) > std::numeric_limits <double>::epsilon ())
     {
       const char* format = "";
@@ -819,7 +839,7 @@ SK_DrawOSD (void)
 
       if (config.fps.compact)
       {
-        OSD_PRINTF("%*hs%2.0f\n"), left_padding, pad_str, fps
+        OSD_PRINTF ("%*hs%2.0f\n"), left_padding, pad_str, fps
         OSD_END
       }
 
@@ -883,23 +903,15 @@ SK_DrawOSD (void)
     // No Frametime History
     else if (! config.fps.compact)
     {
-      const char* format = "";
-
-      if (! gsync)
-      {
-        format =
-          ( config.fps.frametime                   ?
+      const char* format =
+        gsync ?
+          ( config.fps.frametime                           ?
+              "%*hs%-7ws:  %#4.01f FPS (G-Sync),%5.01f ms" :
+              "%*hs%-7ws:  %#4.01f FPS (G-Sync)"             )
+              :
+          ( config.fps.frametime                     ?
               "%*hs%-7ws:  %#4.01f FPS, %#13.01f ms" :
               "%*hs%-7ws:  %#4.01f FPS"                );
-      }
-
-      else
-      {
-        format =
-          ( config.fps.frametime                         ?
-              "%*hs%-7ws:  %#4.01f FPS (G-Sync),%5.01f ms" :
-              "%*hs%-7ws:  %#4.01f FPS (G-Sync)"             );
-      }
 
       OSD_PRINTF format, left_padding, pad_str,
         rb.name,
@@ -908,8 +920,12 @@ SK_DrawOSD (void)
       OSD_END
     }
 
+    _DrawFrameCountIf (! config.fps.compact);
+
     OSD_PRINTF "\n" OSD_END
   }
+
+  _DrawFrameCountIf (! (config.fps.show || config.fps.compact));
 
   // Poll GPU stats...
   if (config.gpu.show)
@@ -1473,9 +1489,7 @@ SK_DrawOSD (void)
     OSD_M_PRINTF "\n" OSD_END
   }
 
-  extern bool     SK_D3D11_need_tex_reset;
-  extern uint32_t SK_D3D11_amount_to_purge;
-  extern bool     SK_D3D11_cache_textures;
+  extern bool SK_D3D11_cache_textures;
 
   if (SK_D3D11_cache_textures && SK_IsD3D11 ())
   {
@@ -1487,8 +1501,6 @@ SK_DrawOSD (void)
 
     OSD_M_PRINTF "\n" OSD_END
   }
-
-  extern int gpu_prio;
 
   static auto& disk_stats = SK_WMI_DiskStats.get ();
 
