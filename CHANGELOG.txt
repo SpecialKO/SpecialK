@@ -1,4 +1,8 @@
-﻿23.12.9.3
+﻿23.12.9.4
+=========
+ + Adjusted spacing on OSD Frame Counter
+
+23.12.9.3
 =========
  + Added Frame Counter option to OSD's FPS reporting
 

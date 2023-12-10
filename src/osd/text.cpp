@@ -756,7 +756,10 @@ SK_DrawOSD (void)
     OSD_END
   }
 
-  if ((config.title.show || config.time.show) && (! (config.fps.show || config.fps.framenumber) || ! config.fps.compact))
+  bool bTitleOrClock =
+    (config.title.show || config.time.show);
+
+  if (bTitleOrClock && (! (config.fps.show || config.fps.framenumber) || ! config.fps.compact))
   {
     OSD_PRINTF "\n\n" OSD_END
   }
@@ -777,12 +780,14 @@ SK_DrawOSD (void)
     
     const char* szFormat =
       config.fps.compact 
-       ? ( config.fps.show ? "%*hs%llu"
+       ? ( config.fps.show ? "%*hs%llu%*hs"
                            : "%*hs%llu\n\n" )
-       : ( config.fps.show ? "%*hs  (Frame: %llu)\n"
+       : ( config.fps.show ? "%*hs  (Frame: %llu)"
                            : "%*hs%llu\n\n" );
     
-    OSD_PRINTF (szFormat), padding, pad_str, frame_count OSD_END
+    OSD_PRINTF (szFormat), padding, pad_str, frame_count,
+             bTitleOrClock ? 0 : 2, pad_str
+    OSD_END
   };
 
   _DrawFrameCountIf (config.fps.compact);
