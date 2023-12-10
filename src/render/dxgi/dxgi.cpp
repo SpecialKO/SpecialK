@@ -1467,6 +1467,18 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
       DXGI_OUTPUT_DESC                  outDesc = { };
       if (SUCCEEDED (pOutput->GetDesc (&outDesc)))
       {
+        SK_ComQIPtr <IDXGISwapChain>
+          pChain (rb.swapchain.p);
+        if (pChain.p != nullptr)
+        {
+          DXGI_SWAP_CHAIN_DESC     swapDesc = { };
+          pChain->GetDesc        (&swapDesc);
+          rb.assignOutputFromHWND (swapDesc.OutputWindow);
+        }
+
+        else
+          rb.assignOutputFromHWND (game_window.hWnd);
+
         rb.monitor = outDesc.Monitor;
         rb.updateOutputTopology ();
       }

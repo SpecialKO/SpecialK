@@ -46,6 +46,12 @@ SK_WASAPI_GetAudioSession (void)
   return                         audio_session;
 }
 
+void
+SK_WASAPI_ResetSessionManager (void)
+{
+  SK_WASAPI_GetSessionManager ().signalReset ();
+}
+
 #define sessions      SK_WASAPI_GetSessionManager ()
 #define audio_session SK_WASAPI_GetAudioSession   ()
 
@@ -108,10 +114,19 @@ SK_ImGui_SelectAudioSessionDlg (void)
       ImGui::BeginGroup ();//"SessionSelectData");
       ImGui::Columns    (2);
 
+      std::set <DWORD> sessions_listed;
+
       for (int i = 0; i < count; i++)
       {
         SK_WASAPI_AudioSession* pSession =
           pSessions [i];
+
+        auto pChannelVolume =
+          pSession->getChannelAudioVolume ();
+
+        // No duplicates please
+        if (pChannelVolume == nullptr || (! sessions_listed.emplace (pSession->getProcessId ()).second))
+          continue;
 
         //bool selected     = false;
         const bool drawing_self =
@@ -202,6 +217,67 @@ SK_ImGui_SelectAudioSessionDlg (void)
       ImGui::CloseCurrentPopup ();
 
     ImGui::PopItemWidth ();
+    ImGui::EndPopup     ();
+  }
+
+  return changed;
+}
+
+bool
+SK_ImGui_SelectAudioDeviceDlg (void)
+{
+  const ImGuiIO&
+    io (ImGui::GetIO ());
+
+  bool changed = false;
+
+  static const float fMinX = 400.0f;
+  static const float fMinY = 150.0f;
+
+  ImGui::SetNextWindowSizeConstraints ( ImVec2 (fMinX, fMinY),
+                                        ImVec2 (std::max (io.DisplaySize.x * 0.75f, fMinX),
+                                                std::max (io.DisplaySize.y * 0.666f,fMinY)) );
+
+  if (ImGui::BeginPopupModal ("Audio Device Selector", nullptr, ImGuiWindowFlags_AlwaysAutoResize |
+                                                                ImGuiWindowFlags_NoScrollbar      | ImGuiWindowFlags_NoScrollWithMouse))
+  {
+    size_t count = SK_WASAPI_EndPointMgr->getNumRenderEndpoints ();
+
+    std::wstring endpoint_id =
+      SK_WASAPI_EndPointMgr->getPersistedDefaultAudioEndpoint (
+        audio_session->getProcessId (), eRender
+      );
+
+    for ( UINT i = 0 ; i < count ; ++i )
+    {
+      auto& device =
+        SK_WASAPI_EndPointMgr->getRenderEndpoint (i);
+
+      if (device.endpoint_state_ == DEVICE_STATE_ACTIVE)
+      {
+        bool selected =
+          StrStrIW (endpoint_id.c_str (), device.endpoint_id_.c_str ());
+
+        if (ImGui::Selectable (device.friendly_name_.c_str (), selected))
+        {
+          SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (
+            audio_session->getProcessId (), eRender, device.endpoint_id_
+          );
+
+          sessions.signalReset ();
+
+          ImGui::CloseCurrentPopup ();
+
+          changed = true;
+
+          break;
+        }
+      }
+    }
+
+    if (count == 0)
+      ImGui::CloseCurrentPopup ();
+
     ImGui::EndPopup     ();
   }
 
@@ -302,7 +378,20 @@ SK_ImGui_VolumeManager (void)
     audio_session = nullptr;
 
   if (audio_session != nullptr)
+  {
+    float fLevelDB = 0.0f;
+
+    auto pEndpointVolume =
+      audio_session->getEndpointVolume ();
+
+    if ( pEndpointVolume == nullptr || FAILED (
+           pEndpointVolume->GetMasterVolumeLevel (&fLevelDB)) )
+    {
+      sessions.signalReset ();
+      return;
+    }
     app_name = audio_session->getName ();
+  }
 
   app_name += "##AudioSessionAppName";
 
@@ -573,6 +662,19 @@ SK_ImGui_VolumeManager (void)
 
       pVolume->GetMasterVolume (&master_vol);
       pVolume->GetMute         (&master_mute);
+
+
+      static std::string label = "Switch Audio Device";
+
+      SK_ImGui_SelectAudioDeviceDlg ();
+
+      if (ImGui::Button (label.c_str ()))
+      {
+        ImGui::OpenPopup ("Audio Device Selector");
+      }
+
+      ImGui::SameLine ();
+
 
       IAudioEndpointVolume* pEndVol =
         audio_session->getEndpointVolume ();

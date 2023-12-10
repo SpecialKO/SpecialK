@@ -397,12 +397,11 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
                                              &pDevice));
 
     ThrowIfFailed (
-  
-    pDevice->Activate (
-                __uuidof (IAudioSessionManager2),
-                  CLSCTX_ALL,
-                    nullptr,
-                      reinterpret_cast <void **>(&pSessionMgr2.p)));
+      pDevice->Activate (
+                  __uuidof (IAudioSessionManager2),
+                    CLSCTX_ALL,
+                      nullptr,
+                        reinterpret_cast <void **>(&pSessionMgr2.p)));
 
     ThrowIfFailed (
       pSessionMgr2->GetSessionEnumerator (&pSessionEnum.p));
@@ -1013,9 +1012,25 @@ SK_WASAPI_Init (void)
 #include <SpecialK/sound.h>
 
 HRESULT
+STDMETHODCALLTYPE
+SK_WASAPI_AudioSession::OnDisplayNameChanged (PCWSTR NewDisplayName, LPCGUID EventContext)
+{
+  UNREFERENCED_PARAMETER (NewDisplayName);
+  UNREFERENCED_PARAMETER (EventContext);
+
+  this->app_name_ =
+    SK_WideCharToUTF8 (NewDisplayName);
+
+  parent_->signalReset ();
+
+  return S_OK;
+};
+
+HRESULT
 SK_WASAPI_AudioSession::OnStateChanged (AudioSessionState NewState)
 {
   parent_->SetSessionState (this, NewState);
+  parent_->signalReset     ();
 
   return S_OK;
 }
@@ -1026,6 +1041,7 @@ SK_WASAPI_AudioSession::OnSessionDisconnected (AudioSessionDisconnectReason Disc
   UNREFERENCED_PARAMETER (DisconnectReason);
 
   parent_->RemoveSession (this);
+  parent_->signalReset   ();
 
   return S_OK;
 }
@@ -1050,3 +1066,7 @@ SK_WASAPI_AudioSession::getAutoGainControl (void)
   return
     parent_->auto_gain_;
 }
+
+const wchar_t* SK_WASAPI_EndPointManager::MMDEVAPI_DEVICE_PREFIX   = LR"(\\?\SWD#MMDEVAPI#)";
+const wchar_t* SK_WASAPI_EndPointManager::MMDEVAPI_RENDER_POSTFIX  = L"#{e6327cad-dcec-4949-ae8a-991e976a79d2}";
+const wchar_t* SK_WASAPI_EndPointManager::MMDEVAPI_CAPTURE_POSTFIX = L"#{2eef81be-33fa-4800-9670-1cd474972c3f}";

@@ -76,10 +76,13 @@ SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_
 void
 SK_ImGui_PlugInDisclaimer (void)
 {
-  ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (0.15f, 0.95f, 0.98f));
-  ImGui::TextWrapped    ("If you run into problems with a Plug-In, pressing and holding Ctrl + Shift at game startup can disable them.");
+  ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.15f, 0.95f, 0.98f).Value);
+  ImGui::TextWrapped    ("If you run into problems with a Plug-In, press and hold Ctrl + Shift at game startup to disable them.");
   ImGui::PopStyleColor  ();
 }
+
+extern HMODULE
+SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode = L"Normal");
 
 bool
 SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* path, const wchar_t* import_name, bool& enable, SK_Import_LoadOrder& order, SK_Import_LoadOrder default_order)
@@ -151,6 +154,39 @@ SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* p
   return changed;
 }
 
+static const auto Keybinding =
+[] (SK_ConfigSerializedKeybind* binding, sk::ParameterStringW* param) ->
+auto
+{
+  if (! (binding != nullptr && param != nullptr))
+    return false;
+
+  std::string label =
+    SK_WideCharToUTF8 (binding->human_readable);
+
+  ImGui::PushID (binding->bind_name);
+
+  if (SK_ImGui_KeybindSelect (binding, label.c_str ()))
+  {
+    ImGui::OpenPopup (        binding->bind_name);
+                              binding->assigning = true;
+  }
+
+  std::wstring original_binding = binding->human_readable;
+
+  SK_ImGui_KeybindDialog (binding);
+
+  ImGui::PopID ();
+
+  if (original_binding != binding->human_readable)
+  {
+    param->store (binding->human_readable);
+
+    return true;
+  }
+
+  return false;
+};
 
 bool
 SK::ControlPanel::PlugIns::Draw (void)
@@ -223,7 +259,7 @@ SK::ControlPanel::PlugIns::Draw (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
 
-    if (ImGui::CollapsingHeader ("Third-Party"))
+    if (ImGui::CollapsingHeader ("Third-Party", ImGuiTreeNodeFlags_DefaultOpen))
     {
       ImGui::TreePush    ("");
 
@@ -243,6 +279,33 @@ SK::ControlPanel::PlugIns::Draw (void)
         if (! mode._Equal (L"Normal"))
         {
           compatibility = true;
+        }
+      }
+
+      if (! GetModuleHandleW (imp_path_reshade))
+      {
+        ImGui::SameLine ();
+
+        if (ImGui::Button ("Load Now"))
+        {
+          HMODULE hModReShade =
+            SK_ReShade_LoadDLL (imp_path_reshade, L"Compatibility");
+
+          if (hModReShade != 0)
+          {
+            if (SK_ReShadeAddOn_Init (hModReShade))
+            {
+              //
+            }
+          }
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip (
+            "If using a version of ReShade 5.9.3 or newer, you can "
+            "hot-load ReShade without restarting the game."
+          );
         }
       }
 
@@ -270,6 +333,68 @@ SK::ControlPanel::PlugIns::Draw (void)
         ImGui::BulletText      ("May disable support for some ReShade Add-Ons.");
         ImGui::BulletText      ("Very little support can be offered for non-Compatibility mode.");
         ImGui::EndTooltip      ();
+      }
+
+      ImGui::SameLine    ();
+      ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine    ();
+
+      static std::set <SK_ConfigSerializedKeybind *>
+        keybinds = {
+          &config.reshade.inject_reshade_keybind,
+          //&config.reshade.toggle_overlay_keybind,
+        };
+
+      ImGui::BeginGroup ();
+      ImGui::BeginGroup ();
+      for ( auto& keybind : keybinds )
+      {
+        ImGui::Text
+        ( "%s:  ",keybind->bind_name );
+      }
+      ImGui::EndGroup   ();
+      ImGui::SameLine   ();
+      ImGui::BeginGroup ();
+      for ( auto& keybind : keybinds )
+      {Keybinding(keybind,  keybind->param);}
+      ImGui::EndGroup   ();
+      ImGui::EndGroup   ();
+
+      if (ImGui::Button ("Browse ReShade Config / Logs"))
+      {
+        std::wstring reshade_profile_path =
+          std::wstring (SK_GetConfigPath ()) + LR"(\ReShade)";
+
+        if (config.reshade.has_local_ini)
+        {
+          wchar_t                        wszWorkingDir [MAX_PATH + 2] = { };
+          GetCurrentDirectory (MAX_PATH, wszWorkingDir);
+
+          reshade_profile_path = wszWorkingDir;
+        }
+
+        SK_Util_ExplorePath (reshade_profile_path.c_str ());
+      }
+
+      if (config.reshade.has_local_ini)
+      {
+        ImGui::BeginGroup  ( );
+        ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.0f, 1.f), "%s",
+                               ICON_FA_EXCLAMATION_TRIANGLE " NOTE: " );
+        ImGui::SameLine    ( );
+        ImGui::TextColored ( ImColor::HSV (.15f, .8f, .9f), "%s",
+                               "There is a ReShade.ini file in the game's directory." );
+        ImGui::EndGroup    ( );
+        
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::TextUnformatted ("All ReShade Config, Logs and Presets will use the game's install directory");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("Global config defaults/masters (Global/ReShade/{default_|master_}ReShade.ini) will not work");
+          ImGui::BulletText      ("Delete local ReShade.ini file to opt-in to SK managed configuration");
+          ImGui::EndTooltip      ();
+        }
       }
 
       ImGui::TreePop     (  );

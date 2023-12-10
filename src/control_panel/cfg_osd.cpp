@@ -147,8 +147,8 @@ SK::ControlPanel::OSD::Draw (void)
       ImGui::BeginGroup ();
       if (config.fps.show)
       {
-        int idx =  config.fps.compact ? 0 :
-                   config.fps.show + config.fps.frametime + config.fps.advanced;
+        int idx = config.fps.compact ? 0 :
+                  config.fps.show + config.fps.frametime + config.fps.advanced;
 
         ImGui::SameLine ();
         ImGui::Combo    ("Details", &idx, "Compact\0Simple FPS\0FPS + Frame Time (ms)\0Advanced Frame Pacing Analysis\0\0", 4);
@@ -156,8 +156,11 @@ SK::ControlPanel::OSD::Draw (void)
              if (idx == 3) { config.fps.show = config.fps.frametime = config.fps.advanced       = true;  config.fps.compact = false; }
         else if (idx == 2) { config.fps.show = config.fps.frametime = true; config.fps.advanced = false; config.fps.compact = false; }
         else if (idx == 1) { config.fps.show = true; config.fps.frametime = config.fps.advanced = false; config.fps.compact = false; }
-        else if (idx == 0) { config.fps.show = true; config.fps.frametime = config.fps.advanced = false; config.fps.compact = true;  }
+        else if (idx == 0) { config.fps.show = true; config.fps.frametime = config.fps.advanced = false; config.fps.compact =  true; }
       }
+
+      ImGui::SameLine   ();
+      ImGui::Checkbox   ("Frame Number", &config.fps.framenumber);
       ImGui::EndGroup   ();
 
       // New line

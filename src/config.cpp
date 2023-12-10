@@ -158,6 +158,7 @@ SK_GetCurrentGameID (void)
           { L"hackGU.exe",                             SK_GAME_ID::DotHackGU                    },
           { L"WOFF.exe",                               SK_GAME_ID::WorldOfFinalFantasy          },
           { L"StarOceanTheLastHope.exe",               SK_GAME_ID::StarOcean4                   },
+          { L"SO2R.exe",                               SK_GAME_ID::StarOcean2R                  },
           { L"LEGOMARVEL2_DX11.exe",                   SK_GAME_ID::LEGOMarvelSuperheroes2       },
           { L"okami.exe",                              SK_GAME_ID::Okami                        },
           { L"DuckTales.exe",                          SK_GAME_ID::DuckTalesRemastered          },
@@ -428,6 +429,7 @@ struct {
     sk::ParameterBool*    frametime               = nullptr;
     sk::ParameterBool*    advanced                = nullptr;
     sk::ParameterBool*    compact                 = nullptr;
+    sk::ParameterBool*    framenumber             = nullptr;
   } fps;
 
   struct {
@@ -764,13 +766,13 @@ struct {
 
     struct
     {
-      sk::ParameterInt*   offset                  = nullptr;
-      sk::ParameterInt*   resync                  = nullptr;
-      sk::ParameterInt*   error                   = nullptr;
-      sk::ParameterFloat* bias                    = nullptr;
-      sk::ParameterBool*  auto_bias               = nullptr;
-      sk::ParameterFloat* max_auto_bias           = nullptr;
-      sk::ParameterFloat* auto_bias_target        = nullptr;
+      sk::ParameterInt*     offset                = nullptr;
+      sk::ParameterInt*     resync                = nullptr;
+      sk::ParameterInt*     error                 = nullptr;
+      sk::ParameterFloat*   bias                  = nullptr;
+      sk::ParameterBool*    auto_bias             = nullptr;
+      sk::ParameterFloat*   max_auto_bias         = nullptr;
+      sk::ParameterStringW* auto_bias_target      = nullptr;
     } latent_sync;
   } framerate;
 
@@ -1382,6 +1384,7 @@ auto DeclKeybind =
     ConfigEntry (monitoring.fps.frametime,               L"Show Frametime in Framerate Counter",                       osd_ini,         L"Monitor.FPS",           L"DisplayFrametime"),
     ConfigEntry (monitoring.fps.advanced,                L"Show Advanced Statistics in Framerate Counter",             osd_ini,         L"Monitor.FPS",           L"AdvancedStatistics"),
     ConfigEntry (monitoring.fps.compact,                 L"Show FRAPS-like ('120') Statistics in Framerate Counter",   osd_ini,         L"Monitor.FPS",           L"CompactStatistics"),
+    ConfigEntry (monitoring.fps.framenumber,             L"Show Frame Number",                                         osd_ini,         L"Monitor.FPS",           L"DisplayFrameNumber"),
     ConfigEntry (monitoring.time.show,                   L"Show System Clock",                                         osd_ini,         L"Monitor.Time",          L"Show"),
     ConfigEntry (monitoring.title.show,                  L"Show Special K Title",                                      osd_ini,         L"Monitor.Title",         L"Show"),
 
@@ -1430,6 +1433,7 @@ auto DeclKeybind =
 
     Keybind ( &config.widgets.hide_all_widgets_keybind,  L"Temporarily hide all widgets",                              osd_ini,         L"Widgets.Global"),
     Keybind ( &config.reshade.toggle_overlay_keybind,    L"Toggle ReShade Overlay (Add-On version)",                   osd_ini,         L"ReShade.AddOn"),
+    Keybind ( &config.reshade.inject_reshade_keybind,    L"Inject ReShade (5.9.3+) as a Global PlugIn",                osd_ini,         L"ReShade.AddOn"),
 
 
     // Input
@@ -1618,7 +1622,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.latent_sync.bias,      L"Controls Distribution of Idle Time Per-Delayed Frame",      dll_ini,         L"FrameRate.LatentSync",  L"DelayBias"),
     ConfigEntry (render.framerate.latent_sync.auto_bias, L"Automatically Sets Delay Bias For Minimum Latency",         dll_ini,         L"FrameRate.LatentSync",  L"AutoBias"),
       ConfigEntry (render.framerate.latent_sync.
-                                       auto_bias_target, L"Target input latency (in milliseconds) for auto-bias",      dll_ini,         L"FrameRate.LatentSync",  L"AutoBiasTargetInMs"),
+                                       auto_bias_target, L"Target input latency (in milliseconds or %) for auto-bias", dll_ini,         L"FrameRate.LatentSync",  L"AutoBiasTarget"),
     ConfigEntry (render.framerate.latent_sync.
                                           max_auto_bias, L"Maximum percentage to bias towards low input latency",      dll_ini,         L"FrameRate.LatentSync",  L"MaxAutoBias"),
 
@@ -3429,10 +3433,11 @@ auto DeclKeybind =
     config.io.show =     monitoring.io.show->get_value ();
                          monitoring.io.interval->load  (config.io.interval);
 
-  monitoring.fps.show->load      (config.fps.show);
-  monitoring.fps.frametime->load (config.fps.frametime);
-  monitoring.fps.advanced->load  (config.fps.advanced);
-  monitoring.fps.compact->load   (config.fps.compact);
+  monitoring.fps.show->load        (config.fps.show);
+  monitoring.fps.frametime->load   (config.fps.frametime);
+  monitoring.fps.framenumber->load (config.fps.framenumber);
+  monitoring.fps.advanced->load    (config.fps.advanced);
+  monitoring.fps.compact->load     (config.fps.compact);
 
   if (((sk::iParameter *)monitoring.memory.show)->load     () && config.osd.remember_state)
        config.mem.show = monitoring.memory.show->get_value ();
@@ -3528,10 +3533,24 @@ auto DeclKeybind =
   render.framerate.latent_sync.auto_bias->load(config.render.framerate.latent_sync.auto_bias);
   render.framerate.latent_sync.max_auto_bias
                                        ->load (config.render.framerate.latent_sync.max_auto_bias);
-  render.framerate.latent_sync.auto_bias_target
-                                       ->load (config.render.framerate.latent_sync.auto_bias_target);
+  
+  std::wstring auto_bias_target;
 
+  if (render.framerate.latent_sync.auto_bias_target->load (auto_bias_target))
+  {
+    if (auto_bias_target.find (L'%') != std::wstring::npos)
+    {
+      config.render.framerate.latent_sync.auto_bias_target.ms = 0.0f;
+      swscanf (auto_bias_target.c_str (), L"%f%%", &config.render.framerate.latent_sync.auto_bias_target.percent);
+      config.render.framerate.latent_sync.auto_bias_target.percent /= 100.0f;
+    }
 
+    else
+    {
+      config.render.framerate.latent_sync.auto_bias_target.percent = 0.0f;
+      swscanf (auto_bias_target.c_str (), L"%f", &config.render.framerate.latent_sync.auto_bias_target.ms);
+    }
+  }
 
   render.osd.draw_in_vidcap->load            (config.render.osd. draw_in_vidcap);
 
@@ -4592,6 +4611,7 @@ auto DeclKeybind =
 
   LoadKeybind (&config.widgets.hide_all_widgets_keybind);
   LoadKeybind (&config.reshade.toggle_overlay_keybind);
+  LoadKeybind (&config.reshade.inject_reshade_keybind);
 
 
   if (config.steam.dll_path.empty ())
@@ -5045,6 +5065,7 @@ SK_SaveConfig ( std::wstring name,
   monitoring.fps.compact->store               (config.fps.compact);
   monitoring.fps.advanced->store              (config.fps.advanced);
   monitoring.fps.frametime->store             (config.fps.frametime);
+  monitoring.fps.framenumber->store           (config.fps.framenumber);
 
   monitoring.io.show->set_value               (config.io.show);
   monitoring.io.interval->store               (config.io.interval);
@@ -5387,8 +5408,24 @@ SK_SaveConfig ( std::wstring name,
     render.framerate.latent_sync.auto_bias->store (config.render.framerate.latent_sync.auto_bias);
     render.framerate.latent_sync.max_auto_bias
                                           ->store (config.render.framerate.latent_sync.max_auto_bias);
-    render.framerate.latent_sync.auto_bias_target
-                                          ->store (config.render.framerate.latent_sync.auto_bias_target);
+    
+    if (config.render.framerate.latent_sync.auto_bias_target.ms != 0.0f)
+    {
+      wchar_t   wszMilliseconds [16] = { };
+      swprintf (wszMilliseconds, L"%f", config.render.framerate.latent_sync.auto_bias_target.ms);
+
+      render.framerate.latent_sync.auto_bias_target->store (wszMilliseconds);
+    }
+
+    else
+    {
+        wchar_t wszPercent [16] = { };
+      swprintf (wszPercent, L"%08.6f", 100.0f * config.render.framerate.latent_sync.auto_bias_target.percent);
+
+      SK_RemoveTrailingDecimalZeros                        (wszPercent);
+      lstrcatW                                             (wszPercent, L"%");
+      render.framerate.latent_sync.auto_bias_target->store (wszPercent);
+    }
 
     texture.d3d9.clamp_lod_bias->store            (config.textures.clamp_lod_bias);
 

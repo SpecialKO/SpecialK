@@ -226,6 +226,7 @@ struct sk_config_t
     bool   compact        = false;
     bool   advanced       = false;
     bool   frametime      = true;
+    bool   framenumber    = false;
 
     struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'F', 0 };
@@ -398,12 +399,20 @@ struct sk_config_t
   struct reshade_s {
     bool        draw_first            = true;
     bool        is_addon              = false;  // True if ReShade AddOn registration succeeded
+    bool        has_local_ini         = false;  // Using local ReShade.ini instead of SK's
     SK_ConfigSerializedKeybind
                 toggle_overlay_keybind= {
                     SK_Keybind {
                       "Toggle ReShade Overlay", L"Shift+Home",
                         true, false, false, VK_HOME
                     }, L"ToggleReShadeOverlay"
+    };
+    SK_ConfigSerializedKeybind
+                inject_reshade_keybind  = {
+                    SK_Keybind {
+                      "Inject ReShade (5.9.3+)", L"Ctrl+Alt+Shift+R",
+                      true, true, true, 'R'
+                    }, L"InjectReShade"
     };
   } reshade;
 
@@ -611,7 +620,10 @@ struct sk_config_t
         float delay_bias           =  0.0f;
         bool  auto_bias            = false;
         float max_auto_bias        = 0.75f;
-        float auto_bias_target     = 0.85f;
+        struct auto_bias_target_s {
+          float ms                 = 0.85f;
+          float percent            = 0.0F;
+        } auto_bias_target;
         bool  show_fcat_bars       = false; // Not INI-persistent
 
         bool flush_before_present  = true;
@@ -1358,6 +1370,7 @@ enum class SK_GAME_ID
   DotHackGU,                    // hackGU.exe
   WorldOfFinalFantasy,          // WOFF.exe
   StarOcean4,                   // StarOceanTheLastHope.exe
+  StarOcean2R,                  // SO2R.exe
   LEGOMarvelSuperheroes2,       // LEGOMARVEL2_DX11.exe
   Okami,                        // okami.exe
   DuckTalesRemastered,          // DuckTales.exe

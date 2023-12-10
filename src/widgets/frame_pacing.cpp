@@ -30,6 +30,7 @@ extern void SK_ImGui_DrawGraph_FramePacing (void);
 
 #include <SpecialK/adl.h>
 #include <SpecialK/render/present_mon/PresentMon.hpp>
+#include <SpecialK/nvapi.h>
 
 #include <Pdh.h>
 #include <PdhMsg.h>
@@ -1081,6 +1082,32 @@ SK_ImGui_DrawGraph_FramePacing (void)
   bool valid_latency =
     (! SK_RenderBackend_V2::latency.stale);
 
+
+  static int ver_major = { },
+             ver_minor = { };
+
+  static bool has_stable_hw_flip_queue = false;
+
+  // NVIDIA's drivers are still broken for now
+#if 0
+  if (sk::NVAPI::nv_hardware)
+  {
+    if ( ver_major == 0 && 2 == swscanf ( sk::NVAPI::GetDriverVersion (nullptr).c_str (),
+                                            L"%d.%d", &ver_major, &ver_minor ) )
+    {
+      has_stable_hw_flip_queue =
+        ( ver_major  > 546 ||
+          ver_major == 546 && ver_minor >= 31 );
+    }
+
+    else
+    {
+      ver_major = -1;
+    }
+  }
+#endif
+
+
   if (valid_latency)
   {
     SK_RenderBackend_V2::latency.stats.MaxMs =
@@ -1105,28 +1132,50 @@ SK_ImGui_DrawGraph_FramePacing (void)
     }
   }
 
-  if (valid_latency &&  (! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled))
+  if (valid_latency)
   {
-    snprintf
-      ( szAvg,
-          511, (const char *)
-          u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
-          u8"         Render latency:           %lu Frame%s | %3.1f / %3.1f ms |  %lu Hz \n\n\n\n"
-          u8"Variation:  %9.5f ms    %5.1f FPS  ±  %3.1f frames",
-              sum / frames,
-                target_frametime,
-                    SK_RenderBackend_V2::latency.delays.PresentQueue,
-                    SK_RenderBackend_V2::latency.delays.PresentQueue != 1 ?
-                                                                     "s " : "  ",
-                      SK_RenderBackend_V2::latency.stats.AverageMs,
-                      SK_RenderBackend_V2::latency.stats.MaxMs,
-                      SK_RenderBackend_V2::latency.delays.SyncDelay,
-            (double)max - (double)min,
-                    1000.0f / (sum / frames),
-                      ((double)max-(double)min)/(1000.0f/(sum/frames)) );
+    if ((! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled) || has_stable_hw_flip_queue)
+    {
+      snprintf
+        ( szAvg,
+            511, (const char *)
+            u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
+            u8"         Render latency:           %lu Frame%s | %3.1f / %3.1f ms |  %lu Hz \n\n\n\n"
+            u8"Variation:  %9.5f ms    %5.1f FPS  ±  %3.1f frames",
+                sum / frames,
+                  target_frametime,
+                      SK_RenderBackend_V2::latency.delays.PresentQueue,
+                      SK_RenderBackend_V2::latency.delays.PresentQueue != 1 ?
+                                                                       "s " : "  ",
+                        SK_RenderBackend_V2::latency.stats.AverageMs,
+                        SK_RenderBackend_V2::latency.stats.MaxMs,
+                        SK_RenderBackend_V2::latency.delays.SyncDelay,
+              (double)max - (double)min,
+                      1000.0f / (sum / frames),
+                        ((double)max-(double)min)/(1000.0f/(sum/frames)) );
+    }
+
+    else
+    {
+      snprintf
+        ( szAvg,
+            511, (const char *)
+            u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
+            u8"         Render latency:          %lu Frame%s | HW Flip Q |  %lu Hz \n\n\n\n"
+            u8"Variation:  %9.5f ms    %5.1f FPS  ±  %3.1f frames",
+                sum / frames,
+                  target_frametime,
+                      SK_RenderBackend_V2::latency.delays.PresentQueue,
+                      SK_RenderBackend_V2::latency.delays.PresentQueue != 1 ?
+                                                                       "s " : "  ",
+                        SK_RenderBackend_V2::latency.delays.SyncDelay,
+              (double)max - (double)min,
+                      1000.0f / (sum / frames),
+                        ((double)max-(double)min)/(1000.0f/(sum/frames)) );
+    }
   }
 
-  else if (valid_latency && (! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled))
+  else
   {
     snprintf
       ( szAvg,
@@ -1137,25 +1186,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
               sum / frames,
                 target_frametime,
                   min, max,
-            (double)max - (double)min,
-                    1000.0f / (sum / frames),
-                      ((double)max-(double)min)/(1000.0f/(sum/frames)) );
-  }
-
-  else
-  {
-    snprintf
-      ( szAvg,
-          511, (const char *)
-          u8"Avg milliseconds per-frame: %6.3f  (Target: %6.3f)\n"
-          u8"         Render latency:          %lu Frame%s | HW Flip Q |  %lu Hz \n\n\n\n"
-          u8"Variation:  %9.5f ms    %5.1f FPS  ±  %3.1f frames",
-              sum / frames,
-                target_frametime,
-                    SK_RenderBackend_V2::latency.delays.PresentQueue,
-                    SK_RenderBackend_V2::latency.delays.PresentQueue != 1 ?
-                                                                     "s " : "  ",
-                      SK_RenderBackend_V2::latency.delays.SyncDelay,
             (double)max - (double)min,
                     1000.0f / (sum / frames),
                       ((double)max-(double)min)/(1000.0f/(sum/frames)) );
@@ -1298,7 +1328,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
   ImGui::PlotHistogram ( SK_ImGui_Visible ? "###ControlPanel_LatencyHistogram" :
                                             "###Floating_LatencyHistogram",
                            SK_RenderBackend_V2::latency.stats.History,
-                                          valid_latency && (! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled) ?
+                                          valid_latency && ((! rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled) || has_stable_hw_flip_queue) ?
              IM_ARRAYSIZE (SK_RenderBackend_V2::latency.stats.History)
                                                         : 0,
                                SK_GetFramesDrawn () % 120,

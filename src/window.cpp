@@ -66,7 +66,7 @@ SetWindowPlacement_Detour (
 
 BOOL
 WINAPI
-SetWindowPos_Detour(
+SetWindowPos$our(
   _In_     HWND hWnd,
   _In_opt_ HWND hWndInsertAfter,
   _In_     int  X,
@@ -1616,7 +1616,7 @@ ClipCursor_Detour (const RECT *lpRect)
 
     if (SK_ExpandSmallClipCursor ((RECT *)&_rect))
     {
-      // Generally this only matters if background rendering is enabled;
+      // Generally this only matters if [background rendering is enabled;
       //   flat-out ignore cursor clip rects if the window's not even active.
       if (SK_IsGameWindowActive ())
       {
@@ -1627,7 +1627,68 @@ ClipCursor_Detour (const RECT *lpRect)
       }
     }
 
-    game_window.cursor_clip = _rect;
+    // Check if a moved cursor would still be inside the game window
+    //
+    POINT                 ptCursor = { };
+    if (SK_GetCursorPos (&ptCursor))
+    {
+      ptCursor.x = std::max (std::min (ptCursor.x, _rect.right ), _rect.left);
+      ptCursor.y = std::max (std::min (ptCursor.y, _rect.bottom), _rect.top );
+
+      HWND hwndCursor = WindowFromPoint (ptCursor);
+
+      if (hwndCursor != game_window.hWnd && (! IsChild (game_window.hWnd, hwndCursor)))
+      {
+        if (SK_GetForegroundWindow () == hwndCursor)
+        {
+          SK_RunOnce (
+            SK_LOGi0 (
+              L"Game requested a cursor clip rect that would move the cursor "
+              L"over a different window, saving the requested rect and skipping..."
+            )
+          );
+
+          // Ensure the window really IS active, set active=false otherwise so that this
+          //   clip rect is not repeatedly applied.
+          if (SK_IsGameWindowActive ())
+          {
+            bool active =
+              (                            SK_GetForegroundWindow () == game_window.hWnd ||
+                IsChild (game_window.hWnd, SK_GetForegroundWindow ()) );
+
+            if (active)
+            {
+              game_window.cursor_clip = _rect;
+            }
+
+            else
+            {
+              ActivateWindow (game_window.hWnd, false);
+            }
+          }
+        }
+
+        SK_GetCursorPos (&ptCursor);
+
+        hwndCursor =
+          WindowFromPoint (ptCursor);
+
+        if (hwndCursor != game_window.hWnd && (! IsChild (game_window.hWnd, hwndCursor)))
+        {
+          // We're not over the game window to begin with, and the clip rect would not
+          //   change anything, so ignore it.
+
+          SK_LOGi1 (L"Mouse cursor is not over game window, removing existing clip rect.");
+
+          SK_ClipCursor (nullptr);
+        }
+      }
+
+      // Mouse cursor movement caused by cursor clipping keeps the cursor in the game, so
+      //   this is a valid clip rect.
+      else
+        game_window.cursor_clip = _rect;
+    }
   }
 
   else if (! config.window.confine_cursor)

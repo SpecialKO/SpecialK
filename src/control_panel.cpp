@@ -299,9 +299,15 @@ namespace SK_ImGui
   {
     static bool has_battery = true;
 
-    SYSTEM_POWER_STATUS sps = { };
+    SYSTEM_POWER_STATUS  sps = { };
+    SYSTEM_BATTERY_STATE sbs = { };
 
-    if (has_battery)
+    const NTSTATUS ntStatus =
+      CallNtPowerInformation ( SystemBatteryState,
+                               nullptr, 0,
+                               &sbs, sizeof (sbs) );
+
+    if (has_battery || (SUCCEEDED (ntStatus) && sbs.Rate != 0))
     {
       if (GetSystemPowerStatus (&sps))
       {
@@ -316,22 +322,40 @@ namespace SK_ImGui
                            (sps.BatteryFlag & 4) ) ? sps.BatteryLifePercent
                                                    : 255;
 
-        if (battery_level < 255) // 255 = Running on AC (not charging)
+        if (battery_level < 255 || sbs.Rate != 0) // 255 = Running on AC (not charging)
         {
           if (battery_level  > 100)
               battery_level -= 100;
+
+          if (battery_level  > 100) // If we're still > 100, it's because running on AC.
+              battery_level  = 100;
 
           const float battery_ratio = (float)battery_level/100.0f;
 
           static char szBatteryLevel [128] = { };
 
           if (sps.BatteryLifeTime != -1)
-            snprintf (szBatteryLevel, 127, "%hhu%% Battery Remaining\t\t[%lu Minutes]",
-                      battery_level, sps.BatteryLifeTime / 60);
+            snprintf (szBatteryLevel, 127, sbs.Rate != 0 ? "%hhu%% Battery Remaining\t\t[%lu Minutes, %5.1f W]" 
+                                                         : "%hhu%% Battery Remaining\t\t[%lu Minutes]",
+                                                                               battery_level,
+                                                                    sps.BatteryLifeTime / 60,
+                                                        static_cast <double> (
+                                                      sk::narrow_cast <LONG> (sbs.Rate)
+                                                                             )         / 1000.0);
           else if (charging)
-            snprintf (szBatteryLevel, 127, "%hhu%% Battery Charged",   battery_level);
+            snprintf (szBatteryLevel, 127, sbs.Rate != 0 ? "%hhu%% Battery Charged, %5.1f W" :
+                                                           "%hhu%% Battery Charged",
+                                                                               battery_level,
+                                                        static_cast <double> (
+                                                      sk::narrow_cast <LONG> (sbs.Rate)
+                                                                             )         / 1000.0);
           else
-            snprintf (szBatteryLevel, 127, "%hhu%% Battery Remaining", battery_level);
+            snprintf (szBatteryLevel, 127, sbs.Rate != 0 ? "%hhu%% Battery Remaining, %5.1f W" :
+                                                           "%hhu%% Battery Remaining",
+                                                                               battery_level,
+                                                        static_cast <double> (
+                                                      sk::narrow_cast <LONG> (sbs.Rate)
+                                                                             )         / 1000.0);
 
           float luminance =
             charging ?
@@ -1334,6 +1358,78 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     }
   }
 
+  if (SK_WASAPI_EndPointMgr->getNumRenderEndpoints () > 0)
+  {
+    auto &display =
+      rb.displays [rb.active_display];
+
+    int         selection = 0;
+    std::string output_list = "  No Preference";
+    
+    output_list += '\0';
+    output_list += "  System Default";
+    output_list += '\0';
+
+    for (UINT i = 0 ; i < SK_WASAPI_EndPointMgr->getNumRenderEndpoints () ; ++i)
+    {
+      auto& end_point =
+        SK_WASAPI_EndPointMgr->getRenderEndpoint (i);
+
+      output_list += "  ";
+      output_list +=
+        end_point.friendly_name_.c_str ();
+
+      output_list += '\0';
+
+      if (StrStrIW (end_point.endpoint_id_.c_str (), display.audio.paired_device))
+      {
+        selection = 2 + i;
+      }
+    }
+
+    if (selection == 0)
+    {
+      if (_wcsicmp (display.audio.paired_device, L"No Preference"))
+      {
+        if (! _wcsicmp (display.audio.paired_device, L"System Default"))
+        {
+          selection = 1;
+        }
+      }
+    }
+
+    output_list += '\0';
+
+    if (ImGui::Combo ("Sound Device", &selection, output_list.c_str ()))
+    {
+      if (selection > 1)
+      {
+        wcsncpy (display.audio.paired_device, SK_WASAPI_EndPointMgr->getRenderEndpoint (selection - 2).endpoint_id_.c_str (), 127);
+      }
+
+      else
+      {
+        if (selection == 1) wcsncpy (display.audio.paired_device, L"System Default", 127);
+        else                wcsncpy (display.audio.paired_device, L"No Preference",  127);
+
+        SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (GetCurrentProcessId (), eRender, L"");
+      }
+
+      dll_ini->get_section              (L"Display.Audio").
+        add_key_value (SK_FormatStringW (L"RenderDevice.%ws", display.path_name),
+                                                              display.audio.paired_device);
+
+      dll_ini->write ();
+
+      rb.routeAudioForDisplay (&display);
+    }
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::SetTooltip ("While the game is running on this monitor, it will use this audio device.");
+    }
+  }
+
   if (sk::NVAPI::nv_hardware && NvAPI_Disp_GetDitherControl != nullptr)
   {
     static NV_DITHER_STATE state = NV_DITHER_STATE_DEFAULT;
@@ -1529,7 +1625,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     {
       if (rb.displays [rb.active_display].hdr.enabled)
       {
-        ImGui::SetTooltip ( "SDR Whitepoint: %4.1f nits",
+        ImGui::SetTooltip ( "SDR Whitepoint: %4.1f cd/m²",
                               rb.displays [rb.active_display].hdr.white_level );
       }
     }
@@ -3093,22 +3189,106 @@ SK_ImGui_ControlPanel (void)
       
       static bool changed_hdr = false;
 
-      auto HDRMenu =
+      auto _SetOverlayLuminance =
+      [&](bool bMatchSDRWhite, float& cfg_val, float fNits)
+      {
+        cfg_val =
+          bMatchSDRWhite ?
+            rb.displays [rb.active_display].hdr.white_level * 1.0_Nits
+                         :                            fNits * 1.0_Nits;
+      };
+
+      auto SDRTooltip =
       [&](void)
       {
-        float imgui_nits =
-          rb.ui_luminance / 1.0_Nits;
-
-        if ( ImGui::SliderFloat ( "Special K Luminance###IMGUI_LUMINANCE",
-                                   &imgui_nits,
-                                    80.0f, rb.display_gamut.maxLocalY,
-                                      (const char *)u8"%.1f cd/m²" ) )
+        if (ImGui::IsItemHovered ( ))
         {
-          rb.ui_luminance =
-               imgui_nits * 1.0_Nits;
+          ImGui::BeginTooltip    ( );
+          ImGui::TextUnformatted ("Controls Luminance of Overlays while in HDR Mode");
+          ImGui::Separator       ( );
+
+          ImGui::Spacing         ( );
+          ImGui::Spacing         ( );
+          ImGui::Spacing         ( );
+
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
+
+          ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
+          ImGui::SameLine        ();
+          ImGui::Text            ((const char *)u8"Right-click to match Windows SDR white level (%5.1f cd/m²)",
+                                  rb.displays [rb.active_display].hdr.white_level);
+
+          ImGui::BulletText      ("Luminance levels above 50%% of slider range are "
+                                  "not recommended in HDR10");
+
+          ImGui::Spacing         ( );
+          ImGui::Spacing         ( );
+
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+          ImGui::TextUnformatted ("Special K can apply Color Correction for Third-party SDR Overlays");
+
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.75f, .75f, .75f, 1.f));
+
+          ImGui::Spacing         ( );
+          ImGui::Spacing         ( );
+
+          ImGui::TreePush        ("");
+          ImGui::BulletText      ("Third-party overlay sliders will only appear if SK's own "
+                                  "HDR is active and the current game is D3D11");
+          ImGui::BulletText      ("HDR Color Correction for third-party overlays -does- "
+                                  "apply in D3D12, but it uses the values set in D3D11");
+
+          ImGui::Spacing         ( );
+          ImGui::Spacing         ( );
+
+          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.933f, .933f, .933f, 1.f));
+
+          ImGui::TextUnformatted ("For overlay Color Correction in native HDR games, use SK's HDR10 or scRGB Mode + "
+                                  "HDR10 Native or scRGB Native Preset");
+          ImGui::TreePop         ( );
+          ImGui::PopStyleColor   (4);
+          ImGui::EndTooltip      ( );
+        }
+      };
+
+      auto HDRLuminanceSlider =
+      [&]( const char * const szLabel,
+                 float&        fNits,
+                 float         fMaxLuminance = SK_GetCurrentRenderBackend ().display_gamut.maxLocalY )
+   -> bool
+      {
+        float nits =
+          fNits / 1.0_Nits;
+
+        const bool changed =
+          ImGui::SliderFloat ( szLabel, &nits,
+                                 80.0f, fMaxLuminance,
+                                   (const char *)u8"%.1f cd/m²" );
+        
+        const bool right_clicked =
+          ImGui::IsItemClicked (ImGuiMouseButton_Right);
+
+        if (changed || right_clicked)
+        {
+          _SetOverlayLuminance ( right_clicked,
+                                   fNits,
+                                     nits );
 
           SK_SaveConfig ();
         }
+
+        SDRTooltip ();
+
+        return
+          changed || right_clicked;
+      };
+
+      auto HDRMenu =
+      [&](void)
+      {
+        HDRLuminanceSlider (
+          "Special K Luminance###IMGUI_LUMINANCE", rb.ui_luminance
+        );
 
 #define STEAM_OVERLAY_VS_CRC32C 0xf48cf597
 #define UPLAY_OVERLAY_PS_CRC32C 0x35ae281c
@@ -3128,70 +3308,34 @@ SK_ImGui_ControlPanel (void)
 
         if (steam_overlay)
         {
-          float steam_nits =
-            config.platform.overlay_hdr_luminance / 1.0_Nits;
-
-          if ( ImGui::SliderFloat ( "Steam Overlay Luminance###STEAM_LUMINANCE",
-                                     &steam_nits,
-                                      80.0f, rb.display_gamut.maxAverageY,
-                                        (const char *)u8"%.1f cd/m²" ) )
-          {
-            config.platform.overlay_hdr_luminance =
-                                    steam_nits * 1.0_Nits;
-
-            SK_SaveConfig ();
-          }
+          HDRLuminanceSlider (
+            "Steam Overlay Luminance###STEAM_LUMINANCE", config.platform.overlay_hdr_luminance,
+                                                                  rb.display_gamut.maxAverageY
+          );
         }
 
         if (config.rtss.present)
         {
-          float rtss_nits =
-            config.rtss.overlay_luminance / 1.0_Nits;
-
-          if ( ImGui::SliderFloat ( "RTSS Overlay Luminance###RTSS_LUMINANCE",
-                                     &rtss_nits,
-                                      80.0f, rb.display_gamut.maxAverageY,
-                                        (const char *)u8"%.1f cd/m²" ) )
-          {
-            config.rtss.overlay_luminance =
-                                    rtss_nits * 1.0_Nits;
-
-            SK_SaveConfig ();
-          }
+          HDRLuminanceSlider (
+            "RTSS Overlay Luminance###RTSS_LUMINANCE", config.rtss.overlay_luminance,
+                                                        rb.display_gamut.maxAverageY
+          );
         }
 
         if (config.epic.present)
         {
-          float epic_nits =
-            config.platform.overlay_hdr_luminance / 1.0_Nits;
-
-          if ( ImGui::SliderFloat ( "Epic Overlay Luminance###EPIC_LUMINANCE",
-                                     &epic_nits,
-                                      80.0f, rb.display_gamut.maxAverageY,
-                                        (const char *)u8"%.1f cd/m²" ) )
-          {
-            config.platform.overlay_hdr_luminance =
-                                    epic_nits * 1.0_Nits;
-
-            SK_SaveConfig ();
-          }
+          HDRLuminanceSlider (
+            "Epic Overlay Luminance###EPIC_LUMINANCE", config.platform.overlay_hdr_luminance,
+                                                                rb.display_gamut.maxAverageY
+          );
         }
 
         if (config.discord.present)
         {
-          float discord_nits =
-            config.discord.overlay_luminance / 1.0_Nits;
-
-          if ( ImGui::SliderFloat ( "Discord Overlay Luminance###DISCORD_LUMINANCE",
-                                     &discord_nits,
-                                      80.0f, rb.display_gamut.maxAverageY,
-                                        (const char *)u8"%.1f cd/m²" ) )
-          {
-            config.discord.overlay_luminance =
-                                    discord_nits * 1.0_Nits;
-
-            SK_SaveConfig ();
-          }
+          HDRLuminanceSlider (
+            "Discord Overlay Luminance###DISCORD_LUMINANCE", config.discord.overlay_luminance,
+                                                                 rb.display_gamut.maxAverageY
+          );
         }
 
         static bool uplay_overlay = false;
@@ -3205,19 +3349,10 @@ SK_ImGui_ControlPanel (void)
 
         if (uplay_overlay)
         {
-          float uplay_nits =
-            config.uplay.overlay_luminance / 1.0_Nits;
-
-          if ( ImGui::SliderFloat ( "uPlay Overlay Luminance###UPLAY_LUMINANCE",
-                                     &uplay_nits,
-                                      80.0f, rb.display_gamut.maxAverageY,
-                                        (const char *)u8"%.1f cd/m²" ) )
-          {
-            config.uplay.overlay_luminance =
-                                    uplay_nits * 1.0_Nits;
-
-            SK_SaveConfig ();
-          }
+          HDRLuminanceSlider (
+            "uPlay Overlay Luminance###UPLAY_LUMINANCE", config.uplay.overlay_luminance,
+                                                           rb.display_gamut.maxAverageY
+          );
         }
 
         ImGui::Separator ();

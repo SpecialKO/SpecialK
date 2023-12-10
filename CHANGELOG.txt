@@ -1,4 +1,159 @@
-﻿23.11.20.3
+﻿23.12.10.1
+==========
+ + Fixed unnecessary audio device changes causing brief audio drop-outs during Alt+Tab
+
+23.12.10
+========
+ + Added option to associate monitors with audio devices, such that SK will change
+     the game's output audio device depending on which monitor the game is using.
+
+    >> See the Display menu for more, if you want this behavior globally, then
+         configure it once and copy the "Display.Audio" section of the game's INI
+           to Global\master_SpecialK.ini
+
+23.12.9.4
+=========
+ + Adjusted spacing on OSD Frame Counter
+
+23.12.9.3
+=========
+ + Added Frame Counter option to OSD's FPS reporting
+
+23.12.9.2
+=========
+ + Fixed crash in IMMDeviceEnumerator::EnumAudioEndpoints (...) on some drivers
+
+23.12.9.1
+=========
+ + Properly transition to the game's active device if the audio session is
+     stream re-routed so volume control works correctly after changing devs
+
+23.12.9
+=======
+ + Added button to change the device the game outputs to in Audio Management
+
+23.12.8.1
+=========
+ + Fixed HDR MaxLuminance values set using Profile Display Capabilities sometimes
+     not applying correctly.
+ + Added profiled MaxLuminance override values to display logs
+
+23.12.8
+=======
+ + Added support for default_ReShade.ini and master_ReShade.ini in Global\ReShade\
+     >> Works the same as default_SpecialK.ini and master_SpecialK.ini
+ + Added support for default_ReShadePreset.ini in Global\ReShade\
+ + Added button to browse to the directory where ReShade config/logs are stored
+ + Added warning (in plug-in control panel) if a local ReShade.ini is found and
+     is overriding SK's normal behavior for ReShade config file management
+
+23.12.7.4
+=========
+ + Added keybind (Ctrl+Alt+Shift+R) to inject ReShade on-demand into any
+     OpenGL/D3D11/D3D12 game, see the Plug-Ins control panel section for more.
+
+    * Requires ReShade 5.9.3+
+
+23.12.7.3
+=========
+ + Clamp non-black pixels to smallest FP16 subnormal value rather than normal;
+     fixes raised black level on the SDR side of SDR/HDR split view.
+
+23.12.7.2
+=========
+ + Removed Rec 709 gamut clamp from D3D11 HDR Adaptive Tonemapping
+
+23.12.7.1
+=========
+ + SDR/HDR Splitter now uses the Windows SDR White Level setting to scale
+     the non-HDR tonemapped SDR image to match what Windows would have done.
+ + Added Windows SDR White Level and Dolby Vision Low Latency info to logs.
+ + Added option to set overlay luminance to match Windows SDR by right-clicking
+     HDR overlay luminance sliders (see HDR menu).
+
+23.12.7
+=======
+ + Merge pull request #122 from Nustat0/auto-bias-target-percent
+    * Added ability to specify target input latency in (ms) or (%)
+
+23.12.6.4
+=========
+ + Expanded the ReShade Plug-Ins section of the control panel by default
+ + Changed overlays such as Steam, RTSS, uPlay, Discord to use 2.2 gamma
+
+23.12.6.3
+=========
+ + Fixed potential black pixel artifacts caused by changes in 23.12.6.2
+ + Added support for HDR10 in Star Ocean Second Story R
+ + Added internal support for upgrading Render Targets to 16-bpc UNORM instead
+     of 16-bpc FLOAT when remastering render passes, for engines that have
+       floating-point blending problems (i.e. Unity).
+
+    >> The only known game that needs this is Star Ocean 2, if the are more,
+         an INI option will be added.
+
+23.12.6.2
+=========
+ + Replaced "Bypass sRGB Gamma" option in HDR calibration with Content EOTF.
+
+    >> Old default behavior (no bypass) is equal to sRGB Content EOTF.
+
+    * Linear is equivalent to "Bypass sRGB Gamma"
+    * 2.2 is an approximation of sRGB that more closely matches how most
+        SDR displays would display sRGB framebuffer content produced by D3D
+
+       >> 2.2 is NOT how the DWM composites SDR content, it ALWAYS uses sRGB.
+
+23.12.6.1
+=========
+ + Remove 2-space left-padding from text OSD when the title/clock is not shown
+ + Fixed pagefile monitor displaying on a single line of text
+
+23.12.6
+=======
+ + Added "Load Now" button to ReShade plug-in selector in SK's control panel.
+
+   * Allows loading ReShade into running games without restarting the game.
+
+    >> Requires an OpenGL/D3D11/D3D12 game and a version of ReShade 5.9.3 or
+         newer installed to PlugIns\ThirdParty\ReShade\ReShade{32|64}.dll
+
+23.12.5.5
+=========
+ + Added necessary DWORD -> LONG cast before converting charge rate from
+     integer mW to decimal W.
+
+23.12.5.4
+=========
+ + Ignore native resolution rendertargets when considering promotion from
+     8-bpc to 16-bpc for HDR remasters in Star Ocean The Second Story R.
+
+23.12.5.3
+=========
+ + Changed (dis)charge rate reporting from milliwatts to watts, and
+     hide the rate if for some reason it is 0.0.
+
+23.12.5.2
+=========
+ + Fixed signed vs. unsigned issues in discharge rate reporting
+
+23.12.5.1
+=========
+ + Added battery (dis)charge rate to battery meter while running a
+     battery-powered device off of battery or charging it.
+
+23.12.5
+=======
+ + Fixed issues in Unity games where the mouse cursor could move to the
+     center of the screen and stay there if they are launched in the background
+       and another application takes window activation during game startup.
+
+23.11.24
+========
+ + Don't display Render Latency statistics in D3D9 games, for real this time
+ + When encountering corrupted INI files, backup to <ini>.bak before recovering
+
+23.11.20.3
 ==========
  + Fixed displaying DXGI Present Statistics in D3D9 games if
      WDDM3 HW Flip Queue is enabled.

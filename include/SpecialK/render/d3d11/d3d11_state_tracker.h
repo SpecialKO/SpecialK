@@ -596,7 +596,7 @@ SK_D3D11_CreateShader_Impl (
           __SK_MakeRTSSPS  (false, true, config.rtss.overlay_luminance);
 
         SK_RunOnce (
-           SK_LOG0 ( ( L"RTSS Replacement Pixel Shader <scRGB %f nits>",
+           SK_LOG0 ( ( L"RTSS Replacement Pixel Shader <scRGB %f cd/m²>",
                           config.rtss.overlay_luminance * 80.0 ),
                        L"RTSS Range" )
         );
@@ -630,7 +630,7 @@ SK_D3D11_CreateShader_Impl (
 
         SK_RunOnce (
         {
-          SK_LOG0 ( ( L"RTSS Replacement Pixel Shader <PQ %f nits>",
+          SK_LOG0 ( ( L"RTSS Replacement Pixel Shader <PQ %f cd/m²>",
                              config.rtss.overlay_luminance * 80.0f ),
                       L"RTSS Range" );
         });
@@ -668,7 +668,7 @@ SK_D3D11_CreateShader_Impl (
           __SK_MakeSteamPS (false, true, config.platform.overlay_hdr_luminance);
 
         SK_RunOnce (
-           SK_LOG0 ( ( L"Steam Replacement Pixel Shader <scRGB %f nits>",
+           SK_LOG0 ( ( L"Steam Replacement Pixel Shader <scRGB %f cd/m²>",
                           config.platform.overlay_hdr_luminance * 80.0 ),
                        L"SteamRange" )
         );
@@ -689,7 +689,7 @@ SK_D3D11_CreateShader_Impl (
 
         SK_RunOnce (
         {
-          SK_LOG0 ( ( L"Steam Replacement Pixel Shader <PQ %f nits>",
+          SK_LOG0 ( ( L"Steam Replacement Pixel Shader <PQ %f cd/m²>",
                              config.platform.overlay_hdr_luminance * 80.0f ),
                       L"SteamRange" );
         });
@@ -716,7 +716,7 @@ SK_D3D11_CreateShader_Impl (
           __SK_MakeEpicPS (false, true, config.platform.overlay_hdr_luminance);
 
         SK_RunOnce (
-           SK_LOG0 ( ( L"Epic Replacement Pixel Shader <scRGB %f nits>",
+           SK_LOG0 ( ( L"Epic Replacement Pixel Shader <scRGB %f cd/m²>",
                           config.platform.overlay_hdr_luminance * 80.0 ),
                        L"Epic Range" )
         );
@@ -737,7 +737,7 @@ SK_D3D11_CreateShader_Impl (
 
         SK_RunOnce (
         {
-          SK_LOG0 ( ( L"Epic Replacement Pixel Shader <PQ %f nits>",
+          SK_LOG0 ( ( L"Epic Replacement Pixel Shader <PQ %f cd/m²>",
                              config.platform.overlay_hdr_luminance * 80.0f ),
                       L"Epic Range" );
         });

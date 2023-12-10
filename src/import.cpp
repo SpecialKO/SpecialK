@@ -125,23 +125,26 @@ SK_Import_GetShimmedLibrary (HMODULE hModShim, HMODULE& hModReal)
   return false;
 }
 
-void
-SK_LoadImportModule (import_s& import)
+HMODULE
+SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
 {
   // Allow ReShade 5.2+ to be loaded globally, and rebase its config
-  if (StrStrIW (import.filename->get_value_ref ().c_str (), L"ReShade") != nullptr)
+  if (StrStrIW (wszDllFile, L"ReShade") != nullptr)
   {
     SK_RunOnce (
     {
-      if (0 != _wcsicmp (import.mode->get_value_str ().c_str (), L"Normal"))
+      if (0 != _wcsicmp (wszMode, L"Normal"))
       {
         SetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", L"1");
       }
 
       SetEnvironmentVariableW (L"RESHADE_DISABLE_LOADING_CHECK", L"1");
 
+      config.reshade.has_local_ini =
+        PathFileExistsW (L"ReShade.ini");
+
       // If user already has a local ReShade.ini file, prefer the default ReShade behavior
-      if (! PathFileExistsW (L"ReShade.ini"))
+      if (! config.reshade.has_local_ini)
       {
         std::filesystem::path
           reshade_path (SK_GetConfigPath ());
@@ -150,33 +153,98 @@ SK_LoadImportModule (import_s& import)
         // Otherwise, use SK's per-game config path
         SetEnvironmentVariableW (L"RESHADE_BASE_PATH_OVERRIDE", reshade_path.c_str ());
 
-        reshade_path /= L"ReShade.ini";
+        std::filesystem::path
+          reshade_cfg_path    = reshade_path / L"ReShade.ini";
+        std::filesystem::path
+          reshade_preset_path = reshade_path / L"ReShadePreset.ini";
 
-        SK_CreateDirectories  (reshade_path.c_str ());
-        if (! PathFileExistsW (reshade_path.c_str ()))
+        std::wstring shared_base_path =
+          SK_FormatStringW (LR"(%ws\Global\ReShade\)", SK_GetInstallPath ());
+        std::wstring shared_default_config =
+          shared_base_path + L"default_ReShade.ini";
+        std::wstring shared_master_config =
+          shared_base_path + L"master_ReShade.ini";
+        std::wstring shared_default_preset =
+          shared_base_path + L"default_ReShadePreset.ini";
+
+        bool bHasDefaultPreset = PathFileExistsW (shared_default_preset.c_str ());
+        bool bHasMasterConfig  = PathFileExistsW (shared_master_config.c_str  ());
+        bool bHasBasePreset    =
+             PathFileExistsW (reshade_preset_path.c_str ());
+        bool bHasBaseConfig    =
+             PathFileExistsW (reshade_cfg_path.c_str ());
+        SK_CreateDirectories (reshade_cfg_path.c_str ());
+
+        if ((! bHasBasePreset) && bHasDefaultPreset)
         {
-          FILE *fReShadeINI =
-            _wfopen (reshade_path.c_str (), L"w");
+          CopyFile ( shared_default_preset.c_str (),
+                            reshade_preset_path.c_str (), FALSE );
+        }
 
-          if (fReShadeINI != nullptr)
+        if ((! bHasBaseConfig) || bHasMasterConfig)
+        {
+          auto pINI =
+            SK_CreateINI (reshade_cfg_path.c_str ());
+
+          if (pINI != nullptr)
           {
-            std::wstring shared_base_path =
-              SK_FormatStringW (LR"(%ws\Global\ReShade\)", SK_GetInstallPath ());
+            if (! bHasBaseConfig)
+            {
+              if (PathFileExistsW (shared_default_config.c_str ()))
+                pINI->import_file (shared_default_config.c_str ());
 
-            fputws (L"[GENERAL]\n",                                                                                                                     fReShadeINI);
-            fputws (SK_FormatStringW (LR"(EffectSearchPaths=%wsShaders\**,.\reshade-shaders\Shaders\**)"    L"\n", shared_base_path.c_str ()).c_str (), fReShadeINI);
-            fputws (SK_FormatStringW (LR"(TextureSearchPaths=%wsTextures\**,.\reshade-shaders\Textures\**)" L"\n", shared_base_path.c_str ()).c_str (), fReShadeINI);
+              auto& general_section =
+                pINI->get_section (L"GENERAL");
 
-            fputws (L"\n",                   fReShadeINI);
+              if (! general_section.contains_key  (L"EffectSearchPaths"))
+                    general_section.add_key_value (L"EffectSearchPaths", L"");
 
-            fputws (L"[OVERLAY]\n",          fReShadeINI);
-            fputws (L"TutorialProgress=4\n", fReShadeINI);
+              if (! general_section.contains_key  (L"TextureSearchPaths"))
+                    general_section.add_key_value (L"TextureSearchPaths", L"");
 
-            fclose (fReShadeINI);
+              auto& effect_search_paths =
+                general_section.get_value (L"EffectSearchPaths");
+              auto& texture_search_paths =
+                general_section.get_value (L"TextureSearchPaths");
+
+              effect_search_paths = effect_search_paths.empty () ?
+                SK_FormatStringW (LR"(%wsShaders\**,.\reshade-shaders\Shaders\**)",     shared_base_path.c_str ()) :
+                SK_FormatStringW (LR"(%wsShaders\**,.\reshade-shaders\Shaders\**,%ws)", shared_base_path.c_str (),
+                                                                                     effect_search_paths.c_str ());
+
+              texture_search_paths = texture_search_paths.empty () ?
+                SK_FormatStringW (LR"(%wsTextures\**,.\reshade-shaders\Textures\**)",     shared_base_path.c_str ()) :
+                SK_FormatStringW (LR"(%wsTextures\**,.\reshade-shaders\Textures\**,%ws)", shared_base_path.c_str (),
+                                                                                      texture_search_paths.c_str ());
+
+              pINI->get_section (L"OVERLAY").add_key_value (L"TutorialProgress", L"4");
+            }
+
+            if (bHasMasterConfig)
+            {
+              pINI->import_file (shared_master_config.c_str ());
+            }
+
+            pINI->write ();
           }
         }
       }
+
+      return
+        SK_LoadLibraryW (wszDllFile);
     });
+  }
+
+  return nullptr;
+}
+
+void
+SK_LoadImportModule (import_s& import)
+{
+  if (StrStrIW (import.filename->get_value_ref ().c_str (), L"ReShade") != nullptr)
+  {
+    SK_ReShade_LoadDLL ( import.filename->get_value_ref ().c_str (),
+                             import.mode->get_value_str ().c_str () );
   }
 
   if (config.system.central_repository)

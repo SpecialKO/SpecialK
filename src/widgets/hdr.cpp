@@ -93,7 +93,7 @@ sk::ParameterBool*  _SK_HDR_Promote11BitUAVsTo16BitFP = nullptr;
 sk::ParameterBool*  _SK_HDR_Promote8BitUAVsTo16BitFP  = nullptr;
 sk::ParameterInt*   _SK_HDR_ActivePreset              = nullptr;
 sk::ParameterBool*  _SK_HDR_FullRange                 = nullptr;
-sk::ParameterInt*   _SK_HDR_sRGBBypassBehavior        = nullptr;
+sk::ParameterFloat* _SK_HDR_ContentEOTF               = nullptr;
 sk::ParameterBool*  _SK_HDR_AdaptiveToneMap           = nullptr;
 
 bool  __SK_HDR_AnyKind          = false;
@@ -538,6 +538,47 @@ SK_Display_ComparePathNameGUIDs ( const wchar_t *wszPathName0,
 }
 
 void
+SK_HDR_UpdateMaxLuminanceForActiveDisplay (bool forced = false)
+{
+  static auto pINI =
+      SK_CreateINI (
+        (std::wstring (SK_GetInstallPath ()) + LR"(\Global\hdr.ini)").c_str ()
+      );
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  static std::wstring
+        last_path = L"";
+  if (! last_path._Equal (rb.displays [rb.active_display].path_name) || forced)
+  {
+    pINI->reload ();
+
+    auto guid =
+      SK_Display_GetDeviceNameAndGUID (rb.displays [rb.active_display].path_name);
+
+    if (pINI->contains_section (guid))
+    {
+      auto& sec =
+        pINI->get_section (guid);
+
+      if (sec.contains_key (L"MaxLuminance"))
+      {
+        rb.display_gamut.maxLocalY =
+          std::max (80.0f, static_cast <float> (_wtof (sec.get_cvalue (L"MaxLuminance").c_str ())));
+        rb.display_gamut.maxY      =
+          rb.display_gamut.maxLocalY;
+
+        if (rb.display_gamut.maxAverageY > rb.display_gamut.maxY / 2)
+            rb.display_gamut.maxAverageY = rb.display_gamut.maxY / 2;
+
+        last_path = rb.displays [rb.active_display].path_name;
+      }
+    }
+  }
+}
+
+void
 SK_HDR_DisplayProfilerDialog (bool draw = true)
 {
   static auto pINI =
@@ -550,32 +591,7 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
   
   if (! draw)
   {
-    static std::wstring
-          last_path = L"";
-    if (! last_path._Equal (rb.displays [rb.active_display].path_name))
-    {
-      auto guid =
-        SK_Display_GetDeviceNameAndGUID (rb.displays [rb.active_display].path_name);
-
-      if (pINI->contains_section (guid))
-      {
-        auto& sec =
-          pINI->get_section (guid);
-
-        if (sec.contains_key (L"MaxLuminance"))
-        {
-          rb.display_gamut.maxLocalY =
-            std::max (80.0f, static_cast <float> (_wtof (sec.get_cvalue (L"MaxLuminance").c_str ())));
-          rb.display_gamut.maxY      =
-            rb.display_gamut.maxLocalY;
-
-          if (rb.display_gamut.maxAverageY > rb.display_gamut.maxY / 2)
-              rb.display_gamut.maxAverageY = rb.display_gamut.maxY / 2;
-
-          last_path = rb.displays [rb.active_display].path_name;
-        }
-      }
-    }
+    SK_HDR_UpdateMaxLuminanceForActiveDisplay (false);
 
     return;
   }
@@ -801,21 +817,21 @@ public:
       SK_IVarStub <float>* horz         = new SK_IVarStub <float> (&__SK_HDR_HorizCoverage);
       SK_IVarStub <float>* vert         = new SK_IVarStub <float> (&__SK_HDR_VertCoverage);
       SK_IVarStub <bool>*  adaptive     = new SK_IVarStub <bool>  (&__SK_HDR_AdaptiveToneMap);
-      SK_IVarStub <int>*   bypass_srgb  = new SK_IVarStub <int>   (&__SK_HDR_Bypass_sRGB);
       SK_IVarStub <bool>*  enable       = new SK_IVarStub <bool>  (&__SK_HDR_AnyKind,   this);
       SK_IVarStub <bool>*  enable_scrgb = new SK_IVarStub <bool>  (&__SK_HDR_16BitSwap, this);
       SK_IVarStub <bool>*  enable_hdr10 = new SK_IVarStub <bool>  (&__SK_HDR_10BitSwap, this);
+      SK_IVarStub <float>* content_eotf = new SK_IVarStub <float> (&__SK_HDR_Content_EOTF);
 
-      pCommandProc->AddVariable ( "HDR.Enable",          enable                                );
-      pCommandProc->AddVariable ( "HDR.EnableSCRGB",     enable_scrgb                          );
-      pCommandProc->AddVariable ( "HDR.EnableHDR10",     enable_hdr10                          );
-      pCommandProc->AddVariable ( "HDR.Preset",          &preset->setRange      (0, 3)         );
-      pCommandProc->AddVariable ( "HDR.Visualization",   &vis->setRange         (0, 11)        );
-      pCommandProc->AddVariable ( "HDR.Tonemap",         &tonemap->setRange     (0, 2)         );
-      pCommandProc->AddVariable ( "HDR.HorizontalSplit", &horz->setRange        (0.0f, 100.0f) );
-      pCommandProc->AddVariable ( "HDR.VerticalSplit",   &vert->setRange        (0.0f, 100.0f) );
-      pCommandProc->AddVariable ( "HDR.AdaptiveToneMap", &adaptive->setRange    (false,  true) );
-      pCommandProc->AddVariable ( "HDR.Bypass_sRGB",     &bypass_srgb->setRange (   -1,     1) );
+      pCommandProc->AddVariable ( "HDR.Enable",          enable                                 );
+      pCommandProc->AddVariable ( "HDR.EnableSCRGB",     enable_scrgb                           );
+      pCommandProc->AddVariable ( "HDR.EnableHDR10",     enable_hdr10                           );
+      pCommandProc->AddVariable ( "HDR.Preset",          &preset->setRange       (0, 3)         );
+      pCommandProc->AddVariable ( "HDR.Visualization",   &vis->setRange          (0, 11)        );
+      pCommandProc->AddVariable ( "HDR.Tonemap",         &tonemap->setRange      (0, 2)         );
+      pCommandProc->AddVariable ( "HDR.HorizontalSplit", &horz->setRange         (0.0f, 100.0f) );
+      pCommandProc->AddVariable ( "HDR.VerticalSplit",   &vert->setRange         (0.0f, 100.0f) );
+      pCommandProc->AddVariable ( "HDR.AdaptiveToneMap", &adaptive->setRange     (false,  true) );
+      pCommandProc->AddVariable ( "HDR.ContentEOTF",     &content_eotf->setRange (-2.2f, 2.6f)  );
     }
 
     catch (...)
@@ -914,7 +930,7 @@ public:
     //// Automatically handle sRGB -> Linear if the original SwapChain used it
     //extern bool             bOriginallysRGB;
     //if (rb.srgb_stripped || bOriginallysRGB)
-    //  __SK_HDR_Bypass_sRGB = 1;
+    //  __SK_HDR_Content_EOTF = 1.0f;
 
 
     if ( __SK_HDR_10BitSwap ||
@@ -1006,10 +1022,10 @@ public:
                                    L"AllowFullLuminance",  __SK_HDR_FullRange,
                                    L"Slider will use full-range." );
 
-    _SK_HDR_sRGBBypassBehavior =
-      _CreateConfigParameterInt ( SK_HDR_SECTION,
-                                  L"sRGBBypassMode", __SK_HDR_Bypass_sRGB,
-                                  L"sRGB Encoding is Implicit" );
+    _SK_HDR_ContentEOTF =
+      _CreateConfigParameterFloat ( SK_HDR_SECTION,
+                                    L"ContentEOTF", __SK_HDR_Content_EOTF,
+                                    L"Content EOTF (power-law >= 1.0 or sRGB if -2.2)" );
 
     _SK_HDR_AdaptiveToneMap =
       _CreateConfigParameterBool ( SK_HDR_SECTION,
@@ -1462,6 +1478,9 @@ public:
 
           auto& pINI = dll_ini;
 
+          static float fSliderWidth = 0.0f;
+          float        fCursorX0    = ImGui::GetCursorPosX ();
+
           ImGui::BeginGroup ();
           if (! bRawImageMode)
           {
@@ -1483,11 +1502,6 @@ public:
 
             ImGui::SameLine ();
           }
-
-          static float fSliderWidth = 0.0f;
-          static float fWidth0      = 0.0f;
-                 float fWidth1      =
-            ImGui::GetItemRectSize ().x;
 
           //float fCursorX = ImGui::GetCursorPosX ();
 
@@ -1516,31 +1530,85 @@ public:
                                ">> Use HDR Tonemap Curve / Grayscale Visualization (first Profile Display Capabilities) to ensure valid (unclipped) dynamic range.");
           }
 
-          fWidth1     =
-            fWidth1 + ImGui::GetItemRectSize ().x;
-
           if (! bHDR10Passthrough)
           {
-            bool bypass =
-              ( __SK_HDR_Bypass_sRGB == 1 );
+            ImGui::SameLine    ();
+            ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+            ImGui::SameLine    ();
 
-            ImGui::SameLine ( 0.0f, fSliderWidth > fWidth0 ?
-                                    fSliderWidth - fWidth0 - fWidth1 - ImGui::GetStyle ().ItemSpacing.x
-                                                           : -1.0f );
+            float fCursorX1    = ImGui::GetCursorPosX ();
+            float fUsedWidth   = fCursorX1 - fCursorX0;
 
-            if (ImGui::Checkbox ("Bypass sRGB Gamma", &bypass))
+            // We won't know slider width until the first frame, so clamp size to 0.0f and simply hide this option until we draw
+            //   at least one slider.
+            ImGui::PushItemWidth (
+              std::max (0.0f, fSliderWidth - fUsedWidth - ImGui::GetStyle ().ItemSpacing.x - ImGui::CalcTextSize ("Content EOTF").x)
+            );
+
+            enum {
+              ContentEotf_Linear = 0,
+              ContentEotf_sRGB   = 1,
+              ContentEotf_2_2    = 2,
+              ContentEotf_2_4    = 3,
+              ContentEotf_Custom = 4
+            };
+
+            int eotf_sel = ContentEotf_2_2;
+
+            static constexpr auto _MAX_SEL = ContentEotf_Custom;
+
+            switch (static_cast <int> (100.0f * __SK_HDR_Content_EOTF))
             {
-              __SK_HDR_Bypass_sRGB =
-                ( bypass ? 1 : 0 );
+              // sRGB
+              case -220:
+                eotf_sel = ContentEotf_sRGB;
+                break;
+              case 100:
+                eotf_sel = ContentEotf_Linear;
+                break;
+              case 220:
+                eotf_sel = ContentEotf_2_2;
+                break;
+              case 240:
+                eotf_sel = ContentEotf_2_4;
+                break;
+              default:
+                eotf_sel = ContentEotf_Custom;
+                break;
+            }
 
-              _SK_HDR_sRGBBypassBehavior->store (__SK_HDR_Bypass_sRGB);
+            if ( ImGui::Combo ( "Content EOTF###SDR_EOTF_COMBO", &eotf_sel,
+                                "Linear\0"
+                                "sRGB\0"
+                                "2.2\0"
+                                "2.4\0"
+                                "Custom (set in INI)\0\0") )
+            {
+              if (eotf_sel != _MAX_SEL)
+              {
+                switch (eotf_sel)
+                {
+                  case ContentEotf_Linear: __SK_HDR_Content_EOTF =  1.0f; break;
+                  case ContentEotf_sRGB:   __SK_HDR_Content_EOTF = -2.2f; break;
+                  case ContentEotf_2_2:    __SK_HDR_Content_EOTF =  2.2f; break;
+                  case ContentEotf_2_4:    __SK_HDR_Content_EOTF =  2.4f; break;
+                }
+
+                _SK_HDR_ContentEOTF->store (__SK_HDR_Content_EOTF);
+              }
             }
 
             if (ImGui::IsItemHovered ())
-              ImGui::SetTooltip ("If the game appears absurdly dark, you probably need to turn this on.");
-          }
+            {
+              ImGui::BeginTooltip    ();
+              ImGui::TextUnformatted ("scRGB native HDR and some Unity/Unreal engine games require Linear or they will be too dark.");
+              ImGui::Separator       ();
+              ImGui::BulletText      ("For most other games try sRGB or 2.2.");
+              ImGui::EndTooltip      ();
+            }
 
-          fWidth0 = ImGui::GetItemRectSize ().x;
+            ImGui::PopItemWidth ();
+          }
 
           float peak_nits =
             __SK_HDR_Luma / 1.0_Nits;
@@ -1640,6 +1708,8 @@ public:
               if (bSliderChanged)
                 peak_nits *= 80.0f;
             }
+
+            fSliderWidth = ImGui::GetItemRectSize ().x;
 
             if (bSliderChanged)
             {
@@ -1789,16 +1859,16 @@ public:
               // scRGB Native Mode
               if (it.cfg_nits->get_value () == 1.0f && it.preset_idx == 2)
               {
-                if (__SK_HDR_Preset == it.preset_idx && __SK_HDR_Bypass_sRGB != 1)
+                if (__SK_HDR_Preset == it.preset_idx && __SK_HDR_Content_EOTF != 1.0f)
                 {
                   ImGui::BeginGroup      ();
                   ImGui::TextColored     (ImVec4 (0.333f, 0.666f, 0.999f, 1.f), ICON_FA_INFO_CIRCLE);
                   ImGui::SameLine        ();
-                  ImGui::TextUnformatted (" Try Bypass sRGB");
+                  ImGui::TextUnformatted (" Try Linear Content EOTF");
                   ImGui::EndGroup        ();
 
                   if (ImGui::IsItemHovered ())
-                    ImGui::SetTooltip ("Bypass sRGB Gamma may be necessary if scRGB-native games are too dim.");
+                    ImGui::SetTooltip ("Linear gamma may be necessary if scRGB-native games are too dim.");
                 }
                 else
                   ImGui::Text ("-");
@@ -2092,7 +2162,7 @@ public:
                 {   ImGui::BeginTooltip  ();
                     ImGui::Text          ("Adhere to HGIG Design Guidelines");
                     ImGui::Separator     ();
-                    ImGui::BulletText    ("Tonemap keeps Average Frame Light Level from exceeding 'Paper White'");
+                    ImGui::BulletText    ("Tonemap keeps Average Frame Light Level from exceeding 1/3 MaxCLL");
                     ImGui::BulletText    ("User-calibrated MaxCLL is enforced");
                     ImGui::EndTooltip    ();
                 }
@@ -2451,7 +2521,7 @@ public:
                   preset.cfg_eotf->store (preset.eotf);
                 }
                 if (ImGui::IsItemHovered ())
-                  ImGui::SetTooltip ("Ubisoft games (e.g. Watch Dogs Legions) use 0.34 nits as SDR black for video and UI, which is gray in HDR...");
+                  ImGui::SetTooltip ((const char *)u8"Ubisoft games (e.g. Watch Dogs Legions) use 0.34 cd/m² as SDR black for video and UI, which is gray in HDR...");
                 //ImGui::BulletText ("Gamma Correction Unsupported for Current Tonemap");
               }
 

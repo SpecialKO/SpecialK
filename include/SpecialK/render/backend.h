@@ -281,6 +281,9 @@ public:
       NV_MONITOR_CAPABILITIES
                           monitor_caps         = { };
       BOOL                vrr_enabled          =  -1;
+
+      static output_s*    getDisplayFromId     (NvU32           display_id)     noexcept;
+      static output_s*    getDisplayFromHandle (NvDisplayHandle display_handle) noexcept;
     } nvapi;
 
     struct signal_info_s {
@@ -312,6 +315,10 @@ public:
         } events;
       } timing;
     } signal;
+
+    struct audio_s {
+      wchar_t             paired_device [128]  = L"{*}##No Preference";
+    } audio;
   } displays [_MAX_DISPLAYS];
 
   int                     active_display       =  0;
@@ -655,7 +662,9 @@ public:
   void            queueUpdateOutputs   (void);
   void            updateOutputTopology (void);
   const output_s* getContainingOutput  (const RECT& rkRect);
+  void            updateWDDMCaps       (output_s *pOutput);
   bool            assignOutputFromHWND (HWND hWndContainer);
+  bool            routeAudioForDisplay (output_s *pOutput);
 
   bool isReflexSupported  (void);
   bool setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE    marker);

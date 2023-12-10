@@ -178,7 +178,7 @@ iSK_INI::reload (const wchar_t *fname)
     // UTF16-BE  (Somehow we are swapped)
     else if (*data.data () == 0xFFFE)
     {
-      SK_LOG0 ( ( L"Encountered Byte - Swapped Unicode INI "
+      SK_LOG0 ( ( L"Encountered Byte-Swapped Unicode INI "
                   L"file ('%s'), attempting to recover...",
                                                    fname ),
                   L"INI Parser" );
@@ -243,8 +243,23 @@ iSK_INI::reload (const wchar_t *fname)
           );
 
         SK_LOG0 ( ( L"Could not convert UTF-8 / ANSI Encoded "
-                    L".ini file ('%hs') to UTF-16, aborting!",
+                    L".ini file ('%hs') to UTF-16.",
                                         utf8_fname.c_str () ),
+                    L"INI Parser" );
+
+        std::wstring backup =
+          SK_FormatStringW (L"%ws.bak", fname);
+        SK_File_MoveNoFail (            fname,
+                     backup.c_str ()
+        );
+
+        utf8_fname =
+          SK_StripUserNameFromPathA (
+            SK_WideCharToUTF8 (backup).data ()
+          );
+
+        SK_LOG0 ( ( L"Backing-up corrupted INI file to '%hs' and aborting!",
+                     utf8_fname.c_str () ),
                     L"INI Parser" );
 
         return false;

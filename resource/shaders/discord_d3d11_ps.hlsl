@@ -22,8 +22,8 @@ float4 main (PS_INPUT input) : SV_Target
     txScreen.Sample (samLinear, input.uv);
 
   out_col =
-    float4 (RemoveSRGBCurve (input.col.rgb * out_col.rgb),
-                             input.col.a   * out_col.a);
+    float4 (RemoveGammaExp (input.col.rgb * out_col.rgb, 2.2f),
+                            input.col.a   * out_col.a);
 
   // Negative = HDR10
   if (linear_mul.x < 0.0)

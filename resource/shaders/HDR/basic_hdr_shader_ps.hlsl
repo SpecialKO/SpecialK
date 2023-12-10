@@ -64,7 +64,7 @@ Texture2D texLastFrame0 : register (t1);
 float4
 SK_ProcessColor4 ( float4 color,
                       int func,
-                      int strip_srgb = 1 )
+                      int strip_eotf = 1 )
 {
 #ifdef INCLUDE_NAN_MITIGATION
   color = float4
@@ -74,11 +74,16 @@ SK_ProcessColor4 ( float4 color,
       (! IsNan (color.a)) * (! IsInf (color.a)) * color.a );
 #endif
 
+  // This looks weird because power-law EOTF does not work as intended on negative colors, and
+  //   we may very well have negative colors on WCG SDR input.
+  //
   float4 out_color =
     float4 (
-      (strip_srgb && func != sRGB_to_Linear) ?
-                PositivePow (color.rgb, 2.2) : color.rgb,
-                                               color.a
+      (strip_eotf && func != sRGB_to_Linear) ?
+                     sdrContentEOTF != -2.2f ? sign (color.rgb) * pow             (abs (color.rgb),
+                     sdrContentEOTF)         :                    RemoveSRGBCurve (     color.rgb) :
+                                                                                        color.rgb,
+                                                                                        color.a
     );
 
   // Straight Pass-Through
@@ -255,16 +260,16 @@ float4 main (PS_INPUT input) : SV_TARGET
       input.uv.x * float4 (1.0f, 1.0f, 1.0f, 1.0f);
   }
 
-  float4 over_range =
-    float4 ( 0.0f, 0.0f,
-             0.0f, 1.0f );
+  float3 hdr_rgb2 =
+    hdr_color.rgb * 2.0f;
 
-  if (hdr_color.r <  0.0 || hdr_color.r > 1.0)
-     over_range.r = hdr_color.r;
-  if (hdr_color.g <  0.0 || hdr_color.g > 1.0)
-     over_range.g = hdr_color.g;
-  if (hdr_color.b <  0.0 || hdr_color.b > 1.0)
-     over_range.b = hdr_color.b;
+  float4 over_range =
+    float4 (   hdr_color.rgb,      1.0f ) *
+    float4 ( ( hdr_color.rgb > hdr_rgb2 ) +
+             (           2.0 < hdr_rgb2 ), 1.0f );
+  
+  over_range.a =
+    any (over_range.rgb);
 #endif
 
 
@@ -275,7 +280,7 @@ float4 main (PS_INPUT input) : SV_TARGET
 #endif
                          SK_ProcessColor4 ( hdr_color.rgba,
                                             xRGB_to_Linear,
-                             sdrIsImplicitlysRGB ).rgb;
+                             sdrContentEOTF != 1.0f ).rgb;
 
 #ifdef INCLUDE_HDR10
   if (! bIsHDR10)
@@ -291,16 +296,13 @@ float4 main (PS_INPUT input) : SV_TARGET
   }
 #endif
 
-
-  ///hdr_color.rgb =
-  ///  sRGB_to_ACES (hdr_color.rgb);
- 
+  
 #ifdef INCLUDE_SPLITTER
   if ( input.coverage.x < input.uv.x ||
        input.coverage.y < input.uv.y )
   {
     return
-      FinalOutput (float4 (hdr_color.rgb * 3.75, 1.0f));
+      FinalOutput (float4 (hdr_color.rgb * sdrLuminance_White, 1.0f));
   }
 #endif
 
@@ -384,7 +386,7 @@ float4 main (PS_INPUT input) : SV_TARGET
       if (input.color.y != 1.0)
       {
         float fLuma =
-          length (hdr_color.rgb);
+          dot (hdr_color.rgb, FastSign (hdr_color.rgb) * float3 (0.2126729, 0.7151522, 0.0721750));
 
         // Clip to 0.35 nits, because lower than that produces garbage
         if (fLuma < 0.004375)

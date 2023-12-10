@@ -53,8 +53,8 @@ float4 main (PS_INPUT input) : SV_Target
     else
     {
       out_col =
-        float4 ( RemoveSRGBCurve (        ui_color ),
-          1.0f - RemoveSRGBAlpha ( 1.0f - ui_alpha ) );
+        float4 (        RemoveGammaExp (                  ui_color,  2.2f ),
+            1.0f - RemoveAlphaGammaExp ( max (0.0, 1.0f - ui_alpha), 2.2f ) );
     }
 
     float hdr_scale  = hdr10 ? ( -input.uv3.x / 10000.0 )

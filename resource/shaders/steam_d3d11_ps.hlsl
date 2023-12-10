@@ -23,7 +23,8 @@ float4 main (PS_INPUT input) : SV_Target
 
   out_col =
     saturate (
-      float4 ( RemoveSRGBCurve ( input.col.rgb * out_col.rgb),
+      float4 ( //RemoveSRGBCurve ( input.col.rgb * out_col.rgb),
+                RemoveGammaExp ( input.col.rgb * out_col.rgb, 2.2f ),
                                  input.col.a   * out_col.a )
              );
 
