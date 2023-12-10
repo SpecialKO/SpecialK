@@ -1,4 +1,13 @@
-﻿23.12.9.4
+﻿23.12.10
+========
+ + Added option to associate monitors with audio devices, such that SK will change
+     the game's output audio device depending on which monitor the game is using.
+
+    >> See the Display menu for more, if you want this behavior globally, then
+         configure it once and copy the "Display.Audio" section of the game's INI
+           to Global\master_SpecialK.ini
+
+23.12.9.4
 =========
  + Adjusted spacing on OSD Frame Counter
 

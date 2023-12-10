@@ -256,7 +256,7 @@ SK_ImGui_SelectAudioDeviceDlg (void)
       if (device.endpoint_state_ == DEVICE_STATE_ACTIVE)
       {
         bool selected =
-          device.endpoint_id_._Equal (endpoint_id);
+          StrStrIW (endpoint_id.c_str (), device.endpoint_id_.c_str ());
 
         if (ImGui::Selectable (device.friendly_name_.c_str (), selected))
         {

@@ -3078,6 +3078,33 @@ SK_RenderBackend_V2::updateWDDMCaps (SK_RenderBackend_V2::output_s *pDisplay)
 }
 
 bool
+SK_RenderBackend_V2::routeAudioForDisplay (SK_RenderBackend_V2::output_s *pDisplay)
+{
+  bool routed = false;
+
+  if (! pDisplay)
+    return routed;
+
+  if (_wcsicmp (pDisplay->audio.paired_device, L"System Default"))
+  {
+    if (_wcsicmp (pDisplay->audio.paired_device, L"No Preference"))
+    {
+      routed =
+        SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (
+          GetCurrentProcessId (), eRender, pDisplay->audio.paired_device
+        );
+    }
+  }
+  
+  else
+  {
+    SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (GetCurrentProcessId (), eRender, L"");
+  }
+
+  return routed;
+}
+
+bool
 SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
 {
   RECT                              rectOutputWindow = { };
@@ -3130,6 +3157,8 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
       ((intptr_t)&display -
        (intptr_t)&displays [0]) /
 sizeof (output_s));
+
+    routeAudioForDisplay (pOutput);
 
     display_gamut.xr = display.gamut.xr;
     display_gamut.yr = display.gamut.yr;
@@ -3652,10 +3681,21 @@ SK_RenderBackend_V2::updateOutputTopology (void)
     disp.primary = false;
   }
 
+  auto& display_audio_ini =
+    dll_ini->get_section (L"Display.Audio");
+
   for ( idx = 0 ; idx < enum_count ; ++idx )
   {
     auto& display =
       displays [idx];
+
+    std::wstring key_name =
+      SK_FormatStringW (L"RenderDevice.%ws", display.path_name);
+
+    if (display_audio_ini.contains_key (key_name))
+    {
+      wcsncpy (display.audio.paired_device, display_audio_ini.get_value (key_name).c_str (), 127);
+    }
 
     MONITORINFOEXW
     minfo        = {            };

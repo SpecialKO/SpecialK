@@ -315,6 +315,10 @@ public:
         } events;
       } timing;
     } signal;
+
+    struct audio_s {
+      wchar_t             paired_device [128]  = L"{*}##No Preference";
+    } audio;
   } displays [_MAX_DISPLAYS];
 
   int                     active_display       =  0;
@@ -660,6 +664,7 @@ public:
   const output_s* getContainingOutput  (const RECT& rkRect);
   void            updateWDDMCaps       (output_s *pOutput);
   bool            assignOutputFromHWND (HWND hWndContainer);
+  bool            routeAudioForDisplay (output_s *pOutput);
 
   bool isReflexSupported  (void);
   bool setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE    marker);

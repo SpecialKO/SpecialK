@@ -1358,6 +1358,78 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     }
   }
 
+  if (SK_WASAPI_EndPointMgr->getNumRenderEndpoints () > 0)
+  {
+    auto &display =
+      rb.displays [rb.active_display];
+
+    int         selection = 0;
+    std::string output_list = "  No Preference";
+    
+    output_list += '\0';
+    output_list += "  System Default";
+    output_list += '\0';
+
+    for (UINT i = 0 ; i < SK_WASAPI_EndPointMgr->getNumRenderEndpoints () ; ++i)
+    {
+      auto& end_point =
+        SK_WASAPI_EndPointMgr->getRenderEndpoint (i);
+
+      output_list += "  ";
+      output_list +=
+        end_point.friendly_name_.c_str ();
+
+      output_list += '\0';
+
+      if (StrStrIW (end_point.endpoint_id_.c_str (), display.audio.paired_device))
+      {
+        selection = 2 + i;
+      }
+    }
+
+    if (selection == 0)
+    {
+      if (_wcsicmp (display.audio.paired_device, L"No Preference"))
+      {
+        if (! _wcsicmp (display.audio.paired_device, L"System Default"))
+        {
+          selection = 1;
+        }
+      }
+    }
+
+    output_list += '\0';
+
+    if (ImGui::Combo ("Sound Device", &selection, output_list.c_str ()))
+    {
+      if (selection > 1)
+      {
+        wcsncpy (display.audio.paired_device, SK_WASAPI_EndPointMgr->getRenderEndpoint (selection - 2).endpoint_id_.c_str (), 127);
+      }
+
+      else
+      {
+        if (selection == 1) wcsncpy (display.audio.paired_device, L"System Default", 127);
+        else                wcsncpy (display.audio.paired_device, L"No Preference",  127);
+
+        SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (GetCurrentProcessId (), eRender, L"");
+      }
+
+      dll_ini->get_section              (L"Display.Audio").
+        add_key_value (SK_FormatStringW (L"RenderDevice.%ws", display.path_name),
+                                                              display.audio.paired_device);
+
+      dll_ini->write ();
+
+      rb.routeAudioForDisplay (&display);
+    }
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::SetTooltip ("While the game is running on this monitor, it will use this audio device.");
+    }
+  }
+
   if (sk::NVAPI::nv_hardware && NvAPI_Disp_GetDitherControl != nullptr)
   {
     static NV_DITHER_STATE state = NV_DITHER_STATE_DEFAULT;

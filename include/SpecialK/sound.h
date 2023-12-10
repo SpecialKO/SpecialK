@@ -413,6 +413,8 @@ public:
     auto hrConsole    = policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eConsole,    hDeviceId);
     auto hrMultimedia = policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eMultimedia, hDeviceId);
 
+    WindowsDeleteString (hDeviceId);
+
     return
       SUCCEEDED (hrConsole) &&
       SUCCEEDED (hrMultimedia);
@@ -427,9 +429,15 @@ public:
 
     policy_cfg_factory->GetPersistedDefaultAudioEndpoint (pid, flow, eMultimedia | eConsole, &hDeviceId);
 
+    
     UINT32                                   len;
-    return
+    std::wstring ret =
       WindowsGetStringRawBuffer (hDeviceId, &len);
+
+    WindowsDeleteString (hDeviceId);
+
+    return
+      ret;
   }
 };
 
