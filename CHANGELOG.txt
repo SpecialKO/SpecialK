@@ -1,4 +1,9 @@
-﻿23.12.10.1
+﻿23.12.10.2
+==========
+ + Custom SDR EOTF can be configured in-game, rather than requiring a manual INI edit,
+     by selecting "Custom" from the HDR Content EOTF combo box.
+
+23.12.10.1
 ==========
  + Fixed unnecessary audio device changes causing brief audio drop-outs during Alt+Tab
 
