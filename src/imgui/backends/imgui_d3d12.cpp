@@ -2592,10 +2592,12 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                                        IID_PPV_ARGS (&descriptorHeaps.pHDR_CopyAssist.p)));
                               SK_D3D12_SetDebugName ( descriptorHeaps.pHDR_CopyAssist.p,
                                         L"SK D3D12 HDR Copy Descriptor Heap" );
+
+      // This heap will store Linear and sRGB views, it needs 2x SwapChain backbuffer
       ThrowIfFailed (
         _pDevice->CreateDescriptorHeap (
           std::array < D3D12_DESCRIPTOR_HEAP_DESC,                1 >
-            {          D3D12_DESCRIPTOR_HEAP_TYPE_RTV,            swapDesc1.BufferCount,
+            {          D3D12_DESCRIPTOR_HEAP_TYPE_RTV,            swapDesc1.BufferCount * 2,
                        D3D12_DESCRIPTOR_HEAP_FLAG_NONE,           0 }.data (),
                                        IID_PPV_ARGS (&descriptorHeaps.pBackBuffers.p)));
                               SK_D3D12_SetDebugName ( descriptorHeaps.pBackBuffers.p,
@@ -2654,9 +2656,9 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
           _pSwapChain->GetBuffer (frame.iBufferIdx,                 IID_PPV_ARGS (&frame.pRenderOutput.p)));
 
         frame.hRenderOutput.ptr =
-                  rtvHandle.ptr + (frame.iBufferIdx * 2) * rtvDescriptorSize;
+                  rtvHandle.ptr + (frame.iBufferIdx * 2)     * rtvDescriptorSize;
         frame.hRenderOutputsRGB.ptr =
-                  rtvHandle.ptr + (frame.iBufferIdx * 2) * rtvDescriptorSize + 1;
+                  rtvHandle.ptr + (frame.iBufferIdx * 2 + 1) * rtvDescriptorSize;
 
         //
         // Wrap this using ReShade's internal device, so that it can map the CPU descriptor back to a resource

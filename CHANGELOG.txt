@@ -1,4 +1,8 @@
-﻿23.12.11
+﻿23.12.11.1
+==========
+ + Fixed unaligned D3D12 Descriptor Heap access on CPU handles used for ReShade
+
+23.12.11
 ========
  + Improved UI scaling on Audio Management UI
  + Hide "Switch Audio Device" button if there is only 1 active audio device
