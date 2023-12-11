@@ -242,7 +242,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
         ImGui::GetWindowPos () + ImGui::GetWindowSize () );
 
     const bool bEscape   = ImGui::IsKeyDown           ( ImGuiKey_Escape );
-    const bool bClicked  = ImGui::IsAnyMouseDown      (                 );
+    const bool bClicked  = ImGui::IsAnyMouseDown      (                 ) && !ImGui::IsMouseDragging (ImGuiMouseButton_Left);
     const bool bHovering = ImGui::IsMouseHoveringRect ( window_rect.Min,
                                                         window_rect.Max );
 
@@ -325,7 +325,7 @@ SK_ImGui_SelectAudioDeviceDlg (void)
         ImGui::GetWindowPos () + ImGui::GetWindowSize () );
 
     const bool bEscape   = ImGui::IsKeyDown           ( ImGuiKey_Escape );
-    const bool bClicked  = ImGui::IsAnyMouseDown      (                 );
+    const bool bClicked  = ImGui::IsAnyMouseDown      (                 ) && !ImGui::IsMouseDragging (ImGuiMouseButton_Left);
     const bool bHovering = ImGui::IsMouseHoveringRect ( window_rect.Min,
                                                         window_rect.Max );
 

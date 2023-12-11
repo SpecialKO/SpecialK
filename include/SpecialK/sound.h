@@ -840,8 +840,8 @@ public:
                 )
        ) return;
 
-    size_t dev_idx   = 0;
-    size_t dev_count =
+    UINT dev_idx   = 0;
+    UINT dev_count = (UINT)
       SK_WASAPI_EndPointMgr->getNumRenderEndpoints ();
 
     wchar_t*                default_dev_id = nullptr;

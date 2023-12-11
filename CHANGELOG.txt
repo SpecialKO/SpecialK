@@ -2,6 +2,7 @@
 ========
  + Improved UI scaling on Audio Management UI
  + Hide "Switch Audio Device" button if there is only 1 active audio device
+ + Add support for closing Audio popups by clicking outside or pressing Escape
 
 23.12.10.2
 ==========
