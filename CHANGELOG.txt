@@ -1,4 +1,9 @@
-﻿23.12.10.2
+﻿23.12.11
+========
+ + Improved UI scaling on Audio Management UI
+ + Hide "Switch Audio Device" button if there is only 1 active audio device
+
+23.12.10.2
 ==========
  + Added sRGB support to ReShade when loaded as a plug-in, which is necessary
      for various edge-detect shaders (SMAA, AMD CAS, ...) that require sRGB.

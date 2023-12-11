@@ -29,6 +29,8 @@
 #include <roapi.h>
 #include <SpecialK/com_util.h>
 
+#include <span>
+
 using SK_ISimpleAudioVolume      = SK_ComPtr <ISimpleAudioVolume>;
 using SK_IAudioMeterInformation  = SK_ComPtr <IAudioMeterInformation>;
 using SK_IAudioAutoGainControl   = SK_ComPtr <IAudioAutoGainControl>;
@@ -224,9 +226,32 @@ public:
 
   struct endpoint_s
   {
+    EDataFlow    endpoint_flow_  = eRender;
     DWORD        endpoint_state_ = DEVICE_STATE_NOTPRESENT;
     std::wstring endpoint_id_;
     std::string  friendly_name_;
+
+    std::wstring getDeviceId (void)
+    {
+      return
+        SK_FormatStringW ( L"%ws%ws%ws", MMDEVAPI_DEVICE_PREFIX, endpoint_id_.c_str (),
+             endpoint_flow_ == eRender ? MMDEVAPI_RENDER_POSTFIX
+                                       : MMDEVAPI_CAPTURE_POSTFIX );
+    }
+
+    bool isSameDevice (const wchar_t* wszShortDeviceId)
+    {
+      if (! wszShortDeviceId)
+        return false;
+
+      if (*wszShortDeviceId == L'\0')
+      {
+        return endpoint_id_.empty ();
+      }
+
+      return
+        StrStrIW (getDeviceId ().c_str (), wszShortDeviceId) != nullptr;
+    }
 
     const wchar_t* describeState (void)
     {
@@ -274,6 +299,10 @@ public:
       ThrowIfFailed (
         pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
+      SK_RunOnce (
+        pDevEnum->RegisterEndpointNotificationCallback (this)
+      );
+
       SK_ComPtr <IMMDeviceCollection>                                dev_collection;
       ThrowIfFailed (
         pDevEnum->EnumAudioEndpoints (eRender, DEVICE_STATE_ACTIVE, &dev_collection.p));
@@ -314,6 +343,7 @@ public:
                 ThrowIfFailed (
                   props->GetValue (PKEY_Device_FriendlyName, &propvarName));
 
+                endpoint.endpoint_flow_ = eRender;
                 endpoint.endpoint_id_   = wszId;
                 endpoint.friendly_name_ = SK_WideCharToUTF8 (propvarName.pwszVal);
 
@@ -393,16 +423,15 @@ public:
     if (policy_cfg_factory == nullptr)
       return false;
 
-    HSTRING hDeviceId = nullptr;
-
+    HSTRING         hDeviceId = nullptr;
     std::wstring fullDeviceId;
 
     if (! deviceId.empty ())
     {
       fullDeviceId =
-        SK_FormatStringW ( L"%ws%ws%ws", MMDEVAPI_DEVICE_PREFIX, deviceId.data (),
-                       flow == eRender ? MMDEVAPI_RENDER_POSTFIX
-                                       : MMDEVAPI_CAPTURE_POSTFIX );
+        endpoint_s { .endpoint_flow_ = flow,
+                     .endpoint_id_   = deviceId.data ()
+        }.getDeviceId ();
 
       auto hr =
         WindowsCreateString ( fullDeviceId.c_str  (),
@@ -414,7 +443,9 @@ public:
 
     HSTRING hExistingDeviceId = nullptr;
 
-    policy_cfg_factory->GetPersistedDefaultAudioEndpoint (pid, flow, eMultimedia | eConsole, &hExistingDeviceId);
+    policy_cfg_factory->GetPersistedDefaultAudioEndpoint (
+      pid, flow, eMultimedia | eConsole, &hExistingDeviceId
+    );
 
     UINT32                                           len;
     std::wstring existing_device =
@@ -424,8 +455,12 @@ public:
       !(         existing_device.empty () && fullDeviceId.empty ()) &&
       !StrStrIW (existing_device.c_str (),   fullDeviceId.c_str ());
 
-    auto hrConsole    = needs_change ? policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eConsole,    hDeviceId) : S_OK;
-    auto hrMultimedia = needs_change ? policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eMultimedia, hDeviceId) : S_OK;
+    auto hrConsole    =
+      needs_change ? policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eConsole,    hDeviceId)
+                   : S_OK;
+    auto hrMultimedia =
+      needs_change ? policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eMultimedia, hDeviceId)
+                   : S_OK;
 
     WindowsDeleteString (        hDeviceId);
     WindowsDeleteString (hExistingDeviceId);
@@ -442,14 +477,14 @@ public:
 
     HSTRING hDeviceId = nullptr;
 
-    policy_cfg_factory->GetPersistedDefaultAudioEndpoint (pid, flow, eMultimedia | eConsole, &hDeviceId);
+    policy_cfg_factory->GetPersistedDefaultAudioEndpoint (
+      pid, flow, eMultimedia | eConsole, &hDeviceId
+    );
 
-    
     UINT32                                   len;
     std::wstring ret =
       WindowsGetStringRawBuffer (hDeviceId, &len);
-
-    WindowsDeleteString (hDeviceId);
+      WindowsDeleteString       (hDeviceId);
 
     return
       ret;
@@ -474,72 +509,83 @@ public:
     {
       pSession->RegisterAudioSessionNotification (this);
 
+      wchar_t*                   wszDisplayName = nullptr;
+      pSession->GetDisplayName (&wszDisplayName);
+
       char szTitle [512]  =
       {                   };
 
+      std::string_view     title_view (szTitle);
+      SK_FormatStringView (title_view, "%ws", wszDisplayName);
+
       const DWORD proc_id =
-        getProcessId ();
+             getProcessId ();
 
-      window_t win =
-        SK_FindRootWindow (proc_id);
-
-      if (win.root != nullptr)
+      // Use the window name if there is no session name
+      if ('\0' == *szTitle)
       {
-        wchar_t wszTitle [512] = { };
+        window_t win =
+          SK_FindRootWindow (proc_id);
 
-        BOOL bUsedDefaultChar = FALSE;
+        if (win.root != nullptr)
+        {
+          wchar_t wszTitle [512] = { };
 
-        // This is all happening from the application's message pump in most games,
-        //   so this specialized function avoids deadlocking the pump.
-        InternalGetWindowText (win.root, wszTitle, 511);
-        WideCharToMultiByte   (CP_UTF8, 0x00, wszTitle, sk::narrow_cast <int> (wcslen (wszTitle)), szTitle, 511, nullptr, &bUsedDefaultChar);
+          BOOL bUsedDefaultChar = FALSE;
 
-        //SK_LOG4 ( ( L" Audio Session (pid=%lu)", proc_id ),
-                    //L"  WASAPI  " );
-      }
+          // This is all happening from the application's message pump in most games,
+          //   so this specialized function avoids deadlocking the pump.
+          InternalGetWindowText (win.root, wszTitle, 511);
+          WideCharToMultiByte   (CP_UTF8, 0x00, wszTitle, sk::narrow_cast <int> (wcslen (wszTitle)), szTitle, 511, nullptr, &bUsedDefaultChar);
+
+          //SK_LOG4 ( ( L" Audio Session (pid=%lu)", proc_id ),
+                      //L"  WASAPI  " );
+        }
 
 // Use the ANSI versions
 #undef PROCESSENTRY32
 #undef Process32First
 #undef Process32Next
 
-      // Use the exeuctable name if there is no window name
-      if (0 == strnlen (szTitle, 512))
-      {
-        HANDLE hSnap =
-          CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
-
-        if (hSnap)
+        // Use the exeuctable name if there is no window name
+        if ('\0' == *szTitle)
         {
-          PROCESSENTRY32
-            pent        = {                     };
-            pent.dwSize = sizeof (PROCESSENTRY32);
-
-          if (Process32First (hSnap, &pent))
+          HANDLE hSnap =
+            CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
+        
+          if (hSnap)
           {
-            do
+            PROCESSENTRY32
+              pent        = {                     };
+              pent.dwSize = sizeof (PROCESSENTRY32);
+        
+            if (Process32First (hSnap, &pent))
             {
-              if (pent.th32ProcessID == proc_id)
+              do
               {
-                *szTitle = '\0';
-                strncat (szTitle, pent.szExeFile, 511);
-                break;
-              }
-
-            } while (Process32Next (hSnap, &pent));
+                if (pent.th32ProcessID == proc_id)
+                {
+                  *szTitle = '\0';
+                  strncat (szTitle, pent.szExeFile, 511);
+                  break;
+                }
+        
+              } while (Process32Next (hSnap, &pent));
+            }
+        
+            SK_CloseHandle (hSnap);
           }
-
-          SK_CloseHandle (hSnap);
         }
       }
-
-      app_name_ = szTitle;
 
       if (proc_id == GetCurrentProcessId ())
       {
         if (SK::SteamAPI::AppName ().length ())
           app_name_ = SK::SteamAPI::AppName ();
       }
+
+      if (app_name_.empty ())
+          app_name_ = szTitle;
 
       //SK_LOG4 ( ( L"   Name: %s", wszTitle ),
                   //L"  WASAPI  " );
@@ -686,10 +732,8 @@ public:
   virtual
  ~SK_WASAPI_AudioSession (void) noexcept (false)
   {
-    if (control_ != nullptr)
-      control_->UnregisterAudioSessionNotification (this);
-
-    control_ = nullptr;
+    if (             control_!=nullptr)
+      std::exchange (control_, nullptr)->UnregisterAudioSessionNotification (this);
   };
 
 protected:
@@ -722,10 +766,16 @@ public:
 
   void Deactivate (void)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> lock0 (deactivation_lock_);
+    std::scoped_lock <SK_Thread_HybridSpinlock> lock (activation_lock_);
 
-    if (session_mgr_ != nullptr)
-        session_mgr_->UnregisterSessionNotification (this);
+    for (auto& session_mgr : session_mgrs_)
+    {
+      if (session_mgr != nullptr)
+      {
+      //session_mgr->UnregisterSessionNotification (this);
+        session_mgr = nullptr;
+      }
+    }
 
     meter_info_   = nullptr;
     endpoint_vol_ = nullptr;
@@ -736,15 +786,23 @@ public:
 
   void Activate (void)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> lock1 (activation_lock_);
-
     if (reset_event_.isValid () && WaitForSingleObject (reset_event_, 0) != WAIT_TIMEOUT)
     {
       Deactivate ();
     }
 
+    std::scoped_lock <SK_Thread_HybridSpinlock> lock (activation_lock_);
+
     if (meter_info_ == nullptr)
+    {
       sessions_.clear ();
+
+      active_sessions_.data.clear ();
+      active_sessions_.view.clear ();
+
+      inactive_sessions_.data.clear ();
+      inactive_sessions_.view.clear ();
+    }
 
     else
       return;
@@ -755,6 +813,13 @@ public:
 
     if (meter_info_ != nullptr && (! sessions_.empty ()))
       return;
+
+    session_mgr_ = nullptr;
+
+    for ( auto& session_mgr : session_mgrs_ )
+    {
+      session_mgr = nullptr;
+    }
 
     SK_ComPtr <IMMDeviceEnumerator> pDevEnum;
     if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
@@ -767,84 +832,153 @@ public:
     //     going to appreciate having muted :) Consider overloading this function
     //       to allow independent control.
     //
-    SK_ComPtr <IMMDevice> pDevice;
+    SK_ComPtr <IMMDevice> pDefaultDevice;
     if ( FAILED (
            pDevEnum->GetDefaultAudioEndpoint ( eRender,
                                                  eMultimedia,
-                                                   &pDevice )
+                                                   &pDefaultDevice )
                 )
        ) return;
 
-    if (FAILED (pDevice->Activate (
-                  __uuidof (IAudioSessionManager2),
-                    CLSCTX_ALL,
-                      nullptr,
-                        reinterpret_cast <void **>(&session_mgr_)
-               )
-           )
-       ) return;
+    size_t dev_idx   = 0;
+    size_t dev_count =
+      SK_WASAPI_EndPointMgr->getNumRenderEndpoints ();
 
-    SK_ComPtr <IAudioSessionEnumerator> pSessionEnum;
-    if (FAILED (session_mgr_->GetSessionEnumerator (&pSessionEnum)))
-      return;
+    wchar_t*                default_dev_id = nullptr;
+    pDefaultDevice->GetId (&default_dev_id);
 
-    int num_sessions;
-
-    if (FAILED (pSessionEnum->GetCount (&num_sessions)))
-      return;
-
-    for (int i = 0; i < num_sessions; i++)
+    for (auto &session_mgr : session_mgrs_)
     {
-      SK_ComPtr <IAudioSessionControl> pSessionCtl;
-      if (FAILED (pSessionEnum->GetSession (i, &pSessionCtl)))
-        continue;
-
-      SK_IAudioSessionControl2 pSessionCtl2;
-      if (FAILED (pSessionCtl->QueryInterface <IAudioSessionControl2> (&pSessionCtl2.p)))
-        continue;
-
-      DWORD dwProcess = 0;
-      if (FAILED (pSessionCtl2->GetProcessId (&dwProcess))) {
-        continue;
-      }
-
-      AudioSessionState state;
-
-      if (SUCCEEDED (pSessionCtl2->GetState (&state)))
+      if (dev_idx >= dev_count)
       {
-        auto* pSession =
-          new SK_WASAPI_AudioSession (pSessionCtl2, this);
-
-        sessions_.emplace (pSession);
-
-        if (state == AudioSessionStateActive)
-          active_sessions_.data.emplace (pSession);
-        else if (state == AudioSessionStateInactive)
-          inactive_sessions_.data.emplace (pSession);
-
-        if (! active_sessions_.data.empty ())
-        {
-          active_sessions_.view =
-            std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.cbegin (),
-                                                     active_sessions_.data.cend   () );
-        }
-        else
-          active_sessions_.view.clear ();
-
-        if (! inactive_sessions_.data.empty ())
-        {
-          inactive_sessions_.view =
-            std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.cbegin (),
-                                                     inactive_sessions_.data.cend   () );
-        }
-        else
-          inactive_sessions_.view.clear ();
+        // Destroy any existing session managers for any
+        //   inactive devices
+        session_mgr = nullptr;
+        break;
       }
+
+      auto& endpoint =
+        SK_WASAPI_EndPointMgr->getRenderEndpoint (dev_idx++);
+
+      if (endpoint.isSameDevice (default_dev_id))
+      {
+        if (FAILED (pDefaultDevice->Activate (
+                    __uuidof (IAudioSessionManager2),
+                      CLSCTX_ALL,
+                        nullptr,
+                          reinterpret_cast <void **>(&session_mgr)
+                 )
+             )
+         ) return;
+
+        session_mgr_ = session_mgr;
+      }
+
+      else
+      {
+#if 1
+        continue;
+#else
+        std::wstring device_id_str;
+
+        if (! endpoint.endpoint_id_.empty ())
+        {
+          device_id_str =
+            SK_FormatStringW ( L"%ws%ws%ws",
+              SK_WASAPI_EndPointManager::MMDEVAPI_DEVICE_PREFIX,
+               endpoint.endpoint_id_.c_str (),
+              SK_WASAPI_EndPointManager::MMDEVAPI_RENDER_POSTFIX
+            );
+        }
+
+        SK_ComPtr<IMMDevice>  pSecondaryDevice;
+        pDevEnum->GetDevice (           device_id_str.c_str (),
+                             &pSecondaryDevice.p );
+
+        if (! pSecondaryDevice)
+          continue;
+
+        if (FAILED (pSecondaryDevice->Activate (
+                    __uuidof (IAudioSessionManager2),
+                      CLSCTX_ALL,
+                        nullptr,
+                          reinterpret_cast <void **>(&session_mgr)
+                 )
+             )
+         ) continue;
+#endif
+      }
+
+      SK_ComPtr <IAudioSessionEnumerator>             pSessionEnum;
+      if (FAILED (session_mgr->GetSessionEnumerator (&pSessionEnum)))
+        continue;
+
+      int                                  num_sessions = 0;
+      if (FAILED (pSessionEnum->GetCount (&num_sessions)))
+        continue;
+
+      for (int i = 0; i < num_sessions; i++)
+      {
+        SK_ComPtr <IAudioSessionControl>          pSessionCtl;
+        if (FAILED (pSessionEnum->GetSession (i, &pSessionCtl)))
+          continue;
+
+        SK_IAudioSessionControl2                                          pSessionCtl2;
+        if (FAILED (pSessionCtl->QueryInterface <IAudioSessionControl2> (&pSessionCtl2.p)))
+          continue;
+
+        DWORD                                    dwProcess = 0;
+        if (FAILED (pSessionCtl2->GetProcessId (&dwProcess))) {
+          continue;
+        }
+
+        AudioSessionState                       state = AudioSessionStateInactive;
+        if (SUCCEEDED (pSessionCtl2->GetState (&state)))
+        {
+          if (state != AudioSessionStateExpired)
+          {
+            auto* pSession =
+              new SK_WASAPI_AudioSession (pSessionCtl2, this);
+
+            sessions_.emplace (pSession);
+
+            switch (state)
+            {
+              case AudioSessionStateActive:
+                active_sessions_.data.emplace (pSession);
+                break;
+              case AudioSessionStateInactive:
+                inactive_sessions_.data.emplace (pSession);
+                break;
+              //case AudioSessionStateExpired:
+              //  if (  active_sessions_.data.contains (pSession))   active_sessions_.data.erase (pSession);
+              //  if (inactive_sessions_.data.contains (pSession)) inactive_sessions_.data.erase (pSession);
+              //  break;
+              default:
+                break;
+            }
+
+            if (active_sessions_.data.empty ())
+                active_sessions_.view.clear ();
+
+            else active_sessions_.view =
+              std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.cbegin (),
+                                                       active_sessions_.data.cend   () );
+
+            if (inactive_sessions_.data.empty ())
+                inactive_sessions_.view.clear ();
+
+            else inactive_sessions_.view =
+              std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.cbegin (),
+                                                       inactive_sessions_.data.cend   () );
+          }
+        }
+      }
+
+      session_mgr->RegisterSessionNotification (this);
     }
 
-    session_mgr_->RegisterSessionNotification (this);
-
-    SK_RunOnce (pDevEnum->RegisterEndpointNotificationCallback (SK_WASAPI_EndPointMgr.getPtr ()));
+    CoTaskMemFree (default_dev_id);
 
     endpoint_vol_.Attach (SK_MMDev_GetEndpointVolumeControl ().Detach ());
     auto_gain_.   Attach (SK_MMDev_GetAutoGainControl       ().Detach ());
@@ -933,40 +1067,42 @@ public:
       SK_IAudioSessionControl2                                             pSessionCtl2;
       if (SUCCEEDED (pNewSession->QueryInterface <IAudioSessionControl2> (&pSessionCtl2.p)))
       {
+        AudioSessionState        state = AudioSessionStateExpired;
+        pSessionCtl2->GetState (&state);
+
         DWORD dwProcess = 0;
-        if (SUCCEEDED (pSessionCtl2->GetProcessId (&dwProcess)))
+        if (SUCCEEDED (pSessionCtl2->GetProcessId (&dwProcess)) && state != AudioSessionStateExpired)
         {
           auto* pSession =
             new SK_WASAPI_AudioSession (pSessionCtl2, this);
 
           sessions_.emplace (pSession);
 
-          AudioSessionState state = AudioSessionStateExpired;
-          pSessionCtl2->GetState (&state);
-
-          if (state == AudioSessionStateActive)
-            active_sessions_.data.emplace (pSession);
-          else if (state == AudioSessionStateInactive)
-            inactive_sessions_.data.emplace (pSession);
-
-
-          if (! active_sessions_.data.empty ())
+          switch (state)
           {
-            active_sessions_.view =
-              std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.cbegin (),
-                                                       active_sessions_.data.cend   () );
+            case AudioSessionStateActive:
+              active_sessions_.data.emplace (pSession);
+              break;
+            case AudioSessionStateInactive:
+              inactive_sessions_.data.emplace (pSession);
+              break;
+            default:
+              break;
           }
-          else
-            active_sessions_.view.clear ();
 
-          if (! inactive_sessions_.data.empty ())
-          {
-            inactive_sessions_.view =
-              std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.cbegin (),
-                                                       inactive_sessions_.data.cend   () );
-          }
-          else
-            inactive_sessions_.view.clear ();
+          if (active_sessions_.data.empty ())
+              active_sessions_.view.clear ();
+
+          else active_sessions_.view =
+            std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.cbegin (),
+                                                     active_sessions_.data.cend   () );
+
+          if (inactive_sessions_.data.empty ())
+              inactive_sessions_.view.clear ();
+
+          else inactive_sessions_.view =
+            std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.cbegin (),
+                                                     inactive_sessions_.data.cend   () );
         }
       }
     }
@@ -1056,7 +1192,8 @@ private:
   }                                  active_sessions_,
                                      inactive_sessions_;
 
-  SK_IAudioSessionManager2           session_mgr_;
+  SK_IAudioSessionManager2           session_mgrs_ [16];
+  SK_IAudioSessionManager2&          session_mgr_ = session_mgrs_ [0];
   SK_IAudioMeterInformation          meter_info_;
   SK_IAudioEndpointVolume            endpoint_vol_;
   SK_IAudioLoudness                  loudness_;

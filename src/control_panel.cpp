@@ -1400,7 +1400,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
     output_list += '\0';
 
-    if (ImGui::Combo ("Sound Device", &selection, output_list.c_str ()))
+    if (ImGui::Combo ("Audio Device", &selection, output_list.c_str ()))
     {
       if (selection > 1)
       {

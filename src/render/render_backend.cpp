@@ -3098,7 +3098,10 @@ SK_RenderBackend_V2::routeAudioForDisplay (SK_RenderBackend_V2::output_s *pDispl
   
   else
   {
-    SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (GetCurrentProcessId (), eRender, L"");
+    routed =
+      SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (
+        GetCurrentProcessId (), eRender, L""
+      );
   }
 
   return routed;
