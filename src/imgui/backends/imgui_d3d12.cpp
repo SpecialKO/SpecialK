@@ -2063,6 +2063,61 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
         }
       }
 
+      // Lazy final-initialization of ReShade for AddOn support
+      //
+      if (stagingFrame.hReShadeOutput.ptr == 0 && _pReShadeRuntime != nullptr)
+      {
+        reshade::api::resource_view rtv;
+        reshade::api::resource_view rtv_srgb;
+
+        if (DirectX::IsSRGB (stagingFrame.pRenderOutput->GetDesc ().Format))
+        {
+          SK_ReleaseAssert (! L"sRGB Render Targets unsupported in D3D12");
+
+          _pReShadeRuntime->get_device ()->create_resource_view (
+            reshade::api::resource { (uint64_t)stagingFrame.pRenderOutput.p },
+            reshade::api::resource_usage::render_target,
+            reshade::api::resource_view_desc ((reshade::api::format)stagingFrame.pRenderOutput->GetDesc ().Format),
+                                     &rtv
+          );
+
+          _pDevice->CopyDescriptorsSimple (
+            1, stagingFrame.hRenderOutput,   (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
+               stagingFrame.hReShadeOutput = (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv.handle;
+        }
+
+        else
+        {
+          _pReShadeRuntime->get_device ()->create_resource_view (
+            reshade::api::resource { (uint64_t)stagingFrame.pRenderOutput.p },
+            reshade::api::resource_usage::render_target,
+            reshade::api::resource_view_desc ((reshade::api::format)stagingFrame.pRenderOutput->GetDesc ().Format),
+                                     &rtv
+          );
+
+          _pDevice->CopyDescriptorsSimple (
+            1, stagingFrame.hRenderOutput,   (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
+               stagingFrame.hReShadeOutput = (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv.handle;
+
+           DXGI_FORMAT srgb_format =
+             DirectX::MakeSRGB (stagingFrame.pRenderOutput->GetDesc ().Format);
+
+          if (DirectX::IsSRGB (srgb_format))
+          {
+            _pReShadeRuntime->get_device ()->create_resource_view (
+              reshade::api::resource { (uint64_t)stagingFrame.pRenderOutput.p },
+              reshade::api::resource_usage::render_target,
+              reshade::api::resource_view_desc ((reshade::api::format)srgb_format),
+                                       &rtv_srgb
+            );
+
+            _pDevice->CopyDescriptorsSimple (
+              1, stagingFrame.hRenderOutputsRGB,   (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv_srgb.handle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
+                 stagingFrame.hReShadeOutputsRGB = (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv_srgb.handle;
+          }
+        }
+      }
+
       UINT64 uiFenceVal = 0;
 
       SK_ComQIPtr <IDXGISwapChain1>          pSwapChain1 (_pSwapChain);
@@ -2212,6 +2267,24 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       _pReShadeRuntime =
         SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (_pDevice, _pCommandQueue, _pSwapChain);
     }
+  }
+
+  if (InterlockedCompareExchange (&reset_needed, 0, 1) == 1)
+  {
+    if (stagingFrame.wait_for_gpu ())
+    {
+      release (pSwapChain);
+
+      if (nullptr != _pReShadeRuntime)
+      {
+        SK_ReShadeAddOn_DestroyEffectRuntime (
+          std::exchange (_pReShadeRuntime, nullptr)
+        );
+      }
+    }
+
+    else
+      WriteULongRelease (&reset_needed, 1);
   }
 
   SK_RunOnce (SK_ApplyQueuedHooks ());
@@ -2664,56 +2737,13 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         // Wrap this using ReShade's internal device, so that it can map the CPU descriptor back to a resource
         //   and we can use this Render Target in non-Render Hook versions of ReShade.
         //
-        if (_pReShadeRuntime != nullptr)
+        if (config.reshade.is_addon || _pReShadeRuntime != nullptr)
         {
-          reshade::api::resource_view rtv;
-          reshade::api::resource_view rtv_srgb;
-
-          if (DirectX::IsSRGB (frame.pRenderOutput->GetDesc ().Format))
+          if (config.reshade.is_addon && _pReShadeRuntime == nullptr)
           {
-            SK_ReleaseAssert (! L"sRGB Render Targets unsupported in D3D12");
-
-            _pReShadeRuntime->get_device ()->create_resource_view (
-              reshade::api::resource { (uint64_t)frame.pRenderOutput.p },
-              reshade::api::resource_usage::render_target,
-              reshade::api::resource_view_desc ((reshade::api::format)frame.pRenderOutput->GetDesc ().Format),
-                                       &rtv
-            );
-
-            _pDevice->CopyDescriptorsSimple (
-              1, frame.hRenderOutput,   (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
-                 frame.hReShadeOutput = (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv.handle;
-          }
-
-          else
-          {
-            _pReShadeRuntime->get_device ()->create_resource_view (
-              reshade::api::resource { (uint64_t)frame.pRenderOutput.p },
-              reshade::api::resource_usage::render_target,
-              reshade::api::resource_view_desc ((reshade::api::format)frame.pRenderOutput->GetDesc ().Format),
-                                       &rtv
-            );
-
-            _pDevice->CopyDescriptorsSimple (
-              1, frame.hRenderOutput,   (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv.handle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
-                 frame.hReShadeOutput = (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv.handle;
-
-             DXGI_FORMAT srgb_format =
-               DirectX::MakeSRGB (frame.pRenderOutput->GetDesc ().Format);
-
-            if (DirectX::IsSRGB (srgb_format))
-            {
-              _pReShadeRuntime->get_device ()->create_resource_view (
-                reshade::api::resource { (uint64_t)frame.pRenderOutput.p },
-                reshade::api::resource_usage::render_target,
-                reshade::api::resource_view_desc ((reshade::api::format)srgb_format),
-                                         &rtv_srgb
-              );
-
-              _pDevice->CopyDescriptorsSimple (
-                1, frame.hRenderOutputsRGB,   (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv_srgb.handle, D3D12_DESCRIPTOR_HEAP_TYPE_RTV );
-                   frame.hReShadeOutputsRGB = (D3D12_CPU_DESCRIPTOR_HANDLE)(size_t)rtv_srgb.handle;
-            }
+            // Lazy initialize the runtime so that we can hot-inject ReShade
+            _pReShadeRuntime =
+              SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (_pDevice, _pCommandQueue, _pSwapChain);
           }
         }
 

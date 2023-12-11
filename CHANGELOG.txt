@@ -1,4 +1,8 @@
-﻿23.12.11.1
+﻿23.12.11.2
+==========
+ + Fixed ReShade on-demand injection in D3D12 games so that it renders its effects
+
+23.12.11.1
 ==========
  + Fixed unaligned D3D12 Descriptor Heap access on CPU handles used for ReShade
 

@@ -571,7 +571,8 @@ struct SK_D3D12_RenderCtx {
 	  }
 
   // On reset, delay re-initialization
-  std::atomic_int frame_delay = 1;
+  std::atomic_int frame_delay  = 1;
+  volatile ULONG  reset_needed = 0UL;
 };
 
 extern SK_LazyGlobal <SK_D3D12_RenderCtx> _d3d12_rbk;
