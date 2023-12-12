@@ -235,7 +235,7 @@ SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
         // Teardown and re-create the D3D12 Render Backend, so that
         //   we initialize various resources needed for ReShade using
         //     hot-injection.
-        _d3d12_rbk->reset_needed = 1;
+        WriteULongRelease (&_d3d12_rbk->reset_needed, 1);
       }
 
       return

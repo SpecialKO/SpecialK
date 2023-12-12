@@ -1592,7 +1592,7 @@ public:
 
             if (eotf_sel == ContentEotf_Custom)
             {
-              list += SK_FormatString ("Custom: %2.1f", __SK_HDR_Content_EOTF).c_str ();
+              list += SK_FormatString ("Custom: %3.2f", __SK_HDR_Content_EOTF).c_str ();
             }
 
             else
