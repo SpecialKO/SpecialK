@@ -1377,11 +1377,11 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
       output_list += "  ";
       output_list +=
-        end_point.friendly_name_.c_str ();
+        end_point.name_.c_str ();
 
       output_list += '\0';
 
-      if (StrStrIW (end_point.endpoint_id_.c_str (), display.audio.paired_device))
+      if (StrStrIW (end_point.id_.c_str (), display.audio.paired_device))
       {
         selection = 2 + i;
       }
@@ -1404,7 +1404,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     {
       if (selection > 1)
       {
-        wcsncpy (display.audio.paired_device, SK_WASAPI_EndPointMgr->getRenderEndpoint (selection - 2).endpoint_id_.c_str (), 127);
+        wcsncpy (display.audio.paired_device, SK_WASAPI_EndPointMgr->getRenderEndpoint (selection - 2).id_.c_str (), 127);
       }
 
       else

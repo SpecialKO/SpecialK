@@ -294,15 +294,15 @@ SK_ImGui_SelectAudioDeviceDlg (void)
       auto& device =
         SK_WASAPI_EndPointMgr->getRenderEndpoint (i);
 
-      if (device.endpoint_state_ == DEVICE_STATE_ACTIVE)
+      if (device.state_ == DEVICE_STATE_ACTIVE)
       {
         bool selected =
           device.isSameDevice (endpoint_id.c_str ());
 
-        if (ImGui::Selectable (device.friendly_name_.c_str (), selected))
+        if (ImGui::Selectable (device.name_.c_str (), selected))
         {
           SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (
-            audio_session->getProcessId (), eRender, device.endpoint_id_
+            audio_session->getProcessId (), eRender, device.id_
           );
 
           sessions.signalReset ();

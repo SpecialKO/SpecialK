@@ -49,17 +49,17 @@ using SK_IAudioClient3           = SK_ComPtr <IAudioClient3>;
 bool                      __stdcall SK_WASAPI_Init                    (void);
 void                      __stdcall SK_SetGameMute                    (bool bMute);
 BOOL                      __stdcall SK_IsGameMuted                    (void);
-SK_IAudioMeterInformation __stdcall SK_WASAPI_GetAudioMeterInfo       (void);
-SK_ISimpleAudioVolume     __stdcall SK_WASAPI_GetVolumeControl        (DWORD   proc_id = GetCurrentProcessId ());
-SK_IChannelAudioVolume    __stdcall SK_WASAPI_GetChannelVolumeControl (DWORD   proc_id = GetCurrentProcessId ());
+SK_IAudioMeterInformation __stdcall SK_WASAPI_GetAudioMeterInfo       (SK_IMMDevice pDevice = nullptr);
+SK_ISimpleAudioVolume     __stdcall SK_WASAPI_GetVolumeControl        (DWORD proc_id = GetCurrentProcessId (), SK_IMMDevice pDevice = nullptr);
+SK_IChannelAudioVolume    __stdcall SK_WASAPI_GetChannelVolumeControl (DWORD proc_id = GetCurrentProcessId (), SK_IMMDevice pDevice = nullptr);
 void                      __stdcall SK_WASAPI_GetAudioSessionProcs    (size_t* count, DWORD* procs = nullptr);
-SK_IAudioClient3          __stdcall SK_WASAPI_GetAudioClient          (void);
+SK_IAudioClient3          __stdcall SK_WASAPI_GetAudioClient          (SK_IMMDevice pDevice = nullptr, bool uncached = false);
 
 const char*               __stdcall SK_WASAPI_GetChannelName          (int channel_idx);
 
-SK_IAudioEndpointVolume   __stdcall SK_MMDev_GetEndpointVolumeControl (void);
-SK_IAudioLoudness         __stdcall SK_MMDev_GetLoudness              (void);
-SK_IAudioAutoGainControl  __stdcall SK_MMDev_GetAutoGainControl       (void);
+SK_IAudioEndpointVolume   __stdcall SK_MMDev_GetEndpointVolumeControl (SK_IMMDevice pDevice = nullptr);
+SK_IAudioLoudness         __stdcall SK_MMDev_GetLoudness              (SK_IMMDevice pDevice = nullptr);
+SK_IAudioAutoGainControl  __stdcall SK_MMDev_GetAutoGainControl       (SK_IMMDevice pDevice = nullptr);
 
 #include <SpecialK/steam_api.h>
 #include <SpecialK/window.h>
@@ -70,8 +70,56 @@ SK_IAudioAutoGainControl  __stdcall SK_MMDev_GetAutoGainControl       (void);
 #include <unordered_map>
 #include <set>
 
-
 #include <winstring.h>
+
+class SK_MMDev_Endpoint
+{
+public:
+  SK_IMMDevice device_ = nullptr;
+  EDataFlow    flow_   = eRender;
+  DWORD        state_  = DEVICE_STATE_NOTPRESENT;
+  std::wstring id_     = L"";
+  std::string  name_   =  "";
+
+  std::wstring getDeviceId (void)
+  {
+    static const wchar_t* DEVICE_PREFIX   = LR"(\\?\SWD#MMDEVAPI#)";
+    static const wchar_t* RENDER_POSTFIX  = L"#{e6327cad-dcec-4949-ae8a-991e976a79d2}";
+    static const wchar_t* CAPTURE_POSTFIX = L"#{2eef81be-33fa-4800-9670-1cd474972c3f}";
+
+    return
+      SK_FormatStringW ( L"%ws%ws%ws", DEVICE_PREFIX, id_.c_str (),
+                    flow_ == eRender ? RENDER_POSTFIX
+                                     : CAPTURE_POSTFIX );
+  }
+
+  bool isSameDevice (const wchar_t* wszShortDeviceId)
+  {
+    if (! wszShortDeviceId)
+      return false;
+
+    if (*wszShortDeviceId == L'\0')
+    {
+      return id_.empty ();
+    }
+
+    return
+      StrStrIW (getDeviceId ().c_str (), wszShortDeviceId) != nullptr;
+  }
+
+  const wchar_t* describeState (void)
+  {
+    switch (state_)
+    {
+      default:                      return L"Unknown";
+      case DEVICE_STATE_ACTIVE:     return L"Active";
+      case DEVICE_STATE_DISABLED:   return L"Disabled";
+      case DEVICE_STATE_NOTPRESENT: return L"Not Present";
+      case DEVICE_STATE_UNPLUGGED:  return L"Unplugged";
+    }
+  }
+};
+
 
 interface DECLSPEC_UUID ("ab3d4648-e242-459f-b02f-541c70306324") IAudioPolicyConfigFactory;
 interface DECLSPEC_UUID ("2a59116d-6c4f-45e0-a74f-707e3fef9258") IAudioPolicyConfigFactoryLegacy;
@@ -224,55 +272,13 @@ public:
     return S_OK;
   }
 
-  struct endpoint_s
-  {
-    EDataFlow    endpoint_flow_  = eRender;
-    DWORD        endpoint_state_ = DEVICE_STATE_NOTPRESENT;
-    std::wstring endpoint_id_;
-    std::string  friendly_name_;
-
-    std::wstring getDeviceId (void)
-    {
-      return
-        SK_FormatStringW ( L"%ws%ws%ws", MMDEVAPI_DEVICE_PREFIX, endpoint_id_.c_str (),
-             endpoint_flow_ == eRender ? MMDEVAPI_RENDER_POSTFIX
-                                       : MMDEVAPI_CAPTURE_POSTFIX );
-    }
-
-    bool isSameDevice (const wchar_t* wszShortDeviceId)
-    {
-      if (! wszShortDeviceId)
-        return false;
-
-      if (*wszShortDeviceId == L'\0')
-      {
-        return endpoint_id_.empty ();
-      }
-
-      return
-        StrStrIW (getDeviceId ().c_str (), wszShortDeviceId) != nullptr;
-    }
-
-    const wchar_t* describeState (void)
-    {
-      switch (endpoint_state_)
-      {
-        default:                      return L"Unknown";
-        case DEVICE_STATE_ACTIVE:     return L"Active";
-        case DEVICE_STATE_DISABLED:   return L"Disabled";
-        case DEVICE_STATE_NOTPRESENT: return L"Not Present";
-        case DEVICE_STATE_UNPLUGGED:  return L"Unplugged";
-      }
-    }
-  };
-
 protected:
   SK_Thread_HybridSpinlock  activation_lock_;
 
   IAudioPolicyConfigFactory *policy_cfg_factory = nullptr;
 
-  std::vector <endpoint_s> render_devices_;
-  std::vector <endpoint_s> capture_devices_;
+  std::vector <SK_MMDev_Endpoint> render_devices_;
+  std::vector <SK_MMDev_Endpoint> capture_devices_;
 
   volatile LONG            refs_;
 
@@ -317,7 +323,7 @@ public:
 
         for ( UINT i = 0 ; i < uiDevices ; ++i )
         {
-          endpoint_s endpoint;
+          SK_MMDev_Endpoint endpoint;
 
           SK_ComPtr <IMMDevice>       pDevice;
           ThrowIfFailed (
@@ -343,12 +349,13 @@ public:
                 ThrowIfFailed (
                   props->GetValue (PKEY_Device_FriendlyName, &propvarName));
 
-                endpoint.endpoint_flow_ = eRender;
-                endpoint.endpoint_id_   = wszId;
-                endpoint.friendly_name_ = SK_WideCharToUTF8 (propvarName.pwszVal);
+                endpoint.flow_   = eRender;
+                endpoint.id_     = wszId;
+                endpoint.name_   = SK_WideCharToUTF8 (propvarName.pwszVal);
+                endpoint.device_ = pDevice;
 
                 ThrowIfFailed (
-                  pDevice->GetState (&endpoint.endpoint_state_));
+                  pDevice->GetState (&endpoint.state_));
 
                 PropVariantClear (&propvarName);
 
@@ -372,10 +379,6 @@ public:
       return;
     }
   }
-
-  static const wchar_t* MMDEVAPI_DEVICE_PREFIX; 
-  static const wchar_t* MMDEVAPI_RENDER_POSTFIX;
-  static const wchar_t* MMDEVAPI_CAPTURE_POSTFIX;
 
   bool initAudioPolicyConfigFactory (void)
   {
@@ -412,11 +415,11 @@ public:
       SUCCEEDED (hr);
   }
 
-  size_t      getNumRenderEndpoints  (void) const { return render_devices_.size (); }
-  endpoint_s& getRenderEndpoint      (UINT idx)   { static endpoint_s invalid = {}; return idx < render_devices_.size  () ? render_devices_  [idx] : invalid; }
+  size_t             getNumRenderEndpoints  (void) const { return render_devices_.size (); }
+  SK_MMDev_Endpoint& getRenderEndpoint      (UINT idx)   { static SK_MMDev_Endpoint invalid = {}; return idx < render_devices_.size  () ? render_devices_  [idx] : invalid; }
 
-  size_t      getNumCaptureEndpoints (void) const { return capture_devices_.size  (); }
-  endpoint_s& getCaptureEndpoint     (UINT idx)   { static endpoint_s invalid = {}; return idx < capture_devices_.size () ? capture_devices_ [idx] : invalid; }
+  size_t             getNumCaptureEndpoints (void) const { return capture_devices_.size  (); }
+  SK_MMDev_Endpoint& getCaptureEndpoint     (UINT idx)   { static SK_MMDev_Endpoint invalid = {}; return idx < capture_devices_.size () ? capture_devices_ [idx] : invalid; }
 
   bool setPersistedDefaultAudioEndpoint (int pid, EDataFlow flow, std::wstring_view deviceId)
   {
@@ -429,9 +432,9 @@ public:
     if (! deviceId.empty ())
     {
       fullDeviceId =
-        endpoint_s { .endpoint_flow_ = flow,
-                     .endpoint_id_   = deviceId.data ()
-        }.getDeviceId ();
+        SK_MMDev_Endpoint { .flow_ = flow,
+                            .id_   = deviceId.data ()
+                          }.getDeviceId ();
 
       auto hr =
         WindowsCreateString ( fullDeviceId.c_str  (),
@@ -499,9 +502,11 @@ class SK_WASAPI_SessionManager;
 class SK_WASAPI_AudioSession : public IAudioSessionEvents
 {
 public:
-  SK_WASAPI_AudioSession ( SK_IAudioSessionControl2 pSession,
+  SK_WASAPI_AudioSession ( SK_IAudioSessionControl2  pSession,
+                           SK_IMMDevice              pDevice,
                            SK_WASAPI_SessionManager *pParent  ) :
     control_ (pSession),
+     device_ (pDevice),
      parent_ (pParent),
        refs_ (1)
   {
@@ -741,6 +746,7 @@ private:
   volatile LONG                     refs_;
   SK_ComPtr <IAudioSessionControl2> control_;
   std::string                       app_name_;
+  SK_IMMDevice                      device_;
   SK_WASAPI_SessionManager*         parent_;
 };
 
@@ -784,7 +790,7 @@ public:
     audio_client_ = nullptr;
   }
 
-  void Activate (void)
+  void Activate (SK_IMMDevice pDevice = nullptr)
   {
     if (reset_event_.isValid () && WaitForSingleObject (reset_event_, 0) != WAIT_TIMEOUT)
     {
@@ -808,18 +814,11 @@ public:
       return;
 
     meter_info_.Attach (
-      SK_WASAPI_GetAudioMeterInfo ().Detach ()
+      SK_WASAPI_GetAudioMeterInfo (pDevice).Detach ()
     );
 
     if (meter_info_ != nullptr && (! sessions_.empty ()))
       return;
-
-    session_mgr_ = nullptr;
-
-    for ( auto& session_mgr : session_mgrs_ )
-    {
-      session_mgr = nullptr;
-    }
 
     SK_ComPtr <IMMDeviceEnumerator> pDevEnum;
     if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
@@ -859,6 +858,8 @@ public:
 
       auto& endpoint =
         SK_WASAPI_EndPointMgr->getRenderEndpoint (dev_idx++);
+
+      pDevice = endpoint.device_;
 
       if (endpoint.isSameDevice (default_dev_id))
       {
@@ -938,7 +939,7 @@ public:
           if (state != AudioSessionStateExpired)
           {
             auto* pSession =
-              new SK_WASAPI_AudioSession (pSessionCtl2, this);
+              new SK_WASAPI_AudioSession (pSessionCtl2, pDevice, this);
 
             sessions_.emplace (pSession);
 
@@ -980,10 +981,10 @@ public:
 
     CoTaskMemFree (default_dev_id);
 
-    endpoint_vol_.Attach (SK_MMDev_GetEndpointVolumeControl ().Detach ());
-    auto_gain_.   Attach (SK_MMDev_GetAutoGainControl       ().Detach ());
-    loudness_.    Attach (SK_MMDev_GetLoudness              ().Detach ());
-    audio_client_.Attach (SK_WASAPI_GetAudioClient          ().Detach ());
+    endpoint_vol_.Attach (SK_MMDev_GetEndpointVolumeControl (pDevice).Detach ());
+    auto_gain_.   Attach (SK_MMDev_GetAutoGainControl       (pDevice).Detach ());
+    loudness_.    Attach (SK_MMDev_GetLoudness              (pDevice).Detach ());
+    audio_client_.Attach (SK_WASAPI_GetAudioClient          (pDevice).Detach ());
 
     SK_WASAPI_EndPointMgr->Activate ();
   }
@@ -1073,8 +1074,22 @@ public:
         DWORD dwProcess = 0;
         if (SUCCEEDED (pSessionCtl2->GetProcessId (&dwProcess)) && state != AudioSessionStateExpired)
         {
+          //
+          // TODO: This isn't the correct way to get the endpoint device
+          //
+          SK_ComPtr <IMMDeviceEnumerator> pDevEnum;
+          if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
+            return E_FAIL;
+
+          SK_ComPtr <IMMDevice> pDevice;
+          if ( FAILED (
+                 pDevEnum->GetDefaultAudioEndpoint ( eRender,
+                                                       eMultimedia,
+                                                         &pDevice ) ) )
+            return E_FAIL;
+
           auto* pSession =
-            new SK_WASAPI_AudioSession (pSessionCtl2, this);
+            new SK_WASAPI_AudioSession (pSessionCtl2, pDevice, this);
 
           sessions_.emplace (pSession);
 
@@ -1208,10 +1223,10 @@ struct SK_WASAPI_AudioLatency
   uint32_t samples_per_sec;
 };
 
-SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetCurrentLatency (void);
-SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetDefaultLatency (void);
-SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetMinimumLatency (void);
-SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetMaximumLatency (void);
-SK_WASAPI_AudioLatency __stdcall SK_WASAPI_SetLatency        (SK_WASAPI_AudioLatency latency);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetCurrentLatency (                                SK_IMMDevice pDevice = nullptr);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetDefaultLatency (                                SK_IMMDevice pDevice = nullptr);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetMinimumLatency (                                SK_IMMDevice pDevice = nullptr);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetMaximumLatency (                                SK_IMMDevice pDevice = nullptr);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_SetLatency        (SK_WASAPI_AudioLatency latency, SK_IMMDevice pDevice = nullptr);
 
 #endif /* __SK__SOUND_H__ */

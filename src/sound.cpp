@@ -30,32 +30,34 @@ const IID IID_IAudioClient3 = __uuidof(IAudioClient3);
 
 SK_IAudioClient3
 __stdcall
-SK_WASAPI_GetAudioClient (void)
+SK_WASAPI_GetAudioClient (SK_IMMDevice pDevice, bool uncached)
 {
   static SK_IAudioClient3 pCachedClient = nullptr;
   static DWORD            dwLastUpdate  = 0;
 
   // TODO: Stash this in the session manager SK already has, and keep it
   //         around persistently
-  if (SK::ControlPanel::current_time > dwLastUpdate + 2500UL)
+  if (SK::ControlPanel::current_time > dwLastUpdate + 2500UL || uncached)
   {
     dwLastUpdate = SK::ControlPanel::current_time;
 
-    SK_IMMDeviceEnumerator    pDevEnum   = nullptr;
-    SK_IMMDevice              pDevice    = nullptr;
+    SK_IMMDeviceEnumerator pDevEnum = nullptr;
 
     try
     {
-      ThrowIfFailed (
-        pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+      if (pDevice == nullptr)
+      {
+        ThrowIfFailed (
+          pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
-      if (pDevEnum == nullptr)
-        return nullptr;
+        if (pDevEnum == nullptr)
+          return nullptr;
 
-      ThrowIfFailed (
-        pDevEnum->GetDefaultAudioEndpoint (eRender,
-                                             eConsole,
-                                               &pDevice));
+        ThrowIfFailed (
+          pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                               eConsole,
+                                                 &pDevice));
+      }
 
       if (pDevice == nullptr)
         return nullptr;
@@ -84,26 +86,26 @@ SK_WASAPI_GetAudioClient (void)
 
 SK_IAudioMeterInformation
 __stdcall
-SK_WASAPI_GetAudioMeterInfo (void)
+SK_WASAPI_GetAudioMeterInfo (SK_IMMDevice pDevice)
 {
   SK_IMMDeviceEnumerator    pDevEnum   = nullptr;
-  SK_IMMDevice              pDevice    = nullptr;
-
   SK_IAudioMeterInformation pMeterInfo = nullptr;
-
 
   try
   {
-    ThrowIfFailed (
-      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+    if (pDevice == nullptr)
+    {
+      ThrowIfFailed (
+        pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
-    if (pDevEnum == nullptr)
-      return nullptr;
+      if (pDevEnum == nullptr)
+        return nullptr;
 
-    ThrowIfFailed (
-      pDevEnum->GetDefaultAudioEndpoint (eRender,
-                                           eConsole,
-                                             &pDevice));
+      ThrowIfFailed (
+        pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                             eConsole,
+                                               &pDevice));
+    }
 
     if (pDevice == nullptr)
       return nullptr;
@@ -138,10 +140,10 @@ SK_GetAudioMeterInfo (void)
 
 SK_WASAPI_AudioLatency
 __stdcall
-SK_WASAPI_GetCurrentLatency (void)
+SK_WASAPI_GetCurrentLatency (SK_IMMDevice pDevice)
 {
   auto pAudioClient =
-    SK_WASAPI_GetAudioClient ();
+    SK_WASAPI_GetAudioClient (pDevice);
 
   if (! pAudioClient.p)
     return { 0.0f, 0 };
@@ -173,10 +175,10 @@ SK_WASAPI_GetCurrentLatency (void)
 
 SK_WASAPI_AudioLatency
 __stdcall
-SK_WASAPI_GetDefaultLatency (void)
+SK_WASAPI_GetDefaultLatency (SK_IMMDevice pDevice)
 {
   auto pAudioClient =
-    SK_WASAPI_GetAudioClient ();
+    SK_WASAPI_GetAudioClient (pDevice);
 
   if (! pAudioClient.p)
     return { 0.0f, 0 };
@@ -221,10 +223,10 @@ SK_WASAPI_GetDefaultLatency (void)
 
 SK_WASAPI_AudioLatency
 __stdcall
-SK_WASAPI_GetMinimumLatency (void)
+SK_WASAPI_GetMinimumLatency (SK_IMMDevice pDevice)
 {
   auto pAudioClient =
-    SK_WASAPI_GetAudioClient ();
+    SK_WASAPI_GetAudioClient (pDevice);
 
   if (! pAudioClient.p)
     return { 0.0f, 0 };
@@ -315,10 +317,10 @@ SK_WASAPI_GetMaximumLatency (void)
 
 SK_WASAPI_AudioLatency
 __stdcall
-SK_WASAPI_SetLatency (SK_WASAPI_AudioLatency latency)
+SK_WASAPI_SetLatency (SK_WASAPI_AudioLatency latency, SK_IMMDevice pDevice)
 {
   auto pAudioClient =
-    SK_WASAPI_GetAudioClient ();
+    SK_WASAPI_GetAudioClient (pDevice);
 
   if (! pAudioClient.p)
     return { 0.0f, 0 };
@@ -479,11 +481,11 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
 
 SK_IAudioSessionControl
 __stdcall
-SK_WASAPI_GetAudioSessionControl ( EDataFlow data_flow     = eRender,
-                                   ERole     endpoint_role = eConsole,
-                                   DWORD     proc_id       = GetCurrentProcessId () )
+SK_WASAPI_GetAudioSessionControl ( EDataFlow    data_flow     = eRender,
+                                   ERole        endpoint_role = eConsole,
+                                   SK_IMMDevice pDevice       = nullptr,
+                                   DWORD        proc_id       = GetCurrentProcessId () )
 {
-  SK_IMMDevice               pDevice;
   SK_IMMDeviceEnumerator     pDevEnum;
   SK_IAudioSessionEnumerator pSessionEnum;
   SK_IAudioSessionManager2   pSessionMgr2;
@@ -492,13 +494,19 @@ SK_WASAPI_GetAudioSessionControl ( EDataFlow data_flow     = eRender,
   int num_sessions = 0;
 
   try {
-    ThrowIfFailed (
-      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+    if (pDevice == nullptr)
+    {
+      ThrowIfFailed (
+        pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
-    ThrowIfFailed (
-      pDevEnum->GetDefaultAudioEndpoint (data_flow,
-                                           endpoint_role,
-                                             &pDevice.p));
+      ThrowIfFailed (
+        pDevEnum->GetDefaultAudioEndpoint ( data_flow,
+                                              endpoint_role,
+                                                &pDevice.p ));
+    }
+
+    if (! pDevice)
+      return nullptr;
 
     ThrowIfFailed (
       pDevice->Activate (
@@ -579,17 +587,16 @@ SK_WASAPI_GetAudioSessionControl ( EDataFlow data_flow     = eRender,
 
 SK_IChannelAudioVolume
 __stdcall
-SK_WASAPI_GetChannelVolumeControl (DWORD proc_id)
+SK_WASAPI_GetChannelVolumeControl (DWORD proc_id, SK_IMMDevice pDevice)
 {
   SK_IAudioSessionControl pSessionCtl =
-    SK_WASAPI_GetAudioSessionControl (eRender, eConsole, proc_id);
+    SK_WASAPI_GetAudioSessionControl (eRender, eConsole, pDevice, proc_id);
 
   if (pSessionCtl != nullptr)
   {
-    SK_IChannelAudioVolume pChannelAudioVolume;
-
+    SK_IChannelAudioVolume                                     pChannelAudioVolume;
     if (SUCCEEDED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pChannelAudioVolume.p))))
-      return pChannelAudioVolume.p;
+      return                                                   pChannelAudioVolume.p;
   }
 
   return nullptr;
@@ -597,17 +604,16 @@ SK_WASAPI_GetChannelVolumeControl (DWORD proc_id)
 
 SK_ISimpleAudioVolume
 __stdcall
-SK_WASAPI_GetVolumeControl (DWORD proc_id)
+SK_WASAPI_GetVolumeControl (DWORD proc_id, SK_IMMDevice pDevice)
 {
   SK_IAudioSessionControl pSessionCtl =
-    SK_WASAPI_GetAudioSessionControl (eRender, eConsole, proc_id);
+    SK_WASAPI_GetAudioSessionControl (eRender, eConsole, pDevice, proc_id);
 
   if (pSessionCtl != nullptr)
   {
-    SK_ISimpleAudioVolume pSimpleAudioVolume;
-
+    SK_ISimpleAudioVolume                                      pSimpleAudioVolume;
     if (SUCCEEDED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSimpleAudioVolume.p))))
-      return pSimpleAudioVolume;
+      return                                                   pSimpleAudioVolume;
   }
 
   return nullptr;
@@ -615,20 +621,25 @@ SK_WASAPI_GetVolumeControl (DWORD proc_id)
 
 SK_IAudioEndpointVolume
 __stdcall
-SK_MMDev_GetEndpointVolumeControl (void)
+SK_MMDev_GetEndpointVolumeControl (SK_IMMDevice pDevice)
 {
   SK_IAudioEndpointVolume pEndVol  = nullptr;
   SK_IMMDeviceEnumerator  pDevEnum = nullptr;
-  SK_IMMDevice            pDevice  = nullptr;
 
   try {
-    ThrowIfFailed (
-      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+    if (pDevice == nullptr)
+    {
+      ThrowIfFailed (
+        pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
-    ThrowIfFailed (
-      pDevEnum->GetDefaultAudioEndpoint (eRender,
-                                           eConsole,
-                                             &pDevice.p));
+      ThrowIfFailed (
+        pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                             eConsole,
+                                               &pDevice.p));
+    }
+
+    if (pDevice == nullptr)
+      return nullptr;
 
     ThrowIfFailed (
       pDevice->Activate (__uuidof (IAudioEndpointVolume),
@@ -650,21 +661,26 @@ SK_MMDev_GetEndpointVolumeControl (void)
 
 SK_IAudioLoudness
 __stdcall
-SK_MMDev_GetLoudness (void)
+SK_MMDev_GetLoudness (SK_IMMDevice pDevice)
 {
   SK_IAudioLoudness      pLoudness = nullptr;
   SK_IMMDeviceEnumerator pDevEnum  = nullptr;
-  SK_IMMDevice           pDevice   = nullptr;
 
   try
   {
-    ThrowIfFailed (
-      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+    if (pDevice == nullptr)
+    {
+      ThrowIfFailed (
+        pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
-    ThrowIfFailed (
-      pDevEnum->GetDefaultAudioEndpoint (eRender,
-                                           eConsole,
-                                             &pDevice));
+      ThrowIfFailed (
+        pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                             eConsole,
+                                               &pDevice));
+    }
+
+    if (pDevice == nullptr)
+      return nullptr;
 
     pDevice->Activate (__uuidof (IAudioLoudness),
                          CLSCTX_ALL,
@@ -687,21 +703,26 @@ SK_MMDev_GetLoudness (void)
 
 SK_IAudioAutoGainControl
 __stdcall
-SK_MMDev_GetAutoGainControl (void)
+SK_MMDev_GetAutoGainControl (SK_IMMDevice pDevice)
 {
   SK_IAudioAutoGainControl pAutoGain = nullptr;
   SK_IMMDeviceEnumerator   pDevEnum  = nullptr;
-  SK_IMMDevice             pDevice   = nullptr;
 
   try
   {
-    ThrowIfFailed (
-      pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
+    if (pDevice == nullptr)
+    {
+      ThrowIfFailed (
+        pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
-    ThrowIfFailed (
-      pDevEnum->GetDefaultAudioEndpoint (eRender,
-                                           eConsole,
-                                             &pDevice.p));
+      ThrowIfFailed (
+        pDevEnum->GetDefaultAudioEndpoint (eRender,
+                                             eConsole,
+                                               &pDevice.p));
+    }
+
+    if (pDevice == nullptr)
+      return nullptr;
 
     pDevice->Activate (__uuidof (IAudioAutoGainControl),
                          CLSCTX_ALL,
@@ -1066,7 +1087,3 @@ SK_WASAPI_AudioSession::getAutoGainControl (void)
   return
     parent_->auto_gain_;
 }
-
-const wchar_t* SK_WASAPI_EndPointManager::MMDEVAPI_DEVICE_PREFIX   = LR"(\\?\SWD#MMDEVAPI#)";
-const wchar_t* SK_WASAPI_EndPointManager::MMDEVAPI_RENDER_POSTFIX  = L"#{e6327cad-dcec-4949-ae8a-991e976a79d2}";
-const wchar_t* SK_WASAPI_EndPointManager::MMDEVAPI_CAPTURE_POSTFIX = L"#{2eef81be-33fa-4800-9670-1cd474972c3f}";
