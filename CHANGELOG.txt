@@ -1,4 +1,14 @@
-﻿23.12.11.2
+﻿23.12.13
+========
+ + Improved handling of audio device hot-plug when game is running on non-preferred
+     audio device. It should transition to the preferred device immediately now.
+ + Audio Session selector now enumerates sessions for all end-points, so applications
+     running on a different audio device than the game show up as expected and their
+       volume can be controlled.
+ + If a process has multiple audio sessions and the one being controlled by the audio
+     widget goes idle, automatically switch to one of its non-idle audio sessions.
+
+23.12.11.2
 ==========
  + Fixed ReShade on-demand injection in D3D12 games so that it renders its effects
 

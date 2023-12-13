@@ -3078,7 +3078,7 @@ SK_RenderBackend_V2::updateWDDMCaps (SK_RenderBackend_V2::output_s *pDisplay)
 }
 
 bool
-SK_RenderBackend_V2::routeAudioForDisplay (SK_RenderBackend_V2::output_s *pDisplay)
+SK_RenderBackend_V2::routeAudioForDisplay (SK_RenderBackend_V2::output_s *pDisplay, bool force_update)
 {
   bool routed = false;
 
@@ -3091,7 +3091,7 @@ SK_RenderBackend_V2::routeAudioForDisplay (SK_RenderBackend_V2::output_s *pDispl
     {
       routed =
         SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (
-          GetCurrentProcessId (), eRender, pDisplay->audio.paired_device
+          GetCurrentProcessId (), eRender, pDisplay->audio.paired_device, force_update
         );
     }
   }
@@ -3100,7 +3100,7 @@ SK_RenderBackend_V2::routeAudioForDisplay (SK_RenderBackend_V2::output_s *pDispl
   {
     routed =
       SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (
-        GetCurrentProcessId (), eRender, L""
+        GetCurrentProcessId (), eRender, L"", force_update
       );
   }
 

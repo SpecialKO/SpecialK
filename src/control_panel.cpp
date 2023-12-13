@@ -1,4 +1,4 @@
-﻿
+﻿  
 /**
  * This file is part of Special K.
  *
@@ -1358,7 +1358,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     }
   }
 
-  if (SK_WASAPI_EndPointMgr->getNumRenderEndpoints () > 0)
+  if (SK_WASAPI_EndPointMgr->getNumRenderEndpoints (DEVICE_STATE_ACTIVE) > 0)
   {
     auto &display =
       rb.displays [rb.active_display];
@@ -1374,6 +1374,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     {
       auto& end_point =
         SK_WASAPI_EndPointMgr->getRenderEndpoint (i);
+
+      if (end_point.state_ != DEVICE_STATE_ACTIVE)
+        continue;
 
       output_list += "  ";
       output_list +=

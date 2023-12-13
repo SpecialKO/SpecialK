@@ -664,7 +664,7 @@ public:
   const output_s* getContainingOutput  (const RECT& rkRect);
   void            updateWDDMCaps       (output_s *pOutput);
   bool            assignOutputFromHWND (HWND hWndContainer);
-  bool            routeAudioForDisplay (output_s *pOutput);
+  bool            routeAudioForDisplay (output_s *pOutput, bool force_update = false);
 
   bool isReflexSupported  (void);
   bool setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE    marker);

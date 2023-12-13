@@ -220,7 +220,6 @@ SK_WASAPI_GetDefaultLatency (SK_IMMDevice pDevice)
     { 0.0f, 0 };
 }
 
-
 SK_WASAPI_AudioLatency
 __stdcall
 SK_WASAPI_GetMinimumLatency (SK_IMMDevice pDevice)
@@ -420,7 +419,6 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
 
     return;
   }
-
 
   for (int pass = 0; pass < 2;            pass++) // First Pass:   Top-level windows
   for (int i    = 0;    i < num_sessions; i++   ) // Second Pass:  Everything else
@@ -1028,8 +1026,6 @@ SK_WASAPI_Init (void)
   return true;
 }
 
-
-
 #include <SpecialK/sound.h>
 
 HRESULT
@@ -1067,23 +1063,116 @@ SK_WASAPI_AudioSession::OnSessionDisconnected (AudioSessionDisconnectReason Disc
   return S_OK;
 }
 
+
+SK_IAudioMeterInformation
+SK_WASAPI_AudioSession::getMeterInfo (void)
+{
+  return
+    device_->control_.meter;
+  //return meter_info_.p;
+}
+
 SK_IAudioEndpointVolume
 SK_WASAPI_AudioSession::getEndpointVolume (void)
 {
   return
-    parent_->endpoint_vol_;
+    device_->control_.volume;
+    //parent_->endpoint_vol_;
 }
 
 SK_IAudioLoudness
 SK_WASAPI_AudioSession::getLoudness (void)
 {
   return
-    parent_->loudness_;
+    device_->control_.loudness;
+    //parent_->loudness_;
 }
 
 SK_IAudioAutoGainControl
 SK_WASAPI_AudioSession::getAutoGainControl (void)
 {
   return
-    parent_->auto_gain_;
+    device_->control_.auto_gain;
+    //parent_->auto_gain_;
+}
+
+SK_WASAPI_SessionManager &
+SK_WASAPI_GetSessionManager (void);
+
+HRESULT
+STDMETHODCALLTYPE
+SK_MMDev_Endpoint::OnSessionCreated (IAudioSessionControl *pNewSession)
+{
+  if (pNewSession)
+  {
+    pNewSession->AddRef ();
+
+    SK_IAudioSessionControl2                                             pSessionCtl2;
+    if (SUCCEEDED (pNewSession->QueryInterface <IAudioSessionControl2> (&pSessionCtl2.p)))
+    {
+      AudioSessionState        state = AudioSessionStateExpired;
+      pSessionCtl2->GetState (&state);
+
+      DWORD dwProcess = 0;
+      if (SUCCEEDED (pSessionCtl2->GetProcessId (&dwProcess)) && state != AudioSessionStateExpired)
+      { 
+        auto* pSession =
+          new SK_WASAPI_AudioSession (pSessionCtl2, this, session_manager_);
+
+        session_manager_->AddSession (pSession, state);
+      }
+    }
+  }
+
+  return S_OK;
+}
+
+size_t
+SK_WASAPI_EndPointManager::getNumRenderEndpoints (DWORD dwState)
+{
+  if (dwState == DEVICE_STATEMASK_ALL)
+    return render_devices_.size ();
+
+  size_t count = 0;
+
+  for ( UINT i = 0 ; i < render_devices_.size () ; ++i )
+  {
+    render_devices_ [i].device_->GetState (&render_devices_ [i].state_);
+
+    if ((render_devices_ [i].state_ & dwState) != 0x0)
+      ++count;
+  }
+
+  return count;
+}
+
+SK_MMDev_Endpoint&
+SK_WASAPI_EndPointManager::getRenderEndpoint (UINT idx)
+{
+  static SK_MMDev_Endpoint invalid = {}; return idx < render_devices_.size  () ? render_devices_  [idx] : invalid;
+}
+
+size_t
+SK_WASAPI_EndPointManager::getNumCaptureEndpoints (DWORD dwState)
+{
+  if (dwState == DEVICE_STATEMASK_ALL)
+    return capture_devices_.size ();
+
+  size_t count = 0;
+
+  for ( UINT i = 0 ; i < capture_devices_.size () ; ++i )
+  {
+    capture_devices_ [i].device_->GetState (&render_devices_ [i].state_);
+
+    if ((capture_devices_ [i].state_ & dwState) != 0x0)
+      ++count;
+  }
+
+  return count;
+}
+
+SK_MMDev_Endpoint&
+SK_WASAPI_EndPointManager::getCaptureEndpoint     (UINT idx)
+{
+  static SK_MMDev_Endpoint invalid = {}; return idx < capture_devices_.size () ? capture_devices_ [idx] : invalid;
 }

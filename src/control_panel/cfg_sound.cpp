@@ -145,7 +145,7 @@ SK_ImGui_SelectAudioSessionDlg (void)
           pSession->getChannelAudioVolume ();
 
         // No duplicates please
-        if (pChannelVolume == nullptr || (! sessions_listed.emplace (pSession->getProcessId ()).second))
+        if (pChannelVolume == nullptr || (pSession->isActive () && (! sessions_listed.emplace (pSession->getProcessId ()).second)))
           continue;
 
         //bool selected     = false;
@@ -435,6 +435,29 @@ SK_ImGui_VolumeManager (void)
 
   if (audio_session != nullptr)
   {
+    const DWORD dwSessionPid =
+      audio_session->getProcessId ();
+
+    // Select a different session from the same process if the selected session is
+    //   not currently active...
+    if (! audio_session->isActive ())
+    {
+      int session_count = 0;
+
+      auto** ppSessions =
+        sessions.getActive (&session_count);
+
+      for (int i = 0; i < session_count ; ++i)
+      {
+        if ( ppSessions [i]->getProcessId () != dwSessionPid ||
+             ppSessions [i]->isActive     () == false )
+          continue;
+
+        audio_session = ppSessions [i];
+        break;
+      }
+    }
+
     float fLevelDB = 0.0f;
 
     auto pEndpointVolume =
@@ -648,6 +671,9 @@ SK_ImGui_VolumeManager (void)
   if (audio_session != nullptr)
   {
     if (pMeterInfo == nullptr)
+        pMeterInfo = audio_session->getMeterInfo ();
+
+    if (pMeterInfo == nullptr)
         pMeterInfo = sessions.getMeterInfo ();
 
     if ( ( (dwLastTest + 45000)  <
@@ -719,12 +745,11 @@ SK_ImGui_VolumeManager (void)
       pVolume->GetMasterVolume (&master_vol);
       pVolume->GetMute         (&master_mute);
 
-
       static std::string label = "Switch Audio Device";
 
       SK_ImGui_SelectAudioDeviceDlg ();
 
-      if (SK_WASAPI_EndPointMgr->getNumRenderEndpoints () > 1)
+      if (SK_WASAPI_EndPointMgr->getNumRenderEndpoints (DEVICE_STATE_ACTIVE) > 1)
       {
         if (ImGui::Button (label.c_str ()))
         {
