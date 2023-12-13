@@ -889,8 +889,6 @@ public:
 
   void Deactivate (void)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> lock (activation_lock_);
-
     needs_reset_ = true;
   }
 
@@ -1017,10 +1015,13 @@ public:
 
   SK_IAudioMeterInformation getMeterInfo (void)
   {
-    SK_ComPtr <IMMDeviceEnumerator>
-                 pDevEnum;
-    if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
-      return nullptr;
+    static SK_ComPtr <IMMDeviceEnumerator>
+        pDevEnum;
+    if (pDevEnum == nullptr)
+    {
+      if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
+        return nullptr;
+    }
 
     // Most game audio a user will not want to hear while a game is in the
     //   background will pass through eConsole.
@@ -1133,7 +1134,6 @@ private:
   std::set <SK_WASAPI_AudioSession*> sessions_;
 
   SK_Thread_HybridSpinlock           activation_lock_;
-  SK_Thread_HybridSpinlock           deactivation_lock_;
 
   SK_AutoHandle                      reset_event_;
   bool                               needs_reset_ = true;
@@ -1148,9 +1148,6 @@ private:
           session_vec_t    view = {  };
   }                                  active_sessions_,
                                      inactive_sessions_;
-
-  SK_IAudioSessionManager2           session_mgrs_ [16];
-  SK_IAudioSessionManager2&          session_mgr_ = session_mgrs_ [0];
 };
 
 struct SK_WASAPI_AudioLatency

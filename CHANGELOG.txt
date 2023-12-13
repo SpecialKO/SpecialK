@@ -1,4 +1,8 @@
-﻿23.12.13
+﻿23.12.13.1
+==========
+ + Reduced MMDevAPI overhead when the volume control widget is open
+
+23.12.13
 ========
  + Improved handling of audio device hot-plug when game is running on non-preferred
      audio device. It should transition to the preferred device immediately now.

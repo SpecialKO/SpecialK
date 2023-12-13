@@ -428,7 +428,8 @@ SK_ImGui_VolumeManager (void)
   sessions.Activate ();
 
   SK_ComPtr <IAudioMeterInformation> pMeterInfo =
-    sessions.getMeterInfo ();
+    audio_session != nullptr ? audio_session->getMeterInfo ()
+                             :       sessions.getMeterInfo ();
 
   if (pMeterInfo == nullptr)
     audio_session = nullptr;
@@ -449,6 +450,9 @@ SK_ImGui_VolumeManager (void)
 
       for (int i = 0; i < session_count ; ++i)
       {
+        if (ppSessions [i] == nullptr)
+          continue;
+
         if ( ppSessions [i]->getProcessId () != dwSessionPid ||
              ppSessions [i]->isActive     () == false )
           continue;

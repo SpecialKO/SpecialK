@@ -1069,7 +1069,6 @@ SK_WASAPI_AudioSession::getMeterInfo (void)
 {
   return
     device_->control_.meter;
-  //return meter_info_.p;
 }
 
 SK_IAudioEndpointVolume
@@ -1077,7 +1076,6 @@ SK_WASAPI_AudioSession::getEndpointVolume (void)
 {
   return
     device_->control_.volume;
-    //parent_->endpoint_vol_;
 }
 
 SK_IAudioLoudness
@@ -1085,7 +1083,6 @@ SK_WASAPI_AudioSession::getLoudness (void)
 {
   return
     device_->control_.loudness;
-    //parent_->loudness_;
 }
 
 SK_IAudioAutoGainControl
@@ -1093,7 +1090,6 @@ SK_WASAPI_AudioSession::getAutoGainControl (void)
 {
   return
     device_->control_.auto_gain;
-    //parent_->auto_gain_;
 }
 
 SK_WASAPI_SessionManager &
