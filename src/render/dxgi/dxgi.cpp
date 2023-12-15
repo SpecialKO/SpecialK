@@ -9710,11 +9710,23 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
     static auto &rb =
       SK_GetCurrentRenderBackend ();
 
+
+    DXGI_ADAPTER_DESC           activeDesc = { };
+    SK_ComQIPtr <IDXGIDevice>  pDXGIDevice (rb.device);
+    SK_ComPtr   <IDXGIAdapter> pActiveAdapter;
+
+    if (pDXGIDevice != nullptr)
+    {   pDXGIDevice->GetAdapter (&pActiveAdapter);
+
+      if (pActiveAdapter != nullptr)
+          pActiveAdapter->GetDesc (&activeDesc);
+    }
+
     //
     // Consistency check, re-initialize the budget thread if
     //   we are not monitoring the correct DXGI adapter.
     //
-    if (rb.adapter.luid.LowPart != 0x0)
+    if (activeDesc.AdapterLuid.LowPart != 0x0)
     {
       auto pAdapter =
         params->pAdapter;
@@ -9722,8 +9734,8 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
       DXGI_ADAPTER_DESC   adapterDesc = {};
       pAdapter->GetDesc (&adapterDesc);
 
-      if ( adapterDesc.AdapterLuid.HighPart != rb.adapter.luid.HighPart ||
-           adapterDesc.AdapterLuid.LowPart  != rb.adapter.luid.LowPart )
+      if ( adapterDesc.AdapterLuid.HighPart != activeDesc.AdapterLuid.HighPart ||
+           adapterDesc.AdapterLuid.LowPart  != activeDesc.AdapterLuid.LowPart )
       {
         auto silent =
           std::exchange (budget_log->silent, false);
@@ -9738,9 +9750,9 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 
         if (pFactory4 != nullptr)
         {
-          SK_ComPtr <IDXGIAdapter3>         pNewAdapter = nullptr;
+          SK_ComPtr <IDXGIAdapter3>                pNewAdapter = nullptr;
           pFactory4->EnumAdapterByLuid (
-            rb.adapter.luid, IID_PPV_ARGS (&pNewAdapter.p) );
+            activeDesc.AdapterLuid, IID_PPV_ARGS (&pNewAdapter.p) );
 
           if (pNewAdapter != nullptr)
           {

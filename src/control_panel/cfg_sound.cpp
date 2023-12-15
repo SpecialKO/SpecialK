@@ -662,7 +662,8 @@ SK_ImGui_VolumeManager (void)
     // Find the session for the current game and select that first...
     for (int i = 0; i < count; i++)
     {
-      if (ppSessions [i]->getProcessId () == GetCurrentProcessId ())
+      if (ppSessions [i]->getProcessId () == GetCurrentProcessId () &&
+          ppSessions [i]->isActive ())
       {
         dwLastTest    = 0;
         channels      = 0;

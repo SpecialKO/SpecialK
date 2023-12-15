@@ -1118,6 +1118,8 @@ void SK_ReShadeAddOn_SetupInitialINI (const wchar_t* wszINIFile)
   }
 }
 
+bool SK_ReShadeAddOn_HadLocalINI = true;
+
 reshade::api::effect_runtime*
 SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceContext *pDevCtx, IDXGISwapChain *pSwapChain)
 {
@@ -1127,12 +1129,25 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceCo
   {
     SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
 
-    std::filesystem::path
-      reshade_path (PathFileExistsW (L"ReShade.ini") ?
-                                     L"ReShade.ini"  : SK_GetConfigPath ());
+    SK_RunOnce (
+      SK_ReShadeAddOn_HadLocalINI =
+        PathFileExistsW (L"ReShade.ini")
+    );
 
-    if (! PathFileExistsW (L"ReShade.ini"))
-      reshade_path /= L"ReShade/ReShade.ini";
+    // Delete the INI file that some versions of ReShade 5.9.3 write (bug) to the wrong path
+    if (! SK_ReShadeAddOn_HadLocalINI)
+    {
+      DeleteFileW (L"ReShade.ini");
+    }
+
+    static std::filesystem::path
+      reshade_path (SK_ReShadeAddOn_HadLocalINI ?
+                                 L"ReShade.ini" : SK_GetConfigPath ());
+
+    SK_RunOnce (
+      if (! SK_ReShadeAddOn_HadLocalINI)
+        reshade_path /= L"ReShade/ReShade.ini";
+    );
 
     if (! reshade::create_effect_runtime (reshade::api::device_api::d3d11, pDevice, pDevCtx, swapchain, (const char *)reshade_path.u8string ().c_str (), &runtime))
     {
@@ -1152,12 +1167,24 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (ID3D12Device *pDevice, ID3D12CommandQ
   {
     SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
 
-    std::filesystem::path
-      reshade_path (PathFileExistsW (L"ReShade.ini") ?
-                                     L"ReShade.ini"  : SK_GetConfigPath ());
+    SK_RunOnce (
+      SK_ReShadeAddOn_HadLocalINI = PathFileExistsW (L"ReShade.ini");
+    );
 
-    if (! PathFileExistsW (L"ReShade.ini"))
-      reshade_path /= L"ReShade/ReShade.ini";
+    // Delete the INI file that some versions of ReShade 5.9.3 write (bug) to the wrong path
+    if (! SK_ReShadeAddOn_HadLocalINI)
+    {
+      DeleteFileW (L"ReShade.ini");
+    }
+
+    static std::filesystem::path
+      reshade_path (SK_ReShadeAddOn_HadLocalINI ?
+                                 L"ReShade.ini" : SK_GetConfigPath ());
+
+    SK_RunOnce (
+      if (! SK_ReShadeAddOn_HadLocalINI)
+        reshade_path /= L"ReShade/ReShade.ini";
+    );
 
     if (! reshade::create_effect_runtime (reshade::api::device_api::d3d12, pDevice, pCmdQueue, swapchain, (const char *)reshade_path.u8string ().c_str (), &runtime))
     {
@@ -1168,4 +1195,19 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (ID3D12Device *pDevice, ID3D12CommandQ
   }
 
   return runtime;
+}
+
+void
+SK_ReShadeAddOn_CleanupConfigAndLogs (void)
+{
+  // Fix bug in ReShade 5.9.3, where it writes an INI file to the wrong location
+  if (GetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", nullptr, 1) != 0)
+  {
+    // Didn't have a local INI file originally, and we don't want one now either!
+    if (! SK_ReShadeAddOn_HadLocalINI)
+    {
+      DeleteFileW (L"ReShade.ini");
+      DeleteFileW (L"ReShade.log");
+    }
+  }
 }

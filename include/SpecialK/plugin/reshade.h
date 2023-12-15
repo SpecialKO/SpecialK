@@ -57,4 +57,6 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceCo
 void SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *runtime);
 void SK_ReShadeAddOn_DestroyEffectRuntime          (reshade::api::effect_runtime *runtime);
 
+void SK_ReShadeAddOn_CleanupConfigAndLogs (void);
+
 #endif /* __SK__RESHADE_H__ */

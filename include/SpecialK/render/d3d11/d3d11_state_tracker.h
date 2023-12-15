@@ -62,6 +62,13 @@ enum class SK_D3D11DispatchType
   Indirect
 };
 
+enum SK_D3D11_DrawHandlerState
+{
+  Normal,
+  Override,
+  Skipped
+};
+
 enum class SK_D3D11DrawType
 {
   Auto,

@@ -1172,3 +1172,80 @@ SK_WASAPI_EndPointManager::getCaptureEndpoint     (UINT idx)
 {
   static SK_MMDev_Endpoint invalid = {}; return idx < capture_devices_.size () ? capture_devices_ [idx] : invalid;
 }
+
+HRESULT
+STDMETHODCALLTYPE
+SK_WASAPI_EndPointManager::OnDeviceStateChanged (_In_ LPCWSTR pwstrDeviceId, _In_ DWORD dwNewState)
+{
+  std::ignore = pwstrDeviceId;
+  std::ignore = dwNewState;
+
+  resetSessionManager ();
+
+  static auto &rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (StrStrW (pwstrDeviceId, rb.displays [rb.active_display].audio.paired_device) && dwNewState == DEVICE_STATE_ACTIVE)
+    rb.routeAudioForDisplay (&rb.displays [rb.active_display], true);
+
+  return S_OK;
+}
+
+HRESULT
+STDMETHODCALLTYPE
+SK_WASAPI_EndPointManager::OnDeviceAdded (_In_ LPCWSTR pwstrDeviceId)
+{
+  std::ignore = pwstrDeviceId;
+
+  resetSessionManager ();
+
+  static auto &rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (StrStrW (pwstrDeviceId, rb.displays [rb.active_display].audio.paired_device))
+    rb.routeAudioForDisplay (&rb.displays [rb.active_display], true);
+
+  return S_OK;
+}
+
+HRESULT
+STDMETHODCALLTYPE
+SK_WASAPI_EndPointManager::OnDeviceRemoved (_In_ LPCWSTR pwstrDeviceId)
+{
+  std::ignore = pwstrDeviceId;
+
+  resetSessionManager ();
+
+  //SK_ImGui_Warning (pwstrDeviceId);
+
+  return S_OK;
+}
+
+HRESULT
+STDMETHODCALLTYPE
+SK_WASAPI_EndPointManager::OnDefaultDeviceChanged (_In_ EDataFlow flow, _In_ ERole role, _In_ LPCWSTR pwstrDefaultDeviceId)
+ {
+   std::ignore = role;
+   std::ignore = pwstrDefaultDeviceId;
+
+   if (flow == eAll || flow == eRender)
+   {
+     //SK_ImGui_Warning (pwstrDefaultDeviceId);
+     //resetSessionManager ();
+   }
+
+   return S_OK;
+ }
+
+HRESULT
+STDMETHODCALLTYPE
+SK_WASAPI_EndPointManager::OnPropertyValueChanged (_In_ LPCWSTR pwstrDeviceId, _In_ const PROPERTYKEY key)
+{
+  std::ignore = pwstrDeviceId;
+  std::ignore = key;
+
+  //SK_ImGui_Warning (pwstrDeviceId);
+  //resetSessionManager ();
+
+  return S_OK;
+}

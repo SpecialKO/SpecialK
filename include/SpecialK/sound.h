@@ -292,68 +292,11 @@ public:
     return ulRef;
   }
 
-  HRESULT STDMETHODCALLTYPE OnDeviceStateChanged (_In_ LPCWSTR pwstrDeviceId, _In_ DWORD dwNewState) override
-  {
-    std::ignore = pwstrDeviceId;
-    std::ignore = dwNewState;
-
-    resetSessionManager ();
-
-    static auto &rb =
-      SK_GetCurrentRenderBackend ();
-
-    if (dwNewState == DEVICE_STATE_ACTIVE)
-      rb.routeAudioForDisplay (&rb.displays [rb.active_display], true);
-
-    return S_OK;
-  }
-
-  HRESULT STDMETHODCALLTYPE OnDeviceAdded (_In_ LPCWSTR pwstrDeviceId) override
-  {
-    std::ignore = pwstrDeviceId;
-
-    resetSessionManager ();
-
-    static auto &rb =
-      SK_GetCurrentRenderBackend ();
-
-    if (StrStrIW (pwstrDeviceId, rb.displays [rb.active_display].audio.paired_device))
-      rb.routeAudioForDisplay ( &rb.displays [rb.active_display], true );
-
-    return S_OK;
-  }
-
-  HRESULT STDMETHODCALLTYPE OnDeviceRemoved (_In_ LPCWSTR pwstrDeviceId) override
-  {
-    std::ignore = pwstrDeviceId;
-
-    resetSessionManager ();
-
-    return S_OK;
-  }
-
-  HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged (_In_ EDataFlow flow, _In_ ERole role, _In_ LPCWSTR pwstrDefaultDeviceId) override
-  {
-    std::ignore = role;
-    std::ignore = pwstrDefaultDeviceId;
-
-    if (flow == eAll || flow == eRender)
-    {
-      //resetSessionManager ();
-    }
-
-    return S_OK;
-  }
-
-  HRESULT STDMETHODCALLTYPE OnPropertyValueChanged (_In_ LPCWSTR pwstrDeviceId, _In_ const PROPERTYKEY key) override
-  {
-    std::ignore = pwstrDeviceId;
-    std::ignore = key;
-
-    //resetSessionManager ();
-
-    return S_OK;
-  }
+  HRESULT STDMETHODCALLTYPE OnDeviceStateChanged   (_In_ LPCWSTR pwstrDeviceId, _In_ DWORD dwNewState) override;
+  HRESULT STDMETHODCALLTYPE OnDeviceAdded          (_In_ LPCWSTR pwstrDeviceId) override;
+  HRESULT STDMETHODCALLTYPE OnDeviceRemoved        (_In_ LPCWSTR pwstrDeviceId) override;
+  HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged (_In_ EDataFlow flow, _In_ ERole role, _In_ LPCWSTR pwstrDefaultDeviceId) override;
+  HRESULT STDMETHODCALLTYPE OnPropertyValueChanged (_In_ LPCWSTR pwstrDeviceId, _In_ const PROPERTYKEY key) override;
 
 protected:
   SK_Thread_HybridSpinlock  activation_lock_;

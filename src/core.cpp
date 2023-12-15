@@ -2658,6 +2658,7 @@ SK_ShutdownCore (const wchar_t* backend)
   if (config.window.confine_cursor)
     SK_ClipCursor (nullptr);
 
+  SK_ReShadeAddOn_CleanupConfigAndLogs ();
 
   // These games do not handle resolution correctly
   switch (SK_GetCurrentGameID ())
@@ -3846,12 +3847,14 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     HWND hWndForeground =
       SK_GetForegroundWindow ();
 
-    if (hWndForeground      == rb.windows.device.parent && rb.windows.device.parent != 0) {
-       game_window.hWnd      = rb.windows.device.parent;
+    //if (hWndForeground      == rb.windows.device.parent && rb.windows.device.parent != 0) {
+    //   game_window.hWnd      = rb.windows.device.parent;
+    if (hWndForeground      == rb.windows.device.hwnd && rb.windows.device.hwnd != 0 && game_window.hWnd != hWndForeground) {
+       game_window.hWnd      = rb.windows.device.hwnd;
        game_window.changed   = true;
        ActivateWindow (game_window.hWnd, true);
     }
-    else if (hWndForeground == rb.windows.focus.hwnd    && rb.windows.focus.hwnd    != 0) {
+    else if (hWndForeground == rb.windows.focus.hwnd && rb.windows.focus.hwnd   != 0 && game_window.hWnd != hWndForeground) {
        game_window.hWnd      = rb.windows.focus.hwnd;
        game_window.changed   = true;
        ActivateWindow (game_window.hWnd, true);

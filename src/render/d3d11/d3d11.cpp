@@ -2605,21 +2605,19 @@ SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader)
 static auto constexpr SK_CBUFFER_SLOTS =
   D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
 
-enum SK_D3D11_DrawHandlerState
-{
-  Normal,
-  Override,
-  Skipped
-};
-
 static
   UINT NegativeOne = (UINT)-1;
 
 SK_D3D11_DrawHandlerState
 SK_D3D11_DrawHandler ( ID3D11DeviceContext  *pDevCtx,
+                       SK_D3D11DrawType      draw_type,
+                       UINT                  num_verts,
                        SK_TLS              **ppTLS   = nullptr,
                        UINT&                 dev_idx = NegativeOne )
 {
+  std::ignore = draw_type;
+  std::ignore = num_verts;
+
   static SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -2728,7 +2726,54 @@ const
               shaders->reshade_triggered                = true;
                       _reshade_trigger_before [dev_idx] = false;
 
+              // This is about 22 KiB worth of device context state, it is not a good
+              //   idea to allocate this on the stack... use SK's TLS storage.
+              auto* state_block_storage =
+                (*ppTLS)->render->d3d11->state_block.getPtr ();
+
+              if (state_block_storage->empty ())
+                  state_block_storage->resize (sizeof (D3DX11_STATE_BLOCK));
+
+              auto *sb =
+                (D3DX11_STATE_BLOCK *)state_block_storage->data ();
+
+              CreateStateblock (pDevCtx, sb);
+
+              SK_ComPtr <ID3D11Resource>
+                                  pRes;
+              pRTV->GetResource (&pRes.p);
+
+              SK_ComQIPtr <ID3D11Texture2D>
+                                    pTex2D (pRes);
+
+              D3D11_TEXTURE2D_DESC
+                                texDesc = { };
+              pTex2D->GetDesc (&texDesc);
+
+              D3D11_VIEWPORT
+                vp          = { };
+                vp.TopLeftX = 0;
+                vp.TopLeftY = 0;
+                vp.Height   = static_cast <float> (texDesc.Height);
+                vp.Width    = static_cast <float> (texDesc.Width);
+
+              D3D11_RECT
+                scissor        = { };
+                scissor.left   = 0;
+                scissor.top    = 0;
+                scissor.right  = texDesc.Width;
+                scissor.bottom = texDesc.Height;
+
+              static float                              blend_factors [4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+              pDevCtx->OMSetBlendState        (nullptr, blend_factors, 0xffffffff);
+              pDevCtx->OMSetDepthStencilState (nullptr, 0);
+              pDevCtx->RSSetState             (nullptr);
+              pDevCtx->RSSetViewports         (1, &vp);
+              pDevCtx->RSSetScissorRects      (1, &scissor);
+              
               SK_ReShadeAddOn_RenderEffectsD3D11Ex ((IDXGISwapChain1 *)rb.swapchain.p, pRTV.p, nullptr);
+
+              ApplyStateblock  (pDevCtx, sb);
             }
           }
         }
@@ -2859,9 +2904,6 @@ const
       return Skipped;
     }
   }
-
-  SK_GetFramesDrawn ();
-
 
   struct filter_cache_s {
     ULONG64 ulLastFrame = 0;
@@ -3959,7 +4001,7 @@ SK_D3D11_DrawAuto_Impl (_In_ ID3D11DeviceContext *pDevCtx, BOOL bWrapped, UINT d
   }
 
   auto draw_action =
-    SK_D3D11_DrawHandler (pDevCtx, &pTLS, dev_idx);
+    SK_D3D11_DrawHandler (pDevCtx, SK_D3D11DrawType::Auto, 0, &pTLS, dev_idx);
 
   if (draw_action == Skipped)
     return;
@@ -4160,7 +4202,7 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
   }
 
   auto draw_action =
-    SK_D3D11_DrawHandler (pDevCtx, &pTLS, dev_idx);
+    SK_D3D11_DrawHandler (pDevCtx, SK_D3D11DrawType::PrimList, VertexCount, &pTLS, dev_idx);
 
   if (draw_action == Skipped)
     return;
@@ -4377,7 +4419,7 @@ SK_D3D11_DrawIndexed_Impl (
   SK_TLS* pTLS = nullptr;
 
   auto draw_action =
-    SK_D3D11_DrawHandler (pDevCtx, &pTLS, dev_idx);
+    SK_D3D11_DrawHandler (pDevCtx, SK_D3D11DrawType::Indexed, IndexCount, &pTLS, dev_idx);
 
   if (draw_action == Skipped)
     return;
@@ -4435,7 +4477,7 @@ SK_D3D11_DrawIndexedInstanced_Impl (
   SK_TLS *pTLS = nullptr;
 
   auto draw_action =
-    SK_D3D11_DrawHandler (pDevCtx, &pTLS, dev_idx);
+    SK_D3D11_DrawHandler (pDevCtx, SK_D3D11DrawType::IndexedInstanced, InstanceCount, &pTLS, dev_idx);
 
   if (draw_action == Skipped)
     return;
@@ -4488,7 +4530,7 @@ SK_D3D11_DrawIndexedInstancedIndirect_Impl (
   SK_TLS *pTLS = nullptr;
 
   auto draw_action =
-    SK_D3D11_DrawHandler (pDevCtx, &pTLS, dev_idx);
+    SK_D3D11_DrawHandler (pDevCtx, SK_D3D11DrawType::IndexedInstancedIndirect, 0, &pTLS, dev_idx);
 
   if (draw_action == Skipped)
     return;
@@ -4545,7 +4587,7 @@ SK_D3D11_DrawInstanced_Impl (
   SK_TLS *pTLS = nullptr;
 
   auto draw_action =
-    SK_D3D11_DrawHandler (pDevCtx, &pTLS, dev_idx);
+    SK_D3D11_DrawHandler (pDevCtx, SK_D3D11DrawType::Instanced, VertexCountPerInstance, &pTLS, dev_idx);
 
   if (draw_action == Skipped)
     return;
@@ -4597,7 +4639,7 @@ SK_D3D11_DrawInstancedIndirect_Impl (
   SK_TLS *pTLS = nullptr;
 
   auto draw_action =
-    SK_D3D11_DrawHandler (pDevCtx, &pTLS, dev_idx);
+    SK_D3D11_DrawHandler (pDevCtx, SK_D3D11DrawType::InstancedIndirect, 0, &pTLS, dev_idx);
 
   if (draw_action == Skipped)
     return;
