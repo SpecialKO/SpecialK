@@ -3868,7 +3868,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getSdrWhiteLevel ) )
         {
           display.hdr.white_level =
-            (float)(((double)getSdrWhiteLevel.SDRWhiteLevel / 1000.0) * 80.0);
+            (static_cast <float> (getSdrWhiteLevel.SDRWhiteLevel) / 1000.0f) * 80.0f;
         }
 
         else
