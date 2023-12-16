@@ -1349,6 +1349,9 @@ iSK_INI::write (const wchar_t* fname)
 
   SK_CreateDirectories (fname);
 
+  if (StrStrIW (fname, LR"(\Global\)"))
+    encoding_ = INI_UTF16LE;
+
   FILE* fOut = nullptr;
 
   switch (encoding_)

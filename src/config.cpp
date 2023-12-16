@@ -1255,7 +1255,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     }
 
     dll_ini->reload (full_name.c_str ());
-
+    dll_ini->set_encoding (iSK_INI::INI_UTF16LE);
 
     empty   =
       dll_ini->get_sections ().empty ();
