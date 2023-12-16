@@ -235,7 +235,7 @@ iSK_INI::reload (const wchar_t *fname)
                                              real_size, nullptr, 0 )
                  );
 
-      if (0 == converted_size)
+      if (0 == converted_size && ((! utf8_bom) || real_size > 0))
       {
         std::string utf8_fname =
           SK_StripUserNameFromPathA (
