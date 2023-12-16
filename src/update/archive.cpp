@@ -82,7 +82,7 @@ SK_Get7ZFileContents (                 const wchar_t* wszArchive,
       if (SzArEx_IsDir (&arc, i))
         continue;
 
-      RtlSecureZeroMemory (wszEntry, (MAX_PATH + 2) * sizeof (wchar_t));
+      RtlZeroMemory (wszEntry, (MAX_PATH + 2) * sizeof (wchar_t));
       SzArEx_GetFileNameUtf16 (&arc, i, (UInt16 *)wszEntry);
 
       uint64_t fileSize  = SzArEx_GetFileSize (&arc, i);

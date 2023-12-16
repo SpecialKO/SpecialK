@@ -343,7 +343,7 @@ SK_Process_SnapshotNt (void)
 
   SK_NtDll->lock ();
 
-  RtlSecureZeroMemory ( SK_NtDll->pSnapshot, SK_NtDll->dwHeapSize );
+  RtlZeroMemory ( SK_NtDll->pSnapshot, SK_NtDll->dwHeapSize );
 
   DWORD                      dData = 0;
   PSYSTEM_PROCESS_INFORMATION pspi = nullptr;

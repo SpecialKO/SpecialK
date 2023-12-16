@@ -206,7 +206,7 @@ NVAPI::EnumSLIGPUs (void)
       {
         if (adapters->AdapterLuid.LowPart > 1)
           memcpy (&_nv_sli_adapters.get ()[nv_sli_count++], adapters,
-                  sizeof (DXGI_ADAPTER_DESC));
+                 sizeof (DXGI_ADAPTER_DESC));
 
         ++adapters;
 
@@ -1003,9 +1003,9 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   {
     inputData->hdrMode                       = pHdrColorData->hdrMode;
 
-    memcpy (     &inputData->mastering_display_data,
-             &pHdrColorData->mastering_display_data,
-          sizeof (inputData->mastering_display_data) );
+    memcpy (  &inputData->mastering_display_data,
+          &pHdrColorData->mastering_display_data,
+       sizeof (inputData->mastering_display_data) );
 
     inputData->static_metadata_descriptor_id =
       pHdrColorData->static_metadata_descriptor_id;
@@ -1726,7 +1726,7 @@ SK_NvAPI_SetAntiAliasingOverride ( const wchar_t** pwszPropertyList )
 
     if (ret == NVAPI_OK)
     {
-      RtlSecureZeroMemory (app_ptr.get (), sizeof (NVDRS_APPLICATION));
+      RtlZeroMemory (app_ptr.get (), sizeof (NVDRS_APPLICATION));
 
       lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
@@ -2034,7 +2034,7 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
   BOOL already_set = TRUE;
 
   if (fps_limiter.u32CurrentValue != limit_mask) {
-    SecureZeroMemory (&fps_limiter, sizeof NVDRS_SETTING);
+    RtlZeroMemory (&fps_limiter, sizeof NVDRS_SETTING);
     fps_limiter.version = NVDRS_SETTING_VER;
 
     already_set = FALSE;
@@ -2045,7 +2045,7 @@ SK_NvAPI_SetFramerateLimit (uint32_t limit)
 
   // If this == -1, then don't make any changes...
   if (target_prerender != -1 && prerendered_frames.u32CurrentValue != target_prerender) {
-    SecureZeroMemory (&prerendered_frames, sizeof NVDRS_SETTING);
+    RtlZeroMemory (&prerendered_frames, sizeof NVDRS_SETTING);
     prerendered_frames.version = NVDRS_SETTING_VER;
 
     already_set = FALSE;
@@ -2159,7 +2159,7 @@ BOOL SK_NvAPI_GetVRREnablement (void)
 
     if (ret == NVAPI_OK)
     {
-      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
 
       lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
@@ -2254,7 +2254,7 @@ BOOL SK_NvAPI_SetVRREnablement (BOOL bEnable)
 
     if (ret == NVAPI_OK)
     {
-      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
 
       lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
@@ -2382,7 +2382,7 @@ BOOL SK_NvAPI_EnableVulkanBridge (BOOL bEnable)
 
     if (ret == NVAPI_OK)
     {
-      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
 
       lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
@@ -2578,7 +2578,7 @@ BOOL SK_NvAPI_GetFastSync (void)
 
     if (ret == NVAPI_OK)
     {
-      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
 
       lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
@@ -2671,7 +2671,7 @@ BOOL SK_NvAPI_SetFastSync (BOOL bEnable)
 
     if (ret == NVAPI_OK)
     {
-      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
 
       lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
@@ -2769,7 +2769,7 @@ BOOL SK_NvAPI_AllowGFEOverlay (bool bAllow, wchar_t *wszAppName, wchar_t *wszExe
 
     if (ret == NVAPI_OK)
     {
-      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
 
       lstrcpyW ((wchar_t *)app.appName,          wszExecutable);
       lstrcpyW ((wchar_t *)app.userFriendlyName, wszAppName);
@@ -2956,7 +2956,7 @@ RunDLL_NvAPI_SetDWORD ( HWND   hwnd,        HINSTANCE hInst,
 
         if (ret == NVAPI_OK)
         {
-          RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+          RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
 
           lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
           lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
@@ -3107,7 +3107,7 @@ SK_NvAPI_GetAnselEnablement (DLL_ROLE role)
 
     if (ret == NVAPI_OK)
     {
-      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
 
       lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
@@ -3236,7 +3236,7 @@ SK_NvAPI_SetAnselEnablement (DLL_ROLE role, bool enabled)
 
     if (ret == NVAPI_OK)
     {
-      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
 
       lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
@@ -3468,7 +3468,7 @@ sk::NVAPI::SetSLIOverride    (       DLL_ROLE role,
 
     if (ret == NVAPI_OK)
     {
-      RtlSecureZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
 
       lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
       lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
@@ -3665,7 +3665,7 @@ SK_NvAPI_AddLauncherToProf (void)
 
     if (ret == NVAPI_OK)
     {
-      RtlSecureZeroMemory (app_ptr.get (), sizeof (NVDRS_APPLICATION));
+      RtlZeroMemory (app_ptr.get (), sizeof (NVDRS_APPLICATION));
       *app.appName = L'\0';
 
       //lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
@@ -3679,7 +3679,7 @@ SK_NvAPI_AddLauncherToProf (void)
       NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
     }
   } else {
-    RtlSecureZeroMemory (app_ptr.get (), sizeof (NVDRS_APPLICATION));
+    RtlZeroMemory (app_ptr.get (), sizeof (NVDRS_APPLICATION));
     *app.appName = L'\0';
 
     //lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());

@@ -32,8 +32,8 @@ SK_Console::SK_Console (void)
   command_issued = false;
   result_str.clear ();
 
-  RtlSecureZeroMemory (text, 4096);
-  RtlSecureZeroMemory (keys_, 256);
+  RtlZeroMemory (text, 4096);
+  RtlZeroMemory (keys_, 256);
 }
 
 SK_Console*
@@ -109,7 +109,7 @@ SK_Console::Draw (void)
 void
 SK_Console::Start (void)
 {
-  RtlSecureZeroMemory (text, 4096);
+  RtlZeroMemory (text, 4096);
 
   text [0] = '>';
 }
@@ -122,7 +122,7 @@ SK_Console::End (void)
 void
 SK_Console::reset (void)
 {
-  RtlSecureZeroMemory (keys_, 256);
+  RtlZeroMemory (keys_, 256);
 }
 
 

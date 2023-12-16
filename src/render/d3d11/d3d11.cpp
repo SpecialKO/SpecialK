@@ -316,7 +316,7 @@ SK_D3D11_MergeCommandLists ( ID3D11DeviceContext *pSurrogate,
 
     if (reset)
     {
-      RtlSecureZeroMemory
+      RtlZeroMemory
                (    pShaderRepoIn->current.views        [dev_ctx_in ],
                       128 * sizeof (ptrdiff_t) );
                     pShaderRepoIn->current.shader       [dev_ctx_in ] = 0x0;
@@ -329,14 +329,14 @@ SK_D3D11_MergeCommandLists ( ID3D11DeviceContext *pSurrogate,
     memcpy ( &d3d11_shader_stages [i][dev_ctx_out].skipped_bindings [0],
              &d3d11_shader_stages [i][ dev_ctx_in].skipped_bindings [0],
              sizeof (ID3D11ShaderResourceView *) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT );
-    RtlSecureZeroMemory (
+    RtlZeroMemory (
              &d3d11_shader_stages [i][ dev_ctx_in].skipped_bindings [0],
              sizeof (ID3D11ShaderResourceView *) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT );
 
     memcpy ( &d3d11_shader_stages [i][dev_ctx_out].real_bindings [0],
              &d3d11_shader_stages [i][ dev_ctx_in].real_bindings [0],
              sizeof (ID3D11ShaderResourceView *) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT );
-    RtlSecureZeroMemory (
+    RtlZeroMemory (
              &d3d11_shader_stages [i][ dev_ctx_in].real_bindings [0],
              sizeof (ID3D11ShaderResourceView *) * D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT );
   }
@@ -412,8 +412,7 @@ SK_D3D11_ResetContextState (ID3D11DeviceContext* pDevCtx, UINT dev_ctx)
   {
     _GetRegistry  ( &pShaderRepo, i )->current.shader         [dev_ctx] = 0x0;
                      pShaderRepo->tracked.deactivate (pDevCtx, dev_ctx);
-    RtlSecureZeroMemory
-                  (  pShaderRepo->current.views               [dev_ctx],
+    RtlZeroMemory (  pShaderRepo->current.views               [dev_ctx],
                      128 * sizeof (ptrdiff_t) );
   }
 
@@ -454,7 +453,7 @@ SK_D3D11_ResetContextState (ID3D11DeviceContext* pDevCtx, UINT dev_ctx)
       }
     }
 
-    RtlSecureZeroMemory (
+    RtlZeroMemory (
       &stage.real_bindings [0],
         D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT * sizeof (ptrdiff_t)
     );
@@ -1319,9 +1318,9 @@ SK_D3D11_UpdateSubresource_Impl (
       if (__attempt_to_cache)
       {
         const bool skip =
-          ( (desc.Usage == D3D11_USAGE_STAGING    && (! SK_D3D11_IsStagingCacheable (rdim, pDstResource))) ||
-             desc.Usage == D3D11_USAGE_DYNAMIC    ||
-             SK_D3D11_IsTextureUncacheable (pTex)/*||
+          ( (desc.Usage == D3D11_USAGE_STAGING     && (! SK_D3D11_IsStagingCacheable (rdim, pDstResource))) ||
+             desc.Usage == D3D11_USAGE_DYNAMIC     || // A8 UNORM is for video playback in SO2R
+             SK_D3D11_IsTextureUncacheable (pTex)  || desc.Format == DXGI_FORMAT_A8_UNORM/*||
             (! DirectX::IsCompressed (desc.Format))*/);
             // Do NOT skip uncompressed textures, or it will fail to evict cached textures when
             //   their contents are invalidated
@@ -8610,10 +8609,10 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
     std::scoped_lock <SK_Thread_HybridSpinlock>
            auto_lock (*cs_render_view);
 
-    RtlSecureZeroMemory ( reshade_trigger_before->data (),
-                          reshade_trigger_before->size () * sizeof (bool) );
-    RtlSecureZeroMemory ( reshade_trigger_after->data  (),
-                          reshade_trigger_after->size  () * sizeof (bool) );
+    RtlZeroMemory ( reshade_trigger_before->data (),
+                    reshade_trigger_before->size () * sizeof (bool) );
+    RtlZeroMemory ( reshade_trigger_after->data  (),
+                    reshade_trigger_after->size  () * sizeof (bool) );
   }
 
   static auto& vertex   = shaders->vertex;
@@ -8639,12 +8638,12 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
 
     if (dev_idx < SK_D3D11_MAX_DEV_CONTEXTS)
     {
-      RtlSecureZeroMemory (vertex.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlSecureZeroMemory (pixel.current.views    [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlSecureZeroMemory (geometry.current.views [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlSecureZeroMemory (domain.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlSecureZeroMemory (hull.current.views     [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlSecureZeroMemory (compute.current.views  [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (vertex.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (pixel.current.views    [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (geometry.current.views [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (domain.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (hull.current.views     [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+      RtlZeroMemory (compute.current.views  [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
     }
   }
 

@@ -738,7 +738,7 @@ SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps)
 
   static DWORD dwPacket = 0;
 
-  SecureZeroMemory (&joy_to_xi.Gamepad, sizeof (XINPUT_STATE::Gamepad));
+  RtlZeroMemory (&joy_to_xi.Gamepad, sizeof (XINPUT_STATE::Gamepad));
 
 
   auto ComputeAxialPos_XInput =
@@ -957,7 +957,7 @@ SK_DI8_TranslateToXInput (DIJOYSTATE* pJoy)
 {
   static DWORD dwPacket = 0;
 
-  SecureZeroMemory (&di8_to_xi.Gamepad, sizeof (XINPUT_STATE::Gamepad));
+  RtlZeroMemory (&di8_to_xi.Gamepad, sizeof (XINPUT_STATE::Gamepad));
 
   //
   // Hard-coded mappings for DualShock 4 -> XInput
@@ -1197,7 +1197,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
         memcpy (SK_Input_GetDI8Keyboard ()->state, lpvData, cbData);
 
       if (disabled_to_game || FAILED (hr))
-        RtlSecureZeroMemory (lpvData, cbData);
+        RtlZeroMemory (lpvData, cbData);
 
       else
         SK_DI8_VIEW (sk_input_dev_type::Keyboard);
@@ -1220,7 +1220,7 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
         memcpy (&SK_Input_GetDI8Mouse ()->state, lpvData, cbData);
 
       if (disabled_to_game || FAILED (hr))
-        RtlSecureZeroMemory (lpvData, cbData);
+        RtlZeroMemory (lpvData, cbData);
 
       else
         SK_DI8_VIEW (sk_input_dev_type::Mouse);

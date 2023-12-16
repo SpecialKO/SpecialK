@@ -3554,7 +3554,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
 //for ( auto& display : displays )
 //{
-//  RtlSecureZeroMemory (
+//  RtlZeroMemory (
 //    &display, display_size
 //  );
 //}

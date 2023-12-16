@@ -5438,14 +5438,14 @@ SK_ImportRegistryValue ( const wchar_t *wszPath,
   }
 }
 
-void SK_AVX2_memcpy (void *pvDst, void *pvSrc, size_t nBytes)
+void* SK_AVX2_memcpy (void *pvDst, const void *pvSrc, size_t nBytes)
 {
   if ( (! InstructionSet::AVX2 ()) || (           nBytes % 32  != 0) ||
                                       ((intptr_t (pvSrc) & 31) != 0) ||
                                       ((intptr_t (pvDst) & 31) != 0) )
   {
-    std::memcpy (pvDst, pvSrc, nBytes);
-    return;
+    return
+      std::memcpy (pvDst, pvSrc, nBytes);
   }
 
   const __m256i *pSrc = (const __m256i *)(pvSrc);
@@ -5462,4 +5462,6 @@ void SK_AVX2_memcpy (void *pvDst, void *pvSrc, size_t nBytes)
   }
 
   _mm_sfence ();
+
+  return pvDst;
 };

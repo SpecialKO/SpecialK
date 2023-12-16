@@ -1282,10 +1282,10 @@ SK_UpdateSoftware1 (const wchar_t*, bool force)
     auto* get =
       new sk_internet_get_t { };
 
-    URL_COMPONENTSW    urlcomps;
+    URL_COMPONENTSW urlcomps;
 
-    RtlSecureZeroMemory (get,       sizeof *get);
-    RtlSecureZeroMemory (&urlcomps, sizeof URL_COMPONENTSW);
+    RtlZeroMemory (get,         sizeof *get);
+    RtlZeroMemory (&urlcomps,   sizeof URL_COMPONENTSW);
 
     urlcomps.dwStructSize     = sizeof URL_COMPONENTSW;
 

@@ -543,7 +543,7 @@ SnapshotProcs_NtDll (void)
   }
 
 
-  RtlSecureZeroMemory ( g_NtDll.pSnapshot, g_NtDll.dwHeapSize );
+  RtlZeroMemory ( g_NtDll.pSnapshot, g_NtDll.dwHeapSize );
 
   ns = g_NtDll.QuerySystemInformation ( SystemProcessInformation,
                                           g_NtDll.pSnapshot,

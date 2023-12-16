@@ -221,7 +221,7 @@ public:
     // This allocation was a NOP, but it is still
     //   expected that we return a zero-filled buffer
     else if (zero_fill)
-      RtlSecureZeroMemory (data, needed * sizeof (_T));
+      RtlZeroMemory (data, needed * sizeof (_T));
 
     return data;
   }

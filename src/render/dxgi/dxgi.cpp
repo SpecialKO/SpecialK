@@ -9198,7 +9198,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
     if ( budget_thread->handle == INVALID_HANDLE_VALUE )
     {
 
-      SecureZeroMemory ( budget_thread.getPtr (),
+      RtlZeroMemory ( budget_thread.getPtr (),
                      sizeof budget_thread_params_t );
 
       dll_log->LogEx ( true,

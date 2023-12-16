@@ -1638,6 +1638,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
           std::min <size_t> ( img->rowPitch,
                                 pInitialData [lod].SysMemPitch );
 
+        //SK_memcpy (dptr, sptr, msize);
         memcpy_s ( dptr, img->rowPitch,
                    sptr, msize );
 

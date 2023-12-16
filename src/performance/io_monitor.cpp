@@ -39,8 +39,9 @@ SK_CountIO (io_perf_t& ioc, const double update)
 
   if (ioc.init == false)
   {
-    RtlSecureZeroMemory (&ioc, sizeof (io_perf_t));
-                    ioc.init = true;
+    RtlZeroMemory (&ioc, sizeof (io_perf_t));
+
+    ioc.init = true;
   }
 
   LARGE_INTEGER now =
@@ -684,8 +685,10 @@ SK_MonitorDisk (LPVOID user)
         goto DISK_CLEANUP;
       }
 
-      SecureZeroMemory (disk.apEnumAccess,
-                        disk.dwNumReturned * sizeof (IWbemObjectAccess *));
+      if (disk.dwNumReturned * sizeof (IWbemObjectAccess *) >= 32)
+      {
+        RtlZeroMemory (disk.apEnumAccess, disk.dwNumReturned * sizeof (IWbemObjectAccess *));
+      }
 
       disk.dwNumObjects = disk.dwNumReturned;
 
@@ -1104,8 +1107,8 @@ SK_MonitorPagefile (LPVOID user)
         goto PAGEFILE_CLEANUP;
       }
 
-      SecureZeroMemory (pagefile.apEnumAccess,
-                        pagefile.dwNumReturned * sizeof (IWbemObjectAccess *));
+      RtlZeroMemory (pagefile.apEnumAccess,
+                     pagefile.dwNumReturned * sizeof (IWbemObjectAccess *));
 
       pagefile.dwNumObjects = pagefile.dwNumReturned;
 

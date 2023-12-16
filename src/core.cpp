@@ -1508,7 +1508,7 @@ SK_EstablishRootPath (void)
     config.system.central_repository = true;
   }
 
-  RtlSecureZeroMemory (
+  RtlZeroMemory (
     wszConfigPath, sizeof (wchar_t) * (MAX_PATH + 2)
   );
 
