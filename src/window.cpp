@@ -6928,7 +6928,11 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
 
   // Kiss of death for sane window management
   if (! _wcsicmp (wszClassName, L"UnityWndClass"))
+  {
     SK_GetCurrentRenderBackend ().windows.unity = true;
+    config.textures.cache.ignore_nonmipped      = true;
+    cache_opts.ignore_non_mipped                = true; // Push this change through immediately
+  }
 
   else if (! _wcsicmp (wszClassName, L"UnrealWindow"))
     SK_GetCurrentRenderBackend ().windows.unreal = true;

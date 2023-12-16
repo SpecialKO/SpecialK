@@ -2417,10 +2417,6 @@ auto DeclKeybind =
         config.window.res.override.y = mi.rcMonitor.bottom - mi.rcMonitor.top;
       } break;
 
-      case SK_GAME_ID::StarOcean2R:
-        config.textures.cache.ignore_nonmipped = true;
-        break;
-
       case SK_GAME_ID::StarOcean4:
         // Prevent the game from layering windows always on top.
         config.window.always_on_top             = PreventAlwaysOnTop;

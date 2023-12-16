@@ -1,4 +1,9 @@
-﻿23.12.15.1
+﻿23.12.16
+========
+ + Turn off non-mipmapped texture cache immediately in all Unity engine games, as
+     soon as a window is created with UnityWndClass.
+
+23.12.15.1
 ==========
  + Defaulted Star Ocean 2 to turning off texture cache for non-mipmapped textures
  + Added various nullptr checks
