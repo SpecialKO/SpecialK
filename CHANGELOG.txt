@@ -1,4 +1,9 @@
-﻿23.12.15
+﻿23.12.15.1
+==========
+ + Defaulted Star Ocean 2 to turning off texture cache for non-mipmapped textures
+ + Added various nullptr checks
+
+23.12.15
 ========
  + Added D3D11 stateblock backup/restore and set rasterizer state to sane defaults
      before triggering ReShade render passes early.
