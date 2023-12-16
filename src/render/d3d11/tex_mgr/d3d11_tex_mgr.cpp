@@ -3379,6 +3379,12 @@ SK_D3D11_RecursiveEnumAndAddTex  ( const std::wstring   directory,
 
           const wchar_t* wszFileName = fd.cFileName;
 
+          if (     StrStrIW (wszFileName, L"Uncompressed_") == wszFileName)
+                             wszFileName += 13;
+
+          else if (StrStrIW (wszFileName, L"Compressed_") == wszFileName)
+                             wszFileName += 11;
+
           //if (StrStrIW (wszFileName, L"Preload") == fd.cFileName)
           //{
           //  const size_t skip =
