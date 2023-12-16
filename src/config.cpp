@@ -3614,8 +3614,8 @@ auto DeclKeybind =
                                                                         (INT*)&config.render.framerate.rescan_.Denom);
     }
 
-    if ( config.render.framerate.rescan_.Numerator != static_cast <UINT> (-1) &&
-         config.render.framerate.rescan_.Denom     !=                      0 )
+    if ( config.render.framerate.rescan_.Numerator != (-1) &&
+         config.render.framerate.rescan_.Denom     !=   0 )
     {
       config.render.framerate.refresh_rate =
         sk::narrow_cast <float> (config.render.framerate.rescan_.Numerator) /

@@ -4052,6 +4052,9 @@ SK_FormatStringViewW (std::wstring_view& out, wchar_t const* const _Format, ...)
 void
 SK_StripLeadingSlashesW (wchar_t *wszInOut)
 {
+  if (wszInOut == nullptr)
+    return;
+
   auto IsSlash = [](wchar_t a) -> bool {
     return (a == L'\\' || a == L'/');
   };
@@ -4104,7 +4107,10 @@ SK_StripLeadingSlashesW (wchar_t *wszInOut)
 //
 void
 SK_StripTrailingSlashesW (wchar_t* wszInOut)
-{
+{ 
+  if (wszInOut == nullptr)
+    return;
+
   //wchar_t* wszValidate = wcsdup (wszInOut);
 
   auto IsSlash = [](wchar_t a) -> bool {
@@ -4195,6 +4201,9 @@ SK_FixSlashesW (wchar_t* wszInOut)
 void
 SK_StripTrailingSlashesA (char* szInOut)
 {
+  if (szInOut == nullptr)
+    return;
+
   auto IsSlash = [](char a) -> bool {
     return (a == '\\' || a == '/');
   };

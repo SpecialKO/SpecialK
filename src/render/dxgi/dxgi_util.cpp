@@ -947,6 +947,9 @@ SK_DXGI_ReleaseSRGBLinearizer (void)
 bool
 SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
 {
+  if (pChainThatUsedToBeSRGB == nullptr)
+    return false;
+
   SK_ComPtr <IDXGISwapChain> pSwapChain (pChainThatUsedToBeSRGB);
   SK_ComPtr <ID3D11DeviceContext>                                pDevCtx;
   SK_ComPtr <ID3D11Device>                                       pDev;
@@ -1771,6 +1774,12 @@ bool
 SK_D3D11_CheckForMatchingDevicesUsingPrivateData ( ID3D11Device *pDevice0,
                                                    ID3D11Device *pDevice1 )
 {
+  if (pDevice0 == nullptr ||
+      pDevice1 == nullptr)
+  {
+    return false;
+  }
+
   bool matching = false;
 
   uintptr_t  ptr0 = 0,
@@ -1908,6 +1917,9 @@ SK_DXGI_GetPrivateData ( IDXGIObject *pObject,
                          UINT        uiMaxBytes,
                          void        *pPrivateData )
 {
+  if (pObject == nullptr)
+    return E_POINTER;
+
   UINT size = 0;
 
   if (SUCCEEDED (pObject->GetPrivateData (kName, &size, nullptr)))
@@ -1932,6 +1944,9 @@ SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
                             UINT     uiNumBytes,
                             void     *pPrivateData )
 {
+  if (pObject == nullptr)
+    return E_POINTER;
+
   return
     pObject->SetPrivateData (kName, uiNumBytes, pPrivateData);
 }
@@ -1941,6 +1956,9 @@ HRESULT
 SK_DXGI_GetPrivateData ( IDXGIObject *pObject,
    IWrapDXGISwapChain::state_cache_s *pPrivateData )
 {
+  if (pObject == nullptr)
+    return E_POINTER;
+
   return
     SK_DXGI_GetPrivateData ( pObject, SKID_DXGI_SwapChain_StateCache,
       sizeof (IWrapDXGISwapChain::state_cache_s),
@@ -1952,6 +1970,9 @@ HRESULT
 SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
    IWrapDXGISwapChain::state_cache_s *pPrivateData )
 {
+  if (pObject == nullptr)
+    return E_POINTER;
+
   return
     SK_DXGI_SetPrivateData ( pObject, SKID_DXGI_SwapChain_StateCache,
       sizeof (IWrapDXGISwapChain::state_cache_s),

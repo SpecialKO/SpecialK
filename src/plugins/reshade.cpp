@@ -131,6 +131,9 @@ void
 __cdecl
 SK_ReShadeAddOn_InitRuntime (reshade::api::effect_runtime *runtime)
 {
+  if (! runtime)
+    return;
+
   static SK_Thread_HybridSpinlock                   _init_lock;
   std::scoped_lock <SK_Thread_HybridSpinlock> lock (_init_lock);
 
@@ -348,6 +351,9 @@ SK_ReShadeAddOn_CleanupRTVs (reshade::api::effect_runtime *runtime, bool must_wa
   const auto device =
     runtime->get_device ();
 
+  if (! device)
+    return;
+
   auto api =
     device->get_api ();
 
@@ -365,6 +371,9 @@ void
 __cdecl
 SK_ReShadeAddOn_DestroyRuntime (reshade::api::effect_runtime *runtime)
 {
+  if (! runtime)
+    return;
+
   SK_LOGs0 (L"ReShadeExt", L"Runtime Destroyed");
 
   SK_ReShadeAddOn_CleanupRTVs (runtime, true);
@@ -460,8 +469,14 @@ void
 __cdecl
 SK_ReShadeAddOn_DestroyCmdQueue (reshade::api::command_queue *queue)
 {
+  if (queue == nullptr)
+    return;
+
   auto device =
     queue->get_device ();
+
+  if (device == nullptr)
+    return;
 
   auto api =
     device->get_api ();
@@ -675,6 +690,8 @@ SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
 
   if (runtime != nullptr)
   {
+    SK_ReShadeAddOn_CleanupRTVs (runtime, false);
+
     const bool has_effects =
       runtime->get_effects_state ();
 
@@ -684,11 +701,14 @@ SK_ReShadeAddOn_RenderEffectsD3D11 (IDXGISwapChain1 *pSwapChain)
     const auto cmd_queue =
       runtime->get_command_queue ();
 
+    if (cmd_queue == nullptr)
+      return false;
+
     const auto cmd_list =
       cmd_queue->get_immediate_command_list ();
 
-
-    SK_ReShadeAddOn_CleanupRTVs (runtime, false);
+    if (cmd_list == nullptr)
+      return false;
 
     //
     // We have ReShade triggers, but none of them triggered... pass a null rtv for both

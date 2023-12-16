@@ -875,6 +875,9 @@ HRESULT
 __stdcall
 SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 {
+  if (pTex == nullptr)
+    return E_POINTER;
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -1501,6 +1504,9 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                           _In_       uint32_t                top_crc32,
                           _In_       uint32_t                checksum )
 {
+  if (pDesc == nullptr || pInitialData == nullptr)
+    return E_POINTER;
+
   static auto& textures =
     SK_D3D11_Textures;
 
@@ -2163,6 +2169,9 @@ SK_D3D11_TexMgr::reset (void)
 
   for ( const auto& desc : textures )
   {
+    if (desc == nullptr)
+      continue;
+
     const auto mem_size =
      sk::narrow_cast <int64_t> (desc->mem_size) >> 10ULL;
 
@@ -2466,6 +2475,9 @@ uint32_t
 __stdcall
 SK_D3D11_TextureHashFromCache (ID3D11Texture2D* pTex)
 {
+  if (pTex == nullptr)
+    return 0x0;
+
   if (! SK_D3D11_cache_textures)
     return 0x00;
 
@@ -2484,6 +2496,9 @@ SK_D3D11_TextureHashFromCache (ID3D11Texture2D* pTex)
 BOOL
 SK_D3D11_MarkTextureUncacheable ( ID3D11Texture2D *pTexture )
 {
+  if (pTexture == nullptr)
+    return FALSE;
+
   constexpr UINT size =
                  sizeof (bool);
 

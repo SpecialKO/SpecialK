@@ -36,9 +36,12 @@ str_hash_compare <std::string, std::less <> >::hash_string (const std::string& _
 {
   constexpr bool case_insensitive = true;
 
-  size_type   __h    = 0;
+        size_type   __h    = 0;
   const size_type   __len  = _Keyval.size ();
   const value_type* __data = _Keyval.data ();
+
+  if (__data == nullptr)
+    return __h;
 
   for (size_type __i = 0; __i < __len; ++__i)
   {
@@ -585,6 +588,9 @@ void
 SK_IVarStub <bool>::getValueString ( _Out_opt_     char* szOut,
                                      _Inout_   uint32_t* dwLen ) const
 {
+  if (! dwLen)
+    return;
+
   uint32_t len = 0;
 
   if (getValue ())
@@ -624,6 +630,9 @@ void
 SK_IVarStub <char*>::getValueString ( _Out_opt_     char* szOut,
                                       _Inout_   uint32_t* dwLen ) const
 {
+  if (! dwLen)
+    return;
+
   if (szOut != nullptr)
     strncpy (szOut, reinterpret_cast <char *> (var_), *dwLen);
 
@@ -644,6 +653,9 @@ void
 SK_IVarStub <int>::getValueString ( _Out_opt_ char*     szOut,
                                     _Inout_   uint32_t* dwLen ) const
 {
+  if (! dwLen)
+    return;
+
   if (szOut != nullptr)
     *dwLen = snprintf (szOut, *dwLen, "%i", getValue ());
   else
@@ -665,6 +677,9 @@ void
 SK_IVarStub <short>::getValueString ( _Out_opt_ char*     szOut,
                                       _Inout_   uint32_t* dwLen ) const
 {
+  if (! dwLen)
+    return;
+
   if (szOut != nullptr)
     *dwLen = snprintf (szOut, *dwLen, "%i", getValue ());
   else
@@ -686,6 +701,9 @@ void
 SK_IVarStub <float>::getValueString ( _Out_opt_ char*     szOut,
                                       _Inout_   uint32_t* dwLen ) const
 {
+  if (! dwLen)
+    return;
+
   if (szOut != nullptr)
   {
     *dwLen = snprintf (szOut, *dwLen, "%f", getValue ());

@@ -134,7 +134,7 @@ SK_Debug_LoadHelper (void)
           wszSystemDbgHelp, wszIsolatedDbgHelp, TRUE);
     }
 
-    auto* mods =
+    _Notnull_ auto* mods =
        SK_Modules.getPtr ();
 
     hModDbgHelp =
@@ -1674,6 +1674,9 @@ SK_Debug_FlagAsDebugging (void)
 constexpr USHORT
 _constUnicodeLen ( const wchar_t* str )
 {
+  if (str == nullptr)
+    return 0;
+
   return (   *str == L'\0'   ) ?
                              0 :
          _constUnicodeLen (str + 1)

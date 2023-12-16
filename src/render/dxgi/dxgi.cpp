@@ -6709,7 +6709,8 @@ SK_DXGI_AdapterOverride ( IDXGIAdapter**   ppAdapter,
       }
 
       if ( SK_DXGI_preferred_adapter != SK_NoPreference &&
-           SUCCEEDED (EnumAdapters_Original (pFactory, SK_DXGI_preferred_adapter, &pOverrideAdapter)) )
+           SUCCEEDED (EnumAdapters_Original (pFactory, SK_DXGI_preferred_adapter, &pOverrideAdapter)) &&
+                                                                        nullptr != pOverrideAdapter )
       {
         DXGI_ADAPTER_DESC override_desc;
         GetDesc_Original (pOverrideAdapter, &override_desc);
@@ -6886,7 +6887,7 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
 
 
 {
-  if (ppAdapter == nullptr || *ppAdapter == nullptr)
+  if (ppAdapter == nullptr || *ppAdapter == nullptr || pFunc == nullptr)
     return E_POINTER;
 
   int iver =

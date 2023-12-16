@@ -2832,11 +2832,15 @@ RunDLL_RestartNVIDIADriver ( HWND   hwnd,        HINSTANCE hInst,
     typedef NvAPI_Status(__cdecl *NvAPI_RestartDisplayDriver_pfn)(void);
     NvAPI_QueryInterface_pfn          NvAPI_QueryInterface       =
       (NvAPI_QueryInterface_pfn)SK_GetProcAddress (hLib, "nvapi_QueryInterface");
-    NvAPI_RestartDisplayDriver_pfn NvAPI_RestartDisplayDriver =
-      (NvAPI_RestartDisplayDriver_pfn)NvAPI_QueryInterface (__NvAPI_RestartDisplayDriver);
 
-    if (NvAPI_RestartDisplayDriver != nullptr)
-        NvAPI_RestartDisplayDriver ();
+    if (NvAPI_QueryInterface != nullptr)
+    {
+      NvAPI_RestartDisplayDriver_pfn NvAPI_RestartDisplayDriver =
+        (NvAPI_RestartDisplayDriver_pfn)NvAPI_QueryInterface (__NvAPI_RestartDisplayDriver);
+
+      if (NvAPI_RestartDisplayDriver != nullptr)
+          NvAPI_RestartDisplayDriver ();
+    }
   }
   
   else

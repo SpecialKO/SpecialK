@@ -507,6 +507,12 @@ BOOL
 SK_D3D11_SetWrappedImmediateContext ( ID3D11Device        *pDev,
                                       ID3D11DeviceContext *pDevCtx )
 {
+  if ( pDev    == nullptr ||
+       pDevCtx == nullptr )
+  {
+    return FALSE;
+  }
+
   if ( FAILED (
          pDev->SetPrivateDataInterface ( SKID_D3D11WrappedImmediateContext,
                                            pDevCtx )
@@ -815,6 +821,9 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
 UINT
 SK_D3D11_RemoveUndesirableFlags (UINT* Flags) noexcept
 {
+  if (Flags == nullptr)
+    return 0x0;
+
   const UINT original =
     *Flags;
 
@@ -2002,6 +2011,14 @@ SK_D3D11_ResolveSubresource_Impl (
 
   std::ignore = bMustNotIgnore;
 
+  if ( pDevCtx      == nullptr ||
+       pDstResource == nullptr ||
+       pSrcResource == nullptr )
+  {
+    return
+      _Finish (pDstResource, pSrcResource, Format);
+  }
+
   SK_ComQIPtr <ID3D11Texture2D> pSrcTex (pSrcResource),
                                 pDstTex (pDstResource);
   if ( pSrcTex.p != nullptr &&
@@ -2265,9 +2282,9 @@ SK_D3D11_CopyResource_Impl (
       {
         mem_map_stats->last_frame.resource_types [D3D11_RESOURCE_DIMENSION_BUFFER]++;
 
-        ID3D11Buffer* pBuffer = nullptr;
-
-        if (SUCCEEDED (pSrcResource->QueryInterface <ID3D11Buffer> (&pBuffer)))
+        ID3D11Buffer*                                                pBuffer = nullptr;
+        if (SUCCEEDED (pSrcResource->QueryInterface <ID3D11Buffer> (&pBuffer)) &&
+                                                          nullptr != pBuffer)
         {
           D3D11_BUFFER_DESC  buf_desc = { };
           pBuffer->GetDesc (&buf_desc);
@@ -3246,6 +3263,9 @@ const
                        UINT                     *pNumConstants )  ->
         void
         {
+          if (! pFirstConstant)
+            return;
+
           SK_ComQIPtr <ID3D11DeviceContext1> pDevCtx1 (pDevCtx);
 
           // Vtx/Pix/Geo/Hul/Dom/[Com] :: UNDEFINED
@@ -3519,6 +3539,9 @@ SK_D3D11_DispatchHandler ( ID3D11DeviceContext* pDevCtx,
                            UINT&                dev_idx,
                            SK_TLS**             ppTLS )
 {
+  if (ppTLS == nullptr)
+    return false;
+
   SK_D3D11_DispatchThreads->mark ();
 
   dev_idx =
@@ -7088,7 +7111,7 @@ SK_LazyGlobal <SK_D3D11_StateTrackingCounters> SK_D3D11_TrackingCount;
 extern void
 SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS);
 
-UINT _GetStashedRTVIndex (ID3D11RenderTargetView* pRTV)
+UINT _GetStashedRTVIndex (_Notnull_ ID3D11RenderTargetView* pRTV)
 {
   UINT size = 4;
   UINT idx  = std::numeric_limits <UINT>::max ();
@@ -7148,6 +7171,9 @@ void
 __stdcall
 SKX_ImGui_RegisterDiscardableResource (IUnknown* pRes)
 {
+  if (pRes == nullptr)
+    return;
+
   std::scoped_lock <SK_Thread_CriticalSection>
                   auto_lock (*cs_render_view);
 

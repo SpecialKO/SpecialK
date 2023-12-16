@@ -162,7 +162,7 @@ DirectInput8Create ( HINSTANCE hinst,
                                                   riidltf, ppvOut,
                                                     punkOuter )
              )
-           )
+           ) && ppvOut != nullptr
          )
       {
         if ((! IDirectInput8A_CreateDevice_Original) &&
@@ -200,7 +200,7 @@ DirectInput8Create ( HINSTANCE hinst,
                                                   riidltf, ppvOut,
                                                     punkOuter )
              )
-           )
+           ) && ppvOut != nullptr
          )
       {
         if ((! IDirectInput8W_CreateDevice_Original) &&
@@ -499,6 +499,9 @@ CoCreateInstanceEx_DI8 (
   _Inout_ MULTI_QI     *pResults,
   _In_    LPVOID        pCallerAddr )
 {
+  if (pResults == nullptr)
+    return E_POINTER;
+
   SK_BootDI8        ();
   if (SK_GetDLLRole () == DLL_ROLE::DInput8)
   { WaitForInit_DI8 ();                      }
@@ -524,7 +527,7 @@ CoCreateInstanceEx_DI8 (
          ) && config.input.gamepad.hook_dinput8
        )
     {
-      if (SUCCEEDED (pResults->hr))
+      if (SUCCEEDED (pResults->hr) && pResults->pItf != nullptr && pResults->pIID != nullptr)
       {
         if (*pResults->pIID == IID_IDirectInput8A)
         {
@@ -1445,7 +1448,7 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
   static auto& _devices_w =
                devices8_w.get ();
 
-  if (hookable && _devices_w.count (guid_crc32c))
+  if (hookable && _devices_w.count (guid_crc32c) && lplpDirectInputDevice != nullptr)
   {
     *lplpDirectInputDevice = _devices_w [guid_crc32c];
                              _devices_w [guid_crc32c]->AddRef ();
@@ -1477,7 +1480,8 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
                                                            lplpDirectInputDevice,
                                                             pUnkOuter ) );
 
-  if (SUCCEEDED (hr) && *lplpDirectInputDevice != nullptr)
+  if (SUCCEEDED (hr) &&  lplpDirectInputDevice != nullptr &&
+                        *lplpDirectInputDevice != nullptr)
   {
     void** vftable =
       *reinterpret_cast <void ***> (*lplpDirectInputDevice);
@@ -1556,7 +1560,7 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
   static auto& _devices_a =
                devices8_a.get ();
 
-  if (hookable && _devices_a.count (guid_crc32c))
+  if (hookable && _devices_a.count (guid_crc32c) && lplpDirectInputDevice != nullptr)
   {
     *lplpDirectInputDevice = _devices_a [guid_crc32c];
                              _devices_a [guid_crc32c]->AddRef ();
@@ -1587,7 +1591,8 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
                                                            lplpDirectInputDevice,
                                                             pUnkOuter ) );
 
-  if (SUCCEEDED (hr) && *lplpDirectInputDevice != nullptr)
+  if (SUCCEEDED (hr) &&  lplpDirectInputDevice != nullptr &&
+                        *lplpDirectInputDevice != nullptr)
   {
     void** vftable =
       *reinterpret_cast <void ***> (*lplpDirectInputDevice);

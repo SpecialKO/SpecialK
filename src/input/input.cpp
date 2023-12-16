@@ -659,7 +659,7 @@ SK_RawInput_PopulateDeviceList (void)
 
   SK_SetLastError (dwLastError);
 
-  if (uiNumDevices != 0 && ret == -1)
+  if (uiNumDevices != 0 && ret == -1 && pDevices != nullptr)
   {
     SK_TLS* pTLS =
       SK_TLS_Bottom ();

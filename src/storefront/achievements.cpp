@@ -48,7 +48,7 @@ void SK_AchievementManager::loadSound (const wchar_t *wszUnlockSound)
     ( SK::EOS::UserID () != nullptr ) ?
                    epic_log.getPtr () : steam_log.getPtr ();
 
-  if (! wszUnlockSound) // Try again, stupid
+  if (log == nullptr || (! wszUnlockSound)) // Try again, stupid
     return;
 
   bool xbox = false,

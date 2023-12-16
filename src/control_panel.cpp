@@ -140,6 +140,9 @@ LoadFileInResource ( int          name,
                      DWORD*       size,
                      const char** data )
 {
+  if (! data)
+    return;
+
   HMODULE handle =
     SK_GetModuleHandle (nullptr);
 
@@ -155,8 +158,11 @@ LoadFileInResource ( int          name,
 
     if (rcData != nullptr)
     {
-      *size =
-        SizeofResource (handle, rc);
+      if (size != nullptr)
+      {
+        *size =
+          SizeofResource (handle, rc);
+      }
 
       *data =
         static_cast <const char *>(

@@ -58,7 +58,7 @@ GetLogicalProcessorInformation_Detour (
   BOOL bRet =
     GetLogicalProcessorInformation_Original ( Buffer, ReturnedLength );
 
-  if ( bRet == TRUE )
+  if ( bRet == TRUE && ReturnedLength != nullptr )
   {
     struct {
       int physical = 0;

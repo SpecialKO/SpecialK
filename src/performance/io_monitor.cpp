@@ -461,7 +461,7 @@ SK_MonitorCPU (LPVOID user_param)
     if ( NT_SUCCESS (
            NtQuerySystemInformation_SK ( SystemProcessorPerformanceInformation, pPerformance,
                                          ulAllocatedPerfBytes,         &ulAllocatedPerfBytes )
-         )
+         )                                                                   && pPerformance != nullptr
        )
     {
       // Windows 11 idle times in SystemProcessorPerformanceInformation are wrong,
@@ -486,7 +486,8 @@ SK_MonitorCPU (LPVOID user_param)
                        true
             );
 
-        if ( NT_SUCCESS (
+        if ( pIdle != nullptr &&
+             NT_SUCCESS (
                NtQuerySystemInformation_SK ( SystemProcessorIdleInformation, pIdle,
                                              ulAllocatedIdleBytes,
                                             &ulAllocatedIdleBytes )
@@ -527,7 +528,8 @@ SK_MonitorCPU (LPVOID user_param)
                      true
           );
 
-      if ( _GetSystemCpuSetInformation ( pCSI, ulCSIAlloc, &ulCSIAlloc,
+      if (                    nullptr != pCSI &&
+           _GetSystemCpuSetInformation ( pCSI, ulCSIAlloc, &ulCSIAlloc,
                                            GetCurrentProcess (), 0x0 ) )
       {
         PSYSTEM_CPU_SET_INFORMATION             pCSIEnd =

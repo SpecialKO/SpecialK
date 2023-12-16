@@ -404,6 +404,9 @@ SK_Process_SnapshotNt (void)
 VOID
 SK_Process_EnumerateThreads (PTHREAD_LIST pThreads, DWORD dwPID)
 {
+  if (pThreads == nullptr)
+    return;
+
   SK_NtDll->init ();
   SK_NtDll->lock ();
 

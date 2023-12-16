@@ -126,6 +126,9 @@ SK_D3D11_GET_OBJECT_NAME_N ( ID3D11DeviceChild *pObject,
 bool
 SK_D3D11_HasDebugName (ID3D11DeviceChild* pD3D11Obj)
 {
+  if (pD3D11Obj == nullptr)
+    return false;
+
   UINT uiNameLen = 0;
 
   HRESULT hr =

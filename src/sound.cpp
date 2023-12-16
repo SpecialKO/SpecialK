@@ -994,8 +994,11 @@ SK_WASAPI_Init (void)
     }
   } static sound_control;
 
-  cmd->AddVariable ("Sound.Volume", SK_CreateVar (SK_IVariable::Float,   &volume, &sound_control));
-  cmd->AddVariable ("Sound.Mute",   SK_CreateVar (SK_IVariable::Boolean, &mute,   &sound_control));
+  if (cmd != nullptr)
+  {
+    cmd->AddVariable ("Sound.Volume", SK_CreateVar (SK_IVariable::Float,   &volume, &sound_control));
+    cmd->AddVariable ("Sound.Mute",   SK_CreateVar (SK_IVariable::Boolean, &mute,   &sound_control));
+  }
 
   auto cur_lat = SK_WASAPI_GetCurrentLatency ();
   auto min_lat = SK_WASAPI_GetMinimumLatency ();

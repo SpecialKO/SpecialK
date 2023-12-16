@@ -303,7 +303,7 @@ _In_   const D3D12_GRAPHICS_PIPELINE_STATE_DESC *pDesc_,
              REFIID                              riid,
 _COM_Outptr_ void                              **ppPipelineState )
 {
-  if (riid != __uuidof (ID3D12PipelineState))
+  if (riid != __uuidof (ID3D12PipelineState) || ppPipelineState == nullptr)
   {
     wchar_t                wszGUID [41] = { };
     StringFromGUID2 (riid, wszGUID, 40);
@@ -1921,6 +1921,9 @@ SK_D3D12_WriteResources (void)
 void
 SK_D3D12_CommitUploadQueue (ID3D12GraphicsCommandList *pCmdList)
 {
+  if (pCmdList == nullptr)
+    return;
+
   SK_ComPtr <ID3D12Device>            pDev;
   pCmdList->GetDevice (IID_PPV_ARGS (&pDev.p));
 

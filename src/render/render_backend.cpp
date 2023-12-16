@@ -1395,8 +1395,8 @@ sk_hwnd_cache_s::getDevCaps (void)
       SK_TLS *pTLS =
         SK_TLS_Bottom ();
 
-      auto *pathArray = (DISPLAYCONFIG_PATH_INFO *)pTLS->scratch_memory->ccd.display_paths.alloc (uiNumPaths);
-      auto *modeArray = (DISPLAYCONFIG_MODE_INFO *)pTLS->scratch_memory->ccd.display_modes.alloc (uiNumModes);
+      _Notnull_ auto *pathArray = (DISPLAYCONFIG_PATH_INFO *)pTLS->scratch_memory->ccd.display_paths.alloc (uiNumPaths);
+      _Notnull_ auto *modeArray = (DISPLAYCONFIG_MODE_INFO *)pTLS->scratch_memory->ccd.display_modes.alloc (uiNumModes);
 
       if ( ERROR_SUCCESS == QueryDisplayConfig ( QDC_ONLY_ACTIVE_PATHS, &uiNumPaths, pathArray,
                                                                         &uiNumModes, modeArray, nullptr ) )
@@ -2557,6 +2557,9 @@ SK_EDID_GetMonitorNameFromBlock ( uint8_t const* block )
 std::string
 SK_RenderBackend_V2::parseEDIDForName (uint8_t *edid, size_t length)
 {
+  if (edid == nullptr)
+    return "";
+
   std::string edid_name;
 
   unsigned int i        = 0;
@@ -2658,6 +2661,9 @@ SK_RenderBackend_V2::parseEDIDForName (uint8_t *edid, size_t length)
 POINT
 SK_RenderBackend_V2::parseEDIDForNativeRes (uint8_t* edid, size_t length)
 {
+  if (edid == nullptr)
+    return { 0, 0 };
+
   unsigned int   i = 0;
   uint8_t checksum = 0;
 

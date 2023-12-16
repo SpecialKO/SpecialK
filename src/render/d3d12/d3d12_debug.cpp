@@ -72,6 +72,9 @@ SK_D3D12_GET_OBJECT_NAME_N ( ID3D12Object *pObject,
 bool
 SK_D3D12_HasDebugName (ID3D12Object* pD3D12Obj)
 {
+  if (pD3D12Obj == nullptr)
+    return false;
+
   UINT uiNameLen = 0;
 
   if ( FAILED ( pD3D12Obj->GetPrivateData (WKPDID_D3DDebugObjectNameW, &uiNameLen, nullptr) ) &&

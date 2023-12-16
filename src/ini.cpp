@@ -533,6 +533,9 @@ iSK_INI::parse (void)
 {
   SK_ReleaseAssert (data.size () > 0);
 
+  if (data.empty ())
+    return;
+
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
@@ -642,6 +645,9 @@ iSK_INI::parse (void)
       {
         for (wchar_t* j = start; j <= pEnd; j = CharNextW (j))
         {
+          if (j == nullptr)
+            break;
+
           if (j == pEnd)
           {
             finish = j;
@@ -835,6 +841,9 @@ iSK_INI::import (const wchar_t* import_data)
 
       for (wchar_t* j = start; j <= pEnd; j = CharNextW (j))
       {
+        if (j == nullptr)
+          break;
+
         if (j == pEnd)
         {
           finish = j;
@@ -1400,6 +1409,9 @@ HRESULT
 __stdcall
 iSK_INI::QueryInterface (THIS_ REFIID riid, void** ppvObj)
 {
+  if (ppvObj == nullptr)
+    return E_POINTER;
+
   if (IsEqualGUID (riid, IID_SK_INI) != 0)
   {
     AddRef ();

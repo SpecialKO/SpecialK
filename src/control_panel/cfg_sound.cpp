@@ -85,16 +85,19 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
     std::set <DWORD> unique_processes;
 
-    for ( auto i = 0 ; i < count ; ++i )
+    if (pSessions != nullptr)
     {
-      if ( unique_processes.emplace (
-             pSessions [i]->getProcessId ()
-           ).second )
+      for ( auto i = 0 ; i < count ; ++i )
       {
-        const ImVec2 size =
-          ImGui::CalcTextSize (pSessions [i]->getName ());
+        if ( unique_processes.emplace (
+               pSessions [i]->getProcessId ()
+             ).second )
+        {
+          const ImVec2 size =
+            ImGui::CalcTextSize (pSessions [i]->getName ());
 
-        if (size.x > max_width) max_width = size.x;
+          if (size.x > max_width) max_width = size.x;
+        }
       }
     }
 
@@ -140,6 +143,9 @@ SK_ImGui_SelectAudioSessionDlg (void)
       {
         SK_WASAPI_AudioSession* pSession =
           pSessions [i];
+
+        if (pSession == nullptr)
+          continue;
 
         auto pChannelVolume =
           pSession->getChannelAudioVolume ();
