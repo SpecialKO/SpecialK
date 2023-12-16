@@ -1,7 +1,7 @@
 ﻿23.12.16.1
 ==========
  + Always write INI files in \Global\ using UTF-16LE to avoid conversion from UTF-8
-     to UTF-16LE when parsing them
+     to UTF-16LE when parsing them.
 
 23.12.16
 ========
