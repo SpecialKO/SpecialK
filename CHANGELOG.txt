@@ -1,4 +1,10 @@
-﻿23.12.16.3
+﻿
+23.12.16.4
+==========
+ + Automatically put games that use sRGB SwapChains into Linear mode when applying
+     inverse tonemapping.
+
+23.12.16.3
 ==========
  + Loading a dumped texture no longer requires removing the "Compressed_" or
      "Uncompressed_" prefix from the filename.

@@ -928,9 +928,9 @@ public:
 
 
     //// Automatically handle sRGB -> Linear if the original SwapChain used it
-    //extern bool             bOriginallysRGB;
-    //if (rb.srgb_stripped || bOriginallysRGB)
-    //  __SK_HDR_Content_EOTF = 1.0f;
+    extern bool             bOriginallysRGB;
+    if (rb.srgb_stripped || bOriginallysRGB)
+      __SK_HDR_Content_EOTF = 1.0f;
 
 
     if ( __SK_HDR_10BitSwap ||
