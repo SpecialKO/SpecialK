@@ -1,4 +1,11 @@
-﻿23.12.16.1
+﻿23.12.16.2
+==========
+ + Added support for TYPELESS texture dumping and injection
+ + These textures must keep the _TYPELESS part of their name for proper re-injection
+     >> Typically you'd treat them as UNORM or UNORM_SRGB in image software and keep the
+          `_TYPELESS.dds` name for engine compatibility.
+
+23.12.16.1
 ==========
  + Always write INI files in \Global\ using UTF-16LE to avoid conversion from UTF-8
      to UTF-16LE when parsing them.

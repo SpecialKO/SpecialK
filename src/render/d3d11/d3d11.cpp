@@ -5707,6 +5707,9 @@ D3D11Dev_CreateTexture2D_Impl (
            GetFileAttributes (wszTex) != INVALID_FILE_ATTRIBUTES )
       {
 
+        bool typeless =
+          StrStrIW (wszTex, L"_TYPELESS");
+
         HRESULT hr = E_UNEXPECTED;
 
         DirectX::TexMetadata mdata;
@@ -5720,6 +5723,12 @@ D3D11Dev_CreateTexture2D_Impl (
             SK_ScopedBool decl_tex_scope (
               SK_D3D11_DeclareTexInjectScope (pTLS)
             );
+
+            if (typeless)
+            {
+              mdata.format =
+                DirectX::MakeTypeless (mdata.format);
+            }
 
             if (SUCCEEDED ((hr = DirectX::CreateTexture (This,
                                       img.GetImages     (),

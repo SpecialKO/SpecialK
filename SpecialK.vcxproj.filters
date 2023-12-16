@@ -112,9 +112,6 @@
     <Filter Include="Source Files\Stats">
       <UniqueIdentifier>{3875728f-4125-4054-8f97-91f239a011e9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Render\DDraw">
-      <UniqueIdentifier>{be4259a8-6e13-4821-8e15-b86ff8a6a7ad}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Control Panel">
       <UniqueIdentifier>{1d99dc0a-9961-4f90-84bd-cad61eebd693}</UniqueIdentifier>
     </Filter>
@@ -372,6 +369,9 @@
     </Filter>
     <Filter Include="Header Files\Stats">
       <UniqueIdentifier>{46b35bbb-43dd-4ec7-83ea-39ec6981e286}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\DDraw">
+      <UniqueIdentifier>{be4259a8-6e13-4821-8e15-b86ff8a6a7ad}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
