@@ -898,11 +898,14 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
     if (SUCCEEDED (DirectX::CaptureTexture (pDev,
                                             pDevCtx, pTex, img)))
     {
-      auto _IsTypeless = [&](void) ->
-      bool { return DirectX::IsTypeless (img.GetMetadata ().format); };
+      D3D11_TEXTURE2D_DESC texDesc = { };
+      pTex->GetDesc      (&texDesc);
 
       bool typeless =
-        _IsTypeless ();
+        DirectX::IsTypeless (texDesc.Format);
+
+      auto _IsTypeless = [&](void) ->
+      bool { return DirectX::IsTypeless (img.GetMetadata ().format); };
 
       if (_IsTypeless ())
       {
@@ -941,8 +944,8 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 #if 1
       if (compressed)
       {
-        swprintf ( wszOutName, typeless ? LR"(%s\Compressed_%08X.dds)"
-                                        : LR"(%s\Compressed_%08X_TYPELESS.dds)",
+        swprintf ( wszOutName, typeless ? LR"(%s\Compressed_%08X_TYPELESS.dds)"
+                                        : LR"(%s\Compressed_%08X.dds)",
                      wszPath, crc32c );
       }
 
@@ -3418,7 +3421,7 @@ SK_D3D11_RecursiveEnumAndAddTex  ( const std::wstring   directory,
           liSize.QuadPart += fsize.QuadPart;
 
           SK_PathCombineW         (wszPath, directory.c_str (),
-                                                wszFileName );
+                                               fd.cFileName );
           if (! StrStrIW (         wszPath, L"MipmapCache") )
           {
             SK_D3D11_AddTexHash   (wszPath, top_crc32, 0);
