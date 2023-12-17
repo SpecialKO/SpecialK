@@ -507,7 +507,6 @@ struct SK_D3D12_RenderCtx {
 
 		SK_ComPtr <ID3D12Resource>            pRenderOutput      = nullptr;
 		D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutput      =  { 0 };
-    D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutputDLSSG =  { 0 };
     D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutputsRGB  =  { 0 };
     D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeOutput     =  { 0 };
     D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeOutputsRGB =  { 0 };

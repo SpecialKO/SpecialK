@@ -1,4 +1,12 @@
-﻿23.12.17
+﻿23.12.17.1
+==========
+ + Added warning message if DLSS Frame Generation attempts to copy the game's
+     interpolated frame to SK's HDR SwapChain using a D3D12 Compute Queue.
+
+    >> SK cannot currently correct SDR/HDR format mismatches on Compute Queues,
+         and this causes artifacts in games like Cyberpunk 2077.
+
+23.12.17
 ========
  + Added Aspect Ratio Unlock for STAR OCEAN THE SECOND STORY R
  + Fixed potential crash in Tactics Ogre Reborn introduced in 23.7.4.1
