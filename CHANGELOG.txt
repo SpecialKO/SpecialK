@@ -1,4 +1,8 @@
-﻿
+﻿23.12.17
+========
+ + Added support for dumping DLSS-G buffers to textures for debug
+ + Fixed potential crash in Tactics Ogre Reborn introduced in 23.7.4.1
+
 23.12.16.4
 ==========
  + Automatically put games that use sRGB SwapChains into Linear mode when applying
