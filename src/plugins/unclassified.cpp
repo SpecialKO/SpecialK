@@ -1367,3 +1367,99 @@ SK_D3D11_SanitizeFP16RenderTargets ( ID3D11DeviceContext *pDevCtx,
 
   return false;
 }
+
+
+#ifdef _M_AMD64
+bool SK_SO2R_UltraWidescreen = false;
+
+void SK_SO2R_InitPlugin (void)
+{
+  SK_SO2R_UltraWidescreen =
+    SK_IsTrue (
+      dll_ini->get_section (L"SO2R.PlugIn").
+               get_cvalue  (L"UnlockAspectRatio").c_str ()
+    );
+
+  if (SK_SO2R_UltraWidescreen)
+    InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+
+  plugin_mgr->config_fns.emplace (SK_SO2R_PlugInCfg);
+}
+
+bool SK_SO2R_PlugInCfg (void)
+{
+  if (ImGui::CollapsingHeader ("STAR OCEAN THE SECOND STORY R", ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    ImGui::TreePush ("");
+
+    if (ImGui::Checkbox ("Enable Wide Aspect Ratios", &SK_SO2R_UltraWidescreen))
+    {
+      dll_ini->get_section (L"SO2R.PlugIn").
+             add_key_value (L"UnlockAspectRatio",
+      SK_SO2R_UltraWidescreen ? L"true"
+                              : L"false");
+
+      if (SK_SO2R_UltraWidescreen) InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
+      else                         InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
+
+      dll_ini->write ();
+    }
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::SetTooltip ("Some visual glitches may occur.");
+    }
+
+    ImGui::TreePop  ();
+
+    return false;
+  }
+
+  return true;
+}
+
+bool
+SK_SO2R_DrawHandler (ID3D11DeviceContext *pDevCtx, uint32_t current_ps, int num_verts)
+{
+  if (pDevCtx != nullptr && SK_SO2R_UltraWidescreen && current_ps == 0x7ee4636e)
+  {
+    SK_ComPtr <ID3D11ShaderResourceView>  pSRV;
+    pDevCtx->PSGetShaderResources (0, 1, &pSRV.p);
+  
+    if (pSRV.p != nullptr)
+    {
+      SK_ComPtr <ID3D11Resource>
+                          pRes;
+      pSRV->GetResource (&pRes.p);
+  
+      SK_ComQIPtr <ID3D11Texture2D>
+          pTex (pRes);
+      if (pTex != nullptr)
+      {
+        D3D11_TEXTURE2D_DESC
+                        texDesc = { };
+        pTex->GetDesc (&texDesc);
+  
+        if (texDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM && (num_verts == 24 || num_verts == 6))
+        {
+          UINT       num_vp =   1;
+          D3D11_VIEWPORT vp = { };
+          pDevCtx->RSGetViewports (&num_vp, &vp);
+
+          if (vp.TopLeftX != 0.0f || vp.TopLeftY != 0.0)
+          {
+          }
+
+          else
+          {
+            return true;
+          }
+          //SK_LOGi0 (L"DrawType=%d, Verts=%d", draw_type, num_verts);
+        }
+      }
+    }
+  }
+
+  return false;
+}
+#endif

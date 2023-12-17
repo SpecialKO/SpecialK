@@ -38,6 +38,7 @@
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 #include <SpecialK/control_panel/d3d11.h>
+#include <SpecialK/plugin/plugin_mgr.h>
 
 #include <execution>
 
@@ -2699,49 +2700,6 @@ SK_D3D11_DrawHandler ( ID3D11DeviceContext  *pDevCtx,
   uint32_t current_gs = geometry.current.shader [dev_idx];
   uint32_t current_hs = hull.current.shader     [dev_idx];
   uint32_t current_ds = domain.current.shader   [dev_idx];
-#if 0
-  if (game_type == SK_GAME_ID::StarOcean2R)
-  {
-    if (current_ps == 0x7ee4636e)
-    {
-      SK_ComPtr <ID3D11ShaderResourceView>  pSRV;
-      pDevCtx->PSGetShaderResources (0, 1, &pSRV.p);
-  
-      if (pSRV.p != nullptr)
-      {
-        SK_ComPtr <ID3D11Resource>
-                            pRes;
-        pSRV->GetResource (&pRes.p);
-  
-        SK_ComQIPtr <ID3D11Texture2D>
-            pTex (pRes);
-        if (pTex != nullptr)
-        {
-          D3D11_TEXTURE2D_DESC
-                          texDesc = { };
-          pTex->GetDesc (&texDesc);
-  
-          if (texDesc.Format == DXGI_FORMAT_R8G8B8A8_UNORM && (num_verts == 24 || num_verts == 6))
-          {
-            UINT       num_vp =   1;
-            D3D11_VIEWPORT vp = { };
-            pDevCtx->RSGetViewports (&num_vp, &vp);
-
-            if (vp.TopLeftX != 0.0f || vp.TopLeftY != 0.0)
-            {
-            }
-
-            else
-            {
-              return Skipped;
-            }
-            //SK_LOGi0 (L"DrawType=%d, Verts=%d", draw_type, num_verts);
-          }
-        }
-      }
-    }
-  }
-#endif
 
   static auto&
     _reshade_trigger_before =
@@ -2931,23 +2889,28 @@ const
 
 
 
-#ifndef _WIN64
   static const auto game_id =
     SK_GetCurrentGameID ();
 
   switch (game_id)
   {
+#ifndef _WIN64
     case SK_GAME_ID::Persona4:
       SK_Persona4_DrawHandler (pDevCtx, current_vs, current_ps);
       break;
     case SK_GAME_ID::ChronoCross:
       SK_CC_DrawHandler       (pDevCtx, current_vs, current_ps);
       break;
-
+#else
+    case SK_GAME_ID::StarOcean2R:
+      if (SK_SO2R_DrawHandler (pDevCtx, current_ps, num_verts))
+        return Skipped;
+      break;
+#endif
     default:
       break;
   }
-#endif
+
 
   bool
   SK_D3D11_ShouldSkipHUD (void);

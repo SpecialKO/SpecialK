@@ -1,7 +1,8 @@
 ﻿23.12.17
 ========
- + Added support for dumping DLSS-G buffers to textures for debug
+ + Added Aspect Ratio Unlock for STAR OCEAN THE SECOND STORY R
  + Fixed potential crash in Tactics Ogre Reborn introduced in 23.7.4.1
+ + Added support for dumping DLSS-G buffers to textures for debug
 
 23.12.16.4
 ==========

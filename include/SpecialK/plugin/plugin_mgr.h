@@ -148,6 +148,10 @@ void __stdcall
 void SK_BGS_InitPlugin   (void);
 void SK_LOTF2_InitPlugin (void);
 
+void SK_SO2R_InitPlugin  (void);
+bool SK_SO2R_PlugInCfg   (void);
+bool SK_SO2R_DrawHandler (ID3D11DeviceContext *pDevCtx, uint32_t current_ps, int num_verts);
+
 #else
 HRESULT __stdcall
      SK_SOM_PresentFirstFrame (IDXGISwapChain *, UINT, UINT);
@@ -169,8 +173,6 @@ void SK_CC_DrawHandler  ( ID3D11DeviceContext* pDevCtx,
                           uint32_t             current_vs,
                           uint32_t             current_ps );
 #endif
-
-
 
 enum class SK_PlugIn_Type
 {
