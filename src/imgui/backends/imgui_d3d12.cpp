@@ -19,6 +19,9 @@
 #include <shaders/vs_colorutil.h>
 #include <shaders/uber_hdr_shader_ps.h>
 
+#include <render/ngx/ngx.h>
+#include <render/ngx/ngx_dlss.h>
+
 #include <DirectXTex/d3dx12.h>
 
 struct SK_ImGui_D3D12Ctx
@@ -1176,6 +1179,11 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
 void
 ImGui_ImplDX12_Shutdown (void)
 {
+  for ( auto& frame : _d3d12_rbk->frames_ )
+  {
+    frame.wait_for_gpu ();
+  }
+
   ///ImGui_ImplDX12_Data* bd = ImGui_ImplDX12_GetBackendData();
   ///IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
 
@@ -1585,20 +1593,26 @@ D3D12GraphicsCommandList_CopyResource_Detour (
         ID3D12Resource            *pDstResource,
         ID3D12Resource            *pSrcResource )
 {
-  if (__SK_HDR_16BitSwap)
+  if ( ( __SK_HDR_16BitSwap ||
+         __SK_HDR_10BitSwap ) && pDstResource != nullptr &&
+                                 pSrcResource != nullptr )
   {
     auto src_desc = pSrcResource->GetDesc (),
          dst_desc = pDstResource->GetDesc ();
 
+    DXGI_FORMAT hdrOverrideFormat =
+      __SK_HDR_16BitSwap ? DXGI_FORMAT_R16G16B16A16_FLOAT
+                         : DXGI_FORMAT_R10G10B10A2_UNORM;
+
     if (dst_desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-        dst_desc.Format    == DXGI_FORMAT_R16G16B16A16_FLOAT)
+        dst_desc.Format    == hdrOverrideFormat)
     {
       auto typelessSrc = DirectX::MakeTypeless (src_desc.Format),
            typelessDst = DirectX::MakeTypeless (dst_desc.Format);
       
       if ( typelessSrc != typelessDst &&
-             DirectX::BitsPerPixel (src_desc.Format) !=
-             DirectX::BitsPerPixel (dst_desc.Format) )
+             DirectX::BitsPerColor (src_desc.Format) !=
+             DirectX::BitsPerColor (dst_desc.Format) )
       {
         if (This->GetType () == D3D12_COMMAND_LIST_TYPE_DIRECT)
         {
@@ -1611,13 +1625,13 @@ D3D12GraphicsCommandList_CopyResource_Detour (
           if ( pSwap.p == nullptr ||
                ( src_desc.Width  == swapDesc.BufferDesc.Width  &&
                  src_desc.Height == swapDesc.BufferDesc.Height &&
-                (src_desc.Format == swapDesc.BufferDesc.Format ||
-                 dst_desc.Format == swapDesc.BufferDesc.Format) )
+                (typelessSrc == DirectX::MakeTypeless (swapDesc.BufferDesc.Format) ||
+                 typelessDst == DirectX::MakeTypeless (swapDesc.BufferDesc.Format)) )
              )
           {
             //// We're copying to the SwapChain, so we can use SK's Blitter to copy an incompatible format
-            extern void SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList*, ID3D12Resource*);
-                        SK_D3D12_HDR_CopyBuffer (This, pSrcResource);
+            extern void SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList*, ID3D12Resource*, ID3D12Resource*);
+                        SK_D3D12_HDR_CopyBuffer (This, pSrcResource, pDstResource);
           }
         }
 
@@ -1632,6 +1646,9 @@ D3D12GraphicsCommandList_CopyResource_Detour (
     );
 }
 
+extern void
+SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource, const wchar_t *wszName = nullptr);
+
 // Workaround for Control in HDR
 void
 STDMETHODCALLTYPE
@@ -1644,6 +1661,17 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
   const  D3D12_TEXTURE_COPY_LOCATION *pSrc,
   const  D3D12_BOX                   *pSrcBox )
 {
+  // Let D3D12 figure out what to do here, this scenario is meaningless to SK...
+  if ( pSrc == nullptr || pSrc->pResource == nullptr ||
+       pDst == nullptr || pDst->pResource == nullptr )
+  {
+    D3D12GraphicsCommandList_CopyTextureRegion_Original (
+      This, pDst, DstX, DstY, DstZ, pSrc, pSrcBox
+    );
+
+    return;
+  }
+
   D3D12_RESOURCE_DESC
     src_desc = pSrc->pResource->GetDesc (),
     dst_desc = pDst->pResource->GetDesc ();
@@ -1674,14 +1702,13 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
 
     if (! ignore)
     {
-      extern void
-        SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource);
-        SK_D3D12_CopyTexRegion_Dump (This, pDst->pResource);
+      SK_D3D12_CopyTexRegion_Dump (This, pDst->pResource);
     }
   }
 #endif
 
-  if (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
+  if ( __SK_HDR_16BitSwap ||
+       __SK_HDR_10BitSwap )
   {
     // Format override siliness in D3D12
     static volatile LONG lSizeSkips   = 0;
@@ -1731,14 +1758,14 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
                typelessDst = DirectX::MakeTypeless (dst_desc.Format);
 
           if ( typelessSrc != typelessDst     &&
-               DirectX::BitsPerPixel (src_desc.Format) !=
-               DirectX::BitsPerPixel (dst_desc.Format) )
+               DirectX::BitsPerColor (src_desc.Format) !=
+               DirectX::BitsPerColor (dst_desc.Format) )
           {
             // We're copying -to- the SwapChain, so we can use SK's Blitter to copy an incompatible format
             if (This->GetType () == D3D12_COMMAND_LIST_TYPE_DIRECT && typelessSrc != expectedTyplessSrc)
             {
-              extern void SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList*, ID3D12Resource*);
-                          SK_D3D12_HDR_CopyBuffer (This, pSrc->pResource);
+              extern void SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList*, ID3D12Resource*, ID3D12Resource*);
+                          SK_D3D12_HDR_CopyBuffer (This, pSrc->pResource, pDst->pResource);
 
               return;
             }
@@ -1829,8 +1856,14 @@ _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList)
 
 
 void
-SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource* pResource)
+SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource* pResource, ID3D12Resource* pDest)
 {
+  if (pCommandList == nullptr || pResource == nullptr || pDest == nullptr)
+  {
+    SK_RunOnce (SK_LOGi0 (L"Cannot perform HDR CopyBuffer because one or more parameters are nullptr..."));
+    return;
+  }
+
   if (_d3d12_rbk->frames_.empty ())
   {
     SK_LOGi0 (L"Cannot perform HDR CopyBuffer because ImGui D3D12 Render Backend is not initialized yet...");
@@ -1888,34 +1921,46 @@ SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource
 
   static FLOAT         kfBlendFactors [] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-  pCommandList->SetGraphicsRootSignature          ( _d3d12_rbk->pHDRSignature            );
-  pCommandList->SetPipelineState                  ( _d3d12_rbk->pHDRPipeline             );
-  pCommandList->SetGraphicsRoot32BitConstants     ( 0, 4,  &cbuffer_luma,   0            );
-  pCommandList->SetGraphicsRoot32BitConstants     ( 1, 16, &cbuffer_cspace, 0            );
-  pCommandList->OMSetBlendFactor                  ( kfBlendFactors                       );
-  pCommandList->IASetPrimitiveTopology            ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
+  auto& cmdList = pCommandList;
+
+  cmdList->SetGraphicsRootSignature          ( _d3d12_rbk->pHDRSignature            );
+  cmdList->SetPipelineState                  ( _d3d12_rbk->pHDRPipeline             );
+  cmdList->SetGraphicsRoot32BitConstants     ( 0, 4,  &cbuffer_luma,   0            );
+  cmdList->SetGraphicsRoot32BitConstants     ( 1, 16, &cbuffer_cspace, 0            );
+  cmdList->OMSetBlendFactor                  ( kfBlendFactors                       );
+  cmdList->IASetPrimitiveTopology            ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
   _d3d12_rbk->
           _pDevice->CreateShaderResourceView ( pResource, nullptr,
                                                stagingFrame.hdr.hBufferCopy_CPU
                                              );
 
+  _d3d12_rbk->
+          _pDevice->CreateRenderTargetView   ( pDest, nullptr,
+                                               stagingFrame.hRenderOutputDLSSG
+                                             );
+
   SK_D3D12_StateTransition barriers [] = {
-    { D3D12_RESOURCE_STATE_COPY_DEST,     D3D12_RESOURCE_STATE_RENDER_TARGET },
-    { D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_COPY_DEST     }
+    { D3D12_RESOURCE_STATE_COPY_DEST,             D3D12_RESOURCE_STATE_RENDER_TARGET         },
+    { D3D12_RESOURCE_STATE_COPY_SOURCE,           D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE },
+    { D3D12_RESOURCE_STATE_RENDER_TARGET,         D3D12_RESOURCE_STATE_COPY_DEST             },
+    { D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_SOURCE           }
   };
 
-  barriers [0].Transition.pResource = stagingFrame.pRenderOutput.p;
-  barriers [1].Transition.pResource = stagingFrame.pRenderOutput.p;
+  barriers [0].Transition.pResource = pDest;
+  barriers [1].Transition.pResource = pResource;
+  barriers [2].Transition.pResource = pDest;
+  barriers [3].Transition.pResource = pResource;
 
-  pCommandList->ResourceBarrier                   ( 1, &barriers [0]);
-  pCommandList->SetDescriptorHeaps                ( 1, &_d3d12_rbk->descriptorHeaps.pHDR_CopyAssist.p );
-  pCommandList->SetGraphicsRootDescriptorTable    ( 2,  stagingFrame.hdr.hBufferCopy_GPU              );
-  pCommandList->OMSetRenderTargets                ( 1, &stagingFrame.hRenderOutput, FALSE, nullptr    );
-  pCommandList->RSSetViewports                    ( 1, &stagingFrame.hdr.vp                           );
-  pCommandList->RSSetScissorRects                 ( 1, &stagingFrame.hdr.scissor                      );
-  pCommandList->DrawInstanced                     ( 3, 1, 0, 0                                        );
-  pCommandList->ResourceBarrier                   ( 1, &barriers [1]);
+
+  cmdList->ResourceBarrier                   ( 2, &barriers [0]);
+  cmdList->SetDescriptorHeaps                ( 1, &_d3d12_rbk->descriptorHeaps.pHDR_CopyAssist.p );
+  cmdList->SetGraphicsRootDescriptorTable    ( 2,  stagingFrame.hdr.hBufferCopy_GPU              );
+  cmdList->OMSetRenderTargets                ( 1, &stagingFrame.hRenderOutputDLSSG, FALSE,nullptr);
+  cmdList->RSSetViewports                    ( 1, &stagingFrame.hdr.vp                           );
+  cmdList->RSSetScissorRects                 ( 1, &stagingFrame.hdr.scissor                      );
+  cmdList->DrawInstanced                     ( 3, 1, 0, 0                                        );
+  cmdList->ResourceBarrier                   ( 2, &barriers [2]);
 }
 
 void
@@ -2232,6 +2277,9 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   // Queue-up Pre-SK OSD Screenshots
   SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::BeforeGameHUD, rb); // Before Game HUD (meaningless in D3D12)
   SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::BeforeOSD,     rb);
+
+  if (config.nvidia.dlss.dump_buffers)
+    SK_NGX12_DumpBuffers_DLSSG (pCommandList);
 
   extern void SK_D3D12_WriteResources (void);
               SK_D3D12_WriteResources ();
@@ -2670,7 +2718,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       ThrowIfFailed (
         _pDevice->CreateDescriptorHeap (
           std::array < D3D12_DESCRIPTOR_HEAP_DESC,                1 >
-            {          D3D12_DESCRIPTOR_HEAP_TYPE_RTV,            swapDesc1.BufferCount * 2,
+            {          D3D12_DESCRIPTOR_HEAP_TYPE_RTV,            swapDesc1.BufferCount * 3,
                        D3D12_DESCRIPTOR_HEAP_FLAG_NONE,           0 }.data (),
                                        IID_PPV_ARGS (&descriptorHeaps.pBackBuffers.p)));
                               SK_D3D12_SetDebugName ( descriptorHeaps.pBackBuffers.p,
@@ -2729,9 +2777,11 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
           _pSwapChain->GetBuffer (frame.iBufferIdx,                 IID_PPV_ARGS (&frame.pRenderOutput.p)));
 
         frame.hRenderOutput.ptr =
-                  rtvHandle.ptr + (frame.iBufferIdx * 2)     * rtvDescriptorSize;
+                  rtvHandle.ptr + (frame.iBufferIdx * 3)     * rtvDescriptorSize;
         frame.hRenderOutputsRGB.ptr =
-                  rtvHandle.ptr + (frame.iBufferIdx * 2 + 1) * rtvDescriptorSize;
+                  rtvHandle.ptr + (frame.iBufferIdx * 3 + 1) * rtvDescriptorSize;
+        frame.hRenderOutputDLSSG.ptr =
+                  rtvHandle.ptr + (frame.iBufferIdx * 3 + 2) * rtvDescriptorSize;
 
         //
         // Wrap this using ReShade's internal device, so that it can map the CPU descriptor back to a resource
@@ -2927,7 +2977,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       D3D12_BLEND_DESC&
         blendDesc                                        = psoDesc.BlendState;
         blendDesc.AlphaToCoverageEnable                  = false;
-        blendDesc.RenderTarget [0].BlendEnable           = true;
+        blendDesc.RenderTarget [0].BlendEnable           = false;
         blendDesc.RenderTarget [0].SrcBlend              = D3D12_BLEND_ONE;
         blendDesc.RenderTarget [0].DestBlend             = D3D12_BLEND_ZERO;
         blendDesc.RenderTarget [0].BlendOp               = D3D12_BLEND_OP_ADD;

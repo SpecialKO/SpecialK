@@ -194,6 +194,12 @@ NVSDK_NGX_Parameter_SetUI_Detour (NVSDK_NGX_Parameter* InParameter, const char* 
   NVSDK_NGX_Parameter_SetUI_Original (InParameter, InName, InValue);
 }
 
+void *SK_NGX_DLSSG_UI_Buffer      = nullptr;
+void *SK_NGX_DLSSG_HUDLess_Buffer = nullptr;
+void *SK_NGX_DLSSG_Back_Buffer    = nullptr;
+void *SK_NGX_DLSSG_MVecs_Buffer   = nullptr;
+void *SK_NGX_DLSSG_Depth_Buffer   = nullptr;
+
 NVSDK_NGX_Result
 NVSDK_CONV
 NVSDK_NGX_Parameter_GetVoidPointer_Detour (const NVSDK_NGX_Parameter *InParameter, const char *InName, void **OutValue)
@@ -202,6 +208,15 @@ NVSDK_NGX_Parameter_GetVoidPointer_Detour (const NVSDK_NGX_Parameter *InParamete
 
   SK_LOGn (((SK_NGX_LogAllParams == true) ? 0 : 1),
               L"NGX_Parameter_GetVoidPointer (%hs) - %ws", InName, SK_GetCallerName ().c_str ());
+
+  if (InName != nullptr)
+  {
+    if (! _stricmp (InName, "DLSSG.UI"))         NVSDK_NGX_Parameter_GetVoidPointer_Original (InParameter, InName, &SK_NGX_DLSSG_UI_Buffer);
+    if (! _stricmp (InName, "DLSSG.HUDLess"))    NVSDK_NGX_Parameter_GetVoidPointer_Original (InParameter, InName, &SK_NGX_DLSSG_HUDLess_Buffer);
+    if (! _stricmp (InName, "DLSSG.Depth"))      NVSDK_NGX_Parameter_GetVoidPointer_Original (InParameter, InName, &SK_NGX_DLSSG_Depth_Buffer);
+    if (! _stricmp (InName, "DLSSG.MVecs"))      NVSDK_NGX_Parameter_GetVoidPointer_Original (InParameter, InName, &SK_NGX_DLSSG_MVecs_Buffer);
+    if (! _stricmp (InName, "DLSSG.Backbuffer")) NVSDK_NGX_Parameter_GetVoidPointer_Original (InParameter, InName, &SK_NGX_DLSSG_Back_Buffer);
+  }
 
   return
     NVSDK_NGX_Parameter_GetVoidPointer_Original (InParameter, InName, OutValue);
@@ -1699,4 +1714,22 @@ SK_NGX_LogCallback ( const char*             message,
     LR"([%ws] SK_NGX_LogCallback (%hs) => "%hs")", __SK_SUBSYSTEM__,
               SK_NGX_FeatureToStr (sourceComponent),
           message );
+}
+
+void
+SK_NGX12_DumpBuffers_DLSSG (ID3D12GraphicsCommandList* pCommandList)
+{
+  void SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource, const wchar_t *wszName);
+
+  if (SK_NGX_DLSSG_UI_Buffer      != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_UI_Buffer,      L"DLSSG.UI");
+  if (SK_NGX_DLSSG_HUDLess_Buffer != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_HUDLess_Buffer, L"DLSSG.HUDLess");
+  if (SK_NGX_DLSSG_Back_Buffer    != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_Back_Buffer,    L"DLSSG.Backbuffer");
+  if (SK_NGX_DLSSG_MVecs_Buffer   != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_MVecs_Buffer,   L"DLSSG.MVecs");
+  if (SK_NGX_DLSSG_Depth_Buffer   != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_Depth_Buffer,   L"DLSSG.Depth");
+
+  //SK_NGX_DLSSG_UI_Buffer      = nullptr;
+  //SK_NGX_DLSSG_HUDLess_Buffer = nullptr;
+  //SK_NGX_DLSSG_Back_Buffer    = nullptr;
+  //SK_NGX_DLSSG_MVecs_Buffer   = nullptr;
+  //SK_NGX_DLSSG_Depth_Buffer   = nullptr;
 }

@@ -1272,10 +1272,12 @@ SK_ITrackD3D12Resource final : IUnknown
   SK_ITrackD3D12Resource ( ID3D12Device   *pDevice,
                            ID3D12Resource *pResource,
                            ID3D12Fence    *pFence_,
+                           const wchar_t  *wszName,
                   volatile UINT64         */*puiFenceValue_*/) :
                                    pReal  (pResource),
                                    pDev   (pDevice),
                                    pFence (pFence_),
+                                   name_  (wszName),
                                    ver_   (0)
   {
     pResource->SetPrivateDataInterface (
@@ -1304,6 +1306,7 @@ SK_ITrackD3D12Resource final : IUnknown
 
   volatile LONG                  refs_ = 1;
   unsigned int                   ver_;
+  std::wstring                   name_;
   ID3D12Resource                *pReal;
   SK_ComPtr <ID3D12Device>       pDev;
   SK_ComPtr <ID3D12CommandQueue> pCmdQueue;
@@ -1444,11 +1447,17 @@ static std::unordered_set <uint32_t> _dumped;
 
 concurrency::concurrent_unordered_map <ID3D12Device*, std::tuple <ID3D12Fence*, volatile UINT64, UINT64>> _downstreamFence;
 
-void SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource)
+void SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource, const wchar_t *wszName = nullptr)
 {
-  // Early-out if there's no work to be done
-  if ((! config.textures.dump_on_load) && (_num_injected >= _injectable.size ()))
-      return;
+  if (pResource == nullptr)
+    return;
+
+  if (wszName == nullptr)
+  {
+    // Early-out if there's no work to be done
+    if ((! config.textures.dump_on_load) && (_num_injected >= _injectable.size ()))
+        return;
+  }
 
   SK_ComPtr <ID3D12Device> pDevice;
   if (SUCCEEDED (This->GetDevice (IID_ID3D12Device, (void **)&pDevice.p)))
@@ -1463,7 +1472,7 @@ void SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resourc
     SK_D3D12_EnqueueResource_Down (
       new (std::nothrow) SK_ITrackD3D12Resource ( pDevice, pResource,
                                                         pFence,
-                                                      &UIFenceVal )
+                                             wszName, &UIFenceVal )
     );
   }
 }
@@ -1607,7 +1616,8 @@ SK_D3D12_WriteResources (void)
         // NOTE: If a texture is loaded, unloaded and later reloaded, then
         //         this current optimization will ail to re-inject
         if ( ((_num_injected < _injectable.size ()) ||
-                      config.textures.dump_on_load) &&
+                      config.textures.dump_on_load  ||
+                          (! pRes->name_.empty ())) &&
                                                     pRes->pCmdQueue != nullptr
              && SUCCEEDED (DirectX::CaptureTexture (pRes->pCmdQueue, pRes->pReal, false, image,
                                                       D3D12_RESOURCE_STATE_COMMON,
@@ -1623,7 +1633,8 @@ SK_D3D12_WriteResources (void)
           if (! std::filesystem::is_directory   (path, ec))
             std::filesystem::create_directories (path, ec);
 
-          std::wstring hashed_name =
+          std::wstring hashed_name = (! pRes->name_.empty ()) ?
+                                        pRes->name_ + L".dds" :
             SK_FormatStringW (L"d3d12_sk0_crc32c_%08x.dds", hash);
 
           std::wstring
@@ -1854,7 +1865,7 @@ SK_D3D12_WriteResources (void)
           }
 
           if (                 (! injected) &&
-               config.textures.dump_on_load &&
+               (config.textures.dump_on_load || (! pRes->name_.empty ())) &&
                 (! _dumped.contains (hash)) && (! std::filesystem::exists (
                                                          file_to_dump, ec ) )
              )

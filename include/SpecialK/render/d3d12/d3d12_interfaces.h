@@ -507,6 +507,7 @@ struct SK_D3D12_RenderCtx {
 
 		SK_ComPtr <ID3D12Resource>            pRenderOutput      = nullptr;
 		D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutput      =  { 0 };
+    D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutputDLSSG =  { 0 };
     D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutputsRGB  =  { 0 };
     D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeOutput     =  { 0 };
     D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeOutputsRGB =  { 0 };
@@ -514,8 +515,8 @@ struct SK_D3D12_RenderCtx {
 
     struct {
       SK_ComPtr <ID3D12Resource>          pSwapChainCopy     = nullptr;
-      D3D12_CPU_DESCRIPTOR_HANDLE         hSwapChainCopy_CPU = { 0 };
-      D3D12_GPU_DESCRIPTOR_HANDLE         hSwapChainCopy_GPU = { 0 };
+      D3D12_CPU_DESCRIPTOR_HANDLE         hSwapChainCopy_CPU =  { 0 };
+      D3D12_GPU_DESCRIPTOR_HANDLE         hSwapChainCopy_GPU =  { 0 };
       D3D12_CPU_DESCRIPTOR_HANDLE         hBufferCopy_CPU    =  { 0 };
       D3D12_GPU_DESCRIPTOR_HANDLE         hBufferCopy_GPU    =  { 0 };
       D3D12_RECT                          scissor            = {     };

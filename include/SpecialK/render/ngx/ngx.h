@@ -115,3 +115,10 @@ SK_NGX_LogCallback ( const char*             message,
 
 const char*
 SK_NGX_FeatureToStr (NVSDK_NGX_Feature feature) noexcept;
+
+
+  extern void *SK_NGX_DLSSG_UI_Buffer;
+  extern void *SK_NGX_DLSSG_HUDLess_Buffer;
+  extern void *SK_NGX_DLSSG_Back_Buffer;
+  extern void *SK_NGX_DLSSG_MVecs_Buffer;
+  extern void *SK_NGX_DLSSG_Depth_Buffer;

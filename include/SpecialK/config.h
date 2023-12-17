@@ -872,6 +872,7 @@ struct sk_config_t
         int   override_appid      =     -1;
       } compat;
       bool    allow_scrgb         =  false;
+      bool    dump_buffers        =  false;
     } dlss;
   } nvidia;
 
