@@ -1632,7 +1632,8 @@ D3D12GraphicsCommandList_CopyResource_Detour (
             return;
           }
 
-          if (This->GetType () == D3D12_COMMAND_LIST_TYPE_COMPUTE)
+          if (This->GetType () == D3D12_COMMAND_LIST_TYPE_COMPUTE && _d3d12_rbk->_pDevice       != nullptr &&
+                                                                     _d3d12_rbk->_pCommandQueue != nullptr)
           {
             auto& cmdList = This;
 
