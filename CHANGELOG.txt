@@ -1,4 +1,10 @@
-﻿23.12.18.2
+﻿23.12.18.3
+==========
+ + Copy corrupted INI files to <ini_name>.bak, rather than move, to prevent rare
+     race condition that might cause data loss in processes that fork themselves
+       during initialization.
+
+23.12.18.2
 ==========
  + Added compression quality setting for JPEG-XR HDR screenshots (Default: 90%)
 
