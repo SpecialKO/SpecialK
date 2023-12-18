@@ -66,6 +66,7 @@ class SK_WASAPI_SessionManager;
 class SK_WASAPI_AudioSession;
 
 #include <SpecialK/steam_api.h>
+#include <SpecialK/storefront/epic.h>
 #include <SpecialK/window.h>
 
 #include <atlbase.h>
@@ -597,6 +598,8 @@ public:
 
           //SK_LOG4 ( ( L" Audio Session (pid=%lu)", proc_id ),
                       //L"  WASAPI  " );
+
+          app_hwnd_ = win.root;
         }
 
 // Use the ANSI versions
@@ -637,8 +640,19 @@ public:
 
       if (proc_id == GetCurrentProcessId ())
       {
-        if (SK::SteamAPI::AppName ().length ())
-          app_name_ = SK::SteamAPI::AppName ();
+        if (! SK::SteamAPI::AppName ().empty ())
+        {
+          app_name_    = SK::SteamAPI::AppName ();
+          app_hwnd_    = 0; // Use platform provided name, not session/window name
+          custom_name_ = true;
+        }
+        
+        else if (! SK::EOS::AppName ().empty ())
+        {
+          app_name_    = SK::EOS::AppName ();
+          app_hwnd_    = 0; // Use platform provided name, not session/window name
+          custom_name_ = true;
+        }
       }
 
       if (app_name_.empty ())
@@ -693,7 +707,40 @@ public:
       (state == AudioSessionStateActive);
   }
 
-  const char* getName (void) noexcept { return app_name_.c_str (); };
+  const char* getName (void) noexcept
+  {
+    // Use window title if we have an HWND for this application
+    if (app_hwnd_ != 0 && (! custom_name_))
+    {
+      wchar_t wszTitle [512] = { };
+
+      // This is all happening from the application's message pump in most games,
+      //   so this specialized function avoids deadlocking the pump.
+      InternalGetWindowText (app_hwnd_, wszTitle, 511);
+
+      // Check if the HWND has a window title; use app_name_ otherwise.
+      if (*wszTitle != L'\0')
+      {
+        return
+          SK_WideCharToUTF8 (wszTitle).c_str ();
+      }
+    }
+
+    if (! custom_name_)
+    {
+      wchar_t  *wszDisplayName = nullptr;
+      control_->GetDisplayName (&wszDisplayName);
+
+      if (  wszDisplayName != nullptr &&
+           *wszDisplayName != L'\0' )
+      {
+        app_name_ =
+          SK_WideCharToUTF8 (wszDisplayName);
+      }
+    }
+
+    return app_name_.c_str ();
+  };
 
   // IUnknown
   HRESULT
@@ -808,8 +855,10 @@ private:
   volatile LONG                     refs_;
   SK_ComPtr <IAudioSessionControl2> control_;
   std::string                       app_name_;
-  SK_MMDev_Endpoint*                device_;
-  SK_WASAPI_SessionManager*         parent_;
+  HWND                              app_hwnd_    = 0; // If no session name is available, use window title
+  bool                              custom_name_ = false;
+  SK_MMDev_Endpoint*                device_      = nullptr;
+  SK_WASAPI_SessionManager*         parent_      = nullptr;
 };
 
 class SK_WASAPI_SessionManager

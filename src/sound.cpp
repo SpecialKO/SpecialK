@@ -1038,8 +1038,11 @@ SK_WASAPI_AudioSession::OnDisplayNameChanged (PCWSTR NewDisplayName, LPCGUID Eve
   UNREFERENCED_PARAMETER (NewDisplayName);
   UNREFERENCED_PARAMETER (EventContext);
 
-  this->app_name_ =
-    SK_WideCharToUTF8 (NewDisplayName);
+  if (! custom_name_)
+  {
+    app_name_ =
+      SK_WideCharToUTF8 (NewDisplayName);
+  }
 
   parent_->signalReset ();
 
