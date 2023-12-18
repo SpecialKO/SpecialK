@@ -98,6 +98,88 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
   }
 
 
+  if ( _d3d12_rbk->computeCopy.closed &&
+       _d3d12_rbk->computeCopy.pParentList != nullptr )
+  {
+    INT iSplice = -1;
+
+    for ( UINT i = 0 ; i < NumCommandLists ; ++i )
+    {
+      if (ppCommandLists [i] == _d3d12_rbk->computeCopy.pParentList)
+      {
+        iSplice = i;
+        break;
+      }
+    }
+
+    if (iSplice != -1)
+    {
+      ID3D12CommandList* cmdLists [16] = { };
+
+      for ( INT i = 0 ; i < (INT)NumCommandLists + 1 ; ++i )
+      {
+        if ( i < iSplice )
+          cmdLists [i] = ppCommandLists [i];
+        else
+        {
+          if ( i == iSplice )
+          {
+            if (i > 0)
+            {
+              D3D12CommandQueue_ExecuteCommandLists_Original (
+                This,
+                  i,
+                   cmdLists
+              );
+            }
+
+            D3D12CommandQueue_ExecuteCommandLists_Original (
+              This,
+                1,
+                 (ID3D12CommandList **)&_d3d12_rbk->computeCopy.pCmdList.p
+            );
+
+            UINT64 uiFenceVal =
+              _d3d12_rbk->frames_ [0].compute_copy_fence.value + 1;
+
+            if (SUCCEEDED (This->Signal (_d3d12_rbk->frames_ [0].compute_copy_fence.p,      uiFenceVal)))
+                                         _d3d12_rbk->frames_ [0].compute_copy_fence.value = uiFenceVal;
+          }
+
+          else
+          {
+            This->Wait ( _d3d12_rbk->frames_ [0].compute_copy_fence.p,
+                         _d3d12_rbk->frames_ [0].compute_copy_fence.value );
+
+            D3D12CommandQueue_ExecuteCommandLists_Original (
+              This,
+                1,
+                 &ppCommandLists [i - 1]
+            );
+
+            UINT64 uiFenceVal =
+              _d3d12_rbk->frames_ [0].compute_copy_fence.value + 1;
+
+            if (SUCCEEDED (This->Signal (_d3d12_rbk->frames_ [0].compute_copy_fence.p,      uiFenceVal)))
+                                         _d3d12_rbk->frames_ [0].compute_copy_fence.value = uiFenceVal;
+            //cmdLists [i] = ppCommandLists [i - 1];
+          }
+        }
+      }
+
+      _d3d12_rbk->computeCopy.pParentList = nullptr;
+
+      //D3D12CommandQueue_ExecuteCommandLists_Original (
+      //  This,
+      //    NumCommandLists + 1,
+      //     cmdLists
+      //);
+
+      return;
+    }
+  }
+
+
   return
     D3D12CommandQueue_ExecuteCommandLists_Original (
       This,

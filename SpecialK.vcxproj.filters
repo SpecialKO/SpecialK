@@ -4634,5 +4634,11 @@
     <FxCompile Include="resource\shaders\HDR\common_defs.hlsl">
       <Filter>Resource Files\Shaders\HDR</Filter>
     </FxCompile>
+    <FxCompile Include="resource\shaders\HDR\dlssg_ui_fix_ps.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
+    </FxCompile>
+    <FxCompile Include="resource\shaders\blt_copy_cs.hlsl">
+      <Filter>Resource Files\Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

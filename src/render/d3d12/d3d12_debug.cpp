@@ -93,11 +93,11 @@ SK_D3D12_GetDebugName (ID3D12Object* pD3D12Obj)
   {
     UINT bufferLen = 0;
 
-    if ( SUCCEEDED (
-           SK_D3D12_GET_OBJECT_NAME_N <_T> ( pD3D12Obj,
-                   &bufferLen, nullptr )
-         )
-       )
+    HRESULT hr =
+      SK_D3D12_GET_OBJECT_NAME_N <_T> ( pD3D12Obj,
+                  &bufferLen, nullptr );
+
+    if (SUCCEEDED (hr) || bufferLen > 0)
     {
       if (bufferLen >= sizeof (_T))
       {
@@ -108,7 +108,7 @@ SK_D3D12_GetDebugName (ID3D12Object* pD3D12Obj)
 
         if ( SUCCEEDED (
                SK_D3D12_GET_OBJECT_NAME_N <_T> ( pD3D12Obj,
-                       &bufferLen, name.data () )
+                      &bufferLen, name.data () )
              )
            )
         {
@@ -119,7 +119,7 @@ SK_D3D12_GetDebugName (ID3D12Object* pD3D12Obj)
   }
 
   return
-    std::basic_string <_T> (0);
+    std::basic_string <_T> (reinterpret_cast <_T *> (L""));
 }
 
 void
@@ -148,4 +148,39 @@ SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
     pD3D12Obj->SetName ( kName.c_str () );
 #endif
   }
+}
+
+std::wstring
+SK_D3D12_GetDebugNameW (ID3D12Object* pD3D12Obj)
+{
+  return
+    SK_D3D12_GetDebugName <wchar_t> (pD3D12Obj);
+}
+
+std::string
+SK_D3D12_GetDebugNameA (ID3D12Object* pD3D12Obj)
+{
+  return
+    SK_D3D12_GetDebugName <char> (pD3D12Obj);
+}
+
+std::string
+SK_D3D12_GetDebugNameUTF8 (ID3D12Object* pD3D12Obj)
+{
+  auto wide_name =
+    SK_D3D12_GetDebugName <wchar_t> (pD3D12Obj);
+
+  if (wide_name.empty ())
+  {
+    auto name =
+      SK_D3D12_GetDebugName <char> (pD3D12Obj);
+
+    if (! name.empty ())
+      return name;
+
+    return "Unnamed";
+  }
+
+  return
+    SK_WideCharToUTF8 (wide_name);
 }

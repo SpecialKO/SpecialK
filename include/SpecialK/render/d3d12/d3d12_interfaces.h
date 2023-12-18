@@ -488,7 +488,17 @@ struct SK_D3D12_RenderCtx {
     SK_ComPtr <ID3D12DescriptorHeap>      pImGui            = nullptr;
     SK_ComPtr <ID3D12DescriptorHeap>      pHDR              = nullptr;
     SK_ComPtr <ID3D12DescriptorHeap>      pHDR_CopyAssist   = nullptr;
+    SK_ComPtr <ID3D12DescriptorHeap>      pComputeCopy      = nullptr;
   } descriptorHeaps;
+
+  struct {
+    SK_ComPtr <ID3D12PipelineState>       pPipeline         = nullptr;
+    SK_ComPtr <ID3D12RootSignature>       pSignature        = nullptr;
+    SK_ComPtr <ID3D12GraphicsCommandList> pCmdList          = nullptr;
+		SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator     = nullptr;
+    bool                                  closed            = false;
+    ID3D12CommandList*                    pParentList       = nullptr;
+  } computeCopy;
 
 	struct FrameCtx {
     SK_D3D12_RenderCtx*                   pRoot             = nullptr;
@@ -499,7 +509,7 @@ struct SK_D3D12_RenderCtx {
 
       HRESULT SignalSequential (ID3D12CommandQueue *pCmdQueue);
       HRESULT WaitSequential   (void);
-    } fence, reshade_fence;
+    } fence, reshade_fence, compute_copy_fence;
 
     SK_ComPtr <ID3D12GraphicsCommandList> pCmdList           = nullptr;
 		SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator      = nullptr;
