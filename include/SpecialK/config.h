@@ -871,7 +871,7 @@ struct sk_config_t
         int   extra_pixels        =      0;
         int   override_appid      =     -1;
       } compat;
-      bool    allow_scrgb         =  false;
+      bool    allow_scrgb         =   true; // Use Compute Copy HDR10 <--> scRGB
       bool    dump_buffers        =  false;
     } dlss;
   } nvidia;

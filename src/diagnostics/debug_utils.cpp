@@ -3389,6 +3389,7 @@ RaiseException_Detour (
   {
     switch (dwExceptionCode)
     {
+#if 0
       case 0x00000087A:
       case 0x00000087B:
       case 0x00000087C:
@@ -3406,6 +3407,7 @@ RaiseException_Detour (
           skip = true;
         }
         break;
+#endif
 
       case DBG_PRINTEXCEPTION_C:
       case DBG_PRINTEXCEPTION_WIDE_C:
@@ -3589,10 +3591,17 @@ RaiseException_Detour (
 
     if (dwExceptionCode != EXCEPTION_BREAKPOINT || SK_IsDebuggerPresent ())
     {
-      SK_RaiseException (
-        dwExceptionCode,    dwExceptionFlags,
-        nNumberOfArguments, lpArguments
-      );
+      //__try
+      //{
+        SK_RaiseException (
+          dwExceptionCode,    dwExceptionFlags,
+          nNumberOfArguments, lpArguments
+        );
+      //}
+      //
+      //__except (EXCEPTION_EXECUTE_HANDLER)
+      //{
+      //}
     }
   }
 }

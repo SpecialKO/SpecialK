@@ -1634,12 +1634,7 @@ D3D12GraphicsCommandList_CopyResource_Detour (
 
           if (This->GetType () == D3D12_COMMAND_LIST_TYPE_COMPUTE)
           {
-            auto& cmdList = This;//_d3d12_rbk->computeCopy.pCmdList;
-
-            //                if (SUCCEEDED (_d3d12_rbk->computeCopy.pCmdAllocator->Reset ()))
-            //if (SUCCEEDED (cmdList->Reset (_d3d12_rbk->computeCopy.pCmdAllocator, _d3d12_rbk->computeCopy.pPipeline)))
-            {
-              _d3d12_rbk->computeCopy.closed = false;
+            auto& cmdList = This;
 
             D3D12_CPU_DESCRIPTOR_HANDLE dstUAVHandle_CPU;
             D3D12_CPU_DESCRIPTOR_HANDLE srcUAVHandle_CPU;
@@ -1652,8 +1647,8 @@ D3D12GraphicsCommandList_CopyResource_Detour (
             srcUAVHandle_CPU.ptr =
               _d3d12_rbk->descriptorHeaps.pComputeCopy->GetCPUDescriptorHandleForHeapStart ().ptr + srvDescriptorSize;
 
-            _d3d12_rbk->_pDevice->CreateUnorderedAccessView (pDstResource, nullptr, nullptr, dstUAVHandle_CPU);
-            _d3d12_rbk->_pDevice->CreateUnorderedAccessView (pSrcResource, nullptr, nullptr, srcUAVHandle_CPU);
+            _d3d12_rbk->_pDevice->CreateUnorderedAccessView (_d3d12_rbk->frames_ [0].hdr.pSwapChainCopy, nullptr, nullptr, dstUAVHandle_CPU);
+            _d3d12_rbk->_pDevice->CreateUnorderedAccessView (pSrcResource,                               nullptr, nullptr, srcUAVHandle_CPU);
 
             D3D12_GPU_DESCRIPTOR_HANDLE dstUAVHandle_GPU;
 
@@ -1666,32 +1661,41 @@ D3D12GraphicsCommandList_CopyResource_Detour (
             cmdList->SetComputeRootDescriptorTable (0, dstUAVHandle_GPU);
 
             SK_D3D12_StateTransition barriers [] = {
-              { D3D12_RESOURCE_STATE_COPY_DEST,        D3D12_RESOURCE_STATE_UNORDERED_ACCESS },
-              { D3D12_RESOURCE_STATE_COPY_SOURCE,      D3D12_RESOURCE_STATE_UNORDERED_ACCESS },
-              { D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_DEST        },
-              { D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE      }
+              { D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE },
+              { D3D12_RESOURCE_STATE_UNORDERED_ACCESS, D3D12_RESOURCE_STATE_COPY_SOURCE },
+              { D3D12_RESOURCE_STATE_COPY_SOURCE,      D3D12_RESOURCE_STATE_COPY_DEST   }
             };
 
-            barriers [0].Transition.pResource = pDstResource;
+            barriers [0].Transition.pResource = _d3d12_rbk->frames_ [0].hdr.pSwapChainCopy;
             barriers [1].Transition.pResource = pSrcResource;
-            barriers [2].Transition.pResource = pDstResource;
-            barriers [3].Transition.pResource = pSrcResource;
+            barriers [2].Transition.pResource = _d3d12_rbk->frames_ [0].hdr.pSwapChainCopy;
 
             D3D12_RESOURCE_BARRIER
-              uavBarrier = { };
-              uavBarrier.Type          = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-              uavBarrier.UAV.pResource = pSrcResource;
+              uavBarriers [3] = { };
+              uavBarriers [0].Type                   = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+              uavBarriers [0].UAV.pResource          = nullptr;
+              uavBarriers [1].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+              uavBarriers [1].Transition.pResource   = _d3d12_rbk->frames_ [0].hdr.pSwapChainCopy;
+              uavBarriers [1].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+              uavBarriers [1].Transition.StateAfter  = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+              uavBarriers [1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+              uavBarriers [1].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+              uavBarriers [2].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+              uavBarriers [2].Transition.pResource   = pSrcResource;
+              uavBarriers [2].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
+              uavBarriers [2].Transition.StateAfter  = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+              uavBarriers [2].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+              uavBarriers [2].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 
-            cmdList->ResourceBarrier               (2, &barriers [0]);
+            cmdList->ResourceBarrier               (3, uavBarriers);
             cmdList->Dispatch                      ((UINT)src_desc.Width / 32, (UINT)src_desc.Height / 16, 1);
-            cmdList->ResourceBarrier               (2, &barriers [2]);
-            //if (SUCCEEDED (cmdList->Close ()))
-            //{
-            //  _d3d12_rbk->computeCopy.closed      = true;
-            //  _d3d12_rbk->computeCopy.pParentList = This;
-            //}
-            }
+            cmdList->ResourceBarrier               (2,    barriers);
+            cmdList->CopyResource                  (pDstResource, _d3d12_rbk->frames_ [0].hdr.pSwapChainCopy);
+            cmdList->ResourceBarrier               (1,   &barriers [2]);
 
+            return;
+
+#if 0
             SK_RunOnce (
               SK_ImGui_WarningWithTitle (
                 L"Action Required to Prevent Visual Glitches\r\n\r\n"
@@ -1699,8 +1703,7 @@ D3D12GraphicsCommandList_CopyResource_Detour (
                 L"Format Mismatch on D3D12 Compute Queue (CopyResource)"
               );
             );
-
-            return;
+#endif
           }
         }
       }
@@ -2641,13 +2644,8 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
   pHDRPipeline.Release                    ();
   pHDRSignature.Release                   ();
 
-  computeCopy.pParentList = nullptr;
-  computeCopy.closed      = false;
-
   computeCopy.pPipeline.Release           ();
   computeCopy.pSignature.Release          ();
-  computeCopy.pCmdAllocator.Release       ();
-  computeCopy.pCmdList.Release            ();
 
   descriptorHeaps.pBackBuffers.Release    ();
   descriptorHeaps.pImGui.Release          ();
@@ -2840,8 +2838,6 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         ThrowIfFailed (
           _pDevice->CreateFence (0, D3D12_FENCE_FLAG_NONE,          IID_PPV_ARGS (&frame.reshade_fence.p)));
         ThrowIfFailed (
-          _pDevice->CreateFence (0, D3D12_FENCE_FLAG_NONE,          IID_PPV_ARGS (&frame.compute_copy_fence.p)));
-        ThrowIfFailed (
           _pDevice->CreateCommandAllocator (
                                     D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS (&frame.pCmdAllocator.p)));
 
@@ -2902,7 +2898,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                            swapDesc1.Width, swapDesc1.Height,
                                          1,                1,
                            swapDesc1.Format, { 1, 0 }, D3D12_TEXTURE_LAYOUT_UNKNOWN,
-                                                       D3D12_RESOURCE_FLAG_NONE }.data (),
+                                                       D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS }.data (),
                            D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
                                                 IID_PPV_ARGS (&frame.hdr.pSwapChainCopy.p)));
 
@@ -3152,25 +3148,6 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         _pDevice->CreateComputePipelineState (
           &csoDesc, IID_PPV_ARGS (&computeCopy.pPipeline.p)
        ));SK_D3D12_SetDebugName  ( computeCopy.pPipeline.p, L"SK Compute Copy Pipeline State" );
-
-      ThrowIfFailed (
-          _pDevice->CreateCommandAllocator (
-                                    D3D12_COMMAND_LIST_TYPE_COMPUTE, IID_PPV_ARGS (&computeCopy.pCmdAllocator.p)));
-
-      SK_ComQIPtr <ID3D12Device4>
-                        pDevice4 (_pDevice);
-
-      if (! pDevice4) {
-        ThrowIfFailed (
-          _pDevice->CreateCommandList ( 0,
-                                  D3D12_COMMAND_LIST_TYPE_COMPUTE,               computeCopy.pCmdAllocator.p, nullptr,
-                                                                  IID_PPV_ARGS (&computeCopy.pCmdList.p)));
-        ThrowIfFailed (                                                          computeCopy.pCmdList->Close ());
-      } else {
-        ThrowIfFailed ( pDevice4->CreateCommandList1 ( 0,
-                                  D3D12_COMMAND_LIST_TYPE_COMPUTE,
-                                  D3D12_COMMAND_LIST_FLAG_NONE,   IID_PPV_ARGS (&computeCopy.pCmdList.p)));
-      }
 
       HWND                   hWnd = HWND_BROADCAST;
       _pSwapChain->GetHwnd (&hWnd);

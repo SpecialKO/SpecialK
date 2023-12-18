@@ -1,4 +1,13 @@
-﻿23.12.17.1
+﻿23.12.18
+========
+ + Changed INI parser to never write empty INI files
+ + Finished support for scRGB Frame Generation (D3D12)
+ + Changed default value of [NVIDIA.DLSS] AllowSCRGBinDLSSG to true
+
+     >> There may be some additional performance overhead for scRGB Frame Gen;
+          mostly memory bandwidth.
+
+23.12.17.1
 ==========
  + Added warning message if DLSS Frame Generation attempts to copy the game's
      interpolated frame to SK's HDR SwapChain using a D3D12 Compute Queue.
