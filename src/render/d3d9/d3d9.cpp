@@ -5635,6 +5635,66 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
         SK_LOGi0 ( L" Multisample Settings: Type: %X, Quality: %u\n",
                    pPresentationParameters->MultiSampleType,
                    pPresentationParameters->MultiSampleQuality );
+
+        //
+        // Fullscreen Mode Failed:
+        //
+        //   Try creating a Fullscreen Window instead of letting the game crash
+        //
+        HMONITOR hMonitorPrimary =
+          MonitorFromPoint (POINT { 0, 0 }, MONITOR_DEFAULTTOPRIMARY);
+
+        MONITORINFO                        mon_info = { };
+                                           mon_info.cbSize = sizeof (MONITORINFO);
+        GetMonitorInfoW (hMonitorPrimary, &mon_info);
+
+        pPresentationParameters->BackBufferWidth  = mon_info.rcMonitor.right  - mon_info.rcMonitor.left;
+        pPresentationParameters->BackBufferHeight = mon_info.rcMonitor.bottom - mon_info.rcMonitor.top;
+        pPresentationParameters->Windowed         = TRUE;
+
+        if (pPresentationParameters->hDeviceWindow != nullptr && hFocusWindow == nullptr)
+            hFocusWindow = pPresentationParameters->hDeviceWindow;
+
+        if (pPresentationParameters->hDeviceWindow == nullptr && hFocusWindow != nullptr)
+            pPresentationParameters->hDeviceWindow = hFocusWindow;
+
+        config.window.res.override.x     = pPresentationParameters->BackBufferWidth;
+        config.window.res.override.y     = pPresentationParameters->BackBufferHeight;
+        config.window.center             = true;
+        config.window.borderless         = true;
+        config.window.fullscreen         = true;
+        config.display.force_windowed    = true;
+
+        SetWindowPos (
+          hFocusWindow, 0,
+            0, 0,
+              pPresentationParameters->BackBufferWidth,
+              pPresentationParameters->BackBufferHeight, SWP_SHOWWINDOW
+        );
+
+        SK_SetPresentParamsD3D9 ( nullptr,
+                                    pPresentationParameters );
+
+                    ret = E_FAIL;
+        D3D9_CALL ( ret, D3D9_CreateDevice_Original ( This, Adapter,
+                                                        DeviceType,
+                                                          hFocusWindow,
+                                                            BehaviorFlags,
+                                                              pPresentationParameters,
+                                                                &pTemp ) );
+
+        *ppReturnedDeviceInterface =
+           SUCCEEDED (ret) ?
+             SK_D3D9_WrapDevice (pTemp, pPresentationParameters,(IDirect3DDevice9 **)ppReturnedDeviceInterface) :
+                                 pTemp;
+
+        if (SUCCEEDED (ret))
+        {
+          SK_ImGui_Warning (
+            L"D3D9 Game Failed to Engage Fullscreen Exclusive\r\n\r\n\t\t"
+            L"* Falling back to windowed instead of crashing."
+          );
+        }
       }
     }
 

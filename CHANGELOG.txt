@@ -1,8 +1,17 @@
-﻿23.12.18.3
+﻿23.12.19
+========
+ + Tested and compatible with HDR in dlssg_to_fsr3
+
+     >> Configure from SK's control panel w/ Early Load-Order and restart game
+
+ + Add Fullscreen Mode -> Windowed Mode fallback in D3D9 games if they fail to
+     engage Fullscreen Exclusive.
+
+23.12.18.3
 ==========
  + Copy corrupted INI files to <ini_name>.bak, rather than move, to prevent rare
      race condition that might cause data loss in processes that fork themselves
-       during initialization.
+       during initialization (DRM-related usually).
 
 23.12.18.2
 ==========
