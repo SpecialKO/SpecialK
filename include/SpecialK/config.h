@@ -456,10 +456,11 @@ struct sk_config_t
       int        scrgb_bit_depth       =    10;
       int        yuv_subsampling       =   444;
       bool       full_range            =  true;
-      int        compression_quality   =   100;
       int        compression_speed     =     8;
       int        max_threads           =     6;
     } avif;
+
+    int          compression_quality   =    90;
 
     SK_ConfigSerializedKeybind
          game_hud_free_keybind = {

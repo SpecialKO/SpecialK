@@ -695,8 +695,8 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
 
     if (encoder != nullptr)
     {
-      encoder->quality         = config.screenshots.avif.compression_quality;
-      encoder->qualityAlpha    = config.screenshots.avif.compression_quality; // N/A?
+      encoder->quality         = config.screenshots.compression_quality;
+      encoder->qualityAlpha    = config.screenshots.compression_quality; // N/A?
       encoder->timescale       = 1;
       encoder->repetitionCount = AVIF_REPETITION_COUNT_INFINITE;
       encoder->maxThreads      = config.screenshots.avif.max_threads;

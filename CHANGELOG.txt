@@ -1,4 +1,8 @@
-﻿23.12.18.1
+﻿23.12.18.2
+==========
+ + Added compression quality setting for JPEG-XR HDR screenshots (Default: 90%)
+
+23.12.18.1
 ==========
  + Fixed potential crash if hot-loading ReShade in a DLSS Frame Generation game
      using scRGB HDR

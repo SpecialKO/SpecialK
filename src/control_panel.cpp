@@ -3370,6 +3370,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::Checkbox ( "Keep Full-Range HDR Screenshots",
                                 &config.screenshots.png_compress );
 
+        // Show AVIF options in 64-bit builds
         if (config.screenshots.png_compress && SK_GetBitness () == SK_Bitness::SixtyFourBit)
         {
           static bool bFetchingAVIF = false;
@@ -3407,8 +3408,9 @@ SK_ImGui_ControlPanel (void)
                       const std::wstring_view )
                    -> bool
                       {
-                        bFetchingAVIF               = false;
-                        config.screenshots.use_avif = true;
+                        bFetchingAVIF                          = false;
+                        config.screenshots.use_avif            = true;
+                        config.screenshots.compression_quality = 100;
                   
                         return false;
                       }
@@ -3417,13 +3419,15 @@ SK_ImGui_ControlPanel (void)
                 }
                 else
                 {
-                  config.screenshots.use_avif = true;
+                  config.screenshots.use_avif            = true;
+                  config.screenshots.compression_quality = 100;
                 }
               }
             }
             else
             {
-              config.screenshots.use_avif = false;
+              config.screenshots.use_avif            = false;
+              config.screenshots.compression_quality = 90;
             }
           }
 
@@ -3431,15 +3435,18 @@ SK_ImGui_ControlPanel (void)
           {
             ImGui::TextColored (ImVec4 (.1f,.9f,.1f,1.f), "Downloading AVIF Plug-In...");
           }
+        }
+
+        if (config.screenshots.png_compress)
+        {
+          ImGui::TreePush ("");
 
           if (config.screenshots.use_avif)
           {
-            ImGui::TreePush ("");
-            
             int subsampling = ( config.screenshots.avif.yuv_subsampling == 400 ? 3 :
                                 config.screenshots.avif.yuv_subsampling == 420 ? 2 :
                                 config.screenshots.avif.yuv_subsampling == 422 ? 1 :
-                                                                               0 );
+                                                                            0 );
 
             if (ImGui::Combo ("YUV Subsampling", &subsampling, " 4:4:4\0 4:2:2\0 4:2:0\0 4:0:0 (Black & White)\0\0"))
             {
@@ -3487,19 +3494,22 @@ SK_ImGui_ControlPanel (void)
                 SK_SaveConfig ();
               }
             }
+          }
 
-            const char* szCompressionQualityFormat =
-              ( config.screenshots.avif.compression_quality == 100 ? "100 (Lossless)"
-                                                                   : "%d" );
+          const char* szCompressionQualityFormat =
+            ( config.screenshots.compression_quality == 100 ? "100 (Lossless)"
+                                                            : "%d" );
 
-            bool changed = false;
+          bool changed = false;
 
-            changed |=
-              ImGui::SliderInt ("Compression Quality", &config.screenshots.avif.compression_quality, 80, 100, szCompressionQualityFormat);
+          changed |=
+            ImGui::SliderInt ("Compression Quality", &config.screenshots.compression_quality, 80, 100, szCompressionQualityFormat);
 
-            if (ImGui::IsItemHovered ())
-              ImGui::SetTooltip ("You can manually enter values < 80 using ctrl+click, but the results will be terrible.");
-            
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("You can manually enter values < 80 using ctrl+click, but the results will be terrible.");
+
+          if (config.screenshots.use_avif)
+          {
             changed |=
               ImGui::SliderInt ("Compression Speed",   &config.screenshots.avif.compression_speed,   0, 10);
 
@@ -3512,14 +3522,14 @@ SK_ImGui_ControlPanel (void)
               ImGui::BulletText      ("If you set the speed too low, HDR screenshots might not finish by the time you exit.");
               ImGui::EndTooltip      ();
             }
-
-            if (changed)
-            {
-              SK_SaveConfig ();
-            }
-
-            ImGui::TreePop ();
           }
+
+          if (changed)
+          {
+            SK_SaveConfig ();
+          }
+
+          ImGui::TreePop ();
         }
 
         if ( rb.screenshot_mgr->getRepoStats ().files > 0 )
