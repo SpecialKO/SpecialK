@@ -132,13 +132,13 @@ interface iSK_INI : public IUnknown
   virtual ~iSK_INI (void);
 
   /*** IUnknown methods ***/
-  STDMETHOD  (       QueryInterface)(THIS_ REFIID riid, void** ppvObj);
-  STDMETHOD_ (ULONG, AddRef)        (THIS);
-  STDMETHOD_ (ULONG, Release)       (THIS);
+  STDMETHOD  (                   QueryInterface)  (THIS_ REFIID riid, void** ppvObj);
+  STDMETHOD_ (ULONG,             AddRef)          (THIS);
+  STDMETHOD_ (ULONG,             Release)         (THIS);
 
-  STDMETHOD_ (void, parse)  (THIS);
-  STDMETHOD_ (void, import) (THIS_ const wchar_t* import_data);
-  STDMETHOD_ (void, write)  (THIS_ const wchar_t* fname = nullptr);
+  STDMETHOD_ (void,              parse)           (THIS);
+  STDMETHOD_ (void,              import)          (THIS_ const wchar_t* import_data);
+  STDMETHOD_ (void,              write)           (THIS_ const wchar_t* fname = nullptr);
 
   STDMETHOD_ (_TSectionMap&,     get_sections)    (THIS);
   STDMETHOD_ (iSK_INISection&,   get_section)     (const wchar_t* section);
@@ -166,6 +166,8 @@ interface iSK_INI : public IUnknown
   STDMETHOD_ (iSK_INISection*,   contains_section)(const std::wstring& section);
   STDMETHOD_ (bool,              remove_section)  (const std::wstring& section);
 
+  STDMETHOD_ (bool&,             get_allow_empty) (void);
+
 protected:
   std::recursive_mutex  lock;
   std::recursive_mutex  section_lock;
@@ -190,11 +192,12 @@ private:
   // Preserve File Encoding
   CharacterEncoding encoding_;
 
-  ULONG    refs_      =    0;
-  uint32_t crc32_     =    0; // Skip writing config files that haven't changed
-  FILETIME flushed_   =  { 0 };
-  FILETIME file_stamp =  { 0 };
-  HANDLE   file_watch = nullptr;
+  ULONG    refs_       =    0;
+  uint32_t crc32_      =    0; // Skip writing config files that haven't changed
+  FILETIME flushed_    =  { 0 };
+  FILETIME file_stamp  =  { 0 };
+  HANDLE   file_watch  = nullptr;
+  bool     allow_empty =  false;
 };
 
 iSK_INI*

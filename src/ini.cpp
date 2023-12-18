@@ -1251,6 +1251,9 @@ void
 __stdcall
 iSK_INI::write (const wchar_t* fname)
 {
+  if (ordered_sections.empty () && !allow_empty)
+    return;
+
   if (fname == nullptr)
     fname = name.c_str ();
 
@@ -1259,7 +1262,7 @@ iSK_INI::write (const wchar_t* fname)
     return;
 
   std::wstring outbuf;
-               outbuf.reserve (16384);
+               outbuf.reserve (65536);
 
   for ( auto& it : ordered_sections )
   {
@@ -1297,12 +1300,16 @@ iSK_INI::write (const wchar_t* fname)
     }
   }
 
+
   if ( (! outbuf.empty ()) &&
           outbuf.back  ()  == L'\n' )
   {
     // Strip the unnecessary extra newline
     outbuf.resize (outbuf.size () - 1);
   }
+
+  else if (outbuf.empty () && !allow_empty)
+    return;
 
 
   uint32_t new_crc32 = 0;
@@ -1536,6 +1543,13 @@ iSK_INISection::remove_key (const std::wstring& wszKey)
   }
 
   return false;
+}
+
+bool&
+iSK_INI::get_allow_empty (void)
+{
+  return
+    allow_empty;
 }
 
 
