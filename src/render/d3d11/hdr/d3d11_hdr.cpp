@@ -645,7 +645,7 @@ SK_HDR_SanitizeFP16SwapChain (void)
 
     // This is about 22 KiB worth of device context state, it is not a good
     //   idea to allocate this on the stack... use SK's TLS storage.
-    auto* state_block_storage =
+    _Notnull_ auto* state_block_storage =
       pTLS->render->d3d11->state_block.getPtr ();
     
     if (state_block_storage->empty ())

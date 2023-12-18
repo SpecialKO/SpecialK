@@ -1,4 +1,117 @@
-﻿23.12.10.1
+﻿23.12.18.2
+==========
+ + Added compression quality setting for JPEG-XR HDR screenshots (Default: 90%)
+
+23.12.18.1
+==========
+ + Fixed potential crash if hot-loading ReShade in a DLSS Frame Generation game
+     using scRGB HDR
+
+23.12.18
+========
+ + Changed INI parser to never write empty INI files
+ + Finished support for scRGB Frame Generation (D3D12)
+ + Changed default value of [NVIDIA.DLSS] AllowSCRGBinDLSSG to true
+
+     >> There may be some additional performance overhead for scRGB Frame Gen;
+          mostly memory bandwidth.
+
+23.12.17.1
+==========
+ + Added warning message if DLSS Frame Generation attempts to copy the game's
+     interpolated frame to SK's HDR SwapChain using a D3D12 Compute Queue.
+
+    >> SK cannot currently correct SDR/HDR format mismatches on Compute Queues,
+         and this causes artifacts in games like Cyberpunk 2077.
+
+23.12.17
+========
+ + Added Aspect Ratio Unlock for STAR OCEAN THE SECOND STORY R
+ + Fixed potential crash in Tactics Ogre Reborn introduced in 23.7.4.1
+ + Added support for dumping DLSS-G buffers to textures for debug
+
+23.12.16.4
+==========
+ + Automatically put games that use sRGB SwapChains into Linear mode when applying
+     inverse tonemapping.
+
+23.12.16.3
+==========
+ + Loading a dumped texture no longer requires removing the "Compressed_" or
+     "Uncompressed_" prefix from the filename.
+ + Fixed missing "_TYPELESS" suffix when dumping some compressed texture formats
+
+23.12.16.2
+==========
+ + Added support for TYPELESS texture dumping and injection
+ + These textures must keep the _TYPELESS part of their name for proper re-injection
+     >> Typically you'd treat them as UNORM or UNORM_SRGB in image software and keep the
+          `_TYPELESS.dds` name for engine compatibility.
+
+23.12.16.1
+==========
+ + Always write INI files in \Global\ using UTF-16LE to avoid conversion from UTF-8
+     to UTF-16LE when parsing them.
+
+23.12.16
+========
+ + Turn off non-mipmapped texture cache immediately in all Unity engine games, as
+     soon as a window is created with UnityWndClass.
+
+23.12.15.1
+==========
+ + Defaulted Star Ocean 2 to turning off texture cache for non-mipmapped textures
+ + Added various nullptr checks
+
+23.12.15
+========
+ + Added D3D11 stateblock backup/restore and set rasterizer state to sane defaults
+     before triggering ReShade render passes early.
+ + Adjusted DXGI budget tracking thread to only change monitored adapters in
+     DXGI-based APIs if the game's running on a different adapter than the
+       thread is actively monitoring.
+
+23.12.13.1
+==========
+ + Reduced MMDevAPI overhead when the volume control widget is open
+
+23.12.13
+========
+ + Improved handling of audio device hot-plug when game is running on non-preferred
+     audio device. It should transition to the preferred device immediately now.
+ + Audio Session selector now enumerates sessions for all end-points, so applications
+     running on a different audio device than the game show up as expected and their
+       volume can be controlled.
+ + If a process has multiple audio sessions and the one being controlled by the audio
+     widget goes idle, automatically switch to one of its non-idle audio sessions.
+
+23.12.11.2
+==========
+ + Fixed ReShade on-demand injection in D3D12 games so that it renders its effects
+
+23.12.11.1
+==========
+ + Fixed unaligned D3D12 Descriptor Heap access on CPU handles used for ReShade
+
+23.12.11
+========
+ + Improved UI scaling on Audio Management UI
+ + Hide "Switch Audio Device" button if there is only 1 active audio device
+ + Add support for closing Audio popups by clicking outside or pressing Escape
+
+23.12.10.2
+==========
+ + Added sRGB support to ReShade when loaded as a plug-in, which is necessary
+     for various edge-detect shaders (SMAA, AMD CAS, ...) that require sRGB.
+
+    >> Partial support has been added to D3D12; all formats except R10G10B10A2
+
+     * In HDR, sRGB is unnecessary. Just make sure ReShade is set to "Draw First".
+
+ + Custom SDR EOTF can be configured in-game, rather than requiring a manual INI edit,
+     by selecting "Custom" from the HDR Content EOTF combo box.
+
+23.12.10.1
 ==========
  + Fixed unnecessary audio device changes causing brief audio drop-outs during Alt+Tab
 

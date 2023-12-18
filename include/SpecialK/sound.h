@@ -29,6 +29,8 @@
 #include <roapi.h>
 #include <SpecialK/com_util.h>
 
+#include <span>
+
 using SK_ISimpleAudioVolume      = SK_ComPtr <ISimpleAudioVolume>;
 using SK_IAudioMeterInformation  = SK_ComPtr <IAudioMeterInformation>;
 using SK_IAudioAutoGainControl   = SK_ComPtr <IAudioAutoGainControl>;
@@ -47,19 +49,24 @@ using SK_IAudioClient3           = SK_ComPtr <IAudioClient3>;
 bool                      __stdcall SK_WASAPI_Init                    (void);
 void                      __stdcall SK_SetGameMute                    (bool bMute);
 BOOL                      __stdcall SK_IsGameMuted                    (void);
-SK_IAudioMeterInformation __stdcall SK_WASAPI_GetAudioMeterInfo       (void);
-SK_ISimpleAudioVolume     __stdcall SK_WASAPI_GetVolumeControl        (DWORD   proc_id = GetCurrentProcessId ());
-SK_IChannelAudioVolume    __stdcall SK_WASAPI_GetChannelVolumeControl (DWORD   proc_id = GetCurrentProcessId ());
+SK_IAudioMeterInformation __stdcall SK_WASAPI_GetAudioMeterInfo       (SK_IMMDevice pDevice = nullptr);
+SK_ISimpleAudioVolume     __stdcall SK_WASAPI_GetVolumeControl        (DWORD proc_id = GetCurrentProcessId (), SK_IMMDevice pDevice = nullptr);
+SK_IChannelAudioVolume    __stdcall SK_WASAPI_GetChannelVolumeControl (DWORD proc_id = GetCurrentProcessId (), SK_IMMDevice pDevice = nullptr);
 void                      __stdcall SK_WASAPI_GetAudioSessionProcs    (size_t* count, DWORD* procs = nullptr);
-SK_IAudioClient3          __stdcall SK_WASAPI_GetAudioClient          (void);
+SK_IAudioClient3          __stdcall SK_WASAPI_GetAudioClient          (SK_IMMDevice pDevice = nullptr, bool uncached = false);
 
 const char*               __stdcall SK_WASAPI_GetChannelName          (int channel_idx);
 
-SK_IAudioEndpointVolume   __stdcall SK_MMDev_GetEndpointVolumeControl (void);
-SK_IAudioLoudness         __stdcall SK_MMDev_GetLoudness              (void);
-SK_IAudioAutoGainControl  __stdcall SK_MMDev_GetAutoGainControl       (void);
+SK_IAudioEndpointVolume   __stdcall SK_MMDev_GetEndpointVolumeControl (SK_IMMDevice pDevice = nullptr);
+SK_IAudioLoudness         __stdcall SK_MMDev_GetLoudness              (SK_IMMDevice pDevice = nullptr);
+SK_IAudioAutoGainControl  __stdcall SK_MMDev_GetAutoGainControl       (SK_IMMDevice pDevice = nullptr);
+
+class SK_WASAPI_EndPointManager;
+class SK_WASAPI_SessionManager;
+class SK_WASAPI_AudioSession;
 
 #include <SpecialK/steam_api.h>
+#include <SpecialK/storefront/epic.h>
 #include <SpecialK/window.h>
 
 #include <atlbase.h>
@@ -68,8 +75,125 @@ SK_IAudioAutoGainControl  __stdcall SK_MMDev_GetAutoGainControl       (void);
 #include <unordered_map>
 #include <set>
 
-
 #include <winstring.h>
+
+class SK_MMDev_Endpoint : public IAudioSessionNotification
+{
+public:
+  // IUnknown
+  HRESULT
+  STDMETHODCALLTYPE
+  QueryInterface (REFIID riid, void **ppv) override
+  {
+    if (! ppv)
+      return E_INVALIDARG;
+
+    if (IID_IUnknown == riid)
+    {
+      AddRef ();
+      *ppv = (IUnknown *)this;
+    }
+
+    else if (__uuidof (IAudioSessionNotification) == riid)
+    {
+      AddRef ();
+      *ppv = (IAudioSessionNotification *)this;
+    }
+
+    else
+    {
+      *ppv = nullptr;
+      return E_NOINTERFACE;
+    }
+
+    return S_OK;
+  }
+
+  ULONG STDMETHODCALLTYPE AddRef (void) noexcept override
+  {
+    return
+      InterlockedIncrement (&refs_);
+  }
+
+  ULONG STDMETHODCALLTYPE Release (void) noexcept override
+  {
+    const ULONG ulRef =
+      InterlockedDecrement (&refs_);
+
+  //if (ulRef == 0)
+  //  delete this;
+
+    return ulRef;
+  }
+
+  HRESULT
+  STDMETHODCALLTYPE
+  OnSessionCreated (IAudioSessionControl *pNewSession) override;
+
+  static std::wstring getDeviceId (EDataFlow flow, const wchar_t* id)
+  {
+    static const wchar_t* DEVICE_PREFIX   = LR"(\\?\SWD#MMDEVAPI#)";
+    static const wchar_t* RENDER_POSTFIX  = L"#{e6327cad-dcec-4949-ae8a-991e976a79d2}";
+    static const wchar_t* CAPTURE_POSTFIX = L"#{2eef81be-33fa-4800-9670-1cd474972c3f}";
+
+    return
+      SK_FormatStringW ( L"%ws%ws%ws", DEVICE_PREFIX, id,
+                     flow == eRender ? RENDER_POSTFIX
+                                     : CAPTURE_POSTFIX );
+  }
+
+  bool isSameDevice (const wchar_t* wszShortDeviceId)
+  {
+    if (! wszShortDeviceId)
+      return false;
+
+    if (*wszShortDeviceId == L'\0')
+    {
+      return id_.empty ();
+    }
+
+    return
+      StrStrIW (getDeviceId (flow_, id_.c_str ()).c_str (), wszShortDeviceId) != nullptr;
+  }
+
+  const wchar_t* describeState (void)
+  {
+    switch (state_)
+    {
+      default:                      return L"Unknown";
+      case DEVICE_STATE_ACTIVE:     return L"Active";
+      case DEVICE_STATE_DISABLED:   return L"Disabled";
+      case DEVICE_STATE_NOTPRESENT: return L"Not Present";
+      case DEVICE_STATE_UNPLUGGED:  return L"Unplugged";
+    }
+  }
+
+  virtual ~SK_MMDev_Endpoint (void) { };
+
+  SK_IMMDevice device_ = nullptr;
+  EDataFlow    flow_   = eRender;
+  DWORD        state_  = DEVICE_STATE_NOTPRESENT;
+  std::wstring id_     = L"";
+  std::string  name_   =  "";
+
+protected:
+  friend class SK_WASAPI_EndPointManager;
+  friend class SK_WASAPI_SessionManager;
+  friend class SK_WASAPI_AudioSession;
+
+  volatile LONG         refs_   = 1;
+
+  struct {
+    SK_IAudioSessionManager2  sessions     = nullptr;
+    SK_IAudioMeterInformation meter        = nullptr;
+    SK_IAudioEndpointVolume   volume       = nullptr;
+    SK_IAudioLoudness         loudness     = nullptr;
+    SK_IAudioAutoGainControl  auto_gain    = nullptr;
+    SK_IAudioClient3          audio_client = nullptr;
+  } control_;
+
+  SK_WASAPI_SessionManager*   session_manager_ = nullptr;
+};
 
 interface DECLSPEC_UUID ("ab3d4648-e242-459f-b02f-541c70306324") IAudioPolicyConfigFactory;
 interface DECLSPEC_UUID ("2a59116d-6c4f-45e0-a74f-707e3fef9258") IAudioPolicyConfigFactoryLegacy;
@@ -101,7 +225,7 @@ public:
   virtual HRESULT STDMETHODCALLTYPE __incomplete__GetCurrentChatApplications        (void);
   virtual HRESULT STDMETHODCALLTYPE __incomplete__add_ChatContextChanged            (void);
   virtual HRESULT STDMETHODCALLTYPE __incomplete__remove_ChatContextChanged         (void);
-  
+
   virtual HRESULT STDMETHODCALLTYPE SetPersistedDefaultAudioEndpoint                ( UINT      processId,
                                                                                       EDataFlow flow,
                                                                                       ERole     role,
@@ -165,89 +289,25 @@ public:
     const ULONG ulRef =
       InterlockedDecrement (&refs_);
 
-    if (ulRef == 0)
-      delete this;
+  //if (ulRef == 0)
+  //  delete this;
 
     return ulRef;
   }
 
-  HRESULT STDMETHODCALLTYPE OnDeviceStateChanged (_In_ LPCWSTR pwstrDeviceId, _In_ DWORD dwNewState) override
-  {
-    std::ignore = pwstrDeviceId;
-    std::ignore = dwNewState;
-
-    resetSessionManager ();
-
-    return S_OK;
-  }
-
-  HRESULT STDMETHODCALLTYPE OnDeviceAdded (_In_ LPCWSTR pwstrDeviceId) override
-  {
-    std::ignore = pwstrDeviceId;
-
-    resetSessionManager ();
-
-    return S_OK;
-  }
-
-  HRESULT STDMETHODCALLTYPE OnDeviceRemoved (_In_ LPCWSTR pwstrDeviceId) override
-  {
-    std::ignore = pwstrDeviceId;
-
-    resetSessionManager ();
-
-    return S_OK;
-  }
-
-  HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged (_In_ EDataFlow flow, _In_ ERole role, _In_ LPCWSTR pwstrDefaultDeviceId) override
-  {
-    std::ignore = role;
-    std::ignore = pwstrDefaultDeviceId;
-
-    if (flow == eAll || flow == eRender)
-    {
-      resetSessionManager ();
-    }
-
-    return S_OK;
-  }
-  
-  HRESULT STDMETHODCALLTYPE OnPropertyValueChanged (_In_ LPCWSTR pwstrDeviceId, _In_ const PROPERTYKEY key) override
-  {
-    std::ignore = pwstrDeviceId;
-    std::ignore = key;
-
-    resetSessionManager ();
-
-    return S_OK;
-  }
-
-  struct endpoint_s
-  {
-    DWORD        endpoint_state_ = DEVICE_STATE_NOTPRESENT;
-    std::wstring endpoint_id_;
-    std::string  friendly_name_;
-
-    const wchar_t* describeState (void)
-    {
-      switch (endpoint_state_)
-      {
-        default:                      return L"Unknown";
-        case DEVICE_STATE_ACTIVE:     return L"Active";
-        case DEVICE_STATE_DISABLED:   return L"Disabled";
-        case DEVICE_STATE_NOTPRESENT: return L"Not Present";
-        case DEVICE_STATE_UNPLUGGED:  return L"Unplugged";
-      }
-    }
-  };
+  HRESULT STDMETHODCALLTYPE OnDeviceStateChanged   (_In_ LPCWSTR pwstrDeviceId, _In_ DWORD dwNewState) override;
+  HRESULT STDMETHODCALLTYPE OnDeviceAdded          (_In_ LPCWSTR pwstrDeviceId) override;
+  HRESULT STDMETHODCALLTYPE OnDeviceRemoved        (_In_ LPCWSTR pwstrDeviceId) override;
+  HRESULT STDMETHODCALLTYPE OnDefaultDeviceChanged (_In_ EDataFlow flow, _In_ ERole role, _In_ LPCWSTR pwstrDefaultDeviceId) override;
+  HRESULT STDMETHODCALLTYPE OnPropertyValueChanged (_In_ LPCWSTR pwstrDeviceId, _In_ const PROPERTYKEY key) override;
 
 protected:
   SK_Thread_HybridSpinlock  activation_lock_;
 
   IAudioPolicyConfigFactory *policy_cfg_factory = nullptr;
 
-  std::vector <endpoint_s> render_devices_;
-  std::vector <endpoint_s> capture_devices_;
+  std::vector <SK_MMDev_Endpoint> render_devices_;
+  std::vector <SK_MMDev_Endpoint> capture_devices_;
 
   volatile LONG            refs_;
 
@@ -274,21 +334,23 @@ public:
       ThrowIfFailed (
         pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
+      SK_RunOnce (
+        pDevEnum->RegisterEndpointNotificationCallback (this)
+      );
+
       SK_ComPtr <IMMDeviceCollection>                                dev_collection;
       ThrowIfFailed (
         pDevEnum->EnumAudioEndpoints (eRender, DEVICE_STATE_ACTIVE, &dev_collection.p));
 
       if (dev_collection.p != nullptr)
       {
-        render_devices_.clear ();
-
         UINT                         uiDevices = 0;
         ThrowIfFailed (
           dev_collection->GetCount (&uiDevices));
 
         for ( UINT i = 0 ; i < uiDevices ; ++i )
         {
-          endpoint_s endpoint;
+          SK_MMDev_Endpoint endpoint;
 
           SK_ComPtr <IMMDevice>       pDevice;
           ThrowIfFailed (
@@ -300,7 +362,18 @@ public:
             ThrowIfFailed (
               pDevice->GetId (&wszId));
 
-            if (wszId != nullptr)
+            auto _FindRenderDevice = [&](const wchar_t *device_id) -> SK_MMDev_Endpoint *
+            {
+              for ( auto& device : render_devices_ )
+              {
+                if (device.id_._Equal (device_id))
+                  return &device;
+              }
+
+              return nullptr;
+            };
+
+            if (wszId != nullptr && !_FindRenderDevice (wszId))
             {
               SK_ComPtr <IPropertyStore>                props;
               ThrowIfFailed (
@@ -314,15 +387,35 @@ public:
                 ThrowIfFailed (
                   props->GetValue (PKEY_Device_FriendlyName, &propvarName));
 
-                endpoint.endpoint_id_   = wszId;
-                endpoint.friendly_name_ = SK_WideCharToUTF8 (propvarName.pwszVal);
+                endpoint.flow_   = eRender;
+                endpoint.id_     = wszId;
+                endpoint.name_   = SK_WideCharToUTF8 (propvarName.pwszVal);
+                endpoint.device_ = pDevice;
 
                 ThrowIfFailed (
-                  pDevice->GetState (&endpoint.endpoint_state_));
+                  pDevice->GetState (&endpoint.state_));
 
                 PropVariantClear (&propvarName);
 
-                render_devices_.push_back (endpoint);
+                if (FAILED (pDevice->Activate (
+                    __uuidof (IAudioSessionManager2),
+                      CLSCTX_ALL,
+                        nullptr,
+                          reinterpret_cast <void **>(&endpoint.control_.sessions)
+                   )       )                  ) return;
+
+                endpoint.control_.meter.Attach (
+                  SK_WASAPI_GetAudioMeterInfo (pDevice).Detach ()
+                );
+
+                endpoint.control_.volume.Attach       (SK_MMDev_GetEndpointVolumeControl (pDevice).Detach ());
+                endpoint.control_.auto_gain.Attach    (SK_MMDev_GetAutoGainControl       (pDevice).Detach ());
+                endpoint.control_.loudness.    Attach (SK_MMDev_GetLoudness              (pDevice).Detach ());
+                endpoint.control_.audio_client.Attach (SK_WASAPI_GetAudioClient          (pDevice).Detach ());
+
+                endpoint.control_.sessions->RegisterSessionNotification (&endpoint);
+
+                render_devices_.emplace_back (endpoint);
               }
 
               CoTaskMemFree (wszId);
@@ -343,10 +436,6 @@ public:
     }
   }
 
-  static const wchar_t* MMDEVAPI_DEVICE_PREFIX; 
-  static const wchar_t* MMDEVAPI_RENDER_POSTFIX;
-  static const wchar_t* MMDEVAPI_CAPTURE_POSTFIX;
-
   bool initAudioPolicyConfigFactory (void)
   {
     static const wchar_t* name = L"Windows.Media.Internal.AudioPolicyConfig";
@@ -366,7 +455,7 @@ public:
 
     hr =
       RoGetActivationFactory   (hClassName, __uuidof (IAudioPolicyConfigFactory),       (void **)&policy_cfg_factory);
-    
+
     // Fallback does not work.
 #if 0
     if (hr == E_NOINTERFACE)
@@ -382,27 +471,24 @@ public:
       SUCCEEDED (hr);
   }
 
-  size_t      getNumRenderEndpoints  (void) const { return render_devices_.size (); }
-  endpoint_s& getRenderEndpoint      (UINT idx)   { static endpoint_s invalid = {}; return idx < render_devices_.size  () ? render_devices_  [idx] : invalid; }
+  size_t             getNumRenderEndpoints  (DWORD dwState = DEVICE_STATEMASK_ALL);
+  SK_MMDev_Endpoint& getRenderEndpoint      (UINT idx);
 
-  size_t      getNumCaptureEndpoints (void) const { return capture_devices_.size  (); }
-  endpoint_s& getCaptureEndpoint     (UINT idx)   { static endpoint_s invalid = {}; return idx < capture_devices_.size () ? capture_devices_ [idx] : invalid; }
+  size_t             getNumCaptureEndpoints (DWORD dwState = DEVICE_STATEMASK_ALL);
+  SK_MMDev_Endpoint& getCaptureEndpoint     (UINT idx);
 
-  bool setPersistedDefaultAudioEndpoint (int pid, EDataFlow flow, std::wstring_view deviceId)
+  bool setPersistedDefaultAudioEndpoint (int pid, EDataFlow flow, std::wstring_view deviceId, bool force = false)
   {
     if (policy_cfg_factory == nullptr)
       return false;
 
-    HSTRING hDeviceId = nullptr;
-
+    HSTRING         hDeviceId = nullptr;
     std::wstring fullDeviceId;
 
     if (! deviceId.empty ())
     {
       fullDeviceId =
-        SK_FormatStringW ( L"%ws%ws%ws", MMDEVAPI_DEVICE_PREFIX, deviceId.data (),
-                       flow == eRender ? MMDEVAPI_RENDER_POSTFIX
-                                       : MMDEVAPI_CAPTURE_POSTFIX );
+        SK_MMDev_Endpoint::getDeviceId (flow, deviceId.data ());
 
       auto hr =
         WindowsCreateString ( fullDeviceId.c_str  (),
@@ -414,7 +500,9 @@ public:
 
     HSTRING hExistingDeviceId = nullptr;
 
-    policy_cfg_factory->GetPersistedDefaultAudioEndpoint (pid, flow, eMultimedia | eConsole, &hExistingDeviceId);
+    policy_cfg_factory->GetPersistedDefaultAudioEndpoint (
+      pid, flow, eMultimedia | eConsole, &hExistingDeviceId
+    );
 
     UINT32                                           len;
     std::wstring existing_device =
@@ -424,8 +512,14 @@ public:
       !(         existing_device.empty () && fullDeviceId.empty ()) &&
       !StrStrIW (existing_device.c_str (),   fullDeviceId.c_str ());
 
-    auto hrConsole    = needs_change ? policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eConsole,    hDeviceId) : S_OK;
-    auto hrMultimedia = needs_change ? policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eMultimedia, hDeviceId) : S_OK;
+    needs_change |= force;
+
+    auto hrConsole    =
+      needs_change ? policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eConsole,    hDeviceId)
+                   : S_OK;
+    auto hrMultimedia =
+      needs_change ? policy_cfg_factory->SetPersistedDefaultAudioEndpoint (pid, flow, eMultimedia, hDeviceId)
+                   : S_OK;
 
     WindowsDeleteString (        hDeviceId);
     WindowsDeleteString (hExistingDeviceId);
@@ -442,14 +536,14 @@ public:
 
     HSTRING hDeviceId = nullptr;
 
-    policy_cfg_factory->GetPersistedDefaultAudioEndpoint (pid, flow, eMultimedia | eConsole, &hDeviceId);
+    policy_cfg_factory->GetPersistedDefaultAudioEndpoint (
+      pid, flow, eMultimedia | eConsole, &hDeviceId
+    );
 
-    
     UINT32                                   len;
     std::wstring ret =
       WindowsGetStringRawBuffer (hDeviceId, &len);
-
-    WindowsDeleteString (hDeviceId);
+      WindowsDeleteString       (hDeviceId);
 
     return
       ret;
@@ -458,15 +552,14 @@ public:
 
 SK_LazyGlobal <SK_WASAPI_EndPointManager> SK_WASAPI_EndPointMgr;
 
-
-class SK_WASAPI_SessionManager;
-
 class SK_WASAPI_AudioSession : public IAudioSessionEvents
 {
 public:
-  SK_WASAPI_AudioSession ( SK_IAudioSessionControl2 pSession,
+  SK_WASAPI_AudioSession ( SK_IAudioSessionControl2  pSession,
+                           SK_MMDev_Endpoint        *pDevice,
                            SK_WASAPI_SessionManager *pParent  ) :
     control_ (pSession),
+     device_ (pDevice),
      parent_ (pParent),
        refs_ (1)
   {
@@ -474,72 +567,96 @@ public:
     {
       pSession->RegisterAudioSessionNotification (this);
 
+      wchar_t*                   wszDisplayName = nullptr;
+      pSession->GetDisplayName (&wszDisplayName);
+
       char szTitle [512]  =
       {                   };
 
+      std::string_view     title_view (szTitle);
+      SK_FormatStringView (title_view, "%ws", wszDisplayName);
+
       const DWORD proc_id =
-        getProcessId ();
+             getProcessId ();
 
-      window_t win =
-        SK_FindRootWindow (proc_id);
-
-      if (win.root != nullptr)
+      // Use the window name if there is no session name
+      if ('\0' == *szTitle)
       {
-        wchar_t wszTitle [512] = { };
+        window_t win =
+          SK_FindRootWindow (proc_id);
 
-        BOOL bUsedDefaultChar = FALSE;
+        if (win.root != nullptr)
+        {
+          wchar_t wszTitle [512] = { };
 
-        // This is all happening from the application's message pump in most games,
-        //   so this specialized function avoids deadlocking the pump.
-        InternalGetWindowText (win.root, wszTitle, 511);
-        WideCharToMultiByte   (CP_UTF8, 0x00, wszTitle, sk::narrow_cast <int> (wcslen (wszTitle)), szTitle, 511, nullptr, &bUsedDefaultChar);
+          BOOL bUsedDefaultChar = FALSE;
 
-        //SK_LOG4 ( ( L" Audio Session (pid=%lu)", proc_id ),
-                    //L"  WASAPI  " );
-      }
+          // This is all happening from the application's message pump in most games,
+          //   so this specialized function avoids deadlocking the pump.
+          InternalGetWindowText (win.root, wszTitle, 511);
+          WideCharToMultiByte   (CP_UTF8, 0x00, wszTitle, sk::narrow_cast <int> (wcslen (wszTitle)), szTitle, 511, nullptr, &bUsedDefaultChar);
+
+          //SK_LOG4 ( ( L" Audio Session (pid=%lu)", proc_id ),
+                      //L"  WASAPI  " );
+
+          app_hwnd_ = win.root;
+        }
 
 // Use the ANSI versions
 #undef PROCESSENTRY32
 #undef Process32First
 #undef Process32Next
 
-      // Use the exeuctable name if there is no window name
-      if (0 == strnlen (szTitle, 512))
-      {
-        HANDLE hSnap =
-          CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
-
-        if (hSnap)
+        // Use the exeuctable name if there is no window name
+        if ('\0' == *szTitle)
         {
-          PROCESSENTRY32
-            pent        = {                     };
-            pent.dwSize = sizeof (PROCESSENTRY32);
+          HANDLE hSnap =
+            CreateToolhelp32Snapshot (TH32CS_SNAPPROCESS, 0);
 
-          if (Process32First (hSnap, &pent))
+          if (hSnap)
           {
-            do
+            PROCESSENTRY32
+              pent        = {                     };
+              pent.dwSize = sizeof (PROCESSENTRY32);
+
+            if (Process32First (hSnap, &pent))
             {
-              if (pent.th32ProcessID == proc_id)
+              do
               {
-                *szTitle = '\0';
-                strncat (szTitle, pent.szExeFile, 511);
-                break;
-              }
+                if (pent.th32ProcessID == proc_id)
+                {
+                  *szTitle = '\0';
+                  strncat (szTitle, pent.szExeFile, 511);
+                  break;
+                }
 
-            } while (Process32Next (hSnap, &pent));
+              } while (Process32Next (hSnap, &pent));
+            }
+
+            SK_CloseHandle (hSnap);
           }
-
-          SK_CloseHandle (hSnap);
         }
       }
 
-      app_name_ = szTitle;
-
       if (proc_id == GetCurrentProcessId ())
       {
-        if (SK::SteamAPI::AppName ().length ())
-          app_name_ = SK::SteamAPI::AppName ();
+        if (! SK::SteamAPI::AppName ().empty ())
+        {
+          app_name_    = SK::SteamAPI::AppName ();
+          app_hwnd_    = 0; // Use platform provided name, not session/window name
+          custom_name_ = true;
+        }
+        
+        else if (! SK::EOS::AppName ().empty ())
+        {
+          app_name_    = SK::EOS::AppName ();
+          app_hwnd_    = 0; // Use platform provided name, not session/window name
+          custom_name_ = true;
+        }
       }
+
+      if (app_name_.empty ())
+          app_name_ = szTitle;
 
       //SK_LOG4 ( ( L"   Name: %s", wszTitle ),
                   //L"  WASAPI  " );
@@ -569,6 +686,7 @@ public:
   SK_IAudioEndpointVolume   getEndpointVolume  (void);
   SK_IAudioLoudness         getLoudness        (void);
   SK_IAudioAutoGainControl  getAutoGainControl (void);
+  SK_IAudioMeterInformation getMeterInfo       (void);
 
   DWORD getProcessId (void)
   {
@@ -580,7 +698,49 @@ public:
     return dwProcId;
   }
 
-  const char* getName (void) noexcept { return app_name_.c_str (); };
+  bool isActive (void)
+  {
+    AudioSessionState    state = AudioSessionStateInactive;
+    control_->GetState (&state);
+
+    return
+      (state == AudioSessionStateActive);
+  }
+
+  const char* getName (void) noexcept
+  {
+    // Use window title if we have an HWND for this application
+    if (app_hwnd_ != 0 && (! custom_name_))
+    {
+      wchar_t wszTitle [512] = { };
+
+      // This is all happening from the application's message pump in most games,
+      //   so this specialized function avoids deadlocking the pump.
+      InternalGetWindowText (app_hwnd_, wszTitle, 511);
+
+      // Check if the HWND has a window title; use app_name_ otherwise.
+      if (*wszTitle != L'\0')
+      {
+        return
+          SK_WideCharToUTF8 (wszTitle).c_str ();
+      }
+    }
+
+    if (! custom_name_)
+    {
+      wchar_t  *wszDisplayName = nullptr;
+      control_->GetDisplayName (&wszDisplayName);
+
+      if (  wszDisplayName != nullptr &&
+           *wszDisplayName != L'\0' )
+      {
+        app_name_ =
+          SK_WideCharToUTF8 (wszDisplayName);
+      }
+    }
+
+    return app_name_.c_str ();
+  };
 
   // IUnknown
   HRESULT
@@ -625,7 +785,7 @@ public:
 
     if (ulRef == 0)
     {
-      delete this;
+    //delete this;
     }
 
     return ulRef;
@@ -686,10 +846,8 @@ public:
   virtual
  ~SK_WASAPI_AudioSession (void) noexcept (false)
   {
-    if (control_ != nullptr)
-      control_->UnregisterAudioSessionNotification (this);
-
-    control_ = nullptr;
+    if (             control_!=nullptr)
+      std::exchange (control_, nullptr)->UnregisterAudioSessionNotification (this);
   };
 
 protected:
@@ -697,13 +855,16 @@ private:
   volatile LONG                     refs_;
   SK_ComPtr <IAudioSessionControl2> control_;
   std::string                       app_name_;
-  SK_WASAPI_SessionManager*         parent_;
+  HWND                              app_hwnd_    = 0; // If no session name is available, use window title
+  bool                              custom_name_ = false;
+  SK_MMDev_Endpoint*                device_      = nullptr;
+  SK_WASAPI_SessionManager*         parent_      = nullptr;
 };
 
-class SK_WASAPI_SessionManager : public IAudioSessionNotification
+class SK_WASAPI_SessionManager
 {
 public:
-  SK_WASAPI_SessionManager (void) noexcept : refs_ (1)
+  SK_WASAPI_SessionManager (void) noexcept
   {
     reset_event_.m_h =
       SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
@@ -722,43 +883,139 @@ public:
 
   void Deactivate (void)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> lock0 (deactivation_lock_);
-
-    if (session_mgr_ != nullptr)
-        session_mgr_->UnregisterSessionNotification (this);
-
-    meter_info_   = nullptr;
-    endpoint_vol_ = nullptr;
-    auto_gain_    = nullptr;
-    loudness_     = nullptr;
-    audio_client_ = nullptr;
+    needs_reset_ = true;
   }
 
-  void Activate (void)
+  void Activate (SK_IMMDevice pDevice = nullptr)
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> lock1 (activation_lock_);
-
     if (reset_event_.isValid () && WaitForSingleObject (reset_event_, 0) != WAIT_TIMEOUT)
     {
       Deactivate ();
     }
 
-    if (meter_info_ == nullptr)
+    std::scoped_lock <SK_Thread_HybridSpinlock> lock (activation_lock_);
+
+    if (std::exchange (needs_reset_, false))
+    {
       sessions_.clear ();
+
+      active_sessions_.data.clear ();
+      active_sessions_.view.clear ();
+
+      inactive_sessions_.data.clear ();
+      inactive_sessions_.view.clear ();
+    }
 
     else
       return;
 
-    meter_info_.Attach (
-      SK_WASAPI_GetAudioMeterInfo ().Detach ()
-    );
-
-    if (meter_info_ != nullptr && (! sessions_.empty ()))
+    if (! sessions_.empty ())
       return;
 
-    SK_ComPtr <IMMDeviceEnumerator> pDevEnum;
-    if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
-      return;
+    UINT dev_idx   = 0;
+    UINT dev_count = (UINT)
+      SK_WASAPI_EndPointMgr->getNumRenderEndpoints ();
+
+    for ( dev_idx = 0 ; dev_idx < dev_count ; ++dev_idx)
+    {
+      auto& endpoint =
+        SK_WASAPI_EndPointMgr->getRenderEndpoint (dev_idx);
+
+      if (endpoint.state_ != DEVICE_STATE_ACTIVE)
+        continue;
+
+      pDevice = endpoint.device_;
+
+      SK_IAudioSessionManager2 session_mgr;
+
+      if (FAILED (pDevice->Activate (
+                  __uuidof (IAudioSessionManager2),
+                    CLSCTX_ALL,
+                      nullptr,
+                        reinterpret_cast <void **>(&session_mgr)
+               )
+           )
+       ) return;
+
+      SK_ComPtr <IAudioSessionEnumerator>             pSessionEnum;
+      if (FAILED (session_mgr->GetSessionEnumerator (&pSessionEnum)))
+        continue;
+
+      int                                  num_sessions = 0;
+      if (FAILED (pSessionEnum->GetCount (&num_sessions)))
+        continue;
+
+      for (int i = 0; i < num_sessions; i++)
+      {
+        SK_ComPtr <IAudioSessionControl>          pSessionCtl;
+        if (FAILED (pSessionEnum->GetSession (i, &pSessionCtl)))
+          continue;
+
+        SK_IAudioSessionControl2                                          pSessionCtl2;
+        if (FAILED (pSessionCtl->QueryInterface <IAudioSessionControl2> (&pSessionCtl2.p)))
+          continue;
+
+        DWORD                                    dwProcess = 0;
+        if (FAILED (pSessionCtl2->GetProcessId (&dwProcess))) {
+          continue;
+        }
+
+        AudioSessionState                       state = AudioSessionStateInactive;
+        if (SUCCEEDED (pSessionCtl2->GetState (&state)))
+        {
+          if (state != AudioSessionStateExpired)
+          {
+            auto* pSession =
+              new SK_WASAPI_AudioSession (pSessionCtl2, &endpoint, this);
+
+            sessions_.emplace (pSession);
+
+            switch (state)
+            {
+              case AudioSessionStateActive:
+                active_sessions_.data.emplace (pSession);
+                break;
+              case AudioSessionStateInactive:
+                inactive_sessions_.data.emplace (pSession);
+                break;
+              //case AudioSessionStateExpired:
+              //  if (  active_sessions_.data.contains (pSession))   active_sessions_.data.erase (pSession);
+              //  if (inactive_sessions_.data.contains (pSession)) inactive_sessions_.data.erase (pSession);
+              //  break;
+              default:
+                break;
+            }
+
+            if (active_sessions_.data.empty ())
+                active_sessions_.view.clear ();
+
+            else active_sessions_.view =
+              std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.cbegin (),
+                                                       active_sessions_.data.cend   () );
+
+            if (inactive_sessions_.data.empty ())
+                inactive_sessions_.view.clear ();
+
+            else inactive_sessions_.view =
+              std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.cbegin (),
+                                                       inactive_sessions_.data.cend   () );
+          }
+        }
+      }
+    }
+
+    SK_WASAPI_EndPointMgr->Activate ();
+  }
+
+  SK_IAudioMeterInformation getMeterInfo (void)
+  {
+    static SK_ComPtr <IMMDeviceEnumerator>
+        pDevEnum;
+    if (pDevEnum == nullptr)
+    {
+      if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
+        return nullptr;
+    }
 
     // Most game audio a user will not want to hear while a game is in the
     //   background will pass through eConsole.
@@ -767,142 +1024,16 @@ public:
     //     going to appreciate having muted :) Consider overloading this function
     //       to allow independent control.
     //
-    SK_ComPtr <IMMDevice> pDevice;
+    SK_ComPtr <IMMDevice> pDefaultDevice;
     if ( FAILED (
            pDevEnum->GetDefaultAudioEndpoint ( eRender,
                                                  eMultimedia,
-                                                   &pDevice )
+                                                   &pDefaultDevice )
                 )
-       ) return;
+       ) return nullptr;
 
-    if (FAILED (pDevice->Activate (
-                  __uuidof (IAudioSessionManager2),
-                    CLSCTX_ALL,
-                      nullptr,
-                        reinterpret_cast <void **>(&session_mgr_)
-               )
-           )
-       ) return;
-
-    SK_ComPtr <IAudioSessionEnumerator> pSessionEnum;
-    if (FAILED (session_mgr_->GetSessionEnumerator (&pSessionEnum)))
-      return;
-
-    int num_sessions;
-
-    if (FAILED (pSessionEnum->GetCount (&num_sessions)))
-      return;
-
-    for (int i = 0; i < num_sessions; i++)
-    {
-      SK_ComPtr <IAudioSessionControl> pSessionCtl;
-      if (FAILED (pSessionEnum->GetSession (i, &pSessionCtl)))
-        continue;
-
-      SK_IAudioSessionControl2 pSessionCtl2;
-      if (FAILED (pSessionCtl->QueryInterface <IAudioSessionControl2> (&pSessionCtl2.p)))
-        continue;
-
-      DWORD dwProcess = 0;
-      if (FAILED (pSessionCtl2->GetProcessId (&dwProcess))) {
-        continue;
-      }
-
-      AudioSessionState state;
-
-      if (SUCCEEDED (pSessionCtl2->GetState (&state)))
-      {
-        auto* pSession =
-          new SK_WASAPI_AudioSession (pSessionCtl2, this);
-
-        sessions_.emplace (pSession);
-
-        if (state == AudioSessionStateActive)
-          active_sessions_.data.emplace (pSession);
-        else if (state == AudioSessionStateInactive)
-          inactive_sessions_.data.emplace (pSession);
-
-        if (! active_sessions_.data.empty ())
-        {
-          active_sessions_.view =
-            std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.cbegin (),
-                                                     active_sessions_.data.cend   () );
-        }
-        else
-          active_sessions_.view.clear ();
-
-        if (! inactive_sessions_.data.empty ())
-        {
-          inactive_sessions_.view =
-            std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.cbegin (),
-                                                     inactive_sessions_.data.cend   () );
-        }
-        else
-          inactive_sessions_.view.clear ();
-      }
-    }
-
-    session_mgr_->RegisterSessionNotification (this);
-
-    SK_RunOnce (pDevEnum->RegisterEndpointNotificationCallback (SK_WASAPI_EndPointMgr.getPtr ()));
-
-    endpoint_vol_.Attach (SK_MMDev_GetEndpointVolumeControl ().Detach ());
-    auto_gain_.   Attach (SK_MMDev_GetAutoGainControl       ().Detach ());
-    loudness_.    Attach (SK_MMDev_GetLoudness              ().Detach ());
-    audio_client_.Attach (SK_WASAPI_GetAudioClient          ().Detach ());
-
-    SK_WASAPI_EndPointMgr->Activate ();
-  }
-
-  // IUnknown
-  HRESULT
-  STDMETHODCALLTYPE
-  QueryInterface (REFIID riid, void **ppv) override
-  {
-    if (! ppv)
-      return E_INVALIDARG;
-
-    if (IID_IUnknown == riid)
-    {
-      AddRef ();
-      *ppv = (IUnknown *)this;
-    }
-
-    else if (__uuidof (IAudioSessionNotification) == riid)
-    {
-      AddRef ();
-      *ppv = (IAudioSessionNotification *)this;
-    }
-
-    else
-    {
-      *ppv = nullptr;
-      return E_NOINTERFACE;
-    }
-
-    return S_OK;
-  }
-
-  ULONG STDMETHODCALLTYPE AddRef (void) noexcept override
-  {
     return
-      InterlockedIncrement (&refs_);
-  }
-
-  ULONG STDMETHODCALLTYPE Release (void) noexcept override
-  {
-    const ULONG ulRef =
-      InterlockedDecrement (&refs_);
-
-    if (ulRef == 0)
-      delete this;
-
-    return ulRef;
-  }
-
-  SK_IAudioMeterInformation getMeterInfo (void)
-  {
-    return meter_info_.p;
+      SK_WASAPI_GetAudioMeterInfo (pDefaultDevice);
   }
 
   SK_WASAPI_AudioSession** getActive   (int* pCount = nullptr) noexcept
@@ -922,60 +1053,9 @@ public:
       inactive_sessions_.view.data ();
   }
 
-  HRESULT
-  STDMETHODCALLTYPE
-  OnSessionCreated (IAudioSessionControl *pNewSession) override
-  {
-    if (pNewSession)
-    {
-      pNewSession->AddRef ();
-
-      SK_IAudioSessionControl2                                             pSessionCtl2;
-      if (SUCCEEDED (pNewSession->QueryInterface <IAudioSessionControl2> (&pSessionCtl2.p)))
-      {
-        DWORD dwProcess = 0;
-        if (SUCCEEDED (pSessionCtl2->GetProcessId (&dwProcess)))
-        {
-          auto* pSession =
-            new SK_WASAPI_AudioSession (pSessionCtl2, this);
-
-          sessions_.emplace (pSession);
-
-          AudioSessionState state = AudioSessionStateExpired;
-          pSessionCtl2->GetState (&state);
-
-          if (state == AudioSessionStateActive)
-            active_sessions_.data.emplace (pSession);
-          else if (state == AudioSessionStateInactive)
-            inactive_sessions_.data.emplace (pSession);
-
-
-          if (! active_sessions_.data.empty ())
-          {
-            active_sessions_.view =
-              std::vector <SK_WASAPI_AudioSession *> ( active_sessions_.data.cbegin (),
-                                                       active_sessions_.data.cend   () );
-          }
-          else
-            active_sessions_.view.clear ();
-
-          if (! inactive_sessions_.data.empty ())
-          {
-            inactive_sessions_.view =
-              std::vector <SK_WASAPI_AudioSession *> ( inactive_sessions_.data.cbegin (),
-                                                       inactive_sessions_.data.cend   () );
-          }
-          else
-            inactive_sessions_.view.clear ();
-        }
-      }
-    }
-
-    return S_OK;
-  }
-
 protected:
   friend class SK_WASAPI_AudioSession;
+  friend class SK_MMDev_Endpoint;
 
   void SetSessionState (SK_WASAPI_AudioSession* pSession, AudioSessionState state)
   {
@@ -1020,6 +1100,16 @@ protected:
       inactive_sessions_.view.clear ();
   }
 
+  void AddSession (SK_WASAPI_AudioSession *pSession, AudioSessionState state)
+  {
+    bool new_session =
+      sessions_.emplace (pSession).second;
+
+    SK_ReleaseAssert (new_session);
+
+    SetSessionState (pSession, state);
+  }
+
   void RemoveSession (SK_WASAPI_AudioSession* pSession)
   {
     if (! pSession)
@@ -1034,16 +1124,13 @@ protected:
     }
   }
 
-
-
 private:
-  volatile LONG                      refs_;
   std::set <SK_WASAPI_AudioSession*> sessions_;
 
   SK_Thread_HybridSpinlock           activation_lock_;
-  SK_Thread_HybridSpinlock           deactivation_lock_;
 
   SK_AutoHandle                      reset_event_;
+  bool                               needs_reset_ = true;
 
   struct {
     using session_set_t         =
@@ -1055,13 +1142,6 @@ private:
           session_vec_t    view = {  };
   }                                  active_sessions_,
                                      inactive_sessions_;
-
-  SK_IAudioSessionManager2           session_mgr_;
-  SK_IAudioMeterInformation          meter_info_;
-  SK_IAudioEndpointVolume            endpoint_vol_;
-  SK_IAudioLoudness                  loudness_;
-  SK_IAudioAutoGainControl           auto_gain_;
-  SK_IAudioClient3                   audio_client_;
 };
 
 struct SK_WASAPI_AudioLatency
@@ -1071,10 +1151,10 @@ struct SK_WASAPI_AudioLatency
   uint32_t samples_per_sec;
 };
 
-SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetCurrentLatency (void);
-SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetDefaultLatency (void);
-SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetMinimumLatency (void);
-SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetMaximumLatency (void);
-SK_WASAPI_AudioLatency __stdcall SK_WASAPI_SetLatency        (SK_WASAPI_AudioLatency latency);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetCurrentLatency (                                SK_IMMDevice pDevice = nullptr);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetDefaultLatency (                                SK_IMMDevice pDevice = nullptr);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetMinimumLatency (                                SK_IMMDevice pDevice = nullptr);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_GetMaximumLatency (                                SK_IMMDevice pDevice = nullptr);
+SK_WASAPI_AudioLatency __stdcall SK_WASAPI_SetLatency        (SK_WASAPI_AudioLatency latency, SK_IMMDevice pDevice = nullptr);
 
 #endif /* __SK__SOUND_H__ */

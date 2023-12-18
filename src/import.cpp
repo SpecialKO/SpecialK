@@ -230,6 +230,14 @@ SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
         }
       }
 
+      if (SK_GetCurrentRenderBackend ().api == SK_RenderAPI::D3D12)
+      {
+        // Teardown and re-create the D3D12 Render Backend, so that
+        //   we initialize various resources needed for ReShade using
+        //     hot-injection.
+        WriteULongRelease (&_d3d12_rbk->reset_needed, 1);
+      }
+
       return
         SK_LoadLibraryW (wszDllFile);
     });

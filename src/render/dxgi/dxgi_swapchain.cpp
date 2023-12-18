@@ -1483,6 +1483,23 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
         }
       }
 
+      //
+      // Swallow the error rather than crashing.
+      //
+      //   Users are more likely to figure out the problem if we warn them and
+      //     go into limp mode instead of crashing.
+      //
+      if (hr == DXGI_ERROR_INVALID_CALL)
+      {
+        SK_ImGui_WarningWithTitle (
+          L"Possible Third-Party Overlay Conflict Detected\r\n\r\n"
+          L"\t\t* Crash prevented, but the game's resolution may be incorrect.",
+            L"DXGI SwapChain Resize Failed"
+        );
+
+        hr = S_OK;
+      }
+
       return hr;
     };
 
@@ -2246,9 +2263,12 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
     auto *pLimiter =
       SK::Framerate::GetLimiter (pSwapChain);
 
-    // Since this may incur an output device change, it's best to take this
-    // opportunity to re-sync the limiter's clock versus VBLANK.
-    pLimiter->reset (true);
+    if (pLimiter != nullptr)
+    {
+      // Since this may incur an output device change, it's best to take this
+      // opportunity to re-sync the limiter's clock versus VBLANK.
+      pLimiter->reset (true);
+    }
 
     if ( new_new_params.Width  != 0 &&
          new_new_params.Height != 0 )

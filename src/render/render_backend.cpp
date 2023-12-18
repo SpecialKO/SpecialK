@@ -1395,8 +1395,8 @@ sk_hwnd_cache_s::getDevCaps (void)
       SK_TLS *pTLS =
         SK_TLS_Bottom ();
 
-      auto *pathArray = (DISPLAYCONFIG_PATH_INFO *)pTLS->scratch_memory->ccd.display_paths.alloc (uiNumPaths);
-      auto *modeArray = (DISPLAYCONFIG_MODE_INFO *)pTLS->scratch_memory->ccd.display_modes.alloc (uiNumModes);
+      _Notnull_ auto *pathArray = (DISPLAYCONFIG_PATH_INFO *)pTLS->scratch_memory->ccd.display_paths.alloc (uiNumPaths);
+      _Notnull_ auto *modeArray = (DISPLAYCONFIG_MODE_INFO *)pTLS->scratch_memory->ccd.display_modes.alloc (uiNumModes);
 
       if ( ERROR_SUCCESS == QueryDisplayConfig ( QDC_ONLY_ACTIVE_PATHS, &uiNumPaths, pathArray,
                                                                         &uiNumModes, modeArray, nullptr ) )
@@ -2557,6 +2557,9 @@ SK_EDID_GetMonitorNameFromBlock ( uint8_t const* block )
 std::string
 SK_RenderBackend_V2::parseEDIDForName (uint8_t *edid, size_t length)
 {
+  if (edid == nullptr)
+    return "";
+
   std::string edid_name;
 
   unsigned int i        = 0;
@@ -2658,6 +2661,9 @@ SK_RenderBackend_V2::parseEDIDForName (uint8_t *edid, size_t length)
 POINT
 SK_RenderBackend_V2::parseEDIDForNativeRes (uint8_t* edid, size_t length)
 {
+  if (edid == nullptr)
+    return { 0, 0 };
+
   unsigned int   i = 0;
   uint8_t checksum = 0;
 
@@ -3078,7 +3084,7 @@ SK_RenderBackend_V2::updateWDDMCaps (SK_RenderBackend_V2::output_s *pDisplay)
 }
 
 bool
-SK_RenderBackend_V2::routeAudioForDisplay (SK_RenderBackend_V2::output_s *pDisplay)
+SK_RenderBackend_V2::routeAudioForDisplay (SK_RenderBackend_V2::output_s *pDisplay, bool force_update)
 {
   bool routed = false;
 
@@ -3091,14 +3097,17 @@ SK_RenderBackend_V2::routeAudioForDisplay (SK_RenderBackend_V2::output_s *pDispl
     {
       routed =
         SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (
-          GetCurrentProcessId (), eRender, pDisplay->audio.paired_device
+          GetCurrentProcessId (), eRender, pDisplay->audio.paired_device, force_update
         );
     }
   }
   
   else
   {
-    SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (GetCurrentProcessId (), eRender, L"");
+    routed =
+      SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (
+        GetCurrentProcessId (), eRender, L"", force_update
+      );
   }
 
   return routed;
@@ -3545,7 +3554,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
 //for ( auto& display : displays )
 //{
-//  RtlSecureZeroMemory (
+//  RtlZeroMemory (
 //    &display, display_size
 //  );
 //}
@@ -3865,7 +3874,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getSdrWhiteLevel ) )
         {
           display.hdr.white_level =
-            (float)(((double)getSdrWhiteLevel.SDRWhiteLevel / 1000.0) * 80.0);
+            (static_cast <float> (getSdrWhiteLevel.SDRWhiteLevel) / 1000.0f) * 80.0f;
         }
 
         else

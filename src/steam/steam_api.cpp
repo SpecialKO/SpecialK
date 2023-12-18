@@ -4517,7 +4517,7 @@ SK_SteamAPI_GetSharedAchievementsForFriend (uint32_t friend_idx, BOOL* pStats)
     unlocked_achvs = SK_SteamAPI_GetUnlockedAchievements ();
 
   if (pStats != nullptr)
-    RtlSecureZeroMemory (pStats, SK_SteamAPI_GetNumPossibleAchievements ());
+    RtlZeroMemory (pStats, SK_SteamAPI_GetNumPossibleAchievements ());
 
   for ( auto& it : unlocked_achvs )
   {

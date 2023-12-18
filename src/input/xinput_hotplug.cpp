@@ -459,7 +459,7 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
       journal.sequence.current++;
     }
 
-    RtlSecureZeroMemory (
+    RtlZeroMemory (
       &pState->Gamepad, sizeof (XINPUT_GAMEPAD)
     );
 
@@ -517,7 +517,7 @@ SK_XInput_PlaceHoldCaps ( DWORD                dwRet,
 
     dwRet = ERROR_SUCCESS;
 
-    RtlSecureZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
+    RtlZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
 
     pCapabilities->Type    = XINPUT_DEVTYPE_GAMEPAD;
     pCapabilities->SubType = XINPUT_DEVSUBTYPE_GAMEPAD;

@@ -175,11 +175,12 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
                                           iid,
                                             (void **)&pGamepadStatsFactory );
 
-    if (SUCCEEDED (hr))
+    if (SUCCEEDED (hr) && pGamepadStatsFactory != nullptr)
     {
       IVectorView <ABI::Windows::Gaming::Input::Gamepad *>* pGamepads;
 
-      if (SUCCEEDED (pGamepadStatsFactory->get_Gamepads (&pGamepads)))
+      if (SUCCEEDED (pGamepadStatsFactory->get_Gamepads (&pGamepads)) &&
+                                               nullptr != pGamepads)
       {
         uint32_t num_pads = 0;
 
@@ -187,7 +188,8 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
         {
           ABI::Windows::Gaming::Input::IGamepad* pGamepad;
 
-          if (SUCCEEDED (pGamepads->GetAt (0, &pGamepad)))
+          if (SUCCEEDED (pGamepads->GetAt (0, &pGamepad)) &&
+                                    nullptr != pGamepad)
           {
 #define WGI_VIRTUAL_HOOK(_Base,_Index,_Name,_Override,_Original,_Type) {      \
   void** _vftable = *(void***)*(_Base);                                       \

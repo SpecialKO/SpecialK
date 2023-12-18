@@ -659,7 +659,7 @@ SK_RawInput_PopulateDeviceList (void)
 
   SK_SetLastError (dwLastError);
 
-  if (uiNumDevices != 0 && ret == -1)
+  if (uiNumDevices != 0 && ret == -1 && pDevices != nullptr)
   {
     SK_TLS* pTLS =
       SK_TLS_Bottom ();
@@ -2531,20 +2531,20 @@ NtUserGetKeyboardState_Detour (PBYTE lpKeyState)
     // All-at-once
     if (capture_mouse && capture_keyboard)
     {
-      RtlSecureZeroMemory (lpKeyState, 255);
+      RtlZeroMemory (lpKeyState, 255);
     }
 
     else
     {
       if (capture_keyboard)
       {
-        RtlSecureZeroMemory (&lpKeyState [7], 247);
+        RtlZeroMemory (&lpKeyState [7], 247);
       }
 
       // Some games use this API for mouse buttons, for reasons that are beyond me...
       if (capture_mouse)
       {
-        RtlSecureZeroMemory (lpKeyState, 7);
+        RtlZeroMemory (lpKeyState, 7);
       }
     }
 

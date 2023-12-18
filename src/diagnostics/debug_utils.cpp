@@ -134,7 +134,7 @@ SK_Debug_LoadHelper (void)
           wszSystemDbgHelp, wszIsolatedDbgHelp, TRUE);
     }
 
-    auto* mods =
+    _Notnull_ auto* mods =
        SK_Modules.getPtr ();
 
     hModDbgHelp =
@@ -1674,6 +1674,9 @@ SK_Debug_FlagAsDebugging (void)
 constexpr USHORT
 _constUnicodeLen ( const wchar_t* str )
 {
+  if (str == nullptr)
+    return 0;
+
   return (   *str == L'\0'   ) ?
                              0 :
          _constUnicodeLen (str + 1)
@@ -3386,6 +3389,7 @@ RaiseException_Detour (
   {
     switch (dwExceptionCode)
     {
+#if 0
       case 0x00000087A:
       case 0x00000087B:
       case 0x00000087C:
@@ -3403,6 +3407,7 @@ RaiseException_Detour (
           skip = true;
         }
         break;
+#endif
 
       case DBG_PRINTEXCEPTION_C:
       case DBG_PRINTEXCEPTION_WIDE_C:
@@ -3586,10 +3591,17 @@ RaiseException_Detour (
 
     if (dwExceptionCode != EXCEPTION_BREAKPOINT || SK_IsDebuggerPresent ())
     {
-      SK_RaiseException (
-        dwExceptionCode,    dwExceptionFlags,
-        nNumberOfArguments, lpArguments
-      );
+      //__try
+      //{
+        SK_RaiseException (
+          dwExceptionCode,    dwExceptionFlags,
+          nNumberOfArguments, lpArguments
+        );
+      //}
+      //
+      //__except (EXCEPTION_EXECUTE_HANDLER)
+      //{
+      //}
     }
   }
 }
@@ -3960,20 +3972,26 @@ BOOL
 WINAPI
 SK_IsDebuggerPresent (void) noexcept
 {
-  if (IsDebuggerPresent_Original == nullptr)
-  {
-    if (ReadAcquire (&__SK_DLL_Attached))
-      SK_RunOnce (SK::Diagnostics::Debugger::Allow ()); // DONTCARE, just init
+  __try {
+    if (IsDebuggerPresent_Original == nullptr)
+    {
+      if (ReadAcquire (&__SK_DLL_Attached))
+        SK_RunOnce (SK::Diagnostics::Debugger::Allow ()); // DONTCARE, just init
+    }
+
+    if (bRealDebug)
+      return TRUE;
+
+    if (     IsDebuggerPresent_Original != nullptr )
+      return IsDebuggerPresent_Original ();
+
+    return
+      IsDebuggerPresent ();
   }
-  
-  if (bRealDebug)
-    return TRUE;
-  
-  if (     IsDebuggerPresent_Original != nullptr )
-    return IsDebuggerPresent_Original ();
-  
-  return
-    IsDebuggerPresent ();
+
+  __finally {
+    return FALSE;
+  }
 }
 
 

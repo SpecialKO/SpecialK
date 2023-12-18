@@ -34,3 +34,5 @@ extern bool __SK_HasDLSSGStatusSupport;
 extern bool __SK_IsDLSSGActive;
 extern bool __SK_DoubleUpOnReflex;
 extern bool __SK_ForceDLSSGPacing;
+
+void SK_NGX12_DumpBuffers_DLSSG (ID3D12GraphicsCommandList *pCommandList);

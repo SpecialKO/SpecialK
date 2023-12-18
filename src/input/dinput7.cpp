@@ -142,7 +142,7 @@ DirectInputCreateEx ( HINSTANCE hinst,
              (hr = DirectInputCreateEx_Import ( hinst, dwVersion, riidltf,
                                                 ppvOut, punkOuter )
              )
-           )
+           ) && ppvOut != nullptr
          )
       {
         if (! IDirectInput7A_CreateDevice_Original)
@@ -165,7 +165,7 @@ DirectInputCreateEx ( HINSTANCE hinst,
              (hr = DirectInputCreateEx_Import ( hinst, dwVersion, riidltf,
                                                 ppvOut, punkOuter )
              )
-           )
+           ) && ppvOut != nullptr
          )
       {
         if (! IDirectInput7W_CreateDevice_Original)
@@ -216,7 +216,7 @@ DirectInputCreateA ( HINSTANCE       hinst,
            (hr = DirectInputCreateA_Import ( hinst,           dwVersion,
                                              lplpDirectInput, punkOuter )
            )
-         )
+         ) && lplpDirectInput != nullptr
        )
     {
       if (! IDirectInput7A_CreateDevice_Original)
@@ -266,7 +266,7 @@ DirectInputCreateW ( HINSTANCE       hinst,
            (hr = DirectInputCreateW_Import ( hinst,           dwVersion,
                                              lplpDirectInput, punkOuter )
            )
-         )
+         ) && lplpDirectInput != nullptr
        )
     {
       if (! IDirectInput7W_CreateDevice_Original)
@@ -483,7 +483,7 @@ CoCreateInstance_DI7 (
            (hr = CoCreateInstance_Original ( CLSID_DirectInput, pUnkOuter,
                                                dwClsContext, riid, ppv )
            )
-         ) && config.input.gamepad.hook_dinput7
+         ) && config.input.gamepad.hook_dinput7 && ppv != nullptr
        )
     {
       if (! IDirectInput7A_CreateDevice_Original)
@@ -506,7 +506,7 @@ CoCreateInstance_DI7 (
            (hr = CoCreateInstance_Original ( CLSID_DirectInput, pUnkOuter,
                                                dwClsContext, riid, ppv )
            )
-         ) && config.input.gamepad.hook_dinput7
+         ) && config.input.gamepad.hook_dinput7 && ppv != nullptr
        )
     {
       if (! IDirectInput7W_CreateDevice_Original)
@@ -562,10 +562,10 @@ CoCreateInstanceEx_DI7 (
                                                  dwClsCtx, pServerInfo,
                                                    dwCount, pResults )
            )
-         ) && config.input.gamepad.hook_dinput7
+         ) && config.input.gamepad.hook_dinput7 && pResults != nullptr
        )
     {
-      if (SUCCEEDED (pResults->hr))
+      if (SUCCEEDED (pResults->hr) && pResults->pItf != nullptr)
       {
         if (*pResults->pIID == IID_IDirectInput7A)
         {

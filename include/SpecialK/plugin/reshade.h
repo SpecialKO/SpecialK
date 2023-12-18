@@ -35,9 +35,9 @@ SK_ReShade_GetDLL (void);
 void
 SK_ReShade_LoadIfPresent (void);
 
-UINT64 SK_ReShadeAddOn_RenderEffectsD3D12   (IDXGISwapChain1*, ID3D12Resource*, ID3D12Fence*, D3D12_CPU_DESCRIPTOR_HANDLE);
+UINT64 SK_ReShadeAddOn_RenderEffectsD3D12   (IDXGISwapChain1*, ID3D12Resource*, ID3D12Fence*, D3D12_CPU_DESCRIPTOR_HANDLE, D3D12_CPU_DESCRIPTOR_HANDLE);
 bool   SK_ReShadeAddOn_RenderEffectsD3D11   (IDXGISwapChain1*); // TODO: Make generic to post-process non-SwapChain buffers
-bool   SK_ReShadeAddOn_RenderEffectsD3D11Ex (IDXGISwapChain1 *pSwapChain, ID3D11RenderTargetView *pRTV);
+bool   SK_ReShadeAddOn_RenderEffectsD3D11Ex (IDXGISwapChain1 *pSwapChain, ID3D11RenderTargetView *pRTV, ID3D11RenderTargetView *pRTV_sRGB);
 bool   SK_ReShadeAddOn_Init               (HMODULE          reshade_module = nullptr);
 void   SK_ReShadeAddOn_ActivateOverlay    (bool             activate);
 bool   SK_ReShadeAddOn_IsOverlayActive    (void);
@@ -56,5 +56,7 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceCo
 
 void SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *runtime);
 void SK_ReShadeAddOn_DestroyEffectRuntime          (reshade::api::effect_runtime *runtime);
+
+void SK_ReShadeAddOn_CleanupConfigAndLogs (void);
 
 #endif /* __SK__RESHADE_H__ */

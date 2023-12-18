@@ -2379,8 +2379,28 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                          hdr ? &GUID_WICPixelFormat64bppRGBAHalf :
                                                  pFrameData->dxgi.NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
                                                                                    &GUID_WICPixelFormat48bppRGB :
-                                                                                   &GUID_WICPixelFormat24bppBGR)
-                                                               : E_POINTER;
+                                                                                   &GUID_WICPixelFormat24bppBGR,
+                          [&](IPropertyBag2* props)
+                          {
+			                      PROPBAG2 options [2] = { };
+                            VARIANT  vars    [2] = { };
+
+                            options [0].pstrName = L"UseCodecOptions";
+                            vars    [0].vt       = VT_BOOL;
+			                      vars    [0].boolVal  = VARIANT_TRUE;
+
+                            options [1].pstrName = L"Quality";
+                            vars    [1].vt       = VT_UI1;
+
+                            // Lossless
+                            if (config.screenshots.compression_quality == 100)
+                              vars  [1].bVal = 1;
+                            else
+                              vars  [1].bVal =
+                                std::max ( 1ui8, static_cast <uint8_t> (255 - static_cast <uint8_t> (255.0f * (static_cast <float> (config.screenshots.compression_quality) / 100.0f))) );
+
+                            props->Write (2, options, vars);
+		                      }             )                      : E_POINTER;
                       }
 
                       if (SUCCEEDED (hrSaveToWIC))

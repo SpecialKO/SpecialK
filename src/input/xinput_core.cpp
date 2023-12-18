@@ -383,6 +383,9 @@ XInputEnable1_4_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
+  if (! pCtx)
+    return;
+
   if (config.window.background_render)
   {
     xinput_enabled             = TRUE;
@@ -800,6 +803,9 @@ XInputSetState1_4_Detour (
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
+
+  if (! pCtx)
+    return ERROR_DEVICE_NOT_CONNECTED;
 
   if (pCtx->XInputSetState_Original == nullptr)
     return ERROR_SUCCESS;

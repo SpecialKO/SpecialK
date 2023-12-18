@@ -345,7 +345,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
       if (pData != nullptr)
       {
-        if (*pcbSize >= size)
+        if (        *pcbSize >= size)
           memcpy (pData, pRawCtx->cached_input.Data, size);
         else
         {
@@ -1628,7 +1628,7 @@ SK_ImGui_FilterXInput (
 
   if (disable)
   {
-    RtlSecureZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+    RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
     // SDL Keepalive
     pState->dwPacketNumber =
@@ -1653,7 +1653,7 @@ SK_ImGui_FilterXInputKeystroke (
 
   if (disable)
   {
-    RtlSecureZeroMemory (&pKeystroke->Flags, sizeof (pKeystroke->Flags));
+    RtlZeroMemory (&pKeystroke->Flags, sizeof (pKeystroke->Flags));
 
     return true;
   }
@@ -1942,7 +1942,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
     }
 
     else
-      RtlSecureZeroMemory (&state.Gamepad, sizeof (XINPUT_GAMEPAD));
+      RtlZeroMemory (&state.Gamepad, sizeof (XINPUT_GAMEPAD));
 
 
 
@@ -2878,8 +2878,8 @@ SK_ImGui_User_NewFrame (void)
     io.MouseDown [2] = ((SK_GetAsyncKeyState (VK_MBUTTON) ) < 0);
     io.MouseDown [3] = ((SK_GetAsyncKeyState (VK_XBUTTON1)) < 0);
     io.MouseDown [4] = ((SK_GetAsyncKeyState (VK_XBUTTON2)) < 0);
-  } else { RtlSecureZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);
-           RtlSecureZeroMemory ( io.MouseDown,    sizeof (bool) * 5); }
+  } else { RtlZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);
+           RtlZeroMemory ( io.MouseDown,    sizeof (bool) * 5); }
 
   SK_ImGui_PollGamepad ();
 

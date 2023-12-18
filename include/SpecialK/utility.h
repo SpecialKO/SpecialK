@@ -853,7 +853,11 @@ private:
   };
 };
 
-void SK_AVX2_memcpy (void *pvDst, void *pvSrc, size_t nBytes);
+//void  SK_AVX2_ZeroMemory (void *pvDst,                    size_t nBytes);
+//void* SK_AVX2_memcpy     (void *pvDst, const void *pvSrc, size_t nBytes);
+
+//#define SK_ZeroMemory SK_AVX2_ZeroMemory
+//#define SK_memcpy     SK_AVX2_memcpy
 
 auto constexpr CountSetBits = [](ULONG_PTR bitMask) noexcept ->
 DWORD

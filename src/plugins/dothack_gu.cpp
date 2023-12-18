@@ -508,20 +508,15 @@ SK_DGPU_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 }
 
 
-enum SK_D3D11_DrawHandlerState
-{
-  Normal,
-  Override,
-  Skipped
-};
+#include <render/d3d11/d3d11_state_tracker.h>
 
- extern SK_D3D11_DrawHandlerState   SK_D3D11_DrawHandler     (ID3D11DeviceContext* pDevCtx, SK_TLS** ppTLS, UINT&);
-typedef SK_D3D11_DrawHandlerState (*SK_D3D11_DrawHandler_pfn)(ID3D11DeviceContext* pDevCtx, SK_TLS** ppTLS, UINT&);
+ extern SK_D3D11_DrawHandlerState   SK_D3D11_DrawHandler     (ID3D11DeviceContext* pDevCtx, SK_D3D11DrawType, UINT verts, SK_TLS** ppTLS, UINT&);
+typedef SK_D3D11_DrawHandlerState (*SK_D3D11_DrawHandler_pfn)(ID3D11DeviceContext* pDevCtx, SK_D3D11DrawType, UINT verts, SK_TLS** ppTLS, UINT&);
                                     SK_D3D11_DrawHandler_pfn
                                     SK_D3D11_DrawHandler_Original = nullptr;
 
 SK_D3D11_DrawHandlerState
-SK_DGPU_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS** ppTLS, UINT& d_idx)
+SK_DGPU_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_D3D11DrawType type, UINT verts, SK_TLS** ppTLS, UINT& d_idx)
 {
   if ( SK_DGPU_ScreenFlare_Local.override ||
        SK_DGPU_ScreenFlare_Global.override )
@@ -544,7 +539,7 @@ SK_DGPU_DrawHandler (ID3D11DeviceContext* pDevCtx, SK_TLS** ppTLS, UINT& d_idx)
 
 
   return
-    SK_D3D11_DrawHandler_Original (pDevCtx, ppTLS, d_idx);
+    SK_D3D11_DrawHandler_Original (pDevCtx, type, verts, ppTLS, d_idx);
 }
 
 

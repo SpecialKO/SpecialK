@@ -928,9 +928,9 @@ public:
 
 
     //// Automatically handle sRGB -> Linear if the original SwapChain used it
-    //extern bool             bOriginallysRGB;
-    //if (rb.srgb_stripped || bOriginallysRGB)
-    //  __SK_HDR_Content_EOTF = 1.0f;
+    extern bool             bOriginallysRGB;
+    if (rb.srgb_stripped || bOriginallysRGB)
+      __SK_HDR_Content_EOTF = 1.0f;
 
 
     if ( __SK_HDR_10BitSwap ||
@@ -1577,21 +1577,54 @@ public:
                 break;
             }
 
-            if ( ImGui::Combo ( "Content EOTF###SDR_EOTF_COMBO", &eotf_sel,
-                                "Linear\0"
-                                "sRGB\0"
-                                "2.2\0"
-                                "2.4\0"
-                                "Custom (set in INI)\0\0") )
+            std::string
+              list = "Linear";
+              list += '\0';
+
+              list += "sRGB";
+              list += '\0';
+              
+              list += "2.2";
+              list += '\0';
+              
+              list += "2.4";
+              list += '\0';
+
+            if (eotf_sel == ContentEotf_Custom)
             {
-              if (eotf_sel != _MAX_SEL)
+              list += SK_FormatString ("Custom: %3.2f", __SK_HDR_Content_EOTF).c_str ();
+            }
+
+            else
+            {
+              list += "Custom";
+            }
+
+            list += '\0';
+            list += '\0';
+
+            if (ImGui::BeginPopup ("Gamma Selector"))
+            {
+              if (ImGui::SliderFloat ("Custom EOTF", &__SK_HDR_Content_EOTF, 1.01f, 2.8f, "%4.2f"))
+              {
+                _SK_HDR_ContentEOTF->store (__SK_HDR_Content_EOTF);
+              }
+
+              ImGui::EndPopup ();
+            }
+
+            if ( ImGui::Combo ( "Content EOTF###SDR_EOTF_COMBO", &eotf_sel,
+                                list.c_str () ) )
+            {
+              if (eotf_sel <= _MAX_SEL)
               {
                 switch (eotf_sel)
                 {
-                  case ContentEotf_Linear: __SK_HDR_Content_EOTF =  1.0f; break;
-                  case ContentEotf_sRGB:   __SK_HDR_Content_EOTF = -2.2f; break;
-                  case ContentEotf_2_2:    __SK_HDR_Content_EOTF =  2.2f; break;
-                  case ContentEotf_2_4:    __SK_HDR_Content_EOTF =  2.4f; break;
+                  case ContentEotf_Linear: __SK_HDR_Content_EOTF =  1.0f;       break;
+                  case ContentEotf_sRGB:   __SK_HDR_Content_EOTF = -2.2f;       break;
+                  case ContentEotf_2_2:    __SK_HDR_Content_EOTF =  2.2f;       break;
+                  case ContentEotf_2_4:    __SK_HDR_Content_EOTF =  2.4f;       break;
+                  case ContentEotf_Custom: ImGui::OpenPopup ("Gamma Selector"); break;
                 }
 
                 _SK_HDR_ContentEOTF->store (__SK_HDR_Content_EOTF);

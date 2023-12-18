@@ -456,10 +456,11 @@ struct sk_config_t
       int        scrgb_bit_depth       =    10;
       int        yuv_subsampling       =   444;
       bool       full_range            =  true;
-      int        compression_quality   =   100;
       int        compression_speed     =     8;
       int        max_threads           =     6;
     } avif;
+
+    int          compression_quality   =    90;
 
     SK_ConfigSerializedKeybind
          game_hud_free_keybind = {
@@ -872,7 +873,8 @@ struct sk_config_t
         int   extra_pixels        =      0;
         int   override_appid      =     -1;
       } compat;
-      bool    allow_scrgb         =  false;
+      bool    allow_scrgb         =   true; // Use Compute Copy HDR10 <--> scRGB
+      bool    dump_buffers        =  false;
     } dlss;
   } nvidia;
 
@@ -1405,7 +1407,8 @@ enum class SK_GAME_ID
   Persona4,                     // P4G.exe
   Persona5,                     // P5R.exe
   HorizonZeroDawn,              // HorizonZeroDawn.exe
-  BaldursGate3,                 // bg3.exe
+  BaldursGate3,                 // bg3_dx11.exe
+  BaldursGate3_Vulkan,          // bg3.exe
   AssassinsCreed_Valhalla,      // ACValhalla.exe / ACValhalla_Plus.exe
   AtelierRyza2,                 // Atelier_Ryza_2.exe
   Nioh2,                        // nioh2.exe

@@ -535,6 +535,9 @@ __declspec(nothrow)
 HRESULT
 iSK_Logger::QueryInterface (THIS_ REFIID riid, void** ppvObj) noexcept
 {
+  if (ppvObj == nullptr)
+    return E_POINTER;
+
   if (IsEqualGUID (riid, IID_SK_Logger) == 1)
   {
     AddRef ();

@@ -202,6 +202,9 @@ public:
 
   bool OnVarChange (SK_IVariable* var, void* val) override
   {
+    if (var == nullptr)
+      return false;
+
     if (var == preferred_monitor_)
     {
       if (val != nullptr)
@@ -5086,7 +5089,7 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
            SetWindowsHookExW_Original :
            SetWindowsHookExA_Original;
 
-    if (hHookKeyboard == 0)
+    if (hHookKeyboard == 0 && _SetWindowsHookEx != nullptr)
     {
       hHookKeyboard =
         _SetWindowsHookEx (
@@ -5095,7 +5098,7 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
                           );
     }
 
-    if (hHookMouse == 0)
+    if (hHookMouse == 0 && _SetWindowsHookEx != nullptr)
     {
       hHookMouse =
         _SetWindowsHookEx (
@@ -6666,20 +6669,23 @@ SK_InstallWindowHook (HWND hWnd)
           static_cast <size_t> (count) + 1
         );
 
-      SK_GetRegisteredRawInputDevices ( pDevs,
-                                       &count,
-                                       sizeof (RAWINPUTDEVICE) );
-
-      for (UINT i = 0 ; i < count ; i++)
+      if (pDevs != nullptr)
       {
-       if ( ( pDevs [i].usUsage     == HID_USAGE_GENERIC_MOUSE ||
-              pDevs [i].usUsage     == HID_USAGE_GENERIC_POINTER ) &&
-            ( pDevs [i].usUsagePage == HID_USAGE_PAGE_GENERIC  ||
-              pDevs [i].usUsagePage == HID_USAGE_PAGE_GAME       ) )
+        SK_GetRegisteredRawInputDevices ( pDevs,
+                                         &count,
+                                         sizeof (RAWINPUTDEVICE) );
+
+        for (UINT i = 0 ; i < count ; i++)
         {
-          has_raw_mouse = true; // Technically this could be just about any pointing device
-                                //   including a touchscreen (on purpose).
-          break;
+         if ( ( pDevs [i].usUsage     == HID_USAGE_GENERIC_MOUSE ||
+                pDevs [i].usUsage     == HID_USAGE_GENERIC_POINTER ) &&
+              ( pDevs [i].usUsagePage == HID_USAGE_PAGE_GENERIC  ||
+                pDevs [i].usUsagePage == HID_USAGE_PAGE_GAME       ) )
+          {
+            has_raw_mouse = true; // Technically this could be just about any pointing device
+                                  //   including a touchscreen (on purpose).
+            break;
+          }
         }
       }
     }
@@ -6922,7 +6928,18 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
 
   // Kiss of death for sane window management
   if (! _wcsicmp (wszClassName, L"UnityWndClass"))
-    SK_GetCurrentRenderBackend ().windows.unity = true;
+  {
+    SK_GetCurrentRenderBackend ().windows.unity =  true;
+
+    if ( config.apis.last_known != SK_RenderAPI::Reserved &&
+         config.apis.last_known != SK_RenderAPI::OpenGL )
+    {
+      config.apis.OpenGL.hook                   = false; // Unity does some fake OpenGL stuff; ignore.
+    }
+
+    config.textures.cache.ignore_nonmipped      =  true;
+    cache_opts.ignore_non_mipped                =  true; // Push this change through immediately
+  }
 
   else if (! _wcsicmp (wszClassName, L"UnrealWindow"))
     SK_GetCurrentRenderBackend ().windows.unreal = true;
@@ -7745,7 +7762,8 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
               std::set <HWND>* pTopLevelSet =
                 (std::set <HWND> *)lParam;
 
-              pTopLevelSet->emplace (hWnd);
+              if (pTopLevelSet != nullptr)
+                  pTopLevelSet->emplace (hWnd);
 
               return TRUE;
             },      (LPARAM)&hWndTopLevel);

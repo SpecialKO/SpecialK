@@ -1479,10 +1479,10 @@ SKX_RemoveCBTHook (void)
       InterlockedDecrement (&injected_procs);
     }
 
-                         whitelist_count = 0;
-    RtlSecureZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
-                         blacklist_count = 0;
-    RtlSecureZeroMemory (blacklist_patterns, sizeof (blacklist_patterns));
+                   whitelist_count = 0;
+    RtlZeroMemory (whitelist_patterns, sizeof (whitelist_patterns));
+                   blacklist_count = 0;
+    RtlZeroMemory (blacklist_patterns, sizeof (blacklist_patterns));
 
         const DWORD       self_pid = GetCurrentProcessId ();
     std::set <DWORD>   running_pids;

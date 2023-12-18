@@ -97,7 +97,6 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
     }
   }
 
-
   return
     D3D12CommandQueue_ExecuteCommandLists_Original (
       This,

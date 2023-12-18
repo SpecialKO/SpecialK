@@ -488,7 +488,13 @@ struct SK_D3D12_RenderCtx {
     SK_ComPtr <ID3D12DescriptorHeap>      pImGui            = nullptr;
     SK_ComPtr <ID3D12DescriptorHeap>      pHDR              = nullptr;
     SK_ComPtr <ID3D12DescriptorHeap>      pHDR_CopyAssist   = nullptr;
+    SK_ComPtr <ID3D12DescriptorHeap>      pComputeCopy      = nullptr;
   } descriptorHeaps;
+
+  struct {
+    SK_ComPtr <ID3D12PipelineState>       pPipeline         = nullptr;
+    SK_ComPtr <ID3D12RootSignature>       pSignature        = nullptr;
+  } computeCopy;
 
 	struct FrameCtx {
     SK_D3D12_RenderCtx*                   pRoot             = nullptr;
@@ -501,26 +507,28 @@ struct SK_D3D12_RenderCtx {
       HRESULT WaitSequential   (void);
     } fence, reshade_fence;
 
-    SK_ComPtr <ID3D12GraphicsCommandList> pCmdList          = nullptr;
-		SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator     = nullptr;
-    bool                                  bCmdListRecording =   false;
+    SK_ComPtr <ID3D12GraphicsCommandList> pCmdList           = nullptr;
+		SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator      = nullptr;
+    bool                                  bCmdListRecording  =   false;
 
-		SK_ComPtr <ID3D12Resource>            pRenderOutput     = nullptr;
-		D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutput     =  { 0 };
-    D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeOutput    =  { 0 };
-    UINT                                  iBufferIdx        =UINT_MAX;
+		SK_ComPtr <ID3D12Resource>            pRenderOutput      = nullptr;
+		D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutput      =  { 0 };
+    D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutputsRGB  =  { 0 };
+    D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeOutput     =  { 0 };
+    D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeOutputsRGB =  { 0 };
+    UINT                                  iBufferIdx         =UINT_MAX;
 
     struct {
-      SK_ComPtr <ID3D12Resource>          pSwapChainCopy    = nullptr;
-      D3D12_CPU_DESCRIPTOR_HANDLE         hSwapChainCopy_CPU = { 0 };
-      D3D12_GPU_DESCRIPTOR_HANDLE         hSwapChainCopy_GPU = { 0 };
-      D3D12_CPU_DESCRIPTOR_HANDLE         hBufferCopy_CPU   =  { 0 };
-      D3D12_GPU_DESCRIPTOR_HANDLE         hBufferCopy_GPU   =  { 0 };
-      D3D12_RECT                          scissor           = {     };
-      D3D12_VIEWPORT                      vp                = {     };
+      SK_ComPtr <ID3D12Resource>          pSwapChainCopy     = nullptr;
+      D3D12_CPU_DESCRIPTOR_HANDLE         hSwapChainCopy_CPU =  { 0 };
+      D3D12_GPU_DESCRIPTOR_HANDLE         hSwapChainCopy_GPU =  { 0 };
+      D3D12_CPU_DESCRIPTOR_HANDLE         hBufferCopy_CPU    =  { 0 };
+      D3D12_GPU_DESCRIPTOR_HANDLE         hBufferCopy_GPU    =  { 0 };
+      D3D12_RECT                          scissor            = {     };
+      D3D12_VIEWPORT                      vp                 = {     };
 
       struct {
-        SK_D3D12_StateTransition          process  [2]      = {
+        SK_D3D12_StateTransition          process  [2]       = {
           { D3D12_RESOURCE_STATE_COPY_DEST,   D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE },
           { D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET         }
         },                                copy_end [1]      = {
@@ -569,7 +577,8 @@ struct SK_D3D12_RenderCtx {
 	  }
 
   // On reset, delay re-initialization
-  std::atomic_int frame_delay = 1;
+  std::atomic_int frame_delay  = 1;
+  volatile ULONG  reset_needed = 0UL;
 };
 
 extern SK_LazyGlobal <SK_D3D12_RenderCtx> _d3d12_rbk;

@@ -198,7 +198,7 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 
 void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
 {
-  if (dc == nullptr)
+  if (dc == nullptr || sb == nullptr)
     return;
 
   SK_ComPtr <ID3D11Device>

@@ -107,6 +107,9 @@ SK_DXGI_GET_OBJECT_NAME_N ( IDXGIObject *pObject,
 bool
 SK_DXGI_HasDebugName (IDXGIObject* pDXGIObj)
 {
+  if (pDXGIObj == nullptr)
+    return false;
+
   UINT uiNameLen = 0;
 
   HRESULT hr =

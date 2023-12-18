@@ -363,6 +363,14 @@ bool SK_D3D12_HasDebugName (       ID3D12Object* pD3D12Obj );
 void SK_D3D12_SetDebugName (       ID3D12Object* pD3D12Obj,
                              const std::wstring& kName );
 
+std::wstring SK_D3D12_GetDebugNameW    (ID3D12Object* pD3D12Obj);
+std::string  SK_D3D12_GetDebugNameA    (ID3D12Object* pD3D12Obj);
+std::string  SK_D3D12_GetDebugNameUTF8 (ID3D12Object* pD3D12Obj);
+
+std::wstring SK_D3D11_GetDebugNameW    (ID3D11DeviceChild* pD3D11Obj);
+std::string  SK_D3D11_GetDebugNameA    (ID3D11DeviceChild* pD3D11Obj);
+std::string  SK_D3D11_GetDebugNameUTF8 (ID3D11DeviceChild* pD3D11Obj);
+
 namespace SK
 {
   namespace DXGI

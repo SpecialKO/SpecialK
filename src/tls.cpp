@@ -124,6 +124,9 @@ SK_TLS_SetValue_NoFail (DWORD dwTlsIndex, SK_TLS *pTLS)
 SK_TlsRecord*
 SK_GetTLSEx (SK_TLS** ppTLS, bool no_create = false)
 {
+  if (ppTLS == nullptr)
+    return nullptr;
+
   auto& pTLS =
     *ppTLS;
 

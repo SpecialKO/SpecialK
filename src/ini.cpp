@@ -235,7 +235,7 @@ iSK_INI::reload (const wchar_t *fname)
                                              real_size, nullptr, 0 )
                  );
 
-      if (0 == converted_size)
+      if (0 == converted_size && ((! utf8_bom) || real_size > 0))
       {
         std::string utf8_fname =
           SK_StripUserNameFromPathA (
@@ -533,6 +533,9 @@ iSK_INI::parse (void)
 {
   SK_ReleaseAssert (data.size () > 0);
 
+  if (data.empty ())
+    return;
+
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
 
@@ -642,6 +645,9 @@ iSK_INI::parse (void)
       {
         for (wchar_t* j = start; j <= pEnd; j = CharNextW (j))
         {
+          if (j == nullptr)
+            break;
+
           if (j == pEnd)
           {
             finish = j;
@@ -835,6 +841,9 @@ iSK_INI::import (const wchar_t* import_data)
 
       for (wchar_t* j = start; j <= pEnd; j = CharNextW (j))
       {
+        if (j == nullptr)
+          break;
+
         if (j == pEnd)
         {
           finish = j;
@@ -1242,6 +1251,9 @@ void
 __stdcall
 iSK_INI::write (const wchar_t* fname)
 {
+  if (ordered_sections.empty () && !allow_empty)
+    return;
+
   if (fname == nullptr)
     fname = name.c_str ();
 
@@ -1250,7 +1262,7 @@ iSK_INI::write (const wchar_t* fname)
     return;
 
   std::wstring outbuf;
-               outbuf.reserve (16384);
+               outbuf.reserve (65536);
 
   for ( auto& it : ordered_sections )
   {
@@ -1288,12 +1300,16 @@ iSK_INI::write (const wchar_t* fname)
     }
   }
 
+
   if ( (! outbuf.empty ()) &&
           outbuf.back  ()  == L'\n' )
   {
     // Strip the unnecessary extra newline
     outbuf.resize (outbuf.size () - 1);
   }
+
+  else if (outbuf.empty () && !allow_empty)
+    return;
 
 
   uint32_t new_crc32 = 0;
@@ -1339,6 +1355,9 @@ iSK_INI::write (const wchar_t* fname)
   }
 
   SK_CreateDirectories (fname);
+
+  if (StrStrIW (fname, LR"(\Global\)"))
+    encoding_ = INI_UTF16LE;
 
   FILE* fOut = nullptr;
 
@@ -1400,6 +1419,9 @@ HRESULT
 __stdcall
 iSK_INI::QueryInterface (THIS_ REFIID riid, void** ppvObj)
 {
+  if (ppvObj == nullptr)
+    return E_POINTER;
+
   if (IsEqualGUID (riid, IID_SK_INI) != 0)
   {
     AddRef ();
@@ -1521,6 +1543,13 @@ iSK_INISection::remove_key (const std::wstring& wszKey)
   }
 
   return false;
+}
+
+bool&
+iSK_INI::get_allow_empty (void)
+{
+  return
+    allow_empty;
 }
 
 

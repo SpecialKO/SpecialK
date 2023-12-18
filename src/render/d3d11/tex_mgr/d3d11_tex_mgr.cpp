@@ -875,6 +875,9 @@ HRESULT
 __stdcall
 SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 {
+  if (pTex == nullptr)
+    return E_POINTER;
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -895,6 +898,12 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
     if (SUCCEEDED (DirectX::CaptureTexture (pDev,
                                             pDevCtx, pTex, img)))
     {
+      D3D11_TEXTURE2D_DESC texDesc = { };
+      pTex->GetDesc      (&texDesc);
+
+      bool typeless =
+        DirectX::IsTypeless (texDesc.Format);
+
       auto _IsTypeless = [&](void) ->
       bool { return DirectX::IsTypeless (img.GetMetadata ().format); };
 
@@ -935,17 +944,20 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 #if 1
       if (compressed)
       {
-        swprintf ( wszOutName, LR"(%s\Compressed_%08X.dds)",
+        swprintf ( wszOutName, typeless ? LR"(%s\Compressed_%08X_TYPELESS.dds)"
+                                        : LR"(%s\Compressed_%08X.dds)",
                      wszPath, crc32c );
       }
 
       else
       {
-        swprintf ( wszOutName, LR"(%s\Uncompressed_%08X.dds)",
+        swprintf ( wszOutName, typeless ? LR"(%s\Uncompressed_%08X_TYPELESS.dds)"
+                                        : LR"(%s\Uncompressed_%08X.dds)",
                      wszPath, crc32c );
       }
 #else
-      swprintf ( wszOutName, LR"(%s\%08X.dds)",
+      swprintf ( wszOutName, typeless ? LR"(%s\%08X_TYPELESS.dds)"
+                                      : LR"(%s\%08X.dds)",
                    wszPath, crc32c );
 #endif
 
@@ -1491,6 +1503,37 @@ SK_D3D11_DeleteDumpedTexture (uint32_t crc32c)
     return TRUE;
   }
 
+
+            *wszOutName = L'\0';
+  swprintf ( wszOutName, LR"(%s\Compressed_%08X_TYPELESS.dds)",
+               wszPath, crc32c );
+
+  size =
+    SK_File_GetSize (wszOutName);
+  if (  DeleteFileW (wszOutName) != FALSE )
+  {
+    SK_D3D11_RemoveDumped (crc32c, crc32c);
+
+    SK_D3D11_Textures->dumped_texture_bytes -= size;
+
+    return TRUE;
+  }
+
+            *wszOutName = L'\0';
+  swprintf ( wszOutName, LR"(%s\Uncompressed_%08X_TYPELESS.dds)",
+               wszPath, crc32c );
+
+  size =
+    SK_File_GetSize (wszOutName);
+  if (  DeleteFileW (wszOutName) != FALSE )
+  {
+    SK_D3D11_RemoveDumped (crc32c, crc32c);
+
+    SK_D3D11_Textures->dumped_texture_bytes -= size;
+
+    return TRUE;
+  }
+
   return FALSE;
 }
 
@@ -1501,6 +1544,9 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
                           _In_       uint32_t                top_crc32,
                           _In_       uint32_t                checksum )
 {
+  if (pDesc == nullptr || pInitialData == nullptr)
+    return E_POINTER;
+
   static auto& textures =
     SK_D3D11_Textures;
 
@@ -1592,6 +1638,7 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
           std::min <size_t> ( img->rowPitch,
                                 pInitialData [lod].SysMemPitch );
 
+        //SK_memcpy (dptr, sptr, msize);
         memcpy_s ( dptr, img->rowPitch,
                    sptr, msize );
 
@@ -1632,17 +1679,23 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
   lstrcatW (wszOutPath, LR"(\dump\textures\)");
   lstrcatW (wszOutPath, SK_GetHostApp ());
 
+  bool typeless = DirectX::IsTypeless (pDesc->Format);
+
   if (compressed && config.textures.d3d11.precise_hash) {
-    swprintf ( wszOutName, LR"(%s\Compressed_%08X_%08X.dds)",
+    swprintf ( wszOutName, typeless ? LR"(%s\Compressed_%08X_%08X_TYPELESS.dds)"
+                                    : LR"(%s\Compressed_%08X_%08X.dds)",
                  wszOutPath, top_crc32, checksum );
   } else if (compressed) {
-    swprintf ( wszOutName, LR"(%s\Compressed_%08X.dds)",
+    swprintf ( wszOutName, typeless ? LR"(%s\Compressed_%08X_TYPELESS.dds)"
+                                    : LR"(%s\Compressed_%08X.dds)",
                  wszOutPath, top_crc32 );
   } else if (config.textures.d3d11.precise_hash) {
-    swprintf ( wszOutName, LR"(%s\Uncompressed_%08X_%08X.dds)",
+    swprintf ( wszOutName, typeless ? LR"(%s\Uncompressed_%08X_%08X_TYPELESS.dds)"
+                                    : LR"(%s\Uncompressed_%08X_%08X.dds)",
                  wszOutPath, top_crc32, checksum );
   } else {
-    swprintf ( wszOutName, LR"(%s\Uncompressed_%08X.dds)",
+    swprintf ( wszOutName, typeless ? LR"(%s\Uncompressed_%08X_TYPELESS.dds)"
+                                    : LR"(%s\Uncompressed_%08X_%08X.dds)",
                  wszOutPath, top_crc32 );
   }
 
@@ -2163,6 +2216,9 @@ SK_D3D11_TexMgr::reset (void)
 
   for ( const auto& desc : textures )
   {
+    if (desc == nullptr)
+      continue;
+
     const auto mem_size =
      sk::narrow_cast <int64_t> (desc->mem_size) >> 10ULL;
 
@@ -2466,6 +2522,9 @@ uint32_t
 __stdcall
 SK_D3D11_TextureHashFromCache (ID3D11Texture2D* pTex)
 {
+  if (pTex == nullptr)
+    return 0x0;
+
   if (! SK_D3D11_cache_textures)
     return 0x00;
 
@@ -2484,6 +2543,9 @@ SK_D3D11_TextureHashFromCache (ID3D11Texture2D* pTex)
 BOOL
 SK_D3D11_MarkTextureUncacheable ( ID3D11Texture2D *pTexture )
 {
+  if (pTexture == nullptr)
+    return FALSE;
+
   constexpr UINT size =
                  sizeof (bool);
 
@@ -2979,6 +3041,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
             uint32_t checksum  = 0x00;
 
             bool compressed = false;
+            bool typeless   = StrStrW (fd.cFileName, L"TYPELESS");
 
             if (StrStrIW (fd.cFileName, L"Uncompressed_"))
             {
@@ -2988,7 +3051,9 @@ SK_D3D11_PopulateResourceList (bool refresh)
               if (wszFound && StrStrIW (wszFound + 1, L"_"))
               {
                 swscanf ( fd.cFileName,
-                            L"Uncompressed_%08X_%08X.dds",
+                            typeless
+                            ? LR"(%s\Uncompressed_%08X_%08X_TYPELESS.dds)"
+                            : LR"(%s\Uncompressed_%08X_%08X.dds)",
                               &top_crc32,
                                 &checksum );
               }
@@ -2996,7 +3061,9 @@ SK_D3D11_PopulateResourceList (bool refresh)
               else
               {
                 swscanf ( fd.cFileName,
-                            L"Uncompressed_%08X.dds",
+                            typeless
+                            ? L"Uncompressed_%08X_TYPELESS.dds"
+                            : L"Uncompressed_%08X.dds",
                               &top_crc32 );
                 checksum = 0x00;
               }
@@ -3011,7 +3078,9 @@ SK_D3D11_PopulateResourceList (bool refresh)
                 if (wszFound != nullptr && StrStrIW (wszFound + 1, L"_"))
                 {
                   swscanf ( fd.cFileName,
-                              L"Compressed_%08X_%08X.dds",
+                              typeless
+                              ? L"Compressed_%08X_%08X_TYPELESS.dds"
+                              : L"Compressed_%08X_%08X.dds",
                                 &top_crc32,
                                   &checksum );
                 }
@@ -3019,7 +3088,9 @@ SK_D3D11_PopulateResourceList (bool refresh)
                 else
                 {
                   swscanf ( fd.cFileName,
-                              L"Compressed_%08X.dds",
+                              typeless
+                              ? L"Compressed_%08X_TYPELESS.dds"
+                              : L"Compressed_%08X.dds",
                                 &top_crc32 );
                   checksum = 0x00;
                 }
@@ -3305,11 +3376,18 @@ SK_D3D11_RecursiveEnumAndAddTex  ( const std::wstring   directory,
         if (0 == _wcsnicmp (PathFindExtensionW (fd.cFileName), L".dds", MAX_PATH))
         {
 
+          bool     typeless  = StrStrIW (fd.cFileName, L"TYPELESS");
         //bool     preloaded = preload;
           uint32_t top_crc32 = 0x00;
           uint32_t checksum  = 0x00;
 
           const wchar_t* wszFileName = fd.cFileName;
+
+          if (     StrStrIW (wszFileName, L"Uncompressed_") == wszFileName)
+                             wszFileName += 13;
+
+          else if (StrStrIW (wszFileName, L"Compressed_") == wszFileName)
+                             wszFileName += 11;
 
           //if (StrStrIW (wszFileName, L"Preload") == fd.cFileName)
           //{
@@ -3322,14 +3400,16 @@ SK_D3D11_RecursiveEnumAndAddTex  ( const std::wstring   directory,
           //  preloaded = true;
           //}
 
-          if (StrStrIW (wszFileName, L"_"))
+          if (StrStrIW (wszFileName, L"_") && StrStrIW (wszFileName, L"_") != StrStrIW (wszFileName, L"_TYPELESS"))
           {
-            swscanf (wszFileName, L"%08X_%08X.dds", &top_crc32, &checksum);
+            swscanf (wszFileName, typeless ? L"%08X_%08X_TYPELESS.dds"
+                                           : L"%08X_%08X.dds", &top_crc32, &checksum);
           }
 
           else
           {
-            swscanf (wszFileName, L"%08X.dds",    &top_crc32);
+            swscanf (wszFileName, typeless ? L"%08X_TYPELESS.dds"
+                                           : L"%08X.dds", &top_crc32);
           }
 
           ++files;
@@ -3342,7 +3422,7 @@ SK_D3D11_RecursiveEnumAndAddTex  ( const std::wstring   directory,
           liSize.QuadPart += fsize.QuadPart;
 
           SK_PathCombineW         (wszPath, directory.c_str (),
-                                                wszFileName );
+                                               fd.cFileName );
           if (! StrStrIW (         wszPath, L"MipmapCache") )
           {
             SK_D3D11_AddTexHash   (wszPath, top_crc32, 0);

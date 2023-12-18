@@ -6709,7 +6709,8 @@ SK_DXGI_AdapterOverride ( IDXGIAdapter**   ppAdapter,
       }
 
       if ( SK_DXGI_preferred_adapter != SK_NoPreference &&
-           SUCCEEDED (EnumAdapters_Original (pFactory, SK_DXGI_preferred_adapter, &pOverrideAdapter)) )
+           SUCCEEDED (EnumAdapters_Original (pFactory, SK_DXGI_preferred_adapter, &pOverrideAdapter)) &&
+                                                                        nullptr != pOverrideAdapter )
       {
         DXGI_ADAPTER_DESC override_desc;
         GetDesc_Original (pOverrideAdapter, &override_desc);
@@ -6886,7 +6887,7 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
 
 
 {
-  if (ppAdapter == nullptr || *ppAdapter == nullptr)
+  if (ppAdapter == nullptr || *ppAdapter == nullptr || pFunc == nullptr)
     return E_POINTER;
 
   int iver =
@@ -9227,7 +9228,7 @@ SK::DXGI::StartBudgetThread ( IDXGIAdapter** ppAdapter )
     if ( budget_thread->handle == INVALID_HANDLE_VALUE )
     {
 
-      SecureZeroMemory ( budget_thread.getPtr (),
+      RtlZeroMemory ( budget_thread.getPtr (),
                      sizeof budget_thread_params_t );
 
       dll_log->LogEx ( true,
@@ -9740,11 +9741,23 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
     static auto &rb =
       SK_GetCurrentRenderBackend ();
 
+
+    DXGI_ADAPTER_DESC           activeDesc = { };
+    SK_ComQIPtr <IDXGIDevice>  pDXGIDevice (rb.device);
+    SK_ComPtr   <IDXGIAdapter> pActiveAdapter;
+
+    if (pDXGIDevice != nullptr)
+    {   pDXGIDevice->GetAdapter (&pActiveAdapter);
+
+      if (pActiveAdapter != nullptr)
+          pActiveAdapter->GetDesc (&activeDesc);
+    }
+
     //
     // Consistency check, re-initialize the budget thread if
     //   we are not monitoring the correct DXGI adapter.
     //
-    if (rb.adapter.luid.LowPart != 0x0)
+    if (activeDesc.AdapterLuid.LowPart != 0x0)
     {
       auto pAdapter =
         params->pAdapter;
@@ -9752,8 +9765,8 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
       DXGI_ADAPTER_DESC   adapterDesc = {};
       pAdapter->GetDesc (&adapterDesc);
 
-      if ( adapterDesc.AdapterLuid.HighPart != rb.adapter.luid.HighPart ||
-           adapterDesc.AdapterLuid.LowPart  != rb.adapter.luid.LowPart )
+      if ( adapterDesc.AdapterLuid.HighPart != activeDesc.AdapterLuid.HighPart ||
+           adapterDesc.AdapterLuid.LowPart  != activeDesc.AdapterLuid.LowPart )
       {
         auto silent =
           std::exchange (budget_log->silent, false);
@@ -9768,9 +9781,9 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 
         if (pFactory4 != nullptr)
         {
-          SK_ComPtr <IDXGIAdapter3>         pNewAdapter = nullptr;
+          SK_ComPtr <IDXGIAdapter3>                pNewAdapter = nullptr;
           pFactory4->EnumAdapterByLuid (
-            rb.adapter.luid, IID_PPV_ARGS (&pNewAdapter.p) );
+            activeDesc.AdapterLuid, IID_PPV_ARGS (&pNewAdapter.p) );
 
           if (pNewAdapter != nullptr)
           {

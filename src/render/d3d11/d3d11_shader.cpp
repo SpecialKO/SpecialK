@@ -1776,7 +1776,8 @@ SK_D3D11_StoreShaderState (void)
     }
   }
 
-  d3d11_shaders_ini->write ();
+  d3d11_shaders_ini->get_allow_empty () = true;
+  d3d11_shaders_ini->write           ();
 }
 
 
@@ -1789,6 +1790,9 @@ SK_D3D11_MakeDrawableCopy ( ID3D11Device              *pDevice,
                             ID3D11RenderTargetView    *pUndrawableRenderTarget, // Optional
                             ID3D11ShaderResourceView **ppCopyView )
 {
+  if (pDevice == nullptr || pUndrawableTexture == nullptr || ppCopyView == nullptr)
+    return E_POINTER;
+
   D3D11_TEXTURE2D_DESC          tex_desc = { };
   pUndrawableTexture->GetDesc (&tex_desc);
 
@@ -2170,6 +2174,9 @@ ShaderMenu
 const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView> >& set_of_resources,
       uint32_t                                                    shader )
 {
+  if (! registrant)
+    return;
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 

@@ -76,6 +76,9 @@ struct SK_ImGui_D3D11_BackbufferResourceIsolation {
       ID3D11RenderTargetView
   >                         pRenderTargetView       = nullptr;
   SK_ComPtr <
+      ID3D11RenderTargetView
+  >                         pRenderTargetView_sRGB  = nullptr;
+  SK_ComPtr <
       ID3D11UnorderedAccessView
   >                         pUnorderedAccessView    = nullptr;
 
@@ -1336,6 +1339,22 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
                                      L"ImGui RenderTargetView" );
     }
 
+    if (_P->pRenderTargetView_sRGB == nullptr)
+    {
+      auto desc = *pDesc;
+
+      desc.Format =
+        DirectX::MakeSRGB (desc.Format);
+      if (DirectX::IsSRGB (desc.Format))
+      {
+        ThrowIfFailed (
+          pDev->CreateRenderTargetView (  _P->pBackBuffer,              &desc,
+                                         &_P->pRenderTargetView_sRGB.p ));
+        SK_D3D11_SetDebugName (           _P->pRenderTargetView_sRGB,
+                                  L"ImGui sRGB RenderTargetView" );
+      }
+    }
+
     if (_P->pUnorderedAccessView == nullptr)
     {
       DXGI_SWAP_CHAIN_DESC  swapDesc = { };
@@ -1527,6 +1546,9 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
 
     if (_P->pRenderTargetView.p)
         _P->pRenderTargetView.Release ();
+
+    if (_P->pRenderTargetView_sRGB.p)
+        _P->pRenderTargetView_sRGB.Release ();
 
     if (_P->pUnorderedAccessView.p)
         _P->pUnorderedAccessView.Release ();
@@ -1768,6 +1790,7 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
 
       frames_.resize (1);
       frames_ [0].hdr.pRTV      = _Frame [0].pRenderTargetView;
+    //frames_ [0].hdr.pRTV_sRGB = _Frame [0].pRenderTargetView_sRGB;
       frames_ [0].hdr.pUAV      = _Frame [0].pUnorderedAccessView;
       frames_ [0].pRenderOutput = _Frame [0].pBackBuffer;
 
@@ -1956,8 +1979,9 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
     if ( config.reshade.is_addon   &&
          config.reshade.draw_first == draw_first )
     {
-      SK_ComQIPtr <IDXGISwapChain1>       pSwapChain1 (_pSwapChain.p);
-      SK_ReShadeAddOn_RenderEffectsD3D11 (pSwapChain1.p);
+      SK_ComQIPtr <IDXGISwapChain1>         pSwapChain1 (_pSwapChain.p);
+      SK_ReShadeAddOn_RenderEffectsD3D11Ex (pSwapChain1.p, _Frame [0].pRenderTargetView.p,
+                                                           _Frame [0].pRenderTargetView_sRGB.p);
     }
   };
 
@@ -2021,12 +2045,6 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 
       // Queue-up Pre-SK OSD Screenshots
       SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD, rb);
-
-      if (config.reshade.is_addon && config.reshade.draw_first == false)
-      {
-        SK_ComQIPtr <IDXGISwapChain1>         pSwapChain1 (_pSwapChain.p);
-        SK_ReShadeAddOn_RenderEffectsD3D11Ex (pSwapChain1.p, _Frame [0].pRenderTargetView.p);
-      }
       
       SK_ImGui_DrawFrame (0x00, nullptr);
     }
