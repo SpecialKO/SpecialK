@@ -167,6 +167,8 @@ public:
     }
   }
 
+  virtual ~SK_MMDev_Endpoint (void) { };
+
   SK_IMMDevice device_ = nullptr;
   EDataFlow    flow_   = eRender;
   DWORD        state_  = DEVICE_STATE_NOTPRESENT;

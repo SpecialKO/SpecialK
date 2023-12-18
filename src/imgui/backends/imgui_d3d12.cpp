@@ -270,8 +270,11 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
       //vtx_ptr += cmd_list->VtxBuffer.Size;
       //idx_ptr += cmd_list->IdxBuffer.Size;
 
-      vtx_ptr = std::copy_n (cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size, vtx_ptr);
-      idx_ptr = std::copy_n (cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size, idx_ptr);
+      if (vtx_ptr != nullptr)
+          vtx_ptr = std::copy_n (cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size, vtx_ptr);
+
+      if (idx_ptr != nullptr)
+          idx_ptr = std::copy_n (cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size, idx_ptr);
     }
 
     pHeap->Vb->Unmap (0, &range);
@@ -1337,9 +1340,11 @@ D3D12GraphicsCommandList_OMSetRenderTargets_Detour (
     UINT                        size       = sizeof (D3D12_CPU_DESCRIPTOR_HANDLE);
     D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = { 0 };
 
-    if (NumRenderTargetDescriptors > 0)
+    if ( NumRenderTargetDescriptors > 0 &&
+           pRenderTargetDescriptors != nullptr )
     {
-      rtv_handle.ptr = pRenderTargetDescriptors [0].ptr;
+      rtv_handle.ptr =
+        pRenderTargetDescriptors [0].ptr;
     }
 
     This->SetPrivateData (
@@ -1483,6 +1488,9 @@ D3D12GraphicsCommandList_ExecuteIndirect_Detour (
 void
 _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
 {
+  if (! pCmdList)
+    return;
+
   if (D3D12GraphicsCommandList_DrawInstanced_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::DrawInstanced",
@@ -1920,6 +1928,9 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
 void
 _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList)
 {
+  if (! pCmdList)
+    return;
+
   if (D3D12GraphicsCommandList_CopyTextureRegion_Original == nullptr)
   {
     SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::CopyTextureRegion",
@@ -1940,7 +1951,9 @@ _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList)
 
 
 void
-SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource* pSrcResource, ID3D12Resource* pDstResource)
+SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
+                          ID3D12Resource            *pSrcResource,
+                          ID3D12Resource            *pDstResource )
 {
   if (pCommandList == nullptr || pSrcResource == nullptr || pDstResource == nullptr)
   {
@@ -2038,6 +2051,9 @@ SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList *pCommandList, ID3D12Resource
 void
 SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 {
+  if (! pSwapChain)
+    return;
+
   if (! _pDevice.p || frames_.empty ())
   {
     if (! init (pSwapChain, _pCommandQueue.p))
@@ -2093,11 +2109,10 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
   SK_ReleaseAssert (stagingFrame.fence.p != nullptr);
 
-  if (stagingFrame.fence == nullptr)
-    return;
-
   auto pCommandList =
-    stagingFrame.pCmdList.p;
+      stagingFrame.pCmdList.p;
+  if (stagingFrame.fence == nullptr || pCommandList == nullptr)
+    return;
 
   // Make sure all commands for this command allocator have finished executing before reseting it
   if (stagingFrame.fence->GetCompletedValue () < stagingFrame.fence.value)

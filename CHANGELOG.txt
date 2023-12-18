@@ -1,4 +1,9 @@
-﻿23.12.18
+﻿23.12.18.1
+==========
+ + Fixed potential crash if hot-loading ReShade in a DLSS Frame Generation game
+     using scRGB HDR
+
+23.12.18
 ========
  + Changed INI parser to never write empty INI files
  + Finished support for scRGB Frame Generation (D3D12)
