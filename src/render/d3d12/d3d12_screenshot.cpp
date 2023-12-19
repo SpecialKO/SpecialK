@@ -346,7 +346,7 @@ SK_D3D12_Screenshot::SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&      
 
     readback_ctx.pCmdList  = _d3d12_rbk->frames_ [pSwapChain->GetCurrentBackBufferIndex ()].pCmdList.p;
     readback_ctx.pCmdAlloc = _d3d12_rbk->frames_ [pSwapChain->GetCurrentBackBufferIndex ()].pCmdAllocator.p;
-    pBackbuffer            = _d3d12_rbk->frames_ [pSwapChain->GetCurrentBackBufferIndex ()].pRenderOutput.p;
+    pBackbuffer            = _d3d12_rbk->frames_ [pSwapChain->GetCurrentBackBufferIndex ()].pBackBuffer.p;
 
     readback_ctx.pBackbufferSurface            = pBackbuffer;
     D3D12_RESOURCE_DESC        backbuffer_desc = pBackbuffer->GetDesc ();

@@ -460,11 +460,12 @@ extern D3D12CreateDevice_pfn   D3D12CreateDevice_Import;
 struct SK_D3D12_StateTransition : D3D12_RESOURCE_BARRIER
 {
   SK_D3D12_StateTransition ( D3D12_RESOURCE_STATES before,
-                             D3D12_RESOURCE_STATES after ) noexcept :
+                             D3D12_RESOURCE_STATES after,
+                             ID3D12Resource*       pResource = nullptr ) noexcept :
            D3D12_RESOURCE_BARRIER ( { D3D12_RESOURCE_BARRIER_TYPE_TRANSITION, D3D12_RESOURCE_BARRIER_FLAG_NONE,
-                                    { nullptr, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-                                               before,
-                                               after
+                                    { pResource, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+                                                 before,
+                                                 after
                                     }
                                     }
            )
@@ -507,31 +508,40 @@ struct SK_D3D12_RenderCtx {
       HRESULT WaitSequential   (void);
     } fence, reshade_fence;
 
-    SK_ComPtr <ID3D12GraphicsCommandList> pCmdList           = nullptr;
-		SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator      = nullptr;
-    bool                                  bCmdListRecording  =   false;
+    SK_ComPtr <ID3D12GraphicsCommandList> pCmdList            = nullptr;
+		SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator       = nullptr;
+    bool                                  bCmdListRecording   =   false;
 
-		SK_ComPtr <ID3D12Resource>            pRenderOutput      = nullptr;
-		D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutput      =  { 0 };
-    D3D12_CPU_DESCRIPTOR_HANDLE           hRenderOutputsRGB  =  { 0 };
-    D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeOutput     =  { 0 };
-    D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeOutputsRGB =  { 0 };
-    UINT                                  iBufferIdx         =UINT_MAX;
+		SK_ComPtr <ID3D12Resource>            pBackBuffer         = nullptr;
+		D3D12_CPU_DESCRIPTOR_HANDLE           hBackBufferRTV      =  { 0 };
+    D3D12_CPU_DESCRIPTOR_HANDLE           hBackBufferRTV_sRGB =  { 0 };
+    D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeRTV         =  { 0 };
+    D3D12_CPU_DESCRIPTOR_HANDLE           hReShadeRTV_sRGB    =  { 0 };
+    UINT                                  iBufferIdx          =    0;
 
     struct {
-      SK_ComPtr <ID3D12Resource>          pSwapChainCopy     = nullptr;
-      D3D12_CPU_DESCRIPTOR_HANDLE         hSwapChainCopy_CPU =  { 0 };
-      D3D12_GPU_DESCRIPTOR_HANDLE         hSwapChainCopy_GPU =  { 0 };
-      D3D12_CPU_DESCRIPTOR_HANDLE         hBufferCopy_CPU    =  { 0 };
-      D3D12_GPU_DESCRIPTOR_HANDLE         hBufferCopy_GPU    =  { 0 };
-      D3D12_RECT                          scissor            = {     };
-      D3D12_VIEWPORT                      vp                 = {     };
+      SK_ComPtr <ID3D12Resource>          pSwapChainCopy      = nullptr;
 
       struct {
-        SK_D3D12_StateTransition          process  [2]       = {
+        D3D12_CPU_DESCRIPTOR_HANDLE       CPU                 = { 0 };
+        D3D12_GPU_DESCRIPTOR_HANDLE       GPU                 = { 0 };
+      } hSwapChainCopySRV;
+
+      // Temporary descriptors referencing source copy resources not
+      //   owned by SK or the SwapChain
+      struct {
+        D3D12_CPU_DESCRIPTOR_HANDLE       CPU                 = { 0 };
+        D3D12_GPU_DESCRIPTOR_HANDLE       GPU                 = { 0 };
+      } hBufferCopySRV;
+
+      D3D12_RECT                          scissor             = {   };
+      D3D12_VIEWPORT                      vp                  = {   };
+
+      struct {
+        SK_D3D12_StateTransition          process  [2]        = {
           { D3D12_RESOURCE_STATE_COPY_DEST,   D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE },
           { D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET         }
-        },                                copy_end [1]      = {
+        },                                copy_end [1]        = {
           { D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_DEST   }
         };
       } barriers;

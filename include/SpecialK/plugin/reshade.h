@@ -27,6 +27,7 @@
 #include <Windows.h>
 
 #include <../depends/include/ReShade/reshade_api.hpp>
+#include <../depends/include/DirectXTex/DirectXTex.h>
 
 HMODULE
 __stdcall
@@ -58,5 +59,33 @@ void SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime
 void SK_ReShadeAddOn_DestroyEffectRuntime          (reshade::api::effect_runtime *runtime);
 
 void SK_ReShadeAddOn_CleanupConfigAndLogs (void);
+
+#define RESHADE_MAKE_HANDLE(x) { std::bit_cast <uint64_t> (x) }
+
+struct reshade_format
+{
+  using format = reshade::api::format;
+
+  reshade_format (format      F) : fmt_ (                      F)  {};
+  reshade_format (DXGI_FORMAT F) : fmt_ (static_cast <format> (F)) {};
+
+  operator DXGI_FORMAT (void) const
+         { return static_cast <DXGI_FORMAT> (fmt_); }
+  operator format      (void) const
+         { return                            fmt_;  }
+
+  inline bool isSRGB (void) const {
+    return DirectX::IsSRGB (*this);
+  }
+
+  inline bool makeSRGB (void) {
+    *this = DirectX::MakeSRGB (*this);
+
+    return isSRGB ();
+  }
+
+  private:
+    format fmt_;
+};
 
 #endif /* __SK__RESHADE_H__ */
