@@ -547,7 +547,8 @@ ImGui_ImplDX12_CreateFontsTexture (void)
         &props, D3D12_HEAP_FLAG_NONE,
         &desc,  D3D12_RESOURCE_STATE_COPY_DEST,
         nullptr, IID_PPV_ARGS (&pTexture.p))
-    );
+    );SK_D3D12_SetDebugName (   pTexture.p,
+              L"ImGui D3D12 Font Texture");
 
     UINT uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
                                 & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
@@ -575,7 +576,7 @@ ImGui_ImplDX12_CreateFontsTexture (void)
         &desc,  D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr, IID_PPV_ARGS (&uploadBuffer.p))
     ); SK_D3D12_SetDebugName (  uploadBuffer.p,
-          L"ImGui D3D12 Texture Upload Buffer" );
+     L"ImGui D3D12 Font Texture UploadBuffer" );
 
     void        *mapped = nullptr;
     D3D12_RANGE  range  = { 0, uploadSize };
@@ -634,14 +635,14 @@ ImGui_ImplDX12_CreateFontsTexture (void)
       _imgui_d3d12.pDevice->CreateCommandQueue (
            &queueDesc, IID_PPV_ARGS (&cmdQueue.p))
       ); SK_D3D12_SetDebugName (      cmdQueue.p,
-        L"ImGui D3D12 Texture Upload Cmd Queue");
+         L"ImGui D3D12 Texture Upload CmdQueue");
 
     ThrowIfFailed (
       _imgui_d3d12.pDevice->CreateCommandAllocator (
         D3D12_COMMAND_LIST_TYPE_DIRECT,
                     IID_PPV_ARGS (&cmdAlloc.p))
     ); SK_D3D12_SetDebugName (     cmdAlloc.p,
-      L"ImGui D3D12 Texture Upload Cmd Allocator");
+      L"ImGui D3D12 Texture Upload CmdAllocator");
 
     ThrowIfFailed (
       _imgui_d3d12.pDevice->CreateCommandList (
@@ -649,7 +650,7 @@ ImGui_ImplDX12_CreateFontsTexture (void)
            cmdAlloc, nullptr,
                   IID_PPV_ARGS (&cmdList.p))
     ); SK_D3D12_SetDebugName (   cmdList.p,
-    L"ImGui D3D12 Texture Upload Cmd List");
+    L"ImGui D3D12 Texture Upload CmdList");
 
     cmdList->CopyTextureRegion ( &dstLocation, 0, 0, 0,
                                  &srcLocation, nullptr );
@@ -685,8 +686,8 @@ ImGui_ImplDX12_CreateFontsTexture (void)
     );
 
     SK_D3D12_SetDebugName (
-      _imgui_d3d12.pFontTexture.p, L"ImGui D3D12 FontTexture"
-    );
+      _imgui_d3d12.pFontTexture.p,
+      L"ImGui D3D12 FontTexture");
 
     //static_assert(sizeof(ImTextureID) >= sizeof(bd->hFontSrvGpuDescHandle.ptr), "Can't pack descriptor handle into TexID, 32-bit not supported yet.");
     io.Fonts->SetTexID (
@@ -754,12 +755,15 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
       desc.Layout                = D3D12_TEXTURE_LAYOUT_UNKNOWN;
       desc.Flags                 = D3D12_RESOURCE_FLAG_NONE;
 
+    static UINT uiTexNum = 0;
+
     ThrowIfFailed (
       _imgui_d3d12.pDevice->CreateCommittedResource (
         &props, D3D12_HEAP_FLAG_NONE,
         &desc,  D3D12_RESOURCE_STATE_COPY_DEST,
         nullptr, IID_PPV_ARGS (&pTexture.p))
-    );
+    );SK_D3D12_SetDebugName (   pTexture.p, SK_FormatStringW (
+              L"SK D3D12 Generic Texture%d", uiTexNum++ ) );
 
     UINT uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
                                 & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
@@ -786,8 +790,8 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
         &props, D3D12_HEAP_FLAG_NONE,
         &desc,  D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr, IID_PPV_ARGS (&uploadBuffer.p))
-    ); SK_D3D12_SetDebugName (  uploadBuffer.p,
-          L"SK D3D12 Texture Upload Buffer" );
+    );  SK_D3D12_SetDebugName ( uploadBuffer.p, SK_FormatStringW (
+             L"SK D3D12 Texture UploadBuffer%d", uiTexNum ) );
 
     void        *mapped = nullptr;
     D3D12_RANGE  range  = { 0, uploadSize };
@@ -833,8 +837,8 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
       _imgui_d3d12.pDevice->CreateFence (
         0, D3D12_FENCE_FLAG_NONE,
                   IID_PPV_ARGS (&pFence.p))
-     ); SK_D3D12_SetDebugName  ( pFence.p,
-     L"SK D3D12 Texture Upload Fence");
+     ); SK_D3D12_SetDebugName  ( pFence.p, SK_FormatStringW (
+        L"SK D3D12 Texture Upload Fence%d", uiTexNum ) );
 
     D3D12_COMMAND_QUEUE_DESC
       queueDesc          = { };
@@ -845,23 +849,23 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
     ThrowIfFailed (
       _imgui_d3d12.pDevice->CreateCommandQueue (
            &queueDesc, IID_PPV_ARGS (&cmdQueue.p))
-      ); SK_D3D12_SetDebugName (      cmdQueue.p,
-        L"SK D3D12 Texture Upload Cmd Queue");
+      ); SK_D3D12_SetDebugName (      cmdQueue.p, SK_FormatStringW (
+            L"SK D3D12 Texture Upload CmdQueue%d", uiTexNum ) );
 
     ThrowIfFailed (
       _imgui_d3d12.pDevice->CreateCommandAllocator (
         D3D12_COMMAND_LIST_TYPE_DIRECT,
                     IID_PPV_ARGS (&cmdAlloc.p))
-    ); SK_D3D12_SetDebugName (     cmdAlloc.p,
-      L"SK D3D12 Texture Upload Cmd Allocator");
+    ); SK_D3D12_SetDebugName (     cmdAlloc.p, SK_FormatStringW (
+         L"SK D3D12 Texture Upload CmdAllocator%d", uiTexNum ) );
 
     ThrowIfFailed (
       _imgui_d3d12.pDevice->CreateCommandList (
         0, D3D12_COMMAND_LIST_TYPE_DIRECT,
            cmdAlloc, nullptr,
                   IID_PPV_ARGS (&cmdList.p))
-    ); SK_D3D12_SetDebugName (   cmdList.p,
-    L"SK D3D12 Texture Upload Cmd List");
+    ); SK_D3D12_SetDebugName (   cmdList.p, SK_FormatStringW (
+       L"SK D3D12 Texture Upload CmdList%d", uiTexNum ) );
 
     cmdList->CopyTextureRegion ( &dstLocation, 0, 0, 0,
                                  &srcLocation, nullptr );
@@ -913,8 +917,8 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
       pTexture.Detach ();
 
     SK_D3D12_SetDebugName (
-      texture.pTexture, L"SK D3D12 Texture"
-    );
+      texture.pTexture, SK_FormatStringW (
+    L"SK D3D12 Texture%d", uiTexNum ) );
   }
 
   catch (const SK_ComException& e) {
@@ -1010,7 +1014,7 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
            pBlob->GetBufferSize    (),
                   IID_PPV_ARGS (&_imgui_d3d12.pRootSignature.p))
     ); SK_D3D12_SetDebugName (   _imgui_d3d12.pRootSignature.p,
-                                L"ImGui D3D12 Root Signture");
+                                L"ImGui D3D12 Root Signature");
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC
       psoDesc                       = { };
@@ -1096,7 +1100,7 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
       _imgui_d3d12.pDevice->CreateGraphicsPipelineState (
         &psoDesc, IID_PPV_ARGS (&_imgui_d3d12.pPipelineState.p))
     ); SK_D3D12_SetDebugName (   _imgui_d3d12.pPipelineState.p,
-                                 L"ImGui D3D12 Pipeline State");
+                                L"ImGui D3D12 Pipeline State");
 
     ImGui_ImplDX12_CreateFontsTexture ();
 
@@ -1597,10 +1601,16 @@ D3D12GraphicsCommandList_CopyResource_Detour (
         ID3D12Resource            *pDstResource,
         ID3D12Resource            *pSrcResource )
 {
+  // Handle scenarios where user changes HDR override mid-game
+  static bool had_hdr_override = false;
+
   if ( ( __SK_HDR_16BitSwap ||
-         __SK_HDR_10BitSwap ) && pDstResource != nullptr &&
+         __SK_HDR_10BitSwap ||
+           had_hdr_override ) && pDstResource != nullptr &&
                                  pSrcResource != nullptr )
   {
+    had_hdr_override = true;
+
     auto src_desc = pSrcResource->GetDesc (),
          dst_desc = pDstResource->GetDesc ();
 
@@ -1608,27 +1618,30 @@ D3D12GraphicsCommandList_CopyResource_Detour (
       __SK_HDR_16BitSwap ? DXGI_FORMAT_R16G16B16A16_FLOAT
                          : DXGI_FORMAT_R10G10B10A2_UNORM;
 
-    if (dst_desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
-        dst_desc.Format    == hdrOverrideFormat)
-    {
-      auto typelessSrc = DirectX::MakeTypeless (src_desc.Format),
-           typelessDst = DirectX::MakeTypeless (dst_desc.Format);
-      
-      if ( typelessSrc != typelessDst &&
-             DirectX::BitsPerColor (src_desc.Format) !=
-             DirectX::BitsPerColor (dst_desc.Format) )
-      {
-        SK_ComQIPtr <IDXGISwapChain>
+    SK_ComQIPtr <IDXGISwapChain>
             pSwap (  SK_GetCurrentRenderBackend ().swapchain  );
         DXGI_SWAP_CHAIN_DESC swapDesc = { };
         if (pSwap)
             pSwap->GetDesc (&swapDesc);
 
+    if ( dst_desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
+        (dst_desc.Format    == hdrOverrideFormat ||
+         dst_desc.Format    == swapDesc.BufferDesc.Format) )
+    {
+      auto typelessSrc        = DirectX::MakeTypeless (src_desc.Format),
+           typelessDst        = DirectX::MakeTypeless (dst_desc.Format),
+           typelessBackbuffer = DirectX::MakeTypeless (swapDesc.BufferDesc.Format);
+      
+      if ( typelessSrc != typelessDst &&
+             DirectX::BitsPerColor (src_desc.Format) !=
+             DirectX::BitsPerColor (dst_desc.Format) )
+      {
+        // Permit size mismatches, otherwise resizing the SwapChain asynchronously
+        //   to the queue this command is running on might break stuff...
         if ( pSwap.p == nullptr ||
-             ( src_desc.Width  == swapDesc.BufferDesc.Width  &&
-               src_desc.Height == swapDesc.BufferDesc.Height &&
-              (typelessSrc == DirectX::MakeTypeless (swapDesc.BufferDesc.Format) ||
-               typelessDst == DirectX::MakeTypeless (swapDesc.BufferDesc.Format)) )
+             ( //src_desc.Width  == swapDesc.BufferDesc.Width  &&
+               //src_desc.Height == swapDesc.BufferDesc.Height &&
+               typelessDst == typelessBackbuffer )
            )
         {
           if (This->GetType () == D3D12_COMMAND_LIST_TYPE_DIRECT)
@@ -1701,8 +1714,16 @@ D3D12GraphicsCommandList_CopyResource_Detour (
               uavBarriers [2].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
               uavBarriers [2].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 
+            static constexpr UINT                                        _BltTileSize = 32U;
+            const UINT
+              ThreadGroupCountX = (static_cast <UINT> (src_desc.Width) + _BltTileSize - 1) / _BltTileSize,
+              ThreadGroupCountY = (                    src_desc.Height + _BltTileSize - 1) / _BltTileSize,
+              ThreadGroupCountZ = 1;
+
             cmdList->ResourceBarrier               (2, &uavBarriers [1]);
-            cmdList->Dispatch                      ((UINT)src_desc.Width / 32, (UINT)src_desc.Height / 32, 1);
+            cmdList->Dispatch                      ( ThreadGroupCountX,
+                                                     ThreadGroupCountY,
+                                                     ThreadGroupCountZ );
             cmdList->ResourceBarrier               (2,    barriers);
             cmdList->CopyResource                  (pDstResource, stagingFrame.hdr.pSwapChainCopy);
             cmdList->ResourceBarrier               (1,   &barriers [2]);
@@ -2071,8 +2092,9 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     static UINT unique_d3d12_qid = 0UL;
 
     SK_D3D12_SetDebugName (    _pCommandQueue.p,
-             SK_FormatStringW ( L"[Game] D3D12 SwapChain CmdQueue %d",
-                                  unique_d3d12_qid++ ).c_str ()
+         SK_FormatStringW (
+            L"[Game] D3D12 SwapChain CmdQueue%d",
+                             unique_d3d12_qid++ )
                           );
   }
 
@@ -2566,6 +2588,41 @@ SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void) noexcept
   fence.value =
     sync_value;
 
+
+  //
+  // ReShade Fencing
+  //
+
+  // Increment fence value to ensure it has not been signaled before
+  const UINT64 sync_value0 =
+    reshade_fence.value + 1;
+
+  if (! reshade_fence.event)
+    return false;
+
+  if ( FAILED (
+         pRoot->_pCommandQueue->Signal (
+           reshade_fence , sync_value0 )
+              )
+     )
+  {
+    return false; // Cannot wait on fence if signaling was not successful
+  }
+
+  if ( SUCCEEDED (
+         reshade_fence->SetEventOnCompletion (
+           sync_value0, reshade_fence.event  )
+                 )
+     )
+  {
+    SK_WaitForSingleObject (reshade_fence.event, INFINITE);
+  }
+
+  // Update CPU side fence value now that it is guaranteed to have come through
+  reshade_fence.value =
+    sync_value0;
+
+
   return true;
 }
 
@@ -2580,8 +2637,11 @@ SK_SEH_FrameCtxDtor (SK_D3D12_RenderCtx::FrameCtx *pFrameCtx) noexcept
     pFrameCtx->pBackBuffer.Release        ();
     pFrameCtx->hdr.pSwapChainCopy.Release ();
 
+    pFrameCtx->reshade_fence.Release ();
+    pFrameCtx->reshade_fence.value = 0;
+
     pFrameCtx->fence.Release ();
-    pFrameCtx->fence.value  = 0;
+    pFrameCtx->fence.value = 0;
   }
 
   __except (EXCEPTION_EXECUTE_HANDLER)
@@ -2610,6 +2670,12 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
   {
     SK_CloseHandle (fence.event);
                     fence.event = nullptr;
+  }
+
+  if (reshade_fence.event != nullptr)
+  {
+    SK_CloseHandle (reshade_fence.event);
+                    reshade_fence.event = nullptr;
   }
 }
 
@@ -2798,7 +2864,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                        D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 }.data (),
                                        IID_PPV_ARGS (&descriptorHeaps.pImGui.p)));
                               SK_D3D12_SetDebugName ( descriptorHeaps.pImGui.p,
-                                        L"ImGui D3D12 Descriptor Heap" );
+                                        L"ImGui D3D12 DescriptorHeap" );
       ThrowIfFailed (
         _pDevice->CreateDescriptorHeap (
           std::array < D3D12_DESCRIPTOR_HEAP_DESC,                1 >
@@ -2806,7 +2872,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                        D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 }.data (),
                                        IID_PPV_ARGS (&descriptorHeaps.pHDR.p)));
                               SK_D3D12_SetDebugName ( descriptorHeaps.pHDR.p,
-                                        L"SK D3D12 HDR Descriptor Heap" );
+                                        L"SK D3D12 HDR DescriptorHeap" );
 
       ThrowIfFailed (
         _pDevice->CreateDescriptorHeap (
@@ -2815,7 +2881,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                        D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 }.data (),
                                        IID_PPV_ARGS (&descriptorHeaps.pHDR_CopyAssist.p)));
                               SK_D3D12_SetDebugName ( descriptorHeaps.pHDR_CopyAssist.p,
-                                        L"SK D3D12 HDR Copy Descriptor Heap" );
+                                  L"SK D3D12 HDR Copy DescriptorHeap" );
 
       ThrowIfFailed (
         _pDevice->CreateDescriptorHeap (
@@ -2824,7 +2890,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                        D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 }.data (),
                                        IID_PPV_ARGS (&descriptorHeaps.pComputeCopy.p)));
                               SK_D3D12_SetDebugName ( descriptorHeaps.pComputeCopy.p,
-                                        L"SK D3D12 Compute Copy Descriptor Heap" );
+                              L"SK D3D12 Compute Copy DescriptorHeap" );
 
       // This heap will store Linear and sRGB views, it needs 2x SwapChain backbuffer
       ThrowIfFailed (
@@ -2833,7 +2899,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                        D3D12_DESCRIPTOR_HEAP_FLAG_NONE,           0 }.data (),
                                        IID_PPV_ARGS (&descriptorHeaps.pBackBuffers.p)));
                               SK_D3D12_SetDebugName ( descriptorHeaps.pBackBuffers.p,
-                                        L"SK D3D12 Backbuffer Descriptor Heap" );
+                                L"SK D3D12 Backbuffer DescriptorHeap" );
 
       const auto  rtvDescriptorSize =
         _pDevice->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -2956,6 +3022,10 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         frame.fence.event =
           SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr );
 
+        frame.reshade_fence.value = 0;
+        frame.reshade_fence.event =
+          SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr );
+
         struct {        ID3D12Object *pObj;
                  const std::wstring   kName;
         } _debugObjects [] =
@@ -2965,6 +3035,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
             { frame.pCmdAllocator.p,      L"SK D3D12 CmdAllocator"     },
             { frame.pCmdList.p,           L"SK D3D12 CmdList"          },
             { frame.fence.p,              L"SK D3D12 Fence"            },
+            { frame.reshade_fence.p,      L"SK D3D12 ReShade Fence"    },
           };
 
         for ( auto& _obj : _debugObjects )
