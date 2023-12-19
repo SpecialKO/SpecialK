@@ -249,8 +249,8 @@ iSK_INI::reload (const wchar_t *fname)
 
         std::wstring backup =
           SK_FormatStringW (L"%ws.bak", fname);
-        SK_File_MoveNoFail (            fname,
-                     backup.c_str ()
+        CopyFileW (                     fname,
+                     backup.c_str (), TRUE
         );
 
         utf8_fname =
