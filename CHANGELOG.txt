@@ -1,7 +1,18 @@
-﻿23.12.19.1
+﻿23.12.20
+========
+ + Improved support for ReShade effects that require sRGB views in D3D12
+ + Added control panel option to embed Nickname in Screenshot Metadata as Author
+
+23.12.19.1
 ==========
  + Increased JPEG encode quality for screenshots imported to Steam to maximum
- + Added acquisition metadata to JXR, PNG and JPG screenshots
+ + Added acquisition metadata to JXR, PNG and JPG screenshots:
+
+     Steam/Epic User Name
+     Special K Version
+     Application Name
+     Date Taken
+     Screen DPI
 
 23.12.19
 ========

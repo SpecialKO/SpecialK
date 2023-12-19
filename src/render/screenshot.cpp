@@ -793,23 +793,7 @@ SK_WIC_SetBasicMetadata (IWICMetadataQueryWriter *pMQW)
   pMQW->SetMetadataByName (
     L"System.Image.VerticalResolution",
     &value
-  );
-
-  value.vt     = VT_LPSTR;
-  value.pszVal = "Special K";
-
-  pMQW->SetMetadataByName (
-    L"System.Media.CreatorApplication",
-    &value
-  );
-
-  value.vt     = VT_LPSTR;
-  value.pszVal = const_cast <char *> (SK_VersionStrA);
-
-  pMQW->SetMetadataByName (
-    L"System.Media.CreatorApplicationVersion",
-    &value
-  );
+  );;
 
   value.vt     = VT_LPSTR;
   value.pszVal = const_cast <char *> (
@@ -833,22 +817,23 @@ SK_WIC_SetBasicMetadata (IWICMetadataQueryWriter *pMQW)
     &value
   );
 
-  extern void SK_Platform_GetUserName (char *pszName, int max_len);
-
-  static char                          szName [512] = { };
-  SK_RunOnce (SK_Platform_GetUserName (szName, 511));
-
-  if (*szName != '\0')
+  if (config.screenshots.embed_nickname)
   {
-    char* names [] = { szName };
+    static char                          szName [512] = { };
+    SK_RunOnce (SK_Platform_GetUserName (szName, 511));
 
-    value.vt             = VT_VECTOR | VT_LPSTR;
-    value.calpstr.cElems = 1;
-    value.calpstr.pElems = names;
+    if (*szName != '\0')
+    {
+      char* names [] = { szName };
 
-    pMQW->SetMetadataByName (
-      L"System.Author",
-      &value
-    );
+      value.vt             = VT_VECTOR | VT_LPSTR;
+      value.calpstr.cElems = 1;
+      value.calpstr.pElems = names;
+
+      pMQW->SetMetadataByName (
+        L"System.Author",
+        &value
+      );
+    }
   }
 }

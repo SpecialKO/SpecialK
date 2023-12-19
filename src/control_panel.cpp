@@ -6052,6 +6052,24 @@ SK_ImGui_ControlPanel (void)
         ImGui::SetTooltip ("See the HDR Menu to configure HDR Screenshot Format and Compression Settings.");
     }
 
+    const bool bHasPlatformIntegration =
+      SK::EOS::UserID () != 0 || SK::SteamAPI::UserSteamID ().ConvertToUint64 () != 0;
+
+    if (bHasPlatformIntegration)
+    {
+      ImGui::Checkbox ("Add Nickname to Metadata", &config.screenshots.embed_nickname);
+
+      if (ImGui::IsItemHovered ())
+      {
+        static char                          szName [512] = { };
+        SK_RunOnce (SK_Platform_GetUserName (szName, 511));
+
+        ImGui::SetTooltip (
+          "Claim Authorship of Screenshots using your Storefront nickname:\t'%hs'",
+                   szName );
+      }
+    }
+
     ImGui::EndGroup ();
 
     static std::set <SK_ConfigSerializedKeybind *>

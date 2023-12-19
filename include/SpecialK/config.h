@@ -450,6 +450,7 @@ struct sk_config_t
     bool         show_osd_by_default   =  true;
     bool         play_sound            =  true;
     bool         copy_to_clipboard     =  true;
+    bool         embed_nickname        = false;
     std::wstring override_path         =   L"";
 
     struct avif_s {

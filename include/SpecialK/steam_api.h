@@ -715,6 +715,6 @@ extern SK_Thread_HybridSpinlock* platform_popup_cs;
 extern SK_Thread_HybridSpinlock* steam_init_cs;
 
 
-
+extern void SK_Platform_GetUserName (char *pszName, int max_len);
 
 #endif /* __SK__STEAM_API_H__ */

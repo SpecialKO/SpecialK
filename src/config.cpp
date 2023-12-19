@@ -591,6 +591,7 @@ struct {
   sk::ParameterBool*      keep_png_copy           = nullptr;
   sk::ParameterBool*      play_sound              = nullptr;
   sk::ParameterBool*      copy_to_clipboard       = nullptr;
+  sk::ParameterBool*      embed_nickname          = nullptr;
   sk::ParameterStringW*   override_path           = nullptr;
   sk::ParameterInt*       compression_quality     = nullptr;
 
@@ -1397,8 +1398,9 @@ auto DeclKeybind =
     ConfigEntry (imgui.show_input_apis,                  L"Show Input APIs currently in-use",                          osd_ini,         L"ImGui.Global",          L"ShowActiveInputAPIs"),
 
     ConfigEntry (screenshots.keep_png_copy,              L"Keep a .PNG compressed copy of each screenshot?",           osd_ini,         L"Screenshot.System",     L"KeepLosslessPNG"),
-    ConfigEntry (screenshots.play_sound,                 L"Play a Sound when triggeirng Screenshot Capture",           osd_ini,         L"Screenshot.System",     L"PlaySoundOnCapture"),
+    ConfigEntry (screenshots.play_sound,                 L"Play a Sound when triggering Screenshot Capture",           osd_ini,         L"Screenshot.System",     L"PlaySoundOnCapture"),
     ConfigEntry (screenshots.copy_to_clipboard,          L"Copy an LDR copy to the Windows Clipboard",                 osd_ini,         L"Screenshot.System",     L"CopyToClipboard"),
+    ConfigEntry (screenshots.embed_nickname,             L"Add Steam/Epic nickname as Author to Screenshot Metadata",  osd_ini,         L"Screenshot.System",     L"AuthorMetadata"),
     ConfigEntry (screenshots.override_path,              L"Where to store screenshots (if non-empty)",                 osd_ini,         L"Screenshot.System",     L"OverridePath"),
     ConfigEntry (screenshots.compression_quality,        L"Compression Quality: 0=Worst, 100=Lossless",                osd_ini,         L"Screenshot.System",     L"Quality"),
     ConfigEntry (screenshots.avif.use_avif,              L"Use AVIF file format for HDR screenshots",                  osd_ini,         L"Screenshot.System",     L"UseAVIF"),
@@ -4574,6 +4576,7 @@ auto DeclKeybind =
   screenshots.keep_png_copy->load             (config.screenshots.png_compress);
   screenshots.play_sound->load                (config.screenshots.play_sound);
   screenshots.copy_to_clipboard->load         (config.screenshots.copy_to_clipboard);
+  screenshots.embed_nickname->load            (config.screenshots.embed_nickname);
   screenshots.override_path->load             (config.screenshots.override_path);
 
   screenshots.compression_quality->load       (config.screenshots.compression_quality);
@@ -5720,6 +5723,7 @@ SK_SaveConfig ( std::wstring name,
   screenshots.keep_png_copy->store             (config.screenshots.png_compress);
   screenshots.play_sound->store                (config.screenshots.play_sound);
   screenshots.copy_to_clipboard->store         (config.screenshots.copy_to_clipboard);
+  screenshots.embed_nickname->store            (config.screenshots.embed_nickname);
   screenshots.override_path->store             (config.screenshots.override_path);
 
   screenshots.compression_quality->store       (config.screenshots.compression_quality);
