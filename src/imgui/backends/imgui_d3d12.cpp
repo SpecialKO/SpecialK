@@ -2228,7 +2228,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
                                                &reshade.rtv );
 
         D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle =
-          (D3D12_CPU_DESCRIPTOR_HANDLE)reshade.rtv.handle;
+          (D3D12_CPU_DESCRIPTOR_HANDLE)(uintptr_t)reshade.rtv.handle;
 
         _pDevice->CopyDescriptorsSimple (
           1, stagingFrame.hBackBufferRTV, rtv_handle,
@@ -2251,7 +2251,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
                                                    &reshade.rtv_srgb );
 
             D3D12_CPU_DESCRIPTOR_HANDLE rtv_srgb_handle =
-              (D3D12_CPU_DESCRIPTOR_HANDLE)reshade.rtv_srgb.handle;
+              (D3D12_CPU_DESCRIPTOR_HANDLE)(uintptr_t)reshade.rtv_srgb.handle;
 
             _pDevice->CopyDescriptorsSimple (
               1, stagingFrame.hBackBufferRTV_sRGB, rtv_srgb_handle,

@@ -60,7 +60,7 @@ void SK_ReShadeAddOn_DestroyEffectRuntime          (reshade::api::effect_runtime
 
 void SK_ReShadeAddOn_CleanupConfigAndLogs (void);
 
-#define RESHADE_MAKE_HANDLE(x) { std::bit_cast <uint64_t> (x) }
+#define RESHADE_MAKE_HANDLE(x) { (uint64_t)(x) }
 
 struct reshade_format
 {
