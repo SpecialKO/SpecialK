@@ -746,3 +746,109 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
   return
     ( encodeResult == AVIF_RESULT_OK );
 }
+
+void
+SK_WIC_SetMaximumQuality (IPropertyBag2 *props)
+{
+  if (props == nullptr)
+    return;
+
+  PROPBAG2 opt = {   .pstrName = L"ImageQuality"   };
+  VARIANT  var = { VT_R4,0,0,0, { .fltVal = 1.0f } };
+
+  props->Write (1, &opt, &var);
+}
+
+void
+SK_WIC_SetBasicMetadata (IWICMetadataQueryWriter *pMQW)
+{
+  extern std::string SK_GetFriendlyAppName (void);
+
+  PROPVARIANT       value;
+  PropVariantInit (&value);
+
+  std::string app_name =
+    SK_GetFriendlyAppName ();
+
+  value.vt     = VT_LPSTR;
+  value.pszVal = const_cast <char *> (app_name.c_str ());
+
+  pMQW->SetMetadataByName (
+    L"System.ApplicationName",
+    &value
+  );
+
+  UINT SK_DPI_Update (void);
+  UINT dpi =
+    SK_DPI_Update ();
+
+  value.vt     = VT_R8;
+  value.dblVal = static_cast <double> (dpi);
+
+  pMQW->SetMetadataByName (
+    L"System.Image.HorizontalResolution",
+    &value
+  );
+
+  pMQW->SetMetadataByName (
+    L"System.Image.VerticalResolution",
+    &value
+  );
+
+  value.vt     = VT_LPSTR;
+  value.pszVal = "Special K";
+
+  pMQW->SetMetadataByName (
+    L"System.Media.CreatorApplication",
+    &value
+  );
+
+  value.vt     = VT_LPSTR;
+  value.pszVal = const_cast <char *> (SK_VersionStrA);
+
+  pMQW->SetMetadataByName (
+    L"System.Media.CreatorApplicationVersion",
+    &value
+  );
+
+  value.vt     = VT_LPSTR;
+  value.pszVal = const_cast <char *> (
+    SK_FormatString ("Captured using Special K %hs", SK_VersionStrA).c_str ()
+  );
+
+  pMQW->SetMetadataByName (
+    L"System.Comment",
+    &value
+  );
+
+  value.vt = VT_DATE;
+
+  SYSTEMTIME      st;
+  GetSystemTime (&st);
+
+  SystemTimeToVariantTime (&st, &value.dblVal);
+
+  pMQW->SetMetadataByName (
+    L"System.Photo.DateTaken",
+    &value
+  );
+
+  extern void SK_Platform_GetUserName (char *pszName, int max_len);
+
+  static char                          szName [512] = { };
+  SK_RunOnce (SK_Platform_GetUserName (szName, 511));
+
+  if (*szName != '\0')
+  {
+    char* names [] = { szName };
+
+    value.vt             = VT_VECTOR | VT_LPSTR;
+    value.calpstr.cElems = 1;
+    value.calpstr.pElems = names;
+
+    pMQW->SetMetadataByName (
+      L"System.Author",
+      &value
+    );
+  }
+}

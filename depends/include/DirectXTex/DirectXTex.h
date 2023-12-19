@@ -43,6 +43,7 @@
 
 struct IWICImagingFactory;
 struct IWICMetadataQueryReader;
+struct IWICMetadataQueryWriter;
 
 
 namespace DirectX
@@ -372,17 +373,21 @@ namespace DirectX
 
     HRESULT __cdecl SaveToWICMemory( _In_ const Image& image, _In_ DWORD flags, _In_ REFGUID guidContainerFormat,
                                      _Out_ Blob& blob, _In_opt_ const GUID* targetFormat = nullptr,
-                                     _In_opt_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr );
+                                     _In_opt_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr,
+                                     _In_opt_ std::function<void __cdecl(IWICMetadataQueryWriter*)> setMQW = nullptr );
     HRESULT __cdecl SaveToWICMemory( _In_count_(nimages) const Image* images, _In_ size_t nimages, _In_ DWORD flags, _In_ REFGUID guidContainerFormat,
                                      _Out_ Blob& blob, _In_opt_ const GUID* targetFormat = nullptr,
-                                     _In_opt_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr );
+                                     _In_opt_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr,
+                                     _In_opt_ std::function<void __cdecl(IWICMetadataQueryWriter*)> setMQW = nullptr );
 
     HRESULT __cdecl SaveToWICFile( _In_ const Image& image, _In_ DWORD flags, _In_ REFGUID guidContainerFormat,
                                    _In_z_ const wchar_t* szFile, _In_opt_ const GUID* targetFormat = nullptr,
-                                   _In_opt_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr );
+                                   _In_opt_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr,
+                                   _In_opt_ std::function<void __cdecl(IWICMetadataQueryWriter*)> setMQW = nullptr );
     HRESULT __cdecl SaveToWICFile( _In_count_(nimages) const Image* images, _In_ size_t nimages, _In_ DWORD flags, _In_ REFGUID guidContainerFormat,
                                    _In_z_ const wchar_t* szFile, _In_opt_ const GUID* targetFormat = nullptr,
-                                   _In_opt_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr );
+                                   _In_opt_ std::function<void __cdecl(IPropertyBag2*)> setCustomProps = nullptr,
+                                   _In_opt_ std::function<void __cdecl(IWICMetadataQueryWriter*)> setMQW = nullptr );
 
     //---------------------------------------------------------------------------------
     // Texture conversion, resizing, mipmap generation, and block compression

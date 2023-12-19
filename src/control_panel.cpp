@@ -175,7 +175,7 @@ LoadFileInResource ( int          name,
 static UINT  _uiDPI     =     96;
 static float _fDPIScale = 100.0f;
 
-void SK_DPI_Update (void)
+UINT SK_DPI_Update (void)
 {
   using  GetDpiForSystem_pfn = UINT (WINAPI *)(void);
   static
@@ -205,6 +205,9 @@ void SK_DPI_Update (void)
           (float)USER_DEFAULT_SCREEN_DPI ) * 100.0f;
     }
   }
+
+  return
+    _uiDPI;
 };
 
 extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
@@ -702,6 +705,54 @@ __SK_ImGui_LastWindowCenter (void)
 
 void SK_ImGui_CenterCursorAtPos (ImVec2& center = SK_ImGui_LastWindowCenter);
 void SK_ImGui_UpdateCursor      (void);
+
+std::string
+SK_GetFriendlyAppName (void)
+{
+  const         bool bSteam        = (SK::SteamAPI::AppID () != 0x0);
+  static const  bool bEpic         = StrStrIA (GetCommandLineA (), "-epicapp");
+
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (bSteam || bEpic || *rb.windows.focus.title != L'\0')
+  {
+    static std::string window_title =
+      SK_WideCharToUTF8 (rb.windows.focus.title);
+
+    // For non-Steam/Epic games, if the window title changes, then update
+    //   the control panel's title...
+    if (! (bSteam || bEpic))
+    {
+      static ULONG64     last_changed = 0;
+      if (std::exchange (last_changed, rb.windows.focus.last_changed) !=
+                                       rb.windows.focus.last_changed)
+      {
+        window_title =
+          SK_WideCharToUTF8 (rb.windows.focus.title);
+      }
+    }
+
+    std::string& appname = bSteam ?
+       SK::SteamAPI::AppName ()   :
+                           bEpic  ?
+            SK::EOS::AppName ()   : window_title;
+
+    return appname;
+  }
+
+  static std::wstring product_name =
+    SK_GetDLLProductName (SK_GetFullyQualifiedApp ());
+
+  if (! product_name.empty ())
+  {
+    return
+      SK_WideCharToUTF8 (product_name);
+  }
+
+  return
+    SK_WideCharToUTF8 (SK_GetHostApp ());
+}
 
 const char*
 SK_ImGui_ControlPanelTitle (void)

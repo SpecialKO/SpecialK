@@ -746,8 +746,10 @@ SK_D3D9_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStag
                       SUCCEEDED (
                   SaveToWICFile ( *un_scrgb.GetImages (), WIC_FLAGS_NONE,
                                      GetWICCodec         (codec),
-                                      wszAbsolutePathToScreenshot )
-                               )
+                                      wszAbsolutePathToScreenshot, nullptr,
+                                        SK_WIC_SetMaximumQuality,
+                                        SK_WIC_SetBasicMetadata )
+                                )
                    )
                 {
                   if ( config.steam.screenshots.enable_hook &&
@@ -774,7 +776,9 @@ SK_D3D9_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStag
                     if (               thumbnailImage.GetImages ()) {
                       SaveToWICFile ( *thumbnailImage.GetImages (), WIC_FLAGS_DITHER,
                                         GetWICCodec                (codec),
-                                          wszAbsolutePathToThumbnail );
+                                          wszAbsolutePathToThumbnail, nullptr,
+                                            SK_WIC_SetMaximumQuality,
+                                            SK_WIC_SetBasicMetadata );
 
                       std::string ss_path (
                         SK_WideCharToUTF8 (wszAbsolutePathToScreenshot)

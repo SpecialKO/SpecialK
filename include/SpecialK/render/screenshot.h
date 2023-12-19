@@ -229,3 +229,6 @@ void SK_Steam_CatastropicScreenshotFail (void);
 void SK_Screenshot_PlaySound            (void);
 
 bool SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFilePath, uint16_t max_cll, uint16_t max_pall);
+
+void SK_WIC_SetMaximumQuality (IPropertyBag2 *props);
+void SK_WIC_SetBasicMetadata  (IWICMetadataQueryWriter *pMQW);

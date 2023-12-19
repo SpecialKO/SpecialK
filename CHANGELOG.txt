@@ -1,4 +1,9 @@
-﻿23.12.19
+﻿23.12.19.1
+==========
+ + Increased JPEG encode quality for screenshots imported to Steam to maximum
+ + Added acquisition metadata to JXR, PNG and JPG screenshots
+
+23.12.19
 ========
  + Tested and compatible with HDR in dlssg_to_fsr3
 

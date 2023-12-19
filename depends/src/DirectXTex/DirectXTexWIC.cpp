@@ -655,7 +655,8 @@ namespace
         _In_ REFGUID containerFormat,
         _In_ IWICBitmapFrameEncode* frame,
         _In_opt_ IPropertyBag2* props,
-        _In_opt_ const GUID* targetFormat)
+        _In_opt_ const GUID* targetFormat,
+        _In_opt_ std::function<void(IWICMetadataQueryWriter*)> setMQW)
     {
         if (!frame)
             return E_INVALIDARG;
@@ -696,6 +697,16 @@ namespace
         hr = EncodeMetadata(frame, containerFormat, image.format);
         if (FAILED(hr))
             return hr;
+
+        if (setMQW)
+        {
+          ComPtr<IWICMetadataQueryWriter> metadataWriter;
+          hr = frame->GetMetadataQueryWriter(metadataWriter.GetAddressOf());
+          if (FAILED(hr))
+              return hr;
+
+          setMQW(metadataWriter.Get());
+        }
 
         if (memcmp(&targetGuid, &pfGuid, sizeof(WICPixelFormatGUID)) != 0)
         {
@@ -755,7 +766,8 @@ namespace
         _In_ REFGUID containerFormat,
         _Inout_ IStream* stream,
         _In_opt_ const GUID* targetFormat,
-        _In_opt_ std::function<void(IPropertyBag2*)> setCustomProps)
+        _In_opt_ std::function<void(IPropertyBag2*)> setCustomProps,
+        _In_opt_ std::function<void(IWICMetadataQueryWriter*)> setMQW)
     {
         if (!stream)
             return E_INVALIDARG;
@@ -798,7 +810,7 @@ namespace
             setCustomProps(props.Get());
         }
 
-        hr = EncodeImage(image, flags, containerFormat, frame.Get(), props.Get(), targetFormat);
+        hr = EncodeImage(image, flags, containerFormat, frame.Get(), props.Get(), targetFormat, setMQW);
         if (FAILED(hr))
             return hr;
 
@@ -820,7 +832,8 @@ namespace
         _In_ REFGUID containerFormat,
         _Inout_ IStream* stream,
         _In_opt_ const GUID* targetFormat,
-        _In_opt_ std::function<void(IPropertyBag2*)> setCustomProps)
+        _In_opt_ std::function<void(IPropertyBag2*)> setCustomProps,
+        _In_opt_ std::function<void(IWICMetadataQueryWriter*)> setMQW)
     {
         if (!stream || nimages < 2)
             return E_INVALIDARG;
@@ -869,7 +882,7 @@ namespace
                 setCustomProps(props.Get());
             }
 
-            hr = EncodeImage(images[index], flags, containerFormat, frame.Get(), props.Get(), targetFormat);
+            hr = EncodeImage(images[index], flags, containerFormat, frame.Get(), props.Get(), targetFormat, setMQW);
             if (FAILED(hr))
                 return hr;
         }
@@ -1124,7 +1137,8 @@ HRESULT DirectX::SaveToWICMemory(
     REFGUID containerFormat,
     Blob& blob,
     const GUID* targetFormat,
-    std::function<void(IPropertyBag2*)> setCustomProps)
+    std::function<void(IPropertyBag2*)> setCustomProps,
+    std::function<void(IWICMetadataQueryWriter*)> setMQW)
 {
     if (!image.pixels)
         return E_POINTER;
@@ -1136,7 +1150,7 @@ HRESULT DirectX::SaveToWICMemory(
     if (FAILED(hr))
         return hr;
 
-    hr = EncodeSingleFrame(image, flags, containerFormat, stream.Get(), targetFormat, setCustomProps);
+    hr = EncodeSingleFrame(image, flags, containerFormat, stream.Get(), targetFormat, setCustomProps, setMQW);
     if (FAILED(hr))
         return hr;
 
@@ -1177,7 +1191,8 @@ HRESULT DirectX::SaveToWICMemory(
     REFGUID containerFormat,
     Blob& blob,
     const GUID* targetFormat,
-    std::function<void(IPropertyBag2*)> setCustomProps)
+    std::function<void(IPropertyBag2*)> setCustomProps,
+    std::function<void(IWICMetadataQueryWriter*)> setMQW)
 {
     if (!images || nimages == 0)
         return E_INVALIDARG;
@@ -1190,9 +1205,9 @@ HRESULT DirectX::SaveToWICMemory(
         return hr;
 
     if (nimages > 1)
-        hr = EncodeMultiframe(images, nimages, flags, containerFormat, stream.Get(), targetFormat, setCustomProps);
+        hr = EncodeMultiframe(images, nimages, flags, containerFormat, stream.Get(), targetFormat, setCustomProps, setMQW);
     else
-        hr = EncodeSingleFrame(images[0], flags, containerFormat, stream.Get(), targetFormat, setCustomProps);
+        hr = EncodeSingleFrame(images[0], flags, containerFormat, stream.Get(), targetFormat, setCustomProps, setMQW);
 
     if (FAILED(hr))
         return hr;
@@ -1237,7 +1252,8 @@ HRESULT DirectX::SaveToWICFile(
     REFGUID containerFormat,
     const wchar_t* szFile,
     const GUID* targetFormat,
-    std::function<void(IPropertyBag2*)> setCustomProps)
+    std::function<void(IPropertyBag2*)> setCustomProps,
+    std::function<void(IWICMetadataQueryWriter*)> setMQW)
 {
     if (!szFile)
         return E_INVALIDARG;
@@ -1259,7 +1275,7 @@ HRESULT DirectX::SaveToWICFile(
     if (FAILED(hr))
         return hr;
 
-    hr = EncodeSingleFrame(image, flags, containerFormat, stream.Get(), targetFormat, setCustomProps);
+    hr = EncodeSingleFrame(image, flags, containerFormat, stream.Get(), targetFormat, setCustomProps, setMQW);
     if (FAILED(hr))
     {
         stream.Reset();
@@ -1278,7 +1294,8 @@ HRESULT DirectX::SaveToWICFile(
     REFGUID containerFormat,
     const wchar_t* szFile,
     const GUID* targetFormat,
-    std::function<void(IPropertyBag2*)> setCustomProps)
+    std::function<void(IPropertyBag2*)> setCustomProps,
+    std::function<void(IWICMetadataQueryWriter*)> setMQW)
 {
     if (!szFile || !images || nimages == 0)
         return E_INVALIDARG;
@@ -1298,9 +1315,9 @@ HRESULT DirectX::SaveToWICFile(
         return hr;
 
     if (nimages > 1)
-        hr = EncodeMultiframe(images, nimages, flags, containerFormat, stream.Get(), targetFormat, setCustomProps);
+        hr = EncodeMultiframe(images, nimages, flags, containerFormat, stream.Get(), targetFormat, setCustomProps, setMQW);
     else
-        hr = EncodeSingleFrame(images[0], flags, containerFormat, stream.Get(), targetFormat, setCustomProps);
+        hr = EncodeSingleFrame(images[0], flags, containerFormat, stream.Get(), targetFormat, setCustomProps, setMQW);
 
     if (FAILED(hr))
     {
