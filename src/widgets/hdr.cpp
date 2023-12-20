@@ -1292,9 +1292,10 @@ public:
     {
       ImGui::BeginTooltip ();
       {
-        ImGui::TextUnformatted ("For best image quality, ensure your desktop is using 10-bit color");
+        ImGui::TextUnformatted ("For best image quality, ensure your desktop is using at least 10-bpc color");
         ImGui::Separator       ();
-        ImGui::BulletText      ("Either RGB Full-Range or YCbCr-4:4:4 will work");
+        ImGui::BulletText      ("Ideally, you should output the desktop using either RGB Full-Range or YCbCr 4:4:4");
+        ImGui::BulletText      ("Use 8-bpc if RGB Full-Range or YCbCr 4:4:4 are unsupported; Windows will dither it");
       }
       ImGui::EndTooltip ();
     }
