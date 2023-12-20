@@ -687,7 +687,7 @@ struct sk_config_t
       bool    ignore_thread_flags  = false; // Remove threading flags from D3D11 devices
       bool    clear_flipped_chain  =  true; // Clear buffers on present? (non-compliant)
       float   chain_clear_color[4] = { 0.0f, 0.0f, 0.0f, 1.0f };
-      bool    suppress_resize_fail = false; // Workaround EOS Overlay bug in D3D12
+      bool    suppress_resize_fail =  true; // Workaround DLSS FrameGen compat. issues in D3D12
       bool    suppress_rtv_mismatch= false; // Hide SwapChain RTV format warnings for buggy games
       float   warn_if_vram_exceeds =  95.f; // Warn if VRAM usage exceeds % of available
       bool    warned_low_vram      = false; // NOT SAVED: State of warn_if_vram_exceeds

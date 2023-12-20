@@ -167,6 +167,7 @@ public:
   wchar_t                 display_name [128]   = {     };
   SK_ComPtr <IUnknown>    device               = nullptr;
   SK_ComPtr <IUnknown>    swapchain            = nullptr;
+  bool                    swapchain_consistent = true;    // SwapChain resize failures may be hidden from the game
   SK_ComPtr <IDXGIFactory1>
                           factory              = nullptr; // Used to enumerate display modes, the rb doesn't create any resources
   HMONITOR                monitor              = nullptr;
@@ -323,8 +324,8 @@ public:
 
   int                     active_display       =  0;
   uint32_t                display_crc
-                           [_MAX_DISPLAYS]     = { };  // Quick detect for changing displays
-  bool                    stale_display_info   = true; // Output topology is stale, update it during getContainingOutput (...)
+                           [_MAX_DISPLAYS]     = { };   // Quick detect for changing displays
+  bool                    stale_display_info   = true;  // Output topology is stale, update it during getContainingOutput (...)
 
   struct scan_out_s {
     int                        bpc                  = 8;

@@ -1456,6 +1456,9 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
   _In_ UINT            SwapChainFlags,
        BOOL            bWrapped )
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   DXGI_SWAP_CHAIN_DESC  swap_desc = { };
   pSwapChain->GetDesc (&swap_desc);
 
@@ -1469,7 +1472,7 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
     {
       SK_DXGI_SetPrivateData <state_cache_s> (pSwapChain, &state_cache);
 
-      if (SUCCEEDED (hr))
+      if (SUCCEEDED (hr) && rb.swapchain_consistent)
       {
         BOOL                             bFullscreen = FALSE;
         pSwapChain->GetFullscreenState (&bFullscreen, nullptr);
@@ -1481,23 +1484,6 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
           //if (config.window.always_on_top < AlwaysOnTop)
           //  SK_DeferCommand ("Window.TopMost false");
         }
-      }
-
-      //
-      // Swallow the error rather than crashing.
-      //
-      //   Users are more likely to figure out the problem if we warn them and
-      //     go into limp mode instead of crashing.
-      //
-      if (hr == DXGI_ERROR_INVALID_CALL)
-      {
-        SK_ImGui_WarningWithTitle (
-          L"Possible Third-Party Overlay Conflict Detected\r\n\r\n"
-          L"\t\t* Crash prevented, but the game's resolution may be incorrect.",
-            L"DXGI SwapChain Resize Failed"
-        );
-
-        hr = S_OK;
       }
 
       return hr;
@@ -1519,6 +1505,8 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
                  :
           ResizeBuffers_Original    (pSwapChain, BufferCount, Width, Height,
                                                  NewFormat, SwapChainFlags );
+
+      rb.swapchain_consistent = SUCCEEDED (hr);
 
       return hr;
     };
@@ -1596,9 +1584,6 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
 
   auto origWidth  = Width;
   auto origHeight = Height;
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
 
   if ( config.window.borderless &&
        config.window.fullscreen && (! rb.fullscreen_exclusive) )
@@ -1834,8 +1819,8 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
     if (SUCCEEDED (ret))
       bSwapChainNeedsResize = false;
 
-
-    // EOS Overlay May Be Broken in D3D12 Games
+    // EOS Overlay and DLSS Frame Generation may Cause Unreal Engine Games to
+    //   Unncessarily Crash in D3D12, so Swallow and Log the Failure.
     if (FAILED (ret) && config.render.dxgi.suppress_resize_fail)
     {
       if (ret != DXGI_ERROR_DEVICE_REMOVED && ret != E_ACCESSDENIED)
@@ -1888,6 +1873,8 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
 
   else
   {
+    rb.swapchain_consistent = true;
+
     SK_LOGi0 (
       L"Skipped Redundant ResizeBuffers Operation "
       L"[(%dx%d) x %d Buffers, Format: %hs, Flags: %x]",

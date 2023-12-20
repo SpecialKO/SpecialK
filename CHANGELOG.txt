@@ -1,4 +1,15 @@
-﻿23.12.20
+﻿23.12.20.1
+==========
+ + Added a warning text line at the top of the control panel if a game tried
+     and failed to change the resolution of its SwapChain.
+
+    >> Special K has been setup to swallow certain resize failure events in
+         order to prevent incompatible combinations of software from crashing.
+
+     When hiding these errors from games, a game's internal resolution may
+       not match display output; confirm graphics settings if you set this.
+
+23.12.20
 ========
  + Improved support for ReShade effects that require sRGB views in D3D12
  + Added control panel option to embed Nickname in Screenshot Metadata as Author

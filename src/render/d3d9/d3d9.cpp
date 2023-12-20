@@ -5675,6 +5675,8 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
         SK_SetPresentParamsD3D9 ( nullptr,
                                     pPresentationParameters );
 
+        SK_GetCurrentRenderBackend ().swapchain_consistent = false;
+
                     ret = E_FAIL;
         D3D9_CALL ( ret, D3D9_CreateDevice_Original ( This, Adapter,
                                                         DeviceType,

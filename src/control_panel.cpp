@@ -4817,6 +4817,34 @@ SK_ImGui_ControlPanel (void)
       SK_NV_GSYNCControlPanel ();
 
 
+    if (! rb.swapchain_consistent)
+    {
+      ImGui::BeginGroup  ();
+      ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f),
+                         "  " ICON_FA_EXCLAMATION_TRIANGLE );
+      ImGui::SameLine    (                                 );
+      ImGui::Text        ( " Current Resolution May Be Different Than The Game Expects!" );
+      ImGui::EndGroup    ();
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        ImGui::TextUnformatted (
+          "A SwapChain Resize Failure Has Been Hidden From The Game To Prevent Crashing"
+        );
+        ImGui::Separator  ();
+        ImGui::Spacing    ();
+        ImGui::BulletText ("Third-party overlays or certain render mods may cause this");
+        ImGui::BulletText ("Game may have requested an unsupported Fullscreen resolution");
+        ImGui::Spacing    ();
+        ImGui::TextUnformatted (
+          "Confirm in-game resolution settings or try pressing Alt+Enter to resolve this problem."
+        );
+        ImGui::EndTooltip ();
+      }
+    }
+
+
     if (override)
       SK_ImGui_AdjustCursor ();
 
