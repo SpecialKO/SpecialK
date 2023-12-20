@@ -413,10 +413,6 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
                                           0
   );
 
-  // Setup render state
-  static const float     blend_factor [4] = { 0.f, 0.f, 0.f, 0.f };
-  ctx->OMSetBlendFactor (blend_factor);
-
   // Render command lists
   int    vtx_offset = 0;
   int    idx_offset = 0;
@@ -1661,8 +1657,7 @@ D3D12GraphicsCommandList_CopyResource_Detour (
               std::min ( static_cast <UINT> (_d3d12_rbk->frames_.size () - 1),
                                              _d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex () );
 
-            auto& stagingFrame = _d3d12_rbk->frames_ [swapIdx];
-            auto& cmdList      = This;
+            auto& cmdList = This;
 
             D3D12_CPU_DESCRIPTOR_HANDLE dstUAVHandle_CPU;
             D3D12_CPU_DESCRIPTOR_HANDLE srcUAVHandle_CPU;
@@ -1675,8 +1670,8 @@ D3D12GraphicsCommandList_CopyResource_Detour (
             srcUAVHandle_CPU.ptr =
               _d3d12_rbk->descriptorHeaps.pComputeCopy->GetCPUDescriptorHandleForHeapStart ().ptr + (swapIdx * 2 + 1) * srvDescriptorSize;
 
-            _d3d12_rbk->_pDevice->CreateUnorderedAccessView (stagingFrame.hdr.pSwapChainCopy, nullptr, nullptr, dstUAVHandle_CPU);
-            _d3d12_rbk->_pDevice->CreateUnorderedAccessView (pSrcResource,                    nullptr, nullptr, srcUAVHandle_CPU);
+            _d3d12_rbk->_pDevice->CreateUnorderedAccessView (_d3d12_rbk->computeCopy.pStagingBuffer, nullptr, nullptr, dstUAVHandle_CPU);
+            _d3d12_rbk->_pDevice->CreateUnorderedAccessView (pSrcResource,                           nullptr, nullptr, srcUAVHandle_CPU);
 
             D3D12_GPU_DESCRIPTOR_HANDLE dstUAVHandle_GPU;
 
@@ -1688,45 +1683,55 @@ D3D12GraphicsCommandList_CopyResource_Detour (
             cmdList->SetDescriptorHeaps            (1, &_d3d12_rbk->descriptorHeaps.pComputeCopy.p);
             cmdList->SetComputeRootDescriptorTable (0, dstUAVHandle_GPU);
 
-            SK_D3D12_StateTransition barriers [] = {
-              { D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-                D3D12_RESOURCE_STATE_COPY_SOURCE,      stagingFrame.hdr.pSwapChainCopy },
-              { D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-                D3D12_RESOURCE_STATE_COPY_SOURCE,      pSrcResource                    },
-              { D3D12_RESOURCE_STATE_COPY_SOURCE,
-                D3D12_RESOURCE_STATE_COPY_DEST,        stagingFrame.hdr.pSwapChainCopy }
-            };
+            D3D12_RESOURCE_BARRIER
+              SrcBarrier [2] = { };
+              SrcBarrier [0].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+              SrcBarrier [0].Transition.pResource   = pSrcResource;
+              SrcBarrier [0].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
+              SrcBarrier [0].Transition.StateAfter  = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+              SrcBarrier [0].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+              SrcBarrier [0].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+              SrcBarrier [1].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+              SrcBarrier [1].Transition.pResource   = _d3d12_rbk->computeCopy.pStagingBuffer;
+              SrcBarrier [1].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+              SrcBarrier [1].Transition.StateAfter  = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+              SrcBarrier [1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+              SrcBarrier [1].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 
             D3D12_RESOURCE_BARRIER
-              uavBarriers [3] = { };
-              uavBarriers [0].Type                   = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-              uavBarriers [0].UAV.pResource          = nullptr;
-              uavBarriers [1].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-              uavBarriers [1].Transition.pResource   = stagingFrame.hdr.pSwapChainCopy;
-              uavBarriers [1].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-              uavBarriers [1].Transition.StateAfter  = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-              uavBarriers [1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-              uavBarriers [1].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-              uavBarriers [2].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-              uavBarriers [2].Transition.pResource   = pSrcResource;
-              uavBarriers [2].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
-              uavBarriers [2].Transition.StateAfter  = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
-              uavBarriers [2].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-              uavBarriers [2].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+              DstBarrier  [3] = { };
+              DstBarrier  [0].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+              DstBarrier  [0].Transition.pResource   = _d3d12_rbk->computeCopy.pStagingBuffer;
+              DstBarrier  [0].Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+              DstBarrier  [0].Transition.StateAfter  = D3D12_RESOURCE_STATE_COPY_SOURCE;
+              DstBarrier  [0].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+              DstBarrier  [0].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+              DstBarrier  [1].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+              DstBarrier  [1].Transition.pResource   = _d3d12_rbk->computeCopy.pStagingBuffer;
+              DstBarrier  [1].Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE;
+              DstBarrier  [1].Transition.StateAfter  = D3D12_RESOURCE_STATE_COPY_DEST;
+              DstBarrier  [1].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+              DstBarrier  [1].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+              DstBarrier  [2].Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+              DstBarrier  [2].Transition.pResource   = pSrcResource;
+              DstBarrier  [2].Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+              DstBarrier  [2].Transition.StateAfter  = D3D12_RESOURCE_STATE_COPY_SOURCE;
+              DstBarrier  [2].Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+              DstBarrier  [2].Flags                  = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 
-            static constexpr UINT                                        _BltTileSize = 32U;
+            static constexpr UINT                                        _BltTileSize = 8U;
             const UINT
               ThreadGroupCountX = (static_cast <UINT> (src_desc.Width) + _BltTileSize - 1) / _BltTileSize,
               ThreadGroupCountY = (                    src_desc.Height + _BltTileSize - 1) / _BltTileSize,
               ThreadGroupCountZ = 1;
 
-            cmdList->ResourceBarrier               (2, &uavBarriers [1]);
+            cmdList->ResourceBarrier               (2,  SrcBarrier);
             cmdList->Dispatch                      ( ThreadGroupCountX,
                                                      ThreadGroupCountY,
                                                      ThreadGroupCountZ );
-            cmdList->ResourceBarrier               (2,    barriers);
-            cmdList->CopyResource                  (pDstResource, stagingFrame.hdr.pSwapChainCopy);
-            cmdList->ResourceBarrier               (1,   &barriers [2]);
+            cmdList->ResourceBarrier               (1,  DstBarrier);
+            cmdList->CopyResource                  (pDstResource, _d3d12_rbk->computeCopy.pStagingBuffer);
+            cmdList->ResourceBarrier               (2, &DstBarrier [1]);
 
             return;
 
@@ -2042,13 +2047,10 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
     cbuffer_cspace              = { };
     cbuffer_cspace.uiToneMapper = TONEMAP_CopyResource;
 
-  static FLOAT         kfBlendFactors [] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
   pCommandList->SetGraphicsRootSignature          ( _d3d12_rbk->pHDRSignature            );
   pCommandList->SetPipelineState                  ( _d3d12_rbk->pHDRPipeline             );
   pCommandList->SetGraphicsRoot32BitConstants     ( 0, 4,  &cbuffer_luma,   0            );
   pCommandList->SetGraphicsRoot32BitConstants     ( 1, 16, &cbuffer_cspace, 0            );
-  pCommandList->OMSetBlendFactor                  ( kfBlendFactors                       );
   pCommandList->IASetPrimitiveTopology            ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
 
   _d3d12_rbk->
@@ -2361,8 +2363,6 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     pCommandList->SetGraphicsRoot32BitConstants     ( 0, 4,  &cbuffer_luma,   0                      );
     pCommandList->SetGraphicsRoot32BitConstants     ( 1, 16, &cbuffer_cspace, 0                      );
 
-    static FLOAT                                      kfBlendFactors [] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    pCommandList->OMSetBlendFactor                  ( kfBlendFactors                                 );
     pCommandList->IASetPrimitiveTopology            ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP           );
 
     // pBackBuffer is expected to promote from STATE_PRESENT to STATE_COPY_SOURCE without a barrier.
@@ -2740,6 +2740,7 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 
   computeCopy.pPipeline.Release           ();
   computeCopy.pSignature.Release          ();
+  computeCopy.pStagingBuffer.Release      ();
 
   descriptorHeaps.pBackBuffers.Release    ();
   descriptorHeaps.pImGui.Release          ();
@@ -2900,6 +2901,23 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                                        IID_PPV_ARGS (&descriptorHeaps.pBackBuffers.p)));
                               SK_D3D12_SetDebugName ( descriptorHeaps.pBackBuffers.p,
                                 L"SK D3D12 Backbuffer DescriptorHeap" );
+
+      ThrowIfFailed (
+        _pDevice->CreateCommittedResource (
+          std::array < D3D12_HEAP_PROPERTIES, 1 >  {
+                       D3D12_HEAP_TYPE_DEFAULT, D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+                                                D3D12_MEMORY_POOL_UNKNOWN,
+                                            0, 1   }.data (),
+                       D3D12_HEAP_FLAG_NONE,
+          std::array < D3D12_RESOURCE_DESC,   1 > {
+                       D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+                                       0,
+                         swapDesc1.Width, swapDesc1.Height,
+                                       1,                1,
+                         swapDesc1.Format, { 1, 0 }, D3D12_TEXTURE_LAYOUT_UNKNOWN,
+                                                     D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS }.data (),
+                         D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+                                              IID_PPV_ARGS (&computeCopy.pStagingBuffer.p)));
 
       const auto  rtvDescriptorSize =
         _pDevice->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -3150,7 +3168,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         blendDesc.RenderTarget [0].SrcBlend              = D3D12_BLEND_ONE;
         blendDesc.RenderTarget [0].DestBlend             = D3D12_BLEND_ZERO;
         blendDesc.RenderTarget [0].BlendOp               = D3D12_BLEND_OP_ADD;
-        blendDesc.RenderTarget [0].SrcBlendAlpha         = D3D12_BLEND_ONE;//INV_SRC_ALPHA;
+        blendDesc.RenderTarget [0].SrcBlendAlpha         = D3D12_BLEND_ONE;
         blendDesc.RenderTarget [0].DestBlendAlpha        = D3D12_BLEND_ZERO;
         blendDesc.RenderTarget [0].BlendOpAlpha          = D3D12_BLEND_OP_ADD;
         blendDesc.RenderTarget [0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_RED   |
@@ -3243,7 +3261,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       if (
         ImGui_ImplDX12_Init ( _pDevice,
                               swapDesc1.BufferCount,
-                                swapDesc1.Format,
+                              swapDesc1.Format,
           descriptorHeaps.pImGui->GetCPUDescriptorHandleForHeapStart (),
           descriptorHeaps.pImGui->GetGPUDescriptorHandleForHeapStart (), HWND_BROADCAST)
          )

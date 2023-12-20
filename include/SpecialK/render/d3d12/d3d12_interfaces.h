@@ -495,6 +495,7 @@ struct SK_D3D12_RenderCtx {
   struct {
     SK_ComPtr <ID3D12PipelineState>       pPipeline         = nullptr;
     SK_ComPtr <ID3D12RootSignature>       pSignature        = nullptr;
+    SK_ComPtr <ID3D12Resource>            pStagingBuffer    = nullptr;
   } computeCopy;
 
 	struct FrameCtx {
