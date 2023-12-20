@@ -926,13 +926,6 @@ public:
     static auto& rb =
       SK_GetCurrentRenderBackend ();
 
-
-    //// Automatically handle sRGB -> Linear if the original SwapChain used it
-    extern bool             bOriginallysRGB;
-    if (rb.srgb_stripped || bOriginallysRGB)
-      __SK_HDR_Content_EOTF = 1.0f;
-
-
     if ( __SK_HDR_10BitSwap ||
          __SK_HDR_16BitSwap )
     {
@@ -971,7 +964,29 @@ public:
     }
 
     if (first_widget_run) first_widget_run = false;
-    else return;
+    else
+    {
+      //// Automatically handle sRGB -> Linear if the original SwapChain used it
+      extern bool             bOriginallysRGB;
+      if (rb.srgb_stripped || bOriginallysRGB)
+      {
+        // Only apply sRGB -> Linear on the first frame drawn after turning SK HDR on,
+        //   allow the user turn it off manually afterwards
+        if (config.render.dxgi.srgb_behavior == -1)
+        {
+          if ( __SK_HDR_10BitSwap ||
+               __SK_HDR_16BitSwap )
+          {
+            __SK_HDR_Content_EOTF            = 1.0f;
+            config.render.dxgi.srgb_behavior = 0;
+
+            _SK_HDR_ContentEOTF->store (__SK_HDR_Content_EOTF);
+          }
+        }
+      }
+
+      return;
+    }
 
     _SK_HDR_10BitSwapChain =
       _CreateConfigParameterBool ( SK_HDR_SECTION,
@@ -1268,9 +1283,7 @@ public:
         ImGui::Separator       ( );
         ImGui::BulletText      ( "If HDR causes the game to freeze or crash, "
                                  "you may need to select HDR10" );
-        ImGui::BulletText      ( "DLSS 3 Frame Generation is generally NOT compatible with scRGB HDR" );
-        //ImGui::Separator       ( );
-        //ImGui::TextUnformatted ( "See the Streamline section of Special K's Wiki for more details." );
+        ImGui::BulletText      ( "DLSS 3 Frame Generation has reduced compatibility with scRGB HDR" );
       }
       ImGui::EndTooltip        ( );
     }

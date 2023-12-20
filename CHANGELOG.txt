@@ -1,4 +1,9 @@
-﻿23.12.20.1
+﻿23.12.21
+========
+ + Allow Linear content EOTF to be turned off manually in sRGB games
+ + Default Genshin Impact to 2.2 content EOTF even though it is sRGB
+
+23.12.20.1
 ==========
  + Added a warning text line at the top of the control panel if a game tried
      and failed to change the resolution of its SwapChain.
@@ -7,7 +12,7 @@
          order to prevent incompatible combinations of software from crashing.
 
      When hiding these errors from games, a game's internal resolution may
-       not match display output; confirm graphics settings if you set this.
+       not match display output; confirm graphics settings if you see this.
 
 23.12.20
 ========

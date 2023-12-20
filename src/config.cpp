@@ -2634,7 +2634,7 @@ auto DeclKeybind =
       case SK_GAME_ID::GenshinImpact:
       {
         // Game requires sRGB Passthrough for proper SDR color
-        config.render.dxgi.srgb_behavior = -1;
+        config.render.dxgi.srgb_behavior = 0;
 
         // Game has a funny IAT with DLL dependencies it does not need
         config.apis.OpenGL.hook          = false;
