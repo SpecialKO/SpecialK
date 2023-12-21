@@ -594,6 +594,7 @@ struct {
   sk::ParameterBool*      embed_nickname          = nullptr;
   sk::ParameterStringW*   override_path           = nullptr;
   sk::ParameterInt*       compression_quality     = nullptr;
+  sk::ParameterBool*      compatibility_mode      = nullptr;
 
   struct {
     sk::ParameterBool*    use_avif                = nullptr;
@@ -1403,6 +1404,7 @@ auto DeclKeybind =
     ConfigEntry (screenshots.embed_nickname,             L"Add Steam/Epic nickname as Author to Screenshot Metadata",  osd_ini,         L"Screenshot.System",     L"AuthorMetadata"),
     ConfigEntry (screenshots.override_path,              L"Where to store screenshots (if non-empty)",                 osd_ini,         L"Screenshot.System",     L"OverridePath"),
     ConfigEntry (screenshots.compression_quality,        L"Compression Quality: 0=Worst, 100=Lossless",                osd_ini,         L"Screenshot.System",     L"Quality"),
+    ConfigEntry (screenshots.compatibility_mode,         L"Use less advanced encoding in JPEG-XR and AVIF for compat.",osd_ini,         L"Screenshot.System",     L"CompatibilityMode"),
     ConfigEntry (screenshots.avif.use_avif,              L"Use AVIF file format for HDR screenshots",                  osd_ini,         L"Screenshot.System",     L"UseAVIF"),
     ConfigEntry (screenshots.avif.yuv_subsampling,       L"Chroma Subsampling (444, 422, 420, 400)",                   osd_ini,         L"Screenshot.AVIF",       L"SubsampleYUV"),
     ConfigEntry (screenshots.avif.scrgb_bit_depth,       L"Bits to use for scRGB to PQ encoded images",                osd_ini,         L"Screenshot.AVIF",       L"scRGBtoPQBits"),
@@ -4580,6 +4582,7 @@ auto DeclKeybind =
   screenshots.override_path->load             (config.screenshots.override_path);
 
   screenshots.compression_quality->load       (config.screenshots.compression_quality);
+  screenshots.compatibility_mode->load        (config.screenshots.compatibility_mode);
 
   screenshots.avif.use_avif->load             (config.screenshots.use_avif);
   screenshots.avif.yuv_subsampling->load      (config.screenshots.avif.yuv_subsampling);
@@ -5727,6 +5730,7 @@ SK_SaveConfig ( std::wstring name,
   screenshots.override_path->store             (config.screenshots.override_path);
 
   screenshots.compression_quality->store       (config.screenshots.compression_quality);
+  screenshots.compatibility_mode->store        (config.screenshots.compatibility_mode);
 
   // AVIF Unsupported in 32-bit
   if (SK_GetBitness () != SK_Bitness::ThirtyTwoBit)

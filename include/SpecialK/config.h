@@ -462,6 +462,7 @@ struct sk_config_t
     } avif;
 
     int          compression_quality   =    90;
+    bool         compatibility_mode    = false;
 
     SK_ConfigSerializedKeybind
          game_hud_free_keybind = {

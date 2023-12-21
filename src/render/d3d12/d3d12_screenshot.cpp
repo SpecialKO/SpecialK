@@ -2375,35 +2375,44 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       
                       if ((! hdr) || (! config.screenshots.use_avif))
                       {
+                        const bool bUseCompatHacks =
+                          config.screenshots.compatibility_mode;
+
                         hrSaveToWIC =     un_srgb.GetImages () ?
                           SaveToWICFile (*un_srgb.GetImages (), WIC_FLAGS_DITHER,
                                   GetWICCodec (hdr ? WIC_CODEC_WMP :
                                                      WIC_CODEC_PNG),
                                        wszAbsolutePathToLossless,
-                                         hdr ? &GUID_WICPixelFormat64bppRGBHalf :
-                                                 pFrameData->dxgi.NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
+                                         hdr ? (bUseCompatHacks ?                  &GUID_WICPixelFormat48bppRGBHalf :
+                                                                                   &GUID_WICPixelFormat64bppRGBAHalf)
+                                             :   pFrameData->dxgi.NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
                                                                                    &GUID_WICPixelFormat48bppRGB :
                                                                                    &GUID_WICPixelFormat24bppBGR,
                           [&](IPropertyBag2* props)
                           {
-                            if (hdr)
+                            if (hdr && (! bUseCompatHacks))
                             {
-			                        PROPBAG2 options [2] = { };
+                              PROPBAG2 options [2] = { };
                               VARIANT  vars    [2] = { };
 
-                              options [0].pstrName = L"ImageQuality";
-                              vars    [0].vt       = VT_R4;
-                              vars    [0].fltVal   = std::clamp ( 0.0f, 1.0f,
-                                  static_cast <float> (config.screenshots.compression_quality) * 0.01f );
+                              options [0].pstrName = L"UseCodecOptions";
+                              vars    [0].vt       = VT_BOOL;
+                              vars    [0].boolVal  = VARIANT_TRUE;
 
-                              options [1].pstrName = L"AlphaDataDiscard";
+                              options [1].pstrName = L"Quality";
                               vars    [1].vt       = VT_UI1;
-                              vars    [1].bVal     = 4; // No alpha channel please
+
+                              // Lossless
+                              if (config.screenshots.compression_quality == 100)
+                                vars  [1].bVal = 1;
+                              else
+                                vars  [1].bVal =
+                                  std::max ( 1ui8, static_cast <uint8_t> (255 - static_cast <uint8_t> (255.0f * (static_cast <float> (config.screenshots.compression_quality) / 100.0f))) );
 
                               props->Write (2, options, vars);
                             }
-		                      },
-                          SK_WIC_SetBasicMetadata )                      : E_POINTER;
+                          }, SK_WIC_SetBasicMetadata
+                        )  : E_POINTER;
                       }
 
                       if (SUCCEEDED (hrSaveToWIC))

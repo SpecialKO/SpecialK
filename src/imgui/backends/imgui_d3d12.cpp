@@ -967,7 +967,7 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
     D3D12_STATIC_SAMPLER_DESC
       staticSampler = { };
 
-      staticSampler.Filter           = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+      staticSampler.Filter           = D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT;
       staticSampler.AddressU         = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
       staticSampler.AddressV         = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
       staticSampler.AddressW         = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
@@ -3177,7 +3177,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       D3D12_STATIC_SAMPLER_DESC
         staticSampler = { };
 
-        staticSampler.Filter           = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+        staticSampler.Filter           = D3D12_FILTER_MIN_MAG_MIP_POINT;
         staticSampler.AddressU         = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
         staticSampler.AddressV         = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
         staticSampler.AddressW         = D3D12_TEXTURE_ADDRESS_MODE_WRAP;

@@ -1,4 +1,15 @@
-﻿23.12.21.2
+﻿23.12.22
+========
+ + Added option to use compatibility hacks when storing screenshots to make
+     them work with software that does not completely implement AVIF and JPEG-XR
+       decoding.
+
+   Global\osd.ini:
+
+     [Screenshot.System]
+     CompatibilityMode={true|false} (Default: false)
+
+23.12.21.2
 ==========
  + Added HDR Processing Time (GPU execution time) to HDR widget for D3D12 also
 
@@ -8,7 +19,7 @@
      D3D11 State Blocks, breaking HDR10 screenshots in some cases.
  + Removed debug symbols from compiled HLSL shaders
  + Removed ImGui DLL exports, they were only needed for SK's original custom
-     ReShade plug-in and it is not longer supported.
+     ReShade plug-in and it is no longer supported.
 
 23.12.21
 ========
