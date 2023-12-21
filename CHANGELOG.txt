@@ -1,4 +1,12 @@
-﻿23.12.21
+﻿23.12.21.1
+==========
+ + Workaround compiler optimization that was nop'ing calls to ZeroMemory on
+     D3D11 State Blocks, breaking HDR10 screenshots in some cases.
+ + Removed debug symbols from compiled HLSL shaders
+ + Removed ImGui DLL exports, they were only needed for SK's original custom
+     ReShade plug-in and it is not longer supported.
+
+23.12.21
 ========
  + Allow Linear content EOTF to be turned off manually in sRGB games
  + Default Genshin Impact to 2.2 content EOTF even though it is sRGB

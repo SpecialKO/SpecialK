@@ -65,13 +65,13 @@ void CreateStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
   const D3D11_DEVICE_CONTEXT_TYPE ctx_type =   dc->GetType         ();
 #endif
 
-  ZeroMemory (sb, sizeof (D3DX11_STATE_BLOCK));
+  RtlSecureZeroMemory (sb, sizeof (D3DX11_STATE_BLOCK));
 
 #ifdef SK_USE_D3D11_DEVICE_CTX_STATE
   // Use Device Context State if available
   if (ctx_type != D3D11_DEVICE_CONTEXT_DEFERRED)
   {
-    SK_ComQIPtr <ID3D11Device1> 
+    SK_ComQIPtr <ID3D11Device1>
         pDevice1 (pDev);
     if (pDevice1)
     {
@@ -237,7 +237,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       ); sb->DeviceContext->Release ();
 
       return;
-    } 
+    }
   }
 #endif
 
@@ -385,7 +385,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       if (sb->HSSamplers [i] != nullptr)
           sb->HSSamplers [i]->Release ();
     }
-    
+
 
     const UINT HSShaderResourceCount =
       D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
@@ -406,7 +406,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       if (sb->HSConstantBuffers [i] != nullptr)
           sb->HSConstantBuffers [i]->Release ();
     }
-    
+
 
 
     dc->DSSetShader       (sb->DS, sb->DSInterfaces, sb->DSInterfaceCount);
@@ -428,7 +428,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       if (sb->DSSamplers [i] != nullptr)
           sb->DSSamplers [i]->Release ();
     }
-    
+
 
     const UINT DSShaderResourceCount =
       D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
@@ -439,7 +439,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       if (sb->DSShaderResources [i] != nullptr)
           sb->DSShaderResources [i]->Release ();
     }
-    
+
 
     const UINT DSConstantBufferCount =
       D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
@@ -516,7 +516,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       if (sb->CSSamplers [i] != nullptr)
           sb->CSSamplers [i]->Release ();
     }
-    
+
 
     const UINT CSShaderResourceCount =
       D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;
@@ -527,7 +527,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       if (sb->CSShaderResources [i] != nullptr)
           sb->CSShaderResources [i]->Release ();
     }
-    
+
 
     const UINT CSConstantBufferCount =
       D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;
@@ -538,7 +538,7 @@ void ApplyStateblock (ID3D11DeviceContext* dc, D3DX11_STATE_BLOCK* sb)
       if (sb->CSConstantBuffers [i] != nullptr)
           sb->CSConstantBuffers [i]->Release ();
     }
-    
+
 
     dc->CSSetUnorderedAccessViews (0, D3D11_PS_CS_UAV_REGISTER_COUNT, sb->CSUnorderedAccessViews, minus_one);
 

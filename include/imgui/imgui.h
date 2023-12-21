@@ -73,7 +73,8 @@ Index of this file:
 // Using dear imgui via a shared library is not recommended: we don't guarantee backward nor forward ABI compatibility + this is a call-heavy library and function call overhead adds up.
 #ifndef IMGUI_API
 #ifdef SK_EXPORTS
-# define IMGUI_API __declspec (dllexport)
+# define IMGUI_API
+//# define IMGUI_API __declspec (dllexport)
 #else
 # define IMGUI_API __declspec (dllimport)
 #endif

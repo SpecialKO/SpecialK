@@ -255,7 +255,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
       SK_RunOnce (
         SK_LOGi0 (L"ImGui_ImplDX11_RenderDrawData (...) aborted; no working render context available.")
       );
-      
+
       return;
     }
 
@@ -578,12 +578,12 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     {
       const ImDrawList* cmd_list =
         draw_data->CmdLists [n];
-    
+
       for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
       {
         const ImDrawCmd* pcmd =
           &cmd_list->CmdBuffer [cmd_i];
-    
+
         if (pcmd->UserCallback)
         {
           // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
@@ -592,7 +592,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
           else
             pcmd->UserCallback (cmd_list, pcmd);
         }
-    
+
         else
         {
           // Project scissor/clipping rectangles into framebuffer space
@@ -603,24 +603,24 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
               continue;
 
           // Apply scissor/clipping rectangle
-          const D3D11_RECT r = { 
+          const D3D11_RECT r = {
             static_cast <LONG> (clip_min.x), static_cast <LONG> (clip_min.y),
             static_cast <LONG> (clip_max.x), static_cast <LONG> (clip_max.y)
           };
-    
+
           extern ID3D11ShaderResourceView*
             SK_HDR_GetUnderlayResourceView (void);
-    
+
           ID3D11ShaderResourceView* views [2] =
           {
             (ID3D11ShaderResourceView *)pcmd->GetTexID (),
             SK_HDR_GetUnderlayResourceView ()
           };
-    
+
           pDevCtx->PSSetSamplers        (0, 1, &_P->pFontSampler_wrap);
           pDevCtx->PSSetShaderResources (0, 2, views);
           pDevCtx->RSSetScissorRects    (1, &r);
-    
+
           pDevCtx->DrawIndexed          (pcmd->ElemCount, pcmd->IdxOffset + idx_offset,
                                                           pcmd->VtxOffset + vtx_offset);
         }
@@ -1188,7 +1188,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     }
 
     // Create the blending setup
-    {  
+    {
       D3D11_BLEND_DESC
         desc                                        = {   };
 
@@ -1246,7 +1246,7 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
                                       D3D11_STENCIL_OP_KEEP;
       desc.FrontFace.StencilFunc    = D3D11_COMPARISON_ALWAYS;
       desc.BackFace                 = desc.FrontFace;
-      
+
 
       if (_P->pDepthStencilState == nullptr)
       {
@@ -1512,7 +1512,7 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
     if (_P->pFontSampler_clamp)      { _ReleaseAndCountRefs (&_P->pFontSampler_clamp);      assert (refs == 0); }
     if (_P->pFontSampler_wrap)       { _ReleaseAndCountRefs (&_P->pFontSampler_wrap);       assert (refs == 0); }
     if (_P->pFontTextureView)        { _ReleaseAndCountRefs (&_P->pFontTextureView);        assert (refs == 0);
-    
+
       // Rarely, during application shutdown, ImGui may not be fully initialized.
       auto pFonts  = ImGui::GetIO ().Fonts;
       if ( pFonts != nullptr )
@@ -1524,7 +1524,7 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
     if (_P->pIB)                     { _ReleaseAndCountRefs (&_P->pIB);                     assert (refs == 0); }
     if (_P->pVB)                     { _ReleaseAndCountRefs (&_P->pVB);                     assert (refs == 0); }
 #endif
-    
+
 #ifdef RESET_SHADERS
     if (_P->pBlendState)             { _ReleaseAndCountRefs (&_P->pBlendState);             assert (refs == 0); }
     if (_P->pDepthStencilState)      { _ReleaseAndCountRefs (&_P->pDepthStencilState);      assert (refs == 0); }
@@ -1961,16 +1961,8 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   if (! pTLS)
     return;
 
-  // This is about 22 KiB worth of device context state, it is not a good
-  //   idea to allocate this on the stack... use SK's TLS storage.
-  auto* state_block_storage =
-    pTLS->render->d3d11->state_block.getPtr ();
-
-  if (state_block_storage->empty ())
-      state_block_storage->resize (sizeof (D3DX11_STATE_BLOCK));
-
-  auto *sb =
-    (D3DX11_STATE_BLOCK *)state_block_storage->data ();
+  D3DX11_STATE_BLOCK sblock = { };
+  auto *sb =        &sblock;
 
   CreateStateblock (_pDeviceCtx, sb);
 
@@ -2045,7 +2037,7 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 
       // Queue-up Pre-SK OSD Screenshots
       SK_Screenshot_ProcessQueue (SK_ScreenshotStage::BeforeOSD, rb);
-      
+
       SK_ImGui_DrawFrame (0x00, nullptr);
     }
   }

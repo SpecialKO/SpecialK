@@ -75,7 +75,7 @@ SK_D3D11_Screenshot& SK_D3D11_Screenshot::operator= (SK_D3D11_Screenshot&& moveF
     bPlaySound                       = moveFrom.bPlaySound;
     bSaveToDisk                      = moveFrom.bSaveToDisk;
     bCopyToClipboard                 = moveFrom.bCopyToClipboard;
-                                     
+
     ulCommandIssuedOnFrame           = std::exchange (moveFrom.ulCommandIssuedOnFrame, 0);
   }
 
@@ -407,19 +407,10 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
 
               if (SUCCEEDED (pDev->CreateRenderTargetView (pHDRConvertTex, &rtdesc, &pRenderTargetView.p)))
               {
-                SK_TLS *pTLS =
-                      SK_TLS_Bottom ();
-
-                // This is about 22 KiB worth of device context state, it is not a good
-                //   idea to allocate this on the stack... use SK's TLS storage.
-                auto* state_block_storage =
-                  pTLS->render->d3d11->state_block.getPtr ();
-
-                if (state_block_storage->empty ())
-                    state_block_storage->resize (sizeof (D3DX11_STATE_BLOCK));
+                D3DX11_STATE_BLOCK sbs = { };
 
                 auto *sb =
-                  (D3DX11_STATE_BLOCK *)state_block_storage->data ();
+                  (D3DX11_STATE_BLOCK *)&sbs;
 
                 CreateStateblock (pImmediateCtx, sb);
 
@@ -498,7 +489,7 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
                 };
 
                 if (! VertexShaderHDR_Util.count (pDev))
-                { 
+                {
                   compiled = compiled &&
                   VertexShaderHDR_Util [pDev].compileShaderString (pDev,
                     "cbuffer vertexBuffer : register (b0)       \n\
@@ -582,34 +573,36 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
                   pImmediateCtx->PSSetShaderResources (0, 1, pResources);
                   pImmediateCtx->OMSetRenderTargets   (1, &pRenderTargetView.p, nullptr);
 
-                  static D3D11_RASTERIZER_DESC    raster_desc = { };
-                  static D3D11_DEPTH_STENCIL_DESC depth_desc  = { };
-                  static D3D11_BLEND_DESC         blend_desc  = { };
-
-                  raster_desc.FillMode        = D3D11_FILL_SOLID;
-                  raster_desc.CullMode        = D3D11_CULL_NONE;
-                  raster_desc.ScissorEnable   = FALSE;
-                  raster_desc.DepthClipEnable = TRUE;
-
-                  depth_desc.DepthEnable      = FALSE;
-                  depth_desc.DepthWriteMask   = D3D11_DEPTH_WRITE_MASK_ALL;
-                  depth_desc.DepthFunc        = D3D11_COMPARISON_ALWAYS;
-                  depth_desc.StencilEnable    = FALSE;
-                  depth_desc.FrontFace.StencilFailOp = depth_desc.FrontFace.StencilDepthFailOp =
-                                                       depth_desc.FrontFace.StencilPassOp      =
-                                                     D3D11_STENCIL_OP_KEEP;
-                  depth_desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-                  depth_desc.BackFace              = depth_desc.FrontFace;
-
-                  blend_desc.AlphaToCoverageEnable                  = FALSE;
-                  blend_desc.RenderTarget [0].BlendEnable           = TRUE;
-                  blend_desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
-                  blend_desc.RenderTarget [0].DestBlend             = D3D11_BLEND_ZERO;
-                  blend_desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
-                  blend_desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
-                  blend_desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
-                  blend_desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
-                  blend_desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+                  static D3D11_RASTERIZER_DESC    raster_desc = { .FillMode        = D3D11_FILL_SOLID,
+                                                                  .CullMode        = D3D11_CULL_NONE,
+                                                                  .DepthClipEnable = TRUE,
+                                                                  .ScissorEnable   = FALSE };
+                  static D3D11_DEPTH_STENCIL_DESC depth_desc  = { .DepthEnable     = FALSE,
+                                                                  .DepthWriteMask  = D3D11_DEPTH_WRITE_MASK_ALL,
+                                                                  .DepthFunc       = D3D11_COMPARISON_ALWAYS,
+                                                                  .StencilEnable   = FALSE,
+                                                                  .FrontFace = { .StencilFailOp      = D3D11_STENCIL_OP_KEEP,
+                                                                                 .StencilDepthFailOp = D3D11_STENCIL_OP_KEEP,
+                                                                                 .StencilPassOp      = D3D11_STENCIL_OP_KEEP,
+                                                                                 .StencilFunc        = D3D11_COMPARISON_ALWAYS
+                                                                               },
+                                                                  .BackFace  = { .StencilFailOp      = D3D11_STENCIL_OP_KEEP,
+                                                                                 .StencilDepthFailOp = D3D11_STENCIL_OP_KEEP,
+                                                                                 .StencilPassOp      = D3D11_STENCIL_OP_KEEP,
+                                                                                 .StencilFunc        = D3D11_COMPARISON_ALWAYS
+                                                                               }
+                                                                };
+                  static D3D11_BLEND_DESC
+                    blend_desc  = { };
+                    blend_desc.AlphaToCoverageEnable                  = FALSE;
+                    blend_desc.RenderTarget [0].BlendEnable           = TRUE;
+                    blend_desc.RenderTarget [0].SrcBlend              = D3D11_BLEND_ONE;
+                    blend_desc.RenderTarget [0].DestBlend             = D3D11_BLEND_ZERO;
+                    blend_desc.RenderTarget [0].BlendOp               = D3D11_BLEND_OP_ADD;
+                    blend_desc.RenderTarget [0].SrcBlendAlpha         = D3D11_BLEND_ONE;
+                    blend_desc.RenderTarget [0].DestBlendAlpha        = D3D11_BLEND_ZERO;
+                    blend_desc.RenderTarget [0].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
+                    blend_desc.RenderTarget [0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
                   SK_ComPtr <ID3D11RasterizerState>                     pRasterizerState;
                   pDev->CreateRasterizerState           (&raster_desc, &pRasterizerState);
@@ -637,11 +630,9 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
 
                   hdr10_to_scRGB                = true;
                   framebuffer.dxgi.NativeFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
-
-                  ApplyStateblock (pImmediateCtx, sb);
-
-                  ZeroMemory (sb, sizeof (D3DX11_STATE_BLOCK));
                 }
+
+                ApplyStateblock (pImmediateCtx, sb);
               }
             }
           }
@@ -1416,7 +1407,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
                     {
                       UNREFERENCED_PARAMETER(y);
-                    
+
                       for (size_t j = 0; j < width; ++j)
                       {
                         XMVECTOR value = inPixels [j];
@@ -1490,7 +1481,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                                                                 80.0f * expf ( (1.0f / N) * lumTotal ) );
 
                   pFrameData->hdr.max_cll_nits = maxCLL.m128_f32 [0] * 80.0f;
-                  pFrameData->hdr.avg_cll_nits = 80.0f * ( minLum.m128_f32 [0] + maxLum.m128_f32 [0] ) * 0.5f + 
+                  pFrameData->hdr.avg_cll_nits = 80.0f * ( minLum.m128_f32 [0] + maxLum.m128_f32 [0] ) * 0.5f +
                                                  80.0f * expf ( (1.0f / N) * lumTotal );
 
                   hr =               un_srgb.GetImageCount () == 1 ?
@@ -1513,7 +1504,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         XMVECTOR value = XMVectorMax (inPixels [j], g_XMZero);
                         XMVECTOR luma  = XMVector3Dot ( value, s_luminance );
 
-                        XMVECTOR numerator = 
+                        XMVECTOR numerator =
                           XMVectorAdd (
                             g_XMOne,
                               XMVectorDivide (
@@ -1538,7 +1529,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         value =
                           XMVectorMultiply (value, XMVectorLerp (scale1, scale0, luma.m128_f32 [0] /
                                                                                maxLum.m128_f32 [0] / _cLerpScale));
-                        
+
                         outPixels [j] =
                           XMVectorPow ( value, c_SdrPower );
                       }

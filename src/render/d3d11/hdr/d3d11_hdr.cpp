@@ -640,19 +640,8 @@ SK_HDR_SanitizeFP16SwapChain (void)
       sb;
       sb.Capture (pDevCtx);
 #else
-    SK_TLS *pTLS =
-          SK_TLS_Bottom ();
-
-    // This is about 22 KiB worth of device context state, it is not a good
-    //   idea to allocate this on the stack... use SK's TLS storage.
-    _Notnull_ auto* state_block_storage =
-      pTLS->render->d3d11->state_block.getPtr ();
-    
-    if (state_block_storage->empty ())
-        state_block_storage->resize (sizeof (D3DX11_STATE_BLOCK));
-    
-    auto *sb =
-      (D3DX11_STATE_BLOCK *)state_block_storage->data ();
+    D3DX11_STATE_BLOCK sblock = { };
+    auto *sb =        &sblock;
 
     CreateStateblock (pDevCtx, sb);
 #endif

@@ -798,7 +798,7 @@ struct SK_DXGI_sRGBCoDec {
         if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_1)
         {
           pDev->CheckFeatureSupport (
-             D3D11_FEATURE_D3D11_OPTIONS, &device.FeatureOpts, 
+             D3D11_FEATURE_D3D11_OPTIONS, &device.FeatureOpts,
                sizeof (D3D11_FEATURE_DATA_D3D11_OPTIONS)
           );
         }
@@ -954,7 +954,7 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
   SK_ComPtr <ID3D11DeviceContext>                                pDevCtx;
   SK_ComPtr <ID3D11Device>                                       pDev;
   pChainThatUsedToBeSRGB->GetDevice (IID_ID3D11Device, (void **)&pDev.p);
-  
+
   if (! pDev)
     return false;
 
@@ -1070,19 +1070,8 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
       sb;
       sb.Capture (pDevCtx);
 #else
-    SK_TLS *pTLS =
-          SK_TLS_Bottom ();
-
-    // This is about 22 KiB worth of device context state, it is not a good
-    //   idea to allocate this on the stack... use SK's TLS storage.
-    auto* state_block_storage =
-      pTLS->render->d3d11->state_block.getPtr ();
-
-    if (state_block_storage->empty ())
-        state_block_storage->resize (sizeof (D3DX11_STATE_BLOCK));
-    
-    auto *sb =
-      (D3DX11_STATE_BLOCK *)state_block_storage->data ();
+    D3DX11_STATE_BLOCK sblock = { };
+    auto *sb =        &sblock;
 
     CreateStateblock (pDevCtx, sb);
 #endif
@@ -1254,7 +1243,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 
   auto flag_result =
     SK_ImGui_FlagDrawing_OnD3D11Ctx (dev_idx);
- 
+
   SK_ScopedBool auto_bool (flag_result.first);
                           *flag_result.first = flag_result.second;
 
@@ -1452,7 +1441,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     if ( surface.render.tex2.p == nullptr &&
           SUCCEEDED (
             pDev->CreateTexture2D ( &surface.desc.tex2,
-                                       nullptr, &surface.render.tex2.p ) 
+                                       nullptr, &surface.render.tex2.p )
           )
        )
     {
@@ -1546,19 +1535,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     sb;
     sb.Capture (pDevCtx);
 #else
-  SK_TLS *pTLS =
-        SK_TLS_Bottom ();
-
-  // This is about 22 KiB worth of device context state, it is not a good
-  //   idea to allocate this on the stack... use SK's TLS storage.
-  auto* state_block_storage =
-    pTLS->render->d3d11->state_block.getPtr ();
-  
-  if (state_block_storage->empty ())
-      state_block_storage->resize (sizeof (D3DX11_STATE_BLOCK));
-  
-  auto *sb =
-    (D3DX11_STATE_BLOCK *)state_block_storage->data ();
+  D3DX11_STATE_BLOCK sblock = { };
+  auto *sb =        &sblock;
 
   CreateStateblock (pDevCtx, sb);
 #endif
@@ -1568,32 +1546,32 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     static_cast <float> (dstTexDesc.Height),
                                        0.0f, 1.0f
   };
-  
+
   pDevCtx->IASetPrimitiveTopology (D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
   pDevCtx->IASetVertexBuffers     (0, 1, std::array <ID3D11Buffer *, 1> { nullptr }.data (),
                                          std::array <UINT,           1> { 0       }.data (),
                                          std::array <UINT,           1> { 0       }.data ());
   pDevCtx->IASetInputLayout       (        codec.pInputLayout     );
   pDevCtx->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
-  
+
   pDevCtx->OMSetBlendState        (        codec.pBlendState,
                                            codec.fBlendFactor,   0xFFFFFFFFU);
   pDevCtx->OMSetDepthStencilState (        codec.pDSState,       0);
   pDevCtx->OMSetRenderTargets     (1,
                                      &surface.render.rtv.p,
                                        nullptr);
-  
+
   pDevCtx->VSSetShader            (        codec.VertexShader_Util.shader,       nullptr, 0);
   pDevCtx->VSSetConstantBuffers   (0, 1,  &codec.pVSUtilLuma   );
   pDevCtx->PSSetShader            (        codec.PixelShader_sRGB_NoMore.shader, nullptr, 0);
   pDevCtx->PSSetConstantBuffers   (0, 1,  &codec.pSRGBParams   );
   pDevCtx->PSSetShaderResources   (0, 1,  &surface.source.srv.p);
   pDevCtx->PSSetSamplers          (0, 1,  &codec.pSampler      );
-  
+
   pDevCtx->RSSetState             (codec.pRasterState);
   pDevCtx->RSSetScissorRects      (0,         nullptr);
   pDevCtx->RSSetViewports         (1,             &vp);
-  
+
   if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_10_0)
   {
     if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_0)
@@ -1617,11 +1595,11 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 
     pDevCtx->RSSetScissorRects (1, &scissor_rect);
   }
-  
+
   pDevCtx->Draw                   (3, 0);
-  
+
   SK_ComQIPtr <ID3D11DeviceContext1> pDevCtx1 (pDevCtx);
-  
+
   bool bUseDiscard =
     (pDevCtx1.p != nullptr && codec.FeatureOpts.DiscardAPIsSeenByDriver);
 
@@ -1664,7 +1642,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
       pDev->CreateRenderTargetView ( pDstRes.p,
                                        &rtv_dst,
                                          &pRtvMipLod );
-      
+
       if ( pSrvMipLod != nullptr &&
            pRtvMipLod != nullptr )
       {
@@ -1687,19 +1665,19 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
       }
     }
   }
-  
+
   if (pDstTex != nullptr && surface.render.tex != nullptr)
   {
     // Copy the top-level
     pDevCtx->CopySubresourceRegion (pDstTex, 0, 0, 0, 0, surface.render.tex, 0, nullptr);
-  
+
     if (pDevCtx1 != nullptr && bUseDiscard)
         pDevCtx1->DiscardResource (surface.render.tex);
   }
-  
+
   if (pDevCtx1 != nullptr && bUseDiscard)
       pDevCtx1->DiscardResource (pNewSrcTex);
-  
+
   ApplyStateblock (pDevCtx, sb);
   //sb.Apply (pDevCtx.p);
 
@@ -1758,12 +1736,12 @@ SK_D3D11_AreTexturesDirectCopyable (D3D11_TEXTURE2D_DESC* pSrcDesc, D3D11_TEXTUR
   {
     return false;
   }
-  
+
   extern
    bool SK_D3D11_IsDirectCopyCompatible (DXGI_FORMAT src, DXGI_FORMAT dst);
   if (! SK_D3D11_IsDirectCopyCompatible (pSrcDesc->Format, pDstDesc->Format))
     return false;
-  
+
   if (pSrcDesc->SampleDesc.Count != pDstDesc->SampleDesc.Count)
     return false;
 
