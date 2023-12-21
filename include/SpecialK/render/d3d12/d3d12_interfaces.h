@@ -473,44 +473,65 @@ struct SK_D3D12_StateTransition : D3D12_RESOURCE_BARRIER
 };
 
 struct SK_D3D12_RenderCtx {
+  struct GPUDuration {
+    UINT64 Start;
+    UINT64 End;
+
+    double GetMilliseconds (UINT64 GPUTimestampFreq)
+    {
+      return
+        static_cast <double> (End - Start) /
+        static_cast <double> (GPUTimestampFreq) * 1000.0;
+    }
+  };
+
   SK_Thread_HybridSpinlock                _ctx_lock;
 
-  SK_ComPtr <ID3D12Device>                _pDevice          = nullptr;
-  SK_ComPtr <ID3D12CommandQueue>          _pCommandQueue    = nullptr;
-  SK_ComPtr <IDXGISwapChain3>             _pSwapChain       = nullptr;
+  SK_ComPtr <ID3D12Device>                _pDevice            = nullptr;
+  SK_ComPtr <ID3D12CommandQueue>          _pCommandQueue      = nullptr;
+  SK_ComPtr <IDXGISwapChain3>             _pSwapChain         = nullptr;
+  UINT64                                  GPUTimestampFreq    =    0ULL;
 
-  reshade::api::effect_runtime*           _pReShadeRuntime  = nullptr;
+  reshade::api::effect_runtime*           _pReShadeRuntime    = nullptr;
 
-  SK_ComPtr <ID3D12PipelineState>         pHDRPipeline      = nullptr;
-  SK_ComPtr <ID3D12RootSignature>         pHDRSignature     = nullptr;
+  SK_ComPtr <ID3D12PipelineState>         pHDRPipeline        = nullptr;
+  SK_ComPtr <ID3D12RootSignature>         pHDRSignature       = nullptr;
 
   struct {
-    SK_ComPtr <ID3D12DescriptorHeap>      pBackBuffers      = nullptr;
-    SK_ComPtr <ID3D12DescriptorHeap>      pImGui            = nullptr;
-    SK_ComPtr <ID3D12DescriptorHeap>      pHDR              = nullptr;
-    SK_ComPtr <ID3D12DescriptorHeap>      pHDR_CopyAssist   = nullptr;
-    SK_ComPtr <ID3D12DescriptorHeap>      pComputeCopy      = nullptr;
+    SK_ComPtr <ID3D12DescriptorHeap>      pBackBuffers        = nullptr;
+    SK_ComPtr <ID3D12DescriptorHeap>      pImGui              = nullptr;
+    SK_ComPtr <ID3D12DescriptorHeap>      pHDR                = nullptr;
+    SK_ComPtr <ID3D12DescriptorHeap>      pHDR_CopyAssist     = nullptr;
+    SK_ComPtr <ID3D12DescriptorHeap>      pComputeCopy        = nullptr;
   } descriptorHeaps;
 
   struct {
-    SK_ComPtr <ID3D12PipelineState>       pPipeline         = nullptr;
-    SK_ComPtr <ID3D12RootSignature>       pSignature        = nullptr;
-    SK_ComPtr <ID3D12Resource>            pStagingBuffer    = nullptr;
+    SK_ComPtr <ID3D12QueryHeap>           pHeap               = nullptr;
+    SK_ComPtr <ID3D12Resource>            pReadBack           = nullptr;
+  } queries;
+
+  struct {
+    SK_ComPtr <ID3D12PipelineState>       pPipeline           = nullptr;
+    SK_ComPtr <ID3D12RootSignature>       pSignature          = nullptr;
+    SK_ComPtr <ID3D12Resource>            pStagingBuffer      = nullptr;
+    UINT64                                GPUTimestampFreq    =    0ULL;
+    GPUDuration                           timestamps          = { 0,0 };
+    UINT64                                lastFrameActive     =       0;
   } computeCopy;
 
 	struct FrameCtx {
-    SK_D3D12_RenderCtx*                   pRoot             = nullptr;
+    SK_D3D12_RenderCtx*                   pRoot               = nullptr;
 
     struct FenceCtx : SK_ComPtr <ID3D12Fence> {
-      HANDLE                              event             =       0;
-      volatile UINT64                     value             =       0;
+      HANDLE                              event               =       0;
+      volatile UINT64                     value               =       0;
 
       HRESULT SignalSequential (ID3D12CommandQueue *pCmdQueue);
       HRESULT WaitSequential   (void);
-    } fence, reshade_fence;
+    } fence, reshade_fence, timer_fence;
 
     SK_ComPtr <ID3D12GraphicsCommandList> pCmdList            = nullptr;
-		SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator       = nullptr;
+    SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator       = nullptr;
     bool                                  bCmdListRecording   =   false;
 
 		SK_ComPtr <ID3D12Resource>            pBackBuffer         = nullptr;
@@ -521,6 +542,7 @@ struct SK_D3D12_RenderCtx {
     UINT                                  iBufferIdx          =    0;
 
     struct {
+      GPUDuration                         timestamps          = { 0,0 };
       SK_ComPtr <ID3D12Resource>          pSwapChainCopy      = nullptr;
 
       struct {

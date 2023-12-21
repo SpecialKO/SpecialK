@@ -1401,14 +1401,27 @@ public:
 
     if ( bHDRActive )
     {
-      if (SK_API_IsLayeredOnD3D11 (rb.api))
+      ////if (SK_API_IsLayeredOnD3D11 (rb.api))
       {
         ImGui::SameLine ();
 
         extern double SK_D3D11_HDR_RuntimeMs;
 
+        double dComputeCopyTime = 0.0;
+
+        if (rb.api == SK_RenderAPI::D3D12)
+        {
+          dComputeCopyTime = _d3d12_rbk->computeCopy.timestamps.GetMilliseconds (
+                             _d3d12_rbk->computeCopy.GPUTimestampFreq);
+        }
+
         static char szProcessingText [128] = { };
         snprintf (  szProcessingText, 127, "HDR Processing:\t%5.4f ms", SK_D3D11_HDR_RuntimeMs);
+
+        if (dComputeCopyTime != 0.0 && _d3d12_rbk->computeCopy.lastFrameActive > SK_GetFramesDrawn () - 8)
+        {
+          snprintf (szProcessingText, 127, "DLSS3 Format Conversion:\t%5.4fms\tHDR Processing:\t%5.4f ms", dComputeCopyTime, SK_D3D11_HDR_RuntimeMs);
+        }
 
         auto vTextSize =
           ImGui::CalcTextSize (szProcessingText);

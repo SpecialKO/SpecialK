@@ -1,4 +1,8 @@
-﻿23.12.21.1
+﻿23.12.21.2
+==========
+ + Added HDR Processing Time (GPU execution time) to HDR widget for D3D12 also
+
+23.12.21.1
 ==========
  + Workaround compiler optimization that was nop'ing calls to ZeroMemory on
      D3D11 State Blocks, breaking HDR10 screenshots in some cases.
