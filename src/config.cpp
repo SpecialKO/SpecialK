@@ -2795,6 +2795,15 @@ auto DeclKeybind =
       }
       break;
 
+      case SK_GAME_ID::YakuzaLikeADragonGaiden:
+      {
+        config.render.dxgi.hooks.
+                            create_swapchain      = false;
+        config.render.dxgi.hooks.
+                            create_swapchain4hwnd = false;
+      }
+      break;
+
       case SK_GAME_ID::DragonQuestXI:
         config.apis.d3d9.hook                     = false;
         config.apis.d3d9ex.hook                   = false;

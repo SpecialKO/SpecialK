@@ -5709,6 +5709,13 @@ DXGIFactory_CreateSwapChain_Override (
   SK_ReleaseAssert (pDesc       != nullptr);
 //SK_ReleaseAssert (ppSwapChain != nullptr); // This happens from time to time
 
+  if (! config.render.dxgi.hooks.create_swapchain)
+  {
+    return
+      CreateSwapChain_Original ( This, pDevice,
+                                   pDesc, ppSwapChain );
+  }
+
   if (SK_GetCallingDLL () == SK_GetModuleHandleW (L"sl.dlss_g.dll") ||
                              SK_GetModuleHandleW (L"nvngx_dlssg.dll") != nullptr)
   {
@@ -6301,6 +6308,14 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
    _Out_       IDXGISwapChain1                 **ppSwapChain )
 {
   SK_ReleaseAssert (pDesc != nullptr);
+
+  if (! config.render.dxgi.hooks.create_swapchain4hwnd)
+  {
+    return
+      CreateSwapChainForHwnd_Original ( This, pDevice, hWnd,
+                                        pDesc, pFullscreenDesc,
+                                          pRestrictToOutput, ppSwapChain );
+  }
 
   auto *pOrigDesc =
     (DXGI_SWAP_CHAIN_DESC1 *)pDesc;

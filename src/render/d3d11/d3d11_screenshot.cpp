@@ -1867,8 +1867,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                   GetWICCodec (hdr ? WIC_CODEC_WMP :
                                                      WIC_CODEC_PNG),
                                        wszAbsolutePathToLossless,
-                                         hdr ? (bUseCompatHacks ?                  &GUID_WICPixelFormat48bppRGBHalf :
-                                                                                   &GUID_WICPixelFormat64bppRGBAHalf)
+                                         hdr ? (bUseCompatHacks ?                  &GUID_WICPixelFormat64bppRGBAHalf :
+                                                                                   &GUID_WICPixelFormat48bppRGBHalf)
                                              :   pFrameData->dxgi.NativeFormat == DXGI_FORMAT_R10G10B10A2_UNORM ?
                                                                                    &GUID_WICPixelFormat48bppRGB :
                                                                                    &GUID_WICPixelFormat24bppBGR,

@@ -693,6 +693,10 @@ struct sk_config_t
       float   warn_if_vram_exceeds =  95.f; // Warn if VRAM usage exceeds % of available
       bool    warned_low_vram      = false; // NOT SAVED: State of warn_if_vram_exceeds
       bool    allow_d3d12_footguns = false; // Allow overrides that are unsafe in D3D12
+      struct hooks_s {
+        bool  create_swapchain     =  true;
+        bool  create_swapchain4hwnd=  true;
+      } hooks;
     } dxgi;
 
     struct {
@@ -1395,6 +1399,7 @@ enum class SK_GAME_ID
   YakuzaKiwami,                 // YakuzaKiwami.exe
   YakuzaKiwami2,                // YakuzaKiwami2.exe
   YakuzaUnderflow,              // Yakuza*.exe
+  YakuzaLikeADragonGaiden,      // LikeADragonGaiden.exe
   MonsterHunterWorld,           // MonsterHunterWorld.exe
   Shenmue,                      // Shenmue.exe
   DragonQuestXI,                // DRAGON QUEST XI.exe
