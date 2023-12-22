@@ -177,6 +177,7 @@ SK_GetCurrentGameID (void)
           { L"Yakuza0.exe",                            SK_GAME_ID::Yakuza0                      },
           { L"YakuzaKiwami.exe",                       SK_GAME_ID::YakuzaKiwami                 },
           { L"YakuzaKiwami2.exe",                      SK_GAME_ID::YakuzaKiwami2                },
+          { L"LikeADragonGaiden.exe",                  SK_GAME_ID::YakuzaLikeADragonGaiden      },
           { L"MonsterHunterWorld.exe",                 SK_GAME_ID::MonsterHunterWorld           },
           { L"Shenmue.exe",                            SK_GAME_ID::Shenmue                      },
           { L"Shenmue2.exe",                           SK_GAME_ID::Shenmue                      },
@@ -2797,8 +2798,6 @@ auto DeclKeybind =
 
       case SK_GAME_ID::YakuzaLikeADragonGaiden:
       {
-        config.render.dxgi.hooks.
-                            create_swapchain      = false;
         config.render.dxgi.hooks.
                             create_swapchain4hwnd = false;
       }

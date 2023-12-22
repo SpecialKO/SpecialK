@@ -1,7 +1,7 @@
 ﻿23.12.22.1
 ==========
  + Workaround Streamline bug in Yakuza Like a Dragon Gaiden that requires
-     ignoring hooks on IDXGIFactory::CreateSwapChain and CreateSwapChainForHwnd
+     ignoring hooks on IDXGIFactory2::CreateSwapChainForHwnd (...)
 
 23.12.22
 ========
