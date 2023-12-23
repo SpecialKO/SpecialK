@@ -394,10 +394,10 @@ public:
                                          fw, font_size * 4.5f),
                                            4, _MinVal (50.0f, &gpu_temp_prefs),
                                               _MaxVal (94.0f, &gpu_temp_prefs) );
-      
+
       float fy = ImGui::GetCursorPosY ();
 
-      snprintf (szCur, 31, "%4.1f°", gpu_temp_c.getLastValue ());
+      snprintf (szCur, 31, (const char *)u8"%4.1f°", gpu_temp_c.getLastValue ());
 
       ImGui::SameLine        (  );
       ImGui::SetCursorPosX   (fx                      - item_inner_spacing.x +

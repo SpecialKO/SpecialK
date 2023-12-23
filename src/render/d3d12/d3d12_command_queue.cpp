@@ -45,6 +45,9 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
 
   static bool once = false;
 
+  D3D12_COMMAND_QUEUE_DESC
+    queueDesc = This->GetDesc ();
+
   if ( pLazyD3D12Chain  != nullptr &&
        pLazyD3D12Device != nullptr )
   {
@@ -52,8 +55,6 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
     {
       SK_ComPtr <ID3D12Device> pDevice12;
 
-      D3D12_COMMAND_QUEUE_DESC
-           queueDesc  =  This->GetDesc ();
       if ( queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT &&
            SUCCEEDED (   This->GetDevice (
                            IID_ID3D12Device,
@@ -84,7 +85,9 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
     }
   }
 
-  if (once)
+  bool bDLSSG = false;
+
+  if (once && queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT)
   {
     const auto frame_id =
       SK_GetFramesDrawn ();
@@ -97,12 +100,71 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
     }
   }
 
-  return
-    D3D12CommandQueue_ExecuteCommandLists_Original (
-      This,
-        NumCommandLists,
-         ppCommandLists
-    );
+  else if (queueDesc.Type == D3D12_COMMAND_LIST_TYPE_COMPUTE)
+  {
+    extern ID3D12GraphicsCommandList *SK_DLSSG_CopyCommandList;
+
+    for (UINT i = 0; i < NumCommandLists ; ++i)
+    {
+      if (ppCommandLists [i] == SK_DLSSG_CopyCommandList)
+      {
+        SK_DLSSG_CopyCommandList = nullptr;
+                          bDLSSG = true;
+                                  break;
+      }
+    }
+  }
+
+  D3D12CommandQueue_ExecuteCommandLists_Original (
+    This,
+      NumCommandLists,
+       ppCommandLists
+  );
+
+  if (bDLSSG)
+  {
+    auto &compute =
+      _d3d12_rbk->computeCopy;
+
+    if ( compute.dlssg_fence.value == 0)
+    {
+      if ( UINT64      sync_value = compute.dlssg_fence.value + 1;
+           SUCCEEDED (This->Signal (compute.dlssg_fence,
+                       sync_value))
+         )
+      {
+        compute.dlssg_fence.value =
+                       sync_value;
+      }
+    }
+
+    else
+    if ( compute.dlssg_fence->GetCompletedValue () >=
+         compute.dlssg_fence.value )
+    {
+      UINT64      *timestamps = nullptr;
+      D3D12_RANGE       range = { 0,
+                                  sizeof (UINT64) * 2 };
+
+      if (SUCCEEDED (_d3d12_rbk->queries.dlssg.pReadBack.p->Map (0, &range, (void **)&timestamps)))
+      {
+        compute.timestamps.Start = timestamps [0];
+        compute.timestamps.End   = timestamps [1];
+
+                                                        range = { 0, 0 };
+        _d3d12_rbk->queries.dlssg.pReadBack->Unmap (0, &range);
+
+        if ( UINT64      sync_value = compute.dlssg_fence.value + 1;
+             SUCCEEDED (This->Signal (compute.dlssg_fence,
+                         sync_value))
+           )
+        {
+          compute.dlssg_fence.value =
+                         sync_value;
+        }
+      }
+    }
+  }
 }
 
 void

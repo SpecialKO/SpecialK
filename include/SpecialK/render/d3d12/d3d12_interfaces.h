@@ -485,6 +485,14 @@ struct SK_D3D12_RenderCtx {
     }
   };
 
+  struct FenceCtx : SK_ComPtr <ID3D12Fence> {
+    HANDLE                                event               =       0;
+    volatile UINT64                       value               =       0;
+
+    HRESULT SignalSequential (ID3D12CommandQueue *pCmdQueue);
+    HRESULT WaitSequential   (void);
+  };
+
   SK_Thread_HybridSpinlock                _ctx_lock;
 
   SK_ComPtr <ID3D12Device>                _pDevice            = nullptr;
@@ -497,7 +505,7 @@ struct SK_D3D12_RenderCtx {
   SK_ComPtr <ID3D12PipelineState>         pHDRPipeline        = nullptr;
   SK_ComPtr <ID3D12RootSignature>         pHDRSignature       = nullptr;
 
-  struct {
+  struct descriptor_heaps_s {
     SK_ComPtr <ID3D12DescriptorHeap>      pBackBuffers        = nullptr;
     SK_ComPtr <ID3D12DescriptorHeap>      pImGui              = nullptr;
     SK_ComPtr <ID3D12DescriptorHeap>      pHDR                = nullptr;
@@ -505,9 +513,11 @@ struct SK_D3D12_RenderCtx {
     SK_ComPtr <ID3D12DescriptorHeap>      pComputeCopy        = nullptr;
   } descriptorHeaps;
 
-  struct {
-    SK_ComPtr <ID3D12QueryHeap>           pHeap               = nullptr;
-    SK_ComPtr <ID3D12Resource>            pReadBack           = nullptr;
+  struct queries_s {
+    struct query_s {
+      SK_ComPtr <ID3D12QueryHeap>         pHeap               = nullptr;
+      SK_ComPtr <ID3D12Resource>          pReadBack           = nullptr;
+    } hdr, reshade, dlssg;
   } queries;
 
   struct {
@@ -517,18 +527,16 @@ struct SK_D3D12_RenderCtx {
     UINT64                                GPUTimestampFreq    =    0ULL;
     GPUDuration                           timestamps          = { 0,0 };
     UINT64                                lastFrameActive     =       0;
+    UINT64                                lastFrameIdx        =       0;
+    SK_D3D12_RenderCtx::FenceCtx          dlssg_fence;
   } computeCopy;
 
 	struct FrameCtx {
     SK_D3D12_RenderCtx*                   pRoot               = nullptr;
 
-    struct FenceCtx : SK_ComPtr <ID3D12Fence> {
-      HANDLE                              event               =       0;
-      volatile UINT64                     value               =       0;
-
-      HRESULT SignalSequential (ID3D12CommandQueue *pCmdQueue);
-      HRESULT WaitSequential   (void);
-    } fence, reshade_fence, timer_fence;
+    SK_D3D12_RenderCtx::FenceCtx
+      fence, reshade_fence,
+               timer_fence;
 
     SK_ComPtr <ID3D12GraphicsCommandList> pCmdList            = nullptr;
     SK_ComPtr <ID3D12CommandAllocator>    pCmdAllocator       = nullptr;
@@ -653,3 +661,7 @@ void SK_D3D12_EndFrame   (SK_TLS* pTLS = SK_TLS_Bottom ());
 static inline GUID
   SKID_D3D12LastFrameUsed =
     { 0xbaaddaad, 0xf00d,  0xcafe, { 0x13, 0x37, 0x40, 0x50, 0x60, 0x70, 0x80, 0x90 } };
+
+static inline GUID
+  SKID_D3D12_SwapChainCommandQueue =
+    { 0xa5fbd553, 0xcfbd, 0x4779, { 0xa5, 0x30, 0x78, 0x47, 0xac, 0x1, 0xa4, 0xa1 } };

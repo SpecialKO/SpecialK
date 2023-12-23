@@ -1059,6 +1059,7 @@ struct sk_config_t
     bool     init_on_separate_thread  =  true;
     bool     shutdown_on_window_close = false;
     bool     reshade_mode             = false;
+    bool     fsr3_mode                = false;
   } compatibility;
 
   struct apis_s {

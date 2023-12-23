@@ -1,4 +1,11 @@
-﻿23.12.22.1
+﻿23.12.23
+========
+ + Added DLSS3 Format Conversion GPU time (Compute Shader Blt) to HDR widget
+    in D3D12 titles that require special format conversion from DLSS-G's
+      generated output before they can be used in HDR.
+ + Optimized DLSS3 Format Conversion compute shader (~33% speedup)
+
+23.12.22.1
 ==========
  + Workaround Streamline bug in Yakuza Like a Dragon Gaiden that requires
      ignoring hooks on IDXGIFactory2::CreateSwapChainForHwnd (...)

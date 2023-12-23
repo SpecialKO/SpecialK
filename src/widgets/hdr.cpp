@@ -1420,7 +1420,7 @@ public:
 
         if (dComputeCopyTime != 0.0 && _d3d12_rbk->computeCopy.lastFrameActive > SK_GetFramesDrawn () - 8)
         {
-          snprintf (szProcessingText, 127, "DLSS3 Format Conversion:\t%5.4fms\tHDR Processing:\t%5.4f ms", dComputeCopyTime, SK_D3D11_HDR_RuntimeMs);
+          snprintf (szProcessingText, 127, "DLSS3 Format Conversion:\t%5.4f ms\tHDR Processing:\t%5.4f ms", dComputeCopyTime, SK_D3D11_HDR_RuntimeMs);
         }
 
         auto vTextSize =

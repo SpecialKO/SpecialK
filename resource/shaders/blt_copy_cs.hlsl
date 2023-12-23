@@ -1,8 +1,11 @@
+#define GROUP_SIZE_X 32
+#define GROUP_SIZE_Y 32
+
 #if 0
 RWTexture2D <float4> texOutput : register (u0);
 RWTexture2D <float4> texInput  : register (u1);
 
-[numthreads (8, 8, 1)]
+[numthreads (GROUP_SIZE_X, GROUP_SIZE_Y, 1)]
 void
 BltCopy ( uint3 globalIdx : SV_DispatchThreadID )
 {
@@ -10,9 +13,6 @@ BltCopy ( uint3 globalIdx : SV_DispatchThreadID )
    texInput [globalIdx.xy];
 }
 #else
-#define GROUP_SIZE_X 8
-#define GROUP_SIZE_Y 8
-
 RWTexture2D <float4> texOutput : register (u0);
 RWTexture2D <float4> texInput  : register (u1);
 

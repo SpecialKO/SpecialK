@@ -25,6 +25,8 @@
 
 #include <DirectXTex/d3dx12.h>
 
+#include <pix.h>
+
 struct SK_ImGui_D3D12Ctx
 {
   SK_ComPtr <ID3D12Device>        pDevice;
@@ -1588,6 +1590,8 @@ using D3D12GraphicsCommandList_CopyResource_pfn = void
 
 extern bool SK_D3D12_IsTextureInjectionNeeded (void);
 
+ID3D12GraphicsCommandList *SK_DLSSG_CopyCommandList;
+
 // Workaround for Guardians of the Galaxy in HDR
 //
 void
@@ -1659,6 +1663,25 @@ D3D12GraphicsCommandList_CopyResource_Detour (
 
             auto& cmdList = This;
 
+
+            PIXBeginEvent (cmdList, 0, "DLSSG Format Conversion");
+
+            //typedef void(WINAPI* BeginEventOnCommandList)(ID3D12GraphicsCommandList* commandList, UINT64 color, _In_ PCSTR formatString);
+            //typedef void(WINAPI* EndEventOnCommandList)(ID3D12GraphicsCommandList* commandList);
+            //typedef void(WINAPI* SetMarkerOnCommandList)(ID3D12GraphicsCommandList* commandList, UINT64 color, _In_ PCSTR formatString);
+            //
+            //static HMODULE hModPixEventRuntime =
+            //  SK_LoadLibraryW (L"WinPixEventRuntime.dll");
+            //
+            //static BeginEventOnCommandList pixBeginEventOnCommandList = (BeginEventOnCommandList)GetProcAddress (hModPixEventRuntime, "PIXBeginEventOnCommandList");
+            //static EndEventOnCommandList   pixEndEventOnCommandList   = (EndEventOnCommandList)  GetProcAddress (hModPixEventRuntime, "PIXEndEventOnCommandList");
+            //static SetMarkerOnCommandList  pixSetMarkerOnCommandList  = (SetMarkerOnCommandList) GetProcAddress (hModPixEventRuntime, "PIXSetMarkerOnCommandList");
+            //
+            //if (BeginEventOnCommandList != nullptr)
+            //  BeginEventOnCommandList ()
+            //}
+            cmdList->EndQuery (_d3d12_rbk->queries.dlssg.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, (UINT)swapIdx * 2);
+
             D3D12_CPU_DESCRIPTOR_HANDLE dstUAVHandle_CPU;
             D3D12_CPU_DESCRIPTOR_HANDLE srcUAVHandle_CPU;
 
@@ -1675,10 +1698,8 @@ D3D12GraphicsCommandList_CopyResource_Detour (
 
             D3D12_GPU_DESCRIPTOR_HANDLE dstUAVHandle_GPU;
 
-            cmdList->EndQuery (_d3d12_rbk->queries.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, (UINT)_d3d12_rbk->frames_.size () * 2);
-
             dstUAVHandle_GPU.ptr =
-              _d3d12_rbk->descriptorHeaps.pComputeCopy->GetGPUDescriptorHandleForHeapStart ().ptr + (swapIdx * 2    ) * srvDescriptorSize;
+              _d3d12_rbk->descriptorHeaps.pComputeCopy->GetGPUDescriptorHandleForHeapStart ().ptr + (swapIdx * 2) * srvDescriptorSize;
 
             cmdList->SetComputeRootSignature       (    _d3d12_rbk->computeCopy.pSignature.p      );
             cmdList->SetPipelineState              (    _d3d12_rbk->computeCopy.pPipeline.p       );
@@ -1687,37 +1708,40 @@ D3D12GraphicsCommandList_CopyResource_Detour (
 
             SK_D3D12_StateTransition SrcBarrier [] =
               { { D3D12_RESOURCE_STATE_COPY_SOURCE,
-                  D3D12_RESOURCE_STATE_UNORDERED_ACCESS, pSrcResource },
-                { D3D12_RESOURCE_STATE_COPY_DEST,
-                  D3D12_RESOURCE_STATE_UNORDERED_ACCESS, _d3d12_rbk->computeCopy.pStagingBuffer.p } };
+                  D3D12_RESOURCE_STATE_UNORDERED_ACCESS, pSrcResource } };
 
             SK_D3D12_StateTransition DstBarrier [] =
               { { D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
                   D3D12_RESOURCE_STATE_COPY_SOURCE,      _d3d12_rbk->computeCopy.pStagingBuffer.p },
-                { D3D12_RESOURCE_STATE_COPY_SOURCE,
-                  D3D12_RESOURCE_STATE_COPY_DEST,        _d3d12_rbk->computeCopy.pStagingBuffer.p },
                 { D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
                   D3D12_RESOURCE_STATE_COPY_SOURCE,      pSrcResource }
             };
 
-            static constexpr UINT                                        _BltTileSize = 8U;
+            static constexpr UINT                                        _BltTileSizeX = 32U;
+            static constexpr UINT                                        _BltTileSizeY = 32U;
             const UINT
-              ThreadGroupCountX = (static_cast <UINT> (src_desc.Width) + _BltTileSize - 1) / _BltTileSize,
-              ThreadGroupCountY = (                    src_desc.Height + _BltTileSize - 1) / _BltTileSize,
+              ThreadGroupCountX = (static_cast <UINT> (src_desc.Width) + _BltTileSizeX - 1) / _BltTileSizeX,
+              ThreadGroupCountY = (                    src_desc.Height + _BltTileSizeY - 1) / _BltTileSizeY,
               ThreadGroupCountZ = 1;
 
-            cmdList->ResourceBarrier               (2,  SrcBarrier);
+            cmdList->ResourceBarrier               (1,  SrcBarrier);
             cmdList->Dispatch                      ( ThreadGroupCountX,
                                                      ThreadGroupCountY,
                                                      ThreadGroupCountZ );
             cmdList->ResourceBarrier               (1,  DstBarrier);
             cmdList->CopyResource                  (pDstResource, _d3d12_rbk->computeCopy.pStagingBuffer);
-            cmdList->ResourceBarrier               (2, &DstBarrier [1]);
-
-            cmdList->EndQuery         (_d3d12_rbk->queries.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, (UINT)_d3d12_rbk->frames_.size () * 2 + 1);
+          //cmdList->ResourceBarrier               (1, &DstBarrier [1]);
+            cmdList->DiscardResource               (_d3d12_rbk->computeCopy.pStagingBuffer.p, nullptr);
+            cmdList->DiscardResource               (pSrcResource,                             nullptr);
+            cmdList->EndQuery                      (_d3d12_rbk->queries.dlssg.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, (UINT)swapIdx * 2 + 1);
+            cmdList->ResolveQueryData              (_d3d12_rbk->queries.dlssg.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP,       swapIdx * 2, 2,
+                                                    _d3d12_rbk->queries.dlssg.pReadBack.p,            0);
+            PIXEndEvent (cmdList);
 
             _d3d12_rbk->computeCopy.lastFrameActive =
-              SK_GetFramesDrawn ();
+                                  SK_GetFramesDrawn ();
+
+            SK_DLSSG_CopyCommandList = cmdList;
 
             return;
 
@@ -2344,62 +2368,57 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       cbuffer_cspace.pqBoostParams [2] = __SK_HDR_PQBoost2;
       cbuffer_cspace.pqBoostParams [3] = __SK_HDR_PQBoost3;
 
-    pCommandList->EndQuery (_d3d12_rbk->queries.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, stagingFrame.iBufferIdx * 2);
-
+    pCommandList->EndQuery                          (queries.hdr.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP,
+                                                          stagingFrame.iBufferIdx * 4                );
     pCommandList->SetGraphicsRootSignature          ( pHDRSignature                                  );
     pCommandList->SetPipelineState                  ( pHDRPipeline                                   );
     pCommandList->SetGraphicsRoot32BitConstants     ( 0, 4,  &cbuffer_luma,   0                      );
     pCommandList->SetGraphicsRoot32BitConstants     ( 1, 16, &cbuffer_cspace, 0                      );
-
     pCommandList->IASetPrimitiveTopology            ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP           );
-
     // pBackBuffer is expected to promote from STATE_PRESENT to STATE_COPY_SOURCE without a barrier.
     pCommandList->CopyResource                      (     stagingFrame.hdr.pSwapChainCopy.p,
                                                           stagingFrame.       pBackBuffer.p          );
-    pCommandList->ResourceBarrier                   ( 2,  stagingFrame.hdr.barriers.process          );
+    pCommandList->ResourceBarrier                   ( 2,  stagingFrame.hdr.barriers.process          );    
+    pCommandList->EndQuery                          (queries.hdr.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP,
+                                                          stagingFrame.iBufferIdx * 4 + 1            );
 
-    // Draw ReShade before HDR image processing
-    _DrawAllReShadeEffects (true);   // If included before, this counts towards HDR image processing time...
+    if ( config.reshade.is_addon   &&
+         config.reshade.draw_first == config.reshade.draw_first )
+    {
+      // Draw ReShade before HDR image processing
+      _DrawAllReShadeEffects (true);   // If included before, this counts towards HDR image processing time...
+    }
 
+    pCommandList->EndQuery                          (queries.hdr.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP,
+                                                          stagingFrame.iBufferIdx * 4 + 2            );
     pCommandList->SetDescriptorHeaps                ( 1, &descriptorHeaps.pHDR.p                     );
     pCommandList->SetGraphicsRootDescriptorTable    ( 2,  stagingFrame.hdr.hSwapChainCopySRV.GPU     );
     pCommandList->OMSetRenderTargets                ( 1, &stagingFrame.hBackBufferRTV, FALSE,nullptr );
     pCommandList->RSSetViewports                    ( 1, &stagingFrame.hdr.vp                        );
     pCommandList->RSSetScissorRects                 ( 1, &stagingFrame.hdr.scissor                   );
     pCommandList->DrawInstanced                     ( 3, 1, 0, 0                                     );
-    pCommandList->ResourceBarrier                   ( 1,  stagingFrame.hdr.barriers.copy_end         );
-
-    pCommandList->EndQuery         (_d3d12_rbk->queries.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, stagingFrame.iBufferIdx * 2 + 1);
-    pCommandList->ResolveQueryData (_d3d12_rbk->queries.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, stagingFrame.iBufferIdx * 2, 2,
-                                    _d3d12_rbk->queries.pReadBack.p,       sizeof (UINT64) * stagingFrame.iBufferIdx * 2);
-  //pCommandList->ResolveQueryData (_d3d12_rbk->queries.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, (UINT)_d3d12_rbk->frames_.size () * 2, 2,
-  //                                _d3d12_rbk->queries.pReadBack.p,             sizeof (UINT64) * _d3d12_rbk->frames_.size () * 2);
+    pCommandList->DiscardResource                   (     stagingFrame.hdr.pSwapChainCopy, nullptr   );
+    pCommandList->EndQuery                          (queries.hdr.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP,
+                                                          stagingFrame.iBufferIdx * 4 + 3            );
+    pCommandList->ResolveQueryData                  (queries.hdr.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP,
+                                                          stagingFrame.iBufferIdx * 4, 4,
+                                                     queries.hdr.pReadBack.p,
+                                        sizeof (UINT64) * stagingFrame.iBufferIdx * 4                );
 
     if (stagingFrame.timer_fence->GetCompletedValue () >= stagingFrame.timer_fence.value)
     {
       UINT64      *timestamps = nullptr;
-      D3D12_RANGE       range = { stagingFrame.iBufferIdx * sizeof (UINT64) * 2,
-                                  stagingFrame.iBufferIdx * sizeof (UINT64) * 2 + sizeof (UINT64) };
+      D3D12_RANGE       range = { stagingFrame.iBufferIdx * sizeof (UINT64) * 4,
+                                  stagingFrame.iBufferIdx * sizeof (UINT64) * 4 + sizeof (UINT64) * 3 };
 
-      if (SUCCEEDED (_d3d12_rbk->queries.pReadBack->Map (0, &range, (void **)&timestamps)))
+      if (SUCCEEDED (queries.hdr.pReadBack->Map (0, &range, (void **)&timestamps)))
       {
         stagingFrame.hdr.timestamps.Start = timestamps [0];
-        stagingFrame.hdr.timestamps.End   = timestamps [1];
+        stagingFrame.hdr.timestamps.End   = timestamps [1] +
+                          (timestamps [3] - timestamps [2]);
 
-                                                  range = { 0, 0 };
-        _d3d12_rbk->queries.pReadBack->Unmap (0, &range);
-
-      //range = { _d3d12_rbk->frames_.size () * sizeof (UINT64) * 2,
-      //          _d3d12_rbk->frames_.size () * sizeof (UINT64) * 2 + sizeof (UINT64) };
-      //
-      //if (SUCCEEDED (_d3d12_rbk->queries.pReadBack->Map (0, &range, (void **)&timestamps)))
-      //{
-      //  _d3d12_rbk->computeCopy.timestamps.Start = timestamps [0];
-      //  _d3d12_rbk->computeCopy.timestamps.End   = timestamps [1];
-      //
-      //                                            range = { 0, 0 };
-      //  _d3d12_rbk->queries.pReadBack->Unmap (0, &range);
-      //}
+                                          range = { 0, 0 };
+        queries.hdr.pReadBack->Unmap (0, &range);
 
         if ( UINT64      sync_value      =      stagingFrame.timer_fence.value + 1;
              SUCCEEDED (_pCommandQueue->Signal (stagingFrame.timer_fence,
@@ -2413,11 +2432,11 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
         double dTotalRuntimeMs = 0.0;
         UINT   i               =   0;
 
-        for ( i = 0 ; i < _d3d12_rbk->frames_.size () ; ++i )
+        for ( i = 0 ; i < frames_.size () ; ++i )
         {
           dTotalRuntimeMs +=
-            _d3d12_rbk->frames_ [i].hdr.timestamps.GetMilliseconds
-              (_d3d12_rbk->GPUTimestampFreq);
+            frames_ [i].hdr.timestamps.GetMilliseconds
+              (GPUTimestampFreq);
         }
 
         extern double SK_D3D11_HDR_RuntimeMs;
@@ -2425,8 +2444,12 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       }
     }
 
-    // Draw ReShade after HDR image processing, but before SK's UI
-    _DrawAllReShadeEffects (false);
+    if ( config.reshade.is_addon   &&
+         config.reshade.draw_first != config.reshade.draw_first )
+    {
+      // Draw ReShade after HDR image processing, but before SK's UI
+      _DrawAllReShadeEffects (false);
+    }
   }
 
   else
@@ -2443,8 +2466,10 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::BeforeGameHUD, rb); // Before Game HUD (meaningless in D3D12)
   SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::BeforeOSD,     rb);
 
+#if 0
   if (config.nvidia.dlss.dump_buffers)
     SK_NGX12_DumpBuffers_DLSSG (pCommandList);
+#endif
 
   extern void SK_D3D12_WriteResources (void);
               SK_D3D12_WriteResources ();
@@ -2721,6 +2746,12 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
     SK_CloseHandle (reshade_fence.event);
                     reshade_fence.event = nullptr;
   }
+
+  if (timer_fence.event != nullptr)
+  {
+    SK_CloseHandle (timer_fence.event);
+                    timer_fence.event = nullptr;
+  }
 }
 
 #include <d3d12sdklayers.h>
@@ -2785,6 +2816,8 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
   computeCopy.pPipeline.Release           ();
   computeCopy.pSignature.Release          ();
   computeCopy.pStagingBuffer.Release      ();
+  computeCopy.dlssg_fence.Release         ();
+  computeCopy.dlssg_fence.value = 0;
 
   descriptorHeaps.pBackBuffers.Release    ();
   descriptorHeaps.pImGui.Release          ();
@@ -2799,6 +2832,20 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 bool
 SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pCommandQueue)
 {
+  if (pSwapChain != nullptr)
+  {
+    UINT  uiSize    = sizeof (void *);
+    void *pCmdQueue = nullptr;
+
+    if (SUCCEEDED (pSwapChain->GetPrivateData (SKID_D3D12_SwapChainCommandQueue, &uiSize, pCmdQueue)))
+    {
+      if (pCmdQueue != nullptr)
+      {
+        pCommandQueue = (ID3D12CommandQueue *)pCmdQueue;
+      }
+    }
+  }
+
   // Turn HDR off in dgVoodoo2 so it does not crash
 #ifdef _M_IX86
   if ( __SK_HDR_16BitSwap ||
@@ -2950,13 +2997,31 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       ThrowIfFailed (
         _pDevice->CreateQueryHeap (
           std::array < D3D12_QUERY_HEAP_DESC,                     1 >
-            {          D3D12_QUERY_HEAP_TYPE_TIMESTAMP,           swapDesc1.BufferCount * 6,
+            {          D3D12_QUERY_HEAP_TYPE_TIMESTAMP,           swapDesc1.BufferCount * 4,
                                                                   0 }.data (),
-                                       IID_PPV_ARGS (&queries.pHeap.p)));
-                              SK_D3D12_SetDebugName ( queries.pHeap.p,
-                                        L"SK D3D12 Timer Query Heap" );
+                                       IID_PPV_ARGS (&queries.hdr.pHeap.p)));
+                              SK_D3D12_SetDebugName ( queries.hdr.pHeap.p,
+                                        L"SK D3D12 HDR Timer Query Heap" );
 
-        ThrowIfFailed (
+      ThrowIfFailed (
+        _pDevice->CreateQueryHeap (
+          std::array < D3D12_QUERY_HEAP_DESC,                     1 >
+            {          D3D12_QUERY_HEAP_TYPE_TIMESTAMP,           swapDesc1.BufferCount * 2,
+                                                                  0 }.data (),
+                                    IID_PPV_ARGS (&queries.reshade.pHeap.p)));
+                           SK_D3D12_SetDebugName ( queries.reshade.pHeap.p,
+                                     L"SK D3D12 ReShade Timer Query Heap" );
+
+      ThrowIfFailed (
+        _pDevice->CreateQueryHeap (
+          std::array < D3D12_QUERY_HEAP_DESC,                     1 >
+            {          D3D12_QUERY_HEAP_TYPE_TIMESTAMP,           swapDesc1.BufferCount * 2,
+                                                                  0 }.data (),
+                                    IID_PPV_ARGS (&queries.dlssg.pHeap.p)));
+                           SK_D3D12_SetDebugName ( queries.dlssg.pHeap.p,
+                                     L"SK D3D12 DLSSG Timer Query Heap" );
+
+      ThrowIfFailed (
         _pDevice->CreateCommittedResource (
           std::array < D3D12_HEAP_PROPERTIES, 1 >  {
                        D3D12_HEAP_TYPE_READBACK, D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
@@ -2965,15 +3030,53 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                        D3D12_HEAP_FLAG_NONE,
           std::array < D3D12_RESOURCE_DESC,   1 > {
                        D3D12_RESOURCE_DIMENSION_BUFFER,
-                                       0, // Begin/End x BackBuffers + Begin/End x Compute
-            sizeof (UINT64) * swapDesc1.BufferCount * 2 + sizeof (UINT64) * 2, 1,
+                                       0,
+            sizeof (UINT64) * swapDesc1.BufferCount * 4, 1,
                                        1,                1,
                       DXGI_FORMAT_UNKNOWN, { 1, 0 }, D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
                                                      D3D12_RESOURCE_FLAG_NONE }.data (),
                          D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
-                                              IID_PPV_ARGS (&queries.pReadBack.p)));
-                                     SK_D3D12_SetDebugName ( queries.pReadBack.p,
-                                               L"SK D3D12 Timer Query Readback Buffer" );
+                                              IID_PPV_ARGS (&queries.hdr.pReadBack.p)));
+                                     SK_D3D12_SetDebugName ( queries.hdr.pReadBack.p,
+                                               L"SK D3D12 HDR Timer Query Readback Buffer" );
+
+      ThrowIfFailed (
+        _pDevice->CreateCommittedResource (
+          std::array < D3D12_HEAP_PROPERTIES, 1 >  {
+                       D3D12_HEAP_TYPE_READBACK, D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+                                                 D3D12_MEMORY_POOL_UNKNOWN,
+                                           0, 1    }.data (),
+                       D3D12_HEAP_FLAG_NONE,
+          std::array < D3D12_RESOURCE_DESC,   1 > {
+                       D3D12_RESOURCE_DIMENSION_BUFFER,
+                                       0,
+            sizeof (UINT64) * swapDesc1.BufferCount * 2, 1,
+                                       1,                1,
+                      DXGI_FORMAT_UNKNOWN, { 1, 0 }, D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+                                                     D3D12_RESOURCE_FLAG_NONE }.data (),
+                         D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+                                              IID_PPV_ARGS (&queries.reshade.pReadBack.p)));
+                                     SK_D3D12_SetDebugName ( queries.reshade.pReadBack.p,
+                                               L"SK D3D12 ReShade Timer Query Readback Buffer" );
+
+      ThrowIfFailed (
+        _pDevice->CreateCommittedResource (
+          std::array < D3D12_HEAP_PROPERTIES, 1 >  {
+                       D3D12_HEAP_TYPE_READBACK, D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+                                                 D3D12_MEMORY_POOL_UNKNOWN,
+                                           0, 1    }.data (),
+                       D3D12_HEAP_FLAG_NONE,
+          std::array < D3D12_RESOURCE_DESC,   1 > {
+                       D3D12_RESOURCE_DIMENSION_BUFFER,
+                                       0,
+            sizeof (UINT64) * swapDesc1.BufferCount * 2, 1,
+                                       1,                1,
+                      DXGI_FORMAT_UNKNOWN, { 1, 0 }, D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+                                                     D3D12_RESOURCE_FLAG_NONE }.data (),
+                         D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+                                              IID_PPV_ARGS (&queries.dlssg.pReadBack.p)));
+                                     SK_D3D12_SetDebugName ( queries.dlssg.pReadBack.p,
+                                               L"SK D3D12 DLSSG Timer Query Readback Buffer" );
 
       ThrowIfFailed (
         _pDevice->CreateCommittedResource (
@@ -2989,7 +3092,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                                        1,                1,
                          swapDesc1.Format, { 1, 0 }, D3D12_TEXTURE_LAYOUT_UNKNOWN,
                                                      D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS }.data (),
-                         D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+                         D3D12_RESOURCE_STATE_UNORDERED_ACCESS, nullptr,
                                               IID_PPV_ARGS (&computeCopy.pStagingBuffer.p)));
                                      SK_D3D12_SetDebugName ( computeCopy.pStagingBuffer.p,
                                                  L"SK D3D12 Compute Copy Staging Buffer" );
@@ -3006,6 +3109,9 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
       _pCommandQueue->GetTimestampFrequency (&GPUTimestampFreq);
           computeCopy.GPUTimestampFreq =      GPUTimestampFreq; // Possibly different than graphics freq...
+
+      ThrowIfFailed (
+        _pDevice->CreateFence (0, D3D12_FENCE_FLAG_NONE,            IID_PPV_ARGS (&computeCopy.dlssg_fence.p)));
 
       for ( auto& frame : frames_ )
       {
@@ -3110,7 +3216,6 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
         // As long as HDR processing comes first, we can implicitly transition the swapchain from
         //   STATE_PRESENT to D3D12_RESOURCE_STATE_COPY_SOURCE
-        frame.hdr.barriers.copy_end [0].Transition.pResource = frame.hdr.pSwapChainCopy.p;
         frame.hdr.barriers.process  [0].Transition.pResource = frame.hdr.pSwapChainCopy.p;
         frame.hdr.barriers.process  [1].Transition.pResource =        frame.pBackBuffer.p;
 

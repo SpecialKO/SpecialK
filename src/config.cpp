@@ -39,11 +39,11 @@
 
 #define D3D11_RAISE_FLAG_DRIVER_INTERNAL_ERROR 1
 
-iSK_INI*       dll_ini      = nullptr;
-iSK_INI*       osd_ini      = nullptr;
-iSK_INI*       input_ini    = nullptr;
-iSK_INI*       platform_ini = nullptr;
-iSK_INI*       macro_ini    = nullptr;
+iSK_INI* dll_ini      = nullptr;
+iSK_INI* osd_ini      = nullptr;
+iSK_INI* input_ini    = nullptr;
+iSK_INI* platform_ini = nullptr;
+iSK_INI* macro_ini    = nullptr;
 
 SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
 
@@ -1010,6 +1010,7 @@ struct {
   sk::ParameterBool*      auto_large_address      = nullptr; // 32-bit only
   sk::ParameterBool*      async_init              = nullptr;
   sk::ParameterBool*      reshade_mode            = nullptr;
+  sk::ParameterBool*      fsr3_mode               = nullptr;
 } compatibility;
 
 struct {
@@ -1546,6 +1547,7 @@ auto DeclKeybind =
 #endif
     ConfigEntry (compatibility.async_init,               L"Runs hook initialization on a separate thread; high safety",dll_ini,         L"Compatibility.General", L"AsyncInit"),
     ConfigEntry (compatibility.reshade_mode,             L"Initializes hooks in a way that ReShade will not interfere",dll_ini,         L"Compatibility.General", L"ReShadeMode"),
+    ConfigEntry (compatibility.fsr3_mode,                L"Avoid hooks on CreateSwapChainForHwnd",                     dll_ini,         L"Compatibility.General", L"FSR3Mode"),
 
     ConfigEntry (apis.last_known,                        L"Last Known Render API",                                     dll_ini,         L"API.Hook",              L"LastKnown"),
 
@@ -3400,6 +3402,7 @@ auto DeclKeybind =
   //
   // Load Parameters
   //
+  compatibility.fsr3_mode->load          (config.compatibility.fsr3_mode);
   compatibility.reshade_mode->load       (config.compatibility.reshade_mode);
   compatibility.async_init->load         (config.compatibility.init_on_separate_thread);
   compatibility.disable_nv_bloat->load   (config.compatibility.disable_nv_bloat);
@@ -5060,6 +5063,7 @@ SK_SaveConfig ( std::wstring name,
     config.apis.last_known = SK_RenderAPI::OpenGL;
 
 
+  compatibility.fsr3_mode->store              (config.compatibility.fsr3_mode);
   compatibility.reshade_mode->store           (config.compatibility.reshade_mode);
   compatibility.async_init->store             (config.compatibility.init_on_separate_thread);
   compatibility.disable_nv_bloat->store       (config.compatibility.disable_nv_bloat);

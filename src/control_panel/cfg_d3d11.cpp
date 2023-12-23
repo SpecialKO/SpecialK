@@ -780,7 +780,7 @@ SK::ControlPanel::D3D11::Draw (void)
       auto _ResetLimiter = [&](void) -> void
       {
         auto *pLimiter =
-          SK::Framerate::GetLimiter (rb.swapchain.p, false);
+          SK::Framerate::GetLimiter (rb.swapchain, false);
 
         if (pLimiter != nullptr)
             pLimiter->reset (true);
