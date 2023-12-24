@@ -1,4 +1,8 @@
-﻿23.12.24.1
+﻿23.12.24.2
+==========
+ + Changed SK's overlay luminance setting to be global instead of per-game
+
+23.12.24.1
 ==========
  + Reworded HDR10 tooltips in HDR widget
  + Added tooltip for D3D12 HDR format conversion performance counter

@@ -1347,6 +1347,7 @@ auto DeclKeybind =
     ConfigEntry (osd.viewport.scale,                     L"OSD Scale",                                                 osd_ini,         L"SpecialK.OSD",          L"Scale"),
 
     ConfigEntry (osd.state.remember,                     L"Remember status monitoring state",                          osd_ini,         L"SpecialK.OSD",          L"RememberMonitoringState"),
+    ConfigEntry (render.osd.hdr_luminance,               L"OSD's Luminance (cd.m^-2) in HDR games",                    osd_ini,         L"SpecialK.OSD",          L"HDRLuminance"),
 
     ConfigEntry (monitoring.SLI.show,                    L"Show SLI Monitoring",                                       osd_ini,         L"Monitor.SLI",           L"Show"),
 
@@ -1598,7 +1599,6 @@ auto DeclKeybind =
     ConfigEntry (display.force_windowed,                 L"Force Windowed Mode",                                       dll_ini,         L"Display.Output",        L"ForceWindowed"),
     ConfigEntry (display.force_10bpc_sdr,                L"Force 10-bpc (SDR) Output",                                 dll_ini,         L"Display.Output",        L"Force10bpcSDR"),
     ConfigEntry (display.aspect_ratio_stretch,           L"Fill monitor background (eg. black bars) in windowed mode", dll_ini,         L"Display.Output",        L"AspectRatioStretch"),
-    ConfigEntry (render.osd.hdr_luminance,               L"OSD's Luminance (cd.m^-2) in HDR games",                    dll_ini,         L"Render.OSD",            L"HDRLuminance"),
 
 
     // Framerate Limiter
