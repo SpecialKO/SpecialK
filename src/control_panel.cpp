@@ -4801,7 +4801,7 @@ SK_ImGui_ControlPanel (void)
              rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI ||
              rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI )
         {
-          strcat (szGSyncStatus, " " ICON_FA_EXCLAMATION_TRIANGLE);
+          strcat (szGSyncStatus, "  " ICON_FA_EXCLAMATION_TRIANGLE);
         }
       }
 
@@ -4809,8 +4809,10 @@ SK_ImGui_ControlPanel (void)
 
       if (ImGui::IsItemHovered ())
       {
-        ImGui::BeginTooltip ();
-        ImGui::TextUnformatted ("Right-Click to Access G-Sync / FastSync Setup");
+        ImGui::BeginTooltip    ();
+        ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
+        ImGui::SameLine        ();
+        ImGui::TextUnformatted ("Right-click to configure G-Sync / FastSync");
 
         if (rb.gsync_state.capable && (! rb.gsync_state.maybe_active))
         {
@@ -4818,8 +4820,8 @@ SK_ImGui_ControlPanel (void)
           {
             ImGui::Separator ();
             ImGui::BulletText (
-              "PresentMon is not working correctly; "
-              "G-Sync status in D3D12 is unknown without it."
+              "Presentation Model Tracking is not working, G-Sync status in D3D12 is "
+              "unknown without it."
             );
           }
 

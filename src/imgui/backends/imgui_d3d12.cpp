@@ -925,7 +925,7 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
       staticSampler.AddressU                        = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
       staticSampler.AddressV                        = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
       staticSampler.AddressW                        = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-      staticSampler.ComparisonFunc                  = D3D12_COMPARISON_FUNC_ALWAYS;
+      staticSampler.ComparisonFunc                  = D3D12_COMPARISON_FUNC_NEVER;
       staticSampler.ShaderVisibility                = D3D12_SHADER_VISIBILITY_PIXEL;
 
     D3D12_ROOT_SIGNATURE_DESC
@@ -1592,7 +1592,7 @@ D3D12GraphicsCommandList_CopyResource_Detour (
 
         PIXBeginEvent (cmdList, 0, "DLSSG Format Conversion");
 
-        cmdList->EndQuery (queries.dlssg.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, (UINT)swapIdx * 2);
+        cmdList->EndQuery (queries.dlssg.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, swapIdx * 2);
 
         D3D12_CPU_DESCRIPTOR_HANDLE dstUAVHandle_CPU;
         D3D12_CPU_DESCRIPTOR_HANDLE srcUAVHandle_CPU;
@@ -1652,8 +1652,8 @@ D3D12GraphicsCommandList_CopyResource_Detour (
         cmdList->CopyResource                  ( pDstResource, computeCopy.pStagingBuffer );
         cmdList->ResourceBarrier               ( 1, &DstBarrier [2]                       );
         cmdList->DiscardResource               ( computeCopy.pStagingBuffer.p, nullptr    );
-        cmdList->EndQuery                      ( queries.dlssg.pHeap.p, query_type, (UINT)swapIdx * 2 + 1);
-        cmdList->ResolveQueryData              ( queries.dlssg.pHeap.p, query_type,       swapIdx * 2, 2,
+        cmdList->EndQuery                      ( queries.dlssg.pHeap.p, query_type, swapIdx * 2 + 1);
+        cmdList->ResolveQueryData              ( queries.dlssg.pHeap.p, query_type, swapIdx * 2, 2,
                                                  queries.dlssg.pReadBack.p,             0 );
         PIXEndEvent (cmdList);
 
@@ -1963,19 +1963,23 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
 
   SK_D3D12_StateTransition barriers [] =
    { { D3D12_RESOURCE_STATE_COPY_DEST,
-       D3D12_RESOURCE_STATE_RENDER_TARGET, stagingFrame.pBackBuffer.p },
+       D3D12_RESOURCE_STATE_RENDER_TARGET,         stagingFrame.pBackBuffer.p },
+     { D3D12_RESOURCE_STATE_COPY_SOURCE,
+       D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, pSrcResource               },
+     { D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+        D3D12_RESOURCE_STATE_COPY_SOURCE,          pSrcResource               },
      { D3D12_RESOURCE_STATE_RENDER_TARGET,
-       D3D12_RESOURCE_STATE_COPY_DEST,     stagingFrame.pBackBuffer.p }
+       D3D12_RESOURCE_STATE_COPY_DEST,             stagingFrame.pBackBuffer.p }
   };
 
-  pCommandList->ResourceBarrier                   ( 1, &barriers [0]);
+  pCommandList->ResourceBarrier                   ( 2, &barriers [0]);
   pCommandList->SetDescriptorHeaps                ( 1, &_d3d12_rbk->descriptorHeaps.pHDR_CopyAssist.p );
   pCommandList->SetGraphicsRootDescriptorTable    ( 2,  stagingFrame.hdr.hBufferCopySRV.GPU           );
   pCommandList->OMSetRenderTargets                ( 1, &stagingFrame.hBackBufferRTV, FALSE, nullptr   );
   pCommandList->RSSetViewports                    ( 1, &stagingFrame.hdr.vp                           );
   pCommandList->RSSetScissorRects                 ( 1, &stagingFrame.hdr.scissor                      );
   pCommandList->DrawInstanced                     ( 3, 1, 0, 0                                        );
-  pCommandList->ResourceBarrier                   ( 1, &barriers [1]);
+  pCommandList->ResourceBarrier                   ( 2, &barriers [2]);
 
   ++stagingFrame.hdr.format_conversions;
 }
@@ -2275,7 +2279,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   //pCommandList->DiscardResource                   (     stagingFrame.hdr.pSwapChainCopy.p,  nullptr);
     pCommandList->CopyResource                      (     stagingFrame.hdr.pSwapChainCopy.p,
                                                           stagingFrame.       pBackBuffer.p          );
-    pCommandList->ResourceBarrier                   ( 2,  stagingFrame.hdr.barriers.process          );    
+    pCommandList->ResourceBarrier                   ( 2,  stagingFrame.hdr.barriers.process          );
     pCommandList->EndQuery                          (queries.hdr.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP,
                                                           stagingFrame.iBufferIdx * 4 + 1            );
 
@@ -3189,7 +3193,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         staticSampler.AddressU         = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
         staticSampler.AddressV         = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
         staticSampler.AddressW         = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-        staticSampler.ComparisonFunc   = D3D12_COMPARISON_FUNC_ALWAYS;
+        staticSampler.ComparisonFunc   = D3D12_COMPARISON_FUNC_NEVER;
         staticSampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
       D3D12_ROOT_SIGNATURE_DESC
@@ -3320,7 +3324,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                               swapDesc1.BufferCount,
                               swapDesc1.Format,
           descriptorHeaps.pImGui->GetCPUDescriptorHandleForHeapStart (),
-          descriptorHeaps.pImGui->GetGPUDescriptorHandleForHeapStart (), HWND_BROADCAST)
+          descriptorHeaps.pImGui->GetGPUDescriptorHandleForHeapStart (), hWnd)
          )
       {
         ImGui_ImplDX12_CreateDeviceObjects ();
