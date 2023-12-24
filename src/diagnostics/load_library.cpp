@@ -214,6 +214,7 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
 
     SK_TEXT ("nvapi"), SK_TEXT ("NvCameraAllowlisting"),
 
+    SK_TEXT ("nvofapi"), // DLSS-G spam reloads this when changing resolution
 
     SK_TEXT ("kbd"), // Keyboard Layouts take > ~20 ms to load, leave 'em loaded
 
