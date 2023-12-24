@@ -4834,6 +4834,20 @@ SK_ImGui_ControlPanel (void)
         );
         ImGui::Separator  ();
         ImGui::Spacing    ();
+        if (rb.api == SK_RenderAPI::D3D12 && SK_GetModuleHandle (L"GameOverlayRenderer64.dll") &&
+                                             SK_GetModuleHandle (L"D3D11On12.dll"))
+        {
+          static bool bSteamOverlayEnabled = steam_ctx.Utils () != nullptr
+                                          && steam_ctx.Utils ()->IsOverlayEnabled ();
+
+          if (bSteamOverlayEnabled || (! steam_ctx.Utils ()))
+          {
+            ImGui::PushStyleColor (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 0.0f, 1.0f));
+            ImGui::BulletText     ("It is HIGHLY likely that the Steam overlay is responsible for this!");
+            ImGui::PopStyleColor  ();
+            ImGui::Spacing        ();
+          }
+        }
         ImGui::BulletText ("Third-party overlays or certain render mods may cause this");
         ImGui::BulletText ("Game may have requested an unsupported Fullscreen resolution");
         ImGui::Spacing    ();

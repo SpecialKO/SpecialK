@@ -1193,7 +1193,15 @@ public:
 
       if (ImGui::IsItemHovered ())
       {
-        ImGui::SetTooltip ("This is still experimental, many of the compatibility problems solved for scRGB are unsolved for HDR10.");
+        ImGui::BeginTooltip ();
+        {
+          ImGui::Text       ("Slight performance boost versus scRGB on low-end GPUs and special cases (i.e. DLSS Frame Generation)");
+          ImGui::Separator  ();
+          ImGui::BulletText ("In D3D11, HDR10 may reduce HDR quality.");
+          ImGui::BulletText ("This mode is much newer than scRGB, and may not work in all games.");
+          ImGui::BulletText ("SK's UI Luminance setting is inaccurate in HDR10; ignore nits values and use whatever looks best.");
+        }
+        ImGui::EndTooltip ();
       }
 
       ImGui::SameLine ();
@@ -1426,8 +1434,11 @@ public:
 
           format_conversions = _d3d12_rbk->frames_ [swapIdx].hdr.format_conversions;
         }
+
+        const bool bDLSSGFormatConversion =
+          dComputeCopyTime != 0.0 && _d3d12_rbk->computeCopy.lastFrameActive > SK_GetFramesDrawn () - 8;
          
-        if (dComputeCopyTime != 0.0 && _d3d12_rbk->computeCopy.lastFrameActive > SK_GetFramesDrawn () - 8)
+        if (bDLSSGFormatConversion)
         {
           if (format_conversions > 0)
           {
@@ -1460,6 +1471,19 @@ public:
                               fw -                           vTextSize.x);
 
         ImGui::TextUnformatted (szProcessingText);
+
+        if (format_conversions > 0 || bDLSSGFormatConversion)
+        {
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip    ();
+            ImGui::TextUnformatted ("Format conversion means the game is not natively rendering at your selected HDR bit-depth");
+            ImGui::Separator       ();
+            ImGui::BulletText      ("GPU Compute and Bandwidth resources are being spent converting to your selected HDR format.");
+            ImGui::BulletText      ("If performance is a concern, try HDR10. Conversion to HDR10 is slightly lower overhead.");
+            ImGui::EndTooltip      ();
+          }
+        }
       }
 
       SK_ComQIPtr <IDXGISwapChain4> pSwap4 (rb.swapchain);

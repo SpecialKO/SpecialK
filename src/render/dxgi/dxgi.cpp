@@ -2574,12 +2574,9 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     SyncInterval = config.render.framerate.sync_interval_clamp;
   }
 
-  bool bWaitOnFailure =
+  const bool bWaitOnFailure =
     (Flags & DXGI_PRESENT_DO_NOT_WAIT)
           != DXGI_PRESENT_DO_NOT_WAIT;
-
-  if (! bWaitOnFailure)
-    SK_LOG_ONCE (L"Encountered DXGI_PRESENT_DO_NOT_WAIT, Framerate Limiting May Behave Strangely");
 
   DXGI_SWAP_CHAIN_DESC desc = { };
        This->GetDesc (&desc);

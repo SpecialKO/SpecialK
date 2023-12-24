@@ -2951,6 +2951,8 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
   else if (_pDevice != nullptr && _pSwapChain != nullptr)
   {
+    frames_.clear ();
+
     DXGI_SWAP_CHAIN_DESC1  swapDesc1 = { };
     pSwapChain->GetDesc1 (&swapDesc1);
 

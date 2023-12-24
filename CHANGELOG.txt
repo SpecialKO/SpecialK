@@ -1,4 +1,11 @@
-﻿23.12.24
+﻿23.12.24.1
+==========
+ + Reworded HDR10 tooltips in HDR widget
+ + Added tooltip for D3D12 HDR format conversion performance counter
+ + Added tooltip if Steam overlay is found responsible for preventing SwapChain
+     Resize (D3D12 games)
+
+23.12.24
 ========
  + Fixed potential crashes in some D3D12 games because SwapChain current index
      was not reset to 0 after SwapChain resize

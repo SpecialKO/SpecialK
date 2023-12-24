@@ -235,6 +235,21 @@ IWrapDXGISwapChain::AddRef (void)
 
 ULONG
 STDMETHODCALLTYPE
+SK_SEH_ReleaseObject (IUnknown *pUnknown)
+{
+  __try {
+    return
+      pUnknown->Release ();
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    return 0;
+  }
+}
+
+ULONG
+STDMETHODCALLTYPE
 IWrapDXGISwapChain::Release (void)
 {
   ULONG xrefs =
@@ -285,7 +300,7 @@ IWrapDXGISwapChain::Release (void)
     //delete this;
   }
 
-  else
+  else if (hWnd_ == 0)
   {
     if (ver_ > 0)
       static_cast <IDXGISwapChain1*> (pReal)->GetHwnd (&hWnd_);
@@ -1512,6 +1527,70 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
       return hr;
     };
 
+  auto _D3D12_ResetBufferIndexToZero = [&](void)
+  {
+    SK_ComPtr <ID3D12Device>                           pD3D12Dev;
+    pSwapChain->GetDevice (IID_ID3D12Device, (void **)&pD3D12Dev.p);
+
+    bool d3d12 =
+      (pD3D12Dev.p != nullptr);
+
+    SK_ComQIPtr <IDXGISwapChain3>
+             pSwap3 (pSwapChain);
+
+    // When skipping resize operations in D3D12, there's an important side-effect that
+    //   must be reproduced:
+    // 
+    //    * Current Buffer Index reverts to 0 on success
+    //
+    //  --> We need to make several unsynchronized Present calls until we advance back to
+    //        backbuffer index 0.
+    if (d3d12 && pSwap3->GetCurrentBackBufferIndex () != 0)
+    {
+      int iUnsyncedPresents = 0;
+
+      HRESULT hrUnsynced =
+        pSwapChain->Present (0, DXGI_PRESENT_RESTART | DXGI_PRESENT_DO_NOT_WAIT);
+
+      while ( SUCCEEDED (hrUnsynced) ||
+                         hrUnsynced == DXGI_ERROR_WAS_STILL_DRAWING )
+      {
+        ++iUnsyncedPresents;
+
+        if (pSwap3->GetCurrentBackBufferIndex () == 0)
+          break;
+
+        hrUnsynced =
+          pSwapChain->Present (0, DXGI_PRESENT_RESTART | DXGI_PRESENT_DO_NOT_WAIT);
+      }
+
+      SK_LOGi0 (
+        L"Issued %d unsync'd Presents to reset the SwapChain's current index to 0 "
+        L"(required D3D12 ResizeBuffers behavior)", iUnsyncedPresents
+      );
+    }
+  };
+
+  auto _ReleaseResourcesAndRetryResize = [&](HRESULT& ret)
+  {
+    _D3D12_ResetBufferIndexToZero ();
+
+    if      (rb.api == SK_RenderAPI::D3D12) ResetImGui_D3D12 (pSwapChain);
+    else if (rb.api == SK_RenderAPI::D3D11) ResetImGui_D3D11 (pSwapChain);
+
+    rb.releaseOwnedResources ();
+
+    ret =
+      IDXGISwapChain_ResizeBuffers ( pSwapChain, BufferCount, Width, Height,
+                                       NewFormat, SwapChainFlags );
+
+    if (SUCCEEDED (ret))
+    {
+      if      (rb.api == SK_RenderAPI::D3D12) _d3d12_rbk->init ((IDXGISwapChain3 *)pSwapChain, _d3d12_rbk->_pCommandQueue);
+      else if (rb.api == SK_RenderAPI::D3D11) _d3d11_rbk->init ((IDXGISwapChain3 *)pSwapChain, _d3d11_rbk->_pDevice, _d3d11_rbk->_pDeviceCtx);
+    }
+  };
+
   //
   // Fix a number of problems caused by RTSS
   //
@@ -1829,63 +1908,7 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
         SK_LOGi0 ( L"SwapChain Resize Failed (%x) - Error Suppressed!",
                     ret );
 
-        SK_ComPtr <ID3D12Device>                           pD3D12Dev;
-        pSwapChain->GetDevice (IID_ID3D12Device, (void **)&pD3D12Dev.p);
-
-        bool d3d12 =
-          (pD3D12Dev.p != nullptr);
-
-        SK_ComQIPtr <IDXGISwapChain3>
-                 pSwap3 (pSwapChain);
-
-        // When skipping resize operations in D3D12, there's an important side-effect that
-        //   must be reproduced:
-        // 
-        //    * Current Buffer Index reverts to 0 on success
-        //
-        //  --> We need to make several unsynchronized Present calls until we advance back to
-        //        backbuffer index 0.
-        if (d3d12 && pSwap3->GetCurrentBackBufferIndex () != 0)
-        {
-          int iUnsyncedPresents = 0;
-
-          HRESULT hrUnsynced =
-            pSwapChain->Present (0, DXGI_PRESENT_RESTART | DXGI_PRESENT_DO_NOT_WAIT);
-
-          while ( SUCCEEDED (hrUnsynced) ||
-                             hrUnsynced == DXGI_ERROR_WAS_STILL_DRAWING )
-          {
-            ++iUnsyncedPresents;
-
-            if (pSwap3->GetCurrentBackBufferIndex () == 0)
-              break;
-
-            hrUnsynced =
-              pSwapChain->Present (0, DXGI_PRESENT_RESTART | DXGI_PRESENT_DO_NOT_WAIT);
-          }
-
-          SK_LOGi0 (
-            L"Issued %d unsync'd Presents to reset the SwapChain's current index to 0 "
-            L"(required D3D12 ResizeBuffers behavior)", iUnsyncedPresents
-          );
-        }
-
-        if      (rb.api == SK_RenderAPI::D3D12) ResetImGui_D3D12 (pSwapChain);
-        else if (rb.api == SK_RenderAPI::D3D11) ResetImGui_D3D11 (pSwapChain);
-
-        rb.releaseOwnedResources ();
-
-        ret =
-          IDXGISwapChain_ResizeBuffers ( pSwapChain, BufferCount, Width, Height,
-                                           NewFormat, SwapChainFlags );
-
-        if (SUCCEEDED (ret))
-        {
-          if      (rb.api == SK_RenderAPI::D3D12) _d3d12_rbk->init ((IDXGISwapChain3 *)pSwapChain, _d3d12_rbk->_pCommandQueue);
-          else if (rb.api == SK_RenderAPI::D3D11) _d3d11_rbk->init ((IDXGISwapChain3 *)pSwapChain, _d3d11_rbk->_pDevice, _d3d11_rbk->_pDeviceCtx);
-        }
-
-        //ret = S_OK;
+        _ReleaseResourcesAndRetryResize (ret);
       }
     }
 
@@ -1941,46 +1964,7 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
                                          swap_desc.Flags
     );
 
-    SK_ComPtr <ID3D12Device>                           pD3D12Dev;
-    pSwapChain->GetDevice (IID_ID3D12Device, (void **)&pD3D12Dev.p);
-
-    bool d3d12 =
-      (pD3D12Dev.p != nullptr);
-
-    SK_ComQIPtr <IDXGISwapChain3>
-             pSwap3 (pSwapChain);
-
-    // When skipping resize operations in D3D12, there's an important side-effect that
-    //   must be reproduced:
-    // 
-    //    * Current Buffer Index reverts to 0 on success
-    //
-    //  --> We need to make several unsynchronized Present calls until we advance back to
-    //        backbuffer index 0.
-    if (d3d12 && pSwap3->GetCurrentBackBufferIndex () != 0)
-    {
-      int iUnsyncedPresents = 0;
-
-      HRESULT hrUnsynced =
-        pSwapChain->Present (0, DXGI_PRESENT_RESTART | DXGI_PRESENT_DO_NOT_WAIT);
-
-      while ( SUCCEEDED (hrUnsynced) ||
-                         hrUnsynced == DXGI_ERROR_WAS_STILL_DRAWING )
-      {
-        ++iUnsyncedPresents;
-
-        if (pSwap3->GetCurrentBackBufferIndex () == 0)
-          break;
-
-        hrUnsynced =
-          pSwapChain->Present (0, DXGI_PRESENT_RESTART | DXGI_PRESENT_DO_NOT_WAIT);
-      }
-
-      SK_LOGi0 (
-        L"Issued %d unsync'd Presents to reset the SwapChain's current index to 0 "
-        L"(required D3D12 ResizeBuffers behavior)", iUnsyncedPresents
-      );
-    }
+    _D3D12_ResetBufferIndexToZero ();
   }
 
   // EOS Overlay May Be Broken in D3D12 Games
@@ -1991,79 +1975,13 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
       SK_LOGi0 ( L"SwapChain Resize Failed (%x) - Error Suppressed!",
                   ret );
 
-      SK_ComPtr <ID3D12Device>                           pD3D12Dev;
-      pSwapChain->GetDevice (IID_ID3D12Device, (void **)&pD3D12Dev.p);
-
-      bool d3d12 =
-        (pD3D12Dev.p != nullptr);
-
-      SK_ComQIPtr <IDXGISwapChain3>
-               pSwap3 (pSwapChain);
-
-      // When skipping resize operations in D3D12, there's an important side-effect that
-      //   must be reproduced:
-      // 
-      //    * Current Buffer Index reverts to 0 on success
-      //
-      //  --> We need to make several unsynchronized Present calls until we advance back to
-      //        backbuffer index 0.
-      if (d3d12 && pSwap3->GetCurrentBackBufferIndex () != 0)
-      {
-        int iUnsyncedPresents = 0;
-
-        HRESULT hrUnsynced =
-          pSwapChain->Present (0, DXGI_PRESENT_RESTART | DXGI_PRESENT_DO_NOT_WAIT);
-
-        while ( SUCCEEDED (hrUnsynced) ||
-                           hrUnsynced == DXGI_ERROR_WAS_STILL_DRAWING )
-        {
-          ++iUnsyncedPresents;
-
-          if (pSwap3->GetCurrentBackBufferIndex () == 0)
-            break;
-
-          hrUnsynced =
-            pSwapChain->Present (0, DXGI_PRESENT_RESTART | DXGI_PRESENT_DO_NOT_WAIT);
-        }
-
-        SK_LOGi0 (
-          L"Issued %d unsync'd Presents to reset the SwapChain's current index to 0 "
-          L"(required D3D12 ResizeBuffers behavior)", iUnsyncedPresents
-        );
-      }
-
-      if      (rb.api == SK_RenderAPI::D3D12) ResetImGui_D3D12 (pSwapChain);
-      else if (rb.api == SK_RenderAPI::D3D11) ResetImGui_D3D11 (pSwapChain);
-
-      rb.releaseOwnedResources ();
-
-      ret =
-        IDXGISwapChain_ResizeBuffers ( pSwapChain, BufferCount, Width, Height,
-                                         NewFormat, SwapChainFlags );
-
-      if (SUCCEEDED (ret))
-      {
-        if      (rb.api == SK_RenderAPI::D3D12) _d3d12_rbk->init ((IDXGISwapChain3 *)pSwapChain, _d3d12_rbk->_pCommandQueue);
-        else if (rb.api == SK_RenderAPI::D3D11) _d3d11_rbk->init ((IDXGISwapChain3 *)pSwapChain, _d3d11_rbk->_pDevice, _d3d11_rbk->_pDeviceCtx);
-      }
-
-      //ret = S_OK;
+      _ReleaseResourcesAndRetryResize (ret);
     }
   }
 
   if (FAILED (ret))
   {
-    if      (rb.api == SK_RenderAPI::D3D12) ResetImGui_D3D12 (pSwapChain);
-    else if (rb.api == SK_RenderAPI::D3D11) ResetImGui_D3D11 (pSwapChain);
-
-    rb.releaseOwnedResources ();
-
-    ret =
-      IDXGISwapChain_ResizeBuffers ( pSwapChain, BufferCount, Width, Height,
-                                       NewFormat, SwapChainFlags );
-
-    if      (rb.api == SK_RenderAPI::D3D12) _d3d12_rbk->init ((IDXGISwapChain3 *)pSwapChain, _d3d12_rbk->_pCommandQueue);
-    else if (rb.api == SK_RenderAPI::D3D11) _d3d11_rbk->init ((IDXGISwapChain3 *)pSwapChain, _d3d11_rbk->_pDevice, _d3d11_rbk->_pDeviceCtx);
+    _ReleaseResourcesAndRetryResize (ret);
 
     rb.swapchain_consistent = SUCCEEDED (ret);
 
@@ -2079,7 +1997,11 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
                                              rb.device : pDevice.p );
     }
 
-    ret = S_OK;
+    if (config.render.dxgi.suppress_resize_fail && FAILED (ret))
+    {
+      if (ret != DXGI_ERROR_DEVICE_REMOVED && ret != E_ACCESSDENIED)
+          ret = S_OK;
+    }
   }
 
   else
