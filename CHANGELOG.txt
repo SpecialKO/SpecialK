@@ -1,5 +1,7 @@
 ﻿23.12.24.2
 ==========
+ + Optimized D3D12 ImGui backend so that it does not reload font textures when
+     games change resolution
  + Changed SK's overlay luminance setting to be global instead of per-game
 
 23.12.24.1

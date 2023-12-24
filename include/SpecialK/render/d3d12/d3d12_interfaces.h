@@ -447,6 +447,37 @@ ID3D12Device vftable
     };
 #endif
 
+using D3D12GraphicsCommandList_SetPipelineState_pfn =
+void (STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
+                            ID3D12PipelineState* );
+using D3D12GraphicsCommandList_DrawInstanced_pfn =
+void (STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
+                            UINT,UINT,UINT,UINT );
+using D3D12GraphicsCommandList_DrawIndexedInstanced_pfn =
+void (STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
+                            UINT,UINT,UINT,INT,UINT );
+using D3D12GraphicsCommandList_ExecuteIndirect_pfn =
+void (STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
+                            ID3D12CommandSignature*,
+                            UINT,  ID3D12Resource*,
+                            UINT64,ID3D12Resource*,
+                            UINT64 );
+using D3D12GraphicsCommandList_OMSetRenderTargets_pfn =
+void (STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
+                            UINT,
+                      const D3D12_CPU_DESCRIPTOR_HANDLE*,
+                            BOOL,
+                      const D3D12_CPU_DESCRIPTOR_HANDLE*);
+using D3D12GraphicsCommandList_CopyTextureRegion_pfn =
+void (STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
+                      const D3D12_TEXTURE_COPY_LOCATION*,
+                            UINT, UINT, UINT,
+                      const D3D12_TEXTURE_COPY_LOCATION*,
+                      const D3D12_BOX* );
+using D3D12GraphicsCommandList_CopyResource_pfn =
+void (STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
+                            ID3D12Resource*,ID3D12Resource* );
+
 extern bool SK_D3D12_Init         (void);
 extern void SK_D3D12_Shutdown     (void);
 extern void SK_D3D12_EnableHooks  (void);
@@ -622,9 +653,21 @@ struct SK_D3D12_RenderCtx {
   // On reset, delay re-initialization
   std::atomic_int frame_delay  = 1;
   volatile ULONG  reset_needed = 0UL;
+
+  UINT getCurrentBackBufferIndex (void) const
+  {
+    if (_pSwapChain.p == nullptr)
+      return 0;
+
+    return
+      std::min ( static_cast <UINT> (frames_.size () - 1),
+                   _pSwapChain->GetCurrentBackBufferIndex () );
+  }
 };
 
 extern SK_LazyGlobal <SK_D3D12_RenderCtx> _d3d12_rbk;
+
+extern void SK_D3D12_HDR_CopyBuffer (ID3D12GraphicsCommandList*, ID3D12Resource*, ID3D12Resource*);
 
 struct SK_ImGui_ResourcesD3D12
 {
