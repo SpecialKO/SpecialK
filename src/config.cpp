@@ -5067,8 +5067,9 @@ SK_SaveConfig ( std::wstring name,
     config.apis.last_known = SK_RenderAPI::OpenGL;
 
 
-  compatibility.fsr3_mode->store              (config.compatibility.fsr3_mode);
-  compatibility.reshade_mode->store           (config.compatibility.reshade_mode);
+  // Don't write these to INI by default, they're rarely needed and planned to be removed
+//compatibility.fsr3_mode->store              (config.compatibility.fsr3_mode);
+//compatibility.reshade_mode->store           (config.compatibility.reshade_mode);
   compatibility.async_init->store             (config.compatibility.init_on_separate_thread);
   compatibility.disable_nv_bloat->store       (config.compatibility.disable_nv_bloat);
   compatibility.rehook_loadlibrary->store     (config.compatibility.rehook_loadlibrary);
