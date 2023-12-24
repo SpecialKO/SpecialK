@@ -6680,6 +6680,11 @@ SK_ImGui_StageNextFrame (void)
       SK_DrawConsole ();
     }
   }
+                                                                                                                
+  if (GImGui == nullptr || GImGui->CurrentWindow == nullptr)
+  {
+    ImGui::NewFrame ();
+  }
 
 
   static DWORD dwStartTime = current_time;
@@ -7383,6 +7388,11 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     SK_ImGui_StageNextFrame ();
   }
 
+  if (GImGui == nullptr || GImGui->CurrentWindow == nullptr)
+  {
+    ImGui::NewFrame ();
+  }
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -7413,14 +7423,14 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   }
 
   else if ( ( static_cast <int> (rb.api) &
-              static_cast <int> (SK_RenderAPI::D3D11) ) != 0 )
+              static_cast <int> (SK_RenderAPI::D3D11) ) != 0)
   {
     ImGui::Render ();
     ImGui_ImplDX11_RenderDrawData (ImGui::GetDrawData ());
   }
 
   else if ( ( static_cast <int> (rb.api) &
-              static_cast <int> (SK_RenderAPI::D3D12) ) != 0 )
+              static_cast <int> (SK_RenderAPI::D3D12) ) != 0)
   {
     if (_d3d12_rbk->frames_.size () > 0)
     {

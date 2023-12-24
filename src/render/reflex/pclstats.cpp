@@ -149,18 +149,22 @@ PCLSTATS_INIT (UINT flags)
 
 void PCLSTATS_SHUTDOWN (void)
 {
-  auto PCLStatsPingThread = g_PCLStatsPingThread;
-  auto PCLStatsQuitEvent  = g_PCLStatsQuitEvent;
+  auto& PCLStatsPingThread = g_PCLStatsPingThread;
+  auto& PCLStatsQuitEvent  = g_PCLStatsQuitEvent;
 
   if (std::exchange (g_PCLStatsPingThread, nullptr) != nullptr)
   {
-    if (PCLStatsQuitEvent != nullptr)
+    if ((intptr_t)PCLStatsQuitEvent > 0)
     {
       SetEvent (PCLStatsQuitEvent);
     }
 
-    WaitForSingleObject (PCLStatsPingThread, 1000);
-    CloseHandle         (PCLStatsPingThread);
+    if ((intptr_t)PCLStatsPingThread > 0)
+    {
+      WaitForSingleObject (PCLStatsPingThread, 1000);
+      CloseHandle         (PCLStatsPingThread);
+                           PCLStatsPingThread = 0;
+    }
   }
 
   TraceLoggingWrite      (g_hPCLStatsComponentProvider, "PCLStatsShutdown");
@@ -168,6 +172,10 @@ void PCLSTATS_SHUTDOWN (void)
 
   if (std::exchange (g_PCLStatsQuitEvent, nullptr) != nullptr)
   {
-    CloseHandle (PCLStatsQuitEvent);
+    if ((intptr_t)PCLStatsQuitEvent > 0)
+    {
+      CloseHandle (PCLStatsQuitEvent);
+                   PCLStatsQuitEvent = 0;
+    }
   }
 }

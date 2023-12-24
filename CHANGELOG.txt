@@ -1,4 +1,9 @@
-﻿23.12.23
+﻿23.12.24
+========
+ + Fixed potential crashes in some D3D12 games because SwapChain current index
+     was not reset to 0 after SwapChain resize
+
+23.12.23
 ========
  + Added DLSS3 Format Conversion GPU time (Compute Shader Blt) to HDR widget
     in D3D12 titles that require special format conversion from DLSS-G's

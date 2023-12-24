@@ -568,6 +568,8 @@ struct SK_D3D12_RenderCtx {
       D3D12_RECT                          scissor             = {   };
       D3D12_VIEWPORT                      vp                  = {   };
 
+      UINT                               format_conversions  = 0;
+
       struct {
         SK_D3D12_StateTransition          process  [2]        = {
           { D3D12_RESOURCE_STATE_COPY_DEST,   D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE },

@@ -7137,7 +7137,7 @@ UINT _GetStashedRTVIndex (_Notnull_ ID3D11RenderTargetView* pRTV)
 
 SK_ImGui_AutoFont::SK_ImGui_AutoFont (ImFont* pFont)
 {
-  if (pFont != nullptr)
+  if (pFont != nullptr && GImGui != nullptr && GImGui->CurrentWindow != nullptr)
   {
     ImGui::PushFont (pFont);
              font_ = pFont;

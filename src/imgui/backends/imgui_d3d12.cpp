@@ -1607,7 +1607,7 @@ D3D12GraphicsCommandList_CopyResource_Detour (
   if ( ( __SK_HDR_16BitSwap ||
          __SK_HDR_10BitSwap ||
            had_hdr_override ) && pDstResource != nullptr &&
-                                 pSrcResource != nullptr )
+                                 pSrcResource != nullptr && (! _d3d12_rbk->frames_.empty ()) && _d3d12_rbk->frames_ [0].fence.p != nullptr )
   {
     had_hdr_override = true;
 
@@ -1653,9 +1653,10 @@ D3D12GraphicsCommandList_CopyResource_Detour (
             return;
           }
 
-          if (This->GetType () == D3D12_COMMAND_LIST_TYPE_COMPUTE && _d3d12_rbk->_pDevice       != nullptr &&
-                                                                     _d3d12_rbk->_pCommandQueue != nullptr &&
-                                                                     _d3d12_rbk->_pSwapChain    != nullptr)
+          if (This->GetType () == D3D12_COMMAND_LIST_TYPE_COMPUTE && _d3d12_rbk->_pDevice                       != nullptr &&
+                                                                     _d3d12_rbk->_pCommandQueue                 != nullptr &&
+                                                                     _d3d12_rbk->_pSwapChain                    != nullptr &&
+                                                                     _d3d12_rbk->descriptorHeaps.pComputeCopy.p != nullptr )
           {
             UINT swapIdx =
               std::min ( static_cast <UINT> (_d3d12_rbk->frames_.size () - 1),
@@ -1711,10 +1712,14 @@ D3D12GraphicsCommandList_CopyResource_Detour (
                   D3D12_RESOURCE_STATE_UNORDERED_ACCESS, pSrcResource } };
 
             SK_D3D12_StateTransition DstBarrier [] =
-              { { D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-                  D3D12_RESOURCE_STATE_COPY_SOURCE,      _d3d12_rbk->computeCopy.pStagingBuffer.p },
+              { 
                 { D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-                  D3D12_RESOURCE_STATE_COPY_SOURCE,      pSrcResource }
+                  D3D12_RESOURCE_STATE_COPY_SOURCE,      pSrcResource },
+                { D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+                  D3D12_RESOURCE_STATE_COPY_SOURCE,      _d3d12_rbk->computeCopy.pStagingBuffer.p },
+                { D3D12_RESOURCE_STATE_COPY_SOURCE,
+                  D3D12_RESOURCE_STATE_UNORDERED_ACCESS, _d3d12_rbk->computeCopy.pStagingBuffer.p },
+                
             };
 
             static constexpr UINT                                        _BltTileSizeX = 32U;
@@ -1728,11 +1733,10 @@ D3D12GraphicsCommandList_CopyResource_Detour (
             cmdList->Dispatch                      ( ThreadGroupCountX,
                                                      ThreadGroupCountY,
                                                      ThreadGroupCountZ );
-            cmdList->ResourceBarrier               (1,  DstBarrier);
+            cmdList->ResourceBarrier               (2, &DstBarrier [0]);
             cmdList->CopyResource                  (pDstResource, _d3d12_rbk->computeCopy.pStagingBuffer);
-          //cmdList->ResourceBarrier               (1, &DstBarrier [1]);
+            cmdList->ResourceBarrier               (1, &DstBarrier [2]);
             cmdList->DiscardResource               (_d3d12_rbk->computeCopy.pStagingBuffer.p, nullptr);
-            cmdList->DiscardResource               (pSrcResource,                             nullptr);
             cmdList->EndQuery                      (_d3d12_rbk->queries.dlssg.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, (UINT)swapIdx * 2 + 1);
             cmdList->ResolveQueryData              (_d3d12_rbk->queries.dlssg.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP,       swapIdx * 2, 2,
                                                     _d3d12_rbk->queries.dlssg.pReadBack.p,            0);
@@ -2072,7 +2076,8 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
    { { D3D12_RESOURCE_STATE_COPY_DEST,
        D3D12_RESOURCE_STATE_RENDER_TARGET, stagingFrame.pBackBuffer.p },
      { D3D12_RESOURCE_STATE_RENDER_TARGET,
-       D3D12_RESOURCE_STATE_COPY_DEST,     stagingFrame.pBackBuffer.p } };
+       D3D12_RESOURCE_STATE_COPY_DEST,     stagingFrame.pBackBuffer.p }
+  };
 
   pCommandList->ResourceBarrier                   ( 1, &barriers [0]);
   pCommandList->SetDescriptorHeaps                ( 1, &_d3d12_rbk->descriptorHeaps.pHDR_CopyAssist.p );
@@ -2082,6 +2087,8 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
   pCommandList->RSSetScissorRects                 ( 1, &stagingFrame.hdr.scissor                      );
   pCommandList->DrawInstanced                     ( 3, 1, 0, 0                                        );
   pCommandList->ResourceBarrier                   ( 1, &barriers [1]);
+
+  ++stagingFrame.hdr.format_conversions;
 }
 
 void
@@ -2376,6 +2383,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     pCommandList->SetGraphicsRoot32BitConstants     ( 1, 16, &cbuffer_cspace, 0                      );
     pCommandList->IASetPrimitiveTopology            ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP           );
     // pBackBuffer is expected to promote from STATE_PRESENT to STATE_COPY_SOURCE without a barrier.
+  //pCommandList->DiscardResource                   (     stagingFrame.hdr.pSwapChainCopy.p,  nullptr);
     pCommandList->CopyResource                      (     stagingFrame.hdr.pSwapChainCopy.p,
                                                           stagingFrame.       pBackBuffer.p          );
     pCommandList->ResourceBarrier                   ( 2,  stagingFrame.hdr.barriers.process          );    
@@ -2397,7 +2405,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     pCommandList->RSSetViewports                    ( 1, &stagingFrame.hdr.vp                        );
     pCommandList->RSSetScissorRects                 ( 1, &stagingFrame.hdr.scissor                   );
     pCommandList->DrawInstanced                     ( 3, 1, 0, 0                                     );
-    pCommandList->DiscardResource                   (     stagingFrame.hdr.pSwapChainCopy, nullptr   );
+    pCommandList->ResourceBarrier                   ( 1, stagingFrame.hdr.barriers.copy_end          );
     pCommandList->EndQuery                          (queries.hdr.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP,
                                                           stagingFrame.iBufferIdx * 4 + 3            );
     pCommandList->ResolveQueryData                  (queries.hdr.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP,
@@ -2505,6 +2513,8 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       _pReShadeRuntime =
         SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (_pDevice, _pCommandQueue, _pSwapChain);
     }
+
+    stagingFrame.hdr.format_conversions = 0;
   }
 
   if (InterlockedCompareExchange (&reset_needed, 0, 1) == 1)
@@ -3216,6 +3226,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
         // As long as HDR processing comes first, we can implicitly transition the swapchain from
         //   STATE_PRESENT to D3D12_RESOURCE_STATE_COPY_SOURCE
+        frame.hdr.barriers.copy_end [0].Transition.pResource = frame.hdr.pSwapChainCopy.p;
         frame.hdr.barriers.process  [0].Transition.pResource = frame.hdr.pSwapChainCopy.p;
         frame.hdr.barriers.process  [1].Transition.pResource =        frame.pBackBuffer.p;
 

@@ -1416,11 +1416,38 @@ public:
         }
 
         static char szProcessingText [128] = { };
-        snprintf (  szProcessingText, 127, "HDR Processing:\t%5.4f ms", SK_D3D11_HDR_RuntimeMs);
 
+        UINT format_conversions = 0;
+
+        if (_d3d12_rbk->frames_.size () > 0)
+        {
+          UINT swapIdx =
+            _d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ();
+
+          format_conversions = _d3d12_rbk->frames_ [swapIdx].hdr.format_conversions;
+        }
+         
         if (dComputeCopyTime != 0.0 && _d3d12_rbk->computeCopy.lastFrameActive > SK_GetFramesDrawn () - 8)
         {
-          snprintf (szProcessingText, 127, "DLSS3 Format Conversion:\t%5.4f ms\tHDR Processing:\t%5.4f ms", dComputeCopyTime, SK_D3D11_HDR_RuntimeMs);
+          if (format_conversions > 0)
+          {
+            snprintf (szProcessingText, 127, "Format Conversion Passes:\t%d\t\tDLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms", format_conversions, dComputeCopyTime, SK_D3D11_HDR_RuntimeMs);
+          }
+
+          else
+          {
+            snprintf (szProcessingText, 127, "DLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms", dComputeCopyTime, SK_D3D11_HDR_RuntimeMs);
+          }
+        }
+
+        else if (format_conversions > 0)
+        {
+          snprintf (szProcessingText, 127, "Format Conversion Passes:\t%d\t\tHDR Processing:\t%5.4f ms", format_conversions, SK_D3D11_HDR_RuntimeMs);
+        }
+
+        else
+        {
+          snprintf (szProcessingText, 127, "HDR Processing:\t%5.4f ms", SK_D3D11_HDR_RuntimeMs);
         }
 
         auto vTextSize =
