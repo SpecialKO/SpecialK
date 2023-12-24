@@ -1,4 +1,10 @@
-﻿23.12.24.2
+﻿23.12.24.3
+==========
+ + Added tooltips to G-Sync Status when it reports "Supported + Inactive", to
+     explain that either PresentMon is not working (D3D12) or the current
+       Presentation Model is incompatible with VRR (i.e. Composed Flip / GDI)
+
+23.12.24.2
 ==========
  + Optimized D3D12 ImGui backend so that it does not reload font textures when
      games change resolution
