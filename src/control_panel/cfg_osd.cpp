@@ -84,10 +84,10 @@ SK::ControlPanel::OSD::DrawVideoCaptureOptions (void)
   if (ImGui::IsItemHovered ())
   {
     ImGui::BeginTooltip    ();
-    ImGui::TextUnformatted ("Alters visibility in most video capture software");
+    ImGui::TextUnformatted ("Controls visibility in some Video Capture software");
     ImGui::Separator       ();
+    ImGui::BulletText      ("Desktop Capture mode is unaffected, only Game Capture");
     ImGui::BulletText      ("Enabled by default for maximum compatibility");
-    ImGui::BulletText      ("Enabling this has a high likelihood of interfering with ReShade");
     ImGui::EndTooltip      ();
   }
 

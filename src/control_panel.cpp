@@ -4810,14 +4810,17 @@ SK_ImGui_ControlPanel (void)
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ();
-        ImGui::TextUnformatted ("Right-Click to Access G-Sync / Fast Sync Setup");
+        ImGui::TextUnformatted ("Right-Click to Access G-Sync / FastSync Setup");
 
         if (rb.gsync_state.capable && (! rb.gsync_state.maybe_active))
         {
           if (rb.presentation.mode == SK_PresentMode::Unknown)
           {
             ImGui::Separator ();
-            ImGui::BulletText ("PresentMon is not working correctly, G-Sync active state in D3D12 is unknown without it.");
+            ImGui::BulletText (
+              "PresentMon is not working correctly; "
+              "G-Sync status in D3D12 is unknown without it."
+            );
           }
 
           else if (rb.presentation.mode == SK_PresentMode::Composed_Flip         ||
@@ -4825,7 +4828,9 @@ SK_ImGui_ControlPanel (void)
                    rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI)
           {
             ImGui::Separator ();
-            ImGui::BulletText ("Your current Presentation Mode uses DWM Composition and cannot Activate G-Sync!");
+            ImGui::BulletText (
+              "The current Presentation Mode uses DWM Composition and cannot activate G-Sync"
+            );
           }
         }
         ImGui::EndTooltip ();
