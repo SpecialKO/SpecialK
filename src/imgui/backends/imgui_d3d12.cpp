@@ -1604,21 +1604,21 @@ D3D12GraphicsCommandList_CopyResource_Detour (
         D3D12_GPU_DESCRIPTOR_HANDLE dstUAVHandle_GPU;
         D3D12_CPU_DESCRIPTOR_HANDLE srcUAVHandle_CPU;
 
-        const size_t srvDescriptorSize =
+        const SIZE_T srvDescriptorSize =
           pDevice->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-        const auto srvCPUHeapStart =
-          descriptors.pComputeCopy->GetCPUDescriptorHandleForHeapStart ().ptr,
-                   srvGPUHeapStart =
+        const SIZE_T srvCPUHeapStart =
+          descriptors.pComputeCopy->GetCPUDescriptorHandleForHeapStart ().ptr;
+        const UINT64 srvGPUHeapStart =
           descriptors.pComputeCopy->GetGPUDescriptorHandleForHeapStart ().ptr;
 
-        dstUAVHandle_CPU.ptr = srvCPUHeapStart + static_cast <size_t> (swapIdx * 2    ) * srvDescriptorSize;
-        srcUAVHandle_CPU.ptr = srvCPUHeapStart + static_cast <size_t> (swapIdx * 2 + 1) * srvDescriptorSize;
+        dstUAVHandle_CPU.ptr = srvCPUHeapStart + static_cast <SIZE_T> (swapIdx * 2    ) * srvDescriptorSize;
+        srcUAVHandle_CPU.ptr = srvCPUHeapStart + static_cast <SIZE_T> (swapIdx * 2 + 1) * srvDescriptorSize;
 
         pDevice->CreateUnorderedAccessView (computeCopy.pStagingBuffer, nullptr, nullptr, dstUAVHandle_CPU);
         pDevice->CreateUnorderedAccessView (pSrcResource,               nullptr, nullptr, srcUAVHandle_CPU);
 
-        dstUAVHandle_GPU.ptr = srvGPUHeapStart + static_cast <size_t> (swapIdx * 2    ) * srvDescriptorSize;
+        dstUAVHandle_GPU.ptr = srvGPUHeapStart + static_cast <UINT64> (swapIdx * 2    ) * srvDescriptorSize;
 
         cmdList->SetComputeRootSignature       (     computeCopy.pSignature.p   );
         cmdList->SetPipelineState              (     computeCopy.pPipeline.p    );
