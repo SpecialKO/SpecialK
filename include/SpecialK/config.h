@@ -453,6 +453,7 @@ struct sk_config_t
     bool         copy_to_clipboard     =  true;
     bool         embed_nickname        = false;
     std::wstring override_path         =   L"";
+    std::wstring filename_format       = L"%G %F %T";
 
     struct avif_s {
       int        scrgb_bit_depth       =    10;

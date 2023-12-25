@@ -4566,7 +4566,6 @@ SK_DXGI_CreateSwapChain_PreInit (
   if (pDesc != nullptr)
   {
     orig_desc = *pDesc;
-    _ORIGINAL_SWAP_CHAIN_DESC = *pDesc;
 
     if (SK_GetCurrentGameID () == SK_GAME_ID::Elex2)
     {
@@ -5078,6 +5077,8 @@ SK_DXGI_CreateSwapChain_PreInit (
       pFullscreenDesc->Windowed         = pDesc->Windowed;
     }
   }
+
+  _ORIGINAL_SWAP_CHAIN_DESC = orig_desc;
 
   if (memcmp (&orig_desc, pDesc, sizeof (DXGI_SWAP_CHAIN_DESC)) != 0)
   {

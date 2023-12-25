@@ -1751,7 +1751,15 @@ SK_AchievementManager::drawPopups (void)
 
     if (! take_screenshot)
     {
-      SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::PrePresent, false);
+      auto text =
+        it->achievement->unlocked_ ? &it->achievement->text_.unlocked
+                                   : &it->achievement->text_.locked;
+
+      SK::SteamAPI::TakeScreenshot (
+        SK_ScreenshotStage::PrePresent, false,
+          SK_FormatString ("Achievements\\%ws", text->human_name.c_str ())
+                                   );
+
       take_screenshot = -1;
     }
   }

@@ -56,7 +56,8 @@ public:
                                  const SK_ComPtr <ID3D12CommandQueue>& pCmdQueue,
                                  const SK_ComPtr <IDXGISwapChain3>&    pSwapChain,
                                        bool                            allow_sound,
-                                       bool                            clipboard_only = false );
+                                       bool                            clipboard_only = false,
+                                       std::string                     title          = "" );
 
           ~SK_D3D12_Screenshot (void) {
             dispose ();

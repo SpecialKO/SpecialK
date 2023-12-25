@@ -40,7 +40,8 @@ public:
   explicit SK_GL_Screenshot (SK_GL_Screenshot&& moveFrom) noexcept : SK_Screenshot (moveFrom.bCopyToClipboard && (! moveFrom.bSaveToDisk)) { *this = std::move (moveFrom); }
   explicit SK_GL_Screenshot (const HGLRC        hDevice,
                                    bool         allow_sound,
-                                   bool         clipboard_only = false);
+                                   bool         clipboard_only = false,
+                                   std::string  title          = "");
 
           ~SK_GL_Screenshot (void) {
             dispose ();

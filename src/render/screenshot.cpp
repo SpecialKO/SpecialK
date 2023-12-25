@@ -41,8 +41,9 @@ SK_Screenshot::framebuffer_s::root_;
 SK_ScreenshotQueue::MemoryTotals SK_ScreenshotQueue::pooled;
 SK_ScreenshotQueue::MemoryTotals SK_ScreenshotQueue::completed;
 
-SK_ScreenshotQueue enqueued_screenshots { 0, 0, 0, 0, 0 };
-SK_ScreenshotQueue enqueued_sounds      { 0, 0, 0, 0, 0 };
+SK_ScreenshotQueue      enqueued_screenshots { 0,   0,  0,  0,  0 };
+SK_ScreenshotQueue      enqueued_sounds      { 0,   0,  0,  0,  0 };
+SK_ScreenshotTitleQueue enqueued_titles      { "", "", "", "", "" };
 
 void SK_Screenshot_PlaySound (void)
 {
@@ -437,6 +438,30 @@ SK_Screenshot::SK_Screenshot (bool clipboard_only)
 
   framebuffer.AllowCopyToClipboard = bCopyToClipboard;
   framebuffer.AllowSaveToDisk      = bSaveToDisk;
+
+  std::wstring format_str = config.screenshots.filename_format;
+
+  const std::wstring wide_name =
+    SK_UTF8ToWideChar (SK_GetFriendlyAppName ());
+
+  size_t  start = 0;
+  while ((start = format_str.find (L"%G", start)) != std::wstring::npos)
+  {
+    format_str.replace (start, 2, wide_name.c_str ());
+                        start  += wide_name.length ();
+  }
+
+  wchar_t   name [MAX_PATH] = { };   time_t   now;      time (&now);
+  wcsftime (name, MAX_PATH-1, format_str.c_str (), localtime (&now));
+
+  framebuffer.file_name = name;
+
+          start = 0; // Remove (replace with _) invalid filesystem characters
+  while ((start = framebuffer.file_name.find_first_of (LR"(\/:*?"<>|.	)", start)) != std::wstring::npos)
+  {
+    framebuffer.file_name.replace (start, 1, L"_");
+                                   start += 1;
+  }
 }
 
 #include <../depends/include/DirectXTex/d3dx12.h>
@@ -757,6 +782,26 @@ SK_WIC_SetMaximumQuality (IPropertyBag2 *props)
   VARIANT  var = { VT_R4,0,0,0, { .fltVal = 1.0f } };
 
   props->Write (1, &opt, &var);
+}
+
+void
+SK_WIC_SetMetadataTitle (IWICMetadataQueryWriter *pMQW, std::string& title)
+{
+  SK_WIC_SetBasicMetadata (pMQW);
+
+  if (! title.empty ())
+  {
+    PROPVARIANT       value;
+    PropVariantInit (&value);
+
+    value.vt     = VT_LPSTR;
+    value.pszVal = const_cast <char *> (title.c_str ());
+
+    pMQW->SetMetadataByName (
+      L"System.Title",
+      &value
+    );
+  }
 }
 
 void

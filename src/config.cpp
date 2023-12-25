@@ -595,6 +595,7 @@ struct {
   sk::ParameterBool*      copy_to_clipboard       = nullptr;
   sk::ParameterBool*      embed_nickname          = nullptr;
   sk::ParameterStringW*   override_path           = nullptr;
+  sk::ParameterStringW*   filename_format         = nullptr;
   sk::ParameterInt*       compression_quality     = nullptr;
   sk::ParameterBool*      compatibility_mode      = nullptr;
 
@@ -1408,6 +1409,7 @@ auto DeclKeybind =
     ConfigEntry (screenshots.copy_to_clipboard,          L"Copy an LDR copy to the Windows Clipboard",                 osd_ini,         L"Screenshot.System",     L"CopyToClipboard"),
     ConfigEntry (screenshots.embed_nickname,             L"Add Steam/Epic nickname as Author to Screenshot Metadata",  osd_ini,         L"Screenshot.System",     L"AuthorMetadata"),
     ConfigEntry (screenshots.override_path,              L"Where to store screenshots (if non-empty)",                 osd_ini,         L"Screenshot.System",     L"OverridePath"),
+    ConfigEntry (screenshots.filename_format,            L"wcsftime format; Non-Standard Specifier: %G = <Game Name>", osd_ini,         L"Screenshot.System",     L"FilenameFormat"),
     ConfigEntry (screenshots.compression_quality,        L"Compression Quality: 0=Worst, 100=Lossless",                osd_ini,         L"Screenshot.System",     L"Quality"),
     ConfigEntry (screenshots.compatibility_mode,         L"Use less advanced encoding in JPEG-XR and AVIF for compat.",osd_ini,         L"Screenshot.System",     L"CompatibilityMode"),
     ConfigEntry (screenshots.avif.use_avif,              L"Use AVIF file format for HDR screenshots",                  osd_ini,         L"Screenshot.System",     L"UseAVIF"),
@@ -4610,6 +4612,7 @@ auto DeclKeybind =
   screenshots.copy_to_clipboard->load         (config.screenshots.copy_to_clipboard);
   screenshots.embed_nickname->load            (config.screenshots.embed_nickname);
   screenshots.override_path->load             (config.screenshots.override_path);
+  screenshots.filename_format->load           (config.screenshots.filename_format);
 
   screenshots.compression_quality->load       (config.screenshots.compression_quality);
   screenshots.compatibility_mode->load        (config.screenshots.compatibility_mode);
@@ -5762,6 +5765,7 @@ SK_SaveConfig ( std::wstring name,
   screenshots.copy_to_clipboard->store         (config.screenshots.copy_to_clipboard);
   screenshots.embed_nickname->store            (config.screenshots.embed_nickname);
   screenshots.override_path->store             (config.screenshots.override_path);
+  screenshots.filename_format->store           (config.screenshots.filename_format);
 
   screenshots.compression_quality->store       (config.screenshots.compression_quality);
   screenshots.compatibility_mode->store        (config.screenshots.compatibility_mode);

@@ -60,7 +60,7 @@ namespace SK
     float __stdcall PercentOfAchievementsUnlocked (void);
     int   __stdcall NumberOfAchievementsUnlocked  (void);
 
-    bool  __stdcall TakeScreenshot   (SK_ScreenshotStage when = SK_ScreenshotStage::EndOfFrame, bool allow_sound = true);
+    bool  __stdcall TakeScreenshot   (SK_ScreenshotStage when = SK_ScreenshotStage::EndOfFrame, bool allow_sound = true, std::string title = "");
 
 
     AppId64_t    AppID           (void);

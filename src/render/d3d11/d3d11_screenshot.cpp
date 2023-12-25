@@ -71,6 +71,8 @@ SK_D3D11_Screenshot& SK_D3D11_Screenshot::operator= (SK_D3D11_Screenshot&& moveF
 
     framebuffer.hdr.avg_cll_nits     = std::exchange (fromBuffer.hdr.avg_cll_nits, 0.0f);
     framebuffer.hdr.max_cll_nits     = std::exchange (fromBuffer.hdr.max_cll_nits, 0.0f);
+    framebuffer.file_name            = std::exchange (fromBuffer.file_name,         L"");
+    framebuffer.title                = std::exchange (fromBuffer.title,              "");
 
     bPlaySound                       = moveFrom.bPlaySound;
     bSaveToDisk                      = moveFrom.bSaveToDisk;
@@ -290,8 +292,16 @@ struct ShaderBase
   }
 };
 
-SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevice, bool allow_sound = true, bool clipboard_only) : pDev (pDevice), SK_Screenshot (clipboard_only)
+SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevice, bool allow_sound = true, bool clipboard_only, std::string title) : pDev (pDevice), SK_Screenshot (clipboard_only)
 {
+  if (! title.empty ())
+  {
+    framebuffer.file_name = SK_UTF8ToWideChar (title);
+    framebuffer.title     = title;
+
+    PathStripPathA (framebuffer.title.data ());
+  }
+
   bPlaySound = allow_sound;
 
   SK_ScopedBool decl_tex_scope (
@@ -1056,7 +1066,8 @@ SK_D3D11_UnRegisterHUDShader ( uint32_t         bytecode_crc32c,
 bool
 SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
                               SK_ScreenshotStage::EndOfFrame,
-                              bool               allow_sound = true )
+                              bool               allow_sound = true,
+                              std::string        title       = "" )
 {
   static const SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
@@ -1102,6 +1113,11 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
         InterlockedIncrement (
           &enqueued_sounds.stages [stage]
         );
+      }
+
+      if (! title.empty ())
+      {
+        enqueued_titles.stages [stage] = title;
       }
 
       return true;
@@ -1186,9 +1202,12 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                 if ( allow_sound )
                   InterlockedDecrement (&enqueued_sounds.stages [stage]);
 
+                std::string                                title = "";
+                std::swap (enqueued_titles.stages [stage], title);
+
                 screenshot_queue->push (
                   new SK_D3D11_Screenshot (
-                    pDev, allow_sound, clipboard_only
+                    pDev, allow_sound, clipboard_only, title
                   )
                 );
               }
@@ -1315,12 +1334,10 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
               else if ( hdr )
               {
-                time_t screenshot_time = 0;
-                       codec           = WIC_CODEC_PNG;
+                codec = WIC_CODEC_PNG;
 
                 PathAppendW (         wszAbsolutePathToScreenshot,
-                  SK_FormatStringW ( LR"(LDR\%lu.png)",
-                              time (&screenshot_time) ).c_str () );
+                    SK_FormatStringW (LR"(LDR\%ws.png)", pFrameData->file_name.c_str ()).c_str ());
                 SK_CreateDirectories (wszAbsolutePathToScreenshot);
               }
 
@@ -1570,7 +1587,10 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                      GetWICCodec         (codec),
                                       wszAbsolutePathToScreenshot, nullptr,
                                         SK_WIC_SetMaximumQuality,
-                                        SK_WIC_SetBasicMetadata )
+                                        [&](IWICMetadataQueryWriter *pMQW)
+                                        {
+                                          SK_WIC_SetMetadataTitle (pMQW, pFrameData->title);
+                                        } )
                                 )
                    )
                 {
@@ -1601,7 +1621,10 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                         GetWICCodec                (codec),
                                           wszAbsolutePathToThumbnail, nullptr,
                                             SK_WIC_SetMaximumQuality,
-                                            SK_WIC_SetBasicMetadata );
+                                            [&](IWICMetadataQueryWriter *pMQW)
+                                            {
+                                              SK_WIC_SetMetadataTitle (pMQW, pFrameData->title);
+                                            } );
 
                       std::string ss_path (
                         SK_WideCharToUTF8 (wszAbsolutePathToScreenshot)
@@ -1693,6 +1716,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               fb_copy->PackedDstSlicePitch  = fb_orig->PackedDstSlicePitch;
               fb_copy->AllowCopyToClipboard = fb_orig->AllowCopyToClipboard;
               fb_copy->AllowSaveToDisk      = fb_orig->AllowSaveToDisk;
+              fb_copy->file_name            = fb_orig->file_name;
+              fb_copy->title                = fb_orig->title;
 
               fb_copy->PixelBuffer =
                 std::move (fb_orig->PixelBuffer);
@@ -1734,8 +1759,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   if (ReadAcquire (&__SK_DLL_Ending))
                     break;
 
-                  time_t screenshot_time = 0;
-
                   wchar_t       wszAbsolutePathToLossless [ MAX_PATH + 2 ] = { };
                   wcsncpy_s   ( wszAbsolutePathToLossless,  MAX_PATH,
                                   rb.screenshot_mgr->getBasePath (),
@@ -1748,15 +1771,15 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   if (hdr)
                   {
                     PathAppendW ( wszAbsolutePathToLossless,
-                      SK_FormatStringW ( L"HDR\\%lu.jxr",
-                                  time (&screenshot_time) ).c_str () );
+                      SK_FormatStringW ( L"HDR\\%ws.jxr",
+                                  pFrameData->file_name.c_str () ).c_str () );
                   }
 
                   else
                   {
                     PathAppendW ( wszAbsolutePathToLossless,
-                      SK_FormatStringW ( L"Lossless\\%lu.png",
-                                  time (&screenshot_time) ).c_str () );
+                      SK_FormatStringW ( L"Lossless\\%ws.png",
+                                  pFrameData->file_name.c_str () ).c_str () );
                   }
 
                   // Why's it on the wait-queue if it's not finished?!
@@ -1895,7 +1918,10 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                               props->Write (2, options, vars);
                             }
-                          }, SK_WIC_SetBasicMetadata
+                          }, [&](IWICMetadataQueryWriter *pMQW)
+                             {
+                               SK_WIC_SetMetadataTitle (pMQW, pFrameData->title);
+                             }
                         )  : E_POINTER;
                       }
 

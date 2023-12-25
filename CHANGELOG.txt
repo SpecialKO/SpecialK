@@ -1,4 +1,19 @@
-﻿23.12.25.2
+﻿23.12.25.3
+==========
+ + Added dedicated achievement screenshot file storage
+
+    * Stored as <Normal Screenshot Path>\Achievements\Name.{jxr|png|jpg|avif}
+
+ + Added customizable screenshot filenames; refer to std::wcsftime documentation
+
+     Global\osd.ini:
+
+       [Screenshot.System]
+       FilenamePattern={wcsftime specifiers},  Default:  %G %F %T
+
+     >> %G is a non-standard substitution that refers to the name of the game
+
+23.12.25.2
 ==========
  + Merge pull request #125 from Nustat0/fix-missing-drop-late-frames
     * Fix missing Drop Late Frames checkbox for DDraw/D3D8

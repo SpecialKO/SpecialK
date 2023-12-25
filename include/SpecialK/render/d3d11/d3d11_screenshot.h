@@ -42,7 +42,7 @@ class SK_D3D11_Screenshot : public SK_Screenshot
 {
 public:
   explicit SK_D3D11_Screenshot (          SK_D3D11_Screenshot&& moveFrom) : SK_Screenshot (moveFrom.bCopyToClipboard && (! moveFrom.bSaveToDisk)) { *this = std::move (moveFrom); }
-  explicit SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevice, bool allow_sound, bool clipboard_only = false);
+  explicit SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevice, bool allow_sound, bool clipboard_only = false, std::string title = "");
 
           ~SK_D3D11_Screenshot (void) {
             dispose ();

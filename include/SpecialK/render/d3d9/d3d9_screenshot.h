@@ -38,7 +38,8 @@ public:
   explicit SK_D3D9_Screenshot (               SK_D3D9_Screenshot&& moveFrom) : SK_Screenshot (moveFrom.bCopyToClipboard && (! moveFrom.bSaveToDisk)) { *this = std::move (moveFrom); }
   explicit SK_D3D9_Screenshot (const SK_ComPtr <IDirect3DDevice9>& pDevice,
                                      bool                          allow_sound,
-                                     bool                          clipboard_only = false);
+                                     bool                          clipboard_only = false,
+                                     std::string                   title          = "");
           ~SK_D3D9_Screenshot (void) {
             dispose ();
           }

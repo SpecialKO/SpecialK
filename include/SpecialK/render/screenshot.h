@@ -75,10 +75,36 @@ struct SK_ScreenshotQueue
     };
 };
 
+struct SK_ScreenshotTitleQueue
+{
+  union
+  {
+    // Queue Array
+    std::string stages [5];
+
+    struct
+    {
+      std::string pre_game_hud;
+
+      std::string without_sk_osd;
+      std::string with_sk_osd;
+      std::string with_everything;
+      std::string only_clipboard;
+    };
+  };
+
+  ~SK_ScreenshotTitleQueue (void)
+  {
+
+  }
+};
+
 extern SK_ScreenshotQueue
  enqueued_screenshots;
 extern SK_ScreenshotQueue
  enqueued_sounds;
+extern SK_ScreenshotTitleQueue
+ enqueued_titles;
 
 class                    SK_RenderBackend_V2;
 using SK_RenderBackend = SK_RenderBackend_V2;
@@ -180,6 +206,9 @@ public:
 
     bool            AllowSaveToDisk      = false;
     bool            AllowCopyToClipboard = false;
+
+    std::wstring    file_name;
+    std::string     title;
   };
 
   __inline
@@ -232,3 +261,6 @@ bool SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *ws
 
 void SK_WIC_SetMaximumQuality (IPropertyBag2 *props);
 void SK_WIC_SetBasicMetadata  (IWICMetadataQueryWriter *pMQW);
+void SK_WIC_SetMetadataTitle  (IWICMetadataQueryWriter *pMQW, std::string& title);
+
+extern std::string SK_GetFriendlyAppName (void);

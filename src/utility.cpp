@@ -3406,14 +3406,6 @@ public:
     return *p;
   }
 
-  //Severity	Code	Description	Project	File	Line	Suppression State
-  //Warning		Clang : do not overload unary operator&, it is dangerous.[google - runtime - operator]	SpecialK	C : \Users\amcol\source\repos\SpecialK\src\utility.cpp	2873
-
-  //T** operator& (void) noexcept
-  //{
-  //  return &p;
-  //}
-
   T* p;
 };
 
@@ -5344,10 +5336,10 @@ SK_Util_OpenURI (
 BOOL
 SK_IsHandleValid (HANDLE hHandle)
 {
-	auto dwInfo = 0UL;
+  auto dwInfo = 0UL;
 
   return
-	  ( 0 != GetHandleInformation (
+    ( 0 != GetHandleInformation (
              hHandle, &dwInfo ) &&
                      !(dwInfo & HANDLE_FLAG_PROTECT_FROM_CLOSE) );
 }
@@ -5355,22 +5347,22 @@ SK_IsHandleValid (HANDLE hHandle)
 BOOL
 SK_SafeCloseHandle (HANDLE hHandle) noexcept
 {
-	__try
-	{
-		if (! SK_IsHandleValid (hHandle))
+  __try
+  {
+    if (! SK_IsHandleValid (hHandle))
       return FALSE;
 
-		return
+    return
       CloseHandle (hHandle) ?
                        TRUE : FALSE;
-	}
+  }
 
-	__except (EXCEPTION_EXECUTE_HANDLER)
-	{
-		return FALSE;
-	}
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    return FALSE;
+  }
 
-	return TRUE;
+  return TRUE;
 }
 
 void

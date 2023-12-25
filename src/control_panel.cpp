@@ -3275,7 +3275,7 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
           ImGui::SameLine        ();
-          ImGui::Text            ((const char *)u8"Right-click to match Windows SDR white level (%5.1f cd/m²)",
+          ImGui::Text            ((const char *)u8"Right-click to match Windows SDR white level (%5.1f nits)",
                                   rb.displays [rb.active_display].hdr.white_level);
 
           ImGui::BulletText      ("Luminance levels above 50%% of slider range are "
