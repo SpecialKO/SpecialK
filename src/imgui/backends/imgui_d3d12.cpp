@@ -2804,8 +2804,8 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
   // Turn HDR off in dgVoodoo2 so it does not crash
 #ifdef _M_IX86
-  if ( __SK_HDR_16BitSwap ||
-       __SK_HDR_10BitSwap )
+  if ( (! config.render.dxgi.allow_d3d12_footguns ) &&
+       ( __SK_HDR_16BitSwap || __SK_HDR_10BitSwap ) )
   {
     SK_HDR_DisableOverridesForGame ();
     SK_RestartGame                 ();
