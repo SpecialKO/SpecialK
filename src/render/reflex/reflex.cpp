@@ -732,21 +732,53 @@ SK_NV_AdaptiveSyncControl (void)
                            &getAdaptiveSync )
              )
           {
-            NvU64 deltaFlipTime     = getAdaptiveSync.lastFlipTimeStamp - lastFlipTimeStamp;
-                  lastFlipTimeStamp = getAdaptiveSync.lastFlipTimeStamp;
+#ifdef _PRINT_EFFECTIVE_FPS
+            static constexpr auto      _SampleSize = 32;
+            struct {
+              NvU64 lastFlipTimeStamp [_SampleSize] = { 0 };
+              UINT  tail                            =   0;
+            } static flip_history;
 
-            if (deltaFlipTime > 0)
+            int flips = 0;
+
+            if (flip_history.lastFlipTimeStamp [flip_history.tail] != getAdaptiveSync.lastFlipTimeStamp && getAdaptiveSync.lastFlipRefreshCount <= 1)
             {
-              double dFlipRate  =
-                static_cast <double> (SK_GetFramesDrawn () - lastFlipFrame) *
-              ( static_cast <double> (deltaFlipTime) /
-                static_cast <double> (SK_PerfFreq) );
+              flip_history.tail++;
 
-                 dFlipPrint = dFlipRate;
-              lastFlipFrame = SK_GetFramesDrawn ();
+              if (flip_history.tail > _SampleSize-1)
+                  flip_history.tail = 0;
+
+              flip_history.lastFlipTimeStamp [flip_history.tail] = getAdaptiveSync.lastFlipTimeStamp;
             }
 
-            rb.gsync_state.update (true);
+            NvU64 oldest_flip = MAXUINT64;
+            NvU64 newest_flip = 0;
+
+            for (UINT i = 0 ; i < _SampleSize ; ++i)
+            {
+              newest_flip =
+                std::max (flip_history.lastFlipTimeStamp [i], newest_flip);
+            }
+
+            for (UINT i = 0 ; i < _SampleSize ; ++i)
+            {
+              if (flip_history.lastFlipTimeStamp [i] > newest_flip - SK_QpcFreq)// && (i == 0 || flip_history.lastFlipTimeStamp [i] != flip_history.lastFlipTimeStamp [i - 1]))
+              {
+                ++flips;
+
+                oldest_flip =
+                  std::min (flip_history.lastFlipTimeStamp [i], oldest_flip);
+              }
+            }
+
+            dFlipPrint =
+              static_cast <double> (flips)                     /
+             (static_cast <double> (newest_flip - oldest_flip
+#endif
+              rb.gsync_state.update (true);
+#ifdef _PRINT_EFFECTIVE_FPS
+            }
+#endif
           }
 
           else lastChecked = SK_timeGetTime () + 333;
@@ -761,11 +793,10 @@ SK_NV_AdaptiveSyncControl (void)
           ImGui::Text     ("Frame Splitting:");
 
           if (getAdaptiveSync.maxFrameInterval != 0)
-            ImGui::Text   ("Minimum Refresh:");
-                           
+          {
+            ImGui::Text     ("Minimum Refresh:");
+          }
         }
-        ImGui::Text       ("");
-      //ImGui::Text       ("Effective Refresh:");
         ImGui::EndGroup   ();
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
@@ -779,19 +810,18 @@ SK_NV_AdaptiveSyncControl (void)
                                                                      "Enabled" );
 
           if (getAdaptiveSync.maxFrameInterval != 0)
+          {
             ImGui::Text   ( "%#6.2f Hz ",
                              1000000.0 / static_cast <double> (getAdaptiveSync.maxFrameInterval) );
+          }
         }
-        ImGui::Text       ( "" );
-
-      //ImGui::Text       ( "%#6.2f Hz ", dFlipPrint);
-      //ImGui::Text       ( "\t\t\t\t\t\t\t\t" );
+        ImGui::Text       ( "\t\t\t\t" );
         
         ImGui::EndGroup   ();
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
 
-        static bool secret_menu = false;
+        static bool secret_menu = true;
 
         if (ImGui::IsItemClicked (1))
           secret_menu = true;
@@ -807,25 +837,32 @@ SK_NV_AdaptiveSyncControl (void)
                             "Disable Adaptive Sync"       :
                              "Enable Adaptive Sync" );
 
-          toggle_split =
-            ImGui::Button (
-              getAdaptiveSync.bDisableFrameSplitting == 0x0 ?
-                            "Disable Frame Splitting"       :
-                             "Enable Frame Splitting" );
+          if (! getAdaptiveSync.bDisableAdaptiveSync)
+          {
+            toggle_split =
+              ImGui::Button (
+                getAdaptiveSync.bDisableFrameSplitting == 0x0 ?
+                              "Disable Frame Splitting"       :
+                               "Enable Frame Splitting" );
+          }
         }
 
         ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
 
         if (rb.displays [rb.active_display].nvapi.monitor_caps.data.caps.isRLACapable)
         {
-          ImGui::SameLine   ();
-          ImGui::BeginGroup ();
           if (ImGui::Button ("Trigger Reflex Flash"))
           {
             rb.setLatencyMarkerNV (TRIGGER_FLASH);
           }
-          ImGui::EndGroup   ();
         }
+        ImGui::EndGroup   ();
+#ifdef _PRINT_EFFECTIVE_FPS
+        ImGui::SameLine   ();
+        ImGui::Text       ("Effective Refresh:\t%#6.2f Hz", dFlipPrint);
+#endif
 
         if (toggle_sync || toggle_split)
         {

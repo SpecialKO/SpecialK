@@ -1,4 +1,13 @@
-﻿23.12.24.3
+﻿
+23.12.25
+========
+ + Removed "Effective Refresh Rate" from Latency Analysis Widget, because it is
+     a high overhead NvAPI call and causes perf issues while looking at perf...
+ + Limited log spam on calls to IDXGISwapChain3::SetColorSpace1 (...)
+ + Added missing Source Copy <--> Unordered Access View transition barrier in
+     D3D12 when copying DLSS3's non-HDR surface for HDR processing.
+
+23.12.24.3
 ==========
  + Added tooltips to G-Sync Status when it reports "Supported + Inactive", to
      explain that either PresentMon is not working (D3D12) or the current
