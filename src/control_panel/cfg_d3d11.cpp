@@ -1888,22 +1888,26 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       ImGui::BeginGroup      ();
       ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
       if (_ORIGINAL_SWAP_CHAIN_DESC.OutputWindow == SK_GetGameWindow ( ) &&
-          _ORIGINAL_SWAP_CHAIN_DESC1.Format      != swap_desc.Format)
+          _ORIGINAL_SWAP_CHAIN_DESC1.Format      != swap_desc.Format     &&
+          _ORIGINAL_SWAP_CHAIN_DESC1.Format      != DXGI_FORMAT_UNKNOWN)
         ImGui::Text            ("%hs %hs  %hs",       SK_DXGI_FormatToStr (_ORIGINAL_SWAP_CHAIN_DESC1.Format).data (), (const char*)u8"\u2192",
                                                       SK_DXGI_FormatToStr (swap_desc.Format).data());
       else 
         ImGui::Text            ("%hs",                SK_DXGI_FormatToStr (swap_desc.Format).data ());
 
       if (_ORIGINAL_SWAP_CHAIN_DESC.OutputWindow == SK_GetGameWindow ( ) &&
-         (_ORIGINAL_SWAP_CHAIN_DESC1.Width       != swap_desc.Width       || 
-          _ORIGINAL_SWAP_CHAIN_DESC1.Height      != swap_desc.Height))
+         (_ORIGINAL_SWAP_CHAIN_DESC1.Width       != swap_desc.Width      || 
+          _ORIGINAL_SWAP_CHAIN_DESC1.Height      != swap_desc.Height)    &&
+         (_ORIGINAL_SWAP_CHAIN_DESC1.Width       != 0                    ||
+          _ORIGINAL_SWAP_CHAIN_DESC1.Height      != 0))
         ImGui::Text            ("%ux%u %hs %ux%u",                         _ORIGINAL_SWAP_CHAIN_DESC1.Width, _ORIGINAL_SWAP_CHAIN_DESC1.Height, (const char*)u8"\u2192",
                                                                            swap_desc.Width, swap_desc.Height);
       else
         ImGui::Text            ("%ux%u",                                   swap_desc.Width, swap_desc.Height);
       
-      if (_ORIGINAL_SWAP_CHAIN_DESC.OutputWindow == SK_GetGameWindow ( ) &&
-          _ORIGINAL_SWAP_CHAIN_DESC.BufferCount  != swap_desc.BufferCount)
+      if (_ORIGINAL_SWAP_CHAIN_DESC.OutputWindow == SK_GetGameWindow ( )  &&
+          _ORIGINAL_SWAP_CHAIN_DESC.BufferCount  != swap_desc.BufferCount &&
+          _ORIGINAL_SWAP_CHAIN_DESC.BufferCount  != 0)
         ImGui::Text            ("%lu %hs %lu",                             std::max (1U, _ORIGINAL_SWAP_CHAIN_DESC.BufferCount),  (const char*)u8"\u2192",
                                                                            std::max (1U, swap_desc.BufferCount));
       else
@@ -1919,7 +1923,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 
       std::string present_interval_text;
 
-      if (rb.present_interval_orig != rb.present_interval)
+      if (rb.present_interval_orig != rb.present_interval && rb.present_interval_orig != 0)
       {
         present_interval_text  += (rb.present_interval_orig == 0)
                                     ? "0: VSYNC OFF"          :
