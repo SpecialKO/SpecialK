@@ -1568,7 +1568,7 @@ ImGui_ImplDX11_Init ( IDXGISwapChain*      pSwapChain,
 {
   static SK_Thread_HybridSpinlock                   _init_lock;
   std::scoped_lock <SK_Thread_HybridSpinlock> lock (_init_lock);
-
+  
   ImGuiIO& io =
     ImGui::GetIO ();
 
