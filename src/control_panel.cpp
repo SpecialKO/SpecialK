@@ -6149,7 +6149,7 @@ SK_ImGui_ControlPanel (void)
         SK_RunOnce (SK_Platform_GetUserName (szName, 511));
 
         ImGui::SetTooltip (
-          "Add your platform's nickname ('%hs') to screenshots as their Author",
+          "Add your platform's nickname ('%hs') to screenshots as the Author",
                    szName );
       }
     }

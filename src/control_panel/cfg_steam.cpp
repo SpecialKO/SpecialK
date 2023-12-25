@@ -437,9 +437,13 @@ SK::ControlPanel::Steam::Draw (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
 
+    bool bDefaultOpen = false;
+
     // Uncollapse this header by default if the user is forcing the overlay off; make it obvious!
-    if (ImGui::CollapsingHeader ("Compatibility", config.steam.disable_overlay ? ImGuiTreeNodeFlags_DefaultOpen
-                                                                               : 0x0))
+    //if (config.steam.disable_overlay) bDefaultOpen = true;
+
+    if (ImGui::CollapsingHeader ("Compatibility", bDefaultOpen ? ImGuiTreeNodeFlags_DefaultOpen
+                                                               : 0x0))
     {
       ImGui::TreePush   ("");
       ImGui::BeginGroup (  );
@@ -466,11 +470,13 @@ SK::ControlPanel::Steam::Draw (void)
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("May prevent some Steam DRM-based games from hanging at startup.");
 
-      ImGui::EndGroup   ();
-      ImGui::SameLine   ();
-      ImGui::BeginGroup ();
+      ImGui::EndGroup   (  );
+      ImGui::SameLine   (  );
+      ImGui::BeginGroup (  );
 
-      if (ImGui::Checkbox (" Prevent Overlay From Drawing  ",  &config.steam.disable_overlay))
+      ImGui::Text       ("");
+
+      if (ImGui::Checkbox (" Prevent Overlay From Drawing  ",    &config.steam.disable_overlay))
       {
         SetEnvironmentVariable (
           L"SteamNoOverlayUIDrawing", config.steam.disable_overlay ?
@@ -481,7 +487,7 @@ SK::ControlPanel::Steam::Draw (void)
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Game Restart Required");
 
-      ImGui::Checkbox (" Disable User Stats Receipt Callback", &config.steam.block_stat_callback);
+      ImGui::Checkbox (" Disable User Stats Receipt Callback",   &config.steam.block_stat_callback);
 
       if (ImGui::IsItemHovered ())
       {
