@@ -5058,8 +5058,6 @@ SK_DXGI_CreateSwapChain_PreInit (
   if ( pDesc1 != nullptr &&
        pDesc  != nullptr && translated )
   {
-    _ORIGINAL_SWAP_CHAIN_DESC1 = *pDesc1;
-
     pDesc1->BufferCount = pDesc->BufferCount;
     pDesc1->BufferUsage = pDesc->BufferUsage;
     pDesc1->Flags       = pDesc->Flags;

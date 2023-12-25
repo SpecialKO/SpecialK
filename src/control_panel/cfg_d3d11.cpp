@@ -1851,7 +1851,6 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 
       extern UINT uiOriginalBltSampleCount;
       extern DXGI_SWAP_CHAIN_DESC  _ORIGINAL_SWAP_CHAIN_DESC;
-      extern DXGI_SWAP_CHAIN_DESC1 _ORIGINAL_SWAP_CHAIN_DESC1;
 
       ImGui::BeginTooltip      ();
       ImGui::PushStyleColor    (ImGuiCol_Text, ImVec4 (0.95f, 0.95f, 0.45f, 1.0f));
@@ -1887,20 +1886,21 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 
       ImGui::BeginGroup      ();
       ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.0f, 1.0f, 1.0f, 1.0f));
-      if (_ORIGINAL_SWAP_CHAIN_DESC.OutputWindow == SK_GetGameWindow ( ) &&
-          _ORIGINAL_SWAP_CHAIN_DESC1.Format      != swap_desc.Format     &&
-          _ORIGINAL_SWAP_CHAIN_DESC1.Format      != DXGI_FORMAT_UNKNOWN)
-        ImGui::Text            ("%hs %hs  %hs",       SK_DXGI_FormatToStr (_ORIGINAL_SWAP_CHAIN_DESC1.Format).data (), (const char*)u8"\u2192",
+      if (_ORIGINAL_SWAP_CHAIN_DESC.OutputWindow == SK_GetGameWindow ( )   &&
+          _ORIGINAL_SWAP_CHAIN_DESC.BufferDesc.Format != swap_desc.Format  &&
+          _ORIGINAL_SWAP_CHAIN_DESC.BufferDesc.Format != DXGI_FORMAT_UNKNOWN)
+        ImGui::Text            ("%hs %hs  %hs",       SK_DXGI_FormatToStr (_ORIGINAL_SWAP_CHAIN_DESC.BufferDesc.Format).data (), (const char*)u8"\u2192",
                                                       SK_DXGI_FormatToStr (swap_desc.Format).data());
       else 
         ImGui::Text            ("%hs",                SK_DXGI_FormatToStr (swap_desc.Format).data ());
 
-      if (_ORIGINAL_SWAP_CHAIN_DESC.OutputWindow == SK_GetGameWindow ( ) &&
-         (_ORIGINAL_SWAP_CHAIN_DESC1.Width       != swap_desc.Width      || 
-          _ORIGINAL_SWAP_CHAIN_DESC1.Height      != swap_desc.Height)    &&
-         (_ORIGINAL_SWAP_CHAIN_DESC1.Width       != 0                    ||
-          _ORIGINAL_SWAP_CHAIN_DESC1.Height      != 0))
-        ImGui::Text            ("%ux%u %hs %ux%u",                         _ORIGINAL_SWAP_CHAIN_DESC1.Width, _ORIGINAL_SWAP_CHAIN_DESC1.Height, (const char*)u8"\u2192",
+      if (_ORIGINAL_SWAP_CHAIN_DESC.OutputWindow == SK_GetGameWindow ( )   &&
+         (_ORIGINAL_SWAP_CHAIN_DESC.BufferDesc.Width  != swap_desc.Width   || 
+          _ORIGINAL_SWAP_CHAIN_DESC.BufferDesc.Height != swap_desc.Height) &&
+         (_ORIGINAL_SWAP_CHAIN_DESC.BufferDesc.Width  != 0                 ||
+          _ORIGINAL_SWAP_CHAIN_DESC.BufferDesc.Height != 0))
+        ImGui::Text            ("%ux%u %hs %ux%u",                         _ORIGINAL_SWAP_CHAIN_DESC.BufferDesc.Width,
+                                                                           _ORIGINAL_SWAP_CHAIN_DESC.BufferDesc.Height, (const char*)u8"\u2192",
                                                                            swap_desc.Width, swap_desc.Height);
       else
         ImGui::Text            ("%ux%u",                                   swap_desc.Width, swap_desc.Height);
