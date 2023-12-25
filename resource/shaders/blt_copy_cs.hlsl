@@ -1,5 +1,5 @@
-#define GROUP_SIZE_X 32
-#define GROUP_SIZE_Y 32
+#define GROUP_SIZE_X 16
+#define GROUP_SIZE_Y 16
 
 #if 0
 RWTexture2D <float4> texOutput : register (u0);

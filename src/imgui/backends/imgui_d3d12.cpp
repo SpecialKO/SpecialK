@@ -1607,10 +1607,10 @@ D3D12GraphicsCommandList_CopyResource_Detour (
 #endif
 
       const int copy_stage =
-        (computeCopy.current_stage++ % 2);
+        (computeCopy.current_stage++ % 8);
 
       const int descriptor_base_idx =
-        (swapIdx * 2) + (copy_stage * 2);
+        (swapIdx * 8) + (copy_stage * 8);
 
       if (copy_stage == 0)
         cmdList->EndQuery (queries.dlssg.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, swapIdx * 2);
@@ -1659,8 +1659,8 @@ D3D12GraphicsCommandList_CopyResource_Detour (
         DstBarrier [2].Transition.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
         DstBarrier [2].Transition.StateAfter  = D3D12_RESOURCE_STATE_COPY_DEST;
 
-      static constexpr UINT                                            _BltTileSizeX = 32U;
-      static constexpr UINT                                            _BltTileSizeY = 32U;
+      static constexpr UINT                                            _BltTileSizeX = 16U;
+      static constexpr UINT                                            _BltTileSizeY = 16U;
                  const UINT
         ThreadGroupCountX = (sk::narrow_cast <UINT> (src_desc.Width) + _BltTileSizeX - 1) / _BltTileSizeX,
         ThreadGroupCountY = (                        src_desc.Height + _BltTileSizeY - 1) / _BltTileSizeY,
@@ -2943,7 +2943,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       ThrowIfFailed (
         _pDevice->CreateDescriptorHeap (
           std::array < D3D12_DESCRIPTOR_HEAP_DESC,                1 >
-            {          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,    swapDesc1.BufferCount * 4,
+            {          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,    swapDesc1.BufferCount * 32,
                        D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 }.data (),
                                        IID_PPV_ARGS (&descriptorHeaps.pComputeCopy.p)));
                               SK_D3D12_SetDebugName ( descriptorHeaps.pComputeCopy.p,
