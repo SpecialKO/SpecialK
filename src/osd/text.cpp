@@ -1613,7 +1613,7 @@ SK_DrawOSD (void)
       OSD_END
     }
 
-    OSD_P_PRINTF "\n" OSD_END
+    OSD_P_PRINTF "\n\n" OSD_END
   }
 
   // Avoid unnecessary MMIO when the user has the OSD turned off
@@ -1834,6 +1834,13 @@ auto SK_CountLines =
     line [num_lines];
     line [num_lines] == '\n' ? num_lines++ :
                                    *line++ );
+
+  // Each visible section of the OSD adds newlines at the end to
+  //   push any follow-up sections down (solves various complex
+  //     combinations), which means we need to ignore the final
+  //       couple of newlines here...
+  if (num_lines >= 2)
+      num_lines -= 2;
 
   return
     num_lines;
