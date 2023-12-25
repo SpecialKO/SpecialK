@@ -554,11 +554,11 @@ struct SK_D3D12_RenderCtx {
   struct {
     SK_ComPtr <ID3D12PipelineState>       pPipeline           = nullptr;
     SK_ComPtr <ID3D12RootSignature>       pSignature          = nullptr;
-    SK_ComPtr <ID3D12Resource>            pStagingBuffer      = nullptr;
-    UINT64                                GPUTimestampFreq    =    0ULL;
-    GPUDuration                           timestamps          = { 0,0 };
+    GPUDuration                           timestamps [2]      = { { 0,0 }, { 0,0 } };
     UINT64                                lastFrameActive     =       0;
     UINT64                                lastFrameIdx        =       0;
+    UINT64                                GPUTimestampFreq    =    0ULL;
+    int                                   current_stage       =       0; // DLSS-G does 2 copies back-to-back
     SK_D3D12_RenderCtx::FenceCtx          dlssg_fence;
   } computeCopy;
 
@@ -599,7 +599,7 @@ struct SK_D3D12_RenderCtx {
       D3D12_RECT                          scissor             = {   };
       D3D12_VIEWPORT                      vp                  = {   };
 
-      UINT                               format_conversions  = 0;
+      UINT                                format_conversions  = 0;
 
       struct {
         SK_D3D12_StateTransition          process  [2]        = {

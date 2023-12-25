@@ -1195,10 +1195,9 @@ public:
       {
         ImGui::BeginTooltip ();
         {
-          ImGui::Text       ("Slight performance boost versus scRGB on low-end GPUs and special cases (i.e. DLSS Frame Generation)");
+          ImGui::Text       ("Very slight performance boost vs. scRGB on low-end GPUs and DLSS Frame Generation");
           ImGui::Separator  ();
-          ImGui::BulletText ("In D3D11, HDR10 may reduce HDR quality.");
-          ImGui::BulletText ("This mode is much newer than scRGB, and may not work in all games.");
+          ImGui::BulletText ("This mode is much newer to SK than scRGB, and may not work in all games.");
           ImGui::BulletText ("SK's UI Luminance setting is inaccurate in HDR10; ignore nits values and use whatever looks best.");
         }
         ImGui::EndTooltip ();
@@ -1419,7 +1418,7 @@ public:
 
         if (rb.api == SK_RenderAPI::D3D12)
         {
-          dComputeCopyTime = _d3d12_rbk->computeCopy.timestamps.GetMilliseconds (
+          dComputeCopyTime = _d3d12_rbk->computeCopy.timestamps [0].GetMilliseconds (
                              _d3d12_rbk->computeCopy.GPUTimestampFreq);
         }
 

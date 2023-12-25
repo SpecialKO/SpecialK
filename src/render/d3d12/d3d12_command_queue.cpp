@@ -148,8 +148,8 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
 
       if (SUCCEEDED (_d3d12_rbk->queries.dlssg.pReadBack.p->Map (0, &range, (void **)&timestamps)))
       {
-        compute.timestamps.Start = timestamps [0];
-        compute.timestamps.End   = timestamps [1];
+        compute.timestamps [0].Start = timestamps [0];
+        compute.timestamps [0].End   = timestamps [1];
 
                                                         range = { 0, 0 };
         _d3d12_rbk->queries.dlssg.pReadBack->Unmap (0, &range);

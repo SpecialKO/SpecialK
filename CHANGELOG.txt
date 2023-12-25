@@ -1,4 +1,10 @@
-﻿
+﻿23.12.25.1
+==========
+ + Eliminated 2 framebuffer copies per-DLSS3 generated frame output when HDR
+     format conversion is required (i.e. scRGB from 10-bpc or HDR10 from 8-bpc)
+
+    >> Perf. difference between HDR10 and scRGB framegen is now virtually zero
+
 23.12.25
 ========
  + Removed "Effective Refresh Rate" from Latency Analysis Widget, because it is
