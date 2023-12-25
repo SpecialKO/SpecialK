@@ -1923,7 +1923,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
 
       std::string present_interval_text;
 
-      if (rb.present_interval_orig != rb.present_interval && rb.present_interval_orig != 0)
+      if (rb.present_interval_orig != rb.present_interval)
       {
         present_interval_text  += (rb.present_interval_orig == 0)
                                     ? "0: VSYNC OFF"          :
