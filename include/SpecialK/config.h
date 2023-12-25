@@ -333,6 +333,7 @@ struct sk_config_t
     bool        filter_stat_callback  = false;
     bool        spoof_BLoggedOn       = false;
     bool        auto_inject           =  true;  // Control implicit steam_api.dll bootstrapping
+    bool        disable_overlay       = false;  // Sets an Env. Var to prevent drawing
 
     struct screenshot_handler_s {
       bool      enable_hook           =  true;

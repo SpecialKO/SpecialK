@@ -437,10 +437,14 @@ SK::ControlPanel::Steam::Draw (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
 
-    if (ImGui::CollapsingHeader ("Compatibility"))
+    // Uncollapse this header by default if the user is forcing the overlay off; make it obvious!
+    if (ImGui::CollapsingHeader ("Compatibility", config.steam.disable_overlay ? ImGuiTreeNodeFlags_DefaultOpen
+                                                                               : 0x0))
     {
-      ImGui::TreePush ("");
-      ImGui::Checkbox (" Bypass Online \"DRM\" Checks  ",      &config.steam.spoof_BLoggedOn);
+      ImGui::TreePush   ("");
+      ImGui::BeginGroup (  );
+
+      ImGui::Checkbox   (" Bypass Online \"DRM\" Checks  ",      &config.steam.spoof_BLoggedOn);
 
       if (ImGui::IsItemHovered ())
       {
@@ -452,17 +456,30 @@ SK::ControlPanel::Steam::Draw (void)
         ImGui::EndTooltip   ();
       }
 
-      ImGui::Checkbox (" Load Steam Overlay Early  ",          &config.steam.preload_overlay);
+      ImGui::Checkbox   (" Load Steam Overlay Early  ",          &config.steam.preload_overlay);
 
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Can make the Steam Overlay work in situations it otherwise would not.");
 
-      ImGui::SameLine ();
-
-      ImGui::Checkbox (" Load Steam Client DLL Early  ",       &config.steam.preload_client);
+      ImGui::Checkbox   (" Load Steam Client DLL Early  ",       &config.steam.preload_client);
 
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("May prevent some Steam DRM-based games from hanging at startup.");
+
+      ImGui::EndGroup   ();
+      ImGui::SameLine   ();
+      ImGui::BeginGroup ();
+
+      if (ImGui::Checkbox (" Prevent Overlay From Drawing  ",  &config.steam.disable_overlay))
+      {
+        SetEnvironmentVariable (
+          L"SteamNoOverlayUIDrawing", config.steam.disable_overlay ?
+                                                              L"1" : L"0"
+        );
+      }
+
+      if (ImGui::IsItemHovered ())
+        ImGui::SetTooltip ("Game Restart Required");
 
       ImGui::Checkbox (" Disable User Stats Receipt Callback", &config.steam.block_stat_callback);
 
@@ -476,6 +493,7 @@ SK::ControlPanel::Steam::Draw (void)
         ImGui::EndTooltip   ();
       }
 
+      ImGui::EndGroup ();
       ImGui::TreePop  ();
     }
 

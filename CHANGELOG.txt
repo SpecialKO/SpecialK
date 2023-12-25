@@ -1,4 +1,11 @@
-﻿23.12.25.1
+﻿23.12.26
+========
+ + Added INI option to prevent the Steam Overlay from drawing
+
+    [Steam.System]
+    NoDrawOverlay={true|false} (Default: false)
+
+23.12.25.1
 ==========
  + Eliminated 2 framebuffer copies per-DLSS3 generated frame output when HDR
      format conversion is required (i.e. scRGB from 10-bpc or HDR10 from 8-bpc)

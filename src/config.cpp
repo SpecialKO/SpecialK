@@ -579,6 +579,7 @@ struct
 
   struct {
     sk::ParameterFloat*   hdr_luminance           = nullptr;
+    sk::ParameterBool*    no_draw                 = nullptr;
   } overlay;
 
   struct {
@@ -1839,6 +1840,7 @@ auto DeclKeybind =
                                                          L" application start",                                        dll_ini,         L"Steam.Social",          L"OnlineStatus"),
     ConfigEntry (steam.system.dll_path,                  L"Path to a known-working SteamAPI dll for this game.",       dll_ini,         L"Steam.System",          L"SteamPipeDLL"),
     ConfigEntry (steam.callbacks.throttle,               L"-1=Unlimited, 0-oo=Upper bound limit to SteamAPI rate",     dll_ini,         L"Steam.System",          L"CallbackThrottle"),
+    ConfigEntry (platform.overlay.no_draw,               L"Disable Steam Overlay using 'SteamNoOverlayUIDrawing'",     dll_ini,         L"Steam.System",          L"NoDrawOverlay"),
 
     // This option is per-game, since it has potential compatibility issues...
     ConfigEntry (steam.screenshots.smart_capture,        L"Enhanced screenshot speed and HUD options; D3D11-only.",    dll_ini,         L"Steam.Screenshots",     L"EnableSmartCapture"),
@@ -4582,6 +4584,16 @@ auto DeclKeybind =
                                       throttle );
   }
 
+  if (platform.overlay.no_draw->load (config.steam.disable_overlay))
+  {
+    if (config.steam.disable_overlay)
+    {
+      SetEnvironmentVariable (
+        L"SteamNoOverlayUIDrawing", L"1"
+      );
+    }
+  }
+
   platform.system.reuse_overlay_pause->load   (config.platform.reuse_overlay_pause);
   platform.overlay.hdr_luminance->load        (config.platform.overlay_hdr_luminance);
   uplay.overlay.hdr_luminance->load           (config.uplay.overlay_luminance);
@@ -5723,6 +5735,7 @@ SK_SaveConfig ( std::wstring name,
   steam.system.force_load->store               (config.steam.force_load_steamapi);
   steam.system.auto_inject->store              (config.steam.auto_inject);
   steam.system.dll_path->store                 (config.steam.dll_path);
+  platform.overlay.no_draw->store              (config.steam.disable_overlay);
 
   steam.callbacks.throttle->store              (ReadAcquire (&SK_SteamAPI_CallbackRateLimit));
 

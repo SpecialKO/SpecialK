@@ -1437,9 +1437,9 @@ public:
 
         static char   szProcessingText [128] = { };
         static const char* string_format [ ] = {
-          "Format Conversion Passes:\t%d\t\tDLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms",
+          "Format Conversion Passes:\t%u\t\tDLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms",
                                            "DLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms",
-                                               "Format Conversion Passes:\t%ul\t\tHDR Processing:\t%5.4f ms",
+                                                "Format Conversion Passes:\t%u\t\tHDR Processing:\t%5.4f ms",
                                                                                  "HDR Processing:\t%5.4f ms"
         };
 
@@ -1470,11 +1470,11 @@ public:
           if (ImGui::IsItemHovered ())
           {
             ImGui::BeginTooltip    ();
-            ImGui::TextUnformatted ("The game is not natively outputting the selected HDR color depth");
+            ImGui::TextUnformatted ("The game is not natively rendering in the selected HDR color depth");
             ImGui::Separator       ();
-            ImGui::BulletText      ("Additional GPU resources are required to upconvert the game's output.");
+            ImGui::BulletText      ("Additional GPU resources are being used to upconvert the game's output");
             if (__SK_HDR_16BitSwap)
-              ImGui::BulletText    ("If GPU performance is a factor, HDR10 may improve framerate.");
+              ImGui::BulletText    ("If GPU performance is a factor, HDR10 may improve framerate");
             ImGui::EndTooltip      ();
           }
         }
