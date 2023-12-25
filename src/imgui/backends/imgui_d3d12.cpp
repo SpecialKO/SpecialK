@@ -1525,9 +1525,7 @@ D3D12GraphicsCommandList_CopyResource_Detour (
     ( __SK_HDR_16BitSwap ||
       __SK_HDR_10BitSwap ||
         had_hdr_override ) && pDstResource != nullptr &&
-                              pSrcResource != nullptr &&
-        (! _d3d12_rbk->frames_.empty ()) &&
-           _d3d12_rbk->frames_ [0].fence.p != nullptr;
+                              pSrcResource != nullptr;
 
   if (! bMayNeedCopyAssist)
   {
@@ -1562,17 +1560,23 @@ D3D12GraphicsCommandList_CopyResource_Detour (
       typelessBackbuffer = DirectX::MakeTypeless (swapDesc.BufferDesc.Format);
     
     if ( typelessSrc != typelessDst &&
+                        typelessDst == typelessBackbuffer &&
            DirectX::BitsPerColor (src_desc.Format) !=
-           DirectX::BitsPerColor (dst_desc.Format) &&
-             typelessDst == typelessBackbuffer )
-    { // Permit size mismatches, otherwise resizing the SwapChain asynchronously
+           DirectX::BitsPerColor (dst_desc.Format) )
+    {
+      if ( _d3d12_rbk->frames_.empty () ||
+           _d3d12_rbk->frames_ [0].fence.p == nullptr )
+      {
+        SK_RunOnce (SK_LOGi0 (L"Cannot perform HDR CopyBuffer because D3D12 Render Backend is not initialized yet..."));
+        return;
+      }
+
+      // Permit size mismatches, otherwise resizing the SwapChain asynchronously
       //   to the queue this command is running on might break stuff...
       if (This->GetType () == D3D12_COMMAND_LIST_TYPE_DIRECT)
       {
         //// We're copying to the SwapChain, so we can use SK's Blitter to copy an incompatible format
         SK_D3D12_HDR_CopyBuffer (This, pSrcResource, pDstResource);
-
-        return;
       }
 
       if ( This->GetType () == D3D12_COMMAND_LIST_TYPE_COMPUTE
@@ -1590,30 +1594,31 @@ D3D12GraphicsCommandList_CopyResource_Detour (
         auto& descriptors = _d3d12_rbk->descriptorHeaps;
         auto& computeCopy = _d3d12_rbk->computeCopy;
 
+#ifdef SK_PROFILE_WITH_PIX
         PIXBeginEvent (cmdList, 0, "DLSSG Format Conversion");
+#endif
 
         cmdList->EndQuery (queries.dlssg.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, swapIdx * 2);
 
         D3D12_CPU_DESCRIPTOR_HANDLE dstUAVHandle_CPU;
+        D3D12_GPU_DESCRIPTOR_HANDLE dstUAVHandle_GPU;
         D3D12_CPU_DESCRIPTOR_HANDLE srcUAVHandle_CPU;
 
-        const auto srvDescriptorSize =
+        const size_t srvDescriptorSize =
           pDevice->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
         const auto srvCPUHeapStart =
-          descriptors.pComputeCopy->GetCPUDescriptorHandleForHeapStart ().ptr;
-
-        const auto srvGPUHeapStart =
+          descriptors.pComputeCopy->GetCPUDescriptorHandleForHeapStart ().ptr,
+                   srvGPUHeapStart =
           descriptors.pComputeCopy->GetGPUDescriptorHandleForHeapStart ().ptr;
 
-        dstUAVHandle_CPU.ptr = srvCPUHeapStart + (swapIdx * 2    ) * srvDescriptorSize;
-        srcUAVHandle_CPU.ptr = srvCPUHeapStart + (swapIdx * 2 + 1) * srvDescriptorSize;
+        dstUAVHandle_CPU.ptr = srvCPUHeapStart + static_cast <size_t> (swapIdx * 2    ) * srvDescriptorSize;
+        srcUAVHandle_CPU.ptr = srvCPUHeapStart + static_cast <size_t> (swapIdx * 2 + 1) * srvDescriptorSize;
 
         pDevice->CreateUnorderedAccessView (computeCopy.pStagingBuffer, nullptr, nullptr, dstUAVHandle_CPU);
         pDevice->CreateUnorderedAccessView (pSrcResource,               nullptr, nullptr, srcUAVHandle_CPU);
 
-        D3D12_GPU_DESCRIPTOR_HANDLE dstUAVHandle_GPU
-          { .ptr = srvGPUHeapStart + (swapIdx * 2) * srvDescriptorSize };
+        dstUAVHandle_GPU.ptr = srvGPUHeapStart + static_cast <size_t> (swapIdx * 2    ) * srvDescriptorSize;
 
         cmdList->SetComputeRootSignature       (     computeCopy.pSignature.p   );
         cmdList->SetPipelineState              (     computeCopy.pPipeline.p    );
@@ -1625,27 +1630,24 @@ D3D12GraphicsCommandList_CopyResource_Detour (
               D3D12_RESOURCE_STATE_UNORDERED_ACCESS, pSrcResource } };
 
         SK_D3D12_StateTransition DstBarrier [] =
-          { 
-            { D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-              D3D12_RESOURCE_STATE_COPY_SOURCE,      pSrcResource },
+          { { D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+              D3D12_RESOURCE_STATE_COPY_SOURCE,      pSrcResource                 },
             { D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
               D3D12_RESOURCE_STATE_COPY_SOURCE,      computeCopy.pStagingBuffer.p },
             { D3D12_RESOURCE_STATE_COPY_SOURCE,
-              D3D12_RESOURCE_STATE_UNORDERED_ACCESS, computeCopy.pStagingBuffer.p },
-            
-        };
+              D3D12_RESOURCE_STATE_UNORDERED_ACCESS, computeCopy.pStagingBuffer.p } };
 
-        static constexpr UINT                                        _BltTileSizeX = 32U;
-        static constexpr UINT                                        _BltTileSizeY = 32U;
-        const UINT
-          ThreadGroupCountX = (static_cast <UINT> (src_desc.Width) + _BltTileSizeX - 1) / _BltTileSizeX,
-          ThreadGroupCountY = (                    src_desc.Height + _BltTileSizeY - 1) / _BltTileSizeY,
+        static constexpr UINT                                            _BltTileSizeX = 32U;
+        static constexpr UINT                                            _BltTileSizeY = 32U;
+                   const UINT
+          ThreadGroupCountX = (sk::narrow_cast <UINT> (src_desc.Width) + _BltTileSizeX - 1) / _BltTileSizeX,
+          ThreadGroupCountY = (                        src_desc.Height + _BltTileSizeY - 1) / _BltTileSizeY,
           ThreadGroupCountZ = 1;
 
         constexpr auto query_type =
                  D3D12_QUERY_TYPE_TIMESTAMP;
 
-        cmdList->ResourceBarrier               ( 1,  SrcBarrier                           );
+        cmdList->ResourceBarrier               ( 1, &gsl::at (SrcBarrier, 0)              );
         cmdList->Dispatch                      ( ThreadGroupCountX, ThreadGroupCountY,
                                                                     ThreadGroupCountZ     );
         cmdList->ResourceBarrier               ( 2, &DstBarrier [0]                       );
@@ -1655,15 +1657,18 @@ D3D12GraphicsCommandList_CopyResource_Detour (
         cmdList->EndQuery                      ( queries.dlssg.pHeap.p, query_type, swapIdx * 2 + 1);
         cmdList->ResolveQueryData              ( queries.dlssg.pHeap.p, query_type, swapIdx * 2, 2,
                                                  queries.dlssg.pReadBack.p,             0 );
+
+#ifdef SK_PROFILE_WITH_PIX
         PIXEndEvent (cmdList);
+#endif
 
         _d3d12_rbk->computeCopy.lastFrameActive =
                               SK_GetFramesDrawn ();
 
         SK_DLSSG_CopyCommandList = cmdList;
-
-        return;
       }
+
+      return;
     }
   }
 
@@ -1911,7 +1916,7 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
        _d3d12_rbk->_pCommandQueue.p == nullptr ||
        _d3d12_rbk->_pSwapChain.p    == nullptr )
   {
-    SK_LOGi0 (L"Cannot perform HDR CopyBuffer because D3D12 Render Backend is not initialized yet...");
+    SK_RunOnce (SK_LOGi0 (L"Cannot perform HDR CopyBuffer because D3D12 Render Backend is not initialized yet..."));
     return;
   }
 
@@ -3009,12 +3014,12 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                                      SK_D3D12_SetDebugName ( computeCopy.pStagingBuffer.p,
                                                  L"SK D3D12 Compute Copy Staging Buffer" );
 
-      const auto  rtvDescriptorSize =
+      const size_t rtvDescriptorSize =
         _pDevice->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-      const auto  srvDescriptorSize =
+      const size_t srvDescriptorSize =
         _pDevice->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-      auto        rtvHandle         =
+      auto         rtvHandle         =
         descriptorHeaps.pBackBuffers->GetCPUDescriptorHandleForHeapStart ();
 
       int bufferIdx = 0;
@@ -3166,12 +3171,6 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       }
 
       // Create the root signature
-      D3D12_DESCRIPTOR_RANGE
-        srv_range                    = {};
-        srv_range.RangeType          = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-        srv_range.NumDescriptors     = 2;
-        srv_range.BaseShaderRegister = 0; // t0, t1 (texLastFrame0)
-
       D3D12_ROOT_PARAMETER
         param [3]                                     = { };
 
@@ -3183,27 +3182,33 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         param [1].Constants.Num32BitValues            = 16;// cbuffer colorSpaceTransform : register (b0)
         param [1].ShaderVisibility                    = D3D12_SHADER_VISIBILITY_PIXEL;
 
+      D3D12_DESCRIPTOR_RANGE
+        srv_range                                     = { };
+        srv_range.RangeType                           = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+        srv_range.NumDescriptors                      = 2;
+        srv_range.BaseShaderRegister                  = 0; // t0, t1 (texLastFrame0)
+
         param [2].ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
         param [2].DescriptorTable.NumDescriptorRanges = 1;
         param [2].DescriptorTable.pDescriptorRanges   = &srv_range;
         param [2].ShaderVisibility                    = D3D12_SHADER_VISIBILITY_PIXEL;
 
       D3D12_STATIC_SAMPLER_DESC
-        staticSampler                  = { };
-        staticSampler.AddressU         = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-        staticSampler.AddressV         = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-        staticSampler.AddressW         = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
-        staticSampler.ComparisonFunc   = D3D12_COMPARISON_FUNC_NEVER;
-        staticSampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+        staticSampler                                 = { };
+        staticSampler.AddressU                        = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+        staticSampler.AddressV                        = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+        staticSampler.AddressW                        = D3D12_TEXTURE_ADDRESS_MODE_CLAMP;
+        staticSampler.ComparisonFunc                  = D3D12_COMPARISON_FUNC_NEVER;
+        staticSampler.ShaderVisibility                = D3D12_SHADER_VISIBILITY_PIXEL;
 
       D3D12_ROOT_SIGNATURE_DESC
-        desc                   = { };
-        desc.NumParameters     = _countof (param);
-        desc.pParameters       =           param;
-        desc.NumStaticSamplers =  1;
-        desc.pStaticSamplers   = &staticSampler;
+        desc                                          = { };
+        desc.NumParameters                            = _countof (param);
+        desc.pParameters                              =           param;
+        desc.NumStaticSamplers                        =  1;
+        desc.pStaticSamplers                          = &staticSampler;
 
-        desc.Flags             =
+        desc.Flags                                    =
         ( D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS       |
           D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS     |
           D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS );
@@ -3224,14 +3229,14 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       ); SK_D3D12_SetDebugName (pHDRSignature.p, L"SK HDR Root Signature");
 
       D3D12_GRAPHICS_PIPELINE_STATE_DESC
-        psoDesc                       = { };
-        psoDesc.NodeMask              = 1;
-        psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        psoDesc.pRootSignature        = pHDRSignature;
-        psoDesc.SampleMask            = UINT_MAX;
-        psoDesc.NumRenderTargets      = 1;
-        psoDesc.RTVFormats [0]        = swapDesc1.Format;
-        psoDesc.SampleDesc.Count      = 1;
+        psoDesc                                  = { };
+        psoDesc.NodeMask                         = 1;
+        psoDesc.PrimitiveTopologyType            = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+        psoDesc.pRootSignature                   = pHDRSignature;
+        psoDesc.SampleMask                       = UINT_MAX;
+        psoDesc.NumRenderTargets                 = 1;
+        psoDesc.RTVFormats [0]                   = swapDesc1.Format;
+        psoDesc.SampleDesc.Count                 = 1;
 
         psoDesc.VS = { colorutil_vs_bytecode,
                sizeof (colorutil_vs_bytecode) /
@@ -3245,27 +3250,28 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
       // Create the blending setup
       D3D12_BLEND_DESC&
-        blendDesc                                        = psoDesc.BlendState;
-        blendDesc.RenderTarget [0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_RED   |
-                                                           D3D12_COLOR_WRITE_ENABLE_GREEN |
-                                                           D3D12_COLOR_WRITE_ENABLE_BLUE;
+        blendDesc                                = psoDesc.BlendState;
+        blendDesc.
+          RenderTarget [0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_RED   |
+                                                   D3D12_COLOR_WRITE_ENABLE_GREEN |
+                                                   D3D12_COLOR_WRITE_ENABLE_BLUE;
 
       // Create the rasterizer state
       D3D12_RASTERIZER_DESC&
-        rasterDesc                 = psoDesc.RasterizerState;
-        rasterDesc.FillMode        = D3D12_FILL_MODE_SOLID;
-        rasterDesc.CullMode        = D3D12_CULL_MODE_NONE;
-        rasterDesc.DepthClipEnable = TRUE;
+        rasterDesc                               = psoDesc.RasterizerState;
+        rasterDesc.FillMode                      = D3D12_FILL_MODE_SOLID;
+        rasterDesc.CullMode                      = D3D12_CULL_MODE_NONE;
+        rasterDesc.DepthClipEnable               = TRUE;
 
       // Create depth-stencil State
       D3D12_DEPTH_STENCIL_DESC&
-        depthDesc                              = psoDesc.DepthStencilState;
-        depthDesc.DepthFunc                    = D3D12_COMPARISON_FUNC_NEVER;
-        depthDesc.FrontFace.StencilFailOp      =
-        depthDesc.FrontFace.StencilDepthFailOp =
-        depthDesc.FrontFace.StencilPassOp      = D3D12_STENCIL_OP_KEEP;
-        depthDesc.FrontFace.StencilFunc        = D3D12_COMPARISON_FUNC_NEVER;
-        depthDesc.BackFace                     =
+        depthDesc                                = psoDesc.DepthStencilState;
+        depthDesc.DepthFunc                      = D3D12_COMPARISON_FUNC_NEVER;
+        depthDesc.FrontFace.StencilFailOp        =
+        depthDesc.FrontFace.StencilDepthFailOp   =
+        depthDesc.FrontFace.StencilPassOp        = D3D12_STENCIL_OP_KEEP;
+        depthDesc.FrontFace.StencilFunc          = D3D12_COMPARISON_FUNC_NEVER;
+        depthDesc.BackFace                       =
         depthDesc.FrontFace;
 
       ThrowIfFailed (
@@ -3275,10 +3281,10 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
 
       D3D12_DESCRIPTOR_RANGE
-        uav_range                    = { };
-        uav_range.RangeType          = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-        uav_range.NumDescriptors     = 2;
-        uav_range.BaseShaderRegister = 0; // u0, u1
+        uav_range                                     = { };
+        uav_range.RangeType                           = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+        uav_range.NumDescriptors                      = 2;
+        uav_range.BaseShaderRegister                  = 0; // u0, u1
 
         param [0]                                     = { };
         param [0].ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
@@ -3286,9 +3292,9 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         param [0].DescriptorTable.pDescriptorRanges   = &uav_range;
         param [0].ShaderVisibility                    = D3D12_SHADER_VISIBILITY_ALL;
 
-        desc               = { };
-        desc.NumParameters = 1;
-        desc.pParameters   = param;
+        desc                                          = { };
+        desc.NumParameters                            = 1;
+        desc.pParameters                              = param;
 
       ThrowIfFailed (
         D3D12SerializeRootSignature (

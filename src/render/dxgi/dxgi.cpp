@@ -8003,8 +8003,33 @@ SK_DXGISwap3_SetColorSpace1_Impl (
 {
   const auto RequestedColorSpace = ColorSpace;
 
-  SK_LOGi0 ( L"[!] IDXGISwapChain3::SetColorSpace1 (%hs)",
-                  DXGIColorSpaceToStr (ColorSpace) );
+  //
+  // Log Spam Prevention
+  //
+  static int                   calls    = 0;
+  static bool                  silent   = false;
+  static DXGI_COLOR_SPACE_TYPE last_val = ColorSpace;
+
+  if (std::exchange (last_val, ColorSpace) != ColorSpace)
+  {
+    silent = false;
+    calls  = 0;
+  }
+
+  else if (++calls > 4 && std::exchange (silent, true) == false)
+  {
+    SK_LOGi0 (
+      L"Excessive calls to SetColorSpace1 (%hs), will not log future calls using the same value.",
+         DXGIColorSpaceToStr (ColorSpace)
+    );
+  }
+
+  if (! silent)
+  {
+    SK_LOGi0 ( L"[!] IDXGISwapChain3::SetColorSpace1 (%hs)",
+                    DXGIColorSpaceToStr (ColorSpace) );
+  }
+
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
