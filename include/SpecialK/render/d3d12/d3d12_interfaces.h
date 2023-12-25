@@ -508,7 +508,7 @@ struct SK_D3D12_RenderCtx {
     UINT64 Start;
     UINT64 End;
 
-    double GetMilliseconds (UINT64 GPUTimestampFreq)
+    double GetMilliseconds (UINT64 GPUTimestampFreq) const
     {
       return
         static_cast <double> (End - Start) /

@@ -1408,56 +1408,50 @@ public:
 
     if ( bHDRActive )
     {
-      ////if (SK_API_IsLayeredOnD3D11 (rb.api))
+      if (SK_API_IsLayeredOnD3D11 (rb.api) || rb.api == SK_RenderAPI::D3D12)
       {
         ImGui::SameLine ();
 
         extern double SK_D3D11_HDR_RuntimeMs;
 
-        double dComputeCopyTime = 0.0;
+        double dComputeCopyTime   = 0.0;
+        UINT   format_conversions =   0;
 
-        if (rb.api == SK_RenderAPI::D3D12)
+        const auto&   computeCopy =
+          _d3d12_rbk->computeCopy;
+
+        if (rb.api == SK_RenderAPI::D3D12 && (! _d3d12_rbk->frames_.empty ()))
         {
-          dComputeCopyTime = _d3d12_rbk->computeCopy.timestamps [0].GetMilliseconds (
-                             _d3d12_rbk->computeCopy.GPUTimestampFreq);
+          const auto& frame =
+            _d3d12_rbk->frames_ [_d3d12_rbk->getCurrentBackBufferIndex ()];
+
+          dComputeCopyTime =
+            computeCopy.timestamps->GetMilliseconds (
+            computeCopy.GPUTimestampFreq);
+
+          format_conversions =
+            frame.hdr.format_conversions;
         }
 
-        static char szProcessingText [128] = { };
+        auto constexpr _DLSSG_FRAME_THRESHOLD { 8 };
 
-        UINT format_conversions = 0;
+        static char   szProcessingText [128] = { };
+        static const char* string_format [ ] = {
+          "Format Conversion Passes:\t%d\t\tDLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms",
+                                           "DLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms",
+                                               "Format Conversion Passes:\t%ul\t\tHDR Processing:\t%5.4f ms",
+                                                                                 "HDR Processing:\t%5.4f ms"
+        };
 
-        if (_d3d12_rbk->frames_.size () > 0)
-        {
-          UINT swapIdx =
-            _d3d12_rbk->_pSwapChain->GetCurrentBackBufferIndex ();
+        if (dComputeCopyTime != 0.0 && computeCopy.lastFrameActive > SK_GetFramesDrawn () - _DLSSG_FRAME_THRESHOLD)
+        { if (                                                     format_conversions > 0)
+               snprintf (szProcessingText, 127, string_format [0], format_conversions, dComputeCopyTime, SK_D3D11_HDR_RuntimeMs);
+          else snprintf (szProcessingText, 127, string_format [1],                     dComputeCopyTime, SK_D3D11_HDR_RuntimeMs);
+        } else { if (                                              format_conversions > 0)
+               snprintf (szProcessingText, 127, string_format [2], format_conversions,                   SK_D3D11_HDR_RuntimeMs);
+          else snprintf (szProcessingText, 127, string_format [3],                                       SK_D3D11_HDR_RuntimeMs);
 
-          format_conversions = _d3d12_rbk->frames_ [swapIdx].hdr.format_conversions;
-        }
-
-        const bool bDLSSGFormatConversion =
-          dComputeCopyTime != 0.0 && _d3d12_rbk->computeCopy.lastFrameActive > SK_GetFramesDrawn () - 8;
-         
-        if (bDLSSGFormatConversion)
-        {
-          if (format_conversions > 0)
-          {
-            snprintf (szProcessingText, 127, "Format Conversion Passes:\t%d\t\tDLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms", format_conversions, dComputeCopyTime, SK_D3D11_HDR_RuntimeMs);
-          }
-
-          else
-          {
-            snprintf (szProcessingText, 127, "DLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms", dComputeCopyTime, SK_D3D11_HDR_RuntimeMs);
-          }
-        }
-
-        else if (format_conversions > 0)
-        {
-          snprintf (szProcessingText, 127, "Format Conversion Passes:\t%d\t\tHDR Processing:\t%5.4f ms", format_conversions, SK_D3D11_HDR_RuntimeMs);
-        }
-
-        else
-        {
-          snprintf (szProcessingText, 127, "HDR Processing:\t%5.4f ms", SK_D3D11_HDR_RuntimeMs);
+          dComputeCopyTime = 0.0;
         }
 
         auto vTextSize =
@@ -1471,23 +1465,22 @@ public:
 
         ImGui::TextUnformatted (szProcessingText);
 
-        if (format_conversions > 0 || bDLSSGFormatConversion)
+        if (format_conversions > 0 || dComputeCopyTime != 0.0)
         {
           if (ImGui::IsItemHovered ())
           {
             ImGui::BeginTooltip    ();
-            ImGui::TextUnformatted ("Format conversion means the game is not natively rendering at your selected HDR bit-depth");
+            ImGui::TextUnformatted ("The game is not natively outputting the selected HDR color depth");
             ImGui::Separator       ();
-            ImGui::BulletText      ("GPU Compute and Bandwidth resources are being spent converting to your selected HDR format.");
-            ImGui::BulletText      ("If performance is a concern, try HDR10. Conversion to HDR10 is slightly lower overhead.");
+            ImGui::BulletText      ("Additional GPU resources are required to upconvert the game's output.");
+            if (__SK_HDR_16BitSwap)
+              ImGui::BulletText    ("If GPU performance is a factor, HDR10 may improve framerate.");
             ImGui::EndTooltip      ();
           }
         }
       }
 
-      SK_ComQIPtr <IDXGISwapChain4> pSwap4 (rb.swapchain);
-
-      if (pSwap4 != nullptr)
+      if (SK_ComQIPtr <IDXGISwapChain4> pSwap4 (rb.swapchain); pSwap4.p != nullptr)
       {
         static
         DXGI_OUTPUT_DESC1      out_desc  = { };

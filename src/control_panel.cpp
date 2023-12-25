@@ -6149,7 +6149,7 @@ SK_ImGui_ControlPanel (void)
         SK_RunOnce (SK_Platform_GetUserName (szName, 511));
 
         ImGui::SetTooltip (
-          "Claim Authorship of Screenshots using your Storefront nickname:\t'%hs'",
+          "Add your platform's nickname ('%hs') to screenshots as their Author",
                    szName );
       }
     }

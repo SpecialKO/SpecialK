@@ -126,6 +126,9 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
     auto &compute =
       _d3d12_rbk->computeCopy;
 
+    if (compute.GPUTimestampFreq == 0)
+      This->GetTimestampFrequency (&compute.GPUTimestampFreq);
+
     if ( compute.dlssg_fence.value == 0)
     {
       if ( UINT64      sync_value = compute.dlssg_fence.value + 1;
