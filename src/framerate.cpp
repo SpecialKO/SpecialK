@@ -1762,7 +1762,7 @@ SK::Framerate::Limiter::wait (void)
         int    iWaitObjs     =   0;
 
         DWORD  dwWait  = WAIT_FAILED;
-        while (dwWait != WAIT_OBJECT_0) // S1751	Change this loop body so that it can be executed more than once.
+        while (dwWait != WAIT_OBJECT_0)
 
         {
           if (config.render.framerate.present_interval != 0)

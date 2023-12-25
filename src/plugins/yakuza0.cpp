@@ -30,9 +30,6 @@ extern volatile
 
 extern bool SK_D3D11_EnableTracking;
 
-extern iSK_INI* dll_ini;
-
-
 volatile LONG __SK_Y0_InitiateHudFreeShot = 0;
 volatile LONG __SK_Y0_QueuedShots         = 0;
 

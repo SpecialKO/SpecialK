@@ -26,8 +26,7 @@
 #define SK_HDR_SECTION     L"SpecialK.HDR"
 #define SK_MISC_SECTION    L"SpecialK.Misc"
 
-extern iSK_INI*             dll_ini;
-iSK_INI*                    hdr_ini = nullptr;
+iSK_INI* hdr_ini = nullptr;
 
 static auto
 DeclKeybind = [](SK_ConfigSerializedKeybind* binding, iSK_INI* ini, const wchar_t* sec) ->
@@ -1090,6 +1089,8 @@ public:
     static auto& rb =
       SK_GetCurrentRenderBackend ();
 
+    static auto dll_ini =
+      SK_GetDLLConfig ();
 
     static SKTL_BidirectionalHashMap <unsigned char, int>
       __SK_HDR_ColorSpaceMap =

@@ -167,6 +167,8 @@ public:
                          uint8_t   **ppData,
                          bool        Wait = false ) = 0;
 
+  void sanitizeFilename (bool allow_subdirs = false);
+
   struct framebuffer_s
   {
     // One-time alloc, prevents allocating and freeing memory on the thread

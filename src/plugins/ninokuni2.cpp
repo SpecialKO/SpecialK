@@ -22,9 +22,6 @@
 
 #include <SpecialK/stdafx.h>
 
-
-extern iSK_INI* dll_ini;
-
 /*
 Nino2.exe+11DA450 // Input  timestep (single-precision float, in seconds)
 Nino2.exe+11DA454 // Render timestep (single-precision float, in seconds)
@@ -247,6 +244,9 @@ bool SK_NNK2_PlugInCfg (void);
 void
 SK_NNK2_InitPlugin (void)
 {
+  static auto dll_ini =
+    SK_GetDLLConfig ();
+
   SK_SetPluginName (NNS_VERSION_STR);
 
   plugin_mgr->config_fns.emplace (SK_NNK2_PlugInCfg);

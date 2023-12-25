@@ -3690,6 +3690,9 @@ SK_RenderBackend_V2::updateOutputTopology (void)
     disp.primary = false;
   }
 
+  static auto dll_ini =
+    SK_GetDLLConfig ();
+
   auto& display_audio_ini =
     dll_ini->get_section (L"Display.Audio");
 

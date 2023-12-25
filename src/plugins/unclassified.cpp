@@ -344,8 +344,6 @@ SK_LazyGlobal <SK_FFXV_Thread> sk_ffxv_swapchain,
                                sk_ffxv_vsync,
                                sk_ffxv_async_run;
 
-extern iSK_INI* dll_ini;
-
 typedef DWORD (WINAPI *GetEnvironmentVariableA_pfn)(
   LPCSTR lpName,
   LPCSTR lpBuffer,
@@ -436,6 +434,9 @@ SK_FFXV_Thread::setup (HANDLE __hThread)
                           GetCurrentProcess (), &hThreadCopy, THREAD_ALL_ACCESS, FALSE, 0 ))
     return;
 
+  static auto dll_ini =
+    SK_GetDLLConfig ();
+
   hThread = hThreadCopy;
 
   prio_cfg =
@@ -518,6 +519,9 @@ SK_FFXV_SetupThreadPriorities (void)
 bool
 SK_FFXV_PlugInCfg (void)
 {
+  static auto dll_ini =
+    SK_GetDLLConfig ();
+
   if (ImGui::CollapsingHeader ("Final Fantasy XV Windows Edition", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush ("");
@@ -1374,6 +1378,9 @@ bool SK_SO2R_UltraWidescreen = false;
 
 void SK_SO2R_InitPlugin (void)
 {
+  static auto dll_ini =
+    SK_GetDLLConfig ();
+
   SK_SO2R_UltraWidescreen =
     SK_IsTrue (
       dll_ini->get_section (L"SO2R.PlugIn").
@@ -1388,6 +1395,9 @@ void SK_SO2R_InitPlugin (void)
 
 bool SK_SO2R_PlugInCfg (void)
 {
+  static auto dll_ini =
+    SK_GetDLLConfig ();
+
   if (ImGui::CollapsingHeader ("STAR OCEAN THE SECOND STORY R", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush ("");

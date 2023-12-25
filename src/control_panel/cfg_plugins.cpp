@@ -25,8 +25,6 @@
 
 #include <filesystem>
 
-extern iSK_INI* dll_ini;
-
 using namespace SK::ControlPanel;
 bool
 SK_ImGui_SavePlugInPreference (iSK_INI* ini, bool enable, const wchar_t* import_name, const wchar_t* role, SK_Import_LoadOrder order, const wchar_t* path, const wchar_t* mode)
@@ -247,6 +245,9 @@ SK::ControlPanel::PlugIns::Draw (void)
                 SK_GetInstallPath (), SK_GetBitness ());
     }
 #endif
+    static auto dll_ini =
+      SK_GetDLLConfig ();
+
     bool reshade_official   = dll_ini->contains_section (imp_name_reshade);
     bool reshade_unofficial = dll_ini->contains_section (imp_name_reshade_ex);
 

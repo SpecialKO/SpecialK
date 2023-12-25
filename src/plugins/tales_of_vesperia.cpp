@@ -30,8 +30,6 @@
 #pragma warning(push)
 #pragma warning(disable: 4244)
 
-extern iSK_INI* dll_ini;
-
 bool                      SK_TVFix_PlugInCfg         (void);
 HRESULT STDMETHODCALLTYPE SK_TVFix_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags);
 void                      SK_TVFix_BeginFrame        (void);

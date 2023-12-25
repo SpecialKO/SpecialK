@@ -319,6 +319,8 @@ SK_D3D12_Screenshot::SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&      
     framebuffer.title     = title;
 
     PathStripPathA (framebuffer.title.data ());
+
+    sanitizeFilename (true);
   }
 
   bPlaySound = allow_sound;

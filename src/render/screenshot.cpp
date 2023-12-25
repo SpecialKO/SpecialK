@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -422,6 +422,47 @@ SK_TriggerHudFreeScreenshot (void) noexcept
   }
 }
 
+void
+SK_Screenshot::sanitizeFilename (bool allow_subdirs)
+{
+  const wchar_t *wszInvalidFileChars =
+    allow_subdirs ?   LR"(:*?"<>|&!.	)"
+                  : LR"(\/:*?"<>|&!.	)";
+
+  static const
+    std::unordered_map <wchar_t, wchar_t> fs_safe_alt_chars =
+    {
+      { L'\\',L'⧵' }, { L'/', L'⧸'  }, { L':', L'ː'  },
+      { L'|', L'｜'}, { L'<', L'﹤' }, { L'>', L'﹥' },
+      { L'"', L'“' }, { L'?', L'﹖' }, { L'*', L'﹡' },
+      { L'.', L'․' }, { L'	', L' ' }, { L'&', L'＆' },
+      { L'!', L'！' }
+    };
+
+   size_t start = 0; // Remove (replace with _) invalid filesystem characters
+  while ((start = framebuffer.file_name.find_first_of (wszInvalidFileChars, start)) != std::wstring::npos)
+  {
+    if (fs_safe_alt_chars.contains (framebuffer.file_name [start]))
+    {                               framebuffer.file_name [start] =
+              fs_safe_alt_chars.at (framebuffer.file_name [start]);
+    } else {                        framebuffer.file_name [start] = L'_'; }
+
+    ++start;
+  }
+
+          start = 0; // Consolidate all runs of multiple _'s into a single _
+  while ((start = framebuffer.file_name.find (L"__", start)) != std::wstring::npos)
+  {
+    framebuffer.file_name.replace (start++, 2, L"_");
+  }
+
+          start = 0; // If we have _ followed by a space, transform it to a single space
+  while ((start = framebuffer.file_name.find (L"_ ", start)) != std::wstring::npos)
+  {
+    framebuffer.file_name.replace (start++, 2, L" ");
+  }
+}
+
 SK_Screenshot::SK_Screenshot (bool clipboard_only)
 {
   bPlaySound       = config.screenshots.play_sound;
@@ -456,12 +497,7 @@ SK_Screenshot::SK_Screenshot (bool clipboard_only)
 
   framebuffer.file_name = name;
 
-          start = 0; // Remove (replace with _) invalid filesystem characters
-  while ((start = framebuffer.file_name.find_first_of (LR"(\/:*?"<>|.	)", start)) != std::wstring::npos)
-  {
-    framebuffer.file_name.replace (start, 1, L"_");
-                                   start += 1;
-  }
+  sanitizeFilename ();
 }
 
 #include <../depends/include/DirectXTex/d3dx12.h>

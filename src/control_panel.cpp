@@ -1475,6 +1475,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
         SK_WASAPI_EndPointMgr->setPersistedDefaultAudioEndpoint (GetCurrentProcessId (), eRender, L"");
       }
 
+      static auto dll_ini =
+        SK_GetDLLConfig ();
+
       dll_ini->get_section              (L"Display.Audio").
         add_key_value (SK_FormatStringW (L"RenderDevice.%ws", display.path_name),
                                                               display.audio.paired_device);

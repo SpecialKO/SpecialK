@@ -76,6 +76,8 @@ SK_D3D9_Screenshot::SK_D3D9_Screenshot (const SK_ComPtr <IDirect3DDevice9>& pDev
     framebuffer.title     = title;
 
     PathStripPathA (framebuffer.title.data ());
+
+    sanitizeFilename (true);
   }
 
   if (pDev != nullptr)

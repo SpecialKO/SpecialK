@@ -346,7 +346,7 @@ SK_SpawnPresentMonWorker (void)
       SK_Thread_CreateEx ( [](LPVOID) -> DWORD
       {
         SK_PresentMon_Main   (0, nullptr);
-	      if (StopTraceSession (          ))
+        if (StopTraceSession (          ))
           __SK_ETW_PresentMon_Thread = 0;
 
         return 0;

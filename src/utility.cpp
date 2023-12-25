@@ -1052,6 +1052,11 @@ SK_GetDLLConfig (void)
   static iSK_INI  safety_void (L"");
   extern iSK_INI* dll_ini;
 
+  if (! dll_ini)
+  {
+    SK_RunOnce (SK_LoadConfigEx (L""));
+  }
+
   SK_ReleaseAssert (dll_ini != nullptr);
 
   return

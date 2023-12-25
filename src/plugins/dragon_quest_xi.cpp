@@ -28,9 +28,6 @@ LONG SK_D3D11_DrawTrackingReqs;
 extern volatile
 LONG SK_D3D11_CBufferTrackingReqs;
 
-extern iSK_INI*             dll_ini;
-
-
 ////struct SK_DQXI_UE4_Tweaks
 ////{
 ////  struct {

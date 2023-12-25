@@ -300,6 +300,8 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
     framebuffer.title     = title;
 
     PathStripPathA (framebuffer.title.data ());
+
+    sanitizeFilename (true);
   }
 
   bPlaySound = allow_sound;

@@ -487,14 +487,17 @@ SK_Bypass_CRT (LPVOID)
 
   else
   {
-    wszConfigName = dll_ini->get_filename ();
-    //wszConfigName = SK_GetBackend ();
+    wszConfigName = dll_ini != nullptr       ?
+                    dll_ini->get_filename () :
+                            SK_GetBackend ();
   }
 
   std::wstring temp_dll;
 
 
   SK_LoadConfig (wszConfigName);
+
+  SK_ReleaseAssert (dll_ini != nullptr);
 
   config.apis.d3d9.hook       = false;
   config.apis.d3d9ex.hook     = false;

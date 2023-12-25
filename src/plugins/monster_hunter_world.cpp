@@ -28,8 +28,6 @@ extern volatile
 extern volatile
   LONG SK_D3D11_CBufferTrackingReqs;
 
-extern iSK_INI*             dll_ini;
-
 sk::ParameterBool*  _SK_MHW_JobParity;
 bool               __SK_MHW_JobParity         = true;
 sk::ParameterBool*  _SK_MHW_JobParityPhysical;

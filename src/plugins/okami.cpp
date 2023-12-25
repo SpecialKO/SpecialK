@@ -27,8 +27,6 @@ sk::ParameterBool*   sk_okami_grain;
 
 bool SK_Okami_use_grain = true;
 
-extern iSK_INI* dll_ini;
-
 typedef bool (__cdecl *m2_WindowControl_resizeBackBuffers_pfn)(LPVOID This, unsigned int, unsigned int, bool);
 typedef bool (__cdecl *m2_WindowControl_resizeRenderBuffers_pfn)(LPVOID This, unsigned int, unsigned int, bool);
 
@@ -69,6 +67,9 @@ SK_Okami_m2_WindowControl_resizeRenderBuffers_Detour (LPVOID This, unsigned int 
 void
 SK_Okami_LoadConfig (void)
 {
+  static auto dll_ini =
+    SK_GetDLLConfig ();
+
   sk_okami_grain =
     dynamic_cast <sk::ParameterBool *> (
       g_ParameterFactory->create_parameter <bool> (
@@ -114,6 +115,9 @@ SK_Okami_LoadConfig (void)
 void
 SK_Okami_SaveConfig (void)
 {
+  static auto dll_ini =
+    SK_GetDLLConfig ();
+
   sk_okami_grain->store (SK_Okami_use_grain);
   dll_ini->write (dll_ini->get_filename ());
 }

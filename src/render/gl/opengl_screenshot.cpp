@@ -77,6 +77,8 @@ SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice, bool allow_sound, bool 
     framebuffer.title     = title;
 
     PathStripPathA (framebuffer.title.data ());
+
+    sanitizeFilename (true);
   }
 
   bPlaySound = allow_sound;
@@ -135,7 +137,7 @@ SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice, bool allow_sound, bool 
     glGetBooleanv (GL_PACK_SWAP_BYTES,   &PACK_SWAP_BYTES);
     glPixelStorei (GL_PACK_SWAP_BYTES,   false);
     GLboolean         PACK_LSB_FIRST;
-    glGetBooleanv (GL_PACK_LSB_FIRST,	   &PACK_LSB_FIRST);
+    glGetBooleanv (GL_PACK_LSB_FIRST,    &PACK_LSB_FIRST);
     glPixelStorei (GL_PACK_LSB_FIRST,    false);
     GLint             PACK_ROW_LENGTH;
     glGetIntegerv (GL_PACK_ROW_LENGTH,   &PACK_ROW_LENGTH);
