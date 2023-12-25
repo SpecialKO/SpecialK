@@ -1,5 +1,18 @@
-﻿23.12.26
-========
+﻿23.12.25.2
+==========
+ + Merge pull request #125 from Nustat0/fix-missing-drop-late-frames
+    * Fix missing Drop Late Frames checkbox for DDraw/D3D8
+ + Merge pull request #124 from Nustat0/allow-32bit-d3d12-hdr
+    * Allow 32-bit D3D12 HDR if AllowD3D12FootGuns=true
+ + Merge pull request #114 from Aemony/osd_bottom-aligned_fix
+    * Fixes bottom-aligned OSD
+ + Merge pull request #113 from Aemony/hdr_metadata_override
+    * Add support for HDRMetadataType parameter
+ + Merge pull request #112 from Aemony/poc_overridden_swapchain_stuff
+    * Show swap chain overrides Special K is applying
+ + Merge pull request #111 from Aemony/bitblt-disallow-tearing 
+    * Disable tearing + waitable when using Flip->BitBlt override
+
  + Added INI option to prevent the Steam Overlay from drawing
 
     [Steam.System]
