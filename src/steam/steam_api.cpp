@@ -364,7 +364,7 @@ _SK_RecursiveFileSearch ( const wchar_t* wszDir,
   return found;
 }
 
-using steam_library_t = wchar_t* [MAX_PATH + 2];
+using steam_library_t = wchar_t [MAX_PATH + 2];
 
 int
 SK_Steam_GetLibraries (steam_library_t** ppLibraries = nullptr);
