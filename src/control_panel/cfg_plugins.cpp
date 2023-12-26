@@ -245,7 +245,7 @@ SK::ControlPanel::PlugIns::Draw (void)
                 SK_GetInstallPath (), SK_GetBitness ());
     }
 #endif
-    static auto dll_ini =
+    auto dll_ini =
       SK_GetDLLConfig ();
 
     bool reshade_official   = dll_ini->contains_section (imp_name_reshade);

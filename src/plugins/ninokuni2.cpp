@@ -244,7 +244,7 @@ bool SK_NNK2_PlugInCfg (void);
 void
 SK_NNK2_InitPlugin (void)
 {
-  static auto dll_ini =
+  auto dll_ini =
     SK_GetDLLConfig ();
 
   SK_SetPluginName (NNS_VERSION_STR);

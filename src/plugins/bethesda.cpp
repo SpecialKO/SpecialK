@@ -479,7 +479,7 @@ SK_SF_InitFSR2Streamline (void)
 
 bool SK_SF_PlugInCfg (void)
 {
-  static auto dll_ini =
+  auto dll_ini =
     SK_GetDLLConfig ();
 
   static auto& plugin =
@@ -1421,7 +1421,7 @@ SK_BGS_InitPlugin (void)
   if (PathFileExistsW (L"SpecialK.NoPlugIns"))
     return;
 
-  static auto dll_ini =
+  auto dll_ini =
     SK_GetDLLConfig ();
 
   SK_GAME_ID gameID =

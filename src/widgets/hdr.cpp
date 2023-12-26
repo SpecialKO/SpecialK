@@ -1089,7 +1089,7 @@ public:
     static auto& rb =
       SK_GetCurrentRenderBackend ();
 
-    static auto dll_ini =
+    auto dll_ini =
       SK_GetDLLConfig ();
 
     static SKTL_BidirectionalHashMap <unsigned char, int>

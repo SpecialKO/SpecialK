@@ -67,7 +67,7 @@ SK_Okami_m2_WindowControl_resizeRenderBuffers_Detour (LPVOID This, unsigned int 
 void
 SK_Okami_LoadConfig (void)
 {
-  static auto dll_ini =
+  auto dll_ini =
     SK_GetDLLConfig ();
 
   sk_okami_grain =
@@ -115,7 +115,7 @@ SK_Okami_LoadConfig (void)
 void
 SK_Okami_SaveConfig (void)
 {
-  static auto dll_ini =
+  auto dll_ini =
     SK_GetDLLConfig ();
 
   sk_okami_grain->store (SK_Okami_use_grain);

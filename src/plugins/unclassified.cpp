@@ -434,7 +434,7 @@ SK_FFXV_Thread::setup (HANDLE __hThread)
                           GetCurrentProcess (), &hThreadCopy, THREAD_ALL_ACCESS, FALSE, 0 ))
     return;
 
-  static auto dll_ini =
+  auto dll_ini =
     SK_GetDLLConfig ();
 
   hThread = hThreadCopy;
@@ -519,7 +519,7 @@ SK_FFXV_SetupThreadPriorities (void)
 bool
 SK_FFXV_PlugInCfg (void)
 {
-  static auto dll_ini =
+  auto dll_ini =
     SK_GetDLLConfig ();
 
   if (ImGui::CollapsingHeader ("Final Fantasy XV Windows Edition", ImGuiTreeNodeFlags_DefaultOpen))
@@ -581,7 +581,7 @@ SK_FFXV_PlugInCfg (void)
     }
 
 
-    auto ConfigThreadPriority = [](const char* name, SK_FFXV_Thread& thread) ->
+    auto ConfigThreadPriority = [&](const char* name, SK_FFXV_Thread& thread) ->
     int
     {
       ImGui::PushID (name);
@@ -1378,7 +1378,7 @@ bool SK_SO2R_UltraWidescreen = false;
 
 void SK_SO2R_InitPlugin (void)
 {
-  static auto dll_ini =
+  auto dll_ini =
     SK_GetDLLConfig ();
 
   SK_SO2R_UltraWidescreen =
@@ -1395,7 +1395,7 @@ void SK_SO2R_InitPlugin (void)
 
 bool SK_SO2R_PlugInCfg (void)
 {
-  static auto dll_ini =
+  auto dll_ini =
     SK_GetDLLConfig ();
 
   if (ImGui::CollapsingHeader ("STAR OCEAN THE SECOND STORY R", ImGuiTreeNodeFlags_DefaultOpen))
@@ -1456,7 +1456,8 @@ SK_SO2R_DrawHandler (ID3D11DeviceContext *pDevCtx, uint32_t current_ps, int num_
           D3D11_VIEWPORT vp = { };
           pDevCtx->RSGetViewports (&num_vp, &vp);
 
-          if (vp.TopLeftX != 0.0f || vp.TopLeftY != 0.0)
+          if ( vp.TopLeftX != 0.0f ||
+               vp.TopLeftY != 0.0  )
           {
           }
 
