@@ -1424,6 +1424,9 @@ SK_BGS_InitPlugin (void)
   auto dll_ini =
     SK_GetDLLConfig ();
 
+  // Might not be used in 32-bit builds
+  std::ignore = dll_ini;
+
   SK_GAME_ID gameID =
     SK_GetCurrentGameID ();
   

@@ -1,5 +1,6 @@
 ﻿23.12.26.1
 ==========
+ + Added [[unlikely]] C++ compiler hint to release build assertion macro
  + Do not wrap Streamline native SwapChain to avoid crashing in Forza Horizon 5
  + Avoid zero-copy to SwapChain backbuffer when DLSS-G and HDR are active
  + Avoid static storage on dll_ini to facilitate runtime renaming
