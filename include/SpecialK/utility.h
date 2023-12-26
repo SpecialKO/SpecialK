@@ -368,7 +368,7 @@ void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,
                                 const wchar_t* wszTitle);
 
 #define SK_ReleaseAssertEx(_expr,_msg,_file,_line,_func) {                \
-  if (! (_expr))                                                          \
+  if (! (_expr)) [[unlikely]]                                             \
   {                                                                       \
     SK_LOG0 ( (  L"Critical Assertion Failure: '%ws' (%ws:%u) -- %hs",    \
                    (_msg), (_file), (_line), (_func)                      \

@@ -1052,12 +1052,13 @@ SK_GetDLLConfig (void)
   static iSK_INI  safety_void (L"");
   extern iSK_INI* dll_ini;
 
-  if (! dll_ini)
+  if (! dll_ini) [[unlikely]]
   {
-    SK_RunOnce (SK_LoadConfigEx (L""));
+    // Only log this one time, it may happen repeatedly
+    SK_RunOnce (
+      SK_ReleaseAssert (dll_ini != nullptr)
+    );
   }
-
-  SK_ReleaseAssert (dll_ini != nullptr);
 
   return
     dll_ini != nullptr ?
