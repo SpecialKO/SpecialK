@@ -291,6 +291,29 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   D3D11_TEXTURE2D_DESC       backbuffer_desc = { };
   _P->pBackBuffer->GetDesc (&backbuffer_desc);
 
+  // TODO: Implement SetSourceSize Support For DXGI Flip Model Upgrade
+  //
+  UINT                                                        width,  height;
+  if (pSwap3 != nullptr && SUCCEEDED (pSwap3->GetSourceSize (&width, &height)))
+  {
+    if ( width  != backbuffer_desc.Width ||
+         height != backbuffer_desc.Height )
+    {
+      backbuffer_desc.Width  = width;
+      backbuffer_desc.Height = height;
+
+      if (std::exchange (config.render.framerate.flip_discard,    false) ||
+          std::exchange (config.render.framerate.flip_sequential, false))
+      {
+        SK_ImGui_WarningWithTitle (
+          L"DXGI Flip Model Override Has Been Disabled To Prevent "
+          L"Scaling Problems\r\n\r\n\t\t* Please Restart The Game.",
+            L"Unsupported IDXGISwapChain2::SetSourceSize (...) API Used"
+        );
+      }
+    }
+  }
+
   io.DisplaySize.x             = static_cast <float> (backbuffer_desc.Width);
   io.DisplaySize.y             = static_cast <float> (backbuffer_desc.Height);
 
@@ -501,8 +524,8 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     ((float *)mapped_resource.pData)[2] = hdr_display ? (float)backbuffer_desc.Width  : 0.0f;
     ((float *)mapped_resource.pData)[3] = hdr_display ? (float)backbuffer_desc.Height : 0.0f;
 
-    D3D11_TEXTURE2D_DESC             tex2d_desc = { };
-    _P->pBackBuffer->GetDesc       (&tex2d_desc);
+    D3D11_TEXTURE2D_DESC       tex2d_desc = { };
+    _P->pBackBuffer->GetDesc (&tex2d_desc);
 
     // For temporarily disabled Linear sRGB mode
     ((float *)mapped_resource.pData)[4] = 0.0F;//DirectX::MakeTypeless (tex2d_desc.Format) == DXGI_FORMAT_R8G8B8A8_TYPELESS ? (float)1.0f :

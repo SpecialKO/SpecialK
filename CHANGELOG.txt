@@ -1,4 +1,9 @@
-﻿23.12.26.2
+﻿23.12.26.3
+==========
+ + Disable DXGI Flip Model in games that use IDXGISwapChain2::SetSourceSize,
+     in order to prevent scaling problems.
+
+23.12.26.2
 ==========
  + Add X-Ray Oxygen dummy window class to internal list of windows not to hook
  + Fixed steam_library_t typedef; array of strings, not string pointers
