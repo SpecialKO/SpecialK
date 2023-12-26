@@ -1,4 +1,9 @@
-﻿23.12.26.1
+﻿23.12.26.2
+==========
+ + Add X-Ray Oxygen dummy window class to internal list of windows not to hook
+ + Fixed steam_library_t typedef; array of strings, not string pointers
+
+23.12.26.1
 ==========
  + Added [[unlikely]] C++ compiler hint to release build assertion macro
  + Do not wrap Streamline native SwapChain to avoid crashing in Forza Horizon 5

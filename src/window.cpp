@@ -6434,6 +6434,7 @@ SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
     StrStrIW (pWindowClass->lpszClassName, L"Special K Dummy Window Class")          || // ... that's us!
     StrStrIW (pWindowClass->lpszClassName, L"EOSOVHDummyWindowClass")                || // Epic Online Store Overlay
     StrStrIW (pWindowClass->lpszClassName, L"CurseOverlayTemporaryDirect3D11Window") || // Twitch
+    StrStrIW (pWindowClass->lpszClassName, L"TestDX11WindowClass")                   || // X-Ray Oxygen
 
     // F' it, there's a pattern here, just ignore all dummies.
     StrStrIW (pWindowClass->lpszClassName, L"dummy");
