@@ -5609,11 +5609,14 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
 
+  // Wrapping the native SwapChain crashes Forza Horizon 5 for some reason
+#if 0
   SK_ComPtr <IDXGISwapChain1>                        pNativeSwapChain;
   if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
   {
     pSwapChain = pNativeSwapChain;
   }
+#endif
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();

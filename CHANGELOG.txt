@@ -1,4 +1,10 @@
-﻿23.12.26
+﻿23.12.26.1
+==========
+ + Do not wrap Streamline native SwapChain to avoid crashing in Forza Horizon 5
+ + Avoid zero-copy to SwapChain backbuffer when DLSS-G and HDR are active
+ + Avoid static storage on dll_ini to facilitate runtime renaming
+
+23.12.26
 ========
  + Fixed potential race to initialize SK's INI parser that could lead to
      crashes in some games with unusual filesystem permissions.
