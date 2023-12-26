@@ -540,7 +540,8 @@ struct SK_D3D12_RenderCtx {
     SK_ComPtr <ID3D12DescriptorHeap>      pBackBuffers        = nullptr;
     SK_ComPtr <ID3D12DescriptorHeap>      pImGui              = nullptr;
     SK_ComPtr <ID3D12DescriptorHeap>      pHDR                = nullptr;
-    SK_ComPtr <ID3D12DescriptorHeap>      pHDR_CopyAssist     = nullptr;
+    SK_ComPtr <ID3D12DescriptorHeap>      pHDR_CopyAssist_SRV = nullptr;
+    SK_ComPtr <ID3D12DescriptorHeap>      pHDR_CopyAssist_RTV = nullptr;
     SK_ComPtr <ID3D12DescriptorHeap>      pComputeCopy        = nullptr;
   } descriptorHeaps;
 
@@ -592,9 +593,11 @@ struct SK_D3D12_RenderCtx {
       // Temporary descriptors referencing source copy resources not
       //   owned by SK or the SwapChain
       struct {
-        D3D12_CPU_DESCRIPTOR_HANDLE       CPU                 = { 0 };
-        D3D12_GPU_DESCRIPTOR_HANDLE       GPU                 = { 0 };
-      } hBufferCopySRV;
+        struct { // RTV for draw-based Copy
+          D3D12_CPU_DESCRIPTOR_HANDLE     CPU                 = { 0 };
+          D3D12_GPU_DESCRIPTOR_HANDLE     GPU                 = { 0 };
+        } SRV, RTV;
+      } hBufferCopy;
 
       D3D12_RECT                          scissor             = {   };
       D3D12_VIEWPORT                      vp                  = {   };
@@ -602,13 +605,18 @@ struct SK_D3D12_RenderCtx {
       UINT                                format_conversions  = 0;
 
       struct {
-        SK_D3D12_StateTransition          process  [2]        = {
+        SK_D3D12_StateTransition          process   [2]       = {
           { D3D12_RESOURCE_STATE_COPY_DEST,   D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE },
           { D3D12_RESOURCE_STATE_COPY_SOURCE, D3D12_RESOURCE_STATE_RENDER_TARGET         }
-        },                                copy_end [1]        = {
+        },                                zero_copy [2]       = {
+          { D3D12_RESOURCE_STATE_COPY_DEST,   D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE },
+          { D3D12_RESOURCE_STATE_PRESENT,     D3D12_RESOURCE_STATE_RENDER_TARGET         }
+        },                                copy_end  [1]       = {
           { D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, D3D12_RESOURCE_STATE_COPY_DEST   }
         };
       } barriers;
+
+      bool                                skip_copy           = false;
     } hdr;
 
     bool wait_for_gpu   (void) noexcept;
@@ -625,6 +633,8 @@ struct SK_D3D12_RenderCtx {
   void release (IDXGISwapChain*     pSwapChain);
   bool init    (IDXGISwapChain3*    pSwapChain,
                 ID3D12CommandQueue* pCommandQueue);
+  
+  bool drain_queue (void) noexcept;
 
   static void
     transition_state (

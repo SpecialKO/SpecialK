@@ -34,6 +34,11 @@
 // DirectX
 #include <d3d11.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
+#define __SK_SUBSYSTEM__ L"D3D11BkEnd"
+
 bool running_on_12 = false;
 
 extern void
@@ -1194,16 +1199,13 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
 
       for ( UINT i = 0 ; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT ; ++i )
       {
-        desc.RenderTarget [i].BlendEnable           = FALSE;
         desc.RenderTarget [i].SrcBlend              = D3D11_BLEND_ONE;
         desc.RenderTarget [i].DestBlend             = D3D11_BLEND_INV_SRC_ALPHA;
         desc.RenderTarget [i].BlendOp               = D3D11_BLEND_OP_ADD;
         desc.RenderTarget [i].SrcBlendAlpha         = D3D11_BLEND_ONE;
         desc.RenderTarget [i].DestBlendAlpha        = D3D11_BLEND_ZERO;
         desc.RenderTarget [i].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
-        desc.RenderTarget [i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED   |
-                                                      D3D11_COLOR_WRITE_ENABLE_GREEN |
-                                                      D3D11_COLOR_WRITE_ENABLE_BLUE;
+        desc.RenderTarget [i].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
       } desc.RenderTarget [0].BlendEnable           = TRUE;
 
       if (_P->pBlendState == nullptr)
@@ -1219,10 +1221,9 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     {
       D3D11_RASTERIZER_DESC desc = { };
 
-      desc.FillMode        = D3D11_FILL_SOLID;
-      desc.CullMode        = D3D11_CULL_NONE;
-      desc.ScissorEnable   = TRUE;
-      desc.DepthClipEnable = TRUE;
+      desc.FillMode      = D3D11_FILL_SOLID;
+      desc.CullMode      = D3D11_CULL_NONE;
+      desc.ScissorEnable = TRUE;
 
       if (_P->pRasterizerState == nullptr)
       {
@@ -1237,14 +1238,11 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
     {
       D3D11_DEPTH_STENCIL_DESC desc = { };
 
-      desc.DepthEnable              = FALSE;
-      desc.StencilEnable            = FALSE;
-      desc.DepthWriteMask           = D3D11_DEPTH_WRITE_MASK_ZERO;
-      desc.DepthFunc                = D3D11_COMPARISON_ALWAYS;
+      desc.DepthFunc                = D3D11_COMPARISON_NEVER;
       desc.FrontFace.StencilFailOp  = desc.FrontFace.StencilDepthFailOp =
                                       desc.FrontFace.StencilPassOp      =
                                       D3D11_STENCIL_OP_KEEP;
-      desc.FrontFace.StencilFunc    = D3D11_COMPARISON_ALWAYS;
+      desc.FrontFace.StencilFunc    = D3D11_COMPARISON_NEVER;
       desc.BackFace                 = desc.FrontFace;
 
 
@@ -1772,15 +1770,7 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
         for ( UINT i = 0 ; i < D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT ; ++i )
         {
           blend.RenderTarget [i].BlendEnable           = FALSE;
-          blend.RenderTarget [i].SrcBlend              = D3D11_BLEND_ONE;
-          blend.RenderTarget [i].DestBlend             = D3D11_BLEND_ZERO;
-          blend.RenderTarget [i].BlendOp               = D3D11_BLEND_OP_ADD;
-          blend.RenderTarget [i].SrcBlendAlpha         = D3D11_BLEND_ONE;
-          blend.RenderTarget [i].DestBlendAlpha        = D3D11_BLEND_ZERO;
-          blend.RenderTarget [i].BlendOpAlpha          = D3D11_BLEND_OP_ADD;
-          blend.RenderTarget [i].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_RED   |
-                                                         D3D11_COLOR_WRITE_ENABLE_GREEN |
-                                                         D3D11_COLOR_WRITE_ENABLE_BLUE;
+          blend.RenderTarget [i].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
         }
 
         ThrowIfFailed (pDevice->CreateBlendState (&blend, &pGenericBlend.p));

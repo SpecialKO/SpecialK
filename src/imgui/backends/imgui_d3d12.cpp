@@ -27,6 +27,11 @@
 
 #include <pix.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
+#define __SK_SUBSYSTEM__ L"D3D12BkEnd"
+
 #define SK_D3D12_PERSISTENT_IMGUI_DEV_OBJECTS
 
 D3D12GraphicsCommandList_SetPipelineState_pfn
@@ -440,7 +445,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
     for ( int cmd_i = 0;
               cmd_i < cmd_list->CmdBuffer.Size;
-            ++cmd_i )
+            ++cmd_i )                     
     {
       const ImDrawCmd* pcmd =
         &cmd_list->CmdBuffer [cmd_i];
@@ -452,7 +457,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
         if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
         {
           SK_ReleaseAssert (false && "ImGui_ImplDX12_SetupRenderState (...) not implemented");
-                                  // "ImGui_ImplDX12_SetupRenderState (draw_data, ctx, fr);
+                                  // "ImGui_ImplDX12_SetupRenderState (draw_data, ctx, fr);                           
         }
         else
           pcmd->UserCallback (cmd_list, pcmd);
@@ -993,34 +998,31 @@ ImGui_ImplDX12_CreateDeviceObjects (void)
                    };
 
     // Create the blending setup
-    D3D12_BLEND_DESC&
-      blendDesc                                        = psoDesc.BlendState;
-      blendDesc.RenderTarget [0].BlendEnable           = TRUE;
-      blendDesc.RenderTarget [0].SrcBlend              = D3D12_BLEND_ONE;
-      blendDesc.RenderTarget [0].DestBlend             = D3D12_BLEND_INV_SRC_ALPHA;
-      blendDesc.RenderTarget [0].BlendOp               = D3D12_BLEND_OP_ADD;
-      blendDesc.RenderTarget [0].SrcBlendAlpha         = D3D12_BLEND_ONE;
-      blendDesc.RenderTarget [0].DestBlendAlpha        = D3D12_BLEND_ZERO;
-      blendDesc.RenderTarget [0].BlendOpAlpha          = D3D12_BLEND_OP_ADD;
-      blendDesc.RenderTarget [0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_RED   |
-                                                         D3D12_COLOR_WRITE_ENABLE_GREEN |
-                                                         D3D12_COLOR_WRITE_ENABLE_BLUE;
+    D3D12_RENDER_TARGET_BLEND_DESC&
+      rt0_blendDesc                            = psoDesc.BlendState.RenderTarget [0];
+      rt0_blendDesc.BlendEnable                = TRUE;
+      rt0_blendDesc.SrcBlend                   = D3D12_BLEND_ONE;
+      rt0_blendDesc.DestBlend                  = D3D12_BLEND_INV_SRC_ALPHA;
+      rt0_blendDesc.BlendOp                    = D3D12_BLEND_OP_ADD;
+      rt0_blendDesc.SrcBlendAlpha              = D3D12_BLEND_ONE;
+      rt0_blendDesc.DestBlendAlpha             = D3D12_BLEND_ZERO;
+      rt0_blendDesc.BlendOpAlpha               = D3D12_BLEND_OP_ADD;
+      rt0_blendDesc.RenderTargetWriteMask      = D3D12_COLOR_WRITE_ENABLE_ALL;
 
     // Create the rasterizer state
     D3D12_RASTERIZER_DESC&
       rasterDesc                               = psoDesc.RasterizerState;
       rasterDesc.FillMode                      = D3D12_FILL_MODE_SOLID;
       rasterDesc.CullMode                      = D3D12_CULL_MODE_NONE;
-      rasterDesc.DepthClipEnable               = TRUE;
 
     // Create depth-stencil State
     D3D12_DEPTH_STENCIL_DESC&
       stencilDesc                              = psoDesc.DepthStencilState;
-      stencilDesc.DepthFunc                    = D3D12_COMPARISON_FUNC_ALWAYS;
+      stencilDesc.DepthFunc                    = D3D12_COMPARISON_FUNC_NEVER;
       stencilDesc.FrontFace.StencilFailOp      =
       stencilDesc.FrontFace.StencilDepthFailOp =
       stencilDesc.FrontFace.StencilPassOp      = D3D12_STENCIL_OP_KEEP;
-      stencilDesc.FrontFace.StencilFunc        = D3D12_COMPARISON_FUNC_ALWAYS;
+      stencilDesc.FrontFace.StencilFunc        = D3D12_COMPARISON_FUNC_NEVER;
       stencilDesc.BackFace                     =
       stencilDesc.FrontFace;
 
@@ -1607,10 +1609,10 @@ D3D12GraphicsCommandList_CopyResource_Detour (
 #endif
 
       const int copy_stage =
-        (computeCopy.current_stage++ % 8);
+        (computeCopy.current_stage++ % 4);
 
       const int descriptor_base_idx =
-        (swapIdx * 8) + (copy_stage * 8);
+        (swapIdx * 4) + (copy_stage * 4);
 
       if (copy_stage == 0)
         cmdList->EndQuery (queries.dlssg.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, swapIdx * 2);
@@ -1660,7 +1662,7 @@ D3D12GraphicsCommandList_CopyResource_Detour (
         DstBarrier [2].Transition.StateAfter  = D3D12_RESOURCE_STATE_COPY_DEST;
 
       static constexpr UINT                                            _BltTileSizeX = 16U;
-      static constexpr UINT                                            _BltTileSizeY = 16U;
+      static constexpr UINT                                            _BltTileSizeY = 64U;
                  const UINT
         ThreadGroupCountX = (sk::narrow_cast <UINT> (src_desc.Width) + _BltTileSizeX - 1) / _BltTileSizeX,
         ThreadGroupCountY = (                        src_desc.Height + _BltTileSizeY - 1) / _BltTileSizeY,
@@ -1709,6 +1711,8 @@ D3D12GraphicsCommandList_CopyResource_Detour (
 #ifdef SK_PROFILE_WITH_PIX
       PIXEndEvent (cmdList);
 #endif
+
+      _d3d12_rbk->frames_ [swapIdx].hdr.format_conversions++;
 
       computeCopy.lastFrameActive =
                 SK_GetFramesDrawn ();
@@ -1979,10 +1983,7 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
   UINT swapIdx =
     _d3d12_rbk->getCurrentBackBufferIndex ();
 
-  DXGI_SWAP_CHAIN_DESC1          swapDesc = { };
-  _d3d12_rbk->_pSwapChain->GetDesc1
-                               (&swapDesc);
-  if ( _imgui_d3d12.RTVFormat != swapDesc.Format || swapIdx >= _d3d12_rbk->frames_.size () )
+  if ( swapIdx >= _d3d12_rbk->frames_.size () )
   {
     return;
   }
@@ -2002,37 +2003,64 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
   static const HDR_COLORSPACE_PARAMS cbuffer_cspace =
     { .uiToneMapper = TONEMAP_CopyResource };
 
-  pCommandList->SetGraphicsRootSignature          ( _d3d12_rbk->pHDRSignature            );
-  pCommandList->SetPipelineState                  ( _d3d12_rbk->pHDRPipeline             );
-  pCommandList->SetGraphicsRoot32BitConstants     ( 0, 4,  &cbuffer_luma,   0            );
-  pCommandList->SetGraphicsRoot32BitConstants     ( 1, 16, &cbuffer_cspace, 0            );
-  pCommandList->IASetPrimitiveTopology            ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP );
+#define SK_D3D12_ALLOW_SKIP_HDR_COPY
 
-  _d3d12_rbk->
-          _pDevice->CreateShaderResourceView ( pSrcResource, nullptr,
-                                               stagingFrame.hdr.hBufferCopySRV.CPU
-                                             );
+  auto& hBufferCopy = stagingFrame.hdr.hBufferCopy;
+  auto& pCopyHeap   = _d3d12_rbk->descriptorHeaps.pHDR_CopyAssist_SRV;
+
+  // Disable zero-copy fast-path if ReShade is in use
+  const bool skippable = 
+#ifdef SK_D3D12_ALLOW_SKIP_HDR_COPY
+    (! config.reshade.is_addon) && (config.render.dxgi.allow_d3d12_footguns);
+#else
+    false;
+#endif
+
+  auto& pDstRes     = skippable ?
+    stagingFrame.hdr.pSwapChainCopy.p
+                    : pDstResource;
+  auto& pSrcRes     = pSrcResource;
+
+  if (skippable)
+  {
+    // This optimization is potentially wrong, so log it the first time we do it.
+    SK_RunOnce (
+      SK_LOGi0 (L"Using Zero-Copy Fast-Path for HDR SwapChain Processing")
+    );
+  }
+
+  pD3D12Device->CreateShaderResourceView (pSrcRes, nullptr, hBufferCopy.SRV.CPU);
+  pD3D12Device->CreateRenderTargetView   (pDstRes, nullptr, hBufferCopy.RTV.CPU);
+
+  SK_ReleaseAssert ((pDstResource->GetDesc ().Flags & D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET)  != 0);
+  SK_ReleaseAssert ((pSrcResource->GetDesc ().Flags & D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE) == 0);
 
   SK_D3D12_StateTransition barriers [] =
    { { D3D12_RESOURCE_STATE_COPY_DEST,
-       D3D12_RESOURCE_STATE_RENDER_TARGET,         stagingFrame.pBackBuffer.p },
+       D3D12_RESOURCE_STATE_RENDER_TARGET,         pDstRes },
      { D3D12_RESOURCE_STATE_COPY_SOURCE,
-       D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, pSrcResource               },
+       D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, pSrcRes },
      { D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-        D3D12_RESOURCE_STATE_COPY_SOURCE,          pSrcResource               },
+       D3D12_RESOURCE_STATE_COPY_SOURCE,           pSrcRes },
      { D3D12_RESOURCE_STATE_RENDER_TARGET,
-       D3D12_RESOURCE_STATE_COPY_DEST,             stagingFrame.pBackBuffer.p }
-  };
+       D3D12_RESOURCE_STATE_COPY_DEST,             pDstRes } };
 
-  pCommandList->ResourceBarrier                   ( 2, &barriers [0]);
-  pCommandList->SetDescriptorHeaps                ( 1, &_d3d12_rbk->descriptorHeaps.pHDR_CopyAssist.p );
-  pCommandList->SetGraphicsRootDescriptorTable    ( 2,  stagingFrame.hdr.hBufferCopySRV.GPU           );
-  pCommandList->OMSetRenderTargets                ( 1, &stagingFrame.hBackBufferRTV, FALSE, nullptr   );
-  pCommandList->RSSetViewports                    ( 1, &stagingFrame.hdr.vp                           );
-  pCommandList->RSSetScissorRects                 ( 1, &stagingFrame.hdr.scissor                      );
-  pCommandList->DrawInstanced                     ( 3, 1, 0, 0                                        );
-  pCommandList->ResourceBarrier                   ( 2, &barriers [2]);
+  pCommandList->ResourceBarrier                ( 2,                        &barriers [0] );
+  pCommandList->SetGraphicsRootSignature       ( _d3d12_rbk->pHDRSignature               );
+  pCommandList->SetPipelineState               ( _d3d12_rbk->pHDRPipeline                );
+  pCommandList->SetDescriptorHeaps             ( 1, &pCopyHeap.p                         );
+  pCommandList->SetGraphicsRoot32BitConstants  ( 0, 4,  &cbuffer_luma,   0               );
+  pCommandList->SetGraphicsRoot32BitConstants  ( 1, 16, &cbuffer_cspace, 0               );
+  pCommandList->SetGraphicsRootDescriptorTable ( 2,  hBufferCopy.SRV.GPU                 );
+  pCommandList->OMSetRenderTargets             ( 1, &hBufferCopy.RTV.CPU, FALSE, nullptr );
+  pCommandList->IASetPrimitiveTopology         ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP    );
+  pCommandList->RSSetViewports                 ( 1, &stagingFrame.hdr.vp                 );
+  pCommandList->RSSetScissorRects              ( 1, &stagingFrame.hdr.scissor            );
+  pCommandList->DrawInstanced                  ( 3, 1, 0, 0                              );
+  pCommandList->ResourceBarrier                ( 2,                        &barriers [2] );
 
+    // We copied directly to the working buffer for HDR post-processing...
+    stagingFrame.hdr.skip_copy = skippable;
   ++stagingFrame.hdr.format_conversions;
 }
 
@@ -2166,7 +2194,10 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
        stagingFrame.hdr.pSwapChainCopy.p != nullptr &&
        stagingFrame.hdr.pSwapChainCopy.p->GetDesc ().Format == DXGI_FORMAT_R10G10B10A2_UNORM &&
                         pHDRPipeline.p   != nullptr &&
-                        pHDRSignature.p  != nullptr );
+                        pHDRSignature.p  != nullptr )  ||
+    // Implicit HDR processing if we redirected a call to CopyResource (...) during this frame
+    //
+    stagingFrame.hdr.skip_copy;
 
   auto _DrawAllReShadeEffects = [&](bool draw_first)
   {
@@ -2245,6 +2276,15 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
             );   stagingFrame.hReShadeRTV_sRGB  =  rtv_srgb_handle;
           }
         }
+
+        //
+        // Pulling the rug out from underneath things is a bad idea in DLSS3
+        //   games, so stall all queued frames before proceeding.
+        // 
+        // Streamline has a second queue on its fake SwapChain, that SK cannot
+        //   properly synchronize other than draining the entire queue.
+        //  
+        drain_queue ();
       }
 
       SK_ComQIPtr <IDXGISwapChain1>
@@ -2328,13 +2368,21 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       _DrawAllReShadeEffects (true);
     }
 
-    // Pre-Requisite SwapChain Backbuffer Copy
+    // Optional (if not already performed by Streamline) SwapChain Backbuffer Copy
+    //
+    auto *copy_barrier =
+      stagingFrame.hdr.barriers.zero_copy;
+
     pCommandList->EndQuery                          (queries.hdr.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP,
                                                           stagingFrame.iBufferIdx * 4                );
-    // pBackBuffer is expected to promote from STATE_PRESENT to STATE_COPY_SOURCE without a barrier.
-    pCommandList->CopyResource                      (     stagingFrame.hdr.pSwapChainCopy.p,
+    if (! std::exchange (stagingFrame.hdr.skip_copy, false))
+    {
+      copy_barrier =                                      stagingFrame.hdr.barriers.process;
+      // pBackBuffer is expected to promote from STATE_PRESENT to STATE_COPY_SOURCE without a barrier.
+      pCommandList->CopyResource                    (     stagingFrame.hdr.pSwapChainCopy.p,
                                                           stagingFrame.       pBackBuffer.p          );
-    pCommandList->ResourceBarrier                   ( 2,  stagingFrame.hdr.barriers.process          );
+    }
+    pCommandList->ResourceBarrier                   ( 2, copy_barrier                                );
     pCommandList->EndQuery                          (queries.hdr.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP,
                                                           stagingFrame.iBufferIdx * 4 + 1            );
 
@@ -2576,6 +2624,23 @@ SK_D3D12_RenderCtx::FrameCtx::flush_cmd_list (void)
 }
 
 bool
+SK_D3D12_RenderCtx::drain_queue (void) noexcept
+{
+  bool success { true };
+
+  for (auto& frame : frames_)
+  {
+    if (! frame.wait_for_gpu ())
+    {
+      success = false;
+    }
+  }
+
+  return
+    success;
+}
+
+bool
 SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void) noexcept
 {
   // Flush command list, to avoid it still referencing resources that may be destroyed after this call
@@ -2767,19 +2832,20 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
   frames_.clear ();
 
   // Do this after closing the command lists (frames_.clear ())
-  pHDRPipeline.Release                    ();
-  pHDRSignature.Release                   ();
+  pHDRPipeline.Release                        ();
+  pHDRSignature.Release                       ();
 
-  computeCopy.pPipeline.Release           ();
-  computeCopy.pSignature.Release          ();
-  computeCopy.dlssg_fence.Release         ();
+  computeCopy.pPipeline.Release               ();
+  computeCopy.pSignature.Release              ();
+  computeCopy.dlssg_fence.Release             ();
   computeCopy.dlssg_fence.value = 0;
 
-  descriptorHeaps.pBackBuffers.Release    ();
-//descriptorHeaps.pImGui.Release          ();
-  descriptorHeaps.pHDR.Release            ();
-  descriptorHeaps.pHDR_CopyAssist.Release ();
-  descriptorHeaps.pComputeCopy.Release    ();
+  descriptorHeaps.pBackBuffers.Release        ();
+//descriptorHeaps.pImGui.Release              ();
+  descriptorHeaps.pHDR.Release                ();
+  descriptorHeaps.pHDR_CopyAssist_SRV.Release ();
+  descriptorHeaps.pHDR_CopyAssist_RTV.Release ();
+  descriptorHeaps.pComputeCopy.Release        ();
 
   _pSwapChain.Release ();
   _pDevice.Release    ();
@@ -2936,14 +3002,23 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
           std::array < D3D12_DESCRIPTOR_HEAP_DESC,                1 >
             {          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,    swapDesc1.BufferCount * 2,
                        D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 }.data (),
-                                       IID_PPV_ARGS (&descriptorHeaps.pHDR_CopyAssist.p)));
-                              SK_D3D12_SetDebugName ( descriptorHeaps.pHDR_CopyAssist.p,
-                                  L"SK D3D12 HDR Copy DescriptorHeap" );
+                                       IID_PPV_ARGS (&descriptorHeaps.pHDR_CopyAssist_SRV.p)));
+                              SK_D3D12_SetDebugName ( descriptorHeaps.pHDR_CopyAssist_SRV.p,
+                              L"SK D3D12 HDR Copy SRV DescriptorHeap" );
+                              
+      ThrowIfFailed (
+        _pDevice->CreateDescriptorHeap (
+          std::array < D3D12_DESCRIPTOR_HEAP_DESC,                1 >
+            {          D3D12_DESCRIPTOR_HEAP_TYPE_RTV,            swapDesc1.BufferCount * 2,
+                       D3D12_DESCRIPTOR_HEAP_FLAG_NONE,           0 }.data (),
+                                       IID_PPV_ARGS (&descriptorHeaps.pHDR_CopyAssist_RTV.p)));
+                              SK_D3D12_SetDebugName ( descriptorHeaps.pHDR_CopyAssist_RTV.p,
+                              L"SK D3D12 HDR Copy RTV DescriptorHeap" );
 
       ThrowIfFailed (
         _pDevice->CreateDescriptorHeap (
           std::array < D3D12_DESCRIPTOR_HEAP_DESC,                1 >
-            {          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,    swapDesc1.BufferCount * 32,
+            {          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,    swapDesc1.BufferCount * 8,
                        D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 }.data (),
                                        IID_PPV_ARGS (&descriptorHeaps.pComputeCopy.p)));
                               SK_D3D12_SetDebugName ( descriptorHeaps.pComputeCopy.p,
@@ -3130,6 +3205,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
                            swapDesc1.Width, swapDesc1.Height,
                                          1,                1,
                            swapDesc1.Format, { 1, 0 }, D3D12_TEXTURE_LAYOUT_UNKNOWN,
+                                                       D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET |
                                                        D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS }.data (),
                            D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
                                                 IID_PPV_ARGS (&frame.hdr.pSwapChainCopy.p)));
@@ -3147,13 +3223,20 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
           descriptorHeaps.pHDR->GetGPUDescriptorHandleForHeapStart ().ptr +
                                    srvDescriptorSize * frame.iBufferIdx;
 
-        frame.hdr.hBufferCopySRV.CPU.ptr =
-          descriptorHeaps.pHDR_CopyAssist->GetCPUDescriptorHandleForHeapStart ().ptr +
-                                              srvDescriptorSize * frame.iBufferIdx;
+        frame.hdr.hBufferCopy.SRV.CPU.ptr =
+          descriptorHeaps.pHDR_CopyAssist_SRV->GetCPUDescriptorHandleForHeapStart ().ptr +
+                                                  srvDescriptorSize * frame.iBufferIdx;
 
-        frame.hdr.hBufferCopySRV.GPU.ptr =
-          descriptorHeaps.pHDR_CopyAssist->GetGPUDescriptorHandleForHeapStart ().ptr +
-                                              srvDescriptorSize * frame.iBufferIdx;
+        frame.hdr.hBufferCopy.SRV.GPU.ptr =
+          descriptorHeaps.pHDR_CopyAssist_SRV->GetGPUDescriptorHandleForHeapStart ().ptr +
+                                                  srvDescriptorSize * frame.iBufferIdx;
+
+        frame.hdr.hBufferCopy.RTV.CPU.ptr =
+          descriptorHeaps.pHDR_CopyAssist_RTV->GetCPUDescriptorHandleForHeapStart ().ptr +
+                                                  rtvDescriptorSize * frame.iBufferIdx;
+
+        // RTVs don't have GPU descriptor handles
+        frame.hdr.hBufferCopy.RTV.GPU.ptr = 0;
 
         _pDevice->CreateShaderResourceView ( frame.hdr.pSwapChainCopy.p, nullptr,
                                              frame.hdr.hSwapChainCopySRV.CPU
@@ -3161,14 +3244,17 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
         // As long as HDR processing comes first, we can implicitly transition the swapchain from
         //   STATE_PRESENT to D3D12_RESOURCE_STATE_COPY_SOURCE
-        frame.hdr.barriers.copy_end [0].Transition.pResource = frame.hdr.pSwapChainCopy.p;
-        frame.hdr.barriers.process  [0].Transition.pResource = frame.hdr.pSwapChainCopy.p;
-        frame.hdr.barriers.process  [1].Transition.pResource =        frame.pBackBuffer.p;
+        frame.hdr.barriers.copy_end  [0].Transition.pResource = frame.hdr.pSwapChainCopy.p;
+        frame.hdr.barriers.process   [0].Transition.pResource = frame.hdr.pSwapChainCopy.p;
+        frame.hdr.barriers.process   [1].Transition.pResource =        frame.pBackBuffer.p;
+        frame.hdr.barriers.zero_copy [1].Transition.pResource =        frame.pBackBuffer.p;
+        frame.hdr.barriers.zero_copy [0].Transition.pResource = frame.hdr.pSwapChainCopy.p;
+        frame.hdr.skip_copy = false;
 
-        frame.pRoot       = this;
+        frame.pRoot         = this;
 
-        frame.fence.value = 0;
-        frame.fence.event =
+        frame.fence.value   = 0;
+        frame.fence.event   =
           SK_CreateEvent ( nullptr, FALSE, FALSE, nullptr );
 
         frame.reshade_fence.value = 0;
@@ -3280,16 +3366,13 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       D3D12_BLEND_DESC&
         blendDesc                                = psoDesc.BlendState;
         blendDesc.
-          RenderTarget [0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_RED   |
-                                                   D3D12_COLOR_WRITE_ENABLE_GREEN |
-                                                   D3D12_COLOR_WRITE_ENABLE_BLUE;
+          RenderTarget [0].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 
       // Create the rasterizer state
       D3D12_RASTERIZER_DESC&
         rasterDesc                               = psoDesc.RasterizerState;
         rasterDesc.FillMode                      = D3D12_FILL_MODE_SOLID;
         rasterDesc.CullMode                      = D3D12_CULL_MODE_NONE;
-        rasterDesc.DepthClipEnable               = TRUE;
 
       // Create depth-stencil State
       D3D12_DEPTH_STENCIL_DESC&

@@ -1,5 +1,5 @@
 #define GROUP_SIZE_X 16
-#define GROUP_SIZE_Y 16
+#define GROUP_SIZE_Y 64
 
 #if 0
 RWTexture2D <float4> texOutput : register (u0);
@@ -30,7 +30,7 @@ BltCopy ( uint3 globalIdx : SV_DispatchThreadID,
 
   // Calculate the index within shared memory
   uint sharedIndex =
-    localCoords.y * GROUP_SIZE_X + localCoords.x;
+    localCoords.x * GROUP_SIZE_Y + localCoords.y;
 
   // Load data from the input texture to shared memory
   sharedData [sharedIndex] =
