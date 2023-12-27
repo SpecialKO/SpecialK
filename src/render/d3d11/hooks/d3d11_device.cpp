@@ -165,16 +165,22 @@ D3D11Dev_CreateShaderResourceView_Override (
       D3D11_TEXTURE2D_DESC texDesc = { };
       pTex->GetDesc      (&texDesc);
 
-      // Fix-up SRV's created using NULL desc's on Typeless SwapChain Backbuffers
-      if (DirectX::IsTypeless (texDesc.Format) && pDesc == nullptr)
-      {
-        pDesc       = &desc;
-        desc.Format = DirectX::MakeTypelessUNORM (texDesc.Format);
-      }
-
       // Ys 8 crashes if this nonsense isn't here
       bool bInvalidType =
         (pDesc != nullptr && DirectX::IsTypeless (pDesc->Format, false));
+
+      // Fix-up SRV's created using NULL desc's on Typeless SwapChain Backbuffers, or using DXGI_FORMAT_UNKNOWN
+      if (DirectX::IsTypeless (texDesc.Format) && (pDesc == nullptr || pDesc->Format == DXGI_FORMAT_UNKNOWN) &&
+                              (texDesc.BindFlags & D3D11_BIND_RENDER_TARGET))
+      {
+        if (pDesc == nullptr)
+            pDesc  = &desc;
+
+        desc.Format = DirectX::MakeTypelessUNORM (
+                      DirectX::MakeTypelessFLOAT (texDesc.Format));
+
+        bInvalidType = true;
+      }
 
       // SK only overrides the format of RenderTargets, anything else is not our fault.
       if ( bInvalidType || FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format)) )
@@ -533,80 +539,98 @@ D3D11Dev_CreateUnorderedAccessView_Override (
   }
 #endif
 
-  if ( pDesc     != nullptr &&
-       pResource != nullptr )
+  if (SK_ComQIPtr <ID3D11Texture2D> pTex (pResource);
+                                    pTex != nullptr)
   {
     D3D11_RESOURCE_DIMENSION dim;
     pResource->GetType     (&dim);
 
     if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
-      DXGI_FORMAT newFormat    = pDesc->Format;
-      SK_ComQIPtr <ID3D11Texture2D> pTex      (pResource);
+      D3D11_UNORDERED_ACCESS_VIEW_DESC desc =
+      { .Format         = DXGI_FORMAT_UNKNOWN,
+        .ViewDimension  = D3D11_UAV_DIMENSION_TEXTURE2D,
+        .Texture2D      = { .MipSlice = 0 }
+      };
 
-      if (pTex != nullptr)
+      if (pDesc != nullptr)
+        desc = *pDesc;
+
+      D3D11_TEXTURE2D_DESC tex_desc = { };
+      pTex->GetDesc      (&tex_desc);
+
+      DXGI_FORMAT newFormat = desc.Format;
+      bool         override = false;
+
+      // Fix-up UAV's created using NULL desc's on Typeless SwapChain Backbuffers, or using DXGI_FORMAT_UNKNOWN
+      if (DirectX::IsTypeless (tex_desc.Format) && (pDesc == nullptr || pDesc->Format == DXGI_FORMAT_UNKNOWN) &&
+                              (tex_desc.BindFlags & D3D11_BIND_RENDER_TARGET))
       {
-        bool                 override = false;
+        if (pDesc == nullptr)
+          pDesc    = &desc;
 
-        D3D11_TEXTURE2D_DESC tex_desc = { };
-             pTex->GetDesc (&tex_desc);
+        desc.Format = DirectX::MakeTypelessUNORM (
+                      DirectX::MakeTypelessFLOAT (tex_desc.Format));
 
-        if ( SK_D3D11_OverrideDepthStencil (newFormat) )
-          override = true;
+        newFormat = desc.Format;
+        override  = true;
+      }
 
-        if ( SK_D3D11_TextureIsCached ((ID3D11Texture2D *)pResource) )
-        {
-          auto& textures =
-            SK_D3D11_Textures;
+      if ( SK_D3D11_OverrideDepthStencil (newFormat) )
+        override = true;
 
-          auto& cache_desc =
-            textures->Textures_2D [(ID3D11Texture2D *)pResource];
+      if ( SK_D3D11_TextureIsCached ((ID3D11Texture2D *)pResource) )
+      {
+        auto& textures =
+          SK_D3D11_Textures;
 
-          newFormat =
-            cache_desc.desc.Format;
+        auto& cache_desc =
+          textures->Textures_2D [(ID3D11Texture2D *)pResource];
 
-          if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-               DirectX::MakeTypeless (pDesc->Format) !=
-               DirectX::MakeTypeless (newFormat    )  )
-          {
-            if (DirectX::IsSRGB (pDesc->Format))
-              newFormat = DirectX::MakeSRGB (newFormat);
-
-            override = true;
-
-            if (config.system.log_level > 0)
-              SK_ReleaseAssert (override == false && L"UAV Format Override Needed");
-
-            SK_LOG1 ( ( L"Overriding Unordered Access View Format for Cached Texture '%08x'  { Was: '%hs', Now: '%hs' }",
-                          cache_desc.crc32c,
-                     SK_DXGI_FormatToStr (pDesc->Format).data      (),
-                              SK_DXGI_FormatToStr (newFormat).data () ),
-                        L"DX11TexMgr" );
-          }
-        }
+        newFormat =
+          cache_desc.desc.Format;
 
         if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-             DirectX::BitsPerPixel (pDesc->Format) !=
-             DirectX::BitsPerPixel (tex_desc.Format) )
+             DirectX::MakeTypeless (pDesc->Format) !=
+             DirectX::MakeTypeless (newFormat    )  )
         {
-          override  = true;
-          newFormat = tex_desc.Format;
+          if (DirectX::IsSRGB (pDesc->Format))
+            newFormat = DirectX::MakeSRGB (newFormat);
+
+          override = true;
+
+          if (config.system.log_level > 0)
+            SK_ReleaseAssert (override == false && L"UAV Format Override Needed");
+
+          SK_LOG1 ( ( L"Overriding Unordered Access View Format for Cached Texture '%08x'  { Was: '%hs', Now: '%hs' }",
+                        cache_desc.crc32c,
+                   SK_DXGI_FormatToStr (pDesc->Format).data      (),
+                            SK_DXGI_FormatToStr (newFormat).data () ),
+                      L"DX11TexMgr" );
         }
+      }
 
-        if (override)
-        {
-          auto descCopy =
-            *pDesc;
+      if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+           DirectX::BitsPerPixel (pDesc->Format) !=
+           DirectX::BitsPerPixel (tex_desc.Format) )
+      {
+        override  = true;
+        newFormat = tex_desc.Format;
+      }
 
-          descCopy.Format = newFormat;
+      if (override)
+      {
+        auto descCopy =
+          *pDesc;
 
-          const HRESULT hr =
-            D3D11Dev_CreateUnorderedAccessView_Original ( This, pResource,
-                                                            &descCopy, ppUAView );
+        descCopy.Format = newFormat;
 
-          if (SUCCEEDED (hr))
-            return hr;
-        }
+        const HRESULT hr =
+          D3D11Dev_CreateUnorderedAccessView_Original ( This, pResource,
+                                                          &descCopy, ppUAView );
+
+        if (SUCCEEDED (hr))
+          return hr;
       }
     }
   }

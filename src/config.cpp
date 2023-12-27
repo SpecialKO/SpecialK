@@ -243,7 +243,8 @@ SK_GetCurrentGameID (void)
           { L"LOTF2.exe",                              SK_GAME_ID::EasyAntiCheat                },
           { L"LOTF2-Win64-Shipping.exe",               SK_GAME_ID::LordsOfTheFallen2            },
           { L"AlanWake2.exe",                          SK_GAME_ID::AlanWake2                    },
-          { L"Cyberpunk2077.exe",                      SK_GAME_ID::Cyberpunk2077                }
+          { L"Cyberpunk2077.exe",                      SK_GAME_ID::Cyberpunk2077                },
+          { L"CrashReport.exe",                        SK_GAME_ID::CrashReport                  }
         };
 
     first_check  = false;
@@ -343,6 +344,27 @@ SK_GetCurrentGameID (void)
 
     else
     {
+      // CAPCOM games crash at start if we don't kill this
+      if (current_game == SK_GAME_ID::CrashReport)
+      {
+        if ( IDYES == SK_MessageBox (
+              L"Game will crash at startup unless CrashReport.exe is disabled."
+              L"\r\n\r\n\tDisable Crash Report?",
+                L"CAPCOM Crash Report Must Be Disabled",
+                  MB_YESNO |
+                  MB_ICONQUESTION
+             )
+           )
+        {
+          // Properly disable this crap
+          MoveFileW        (L"CrashReport.exe", L"CrashReport_Disabled.exe");
+          TerminateProcess (GetCurrentProcess (), 0x0);
+        }
+
+        // Self-Identify as Launcher and hope for the best...
+        current_game = SK_GAME_ID::Launcher;
+      }
+
       if (current_game == SK_GAME_ID::EasyAntiCheat)
       {
         std::error_code                                          ec;

@@ -5234,6 +5234,21 @@ D3D11Dev_CreateTexture2D_Impl (
   if (pSwapChain != nullptr)
       pSwapChain->GetDesc (&swapDesc);
 
+  //
+  // Hack for Frostbite Engine, it is not known why it tries to do this
+  //
+  if (pDesc != nullptr && pDesc->Format == DXGI_FORMAT_UNKNOWN)
+  {
+    SK_RunOnce (
+      SK_LOGi0 (
+        L"Game tried to create a texture with DXGI_FORMAT_UNKNOWN! "
+        L"Assuming it was trying to create storage for SwapChain backbuffer copy..."
+      )
+    );
+
+    pDesc->Format = swapDesc.BufferDesc.Format;
+  }
+
   const bool bHDROverride =
     ( __SK_HDR_16BitSwap ||
       __SK_HDR_10BitSwap );
