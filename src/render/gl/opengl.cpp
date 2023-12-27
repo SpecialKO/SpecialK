@@ -40,6 +40,9 @@
 
 #include <SpecialK/osd/popup.h>
 
+// For OpenGL-IK
+#include <SpecialK/render/dxgi/dxgi_util.h>
+
 #include <SpecialK/render/gl/opengl_backend.h>
 #include <imgui/backends/imgui_gl3.h>
 #include <../depends/include/GL/glew.h>
@@ -1967,6 +1970,12 @@ SK_GL_CreateInteropSwapChain ( IDXGIFactory2         *pFactory,
                                ID3D11Device          *pDevice, HWND               hWnd,
                                DXGI_SWAP_CHAIN_DESC1 *desc1,   IDXGISwapChain1 **ppSwapChain )
 {
+  extern bool __SK_HDR_16BitSwap;
+  extern BOOL SK_DXGI_ZeroCopy;
+
+  SK_DXGI_ZeroCopy =
+    __SK_HDR_16BitSwap;
+
   HRESULT hr =
     pFactory->CreateSwapChainForHwnd ( pDevice, hWnd,
                                        desc1,   nullptr,
@@ -2440,10 +2449,54 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           pSwapChain2->GetFrameLatencyWaitableObject ();
 
 
-      pSwapChain->GetBuffer (
-        0, IID_ID3D11Texture2D, (void **)&dx_gl_interop.output.backbuffer.image.p );
-      pDevice->CreateRenderTargetView (   dx_gl_interop.output.backbuffer.image.p,
-                                nullptr, &dx_gl_interop.output.backbuffer.rtv.p   );
+      extern bool __SK_HDR_10BitSwap;
+      extern bool __SK_HDR_16BitSwap;
+      extern BOOL SK_DXGI_ZeroCopy;
+
+      bool bHDRZeroCopy =
+        SK_DXGI_ZeroCopy == TRUE;
+
+      if (bHDRZeroCopy)
+      {
+        SK_ComPtr <ID3D11ShaderResourceView> pSrv;
+        SK_ComPtr <ID3D11Resource>           pRes;
+
+        IDXGISwapChain*                                 pWrappedSwapChain = nullptr;
+        SK_DXGI_GetPrivateData ( pSwapChain,
+          SKID_DXGI_WrappedSwapChain, sizeof (void *), &pWrappedSwapChain );
+
+        SK_DXGI_GetPrivateData ( pWrappedSwapChain,
+          SKID_DXGI_SwapChainProxyBackbuffer_D3D11, sizeof (void *), &pSrv.p
+        );
+
+        if (pSrv != nullptr)
+        {   pSrv->GetResource (&pRes.p);
+
+          SK_ComQIPtr <ID3D11Texture2D> pTex2D (pRes);
+
+          if (pTex2D != nullptr)
+          {
+            dx_gl_interop.output.backbuffer.image = pRes;
+
+            pDevice->CreateRenderTargetView (   dx_gl_interop.output.backbuffer.image.p,
+                                      nullptr, &dx_gl_interop.output.backbuffer.rtv.p   );
+          }
+        }
+
+        if (! dx_gl_interop.output.backbuffer.rtv.p)
+        {
+          dx_gl_interop.output.backbuffer.image = nullptr;
+          bHDRZeroCopy                          = false;
+        }
+      }
+
+      if (! bHDRZeroCopy)
+      {
+        pSwapChain->GetBuffer (
+          0, IID_ID3D11Texture2D, (void **)&dx_gl_interop.output.backbuffer.image.p );
+        pDevice->CreateRenderTargetView (   dx_gl_interop.output.backbuffer.image.p,
+                                  nullptr, &dx_gl_interop.output.backbuffer.rtv.p   );
+      }
 
       D3D11_TEXTURE2D_DESC                             tex_desc = { };
       dx_gl_interop.output.backbuffer.image->GetDesc (&tex_desc);

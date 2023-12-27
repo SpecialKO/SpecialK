@@ -1497,7 +1497,7 @@ public:
             ImGui::Spacing         ();
             ImGui::Separator       ();
             ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.62f, .62f, .62f, 1.f));
-            ImGui::TextUnformatted ("This mode is not currently supported in D3D12 or OpenGL-IK");
+            ImGui::TextUnformatted ("This mode is not supported in D3D12 and only supports scRGB in OpenGL-IK");
             ImGui::PopStyleColor   ();
             ImGui::EndTooltip      ();
           }

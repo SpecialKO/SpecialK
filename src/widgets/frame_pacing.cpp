@@ -1008,32 +1008,41 @@ SK_ImGui_DrawGraph_FramePacing (void)
       ImGui::EndTooltip      ();
     }
 
-    ImGui::SameLine ();
+    extern float SK_Framerate_GetBusyWaitPercent (void);
+    extern float SK_Framerate_GetBusyWaitMs      (void);
+    extern float SK_Framerate_GetSleepWaitMs     (void);
 
-    extern float
-        SK_Framerate_GetBusyWaitPercent (void);
-    if (SK_Framerate_GetBusyWaitPercent () > 0.0 && SK_Framerate_GetBusyWaitPercent () <= 100.0)
+    const float
+      fBusyWaitMs      = SK_Framerate_GetBusyWaitMs      (),
+      fSleepWaitMs     = SK_Framerate_GetSleepWaitMs     (),
+      fBusyWaitPercent = SK_Framerate_GetBusyWaitPercent ();
+
+    // For extremely short wait periods (i.e. OpenGL-IK composition),
+    //   don't even bother printing this...
+    if ( ( fBusyWaitMs  >= 0.1 || 
+           fSleepWaitMs >= 0.1 ) && fBusyWaitPercent >= 0.0f
+                                 && fBusyWaitPercent <= 100.0 )
     {
-      extern float SK_Framerate_GetBusyWaitMs (void);
-      extern float SK_Framerate_GetSleepWaitMs (void);
+      ImGui::SameLine ();
 
       ImGui::Text (
-        ICON_FA_MICROCHIP " %3.1f%%", SK_Framerate_GetBusyWaitPercent ()
+        ICON_FA_MICROCHIP " %3.1f%%", fBusyWaitPercent
       );
 
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ();
-        ImGui::Text ("Framerate Limiter CPU busy-wait; lower values are more energy efficient.");
-        ImGui::Separator ();
-        ImGui::Text ("Average Wait Time: %5.2f ms", SK_Framerate_GetBusyWaitMs  () +
-                                                               SK_Framerate_GetSleepWaitMs ());
-        ImGui::BulletText ("Sleep-Wait:\t%5.2f ms", SK_Framerate_GetSleepWaitMs ());
-        ImGui::BulletText ("Busy-Wait: \t%5.2f ms", SK_Framerate_GetBusyWaitMs  ());
-        ImGui::EndTooltip ();
+        ImGui::Text         (
+          "Framerate Limiter CPU busy-wait;"
+          " lower values are more energy efficient."
+        );
+        ImGui::Separator    ();
+        ImGui::Text         ("Average Wait Time: %5.2f ms", fBusyWaitMs +
+                                                            fSleepWaitMs);
+        ImGui::BulletText   ("Sleep-Wait:\t%5.2f ms",       fSleepWaitMs);
+        ImGui::BulletText   ("Busy-Wait: \t%5.2f ms",       fBusyWaitMs );
+        ImGui::EndTooltip   ();
       }
-
-      ImGui::SameLine ();
     }
   }
 
@@ -1047,12 +1056,25 @@ SK_ImGui_DrawGraph_FramePacing (void)
         ImGui::TextUnformatted (
           "Presentation Model Unknown  (Full SK Install is Required)"
         );
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::TextUnformatted (
+            "User Account Permissions Do Not Permit Running PresentMon"
+          );
+          ImGui::Separator       ();
+          ImGui::BulletText      (
+            "Refer to SwapChain Presentation Monitor Settings in SKIF"
+          );
+          ImGui::EndTooltip      ();
+        }
       }
 
       else
       {
         ImGui::TextUnformatted (
-          "Steam Deck"
+          "SteamOS  (Presentation Model Undefined)"
         );
       }
     }
@@ -1062,10 +1084,18 @@ SK_ImGui_DrawGraph_FramePacing (void)
       ImGui::TextUnformatted (
         "Presentation Model Tracking Unavailable"
       );
-    }
 
-    ImGui::SameLine ();
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip (
+          "Too many applications may be using PresentMon;"
+          " often restarting the game will fix this."
+        );
+      }
+    }
   }
+
+  ImGui::SameLine ();
 
   if (SK_ImGui_DrawGamepadStatusBar () > 0)
     extra_status_line = 1;

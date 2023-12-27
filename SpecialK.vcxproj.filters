@@ -226,9 +226,6 @@
     <Filter Include="DLL Export Definitions">
       <UniqueIdentifier>{5b9c5ae0-a6ca-41ed-bf90-f9485960db1e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\ImGui\Widgets">
-      <UniqueIdentifier>{e7c10313-1c67-4aaa-b5bd-c1a3f7ff608f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Backends\Render\Shaders">
       <UniqueIdentifier>{acbb52fe-3c5a-4cb0-9116-449ea5e2bc52}</UniqueIdentifier>
     </Filter>
@@ -372,6 +369,9 @@
     </Filter>
     <Filter Include="Source Files\Backends\Render\DDraw">
       <UniqueIdentifier>{be4259a8-6e13-4821-8e15-b86ff8a6a7ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Widgets">
+      <UniqueIdentifier>{e7c10313-1c67-4aaa-b5bd-c1a3f7ff608f}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -3252,34 +3252,34 @@
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\d3d11_pipeline_widget.cpp">
-      <Filter>Source Files\ImGui\Widgets</Filter>
+      <Filter>Source Files\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\denuvo.cpp">
       <Filter>Source Files\Utility</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\frame_pacing.cpp">
-      <Filter>Source Files\ImGui\Widgets</Filter>
+      <Filter>Source Files\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\gpu_widget.cpp">
-      <Filter>Source Files\ImGui\Widgets</Filter>
+      <Filter>Source Files\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\hdr.cpp">
-      <Filter>Source Files\ImGui\Widgets</Filter>
+      <Filter>Source Files\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\threads.cpp">
-      <Filter>Source Files\ImGui\Widgets</Filter>
+      <Filter>Source Files\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\volume_control.cpp">
-      <Filter>Source Files\ImGui\Widgets</Filter>
+      <Filter>Source Files\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\widget.cpp">
-      <Filter>Source Files\ImGui\Widgets</Filter>
+      <Filter>Source Files\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\tobii.cpp">
-      <Filter>Source Files\ImGui\Widgets</Filter>
+      <Filter>Source Files\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\cpu_widget.cpp">
-      <Filter>Source Files\ImGui\Widgets</Filter>
+      <Filter>Source Files\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\sekiro.cpp">
       <Filter>Source Files\Plugins</Filter>
@@ -3396,7 +3396,7 @@
       <Filter>Source Files\Backends\Render\D3D11\Textures</Filter>
     </ClCompile>
     <ClCompile Include="src\widgets\latency.cpp">
-      <Filter>Source Files\ImGui\Widgets</Filter>
+      <Filter>Source Files\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\CommandLine.cpp">
       <Filter>Source Files\Backends\Render\PresentMon</Filter>

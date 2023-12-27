@@ -450,21 +450,23 @@ IWrapDXGISwapChain::GetDevice (REFIID riid, void **ppDevice)
   return E_NOINTERFACE;
 }
 
+// Special optimization for HDR
+BOOL SK_DXGI_ZeroCopy = -1;
+
 int
 IWrapDXGISwapChain::PresentBase (void)
 {
-  static bool bHDRZeroCopy =
-    (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap) && (! SK_GL_OnD3D11);
+  if (SK_DXGI_ZeroCopy == -1)
+      SK_DXGI_ZeroCopy = (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap);
 
-  UINT uiSize    = sizeof (BOOL);
   BOOL bSkipCopy = FALSE;
 
-  pReal->GetPrivateData (
-    SKID_DXGI_SwapChainSkipBackbufferCopy_D3D11, &uiSize, &bSkipCopy
+  SK_DXGI_GetPrivateData ( pReal,
+    SKID_DXGI_SwapChainSkipBackbufferCopy_D3D11, sizeof (BOOL), &bSkipCopy
   );
 
   // D3D12 is already Flip Model and doesn't need this
-  if ((flip_model.isOverrideActive () || bHDRZeroCopy) && (! d3d12_) && (! bSkipCopy))
+  if ((flip_model.isOverrideActive () || SK_DXGI_ZeroCopy == TRUE) && (! d3d12_) && (! bSkipCopy))
   {
     SK_ComQIPtr <ID3D11Device>
         pD3D11Dev (pDev);
@@ -552,11 +554,10 @@ IWrapDXGISwapChain::PresentBase (void)
     }
   }
 
-  uiSize    = sizeof (BOOL);
   bSkipCopy = FALSE;
 
-  pReal->SetPrivateData (
-    SKID_DXGI_SwapChainSkipBackbufferCopy_D3D11, uiSize, &bSkipCopy
+  SK_DXGI_SetPrivateData ( pReal,
+    SKID_DXGI_SwapChainSkipBackbufferCopy_D3D11, sizeof (BOOL), &bSkipCopy
   );
 
   return -1;
@@ -580,11 +581,11 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
 {
-  static bool bHDRZeroCopy =
-    (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap) && (! SK_GL_OnD3D11);
+  if (SK_DXGI_ZeroCopy == -1)
+      SK_DXGI_ZeroCopy = (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap);
 
   // D3D12 is already Flip Model and doesn't need this
-  if ((flip_model.isOverrideActive () || bHDRZeroCopy) && (! d3d12_))
+  if ((flip_model.isOverrideActive () || SK_DXGI_ZeroCopy == TRUE) && (! d3d12_))
   {
     // MGS V Compatibility
     Buffer = 0;
@@ -832,8 +833,8 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
                                     UINT        Width,     UINT Height,
                                     DXGI_FORMAT NewFormat, UINT SwapChainFlags )
 {
-  static bool bHDRZeroCopy =
-    (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap) && (! SK_GL_OnD3D11);
+  if (SK_DXGI_ZeroCopy == -1)
+      SK_DXGI_ZeroCopy = (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap);
 
   state_cache_s                                   state_cache = { };
   SK_DXGI_GetPrivateData <state_cache_s> (pReal, &state_cache);
@@ -851,7 +852,7 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
     state_cache._stalebuffers = false;
 
     // D3D12 is already Flip Model and doesn't need this
-    if ((flip_model.isOverrideActive () || bHDRZeroCopy) && (! d3d12_))
+    if ((flip_model.isOverrideActive () || SK_DXGI_ZeroCopy == TRUE) && (! d3d12_))
     {
       std::scoped_lock lock (_backbufferLock);
 
