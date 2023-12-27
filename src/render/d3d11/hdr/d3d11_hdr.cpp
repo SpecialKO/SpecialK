@@ -45,6 +45,7 @@ std::vector <d3d11_shader_tracking_s::duration_s> SK_D3D11_HDRTimers;
 std::atomic_uint64_t                              SK_D3D11_HDR_RuntimeTicks  = 0ULL;
 double                                            SK_D3D11_HDR_RuntimeMs     = 0.0;
 double                                            SK_D3D11_HDR_LastRuntimeMs = 0.0;
+bool                                              SK_D3D11_HDR_ZeroCopy      = false;
 
 struct SK_HDR_FIXUP
 {
@@ -844,10 +845,41 @@ SK_HDR_SnapshotSwapchain (void)
       }
     }
 
+    SK_ComPtr <ID3D11RenderTargetView>   pRtv = nullptr;
+    SK_ComPtr <ID3D11ShaderResourceView> pSrv = nullptr;
+
+    IDXGISwapChain*                                                                   pWrappedSwapChain = nullptr;
+    SK_DXGI_GetPrivateData (pSwapChain, SKID_DXGI_WrappedSwapChain, sizeof (void *), &pWrappedSwapChain);
+
+    if ((! __SK_HDR_AdaptiveToneMap) && (! config.reshade.is_addon) && pWrappedSwapChain != nullptr)
+    {
+      pSwapChain->GetDesc (&swapDesc);
+
+      SK_DXGI_GetPrivateData ( pWrappedSwapChain,
+        SKID_DXGI_SwapChainProxyBackbuffer_D3D11, sizeof (void *), &pSrv.p
+      );
+
+      if (pSrv.p != nullptr)
+      {
+        SK_DXGI_GetPrivateData ( pWrappedSwapChain,
+          SKID_DXGI_SwapChainRealBackbuffer_D3D11, sizeof (void *), &pRtv.p
+        );
+
+        if (pRtv.p != nullptr)
+        {
+          const BOOL bSkip = TRUE;
+
+          SK_DXGI_SetPrivateData ( pWrappedSwapChain,
+            SKID_DXGI_SwapChainSkipBackbufferCopy_D3D11, sizeof (BOOL), (void *)&bSkip
+          );
+        }
+      }
+    }
+
     SK_ComPtr <ID3D11Texture2D> pSrc = nullptr;
     SK_ComPtr <ID3D11Resource>  pDst = nullptr;
 
-    if (pSwapChain != nullptr)
+    if (pSwapChain != nullptr && (pSrv.p == nullptr || pRtv.p == nullptr))
     {
       pSwapChain->GetDesc (&swapDesc);
 
@@ -972,11 +1004,13 @@ SK_HDR_SnapshotSwapchain (void)
 
     else return;
 
-    SK_ComPtr <ID3D11RenderTargetView>  pRenderTargetView;
-    if (! _d3d11_rbk->frames_.empty ()) pRenderTargetView =
-          _d3d11_rbk->frames_ [0].hdr.pRTV;
+    if (pRtv == nullptr)
+    {
+      if (! _d3d11_rbk->frames_.empty ()) pRtv =
+            _d3d11_rbk->frames_ [0].hdr.pRTV;
+    }
 
-    if (              pRenderTargetView.p != nullptr                                 &&
+    if (                           pRtv.p != nullptr                                 &&
              ((swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT          &&
          ( rb.scanout.dxgi_colorspace     == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ||
            rb.scanout.dwm_colorspace      == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ||
@@ -1005,6 +1039,9 @@ SK_HDR_SnapshotSwapchain (void)
           };
         } ps;
       } resources;
+
+      if (pSrv != nullptr)
+        resources.ps.hdr [0] = pSrv;
 
       const D3D11_VIEWPORT vp = {      0.0f, 0.0f,
         static_cast <float> (swapDesc.BufferDesc.Width ),
@@ -1046,7 +1083,7 @@ SK_HDR_SnapshotSwapchain (void)
       pDevCtx->OMSetDepthStencilState ( hdr_base->pDSState,
                                         0 );
       pDevCtx->OMSetRenderTargets     ( 1,
-                                         &pRenderTargetView.p,
+                                         &pRtv.p,
                                             nullptr );
 
       pDevCtx->PSSetShaderResources   (0, 2, &resources.ps.hdr [0].p);

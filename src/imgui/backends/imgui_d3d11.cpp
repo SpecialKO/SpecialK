@@ -543,11 +543,41 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     );
   try
   {
-    SK_ComPtr <ID3D11Device> pDev;
-    pDevCtx->GetDevice     (&pDev.p);
+    SK_ComPtr <ID3D11RenderTargetView> pRtv;
+    SK_ComPtr <ID3D11Device>           pDev;
+    pDevCtx->GetDevice               (&pDev.p);
+
+    IDXGISwapChain*                                 pWrappedSwapChain = nullptr;
+    SK_DXGI_GetPrivateData ( pSwapChain,
+      SKID_DXGI_WrappedSwapChain, sizeof (void *), &pWrappedSwapChain );
+
+    BOOL bSkip = FALSE;
+
+    SK_DXGI_GetPrivateData ( pWrappedSwapChain,
+      SKID_DXGI_SwapChainSkipBackbufferCopy_D3D11, sizeof (BOOL), &bSkip );
+
+    // Zero-Copy Fast Path
+    //
+    //  * HDR processing already did the Flip Model dance for us, so we can
+    //      draw straight to the Swap Chain's -real- Back Buffer.
+    if (bSkip == TRUE)
+    {
+      SK_D3D11_HDR_ZeroCopy = true;
+
+      SK_DXGI_GetPrivateData ( pWrappedSwapChain,
+        SKID_DXGI_SwapChainRealBackbuffer_D3D11, sizeof (void *), &pRtv.p );
+    }
+
+    else
+    {
+      SK_D3D11_HDR_ZeroCopy = false;
+
+      pRtv =
+        _P->pRenderTargetView.p;
+    }
 
     pDevCtx->OMSetRenderTargets ( 1,
-                                   &_P->pRenderTargetView.p,
+                                    &pRtv.p,
                                       nullptr );
 
     // Setup viewport

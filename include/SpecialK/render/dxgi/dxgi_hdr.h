@@ -163,4 +163,7 @@ SK_D3D11_EndFrameHDR (void);
 void SK_HDR_DisableOverridesForGame (void);
 void SK_HDR_SetOverridesForGame     (bool bScRGB, bool bHDR10);
 
+extern double SK_D3D11_HDR_RuntimeMs;
+extern bool   SK_D3D11_HDR_ZeroCopy;
+
 #endif /*__SK__DXGI_HDR_H__*/

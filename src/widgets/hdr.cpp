@@ -1413,8 +1413,6 @@ public:
       {
         ImGui::SameLine ();
 
-        extern double SK_D3D11_HDR_RuntimeMs;
-
         double dComputeCopyTime   = 0.0;
         UINT   format_conversions =   0;
 
@@ -1441,7 +1439,8 @@ public:
           "Format Conversion Passes:\t%u\t\tDLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms",
                                            "DLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms",
                                                 "Format Conversion Passes:\t%u\t\tHDR Processing:\t%5.4f ms",
-                                                                                 "HDR Processing:\t%5.4f ms"
+                                                                                 "HDR Processing:\t%5.4f ms",
+                                                           "HDR Zero-Copy Mode\t\tHDR Processing:\t%5.4f ms"
         };
 
         if (dComputeCopyTime != 0.0 && computeCopy.lastFrameActive > SK_GetFramesDrawn () - _DLSSG_FRAME_THRESHOLD)
@@ -1451,6 +1450,8 @@ public:
         } else { if (                                              format_conversions > 0)
                snprintf (szProcessingText, 127, string_format [2], format_conversions,                   SK_D3D11_HDR_RuntimeMs);
           else snprintf (szProcessingText, 127, string_format [3],                                       SK_D3D11_HDR_RuntimeMs);
+          if (SK_D3D11_HDR_ZeroCopy)
+               snprintf (szProcessingText, 127, string_format [4],                                       SK_D3D11_HDR_RuntimeMs);
 
           dComputeCopyTime = 0.0;
         }
@@ -1476,6 +1477,28 @@ public:
             ImGui::BulletText      ("Additional GPU resources are being used to upconvert the game's output");
             if (__SK_HDR_16BitSwap)
               ImGui::BulletText    ("If GPU performance is a factor, HDR10 may improve framerate");
+            ImGui::EndTooltip      ();
+          }
+        }
+
+        if (SK_D3D11_HDR_ZeroCopy)
+        {
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip    ();
+            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+            ImGui::TextUnformatted ("HDR Zero-Copy Mode reduces Memory Bandwidth requirements by 1/2");
+            ImGui::Separator       ();
+            ImGui::PopStyleColor   ();
+            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+            ImGui::BulletText      ("Optimization disengages when using ReShade or Adaptive Tonemapping");
+            ImGui::BulletText      ("Legacy MSAA (SwapChain-based Blt) may disable this optimization");
+            ImGui::PopStyleColor   ();
+            ImGui::Spacing         ();
+            ImGui::Separator       ();
+            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.62f, .62f, .62f, 1.f));
+            ImGui::TextUnformatted ("This mode is not currently supported in D3D12 or OpenGL-IK");
+            ImGui::PopStyleColor   ();
             ImGui::EndTooltip      ();
           }
         }

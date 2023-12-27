@@ -313,6 +313,10 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetPrivateData (REFGUID Name, UINT DataSize, const void *pData)
 {
+  if (Name == SKID_DXGI_SwapChainSkipBackbufferCopy_D3D11)
+  {
+  }
+
   return
     pReal->SetPrivateData (Name, DataSize, pData);
 }
@@ -328,6 +332,93 @@ IWrapDXGISwapChain::SetPrivateDataInterface (REFGUID Name, const IUnknown *pUnkn
 HRESULT
 STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataSize, void *pData)
 {
+  if (IsEqualGUID (Name, SKID_DXGI_SwapChainProxyBackbuffer_D3D11) && _backbuffers.contains (0))
+  {
+    if (SK_ComQIPtr <ID3D11Device> pDev11 (pDev); pDev11.p  != nullptr &&
+                                                  pDataSize != nullptr)
+    {
+      if (pData != nullptr && *pDataSize >= sizeof (void *))
+      {
+        D3D11_TEXTURE2D_DESC        texDesc = { };
+        _backbuffers [0]->GetDesc (&texDesc);
+
+        // Multisampled backbuffers require an extra resolve, we can't do this.
+        if (texDesc.SampleDesc.Count == 1)
+        {
+          auto typed_format =
+              DirectX::MakeTypelessUNORM (
+              DirectX::MakeTypelessFLOAT (texDesc.Format));
+
+          D3D11_SHADER_RESOURCE_VIEW_DESC
+            srvDesc                     = { };
+            srvDesc.Format              = typed_format;
+            srvDesc.ViewDimension       = D3D_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Texture2D.MipLevels = 1;
+
+          SK_ComPtr <ID3D11ShaderResourceView>                           pSRV;
+          pDev11->CreateShaderResourceView (_backbuffers [0], &srvDesc, &pSRV.p);
+
+          if (pSRV.p != nullptr)
+          {
+                                    pSRV.p->AddRef ();
+            memcpy (pData, (void *)&pSRV.p, sizeof (void *));
+            return S_OK;
+          }
+        }
+      }
+
+      if (pData == nullptr)
+      {
+        *pDataSize = sizeof (void *);
+        return S_OK;
+      }
+    }
+  }
+
+  else if (IsEqualGUID (Name, SKID_DXGI_SwapChainRealBackbuffer_D3D11))
+  {
+    if (SK_ComQIPtr <ID3D11Device> pDev11 (pDev); pDev11.p  != nullptr &&
+                                                  pDataSize != nullptr)
+    {
+      if (pData != nullptr && *pDataSize >= sizeof (void *))
+      {
+        SK_ComPtr <ID3D11Texture2D>                         pBackBuffer;
+        pReal->GetBuffer (0, IID_ID3D11Texture2D, (void **)&pBackBuffer.p);
+
+        if (pBackBuffer.p != nullptr)
+        {
+          D3D11_TEXTURE2D_DESC   texDesc = { };
+          pBackBuffer->GetDesc (&texDesc);
+
+          auto typed_format =
+            DirectX::MakeTypelessUNORM (
+            DirectX::MakeTypelessFLOAT (texDesc.Format));
+
+          D3D11_RENDER_TARGET_VIEW_DESC
+            rtvDesc               = { };
+            rtvDesc.Format        = typed_format;
+            rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+          SK_ComPtr <ID3D11RenderTargetView>                      pRTV;
+          pDev11->CreateRenderTargetView (pBackBuffer, &rtvDesc, &pRTV.p);
+
+          if (pRTV.p != nullptr)
+          {
+                                    pRTV.p->AddRef ();
+            memcpy (pData, (void *)&pRTV.p, sizeof (void *));
+            return S_OK;
+          }
+        }
+      }
+
+      if (pData == nullptr)
+      {
+        *pDataSize = sizeof (void *);
+        return S_OK;
+      }
+    }
+  }
+
   return
     pReal->GetPrivateData (Name, pDataSize, pData);
 }
@@ -362,8 +453,18 @@ IWrapDXGISwapChain::GetDevice (REFIID riid, void **ppDevice)
 int
 IWrapDXGISwapChain::PresentBase (void)
 {
+  static bool bHDRZeroCopy =
+    (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap) && (! SK_GL_OnD3D11);
+
+  UINT uiSize    = sizeof (BOOL);
+  BOOL bSkipCopy = FALSE;
+
+  pReal->GetPrivateData (
+    SKID_DXGI_SwapChainSkipBackbufferCopy_D3D11, &uiSize, &bSkipCopy
+  );
+
   // D3D12 is already Flip Model and doesn't need this
-  if (flip_model.isOverrideActive () && (! d3d12_))
+  if ((flip_model.isOverrideActive () || bHDRZeroCopy) && (! d3d12_) && (! bSkipCopy))
   {
     SK_ComQIPtr <ID3D11Device>
         pD3D11Dev (pDev);
@@ -451,6 +552,13 @@ IWrapDXGISwapChain::PresentBase (void)
     }
   }
 
+  uiSize    = sizeof (BOOL);
+  bSkipCopy = FALSE;
+
+  pReal->SetPrivateData (
+    SKID_DXGI_SwapChainSkipBackbufferCopy_D3D11, uiSize, &bSkipCopy
+  );
+
   return -1;
 }
 
@@ -472,8 +580,11 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
 {
+  static bool bHDRZeroCopy =
+    (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap) && (! SK_GL_OnD3D11);
+
   // D3D12 is already Flip Model and doesn't need this
-  if (flip_model.isOverrideActive () && (! d3d12_))
+  if ((flip_model.isOverrideActive () || bHDRZeroCopy) && (! d3d12_))
   {
     // MGS V Compatibility
     Buffer = 0;
@@ -721,6 +832,9 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
                                     UINT        Width,     UINT Height,
                                     DXGI_FORMAT NewFormat, UINT SwapChainFlags )
 {
+  static bool bHDRZeroCopy =
+    (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap) && (! SK_GL_OnD3D11);
+
   state_cache_s                                   state_cache = { };
   SK_DXGI_GetPrivateData <state_cache_s> (pReal, &state_cache);
 
@@ -737,7 +851,7 @@ IWrapDXGISwapChain::ResizeBuffers ( UINT        BufferCount,
     state_cache._stalebuffers = false;
 
     // D3D12 is already Flip Model and doesn't need this
-    if (flip_model.isOverrideActive () && (! d3d12_))
+    if ((flip_model.isOverrideActive () || bHDRZeroCopy) && (! d3d12_))
     {
       std::scoped_lock lock (_backbufferLock);
 

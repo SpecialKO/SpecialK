@@ -74,6 +74,9 @@ IWrapDXGISwapChain : IDXGISwapChain4
       SK_DXGI_SetPrivateData ( pReal, SKID_DXGI_SwapChain_StateCache,
                                                   sizeof (state_cache_s),
                                                          &state_cache );
+
+      void *pThis = this;
+      SK_DXGI_SetPrivateData (pReal, SKID_DXGI_WrappedSwapChain, sizeof (void *), &pThis);
     }
 
     IUnknown *pPromotion = nullptr;
@@ -176,6 +179,9 @@ IWrapDXGISwapChain : IDXGISwapChain4
       SK_DXGI_SetPrivateData ( pReal, SKID_DXGI_SwapChain_StateCache,
                                             sizeof (state_cache_s),
                                                    &state_cache );
+
+      void *pThis = this;
+      SK_DXGI_SetPrivateData (pReal, SKID_DXGI_WrappedSwapChain, sizeof (void *), &pThis);
     }
 
     IUnknown *pPromotion = nullptr;
