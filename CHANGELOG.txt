@@ -1,4 +1,8 @@
-﻿23.12.27.1
+﻿23.12.27.2
+==========
+ + Add CrashReport.exe bypass to prevent Resident Evil 4 from crashing (lol)
+
+23.12.27.1
 ==========
  + Added HDR Zero-Copy Mode support for OpenGL-IK games (scRGB only)
 

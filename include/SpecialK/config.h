@@ -1467,6 +1467,7 @@ enum class SK_GAME_ID
   LordsOfTheFallen2,            // LOTF2-Win64-Shipping.exe
   AlanWake2,                    // AlanWake2.exe
   Cyberpunk2077,                // Cyberpunk2077.exe
+  CrashReport,                  // CrashReport.exe (ironically, causes crashes)
 
   UNKNOWN_GAME               = 0xffff
 };
