@@ -1,4 +1,8 @@
-﻿23.12.28
+﻿23.12.29
+========
+ + Workaround Special K installer shipping invalid INI files by deleting them.
+
+23.12.28
 ========
  + Add workaround for some Frostbite Engine games that try to create FORMAT_UNKNOWN
      UAVs to access the backbuffers on an SK Flip Model promoted SwapChain in D3D11.
