@@ -190,7 +190,7 @@ private:
               ordered_sections;
 
   // Preserve File Encoding
-  CharacterEncoding encoding_;
+  CharacterEncoding encoding_ = INI_INVALID;
 
   ULONG    refs_       =    0;
   uint32_t crc32_      =    0; // Skip writing config files that haven't changed

@@ -262,6 +262,8 @@ iSK_INI::reload (const wchar_t *fname)
                      utf8_fname.c_str () ),
                     L"INI Parser" );
 
+        encoding_ = INI_INVALID;
+
         return false;
       }
 

@@ -1285,7 +1285,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
 
     if (dll_ini->get_encoding () == iSK_INI::INI_INVALID)
     {
-      SK_DeleteConfig (dll_ini->get_filename ());
+      DeleteFileW (full_name.c_str ());
     }
 
     dll_ini->set_encoding (iSK_INI::INI_UTF16LE);

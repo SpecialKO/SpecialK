@@ -1918,6 +1918,14 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         dll_log->LogEx (false, L"failed!\n");
       else
         dll_log->LogEx (false, L"done!\n");
+
+      // Special K's installer ships with invalid INI files, we need to remove them.
+      //
+      //  Aemony will not fix his problem, so we must workaround it instead.
+      if (SK_GetDLLConfig ()->get_encoding () == iSK_INI::INI_INVALID)
+      {
+        DeleteFileW (default_global_ini.c_str ());
+      }
     }
 
     if (GetFileAttributesW (default_ini.c_str ()) != INVALID_FILE_ATTRIBUTES)
