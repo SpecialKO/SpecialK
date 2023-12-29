@@ -1,4 +1,12 @@
-﻿23.12.29
+﻿23.19.29.1
+==========
+ + Remove all HDR metadata override settings except for disable, because all it was
+     doing is passing invalid data to DXGI.
+
+    >> Consider using Special K's HDR10 or scRGB HDR mode instead, because it
+         also corrects third-party overlay colorspaces.
+
+23.12.29
 ========
  + Workaround Special K installer shipping invalid INI files by deleting them.
 

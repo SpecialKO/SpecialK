@@ -7852,35 +7852,16 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
   if (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap)
     return S_OK;
 
-  DXGI_HDR_METADATA_TYPE Type_Org = Type;
-  std::wstring         wsType_New = L"";
-  std::wstring         wsType     = 
-        (Type == DXGI_HDR_METADATA_TYPE_HDR10PLUS)
-             ? L"DXGI_HDR_METADATA_TYPE_HDR10PLUS" :
-        (Type == DXGI_HDR_METADATA_TYPE_HDR10)
-             ? L"DXGI_HDR_METADATA_TYPE_HDR10"
-             : L"DXGI_HDR_METADATA_TYPE_NONE";
+  if (config.render.dxgi.hdr_metadata_override >= 0)
+  {
+    SK_LOGi0 (L"Invalid HDR metadata override, ignoring...");
+  }
 
-  if (config.render.dxgi.hdr_metadata_override != SK_NoPreference)
+  else
   {
     if (config.render.dxgi.hdr_metadata_override == -2)
       return S_OK;
-
-    Type       =  (config.render.dxgi.hdr_metadata_override == 2)
-               ?   DXGI_HDR_METADATA_TYPE_HDR10PLUS :
-                  (config.render.dxgi.hdr_metadata_override == 1)
-               ?   DXGI_HDR_METADATA_TYPE_HDR10
-               :   DXGI_HDR_METADATA_TYPE_NONE;
-
-    if (Type_Org != Type)
-      wsType_New =  (config.render.dxgi.hdr_metadata_override == 2)
-                 ? L" -> DXGI_HDR_METADATA_TYPE_HDR10PLUS" :
-                    (config.render.dxgi.hdr_metadata_override == 1)
-                 ? L" -> DXGI_HDR_METADATA_TYPE_HDR10"
-                 : L" -> DXGI_HDR_METADATA_TYPE_NONE";
   }
-
-  dll_log->Log (L"[ DXGI HDR ] <*> HDR Metadata Type: %ws%ws", wsType.c_str(), wsType_New.c_str());
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -7891,10 +7872,7 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
   This->GetDesc      (&swapDesc);
 
   HRESULT hr =
-    ( SK_DXGI_IsFlipModelSwapChain (swapDesc) ||
-                                    swapDesc.Windowed == FALSE ) && __SK_HDR_16BitSwap
-         ?
-    S_OK : IDXGISwapChain4_SetHDRMetaData_Original (This, Type, Size, pMetaData);
+    IDXGISwapChain4_SetHDRMetaData_Original (This, Type, Size, pMetaData);
 
   //SK_HDR_GetControl ()->meta._AdjustmentCount++;
 
