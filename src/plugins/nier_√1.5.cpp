@@ -117,7 +117,7 @@ struct {
       (LPVOID)((uintptr_t)pBase + dt.offset);
 
     if (!(SK_ValidatePointer(tick.addr) && !memcmp(tick.addr, tick.normal.instructions, 4) &&
-      SK_ValidatePointer(dt.addr) && !memcmp(dt.addr, dt.normal.instructions, 5)))
+          SK_ValidatePointer(dt.addr)   && !memcmp(dt.addr,     dt.normal.instructions, 5)))
     {
 
       tick.addr =
@@ -126,7 +126,7 @@ struct {
         (LPVOID)((uintptr_t)pBase + dt.offsetNew);
 
       if (!(SK_ValidatePointer(tick.addr) && !memcmp(tick.addr, tick.normal.instructions, 4) &&
-        SK_ValidatePointer(dt.addr) && !memcmp(dt.addr, dt.normal.instructions, 5)))
+            SK_ValidatePointer(dt.addr)   && !memcmp(dt.addr,     dt.normal.instructions, 5)))
       {
         tick.addr = nullptr;
         dt.addr = nullptr;
@@ -302,7 +302,7 @@ struct _framerate_ctx_s {
       auto suspended_tids =
         _suspendThreads ();
 
-	    if (VirtualProtect (addr, size, dwNewAccess, &dwOrigAccess))
+      if (VirtualProtect (addr, size, dwNewAccess, &dwOrigAccess))
       {
         if (      orig_code == nullptr)
         {         orig_code = std::malloc (size);
@@ -310,7 +310,7 @@ struct _framerate_ctx_s {
         }
 
         memcpy         (addr, replacement, size);
-	      VirtualProtect (addr, size, dwOrigAccess, &dwOrigAccess);
+        VirtualProtect (addr, size, dwOrigAccess, &dwOrigAccess);
 
         ret = true;
       }
@@ -431,7 +431,7 @@ struct _framerate_ctx_s {
       }
       else
       {
-        DWORD                                                                dwOrigProt;
+        DWORD                                                       dwOrigProt;
         if (VirtualProtect(dtFloat.ptr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
         {
           dtFloatBackup = *(float*)dtFloat.ptr;
@@ -476,7 +476,7 @@ struct _framerate_ctx_s {
       }
       else
       {
-        DWORD                                                                dwOrigProt;
+        DWORD                                                       dwOrigProt;
         if (VirtualProtect(dtFloat.ptr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
         {
           *(float*)dtFloat.ptr = dtFloatBackup;
