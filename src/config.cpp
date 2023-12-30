@@ -3570,6 +3570,9 @@ auto DeclKeybind =
   render.framerate.enable_mmcss->load       (config.render.framerate.enable_mmcss);
   render.framerate.use_amd_mwaitx->load     (config.render.framerate.use_amd_mwaitx);
 
+  if (! SK_CPU_HasMWAITX) // Turn off if CPU does not support
+    config.render.framerate.use_amd_mwaitx = false;
+
   __target_fps    = config.render.framerate.target_fps;
   __target_fps_bg = config.render.framerate.target_fps_bg;
 

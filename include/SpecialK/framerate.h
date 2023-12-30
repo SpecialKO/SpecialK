@@ -70,6 +70,7 @@ extern bool     SK_TscInvariant;
 extern int64_t  SK_PerfFreq;
 extern uint32_t SK_PerfFreqInTsc;
 extern int64_t  SK_PerfTicksPerMs;
+extern bool     SK_CPU_HasMWAITX;
 
 __forceinline
 LARGE_INTEGER

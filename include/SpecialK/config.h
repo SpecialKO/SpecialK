@@ -135,6 +135,12 @@ struct sk_config_t
         SK_PerfFreqInTsc = SK_QpcFreqInTsc;
     }
 
+    int      cpuid [4] = { };
+    __cpuid (cpuid, 0x80000001);
+
+    // MWAITX = ECX Bit 29 (8000_0001h)
+    SK_CPU_HasMWAITX = (cpuid [3] & (1 << 29)) != 0;
+
     SK_PerfTicksPerMs = SK_PerfFreq / 1000LL;
   }
   struct whats_new_s {

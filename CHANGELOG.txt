@@ -1,4 +1,9 @@
-﻿23.19.29.1
+﻿23.19.30
+========
+ + Add further CPUID checks before using AMD MWAITX, as not all Ryzen CPUs
+     actually support this instruction.
+
+23.19.29.1
 ==========
  + Remove all HDR metadata override settings except for disable, because all it was
      doing is passing invalid data to DXGI.

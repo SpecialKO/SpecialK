@@ -65,6 +65,7 @@ int64_t                     SK_PerfFreq       = 1;
 int64_t                     SK_PerfTicksPerMs = 1;
 uint32_t                    SK_PerfFreqInTsc  = 1UL;
 bool                        SK_TscInvariant   = false;
+bool                        SK_CPU_HasMWAITX  = false;
 SK::Framerate::EventCounter SK::Framerate::events;
 
 float __target_fps    = 0.0;
@@ -115,10 +116,10 @@ __forceinline
 static void
 SK_YieldProcessor (INT64 qpcTarget = 0)
 {
-  static const bool bIsZen =
-    SK_CPU_IsZen ();
+  static const bool bIsCompatibleZen =
+    SK_CPU_IsZen () && SK_CPU_HasMWAITX;
 
-  if (bIsZen)
+  if (bIsCompatibleZen)
     SK_AMD_MWAITX (qpcTarget);
   else YieldProcessor ();
 }
@@ -2808,6 +2809,9 @@ SK_Framerate_EnergyControlPanel (void)
     SK_GetCurrentRenderBackend ();
 
   if (! SK_CPU_IsZen ())
+    return;
+
+  if (! SK_CPU_HasMWAITX)
     return;
 
   ImGui::Separator  ();
