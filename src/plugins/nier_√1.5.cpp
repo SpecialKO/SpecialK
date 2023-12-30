@@ -28,7 +28,7 @@
 
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.9.2.2"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.9.3.0"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
 
 #define _RR_HDF
@@ -67,6 +67,7 @@ SK_LazyGlobal <SK_NIER_RAD_DInput8Ctx> __DInput8;
 
 struct {
   bool enabled = false;
+  bool newVersion = false;
 
   struct {
     bool   paused =   false;
@@ -78,8 +79,9 @@ struct {
   } npc, player;
 
   struct {
-    uint64_t offset = 0x42C37A;
-    void*    addr   =  nullptr;
+    uint64_t offset    = 0x42C37A;
+    uint64_t offsetNew = 0x42D81A;
+    void*    addr      =  nullptr;
 
     struct {
       const char* instructions;
@@ -88,8 +90,9 @@ struct {
   } tick; // tock
 
   struct {
-    uint64_t offset = 0x42C371;
-    void*    addr   =  nullptr;
+    uint64_t offset    = 0x42C371;
+    uint64_t offsetNew = 0x42D811;
+    void*    addr      =  nullptr;
 
     struct {
       const char* instructions;
@@ -113,13 +116,26 @@ struct {
     dt.addr =
       (LPVOID)((uintptr_t)pBase + dt.offset);
 
-    if (! ( SK_ValidatePointer (tick.addr) &&
-            SK_ValidatePointer (  dt.addr) ) )
+    if (!(SK_ValidatePointer(tick.addr) && !memcmp(tick.addr, tick.normal.instructions, 4) &&
+      SK_ValidatePointer(dt.addr) && !memcmp(dt.addr, dt.normal.instructions, 5)))
     {
-      tick.addr = nullptr;
-      dt.addr   = nullptr;
 
-      return false;
+      tick.addr =
+        (LPVOID)((uintptr_t)pBase + tick.offsetNew);
+      dt.addr =
+        (LPVOID)((uintptr_t)pBase + dt.offsetNew);
+
+      if (!(SK_ValidatePointer(tick.addr) && !memcmp(tick.addr, tick.normal.instructions, 4) &&
+        SK_ValidatePointer(dt.addr) && !memcmp(dt.addr, dt.normal.instructions, 5)))
+      {
+        tick.addr = nullptr;
+        dt.addr = nullptr;
+
+        return false;
+      }
+
+      newVersion = true;
+      return true;
     }
 
     return true;
@@ -200,9 +216,9 @@ struct {
     if (! enabled)
       return;
 
-    static auto constexpr
-      tickOffset = 0x4B1B0B0,
-      stepOffset = 0x4B1B0B4;
+    static auto
+      tickOffset = (newVersion ? 0x4B1D340: 0x4B1B0B0),
+      stepOffset = (newVersion ? 0x4B1D344 : 0x4B1B0B4);
 
     static auto pBaseAddr =
       SK_Debug_GetImageBaseAddr ();
@@ -333,29 +349,50 @@ struct _framerate_ctx_s {
 
     ~patch_s (void) { revert (); std::free (std::exchange (orig_code, nullptr)); }
 
-  } dtPatch        { 4,  "\xAD\xBE\xFA\xFF"                     },
-    rotationPatch0 { 8,  "\xE9\x2B\x8E\xE0\xFF\x90\x90\x90"     },
+  } dtPatch        { 4,  "\xAD\xBE\xFA\xFF"                        },
+    rotationPatch0 { 8,  "\xE9\x2B\x8E\xE0\xFF\x90\x90\x90"        },
     rotationPatch1 { 26, "\xF3\x0F\x10\x0D\xCC\x7E\x8D\x00\xF3"
                          "\x0F\x5E\x0D\xE0\x51\x6A\x04\xF3\x0F"
-                         "\x59\xD1\xE9\xBF\x71\x1F\x00\x90"     };
+                         "\x59\xD1\xE9\xBF\x71\x1F\x00\x90"        },
+
+    dtPatchNew         { 1 , "\x81"                                },
+    rotationPatch0New  { 8 , "\xE9\x6B\x8D\xE0\xFF\x90\x90\x90"    },
+    rotationPatch1New  { 26, "\xF3\x0F\x10\x0D\xBC\x7D\x8D\x00\xF3"
+                             "\x0F\x5E\x0D\x40\x60\x6A\x04\xF3\x0F"
+                             "\x59\xD1\xE9\x7F\x72\x1F\x00\x90"    };
 
   struct address_s {
     uintptr_t offset;
     void*     ptr;
   } dtFloat        { 0x15228,   nullptr },
-    dtFix          { 0x69377,   nullptr },
+    dtFix          { 0,         nullptr },
     dtVal          { 0x4B1B0B4, nullptr },
-    rotationCave   { 0x475EC0,  nullptr },
-    rotationDetour { 0x66D090,  nullptr },
-    bLoadScreen    { 0x2704050, nullptr };
+    rotationCave   { 0,         nullptr },
+    rotationDetour { 0,         nullptr },
+    bLoadScreen    { 0,         nullptr };
 
-  bool init (void)
+  bool init (bool newVersion)
   {
     compatible =
       clockOverride.init ();
 
     auto pBaseAddr =
       reinterpret_cast <uintptr_t> (SK_Debug_GetImageBaseAddr ());
+
+    if (newVersion)
+    {
+      dtFix.offset          = 0x6938B;
+      rotationCave.offset   = 0x4772F0;
+      rotationDetour.offset = 0x66E580;
+      bLoadScreen.offset    = 0x4B1C9B4;
+    }
+    else
+    {
+      dtFix.offset          = 0x69377;
+      rotationCave.offset   = 0x475EC0;
+      rotationDetour.offset = 0x66D090;
+      bLoadScreen.offset    = 0x2704050;
+    }
 
     dtFloat.ptr        = reinterpret_cast <void *>(pBaseAddr + dtFloat.offset       );
     dtFix.ptr          = reinterpret_cast <void *>(pBaseAddr + dtFix.offset         );
@@ -367,33 +404,51 @@ struct _framerate_ctx_s {
     return true;
   }
 
-  bool isInLoadScreen (void) { return compatible && *(bool *)bLoadScreen.ptr; }
+  //bLoadScreen for the original version returns 0 or 1 if one is on the menu, for the new one 0, 1, 2 depending on the actual type of loading screen (!= 0 handles both)
+  bool isInLoadScreen(void) { return compatible && (*(uint8_t*)bLoadScreen.ptr != 0); }
 
-  bool enable (void)
+  bool enable (bool newVersion)
   {
     bool ret = false;
 
-    if (! init ())
+    if (! init (newVersion))
       return ret;
 
     if (compatible && (! dynamic))
     {
-      DWORD                                                                dwOrigProt;
-      if (VirtualProtect (        dtFloat.ptr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
-      { dtFloatBackup = *(float *)dtFloat.ptr;
-                        *(float *)dtFloat.ptr = 0.0f;
-          VirtualProtect (        dtFloat.ptr, 4, dwOrigProt,             &dwOrigProt);
-
-        ret  =        dtPatch.apply (dtFix.ptr         );
-        ret &= rotationPatch0.apply (rotationDetour.ptr);
-        ret &= rotationPatch1.apply (rotationCave.ptr  );
-      }
-
-      if (! ret)
+      if (newVersion)
       {
-        dtPatch.revert        ();
-        rotationPatch0.revert ();
-        rotationPatch1.revert ();
+        ret = dtPatchNew.apply(dtFix.ptr);
+        ret &= rotationPatch0New.apply(rotationDetour.ptr);
+        ret &= rotationPatch1New.apply(rotationCave.ptr);
+
+        if (!ret)
+        {
+          dtPatchNew.revert();
+          rotationPatch0New.revert();
+          rotationPatch1New.revert();
+        }
+      }
+      else
+      {
+        DWORD                                                                dwOrigProt;
+        if (VirtualProtect(dtFloat.ptr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+        {
+          dtFloatBackup = *(float*)dtFloat.ptr;
+          *(float*)dtFloat.ptr = 0.0f;
+          VirtualProtect(dtFloat.ptr, 4, dwOrigProt, &dwOrigProt);
+
+          ret = dtPatch.apply(dtFix.ptr);
+          ret &= rotationPatch0.apply(rotationDetour.ptr);
+          ret &= rotationPatch1.apply(rotationCave.ptr);
+        }
+
+        if (!ret)
+        {
+          dtPatch.revert();
+          rotationPatch0.revert();
+          rotationPatch1.revert();
+        }
       }
 
       if (ret)
@@ -403,25 +458,36 @@ struct _framerate_ctx_s {
     return ret;
   }
 
-  bool disable (void)
+  bool disable (bool newVersion)
   {
     bool ret = false;
 
-    if (! init ())
+    if (! init (newVersion))
       return ret;
 
     if (compatible && dynamic)
     {
-      DWORD                                                                dwOrigProt;
-      if (VirtualProtect (        dtFloat.ptr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
-      {                 *(float *)dtFloat.ptr = dtFloatBackup;
-          VirtualProtect (        dtFloat.ptr, 4, dwOrigProt,             &dwOrigProt);
+      if (newVersion)
+      {
+        ret = dtPatchNew.revert();
+
+        ret &= rotationPatch0New.revert();
+        ret &= rotationPatch1New.revert();
       }
+      else
+      {
+        DWORD                                                                dwOrigProt;
+        if (VirtualProtect(dtFloat.ptr, 4, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+        {
+          *(float*)dtFloat.ptr = dtFloatBackup;
+          VirtualProtect(dtFloat.ptr, 4, dwOrigProt, &dwOrigProt);
+        }
 
-      ret  = dtPatch.revert ();
+        ret = dtPatch.revert();
 
-      ret &= rotationPatch0.revert ();
-      ret &= rotationPatch1.revert ();
+        ret &= rotationPatch0.revert();
+        ret &= rotationPatch1.revert();
+      }
 
       if (ret)
         dynamic = false;
@@ -639,10 +705,10 @@ SK_NIER_RAD_FramerateCpl (void)
     __SK_NIER_RAD_HighDynamicFramerate->store (bHighDynamicFramerate);
 
     if (bHighDynamicFramerate)
-      framerate_ctl.enable ();
+      framerate_ctl.enable (clockOverride.newVersion);
     else
     {
-      framerate_ctl.disable ();
+      framerate_ctl.disable(clockOverride.newVersion);
     }
   }
 
@@ -665,7 +731,7 @@ SK_NIER_RAD_FramerateCpl (void)
   ImGui::Separator       ();
   ImGui::TextUnformatted (
     ICON_FA_SEARCH_LOCATION
-      " Thanks to Ersh and SkacikPL for the initial implementation"
+      " Thanks to Ersh and SkacikPL for the initial implementation, Banz99 for updating it"
   );
 
   ImGui::EndGroup ();
@@ -1144,8 +1210,10 @@ void SK_NIER_RAD_InitPlugin (void)
         __SK_NIER_RAD_HighDynamicFramerate->store (true);
 
   static const
-    int64_t default_tsOffset = 0xABCBD0;
-    int64_t         tsOffset = 0x0;
+    int64_t    default_tsOffset = 0xABCBD0;
+    int64_t default_newtsOffset = 0xABDC14;
+    int64_t        lasttsOffset = 0x0;
+    int64_t            tsOffset = 0x0;
 
   __SK_NIER_RAD_LastKnownTSOffset =
     _CreateConfigParameterInt64 ( L"Radical.Replicant",
@@ -1157,47 +1225,72 @@ void SK_NIER_RAD_InitPlugin (void)
 
   static const float* pfTimestep =
     reinterpret_cast <float *> (
-      (((uintptr_t)SK_Debug_GetImageBaseAddr () + tsOffset) +
-                                                ( tsOffset == 0 ?
-                                          default_tsOffset      : 0x0 ) ) );
+      (uintptr_t)SK_Debug_GetImageBaseAddr () + tsOffset);
 
   static bool bValid =
     SK_ValidatePointer (pfTimestep, true)  &&
                       (*pfTimestep > 0.016 &&
                        *pfTimestep < 0.017);
 
+  lasttsOffset = tsOffset;
+
+  if (!bValid)
+  {
+    pfTimestep =
+      reinterpret_cast <float*> (
+        (uintptr_t)SK_Debug_GetImageBaseAddr() + default_tsOffset);
+
+    bValid =
+      SK_ValidatePointer(pfTimestep, true) &&
+      (*pfTimestep > 0.016 &&
+        *pfTimestep < 0.017);
+
+    lasttsOffset = default_tsOffset;
+  }
+
+  if (!bValid)
+  {
+    pfTimestep =
+      reinterpret_cast <float*> (
+        (uintptr_t)SK_Debug_GetImageBaseAddr() + default_newtsOffset);
+
+    bValid =
+      SK_ValidatePointer(pfTimestep, true) &&
+      (*pfTimestep > 0.016 &&
+        *pfTimestep < 0.017);
+
+    lasttsOffset = default_newtsOffset;
+  }
+
   if (bValid && clockOverride.init ())
   {
     clockOverride.npc.dt =
       const_cast <float *>(pfTimestep);
 
-    // Config had no idea, but the default value worked.
-    if (tsOffset == 0)
-    {
-      __SK_NIER_RAD_LastKnownTSOffset->store (
-        ( tsOffset = default_tsOffset )
-      );
-    }
+    __SK_NIER_RAD_LastKnownTSOffset->store (
+      ( tsOffset = lasttsOffset)
+    );
 
     if (_SK_NIER_RAD_HighDynamicFramerate)
-      framerate_ctl.enable ();
+      framerate_ctl.enable (clockOverride.newVersion);
   }
 
-  else if (tsOffset != 0)
+  else
   {
-    SK_ImGui_Warning (
-      L"Timestep Address Invalid, framerate uncap disabled.");
+    if (tsOffset != 0)
+    {
+      SK_ImGui_Warning(
+        L"Timestep Address Invalid, framerate uncap disabled.");
 
-    __SK_NIER_RAD_LastKnownTSOffset->store (
-      ( tsOffset = 0 )
-    );
+      __SK_NIER_RAD_LastKnownTSOffset->store(
+        (tsOffset = 0)
+      );
+    }
+      _SK_NIER_RAD_HighDynamicFramerate = false;
+    __SK_NIER_RAD_HighDynamicFramerate->store(_SK_NIER_RAD_HighDynamicFramerate);
+
   }
 
-  if (! bValid)
-  {
-                                               _SK_NIER_RAD_HighDynamicFramerate = false;
-    __SK_NIER_RAD_HighDynamicFramerate->store (_SK_NIER_RAD_HighDynamicFramerate);
-  }
 #endif
 
 
