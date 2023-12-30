@@ -1,4 +1,9 @@
-﻿23.19.30
+﻿23.19.30.1
+==========
+ + Reduced flicker when using adaptive tonemapping by keeping a longer history of
+     luminances from previous frames.
+
+23.19.30
 ========
  + Add further CPUID checks before using AMD MWAITX, as not all Ryzen CPUs
      actually support this instruction.
