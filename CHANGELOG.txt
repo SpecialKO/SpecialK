@@ -1,19 +1,24 @@
-﻿23.19.31
+﻿23.12.31.1
+==========
+ + When HDR Zero-Copy mode is active in OpenGL-IK, move the OpenGL->Direct3D
+     framebuffer flip into the HDR post-process shader to reduce 1 render pass
+
+23.12.31
 ========
  + Merge pull request #130 from Banz99/nier_update
     * Update Radical Replicant for the newest build of Nier Replicant v. Sqrt 1.5
 
-23.19.30.1
+23.12.30.1
 ==========
  + Reduced flicker when using adaptive tonemapping by keeping a longer history of
      luminances from previous frames.
 
-23.19.30
+23.12.30
 ========
  + Add further CPUID checks before using AMD MWAITX, as not all Ryzen CPUs
      actually support this instruction.
 
-23.19.29.1
+23.12.29.1
 ==========
  + Remove all HDR metadata override settings except for disable, because all it was
      doing is passing invalid data to DXGI.

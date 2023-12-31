@@ -1873,11 +1873,15 @@ SK_IndirectX_PresentManager::Start (SK_IndirectX_InteropCtx *pCtx)
             InterlockedIncrement64 (&pCtx->present_man.frames);
 
 
-            pDevCtx->OMSetRenderTargets ( 1,
-                      &pCtx->output.backbuffer.rtv.p, nullptr );
-            pDevCtx->Draw  (              4,                0 );
-            pDevCtx->OMSetRenderTargets ( 0, nullptr, nullptr );
-            pDevCtx->Flush (                                  );
+            if (pCtx->d3d11.staging.colorView.p != nullptr)
+            {
+              pDevCtx->OMSetRenderTargets ( 1,
+                        &pCtx->output.backbuffer.rtv.p, nullptr );
+              pDevCtx->Draw  (              4,                0 );
+              pDevCtx->OMSetRenderTargets ( 0, nullptr, nullptr );
+            }
+
+            pDevCtx->Flush ();
 
 
             auto pSwapChain =
@@ -2498,25 +2502,34 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                                   nullptr, &dx_gl_interop.output.backbuffer.rtv.p   );
       }
 
-      D3D11_TEXTURE2D_DESC                             tex_desc = { };
-      dx_gl_interop.output.backbuffer.image->GetDesc (&tex_desc);
+      // We can skip the vertical flip operation if SK's HDR mode is enabled
+      if ((! bHDRZeroCopy) || (! (__SK_HDR_10BitSwap||__SK_HDR_16BitSwap)))
+      {
+        D3D11_TEXTURE2D_DESC                             tex_desc = { };
+        dx_gl_interop.output.backbuffer.image->GetDesc (&tex_desc);
 
-      tex_desc.ArraySize          = 1;
-      tex_desc.MipLevels          = 1;
-      tex_desc.SampleDesc.Count   = 1;
-      tex_desc.SampleDesc.Quality = 0;
-      tex_desc.Usage              = D3D11_USAGE_DEFAULT;
-      tex_desc.BindFlags          = D3D11_BIND_RENDER_TARGET |
-                                    D3D11_BIND_SHADER_RESOURCE |
-                                    D3D11_BIND_UNORDERED_ACCESS;
-      tex_desc.CPUAccessFlags     = 0;
-      tex_desc.MiscFlags          = D3D11_RESOURCE_MISC_SHARED;
+        tex_desc.ArraySize          = 1;
+        tex_desc.MipLevels          = 1;
+        tex_desc.SampleDesc.Count   = 1;
+        tex_desc.SampleDesc.Quality = 0;
+        tex_desc.Usage              = D3D11_USAGE_DEFAULT;
+        tex_desc.BindFlags          = D3D11_BIND_RENDER_TARGET |
+                                      D3D11_BIND_SHADER_RESOURCE |
+                                      D3D11_BIND_UNORDERED_ACCESS;
+        tex_desc.CPUAccessFlags     = 0;
+        tex_desc.MiscFlags          = D3D11_RESOURCE_MISC_SHARED;
 
-      pDevice->CreateTexture2D (         &tex_desc,                                  nullptr,
-                                         &dx_gl_interop.d3d11.staging.colorBuffer.p);
-      pDevice->CreateShaderResourceView ( dx_gl_interop.d3d11.staging.colorBuffer.p, nullptr,
-                                         &dx_gl_interop.d3d11.staging.colorView.p);
+        pDevice->CreateTexture2D (         &tex_desc,                                  nullptr,
+                                           &dx_gl_interop.d3d11.staging.colorBuffer.p);
+        pDevice->CreateShaderResourceView ( dx_gl_interop.d3d11.staging.colorBuffer.p, nullptr,
+                                           &dx_gl_interop.d3d11.staging.colorView.p);
+      }
 
+      else // Skip the vertical flip!
+      {
+        dx_gl_interop.d3d11.staging.colorView   = nullptr;
+        dx_gl_interop.d3d11.staging.colorBuffer = dx_gl_interop.output.backbuffer.image;
+      }
 
       dx_gl_interop.present_man.Reset (&dx_gl_interop);
 

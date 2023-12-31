@@ -935,6 +935,12 @@ SK_HDR_SnapshotSwapchain (void)
         __SK_HDR_visualization != 0 ||
         __SK_HDR_tonemap       != 0 );
 
+    if (pRtv.p != nullptr && SK_GL_OnD3D11)
+    {
+      // Flip the buffer upside down
+      cbuffer_luma.luminance_scale [3] = 10.0f + cbuffer_luma.luminance_scale [3];
+    }
+
     auto pPixelShaderHDR =
       need_full_hdr_processing ? hdr_base->PixelShaderHDR_Uber.shader
                                : hdr_base->PixelShaderHDR_Basic.shader;

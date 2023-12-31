@@ -718,6 +718,9 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
                 texDesc.BindFlags   |= D3D11_BIND_UNORDERED_ACCESS;
           }
 
+          // Allow GL/DXGI interop
+          texDesc.MiscFlags = D3D11_RESOURCE_MISC_SHARED;
+
           if (SUCCEEDED (pDev11->CreateTexture2D (&texDesc, nullptr, &backbuffer.p)))
           {
             backbuffer->SetPrivateData (
