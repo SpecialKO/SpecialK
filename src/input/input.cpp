@@ -20,6 +20,7 @@
 **/
 
 #include <SpecialK/stdafx.h>
+#include <hidclass.h>
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -59,6 +60,142 @@ SK_InputUtil_IsHWCursorVisible (void)
 #define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend->markWrite  (type);
 #define SK_RAWINPUT_VIEW(type)  SK_RawInput_Backend->markViewed (type);
 
+struct SK_HID_DeviceFile {
+  HANDLE            hFile                     = INVALID_HANDLE_VALUE;
+  HIDP_CAPS         hidpCaps                  = { };
+  wchar_t           wszProductName      [128] = { };
+  wchar_t           wszManufacturerName [128] = { };
+  wchar_t           wszSerialNumber     [128] = { };
+  BOOL              bDisableDevice            = FALSE;
+  DWORD             dwPollingFrequencyInHz    = 125;
+  sk_input_dev_type device_type               = sk_input_dev_type::Other;
+
+  SK_HID_DeviceFile (HANDLE file)
+  {
+    wchar_t *lpFileName = nullptr;
+
+    PHIDP_PREPARSED_DATA                 preparsed_data = nullptr;
+    if (SK_HidD_GetPreparsedData (file, &preparsed_data))
+    {
+      if (HIDP_STATUS_SUCCESS == SK_HidP_GetCaps (preparsed_data, &hidpCaps))
+      {
+#if 0
+        if (! DuplicateHandle (
+                GetCurrentProcess (), file,
+                GetCurrentProcess (), &hFile,
+                  0x0, FALSE, DUPLICATE_SAME_ACCESS ) )
+        {
+          SK_LOGi0 (L"Failed to duplicate handle for HID device: %ws!", lpFileName);
+          return;
+        }
+#else
+        std::ignore = lpFileName;
+        hFile       = file;
+#endif
+
+        DWORD dwBytesRead = 0;
+
+        SK_DeviceIoControl (
+          hFile, IOCTL_HID_GET_PRODUCT_STRING, 0, 0,
+          wszProductName, 128, &dwBytesRead, nullptr
+        );
+
+        SK_DeviceIoControl (
+          hFile, IOCTL_HID_GET_MANUFACTURER_STRING, 0, 0,
+          wszManufacturerName, 128, &dwBytesRead, nullptr
+        );
+
+        SK_DeviceIoControl (
+          hFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
+          wszSerialNumber, 128, &dwBytesRead, nullptr
+        );
+
+        if (hidpCaps.UsagePage == HID_USAGE_PAGE_GENERIC)
+        {
+          switch (hidpCaps.Usage)
+          {
+            case HID_USAGE_GENERIC_GAMEPAD:
+            case HID_USAGE_GENERIC_JOYSTICK:
+            case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
+            {
+              device_type = sk_input_dev_type::Gamepad;
+            } break;
+
+            case HID_USAGE_GENERIC_POINTER:
+            case HID_USAGE_GENERIC_MOUSE:
+            {
+              device_type = sk_input_dev_type::Mouse;
+            } break;
+
+            case HID_USAGE_GENERIC_KEYBOARD:
+            case HID_USAGE_GENERIC_KEYPAD:
+            {
+              device_type = sk_input_dev_type::Keyboard;
+            } break;
+          }
+        }
+
+        if (device_type == sk_input_dev_type::Other)
+        {
+
+          if (hidpCaps.UsagePage == HID_USAGE_PAGE_KEYBOARD)
+          {
+            device_type = sk_input_dev_type::Keyboard;
+          }
+
+          else if (hidpCaps.UsagePage == HID_USAGE_PAGE_VR    ||
+                   hidpCaps.UsagePage == HID_USAGE_PAGE_SPORT ||
+                   hidpCaps.UsagePage == HID_USAGE_PAGE_GAME  ||
+                   hidpCaps.UsagePage == HID_USAGE_PAGE_ARCADE)
+          {
+            device_type = sk_input_dev_type::Gamepad;
+          }
+
+          else
+          {
+            SK_LOGi1 (
+              L"Unknown HID Device Type (Product=%ws):  UsagePage=%x, Usage=%x",
+                wszProductName, hidpCaps.UsagePage, hidpCaps.Usage
+            );
+          }
+        }
+
+        SK_ReleaseAssert ( // WTF?
+          SK_HidD_FreePreparsedData (preparsed_data) != FALSE
+        );
+      }
+    }
+  }
+
+  bool setPollingFrequency (DWORD dwFreq)
+  {
+    std::ignore = dwFreq;
+
+    return false;
+  }
+
+  bool isInputAllowed (void) const
+  {
+    if (bDisableDevice)
+      return false;
+
+    switch (device_type)
+    {
+      case sk_input_dev_type::Mouse:
+        return (! SK_ImGui_WantMouseCapture ());
+      case sk_input_dev_type::Keyboard:
+        return (! SK_ImGui_WantKeyboardCapture ());
+      case sk_input_dev_type::Gamepad:
+        return (! SK_ImGui_WantGamepadCapture ());
+      default: // No idea what this is, ignore it...
+        break;
+    }
+
+    return true;
+  }
+};
+
+static concurrency::concurrent_unordered_map <HANDLE, SK_HID_DeviceFile> SK_HID_DeviceFiles;
 
 //////////////////////////////////////////////////////////////
 //
@@ -272,6 +409,406 @@ HidP_GetData_Detour (
   return ret;
 }
 
+ReadFile_pfn              ReadFile_Original              = nullptr;
+ReadFileEx_pfn            ReadFileEx_Original            = nullptr;
+GetOverlappedResult_pfn   GetOverlappedResult_Original   = nullptr;
+GetOverlappedResultEx_pfn GetOverlappedResultEx_Original = nullptr;
+DeviceIoControl_pfn       DeviceIoControl_Original       = nullptr;
+
+static CreateFileA_pfn CreateFileA_Original = nullptr;
+static CreateFileW_pfn CreateFileW_Original = nullptr;
+
+NTSTATUS
+WINAPI
+SK_HidP_GetCaps (_In_  PHIDP_PREPARSED_DATA PreparsedData,
+                 _Out_ PHIDP_CAPS           Capabilities)
+{
+  static HidP_GetCaps_pfn _HidP_GetCaps = nullptr;
+
+  if (HidP_GetCaps_Original != nullptr)
+    return HidP_GetCaps_Original (PreparsedData, Capabilities);
+
+  else
+  {
+    if (_HidP_GetCaps == nullptr)
+    {
+      _HidP_GetCaps =
+        (HidP_GetCaps_pfn)SK_GetProcAddress (L"hid.dll",
+        "HidP_GetCaps");
+    }
+  }
+
+  if (_HidP_GetCaps != nullptr)
+  {
+    return
+      _HidP_GetCaps (PreparsedData, Capabilities);
+  }
+
+  return HIDP_STATUS_NOT_IMPLEMENTED;
+}
+
+BOOLEAN
+WINAPI
+SK_HidD_GetPreparsedData (_In_  HANDLE                HidDeviceObject,
+                          _Out_ PHIDP_PREPARSED_DATA *PreparsedData)
+{
+  static HidD_GetPreparsedData_pfn _HidD_GetPreparsedData = nullptr;
+
+  if (HidD_GetPreparsedData_Original != nullptr)
+    return HidD_GetPreparsedData_Original (HidDeviceObject, PreparsedData);
+
+  else
+  {
+    if (_HidD_GetPreparsedData == nullptr)
+    {
+      _HidD_GetPreparsedData =
+        (HidD_GetPreparsedData_pfn)SK_GetProcAddress (L"hid.dll",
+        "HidD_GetPreparsedData");
+    }
+  }
+
+  if (_HidD_GetPreparsedData != nullptr)
+  {
+    return
+      _HidD_GetPreparsedData (HidDeviceObject, PreparsedData);
+  }
+
+  return FALSE;
+}
+
+BOOLEAN
+WINAPI
+SK_HidD_FreePreparsedData (_In_ PHIDP_PREPARSED_DATA PreparsedData)
+{
+  static HidD_FreePreparsedData_pfn _HidD_FreePreparsedData = nullptr;
+
+  if (HidD_FreePreparsedData_Original != nullptr)
+    return HidD_FreePreparsedData_Original (PreparsedData);
+
+  else
+  {
+    if (_HidD_FreePreparsedData == nullptr)
+    {
+      _HidD_FreePreparsedData =
+        (HidD_FreePreparsedData_pfn)SK_GetProcAddress (L"hid.dll",
+        "HidD_FreePreparsedData");
+    }
+  }
+
+  if (_HidD_FreePreparsedData != nullptr)
+  {
+    return
+      _HidD_FreePreparsedData (PreparsedData);
+  }
+
+  return FALSE;
+}
+
+BOOL
+WINAPI
+SK_DeviceIoControl (HANDLE       hDevice,
+                    DWORD        dwIoControlCode,
+                    LPVOID       lpInBuffer,
+                    DWORD        nInBufferSize,
+                    LPVOID       lpOutBuffer,
+                    DWORD        nOutBufferSize,
+                    LPDWORD      lpBytesReturned,
+                    LPOVERLAPPED lpOverlapped)
+{
+  static DeviceIoControl_pfn _DeviceIoControl = nullptr;
+
+  if (DeviceIoControl_Original != nullptr)
+  {
+    return DeviceIoControl_Original (
+      hDevice, dwIoControlCode, lpInBuffer, nInBufferSize,
+        lpOutBuffer, nOutBufferSize, lpBytesReturned, lpOverlapped
+    );
+  }
+
+  else
+  {
+    if (_DeviceIoControl == nullptr)
+    {
+      _DeviceIoControl =
+        (DeviceIoControl_pfn)SK_GetProcAddress (L"kernel32.dll",
+        "DeviceIoControl");
+    }
+  }
+
+  if (_DeviceIoControl != nullptr)
+  {
+    return _DeviceIoControl (
+      hDevice, dwIoControlCode, lpInBuffer, nInBufferSize,
+        lpOutBuffer, nOutBufferSize, lpBytesReturned, lpOverlapped
+    );
+  }
+
+  return FALSE;
+}
+
+static
+BOOL
+WINAPI
+ReadFile_Detour (HANDLE       hFile,
+                 LPVOID       lpBuffer,
+                 DWORD        nNumberOfBytesToRead,
+                 LPDWORD      lpNumberOfBytesRead,
+                 LPOVERLAPPED lpOverlapped)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_HID_DeviceFiles.count (hFile) != 0)
+  {
+    const auto& device_file =
+      SK_HID_DeviceFiles.at (hFile);
+
+    SK_HID_READ (device_file.device_type);
+
+    if (! device_file.isInputAllowed ())
+    {
+      return FALSE;
+    }
+
+    BOOL bRet =
+      ReadFile_Original (
+        hFile, lpBuffer, nNumberOfBytesToRead,
+          lpNumberOfBytesRead, lpOverlapped
+      );
+
+    if (bRet != FALSE)
+      SK_HID_VIEW (device_file.device_type);
+
+    return bRet;
+  }
+
+  return
+    ReadFile_Original (
+      hFile, lpBuffer, nNumberOfBytesToRead,
+        lpNumberOfBytesRead, lpOverlapped );
+}
+
+static
+BOOL
+WINAPI
+ReadFileEx_Detour (HANDLE                          hFile,
+                   LPVOID                          lpBuffer,
+                   DWORD                           nNumberOfBytesToRead,
+                   LPOVERLAPPED                    lpOverlapped,
+                   LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_HID_DeviceFiles.count (hFile) != 0)
+  {
+    const auto& device_file =
+      SK_HID_DeviceFiles.at (hFile);
+
+    SK_HID_READ (device_file.device_type);
+
+    if (! device_file.isInputAllowed ())
+    {
+      return FALSE;
+    }
+
+    BOOL bRet =
+      ReadFileEx_Original (
+        hFile, lpBuffer, nNumberOfBytesToRead,
+          lpOverlapped, lpCompletionRoutine
+      );
+
+    if (bRet != FALSE)
+      SK_HID_VIEW (device_file.device_type);
+
+    return bRet;
+  }
+
+  return
+    ReadFileEx_Original (
+      hFile, lpBuffer, nNumberOfBytesToRead,
+        lpOverlapped, lpCompletionRoutine
+    );
+}
+
+static
+HANDLE
+WINAPI
+CreateFileA_Detour (LPCSTR                lpFileName,
+                     DWORD                 dwDesiredAccess,
+                     DWORD                 dwShareMode,
+                     LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+                     DWORD                 dwCreationDisposition,
+                     DWORD                 dwFlagsAndAttributes,
+                     HANDLE                hTemplateFile)
+{
+  SK_LOG_FIRST_CALL
+
+  HANDLE hRet =
+    CreateFileA_Original (
+      lpFileName, dwDesiredAccess, dwShareMode,
+        lpSecurityAttributes, dwCreationDisposition,
+          dwFlagsAndAttributes, hTemplateFile );
+
+  if (hRet != INVALID_HANDLE_VALUE)
+  {
+    if (StrStrIA (lpFileName, R"(\\?\hid)") == lpFileName)
+    {
+      SK_HID_DeviceFile hid_file (hRet);
+
+      if (hid_file.device_type != sk_input_dev_type::Other)
+      {
+        SK_HID_DeviceFiles.insert (
+          std::make_pair (hRet, hid_file)
+        );
+      }
+    }
+  }
+
+  return hRet;
+}
+
+static
+HANDLE
+WINAPI
+CreateFileW_Detour ( LPCWSTR               lpFileName,
+                     DWORD                 dwDesiredAccess,
+                     DWORD                 dwShareMode,
+                     LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+                     DWORD                 dwCreationDisposition,
+                     DWORD                 dwFlagsAndAttributes,
+                     HANDLE                hTemplateFile )
+{
+  SK_LOG_FIRST_CALL
+
+  HANDLE hRet =
+    CreateFileW_Original (
+      lpFileName, dwDesiredAccess, dwShareMode,
+        lpSecurityAttributes, dwCreationDisposition,
+          dwFlagsAndAttributes, hTemplateFile );
+
+  if (hRet != INVALID_HANDLE_VALUE)
+  {
+    if (StrStrIW (lpFileName, LR"(\\?\hid)") == lpFileName)
+    {
+      SK_HID_DeviceFile hid_file (hRet);
+
+      if (hid_file.device_type != sk_input_dev_type::Other)
+      {
+        SK_HID_DeviceFiles.insert (
+          std::make_pair (hRet, hid_file)
+        );
+      }
+    }
+  }
+
+  return hRet;
+}
+
+bool
+SK_Input_ShouldBlockDevice (HANDLE hFile)
+{
+  if (SK_HID_DeviceFiles.count (hFile) != 0)
+  {
+    const auto& device_file =
+      SK_HID_DeviceFiles.at (hFile);
+
+    SK_HID_READ (device_file.device_type);
+
+    if (! device_file.isInputAllowed ())
+      return true;
+
+    SK_HID_VIEW (device_file.device_type);
+  }
+
+  return false;
+}
+
+// This is the most common way that games that manually open USB HID
+//   device files actually read their input (usually the non-Ex variant).
+BOOL
+WINAPI
+GetOverlappedResultEx_Detour (HANDLE       hFile,
+                              LPOVERLAPPED lpOverlapped,
+                              LPDWORD      lpNumberOfBytesTransferred,
+                              DWORD        dwMilliseconds,
+                              BOOL         bWait)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_HID_DeviceFiles.count (hFile) != 0)
+  {
+    const auto& device_file =
+      SK_HID_DeviceFiles.at (hFile);
+
+    SK_HID_READ (device_file.device_type);
+
+    if (! device_file.isInputAllowed ())
+    {
+      if (bWait)
+      { // This call was supposed to block, so we must do it now instead.
+        WaitForSingleObject (hFile, dwMilliseconds);
+      }
+
+      return FALSE;
+    }
+
+    const BOOL bRet =
+      GetOverlappedResultEx_Original (
+        hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
+      );
+
+    if (bRet != FALSE)
+      SK_HID_VIEW (device_file.device_type);
+
+    return bRet;
+  }
+
+  return
+    GetOverlappedResultEx_Original (
+      hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
+    );
+}
+
+BOOL
+WINAPI
+GetOverlappedResult_Detour (HANDLE       hFile,
+                            LPOVERLAPPED lpOverlapped,
+                            LPDWORD      lpNumberOfBytesTransferred,
+                            BOOL         bWait)
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    GetOverlappedResultEx (
+      hFile, lpOverlapped, lpNumberOfBytesTransferred,
+        INFINITE, bWait
+    );
+}
+
+BOOL
+WINAPI
+DeviceIoControl_Detour (HANDLE       hDevice,
+                        DWORD        dwIoControlCode,
+                        LPVOID       lpInBuffer,
+                        DWORD        nInBufferSize,
+                        LPVOID       lpOutBuffer,
+                        DWORD        nOutBufferSize,
+                        LPDWORD      lpBytesReturned,
+                        LPOVERLAPPED lpOverlapped)
+{
+  SK_LOG_FIRST_CALL
+
+  SK_LOGi2 (
+    L"DeviceIoControl %p (Type: %x, Function: %d)", hDevice,
+      DEVICE_TYPE_FROM_CTL_CODE (dwIoControlCode), (dwIoControlCode >> 2) & 0xFFF
+  );
+
+  return
+    DeviceIoControl_Original (
+      hDevice, dwIoControlCode, lpInBuffer, nInBufferSize,
+        lpOutBuffer, nOutBufferSize, lpBytesReturned, lpOverlapped
+    );
+}
+
 void
 SK_Input_HookHID (void)
 {
@@ -309,6 +846,44 @@ SK_Input_HookHID (void)
       (HidP_GetCaps_pfn)SK_GetProcAddress ( SK_GetModuleHandle (L"HID.DLL"),
                                             "HidP_GetCaps" );
 
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "CreateFileA",
+                               CreateFileA_Detour,
+      static_cast_p2p <void> (&CreateFileA_Original) );
+
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "CreateFileW",
+                               CreateFileW_Detour,
+      static_cast_p2p <void> (&CreateFileW_Original) );
+
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "DeviceIoControl",
+                               DeviceIoControl_Detour,
+      static_cast_p2p <void> (&DeviceIoControl_Original) );
+
+#if 0
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "ReadFile",
+                               ReadFile_Detour,
+      static_cast_p2p <void> (&ReadFile_Original) );
+
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "ReadFileEx",
+                               ReadFileEx_Detour,
+      static_cast_p2p <void> (&ReadFileEx_Original) );
+#endif
+
+    // Hooked and then forwarded to the GetOverlappedResultEx hook
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "GetOverlappedResult",
+                               GetOverlappedResult_Detour,
+      static_cast_p2p <void> (&GetOverlappedResult_Original) );
+
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "GetOverlappedResultEx",
+                               GetOverlappedResultEx_Detour,
+      static_cast_p2p <void> (&GetOverlappedResultEx_Original) );
+
     if (ReadAcquire (&__SK_Init) > 0) SK_ApplyQueuedHooks ();
 
     InterlockedIncrementRelease (&hooked);
@@ -342,7 +917,6 @@ SK_Input_PreHookHID (void)
 
   return false;
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////
 //

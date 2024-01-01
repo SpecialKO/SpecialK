@@ -525,6 +525,31 @@ extern HidP_GetData_pfn           HidP_GetData_Original          ;
 extern SetCursor_pfn              SetCursor_Original             ;
 
 
+BOOLEAN
+WINAPI
+SK_HidD_GetPreparsedData (_In_  HANDLE                HidDeviceObject,
+                          _Out_ PHIDP_PREPARSED_DATA *PreparsedData);
+BOOLEAN
+WINAPI
+SK_HidD_FreePreparsedData (_In_ PHIDP_PREPARSED_DATA PreparsedData);
+
+NTSTATUS
+WINAPI
+SK_HidP_GetCaps (_In_  PHIDP_PREPARSED_DATA PreparsedData,
+                 _Out_ PHIDP_CAPS           Capabilities);
+
+BOOL
+WINAPI
+SK_DeviceIoControl (HANDLE       hDevice,
+                    DWORD        dwIoControlCode,
+                    LPVOID       lpInBuffer,
+                    DWORD        nInBufferSize,
+                    LPVOID       lpOutBuffer,
+                    DWORD        nOutBufferSize,
+                    LPDWORD      lpBytesReturned,
+                    LPOVERLAPPED lpOverlapped);
+
+
 
 // Temporarily override game's preferences for input device window message generation
 bool
@@ -616,5 +641,43 @@ enum SK_InputEnablement {
   Disabled             = 1,
   DisabledInBackground = 2
 };
+
+using CreateFileW_pfn =
+  HANDLE (WINAPI *)(LPCWSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,
+                      DWORD,DWORD,HANDLE);
+
+using CreateFileA_pfn =
+  HANDLE (WINAPI *)(LPCSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,
+                      DWORD,DWORD,HANDLE);
+
+using ReadFile_pfn =
+  BOOL (WINAPI *)(HANDLE,LPVOID,DWORD,LPDWORD,LPOVERLAPPED);
+
+using ReadFileEx_pfn =
+  BOOL (WINAPI *)(HANDLE,LPVOID,DWORD,LPOVERLAPPED,
+                    LPOVERLAPPED_COMPLETION_ROUTINE);
+
+using DeviceIoControl_pfn =
+BOOL (WINAPI *)(HANDLE       hDevice,
+                DWORD        dwIoControlCode,
+                LPVOID       lpInBuffer,
+                DWORD        nInBufferSize,
+                LPVOID       lpOutBuffer,
+                DWORD        nOutBufferSize,
+                LPDWORD      lpBytesReturned,
+                LPOVERLAPPED lpOverlapped);
+
+using GetOverlappedResult_pfn =
+BOOL (WINAPI *)(HANDLE       hFile,
+                LPOVERLAPPED lpOverlapped,
+                LPDWORD      lpNumberOfBytesTransferred,
+                BOOL         bWait);
+
+using GetOverlappedResultEx_pfn =
+BOOL (WINAPI *)(HANDLE       hFile,
+                LPOVERLAPPED lpOverlapped,
+                LPDWORD      lpNumberOfBytesTransferred,
+                DWORD        dwMilliseconds,
+                BOOL         bWait);
 
 #endif /* __SK__INPUT_H__ */
