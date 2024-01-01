@@ -616,20 +616,6 @@ CreateFileMappingW_Detour (HANDLE                hFile,
 
   SK_LOGi0 (L"CreateFileMappingW (%ws)", lpName);
 
-  if (SK_HID_DeviceFiles.count (hFile))
-  {
-    SK_ImGui_Warning (
-      SK_HID_DeviceFiles.at (hFile).wszProductName
-    );
-  }
-
-  if (SK_Steam_DeviceFiles.count (hFile))
-  {
-    SK_ImGui_Warning (
-      L"Steam Input Device Mapped"
-    );
-  }
-
   return
     CreateFileMappingW_Original (
       hFile, lpFileMappingAttributes, flProtect,
@@ -679,9 +665,21 @@ ReadFile_Detour (HANDLE       hFile,
 
     case SK_Input_DeviceFileType::Steam:
     {
+      if (config.input.gamepad.steam.disabled_to_game)
+        return FALSE;
+
+      SK_RunOnce ({
+        // Allow "Continue Rendering" to work with gamepad input in Steam
+        if (config.window.background_render && config.input.gamepad.disabled_to_game == 0)
+        {
+          if (config.steam.appid != 0)
+            SK_Steam_ForceInputAppId (config.steam.appid);
+        }
+      });
+
       if (! SK_ImGui_WantGamepadCapture ())
         SK_Steam_Backend->markRead (2);
-    }
+    } break;
   }
 
   return
@@ -814,6 +812,9 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
 
     else if (StrStrIW (lpFileName, LR"(\\.\pipe)") == lpFileName)
     {
+      if (config.input.gamepad.steam.disabled_to_game)
+        return INVALID_HANDLE_VALUE;
+
       SK_Input_DeviceFiles.insert (hRet);
       SK_Steam_DeviceFiles.insert (
         { hRet, SK_Steam_DeviceFile { hRet } }
@@ -863,62 +864,55 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
   if (! bWait)
     dwMilliseconds = 0;
 
-  if (SK_HID_DeviceFiles.count (hFile) != 0)
+  auto dev_file_type =
+    SK_Input_GetDeviceFileType (hFile);
+
+  switch (dev_file_type)
   {
-    const auto& device_file =
-      SK_HID_DeviceFiles.at (hFile);
-
-    SK_HID_READ (device_file.device_type);
-
-    if (! device_file.isInputAllowed ())
+    case SK_Input_DeviceFileType::HID:
     {
-      if (bWait)
-      { // This call was supposed to block, so we must do it now instead.
-        WaitForSingleObject (hFile, dwMilliseconds);
+      const auto &device_file =
+        SK_HID_DeviceFiles.at (hFile);
+
+      SK_HID_READ (device_file.device_type);
+
+      if (! device_file.isInputAllowed ())
+      {
+        if (bWait)
+        { // This call was supposed to block, so we must do it now instead.
+          WaitForSingleObject (hFile, dwMilliseconds);
+        }
+
+        return FALSE;
       }
 
-      return FALSE;
-    }
+      const BOOL bRet =
+        GetOverlappedResultEx_Original (
+          hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
+        );
 
-    const BOOL bRet =
-      GetOverlappedResultEx_Original (
-        hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
-      );
+      if (bRet != FALSE)
+        SK_HID_VIEW (device_file.device_type);
 
-    if (bRet != FALSE)
-      SK_HID_VIEW (device_file.device_type);
+      return bRet;
+    } break;
 
-    return bRet;
-  }
-
-  if (SK_Steam_DeviceFiles.count (hFile) != 0)
-  {
-    //const auto& device_file =
-    //  SK_Steam_DeviceFiles.at (hFile);
-
-    SK_HID_READ (sk_input_dev_type::Gamepad);
-
-    if (SK_ImGui_WantGamepadCapture ())
+    case SK_Input_DeviceFileType::Steam:
     {
-      if (bWait)
-      { // This call was supposed to block, so we must do it now instead.
-        WaitForSingleObject (hFile, dwMilliseconds);
+      if (SK_ImGui_WantGamepadCapture ())
+      {
+        if (bWait)
+        { // This call was supposed to block, so we must do it now instead.
+          WaitForSingleObject (hFile, dwMilliseconds);
+        }
+
+        //SK_RunOnce (SK_ImGui_Warning (L"Steam Input Blocked!"));
+
+        return FALSE;
       }
 
-      SK_RunOnce (SK_ImGui_Warning (L"Steam Input Blocked!"));
-
-      return FALSE;
-    }
-
-    const BOOL bRet =
-      GetOverlappedResultEx_Original (
-        hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
-      );
-
-    if (bRet != FALSE)
-      SK_HID_VIEW (sk_input_dev_type::Gamepad);
-
-    return bRet;
+      SK_Steam_Backend->markRead (2);
+    } break;
   }
 
   return
@@ -959,14 +953,6 @@ DeviceIoControl_Detour (HANDLE       hDevice,
   const DWORD dwDeviceType =
     DEVICE_TYPE_FROM_CTL_CODE (dwIoControlCode),
         dwFunctionNum =       (dwIoControlCode >> 2) & 0xFFF;
-
-  //if (SK_HID_DeviceFiles.count (hDevice) != 0)
-  //  SK_ImGui_Warning (SK_HID_DeviceFiles.at (hDevice).wszProductName);// && dwFunctionNum == 2051,2052)
-
-  //if (dwDeviceType == FILE_DEVICE_DEVAPI)
-  //{
-  //  return !SK_ImGui_WantGamepadCapture ();
-  //}
 
   SK_LOGi2 (
     L"DeviceIoControl %p (Type: %x, Function: %d)", hDevice,
@@ -1031,11 +1017,6 @@ SK_Input_HookHID (void)
                               "DeviceIoControl",
                                DeviceIoControl_Detour,
       static_cast_p2p <void> (&DeviceIoControl_Original) );
-
-    SK_CreateDLLHook2 (      L"kernel32.dll",
-                              "CreateFileMappingW",
-                               CreateFileMappingW_Detour,
-      static_cast_p2p <void> (&CreateFileMappingW_Original) );
 
 #if 1
     SK_CreateDLLHook2 (      L"kernel32.dll",

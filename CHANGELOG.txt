@@ -1,4 +1,11 @@
-﻿24.1.1
+﻿24.1.1.1
+========
+ + Implemented Steam Input disable option
+
+     [Steam.Input]
+     Disabled={true|false}  Default: false
+
+24.1.1
 ======
  + Light up Steam Input activity indicator in Input Device Management for games
      using Steam Input XInput wrapper rather than just Steam Input native API
