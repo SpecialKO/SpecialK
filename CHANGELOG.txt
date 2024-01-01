@@ -1,4 +1,11 @@
-﻿23.12.31.1
+﻿24.1.1
+======
+ + Light up Steam Input activity indicator in Input Device Management for games
+     using Steam Input XInput wrapper rather than just Steam Input native API
+ + Added support for background input in Steam Input native games
+ + Added support for HID devices manually polled using GetOverlappedResult
+
+23.12.31.1
 ==========
  + When HDR Zero-Copy mode is active in OpenGL-IK, move the OpenGL->Direct3D
      framebuffer flip into the HDR post-process shader to reduce 1 render pass

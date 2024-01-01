@@ -657,6 +657,13 @@ using ReadFileEx_pfn =
   BOOL (WINAPI *)(HANDLE,LPVOID,DWORD,LPOVERLAPPED,
                     LPOVERLAPPED_COMPLETION_ROUTINE);
 
+using OpenFileMappingW_pfn =
+  HANDLE (WINAPI *)(DWORD,BOOL,LPCWSTR);
+
+using CreateFileMappingW_pfn =
+  HANDLE (WINAPI *)(HANDLE,LPSECURITY_ATTRIBUTES,DWORD,
+                     DWORD,DWORD,LPCWSTR);
+
 using DeviceIoControl_pfn =
 BOOL (WINAPI *)(HANDLE       hDevice,
                 DWORD        dwIoControlCode,

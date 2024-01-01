@@ -426,7 +426,11 @@ SK::ControlPanel::Window::Draw (void)
         ImGui::SameLine ();
 
         if ( ImGui::Checkbox ( "Continue Rendering", &background_render ) )
-          SK_DeferCommand    ("Window.BackgroundRender toggle");
+        { SK_DeferCommand    ("Window.BackgroundRender toggle");
+          if (config.steam.appid != 0)
+            SK_Steam_ForceInputAppId (background_render ? config.steam.appid
+                                                        : 0);
+        }
 
         if (ImGui::IsItemHovered ())
         {

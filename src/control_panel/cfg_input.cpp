@@ -1302,8 +1302,8 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::Combo      ("Gamepad Input", &config.input.gamepad.disabled_to_game,
                            "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
 
-        if (SK::SteamAPI::AppID () != 0 && ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Does not apply to Steam Input; Steam tracks the game window itself.");
+        //if (SK::SteamAPI::AppID () != 0 && ImGui::IsItemHovered ())
+        //  ImGui::SetTooltip ("Does not apply to Steam Input; Steam tracks the game window itself.");
       }
       ImGui::EndGroup     (  );
       ImGui::SameLine     (  );
