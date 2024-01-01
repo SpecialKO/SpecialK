@@ -668,14 +668,14 @@ ReadFile_Detour (HANDLE       hFile,
       if (config.input.gamepad.steam.disabled_to_game)
         return FALSE;
 
-      SK_RunOnce ({
-        // Allow "Continue Rendering" to work with gamepad input in Steam
-        if (config.window.background_render && config.input.gamepad.disabled_to_game == 0)
-        {
-          if (config.steam.appid != 0)
-            SK_Steam_ForceInputAppId (config.steam.appid);
-        }
-      });
+      //SK_RunOnce ({
+      //  // Allow "Continue Rendering" to work with gamepad input in Steam
+      //  if (config.window.background_render && config.input.gamepad.disabled_to_game == 0)
+      //  {
+      //    if (config.steam.appid != 0)
+      //      SK_Steam_ForceInputAppId (config.steam.appid);
+      //  }
+      //});
 
       if (! SK_ImGui_WantGamepadCapture ())
         SK_Steam_Backend->markRead (2);
@@ -2343,9 +2343,7 @@ SK_ImGui_WantGamepadCapture (void)
     if (std::exchange (lastCapture, bCapture) != bCapture)
     {
       SK_Steam_ForceInputAppId ( bCapture ?
-                                  1157970 : config.window.background_render && config.input.gamepad.disabled_to_game == 0 ?
-                                            config.steam.appid              :
-                                            0 );
+                                  1157970 : 0 );
     }
 
     return bCapture;
