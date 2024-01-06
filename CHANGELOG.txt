@@ -1,4 +1,8 @@
-﻿24.1.1.2
+﻿24.1.6
+======
+ + Fixed potential crash in NieR: Automata when using HDR
+
+24.1.1.2
 ========
  + Removed background input support for Steam Input games, because Valve's
      tracking of window state is beyond awful

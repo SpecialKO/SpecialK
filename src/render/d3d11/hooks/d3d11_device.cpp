@@ -590,7 +590,8 @@ D3D11Dev_CreateUnorderedAccessView_Override (
         newFormat =
           cache_desc.desc.Format;
 
-        if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+        if (                                             pDesc != nullptr &&
+                                    pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
              DirectX::MakeTypeless (pDesc->Format) !=
              DirectX::MakeTypeless (newFormat    )  )
         {
@@ -610,9 +611,10 @@ D3D11Dev_CreateUnorderedAccessView_Override (
         }
       }
 
-      if (                        pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+      if (                        pDesc == nullptr ||
+                                 (pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
            DirectX::BitsPerPixel (pDesc->Format) !=
-           DirectX::BitsPerPixel (tex_desc.Format) )
+           DirectX::BitsPerPixel (tex_desc.Format)) )
       {
         override  = true;
         newFormat = tex_desc.Format;
@@ -621,7 +623,8 @@ D3D11Dev_CreateUnorderedAccessView_Override (
       if (override)
       {
         auto descCopy =
-          *pDesc;
+          (pDesc != nullptr) ?
+          *pDesc             : desc;
 
         descCopy.Format = newFormat;
 

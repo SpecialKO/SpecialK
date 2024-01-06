@@ -1019,6 +1019,12 @@ ActivateWindow ( HWND hWnd,
     HWND hWndFocus =
       SK_GetFocus ();
 
+    // Hacky code for Steam Input background input
+    //if (config.window.background_render && config.input.gamepad.disabled_to_game == 0)
+    //{
+    //  SK_Steam_ForceInputAppId (0);
+    //}
+
     if (game_window.active)
     {
       // Release the AltKin
