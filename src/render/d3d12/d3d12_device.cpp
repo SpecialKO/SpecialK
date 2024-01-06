@@ -1277,7 +1277,8 @@ SK_ITrackD3D12Resource final : IUnknown
                                    pReal  (pResource),
                                    pDev   (pDevice),
                                    pFence (pFence_),
-                                   name_  (wszName),
+                                   name_  (wszName != nullptr ? wszName
+                                                             : L"Unnamed"),
                                    ver_   (0)
   {
     pResource->SetPrivateDataInterface (

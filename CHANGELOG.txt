@@ -1,5 +1,6 @@
 ﻿24.1.6
 ======
+ + Fixed potential crash in Elden Ring when using button texture mods
  + Fixed potential crash in NieR: Automata when using HDR
 
 24.1.1.2
