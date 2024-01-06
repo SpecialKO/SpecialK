@@ -1,5 +1,7 @@
 ﻿24.1.6
 ======
+ + Stopped forwarding GetOverlappedResult to GetOverlappedResultEx for
+     Proton compatiblity.
  + Remove debug spam when a file with \hid in its name is encountered
  + Fixed potential crash in Elden Ring when using button texture mods
  + Fixed potential crash in NieR: Automata when using HDR

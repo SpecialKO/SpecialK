@@ -863,9 +863,6 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 {
   SK_LOG_FIRST_CALL
 
-  if (! bWait)
-    dwMilliseconds = 0;
-
   auto dev_file_type =
     SK_Input_GetDeviceFileType (hFile);
 
@@ -932,10 +929,61 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 {
   SK_LOG_FIRST_CALL
 
+  auto dev_file_type =
+    SK_Input_GetDeviceFileType (hFile);
+
+  switch (dev_file_type)
+  {
+    case SK_Input_DeviceFileType::HID:
+    {
+      const auto &device_file =
+        SK_HID_DeviceFiles.at (hFile);
+
+      SK_HID_READ (device_file.device_type);
+
+      if (! device_file.isInputAllowed ())
+      {
+        if (bWait)
+        { // This call was supposed to block, so we must do it now instead.
+          WaitForSingleObject (hFile, INFINITE);
+        }
+
+        return FALSE;
+      }
+
+      const BOOL bRet =
+        GetOverlappedResult_Original (
+          hFile, lpOverlapped, lpNumberOfBytesTransferred, bWait
+        );
+
+      if (bRet != FALSE)
+        SK_HID_VIEW (device_file.device_type);
+
+      return bRet;
+    } break;
+
+    case SK_Input_DeviceFileType::Steam:
+    {
+      if (SK_ImGui_WantGamepadCapture ())
+      {
+        if (bWait)
+        { // This call was supposed to block, so we must do it now instead.
+          WaitForSingleObject (hFile, INFINITE);
+        }
+
+        //SK_RunOnce (SK_ImGui_Warning (L"Steam Input Blocked!"));
+
+        return FALSE;
+      }
+
+      SK_Steam_Backend->markRead (2);
+    } break;
+  }
+
   return
-    GetOverlappedResultEx (
+    GetOverlappedResult_Original (
       hFile, lpOverlapped, lpNumberOfBytesTransferred,
-        INFINITE, bWait
+        bWait
     );
 }
 
