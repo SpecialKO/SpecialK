@@ -821,10 +821,12 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
       );
     }
 
+#ifdef _DEBUG
     else if (StrStrIW (lpFileName, LR"(\hid)"))
     {
       SK_ImGui_Warning (lpFileName);
     }
+#endif
   }
 
   return hRet;
