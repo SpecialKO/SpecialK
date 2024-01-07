@@ -687,4 +687,12 @@ BOOL (WINAPI *)(HANDLE       hFile,
                 DWORD        dwMilliseconds,
                 BOOL         bWait);
 
+using joyGetNumDevs_pfn  = MMRESULT (WINAPI *)(void);
+using joyGetPos_pfn      = MMRESULT (WINAPI *)(UINT,LPJOYINFO);
+using joyGetPosEx_pfn    = MMRESULT (WINAPI *)(UINT,LPJOYINFOEX);
+using joyGetDevCapsW_pfn = MMRESULT (WINAPI *)(UINT_PTR,LPJOYCAPSW,UINT);
+
+extern joyGetPos_pfn   joyGetPos_Original;
+extern joyGetPosEx_pfn joyGetPosEx_Original;
+
 #endif /* __SK__INPUT_H__ */

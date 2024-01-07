@@ -685,7 +685,7 @@ ReadFile_Detour (HANDLE       hFile,
       SK_Input_DeclareAppNotSteamNative ();
 
       if (config.input.gamepad.steam.disabled_to_game)
-        return FALSE;
+        return TRUE;
 
       //SK_RunOnce ({
       //  // Allow "Continue Rendering" to work with gamepad input in Steam
@@ -732,7 +732,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
 
       if (! device_file.isInputAllowed ())
       {
-        return FALSE;
+        return TRUE;
       }
 
       BOOL bRet =
@@ -754,7 +754,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
 
       if (SK_ImGui_WantGamepadCapture ())
       {
-        return FALSE;
+        return TRUE;
       }
 
       BOOL bRet =
@@ -929,7 +929,7 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
           WaitForSingleObject (hFile, dwMilliseconds);
         }
 
-        return FALSE;
+        return TRUE;
       }
 
       const BOOL bRet =
@@ -956,7 +956,7 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 
         //SK_RunOnce (SK_ImGui_Warning (L"Steam Input Blocked!"));
 
-        return FALSE;
+        return TRUE;
       }
 
       SK_Steam_Backend->markRead (2);
@@ -997,7 +997,7 @@ GetOverlappedResult_Detour (HANDLE       hFile,
           WaitForSingleObject (hFile, INFINITE);
         }
 
-        return FALSE;
+        return TRUE;
       }
 
       const BOOL bRet =
@@ -1024,7 +1024,7 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 
         //SK_RunOnce (SK_ImGui_Warning (L"Steam Input Blocked!"));
 
-        return FALSE;
+        return TRUE;
       }
 
       SK_Steam_Backend->markRead (2);
@@ -1169,6 +1169,133 @@ SK_Input_PreHookHID (void)
   if (tests [0].used || SK_GetModuleHandle (L"hid.dll"))
   {
     SK_Input_HookHID ();
+
+    return true;
+  }
+
+  return false;
+}
+
+//////////////////////////////////////////////////////////////
+//
+// WinMM (Windows 95 joystick API)
+//
+//////////////////////////////////////////////////////////////
+joyGetPos_pfn   joyGetPos_Original   = nullptr;
+joyGetPosEx_pfn joyGetPosEx_Original = nullptr;
+
+MMRESULT
+WINAPI
+joyGetPos_Detour (_In_  UINT      uJoyID,
+                  _Out_ LPJOYINFO pjiUINT)
+{
+  SK_LOG_FIRST_CALL
+
+  if (SK_ImGui_WantGamepadCapture ())
+    return JOYERR_NOERROR;
+
+   auto result =
+    joyGetPos_Original (uJoyID, pjiUINT);
+
+  if (result == JOYERR_NOERROR)
+    SK_WinMM_Backend->markRead (sk_input_dev_type::Gamepad);
+
+  return result;
+}
+
+MMRESULT
+WINAPI
+joyGetPosEx_Detour (_In_  UINT        uJoyID,
+                    _Out_ LPJOYINFOEX pjiUINT)
+{
+  SK_LOG_FIRST_CALL
+
+  JOYCAPSW                    joy_caps { };
+  SK_joyGetDevCapsW (uJoyID, &joy_caps, sizeof (JOYCAPSW));
+
+  // This API enumerates random devices that don't qualify as gamepads;
+  //   if there is no D-Pad, then ignore it.
+  bool bInvalidController =
+    (! (joy_caps.wCaps & JOYCAPS_POV4DIR)) || 
+        joy_caps.wNumButtons < 4;
+
+  if (bInvalidController || SK_ImGui_WantGamepadCapture ())
+  {
+    pjiUINT->dwPOV          = JOY_POVCENTERED;
+    pjiUINT->dwXpos         = (joy_caps.wXmax - joy_caps.wXmin) / 2;
+    pjiUINT->dwYpos         = (joy_caps.wYmax - joy_caps.wYmin) / 2;
+    pjiUINT->dwZpos         = (joy_caps.wZmax - joy_caps.wZmin) / 2;
+    pjiUINT->dwRpos         = (joy_caps.wRmax - joy_caps.wRmin) / 2;
+    pjiUINT->dwUpos         = (joy_caps.wUmax - joy_caps.wUmin) / 2;
+    pjiUINT->dwVpos         = (joy_caps.wVmax - joy_caps.wVmin) / 2;
+    pjiUINT->dwButtons      = 0;
+    pjiUINT->dwButtonNumber = 0;
+
+    if (bInvalidController)
+      return JOYERR_UNPLUGGED;
+
+    return JOYERR_NOERROR;
+  }
+
+  auto result =
+    joyGetPosEx_Original (uJoyID, pjiUINT);
+
+  if (result == JOYERR_NOERROR)
+    SK_WinMM_Backend->markRead (sk_input_dev_type::Gamepad);
+
+  return result;
+}
+
+void
+SK_Input_HookWinMM (void)
+{
+  if (! config.input.gamepad.hook_winmm)
+    return;
+
+  static volatile LONG hooked = FALSE;
+
+  if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
+  {
+    SK_LOG0 ( ( L"Game uses WinMM, installing input hooks..." ),
+                L"  Input   " );
+
+    SK_CreateDLLHook2 (     L"winmm.DLL",
+                             "joyGetPos",
+                              joyGetPos_Detour,
+     static_cast_p2p <void> (&joyGetPos_Original) );
+
+    SK_CreateDLLHook2 (     L"winmm.DLL",
+                             "joyGetPosEx",
+                              joyGetPosEx_Detour,
+     static_cast_p2p <void> (&joyGetPosEx_Original) );
+
+    if (ReadAcquire (&__SK_Init) > 0) SK_ApplyQueuedHooks ();
+
+    InterlockedIncrementRelease (&hooked);
+  }
+
+  else
+    SK_Thread_SpinUntilAtomicMin (&hooked, 2);
+}
+
+bool
+SK_Input_PreHookWinMM (void)
+{
+  if (! config.input.gamepad.hook_hid)
+    return false;
+
+  static
+    sk_import_test_s tests [] = {
+      { "winmm.dll", false }
+    };
+
+  SK_TestImports (
+    SK_GetModuleHandle (nullptr), tests, 1
+  );
+
+  if (tests [0].used || SK_GetModuleHandle (L"winmm.dll"))
+  {
+    SK_Input_HookWinMM ();
 
     return true;
   }
@@ -4935,6 +5062,7 @@ SK_Input_Init (void)
   SK_Input_PreHookDI8    ();
   SK_Input_PreHookXInput ();
   SK_Input_PreHookScePad ();
+  SK_Input_PreHookWinMM  ();
 }
 
 
@@ -5171,6 +5299,7 @@ SK_LazyGlobal <sk_input_api_context_s> SK_RawInput_Backend;
 
 SK_LazyGlobal <sk_input_api_context_s> SK_Win32_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_WinHook_Backend;
+SK_LazyGlobal <sk_input_api_context_s> SK_WinMM_Backend;
 
 bool SK_ImGui_InputLanguage_s::changed      = true; // ^^^^ Default = true
 HKL  SK_ImGui_InputLanguage_s::keybd_layout;

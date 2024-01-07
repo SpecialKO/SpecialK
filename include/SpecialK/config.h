@@ -925,6 +925,7 @@ struct sk_config_t
       bool    hook_scepad         = true;
       bool    hook_raw_input      = true;
       bool    hook_windows_gaming = true;
+      bool    hook_winmm          = true;
       bool    native_ps4          = false;
 
       struct xinput_s {

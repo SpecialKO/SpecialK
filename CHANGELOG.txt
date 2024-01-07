@@ -1,4 +1,11 @@
-﻿24.1.7.3
+﻿24.1.7.4
+========
+ + Added WinMM Joystick API hooks for certain bad ports (i.e. Chrono Trigger)
+ + Filter WinMM Joystick devices that lack D-Pad and at least 4 buttons from
+     being seen by games, as often they will interpret dwPOV == 0 as D-Pad UP
+       when polling devices that have no D-Pad!
+
+24.1.7.3
 ========
  + Allow clipboard-only screenshots in non-HDR and non-Steam games
 

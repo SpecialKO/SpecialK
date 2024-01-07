@@ -110,6 +110,7 @@ static DWORD last_di8      = 0;
 static DWORD last_steam    = 0;
 static DWORD last_rawinput = 0;
 static DWORD last_winhook  = 0;
+static DWORD last_winmm    = 0;
 static DWORD last_win32    = 0;
 
 bool
@@ -134,6 +135,7 @@ SK::ControlPanel::Input::Draw (void)
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di8       { };
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } hid       { };
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } raw_input { };
+    struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } winmm     { };
 
     struct { ULONG cursorpos,      keystate,
                keyboardstate, asynckeystate;              } win32     { };
@@ -170,6 +172,8 @@ SK::ControlPanel::Input::Draw (void)
     win32.keystate          = SK_Win32_Backend->reads    [1];
     win32.cursorpos         = SK_Win32_Backend->reads    [0];
 
+    winmm.gamepad_reads     = SK_HID_Backend->reads      [2];
+
     steam.reads             = SK_Steam_Backend->reads    [2];
 
 
@@ -203,20 +207,26 @@ SK::ControlPanel::Input::Draw (void)
     if (SK_Win32_Backend->nextFrameWin32 ())
       last_win32    = current_time;
 
+    if (SK_WinMM_Backend->nextFrame ())
+      last_winmm    = current_time;
+
 
     if (last_steam > current_time - 500UL)
     {
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( (float)current_time -
-                                                                            (float)  last_steam ) / 500.0f ), 1.0f, 0.8f).Value);
-      ImGui::SameLine ( );
-      ImGui::Text ("       Steam");
-      ImGui::PopStyleColor ( );
-
-      if (ImGui::IsItemHovered ( ))
+      if (SK::SteamAPI::AppID () > 0)
       {
-        ImGui::BeginTooltip ( );
-        ImGui::Text ("Gamepad     %lu", steam.reads);
-        ImGui::EndTooltip ( );
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - ( 0.4f * ( (float)current_time -
+                                                                              (float)  last_steam ) / 500.0f ), 1.0f, 0.8f).Value);
+        ImGui::SameLine ( );
+        ImGui::Text ("       Steam");
+        ImGui::PopStyleColor ( );
+
+        if (ImGui::IsItemHovered ( ))
+        {
+          ImGui::BeginTooltip ( );
+          ImGui::Text ("Gamepad     %lu", steam.reads);
+          ImGui::EndTooltip ( );
+        }
       }
     }
 
@@ -284,6 +294,23 @@ SK::ControlPanel::Input::Draw (void)
         if (hid.gamepad_reads > 0)
           ImGui::Text         ("Gamepad     %lu", hid.gamepad_reads);
 
+        ImGui::EndTooltip   ();
+      }
+    }
+
+    if (last_winmm > current_time - 500UL)
+    {
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * ((float)current_time -
+                                                                          (float) last_winmm ) / 500.0f), 1.0f, 0.8f).Value);
+      ImGui::SameLine       ();
+      ImGui::Text           ("    WinMM Joystick");
+      ImGui::PopStyleColor  ();
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        if (winmm.gamepad_reads > 0)
+          ImGui::Text       ("Gamepad     %lu", winmm.gamepad_reads);
         ImGui::EndTooltip   ();
       }
     }

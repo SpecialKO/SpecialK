@@ -1736,32 +1736,27 @@ SK_ImGui_ToggleEx ( bool& toggle_ui,
 #include <SpecialK/input/steam.h>
 
 extern IDirectInputDevice8W_GetDeviceState_pfn
-        IDirectInputDevice8W_GetDeviceState_Original;
+       IDirectInputDevice8W_GetDeviceState_Original;
 
 extern XINPUT_STATE  di8_to_xi;
 extern XINPUT_STATE  joy_to_xi;
 extern XINPUT_STATE  sce_to_xi;
-
-using joyGetNumDevs_pfn  = UINT (WINAPI *)(void);
-using joyGetPosEx_pfn    = UINT (WINAPI *)(UINT,LPJOYINFOEX);
-using joyGetDevCapsW_pfn = UINT (WINAPI *)(UINT_PTR,LPJOYCAPSW,UINT);
 
 UINT
 WINAPI
 SK_joyGetPosEx ( _In_  UINT        uJoyID,
                  _Out_ LPJOYINFOEX pji )
 {
-  static HMODULE hModWinMM =
-    LoadLibraryEx ( L"winmm.dll", nullptr,
-                      LOAD_LIBRARY_SEARCH_SYSTEM32 );
-
-  static  joyGetPosEx_pfn
-         _joyGetPosEx =
-         (joyGetPosEx_pfn)SK_GetProcAddress (hModWinMM,
-         "joyGetPosEx"                      );
+  if (joyGetPosEx_Original == nullptr)
+  {
+    extern void SK_Input_HookWinMM (void);
+    SK_RunOnce (SK_Input_HookWinMM ());
+  }
 
   return
-    _joyGetPosEx (uJoyID, pji);
+    joyGetPosEx_Original == nullptr ? JOYERR_UNPLUGGED
+                                    :
+    joyGetPosEx_Original (uJoyID, pji);
 }
 
 UINT
