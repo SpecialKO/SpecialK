@@ -2,10 +2,13 @@
 ======
  + Increased strictness on UTF-8/UTF-16 conversions between unknown codepages;
     >> Untranslatable INI files will fail with an assertion at run-time.
- + Make sure the OpenGL pixel format for default framebuffer is 16-bpc
-     when using HDR10
  + Upgraded OpenGL games to 32-bit or 24-bit depth, depending on the
-     stencil buffer setup (i.e. 32 + 0-bit DS or 24 + 8-bit DS)
+     stencil buffer setup (i.e. 24 + 8-bit DS instead of 16-bit D)
+ + Make sure the OpenGL pixel format for default framebuffer is 10-bpc
+     when using HDR10.
+
+    >> For Noita, and possibly other GL games, use HDR10 if transparent
+         artifacts are visible when using scRGB.
 
 24.1.7.7
 ========

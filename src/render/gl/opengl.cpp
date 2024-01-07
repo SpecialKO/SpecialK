@@ -1975,10 +1975,11 @@ SK_GL_CreateInteropSwapChain ( IDXGIFactory2         *pFactory,
                                DXGI_SWAP_CHAIN_DESC1 *desc1,   IDXGISwapChain1 **ppSwapChain )
 {
   extern bool __SK_HDR_16BitSwap;
+  extern bool __SK_HDR_10BitSwap;
   extern BOOL SK_DXGI_ZeroCopy;
 
   SK_DXGI_ZeroCopy =
-    __SK_HDR_16BitSwap;
+    __SK_HDR_16BitSwap;// || __SK_HDR_10BitSwap;
 
   HRESULT hr =
     pFactory->CreateSwapChainForHwnd ( pDevice, hWnd,
@@ -2419,6 +2420,14 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
       if (std::exchange (dx_gl_interop.output.hWnd, hWnd) != hWnd || pSwapChain == nullptr)
       {
+        extern bool __SK_HDR_10BitSwap;
+        extern bool __SK_HDR_16BitSwap;
+
+        if (__SK_HDR_16BitSwap)
+          desc1.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+        else if (__SK_HDR_10BitSwap)
+          desc1.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+
         pSwapChain = nullptr;
 
         SK_GL_CreateInteropSwapChain ( pFactory, dx_gl_interop.d3d11.pDevice,
@@ -4303,16 +4312,84 @@ wglChoosePixelFormat ( HDC                     hDC,
   int ret = 0;
 
   extern bool __SK_HDR_16BitSwap;
+  extern bool __SK_HDR_10BitSwap;
   if (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr)
   {
     PIXELFORMATDESCRIPTOR pfd =
                         *ppfd;
 
+    pfd.nVersion   = 1;
+    pfd.nSize      = sizeof (PIXELFORMATDESCRIPTOR);
+    pfd.dwFlags    = PFD_DOUBLEBUFFER  | PFD_DRAW_TO_WINDOW |
+                     PFD_SWAP_EXCHANGE | PFD_SUPPORT_COMPOSITION;
     pfd.cColorBits = 64;
-    pfd.cRedBits   = 16;
-    pfd.cGreenBits = 16;
-    pfd.cBlueBits  = 16;
-    pfd.cAlphaBits = 16;
+    pfd.cRedBits   = 16; pfd.cRedShift   = 0;
+    pfd.cGreenBits = 16; pfd.cGreenShift = 0;
+    pfd.cBlueBits  = 16; pfd.cBlueShift  = 0;
+    pfd.cAlphaBits = 16; pfd.cAlphaShift = 0;
+
+    if (pfd.cStencilBits == 0)
+        pfd.cDepthBits = 24;
+    else if (pfd.cStencilBits <= 8)
+    {
+      pfd.cDepthBits   = 24;
+      pfd.cStencilBits = 8;
+    }
+
+    ret =
+      wgl_choose_pixel_format (hDC, &pfd);
+
+    if (ret != 0)
+      return ret;
+  }
+
+  if (__SK_HDR_10BitSwap || config.render.gl.enable_10bit_hdr)
+  {
+    PIXELFORMATDESCRIPTOR pfd =
+                        *ppfd;
+
+#if 0
+    PIXELFORMATDESCRIPTOR pfd_test = { };
+                          pfd_test.nVersion = 1;
+                          pfd_test.nSize    = sizeof (PIXELFORMATDESCRIPTOR);
+
+    int idx = 1;
+
+    while (0 != DescribePixelFormat (hDC, idx++, sizeof (PIXELFORMATDESCRIPTOR), &pfd_test))
+    {
+      if (pfd_test.cRedBits == 10 && pfd_test.cGreenBits == 10 && pfd_test.cBlueBits == 10 && pfd_test.cAlphaBits == 2)
+      {
+        SK_LOGi0 (
+          L"RGB10A2 Format Found - idx=%d, RedShift=%d, GreenShift=%d, BlueShift=%d, AlphaShift=%d, Flags=%x, DS=%d:%d",
+            idx-1, pfd_test.cRedShift, pfd_test.cGreenShift, pfd_test.cBlueShift, pfd_test.cAlphaShift, pfd_test.dwFlags,
+                   pfd_test.cDepthBits, pfd_test.cStencilBits
+        );
+      }
+
+      ZeroMemory (&pfd_test, sizeof (PIXELFORMATDESCRIPTOR));
+
+      pfd_test.nVersion = 1;
+      pfd_test.nSize    = sizeof (PIXELFORMATDESCRIPTOR);
+    }
+#endif
+
+    pfd.nVersion   = 1;
+    pfd.nSize      = sizeof (PIXELFORMATDESCRIPTOR);
+    pfd.dwFlags    = PFD_DOUBLEBUFFER  | PFD_DRAW_TO_WINDOW |
+                     PFD_SWAP_EXCHANGE | PFD_SUPPORT_COMPOSITION;
+    pfd.cColorBits = 32;
+    pfd.cRedBits   = 10; pfd.cRedShift   =  0;
+    pfd.cGreenBits = 10; pfd.cGreenShift = 10;
+    pfd.cBlueBits  = 10; pfd.cBlueShift  = 20;
+    pfd.cAlphaBits =  2; pfd.cAlphaShift = 30;
+
+    if (pfd.cStencilBits == 0)
+        pfd.cDepthBits = 24;
+    else if (pfd.cStencilBits <= 8)
+    {
+      pfd.cDepthBits   = 24;
+      pfd.cStencilBits = 8;
+    }
 
     ret =
       wgl_choose_pixel_format (hDC, &pfd);
@@ -4358,8 +4435,10 @@ wglSetPixelFormat ( HDC                    hDC,
 
   PIXELFORMATDESCRIPTOR pfd_copy = *ppfd;
 
-  extern bool __SK_HDR_16BitSwap;
-  if (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr)
+  // Use the same OpenGL pixel format for HDR10 and scRGB, it's not trivial
+  //   to get a 10-bit pixel format in GL...
+  if ((__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr)||
+      (__SK_HDR_10BitSwap || config.render.gl.enable_10bit_hdr))
   {
     if (wgl_choose_pixel_format_arb != nullptr)
     {
@@ -4367,17 +4446,18 @@ wglSetPixelFormat ( HDC                    hDC,
         WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
         WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
         WGL_DOUBLE_BUFFER_ARB,  GL_TRUE,
-      //WGL_DRAW_TO_BITMAP_ARB, GL_TRUE,
         WGL_SWAP_METHOD_ARB,    WGL_SWAP_EXCHANGE_ARB,
         WGL_ACCELERATION_ARB,   WGL_FULL_ACCELERATION_ARB,
-        WGL_COLOR_BITS_ARB,     64,
-        WGL_RED_BITS_ARB,       16,
-        WGL_GREEN_BITS_ARB,     16,
-        WGL_BLUE_BITS_ARB,      16,
-        WGL_ALPHA_BITS_ARB,     16,
-        WGL_PIXEL_TYPE_ARB,     WGL_TYPE_RGBA_FLOAT_ARB,
-        WGL_DEPTH_BITS_ARB,     ppfd->cStencilBits == 0 ? 32 : ppfd->cStencilBits <= 8 ? 24 : ppfd->cDepthBits,
-        WGL_STENCIL_BITS_ARB,   ppfd->cStencilBits == 0 ?  0 : ppfd->cStencilBits <= 8 ?  8 : ppfd->cStencilBits,
+        WGL_COLOR_BITS_ARB,     __SK_HDR_10BitSwap ? 32 : 64,
+        WGL_RED_BITS_ARB,       __SK_HDR_10BitSwap ? 10 : 16,
+        WGL_GREEN_BITS_ARB,     __SK_HDR_10BitSwap ? 10 : 16,
+        WGL_BLUE_BITS_ARB,      __SK_HDR_10BitSwap ? 10 : 16,
+        WGL_ALPHA_BITS_ARB,     __SK_HDR_10BitSwap ?  2 : 16,
+        WGL_PIXEL_TYPE_ARB,     (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr) ?
+                                                                  WGL_TYPE_RGBA_FLOAT_ARB :
+                                                                  WGL_TYPE_RGBA_ARB,
+        WGL_DEPTH_BITS_ARB,     24, // It's nearly impossible to get 32-bit depth without an RBO
+        WGL_STENCIL_BITS_ARB,   ppfd->cStencilBits == 0 ? 0 : ppfd->cStencilBits <= 8 ? 8 : ppfd->cStencilBits,
         0
       };
 
@@ -4408,26 +4488,25 @@ wglSetPixelFormat ( HDC                    hDC,
       }
     }
 
-    pfd_copy.nVersion   = 1;
-    pfd_copy.nSize      = sizeof (pfd_copy);
-    pfd_copy.dwFlags   |= PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-    pfd_copy.dwFlags   &= ~PFD_SUPPORT_GDI;
-    pfd_copy.cColorBits = 64;
-    pfd_copy.cAlphaBits = 16;
-    pfd_copy.cRedBits   = 16;
-    pfd_copy.cBlueBits  = 16;
-    pfd_copy.cGreenBits = 16;
+    pfd_copy.nVersion    = 1;
+    pfd_copy.nSize       = sizeof (pfd_copy);
+    pfd_copy.dwFlags     = PFD_DOUBLEBUFFER  | PFD_DRAW_TO_WINDOW |
+                           PFD_SWAP_EXCHANGE | PFD_SUPPORT_COMPOSITION;
+    pfd_copy.cColorBits  = __SK_HDR_10BitSwap ? 32 : 64;
+    pfd_copy.cAlphaBits  = __SK_HDR_10BitSwap ?  2 : 16;
+    pfd_copy.cRedBits    = __SK_HDR_10BitSwap ? 10 : 16;
+    pfd_copy.cBlueBits   = __SK_HDR_10BitSwap ? 10 : 16;
+    pfd_copy.cGreenBits  = __SK_HDR_10BitSwap ? 10 : 16;
+    pfd_copy.cRedShift   = __SK_HDR_10BitSwap ?  0 :  0;
+    pfd_copy.cGreenShift = __SK_HDR_10BitSwap ? 10 :  0;
+    pfd_copy.cBlueShift  = __SK_HDR_10BitSwap ? 20 :  0;
+    pfd_copy.cAlphaShift = __SK_HDR_10BitSwap ? 30 :  0;
   }
 
-  if (pfd_copy.cStencilBits == 0)
-      pfd_copy.cDepthBits   = 32;
-  else
+  if (pfd_copy.cStencilBits <= 8)
   {
-    if (pfd_copy.cStencilBits <= 8)
-    {
-      pfd_copy.cStencilBits =  8;
-      pfd_copy.cDepthBits   = 24;
-    }
+    pfd_copy.cStencilBits = pfd_copy.cStencilBits != 0 ? 8 : 0;
+    pfd_copy.cDepthBits   = 24;
   }
 
   iPixelFormatOverride =
