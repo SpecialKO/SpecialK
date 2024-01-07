@@ -338,7 +338,29 @@ SK_GetCurrentGameID (void)
           SK_GAME_ID::Launcher;
 
         if (! config.compatibility.using_wine)
-          config.system.silent = true;
+        {
+          if (config.system.log_level == 0)
+            config.system.silent = true;
+        }
+      }
+
+      else
+      {
+        if ( const wchar_t *wszFinalFantasy7 = StrStrIW (SK_GetHostApp (), L"FF7_");
+                            wszFinalFantasy7 != nullptr )
+        {
+          wchar_t              region [2] = { };
+          auto matches = _snwscanf (wszFinalFantasy7,
+                            wcslen (wszFinalFantasy7), L"FF7_%wc%wc.exe)",
+                              &region [0],
+                              &region [1]);
+
+          if ( matches == 2 && region [0] != region [0] + region [1] )
+          {
+            current_game =
+              SK_GAME_ID::FinalFantasy7;
+          }
+        }
       }
     }
 
@@ -348,9 +370,9 @@ SK_GetCurrentGameID (void)
       if (current_game == SK_GAME_ID::CrashReport)
       {
         if ( IDYES == SK_MessageBox (
-              L"Game will crash at startup unless CrashReport.exe is disabled."
+              L"Game may crash at startup unless CrashReport.exe is disabled."
               L"\r\n\r\n\tDisable Crash Report?",
-                L"CAPCOM Crash Report Must Be Disabled",
+                L"Crash Report Must Be Disabled",
                   MB_YESNO |
                   MB_ICONQUESTION
              )

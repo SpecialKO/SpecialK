@@ -131,6 +131,9 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"vc2010redist_x86.exe",
   L"ffxiii2launcher.exe",
   L"ffx&x-2_launcher.exe",
+  L"ff7_launcher.exe",
+  L"ff8_launcher.exe",
+  L"ff9_launcher.exe",
   L"ubisoftgamelauncher.exe",
   L"uplayinstaller.exe",
 

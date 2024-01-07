@@ -1026,7 +1026,7 @@ struct sk_config_t
       bool isZero (void) noexcept
             { return x.absolute == 0        && y.absolute == 0        &&
                      x.percent  > -0.00001F && x.percent   < 0.00001F &&
-                     y.percent  > -0.00001F && y.percent   < 0.00001F; }
+                     y.percent  > -0.00001F && y.percent   < 0.00001F; }                                                                
     } offset;
     int     always_on_top       = NoPreferenceOnTop;
     bool    background_render   = false;
@@ -1445,6 +1445,7 @@ enum class SK_GAME_ID
   RPCS3,                        // rpcs3.exe
   ForzaHorizon5,                // ForzaHorizon5.exe
   HaloInfinite,                 // HaloInfinite.exe
+  FinalFantasy7,                // ff7_en.exe, ff7_fr.exe, ... ff7_*.exe
   FinalFantasy7Remake,          // ff7remake*.exe
   DyingLight2,                  // DyingLightGame_x64_rwdi.exe
   EasyAntiCheat,                // start_protected_game.exe
