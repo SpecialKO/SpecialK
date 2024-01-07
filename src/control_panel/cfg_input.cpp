@@ -128,6 +128,7 @@ SK::ControlPanel::Input::Draw (void)
     struct { ULONG reads;                   } sce_pad { };
     struct { ULONG reads;                   } wgi     { };
     struct { ULONG reads;                   } steam   { };
+    struct { ULONG reads;                   } winmm   { };
 
     struct { ULONG kbd_reads, mouse_reads; } winhook  { };
 
@@ -135,7 +136,6 @@ SK::ControlPanel::Input::Draw (void)
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di8       { };
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } hid       { };
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } raw_input { };
-    struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } winmm     { };
 
     struct { ULONG cursorpos,      keystate,
                keyboardstate, asynckeystate;              } win32     { };
@@ -147,6 +147,8 @@ SK::ControlPanel::Input::Draw (void)
 
     sce_pad.reads           = SK_ScePad_Backend->reads   [2/*sk_input_dev_type::Gamepad*/];
     wgi.reads               = SK_WGI_Backend->reads      [2/*sk_input_dev_type::Gamepad*/];
+    winmm.reads             = SK_WinMM_Backend->reads    [2];
+    steam.reads             = SK_Steam_Backend->reads    [2];
 
     winhook.kbd_reads       = SK_WinHook_Backend->reads  [1];
     winhook.mouse_reads     = SK_WinHook_Backend->reads  [0];
@@ -171,10 +173,6 @@ SK::ControlPanel::Input::Draw (void)
     win32.keyboardstate     = SK_Win32_Backend->reads    [2];
     win32.keystate          = SK_Win32_Backend->reads    [1];
     win32.cursorpos         = SK_Win32_Backend->reads    [0];
-
-    winmm.gamepad_reads     = SK_WinMM_Backend->reads    [2];
-
-    steam.reads             = SK_Steam_Backend->reads    [2];
 
 
     if (SK_XInput_Backend->nextFrame ())
@@ -309,8 +307,8 @@ SK::ControlPanel::Input::Draw (void)
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ();
-        if (winmm.gamepad_reads > 0)
-          ImGui::Text       ("Gamepad     %lu", winmm.gamepad_reads);
+        if (winmm.reads > 0)
+          ImGui::Text       ("Gamepad     %lu", winmm.reads);
         ImGui::EndTooltip   ();
       }
     }
