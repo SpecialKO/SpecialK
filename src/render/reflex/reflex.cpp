@@ -394,6 +394,9 @@ SK_RenderBackend_V2::isReflexSupported (void)
 bool
 SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
 {
+  if (! isReflexSupported ())
+    return false;
+
   if (SK_GetFramesDrawn () < SK_Reflex_MinimumFramesBeforeNative)
     return true;
 
@@ -504,6 +507,9 @@ SK_RenderBackend_V2::getLatencyReportNV (NV_LATENCY_RESULT_PARAMS* pGetLatencyPa
   if (device.p == nullptr)
     return false;
 
+  if (! isReflexSupported ())
+    return false;
+
   NvAPI_Status ret =
     NvAPI_D3D_GetLatency (device.p, pGetLatencyParams);
 
@@ -519,6 +525,9 @@ SK_RenderBackend_V2::driverSleepNV (int site)
     return;
 
   if (! device.p)
+    return;
+
+  if (! isReflexSupported ())
     return;
 
   // Native Reflex games may only call NvAPI_D3D_SetSleepMode once, we can wait

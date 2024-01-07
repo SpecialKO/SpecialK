@@ -1,4 +1,11 @@
-﻿24.1.7.5
+﻿24.1.7.6
+========
+ + Avoid repeatedly calling various NVIDIA Reflex APIs in pure D3D9
+ + Add Final Fantasy 7/8/9 launchers to internal injection blacklist
+ + Add an error message dialog when Final Fantasy 7 silently CTD's if
+     no audio devices are present while trying to launch the game.
+
+24.1.7.5
 ========
  + Eliminate "Controller Disconnected" messages in some games when SK is
      blocking gamepad input temporarily.
@@ -13,8 +20,6 @@
 24.1.7.3
 ========
  + Allow clipboard-only screenshots in non-HDR and non-Steam games
-
- https://cdn.discordapp.com/attachments/1190075694655492126/1193476849184034999/SpecialK.7z
 
 24.1.7.2
 ========
