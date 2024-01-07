@@ -3557,6 +3557,13 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     );
   }
 
+  if ((! config.input.gamepad.steam.is_native) && SK_GetFramesDrawn () > 0)
+  {
+    SK_RunOnce ({
+      SK_Steam_ForceInputAppId (config.steam.appid);
+    });
+  }
+
   // Invoke any plug-in's frame end callback
   for ( auto end_frame_fn : plugin_mgr->end_frame_fns )
   {

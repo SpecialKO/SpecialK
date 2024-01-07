@@ -1,4 +1,8 @@
-﻿24.1.7.1
+﻿24.1.7.2
+========
+ + Increase reliability of background input in non-Steam Input native titles
+
+24.1.7.1
 ========
  + Added stronger warning when enabling "Continue Rendering" in SteamInput
     native games.

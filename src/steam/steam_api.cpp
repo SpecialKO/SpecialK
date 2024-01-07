@@ -5408,6 +5408,16 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                         })
                       );
 
+                      //
+                      // It isn't clear why, but running GPU stats polling
+                      //   at least once is necessary for Steam Input
+                      //     AppID overrides to work correctly...
+                      //
+                      SK_RunOnce ({
+                        SK_PollGPU        ( );
+                        SK_GPU_GetGPULoad (0);
+                      });
+
                       if (appid != 0)
                       {
                         ShellExecuteW ( 0, L"OPEN",

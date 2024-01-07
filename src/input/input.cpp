@@ -77,12 +77,15 @@ struct SK_Steam_DeviceFile {
 void
 SK_Input_DeclareAppNotSteamNative (void)
 {
+  if (! config.input.gamepad.steam.is_native)
+    return;
+
   config.input.gamepad.steam.is_native = false;
 
-  if ( config.steam.appid > 0                      &&
-       config.window.background_render             &&
-      (config.input.gamepad.disabled_to_game == 0) &&
-      (GetForegroundWindow () != game_window.hWnd) )
+  if ( config.steam.appid > 0                      )
+      // config.window.background_render             &&
+      //(config.input.gamepad.disabled_to_game == 0) &&
+      //(GetForegroundWindow () != game_window.hWnd) )
   {
     SK_Steam_ForceInputAppId (config.steam.appid);
   }
