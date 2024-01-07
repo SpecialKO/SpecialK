@@ -1347,7 +1347,10 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
               //   we've got nothing left to do...
               else
               {
-                skip_me = true;
+                if (! pop_off)
+                  skip_me = true;
+                else // Unless user wants a Clipboard Copy
+                  skip_me = !(pop_off->wantClipboardCopy () && (config.screenshots.copy_to_clipboard || (! pFrameData->AllowSaveToDisk)));
               }
 
               if ((! skip_me) && pop_off != nullptr)

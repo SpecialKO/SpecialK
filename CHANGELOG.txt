@@ -1,4 +1,8 @@
-﻿24.1.7.2
+﻿24.1.7.3
+========
+ + Allow clipboard-only screenshots in non-HDR and non-Steam games
+
+24.1.7.2
 ========
  + Increase reliability of background input in non-Steam Input native titles
 
