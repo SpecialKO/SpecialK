@@ -42,8 +42,11 @@ SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
 std::string
 SK_WideCharToUTF8 (const std::wstring& in)
 {
+  constexpr UINT wcFlags =
+    WC_COMPOSITECHECK | WC_NO_BEST_FIT_CHARS;
+
   size_t len =
-    WideCharToMultiByte ( CP_UTF8, 0x00, in.c_str (), -1,
+    WideCharToMultiByte ( CP_UTF8, wcFlags, in.c_str (), -1,
                            nullptr, 0, nullptr, FALSE );
 
   std::string out (
@@ -51,7 +54,7 @@ SK_WideCharToUTF8 (const std::wstring& in)
       '\0'
   );
 
-  WideCharToMultiByte   ( CP_UTF8, 0x00,         in.c_str  (),
+  WideCharToMultiByte   ( CP_UTF8, wcFlags,      in.c_str  (),
                           sk::narrow_cast <int> (in.length ()),
                                                 out.data   (),
                           sk::narrow_cast <DWORD>       (len),
@@ -63,8 +66,10 @@ SK_WideCharToUTF8 (const std::wstring& in)
 std::wstring
 SK_UTF8ToWideChar (const std::string& in)
 {
+  constexpr UINT mbFlags = MB_PRECOMPOSED;
+
   size_t len =
-    MultiByteToWideChar ( CP_UTF8, 0x00, in.c_str (), -1,
+    MultiByteToWideChar ( CP_UTF8, mbFlags, in.c_str (), -1,
                            nullptr, 0 );
 
   std::wstring out (
@@ -72,7 +77,7 @@ SK_UTF8ToWideChar (const std::string& in)
       L'\0'
   );
 
-  MultiByteToWideChar   ( CP_UTF8, 0x00,         in.c_str  (),
+  MultiByteToWideChar   ( CP_UTF8, mbFlags,      in.c_str  (),
                           sk::narrow_cast <int> (in.length ()),
                                                 out.data   (),
                           sk::narrow_cast <DWORD>       (len) );

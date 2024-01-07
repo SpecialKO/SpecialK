@@ -231,12 +231,15 @@ iSK_INI::reload (const wchar_t *fname)
 
       const UINT converted_size =
         std::max ( 0,
-                     MultiByteToWideChar ( CP_UTF8, 0, string,
-                                             real_size, nullptr, 0 )
+                     MultiByteToWideChar ( CP_UTF8, MB_PRECOMPOSED |
+                                                    MB_ERR_INVALID_CHARS,
+                                          string, real_size, nullptr, 0 )
                  );
 
       if (0 == converted_size && ((! utf8_bom) || real_size > 0))
       {
+        SK_ReleaseAssert (GetLastError () != ERROR_NO_UNICODE_TRANSLATION);
+
         std::string utf8_fname =
           SK_StripUserNameFromPathA (
             SK_WideCharToUTF8 (fname).data ()
@@ -274,8 +277,11 @@ iSK_INI::reload (const wchar_t *fname)
 
       if (data.size () > 0)
       {
-        MultiByteToWideChar ( CP_UTF8, 0, string,  real_size,
-                                data.data (), converted_size );
+        MultiByteToWideChar ( CP_UTF8, MB_PRECOMPOSED |
+                                 MB_ERR_INVALID_CHARS, string,  real_size,
+                                             data.data (), converted_size );
+
+        SK_ReleaseAssert (GetLastError () != ERROR_NO_UNICODE_TRANSLATION);
 
         //SK_LOG0 ( ( L"Converted UTF-8 INI File: '%s'",
                         //fname ), L"INI Parser" );
@@ -1707,11 +1713,13 @@ iSK_INI::import_file (const wchar_t* fname)
       memcpy (string, start_addr, real_size);
 
       const int converted_size =
-        MultiByteToWideChar ( CP_UTF8, 0, string, real_size,
-                              nullptr, 0 );
+        MultiByteToWideChar ( CP_UTF8, MB_PRECOMPOSED | MB_ERR_INVALID_CHARS,
+                                               string, real_size, nullptr, 0 );
 
       if (0 == converted_size)
       {
+        SK_ReleaseAssert (GetLastError () != ERROR_NO_UNICODE_TRANSLATION);
+
         if (real_size > 0)
         {
           SK_LOG0 ( ( L"Could not convert UTF-8 / ANSI "
@@ -1733,8 +1741,11 @@ iSK_INI::import_file (const wchar_t* fname)
           wszImportData != nullptr);
       if (wszImportData != nullptr)
       {
-        MultiByteToWideChar ( CP_UTF8, 0, string, real_size,
-                              wszImportData, converted_size );
+        MultiByteToWideChar ( CP_UTF8, MB_PRECOMPOSED | MB_ERR_INVALID_CHARS,
+                                                           string, real_size,
+                                               wszImportData, converted_size );
+
+        SK_ReleaseAssert (GetLastError () != ERROR_NO_UNICODE_TRANSLATION);  
 
         //SK_LOG0 ( ( L"Converted UTF-8 INI File: '%s'",
                                       //wszImportName ), L"INI Parser" );
