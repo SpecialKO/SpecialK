@@ -499,8 +499,28 @@ GetProcAddress_Detour     (
   _In_ HMODULE hModule,
   _In_ LPCSTR  lpProcName )
 {
-  if (lpProcName == nullptr) // Let someone else sort this out
-    return GetProcAddress_Original (hModule, lpProcName);
+  static           SK_Thread_HybridSpinlock             get_proc_mutex;
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (get_proc_mutex);
+
+  if (SK_GetModuleFullNameFromAddr (hModule)._Equal (L"#Extremely#Invalid.dll#"))
+  {
+    dll_log->silent = false;
+
+    SK_LOGi0 (
+      L"Invalid Module Passed to GetProcAddress (%p, \"%hs\")",
+        hModule, lpProcName
+    );
+
+    // Recovery's not really possible...
+    return nullptr;
+  }
+
+  // Let someone else sort this out
+  if (lpProcName == nullptr)
+  {
+    return
+      SK_GetProcAddress (hModule, lpProcName);
+  }
 
   if (    ReadAcquire (&__SK_DLL_Ending  ) ||
        (! ReadAcquire (&__SK_DLL_Attached)  )
@@ -1512,6 +1532,14 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
   DWORD dwLastErr =
     GetLastError ();
 
+  if (! lpOutputString) // This is meaningless, just pass it along
+  {
+    OutputDebugStringA_Original (lpOutputString);
+    SK_SetLastError (dwLastErr);
+
+    return;
+  }
+
   // fprintf is stupid, but lpOutputString already contains a newline and
   //   fputs would just add another one...
 
@@ -1531,6 +1559,27 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
   OutputDebugStringA_Original (lpOutputString);
 
   SK_SetLastError (dwLastErr);
+
+
+  //
+  // Game Specific Stuff when a game's log is inadequate...
+  //
+  switch (SK_GetCurrentGameID ())
+  {
+    case SK_GAME_ID::FinalFantasy7: [[unlikely]]
+      if (StrStrIA (lpOutputString, "DIRECT SOUND ERROR"))
+      {
+        SK_MessageBox (
+          L"The game (Final Fantasy 7) has crashed due to DirectSound !!\t"
+          L"\r\n\r\n\tConfirm audio setup and try restarting the game.",
+            L"Special K -:- ( DirectSound Crash Detected )",
+              MB_OK | MB_ICONERROR
+        );
+      }
+      break;
+    default: [[likely]]
+      break;
+  }
 }
 
 void
@@ -1540,6 +1589,14 @@ OutputDebugStringW_Detour (LPCWSTR lpOutputString)
   // Anti-debug survival kit
   DWORD dwLastErr =
     GetLastError ();
+
+  if (! lpOutputString) // This is meaningless, just pass it along
+  {
+    OutputDebugStringW_Original (lpOutputString);
+    SK_SetLastError (dwLastErr);
+
+    return;
+  }
 
   wchar_t    wszModule [MAX_PATH + 2] = { };
   wcsncpy_s (wszModule, MAX_PATH,
@@ -1557,6 +1614,19 @@ OutputDebugStringW_Detour (LPCWSTR lpOutputString)
   OutputDebugStringW_Original (lpOutputString);
 
   SK_SetLastError (dwLastErr);
+
+
+  // Unused for now
+#if 0
+  //
+  // Game Specific Stuff when a game's log is inadequate...
+  //
+  switch (SK_GetCurrentGameID ())
+  {
+    default: [[likely]]
+      break;
+  }
+#endif
 }
 
 
