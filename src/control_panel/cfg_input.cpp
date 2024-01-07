@@ -172,7 +172,7 @@ SK::ControlPanel::Input::Draw (void)
     win32.keystate          = SK_Win32_Backend->reads    [1];
     win32.cursorpos         = SK_Win32_Backend->reads    [0];
 
-    winmm.gamepad_reads     = SK_HID_Backend->reads      [2];
+    winmm.gamepad_reads     = SK_WinMM_Backend->reads    [2];
 
     steam.reads             = SK_Steam_Backend->reads    [2];
 

@@ -9,6 +9,8 @@
 ========
  + Allow clipboard-only screenshots in non-HDR and non-Steam games
 
+ https://cdn.discordapp.com/attachments/1190075694655492126/1193476849184034999/SpecialK.7z
+
 24.1.7.2
 ========
  + Increase reliability of background input in non-Steam Input native titles
