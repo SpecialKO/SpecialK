@@ -1,4 +1,14 @@
-﻿24.1.6
+﻿24.1.7
+======
+ + Added support for background input when using Steam Input's XInput
+     API wrapper back to SK.
+
+   >> Native Steam Input API games still do not support background input.
+
+ + Fixed race to initialize per-display information with GDI name before
+     getting WDDM caps using the GDI name.
+
+24.1.6
 ======
  + Stopped forwarding GetOverlappedResult to GetOverlappedResultEx for
      Proton compatiblity.

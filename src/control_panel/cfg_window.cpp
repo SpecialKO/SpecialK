@@ -436,6 +436,14 @@ SK::ControlPanel::Window::Draw (void)
           ImGui::BulletText   ("Most Games will Continue Rendering");
           ImGui::BulletText   ("Disables a Game's Built-in Mute-on-Alt+Tab Functionality");
           ImGui::BulletText   ("See \"Input Management | Enable / Disable Devices\" to Configure Background Behavior");
+
+          if (config.input.gamepad.steam.is_native && config.steam.appid != 0)
+          {
+           ImGui::Separator       ();
+           ImGui::TextUnformatted (
+             "WARNING: This may break input in Steam Input native games (this appears to be one)."
+           );
+          }
           ImGui::EndTooltip   ();
         }
 

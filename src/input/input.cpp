@@ -69,10 +69,24 @@ enum class SK_Input_DeviceFileType
 };
 
 struct SK_Steam_DeviceFile {
-  HANDLE  hFile;
+  HANDLE  hFile                    = INVALID_HANDLE_VALUE;
   wchar_t wszDevicePath [MAX_PATH] = { };
   bool    bDisableDevice           = FALSE;
 };
+
+void
+SK_Input_DeclareAppNotSteamNative (void)
+{
+  config.input.gamepad.steam.is_native = false;
+
+  if ( config.steam.appid > 0                      &&
+       config.window.background_render             &&
+      (config.input.gamepad.disabled_to_game == 0) &&
+      (GetForegroundWindow () != game_window.hWnd) )
+  {
+    SK_Steam_ForceInputAppId (config.steam.appid);
+  }
+}
 
 struct SK_HID_DeviceFile {
   HANDLE            hFile                     = INVALID_HANDLE_VALUE;
@@ -665,6 +679,8 @@ ReadFile_Detour (HANDLE       hFile,
 
     case SK_Input_DeviceFileType::Steam:
     {
+      SK_Input_DeclareAppNotSteamNative ();
+
       if (config.input.gamepad.steam.disabled_to_game)
         return FALSE;
 
@@ -898,6 +914,8 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 
     case SK_Input_DeviceFileType::Steam:
     {
+      SK_Input_DeclareAppNotSteamNative ();
+
       if (SK_ImGui_WantGamepadCapture ())
       {
         if (bWait)
@@ -964,6 +982,8 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 
     case SK_Input_DeviceFileType::Steam:
     {
+      SK_Input_DeclareAppNotSteamNative ();
+
       if (SK_ImGui_WantGamepadCapture ())
       {
         if (bWait)

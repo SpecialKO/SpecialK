@@ -656,12 +656,21 @@ GetProcAddress_Detour     (
  ////   }
 
 
+#if 0
+    if ( *lpProcName == 'X' && StrStrA (lpProcName, "XInput") )
+    {
+      return
+        SK_XInput_GetProcAddress (hModule, lpProcName, _ReturnAddress ());
+    }
+    else
+#endif
+
     if ( *lpProcName == 'S' &&
 StrStrA ( lpProcName, "SteamAPI_") == lpProcName )
     {
 #ifdef __FULL_KILL
       if (      *lpProcName == 'S' &&
-    (! lstrcmpA (lpProcName, "teamAPI_ISteamInput_Init")) )
+    (! lstrcmpA (lpProcName, "SteamAPI_ISteamInput_Init")) )
       {
         return nullptr;
       }

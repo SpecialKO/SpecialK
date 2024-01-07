@@ -5273,6 +5273,13 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
   get_file_details.Cancel ();
 }
 
+bool
+SK_Steam_IsClientRunning (void)
+{
+  return
+    SK_IsProcessRunning (L"steam.exe");
+}
+
 void
 SK_Steam_ForceInputAppId (AppId64_t appid)
 {
@@ -5289,19 +5296,30 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
   if (config.compatibility.using_wine)
     return;
 
-  if (config.steam.appid > 0)
-  {
-    static volatile LONG changes = 0;
+  static volatile LONG changes = 0;
 
-    if ( ReadAcquire (&__SK_DLL_Ending) &&
-         ReadAcquire (&changes) > 1 ) // First change is always to 0
+  static auto
+    _CleanupForcedAppId = [&](int minimum_change_count = 0)
+  {
+    if (SK_Steam_IsClientRunning () && ReadAcquire (&changes) > minimum_change_count)
     {
+      SK_LOGi1 (L"Resetting Steam Input AppId...");
+
       // Cleanup on unexpected application termination
       //
       SK_ShellExecuteA ( 0, "OPEN",
-                R"(steam://forceinputappid/0)", nullptr, nullptr,
+                R"(steam://forceinputappid/)", nullptr, nullptr,
                       SW_HIDE );
-    
+    }
+  };
+
+  if (config.steam.appid > 0)
+  {
+    if ( ReadAcquire (&__SK_DLL_Ending) &&
+         ReadAcquire (&changes) > 1 ) // First change is always to 0
+    {
+      _CleanupForcedAppId (1);
+
       return;
     }
 
@@ -5314,8 +5332,8 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 
       void push (AppId64_t appid)
       {
-        app_ids.push ( ReadAcquire (&changes) > 0 && appid == 0 ? config.steam.appid
-                                                                :              appid );
+        app_ids.push ( ReadAcquire (&changes) > 0 && appid == 0 ? 0
+                                                                : appid );
 
         if (appid != 0)
           InterlockedIncrement (&changes);
@@ -5354,11 +5372,11 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 
         do
         {
-          if (SK_IsProcessRunning (L"steam.exe"))
+          if (SK_Steam_IsClientRunning ())
             break;
         } while (WaitForSingleObject (__SK_DLL_TeardownEvent, 3333UL) == WAIT_TIMEOUT);
 
-        if (SK_IsProcessRunning (L"steam.exe"))
+        if (SK_Steam_IsClientRunning ())
         {
           do
           {
@@ -5390,11 +5408,22 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                         })
                       );
 
-                      ShellExecuteW ( 0, L"OPEN",
-                           std::format (
-                             LR"(steam://forceinputappid/{})", appid ).c_str (),
-                               nullptr, nullptr, SW_HIDE
-                      );
+                      if (appid != 0)
+                      {
+                        ShellExecuteW ( 0, L"OPEN",
+                             std::format (
+                               LR"(steam://forceinputappid/{})", appid ).c_str (),
+                                 nullptr, nullptr, SW_HIDE
+                        );
+                      }
+
+                      else
+                      {
+                        ShellExecuteW ( 0, L"OPEN",
+                               LR"(steam://forceinputappid/)",
+                                 nullptr, nullptr, SW_HIDE
+                        );
+                      }
                     }
                   }
                 }
@@ -5411,6 +5440,11 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 //        }
 //#endif
 
+        if (dwWaitState == WAIT_OBJECT_0)
+        {
+          _CleanupForcedAppId ();
+        }
+
         SK_Thread_CloseSelf ();
 
         return 0;
@@ -5418,6 +5452,42 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
     );
 
     override_ctx.push (appid);
+  }
+}
+
+void
+SK_Steam_ProcessWindowActivation (bool active)
+{
+  if (config.input.gamepad.steam.is_native)
+    return;
+
+  // Hacky code for Steam Input background input
+  if (config.window.background_render && config.input.gamepad.disabled_to_game == 0)
+  {
+    SK_Steam_ForceInputAppId (config.steam.appid);
+  }
+
+  else if (config.input.gamepad.disabled_to_game != 1)
+  {
+    if (config.window.background_render)
+    {
+      if (! active)
+      {
+        SK_Steam_ForceInputAppId (1157970);
+        SK_Steam_ForceInputAppId (0);
+      }
+
+      else
+      {
+        SK_Steam_ForceInputAppId (0);
+        SK_Steam_ForceInputAppId (config.steam.appid);
+      }
+    }
+  }
+
+  else if (config.input.gamepad.disabled_to_game == 1)
+  {
+    SK_Steam_ForceInputAppId (1157970);
   }
 }
 

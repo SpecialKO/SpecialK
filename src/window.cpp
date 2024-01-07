@@ -1019,11 +1019,7 @@ ActivateWindow ( HWND hWnd,
     HWND hWndFocus =
       SK_GetFocus ();
 
-    // Hacky code for Steam Input background input
-    //if (config.window.background_render && config.input.gamepad.disabled_to_game == 0)
-    //{
-    //  SK_Steam_ForceInputAppId (0);
-    //}
+    SK_Steam_ProcessWindowActivation (active);
 
     if (game_window.active)
     {
@@ -6765,12 +6761,35 @@ SK_InstallWindowHook (HWND hWnd)
       }
     } static cursor_control;
 
+    class BehaviorListener : public SK_IVariableListener
+    {
+    public:
+      bool* background_render = &config.window.background_render;
+
+      virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr)
+      {
+        if (val != nullptr && var != nullptr )
+        {
+          if (var->getValuePointer () == background_render)
+          {
+            *background_render = *(bool *)val;
+
+            SK_Steam_ProcessWindowActivation (
+              SK_IsGameWindowActive ()
+            );
+          }
+        }
+
+        return true;
+      }
+    } static background_behavior;
+
     cmd->AddVariable ("Cursor.Visible",          SK_CreateVar (SK_IVariable::Boolean, (bool *)&cursor_control.cursor_visible, &cursor_control));
     cmd->AddVariable ("Cursor.Manage",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.manage));
     cmd->AddVariable ("Cursor.Timeout",          SK_CreateVar (SK_IVariable::Int,     (int  *)&config.input.cursor.timeout));
     cmd->AddVariable ("Cursor.KeysActivate",     SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.input.cursor.keys_activate));
 
-    cmd->AddVariable ("Window.BackgroundRender", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.background_render));
+    cmd->AddVariable ("Window.BackgroundRender", SK_CreateVar (SK_IVariable::Boolean, (bool *)&config.window.background_render, &background_behavior));
 
     cmd->AddVariable ("ImGui.Visible",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&SK_ImGui_Visible));
   }

@@ -1299,11 +1299,17 @@ extern float SK_ImGui_PulseNav_Strength;
         //          SK_HID_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 ||
         //     SK_RawInput_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 ||
         //       SK_XInput_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 )
-        ImGui::Combo      ("Gamepad Input", &config.input.gamepad.disabled_to_game,
-                           "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
+        bool changed =
+          ImGui::Combo      ("Gamepad Input", &config.input.gamepad.disabled_to_game,
+                             "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
 
-        if (SK::SteamAPI::AppID () != 0 && ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Does not apply to Steam Input; Steam tracks the game window itself.");
+        if (changed)
+        {
+          SK_Steam_ProcessWindowActivation (game_window.active);
+        }
+
+        if (SK::SteamAPI::AppID () != 0 && ImGui::IsItemHovered () && config.input.gamepad.steam.is_native)
+          ImGui::SetTooltip ("Does not apply to native Steam Input games; Steam tracks the game window itself.");
       }
       ImGui::EndGroup     (  );
       ImGui::SameLine     (  );

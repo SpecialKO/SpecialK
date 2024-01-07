@@ -958,6 +958,7 @@ struct sk_config_t
         unsigned
         int   ui_slot             =     0;
         bool  disabled_to_game    = false;
+        bool  is_native           =  true;
       } steam;
     } gamepad;
 

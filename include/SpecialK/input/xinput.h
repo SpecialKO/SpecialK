@@ -231,5 +231,8 @@ SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps);
 void
 SK_XInput_TalesOfAriseButtonSwap (XINPUT_STATE *pState);
 
+FARPROC
+SK_XInput_GetProcAddress (HMODULE hModule, PCSTR lpFuncName, LPCVOID pCaller);
+
 
 #endif /* __SK__XINPUT_H__ */

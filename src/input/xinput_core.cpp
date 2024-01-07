@@ -443,6 +443,9 @@ XInputGetState1_4_Detour (
   if (! xinput_enabled)
     return ERROR_SUCCESS;
 
+  if (SK_ImGui_WantGamepadCapture ())
+    return ERROR_SUCCESS;
+
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
@@ -605,6 +608,9 @@ XInputGetStateEx1_4_Detour (
   RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
+    return ERROR_SUCCESS;
+
+  if (SK_ImGui_WantGamepadCapture ())
     return ERROR_SUCCESS;
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
@@ -1284,6 +1290,9 @@ XInputGetKeystroke1_4_Detour (
     return ERROR_SUCCESS; // What is the proper response?
 
   if (! xinput_enabled)
+    return ERROR_EMPTY;
+
+  if (SK_ImGui_WantGamepadCapture ())
     return ERROR_EMPTY;
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
@@ -2934,4 +2943,104 @@ SK_XInput_TalesOfAriseButtonSwap (XINPUT_STATE* pState)
     extern int            SK_D3D11_ReloadAllTextures (void);
     if (A||B) SK_RunOnce (SK_D3D11_ReloadAllTextures ());
   }
+}
+
+
+
+DWORD
+WINAPI
+SK_XInput_GetCapabilities_nop (_In_  DWORD,
+                               _In_  DWORD,
+                               _Out_ XINPUT_CAPABILITIES*)
+{
+  return ERROR_DEVICE_NOT_CONNECTED;
+}
+
+DWORD
+WINAPI
+SK_XInput_GetDSoundAudioDeviceGuids_nop (_In_  DWORD,
+                                         _Out_ GUID*,
+                                         _Out_ GUID*)
+{
+  return ERROR_DEVICE_NOT_CONNECTED;
+}
+
+DWORD
+WINAPI
+SK_XInput_GetBatteryInformation_nop (_In_  DWORD,
+                                     _In_  BYTE,
+                                     _Out_ XINPUT_BATTERY_INFORMATION*)
+{
+  return ERROR_DEVICE_NOT_CONNECTED;
+}
+
+DWORD
+WINAPI
+SK_XInput_GetKeystroke_nop (_In_  DWORD,             // dwUserIndex,
+                            _In_  DWORD,             // dwReserved,
+                            _Out_ PXINPUT_KEYSTROKE) // pKeystroke)
+{
+  return ERROR_DEVICE_NOT_CONNECTED;
+}
+
+DWORD
+WINAPI
+SK_XInput_GetAudioDeviceIds_nop (_In_        DWORD, // dwUserIndex,
+                                 _Out_opt_   LPWSTR,// pRenderDeviceId,
+                                 _Inout_opt_ UINT*, // pRenderCount,
+                                 _Out_opt_   LPWSTR,// pCaptureDeviceId,
+                                 _Inout_opt_ UINT*) // pCaptureCount)
+{
+  return ERROR_DEVICE_NOT_CONNECTED;
+}
+
+void
+WINAPI
+SK_XInput_Enable_nop (BOOL)
+{
+  return;
+}
+
+DWORD
+WINAPI
+SK_XInput_GetState_nop (_In_  DWORD,
+                        _Out_ XINPUT_STATE*)
+{
+  return ERROR_DEVICE_NOT_CONNECTED;
+}
+
+DWORD
+WINAPI
+SK_XInput_SetState_nop (_In_    DWORD,
+                        _Inout_ XINPUT_VIBRATION*)
+{
+  return ERROR_DEVICE_NOT_CONNECTED;
+}
+
+
+FARPROC
+SK_XInput_GetProcAddress (HMODULE hModule, PCSTR lpFuncName, LPCVOID/*pCaller*/)
+{
+#if 0
+  if (StrStrIW (SK_GetCallerName (pCaller).c_str (), L"gameoverlayrenderer"))
+  {
+    if (! strcmp (lpFuncName, "XInputGetAudioDeviceIds"))
+           return (FARPROC)SK_XInput_GetAudioDeviceIds_nop;
+    if (! strcmp (lpFuncName, "XInputGetBatteryInformation"))
+           return (FARPROC)SK_XInput_GetBatteryInformation_nop;
+    if (! strcmp (lpFuncName, "XInputGetCapabilities"))
+           return (FARPROC)SK_XInput_GetCapabilities_nop;
+    if (! strcmp (lpFuncName, "XInputGetDSoundAudioDeviceGuids"))
+           return (FARPROC)SK_XInput_GetDSoundAudioDeviceGuids_nop;
+    if (! strcmp (lpFuncName, "XInputGetKeystroke"))
+           return (FARPROC)SK_XInput_GetKeystroke_nop;
+    if (! strcmp (lpFuncName, "XInputGetState"))
+           return (FARPROC)SK_XInput_GetState_nop;
+    if (! strcmp (lpFuncName, "XInputSetState"))
+           return (FARPROC)SK_XInput_SetState_nop;
+  }
+#endif
+
+  return
+    SK_GetProcAddress (hModule, lpFuncName);
 }
