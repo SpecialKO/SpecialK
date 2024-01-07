@@ -376,7 +376,7 @@ SK::ControlPanel::Input::Draw (void)
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ();
-
+                                                                             
         if (raw_input.kbd_reads > 0) {
           ImGui::Text       ("Keyboard   %lu", raw_input.kbd_reads);
         }

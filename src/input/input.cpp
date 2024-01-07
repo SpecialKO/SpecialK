@@ -922,20 +922,20 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 
       SK_HID_READ (device_file.device_type);
 
-      if (! device_file.isInputAllowed ())
-      {
-        if (bWait)
-        { // This call was supposed to block, so we must do it now instead.
-          WaitForSingleObject (hFile, dwMilliseconds);
-        }
-
-        return TRUE;
-      }
-
       const BOOL bRet =
         GetOverlappedResultEx_Original (
           hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
         );
+
+      if (! device_file.isInputAllowed ())
+      {
+        if (bRet)
+        {
+          ZeroMemory (lpOverlapped->Pointer, *lpNumberOfBytesTransferred);
+        }
+
+        return bRet;
+      }
 
       if (bRet != FALSE)
         SK_HID_VIEW (device_file.device_type);
@@ -990,20 +990,20 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 
       SK_HID_READ (device_file.device_type);
 
-      if (! device_file.isInputAllowed ())
-      {
-        if (bWait)
-        { // This call was supposed to block, so we must do it now instead.
-          WaitForSingleObject (hFile, INFINITE);
-        }
-
-        return TRUE;
-      }
-
       const BOOL bRet =
         GetOverlappedResult_Original (
           hFile, lpOverlapped, lpNumberOfBytesTransferred, bWait
         );
+
+      if (! device_file.isInputAllowed ())
+      {
+        if (bRet)
+        {
+          ZeroMemory (lpOverlapped->Pointer, *lpNumberOfBytesTransferred);
+        }
+
+        return bRet;
+      }
 
       if (bRet != FALSE)
         SK_HID_VIEW (device_file.device_type);

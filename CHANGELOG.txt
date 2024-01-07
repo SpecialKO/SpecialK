@@ -1,4 +1,9 @@
-﻿24.1.7.4
+﻿24.1.7.5
+========
+ + Eliminate "Controller Disconnected" messages in some games when SK is
+     blocking gamepad input temporarily.
+
+24.1.7.4
 ========
  + Added WinMM Joystick API hooks for certain bad ports (i.e. Chrono Trigger)
  + Filter WinMM Joystick devices that lack D-Pad and at least 4 buttons from

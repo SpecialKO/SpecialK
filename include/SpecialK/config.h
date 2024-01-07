@@ -932,6 +932,7 @@ struct sk_config_t
         unsigned
         int   ui_slot             =    0;
         bool  placehold  [4]      = { false };
+        bool  placeholdX [4]      = { false };
         unsigned
         int   assignment [4]      = { 0, 1, 2, 3 };
         bool  disable    [4]      = { false };
