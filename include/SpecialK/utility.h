@@ -328,6 +328,8 @@ extern BOOL WINAPI  SK_TerminateProcess (      HANDLE    hProcess,
                                                UINT      uExitCode  ) noexcept;
 extern void __cdecl SK__endthreadex     ( _In_ unsigned _ReturnCode ) noexcept;
 
+wchar_t* SK_CharNextW (const wchar_t *wszInput, int n = 1, bool ucs2 = false); 
+ char*   SK_CharNextA (const char     *szInput, int n = 1);
 
 enum SK_Bitness {
   ThirtyTwoBit = 32,

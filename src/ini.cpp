@@ -602,10 +602,10 @@ iSK_INI::parse (void)
 
   else
   {
-    for (size_t i = 0; i < len; i++)
-    {
-      pEnd = CharNextW (pEnd);
-    }
+    pEnd =
+      const_cast <wchar_t *> (
+        SK_CharNextW (pEnd, len)
+      );
   }
 
   wchar_t* wszSecondToLast =
@@ -798,10 +798,10 @@ iSK_INI::import (const wchar_t* import_data)
 
   else
   {
-    for (size_t i = 0; i < len; i++)
-    {
-      pEnd = CharNextW (pEnd);
-    }
+    pEnd =
+      const_cast <wchar_t *> (
+        SK_CharNextW (pEnd, len)
+      );
   }
 
   wchar_t* wszSecondToLast =

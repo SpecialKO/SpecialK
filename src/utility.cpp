@@ -24,9 +24,19 @@
 int
 SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
 {
-  return
-    MessageBox (nullptr, caption.c_str (), title.c_str (),
+  SK_ThreadSuspension_Ctx suspend_ctx = { };
+
+  if (flags & MB_SERVICE_NOTIFICATION)
+    suspend_ctx = SK_SuspendAllOtherThreads ();
+
+  auto ret =
+    MessageBox ({ 0 }, caption.c_str (), title.c_str (),
                 flags | MB_SYSTEMMODAL | MB_TOPMOST | MB_SETFOREGROUND);
+
+  if (flags & MB_SERVICE_NOTIFICATION)
+    SK_ResumeThreads (suspend_ctx);
+
+  return ret;
 }
 
 std::string
@@ -5462,4 +5472,68 @@ void* SK_AVX2_memcpy (void *pvDst, const void *pvSrc, size_t nBytes)
   _mm_sfence ();
 
   return pvDst;
+};
+
+
+wchar_t*
+SK_CharNextW (const wchar_t *wszInput, int n, bool ucs2)
+{
+  if (n <= 0 || wszInput == nullptr)
+    return nullptr;
+
+  wchar_t *wszNext =
+    const_cast <wchar_t *> (wszInput);
+
+  // Optimization for Strings handled by Win32
+  if (ucs2) [[unlikely]]
+  {
+    wszNext =
+      (const_cast <wchar_t *> (wszInput) + n);
+  }
+
+  // Normal path, can handle UTF-16 3+ byte chars
+  else
+  {
+    if (n == 1) [[likely]]
+      return CharNextW (wszNext);
+
+    if (n >= 2)
+    {
+      for ( int i = 0 ; i < n/2 ; ++i )
+      {
+        wszNext = CharNextW (CharNextW (wszNext));
+      }
+    }
+
+    if (n % 2 != 0)
+      wszNext = CharNextW (wszNext);
+  }
+
+  return wszNext;
+};
+
+char*
+SK_CharNextA (const char *szInput, int n)
+{
+  if (n <= 0 || szInput == nullptr)
+    return nullptr;
+
+  char *szNext =
+    const_cast <char *> (szInput);
+
+  if (n == 1) [[likely]]
+    return CharNextA (szNext);
+
+  if (n >= 2)
+  {
+    for ( int i = 0 ; i < n/2 ; ++i )
+    {
+      szNext = CharNextA (CharNextA (szNext));
+    }
+  }
+
+  if (n % 2 != 0)
+    szNext = CharNextA (szNext);
+
+  return szNext;
 };
