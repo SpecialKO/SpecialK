@@ -1189,7 +1189,7 @@ SK_RecursiveFileSearchEx ( const wchar_t* wszDir,
       if ( *fd.cFileName == L'.' )
       {
         const wchar_t* wszNext =
-          CharNextW (fd.cFileName);
+          SK_CharNextW (fd.cFileName);
 
         if (    wszNext != nullptr &&
              ((*wszNext == L'.'  ) ||
@@ -1233,8 +1233,8 @@ SK_RecursiveFileSearchEx ( const wchar_t* wszDir,
 
     wchar_t* pwszFileLower = wszFoundFileLower;
     while ( *pwszFileLower != L'\0' )
-    {       *pwszFileLower = towlower  (*pwszFileLower);
-             pwszFileLower = CharNextW ( pwszFileLower);
+    {       *pwszFileLower = towlower     (*pwszFileLower);
+             pwszFileLower = SK_CharNextW ( pwszFileLower);
     }
 
     if (! cwsFileNames.count (wszFoundFileLower))

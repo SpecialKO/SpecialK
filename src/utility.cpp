@@ -362,12 +362,9 @@ SK_CreateDirectoriesEx ( const wchar_t* wszPath, bool strip_filespec )
 
   wchar_t* wszTest =         wszDirPath;
   size_t   len     = wcslen (wszDirPath);
-  for (size_t
-            i = 0; i <   len; i++)
-  {
-    wszTest =
-      CharNextW (wszTest);
-  }
+
+  wszTest =
+    SK_CharNextW (wszTest, len);
 
   if ( *wszTest == L'\\' ||
        *wszTest == L'/'     )
@@ -404,7 +401,7 @@ SK_CreateDirectoriesEx ( const wchar_t* wszPath, bool strip_filespec )
 
   for ( iter  = wszSubDir;
        *iter != L'\0';
-        iter  = CharNextW (iter) )
+        iter  = SK_CharNextW (iter) )
   {
     if (*iter == L'\\' || *iter == L'/')
     {
@@ -762,7 +759,7 @@ SK_GetModuleName (HMODULE hDll)
   if (wszShort == nullptr)
     wszShort = wszDllFullName;
   else
-    wszShort = CharNextW (wszShort);
+    wszShort = SK_CharNextW (wszShort);
 
   return wszShort;
 }
@@ -1659,7 +1656,7 @@ SK_Path_wcsrchr (const wchar_t* wszStr, wchar_t wchr)
 {
   const wchar_t* pwszStr = wszStr;
 
-  for (int len = 0; len < MAX_PATH; ++len, pwszStr = CharNextW (pwszStr))
+  for (int len = 0; len < MAX_PATH; ++len, pwszStr = SK_CharNextW (pwszStr))
   {
     if (*pwszStr == L'\0')
       break;
@@ -1672,7 +1669,7 @@ SK_Path_wcsrchr (const wchar_t* wszStr, wchar_t wchr)
     if (*wszSearch == wchr)
       break;
 
-    wszSearch = CharPrevW (wszStr, wszSearch);
+    wszSearch = SK_CharPrevW (wszStr, wszSearch);
   }
 
   return (wszSearch < wszStr) ?
@@ -2663,19 +2660,19 @@ SK_PathRemoveExtension (wchar_t* wszInOut)
   wchar_t *wszEnd  = wszInOut,
           *wszPrev;
 
-  while (*CharNextW (wszEnd) != L'\0')
-    wszEnd = CharNextW (wszEnd);
+  while (   *SK_CharNextW (wszEnd) != L'\0')
+    wszEnd = SK_CharNextW (wszEnd);
 
   wszPrev = wszEnd;
 
-  while (  CharPrevW (wszInOut, wszPrev) > wszInOut &&
-          *CharPrevW (wszInOut, wszPrev) != L'.' )
-    wszPrev = CharPrevW (wszInOut, wszPrev);
+  while (     SK_CharPrevW (wszInOut, wszPrev) > wszInOut &&
+             *SK_CharPrevW (wszInOut, wszPrev) != L'.' )
+    wszPrev = SK_CharPrevW (wszInOut, wszPrev);
 
-  if (CharPrevW (wszInOut, wszPrev) > wszInOut)
+  if (   SK_CharPrevW (wszInOut, wszPrev) > wszInOut)
   {
-    if (*CharPrevW (wszInOut, wszPrev) == L'.')
-        *CharPrevW (wszInOut, wszPrev)  = L'\0';
+    if (*SK_CharPrevW (wszInOut, wszPrev) == L'.')
+        *SK_CharPrevW (wszInOut, wszPrev)  = L'\0';
   }
 }
 
@@ -3053,7 +3050,7 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
 
       if (pwszExt != nullptr && *pwszExt == L'.')
       {
-        swprintf (wszDot3, L"%3s", CharNextW (pwszExt));
+        swprintf (wszDot3, L"%3s", SK_CharNextW (pwszExt));
       }
 
       PathRemoveExtension (wszFileName);
@@ -4072,13 +4069,13 @@ SK_StripLeadingSlashesW (wchar_t *wszInOut)
 
   wchar_t* wszStart = wszInOut;
 
-  while (          *wszStart  != L'\0' &&
-        *CharNextW (wszStart) != L'\0' )
+  while (             *wszStart  != L'\0' &&
+        *SK_CharNextW (wszStart) != L'\0' )
   {
     if (IsSlash (*wszStart))
     {
       wszStart =
-        CharNextW (wszStart);
+        SK_CharNextW (wszStart);
 
       --new_len;
     }
@@ -4099,12 +4096,12 @@ SK_StripLeadingSlashesW (wchar_t *wszInOut)
       if (*wszOut == L'\0')
         break;
 
-      wszIn  = CharNextW (wszIn);
-      wszOut = CharNextW (wszOut);
+      wszIn  = SK_CharNextW (wszIn);
+      wszOut = SK_CharNextW (wszOut);
     }
 
     if (*wszOut != L'\0')
-      *CharNextW (wszOut) = L'\0';
+      *SK_CharNextW (wszOut) = L'\0';
   }
 
   // Else:
@@ -4125,14 +4122,14 @@ SK_StripTrailingSlashesW (wchar_t* wszInOut)
     return (a == L'\\' || a == L'/');
   };
 
-  wchar_t* wszNextUnique = CharNextW (wszInOut);
+  wchar_t* wszNextUnique = SK_CharNextW (wszInOut);
   wchar_t* wszNext       = wszInOut;
 
   while (*wszNext != L'\0')
   {
     if (*wszNextUnique == L'\0')
     {
-      *CharNextW (wszNext) = L'\0';
+      *SK_CharNextW (wszNext) = L'\0';
       break;
     }
 
@@ -4141,16 +4138,16 @@ SK_StripTrailingSlashesW (wchar_t* wszInOut)
       if (IsSlash (*wszNextUnique))
       {
         wszNextUnique =
-          CharNextW (wszNextUnique);
+          SK_CharNextW (wszNextUnique);
 
         continue;
       }
     }
 
-    wszNext = CharNextW (wszNext);
+    wszNext = SK_CharNextW (wszNext);
    *wszNext = *wszNextUnique;
     wszNextUnique =
-      CharNextW (wszNextUnique);
+      SK_CharNextW (wszNextUnique);
   }
 
 
@@ -4202,7 +4199,7 @@ SK_FixSlashesW (wchar_t* wszInOut)
         *pwszInOut = L'\\';
 
     pwszInOut =
-      CharNextW (pwszInOut);
+      SK_CharNextW (pwszInOut);
   }
 }
 
@@ -4440,7 +4437,7 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
     for (size_t i = 0; i < len; i++)
     {
       *pwszUserNameSubstr = L'*';
-       pwszUserNameSubstr = CharNextW (pwszUserNameSubstr);
+       pwszUserNameSubstr = SK_CharNextW (pwszUserNameSubstr);
 
        if (pwszUserNameSubstr == nullptr) break;
     }
@@ -4459,7 +4456,7 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
     for (size_t i = 0; i < len; i++)
     {
       *pwszUserNameSubstr = L'*';
-       pwszUserNameSubstr = CharNextW (pwszUserNameSubstr);
+       pwszUserNameSubstr = SK_CharNextW (pwszUserNameSubstr);
 
        if (pwszUserNameSubstr == nullptr) break;
     }
@@ -4478,7 +4475,7 @@ SK_StripUserNameFromPathW (wchar_t* wszInOut)
     for (size_t i = 0; i < len; i++)
     {
       *pwszUserNameSubstr = L'*';
-       pwszUserNameSubstr = CharNextW (pwszUserNameSubstr);
+       pwszUserNameSubstr = SK_CharNextW (pwszUserNameSubstr);
 
        if (pwszUserNameSubstr == nullptr) break;
     }
@@ -5472,44 +5469,6 @@ void* SK_AVX2_memcpy (void *pvDst, const void *pvSrc, size_t nBytes)
   _mm_sfence ();
 
   return pvDst;
-};
-
-
-wchar_t*
-SK_CharNextW (const wchar_t *wszInput, int n, bool ucs2)
-{
-  if (n <= 0 || wszInput == nullptr)
-    return nullptr;
-
-  wchar_t *wszNext =
-    const_cast <wchar_t *> (wszInput);
-
-  // Optimization for Strings handled by Win32
-  if (ucs2) [[unlikely]]
-  {
-    wszNext =
-      (const_cast <wchar_t *> (wszInput) + n);
-  }
-
-  // Normal path, can handle UTF-16 3+ byte chars
-  else
-  {
-    if (n == 1) [[likely]]
-      return CharNextW (wszNext);
-
-    if (n >= 2)
-    {
-      for ( int i = 0 ; i < n/2 ; ++i )
-      {
-        wszNext = CharNextW (CharNextW (wszNext));
-      }
-    }
-
-    if (n % 2 != 0)
-      wszNext = CharNextW (wszNext);
-  }
-
-  return wszNext;
 };
 
 char*

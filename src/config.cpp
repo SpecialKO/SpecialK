@@ -2020,8 +2020,8 @@ auto DeclKeybind =
         wcschr (sec->first.c_str (), L'.');
 
       import_.name =
-        wszNext != nullptr    ?
-          CharNextW (wszNext) : L"";
+        wszNext != nullptr       ?
+          SK_CharNextW (wszNext) : L"";
 
       import_.filename =
          dynamic_cast <sk::ParameterStringW *>
@@ -4495,9 +4495,9 @@ auto DeclKeybind =
     while (wszTok != nullptr)
     {
       if (*wszTok != L'>')
-        config.file_io.ignore_reads.single_file.insert   (           wszTok);
+        config.file_io.ignore_reads.single_file.insert   (              wszTok);
       else
-        config.file_io.ignore_reads.entire_thread.insert (CharNextW (wszTok));
+        config.file_io.ignore_reads.entire_thread.insert (SK_CharNextW (wszTok));
 
       wszTok =
         std::wcstok (nullptr, L",", &wszBuf);
@@ -4517,9 +4517,9 @@ auto DeclKeybind =
     while (wszTok != nullptr)
     {
       if (*wszTok != L'>')
-        config.file_io.ignore_writes.single_file.insert   (           wszTok);
+        config.file_io.ignore_writes.single_file.insert   (              wszTok);
       else
-        config.file_io.ignore_writes.entire_thread.insert (CharNextW (wszTok));
+        config.file_io.ignore_writes.entire_thread.insert (SK_CharNextW (wszTok));
 
       wszTok =
         std::wcstok (nullptr, L",", &wszBuf);
@@ -5950,9 +5950,9 @@ SK_KeyMap_StandardizeNames (wchar_t* wszNameToFormalize)
   if (wszNameToFormalize == nullptr)
     return;
 
-  wchar_t*                pwszName = wszNameToFormalize;
-              CharUpperW (pwszName);
-   pwszName = CharNextW  (pwszName);
+  wchar_t*                  pwszName = wszNameToFormalize;
+                CharUpperW (pwszName);
+   pwszName = SK_CharNextW (pwszName);
 
   bool lower = true;
 
@@ -5965,7 +5965,7 @@ SK_KeyMap_StandardizeNames (wchar_t* wszNameToFormalize)
       (! iswspace (*pwszName));
 
     pwszName =
-      CharNextW (pwszName);
+      SK_CharNextW (pwszName);
   }
 }
 void
@@ -6246,9 +6246,9 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
   {
     std::wstring wszRelPath
     (
-      CharNextW (
-       StrStrIW (
-         CharNextW (
+      SK_CharNextW (
+          StrStrIW (
+      SK_CharNextW (
           StrStrIW ( wszPath, LR"(\)" )
                    ),         LR"(\)"
        )
@@ -6425,11 +6425,11 @@ SK_AppCache_Manager::getAppIDFromPath (const wchar_t* wszPath) const
   {
     const wchar_t* wszRelPath =
     {
-      CharNextW (
-        StrStrIW (
-          CharNextW (
-            StrStrIW ( wszSteamApps, LR"(\)" )
-                    ),               LR"(\)"
+      SK_CharNextW (
+          StrStrIW (
+      SK_CharNextW (
+          StrStrIW ( wszSteamApps, LR"(\)" )
+                   ),              LR"(\)"
         )
       )
     };
@@ -6507,16 +6507,16 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
 
     const wchar_t* wszRelPath =
     {
-      CharNextW (
-        StrStrIW (
-          CharNextW (
-            StrStrIW (
-              StrStrIW ( wszRelativeCopy.data (),
-                                           LR"(SteamApps\common\)" ),
-                                           LR"(\)"  )
-                    ),                     LR"(\)"
-                 )
+      SK_CharNextW (
+          StrStrIW (
+      SK_CharNextW (
+          StrStrIW (
+          StrStrIW ( wszRelativeCopy.data (),
+                                       LR"(SteamApps\common\)" ),
+                                       LR"(\)"  )
+                   ),                  LR"(\)"
                 )
+            )
     };
 
     wchar_t         wszAppID [32] = { };

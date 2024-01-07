@@ -4095,10 +4095,10 @@ SK::D3D9::TextureManager::refreshDataSources (void)
                   // Strip the path
                   while (  wszUnqualifiedEntry >= wszFullName &&
                           *wszUnqualifiedEntry != L'/')
-                    wszUnqualifiedEntry = CharPrevW (wszFullName, wszUnqualifiedEntry);
+                    wszUnqualifiedEntry = SK_CharPrevW (wszFullName, wszUnqualifiedEntry);
 
                   if (*wszUnqualifiedEntry == L'/')
-                    wszUnqualifiedEntry = CharNextW (wszUnqualifiedEntry);
+                    wszUnqualifiedEntry = SK_CharNextW (wszUnqualifiedEntry);
 
                   swscanf (wszUnqualifiedEntry, L"%x.dds", &checksum);
 

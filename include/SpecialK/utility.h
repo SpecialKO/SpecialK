@@ -327,9 +327,25 @@ extern BOOL WINAPI  SK_TerminateThread  (      HANDLE    hThread,
 extern BOOL WINAPI  SK_TerminateProcess (      HANDLE    hProcess,
                                                UINT      uExitCode  ) noexcept;
 extern void __cdecl SK__endthreadex     ( _In_ unsigned _ReturnCode ) noexcept;
+ 
+char* SK_CharNextA (const char *szInput, int n = 1);
 
-wchar_t* SK_CharNextW (const wchar_t *wszInput, int n = 1, bool ucs2 = false); 
- char*   SK_CharNextA (const char     *szInput, int n = 1);
+static inline wchar_t*
+SK_CharNextW (const wchar_t *wszInput, size_t n = 1)
+{
+  if (n <= 0 || wszInput == nullptr) [[unlikely]]
+    return nullptr;
+
+  return
+    const_cast <wchar_t *> (wszInput + n);
+};
+
+static inline wchar_t*
+SK_CharPrevW (const wchar_t *start, const wchar_t *x)
+{
+  if (x > start) return const_cast <wchar_t *> (x - 1);
+  else           return const_cast <wchar_t *> (x);
+}
 
 enum SK_Bitness {
   ThirtyTwoBit = 32,

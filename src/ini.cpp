@@ -352,7 +352,7 @@ auto wcrlen =
       while   ( _it  != nullptr &&
                 _it   < _end )
       {         _it   =
-     CharNextW (_it);
+  SK_CharNextW (_it);
             ++_len;
            if ( _it != nullptr &&
                *_it == L'\0' ) break;
@@ -385,10 +385,10 @@ Process_Section ( iSK_INISection  &kSection,
 
   auto& section = kSection;
 
-  const wchar_t* penultimate = CharPrevW (start, end);
+  const wchar_t* penultimate = SK_CharPrevW (start, end);
         wchar_t* key         = start;
 
-  for (wchar_t* k = key; k < end && k != nullptr; k = CharNextW (k))
+  for (wchar_t* k = key; k < end && k != nullptr; k = SK_CharNextW (k))
   {
     if (k < penultimate && *k == L'=')
     {
@@ -401,9 +401,9 @@ Process_Section ( iSK_INISection  &kSection,
                                            key, _TRUNCATE);
 
       wchar_t* value =
-        CharNextW (k);
+        SK_CharNextW (k);
 
-      for (wchar_t* l = value; l <= end; l < end ? l = CharNextW (l) : nullptr)
+      for (wchar_t* l = value; l <= end; l < end ? l = SK_CharNextW (l) : nullptr)
       {
         SK_ReleaseAssert (l != nullptr);
 
@@ -411,12 +411,12 @@ Process_Section ( iSK_INISection  &kSection,
 
         if (l > penultimate || *l == L'\n')
         {
-          key = CharNextW (l);
+          key = SK_CharNextW (l);
             k = key;
 
           if (l == end)
           {
-            l = CharNextW (l);
+            l = SK_CharNextW (l);
             k = end;
           }
 
@@ -464,10 +464,10 @@ Import_Section ( iSK_INISection  &section,
   }
 
 
-  const wchar_t* penultimate = CharPrevW (start, end);
+  const wchar_t* penultimate = SK_CharPrevW (start, end);
         wchar_t* key         = start;
 
-  for (wchar_t* k = key; k < end && k != nullptr; k = CharNextW (k))
+  for (wchar_t* k = key; k < end && k != nullptr; k = SK_CharNextW (k))
   {
     if (k < penultimate && *k == L'=')
     {
@@ -479,9 +479,9 @@ Import_Section ( iSK_INISection  &section,
                                            key, _TRUNCATE);
 
       wchar_t* value =
-        CharNextW (k);
+        SK_CharNextW (k);
 
-      for (wchar_t* l = value; l <= end; l < end ? l = CharNextW (l) : nullptr)
+      for (wchar_t* l = value; l <= end; l < end ? l = SK_CharNextW (l) : nullptr)
       {
         SK_ReleaseAssert (l != nullptr);
 
@@ -489,12 +489,12 @@ Import_Section ( iSK_INISection  &section,
 
         if (l > penultimate || *l == L'\n')
         {
-          key = CharNextW (l);
+          key = SK_CharNextW (l);
             k = key;
 
           if (l == end)
           {
-            l = CharNextW (l);
+            l = SK_CharNextW (l);
             k = end;
           }
 
@@ -571,7 +571,7 @@ iSK_INI::parse (void)
      ( *pEnd == L'\r' );
 
     pEnd =
-      CharNextW (pEnd);
+      SK_CharNextW (pEnd);
   }
 
   pEnd = pStart;
@@ -586,14 +586,14 @@ iSK_INI::parse (void)
       if (wc != L'\r')
       {
         *pEnd = wc;
-         pEnd = CharNextW (pEnd);
-      } pNext = CharNextW (pNext);
+         pEnd = SK_CharNextW (pEnd);
+      } pNext = SK_CharNextW (pNext);
 
       wc = *pNext;
     }
 
-    ZeroMemory (pEnd, (CharNextW (pNext) - pEnd) *
-                                  sizeof (*pEnd));
+    ZeroMemory (pEnd, (SK_CharNextW (pNext) - pEnd) *
+                                     sizeof (*pEnd));
 
     len =
       wcsnlen_s (pStart, (pEnd - pStart) /
@@ -609,24 +609,24 @@ iSK_INI::parse (void)
   }
 
   wchar_t* wszSecondToLast =
-    CharPrevW (pStart, pEnd);
+    SK_CharPrevW (pStart, pEnd);
 
   wchar_t* begin           = nullptr;
   wchar_t* end             = nullptr;
 
   for ( wchar_t* i = pStart;
                  i < pEnd &&
-                 i != nullptr; i = CharNextW (i) )
+                 i != nullptr; i = SK_CharNextW (i) )
   {
     if ( *i == L'[' &&
-         (i == pStart || *CharPrevW (pStart, i) == L'\n') )
+         (i == pStart || *SK_CharPrevW (pStart, i) == L'\n') )
     {
       begin =
-        CharNextW (i);
+        SK_CharNextW (i);
     }
 
     if (   *i == L']' &&
-           (i == wszSecondToLast || *CharNextW (i) == L'\n') )
+           (i == wszSecondToLast || *SK_CharNextW (i) == L'\n') )
     { end = i; }
 
     if ( begin != nullptr &&
@@ -639,13 +639,13 @@ iSK_INI::parse (void)
       wcsncpy_s (sec_name,                 sec_len + 1,
                                            begin, _TRUNCATE);
 
-      wchar_t* start  = CharNextW (CharNextW (end));
+      wchar_t* start  = SK_CharNextW (end, 2);
       wchar_t* finish = start;
       bool     eof    = false;
 
       if (start != nullptr)
       {
-        for (wchar_t* j = start; j <= pEnd; j = CharNextW (j))
+        for (wchar_t* j = start; j <= pEnd; j = SK_CharNextW (j))
         {
           if (j == nullptr)
             break;
@@ -657,8 +657,8 @@ iSK_INI::parse (void)
             break;
           }
 
-          if ( wchar_t *wszPrev = nullptr;         *j    == L'[' &&
-                      *(wszPrev = CharPrevW (start, j)) == L'\n' )
+          if ( wchar_t *wszPrev = nullptr;            *j    == L'[' &&
+                      *(wszPrev = SK_CharPrevW (start, j)) == L'\n' )
           {
             finish = wszPrev;
             break;
@@ -767,7 +767,7 @@ iSK_INI::import (const wchar_t* import_data)
      ( *pEnd == L'\r' );
 
     pEnd =
-      CharNextW (pEnd);
+      SK_CharNextW (pEnd);
   }
 
   pEnd = pStart;
@@ -782,14 +782,14 @@ iSK_INI::import (const wchar_t* import_data)
       if (wc != L'\r')
       {
         *pEnd = wc;
-         pEnd = CharNextW (pEnd);
-      } pNext = CharNextW (pNext);
+         pEnd = SK_CharNextW (pEnd);
+      } pNext = SK_CharNextW (pNext);
 
       wc = *pNext;
     }
 
-    ZeroMemory (pEnd, (CharNextW (pNext) - pEnd) *
-                                  sizeof (*pEnd));
+    ZeroMemory (pEnd, (SK_CharNextW (pNext) - pEnd) *
+                                     sizeof (*pEnd));
 
     len =
       wcsnlen_s (pStart, (pEnd - pStart) /
@@ -805,24 +805,24 @@ iSK_INI::import (const wchar_t* import_data)
   }
 
   wchar_t* wszSecondToLast =
-    CharPrevW (pStart, pEnd);
+    SK_CharPrevW (pStart, pEnd);
 
   wchar_t* begin           = nullptr;
   wchar_t* end             = nullptr;
 
   for ( wchar_t* i = pStart;
                  i < pEnd &&
-                 i != nullptr; i = CharNextW (i) )
+                 i != nullptr; i = SK_CharNextW (i) )
   {
     if ( *i == L'[' &&
-         (i == pStart || *CharPrevW (pStart, i) == L'\n'))
+         (i == pStart || *SK_CharPrevW (pStart, i) == L'\n'))
     {
       begin =
-        CharNextW (i);
+        SK_CharNextW (i);
     }
 
     if (   *i == L']' &&
-           (i == wszSecondToLast || *CharNextW (i) == L'\n') )
+           (i == wszSecondToLast || *SK_CharNextW (i) == L'\n') )
     { end = i; }
 
     if ( begin != nullptr &&
@@ -837,11 +837,11 @@ iSK_INI::import (const wchar_t* import_data)
 
       //MessageBoxW (NULL, sec_name, L"Section", MB_OK);
 
-      wchar_t* start  = CharNextW (CharNextW (end));
+      wchar_t* start  = SK_CharNextW (end, 2);
       wchar_t* finish = start;
       bool     eof    = false;
 
-      for (wchar_t* j = start; j <= pEnd; j = CharNextW (j))
+      for (wchar_t* j = start; j <= pEnd; j = SK_CharNextW (j))
       {
         if (j == nullptr)
           break;
@@ -853,8 +853,8 @@ iSK_INI::import (const wchar_t* import_data)
           break;
         }
 
-        if ( wchar_t *wszPrev = nullptr;         *j    == L'[' &&
-                    *(wszPrev = CharPrevW (start, j)) == L'\n' )
+        if ( wchar_t *wszPrev = nullptr;            *j    == L'[' &&
+                    *(wszPrev = SK_CharPrevW (start, j)) == L'\n' )
         {
           finish = wszPrev;
           break;
