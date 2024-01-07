@@ -3144,6 +3144,17 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
           display.monitor == monitor)
       {
         pOutput = &display;
+
+        MONITORINFOEXW
+          minfoex        = { };
+          minfoex.cbSize = sizeof (MONITORINFOEXW);
+
+        if (GetMonitorInfoW (display.monitor, &minfoex))
+        {
+          wcsncpy_s ( display.gdi_name, 32,
+                      minfoex.szDevice, _TRUNCATE );
+        }
+
         break;
       }
     }
@@ -3153,10 +3164,10 @@ SK_RenderBackend_V2::assignOutputFromHWND (HWND hWndContainer)
   {
     auto& display = *pOutput;
 
-    updateWDDMCaps (pOutput);
-
     wcsncpy_s ( display_name,        128,
                 display.name, _TRUNCATE );
+
+    updateWDDMCaps (pOutput);
 
     // Late init
     if (monitor != display.monitor)
