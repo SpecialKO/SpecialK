@@ -4337,12 +4337,14 @@ wglSetPixelFormat ( HDC                    hDC,
   WaitForInit_GL ();
 
   SK_LOG0 ( ( L"[%08x (tid=%04x)]  wglSetPixelFormat "
-              L"(hDC=%x, iPixelFormat=%i)",
+              L"(hDC=%x, iPixelFormat=%i)\t[%ws]",
               SK_TLS_Bottom ()->render->gl->current_hwnd,
-              SK_Thread_GetCurrentId (   ), hDC, iPixelFormat ),
+              SK_Thread_GetCurrentId (   ), hDC, iPixelFormat, SK_GetCallerName ().c_str () ),
               L" OpenGL32 " );
 
-  SK_LOG0 ( ( L" @ Returned:     "
+  int iPixelFormatOverride = iPixelFormat;
+
+  SK_LOG0 ( ( L" @ Requested:    "
                   L"R%" _L(PRIi8) L"G%" _L(PRIi8) L"B%"         _L(PRIi8)
                   L"%ws Depth=%"        _L(PRIi8) L" Stencil=%" _L(PRIi8),
               ppfd->cRedBits,  ppfd->cGreenBits,
@@ -4354,6 +4356,8 @@ wglSetPixelFormat ( HDC                    hDC,
                                ppfd->cStencilBits ),
               L" OpenGL32 " );
 
+  PIXELFORMATDESCRIPTOR pfd_copy = *ppfd;
+
   extern bool __SK_HDR_16BitSwap;
   if (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr)
   {
@@ -4363,6 +4367,7 @@ wglSetPixelFormat ( HDC                    hDC,
         WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
         WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
         WGL_DOUBLE_BUFFER_ARB,  GL_TRUE,
+      //WGL_DRAW_TO_BITMAP_ARB, GL_TRUE,
         WGL_SWAP_METHOD_ARB,    WGL_SWAP_EXCHANGE_ARB,
         WGL_ACCELERATION_ARB,   WGL_FULL_ACCELERATION_ARB,
         WGL_COLOR_BITS_ARB,     64,
@@ -4371,8 +4376,8 @@ wglSetPixelFormat ( HDC                    hDC,
         WGL_BLUE_BITS_ARB,      16,
         WGL_ALPHA_BITS_ARB,     16,
         WGL_PIXEL_TYPE_ARB,     WGL_TYPE_RGBA_FLOAT_ARB,
-        WGL_DEPTH_BITS_ARB,     ppfd->cDepthBits,
-        WGL_STENCIL_BITS_ARB,   ppfd->cStencilBits,
+        WGL_DEPTH_BITS_ARB,     ppfd->cStencilBits == 0 ? 32 : ppfd->cStencilBits <= 8 ? 24 : ppfd->cDepthBits,
+        WGL_STENCIL_BITS_ARB,   ppfd->cStencilBits == 0 ?  0 : ppfd->cStencilBits <= 8 ?  8 : ppfd->cStencilBits,
         0
       };
 
@@ -4402,10 +4407,55 @@ wglSetPixelFormat ( HDC                    hDC,
         }
       }
     }
+
+    pfd_copy.nVersion   = 1;
+    pfd_copy.nSize      = sizeof (pfd_copy);
+    pfd_copy.dwFlags   |= PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+    pfd_copy.dwFlags   &= ~PFD_SUPPORT_GDI;
+    pfd_copy.cColorBits = 64;
+    pfd_copy.cAlphaBits = 16;
+    pfd_copy.cRedBits   = 16;
+    pfd_copy.cBlueBits  = 16;
+    pfd_copy.cGreenBits = 16;
   }
 
+  if (pfd_copy.cStencilBits == 0)
+      pfd_copy.cDepthBits   = 32;
+  else
+  {
+    if (pfd_copy.cStencilBits <= 8)
+    {
+      pfd_copy.cStencilBits =  8;
+      pfd_copy.cDepthBits   = 24;
+    }
+  }
+
+  iPixelFormatOverride =
+    wgl_choose_pixel_format (hDC, &pfd_copy);
+
   BOOL ret =
+    wgl_set_pixel_format (hDC, iPixelFormatOverride, &pfd_copy);
+
+  // Fallback to original values if we failed...
+  if (! ret)
     wgl_set_pixel_format (hDC, iPixelFormat, ppfd);
+
+  else
+  {
+    DescribePixelFormat (hDC, iPixelFormatOverride, sizeof (PIXELFORMATDESCRIPTOR), &pfd_copy);
+
+    SK_LOG0 ( ( L" @ SK Overrides: "
+                  L"R%" _L(PRIi8) L"G%" _L(PRIi8) L"B%"         _L(PRIi8)
+                  L"%ws Depth=%"        _L(PRIi8) L" Stencil=%" _L(PRIi8),
+              pfd_copy.cRedBits,  pfd_copy.cGreenBits,
+              pfd_copy.cBlueBits, pfd_copy.cAlphaBits == 0 ?
+                                  L" "               :
+                SK_FormatStringW (L"A%" _L(PRIi8),
+                               pfd_copy.cAlphaBits).c_str (),
+                               pfd_copy.cDepthBits,
+                               pfd_copy.cStencilBits ),
+              L" OpenGL32 " );
+  }
 
   return ret;
 }
