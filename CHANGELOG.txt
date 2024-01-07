@@ -1,4 +1,9 @@
-﻿24.1.7.6
+﻿24.1.7.7
+========
+ + Optimized CharNextW (...) implementation for UCS2
+ + Remove scoped lock on GetProcAddress_Detour (...)
+
+24.1.7.6
 ========
  + Avoid repeatedly calling various NVIDIA Reflex APIs in pure D3D9
  + Add Final Fantasy 7/8/9 launchers to internal injection blacklist

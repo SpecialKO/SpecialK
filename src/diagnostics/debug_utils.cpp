@@ -499,22 +499,6 @@ GetProcAddress_Detour     (
   _In_ HMODULE hModule,
   _In_ LPCSTR  lpProcName )
 {
-  static           SK_Thread_HybridSpinlock             get_proc_mutex;
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock (get_proc_mutex);
-
-  if (SK_GetModuleFullNameFromAddr (hModule)._Equal (L"#Extremely#Invalid.dll#"))
-  {
-    dll_log->silent = false;
-
-    SK_LOGi0 (
-      L"Invalid Module Passed to GetProcAddress (%p, \"%hs\")",
-        hModule, lpProcName
-    );
-
-    // Recovery's not really possible...
-    return nullptr;
-  }
-
   // Let someone else sort this out
   if (lpProcName == nullptr)
   {
