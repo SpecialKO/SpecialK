@@ -3336,7 +3336,13 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::AlanWake2:
-      {        void *pOverlayCheck =
+      {
+        config.apis.OpenGL.hook = false;
+        config.apis.d3d9.hook   = false;
+        config.apis.d3d9ex.hook = false;
+        config.apis.Vulkan.hook = false;
+
+        void *pOverlayCheck =
           (void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0x1E74B09);
 
         DWORD                                                          dwOriginal = 0;
