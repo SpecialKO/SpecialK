@@ -1,12 +1,18 @@
-﻿24.1.7
+﻿24.1.7.1
+========
+ + Added stronger warning when enabling "Continue Rendering" in SteamInput
+    native games.
+
+   * You're playing with fire; chances are very good no input will work at all!
+
+24.1.7
 ======
+ + Fixed race to initialize per-display information with GDI name before
+     getting WDDM caps using the GDI name.
  + Added support for background input when using Steam Input's XInput
      API wrapper back to SK.
 
    >> Native Steam Input API games still do not support background input.
-
- + Fixed race to initialize per-display information with GDI name before
-     getting WDDM caps using the GDI name.
 
 24.1.6
 ======

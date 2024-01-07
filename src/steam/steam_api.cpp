@@ -5458,8 +5458,8 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 void
 SK_Steam_ProcessWindowActivation (bool active)
 {
-  if (config.input.gamepad.steam.is_native)
-    return;
+  //if (config.input.gamepad.steam.is_native)
+  //  return;
 
   // Hacky code for Steam Input background input
   if (config.window.background_render && config.input.gamepad.disabled_to_game == 0)

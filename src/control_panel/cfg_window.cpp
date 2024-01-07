@@ -439,10 +439,12 @@ SK::ControlPanel::Window::Draw (void)
 
           if (config.input.gamepad.steam.is_native && config.steam.appid != 0)
           {
-           ImGui::Separator       ();
-           ImGui::TextUnformatted (
-             "WARNING: This may break input in Steam Input native games (this appears to be one)."
-           );
+            ImGui::Separator   ();
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE " WARNING:\t");
+            ImGui::SameLine    ();
+            ImGui::TextColored (ImVec4 (.85f, .85f, .85f, 1.f),
+              "This may break input in Steam Input native games (this appears to be one)."
+            );
           }
           ImGui::EndTooltip   ();
         }
