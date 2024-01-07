@@ -718,28 +718,56 @@ ReadFileEx_Detour (HANDLE                          hFile,
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_HID_DeviceFiles.count (hFile) != 0)
+  auto dev_file_type =
+    SK_Input_GetDeviceFileType (hFile);
+
+  switch (dev_file_type)
   {
-    const auto& device_file =
-      SK_HID_DeviceFiles.at (hFile);
-
-    SK_HID_READ (device_file.device_type);
-
-    if (! device_file.isInputAllowed ())
+    case SK_Input_DeviceFileType::HID:
     {
-      return FALSE;
+      const auto& device_file =
+        SK_HID_DeviceFiles.at (hFile);
+
+      SK_HID_READ (device_file.device_type);
+
+      if (! device_file.isInputAllowed ())
+      {
+        return FALSE;
+      }
+
+      BOOL bRet =
+        ReadFileEx_Original (
+          hFile, lpBuffer, nNumberOfBytesToRead,
+            lpOverlapped, lpCompletionRoutine
+        );
+
+      if (bRet != FALSE)
+        SK_HID_VIEW (device_file.device_type);
+
+      return bRet;
+    } break;
+
+    case SK_Input_DeviceFileType::Steam:
+    {
+      //const auto& device_file =
+      //  SK_Steam_DeviceFiles.at (hFile);
+
+      if (SK_ImGui_WantGamepadCapture ())
+      {
+        return FALSE;
+      }
+
+      BOOL bRet =
+        ReadFileEx_Original (
+          hFile, lpBuffer, nNumberOfBytesToRead,
+            lpOverlapped, lpCompletionRoutine
+        );
+
+      if (bRet != FALSE)
+        SK_Steam_Backend->markRead (2);
+
+      return bRet;
     }
-
-    BOOL bRet =
-      ReadFileEx_Original (
-        hFile, lpBuffer, nNumberOfBytesToRead,
-          lpOverlapped, lpCompletionRoutine
-      );
-
-    if (bRet != FALSE)
-      SK_HID_VIEW (device_file.device_type);
-
-    return bRet;
   }
 
   return
