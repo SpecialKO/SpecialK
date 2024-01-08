@@ -1,4 +1,14 @@
-﻿24.1.8.2
+﻿24.1.8.3
+========
+ + Optimized HID device file management for games that repeatedly open/close
+     the same device.
+ + Added automatic call to IDXGISwapChain3::SetColorSpace1 (...) if SK HDR
+     is forced on, and SK was injected too late to wrap the SwapChain.
+
+    >> Generally this only works for D3D12 games; D3D11 are not Flip Model
+         if SK is injected late most of the time.
+
+24.1.8.2
 ========
  + Simplified SK_IsDebuggerPresent (...) to eliminate rare race conditions.
  + Improved reliability of Steam Input (wrapper, not native) alt-tab after

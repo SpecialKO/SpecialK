@@ -2983,6 +2983,38 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         }
       }
 
+
+#pragma region HDR Late Injection HACK
+      // Very late attempt to change the colorspace if we were not
+      //   around to catch the initial SwapChain creation...
+      static bool _10BitHDR = false,
+                  _16BitHDR = false,
+                       _SDR = true;
+
+      if (  __SK_HDR_16BitSwap != _16BitHDR ||
+            __SK_HDR_10BitSwap != _10BitHDR ||
+          !(__SK_HDR_16BitSwap || __SK_HDR_10BitSwap) != _SDR )
+      {
+        if (SK_ComQIPtr <IDXGISwapChain3> pSwapChain3 (rb.swapchain);
+                                          pSwapChain3 != nullptr)
+        {
+          if (
+            SUCCEEDED (
+              pSwapChain3->SetColorSpace1 ( __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 :
+                                            __SK_HDR_10BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020
+                                                               : DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709 )
+                      )
+             )
+          {
+            _10BitHDR = __SK_HDR_10BitSwap;
+            _16BitHDR = __SK_HDR_16BitSwap;
+            _SDR      = !(__SK_HDR_10BitSwap || __SK_HDR_16BitSwap);
+          }
+        }
+      }
+#pragma endregion
+
+
       // Delayed Init  (Elden Ring vs. Flawless Widescreen compat hack)
       if (frames_drawn > 15)
       {
