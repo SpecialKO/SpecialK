@@ -4495,9 +4495,9 @@ auto DeclKeybind =
     while (wszTok != nullptr)
     {
       if (*wszTok != L'>')
-        config.file_io.ignore_reads.single_file.insert   (              wszTok);
+        config.file_io.ignore_reads->single_file.insert   (              wszTok);
       else
-        config.file_io.ignore_reads.entire_thread.insert (SK_CharNextW (wszTok));
+        config.file_io.ignore_reads->entire_thread.insert (SK_CharNextW (wszTok));
 
       wszTok =
         std::wcstok (nullptr, L",", &wszBuf);
@@ -4517,9 +4517,9 @@ auto DeclKeybind =
     while (wszTok != nullptr)
     {
       if (*wszTok != L'>')
-        config.file_io.ignore_writes.single_file.insert   (              wszTok);
+        config.file_io.ignore_writes->single_file.insert   (              wszTok);
       else
-        config.file_io.ignore_writes.entire_thread.insert (SK_CharNextW (wszTok));
+        config.file_io.ignore_writes->entire_thread.insert (SK_CharNextW (wszTok));
 
       wszTok =
         std::wcstok (nullptr, L",", &wszBuf);
@@ -5715,13 +5715,12 @@ SK_SaveConfig ( std::wstring name,
 
   // Keep this setting hidden (not to be sneaky; but to prevent overwhelming users with
   //   extremely esoteric options -- this is needed for a lot of settings =P)
-  if (! ( config.file_io.trace_reads  || config.file_io.trace_writes ||
-          ( config.file_io.ignore_reads.entire_thread.size  () +
-            config.file_io.ignore_reads.single_file.size    () ) > 0 ||
-          ( config.file_io.ignore_writes.entire_thread.size () +
-            config.file_io.ignore_writes.single_file.size   () ) > 0
-          )
-      )
+  if ((! ( config.file_io.trace_reads  || config.file_io.trace_writes )) ||
+         ( config.file_io.ignore_reads->entire_thread.size  () +
+           config.file_io.ignore_reads->single_file.size    () ) == 0 ||
+         ( config.file_io.ignore_writes->entire_thread.size () +
+           config.file_io.ignore_writes->single_file.size   () ) == 0
+     )
   {
     dll_ini->remove_section (L"FileIO.Trace");
   }
@@ -7239,3 +7238,8 @@ namespace sk
     int base_log_lvl = 0;
   };
 };
+
+
+
+SK_LazyGlobal <sk_config_t::file_trace_s::ignore_files_s> sk_config_t::file_trace_s::ignore_reads;
+SK_LazyGlobal <sk_config_t::file_trace_s::ignore_files_s> sk_config_t::file_trace_s::ignore_writes;

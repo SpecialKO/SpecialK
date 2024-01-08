@@ -157,10 +157,10 @@ NtReadFile_Detour (
         wchar_t                                wszFileName [MAX_PATH + 2] = { };
         SK_File_GetNameFromHandle (FileHandle, wszFileName, MAX_PATH);
 
-        if (config.file_io.ignore_reads.entire_thread.count (wszFileName))
+        if (config.file_io.ignore_reads->entire_thread.count (wszFileName))
           pTLS->disk->ignore_reads = TRUE;
 
-        else if (config.file_io.ignore_reads.single_file.count (wszFileName))
+        else if (config.file_io.ignore_reads->single_file.count (wszFileName))
           return ntStatus;
 
         else if (StrStrIW (wszFileName, LR"(\client_TOBII)") != nullptr)
@@ -236,10 +236,10 @@ NtWriteFile_Detour (
         if (StrStrIW (wszFileName, L"file_writes.log") != nullptr)
           return ntStatus;
 
-        if (config.file_io.ignore_writes.entire_thread.count (wszFileName))
+        if (config.file_io.ignore_writes->entire_thread.count (wszFileName))
           pTLS->disk->ignore_writes = TRUE;
 
-        else if (config.file_io.ignore_writes.single_file.count (wszFileName))
+        else if (config.file_io.ignore_writes->single_file.count (wszFileName))
           return ntStatus;
 
         auto& file_log =

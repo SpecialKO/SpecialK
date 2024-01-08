@@ -1,5 +1,6 @@
 ﻿24.1.8.3
 ========
+ + Fixed using the wrong CPUID bit to test for MWAITX support on AMD CPUs
  + Optimized HID device file management for games that repeatedly open/close
      the same device.
  + Added automatic call to IDXGISwapChain3::SetColorSpace1 (...) if SK HDR

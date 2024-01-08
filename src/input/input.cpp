@@ -99,16 +99,15 @@ SK_Input_DeclareAppNotSteamNative (void)
 }
 
 struct SK_HID_DeviceFile {
-  HANDLE            hFile                              = INVALID_HANDLE_VALUE;
   HIDP_CAPS         hidpCaps                           = { };
-  wchar_t           wszDevicePath       [MAX_PATH + 2] = { };
   wchar_t           wszProductName      [128]          = { };
   wchar_t           wszManufacturerName [128]          = { };
   wchar_t           wszSerialNumber     [128]          = { };
-  BOOL              bDisableDevice                     = FALSE;
-  DWORD             dwPollingFrequencyInHz             = 125;
-  sk_input_dev_type device_type                        = sk_input_dev_type::Other;
+  wchar_t           wszDevicePath       [MAX_PATH + 2] = { };
   std::vector<BYTE> last_data_read;
+  sk_input_dev_type device_type                        = sk_input_dev_type::Other;
+  BOOL              bDisableDevice                     = FALSE;
+  HANDLE            hFile                              = INVALID_HANDLE_VALUE;
 
   SK_HID_DeviceFile (void) = default;
 

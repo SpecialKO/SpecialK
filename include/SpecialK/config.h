@@ -139,7 +139,7 @@ struct sk_config_t
     __cpuid (cpuid, 0x80000001);
 
     // MWAITX = ECX Bit 29 (8000_0001h)
-    SK_CPU_HasMWAITX = (cpuid [3] & (1 << 29)) != 0;
+    SK_CPU_HasMWAITX = (cpuid [2] & (1 << 28)) != 0;
 
     SK_PerfTicksPerMs = SK_PerfFreq / 1000LL;
   }
@@ -827,8 +827,10 @@ struct sk_config_t
     struct ignore_files_s {
       Concurrency::concurrent_unordered_set <std::wstring> single_file;
       Concurrency::concurrent_unordered_set <std::wstring> entire_thread;
-    } ignore_reads,
-      ignore_writes;
+    };
+    
+    static SK_LazyGlobal <ignore_files_s> ignore_reads;
+    static SK_LazyGlobal <ignore_files_s> ignore_writes;
 
   } file_io;
 
