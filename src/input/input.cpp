@@ -69,9 +69,16 @@ enum class SK_Input_DeviceFileType
 };
 
 struct SK_Steam_DeviceFile {
-  HANDLE  hFile                    = INVALID_HANDLE_VALUE;
-  wchar_t wszDevicePath [MAX_PATH] = { };
-  bool    bDisableDevice           = FALSE;
+  SK_Steam_DeviceFile (void) = default;
+  SK_Steam_DeviceFile (HANDLE file, const wchar_t *wszPath) : hFile (file)
+  {
+    wcsncpy_s ( wszDevicePath, MAX_PATH,
+                      wszPath, _TRUNCATE );
+  };
+
+  HANDLE  hFile                        = INVALID_HANDLE_VALUE;
+  wchar_t wszDevicePath [MAX_PATH + 2] = { };
+  bool    bDisableDevice               = FALSE;
 };
 
 void
@@ -92,19 +99,28 @@ SK_Input_DeclareAppNotSteamNative (void)
 }
 
 struct SK_HID_DeviceFile {
-  HANDLE            hFile                     = INVALID_HANDLE_VALUE;
-  HIDP_CAPS         hidpCaps                  = { };
-  wchar_t           wszProductName      [128] = { };
-  wchar_t           wszManufacturerName [128] = { };
-  wchar_t           wszSerialNumber     [128] = { };
-  BOOL              bDisableDevice            = FALSE;
-  DWORD             dwPollingFrequencyInHz    = 125;
-  sk_input_dev_type device_type               = sk_input_dev_type::Other;
+  HANDLE            hFile                              = INVALID_HANDLE_VALUE;
+  HIDP_CAPS         hidpCaps                           = { };
+  wchar_t           wszDevicePath       [MAX_PATH + 2] = { };
+  wchar_t           wszProductName      [128]          = { };
+  wchar_t           wszManufacturerName [128]          = { };
+  wchar_t           wszSerialNumber     [128]          = { };
+  BOOL              bDisableDevice                     = FALSE;
+  DWORD             dwPollingFrequencyInHz             = 125;
+  sk_input_dev_type device_type                        = sk_input_dev_type::Other;
   std::vector<BYTE> last_data_read;
 
-  SK_HID_DeviceFile (HANDLE file)
+  SK_HID_DeviceFile (void) = default;
+
+  SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
   {
     wchar_t *lpFileName = nullptr;
+
+    if (wszPath != nullptr)
+    {
+      wcsncpy_s ( wszDevicePath, MAX_PATH,
+                  wszPath,       _TRUNCATE );
+    }
 
     PHIDP_PREPARSED_DATA                 preparsed_data = nullptr;
     if (SK_HidD_GetPreparsedData (file, &preparsed_data))
@@ -243,7 +259,8 @@ SK_Input_DeviceFileType SK_Input_GetDeviceFileType (HANDLE hFile)
   // Figure out device type
   //
 
-  if (SK_HID_DeviceFiles.count (hFile))
+  if (SK_HID_DeviceFiles.count (hFile) &&
+      SK_HID_DeviceFiles.at    (hFile).device_type != sk_input_dev_type::Other)
     return SK_Input_DeviceFileType::HID;
 
   if (SK_Steam_DeviceFiles.count (hFile))
@@ -684,9 +701,9 @@ ReadFile_Detour (HANDLE       hFile,
 
           if (lpOverlapped == nullptr || CancelIo (hFile))
           {
-            if (lpOverlapped == nullptr)
+            if (lpOverlapped == nullptr) // lpNumberOfBytesRead MUST be non-null
             {
-              if (device_file.last_data_read.size () >= nNumberOfBytesToRead)
+              if (device_file.last_data_read.size () >= *lpNumberOfBytesRead)
               {
                 memcpy (lpBuffer, device_file.last_data_read.data (), *lpNumberOfBytesRead);
               }
@@ -707,10 +724,9 @@ ReadFile_Detour (HANDLE       hFile,
             memcpy (lpBuffer,                           pTlsBackedBuffer, *lpNumberOfBytesRead);
           }
         }
-      }
 
-      if (bRet != FALSE)
         SK_HID_READ (device_file.device_type);
+      }
 
       return bRet;
     } break;
@@ -790,16 +806,42 @@ ReadFileEx_Detour (HANDLE                          hFile,
     );
 }
 
+bool
+SK_StrSupW (const wchar_t *wszString, const wchar_t *wszPattern, int len = -1)
+{
+  if ( nullptr == wszString || wszPattern == nullptr )
+    return        wszString == wszPattern;
+
+  if (len == -1)
+      len = sk::narrow_cast <int> (wcslen (wszPattern));
+
+  return
+    0 == StrCmpNIW (wszString, wszPattern, len);
+}
+
+bool
+SK_StrSupA (const char *szString, const char *szPattern, int len = -1)
+{
+  if ( nullptr == szString || szPattern == nullptr )
+    return        szString == szPattern;
+
+  if (len == -1)
+      len = sk::narrow_cast <int> (strlen (szPattern));
+
+  return
+    0 == StrCmpNIA (szString, szPattern, len);
+}
+
 static
 HANDLE
 WINAPI
 CreateFileA_Detour (LPCSTR                lpFileName,
-                     DWORD                 dwDesiredAccess,
-                     DWORD                 dwShareMode,
-                     LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-                     DWORD                 dwCreationDisposition,
-                     DWORD                 dwFlagsAndAttributes,
-                     HANDLE                hTemplateFile)
+                    DWORD                 dwDesiredAccess,
+                    DWORD                 dwShareMode,
+                    LPSECURITY_ATTRIBUTES lpSecurityAttributes,
+                    DWORD                 dwCreationDisposition,
+                    DWORD                 dwFlagsAndAttributes,
+                    HANDLE                hTemplateFile)
 {
   SK_LOG_FIRST_CALL
 
@@ -809,27 +851,63 @@ CreateFileA_Detour (LPCSTR                lpFileName,
         lpSecurityAttributes, dwCreationDisposition,
           dwFlagsAndAttributes, hTemplateFile );
 
-  if (hRet != INVALID_HANDLE_VALUE)
+  const bool bSuccess = (LONG_PTR)hRet > 0;
+
+  // Examine all UNC paths closely, some of these files are
+  //   input devices in disguise...
+  if ( bSuccess && SK_StrSupA (lpFileName, R"(\\)", 2) )
   {
-    if (StrStrIA (lpFileName, R"(\\?\hid)") == lpFileName)
+    // Log UNC paths we don't expect for debugging
+    static const bool bTraceAllUNC =
+      ( config.system.log_level > 0 || config.file_io.trace_reads );
+
+    std::wstring widefilename =
+       SK_UTF8ToWideChar (lpFileName);
+
+    const auto lpWideFileName =
+                 widefilename.c_str ();
+
+    if (SK_StrSupA (lpFileName, R"(\\?\hid)", 7))
     {
-      SK_HID_DeviceFile hid_file (hRet);
+      SK_HID_DeviceFile hid_file (hRet, lpWideFileName);
 
       if (hid_file.device_type != sk_input_dev_type::Other)
       {
         SK_Input_DeviceFiles.insert (hRet);
-        SK_HID_DeviceFiles.insert (
-          std::make_pair (hRet, hid_file)
-        );
+        SK_HID_DeviceFiles          [hRet].last_data_read.resize (0);
+        SK_HID_DeviceFiles          [hRet] = std::move (hid_file);
+      }
+
+      // This is not a typical input device, only make note of it
+      //   if SK_Input_DeviceFiles already has an entry for it.
+      else if (SK_HID_DeviceFiles.count (hRet))
+      {
+        SK_HID_DeviceFiles          [hRet].last_data_read.resize (0);
+        SK_HID_DeviceFiles          [hRet] = std::move (hid_file);
       }
     }
 
-    else if (StrStrIA (lpFileName, R"(\\.\pipe)") == lpFileName)
+    else if (SK_StrSupA (lpFileName, R"(\\.\pipe)", 8))
     {
-      SK_Input_DeviceFiles.insert (hRet);
-      SK_Steam_DeviceFiles.insert (
-        std::make_pair (hRet, SK_Steam_DeviceFile { hRet })
-      );
+      if (config.input.gamepad.steam.disabled_to_game)
+      {
+        // If we can't close this, something's gone wrong...
+        SK_ReleaseAssert (
+          SK_CloseHandle (hRet)
+        );
+
+        return
+          INVALID_HANDLE_VALUE;
+      }
+
+      SK_Input_DeviceFiles.insert (  hRet                );
+      SK_Steam_DeviceFiles          [hRet] =
+                SK_Steam_DeviceFile (hRet, lpWideFileName);
+    }
+
+    else if (bTraceAllUNC && SK_StrSupA (lpFileName, R"(\\)", 2))
+    {
+      SK_LOGi0 (L"CreateFileA (%hs)", lpFileName);
     }
   }
 
@@ -855,38 +933,58 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
         lpSecurityAttributes, dwCreationDisposition,
           dwFlagsAndAttributes, hTemplateFile );
 
-  if (hRet != INVALID_HANDLE_VALUE)
+  const bool bSuccess = (LONG_PTR)hRet > 0;
+
+  // Examine all UNC paths closely, some of these files are
+  //   input devices in disguise...
+  if ( bSuccess && SK_StrSupW (lpFileName, LR"(\\)", 2) )
   {
-    if (StrStrIW (lpFileName, LR"(\\?\hid)") == lpFileName)
+    // Log UNC paths we don't expect for debugging
+    static const bool bTraceAllUNC =
+      ( config.system.log_level > 0 || config.file_io.trace_reads );
+
+    if (SK_StrSupW (lpFileName, LR"(\\?\hid)", 7))
     {
-      SK_HID_DeviceFile hid_file (hRet);
+      SK_HID_DeviceFile hid_file (hRet, lpFileName);
 
       if (hid_file.device_type != sk_input_dev_type::Other)
       {
         SK_Input_DeviceFiles.insert (hRet);
-        SK_HID_DeviceFiles.insert (
-          { hRet, hid_file }
-        );
+        SK_HID_DeviceFiles          [hRet].last_data_read.resize (0);
+        SK_HID_DeviceFiles          [hRet] = std::move (hid_file);
+      }
+
+      // This is not a typical input device, only make note of it
+      //   if SK_Input_DeviceFiles already has an entry for it.
+      else if (SK_HID_DeviceFiles.count (hRet))
+      {
+        SK_HID_DeviceFiles          [hRet].last_data_read.resize (0);
+        SK_HID_DeviceFiles          [hRet] = std::move (hid_file);
       }
     }
 
-    else if (StrStrIW (lpFileName, LR"(\\.\pipe)") == lpFileName)
+    else if (SK_StrSupW (lpFileName, LR"(\\.\pipe)", 8))
     {
       if (config.input.gamepad.steam.disabled_to_game)
-        return INVALID_HANDLE_VALUE;
+      {
+        // If we can't close this, something's gone wrong...
+        SK_ReleaseAssert (
+          SK_CloseHandle (hRet)
+        );
 
-      SK_Input_DeviceFiles.insert (hRet);
-      SK_Steam_DeviceFiles.insert (
-        { hRet, SK_Steam_DeviceFile { hRet } }
-      );
+        return
+          INVALID_HANDLE_VALUE;
+      }
+
+      SK_Input_DeviceFiles.insert (  hRet            );
+      SK_Steam_DeviceFiles          [hRet] =
+                SK_Steam_DeviceFile (hRet, lpFileName);
     }
 
-#ifdef _DEBUG
-    else if (StrStrIW (lpFileName, LR"(\hid)"))
+    else if (bTraceAllUNC && SK_StrSupW (lpFileName, LR"(\\)", 2))
     {
-      SK_ImGui_Warning (lpFileName);
+      SK_LOGi0 (L"CreateFileW (%ws)", lpFileName);
     }
-#endif
   }
 
   return hRet;

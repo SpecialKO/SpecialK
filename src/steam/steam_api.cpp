@@ -5332,7 +5332,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 
       void push (AppId64_t appid)
       {
-        app_ids.push ( ReadAcquire (&changes) > 0 && appid == 0 ? 0
+        app_ids.push ( ReadAcquire (&changes) > 0 && appid == 0 ? config.steam.appid
                                                                 : appid );
 
         if (appid != 0)

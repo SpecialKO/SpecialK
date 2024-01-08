@@ -1,4 +1,10 @@
-﻿24.1.8.1
+﻿24.1.8.2
+========
+ + Simplified SK_IsDebuggerPresent (...) to eliminate rare race conditions.
+ + Improved reliability of Steam Input (wrapper, not native) alt-tab after
+     activating SK's control panel, or when enabling background input. 
+
+24.1.8.1
 ========
  + Prevent Alan Wake 2 and Cyberpunk 2077 from showing controller disconnect
      messages when blocking HID + XInput input devices.
