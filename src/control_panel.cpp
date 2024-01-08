@@ -6737,6 +6737,14 @@ SK_ImGui_StageNextFrame (void)
 
     if (! SK_GetStoreOverlayState (true))
     {
+      // Draw a fullscreen RTV overlay if mod tools request it
+      if (SK_D3D11_KnownTargets::_overlay_srv != nullptr)
+      {
+        SK_D3D11_DrawRTVOverlay (
+          std::exchange (SK_D3D11_KnownTargets::_overlay_srv, nullptr)
+        );
+      }
+
       SK_DrawOSD     ();
       SK_DrawConsole ();
     }

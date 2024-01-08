@@ -94,7 +94,8 @@ _make_blacklist_draw_max_verts ( uint32_t crc32c,
   SK_D3D11_BlacklistDrawcalls->insert (std::make_pair (crc32c, max_verts));
 }
 
-bool SK_D3D11_KnownTargets::_mod_tool_wants = false;
+ID3D11ShaderResourceView* SK_D3D11_KnownTargets::_overlay_srv    = nullptr;
+bool                      SK_D3D11_KnownTargets::_mod_tool_wants = false;
 
 bool
 SK_D3D11_IsValidRTV (ID3D11RenderTargetView* pRTV)
@@ -132,6 +133,115 @@ SK_D3D11_IsValidRTV (ID3D11RenderTargetView* pRTV)
   }
 
   return true;
+}
+
+bool
+SK_D3D11_IsValidSRV (ID3D11ShaderResourceView* pSRV)
+{
+  if (pSRV == nullptr)
+    return false;
+
+  ID3D11Resource* pRes = nullptr;
+
+  __try {
+    ID3D11ShaderResourceView*                                     pUnkle = nullptr;
+    if (FAILED (pSRV->QueryInterface <ID3D11ShaderResourceView> (&pUnkle)) ||
+                                                       nullptr == pUnkle)
+      return false;
+
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = { };
+    pUnkle->GetDesc               (&srvDesc);
+
+    if (srvDesc.ViewDimension == D3D11_SRV_DIMENSION_UNKNOWN)
+    {
+      pUnkle->Release ();
+      return false;
+    }
+
+    pUnkle->GetResource (&pRes);
+    pUnkle->Release ();
+
+    if (pRes != nullptr)
+        pRes->Release ();
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+void
+SK_D3D11_DrawRTVOverlay (ID3D11ShaderResourceView *pOverlaySRV)
+{
+  if (! SK_D3D11_IsValidSRV (pOverlaySRV))
+    return;
+
+  auto& io =
+    ImGui::GetIO ();
+
+  ImGui::SetNextWindowSize (io.DisplaySize,      ImGuiCond_Always);
+  ImGui::SetNextWindowPos  (ImVec2 (0.0f, 0.0f), ImGuiCond_Always);
+
+  static constexpr auto flags =
+    ImGuiWindowFlags_NoTitleBar        | ImGuiWindowFlags_NoResize           | ImGuiWindowFlags_NoMove                | ImGuiWindowFlags_NoScrollbar     |
+    ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoCollapse         | ImGuiWindowFlags_NoBackground          | ImGuiWindowFlags_NoSavedSettings |
+    ImGuiWindowFlags_NoMouseInputs     | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavInputs     |
+    ImGuiWindowFlags_NoNavFocus        | ImGuiWindowFlags_NoNav              | ImGuiWindowFlags_NoDecoration          | ImGuiWindowFlags_NoInputs;
+
+  ImGui::Begin ( "###SK_D3D11_RTV_OVERLAY", nullptr,
+                  flags );
+
+  ImDrawList* draw_list =
+    ImGui::GetWindowDrawList ();
+  
+  SK_ComPtr <ID3D11Resource> pRes;
+  pOverlaySRV->GetResource (&pRes.p);
+  
+  if (SK_ComQIPtr <ID3D11Texture2D> pTex (pRes);
+                                    pTex.p != nullptr)
+  {
+    D3D11_TEXTURE2D_DESC texDesc = { };
+    pTex->GetDesc      (&texDesc);
+  
+    float srv_width  = static_cast <float> (texDesc.Width),
+          srv_height = static_cast <float> (texDesc.Height);
+  
+    const float srv_aspect_ratio =
+                       srv_width / srv_height;
+  
+    float offset_x = 0.0f;
+    float offset_y = 0.0f;
+  
+    // Stretch stuff
+    if ( srv_height < io.DisplaySize.y ||
+         srv_height > io.DisplaySize.y )
+    {
+      srv_height = io.DisplaySize.y;
+      srv_width  = io.DisplaySize.y * srv_aspect_ratio;
+    }
+  
+    else if ( srv_width < io.DisplaySize.x ||
+              srv_width > io.DisplaySize.x )
+    {
+      srv_width  = io.DisplaySize.x;
+      srv_height = io.DisplaySize.x / srv_aspect_ratio;
+    }
+  
+    // Center stuff
+    if (srv_width  < io.DisplaySize.x) offset_x = (io.DisplaySize.x - srv_width ) / 2.0f;
+    if (srv_height < io.DisplaySize.y) offset_y = (io.DisplaySize.y - srv_height) / 2.0f;
+  
+    draw_list->PushClipRectFullScreen (                                           );
+    draw_list->AddImage               (pOverlaySRV, ImVec2 (offset_x,    offset_y),
+                                                    ImVec2 (srv_width  + offset_x,
+                                                            srv_height + offset_y));
+    draw_list->PopClipRect            (                                           );
+  }
+
+  ImGui::End ();
 }
 
 bool
@@ -183,6 +293,22 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
   //      SK_D3D11_DispatchThreads.count_active (), SK_D3D11_DispatchThreads.count_all () ).c_str (),
                         &show_dlg ) )
   {
+    static bool                             draw_srv_overlay = false;
+    static SK_ComPtr <ID3D11ShaderResourceView> pOverlaySRV;
+
+    if (draw_srv_overlay && pOverlaySRV.p != nullptr)
+    {
+      SK_D3D11_KnownTargets::_overlay_srv = pOverlaySRV;
+      SK_D3D11_TempResources->push_back (pOverlaySRV.p);
+                                         pOverlaySRV.Release ();
+    }
+
+    else
+    {
+                              pOverlaySRV = nullptr;
+      SK_D3D11_KnownTargets::_overlay_srv = nullptr;
+    }
+
     SK_D3D11_EnableTracking = true;
 
     bool can_scroll = (
@@ -533,7 +659,13 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                                 ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
     live_rt_view =
-        ImGui::CollapsingHeader ("Live RenderTarget View", ImGuiTreeNodeFlags_DefaultOpen);
+        ImGui::CollapsingHeader ("Live RenderTarget View", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_AllowOverlap);
+
+    ImGui::SameLine        (    );
+    ImGui::TextUnformatted ("\t");
+    ImGui::SameLine        (    );
+
+    ImGui::Checkbox ("Overlay Selected Render Target in Fullscreen", &draw_srv_overlay);
 
     SK_D3D11_KnownTargets::_mod_tool_wants =
         live_rt_view;
@@ -1225,6 +1357,10 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
                 ImGui::EndChildFrame     (    );
                 ImGui::PopStyleColor     (    );
+
+                if (draw_srv_overlay && pSRV.p != nullptr)
+                                 pOverlaySRV = pSRV.p;
+                else             pOverlaySRV = nullptr;
               }
 
               if (bottom_list > 0)

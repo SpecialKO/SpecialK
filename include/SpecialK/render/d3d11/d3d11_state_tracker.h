@@ -1093,7 +1093,8 @@ struct SK_D3D11_KnownTargets
                                      size_t max_ds_views = 128;
 #endif
 
-  static bool   _mod_tool_wants;
+  static ID3D11ShaderResourceView* _overlay_srv;
+  static bool                      _mod_tool_wants;
 };
 
 extern SK_LazyGlobal <std::array <SK_D3D11_KnownTargets,
@@ -1113,6 +1114,8 @@ extern volatile LONG  SK_D3D11_CBufferTrackingReqs;
 extern volatile ULONG SK_D3D11_LiveTexturesDirty;
 
 extern bool&          SK_D3D11_DontTrackUnlessModToolsAreOpen;
+
+extern void SK_D3D11_DrawRTVOverlay (ID3D11ShaderResourceView *pOverlaySRV);
 
 
 // Only accessed by the swapchain thread and only to clear any outstanding

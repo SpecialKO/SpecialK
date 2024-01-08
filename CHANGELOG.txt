@@ -1,6 +1,11 @@
-﻿24.1.8.3
+﻿24.1.8.4
 ========
- + Fixed using the wrong CPUID bit to test for MWAITX support on AMD CPUs
+ + Added an option to draw D3D11 Render Targets in the Render Mod Toolkit as
+     fullscreen overlays over the main scene (including alpha blending).
+
+24.1.8.3
+========
+ + Fixed using the wrong CPUID register to test for MWAITX support on AMD CPUs
  + Optimized HID device file management for games that repeatedly open/close
      the same device.
  + Added automatic call to IDXGISwapChain3::SetColorSpace1 (...) if SK HDR
