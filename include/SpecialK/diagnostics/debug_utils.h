@@ -561,7 +561,7 @@ bool SK_PE32_IsLargeAddressAware       (void);
 bool SK_PE32_MakeLargeAddressAwareCopy (void);
 
 void WINAPI SK_SymRefreshModuleList (HANDLE hProc = GetCurrentProcess ());
-BOOL WINAPI SK_IsDebuggerPresent    (void) noexcept;
+BOOL WINAPI SK_IsDebuggerPresent    (void);
 
 BOOL __stdcall SK_TerminateProcess (UINT uExitCode);
 

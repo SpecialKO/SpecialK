@@ -43,7 +43,7 @@
 HMODULE SK_GetModuleHandleW (PCWSTR lpModuleName);
 
 // Additional Validation if Debugger is Attached
-BOOL WINAPI SK_IsDebuggerPresent (void) noexcept;
+BOOL WINAPI SK_IsDebuggerPresent (void);
 
 
 

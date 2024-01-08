@@ -4033,23 +4033,34 @@ SK::Diagnostics::Debugger::CloseConsole (void)
 
 BOOL
 WINAPI
-SK_IsDebuggerPresent (void) noexcept
+SK_IsDebuggerPresent (void)
 {
-  __try {
-    if (IsDebuggerPresent_Original == nullptr)
-    {
-      if (ReadAcquire (&__SK_DLL_Attached))
-        SK_RunOnce (SK::Diagnostics::Debugger::Allow ()); // DONTCARE, just init
-    }
+  if (IsDebuggerPresent_Original == nullptr)
+  {
+    if (ReadAcquire (&__SK_DLL_Attached))
+      SK_RunOnce (SK::Diagnostics::Debugger::Allow ()); // DONTCARE, just init
+  }
 
-    if (bRealDebug)
-      return TRUE;
+  if (bRealDebug)
+    return TRUE;
 
-    if (     IsDebuggerPresent_Original != nullptr )
-      return IsDebuggerPresent_Original ();
-
+  auto _IsDebuggerPresent = [&](void) -> bool
+  {
     return
-      IsDebuggerPresent ();
+      IsDebuggerPresent_Original != nullptr ?
+      IsDebuggerPresent_Original ()         :
+      IsDebuggerPresent          ();
+  };
+
+  // Fast path during initialization
+  if (SK_GetFramesDrawn () < 1)
+  {
+    return _IsDebuggerPresent ();
+  }
+
+  // Now we get serious, and avoid anti-debug stuff...
+  __try {
+    return _IsDebuggerPresent ();
   }
 
   __finally {
