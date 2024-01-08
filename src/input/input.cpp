@@ -869,21 +869,28 @@ CreateFileA_Detour (LPCSTR                lpFileName,
 
     if (SK_StrSupA (lpFileName, R"(\\?\hid)", 7))
     {
-      SK_HID_DeviceFile hid_file (hRet, lpWideFileName);
+      bool bSkipExistingFile = false;
 
-      if (hid_file.device_type != sk_input_dev_type::Other)
+      if ( SK_HID_DeviceFiles.count (hRet) && StrCmpIW (lpWideFileName,
+           SK_HID_DeviceFiles.at    (hRet).wszDevicePath) == 0 )
       {
-        SK_Input_DeviceFiles.insert (hRet);
-        SK_HID_DeviceFiles          [hRet].last_data_read.resize (0);
-        SK_HID_DeviceFiles          [hRet] = std::move (hid_file);
+        bSkipExistingFile = true;
       }
 
-      // This is not a typical input device, only make note of it
-      //   if SK_Input_DeviceFiles already has an entry for it.
-      else if (SK_HID_DeviceFiles.count (hRet))
+      if (! bSkipExistingFile)
       {
-        SK_HID_DeviceFiles          [hRet].last_data_read.resize (0);
-        SK_HID_DeviceFiles          [hRet] = std::move (hid_file);
+        SK_HID_DeviceFile hid_file (hRet, lpWideFileName);
+
+        if (hid_file.device_type != sk_input_dev_type::Other)
+        {
+          SK_Input_DeviceFiles.insert (hRet);
+        }
+
+        auto&& dev_file =
+          SK_HID_DeviceFiles [hRet];
+
+        dev_file.last_data_read.clear ();
+        dev_file = std::move (hid_file);
       }
     }
 
@@ -945,21 +952,28 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
 
     if (SK_StrSupW (lpFileName, LR"(\\?\hid)", 7))
     {
-      SK_HID_DeviceFile hid_file (hRet, lpFileName);
+      bool bSkipExistingFile = false;
 
-      if (hid_file.device_type != sk_input_dev_type::Other)
+      if ( SK_HID_DeviceFiles.count (hRet) && StrCmpIW (lpFileName,
+           SK_HID_DeviceFiles.at    (hRet).wszDevicePath) == 0 )
       {
-        SK_Input_DeviceFiles.insert (hRet);
-        SK_HID_DeviceFiles          [hRet].last_data_read.resize (0);
-        SK_HID_DeviceFiles          [hRet] = std::move (hid_file);
+        bSkipExistingFile = true;
       }
 
-      // This is not a typical input device, only make note of it
-      //   if SK_Input_DeviceFiles already has an entry for it.
-      else if (SK_HID_DeviceFiles.count (hRet))
+      if (! bSkipExistingFile)
       {
-        SK_HID_DeviceFiles          [hRet].last_data_read.resize (0);
-        SK_HID_DeviceFiles          [hRet] = std::move (hid_file);
+        SK_HID_DeviceFile hid_file (hRet, lpFileName);
+
+        if (hid_file.device_type != sk_input_dev_type::Other)
+        {
+          SK_Input_DeviceFiles.insert (hRet);
+        }
+
+        auto&& dev_file =
+          SK_HID_DeviceFiles [hRet];
+
+        dev_file.last_data_read.clear ();
+        dev_file = std::move (hid_file);
       }
     }
 

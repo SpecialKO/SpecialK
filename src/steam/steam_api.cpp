@@ -4200,8 +4200,10 @@ SK_HookSteamAPI (void)
         L"steamnative"
       };
 
+#ifdef SK_SYNCHRONOUS_STEAMAPI_HOOKS
       if (hooks > 0)
         SK_ApplyQueuedHooks ();
+#endif
 
       InterlockedIncrementRelease (&__SteamAPI_hook);
 
@@ -4226,6 +4228,13 @@ SK_HookSteamAPI (void)
           SteamAPI_Delay_Init (nullptr);
 #endif
       }
+
+      // Do this late, because the call to SteamAPI_Delay_Init
+      //   duplicates work... we might be able to skip this
+#ifndef SK_SYNCHRONOUS_STEAMAPI_HOOKS
+      if (hooks > 0)
+        SK_ApplyQueuedHooks ();
+#endif
 
       SK_Thread_CloseSelf ();
 
