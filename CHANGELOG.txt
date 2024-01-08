@@ -1,4 +1,9 @@
-﻿24.1.8
+﻿24.1.8.1
+========
+ + Prevent Alan Wake 2 and Cyberpunk 2077 from showing controller disconnect
+     messages when blocking HID + XInput input devices.
+
+24.1.8
 ======
  + Increased strictness on UTF-8/UTF-16 conversions between unknown codepages;
     >> Untranslatable INI files will fail with an assertion at run-time.

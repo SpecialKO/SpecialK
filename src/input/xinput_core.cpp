@@ -477,15 +477,6 @@ XInputGetState1_4_Detour (
   // Game-specific hacks (i.e. button swap)
   if (dwRet == ERROR_SUCCESS) SK_XInput_TalesOfAriseButtonSwap (pState);
 
-  if (dwRet == ERROR_SUCCESS)
-  {
-    if (SK_ImGui_WantGamepadCapture ())
-    {
-      ZeroMemory (&pState->Gamepad, sizeof (pState->Gamepad));
-
-      config.input.gamepad.xinput.placeholdX [dwUserIndex] = true;
-    }
-  }
 
   return dwRet;
 }
@@ -660,15 +651,6 @@ XInputGetStateEx1_4_Detour (
   ////  }
   ////}
 
-  if (dwRet == ERROR_SUCCESS)
-  {
-    if (SK_ImGui_WantGamepadCapture ())
-    {
-      ZeroMemory (&pState->Gamepad, sizeof (pState->Gamepad));
-
-      config.input.gamepad.xinput.placeholdX [dwUserIndex] = true;
-    }
-  }
 
   return dwRet;
 }
@@ -724,14 +706,6 @@ XInputGetCapabilities1_4_Detour (
     SK_XInput_PlaceHoldCaps (dwRet, dwUserIndex, dwFlags, pCapabilities);
 
   SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
-
-  if (dwRet == ERROR_SUCCESS)
-  {
-    if (SK_ImGui_WantGamepadCapture ())
-    {
-      config.input.gamepad.xinput.placeholdX [dwUserIndex] = true;
-    }
-  }
 
   return dwRet;
 }
