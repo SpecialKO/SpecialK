@@ -918,11 +918,37 @@ SK_Steam_ScreenshotManager::init (void) noexcept
 bool  __SK_Steam_IgnoreOverlayActivation = false;
 DWORD __SK_Steam_MagicThread             =     0;
 
+
+// InputHandle_t is used to refer to a specific controller.
+// This handle will consistently identify a controller, even if it is disconnected and re-connected
+typedef uint64 InputHandle_t;
+
+//-----------------------------------------------------------------------------
+// Purpose: called when a controller configuration has been loaded, will fire once
+// per controller per focus change for Steam Input enabled controllers
+//-----------------------------------------------------------------------------
+struct SteamInputConfigurationLoaded_t
+{
+	enum { k_iCallback = k_iSteamControllerCallbacks + 3 };
+
+	AppId_t       m_unAppID;
+	InputHandle_t	m_ulDeviceHandle;     // Handle for device
+	CSteamID      m_ulMappingCreator;   // May differ from local user when using
+                                      // an unmodified community or official config
+	uint32        m_unMajorRevision;    // Binding revision from In-game Action File. 
+                                      // Same value as queried by GetDeviceBindingRevision
+	uint32        m_unMinorRevision;
+	bool          m_bUsesSteamInputAPI; // Does the configuration contain any Analog/Digital actions?
+  bool          m_bUsesGamepadAPI;    // Does the configuration contain any Xinput bindings?
+};
+
+
 class SK_Steam_OverlayManager
 {
 public:
   SK_Steam_OverlayManager (void) :
-    activation ( this, &SK_Steam_OverlayManager::OnActivate      )
+    activation  ( this, &SK_Steam_OverlayManager::OnActivate              ),
+    steam_input ( this, &SK_Steam_OverlayManager::OnSteamInputStateChange )
   {
     cursor_visible_ = false;
     active_         = false;
@@ -932,6 +958,26 @@ public:
   {
     cursor_visible_ = false;
     active_         = false;
+  }
+
+  STEAM_CALLBACK ( SK_Steam_OverlayManager,
+                   OnSteamInputStateChange,
+                   SteamInputConfigurationLoaded_t,
+                   steam_input )
+  {
+    std::ignore = pParam;
+    //// Listen for changes to the desktop appid, we may want to ignore them.
+    ////if (pParam->m_unAppID == 413080)
+    //{
+    //  // Background Input is enabled, undo what the Steam client just did...
+    //  if ( config.input.gamepad.disabled_to_game == 0 &&
+    //       config.window.background_render )
+    //  {
+    //    SK::SteamAPI::SetWindowFocusState (true);
+    //  }
+    //}
+    //
+    //SK_ImGui_Warning (std::to_wstring (pParam->m_unAppID).c_str ());
   }
 
   STEAM_CALLBACK ( SK_Steam_OverlayManager,
@@ -5477,13 +5523,13 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 void
 SK_Steam_ProcessWindowActivation (bool active)
 {
-  //if (config.input.gamepad.steam.is_native)
-  //  return;
-
   // Hacky code for Steam Input background input
   if (config.window.background_render && config.input.gamepad.disabled_to_game == 0)
   {
-    SK_Steam_ForceInputAppId (config.steam.appid);
+    if (! SK::SteamAPI::SetWindowFocusState (true))
+    {
+      SK_Steam_ForceInputAppId (config.steam.appid);
+    }
   }
 
   else if (config.input.gamepad.disabled_to_game != 1)
@@ -5492,21 +5538,30 @@ SK_Steam_ProcessWindowActivation (bool active)
     {
       if (! active)
       {
-        SK_Steam_ForceInputAppId (1157970);
-        SK_Steam_ForceInputAppId (0);
+        if (! SK::SteamAPI::SetWindowFocusState (false))
+        {
+          SK_Steam_ForceInputAppId (1157970);
+          SK_Steam_ForceInputAppId (0);
+        }
       }
 
       else
       {
-        SK_Steam_ForceInputAppId (0);
-        SK_Steam_ForceInputAppId (config.steam.appid);
+        if (! SK::SteamAPI::SetWindowFocusState (true))
+        {
+          SK_Steam_ForceInputAppId (0);
+          SK_Steam_ForceInputAppId (config.steam.appid);
+        }
       }
     }
   }
 
   else if (config.input.gamepad.disabled_to_game == 1)
   {
-    SK_Steam_ForceInputAppId (1157970);
+    if (! SK::SteamAPI::SetWindowFocusState (false))
+    {
+      SK_Steam_ForceInputAppId (1157970);
+    }
   }
 }
 
@@ -6250,11 +6305,12 @@ SK_Steam_KickStart (const wchar_t* wszLibPath)
 }
 
 
-#define CLIENTENGINE_INTERFACE_VERSION  "CLIENTENGINE_INTERFACE_VERSION005"
-#define CLIENTUSER_INTERFACE_VERSION    "CLIENTUSER_INTERFACE_VERSION001"
-#define CLIENTFRIENDS_INTERFACE_VERSION "CLIENTFRIENDS_INTERFACE_VERSION001"
-#define CLIENTAPPS_INTERFACE_VERSION    "CLIENTAPPS_INTERFACE_VERSION001"
-#define CLIENTUTILS_INTERFACE_VERSION   "CLIENTUTILS_INTERFACE_VERSION001"
+#define CLIENTENGINE_INTERFACE_VERSION     "CLIENTENGINE_INTERFACE_VERSION005"
+#define CLIENTENGINE_INTERFACE_VERSION_ALT "CLIENTENGINE_INTERFACE_VERSION006"
+#define CLIENTUSER_INTERFACE_VERSION       "CLIENTUSER_INTERFACE_VERSION001"
+#define CLIENTFRIENDS_INTERFACE_VERSION    "CLIENTFRIENDS_INTERFACE_VERSION001"
+#define CLIENTAPPS_INTERFACE_VERSION       "CLIENTAPPS_INTERFACE_VERSION001"
+#define CLIENTUTILS_INTERFACE_VERSION      "CLIENTUTILS_INTERFACE_VERSION001"
 
 enum EAppState
 {
@@ -6308,30 +6364,110 @@ enum EAppInfoSection
   k_EAppInfoSectionCommunity
 };
 
+// Who knows...?
+enum EUIMode
+{
+	k_EUIModeUnknown = 0,
+	k_EUIModeMax     = DWORD_MAX
+};
+
+enum ELauncherType
+{
+	k_ELAuncherTypeUnknown = 0,
+	k_ELAuncherTypeMax     = DWORD_MAX
+};
+
+enum EGameLaunchMethod
+{
+  k_EGameLaunchMethodUnknown = 0,
+  k_EGameLaunchMethodMax     = DWORD_MAX
+};
+
 class IClientUtils_001
 {
+using UNKNOWN_RETURN = void;
+
 public:
-  virtual const char*      GetInstallPath                (void) = 0;
-  virtual const char*      GetUserBaseFolderInstallImage (void) = 0;
-  virtual const char*      GetManagedContentRoot         (void) = 0;
+  virtual const char*      GetInstallPath                  (void) = 0;
+  virtual const char*      GetUserBaseFolderInstallImage   (void) = 0;
+  virtual const char*      GetManagedContentRoot           (void) = 0;
 
-  virtual       uint32     GetSecondsSinceAppActive      (void) = 0;
-  virtual       uint32     GetSecondsSinceComputerActive (void) = 0;
-  virtual       void       SetComputerActive             (void) = 0;
+  virtual       uint32     GetSecondsSinceAppActive        (void) = 0;
+  virtual       uint32     GetSecondsSinceComputerActive   (void) = 0;
+  virtual       void       SetComputerActive               (void) = 0;
 
-  virtual       EUniverse  GetConnectedUniverse (void) = 0;
-  virtual       uint32     GetServerRealTime    (void) = 0;
-  virtual const char*      GetIPCountry         (void) = 0;
+  virtual       EUniverse  GetConnectedUniverse            (void) = 0;
+  virtual       uint32     GetServerRealTime               (void) = 0;
+  virtual const char*      GetIPCountry                    (void) = 0;
 
-  virtual bool             GetImageSize           (int32   iImage, uint32* pnWidth, uint32* pnHeight)        = 0;
-  virtual bool             GetImageRGBA           (int32   iImage, uint8*  pubDest, int32   nDestBufferSize) = 0;
-  virtual bool             GetCSERIPPort          (uint32* unIP,   uint16* usPort)                           = 0;
-  virtual uint32           GetNumRunningApps      (void)          = 0;
-  virtual uint8            GetCurrentBatteryPower (void)          = 0;
-  virtual void             SetOfflineMode         (bool bOffline) = 0;
-  virtual bool             GetOfflineMode         (void)          = 0;
+  virtual       bool       GetImageSize                    (int32   iImage, uint32* pnWidth, uint32* pnHeight)        = 0;
+  virtual       bool       GetImageRGBA                    (int32   iImage, uint8*  pubDest, int32   nDestBufferSize) = 0;
+  virtual       bool       GetCSERIPPort                   (uint32* unIP,   uint16* usPort)                           = 0;
+  virtual       uint32     GetNumRunningApps               (void)          = 0;
+  virtual       uint8      GetCurrentBatteryPower          (void)          = 0;
+  virtual       void       SetOfflineMode                  (bool bOffline) = 0;
+  virtual       bool       GetOfflineMode                  (void)          = 0;
 
-  virtual AppId_t SetAppIDForCurrentPipe (AppId_t nAppID, bool bTrackProcess) = 0;
+  virtual       AppId_t    SetAppIDForCurrentPipe          (AppId_t nAppID, bool bTrackProcess) = 0; // Disabled in late 2019
+  virtual       AppId_t    GetAppID                        (void)                               = 0;
+
+  virtual UNKNOWN_RETURN   SetAPIDebuggingActive           (bool, bool)   = 0;
+  virtual UNKNOWN_RETURN   AllocPendingAPICallHandle       (void)         = 0;
+  virtual   bool           IsAPICallCompleted              (unsigned long long, bool*) = 0;
+  virtual UNKNOWN_RETURN   GetAPICallFailureReason         (unsigned long long)        = 0;
+  virtual UNKNOWN_RETURN   GetAPICallResult                (unsigned long long, void*, int, int, bool*) = 0;
+  virtual UNKNOWN_RETURN
+                  SetAPICallResultWithoutPostingCallback   (unsigned long long, void const*, int, int)  = 0;
+  virtual UNKNOWN_RETURN   SignalAppsToShutDown            (void)         = 0;
+  virtual UNKNOWN_RETURN   SignalServiceAppsToDisconnect   (void)         = 0;
+  virtual UNKNOWN_RETURN   TerminateAllAppsMultiStep       (unsigned int) = 0;
+  virtual UNKNOWN_RETURN   GetCellID                       (void)         = 0;
+  virtual   bool           BIsGlobalInstance               (void)         = 0;
+  virtual UNKNOWN_RETURN   CheckFileSignature              (char const*)  = 0;
+  virtual UNKNOWN_RETURN   GetBuildID                      (void)         = 0;
+
+  virtual UNKNOWN_RETURN   SetCurrentUIMode                (EUIMode)       = 0;
+  virtual   EUIMode        GetCurrentUIMode                (void)          = 0;
+  virtual UNKNOWN_RETURN   ShutdownLauncher                (bool, bool)    = 0;
+  virtual UNKNOWN_RETURN   SetLauncherType                 (ELauncherType) = 0;
+  virtual   ELauncherType  GetLauncherType                 (void)          = 0;
+
+  virtual UNKNOWN_RETURN   ShowGamepadTextInput            (EGamepadTextInputMode, EGamepadTextInputLineMode,
+                                                               char const*, unsigned int, char const*) = 0;
+  virtual UNKNOWN_RETURN   GetEnteredGamepadTextLength     (void)                                      = 0;
+  virtual UNKNOWN_RETURN   GetEnteredGamepadTextInput      (char*, unsigned int)                       = 0;
+  virtual UNKNOWN_RETURN   GamepadTextInputClosed          (int, bool, char const*)                    = 0;
+  virtual UNKNOWN_RETURN   SetSpew                         (int, int, int)                             = 0;
+  virtual   bool           BDownloadsDisabled              (void)                                      = 0;
+
+  // Use this instead of steam://forceinputappid/... whenever possible
+  virtual UNKNOWN_RETURN   SetFocusedWindow                (CGameID, bool)                             = 0;
+  
+  virtual UNKNOWN_RETURN   GetSteamUILanguage              (void)                                      = 0;
+  virtual UNKNOWN_RETURN   CheckSteamReachable             (void)                                      = 0;
+  virtual UNKNOWN_RETURN   SetLastGameLaunchMethod         (EGameLaunchMethod)                         = 0;
+  virtual UNKNOWN_RETURN   SetVideoAdapterInfo             (int, int, int, int, int, int, char const*) = 0;
+
+  // Steam Input stuff, needs reverse engineering...
+  virtual UNKNOWN_RETURN   SetControllerOverrideMode       (CGameID, char const*, unsigned int)        = 0;
+  virtual UNKNOWN_RETURN   SetOverlayWindowFocusForPipe    (bool, bool, CGameID)                       = 0;
+  virtual UNKNOWN_RETURN
+                     GetGameOverlayUIInstanceFocusGameID   (bool*)                                     = 0;
+  virtual UNKNOWN_RETURN   SetControllerConfigFileForAppID (unsigned int, char const*)                 = 0;
+  virtual UNKNOWN_RETURN   GetControllerConfigFileForAppID (unsigned int, char*, unsigned int)         = 0;
+
+  virtual   bool           IsSteamRunningInVR              (void)                                      = 0;
+  virtual   bool           BIsRunningOnAlienwareAlpha      (void)                                      = 0;
+  virtual UNKNOWN_RETURN   StartVRDashboard                (void)                                      = 0;
+  virtual UNKNOWN_RETURN   IsVRHeadsetStreamingEnabled     (unsigned int)                              = 0;
+  virtual UNKNOWN_RETURN   SetVRHeadsetStreamingEnabled    (unsigned int, bool)                        = 0;
+  virtual UNKNOWN_RETURN   GenerateSupportSystemReport     (void)                                      = 0;
+  virtual UNKNOWN_RETURN   GetSupportSystemReport          (char*, unsigned int, unsigned char*,
+                                                                                 unsigned int)         = 0;
+
+  virtual   AppId_t        GetAppIdForPid                  (unsigned int, bool)                        = 0;
+  virtual UNKNOWN_RETURN   SetClientUIProcess              (void)                                      = 0;
+  virtual   bool           BIsClientUIInForeground         (void)                                      = 0;
 };
 
 class IClientApps_001
@@ -6528,7 +6664,7 @@ public:
   virtual char const             *GetUniverseName       (EUniverse eUniverse          )                                        = 0;
 
   virtual IClientFriends_001_Min *GetIClientFriends     (HSteamUser hSteamUser, HSteamPipe hSteamPipe, char const* pchVersion) = 0;
-  virtual IClientUtils_001       *GetIClientUtils       (HSteamPipe hSteamPipe,                        char const* pchVersion) = 0;
+  virtual IClientUtils_001       *GetIClientUtils       (HSteamUser hSteamUser, HSteamPipe hSteamPipe, char const* pchVersion) = 0;
 
   // LOTS MORE DONT CARE...
 };
@@ -6541,12 +6677,14 @@ SK_SteamAPIContext::ClientEngine (void)
   static CreateInterface_pfn SteamClient_CreateInterface = nullptr;
 
 #ifdef _M_AMD64
-  SteamClient_CreateInterface =
+  if (SteamClient_CreateInterface == nullptr)
+      SteamClient_CreateInterface =
     (CreateInterface_pfn)
     SK_GetProcAddress ( SK_GetModuleHandle (L"steamclient64.dll"),
                        "CreateInterface" );
 #else /* _M_IX86 */
-  SteamClient_CreateInterface =
+  if (SteamClient_CreateInterface == nullptr)
+      SteamClient_CreateInterface =
     (CreateInterface_pfn)
     SK_GetProcAddress ( SK_GetModuleHandle (L"steamclient.dll"),
                        "CreateInterface" );
@@ -6563,7 +6701,16 @@ SK_SteamAPIContext::ClientEngine (void)
         CLIENTENGINE_INTERFACE_VERSION, &err
       );
 
+    // Try upgrading the interface version if Steam wouldn't give us 005
     if (client_engine == nullptr)
+    {
+      client_engine =
+        (IClientEngine_005_Min *)SteamClient_CreateInterface (
+          CLIENTENGINE_INTERFACE_VERSION_ALT, &err
+        );
+    }
+      
+    if (client_engine == nullptr) // We're boned
       client_engine = (IClientEngine_005_Min *)(uintptr_t)1;
   }
 
@@ -6625,6 +6772,79 @@ SK_SteamAPIContext::ClientFriends (void)
   return nullptr;
 }
 
+bool
+SK_SteamAPIContext::SetWindowFocusState (bool focused)
+{
+  auto* client_engine =
+    (IClientEngine_005_Min *)ClientEngine ();
+
+  assert (client_engine != nullptr);
+
+  if (client_engine != nullptr)
+  {
+    IClientUtils_001* utils = nullptr;
+
+#define MANUAL_PIPE_CREATION
+#ifdef MANUAL_PIPE_CREATION
+    static thread_local auto hPipe = client_engine->CreateSteamPipe     ();
+    static thread_local auto hUser = client_engine->ConnectToGlobalUser (hPipe);
+
+    if (hUser == 0)
+    {
+      hUser =
+        client_engine->CreateGlobalUser (&hPipe);
+    }
+#else
+    auto hPipe = hSteamPipe;
+    auto hUser = hSteamUser;
+#endif
+
+    if (hPipe != 0)
+    {
+      utils =
+        client_engine->GetIClientUtils (hUser, hPipe,
+         CLIENTUTILS_INTERFACE_VERSION);
+
+      assert (utils != nullptr);
+
+      if (utils != nullptr)
+      {
+        utils->SetFocusedWindow (
+          CGameID (SK::SteamAPI::AppID ()), focused
+        );
+      }
+
+#ifdef MANUAL_PIPE_CREATION
+#ifdef RELEASE_THREAD_PIPES
+      client_engine->ReleaseUser       (hPipe, hUser);
+      client_engine->BReleaseSteamPipe (hPipe);
+#endif
+#endif
+
+      if (utils)
+        return true;
+    }
+  }
+
+  return false;
+}
+
+bool
+SK::SteamAPI::SetWindowFocusState (bool focused)
+{
+  //
+  // It isn't clear why, but running GPU stats polling
+  //   at least once is necessary for Steam Input
+  //     to work correctly...
+  //
+  SK_RunOnce ({
+    SK_PollGPU        ( );
+    SK_GPU_GetGPULoad (0);
+  });
+
+  return
+    pSteamCtx->SetWindowFocusState (focused);
+}
 
 AppId64_t
 SK_SteamAPIContext::ReassignAppIDForPipe ( HSteamPipe hPipe,
@@ -6643,7 +6863,7 @@ SK_SteamAPIContext::ReassignAppIDForPipe ( HSteamPipe hPipe,
     if (hPipe != 0)
     {
       utils =
-        client_engine->GetIClientUtils (hPipe,
+        client_engine->GetIClientUtils (hSteamUser, hPipe,
           CLIENTUTILS_INTERFACE_VERSION);
 
       assert (utils != nullptr);
@@ -6672,7 +6892,7 @@ SK_SteamAPIContext::ClientUtils (void)
     if (utils == nullptr && hSteamPipe != 0)
     {
       utils =
-        client_engine->GetIClientUtils (hSteamPipe,
+        client_engine->GetIClientUtils (hSteamUser, hSteamPipe,
           CLIENTUTILS_INTERFACE_VERSION);
 
       assert (utils != nullptr);

@@ -1,4 +1,12 @@
-﻿24.1.8.4
+﻿24.1.9
+======
+ + Implemented IClientUtils::SetFocusedWindow (...) to eliminate the need
+     for steam://forceinputappid/ when blocking/unblocking Steam Input.
+ + Added support for IClientEngine version 006, since the Steam client will
+     no longer grant requests for version 005 or older.
+ + Fixed IClientEngine::GetIClientUtils (...); 006 requires a pipe _AND_ user.
+
+24.1.8.4
 ========
  + Added an option to draw D3D11 Render Targets in the Render Mod Toolkit as
      fullscreen overlays over the main scene (including alpha blending).

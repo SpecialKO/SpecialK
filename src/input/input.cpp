@@ -2692,8 +2692,13 @@ SK_ImGui_WantGamepadCapture (void)
     static BOOL        lastCapture = -1;
     if (std::exchange (lastCapture, bCapture) != bCapture)
     {
-      SK_Steam_ForceInputAppId ( bCapture ?
-                                  1157970 : 0 );
+      // Prefer to force an override in the Steam client itself,
+      //   but fallback to forced input appid if necessary
+      if (! SK::SteamAPI::SetWindowFocusState (! bCapture))
+      {
+        SK_Steam_ForceInputAppId ( bCapture ?
+                                    1157970 : 0 );
+      }
     }
 
     return bCapture;

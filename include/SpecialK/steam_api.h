@@ -63,12 +63,15 @@ namespace SK
     bool  __stdcall TakeScreenshot   (SK_ScreenshotStage when = SK_ScreenshotStage::EndOfFrame, bool allow_sound = true, std::string title = "");
 
 
-    AppId64_t    AppID           (void);
-    std::string& AppName         (void);
+    AppId64_t    AppID               (void);
+    std::string& AppName             (void);
 
-    CSteamID     UserSteamID     (void);
+    CSteamID     UserSteamID         (void);
 
-    LONGLONG     GetCallbacksRun (void);
+    LONGLONG     GetCallbacksRun     (void);
+
+    // Override Steam client's tracking of input focus (for current AppID)
+    bool         SetWindowFocusState (bool focused);
 
 
     // The state that we are explicitly telling the game
@@ -401,6 +404,8 @@ public:
 
   AppId64_t  ReassignAppIDForPipe (HSteamPipe hPipe, AppId64_t nAppID, bool bTrackProcess);
   HSteamPipe GetGamePipe          (void) noexcept { return hSteamPipe; }
+
+  bool       SetWindowFocusState  (bool focused);
 
   // We create extra pipes any time SteamAPI stuff is invoked from a different
   //   thread, but we need to shut these down prior to application exit.
