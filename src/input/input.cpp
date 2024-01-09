@@ -1336,9 +1336,9 @@ joyGetPosEx_Detour (_In_  UINT        uJoyID,
   SK_joyGetDevCapsW (uJoyID, &joy_caps, sizeof (JOYCAPSW));
 
   // This API enumerates random devices that don't qualify as gamepads;
-  //   if there is no D-Pad, then ignore it.
+  //   if there is no D-Pad and ALSO fewer than 4 face buttons, ignore it.
   bool bInvalidController =
-    (! (joy_caps.wCaps & JOYCAPS_POV4DIR)) || 
+    (! (joy_caps.wCaps & JOYCAPS_POV4DIR)) &&
         joy_caps.wNumButtons < 4;
 
   if (bInvalidController || SK_ImGui_WantGamepadCapture ())
@@ -1354,7 +1354,25 @@ joyGetPosEx_Detour (_In_  UINT        uJoyID,
     pjiUINT->dwButtonNumber = 0;
 
     if (bInvalidController)
+    {
+      static
+        concurrency::concurrent_unordered_set <std::wstring>
+        warned_devs;
+
+      const auto &[name, warned] =
+        warned_devs.insert ({ joy_caps.szPname });
+
+      if (! warned)
+      {
+        SK_LOGi0 (
+          L"Ignoring attempt to poll WinMM Joystick #%d (%ws) because"
+          L" it lacks characteristics of game input devices.", uJoyID,
+            name->c_str ()
+        );
+      }
+
       return JOYERR_UNPLUGGED;
+    }
 
     return JOYERR_NOERROR;
   }

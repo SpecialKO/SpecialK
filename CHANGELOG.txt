@@ -1,4 +1,9 @@
-﻿24.1.9
+﻿24.1.9.1
+========
+ + Revised WinMM Joystick filtering logic such that it only ignores devices
+     with no D-Pad -and- fewer than 4 buttons; it was either/or before.
+
+24.1.9
 ======
  + Implemented IClientUtils::SetFocusedWindow (...) to eliminate the need
      for steam://forceinputappid/ when blocking/unblocking Steam Input.
