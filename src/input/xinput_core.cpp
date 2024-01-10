@@ -2642,7 +2642,7 @@ SK_XInput_PollController ( INT           iJoyID,
 
   DWORD dwRet = ERROR_DEVICE_NOT_CONNECTED;
 
-  // This function is actually a performance hazzard when no controllers
+  // This function is actually a performance hazard when no controllers
   //   are plugged in, so ... throttle the sucker.
   if (_ShouldRecheckStatus (iJoyID))
   {

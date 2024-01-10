@@ -1796,7 +1796,23 @@ SK_joyGetNumDevs (void)
 }
 
 bool
-SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
+SK_XInput_ValidateStatePointer (XINPUT_STATE *pState)
+{
+  __try {
+    pState->dwPacketNumber++;
+    pState->dwPacketNumber--;
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+bool
+SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 {
   // Triggers SteamInput kill switch once per-frame
   SK_ImGui_WantGamepadCapture ();
@@ -1840,12 +1856,18 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
       ( config.window.background_render &&
         config.input.gamepad.disabled_to_game != SK_InputEnablement::DisabledInBackground );
 
+  // Steam may corrupt the stack, we can try to recover...
+  bUseGamepad &= SK_XInput_ValidateStatePointer (pState);
+
   bool bRet = false;
 
   static XINPUT_STATE last_state = { 1, 0 };
 
   if (bUseGamepad)
   {
+    auto& state =
+        *pState;
+
     const bool api_bridge =
       config.input.gamepad.native_ps4;
 
@@ -1879,7 +1901,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
 #ifdef SK_STEAM_CONTROLLER_SUPPORT
     if (ControllerPresent (config.input.gamepad.steam.ui_slot))
     {
-      state =
+      *state =
         *steam_input [config.input.gamepad.steam.ui_slot].to_xi;
     }
 #endif
@@ -1890,7 +1912,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
 
 
     if ( api_bridge ||
-         SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state) )
+         SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, pState) )
     {
       bRet = true;
 
@@ -2014,7 +2036,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE& state)
     );
   }
 
-  last_state = state;
+  if (bUseGamepad)
+    last_state = *pState;
 
   return bRet;
 }
@@ -2042,7 +2065,7 @@ SK_ImGui_PollGamepad (void)
     NavInput = 0.0f;
   }
 
-  if (SK_ImGui_PollGamepad_EndFrame (state))
+  if (SK_ImGui_PollGamepad_EndFrame (&state))
   {
     //auto& gamepad = state.Gamepad;
 

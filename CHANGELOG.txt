@@ -1,4 +1,10 @@
-﻿24.1.9.1
+﻿24.1.10
+=======
+ + Add HID device path and joyGetPosEx caching to reduce perf overhead
+     from querying device capabilities on disconnected devices.
+ + Fixed potential stack corruption caused by Steam Input when polling XInput
+
+24.1.9.1
 ========
  + Revised WinMM Joystick filtering logic such that it only ignores devices
      with no D-Pad -and- fewer than 4 buttons; it was either/or before.
