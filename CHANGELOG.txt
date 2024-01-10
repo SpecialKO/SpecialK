@@ -1,4 +1,8 @@
-﻿24.1.10.1
+﻿24.1.10.2
+=========
+ + Further reduced the number of forced Steam Input AppID overrides
+
+24.1.10.1
 =========
  + Added logging if SK has to force a Steam Input AppID override
  + Improved reliability of Steam background input for non-native games

@@ -94,7 +94,10 @@ SK_Input_DeclareAppNotSteamNative (void)
       //(config.input.gamepad.disabled_to_game == 0) &&
       //(GetForegroundWindow () != game_window.hWnd) )
   {
-    SK_Steam_ForceInputAppId (config.steam.appid);
+    if (! SK::SteamAPI::SetWindowFocusState (true))
+    {
+      SK_Steam_ForceInputAppId (config.steam.appid);
+    }
   }
 }
 
