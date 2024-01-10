@@ -113,6 +113,18 @@ struct SK_HID_DeviceFile {
 
   SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
   {
+    static
+      concurrency::concurrent_unordered_map <std::wstring, SK_HID_DeviceFile> known_paths;
+
+    // This stuff can be REALLY slow when games are constantly enumerating devices,
+    //   so keep a cache handy.
+    if (known_paths.count (wszPath))
+    {
+      *this = known_paths.at (wszPath);
+      hFile = file;
+      return;
+    }
+
     wchar_t *lpFileName = nullptr;
 
     if (wszPath != nullptr)
@@ -211,6 +223,8 @@ struct SK_HID_DeviceFile {
         );
       }
     }
+
+    known_paths [wszPath] = *this;
   }
 
   bool setPollingFrequency (DWORD dwFreq)
@@ -469,12 +483,21 @@ HidP_GetData_Detour (
   }
 
 
-
   if (filter && (DataLength != nullptr))
   {
-    if (    DataList != nullptr)
-    memset (DataList, 0, *DataLength);
-                         *DataLength = 0;
+    using  HidP_MaxDataListLength_pfn = ULONG (WINAPI *)(HIDP_REPORT_TYPE, PHIDP_PREPARSED_DATA);
+    static HidP_MaxDataListLength_pfn
+        SK_HidP_MaxDataListLength =
+          (HidP_MaxDataListLength_pfn)SK_GetProcAddress (L"hid.dll",
+          "HidP_MaxDataListLength");
+
+    if ( SK_HidP_MaxDataListLength != nullptr &&
+         SK_HidP_MaxDataListLength (ReportType, PreparsedData) != 0 )
+    {
+      if (    DataList != nullptr)
+      memset (DataList, 0, sizeof (HIDP_DATA) * *DataLength);
+                                                *DataLength = 0;
+    }
   }
 
   return ret;
@@ -961,6 +984,7 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
 
       if (! bSkipExistingFile)
       {
+#if 0
         SK_HID_DeviceFile hid_file (hRet, lpFileName);
 
         if (hid_file.device_type != sk_input_dev_type::Other)
@@ -973,6 +997,9 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
 
         dev_file.last_data_read.clear ();
         dev_file = std::move (hid_file);
+#else
+        SK_HID_DeviceFiles [hRet] = { hRet, lpFileName };
+#endif
       }
     }
 
@@ -1313,17 +1340,66 @@ joyGetPos_Detour (_In_  UINT      uJoyID,
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_ImGui_WantGamepadCapture ())
-    return JOYERR_NOERROR;
+  JOYINFO                                    joyInfo = { };
+  auto result = joyGetPos_Original (uJoyID, &joyInfo);
 
-   auto result =
-    joyGetPos_Original (uJoyID, pjiUINT);
+  if (! SK_ImGui_WantGamepadCapture ())
+  {
+    // Pass-through the polled data
+    *pjiUINT = joyInfo;
 
-  if (result == JOYERR_NOERROR)
-    SK_WinMM_Backend->markRead (sk_input_dev_type::Gamepad);
+    if (result == JOYERR_NOERROR)
+      SK_WinMM_Backend->markRead (sk_input_dev_type::Gamepad);
+  }
 
   return result;
 }
+
+// This caching mechanism is only needed for joyGetPosEx, because all calls
+//   to joyGetPos are forwarded to joyGetPosEx
+struct SK_WINMM_joyGetPosExHistory
+{
+  struct test_record_s {
+    DWORD    dwLastTested = 0UL;
+    MMRESULT lastResult   = JOYERR_NOERROR;
+  };
+
+  static constexpr auto                         _TimeBetweenTestsInMs = 666UL;
+  static concurrency::concurrent_unordered_map <UINT, test_record_s> _records;
+
+  static MMRESULT getJoyState (UINT uJoyID)
+  {
+    auto& record =
+      _records [uJoyID];
+
+    if (auto                  currentTimeInMs = SK_timeGetTime ();
+        record.dwLastTested < currentTimeInMs - _TimeBetweenTestsInMs)
+    {
+      JOYINFOEX joyInfo =
+        { .dwSize  = sizeof (JOYINFOEX),
+          .dwFlags = JOY_RETURNRAWDATA };
+
+      record.lastResult =
+        joyGetPosEx_Original (uJoyID, &joyInfo);
+      record.dwLastTested = currentTimeInMs;
+
+      // Offset the time by a random fractional amount so that games
+      //   do not check multiple failing devices in a single frame
+      record.dwLastTested += std::max ( 133UL,
+        static_cast <DWORD> ( ( static_cast <float> (std::rand ()) /
+                                static_cast <float> (RAND_MAX) ) *
+                                static_cast <float> (_TimeBetweenTestsInMs) )
+                                      );
+    }
+
+    return
+      record.lastResult;
+  }
+};
+
+concurrency::concurrent_unordered_map <
+  UINT, SK_WINMM_joyGetPosExHistory::test_record_s
+>       SK_WINMM_joyGetPosExHistory::_records;
 
 MMRESULT
 WINAPI
@@ -1332,14 +1408,55 @@ joyGetPosEx_Detour (_In_  UINT        uJoyID,
 {
   SK_LOG_FIRST_CALL
 
-  JOYCAPSW                    joy_caps { };
-  SK_joyGetDevCapsW (uJoyID, &joy_caps, sizeof (JOYCAPSW));
+  if (pjiUINT == nullptr)
+    return MMSYSERR_INVALPARAM;
+
+  // Keep a cache of previous poll requests, because this has very high
+  //   failure overhead and could wreck performance when gamepads are absent.
+  if (auto lastKnownState = SK_WINMM_joyGetPosExHistory::getJoyState (uJoyID);
+           lastKnownState != JOYERR_NOERROR)
+    return lastKnownState;
+
+  JOYINFOEX joyInfo =
+    { .dwSize  = sizeof (JOYINFOEX),
+      .dwFlags = pjiUINT->dwFlags };
+
+  auto result =
+    joyGetPosEx_Original (uJoyID, &joyInfo);
+
+  // Early-out whenever possible
+  //
+  //  * Steam's hook on joyGetDevCaps is a performance nightmare!
+  //
+  if (result != JOYERR_NOERROR)
+  {
+    // Initialize the output with the minimal set of neutral values,
+    //   in case the game's not actually checking the return value.
+    *pjiUINT = { .dwSize  = pjiUINT->dwSize,
+                 .dwFlags = pjiUINT->dwFlags,
+                 .dwPOV   = JOY_POVCENTERED };
+
+    SK_LOGi4 (L"joyGetPosEx Poll Failure for Joystick %d, Ret=%x", uJoyID, result);
+
+    return result;
+  }
+
+  static concurrency::concurrent_unordered_set <UINT>
+    warned_devs;
+
+  JOYCAPSW joy_caps = { };
+
+  if (! warned_devs.count (uJoyID))
+        SK_joyGetDevCapsW (uJoyID, &joy_caps, sizeof (JOYCAPSW));
 
   // This API enumerates random devices that don't qualify as gamepads;
-  //   if there is no D-Pad and ALSO fewer than 4 face buttons, ignore it.
+  //   if there is no D-Pad _AND_ fewer than 4 buttons, then ignore it.
   bool bInvalidController =
     (! (joy_caps.wCaps & JOYCAPS_POV4DIR)) &&
         joy_caps.wNumButtons < 4;
+
+  // Failure to ignore bInvalidController status would cause many games
+  //   to treat the D-Pad as if it were stuck in the UP position.
 
   if (bInvalidController || SK_ImGui_WantGamepadCapture ())
   {
@@ -1355,19 +1472,12 @@ joyGetPosEx_Detour (_In_  UINT        uJoyID,
 
     if (bInvalidController)
     {
-      static
-        concurrency::concurrent_unordered_set <std::wstring>
-        warned_devs;
-
-      const auto &[name, warned] =
-        warned_devs.insert ({ joy_caps.szPname });
-
-      if (! warned)
+      if (warned_devs.insert (uJoyID).second)
       {
         SK_LOGi0 (
-          L"Ignoring attempt to poll WinMM Joystick #%d (%ws) because"
+          L"Ignoring attempt to poll WinMM Joystick #%d (%ws [%ws]) because"
           L" it lacks characteristics of game input devices.", uJoyID,
-            name->c_str ()
+            joy_caps.szPname, joy_caps.szRegKey
         );
       }
 
@@ -1377,8 +1487,8 @@ joyGetPosEx_Detour (_In_  UINT        uJoyID,
     return JOYERR_NOERROR;
   }
 
-  auto result =
-    joyGetPosEx_Original (uJoyID, pjiUINT);
+  // Forward the data we polled
+  *pjiUINT = joyInfo;
 
   if (result == JOYERR_NOERROR)
     SK_WinMM_Backend->markRead (sk_input_dev_type::Gamepad);
@@ -1399,6 +1509,7 @@ SK_Input_HookWinMM (void)
     SK_LOG0 ( ( L"Game uses WinMM, installing input hooks..." ),
                 L"  Input   " );
 
+    // NOTE: API forwards calls to joyGetPosEx, do not call one from the other.
     SK_CreateDLLHook2 (     L"winmm.DLL",
                              "joyGetPos",
                               joyGetPos_Detour,
