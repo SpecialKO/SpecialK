@@ -120,8 +120,7 @@ struct SK_HID_DeviceFile {
     //   so keep a cache handy.
     if (known_paths.count (wszPath))
     {
-      *this = known_paths.at (wszPath);
-      hFile = file;
+      memcpy (this, &known_paths.at (wszPath), sizeof (SK_HID_DeviceFile));
       return;
     }
 
@@ -224,7 +223,7 @@ struct SK_HID_DeviceFile {
       }
     }
 
-    known_paths [wszPath] = *this;
+    known_paths.insert ({ wszPath, *this });
   }
 
   bool setPollingFrequency (DWORD dwFreq)
@@ -984,7 +983,6 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
 
       if (! bSkipExistingFile)
       {
-#if 0
         SK_HID_DeviceFile hid_file (hRet, lpFileName);
 
         if (hid_file.device_type != sk_input_dev_type::Other)
@@ -997,9 +995,6 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
 
         dev_file.last_data_read.clear ();
         dev_file = std::move (hid_file);
-#else
-        SK_HID_DeviceFiles [hRet] = { hRet, lpFileName };
-#endif
       }
     }
 

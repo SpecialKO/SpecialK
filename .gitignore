@@ -288,3 +288,4 @@ paket-files/
 *.FileListAbsolute.*
 unity_*.cpp
 opengl_stateblock.cpp
+/StructLayoutSettings.json

@@ -5358,7 +5358,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
   {
     if (SK_Steam_IsClientRunning () && ReadAcquire (&changes) > minimum_change_count)
     {
-      SK_LOGi1 (L"Resetting Steam Input AppId...");
+      SK_LOGi0 (L"Resetting Steam Input AppId...");
 
       // Cleanup on unexpected application termination
       //
@@ -5457,12 +5457,6 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                   {
                     if (! ReadAcquire (&__SK_DLL_Ending))
                     {
-                      SK_RunOnce (
-                        std::atexit ([]{
-                          SK_Steam_ForceInputAppId (0);
-                        })
-                      );
-
                       //
                       // It isn't clear why, but running GPU stats polling
                       //   at least once is necessary for Steam Input
@@ -5480,6 +5474,8 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                                LR"(steam://forceinputappid/{})", appid ).c_str (),
                                  nullptr, nullptr, SW_HIDE
                         );
+
+                        SK_LOGi0 (L"Forced Steam Input AppID: %d", appid);
                       }
 
                       else
@@ -5488,6 +5484,8 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                                LR"(steam://forceinputappid/)",
                                  nullptr, nullptr, SW_HIDE
                         );
+
+                        SK_LOGi0 (L"Forced Steam Input AppID: Default");
                       }
                     }
                   }
@@ -5507,7 +5505,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 
         if (dwWaitState == WAIT_OBJECT_0)
         {
-          _CleanupForcedAppId ();
+          _CleanupForcedAppId (1);
         }
 
         SK_Thread_CloseSelf ();

@@ -1,4 +1,9 @@
-﻿24.1.10
+﻿24.1.10.1
+=========
+ + Added logging if SK has to force a Steam Input AppID override
+ + Improved reliability of Steam background input for non-native games
+
+24.1.10
 =======
  + Add HID device path and joyGetPosEx caching to reduce perf overhead
      from querying device capabilities on disconnected devices.
