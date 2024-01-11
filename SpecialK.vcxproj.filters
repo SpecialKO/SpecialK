@@ -4446,9 +4446,6 @@
     <None Include="depends\include\EOS\eos_leaderboards_types_deprecated.inl">
       <Filter>Header Files\Storefronts\Epic Online Services\SDK</Filter>
     </None>
-    <None Include="resource\packages\FC5_EasyAntiCheat_x64.7z">
-      <Filter>Resource Files\Packaged Dependencies</Filter>
-    </None>
     <None Include="resource\cursors\ovr_horz.cur">
       <Filter>Resource Files\Cursors</Filter>
     </None>
