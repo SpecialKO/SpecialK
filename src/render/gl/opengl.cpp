@@ -4446,9 +4446,9 @@ wglSetPixelFormat ( HDC                    hDC,
         WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
         WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
         WGL_DOUBLE_BUFFER_ARB,  GL_TRUE,
-        WGL_SWAP_METHOD_ARB,    WGL_SWAP_EXCHANGE_ARB,
+        WGL_SWAP_METHOD_ARB,    WGL_SWAP_UNDEFINED_ARB,
         WGL_ACCELERATION_ARB,   WGL_FULL_ACCELERATION_ARB,
-        WGL_COLOR_BITS_ARB,     __SK_HDR_10BitSwap ? 32 : 64,
+        WGL_COLOR_BITS_ARB,     __SK_HDR_10BitSwap ? 30 : 48,
         WGL_RED_BITS_ARB,       __SK_HDR_10BitSwap ? 10 : 16,
         WGL_GREEN_BITS_ARB,     __SK_HDR_10BitSwap ? 10 : 16,
         WGL_BLUE_BITS_ARB,      __SK_HDR_10BitSwap ? 10 : 16,
@@ -4492,7 +4492,7 @@ wglSetPixelFormat ( HDC                    hDC,
     pfd_copy.nSize       = sizeof (pfd_copy);
     pfd_copy.dwFlags     = PFD_DOUBLEBUFFER  | PFD_DRAW_TO_WINDOW |
                            PFD_SWAP_EXCHANGE | PFD_SUPPORT_COMPOSITION;
-    pfd_copy.cColorBits  = __SK_HDR_10BitSwap ? 32 : 64;
+    pfd_copy.cColorBits  = __SK_HDR_10BitSwap ? 30 : 48;
     pfd_copy.cAlphaBits  = __SK_HDR_10BitSwap ?  2 : 16;
     pfd_copy.cRedBits    = __SK_HDR_10BitSwap ? 10 : 16;
     pfd_copy.cBlueBits   = __SK_HDR_10BitSwap ? 10 : 16;
