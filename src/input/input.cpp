@@ -64,13 +64,13 @@ enum class SK_Input_DeviceFileType
 {
   None    = 0,
   HID     = 1,
-  Steam   = 2,
+  NVIDIA  = 2,
   Invalid = 4
 };
 
-struct SK_Steam_DeviceFile {
-  SK_Steam_DeviceFile (void) = default;
-  SK_Steam_DeviceFile (HANDLE file, const wchar_t *wszPath) : hFile (file)
+struct SK_NVIDIA_DeviceFile {
+  SK_NVIDIA_DeviceFile (void) = default;
+  SK_NVIDIA_DeviceFile (HANDLE file, const wchar_t *wszPath) : hFile (file)
   {
     wcsncpy_s ( wszDevicePath, MAX_PATH,
                       wszPath, _TRUNCATE );
@@ -94,10 +94,7 @@ SK_Input_DeclareAppNotSteamNative (void)
       //(config.input.gamepad.disabled_to_game == 0) &&
       //(GetForegroundWindow () != game_window.hWnd) )
   {
-    if (! SK::SteamAPI::SetWindowFocusState (true))
-    {
-      SK_Steam_ForceInputAppId (config.steam.appid);
-    }
+    SK_Steam_ForceInputAppId (config.steam.appid);
   }
 }
 
@@ -257,10 +254,10 @@ struct SK_HID_DeviceFile {
   }
 };
 
-static concurrency::concurrent_unordered_map <HANDLE, SK_HID_DeviceFile>   SK_HID_DeviceFiles;
-static concurrency::concurrent_unordered_map <HANDLE, SK_Steam_DeviceFile> SK_Steam_DeviceFiles;
+static concurrency::concurrent_unordered_map <HANDLE, SK_HID_DeviceFile>    SK_HID_DeviceFiles;
+static concurrency::concurrent_unordered_map <HANDLE, SK_NVIDIA_DeviceFile> SK_NVIDIA_DeviceFiles;
 
-// Faster check for known device files, the type can be checked after determing whether SK
+// Faster check for known device files, the type can be checked after determining whether SK
 //   knows about this device...
 static concurrency::concurrent_unordered_set <HANDLE>                      SK_Input_DeviceFiles;
 
@@ -278,8 +275,8 @@ SK_Input_DeviceFileType SK_Input_GetDeviceFileType (HANDLE hFile)
       SK_HID_DeviceFiles.at    (hFile).device_type != sk_input_dev_type::Other)
     return SK_Input_DeviceFileType::HID;
 
-  if (SK_Steam_DeviceFiles.count (hFile))
-    return SK_Input_DeviceFileType::Steam;
+  if (SK_NVIDIA_DeviceFiles.count (hFile))
+    return SK_Input_DeviceFileType::NVIDIA;
 
   return SK_Input_DeviceFileType::Invalid;
 }
@@ -719,6 +716,9 @@ ReadFile_Detour (HANDLE       hFile,
 
       if (bRet)
       {
+        extern void SK_Input_DeclareAppNotSteamNative (void);
+                    SK_Input_DeclareAppNotSteamNative ();
+
         if (bDisallow)
         {
           SK_ReleaseAssert (lpBuffer != nullptr);
@@ -755,15 +755,13 @@ ReadFile_Detour (HANDLE       hFile,
       return bRet;
     } break;
 
-    case SK_Input_DeviceFileType::Steam:
+    case SK_Input_DeviceFileType::NVIDIA:
     {
-      SK_Input_DeclareAppNotSteamNative ();
-
-      if (config.input.gamepad.steam.disabled_to_game)
-        return TRUE;
+      //if (config.input.gamepad.steam.disabled_to_game)
+      //  return TRUE;
 
       if (! SK_ImGui_WantGamepadCapture ())
-        SK_Steam_Backend->markRead (2);
+        SK_MessageBus_Backend->markRead (2);
     } break;
   }
 
@@ -800,10 +798,10 @@ ReadFileEx_Detour (HANDLE                          hFile,
       return bRet;
     } break;
 
-    case SK_Input_DeviceFileType::Steam:
+    case SK_Input_DeviceFileType::NVIDIA:
     {
       //const auto& device_file =
-      //  SK_Steam_DeviceFiles.at (hFile);
+      //  SK_NVIDIA_DeviceFiles.at (hFile);
 
       if (SK_ImGui_WantGamepadCapture ())
       {
@@ -817,7 +815,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
         );
 
       if (bRet != FALSE)
-        SK_Steam_Backend->markRead (2);
+        SK_MessageBus_Backend->markRead (2);
 
       return bRet;
     }
@@ -920,6 +918,7 @@ CreateFileA_Detour (LPCSTR                lpFileName,
 
     else if (SK_StrSupA (lpFileName, R"(\\.\pipe)", 8))
     {
+#if 0 // Add option to disable MessageBus? It seems harmless
       if (config.input.gamepad.steam.disabled_to_game)
       {
         // If we can't close this, something's gone wrong...
@@ -930,10 +929,11 @@ CreateFileA_Detour (LPCSTR                lpFileName,
         return
           INVALID_HANDLE_VALUE;
       }
+#endif
 
       SK_Input_DeviceFiles.insert (  hRet                );
-      SK_Steam_DeviceFiles          [hRet] =
-                SK_Steam_DeviceFile (hRet, lpWideFileName);
+      SK_NVIDIA_DeviceFiles         [hRet] =
+               SK_NVIDIA_DeviceFile (hRet, lpWideFileName);
     }
 
     else if (bTraceAllUNC && SK_StrSupA (lpFileName, R"(\\)", 2))
@@ -1003,6 +1003,7 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
 
     else if (SK_StrSupW (lpFileName, LR"(\\.\pipe)", 8))
     {
+#if 0 // Add option to disable MessageBus? It seems harmless
       if (config.input.gamepad.steam.disabled_to_game)
       {
         // If we can't close this, something's gone wrong...
@@ -1013,10 +1014,11 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
         return
           INVALID_HANDLE_VALUE;
       }
+#endif
 
       SK_Input_DeviceFiles.insert (  hRet            );
-      SK_Steam_DeviceFiles          [hRet] =
-                SK_Steam_DeviceFile (hRet, lpFileName);
+      SK_NVIDIA_DeviceFiles         [hRet] =
+               SK_NVIDIA_DeviceFile (hRet, lpFileName);
     }
 
     else if (bTraceAllUNC && SK_StrSupW (lpFileName, LR"(\\)", 2))
@@ -1046,14 +1048,14 @@ SK_Input_ShouldBlockDevice (HANDLE hFile)
       SK_HID_VIEW (device_file.device_type);
     }
 
-    else if (SK_Steam_DeviceFiles.count (hFile) != 0)
+    else if (SK_NVIDIA_DeviceFiles.count (hFile) != 0)
     {
       if (SK_ImGui_WantGamepadCapture ())
       {
         return true;
       }
 
-      SK_Steam_Backend->markRead (sk_input_dev_type::Gamepad);
+      SK_MessageBus_Backend->markRead (sk_input_dev_type::Gamepad);
     }
   }
 
@@ -1101,10 +1103,8 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
       return bRet;
     } break;
 
-    case SK_Input_DeviceFileType::Steam:
+    case SK_Input_DeviceFileType::NVIDIA:
     {
-      SK_Input_DeclareAppNotSteamNative ();
-
       if (SK_ImGui_WantGamepadCapture ())
       {
         if (bWait)
@@ -1112,12 +1112,12 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
           WaitForSingleObject (hFile, dwMilliseconds);
         }
 
-        //SK_RunOnce (SK_ImGui_Warning (L"Steam Input Blocked!"));
+        //SK_RunOnce (SK_ImGui_Warning (L"MessageBus Input Blocked!"));
 
         return TRUE;
       }
 
-      SK_Steam_Backend->markRead (2);
+      SK_MessageBus_Backend->markRead (2);
     } break;
   }
 
@@ -1158,10 +1158,8 @@ GetOverlappedResult_Detour (HANDLE       hFile,
         SK_HID_VIEW (device_file.device_type);
     }
 
-    case SK_Input_DeviceFileType::Steam:
+    case SK_Input_DeviceFileType::NVIDIA:
     {
-      SK_Input_DeclareAppNotSteamNative ();
-
       if (SK_ImGui_WantGamepadCapture ())
       {
         if (bWait)
@@ -1169,12 +1167,12 @@ GetOverlappedResult_Detour (HANDLE       hFile,
           WaitForSingleObject (hFile, INFINITE);
         }
 
-        //SK_RunOnce (SK_ImGui_Warning (L"Steam Input Blocked!"));
+        //SK_RunOnce (SK_ImGui_Warning (L"NVIDIA Input Blocked!"));
 
         return TRUE;
       }
 
-      SK_Steam_Backend->markRead (2);
+      SK_MessageBus_Backend->markRead (2);
     } break;
   }
 
@@ -5550,6 +5548,7 @@ SK_LazyGlobal <sk_input_api_context_s> SK_ScePad_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_WGI_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_HID_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_RawInput_Backend;
+SK_LazyGlobal <sk_input_api_context_s> SK_MessageBus_Backend; // NVIDIA stuff
 
 SK_LazyGlobal <sk_input_api_context_s> SK_Win32_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_WinHook_Backend;

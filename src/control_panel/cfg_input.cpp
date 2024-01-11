@@ -101,17 +101,18 @@ SK_ImGui_CenterCursorOnWindow (void)
     SK_ImGui_CenterCursorAtPos ();
 }
 
-static DWORD last_xinput   = 0;
-static DWORD last_scepad   = 0;
-static DWORD last_wgi      = 0;
-static DWORD last_hid      = 0;
-static DWORD last_di7      = 0;
-static DWORD last_di8      = 0;
-static DWORD last_steam    = 0;
-static DWORD last_rawinput = 0;
-static DWORD last_winhook  = 0;
-static DWORD last_winmm    = 0;
-static DWORD last_win32    = 0;
+static DWORD last_xinput     = 0;
+static DWORD last_scepad     = 0;
+static DWORD last_wgi        = 0;
+static DWORD last_hid        = 0;
+static DWORD last_di7        = 0;
+static DWORD last_di8        = 0;
+static DWORD last_steam      = 0;
+static DWORD last_messagebus = 0;
+static DWORD last_rawinput   = 0;
+static DWORD last_winhook    = 0;
+static DWORD last_winmm      = 0;
+static DWORD last_win32      = 0;
 
 bool
 SK::ControlPanel::Input::Draw (void)
@@ -124,11 +125,12 @@ SK::ControlPanel::Input::Draw (void)
 
   if (config.imgui.show_input_apis)
   {
-    struct { ULONG reads [XUSER_MAX_COUNT]; } xinput  { };
-    struct { ULONG reads;                   } sce_pad { };
-    struct { ULONG reads;                   } wgi     { };
-    struct { ULONG reads;                   } steam   { };
-    struct { ULONG reads;                   } winmm   { };
+    struct { ULONG reads [XUSER_MAX_COUNT]; } xinput     { };
+    struct { ULONG reads;                   } sce_pad    { };
+    struct { ULONG reads;                   } wgi        { };
+    struct { ULONG reads;                   } steam      { };
+    struct { ULONG reads;                   } winmm      { };
+    struct { ULONG reads;                   } messagebus { };
 
     struct { ULONG kbd_reads, mouse_reads; } winhook  { };
 
@@ -140,73 +142,77 @@ SK::ControlPanel::Input::Draw (void)
     struct { ULONG cursorpos,      keystate,
                keyboardstate, asynckeystate;              } win32     { };
 
-    xinput.reads [0]        = SK_XInput_Backend->reads   [0];
-    xinput.reads [1]        = SK_XInput_Backend->reads   [1];
-    xinput.reads [2]        = SK_XInput_Backend->reads   [2];
-    xinput.reads [3]        = SK_XInput_Backend->reads   [3];
+    xinput.reads [0]        = SK_XInput_Backend->reads     [0];
+    xinput.reads [1]        = SK_XInput_Backend->reads     [1];
+    xinput.reads [2]        = SK_XInput_Backend->reads     [2];
+    xinput.reads [3]        = SK_XInput_Backend->reads     [3];
 
-    sce_pad.reads           = SK_ScePad_Backend->reads   [2/*sk_input_dev_type::Gamepad*/];
-    wgi.reads               = SK_WGI_Backend->reads      [2/*sk_input_dev_type::Gamepad*/];
-    winmm.reads             = SK_WinMM_Backend->reads    [2];
-    steam.reads             = SK_Steam_Backend->reads    [2];
+    sce_pad.reads           = SK_ScePad_Backend->reads     [2/*sk_input_dev_type::Gamepad*/];
+    wgi.reads               = SK_WGI_Backend->reads        [2/*sk_input_dev_type::Gamepad*/];
+    winmm.reads             = SK_WinMM_Backend->reads      [2];
+    steam.reads             = SK_Steam_Backend->reads      [2];
+    messagebus.reads        = SK_MessageBus_Backend->reads [2];
 
-    winhook.kbd_reads       = SK_WinHook_Backend->reads  [1];
-    winhook.mouse_reads     = SK_WinHook_Backend->reads  [0];
+    winhook.kbd_reads       = SK_WinHook_Backend->reads    [1];
+    winhook.mouse_reads     = SK_WinHook_Backend->reads    [0];
 
-    di7.kbd_reads           = SK_DI7_Backend->reads      [1];
-    di7.mouse_reads         = SK_DI7_Backend->reads      [0];
-    di7.gamepad_reads       = SK_DI7_Backend->reads      [2];
+    di7.kbd_reads           = SK_DI7_Backend->reads        [1];
+    di7.mouse_reads         = SK_DI7_Backend->reads        [0];
+    di7.gamepad_reads       = SK_DI7_Backend->reads        [2];
 
-    di8.kbd_reads           = SK_DI8_Backend->reads      [1];
-    di8.mouse_reads         = SK_DI8_Backend->reads      [0];
-    di8.gamepad_reads       = SK_DI8_Backend->reads      [2];
+    di8.kbd_reads           = SK_DI8_Backend->reads        [1];
+    di8.mouse_reads         = SK_DI8_Backend->reads        [0];
+    di8.gamepad_reads       = SK_DI8_Backend->reads        [2];
 
-    hid.kbd_reads           = SK_HID_Backend->reads      [1];
-    hid.mouse_reads         = SK_HID_Backend->reads      [0];
-    hid.gamepad_reads       = SK_HID_Backend->reads      [2];
+    hid.kbd_reads           = SK_HID_Backend->reads        [1];
+    hid.mouse_reads         = SK_HID_Backend->reads        [0];
+    hid.gamepad_reads       = SK_HID_Backend->reads        [2];
 
-    raw_input.kbd_reads     = SK_RawInput_Backend->reads [1];
-    raw_input.mouse_reads   = SK_RawInput_Backend->reads [0];
-    raw_input.gamepad_reads = SK_RawInput_Backend->reads [2];
+    raw_input.kbd_reads     = SK_RawInput_Backend->reads   [1];
+    raw_input.mouse_reads   = SK_RawInput_Backend->reads   [0];
+    raw_input.gamepad_reads = SK_RawInput_Backend->reads   [2];
 
-    win32.asynckeystate     = SK_Win32_Backend->reads    [3];
-    win32.keyboardstate     = SK_Win32_Backend->reads    [2];
-    win32.keystate          = SK_Win32_Backend->reads    [1];
-    win32.cursorpos         = SK_Win32_Backend->reads    [0];
+    win32.asynckeystate     = SK_Win32_Backend->reads      [3];
+    win32.keyboardstate     = SK_Win32_Backend->reads      [2];
+    win32.keystate          = SK_Win32_Backend->reads      [1];
+    win32.cursorpos         = SK_Win32_Backend->reads      [0];
 
 
     if (SK_XInput_Backend->nextFrame ())
       last_xinput   = current_time;
 
     if (SK_ScePad_Backend->nextFrame ())
-      last_scepad   = current_time;
+      last_scepad     = current_time;
 
     if (SK_WGI_Backend->nextFrame ())
-      last_wgi      = current_time;
+      last_wgi        = current_time;
+
+    if (SK_MessageBus_Backend->nextFrame ())
+      last_messagebus = current_time;
 
     if (SK_Steam_Backend->nextFrame ())
-      last_steam    = current_time;
+      last_steam      = current_time;
 
     if (SK_HID_Backend->nextFrame ())
-      last_hid      = current_time;
+      last_hid        = current_time;
 
     if (SK_DI7_Backend->nextFrame ())
-      last_di7      = current_time;
+      last_di7        = current_time;
 
     if (SK_DI8_Backend->nextFrame ())
-      last_di8      = current_time;
+      last_di8        = current_time;
 
     if (SK_RawInput_Backend->nextFrame ())
-      last_rawinput = current_time;
+      last_rawinput   = current_time;
 
     if (SK_WinHook_Backend->nextFrame ())
-      last_winhook  = current_time;
+      last_winhook    = current_time;
 
     if (SK_Win32_Backend->nextFrameWin32 ())
-      last_win32    = current_time;
+      last_win32      = current_time;
 
     if (SK_WinMM_Backend->nextFrame ())
-      last_winmm    = current_time;
+      last_winmm      = current_time;
 
 
     if (last_steam > current_time - 500UL)
@@ -309,6 +315,23 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::BeginTooltip ();
         if (winmm.reads > 0)
           ImGui::Text       ("Gamepad     %lu", winmm.reads);
+        ImGui::EndTooltip   ();
+      }
+    }
+
+    if (last_messagebus > current_time - 500UL)
+    {
+      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * ((float)current_time -
+                                                                          (float) last_messagebus ) / 500.0f), 1.0f, 0.8f).Value);
+      ImGui::SameLine       ();
+      ImGui::Text           ("       NVIDIA MessageBus");
+      ImGui::PopStyleColor  ();
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+        if (messagebus.reads > 0)
+          ImGui::Text       ("Gamepad     %lu", messagebus.reads);
         ImGui::EndTooltip   ();
       }
     }

@@ -1,6 +1,10 @@
-﻿24.1.10.2
-=========
- + Further reduced the number of forced Steam Input AppID overrides
+﻿24.1.11
+=======
+ + Use SteamInputConfigurationLoaded_t callback to determine games
+     that are using XInput <--> Steam Input vs. Native Steam Input
+ + Added NVIDIA MessageBus input polling activity to Input Management
+ + Added locale as an instance parameter of iSK_Logger
+ + Explicitly set C stdlib thread locale before loading/storing INIs
 
 24.1.10.1
 =========
