@@ -1419,7 +1419,7 @@ SK_TestImports (          HMODULE  hMod,
     return;
 
   // This thing has been chopped to bits and pieces to try
-  //   and compensate for ScumVM's hoepelessly corrupted
+  //   and compensate for ScumVM's hopelessly corrupted
   //     Import Address Table that is a crash in the making.
 
   int i    = 0,
@@ -1438,6 +1438,11 @@ SK_TestImports (          HMODULE  hMod,
 
   int  idx     = 0;
   auto to_hash = pTests;
+
+  assert (nCount <= MAX_IMPORTS);
+
+  nCount =
+    std::clamp (nCount, 0, MAX_IMPORTS);
 
   while (idx < nCount)
   {
@@ -5155,6 +5160,8 @@ SK_ShellExecuteW ( _In_opt_ HWND    hwnd,
   CreateThread ( nullptr, 0,
   [](LPVOID lpUser)->DWORD
   {
+    SK_SetThreadDescription (SK_GetCurrentThread (), L"[SK] ShellExecuteW Helper");
+
     auto *pArgs =
       (exec_args_s *)lpUser;
 
@@ -5215,6 +5222,8 @@ SK_ShellExecuteA ( _In_opt_ HWND   hwnd,
   CreateThread ( nullptr, 0,
   [](LPVOID lpUser)->DWORD
   {
+    SK_SetThreadDescription (SK_GetCurrentThread (), L"[SK] ShellExecuteA Helper");
+
     auto *pArgs =
       (exec_args_s *)lpUser;
 

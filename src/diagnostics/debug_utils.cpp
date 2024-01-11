@@ -1568,6 +1568,24 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
 
 void
 WINAPI
+SK_OutputDebugStringW (LPCWSTR lpOutputString)
+{
+  if ( OutputDebugStringW_Original != nullptr)
+       OutputDebugStringW_Original (lpOutputString);
+  else OutputDebugStringW          (lpOutputString);
+}
+
+void
+WINAPI
+SK_OutputDebugStringA (LPCSTR lpOutputString)
+{
+  if ( OutputDebugStringA_Original != nullptr)
+       OutputDebugStringA_Original (lpOutputString);
+  else OutputDebugStringA          (lpOutputString);
+}
+
+void
+WINAPI
 OutputDebugStringW_Detour (LPCWSTR lpOutputString)
 {
   // Anti-debug survival kit

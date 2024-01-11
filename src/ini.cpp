@@ -22,6 +22,36 @@
 #include <SpecialK/stdafx.h>
 
 
+class SK_ScopedLocale {
+public:
+  SK_ScopedLocale (const wchar_t *wszLocale)
+  {
+    prev_locale_policy =
+      _configthreadlocale (_ENABLE_PER_THREAD_LOCALE);
+
+    if (prev_locale_policy != -1)
+    {
+      orig_locale =
+      _wsetlocale (LC_ALL, wszLocale);
+    }
+  }
+
+  ~SK_ScopedLocale (void)
+  {
+    if (prev_locale_policy != -1)
+    {
+      if (! orig_locale.empty ())
+        _wsetlocale (LC_ALL, orig_locale.c_str ());
+
+      _configthreadlocale (prev_locale_policy);
+    }
+  }
+
+private:
+  std::wstring orig_locale        = L"";
+  int          prev_locale_policy = -1;
+};
+
 std::wstring
 ErrorMessage (errno_t        err,
               const char*    args,
@@ -83,6 +113,8 @@ SK_File_GetModificationTime (const wchar_t* wszFile, FILETIME* pfModifyTime)
 bool
 iSK_INI::reload (const wchar_t *fname)
 {
+  SK_ScopedLocale _locale (L"en_us.utf8");
+
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
   
@@ -539,6 +571,8 @@ void
 __stdcall
 iSK_INI::parse (void)
 {
+  SK_ScopedLocale _locale (L"en_us.utf8");
+
   SK_ReleaseAssert (data.size () > 0);
 
   if (data.empty ())
@@ -1259,6 +1293,8 @@ void
 __stdcall
 iSK_INI::write (const wchar_t* fname)
 {
+  SK_ScopedLocale _locale (L"en_us.utf8");
+
   if (ordered_sections.empty () && !allow_empty)
     return;
 
@@ -1615,6 +1651,8 @@ __declspec(nothrow)
 bool
 iSK_INI::import_file (const wchar_t* fname)
 {
+  SK_ScopedLocale _locale (L"en_us.utf8");
+
   // Invalid filename
   if (fname == nullptr || *fname == L'\0')
     return false;

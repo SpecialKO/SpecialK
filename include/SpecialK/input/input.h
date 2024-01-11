@@ -335,6 +335,7 @@ extern SK_LazyGlobal <sk_input_api_context_s> SK_Win32_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_WinHook_Backend; // (Low-Level) KB/M Hook
 extern SK_LazyGlobal <sk_input_api_context_s> SK_RawInput_Backend;
 
+extern SK_LazyGlobal <sk_input_api_context_s> SK_MessageBus_Backend; // NVIDIA stuff
 extern SK_LazyGlobal <sk_input_api_context_s> SK_WinMM_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_Steam_Backend;
 

@@ -31,6 +31,7 @@ struct IUnknown;
 #include <SpecialK/core.h>
 #include <SpecialK/diagnostics/crash_handler.h>
 
+#include <locale>
 #include <string>
 
 // {A4BF1773-CAAB-48F3-AD88-C2AB5C23BD6F}
@@ -48,7 +49,7 @@ static const GUID IID_SK_Logger =
 //         when multiple threads are logging calls or even when a recursive
 //           call is logged in a single thread.
 //
-//        * Consdier using a stack-based approach if these logs become
+//        * Consider using a stack-based approach if these logs become
 //            indecipherable in the future.
 //
 interface iSK_Logger : public IUnknown
@@ -83,9 +84,14 @@ interface iSK_Logger : public IUnknown
 
   iSK_Logger (void) noexcept {
     iSK_Logger::AddRef ();
+
+    locale =
+      _wcreate_locale (LC_ALL, L"en_us.utf8");
   }
 
   virtual ~iSK_Logger (void) noexcept {
+    _free_locale (locale);
+
     iSK_Logger::Release ();
   }
 
@@ -119,6 +125,7 @@ interface iSK_Logger : public IUnknown
   volatile LONG    refs        =   0UL;
   DWORD            last_flush  =   0;
   DWORD            flush_freq  =   100; // msecs
+  _locale_t        locale      = {   };
 
 public:
   bool             lockless    = true;

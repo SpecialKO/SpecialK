@@ -312,6 +312,45 @@ iSK_Logger::init ( const wchar_t* const wszFileName,
   return (initialized = true);
 }
 
+#if 0
+void
+SK_OutputDebugStringW (const wchar_t* wszOutput)
+{
+  OutputDebugStringW (wszOutput);
+
+  EXCEPTION_RECORD DebugOutputException = {
+    .ExceptionCode            = DBG_PRINTEXCEPTION_WIDE_C,
+    .ExceptionFlags           = EXCEPTION_SOFTWARE_ORIGINATE,
+    .ExceptionAddress         = _ReturnAddress (),
+    .NumberParameters         = 2,
+    .ExceptionInformation     = { (ULONG_PTR)wcslen (wszOutput),
+                                          (ULONG_PTR)wszOutput }
+  };
+
+  RtlRaiseException (&DebugOutputException);
+}
+
+void
+SK_OutputDebugStringA (const char *szOutput)
+{
+  OutputDebugStringA (szOutput);
+
+  EXCEPTION_RECORD DebugOutputException = {
+    .ExceptionCode            = DBG_PRINTEXCEPTION_WIDE_C,
+    .ExceptionFlags           = EXCEPTION_SOFTWARE_ORIGINATE,
+    .ExceptionAddress         = _ReturnAddress (),
+    .NumberParameters         = 2,
+    .ExceptionInformation     = { (ULONG_PTR)strlen (szOutput),
+                                          (ULONG_PTR)szOutput }
+  };
+
+  RtlRaiseException (&DebugOutputException);
+}
+#else
+extern void WINAPI SK_OutputDebugStringW (LPCWSTR lpOutputString);
+extern void WINAPI SK_OutputDebugStringA (LPCSTR  lpOutputString);
+#endif
+
 __declspec(nothrow)
 void
 iSK_Logger::LogEx ( bool                 _Timestamp,
@@ -319,7 +358,9 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
                      wchar_t const* const _Format,
                                           ... )
 {
-  if ((! initialized) || (! fLog) || silent)
+  const bool                                                 _UseOutputDebugString =
+      ((! initialized) || (fLog == nullptr));
+  if (((! initialized) || (fLog == nullptr) || silent) && (! _UseOutputDebugString))
     return;
 
 
@@ -331,10 +372,11 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
     wchar_t                    wszLogTime [48] = { };
     UINT    ms = SK_Timestamp (wszLogTime);
 
+    
     formattedLen =
       std::clamp (
-        swprintf_s ( wszFormattedTime, 31,
-                       L"%s%03u: ",
+     _swprintf_s_l ( wszFormattedTime,  31,
+                       L"%s%03u: ", locale,
                          wszLogTime,
                            ms ),
                   0, 31 );
@@ -345,8 +387,8 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
   va_start (_ArgList, _Format);
   size_t len =
     (size_t)
-    _vscwprintf (      _Format,
-            _ArgList) + 1 + 48 + 2; // 32 extra for timestamp
+    _vscwprintf_l (   _Format,
+    locale, _ArgList) + 1 + 48 + 2; // 32 extra for timestamp
   va_end   (_ArgList);
 
 
@@ -385,24 +427,34 @@ iSK_Logger::LogEx ( bool                 _Timestamp,
                      wszOut );
   if (_Timestamp)
   {
-    wcsncpy_s ( wszOut,             formattedLen + 1,
-                  wszFormattedTime, _TRUNCATE   );
+    _wcsncpy_s_l ( wszOut,                formattedLen + 1,
+                     wszFormattedTime, _TRUNCATE, locale );
   }
 
-  va_start   (_ArgList,      _Format);
-  _vswprintf (wszAfterStamp, _Format, _ArgList);
-  va_end     (_ArgList);
+  va_start     (_ArgList,      _Format);
+  _vswprintf_l (wszAfterStamp, _Format, locale, _ArgList);
+  va_end       (_ArgList);
 
-  lock   ();
-  //if (! lockless)
-  //  _fwrite_nolock (wszOut, 1, wcslen (wszOut), fLog);
-  //else
-    fputws (wszOut, fLog);
-  unlock ();
+  if (! _UseOutputDebugString)
+  {
+    lock   ();
 
-  ++lines;
+    //if (! lockless)
+    //  _fwrite_nolock (wszOut, 1, wcslen (wszOut), fLog);
+    //else
+      fputws (wszOut, fLog);
 
-  SK_FlushLog (this);
+    unlock ();
+
+    ++lines;
+
+    SK_FlushLog (this);
+  }
+
+  else
+  {
+    SK_OutputDebugStringW (wszOut);
+  }
 }
 
 __declspec(nothrow)
@@ -411,7 +463,9 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
                     wchar_t const* const _Format,
                                          ... )
 {
-  if ((! initialized) || (fLog == nullptr) || silent)
+  const bool                                                 _UseOutputDebugString =
+      ((! initialized) || (fLog == nullptr));
+  if (((! initialized) || (fLog == nullptr) || silent) && (! _UseOutputDebugString))
     return;
 
 
@@ -421,8 +475,8 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
 
   size_t formattedLen =
     std::clamp (
-      swprintf_s ( wszFormattedTime, 31,
-                     L"%s%03u: ",
+   _swprintf_s_l ( wszFormattedTime,  31,
+                     L"%s%03u: ", locale,
                        wszLogTime,
                          ms ),
                 0, 31
@@ -434,7 +488,7 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   const
   size_t len =
     (size_t)
-    _vscwprintf (     _Format,
+    _vscwprintf_l (   _Format, locale,
             _ArgList) + 1 + 2  //  2 extra for CrLf
                          + 48; // 32 extra for timestamp
   va_end   (_ArgList);
@@ -472,26 +526,34 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
   wchar_t *wszAfterStamp =
     wszOut + formattedLen;
 
-  wcsncpy_s ( wszOut,             formattedLen + 1,
-                wszFormattedTime, _TRUNCATE   );
+  _wcsncpy_s_l ( wszOut,           formattedLen + 1,
+                 wszFormattedTime, _TRUNCATE, locale );
 
-  va_start (_ArgList,        _Format);
-  _vswprintf (wszAfterStamp, _Format,
+  va_start (_ArgList,          _Format);
+  _vswprintf_l (wszAfterStamp, _Format, locale,
             _ArgList);
   va_end   (_ArgList);
 
-  StrCatW  (wszAfterStamp, L"\n");
+  _wcsncat_l (wszAfterStamp, L"\n", 1, locale);
 
-  lock   ();
-  //if (! lockless)
-  //  _fwrite_nolock (wszOut, 1, wcslen (wszOut), fLog);
-  //else
-    fputws (wszOut, fLog);
-  unlock ();
+  if (! _UseOutputDebugString)
+  {
+    lock   ();
+    //if (! lockless)
+    //  _fwrite_nolock (wszOut, 1, wcslen (wszOut), fLog);
+    //else
+      fputws (wszOut, fLog);
+    unlock ();
 
-  ++lines;
+    ++lines;
 
-  SK_FlushLog (this);
+    SK_FlushLog (this);
+  }
+
+  else
+  {
+    SK_OutputDebugStringW (wszOut);
+  }
 }
 
 __declspec(nothrow)
@@ -501,34 +563,61 @@ iSK_Logger::Log   ( _In_z_ _Printf_format_string_
                     char const* const _Format,
                                       ... )
 {
-  if ((! initialized) || (! fLog) || silent)
+  const bool                                                 _UseOutputDebugString =
+      ((! initialized) || (fLog == nullptr));
+  if (((! initialized) || (fLog == nullptr) || silent) && (! _UseOutputDebugString))
     return;
 
 
   wchar_t                    wszLogTime [48] = { };
   UINT    ms = SK_Timestamp (wszLogTime);
 
-  lock ();
-
-  fwprintf ( fLog,
-               L"%s%03u: ",  wszLogTime, ms );
-
-  va_list   _ArgList;
-  va_start (_ArgList, _Format);
+  if (! _UseOutputDebugString)
   {
-    vfprintf ( fLog,  _Format,
-            _ArgList);
+    lock ();
+
+    _fwprintf_l ( fLog,
+                    L"%s%03u: ", locale,
+                             wszLogTime, ms );
+
+    va_list   _ArgList;
+    va_start (_ArgList, _Format);
+    {
+      _vfprintf_s_l (
+              fLog,     _Format, locale,
+              _ArgList);
+    }
+    va_end   (_ArgList);
+
+    _fwprintf_l (fLog, L"%ws",   locale, L"\n");
+
+            ++lines;
+
+    unlock ();
+
+    SK_FlushLog (this);
   }
-  va_end   (_ArgList);
 
-  fwprintf (fLog, L"\n");
+  else
+  {
+    char            szLogOutput [4096] = { }; auto advance =
+    _snprintf_s_l ( szLogOutput, 4096, _TRUNCATE,
+                       "%ws%03u: ", locale, wszLogTime, ms );
 
-          ++lines;
+    va_list   _ArgList;
+    va_start (_ArgList, _Format);
+    {
+                                     advance +=
+      _vsnprintf_s_l ( szLogOutput + advance,
+                              4096 - advance - 1, _TRUNCATE,
+                        _Format,          locale,
+              _ArgList );
+    }
+    va_end   (_ArgList);
 
-  unlock   ();
-
-
-  SK_FlushLog (this);
+    _snprintf_s_l         (szLogOutput, 4096, _TRUNCATE, "%hs\n", locale, szLogOutput);
+    SK_OutputDebugStringA (szLogOutput);
+  }
 }
 
 __declspec(nothrow)
