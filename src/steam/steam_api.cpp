@@ -943,12 +943,16 @@ struct SteamInputConfigurationLoaded_t
 };
 
 
+#define SK_USE_STEAMINPUT_CALLBACKS
+
 class SK_Steam_OverlayManager
 {
 public:
   SK_Steam_OverlayManager (void) :
-    activation  ( this, &SK_Steam_OverlayManager::OnActivate              ),
-    steam_input ( this, &SK_Steam_OverlayManager::OnSteamInputStateChange )
+    activation  ( this, &SK_Steam_OverlayManager::OnActivate              )
+#ifdef SK_USE_STEAMINPUT_CALLBACKS
+   ,steam_input ( this, &SK_Steam_OverlayManager::OnSteamInputStateChange )
+#endif
   {
     cursor_visible_ = false;
     active_         = false;
@@ -960,25 +964,38 @@ public:
     active_         = false;
   }
 
+  // Callback doesn't always work as intended
+#ifdef SK_USE_STEAMINPUT_CALLBACKS
   STEAM_CALLBACK ( SK_Steam_OverlayManager,
                    OnSteamInputStateChange,
                    SteamInputConfigurationLoaded_t,
                    steam_input )
   {
-    std::ignore = pParam;
     //// Listen for changes to the desktop appid, we may want to ignore them.
-    ////if (pParam->m_unAppID == 413080)
-    //{
-    //  // Background Input is enabled, undo what the Steam client just did...
-    //  if ( config.input.gamepad.disabled_to_game == 0 &&
-    //       config.window.background_render )
-    //  {
-    //    SK::SteamAPI::SetWindowFocusState (true);
-    //  }
-    //}
-    //
-    //SK_ImGui_Warning (std::to_wstring (pParam->m_unAppID).c_str ());
+    if (pParam->m_unAppID != config.steam.appid)
+    {
+      // Background Input is enabled, undo what the Steam client just did...
+      if ( config.input.gamepad.disabled_to_game == 0 &&
+           config.window.background_render )
+      {
+        if (! SK::SteamAPI::SetWindowFocusState (true))
+        {
+          SK_Steam_ForceInputAppId (config.steam.appid);
+        }
+      }
+
+      //SK_ImGui_Warning (std::to_wstring (pParam->m_unAppID).c_str ());
+    }
+
+    else
+    {
+      extern void SK_Input_DeclareAppNotSteamNative (void);
+
+      if (pParam->m_bUsesGamepadAPI)
+        SK_Input_DeclareAppNotSteamNative ();
+    }
   }
+#endif
 
   STEAM_CALLBACK ( SK_Steam_OverlayManager,
                    OnActivate,
@@ -5358,13 +5375,16 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
   {
     if (SK_Steam_IsClientRunning () && ReadAcquire (&changes) > minimum_change_count)
     {
-      SK_LOGi0 (L"Resetting Steam Input AppId...");
+      SK_RunOnce (
+      {
+        SK_LOGi1 (L"Resetting Steam Input AppId...");
 
-      // Cleanup on unexpected application termination
-      //
-      SK_ShellExecuteA ( 0, "OPEN",
-                R"(steam://forceinputappid/)", nullptr, nullptr,
-                      SW_HIDE );
+        // Cleanup on unexpected application termination
+        //
+        SK_ShellExecuteA ( 0, "OPEN",
+                  R"(steam://forceinputappid/)", nullptr, nullptr,
+                        SW_HIDE );
+      });
     }
   };
 
@@ -5400,6 +5420,16 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
     SK_RunOnce (
       SK_Thread_CreateEx ([](LPVOID) -> DWORD
       {
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
+
+        extern void SK_Input_DeclareAppNotSteamNative (void);
+                    SK_Input_DeclareAppNotSteamNative ();
+        // Make certain ShellExecute can run on this thread
+        SK_AutoCOMInit _auto_com (
+          COINIT_APARTMENTTHREADED |
+          COINIT_DISABLE_OLE1DDE
+        );
+
         auto hModules = {
           SK_LoadLibraryW (L"ieframe.dll"),
           SK_LoadLibraryW (L"WINHTTP.dll")
@@ -5457,35 +5487,29 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                   {
                     if (! ReadAcquire (&__SK_DLL_Ending))
                     {
-                      //
-                      // It isn't clear why, but running GPU stats polling
-                      //   at least once is necessary for Steam Input
-                      //     AppID overrides to work correctly...
-                      //
-                      SK_RunOnce ({
-                        SK_PollGPU        ( );
-                        SK_GPU_GetGPULoad (0);
-                      });
-
                       if (appid != 0)
                       {
+                        auto instance =
                         ShellExecuteW ( 0, L"OPEN",
-                             std::format (
-                               LR"(steam://forceinputappid/{})", appid ).c_str (),
-                                 nullptr, nullptr, SW_HIDE
+                          std::format (
+                            LR"(steam://forceinputappid/{})", appid ).c_str (),
+                              nullptr, nullptr, SW_HIDE
                         );
 
-                        SK_LOGi0 (L"Forced Steam Input AppID: %d", appid);
+                        if (instance != 0)
+                          SK_LOGi0 (L"Forced Steam Input AppID: %d", appid);
                       }
 
                       else
                       {
+                        auto instance =
                         ShellExecuteW ( 0, L"OPEN",
-                               LR"(steam://forceinputappid/)",
-                                 nullptr, nullptr, SW_HIDE
+                            LR"(steam://forceinputappid/)",
+                              nullptr, nullptr, SW_HIDE
                         );
 
-                        SK_LOGi0 (L"Forced Steam Input AppID: Default");
+                        if (instance != 0)
+                          SK_LOGi0 (L"Forced Steam Input AppID: Default");
                       }
                     }
                   }
@@ -6771,8 +6795,12 @@ SK_SteamAPIContext::ClientFriends (void)
 }
 
 bool
-SK_SteamAPIContext::SetWindowFocusState (bool focused)
+SK_SteamAPIContext::SetWindowFocusState (bool/*focused*/)
 {
+  // SteamOS has even buggier Steam Input than Windows; ignore the problem.
+  if (config.compatibility.using_wine)
+    return false;
+
   auto* client_engine =
     (IClientEngine_005_Min *)ClientEngine ();
 
@@ -6807,9 +6835,11 @@ SK_SteamAPIContext::SetWindowFocusState (bool focused)
 
       if (utils != nullptr)
       {
+#if 0
         utils->SetFocusedWindow (
           CGameID (SK::SteamAPI::AppID ()), focused
         );
+#endif
       }
 
 #ifdef MANUAL_PIPE_CREATION
@@ -6830,16 +6860,6 @@ SK_SteamAPIContext::SetWindowFocusState (bool focused)
 bool
 SK::SteamAPI::SetWindowFocusState (bool focused)
 {
-  //
-  // It isn't clear why, but running GPU stats polling
-  //   at least once is necessary for Steam Input
-  //     to work correctly...
-  //
-  SK_RunOnce ({
-    SK_PollGPU        ( );
-    SK_GPU_GetGPULoad (0);
-  });
-
   return
     pSteamCtx->SetWindowFocusState (focused);
 }
