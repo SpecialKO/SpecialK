@@ -1,4 +1,9 @@
-﻿24.1.11
+﻿24.1.11.1
+=========
+ + Disable blocking NVIDIA MessageBus input while the control panel is
+     in exclusive input mode.
+
+24.1.11
 =======
  + Use SteamInputConfigurationLoaded_t callback to determine games
      that are using XInput <--> Steam Input vs. Native Steam Input

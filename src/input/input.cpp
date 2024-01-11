@@ -757,11 +757,7 @@ ReadFile_Detour (HANDLE       hFile,
 
     case SK_Input_DeviceFileType::NVIDIA:
     {
-      //if (config.input.gamepad.steam.disabled_to_game)
-      //  return TRUE;
-
-      if (! SK_ImGui_WantGamepadCapture ())
-        SK_MessageBus_Backend->markRead (2);
+      SK_MessageBus_Backend->markRead (2);
     } break;
   }
 
@@ -769,63 +765,6 @@ ReadFile_Detour (HANDLE       hFile,
     ReadFile_Original (
       hFile, lpBuffer, nNumberOfBytesToRead,
         lpNumberOfBytesRead, lpOverlapped );
-}
-
-static
-BOOL
-WINAPI
-ReadFileEx_Detour (HANDLE                          hFile,
-                   LPVOID                          lpBuffer,
-                   DWORD                           nNumberOfBytesToRead,
-                   LPOVERLAPPED                    lpOverlapped,
-                   LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine)
-{
-  SK_LOG_FIRST_CALL
-
-  auto dev_file_type =
-    SK_Input_GetDeviceFileType (hFile);
-
-  switch (dev_file_type)
-  {
-    case SK_Input_DeviceFileType::HID:
-    {
-      BOOL bRet =
-        ReadFileEx_Original (
-          hFile, lpBuffer, nNumberOfBytesToRead,
-            lpOverlapped, lpCompletionRoutine
-        );
-
-      return bRet;
-    } break;
-
-    case SK_Input_DeviceFileType::NVIDIA:
-    {
-      //const auto& device_file =
-      //  SK_NVIDIA_DeviceFiles.at (hFile);
-
-      if (SK_ImGui_WantGamepadCapture ())
-      {
-        return TRUE;
-      }
-
-      BOOL bRet =
-        ReadFileEx_Original (
-          hFile, lpBuffer, nNumberOfBytesToRead,
-            lpOverlapped, lpCompletionRoutine
-        );
-
-      if (bRet != FALSE)
-        SK_MessageBus_Backend->markRead (2);
-
-      return bRet;
-    }
-  }
-
-  return
-    ReadFileEx_Original (
-      hFile, lpBuffer, nNumberOfBytesToRead,
-        lpOverlapped, lpCompletionRoutine
-    );
 }
 
 bool
@@ -1062,71 +1001,6 @@ SK_Input_ShouldBlockDevice (HANDLE hFile)
   return false;
 }
 
-// This is the most common way that games that manually open USB HID
-//   device files actually read their input (usually the non-Ex variant).
-BOOL
-WINAPI
-GetOverlappedResultEx_Detour (HANDLE       hFile,
-                              LPOVERLAPPED lpOverlapped,
-                              LPDWORD      lpNumberOfBytesTransferred,
-                              DWORD        dwMilliseconds,
-                              BOOL         bWait)
-{
-  SK_LOG_FIRST_CALL
-
-  auto dev_file_type =
-    SK_Input_GetDeviceFileType (hFile);
-
-  switch (dev_file_type)
-  {
-    case SK_Input_DeviceFileType::HID:
-    {
-      const auto &device_file =
-        SK_HID_DeviceFiles.at (hFile);
-
-      SK_HID_READ (device_file.device_type);
-
-      if (! device_file.isInputAllowed ())
-      {
-        // We did the bulk of this processing in ReadFile_Detour (...)
-        //   nothing to be done here for now.
-      }
-
-      const BOOL bRet =
-        GetOverlappedResultEx_Original (
-          hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
-        );
-
-      if (bRet != FALSE)
-        SK_HID_VIEW (device_file.device_type);
-
-      return bRet;
-    } break;
-
-    case SK_Input_DeviceFileType::NVIDIA:
-    {
-      if (SK_ImGui_WantGamepadCapture ())
-      {
-        if (bWait)
-        { // This call was supposed to block, so we must do it now instead.
-          WaitForSingleObject (hFile, dwMilliseconds);
-        }
-
-        //SK_RunOnce (SK_ImGui_Warning (L"MessageBus Input Blocked!"));
-
-        return TRUE;
-      }
-
-      SK_MessageBus_Backend->markRead (2);
-    } break;
-  }
-
-  return
-    GetOverlappedResultEx_Original (
-      hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
-    );
-}
-
 BOOL
 WINAPI
 GetOverlappedResult_Detour (HANDLE       hFile,
@@ -1136,7 +1010,7 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 {
   SK_LOG_FIRST_CALL
 
-  auto dev_file_type =
+  const auto dev_file_type =
     SK_Input_GetDeviceFileType (hFile);
 
   switch (dev_file_type)
@@ -1160,18 +1034,6 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 
     case SK_Input_DeviceFileType::NVIDIA:
     {
-      if (SK_ImGui_WantGamepadCapture ())
-      {
-        if (bWait)
-        { // This call was supposed to block, so we must do it now instead.
-          WaitForSingleObject (hFile, INFINITE);
-        }
-
-        //SK_RunOnce (SK_ImGui_Warning (L"NVIDIA Input Blocked!"));
-
-        return TRUE;
-      }
-
       SK_MessageBus_Backend->markRead (2);
     } break;
   }
@@ -1264,28 +1126,15 @@ SK_Input_HookHID (void)
                                DeviceIoControl_Detour,
       static_cast_p2p <void> (&DeviceIoControl_Original) );
 
-#if 1
     SK_CreateDLLHook2 (      L"kernel32.dll",
                               "ReadFile",
                                ReadFile_Detour,
       static_cast_p2p <void> (&ReadFile_Original) );
 
     SK_CreateDLLHook2 (      L"kernel32.dll",
-                              "ReadFileEx",
-                               ReadFileEx_Detour,
-      static_cast_p2p <void> (&ReadFileEx_Original) );
-#endif
-
-    // Hooked and then forwarded to the GetOverlappedResultEx hook
-    SK_CreateDLLHook2 (      L"kernel32.dll",
                               "GetOverlappedResult",
                                GetOverlappedResult_Detour,
       static_cast_p2p <void> (&GetOverlappedResult_Original) );
-
-    SK_CreateDLLHook2 (      L"kernel32.dll",
-                              "GetOverlappedResultEx",
-                               GetOverlappedResultEx_Detour,
-      static_cast_p2p <void> (&GetOverlappedResultEx_Original) );
 
     if (ReadAcquire (&__SK_Init) > 0) SK_ApplyQueuedHooks ();
 
