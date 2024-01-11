@@ -732,6 +732,13 @@ ReadFile_Detour (HANDLE       hFile,
               }
             }
 
+            else
+            {
+              SK_RunOnce (
+                SK_LOGi0 (L"ReadFile HID IO Cancelled")
+              );
+            }
+
             return TRUE;
           }
         }
@@ -777,6 +784,16 @@ ReadFileEx_Detour (HANDLE                          hFile,
 {
   SK_LOG_FIRST_CALL
 
+  BOOL bRet =
+    ReadFileEx_Original (
+      hFile, lpBuffer, nNumberOfBytesToRead,
+        lpOverlapped, lpCompletionRoutine
+    );
+
+  // Early-out
+  if (! bRet)
+    return bRet;
+
   auto dev_file_type =
     SK_Input_GetDeviceFileType (hFile);
 
@@ -784,35 +801,36 @@ ReadFileEx_Detour (HANDLE                          hFile,
   {
     case SK_Input_DeviceFileType::HID:
     {
-      BOOL bRet =
-        ReadFileEx_Original (
-          hFile, lpBuffer, nNumberOfBytesToRead,
-            lpOverlapped, lpCompletionRoutine
-        );
+      auto& device_file =
+        SK_HID_DeviceFiles.at (hFile);
 
-      return bRet;
+      const bool bDisallow = 
+        (! device_file.isInputAllowed ());
+
+      SK_HID_VIEW (device_file.device_type);
+
+      if (bDisallow)
+      {
+        if (CancelIoEx (hFile, lpOverlapped))
+        {
+          SK_RunOnce (
+            SK_LOGi0 (L"ReadFileEx HID IO Cancelled")
+          );
+
+          return TRUE;
+        }
+      }
+
+      SK_HID_READ (device_file.device_type);
     } break;
 
     case SK_Input_DeviceFileType::NVIDIA:
     {
-      BOOL bRet =
-        ReadFileEx_Original (
-          hFile, lpBuffer, nNumberOfBytesToRead,
-            lpOverlapped, lpCompletionRoutine
-        );
-
-      if (bRet != FALSE)
-        SK_MessageBus_Backend->markRead (2);
-
-      return bRet;
+      SK_MessageBus_Backend->markRead (2);
     }
   }
 
-  return
-    ReadFileEx_Original (
-      hFile, lpBuffer, nNumberOfBytesToRead,
-        lpOverlapped, lpCompletionRoutine
-    );
+  return bRet;
 }
 
 bool
@@ -1071,13 +1089,7 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
       const auto &device_file =
         SK_HID_DeviceFiles.at (hFile);
 
-      SK_HID_READ (device_file.device_type);
-
-      if (! device_file.isInputAllowed ())
-      {
-        // We did the bulk of this processing in ReadFile_Detour (...)
-        //   nothing to be done here for now.
-      }
+      SK_HID_VIEW (device_file.device_type);
 
       const BOOL bRet =
         GetOverlappedResultEx_Original (
@@ -1085,7 +1097,14 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
         );
 
       if (bRet != FALSE)
-        SK_HID_VIEW (device_file.device_type);
+      {
+        if (device_file.isInputAllowed ())
+        {
+          SK_HID_READ (device_file.device_type);
+          // We did the bulk of this processing in ReadFile_Detour (...)
+          //   nothing to be done here for now.
+        }
+      }
 
       return bRet;
     } break;
@@ -1121,16 +1140,25 @@ GetOverlappedResult_Detour (HANDLE       hFile,
       const auto &device_file =
         SK_HID_DeviceFiles.at (hFile);
 
-      SK_HID_READ (device_file.device_type);
+      SK_HID_VIEW (device_file.device_type);
 
-      if (! device_file.isInputAllowed ())
+      const bool bRet =
+        GetOverlappedResult_Original (
+          hFile, lpOverlapped, lpNumberOfBytesTransferred,
+            bWait
+        );
+
+      if (bRet != FALSE)
       {
-        // We did the bulk of this processing in ReadFile_Detour (...)
-        //   nothing to be done here for now.
+        if (device_file.isInputAllowed ())
+        {
+          SK_HID_READ (device_file.device_type);
+          // We did the bulk of this processing in ReadFile_Detour (...)
+          //   nothing to be done here for now.
+        }
       }
 
-      else
-        SK_HID_VIEW (device_file.device_type);
+      return bRet;
     }
 
     case SK_Input_DeviceFileType::NVIDIA:

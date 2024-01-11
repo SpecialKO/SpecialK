@@ -1306,6 +1306,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="depends\include\steamapi\isteamgameserverstats.h" />
     <ClInclude Include="depends\include\steamapi\isteamhtmlsurface.h" />
     <ClInclude Include="depends\include\steamapi\isteamhttp.h" />
+    <ClInclude Include="depends\include\steamapi\isteaminput.h" />
     <ClInclude Include="depends\include\steamapi\isteaminventory.h" />
     <ClInclude Include="depends\include\steamapi\isteammasterserverupdater.h" />
     <ClInclude Include="depends\include\steamapi\isteammatchmaking.h" />

@@ -26,11 +26,11 @@
 #define STEAM_CONTROLLER_MIN_ANALOG_ACTION_DATA -1.0f
 #define STEAM_CONTROLLER_MAX_ANALOG_ACTION_DATA 1.0f
 
-enum ESteamControllerPad
-{
-  k_ESteamControllerPad_Left,
-  k_ESteamControllerPad_Right
-};
+//enum ESteamControllerPad
+//{
+//  k_ESteamControllerPad_Left,
+//  k_ESteamControllerPad_Right
+//};
 
 enum EControllerSource
 {

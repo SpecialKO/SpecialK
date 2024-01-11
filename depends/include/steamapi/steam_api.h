@@ -24,7 +24,7 @@
 #include "isteammusicremote.h"
 #include "isteamhttp.h"
 #include "isteamunifiedmessages.h"
-#include "isteamcontroller.h"
+#include "isteaminput.h"
 #include "isteamugc.h"
 #include "isteamapplist.h"
 #include "isteamhtmlsurface.h"

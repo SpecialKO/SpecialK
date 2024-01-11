@@ -2985,6 +2985,9 @@
     <ClInclude Include="include\SpecialK\render\screenshot.h">
       <Filter>Header Files\Backends\Render</Filter>
     </ClInclude>
+    <ClInclude Include="depends\include\steamapi\isteaminput.h">
+      <Filter>Header Files\Storefronts\Steam</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">

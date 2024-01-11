@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SpecialK/steam_api.h>
+#include <steamapi/isteamcontroller.h>
 #include <SpecialK/core.h>
 #include <SpecialK/config.h>
 #include <SpecialK/input/input.h>
@@ -108,6 +109,7 @@ ISteamController_GetDigitalActionData_Detour ( ISteamController                *
 
 
 
+#if 0
 class IWrapSteamController : public ISteamController
 {
 public:
@@ -308,6 +310,7 @@ public:
 private:
   ISteamController* pRealController;
 };
+#endif
 
 bool
 SK_Steam_HookController (void);

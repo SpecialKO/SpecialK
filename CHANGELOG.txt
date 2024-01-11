@@ -1,4 +1,13 @@
-﻿24.1.11.3
+﻿24.1.11.4
+=========
+ + Handle unexpected changes to Steam Input AppId if background input mode is on
+ + Upgraded part of the bastardized Steamworks headers to include ISteamInput006
+ + Add logging if the Steam client implements a newer version of ISteamInput
+ + Add logging when blocking HID overlapped I/O for the first time
+ + Reworked delayed SteamAPI initialization to catch most games callback
+     registration when using global injection
+
+24.1.11.3
 =========
  + Workaround compiler bug causing XInput crashes in updated MSVC 2022 toolchain
  + Corrected OpenGL pixel format descriptor's color bits count; it is not supposed

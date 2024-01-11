@@ -32,6 +32,14 @@
 #define STEAM_API_NODLL
 #include <SpecialK/steam_api.h>
 
+//
+// SK has an official Steam AppID, and it is deliberately configured to
+//   disable many annoying Steam client "features" (e.g. Steam Input) ;)
+// 
+//   * Money well spent!
+//
+constexpr AppId_t SPECIAL_KILLER_APPID = 1157970;
+
 #ifndef __cpp_lib_format
 #define __cpp_lib_format
 #endif
@@ -919,29 +927,170 @@ bool  __SK_Steam_IgnoreOverlayActivation = false;
 DWORD __SK_Steam_MagicThread             =     0;
 
 
-// InputHandle_t is used to refer to a specific controller.
-// This handle will consistently identify a controller, even if it is disconnected and re-connected
-typedef uint64 InputHandle_t;
+#define CLIENTENGINE_INTERFACE_VERSION     "CLIENTENGINE_INTERFACE_VERSION005"
+#define CLIENTENGINE_INTERFACE_VERSION_ALT "CLIENTENGINE_INTERFACE_VERSION006"
+#define CLIENTUSER_INTERFACE_VERSION       "CLIENTUSER_INTERFACE_VERSION001"
+#define CLIENTFRIENDS_INTERFACE_VERSION    "CLIENTFRIENDS_INTERFACE_VERSION001"
+#define CLIENTAPPS_INTERFACE_VERSION       "CLIENTAPPS_INTERFACE_VERSION001"
+#define CLIENTUTILS_INTERFACE_VERSION      "CLIENTUTILS_INTERFACE_VERSION001"
 
-//-----------------------------------------------------------------------------
-// Purpose: called when a controller configuration has been loaded, will fire once
-// per controller per focus change for Steam Input enabled controllers
-//-----------------------------------------------------------------------------
-struct SteamInputConfigurationLoaded_t
+enum EAppState
 {
-	enum { k_iCallback = k_iSteamControllerCallbacks + 3 };
-
-	AppId_t       m_unAppID;
-	InputHandle_t	m_ulDeviceHandle;     // Handle for device
-	CSteamID      m_ulMappingCreator;   // May differ from local user when using
-                                      // an unmodified community or official config
-	uint32        m_unMajorRevision;    // Binding revision from In-game Action File. 
-                                      // Same value as queried by GetDeviceBindingRevision
-	uint32        m_unMinorRevision;
-	bool          m_bUsesSteamInputAPI; // Does the configuration contain any Analog/Digital actions?
-  bool          m_bUsesGamepadAPI;    // Does the configuration contain any Xinput bindings?
+  k_EAppStateInvalid        = 0,
+  k_EAppStateUninstalled    = 1,
+  k_EAppStateUpdateRequired = 2,
+  k_EAppStateFullyInstalled = 4,
+  k_EAppStateDataEncrypted  = 8,
+  k_EAppStateSharedOnly     = 64,
+  k_EAppStateDataLocked     = 16,
+  k_EAppStateFilesMissing   = 32,
+  k_EAppStateFilesCorrupt   = 128,
+  k_EAppStateAppRunning     = 8192,
+  k_EAppStateBackupRunning  = 4096,
+  k_EAppStateUpdateRunning  = 256,
+  k_EAppStateUpdateStopping = 8388608,
+  k_EAppStateUpdatePaused   = 512,
+  k_EAppStateUpdateStarted  = 1024,
+  k_EAppStateReconfiguring  = 65536,
+  k_EAppStateAddingFiles    = 262144,
+  k_EAppStateDownloading    = 1048576,
+  k_EAppStateStaging        = 2097152,
+  k_EAppStateCommitting     = 4194304,
+  k_EAppStateUninstalling   = 2048,
+  k_EAppStatePreallocating  = 524288,
+  k_EAppStateValidating     = 131072,
 };
 
+enum EAppEvent
+{
+  k_EAppEventDownloadComplete = 2,
+};
+
+enum EAppInfoSection
+{
+  k_EAppInfoSectionUnknown = 0,
+  k_EAppInfoSectionAll,
+  k_EAppInfoSectionCommon,
+  k_EAppInfoSectionExtended,
+  k_EAppInfoSectionConfig,
+  k_EAppInfoSectionStats,
+  k_EAppInfoSectionInstall,
+  k_EAppInfoSectionDepots,
+  k_EAppInfoSectionVac,
+  k_EAppInfoSectionDrm,
+  k_EAppInfoSectionUfs,
+  k_EAppInfoSectionOgg,
+  k_EAppInfoSectionItems,
+  k_EAppInfoSectionPolicies,
+  k_EAppInfoSectionSysreqs,
+  k_EAppInfoSectionCommunity
+};
+
+// Who knows...?
+enum EUIMode
+{
+	k_EUIModeUnknown = 0,
+	k_EUIModeMax     = DWORD_MAX
+};
+
+enum ELauncherType
+{
+	k_ELAuncherTypeUnknown = 0,
+	k_ELAuncherTypeMax     = DWORD_MAX
+};
+
+enum EGameLaunchMethod
+{
+  k_EGameLaunchMethodUnknown = 0,
+  k_EGameLaunchMethodMax     = DWORD_MAX
+};
+
+class IClientUtils_001
+{
+using UNKNOWN_RETURN = void;
+
+public:
+  virtual const char*      GetInstallPath                  (void) = 0;
+  virtual const char*      GetUserBaseFolderInstallImage   (void) = 0;
+  virtual const char*      GetManagedContentRoot           (void) = 0;
+
+  virtual       uint32     GetSecondsSinceAppActive        (void) = 0;
+  virtual       uint32     GetSecondsSinceComputerActive   (void) = 0;
+  virtual       void       SetComputerActive               (void) = 0;
+
+  virtual       EUniverse  GetConnectedUniverse            (void) = 0;
+  virtual       uint32     GetServerRealTime               (void) = 0;
+  virtual const char*      GetIPCountry                    (void) = 0;
+
+  virtual       bool       GetImageSize                    (int32   iImage, uint32* pnWidth, uint32* pnHeight)        = 0;
+  virtual       bool       GetImageRGBA                    (int32   iImage, uint8*  pubDest, int32   nDestBufferSize) = 0;
+  virtual       bool       GetCSERIPPort                   (uint32* unIP,   uint16* usPort)                           = 0;
+  virtual       uint32     GetNumRunningApps               (void)          = 0;
+  virtual       uint8      GetCurrentBatteryPower          (void)          = 0;
+  virtual       void       SetOfflineMode                  (bool bOffline) = 0;
+  virtual       bool       GetOfflineMode                  (void)          = 0;
+
+  virtual       AppId_t    SetAppIDForCurrentPipe          (AppId_t nAppID, bool bTrackProcess) = 0; // Disabled in late 2019
+  virtual       AppId_t    GetAppID                        (void)                               = 0;
+
+  virtual UNKNOWN_RETURN   SetAPIDebuggingActive           (bool, bool)   = 0;
+  virtual UNKNOWN_RETURN   AllocPendingAPICallHandle       (void)         = 0;
+  virtual   bool           IsAPICallCompleted              (unsigned long long, bool*) = 0;
+  virtual UNKNOWN_RETURN   GetAPICallFailureReason         (unsigned long long)        = 0;
+  virtual UNKNOWN_RETURN   GetAPICallResult                (unsigned long long, void*, int, int, bool*) = 0;
+  virtual UNKNOWN_RETURN
+                  SetAPICallResultWithoutPostingCallback   (unsigned long long, void const*, int, int)  = 0;
+  virtual UNKNOWN_RETURN   SignalAppsToShutDown            (void)         = 0;
+  virtual UNKNOWN_RETURN   SignalServiceAppsToDisconnect   (void)         = 0;
+  virtual UNKNOWN_RETURN   TerminateAllAppsMultiStep       (unsigned int) = 0;
+  virtual UNKNOWN_RETURN   GetCellID                       (void)         = 0;
+  virtual   bool           BIsGlobalInstance               (void)         = 0;
+  virtual UNKNOWN_RETURN   CheckFileSignature              (char const*)  = 0;
+  virtual UNKNOWN_RETURN   GetBuildID                      (void)         = 0;
+
+  virtual UNKNOWN_RETURN   SetCurrentUIMode                (EUIMode)       = 0;
+  virtual   EUIMode        GetCurrentUIMode                (void)          = 0;
+  virtual UNKNOWN_RETURN   ShutdownLauncher                (bool, bool)    = 0;
+  virtual UNKNOWN_RETURN   SetLauncherType                 (ELauncherType) = 0;
+  virtual   ELauncherType  GetLauncherType                 (void)          = 0;
+
+  virtual UNKNOWN_RETURN   ShowGamepadTextInput            (EGamepadTextInputMode, EGamepadTextInputLineMode,
+                                                               char const*, unsigned int, char const*) = 0;
+  virtual UNKNOWN_RETURN   GetEnteredGamepadTextLength     (void)                                      = 0;
+  virtual UNKNOWN_RETURN   GetEnteredGamepadTextInput      (char*, unsigned int)                       = 0;
+  virtual UNKNOWN_RETURN   GamepadTextInputClosed          (int, bool, char const*)                    = 0;
+  virtual UNKNOWN_RETURN   SetSpew                         (int, int, int)                             = 0;
+  virtual   bool           BDownloadsDisabled              (void)                                      = 0;
+
+  // Use this instead of steam://forceinputappid/... whenever possible
+  virtual UNKNOWN_RETURN   SetFocusedWindow                (CGameID, bool)                             = 0;
+  
+  virtual UNKNOWN_RETURN   GetSteamUILanguage              (void)                                      = 0;
+  virtual UNKNOWN_RETURN   CheckSteamReachable             (void)                                      = 0;
+  virtual UNKNOWN_RETURN   SetLastGameLaunchMethod         (EGameLaunchMethod)                         = 0;
+  virtual UNKNOWN_RETURN   SetVideoAdapterInfo             (int, int, int, int, int, int, char const*) = 0;
+
+  // Steam Input stuff, needs reverse engineering...
+  virtual UNKNOWN_RETURN   SetControllerOverrideMode       (CGameID, char const*, unsigned int)        = 0;
+  virtual UNKNOWN_RETURN   SetOverlayWindowFocusForPipe    (bool, bool, CGameID)                       = 0;
+  virtual UNKNOWN_RETURN
+                     GetGameOverlayUIInstanceFocusGameID   (bool*)                                     = 0;
+  virtual UNKNOWN_RETURN   SetControllerConfigFileForAppID (unsigned int, char const*)                 = 0;
+  virtual UNKNOWN_RETURN   GetControllerConfigFileForAppID (unsigned int, char*, unsigned int)         = 0;
+
+  virtual   bool           IsSteamRunningInVR              (void)                                      = 0;
+  virtual   bool           BIsRunningOnAlienwareAlpha      (void)                                      = 0;
+  virtual UNKNOWN_RETURN   StartVRDashboard                (void)                                      = 0;
+  virtual UNKNOWN_RETURN   IsVRHeadsetStreamingEnabled     (unsigned int)                              = 0;
+  virtual UNKNOWN_RETURN   SetVRHeadsetStreamingEnabled    (unsigned int, bool)                        = 0;
+  virtual UNKNOWN_RETURN   GenerateSupportSystemReport     (void)                                      = 0;
+  virtual UNKNOWN_RETURN   GetSupportSystemReport          (char*, unsigned int, unsigned char*,
+                                                                                 unsigned int)         = 0;
+
+  virtual   AppId_t        GetAppIdForPid                  (unsigned int, bool)                        = 0;
+  virtual UNKNOWN_RETURN   SetClientUIProcess              (void)                                      = 0;
+  virtual   bool           BIsClientUIInForeground         (void)                                      = 0;
+};
 
 #define SK_USE_STEAMINPUT_CALLBACKS
 
@@ -980,11 +1129,27 @@ public:
       {
         if (! SK::SteamAPI::SetWindowFocusState (true))
         {
-          SK_Steam_ForceInputAppId (config.steam.appid);
+          // Prevent recursion if two games are running at once,
+          //   both with background input mode enabled...
+          static HWND        hWndLastForeground = 0;
+          if (std::exchange (hWndLastForeground, SK_GetForegroundWindow ())
+                          != hWndLastForeground)
+          {
+            // Special K's AppId is a special case to block input altogether,
+            //   allow it to pass through unchallenged.
+            if (pParam->m_unAppID != SPECIAL_KILLER_APPID)
+            {
+              SK_LOGi0 (
+                L"Forced AppID Change For Background Render Mode; "
+                L"Steam loaded controller profile for AppId=%d",
+                  pParam->m_unAppID
+              );
+
+              SK_Steam_ForceInputAppId (config.steam.appid);
+            }
+          }
         }
       }
-
-      //SK_ImGui_Warning (std::to_wstring (pParam->m_unAppID).c_str ());
     }
 
     else
@@ -1653,11 +1818,13 @@ SK_SteamAPIContext::Shutdown (bool bGameRequested)
     controller_     = nullptr;
     music_          = nullptr;
     remote_storage_ = nullptr;
+    input_          = nullptr;
 
     client_ver_         = 0;
     user_ver_           = 0;
     utils_ver_          = 0;
     remote_storage_ver_ = 0;
+    input_ver_          = 0;
 
     // Calls to SK_DisableHook do nothing while DLL is shutting down,
     //   just kinda ignore this whole thing :)
@@ -3239,7 +3406,7 @@ SK::SteamAPI::AppID (void)
       id = ( utils != nullptr     ? static_cast <AppId64_t> (
              utils->GetAppID () ) : atoll (szSteamGameId) );
 
-      if (id != 0 && id != 1157970)
+      if (id != 0 && id != SPECIAL_KILLER_APPID)
       {
         if (config.system.central_repository &&
           (! app_cache_mgr->getAppIDFromPath (SK_GetFullyQualifiedApp ())))
@@ -3258,7 +3425,7 @@ SK::SteamAPI::AppID (void)
         }
       }
 
-      if (id == 1157970)
+      if (id == SPECIAL_KILLER_APPID)
           id = 0;  // Special K's AppID is a mistake of some sort, ignore it
 
       InterlockedIncrement (&init);
@@ -4112,7 +4279,7 @@ SteamAPI_Delay_Init (LPVOID)
   while ( (! ReadAcquire (&__SK_Steam_init)) &&
              tries < 120 )
   {
-    SK_Sleep (std::max (1, config.steam.init_delay));
+    SK_Sleep (std::max (25, config.steam.init_delay));
 
     if (SK_GetFramesDrawn () < 1)
       continue;
@@ -4126,7 +4293,6 @@ SteamAPI_Delay_Init (LPVOID)
 
     if (SteamAPI_Init_Original != nullptr)
     {
-      SK_ApplyQueuedHooks  ();
       SteamAPI_Init_Detour ();
     }
   }
@@ -4173,142 +4339,125 @@ SK_HookSteamAPI (void)
 
   if (! InterlockedCompareExchange (&__SteamAPI_hook, TRUE, FALSE))
   {
-    SK_Thread_CreateEx ([](LPVOID)->DWORD
+    SK_RunOnce ( SK::SteamAPI::steam_size =
+                  SK_File_GetSize (wszSteamAPI) );
+
+    steam_log->Log ( L"%s was loaded, hooking...",
+                     SK_ConcealUserDir ( std::wstring (wszSteamAPI).data () )
+    );
+
+    // New part of SteamAPI, don't try to hook unless the DLL exports it
+    if (SK_GetProcAddress (wszSteamAPI, "SteamAPI_ManualDispatch_Init"))
     {
-      SK_RunOnce ( SK::SteamAPI::steam_size =
-                    SK_File_GetSize (wszSteamAPI) );
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                         "SteamAPI_ManualDispatch_Init",
+                          SteamAPI_ManualDispatch_Init_Detour,
+                          static_cast_p2p <void> (&SteamAPI_ManualDispatch_Init_Original),
+                          static_cast_p2p <void> (&SteamAPI_ManualDispatch_Init) );      ++hooks;
+    }
 
-      steam_log->Log ( L"%s was loaded, hooking...",
-                       SK_ConcealUserDir ( std::wstring (wszSteamAPI).data () )
-      );
+    SK_CreateDLLHook2 ( wszSteamAPI,
+                       "SteamAPI_InitSafe",
+                        SteamAPI_InitSafe_Detour,
+                        static_cast_p2p <void> (&SteamAPI_InitSafe_Original),
+                        static_cast_p2p <void> (&SteamAPI_InitSafe) );                   ++hooks;
 
-      // New part of SteamAPI, don't try to hook unless the DLL exports it
-      if (SK_GetProcAddress (wszSteamAPI, "SteamAPI_ManualDispatch_Init"))
-      {
-        SK_CreateDLLHook2 ( wszSteamAPI,
-                           "SteamAPI_ManualDispatch_Init",
-                            SteamAPI_ManualDispatch_Init_Detour,
-                            static_cast_p2p <void> (&SteamAPI_ManualDispatch_Init_Original),
-                            static_cast_p2p <void> (&SteamAPI_ManualDispatch_Init) );      ++hooks;
-      }
+    SK_CreateDLLHook2 ( wszSteamAPI,
+                       "SteamAPI_Init",
+                        SteamAPI_Init_Detour,
+                        static_cast_p2p <void> (&SteamAPI_Init_Original),
+                        static_cast_p2p <void> (&SteamAPI_Init) );                       ++hooks;
+
+    SK_CreateDLLHook2 ( wszSteamAPI,
+                       "SteamAPI_RegisterCallback",
+                        SteamAPI_RegisterCallback_Detour,
+                        static_cast_p2p <void> (&SteamAPI_RegisterCallback_Original),
+                        static_cast_p2p <void> (&SteamAPI_RegisterCallback) );           ++hooks;
+
+    SK_CreateDLLHook2 ( wszSteamAPI,
+                       "SteamAPI_UnregisterCallback",
+                        SteamAPI_UnregisterCallback_Detour,
+                        static_cast_p2p <void> (&SteamAPI_UnregisterCallback_Original),
+                        static_cast_p2p <void> (&SteamAPI_UnregisterCallback) );         ++hooks;
+
+    SK_CreateDLLHook2 ( wszSteamAPI,
+                       "SteamAPI_RunCallbacks",
+                        SteamAPI_RunCallbacks_Detour,
+                        static_cast_p2p <void> (&SteamAPI_RunCallbacks_Original),
+                        static_cast_p2p <void> (&SteamAPI_RunCallbacks) );               ++hooks;
+
+
+    // Older DLLs will not have this, and we should avoid printing an error in the log
+    if (SK_GetProcAddress (wszSteamAPI,
+                             "SteamAPI_ISteamController_GetDigitalActionData") != nullptr)
+    {
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                         "SteamAPI_ISteamController_GetDigitalActionData",
+                          SteamAPI_ISteamController_GetDigitalActionData_Detour,
+                          static_cast_p2p <void> (&SteamAPI_ISteamController_GetDigitalActionData_Original) );
+                                                                                           ++hooks;
 
       SK_CreateDLLHook2 ( wszSteamAPI,
-                         "SteamAPI_InitSafe",
-                          SteamAPI_InitSafe_Detour,
-                          static_cast_p2p <void> (&SteamAPI_InitSafe_Original),
-                          static_cast_p2p <void> (&SteamAPI_InitSafe) );                   ++hooks;
+                         "SteamAPI_ISteamController_GetAnalogActionData",
+                          SteamAPI_ISteamController_GetAnalogActionData_Detour,
+                          static_cast_p2p <void> (&SteamAPI_ISteamController_GetAnalogActionData_Original) );
+                                                                                           ++hooks;
+    }
 
-      SK_CreateDLLHook2 ( wszSteamAPI,
-                         "SteamAPI_Init",
-                          SteamAPI_Init_Detour,
-                          static_cast_p2p <void> (&SteamAPI_Init_Original),
-                          static_cast_p2p <void> (&SteamAPI_Init) );                       ++hooks;
+    //
+    // Do not queue these up (by calling CreateDLLHook2),
+    //   they will be installed only upon the game successfully
+    //     calling one of the SteamAPI initialization functions.
+    //
+    SK_CreateDLLHook  ( wszSteamAPI,
+                       "SteamAPI_Shutdown",
+                        SteamAPI_Shutdown_Detour,
+                        static_cast_p2p <void> (&SteamAPI_Shutdown_Original),
+                        static_cast_p2p <void> (&SteamAPI_Shutdown) );                   ++hooks;
 
-      SK_CreateDLLHook2 ( wszSteamAPI,
-                         "SteamAPI_RegisterCallback",
-                          SteamAPI_RegisterCallback_Detour,
-                          static_cast_p2p <void> (&SteamAPI_RegisterCallback_Original),
-                          static_cast_p2p <void> (&SteamAPI_RegisterCallback) );           ++hooks;
-
-      SK_CreateDLLHook2 ( wszSteamAPI,
-                         "SteamAPI_UnregisterCallback",
-                          SteamAPI_UnregisterCallback_Detour,
-                          static_cast_p2p <void> (&SteamAPI_UnregisterCallback_Original),
-                          static_cast_p2p <void> (&SteamAPI_UnregisterCallback) );         ++hooks;
-
-      SK_CreateDLLHook2 ( wszSteamAPI,
-                         "SteamAPI_RunCallbacks",
-                          SteamAPI_RunCallbacks_Detour,
-                          static_cast_p2p <void> (&SteamAPI_RunCallbacks_Original),
-                          static_cast_p2p <void> (&SteamAPI_RunCallbacks) );               ++hooks;
-
-
-      // Older DLLs will not have this, and we should avoid printing an error in the log
-      if (SK_GetProcAddress (wszSteamAPI,
-                               "SteamAPI_ISteamController_GetDigitalActionData") != nullptr)
-      {
-        SK_CreateDLLHook2 ( wszSteamAPI,
-                           "SteamAPI_ISteamController_GetDigitalActionData",
-                            SteamAPI_ISteamController_GetDigitalActionData_Detour,
-                            static_cast_p2p <void> (&SteamAPI_ISteamController_GetDigitalActionData_Original) );
-                                                                                             ++hooks;
-
-        SK_CreateDLLHook2 ( wszSteamAPI,
-                           "SteamAPI_ISteamController_GetAnalogActionData",
-                            SteamAPI_ISteamController_GetAnalogActionData_Detour,
-                            static_cast_p2p <void> (&SteamAPI_ISteamController_GetAnalogActionData_Original) );
-                                                                                             ++hooks;
-      }
-
-      //
-      // Do not queue these up (by calling CreateDLLHook2),
-      //   they will be installed only upon the game successfully
-      //     calling one of the SteamAPI initialization functions.
-      //
-      SK_CreateDLLHook  ( wszSteamAPI,
-                         "SteamAPI_Shutdown",
-                          SteamAPI_Shutdown_Detour,
-                          static_cast_p2p <void> (&SteamAPI_Shutdown_Original),
-                          static_cast_p2p <void> (&SteamAPI_Shutdown) );                   ++hooks;
-
-      std::unordered_set <std::wstring>      matches;
-      std::unordered_set <std::wstring_view> pattern = {
+    std::unordered_set <std::wstring>      matches;
+    std::unordered_set <std::wstring_view> pattern = {
 #ifdef _M_AMD64
-        L"steam_api64",
+      L"steam_api64",
 #else /* _M_IX86 */
-        L"steam_api",
+      L"steam_api",
 #endif
-        L"csteamworks",
-        L"steamwrapper",
-        L"steamnative"
-      };
+      L"csteamworks",
+      L"steamwrapper",
+      L"steamnative"
+    };
 
-#ifdef SK_SYNCHRONOUS_STEAMAPI_HOOKS
-      if (hooks > 0)
-        SK_ApplyQueuedHooks ();
-#endif
+    if (hooks > 0)
+    {
+      bool bEnableHooks =
+        SK_EnableApplyQueuedHooks ();
+      
+      SK_ApplyQueuedHooks ();
+      
+      if (! bEnableHooks)
+        SK_DisableApplyQueuedHooks ();
+    }
 
-      InterlockedIncrementRelease (&__SteamAPI_hook);
+    InterlockedIncrementRelease (&__SteamAPI_hook);
 
-      if ( config.steam.force_load_steamapi ||
-           config.steam.init_delay      > 0 ||
-             (! ( matches =
-                    SK_RecursiveFileSearchEx (
-                      SK_GetHostPath (), L".dll", pattern,
-                         { {wszSteamAPI,           false},
-                           {config.steam.dll_path, false} }
-                    )
-                ).empty ()
-             )
-          )
-      {
-#ifdef SK_SYNCHRONOUS_STEAMAPI_HOOKS
-        SK_Thread_Create    (SteamAPI_Delay_Init);
-        SK_Thread_CloseSelf ();
-        return 0;
-#else
-        return
-          SteamAPI_Delay_Init (nullptr);
-#endif
-      }
-
-      // Do this late, because the call to SteamAPI_Delay_Init
-      //   duplicates work... we might be able to skip this
-#ifndef SK_SYNCHRONOUS_STEAMAPI_HOOKS
-      if (hooks > 0)
-        SK_ApplyQueuedHooks ();
-#endif
-
-      SK_Thread_CloseSelf ();
-
-      return 0;
-    }, L"[SK] SteamAPI Hook Context");
+    if ( config.steam.force_load_steamapi ||
+         config.steam.init_delay      > 0 ||
+           (! ( matches =
+                  SK_RecursiveFileSearchEx (
+                    SK_GetHostPath (), L".dll", pattern,
+                       { {wszSteamAPI,           false},
+                         {config.steam.dll_path, false} }
+                  )
+              ).empty ()
+           )
+        )
+    {
+      SK_Thread_Create (SteamAPI_Delay_Init);
+    }
   }
 
-#ifdef SK_SYNCHRONOUS_STEAMAPI_HOOKS
   else
     SK_Thread_SpinUntilAtomicMin (&__SteamAPI_hook, 2);
-#endif
 
   return hooks;
 }
@@ -4698,8 +4847,8 @@ SK_Steam_TestImports (HMODULE hMod)
 
   if (steam_api->used)
   {
-    SK_HookSteamAPI ();
     steam_imported = true;
+    SK_HookSteamAPI ();
   }
 
   else
@@ -4709,17 +4858,20 @@ SK_Steam_TestImports (HMODULE hMod)
       if ( SK_Modules->LoadLibrary (steam_dll_str) ||
            SK_GetModuleHandle (L"SteamNative.dll") )
       {
-        SK_HookSteamAPI ();
         steam_imported = true;
+        SK_HookSteamAPI ();
       }
     }
   }
 
-  if ( SK_Modules->LoadLibrary (steam_dll_str) ||
-       SK_GetModuleHandle (L"SteamNative.dll") )
+  // Once is enough, dammit!
+  if ( steam_imported == false && 
+       ( SK_Modules->LoadLibrary (steam_dll_str) ||
+         SK_GetModuleHandle (L"SteamNative.dll") )
+     )
   {
-    SK_HookSteamAPI ();
     steam_imported = true;
+    SK_HookSteamAPI ();
   }
 
   // Special case (kick-start)
@@ -5562,7 +5714,7 @@ SK_Steam_ProcessWindowActivation (bool active)
       {
         if (! SK::SteamAPI::SetWindowFocusState (false))
         {
-          SK_Steam_ForceInputAppId (1157970);
+          SK_Steam_ForceInputAppId (SPECIAL_KILLER_APPID);
           SK_Steam_ForceInputAppId (0);
         }
       }
@@ -5582,7 +5734,7 @@ SK_Steam_ProcessWindowActivation (bool active)
   {
     if (! SK::SteamAPI::SetWindowFocusState (false))
     {
-      SK_Steam_ForceInputAppId (1157970);
+      SK_Steam_ForceInputAppId (SPECIAL_KILLER_APPID);
     }
   }
 }
@@ -5810,6 +5962,33 @@ SAFE_GetISteamUGC (ISteamClient* pClient, HSteamUser hSteamuser, HSteamPipe hSte
   return pUGC;
 }
 
+ISteamInput*
+SAFE_GetISteamInput (       ISteamClient *pClient,
+                            HSteamUser    hSteamuser,
+                            HSteamPipe    hSteamPipe,
+                      const char         *pchVersion )
+{
+  ISteamInput* pInput = nullptr;
+
+  if (pClient != nullptr)
+  {
+    auto orig_se =
+    SK_SEH_ApplyTranslator (
+      SK_FilteringStructuredExceptionTranslator(EXCEPTION_ACCESS_VIOLATION)
+    );
+    try
+    {
+      pInput = (ISteamInput *)
+        pClient->GetISteamGenericInterface (hSteamuser, hSteamPipe, pchVersion);
+    }
+
+    catch (const SK_SEH_IgnoredException&) { };
+    SK_SEH_RemoveTranslator (orig_se);
+  }
+
+  return pInput;
+}
+
 
 extern "C"
   void __cdecl SteamAPIDebugTextHook (       int   nSeverity,
@@ -5955,6 +6134,7 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
 #define INTERNAL_STEAMMUSIC_INTERFACE_VERSION          1
 #define INTERNAL_STEAMREMOTESTORAGE_INTERFACE_VERSION 12
 #define INTERNAL_STEAMUGC_INTERFACE_VERSION           10
+#define INTERNAL_STEAMINPUT_INTERFACE_VERSION          6
 
   int i = 0;
 
@@ -6015,6 +6195,40 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
     user_ = nullptr;
     return false;
   }
+
+
+  for (i = INTERNAL_STEAMINPUT_INTERFACE_VERSION+1; i > 0; --i)
+  {
+    input_ = (ISteamInput *)
+      client_->GetISteamGenericInterface (
+        hSteamUser, hSteamPipe,
+          SK_FormatString ("SteamInput%03lu", i).c_str ()
+      );
+
+    if (input_ != nullptr)
+    {
+      if (input_ver_ == 0)
+      {
+        input_ver_ = i;
+        steam_log->Log (L"SteamAPI DLL Implements Steam Input v%03lu", i);
+
+        if (input_ver_ > INTERNAL_STEAMINPUT_INTERFACE_VERSION+1)
+          steam_log->Log (L" >> Newer than Special K knows about.");
+      }
+
+      if (i == INTERNAL_STEAMINPUT_INTERFACE_VERSION)
+        break;
+    }
+  }
+
+  if (i != INTERNAL_STEAMINPUT_INTERFACE_VERSION)
+  {
+    steam_log->Log ( L" >> ISteamInput NOT FOUND for version %hs <<",
+                   STEAMINPUT_INTERFACE_VERSION );
+    input_ = nullptr;
+    return false;
+  }
+
 
   user_ex_ =
     (ISteamUser004_Light *)client_->GetISteamUser (
@@ -6326,172 +6540,6 @@ SK_Steam_KickStart (const wchar_t* wszLibPath)
   return FALSE;
 }
 
-
-#define CLIENTENGINE_INTERFACE_VERSION     "CLIENTENGINE_INTERFACE_VERSION005"
-#define CLIENTENGINE_INTERFACE_VERSION_ALT "CLIENTENGINE_INTERFACE_VERSION006"
-#define CLIENTUSER_INTERFACE_VERSION       "CLIENTUSER_INTERFACE_VERSION001"
-#define CLIENTFRIENDS_INTERFACE_VERSION    "CLIENTFRIENDS_INTERFACE_VERSION001"
-#define CLIENTAPPS_INTERFACE_VERSION       "CLIENTAPPS_INTERFACE_VERSION001"
-#define CLIENTUTILS_INTERFACE_VERSION      "CLIENTUTILS_INTERFACE_VERSION001"
-
-enum EAppState
-{
-  k_EAppStateInvalid        = 0,
-  k_EAppStateUninstalled    = 1,
-  k_EAppStateUpdateRequired = 2,
-  k_EAppStateFullyInstalled = 4,
-  k_EAppStateDataEncrypted  = 8,
-  k_EAppStateSharedOnly     = 64,
-  k_EAppStateDataLocked     = 16,
-  k_EAppStateFilesMissing   = 32,
-  k_EAppStateFilesCorrupt   = 128,
-  k_EAppStateAppRunning     = 8192,
-  k_EAppStateBackupRunning  = 4096,
-  k_EAppStateUpdateRunning  = 256,
-  k_EAppStateUpdateStopping = 8388608,
-  k_EAppStateUpdatePaused   = 512,
-  k_EAppStateUpdateStarted  = 1024,
-  k_EAppStateReconfiguring  = 65536,
-  k_EAppStateAddingFiles    = 262144,
-  k_EAppStateDownloading    = 1048576,
-  k_EAppStateStaging        = 2097152,
-  k_EAppStateCommitting     = 4194304,
-  k_EAppStateUninstalling   = 2048,
-  k_EAppStatePreallocating  = 524288,
-  k_EAppStateValidating     = 131072,
-};
-
-enum EAppEvent
-{
-  k_EAppEventDownloadComplete = 2,
-};
-
-enum EAppInfoSection
-{
-  k_EAppInfoSectionUnknown = 0,
-  k_EAppInfoSectionAll,
-  k_EAppInfoSectionCommon,
-  k_EAppInfoSectionExtended,
-  k_EAppInfoSectionConfig,
-  k_EAppInfoSectionStats,
-  k_EAppInfoSectionInstall,
-  k_EAppInfoSectionDepots,
-  k_EAppInfoSectionVac,
-  k_EAppInfoSectionDrm,
-  k_EAppInfoSectionUfs,
-  k_EAppInfoSectionOgg,
-  k_EAppInfoSectionItems,
-  k_EAppInfoSectionPolicies,
-  k_EAppInfoSectionSysreqs,
-  k_EAppInfoSectionCommunity
-};
-
-// Who knows...?
-enum EUIMode
-{
-	k_EUIModeUnknown = 0,
-	k_EUIModeMax     = DWORD_MAX
-};
-
-enum ELauncherType
-{
-	k_ELAuncherTypeUnknown = 0,
-	k_ELAuncherTypeMax     = DWORD_MAX
-};
-
-enum EGameLaunchMethod
-{
-  k_EGameLaunchMethodUnknown = 0,
-  k_EGameLaunchMethodMax     = DWORD_MAX
-};
-
-class IClientUtils_001
-{
-using UNKNOWN_RETURN = void;
-
-public:
-  virtual const char*      GetInstallPath                  (void) = 0;
-  virtual const char*      GetUserBaseFolderInstallImage   (void) = 0;
-  virtual const char*      GetManagedContentRoot           (void) = 0;
-
-  virtual       uint32     GetSecondsSinceAppActive        (void) = 0;
-  virtual       uint32     GetSecondsSinceComputerActive   (void) = 0;
-  virtual       void       SetComputerActive               (void) = 0;
-
-  virtual       EUniverse  GetConnectedUniverse            (void) = 0;
-  virtual       uint32     GetServerRealTime               (void) = 0;
-  virtual const char*      GetIPCountry                    (void) = 0;
-
-  virtual       bool       GetImageSize                    (int32   iImage, uint32* pnWidth, uint32* pnHeight)        = 0;
-  virtual       bool       GetImageRGBA                    (int32   iImage, uint8*  pubDest, int32   nDestBufferSize) = 0;
-  virtual       bool       GetCSERIPPort                   (uint32* unIP,   uint16* usPort)                           = 0;
-  virtual       uint32     GetNumRunningApps               (void)          = 0;
-  virtual       uint8      GetCurrentBatteryPower          (void)          = 0;
-  virtual       void       SetOfflineMode                  (bool bOffline) = 0;
-  virtual       bool       GetOfflineMode                  (void)          = 0;
-
-  virtual       AppId_t    SetAppIDForCurrentPipe          (AppId_t nAppID, bool bTrackProcess) = 0; // Disabled in late 2019
-  virtual       AppId_t    GetAppID                        (void)                               = 0;
-
-  virtual UNKNOWN_RETURN   SetAPIDebuggingActive           (bool, bool)   = 0;
-  virtual UNKNOWN_RETURN   AllocPendingAPICallHandle       (void)         = 0;
-  virtual   bool           IsAPICallCompleted              (unsigned long long, bool*) = 0;
-  virtual UNKNOWN_RETURN   GetAPICallFailureReason         (unsigned long long)        = 0;
-  virtual UNKNOWN_RETURN   GetAPICallResult                (unsigned long long, void*, int, int, bool*) = 0;
-  virtual UNKNOWN_RETURN
-                  SetAPICallResultWithoutPostingCallback   (unsigned long long, void const*, int, int)  = 0;
-  virtual UNKNOWN_RETURN   SignalAppsToShutDown            (void)         = 0;
-  virtual UNKNOWN_RETURN   SignalServiceAppsToDisconnect   (void)         = 0;
-  virtual UNKNOWN_RETURN   TerminateAllAppsMultiStep       (unsigned int) = 0;
-  virtual UNKNOWN_RETURN   GetCellID                       (void)         = 0;
-  virtual   bool           BIsGlobalInstance               (void)         = 0;
-  virtual UNKNOWN_RETURN   CheckFileSignature              (char const*)  = 0;
-  virtual UNKNOWN_RETURN   GetBuildID                      (void)         = 0;
-
-  virtual UNKNOWN_RETURN   SetCurrentUIMode                (EUIMode)       = 0;
-  virtual   EUIMode        GetCurrentUIMode                (void)          = 0;
-  virtual UNKNOWN_RETURN   ShutdownLauncher                (bool, bool)    = 0;
-  virtual UNKNOWN_RETURN   SetLauncherType                 (ELauncherType) = 0;
-  virtual   ELauncherType  GetLauncherType                 (void)          = 0;
-
-  virtual UNKNOWN_RETURN   ShowGamepadTextInput            (EGamepadTextInputMode, EGamepadTextInputLineMode,
-                                                               char const*, unsigned int, char const*) = 0;
-  virtual UNKNOWN_RETURN   GetEnteredGamepadTextLength     (void)                                      = 0;
-  virtual UNKNOWN_RETURN   GetEnteredGamepadTextInput      (char*, unsigned int)                       = 0;
-  virtual UNKNOWN_RETURN   GamepadTextInputClosed          (int, bool, char const*)                    = 0;
-  virtual UNKNOWN_RETURN   SetSpew                         (int, int, int)                             = 0;
-  virtual   bool           BDownloadsDisabled              (void)                                      = 0;
-
-  // Use this instead of steam://forceinputappid/... whenever possible
-  virtual UNKNOWN_RETURN   SetFocusedWindow                (CGameID, bool)                             = 0;
-  
-  virtual UNKNOWN_RETURN   GetSteamUILanguage              (void)                                      = 0;
-  virtual UNKNOWN_RETURN   CheckSteamReachable             (void)                                      = 0;
-  virtual UNKNOWN_RETURN   SetLastGameLaunchMethod         (EGameLaunchMethod)                         = 0;
-  virtual UNKNOWN_RETURN   SetVideoAdapterInfo             (int, int, int, int, int, int, char const*) = 0;
-
-  // Steam Input stuff, needs reverse engineering...
-  virtual UNKNOWN_RETURN   SetControllerOverrideMode       (CGameID, char const*, unsigned int)        = 0;
-  virtual UNKNOWN_RETURN   SetOverlayWindowFocusForPipe    (bool, bool, CGameID)                       = 0;
-  virtual UNKNOWN_RETURN
-                     GetGameOverlayUIInstanceFocusGameID   (bool*)                                     = 0;
-  virtual UNKNOWN_RETURN   SetControllerConfigFileForAppID (unsigned int, char const*)                 = 0;
-  virtual UNKNOWN_RETURN   GetControllerConfigFileForAppID (unsigned int, char*, unsigned int)         = 0;
-
-  virtual   bool           IsSteamRunningInVR              (void)                                      = 0;
-  virtual   bool           BIsRunningOnAlienwareAlpha      (void)                                      = 0;
-  virtual UNKNOWN_RETURN   StartVRDashboard                (void)                                      = 0;
-  virtual UNKNOWN_RETURN   IsVRHeadsetStreamingEnabled     (unsigned int)                              = 0;
-  virtual UNKNOWN_RETURN   SetVRHeadsetStreamingEnabled    (unsigned int, bool)                        = 0;
-  virtual UNKNOWN_RETURN   GenerateSupportSystemReport     (void)                                      = 0;
-  virtual UNKNOWN_RETURN   GetSupportSystemReport          (char*, unsigned int, unsigned char*,
-                                                                                 unsigned int)         = 0;
-
-  virtual   AppId_t        GetAppIdForPid                  (unsigned int, bool)                        = 0;
-  virtual UNKNOWN_RETURN   SetClientUIProcess              (void)                                      = 0;
-  virtual   bool           BIsClientUIInForeground         (void)                                      = 0;
-};
-
 class IClientApps_001
 {
 public:
@@ -6795,10 +6843,13 @@ SK_SteamAPIContext::ClientFriends (void)
 }
 
 bool
-SK_SteamAPIContext::SetWindowFocusState (bool/*focused*/)
+SK_SteamAPIContext::SetWindowFocusState (bool focused)
 {
   // SteamOS has even buggier Steam Input than Windows; ignore the problem.
   if (config.compatibility.using_wine)
+    return false;
+
+  //if (config.input.gamepad.steam.is_native)
     return false;
 
   auto* client_engine =
@@ -6835,11 +6886,9 @@ SK_SteamAPIContext::SetWindowFocusState (bool/*focused*/)
 
       if (utils != nullptr)
       {
-#if 0
         utils->SetFocusedWindow (
           CGameID (SK::SteamAPI::AppID ()), focused
         );
-#endif
       }
 
 #ifdef MANUAL_PIPE_CREATION
@@ -7140,7 +7189,7 @@ SK_Steam_GetAppID_NoAPI (void)
   }
 
   // Special K's AppID is a mistake of some sort, ignore it
-  if (AppID == 1157970)
+  if (AppID == SPECIAL_KILLER_APPID)
   {   AppID = 0; config.steam.appid = 0; }
 
   // If we have an AppID, stash it in the config file for future use

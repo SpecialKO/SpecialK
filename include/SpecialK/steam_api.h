@@ -31,6 +31,7 @@ struct IUnknown;
 #include <vector>
 
 #include <steamapi/steam_api.h>
+#include <steamapi/isteaminput.h>
 #include <SpecialK/log.h>
 #include <SpecialK/command.h>
 #include <SpecialK/render/screenshot.h>
@@ -380,6 +381,7 @@ public:
   int                  RemoteStorageVersion (void) noexcept { return remote_storage_ver_; }
   ISteamUGC*           UGC                  (void) noexcept { return ugc_;                }
   int                  UGCVersion           (void) noexcept { return ugc_ver_;            }
+  ISteamInput*         Input                (void) noexcept { return input_;              }
 
   SK_IVariable*      popup_origin   = nullptr;
   SK_IVariable*      notify_corner  = nullptr;
@@ -430,12 +432,14 @@ private:
   ISteamMusic*         music_          = nullptr;
   ISteamRemoteStorage* remote_storage_ = nullptr;
   ISteamUGC*           ugc_            = nullptr;
+  ISteamInput*         input_          = nullptr;
 
   int                  client_ver_         = 0;
   int                  ugc_ver_            = 0;
   int                  user_ver_           = 0;
   int                  utils_ver_          = 0;
   int                  remote_storage_ver_ = 0;
+  int                  input_ver_          = 0;
 };
 
 extern SK_LazyGlobal <SK_SteamAPIContext> pSteamCtx;
