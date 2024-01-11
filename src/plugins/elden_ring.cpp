@@ -691,10 +691,9 @@ SK_ER_InitConfig (void)
 void __stdcall
 SK_ER_DeferredInit (void)
 {
-  if (SK_GetFramesDrawn () > 15)
+  if (static bool                                 init         = false;
+      SK_GetFramesDrawn () > 15 && std::exchange (init, true) == false)
   {
-    plugin_mgr->end_frame_fns.erase (SK_ER_DeferredInit);
-
     SK_ER_InitConfig ();
 
     auto& addr_cache =

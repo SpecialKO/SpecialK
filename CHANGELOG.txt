@@ -1,5 +1,7 @@
 ﻿24.1.11.2
 =========
+ + Fixed crash in Elden Ring caused by erasing the deferred initialization
+     callback running on a different thread.
  + Added command console variable to toggle XInput blocking at runtime,
  
      Input.XInput.HideAllDevices  {true|false}
