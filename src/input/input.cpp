@@ -89,10 +89,9 @@ SK_Input_DeclareAppNotSteamNative (void)
 
   config.input.gamepad.steam.is_native = false;
 
-  if ( config.steam.appid > 0                      )
-      // config.window.background_render             &&
-      //(config.input.gamepad.disabled_to_game == 0) &&
-      //(GetForegroundWindow () != game_window.hWnd) )
+  if ( config.steam.appid > 0                      &&
+       config.window.background_render             &&
+      (config.input.gamepad.disabled_to_game == 0) )
   {
     SK_Steam_ForceInputAppId (config.steam.appid);
   }

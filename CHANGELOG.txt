@@ -1,7 +1,14 @@
-﻿24.1.11.2
+﻿24.1.11.3
+=========
+ + Workaround compiler bug causing XInput crashes in updated MSVC 2022 toolchain
+ + Corrected OpenGL pixel format descriptor's color bits count; it is not supposed
+     to include alpha bits (e.g. 24-bit color, 8-bit alpha... not 32-bit color)
+
+24.1.11.2
 =========
  + Fixed crash in Elden Ring caused by erasing the deferred initialization
      callback running on a different thread.
+
  + Added command console variable to toggle XInput blocking at runtime,
  
      Input.XInput.HideAllDevices  {true|false}

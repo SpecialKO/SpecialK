@@ -1631,8 +1631,8 @@ SK_ImGui_FilterXInput (
     RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
     // SDL Keepalive
-    pState->dwPacketNumber =
-      std::max (1UL, pState->dwPacketNumber);
+    if (pState->dwPacketNumber < 1)
+        pState->dwPacketNumber = 1;
 
     return true;
   }
