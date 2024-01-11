@@ -1,4 +1,13 @@
-﻿24.1.11.1
+﻿24.1.11.2
+=========
+ + Added command console variable to toggle XInput blocking at runtime,
+ 
+     Input.XInput.HideAllDevices  {true|false}
+
+   Intended usage is to fix games that see XInput devices using other input
+     APIs and cannot tell they are the same device (e.g. double inputs).
+
+24.1.11.1
 =========
  + Disable blocking NVIDIA MessageBus input while the control panel is
      in exclusive input mode.

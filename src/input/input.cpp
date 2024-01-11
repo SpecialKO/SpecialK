@@ -767,6 +767,55 @@ ReadFile_Detour (HANDLE       hFile,
         lpNumberOfBytesRead, lpOverlapped );
 }
 
+static
+BOOL
+WINAPI
+ReadFileEx_Detour (HANDLE                          hFile,
+                   LPVOID                          lpBuffer,
+                   DWORD                           nNumberOfBytesToRead,
+                   LPOVERLAPPED                    lpOverlapped,
+                   LPOVERLAPPED_COMPLETION_ROUTINE lpCompletionRoutine)
+{
+  SK_LOG_FIRST_CALL
+
+  auto dev_file_type =
+    SK_Input_GetDeviceFileType (hFile);
+
+  switch (dev_file_type)
+  {
+    case SK_Input_DeviceFileType::HID:
+    {
+      BOOL bRet =
+        ReadFileEx_Original (
+          hFile, lpBuffer, nNumberOfBytesToRead,
+            lpOverlapped, lpCompletionRoutine
+        );
+
+      return bRet;
+    } break;
+
+    case SK_Input_DeviceFileType::NVIDIA:
+    {
+      BOOL bRet =
+        ReadFileEx_Original (
+          hFile, lpBuffer, nNumberOfBytesToRead,
+            lpOverlapped, lpCompletionRoutine
+        );
+
+      if (bRet != FALSE)
+        SK_MessageBus_Backend->markRead (2);
+
+      return bRet;
+    }
+  }
+
+  return
+    ReadFileEx_Original (
+      hFile, lpBuffer, nNumberOfBytesToRead,
+        lpOverlapped, lpCompletionRoutine
+    );
+}
+
 bool
 SK_StrSupW (const wchar_t *wszString, const wchar_t *wszPattern, int len = -1)
 {
@@ -1001,6 +1050,59 @@ SK_Input_ShouldBlockDevice (HANDLE hFile)
   return false;
 }
 
+// This is the most common way that games that manually open USB HID
+//   device files actually read their input (usually the non-Ex variant).
+BOOL
+WINAPI
+GetOverlappedResultEx_Detour (HANDLE       hFile,
+                              LPOVERLAPPED lpOverlapped,
+                              LPDWORD      lpNumberOfBytesTransferred,
+                              DWORD        dwMilliseconds,
+                              BOOL         bWait)
+{
+  SK_LOG_FIRST_CALL
+
+  auto dev_file_type =
+    SK_Input_GetDeviceFileType (hFile);
+
+  switch (dev_file_type)
+  {
+    case SK_Input_DeviceFileType::HID:
+    {
+      const auto &device_file =
+        SK_HID_DeviceFiles.at (hFile);
+
+      SK_HID_READ (device_file.device_type);
+
+      if (! device_file.isInputAllowed ())
+      {
+        // We did the bulk of this processing in ReadFile_Detour (...)
+        //   nothing to be done here for now.
+      }
+
+      const BOOL bRet =
+        GetOverlappedResultEx_Original (
+          hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
+        );
+
+      if (bRet != FALSE)
+        SK_HID_VIEW (device_file.device_type);
+
+      return bRet;
+    } break;
+
+    case SK_Input_DeviceFileType::NVIDIA:
+    {
+      SK_MessageBus_Backend->markRead (2);
+    } break;
+  }
+
+  return
+    GetOverlappedResultEx_Original (
+      hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
+    );
+}
+
 BOOL
 WINAPI
 GetOverlappedResult_Detour (HANDLE       hFile,
@@ -1010,7 +1112,7 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 {
   SK_LOG_FIRST_CALL
 
-  const auto dev_file_type =
+  auto dev_file_type =
     SK_Input_GetDeviceFileType (hFile);
 
   switch (dev_file_type)
@@ -1126,15 +1228,28 @@ SK_Input_HookHID (void)
                                DeviceIoControl_Detour,
       static_cast_p2p <void> (&DeviceIoControl_Original) );
 
+#if 1
     SK_CreateDLLHook2 (      L"kernel32.dll",
                               "ReadFile",
                                ReadFile_Detour,
       static_cast_p2p <void> (&ReadFile_Original) );
 
     SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "ReadFileEx",
+                               ReadFileEx_Detour,
+      static_cast_p2p <void> (&ReadFileEx_Original) );
+#endif
+
+    // Hooked and then forwarded to the GetOverlappedResultEx hook
+    SK_CreateDLLHook2 (      L"kernel32.dll",
                               "GetOverlappedResult",
                                GetOverlappedResult_Detour,
       static_cast_p2p <void> (&GetOverlappedResult_Original) );
+
+    SK_CreateDLLHook2 (      L"kernel32.dll",
+                              "GetOverlappedResultEx",
+                               GetOverlappedResultEx_Detour,
+      static_cast_p2p <void> (&GetOverlappedResultEx_Original) );
 
     if (ReadAcquire (&__SK_Init) > 0) SK_ApplyQueuedHooks ();
 
@@ -1297,7 +1412,7 @@ joyGetPosEx_Detour (_In_  UINT        uJoyID,
   // This API enumerates random devices that don't qualify as gamepads;
   //   if there is no D-Pad _AND_ fewer than 4 buttons, then ignore it.
   bool bInvalidController =
-    (! (joy_caps.wCaps & JOYCAPS_POV4DIR)) &&
+    (! (joy_caps.wCaps & JOYCAPS_POV4DIR)) ||
         joy_caps.wNumButtons < 4;
 
   // Failure to ignore bInvalidController status would cause many games
@@ -5155,6 +5270,7 @@ SK_Input_Init (void)
   CreateInputVar_Bool ("Input.Mouse.DisableToGame",    &config.input.mouse.disabled_to_game);
   CreateInputVar_Bool ("Input.Gamepad.DisableToGame",  &config.input.gamepad.disabled_to_game);
   CreateInputVar_Bool ("Input.Gamepad.DisableRumble",  &config.input.gamepad.disable_rumble);
+  CreateInputVar_Bool ("Input.XInput.HideAllDevices",  &config.input.gamepad.xinput.blackout_api);
 
   CreateInputVar_Int  ("Input.Steam.UIController",     &config.input.gamepad.steam.ui_slot);
   CreateInputVar_Int  ("Input.XInput.UIController",    &config.input.gamepad.xinput.ui_slot);
