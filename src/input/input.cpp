@@ -81,22 +81,6 @@ struct SK_NVIDIA_DeviceFile {
   bool    bDisableDevice               = FALSE;
 };
 
-void
-SK_Input_DeclareAppNotSteamNative (void)
-{
-  if (! config.input.gamepad.steam.is_native)
-    return;
-
-  config.input.gamepad.steam.is_native = false;
-
-  if ( config.steam.appid > 0                      &&
-       config.window.background_render             &&
-      (config.input.gamepad.disabled_to_game == 0) )
-  {
-    SK_Steam_ForceInputAppId (config.steam.appid);
-  }
-}
-
 struct SK_HID_DeviceFile {
   HIDP_CAPS         hidpCaps                           = { };
   wchar_t           wszProductName      [128]          = { };
@@ -702,7 +686,7 @@ ReadFile_Detour (HANDLE       hFile,
       const bool bDisallow = 
         (! device_file.isInputAllowed ());
 
-      SK_HID_VIEW (device_file.device_type);
+      SK_HID_READ (device_file.device_type);
 
       auto pTlsBackedBuffer =
         SK_TLS_Bottom ()->scratch_memory->log.formatted_output.alloc (nNumberOfBytesToRead);
@@ -715,9 +699,6 @@ ReadFile_Detour (HANDLE       hFile,
 
       if (bRet)
       {
-        extern void SK_Input_DeclareAppNotSteamNative (void);
-                    SK_Input_DeclareAppNotSteamNative ();
-
         if (bDisallow)
         {
           SK_ReleaseAssert (lpBuffer != nullptr);
@@ -755,7 +736,7 @@ ReadFile_Detour (HANDLE       hFile,
           }
         }
 
-        SK_HID_READ (device_file.device_type);
+        SK_HID_VIEW (device_file.device_type);
       }
 
       return bRet;
@@ -807,7 +788,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
       const bool bDisallow = 
         (! device_file.isInputAllowed ());
 
-      SK_HID_VIEW (device_file.device_type);
+      SK_HID_READ (device_file.device_type);
 
       if (bDisallow)
       {
@@ -821,7 +802,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
         }
       }
 
-      SK_HID_READ (device_file.device_type);
+      SK_HID_VIEW (device_file.device_type);
     } break;
 
     case SK_Input_DeviceFileType::NVIDIA:
@@ -1089,7 +1070,7 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
       const auto &device_file =
         SK_HID_DeviceFiles.at (hFile);
 
-      SK_HID_VIEW (device_file.device_type);
+      SK_HID_READ (device_file.device_type);
 
       const BOOL bRet =
         GetOverlappedResultEx_Original (
@@ -1100,7 +1081,7 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
       {
         if (device_file.isInputAllowed ())
         {
-          SK_HID_READ (device_file.device_type);
+          SK_HID_VIEW (device_file.device_type);
           // We did the bulk of this processing in ReadFile_Detour (...)
           //   nothing to be done here for now.
         }
@@ -1140,7 +1121,7 @@ GetOverlappedResult_Detour (HANDLE       hFile,
       const auto &device_file =
         SK_HID_DeviceFiles.at (hFile);
 
-      SK_HID_VIEW (device_file.device_type);
+      SK_HID_READ (device_file.device_type);
 
       const bool bRet =
         GetOverlappedResult_Original (
@@ -1152,7 +1133,7 @@ GetOverlappedResult_Detour (HANDLE       hFile,
       {
         if (device_file.isInputAllowed ())
         {
-          SK_HID_READ (device_file.device_type);
+          SK_HID_VIEW (device_file.device_type);
           // We did the bulk of this processing in ReadFile_Detour (...)
           //   nothing to be done here for now.
         }
@@ -2837,7 +2818,7 @@ SK_ImGui_WantGamepadCapture (void)
       imgui_capture = true;
   }
 
-  if ((! SK_IsGameWindowActive ()) && config.input.gamepad.disabled_to_game == SK_InputEnablement::DisabledInBackground)
+  if ((! SK_IsGameWindowActive ()) && config.input.gamepad.disabled_to_game != SK_InputEnablement::Enabled)
     imgui_capture = true;
 
   return

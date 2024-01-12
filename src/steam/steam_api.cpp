@@ -1092,16 +1092,12 @@ public:
   virtual   bool           BIsClientUIInForeground         (void)                                      = 0;
 };
 
-#define SK_USE_STEAMINPUT_CALLBACKS
-
 class SK_Steam_OverlayManager
 {
 public:
   SK_Steam_OverlayManager (void) :
-    activation  ( this, &SK_Steam_OverlayManager::OnActivate              )
-#ifdef SK_USE_STEAMINPUT_CALLBACKS
-   ,steam_input ( this, &SK_Steam_OverlayManager::OnSteamInputStateChange )
-#endif
+    activation  ( this, &SK_Steam_OverlayManager::OnActivate              ),
+    steam_input ( this, &SK_Steam_OverlayManager::OnSteamInputStateChange )
   {
     cursor_visible_ = false;
     active_         = false;
@@ -1113,8 +1109,6 @@ public:
     active_         = false;
   }
 
-  // Callback doesn't always work as intended
-#ifdef SK_USE_STEAMINPUT_CALLBACKS
   STEAM_CALLBACK ( SK_Steam_OverlayManager,
                    OnSteamInputStateChange,
                    SteamInputConfigurationLoaded_t,
@@ -1124,7 +1118,7 @@ public:
     if (pParam->m_unAppID != config.steam.appid)
     {
       // Background Input is enabled, undo what the Steam client just did...
-      if ( config.input.gamepad.disabled_to_game == 0 &&
+      if ( config.input.gamepad.disabled_to_game == SK_InputEnablement::Enabled &&
            config.window.background_render )
       {
         if (! SK::SteamAPI::SetWindowFocusState (true))
@@ -1151,16 +1145,7 @@ public:
         }
       }
     }
-
-    else
-    {
-      extern void SK_Input_DeclareAppNotSteamNative (void);
-
-      if (pParam->m_bUsesGamepadAPI)
-        SK_Input_DeclareAppNotSteamNative ();
-    }
   }
-#endif
 
   STEAM_CALLBACK ( SK_Steam_OverlayManager,
                    OnActivate,
@@ -1520,9 +1505,8 @@ SteamAPI_RegisterCallback_Detour (class CCallbackBase *pCallback, int iCallback)
     } break;
   }
 
-  if (SK_IsAddressExecutable           (pCallback))
+  if (SK_IsAddressExecutable             (pCallback))
   {
-    // We will dispatch this callback to all registered interfaces ourself.
     if (true || //(! config.platform.achievements.pull_friend_stats) //< Temporarily skip while achievement popups are not implemented
                  iCallback != UserStatsReceived_t::k_iCallback)
       SteamAPI_RegisterCallback_Original (pCallback, iCallback);
@@ -1745,14 +1729,6 @@ SK_Steam_PopupOriginStrToEnum (const char* str)
 }
 
 void SK_Steam_SetNotifyCorner (void);
-
-
-//extern bool
-//ISteamController_GetControllerState_Detour (
-//  ISteamController*       This,
-//  uint32                  unControllerIndex,
-//  SteamControllerState_t *pState );
-
 
 
 ISteamFriends*
@@ -3097,6 +3073,27 @@ SteamAPI_RunCallbacks_Detour (void)
           }
 
           dwLastOnlineStateCheck = dwNow;
+        }
+
+        if (! SK_ImGui_WantGamepadCapture ())
+        {
+          if (auto pInput = steam_ctx.Input ())
+          {
+            const auto input_dev_type_mask =
+              pInput->GetSessionInputConfigurationSettings ();
+
+            if (input_dev_type_mask != k_ESteamInputConfigurationEnableType_None)
+            {
+              if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Playstation)
+                SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_PlayStation);
+              if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Xbox)
+                SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Xbox);
+              if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Generic)
+                SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Generic);
+              if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Switch)
+                SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Nintendo);
+            }
+          }
         }
       }
 
@@ -5574,8 +5571,6 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
       {
         SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
 
-        extern void SK_Input_DeclareAppNotSteamNative (void);
-                    SK_Input_DeclareAppNotSteamNative ();
         // Make certain ShellExecute can run on this thread
         SK_AutoCOMInit _auto_com (
           COINIT_APARTMENTTHREADED |
@@ -5647,11 +5642,11 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                             LR"(steam://forceinputappid/{})", appid ).c_str (),
                               nullptr, nullptr, SW_HIDE
                         );
-
+                      
                         if (instance != 0)
                           SK_LOGi0 (L"Forced Steam Input AppID: %d", appid);
                       }
-
+                      
                       else
                       {
                         auto instance =
@@ -5659,7 +5654,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                             LR"(steam://forceinputappid/)",
                               nullptr, nullptr, SW_HIDE
                         );
-
+                      
                         if (instance != 0)
                           SK_LOGi0 (L"Forced Steam Input AppID: Default");
                       }
@@ -5697,8 +5692,10 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 void
 SK_Steam_ProcessWindowActivation (bool active)
 {
+  return;
+
   // Hacky code for Steam Input background input
-  if (config.window.background_render && config.input.gamepad.disabled_to_game == 0)
+  if (config.window.background_render && config.input.gamepad.disabled_to_game == SK_InputEnablement::Enabled)
   {
     if (! SK::SteamAPI::SetWindowFocusState (true))
     {
@@ -5706,7 +5703,7 @@ SK_Steam_ProcessWindowActivation (bool active)
     }
   }
 
-  else if (config.input.gamepad.disabled_to_game != 1)
+  else if (config.input.gamepad.disabled_to_game != SK_InputEnablement::Disabled)
   {
     if (config.window.background_render)
     {
@@ -5730,7 +5727,7 @@ SK_Steam_ProcessWindowActivation (bool active)
     }
   }
 
-  else if (config.input.gamepad.disabled_to_game == 1)
+  else if (config.input.gamepad.disabled_to_game == SK_InputEnablement::Disabled)
   {
     if (! SK::SteamAPI::SetWindowFocusState (false))
     {
@@ -6430,14 +6427,6 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
   }
 
   if (i != INTERNAL_STEAMUGC_INTERFACE_VERSION) ugc_ = nullptr;
-
-#if 0
-  void** vftable = *(void***)*(&controller_);
-  SK_CreateVFTableHook ( L"ISteamController::GetControllerState",
-                        vftable, 3,
-                        ISteamController_GetControllerState_Detour,
-                        (LPVOID *)&GetControllerState_Original );
-#endif
 
   MH_QueueEnableHook (SteamAPI_Shutdown);
   MH_QueueEnableHook (SteamAPI_RunCallbacks);

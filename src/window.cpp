@@ -1019,8 +1019,6 @@ ActivateWindow ( HWND hWnd,
     HWND hWndFocus =
       SK_GetFocus ();
 
-    SK_Steam_ProcessWindowActivation (active);
-
     if (game_window.active)
     {
       // Release the AltKin
@@ -6773,10 +6771,6 @@ SK_InstallWindowHook (HWND hWnd)
           if (var->getValuePointer () == background_render)
           {
             *background_render = *(bool *)val;
-
-            SK_Steam_ProcessWindowActivation (
-              SK_IsGameWindowActive ()
-            );
           }
         }
 

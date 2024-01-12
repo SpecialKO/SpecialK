@@ -1,4 +1,12 @@
-﻿24.1.11.4
+﻿24.1.12
+=======
+ + Added Steam Input activity light to Input Management tab, with the particular
+     subset of devices that Steam Input is enabled for in the polling count
+ + Changed the default gamepad enable state to 'Disabled in Background' in order
+     to keep consistent with normal Steam Input behavior; set to 'Enabled' if you
+       want background input.
+
+24.1.11.4
 =========
  + Handle unexpected changes to Steam Input AppId if background input mode is on
  + Upgraded part of the bastardized Steamworks headers to include ISteamInput006

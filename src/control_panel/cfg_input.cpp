@@ -125,12 +125,16 @@ SK::ControlPanel::Input::Draw (void)
 
   if (config.imgui.show_input_apis)
   {
-    struct { ULONG reads [XUSER_MAX_COUNT]; } xinput     { };
-    struct { ULONG reads;                   } sce_pad    { };
-    struct { ULONG reads;                   } wgi        { };
-    struct { ULONG reads;                   } steam      { };
-    struct { ULONG reads;                   } winmm      { };
-    struct { ULONG reads;                   } messagebus { };
+    auto perfNow =
+      static_cast <uint64_t> (SK_QueryPerf ().QuadPart);
+
+    struct { ULONG reads  [XUSER_MAX_COUNT]; } xinput     { };
+    struct { ULONG reads;                    } sce_pad    { };
+    struct { ULONG reads;                    } wgi        { };
+    struct { ULONG reads  [XUSER_MAX_COUNT];
+             BOOL  active [XUSER_MAX_COUNT]; } steam      { };
+    struct { ULONG reads;                    } winmm      { };
+    struct { ULONG reads;                    } messagebus { };
 
     struct { ULONG kbd_reads, mouse_reads; } winhook  { };
 
@@ -147,10 +151,22 @@ SK::ControlPanel::Input::Draw (void)
     xinput.reads [2]        = SK_XInput_Backend->reads     [2];
     xinput.reads [3]        = SK_XInput_Backend->reads     [3];
 
+    steam.reads  [0]        = SK_Steam_Backend->reads      [0];
+    steam.active [0]        = 
+      ReadULong64Acquire (&SK_Steam_Backend->viewed.gamepad_xbox       ) > (perfNow - SK_PerfFreq / 2);
+    steam.reads  [1]        = SK_Steam_Backend->reads      [1];
+    steam.active [1]        =
+      ReadULong64Acquire (&SK_Steam_Backend->viewed.gamepad_playstation) > (perfNow - SK_PerfFreq / 2);
+    steam.reads  [2]        = SK_Steam_Backend->reads      [2];
+    steam.active [2]        =
+      ReadULong64Acquire (&SK_Steam_Backend->viewed.gamepad_generic    ) > (perfNow - SK_PerfFreq / 2);
+    steam.reads  [3]        = SK_Steam_Backend->reads      [3];
+    steam.active [3]        =
+      ReadULong64Acquire (&SK_Steam_Backend->viewed.gamepad_nintendo   ) > (perfNow - SK_PerfFreq / 2);
+
     sce_pad.reads           = SK_ScePad_Backend->reads     [2/*sk_input_dev_type::Gamepad*/];
     wgi.reads               = SK_WGI_Backend->reads        [2/*sk_input_dev_type::Gamepad*/];
     winmm.reads             = SK_WinMM_Backend->reads      [2];
-    steam.reads             = SK_Steam_Backend->reads      [2];
     messagebus.reads        = SK_MessageBus_Backend->reads [2];
 
     winhook.kbd_reads       = SK_WinHook_Backend->reads    [1];
@@ -179,7 +195,7 @@ SK::ControlPanel::Input::Draw (void)
 
 
     if (SK_XInput_Backend->nextFrame ())
-      last_xinput   = current_time;
+      last_xinput     = current_time;
 
     if (SK_ScePad_Backend->nextFrame ())
       last_scepad     = current_time;
@@ -225,12 +241,42 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::Text ("       Steam");
         ImGui::PopStyleColor ( );
 
+        //bool is_emulating_xinput =
+        //  steam_ctx.Input ()->GetControllerForGamepadIndex (0) != 0;
+
         if (ImGui::IsItemHovered ( ))
         {
           ImGui::BeginTooltip ( );
-          ImGui::Text ("Gamepad     %lu", steam.reads);
+          {
+            ImGui::BeginGroup  ( );
+              if (steam.active [0]) ImGui::TextUnformatted ("Xbox");
+              if (steam.active [1]) ImGui::TextUnformatted ("PlayStation");
+              if (steam.active [2]) ImGui::TextUnformatted ("Generic");
+              if (steam.active [3]) ImGui::TextUnformatted ("Nintendo");
+            ImGui::EndGroup    ( );
+            ImGui::SameLine    ( );
+            ImGui::BeginGroup  ( );
+              if (steam.active [0]) ImGui::Text ("%lu", steam.reads [0]);
+              if (steam.active [1]) ImGui::Text ("%lu", steam.reads [1]);
+              if (steam.active [2]) ImGui::Text ("%lu", steam.reads [2]);
+              if (steam.active [3]) ImGui::Text ("%lu", steam.reads [3]);
+            ImGui::EndGroup    ( );
+
+          //if (is_emulating_xinput)
+          //{
+          //  ImGui::Separator  ();
+          //  ImGui::BulletText ("Click to configure (XInput Emulation)");
+          //}
+          }
           ImGui::EndTooltip ( );
         }
+
+        //if (is_emulating_xinput && ImGui::IsItemClicked ())
+        //{
+        //  steam_ctx.Input ()->ShowBindingPanel (
+        //    steam_ctx.Input ()->GetControllerForGamepadIndex (0)
+        //  );
+        //}
       }
     }
 
@@ -1355,9 +1401,6 @@ extern float SK_ImGui_PulseNav_Strength;
         {
           SK_Steam_ProcessWindowActivation (game_window.active);
         }
-
-        if (SK::SteamAPI::AppID () != 0 && ImGui::IsItemHovered () && config.input.gamepad.steam.is_native)
-          ImGui::SetTooltip ("Does not apply to native Steam Input games; Steam tracks the game window itself.");
       }
       ImGui::EndGroup     (  );
       ImGui::SameLine     (  );

@@ -3340,6 +3340,9 @@ SK_GetGUIThreadInfo (DWORD, PGUITHREADINFO);
 void
 SK_BackgroundRender_EndFrame (void)
 {
+  // Side-effect:  Evaluates Steam AppId Override
+  SK_ImGui_WantGamepadCapture ();
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -3587,13 +3590,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     SK_RunOnce (
       SK_Win32_CreateBackgroundWindow ()
     );
-  }
-
-  if ((! config.input.gamepad.steam.is_native) && SK_GetFramesDrawn () > 0)
-  {
-    SK_RunOnce ({
-      SK_Steam_ForceInputAppId (config.steam.appid);
-    });
   }
 
   // Invoke any plug-in's frame end callback

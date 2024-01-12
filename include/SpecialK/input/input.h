@@ -126,7 +126,14 @@ enum class sk_input_dev_type {
   Mouse    = 1,
   Keyboard = 2,
   Gamepad  = 4,
-  Other    = 8
+  Other    = 8,
+
+  // Steam Input sub-types
+  Gamepad_Xbox        = 16,
+  Gamepad_PlayStation = 17,
+  Gamepad_Generic     = 18,
+  Gamepad_Nintendo    = 19
+
 };
 
 
@@ -151,11 +158,41 @@ struct sk_input_api_context_s
   } last_frame;
 
   struct {
-    bool keyboard, mouse, gamepad, other;
+    union {
+      bool keyboard;
+      bool gamepad_xbox;
+    };
+    union {
+      bool mouse;
+      bool gamepad_playstation;
+    };
+    union {
+      bool gamepad;
+      bool gamepad_generic;
+    };
+    union {
+      bool other;
+      bool gamepad_nintendo;
+    };
   } active { false, false, false, false };
 
   struct {
-    volatile uint64_t keyboard, mouse, gamepad, other;
+    union {
+      volatile uint64_t keyboard;
+      volatile uint64_t gamepad_xbox;
+    };
+    union {
+      volatile uint64_t mouse;
+      volatile uint64_t gamepad_playstation;
+    };
+    union {
+      volatile uint64_t gamepad;
+      volatile uint64_t gamepad_generic;
+    };
+    union {
+      volatile uint64_t other;
+      volatile uint64_t gamepad_nintendo;
+    };
   } viewed { 0ULL, 0ULL, 0ULL, 0ULL }; // Data was processed by the game at this time (QPC)
 
   void markRead  (sk_input_dev_type type) noexcept
@@ -181,10 +218,18 @@ struct sk_input_api_context_s
 
     switch (type)
     {
-      case sk_input_dev_type::Mouse:    WriteULong64Release (&viewed.mouse,    perfNow); break;
-      case sk_input_dev_type::Keyboard: WriteULong64Release (&viewed.keyboard, perfNow); break;
-      case sk_input_dev_type::Gamepad:  WriteULong64Release (&viewed.gamepad,  perfNow); break;
-      case sk_input_dev_type::Other:    WriteULong64Release (&viewed.other,    perfNow); break;
+      case sk_input_dev_type::Other:               WriteULong64Release (&viewed.other,               perfNow); break;
+      case sk_input_dev_type::Mouse:               WriteULong64Release (&viewed.mouse,               perfNow); break;
+      case sk_input_dev_type::Keyboard:            WriteULong64Release (&viewed.keyboard,            perfNow); break;
+      case sk_input_dev_type::Gamepad:             WriteULong64Release (&viewed.gamepad,             perfNow); break;
+      case sk_input_dev_type::Gamepad_Xbox:        WriteULong64Release (&viewed.gamepad_xbox,        perfNow);
+                                                  InterlockedIncrement (&last_frame.reads [0]);      SK_Input_SetLatencyMarker (); break;
+      case sk_input_dev_type::Gamepad_PlayStation: WriteULong64Release (&viewed.gamepad_playstation, perfNow);
+                                                  InterlockedIncrement (&last_frame.reads [1]);      SK_Input_SetLatencyMarker (); break;
+      case sk_input_dev_type::Gamepad_Generic:     WriteULong64Release (&viewed.gamepad_generic,     perfNow);
+                                                  InterlockedIncrement (&last_frame.reads [2]);      SK_Input_SetLatencyMarker (); break;
+      case sk_input_dev_type::Gamepad_Nintendo:    WriteULong64Release (&viewed.gamepad_nintendo,    perfNow);
+                                                  InterlockedIncrement (&last_frame.reads [3]);      SK_Input_SetLatencyMarker (); break;
     }
   }
 
@@ -280,10 +325,14 @@ struct sk_input_api_context_s
 
     switch (devType)
     {
-      case sk_input_dev_type::Mouse:    perfSample = ReadULong64Acquire (&viewed.mouse);    break;
-      case sk_input_dev_type::Keyboard: perfSample = ReadULong64Acquire (&viewed.keyboard); break;
-      case sk_input_dev_type::Gamepad:  perfSample = ReadULong64Acquire (&viewed.gamepad);  break;
-      case sk_input_dev_type::Other:    perfSample = ReadULong64Acquire (&viewed.other);    break;
+      case sk_input_dev_type::Mouse:               perfSample = ReadULong64Acquire (&viewed.mouse);               break;
+      case sk_input_dev_type::Keyboard:            perfSample = ReadULong64Acquire (&viewed.keyboard);            break;
+      case sk_input_dev_type::Gamepad:             perfSample = ReadULong64Acquire (&viewed.gamepad);             break;
+      case sk_input_dev_type::Gamepad_Xbox:        perfSample = ReadULong64Acquire (&viewed.gamepad_xbox);        break;
+      case sk_input_dev_type::Gamepad_PlayStation: perfSample = ReadULong64Acquire (&viewed.gamepad_playstation); break;
+      case sk_input_dev_type::Gamepad_Generic:     perfSample = ReadULong64Acquire (&viewed.gamepad_generic);     break;
+      case sk_input_dev_type::Gamepad_Nintendo:    perfSample = ReadULong64Acquire (&viewed.gamepad_nintendo);    break;
+      case sk_input_dev_type::Other:               perfSample = ReadULong64Acquire (&viewed.other);               break;
     }
 
     return static_cast <float> (
@@ -327,17 +376,16 @@ struct sk_input_api_context_s
 
 extern SK_LazyGlobal <sk_input_api_context_s> SK_XInput_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_ScePad_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_Steam_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_WGI_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_DI8_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_DI7_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_HID_Backend;
 extern SK_LazyGlobal <sk_input_api_context_s> SK_Win32_Backend;
-extern SK_LazyGlobal <sk_input_api_context_s> SK_WinHook_Backend; // (Low-Level) KB/M Hook
-extern SK_LazyGlobal <sk_input_api_context_s> SK_RawInput_Backend;
-
-extern SK_LazyGlobal <sk_input_api_context_s> SK_MessageBus_Backend; // NVIDIA stuff
 extern SK_LazyGlobal <sk_input_api_context_s> SK_WinMM_Backend;
-extern SK_LazyGlobal <sk_input_api_context_s> SK_Steam_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_WinHook_Backend;    // (Low-Level) KB/M Hook
+extern SK_LazyGlobal <sk_input_api_context_s> SK_RawInput_Backend;
+extern SK_LazyGlobal <sk_input_api_context_s> SK_MessageBus_Backend; // NVIDIA stuff
 
 
 
