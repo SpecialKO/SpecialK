@@ -1,4 +1,13 @@
-﻿24.1.13
+﻿24.1.13.1
+=========
+ + Fixed potential failure to initialize SteamAPI features in games old enough to
+     ship with SteamAPI DLLs that do not implement ISteamInput006
+ + Finished hooking up the INI option to disable Steam Input to cover all cases
+
+     [Input.Steam]
+     Disable={true|false}  Default: false
+
+24.1.13
 =======
  + Change VSYNC setting in control panel to report ther current state, by name,
      instead of "No Override" if no override is active. 

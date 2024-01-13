@@ -1114,6 +1114,13 @@ public:
                    SteamInputConfigurationLoaded_t,
                    steam_input )
   {
+    if (config.input.gamepad.steam.disabled_to_game)
+    {
+      steam_ctx.Input ()->Shutdown ();
+      SK_Steam_ForceInputAppId (SPECIAL_KILLER_APPID);
+      return;
+    }
+
     //// Listen for changes to the desktop appid, we may want to ignore them.
     if (pParam->m_unAppID != config.steam.appid)
     {
@@ -3075,23 +3082,28 @@ SteamAPI_RunCallbacks_Detour (void)
           dwLastOnlineStateCheck = dwNow;
         }
 
-        if (! SK_ImGui_WantGamepadCapture ())
+        // TODO: Consider a special state in the control panel to indicate that Steam Input
+        //         is enabled by Steam, but being actively disabled by SK using this setting.
+        if (! config.input.gamepad.steam.disabled_to_game)
         {
-          if (auto pInput = steam_ctx.Input ())
+          if (! SK_ImGui_WantGamepadCapture ())
           {
-            const auto input_dev_type_mask =
-              pInput->GetSessionInputConfigurationSettings ();
-
-            if (input_dev_type_mask != k_ESteamInputConfigurationEnableType_None)
+            if (auto pInput = steam_ctx.Input ())
             {
-              if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Playstation)
-                SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_PlayStation);
-              if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Xbox)
-                SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Xbox);
-              if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Generic)
-                SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Generic);
-              if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Switch)
-                SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Nintendo);
+              const auto input_dev_type_mask =
+                pInput->GetSessionInputConfigurationSettings ();
+
+              if (input_dev_type_mask != k_ESteamInputConfigurationEnableType_None)
+              {
+                if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Playstation)
+                  SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_PlayStation);
+                if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Xbox)
+                  SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Xbox);
+                if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Generic)
+                  SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Generic);
+                if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Switch)
+                  SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Nintendo);
+              }
             }
           }
         }
@@ -6194,6 +6206,23 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
   }
 
 
+  using  SteamInternal_FindOrCreateUserInterface_pfn = void* (S_CALLTYPE *)(HSteamUser hSteamUser, const char *pszVersion);
+  static SteamInternal_FindOrCreateUserInterface_pfn
+         SteamInternal_FindOrCreateUserInterface =
+        (SteamInternal_FindOrCreateUserInterface_pfn)SK_GetProcAddress (hSteamDLL,
+        "SteamInternal_FindOrCreateUserInterface");
+
+  input_ = (ISteamInput *)
+    SteamInternal_FindOrCreateUserInterface (hSteamUser, SK_FormatString ("SteamInput%03lu", INTERNAL_STEAMINPUT_INTERFACE_VERSION).c_str ());
+
+  if (input_ != nullptr)
+  {
+    if (config.input.gamepad.steam.disabled_to_game)
+    {
+      input_->Shutdown ();
+    }
+  }
+
   for (i = INTERNAL_STEAMINPUT_INTERFACE_VERSION+1; i > 0; --i)
   {
     input_ = (ISteamInput *)
@@ -6209,12 +6238,14 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
         input_ver_ = i;
         steam_log->Log (L"SteamAPI DLL Implements Steam Input v%03lu", i);
 
-        if (input_ver_ > INTERNAL_STEAMINPUT_INTERFACE_VERSION+1)
+        if (input_ver_ > INTERNAL_STEAMINPUT_INTERFACE_VERSION)
           steam_log->Log (L" >> Newer than Special K knows about.");
       }
 
       if (i == INTERNAL_STEAMINPUT_INTERFACE_VERSION)
+      {
         break;
+      }
     }
   }
 
@@ -6223,7 +6254,6 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
     steam_log->Log ( L" >> ISteamInput NOT FOUND for version %hs <<",
                    STEAMINPUT_INTERFACE_VERSION );
     input_ = nullptr;
-    return false;
   }
 
 

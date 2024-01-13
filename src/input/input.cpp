@@ -2786,15 +2786,28 @@ SK_ImGui_WantGamepadCapture (void)
   auto _Return = [](BOOL bCapture) ->
   bool
   {
-    static BOOL        lastCapture = -1;
-    if (std::exchange (lastCapture, bCapture) != bCapture)
+    // Disable Steam Input permanently here if the user wants
+    if (config.input.gamepad.steam.disabled_to_game)
     {
-      // Prefer to force an override in the Steam client itself,
-      //   but fallback to forced input appid if necessary
-      if (! SK::SteamAPI::SetWindowFocusState (! bCapture))
+      // Only needs to be done once, it will be restored at exit.
+      SK_RunOnce (
+        SK_Steam_ForceInputAppId (1157970)
+      );
+    }
+
+    // Conditionally block Steam Input
+    else
+    {
+      static BOOL        lastCapture = -1;
+      if (std::exchange (lastCapture, bCapture) != bCapture)
       {
-        SK_Steam_ForceInputAppId ( bCapture ?
-                                    1157970 : 0 );
+        // Prefer to force an override in the Steam client itself,
+        //   but fallback to forced input appid if necessary
+        if (! SK::SteamAPI::SetWindowFocusState (! bCapture))
+        {
+          SK_Steam_ForceInputAppId ( bCapture ?
+                                      1157970 : 0 );
+        }
       }
     }
 

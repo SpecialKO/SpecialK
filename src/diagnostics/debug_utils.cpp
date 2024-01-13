@@ -1524,9 +1524,6 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
     return;
   }
 
-  // fprintf is stupid, but lpOutputString already contains a newline and
-  //   fputs would just add another one...
-
   wchar_t    wszModule [MAX_PATH + 2] = { };
   wcsncpy_s (wszModule, MAX_PATH,
                       SK_GetModuleFullNameFromAddr (
@@ -1534,7 +1531,6 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
                       ).c_str (),        _TRUNCATE );
 
   game_debug->LogEx (true,   L"%-72ws:  %hs", wszModule, lpOutputString);
-  //fwprintf         (stdout, L"%hs",          lpOutputString);
 
   if (           lpOutputString != nullptr &&
       (! strchr (lpOutputString,  '\n')) )
@@ -1607,7 +1603,6 @@ OutputDebugStringW_Detour (LPCWSTR lpOutputString)
                       ).c_str (),        _TRUNCATE );
 
   game_debug->LogEx (true,   L"%-72ws:  %ws", wszModule, lpOutputString);
-  //fwprintf         (stdout, L"%ws",                     lpOutputString);
 
   if (           lpOutputString != nullptr &&
       (! wcschr (lpOutputString, L'\n')) )
