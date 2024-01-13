@@ -1,4 +1,8 @@
-﻿24.1.13.1
+﻿24.1.13.2
+=========
+ + Fixed the purported SteamAPI fix in 24.1.13.1, for real this time :P
+
+24.1.13.1
 =========
  + Fixed potential failure to initialize SteamAPI features in games old enough to
      ship with SteamAPI DLLs that do not implement ISteamInput006

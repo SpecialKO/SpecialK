@@ -6212,8 +6212,11 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
         (SteamInternal_FindOrCreateUserInterface_pfn)SK_GetProcAddress (hSteamDLL,
         "SteamInternal_FindOrCreateUserInterface");
 
-  input_ = (ISteamInput *)
-    SteamInternal_FindOrCreateUserInterface (hSteamUser, SK_FormatString ("SteamInput%03lu", INTERNAL_STEAMINPUT_INTERFACE_VERSION).c_str ());
+  if (SteamInternal_FindOrCreateUserInterface != nullptr)
+  {
+    input_ = (ISteamInput *)
+      SteamInternal_FindOrCreateUserInterface (hSteamUser, SK_FormatString ("SteamInput%03lu", INTERNAL_STEAMINPUT_INTERFACE_VERSION).c_str ());
+  }
 
   if (input_ != nullptr)
   {
