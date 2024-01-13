@@ -1323,16 +1323,47 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       }
     }
 
-    static const char *szVSYNC = "  No Override\0  Forced ON\0"
-                               "  Forced 1/2 (No VRR)\0"
-                               "  Forced 1/3 (No VRR)\0"
-                               "  Forced 1/4 (No VRR)\0"
-                               "  Forced OFF\0\0";
+    static int  last_present_interval = -1;
+    static std::vector <char> vsync_list;
+
+    // Re-populate the list if the current state changes
+    if (std::exchange (last_present_interval, rb.present_interval) !=
+                                              rb.present_interval)
+    {
+      const char* current_no_override_state =
+        rb.present_interval == 0 ? "  OFF\0"          :
+        rb.present_interval == 1 ? "  ON\0"           :
+        rb.present_interval == 2 ? "  1/2 (No VRR)\0" :
+        rb.present_interval == 3 ? "  1/3 (No VRR)\0" :
+        rb.present_interval == 3 ? "  1/4 (No VRR)\0" :
+                                   "  ??? (Invalid)\0";
+
+      static constexpr char* no_override_label = "  No Override\0";
+      static constexpr char  override_list []  =
+        "  Forced ON\0  Forced 1/2 (No VRR)\0  Forced 1/3 (No VRR)\0"
+        "  Forced 1/4 (No VRR)\0  Forced OFF\0\0";
+
+      auto first_option =
+        ( config.render.framerate.present_interval ==
+                                    SK_NoPreference ?
+         current_no_override_state : no_override_label );
+
+      size_t first_len =
+        std::char_traits <char>::length (first_option),
+          override_len =     ARRAYSIZE (override_list);
+
+      vsync_list.resize (first_len + override_len + 1);
+
+      memcpy (&vsync_list [            0], first_option,     first_len + 1);
+      memcpy (&vsync_list [first_len + 1], override_list, override_len);
+    }
 
     static bool changed = false;
 
-    if (ImGui::Combo ("VSYNC", &idx, szVSYNC))
+    if (ImGui::Combo ("VSYNC", &idx, vsync_list.data ()))
     {
+      last_present_interval = -1;
+
       switch (idx)
       {
         case VSYNC_ForceOn:
