@@ -111,7 +111,7 @@ struct sk_config_t
 
     // Setup TSC-based timing instead of QPC when applicable
     //   (i.e. CPU has invariant timestamps)
-    if ( 0x0 == 
+    if ( 0x0 ==
            CallNtPowerInformation (ProcessorInformation, nullptr, 0, pwi, sizeof (pwi)) )
     {
       int      cpuid [4] = { };
@@ -719,6 +719,17 @@ struct sk_config_t
       bool    disable_fullscreen   = true;
       bool    enable_16bit_hdr     = false;
       bool    enable_10bit_hdr     = false;
+      bool    upgrade_zbuffer      = true;
+      bool    prefer_10bpc         = true;
+
+      struct {
+#ifdef _DEBUG
+        bool  enable               = true;
+#else
+        bool  enable               = false;
+#endif
+        bool  break_on_error       = true;
+      } debug;
     } gl;
 
     struct osd_s {
@@ -828,7 +839,7 @@ struct sk_config_t
       Concurrency::concurrent_unordered_set <std::wstring> single_file;
       Concurrency::concurrent_unordered_set <std::wstring> entire_thread;
     };
-    
+
     static SK_LazyGlobal <ignore_files_s> ignore_reads;
     static SK_LazyGlobal <ignore_files_s> ignore_writes;
 
@@ -1027,7 +1038,7 @@ struct sk_config_t
       bool isZero (void) noexcept
             { return x.absolute == 0        && y.absolute == 0        &&
                      x.percent  > -0.00001F && x.percent   < 0.00001F &&
-                     y.percent  > -0.00001F && y.percent   < 0.00001F; }                                                                
+                     y.percent  > -0.00001F && y.percent   < 0.00001F; }
     } offset;
     int     always_on_top       = NoPreferenceOnTop;
     bool    background_render   = false;

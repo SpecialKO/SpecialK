@@ -268,7 +268,7 @@ struct SK_HDR_FIXUP
         if (pDev->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_1)
         {
           pDev->CheckFeatureSupport (
-             D3D11_FEATURE_D3D11_OPTIONS, &FeatureOpts, 
+             D3D11_FEATURE_D3D11_OPTIONS, &FeatureOpts,
                sizeof (D3D11_FEATURE_DATA_D3D11_OPTIONS)
           );
         }
@@ -484,11 +484,11 @@ bool bUseFP16Sanitization = false;
 // Remove negative numbers, infinity and NAN from floating-point
 // RenderTargets because non-HDR shaders may operate assuming that
 // these things are all unsigned and normalized out of existence.
-// 
+//
 //   FP blending is particularly problematic, a NAN value breaks
 //   the computation of both Src and Dst and will remain in the
 //   buffer as an invalid pixel no matter the blend equation.
-// 
+//
 // Similar to the HDR snapshot function, but stateblock code is
 // very important here since this may be called upon to tidy-up
 // a RenderTarget in the middle of a frame rather than a post-
@@ -562,7 +562,7 @@ SK_HDR_SanitizeFP16SwapChain (void)
       D3D11_TEXTURE2D_DESC    texDesc = { };
       pDst->GetDesc         (&texDesc);
       pDev->CreateTexture2D (&texDesc, nullptr, &pSrc.p);
-      
+
       if (texDesc.SampleDesc.Count > 1)
         pDevCtx->ResolveSubresource        (pSrc, 0, pDst, 0, texDesc.Format);
       else
@@ -585,8 +585,8 @@ SK_HDR_SanitizeFP16SwapChain (void)
     HDR_COLORSPACE_PARAMS    cbuffer_cspace   = { };
 
     bool need_full_hdr_processing = false;
- 
-    need_full_hdr_processing |= 
+
+    need_full_hdr_processing |=
       ( __SK_HDR_HorizCoverage != 100.0f ||
         __SK_HDR_VertCoverage  != 100.0f ||
         __SK_HDR_visualization != 0 ||
@@ -707,7 +707,7 @@ SK_HDR_SanitizeFP16SwapChain (void)
 
       pDevCtx->PSSetShader            (       pPixelShaderHDR,                       nullptr, 0);
       pDevCtx->PSSetConstantBuffers   (0, 1, &hdr_base->colorSpaceCBuffer);
-      
+
       pDevCtx->RSSetState             (hdr_base->pRasterizerState);
       pDevCtx->RSSetScissorRects      (0, nullptr);
       pDevCtx->RSSetViewports         (1, &vp);
@@ -851,6 +851,12 @@ SK_HDR_SnapshotSwapchain (void)
     IDXGISwapChain*                                                                   pWrappedSwapChain = nullptr;
     SK_DXGI_GetPrivateData (pSwapChain, SKID_DXGI_WrappedSwapChain, sizeof (void *), &pWrappedSwapChain);
 
+    const BOOL bSkip = FALSE;
+
+    SK_DXGI_SetPrivateData ( pWrappedSwapChain,
+      SKID_DXGI_SwapChainSkipBackbufferCopy_D3D11, sizeof (BOOL), (void *)&bSkip
+    );
+
     if ((! __SK_HDR_AdaptiveToneMap) && (! config.reshade.is_addon) && pWrappedSwapChain != nullptr)
     {
       pSwapChain->GetDesc (&swapDesc);
@@ -867,10 +873,10 @@ SK_HDR_SnapshotSwapchain (void)
 
         if (pRtv.p != nullptr)
         {
-          const BOOL bSkip = TRUE;
+          const BOOL bSkip2 = TRUE;
 
           SK_DXGI_SetPrivateData ( pWrappedSwapChain,
-            SKID_DXGI_SwapChainSkipBackbufferCopy_D3D11, sizeof (BOOL), (void *)&bSkip
+            SKID_DXGI_SwapChainSkipBackbufferCopy_D3D11, sizeof (BOOL), (void *)&bSkip2
           );
         }
       }
@@ -928,8 +934,8 @@ SK_HDR_SnapshotSwapchain (void)
     cbuffer_luma.luminance_scale [1] =  __SK_HDR_Exp;
     cbuffer_luma.luminance_scale [2] = (__SK_HDR_HorizCoverage / 100.0f) * 2.0f - 1.0f;
     cbuffer_luma.luminance_scale [3] = (__SK_HDR_VertCoverage  / 100.0f) * 2.0f - 1.0f;
- 
-    need_full_hdr_processing |= 
+
+    need_full_hdr_processing |=
       ( __SK_HDR_HorizCoverage != 100.0f ||
         __SK_HDR_VertCoverage  != 100.0f ||
         __SK_HDR_visualization != 0 ||
@@ -1121,7 +1127,7 @@ SK_HDR_SnapshotSwapchain (void)
             nul_uavs [D3D11_PS_CS_UAV_REGISTER_COUNT]                    = { };
           static ID3D11ShaderResourceView* const
             nul_srvs [D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT]      = { };
-          static ID3D11RenderTargetView* const                           
+          static ID3D11RenderTargetView* const
             nul_rtvs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT]            = { };
           static ID3D11Buffer* const
             nul_bufs [D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT] = { };
@@ -1220,7 +1226,7 @@ SK_D3D11_EndFrameHDR (void)
 
   SK_ComPtr <ID3D11DeviceContext> pDevCtx =
     rb.d3d11.immediate_ctx;
-  
+
   // End the Query and probe results (when the pipeline has drained)
   if ( pDevCtx != nullptr && (! hdr_done) &&
        SK_D3D11_HDRDisjointQuery.async
@@ -1231,7 +1237,7 @@ SK_D3D11_EndFrameHDR (void)
       pDevCtx->End (SK_D3D11_HDRDisjointQuery.async);
                     SK_D3D11_HDRDisjointQuery.active = false;
     }
-  
+
     else
     {
       HRESULT const hr =
@@ -1239,15 +1245,15 @@ SK_D3D11_EndFrameHDR (void)
                          &SK_D3D11_HDRDisjointQuery.last_results,
                    sizeof D3D11_QUERY_DATA_TIMESTAMP_DISJOINT,
                           D3D11_ASYNC_GETDATA_DONOTFLUSH);
-  
+
       if (hr == S_OK)
       {
         SK_D3D11_HDRDisjointQuery.async = nullptr;
-  
+
         // Check for failure, if so, toss out the results.
         if (FALSE == SK_D3D11_HDRDisjointQuery.last_results.Disjoint)
           hdr_done = true;
-  
+
         else
         {
           auto ClearTimer =
@@ -1257,22 +1263,22 @@ SK_D3D11_EndFrameHDR (void)
             {
               it.start.async = nullptr;
               it.end.async   = nullptr;
-  
+
               it.start.dev_ctx = nullptr;
               it.end.dev_ctx   = nullptr;
             }
-  
+
             SK_D3D11_HDRTimers.clear ();
           };
-  
+
           ClearTimer ();
-  
+
           hdr_done = true;
         }
       }
     }
   }
-  
+
   if (pDevCtx != nullptr && hdr_done)
   {
    const
@@ -1284,7 +1290,7 @@ SK_D3D11_EndFrameHDR (void)
       {
         auto& dev_ctx =
           duration->start.dev_ctx;
-  
+
         if (             dev_ctx != nullptr &&
              SUCCEEDED ( dev_ctx->GetData (duration->start.async,
                                           &duration->start.last_results,
@@ -1293,17 +1299,17 @@ SK_D3D11_EndFrameHDR (void)
         {
           duration->start.async   = nullptr;
           duration->start.dev_ctx = nullptr;
-  
+
           success = true;
-  
+
           return duration->start.last_results;
         }
-  
+
         success = false;
-  
+
         return 0;
       };
-  
+
    const
     auto
      GetTimerDataEnd =
@@ -1315,10 +1321,10 @@ SK_D3D11_EndFrameHDR (void)
         {
           return duration->start.last_results;
         }
-  
+
         auto& dev_ctx =
           duration->end.dev_ctx;
-  
+
         if (             dev_ctx != nullptr &&
              SUCCEEDED ( dev_ctx->GetData (duration->end.async,
                                           &duration->end.last_results,
@@ -1328,21 +1334,21 @@ SK_D3D11_EndFrameHDR (void)
         {
           duration->end.async   = nullptr;
           duration->end.dev_ctx = nullptr;
-  
+
           success = true;
-  
+
           return duration->end.last_results;
         }
-  
+
         success = false;
-  
+
         return 0;
       };
-  
+
     extern std::atomic_uint64_t SK_D3D11_HDR_RuntimeTicks;
     extern double               SK_D3D11_HDR_RuntimeMs;
     extern double               SK_D3D11_HDR_LastRuntimeMs;
-  
+
     auto CalcRuntimeMS =
     [ ](void) noexcept
      {
@@ -1355,65 +1361,65 @@ SK_D3D11_EndFrameHDR (void)
                    static_cast <long double>     (
                  SK_D3D11_HDRDisjointQuery.last_results.Frequency)
           );
-  
+
          // Way too long to be valid, just re-use the last known good value
          if ( SK_D3D11_HDR_RuntimeMs > 12.0 )
               SK_D3D11_HDR_RuntimeMs = SK_D3D11_HDR_LastRuntimeMs;
-  
+
          SK_D3D11_HDR_LastRuntimeMs =
              SK_D3D11_HDR_RuntimeMs;
        }
-  
+
        else
        {
          SK_D3D11_HDR_RuntimeMs = 0.0;
        }
      };
-  
+
     const
      auto
       AccumulateRuntimeTicks =
       [&](void)
       {
         SK_D3D11_HDR_RuntimeTicks = 0ULL;
-  
+
         for ( auto& it : SK_D3D11_HDRTimers )
         {
           bool success0 = false,
                success1 = false;
-  
+
           const UINT64
             time1 = GetTimerDataStart (&it, success0);
-  
+
           const UINT64 time0 =
                  ( success0 == false ) ? 0ULL :
                       GetTimerDataEnd (&it, success1);
-  
+
           if ( success0 != false &&
                success1 != false )
           {
             SK_D3D11_HDR_RuntimeTicks +=
               ( time0 - time1 );
           }
-  
+
           // Data's no good, we need to release the queries manually or
           //   we're going to leak!
           else
           {
             it.end.async   = nullptr;
             it.end.dev_ctx = nullptr;
-  
+
             it.start.async   = nullptr;
             it.start.dev_ctx = nullptr;
           }
         }
-  
+
         SK_D3D11_HDRTimers.clear ();
       };
-  
+
     AccumulateRuntimeTicks ();
     CalcRuntimeMS          ();
-  
+
     hdr_done = false;
   }
 }

@@ -71,6 +71,11 @@ unsigned int SK_GL_SwapHook = 0;
 volatile LONG __gl_ready = FALSE;
 
 
+extern bool __SK_HDR_10BitSwap;
+extern bool __SK_HDR_16BitSwap;
+extern BOOL SK_DXGI_ZeroCopy;
+
+
 void __stdcall
 SK_GL_UpdateRenderStats (void);
 
@@ -1327,10 +1332,10 @@ wglDeleteContext (HGLRC hglrc)
   if (config.system.log_level >= 0 && pTLS != nullptr)
   {
     SK_LOG0 ( ( L"[%08x (tid=%04x)]  wglDeleteContext "
-                   L"(hglrc=%x)",
+                   L"(hglrc=%x)\t[%ws]",
                      WindowFromDC             (pTLS->render->gl->current_hdc),
                        SK_Thread_GetCurrentId (   ),
-                                              hglrc ),
+                                              hglrc, SK_GetCallerName ().c_str () ),
                 L" OpenGL32 " );
   }
 
@@ -1969,17 +1974,78 @@ SK_GL_SetVirtualDisplayMode (HWND hWnd, bool Fullscreen, UINT Width, UINT Height
   }
 }
 
+void
+APIENTRY
+SK_GL_InteropDebugOutput (GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, GLvoid *userParam)
+{
+  auto _DescribeSource = [](GLenum source) -> const wchar_t*
+  {
+    switch (source)
+    {
+      case GL_DEBUG_SOURCE_API_ARB:             return L"OpenGL";
+      case GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB:   return L"Window System Layer";
+      case GL_DEBUG_SOURCE_SHADER_COMPILER_ARB: return L"Shader Compiler";
+      case GL_DEBUG_SOURCE_THIRD_PARTY_ARB:     return L"Third-Party Component";
+      case GL_DEBUG_SOURCE_APPLICATION_ARB:     return L"Application Generated";
+      case GL_DEBUG_SOURCE_OTHER_ARB:           return L"Other";
+      default:                                  return L"Unknown";
+    }
+  };
+
+  auto _DescribeType = [](GLenum type) -> const wchar_t*
+  {
+    switch (type)
+    {
+      case GL_DEBUG_TYPE_ERROR_ARB:               return L"Error";
+      case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB: return L"Deprecated";
+      case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB:  return L"Undefined Behavior";
+      case GL_DEBUG_TYPE_PORTABILITY_ARB:         return L"Portability";
+      case GL_DEBUG_TYPE_PERFORMANCE_ARB:         return L"Performance";
+      case GL_DEBUG_TYPE_OTHER_ARB:               return L"Other";
+      default:                                    return L"Unknown";
+    }
+  };
+
+  auto _DescribeSeverity = [](GLenum severity) -> const wchar_t *
+  {
+    switch (severity)
+    {
+      case GL_DEBUG_SEVERITY_HIGH_ARB:   return L"High";
+      case GL_DEBUG_SEVERITY_MEDIUM_ARB: return L"Medium";
+      case GL_DEBUG_SEVERITY_LOW_ARB:    return L"Low";
+      default:                           return L"Unknown";
+    }
+  };
+
+  std::wstring output_msg =
+    SK_FormatStringW (
+      L"[%ws (%ws) :: %ws]\t%*hs\tObjectId=%d",
+      _DescribeSeverity (severity), _DescribeType (type),
+      _DescribeSource   (source),   length, message, id
+    );
+
+  SK_LOGi0 (L"%ws", output_msg.c_str ());
+
+  if (SK_IsDebuggerPresent ())
+  {
+    OutputDebugStringW (output_msg.c_str ());
+
+    if (type == GL_DEBUG_TYPE_ERROR_ARB)
+    {
+      __debugbreak ();
+    }
+  }
+
+  std::ignore = userParam;
+}
+
 HRESULT
 SK_GL_CreateInteropSwapChain ( IDXGIFactory2         *pFactory,
                                ID3D11Device          *pDevice, HWND               hWnd,
                                DXGI_SWAP_CHAIN_DESC1 *desc1,   IDXGISwapChain1 **ppSwapChain )
 {
-  extern bool __SK_HDR_16BitSwap;
-  extern bool __SK_HDR_10BitSwap;
-  extern BOOL SK_DXGI_ZeroCopy;
-
-  SK_DXGI_ZeroCopy =
-    __SK_HDR_16BitSwap;// || __SK_HDR_10BitSwap;
+  // Disable OpenGL HDR ZeroCopy because of a memory leak on HDR10 codepath
+  SK_DXGI_ZeroCopy = false;
 
   HRESULT hr =
     pFactory->CreateSwapChainForHwnd ( pDevice, hWnd,
@@ -2065,12 +2131,9 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     }
   }
 
-//HWND  hWnd = pTLS->gl.current_hwnd;
-//HGLRC hRC  = ->gl.current_hglrc;
-
   pTLS_gl.current_hdc   = hDC;
-  pTLS_gl.current_hwnd  = //pTLS_gl.current_hdc != nullptr ?
-           WindowFromDC  (hDC);//pTLS_gl.current_hdc)           : nullptr;
+  pTLS_gl.current_hwnd  =
+           WindowFromDC  (hDC);
 
 //assert (hDC == pTLS->gl.current_hdc);
 
@@ -2340,6 +2403,15 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
     }
 
 
+    extern bool __SK_HDR_AdaptiveToneMap;
+    static auto lastAdaptiveToneMapState = !__SK_HDR_AdaptiveToneMap;
+    if (std::exchange (lastAdaptiveToneMapState, __SK_HDR_AdaptiveToneMap) != __SK_HDR_AdaptiveToneMap) dx_gl_interop.stale = true;
+  //static auto        last16BitHDRState = !__SK_HDR_16BitSwap;
+  //static auto        last10BitHDRState = !__SK_HDR_10BitSwap;
+  //if (std::exchange (last16BitHDRState, __SK_HDR_16BitSwap) != __SK_HDR_16BitSwap) dx_gl_interop.stale = true;
+  //if (std::exchange (last10BitHDRState, __SK_HDR_10BitSwap) != __SK_HDR_10BitSwap) dx_gl_interop.stale = true;
+
+
     LONG64 llFrames =
       ReadAcquire64 (&dx_gl_interop.present_man.frames);
 
@@ -2399,7 +2471,8 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
       DXGI_SWAP_CHAIN_DESC1
         desc1                    = { };
-        desc1.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
+        desc1.Format             = config.render.gl.prefer_10bpc ? DXGI_FORMAT_R10G10B10A2_UNORM :
+                                                                   DXGI_FORMAT_R8G8B8A8_UNORM;
         desc1.SampleDesc.Count   = 1;
         desc1.SampleDesc.Quality = 0;
         desc1.Width              = w;
@@ -2418,16 +2491,14 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       if (                             dx_gl_interop.output.hSemaphore != nullptr)
         SK_CloseHandle (std::exchange (dx_gl_interop.output.hSemaphore,   nullptr));
 
+      // HDR Format Overrides (independent from SDR bit depth preference)
+      if (     __SK_HDR_16BitSwap)
+        desc1.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
+      else if (__SK_HDR_10BitSwap)
+        desc1.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
+
       if (std::exchange (dx_gl_interop.output.hWnd, hWnd) != hWnd || pSwapChain == nullptr)
       {
-        extern bool __SK_HDR_10BitSwap;
-        extern bool __SK_HDR_16BitSwap;
-
-        if (__SK_HDR_16BitSwap)
-          desc1.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-        else if (__SK_HDR_10BitSwap)
-          desc1.Format = DXGI_FORMAT_R10G10B10A2_UNORM;
-
         pSwapChain = nullptr;
 
         SK_GL_CreateInteropSwapChain ( pFactory, dx_gl_interop.d3d11.pDevice,
@@ -2442,9 +2513,12 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       // Dimensions were wrong, SwapChain just needs a resize...
       else
       {
+        // Originally, DXGI_FORMAT_UNKNOWN was used here, but that causes
+        //   problems with NVIDIA's driver believing that surface sharing
+        //     is failing parameter validation.  * Be explicit about it!
         pSwapChain->ResizeBuffers (
                    _DXBackBuffers, w, h,
-                    DXGI_FORMAT_UNKNOWN, dx_gl_interop.output.swapchain_flags
+                    desc1.Format, dx_gl_interop.output.swapchain_flags
         );
       }
 
@@ -2462,12 +2536,8 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           pSwapChain2->GetFrameLatencyWaitableObject ();
 
 
-      extern bool __SK_HDR_10BitSwap;
-      extern bool __SK_HDR_16BitSwap;
-      extern BOOL SK_DXGI_ZeroCopy;
-
       bool bHDRZeroCopy =
-        SK_DXGI_ZeroCopy == TRUE;
+        (__SK_HDR_16BitSwap||__SK_HDR_10BitSwap) && !__SK_HDR_AdaptiveToneMap;
 
       if (bHDRZeroCopy)
       {
@@ -2490,9 +2560,18 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           if (pTex2D != nullptr)
           {
             dx_gl_interop.output.backbuffer.image = pRes;
+            dx_gl_interop.output.backbuffer.rtv   = nullptr;
+
+            D3D11_TEXTURE2D_DESC texDesc = { };
+            pTex2D->GetDesc    (&texDesc);
+
+            D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = { };
+            rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+            rtvDesc.Format        = DirectX::MakeTypelessUNORM (
+                                    DirectX::MakeTypelessFLOAT (texDesc.Format));
 
             pDevice->CreateRenderTargetView (   dx_gl_interop.output.backbuffer.image.p,
-                                      nullptr, &dx_gl_interop.output.backbuffer.rtv.p   );
+                                     &rtvDesc, &dx_gl_interop.output.backbuffer.rtv.p   );
           }
         }
 
@@ -2505,6 +2584,9 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
       if (! bHDRZeroCopy)
       {
+        dx_gl_interop.output.backbuffer.image = nullptr;
+        dx_gl_interop.output.backbuffer.rtv   = nullptr;
+
         pSwapChain->GetBuffer (
           0, IID_ID3D11Texture2D, (void **)&dx_gl_interop.output.backbuffer.image.p );
         pDevice->CreateRenderTargetView (   dx_gl_interop.output.backbuffer.image.p,
@@ -2512,10 +2594,13 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       }
 
       // We can skip the vertical flip operation if SK's HDR mode is enabled
-      if ((! bHDRZeroCopy) || (! (__SK_HDR_10BitSwap||__SK_HDR_16BitSwap)))
+      if (! bHDRZeroCopy)
       {
         D3D11_TEXTURE2D_DESC                             tex_desc = { };
         dx_gl_interop.output.backbuffer.image->GetDesc (&tex_desc);
+
+        tex_desc.Format = DirectX::MakeTypelessUNORM (
+                          DirectX::MakeTypelessFLOAT (tex_desc.Format));
 
         tex_desc.ArraySize          = 1;
         tex_desc.MipLevels          = 1;
@@ -2527,6 +2612,9 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                                       D3D11_BIND_UNORDERED_ACCESS;
         tex_desc.CPUAccessFlags     = 0;
         tex_desc.MiscFlags          = D3D11_RESOURCE_MISC_SHARED;
+
+        dx_gl_interop.d3d11.staging.colorBuffer = nullptr;
+        dx_gl_interop.d3d11.staging.colorView   = nullptr;
 
         pDevice->CreateTexture2D (         &tex_desc,                                  nullptr,
                                            &dx_gl_interop.d3d11.staging.colorBuffer.p);
@@ -2543,18 +2631,21 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       dx_gl_interop.present_man.Reset (&dx_gl_interop);
 
 
-      glGenRenderbuffers (1, &dx_gl_interop.gl.color_rbo);
-      glGenFramebuffers  (1, &dx_gl_interop.gl.fbo);
+      if (dx_gl_interop.d3d11.staging.colorBuffer.p != nullptr)
+      {
+        glGenRenderbuffers (1, &dx_gl_interop.gl.color_rbo);
+        glGenFramebuffers  (1, &dx_gl_interop.gl.fbo);
 
-      dx_gl_interop.d3d11.staging.hColorBuffer =
-        wglDXRegisterObjectNV ( dx_gl_interop.d3d11.hInteropDevice,
-                                dx_gl_interop.d3d11.staging.colorBuffer,
-                                dx_gl_interop.gl.color_rbo, GL_RENDERBUFFER,
-                                                            WGL_ACCESS_WRITE_DISCARD_NV );
+        dx_gl_interop.d3d11.staging.hColorBuffer =
+          wglDXRegisterObjectNV ( dx_gl_interop.d3d11.hInteropDevice,
+                                  dx_gl_interop.d3d11.staging.colorBuffer,
+                                  dx_gl_interop.gl.color_rbo, GL_RENDERBUFFER,
+                                                              WGL_ACCESS_WRITE_DISCARD_NV );
+      }
     }
 
 
-    if (! SK_GL_OnD3D11)
+    if (dx_gl_interop.d3d11.staging.colorBuffer == nullptr || (! SK_GL_OnD3D11))
     {
       SK_GetCurrentRenderBackend ().api =
         SK_RenderAPI::OpenGL;
@@ -2597,7 +2688,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           SK_LOG0 ( ( L"FBO Status: %x", framebufferStatus ), L"  GLDX11  " );
 
         if (glClampColor != nullptr)
-            glClampColor (GL_CLAMP_READ_COLOR, GL_FALSE);
+            glClampColor (GL_CLAMP_READ_COLOR, GL_FIXED_ONLY);
 
         bool fallback = false;
 
@@ -2636,10 +2727,10 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           SK_LOG0 ( ( L"glBlitFramebuffer Error: %x", err ), L"  GLDX11  " );
       }
 
-      glBindFramebuffer (GL_FRAMEBUFFER,  original_fbo);
+      glBindFramebuffer (GL_FRAMEBUFFER,       original_fbo);
       if (glClampColor != nullptr)
-          glClampColor  (GL_CLAMP_READ_COLOR, GL_FALSE);
-      glFlush           (                             );
+          glClampColor  (GL_CLAMP_READ_COLOR, GL_FIXED_ONLY);
+      glFlush           (                                  );
 
       if (original_scissor == GL_TRUE)
         glEnable (GL_SCISSOR_TEST);
@@ -2943,6 +3034,16 @@ SwapBuffers (HDC hDC)
 
 
   return bRet;
+}
+
+HGLRC
+WINAPI
+wglCreateContextAttribsARB_SK (HDC hDC, HGLRC hshareContext, const int *attribList)
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    wgl_create_context_attribs (hDC, hshareContext, attribList);
 }
 
 
@@ -3951,8 +4052,16 @@ SK_HookGL (LPVOID)
             wgl_choose_pixel_format_arb = (wglChoosePixelFormatARB_pfn)
               wgl_get_proc_address ("wglChoosePixelFormatARB");
 
-            wgl_create_context_attribs = (wglCreateContextAttribs_pfn)
-              wgl_get_proc_address ("wglCreateContextAttribsARB");
+            if ( MH_OK == SK_CreateFuncHook ( L"wglCreateContextAttribsARB",
+                         wgl_get_proc_address ("wglCreateContextAttribsARB"),
+                                                wglCreateContextAttribsARB_SK,
+                       static_cast_p2p <void> (&wgl_create_context_attribs) )
+               )
+            {
+              MH_QueueEnableHook (
+                wgl_get_proc_address ("wglCreateContextAttribsARB")
+              );
+            }
 
             if ( MH_OK == SK_CreateFuncHook ( L"glRenderbufferStorage",
                          wgl_get_proc_address ("glRenderbufferStorage"),
@@ -4052,7 +4161,6 @@ glRenderbufferStorage_SK ( GLenum  target,
               target, internalformat, width, height ),
               L" OpenGL32 " );
 
-  extern bool __SK_HDR_16BitSwap;
   if (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr)
   {
     if (internalformat == GL_RGBA8)
@@ -4079,7 +4187,6 @@ glNamedRenderbufferStorage_SK ( GLuint  renderbuffer,
               renderbuffer, internalformat, width, height ),
               L" OpenGL32 " );
 
-  extern bool __SK_HDR_16BitSwap;
   if (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr)
   {
     if (internalformat == GL_RGBA8)
@@ -4099,7 +4206,8 @@ glFramebufferTexture_SK ( GLenum target,
                           GLuint texture,
                           GLint  level )
 {
-  extern bool __SK_HDR_16BitSwap;
+  SK_LOG_FIRST_CALL
+
   if (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr)
   {
     SK_LOGi1 (L"glFramebufferTexture (...)");
@@ -4118,8 +4226,8 @@ glNamedFramebufferTexture_SK ( GLuint framebuffer,
                                GLuint texture,
                                GLint  level )
 {
-  extern bool
-       __SK_HDR_16BitSwap;
+  SK_LOG_FIRST_CALL
+
   if ( __SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr )
   {
     SK_LOGi1 (L"glNamedFramebufferTexture (...)");
@@ -4136,8 +4244,8 @@ glNamedFramebufferTexture_SK ( GLuint framebuffer,
       glBindTexture            (GL_TEXTURE_2D, texture);
       glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &textureFmt);
 
-      GLint                                                       immutable = GL_FALSE;
-      glGetTexParameteriv (texture, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
+      GLint                                                                              immutable = GL_FALSE;
+      glGetTextureParameterIivEXT (texture, GL_TEXTURE_2D, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
 
       GLint                                                           texWidth, texHeight;
       glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH,  &texWidth);
@@ -4245,7 +4353,8 @@ glFramebufferTexture2D_SK ( GLenum target,
                             GLuint texture,
                             GLint  level )
 {
-  extern bool __SK_HDR_16BitSwap;
+  SK_LOG_FIRST_CALL
+
   if (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr)
   {
     SK_LOGi1 (L"glFramebufferTexture2D (...)");
@@ -4271,8 +4380,8 @@ glFramebufferTexture2D_SK ( GLenum target,
         if ( textureFmt == GL_RGBA8 || textureFmt == GL_RGB8 ||
              textureFmt == GL_RGBA  || textureFmt == GL_RGB )
         {
-          GLint                                                       immutable = GL_FALSE;
-          glGetTexParameteriv (texture, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
+          GLint                                                                              immutable = GL_FALSE;
+          glGetTextureParameterIivEXT (texture, GL_TEXTURE_2D, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
 
           if (immutable == GL_FALSE)
           {
@@ -4291,6 +4400,55 @@ glFramebufferTexture2D_SK ( GLenum target,
       }
     }
   }
+
+#if 0
+  extern bool __SK_HDR_10BitSwap;
+  if (__SK_HDR_10BitSwap || config.render.gl.enable_10bit_hdr)
+  {
+    SK_LOGi1 (L"glFramebufferTexture2D (...)");
+
+    if (textarget == GL_TEXTURE_2D)
+    {
+      static GLuint                                      maxAttachments = 0;
+      glGetIntegerv (GL_MAX_COLOR_ATTACHMENTS, (GLint *)&maxAttachments);
+
+      if (attachment >= GL_COLOR_ATTACHMENT0 && attachment < GL_COLOR_ATTACHMENT0 + maxAttachments)
+      {
+        GLint                                  boundTex2D = 0;
+        glGetIntegerv (GL_TEXTURE_BINDING_2D, &boundTex2D);
+
+        GLint                                    textureFmt = 0;
+        glBindTexture            (GL_TEXTURE_2D, texture);
+        glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &textureFmt);
+
+        SK_LOGi1 (L" -> Format: %x", textureFmt);
+
+        bool rgb =
+          (  textureFmt == GL_RGB   || textureFmt == GL_RGB8 );
+        if ( textureFmt == GL_RGBA8 || textureFmt == GL_RGB8 ||
+             textureFmt == GL_RGBA  || textureFmt == GL_RGB )
+        {
+          GLint                                                                              immutable = GL_FALSE;
+          glGetTextureParameterIivEXT (texture, GL_TEXTURE_2D, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
+
+          if (immutable == GL_FALSE)
+          {
+            GLint                                                           texWidth, texHeight;
+            glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH,  &texWidth);
+            glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &texHeight);
+
+            SK_LOGi1 (L"GL_RGB{A}[8] replaced with GL_RGB10{A}[2]");
+
+            glTexImage2D (GL_TEXTURE_2D, 0, rgb ? GL_RGB10 : GL_RGB10_A2, texWidth, texHeight, 0,
+                                            rgb ? GL_RGB   : GL_RGBA, GL_UNSIGNED_INT, nullptr);
+          }
+        }
+
+        glBindTexture (GL_TEXTURE_2D, boundTex2D);
+      }
+    }
+  }
+#endif
 
   gl_framebuffer_texture2d (target, attachment, textarget, texture, level);
 }
@@ -4311,30 +4469,57 @@ wglChoosePixelFormat ( HDC                     hDC,
 
   int ret = 0;
 
-  extern bool __SK_HDR_16BitSwap;
-  extern bool __SK_HDR_10BitSwap;
-  if (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr)
+  const bool bOverridePixelFormat =
+    config.render.gl.upgrade_zbuffer ||
+    config.render.gl.prefer_10bpc    ||
+    config.render.gl.enable_10bit_hdr||
+    config.render.gl.enable_16bit_hdr||
+    __SK_HDR_10BitSwap               ||
+    __SK_HDR_16BitSwap;
+
+  if (bOverridePixelFormat)
   {
+    const bool bUse16bpc = (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr);
+    const bool bUse10bpc = (__SK_HDR_10BitSwap || config.render.gl.enable_10bit_hdr)
+                                               || config.render.gl.prefer_10bpc;
+
+    const bool bUpgradeColor = bUse10bpc || bUse16bpc;
+
+    const BYTE cColorBitsTotal = bUpgradeColor ? (bUse16bpc ? 48 : 30) : ppfd->cColorBits;
+    const BYTE cColorBitsRed   = bUpgradeColor ? (bUse16bpc ? 16 : 10) : ppfd->cRedBits;
+    const BYTE cColorBitsGreen = bUpgradeColor ? (bUse16bpc ? 16 : 10) : ppfd->cGreenBits;
+    const BYTE cColorBitsBlue  = bUpgradeColor ? (bUse16bpc ? 16 : 10) : ppfd->cBlueBits;
+    const BYTE cAlphaBits      = bUpgradeColor ? (bUse16bpc ? 16 :  2) : ppfd->cAlphaBits;
+    const BYTE cRedShift       = bUpgradeColor ? (bUse16bpc ? 0  :  0) : ppfd->cRedShift;
+    const BYTE cGreenShift     = bUpgradeColor ? (bUse16bpc ? 0  : 10) : ppfd->cGreenShift;
+    const BYTE cBlueShift      = bUpgradeColor ? (bUse16bpc ? 0  : 20) : ppfd->cBlueShift;
+    const BYTE cAlphaShift     = bUpgradeColor ? (bUse16bpc ? 0  : 30) : ppfd->cAlphaShift;
+
+    // Don't even bother trying to support color index stuff
+    SK_ReleaseAssert (bUpgradeColor || ppfd->iPixelType == PFD_TYPE_RGBA);
+
+    const BYTE cDepthBits   = config.render.gl.upgrade_zbuffer ? 24 : ppfd->cDepthBits;
+    const BYTE cStencilBits = config.render.gl.upgrade_zbuffer ? (ppfd->cStencilBits == 0 ? 0 : ppfd->cStencilBits <= 8 ? 8 : ppfd->cStencilBits)
+                                                               :  ppfd->cStencilBits;
+
     PIXELFORMATDESCRIPTOR pfd =
                         *ppfd;
 
-    pfd.nVersion   = 1;
-    pfd.nSize      = sizeof (PIXELFORMATDESCRIPTOR);
-    pfd.dwFlags    = PFD_DOUBLEBUFFER  | PFD_DRAW_TO_WINDOW |
-                     PFD_SWAP_EXCHANGE | PFD_SUPPORT_COMPOSITION;
-    pfd.cColorBits = 64;
-    pfd.cRedBits   = 16; pfd.cRedShift   = 0;
-    pfd.cGreenBits = 16; pfd.cGreenShift = 0;
-    pfd.cBlueBits  = 16; pfd.cBlueShift  = 0;
-    pfd.cAlphaBits = 16; pfd.cAlphaShift = 0;
-
-    if (pfd.cStencilBits == 0)
-        pfd.cDepthBits = 24;
-    else if (pfd.cStencilBits <= 8)
-    {
-      pfd.cDepthBits   = 24;
-      pfd.cStencilBits = 8;
-    }
+    pfd.nVersion     = 1;
+    pfd.nSize        = sizeof (pfd);
+    pfd.dwFlags      = PFD_DOUBLEBUFFER  | PFD_DRAW_TO_WINDOW |
+                       PFD_SWAP_EXCHANGE | PFD_SUPPORT_COMPOSITION;
+    pfd.cColorBits   = cColorBitsTotal;
+    pfd.cRedBits     = cColorBitsRed;
+    pfd.cGreenBits   = cColorBitsGreen;
+    pfd.cBlueBits    = cColorBitsBlue;
+    pfd.cAlphaBits   = cAlphaBits;
+    pfd.cAlphaShift  = cAlphaShift;
+    pfd.cRedShift    = cRedShift;
+    pfd.cGreenShift  = cGreenShift;
+    pfd.cBlueShift   = cBlueShift;
+    pfd.cStencilBits = cStencilBits;
+    pfd.cDepthBits   = cDepthBits;
 
     ret =
       wgl_choose_pixel_format (hDC, &pfd);
@@ -4342,61 +4527,31 @@ wglChoosePixelFormat ( HDC                     hDC,
     if (ret != 0)
       return ret;
   }
-
-  if (__SK_HDR_10BitSwap || config.render.gl.enable_10bit_hdr)
-  {
-    PIXELFORMATDESCRIPTOR pfd =
-                        *ppfd;
 
 #if 0
-    PIXELFORMATDESCRIPTOR pfd_test = { };
-                          pfd_test.nVersion = 1;
-                          pfd_test.nSize    = sizeof (PIXELFORMATDESCRIPTOR);
+  PIXELFORMATDESCRIPTOR pfd_test = { };
+                        pfd_test.nVersion = 1;
+                        pfd_test.nSize    = sizeof (PIXELFORMATDESCRIPTOR);
 
-    int idx = 1;
+  int idx = 1;
 
-    while (0 != DescribePixelFormat (hDC, idx++, sizeof (PIXELFORMATDESCRIPTOR), &pfd_test))
+  while (0 != DescribePixelFormat (hDC, idx++, sizeof (PIXELFORMATDESCRIPTOR), &pfd_test))
+  {
+    if (pfd_test.cRedBits == 10 && pfd_test.cGreenBits == 10 && pfd_test.cBlueBits == 10 && pfd_test.cAlphaBits == 2)
     {
-      if (pfd_test.cRedBits == 10 && pfd_test.cGreenBits == 10 && pfd_test.cBlueBits == 10 && pfd_test.cAlphaBits == 2)
-      {
-        SK_LOGi0 (
-          L"RGB10A2 Format Found - idx=%d, RedShift=%d, GreenShift=%d, BlueShift=%d, AlphaShift=%d, Flags=%x, DS=%d:%d",
-            idx-1, pfd_test.cRedShift, pfd_test.cGreenShift, pfd_test.cBlueShift, pfd_test.cAlphaShift, pfd_test.dwFlags,
-                   pfd_test.cDepthBits, pfd_test.cStencilBits
-        );
-      }
-
-      ZeroMemory (&pfd_test, sizeof (PIXELFORMATDESCRIPTOR));
-
-      pfd_test.nVersion = 1;
-      pfd_test.nSize    = sizeof (PIXELFORMATDESCRIPTOR);
-    }
-#endif
-
-    pfd.nVersion   = 1;
-    pfd.nSize      = sizeof (PIXELFORMATDESCRIPTOR);
-    pfd.dwFlags    = PFD_DOUBLEBUFFER  | PFD_DRAW_TO_WINDOW |
-                     PFD_SWAP_EXCHANGE | PFD_SUPPORT_COMPOSITION;
-    pfd.cColorBits = 32;
-    pfd.cRedBits   = 10; pfd.cRedShift   =  0;
-    pfd.cGreenBits = 10; pfd.cGreenShift = 10;
-    pfd.cBlueBits  = 10; pfd.cBlueShift  = 20;
-    pfd.cAlphaBits =  2; pfd.cAlphaShift = 30;
-
-    if (pfd.cStencilBits == 0)
-        pfd.cDepthBits = 24;
-    else if (pfd.cStencilBits <= 8)
-    {
-      pfd.cDepthBits   = 24;
-      pfd.cStencilBits = 8;
+      SK_LOGi0 (
+        L"RGB10A2 Format Found - idx=%d, RedShift=%d, GreenShift=%d, BlueShift=%d, AlphaShift=%d, Flags=%x, DS=%d:%d",
+          idx-1, pfd_test.cRedShift, pfd_test.cGreenShift, pfd_test.cBlueShift, pfd_test.cAlphaShift, pfd_test.dwFlags,
+                 pfd_test.cDepthBits, pfd_test.cStencilBits
+      );
     }
 
-    ret =
-      wgl_choose_pixel_format (hDC, &pfd);
+    ZeroMemory (&pfd_test, sizeof (PIXELFORMATDESCRIPTOR));
 
-    if (ret != 0)
-      return ret;
+    pfd_test.nVersion = 1;
+    pfd_test.nSize    = sizeof (PIXELFORMATDESCRIPTOR);
   }
+#endif
 
   ret =
     wgl_choose_pixel_format (hDC, ppfd);
@@ -4435,45 +4590,85 @@ wglSetPixelFormat ( HDC                    hDC,
 
   PIXELFORMATDESCRIPTOR pfd_copy = *ppfd;
 
-  // Use the same OpenGL pixel format for HDR10 and scRGB, it's not trivial
-  //   to get a 10-bit pixel format in GL...
-  if ((__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr)||
-      (__SK_HDR_10BitSwap || config.render.gl.enable_10bit_hdr))
+  const bool bOverridePixelFormat =
+    config.render.gl.upgrade_zbuffer ||
+    config.render.gl.prefer_10bpc    ||
+    config.render.gl.enable_10bit_hdr||
+    config.render.gl.enable_16bit_hdr||
+    __SK_HDR_10BitSwap               ||
+    __SK_HDR_16BitSwap;
+
+  if (bOverridePixelFormat)
   {
+    const bool bUse16bpc = (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr);
+    const bool bUse10bpc = (__SK_HDR_10BitSwap || config.render.gl.enable_10bit_hdr)
+                                               || config.render.gl.prefer_10bpc;
+
+    const bool bUpgradeColor   = bUse10bpc ||
+                                 bUse16bpc;
+    const int  iColorBitsTotal = bUpgradeColor ? (bUse16bpc ? 48 : 30) : ppfd->cColorBits;
+    const int  iColorBitsRed   = bUpgradeColor ? (bUse16bpc ? 16 : 10) : ppfd->cRedBits;
+    const int  iColorBitsGreen = bUpgradeColor ? (bUse16bpc ? 16 : 10) : ppfd->cGreenBits;
+    const int  iColorBitsBlue  = bUpgradeColor ? (bUse16bpc ? 16 : 10) : ppfd->cBlueBits;
+    const int  iAlphaBits      = bUpgradeColor ? (bUse16bpc ? 16 :  2) : ppfd->cAlphaBits;
+    const int  iRedShift       = bUpgradeColor ? (bUse16bpc ? 0  :  0) : ppfd->cRedShift;
+    const int  iGreenShift     = bUpgradeColor ? (bUse16bpc ? 0  : 10) : ppfd->cGreenShift;
+    const int  iBlueShift      = bUpgradeColor ? (bUse16bpc ? 0  : 20) : ppfd->cBlueShift;
+    const int  iAlphaShift     = bUpgradeColor ? (bUse16bpc ? 0  : 30) : ppfd->cAlphaShift;
+
     if (wgl_choose_pixel_format_arb != nullptr)
     {
-      const int attribs [] = {
-        WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+      std::vector <int> attribs {
         WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
         WGL_DOUBLE_BUFFER_ARB,  GL_TRUE,
-        WGL_SWAP_METHOD_ARB,    WGL_SWAP_UNDEFINED_ARB,
-        WGL_ACCELERATION_ARB,   WGL_FULL_ACCELERATION_ARB,
-        WGL_COLOR_BITS_ARB,     __SK_HDR_10BitSwap ? 30 : 48,
-        WGL_RED_BITS_ARB,       __SK_HDR_10BitSwap ? 10 : 16,
-        WGL_GREEN_BITS_ARB,     __SK_HDR_10BitSwap ? 10 : 16,
-        WGL_BLUE_BITS_ARB,      __SK_HDR_10BitSwap ? 10 : 16,
-        WGL_ALPHA_BITS_ARB,     __SK_HDR_10BitSwap ?  2 : 16,
-        WGL_PIXEL_TYPE_ARB,     (__SK_HDR_16BitSwap || config.render.gl.enable_16bit_hdr) ?
-                                                                  WGL_TYPE_RGBA_FLOAT_ARB :
-                                                                  WGL_TYPE_RGBA_ARB,
-        WGL_DEPTH_BITS_ARB,     24, // It's nearly impossible to get 32-bit depth without an RBO
-        WGL_STENCIL_BITS_ARB,   ppfd->cStencilBits == 0 ? 0 : ppfd->cStencilBits <= 8 ? 8 : ppfd->cStencilBits,
-        0
+        WGL_SWAP_METHOD_ARB,    WGL_SWAP_EXCHANGE_ARB,
+        WGL_ACCELERATION_ARB,   WGL_FULL_ACCELERATION_ARB
       };
+
+      attribs.push_back (WGL_COLOR_BITS_ARB);
+      attribs.push_back (iColorBitsTotal);
+      attribs.push_back (WGL_RED_BITS_ARB);
+      attribs.push_back (iColorBitsRed);
+      attribs.push_back (WGL_GREEN_BITS_ARB);
+      attribs.push_back (iColorBitsGreen);
+      attribs.push_back (WGL_BLUE_BITS_ARB);
+      attribs.push_back (iColorBitsBlue);
+      attribs.push_back (WGL_ALPHA_BITS_ARB);
+      attribs.push_back (iAlphaBits);
+
+      attribs.push_back (            WGL_PIXEL_TYPE_ARB);
+      attribs.push_back (bUse16bpc ? WGL_TYPE_RGBA_FLOAT_ARB
+                                   : WGL_TYPE_RGBA_ARB);
+
+      // Don't even bother trying to support color index stuff
+      SK_ReleaseAssert (bUpgradeColor || ppfd->iPixelType == PFD_TYPE_RGBA);
+
+      const int iDepthBits   = config.render.gl.upgrade_zbuffer ? 24 : ppfd->cDepthBits;
+      const int iStencilBits = config.render.gl.upgrade_zbuffer ? (ppfd->cStencilBits == 0 ? 0 : ppfd->cStencilBits <= 8 ? 8 : ppfd->cStencilBits)
+                                                                :  ppfd->cStencilBits;
+
+      attribs.push_back (WGL_DEPTH_BITS_ARB);
+      attribs.push_back (iDepthBits);
+
+      attribs.push_back (WGL_STENCIL_BITS_ARB);
+      attribs.push_back (iStencilBits);
+
+      attribs.push_back (0);
+      attribs.push_back (0);
 
       int pixelFormat = 0;
       UINT numFormats = 0;
 
-      if (wgl_choose_pixel_format_arb (hDC, attribs, nullptr, 1, &pixelFormat, &numFormats))
+      if (wgl_choose_pixel_format_arb (hDC, attribs.data (), nullptr, 1, &pixelFormat, &numFormats) && numFormats >= 1)
       {
         PIXELFORMATDESCRIPTOR new_pfd = *ppfd;
 
         DescribePixelFormat      (hDC, pixelFormat, sizeof (PIXELFORMATDESCRIPTOR), &new_pfd);
         if (wgl_set_pixel_format (hDC, pixelFormat,                                 &new_pfd))
         {
-          SK_LOG0 ( ( L" * HDR Override: "
+          SK_LOG0 ( ( L" * %wcDR Override: "
                           L"R%" _L(PRIi8) L"G%" _L(PRIi8) L"B%"         _L(PRIi8)
-                          L"%ws Depth=%"        _L(PRIi8) L" Stencil=%" _L(PRIi8),
+                          L"%ws Depth=%"        _L(PRIi8) L" Stencil=%" _L(PRIi8), (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap) ? L'H' : L'S',
                        new_pfd.cRedBits,  new_pfd.cGreenBits,
                        new_pfd.cBlueBits, new_pfd.cAlphaBits == 0 ?
                                           L" "                    :
@@ -4492,21 +4687,19 @@ wglSetPixelFormat ( HDC                    hDC,
     pfd_copy.nSize       = sizeof (pfd_copy);
     pfd_copy.dwFlags     = PFD_DOUBLEBUFFER  | PFD_DRAW_TO_WINDOW |
                            PFD_SWAP_EXCHANGE | PFD_SUPPORT_COMPOSITION;
-    pfd_copy.cColorBits  = __SK_HDR_10BitSwap ? 30 : 48;
-    pfd_copy.cAlphaBits  = __SK_HDR_10BitSwap ?  2 : 16;
-    pfd_copy.cRedBits    = __SK_HDR_10BitSwap ? 10 : 16;
-    pfd_copy.cBlueBits   = __SK_HDR_10BitSwap ? 10 : 16;
-    pfd_copy.cGreenBits  = __SK_HDR_10BitSwap ? 10 : 16;
-    pfd_copy.cRedShift   = __SK_HDR_10BitSwap ?  0 :  0;
-    pfd_copy.cGreenShift = __SK_HDR_10BitSwap ? 10 :  0;
-    pfd_copy.cBlueShift  = __SK_HDR_10BitSwap ? 20 :  0;
-    pfd_copy.cAlphaShift = __SK_HDR_10BitSwap ? 30 :  0;
-  }
+    pfd_copy.cColorBits  = static_cast <BYTE> (iColorBitsTotal);
+    pfd_copy.cRedBits    = static_cast <BYTE> (iColorBitsRed);
+    pfd_copy.cGreenBits  = static_cast <BYTE> (iColorBitsGreen);
+    pfd_copy.cBlueBits   = static_cast <BYTE> (iColorBitsBlue);
+    pfd_copy.cAlphaBits  = static_cast <BYTE> (iAlphaBits);
+    pfd_copy.cAlphaShift = static_cast <BYTE> (iAlphaShift);
+    pfd_copy.cRedShift   = static_cast <BYTE> (iRedShift);
+    pfd_copy.cGreenShift = static_cast <BYTE> (iGreenShift);
+    pfd_copy.cBlueShift  = static_cast <BYTE> (iBlueShift);
 
-  if (pfd_copy.cStencilBits <= 8)
-  {
-    pfd_copy.cStencilBits = pfd_copy.cStencilBits != 0 ? 8 : 0;
-    pfd_copy.cDepthBits   = 24;
+    pfd_copy.cStencilBits = config.render.gl.upgrade_zbuffer ? (ppfd->cStencilBits == 0 ? 0 : ppfd->cStencilBits <= 8 ? 8 : ppfd->cStencilBits)
+                                                                  : ppfd->cStencilBits;
+    pfd_copy.cDepthBits   = config.render.gl.upgrade_zbuffer ? 24 : ppfd->cDepthBits;
   }
 
   iPixelFormatOverride =
@@ -4547,21 +4740,41 @@ wglCreateContext (HDC hDC)
   WaitForInit_GL ();
 
   SK_LOG0 ( ( L"[%08x (tid=%04x)]  wglCreateContext "
-              L"(hDC=%x)",
+              L"(hDC=%x)\t[%ws]",
               SK_TLS_Bottom ()->render->gl->current_hwnd,
-              SK_Thread_GetCurrentId (   ), hDC ),
+              SK_Thread_GetCurrentId (   ), hDC, SK_GetCallerName ().c_str () ),
               L" OpenGL32 " );
 
-  HGLRC  ret = nullptr;
+  HGLRC  hglrc = nullptr;
 
   if (wgl_create_context_attribs != nullptr) {
+    static const int                                debug_attribs [] = { WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+                                                                         WGL_CONTEXT_MINOR_VERSION_ARB, 2,
+                                                                         WGL_CONTEXT_PROFILE_MASK_ARB,  WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+                                                                         WGL_CONTEXT_FLAGS_ARB,         WGL_CONTEXT_DEBUG_BIT_ARB,
+                                                                         0, 0 };
     static const int                                default_attribs [] = { WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
                                                                            WGL_CONTEXT_MINOR_VERSION_ARB, 2,
-                                                                           WGL_CONTEXT_PROFILE_MASK_ARB,  WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB, 0, 0 };
-         ret = wgl_create_context_attribs ( hDC, 0, default_attribs );
-  } else ret =         wgl_create_context ( hDC );
+                                                                           WGL_CONTEXT_PROFILE_MASK_ARB,  WGL_CONTEXT_COMPATIBILITY_PROFILE_BIT_ARB,
+                                                                           0, 0 };
+         hglrc = wgl_create_context_attribs ( hDC, 0, config.render.gl.debug.enable ? debug_attribs : default_attribs );
+  } else hglrc =         wgl_create_context ( hDC );
 
-  return ret;
+  if (config.render.gl.debug.enable && glDebugMessageCallbackARB != nullptr)
+  {
+    HGLRC hglrc_current = wglGetCurrentContext ();
+    HDC   hdc_current   = wglGetCurrentDC      ();
+
+    wglMakeCurrent (hDC, hglrc);
+    {
+      if (config.render.gl.debug.break_on_error)
+        glEnable                (GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+      glDebugMessageCallbackARB (SK_GL_InteropDebugOutput,   hglrc);
+    }
+    wglMakeCurrent (hdc_current, hglrc_current);
+  }
+
+  return hglrc;
 }
 
 __declspec (noinline)
@@ -4572,10 +4785,10 @@ wglShareLists (HGLRC ctx0, HGLRC ctx1)
   WaitForInit_GL ();
 
   SK_LOG0 ( ( L"[%08x (tid=%04x)]  wglShareLists "
-              L"(ctx0=%x, ctx1=%x)",
+              L"(ctx0=%x, ctx1=%x)\t[%ws]",
                 SK_TLS_Bottom ()->render->gl->current_hwnd,
                 SK_Thread_GetCurrentId (   ),
-                                       ctx0, ctx1 ),
+                                       ctx0, ctx1, SK_GetCallerName ().c_str () ),
               L" OpenGL32 " );
 
   BOOL ret =

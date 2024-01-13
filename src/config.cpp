@@ -864,6 +864,13 @@ struct {
   } dstorage;
 
   struct {
+    sk::ParameterBool*    enable_debug            = nullptr;
+    sk::ParameterBool*    break_on_error          = nullptr;
+    sk::ParameterBool*    prefer_10bpc            = nullptr;
+    sk::ParameterBool*    upgrade_zbuffer         = nullptr;
+  } gl;
+
+  struct {
     sk::ParameterBool*    force_d3d9ex            = nullptr;
     sk::ParameterBool*    impure                  = nullptr;
     sk::ParameterBool*    enable_texture_mods     = nullptr;
@@ -1063,6 +1070,7 @@ struct {
 struct {
   struct {
     sk::ParameterBool*    hook                    = nullptr;
+    sk::ParameterBool*    debug                   = nullptr;
   }
 #ifdef _M_IX86
       ddraw, d3d8,
@@ -1614,14 +1622,14 @@ auto DeclKeybind =
     ConfigEntry (apis.d3d9ex.hook,                       L"Enable Direct3D 9Ex Hooking",                               dll_ini,         L"API.Hook",              L"d3d9ex"),
     ConfigEntry (apis.dxvk9.enable,                      L"Enable Native DXVK (D3D9)",                                 dll_ini,         L"API.Hook",              L"dxvk9"),
     ConfigEntry (apis.d3d11.hook,                        L"Enable Direct3D 11 Hooking",                                dll_ini,         L"API.Hook",              L"d3d11"),
-    ConfigEntry (apis.d3d12.hook,                        L"Enable Direct3D 12 Hooking",                                dll_ini,         L"API.Hook",              L"d3d12"),  
+    ConfigEntry (apis.d3d12.hook,                        L"Enable Direct3D 12 Hooking",                                dll_ini,         L"API.Hook",              L"d3d12"),
 
 #ifdef _M_AMD64
     ConfigEntry (apis.Vulkan.hook,                       L"Enable Vulkan Hooking",                                     dll_ini,         L"API.Hook",              L"Vulkan"),
 #endif
 
     ConfigEntry (apis.OpenGL.hook,                       L"Enable OpenGL Hooking",                                     dll_ini,         L"API.Hook",              L"OpenGL"),
-
+    ConfigEntry (apis.OpenGL.debug,                      L"Enable OpenGL Debugging",                                   dll_ini,         L"OpenGL.System",         L"EnableDebug"),
 
     // Misc.
     //////////////////////////////////////////////////////////////////////////
@@ -1725,10 +1733,13 @@ auto DeclKeybind =
 
     ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
 
+    ConfigEntry (render.osd.draw_in_vidcap,              L"Changes hook order in order to allow recording the OSD.",   dll_ini,         L"Render.OSD",            L"ShowInVideoCapture"),
+
     // OpenGL
     //////////////////////////////////////////////////////////////////////////
-
-    ConfigEntry (render.osd.draw_in_vidcap,              L"Changes hook order in order to allow recording the OSD.",   dll_ini,         L"Render.OSD",            L"ShowInVideoCapture"),
+    ConfigEntry (render.gl.enable_debug,                 L"Enable OpenGL Debug Output (in legacy OpenGL games)",       dll_ini,         L"OpenGL.System",         L"EnableDebug"),
+    ConfigEntry (render.gl.prefer_10bpc,                 L"Use 10-bpc in SDR if the game's pixel type allows it",      dll_ini,         L"OpenGL.System",         L"Prefer10bpc"),
+    ConfigEntry (render.gl.upgrade_zbuffer,              L"Use the most precise Z-buffer possible (usually 24-bit)",   dll_ini,         L"OpenGL.System",         L"UpgradeZBuffer"),
 
     // D3D9
     //////////////////////////////////////////////////////////////////////////
@@ -3076,7 +3087,7 @@ auto DeclKeybind =
       {
         // Prevent VRR disable when game plays cutscenes
         config.render.framerate.sync_interval_clamp  =     1;
-                                                     
+
         config.textures.d3d11.cache                  =  true;
         config.textures.cache.allow_staging          =  true;
         config.textures.cache.max_size               =    64; // SmaLL cache; engine's leaky
@@ -3104,12 +3115,12 @@ auto DeclKeybind =
         config.threads.enable_file_io_trace          =  true;
         config.steam.preload_overlay                 = false; // Set to false because of loss of rumble
         config.window.background_render              = false;
-                                                     
-        SK_D3D11_DeclHUDShader_Vtx (0x3e464f00);     
-                                                     
+
+        SK_D3D11_DeclHUDShader_Vtx (0x3e464f00);
+
         config.render.dxgi.deferred_isolation        =  true; // Enable render mods
         config.render.dxgi.low_spec_mode             =  true; // Reduce state tracking overhead
-                                                     
+
         config.input.keyboard.catch_alt_f4           =  true;
         config.input.keyboard.override_alt_f4        =  true;
 
@@ -3298,7 +3309,7 @@ auto DeclKeybind =
         config.compatibility.init_on_separate_thread = false;
         config.display.force_windowed                = true;
         config.window.dont_hook_wndproc              = true;
-        
+
         config.platform.silent =
           !( PathFileExistsW ( L"steam_api64.dll" )
           && CopyFile        ( L"steam_api64.dll",
@@ -3386,33 +3397,33 @@ auto DeclKeybind =
               L"RTSS disables the Epic overlay, which is required to activate this game.\r\n\r\n"
               L"\t>> This warning will not be shown again."
             );
-        
+
             FILE *fWarned =
               fopen ("SpecialK.RTSSWarned", "w");
-        
+
             if (         fWarned != nullptr)
             { fputc  (0, fWarned);
               fclose (   fWarned);
             }
           }
-        
-          if ( ! GetModuleHandleW (L"EOSOVH-Win64-Shipping.dll") && 
+
+          if ( ! GetModuleHandleW (L"EOSOVH-Win64-Shipping.dll") &&
               (! PathFileExistsW  (L"SpecialK.RTSSWarned")) )
           {
             SK_ImGui_Warning (
               L"The EOS Overlay is required once to activate this game.\r\n\r\n"
               L"\t>> This warning will not be shown again."
             );
-        
+
             FILE *fWarned =
               fopen ("SpecialK.EOSWarned", "w");
-        
+
             if (         fWarned != nullptr)
             { fputc  (0, fWarned);
               fclose (   fWarned);
             }
           }
-        
+
           return S_OK;
         });
 
@@ -3537,7 +3548,7 @@ auto DeclKeybind =
                          monitoring.disk.type->load      (config.disk.type);
 
   monitoring.pagefile.interval->load (config.pagefile.interval);
-  
+
   monitoring.title.show->load (config.title.show);
   monitoring.time.show->load  (config.time.show);
   monitoring.SLI.show->load   (config.sli.show);
@@ -3615,7 +3626,7 @@ auto DeclKeybind =
   render.framerate.latent_sync.auto_bias->load(config.render.framerate.latent_sync.auto_bias);
   render.framerate.latent_sync.max_auto_bias
                                        ->load (config.render.framerate.latent_sync.max_auto_bias);
-  
+
   std::wstring auto_bias_target;
 
   if (render.framerate.latent_sync.auto_bias_target->load (auto_bias_target))
@@ -3742,6 +3753,18 @@ auto DeclKeybind =
   render.d3d9.use_d3d9on12->load        (config.render.d3d9.use_d3d9on12);
   render.d3d9.enable_texture_mods->load (config.textures.d3d9_mod);
   texture.d3d9.clamp_lod_bias->load     (config.textures.clamp_lod_bias);
+
+
+  // OpenGL
+  //
+  if (! render.gl.enable_debug->load (config.render.gl.debug.enable))
+#ifdef DEBUG
+    config.render.gl.debug.enable = true;
+#else
+    config.render.gl.debug.enable = false;
+#endif
+  render.gl.prefer_10bpc->load    (config.render.gl.prefer_10bpc);
+  render.gl.upgrade_zbuffer->load (config.render.gl.upgrade_zbuffer);
 
 
   // DXGI
@@ -5506,7 +5529,7 @@ SK_SaveConfig ( std::wstring name,
     render.framerate.latent_sync.auto_bias->store (config.render.framerate.latent_sync.auto_bias);
     render.framerate.latent_sync.max_auto_bias
                                           ->store (config.render.framerate.latent_sync.max_auto_bias);
-    
+
     if (config.render.framerate.latent_sync.auto_bias_target.ms != 0.0f)
     {
       wchar_t   wszMilliseconds [16] = { };
@@ -5695,6 +5718,14 @@ SK_SaveConfig ( std::wstring name,
       render.d3d9.enable_texture_mods->store  (config.textures.d3d9_mod);
       render.d3d9.use_d3d9on12->store         (config.render.d3d9.use_d3d9on12);
     }
+  }
+
+  if (  SK_IsInjected () ||
+      ( SK_GetDLLRole () & DLL_ROLE::OpenGL ) )
+  {
+    render.gl.enable_debug->store    (config.render.gl.debug.enable);
+    render.gl.prefer_10bpc->store    (config.render.gl.prefer_10bpc);
+    render.gl.upgrade_zbuffer->store (config.render.gl.upgrade_zbuffer);
   }
 
   // Don't write this setting unless an AddOn capable version of ReShade is loaded

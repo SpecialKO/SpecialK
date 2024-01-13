@@ -170,7 +170,7 @@ D3D11Dev_CreateShaderResourceView_Override (
         (pDesc != nullptr && DirectX::IsTypeless (pDesc->Format, false));
 
       // Fix-up SRV's created using NULL desc's on Typeless SwapChain Backbuffers, or using DXGI_FORMAT_UNKNOWN
-      if (DirectX::IsTypeless (texDesc.Format) && (pDesc == nullptr || pDesc->Format == DXGI_FORMAT_UNKNOWN) &&
+      if (DirectX::IsTypeless (texDesc.Format) && (pDesc == nullptr || pDesc->Format == DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (pDesc->Format)) &&
                               (texDesc.BindFlags & D3D11_BIND_RENDER_TARGET))
       {
         if (pDesc == nullptr)
@@ -198,8 +198,8 @@ D3D11Dev_CreateShaderResourceView_Override (
         }
 
         if (                                                            bInvalidType ||
-             (                                   (desc.Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (texDesc.Format, false)) &&
-              (! SK_D3D11_IsDirectCopyCompatible (desc.Format,                                               texDesc.Format)))
+             (                                   (desc.Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (texDesc.Format, false)) /*&&
+              (! SK_D3D11_IsDirectCopyCompatible (desc.Format,                                               texDesc.Format))*/)
            )
         {
           DXGI_FORMAT swapChainFormat = DXGI_FORMAT_UNKNOWN;
@@ -563,7 +563,7 @@ D3D11Dev_CreateUnorderedAccessView_Override (
       bool         override = false;
 
       // Fix-up UAV's created using NULL desc's on Typeless SwapChain Backbuffers, or using DXGI_FORMAT_UNKNOWN
-      if (DirectX::IsTypeless (tex_desc.Format) && (pDesc == nullptr || pDesc->Format == DXGI_FORMAT_UNKNOWN) &&
+      if (DirectX::IsTypeless (tex_desc.Format) && (pDesc == nullptr || pDesc->Format == DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (pDesc->Format)) &&
                               (tex_desc.BindFlags & D3D11_BIND_RENDER_TARGET))
       {
         if (pDesc == nullptr)

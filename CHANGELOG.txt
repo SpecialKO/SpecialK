@@ -1,4 +1,21 @@
-﻿24.1.12
+﻿24.1.13
+=======
+ + Change VSYNC setting in control panel to report ther current state, by name,
+     instead of "No Override" if no override is active. 
+ + Added OpenGL Debug Output support
+ + Added options to control OpenGL's framebuffer color precision and depth/stencil
+
+     [OpenGL.System]
+     Prefer10bpc={true|false}     Default: true
+     UpgradeZBuffer={true|false}  Default: true
+
+   These new options control the framebuffer setup for legacy OpenGL titles, if
+     the game uses more modern OpenGL APIs (most do not) then they do not apply.
+
+ + Temporarily disabled HDR ZeroCopy in OpenGL due to GPU memory leak when
+     switching between scRGB and HDR10 modes
+
+24.1.12
 =======
  + Added Steam Input activity light to Input Management tab, with the particular
      subset of devices that Steam Input is enabled for in the polling count

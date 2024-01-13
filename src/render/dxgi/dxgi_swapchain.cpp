@@ -110,7 +110,7 @@ IWrapDXGISwapChain::RegisterDestructionCallback (void)
 
   SK_ComQIPtr <ID3DDestructionNotifier>
                   pDestructomatic (pReal);
-  
+
   if (pDestructomatic != nullptr)
   {
     return
@@ -641,7 +641,7 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
              texDesc.Height == swapDesc.BufferDesc.Height &&
              DirectX::MakeTypeless (            texDesc.Format) ==
              DirectX::MakeTypeless (swapDesc.BufferDesc.Format) &&
-             std::exchange (flip_model.last_srgb_mode, config.render.dxgi.srgb_behavior) == 
+             std::exchange (flip_model.last_srgb_mode, config.render.dxgi.srgb_behavior) ==
                                                        config.render.dxgi.srgb_behavior )
       {
         return
@@ -775,7 +775,7 @@ SK_DXGI_FixUpLatencyWaitFlag (
 
   if ( (desc.Flags &  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
                   ==  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT ||
-                (bCreation && config.render.framerate.swapchain_wait > 0) 
+                (bCreation && config.render.framerate.swapchain_wait > 0)
      )       Flags |=  DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
   else       Flags &= ~DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
@@ -1355,7 +1355,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
                IDXGIOutput    *pTarget )
     {
       HRESULT hr =
-        bWrapped ? 
+        bWrapped ?
           pSwapChain->SetFullscreenState (         Fullscreen, pTarget)
                  :
           SetFullscreenState_Original (pSwapChain, Fullscreen, pTarget);
@@ -1635,7 +1635,7 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
          UINT            SwapChainFlags )
     {
       HRESULT hr =
-        bWrapped ? 
+        bWrapped ?
           pSwapChain->ResizeBuffers (            BufferCount, Width, Height,
                                                  NewFormat, SwapChainFlags )
                  :
@@ -1660,7 +1660,7 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
 
     // When skipping resize operations in D3D12, there's an important side-effect that
     //   must be reproduced:
-    // 
+    //
     //    * Current Buffer Index reverts to 0 on success
     //
     //  --> We need to make several unsynchronized Present calls until we advance back to
@@ -2164,7 +2164,7 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
           //  SK_DeferCommand ("Window.TopMost false");
         }
       }
-    
+
       return hr;
     };
 
