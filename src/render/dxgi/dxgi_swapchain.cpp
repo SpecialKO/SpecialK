@@ -1861,8 +1861,8 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
   //   a valid footgun license and can afford to lose a few toes.
   //
   if (                                  SK_ComPtr <ID3D12Device> pSwapDev12;
-      FAILED (pSwapChain->GetDevice (IID_ID3D12Device, (void **)&pSwapDev12.p) ||
-               config.render.dxgi.allow_d3d12_footguns)
+      FAILED (pSwapChain->GetDevice (IID_ID3D12Device, (void **)&pSwapDev12.p)) ||
+               config.render.dxgi.allow_d3d12_footguns
      )
   {
     if (       config.render.framerate.buffer_count != SK_NoPreference &&

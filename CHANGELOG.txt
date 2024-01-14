@@ -1,4 +1,9 @@
-﻿24.1.14.4
+﻿24.1.14.5
+=========
+ + Allow crashing as intended if you override swapchain backbuffer count in D3D12
+     and you've promised not to shoot yourself in the foot
+
+24.1.14.4
 =========
  + Do not apply backbuffer count overrides during SwapChain resize in D3D12
      unless user presents a footgun license and can afford to lose some toes.
