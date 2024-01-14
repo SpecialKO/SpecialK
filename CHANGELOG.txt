@@ -1,4 +1,9 @@
-﻿24.1.13.2
+﻿24.1.14
+=======
+ + Fixed crashes in Street Fighter 6 caused by the Steam Overlay
+ + Fixed RawInput performance problems in The Descent caused by the Steam Overlay
+
+24.1.13.2
 =========
  + Fixed the purported SteamAPI fix in 24.1.13.1, for real this time :P
 

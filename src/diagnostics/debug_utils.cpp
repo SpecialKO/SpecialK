@@ -2825,7 +2825,7 @@ SK_Exception_HandleThreadName (
   DWORD      /*nNumberOfArguments*/,
   const ULONG_PTR *lpArguments         )
 {
-  if (dwExceptionCode == MAGIC_THREAD_EXCEPTION)
+  if (dwExceptionCode == MAGIC_THREAD_EXCEPTION && lpArguments != nullptr)
   {
     THREADNAME_INFO* info =
       (THREADNAME_INFO *)lpArguments;
@@ -3500,7 +3500,7 @@ RaiseException_Detour (
           //SK_ReleaseAssert (ExceptionRecord->NumberParameters == 2)
 
           // ANSI (almost always)
-          if (dwExceptionCode == DBG_PRINTEXCEPTION_C)
+          if (dwExceptionCode == DBG_PRINTEXCEPTION_C && lpArguments != nullptr && nNumberOfArguments >= 2)
           {
             game_debug->LogEx ( true, L"%-72ws:  %.*hs",
               wszModule, sk::narrow_cast <UINT> (lpArguments [0]),
@@ -3508,7 +3508,7 @@ RaiseException_Detour (
           }
 
           // UTF-16 (rarely ever seen)
-          else
+          else if (lpArguments != nullptr && nNumberOfArguments >= 2)
           {
             game_debug->LogEx ( true, L"%-72ws:  %.*ws",
               wszModule, sk::narrow_cast <UINT> (lpArguments [0]),
@@ -3542,7 +3542,8 @@ RaiseException_Detour (
       SK_TLS_Bottom ();
 
 
-    if ( SK_Exception_HandleThreadName (
+    if (     lpArguments != nullptr &&
+         SK_Exception_HandleThreadName (
            dwExceptionCode, dwExceptionFlags,
            nNumberOfArguments,
              lpArguments )

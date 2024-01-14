@@ -5498,7 +5498,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       switch (wParam)
       {
         case DBT_DEVICEARRIVAL:
-        case DBT_DEVICEREMOVECOMPLETE:
         {
           const auto pDevHdr =
             (DEV_BROADCAST_HDR *)lParam;

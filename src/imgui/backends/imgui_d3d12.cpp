@@ -34,6 +34,9 @@
 
 #define SK_D3D12_PERSISTENT_IMGUI_DEV_OBJECTS
 
+D3D12GraphicsCommandList_ResourceBarrier_pfn
+D3D12GraphicsCommandList_ResourceBarrier_Original     = nullptr;
+
 D3D12GraphicsCommandList_SetPipelineState_pfn
 D3D12GraphicsCommandList_SetPipelineState_Original     = nullptr;
 
@@ -1213,6 +1216,27 @@ SK_D3D12_AddMissingPipelineState ( ID3D12Device        *pDevice,
 
 void
 STDMETHODCALLTYPE
+D3D12GraphicsCommandList_ResourceBarrier_Detour ( 
+      ID3D12GraphicsCommandList *This,
+      UINT                       NumBarriers,
+const D3D12_RESOURCE_BARRIER    *pBarriers )
+{
+  SK_LOG_FIRST_CALL
+
+  if (NumBarriers == 0 || pBarriers == nullptr)
+  {
+    if (pBarriers == nullptr)
+      SK_RunOnce (SK_LOGi0 (L"Game tried to pass a null array of barriers to ID3D12GraphicsCommandList::ResourceBarrier (...)!"));
+
+    return;
+  }
+
+  return
+    D3D12GraphicsCommandList_ResourceBarrier_Original (This, NumBarriers, pBarriers);
+}
+
+void
+STDMETHODCALLTYPE
 D3D12GraphicsCommandList_SetPipelineState_Detour (
   ID3D12GraphicsCommandList *This,
   ID3D12PipelineState       *pPipelineState )
@@ -1377,6 +1401,29 @@ D3D12GraphicsCommandList_DrawIndexedInstanced_Detour (
                            BaseVertexLocation, StartInstanceLocation );
 }
 
+using                       D3D12GraphicsCommandList_ClearRenderTargetView_pfn =
+void (STDMETHODCALLTYPE *)(ID3D12GraphicsCommandList*,D3D12_CPU_DESCRIPTOR_HANDLE,
+                           const FLOAT [4],UINT,const D3D12_RECT*);
+
+static D3D12GraphicsCommandList_ClearRenderTargetView_pfn
+       D3D12GraphicsCommandList_ClearRenderTargetView_Original = nullptr;
+
+void
+STDMETHODCALLTYPE
+D3D12GraphicsCommandList_ClearRenderTargetView_Detour (
+                             ID3D12GraphicsCommandList   *This,
+                             D3D12_CPU_DESCRIPTOR_HANDLE RenderTargetView,
+                       const FLOAT                          ColorRGBA [4],
+                             UINT                                NumRects,
+  _In_reads_(NumRects) const D3D12_RECT                           *pRects)
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    D3D12GraphicsCommandList_ClearRenderTargetView_Original (
+      This, RenderTargetView, ColorRGBA, NumRects, pRects );
+}
+
 void
 STDMETHODCALLTYPE
 D3D12GraphicsCommandList_ExecuteIndirect_Detour (
@@ -1446,6 +1493,14 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
                      (void **)&D3D12GraphicsCommandList_SetPipelineState_Original );
   }
 
+  if (D3D12GraphicsCommandList_ResourceBarrier_Original == nullptr)
+  {
+    SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::ResourceBarrier",
+                            *(void***)*(&pCmdList), 26,
+                               D3D12GraphicsCommandList_ResourceBarrier_Detour,
+                     (void **)&D3D12GraphicsCommandList_ResourceBarrier_Original );
+  }
+
   // 26 ResourceBarrier
   // 27 ExecuteBundle
   // 28 SetDescriptorHeaps
@@ -1495,6 +1550,14 @@ _InitDrawCommandHooks (ID3D12GraphicsCommandList* pCmdList)
                             *(void***)*(&pCmdList), 59,
                                D3D12GraphicsCommandList_ExecuteIndirect_Detour,
                      (void **)&D3D12GraphicsCommandList_ExecuteIndirect_Original );
+  }
+
+  if (D3D12GraphicsCommandList_ClearRenderTargetView_Original == nullptr)
+  {
+    SK_CreateVFTableHook2 ( L"ID3D12GraphicsCommandList::ClearRenderTargetView",
+                        *(void***)*(&pCmdList), 48,
+                           D3D12GraphicsCommandList_ClearRenderTargetView_Detour,
+                 (void **)&D3D12GraphicsCommandList_ClearRenderTargetView_Original );
   }
 
   SK_ApplyQueuedHooks ();
@@ -1728,8 +1791,8 @@ D3D12GraphicsCommandList_CopyResource_Detour (
   );
 }
 
-extern void
-SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource, const wchar_t *wszName = nullptr);
+//extern void
+//SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource, const wchar_t *wszName = nullptr);
 
 // Workaround for Control in HDR
 void
@@ -1784,7 +1847,7 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
 
     if (! ignore)
     {
-      SK_D3D12_CopyTexRegion_Dump (This, pDst->pResource);
+      //SK_D3D12_CopyTexRegion_Dump (This, pDst->pResource);
     }
   }
 #endif

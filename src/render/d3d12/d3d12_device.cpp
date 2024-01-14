@@ -847,6 +847,49 @@ _COM_Outptr_  void                            **ppPipelineState )
 
 
 
+using D3D12Device_CreateCommandQueue_pfn =
+  HRESULT (STDMETHODCALLTYPE *)(ID3D12Device*,const D3D12_COMMAND_QUEUE_DESC*,
+                                REFIID,void**);
+
+static D3D12Device_CreateCommandQueue_pfn
+       D3D12Device_CreateCommandQueue_Original = nullptr;
+
+HRESULT
+STDMETHODCALLTYPE
+D3D12Device_CreateCommandQueue_Detour (ID3D12Device             *This,
+                                 const D3D12_COMMAND_QUEUE_DESC *pDesc,
+                                       REFIID                     riid,
+                                       void           **ppCommandQueue)
+{
+  SK_LOG_FIRST_CALL
+
+  auto _descCopy = pDesc != nullptr ?
+                  *pDesc            : D3D12_COMMAND_QUEUE_DESC { };
+
+  // This requires special privileges that the user probably doesn't have
+  if (_descCopy.Priority == D3D12_COMMAND_QUEUE_PRIORITY_GLOBAL_REALTIME)
+  {
+    if (FAILED (ModifyPrivilege (SE_INC_BASE_PRIORITY_NAME, TRUE)))
+    {
+      SK_LOGi0 (
+        L" >> Lowering priority on Command Queue created by game from Global Realtime to High,"
+        L" because the user's account lacks SeIncreaseBasePriorityPrivilege;"
+        L" admin accounts have this privilege, BTW."
+      );
+      _descCopy.Priority = D3D12_COMMAND_QUEUE_PRIORITY_HIGH;
+    }
+  }
+
+  if (pDesc != nullptr)
+  {
+    return
+      D3D12Device_CreateCommandQueue_Original (This, &_descCopy, riid, ppCommandQueue);
+  }
+
+  return
+    D3D12Device_CreateCommandQueue_Original (This, pDesc, riid, ppCommandQueue);
+}
+
 HRESULT
 STDMETHODCALLTYPE
 D3D12Device_CreateCommandAllocator_Detour (
@@ -2221,6 +2264,11 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
       SK_LOGi0 (L"Hooking Streamline Native Interface for ID3D12Device...");
     else pDev12 = pDevice12;
   } else pDev12 = pDevice12;
+
+  SK_CreateVFTableHook2 ( L"ID3D12Device::CreateCommandQueue",
+                            *(void ***)*(&pDev12), 8,
+                             D3D12Device_CreateCommandQueue_Detour,
+                   (void **)&D3D12Device_CreateCommandQueue_Original );
 
   SK_CreateVFTableHook2 ( L"ID3D12Device::CreateCommandAllocator",
                             *(void ***)*(&pDev12), 9,

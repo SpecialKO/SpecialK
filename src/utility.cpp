@@ -2953,9 +2953,10 @@ SK_FileHas8Dot3Name (const wchar_t* wszLongFileName)
   return TRUE;
 }
 
-HRESULT ModifyPrivilege(
-    IN LPCTSTR szPrivilege,
-    IN BOOL fEnable)
+HRESULT
+ModifyPrivilege (
+  IN LPCTSTR szPrivilege,
+  IN BOOL    fEnable )
 {
     HRESULT hr = S_OK;
     TOKEN_PRIVILEGES NewState;

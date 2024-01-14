@@ -447,6 +447,10 @@ ID3D12Device vftable
     };
 #endif
 
+using D3D12GraphicsCommandList_ResourceBarrier_pfn =
+void (STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
+                            UINT, const D3D12_RESOURCE_BARRIER* );
+
 using D3D12GraphicsCommandList_SetPipelineState_pfn =
 void (STDMETHODCALLTYPE *)( ID3D12GraphicsCommandList*,
                             ID3D12PipelineState* );

@@ -1490,6 +1490,7 @@ enum class SK_GAME_ID
   AlanWake2,                    // AlanWake2.exe
   Cyberpunk2077,                // Cyberpunk2077.exe
   CrashReport,                  // CrashReport.exe (ironically, causes crashes)
+  StreetFighter6,               // StreetFighter6.exe
 
   UNKNOWN_GAME               = 0xffff
 };

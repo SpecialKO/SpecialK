@@ -798,6 +798,8 @@ SK_XInput_InitHotPlugHooks (void)
                                 RegisterDeviceNotificationA_Detour,
        static_cast_p2p <void> (&RegisterDeviceNotificationA_Original) );
   }
+
+  SK_ApplyQueuedHooks ();
 }
 
 

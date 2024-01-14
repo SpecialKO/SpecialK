@@ -1719,13 +1719,14 @@ SK_NGX_LogCallback ( const char*             message,
 void
 SK_NGX12_DumpBuffers_DLSSG (ID3D12GraphicsCommandList* pCommandList)
 {
-  void SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource, const wchar_t *wszName);
+  std::ignore = pCommandList;
+  //void SK_D3D12_CopyTexRegion_Dump (ID3D12GraphicsCommandList* This, ID3D12Resource* pResource, const wchar_t *wszName);
 
-  if (SK_NGX_DLSSG_UI_Buffer      != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_UI_Buffer,      L"DLSSG.UI");
-  if (SK_NGX_DLSSG_HUDLess_Buffer != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_HUDLess_Buffer, L"DLSSG.HUDLess");
-  if (SK_NGX_DLSSG_Back_Buffer    != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_Back_Buffer,    L"DLSSG.Backbuffer");
-  if (SK_NGX_DLSSG_MVecs_Buffer   != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_MVecs_Buffer,   L"DLSSG.MVecs");
-  if (SK_NGX_DLSSG_Depth_Buffer   != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_Depth_Buffer,   L"DLSSG.Depth");
+  ////if (SK_NGX_DLSSG_UI_Buffer      != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_UI_Buffer,      L"DLSSG.UI");
+  ////if (SK_NGX_DLSSG_HUDLess_Buffer != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_HUDLess_Buffer, L"DLSSG.HUDLess");
+  ////if (SK_NGX_DLSSG_Back_Buffer    != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_Back_Buffer,    L"DLSSG.Backbuffer");
+  ////if (SK_NGX_DLSSG_MVecs_Buffer   != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_MVecs_Buffer,   L"DLSSG.MVecs");
+  ////if (SK_NGX_DLSSG_Depth_Buffer   != nullptr) SK_D3D12_CopyTexRegion_Dump (pCommandList, (ID3D12Resource *)SK_NGX_DLSSG_Depth_Buffer,   L"DLSSG.Depth");
 
   //SK_NGX_DLSSG_UI_Buffer      = nullptr;
   //SK_NGX_DLSSG_HUDLess_Buffer = nullptr;

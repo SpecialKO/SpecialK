@@ -1197,29 +1197,32 @@ SK_Input_HookHID (void)
     SK_LOG0 ( ( L"Game uses HID, installing input hooks..." ),
                 L"  Input   " );
 
-    SK_CreateDLLHook2 (     L"HID.DLL",
-                             "HidP_GetData",
-                              HidP_GetData_Detour,
-     static_cast_p2p <void> (&HidP_GetData_Original) );
+    if (config.input.gamepad.disable_ps4_hid)
+    {
+      SK_CreateDLLHook2 (     L"HID.DLL",
+                               "HidP_GetData",
+                                HidP_GetData_Detour,
+       static_cast_p2p <void> (&HidP_GetData_Original) );
 
-    SK_CreateDLLHook2 (     L"HID.DLL",
-                             "HidD_GetPreparsedData",
-                              HidD_GetPreparsedData_Detour,
-     static_cast_p2p <void> (&HidD_GetPreparsedData_Original) );
+      SK_CreateDLLHook2 (     L"HID.DLL",
+                               "HidD_GetPreparsedData",
+                                HidD_GetPreparsedData_Detour,
+       static_cast_p2p <void> (&HidD_GetPreparsedData_Original) );
 
-    SK_CreateDLLHook2 (     L"HID.DLL",
-                             "HidD_FreePreparsedData",
-                              HidD_FreePreparsedData_Detour,
-     static_cast_p2p <void> (&HidD_FreePreparsedData_Original) );
+      SK_CreateDLLHook2 (     L"HID.DLL",
+                               "HidD_FreePreparsedData",
+                                HidD_FreePreparsedData_Detour,
+       static_cast_p2p <void> (&HidD_FreePreparsedData_Original) );
 
-    SK_CreateDLLHook2 (     L"HID.DLL",
-                             "HidD_GetFeature",
-                              HidD_GetFeature_Detour,
-     static_cast_p2p <void> (&HidD_GetFeature_Original) );
+      SK_CreateDLLHook2 (     L"HID.DLL",
+                               "HidD_GetFeature",
+                                HidD_GetFeature_Detour,
+       static_cast_p2p <void> (&HidD_GetFeature_Original) );
 
-    HidP_GetCaps_Original =
-      (HidP_GetCaps_pfn)SK_GetProcAddress ( SK_GetModuleHandle (L"HID.DLL"),
-                                            "HidP_GetCaps" );
+      HidP_GetCaps_Original =
+        (HidP_GetCaps_pfn)SK_GetProcAddress ( SK_GetModuleHandle (L"HID.DLL"),
+                                              "HidP_GetCaps" );
+    }
 
     SK_CreateDLLHook2 (      L"kernel32.dll",
                               "CreateFileA",
@@ -5087,15 +5090,13 @@ void SK_Input_PreInit (void)
 
   if (config.input.gamepad.hook_raw_input)
   {
-#define __MANAGE_RAW_INPUT_REGISTRATION
+//#define __MANAGE_RAW_INPUT_REGISTRATION
 #ifdef  __MANAGE_RAW_INPUT_REGISTRATION
-    //SK_CreateUser32Hook (      "NtUserRegisterRawInputDevices",
     SK_CreateDLLHook2 (       L"user32",
                                "RegisterRawInputDevices",
                           NtUserRegisterRawInputDevices_Detour,
        static_cast_p2p <void> (&RegisterRawInputDevices_Original) );
 
-    //SK_CreateUser32Hook (      "NtUserGetRegisteredRawInputDevices",
     SK_CreateDLLHook2 (       L"user32",
                                "GetRegisteredRawInputDevices",
                           NtUserGetRegisteredRawInputDevices_Detour,

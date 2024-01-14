@@ -799,6 +799,9 @@ void
 __stdcall
 SK_InitFinishCallback (void)
 {
+  // Needed for CAPCOM's D3D12 games to not crash
+  ModifyPrivilege (L"SeIncreaseBasePriorityPrivilege", TRUE);
+
   bool rundll_invoked =
     (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
 

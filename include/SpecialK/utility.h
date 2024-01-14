@@ -1263,5 +1263,9 @@ namespace SK
 extern BOOL SK_IsWindows8Point1OrGreater (void);
 extern BOOL SK_IsWindows10OrGreater      (void);
 
+HRESULT
+ModifyPrivilege (IN LPCTSTR szPrivilege,
+                 IN BOOL     fEnable);
+
 #endif /* __SK__UTILITY_H__ */
 

@@ -244,7 +244,8 @@ SK_GetCurrentGameID (void)
           { L"LOTF2-Win64-Shipping.exe",               SK_GAME_ID::LordsOfTheFallen2            },
           { L"AlanWake2.exe",                          SK_GAME_ID::AlanWake2                    },
           { L"Cyberpunk2077.exe",                      SK_GAME_ID::Cyberpunk2077                },
-          { L"CrashReport.exe",                        SK_GAME_ID::CrashReport                  }
+          { L"CrashReport.exe",                        SK_GAME_ID::CrashReport                  },
+          { L"StreetFighter6.exe",                     SK_GAME_ID::StreetFighter6               }
         };
 
     first_check  = false;
@@ -3368,6 +3369,10 @@ auto DeclKeybind =
         config.compatibility.reshade_mode = false;
         break;
 
+      case SK_GAME_ID::StreetFighter6:
+        config.steam.disable_overlay = true;
+        break;
+
       case SK_GAME_ID::AlanWake2:
       {
         config.apis.OpenGL.hook = false;
@@ -4672,11 +4677,13 @@ auto DeclKeybind =
 
   if (platform.overlay.no_draw->load (config.steam.disable_overlay))
   {
-    if (config.steam.disable_overlay)
+    if (config.steam.disable_overlay || SK_GetCurrentGameID () == SK_GAME_ID::StreetFighter6)
     {
       SetEnvironmentVariable (
         L"SteamNoOverlayUIDrawing", L"1"
       );
+
+      config.steam.disable_overlay = true;
     }
   }
 
