@@ -3026,15 +3026,17 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         {
           if (game_window.hWnd != 0)
           {
-            if (frames_drawn > 30)
+            if (frames_drawn > 250)
             {
               // Fix Steam Input to work with CAPCOM's crappy DRM
               if (rb.windows.capcom)
               {
-                SK_RunOnce (
-                  SK_Steam_ForceInputAppId (1157970);
+                static int
+                    switches = 0;
+                if (switches++ < 250)
+                {
                   SK_Steam_ForceInputAppId (config.steam.appid);
-                );
+                }
               }
             }
 
