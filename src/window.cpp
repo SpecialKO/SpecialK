@@ -6847,13 +6847,44 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
     SK_GetCurrentRenderBackend ().windows.capcom = true;
     config.window.dont_hook_wndproc              = true;
 
-    if (! config.platform.silent)
+    config.platform.silent =
+      !((PathFileExistsW ( L"steam_api64.dll" )
+      && PathFileExistsW ( L"kaldaien_api64.dll"))||
+         CopyFile        ( L"steam_api64.dll",
+                        L"kaldaien_api64.dll", FALSE )
+       );
+
+    bool need_restart = !config.platform.silent &&
+      !StrStrIW (config.steam.dll_path.c_str (), L"kaldaien_api");
+
+    if (! config.platform.silent )
+    {     config.steam.auto_inject         =    true;
+          config.steam.auto_pump_callbacks =    true;
+          config.steam.force_load_steamapi =    true;
+          config.steam.preload_client      =    true;
+          config.steam.preload_overlay     =    true;
+          config.steam.init_delay          =       1;
+          config.platform.silent           =   false;
+          config.steam.dll_path            =
+                               L"kaldaien_api64.dll";
+    }else config.steam.dll_path            =     L"";
+
+    // Prevent Steam overlay from crashing game
+    if (SK_GetCurrentGameID () == SK_GAME_ID::StreetFighter6)
     {
-      if (! StrStrIW (config.steam.dll_path.c_str (), L"kaldaien_api"))
-      {
-        config.platform.silent                     = true;
-        SK_RestartGame (nullptr, L"Game Restart Required to Workaround CRAPCOM DLC Anti-Piracy");
+      if (!config.steam.disable_overlay)
+      {    config.steam.disable_overlay    = true;
+                              need_restart = true;
       }
+    }
+
+    SK_Steam_ForceInputAppId (1157970);
+    SK_Steam_ForceInputAppId (config.steam.appid);
+
+    if (need_restart || (! StrStrIW (config.steam.dll_path.c_str (), L"kaldaien_api")))
+    {
+      config.platform.silent               = true;
+      SK_RestartGame (nullptr, L"Game Restart Required to Workaround CRAPCOM DLC Anti-Piracy");
     }
   }
 

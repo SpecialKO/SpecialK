@@ -1,4 +1,9 @@
-﻿24.1.14.1
+﻿24.1.14.2
+=========
+ + Fully automate SteamAPI/CAPCOM DRM workaround for all MT Framework and RE Engine
+    games so that Steam Input will work in CAPCOM's abomination of a DRM scheme.
+
+24.1.14.1
 =========
  + Fixed inadvertent blocking of gamepad input in games that use Overlapped FileRead
      to poll USB HID input.

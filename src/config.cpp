@@ -3369,10 +3369,6 @@ auto DeclKeybind =
         config.compatibility.reshade_mode = false;
         break;
 
-      case SK_GAME_ID::StreetFighter6:
-        config.steam.disable_overlay = true;
-        break;
-
       case SK_GAME_ID::AlanWake2:
       {
         config.apis.OpenGL.hook = false;
