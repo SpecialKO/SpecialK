@@ -1016,6 +1016,9 @@ ActivateWindow ( HWND hWnd,
 
   if (state_changed)
   {
+    if (is_game_window)
+      SK_Steam_ProcessWindowActivation (active);
+
     HWND hWndFocus =
       SK_GetFocus ();
 
@@ -6770,6 +6773,8 @@ SK_InstallWindowHook (HWND hWnd)
           if (var->getValuePointer () == background_render)
           {
             *background_render = *(bool *)val;
+
+            SK_Steam_ProcessWindowActivation (game_window.active);
           }
         }
 

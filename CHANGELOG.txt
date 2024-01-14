@@ -1,4 +1,11 @@
-﻿24.1.14
+﻿24.1.14.1
+=========
+ + Fixed inadvertent blocking of gamepad input in games that use Overlapped FileRead
+     to poll USB HID input.
+ + Changed the default gamepad input state back to Enabled, if you need input to be
+     blocked in the background, set it to Disabled (in background).
+
+24.1.14
 =======
  + Fixed crashes in Street Fighter 6 caused by the Steam Overlay
  + Fixed RawInput performance problems in The Descent caused by the Steam Overlay

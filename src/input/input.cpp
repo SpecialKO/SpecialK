@@ -495,6 +495,7 @@ DeviceIoControl_pfn       DeviceIoControl_Original       = nullptr;
 
 static CreateFileA_pfn CreateFileA_Original = nullptr;
 static CreateFileW_pfn CreateFileW_Original = nullptr;
+static CreateFile2_pfn CreateFile2_Original = nullptr;
 
 NTSTATUS
 WINAPI
@@ -686,14 +687,18 @@ ReadFile_Detour (HANDLE       hFile,
       const bool bDisallow = 
         (! device_file.isInputAllowed ());
 
-      SK_HID_READ (device_file.device_type);
-
       auto pTlsBackedBuffer =
         SK_TLS_Bottom ()->scratch_memory->log.formatted_output.alloc (nNumberOfBytesToRead);
 
+      auto pBuffer =
+        // Overlapped reads should pass their original pointer to ReadFile,
+        //   unless we intend to block them (and cancel said IO request).
+        ((lpBuffer != nullptr && lpOverlapped == nullptr) || bDisallow) ?
+                                                       pTlsBackedBuffer : lpBuffer;
+
       BOOL bRet =
         ReadFile_Original (
-          hFile, lpBuffer != nullptr ? pTlsBackedBuffer : lpBuffer, nNumberOfBytesToRead,
+          hFile, pBuffer, nNumberOfBytesToRead,
             lpNumberOfBytesRead, lpOverlapped
         );
 
@@ -709,6 +714,7 @@ ReadFile_Detour (HANDLE       hFile,
             {
               if (device_file.last_data_read.size () >= *lpNumberOfBytesRead)
               {
+                // Give the game old data, from before we started blocking stuff...
                 memcpy (lpBuffer, device_file.last_data_read.data (), *lpNumberOfBytesRead);
               }
             }
@@ -726,17 +732,19 @@ ReadFile_Detour (HANDLE       hFile,
 
         else
         {
-          if (device_file.last_data_read.size () < nNumberOfBytesToRead)
-              device_file.last_data_read.resize (  nNumberOfBytesToRead * 2);
-
-          if (lpNumberOfBytesRead != nullptr)
+          if (lpNumberOfBytesRead != nullptr && lpBuffer != nullptr && lpOverlapped == nullptr)
           {
+            SK_HID_READ (device_file.device_type);
+
+            if (device_file.last_data_read.size () < nNumberOfBytesToRead)
+                device_file.last_data_read.resize (  nNumberOfBytesToRead * 2);
+
             memcpy (device_file.last_data_read.data (), pTlsBackedBuffer, *lpNumberOfBytesRead);
             memcpy (lpBuffer,                           pTlsBackedBuffer, *lpNumberOfBytesRead);
+
+            SK_HID_VIEW (device_file.device_type);
           }
         }
-
-        SK_HID_VIEW (device_file.device_type);
       }
 
       return bRet;
@@ -934,6 +942,89 @@ CreateFileA_Detour (LPCSTR                lpFileName,
 static
 HANDLE
 WINAPI
+CreateFile2_Detour (
+  _In_     LPCWSTR                           lpFileName,
+  _In_     DWORD                             dwDesiredAccess,
+  _In_     DWORD                             dwShareMode,
+  _In_     DWORD                             dwCreationDisposition,
+  _In_opt_ LPCREATEFILE2_EXTENDED_PARAMETERS pCreateExParams )
+{
+  SK_LOG_FIRST_CALL
+
+  HANDLE hRet =
+    CreateFile2_Original (
+      lpFileName, dwDesiredAccess, dwShareMode,
+        dwCreationDisposition, pCreateExParams );
+
+  const bool bSuccess = (LONG_PTR)hRet > 0;
+
+  // Examine all UNC paths closely, some of these files are
+  //   input devices in disguise...
+  if ( bSuccess && SK_StrSupW (lpFileName, LR"(\\)", 2) )
+  {
+    // Log UNC paths we don't expect for debugging
+    static const bool bTraceAllUNC =
+      ( config.system.log_level > 0 || config.file_io.trace_reads );
+
+    if (SK_StrSupW (lpFileName, LR"(\\?\hid)", 7))
+    {
+      bool bSkipExistingFile = false;
+
+      if ( SK_HID_DeviceFiles.count (hRet) && StrCmpIW (lpFileName,
+           SK_HID_DeviceFiles.at    (hRet).wszDevicePath) == 0 )
+      {
+        bSkipExistingFile = true;
+      }
+
+      if (! bSkipExistingFile)
+      {
+        SK_HID_DeviceFile hid_file (hRet, lpFileName);
+
+        if (hid_file.device_type != sk_input_dev_type::Other)
+        {
+          SK_Input_DeviceFiles.insert (hRet);
+        }
+
+        auto&& dev_file =
+          SK_HID_DeviceFiles [hRet];
+
+        dev_file.last_data_read.clear ();
+        dev_file = std::move (hid_file);
+      }
+    }
+
+    else if (SK_StrSupW (lpFileName, LR"(\\.\pipe)", 8))
+    {
+#if 0 // Add option to disable MessageBus? It seems harmless
+      if (config.input.gamepad.steam.disabled_to_game)
+      {
+        // If we can't close this, something's gone wrong...
+        SK_ReleaseAssert (
+          SK_CloseHandle (hRet)
+        );
+
+        return
+          INVALID_HANDLE_VALUE;
+      }
+#endif
+
+      SK_Input_DeviceFiles.insert (  hRet            );
+      SK_NVIDIA_DeviceFiles         [hRet] =
+               SK_NVIDIA_DeviceFile (hRet, lpFileName);
+    }
+
+    else if (bTraceAllUNC && SK_StrSupW (lpFileName, LR"(\\)", 2))
+    {
+      SK_LOGi0 (L"CreateFile2 (%ws)", lpFileName);
+    }
+  }
+
+  return hRet;
+}
+
+static
+HANDLE
+WINAPI
 CreateFileW_Detour ( LPCWSTR               lpFileName,
                      DWORD                 dwDesiredAccess,
                      DWORD                 dwShareMode,
@@ -1070,8 +1161,6 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
       const auto &device_file =
         SK_HID_DeviceFiles.at (hFile);
 
-      SK_HID_READ (device_file.device_type);
-
       const BOOL bRet =
         GetOverlappedResultEx_Original (
           hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
@@ -1081,6 +1170,7 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
       {
         if (device_file.isInputAllowed ())
         {
+          SK_HID_READ (device_file.device_type);
           SK_HID_VIEW (device_file.device_type);
           // We did the bulk of this processing in ReadFile_Detour (...)
           //   nothing to be done here for now.
@@ -1121,8 +1211,6 @@ GetOverlappedResult_Detour (HANDLE       hFile,
       const auto &device_file =
         SK_HID_DeviceFiles.at (hFile);
 
-      SK_HID_READ (device_file.device_type);
-
       const bool bRet =
         GetOverlappedResult_Original (
           hFile, lpOverlapped, lpNumberOfBytesTransferred,
@@ -1133,6 +1221,7 @@ GetOverlappedResult_Detour (HANDLE       hFile,
       {
         if (device_file.isInputAllowed ())
         {
+          SK_HID_READ (device_file.device_type);
           SK_HID_VIEW (device_file.device_type);
           // We did the bulk of this processing in ReadFile_Detour (...)
           //   nothing to be done here for now.
@@ -1233,6 +1322,16 @@ SK_Input_HookHID (void)
                               "CreateFileW",
                                CreateFileW_Detour,
       static_cast_p2p <void> (&CreateFileW_Original) );
+
+    // This was added in Windows 8, be mindful...
+    //   it might not exist on WINE or in compat mode, etc.
+    if (SK_GetProcAddress (L"kernel32.dll", "CreateFile2"))
+    {
+      SK_CreateDLLHook2 (      L"kernel32.dll",
+                                "CreateFile2",
+                                 CreateFile2_Detour,
+        static_cast_p2p <void> (&CreateFile2_Original) );
+    }
 
     SK_CreateDLLHook2 (      L"kernel32.dll",
                               "DeviceIoControl",

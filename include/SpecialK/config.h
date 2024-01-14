@@ -926,7 +926,7 @@ struct sk_config_t
 
     struct gamepad_s {
       int     predefined_layout   = 1;    //0 = PS4, 1 = Steam, 2 = Xbox
-      int     disabled_to_game    = 2;    //0 = Never, 1 = Always, 2 = In Background
+      int     disabled_to_game    = 0;    //0 = Never, 1 = Always, 2 = In Background
       bool    disable_ps4_hid     = false;
       bool    rehook_xinput       = false;
       bool    haptic_ui           = true;

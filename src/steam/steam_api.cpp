@@ -5656,7 +5656,13 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                         );
                       
                         if (instance != 0)
-                          SK_LOGi0 (L"Forced Steam Input AppID: %d", appid);
+                        {
+                          static AppId64_t   last_appid = static_cast <AppId64_t> (-1);
+                          if (std::exchange (last_appid, appid) != appid)
+                          {
+                            SK_LOGi0 (L"Forced Steam Input AppID: %d", appid);
+                          }
+                        }
                       }
                       
                       else
@@ -5694,7 +5700,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
         SK_Thread_CloseSelf ();
 
         return 0;
-      }, L"[SK] SteamInput Suppressor")
+      }, L"[SK] SteamInput Obedience Trainer")
     );
 
     override_ctx.push (appid);
@@ -5704,7 +5710,8 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 void
 SK_Steam_ProcessWindowActivation (bool active)
 {
-  return;
+  if (config.steam.appid <= 0)
+    return;
 
   // Hacky code for Steam Input background input
   if (config.window.background_render && config.input.gamepad.disabled_to_game == SK_InputEnablement::Enabled)
@@ -5724,7 +5731,6 @@ SK_Steam_ProcessWindowActivation (bool active)
         if (! SK::SteamAPI::SetWindowFocusState (false))
         {
           SK_Steam_ForceInputAppId (SPECIAL_KILLER_APPID);
-          SK_Steam_ForceInputAppId (0);
         }
       }
 
@@ -5732,8 +5738,18 @@ SK_Steam_ProcessWindowActivation (bool active)
       {
         if (! SK::SteamAPI::SetWindowFocusState (true))
         {
-          SK_Steam_ForceInputAppId (0);
           SK_Steam_ForceInputAppId (config.steam.appid);
+        }
+      }
+    }
+
+    else
+    {
+      if (! active)
+      {
+        if (! SK::SteamAPI::SetWindowFocusState (false))
+        {
+          SK_Steam_ForceInputAppId (SPECIAL_KILLER_APPID);
         }
       }
     }

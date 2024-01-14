@@ -691,6 +691,10 @@ enum SK_InputEnablement {
   DisabledInBackground = 2
 };
 
+using CreateFile2_pfn =
+  HANDLE (WINAPI *)(LPCWSTR,DWORD,DWORD,DWORD,
+                      LPCREATEFILE2_EXTENDED_PARAMETERS);
+
 using CreateFileW_pfn =
   HANDLE (WINAPI *)(LPCWSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,
                       DWORD,DWORD,HANDLE);
