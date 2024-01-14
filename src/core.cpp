@@ -3019,12 +3019,23 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
 
       // Delayed Init  (Elden Ring vs. Flawless Widescreen compat hack)
+      //                 * Also fix Steam Input in CAPCOM games
       if (frames_drawn > 15)
       {
         if (game_window.WndProc_Original != nullptr)
         {
           if (game_window.hWnd != 0)
           {
+            if (frames_drawn > 30)
+            {
+              // Fix Steam Input to work with CAPCOM's crappy DRM
+              if (rb.windows.capcom)
+              {
+                SK_Steam_ForceInputAppId (1157970);
+                SK_Steam_ForceInputAppId (config.steam.appid);
+              }
+            }
+
             if (config.window.activate_at_start || config.window.background_render)
             {
               // Activate the game window one time

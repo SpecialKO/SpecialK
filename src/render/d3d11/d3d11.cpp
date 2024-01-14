@@ -507,8 +507,7 @@ BOOL
 SK_D3D11_SetWrappedImmediateContext ( ID3D11Device        *pDev,
                                       ID3D11DeviceContext *pDevCtx )
 {
-  if ( pDev    == nullptr ||
-       pDevCtx == nullptr )
+  if ( pDev    == nullptr )
   {
     return FALSE;
   }

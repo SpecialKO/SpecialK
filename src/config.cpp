@@ -4673,7 +4673,7 @@ auto DeclKeybind =
 
   if (platform.overlay.no_draw->load (config.steam.disable_overlay))
   {
-    if (config.steam.disable_overlay || SK_GetCurrentGameID () == SK_GAME_ID::StreetFighter6)
+    if (config.steam.disable_overlay)
     {
       SetEnvironmentVariable (
         L"SteamNoOverlayUIDrawing", L"1"

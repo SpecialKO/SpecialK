@@ -1,4 +1,8 @@
-﻿24.1.14.2
+﻿24.1.14.3
+=========
+ + Fixed Steam crashing D3D12 games due to its use of D3D11On12 for its overlay
+
+24.1.14.2
 =========
  + Fully automate SteamAPI/CAPCOM DRM workaround for all MT Framework and RE Engine
     games so that Steam Input will work in CAPCOM's abomination of a DRM scheme.
