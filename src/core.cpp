@@ -3033,9 +3033,13 @@ SK_FrameCallback ( SK_RenderBackend& rb,
               {
                 static int
                     switches = 0;
-                if (switches++ < 250)
+                if (switches++ < 666)
                 {
-                  SK_Steam_ForceInputAppId (config.steam.appid);
+                  static int skips = 0;
+                  if (       skips++ % 66 == 0)
+                  {
+                    SK_Steam_ForceInputAppId (config.steam.appid);
+                  }
                 }
               }
             }
