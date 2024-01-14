@@ -3031,8 +3031,10 @@ SK_FrameCallback ( SK_RenderBackend& rb,
               // Fix Steam Input to work with CAPCOM's crappy DRM
               if (rb.windows.capcom)
               {
-                SK_Steam_ForceInputAppId (1157970);
-                SK_Steam_ForceInputAppId (config.steam.appid);
+                SK_RunOnce (
+                  SK_Steam_ForceInputAppId (1157970);
+                  SK_Steam_ForceInputAppId (config.steam.appid);
+                );
               }
             }
 

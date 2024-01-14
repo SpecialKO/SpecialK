@@ -1856,18 +1856,28 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
     }
   }
 
-  if (       config.render.framerate.buffer_count != SK_NoPreference &&
-       (UINT)config.render.framerate.buffer_count !=  BufferCount    &&
-       BufferCount                                !=  0              &&
-
-           config.render.framerate.buffer_count   >   0              &&
-           config.render.framerate.buffer_count   <   16 )
+  //
+  // Do not apply backbuffer count overrides in D3D12 unless user presents
+  //   a valid footgun license and can afford to lose a few toes.
+  //
+  if (                                  SK_ComPtr <ID3D12Device> pSwapDev12;
+      FAILED (pSwapChain->GetDevice (IID_ID3D12Device, (void **)&pSwapDev12.p) ||
+               config.render.dxgi.allow_d3d12_footguns)
+     )
   {
-    BufferCount =
-      config.render.framerate.buffer_count;
+    if (       config.render.framerate.buffer_count != SK_NoPreference &&
+         (UINT)config.render.framerate.buffer_count !=  BufferCount    &&
+         BufferCount                                !=  0              &&
 
-    dll_log->Log ( L"[   DXGI   ]  >> Buffer Count Override: %lu buffers",
-                                      BufferCount );
+             config.render.framerate.buffer_count   >   0              &&
+             config.render.framerate.buffer_count   <   16 )
+    {
+      BufferCount =
+        config.render.framerate.buffer_count;
+
+      dll_log->Log ( L"[   DXGI   ]  >> Buffer Count Override: %lu buffers",
+                                        BufferCount );
+    }
   }
 
   // Fix-up BufferCount and Flags in Flip Model

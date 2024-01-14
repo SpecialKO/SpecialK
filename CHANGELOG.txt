@@ -1,4 +1,9 @@
-﻿24.1.14.3
+﻿24.1.14.4
+=========
+ + Do not apply backbuffer count overrides during SwapChain resize in D3D12
+     unless user presents a footgun license and can afford to lose some toes.
+
+24.1.14.3
 =========
  + Fixed Steam crashing D3D12 games due to its use of D3D11On12 for its overlay
 
