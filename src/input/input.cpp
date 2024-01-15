@@ -115,6 +115,8 @@ struct SK_HID_DeviceFile {
                   wszPath,       _TRUNCATE );
     }
 
+    SK_LOGi0 (L"Opened HID device %ws", wszPath);
+
     PHIDP_PREPARSED_DATA                 preparsed_data = nullptr;
     if (SK_HidD_GetPreparsedData (file, &preparsed_data))
     {

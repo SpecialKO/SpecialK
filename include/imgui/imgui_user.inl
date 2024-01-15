@@ -1621,10 +1621,14 @@ SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
+  // We can't filter by gamepad index, because some games will just respond
+  //   by polling a different controller... all must be blocked
+  std::ignore = dwUserIndex;
+
   bool disable =
     config.input.gamepad.disabled_to_game == SK_InputEnablement::Disabled ||
-      ( SK_ImGui_WantGamepadCapture ()   &&
-        dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot );
+      ( SK_ImGui_WantGamepadCapture () /* &&
+        dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot */ );
 
   if (disable)
   {

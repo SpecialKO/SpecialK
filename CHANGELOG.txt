@@ -1,4 +1,12 @@
-﻿24.1.15.2
+﻿24.1.16
+=======
+ + Block all 4 XInput slots while the control panel is using gamepad, because
+     some games would respond by switching to a different XInput slot and continue
+       getting input (from duplicate controllers) in Steam Input games
+ + Add tooltips to the Haptic Feedback and Disable All Rumble options in SK's cpl
+     >> They serve two different purposes and this was not always clear
+
+24.1.15.2
 =========
  + Extend CRAPCOM DRM kill to all CAPCOM, CO. LTD. signed executables
  + Auto-pump Steam callbacks in non-RE Engine games using CRAPCOM DRM

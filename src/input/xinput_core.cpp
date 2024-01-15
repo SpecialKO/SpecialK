@@ -2515,7 +2515,7 @@ SK_XInput_UpdateSlotForUI ( BOOL  success,
 {
   constexpr DWORD MIGRATION_PERIOD = 750;
 
-  if (success)
+  if (success && (! SK_ImGui_WantGamepadCapture ()))
   {
     DWORD dwTime =
      SK::ControlPanel::current_time;
@@ -2542,7 +2542,7 @@ SK_XInput_UpdateSlotForUI ( BOOL  success,
     }
   }
 
-  else if (config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)] == config.input.gamepad.xinput.ui_slot)
+  else if (config.input.gamepad.xinput.assignment [std::min (dwUserIndex, 3UL)] == config.input.gamepad.xinput.ui_slot && (! SK_ImGui_WantGamepadCapture ()))
   {
     SK_XInput_UI_LastSeenController     = DWORD_MAX;
     config.input.gamepad.xinput.ui_slot = 0;
