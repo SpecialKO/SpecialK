@@ -1016,8 +1016,7 @@ ActivateWindow ( HWND hWnd,
 
   if (state_changed)
   {
-    if (is_game_window)
-      SK_Steam_ProcessWindowActivation (active);
+    SK_Steam_ProcessWindowActivation (active);
 
     HWND hWndFocus =
       SK_GetFocus ();
@@ -6805,6 +6804,31 @@ SK_GetGameWindow (void)
 
 
 
+WNDPROC __SK_CRAPCOM_RealWndProc = nullptr;
+
+//
+// SK will replace the game's window procedure with this, and then
+//   hook this function instead of the game's function... that way
+//     no CRAPCOM executable memory is modified.
+//
+//  * This would be invalid if the game creates multiple windows,
+//      but RE Engine and MT Framework do not do that.
+//
+LRESULT
+CALLBACK
+SK_CRAPCOM_SurrogateWindowProc ( _In_  HWND   hWnd,
+                                 _In_  UINT   uMsg,
+                                 _In_  WPARAM wParam,
+                                 _In_  LPARAM lParam )
+{
+  static bool unicode =
+    SK_IsWindowUnicode (hWnd, SK_TLS_Bottom ());
+
+  return unicode ?
+    CallWindowProcW (__SK_CRAPCOM_RealWndProc, hWnd, uMsg, wParam, lParam):
+    CallWindowProcA (__SK_CRAPCOM_RealWndProc, hWnd, uMsg, wParam, lParam);
+};
+
 void
 SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
 {
@@ -6816,36 +6840,36 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   InternalGetWindowText ( hWnd, wszTitle,     127 );
   RealGetWindowClassW   ( hWnd, wszClassName, 127 );
 
-  dll_log->Log ( L"[Window Mgr] Hooking the Window Procedure for "
-                 L"%s Window Class ('%s' - \"%s\" * %x)",
-                 game_window.unicode ? L"Unicode" : L"ANSI",
-                 wszClassName, wszTitle, hWnd );
-
-  dll_log->Log ( L"[Window Mgr]  $ ClassProc:  %s",
-                SK_MakePrettyAddress (class_proc).c_str () );
-  dll_log->Log ( L"[Window Mgr]  $ WndProc:    %s",
-     ( class_proc != wnd_proc ?
-                SK_MakePrettyAddress (wnd_proc).c_str   () :
-                L"Same" ) );
-
-  WNDPROC target_proc = nullptr;
-  bool    ignore_proc = false;
-
-  // OpenGL games almost always have a window proc. located in OpenGL32.dll; we don't want that.
-  if      (SK_GetModuleFromAddr   (class_proc) == SK_GetModuleHandle (nullptr)) target_proc = class_proc;
-  else if (SK_GetModuleFromAddr   (wnd_proc)   == SK_GetModuleHandle (nullptr)) target_proc = wnd_proc;
-  else if (SK_GetModuleFromAddr   (class_proc) != INVALID_HANDLE_VALUE)         target_proc = class_proc;
-  //else if (SK_IsAddressExecutable (class_proc,true))                            target_proc = class_proc;
-  //else if (SK_IsAddressExecutable (wnd_proc,  true))                            target_proc = wnd_proc;
-  else                                                                          ignore_proc = true;// target_proc = wnd_proc;
-
 
   // CAPCOM games have stupid DLC anti-piracy that we need to work around.
   if (_wcsicmp (wszClassName, L"via")          == 0 || // Resident Evil
       _wcsicmp (wszClassName, L"MT FRAMEWORK") == 0)   // MT Framework
-  {                              
+  {
     SK_GetCurrentRenderBackend ().windows.capcom = true;
-    config.window.dont_hook_wndproc              = true;
+
+    // We'll just install a new window proc, and hook that...
+    //   This has complications if a game creates new windows, but CRAPCOM doesn't.
+    if (! config.window.dont_hook_wndproc)
+    {
+      // This whole thing is only needed if wnd_proc is owned by CRAPCOM's executable,
+      //   which it actually will not be if REFramework is present.
+      if (SK_GetCallingDLL (wnd_proc) == __SK_hModHost)
+      {
+        const bool bUnicode =
+          SK_IsWindowUnicode (hWnd, SK_TLS_Bottom ());
+
+        __SK_CRAPCOM_RealWndProc = (WNDPROC)( bUnicode ?
+             SK_GetWindowLongPtrW (hWnd, GWLP_WNDPROC) :
+             SK_GetWindowLongPtrA (hWnd, GWLP_WNDPROC) );
+
+        if (bUnicode)
+          SK_SetWindowLongPtrW (hWnd, GWLP_WNDPROC, (LONG_PTR)SK_CRAPCOM_SurrogateWindowProc);
+        else
+          SK_SetWindowLongPtrA (hWnd, GWLP_WNDPROC, (LONG_PTR)SK_CRAPCOM_SurrogateWindowProc);
+
+        wnd_proc = SK_CRAPCOM_SurrogateWindowProc;
+      }
+    }
 
     if (! config.platform.silent)
     {
@@ -6880,6 +6904,34 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
     }
   }
 
+
+
+  dll_log->Log ( L"[Window Mgr] Hooking the Window Procedure for "
+                 L"%s Window Class ('%s' - \"%s\" * %x)",
+                 game_window.unicode ? L"Unicode" : L"ANSI",
+                 wszClassName, wszTitle, hWnd );
+
+  dll_log->Log ( L"[Window Mgr]  $ ClassProc:  %s",
+                SK_MakePrettyAddress (class_proc).c_str () );
+  dll_log->Log ( L"[Window Mgr]  $ WndProc:    %s",
+     ( class_proc != wnd_proc ?
+                SK_MakePrettyAddress (wnd_proc).c_str   () :
+                L"Same" ) );
+
+  WNDPROC target_proc = nullptr;
+  bool    ignore_proc = false;
+
+  // OpenGL games almost always have a window proc. located in OpenGL32.dll; we don't want that.
+  if      (SK_GetModuleFromAddr   (class_proc) == SK_GetModuleHandle (nullptr)) target_proc = class_proc;
+  else if (SK_GetModuleFromAddr   (wnd_proc)   == SK_GetModuleHandle (nullptr)) target_proc = wnd_proc;
+  else if (SK_GetModuleFromAddr   (class_proc) != INVALID_HANDLE_VALUE)         target_proc = class_proc;
+  //else if (SK_IsAddressExecutable (class_proc,true))                            target_proc = class_proc;
+  //else if (SK_IsAddressExecutable (wnd_proc,  true))                            target_proc = wnd_proc;
+  else                                                                          ignore_proc = true;// target_proc = wnd_proc;
+
+  // Always use SK's window procedure override on CRAPCOM DRM games
+  if (SK_GetCurrentRenderBackend ().windows.capcom)
+    target_proc = wnd_proc;
 
   // In case we cannot hook the target, try the other...
   WNDPROC

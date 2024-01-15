@@ -2956,6 +2956,9 @@ SK_FrameCallback ( SK_RenderBackend& rb,
     //
     default:
     {
+      if (game_window.active)
+        SK_RunOnce (SK_Steam_ProcessWindowActivation (game_window.active));
+
       auto priority =
         SK_Thread_GetCurrentPriority ();
 
@@ -3026,28 +3029,6 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         {
           if (game_window.hWnd != 0)
           {
-            if (frames_drawn > 250)
-            {
-              // Fix Steam Input to work with CAPCOM's crappy DRM
-              if (rb.windows.capcom)
-              {
-                SK_RunOnce (
-                  config.window.background_render  = true;
-                  config.window.treat_fg_as_active = true;
-                );
-
-                static uint64_t
-                    switches = 0;
-                if (switches++ < 750ull)
-                {
-                  static int skips = 0;
-                  if (       skips++ % 75 == 0)
-                  {
-                    SK_Steam_ForceInputAppId (config.steam.appid);
-                  }
-                }
-              }
-            }
 
             if (config.window.activate_at_start || config.window.background_render)
             {

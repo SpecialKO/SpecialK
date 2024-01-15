@@ -417,7 +417,7 @@ struct sk_config_t
     SK_ConfigSerializedKeybind
                 inject_reshade_keybind  = {
                     SK_Keybind {
-                      "Inject ReShade (5.9.3+)", L"Ctrl+Alt+Shift+R",
+                      "Inject ReShade (6.0+)", L"Ctrl+Alt+Shift+R",
                       true, true, true, 'R'
                     }, L"InjectReShade"
     };
