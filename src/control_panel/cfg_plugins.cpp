@@ -304,7 +304,7 @@ SK::ControlPanel::PlugIns::Draw (void)
         if (ImGui::IsItemHovered ())
         {
           ImGui::SetTooltip (
-            "If using a version of ReShade 5.9.3 or newer, you can "
+            "If using a version of ReShade 6.0 or newer, you can "
             "hot-load ReShade without restarting the game."
           );
         }
