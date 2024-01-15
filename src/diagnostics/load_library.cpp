@@ -813,7 +813,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
         //
         if (StrStrIW (compliant_path, L"steam_api64.dll") == compliant_path)
         {
-          compliant_path = const_cast <wchar_t *> (config.steam.dll_path.c_str ());
+          compliant_path = L"./steam_api64.dll";
         }
       }
 
