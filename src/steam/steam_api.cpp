@@ -5544,7 +5544,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
         //
         SK_ShellExecuteA ( 0, "OPEN",
                   R"(steam://forceinputappid/)", nullptr, nullptr,
-                        SW_HIDE );
+                        SW_SHOWNORMAL );
       });
     }
   };
@@ -5641,27 +5641,48 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
               {
                 while (! override_ctx.app_ids.empty ())
                 {
-                  AppId64_t                         appid;
+                  static AppId64_t                  last_override = UINT64_MAX;
+                  AppId64_t                         appid         = UINT64_MAX;
                   if (override_ctx.app_ids.try_pop (appid))
                   {
                     if (! ReadAcquire (&__SK_DLL_Ending))
                     {
+                      // We have other stuff pending, no reason to send this stale command
+                      if (! override_ctx.app_ids.empty ())
+                        continue;
+
+                      // Still send this override, but delay it in case something else comes in...
+                      //   the Steam client leaks memory every time we send it an override!
+                      if (std::exchange (last_override, appid) == appid)
+                        SK_SleepEx (100UL, FALSE);
+
+                      if (! override_ctx.app_ids.empty ())
+                        continue;
+
+                      if (appid == UINT64_MAX)
+                        continue;
+
                       if (appid != 0)
                       {
                         auto instance =
                         ShellExecuteW ( 0, L"OPEN",
                           std::format (
                             LR"(steam://forceinputappid/{})", appid ).c_str (),
-                              nullptr, nullptr, SW_HIDE
+                              nullptr, nullptr, SW_SHOWNORMAL
                         );
-                      
-                        if (instance != 0)
+
+                        if ((INT_PTR)instance > 32)
                         {
                           static AppId64_t   last_appid = static_cast <AppId64_t> (-1);
                           if (std::exchange (last_appid, appid) != appid)
                           {
                             SK_LOGi0 (L"Forced Steam Input AppID: %d", appid);
                           }
+                        }
+
+                        else
+                        {
+                          SK_LOGi0 (L"steam://forceinputappid failed with return=%d", instance);
                         }
                       }
                       
@@ -5670,12 +5691,20 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                         auto instance =
                         ShellExecuteW ( 0, L"OPEN",
                             LR"(steam://forceinputappid/)",
-                              nullptr, nullptr, SW_HIDE
+                              nullptr, nullptr, SW_SHOWNORMAL
                         );
-                      
-                        if (instance != 0)
+
+                        if ((INT_PTR)instance > 32)
                           SK_LOGi0 (L"Forced Steam Input AppID: Default");
+                        else
+                        {
+                          SK_LOGi0 (L"steam://forceinputappid failed with return=%d", instance);
+                        }
                       }
+
+                      appid = UINT64_MAX;
+
+                      SK_SleepEx (250UL, FALSE);
                     }
                   }
                 }
@@ -5724,33 +5753,19 @@ SK_Steam_ProcessWindowActivation (bool active)
 
   else if (config.input.gamepad.disabled_to_game != SK_InputEnablement::Disabled)
   {
-    if (config.window.background_render)
+    if (! active)
     {
-      if (! active)
+      if (! SK::SteamAPI::SetWindowFocusState (false))
       {
-        if (! SK::SteamAPI::SetWindowFocusState (false))
-        {
-          SK_Steam_ForceInputAppId (SPECIAL_KILLER_APPID);
-        }
-      }
-
-      else
-      {
-        if (! SK::SteamAPI::SetWindowFocusState (true))
-        {
-          SK_Steam_ForceInputAppId (config.steam.appid);
-        }
+        SK_Steam_ForceInputAppId (SPECIAL_KILLER_APPID);
       }
     }
 
     else
     {
-      if (! active)
+      if (! SK::SteamAPI::SetWindowFocusState (true))
       {
-        if (! SK::SteamAPI::SetWindowFocusState (false))
-        {
-          SK_Steam_ForceInputAppId (SPECIAL_KILLER_APPID);
-        }
+        SK_Steam_ForceInputAppId (config.steam.appid);
       }
     }
   }
