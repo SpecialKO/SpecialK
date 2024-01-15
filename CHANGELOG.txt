@@ -1,4 +1,9 @@
-﻿24.1.15.1
+﻿24.1.15.2
+=========
+ + Extend CRAPCOM DRM kill to all CAPCOM, CO. LTD. signed executables
+ + Auto-pump Steam callbacks in non-RE Engine games using CRAPCOM DRM
+
+24.1.15.1
 =========
  + Added CRAPCOM DRM mode, to completely bypass all restrictions normally imposed
      by CAPCOM's stupid DRM. Pirates can even use this to pirate DLC if they want.

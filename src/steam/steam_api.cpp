@@ -3215,10 +3215,9 @@ SteamAPI_PumpThread (LPVOID user)
   bool   start_immediately = (user != nullptr);
   double callback_freq     =  0.0;
 
-  if ( game_id == SK_GAME_ID::MonsterHunterWorld ||
-       game_id == SK_GAME_ID::JustCause3         ||
-       game_id == SK_GAME_ID::YakuzaKiwami2      ||
-       game_id == SK_GAME_ID::YakuzaUnderflow    ||
+  if ( game_id == SK_GAME_ID::JustCause3      ||
+       game_id == SK_GAME_ID::YakuzaKiwami2   ||
+       game_id == SK_GAME_ID::YakuzaUnderflow ||
        SK_IsModuleLoaded (
          SK_RunLHIfBitness (64, L"kaldaien_api64.dll",
                                 L"kaldaien_api.dll" )
@@ -3230,22 +3229,30 @@ SteamAPI_PumpThread (LPVOID user)
 
   if (! start_immediately)
   {
+    // Since we might initialize this VERY early, wait for the game to start
+    //   drawing frames before doing any kind of tests
+    while (SK_GetFramesDrawn () < 1)
+      SK_Sleep (250UL);
+
     // Wait 5 seconds, then begin a timing investigation
     DWORD dwWaitState =
       WaitForMultipleObjects ( 2,
            std::array <HANDLE, 2> { hSteamPumpKill,
                             __SK_DLL_TeardownEvent }.data (),
-                              FALSE, 5000 );
+                              FALSE, config.steam.crapcom_mode ? 250 : 5000);
+                              // Hurry this test up on CRAPCOM DRM (250 ms)
 
     if (_TerminateOnSignal (dwWaitState))
       return 0;
 
     // First, begin a timing probe.
     //
-    //   If after 30 seconds the game has not called SteamAPI_RunCallbacks
+    //   If after 180 seconds the game has not called SteamAPI_RunCallbacks
     //     frequently enough, switch the thread to auto-pump mode.
 
-    constexpr UINT TEST_PERIOD = 180;
+    const UINT TEST_PERIOD =
+      config.steam.crapcom_mode ? 1 : 180;
+      // Hurry this test up on CRAPCOM DRM
 
     LONGLONG callback_count0 = SK_SteamAPI_CallbackRunCount;
 

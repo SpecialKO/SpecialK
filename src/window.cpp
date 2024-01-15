@@ -6840,13 +6840,15 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   InternalGetWindowText ( hWnd, wszTitle,     127 );
   RealGetWindowClassW   ( hWnd, wszClassName, 127 );
 
-
   // CAPCOM games have stupid DLC anti-piracy that we need to work around.
   if (_wcsicmp (wszClassName, L"via")          == 0 || // Resident Evil
       _wcsicmp (wszClassName, L"MT FRAMEWORK") == 0)   // MT Framework
   {
     SK_GetCurrentRenderBackend ().windows.capcom = true;
+  }
 
+  if (SK_GetCurrentRenderBackend ().windows.capcom)
+  {
     // We'll just install a new window proc, and hook that...
     //   This has complications if a game creates new windows, but CRAPCOM doesn't.
     if (! config.window.dont_hook_wndproc)
@@ -6870,47 +6872,7 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
         wnd_proc = SK_CRAPCOM_SurrogateWindowProc;
       }
     }
-
-    const bool ignore_steam =
-      config.platform.silent;
-
-    if (! config.platform.silent)
-    {     config.platform.silent =
-            !((PathFileExistsW (                  L"steam_api64.dll")
-             &&PathFileExistsW (     L"kaldaien_api/steam_api64.dll"))||
-              (SK_CreateDirectories (L"kaldaien_api/") &&
-               CopyFile        ( L"steam_api64.dll",
-                    L"kaldaien_api/steam_api64.dll", FALSE)));
-    }
-
-    bool need_restart = !config.platform.silent &&
-      !StrStrIW (config.steam.dll_path.c_str (), L"kaldaien_api");
-
-    if (! config.platform.silent )
-    {     config.steam.auto_inject         =   false;
-          config.steam.auto_pump_callbacks =   false;
-          config.steam.force_load_steamapi =   false;
-          config.steam.preload_client      =    true;
-          config.steam.preload_overlay     =    true;
-          config.steam.init_delay          =      -1;
-          config.platform.silent           =   false;
-          config.steam.dll_path            =
-                     L"kaldaien_api/steam_api64.dll";
-          config.steam.crapcom_mode        =    true;
-    }else{config.steam.crapcom_mode        =   false;
-          config.steam.dll_path            =     L"";}
-
-    if (! ignore_steam)
-    {
-      if (need_restart || (! StrStrIW (config.steam.dll_path.c_str (), L"kaldaien_api")))
-      {
-        if (! StrStrIW (config.steam.dll_path.c_str (), L"kaldaien_api"))
-          config.platform.silent             = true;
-        SK_RestartGame (nullptr, L"Game Restart Required to Workaround CRAPCOM DLC Anti-Piracy");
-      }
-    }
   }
-
 
 
   dll_log->Log ( L"[Window Mgr] Hooking the Window Procedure for "

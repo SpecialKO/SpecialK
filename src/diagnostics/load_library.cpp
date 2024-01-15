@@ -1996,8 +1996,7 @@ SK_WalkModules_StepImpl (       HMODULE       hMod,
            StrStrIW (wszModName, wszSteamClientDLL) ||
            StrStrIW (wszModName, L"steamwrapper") )
       {
-        if ( SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld &&
-             SK_GetCurrentGameID () != SK_GAME_ID::JustCause3         )
+        if (SK_GetCurrentGameID () != SK_GAME_ID::JustCause3)
         {
           BOOL
           SK_Steam_PreHookCore (const wchar_t* wszTry = nullptr);

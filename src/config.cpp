@@ -2980,12 +2980,6 @@ auto DeclKeybind =
         }
       } break;
 
-      case SK_GAME_ID::MonsterHunterWorld:
-      {
-        config.window.dont_hook_wndproc = true;
-        config.platform.silent          = true;
-      } break;
-
       case SK_GAME_ID::AtelierRyza2:
       {
         config.render.framerate.flip_discard  = true;
@@ -3146,28 +3140,6 @@ auto DeclKeybind =
         config.render.framerate.max_delta_time       =     1;
         config.system.suppress_crashes               =  true;
         config.compatibility.impersonate_debugger    = false;
-
-        config.platform.silent =
-          !( PathFileExistsW ( L"steam_api64.dll" )
-          && CopyFile        ( L"steam_api64.dll",
-                            L"kaldaien_api64.dll", FALSE )
-           );
-
-        if (! config.platform.silent )
-        {     config.steam.auto_inject         =    true;
-              config.steam.auto_pump_callbacks =    true;
-              config.steam.force_load_steamapi =    true;
-              config.steam.preload_client      =    true;
-              config.steam.preload_overlay     =    true;
-              config.steam.init_delay          =       1;
-              config.platform.achievements.
-                            pull_friend_stats  =    true;
-              config.platform.silent           =   false;
-              config.steam.appid               = 1196590;
-              config.steam.dll_path            =
-                                   L"kaldaien_api64.dll";
-        }else config.steam.dll_path            =     L"";
-        steam.system.dll_path->store (config.steam.dll_path);
       } break;
 
       // Nintendo Switch Emulators ( OpenGL / Vulkan )
@@ -3311,29 +3283,7 @@ auto DeclKeybind =
       case SK_GAME_ID::MegaManBattleNetwork:
         config.compatibility.init_on_separate_thread = false;
         config.display.force_windowed                = true;
-        config.window.dont_hook_wndproc              = true;
-
-        config.platform.silent =
-          !( PathFileExistsW ( L"steam_api64.dll" )
-          && CopyFile        ( L"steam_api64.dll",
-                            L"kaldaien_api64.dll", FALSE )
-           );
-
-        if (! config.platform.silent )
-        {     config.steam.auto_inject         =    true;
-              config.steam.auto_pump_callbacks =    true;
-              config.steam.force_load_steamapi =    true;
-              config.steam.preload_client      =    true;
-              config.steam.preload_overlay     =    true;
-              config.steam.init_delay          =       1;
-              config.platform.achievements.
-                            pull_friend_stats  =    true;
-              config.platform.silent           =   false;
-              config.steam.dll_path            =
-                                   L"kaldaien_api64.dll";
-        }else config.steam.dll_path            =     L"";
-
-        steam.system.dll_path->store (config.steam.dll_path);
+        SK_GetCurrentRenderBackend ().windows.capcom = true;
         break;
 
       case SK_GAME_ID::HonkaiStarRail:
@@ -4740,29 +4690,26 @@ auto DeclKeybind =
 
   if (config.steam.dll_path.empty ())
   {
-    if (SK_GetCurrentGameID () != SK_GAME_ID::MonsterHunterWorld)
-    {
-      std::filesystem::path steam_plugin (
-        SK_GetInstallPath ()
-      );
+    std::filesystem::path steam_plugin (
+      SK_GetInstallPath ()
+    );
 
-      steam_plugin /= LR"(PlugIns\ThirdParty\Steamworks)";
-      steam_plugin /= SK_RunLHIfBitness (32, L"steam_api_sk.dll",
-                                             L"steam_api_sk64.dll");
+    steam_plugin /= LR"(PlugIns\ThirdParty\Steamworks)";
+    steam_plugin /= SK_RunLHIfBitness (32, L"steam_api_sk.dll",
+                                           L"steam_api_sk64.dll");
 
-      HMODULE hModSteam =
-        GetModuleHandleW (
-          SK_RunLHIfBitness (32, L"steam_api.dll",
-                                 L"steam_api64.dll"));
+    HMODULE hModSteam =
+      GetModuleHandleW (
+        SK_RunLHIfBitness (32, L"steam_api.dll",
+                               L"steam_api64.dll"));
 
-      std::wstring wszModPath =
-        SK_GetModuleFullName (hModSteam);
+    std::wstring wszModPath =
+      SK_GetModuleFullName (hModSteam);
 
-      // Setup sane initial values
-      config.steam.dll_path = hModSteam != 0 &&
-        PathFileExistsW (wszModPath.c_str ()) ?
-                         wszModPath           : steam_plugin.wstring ();
-    }
+    // Setup sane initial values
+    config.steam.dll_path = hModSteam != 0 &&
+      PathFileExistsW (wszModPath.c_str ()) ?
+                       wszModPath           : steam_plugin.wstring ();
   }
 
   if (! steam.system.dll_path->empty ())
@@ -4894,6 +4841,78 @@ auto DeclKeybind =
   //   if the user has any; that involves renaming the file after loading it.
   if (! migrate_platform_config.empty ())
     platform_ini->rename (migrate_platform_config.c_str ());
+
+
+
+
+  //
+  // DRM Workarounds
+  //
+  bool bHasCrapcomDRM = false;
+
+  // Only do DRM checks when we have a fully parsed INI file
+  if ( dll_ini != nullptr &&
+       osd_ini != nullptr )
+  {
+    static auto code_sig =
+      SK_VerifyTrust_GetCodeSignature (SK_GetFullyQualifiedApp ());
+
+    if (code_sig.subject._Equal (
+      LR"(Private Organization, JP, 1200-01-077023, JP, Osaka, Osaka-shi, "CAPCOM CO., LTD.", "CAPCOM CO., LTD.")")
+       )
+    {
+      static constexpr
+      SYSTEMTIME crapcom_drm_epoch =
+      { // We think the really bad DRM stuff started ~2018
+        .wYear = 2018, .wMonth = 1,
+                       .wDay   = 1
+      };
+
+      FILETIME                                   ft_drm_epoch;
+      SystemTimeToFileTime (&crapcom_drm_epoch, &ft_drm_epoch);
+
+      //if (1 == CompareFileTime (&code_sig.valid_beginning, &ft_drm_epoch))
+      {
+        bHasCrapcomDRM = true;
+
+        SK_GetCurrentRenderBackend ().windows.capcom = bHasCrapcomDRM;
+      }
+    }
+  }
+
+  if (bHasCrapcomDRM)
+  {
+#ifdef _M_IX86
+    static constexpr wchar_t *wszSteamAPIDll    =              L"steam_api.dll";
+    static constexpr wchar_t *wszKaldaienAPIDll = L"kaldaien_api/steam_api.dll";
+#else
+    static constexpr wchar_t *wszSteamAPIDll    =              L"steam_api64.dll";
+    static constexpr wchar_t *wszKaldaienAPIDll = L"kaldaien_api/steam_api64.dll";
+#endif
+
+    if (! config.platform.silent)
+    {     config.platform.silent =
+            !((PathFileExistsW (                  wszSteamAPIDll)
+             &&PathFileExistsW (               wszKaldaienAPIDll))||
+              (SK_CreateDirectories (L"kaldaien_api/") &&
+               CopyFile        (        wszSteamAPIDll,
+                                     wszKaldaienAPIDll, FALSE)));
+    }
+
+    if (! config.platform.silent )
+    {if(! config.steam.crapcom_mode )
+      {   config.steam.auto_inject         =    true;
+          config.steam.auto_pump_callbacks =    true;
+          config.steam.force_load_steamapi =    true;
+          config.steam.preload_client      =    true;
+          config.steam.preload_overlay     =    true;
+          config.steam.init_delay          =      -1;
+          config.platform.silent           =   false;
+          config.steam.dll_path            =  wszKaldaienAPIDll;
+      }   config.steam.crapcom_mode        =    true;
+    }else{config.steam.crapcom_mode        =   false;
+          config.steam.dll_path            =     L"";}
+  }
 
 
   // Config opted-in to debugger wait
