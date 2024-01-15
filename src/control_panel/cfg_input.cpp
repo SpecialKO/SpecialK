@@ -660,10 +660,28 @@ SK::ControlPanel::Input::Draw (void)
       {
         ImGui::Checkbox       ("Haptic UI Feedback", &config.input.gamepad.haptic_ui);
 
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::TextUnformatted ("Rumble when interacting with SK's control panel using a gamepad");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("Quickly identifies when games are not receiving gamepad input because of the control panel.");
+          ImGui::EndTooltip      ();
+        }
+
         ImGui::SameLine       ();
 
         if (config.input.gamepad.hook_xinput && config.input.gamepad.xinput.hook_setstate)
           ImGui::Checkbox     ("Disable ALL Rumble", &config.input.gamepad.disable_rumble);
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::TextUnformatted ("Prevent the GAME from making use of controller vibration");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("In some games, there is a performance penalty for rumble and it cannot be turned off in-game...");
+          ImGui::EndTooltip      ();
+        }
       }
 
       ImGui::NextColumn     ();
