@@ -1511,6 +1511,36 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\stb\rect_pack.h" />
     <ClInclude Include="include\stb\textedit.h" />
     <ClInclude Include="include\stb\truetype.h" />
+    <ClInclude Include="include\vulkan\vk_icd.h" />
+    <ClInclude Include="include\vulkan\vk_layer.h" />
+    <ClInclude Include="include\vulkan\vk_platform.h" />
+    <ClInclude Include="include\vulkan\vulkan.h" />
+    <ClInclude Include="include\vulkan\vulkan.hpp" />
+    <ClInclude Include="include\vulkan\vulkan_android.h" />
+    <ClInclude Include="include\vulkan\vulkan_beta.h" />
+    <ClInclude Include="include\vulkan\vulkan_core.h" />
+    <ClInclude Include="include\vulkan\vulkan_directfb.h" />
+    <ClInclude Include="include\vulkan\vulkan_enums.hpp" />
+    <ClInclude Include="include\vulkan\vulkan_extension_inspection.hpp" />
+    <ClInclude Include="include\vulkan\vulkan_format_traits.hpp" />
+    <ClInclude Include="include\vulkan\vulkan_fuchsia.h" />
+    <ClInclude Include="include\vulkan\vulkan_funcs.hpp" />
+    <ClInclude Include="include\vulkan\vulkan_ggp.h" />
+    <ClInclude Include="include\vulkan\vulkan_handles.hpp" />
+    <ClInclude Include="include\vulkan\vulkan_hash.hpp" />
+    <ClInclude Include="include\vulkan\vulkan_ios.h" />
+    <ClInclude Include="include\vulkan\vulkan_macos.h" />
+    <ClInclude Include="include\vulkan\vulkan_raii.hpp" />
+    <ClInclude Include="include\vulkan\vulkan_screen.h" />
+    <ClInclude Include="include\vulkan\vulkan_static_assertions.hpp" />
+    <ClInclude Include="include\vulkan\vulkan_structs.hpp" />
+    <ClInclude Include="include\vulkan\vulkan_to_string.hpp" />
+    <ClInclude Include="include\vulkan\vulkan_vi.h" />
+    <ClInclude Include="include\vulkan\vulkan_wayland.h" />
+    <ClInclude Include="include\vulkan\vulkan_win32.h" />
+    <ClInclude Include="include\vulkan\vulkan_xcb.h" />
+    <ClInclude Include="include\vulkan\vulkan_xlib.h" />
+    <ClInclude Include="include\vulkan\vulkan_xlib_xrandr.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="depends\src\implot\implot.cpp">

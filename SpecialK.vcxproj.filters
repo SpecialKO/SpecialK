@@ -373,6 +373,9 @@
     <Filter Include="Source Files\Widgets">
       <UniqueIdentifier>{e7c10313-1c67-4aaa-b5bd-c1a3f7ff608f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\External Libraries\Vulkan">
+      <UniqueIdentifier>{9e2c1742-748e-4c1b-9b87-8c919a646679}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -2987,6 +2990,96 @@
     </ClInclude>
     <ClInclude Include="depends\include\steamapi\isteaminput.h">
       <Filter>Header Files\Storefronts\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vk_icd.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vk_layer.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vk_platform.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan.hpp">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_android.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_beta.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_core.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_directfb.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_enums.hpp">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_extension_inspection.hpp">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_format_traits.hpp">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_fuchsia.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_funcs.hpp">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_ggp.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_handles.hpp">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_hash.hpp">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_ios.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_macos.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_raii.hpp">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_screen.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_static_assertions.hpp">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_structs.hpp">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_to_string.hpp">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_vi.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_wayland.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_win32.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_xcb.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_xlib.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="include\vulkan\vulkan_xlib_xrandr.h">
+      <Filter>Header Files\External Libraries\Vulkan</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
