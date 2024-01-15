@@ -6871,36 +6871,43 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
       }
     }
 
+    const bool ignore_steam =
+      config.platform.silent;
+
     if (! config.platform.silent)
-    {
-      config.platform.silent =
-        !((PathFileExistsW ( L"steam_api64.dll" )
-        && PathFileExistsW ( L"kaldaien_api64.dll"))||
-           CopyFile        ( L"steam_api64.dll",
-                          L"kaldaien_api64.dll", FALSE )
-         );
+    {     config.platform.silent =
+            !((PathFileExistsW (                  L"steam_api64.dll")
+             &&PathFileExistsW (     L"kaldaien_api/steam_api64.dll"))||
+              (SK_CreateDirectories (L"kaldaien_api/") &&
+               CopyFile        ( L"steam_api64.dll",
+                    L"kaldaien_api/steam_api64.dll", FALSE)));
     }
 
     bool need_restart = !config.platform.silent &&
       !StrStrIW (config.steam.dll_path.c_str (), L"kaldaien_api");
 
     if (! config.platform.silent )
-    {     config.steam.auto_inject         =    true;
-          config.steam.auto_pump_callbacks =    true;
-          config.steam.force_load_steamapi =    true;
+    {     config.steam.auto_inject         =   false;
+          config.steam.auto_pump_callbacks =   false;
+          config.steam.force_load_steamapi =   false;
           config.steam.preload_client      =    true;
           config.steam.preload_overlay     =    true;
-          config.steam.init_delay          =       1;
+          config.steam.init_delay          =      -1;
           config.platform.silent           =   false;
           config.steam.dll_path            =
-                               L"kaldaien_api64.dll";
-    }else config.steam.dll_path            =     L"";
+                     L"kaldaien_api/steam_api64.dll";
+          config.steam.crapcom_mode        =    true;
+    }else{config.steam.crapcom_mode        =   false;
+          config.steam.dll_path            =     L"";}
 
-    if (need_restart || (! StrStrIW (config.steam.dll_path.c_str (), L"kaldaien_api")))
+    if (! ignore_steam)
     {
-      if (! StrStrIW (config.steam.dll_path.c_str (), L"kaldaien_api"))
-        config.platform.silent             = true;
-      SK_RestartGame (nullptr, L"Game Restart Required to Workaround CRAPCOM DLC Anti-Piracy");
+      if (need_restart || (! StrStrIW (config.steam.dll_path.c_str (), L"kaldaien_api")))
+      {
+        if (! StrStrIW (config.steam.dll_path.c_str (), L"kaldaien_api"))
+          config.platform.silent             = true;
+        SK_RestartGame (nullptr, L"Game Restart Required to Workaround CRAPCOM DLC Anti-Piracy");
+      }
     }
   }
 

@@ -1,4 +1,11 @@
-﻿24.1.15
+﻿24.1.15.1
+=========
+ + Added CRAPCOM DRM mode, to completely bypass all restrictions normally imposed
+     by CAPCOM's stupid DRM. Pirates can even use this to pirate DLC if they want.
+
+     * See comments in commit for more details on stealing CRAPCOM's crap
+
+24.1.15
 =======
  + Reduced Steam Input AppId override overhead
  + Rewrite mentions of ReShade 5.9.3 in SK's control panel to 6.0

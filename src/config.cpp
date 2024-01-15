@@ -568,6 +568,7 @@ struct {
     sk::ParameterBool*    force_load              = nullptr;
     sk::ParameterBool*    auto_inject             = nullptr;
     sk::ParameterStringW* dll_path                = nullptr;
+    sk::ParameterBool*    crapcom_mode            = nullptr;
   } system;
 
   struct {
@@ -1906,6 +1907,7 @@ auto DeclKeybind =
     ConfigEntry (steam.system.dll_path,                  L"Path to a known-working SteamAPI dll for this game.",       dll_ini,         L"Steam.System",          L"SteamPipeDLL"),
     ConfigEntry (steam.callbacks.throttle,               L"-1=Unlimited, 0-oo=Upper bound limit to SteamAPI rate",     dll_ini,         L"Steam.System",          L"CallbackThrottle"),
     ConfigEntry (platform.overlay.no_draw,               L"Disable Steam Overlay using 'SteamNoOverlayUIDrawing'",     dll_ini,         L"Steam.System",          L"NoDrawOverlay"),
+    ConfigEntry (steam.system.crapcom_mode,              L"Special mode to workaround CAPCOM DRM without memory leaks",dll_ini,         L"Steam.System",          L"BypassCRAPCOM"),
 
     // This option is per-game, since it has potential compatibility issues...
     ConfigEntry (steam.screenshots.smart_capture,        L"Enhanced screenshot speed and HUD options; D3D11-only.",    dll_ini,         L"Steam.Screenshots",     L"EnableSmartCapture"),
@@ -4766,6 +4768,8 @@ auto DeclKeybind =
   if (! steam.system.dll_path->empty ())
     steam.system.dll_path->load (config.steam.dll_path);
 
+  steam.system.crapcom_mode->load (config.steam.crapcom_mode);
+
 
   bool global_override = false;
 
@@ -5833,6 +5837,7 @@ SK_SaveConfig ( std::wstring name,
   steam.system.force_load->store               (config.steam.force_load_steamapi);
   steam.system.auto_inject->store              (config.steam.auto_inject);
   steam.system.dll_path->store                 (config.steam.dll_path);
+  steam.system.crapcom_mode->store             (config.steam.crapcom_mode);
   platform.overlay.no_draw->store              (config.steam.disable_overlay);
 
   steam.callbacks.throttle->store              (ReadAcquire (&SK_SteamAPI_CallbackRateLimit));

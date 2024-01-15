@@ -796,6 +796,27 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
     try
     {
 #endif
+      //////////////////////////////////////////////////////////////
+      //
+      // CRAPCOM loads SteamAPI twice as part of its craptastic DRM.
+      //
+      //  The first DLL is fake and done using LoadLibraryW
+      //  The second load is real, and done using LoadLibraryExA
+      //
+      //////////////////////////////////////////////////////////
+      if (config.steam.crapcom_mode)
+      {
+        // Here we hook and load the -fake- SteamAPI DLL.
+        // 
+        //   CRAPCOM checks this DLL for memory consistency, they think that
+        //   it is the same DLL they loaded w/ LoadLibraryExA, but NOPE!
+        //
+        if (StrStrIW (compliant_path, L"steam_api64.dll") == compliant_path)
+        {
+          compliant_path = const_cast <wchar_t *> (config.steam.dll_path.c_str ());
+        }
+      }
+
       // Avoid loader deadlock in Steam overlay by pre-loading this
       //   DLL behind the overlay's back.
       if (StrStrIW (compliant_path, L"rxcore"))
@@ -1125,6 +1146,24 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
     SK_FixSlashesW (compliant_path);             } else
                     compliant_path =
                          (wchar_t *)lpFileName;
+  }
+
+  //////////////////////////////////////////////////////////////
+  //
+  // CRAPCOM loads SteamAPI twice as part of its craptastic DRM.
+  //
+  //  The first DLL is fake and done using LoadLibraryW
+  //  The second load is real, and done using LoadLibraryExA
+  //
+  //////////////////////////////////////////////////////////
+  if (config.steam.crapcom_mode)
+  {
+    // Here we hook and load the -real- SteamAPI DLL, pirates can put their
+    //   DLC stealing DLL here (kaldaien_api/steam_api64.dll) if they want.
+    if (StrStrIW (compliant_path, L"steam_api64.dll") == compliant_path)
+    {
+      compliant_path = const_cast <wchar_t *> (config.steam.dll_path.c_str ());
+    }
   }
 
   // Give Microsoft Store games a copy of XInput1_4 instead of XInputUap,
