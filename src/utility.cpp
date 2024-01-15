@@ -2131,6 +2131,87 @@ SK_GetDLLProductName (const wchar_t* wszDLL)
 
 
 
+#include <WinTrust.h>
+#include <SoftPub.h>
+
+#pragma comment (lib, "wintrust.lib")
+#pragma comment (lib, "crypt32.lib")
+
+// We don't give two @#$%s about the validity of the signature,
+//   we just want to extract the certificate's subject name and date
+SK_VerifyTrust_SignatureInfo
+SK_VerifyTrust_GetCodeSignature (const wchar_t* wszExecutableFileName)
+{
+  SK_VerifyTrust_SignatureInfo signature;
+
+  GUID WVTPolicyGUID = WINTRUST_ACTION_GENERIC_VERIFY_V2;
+
+  WINTRUST_FILE_INFO
+    fileInfo                = { };
+    fileInfo.cbStruct       = sizeof (WINTRUST_FILE_INFO);
+    fileInfo.pcwszFilePath  = wszExecutableFileName;
+    fileInfo.hFile          = nullptr;
+    fileInfo.pgKnownSubject = nullptr;
+
+  WINTRUST_DATA
+    trustData                     = { };
+    trustData.cbStruct            = sizeof (WINTRUST_DATA);
+    trustData.pPolicyCallbackData = NULL;
+    trustData.pSIPClientData      = NULL;
+    trustData.dwUIChoice          = WTD_UI_NONE;
+    trustData.fdwRevocationChecks = WTD_REVOKE_NONE;
+    trustData.dwUnionChoice       = WTD_CHOICE_FILE;
+    trustData.dwStateAction       = WTD_STATEACTION_VERIFY;
+    trustData.hWVTStateData       = NULL;
+    trustData.pwszURLReference    = NULL;
+    trustData.dwProvFlags         = WTD_CACHE_ONLY_URL_RETRIEVAL;
+    trustData.pFile               = &fileInfo;
+
+  // Call WinVerifyTrust
+  if (ERROR_SUCCESS == WinVerifyTrust (nullptr, &WVTPolicyGUID, &trustData))
+  {
+    // Get signer information
+    CRYPT_PROVIDER_DATA *providerData =
+      WTHelperProvDataFromStateData (trustData.hWVTStateData);
+
+    if (providerData != nullptr)
+    {
+      CRYPT_PROVIDER_SGNR *providerSigner =
+        WTHelperGetProvSignerFromChain (providerData, 0, FALSE, 0);
+
+      if (providerSigner != nullptr)
+      {
+        const auto pCertInfo =
+          providerSigner->
+            pChainContext->rgpChain [0]->
+                         rgpElement [0]->pCertContext
+                                       ->pCertInfo;
+
+        wchar_t wszSubject [256] = { };
+        CertNameToStrW (
+          X509_ASN_ENCODING, &pCertInfo->Subject,
+          CERT_SIMPLE_NAME_STR, wszSubject, 255 );
+
+        signature.subject =
+          wszSubject;
+
+        signature.valid_beginning =
+          pCertInfo->NotBefore;
+
+        signature.valid_ending =
+          pCertInfo->NotAfter;
+      }
+    }
+  }
+
+                                      trustData.dwStateAction = WTD_STATEACTION_CLOSE;
+  WinVerifyTrust (0, &WVTPolicyGUID, &trustData);
+
+  return signature;
+}
+
+
+
 LPVOID __SK_base_img_addr = nullptr;
 LPVOID __SK_end_img_addr  = nullptr;
 

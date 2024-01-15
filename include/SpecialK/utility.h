@@ -1267,5 +1267,16 @@ HRESULT
 ModifyPrivilege (IN LPCTSTR szPrivilege,
                  IN BOOL     fEnable);
 
+struct
+SK_VerifyTrust_SignatureInfo
+{
+  std::wstring subject;
+  FILETIME     valid_beginning;
+  FILETIME     valid_ending;
+};
+
+SK_VerifyTrust_SignatureInfo
+SK_VerifyTrust_GetCodeSignature (const wchar_t *wszExecutableFileName);
+
 #endif /* __SK__UTILITY_H__ */
 
