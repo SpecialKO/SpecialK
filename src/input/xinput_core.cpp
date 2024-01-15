@@ -434,22 +434,22 @@ XInputGetState1_4_Detour (
   if (config.input.gamepad.xinput.disable [dwUserIndex])
     return ERROR_DEVICE_NOT_CONNECTED;
 
-  SK_XINPUT_READ (dwUserIndex)
-
-  if (pState      == nullptr)         return ERROR_SUCCESS;
+  if (pState == nullptr)
+    return ERROR_INVALID_PARAMETER;
 
   RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
     return ERROR_SUCCESS;
 
-  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (dwUserIndex >= XUSER_MAX_COUNT)
+    return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
   if (pCtx->XInputGetState_Original == nullptr)
-    return ERROR_SUCCESS;
+    return ERROR_NOT_SUPPORTED;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
@@ -459,6 +459,7 @@ XInputGetState1_4_Detour (
             pCtx->XInputGetState_Original (dwUserIndex, pState)
       );
 
+  bool nop =
     SK_ImGui_FilterXInput           (dwUserIndex, pState);
   SK_XInput_PacketJournalize (dwRet, dwUserIndex, pState);
 
@@ -474,9 +475,13 @@ XInputGetState1_4_Detour (
   if (dwUserIndex == config.input.gamepad.xinput.ui_slot && ReadAcquire (&SK_ScePad_Backend->reads [2]) > 0)
     return ERROR_DEVICE_NOT_CONNECTED;
 
-  // Game-specific hacks (i.e. button swap)
-  if (dwRet == ERROR_SUCCESS) SK_XInput_TalesOfAriseButtonSwap (pState);
+  if (dwRet == ERROR_SUCCESS)
+  {
+    if (! nop) SK_XINPUT_READ (dwUserIndex);
 
+    // Game-specific hacks (i.e. button swap)
+    SK_XInput_TalesOfAriseButtonSwap (pState);
+  }
 
   return dwRet;
 }
@@ -487,6 +492,13 @@ XInputGetStateEx1_4_Detour (
   _In_  DWORD            dwUserIndex,
   _Out_ XINPUT_STATE_EX *pState )
 {
+    //  static const DWORD dwNullptrRet =
+    //  pCtx->XInputGetStateEx_Original (dwUserIndex, nullptr);
+    //
+    //SK_RunOnce (SK_LOGi0 (L"XInputGetState returns %d when passed nullptr", dwNullptrRet));
+    //
+    //return dwNullptrRet;
+
   SK_LOG_FIRST_CALL
 
   struct cached_state_s
@@ -599,9 +611,8 @@ XInputGetStateEx1_4_Detour (
   if (config.input.gamepad.xinput.disable [dwUserIndex])
     return ERROR_DEVICE_NOT_CONNECTED;
 
-  SK_XINPUT_READ (dwUserIndex)
-
-  if (pState      == nullptr)         return ERROR_SUCCESS;
+  if (pState == nullptr)
+    return ERROR_INVALID_PARAMETER;
 
   RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
@@ -614,7 +625,7 @@ XInputGetStateEx1_4_Detour (
     &xinput_ctx.XInput1_4;
 
   if (pCtx->XInputGetStateEx_Original == nullptr)
-    return ERROR_SUCCESS;
+    return ERROR_NOT_SUPPORTED;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
@@ -624,6 +635,7 @@ XInputGetStateEx1_4_Detour (
           pCtx->XInputGetStateEx_Original (dwUserIndex, pState)
       );
 
+  bool nop =
     SK_ImGui_FilterXInput           (       dwUserIndex, (XINPUT_STATE *)pState);
     SK_XInput_PacketJournalize      (dwRet, dwUserIndex, (XINPUT_STATE *)pState);
 
@@ -636,22 +648,7 @@ XInputGetStateEx1_4_Detour (
   //   whatever the game is actively using -- helps with X360Ce
   SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
-  ////if (config.input.gamepad.xinput.placehold [dwUserIndex])
-  ////{
-  ////      throttle_cache [dwUserIndex].updateState (dwRet, *pState);
-  ////  if (throttle_cache [dwUserIndex].shouldThrottle ())
-  ////  {
-  ////    if (throttle_cache [dwUserIndex]._timing._observed.bPolledByWindowThread && SK_Win32_IsGUIThread ())
-  ////      MsgWaitForMultipleObjects (0, nullptr, FALSE, 1, QS_ALLINPUT);
-  ////    else
-  ////    {
-  ////      YieldProcessor (       );
-  ////      SK_SleepEx     (1, TRUE);
-  ////    }
-  ////  }
-  ////}
-
-
+  if (   dwRet == ERROR_SUCCESS && (! nop)) SK_XINPUT_READ (dwUserIndex);
   return dwRet;
 }
 
@@ -678,19 +675,19 @@ XInputGetCapabilities1_4_Detour (
   if (config.input.gamepad.xinput.disable [dwUserIndex])
     return ERROR_DEVICE_NOT_CONNECTED;
 
-  SK_XINPUT_READ (dwUserIndex)
-
-  if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
+  if (pCapabilities == nullptr)
+    return ERROR_INVALID_PARAMETER;
 
   RtlZeroMemory (pCapabilities, sizeof (XINPUT_CAPABILITIES));
 
-  if (dwUserIndex   >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (dwUserIndex >= XUSER_MAX_COUNT)
+    return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
   if (pCtx->XInputGetCapabilities_Original == nullptr)
-    return ERROR_SUCCESS;
+    return ERROR_NOT_SUPPORTED;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
@@ -707,6 +704,7 @@ XInputGetCapabilities1_4_Detour (
 
   SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
+//if (   dwRet == ERROR_SUCCESS) SK_XINPUT_READ (dwUserIndex);
   return dwRet;
 }
 
@@ -733,19 +731,17 @@ XInputGetBatteryInformation1_4_Detour (
   if (config.input.gamepad.xinput.disable [dwUserIndex])
     return ERROR_DEVICE_NOT_CONNECTED;
 
-  SK_XINPUT_READ (dwUserIndex)
-
-  if (pBatteryInformation == nullptr) return (DWORD)E_POINTER;
+  if (pBatteryInformation == nullptr) return ERROR_INVALID_PARAMETER;
 
   RtlZeroMemory (pBatteryInformation, sizeof (XINPUT_BATTERY_INFORMATION));
 
-  if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
+  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
   if (pCtx->XInputGetBatteryInformation_Original == nullptr)
-    return ERROR_SUCCESS;
+    return ERROR_NOT_SUPPORTED;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
@@ -772,6 +768,7 @@ XInputGetBatteryInformation1_4_Detour (
     }
   }
 
+//if (   dwRet == ERROR_SUCCESS) SK_XINPUT_READ (dwUserIndex);
   return dwRet;
 }
 
@@ -798,8 +795,6 @@ XInputSetState1_4_Detour (
   if (config.input.gamepad.xinput.disable [dwUserIndex])
     return ERROR_DEVICE_NOT_CONNECTED;
 
-  SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
-
   if (xinput_ctx.preventHapticRecursion (dwUserIndex, true))
     return ERROR_SUCCESS;
 
@@ -807,10 +802,10 @@ XInputSetState1_4_Detour (
     &xinput_ctx.XInput1_4;
 
   if (! pCtx)
-    return ERROR_DEVICE_NOT_CONNECTED;
+    return ERROR_NOT_SUPPORTED;
 
   if (pCtx->XInputSetState_Original == nullptr)
-    return ERROR_SUCCESS;
+    return ERROR_NOT_SUPPORTED;
 
   if (! config.input.gamepad.xinput.hook_setstate)
     return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
@@ -853,8 +848,8 @@ XInputSetState1_4_Detour (
 
   xinput_ctx.preventHapticRecursion (dwUserIndex, false);
 
-  return
-    dwRet;
+  if (   dwRet == ERROR_SUCCESS && (! nop)) SK_XINPUT_WRITE (sk_input_dev_type::Gamepad);
+  return dwRet;
 }
 
 
@@ -1184,7 +1179,7 @@ XInputPowerOff1_4_Detour (
     &xinput_ctx.XInput1_4;
 
   if (pCtx->XInputPowerOff_Original == nullptr)
-    return ERROR_SUCCESS;
+    return ERROR_NOT_SUPPORTED;
 
   if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
     dwUserIndex = config.input.gamepad.xinput.ui_slot;
@@ -1198,8 +1193,6 @@ XInputPowerOff1_4_Detour (
 
   if (config.input.gamepad.xinput.disable [dwUserIndex])
     return ERROR_DEVICE_NOT_CONNECTED;
-
-  SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
 
   bool nop = ( SK_ImGui_WantGamepadCapture () );
 
@@ -1216,6 +1209,7 @@ XInputPowerOff1_4_Detour (
 
   SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
+  if (   dwRet == ERROR_SUCCESS && (! nop)) SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
   return dwRet;
 }
 
@@ -1280,21 +1274,20 @@ XInputGetKeystroke1_4_Detour (
   if (config.input.gamepad.xinput.disable [dwUserIndex])
     return ERROR_DEVICE_NOT_CONNECTED;
 
-  SK_XINPUT_READ (dwUserIndex)
-
   if (pKeystroke == nullptr)
-    return ERROR_SUCCESS; // What is the proper response?
+    return ERROR_INVALID_PARAMETER;
 
   if (! xinput_enabled)
     return ERROR_EMPTY;
 
-  if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
+  if (dwUserIndex >= XUSER_MAX_COUNT)
+    return ERROR_DEVICE_NOT_CONNECTED;
 
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
   if (pCtx->XInputGetKeystroke_Original == nullptr)
-    return ERROR_SUCCESS;
+    return ERROR_NOT_SUPPORTED;
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
@@ -1316,6 +1309,7 @@ XInputGetKeystroke1_4_Detour (
   if (dwUserIndex == config.input.gamepad.xinput.ui_slot && ReadAcquire (&SK_ScePad_Backend->reads [2]) > 0)
     return ERROR_DEVICE_NOT_CONNECTED;
 
+  if (   dwRet == ERROR_SUCCESS) SK_XINPUT_READ (dwUserIndex)
   return dwRet;
 }
 

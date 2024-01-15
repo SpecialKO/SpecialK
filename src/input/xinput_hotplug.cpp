@@ -425,14 +425,14 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
                       XINPUT_STATE *pState )
 {
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
-  if (pState      == nullptr)         return (DWORD)E_POINTER;
+  if (pState      == nullptr)         return (DWORD)ERROR_INVALID_PARAMETER;
 
-  // Implicit temporary placehold while blocking gamepad input
-  if (SK_ImGui_WantGamepadCapture () && dwRet == ERROR_SUCCESS)
-  {
-    dwRet = ERROR_DEVICE_NOT_CONNECTED;
-    config.input.gamepad.xinput.placeholdX [dwUserIndex] = true;
-  }
+  ////////// Implicit temporary placehold while blocking gamepad input
+  ////////if (SK_ImGui_WantGamepadCapture () && dwRet == ERROR_SUCCESS)
+  ////////{
+  ////////  dwRet = ERROR_DEVICE_NOT_CONNECTED;
+  ////////  config.input.gamepad.xinput.placeholdX [dwUserIndex] = true;
+  ////////}
 
   // Remove placeholding when a real device appears
   if (dwRet == ERROR_SUCCESS) config.input.gamepad.xinput.placeholdX [dwUserIndex] = false;
