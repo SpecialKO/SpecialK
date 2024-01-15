@@ -136,7 +136,7 @@ SK::ControlPanel::Input::Draw (void)
     struct { ULONG reads;                    } winmm      { };
     struct { ULONG reads;                    } messagebus { };
 
-    struct { ULONG kbd_reads, mouse_reads; } winhook  { };
+    struct { ULONG kbd_reads, mouse_reads;   } winhook    { };
 
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di7       { };
     struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di8       { };

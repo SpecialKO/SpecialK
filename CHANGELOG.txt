@@ -1,4 +1,16 @@
-﻿24.1.14.5
+﻿24.1.15
+=======
+ + Reduced Steam Input AppId override overhead
+ + Rewrite mentions of ReShade 5.9.3 in SK's control panel to 6.0
+ + When (temporarily) blocking gamepad input to games, stop showing input polling
+     activity in the control panel for the blocked device slots.
+ + Don't implicitly placehold disconnected XInput gamepads when blocking input, just
+     return neutral input data and ERROR_SUCCESS
+ + No longer auto-disable wndproc hooks in CRAPCOM DRM games, install a surrogate
+     window procedure instead and hook it, because the DRM will not check if the
+       surrogate procedure's memory is modified.
+
+24.1.14.5
 =========
  + Allow crashing as intended if you override swapchain backbuffer count in D3D12
      and you've promised not to shoot yourself in the foot
