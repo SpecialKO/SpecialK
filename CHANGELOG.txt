@@ -1,4 +1,10 @@
-﻿24.1.16.4
+﻿24.1.16.5
+=========
+ + Force colorspace overrides at all times if vulkan-1.dll is loaded in order
+     to prevent problems caused by DXVK
+ + Disable wndproc hooks in Dragon's Dogma Dark Arisen because DXVK9 subclasses
+
+24.1.16.4
 =========
  + Add support for turning HDR on/off in games using their in-game settings as
      long as SK has no user-forced override turned on (fixes Alan Wake 2)

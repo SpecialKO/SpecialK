@@ -389,6 +389,7 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
   {
     TenBitSwap                       = true;
     config.render.output.force_10bpc = true;
+    __SK_HDR_UserForced              = true; // Vulkan interop requires forced overrides
   }
 
   DXGI_FORMAT fmt_new = fmt_orig;
