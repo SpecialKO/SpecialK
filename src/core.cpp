@@ -3002,7 +3002,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
           !(__SK_HDR_16BitSwap || __SK_HDR_10BitSwap) != _SDR )
       {
         if (SK_ComQIPtr <IDXGISwapChain3> pSwapChain3 (rb.swapchain);
-                                          pSwapChain3 != nullptr)
+                                          pSwapChain3 != nullptr && __SK_HDR_UserForced)
         {
           if (
             SUCCEEDED (

@@ -119,6 +119,7 @@ extern SK_LazyGlobal <SK_HDR_RenderTargetManager> SK_HDR_UnorderedViews_11bpc;
 
 extern bool __SK_HDR_10BitSwap;
 extern bool __SK_HDR_16BitSwap;
+extern bool __SK_HDR_UserForced;
 
 extern float __SK_HDR_Luma;
 extern float __SK_HDR_Exp;

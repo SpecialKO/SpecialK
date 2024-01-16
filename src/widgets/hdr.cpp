@@ -98,6 +98,7 @@ sk::ParameterBool*  _SK_HDR_AdaptiveToneMap           = nullptr;
 bool  __SK_HDR_AnyKind          = false;
 bool  __SK_HDR_10BitSwap        = false;
 bool  __SK_HDR_16BitSwap        = false;
+bool  __SK_HDR_UserForced       = false;
 
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
@@ -955,7 +956,7 @@ public:
         //   we set and check it for consistency each frame... set a colorspace override if necessary.
         if (FAILED (pSwap3->GetPrivateData (SKID_SwapChainColorSpace, &uiColorSpaceSize, &csp)) || csp != rb.scanout.colorspace_override)
         {
-          pSwap3->SetColorSpace1 (rb.scanout.colorspace_override);
+          if (__SK_HDR_UserForced) pSwap3->SetColorSpace1 (rb.scanout.colorspace_override);
         }
       }
 
@@ -995,7 +996,6 @@ public:
       _CreateConfigParameterBool ( SK_HDR_SECTION,
                                   L"Use16BitSwapChain",  __SK_HDR_16BitSwap,
                                   L"16-bit SwapChain" );
-
 
     _SK_HDR_Promote8BitRGBxTo16BitFP =
       _CreateConfigParameterBool ( SK_HDR_SECTION,
@@ -1061,6 +1061,8 @@ public:
     {
       if (__SK_HDR_10BitSwap)
       {
+        __SK_HDR_UserForced = true;
+
         rb.scanout.colorspace_override =
           DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
       }
@@ -1070,6 +1072,8 @@ public:
     {
       if (__SK_HDR_16BitSwap)
       {
+        __SK_HDR_UserForced = true;
+
         rb.scanout.colorspace_override =
           DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
       }
@@ -1178,8 +1182,9 @@ public:
 
         changed = true;
 
-        __SK_HDR_10BitSwap = false;
-        __SK_HDR_16BitSwap = false;
+        __SK_HDR_10BitSwap  = false;
+        __SK_HDR_16BitSwap  = false;
+        __SK_HDR_UserForced = false;
       }
 
       ImGui::SameLine ();
@@ -1190,6 +1195,7 @@ public:
 
         __SK_HDR_10BitSwap = true;
         __SK_HDR_16BitSwap = false;
+        __SK_HDR_UserForced = true;
       }
 
       if (ImGui::IsItemHovered ())
@@ -1224,6 +1230,7 @@ public:
 
         __SK_HDR_16BitSwap = true;
         __SK_HDR_10BitSwap = false;
+        __SK_HDR_UserForced = true;
       }
 
       if (changed)

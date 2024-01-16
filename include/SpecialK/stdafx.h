@@ -308,6 +308,7 @@
 
 extern bool __SK_HDR_16BitSwap;
 extern bool __SK_HDR_10BitSwap;
+extern bool __SK_HDR_UserForced;
 
 #include <dxgi1_3.h>
 #include <d3d11_2.h>

@@ -1250,11 +1250,11 @@ IWrapDXGISwapChain::SetColorSpace1 (DXGI_COLOR_SPACE_TYPE ColorSpace)
 
   // Don't let the game do this if SK's HDR overrides are active
   extern bool __SK_HDR_16BitSwap;
-  if (        __SK_HDR_16BitSwap)
+  if (        __SK_HDR_16BitSwap && __SK_HDR_UserForced)
     ColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
 
   extern bool __SK_HDR_10BitSwap;
-  if (        __SK_HDR_10BitSwap)
+  if (        __SK_HDR_10BitSwap && __SK_HDR_UserForced)
     ColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
 
   return
@@ -1757,9 +1757,9 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
 
     else
     {
-      if (     __SK_HDR_16BitSwap)
+      if (     __SK_HDR_16BitSwap && __SK_HDR_UserForced)
         NewFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
-      else if (__SK_HDR_10BitSwap)
+      else if (__SK_HDR_10BitSwap && __SK_HDR_UserForced)
         NewFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
     }
   }
@@ -2094,6 +2094,16 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
                     SK_DXGI_FormatToStr (swap_desc.BufferDesc.Format).data (),
                                          swap_desc.Flags
     );
+
+    //extern bool __SK_HDR_UserForced;
+    //
+    //if (! __SK_HDR_UserForced)
+    //{
+    //  SK_ComQIPtr <IDXGISwapChain4>
+    //        pSwap4 (pSwapChain);
+    //    if (pSwap4 != nullptr)
+    //        pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
+    //}
 
     _D3D12_ResetBufferIndexToZero ();
   }

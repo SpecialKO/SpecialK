@@ -398,8 +398,8 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
   bool _bFlipOrFullscreen =
         bFlipModel || (! bWindowed);
 
-  if  (_bFlipOrFullscreen && SixteenBitSwap) fmt_new = DXGI_FORMAT_R16G16B16A16_FLOAT;
-  else if (_bFlipOrFullscreen && TenBitSwap) fmt_new = DXGI_FORMAT_R10G10B10A2_UNORM;
+  if  (_bFlipOrFullscreen && SixteenBitSwap && __SK_HDR_UserForced) fmt_new = DXGI_FORMAT_R16G16B16A16_FLOAT;
+  else if (_bFlipOrFullscreen && TenBitSwap && __SK_HDR_UserForced) fmt_new = DXGI_FORMAT_R10G10B10A2_UNORM;
 
   if (fmt_new == fmt_orig)
     return fmt_orig;
@@ -1362,7 +1362,7 @@ SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc)
 
       SK_ComQIPtr <IDXGISwapChain3>
            pSwap3 (This);
-      if ( pSwap3.p != nullptr &&
+      if ( pSwap3.p != nullptr && __SK_HDR_UserForced &&
            SUCCEEDED (
              pSwap3->SetColorSpace1 (
                activeColorSpace
@@ -8071,7 +8071,7 @@ SK_DXGISwap3_SetColorSpace1_Impl (
   if (SK_GetCallingDLL (pCaller) != SK_GetDLL ())
   {
     const bool sk_is_overriding_hdr =
-      (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap);
+      (__SK_HDR_UserForced);
     bool game_is_engaging_native_hdr = false;
 
     void SK_HDR_RunWidgetOnce (void);
@@ -8102,6 +8102,14 @@ SK_DXGISwap3_SetColorSpace1_Impl (
 
         __SK_HDR_Preset       = 2;
         __SK_HDR_Content_EOTF = 1.0f;
+      }
+    }
+
+    else
+    {
+      if (! sk_is_overriding_hdr) {
+        __SK_HDR_16BitSwap = false;
+        __SK_HDR_10BitSwap = false;
       }
     }
 

@@ -1,4 +1,9 @@
-﻿24.1.16.3
+﻿24.1.16.4
+=========
+ + Add support for turning HDR on/off in games using their in-game settings as
+     long as SK has no user-forced override turned on (fixes Alan Wake 2)
+
+24.1.16.3
 =========
  + Disable CRAPCOM DRM workaround (SteamAPI aspect) on Steam Deck, or Proton
      will report corrupted save files
