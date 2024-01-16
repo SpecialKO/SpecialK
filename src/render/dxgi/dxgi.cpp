@@ -8057,60 +8057,60 @@ SK_DXGISwap3_SetColorSpace1_Impl (
 
   if (! silent)
   {
-    SK_LOGi0 ( L"[!] IDXGISwapChain3::SetColorSpace1 (%hs)",
-                    DXGIColorSpaceToStr (ColorSpace) );
+    SK_LOGi0 ( L"[!] IDXGISwapChain3::SetColorSpace1 (%hs)\t[%ws]",
+                    DXGIColorSpaceToStr (ColorSpace), SK_GetCallerName ().c_str () );
   }
 
+  DXGI_SWAP_CHAIN_DESC   swapDesc = { };
+  pSwapChain3->GetDesc (&swapDesc);
+
+  //
+  // Special actions to turn SK HDR features on when SK HDR is turned off,
+  //   and the game engages native HDR.
+  //
   if (SK_GetCallingDLL (pCaller) != SK_GetDLL ())
   {
-    bool SK_HDR_10BitSwap = __SK_HDR_10BitSwap;
-    bool SK_HDR_16BitSwap = __SK_HDR_16BitSwap;
+    const bool sk_is_overriding_hdr =
+      (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap);
+    bool game_is_engaging_native_hdr = false;
 
     void SK_HDR_RunWidgetOnce (void);
          SK_HDR_RunWidgetOnce ();
 
-    extern int __SK_HDR_Preset;
-
     if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)
     {
-      if (!(SK_HDR_10BitSwap || SK_HDR_16BitSwap)) {
-        SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.EnableHDR10 true");
-                                  __SK_HDR_16BitSwap = false;
-                                  __SK_HDR_10BitSwap = true;
+      game_is_engaging_native_hdr = true;
+
+      if (! sk_is_overriding_hdr) {
+        __SK_HDR_16BitSwap = false;
+        __SK_HDR_10BitSwap = true;
       }
 
       __SK_HDR_Preset = 3;
-      SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.Preset 3");
-      __SK_HDR_Preset = 3;
-      SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.Preset 3");
-      __SK_HDR_Preset = 3;
-
-      SK_HDR_RunWidgetOnce ();
     }
 
     else if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709)
     {
-      if (!(SK_HDR_16BitSwap || SK_HDR_10BitSwap)) {
-        SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.EnableSCRGB true");
-                                  __SK_HDR_10BitSwap = false;
-                                  __SK_HDR_16BitSwap = true;
+      if (swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+      {
+        game_is_engaging_native_hdr = true;
+
+        if (! sk_is_overriding_hdr) {
+          __SK_HDR_10BitSwap = false;
+          __SK_HDR_16BitSwap = true;
+        }
+
+        __SK_HDR_Preset       = 2;
+        __SK_HDR_Content_EOTF = 1.0f;
       }
-
-      __SK_HDR_Preset = 2;
-      SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.Preset 2");
-      __SK_HDR_Preset = 2;
-      SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.Preset 2");
-      __SK_HDR_Preset = 2;
-
-      SK_HDR_RunWidgetOnce ();
     }
+
+    if (game_is_engaging_native_hdr)
+      SK_HDR_RunWidgetOnce ();
   }
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
-
-  DXGI_SWAP_CHAIN_DESC   swapDesc = { };
-  pSwapChain3->GetDesc (&swapDesc);
 
   if ( rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM &&
                            ColorSpace != rb.scanout.colorspace_override )

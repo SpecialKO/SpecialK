@@ -1,6 +1,12 @@
-﻿24.1.16.2
+﻿24.1.16.3
 =========
- + Fixed issues with the initial attempt at auto-native HDR
+ + Fixed problem that could prevent Alan Wake 2's undocumented scRGB HDR mode
+     from engaging when it resizes the SwapChain from RGB10A2 to RGBA16F
+ + Automatically enable linear content EOTF in games that use native scRGB HDR
+
+24.1.16.2
+=========
+ + Fixed incorrect HDR preset activation when detecting native HDR
 
 24.1.16.1
 =========
