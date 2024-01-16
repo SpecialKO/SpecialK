@@ -1,4 +1,8 @@
-﻿24.1.16.1
+﻿24.1.16.2
+=========
+ + Fixed issues with the initial attempt at auto-native HDR
+
+24.1.16.1
 =========
  + Added automatic injection delay to Ratchet & Clank so that its implementation
      of Reflex will work and allow DLSS-G Frame Generation to work

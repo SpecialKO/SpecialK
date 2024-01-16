@@ -8066,19 +8066,25 @@ SK_DXGISwap3_SetColorSpace1_Impl (
     void SK_HDR_RunWidgetOnce (void);
          SK_HDR_RunWidgetOnce ();
 
+         extern int __SK_HDR_Preset;
+
     if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)
     {
       SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.Preset 3");
+      __SK_HDR_Preset = 3;
+      SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.Preset 3");
 
-      if (!(__SK_HDR_10BitSwap || __SK_HDR_10BitSwap))
+      if (!(__SK_HDR_10BitSwap || __SK_HDR_16BitSwap))
         SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.EnableHDR10 true");
     }
 
-    if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709)
+    else if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709)
     {
       SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.Preset 2");
+      __SK_HDR_Preset = 2;
+      SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.Preset 2");
 
-      if (!(__SK_HDR_10BitSwap || __SK_HDR_10BitSwap))
+      if (!(__SK_HDR_16BitSwap || __SK_HDR_10BitSwap))
         SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.EnableSCRGB true");
     }
   }
