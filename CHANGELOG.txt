@@ -1,4 +1,13 @@
-﻿24.1.16.5
+﻿24.1.17
+=======
+ + Ignore colorspace changes in games if SK has explicitly selected an HDR preset,
+     DXVK may asynchronously set a different (wrong) colorspace during gameplay.
+
+    * This has most of the benefits of the recent redesign, for users playing
+        native HDR games, but it won't switch to native scRGB/HDR10 if you change
+          settings in-game.
+
+24.1.16.5
 =========
  + Force colorspace overrides at all times if vulkan-1.dll is loaded in order
      to prevent problems caused by DXVK

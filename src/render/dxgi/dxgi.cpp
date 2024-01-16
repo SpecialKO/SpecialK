@@ -389,7 +389,6 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
   {
     TenBitSwap                       = true;
     config.render.output.force_10bpc = true;
-    __SK_HDR_UserForced              = true; // Vulkan interop requires forced overrides
   }
 
   DXGI_FORMAT fmt_new = fmt_orig;
@@ -8085,9 +8084,9 @@ SK_DXGISwap3_SetColorSpace1_Impl (
       if (! sk_is_overriding_hdr) {
         __SK_HDR_16BitSwap = false;
         __SK_HDR_10BitSwap = true;
-      }
 
-      __SK_HDR_Preset = 3;
+        __SK_HDR_Preset = 3;
+      }
     }
 
     else if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709)
@@ -8099,10 +8098,10 @@ SK_DXGISwap3_SetColorSpace1_Impl (
         if (! sk_is_overriding_hdr) {
           __SK_HDR_10BitSwap = false;
           __SK_HDR_16BitSwap = true;
-        }
 
-        __SK_HDR_Preset       = 2;
-        __SK_HDR_Content_EOTF = 1.0f;
+          __SK_HDR_Preset       = 2;
+          __SK_HDR_Content_EOTF = 1.0f;
+        }
       }
     }
 

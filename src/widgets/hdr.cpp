@@ -1068,7 +1068,7 @@ public:
       }
     }
 
-    else if (_SK_HDR_16BitSwapChain->load (__SK_HDR_16BitSwap))
+    if (_SK_HDR_16BitSwapChain->load (__SK_HDR_16BitSwap))
     {
       if (__SK_HDR_16BitSwap)
       {
@@ -1228,8 +1228,8 @@ public:
           config.nvidia.dlss.allow_scrgb = true;
         }
 
-        __SK_HDR_16BitSwap = true;
-        __SK_HDR_10BitSwap = false;
+        __SK_HDR_16BitSwap  = true;
+        __SK_HDR_10BitSwap  = false;
         __SK_HDR_UserForced = true;
       }
 
