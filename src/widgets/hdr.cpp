@@ -3196,7 +3196,7 @@ SK_HDR_SetOverridesForGame (bool bScRGB, bool bHDR10)
 void
 SK_HDR_RunWidgetOnce (void)
 {
-  SK_RunOnce (
-    __dxgi_hdr__.get ().run ();
-  );
+  SK_RunOnce (__dxgi_hdr__.get ().run ());
+
+  hdr_presets [__SK_HDR_Preset].activate ();
 }

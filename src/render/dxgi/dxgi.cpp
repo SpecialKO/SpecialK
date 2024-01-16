@@ -8063,29 +8063,46 @@ SK_DXGISwap3_SetColorSpace1_Impl (
 
   if (SK_GetCallingDLL (pCaller) != SK_GetDLL ())
   {
+    bool SK_HDR_10BitSwap = __SK_HDR_10BitSwap;
+    bool SK_HDR_16BitSwap = __SK_HDR_16BitSwap;
+
     void SK_HDR_RunWidgetOnce (void);
          SK_HDR_RunWidgetOnce ();
 
-         extern int __SK_HDR_Preset;
+    extern int __SK_HDR_Preset;
 
     if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)
     {
+      if (!(SK_HDR_10BitSwap || SK_HDR_16BitSwap)) {
+        SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.EnableHDR10 true");
+                                  __SK_HDR_16BitSwap = false;
+                                  __SK_HDR_10BitSwap = true;
+      }
+
+      __SK_HDR_Preset = 3;
       SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.Preset 3");
       __SK_HDR_Preset = 3;
       SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.Preset 3");
+      __SK_HDR_Preset = 3;
 
-      if (!(__SK_HDR_10BitSwap || __SK_HDR_16BitSwap))
-        SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.EnableHDR10 true");
+      SK_HDR_RunWidgetOnce ();
     }
 
     else if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709)
     {
+      if (!(SK_HDR_16BitSwap || SK_HDR_10BitSwap)) {
+        SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.EnableSCRGB true");
+                                  __SK_HDR_10BitSwap = false;
+                                  __SK_HDR_16BitSwap = true;
+      }
+
+      __SK_HDR_Preset = 2;
       SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.Preset 2");
       __SK_HDR_Preset = 2;
       SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.Preset 2");
+      __SK_HDR_Preset = 2;
 
-      if (!(__SK_HDR_16BitSwap || __SK_HDR_10BitSwap))
-        SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.EnableSCRGB true");
+      SK_HDR_RunWidgetOnce ();
     }
   }
 
