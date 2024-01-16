@@ -3192,3 +3192,11 @@ SK_HDR_SetOverridesForGame (bool bScRGB, bool bHDR10)
   _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
   _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
 }
+
+void
+SK_HDR_RunWidgetOnce (void)
+{
+  SK_RunOnce (
+    __dxgi_hdr__.get ().run ();
+  );
+}

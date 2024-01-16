@@ -33,7 +33,8 @@ STDMETHODCALLTYPE
 SK_DXGISwap3_SetColorSpace1_Impl (
   IDXGISwapChain3       *pSwapChain3,
   DXGI_COLOR_SPACE_TYPE  ColorSpace,
-  BOOL                   bWrapped = FALSE
+  BOOL                   bWrapped = FALSE,
+  void*                  pCaller  = nullptr
 );
 
 // Various compat hacks applied if the game was originally Blt Model
@@ -1259,7 +1260,7 @@ IWrapDXGISwapChain::SetColorSpace1 (DXGI_COLOR_SPACE_TYPE ColorSpace)
   return
     SK_DXGISwap3_SetColorSpace1_Impl (
       static_cast <IDXGISwapChain3 *>(pReal),
-                    ColorSpace, TRUE );
+                    ColorSpace, TRUE, _ReturnAddress () );
 }
 
 HRESULT

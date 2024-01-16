@@ -8028,7 +8028,8 @@ STDMETHODCALLTYPE
 SK_DXGISwap3_SetColorSpace1_Impl (
   IDXGISwapChain3       *pSwapChain3,
   DXGI_COLOR_SPACE_TYPE  ColorSpace,
-  BOOL                   bWrapped = FALSE
+  BOOL                   bWrapped = FALSE,
+  void                  *pCaller  = nullptr
 )
 {
   const auto RequestedColorSpace = ColorSpace;
@@ -8060,6 +8061,27 @@ SK_DXGISwap3_SetColorSpace1_Impl (
                     DXGIColorSpaceToStr (ColorSpace) );
   }
 
+  if (SK_GetCallingDLL (pCaller) != SK_GetDLL ())
+  {
+    void SK_HDR_RunWidgetOnce (void);
+         SK_HDR_RunWidgetOnce ();
+
+    if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020)
+    {
+      SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.Preset 3");
+
+      if (!(__SK_HDR_10BitSwap || __SK_HDR_10BitSwap))
+        SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.EnableHDR10 true");
+    }
+
+    if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709)
+    {
+      SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.Preset 2");
+
+      if (!(__SK_HDR_10BitSwap || __SK_HDR_10BitSwap))
+        SK_GetCommandProcessor ()->ProcessCommandLine ("HDR.EnableSCRGB true");
+    }
+  }
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -8160,7 +8182,9 @@ SK_DXGISwap3_SetColorSpace1_Impl (
 
   // In the failure case, just hide it from the game...
   if (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap)
+  {
     hr = S_OK;
+  }
 
   return hr;
 }
@@ -8172,7 +8196,7 @@ IDXGISwapChain3_SetColorSpace1_Override (
   DXGI_COLOR_SPACE_TYPE  ColorSpace )
 {
   return
-    SK_DXGISwap3_SetColorSpace1_Impl (This, ColorSpace);
+    SK_DXGISwap3_SetColorSpace1_Impl (This, ColorSpace, FALSE, _ReturnAddress ());
 }
 
 using IDXGIOutput6_GetDesc1_pfn = HRESULT (WINAPI *)

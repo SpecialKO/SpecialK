@@ -1,4 +1,11 @@
-﻿24.1.16
+﻿24.1.16.1
+=========
+ + Added automatic injection delay to Ratchet & Clank so that its implementation
+     of Reflex will work and allow DLSS-G Frame Generation to work
+ + When a game changes HDR colorspaces now, SK will automatically put its own
+     HDR processing into the correct Native HDR10/scRGB mode to make life easier
+
+24.1.16
 =======
  + Block all 4 XInput slots while the control panel is using gamepad, because
      some games would respond by switching to a different XInput slot and continue
