@@ -4890,6 +4890,10 @@ auto DeclKeybind =
     static constexpr wchar_t *wszKaldaienAPIDll = L"kaldaien_api/steam_api64.dll";
 #endif
 
+    // Do not use CRAPCOM DRM workaround on Steam Deck
+    if (config.compatibility.using_wine)
+        config.platform.silent = true;
+
     if (! config.platform.silent)
     {     config.platform.silent =
             !((PathFileExistsW (                  wszSteamAPIDll)
