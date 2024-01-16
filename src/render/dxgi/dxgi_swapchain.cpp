@@ -1751,8 +1751,8 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
            __SK_HDR_10BitSwap;
     if (! (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap))
     {
-      if (state_cache.lastNonHDRFormat != DXGI_FORMAT_UNKNOWN)
-        NewFormat = state_cache.lastNonHDRFormat;
+    //if (state_cache.lastNonHDRFormat != DXGI_FORMAT_UNKNOWN)
+    //  NewFormat = state_cache.lastNonHDRFormat;
     }
 
     else
