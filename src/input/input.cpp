@@ -1629,6 +1629,8 @@ SK_Input_PreHookWinMM (void)
 // Raw Input
 //
 //////////////////////////////////////////////////////////////////////////////////
+//#define __MANAGE_RAW_INPUT_REGISTRATION
+#define __HOOK_BUFFERED_RAW_INPUT
 SK_LazyGlobal <std::mutex>                   raw_device_view;
 SK_LazyGlobal <std::vector <RAWINPUTDEVICE>> raw_devices;   // ALL devices, this is the list as Windows would give it to the game
 
@@ -2041,6 +2043,7 @@ NtUserRegisterRawInputDevices_Detour (
                                     cbSize );
   }
 
+#ifdef __MANAGE_RAW_INPUT_REGISTRATION
   static std::mutex registerDevicesMutex;
 
   std::scoped_lock <std::mutex>
@@ -2050,6 +2053,7 @@ NtUserRegisterRawInputDevices_Detour (
          view_lock (raw_device_view);
 
   raw_devices->clear ();
+#endif
 
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
@@ -2063,8 +2067,10 @@ NtUserRegisterRawInputDevices_Detour (
       pTLS->raw_input->allocateDevices (uiNumDevices);
   }
 
+#ifdef __MANAGE_RAW_INPUT_REGISTRATION
   // The devices that we will pass to Windows after any overrides are applied
   std::vector <RAWINPUTDEVICE> actual_device_list;
+#endif
 
   if (pDevices != nullptr)
   {
@@ -2106,7 +2112,9 @@ NtUserRegisterRawInputDevices_Detour (
           pDevices [i].dwFlags     &= ~RIDEV_CAPTUREMOUSE; }
 #endif
 
+#ifdef __MANAGE_RAW_INPUT_REGISTRATION
       raw_devices->push_back (pDevices [i]);
+#endif
 
       if ( pDevices [i].hwndTarget != nullptr          &&
            pDevices [i].hwndTarget != game_window.hWnd &&
@@ -2125,9 +2133,12 @@ NtUserRegisterRawInputDevices_Detour (
       }
     }
 
+#ifdef __MANAGE_RAW_INPUT_REGISTRATION
     SK_RawInput_ClassifyDevices ();
+#endif
   }
 
+#ifdef __MANAGE_RAW_INPUT_REGISTRATION
   std::vector <RAWINPUTDEVICE> override_keyboards = SK_RawInput_GetKeyboards          ();
   std::vector <RAWINPUTDEVICE> override_mice      = SK_RawInput_GetMice               ();
   std::vector <RAWINPUTDEVICE> override_gamepads  = SK_RawInput_GetRegisteredGamepads ();
@@ -2142,6 +2153,12 @@ NtUserRegisterRawInputDevices_Detour (
                static_cast <UINT> (actual_device_list.size () ),
                                      cbSize ) :
                 FALSE;
+#else
+  BOOL bRet =
+    SK_RegisterRawInputDevices ( pDevices,
+                                   uiNumDevices,
+                                     cbSize );
+#endif
 
   return bRet;
 }
@@ -5189,13 +5206,12 @@ void SK_Input_PreInit (void)
 
   if (config.input.gamepad.hook_raw_input)
   {
-//#define __MANAGE_RAW_INPUT_REGISTRATION
-#ifdef  __MANAGE_RAW_INPUT_REGISTRATION
     SK_CreateDLLHook2 (       L"user32",
                                "RegisterRawInputDevices",
                           NtUserRegisterRawInputDevices_Detour,
        static_cast_p2p <void> (&RegisterRawInputDevices_Original) );
 
+#ifdef  __MANAGE_RAW_INPUT_REGISTRATION
     SK_CreateDLLHook2 (       L"user32",
                                "GetRegisteredRawInputDevices",
                           NtUserGetRegisteredRawInputDevices_Detour,
@@ -5208,7 +5224,6 @@ void SK_Input_PreInit (void)
                           NtUserGetRawInputData_Detour,
        static_cast_p2p <void> (&GetRawInputData_Original) );
 
-#define __HOOK_BUFFERED_RAW_INPUT
 #ifdef __HOOK_BUFFERED_RAW_INPUT
     SK_CreateDLLHook2 (       L"user32",
                                "GetRawInputBuffer",

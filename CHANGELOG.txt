@@ -1,6 +1,12 @@
-﻿24.1.17
+﻿24.1.18
 =======
- + Ignore colorspace changes in games if SK has explicitly selected an HDR preset,
+ + Partially restore RawInput device registration hook code in order to prevent
+     games from disabling legacy Win32 keyboard and mouse messages
+       (legacy keyboard messages include Alt+F4)
+
+24.1.17
+=======
+ + Ignore colorspace changes in games if SK has explicitly selected an HDR preset;
      DXVK may asynchronously set a different (wrong) colorspace during gameplay.
 
     * This has most of the benefits of the recent redesign, for users playing
