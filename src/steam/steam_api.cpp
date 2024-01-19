@@ -5661,7 +5661,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                       // Still send this override, but delay it in case something else comes in...
                       //   the Steam client leaks memory every time we send it an override!
                       if (std::exchange (last_override, appid) == appid)
-                        SK_SleepEx (50UL, FALSE);
+                        SK_SleepEx (25UL, FALSE);
 
                       if (! override_ctx.app_ids.empty ())
                         continue;
@@ -5711,7 +5711,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 
                       appid = UINT64_MAX;
 
-                      SK_SleepEx (250UL, FALSE);
+                      SK_SleepEx (200UL, FALSE);
                     }
                   }
                 }
@@ -5748,7 +5748,7 @@ SK_SteamInput_Unfux0r (void)
 {
   SK_Thread_CreateEx ([](LPVOID)->DWORD
   {
-    SK_SleepEx (200UL, FALSE);
+    SK_SleepEx (500UL, FALSE);
     SK_Steam_ForceInputAppId (0);
   
     SK_Thread_CloseSelf ();
