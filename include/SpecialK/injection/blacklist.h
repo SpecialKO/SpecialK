@@ -219,6 +219,7 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"dockmod64.exe",
 
   L"crashpad_handler.exe",
+  L"crashpad_handler.dll", // WTF? Dave the Diver runs this DLL as an exe
   L"clang-tidy.exe",
   L"clupdater.exe",
   L"activate.exe",

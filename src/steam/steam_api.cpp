@@ -5683,7 +5683,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                           static AppId64_t   last_appid = static_cast <AppId64_t> (-1);
                           if (std::exchange (last_appid, appid) != appid)
                           {
-                            SK_LOGi0 (L"Forced Steam Input AppID: %d", appid);
+                            SK_LOGi1 (L"Forced Steam Input AppID: %d", appid);
                           }
                         }
 
@@ -5702,7 +5702,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                         );
 
                         if ((INT_PTR)instance > 32)
-                          SK_LOGi0 (L"Forced Steam Input AppID: Default");
+                          SK_LOGi1 (L"Forced Steam Input AppID: Default");
                         else
                         {
                           SK_LOGi0 (L"steam://forceinputappid failed with return=%d", instance);

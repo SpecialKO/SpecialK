@@ -1,4 +1,9 @@
-﻿24.1.18.2
+﻿24.1.19
+=======
+ + Blacklist crashpad_handler.dll (yes, .dll) from applications that SK injects
+     into because it prevents saving SK's INI in Dave the Diver
+
+24.1.18.2
 =========
  + More Steam Input hacks; you can ignore the comment from 24.1.18.1 :)
 

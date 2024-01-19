@@ -1822,6 +1822,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
     if (! blacklist)
     {
+      // Dave the Diver launches crashpad_handler.dll as a secondary application,
+      //  we want to know immediately if anything else does this (dll as exe).
+      SK_ReleaseAssert (StrStrIW (SK_GetHostApp (), L".dll") == nullptr);
+
       // Initialize MinHook before loading config file; required for some plug-ins
       SK_MinHook_Init ();
 
