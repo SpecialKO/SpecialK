@@ -5575,8 +5575,8 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 
       void push (AppId64_t appid)
       {
-        app_ids.push ( ReadAcquire (&changes) > 0 && appid == 0 ? config.steam.appid
-                                                                : appid );
+        app_ids.push ( /*ReadAcquire (&changes) > 0 && appid == 0 ? config.steam.appid
+                                                                :*/ appid );
 
         if (appid != 0)
           InterlockedIncrement (&changes);
@@ -5661,7 +5661,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                       // Still send this override, but delay it in case something else comes in...
                       //   the Steam client leaks memory every time we send it an override!
                       if (std::exchange (last_override, appid) == appid)
-                        SK_SleepEx (100UL, FALSE);
+                        SK_SleepEx (50UL, FALSE);
 
                       if (! override_ctx.app_ids.empty ())
                         continue;
@@ -5755,6 +5755,10 @@ SK_Steam_ProcessWindowActivation (bool active)
     if (! SK::SteamAPI::SetWindowFocusState (true))
     {
       SK_Steam_ForceInputAppId (config.steam.appid);
+
+      // So Valve's stupid overlay "works"
+      if (SK_GetForegroundWindow () == game_window.hWnd)
+        SK_Steam_ForceInputAppId (0);
     }
   }
 

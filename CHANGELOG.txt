@@ -1,4 +1,12 @@
-﻿24.1.18
+﻿24.1.18.1
+=========
+ + Add workarounds for Steam Input not allowing the overlay to be opened
+
+     >> Do not set gamepad background beavhior to "Disabled in Background",
+          or you may have to open and close the Steam overlay before
+             Steam Input stops breaking your game.
+
+24.1.18
 =======
  + Partially restore RawInput device registration hook code in order to prevent
      games from disabling legacy Win32 keyboard and mouse messages
