@@ -1,8 +1,12 @@
-﻿24.1.18.1
+﻿24.1.18.2
+=========
+ + More Steam Input hacks; you can ignore the comment from 24.1.18.1 :)
+
+24.1.18.1
 =========
  + Add workarounds for Steam Input not allowing the overlay to be opened
 
-     >> Do not set gamepad background beavhior to "Disabled in Background",
+     >> Do not set gamepad background behavior to "Disabled in Background",
           or you may have to open and close the Steam overlay before
              Steam Input stops breaking your game.
 

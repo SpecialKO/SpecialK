@@ -2925,7 +2925,13 @@ SK_ImGui_WantGamepadCapture (void)
         if (! SK::SteamAPI::SetWindowFocusState (! bCapture))
         {
           SK_Steam_ForceInputAppId ( bCapture ?
-                                      1157970 : 0 );
+                                      1157970 : config.steam.appid );
+
+          // Delayed command to set the Input AppId to 0
+          if (! bCapture)
+          {
+            SK_SteamInput_Unfux0r ();
+          }
         }
       }
     }

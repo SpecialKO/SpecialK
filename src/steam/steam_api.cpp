@@ -5744,6 +5744,19 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 }
 
 void
+SK_SteamInput_Unfux0r (void)
+{
+  SK_Thread_CreateEx ([](LPVOID)->DWORD
+  {
+    SK_SleepEx (200UL, FALSE);
+    SK_Steam_ForceInputAppId (0);
+  
+    SK_Thread_CloseSelf ();
+    return 0;
+  }, L"[SK] SteamInput Unfux0r");
+}
+
+void
 SK_Steam_ProcessWindowActivation (bool active)
 {
   if (config.steam.appid <= 0)
@@ -5758,7 +5771,9 @@ SK_Steam_ProcessWindowActivation (bool active)
 
       // So Valve's stupid overlay "works"
       if (SK_GetForegroundWindow () == game_window.hWnd)
-        SK_Steam_ForceInputAppId (0);
+      {
+        SK_SteamInput_Unfux0r ();
+      }
     }
   }
 
@@ -5777,6 +5792,8 @@ SK_Steam_ProcessWindowActivation (bool active)
       if (! SK::SteamAPI::SetWindowFocusState (true))
       {
         SK_Steam_ForceInputAppId (config.steam.appid);
+
+        SK_SteamInput_Unfux0r ();
       }
     }
   }

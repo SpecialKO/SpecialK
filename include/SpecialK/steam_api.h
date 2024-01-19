@@ -235,6 +235,7 @@ int                   SK_Steam_DrawOSD                          (void);
 
 void                  SK_Steam_ProcessWindowActivation          (bool active);
 void                  SK_Steam_ForceInputAppId                  (uint64_t appid);
+void                  SK_SteamInput_Unfux0r                     (void);
 bool                  SK_Steam_LoadOverlayEarly                 (void);
 
 void                  SK_Steam_InitCommandConsoleVariables      (void);
