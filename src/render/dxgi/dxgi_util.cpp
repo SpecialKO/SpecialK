@@ -1893,7 +1893,7 @@ HRESULT
 SK_DXGI_GetPrivateData ( IDXGIObject *pObject,
                    const GUID        &kName,
                          UINT        uiMaxBytes,
-                         void        *pPrivateData )
+                         void        *pPrivateData ) noexcept
 {
   if (pObject == nullptr)
     return E_POINTER;
@@ -1920,7 +1920,7 @@ HRESULT
 SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
                       const GUID     &kName,
                             UINT     uiNumBytes,
-                            void     *pPrivateData )
+                            void     *pPrivateData ) noexcept
 {
   if (pObject == nullptr)
     return E_POINTER;
@@ -1932,7 +1932,7 @@ SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
 template <>
 HRESULT
 SK_DXGI_GetPrivateData ( IDXGIObject *pObject,
-   IWrapDXGISwapChain::state_cache_s *pPrivateData )
+   IWrapDXGISwapChain::state_cache_s *pPrivateData ) noexcept
 {
   if (pObject == nullptr)
     return E_POINTER;
@@ -1946,7 +1946,7 @@ SK_DXGI_GetPrivateData ( IDXGIObject *pObject,
 template <>
 HRESULT
 SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
-   IWrapDXGISwapChain::state_cache_s *pPrivateData )
+   IWrapDXGISwapChain::state_cache_s *pPrivateData ) noexcept
 {
   if (pObject == nullptr)
     return E_POINTER;

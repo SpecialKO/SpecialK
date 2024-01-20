@@ -351,20 +351,20 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
   UINT                  gameWidth_      = 0;
   UINT                  gameHeight_     = 0;
-  BOOL                  fakeFullscreen_ = FALSE;
-  bool                  notFaking_      = true;
 
   struct state_cache_s {
-    DXGI_FORMAT           lastRequested_  = DXGI_FORMAT_UNKNOWN;
-    DXGI_FORMAT           lastNonHDRFormat= DXGI_FORMAT_UNKNOWN;
-    DXGI_COLOR_SPACE_TYPE lastColorSpace_ = DXGI_COLOR_SPACE_RESERVED;
+    DXGI_FORMAT           lastRequested_      = DXGI_FORMAT_UNKNOWN;
+    DXGI_FORMAT           lastNonHDRFormat    = DXGI_FORMAT_UNKNOWN;
+    DXGI_COLOR_SPACE_TYPE lastColorSpace_     = DXGI_COLOR_SPACE_RESERVED;
 
-    UINT                  lastWidth       = 0;
-    UINT                  lastHeight      = 0;
-    DXGI_FORMAT           lastFormat      = DXGI_FORMAT_UNKNOWN;
-    UINT                  lastBufferCount = 0;
+    UINT                  lastWidth           = 0;
+    UINT                  lastHeight          = 0;
+    DXGI_FORMAT           lastFormat          = DXGI_FORMAT_UNKNOWN;
+    UINT                  lastBufferCount     = 0;
+    bool                  lastFullscreenState = false;
 
-    bool                  _stalebuffers   = false;
+    bool                  _fakefullscreen     = false;
+    bool                  _stalebuffers       = false;
   };
 
   std::recursive_mutex  _backbufferLock;

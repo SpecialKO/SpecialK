@@ -795,9 +795,6 @@ SK_DXGI_FixUpLatencyWaitFlag (
   return    Flags;
 }
 
-
-static BOOL last_fullscreen_state = FALSE;
-
 HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetFullscreenState (BOOL Fullscreen, IDXGIOutput *pTarget)
@@ -808,7 +805,16 @@ IWrapDXGISwapChain::SetFullscreenState (BOOL Fullscreen, IDXGIOutput *pTarget)
     );
 
   if (SUCCEEDED (hr))
-    last_fullscreen_state = Fullscreen;
+  {
+    state_cache_s                                  state_cache;
+    SK_DXGI_GetPrivateData <state_cache_s> (this, &state_cache);
+
+    state_cache.lastFullscreenState = Fullscreen;
+    state_cache._fakefullscreen     =
+      (config.render.dxgi.fake_fullscreen_mode && Fullscreen);
+
+    SK_DXGI_SetPrivateData <state_cache_s> (this, &state_cache);
+  }
 
   return hr;
 }
@@ -820,8 +826,16 @@ IWrapDXGISwapChain::GetFullscreenState (BOOL *pFullscreen, IDXGIOutput **ppTarge
   HRESULT hr =
     pReal->GetFullscreenState (pFullscreen, ppTarget);
 
-  if (SUCCEEDED (hr) && config.render.dxgi.fake_fullscreen_mode && pFullscreen != nullptr)
-    *pFullscreen = last_fullscreen_state;
+  if (SUCCEEDED (hr) && pFullscreen != nullptr)
+  {
+    if (config.render.dxgi.fake_fullscreen_mode)
+    {
+      state_cache_s                                   state_cache;
+      SK_DXGI_GetPrivateData <state_cache_s> (pReal, &state_cache);
+
+      *pFullscreen = state_cache.lastFullscreenState;
+    }
+  }
 
   return hr;
 }
@@ -850,7 +864,12 @@ IWrapDXGISwapChain::GetDesc (DXGI_SWAP_CHAIN_DESC *pDesc)
     }
 
     if (config.render.dxgi.fake_fullscreen_mode)
-      pDesc->Windowed = !last_fullscreen_state;
+    {
+      state_cache_s                                   state_cache;
+      SK_DXGI_GetPrivateData <state_cache_s> (pReal, &state_cache);
+
+      pDesc->Windowed = !state_cache.lastFullscreenState;
+    }
   }
 
   return hr;
@@ -1346,17 +1365,6 @@ bool bRecycledSwapChains   = false;
 static LONG lLastRefreshDenom = 0;
 static LONG lLastRefreshNum   = 0;
 
-DXGI_FORMAT           lastRequested_  = DXGI_FORMAT_UNKNOWN;
-DXGI_FORMAT           lastNonHDRFormat= DXGI_FORMAT_UNKNOWN;
-DXGI_COLOR_SPACE_TYPE lastColorSpace_ = DXGI_COLOR_SPACE_RESERVED;
-
-UINT                  lastWidth       = 0;
-UINT                  lastHeight      = 0;
-DXGI_FORMAT           lastFormat      = DXGI_FORMAT_UNKNOWN;
-UINT                  lastBufferCount = 0;
-bool                  _stalebuffers   = false;
-
-
 HRESULT
 STDMETHODCALLTYPE
 SK_DXGI_SwapChain_SetFullscreenState_Impl (
@@ -1393,23 +1401,52 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
   SK_ComPtr <ID3D12Device>              pDev12;
   pSwapChain->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
-  if (Fullscreen != FALSE && config.render.dxgi.fake_fullscreen_mode)
+  //
+  // Fake Fullscreen Mode
+  //
+  if (config.render.dxgi.fake_fullscreen_mode)
   {
-    auto hMon =
-      MonitorFromWindow (game_window.hWnd, 0x0);
+    static auto& rb =
+      SK_GetCurrentRenderBackend ();
 
-    MONITORINFO             mi = { .cbSize = sizeof (MONITORINFO) };
-    GetMonitorInfoW (hMon, &mi);
-
-    if ( (UINT)(mi.rcMonitor.right  - mi.rcMonitor.left) == sd.BufferDesc.Width &&
-         (UINT)(mi.rcMonitor.bottom - mi.rcMonitor.top)  == sd.BufferDesc.Height )
+    if (Fullscreen != FALSE)
     {
-      config.window.borderless = true;
-      config.window.fullscreen = true;
+      auto hMon =
+        MonitorFromWindow (game_window.hWnd, 0x0);
 
-      SK_AdjustWindow ();
+      MONITORINFO             mi = { .cbSize = sizeof (MONITORINFO) };
+      GetMonitorInfoW (hMon, &mi);
 
-      return S_OK;
+      if ( (UINT)(mi.rcMonitor.right  - mi.rcMonitor.left) >= sd.BufferDesc.Width &&
+           (UINT)(mi.rcMonitor.bottom - mi.rcMonitor.top)  >= sd.BufferDesc.Height )
+      {
+        using state_cache_s = IWrapDXGISwapChain::state_cache_s;
+            IWrapDXGISwapChain::state_cache_s                state_cache;
+
+        if (SUCCEEDED (SK_DXGI_GetPrivateData <state_cache_s> ((IDXGIObject *)rb.swapchain.p, &state_cache)))
+        {
+          state_cache._fakefullscreen = true;
+
+          SK_DXGI_SetPrivateData <state_cache_s> ((IDXGIObject *)rb.swapchain.p, &state_cache);
+
+          extern void SK_Window_RemoveBorders (void);
+
+          SK_Window_RemoveBorders      ();
+          SK_Window_RepositionIfNeeded ();
+
+          return S_OK;
+        }
+      }
+    }
+
+    else
+    {
+      // Add borders back only if transitioning Fullscreen -> Windowed
+      if (rb.isFakeFullscreen ())
+      {
+        extern void SK_Window_RestoreBorders (DWORD,DWORD);
+                    SK_Window_RestoreBorders (0,0);
+      }
     }
   }
 
@@ -1453,7 +1490,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
       Fullscreen = TRUE;
     }
 
-    else if ((config.window.background_render || config.display.force_windowed) && Fullscreen != FALSE)
+    else if ((config.window.background_render || config.display.force_windowed) && Fullscreen != FALSE && config.render.dxgi.fake_fullscreen_mode == false)
     {
       Fullscreen = FALSE;
       pTarget    = nullptr;
@@ -1490,7 +1527,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
   if (config.render.dxgi.skip_mode_changes || config.display.force_windowed || config.window.background_render)
   {
     // Does not work correctly when recycling swapchains
-    if ((! bRecycledSwapChains) || config.display.force_windowed || config.window.background_render)
+    if ((! bRecycledSwapChains) || config.display.force_windowed || (config.window.background_render && config.render.dxgi.fake_fullscreen_mode == false))
     {
       SK_ComPtr <IDXGIOutput>                                                  pOutput;
       BOOL                                            _OriginalFullscreen;
@@ -1624,6 +1661,37 @@ extern UINT uiOriginalBltSampleCount;
 
 extern void ResetImGui_D3D12 (IDXGISwapChain *This);
 extern void ResetImGui_D3D11 (IDXGISwapChain *This);
+
+bool
+SK_RenderBackend_V2::isFakeFullscreen (void)
+{
+  return
+    SK_DXGI_IsFakeFullscreen (swapchain);
+}
+
+bool
+SK_RenderBackend_V2::isTrueFullscreen (void)
+{
+  return
+    fullscreen_exclusive && (! isFakeFullscreen ());
+}
+
+bool
+SK_DXGI_IsFakeFullscreen (IUnknown *pSwapChain) noexcept
+{
+  if (SK_ComQIPtr <IDXGISwapChain> pDXGISwapChain (pSwapChain);
+                                   pDXGISwapChain != nullptr)
+  {
+    using state_cache_s = IWrapDXGISwapChain::state_cache_s;
+        IWrapDXGISwapChain::state_cache_s                    state_cache;
+    SK_DXGI_GetPrivateData <state_cache_s> (pDXGISwapChain, &state_cache);
+
+    return
+      (state_cache._fakefullscreen);
+  }
+
+  return false;
+}
 
 HRESULT
 STDMETHODCALLTYPE
@@ -1829,8 +1897,14 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
   auto origWidth  = Width;
   auto origHeight = Height;
 
-  if ( config.window.borderless &&
-       config.window.fullscreen && (! rb.fullscreen_exclusive) )
+  const bool fake_fullscreen =
+    rb.isFakeFullscreen ();
+
+  bool borderless = config.window.borderless || fake_fullscreen;
+  bool fullscreen = config.window.fullscreen || fake_fullscreen;
+
+  if ( borderless &&
+       fullscreen && (! rb.fullscreen_exclusive) )
   {
     if ( rb.active_display >= 0 &&
          rb.active_display < rb._MAX_DISPLAYS )
@@ -2288,8 +2362,10 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
   DXGI_MODE_DESC new_new_params =
       *pNewTargetParameters;
 
+  bool borderless = config.window.borderless || rb.isFakeFullscreen ();
+
   // I don't remember why borderless is included here :)
-  if ( config.window.borderless ||
+  if ( borderless ||
        ( config.render.dxgi.scaling_mode != SK_NoPreference &&
           pNewTargetParameters->Scaling  !=
             (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )

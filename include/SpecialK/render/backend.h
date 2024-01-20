@@ -678,6 +678,9 @@ public:
 
   bool resetTemporaryDisplayChanges (void);
 
+  bool isFakeFullscreen (void);
+  bool isTrueFullscreen (void);
+
   bool update_outputs = false;
 };
 #pragma pack(pop)

@@ -1,4 +1,12 @@
-﻿24.1.20.3
+﻿24.1.21
+=======
+ + Added Fake Fullscreen indicator to SK's Control Panel when active
+ + Added option to enable/disable Fake Fullscreen in D3D11/D3D12 games
+     >> Right-click the Framebuffer Resolution status in the control panel
+ + Added checks to ensure desktop resolution is >= fullscreen resolution
+     before engaging Fake Fullscreen.
+
+24.1.20.3
 =========
  + Improved Fake Fullscreen Mode to work with Elden Ring
      >> Also turned it on by default in Elden Ring, Yakuza *, Nioh, Sekiro

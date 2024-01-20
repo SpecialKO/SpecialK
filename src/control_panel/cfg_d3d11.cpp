@@ -2051,6 +2051,11 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       }
       ImGui::PopStyleColor   ();
       ImGui::EndGroup        ();
+      ImGui::Separator       ();
+
+      ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
+      ImGui::SameLine        ();
+      ImGui::TextUnformatted ("Right-click to configure Fullscreen/Windowed mode behavior");
       ImGui::EndTooltip      ();
     }
   }

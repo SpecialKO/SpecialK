@@ -3400,8 +3400,8 @@ SK_BackgroundRender_EndFrame (void)
   }
 
   fullscreen_last_frame =
-        rb.fullscreen_exclusive;
-  if (! rb.fullscreen_exclusive)
+        rb.isTrueFullscreen ();
+  if (! fullscreen_last_frame)
   {
     static bool last_foreground = false;
 

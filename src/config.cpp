@@ -4785,7 +4785,9 @@ auto DeclKeybind =
   game_output->load       (config.system.game_output);
   init_delay->load        (config.system.global_inject_delay);
   return_to_skif->load    (config.system.return_to_skif);
-  version->load           (config.system.version);
+
+  if (version->load       (config.system.version))
+                           config.system.first_run = false;
 
   skif_autostop_behavior->load (config.skif.auto_stop_behavior);
 

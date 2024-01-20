@@ -48,6 +48,7 @@
 
 #include <SpecialK/render/d3d11/d3d11_state_tracker.h>
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
+#include <SpecialK/render/dxgi/dxgi_util.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 #include <imgui/font_awesome.h>
@@ -2932,6 +2933,31 @@ SK_NV_LatencyControlPanel (void)
 }
 
 void
+SK_DXGI_FullscreenControlPanel (void)
+{
+  if (ImGui::BeginPopup ("DXGI Fullscreen Control Panel"))
+  {
+    ImGui::TextUnformatted ("D3D11/D3D12 Fullscreen Setup (Experimental)");
+
+    ImGui::TreePush ("");
+
+    if (ImGui::Checkbox ("Enable Fake Fullscreen Mode", &config.render.dxgi.fake_fullscreen_mode))
+    {
+      SK_AdjustWindow          ();
+      ImGui::CloseCurrentPopup ();
+    }
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::SetTooltip ("For resolutions at or lower than your desktop, prevent TRUE fullscreen from engaging.");
+    }
+
+    ImGui::TreePop  ();
+    ImGui::EndPopup ();
+  }
+}
+
+void
 SK_NV_GSYNCControlPanel ()
 {
   if (sk::NVAPI::nv_hardware)
@@ -2943,7 +2969,7 @@ SK_NV_GSYNCControlPanel ()
 
     if (ImGui::BeginPopup ("G-Sync Control Panel"))
     {
-      ImGui::Text ("NVIDIA G-Sync Configuration");
+      ImGui::TextUnformatted ("NVIDIA G-Sync Configuration");
 
       ImGui::TreePush ("");
 
@@ -4702,7 +4728,11 @@ SK_ImGui_ControlPanel (void)
 
     if (windowed)
     {
-      if (ImGui::MenuItem (" Window Resolution     ", szResolution))
+      bool bFakeFullscreen =
+        SK_DXGI_IsFakeFullscreen (rb.swapchain);
+
+      if (ImGui::MenuItem ( bFakeFullscreen ? " \"Fullscreen\" Resolution"
+                                            : " Window Resolution      ", szResolution))
       {
         config.window.res.override.x = (int)((float)(client.right  - client.left) * g_fDPIScale);
         config.window.res.override.y = (int)((float)(client.bottom - client.top)  * g_fDPIScale);
@@ -4716,7 +4746,7 @@ SK_ImGui_ControlPanel (void)
 
     else
     {
-      if (ImGui::MenuItem (" Fullscreen Resolution", szResolution))
+      if (ImGui::MenuItem (" Fullscreen Resolution ", szResolution))
       {
         config.window.res.override.x = (int)((float)(client.right  - client.left) * g_fDPIScale);
         config.window.res.override.y = (int)((float)(client.bottom - client.top)  * g_fDPIScale);
@@ -4759,6 +4789,15 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
+    if (SK_ImGui_IsItemRightClicked ())
+    {
+      if (SK_API_IsDXGIBased (rb.api))
+      {
+        ImGui::OpenPopup         ("DXGI Fullscreen Control Panel");
+        ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
+      }
+    }
+
     int device_x =
       (int)((float)rb.windows.device.getDevCaps ().res.x * g_fDPIScale);
     int device_y =
@@ -4771,7 +4810,7 @@ SK_ImGui_ControlPanel (void)
                                      device_x,
                                        device_y );
 
-      if (ImGui::MenuItem (" Device Resolution    ", szResolution))
+      if (ImGui::MenuItem (" Device Resolution     ", szResolution))
       {
         config.window.res.override.x = device_x;
         config.window.res.override.y = device_y;
@@ -4789,7 +4828,7 @@ SK_ImGui_ControlPanel (void)
 
       bool selected = true;
 
-      if (ImGui::MenuItem (" Override Resolution   ",
+      if (ImGui::MenuItem (" Override Resolution    ",
                                     szResolution,
                                        &selected)
          )
@@ -4801,6 +4840,8 @@ SK_ImGui_ControlPanel (void)
           true;
       }
     }
+
+    SK_DXGI_FullscreenControlPanel ();
 
 
     if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)

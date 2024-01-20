@@ -31,6 +31,7 @@
 
 // For SK_D3D9_TriggerReset .... (should probably be in SK_RenderBackend_v{2|3+})
 #include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/render/dxgi/dxgi_util.h>
 
 static constexpr int SK_MAX_WINDOW_DIM = 16384;
 
@@ -1182,7 +1183,7 @@ ActivateWindow ( HWND hWnd,
 
     else
     {
-      if ((! rb.fullscreen_exclusive) && SK_WantBackgroundRender ())
+      if ((! rb.isTrueFullscreen ()) && SK_WantBackgroundRender ())
       {
         game_window.cursor_visible =
           ShowCursor (TRUE) >= 1;
@@ -2158,7 +2159,12 @@ AdjustWindowRect_Detour (
       //dwStyle &= ~WS_SYSMENU;
     }
 
-    if (config.window.fullscreen && (! bMenu) && (IsRectEmpty (lpRect)))
+    const bool faking_fullscreen =
+      SK_DXGI_IsFakeFullscreen (SK_GetCurrentRenderBackend ().swapchain);
+
+    bool fullscreen = config.window.fullscreen || faking_fullscreen;
+
+    if (fullscreen && (! bMenu) && (IsRectEmpty (lpRect)))
     {
       HMONITOR hMonitor = config.display.monitor_handle != 0 ?
                           config.display.monitor_handle      :
@@ -2260,9 +2266,15 @@ AdjustWindowRectEx_Detour (
            SK_SummarizeCaller ().c_str () ),
            L"Window Mgr" );
 
+  const bool faking_fullscreen =
+    SK_DXGI_IsFakeFullscreen (SK_GetCurrentRenderBackend ().swapchain);
+
+  bool fullscreen = config.window.fullscreen || faking_fullscreen;
+  bool borderless = config.window.borderless || faking_fullscreen;
+
   // Override if forcing Fullscreen Borderless
   //
-  if (config.window.borderless)
+  if (borderless)
   {
     // Application window
     if (dwStyle & WS_CAPTION)
@@ -2275,7 +2287,7 @@ AdjustWindowRectEx_Detour (
       //dwStyle &= ~WS_SYSMENU;
     }
 
-    if (config.window.fullscreen && (! bMenu) && (IsRectEmpty (lpRect) && (! (dwExStyle & 0x20000000))))
+    if (fullscreen && (! bMenu) && (IsRectEmpty (lpRect) && (! (dwExStyle & 0x20000000))))
     {
       HMONITOR hMonitor = config.display.monitor_handle != 0 ?
                           config.display.monitor_handle      :
@@ -3178,7 +3190,7 @@ SK_AdjustBorder (void)
   if (game_window.GetWindowLongPtr == nullptr)
     return;
 
-  if (SK_GetCurrentRenderBackend ().fullscreen_exclusive)
+  if (SK_GetCurrentRenderBackend ().isTrueFullscreen ())
     return;
 
   // Make sure any pending changes are finished before querying the
@@ -3332,9 +3344,16 @@ SK_Window_RepositionIfNeeded (void)
 
           ResetEvent (hSignals [1]);
 
-          static bool lastBorderless  = config.window.borderless;
-          static bool lastCenter      = config.window.center;
-          static bool lastFullscreen  = config.window.fullscreen;
+          const bool faking_fullscreen =
+            rb.isFakeFullscreen ();
+
+          bool fullscreen = config.window.fullscreen || faking_fullscreen;
+          bool borderless = config.window.borderless || faking_fullscreen;
+          bool center     = config.window.center     || faking_fullscreen;
+
+          static bool lastBorderless  = borderless;
+          static bool lastCenter      = center;
+          static bool lastFullscreen  = fullscreen;
           static auto lastOffset      = config.window.offset;
           static auto lastResOverride = config.window.res;
 
@@ -3354,17 +3373,17 @@ SK_Window_RepositionIfNeeded (void)
 
           SK_RunOnce (rb.updateOutputTopology ());
 
-          if (! rb.fullscreen_exclusive)
+          if (! rb.isTrueFullscreen ())
           {
-          if ( config.window.center     ||
-               config.window.borderless ||
+          if ( center     ||
+               borderless ||
 
                (rb.monitor != rb.next_monitor &&
                               rb.next_monitor != 0) ||
 
-               lastFullscreen             != config.window.fullscreen        ||
-               lastBorderless             != config.window.borderless        ||
-               lastCenter                 != config.window.center            ||
+               lastFullscreen             != fullscreen        ||
+               lastBorderless             != borderless        ||
+               lastCenter                 != center            ||
                lastOffset.x.absolute      != config.window.offset.x.absolute ||
                lastOffset.y.absolute      != config.window.offset.y.absolute ||
                lastOffset.x.percent       != config.window.offset.x.percent  ||
@@ -3383,7 +3402,7 @@ SK_Window_RepositionIfNeeded (void)
               {
                 case true:
                   config.window.fullscreen |=
-                    ( config.window.center == false && config.window.fullscreen == false );
+                    ( center == false && fullscreen == false );
                   break;
 
                 default:
@@ -3395,9 +3414,9 @@ SK_Window_RepositionIfNeeded (void)
             SK_AdjustBorder ();
             SK_AdjustWindow ();
 
-            lastBorderless             = config.window.borderless;
-            lastCenter                 = _configCenter;
-            lastFullscreen             = _configFullscreen;
+            lastBorderless             = borderless;
+            lastCenter                 = center;
+            lastFullscreen             = fullscreen;
 
             lastOffset.x.absolute      = config.window.offset.x.absolute;
             lastOffset.y.absolute      = config.window.offset.y.absolute;
@@ -3601,6 +3620,13 @@ SK_AdjustWindow (void)
 {
   SK_WINDOW_LOG_CALL3 ();
 
+  const bool faking_fullscreen =
+    SK_DXGI_IsFakeFullscreen (SK_GetCurrentRenderBackend ().swapchain);
+
+  bool fullscreen = config.window.fullscreen || faking_fullscreen;
+  bool borderless = config.window.borderless || faking_fullscreen;
+  bool center     = config.window.center     || faking_fullscreen;
+
   // Multi-Monitor Mode makes "Center" and "Fullscreen" options meaningless, but
   //   allows users to specify window dimensions that span more than a single monitor.
   const bool bMultiMonitorMode =
@@ -3616,7 +3642,7 @@ SK_AdjustWindow (void)
   mi.cbSize        = sizeof (mi);
   GetMonitorInfo (hMonitor, &mi);
 
-  if (bMultiMonitorMode == false && config.window.borderless && config.window.fullscreen)
+  if (bMultiMonitorMode == false && borderless && fullscreen)
   {
     SK_LOG4 ( (L" > SK_AdjustWindow (Fullscreen)"),
              L"Window Mgr" );
@@ -3647,7 +3673,7 @@ SK_AdjustWindow (void)
 
     // Adjust the desktop resolution to make room for window decorations
     //   if the game window were maximized.
-    if ((! config.window.borderless) && (! SK_GetCurrentRenderBackend ().fullscreen_exclusive)) {
+    if ((! borderless) && (! SK_GetCurrentRenderBackend ().isTrueFullscreen ())) {
       SK_AdjustWindowRect (
         &mi.rcWork,
         static_cast <LONG> (game_window.actual.style),
@@ -3732,7 +3758,7 @@ SK_AdjustWindow (void)
     {
       // We will offset coordinates later; move the window to the top-left
       //   origin first.
-      if (config.window.center && (! rb.fullscreen_exclusive))
+      if (center && (! rb.isTrueFullscreen ()))
       {
         // If centering changes monitors, ignore.
         ////if ( MonitorFromRect   (&mi.rcMonitor,    MONITOR_DEFAULTTONEAREST) ==
@@ -3798,9 +3824,8 @@ SK_AdjustWindow (void)
 
     if (! bMultiMonitorMode)
     {
-      if (config.window.center && (! ( (config.window.fullscreen &&
-          config.window.borderless)||
-          rb.fullscreen_exclusive  ) ) )
+      if (center && (! ( (fullscreen && borderless) ||
+                       rb.isTrueFullscreen () ) ) )
       {
         SK_LOG4 ( ( L"Center --> (%li,%li)",
                  mi.rcWork.right - mi.rcWork.left,
@@ -4812,7 +4837,7 @@ GetForegroundWindow_Detour (void)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (! rb.fullscreen_exclusive)
+  if (! rb.isTrueFullscreen ())
   {                                    // Frame Pacing Has Problems w/o this
     if ( SK_WantBackgroundRender () || config.window.always_on_top == SmartAlwaysOnTop ||
          config.window.treat_fg_as_active )
@@ -5655,7 +5680,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       if ( reinterpret_cast <HWND> (wParam) == game_window.hWnd )
       {
-        if ((! rb.fullscreen_exclusive) && SK_WantBackgroundRender ())
+        if ((! rb.isTrueFullscreen ()) && SK_WantBackgroundRender ())
         {
           SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
                    L"Window Mgr" );
@@ -5671,7 +5696,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         // Game window was deactivated, but the game doesn't need to know this!
         //   in fact, it needs to be told the opposite.
-        if ((! rb.fullscreen_exclusive) && SK_WantBackgroundRender ())
+        if ((! rb.isTrueFullscreen ()) && SK_WantBackgroundRender ())
         {
           SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
                    L"Window Mgr" );
@@ -5707,7 +5732,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
               SK_LOG3 ( ( L"Application Deactivated (Non-Client)" ),
                           L"Window Mgr" );
 
-            if (  (! rb.fullscreen_exclusive) &&
+            if (  (! rb.isTrueFullscreen ()) &&
                     SK_WantBackgroundRender ()
                 )
             {
@@ -5742,7 +5767,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           
           if (wParam == FALSE)
           {
-            if (  (! rb.fullscreen_exclusive) &&
+            if (  (! rb.isTrueFullscreen ()) &&
                     SK_WantBackgroundRender ()
                 )
             {
@@ -5811,7 +5836,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           }
         }
 
-        if ( (! rb.fullscreen_exclusive) && SK_WantBackgroundRender ())
+        if ( (! rb.isTrueFullscreen ()) && SK_WantBackgroundRender ())
         {
           if (! activate)
           {
@@ -5840,7 +5865,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       if (wParam == FALSE)
       {
         if ( SK_WantBackgroundRender () &&
-             (! rb.fullscreen_exclusive)        )
+             (! rb.isTrueFullscreen ())        )
         {
           // What purpose does this serve?
           //

@@ -421,7 +421,7 @@ SK::ControlPanel::Window::Draw (void)
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Mute the Game when Another Window has Input Focus");
 
-      if (! rb.fullscreen_exclusive)
+      if (! rb.isTrueFullscreen ())
       {
         ImGui::SameLine ();
 

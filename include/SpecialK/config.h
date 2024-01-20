@@ -1144,6 +1144,7 @@ struct sk_config_t
   } apis;
 
   struct system_s {
+    bool    first_run           =  true; // Indicates no pre-existing INI preferences
     std::wstring
             version             = SK_GetVersionStrW ();
     int     log_level           =    0;

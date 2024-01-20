@@ -87,24 +87,26 @@ HRESULT
 SK_DXGI_GetPrivateData ( IDXGIObject *pObject,
                    const GUID        &kName,
                          UINT        uiMaxBytes,
-                         void        *pPrivateData );
+                         void        *pPrivateData ) noexcept;
 
 HRESULT
 SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
                       const GUID     &kName,
                             UINT     uiNumBytes,
-                            void     *pPrivateData );
+                            void     *pPrivateData ) noexcept;
 
 
 template <typename _T>
 HRESULT
 SK_DXGI_GetPrivateData ( IDXGIObject *pObject,
-                         _T          *pPrivateData );
+                         _T          *pPrivateData ) noexcept;
 
 template <typename _T>
 HRESULT
 SK_DXGI_SetPrivateData ( IDXGIObject *pObject,
-                            _T       *pPrivateData );
+                            _T       *pPrivateData ) noexcept;
 
 void        SK_DXGI_SignalBudgetThread (void);
 bool WINAPI SK_DXGI_IsTrackingBudget   (void) noexcept;
+
+bool SK_DXGI_IsFakeFullscreen (IUnknown *pSwapChain) noexcept;

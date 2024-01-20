@@ -2321,7 +2321,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
   HRESULT
   {
     BOOL bFullscreen =
-      rb.fullscreen_exclusive;
+      rb.isTrueFullscreen ();
 
     // Only works in Windowed +
     //  ... needs a special SwapChain creation flag and Flip Model
@@ -2894,7 +2894,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     rb.present_interval      = interval;
     rb.present_interval_orig = SyncInterval;
 
-    if (interval != 0 || rb.fullscreen_exclusive) // FSE can't use this flag
+    if (interval != 0 || rb.isTrueFullscreen ()) // FSE can't use this flag
       flags &= ~DXGI_PRESENT_ALLOW_TEARING;
     if (     _IsBackendD3D12 (rb.api)) SK_ImGui_DrawD3D12 (This);
     else if (_IsBackendD3D11 (rb.api)) SK_ImGui_DrawD3D11 (This);
@@ -3857,7 +3857,12 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
 
   if (bApplyOverrides)
   {
-    if ( config.window.borderless ||
+    const bool fake_fullscreen =
+      SK_GetCurrentRenderBackend ().isFakeFullscreen ();
+
+    bool borderless = config.window.borderless || fake_fullscreen;
+
+    if ( borderless ||
          ( config.render.dxgi.scaling_mode != SK_NoPreference &&
             pNewTargetParameters->Scaling  !=
               (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
@@ -5034,7 +5039,13 @@ SK_DXGI_CreateSwapChain_PreInit (
       }
     }
 
-    if (config.window.borderless && config.window.fullscreen && pDesc->Windowed != FALSE)
+    const bool fake_fullscreen =
+      SK_GetCurrentRenderBackend ().isFakeFullscreen ();
+
+    bool borderless = config.window.borderless || fake_fullscreen;
+    bool fullscreen = config.window.fullscreen || fake_fullscreen;
+
+    if (borderless && fullscreen && pDesc->Windowed != FALSE)
     {
       HMONITOR hMonTarget =
         MonitorFromWindow (pDesc->OutputWindow, MONITOR_DEFAULTTONEAREST);

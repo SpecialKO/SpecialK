@@ -3743,7 +3743,7 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
   }
 
   bool fullscreen =
-    ( SK_GetFramesDrawn () && rb.fullscreen_exclusive );
+    ( SK_GetFramesDrawn () && rb.isTrueFullscreen () );
 
   // Block keyboard input to the game while it's in the background
   if ((! fullscreen) &&
