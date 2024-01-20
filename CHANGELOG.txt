@@ -1,4 +1,10 @@
-﻿24.1.19
+﻿24.1.19.1
+=========
+ + Add message explaining that Ratchet and Clank's DirectStorage settings cannot
+     be changed if DLSS3 Frame Generation is enabled
+       (Global Injection Delay is needed for DLSS3 to not break)
+
+24.1.19
 =======
  + Blacklist crashpad_handler.dll (yes, .dll) from applications that SK injects
      into because it prevents saving SK's INI in Dave the Diver

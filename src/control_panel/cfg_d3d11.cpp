@@ -425,7 +425,25 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
         ImGui::TreePush       ("");
 
-        if (ImGui::CollapsingHeader ("Direct Storage", ImGuiTreeNodeFlags_DefaultOpen))
+        bool bUncollapsedDirectStorage =
+          ImGui::CollapsingHeader ("Direct Storage", ImGuiTreeNodeFlags_DefaultOpen);
+
+        if (bUncollapsedDirectStorage)
+        {
+          if (SK_GetCurrentGameID () == SK_GAME_ID::RatchetAndClank_RiftApart)
+          {
+            if (config.system.global_inject_delay != 0.0f)
+            {
+              bUncollapsedDirectStorage = false;
+
+              ImGui::TextUnformatted ("These options will not work unless GlobalInjectDelay is set to 0.0 in SK's INI.");
+              ImGui::Separator       ();
+              ImGui::BulletText      ("Setting GlobalInjectDelay to 0.0 will break the game's DLSS3 Frame Generation implementation.");
+            }
+          }
+        }
+
+        if (bUncollapsedDirectStorage)
         {
           ImGui::BeginGroup ();
           ImGui::

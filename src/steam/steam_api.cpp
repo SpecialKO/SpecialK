@@ -3095,14 +3095,37 @@ SteamAPI_RunCallbacks_Detour (void)
 
               if (input_dev_type_mask != k_ESteamInputConfigurationEnableType_None)
               {
-                if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Playstation)
-                  SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_PlayStation);
-                if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Xbox)
-                  SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Xbox);
-                if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Generic)
-                  SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Generic);
-                if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Switch)
-                  SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Nintendo);
+                const bool known_type = 0 !=
+                 ( input_dev_type_mask & ( k_ESteamInputConfigurationEnableType_Playstation |
+                                           k_ESteamInputConfigurationEnableType_Xbox        |
+                                           k_ESteamInputConfigurationEnableType_Generic     |
+                                           k_ESteamInputConfigurationEnableType_Switch ) );
+
+                if (known_type) [[likely]]
+                {
+                  if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Playstation)
+                    SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_PlayStation);
+                  if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Xbox)
+                    SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Xbox);
+                  if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Generic)
+                    SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Generic);
+                  if (input_dev_type_mask & k_ESteamInputConfigurationEnableType_Switch)
+                    SK_STEAM_VIEW (                   sk_input_dev_type::Gamepad_Nintendo);
+                }
+
+                else
+                {
+                  SK_RunOnce (
+                  {
+                    wchar_t                               wszMessage [128] = { };
+                    std::wstring_view     wszMessageView (wszMessage);
+                    SK_FormatStringViewW (wszMessageView,
+                      L"Steam Input appears to be broken in this game, consider turning it off."
+                      L"\r\n\r\n\t\t Session Input Enable Config:\t%x", input_dev_type_mask);
+
+                    SK_ImGui_Warning (wszMessageView.data ());
+                  });
+                }
               }
             }
           }
@@ -5523,6 +5546,8 @@ SK_Steam_IsClientRunning (void)
 void
 SK_Steam_ForceInputAppId (AppId64_t appid)
 {
+  return;
+
   if (config.platform.silent)
     return;
 
@@ -6245,7 +6270,7 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
       if (user_ver_ == 0)
       {
         user_ver_ = i;
-        steam_log->Log (L"SteamAPI DLL Implements Steam User v%03lu", i);
+        steam_log->Log (L"SteamAPI DLL Implements User v%03lu", i);
 
         if (user_ver_ > INTERNAL_STEAMUSER_INTERFACE_VERSION+1)
           steam_log->Log (L" >> Newer than Special K knows about.");
@@ -6298,7 +6323,7 @@ SK_SteamAPIContext::InitSteamAPI (HMODULE hSteamDLL)
       if (input_ver_ == 0)
       {
         input_ver_ = i;
-        steam_log->Log (L"SteamAPI DLL Implements Steam Input v%03lu", i);
+        steam_log->Log (L"SteamAPI DLL Implements Input v%03lu", i);
 
         if (input_ver_ > INTERNAL_STEAMINPUT_INTERFACE_VERSION)
           steam_log->Log (L" >> Newer than Special K knows about.");
