@@ -1789,11 +1789,11 @@ HDRModeToStr (NV_HDR_MODE mode)
   switch (mode)
   {
     case NV_HDR_MODE_OFF:              return "Off";
-    case NV_HDR_MODE_UHDA:             return "HDR10";
+    case NV_HDR_MODE_UHDA:             return "scRGB";
     case NV_HDR_MODE_EDR:              return "Extended Dynamic Range";
     case NV_HDR_MODE_SDR:              return "Standard Dynamic Range";
     case NV_HDR_MODE_DOLBY_VISION:     return "Dolby Vision";
-    case NV_HDR_MODE_UHDA_PASSTHROUGH: return "HDR10 Pass through";
+    case NV_HDR_MODE_UHDA_PASSTHROUGH: return "HDR10";
     case NV_HDR_MODE_UHDA_NB:          return "Notebook HDR";
     default:                           return "Invalid";
   };

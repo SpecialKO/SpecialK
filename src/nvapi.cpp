@@ -718,6 +718,70 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
                                        HDRModeToStr (pHdrColorData->hdrMode) ),
               __SK_SUBSYSTEM__ );
 
+  const bool sk_is_overriding_hdr =
+      (__SK_HDR_UserForced);
+  bool game_is_engaging_native_hdr = false;
+
+  void SK_HDR_RunWidgetOnce (void);
+       SK_HDR_RunWidgetOnce ();
+
+  if ( pHdrColorData->cmd     == NV_HDR_CMD_SET &&
+       pHdrColorData->hdrMode == NV_HDR_MODE_UHDA_PASSTHROUGH )
+  {
+    game_is_engaging_native_hdr = true;
+
+    if (! sk_is_overriding_hdr)
+    {
+      __SK_HDR_16BitSwap = false;
+      __SK_HDR_10BitSwap =  true;
+
+      __SK_HDR_Preset  = 3;
+      __SK_HDR_tonemap = SK_HDR_TONEMAP_RAW_IMAGE;
+
+      if (SK_ComQIPtr <IDXGISwapChain3> pSwap3 (rb.swapchain);
+                                        pSwap3 != nullptr)
+      {
+        pSwap3->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+      }
+    }
+  }
+
+  else if ( pHdrColorData->cmd     == NV_HDR_CMD_SET &&
+            pHdrColorData->hdrMode == NV_HDR_MODE_UHDA )
+  {
+    game_is_engaging_native_hdr = true;
+
+    if (! sk_is_overriding_hdr)
+    {
+      __SK_HDR_10BitSwap = false;
+      __SK_HDR_16BitSwap = true;
+
+      __SK_HDR_Preset       = 2;
+      __SK_HDR_Content_EOTF = 1.0f;
+
+      if (SK_ComQIPtr <IDXGISwapChain3> pSwap3 (rb.swapchain);
+                                        pSwap3 != nullptr)
+      {
+        pSwap3->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+      }
+    }
+  }
+
+  else if (pHdrColorData->cmd == NV_HDR_CMD_SET)
+  {
+    if (! sk_is_overriding_hdr)
+    {
+      __SK_HDR_16BitSwap = false;
+      __SK_HDR_10BitSwap = false;
+    }
+  }
+
+  if (game_is_engaging_native_hdr)
+  {
+    SK_HDR_RunWidgetOnce ();
+    __SK_HDR_tonemap = SK_HDR_TONEMAP_RAW_IMAGE;
+  }
+
 
   NV_COLOR_DATA
   colorCheck                   = { };
@@ -912,7 +976,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
     if (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap)
     {
-      SK_LOG0 ( ( L"HDR:  << Ignoring NvAPI HDR because user is forcing DXGI HDR (which is better!)"
+      SK_LOG0 ( ( L"HDR:  << Ignoring NvAPI HDR because DXGI HDR is better"
                 ), __SK_SUBSYSTEM__ );
     }
 
@@ -989,7 +1053,9 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
     if (ret == NVAPI_OK)
     {
-      rb.scanout.nvapi_hdr.mode           = pHdrColorData->hdrMode;
+      rb.scanout.nvapi_hdr.mode           = (__SK_HDR_16BitSwap ? NV_HDR_MODE_UHDA :
+                                             __SK_HDR_10BitSwap ? NV_HDR_MODE_UHDA_PASSTHROUGH
+                                                                : pHdrColorData->hdrMode);
       rb.scanout.nvapi_hdr.color_format   = pHdrColorData->hdrColorFormat;
       rb.scanout.nvapi_hdr.dynamic_range  = pHdrColorData->hdrDynamicRange;
       rb.scanout.nvapi_hdr.bpc            = pHdrColorData->hdrBpc;
