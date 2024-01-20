@@ -704,18 +704,22 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
           texDesc.Usage              = D3D11_USAGE_DEFAULT;
           texDesc.BindFlags          = 0x0; // To be filled in below
 
+          const bool bWrongBindFlags =
+            (texDesc.BindFlags & D3D11_BIND_SHADER_RESOURCE) == 0 ||
+            (texDesc.BindFlags & D3D11_BIND_RENDER_TARGET)   == 0;
+
           // TODO: Pass this during wrapping
           //   [Or use IDXGIResource::GetUsage (...)
-          if (swapDesc.BufferUsage & DXGI_USAGE_RENDER_TARGET_OUTPUT)
-              texDesc.BindFlags   |= D3D11_BIND_RENDER_TARGET;
+          if ((swapDesc.BufferUsage & DXGI_USAGE_RENDER_TARGET_OUTPUT) || bWrongBindFlags)
+               texDesc.BindFlags   |= D3D11_BIND_RENDER_TARGET;
 
-          if (swapDesc.BufferUsage & DXGI_USAGE_SHADER_INPUT)
-              texDesc.BindFlags   |= D3D11_BIND_SHADER_RESOURCE;
+          if ((swapDesc.BufferUsage & DXGI_USAGE_SHADER_INPUT)         || bWrongBindFlags)
+              texDesc.BindFlags    |= D3D11_BIND_SHADER_RESOURCE;
 
           // MSAA SwapChains can't use UA
           if (texDesc.SampleDesc.Count <= 1)
           {
-            if (swapDesc.BufferUsage & DXGI_USAGE_UNORDERED_ACCESS)
+          //if (swapDesc.BufferUsage & DXGI_USAGE_UNORDERED_ACCESS)
                 texDesc.BindFlags   |= D3D11_BIND_UNORDERED_ACCESS;
           }
 
@@ -728,8 +732,13 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
               SKID_DXGI_SwapChainBackbufferFormat, size,
                                  &swapDesc.BufferDesc.Format);
 
+            // Set the underlying resource type as the format, unless using HDR...
+            //   in which case all access to the REAL backbuffer is handled by a
+            //     copy operation at the end of every frame.
             SK_D3D11_FlagResourceFormatManipulated (
-              backbuffer, swapDesc.BufferDesc.Format
+              backbuffer, (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap) ? swapDesc.BufferDesc.Format
+                                                                     : texDesc.Format
+                                                      
             );
 
             SK_D3D11_SetDebugName ( backbuffer.p,

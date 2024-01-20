@@ -1,4 +1,10 @@
-﻿24.1.20
+﻿24.1.20.1
+=========
+ + Handle DXGI SwapChains created without Shader Input bind flags
+     (Monster Hunter Stories 2) when applying Flip Model upgrade
+ + Automatically apply window procedure hook bypass to all CRAPCOM DRM games
+
+24.1.20
 =======
  + Added Input.XInput|DisableSlots setting to Input Management control panel
 
