@@ -323,11 +323,6 @@ SK_GetCurrentGameID (void)
 
             config.input.keyboard.catch_alt_f4    = true;
             config.input.keyboard.override_alt_f4 = true;
-            config.window.borderless              = true;
-
-            // CAPCOM anti-tamper workarounds
-            config.window.dont_hook_wndproc   = true;
-            config.platform.silent            = true;
           }
         }
       }
@@ -4869,9 +4864,8 @@ auto DeclKeybind =
     static auto code_sig =
       SK_VerifyTrust_GetCodeSignature (SK_GetFullyQualifiedApp ());
 
-    if (code_sig.subject._Equal (
-      LR"(Private Organization, JP, 1200-01-077023, JP, Osaka, Osaka-shi, "CAPCOM CO., LTD.", "CAPCOM CO., LTD.")")
-       )
+    if (StrStrIW (code_sig.subject.c_str (), L"CAPCOM"))
+    //LR"(Private Organization, JP, 1200-01-077023, JP, Osaka, Osaka-shi, "CAPCOM CO., LTD.", "CAPCOM CO., LTD.")"
     {
       static constexpr
       SYSTEMTIME crapcom_drm_epoch =

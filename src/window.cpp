@@ -6847,7 +6847,7 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
     SK_GetCurrentRenderBackend ().windows.capcom = true;
   }
 
-  if (SK_GetCurrentRenderBackend ().windows.capcom)
+  if (SK_GetCurrentRenderBackend ().windows.capcom || config.steam.crapcom_mode)
   {
     // We'll just install a new window proc, and hook that...
     //   This has complications if a game creates new windows, but CRAPCOM doesn't.
@@ -6899,7 +6899,7 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   else                                                                          ignore_proc = true;// target_proc = wnd_proc;
 
   // Always use SK's window procedure override on CRAPCOM DRM games
-  if (SK_GetCurrentRenderBackend ().windows.capcom)
+  if (SK_GetCurrentRenderBackend ().windows.capcom || config.steam.crapcom_mode)
     target_proc = wnd_proc;
 
   // In case we cannot hook the target, try the other...
