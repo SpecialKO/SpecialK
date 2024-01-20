@@ -1,4 +1,15 @@
-﻿24.1.19.1
+﻿24.1.20
+=======
+ + Added Input.XInput|DisableSlots setting to Input Management control panel
+
+     >> Click the "XInput Slots" checkboxes until they turn red, this will
+          make all input polled on these XInput slots return neutral data to
+            prevent double-input.
+
+      * Intended use-case is DS4Windows + Steam Input, where Steam Input creates
+          a duplicate XInput controller because ... ask Valve why.
+
+24.1.19.1
 =========
  + Add message explaining that Ratchet and Clank's DirectStorage settings cannot
      be changed if DLSS3 Frame Generation is enabled

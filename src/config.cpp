@@ -980,7 +980,7 @@ struct {
       sk::
         ParameterStringW* assignment              = nullptr;
       sk::
-        ParameterStringW* disable                 = nullptr;
+        ParameterStringW* disable_slots           = nullptr;
       sk::ParameterBool*  hook_setstate           = nullptr;
       sk::ParameterBool*  auto_slot_assign        = nullptr;
       sk::ParameterBool*  blackout_api            = nullptr;
@@ -1544,7 +1544,7 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.xinput.ui_slot,           L"XInput Controller that owns the config UI",                 dll_ini,         L"Input.XInput",          L"UISlot"),
     ConfigEntry (input.gamepad.xinput.placeholders,      L"XInput Controller Slots to Fake Connectivity On",           dll_ini,         L"Input.XInput",          L"PlaceholderMask"),
     ConfigEntry (input.gamepad.xinput.assignment,        L"Re-Assign XInput Slots",                                    dll_ini,         L"Input.XInput",          L"SlotReassignment"),
-    ConfigEntry (input.gamepad.xinput.disable,           L"Disable XInput Slots",                                      dll_ini,         L"Input.XInput",          L"DisableSlots"),
+    ConfigEntry (input.gamepad.xinput.disable_slots,     L"Disable Devices Connected to Specific XInput Slots",        dll_ini,         L"Input.XInput",          L"DisableSlots"),
     ConfigEntry (input.gamepad.xinput.hook_setstate,     L"Hook vibration; fix third-party created feedback loops",    dll_ini,         L"Input.XInput",          L"HookSetState"),
     ConfigEntry (input.gamepad.xinput.auto_slot_assign,  L"Switch a game hard-coded to use Slot 0 to an active pad",   dll_ini,         L"Input.XInput",          L"AutoSlotAssign"),
     ConfigEntry (input.gamepad.xinput.blackout_api,      L"Prevent game from seeing XInput at all, useful if a game "
@@ -4006,10 +4006,19 @@ auto DeclKeybind =
   input.gamepad.dinput.blackout_keyboards->load(config.input.gamepad.dinput.blackout_keyboards);
   input.gamepad.dinput.block_enum_devices->load(config.input.gamepad.dinput.block_enum_devices);
 
+  auto& scratch_mem =
+    SK_TLS_Bottom ()->scratch_memory->log.formatted_output;
+
   if (((sk::iParameter *)input.gamepad.xinput.assignment)->load ())
   {
-    wchar_t* wszAssign =
-      _wcsdup (input.gamepad.xinput.assignment->get_value ().c_str ());
+    sk::ParameterStringW* pAssignment =
+      input.gamepad.xinput.assignment;
+
+    wchar_t *wszAssign = scratch_mem.alloc (
+               pAssignment->get_value ().length () + 2, true );
+
+    memcpy ( wszAssign, pAssignment->get_value ().c_str (),
+                        pAssignment->get_value ().length () * sizeof (wchar_t) );
 
     wchar_t* wszBuf = nullptr;
     wchar_t* wszTok =
@@ -4033,18 +4042,22 @@ auto DeclKeybind =
       wszTok =
         std::wcstok (nullptr, L",", &wszBuf);
     }
-
-    free (wszAssign);
   }
 
-  if (((sk::iParameter *)input.gamepad.xinput.disable)->load ())
+  if (((sk::iParameter *)input.gamepad.xinput.disable_slots)->load ())
   {
-    wchar_t* wszAssign =
-      _wcsdup (input.gamepad.xinput.disable->get_value ().c_str ());
+    sk::ParameterStringW* pDisable =
+      input.gamepad.xinput.disable_slots;
+
+    wchar_t *wszDisable = scratch_mem.alloc (
+        pDisable->get_value ().length () + 2, true );
+
+    memcpy ( wszDisable, pDisable->get_value ().c_str (),
+                         pDisable->get_value ().length () * sizeof (wchar_t) );
 
     wchar_t* wszBuf = nullptr;
     wchar_t* wszTok =
-      std::wcstok (wszAssign, L",", &wszBuf);
+      std::wcstok (wszDisable, L",", &wszBuf);
 
     if (wszTok == nullptr)
     {
@@ -4062,8 +4075,6 @@ auto DeclKeybind =
       wszTok =
         std::wcstok (nullptr, L",", &wszBuf);
     }
-
-    free (wszAssign);
   }
 
   input.gamepad.hook_scepad->load                 (config.input.gamepad.hook_scepad);
@@ -5336,6 +5347,9 @@ SK_SaveConfig ( std::wstring name,
   std::wstring xinput_assign;
   std::wstring xinput_disable;
 
+  xinput_assign.reserve  (16);
+  xinput_disable.reserve (16);
+
   for (int i = 0; i < 4; i++)
   {
     xinput_assign += std::to_wstring (
@@ -5359,7 +5373,7 @@ SK_SaveConfig ( std::wstring name,
       xinput_disable.resize (xinput_disable.length () - 1);
 
   input.gamepad.xinput.assignment->store           (xinput_assign);
-  input.gamepad.xinput.disable->store              (xinput_disable);
+  input.gamepad.xinput.disable_slots->store        (xinput_disable);
   input.gamepad.disable_rumble->store              (config.input.gamepad.disable_rumble);
   input.gamepad.xinput.hook_setstate->store        (config.input.gamepad.xinput.hook_setstate);
   input.gamepad.xinput.auto_slot_assign->store     (config.input.gamepad.xinput.auto_slot_assign);

@@ -427,22 +427,11 @@ SK_XInput_PlaceHold ( DWORD         dwRet,
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
   if (pState      == nullptr)         return (DWORD)ERROR_INVALID_PARAMETER;
 
-  ////////// Implicit temporary placehold while blocking gamepad input
-  ////////if (SK_ImGui_WantGamepadCapture () && dwRet == ERROR_SUCCESS)
-  ////////{
-  ////////  dwRet = ERROR_DEVICE_NOT_CONNECTED;
-  ////////  config.input.gamepad.xinput.placeholdX [dwUserIndex] = true;
-  ////////}
-
-  // Remove placeholding when a real device appears
-  if (dwRet == ERROR_SUCCESS) config.input.gamepad.xinput.placeholdX [dwUserIndex] = false;
-
   const bool was_holding =
     ReadAcquire (&placeholders [dwUserIndex].holding);
 
   if ( dwRet != ERROR_SUCCESS &&
-       (config.input.gamepad.xinput.placehold  [dwUserIndex] ||
-        config.input.gamepad.xinput.placeholdX [dwUserIndex]) )
+       (config.input.gamepad.xinput.placehold [dwUserIndex]) )
   {
     if (! ReadAcquire (&placeholders [dwUserIndex].holding))
     {                   placeholders [dwUserIndex].updatePollTime ();
@@ -508,19 +497,8 @@ SK_XInput_PlaceHoldCaps ( DWORD                dwRet,
   if (dwUserIndex   >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
   if (pCapabilities == nullptr)         return (DWORD)E_POINTER;
 
-  // Implicit temporary placehold while blocking gamepad input
-  if (SK_ImGui_WantGamepadCapture () && dwRet == ERROR_SUCCESS)
-  {
-    dwRet = ERROR_DEVICE_NOT_CONNECTED;
-    config.input.gamepad.xinput.placeholdX [dwUserIndex] = true;
-  }
-
-  // Remove placeholding when a real device appears
-  if (dwRet == ERROR_SUCCESS) config.input.gamepad.xinput.placeholdX [dwUserIndex] = false;
-
   if ( dwRet != ERROR_SUCCESS &&
-       (config.input.gamepad.xinput.placehold  [dwUserIndex] ||
-        config.input.gamepad.xinput.placeholdX [dwUserIndex]) )
+       (config.input.gamepad.xinput.placehold  [dwUserIndex]) )
   {
     if (! ReadAcquire (&placeholders [dwUserIndex].holding))
     {                   placeholders [dwUserIndex].updatePollTime ();
@@ -560,19 +538,8 @@ SK_XInput_PlaceHoldBattery ( DWORD                       dwRet,
   if (dwUserIndex         >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
   if (pBatteryInformation == nullptr)         return (DWORD)E_POINTER;
 
-  // Implicit temporary placehold while blocking gamepad input
-  if (SK_ImGui_WantGamepadCapture () && dwRet == ERROR_SUCCESS)
-  {
-    dwRet = ERROR_DEVICE_NOT_CONNECTED;
-    config.input.gamepad.xinput.placeholdX [dwUserIndex] = true;
-  }
-
-  // Remove placeholding when a real device appears
-  if (dwRet == ERROR_SUCCESS) config.input.gamepad.xinput.placeholdX [dwUserIndex] = false;
-
   if ( dwRet != ERROR_SUCCESS &&
-       (config.input.gamepad.xinput.placehold  [dwUserIndex] ||
-        config.input.gamepad.xinput.placeholdX [dwUserIndex]) )
+       (config.input.gamepad.xinput.placehold [dwUserIndex]) )
   {
     if (! ReadAcquire (&placeholders [dwUserIndex].holding))
     {                   placeholders [dwUserIndex].updatePollTime ();
@@ -606,19 +573,8 @@ SK_XInput_PlaceHoldSet ( DWORD             dwRet,
   if (dwUserIndex >= XUSER_MAX_COUNT) return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
   if (pVibration  == nullptr)         return (DWORD)E_POINTER;
 
-  // Implicit temporary placehold while blocking gamepad input
-  if (SK_ImGui_WantGamepadCapture () && dwRet == ERROR_SUCCESS)
-  {
-    dwRet = ERROR_DEVICE_NOT_CONNECTED;
-    config.input.gamepad.xinput.placeholdX [dwUserIndex] = true;
-  }
-
-  // Remove placeholding when a real device appears
-  if (dwRet == ERROR_SUCCESS) config.input.gamepad.xinput.placeholdX [dwUserIndex] = false;
-
   if ( dwRet != ERROR_SUCCESS &&
-       (config.input.gamepad.xinput.placehold  [dwUserIndex] ||
-        config.input.gamepad.xinput.placeholdX [dwUserIndex]) )
+       (config.input.gamepad.xinput.placehold  [dwUserIndex]) )
   {
     if (! ReadAcquire (&placeholders [dwUserIndex].holding))
     {                   placeholders [dwUserIndex].updatePollTime ();

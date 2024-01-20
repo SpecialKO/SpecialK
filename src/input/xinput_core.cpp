@@ -428,11 +428,11 @@ XInputGetState1_4_Detour (
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
   // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
-  if (config.input.gamepad.xinput.blackout_api)
+  if ( config.input.gamepad.xinput.blackout_api )
+  {
+    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
     return ERROR_DEVICE_NOT_CONNECTED;
-
-  if (config.input.gamepad.xinput.disable [dwUserIndex])
-    return ERROR_DEVICE_NOT_CONNECTED;
+  }
 
   if (pState == nullptr)
     return ERROR_INVALID_PARAMETER;
@@ -605,11 +605,11 @@ XInputGetStateEx1_4_Detour (
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
   // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
-  if (config.input.gamepad.xinput.blackout_api)
+  if ( config.input.gamepad.xinput.blackout_api )
+  {
+    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
     return ERROR_DEVICE_NOT_CONNECTED;
-
-  if (config.input.gamepad.xinput.disable [dwUserIndex])
-    return ERROR_DEVICE_NOT_CONNECTED;
+  }
 
   if (pState == nullptr)
     return ERROR_INVALID_PARAMETER;
@@ -669,11 +669,12 @@ XInputGetCapabilities1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
-  if (config.input.gamepad.xinput.blackout_api)
+  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
+  if ( config.input.gamepad.xinput.blackout_api )
+  {
+    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
     return ERROR_DEVICE_NOT_CONNECTED;
-
-  if (config.input.gamepad.xinput.disable [dwUserIndex])
-    return ERROR_DEVICE_NOT_CONNECTED;
+  }
 
   if (pCapabilities == nullptr)
     return ERROR_INVALID_PARAMETER;
@@ -725,11 +726,12 @@ XInputGetBatteryInformation1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
-  if (config.input.gamepad.xinput.blackout_api)
+  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
+  if ( config.input.gamepad.xinput.blackout_api )
+  {
+    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
     return ERROR_DEVICE_NOT_CONNECTED;
-
-  if (config.input.gamepad.xinput.disable [dwUserIndex])
-    return ERROR_DEVICE_NOT_CONNECTED;
+  }
 
   if (pBatteryInformation == nullptr) return ERROR_INVALID_PARAMETER;
 
@@ -788,12 +790,12 @@ XInputSetState1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
   
-  // TODO: Indicate a write attempt, but distinguish it from SK_XINPUT_READ below
-  if (config.input.gamepad.xinput.blackout_api)
+  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
+  if ( config.input.gamepad.xinput.blackout_api )
+  {
+    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
     return ERROR_DEVICE_NOT_CONNECTED;
-
-  if (config.input.gamepad.xinput.disable [dwUserIndex])
-    return ERROR_DEVICE_NOT_CONNECTED;
+  }
 
   if (xinput_ctx.preventHapticRecursion (dwUserIndex, true))
     return ERROR_SUCCESS;
@@ -1187,12 +1189,12 @@ XInputPowerOff1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
-  // TODO: Indicate a write attempt, but distinguish it from SK_XINPUT_READ below
-  if (config.input.gamepad.xinput.blackout_api)
+  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
+  if ( config.input.gamepad.xinput.blackout_api )
+  {
+    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
     return ERROR_DEVICE_NOT_CONNECTED;
-
-  if (config.input.gamepad.xinput.disable [dwUserIndex])
-    return ERROR_DEVICE_NOT_CONNECTED;
+  }
 
   bool nop = ( SK_ImGui_WantGamepadCapture () );
 
@@ -1268,11 +1270,11 @@ XInputGetKeystroke1_4_Detour (
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
   // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
-  if (config.input.gamepad.xinput.blackout_api)
+  if ( config.input.gamepad.xinput.blackout_api )
+  {
+    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
     return ERROR_DEVICE_NOT_CONNECTED;
-
-  if (config.input.gamepad.xinput.disable [dwUserIndex])
-    return ERROR_DEVICE_NOT_CONNECTED;
+  }
 
   if (pKeystroke == nullptr)
     return ERROR_INVALID_PARAMETER;

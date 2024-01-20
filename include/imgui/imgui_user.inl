@@ -1621,16 +1621,12 @@ SK_ImGui_FilterXInput (
   _In_  DWORD         dwUserIndex,
   _Out_ XINPUT_STATE *pState )
 {
-  // We can't filter by gamepad index, because some games will just respond
-  //   by polling a different controller... all must be blocked
-  std::ignore = dwUserIndex;
-
   bool disable =
     config.input.gamepad.disabled_to_game == SK_InputEnablement::Disabled ||
       ( SK_ImGui_WantGamepadCapture () /* &&
         dwUserIndex == (DWORD)config.input.gamepad.xinput.ui_slot */ );
 
-  if (disable)
+  if (disable || config.input.gamepad.xinput.disable [dwUserIndex])
   {
     RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
@@ -1638,7 +1634,10 @@ SK_ImGui_FilterXInput (
     if (pState->dwPacketNumber < 1)
         pState->dwPacketNumber = 1;
 
-    return true;
+    // Disabled device slots (the other condition in this branch)
+    //   should still be counted as polled slots
+    if (disable)
+      return true;
   }
 
   return false;
