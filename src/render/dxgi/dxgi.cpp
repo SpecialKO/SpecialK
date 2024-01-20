@@ -8081,11 +8081,13 @@ SK_DXGISwap3_SetColorSpace1_Impl (
     {
       game_is_engaging_native_hdr = true;
 
-      if (! sk_is_overriding_hdr) {
+      if (! sk_is_overriding_hdr)
+      {
         __SK_HDR_16BitSwap = false;
-        __SK_HDR_10BitSwap = true;
+        __SK_HDR_10BitSwap =  true;
 
-        __SK_HDR_Preset = 3;
+        __SK_HDR_Preset  = 3;
+        __SK_HDR_tonemap = SK_HDR_TONEMAP_RAW_IMAGE;
       }
     }
 
@@ -8095,7 +8097,8 @@ SK_DXGISwap3_SetColorSpace1_Impl (
       {
         game_is_engaging_native_hdr = true;
 
-        if (! sk_is_overriding_hdr) {
+        if (! sk_is_overriding_hdr)
+        {
           __SK_HDR_10BitSwap = false;
           __SK_HDR_16BitSwap = true;
 
@@ -8107,14 +8110,18 @@ SK_DXGISwap3_SetColorSpace1_Impl (
 
     else
     {
-      if (! sk_is_overriding_hdr) {
+      if (! sk_is_overriding_hdr)
+      {
         __SK_HDR_16BitSwap = false;
         __SK_HDR_10BitSwap = false;
       }
     }
 
     if (game_is_engaging_native_hdr)
+    {
       SK_HDR_RunWidgetOnce ();
+      __SK_HDR_tonemap = SK_HDR_TONEMAP_RAW_IMAGE;
+    }
   }
 
   static auto& rb =

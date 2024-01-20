@@ -1379,6 +1379,16 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
   SK_ComPtr <ID3D12Device>              pDev12;
   pSwapChain->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
+  if (Fullscreen != FALSE && config.render.dxgi.fake_fullscreen_mode)
+  {
+    config.window.borderless = true;
+    config.window.fullscreen = true;
+
+    SK_AdjustWindow ();
+
+    return S_OK;
+  }
+
   if (! pDev12.p)
   {
     if (sd.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)

@@ -851,6 +851,7 @@ struct {
     sk::ParameterBool*    clear_buffers_after_flip= nullptr;
     sk::ParameterFloat*   warn_if_vram_exceeds    = nullptr;
     sk::ParameterBool*    allow_d3d12_footguns    = nullptr;
+    sk::ParameterBool*    fake_fullscreen_mode    = nullptr;
   } dxgi;
 
   struct {
@@ -1772,7 +1773,7 @@ auto DeclKeybind =
                                                          L" UpperFieldFirst )",                                        dll_ini,         L"Render.DXGI",           L"ScanlineOrder"),
     ConfigEntry (render.dxgi.rotation,                   L"Screen Rotation (DontCare | Identity | 90 | 180 | 270 )",   dll_ini,         L"Render.DXGI",           L"Rotation"),
     ConfigEntry (render.dxgi.test_present,               L"Test SwapChain Presentation Before Actually Presenting",    dll_ini,         L"Render.DXGI",           L"TestSwapChainPresent"),
-    ConfigEntry (render.dxgi.safe_fullscreen,            L"Prevent DXGI Deadlocks in Improperly Written Games",        dll_ini,         L"Render.DXGI",           L"SafeFullscreenMode"),
+  //ConfigEntry (render.dxgi.safe_fullscreen,            L"Prevent DXGI Deadlocks in Improperly Written Games",        dll_ini,         L"Render.DXGI",           L"SafeFullscreenMode"),
     ConfigEntry (render.dxgi.enhanced_depth,             L"Use 32-bit Depth + 8-bit Stencil + 24-bit Padding",         dll_ini,         L"Render.DXGI",           L"Use64BitDepthStencil"),
     ConfigEntry (render.dxgi.deferred_isolation,         L"Isolate D3D11 Deferred Context Queues instead of Tracking"
                                                          L" in Immediate Mode.",                                       dll_ini,         L"Render.DXGI",           L"IsolateD3D11DeferredContexts"),
@@ -1792,6 +1793,8 @@ auto DeclKeybind =
     ConfigEntry (render.dxgi.clear_buffers_after_flip,   L"Clear the SwapChain Backbuffer every frame",                dll_ini,         L"Render.DXGI",           L"ClearFlipModelBackbuffers"),
     ConfigEntry (render.dxgi.warn_if_vram_exceeds,       L"Warn if VRAM used exceeds this % of available VRAM",        dll_ini,         L"Render.DXGI",           L"WarnIfUsedVRAMPercentExceeds"),
     ConfigEntry (render.dxgi.allow_d3d12_footguns,       L"Feel like shooting your foot with unsafe d3d12 settings..?",dll_ini,         L"Render.DXGI",           L"AllowD3D12FootGuns"),
+    ConfigEntry (render.dxgi.fake_fullscreen_mode,       L"Lie to games and tell them they're in FSE, all the while, "
+                                                         L"they are actually running a fullscreen borderless window.", dll_ini,         L"Render.DXGI",           L"FakeFullscreenMode"),
 
     ConfigEntry (render.dstorage.disable_bypass_io,      L"Disable DirectStorage BypassIO",                            dll_ini,         L"Render.DStorage",       L"DisableBypassIO"),
     ConfigEntry (render.dstorage.disable_telemetry,      L"Disable DirectStorage Telemetry",                           dll_ini,         L"Render.DStorage",       L"DisableTelemetry"),
@@ -3867,6 +3870,7 @@ auto DeclKeybind =
     }
   }
 
+  render.dxgi.fake_fullscreen_mode->load (config.render.dxgi.fake_fullscreen_mode);
   render.dxgi.allow_d3d12_footguns->load (config.render.dxgi.allow_d3d12_footguns);
   render.dxgi.debug_layer->load          (config.render.dxgi.debug_layer);
 
@@ -3892,7 +3896,7 @@ auto DeclKeybind =
   render.dxgi.test_present->load         (config.render.dxgi.test_present);
   render.dxgi.swapchain_wait->load       (config.render.framerate.swapchain_wait);
 
-  render.dxgi.safe_fullscreen->load      (config.render.dxgi.safe_fullscreen);
+//render.dxgi.safe_fullscreen->load      (config.render.dxgi.safe_fullscreen);
 
   render.dxgi.enhanced_depth->load       (config.render.dxgi.enhanced_depth);
   render.dxgi.deferred_isolation->load   (config.render.dxgi.deferred_isolation);
@@ -5722,9 +5726,10 @@ SK_SaveConfig ( std::wstring name,
           break;
       }
 
+      render.dxgi.fake_fullscreen_mode->store (config.render.dxgi.fake_fullscreen_mode);
       render.dxgi.debug_layer->store          (config.render.dxgi.debug_layer);
       render.dxgi.allow_d3d12_footguns->store (config.render.dxgi.allow_d3d12_footguns);
-      render.dxgi.safe_fullscreen->store      (config.render.dxgi.safe_fullscreen);
+    //render.dxgi.safe_fullscreen->store      (config.render.dxgi.safe_fullscreen);
       render.dxgi.enhanced_depth->store       (config.render.dxgi.enhanced_depth);
       render.dxgi.deferred_isolation->store   (config.render.dxgi.deferred_isolation);
       render.dxgi.skip_present_test->store    (config.render.dxgi.present_test_skip);

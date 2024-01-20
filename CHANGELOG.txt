@@ -1,4 +1,20 @@
-﻿24.1.20.1
+﻿24.1.20.2
+=========
+ + Added code to translate NvAPI HDR API usage to DXGI
+ + Added option (to go along with NvAPI HDR) to lie to games and tell them
+     they are running in Fullscreen Exclusive, while SK translates this to
+       Borderless Fullscreen.
+
+    [Render.DXGI]  (Only implemented for DXGI: D3D11/D3D12)
+    FakeFullscreenMode={true|false}  Default: false  (sorry, not on by default)
+
+    * Consider adding to SK's Global master/default, needs more testing before
+        it can be made the default policy.
+
+    -> Has known aspect ratio issues, if the game requestes a fullscreen res.
+         with a different aspect ratio than the desktop.
+
+24.1.20.1
 =========
  + Handle DXGI SwapChains created without Shader Input bind flags
      (Monster Hunter Stories 2) when applying Flip Model upgrade
