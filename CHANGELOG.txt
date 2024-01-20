@@ -1,4 +1,10 @@
-﻿24.1.20.2
+﻿24.1.20.3
+=========
+ + Improved Fake Fullscreen Mode to work with Elden Ring
+     >> Also turned it on by default in Elden Ring, Yakuza *, Nioh, Sekiro
+ + Fixed NvAPI HDR not turning off when set to off in-game settings
+
+24.1.20.2
 =========
  + Added code to translate NvAPI HDR API usage to DXGI
  + Added option (to go along with NvAPI HDR) to lie to games and tell them

@@ -2603,6 +2603,7 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Sekiro:
+        config.render.dxgi.fake_fullscreen_mode   = true;
         config.input.gamepad.xinput.placehold [0] = true;
         config.input.gamepad.xinput.placehold [1] = true;
         config.input.gamepad.xinput.placehold [2] = true;
@@ -2847,6 +2848,8 @@ auto DeclKeybind =
       case SK_GAME_ID::YakuzaKiwami:             [[fallthrough]];
       case SK_GAME_ID::YakuzaUnderflow:
       {
+        config.render.dxgi.fake_fullscreen_mode   = true;
+
         if (! IsProcessDPIAware ())
         {
           // Oly do this for Steam games, the Microsoft Store Yakuza games
@@ -2868,6 +2871,7 @@ auto DeclKeybind =
 
       case SK_GAME_ID::YakuzaLikeADragonGaiden:
       {
+        config.render.dxgi.fake_fullscreen_mode   = true;
         config.render.dxgi.hooks.
                             create_swapchain4hwnd = false;
       }
@@ -2998,6 +3002,7 @@ auto DeclKeybind =
         config.render.framerate.flip_discard     = true;
         config.render.framerate.swapchain_wait   = 1;
         config.render.framerate.sleepless_window = true;
+        config.render.dxgi.fake_fullscreen_mode  = true;
       } break;
 
       case SK_GAME_ID::OctopathTraveler:
@@ -3247,6 +3252,7 @@ auto DeclKeybind =
         config.apis.dxgi.d3d11.hook              = false;
         config.apis.OpenGL.hook                  = false;
         config.render.framerate.sleepless_window = false;
+        config.render.dxgi.fake_fullscreen_mode  = true;
         break;
 
       case SK_GAME_ID::TinyTinasWonderlands:

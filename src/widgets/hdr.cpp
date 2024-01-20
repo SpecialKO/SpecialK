@@ -1949,11 +1949,15 @@ public:
           }
           else
           {
-            ImGui::BulletText ("No Image Processing is Implemented by the Current ToneMap");
+            ImGui::BulletText ("No Image Processing is Implemented by the Current Tonemap");
 
             if (preset.preset_idx >= 2)
             {
-              ImGui::BulletText ("To adjust native HDR using SK, click 'enable processing'");
+              ImGui::BulletText ("To adjust native HDR using SK, click 'Enable Processing'");
+
+              ImGui::Spacing  ();
+              ImGui::Spacing  ();
+              ImGui::SameLine (); ImGui::SameLine ();
 
               if (ImGui::Button ("Enable Processing"))
               {

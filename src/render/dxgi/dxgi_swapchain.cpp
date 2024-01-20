@@ -796,12 +796,19 @@ SK_DXGI_FixUpLatencyWaitFlag (
 }
 
 
+static BOOL last_fullscreen_state = FALSE;
+
 HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetFullscreenState (BOOL Fullscreen, IDXGIOutput *pTarget)
 {
   HRESULT hr =
-    pReal->SetFullscreenState (Fullscreen, pTarget);
+    SK_DXGI_SwapChain_SetFullscreenState_Impl (
+      pReal, Fullscreen, pTarget, TRUE
+    );
+
+  if (SUCCEEDED (hr))
+    last_fullscreen_state = Fullscreen;
 
   return hr;
 }
@@ -810,9 +817,13 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetFullscreenState (BOOL *pFullscreen, IDXGIOutput **ppTarget)
 {
-
-  return
+  HRESULT hr =
     pReal->GetFullscreenState (pFullscreen, ppTarget);
+
+  if (SUCCEEDED (hr) && config.render.dxgi.fake_fullscreen_mode && pFullscreen != nullptr)
+    *pFullscreen = last_fullscreen_state;
+
+  return hr;
 }
 
 HRESULT
@@ -837,6 +848,9 @@ IWrapDXGISwapChain::GetDesc (DXGI_SWAP_CHAIN_DESC *pDesc)
       pDesc->SampleDesc.Count   = texDesc.SampleDesc.Count;
       pDesc->SampleDesc.Quality = texDesc.SampleDesc.Quality;
     }
+
+    if (config.render.dxgi.fake_fullscreen_mode)
+      pDesc->Windowed = !last_fullscreen_state;
   }
 
   return hr;
@@ -1381,12 +1395,22 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
 
   if (Fullscreen != FALSE && config.render.dxgi.fake_fullscreen_mode)
   {
-    config.window.borderless = true;
-    config.window.fullscreen = true;
+    auto hMon =
+      MonitorFromWindow (game_window.hWnd, 0x0);
 
-    SK_AdjustWindow ();
+    MONITORINFO             mi = { .cbSize = sizeof (MONITORINFO) };
+    GetMonitorInfoW (hMon, &mi);
 
-    return S_OK;
+    if ( (UINT)(mi.rcMonitor.right  - mi.rcMonitor.left) == sd.BufferDesc.Width &&
+         (UINT)(mi.rcMonitor.bottom - mi.rcMonitor.top)  == sd.BufferDesc.Height )
+    {
+      config.window.borderless = true;
+      config.window.fullscreen = true;
+
+      SK_AdjustWindow ();
+
+      return S_OK;
+    }
   }
 
   if (! pDev12.p)

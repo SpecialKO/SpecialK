@@ -728,20 +728,23 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   if ( pHdrColorData->cmd     == NV_HDR_CMD_SET &&
        pHdrColorData->hdrMode == NV_HDR_MODE_UHDA_PASSTHROUGH )
   {
-    game_is_engaging_native_hdr = true;
-
-    if (! sk_is_overriding_hdr)
+    if (rb.isHDRCapable ())
     {
-      __SK_HDR_16BitSwap = false;
-      __SK_HDR_10BitSwap =  true;
+      game_is_engaging_native_hdr = true;
 
-      __SK_HDR_Preset  = 3;
-      __SK_HDR_tonemap = SK_HDR_TONEMAP_RAW_IMAGE;
-
-      if (SK_ComQIPtr <IDXGISwapChain3> pSwap3 (rb.swapchain);
-                                        pSwap3 != nullptr)
+      if (! sk_is_overriding_hdr)
       {
-        pSwap3->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+        __SK_HDR_16BitSwap = false;
+        __SK_HDR_10BitSwap =  true;
+
+        __SK_HDR_Preset  = 3;
+        __SK_HDR_tonemap = SK_HDR_TONEMAP_RAW_IMAGE;
+
+        if (SK_ComQIPtr <IDXGISwapChain3> pSwap3 (rb.swapchain);
+                                          pSwap3 != nullptr)
+        {
+          pSwap3->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+        }
       }
     }
   }
@@ -749,20 +752,23 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   else if ( pHdrColorData->cmd     == NV_HDR_CMD_SET &&
             pHdrColorData->hdrMode == NV_HDR_MODE_UHDA )
   {
-    game_is_engaging_native_hdr = true;
-
-    if (! sk_is_overriding_hdr)
+    if (rb.isHDRCapable ())
     {
-      __SK_HDR_10BitSwap = false;
-      __SK_HDR_16BitSwap = true;
+      game_is_engaging_native_hdr = true;
 
-      __SK_HDR_Preset       = 2;
-      __SK_HDR_Content_EOTF = 1.0f;
-
-      if (SK_ComQIPtr <IDXGISwapChain3> pSwap3 (rb.swapchain);
-                                        pSwap3 != nullptr)
+      if (! sk_is_overriding_hdr)
       {
-        pSwap3->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+        __SK_HDR_10BitSwap = false;
+        __SK_HDR_16BitSwap = true;
+
+        __SK_HDR_Preset       = 2;
+        __SK_HDR_Content_EOTF = 1.0f;
+
+        if (SK_ComQIPtr <IDXGISwapChain3> pSwap3 (rb.swapchain);
+                                          pSwap3 != nullptr)
+        {
+          pSwap3->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709);
+        }
       }
     }
   }
@@ -773,6 +779,12 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     {
       __SK_HDR_16BitSwap = false;
       __SK_HDR_10BitSwap = false;
+
+      if (SK_ComQIPtr <IDXGISwapChain3> pSwap3 (rb.swapchain);
+                                        pSwap3 != nullptr)
+      {
+        pSwap3->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709);
+      }
     }
   }
 
