@@ -708,7 +708,7 @@ ReadFile_Detour (HANDLE       hFile,
         {
           SK_ReleaseAssert (lpBuffer != nullptr);
 
-          if (lpOverlapped == nullptr || CancelIo (hFile))
+          if (lpOverlapped == nullptr || CancelIoEx (hFile, lpOverlapped))
           {
             if (lpOverlapped == nullptr) // lpNumberOfBytesRead MUST be non-null
             {
@@ -1161,14 +1161,30 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
       const auto &device_file =
         SK_HID_DeviceFiles.at (hFile);
 
-      const BOOL bRet =
-        GetOverlappedResultEx_Original (
-          hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
-        );
+      BOOL bRet       = TRUE,
+           bDenyInput = !device_file.isInputAllowed ();
+
+      if (bDenyInput)
+      {
+        if (CancelIoEx (hFile, lpOverlapped))
+        {
+          SK_RunOnce (
+            SK_LOGi0 (L"GetOverlappedResultEx HID IO Cancelled")
+          );
+        }
+      }
+
+      else
+      {
+        bRet =
+          GetOverlappedResultEx_Original (
+            hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
+          );
+      }
 
       if (bRet != FALSE)
       {
-        if (device_file.isInputAllowed ())
+        if (! bDenyInput)
         {
           SK_HID_READ (device_file.device_type);
           SK_HID_VIEW (device_file.device_type);
@@ -1211,15 +1227,29 @@ GetOverlappedResult_Detour (HANDLE       hFile,
       const auto &device_file =
         SK_HID_DeviceFiles.at (hFile);
 
-      const bool bRet =
-        GetOverlappedResult_Original (
-          hFile, lpOverlapped, lpNumberOfBytesTransferred,
-            bWait
-        );
+      BOOL bRet       = TRUE,
+           bDenyInput = !device_file.isInputAllowed ();
+
+      if (bDenyInput)
+      {
+        if (CancelIoEx (hFile, lpOverlapped))
+        {
+          SK_RunOnce (
+            SK_LOGi0 (L"GetOverlappedResult HID IO Cancelled")
+          );
+        }
+      }
+
+      else
+        bRet =
+          GetOverlappedResult_Original (
+            hFile, lpOverlapped, lpNumberOfBytesTransferred,
+              bWait
+          );
 
       if (bRet != FALSE)
       {
-        if (device_file.isInputAllowed ())
+        if (! bDenyInput)
         {
           SK_HID_READ (device_file.device_type);
           SK_HID_VIEW (device_file.device_type);
