@@ -63,7 +63,13 @@ bool SK_D3D11_AreTexturesDirectCopyable ( D3D11_TEXTURE2D_DESC *pSrc,
 
 bool SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
                                ID3D11Texture2D *pDstTex,
-                         const D3D11_BOX       *pSrcBox = nullptr );
+                         const D3D11_BOX       *pSrcBox        = nullptr,
+                               UINT             SrcSubresource = 0,
+                               UINT             DstSubresource = 0,
+                               UINT             DstX           = 0,
+                               UINT             DstY           = 0
+                             //UINT             DstZ           = 0 // (Unneeded)
+);
 
 bool SK_D3D11_EnsureMatchingDevices ( ID3D11Device *pDevice0,
                                       ID3D11Device *pDevice1 );

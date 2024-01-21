@@ -1726,8 +1726,8 @@ SK_D3D11_CopySubresourceRegion_Impl (
             if (! SK_D3D11_IsDirectCopyCompatible (srcDesc.Format, dstDesc.Format))
             {
               // Only support copying the top-level at the moment
-              SK_ReleaseAssert ( DstSubresource == 0 &&
-                                 SrcSubresource == 0 );
+            //SK_ReleaseAssert ( DstSubresource == 0 &&
+            //                   SrcSubresource == 0 );
 
               // No dimension mismatches allowed
               SK_ReleaseAssert ( pSrcBox == nullptr ||
@@ -1749,8 +1749,13 @@ SK_D3D11_CopySubresourceRegion_Impl (
               // NOTE: This does not replicate the actual -sub- region part of the
               //         API and will probably break things if it's ever relied on.
 
-              if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex, pSrcBox))
+              if (SK_D3D11_BltCopySurface ( pSrcTex, pDstTex,
+                                            pSrcBox,
+                                             SrcSubresource,
+                                             DstSubresource,  DstX, DstY ))
+              {
                 return;
+              }
             }
           }
         }

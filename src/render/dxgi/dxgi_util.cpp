@@ -1173,7 +1173,11 @@ SK_DXGI_IsFormatCastable ( DXGI_FORMAT inFormat,
 bool
 SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
                           ID3D11Texture2D *pDstTex,
-            _In_opt_ const D3D11_BOX      *pSrcBox )
+            _In_opt_ const D3D11_BOX      *pSrcBox,
+            _In_opt_       UINT             SrcSubresource,
+            _In_opt_       UINT             DstSubresource,
+            _In_opt_       UINT             DstX,
+            _In_opt_       UINT             DstY )
 {
   SK_ComPtr <ID3D11DeviceContext> pDevCtx;
   SK_ComPtr <ID3D11Device>        pDev;
@@ -1208,11 +1212,42 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     pSrcTex->GetDesc (&srcTexDesc);
     pDstTex->GetDesc (&dstTexDesc);
 
+  auto _Return = [&](bool ret)->bool
+  {
+    if (! ret)
+    {
+      SK_RunOnce (
+        SK_ImGui_Warning (
+          SK_FormatStringW (
+            L"Failed HDR Remaster [Type=%hs]\t\tSrc=%d-bit, Dst=%d-bit",
+            (dstTexDesc.BindFlags & D3D11_BIND_UNORDERED_ACCESS) ? "Compute"
+                                                                 : "Render",
+              DirectX::BitsPerColor (srcTexDesc.Format),
+              DirectX::BitsPerColor (dstTexDesc.Format)
+          ).c_str ()
+        )
+      );
+    }
+
+    return ret;
+  };
+
+  if ((srcTexDesc.ArraySize != 1 && srcTexDesc.MipLevels != 1) ||
+      (dstTexDesc.ArraySize != 1 && dstTexDesc.MipLevels != 1))
+  {
+    //SK_ReleaseAssert (srcTexDesc.ArraySize == 1 || srcTexDesc.MipLevels == 1);
+    //SK_ReleaseAssert (dstTexDesc.ArraySize == 1 || dstTexDesc.MipLevels == 1);
+    return
+      _Return (false);
+  }
+
+  SK_ReleaseAssert (DstX == 0 && DstY == 0);
+
   if ( DirectX::IsCompressed (srcTexDesc.Format)           ||
        DirectX::IsCompressed (dstTexDesc.Format)           ||
        SK_ComPtr <ID3D11Texture2D> (pSrcTex).IsEqualObject (pDstTex)              ||
-       srcTexDesc.ArraySize        != dstTexDesc.ArraySize ||
-       srcTexDesc.MipLevels != dstTexDesc.MipLevels        ||
+     //srcTexDesc.ArraySize        != dstTexDesc.ArraySize ||
+     //srcTexDesc.MipLevels        != dstTexDesc.MipLevels ||
       (srcTexDesc.SampleDesc.Count != dstTexDesc.SampleDesc.Count &&
        srcTexDesc.SampleDesc.Count != 1) )
   {
@@ -1235,7 +1270,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 
     //// SK_ReleaseAssert (! L"Impossible BltCopy Requested");
 
-    return false;
+    return
+      _Return (false);
   }
 
   UINT dev_idx =
@@ -1251,6 +1287,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     SK_D3D11_DeclareTexInjectScope ()
   );
 
+#if 0
   // Must be zero or one, or the input/output surface is incompatible
   if (dstTexDesc.MipLevels > 1 || srcTexDesc.MipLevels > 1)
   {
@@ -1262,6 +1299,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
            srcTexDesc.MipLevels, dstTexDesc.MipLevels )
     );
   }
+#endif
 
   struct {
     struct {
@@ -1281,6 +1319,25 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
       D3D11_SHADER_RESOURCE_VIEW_DESC      srv  = { };
     } desc;
   } surface;
+
+  bool bArraySRV =
+    srcTexDesc.ArraySize != 1;
+
+  bool bArrayRTV =
+    dstTexDesc.ArraySize != 1;
+
+  // Handle subresource (mipmap) selection
+  if (! bArraySRV)
+  {
+    srcTexDesc.Width  = std::max (1U, srcTexDesc.Width  >> SrcSubresource);
+    srcTexDesc.Height = std::max (1U, srcTexDesc.Height >> SrcSubresource);
+  }
+
+  if (! bArrayRTV)
+  {
+    dstTexDesc.Width  = std::max (1U, dstTexDesc.Width  >> DstSubresource);
+    dstTexDesc.Height = std::max (1U, dstTexDesc.Height >> DstSubresource);
+  }
 
   surface.desc.tex.Width                     = dstTexDesc.Width;
 	surface.desc.tex.Height                    = dstTexDesc.Height;
@@ -1312,16 +1369,51 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   dstTexDesc.Format =
     SK_DXGI_MakeTypedFormat (dstTexDesc.Format);
 
+  bool bMultisampleRtv =
+    surface.desc.tex.SampleDesc.Count > 1;
+
+  D3D11_RTV_DIMENSION rtvDim =
+    bMultisampleRtv ? bArrayRTV ? D3D11_RTV_DIMENSION_TEXTURE2DMSARRAY
+                                : D3D11_RTV_DIMENSION_TEXTURE2DMS
+                    : bArrayRTV ? D3D11_RTV_DIMENSION_TEXTURE2DARRAY
+                                : D3D11_RTV_DIMENSION_TEXTURE2D;
+
+  bool bMultisampleSrv =
+    surface.desc.tex2.SampleDesc.Count > 1;
+
+  D3D11_SRV_DIMENSION srvDim =
+    bMultisampleSrv ? bArraySRV ? D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY
+                                : D3D11_SRV_DIMENSION_TEXTURE2DMS
+                    : bArraySRV ? D3D11_SRV_DIMENSION_TEXTURE2DARRAY
+                                : D3D11_SRV_DIMENSION_TEXTURE2D;
+
   surface.desc.rtv.Format                    = dstTexDesc.Format;
-	surface.desc.rtv.ViewDimension             = surface.desc.tex.SampleDesc.Count <= 1 ?
-                                                        D3D11_RTV_DIMENSION_TEXTURE2D :
-                                                        D3D11_RTV_DIMENSION_TEXTURE2DMS;
-	surface.desc.rtv.Texture2D.MipSlice        = 0;
+	surface.desc.rtv.ViewDimension             = rtvDim;
+
+  if (! bArrayRTV)
+  {
+	  surface.desc.rtv.Texture2D.MipSlice      = DstSubresource;
+  }
+  else
+  {
+    surface.desc.rtv.Texture2DArray.FirstArraySlice = DstSubresource;
+    surface.desc.rtv.Texture2DArray.ArraySize       = 1;
+  }
 
   surface.desc.srv.Format                    = srcTexDesc.Format;
-  surface.desc.srv.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
-	surface.desc.srv.Texture2D.MostDetailedMip = 0;
-	surface.desc.srv.Texture2D.MipLevels       = 1;
+  surface.desc.srv.ViewDimension             = srvDim;
+
+  if (! bArraySRV)
+  {
+	  surface.desc.srv.Texture2D.MostDetailedMip = SrcSubresource;
+	  surface.desc.srv.Texture2D.MipLevels       = 1;
+  }
+
+  else
+  {
+    surface.desc.srv.Texture2DArray.ArraySize       = 1;
+    surface.desc.srv.Texture2DArray.FirstArraySlice = SrcSubresource;
+  }
 
   UINT size =
      sizeof (void *);
@@ -1391,7 +1483,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
     if (surface.render.tex.p == nullptr) SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: surface.render.tex.p == nullptr" );
     else                                 SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: CreateRTV Failed" );
 
-    return false;
+    return
+      _Return (false);
   }
 
   SK_ComPtr <ID3D11Texture2D>
@@ -1459,7 +1552,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
 
     if (pNewSrcTex == nullptr) {
       SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: pNewSrcTex == nullptr" );
-      return false;
+      return
+        _Return (false);
     }
 
     pDevCtx->CopyResource (pNewSrcTex, pSrcTex);
@@ -1473,7 +1567,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   {
     SK_LOGi0 ( L"SK_D3D11_BltCopySurface Failed: CreateSRV Failed" );
 
-    return false;
+    return
+      _Return (false);
   }
 
   if (config.system.log_level > 0)
@@ -1503,7 +1598,10 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   }
 
   else
-    return false;
+  {
+    return
+      _Return (false);
+  }
 
   if ( SUCCEEDED (
          pDevCtx->Map ( codec.pSRGBParams,
@@ -1528,7 +1626,10 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   }
 
   else
-    return false;
+  {
+    return
+      _Return (false);
+  }
 
 #if 0
   SK_IMGUI_D3D11StateBlock
@@ -1681,7 +1782,8 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   ApplyStateblock (pDevCtx, sb);
   //sb.Apply (pDevCtx.p);
 
-  return true;
+  return
+    _Return (true);
 }
 
 // Check if SK is responsible for this resource having a different
