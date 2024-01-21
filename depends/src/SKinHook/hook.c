@@ -1099,7 +1099,7 @@ MH_Initialize (VOID)
   {
       g_hHeap     = HeapCreate ( 0x0, sizeof (HOOK_ENTRY)     * (INITIAL_HOOK_CAPACITY*4) + 1 +
                                       sizeof (FROZEN_THREADS) * INITIAL_THREAD_CAPACITY   + 1 +
-                                      16384 * 16384, 0 );
+                                                           32 * 16384, 0 );
 
     g_NtDll.hHeap = HeapCreate ( 0x0, 4194304, 0 );
 
