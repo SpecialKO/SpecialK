@@ -841,8 +841,12 @@ SK::ControlPanel::Input::Draw (void)
 
             if (state != 2)
             {
-              SendMessage (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_xbox);
-              SendMessage (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_hid);
+              SendMessageTimeout (
+                game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_xbox,
+                                  SMTO_ABORTIFHUNG | SMTO_BLOCK, 50UL, nullptr );
+              SendMessageTimeout (
+                game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_hid,
+                                  SMTO_ABORTIFHUNG | SMTO_BLOCK, 50UL, nullptr );
             }
           }
 
