@@ -1826,9 +1826,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       //  we want to know immediately if anything else does this (dll as exe).
       SK_ReleaseAssert (StrStrIW (SK_GetHostApp (), L".dll") == nullptr);
 
-      // Initialize MinHook before loading config file; required for some plug-ins
-      SK_MinHook_Init ();
-
       wchar_t                log_fname [MAX_PATH + 2] = { };
       SK_PathCombineW      ( log_fname, L"logs",
                                 SK_IsInjected () ?

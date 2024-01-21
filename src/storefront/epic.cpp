@@ -862,9 +862,6 @@ SK::EOS::Init (bool pre_load)
                          epic->notify_corner );
 
       epic->PreInit (hModEOS);
-
-      // We may wind up in here before MinHook would normally be initialized
-      SK_MinHook_Init ();
     }
   }
 

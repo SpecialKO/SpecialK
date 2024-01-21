@@ -3763,8 +3763,6 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
 
         void SK_SymSetOpts (void);
              SK_SymSetOpts (    );
-
-        SK_MinHook_Init ();
       });
     }
 

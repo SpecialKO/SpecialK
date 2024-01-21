@@ -580,7 +580,8 @@ SK_CreateFuncHook ( const wchar_t  *pwszFuncName,
   {
     return MH_ERROR_DISABLED;
   }
-
+  
+  SK_RunOnce (SK_MinHook_Init ());
 
   MH_STATUS status =
     MH_CreateHook ( pTarget,
@@ -628,6 +629,7 @@ SK_CreateFuncHookEx ( const wchar_t *pwszFuncName,
     return MH_ERROR_DISABLED;
   }
 
+  SK_RunOnce (SK_MinHook_Init ());
 
   MH_STATUS status =
     MH_CreateHookEx ( pTarget,
@@ -788,6 +790,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
     return MH_ERROR_DISABLED;
   }
 
+  SK_RunOnce (SK_MinHook_Init ());
 
   HMODULE hMod = nullptr;
 
@@ -861,7 +864,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
                             ppOriginal );
 
         SK_LOG_MINHOOK ( status,
-                           L"WARNING: Hook Already Exists for: '%hs' in '%s'!",
+                           L"WARNING: Hook Already Exists for '%hs' in '%s'!",
                              szProcName,
                                wszModName );
 
@@ -887,7 +890,7 @@ SK_CreateDLLHook ( const wchar_t  *pwszModule, const char  *pszProcName,
     }
 
     SK_LOG_MINHOOK ( status,
-                       L"Failed to Install Hook for: '%hs' in '%s'!",
+                       L"Failed to Install Hook for '%hs' in '%s'!",
                         szProcName,
                           wszModName );
 
@@ -962,6 +965,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
     return MH_ERROR_DISABLED;
   }
 
+  SK_RunOnce (SK_MinHook_Init ());
 
   HMODULE hMod = nullptr;
 
@@ -1042,7 +1046,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
                             ppOriginal );
 
         SK_LOG_MINHOOK ( status,
-                           L"WARNING: Hook Already Exists for: '%hs' in '%s'!",
+                           L"WARNING: Hook Already Exists for '%hs' in '%s'!",
                              szProcName,
                                wszModName );
 
@@ -1068,7 +1072,7 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
     }
 
     SK_LOG_MINHOOK ( status,
-                       L"Failed to Install Hook for: '%hs' in '%s'!",
+                       L"Failed to Install Hook for '%hs' in '%s'!",
                          szProcName,
                            wszModName );
 
@@ -1112,6 +1116,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
     return MH_ERROR_DISABLED;
   }
 
+  SK_RunOnce (SK_MinHook_Init ());
 
   HMODULE hMod = nullptr;
 
@@ -1192,7 +1197,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
                             ppOriginal );
 
         SK_LOG_MINHOOK ( status,
-                           L"WARNING: Hook Already Exists for: '%hs' in '%s'!",
+                           L"WARNING: Hook Already Exists for '%hs' in '%s'!",
                              szProcName,
                                wszModName );
 
@@ -1201,7 +1206,7 @@ SK_CreateDLLHook3 ( const wchar_t  *pwszModule, const char  *pszProcName,
     }
 
     SK_LOG_MINHOOK ( status,
-                       L"Failed to Install Hook for: '%hs' in '%s'!",
+                       L"Failed to Install Hook for '%hs' in '%s'!",
                          szProcName,
                            wszModName );
   }
@@ -1237,6 +1242,7 @@ SK_CreateUser32Hook ( const char  *pszProcName,
     return MH_ERROR_DISABLED;
   }
 
+  SK_RunOnce (SK_MinHook_Init ());
 
   // Win32u is faster on systems that dispatch system calls through it
   //
@@ -1301,6 +1307,7 @@ SK_CreateVFTableHook ( const wchar_t  *pwszFuncName,
     return MH_ERROR_DISABLED;
   }
 
+  SK_RunOnce (SK_MinHook_Init ());
 
   MH_STATUS status =
     MH_ERROR_NOT_EXECUTABLE;
@@ -1348,6 +1355,7 @@ SK_CreateVFTableHookEx ( const wchar_t  *pwszFuncName,
     return MH_ERROR_DISABLED;
   }
 
+  SK_RunOnce (SK_MinHook_Init ());
 
   MH_STATUS status =
     MH_ERROR_NOT_EXECUTABLE;
@@ -1395,6 +1403,7 @@ SK_CreateVFTableHook2 ( const wchar_t  *pwszFuncName,
     return MH_ERROR_DISABLED;
   }
 
+  SK_RunOnce (SK_MinHook_Init ());
 
   MH_STATUS status =
     MH_ERROR_NOT_EXECUTABLE;
@@ -1441,6 +1450,7 @@ SK_CreateVFTableHook3 ( const wchar_t  *pwszFuncName,
     return MH_ERROR_DISABLED;
   }
 
+  SK_RunOnce (SK_MinHook_Init ());
 
   MH_STATUS status =
     MH_ERROR_NOT_EXECUTABLE;
@@ -1700,17 +1710,14 @@ SK_MinHook_Init (void)
     return MH_ERROR_DISABLED;
   }
 
-
   const MH_STATUS status =
     MH_Initialize ();
 
-  if (status != MH_OK)
+  if (status != MH_OK && status != MH_ERROR_ALREADY_INITIALIZED)
   {
-#if 0
-    dll_log.Log ( L"[ Min Hook ] Failed to Initialize MinHook Library!"
-                  LR"( (Status: "%hs"))",
-                    MH_StatusToString (status) );
-#endif
+    SK_RunOnce (
+      SK_LOG_MINHOOK_ ( status, L"Failed to Initialize MinHook Library!" )
+    );
   }
 
   return status;

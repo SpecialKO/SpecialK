@@ -5335,6 +5335,13 @@ D3D11Dev_CreateTexture2D_Impl (
 
         //if (pDesc->SampleDesc.Count == swapDesc.SampleDesc.Count ||
         //    pDesc->SampleDesc.Count == 1)
+
+        // SK can't currently handle remastering resources that are
+        //   BOTH mipmapped AND array...
+        const bool remaster_compatible_subresources =
+          (pDesc->ArraySize == 1 || pDesc->MipLevels == 1);
+
+        if (remaster_compatible_subresources)
         {
           bool bManipulated = false;
 
