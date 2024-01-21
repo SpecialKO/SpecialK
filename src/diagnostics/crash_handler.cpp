@@ -51,11 +51,19 @@ SK_GetSymbolNameFromModuleAddr (HMODULE hMod, uintptr_t addr);
 void
 SK_SymSetOpts_Once (void)
 {
+  DWORD dwSymFlags =
+    SYMOPT_LOAD_LINES           | SYMOPT_NO_PROMPTS        |
+    SYMOPT_UNDNAME              | SYMOPT_DEFERRED_LOADS    |
+    SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_FAVOR_COMPRESSED  |
+    SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_NO_UNQUALIFIED_LOADS |
+    SYMOPT_LOAD_ANYTHING;
+
   SymSetSearchPathW ( GetCurrentProcess (), SK_GetDebugSymbolPath () );
-  SymSetOptions     ( SYMOPT_LOAD_LINES           | SYMOPT_NO_PROMPTS        |
-                      SYMOPT_UNDNAME              |// SYMOPT_DEFERRED_LOADS    |
-                      SYMOPT_OMAP_FIND_NEAREST    | SYMOPT_FAVOR_COMPRESSED  |
-                      SYMOPT_FAIL_CRITICAL_ERRORS | SYMOPT_NO_UNQUALIFIED_LOADS );
+  SymSetOptions     ( dwSymFlags );
+
+  if (! config.system.handle_crashes)
+    SymSetExtendedOption (SYMOPT_EX_NEVERLOADSYMBOLS, TRUE);
+
   //
   // Avoid deferred loads, they have the potential to deadlock if other threads are
   //   calling LoadLibrary (...) at the same time as symbols in a deferred module
@@ -1800,13 +1808,16 @@ CrashHandler::InitSyms (void)
   static volatile LONG               init = 0L;
   if (! InterlockedCompareExchange (&init, 1, 0))
   {
-    SymCleanup    (SK_GetCurrentProcess ());
-    SymInitialize (
-      SK_GetCurrentProcess (),
-        nullptr,
-          FALSE );
+    if (config.system.handle_crashes)
+    {
+      SymCleanup    (SK_GetCurrentProcess ());
+      SymInitialize (
+        SK_GetCurrentProcess (),
+          nullptr,
+            FALSE );
 
-    SymRefreshModuleList (SK_GetCurrentProcess ());
+      SymRefreshModuleList (SK_GetCurrentProcess ());
+    }
 
     Init ();
 

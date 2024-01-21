@@ -232,7 +232,7 @@
       <StructMemberAlignment>Default</StructMemberAlignment>
       <OmitFramePointers>false</OmitFramePointers>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
-      <AdditionalOptions>/Gs16384 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- /QIntel-jcc-erratum</AdditionalOptions>
+      <AdditionalOptions>/GS- /Gs4096 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- /QIntel-jcc-erratum</AdditionalOptions>
       <ProgramDataBaseFileName>$(SolutionDir)depends\lib\$(TargetName)\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
       <SupportJustMyCode>false</SupportJustMyCode>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -281,7 +281,7 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <AdditionalOptions>/Gs16384 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- /QIntel-jcc-erratum</AdditionalOptions>
+      <AdditionalOptions>/GS- /Gs4096 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- /QIntel-jcc-erratum</AdditionalOptions>
       <ProgramDataBaseFileName>$(SolutionDir)depends\lib\$(TargetName)\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
       <SupportJustMyCode>false</SupportJustMyCode>
       <LanguageStandard>stdcpp20</LanguageStandard>

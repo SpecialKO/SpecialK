@@ -605,9 +605,10 @@ using StackWalk_pfn = BOOL (IMAGEAPI *)(_In_     DWORD                          
                                         _In_opt_ PGET_MODULE_BASE_ROUTINE       GetModuleBaseRoutine,
                                         _In_opt_ PTRANSLATE_ADDRESS_ROUTINE     TranslateAddress);
 
-using SymSetOptions_pfn      = DWORD (IMAGEAPI *)  (_In_ DWORD SymOptions);
-using SymGetModuleBase64_pfn = DWORD64 (IMAGEAPI *)(_In_ HANDLE  hProcess,
-                                                    _In_ DWORD64 qwAddr);
+using SymSetOptions_pfn        = DWORD   (IMAGEAPI *)(_In_ DWORD SymOptions);
+using SymSetExtendedOption_pfn = BOOL    (IMAGEAPI *)(_In_ IMAGEHLP_EXTENDED_OPTIONS option, BOOL value);
+using SymGetModuleBase64_pfn   = DWORD64 (IMAGEAPI *)(_In_ HANDLE  hProcess,
+                                                      _In_ DWORD64 qwAddr);
 
 using SymGetModuleBase_pfn     = DWORD (IMAGEAPI *)(_In_ HANDLE  hProcess,
                                                     _In_ DWORD   dwAddr);

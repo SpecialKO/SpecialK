@@ -1479,6 +1479,8 @@ SK_GetDebugSymbolPath (void)
       crash_log->Log ( L"Unable to load Special K Debug Symbols ('%ws'), "
                        L"crash log will not be accurate.",
                          stripped.c_str () );
+
+      SymSetExtendedOption (SYMOPT_EX_NEVERLOADSYMBOLS, TRUE);
     }
 
     wcsncpy_s ( wszDbgSymbols,        MAX_PATH * 3,

@@ -159,6 +159,7 @@ static SymRefreshModuleList_pfn SymRefreshModuleList_Imp = nullptr;
 static StackWalk64_pfn          StackWalk64_Imp          = nullptr;
 static StackWalk_pfn            StackWalk_Imp            = nullptr;
 static SymSetOptions_pfn        SymSetOptions_Imp        = nullptr;
+static SymSetExtendedOption_pfn SymSetExtendedOption_Imp = nullptr;
 static SymGetModuleBase64_pfn   SymGetModuleBase64_Imp   = nullptr;
 static SymGetModuleBase_pfn     SymGetModuleBase_Imp     = nullptr;
 static SymGetLineFromAddr64_pfn SymGetLineFromAddr64_Imp = nullptr;
@@ -4092,6 +4093,9 @@ SymRefreshModuleList (
   _In_ HANDLE hProcess
 )
 {
+  if (! config.system.handle_crashes)
+    return FALSE;
+
   if (SymRefreshModuleList_Imp != nullptr && cs_dbghelp != nullptr)
   {
     SK_SymSetOpts ();
@@ -4121,6 +4125,9 @@ StackWalk64(
   _In_opt_ PTRANSLATE_ADDRESS_ROUTINE64     TranslateAddress
 )
 {
+  if (! config.system.handle_crashes)
+    return FALSE;
+
   if (StackWalk64_Imp != nullptr && cs_dbghelp != nullptr)
   {
     SK_SymSetOpts ();
@@ -4156,6 +4163,9 @@ StackWalk (
   _In_opt_ PTRANSLATE_ADDRESS_ROUTINE     TranslateAddress
 )
 {
+  if (! config.system.handle_crashes)
+    return FALSE;
+
   if (StackWalk_Imp != nullptr && cs_dbghelp != nullptr)
   {
     SK_SymSetOpts ();
@@ -4193,6 +4203,23 @@ SymSetOptions (
   }
 
   return 0x0;
+}
+
+BOOL
+IMAGEAPI
+SymSetExtendedOption (
+  _In_ IMAGEHLP_EXTENDED_OPTIONS option,
+  _In_ BOOL                      value )
+{
+  if (SymSetExtendedOption_Imp != nullptr && cs_dbghelp != nullptr)
+  {
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+
+    return
+      SymSetExtendedOption_Imp (option, value);
+  }
+
+  return FALSE;
 }
 
 
@@ -4386,6 +4413,9 @@ SAFE_SymFromAddr (
   _Inout_   PSYMBOL_INFO    Symbol,
             SymFromAddr_pfn Trampoline )
 {
+  if (! config.system.handle_crashes)
+    return FALSE;
+
   BOOL bRet = FALSE;
 
   if (Trampoline == nullptr)
@@ -4413,6 +4443,9 @@ SymFromAddr (
   _Inout_   PSYMBOL_INFO Symbol
 )
 {
+  if (! config.system.handle_crashes)
+    return FALSE;
+
   if (SymFromAddr_Imp != nullptr)
   {
     if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
@@ -4509,6 +4542,9 @@ SymLoadModule (
   _In_     DWORD  SizeOfDll
 )
 {
+  if (! config.system.handle_crashes)
+    return 0;
+
   BOOL bRet = FALSE;
 
   if (SymLoadModule_Imp != nullptr)
@@ -4584,6 +4620,9 @@ SymLoadModule64 (
   _In_     DWORD   SizeOfDll
 )
 {
+  if (! config.system.handle_crashes)
+    return 0;
+
   BOOL bRet = FALSE;
 
   if (SymLoadModule64_Imp != nullptr)
@@ -4724,6 +4763,10 @@ SK_DbgHlp_Init (void)
     SymSetOptions_Imp =
       (SymSetOptions_pfn)
       SK_GetProcAddress ( SK_Debug_LoadHelper (), "SymSetOptions" );
+
+    SymSetExtendedOption_Imp =
+      (SymSetExtendedOption_pfn)
+      SK_GetProcAddress ( SK_Debug_LoadHelper (), "SymSetExtendedOption" );
 
     SymGetModuleBase64_Imp =
       (SymGetModuleBase64_pfn)

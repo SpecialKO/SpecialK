@@ -221,7 +221,7 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
-      <AdditionalOptions>/Gs16384 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- /QIntel-jcc-erratum</AdditionalOptions>
+      <AdditionalOptions>/GS- /Gs4096 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- /QIntel-jcc-erratum</AdditionalOptions>
       <ProgramDataBaseFileName>$(SolutionDir)depends\lib\lzma\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
@@ -279,7 +279,7 @@
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <AdditionalOptions>/Gs16384 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- /QIntel-jcc-erratum</AdditionalOptions>
+      <AdditionalOptions>/GS- /Gs4096 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- /QIntel-jcc-erratum</AdditionalOptions>
       <ProgramDataBaseFileName>$(SolutionDir)depends\lib\lzma\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <ConformanceMode>true</ConformanceMode>
