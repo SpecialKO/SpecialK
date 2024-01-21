@@ -708,7 +708,7 @@ ReadFile_Detour (HANDLE       hFile,
         {
           SK_ReleaseAssert (lpBuffer != nullptr);
 
-          if (lpOverlapped == nullptr || CancelIoEx (hFile, lpOverlapped))
+          if (lpOverlapped == nullptr || CancelIo (hFile))
           {
             if (lpOverlapped == nullptr) // lpNumberOfBytesRead MUST be non-null
             {
@@ -800,7 +800,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
 
       if (bDisallow)
       {
-        if (CancelIoEx (hFile, lpOverlapped))
+        if (CancelIo (hFile))
         {
           SK_RunOnce (
             SK_LOGi0 (L"ReadFileEx HID IO Cancelled")
@@ -1166,7 +1166,7 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 
       if (bDenyInput)
       {
-        if (CancelIoEx (hFile, lpOverlapped))
+        if (CancelIo (hFile))
         {
           SK_RunOnce (
             SK_LOGi0 (L"GetOverlappedResultEx HID IO Cancelled")
@@ -1232,7 +1232,7 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 
       if (bDenyInput)
       {
-        if (CancelIoEx (hFile, lpOverlapped))
+        if (CancelIo (hFile))
         {
           SK_RunOnce (
             SK_LOGi0 (L"GetOverlappedResult HID IO Cancelled")
