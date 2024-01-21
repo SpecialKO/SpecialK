@@ -1,4 +1,18 @@
-﻿24.1.21
+﻿24.1.21.1
+=========
+ + "Experimental" tab in HDR widget renamed "Details" and no longer requires
+     Adaptive Tonemapping or Perceptual Boost to be enabled.
+ + Details tab in HDR widget auto-expands if Compute Pass Remastering or
+     Adaptive Tonemapping are enabled.
+ + Clicking 'Enable Processing' when Raw Framebuffer Tonemap is selected now
+     turns SK's own HDR on persistently. (i.e. saved to INI and always-on)
+ + Added partial support for mipmapped and array texture HDR remastering
+     >> Resources that are BOTH mipmapped and array (i.e. cubemaps), are
+          unsupported.
+ + Added more detailed error messages when HDR remastering fails, so that
+     users can disable the correct HDR remaster type (compute/render, bits)
+
+24.1.21
 =======
  + Added Fake Fullscreen indicator to SK's Control Panel when active
  + Added option to enable/disable Fake Fullscreen in D3D11/D3D12 games

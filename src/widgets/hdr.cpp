@@ -1963,6 +1963,8 @@ public:
               {
                 if (preset.preset_idx == 2)
                 {
+                  SK_HDR_SetOverridesForGame (true, false); // scRGB
+
                   preset.colorspace.tonemap = SK_HDR_TONEMAP_NONE;
                   preset.eotf               = 1.0f;
 
@@ -1972,6 +1974,8 @@ public:
 
                 else
                 {
+                  SK_HDR_SetOverridesForGame (false, true); // HDR10
+
                   preset.colorspace.tonemap = SK_HDR_TONEMAP_HDR10_PASSTHROUGH;
                   preset.eotf               = 1.0f;
 
@@ -2289,7 +2293,12 @@ public:
             ImGui::CollapsingHeader ( "Performance / Quality",
                                         ImGuiTreeNodeFlags_DefaultOpen );
 
-          static bool bExperimental = false;
+          static bool bDetails = false;
+
+          bDetails |=
+            ( ( SK_HDR_UnorderedViews_8bpc ->PromoteTo16Bit ||
+                SK_HDR_UnorderedViews_10bpc->PromoteTo16Bit ||
+                SK_HDR_UnorderedViews_11bpc->PromoteTo16Bit ) | __SK_HDR_AdaptiveToneMap );
 
           if (rb.api != SK_RenderAPI::D3D12)
           {
@@ -2324,10 +2333,11 @@ public:
 
                 if (ImGui::IsItemHovered ())
                 {   ImGui::BeginTooltip  ();
-                    ImGui::Text          ("Adhere to HGIG Design Guidelines");
+                    ImGui::Text          ("Extra Processing to Keep Average Light Level within HGIG range");
                     ImGui::Separator     ();
-                    ImGui::BulletText    ("Tonemap keeps Average Frame Light Level from exceeding 1/3 MaxCLL");
                     ImGui::BulletText    ("User-calibrated MaxCLL is enforced");
+                    ImGui::BulletText    ("Tonemap keeps Average Frame Light Level from exceeding 1/3 MaxCLL");
+                    ImGui::BulletText    ("Has 2-3x perf. overhead of normal HDR; consider disabling if unneeded");
                     ImGui::EndTooltip    ();
                 }
 
@@ -2368,7 +2378,7 @@ public:
                 ImGui::EndTooltip      ();
               }
 
-              if (bExperimental)
+              if (bDetails)
               {
                 changed |= ImGui::Checkbox ("Remaster 8-bit Compute Passes", &SK_HDR_UnorderedViews_8bpc->PromoteTo16Bit);
 
@@ -2399,7 +2409,7 @@ public:
                 ImGui::EndTooltip      ();
               }
 
-              if (bExperimental)
+              if (bDetails)
               {
                 changed |= ImGui::Checkbox ("Remaster 10-bit Compute Passes", &SK_HDR_UnorderedViews_10bpc->PromoteTo16Bit);
 
@@ -2430,7 +2440,7 @@ public:
                 ImGui::EndTooltip      ();
               }
 
-              if (bExperimental)
+              if (bDetails)
               {
                 changed |= ImGui::Checkbox ("Remaster 11-bit Compute Passes", &SK_HDR_UnorderedViews_11bpc->PromoteTo16Bit);
 
@@ -2448,7 +2458,7 @@ public:
 
             ImGui::PopStyleColor ();
 
-            if ( preset.pq_boost0 > 0.1f || __SK_HDR_AdaptiveToneMap )
+            if ( preset.pq_boost0 > 0.1f || __SK_HDR_AdaptiveToneMap || SK_API_IsLayeredOnD3D11 (rb.api) )
             {
               if (SK_API_IsLayeredOnD3D11 (rb.api))
               {
@@ -2460,13 +2470,22 @@ public:
                   ImGui::SetNextItemOpen (true, ImGuiCond_Once);
               }
 
-              bExperimental =
-                ImGui::TreeNode ("Experimental");
+              if (bDetails != false)
+              {
+                static bool        lastDetails = false;
+                if (std::exchange (lastDetails, bDetails) != bDetails)
+                {
+                  auto id =
+                    ImGui::GetCurrentWindow ()->GetID ("Details");
 
-              if (ImGui::IsItemHovered ())
-                  ImGui::SetTooltip ("Default Values Should be Good; but tweak away if you must :)");
+                  ImGui::TreeNodeSetOpen (id, bDetails);
+                }
+              }
 
-              if (bExperimental)
+              bDetails =
+                ImGui::TreeNode ("Details");
+
+              if (bDetails)
               {
                 ImGui::Separator  ();
                 ImGui::BeginGroup ();
@@ -2534,7 +2553,7 @@ public:
 
                 ImGui::EndGroup ();
                 
-                if ((! bRawImageMode) && SK_API_IsLayeredOnD3D11 (rb.api))
+                if ((! bRawImageMode) && SK_API_IsLayeredOnD3D11 (rb.api) && __SK_HDR_AdaptiveToneMap)
                 {
                   ImGui::SameLine    ();
                   ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
