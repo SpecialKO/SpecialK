@@ -1959,7 +1959,18 @@ SetWindowPos_Detour(
         hWndInsertAfter  = HWND_TOP;
   }
 
-  ////uFlags |= SWP_ASYNCWINDOWPOS;
+  // Prevent deadlock in Disgaea PC
+  if (hWnd == game_window.hWnd)
+  {
+    DWORD dwProcId   = 0x0,
+          dwThreadId =
+      GetWindowThreadProcessId (hWnd, &dwProcId);
+
+    if (dwThreadId != SK_GetCurrentThreadId ())
+    {
+      uFlags |= SWP_ASYNCWINDOWPOS;
+    }
+  }
 
   BOOL bRet =
     SK_SetWindowPos ( hWnd,

@@ -1,4 +1,10 @@
-﻿24.1.21.2
+﻿24.1.21.3
+=========
+ + Add SWP_ASYNCWINDOWPOS to SetWindowPos hook if called on the game's window
+     from a thread that does not own that window (fixes Disgaea PC deadlock)
+ + Revert CancelIoEx to CancelIo because it was leaving orphaned threads waiting
+
+24.1.21.2
 =========
  + Use CancelIoEx (...) when cancelling overlapped HID while input is blocked
  + Use SendMessageTimeout (...) when simulating WM_DEVICE_CHANGE for games
