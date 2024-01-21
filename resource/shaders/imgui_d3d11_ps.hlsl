@@ -14,7 +14,9 @@ struct PS_INPUT
 cbuffer viewportDims : register (b0)
 {
   float4 viewport;
-  float4 rtv_type;
+  float  rtv_type;
+  float  padding;
+  float2 font_dims;
 };
 
 sampler   sampler0    : register (s0);
@@ -25,9 +27,18 @@ Texture2D texture0    : register (t0);
 float4 main (PS_INPUT input) : SV_Target
 {
   float4 out_col =
-    texture0.Sample (sampler0, input.uv),
-        orig_col =
-         out_col;
+    texture0.Sample (sampler0, input.uv);
+ 
+  // Font Width/Height is only set on Font passes...
+  if (font_dims.x + font_dims.y > 0.0f)
+  {
+    // Font is a single-channel alpha texture,
+    //   supply 1.0 for rgb channels
+    out_col.rgb = 1.0;
+  }
+
+  float4 orig_col =
+          out_col;
 
   float  ui_alpha = saturate (input.col.a ) * saturate (out_col.a );
   float3 ui_color =           input.col.rgb *           out_col.rgb;

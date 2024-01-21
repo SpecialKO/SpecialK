@@ -67,6 +67,7 @@ struct SK_ImGui_D3D11_BackbufferResourceIsolation {
   ID3D11InputLayout*        pInputLayout            = nullptr;
   ID3D11Buffer*             pVertexConstantBuffer   = nullptr;
   ID3D11Buffer*             pPixelConstantBuffer    = nullptr;
+  ID3D11Buffer*             pPixelConstantBufferFont= nullptr;
   ID3D11PixelShader*        pPixelShader            = nullptr;
   ID3D11SamplerState*       pFontSampler_clamp      = nullptr;
   ID3D11SamplerState*       pFontSampler_wrap       = nullptr;
@@ -214,6 +215,9 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
       return ImGui_ImplDX11_InvalidateDeviceObjects ();
 
   if (! _P->pPixelConstantBuffer)
+    return;
+
+  if (! _P->pPixelConstantBufferFont)
     return;
 
   if (! _P->pRenderTargetView.p)
@@ -530,6 +534,18 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     // For temporarily disabled Linear sRGB mode
     ((float *)mapped_resource.pData)[4] = 0.0F;//DirectX::MakeTypeless (tex2d_desc.Format) == DXGI_FORMAT_R8G8B8A8_TYPELESS ? (float)1.0f :
                                                //DirectX::MakeTypeless (tex2d_desc.Format) == DXGI_FORMAT_B8G8R8A8_TYPELESS ? (float)1.0f : 0.0f;
+    ((float *)mapped_resource.pData)[6] = 0.0F;
+    ((float *)mapped_resource.pData)[7] = 0.0F;
+
+    pDevCtx->Unmap (_P->pPixelConstantBuffer, 0);
+
+    if (pDevCtx->Map (_P->pPixelConstantBufferFont, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
+      return;
+
+    ((float *)mapped_resource.pData)[2] = hdr_display ? (float)backbuffer_desc.Width  : 0.0f;
+    ((float *)mapped_resource.pData)[3] = hdr_display ? (float)backbuffer_desc.Height : 0.0f;
+    ((float *)mapped_resource.pData)[6] = (float)io.Fonts->TexWidth;
+    ((float *)mapped_resource.pData)[7] = (float)io.Fonts->TexHeight;
 
     pDevCtx->Unmap (_P->pPixelConstantBuffer, 0);
   }
@@ -619,7 +635,6 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 
     pDevCtx->PSSetShader            (_P->pPixelShader, nullptr, 0);
     pDevCtx->PSSetSamplers          (0, 1, &_P->pFontSampler_clamp);
-    pDevCtx->PSSetConstantBuffers   (0, 1, &_P->pPixelConstantBuffer);
 
     // Setup render state
     pDevCtx->OMSetBlendState        (_P->pBlendState, nullptr, 0xffffffff);
@@ -639,6 +654,8 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
 
       for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
       {
+        pDevCtx->PSSetConstantBuffers (0, 1, &_P->pPixelConstantBuffer);
+
         const ImDrawCmd* pcmd =
           &cmd_list->CmdBuffer [cmd_i];
 
@@ -674,6 +691,9 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
             (ID3D11ShaderResourceView *)pcmd->GetTexID (),
             SK_HDR_GetUnderlayResourceView ()
           };
+
+          if (pcmd->GetTexID () == io.Fonts->TexID)
+            pDevCtx->PSSetConstantBuffers (0, 1, &_P->pPixelConstantBufferFont);
 
           pDevCtx->PSSetSamplers        (0, 1, &_P->pFontSampler_wrap);
           pDevCtx->PSSetShaderResources (0, 2, views);
@@ -746,7 +766,7 @@ ImGui_ImplDX11_CreateFontsTexture ( IDXGISwapChain* /*pSwapChain*/,
       staging_desc.Height           = height;
       staging_desc.MipLevels        = 1;
       staging_desc.ArraySize        = 1;
-      staging_desc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
+      staging_desc.Format           = DXGI_FORMAT_A8_UNORM;
       staging_desc.SampleDesc.Count = 1;
       staging_desc.Usage            = D3D11_USAGE_STAGING;
       staging_desc.BindFlags        = 0;
@@ -785,15 +805,15 @@ ImGui_ImplDX11_CreateFontsTexture ( IDXGISwapChain* /*pSwapChain*/,
 
     for (int y = 0; y < height; y++)
     {
-      ImU32  *pDst =
-        (ImU32 *)((uintptr_t)mapped_tex.pData +
+      ImU8  *pDst =
+        (ImU8 *)((uintptr_t)mapped_tex.pData +
                              mapped_tex.RowPitch * y);
-      ImU8   *pSrc =              pixels + width * y;
+      ImU8  *pSrc =               pixels + width * y;
 
       for (int x = 0; x < width; x++)
       {
         *pDst++ =
-          IM_COL32 (255, 255, 255, (ImU32)(*pSrc++));
+          (*pSrc++);
       }
     }
 
@@ -804,7 +824,7 @@ ImGui_ImplDX11_CreateFontsTexture ( IDXGISwapChain* /*pSwapChain*/,
     // Create texture view
     D3D11_SHADER_RESOURCE_VIEW_DESC
       srvDesc = { };
-      srvDesc.Format                    = DXGI_FORMAT_R8G8B8A8_UNORM;
+      srvDesc.Format                    = DXGI_FORMAT_A8_UNORM;
       srvDesc.ViewDimension             = D3D11_SRV_DIMENSION_TEXTURE2D;
       srvDesc.Texture2D.MipLevels       = tex_desc.MipLevels;
       srvDesc.Texture2D.MostDetailedMip = 0;
@@ -1199,6 +1219,14 @@ ImGui_ImplDX11_CreateDeviceObjectsForBackbuffer ( IDXGISwapChain*      pSwapChai
         SK_D3D11_SetDebugName (                _P->pPixelConstantBuffer,
                                           L"ImGui Pixel Constant Buffer");
       }
+
+      if (_P->pPixelConstantBufferFont == nullptr)
+      {
+        ThrowIfFailed (
+          pDev->CreateBuffer (&desc, nullptr, &_P->pPixelConstantBufferFont));
+        SK_D3D11_SetDebugName (                _P->pPixelConstantBufferFont,
+                                          L"ImGui Pixel Constant Buffer (Font)");
+      }
     }
 
     if (_P->pPixelShader == nullptr)
@@ -1586,6 +1614,7 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
     if (_P->pPixelShaderDiscordHDR)  { _ReleaseAndCountRefs (&_P->pPixelShaderDiscordHDR);  assert (refs == 0); }
     if (_P->pVertexConstantBuffer)   { _ReleaseAndCountRefs (&_P->pVertexConstantBuffer);   assert (refs == 0); }
     if (_P->pPixelConstantBuffer)    { _ReleaseAndCountRefs (&_P->pPixelConstantBuffer);    assert (refs == 0); }
+    if (_P->pPixelConstantBufferFont){ _ReleaseAndCountRefs (&_P->pPixelConstantBufferFont);assert (refs == 0); }
     if (_P->pInputLayout)            { _ReleaseAndCountRefs (&_P->pInputLayout);            assert (refs == 0); }
     if (_P->pVertexShader)           { _ReleaseAndCountRefs (&_P->pVertexShader);           assert (refs == 0); }
     if (_P->pVertexShaderSteamHDR)   { _ReleaseAndCountRefs (&_P->pVertexShaderSteamHDR);   assert (refs == 0); }

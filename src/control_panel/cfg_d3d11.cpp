@@ -347,24 +347,25 @@ SK::ControlPanel::D3D11::Draw (void)
   static auto &rb =
     SK_GetCurrentRenderBackend ();
 
-  bool d3d11 =
+  const bool d3d11 =
     static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D11);
-  bool d3d12 =
+  const bool d3d12 =
     static_cast <int> (render_api) & static_cast <int> (SK_RenderAPI::D3D12);
-  bool vulkan =
+  const bool vulkan =
     SK_DXGI_VK_INTEROP_TYPE_NONE !=
        SK_Render_GetVulkanInteropSwapChainType (rb.swapchain);
 
-
   // Is the underlying graphics API actually something else?
-  bool indirect =
+  const bool indirect =
     ( SK_GL_OnD3D11 || vulkan );
 
-  if (                                 (vulkan &&
+  if (                                 (SK_GL_OnD3D11 &&
+       ImGui::CollapsingHeader ("OpenGL-IK Settings",   ImGuiTreeNodeFlags_DefaultOpen)) ||
+                                       (vulkan        &&
        ImGui::CollapsingHeader ("Vulkan Settings",      ImGuiTreeNodeFlags_DefaultOpen)) ||
-                                       (d3d11 &&
+                                       (d3d11         &&
        ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen)) ||
-                                       (d3d12 &&
+                                       (d3d12         &&
        ImGui::CollapsingHeader ("Direct3D 12 Settings", ImGuiTreeNodeFlags_DefaultOpen)) )
   {
     if (d3d11 && (! indirect))
@@ -462,7 +463,7 @@ SK::ControlPanel::D3D11::Draw (void)
             SK_DStorage_GetGDeflateSupport ();
           if (gdeflate_support == DSTORAGE_COMPRESSION_SUPPORT::DSTORAGE_COMPRESSION_SUPPORT_NONE)
           {
-            ImGui::Text     ("N/A");
+            ImGui::TextUnformatted ("N/A");
           }
           else
           {
