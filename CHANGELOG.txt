@@ -3,6 +3,9 @@
  + Use CancelIoEx (...) when cancelling overlapped HID while input is blocked
  + Use SendMessageTimeout (...) when simulating WM_DEVICE_CHANGE for games
      that run their window message loop on the same thread as render
+ + Reduced MinHook memory reserved space for better 32-bit compatibility
+ + Added spinlock to SK_DXGI_IsFakeFullscreen (...) because D3D9 SwapChain
+     QueryInterface has potential to deadlock
 
 24.1.21.1
 =========

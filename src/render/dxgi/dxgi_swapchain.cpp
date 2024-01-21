@@ -1665,6 +1665,9 @@ extern void ResetImGui_D3D11 (IDXGISwapChain *This);
 bool
 SK_RenderBackend_V2::isFakeFullscreen (void)
 {
+  if (! SK_API_IsDXGIBased (api))
+    return false;
+
   return
     SK_DXGI_IsFakeFullscreen (swapchain);
 }

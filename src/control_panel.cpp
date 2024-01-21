@@ -4729,7 +4729,7 @@ SK_ImGui_ControlPanel (void)
     if (windowed)
     {
       bool bFakeFullscreen =
-        SK_DXGI_IsFakeFullscreen (rb.swapchain);
+        rb.isFakeFullscreen ();
 
       if (ImGui::MenuItem ( bFakeFullscreen ? " \"Fullscreen\" Resolution"
                                             : " Window Resolution      ", szResolution))

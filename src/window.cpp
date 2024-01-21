@@ -2160,7 +2160,7 @@ AdjustWindowRect_Detour (
     }
 
     const bool faking_fullscreen =
-      SK_DXGI_IsFakeFullscreen (SK_GetCurrentRenderBackend ().swapchain);
+      SK_GetCurrentRenderBackend ().isFakeFullscreen ();
 
     bool fullscreen = config.window.fullscreen || faking_fullscreen;
 
@@ -2267,7 +2267,7 @@ AdjustWindowRectEx_Detour (
            L"Window Mgr" );
 
   const bool faking_fullscreen =
-    SK_DXGI_IsFakeFullscreen (SK_GetCurrentRenderBackend ().swapchain);
+    SK_GetCurrentRenderBackend ().isFakeFullscreen ();
 
   bool fullscreen = config.window.fullscreen || faking_fullscreen;
   bool borderless = config.window.borderless || faking_fullscreen;
@@ -3621,7 +3621,7 @@ SK_AdjustWindow (void)
   SK_WINDOW_LOG_CALL3 ();
 
   const bool faking_fullscreen =
-    SK_DXGI_IsFakeFullscreen (SK_GetCurrentRenderBackend ().swapchain);
+    SK_GetCurrentRenderBackend ().isFakeFullscreen ();
 
   bool fullscreen = config.window.fullscreen || faking_fullscreen;
   bool borderless = config.window.borderless || faking_fullscreen;
