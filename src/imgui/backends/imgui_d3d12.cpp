@@ -3453,7 +3453,8 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
           &psoDesc, IID_PPV_ARGS (&pHDRPipeline.p)
        ));SK_D3D12_SetDebugName  ( pHDRPipeline.p, L"SK HDR Pipeline State" );
 
-
+        // This is optional, and not compatible with 32-bit software.
+#ifndef _M_IX86
       D3D12_DESCRIPTOR_RANGE
         uav_range                                     = { };
         uav_range.RangeType                           = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
@@ -3495,6 +3496,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         _pDevice->CreateComputePipelineState (
           &csoDesc, IID_PPV_ARGS (&computeCopy.pPipeline.p)
        ));SK_D3D12_SetDebugName  ( computeCopy.pPipeline.p, L"SK Compute Copy Pipeline State" );
+#endif
 
       HWND                   hWnd = HWND_BROADCAST;
       _pSwapChain->GetHwnd (&hWnd);
