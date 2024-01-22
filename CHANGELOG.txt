@@ -1,4 +1,8 @@
-﻿24.1.22.1
+﻿24.1.22.2
+=========
+ + Update SteamAPI compatibility to SDK v1.57 (full) + 1.58a (partial/broken?!)
+
+24.1.22.1
 =========
  + Added compatibility with "Enigma Protector" games; you must launch them
      at least one time as a normal game, not using SKIF's "Instant Play".

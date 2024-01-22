@@ -290,6 +290,8 @@ using SteamAPI_ManualDispatch_Init_pfn  = void (S_CALLTYPE*)(void);
 
 using SteamAPI_GetSteamInstallPath_pfn  = const char* (S_CALLTYPE *)(void);
 
+using SteamAPI_ISteamInput_Init_pfn     = bool (S_CALLTYPE*)(bool bExplicitlyCallRunFrame);
+
 
 
 extern "C" SteamAPI_InitSafe_pfn              SteamAPI_InitSafe_Original             ;
@@ -323,6 +325,8 @@ extern "C" SteamClient_pfn                    SteamClient_Original              
 
 extern "C" SteamAPI_Shutdown_pfn              SteamAPI_Shutdown                      ;
 extern "C" SteamAPI_Shutdown_pfn              SteamAPI_Shutdown_Original             ;
+
+extern "C" SteamAPI_ISteamInput_Init_pfn      SteamAPI_ISteamInput_Init_Original     ;
 
 extern "C" SteamAPI_GetSteamInstallPath_pfn   SteamAPI_GetSteamInstallPath           ;
 

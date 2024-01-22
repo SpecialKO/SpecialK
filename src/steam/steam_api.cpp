@@ -232,6 +232,9 @@ extern "C" {
 
   SteamAPI_GetSteamInstallPath_pfn
   SteamAPI_GetSteamInstallPath         = nullptr;
+
+  SteamAPI_ISteamInput_Init_pfn
+  SteamAPI_ISteamInput_Init_Original   = nullptr;
 };
 
          LPVOID pfnSteamInternal_CreateInterface = nullptr;
@@ -4004,58 +4007,125 @@ SteamAPI_ManualDispatch_Init_Detour (void)
 
 bool
 S_CALLTYPE
+SteamAPI_ISteamInput_Init_Detour (bool bExplicitlyCallRunFrame)
+{
+  SK_LOG_FIRST_CALL
+
+  if (config.input.gamepad.steam.disabled_to_game)
+  {
+    SK_LOGi0 (L"Blocked game's attempt to initialize Steam Input!");
+
+    return false;
+  }
+
+  return
+    SteamAPI_ISteamInput_Init_Original (bExplicitlyCallRunFrame);
+}
+
+bool
+S_CALLTYPE
 SteamAPI_InitSafe_Detour (void)
 {
-  // In case we already initialized stuff...
-  if (ReadAcquire (&__SK_Steam_init))
-    return SteamAPI_InitSafe_Original ();
+  bool bRet = false;
 
   if (steam_init_cs != nullptr)
       steam_init_cs->lock ();
 
-  static int init_tries = -1;
-
-  if (++init_tries == 0)
+  // In case we already initialized stuff...
+  if (ReadAcquire (&__SK_Steam_init))
   {
-    steam_log->Log ( L"Initializing SteamWorks Backend  << %s >>",
-                   SK_GetCallerName ().c_str () );
-    steam_log->Log (L"----------(InitSafe)-----------\n");
+    bRet = SteamAPI_InitSafe_Original ();
+
+    if (steam_init_cs != nullptr)
+        steam_init_cs->unlock ();
+
+    return bRet;
   }
 
-  bool bRet =
-      SteamAPI_InitSafe_Original ();
+  static volatile LONG init_tries = -1;
+
+  if (InterlockedIncrement (&init_tries) == 0)
+  {
+    steam_log->Log ( L"Initializing SteamWorks Backend  << %s >>",
+                    SK_GetCallerName ().c_str () );
+    steam_log->Log (L"----------(InitSafe)-----------\n");
+  }
+  bool bTempAppIDFile = false;
+
+  bRet = SteamAPI_InitSafe_Original ();
+
+  if (config.steam.appid != 0 && (! bRet))
+  {
+    char szSteamGameId [32] = { };
+
+    DWORD dwSteamGameIdLen =
+      GetEnvironmentVariableA ( "SteamGameId",
+                                  szSteamGameId,
+                                    0x20 );
+
+    FILE* fAppID = nullptr;
+
+    if (GetFileAttributesW (L"steam_appid.txt") == INVALID_FILE_ATTRIBUTES)
+    {
+      fAppID =
+        _wfopen (L"steam_appid.txt", L"w");
+
+      if (fAppID != nullptr)
+      {
+        bTempAppIDFile = true;
+        fputws ( SK_FormatStringW (L"%lu", config.steam.appid).c_str (),
+                fAppID );
+      }
+    }
+
+    if (dwSteamGameIdLen < 3)
+    {
+      SetEnvironmentVariableA (
+        "SteamGameId",
+          std::to_string (config.steam.appid).c_str ()
+      );
+    }
+
+    bRet = SteamAPI_InitSafe_Original ();
+
+    if (bTempAppIDFile && fAppID != nullptr)
+    {
+      fclose        (fAppID);
+
+      if (bRet)
+        DeleteFileW (L"steam_appid.txt");
+    }
+  }
 
   if (bRet)
   {
-    if ( 1 ==
-             InterlockedIncrement (&__SK_Steam_init) )
+    if (1 == InterlockedIncrement (&__SK_Steam_init))
     {
       HMODULE hSteamAPI =
-        SK_Modules->LoadLibraryLL (SK_Steam_GetDLLPath ());
+        SK_GetModuleHandleW (SK_Steam_GetDLLPath ());
 
       SK_SteamAPI_ContextInit (hSteamAPI);
 
       if (ReadAcquire (&__SK_Init) > 0)
         SK_ApplyQueuedHooks ();
 
-      steam_log->Log (
-        L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
-          init_tries + 1,
-            SK::SteamAPI::AppID () );
+      steam_log->Log ( L"--- Initialization Finished (%d tries [AppId: %lu]) ---\n\n",
+                         ReadAcquire (&init_tries) + 1,
+                           SK::SteamAPI::AppID () );
 
       SK_Steam_StartPump (config.steam.force_load_steamapi);
+
+      // Handle situations where Steam was initialized earlier than
+      //   expected...
+      void SK_SteamAPI_InitManagers (void); SK_RunOnce (
+           SK_SteamAPI_InitManagers (    ));
     }
-
-    if (steam_init_cs != nullptr)
-        steam_init_cs->unlock ();
-
-    return true;
   }
 
   if (steam_init_cs != nullptr)
       steam_init_cs->unlock ();
 
-  return false;
+  return bRet;
 }
 
 class SK_SEH_ScopedTranslator
@@ -4108,7 +4178,9 @@ SK_SAFE_SteamAPI_Init (void)
   );
   try {
     bRet =
-      SteamAPI_Init_Original ();
+      SteamAPI_Init_Original != nullptr ?
+      SteamAPI_Init_Original     ()     :
+      SteamAPI_InitSafe_Original ();
   }
   catch (const SK_SEH_IgnoredException&) { }
   SK_SEH_RemoveTranslator (orig_se);
@@ -4343,6 +4415,11 @@ SteamAPI_Delay_Init (LPVOID)
     {
       SteamAPI_Init_Detour ();
     }
+
+    else if (SteamAPI_InitSafe_Original != nullptr)
+    {
+      SteamAPI_InitSafe_Detour ();
+    }
   }
 
   SK_Thread_CloseSelf ();
@@ -4404,17 +4481,37 @@ SK_HookSteamAPI (void)
                           static_cast_p2p <void> (&SteamAPI_ManualDispatch_Init) );      ++hooks;
     }
 
-    SK_CreateDLLHook2 ( wszSteamAPI,
-                       "SteamAPI_InitSafe",
-                        SteamAPI_InitSafe_Detour,
-                        static_cast_p2p <void> (&SteamAPI_InitSafe_Original),
-                        static_cast_p2p <void> (&SteamAPI_InitSafe) );                   ++hooks;
+    // Newer SteamAPI DLLs may not export this symbol, in which case we fallback to InitSafe
+    if (SK_GetProcAddress (wszSteamAPI, "SteamAPI_Init"))
+    {
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                         "SteamAPI_Init",
+                          SteamAPI_Init_Detour,
+                          static_cast_p2p <void> (&SteamAPI_Init_Original),
+                          static_cast_p2p <void> (&SteamAPI_Init) );                     ++hooks;
+    }
 
-    SK_CreateDLLHook2 ( wszSteamAPI,
-                       "SteamAPI_Init",
-                        SteamAPI_Init_Detour,
-                        static_cast_p2p <void> (&SteamAPI_Init_Original),
-                        static_cast_p2p <void> (&SteamAPI_Init) );                       ++hooks;
+    // 1.57 aliases SteamAPI_Init to SteamAPI_InitSafe
+    if ( SK_GetProcAddress (wszSteamAPI, "SteamAPI_Init") != 
+         SK_GetProcAddress (wszSteamAPI, "SteamAPI_InitSafe") )
+    {
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                         "SteamAPI_InitSafe",
+                          SteamAPI_InitSafe_Detour,
+                          static_cast_p2p <void> (&SteamAPI_InitSafe_Original),
+                          static_cast_p2p <void> (&SteamAPI_InitSafe) );                   ++hooks;
+    }
+
+    else
+      SteamAPI_InitSafe_Original = SteamAPI_Init_Original;
+
+    if (SK_GetProcAddress (wszSteamAPI, "SteamAPI_ISteamInput_Init"))
+    {
+      SK_CreateDLLHook2 ( wszSteamAPI,
+                         "SteamAPI_ISteamInput_Init",
+                          SteamAPI_ISteamInput_Init_Detour,
+                          static_cast_p2p <void> (&SteamAPI_ISteamInput_Init_Original)); ++hooks;
+    }
 
     SK_CreateDLLHook2 ( wszSteamAPI,
                        "SteamAPI_RegisterCallback",
