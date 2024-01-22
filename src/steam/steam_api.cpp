@@ -5780,14 +5780,34 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 void
 SK_SteamInput_Unfux0r (void)
 {
-  SK_Thread_CreateEx ([](LPVOID)->DWORD
-  {
-    SK_SleepEx (500UL, FALSE);
-    SK_Steam_ForceInputAppId (0);
-  
-    SK_Thread_CloseSelf ();
-    return 0;
-  }, L"[SK] SteamInput Unfux0r");
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return;
+
+  static SK_AutoHandle hSignal (
+    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr)
+  );
+
+  static HANDLE hThread =
+    SK_Thread_CreateEx ([](LPVOID)->DWORD
+    {
+      const HANDLE events [] =
+      { __SK_DLL_TeardownEvent, hSignal };
+
+      while ( WAIT_OBJECT_0 !=
+                WaitForMultipleObjects (
+                  _countof (events),
+                            events, FALSE, INFINITE ) )
+      {
+        SK_SleepEx               (500UL, FALSE);
+        SK_Steam_ForceInputAppId (0);
+      }
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] SteamInput Unfux0r");
+
+  SetEvent (hSignal);
 }
 
 void

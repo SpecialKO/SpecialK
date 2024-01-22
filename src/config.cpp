@@ -3297,7 +3297,9 @@ auto DeclKeybind =
 
       case SK_GAME_ID::MonsterHunterRise:
         // DLAA produces a black screen w/o this
-        config.nvidia.dlss.compat.extra_pixels = -2;
+        config.nvidia.dlss.compat.extra_pixels   = -2;
+        // Allow non-D presets
+        config.nvidia.dlss.compat.override_appid = 0x24480451;
         break;
 #endif
       case SK_GAME_ID::Disgaea5:
