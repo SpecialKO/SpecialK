@@ -1428,6 +1428,8 @@ enum class SK_GAME_ID
   YakuzaUnderflow,              // Yakuza*.exe
   YakuzaLikeADragonGaiden,      // LikeADragonGaiden.exe
   MonsterHunterWorld,           // MonsterHunterWorld.exe
+  MonsterHunterStories2,        // game.exe (fantastic!)
+  MonsterHunterRise,            // MonsterHunterRise.exe
   Shenmue,                      // Shenmue.exe
   DragonQuestXI,                // DRAGON QUEST XI.exe
   AssassinsCreed_Odyssey,       // ACOdyssey.exe
@@ -1451,7 +1453,6 @@ enum class SK_GAME_ID
   NieR_Sqrt_1_5,                // NieR Replicant ver.1.22474487139.exe
   ResidentEvil8,                // re8.exe
   LegendOfMana,                 // Legend Of Mana.exe
-  MonsterHunterStories2,        // game.exe (fantastic),
   FarCry6,                      // FarCry6.exe
   Ryujinx,                      // Ryujinx.exe
   yuzu,                         // yuzu.exe

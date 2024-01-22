@@ -179,6 +179,7 @@ SK_GetCurrentGameID (void)
           { L"YakuzaKiwami2.exe",                      SK_GAME_ID::YakuzaKiwami2                },
           { L"LikeADragonGaiden.exe",                  SK_GAME_ID::YakuzaLikeADragonGaiden      },
           { L"MonsterHunterWorld.exe",                 SK_GAME_ID::MonsterHunterWorld           },
+          { L"MonsterHunterRise.exe",                  SK_GAME_ID::MonsterHunterRise            },
           { L"Shenmue.exe",                            SK_GAME_ID::Shenmue                      },
           { L"Shenmue2.exe",                           SK_GAME_ID::Shenmue                      },
           { L"SteamLauncher.exe",                      SK_GAME_ID::Launcher                     },
@@ -3292,6 +3293,11 @@ auto DeclKeybind =
 
         SK_D3D11_DeclHUDShader_Vtx (0x71532076);
         SK_D3D11_DeclHUDShader_Vtx (0x90c7c88b);
+        break;
+
+      case SK_GAME_ID::MonsterHunterRise:
+        // DLAA produces a black screen w/o this
+        config.nvidia.dlss.compat.extra_pixels = -2;
         break;
 #endif
       case SK_GAME_ID::Disgaea5:
