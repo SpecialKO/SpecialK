@@ -525,29 +525,35 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     if (pDevCtx->Map (_P->pPixelConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
       return;
 
-    ((float *)mapped_resource.pData)[2] = hdr_display ? (float)backbuffer_desc.Width  : 0.0f;
-    ((float *)mapped_resource.pData)[3] = hdr_display ? (float)backbuffer_desc.Height : 0.0f;
+    float pixel_cb_data [8] = {               0.0f, 0.0f,
+      hdr_display ? (float)backbuffer_desc.Width  : 0.0f,
+      hdr_display ? (float)backbuffer_desc.Height : 0.0f,
+                                              0.0f, 0.0f,
+                                              0.0f, 0.0f
+    };
 
+#if 0
     D3D11_TEXTURE2D_DESC       tex2d_desc = { };
     _P->pBackBuffer->GetDesc (&tex2d_desc);
 
     // For temporarily disabled Linear sRGB mode
-    ((float *)mapped_resource.pData)[4] = 0.0F;//DirectX::MakeTypeless (tex2d_desc.Format) == DXGI_FORMAT_R8G8B8A8_TYPELESS ? (float)1.0f :
-                                               //DirectX::MakeTypeless (tex2d_desc.Format) == DXGI_FORMAT_B8G8R8A8_TYPELESS ? (float)1.0f : 0.0f;
-    ((float *)mapped_resource.pData)[6] = 0.0F;
-    ((float *)mapped_resource.pData)[7] = 0.0F;
+    pixel_cb_data [4] = 0.0F;//DirectX::MakeTypeless (tex2d_desc.Format) == DXGI_FORMAT_R8G8B8A8_TYPELESS ? (float)1.0f :
+                             //DirectX::MakeTypeless (tex2d_desc.Format) == DXGI_FORMAT_B8G8R8A8_TYPELESS ? (float)1.0f : 0.0f;
+#endif
+
+    std::copy_n (pixel_cb_data, 8, (float *)mapped_resource.pData);
 
     pDevCtx->Unmap (_P->pPixelConstantBuffer, 0);
 
     if (pDevCtx->Map (_P->pPixelConstantBufferFont, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped_resource) != S_OK)
       return;
 
-    ((float *)mapped_resource.pData)[2] = hdr_display ? (float)backbuffer_desc.Width  : 0.0f;
-    ((float *)mapped_resource.pData)[3] = hdr_display ? (float)backbuffer_desc.Height : 0.0f;
-    ((float *)mapped_resource.pData)[6] = (float)io.Fonts->TexWidth;
-    ((float *)mapped_resource.pData)[7] = (float)io.Fonts->TexHeight;
+    pixel_cb_data [6] = static_cast <float> (io.Fonts->TexWidth);
+    pixel_cb_data [7] = static_cast <float> (io.Fonts->TexHeight);
 
-    pDevCtx->Unmap (_P->pPixelConstantBuffer, 0);
+    std::copy_n (pixel_cb_data, 8, (float *)mapped_resource.pData);
+
+    pDevCtx->Unmap (_P->pPixelConstantBufferFont, 0);
   }
 
   // pcmd->TextureId may not point to a valid object anymore, so we do this...

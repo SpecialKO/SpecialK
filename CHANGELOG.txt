@@ -1,13 +1,12 @@
-﻿24.1.22.3
+﻿24.1.22.x
 =========
- + Fixed accidental early-return in SK_Steam_ForceInputAppId (AppId64_t appid);
-
-24.1.22.2
-=========
- + Update SteamAPI compatibility to SDK v1.57 (full) + 1.58a (partial/broken?!)
+ [.4] + Fixed flickering UI in some D3D11 games
+ [.3] + Fixed accidental early-return in SK_Steam_ForceInputAppId (AppId64_t appid);
+ [.2] + Update SteamAPI compatibility to SDK v1.57 (full) + 1.58a (partial/broken?!)
 
 24.1.22.1
 =========
+ + Update SteamAPI compatibility to SDK v1.57 (full) + 1.58a (partial/broken?!)
  + Added compatibility with "Enigma Protector" games; you must launch them
      at least one time as a normal game, not using SKIF's "Instant Play".
 
