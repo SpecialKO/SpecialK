@@ -449,6 +449,9 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
                                                                      L"No" ),
               __SK_SUBSYSTEM__ );
 
+  // We don't care what the game wants, we're filling-in default values dammit!
+  pHdrCapabilities->driverExpandDefaultHdrParameters = true;
+
   NvAPI_Status ret =
     NvAPI_Disp_GetHdrCapabilities_Original ( displayId, pHdrCapabilities );
 
@@ -485,12 +488,12 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
         (float)pHdrCapabilities->display_data.displayPrimary_x1   / (float)0xC350, (float)pHdrCapabilities->display_data.displayPrimary_y1   / (float)0xC350,
         (float)pHdrCapabilities->display_data.displayPrimary_x2   / (float)0xC350, (float)pHdrCapabilities->display_data.displayPrimary_y2   / (float)0xC350,
         (float)pHdrCapabilities->display_data.displayWhitePoint_x / (float)0xC350, (float)pHdrCapabilities->display_data.displayWhitePoint_y / (float)0xC350,
-       ((float)pHdrCapabilities->display_data.desired_content_min_luminance               / (float)0xFFFF) * 6.55350f,
-       ((float)pHdrCapabilities->display_data.desired_content_max_luminance               / (float)0xFFFF) * 65535.0f,
-       ((float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance / (float)0xFFFF) * 65535.0f,
+        (float)pHdrCapabilities->display_data.desired_content_min_luminance * 0.0001f,
+        (float)pHdrCapabilities->display_data.desired_content_max_luminance,
+        (float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance,
                pBackendDisplay != nullptr ?
                pBackendDisplay->hdr.white_level : 
-       ((float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance / (float)0xFFFF) * 65535.0f,
+        (float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance,
                pHdrCapabilities->isST2084EotfSupported                          ? L"Yes" : L"No",
                pHdrCapabilities->isTraditionalHdrGammaSupported                 ? L"Yes" : L"No",
                pHdrCapabilities->isTraditionalSdrGammaSupported                 ? L"Yes" : L"No",
@@ -711,11 +714,12 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
   //SK_LOG0 ( ( L"NV_HDR_COLOR_DATA Version: %lu", pHdrColorData->version ),
   //            __SK_SUBSYSTEM__ );
-  SK_LOG0 ( ( L"<%s> HDR Mode:    %hs",pHdrColorData->cmd == NV_HDR_CMD_GET    ? //-V547
+  SK_LOG0 ( ( L"<%s> %hs%hs",pHdrColorData->cmd == NV_HDR_CMD_GET    ?
                                                         L"Get"                 :
                                        pHdrColorData->cmd == NV_HDR_CMD_SET    ?
                                                         L"Set"                 : L"Unknown",
-                                       HDRModeToStr (pHdrColorData->hdrMode) ),
+  pHdrColorData->cmd == NV_HDR_CMD_SET ? "HDR Mode:    "                       : " ",
+  pHdrColorData->cmd == NV_HDR_CMD_SET ? HDRModeToStr (pHdrColorData->hdrMode) : " " ),
               __SK_SUBSYSTEM__ );
 
   const bool sk_is_overriding_hdr =
@@ -852,6 +856,8 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
           { L"Limited",    NV_DYNAMIC_RANGE_CEA   },
           { L"Don't Care", NV_DYNAMIC_RANGE_AUTO  } };
 
+    SK_LOGi0 ( L"HDR:  Mode: %hs", HDRModeToStr (pHdrColorData->hdrMode) );
+
     SK_LOG0 ( ( L"HDR:  Max Master Luma: %7.1f, Min Master Luma: %7.5f",
       static_cast <double> (pHdrColorData->mastering_display_data.max_display_mastering_luminance),
       static_cast <double> (
@@ -876,14 +882,14 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   void
   {
     rb.working_gamut.maxY =
-     ((float)pHdrColorData->mastering_display_data.max_display_mastering_luminance / (float)0xFFFF) * 65535.0f;
+     (float)pHdrColorData->mastering_display_data.max_display_mastering_luminance;
     rb.working_gamut.minY =
-     ((float)pHdrColorData->mastering_display_data.min_display_mastering_luminance / (float)0xFFFF) * 6.55350f;
+     (float)pHdrColorData->mastering_display_data.min_display_mastering_luminance / 1000.0f;
 
     rb.working_gamut.maxLocalY   =
-     ((float)(pHdrColorData->mastering_display_data.max_content_light_level)       / (float)0xFFFF) * 65535.0f;
+     (float)pHdrColorData->mastering_display_data.max_content_light_level;
     rb.working_gamut.maxAverageY =
-     ((float)(pHdrColorData->mastering_display_data.max_frame_average_light_level) / (float)0xFFFF) * 65535.0f;
+     (float)pHdrColorData->mastering_display_data.max_frame_average_light_level;
 
     rb.working_gamut.xr = (float)pHdrColorData->mastering_display_data.displayPrimary_x0 /
                           (float)50000.0f;
@@ -1061,6 +1067,58 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
   if (pHdrColorData->cmd == NV_HDR_CMD_GET)
   {
+    colorCheck         = { };
+    colorCheck.version = NV_COLOR_DATA_VER;
+    colorCheck.size    = sizeof (NV_COLOR_DATA);
+    colorCheck.cmd     = NV_COLOR_CMD_GET_DEFAULT;
+
+    // Fill-in default values if needed...
+    if ( NVAPI_OK == NvAPI_Disp_ColorControl_Original (displayId, &colorCheck) )
+    {
+      NV_HDR_CAPABILITIES
+          hdrCapabilities                                  = { };
+      {
+          hdrCapabilities.version                          = NV_HDR_CAPABILITIES_VER3;
+          hdrCapabilities.driverExpandDefaultHdrParameters = true;
+
+        std::lock_guard
+             lock2 (SK_NvAPI_Threading->locks.Disp_GetHdrCapabilities);
+
+        NvAPI_Disp_GetHdrCapabilities_Original (displayId, &hdrCapabilities);
+      }
+
+      if (pHdrColorData->hdrBpc == NV_BPC_DEFAULT)
+          pHdrColorData->hdrBpc  = colorCheck.data.bpc;
+
+      if (pHdrColorData->hdrColorFormat == NV_COLOR_FORMAT_DEFAULT)
+          pHdrColorData->hdrColorFormat  = (NV_COLOR_FORMAT)colorCheck.data.colorFormat;
+
+      if (pHdrColorData->hdrDynamicRange == NV_DYNAMIC_RANGE_AUTO)
+          pHdrColorData->hdrDynamicRange  = (NV_DYNAMIC_RANGE)colorCheck.data.dynamicRange;
+
+      if (pHdrColorData->mastering_display_data.displayPrimary_x0 == 0)
+      {
+        pHdrColorData->mastering_display_data.displayPrimary_x0               = hdrCapabilities.display_data.displayPrimary_x0;
+        pHdrColorData->mastering_display_data.displayPrimary_x1               = hdrCapabilities.display_data.displayPrimary_x1;
+        pHdrColorData->mastering_display_data.displayPrimary_x2               = hdrCapabilities.display_data.displayPrimary_x2;
+        pHdrColorData->mastering_display_data.displayPrimary_y0               = hdrCapabilities.display_data.displayPrimary_y0;
+        pHdrColorData->mastering_display_data.displayPrimary_y1               = hdrCapabilities.display_data.displayPrimary_y1;
+        pHdrColorData->mastering_display_data.displayPrimary_y2               = hdrCapabilities.display_data.displayPrimary_y2;
+        pHdrColorData->mastering_display_data.displayWhitePoint_x             = hdrCapabilities.display_data.displayWhitePoint_x;
+        pHdrColorData->mastering_display_data.displayWhitePoint_y             = hdrCapabilities.display_data.displayWhitePoint_y;
+        pHdrColorData->mastering_display_data.max_content_light_level         = hdrCapabilities.display_data.desired_content_max_luminance;
+        pHdrColorData->mastering_display_data.max_display_mastering_luminance = hdrCapabilities.display_data.desired_content_max_luminance;
+        pHdrColorData->mastering_display_data.min_display_mastering_luminance = hdrCapabilities.display_data.desired_content_min_luminance;
+        pHdrColorData->mastering_display_data.max_frame_average_light_level   = hdrCapabilities.display_data.desired_content_max_frame_average_luminance;
+      }
+    }
+
+    // If we are overriding, then we need to lie to the game... NVAPI would report OFF
+    //   even though we've got HDR turned on using DXGI.
+    pHdrColorData->hdrMode = (__SK_HDR_16BitSwap ? NV_HDR_MODE_UHDA :
+                              __SK_HDR_10BitSwap ? NV_HDR_MODE_UHDA_PASSTHROUGH
+                                                 : pHdrColorData->hdrMode);
+
     _LogGameRequestedValues ();
 
     if (ret == NVAPI_OK)
@@ -1077,9 +1135,10 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     }
   }
 
-  if (inputData->version == NV_HDR_COLOR_DATA_VER1)
+  if (inputData->version == NV_HDR_COLOR_DATA_VER1 ||
+      inputData->version == NV_HDR_COLOR_DATA_VER2)
   {
-    inputData->hdrMode                       = pHdrColorData->hdrMode;
+    inputData->hdrMode = NV_HDR_MODE_OFF;// pHdrColorData->hdrMode;
 
     memcpy (  &inputData->mastering_display_data,
           &pHdrColorData->mastering_display_data,
@@ -1087,6 +1146,13 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 
     inputData->static_metadata_descriptor_id =
       pHdrColorData->static_metadata_descriptor_id;
+
+    if (inputData->version == NV_HDR_COLOR_DATA_VER2)
+    {
+      ((NV_HDR_COLOR_DATA_V2 *)inputData)->hdrBpc          = pHdrColorData->hdrBpc;
+      ((NV_HDR_COLOR_DATA_V2 *)inputData)->hdrColorFormat  = pHdrColorData->hdrColorFormat;
+      ((NV_HDR_COLOR_DATA_V2 *)inputData)->hdrDynamicRange = pHdrColorData->hdrDynamicRange;
+    }
   }
 
   return ret;
