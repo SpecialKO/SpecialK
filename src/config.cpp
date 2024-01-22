@@ -2553,13 +2553,32 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::NiNoKuni2:
-        config.window.treat_fg_as_active      = true;
-        config.window.background_render       = true;
-        config.nvidia.bugs.kill_hdr           = true; // No deadlock please
+      {
+        config.render.dxgi.fake_fullscreen_mode = true; // For HDR to work
+        config.window.treat_fg_as_active        = true;
+        config.window.background_render         = true;
+
+        uintptr_t hdr_branch_addr =
+          (uintptr_t)SK_Debug_GetImageBaseAddr () + 0x469c4e;
+
+        if (SK_IsAddressExecutable ((void *)hdr_branch_addr, true))
+        {
+          // Unconditional jump needed, or the game will infinitely set HDR mode
+          if (*(uint8_t *)hdr_branch_addr == 0x74)
+          {
+            SK_LOGi0 (L"Patching NiNoKuni2's NvAPI HDR Bug...");
+
+            DWORD dwOrigProt =                              PAGE_EXECUTE_READ;
+            if (VirtualProtect ((LPVOID)hdr_branch_addr, 1, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+            {               *(uint8_t *)hdr_branch_addr = 0xeb;
+                VirtualProtect ((LPVOID)hdr_branch_addr, 1, dwOrigProt,             &dwOrigProt);
+            }
+          }
+        }
 
         // Evaluate deferred command lists for state tracking
-        config.render.dxgi.deferred_isolation = true;
-        break;
+        config.render.dxgi.deferred_isolation   = true;
+      } break;
 
       case SK_GAME_ID::PillarsOfEternity2:
         config.textures.cache.ignore_nonmipped    = true;

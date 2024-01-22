@@ -1,4 +1,13 @@
-﻿24.1.21.3
+﻿24.1.22
+=======
+ + Automatically patch Ni No Kuni2's NvAPI HDR bug on affected versions;
+     though its native HDR is terrible and you should not use it!
+ + Modified hook on NvAPI_Disp_HdrColorControl <Get> to return DXGI's
+     HDR mode rather than NVAPI's (which requires FSE).
+ + Slightly reduced dbghelp memory usage if crash handler is disabled;
+     probably only significant in 32-bit games with lots of mods.
+
+24.1.21.3
 =========
  + Add SWP_ASYNCWINDOWPOS to SetWindowPos hook if called on the game's window
      from a thread that does not own that window (fixes Disgaea PC deadlock)
