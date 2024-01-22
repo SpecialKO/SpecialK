@@ -1,4 +1,15 @@
-﻿24.1.22
+﻿24.1.22.1
+=========
+ + Added compatibility with "Enigma Protector" games; you must launch them
+     at least one time as a normal game, not using SKIF's "Instant Play".
+
+   >> Reset your INI for said game if you have already run a game that
+        was recently patched to include CAPCOM's stupid new toy.
+
+ + Fixed HDR presets occasionally switching to Raw Framebuffer mode if a
+     game turns HDR off while SK is overriding HDR.
+
+24.1.22
 =======
  + Automatically patch Ni No Kuni2's NvAPI HDR bug on affected versions;
      though its native HDR is terrible and you should not use it!

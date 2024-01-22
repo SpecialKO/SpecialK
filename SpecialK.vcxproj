@@ -184,6 +184,7 @@
       <ErrorReporting>Send</ErrorReporting>
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
       <SupportJustMyCode>false</SupportJustMyCode>
+      <UseFullPaths>false</UseFullPaths>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -215,6 +216,8 @@
       <AdditionalOptions>/GUARD:NO /IGNORE:4099,4286 %(AdditionalOptions)</AdditionalOptions>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <CETCompat>false</CETCompat>
+      <StackReserveSize>0x200000</StackReserveSize>
+      <StackCommitSize>0x4000</StackCommitSize>
     </Link>
     <ProjectReference />
     <Manifest>
@@ -297,6 +300,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <SupportJustMyCode>false</SupportJustMyCode>
+      <UseFullPaths>false</UseFullPaths>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -328,6 +332,8 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <AdditionalOptions>/GUARD:NO /IGNORE:4099,4286 %(AdditionalOptions)</AdditionalOptions>
       <RandomizedBaseAddress>false</RandomizedBaseAddress>
       <CETCompat>false</CETCompat>
+      <StackReserveSize>0x200000</StackReserveSize>
+      <StackCommitSize>0x4000</StackCommitSize>
     </Link>
     <ProjectReference />
     <ResourceCompile>
@@ -371,7 +377,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <CallingConvention>Cdecl</CallingConvention>
       <EnablePREfast>false</EnablePREfast>
-      <UseFullPaths>true</UseFullPaths>
+      <UseFullPaths>false</UseFullPaths>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ControlFlowGuard>false</ControlFlowGuard>
       <ExpandAttributedSource>false</ExpandAttributedSource>
@@ -393,7 +399,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <UndefinePreprocessorDefinitions>DECLSPEC_NOINITALL,min,max</UndefinePreprocessorDefinitions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnableModules>false</EnableModules>
-      <AdditionalOptions>/GS- /Gs4096 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- /QIntel-jcc-erratum</AdditionalOptions>
+      <AdditionalOptions>/GS- /Gs8192 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- /QIntel-jcc-erratum</AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <PrecompiledHeaderFile>SpecialK/stdafx.h</PrecompiledHeaderFile>
       <ShowIncludes>false</ShowIncludes>
@@ -452,6 +458,8 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <SectionAlignment>
       </SectionAlignment>
       <ShowProgress>LinkVerboseSAFESEH</ShowProgress>
+      <StackReserveSize>0x200000</StackReserveSize>
+      <StackCommitSize>0x4000</StackCommitSize>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -503,13 +511,13 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <LanguageStandard>stdcpp20</LanguageStandard>
       <DisableSpecificWarnings>4201;4702;4061</DisableSpecificWarnings>
       <StringPooling>true</StringPooling>
-      <UseFullPaths>true</UseFullPaths>
+      <UseFullPaths>false</UseFullPaths>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>DECLSPEC_NOINITALL,min,max</UndefinePreprocessorDefinitions>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
-      <AdditionalOptions>/GS- /Gs4096 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- /QIntel-jcc-erratum</AdditionalOptions>
+      <AdditionalOptions>/GS- /Gs8192 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- /QIntel-jcc-erratum</AdditionalOptions>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -575,6 +583,8 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <SectionAlignment>
       </SectionAlignment>
       <ShowProgress>LinkVerboseSAFESEH</ShowProgress>
+      <StackReserveSize>0x200000</StackReserveSize>
+      <StackCommitSize>0x4000</StackCommitSize>
     </Link>
     <ProjectReference />
     <PostBuildEvent>

@@ -4931,28 +4931,43 @@ auto DeclKeybind =
     if (config.compatibility.using_wine)
         config.platform.silent = true;
 
-    if (! config.platform.silent)
-    {     config.platform.silent =
-            !((PathFileExistsW (                  wszSteamAPIDll)
-             &&PathFileExistsW (               wszKaldaienAPIDll))||
-              (SK_CreateDirectories (L"kaldaien_api/") &&
-               CopyFile        (        wszSteamAPIDll,
-                                     wszKaldaienAPIDll, FALSE)));
+    if (PathFileExistsW (wszSteamAPIDll))
+    {
+      if (! config.platform.silent)
+      {     config.platform.silent =
+              !((PathFileExistsW (                  wszSteamAPIDll)
+               &&PathFileExistsW (               wszKaldaienAPIDll))||
+                (PathFileExistsW (                  wszSteamAPIDll)&&
+                 SK_CreateDirectories (L"kaldaien_api/") &&
+                 CopyFile        (        wszSteamAPIDll,
+                                       wszKaldaienAPIDll, FALSE)));
+      }
+
+      if (! config.platform.silent )
+      {if(! config.steam.crapcom_mode )
+        {   config.steam.auto_inject         =    true;
+            config.steam.auto_pump_callbacks =    true;
+            config.steam.force_load_steamapi =    true;
+            config.steam.preload_client      =    true;
+            config.steam.preload_overlay     =    true;
+            config.steam.init_delay          =      -1;
+            config.platform.silent           =   false;
+            config.steam.dll_path            =  wszKaldaienAPIDll;
+        }   config.steam.crapcom_mode        =    true;
+      }else{config.steam.crapcom_mode        =   false;
+            config.steam.dll_path            =     L"";}
     }
 
-    if (! config.platform.silent )
-    {if(! config.steam.crapcom_mode )
-      {   config.steam.auto_inject         =    true;
-          config.steam.auto_pump_callbacks =    true;
-          config.steam.force_load_steamapi =    true;
-          config.steam.preload_client      =    true;
-          config.steam.preload_overlay     =    true;
-          config.steam.init_delay          =      -1;
-          config.platform.silent           =   false;
-          config.steam.dll_path            =  wszKaldaienAPIDll;
-      }   config.steam.crapcom_mode        =    true;
-    }else{config.steam.crapcom_mode        =   false;
-          config.steam.dll_path            =     L"";}
+    else
+    {
+      config.steam.preload_client  = true;
+      config.steam.preload_overlay = true;
+
+      // Setup to use SK's own Steamworks DLL because Enigma Protector packs
+      //   the game's SteamAPI DLL into its encrypted payload
+      if ((! config.platform.silent) && config.steam.dll_path.empty ())
+        SteamAPI_ManualDispatch_Init_Detour ();
+    }
   }
 
 

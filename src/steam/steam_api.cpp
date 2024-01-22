@@ -2905,13 +2905,22 @@ SK_Steam_UpdateGlobalAchievements (void)
 
 void TryRunCallbacksSEH (void)
 {
+  static bool failed = false;
+
+  if (failed)
+    return;
+
   __try {
     if (SteamAPI_RunCallbacks_Original != nullptr)
         SteamAPI_RunCallbacks_Original ();
   }
-  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ?
-                                    EXCEPTION_EXECUTE_HANDLER  :
-                                    EXCEPTION_CONTINUE_SEARCH ) {
+  __except ( EXCEPTION_EXECUTE_HANDLER ) {
+    failed = true;
+
+    SK_LOGi0 (
+      L"Caught a Structured Exception (%x) during SteamAPI_RunCallbacks; stopping callbacks!",
+        GetExceptionCode ()
+    );
   }
 }
 
