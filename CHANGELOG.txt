@@ -1,4 +1,8 @@
-﻿24.1.22.2
+﻿24.1.22.3
+=========
+ + Fixed accidental early-return in SK_Steam_ForceInputAppId (AppId64_t appid);
+
+24.1.22.2
 =========
  + Update SteamAPI compatibility to SDK v1.57 (full) + 1.58a (partial/broken?!)
 

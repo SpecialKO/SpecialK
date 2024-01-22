@@ -5652,8 +5652,6 @@ SK_Steam_IsClientRunning (void)
 void
 SK_Steam_ForceInputAppId (AppId64_t appid)
 {
-  return;
-
   if (config.platform.silent)
     return;
 
