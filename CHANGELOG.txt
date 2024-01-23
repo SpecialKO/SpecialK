@@ -1,4 +1,14 @@
-﻿24.1.23
+﻿24.1.23.1
+=========
+ + Added option to prevent games from changing your display's refresh rate
+
+    [Display.Output]
+    AllowRefreshRateChanges={true|false}  Default: true
+
+   * This setting is also available in the Fullscreen Setup menu
+       (right-click Display Resolution status text)
+
+24.1.23
 =======
  + Give "Fake Fullscreen" mode implicit "Multitasking-on-Top" behavior if user
      has not configured a window layering preference

@@ -4725,6 +4725,10 @@ SK_DXGI_CreateSwapChain_PreInit (
     }
 
 
+    bool fake_fullscreen =
+      SK_GetCurrentRenderBackend ().isFakeFullscreen ();
+
+
     // Dummy init swapchains (i.e. 1x1 pixel) should not have
     //   override parameters applied or it's usually fatal.
     bool no_override = (! SK_DXGI_IsSwapChainReal (*pDesc));
@@ -4746,25 +4750,41 @@ SK_DXGI_CreateSwapChain_PreInit (
         pDesc->Windowed = FALSE;
       }
 
-      if ((! config.window.background_render) && config.display.force_fullscreen && pDesc->Windowed)
+      if (! config.render.dxgi.fake_fullscreen_mode)
       {
-        SK_LOGi0 ( L" >> Display Override "
-                   L"(Requested: Windowed, Using: Fullscreen)" );
-
-        pDesc->Windowed = FALSE;
-      }
-
-      else if ((config.window.background_render || config.display.force_windowed) && pDesc->Windowed == FALSE)
-      {
-        // If the chain desc is setup for Windowed, we need an
-        //   OutputWindow or we cannot override this...
-        //
-        if (          (pDesc->OutputWindow != 0) &&
-             IsWindow (pDesc->OutputWindow)
-           )
+        if ((! config.window.background_render) && config.display.force_fullscreen && pDesc->Windowed)
         {
           SK_LOGi0 ( L" >> Display Override "
-                     L"(Requested: Fullscreen, Using: Windowed)" );
+                     L"(Requested: Windowed, Using: Fullscreen)" );
+
+          pDesc->Windowed = FALSE;
+        }
+
+        else if ((config.window.background_render || config.display.force_windowed) && pDesc->Windowed == FALSE)
+        {
+          // If the chain desc is setup for Windowed, we need an
+          //   OutputWindow or we cannot override this...
+          //
+          if (          (pDesc->OutputWindow != 0) &&
+               IsWindow (pDesc->OutputWindow)
+             )
+          {
+            SK_LOGi0 ( L" >> Display Override "
+                       L"(Requested: Fullscreen, Using: Windowed)" );
+
+            pDesc->Windowed = TRUE;
+          }
+        }
+      }
+
+      else
+      {
+        if (pDesc->Windowed == FALSE)
+        {
+          fake_fullscreen = true;
+
+          SK_LOGi0 ( L" >> Display Override "
+                     L"(Requested: Fullscreen, Using: Fake Fullscreen)" );
 
           pDesc->Windowed = TRUE;
         }
@@ -4900,6 +4920,21 @@ SK_DXGI_CreateSwapChain_PreInit (
 
         pDesc->BufferDesc.ScanlineOrdering =
           (DXGI_MODE_SCANLINE_ORDER)config.render.dxgi.scanline_order;
+      }
+
+      if (! config.display.allow_refresh_change)
+      {
+        if (pDesc->BufferDesc.RefreshRate.Denominator != 0)
+        {
+          SK_LOGi0 (
+            L" >> Ignoring Requested Refresh Rate (%4.2f Hz)...",
+              static_cast <float> (pDesc->BufferDesc.RefreshRate.Numerator) /
+              static_cast <float> (pDesc->BufferDesc.RefreshRate.Denominator)
+          );
+
+          pDesc->BufferDesc.RefreshRate.Numerator   = 0;
+          pDesc->BufferDesc.RefreshRate.Denominator = 0;
+        }
       }
 
       if ( config.render.framerate.rescan_.Denom   !=  1 ||
@@ -5038,9 +5073,6 @@ SK_DXGI_CreateSwapChain_PreInit (
           SK_LOGi0 (L"  >> Will Not Clear SwapChain Backbuffer After Present");
       }
     }
-
-    const bool fake_fullscreen =
-      SK_GetCurrentRenderBackend ().isFakeFullscreen ();
 
     bool borderless = config.window.borderless || fake_fullscreen;
     bool fullscreen = config.window.fullscreen || fake_fullscreen;

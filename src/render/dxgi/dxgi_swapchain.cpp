@@ -2367,6 +2367,21 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
 
   bool borderless = config.window.borderless || rb.isFakeFullscreen ();
 
+  if (! config.display.allow_refresh_change)
+  {
+    if (new_new_params.RefreshRate.Denominator != 0)
+    {
+      SK_LOGi0 (
+        L" >> Ignoring Requested Refresh Rate (%4.2f Hz)...",
+          static_cast <float> (new_new_params.RefreshRate.Numerator) /
+          static_cast <float> (new_new_params.RefreshRate.Denominator)
+      );
+
+      new_new_params.RefreshRate.Numerator   = 0;
+      new_new_params.RefreshRate.Denominator = 0;
+    }
+  }
+
   // I don't remember why borderless is included here :)
   if ( borderless ||
        ( config.render.dxgi.scaling_mode != SK_NoPreference &&

@@ -775,6 +775,7 @@ struct sk_config_t
     float     refresh_rate         =  0.0F;
     bool      force_fullscreen     = false;
     bool      force_windowed       = false;
+    bool      allow_refresh_change =  true;
     bool      aspect_ratio_stretch = false;
     bool      confirm_mode_changes = true;
     bool      save_monitor_prefs   = true;

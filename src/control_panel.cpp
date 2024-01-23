@@ -2937,7 +2937,7 @@ SK_DXGI_FullscreenControlPanel (void)
 {
   if (ImGui::BeginPopup ("DXGI Fullscreen Control Panel"))
   {
-    ImGui::TextUnformatted ("D3D11/D3D12 Fullscreen Setup (Experimental)");
+    ImGui::TextUnformatted ("D3D11 / D3D12 Fullscreen Setup\t(Experimental)");
 
     ImGui::TreePush ("");
 
@@ -2950,6 +2950,16 @@ SK_DXGI_FullscreenControlPanel (void)
     if (ImGui::IsItemHovered ())
     {
       ImGui::SetTooltip ("For resolutions at or lower than your desktop, prevent TRUE fullscreen from engaging.");
+    }
+
+    if (ImGui::Checkbox ("Allow Refresh Rate Changes", &config.display.allow_refresh_change))
+    {
+      ImGui::CloseCurrentPopup ();
+    }
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::SetTooltip ("If disallowed, SK will use your desktop's refresh rate to avoid display mode changes.");
     }
 
     ImGui::TreePop  ();

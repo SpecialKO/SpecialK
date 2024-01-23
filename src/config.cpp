@@ -897,6 +897,7 @@ struct {
   sk::ParameterBool*      save_monitor_prefs      = nullptr;
   sk::ParameterBool*      warn_no_mpo_planes      = nullptr;
   sk::ParameterBool*      save_resolution         = nullptr;
+  sk::ParameterBool*      allow_refresh_change    = nullptr;
   sk::ParameterStringW*   override_resolution     = nullptr;
   sk::ParameterFloat*     override_refresh        = nullptr;
   sk::ParameterBool*      force_10bpc_sdr         = nullptr;
@@ -1657,6 +1658,7 @@ auto DeclKeybind =
     ConfigEntry (display.force_windowed,                 L"Force Windowed Mode",                                       dll_ini,         L"Display.Output",        L"ForceWindowed"),
     ConfigEntry (display.force_10bpc_sdr,                L"Force 10-bpc (SDR) Output",                                 dll_ini,         L"Display.Output",        L"Force10bpcSDR"),
     ConfigEntry (display.aspect_ratio_stretch,           L"Fill monitor background (eg. black bars) in windowed mode", dll_ini,         L"Display.Output",        L"AspectRatioStretch"),
+    ConfigEntry (display.allow_refresh_change,           L"Allow Current Game to change Refresh Rate",                 dll_ini,         L"Display.Output",        L"AllowRefreshRateChanges"),
 
 
     // Framerate Limiter
@@ -3577,8 +3579,8 @@ auto DeclKeybind =
       ;
     }
 
-    display.override_refresh->load (config.display.refresh_rate);
-  }
+    display.override_refresh->load          (config.display.refresh_rate);
+  } display.allow_refresh_change->load      (config.display.allow_refresh_change);
 
   if (config.apis.NvAPI.vulkan_bridge)
   {
@@ -5542,6 +5544,7 @@ SK_SaveConfig ( std::wstring name,
   display.save_monitor_prefs->store           (config.display.save_monitor_prefs);
   display.save_resolution->store              (config.display.resolution.save);
   display.warn_no_mpo_planes->store           (config.display.warn_no_mpo_planes);
+  display.allow_refresh_change->store         (config.display.allow_refresh_change);
 
   if ((! config.display.resolution.override.isZero ()) || config.display.resolution.save)
   {

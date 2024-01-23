@@ -4244,6 +4244,17 @@ ChangeDisplaySettingsExA_Detour (
     return DISP_CHANGE_SUCCESSFUL;
 
 
+  if (! config.display.allow_refresh_change)
+  {
+    if (lpDevMode && (lpDevMode->dmFields & DM_DISPLAYFREQUENCY) != 0x0)
+    {
+      SK_LOGi0 (L"Ignoring Requested Refresh Rate (ChangeDisplaySettingsExA)");
+
+      lpDevMode->dmFields &= ~DM_DISPLAYFREQUENCY;
+    }
+  }
+
+
   // NOP this sucker, we have borderless flip model in GL!
   if (config.render.gl.disable_fullscreen && config.apis.dxgi.d3d11.hook)
   {
@@ -4333,6 +4344,18 @@ ChangeDisplaySettingsExW_Detour (
 
   if (config.display.force_windowed)
     return DISP_CHANGE_SUCCESSFUL;
+
+
+  if (! config.display.allow_refresh_change)
+  {
+    if (lpDevMode && (lpDevMode->dmFields & DM_DISPLAYFREQUENCY) != 0x0)
+    {
+      SK_LOGi0 (L"Ignoring Requested Refresh Rate (ChangeDisplaySettingsExW)");
+
+      lpDevMode->dmFields &= ~DM_DISPLAYFREQUENCY;
+    }
+  }
+
 
 
   // NOP this sucker, we have borderless flip model in GL!
