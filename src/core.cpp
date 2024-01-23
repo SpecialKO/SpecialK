@@ -3799,7 +3799,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
 
   const bool smart_always_on_top =
-    config.window.always_on_top == SmartAlwaysOnTop || rb.isFakeFullscreen ();
+    config.window.always_on_top == SmartAlwaysOnTop  ||
+   (config.window.always_on_top == NoPreferenceOnTop && rb.isFakeFullscreen ());
 
   // Catch sneaky games that change their TopMost status unrelated to window
   //   activation state...

@@ -752,7 +752,7 @@ SK_Inject_WinEventHookProc (
     bool is_smart_always_on_top =
       config.window.always_on_top == SmartAlwaysOnTop;
 
-    if (SK_GetCurrentRenderBackend ().isFakeFullscreen ())
+    if (config.window.always_on_top == NoPreferenceOnTop && SK_GetCurrentRenderBackend ().isFakeFullscreen ())
       is_smart_always_on_top = true;
 
     // Processing this will cause Baldur's Gate 3 to react funny;

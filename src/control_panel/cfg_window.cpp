@@ -390,8 +390,8 @@ SK::ControlPanel::Window::Draw (void)
         auto always_on_top =
           config.window.always_on_top;
 
-        if (rb.isFakeFullscreen ())
-          always_on_top = SmartAlwaysOnTop;
+        if (always_on_top == NoPreferenceOnTop && rb.isFakeFullscreen ())
+            always_on_top  = SmartAlwaysOnTop;
 
         switch (always_on_top)
         {

@@ -1,4 +1,12 @@
-﻿24.1.22.x
+﻿24.1.23
+=======
+ + Give "Fake Fullscreen" mode implicit "Multitasking-on-Top" behavior if user
+     has not configured a window layering preference
+ + Fixed incorrect handling of WM_SHOWWINDOW causing spurious window activation
+ + Prevent games from using SetCursorPos (...) and ClipCursor (...) while their
+     window is not in the foreground
+
+24.1.22.x
 =========
  [.4] + Fixed flickering UI in some D3D11 games
  [.3] + Fixed accidental early-return in SK_Steam_ForceInputAppId (AppId64_t appid);

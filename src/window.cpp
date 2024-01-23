@@ -1104,15 +1104,16 @@ ActivateWindow ( HWND hWnd,
       if ( config.priority.raise_bg     ||
            config.priority.raise_always ||
            config.window.always_on_top  == SmartAlwaysOnTop ||
-           rb.isFakeFullscreen () )
+           (config.window.always_on_top == NoPreferenceOnTop && rb.isFakeFullscreen ()) )
       {
         bool bBackgroundBoost = false;
 
         if (SK_WantBackgroundRender ())
           bBackgroundBoost = config.priority.raise_bg;
 
-        if ( config.priority.raise_always || bBackgroundBoost ||
-             config.window.always_on_top  == SmartAlwaysOnTop || rb.isFakeFullscreen () )
+        if ( config.priority.raise_always || bBackgroundBoost  ||
+             config.window.always_on_top  == SmartAlwaysOnTop  ||
+            (config.window.always_on_top  == NoPreferenceOnTop && rb.isFakeFullscreen ()) )
              prio.proposeChange (3, config.priority.highest_priority ?
                                                  HIGH_PRIORITY_CLASS :
                                          ABOVE_NORMAL_PRIORITY_CLASS);
@@ -1126,7 +1127,8 @@ ActivateWindow ( HWND hWnd,
     {
       if ( config.priority.raise_fg     ||
            config.priority.raise_always ||
-           config.window.always_on_top  == SmartAlwaysOnTop || rb.isFakeFullscreen () )
+           config.window.always_on_top  == SmartAlwaysOnTop  || 
+          (config.window.always_on_top  == NoPreferenceOnTop && rb.isFakeFullscreen ()) )
            prio.proposeChange (3, config.priority.highest_priority ?
                                                HIGH_PRIORITY_CLASS :
                                        ABOVE_NORMAL_PRIORITY_CLASS);
@@ -5869,18 +5871,18 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     case WM_SHOWWINDOW:
     {
-      ActivateWindow (hWnd, wParam == TRUE);
+      // This indicates visibility, not activation...
+      //ActivateWindow (hWnd, wParam == TRUE);
 
       if ( SK_IsGameWindowActive (    ) || SK_WantBackgroundRender () )
            SK_XInput_Enable      (TRUE);
 
-      if (wParam == FALSE)
+      if (wParam == FALSE && hWnd == game_window.hWnd)
       {
         if ( SK_WantBackgroundRender () &&
              (! rb.isTrueFullscreen ())        )
         {
-          // What purpose does this serve?
-          //
+          // Allow the window to be hidden, but prevent the game from seeing it
           game_window.DefWindowProc ( hWnd, uMsg,
                                         wParam, lParam );
           return 0;
@@ -7521,6 +7523,10 @@ BOOL
 WINAPI
 SK_ClipCursor (const RECT *lpRect)
 {
+  // Do not allow cursor clipping when the game's window is inactive
+  if (! game_window.active)
+    lpRect = nullptr;
+
   return
     ClipCursor_Original != nullptr ?
     ClipCursor_Original (lpRect)   :
@@ -7541,6 +7547,10 @@ BOOL
 WINAPI
 SK_SetCursorPos (int X, int Y)
 {
+  // Do not allow cursor clipping (the stupid way) when game window is inactive
+  if (! game_window.active)
+    return TRUE;
+
   BOOL bRet = FALSE;
 
   if (SetCursorPos_Original != nullptr)
@@ -7828,7 +7838,7 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
       auto always_on_top =
         config.window.always_on_top;
 
-      if (SK_GetCurrentRenderBackend ().isFakeFullscreen ())
+      if (config.window.always_on_top == NoPreferenceOnTop && SK_GetCurrentRenderBackend ().isFakeFullscreen ())
         always_on_top = SmartAlwaysOnTop;
 
       switch (always_on_top)

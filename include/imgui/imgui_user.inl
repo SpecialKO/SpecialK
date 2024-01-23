@@ -3053,7 +3053,7 @@ SK_ImGui_User_NewFrame (void)
         if ( game_window.hWnd ==
                WindowFromPoint ( cursor_pos ) )
         {
-          game_window.active = true;
+        //game_window.active = true;
 
           SetWindowPos ( game_window.hWnd, SK_GetForegroundWindow (),
                            0, 0,
