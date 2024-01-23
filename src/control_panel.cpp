@@ -4879,7 +4879,7 @@ SK_ImGui_ControlPanel (void)
           strcat (szGSyncStatus, "   Unsupported");
       }
 
-      if (rb.gsync_state.capable && (! rb.gsync_state.maybe_active))
+      if (rb.gsync_state.capable && (! rb.gsync_state.maybe_active) && (rb.api == SK_RenderAPI::D3D12))
       {
         if ( rb.presentation.mode == SK_PresentMode::Unknown               ||
              rb.presentation.mode == SK_PresentMode::Composed_Flip         ||
@@ -4901,7 +4901,7 @@ SK_ImGui_ControlPanel (void)
 
         if (rb.gsync_state.capable && (! rb.gsync_state.maybe_active))
         {
-          if (rb.presentation.mode == SK_PresentMode::Unknown)
+          if (rb.presentation.mode == SK_PresentMode::Unknown && (rb.api == SK_RenderAPI::D3D12))
           {
             ImGui::Separator ();
             ImGui::BulletText (
@@ -4929,15 +4929,15 @@ SK_ImGui_ControlPanel (void)
         ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
       }
 
-      if (rb.gsync_state.maybe_active)
-      {
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::SetTooltip (
-            "The NVIDIA driver API does not report this status in OpenGL, D3D12 or Vulkan."
-          );
-        }
-      }
+      //if (rb.gsync_state.maybe_active)
+      //{
+      //  if (ImGui::IsItemHovered ())
+      //  {
+      //    ImGui::SetTooltip (
+      //      "The NVIDIA driver API does not report this status in OpenGL, D3D12 or Vulkan."
+      //    );
+      //  }
+      //}
     }
 
     if (sk::NVAPI::nv_hardware)
