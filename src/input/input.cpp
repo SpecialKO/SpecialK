@@ -244,24 +244,42 @@ static concurrency::concurrent_unordered_map <HANDLE, SK_NVIDIA_DeviceFile> SK_N
 //   knows about this device...
 static concurrency::concurrent_unordered_set <HANDLE>                      SK_Input_DeviceFiles;
 
-SK_Input_DeviceFileType SK_Input_GetDeviceFileType (HANDLE hFile)
+std::tuple <SK_Input_DeviceFileType, void*, bool>
+SK_Input_GetDeviceFileAndState (HANDLE hFile)
 {
   // Bloom filter since most file reads -are not- for input devices
-  if (! SK_Input_DeviceFiles.count (hFile))
-    return SK_Input_DeviceFileType::None;
+  if ( SK_Input_DeviceFiles.find (hFile) ==
+       SK_Input_DeviceFiles.cend (     ) )
+  {
+    return
+      { SK_Input_DeviceFileType::None, nullptr, true };
+  }
 
   //
   // Figure out device type
   //
+  if ( const auto hid_iter  = SK_HID_DeviceFiles.find (hFile);
+                  hid_iter != SK_HID_DeviceFiles.cend (     ) )
+  {
+    auto& hid_device =
+          hid_iter->second;
 
-  if (SK_HID_DeviceFiles.count (hFile) &&
-      SK_HID_DeviceFiles.at    (hFile).device_type != sk_input_dev_type::Other)
-    return SK_Input_DeviceFileType::HID;
+    if (hid_device.device_type != sk_input_dev_type::Other)
+    {
+      return
+        { SK_Input_DeviceFileType::HID, &hid_device, hid_device.isInputAllowed () };
+    }
+  }
 
-  if (SK_NVIDIA_DeviceFiles.count (hFile))
-    return SK_Input_DeviceFileType::NVIDIA;
+  else if ( const auto nv_iter  = SK_NVIDIA_DeviceFiles.find (hFile);
+                       nv_iter != SK_NVIDIA_DeviceFiles.cend (     ) )
+  {
+    return
+      { SK_Input_DeviceFileType::NVIDIA, &nv_iter->second, true };
+  }
 
-  return SK_Input_DeviceFileType::Invalid;
+  return
+    { SK_Input_DeviceFileType::Invalid, nullptr, true };
 }
 
 //////////////////////////////////////////////////////////////
@@ -674,27 +692,25 @@ ReadFile_Detour (HANDLE       hFile,
 {
   SK_LOG_FIRST_CALL
 
-  auto dev_file_type =
-    SK_Input_GetDeviceFileType (hFile);
+  const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
+    SK_Input_GetDeviceFileAndState (hFile);
 
   switch (dev_file_type)
   {
     case SK_Input_DeviceFileType::HID:
     {
-      auto& device_file =
-        SK_HID_DeviceFiles.at (hFile);
-
-      const bool bDisallow = 
-        (! device_file.isInputAllowed ());
+      auto hid_file =
+        (SK_HID_DeviceFile *)dev_ptr;
 
       auto pTlsBackedBuffer =
-        SK_TLS_Bottom ()->scratch_memory->log.formatted_output.alloc (nNumberOfBytesToRead);
+        SK_TLS_Bottom ()->scratch_memory->log.
+                             formatted_output.alloc (nNumberOfBytesToRead);
 
       auto pBuffer =
         // Overlapped reads should pass their original pointer to ReadFile,
         //   unless we intend to block them (and cancel said IO request).
-        ((lpBuffer != nullptr && lpOverlapped == nullptr) || bDisallow) ?
-                                                       pTlsBackedBuffer : lpBuffer;
+        ((lpBuffer != nullptr && lpOverlapped == nullptr) || (! dev_allowed)) ?
+                                                             pTlsBackedBuffer : lpBuffer;
 
       BOOL bRet =
         ReadFile_Original (
@@ -704,7 +720,7 @@ ReadFile_Detour (HANDLE       hFile,
 
       if (bRet)
       {
-        if (bDisallow)
+        if (! dev_allowed)
         {
           SK_ReleaseAssert (lpBuffer != nullptr);
 
@@ -712,10 +728,10 @@ ReadFile_Detour (HANDLE       hFile,
           {
             if (lpOverlapped == nullptr) // lpNumberOfBytesRead MUST be non-null
             {
-              if (device_file.last_data_read.size () >= *lpNumberOfBytesRead)
+              if (hid_file->last_data_read.size () >= *lpNumberOfBytesRead)
               {
                 // Give the game old data, from before we started blocking stuff...
-                memcpy (lpBuffer, device_file.last_data_read.data (), *lpNumberOfBytesRead);
+                memcpy (lpBuffer, hid_file->last_data_read.data (), *lpNumberOfBytesRead);
               }
             }
 
@@ -734,15 +750,15 @@ ReadFile_Detour (HANDLE       hFile,
         {
           if (lpNumberOfBytesRead != nullptr && lpBuffer != nullptr && lpOverlapped == nullptr)
           {
-            SK_HID_READ (device_file.device_type);
+            SK_HID_READ (hid_file->device_type);
 
-            if (device_file.last_data_read.size () < nNumberOfBytesToRead)
-                device_file.last_data_read.resize (  nNumberOfBytesToRead * 2);
+            if (hid_file->last_data_read.size () < nNumberOfBytesToRead)
+                hid_file->last_data_read.resize (  nNumberOfBytesToRead * 2);
 
-            memcpy (device_file.last_data_read.data (), pTlsBackedBuffer, *lpNumberOfBytesRead);
-            memcpy (lpBuffer,                           pTlsBackedBuffer, *lpNumberOfBytesRead);
+            memcpy (hid_file->last_data_read.data (), pTlsBackedBuffer, *lpNumberOfBytesRead);
+            memcpy (lpBuffer,                         pTlsBackedBuffer, *lpNumberOfBytesRead);
 
-            SK_HID_VIEW (device_file.device_type);
+            SK_HID_VIEW (hid_file->device_type);
           }
         }
       }
@@ -783,22 +799,19 @@ ReadFileEx_Detour (HANDLE                          hFile,
   if (! bRet)
     return bRet;
 
-  auto dev_file_type =
-    SK_Input_GetDeviceFileType (hFile);
+  const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
+    SK_Input_GetDeviceFileAndState (hFile);
 
   switch (dev_file_type)
   {
     case SK_Input_DeviceFileType::HID:
     {
-      auto& device_file =
-        SK_HID_DeviceFiles.at (hFile);
+      auto hid_file =
+        (SK_HID_DeviceFile *)dev_ptr;
 
-      const bool bDisallow = 
-        (! device_file.isInputAllowed ());
+      SK_HID_READ (hid_file->device_type);
 
-      SK_HID_READ (device_file.device_type);
-
-      if (bDisallow)
+      if (! dev_allowed)
       {
         if (CancelIo (hFile))
         {
@@ -810,7 +823,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
         }
       }
 
-      SK_HID_VIEW (device_file.device_type);
+      SK_HID_VIEW (hid_file->device_type);
     } break;
 
     case SK_Input_DeviceFileType::NVIDIA:
@@ -887,8 +900,9 @@ CreateFileA_Detour (LPCSTR                lpFileName,
     {
       bool bSkipExistingFile = false;
 
-      if ( SK_HID_DeviceFiles.count (hRet) && StrCmpIW (lpWideFileName,
-           SK_HID_DeviceFiles.at    (hRet).wszDevicePath) == 0 )
+      if ( auto hid_file  = SK_HID_DeviceFiles.find (hRet);
+                hid_file != SK_HID_DeviceFiles.end  (    ) && StrCmpIW (lpWideFileName,
+                hid_file->second.wszDevicePath) == 0 )
       {
         bSkipExistingFile = true;
       }
@@ -970,8 +984,9 @@ CreateFile2_Detour (
     {
       bool bSkipExistingFile = false;
 
-      if ( SK_HID_DeviceFiles.count (hRet) && StrCmpIW (lpFileName,
-           SK_HID_DeviceFiles.at    (hRet).wszDevicePath) == 0 )
+      if ( auto hid_file  = SK_HID_DeviceFiles.find (hRet);
+                hid_file != SK_HID_DeviceFiles.end  (    ) && StrCmpIW (lpFileName,
+                hid_file->second.wszDevicePath) == 0 )
       {
         bSkipExistingFile = true;
       }
@@ -1054,9 +1069,10 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
     if (SK_StrSupW (lpFileName, LR"(\\?\hid)", 7))
     {
       bool bSkipExistingFile = false;
-
-      if ( SK_HID_DeviceFiles.count (hRet) && StrCmpIW (lpFileName,
-           SK_HID_DeviceFiles.at    (hRet).wszDevicePath) == 0 )
+      
+      if ( auto hid_file  = SK_HID_DeviceFiles.find (hRet);
+                hid_file != SK_HID_DeviceFiles.end  (    ) && StrCmpIW (lpFileName,
+                hid_file->second.wszDevicePath) == 0 )
       {
         bSkipExistingFile = true;
       }
@@ -1107,38 +1123,6 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
   return hRet;
 }
 
-bool
-SK_Input_ShouldBlockDevice (HANDLE hFile)
-{
-  if (SK_Input_DeviceFiles.count (hFile) != 0)
-  {
-    if (SK_HID_DeviceFiles.count (hFile) != 0)
-    {
-      const auto& device_file =
-        SK_HID_DeviceFiles.at (hFile);
-
-      SK_HID_READ (device_file.device_type);
-
-      if (! device_file.isInputAllowed ())
-        return true;
-
-      SK_HID_VIEW (device_file.device_type);
-    }
-
-    else if (SK_NVIDIA_DeviceFiles.count (hFile) != 0)
-    {
-      if (SK_ImGui_WantGamepadCapture ())
-      {
-        return true;
-      }
-
-      SK_MessageBus_Backend->markRead (sk_input_dev_type::Gamepad);
-    }
-  }
-
-  return false;
-}
-
 // This is the most common way that games that manually open USB HID
 //   device files actually read their input (usually the non-Ex variant).
 BOOL
@@ -1151,20 +1135,19 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 {
   SK_LOG_FIRST_CALL
 
-  auto dev_file_type =
-    SK_Input_GetDeviceFileType (hFile);
+  const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
+    SK_Input_GetDeviceFileAndState (hFile);
 
   switch (dev_file_type)
   {
     case SK_Input_DeviceFileType::HID:
     {
-      const auto &device_file =
-        SK_HID_DeviceFiles.at (hFile);
+      auto hid_file =
+        (SK_HID_DeviceFile *)dev_ptr;
 
-      BOOL bRet       = TRUE,
-           bDenyInput = !device_file.isInputAllowed ();
+      BOOL bRet = TRUE;
 
-      if (bDenyInput)
+      if (! dev_allowed)
       {
         if (CancelIo (hFile))
         {
@@ -1184,10 +1167,10 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 
       if (bRet != FALSE)
       {
-        if (! bDenyInput)
+        if (dev_allowed)
         {
-          SK_HID_READ (device_file.device_type);
-          SK_HID_VIEW (device_file.device_type);
+          SK_HID_READ (hid_file->device_type);
+          SK_HID_VIEW (hid_file->device_type);
           // We did the bulk of this processing in ReadFile_Detour (...)
           //   nothing to be done here for now.
         }
@@ -1217,20 +1200,19 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 {
   SK_LOG_FIRST_CALL
 
-  auto dev_file_type =
-    SK_Input_GetDeviceFileType (hFile);
+  const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
+    SK_Input_GetDeviceFileAndState (hFile);
 
   switch (dev_file_type)
   {
     case SK_Input_DeviceFileType::HID:
     {
-      const auto &device_file =
-        SK_HID_DeviceFiles.at (hFile);
+      auto hid_file =
+        (SK_HID_DeviceFile *)dev_ptr;
 
-      BOOL bRet       = TRUE,
-           bDenyInput = !device_file.isInputAllowed ();
+      BOOL bRet = TRUE;
 
-      if (bDenyInput)
+      if (! dev_allowed)
       {
         if (CancelIo (hFile))
         {
@@ -1249,10 +1231,10 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 
       if (bRet != FALSE)
       {
-        if (! bDenyInput)
+        if (dev_allowed)
         {
-          SK_HID_READ (device_file.device_type);
-          SK_HID_VIEW (device_file.device_type);
+          SK_HID_READ (hid_file->device_type);
+          SK_HID_VIEW (hid_file->device_type);
           // We did the bulk of this processing in ReadFile_Detour (...)
           //   nothing to be done here for now.
         }
