@@ -1,5 +1,7 @@
 ﻿24.1.23.1
 =========
+ + Skip Steam achievement friend statistics calculation in offline mode
+ + Optimized SteamInput AppId override w/ CreateProcess instead of ShellExecute
  + "Fake Fullscreen" preference now applies during SwapChain creation if a game
      tries to -create- a Fullscreen SwapChain rather than the best-practice of
        transitioning from an initially Windowed SwapChain to a Fullscreen one.

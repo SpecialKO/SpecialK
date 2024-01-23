@@ -2259,10 +2259,14 @@ public:
 
           bool bAchieved = false;
 
-          stats->GetUserAchievement (
-            pParam->m_steamIDUser,
-                      name.c_str (), &bAchieved
-          );
+          bool has_user_stats =
+            stats->GetUserAchievement (
+              pParam->m_steamIDUser,
+                        name.c_str (), &bAchieved
+            );
+
+          if (! has_user_stats)
+            break;
 
           if (bAchieved)
           {
@@ -5698,7 +5702,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
     return;
 
   static volatile LONG changes       = 0;
-  static bool          steam_running = SK_Steam_IsClientRunning ();
+  static bool          steam_running = false;
 
   static auto
     _CleanupForcedAppId = [&](int minimum_change_count = 0)
@@ -5735,8 +5739,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 
       void push (AppId64_t appid)
       {
-        app_ids.push ( /*ReadAcquire (&changes) > 0 && appid == 0 ? config.steam.appid
-                                                                :*/ appid );
+        app_ids.push (appid);
 
         if (appid != 0)
           InterlockedIncrement (&changes);
