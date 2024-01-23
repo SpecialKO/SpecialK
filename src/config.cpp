@@ -366,18 +366,21 @@ SK_GetCurrentGameID (void)
       // CAPCOM games crash at start if we don't kill this
       if (current_game == SK_GAME_ID::CrashReport)
       {
-        if ( IDYES == SK_MessageBox (
-              L"Game may crash at startup unless CrashReport.exe is disabled."
-              L"\r\n\r\n\tDisable Crash Report?",
-                L"Crash Report Must Be Disabled",
-                  MB_YESNO |
-                  MB_ICONQUESTION
-             )
-           )
+        if (StrStrIW (SK_VerifyTrust_GetCodeSignature (SK_GetHostApp ()).subject.c_str (), L"CAPCOM"))
         {
-          // Properly disable this crap
-          MoveFileW        (L"CrashReport.exe", L"CrashReport_Disabled.exe");
-          TerminateProcess (GetCurrentProcess (), 0x0);
+          if ( IDYES == SK_MessageBox (
+                L"Game may crash at startup unless CrashReport.exe is disabled."
+                L"\r\n\r\n\tDisable Crash Report?",
+                  L"Crash Report Must Be Disabled",
+                    MB_YESNO |
+                    MB_ICONQUESTION
+               )
+             )
+          {
+            // Properly disable this crap
+            MoveFileW        (L"CrashReport.exe", L"CrashReport_Disabled.exe");
+            TerminateProcess (GetCurrentProcess (), 0x0);
+          }
         }
 
         // Self-Identify as Launcher and hope for the best...
@@ -1310,11 +1313,6 @@ SK_LoadConfigEx (std::wstring name, bool create)
     {
       SK_ReleaseAssert (false && L"Out Of Memory");
       init = FALSE; return false;
-    }
-
-    if (dll_ini->get_encoding () == iSK_INI::INI_INVALID)
-    {
-      DeleteFileW (full_name.c_str ());
     }
 
     dll_ini->set_encoding (iSK_INI::INI_UTF16LE);

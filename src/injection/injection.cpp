@@ -749,11 +749,17 @@ SK_Inject_WinEventHookProc (
 
   if (event == EVENT_SYSTEM_FOREGROUND)
   {
+    bool is_smart_always_on_top =
+      config.window.always_on_top == SmartAlwaysOnTop;
+
+    if (SK_GetCurrentRenderBackend ().isFakeFullscreen ())
+      is_smart_always_on_top = true;
+
     // Processing this will cause Baldur's Gate 3 to react funny;
     //   consider it incompatible with "Smart Always on Top"
-    if ( config.window.always_on_top == SmartAlwaysOnTop &&
-                    game_window.hWnd != hwnd             &&
-                    game_window.hWnd != nullptr          &&
+    if (                 is_smart_always_on_top &&
+                    game_window.hWnd != hwnd    &&
+                    game_window.hWnd != nullptr &&
           IsWindow (game_window.hWnd) )
     {
       if (SK_Window_TestOverlap (game_window.hWnd, hwnd, FALSE, 25))
@@ -1207,6 +1213,21 @@ SK_FreeLibraryAndExitThread (HMODULE hModToFree, DWORD dwExitCode)
 volatile HMODULE  g_hModule_CBT     = 0;
 volatile LONG     g_sOnce           = 0;
 
+BOOL
+SK_IsImmersiveProcess (HANDLE hProcess = SK_GetCurrentProcess ())
+{
+  using  IsImmersiveProcess_pfn = BOOL (WINAPI *)(HANDLE);
+  static IsImmersiveProcess_pfn
+        _IsImmersiveProcess =
+        (IsImmersiveProcess_pfn)SK_GetProcAddress (L"user32.dll",
+        "IsImmersiveProcess");
+
+  if (     _IsImmersiveProcess != nullptr)
+    return _IsImmersiveProcess (hProcess);
+
+  return FALSE;
+}
+
 void
 SK_Inject_SpawnUnloadListener (void)
 {
@@ -1272,10 +1293,10 @@ SK_Inject_SpawnUnloadListener (void)
 
         if (hHookTeardown.isValid ())
         {
-          InterlockedIncrement  (&injected_procs);
+          InterlockedIncrement (&injected_procs);
 
-          constexpr DWORD dwTimeout   = INFINITE;
-          const     DWORD dwWaitState =
+          const DWORD dwTimeout   = SK_IsImmersiveProcess () ? 750UL : INFINITE;
+          const DWORD dwWaitState =
             WaitForMultipleObjects ( 2, signals,
                                  FALSE, dwTimeout );
 
@@ -1288,7 +1309,7 @@ SK_Inject_SpawnUnloadListener (void)
             //  ==> Must continue waiting for application exit ...
             //
             WaitForSingleObject (
-              __SK_DLL_TeardownEvent, dwTimeout
+              __SK_DLL_TeardownEvent, INFINITE
             );
           }
 

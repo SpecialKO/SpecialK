@@ -910,6 +910,17 @@ SK_InitFinishCallback (void)
   dll_log->LogEx (false, L"------------------------------------------------"
                          L"-------------------------------------------\n" );
 
+#ifdef _M_IX86
+  typedef BOOL (WINAPI* K32EmptyWorkingSet_pfn)(HANDLE hProcess);
+  static                K32EmptyWorkingSet_pfn
+                        K32EmptyWorkingSet =
+                       (K32EmptyWorkingSet_pfn) SK_GetProcAddress (
+          L"kernel32", "K32EmptyWorkingSet" );
+
+  if (K32EmptyWorkingSet != nullptr)
+  {   K32EmptyWorkingSet (GetCurrentProcess ()); }
+#endif
+
   init_mutex->unlock ();
 }
 
@@ -1924,14 +1935,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         dll_log->LogEx (false, L"failed!\n");
       else
         dll_log->LogEx (false, L"done!\n");
-
-      // Special K's installer ships with invalid INI files, we need to remove them.
-      //
-      //  Aemony will not fix his problem, so we must workaround it instead.
-      if (SK_GetDLLConfig ()->get_encoding () == iSK_INI::INI_INVALID)
-      {
-        DeleteFileW (default_global_ini.c_str ());
-      }
     }
 
     if (GetFileAttributesW (default_ini.c_str ()) != INVALID_FILE_ATTRIBUTES)
@@ -3795,10 +3798,13 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 #endif
 
 
+  const bool smart_always_on_top =
+    config.window.always_on_top == SmartAlwaysOnTop || rb.isFakeFullscreen ();
+
   // Catch sneaky games that change their TopMost status unrelated to window
   //   activation state...
   if (config.window.always_on_top != NoPreferenceOnTop &&
-      config.window.always_on_top != SmartAlwaysOnTop) // It really is smart
+           (! smart_always_on_top)) // It really is smart
   {
     bool bTopMost =
       SK_Window_IsTopMost (game_window.hWnd);

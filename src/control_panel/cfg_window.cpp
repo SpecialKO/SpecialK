@@ -387,7 +387,13 @@ SK::ControlPanel::Window::Draw (void)
 
       if (changed)
       {
-        switch (config.window.always_on_top)
+        auto always_on_top =
+          config.window.always_on_top;
+
+        if (rb.isFakeFullscreen ())
+          always_on_top = SmartAlwaysOnTop;
+
+        switch (always_on_top)
         {
           case AlwaysOnTop:
           case SmartAlwaysOnTop: // Window is in foreground if user is interacting with it

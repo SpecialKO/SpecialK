@@ -5187,7 +5187,7 @@ SK_IsWindows8Point1OrGreater (void)
 
   static BOOL
     bResult =
-      GetProcAddress (
+      SK_GetProcAddress (
         GetModuleHandleW (L"kernel32.dll"),
                            "GetSystemTimePreciseAsFileTime"
                      ) != nullptr &&
@@ -5203,7 +5203,7 @@ SK_IsWindows10OrGreater (void)
 
   static BOOL
     bResult =
-      GetProcAddress (
+      SK_GetProcAddress (
         GetModuleHandleW (L"kernel32.dll"),
                            "SetThreadDescription"
                      ) != nullptr &&
@@ -5369,8 +5369,8 @@ SK_timeGetTime (void) noexcept
 
   static timeGetTime_pfn
    winmm_timeGetTime =
-        (timeGetTime_pfn)GetProcAddress (hModWinMM,
-        "timeGetTime"                   );
+        (timeGetTime_pfn)SK_GetProcAddress (hModWinMM,
+        "timeGetTime"                      );
 
   return
     winmm_timeGetTime ();

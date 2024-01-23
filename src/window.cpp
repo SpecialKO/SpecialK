@@ -1103,7 +1103,8 @@ ActivateWindow ( HWND hWnd,
     {
       if ( config.priority.raise_bg     ||
            config.priority.raise_always ||
-           config.window.always_on_top  == SmartAlwaysOnTop )
+           config.window.always_on_top  == SmartAlwaysOnTop ||
+           rb.isFakeFullscreen () )
       {
         bool bBackgroundBoost = false;
 
@@ -1111,7 +1112,7 @@ ActivateWindow ( HWND hWnd,
           bBackgroundBoost = config.priority.raise_bg;
 
         if ( config.priority.raise_always || bBackgroundBoost ||
-             config.window.always_on_top  == SmartAlwaysOnTop )
+             config.window.always_on_top  == SmartAlwaysOnTop || rb.isFakeFullscreen () )
              prio.proposeChange (3, config.priority.highest_priority ?
                                                  HIGH_PRIORITY_CLASS :
                                          ABOVE_NORMAL_PRIORITY_CLASS);
@@ -1125,7 +1126,7 @@ ActivateWindow ( HWND hWnd,
     {
       if ( config.priority.raise_fg     ||
            config.priority.raise_always ||
-           config.window.always_on_top  == SmartAlwaysOnTop )
+           config.window.always_on_top  == SmartAlwaysOnTop || rb.isFakeFullscreen () )
            prio.proposeChange (3, config.priority.highest_priority ?
                                                HIGH_PRIORITY_CLASS :
                                        ABOVE_NORMAL_PRIORITY_CLASS);
@@ -7824,7 +7825,13 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
 
     //if (hWndNewTarget != 0)
     {
-      switch (config.window.always_on_top)
+      auto always_on_top =
+        config.window.always_on_top;
+
+      if (SK_GetCurrentRenderBackend ().isFakeFullscreen ())
+        always_on_top = SmartAlwaysOnTop;
+
+      switch (always_on_top)
       {
         case AlwaysOnTop:
           bTopMost = true;
