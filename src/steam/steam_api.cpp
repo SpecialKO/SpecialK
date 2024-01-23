@@ -5649,6 +5649,38 @@ SK_Steam_IsClientRunning (void)
     SK_IsProcessRunning (L"steam.exe");
 }
 
+bool
+SK_Steam_RunClientCommand (const wchar_t *wszCommand)
+{
+  wchar_t      wszSteamCmd [MAX_PATH * 3] = { };
+  swprintf_s ( wszSteamCmd, MAX_PATH * 3 - 1,
+                 LR"(%ws\steam.exe -- steam://%ws)",
+                   SK_GetSteamDir (),
+                     wszCommand );
+
+  STARTUPINFOW        sinfo = { };
+  PROCESS_INFORMATION pinfo = { };
+
+  sinfo.cb          = sizeof (STARTUPINFOW);
+  sinfo.wShowWindow = SW_HIDE;
+  sinfo.dwFlags     = STARTF_USESHOWWINDOW;
+
+  CreateProcess ( nullptr, wszSteamCmd,      nullptr, nullptr,
+                  FALSE,   CREATE_SUSPENDED, nullptr, SK_GetSteamDir (),
+                  &sinfo,  &pinfo );
+
+  if (pinfo.hProcess != 0)
+  {
+    ResumeThread   (pinfo.hThread);
+    SK_CloseHandle (pinfo.hThread);
+    SK_CloseHandle (pinfo.hProcess);
+
+    return true;
+  }
+
+  return false;
+}
+
 void
 SK_Steam_ForceInputAppId (AppId64_t appid)
 {
@@ -5665,12 +5697,13 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
   if (config.compatibility.using_wine)
     return;
 
-  static volatile LONG changes = 0;
+  static volatile LONG changes       = 0;
+  static bool          steam_running = SK_Steam_IsClientRunning ();
 
   static auto
     _CleanupForcedAppId = [&](int minimum_change_count = 0)
   {
-    if (SK_Steam_IsClientRunning () && ReadAcquire (&changes) > minimum_change_count)
+    if (steam_running && ReadAcquire (&changes) > minimum_change_count)
     {
       SK_RunOnce (
       {
@@ -5678,9 +5711,7 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 
         // Cleanup on unexpected application termination
         //
-        SK_ShellExecuteA ( 0, "OPEN",
-                  R"(steam://forceinputappid/)", nullptr, nullptr,
-                        SW_SHOWNORMAL );
+        SK_Steam_RunClientCommand (L"forceinputappid/");
       });
     }
   };
@@ -5719,30 +5750,6 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
       {
         SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
 
-        // Make certain ShellExecute can run on this thread
-        SK_AutoCOMInit _auto_com (
-          COINIT_APARTMENTTHREADED |
-          COINIT_DISABLE_OLE1DDE
-        );
-
-        auto hModules = {
-          SK_LoadLibraryW (L"ieframe.dll"),
-          SK_LoadLibraryW (L"WINHTTP.dll")
-        };
-
-//#define PIN_MODULES
-//#ifdef  PIN_MODULES
-        for (auto module : hModules)
-        {
-          if (module != 0)
-          {
-            SK_LoadLibrary_PinModule (
-              SK_GetModuleName (module).c_str ()
-            );
-          }
-        }
-//#endif
-
         HANDLE hWaitObjects [] = {
           __SK_DLL_TeardownEvent,
           override_ctx.signal.m_h
@@ -5750,13 +5757,19 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
 
         DWORD dwWaitState = WAIT_OBJECT_0;
 
-        do
+        if (! steam_running)
         {
-          if (SK_Steam_IsClientRunning ())
-            break;
-        } while (WaitForSingleObject (__SK_DLL_TeardownEvent, 3333UL) == WAIT_TIMEOUT);
+          do
+          {
+            steam_running =
+              SK_Steam_IsClientRunning ();
 
-        if (SK_Steam_IsClientRunning ())
+            if (steam_running)
+              break;
+          } while (WaitForSingleObject (__SK_DLL_TeardownEvent, 3333UL) == WAIT_TIMEOUT);
+        }
+
+        if (steam_running)
         {
           do
           {
@@ -5798,43 +5811,30 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                       if (appid == UINT64_MAX)
                         continue;
 
-                      if (appid != 0)
-                      {
-                        auto instance =
-                        ShellExecuteW ( 0, L"OPEN",
-                          std::format (
-                            LR"(steam://forceinputappid/{})", appid ).c_str (),
-                              nullptr, nullptr, SW_SHOWNORMAL
-                        );
+                      bool appid_set = false;
 
-                        if ((INT_PTR)instance > 32)
+                      static AppId64_t   last_appid = static_cast <AppId64_t> (-1);
+                      if (std::exchange (last_appid, appid) != appid)
+                      {
+                        appid_set =
+                          SK_Steam_RunClientCommand ( appid != 0 ?
+                            SK_FormatStringW (LR"(forceinputappid/%llu)", appid).c_str ()
+                                                                 :
+                                              LR"(forceinputappid/)"
+                          );
+
+                        if (appid_set)
                         {
-                          static AppId64_t   last_appid = static_cast <AppId64_t> (-1);
-                          if (std::exchange (last_appid, appid) != appid)
-                          {
-                            SK_LOGi1 (L"Forced Steam Input AppID: %d", appid);
-                          }
+                          if (appid != 0)
+                            SK_LOGi1 (L"Forced Steam Input AppID: %llu", appid);
+                          else
+                            SK_LOGi1 (L"Forced Steam Input AppID: Default");
                         }
 
-                        else
+                        if (! appid_set)
                         {
-                          SK_LOGi0 (L"steam://forceinputappid failed with return=%d", instance);
-                        }
-                      }
-                      
-                      else
-                      {
-                        auto instance =
-                        ShellExecuteW ( 0, L"OPEN",
-                            LR"(steam://forceinputappid/)",
-                              nullptr, nullptr, SW_SHOWNORMAL
-                        );
-
-                        if ((INT_PTR)instance > 32)
-                          SK_LOGi1 (L"Forced Steam Input AppID: Default");
-                        else
-                        {
-                          SK_LOGi0 (L"steam://forceinputappid failed with return=%d", instance);
+                          SK_LOGi0 (L"steam://forceinputappid failed!");
+                          break; // Fail-once and we're done...
                         }
                       }
 
@@ -5848,14 +5848,6 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
             }
           } while (dwWaitState != WAIT_OBJECT_0);
         }
-
-//#ifndef PIN_MODULES
-//        for (auto module : hModules)
-//        {
-//          if (              module != 0)
-//            SK_FreeLibrary (module);
-//        }
-//#endif
 
         if (dwWaitState == WAIT_OBJECT_0)
         {

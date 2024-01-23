@@ -1,5 +1,9 @@
 ﻿24.1.23.1
 =========
+ + "Fake Fullscreen" preference now applies during SwapChain creation if a game
+     tries to -create- a Fullscreen SwapChain rather than the best-practice of
+       transitioning from an initially Windowed SwapChain to a Fullscreen one.
+
  + Added option to prevent games from changing your display's refresh rate
 
     [Display.Output]

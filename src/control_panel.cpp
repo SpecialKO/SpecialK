@@ -2959,7 +2959,7 @@ SK_DXGI_FullscreenControlPanel (void)
 
     if (ImGui::IsItemHovered ())
     {
-      ImGui::SetTooltip ("If disallowed, SK will use your desktop's refresh rate to avoid display mode changes.");
+      ImGui::SetTooltip ("If disallowed, your desktop's refresh rate will be used to avoid display mode changes.");
     }
 
     ImGui::TreePop  ();
