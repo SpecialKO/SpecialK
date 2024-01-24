@@ -1493,6 +1493,7 @@ enum class SK_GAME_ID
   Cyberpunk2077,                // Cyberpunk2077.exe
   CrashReport,                  // CrashReport.exe (ironically, causes crashes)
   StreetFighter6,               // StreetFighter6.exe
+  StardewValley,                // Stardew Valley.exe
 
   UNKNOWN_GAME               = 0xffff
 };

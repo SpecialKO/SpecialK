@@ -246,7 +246,8 @@ SK_GetCurrentGameID (void)
           { L"AlanWake2.exe",                          SK_GAME_ID::AlanWake2                    },
           { L"Cyberpunk2077.exe",                      SK_GAME_ID::Cyberpunk2077                },
           { L"CrashReport.exe",                        SK_GAME_ID::CrashReport                  },
-          { L"StreetFighter6.exe",                     SK_GAME_ID::StreetFighter6               }
+          { L"StreetFighter6.exe",                     SK_GAME_ID::StreetFighter6               },
+          { L"Stardew Valley.exe",                     SK_GAME_ID::StardewValley                }
         };
 
     first_check  = false;
@@ -3342,6 +3343,19 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Starfield:
         config.compatibility.reshade_mode = false;
+        break;
+
+      
+      case SK_GAME_ID::StardewValley:
+        // Game needs to be told that it is OpenGL, or it won't inject...
+        config.compatibility.
+            init_on_separate_thread = false;
+        config.apis.last_known      = SK_RenderAPI::OpenGL;
+        config.apis.dxgi.d3d11.hook = true;
+        config.apis.OpenGL.hook     = true;
+        apis.last_known->store     ((int)config.apis.last_known     );
+        apis.OpenGL.hook->store    (     config.apis.OpenGL.hook    );
+        apis.d3d11.hook->store     (     config.apis.dxgi.d3d11.hook);
         break;
 
       case SK_GAME_ID::AlanWake2:
