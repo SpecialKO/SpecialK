@@ -1,4 +1,11 @@
-﻿24.1.23.1
+﻿24.1.24
+=======
+ + Implemented enough of ImGui to draw a warning telling users to turn
+     OpenGL-IK on if they try to run SK in pure OpenGL mode
+ + Fixed potential wglGetProcAddress problems when locally injecting SK
+     as OpenGL32.dll (highly discouraged due to OpenGL ICD complications)
+
+24.1.23.1
 =========
  + Skip Steam achievement friend statistics calculation in offline mode
  + Optimized SteamInput AppId override w/ CreateProcess instead of ShellExecute

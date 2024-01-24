@@ -104,11 +104,16 @@ ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data)
   glUniformMatrix4fv (g_AttribLocationProjMtx, 1, GL_FALSE, &ortho_projection [0][0]);
   glBindVertexArray  (g_VaoHandle);
 
+  // Will project scissor/clipping rectangles into framebuffer space
+  ImVec2 clip_off   = draw_data->DisplayPos;       // (0,0) unless using multi-viewports
+  ImVec2 clip_scale = draw_data->FramebufferScale; // (1,1) unless using retina display which are often (2,2)
+
   for (int n = 0; n < draw_data->CmdListsCount; n++)
   {
-    const ImDrawList* cmd_list          = draw_data->CmdLists [n];
-    const ImDrawIdx*  idx_buffer_offset = nullptr;
+    const ImDrawList* cmd_list =
+      draw_data->CmdLists [n];
 
+#if 0
     if (config.imgui.render.strip_alpha)
     {
       for (INT i = 0; i < cmd_list->VtxBuffer.Size; i++)
@@ -143,6 +148,7 @@ ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data)
           color;
       }
     }
+#endif
 
     glBindBuffer (GL_ARRAY_BUFFER,         g_VboHandle);
     glBufferData (GL_ARRAY_BUFFER,         (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof (ImDrawVert),
@@ -159,23 +165,38 @@ ImGui_ImplGL3_RenderDrawData (ImDrawData* draw_data)
 
       if (pcmd->UserCallback)
       {
-        pcmd->UserCallback (cmd_list, pcmd);
+        // (ImDrawCallback_ResetRenderState is a special callback value used by the user to request the renderer to reset render state.)
+        if (pcmd->UserCallback == ImDrawCallback_ResetRenderState)
+          SK_ReleaseAssert (!L"ImDrawCallback_ResetRenderState = Not Implemented");// ImGui_ImplDX11_SetupRenderState (draw_data, pDevCtx);
+        else
+          pcmd->UserCallback (cmd_list, pcmd);
       }
 
       else
       {
-        glBindTexture  (GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->TextureId);
-        glBindSampler  (0, 0);
-        glScissor      ( (int) pcmd->ClipRect.x,                     (int)(fb_height        - pcmd->ClipRect.w),
-                         (int)(pcmd->ClipRect.z - pcmd->ClipRect.x), (int)(pcmd->ClipRect.w - pcmd->ClipRect.y) );
-        glDrawElements ( GL_TRIANGLES, (GLsizei)pcmd->ElemCount,
-                           sizeof (ImDrawIdx) == 2 ?
-                                     GL_UNSIGNED_SHORT :
-                                     GL_UNSIGNED_INT,
-                                       idx_buffer_offset );
-      }
+        // Project scissor/clipping rectangles into framebuffer space
+        ImVec2 clip_min ((pcmd->ClipRect.x - clip_off.x) * clip_scale.x, (pcmd->ClipRect.y - clip_off.y) * clip_scale.y);
+        ImVec2 clip_max ((pcmd->ClipRect.z - clip_off.x) * clip_scale.x, (pcmd->ClipRect.w - clip_off.y) * clip_scale.y);
 
-      idx_buffer_offset += pcmd->ElemCount; //-V769
+        if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y)
+            continue;
+
+        glBindTexture  (GL_TEXTURE_2D, (GLuint)(intptr_t)pcmd->GetTexID ());
+        glBindSampler  (0, 0);
+        glScissor      ( (int) clip_min.x,               (int)((float)fb_height - clip_max.y),
+                         (int)(clip_max.x - clip_min.x), (int)(      clip_max.y - clip_min.y) );
+
+#ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_VTX_OFFSET
+        if (bd->GlVersion >= 320)
+            GL_CALL(glDrawElementsBaseVertex(GL_TRIANGLES, (GLsizei)pcmd->ElemCount, sizeof(ImDrawIdx) == 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, (void*)(intptr_t)(pcmd->IdxOffset * sizeof(ImDrawIdx)), (GLint)pcmd->VtxOffset));
+        else
+#endif
+        glDrawElements ( GL_TRIANGLES, (GLsizei)pcmd->ElemCount,
+                         sizeof (ImDrawIdx) == 2 ?
+                                   GL_UNSIGNED_SHORT :
+                                   GL_UNSIGNED_INT,
+                                     (void*)(intptr_t)(pcmd->IdxOffset * sizeof (ImDrawIdx)) );
+      }
     }
   }
 
@@ -417,14 +438,14 @@ ImGui_ImplGlfwGL3_CreateDeviceObjects (void)
                         );
 #if 0 // NO HDR ImGui Yet
   glVertexAttribPointer ( g_AttribLocationColor,
-                            4, GL_FLOAT,// GL_UNSIGNED_BYTE,
+                            4, GL_FLOAT,
                                FALSE,  sizeof (ImDrawVert),
   reinterpret_cast <GLvoid *> ( OFFSETOF       (ImDrawVert, col) )
                         );
 #else
   glVertexAttribPointer ( g_AttribLocationColor,
                             4, GL_UNSIGNED_BYTE,
-                               FALSE,  sizeof (ImDrawVert),
+                               TRUE,    sizeof (ImDrawVert),
   reinterpret_cast <GLvoid *> ( OFFSETOF       (ImDrawVert, col) )
                         );
 #endif
@@ -491,6 +512,7 @@ ImGui_ImplGL3_Init (void)
   //io.SetClipboardTextFn = ImGui_ImplGL3_SetClipboardText;
   //io.GetClipboardTextFn = ImGui_ImplGL3_GetClipboardText;
   io.ClipboardUserData  = game_window.hWnd;
+  io.BackendFlags      &= ~ImGuiBackendFlags_RendererHasVtxOffset;
 
   return true;
 }
