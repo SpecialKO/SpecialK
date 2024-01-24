@@ -649,6 +649,67 @@ using RegisterDeviceNotification_pfn = HDEVNOTIFY (WINAPI *)(
 
 RegisterDeviceNotification_pfn RegisterDeviceNotificationW_Original = nullptr;
 
+struct SK_Win32_DeviceNotificationInstance
+{
+  union {
+    SERVICE_STATUS_HANDLE hServiceStatus;
+    HWND                  hWnd;
+  };
+
+  DWORD dwFlags;
+  bool  bUnicode;
+};
+
+#include <hidclass.h>
+
+SK_LazyGlobal <concurrency::concurrent_vector <SK_Win32_DeviceNotificationInstance>> SK_Win32_RegisteredDevNotifications;
+
+void
+SK_Win32_NotifyDeviceChange (void)
+{
+#define IDT_SDL_DEVICE_CHANGE_TIMER_1 1200
+#define IDT_SDL_DEVICE_CHANGE_TIMER_2 1201
+
+  static constexpr GUID GUID_XUSB_INTERFACE_CLASS =
+    { 0xEC87F1E3L, 0xC13B, 0x4100, { 0xB5, 0xF7, 0x8B, 0x84, 0xD5, 0x42, 0x60, 0xCB } };
+
+  static DEV_BROADCAST_DEVICEINTERFACE_W     dbcc_xbox = { };
+         dbcc_xbox.dbcc_size       = sizeof (dbcc_xbox);
+         dbcc_xbox.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+         dbcc_xbox.dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
+
+  static DEV_BROADCAST_DEVICEINTERFACE_W    dbcc_hid = { };
+         dbcc_hid.dbcc_size       = sizeof (dbcc_hid);
+         dbcc_hid.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+         dbcc_hid.dbcc_classguid  = GUID_DEVINTERFACE_HID;
+
+  for ( auto& notify : SK_Win32_RegisteredDevNotifications.get () )
+  {
+    if (! (notify.dwFlags & DEVICE_NOTIFY_SERVICE_HANDLE))
+    {
+      if (notify.bUnicode)
+      {
+        PostMessageW (
+          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_xbox);
+        PostMessageW (
+          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_hid);
+      }
+
+      else
+      {
+        PostMessageA (
+          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_xbox);
+        PostMessageA (
+          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_hid);
+      }
+    }
+  }
+
+  // After handling all registered notifications, send to the game's top-level window
+  PostMessageW (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_xbox);
+  PostMessageW (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_hid);
+}
+
 HDEVNOTIFY
 WINAPI
 RegisterDeviceNotificationW_Detour (
@@ -687,8 +748,15 @@ RegisterDeviceNotificationW_Detour (
   ////     config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
   ////  return nullptr;
 
-  return
+  auto hDevNotify =
     RegisterDeviceNotificationW_Original (hRecipient, NotificationFilter, Flags);
+
+  if (hDevNotify != nullptr)
+  {
+    SK_Win32_RegisteredDevNotifications->push_back ({ (SERVICE_STATUS_HANDLE)hRecipient, Flags, true });
+  }
+
+  return hDevNotify;
 }
 
 RegisterDeviceNotification_pfn RegisterDeviceNotificationA_Original = nullptr;
@@ -731,8 +799,15 @@ RegisterDeviceNotificationA_Detour (
   ////     config.input.gamepad.xinput.placehold [2] || config.input.gamepad.xinput.placehold [3] )
   ////  return nullptr;
 
-  return
+  auto hDevNotify =
     RegisterDeviceNotificationA_Original (hRecipient, NotificationFilter, Flags);
+
+  if (hDevNotify != nullptr)
+  {
+    SK_Win32_RegisteredDevNotifications->push_back ({ (SERVICE_STATUS_HANDLE)hRecipient, Flags, false });
+  }
+
+  return hDevNotify;
 }
 
 
@@ -763,9 +838,6 @@ HDEVNOTIFY
 WINAPI
 SK_RegisterDeviceNotification (_In_ HANDLE hRecipient)
 {
-  static const GUID GUID_DEVINTERFACE_HID =
-    { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
-
   const bool bUnicode =
     IsWindowUnicode ((HWND)hRecipient);
 

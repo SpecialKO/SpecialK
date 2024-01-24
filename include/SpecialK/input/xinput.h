@@ -50,11 +50,24 @@
 #define XINPUT_GAMEPAD_X              0x4000
 #define XINPUT_GAMEPAD_Y              0x8000
 
-#define XINPUT_GETSTATEEX_ORDINAL MAKEINTRESOURCEA (100)
-#define XINPUT_POWEROFF_ORDINAL   MAKEINTRESOURCEA (103)
+#define XINPUT_GETSTATEEX_ORDINAL         MAKEINTRESOURCEA (100)
+#define XINPUT_POWEROFF_ORDINAL           MAKEINTRESOURCEA (103)
+#define XINPUT_GETCAPABILITIES_EX_ORDINAL MAKEINTRESOURCEA (108)
 
-#define XINPUT_DEVTYPE_GAMEPAD        0x01
-#define XINPUT_DEVSUBTYPE_GAMEPAD     0x01
+#define XINPUT_DEVTYPE_GAMEPAD             0x01
+#define XINPUT_DEVSUBTYPE_UNKNOWN          0x00
+#define XINPUT_DEVSUBTYPE_GAMEPAD          0x01
+#define XINPUT_DEVSUBTYPE_WHEEL            0x02
+#define XINPUT_DEVSUBTYPE_ARCADE_STICK     0x03
+#define XINPUT_DEVSUBTYPE_FLIGHT_STICK     0x04
+#define XINPUT_DEVSUBTYPE_DANCE_PAD        0x05
+#define XINPUT_DEVSUBTYPE_GUITAR           0x06
+#define XINPUT_DEVSUBTYPE_GUITAR_ALTERNATE 0x07
+#define XINPUT_DEVSUBTYPE_DRUM_KIT         0x08
+#define XINPUT_DEVSUBTYPE_GUITAR_BASS      0x0B
+#define XINPUT_DEVSUBTYPE_ARCADE_PAD       0x13
+
+#define XINPUT_FLAG_GAMEPAD           0x01
 
 #define BATTERY_DEVTYPE_GAMEPAD       0x00
 #define BATTERY_DEVTYPE_HEADSET       0x01
@@ -71,6 +84,7 @@
 #define BATTERY_LEVEL_FULL            0x03
 
 #define XINPUT_CAPS_FFB_SUPPORTED     0x0001
+#define XINPUT_CAPS_WIRELESS          0x0002
 
 #define XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE  7849
 #define XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE 8689
@@ -137,6 +151,15 @@ typedef struct _XINPUT_KEYSTROKE {
   BYTE  HidCode;
 } XINPUT_KEYSTROKE, *PXINPUT_KEYSTROKE;
 
+typedef struct _XINPUT_CAPABILITIES_EX {
+  XINPUT_CAPABILITIES Capabilities;
+  WORD                VendorId;
+  WORD                ProductId;
+  WORD                ProductVersion;
+  WORD                unk1;
+  DWORD               unk2;
+} XINPUT_CAPABILITIES_EX, *PXINPUT_CAPABILITIES_EX;
+
 
 using XInputGetState_pfn        = DWORD (WINAPI *)(
   _In_  DWORD        dwUserIndex,
@@ -152,6 +175,13 @@ using XInputGetCapabilities_pfn = DWORD (WINAPI *)(
   _In_  DWORD                dwUserIndex,
   _In_  DWORD                dwFlags,
   _Out_ XINPUT_CAPABILITIES *pCapabilities
+);
+
+using XInputGetCapabilitiesEx_pfn = DWORD (WINAPI *)(
+  _In_  DWORD dwReserved,
+  _In_  DWORD dwUserIndex,
+  _In_  DWORD dwFlags,
+  _Out_ XINPUT_CAPABILITIES_EX *pCapabilitiesEx
 );
 
 using XInputSetState_pfn        = DWORD (WINAPI *)(

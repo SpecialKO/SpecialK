@@ -149,6 +149,12 @@ struct SK_XInputContext
     LPVOID                          XInputPowerOff_Target                = nullptr;
 
     uint8_t                         orig_inst_poweroff [7]               =   {   };
+
+    XInputGetCapabilitiesEx_pfn     XInputGetCapabilitiesEx_Detour       = nullptr;
+    XInputGetCapabilitiesEx_pfn     XInputGetCapabilitiesEx_Original     = nullptr;
+    LPVOID                          XInputGetCapabilitiesEx_Target       = nullptr;
+
+    uint8_t                         orig_inst_caps_ex [7]                =   {   };
   } XInputUap, XInput1_1, XInput1_2,
     XInput1_3, XInput1_4, XInput9_1_0,
     XInput_SK;
@@ -702,6 +708,67 @@ XInputGetCapabilities1_4_Detour (
 
   dwRet =
     SK_XInput_PlaceHoldCaps (dwRet, dwUserIndex, dwFlags, pCapabilities);
+
+  SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
+
+//if (   dwRet == ERROR_SUCCESS) SK_XINPUT_READ (dwUserIndex);
+  return dwRet;
+}
+
+DWORD
+WINAPI
+XInputGetCapabilitiesEx1_4_Detour (
+  _In_  DWORD                   dwReserved,     /* [in]  Must be 1 */
+  _In_  DWORD                   dwUserIndex,    /* [in]  Index of the gamer associated with the device */
+  _In_  DWORD                   dwFlags,        /* [in]  Input flags that identify the device type */
+  _Out_ XINPUT_CAPABILITIES_EX *pCapabilitiesEx /* [out] Receives the capabilities */ )
+{
+  SK_LOG_FIRST_CALL
+
+  SK_ReleaseAssert (dwReserved == 1);
+
+  HMODULE hModCaller = SK_GetCallingDLL ();
+
+  if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
+    dwUserIndex = config.input.gamepad.xinput.ui_slot;
+
+  dwUserIndex =
+    config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
+
+  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
+  if ( config.input.gamepad.xinput.blackout_api )
+  {
+    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
+    return ERROR_DEVICE_NOT_CONNECTED;
+  }
+
+  if (pCapabilitiesEx == nullptr)
+    return ERROR_INVALID_PARAMETER;
+
+  RtlZeroMemory (pCapabilitiesEx, sizeof (XINPUT_CAPABILITIES_EX));
+
+  if (dwUserIndex >= XUSER_MAX_COUNT)
+    return ERROR_DEVICE_NOT_CONNECTED;
+
+  SK_XInputContext::instance_s* pCtx =
+    &xinput_ctx.XInput1_4;
+
+  if (pCtx->XInputGetCapabilitiesEx_Original == nullptr)
+    return ERROR_NOT_SUPPORTED;
+
+  DWORD dwRet =
+    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
+                                    :
+      SK_XINPUT_CALL (     xinput_ctx.cs_caps [dwUserIndex],
+                                               dwUserIndex,
+       pCtx->XInputGetCapabilitiesEx_Original (
+                                   dwReserved, dwUserIndex, dwFlags, pCapabilitiesEx)
+      );
+
+  InterlockedExchange (&xinput_ctx.LastSlotState [dwUserIndex], dwRet);
+
+  dwRet =
+    SK_XInput_PlaceHoldCaps (dwRet, dwUserIndex, dwFlags, &pCapabilitiesEx->Capabilities);
 
   SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
@@ -1541,9 +1608,23 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
   if (pCtx->XInputPowerOff_Target != nullptr)
   {
     SK_CreateDLLHook2 (         pCtx->wszModuleName,
-                                     XINPUT_POWEROFF_ORDINAL,
+                                    XINPUT_POWEROFF_ORDINAL,
                                 pCtx->XInputPowerOff_Detour,
        static_cast_p2p <void> (&pCtx->XInputPowerOff_Original) );
+  }
+
+  pCtx->XInputGetCapabilitiesEx_Target =
+      SK_GetProcAddress ( pCtx->wszModuleName,
+                                XINPUT_GETCAPABILITIES_EX_ORDINAL );
+
+  // Down-level (XInput 9_1_0) does not have XInputGetCapabilitiesEx (108)
+  //
+  if (pCtx->XInputGetCapabilitiesEx_Target != nullptr)
+  {
+    SK_CreateDLLHook2 (         pCtx->wszModuleName,
+                                 XINPUT_GETCAPABILITIES_EX_ORDINAL,
+                              pCtx->XInputGetCapabilitiesEx_Detour,
+     static_cast_p2p <void> (&pCtx->XInputGetCapabilitiesEx_Original) );
   }
 
   SK_ApplyQueuedHooksIfInit ();
@@ -1568,6 +1649,9 @@ SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 
   if (pCtx->XInputPowerOff_Target != nullptr)
     memcpy (pCtx->orig_inst_poweroff, pCtx->XInputPowerOff_Target,          6);
+
+  if (pCtx->XInputGetCapabilitiesEx_Target != nullptr)
+    memcpy (pCtx->orig_inst_caps_ex, pCtx->XInputGetCapabilitiesEx_Target,  6);
 
   if (pCtx->XInputGetKeystroke_Target != nullptr)
     memcpy (pCtx->orig_keystroke_inst, pCtx->XInputGetKeystroke_Target,     6);
@@ -1615,6 +1699,7 @@ SK_Input_HookXInput1_4 (void)
       pCtx->XInputGetState_Detour              = XInputGetState1_4_Detour;
       pCtx->XInputGetStateEx_Detour            = XInputGetStateEx1_4_Detour;
       pCtx->XInputGetCapabilities_Detour       = XInputGetCapabilities1_4_Detour;
+      pCtx->XInputGetCapabilitiesEx_Detour     = XInputGetCapabilitiesEx1_4_Detour;
       pCtx->XInputGetBatteryInformation_Detour = XInputGetBatteryInformation1_4_Detour;
       pCtx->XInputPowerOff_Detour              = XInputPowerOff1_4_Detour;
       pCtx->XInputGetKeystroke_Detour          = XInputGetKeystroke1_4_Detour;
@@ -2291,6 +2376,52 @@ SK_XInput_RehookIfNeeded (void)
     }
   }
 
+  if (pCtx->XInputGetCapabilitiesEx_Target != nullptr)
+  {
+    ret =
+      MH_QueueEnableHook (pCtx->XInputGetCapabilitiesEx_Target);
+
+    // Test for modified hooks
+    if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
+                   ( pCtx->XInputGetCapabilitiesEx_Target != nullptr &&
+             memcmp (pCtx->orig_inst_caps_ex,
+                     pCtx->XInputGetCapabilitiesEx_Target, 6 ) )
+       )
+    {
+      if ( MH_OK == MH_RemoveHook (pCtx->XInputGetCapabilitiesEx_Target) )
+      {
+        if ( MH_OK ==
+               SK_CreateDLLHook2 (  pCtx->wszModuleName,
+                                    XINPUT_GETCAPABILITIES_EX_ORDINAL,
+                                    pCtx->XInputGetCapabilitiesEx_Detour,
+           static_cast_p2p <void> (&pCtx->XInputGetCapabilitiesEx_Original) )
+           )
+        {
+          SK_LOG0 ( ( L" Re-hooked XInput (%8s) using '%s'...", L"GetCapabilitiesEx",
+                         pCtx->wszModuleName ),
+                      L"Input Mgr." );
+
+          if (pCtx->hMod == xinput_ctx.XInput1_4.hMod)
+            xinput_ctx.XInput1_4 = *pCtx;
+        }
+
+        else
+        {
+          SK_LOG0 ( ( L" Failed to re-hook XInput (%8s) using '%s'...", L"GetCapabilitiesEx",
+                 pCtx->wszModuleName ),
+              L"Input Mgr." );
+        }
+      }
+
+      else
+      {
+        SK_LOG0 ( ( L" Failed to remove XInput (%8s) hook from '%s'...", L"GetCapabilitiesEx",
+               pCtx->wszModuleName ),
+            L"Input Mgr." );
+      }
+    }
+  }
+
 
   if (pCtx->XInputEnable_Target != nullptr)
   {
@@ -2374,6 +2505,9 @@ SK_XInput_RehookIfNeeded (void)
 
   if (pCtx->XInputPowerOff_Target != nullptr)
     memcpy (pCtx->orig_inst_poweroff, pCtx->XInputPowerOff_Target,          6);
+
+  if (pCtx->XInputGetCapabilitiesEx_Target != nullptr)
+    memcpy (pCtx->orig_inst_caps_ex, pCtx->XInputGetCapabilitiesEx_Target,  6);
 }
 
 

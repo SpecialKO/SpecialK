@@ -841,12 +841,7 @@ SK::ControlPanel::Input::Draw (void)
 
             if (state != 2)
             {
-              SendMessageTimeout (
-                game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_xbox,
-                                  SMTO_ABORTIFHUNG | SMTO_BLOCK, 50UL, nullptr );
-              SendMessageTimeout (
-                game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_hid,
-                                  SMTO_ABORTIFHUNG | SMTO_BLOCK, 50UL, nullptr );
+              SK_Win32_NotifyDeviceChange ();
             }
           }
 

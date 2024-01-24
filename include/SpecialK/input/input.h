@@ -748,4 +748,6 @@ using joyGetDevCapsW_pfn = MMRESULT (WINAPI *)(UINT_PTR,LPJOYCAPSW,UINT);
 extern joyGetPos_pfn   joyGetPos_Original;
 extern joyGetPosEx_pfn joyGetPosEx_Original;
 
+void SK_Win32_NotifyDeviceChange (void);
+
 #endif /* __SK__INPUT_H__ */
