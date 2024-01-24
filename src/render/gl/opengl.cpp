@@ -245,6 +245,8 @@ extern "C"
   _Name _Proto {                                                         \
     if (imp_##_Name == nullptr) {                                        \
                                                                          \
+      SK_LoadRealGL ();                                                  \
+                                                                         \
       static constexpr const char* szName = #_Name;                      \
       imp_##_Name=(imp_##_Name##_pfn)SK_GetProcAddress(local_gl, szName);\
                                                                          \
@@ -266,6 +268,8 @@ extern "C"
   void WINAPI                                                            \
   _Name _Proto {                                                         \
     if (imp_##_Name == nullptr) {                                        \
+                                                                         \
+      SK_LoadRealGL ();                                                  \
                                                                          \
       static constexpr char* szName = #_Name;                            \
       imp_##_Name=(imp_##_Name##_pfn)SK_GetProcAddress(local_gl, szName);\
@@ -2647,6 +2651,16 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
     if (dx_gl_interop.d3d11.staging.colorBuffer == nullptr || (! SK_GL_OnD3D11))
     {
+      if (! SK_GL_OnD3D11)
+      {
+        SK_RunOnce (
+          SK_ImGui_WarningWithTitle (
+            L"Please turn Direct3D 11 on under Compatibility Settings | Render Backends "
+            L"and restart the game", L"Pure OpenGL Is No Longer Supported!"
+          )
+        );
+      }
+
       SK_GetCurrentRenderBackend ().api =
         SK_RenderAPI::OpenGL;
 
