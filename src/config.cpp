@@ -958,7 +958,6 @@ struct {
     sk::ParameterBool*    no_warp_visible         = nullptr;
     sk::ParameterBool*    block_invisible         = nullptr;
     sk::ParameterBool*    fix_synaptics           = nullptr;
-    sk::ParameterBool*    use_relative_input      = nullptr;
     sk::ParameterFloat*   antiwarp_deadzone       = nullptr;
   } cursor;
 
@@ -1518,7 +1517,6 @@ auto DeclKeybind =
     ConfigEntry (input.cursor.hw_cursor,                 L"Use a Hardware Cursor for Special K's UI Features",         dll_ini,         L"Input.Cursor",          L"UseHardwareCursor"),
     ConfigEntry (input.cursor.block_invisible,           L"Block Mouse Input if Hardware Cursor is Invisible",         dll_ini,         L"Input.Cursor",          L"BlockInvisibleCursorInput"),
     ConfigEntry (input.cursor.fix_synaptics,             L"Fix Synaptic Touchpad Scroll",                              dll_ini,         L"Input.Cursor",          L"FixSynapticsTouchpadScroll"),
-    ConfigEntry (input.cursor.use_relative_input,        L"Use Raw Input Relative Motion if Needed",                   dll_ini,         L"Input.Cursor",          L"UseRelativeInput"),
     ConfigEntry (input.cursor.antiwarp_deadzone,         L"Percentage of Screen that the game may try to move the "
                                                          L"cursor to for mouselook.",                                  dll_ini,         L"Input.Cursor",          L"AntiwarpDeadzonePercent"),
     ConfigEntry (input.cursor.no_warp_ui,                L"Prevent Games from Warping Cursor while Config UI is Open", dll_ini,         L"Input.Cursor",          L"NoWarpUI"),
@@ -2245,7 +2243,6 @@ auto DeclKeybind =
         config.apis.OpenGL.hook                = false;
 
         config.input.ui.capture_hidden         = false; // Mouselook is a bitch
-        config.input.mouse.add_relative_motion = true;
         SK_ImGui_Cursor.prefs.no_warp.ui_open  = false;
         SK_ImGui_Cursor.prefs.no_warp.visible  = false;
 
@@ -2262,9 +2259,6 @@ auto DeclKeybind =
       case SK_GAME_ID::Dreamfall_Chapters:
         config.system.trace_load_library       = true;
         config.system.strict_compliance        = false;
-
-        // Game has mouselook problems without this
-        config.input.mouse.add_relative_motion = true;
 
         // Chances are good that we will not catch SteamAPI early enough to hook callbacks, so
         //   auto-pump.
@@ -2357,7 +2351,6 @@ auto DeclKeybind =
       case SK_GAME_ID::WatchDogs2:
         //Does not support XInput hot-plugging, needs Special K loving :)
         config.input.gamepad.xinput.placehold [0] = true;
-        config.input.mouse.add_relative_motion    = true;
         break;
 
 
@@ -2366,7 +2359,6 @@ auto DeclKeybind =
         //config.render.dxgi.slow_state_cache    = false;
         //SK_DXGI_SlowStateCache                 = config.render.dxgi.slow_state_cache;
         config.render.dxgi.scaling_mode        = DXGI_MODE_SCALING_UNSPECIFIED;
-        config.input.mouse.add_relative_motion = false;
 
         // Prevent VRR disable when game plays cutscenes
         config.render.framerate.sync_interval_clamp  =     1;
@@ -2421,7 +2413,6 @@ auto DeclKeybind =
         config.apis.d3d9.hook                  = true;
         config.apis.d3d9ex.hook                = false;
         config.apis.d3d8.hook                  = false;
-        config.input.mouse.add_relative_motion = false;
         break;
 #endif
 
@@ -4001,7 +3992,6 @@ auto DeclKeybind =
   input.cursor.block_invisible->load     (config.input.ui.capture_hidden);
   input.cursor.fix_synaptics->load       (config.input.mouse.fix_synaptics);
   input.cursor.antiwarp_deadzone->load   (config.input.mouse.antiwarp_deadzone);
-  input.cursor.use_relative_input->load  (config.input.mouse.add_relative_motion);
 
   input.gamepad.disabled_to_game->load   (config.input.gamepad.disabled_to_game);
   input.gamepad.disable_ps4_hid->load    (config.input.gamepad.disable_ps4_hid);
@@ -5372,7 +5362,6 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.no_warp_visible->store         (SK_ImGui_Cursor.prefs.no_warp.visible);
   input.cursor.fix_synaptics->store           (config.input.mouse.fix_synaptics);
   input.cursor.antiwarp_deadzone->store       (config.input.mouse.antiwarp_deadzone);
-  input.cursor.use_relative_input->store      (config.input.mouse.add_relative_motion);
 
   input.gamepad.disabled_to_game->store       (config.input.gamepad.disabled_to_game);
   input.gamepad.disable_ps4_hid->store        (config.input.gamepad.disable_ps4_hid);

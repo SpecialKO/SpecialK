@@ -1003,8 +1003,6 @@ struct sk_config_t
       //      Synaptics touchpad.
       //
       bool    fix_synaptics       = false;
-      // If absolute cursor position is stuck (i.e. Dreamfall Chapters) use this
-      bool    add_relative_motion = true;
       int     disabled_to_game    =    0; //0 = Never, 1 = Always, 2 = In Background
       bool    ignore_small_clips  = false; // Ignore mouse clipping rects < 75% the
                                           //   dimensions of the client window, so

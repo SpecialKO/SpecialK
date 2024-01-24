@@ -373,6 +373,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
   bool filter   = false;
   bool mouse    = false;
   bool keyboard = false;
+  bool gamepad  = false;
 
   auto FilterRawInput =
     [&](UINT uiCommand, RAWINPUT* pData, bool& mouse, bool& keyboard) ->
@@ -500,6 +501,8 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
           default:
           {
+            gamepad = true;
+
             // TODO: Determine which controller the input is from
             if (SK_ImGui_WantGamepadCapture ())
               filter = true;
@@ -530,23 +533,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
       {
         if (foreground)
         {
-          if (SK_ImGui_IsMouseRelevant () && config.input.mouse.add_relative_motion)
-          {
-            ///////////////////////// 99% of games don't need this, and if we use relative motion to update the cursor position that
-            /////////////////////////   requires re-synchronizing with the desktop's logical cursor coordinates at some point because
-            /////////////////////////     Raw Input does not include cursor acceleration, etc.
-            ///////////////////////POINT client { ((RAWINPUT *)pData)->data.mouse.lLastX,
-            ///////////////////////               ((RAWINPUT *)pData)->data.mouse.lLastY };
-            ///////////////////////
-            ///////////////////////////SK_ImGui_Cursor.ClientToLocal (&client);
-            ///////////////////////
-            ///////////////////////SK_ImGui_Cursor.pos.x += client.x;
-            ///////////////////////SK_ImGui_Cursor.pos.y += client.y;
-            ///////////////////////
-            ///////////////////////io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-            ///////////////////////io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
-          }
-
           if (self)
           {
             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_DOWN   )
@@ -652,7 +638,18 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     //   games will see *pcbSize=0 and RIM_INPUTSINK and not process input...
     else
     {
-      RtlZeroMemory (&((RAWINPUT *)pData)->data.mouse, *pcbSize - sizeof (RAWINPUTHEADER));
+      if (mouse)
+        RtlZeroMemory (&((RAWINPUT *)pData)->data.mouse, *pcbSize - sizeof (RAWINPUTHEADER));
+      else if (gamepad)
+      {
+        SK_ReleaseAssert (
+          *pcbSize - sizeof (RAWINPUTHEADER) >= (((RAWINPUT *)pData)->data.hid.dwCount *
+                                                 ((RAWINPUT *)pData)->data.hid.dwSizeHid) + 2 * sizeof (DWORD));
+
+        RtlZeroMemory (&((RAWINPUT *)pData)->data.hid,
+                       (((RAWINPUT *)pData)->data.hid.dwCount *
+                        ((RAWINPUT *)pData)->data.hid.dwSizeHid) + 2 * sizeof (DWORD));
+      }
     }
 
     if (precache_size == 0)
