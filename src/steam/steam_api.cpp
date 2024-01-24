@@ -5804,7 +5804,6 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                         continue;
 
                       // Still send this override, but delay it in case something else comes in...
-                      //   the Steam client leaks memory every time we send it an override!
                       if (std::exchange (last_override, appid) == appid)
                         SK_SleepEx (25UL, FALSE);
 
@@ -5814,31 +5813,31 @@ SK_Steam_ForceInputAppId (AppId64_t appid)
                       if (appid == UINT64_MAX)
                         continue;
 
-                      bool appid_set = false;
+                      const bool appid_set =
+                        SK_Steam_RunClientCommand ( appid != 0 ?
+                          SK_FormatStringW (LR"(forceinputappid/%llu)", appid).c_str ()
+                                                               :
+                                            LR"(forceinputappid/)"
+                        );
 
-                      static AppId64_t   last_appid = static_cast <AppId64_t> (-1);
-                      if (std::exchange (last_appid, appid) != appid)
+                      if (appid_set)
                       {
-                        appid_set =
-                          SK_Steam_RunClientCommand ( appid != 0 ?
-                            SK_FormatStringW (LR"(forceinputappid/%llu)", appid).c_str ()
-                                                                 :
-                                              LR"(forceinputappid/)"
-                          );
-
-                        if (appid_set)
+                        if (appid != 0)
                         {
-                          if (appid != 0)
+                          static AppId64_t   last_appid = static_cast <AppId64_t> (-1);
+                          if (std::exchange (last_appid, appid) != appid)
+                          {
                             SK_LOGi1 (L"Forced Steam Input AppID: %llu", appid);
-                          else
-                            SK_LOGi1 (L"Forced Steam Input AppID: Default");
+                          }
                         }
+                        else
+                          SK_LOGi1 (L"Forced Steam Input AppID: Default");
+                      }
 
-                        if (! appid_set)
-                        {
-                          SK_LOGi0 (L"steam://forceinputappid failed!");
-                          break; // Fail-once and we're done...
-                        }
+                      else
+                      {
+                        SK_LOGi0 (L"steam://forceinputappid failed!");
+                        break; // Fail-once and we're done...
                       }
 
                       appid = UINT64_MAX;

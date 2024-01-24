@@ -1,4 +1,8 @@
-﻿24.1.24
+﻿24.1.24.1
+=========
+ + Improved support for SteamInput when switching between two running games.
+
+24.1.24
 =======
  + Implemented enough of ImGui to draw a warning telling users to turn
      OpenGL-IK on if they try to run SK in pure OpenGL mode
