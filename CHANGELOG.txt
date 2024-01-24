@@ -1,4 +1,10 @@
-﻿24.1.24.1
+﻿24.1.24.2
+=========
+ + Fixed API detection issues in Stardew Valley
+ + Improved support for UWP games on Microsoft Store
+ + Add detection for XInput devices that are Steam Input virtual controllers
+
+24.1.24.1
 =========
  + Show option to control Gamepad Backgropund Input behavior even if XInput
      hooks have been disabled

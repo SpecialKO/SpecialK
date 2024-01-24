@@ -236,6 +236,10 @@ SK_KeepAway (void)
   static size_t hashed_self =
     hash_lower (wszAppShortName);
 
+  const bool xbox =
+    ((StrStrIW (wszAppFullName, L"XboxGames") != nullptr) || PathFileExistsW (L"gamelaunchhelper.exe")) &&
+    (!StrStrIW (wszAppFullName, L"gamelaunchhelper.exe"));
+
   auto _TestUndesirableDll = [&]
    (const std::initializer_list <constexpr_module_s>& list,
                                                   INT list_type) ->
@@ -318,7 +322,7 @@ SK_KeepAway (void)
     if (   SK_GetCurrentPackageFullName != nullptr)
       rc = SK_GetCurrentPackageFullName (&uiLen, wszPackageName);
 
-    if (rc != APPMODEL_ERROR_NO_PACKAGE || status == Bluelisted)
+    if ((rc != APPMODEL_ERROR_NO_PACKAGE && (! xbox)) || status == Bluelisted)
     {
       // Epic's Overlay Loads This
       //
