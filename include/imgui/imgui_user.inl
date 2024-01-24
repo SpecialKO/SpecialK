@@ -1633,7 +1633,7 @@ SK_ImGui_FilterXInput (
 
     // Disabled device slots (the other condition in this branch)
     //   should still be counted as polled slots
-    if (disable)
+  //if (disable)
       return true;
   }
 

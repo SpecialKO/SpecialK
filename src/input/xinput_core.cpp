@@ -81,6 +81,21 @@ SetupDiGetClassDevsW_Detour (
 }
 
 
+#define SK_HID_VID_8BITDO        0x2dc8
+#define SK_HID_VID_LOGITECH      0x046d
+#define SK_HID_VID_MICROSOFT     0x045e
+#define SK_HID_VID_NINTENDO      0x057e
+#define SK_HID_VID_NVIDIA        0x0955
+#define SK_HID_VID_RAZER         0x1532
+#define SK_HID_VID_SONY          0x054c
+#define SK_HID_VID_VALVE         0x28de
+
+#define SK_HID_PID_XUSB          0x02a1 // Xbox 360 Controller Protocol
+#define SK_HID_PID_XBOXGIP       0x02ff // Xbox One Controller Protocol
+#define SK_HID_PID_STEAM_VIRTUAL 0x11ff // Steam Emulated Controller
+
+void SK_Steam_SignalEmulatedXInputActivity (DWORD dwSlot);
+
 struct SK_XInputContext
 {
   enum
@@ -208,6 +223,31 @@ struct SK_XInputContext
       ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED,
       ERROR_DEVICE_NOT_CONNECTED, ERROR_DEVICE_NOT_CONNECTED
     };
+
+  void updateDeviceType (DWORD dwUserIndex)
+  {
+    if (dwUserIndex >= 4)
+      return;
+
+    if (dev_caps [dwUserIndex].ProductId == 0)
+    {
+      if (      nullptr == XInput1_4.XInputGetCapabilitiesEx_Original ||
+          ERROR_SUCCESS != XInput1_4.XInputGetCapabilitiesEx_Original (
+                         1, dwUserIndex, 0x0, &dev_caps [dwUserIndex] )
+         )
+      {
+        dev_caps [dwUserIndex].ProductId = 0xFFFFU;
+      }
+    }
+  }
+
+  inline bool isDeviceSteamInput (DWORD dwUserIndex) noexcept
+  {
+    return
+      (dwUserIndex <= 3 && dev_caps [dwUserIndex].ProductId == SK_HID_PID_STEAM_VIRTUAL);
+  }
+
+  XINPUT_CAPABILITIES_EX dev_caps [XUSER_MAX_COUNT + 1] = { {}, {}, {}, {}, {} };
 };
 
 SK_XInputContext xinput_ctx;
@@ -416,7 +456,6 @@ XInputEnable1_4_Detour (
   SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 }
 
-
 DWORD
 WINAPI
 XInputGetState1_4_Detour (
@@ -457,11 +496,19 @@ XInputGetState1_4_Detour (
   if (pCtx->XInputGetState_Original == nullptr)
     return ERROR_NOT_SUPPORTED;
 
+  xinput_ctx.updateDeviceType (dwUserIndex);
+
+  static XInputGetState_pfn
+         XInputGetState_SK =
+        (XInputGetState_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
+        "XInputGetState"                      );
+
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
                                     :
       SK_XINPUT_CALL ( xinput_ctx.cs_poll [dwUserIndex],
-                                           dwUserIndex,
+                                           dwUserIndex, config.input.gamepad.steam.disabled_to_game ?
+                        XInputGetState_SK (dwUserIndex, pState)                                     :
             pCtx->XInputGetState_Original (dwUserIndex, pState)
       );
 
@@ -483,7 +530,12 @@ XInputGetState1_4_Detour (
 
   if (dwRet == ERROR_SUCCESS)
   {
-    if (! nop) SK_XINPUT_READ (dwUserIndex);
+    if (! nop) {
+      SK_XINPUT_READ (dwUserIndex);
+
+      if (      xinput_ctx.isDeviceSteamInput (dwUserIndex))
+        SK_Steam_SignalEmulatedXInputActivity (dwUserIndex);
+    }
 
     // Game-specific hacks (i.e. button swap)
     SK_XInput_TalesOfAriseButtonSwap (pState);
@@ -633,11 +685,19 @@ XInputGetStateEx1_4_Detour (
   if (pCtx->XInputGetStateEx_Original == nullptr)
     return ERROR_NOT_SUPPORTED;
 
+  xinput_ctx.updateDeviceType (dwUserIndex);
+
+  static XInputGetStateEx_pfn
+         XInputGetStateEx_SK =
+        (XInputGetStateEx_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
+        "XInputGetStateEx"                      );
+
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
                                     :
       SK_XINPUT_CALL ( xinput_ctx.cs_poll [dwUserIndex],
-                                           dwUserIndex,
+                                           dwUserIndex, config.input.gamepad.steam.disabled_to_game ?
+                      XInputGetStateEx_SK (dwUserIndex, pState)                                     :
           pCtx->XInputGetStateEx_Original (dwUserIndex, pState)
       );
 
@@ -654,7 +714,14 @@ XInputGetStateEx1_4_Detour (
   //   whatever the game is actively using -- helps with X360Ce
   SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
-  if (   dwRet == ERROR_SUCCESS && (! nop)) SK_XINPUT_READ (dwUserIndex);
+  if (   dwRet == ERROR_SUCCESS && (! nop))
+  {
+    SK_XINPUT_READ (dwUserIndex);
+
+    if (      xinput_ctx.isDeviceSteamInput (dwUserIndex))
+      SK_Steam_SignalEmulatedXInputActivity (dwUserIndex);
+  }
+
   return dwRet;
 }
 
