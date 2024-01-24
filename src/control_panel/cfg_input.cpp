@@ -828,17 +828,6 @@ SK::ControlPanel::Input::Draw (void)
                 break;
             }
 
-            static constexpr GUID GUID_XUSB_INTERFACE_CLASS =
-              { 0xEC87F1E3L, 0xC13B, 0x4100, { 0xB5, 0xF7, 0x8B, 0x84, 0xD5, 0x42, 0x60, 0xCB } };
-
-            static DEV_BROADCAST_DEVICEINTERFACE_W    dbcc_xbox = { };
-                   dbcc_xbox.dbcc_size      = sizeof (dbcc_xbox);
-                   dbcc_xbox.dbcc_classguid = GUID_XUSB_INTERFACE_CLASS;
-
-            static DEV_BROADCAST_DEVICEINTERFACE_W   dbcc_hid = { };
-                   dbcc_hid.dbcc_size      = sizeof (dbcc_hid);
-                   dbcc_hid.dbcc_classguid = GUID_DEVINTERFACE_HID;
-
             if (state != 2)
             {
               SK_Win32_NotifyDeviceChange ();
@@ -1480,17 +1469,14 @@ extern float SK_ImGui_PulseNav_Strength;
       if (ImGui::IsItemHovered () && config.input.keyboard.disabled_to_game == SK_InputEnablement::DisabledInBackground)
         ImGui::SetTooltip ("Most games block keyboard input in the background to begin with...");
 
-      if (/*config.input.gamepad.hook_dinput7 ||*/ config.input.gamepad.hook_dinput8 ||
-          /*config.input.gamepad.hook_hid     ||*/ config.input.gamepad.hook_xinput)
+      if (/*config.input.gamepad.hook_dinput7        ||*/ config.input.gamepad.hook_dinput8   ||
+            config.input.gamepad.hook_hid            ||   config.input.gamepad.hook_xinput    ||
+            config.steam.appid != 0                  ||   config.input.gamepad.hook_raw_input ||
+            config.input.gamepad.hook_windows_gaming ||   config.input.gamepad.hook_winmm )
       {
-        //if (      SK_DI7_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 ||
-        //          SK_DI8_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 ||
-        //          SK_HID_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 ||
-        //     SK_RawInput_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 ||
-        //       SK_XInput_Backend->reads [(size_t)sk_input_dev_type::Gamepad] > 0 )
         bool changed =
-          ImGui::Combo      ("Gamepad Input", &config.input.gamepad.disabled_to_game,
-                             "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
+          ImGui::Combo ("Gamepad Input", &config.input.gamepad.disabled_to_game,
+                        "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
 
         if (changed)
         {

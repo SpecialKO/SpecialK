@@ -1,5 +1,7 @@
 ﻿24.1.24.1
 =========
+ + Show option to control Gamepad Backgropund Input behavior even if XInput
+     hooks have been disabled
  + Improved support for SteamInput when switching between two running games.
 
 24.1.24
