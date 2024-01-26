@@ -1,5 +1,9 @@
 ﻿24.1.26
 =======
+ + Merge pull request #134 from MapleHinata/main
+    * Enable Streamline workarounds for Yakuza: Infinite Wealth #134
+ + Merge pull request #133 from Nustat0/fix-saving-config-for-ddraw-d3d8
+    * Fix various config settings not saving for local D3D8/DDraw injection
  + Fixed problems in latest versions of Yuzu where SK hooks Qt's OpenGL test
      window rather than the actual render window (i.e. no UI mouse input)
  + Fixed not being able to set Borderless mode in the control panel if
