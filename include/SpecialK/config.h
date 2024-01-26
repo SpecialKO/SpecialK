@@ -1426,6 +1426,7 @@ enum class SK_GAME_ID
   YakuzaKiwami2,                // YakuzaKiwami2.exe
   YakuzaUnderflow,              // Yakuza*.exe
   YakuzaLikeADragonGaiden,      // LikeADragonGaiden.exe
+  YakuzaInfiniteWealth,         // likeadragon8.exe
   MonsterHunterWorld,           // MonsterHunterWorld.exe
   MonsterHunterStories2,        // game.exe (fantastic!)
   MonsterHunterRise,            // MonsterHunterRise.exe
