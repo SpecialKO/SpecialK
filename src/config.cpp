@@ -5399,6 +5399,10 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.steam.ui_slot->store          (config.input.gamepad.steam.ui_slot);
   input.gamepad.steam.disable->store          (config.input.gamepad.steam.disabled_to_game);
 
+  // Turn off auto-slot assignment if the UI slot is invalid
+  if (config.input.gamepad.xinput.ui_slot < 0 || config.input.gamepad.xinput.ui_slot > 3)
+      config.input.gamepad.xinput.auto_slot_assign = false;
+
   std::wstring xinput_assign;
   std::wstring xinput_disable;
 

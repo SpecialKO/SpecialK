@@ -1,4 +1,9 @@
-﻿24.1.26
+﻿24.1.26.1
+=========
+ + Turn off XInput auto slot-0 assignment if the UI slot is not valid
+     (i.e. user has disabled UI control by setting UISlot=4)
+
+24.1.26
 =======
  + Merge pull request #134 from MapleHinata/main
     * Enable Streamline workarounds for Yakuza: Infinite Wealth #134

@@ -763,10 +763,18 @@ SK::ControlPanel::Input::Draw (void)
 
         ImGui::NextColumn ( );
 
-        ImGui::Checkbox ("Dynamic XInput " ICON_FA_GAMEPAD " 0", &config.input.gamepad.xinput.auto_slot_assign);
+        if (config.input.gamepad.xinput.ui_slot >= 0 && config.input.gamepad.xinput.ui_slot < 4)
+        {
+          ImGui::Checkbox ("Dynamic XInput " ICON_FA_GAMEPAD " 0", &config.input.gamepad.xinput.auto_slot_assign);
 
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Automatically reassign slot 0 in response to gamepad input");
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Automatically reassign slot 0 in response to gamepad input");
+        }
+
+        else
+        {
+          config.input.gamepad.xinput.auto_slot_assign = false;
+        }
 
         ImGui::NextColumn ( );
         ImGui::Columns    (2);
