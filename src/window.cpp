@@ -6479,7 +6479,8 @@ SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
     // F' it, there's a pattern here, just ignore all dummies.
     StrStrIW (pWindowClass->lpszClassName, L"dummy");
 
-  if (StrStrIW (pWindowClass->lpszClassName, L"Qt"))
+  if (StrStrIW (pWindowClass->lpszClassName, L"Qt") &&
+   (! StrStrIW (pWindowClass->lpszClassName, L"qtopengltest")))
     return false;
 
   return

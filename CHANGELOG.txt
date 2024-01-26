@@ -1,4 +1,11 @@
-﻿24.1.24.2
+﻿24.1.26
+=======
+ + Fixed problems in latest versions of Yuzu where SK hooks Qt's OpenGL test
+     window rather than the actual render window (i.e. no UI mouse input)
+ + Fixed not being able to set Borderless mode in the control panel if
+     Fullscreen Window mode is set in INI (it should be implicitly borderless)
+
+24.1.24.2
 =========
  + Fixed API detection issues in Stardew Valley
  + Improved support for UWP games on Microsoft Store
