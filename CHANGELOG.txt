@@ -1,7 +1,9 @@
-﻿24.1.26.1
+﻿24.1.26.x
 =========
- + Turn off XInput auto slot-0 assignment if the UI slot is not valid
-     (i.e. user has disabled UI control by setting UISlot=4)
+ [.2] + Fixed missing HUDless screenshot keybind in control panel, because
+          the number of screenshot keybinds changed.
+ [.1] + Turn off XInput auto slot-0 assignment if the UI slot is not valid
+          (i.e. user has disabled UI control by setting UISlot=4)
 
 24.1.26
 =======
