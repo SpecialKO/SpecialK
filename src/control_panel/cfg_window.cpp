@@ -45,6 +45,11 @@ SK::ControlPanel::Window::Draw (void)
       bool center            = config.window.center;
       bool fullscreen        = config.window.fullscreen;
 
+      // This is a nonsensical combination;
+      //   borderless should always be set if fullscreen is...
+      if (fullscreen)
+        SK_DeferCommand ("Window.Borderless true");
+
       if ( ImGui::Checkbox ( "Borderless  ", &borderless ) )
       {
           //config.window.fullscreen = false;

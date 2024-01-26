@@ -840,7 +840,6 @@ struct {
     sk::ParameterStringW* rotation                = nullptr;
     sk::ParameterBool*    test_present            = nullptr;
     sk::ParameterBool*    debug_layer             = nullptr;
-    sk::ParameterBool*    safe_fullscreen         = nullptr;
     sk::ParameterBool*    enhanced_depth          = nullptr;
     sk::ParameterBool*    deferred_isolation      = nullptr;
     sk::ParameterInt*     msaa_samples            = nullptr;
@@ -1773,7 +1772,6 @@ auto DeclKeybind =
                                                          L" UpperFieldFirst )",                                        dll_ini,         L"Render.DXGI",           L"ScanlineOrder"),
     ConfigEntry (render.dxgi.rotation,                   L"Screen Rotation (DontCare | Identity | 90 | 180 | 270 )",   dll_ini,         L"Render.DXGI",           L"Rotation"),
     ConfigEntry (render.dxgi.test_present,               L"Test SwapChain Presentation Before Actually Presenting",    dll_ini,         L"Render.DXGI",           L"TestSwapChainPresent"),
-  //ConfigEntry (render.dxgi.safe_fullscreen,            L"Prevent DXGI Deadlocks in Improperly Written Games",        dll_ini,         L"Render.DXGI",           L"SafeFullscreenMode"),
     ConfigEntry (render.dxgi.enhanced_depth,             L"Use 32-bit Depth + 8-bit Stencil + 24-bit Padding",         dll_ini,         L"Render.DXGI",           L"Use64BitDepthStencil"),
     ConfigEntry (render.dxgi.deferred_isolation,         L"Isolate D3D11 Deferred Context Queues instead of Tracking"
                                                          L" in Immediate Mode.",                                       dll_ini,         L"Render.DXGI",           L"IsolateD3D11DeferredContexts"),
@@ -3934,8 +3932,6 @@ auto DeclKeybind =
   render.dxgi.test_present->load         (config.render.dxgi.test_present);
   render.dxgi.swapchain_wait->load       (config.render.framerate.swapchain_wait);
 
-//render.dxgi.safe_fullscreen->load      (config.render.dxgi.safe_fullscreen);
-
   render.dxgi.enhanced_depth->load       (config.render.dxgi.enhanced_depth);
   render.dxgi.deferred_isolation->load   (config.render.dxgi.deferred_isolation);
   render.dxgi.skip_present_test->load    (config.render.dxgi.present_test_skip);
@@ -4177,6 +4173,12 @@ auto DeclKeybind =
   window.dont_hook_wndproc->load   (config.window.dont_hook_wndproc);
   window.activate_at_start->load   (config.window.activate_at_start);
   window.treat_fg_as_active->load  (config.window.treat_fg_as_active);
+
+  if (config.window.fullscreen && (! config.window.borderless))
+  {
+    SK_LOGi0 (L"Invalid Combination of Fullscreen + Not Borderless, forcing Borderless!");
+    config.window.borderless = true;
+  }
 
 
   // Oh boy, let the fun begin :)
@@ -5783,7 +5785,6 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.fake_fullscreen_mode->store (config.render.dxgi.fake_fullscreen_mode);
       render.dxgi.debug_layer->store          (config.render.dxgi.debug_layer);
       render.dxgi.allow_d3d12_footguns->store (config.render.dxgi.allow_d3d12_footguns);
-    //render.dxgi.safe_fullscreen->store      (config.render.dxgi.safe_fullscreen);
       render.dxgi.enhanced_depth->store       (config.render.dxgi.enhanced_depth);
       render.dxgi.deferred_isolation->store   (config.render.dxgi.deferred_isolation);
       render.dxgi.skip_present_test->store    (config.render.dxgi.present_test_skip);
