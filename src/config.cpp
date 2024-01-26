@@ -178,6 +178,7 @@ SK_GetCurrentGameID (void)
           { L"YakuzaKiwami.exe",                       SK_GAME_ID::YakuzaKiwami                 },
           { L"YakuzaKiwami2.exe",                      SK_GAME_ID::YakuzaKiwami2                },
           { L"LikeADragonGaiden.exe",                  SK_GAME_ID::YakuzaLikeADragonGaiden      },
+          { L"likeadragon8.exe",                       SK_GAME_ID::YakuzaInfiniteWealth         },
           { L"MonsterHunterWorld.exe",                 SK_GAME_ID::MonsterHunterWorld           },
           { L"MonsterHunterRise.exe",                  SK_GAME_ID::MonsterHunterRise            },
           { L"Shenmue.exe",                            SK_GAME_ID::Shenmue                      },
@@ -2879,6 +2880,7 @@ auto DeclKeybind =
       }
       break;
 
+      case SK_GAME_ID::YakuzaInfiniteWealth:
       case SK_GAME_ID::YakuzaLikeADragonGaiden:
       {
         config.render.dxgi.fake_fullscreen_mode   = true;
