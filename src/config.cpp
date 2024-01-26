@@ -5581,8 +5581,12 @@ SK_SaveConfig ( std::wstring name,
 
   render.framerate.override_cpu_count->store  (config.render.framerate.override_num_cpus);
 
-  if ( SK_IsInjected () || (SK_GetDLLRole () & DLL_ROLE::DInput8) ||
-      (SK_GetDLLRole () & DLL_ROLE::D3D9 || SK_GetDLLRole () & DLL_ROLE::DXGI) )
+  if (  SK_IsInjected ()                       ||
+      ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||
+      ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||
+      ( SK_GetDLLRole () & DLL_ROLE::D3D8    ) ||
+      ( SK_GetDLLRole () & DLL_ROLE::DDraw   ) ||
+      ( SK_GetDLLRole () & DLL_ROLE::DXGI    ) )
   {
     render.framerate.wait_for_vblank->store   (config.render.framerate.wait_for_vblank);
     render.framerate.prerender_limit->store   (config.render.framerate.pre_render_limit);
@@ -5668,6 +5672,8 @@ SK_SaveConfig ( std::wstring name,
 
     if (  SK_IsInjected ()                       ||
         ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||
+        ( SK_GetDLLRole () & DLL_ROLE::D3D8    ) ||
+        ( SK_GetDLLRole () & DLL_ROLE::DDraw   ) ||
         ( SK_GetDLLRole () & DLL_ROLE::DXGI    ) )
     {
       nvidia.reflex.enable->store                 (config.nvidia.reflex.enable);
