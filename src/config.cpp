@@ -3359,7 +3359,8 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::DOOMEternal:
-        config.apis.NvAPI.vulkan_bridge = 1;
+        config.apis.NvAPI.vulkan_bridge   = 1;
+        config.system.global_inject_delay = 5.0f;
         break;
 
       case SK_GAME_ID::AlanWake2:

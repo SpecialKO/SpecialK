@@ -4,6 +4,7 @@
      formally blacklist gamelaunchhelper.exe
  + Added idTechLauncher.exe to injection blacklist so that injection into
      DOOM Eternal works reliably
+ + Added 5 second injection delay to DOOM Eternal
  + Enable Vulkan Bridge for DOOM Eternal by default so non-HDR users can
      also use Special K :)
  + Moved end-of-frame TopMost status check into the thread added in 24.1.27

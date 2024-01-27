@@ -8017,7 +8017,7 @@ SK_Window_CreateTopMostFixupThread (void)
           if (unresponsive && topmost)
           {
             SK_LOGi0 (L"Game Window is TopMost and game has not drawn a "
-                      L"frame in > 125 ms; removing TopMost...");
+                      L"frame in > 250 ms; removing TopMost...");
 
             SK_DeferCommand ("Window.TopMost 0");
 
