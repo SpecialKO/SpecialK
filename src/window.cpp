@@ -5168,6 +5168,8 @@ bool __ignore = false;
 #include <Hidclass.h>
 #include <Bthdef.h>
 
+DWORD dwLastWindowMessageProcessed = INFINITE;
+
 __declspec (noinline)
 LRESULT
 CALLBACK
@@ -5176,6 +5178,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       _In_  WPARAM wParam,
                       _In_  LPARAM lParam )
 {
+  dwLastWindowMessageProcessed =
+    SK_timeGetTime ();
+
   if (uMsg == WM_NULL)
   {
 #if 0
@@ -8003,7 +8008,7 @@ SK_Window_CreateTopMostFixupThread (void)
         static LONG64    last_frame_count = 0;
         const bool unresponsive =
           std::exchange (last_frame_count, SK_GetFramesDrawn ()) ==
-                         last_frame_count;
+                         last_frame_count || dwLastWindowMessageProcessed < SK_timeGetTime () - 250;
 
         const bool topmost =
           SK_Window_IsTopMost (game_window.hWnd);

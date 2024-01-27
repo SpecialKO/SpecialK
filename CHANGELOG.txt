@@ -1,5 +1,8 @@
 ﻿24.1.27.2
 =========
+ + Added Window thread activity to unresponsive TopMost removal logic, since
+     stupid engines like Unreal stop processing window messages while playing
+       full motion video.
  + Removed debug log spam related to window topmost state
 
 24.1.27.1
