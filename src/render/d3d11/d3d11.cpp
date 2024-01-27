@@ -7744,7 +7744,8 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   SK_D3D11_Init ();
 
-  WaitForInitD3D11 ();
+  if (! SK_IsInjected ())
+  { WaitForInitD3D11 ();}
 
 
   dll_log->LogEx ( true,

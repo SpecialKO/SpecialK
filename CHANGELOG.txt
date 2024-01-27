@@ -1,4 +1,8 @@
-﻿24.1.27.2
+﻿24.1.27.3
+=========
+ + Eliminate the need for an injection delay when launching DOOM Eternal
+
+24.1.27.2
 =========
  + Added Window thread activity to unresponsive TopMost removal logic, since
      stupid engines like Unreal stop processing window messages while playing
