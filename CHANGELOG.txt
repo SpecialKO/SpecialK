@@ -1,8 +1,13 @@
-﻿24.1.28
+﻿24.1.28.1
+=========
+ + Prevent showing SwapChain settings for multiple APIs when SK is running in
+     a layered environment (e.g. DXVK on DXGI, is both Vulkan and D3D11).
+
+24.1.28
 =======
  + Changed the default mouse capture behavior when the control pane is open;
      unless a game is showing the Windows cursor, mouse input while the cursor
-       is -not- over the control panel element will be blocked.
+       is -not- over the control panel will be blocked.
  + Added support for enumerating/hot-plugging PlayStation controllers w/ HID
 
     >> Will be used for native UI control w/o XInput, and to bind special

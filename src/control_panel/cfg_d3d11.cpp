@@ -359,14 +359,18 @@ SK::ControlPanel::D3D11::Draw (void)
   const bool indirect =
     ( SK_GL_OnD3D11 || vulkan );
 
-  if (                                 (SK_GL_OnD3D11 &&
-       ImGui::CollapsingHeader ("OpenGL-IK Settings",   ImGuiTreeNodeFlags_DefaultOpen)) ||
-                                       (vulkan        &&
-       ImGui::CollapsingHeader ("Vulkan Settings",      ImGuiTreeNodeFlags_DefaultOpen)) ||
-                                       (d3d11         &&
-       ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen)) ||
-                                       (d3d12         &&
-       ImGui::CollapsingHeader ("Direct3D 12 Settings", ImGuiTreeNodeFlags_DefaultOpen)) )
+  bool uncollapsed = false;
+
+  if (SK_GL_OnD3D11)
+    uncollapsed = ImGui::CollapsingHeader ("OpenGL-IK Settings",   ImGuiTreeNodeFlags_DefaultOpen);
+  else if (vulkan)
+    uncollapsed = ImGui::CollapsingHeader ("Vulkan Settings",      ImGuiTreeNodeFlags_DefaultOpen);
+  else if (d3d11)
+    uncollapsed = ImGui::CollapsingHeader ("Direct3D 11 Settings", ImGuiTreeNodeFlags_DefaultOpen);
+  else if (d3d12)
+    uncollapsed = ImGui::CollapsingHeader ("Direct3D 12 Settings", ImGuiTreeNodeFlags_DefaultOpen);
+
+  if (uncollapsed)
   {
     if (d3d11 && (! indirect))
     {
