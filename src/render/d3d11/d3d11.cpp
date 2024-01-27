@@ -6186,7 +6186,8 @@ volatile LONG SK_D3D11_initialized = FALSE;
   __declspec (dllexport)                                                    \
   _Return STDMETHODCALLTYPE                                                 \
   _Name _Proto {                                                            \
-    WaitForInit ();                                                         \
+    if (! SK_IsInjected ())                                                 \
+            WaitForInit ();                                                 \
                                                                             \
     typedef _Return (STDMETHODCALLTYPE *passthrough_pfn) _Proto;            \
     static passthrough_pfn _default_impl = nullptr;                         \
@@ -6216,7 +6217,8 @@ volatile LONG SK_D3D11_initialized = FALSE;
   __declspec (dllexport)                                                    \
   void STDMETHODCALLTYPE                                                    \
   _Name _Proto {                                                            \
-    WaitForInit ();                                                         \
+    if (! SK_IsInjected ())                                                 \
+            WaitForInit ();                                                 \
                                                                             \
     typedef void (STDMETHODCALLTYPE *passthrough_pfn) _Proto;               \
     static passthrough_pfn _default_impl = nullptr;                         \

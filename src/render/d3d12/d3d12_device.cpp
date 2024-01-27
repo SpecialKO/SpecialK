@@ -2507,7 +2507,8 @@ D3D12CreateDevice_Detour (
   _In_      REFIID             riid,
   _Out_opt_ void             **ppDevice )
 {
-  WaitForInitD3D12 ();
+  if (! SK_IsInjected ())
+     WaitForInitD3D12 ();
 
   DXGI_LOG_CALL_0 ( L"D3D12CreateDevice" );
 
@@ -2544,25 +2545,18 @@ D3D12CreateDevice_Detour (
   {
     if ( ppDevice != nullptr )
     {
-      //if ( *ppDevice != g_pD3D12Dev )
-      //{
-        // TODO: This isn't the right way to get the feature level
-        dll_log->Log ( L"[  D3D 12  ] >> Device = %ph (Feature Level:%hs)",
-                         *ppDevice,
-                           SK_DXGI_FeatureLevelsToStr ( 1,
-                                                         (DWORD *)&MinimumFeatureLevel//(DWORD *)&ret_level
-                                                      ).c_str ()
-                     );
-
-        //g_pD3D12Dev =
-        //  (IUnknown *)*ppDevice;
-      //}
-
-      SK_RunOnce ({
-        SK_D3D12_InstallDeviceHooks       (*(ID3D12Device **)ppDevice);
-        SK_D3D12_InstallCommandQueueHooks (*(ID3D12Device **)ppDevice);
-      });
+      dll_log->Log ( L"[  D3D 12  ] >> Device = %ph (Feature Level:%hs)",
+                       *ppDevice,
+                         SK_DXGI_FeatureLevelsToStr ( 1,
+                                                       (DWORD *)&MinimumFeatureLevel//(DWORD *)&ret_level
+                                                    ).c_str ()
+                   );
     }
+
+    SK_RunOnce ({
+      SK_D3D12_InstallDeviceHooks       (*(ID3D12Device **)ppDevice);
+      SK_D3D12_InstallCommandQueueHooks (*(ID3D12Device **)ppDevice);
+    });
   }
 
   return res;

@@ -118,11 +118,10 @@ DirectInputCreateEx ( HINSTANCE hinst,
                       LPVOID   *ppvOut,
                       LPUNKNOWN punkOuter )
 {
-  //if (SK_GetDLLRole () == DLL_ROLE::DInput7)
-  {
-    SK_BootDI7      ();
-    WaitForInit_DI7 ();
-  }
+           SK_BootDI7 ();
+  if (! SK_IsInjected ())
+      WaitForInit_DI7 ();
+  
 
   dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, ppvOut="
                                       L"%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h) - "
@@ -194,11 +193,9 @@ DirectInputCreateA ( HINSTANCE       hinst,
                      LPDIRECTINPUTA* lplpDirectInput,
                      LPUNKNOWN       punkOuter )
 {
-  //if (SK_GetDLLRole () == DLL_ROLE::DInput7)
-  {
-    SK_BootDI7      ();
-    WaitForInit_DI7 ();
-  }
+           SK_BootDI7 ();
+  if (! SK_IsInjected ())
+      WaitForInit_DI7 ();
 
   dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, "
                       L"lplpDirectInput=%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR)
@@ -244,11 +241,9 @@ DirectInputCreateW ( HINSTANCE       hinst,
                      LPDIRECTINPUTW* lplpDirectInput,
                      LPUNKNOWN       punkOuter )
 {
-  //if (SK_GetDLLRole () == DLL_ROLE::DInput7)
-  {
-    SK_BootDI7      ();
-    WaitForInit_DI7 ();
-  }
+           SK_BootDI7 ();
+  if (! SK_IsInjected ())
+      WaitForInit_DI7 ();
 
   dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, "
                       L"lplpDirectInput=%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR)
@@ -459,12 +454,9 @@ CoCreateInstance_DI7 (
   _Out_ LPVOID   *ppv,
   _In_  LPVOID    pCallerAddr )
 {
-  SK_BootDI7      ();
-
-  //if (SK_GetDLLRole () == DLL_ROLE::DInput7)
-  {
-    WaitForInit_DI7 ();
-  }
+           SK_BootDI7 ();
+  if (! SK_IsInjected ())
+      WaitForInit_DI7 ();
 
   dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, "
                                L"ppvOut=%08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h) - "
@@ -537,12 +529,9 @@ CoCreateInstanceEx_DI7 (
   _Inout_ MULTI_QI     *pResults,
   _In_    LPVOID        pCallerAddr )
 {
-  SK_BootDI7      ();
-
-  //if (SK_GetDLLRole () == DLL_ROLE::DInput7)
-  {
-    WaitForInit_DI7 ();
-  }
+           SK_BootDI7 ();
+  if (! SK_IsInjected ())
+      WaitForInit_DI7 ();
 
   dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, "
                                L"ppvOut=%08" _L(PRIxPTR) L"h) - "
@@ -626,9 +615,9 @@ di7_init_callback (finish_pfn finish)
 {
   if (! SK_IsHostAppSKIM ())
   {
-    SK_HookDI7 (nullptr);
-
-    WaitForInit_DI7 ();
+             SK_HookDI7 (nullptr);
+    if (! SK_IsInjected ())
+        WaitForInit_DI7 ();
   }
 
   finish ();

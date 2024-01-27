@@ -136,10 +136,12 @@ DirectInput8Create ( HINSTANCE hinst,
                      LPVOID   *ppvOut,
                      LPUNKNOWN punkOuter )
 {
+  SK_BootDI8 ();
+
   if (SK_GetDLLRole () == DLL_ROLE::DInput8)
   {
-    SK_BootDI8      ();
-    WaitForInit_DI8 ();
+    if (! SK_IsInjected ())
+        WaitForInit_DI8 ();
   }
 
   dll_log->Log ( L"[ DInput 8 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, ppvOut="
@@ -390,11 +392,12 @@ CoCreateInstance_DI8 (
   _Out_ LPVOID   *ppv,
   _In_  LPVOID    pCallerAddr )
 {
-  SK_BootDI8      ();
+  SK_BootDI8 ();
 
   if (SK_GetDLLRole () == DLL_ROLE::DInput8)
   {
-    WaitForInit_DI8 ();
+    if (! SK_IsInjected ())
+        WaitForInit_DI8 ();
   }
 
   dll_log->Log ( L"[ DInput 8 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, ppvOut="
@@ -504,7 +507,9 @@ CoCreateInstanceEx_DI8 (
 
   SK_BootDI8        ();
   if (SK_GetDLLRole () == DLL_ROLE::DInput8)
-  { WaitForInit_DI8 ();                      }
+  { if (! SK_IsInjected ())
+    WaitForInit_DI8 ();
+  }
 
   dll_log->Log ( L"[ DInput 8 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, ppvOut="
                                       L"%08" _L(PRIxPTR) L"h)"
@@ -612,9 +617,9 @@ di8_init_callback (finish_pfn finish)
 {
   if (! SK_IsHostAppSKIM ())
   {
-    SK_HookDI8 (nullptr);
-
-    WaitForInit_DI8 ();
+          SK_HookDI8 (   0  );
+    if (! SK_IsInjected ( ))
+        WaitForInit_DI8 ( );
   }
 
   finish ();
