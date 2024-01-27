@@ -5552,9 +5552,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             const auto pDevW =
               (DEV_BROADCAST_DEVICEINTERFACE_W *)pDevHdr;
 
-            static constexpr GUID GUID_XUSB_INTERFACE_CLASS =
-              { 0xEC87F1E3L, 0xC13B, 0x4100, { 0xB5, 0xF7, 0x8B, 0x84, 0xD5, 0x42, 0x60, 0xCB } };
-
             // Input Devices
             if (IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_HID)      ||
                 IsEqualGUID (pDevW->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS)  ||

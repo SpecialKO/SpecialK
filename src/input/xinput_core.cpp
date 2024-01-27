@@ -80,20 +80,6 @@ SetupDiGetClassDevsW_Detour (
     SetupDiGetClassDevsW_Original (ClassGuid, Enumerator, hwndParent, Flags);
 }
 
-
-#define SK_HID_VID_8BITDO        0x2dc8
-#define SK_HID_VID_LOGITECH      0x046d
-#define SK_HID_VID_MICROSOFT     0x045e
-#define SK_HID_VID_NINTENDO      0x057e
-#define SK_HID_VID_NVIDIA        0x0955
-#define SK_HID_VID_RAZER         0x1532
-#define SK_HID_VID_SONY          0x054c
-#define SK_HID_VID_VALVE         0x28de
-
-#define SK_HID_PID_XUSB          0x02a1 // Xbox 360 Controller Protocol
-#define SK_HID_PID_XBOXGIP       0x02ff // Xbox One Controller Protocol
-#define SK_HID_PID_STEAM_VIRTUAL 0x11ff // Steam Emulated Controller
-
 void SK_Steam_SignalEmulatedXInputActivity (DWORD dwSlot);
 
 struct SK_XInputContext

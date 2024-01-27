@@ -237,6 +237,7 @@ struct SK_HID_DeviceFile {
   }
 };
 
+       concurrency::concurrent_vector        <SK_HID_PlayStationDevice>     SK_HID_PlayStationControllers;
 static concurrency::concurrent_unordered_map <HANDLE, SK_HID_DeviceFile>    SK_HID_DeviceFiles;
 static concurrency::concurrent_unordered_map <HANDLE, SK_NVIDIA_DeviceFile> SK_NVIDIA_DeviceFiles;
 
@@ -280,6 +281,90 @@ SK_Input_GetDeviceFileAndState (HANDLE hFile)
 
   return
     { SK_Input_DeviceFileType::Invalid, nullptr, true };
+}
+
+void SK_HID_SetupPlayStationControllers (void)
+{
+  HDEVINFO hid_device_set = 
+    SetupDiGetClassDevs (&GUID_DEVINTERFACE_HID, nullptr, nullptr, DIGCF_DEVICEINTERFACE |
+                                                                   DIGCF_PRESENT);
+  
+  if (hid_device_set != INVALID_HANDLE_VALUE)
+  {
+    SP_DEVINFO_DATA devInfoData = {
+      .cbSize = sizeof (SP_DEVINFO_DATA)
+    };
+  
+    SP_DEVICE_INTERFACE_DATA devInterfaceData = {
+      .cbSize = sizeof (SP_DEVICE_INTERFACE_DATA)
+    };
+  
+    for (                                  DWORD dwDevIdx = 0            ;
+          SetupDiEnumDeviceInfo (hid_device_set, dwDevIdx, &devInfoData) ;
+                                               ++dwDevIdx )
+    {
+      devInfoData.cbSize      = sizeof (SP_DEVINFO_DATA);
+      devInterfaceData.cbSize = sizeof (SP_DEVICE_INTERFACE_DATA);
+  
+      if (! SetupDiEnumDeviceInterfaces ( hid_device_set, nullptr, &GUID_DEVINTERFACE_HID,
+                                                dwDevIdx, &devInterfaceData) )
+      {
+        continue;
+      }
+  
+      static wchar_t devInterfaceDetailData [MAX_PATH + 2];
+  
+      ULONG ulMinimumSize = 0;
+  
+      SetupDiGetDeviceInterfaceDetailW (
+        hid_device_set, &devInterfaceData, nullptr,
+          0, &ulMinimumSize, nullptr );
+  
+      if (GetLastError () != ERROR_INSUFFICIENT_BUFFER)
+        continue;
+  
+      if (ulMinimumSize > sizeof (wchar_t) * (MAX_PATH + 2))
+        continue;
+  
+      SP_DEVICE_INTERFACE_DETAIL_DATA *pDevInterfaceDetailData =
+        (SP_DEVICE_INTERFACE_DETAIL_DATA *)devInterfaceDetailData;
+  
+      pDevInterfaceDetailData->cbSize =
+        sizeof (SP_DEVICE_INTERFACE_DETAIL_DATA);
+  
+      if ( SetupDiGetDeviceInterfaceDetailW (
+             hid_device_set, &devInterfaceData, pDevInterfaceDetailData,
+               ulMinimumSize, &ulMinimumSize, nullptr ) )
+      {
+        wchar_t *wszFileName =
+          pDevInterfaceDetailData->DevicePath;
+  
+        if (StrStrIW (wszFileName, L"VID_054c"))
+        {
+          SK_HID_PlayStationDevice controller;
+  
+          wcsncpy_s (controller.wszDevicePath, MAX_PATH,
+                                wszFileName,   _TRUNCATE);
+  
+          controller.hDeviceFile =
+            SK_CreateFile2 ( wszFileName, 0, FILE_SHARE_READ | FILE_SHARE_WRITE,
+                              OPEN_EXISTING, nullptr );
+  
+          if (controller.hDeviceFile != nullptr)
+          {
+            controller.bConnected = true;
+            controller.bDualSense =
+              StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
+              StrStrIW (wszFileName, L"PID_0CE6") != nullptr;
+  
+            SK_HID_PlayStationControllers.push_back (controller);
+          }
+        }
+      }
+    }
+  
+    CloseHandle (hid_device_set);
+  }
 }
 
 //////////////////////////////////////////////////////////////
@@ -951,6 +1036,23 @@ CreateFileA_Detour (LPCSTR                lpFileName,
   }
 
   return hRet;
+}
+
+HANDLE
+WINAPI
+SK_CreateFile2 (
+  _In_     LPCWSTR                           lpFileName,
+  _In_     DWORD                             dwDesiredAccess,
+  _In_     DWORD                             dwShareMode,
+  _In_     DWORD                             dwCreationDisposition,
+  _In_opt_ LPCREATEFILE2_EXTENDED_PARAMETERS pCreateExParams )
+{
+  if (     CreateFile2_Original != nullptr)
+    return CreateFile2_Original ( lpFileName, dwDesiredAccess, dwShareMode,
+                                    dwCreationDisposition, pCreateExParams );
+
+  return CreateFile2 ( lpFileName, dwDesiredAccess, dwShareMode,
+                           dwCreationDisposition, pCreateExParams );
 }
 
 static

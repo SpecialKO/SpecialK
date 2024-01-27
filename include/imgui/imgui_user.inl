@@ -3,6 +3,10 @@
 #include <mmsystem.h>
 #include <Windows.h>
 
+#include <hidclass.h>
+#include <SetupAPI.h>
+#include <Cfgmgr32.h>
+
 volatile LONG
   __SK_KeyMessageCount = 0;
 
@@ -1483,21 +1487,28 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
           DEV_BROADCAST_DEVICEINTERFACE_A *pDevA =
             (DEV_BROADCAST_DEVICEINTERFACE_A *)pDevHdr;
 
-          static constexpr GUID GUID_DEVINTERFACE_HID =
-            { 0x4D1E55B2L, 0xF16F, 0x11CF, { 0x88, 0xCB, 0x00, 0x11, 0x11, 0x00, 0x00, 0x30 } };
-
-          static constexpr GUID GUID_XUSB_INTERFACE_CLASS =
-            { 0xEC87F1E3L, 0xC13B, 0x4100, { 0xB5, 0xF7, 0x8B, 0x84, 0xD5, 0x42, 0x60, 0xCB } };
-
           if (IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_HID) ||
               IsEqualGUID (pDevW->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS))
           {
             bool xinput = IsEqualGUID (pDevW->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS);
 
-            if (     pDevW->dbcc_size == sizeof (DEV_BROADCAST_DEVICEINTERFACE_W))
-              xinput |= wcsstr (pDevW->dbcc_name, L"IG_") != nullptr;
-            else if (pDevA->dbcc_size == sizeof (DEV_BROADCAST_DEVICEINTERFACE_A))
-              xinput |= strstr (pDevA->dbcc_name,  "IG_") != nullptr;
+            const bool ansi = pDevA->dbcc_size == sizeof (DEV_BROADCAST_DEVICEINTERFACE_A);
+            const bool wide = pDevW->dbcc_size == sizeof (DEV_BROADCAST_DEVICEINTERFACE_W);
+
+            wchar_t wszFileName [MAX_PATH];
+
+            if (ansi)
+            {
+              wcsncpy_s (                         wszFileName, MAX_PATH,
+                SK_UTF8ToWideChar (pDevA->dbcc_name).c_str (), _TRUNCATE );
+            }
+
+            else if (wide)
+            {
+              wcsncpy_s (wszFileName, MAX_PATH, pDevW->dbcc_name, _TRUNCATE);
+            }
+
+            xinput |= wcsstr (wszFileName, L"IG_") != nullptr;
 
             if (xinput)
             {
@@ -1865,6 +1876,26 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
   if (bUseGamepad)
   {
+    SK_RunOnce (SK_HID_SetupPlayStationControllers ());
+
+    for ( auto& ps_controller : SK_HID_PlayStationControllers )
+    {
+      if (ps_controller.bConnected)
+      {
+        PHIDP_PREPARSED_DATA                                        PreparsedData = nullptr;
+        if (! SK_HidD_GetPreparsedData (ps_controller.hDeviceFile, &PreparsedData))
+        	continue;
+
+        HIDP_CAPS                          caps = { };
+        NTSTATUS status =
+          SK_HidP_GetCaps (PreparsedData, &caps);
+
+        SK_HidD_FreePreparsedData (PreparsedData);
+
+        if (status != HIDP_STATUS_SUCCESS) continue;
+      }
+    }
+
     auto& state =
         *pState;
 
