@@ -1,7 +1,8 @@
-﻿24.1.28.1
+﻿24.1.28.x
 =========
- + Prevent showing SwapChain settings for multiple APIs when SK is running in
-     a layered environment (e.g. DXVK on DXGI, is both Vulkan and D3D11).
+ [.2] + Added "VRR" to compact FPS text in OSD, if G-Sync is active
+ [.1] + Prevent showing SwapChain settings for multiple APIs when SK is running
+          in a layered environment (e.g. DXVK on DXGI, is both Vulkan and D3D11).
 
 24.1.28
 =======

@@ -764,6 +764,14 @@ SK_DrawOSD (void)
     OSD_PRINTF "\n\n" OSD_END
   }
 
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  const bool gsync =
+    ( sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status &&
+      rb.gsync_state.capable &&
+      rb.gsync_state.active  );
+
   auto _DrawFrameCountIf = [&](bool predicate = true)
   {
     if (! (config.fps.framenumber && predicate))
@@ -791,9 +799,6 @@ SK_DrawOSD (void)
   };
 
   _DrawFrameCountIf (config.fps.compact);
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
 
   // Delay this a few frames so we do not create multiple framerate limiters
   //
@@ -828,11 +833,6 @@ SK_DrawOSD (void)
       last_fps_time = dwTime;
     }
 
-    const bool gsync =
-     ( sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status &&
-       rb.gsync_state.capable &&
-       rb.gsync_state.active  );
-
     if (fabs (mean - INFINITY) > std::numeric_limits <double>::epsilon ())
     {
       const char* format = "";
@@ -844,7 +844,8 @@ SK_DrawOSD (void)
 
       if (config.fps.compact)
       {
-        OSD_PRINTF ("%*hs%2.0f\n"), left_padding, pad_str, fps
+        OSD_PRINTF (gsync ? "%*hs%2.0f VRR\n"
+                          : "%*hs%2.0f\n"), left_padding, pad_str, fps
         OSD_END
       }
 
