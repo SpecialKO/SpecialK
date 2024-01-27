@@ -206,6 +206,8 @@ static constexpr constexpr_module_s::list_type __blacklist = {
 
   L"cefsharp.browsersubprocess.exe", // Baldur's Gate 3
   L"larilauncher.exe",
+  L"idtechlauncher.exe",
+  L"gamelaunchhelper.exe",
 
   L"coherentui_host.exe",
   L"activationui.exe",
