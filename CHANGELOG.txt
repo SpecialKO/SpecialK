@@ -1,4 +1,17 @@
-﻿24.1.27.3
+﻿24.1.28
+=======
+ + Changed the default mouse capture behavior when the control pane is open;
+     unless a game is showing the Windows cursor, mouse input while the cursor
+       is -not- over the control panel element will be blocked.
+ + Added support for enumerating/hot-plugging PlayStation controllers w/ HID
+
+    >> Will be used for native UI control w/o XInput, and to bind special
+         buttons such as Dual Sense's mute button to mute/unmute the game.
+
+      * This functionality already exists, but only for games that use
+          SONY's native input API.
+
+24.1.27.3
 =========
  + Eliminate the need for an injection delay when launching DOOM Eternal
 

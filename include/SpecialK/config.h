@@ -920,7 +920,7 @@ struct sk_config_t
         bool  capture             = false;
         bool  capture_mouse;      // Unconditionally capture the mouse (i.e. block it)
       };
-      bool    capture_hidden      = false; // Capture mouse if HW cursor is not visible
+      bool    capture_hidden      =  true; // Capture mouse if HW cursor is not visible
       bool    capture_keyboard    = false;
       bool    capture_gamepad     = false;
       bool    use_hw_cursor       =  true;
