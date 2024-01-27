@@ -1,5 +1,7 @@
 ﻿24.1.26.x
 =========
+ [.3] + Fixed D3D11 HUDless screenshots not snapping early enough, because
+          the number of screenshot stages changed.
  [.2] + Fixed missing HUDless screenshot keybind in control panel, because
           the number of screenshot keybinds changed.
  [.1] + Turn off XInput auto slot-0 assignment if the UI slot is not valid
