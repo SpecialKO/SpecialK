@@ -248,7 +248,8 @@ SK_GetCurrentGameID (void)
           { L"Cyberpunk2077.exe",                      SK_GAME_ID::Cyberpunk2077                },
           { L"CrashReport.exe",                        SK_GAME_ID::CrashReport                  },
           { L"StreetFighter6.exe",                     SK_GAME_ID::StreetFighter6               },
-          { L"Stardew Valley.exe",                     SK_GAME_ID::StardewValley                }
+          { L"Stardew Valley.exe",                     SK_GAME_ID::StardewValley                },
+          { L"DOOMEternalx64vk.exe",                   SK_GAME_ID::DOOMEternal                  }
         };
 
     first_check  = false;
@@ -2659,7 +2660,7 @@ auto DeclKeybind =
         // The Vulkan executable is simply bg3.exe,
         //   D3D11 is bg3_dx11.exe
         bool bVulkan =
-          StrStrIW (SK_GetHostPath (), L"bg3.exe");
+          StrStrIW (SK_GetHostApp (), L"bg3.exe");
 
         if (bVulkan)
         {
@@ -3345,7 +3346,6 @@ auto DeclKeybind =
         config.compatibility.reshade_mode = false;
         break;
 
-      
       case SK_GAME_ID::StardewValley:
         // Game needs to be told that it is OpenGL, or it won't inject...
         config.compatibility.
@@ -3356,6 +3356,10 @@ auto DeclKeybind =
         apis.last_known->store     ((int)config.apis.last_known     );
         apis.OpenGL.hook->store    (     config.apis.OpenGL.hook    );
         apis.d3d11.hook->store     (     config.apis.dxgi.d3d11.hook);
+        break;
+
+      case SK_GAME_ID::DOOMEternal:
+        config.apis.NvAPI.vulkan_bridge = 1;
         break;
 
       case SK_GAME_ID::AlanWake2:

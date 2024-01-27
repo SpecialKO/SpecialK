@@ -1,4 +1,14 @@
-﻿24.1.27
+﻿24.1.27.1
+=========
+ + Changed Xbox game test to use \Content\ in game executable path, and
+     formally blacklist gamelaunchhelper.exe
+ + Added idTechLauncher.exe to injection blacklist so that injection into
+     DOOM Eternal works reliably
+ + Enable Vulkan Bridge for DOOM Eternal by default so non-HDR users can
+     also use Special K :)
+ + Moved end-of-frame TopMost status check into the thread added in 24.1.27
+
+24.1.27
 =======
  + Added a thread that runs every 250 ms to remove TopMost status from games
      if they have stopped drawing frames, so that users don't get stuck with

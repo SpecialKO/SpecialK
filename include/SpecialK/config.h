@@ -1495,6 +1495,7 @@ enum class SK_GAME_ID
   CrashReport,                  // CrashReport.exe (ironically, causes crashes)
   StreetFighter6,               // StreetFighter6.exe
   StardewValley,                // Stardew Valley.exe
+  DOOMEternal,                  // DOOMEternalx64vk.exe
 
   UNKNOWN_GAME               = 0xffff
 };
