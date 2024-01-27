@@ -3405,6 +3405,9 @@ SK_BackgroundRender_EndFrame (void)
         rb.isTrueFullscreen ();
   if (! fullscreen_last_frame)
   {
+    bool implicit_smart_always_on_top =
+      (config.window.always_on_top == NoPreferenceOnTop && rb.isFakeFullscreen ());
+
     static bool last_foreground = false;
 
     DWORD     dwProcessId = GetCurrentProcessId ();
@@ -3453,14 +3456,14 @@ SK_BackgroundRender_EndFrame (void)
           }
         }
 
-        if (config.window.always_on_top == PreventAlwaysOnTop)
+        if (config.window.always_on_top == PreventAlwaysOnTop || implicit_smart_always_on_top)
           SK_DeferCommand ("Window.TopMost false");
       }
     }
 
     else
     {
-      if (! std::exchange (last_foreground, true) && config.window.always_on_top >= AlwaysOnTop)
+      if ((! std::exchange (last_foreground, true)) && (config.window.always_on_top >= AlwaysOnTop || implicit_smart_always_on_top))
         SK_DeferCommand ("Window.TopMost true");
     }
   }

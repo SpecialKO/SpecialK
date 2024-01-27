@@ -1,4 +1,8 @@
-﻿24.1.27.1
+﻿24.1.27.2
+=========
+ + Removed debug log spam related to window topmost state
+
+24.1.27.1
 =========
  + Changed Xbox game test to use \Content\ in game executable path, and
      formally blacklist gamelaunchhelper.exe

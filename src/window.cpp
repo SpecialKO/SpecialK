@@ -1231,8 +1231,7 @@ ActivateWindow ( HWND hWnd,
     {
       if (config.window.always_on_top != NoPreferenceOnTop)
       {
-        SK_Window_SetTopMost (game_window.active &&
-          config.window.always_on_top != PreventAlwaysOnTop,
+        SK_Window_SetTopMost (game_window.active,
                               game_window.active, hWnd);
       }
 
@@ -8016,10 +8015,10 @@ SK_Window_CreateTopMostFixupThread (void)
 
           if (unresponsive && topmost)
           {
-            SK_LOGi0 (L"Game Window is TopMost and game has not drawn a "
+            SK_LOGi1 (L"Game Window is TopMost and game has not drawn a "
                       L"frame in > 250 ms; removing TopMost...");
 
-            SK_DeferCommand ("Window.TopMost 0");
+            SK_Window_SetTopMost (false, false, game_window.hWnd);
 
             // Restore TopMost when game starts responding again...
             _removed_topmost = true;
@@ -8028,16 +8027,16 @@ SK_Window_CreateTopMostFixupThread (void)
           else if ((! unresponsive) && (! topmost))
           {
             bool foreground =
-              (SK_GetForegroundWindow () == game_window.hWnd);
+              (SK_GetForegroundWindow () == game_window.hWnd) && game_window.active;
 
             // Allow AlwaysOnTop status if the game is responsive
             if ( config.window.always_on_top == AlwaysOnTop || 
                            (_removed_topmost && foreground) ||
-                 (smart_always_on_top && game_window.active && foreground) )
+                        (smart_always_on_top && foreground) )
             {
               SK_LOGi1 (L"Game Window was not TopMost, applying...");
 
-              SK_DeferCommand ("Window.TopMost 1");
+              SK_Window_SetTopMost (true, true, game_window.hWnd);
 
               _removed_topmost = false;
             }
@@ -8049,7 +8048,7 @@ SK_Window_CreateTopMostFixupThread (void)
         {
           SK_LOGi1 (L"Game Window was TopMost, removing...");
 
-          SK_DeferCommand ("Window.TopMost 0");
+          SK_Window_SetTopMost (false, false, game_window.hWnd);
         }
       };
 
