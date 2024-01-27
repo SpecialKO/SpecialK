@@ -1,4 +1,10 @@
-﻿24.1.26.x
+﻿24.1.27
+=======
+ + Added a thread that runs every 250 ms to remove TopMost status from games
+     if they have stopped drawing frames, so that users don't get stuck with
+       game windows that cover the full screen, are top-most and unresponsive.
+
+24.1.26.x
 =========
  [.3] + Fixed D3D11 HUDless screenshots not snapping early enough, because
           the number of screenshot stages changed.

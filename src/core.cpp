@@ -3802,6 +3802,65 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
     config.window.always_on_top == SmartAlwaysOnTop  ||
    (config.window.always_on_top == NoPreferenceOnTop && rb.isFakeFullscreen ());
 
+  if (smart_always_on_top || config.window.always_on_top == AlwaysOnTop ||
+                             config.window.always_on_top == PreventAlwaysOnTop)
+  {
+    //
+    // Create a thread to handle topmost status asynchronously, in case the game
+    //   stops responding while it has the wrong topmost state.
+    // 
+    //     (i.e. Prevent Unresponsive Fullscreen App from being TopMost)
+    //
+    SK_RunOnce (
+      SK_Thread_CreateEx ([](LPVOID)->DWORD
+      {
+        static LONG64 lLastFrameCount = 0;
+        while (WaitForSingleObject (__SK_DLL_TeardownEvent, 250UL) != WAIT_OBJECT_0)
+        {
+          if (config.window.always_on_top == SmartAlwaysOnTop                             ||
+             (config.window.always_on_top == NoPreferenceOnTop && rb.isFakeFullscreen ()) ||
+              config.window.always_on_top == AlwaysOnTop                                  ||
+              config.window.always_on_top == PreventAlwaysOnTop)
+          {
+            if (config.window.always_on_top != PreventAlwaysOnTop)
+            {
+              if (std::exchange (lLastFrameCount, SK_GetFramesDrawn ()) ==
+                                 lLastFrameCount)
+              {
+                if (SK_Window_IsTopMost  (              game_window.hWnd)) {
+                    SK_Window_SetTopMost (false, false, game_window.hWnd);
+                }
+              }
+
+              else
+              {
+                if (config.window.always_on_top == AlwaysOnTop ||
+                     (game_window.active && SK_GetForegroundWindow () == game_window.hWnd))
+                {
+                  if (! SK_Window_IsTopMost  (            game_window.hWnd)) {
+                        SK_Window_SetTopMost (true, true, game_window.hWnd);
+                  }
+                }
+              }
+            }
+
+            // Never allow top-most
+            else
+            {
+              if (SK_Window_IsTopMost  (              game_window.hWnd))
+                  SK_Window_SetTopMost (false, false, game_window.hWnd);
+            }
+          }
+        };
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, L"[SK] TopMost Coordinator")
+    );
+  }
+
+                                                                                  
   // Catch sneaky games that change their TopMost status unrelated to window
   //   activation state...
   if (config.window.always_on_top != NoPreferenceOnTop &&
