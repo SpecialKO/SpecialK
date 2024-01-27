@@ -3804,42 +3804,6 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   extern void SK_Window_CreateTopMostFixupThread (void);
               SK_Window_CreateTopMostFixupThread ();
 
-  //
-  // This logic has been moved to a thread above, it is believed that
-  //   checking topmost status is not necessary -every- frame and the
-  //     thread should do a better job.
-  //
-#if 0
-  if (config.window.always_on_top != NoPreferenceOnTop &&
-           (! smart_always_on_top)) // It really is smart
-  {
-    bool bTopMost =
-      SK_Window_IsTopMost (game_window.hWnd);
-
-    switch (config.window.always_on_top)
-    {
-      case PreventAlwaysOnTop:
-        if (bTopMost)
-        {
-          SK_LOG1 ( ( L"Game Window was TopMost, removing..." ), L"Window Mgr" );
-
-          SK_DeferCommand ("Window.TopMost 0");
-        }
-        break;
-      case AlwaysOnTop:
-        if (! bTopMost)
-        {
-          SK_LOG1 ( ( L"Game Window was not TopMost, applying..." ), L"Window Mgr" );
-
-          SK_DeferCommand ("Window.TopMost 1");
-        }
-        break;
-      default:
-        break;
-    }
-  }
-#endif
-
 
   if (SK_DXGI_IsTrackingBudget ())
   {

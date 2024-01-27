@@ -898,7 +898,7 @@ SK_DXGI_BeginHooking (void)
 #endif
   }
 
-  else
+  else if (! SK_IsInjected ())
     WaitForInitDXGI ();
 }
 
@@ -4457,9 +4457,9 @@ SK_DXGI_CreateSwapChain_PreInit (
     }
   }
 
-
   if (config.apis.dxgi.d3d11.hook)
-    WaitForInitDXGI ();
+    if (! SK_IsInjected ())
+    { WaitForInitDXGI (); }
 
   // Stores common attributes between DESC and DESC1
   DXGI_SWAP_CHAIN_DESC stub_desc  = {   };
@@ -6744,7 +6744,8 @@ SK_DXGI_AdapterOverride ( IDXGIAdapter**   ppAdapter,
 
   if (EnumAdapters_Original == nullptr)
   {
-    WaitForInitDXGI ();
+    if (! SK_IsInjected ())
+        WaitForInitDXGI ();
 
     if (EnumAdapters_Original == nullptr)
       return;
@@ -7266,7 +7267,8 @@ DXGIDisableVBlankVirtualization (void)
   if (DXGIDisableVBlankVirtualization_Import == nullptr)
   {
     SK_RunOnce (SK_BootDXGI ());
-            WaitForInitDXGI ();
+    if (! SK_IsInjected ())
+        WaitForInitDXGI ();
   }
 
   return DXGIDisableVBlankVirtualization_Import != nullptr ?
@@ -7305,7 +7307,8 @@ DXGIDeclareAdapterRemovalSupport (void)
   if (DXGIDeclareAdapterRemovalSupport_Import == nullptr)
   {
     SK_RunOnce (SK_BootDXGI ());
-            WaitForInitDXGI ();
+    if (! SK_IsInjected ())
+        WaitForInitDXGI ();
   }
 
   return DXGIDeclareAdapterRemovalSupport_Import != nullptr ?
@@ -7329,7 +7332,8 @@ DXGIGetDebugInterface1 ( UINT     Flags,
   if (DXGIGetDebugInterface1_Import == nullptr)
   {
     SK_RunOnce (SK_BootDXGI ());
-            WaitForInitDXGI ();
+    if (! SK_IsInjected ())
+        WaitForInitDXGI ();
   }
 
   return DXGIGetDebugInterface1_Import != nullptr            ?
@@ -7385,7 +7389,8 @@ WINAPI CreateDXGIFactory (REFIID   riid,
   if (CreateDXGIFactory_Import == nullptr)
   {
     SK_RunOnce (SK_BootDXGI ());
-            WaitForInitDXGI ();
+    if (! SK_IsInjected ())
+        WaitForInitDXGI ();
   }
 
   HRESULT ret =
@@ -7471,7 +7476,8 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
   if (CreateDXGIFactory1_Import == nullptr)
   {
     SK_RunOnce (SK_BootDXGI ());
-            WaitForInitDXGI ();
+    if (! SK_IsInjected ())
+        WaitForInitDXGI ();
   }
 
   // Windows Vista does not have this function -- wrap it with CreateDXGIFactory
@@ -7560,7 +7566,8 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
   if (CreateDXGIFactory2_Import == nullptr)
   {
     SK_RunOnce (SK_BootDXGI ());
-            WaitForInitDXGI ();
+    if (! SK_IsInjected ())
+        WaitForInitDXGI ();
   }
 
   // Windows 7 does not have this function -- wrap it with CreateDXGIFactory1

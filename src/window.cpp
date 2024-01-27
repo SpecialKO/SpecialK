@@ -7987,6 +7987,9 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
 void
 SK_Window_CreateTopMostFixupThread (void)
 {
+  static auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   //
   // Create a thread to handle topmost status asynchronously, in case the game
   //   stops responding while it has the wrong topmost state.
@@ -7996,9 +7999,6 @@ SK_Window_CreateTopMostFixupThread (void)
   static SK_AutoHandle _
   ( SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
-      static auto& rb =
-        SK_GetCurrentRenderBackend ();
-
       while (WaitForSingleObject (__SK_DLL_TeardownEvent, 250UL) != WAIT_OBJECT_0)
       {
         const bool smart_always_on_top =
@@ -8064,6 +8064,40 @@ SK_Window_CreateTopMostFixupThread (void)
       return 0;
     }, L"[SK] TopMost Coordinator")
   );
+
+
+  const bool smart_always_on_top =
+     config.window.always_on_top == SmartAlwaysOnTop  ||
+    (config.window.always_on_top == NoPreferenceOnTop && rb.isFakeFullscreen ());
+
+  if (config.window.always_on_top != NoPreferenceOnTop &&
+           (! smart_always_on_top)) // It really is smart
+  {
+    bool bTopMost =
+      SK_Window_IsTopMost (game_window.hWnd);
+
+    switch (config.window.always_on_top)
+    {
+      case PreventAlwaysOnTop:
+        if (bTopMost)
+        {
+          SK_LOG1 ( ( L"Game Window was TopMost, removing..." ), L"Window Mgr" );
+
+          SK_DeferCommand ("Window.TopMost 0");
+        }
+        break;
+      case AlwaysOnTop:
+        if (! bTopMost)
+        {
+          SK_LOG1 ( ( L"Game Window was not TopMost, applying..." ), L"Window Mgr" );
+
+          SK_DeferCommand ("Window.TopMost 1");
+        }
+        break;
+      default:
+        break;
+    }
+  }
 }
 
 
