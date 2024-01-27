@@ -2210,29 +2210,42 @@ SK_D3D11_CopyResource_Impl (
                FAILED (SK_D3D11_CheckResourceFormatManipulation (pDstTex, dstDesc.Format)) ||
                FAILED (SK_D3D11_CheckResourceFormatManipulation (pSrcTex, srcDesc.Format)) )
           {
-            if ( srcDesc.Width  != dstDesc.Width ||
-                 srcDesc.Height != dstDesc.Height )
+            if (! DirectX::IsCompressed (dstDesc.Format))
             {
-              SK_LOGi0 ( L"Using SK_D3D11_BltCopySurface (...) because of resolution mismatch"
-                         L" during ID3D11DeviceContext::CopyResources (...)" );
-              SK_LOGi0 ( L" >> Source Resolution: (%dx%d), Destination: (%dx%d)",
-                           srcDesc.Width, srcDesc.Height,
-                           dstDesc.Width, dstDesc.Height );
-            }
-
-            if (srcDesc.MipLevels == dstDesc.MipLevels)
-            {
-              // TODO: Add config parameter to handle games that try to copy resources
-              //         with incompatible dimensions (i.e. Total War Warhammer III)
-              //if ( srcDesc.Width  == dstDesc.Width &&
-              //     srcDesc.Height == dstDesc.Height )
+              if ( srcDesc.Width  != dstDesc.Width ||
+                   srcDesc.Height != dstDesc.Height )
               {
-                if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
-                  return;
+                SK_LOGi0 ( L"Using SK_D3D11_BltCopySurface (...) because of resolution mismatch"
+                           L" during ID3D11DeviceContext::CopyResources (...)" );
+                SK_LOGi0 ( L" >> Source Resolution: (%dx%d), Destination: (%dx%d)",
+                             srcDesc.Width, srcDesc.Height,
+                             dstDesc.Width, dstDesc.Height );
               }
+
+              if (srcDesc.MipLevels == dstDesc.MipLevels)
+              {
+                // TODO: Add config parameter to handle games that try to copy resources
+                //         with incompatible dimensions (i.e. Total War Warhammer III)
+                //if ( srcDesc.Width  == dstDesc.Width &&
+                //     srcDesc.Height == dstDesc.Height )
+                {
+                  if (SK_D3D11_BltCopySurface (pSrcTex, pDstTex))
+                    return;
+                }
+              }
+
+              else SK_ReleaseAssert (srcDesc.MipLevels == dstDesc.MipLevels);
             }
 
-            else SK_ReleaseAssert (srcDesc.MipLevels == dstDesc.MipLevels);
+            else
+            {
+              SK_RunOnce (
+                SK_LOGi0 (
+                  L"Game attempted to perform an incompatible resource copy to"
+                  L" a compressed resource; cannot fix using BltCopySurface!"
+                )
+              );
+            }
           }
         }
       }

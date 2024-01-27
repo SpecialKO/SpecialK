@@ -1216,17 +1216,34 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
   {
     if (! ret)
     {
-      SK_RunOnce (
-        SK_ImGui_Warning (
-          SK_FormatStringW (
-            L"Failed HDR Remaster [Type=%hs]\t\tSrc=%d-bit, Dst=%d-bit",
-            (dstTexDesc.BindFlags & D3D11_BIND_UNORDERED_ACCESS) ? "Compute"
-                                                                 : "Render",
-              DirectX::BitsPerColor (srcTexDesc.Format),
-              DirectX::BitsPerColor (dstTexDesc.Format)
-          ).c_str ()
-        )
-      );
+      // Give user a warning if we are trying to HDR remaster
+      //  (input = 8/10/11-bit, output = 16-bpc) but fail, so
+      //    they can turn off HDR remastering.
+      if ( ((DirectX::BitsPerColor (srcTexDesc.Format) ==  8  ||
+             DirectX::BitsPerColor (srcTexDesc.Format) ==  10 ||
+             DirectX::BitsPerColor (srcTexDesc.Format) == 11) &&
+             DirectX::BitsPerColor (dstTexDesc.Format) == 16) ||
+           ((DirectX::BitsPerColor (dstTexDesc.Format) ==  8  ||
+             DirectX::BitsPerColor (dstTexDesc.Format) ==  10 ||
+             DirectX::BitsPerColor (dstTexDesc.Format) == 11) &&
+             DirectX::BitsPerColor (srcTexDesc.Format) == 16) )
+      {
+        SK_RunOnce (
+          SK_LOGi0 (L"Failed to BltCopy Surface: src fmt=%hs, dst fmt=%hs",
+                    SK_DXGI_FormatToStr (srcTexDesc.Format).data (),
+                    SK_DXGI_FormatToStr (dstTexDesc.Format).data ()
+          );
+          SK_ImGui_Warning (
+            SK_FormatStringW (
+              L"Failed HDR Remaster [Type=%hs]\t\tSrc=%d-bit, Dst=%d-bit",
+              (dstTexDesc.BindFlags & D3D11_BIND_UNORDERED_ACCESS) ? "Compute"
+                                                                   : "Render",
+                DirectX::BitsPerColor (srcTexDesc.Format),
+                DirectX::BitsPerColor (dstTexDesc.Format)
+            ).c_str ()
+          )
+        );
+      }
     }
 
     return ret;
