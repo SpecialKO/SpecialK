@@ -7980,5 +7980,88 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
 }
 
 
+void
+SK_Window_CreateTopMostFixupThread (void)
+{
+  //
+  // Create a thread to handle topmost status asynchronously, in case the game
+  //   stops responding while it has the wrong topmost state.
+  // 
+  //     (i.e. Prevent Unresponsive Fullscreen App from being TopMost)
+  //
+  static SK_AutoHandle _
+  ( SK_Thread_CreateEx ([](LPVOID)->DWORD
+    {
+      static auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      while (WaitForSingleObject (__SK_DLL_TeardownEvent, 250UL) != WAIT_OBJECT_0)
+      {
+        const bool smart_always_on_top =
+           config.window.always_on_top == SmartAlwaysOnTop  ||
+          (config.window.always_on_top == NoPreferenceOnTop && rb.isFakeFullscreen ());
+
+        static LONG64    last_frame_count = 0;
+        const bool unresponsive =
+          std::exchange (last_frame_count, SK_GetFramesDrawn ()) ==
+                         last_frame_count;
+
+        const bool topmost =
+          SK_Window_IsTopMost (game_window.hWnd);
+
+        if (config.window.always_on_top != PreventAlwaysOnTop)
+        {
+          static bool
+            _removed_topmost = false;
+
+          if (unresponsive && topmost)
+          {
+            SK_LOGi0 (L"Game Window is TopMost and game has not drawn a "
+                      L"frame in > 125 ms; removing TopMost...");
+
+            SK_DeferCommand ("Window.TopMost 0");
+
+            // Restore TopMost when game starts responding again...
+            _removed_topmost = true;
+          }
+
+          else if ((! unresponsive) && (! topmost))
+          {
+            bool foreground =
+              (SK_GetForegroundWindow () == game_window.hWnd);
+
+            // Allow AlwaysOnTop status if the game is responsive
+            if ( config.window.always_on_top == AlwaysOnTop || 
+                           (_removed_topmost && foreground) ||
+                 (smart_always_on_top && game_window.active && foreground) )
+            {
+              SK_LOGi1 (L"Game Window was not TopMost, applying...");
+
+              SK_DeferCommand ("Window.TopMost 1");
+
+              _removed_topmost = false;
+            }
+          }
+        }
+
+        // User never allows top-most, responsivity does not matter!
+        else if (topmost)
+        {
+          SK_LOGi1 (L"Game Window was TopMost, removing...");
+
+          SK_DeferCommand ("Window.TopMost 0");
+        }
+      };
+
+      ShowWindow (game_window.hWnd, SW_HIDE);
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] TopMost Coordinator")
+  );
+}
+
+
 GetWindowBand_pfn GetWindowBand = nullptr;
 SetWindowBand_pfn SetWindowBand = nullptr;
