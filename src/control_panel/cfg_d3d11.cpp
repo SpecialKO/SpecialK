@@ -842,8 +842,35 @@ SK::ControlPanel::D3D11::Draw (void)
         }
       }
 
+      bool clamp_sync_interval =
+        (config.render.framerate.sync_interval_clamp > 0);
+
+      if (ImGui::Checkbox ("Clamp Presentation Interval", &clamp_sync_interval))
+      {
+        if (clamp_sync_interval)
+        {
+          config.render.framerate.sync_interval_clamp = 1;
+          config.render.framerate.present_interval =
+            std::min (config.render.framerate.present_interval,
+                      config.render.framerate.sync_interval_clamp);
+        }
+        else
+          config.render.framerate.sync_interval_clamp = SK_NoPreference;
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("Prevent games from setting Presentation Intervals incompatible with VRR");
+        ImGui::Separator       ();
+        ImGui::BulletText      ("Intervals > 1 disable VRR and switch to Fixed-Refresh");
+        ImGui::BulletText      ("Interval 0 may also disable VRR, if framerate exceeds refresh");
+        ImGui::EndTooltip      ();
+      }
+
       if (config.render.framerate.flip_discard)
       {
+#if 0
         bool waitable_ = config.render.framerate.swapchain_wait > 0;
 
         if (! ((d3d12 && !config.render.dxgi.allow_d3d12_footguns) || indirect))
@@ -896,6 +923,7 @@ SK::ControlPanel::D3D11::Draw (void)
             ImGui::EndGroup   ();
           }
         }
+#endif
 
         if (SK_DXGI_SupportsTearing ())
         {
@@ -913,32 +941,6 @@ SK::ControlPanel::D3D11::Draw (void)
             ImGui::Text         ("Enables True VSYNC -OFF- (PresentInterval = 0) in Windowed Mode");
             ImGui::EndTooltip   ();
           }
-        }
-
-        bool clamp_sync_interval =
-          (config.render.framerate.sync_interval_clamp > 0);
-
-        if (ImGui::Checkbox ("Clamp Presentation Interval", &clamp_sync_interval))
-        {
-          if (clamp_sync_interval)
-          {
-            config.render.framerate.sync_interval_clamp = 1;
-            config.render.framerate.present_interval =
-              std::min (config.render.framerate.present_interval,
-                        config.render.framerate.sync_interval_clamp);
-          }
-          else
-            config.render.framerate.sync_interval_clamp = SK_NoPreference;
-        }
-
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::BeginTooltip    ();
-          ImGui::TextUnformatted ("Prevent games from setting Presentation Intervals incompatible with VRR");
-          ImGui::Separator       ();
-          ImGui::BulletText      ("Intervals > 1 disable VRR and switch to Fixed-Refresh");
-          ImGui::BulletText      ("Interval 0 may also disable VRR, if framerate exceeds refresh");
-          ImGui::EndTooltip      ();
         }
       }
 

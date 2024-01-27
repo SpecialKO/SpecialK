@@ -1,4 +1,9 @@
-﻿24.1.28.x
+﻿+ Removed Waitable SwapChain option from control panel; if you -really- want,
+    it can still be configured manaully using SK's INI.
+    
+   >> Waitable SwapChains are discouraged, use Reflex or Latent Sync instead.
+
+24.1.28.x
 =========
  [.3] + Added Presentation Interval Clamp setting to SwapChain settings;
           clamping is disabled if user manually sets an interval outside of
