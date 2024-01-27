@@ -914,6 +914,32 @@ SK::ControlPanel::D3D11::Draw (void)
             ImGui::EndTooltip   ();
           }
         }
+
+        bool clamp_sync_interval =
+          (config.render.framerate.sync_interval_clamp > 0);
+
+        if (ImGui::Checkbox ("Clamp Presentation Interval", &clamp_sync_interval))
+        {
+          if (clamp_sync_interval)
+          {
+            config.render.framerate.sync_interval_clamp = 1;
+            config.render.framerate.present_interval =
+              std::min (config.render.framerate.present_interval,
+                        config.render.framerate.sync_interval_clamp);
+          }
+          else
+            config.render.framerate.sync_interval_clamp = SK_NoPreference;
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::TextUnformatted ("Prevent games from setting Presentation Intervals incompatible with VRR");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("Intervals > 1 disable VRR and switch to Fixed-Refresh");
+          ImGui::BulletText      ("Interval 0 may also disable VRR, if framerate exceeds refresh");
+          ImGui::EndTooltip      ();
+        }
       }
 
       const float ui_scale =
@@ -934,6 +960,7 @@ SK::ControlPanel::D3D11::Draw (void)
       ImGui::BeginGroup ();
       ImGui::PushItemWidth (100.0f * ui_scale);
 
+      bool present_interval_changed =
       ImGui::InputInt ("Presentation Interval",       &config.render.framerate.present_interval);
 
       if (ImGui::IsItemHovered ())
@@ -944,9 +971,9 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::Separator  (                                               );
         ImGui::BulletText ("-1=Game Controlled,  0=Force Off,  1=Force On");
 
-        if (config.render.framerate.drop_late_flips && config.render.framerate.present_interval != 0)
-          ImGui::BulletText ("Values > 1 do not Apply unless \"Drop Late Frames\" or SK's Framerate Limiter are Disabled");
-        else
+        //if (config.render.framerate.drop_late_flips && config.render.framerate.present_interval != 0)
+        //  ImGui::BulletText ("Values > 1 do not Apply unless \"Drop Late Frames\" or SK's Framerate Limiter are Disabled");
+        //else
           ImGui::BulletText (">1=Fractional Refresh Rates");
 
         ImGui::EndTooltip ();
@@ -954,6 +981,17 @@ SK::ControlPanel::D3D11::Draw (void)
 
       config.render.framerate.present_interval =
         std::max (-1, std::min (4, config.render.framerate.present_interval));
+
+      if (present_interval_changed && config.render.framerate.present_interval > 1 &&
+                                      config.render.framerate.sync_interval_clamp != SK_NoPreference)
+      {
+        SK_ImGui_Warning (
+          L"Fractional VSYNC Rates Will Prevent VRR From Working\r\n\r\n\t>>"
+          L" SyncIntervalClamp Has Been Disabled (required to use 1/n Refresh VSYNC)"
+        );
+
+        config.render.framerate.sync_interval_clamp = SK_NoPreference;
+      }
 
       if (! ((d3d12 && !config.render.dxgi.allow_d3d12_footguns) || indirect))
       {

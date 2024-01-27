@@ -1,5 +1,8 @@
 ﻿24.1.28.x
 =========
+ [.3] + Added Presentation Interval Clamp setting to SwapChain settings;
+          clamping is disabled if user manually sets an interval outside of
+            the VRR compatible clamp range: [0,1]
  [.2] + Added "VRR" to compact FPS text in OSD, if G-Sync is active
  [.1] + Prevent showing SwapChain settings for multiple APIs when SK is running
           in a layered environment (e.g. DXVK on DXGI, is both Vulkan and D3D11).

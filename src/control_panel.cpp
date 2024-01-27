@@ -1397,7 +1397,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       {
         SK_ImGui_Warning (
           L"Fractional VSYNC Rates Will Prevent VRR From Working\r\n\r\n\t>>"
-          L"SyncIntervalClamp Has Been Disabled (required to use 1/n Refresh VSYNC)"
+          L" SyncIntervalClamp Has Been Disabled (required to use 1/n Refresh VSYNC)"
         );
       }
 
