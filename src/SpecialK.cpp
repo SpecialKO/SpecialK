@@ -237,8 +237,7 @@ SK_KeepAway (void)
     hash_lower (wszAppShortName);
 
   const bool xbox =
-    ((StrStrIW (wszAppFullName, L"XboxGames") != nullptr) || PathFileExistsW (L"gamelaunchhelper.exe")) &&
-    (!StrStrIW (wszAppFullName, L"gamelaunchhelper.exe"));
+    ((StrStrIW (wszAppFullName, L"\\Content\\") != nullptr) || PathFileExistsW (L"gamelaunchhelper.exe"));
 
   auto _TestUndesirableDll = [&]
    (const std::initializer_list <constexpr_module_s>& list,
