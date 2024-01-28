@@ -42,44 +42,6 @@
 #define XINPUT_UPGRADE
 #define XUSER_MAX_INDEX (DWORD)XUSER_MAX_COUNT-1
 
-
-using SetupDiGetClassDevsW_pfn = HDEVINFO (WINAPI *)(
-  /*[in, optional]*/ const GUID *ClassGuid,
-  /*[in, optional]*/ PCWSTR     Enumerator,
-  /*[in, optional]*/ HWND       hwndParent,
-  /*[in]*/           DWORD      Flags
-);
-
-static SetupDiGetClassDevsW_pfn
-       SetupDiGetClassDevsW_Original = nullptr;
-
-HDEVINFO
-SetupDiGetClassDevsW_Detour (
-  /*[in, optional]*/ const GUID* ClassGuid,
-  /*[in, optional]*/ PCWSTR     Enumerator,
-  /*[in, optional]*/ HWND       hwndParent,
-  /*[in]*/           DWORD      Flags )
-{
-  if (SK_GetCallingDLL () != SK_GetDLL ())
-  {
-    SK_LOG_FIRST_CALL
-
-    static DWORD
-        dwLastCall = SK_timeGetTime ();
-    if (dwLastCall > SK_timeGetTime () - 500UL)
-    {
-      SetLastError (ERROR_NOT_FOUND);
-
-      return INVALID_HANDLE_VALUE;
-    }
-
-    dwLastCall = SK_timeGetTime ();
-  }
-
-  return
-    SetupDiGetClassDevsW_Original (ClassGuid, Enumerator, hwndParent, Flags);
-}
-
 void SK_Steam_SignalEmulatedXInputActivity (DWORD dwSlot);
 
 struct SK_XInputContext
@@ -162,6 +124,7 @@ struct SK_XInputContext
 
   std::recursive_mutex cs_poll   [XUSER_MAX_COUNT] = { };
   std::recursive_mutex cs_haptic [XUSER_MAX_COUNT] = { };
+  std::recursive_mutex cs_power  [XUSER_MAX_COUNT] = { };
   std::recursive_mutex cs_hook   [XUSER_MAX_COUNT] = { };
   std::recursive_mutex cs_caps   [XUSER_MAX_COUNT] = { };
 
@@ -418,23 +381,33 @@ XInputEnable1_4_Detour (
   if (! pCtx)
     return;
 
+  static XInputEnable_pfn
+         XInputEnable_SK =
+        (XInputEnable_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
+        "XInputEnable"                      );
+
   if (config.window.background_render)
   {
-    xinput_enabled             = TRUE;
+    xinput_enabled = TRUE;
 
     if (pCtx->XInputEnable_Original == nullptr)
       return;
 
-    pCtx->XInputEnable_Original (TRUE);
+  //config.input.gamepad.steam.disabled_to_game  ?
+  //            XInputEnable_SK (xinput_enabled) :
+    pCtx->XInputEnable_Original (xinput_enabled);
   }
+
   else
   {
-    xinput_enabled             = enable;
+    xinput_enabled = enable;
 
     if (pCtx->XInputEnable_Original == nullptr)
       return;
 
-    pCtx->XInputEnable_Original (enable);
+  //config.input.gamepad.steam.disabled_to_game  ?
+  //            XInputEnable_SK (xinput_enabled) :
+    pCtx->XInputEnable_Original (xinput_enabled);
   }
 
   // Migrate the function that we use internally over to
@@ -676,7 +649,7 @@ XInputGetStateEx1_4_Detour (
   static XInputGetStateEx_pfn
          XInputGetStateEx_SK =
         (XInputGetStateEx_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
-        "XInputGetStateEx"                      );
+        XINPUT_GETSTATEEX_ORDINAL               );
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
@@ -749,11 +722,17 @@ XInputGetCapabilities1_4_Detour (
   if (pCtx->XInputGetCapabilities_Original == nullptr)
     return ERROR_NOT_SUPPORTED;
 
+  static XInputGetCapabilities_pfn
+         XInputGetCapabilities_SK =
+        (XInputGetCapabilities_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
+          "XInputGetCapabilities"                    );
+
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
                                     :
       SK_XINPUT_CALL (   xinput_ctx.cs_caps [dwUserIndex],
-                                             dwUserIndex,
+                                             dwUserIndex, config.input.gamepad.steam.disabled_to_game ?
+                   XInputGetCapabilities_SK (dwUserIndex, dwFlags, pCapabilities)                     :
        pCtx->XInputGetCapabilities_Original (dwUserIndex, dwFlags, pCapabilities)
       );
 
@@ -809,11 +788,18 @@ XInputGetCapabilitiesEx1_4_Detour (
   if (pCtx->XInputGetCapabilitiesEx_Original == nullptr)
     return ERROR_NOT_SUPPORTED;
 
+  static XInputGetCapabilitiesEx_pfn
+         XInputGetCapabilitiesEx_SK =
+        (XInputGetCapabilitiesEx_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
+          XINPUT_GETCAPABILITIES_EX_ORDINAL            );
+
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
                                     :
       SK_XINPUT_CALL (     xinput_ctx.cs_caps [dwUserIndex],
-                                               dwUserIndex,
+                                               dwUserIndex, config.input.gamepad.steam.disabled_to_game ?
+                   XInputGetCapabilitiesEx_SK (
+                                   dwReserved, dwUserIndex, dwFlags, pCapabilitiesEx)                   :
        pCtx->XInputGetCapabilitiesEx_Original (
                                    dwReserved, dwUserIndex, dwFlags, pCapabilitiesEx)
       );
@@ -865,13 +851,18 @@ XInputGetBatteryInformation1_4_Detour (
   if (pCtx->XInputGetBatteryInformation_Original == nullptr)
     return ERROR_NOT_SUPPORTED;
 
+  static XInputGetBatteryInformation_pfn
+         XInputGetBatteryInformation_SK =
+        (XInputGetBatteryInformation_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
+        "XInputGetBatteryInformation"                      );
+
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
                                     :
       SK_XINPUT_CALL (          xinput_ctx.cs_caps [dwUserIndex],
-                                                    dwUserIndex,
-        pCtx->XInputGetBatteryInformation_Original (dwUserIndex, devType,
-                                                    pBatteryInformation)
+                                                    dwUserIndex, config.input.gamepad.steam.disabled_to_game ?
+                    XInputGetBatteryInformation_SK (dwUserIndex, devType, pBatteryInformation)               :
+        pCtx->XInputGetBatteryInformation_Original (dwUserIndex, devType, pBatteryInformation)
       );
 
   InterlockedExchange (&xinput_ctx.LastSlotState [dwUserIndex], dwRet);
@@ -953,12 +944,18 @@ XInputSetState1_4_Detour (
                    config.input.gamepad.haptic_ui ) ||
                config.input.gamepad.disable_rumble;
 
+  static XInputSetState_pfn
+         XInputSetState_SK =
+        (XInputSetState_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
+        "XInputSetState"                      );
+
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED :
                                                              nop ?
                                                    ERROR_SUCCESS :
     SK_XINPUT_CALL ( xinput_ctx.cs_haptic [dwUserIndex],
-                                           dwUserIndex,
+                                           dwUserIndex, config.input.gamepad.steam.disabled_to_game ?
+                        XInputSetState_SK (dwUserIndex, pVibration)                                 :
             pCtx->XInputSetState_Original (dwUserIndex, pVibration)
     );
 
@@ -1316,15 +1313,21 @@ XInputPowerOff1_4_Detour (
     return ERROR_DEVICE_NOT_CONNECTED;
   }
 
+  static XInputPowerOff_pfn
+         XInputPowerOff_SK =
+        (XInputPowerOff_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
+        XINPUT_POWEROFF_ORDINAL               );
+
   bool nop = ( SK_ImGui_WantGamepadCapture () );
 
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED :
                                                              nop ?
                                                    ERROR_SUCCESS :
-    SK_XINPUT_CALL ( xinput_ctx.cs_haptic [dwUserIndex],
-                                           dwUserIndex,
-            pCtx->XInputPowerOff_Original (dwUserIndex)
+    SK_XINPUT_CALL ( xinput_ctx.cs_power [dwUserIndex],
+                                          dwUserIndex, config.input.gamepad.steam.disabled_to_game ?
+                       XInputPowerOff_SK (dwUserIndex)                                             :
+           pCtx->XInputPowerOff_Original (dwUserIndex)
     );
 
   InterlockedExchange (&xinput_ctx.LastSlotState [dwUserIndex], dwRet);
@@ -1411,11 +1414,17 @@ XInputGetKeystroke1_4_Detour (
   if (pCtx->XInputGetKeystroke_Original == nullptr)
     return ERROR_NOT_SUPPORTED;
 
+  static XInputGetKeystroke_pfn
+         XInputGetKeystroke_SK =
+        (XInputGetKeystroke_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
+        "XInputGetKeystroke"                      );
+
   DWORD dwRet =
     SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED
                                     :
       SK_XINPUT_CALL ( xinput_ctx.cs_poll [dwUserIndex],
-                                           dwUserIndex,
+                                           dwUserIndex,  config.input.gamepad.steam.disabled_to_game ?
+                    XInputGetKeystroke_SK (dwUserIndex, dwReserved, pKeystroke)                      :
         pCtx->XInputGetKeystroke_Original (dwUserIndex, dwReserved, pKeystroke)
       );
 
@@ -1559,13 +1568,6 @@ XInputSetState9_1_0_Detour (
 void
 SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 {
-  // This causes periodic hitches, so hook and disable it.
-//SK_RunOnce (
-//  SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetClassDevsW",
-//                                       SetupDiGetClassDevsW_Detour,
-//              static_cast_p2p <void> (&SetupDiGetClassDevsW_Original))
-//);
-
   pCtx->XInputGetState_Target =
     SK_GetProcAddress ( pCtx->wszModuleName,
                                    "XInputGetState" );
