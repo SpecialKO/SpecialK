@@ -60,10 +60,10 @@ public:
     L1          = 0x000000400UL,
     R1          = 0x000000800UL,
     Triangle    = 0x000001000UL,
-    PlayStation = 0x000010000UL, // Requires SK_ScePadSetParticularMode
     Circle      = 0x000002000UL,
     Cross       = 0x000004000UL,
     Square      = 0x000008000UL,
+    PlayStation = 0x000010000UL, // Requires SK_ScePadSetParticularMode
     TouchPad    = 0x000100000UL,
     Mute        = 0x000200000UL, // Requires SK_ScePadSetParticularMode
     All         = static_cast <enum_type_t> (UINT_MAX)
