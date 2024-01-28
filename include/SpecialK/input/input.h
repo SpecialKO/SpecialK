@@ -603,6 +603,22 @@ struct SK_HID_PlayStationDevice {
   wchar_t wszDevicePath [MAX_PATH] = {     };
   bool    bConnected               =    true;
   bool    bDualSense               =   false;
+
+  struct button_s {
+    bool state;
+    bool last_state;
+
+    USAGE Usage;
+    USAGE UsagePage;
+  };
+
+  USAGE button_usage_min;
+  USAGE button_usage_max;
+  UCHAR button_report_id;
+
+  std::vector <button_s> buttons;
+  std::vector <USAGE>    button_usages;
+  std::vector <BYTE>     input_report;
 };
 extern concurrency::concurrent_vector <SK_HID_PlayStationDevice> SK_HID_PlayStationControllers;
 

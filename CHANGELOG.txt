@@ -1,8 +1,12 @@
-﻿+ Removed Waitable SwapChain option from control panel; if you -really- want,
-    it can still be configured manaully using SK's INI.
-    
-   >> Waitable SwapChains are discouraged, use Reflex or Latent Sync instead.
-
+﻿24.1.28.4
+=========
+ + Added support for muting/unmuting games using a DualSense's mute button
+ + Added support for opening SK's control panel using the PlayStation button
+ + Removed Waitable SwapChain option from control panel; if you -really- want,
+     it can still be configured manaully using SK's INI.
+     
+    >> Waitable SwapChains are discouraged, use Reflex or Latent Sync instead.
+ 
 24.1.28.x
 =========
  [.3] + Added Presentation Interval Clamp setting to SwapChain settings;

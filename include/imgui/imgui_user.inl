@@ -1822,6 +1822,10 @@ SK_XInput_ValidateStatePointer (XINPUT_STATE *pState)
   return true;
 }
 
+#include <SpecialK/sound.h>
+
+#pragma comment (lib, "hid.lib")
+
 bool
 SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 {
@@ -1886,13 +1890,89 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
         if (! SK_HidD_GetPreparsedData (ps_controller.hDeviceFile, &PreparsedData))
         	continue;
 
-        HIDP_CAPS                          caps = { };
-        NTSTATUS status =
-          SK_HidP_GetCaps (PreparsedData, &caps);
+        ZeroMemory ( ps_controller.input_report.data (),
+                     ps_controller.input_report.size () );
+
+        ps_controller.input_report [0] = ps_controller.button_report_id;
+
+#if 1
+        DWORD dwNumBytesRead = 0;
+
+        // This is non-blocking if there's no new data... this is the one we want.
+        if (! ReadFile (
+          ps_controller.hDeviceFile, ps_controller.input_report.data (),
+                static_cast <DWORD> (ps_controller.input_report.size ()), &dwNumBytesRead, nullptr )
+           )
+#else
+        if (! HidD_GetInputReport (
+          ps_controller.hDeviceFile, ps_controller.input_report.data (),
+                static_cast <ULONG> (ps_controller.input_report.size ())
+              )
+           )
+#endif
+        {
+          SK_RunOnce (
+            SK_ImGui_Warning (L"Failed to poll PlayStation Controller...")
+          );
+
+          SK_LOGs0 (L"ImGuiBkEnd", L"HidD_GetInputReport (...) failed, Error=%d", GetLastError ());
+        }
+
+        ULONG num_usages =
+          static_cast <ULONG> (ps_controller.button_usages.size ());
+
+        if ( HIDP_STATUS_SUCCESS ==
+             HidP_GetUsages ( HidP_Input, ps_controller.buttons [0].UsagePage, 0,
+                                          ps_controller.button_usages.data (),
+                                                          &num_usages,
+                    PreparsedData, (PCHAR)ps_controller.input_report.data  (),
+                     static_cast <ULONG> (ps_controller.input_report.size  ()) )
+           )
+        {
+          for ( auto& button : ps_controller.buttons )
+          {
+            button.last_state =
+              std::exchange (button.state, false);
+          }
+
+          for ( UINT i = 0; i < num_usages; ++i )
+          {
+            ps_controller.buttons [
+              ps_controller.button_usages [i] -
+              ps_controller.buttons       [0].Usage
+            ].state = true;
+          }
+        }
 
         SK_HidD_FreePreparsedData (PreparsedData);
 
-        if (status != HIDP_STATUS_SUCCESS) continue;
+        if ( ps_controller.buttons.size () >= 13 &&
+               (config.input.gamepad.xinput.ui_slot >= 0 && 
+                config.input.gamepad.xinput.ui_slot <  4) )
+        {
+          if (ps_controller.buttons [12].state && (! ps_controller.buttons [12].last_state))
+          {
+            if (SK_ImGui_Active ())
+            {
+              bToggleVis |= true;
+              bToggleNav |= true;
+            }
+
+            else
+            {
+              bToggleNav |= (! nav_usable);
+              bToggleVis |= true;
+            }
+          }
+        }
+
+        if (ps_controller.bDualSense)
+        {
+          if (ps_controller.buttons [14].state && (! ps_controller.buttons [14].last_state))
+          {
+            SK_SetGameMute (! SK_IsGameMuted ());
+          }
+        }
       }
     }
 

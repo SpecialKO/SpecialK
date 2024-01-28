@@ -347,11 +347,63 @@ void SK_HID_SetupPlayStationControllers (void)
                                 wszFileName,   _TRUNCATE);
   
           controller.hDeviceFile =
-            SK_CreateFile2 ( wszFileName, 0, FILE_SHARE_READ | FILE_SHARE_WRITE,
-                              OPEN_EXISTING, nullptr );
+            SK_CreateFile2 ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
+                                          FILE_SHARE_READ   | FILE_SHARE_WRITE,
+                                            OPEN_EXISTING, nullptr );
   
           if (controller.hDeviceFile != nullptr)
           {
+            std::vector <HIDP_VALUE_CAPS> value_caps;
+
+            PHIDP_PREPARSED_DATA                                     PreparsedData = nullptr;
+            if (! SK_HidD_GetPreparsedData (controller.hDeviceFile, &PreparsedData))
+            	continue;
+
+            HIDP_CAPS                          caps = { };
+              SK_HidP_GetCaps (PreparsedData, &caps);
+
+            controller.input_report.resize (caps.InputReportByteLength);
+
+            std::vector <HIDP_BUTTON_CAPS>
+              buttonCapsArray;
+              buttonCapsArray.resize (caps.NumberInputButtonCaps);
+
+            USHORT num_caps =
+              caps.NumberInputButtonCaps;
+
+            if ( HIDP_STATUS_SUCCESS ==
+                 HidP_GetButtonCaps ( HidP_Input,
+                                        buttonCapsArray.data (), &num_caps,
+                                          PreparsedData ) )
+            {
+              controller.button_report_id =
+                buttonCapsArray.data ()->ReportID;
+              controller.button_usage_min =
+                buttonCapsArray.data ()->Range.UsageMin;
+              controller.button_usage_max =
+                buttonCapsArray.data ()->Range.UsageMax;
+
+              controller.buttons.resize (
+                static_cast <size_t> (
+                  controller.button_usage_max -
+                  controller.button_usage_min + 1
+                )
+              );
+
+              // We need a contiguous array to read-back the set buttons,
+              //   rather than allocating it dynamically, do it once and reuse.
+              controller.button_usages.resize (controller.buttons.size ());
+
+              USAGE idx = 0;
+
+              for ( auto& button : controller.buttons )
+              {
+                button.UsagePage = buttonCapsArray [idx].UsagePage;
+                button.Usage     = controller.button_usage_min + idx++;
+                button.state     = false;
+              }
+            }
+
             controller.bConnected = true;
             controller.bDualSense =
               StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
