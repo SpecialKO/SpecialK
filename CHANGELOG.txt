@@ -1,4 +1,11 @@
-﻿24.1.28.5
+﻿24.1.28.6
+=========
+ + Avoid requesting new (unchanged) HID Preparsed Data every time a PlayStation
+     controller is polled to reduce input polling overhead.
+ + Forward a game's XInput poll requests through SK's Steam-Free XInput DLL
+     if [Input.Steam] Disable=true is set, so that Steam cannot screw with it.
+
+24.1.28.5
 =========
  + Added Steam Input auto-bypass: Copies hid.dll, setupapi.dll, kernel32.dll
      from system directory to <SK_Install>\Drivers\{HID|SetupAPI|Kernel32}\...

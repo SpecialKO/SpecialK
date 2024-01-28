@@ -365,12 +365,11 @@ void SK_HID_SetupPlayStationControllers (void)
           {
             std::vector <HIDP_VALUE_CAPS> value_caps;
 
-            PHIDP_PREPARSED_DATA                                     PreparsedData = nullptr;
-            if (! SK_HidD_GetPreparsedData (controller.hDeviceFile, &PreparsedData))
+            if (! SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
             	continue;
 
-            HIDP_CAPS                          caps = { };
-              SK_HidP_GetCaps (PreparsedData, &caps);
+            HIDP_CAPS                                      caps = { };
+              SK_HidP_GetCaps (controller.pPreparsedData, &caps);
 
             controller.input_report.resize (caps.InputReportByteLength);
 
@@ -384,7 +383,7 @@ void SK_HID_SetupPlayStationControllers (void)
             if ( HIDP_STATUS_SUCCESS ==
               SK_HidP_GetButtonCaps ( HidP_Input,
                                         buttonCapsArray.data (), &num_caps,
-                                          PreparsedData ) )
+                                          controller.pPreparsedData ) )
             {
               for (UINT i = 0 ; i < num_caps ; ++i)
               {
@@ -463,6 +462,7 @@ HidP_GetCaps_pfn           HidP_GetCaps_Original           = nullptr;
 
 HidD_GetPreparsedData_pfn  SK_HidD_GetPreparsedData  = nullptr;
 HidD_FreePreparsedData_pfn SK_HidD_FreePreparsedData = nullptr;
+HidD_GetInputReport_pfn    SK_HidD_GetInputReport    = nullptr;
 HidD_GetFeature_pfn        SK_HidD_GetFeature        = nullptr;
 HidP_GetData_pfn           SK_HidP_GetData           = nullptr;
 HidP_GetCaps_pfn           SK_HidP_GetCaps           = nullptr;
@@ -1883,6 +1883,10 @@ SK_Input_PreHookHID (void)
   SK_HidP_GetUsages =
     (HidP_GetUsages_pfn)SK_GetProcAddress (hModHID,
     "HidP_GetUsages");
+
+  SK_HidD_GetInputReport =
+    (HidD_GetInputReport_pfn)SK_GetProcAddress (hModHID,
+    "HidD_GetInputReport");
 
   SK_CreateFile2 =
     (CreateFile2_pfn)SK_GetProcAddress (hModKernel32,

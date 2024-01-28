@@ -585,6 +585,13 @@ using HidD_GetFeature_pfn = BOOLEAN (__stdcall *)(
   _In_  ULONG  ReportBufferLength
 );
 
+using  HidD_GetInputReport_pfn = BOOLEAN (__stdcall *)(
+  _In_ HANDLE        HidDeviceObject,
+  _Out_writes_bytes_(ReportBufferLength)
+       PVOID         ReportBuffer,
+  _In_ ULONG         ReportBufferLength
+);
+
 using CreateFile2_pfn =
   HANDLE (WINAPI *)(LPCWSTR,DWORD,DWORD,DWORD,
                       LPCREATEFILE2_EXTENDED_PARAMETERS);
@@ -641,6 +648,7 @@ extern HidD_GetFeature_pfn        HidD_GetFeature_Original       ;
 extern HidP_GetData_pfn           HidP_GetData_Original          ;
 extern SetCursor_pfn              SetCursor_Original             ;
 
+extern HidD_GetInputReport_pfn    SK_HidD_GetInputReport;
 extern HidD_GetPreparsedData_pfn  SK_HidD_GetPreparsedData;
 extern HidD_FreePreparsedData_pfn SK_HidD_FreePreparsedData;
 extern HidD_GetFeature_pfn        SK_HidD_GetFeature;
@@ -739,10 +747,11 @@ SK_DeviceIoControl (HANDLE       hDevice,
                     LPOVERLAPPED lpOverlapped);
 
 struct SK_HID_PlayStationDevice {
-  HANDLE  hDeviceFile              = nullptr;
-  wchar_t wszDevicePath [MAX_PATH] = {     };
-  bool    bConnected               =    true;
-  bool    bDualSense               =   false;
+  HANDLE               hDeviceFile              = nullptr;
+  wchar_t              wszDevicePath [MAX_PATH] = {     };
+  PHIDP_PREPARSED_DATA pPreparsedData           = nullptr;
+  bool                 bConnected               =    true;
+  bool                 bDualSense               =   false;
 
   struct button_s {
     bool state;

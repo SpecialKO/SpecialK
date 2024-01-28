@@ -1884,9 +1884,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     {
       if (ps_controller.bConnected)
       {
-        PHIDP_PREPARSED_DATA                                        PreparsedData = nullptr;
-        if (! SK_HidD_GetPreparsedData (ps_controller.hDeviceFile, &PreparsedData))
-        	continue;
+        if (ps_controller.pPreparsedData == nullptr)
+          continue;
 
         ZeroMemory ( ps_controller.input_report.data (),
                      ps_controller.input_report.size () );
@@ -1902,7 +1901,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
                 static_cast <DWORD> (ps_controller.input_report.size ()), &dwNumBytesRead, nullptr )
            )
 #else
-        if (! HidD_GetInputReport (
+        if (! SK_HidD_GetInputReport (
           ps_controller.hDeviceFile, ps_controller.input_report.data (),
                 static_cast <ULONG> (ps_controller.input_report.size ())
               )
@@ -1923,7 +1922,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
           SK_HidP_GetUsages ( HidP_Input, ps_controller.buttons [0].UsagePage, 0,
                                           ps_controller.button_usages.data (),
                                                           &num_usages,
-                    PreparsedData, (PCHAR)ps_controller.input_report.data  (),
+                                          ps_controller.pPreparsedData,
+                                   (PCHAR)ps_controller.input_report.data  (),
                      static_cast <ULONG> (ps_controller.input_report.size  ()) )
            )
         {
@@ -1941,8 +1941,6 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
             ].state = true;
           }
         }
-
-        SK_HidD_FreePreparsedData (PreparsedData);
 
         if ( ps_controller.buttons.size () >= 13 &&
                (config.input.gamepad.xinput.ui_slot >= 0 && 

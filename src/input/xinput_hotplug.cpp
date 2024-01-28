@@ -249,11 +249,17 @@ SK_XInput_NotifyDeviceArrival (void)
                                                               FILE_SHARE_READ   | FILE_SHARE_WRITE,
                                                                 OPEN_EXISTING, nullptr );
 
-                              controller.bConnected = true;
+                              if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
+                              {
+                                if (SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
+                                {
+                                  controller.bConnected = true;
 
-                              //SK_ImGui_Warning (L"PlayStation Controller Reconnected");
+                                  //SK_ImGui_Warning (L"PlayStation Controller Reconnected");
 
-                              has_existing = true;
+                                  has_existing = true;
+                                }
+                              }
                               break;
                             }
                           }
@@ -279,11 +285,10 @@ SK_XInput_NotifyDeviceArrival (void)
 
                               std::vector <HIDP_VALUE_CAPS> value_caps;
 
-                              PHIDP_PREPARSED_DATA                                   PreparsedData = nullptr;
-                              if (SK_HidD_GetPreparsedData (controller.hDeviceFile, &PreparsedData))
+                              if (SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
                               {
-                                HIDP_CAPS                          caps = { };
-                                  SK_HidP_GetCaps (PreparsedData, &caps);
+                                HIDP_CAPS                                      caps = { };
+                                  SK_HidP_GetCaps (controller.pPreparsedData, &caps);
 
                                 controller.input_report.resize (caps.InputReportByteLength);
 
@@ -297,21 +302,42 @@ SK_XInput_NotifyDeviceArrival (void)
                                 if ( HIDP_STATUS_SUCCESS ==
                                   SK_HidP_GetButtonCaps ( HidP_Input,
                                                             buttonCapsArray.data (), &num_caps,
-                                                              PreparsedData ) )
+                                                              controller.pPreparsedData ) )
                                 {
-                                  controller.button_report_id =
-                                    buttonCapsArray.data ()->ReportID;
-                                  controller.button_usage_min =
-                                    buttonCapsArray.data ()->Range.UsageMin;
-                                  controller.button_usage_max =
-                                    buttonCapsArray.data ()->Range.UsageMax;
+                                  for (UINT i = 0 ; i < num_caps ; ++i)
+                                  {
+                                    // Face Buttons
+                                    if (buttonCapsArray [i].IsRange)
+                                    {
+                                      controller.button_report_id =
+                                        buttonCapsArray [i].ReportID;
+                                      controller.button_usage_min =
+                                        buttonCapsArray [i].Range.UsageMin;
+                                      controller.button_usage_max =
+                                        buttonCapsArray [i].Range.UsageMax;
 
-                                  controller.buttons.resize (
-                                    static_cast <size_t> (
-                                      controller.button_usage_max -
-                                      controller.button_usage_min + 1
-                                    )
-                                  );
+                                      controller.buttons.resize (
+                                        static_cast <size_t> (
+                                          controller.button_usage_max -
+                                          controller.button_usage_min + 1
+                                        )
+                                      );
+                                    }
+
+                                    // D-Pad
+                                    else
+                                    {
+                                      // No idea what a third set of buttons would be...
+                                      SK_ReleaseAssert (num_caps <= 2);
+
+                                      controller.dpad_report_id =
+                                        buttonCapsArray [i].ReportID;
+                                      controller.dpad.Usage =
+                                        buttonCapsArray [i].NotRange.Usage;
+                                      controller.dpad.Usage =
+                                        buttonCapsArray [i].UsagePage;
+                                    }
+                                  }
 
                                   // We need a contiguous array to read-back the set buttons,
                                   //   rather than allocating it dynamically, do it once and reuse.
@@ -367,6 +393,11 @@ SK_XInput_NotifyDeviceArrival (void)
 
                               if (                          controller.hDeviceFile != nullptr)
                                 CloseHandle (std::exchange (controller.hDeviceFile,   nullptr));
+
+                              if (controller.pPreparsedData != nullptr)
+                                  SK_HidD_FreePreparsedData (
+                                    std::exchange (controller.pPreparsedData, nullptr)
+                                  );
 
                               //SK_ImGui_Warning (L"PlayStation Controller Disconnected");
 
