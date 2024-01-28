@@ -1908,9 +1908,12 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
            )
 #endif
         {
-          SK_RunOnce (
-            SK_ImGui_Warning (L"Failed to poll PlayStation Controller...")
-          );
+          if (config.system.log_level > 0)
+          {
+            SK_RunOnce (
+              SK_ImGui_Warning (L"Failed to poll PlayStation Controller...")
+            );
+          }
 
           SK_LOGs0 (L"ImGuiBkEnd", L"HidD_GetInputReport (...) failed, Error=%d", GetLastError ());
         }
@@ -1942,9 +1945,10 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
           }
         }
 
-        if ( ps_controller.buttons.size () >= 13 &&
-               (config.input.gamepad.xinput.ui_slot >= 0 && 
-                config.input.gamepad.xinput.ui_slot <  4) )
+        if ( config.input.gamepad.scepad.enhanced_ps_button &&
+                        ps_controller.buttons.size () >= 13 &&
+                  (config.input.gamepad.xinput.ui_slot >= 0 && 
+                   config.input.gamepad.xinput.ui_slot <  4) )
         {
           if (ps_controller.buttons [12].state && (! ps_controller.buttons [12].last_state))
           {
@@ -1962,7 +1966,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
           }
         }
 
-        if (ps_controller.bDualSense)
+        if (ps_controller.bDualSense && config.input.gamepad.scepad.mute_applies_to_game)
         {
           if (ps_controller.buttons [14].state && (! ps_controller.buttons [14].last_state))
           {

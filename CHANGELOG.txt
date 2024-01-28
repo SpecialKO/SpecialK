@@ -1,4 +1,17 @@
-﻿24.1.28.6
+﻿24.1.29
+=======
+ + Display XInput slot enablement/placeholding status in XInput slot tooltips
+ + Hide XInput Packet Sequencing debug info unless SK is actively keeping a
+     disconnected controller alive.
+ + Simplified XInput Slot checkboxes, and added a yellow state to indicate when
+     SK is blocking input to the game
+ + Expose PlayStation controller options previously only shown in control panel
+     when a game uses libScePad.dll.
+
+    >> All (wired) PlayStation controller users now have access to them, but
+         some (trackpad remapping) still only show up in games using libScePad.
+
+24.1.28.6
 =========
  + Avoid requesting new (unchanged) HID Preparsed Data every time a PlayStation
      controller is polled to reduce input polling overhead.

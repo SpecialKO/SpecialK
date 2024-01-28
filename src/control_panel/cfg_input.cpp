@@ -814,6 +814,15 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 (1.0f, 0.1f, 0.1f, 1.0f));
             ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 (0.9f, 0.4f, 0.4f, 1.0f));
             ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 (1.0f, 0.1f, 0.1f, 1.0f));
+            ImGui::PushStyleColor (ImGuiCol_CheckMark,      ImVec4 (0.0f, 0.0f, 0.0f, 1.0f));
+          }
+
+          else if (SK_ImGui_WantGamepadCapture ())
+          {
+            ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 (1.0f, 1.0f, 0.1f, 1.0f));
+            ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 (0.9f, 0.9f, 0.4f, 1.0f));
+            ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 (1.0f, 1.0f, 0.1f, 1.0f));
+            ImGui::PushStyleColor (ImGuiCol_CheckMark,      ImVec4 (0.0f, 0.0f, 0.0f, 1.0f));
           }
 
           if (ImGui::Checkbox (szName, &placehold_slot))
@@ -842,27 +851,66 @@ SK::ControlPanel::Input::Draw (void)
             }
           }
 
-          if (disable_slot)
+          if (disable_slot || SK_ImGui_WantGamepadCapture ())
           {
-            ImGui::PopStyleColor (3);
+            ImGui::PopStyleColor (4);
           }
 
           if (ImGui::IsItemHovered ())
           {
             const SK_XInput_PacketJournal journal =
-              SK_XInput_GetPacketJournal (dwIndex);
+                SK_XInput_GetPacketJournal (dwIndex);
 
-            ImGui::BeginTooltip( );
-            ImGui::TextColored (ImColor (255, 255, 255), "Hardware Packet Sequencing");
-            ImGui::TextColored (ImColor (160, 160, 160), "(Last: %lu | Now: %lu)",
-                                journal.sequence.last, journal.sequence.current);
-            ImGui::Separator   ( );
-            ImGui::Columns     (2, nullptr, false);
-            ImGui::TextColored (ImColor (255, 165, 0), "Virtual Packets..."); ImGui::NextColumn ();
-            ImGui::Text        ("%+07li", journal.packet_count.virt);         ImGui::NextColumn ();
-            ImGui::TextColored (ImColor (127, 255, 0), "Real Packets...");    ImGui::NextColumn ();
-            ImGui::Text        ("%+07li", journal.packet_count.real);
-            ImGui::Columns     (1);
+            ImGui::BeginTooltip  ( );
+
+            ImGui::BeginGroup    ( );
+            ImGui::TextUnformatted ("Device State: ");
+            ImGui::TextUnformatted ("Placeholding: ");
+            ImGui::EndGroup      ( );
+
+            ImGui::SameLine      ( );
+
+            ImGui::BeginGroup    ( );
+            if (config.input.gamepad.xinput.disable [dwIndex] || config.input.gamepad.xinput.blackout_api)
+              ImGui::TextColored (ImVec4 (1.0f, 0.1f, 0.1f, 1.0f), "Disabled");
+            else if (SK_ImGui_WantGamepadCapture ())
+              ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.1f, 1.0f), "Blocked");
+            else
+              ImGui::TextColored (ImVec4 (0.1f, 1.0f, 0.1f, 1.0f), "Enabled");
+
+            if (config.input.gamepad.xinput.placehold [dwIndex])
+            {
+              if (SK_XInput_Holding (dwIndex))
+                ImGui::TextColored (ImVec4 ( 0.1f,  1.0f,  0.1f, 1.0f), "Enabled and Active");
+              else
+                ImGui::TextColored (ImVec4 (0.75f, 0.75f, 0.75f, 1.0f), "Enabled");
+            }
+
+            else
+                ImGui::TextColored (ImVec4 ( 0.5f,  0.5f,  0.5f, 1.0f), "N/A");
+            ImGui::EndGroup      ( );
+            
+            ImGui::Separator     ( );
+
+            if (config.input.gamepad.xinput.placehold [dwIndex] && journal.packet_count.virt > 0)
+            {
+              ImGui::TextColored (ImColor (255, 255, 255), "Hardware Packet Sequencing");
+              ImGui::TextColored (ImColor (160, 160, 160), "(Last: %lu | Now: %lu)",
+                                  journal.sequence.last, journal.sequence.current);
+              ImGui::Separator   ( );
+              ImGui::Columns     (2, nullptr, false);
+              ImGui::TextColored (ImColor (255, 165, 0), "Virtual Packets..."); ImGui::NextColumn ();
+              ImGui::Text        ("%+07li", journal.packet_count.virt);         ImGui::NextColumn ();
+              ImGui::TextColored (ImColor (127, 255, 0), "Real Packets...");    ImGui::NextColumn ();
+              ImGui::Text        ("%+07li", journal.packet_count.real);
+              ImGui::Columns     (1);
+            }
+
+            else
+            {
+              ImGui::BulletText ("Inputs Processed:\t%d", journal.packet_count.real);
+            }
+
             ImGui::EndTooltip  ( );
           }
         };
@@ -893,23 +941,30 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::Separator ( );
       }
 
-      if (config.input.gamepad.hook_scepad || last_scepad != 0)
-      {
-        if (last_scepad != 0)
-        {
-          ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
-          ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
-          ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
+      const bool bHasPlayStation =
+        (last_scepad != 0 || (! SK_HID_PlayStationControllers.empty ()));
 
-          if (ImGui::CollapsingHeader ("PlayStation  (DualShock 4 / DualSense)", ImGuiTreeNodeFlags_DefaultOpen))
+      if (bHasPlayStation)
+      {
+        ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
+        ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
+        ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
+
+        if (ImGui::CollapsingHeader ("PlayStation  (DualShock 4 / DualSense)", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+          ImGui::TreePush ("");
+
+          static HMODULE hModScePad =
+            SK_GetModuleHandle (L"libscepad.dll");
+
+          if (hModScePad)
           {
-            ImGui::TreePush ("");
             ImGui::Checkbox ("Hook libScePad", &config.input.gamepad.hook_scepad);
 
             if (ImGui::IsItemHovered ())
-                ImGui::SetTooltip ("Features in this section of the control panel will not work if disabled");
+                ImGui::SetTooltip ("SONY's native input API; unlocks additional settings in games that use it");
 
-            if (config.input.gamepad.hook_scepad)
+            if (config.input.gamepad.hook_scepad && last_scepad != 0)
             {
               ImGui::SameLine   (0.0f, 30);
 
@@ -919,22 +974,43 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::EndGroup   ();
 
               ImGui::SameLine   ();
-
-              ImGui::BeginGroup ();
-              ImGui::Checkbox ("Apply Mute Button to -Game-",                           &config.input.gamepad.scepad.mute_applies_to_game);
-              ImGui::Checkbox ("Toggle Control Panel using  (" ICON_FA_PLAYSTATION ")", &config.input.gamepad.scepad.enhanced_ps_button);
-
-              if (ImGui::IsItemHovered ())
-                  ImGui::SetTooltip ("Exit \"Exclusive Input Mode\" by Holding Share / Select or Pressing Caps Lock");
-
-              ImGui::EndGroup   ();
             }
 
-            ImGui::TreePop  (  );
+            else
+              ImGui::SameLine   (0.0f, 30);
           }
 
-          ImGui::PopStyleColor (3);
+          bool bDualSense = false;
+
+          for ( auto& ps_controller : SK_HID_PlayStationControllers )
+          {
+            if (ps_controller.bDualSense)
+            {
+              bDualSense = true;
+              break;
+            }
+          }
+
+          ImGui::BeginGroup ();
+
+          if (bDualSense)
+            ImGui::Checkbox ("Apply Mute Button to -Game-",                           &config.input.gamepad.scepad.mute_applies_to_game);
+          ImGui::Checkbox   ("Toggle Control Panel using  (" ICON_FA_PLAYSTATION ")", &config.input.gamepad.scepad.enhanced_ps_button);
+
+          if (ImGui::IsItemHovered ())
+          {
+            if (config.input.gamepad.xinput.ui_slot > 3)
+              ImGui::SetTooltip ("Will not work while \"UI Controller\" is set to 'Nothing'");
+            else
+              ImGui::SetTooltip ("Exit \"Exclusive Input Mode\" by Holding Share / Select or Pressing Caps Lock");
+          }
+
+          ImGui::EndGroup   ();
+
+          ImGui::TreePop  (  );
         }
+
+        ImGui::PopStyleColor (3);
       }
 // TODO
 #if 0
