@@ -4013,7 +4013,7 @@ SteamAPI_ManualDispatch_Init_Detour (void)
 
 bool
 S_CALLTYPE
-SteamAPI_ISteamInput_Init_Detour (bool bExplicitlyCallRunFrame)
+SteamAPI_ISteamInput_Init_Detour (ISteamInput* This, bool bExplicitlyCallRunFrame)
 {
   SK_LOG_FIRST_CALL
 
@@ -4025,7 +4025,7 @@ SteamAPI_ISteamInput_Init_Detour (bool bExplicitlyCallRunFrame)
   }
 
   return
-    SteamAPI_ISteamInput_Init_Original (bExplicitlyCallRunFrame);
+    SteamAPI_ISteamInput_Init_Original (This, bExplicitlyCallRunFrame);
 }
 
 bool

@@ -290,7 +290,7 @@ using SteamAPI_ManualDispatch_Init_pfn  = void (S_CALLTYPE*)(void);
 
 using SteamAPI_GetSteamInstallPath_pfn  = const char* (S_CALLTYPE *)(void);
 
-using SteamAPI_ISteamInput_Init_pfn     = bool (S_CALLTYPE*)(bool bExplicitlyCallRunFrame);
+using SteamAPI_ISteamInput_Init_pfn     = bool (S_CALLTYPE *)(ISteamInput* This, bool bExplicitlyCallRunFrame);
 
 
 
