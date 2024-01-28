@@ -652,9 +652,18 @@ extern HidP_GetUsages_pfn         SK_HidP_GetUsages;
 extern ReadFile_pfn               SK_ReadFile;
 extern CreateFile2_pfn            SK_CreateFile2;
 
+using SetupDiDestroyDeviceInfoList_pfn = BOOL (WINAPI *)(
+  _In_ HDEVINFO DeviceInfoSet );
+
 using SetupDiGetClassDevsW_pfn = HDEVINFO (WINAPI *)(
   _In_opt_ CONST GUID   *ClassGuid,
   _In_opt_       PCWSTR  Enumerator,
+  _In_opt_       HWND    hwndParent,
+  _In_           DWORD   Flags );
+
+using SetupDiGetClassDevsA_pfn = HDEVINFO (WINAPI *)(
+  _In_opt_ CONST GUID   *ClassGuid,
+  _In_opt_       PCSTR   Enumerator,
   _In_opt_       HWND    hwndParent,
   _In_           DWORD   Flags );
 
@@ -680,10 +689,43 @@ using SetupDiGetDeviceInterfaceDetailW_pfn = BOOL (WINAPI *)(
             PDWORD                             RequiredSize,
   _Out_opt_ PSP_DEVINFO_DATA                   DeviceInfoData );
 
+using SetupDiGetDeviceInterfaceDetailA_pfn = BOOL (WINAPI *)(
+  _In_      HDEVINFO                           DeviceInfoSet,
+  _In_      PSP_DEVICE_INTERFACE_DATA          DeviceInterfaceData,
+  _Out_writes_bytes_to_opt_(DeviceInterfaceDetailDataSize, *RequiredSize)
+            PSP_DEVICE_INTERFACE_DETAIL_DATA_A DeviceInterfaceDetailData,
+  _In_      DWORD                              DeviceInterfaceDetailDataSize,
+  _Out_opt_ _Out_range_(>=, sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA_A))
+            PDWORD                             RequiredSize,
+  _Out_opt_ PSP_DEVINFO_DATA                   DeviceInfoData );
+
+using SetupDiGetClassDevsExW_pfn = HDEVINFO (WINAPI *)(
+  _In_opt_ CONST GUID    *ClassGuid,
+  _In_opt_       PCWSTR   Enumerator,
+  _In_opt_       HWND     hwndParent,
+  _In_           DWORD    Flags,
+  _In_opt_       HDEVINFO DeviceInfoSet,
+  _In_opt_       PCWSTR   MachineName,
+  _Reserved_     PVOID    Reserved );
+
+using SetupDiGetClassDevsExA_pfn = HDEVINFO (WINAPI *)(
+  _In_opt_ CONST GUID    *ClassGuid,
+  _In_opt_       PCSTR    Enumerator,
+  _In_opt_       HWND     hwndParent,
+  _In_           DWORD    Flags,
+  _In_opt_       HDEVINFO DeviceInfoSet,
+  _In_opt_       PCSTR    MachineName,
+  _Reserved_     PVOID    Reserved );
+
 extern SetupDiGetClassDevsW_pfn             SK_SetupDiGetClassDevsW;
+extern SetupDiGetClassDevsA_pfn             SK_SetupDiGetClassDevsA;
+extern SetupDiGetClassDevsExW_pfn           SK_SetupDiGetClassDevsExW;
+extern SetupDiGetClassDevsExA_pfn           SK_SetupDiGetClassDevsExA;
 extern SetupDiEnumDeviceInfo_pfn            SK_SetupDiEnumDeviceInfo;
 extern SetupDiEnumDeviceInterfaces_pfn      SK_SetupDiEnumDeviceInterfaces;
 extern SetupDiGetDeviceInterfaceDetailW_pfn SK_SetupDiGetDeviceInterfaceDetailW;
+extern SetupDiGetDeviceInterfaceDetailA_pfn SK_SetupDiGetDeviceInterfaceDetailA;
+extern SetupDiDestroyDeviceInfoList_pfn     SK_SetupDiDestroyDeviceInfoList;
 
 BOOL
 WINAPI
@@ -710,9 +752,19 @@ struct SK_HID_PlayStationDevice {
     USAGE UsagePage;
   };
 
+  struct dpad_s {
+    BYTE state;
+    BYTE last_state;
+
+    USAGE Usage;
+    USAGE UsagePage;
+  } dpad;
+
   USAGE button_usage_min;
   USAGE button_usage_max;
+
   UCHAR button_report_id;
+  UCHAR dpad_report_id;
 
   std::vector <button_s> buttons;
   std::vector <USAGE>    button_usages;

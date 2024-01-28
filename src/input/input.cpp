@@ -284,9 +284,14 @@ SK_Input_GetDeviceFileAndState (HANDLE hFile)
 }
 
 SetupDiGetClassDevsW_pfn             SK_SetupDiGetClassDevsW             = nullptr;
+SetupDiGetClassDevsExW_pfn           SK_SetupDiGetClassDevsExW           = nullptr;
+SetupDiGetClassDevsA_pfn             SK_SetupDiGetClassDevsA             = nullptr;
+SetupDiGetClassDevsExA_pfn           SK_SetupDiGetClassDevsExA           = nullptr;
 SetupDiEnumDeviceInfo_pfn            SK_SetupDiEnumDeviceInfo            = nullptr;
 SetupDiEnumDeviceInterfaces_pfn      SK_SetupDiEnumDeviceInterfaces      = nullptr;
 SetupDiGetDeviceInterfaceDetailW_pfn SK_SetupDiGetDeviceInterfaceDetailW = nullptr;
+SetupDiGetDeviceInterfaceDetailA_pfn SK_SetupDiGetDeviceInterfaceDetailA = nullptr;
+SetupDiDestroyDeviceInfoList_pfn     SK_SetupDiDestroyDeviceInfoList     = nullptr;
   
 void SK_HID_SetupPlayStationControllers (void)
 {
@@ -381,19 +386,40 @@ void SK_HID_SetupPlayStationControllers (void)
                                         buttonCapsArray.data (), &num_caps,
                                           PreparsedData ) )
             {
-              controller.button_report_id =
-                buttonCapsArray.data ()->ReportID;
-              controller.button_usage_min =
-                buttonCapsArray.data ()->Range.UsageMin;
-              controller.button_usage_max =
-                buttonCapsArray.data ()->Range.UsageMax;
+              for (UINT i = 0 ; i < num_caps ; ++i)
+              {
+                // Face Buttons
+                if (buttonCapsArray [i].IsRange)
+                {
+                  controller.button_report_id =
+                    buttonCapsArray [i].ReportID;
+                  controller.button_usage_min =
+                    buttonCapsArray [i].Range.UsageMin;
+                  controller.button_usage_max =
+                    buttonCapsArray [i].Range.UsageMax;
 
-              controller.buttons.resize (
-                static_cast <size_t> (
-                  controller.button_usage_max -
-                  controller.button_usage_min + 1
-                )
-              );
+                  controller.buttons.resize (
+                    static_cast <size_t> (
+                      controller.button_usage_max -
+                      controller.button_usage_min + 1
+                    )
+                  );
+                }
+
+                // D-Pad
+                else
+                {
+                  // No idea what a third set of buttons would be...
+                  SK_ReleaseAssert (num_caps <= 2);
+
+                  controller.dpad_report_id =
+                    buttonCapsArray [i].ReportID;
+                  controller.dpad.Usage =
+                    buttonCapsArray [i].NotRange.Usage;
+                  controller.dpad.Usage =
+                    buttonCapsArray [i].UsagePage;
+                }
+              }
 
               // We need a contiguous array to read-back the set buttons,
               //   rather than allocating it dynamically, do it once and reuse.
@@ -420,7 +446,7 @@ void SK_HID_SetupPlayStationControllers (void)
       }
     }
   
-    CloseHandle (hid_device_set);
+    SK_SetupDiDestroyDeviceInfoList (hid_device_set);
   }
 }
 
@@ -1440,6 +1466,192 @@ DeviceIoControl_Detour (HANDLE       hDevice,
     );
 }
 
+//
+// We don't actually call any of these, the hooks will be routed
+//   through a copy of SetupAPI.dll that SK maintains, instead of
+//     one that Valve can render non-functional.
+//
+static SetupDiGetClassDevsW_pfn
+       SetupDiGetClassDevsW_Original             = nullptr;
+static SetupDiGetClassDevsA_pfn
+       SetupDiGetClassDevsA_Original             = nullptr;
+static SetupDiGetClassDevsExW_pfn
+       SetupDiGetClassDevsExW_Original           = nullptr;
+static SetupDiGetClassDevsExA_pfn
+       SetupDiGetClassDevsExA_Original           = nullptr;
+static SetupDiEnumDeviceInterfaces_pfn
+       SetupDiEnumDeviceInterfaces_Original      = nullptr;
+static SetupDiGetDeviceInterfaceDetailW_pfn
+       SetupDiGetDeviceInterfaceDetailW_Original = nullptr;
+static SetupDiGetDeviceInterfaceDetailA_pfn
+       SetupDiGetDeviceInterfaceDetailA_Original = nullptr;
+static SetupDiDestroyDeviceInfoList_pfn
+       SetupDiDestroyDeviceInfoList_Original     = nullptr;
+
+HDEVINFO
+WINAPI
+SetupDiGetClassDevsW_Detour (
+  _In_opt_ const GUID   *ClassGuid,
+  _In_opt_       PCWSTR  Enumerator,
+  _In_opt_       HWND    hwndParent,
+  _In_           DWORD   Flags )
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    SK_LOG_FIRST_CALL
+  }
+
+  return
+    SK_SetupDiGetClassDevsW (ClassGuid, Enumerator, hwndParent, Flags);
+}
+
+HDEVINFO
+WINAPI
+SetupDiGetClassDevsA_Detour (
+  _In_opt_ const GUID  *ClassGuid,
+  _In_opt_       PCSTR  Enumerator,
+  _In_opt_       HWND   hwndParent,
+  _In_           DWORD  Flags )
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    SK_LOG_FIRST_CALL
+  }
+
+  return
+    SK_SetupDiGetClassDevsA (ClassGuid, Enumerator, hwndParent, Flags);
+}
+
+HDEVINFO
+WINAPI
+SetupDiGetClassDevsExW_Detour (
+  _In_opt_ CONST GUID    *ClassGuid,
+  _In_opt_       PCWSTR   Enumerator,
+  _In_opt_       HWND     hwndParent,
+  _In_           DWORD    Flags,
+  _In_opt_       HDEVINFO DeviceInfoSet,
+  _In_opt_       PCWSTR   MachineName,
+  _Reserved_     PVOID    Reserved )
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    SK_LOG_FIRST_CALL
+  }
+
+  return
+    SK_SetupDiGetClassDevsExW (
+      ClassGuid, Enumerator, hwndParent, Flags,
+        DeviceInfoSet, MachineName, Reserved );
+}
+
+HDEVINFO
+WINAPI
+SetupDiGetClassDevsExA_Detour (
+  _In_opt_ CONST GUID    *ClassGuid,
+  _In_opt_       PCSTR    Enumerator,
+  _In_opt_       HWND     hwndParent,
+  _In_           DWORD    Flags,
+  _In_opt_       HDEVINFO DeviceInfoSet,
+  _In_opt_       PCSTR    MachineName,
+  _Reserved_     PVOID    Reserved )
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    SK_LOG_FIRST_CALL
+  }
+
+  return
+    SK_SetupDiGetClassDevsExA (
+      ClassGuid, Enumerator, hwndParent, Flags,
+        DeviceInfoSet, MachineName, Reserved );
+}
+
+BOOL
+WINAPI
+SetupDiEnumDeviceInterfaces_Detour (
+  _In_       HDEVINFO                  DeviceInfoSet,
+  _In_opt_   PSP_DEVINFO_DATA          DeviceInfoData,
+  _In_ CONST GUID                     *InterfaceClassGuid,
+  _In_       DWORD                     MemberIndex,
+  _Out_      PSP_DEVICE_INTERFACE_DATA DeviceInterfaceData )
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    SK_LOG_FIRST_CALL
+  }
+
+  return
+    SK_SetupDiEnumDeviceInterfaces ( DeviceInfoSet, DeviceInfoData,
+                                       InterfaceClassGuid, MemberIndex,
+                                         DeviceInterfaceData );
+}
+
+BOOL
+WINAPI
+SetupDiGetDeviceInterfaceDetailW_Detour (
+  _In_      HDEVINFO                           DeviceInfoSet,
+  _In_      PSP_DEVICE_INTERFACE_DATA          DeviceInterfaceData,
+  _Out_writes_bytes_to_opt_(DeviceInterfaceDetailDataSize, *RequiredSize)
+            PSP_DEVICE_INTERFACE_DETAIL_DATA_W DeviceInterfaceDetailData,
+  _In_      DWORD                              DeviceInterfaceDetailDataSize,
+  _Out_opt_ _Out_range_(>=, sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA_W))
+            PDWORD                             RequiredSize,
+  _Out_opt_ PSP_DEVINFO_DATA                   DeviceInfoData )
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    SK_LOG_FIRST_CALL
+  }
+
+  return
+    SK_SetupDiGetDeviceInterfaceDetailW ( DeviceInfoSet,
+                                          DeviceInterfaceData,
+                                          DeviceInterfaceDetailData,
+                                          DeviceInterfaceDetailDataSize,
+                                                           RequiredSize,
+                                                           DeviceInfoData );
+}
+
+BOOL
+WINAPI
+SetupDiGetDeviceInterfaceDetailA_Detour (
+  _In_      HDEVINFO                           DeviceInfoSet,
+  _In_      PSP_DEVICE_INTERFACE_DATA          DeviceInterfaceData,
+  _Out_writes_bytes_to_opt_(DeviceInterfaceDetailDataSize, *RequiredSize)
+            PSP_DEVICE_INTERFACE_DETAIL_DATA_A DeviceInterfaceDetailData,
+  _In_      DWORD                              DeviceInterfaceDetailDataSize,
+  _Out_opt_ _Out_range_(>=, sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA_A))
+            PDWORD                             RequiredSize,
+  _Out_opt_ PSP_DEVINFO_DATA                   DeviceInfoData )
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    SK_LOG_FIRST_CALL
+  }
+
+  return
+    SK_SetupDiGetDeviceInterfaceDetailA ( DeviceInfoSet,
+                                          DeviceInterfaceData,
+                                          DeviceInterfaceDetailData,
+                                          DeviceInterfaceDetailDataSize,
+                                                           RequiredSize,
+                                                           DeviceInfoData );
+}
+
+BOOL
+WINAPI
+SetupDiDestroyDeviceInfoList_Detour (
+  _In_ HDEVINFO DeviceInfoSet)
+{
+  if (SK_GetCallingDLL () != SK_GetDLL ())
+  {
+    SK_LOG_FIRST_CALL
+  }
+
+  return
+    SK_SetupDiDestroyDeviceInfoList (DeviceInfoSet);
+}
+
 void
 SK_Input_HookHID (void)
 {
@@ -1684,6 +1896,18 @@ SK_Input_PreHookHID (void)
     (SetupDiGetClassDevsW_pfn)SK_GetProcAddress (hModSetupAPI,
     "SetupDiGetClassDevsW");
 
+  SK_SetupDiGetClassDevsA =
+    (SetupDiGetClassDevsA_pfn)SK_GetProcAddress (hModSetupAPI,
+    "SetupDiGetClassDevsA");
+
+  SK_SetupDiGetClassDevsExW =
+    (SetupDiGetClassDevsExW_pfn)SK_GetProcAddress (hModSetupAPI,
+    "SetupDiGetClassDevsExW");
+
+  SK_SetupDiGetClassDevsExA =
+    (SetupDiGetClassDevsExA_pfn)SK_GetProcAddress (hModSetupAPI,
+    "SetupDiGetClassDevsExA");
+
   SK_SetupDiEnumDeviceInfo =
     (SetupDiEnumDeviceInfo_pfn)SK_GetProcAddress (hModSetupAPI,
     "SetupDiEnumDeviceInfo");
@@ -1695,6 +1919,53 @@ SK_Input_PreHookHID (void)
   SK_SetupDiGetDeviceInterfaceDetailW =
     (SetupDiGetDeviceInterfaceDetailW_pfn)SK_GetProcAddress (hModSetupAPI,
     "SetupDiGetDeviceInterfaceDetailW");
+
+  SK_SetupDiGetDeviceInterfaceDetailA =
+    (SetupDiGetDeviceInterfaceDetailA_pfn)SK_GetProcAddress (hModSetupAPI,
+    "SetupDiGetDeviceInterfaceDetailA");
+
+  SK_SetupDiDestroyDeviceInfoList =
+    (SetupDiDestroyDeviceInfoList_pfn)SK_GetProcAddress (hModSetupAPI,
+    "SetupDiDestroyDeviceInfoList");
+
+  if (config.input.gamepad.steam.disabled_to_game)
+  {
+    // These causes periodic hitches (thanks Valve), so hook them and
+    //   keep Valve's dirty hands off of them.
+    SK_RunOnce (
+      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetClassDevsW",
+                                           SetupDiGetClassDevsW_Detour,
+                  static_cast_p2p <void> (&SetupDiGetClassDevsW_Original));
+
+      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetClassDevsA",
+                                           SetupDiGetClassDevsA_Detour,
+                  static_cast_p2p <void> (&SetupDiGetClassDevsA_Original));
+
+      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetClassDevsExW",
+                                           SetupDiGetClassDevsExW_Detour,
+                  static_cast_p2p <void> (&SetupDiGetClassDevsExW_Original));
+
+      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetClassDevsExA",
+                                           SetupDiGetClassDevsExA_Detour,
+                  static_cast_p2p <void> (&SetupDiGetClassDevsExA_Original));
+
+      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiEnumDeviceInterfaces",
+                                           SetupDiEnumDeviceInterfaces_Detour,
+                  static_cast_p2p <void> (&SetupDiEnumDeviceInterfaces_Original));
+
+      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetDeviceInterfaceDetailW",
+                                           SetupDiGetDeviceInterfaceDetailW_Detour,
+                  static_cast_p2p <void> (&SetupDiGetDeviceInterfaceDetailW_Original));
+
+      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetDeviceInterfaceDetailA",
+                                           SetupDiGetDeviceInterfaceDetailA_Detour,
+                  static_cast_p2p <void> (&SetupDiGetDeviceInterfaceDetailA_Original));
+
+      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiDestroyDeviceInfoList",
+                                           SetupDiDestroyDeviceInfoList_Detour,
+                  static_cast_p2p <void> (&SetupDiDestroyDeviceInfoList_Original));
+    );
+  }
 
   if (! config.input.gamepad.hook_hid)
     return false;
