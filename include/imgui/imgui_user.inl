@@ -1915,7 +1915,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
             );
           }
 
-          SK_LOGs0 (L"ImGuiBkEnd", L"HidD_GetInputReport (...) failed, Error=%d", GetLastError ());
+          SK_LOGs0 (L"InputBkEnd", L"HidD_GetInputReport (...) failed, Error=%d", GetLastError ());
         }
 
         ULONG num_usages =

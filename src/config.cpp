@@ -2323,7 +2323,8 @@ auto DeclKeybind =
         config.apis.dxgi.d3d11.hook           = false;
         config.apis.d3d9ex.hook               = false;
         config.apis.OpenGL.hook               = false;
-        config.window.dont_hook_wndproc       = true;
+        config.window.dont_hook_wndproc       = false;
+        window.dont_hook_wndproc->store (config.window.dont_hook_wndproc);
         break;
 
 
