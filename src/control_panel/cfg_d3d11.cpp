@@ -938,7 +938,9 @@ SK::ControlPanel::D3D11::Draw (void)
           if (ImGui::IsItemHovered ())
           {
             ImGui::BeginTooltip ();
-            ImGui::Text         ("Enables True VSYNC -OFF- (PresentInterval = 0) in Windowed Mode");
+            ImGui::Text         ("Enables True VSYNC -OFF- in Windowed Mode");
+            ImGui::Separator    ();
+            ImGui::BulletText   ("Presentation Interval 0 will turn VSYNC off");
             ImGui::EndTooltip   ();
           }
         }
