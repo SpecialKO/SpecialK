@@ -1,4 +1,11 @@
-﻿24.1.29
+﻿24.1.29.1
+=========
+ + Turn off "DontHookWndProc" in Dragon's Dogma Dark Arisen for compatibility
+     with DXVK
+ + Handle a possible Structured Exception in iSK_Logger::close (...) during
+     DLL unload.
+
+24.1.29
 =======
  + Display XInput slot enablement/placeholding status in XInput slot tooltips
  + Hide XInput Packet Sequencing debug info unless SK is actively keeping a

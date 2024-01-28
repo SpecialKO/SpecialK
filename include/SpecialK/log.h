@@ -58,11 +58,19 @@ interface iSK_Logger : public IUnknown
   {
   friend interface iSK_Logger;
   public:
-    ~AutoClose (void) noexcept (false)
+    ~AutoClose (void) noexcept
     {
       if (log_ != nullptr)
       {
-        log_->close ();
+        __try {
+          log_->close ();
+        }
+
+        // To satisfy the noexcept, swallow exceptions
+        __except (EXCEPTION_EXECUTE_HANDLER) {
+          // Can't exactly log this, so ignore it.
+        };
+
         log_ = nullptr;
       }
     }
