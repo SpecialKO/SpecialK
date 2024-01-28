@@ -2861,10 +2861,10 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
       if (! nvSuppliedEDID)
       {
         HDEVINFO devInfo =
-          SetupDiGetClassDevsEx ( &GUID_CLASS_MONITOR,
-                                    nullptr, nullptr,
-                                      DIGCF_PRESENT,
-                                        nullptr, nullptr, nullptr );
+          SK_SetupDiGetClassDevsExW ( &GUID_CLASS_MONITOR,
+                                        nullptr, nullptr,
+                                          DIGCF_PRESENT,
+                                            nullptr, nullptr, nullptr );
 
         if (devInfo != nullptr)
         {
