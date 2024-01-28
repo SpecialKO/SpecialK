@@ -1824,8 +1824,6 @@ SK_XInput_ValidateStatePointer (XINPUT_STATE *pState)
 
 #include <SpecialK/sound.h>
 
-#pragma comment (lib, "hid.lib")
-
 bool
 SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 {
@@ -1899,7 +1897,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
         DWORD dwNumBytesRead = 0;
 
         // This is non-blocking if there's no new data... this is the one we want.
-        if (! ReadFile (
+        if (! SK_ReadFile (
           ps_controller.hDeviceFile, ps_controller.input_report.data (),
                 static_cast <DWORD> (ps_controller.input_report.size ()), &dwNumBytesRead, nullptr )
            )
@@ -1922,7 +1920,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
           static_cast <ULONG> (ps_controller.button_usages.size ());
 
         if ( HIDP_STATUS_SUCCESS ==
-             HidP_GetUsages ( HidP_Input, ps_controller.buttons [0].UsagePage, 0,
+          SK_HidP_GetUsages ( HidP_Input, ps_controller.buttons [0].UsagePage, 0,
                                           ps_controller.button_usages.data (),
                                                           &num_usages,
                     PreparsedData, (PCHAR)ps_controller.input_report.data  (),

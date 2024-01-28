@@ -283,11 +283,16 @@ SK_Input_GetDeviceFileAndState (HANDLE hFile)
     { SK_Input_DeviceFileType::Invalid, nullptr, true };
 }
 
+SetupDiGetClassDevsW_pfn             SK_SetupDiGetClassDevsW             = nullptr;
+SetupDiEnumDeviceInfo_pfn            SK_SetupDiEnumDeviceInfo            = nullptr;
+SetupDiEnumDeviceInterfaces_pfn      SK_SetupDiEnumDeviceInterfaces      = nullptr;
+SetupDiGetDeviceInterfaceDetailW_pfn SK_SetupDiGetDeviceInterfaceDetailW = nullptr;
+  
 void SK_HID_SetupPlayStationControllers (void)
 {
   HDEVINFO hid_device_set = 
-    SetupDiGetClassDevs (&GUID_DEVINTERFACE_HID, nullptr, nullptr, DIGCF_DEVICEINTERFACE |
-                                                                   DIGCF_PRESENT);
+    SK_SetupDiGetClassDevsW (&GUID_DEVINTERFACE_HID, nullptr, nullptr, DIGCF_DEVICEINTERFACE |
+                                                                       DIGCF_PRESENT);
   
   if (hid_device_set != INVALID_HANDLE_VALUE)
   {
@@ -299,15 +304,15 @@ void SK_HID_SetupPlayStationControllers (void)
       .cbSize = sizeof (SP_DEVICE_INTERFACE_DATA)
     };
   
-    for (                                  DWORD dwDevIdx = 0            ;
-          SetupDiEnumDeviceInfo (hid_device_set, dwDevIdx, &devInfoData) ;
-                                               ++dwDevIdx )
+    for (                                     DWORD dwDevIdx = 0            ;
+          SK_SetupDiEnumDeviceInfo (hid_device_set, dwDevIdx, &devInfoData) ;
+                                                  ++dwDevIdx )
     {
       devInfoData.cbSize      = sizeof (SP_DEVINFO_DATA);
       devInterfaceData.cbSize = sizeof (SP_DEVICE_INTERFACE_DATA);
   
-      if (! SetupDiEnumDeviceInterfaces ( hid_device_set, nullptr, &GUID_DEVINTERFACE_HID,
-                                                dwDevIdx, &devInterfaceData) )
+      if (! SK_SetupDiEnumDeviceInterfaces ( hid_device_set, nullptr, &GUID_DEVINTERFACE_HID,
+                                                   dwDevIdx, &devInterfaceData) )
       {
         continue;
       }
@@ -316,7 +321,7 @@ void SK_HID_SetupPlayStationControllers (void)
   
       ULONG ulMinimumSize = 0;
   
-      SetupDiGetDeviceInterfaceDetailW (
+      SK_SetupDiGetDeviceInterfaceDetailW (
         hid_device_set, &devInterfaceData, nullptr,
           0, &ulMinimumSize, nullptr );
   
@@ -332,7 +337,7 @@ void SK_HID_SetupPlayStationControllers (void)
       pDevInterfaceDetailData->cbSize =
         sizeof (SP_DEVICE_INTERFACE_DETAIL_DATA);
   
-      if ( SetupDiGetDeviceInterfaceDetailW (
+      if ( SK_SetupDiGetDeviceInterfaceDetailW (
              hid_device_set, &devInterfaceData, pDevInterfaceDetailData,
                ulMinimumSize, &ulMinimumSize, nullptr ) )
       {
@@ -372,7 +377,7 @@ void SK_HID_SetupPlayStationControllers (void)
               caps.NumberInputButtonCaps;
 
             if ( HIDP_STATUS_SUCCESS ==
-                 HidP_GetButtonCaps ( HidP_Input,
+              SK_HidP_GetButtonCaps ( HidP_Input,
                                         buttonCapsArray.data (), &num_caps,
                                           PreparsedData ) )
             {
@@ -429,6 +434,14 @@ HidD_FreePreparsedData_pfn HidD_FreePreparsedData_Original = nullptr;
 HidD_GetFeature_pfn        HidD_GetFeature_Original        = nullptr;
 HidP_GetData_pfn           HidP_GetData_Original           = nullptr;
 HidP_GetCaps_pfn           HidP_GetCaps_Original           = nullptr;
+
+HidD_GetPreparsedData_pfn  SK_HidD_GetPreparsedData  = nullptr;
+HidD_FreePreparsedData_pfn SK_HidD_FreePreparsedData = nullptr;
+HidD_GetFeature_pfn        SK_HidD_GetFeature        = nullptr;
+HidP_GetData_pfn           SK_HidP_GetData           = nullptr;
+HidP_GetCaps_pfn           SK_HidP_GetCaps           = nullptr;
+HidP_GetButtonCaps_pfn     SK_HidP_GetButtonCaps     = nullptr;
+HidP_GetUsages_pfn         SK_HidP_GetUsages         = nullptr;
 
 bool
 SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
@@ -652,6 +665,10 @@ static CreateFileA_pfn CreateFileA_Original = nullptr;
 static CreateFileW_pfn CreateFileW_Original = nullptr;
 static CreateFile2_pfn CreateFile2_Original = nullptr;
 
+CreateFile2_pfn              SK_CreateFile2 = nullptr;
+ReadFile_pfn                    SK_ReadFile = nullptr;
+
+#if 0
 NTSTATUS
 WINAPI
 SK_HidP_GetCaps (_In_  PHIDP_PREPARSED_DATA PreparsedData,
@@ -737,6 +754,7 @@ SK_HidD_FreePreparsedData (_In_ PHIDP_PREPARSED_DATA PreparsedData)
 
   return FALSE;
 }
+#endif
 
 BOOL
 WINAPI
@@ -1088,23 +1106,6 @@ CreateFileA_Detour (LPCSTR                lpFileName,
   }
 
   return hRet;
-}
-
-HANDLE
-WINAPI
-SK_CreateFile2 (
-  _In_     LPCWSTR                           lpFileName,
-  _In_     DWORD                             dwDesiredAccess,
-  _In_     DWORD                             dwShareMode,
-  _In_     DWORD                             dwCreationDisposition,
-  _In_opt_ LPCREATEFILE2_EXTENDED_PARAMETERS pCreateExParams )
-{
-  if (     CreateFile2_Original != nullptr)
-    return CreateFile2_Original ( lpFileName, dwDesiredAccess, dwShareMode,
-                                    dwCreationDisposition, pCreateExParams );
-
-  return CreateFile2 ( lpFileName, dwDesiredAccess, dwShareMode,
-                           dwCreationDisposition, pCreateExParams );
 }
 
 static
@@ -1539,6 +1540,162 @@ SK_Input_HookHID (void)
 bool
 SK_Input_PreHookHID (void)
 {
+  static std::filesystem::path path_to_driver_base =
+        (std::filesystem::path (SK_GetInstallPath ()) /
+                               LR"(Drivers\HID)"),
+                                     driver_name =
+                  SK_RunLHIfBitness (64, L"HID_SK64.dll",
+                                         L"HID_SK32.dll"),
+                             path_to_driver = 
+                             path_to_driver_base /
+                                     driver_name;
+
+  static std::filesystem::path path_to_setupapi_base =
+        (std::filesystem::path (SK_GetInstallPath ()) /
+                               LR"(Drivers\SetupAPI)"),
+                                     setupapi_name =
+                  SK_RunLHIfBitness (64, L"SetupAPI_SK64.dll",
+                                         L"SetupAPI_SK32.dll"),
+                             path_to_setupapi = 
+                             path_to_setupapi_base /
+                                     setupapi_name;
+
+  static std::filesystem::path path_to_kernel_base =
+        (std::filesystem::path (SK_GetInstallPath ()) /
+                               LR"(Drivers\kernel32)"),
+                                     kernel_name =
+                  SK_RunLHIfBitness (64, L"kernel32_sk64.dll",
+                                         L"kernel32_sk32.dll"),
+                             path_to_kernel = 
+                             path_to_kernel_base /
+                                     kernel_name;
+
+  static const auto *pSystemDirectory =
+    SK_GetSystemDirectory ();
+
+  std::filesystem::path
+    path_to_system_hid =
+      (std::filesystem::path (pSystemDirectory) / L"hid.dll");
+
+  std::filesystem::path
+    path_to_system_kernel =
+      (std::filesystem::path (pSystemDirectory) / L"kernel32.dll");
+
+  std::filesystem::path
+    path_to_system_setupapi =
+      (std::filesystem::path (pSystemDirectory) / L"SetupAPI.dll");
+
+  std::error_code ec =
+    std::error_code ();
+
+  if (std::filesystem::exists (path_to_system_hid, ec))
+  {
+    if ( (! std::filesystem::exists ( path_to_driver,      ec))||
+         (! SK_Assert_SameDLLVersion (path_to_driver.    c_str (),
+                                      path_to_system_hid.c_str ()) ) )
+    { SK_CreateDirectories           (path_to_driver.c_str ());
+
+      if (   std::filesystem::exists (path_to_system_hid,                 ec))
+      { std::filesystem::remove      (                    path_to_driver, ec);
+        std::filesystem::copy_file   (path_to_system_hid, path_to_driver, ec);
+      }
+    }
+  }
+
+  if (std::filesystem::exists (path_to_system_kernel, ec))
+  {
+    if ( (! std::filesystem::exists ( path_to_kernel,         ec))||
+         (! SK_Assert_SameDLLVersion (path_to_kernel.       c_str (),
+                                      path_to_system_kernel.c_str ()) ) )
+    { SK_CreateDirectories           (path_to_kernel.c_str ());
+
+      if (   std::filesystem::exists (path_to_system_kernel,                 ec))
+      { std::filesystem::remove      (                       path_to_kernel, ec);
+        std::filesystem::copy_file   (path_to_system_kernel, path_to_kernel, ec);
+      }
+    }
+  }
+
+  if (std::filesystem::exists (path_to_system_setupapi, ec))
+  {
+    if ( (! std::filesystem::exists ( path_to_setupapi,         ec))||
+         (! SK_Assert_SameDLLVersion (path_to_setupapi.       c_str (),
+                                      path_to_system_setupapi.c_str ()) ) )
+    { SK_CreateDirectories           (path_to_setupapi.c_str ());
+
+      if (   std::filesystem::exists (path_to_system_setupapi,                   ec))
+      { std::filesystem::remove      (                         path_to_setupapi, ec);
+        std::filesystem::copy_file   (path_to_system_setupapi, path_to_setupapi, ec);
+      }
+    }
+  }
+
+  HMODULE hModHID =
+    SK_LoadLibraryW (path_to_driver.c_str ());
+
+  HMODULE hModKernel32 =
+    SK_LoadLibraryW (path_to_kernel.c_str ());
+
+  HMODULE hModSetupAPI =
+    SK_LoadLibraryW (path_to_setupapi.c_str ());
+
+  if (! (hModHID && hModKernel32 && hModSetupAPI))
+  {
+    SK_LOGi0 (L"Missing required HID DLLs (!!)");
+  }
+                               
+  SK_HidD_GetPreparsedData =
+    (HidD_GetPreparsedData_pfn)SK_GetProcAddress (hModHID,
+    "HidD_GetPreparsedData");
+
+  SK_HidD_FreePreparsedData =
+    (HidD_FreePreparsedData_pfn)SK_GetProcAddress (hModHID,
+    "HidD_FreePreparsedData");
+
+  SK_HidD_GetFeature =
+    (HidD_GetFeature_pfn)SK_GetProcAddress (hModHID,
+    "HidD_GetFeature");
+
+  SK_HidP_GetData =
+    (HidP_GetData_pfn)SK_GetProcAddress (hModHID,
+    "HidP_GetData");
+
+  SK_HidP_GetCaps =
+    (HidP_GetCaps_pfn)SK_GetProcAddress (hModHID,
+    "HidP_GetCaps");
+
+  SK_HidP_GetButtonCaps =
+    (HidP_GetButtonCaps_pfn)SK_GetProcAddress (hModHID,
+    "HidP_GetButtonCaps");
+
+  SK_HidP_GetUsages =
+    (HidP_GetUsages_pfn)SK_GetProcAddress (hModHID,
+    "HidP_GetUsages");
+
+  SK_CreateFile2 =
+    (CreateFile2_pfn)SK_GetProcAddress (hModKernel32,
+    "CreateFile2");
+
+  SK_ReadFile =
+    (ReadFile_pfn)SK_GetProcAddress (hModKernel32,
+    "ReadFile");
+
+  SK_SetupDiGetClassDevsW =
+    (SetupDiGetClassDevsW_pfn)SK_GetProcAddress (hModSetupAPI,
+    "SetupDiGetClassDevsW");
+
+  SK_SetupDiEnumDeviceInfo =
+    (SetupDiEnumDeviceInfo_pfn)SK_GetProcAddress (hModSetupAPI,
+    "SetupDiEnumDeviceInfo");
+
+  SK_SetupDiEnumDeviceInterfaces =
+    (SetupDiEnumDeviceInterfaces_pfn)SK_GetProcAddress (hModSetupAPI,
+    "SetupDiEnumDeviceInterfaces");
+
+  SK_SetupDiGetDeviceInterfaceDetailW =
+    (SetupDiGetDeviceInterfaceDetailW_pfn)SK_GetProcAddress (hModSetupAPI,
+    "SetupDiGetDeviceInterfaceDetailW");
+
   if (! config.input.gamepad.hook_hid)
     return false;
 

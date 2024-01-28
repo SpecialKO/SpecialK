@@ -1,4 +1,14 @@
-﻿24.1.28.4
+﻿24.1.28.5
+=========
+ + Added Steam Input bypass: Copy hid.dll, setupapi.dll, kernel32.dll from
+     system directory to <SK_Install>\Drivers\{HID|SetupAPI|Kernel32}\...
+
+   >> This prevents Steam Input from intentionally breaking the APIs used to
+        communicate with input devices without using their proprietary API.
+
+    * PlayStation controller features in SK now work if Steam Input is enabled.
+
+24.1.28.4
 =========
  + Added support for muting/unmuting games using a DualSense's mute button
  + Added support for opening SK's control panel using the PlayStation button

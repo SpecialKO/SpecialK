@@ -28,6 +28,7 @@
 
 #include <Windows.h>
 #include <joystickapi.h>
+#include <SetupAPI.h>
 
 #include <cstdint>
 #include <assert.h>
@@ -537,6 +538,24 @@ SK_ImGui_CenterCursorOnWindow (void);
 #include <hidusage.h>
 #include <Hidpi.h>
 
+using HidP_GetButtonCaps_pfn = NTSTATUS (__stdcall *)(
+  _In_                                                  HIDP_REPORT_TYPE     ReportType,
+  _Out_writes_to_(*ButtonCapsLength, *ButtonCapsLength) PHIDP_BUTTON_CAPS    ButtonCaps,
+  _Inout_                                               PUSHORT              ButtonCapsLength,
+  _In_                                                  PHIDP_PREPARSED_DATA PreparsedData
+);
+
+using HidP_GetUsages_pfn = NTSTATUS (__stdcall *)(
+  _In_                                        HIDP_REPORT_TYPE     ReportType,
+  _In_                                        USAGE                UsagePage,
+  _In_opt_                                    USHORT               LinkCollection,
+  _Out_writes_to_(*UsageLength, *UsageLength) PUSAGE               UsageList,
+  _Inout_                                     PULONG               UsageLength,
+  _In_                                        PHIDP_PREPARSED_DATA PreparsedData,
+  _Out_writes_bytes_(ReportLength)            PCHAR                Report,
+  _In_                                        ULONG                ReportLength
+);
+
 using HidP_GetCaps_pfn = NTSTATUS (__stdcall *)(
   _In_  PHIDP_PREPARSED_DATA PreparsedData,
   _Out_ PHIDP_CAPS           Capabilities
@@ -566,6 +585,55 @@ using HidD_GetFeature_pfn = BOOLEAN (__stdcall *)(
   _In_  ULONG  ReportBufferLength
 );
 
+using CreateFile2_pfn =
+  HANDLE (WINAPI *)(LPCWSTR,DWORD,DWORD,DWORD,
+                      LPCREATEFILE2_EXTENDED_PARAMETERS);
+
+using CreateFileW_pfn =
+  HANDLE (WINAPI *)(LPCWSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,
+                      DWORD,DWORD,HANDLE);
+
+using CreateFileA_pfn =
+  HANDLE (WINAPI *)(LPCSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,
+                      DWORD,DWORD,HANDLE);
+
+using ReadFile_pfn =
+  BOOL (WINAPI *)(HANDLE,LPVOID,DWORD,LPDWORD,LPOVERLAPPED);
+
+using ReadFileEx_pfn =
+  BOOL (WINAPI *)(HANDLE,LPVOID,DWORD,LPOVERLAPPED,
+                    LPOVERLAPPED_COMPLETION_ROUTINE);
+
+using OpenFileMappingW_pfn =
+  HANDLE (WINAPI *)(DWORD,BOOL,LPCWSTR);
+
+using CreateFileMappingW_pfn =
+  HANDLE (WINAPI *)(HANDLE,LPSECURITY_ATTRIBUTES,DWORD,
+                     DWORD,DWORD,LPCWSTR);
+
+using DeviceIoControl_pfn =
+BOOL (WINAPI *)(HANDLE       hDevice,
+                DWORD        dwIoControlCode,
+                LPVOID       lpInBuffer,
+                DWORD        nInBufferSize,
+                LPVOID       lpOutBuffer,
+                DWORD        nOutBufferSize,
+                LPDWORD      lpBytesReturned,
+                LPOVERLAPPED lpOverlapped);
+
+using GetOverlappedResult_pfn =
+BOOL (WINAPI *)(HANDLE       hFile,
+                LPOVERLAPPED lpOverlapped,
+                LPDWORD      lpNumberOfBytesTransferred,
+                BOOL         bWait);
+
+using GetOverlappedResultEx_pfn =
+BOOL (WINAPI *)(HANDLE       hFile,
+                LPOVERLAPPED lpOverlapped,
+                LPDWORD      lpNumberOfBytesTransferred,
+                DWORD        dwMilliseconds,
+                BOOL         bWait);
+
 extern HidP_GetCaps_pfn           HidP_GetCaps_Original          ;
 extern HidD_GetPreparsedData_pfn  HidD_GetPreparsedData_Original ;
 extern HidD_FreePreparsedData_pfn HidD_FreePreparsedData_Original;
@@ -573,19 +641,49 @@ extern HidD_GetFeature_pfn        HidD_GetFeature_Original       ;
 extern HidP_GetData_pfn           HidP_GetData_Original          ;
 extern SetCursor_pfn              SetCursor_Original             ;
 
+extern HidD_GetPreparsedData_pfn  SK_HidD_GetPreparsedData;
+extern HidD_FreePreparsedData_pfn SK_HidD_FreePreparsedData;
+extern HidD_GetFeature_pfn        SK_HidD_GetFeature;
+extern HidP_GetData_pfn           SK_HidP_GetData;
+extern HidP_GetCaps_pfn           SK_HidP_GetCaps;
+extern HidP_GetButtonCaps_pfn     SK_HidP_GetButtonCaps;
+extern HidP_GetUsages_pfn         SK_HidP_GetUsages;
 
-BOOLEAN
-WINAPI
-SK_HidD_GetPreparsedData (_In_  HANDLE                HidDeviceObject,
-                          _Out_ PHIDP_PREPARSED_DATA *PreparsedData);
-BOOLEAN
-WINAPI
-SK_HidD_FreePreparsedData (_In_ PHIDP_PREPARSED_DATA PreparsedData);
+extern ReadFile_pfn               SK_ReadFile;
+extern CreateFile2_pfn            SK_CreateFile2;
 
-NTSTATUS
-WINAPI
-SK_HidP_GetCaps (_In_  PHIDP_PREPARSED_DATA PreparsedData,
-                 _Out_ PHIDP_CAPS           Capabilities);
+using SetupDiGetClassDevsW_pfn = HDEVINFO (WINAPI *)(
+  _In_opt_ CONST GUID   *ClassGuid,
+  _In_opt_       PCWSTR  Enumerator,
+  _In_opt_       HWND    hwndParent,
+  _In_           DWORD   Flags );
+
+using SetupDiEnumDeviceInfo_pfn = BOOL (WINAPI *)(
+  _In_  HDEVINFO         DeviceInfoSet,
+  _In_  DWORD            MemberIndex,
+  _Out_ PSP_DEVINFO_DATA DeviceInfoData );
+
+using SetupDiEnumDeviceInterfaces_pfn = BOOL (WINAPI *)(
+  _In_       HDEVINFO                  DeviceInfoSet,
+  _In_opt_   PSP_DEVINFO_DATA          DeviceInfoData,
+  _In_ CONST GUID                     *InterfaceClassGuid,
+  _In_       DWORD                     MemberIndex,
+  _Out_      PSP_DEVICE_INTERFACE_DATA DeviceInterfaceData );
+
+using SetupDiGetDeviceInterfaceDetailW_pfn = BOOL (WINAPI *)(
+  _In_      HDEVINFO                           DeviceInfoSet,
+  _In_      PSP_DEVICE_INTERFACE_DATA          DeviceInterfaceData,
+  _Out_writes_bytes_to_opt_(DeviceInterfaceDetailDataSize, *RequiredSize)
+            PSP_DEVICE_INTERFACE_DETAIL_DATA_W DeviceInterfaceDetailData,
+  _In_      DWORD                              DeviceInterfaceDetailDataSize,
+  _Out_opt_ _Out_range_(>=, sizeof(SP_DEVICE_INTERFACE_DETAIL_DATA_W))
+            PDWORD                             RequiredSize,
+  _Out_opt_ PSP_DEVINFO_DATA                   DeviceInfoData );
+
+extern SetupDiGetClassDevsW_pfn             SK_SetupDiGetClassDevsW;
+extern SetupDiEnumDeviceInfo_pfn            SK_SetupDiEnumDeviceInfo;
+extern SetupDiEnumDeviceInterfaces_pfn      SK_SetupDiEnumDeviceInterfaces;
+extern SetupDiGetDeviceInterfaceDetailW_pfn SK_SetupDiGetDeviceInterfaceDetailW;
 
 BOOL
 WINAPI
@@ -716,55 +814,6 @@ enum SK_InputEnablement {
   DisabledInBackground = 2
 };
 
-using CreateFile2_pfn =
-  HANDLE (WINAPI *)(LPCWSTR,DWORD,DWORD,DWORD,
-                      LPCREATEFILE2_EXTENDED_PARAMETERS);
-
-using CreateFileW_pfn =
-  HANDLE (WINAPI *)(LPCWSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,
-                      DWORD,DWORD,HANDLE);
-
-using CreateFileA_pfn =
-  HANDLE (WINAPI *)(LPCSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,
-                      DWORD,DWORD,HANDLE);
-
-using ReadFile_pfn =
-  BOOL (WINAPI *)(HANDLE,LPVOID,DWORD,LPDWORD,LPOVERLAPPED);
-
-using ReadFileEx_pfn =
-  BOOL (WINAPI *)(HANDLE,LPVOID,DWORD,LPOVERLAPPED,
-                    LPOVERLAPPED_COMPLETION_ROUTINE);
-
-using OpenFileMappingW_pfn =
-  HANDLE (WINAPI *)(DWORD,BOOL,LPCWSTR);
-
-using CreateFileMappingW_pfn =
-  HANDLE (WINAPI *)(HANDLE,LPSECURITY_ATTRIBUTES,DWORD,
-                     DWORD,DWORD,LPCWSTR);
-
-using DeviceIoControl_pfn =
-BOOL (WINAPI *)(HANDLE       hDevice,
-                DWORD        dwIoControlCode,
-                LPVOID       lpInBuffer,
-                DWORD        nInBufferSize,
-                LPVOID       lpOutBuffer,
-                DWORD        nOutBufferSize,
-                LPDWORD      lpBytesReturned,
-                LPOVERLAPPED lpOverlapped);
-
-using GetOverlappedResult_pfn =
-BOOL (WINAPI *)(HANDLE       hFile,
-                LPOVERLAPPED lpOverlapped,
-                LPDWORD      lpNumberOfBytesTransferred,
-                BOOL         bWait);
-
-using GetOverlappedResultEx_pfn =
-BOOL (WINAPI *)(HANDLE       hFile,
-                LPOVERLAPPED lpOverlapped,
-                LPDWORD      lpNumberOfBytesTransferred,
-                DWORD        dwMilliseconds,
-                BOOL         bWait);
-
 using joyGetNumDevs_pfn  = MMRESULT (WINAPI *)(void);
 using joyGetPos_pfn      = MMRESULT (WINAPI *)(UINT,LPJOYINFO);
 using joyGetPosEx_pfn    = MMRESULT (WINAPI *)(UINT,LPJOYINFOEX);
@@ -774,15 +823,6 @@ extern joyGetPos_pfn   joyGetPos_Original;
 extern joyGetPosEx_pfn joyGetPosEx_Original;
 
 void SK_Win32_NotifyDeviceChange (void);
-
-HANDLE
-WINAPI
-SK_CreateFile2 (
-  _In_     LPCWSTR                           lpFileName,
-  _In_     DWORD                             dwDesiredAccess,
-  _In_     DWORD                             dwShareMode,
-  _In_     DWORD                             dwCreationDisposition,
-  _In_opt_ LPCREATEFILE2_EXTENDED_PARAMETERS pCreateExParams );
 
 #define SK_HID_VID_8BITDO          0x2dc8
 #define SK_HID_VID_LOGITECH        0x046d

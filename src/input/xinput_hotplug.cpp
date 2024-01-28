@@ -295,7 +295,7 @@ SK_XInput_NotifyDeviceArrival (void)
                                   caps.NumberInputButtonCaps;
 
                                 if ( HIDP_STATUS_SUCCESS ==
-                                     HidP_GetButtonCaps ( HidP_Input,
+                                  SK_HidP_GetButtonCaps ( HidP_Input,
                                                             buttonCapsArray.data (), &num_caps,
                                                               PreparsedData ) )
                                 {
