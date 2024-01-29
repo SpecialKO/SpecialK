@@ -3053,9 +3053,12 @@ SK_FrameCallback ( SK_RenderBackend& rb,
               //   (workaround wonkiness from splash screens, etc.)
               SK_RunOnce (
               {
-                game_window.CallProc (game_window.hWnd, WM_ACTIVATEAPP, TRUE,                      0);
-                game_window.CallProc (game_window.hWnd, WM_ACTIVATE,    MAKEWPARAM (WA_ACTIVE, 0), 0);
-                game_window.CallProc (game_window.hWnd, WM_SETFOCUS,    0,                         0);
+                extern LRESULT WINAPI
+                SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, LPARAM lParam);
+
+                SK_COMPAT_SafeCallProc (&game_window, game_window.hWnd, WM_ACTIVATEAPP, TRUE,                      0);
+                SK_COMPAT_SafeCallProc (&game_window, game_window.hWnd, WM_ACTIVATE,    MAKEWPARAM (WA_ACTIVE, 0), 0);
+                SK_COMPAT_SafeCallProc (&game_window, game_window.hWnd, WM_SETFOCUS,                           0,  0);
 
                 if (!    SetForegroundWindow (game_window.hWnd))
                   SK_RealizeForegroundWindow (game_window.hWnd);

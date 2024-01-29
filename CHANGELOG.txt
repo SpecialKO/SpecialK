@@ -1,5 +1,7 @@
 ﻿24.1.29.x
 =========
+ [.10]+ Fixed race to initialize in Microsoft Store version of Firewatch when
+          activating Unity's game window at start.
  [.9] + Always use 'Backspace' rather than localized key name for startup banner
           keyboard combo.
  [.9] + Only show PlayStation controller directions in the startup banner if an
