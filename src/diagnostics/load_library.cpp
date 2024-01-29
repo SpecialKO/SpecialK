@@ -864,7 +864,8 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
       }
 
 
-      if (StrStrIW (compliant_path, L"EOSOVH-Win32-Shipping"))
+      // Disable EOS Overlay in local injection
+      if ((! SK_IsInjected ()) && StrStrIW (compliant_path, L"EOSOVH-Win32-Shipping"))
       {
         SK_LOGs0 (L"DLL Loader", L"Epic Overlay Disabled in 32-bit game to prevent deadlock");
         SK_SetLastError (ERROR_MOD_NOT_FOUND);

@@ -865,6 +865,17 @@ SK_InitFinishCallback (void)
           config.render.framerate.target_fps
       );
       break;
+    default:
+    {
+      HMODULE hModEOSOVH =
+        GetModuleHandleW (L"EOSOVH-Win32-Shipping.dll");
+
+      if (hModEOSOVH)
+      {
+        MoveFileW (  SK_GetModuleFullName (hModEOSOVH).        c_str (),
+                    (SK_GetModuleFullName (hModEOSOVH) + L"_").c_str () );
+      }
+    } break;
 #endif
   }
 

@@ -1,4 +1,9 @@
-﻿24.1.29.2
+﻿24.1.29.3
+=========
+ + FalloutNV.exe works with local and global injection now, but please avoid
+     local injection at all costs because it WILL break.
+
+24.1.29.2
 =========
  + Fixed various OpenGL and HID issues if user tries to use local injection as
      dinput8.dll; highly discouraged and unreliable.
