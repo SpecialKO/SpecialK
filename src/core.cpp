@@ -2708,8 +2708,12 @@ SK_ShutdownCore (const wchar_t* backend)
 #endif
   }
 
-  SK_AutoClose_LogEx (game_debug, game);
-  SK_AutoClose_LogEx (dll_log,    dll);
+  SK_AutoClose_LogEx (game_debug,   game);
+  SK_AutoClose_LogEx (dll_log,       dll);
+  SK_AutoClose_LogEx (steam_log,   steam);
+  SK_AutoClose_LogEx (epic_log,     epic);
+  SK_AutoClose_LogEx (budget_log, budget);
+  SK_AutoClose_LogEx (tex_log,       tex);
 
   if (SK_GetFramesDrawn () > 0)
   {
