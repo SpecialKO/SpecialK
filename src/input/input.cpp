@@ -428,7 +428,7 @@ void SK_HID_SetupPlayStationControllers (void)
 
               for ( auto& button : controller.buttons )
               {
-                button.UsagePage = buttonCapsArray [idx].UsagePage;
+                button.UsagePage = buttonCapsArray [0].UsagePage;
                 button.Usage     = controller.button_usage_min + idx++;
                 button.state     = false;
               }

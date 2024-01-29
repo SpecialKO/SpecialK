@@ -2486,7 +2486,7 @@ SK_Win32_CleanupDummyWindow (HWND hwnd)
 void
 SK_Log_CleanupLogs (void)
 {
-  if (steam_log->lines <= 2)
+  if (steam_log->lines <= 4)
       steam_log->lines =  0;
 
   if (epic_log->lines < 2)
@@ -2502,6 +2502,7 @@ SK_Log_CleanupLogs (void)
   game_debug->close ();
   epic_log->close   ();
   steam_log->close  ();
+  tex_log->close    ();
 }
 
 extern HWND SK_Inject_GetFocusWindow (void);
@@ -2708,12 +2709,7 @@ SK_ShutdownCore (const wchar_t* backend)
 #endif
   }
 
-  SK_AutoClose_LogEx (game_debug,   game);
-  SK_AutoClose_LogEx (dll_log,       dll);
-  SK_AutoClose_LogEx (steam_log,   steam);
-  SK_AutoClose_LogEx (epic_log,     epic);
-  SK_AutoClose_LogEx (budget_log, budget);
-  SK_AutoClose_LogEx (tex_log,       tex);
+  SK_AutoClose_LogEx (dll_log, dll);
 
   if (SK_GetFramesDrawn () > 0)
   {
@@ -3053,6 +3049,9 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
             if (config.window.activate_at_start || config.window.background_render)
             {
+#define SK_SAFE_CALLWNDPROC(Msg,wParam,lParam) \
+ SK_COMPAT_SafeCallProc (&game_window, game_window.hWnd, (Msg), (WPARAM)(wParam), (LPARAM)(lParam));
+
               // Activate the game window one time
               //   (workaround wonkiness from splash screens, etc.)
               SK_RunOnce (
@@ -3060,9 +3059,11 @@ SK_FrameCallback ( SK_RenderBackend& rb,
                 extern LRESULT WINAPI
                 SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, LPARAM lParam);
 
-                SK_COMPAT_SafeCallProc (&game_window, game_window.hWnd, WM_ACTIVATEAPP, TRUE,                      0);
-                SK_COMPAT_SafeCallProc (&game_window, game_window.hWnd, WM_ACTIVATE,    MAKEWPARAM (WA_ACTIVE, 0), 0);
-                SK_COMPAT_SafeCallProc (&game_window, game_window.hWnd, WM_SETFOCUS,                           0,  0);
+                SK_SAFE_CALLWNDPROC (WM_ACTIVATEAPP, TRUE, 0);
+                SK_SAFE_CALLWNDPROC (WM_SETFOCUS,       0, 0);
+
+                // Activate the window
+                ShowWindowAsync (game_window.hWnd, SW_SHOW);
 
                 if (!    SetForegroundWindow (game_window.hWnd))
                   SK_RealizeForegroundWindow (game_window.hWnd);
