@@ -1,7 +1,14 @@
-﻿24.1.29.3
+﻿24.1.29.4
+=========
+ + Improved "Block Input when no cursor is visible" to rule-out false positives
+     caused by SK's own cursor.
+ + Cursor auto-hide works as intended when mouse input is constantly disabled
+     to the game (cursor will timeout and vanish when not hovering SK's UI)
+
+24.1.29.3
 =========
  + FalloutNV.exe works with local and global injection now, but please avoid
-     local injection at all costs because it WILL break.
+     local injection if at all possible because it WILL break.
 
 24.1.29.2
 =========

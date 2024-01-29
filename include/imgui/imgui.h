@@ -3213,6 +3213,7 @@ extern           bool nav_usable;
 
 static inline bool SK_ImGui_Active (void) noexcept { return SK_ImGui_Visible || SK_ImGuiEx_Visible; };
               void SK_ImGui_Warning (const wchar_t* wszMessage);
+extern        bool SK_ImGui_IsAnythingHovered (void);
 
 // Fixed-width font
 #define SK_IMGUI_FIXED_FONT 1

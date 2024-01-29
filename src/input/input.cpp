@@ -3181,8 +3181,8 @@ bool
 SK_ImGui_IsAnythingHovered (void)
 {
   return
-    ImGui::IsAnyItemActive  () ||
-    ImGui::IsAnyItemFocused () ||
+  //ImGui::IsAnyItemActive  () ||
+  //ImGui::IsAnyItemFocused () ||
     ImGui::IsAnyItemHovered () ||
     ImGui::IsWindowHovered  (
                ImGuiHoveredFlags_AnyWindow                    |
@@ -3318,7 +3318,7 @@ sk_imgui_cursor_s::ScreenToLocal (LPPOINT lpPoint)
 HCURSOR
 ImGui_DesiredCursor (void)
 {
-  if (! config.input.ui.use_hw_cursor)
+  if ((! config.input.ui.use_hw_cursor) || (! SK_ImGui_IsAnythingHovered ()))
     return 0;
 
   static HCURSOR last_cursor = nullptr;
@@ -3368,7 +3368,7 @@ ImGuiCursor_Impl (void)
   if (config.input.ui.use_hw_cursor)
   {
     io.MouseDrawCursor =
-      ( (! SK_ImGui_Cursor.idle) && SK_ImGui_IsMouseRelevant () && (! SK_InputUtil_IsHWCursorVisible ()) );
+      ( (! SK_ImGui_Cursor.idle) && SK_ImGui_IsMouseRelevant () && (! SK_InputUtil_IsHWCursorVisible ()));
   }
 
   //
@@ -3412,7 +3412,7 @@ sk_imgui_cursor_s::activateWindow (bool active)
 {
   if (active && config.input.ui.use_hw_cursor)
   {
-    if (SK_ImGui_IsMouseRelevant ())
+    if (SK_ImGui_IsAnythingHovered ())//SK_ImGui_IsMouseRelevant ())
     {
       if (SK_ImGui_WantMouseCapture ())
       {
@@ -3858,7 +3858,7 @@ SetCursor_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_ImGui_WantMouseCapture ())//ImGui::GetIO ().WantCaptureMouse)
+  if (SK_ImGui_WantMouseCapture () && SK_ImGui_IsAnythingHovered ())
   {
     if (! config.input.ui.use_hw_cursor)
       return 0;

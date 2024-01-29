@@ -1288,8 +1288,8 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
         {
           static HCURSOR hLastClassCursor = (HCURSOR)(-1);
 
-          if ( SK_ImGui_WantMouseCapture () &&
-                  ImGui::IsWindowHovered (ImGuiHoveredFlags_AnyWindow) )
+          if ( SK_ImGui_WantMouseCapture  () &&
+               SK_ImGui_IsAnythingHovered () )
           {
             if (hLastClassCursor == (HCURSOR)(-1))
                 hLastClassCursor  = (HCURSOR)GetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR);
@@ -3037,7 +3037,8 @@ SK_ImGui_User_NewFrame (void)
   // Mouse input should be swallowed because it interacts with ImGui;
   //   regular mouse capture includes swallowing input for "Disabled to Game".
   bool bWantMouseCaptureForUI =
-    SK_ImGui_WantMouseCaptureEx (0x0);
+    SK_ImGui_WantMouseCaptureEx (0x0) && (SK_ImGui_IsAnythingHovered () || ImGui::IsPopupOpen (nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel));
+    //SK_ImGui_WantMouseCaptureEx (0x0);
 
   if ( abs (last_x - SK_ImGui_Cursor.pos.x) > 3 ||
        abs (last_y - SK_ImGui_Cursor.pos.y) > 3 ||
@@ -3049,13 +3050,13 @@ SK_ImGui_User_NewFrame (void)
   }
 
 
-  if ((bWantMouseCaptureForUI || SK_ImGui_Active ()) && SK_ImGui_Cursor.last_move > SK::ControlPanel::current_time - 500)
+  if (bWantMouseCaptureForUI || (SK_ImGui_Active () && SK_ImGui_Cursor.last_move > SK::ControlPanel::current_time - 500))
     SK_ImGui_Cursor.idle = false;
 
   else
-    SK_ImGui_Cursor.idle = ( (! SK_ImGui_WantMouseCapture ()) || config.input.mouse.disabled_to_game == SK_InputEnablement::Disabled );
-                                                              // Disabled to game is a form of capture,
-                                                              //   but it is exempt from idle cursor logic
+    SK_ImGui_Cursor.idle = ( (! bWantMouseCaptureForUI) || config.input.mouse.disabled_to_game == SK_InputEnablement::Disabled );
+                                                        // Disabled to game is a form of capture,
+                                                        //   but it is exempt from idle cursor logic
 
   const bool bManageCursor =
     (config.input.cursor.manage || SK_ImGui_Cursor.force != sk_cursor_state::None);
@@ -3090,7 +3091,7 @@ SK_ImGui_User_NewFrame (void)
 
   if (! SK_ImGui_Cursor.idle)
   {
-    if (SK_ImGui_WantMouseCapture ())
+    if (SK_ImGui_WantMouseCapture () && SK_ImGui_IsAnythingHovered ())
     {
       extern HCURSOR ImGui_DesiredCursor (void);
       SK_SetCursor  (ImGui_DesiredCursor ());

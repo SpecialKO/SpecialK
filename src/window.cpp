@@ -5492,7 +5492,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         if ( LOWORD (lParam) == HTCLIENT ||
              LOWORD (lParam) == HTTRANSPARENT )
         {
-          if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0)
+          if (SK_ImGui_IsAnythingHovered () && ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0)
           {
             extern bool      __SK_EnableSetCursor;
                    bool bOrig =
