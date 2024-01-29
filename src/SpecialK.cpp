@@ -1224,9 +1224,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
 
       bool is_epic_game = (! is_steamworks_game) &&
            (    StrStrIW (GetCommandLineW (), L"-epicapp") ||
-                             PathFileExistsW (L".egstore") ||
-                          PathFileExistsW (L"../.egstore") ||
-             SK_Path_wcsstr (wszProcessName, LR"(Epic Games\)") != nullptr );
+              SK_Path_wcsstr (wszProcessName, LR"(Epic Games\)") != nullptr );
 
       bool is_microsoft_game = (! is_steamworks_game) && (! is_epic_game) &&
            SK_IsModuleLoaded (L"AppXDeploymentClient.dll");
