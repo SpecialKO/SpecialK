@@ -5178,6 +5178,23 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       _In_  WPARAM wParam,
                       _In_  LPARAM lParam )
 {
+  // If we are forcing a shutdown, then route any messages through the
+  //   default Win32 handler.
+  if (  const bool abnormal_dll_state =
+      ( ReadAcquire (&__SK_DLL_Attached) == 0 ||
+        ReadAcquire (&__SK_DLL_Ending)   != 0  );
+                   abnormal_dll_state &&
+              ( uMsg != WM_SYSCOMMAND &&
+                uMsg != WM_CLOSE      &&
+                uMsg != WM_QUIT )
+     )
+  {
+    return
+      IsWindowUnicode (hWnd)                       ?
+       DefWindowProcW (hWnd, uMsg, wParam, lParam) :
+       DefWindowProcA (hWnd, uMsg, wParam, lParam);
+  }
+
   dwLastWindowMessageProcessed =
     SK_timeGetTime ();
 
@@ -5195,27 +5212,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     //   allow this to work the way it's supposed to... so @#$% it :)
     return 1;
 #endif
-  }
-
-
-  // If we are forcing a shutdown, then route any messages through the
-  //   default Win32 handler.
-  if ( ReadAcquire (&__SK_DLL_Ending) != FALSE && ( uMsg != WM_SYSCOMMAND &&
-                                                    uMsg != WM_CLOSE      &&
-                                                    uMsg != WM_QUIT )        )
-  {
-    if (IsWindow (hWnd))
-    {
-      return
-        SK_COMPAT_SafeCallProc ( &game_window, hWnd,
-                                               uMsg, wParam,
-                                                     lParam );
-    }
-
-    return
-      game_window.DefWindowProc ( hWnd,
-                                  uMsg, wParam,
-                                        lParam );
   }
 
 
