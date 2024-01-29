@@ -4034,6 +4034,35 @@ SK_HookGL (LPVOID)
                                 SwapBuffers,
        static_cast_p2p <void> (&gdi_swap_buffers) );
 
+    // Temporarily setup function pointers, they will be overwritten when queued
+    //   hooks are installed.
+    if (wgl_get_proc_address == nullptr)
+        wgl_get_proc_address =
+      (wglGetProcAddress_pfn)SK_GetProcAddress      (local_gl, "wglGetProcAddress");
+    if (wgl_swap_buffers == nullptr)
+        wgl_swap_buffers =
+      (wglSwapBuffers_pfn)SK_GetProcAddress         (local_gl, "wglSwapBuffers");
+    if (wgl_make_current == nullptr)
+        wgl_make_current =
+      (wglMakeCurrent_pfn)SK_GetProcAddress         (local_gl, "wglMakeCurrent");
+    if (wgl_share_lists == nullptr)
+        wgl_share_lists =
+      (wglShareLists_pfn)SK_GetProcAddress          (local_gl, "wglShareLists");
+    if (wgl_create_context == nullptr)
+        wgl_create_context =
+      (wglCreateContext_pfn)SK_GetProcAddress       (local_gl, "wglCreateContext");
+    if (wgl_choose_pixel_format == nullptr)
+        wgl_choose_pixel_format =
+      (wglChoosePixelFormat_pfn)SK_GetProcAddress   (local_gl, "wglChoosePixelFormat");
+    if (wgl_set_pixel_format == nullptr)
+        wgl_set_pixel_format =
+      (wglSetPixelFormat_pfn)SK_GetProcAddress      (local_gl, "wglSetPixelFormat");
+    if (wgl_delete_context == nullptr)
+        wgl_delete_context =
+      (wglDeleteContext_pfn)SK_GetProcAddress       (local_gl, "wglDeleteContext");
+    if (wgl_swap_multiple_buffers == nullptr)
+        wgl_swap_multiple_buffers =
+      (wglSwapMultipleBuffers_pfn)SK_GetProcAddress (local_gl, "wglSwapMultipleBuffers");
 
     HWND hWndDummy =
       CreateWindowW ( L"STATIC", nullptr, 0, 0, 0, 0, 0,
@@ -4041,14 +4070,6 @@ SK_HookGL (LPVOID)
 
     if (hWndDummy != nullptr)
     {
-      // For local injection, when NOT using OpenGL32.dll,
-      //   we need to hook this stuff immediately or crash.
-      bool bEnable = SK_EnableApplyQueuedHooks  ();
-      {
-        SK_ApplyQueuedHooks ();
-      }
-      if (! bEnable) SK_DisableApplyQueuedHooks ();
-
       HDC hDC =
         GetDC (hWndDummy);
 
