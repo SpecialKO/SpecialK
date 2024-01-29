@@ -6186,8 +6186,7 @@ volatile LONG SK_D3D11_initialized = FALSE;
   __declspec (dllexport)                                                    \
   _Return STDMETHODCALLTYPE                                                 \
   _Name _Proto {                                                            \
-    if (! SK_IsInjected ())                                                 \
-            WaitForInit ();                                                 \
+    WaitForInit ();                                                         \
                                                                             \
     typedef _Return (STDMETHODCALLTYPE *passthrough_pfn) _Proto;            \
     static passthrough_pfn _default_impl = nullptr;                         \
@@ -6217,8 +6216,7 @@ volatile LONG SK_D3D11_initialized = FALSE;
   __declspec (dllexport)                                                    \
   void STDMETHODCALLTYPE                                                    \
   _Name _Proto {                                                            \
-    if (! SK_IsInjected ())                                                 \
-            WaitForInit ();                                                 \
+    WaitForInit ();                                                         \
                                                                             \
     typedef void (STDMETHODCALLTYPE *passthrough_pfn) _Proto;               \
     static passthrough_pfn _default_impl = nullptr;                         \
@@ -7744,10 +7742,8 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
         pSwapChainDesc != nullptr ?
        *pSwapChainDesc : DXGI_SWAP_CHAIN_DESC { };
 
-  SK_D3D11_Init ();
-
-  if (! SK_IsInjected ())
-  { WaitForInitD3D11 ();}
+  SK_D3D11_Init    ();
+  WaitForInitD3D11 ();
 
 
   dll_log->LogEx ( true,

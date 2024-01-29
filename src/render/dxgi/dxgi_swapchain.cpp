@@ -1410,7 +1410,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
       SK_GetCurrentRenderBackend ();
 
     if (Fullscreen != FALSE)
-    {
+    {   Fullscreen  = FALSE;
       auto hMon =
         MonitorFromWindow (game_window.hWnd, 0x0);
 

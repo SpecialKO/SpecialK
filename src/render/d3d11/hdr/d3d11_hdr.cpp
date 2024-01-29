@@ -56,8 +56,6 @@ struct SK_HDR_FIXUP
   ID3D11Buffer*                   hudCBuffer = nullptr;
   ID3D11Buffer*            colorSpaceCBuffer = nullptr;
 
-  ID3D11InputLayout*            pInputLayout = nullptr;
-
   ID3D11SamplerState*              pSampler0 = nullptr;
 
   ID3D11ShaderResourceView*         pMainSrv = nullptr;
@@ -144,8 +142,6 @@ struct SK_HDR_FIXUP
     if (pRasterizerState  != nullptr)  { pRasterizerState->Release  ();   pRasterizerState = nullptr; }
     if (pDSState          != nullptr)  { pDSState->Release          ();           pDSState = nullptr; }
 
-    if (pInputLayout      != nullptr)  { pInputLayout->Release      ();       pInputLayout = nullptr; }
-
     if (pLuminanceTex     != nullptr)  { pLuminanceTex->Release     ();      pLuminanceTex = nullptr; }
     if (pLuminanceUAV     != nullptr)  { pLuminanceUAV->Release     ();      pLuminanceUAV = nullptr; }
     if (pLuminanceSRV     != nullptr)  { pLuminanceSRV->Release     ();      pLuminanceSRV = nullptr; }
@@ -228,8 +224,6 @@ struct SK_HDR_FIXUP
 
     if (pRasterizerState != nullptr)  { pRasterizerState->Release ();  pRasterizerState = nullptr; }
     if (pDSState         != nullptr)  { pDSState->Release         ();          pDSState = nullptr; }
-
-    if (pInputLayout     != nullptr)  { pInputLayout->Release     ();      pInputLayout = nullptr; }
 
     if (pLuminanceTex    != nullptr)  { pLuminanceTex->Release    ();     pLuminanceTex = nullptr; }
     if (pLuminanceUAV    != nullptr)  { pLuminanceUAV->Release    ();     pLuminanceUAV = nullptr; }
@@ -328,16 +322,6 @@ struct SK_HDR_FIXUP
       pDev->CreateShaderResourceView (pCopyTexture, nullptr, &pCopySrv);
 #endif
 
-      D3D11_INPUT_ELEMENT_DESC local_layout [] = {
-        { "", 0, DXGI_FORMAT_R32_UINT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-      };
-
-      pDev->CreateInputLayout ( local_layout, 0,
-                                  (void *)(colorutil_vs_bytecode),
-                                    sizeof (colorutil_vs_bytecode) /
-                                    sizeof (colorutil_vs_bytecode [0]),
-                                      &pInputLayout );
-
       D3D11_SAMPLER_DESC
         sampler_desc                 = { };
 
@@ -430,7 +414,6 @@ struct SK_HDR_FIXUP
                                                  nullptr, &pGamutSRV);
 
       SK_D3D11_SetDebugName (pSampler0,        L"SK HDR SamplerState");
-      SK_D3D11_SetDebugName (pInputLayout,     L"SK HDR InputLayout");
       SK_D3D11_SetDebugName (pDSState,         L"SK HDR Depth/Stencil State");
       SK_D3D11_SetDebugName (pRasterizerState, L"SK HDR Rasterizer State");
 
@@ -697,7 +680,7 @@ SK_HDR_SanitizeFP16SwapChain (void)
       pDevCtx->IASetVertexBuffers     (0, 1, std::array <ID3D11Buffer *, 1> { nullptr }.data (),
                                              std::array <UINT,           1> { 0       }.data (),
                                              std::array <UINT,           1> { 0       }.data ());
-      pDevCtx->IASetInputLayout       (hdr_base->pInputLayout);
+      pDevCtx->IASetInputLayout       (nullptr);
       pDevCtx->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
 
       pDevCtx->OMSetBlendState        (nullptr, nullptr, 0xFFFFFFFFUL);
@@ -1077,7 +1060,7 @@ SK_HDR_SnapshotSwapchain (void)
       pDevCtx->IASetVertexBuffers     (0, 1, std::array <ID3D11Buffer *, 1> { nullptr }.data (),
                                              std::array <UINT,           1> { 0       }.data (),
                                              std::array <UINT,           1> { 0       }.data ());
-      pDevCtx->IASetInputLayout       (hdr_base->pInputLayout);
+      pDevCtx->IASetInputLayout       (nullptr);
       pDevCtx->IASetIndexBuffer       (nullptr, DXGI_FORMAT_UNKNOWN, 0);
 
       pDevCtx->OMSetBlendState        (nullptr, nullptr, 0xFFFFFFFFUL);

@@ -1,4 +1,11 @@
-﻿24.1.29.x
+﻿24.1.30
+=======
+ + Re-introduced DXGI/D3D11 "wait for init" behavior when using global injection,
+     for compatibility with games like Sonic Frontiers.     
+
+       * (Wait For Init was removed in 24.1.27.x)
+
+24.1.29.x
 =========
  [.10]+ Fixed race to initialize in Microsoft Store version of Firewatch when
           activating Unity's game window at start.
