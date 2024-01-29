@@ -3181,8 +3181,6 @@ bool
 SK_ImGui_IsAnythingHovered (void)
 {
   return
-  //ImGui::IsAnyItemActive  () ||
-  //ImGui::IsAnyItemFocused () ||
     ImGui::IsAnyItemHovered () ||
     ImGui::IsWindowHovered  (
                ImGuiHoveredFlags_AnyWindow                    |
@@ -3508,7 +3506,7 @@ SK_ImGui_WantGamepadCapture (void)
     {
       // Only needs to be done once, it will be restored at exit.
       SK_RunOnce (
-        SK_Steam_ForceInputAppId (1157970)
+        SK_Steam_ForceInputAppId (SPECIAL_KILLER_APPID)
       );
     }
 
@@ -3523,7 +3521,7 @@ SK_ImGui_WantGamepadCapture (void)
         if (! SK::SteamAPI::SetWindowFocusState (! bCapture))
         {
           SK_Steam_ForceInputAppId ( bCapture ?
-                                      1157970 : config.steam.appid );
+                         SPECIAL_KILLER_APPID : config.steam.appid );
 
           // Delayed command to set the Input AppId to 0
           if (! bCapture)

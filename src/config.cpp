@@ -4636,7 +4636,7 @@ auto DeclKeybind =
 
   if (config.steam.appid != 0)
   {
-    if (config.steam.appid != 1157970)
+    if (config.steam.appid != SPECIAL_KILLER_APPID)
     {
 #if 0
       // Non-Steam Games: Ignore this to prevent general weirdness.
@@ -5930,7 +5930,7 @@ SK_SaveConfig ( std::wstring name,
 
 
   // Special K's AppID belongs to Special K, not this game!
-  if (config.steam.appid == 1157970)
+  if (config.steam.appid == SPECIAL_KILLER_APPID)
   {   config.steam.appid               = 0;
       config.steam.auto_inject         = false;
       config.steam.force_load_steamapi = false;

@@ -32,14 +32,6 @@
 #define STEAM_API_NODLL
 #include <SpecialK/steam_api.h>
 
-//
-// SK has an official Steam AppID, and it is deliberately configured to
-//   disable many annoying Steam client "features" (e.g. Steam Input) ;)
-// 
-//   * Money well spent!
-//
-constexpr AppId_t SPECIAL_KILLER_APPID = 1157970;
-
 #ifndef __cpp_lib_format
 #define __cpp_lib_format
 #endif

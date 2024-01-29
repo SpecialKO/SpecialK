@@ -42,6 +42,14 @@ struct IUnknown;
 
 typedef uint64_t AppId64_t;
 
+//
+// SK has an official Steam AppID, and it is deliberately configured to
+//   disable many annoying Steam client "features" (e.g. Steam Input) ;)
+// 
+//   * Money well spent!
+//
+constexpr AppId_t SPECIAL_KILLER_APPID = 1157970;
+
 namespace SK
 {
   namespace SteamAPI
