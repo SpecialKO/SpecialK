@@ -6450,9 +6450,17 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
 
   // The app name is literally in the command line, but it is best we
   //   read the .egstore manifest for consistency
-  else if (StrStrIA (GetCommandLineA (), "-epicapp="))
+
+  else if ( StrStrIA (GetCommandLineA (), "-epicapp=")
+                      || PathFileExistsW (L".egstore") )
+
+    // uPlay's launcher does not forward the command line, so fallback
+    //   to a directory check if "-epicapp=" is undefined.
+
   {
-    // Epic games might have multiple manifests, break-out early after finding the first one.
+    // Epic games might have multiple manifests.
+    //
+    //  * Break-out early after finding the first one...
     //
     bool found_manifest = false;
 
@@ -6538,7 +6546,7 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
         }
 
         path =
-          path.parent_path ();
+          path.parent_path ().lexically_normal ();
       }
     }
 
@@ -6618,6 +6626,48 @@ SK_AppCache_Manager::getAppNameFromPath (const wchar_t* wszPath) const
   if (uiAppID != 0)
   {
     return getAppNameFromID (uiAppID);
+  }
+
+  CRegKey hkAppCacheRoot;
+          hkAppCacheRoot.Open (HKEY_CURRENT_USER, LR"(Software\Kaldaien\Special K\Profiles)");
+
+  if ((intptr_t)hkAppCacheRoot.m_hKey > 0)
+  {
+    std::filesystem::path path =
+      std::filesystem::path (wszPath).lexically_normal ();
+
+    try
+    {
+      wchar_t wszProfileName [MAX_PATH + 2] = { };
+
+      while (! std::filesystem::equivalent ( path.parent_path    (),
+                                             path.root_directory () ) )
+      {
+        *wszProfileName = L'\0';
+
+        ULONG ulProfileLen = MAX_PATH;
+
+        if ( ERROR_SUCCESS ==
+               hkAppCacheRoot.QueryStringValue ( path.c_str (),
+                                                 wszProfileName,
+                                                   &ulProfileLen )
+           )
+        {
+          return
+            wszProfileName;
+        }
+
+        path =
+          path.parent_path ().lexically_normal ();
+      }
+    }
+
+    catch (const std::exception& e)
+    {
+      SK_LOGs0 ( L" AppCache ",
+                 L"AppCache Parse Failure: %hs during Profile Name Lookup",
+                                 e.what () );
+    }
   }
 
   return L"";
@@ -6799,7 +6849,7 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
       }
 
       path =
-        path.parent_path ();
+        path.parent_path ().lexically_normal ();
     }
   }
 
@@ -6808,6 +6858,56 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
     SK_LOGs0 ( L" AppCache ",
                L"Appcache Parse Failure: %hs during Epic Name Lookup",
                                e.what () );
+  }
+
+  CRegKey hkAppCacheRoot;
+          hkAppCacheRoot.Open (HKEY_CURRENT_USER, LR"(Software\Kaldaien\Special K\Profiles)");
+
+  if ((intptr_t)hkAppCacheRoot.m_hKey > 0)
+  {
+    path =
+      std::filesystem::path (wszPath).lexically_normal ();
+
+    try
+    {
+      wchar_t wszProfileName [MAX_PATH + 2] = { };
+
+      while (! std::filesystem::equivalent ( path.parent_path    (),
+                                             path.root_directory () ) )
+      {
+        *wszProfileName = L'\0';
+
+        ULONG ulProfileLen = MAX_PATH;
+
+        if ( ERROR_SUCCESS ==
+               hkAppCacheRoot.QueryStringValue ( path.c_str (),
+                                                 wszProfileName,
+                                                   &ulProfileLen )
+           )
+        {
+          auto ret =
+            getConfigPathForGenericApp (wszProfileName);
+
+          // ret should never be empty
+          SK_ReleaseAssert (! ret.empty ());
+          
+          if (! ret.empty ())
+            return ret;
+
+          break;
+        }
+
+        path =
+          path.parent_path ().lexically_normal ();
+      }
+    }
+
+    catch (const std::exception& e)
+    {
+      SK_LOGs0 ( L" AppCache ",
+                 L"AppCache Parse Failure: %hs during Profile Name Lookup",
+                                 e.what () );
+    }
   }
 
   return
@@ -6892,6 +6992,71 @@ SK_AppCache_Manager::getConfigPathForEpicApp (const char* szEpicApp) const
   std::wstring path = SK_GetNaiveConfigPath ();
   std::wstring name =
     SK_UTF8ToWideChar (SK::EOS::AppName ());
+
+  // Non-trivial name = custom path, remove the old-style <program.exe>
+  if (! name.empty ())
+  {
+    std::wstring original_dir (path);
+
+    size_t pos = 0;
+    if (  (pos = path.find (SK_GetHostApp (), pos)) != std::wstring::npos)
+    {
+      std::wstring       host_app (SK_GetHostApp ());
+      path.replace (pos, host_app.length (), L"\0");
+    }
+
+    std::erase_if ( name,      [](wchar_t tval) {
+      return invalid_file_chars.contains (tval);} );
+
+    path =
+      SK_FormatStringW ( LR"(%s\%s\)",
+                         path.c_str (),
+                         name.c_str () );
+
+    SK_StripTrailingSlashesW (path.data ());
+
+    if (recursing)
+      return path;
+
+    std::error_code                                  err;
+    if (std::filesystem::is_directory (original_dir, err))
+    {
+      std::wstring old_ini =
+                   dll_ini != nullptr ? dll_ini->get_filename ()
+                                      : L"";
+
+      recursing         = true;
+      SK_GetConfigPathEx (true);
+      SK_LoadConfigEx    (L"" );
+      recursing         = false;
+
+      // We've already parsed/written the new file, delete the old one
+      if ((! old_ini.empty ())  &&
+             dll_ini != nullptr &&
+          _wcsicmp ( old_ini.c_str (), dll_ini->get_filename ()))
+        DeleteFileW (old_ini.c_str ());
+
+      SK_RecursiveMove ( original_dir.c_str (),
+                                 path.c_str (), false );
+    }
+  }
+
+  return
+    path;
+}
+
+std::wstring
+SK_AppCache_Manager::getConfigPathForGenericApp (const wchar_t* wszGenericAppName) const
+{
+  static bool recursing = false;
+
+  // If no AppCache (probably not a Steam game), or opting-out of central repo,
+  //   then don't parse crap and just use the traditional path.
+  if (! config.system.central_repository)
+    return SK_GetNaiveConfigPath ();
+
+  std::wstring path = SK_GetNaiveConfigPath ();
+  std::wstring name = wszGenericAppName;
 
   // Non-trivial name = custom path, remove the old-style <program.exe>
   if (! name.empty ())

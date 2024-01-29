@@ -1324,10 +1324,11 @@ struct SK_AppCache_Manager
                                       const wchar_t* wszAppName,
                                          const char* szEpicApp );
 
-  std::wstring  getConfigPathFromAppPath (const wchar_t* wszPath)    const; // Steam
-  std::wstring  getConfigPathFromCmdLine (const wchar_t* wszCmdLine) const; // Epic
-  std::wstring  getConfigPathForAppID    (uint64_t       uiAppID)    const;
-  std::wstring  getConfigPathForEpicApp  (const char*    szEpicApp)  const;
+  std::wstring  getConfigPathFromAppPath   (const wchar_t* wszPath)           const; // Steam
+  std::wstring  getConfigPathFromCmdLine   (const wchar_t* wszCmdLine)        const; // Epic
+  std::wstring  getConfigPathForAppID      (uint64_t       uiAppID)           const;
+  std::wstring  getConfigPathForEpicApp    (const char*    szEpicApp)         const;
+  std::wstring  getConfigPathForGenericApp (const wchar_t *wszGenericAppName) const; // Other
 
   int           migrateProfileData       (LPVOID reserved = nullptr);
 
