@@ -4041,6 +4041,14 @@ SK_HookGL (LPVOID)
 
     if (hWndDummy != nullptr)
     {
+      // For local injection, when NOT using OpenGL32.dll,
+      //   we need to hook this stuff immediately or crash.
+      bool bEnable = SK_EnableApplyQueuedHooks  ();
+      {
+        SK_ApplyQueuedHooks ();
+      }
+      if (! bEnable) SK_DisableApplyQueuedHooks ();
+
       HDC hDC =
         GetDC (hWndDummy);
 

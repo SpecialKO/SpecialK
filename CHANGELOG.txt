@@ -1,4 +1,10 @@
-﻿24.1.29.1
+﻿24.1.29.2
+=========
+ + Fixed various OpenGL and HID issues if user tries to use local injection as
+     dinput8.dll; highly discouraged and unreliable.
+ + Disable EOS overlay in 32-bit software so that it does not deadlock
+
+24.1.29.1
 =========
  + Turn off "DontHookWndProc" in Dragon's Dogma Dark Arisen for compatibility
      with DXVK

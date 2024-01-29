@@ -698,9 +698,9 @@ extern void BasicInit (void);
 
     if (SK_GetModuleHandle (L"dinput.dll"))
       SK_Input_HookDI7  ();
-
-    SK_Input_Init       ();
   }
+
+  SK_Input_Init ();
 
   void
      __stdcall SK_InitFinishCallback (void);

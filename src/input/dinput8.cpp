@@ -1742,8 +1742,6 @@ SK_Input_PreHookDI8 (void)
 
     if (SK_GetModuleHandle (L"dinput.dll"))
       SK_Input_HookDI7  ();
-
-    SK_Input_Init       ();
   }
 
   else
