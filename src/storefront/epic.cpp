@@ -1238,9 +1238,10 @@ SK::EOS::AppName (void)
                                mancpn.is_open ())
               {
                 bool executable = false;
+                bool skip       = false;
 
                 char                     szLine [512] = { };
-                while (! mancpn.getline (szLine, 511).eof ())
+                while (! mancpn.getline (szLine, 511).eof () && skip == false)
                 {
                   if (StrStrIA (szLine, "\"DisplayName\"") != nullptr)
                   {
@@ -1255,7 +1256,18 @@ SK::EOS::AppName (void)
                     const char      *substr = StrStrIA (szLine, ":");
                     strncpy_s (szEpicApp, 64, StrStrIA (substr, "\"") + 1, _TRUNCATE);
                      *strrchr (szEpicApp, '"') = '\0';
-                    continue;
+
+                    if (! PathFileExistsW (
+                            SK_FormatStringW ( LR"(%ws\Profiles\AppCache\#EpicApps\%hs\manifest.json)",
+                                               SK_GetInstallPath (), szEpicApp ).c_str ()
+                       )                  )
+                    {
+                      executable     = false;
+                      *szEpicApp     = '\0';
+                      *szDisplayName = '\0';
+                      skip           = true;
+                      continue;
+                    }
                   }
 
                   else if (StrStrIA (szLine, "\"LaunchExecutable\"") != nullptr)
@@ -1277,6 +1289,9 @@ SK::EOS::AppName (void)
                     break;
                   }
                 }
+
+                if (skip)
+                  continue;
 
                 path = L"/";
                 break;

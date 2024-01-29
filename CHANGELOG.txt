@@ -1,27 +1,20 @@
-﻿24.1.29.4
+﻿24.1.29.x
 =========
- + Improved "Block Input when no cursor is visible" to rule-out false positives
-     caused by SK's own cursor.
- + Cursor auto-hide works as intended when mouse input is constantly disabled
-     to the game (cursor will timeout and vanish when not hovering SK's UI)
-
-24.1.29.3
-=========
- + FalloutNV.exe works with local and global injection now, but please avoid
-     local injection if at all possible because it WILL break.
-
-24.1.29.2
-=========
- + Fixed various OpenGL and HID issues if user tries to use local injection as
-     dinput8.dll; highly discouraged and unreliable.
- + Disable EOS overlay in 32-bit software so that it does not deadlock
-
-24.1.29.1
-=========
- + Turn off "DontHookWndProc" in Dragon's Dogma Dark Arisen for compatibility
-     with DXVK
- + Handle a possible Structured Exception in iSK_Logger::close (...) during
-     DLL unload.
+ [.5] + Fixed Epic Game Store localized game name resolution sometimes using the
+          name of a game's DLC rather than the name of the game.
+ [.4] + Improved "Block Input when no cursor is visible" to rule-out false
+          positives caused by SK's own cursor.
+ [.4] + Cursor auto-hide works as intended when mouse input is constantly disabled
+          to the game (cursor will timeout and vanish when not hovering SK's UI)
+ [.3] + FalloutNV.exe works with local and global injection now, but please
+          avoid local injection if at all possible because it WILL break.
+ [.2] + Fixed various OpenGL and HID issues if user tries to use local injection
+          as dinput8.dll; highly discouraged and unreliable.
+ [.2] + Disable EOS overlay in 32-bit software so that it does not deadlock
+ [.1] + Turn off DontHookWndProc in Dragons Dogma Dark Arisen for compatibility
+          with DXVK
+ [.1] + Handle a possible Structured Exception in iSK_Logger::close (...) during
+          DLL unload.
 
 24.1.29
 =======
