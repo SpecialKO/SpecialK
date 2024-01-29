@@ -211,12 +211,14 @@ SK_ImGui_LoadFonts (void)
 #include <SpecialK/hooks.h>
 
 
+extern bool SK_Input_DetermineMouseIdleState (MSG * lpMsg);
+extern bool SK_Window_IsCursorActive         (void);
+extern bool SK_WantBackgroundRender          (void);
+
 extern float analog_sensitivity;
 
 #include <set>
 #include <SpecialK/log.h>
-
-extern bool SK_WantBackgroundRender (void);
 
 #define SK_RAWINPUT_READ(type)  SK_RawInput_Backend->markRead  (type);
 #define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend->markWrite (type);
@@ -1237,9 +1239,6 @@ MessageProc ( const HWND&   hWnd,
   return false;
 };
 
-extern bool SK_Input_DetermineMouseIdleState (MSG * lpMsg);
-extern bool SK_Window_IsCursorActive         (void);
-
 LRESULT
 WINAPI
 ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
@@ -1692,13 +1691,42 @@ struct {
 
 
 bool
-WINAPI
-SK_XInput_PulseController ( INT   iJoyID,
-                            float fStrengthLeft,
-                            float fStrengthRight );
-extern void
-WINAPI
-SK_XInput_ZeroHaptics ( INT iJoyID );
+SK_ImGui_HasPlayStationController (void)
+{
+  for ( const auto& controller : SK_HID_PlayStationControllers )
+  {
+    if (controller.bConnected)
+      return true;
+  }
+
+  return false;
+}
+
+bool
+SK_ImGui_HasDualSenseController (void)
+{
+  for ( const auto& controller : SK_HID_PlayStationControllers )
+  {
+    if ( controller.bConnected &&
+         controller.bDualSense )
+      return true;
+  }
+
+  return false;
+}
+
+bool
+SK_ImGui_HasDualSenseEdgeController (void)
+{
+  for ( const auto& controller : SK_HID_PlayStationControllers )
+  {
+    if ( controller.bConnected &&
+         controller.bDualSenseEdge )
+      return true;
+  }
+
+  return false;
+}
 
 
 #include <SpecialK/steam_api.h>

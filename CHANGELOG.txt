@@ -1,5 +1,9 @@
 ﻿24.1.29.x
 =========
+ [.9] + Always use 'Backspace' rather than localized key name for startup banner
+          keyboard combo.
+ [.9] + Only show PlayStation controller directions in the startup banner if an
+          appropriate controller is connected.
  [.8] + Fixed Epic Game Store games not resolving their config directory correctly
           after introducing SKIF-defined profile names 
  [.7] + Fixed potential DLL loader deadlock during debug symbol loads

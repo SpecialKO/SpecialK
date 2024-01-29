@@ -6279,7 +6279,10 @@ SK_Keybind::parse (void)
            i != VK_SHIFT    && i != VK_OEM_PLUS && i != VK_OEM_MINUS &&
            i != VK_LSHIFT   && i != VK_RSHIFT   &&
            i != VK_LCONTROL && i != VK_RCONTROL &&
-           i != VK_LMENU    && i != VK_RMENU    && i != VK_ADD // Num Plus
+           i != VK_LMENU    && i != VK_RMENU    && i != VK_ADD   && // Num Plus
+           i != VK_BACK     && i != VK_HOME     && i != VK_END   &&
+           i != VK_DELETE   && i != VK_INSERT   && i != VK_PRIOR &&
+           i != VK_NEXT
          )
       {
         _PushHumanToVirtual (name, sk::narrow_cast <BYTE> (i));
@@ -6300,7 +6303,13 @@ SK_Keybind::parse (void)
     _PushHumanToVirtual (L"Right Alt",   sk::narrow_cast <BYTE> (VK_RMENU));
     _PushHumanToVirtual (L"Left Ctrl",   sk::narrow_cast <BYTE> (VK_LCONTROL));
     _PushHumanToVirtual (L"Right Ctrl",  sk::narrow_cast <BYTE> (VK_RCONTROL));
-
+    _PushHumanToVirtual (L"Backspace",   sk::narrow_cast <BYTE> (VK_BACK));
+    _PushHumanToVirtual (L"Home",        sk::narrow_cast <BYTE> (VK_HOME));
+    _PushHumanToVirtual (L"End",         sk::narrow_cast <BYTE> (VK_END));
+    _PushHumanToVirtual (L"Insert",      sk::narrow_cast <BYTE> (VK_INSERT));
+    _PushHumanToVirtual (L"Delete",      sk::narrow_cast <BYTE> (VK_DELETE));
+    _PushHumanToVirtual (L"Page Up",     sk::narrow_cast <BYTE> (VK_PRIOR));
+    _PushHumanToVirtual (L"Page Down",   sk::narrow_cast <BYTE> (VK_NEXT));
 
     _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_CONTROL),   L"Ctrl");
     _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_MENU),      L"Alt");
@@ -6313,6 +6322,13 @@ SK_Keybind::parse (void)
     _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_RMENU),     L"Right Alt");
     _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_LCONTROL),  L"Left Ctrl");
     _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_RCONTROL),  L"Right Ctrl");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_BACK),      L"Backspace");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_HOME),      L"Home");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_END),       L"End");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_INSERT),    L"Insert");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_DELETE),    L"Delete");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_PRIOR),     L"Page Up");
+    _PushVirtualToHuman (sk::narrow_cast <BYTE> (VK_NEXT),      L"Page Down");
 
     _PushHumanToVirtual (L"Num Plus", sk::narrow_cast <BYTE> (VK_ADD));
     _PushVirtualToHuman (             sk::narrow_cast <BYTE> (VK_ADD), L"Num Plus");

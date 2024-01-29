@@ -752,6 +752,7 @@ struct SK_HID_PlayStationDevice {
   PHIDP_PREPARSED_DATA pPreparsedData           = nullptr;
   bool                 bConnected               =    true;
   bool                 bDualSense               =   false;
+  bool                 bDualSenseEdge           =   false;
 
   struct button_s {
     bool state;
@@ -780,6 +781,10 @@ struct SK_HID_PlayStationDevice {
   std::vector <BYTE>     input_report;
 };
 extern concurrency::concurrent_vector <SK_HID_PlayStationDevice> SK_HID_PlayStationControllers;
+
+bool SK_ImGui_HasPlayStationController   (void);
+bool SK_ImGui_HasDualSenseController     (void);
+bool SK_ImGui_HasDualSenseEdgeController (void);
 
 void SK_HID_SetupPlayStationControllers (void);
 
