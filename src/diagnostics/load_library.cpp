@@ -824,14 +824,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
 
       bool bVulkanLayerDisabled = false;
 
-      // Windows Defender likes to deadlock in the Steam Overlay
-      if (StrStrIW (compliant_path, L"Windows Defender"))
-      {
-        SK_SetLastError (ERROR_MOD_NOT_FOUND);
-        hMod = nullptr;
-      }
-
-      else if (SK_GetCallingDLL (lpRet) == SK_GetModuleHandle (L"vulkan-1.dll") && config.apis.NvAPI.vulkan_bridge == 1)
+      if (SK_GetCallingDLL (lpRet) == SK_GetModuleHandle (L"vulkan-1.dll") && config.apis.NvAPI.vulkan_bridge == 1)
       {
         if (StrStrIW (compliant_path, L"graphics-hook"))
         {
@@ -870,10 +863,25 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
         //}
       }
 
-      if (bVulkanLayerDisabled)
+
+      if (StrStrIW (compliant_path, L"EOSOVH-Win32-Shipping"))
+      {
+        SK_LOGs0 (L"DLL Loader", L"Epic Overlay Disabled in 32-bit game to prevent deadlock");
+        SK_SetLastError (ERROR_MOD_NOT_FOUND);
+        hMod = nullptr;
+      }
+
+      // Windows Defender likes to deadlock in the Steam Overlay
+      else if (StrStrIW (compliant_path, L"Windows Defender"))
       {
         SK_SetLastError (ERROR_MOD_NOT_FOUND);
+        hMod = nullptr;
+      }
 
+      else if (bVulkanLayerDisabled)
+      {
+        SK_SetLastError (ERROR_MOD_NOT_FOUND);
+      
         hMod = nullptr;
       }
 
