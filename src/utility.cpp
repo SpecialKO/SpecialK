@@ -42,6 +42,9 @@ SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
 std::string
 SK_WideCharToUTF8 (const std::wstring& in)
 {
+  if (in.empty ())
+    return "";
+
   constexpr UINT wcFlags =
     WC_COMPOSITECHECK | WC_NO_BEST_FIT_CHARS;
 
@@ -66,6 +69,9 @@ SK_WideCharToUTF8 (const std::wstring& in)
 std::wstring
 SK_UTF8ToWideChar (const std::string& in)
 {
+  if (in.empty ())
+    return L"";
+
   constexpr UINT mbFlags = MB_PRECOMPOSED;
 
   size_t len =

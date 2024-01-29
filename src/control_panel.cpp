@@ -711,19 +711,27 @@ std::string
 SK_GetFriendlyAppName (void)
 {
   const         bool bSteam        = (SK::SteamAPI::AppID () != 0x0);
-  static const  bool bEpic         = StrStrIA (GetCommandLineA (), "-epicapp");
+  static const  bool bEpic         = StrStrIA (GetCommandLineA (), "-epicapp") ||
+                                     PathFileExistsW (L".egstore");
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (bSteam || bEpic || *rb.windows.focus.title != L'\0')
+  static std::string appcache_name =
+    SK_WideCharToUTF8 (
+      app_cache_mgr->getAppNameFromPath (
+        SK_GetFullyQualifiedApp ()
+      )
+    );
+
+  if (bSteam || bEpic || (! appcache_name.empty ()) || *rb.windows.focus.title != L'\0')
   {
     static std::string window_title =
       SK_WideCharToUTF8 (rb.windows.focus.title);
 
     // For non-Steam/Epic games, if the window title changes, then update
     //   the control panel's title...
-    if (! (bSteam || bEpic))
+    if (appcache_name.empty () && (! (bSteam || bEpic)))
     {
       static ULONG64     last_changed = 0;
       if (std::exchange (last_changed, rb.windows.focus.last_changed) !=
@@ -737,7 +745,9 @@ SK_GetFriendlyAppName (void)
     std::string& appname = bSteam ?
        SK::SteamAPI::AppName ()   :
                            bEpic  ?
-            SK::EOS::AppName ()   : window_title;
+            SK::EOS::AppName ()   : 
+      (! appcache_name.empty ())  ?
+         appcache_name            : window_title;
 
     return appname;
   }
@@ -759,8 +769,9 @@ const char*
 SK_ImGui_ControlPanelTitle (void)
 {
   static        char szTitle [512] = { };
-  const         bool bSteam        = (SK::SteamAPI::AppID () != 0x0);
-  static const  bool bEpic         = StrStrIA (GetCommandLineA (), "-epicapp");
+//const         bool bSteam        = (SK::SteamAPI::AppID () != 0x0);
+  static const  bool bEpic         = StrStrIA (GetCommandLineA (), "-epicapp") ||
+                                     PathFileExistsW (L".egstore");
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -792,28 +803,31 @@ SK_ImGui_ControlPanelTitle (void)
   uint32_t   mins    = (elapsed / 60ULL) % 60ULL;
   uint32_t   hours   =  elapsed / 3600ULL;
 
-  if (bSteam || bEpic || *rb.windows.focus.title != L'\0')
+  auto appname =
+    SK_GetFriendlyAppName ();
+
+  if (! appname.empty ())//bSteam || bEpic || *rb.windows.focus.title != L'\0')
   {
-    static std::string window_title =
-      SK_WideCharToUTF8 (rb.windows.focus.title);
-
-    // For non-Steam/Epic games, if the window title changes, then update
-    //   the control panel's title...
-    if (! (bSteam || bEpic))
-    {
-      static ULONG64     last_changed = 0;
-      if (std::exchange (last_changed, rb.windows.focus.last_changed) !=
-                                       rb.windows.focus.last_changed)
-      {
-        window_title =
-          SK_WideCharToUTF8 (rb.windows.focus.title);
-      }
-    }
-
-    std::string& appname = bSteam ?
-       SK::SteamAPI::AppName ()   :
-                           bEpic  ?
-            SK::EOS::AppName ()   : window_title;
+    //static std::string window_title =
+    //  SK_WideCharToUTF8 (rb.windows.focus.title);
+    //
+    //// For non-Steam/Epic games, if the window title changes, then update
+    ////   the control panel's title...
+    //if (! (bSteam || bEpic))
+    //{
+    //  static ULONG64     last_changed = 0;
+    //  if (std::exchange (last_changed, rb.windows.focus.last_changed) !=
+    //                                   rb.windows.focus.last_changed)
+    //  {
+    //    window_title =
+    //      SK_WideCharToUTF8 (rb.windows.focus.title);
+    //  }
+    //}
+    //
+    //std::string& appname = bSteam ?
+    //   SK::SteamAPI::AppName ()   :
+    //                       bEpic  ?
+    //        SK::EOS::AppName ()   : window_title;
 
     if (! appname.empty ())
       title += "      -      ";
