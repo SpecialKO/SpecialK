@@ -509,8 +509,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   DWORD    ip = ExceptionInfo->ContextRecord->Eip;
 #endif
 
-  if (GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                          GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+  if (GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                             (LPCWSTR)ip,
                               &hModSource )) {
     GetModuleFileNameA (hModSource, szModName, MAX_PATH);
@@ -672,6 +671,9 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
     log_entry.append (L"-----------------------------------------------------------\n");
     log_entry_format (L"[! Except !] %s\n", desc));
     log_entry.append (L"-----------------------------------------------------------\n");
+
+    if (hModSource)
+      SK_FreeLibrary (hModSource);
   }
 
   wchar_t* wszThreadDescription = nullptr;
@@ -846,8 +848,7 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
   {
     ip = stackframe.AddrPC.Offset;
 
-    if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+    if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
               reinterpret_cast <LPCWSTR> (ip),
                                  &hModSource ) )
     {
@@ -978,6 +979,9 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
         //                sip.si.Name, _TRUNCATE );
         //}
       }
+
+      if (hModSource)
+        SK_FreeLibrary (hModSource);
     }
 
   //SK_SymUnloadModule (hProc, BaseAddr);
@@ -1679,8 +1683,6 @@ SK_GetSymbolNameFromModuleAddr (      HMODULE     hMod,   uintptr_t addr,
     char* pszShortName = szModName;
 
     PathStripPathA (pszShortName);
-
-    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     if ( dbghelp_callers.find (hMod) ==
          dbghelp_callers.cend (    )  )

@@ -315,18 +315,24 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
 
     if (cs_dbghelp != nullptr)
     {
-      SK_SymLoadModule ( GetCurrentProcess (),
-                           nullptr,
-                            pszShortName,
-                              nullptr,
-#ifdef _M_AMD64
-                                (DWORD64)mod_info.lpBaseOfDll,
-#else /* _M_IX86 */
-                                  (DWORD)mod_info.lpBaseOfDll,
-#endif
-                                    mod_info.SizeOfImage );
+      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
-      dbghelp_callers.insert (hCallingMod);
+      if ( dbghelp_callers.cend (           ) ==
+           dbghelp_callers.find (hCallingMod) ) 
+      {
+        SK_SymLoadModule ( GetCurrentProcess (),
+                             nullptr,
+                              pszShortName,
+                                nullptr,
+#ifdef _M_AMD64
+                                  (DWORD64)mod_info.lpBaseOfDll,
+#else /* _M_IX86 */
+                                    (DWORD)mod_info.lpBaseOfDll,
+#endif
+                                      mod_info.SizeOfImage );
+
+        dbghelp_callers.insert (hCallingMod);
+      }
     }
   }
 

@@ -1,4 +1,8 @@
-﻿24.1.29.6
+﻿24.1.29.7
+=========
+ + Fixed potential DLL loader deadlock during debug symbol loads
+
+24.1.29.6
 =========
  + Fixed uPlay Epic Game Store games not being detected as EGS due to uPlay
      launcher not forwarding the -epic-app command line switch to the game

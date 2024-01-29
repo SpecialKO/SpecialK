@@ -4255,8 +4255,7 @@ SymGetModuleBase64 (
   {
     SK_SymSetOpts ();
 
-    // The DLL already has a critical section guarding this
-    ///std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return
       SymGetModuleBase64_Imp ( hProcess, qwAddr );
@@ -4276,8 +4275,7 @@ SymGetModuleBase (
   {
     SK_SymSetOpts ();
 
-    // The DLL already has a critical section guarding this
-    ///std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
+    std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_dbghelp);
 
     return
       SymGetModuleBase_Imp ( hProcess, dwAddr );
@@ -4551,8 +4549,7 @@ SymLoadModule (
   {
     HMODULE hModDll = nullptr;
 
-    GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+    GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                           (wchar_t *)(uintptr_t)BaseOfDll,
                                     &hModDll );
 
@@ -4560,7 +4557,7 @@ SymLoadModule (
       ( dbghelp_callers.find (hModDll) !=
         dbghelp_callers.cend (       ) );
 
-    if (! loaded)
+    if (hModDll != nullptr && (! loaded))
     {
       if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
                                 && (! ReadAcquire (&__SK_DLL_Ending))))
@@ -4573,28 +4570,14 @@ SymLoadModule (
         if (dbghelp_callers.find (hModDll) ==
             dbghelp_callers.cend (       ))
         {
-          // Ansel calls LoadLibrary from DllMain, it would deadlock us in here
-          ULONG     ldrState  = LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID;
-          ULONG_PTR ldrCookie = 0x0;
+          dbghelp_callers.insert (hModDll);
 
-          if ( STATUS_SUCCESS ==
-                 SK_NtLdr_LockLoaderLock ( LDR_LOCK_LOADER_LOCK_FLAG_TRY_ONLY,
-                   &ldrState, &ldrCookie ) )
+          if (! SymLoadModule_Imp (
+                  hProcess, hFile, ImageName,
+                    ModuleName,    BaseOfDll,
+                                   SizeOfDll  ) )
           {
-            dbghelp_callers.insert (hModDll);
-
-            if (! SymLoadModule_Imp (
-                    hProcess, hFile, ImageName,
-                      ModuleName,    BaseOfDll,
-                                     SizeOfDll  ) )
-            {
-              _SK_DbgHelp_FailedModules->insert (BaseOfDll);
-            }
-
-            else loaded = 1;
-
-            if (ldrState == LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_ACQUIRED)
-              SK_NtLdr_UnlockLoaderLock (0x0, ldrCookie);
+            _SK_DbgHelp_FailedModules->insert (BaseOfDll);
           }
         }
         else loaded = 1;
@@ -4603,6 +4586,9 @@ SymLoadModule (
 
     bRet =
       ( loaded != 0 );
+
+    if (hModDll != 0)
+      SK_FreeLibrary (hModDll);
   }
 
   return
@@ -4629,8 +4615,7 @@ SymLoadModule64 (
   {
     HMODULE hModDll = nullptr;
 
-    GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                        GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+    GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                           (LPCWSTR)BaseOfDll,
                                     &hModDll );
 
@@ -4638,7 +4623,7 @@ SymLoadModule64 (
       ( dbghelp_callers.find (hModDll) !=
         dbghelp_callers.cend (       ) );
 
-    if (! loaded)
+    if (hModDll != nullptr && (! loaded))
     {
       if (cs_dbghelp != nullptr && (  ReadAcquire (&__SK_DLL_Attached)
                                 && (! ReadAcquire (&__SK_DLL_Ending))))
@@ -4651,37 +4636,26 @@ SymLoadModule64 (
         if (dbghelp_callers.find (hModDll) ==
             dbghelp_callers.cend (       ))
         {
-          // Ansel calls LoadLibrary from DllMain, it would deadlock us in here
-          ULONG     ldrState  = LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID;
-          ULONG_PTR ldrCookie = 0x0;
+          dbghelp_callers.insert (hModDll);
 
-          if ( STATUS_SUCCESS ==
-                 SK_NtLdr_LockLoaderLock ( LDR_LOCK_LOADER_LOCK_FLAG_TRY_ONLY,
-                   &ldrState, &ldrCookie ) )
+          if (! SymLoadModule64_Imp (
+                   hProcess, hFile, ImageName,
+                     ModuleName,    BaseOfDll,
+                                    SizeOfDll  ))
           {
-            dbghelp_callers.insert (hModDll);
-
-            if (! SymLoadModule64_Imp (
-                     hProcess, hFile, ImageName,
-                       ModuleName,    BaseOfDll,
-                                      SizeOfDll  ))
-            {
-              _SK_DbgHelp_FailedModules->insert (BaseOfDll);
-            }
-
-            else loaded = 1;
-
-            if (ldrState == LDR_LOCK_LOADER_LOCK_DISPOSITION_LOCK_ACQUIRED)
-              SK_NtLdr_UnlockLoaderLock (0x0, ldrCookie);
+            _SK_DbgHelp_FailedModules->insert (BaseOfDll);
           }
-        }
 
-        else loaded = 1;
+          else loaded = 1;
+        }
       }
     }
 
     bRet =
       ( loaded != 0 );
+
+    if (hModDll)
+      SK_FreeLibrary (hModDll);
   }
 
   return

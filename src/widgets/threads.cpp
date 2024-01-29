@@ -595,8 +595,7 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
 
     char szModName [MAX_PATH + 2] = { };
 
-    if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+    if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
               reinterpret_cast <LPCWSTR> (ip),
                                  &hModSource ) )
     {
@@ -701,6 +700,9 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
           );
       }
     }
+
+    if (hModSource)
+      SK_FreeLibrary (hModSource);
   }
 
   return
@@ -789,8 +791,7 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
     {
       ip = stackframe.AddrPC.Offset;
 
-      if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS |
-                               GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+      if ( GetModuleHandleEx ( GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS,
                 reinterpret_cast <LPCWSTR> (ip),
                                    &hModSource ) )
       {
@@ -901,6 +902,9 @@ SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
                                &thread_ctx,
                                  nullptr, nullptr,
                                    nullptr, nullptr );
+
+      if (hModSource)
+        SK_FreeLibrary (hModSource);
     } while (ret != FALSE);
   }
 
