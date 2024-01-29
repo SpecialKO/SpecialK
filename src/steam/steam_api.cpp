@@ -7573,7 +7573,9 @@ SK_Steam_GetAppID_NoAPI (void)
   //
   // Alternative platforms init now
   //
-  else if (StrStrIA (GetCommandLineA (), "-epicapp"))
+  else if ( StrStrIA (GetCommandLineA (), "-epicapp") ||
+                        PathFileExistsW (L".egstore") ||
+                     PathFileExistsW (L"../.egstore") )
   {
     SK::EOS::Init (false); // Hook EOS SDK; game was launched by Epic
     SK::EOS::AppName (  ); // Use manifest to get app name

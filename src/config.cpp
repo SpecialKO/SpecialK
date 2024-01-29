@@ -6451,8 +6451,10 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
   // The app name is literally in the command line, but it is best we
   //   read the .egstore manifest for consistency
 
-  else if ( StrStrIA (GetCommandLineA (), "-epicapp=")
-                      || PathFileExistsW (L".egstore") )
+  else if ( StrStrIA (GetCommandLineA (), "-epicapp=") ||
+                         PathFileExistsW (L".egstore") ||
+                      PathFileExistsW (L"../.egstore") ||
+                      StrStrIW (wszExe, L"Epic Games") )
 
     // uPlay's launcher does not forward the command line, so fallback
     //   to a directory check if "-epicapp=" is undefined.
@@ -6466,7 +6468,7 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
 
     try {
       std::filesystem::path path =
-        std::wstring (wszExe);
+        std::filesystem::path (wszExe).lexically_normal ();
 
       while (! std::filesystem::equivalent ( path.parent_path    (),
                                              path.root_directory () ) )
@@ -6807,7 +6809,7 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
   }
 
   std::filesystem::path path =
-                     wszPath;
+    std::filesystem::path (wszPath).lexically_normal ();
 
   try
   {
@@ -6898,7 +6900,7 @@ SK_AppCache_Manager::getConfigPathFromAppPath (const wchar_t* wszPath) const
         }
 
         path =
-          path.parent_path ().lexically_normal ();
+          path.parent_path ();
       }
     }
 

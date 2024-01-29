@@ -712,7 +712,9 @@ SK_GetFriendlyAppName (void)
 {
   const         bool bSteam        = (SK::SteamAPI::AppID () != 0x0);
   static const  bool bEpic         = StrStrIA (GetCommandLineA (), "-epicapp") ||
-                                     PathFileExistsW (L".egstore");
+                                                 PathFileExistsW (L".egstore") ||
+                                              PathFileExistsW (L"../.egstore") ||
+                          StrStrIW (SK_GetFullyQualifiedApp (), L"Epic Games");
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -771,7 +773,9 @@ SK_ImGui_ControlPanelTitle (void)
   static        char szTitle [512] = { };
 //const         bool bSteam        = (SK::SteamAPI::AppID () != 0x0);
   static const  bool bEpic         = StrStrIA (GetCommandLineA (), "-epicapp") ||
-                                     PathFileExistsW (L".egstore");
+                                                 PathFileExistsW (L".egstore") ||
+                                              PathFileExistsW (L"../.egstore") ||
+                          StrStrIW (SK_GetFullyQualifiedApp (), L"Epic Games");
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();

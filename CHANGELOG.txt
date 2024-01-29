@@ -1,15 +1,11 @@
-﻿24.1.29.7
+﻿24.1.29.x
 =========
- + Fixed potential DLL loader deadlock during debug symbol loads
-
-24.1.29.6
-=========
- + Fixed uPlay Epic Game Store games not being detected as EGS due to uPlay
-     launcher not forwarding the -epic-app command line switch to the game
- + Added support for SKIF-provided profile directories for config/log files
-
-24.1.29.x
-=========
+ [.8] + Fixed Epic Game Store games not resolving their config directory correctly
+          after introducing SKIF-defined profile names 
+ [.7] + Fixed potential DLL loader deadlock during debug symbol loads
+ [.6] + Fixed uPlay Epic Game Store games not being detected as EGS due to uPlay
+          launcher not forwarding the -epic-app command line switch to the game
+ [.6] + Added support for SKIF-provided profile directories for config/log files
  [.5] + Fixed Epic Game Store localized game name resolution sometimes using the
           name of a game's DLC rather than the name of the game.
  [.4] + Improved "Block Input when no cursor is visible" to rule-out false

@@ -1195,11 +1195,11 @@ SK::EOS::AppName (void)
 {
   static std::string name = "";
 
-  if (                                                          name.empty () &&
-      app_cache_mgr->getAppNameFromPath (SK_GetFullyQualifiedApp ()).empty ())
+  if (                                                          name.empty ()/*&&
+      app_cache_mgr->getAppNameFromPath (SK_GetFullyQualifiedApp ()).empty () */)
   {
     std::filesystem::path path =
-      std::move (std::wstring (SK_GetFullyQualifiedApp ()));
+      std::filesystem::path (SK_GetFullyQualifiedApp ()).lexically_normal ();
 
     char szDisplayName [65] = { };
     char szEpicApp     [65] = { };
@@ -1304,7 +1304,7 @@ SK::EOS::AppName (void)
         }
 
         path =
-          path.parent_path ();
+          path.parent_path ().lexically_normal ();
       }
 
       app_cache_mgr->saveAppCache       ();
