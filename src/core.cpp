@@ -2509,6 +2509,89 @@ extern HWND SK_Inject_GetFocusWindow (void);
 extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
 
 void
+SK_Inject_PostHeartbeatToSKIF (void)
+{
+  static HWND hWndSKIF =
+    FindWindow (L"SK_Injection_Frontend", nullptr);
+
+  if (hWndSKIF == nullptr)
+  {
+    // This isn't the correct window since SKIF was overhauled, but
+    //   it at least gives us the process that owns the window we need...
+    hWndSKIF =
+      FindWindow (L"SKIF_ImGuiWindow", nullptr);
+  
+    DWORD                                dwPidOfSKIF = 0;
+    GetWindowThreadProcessId (hWndSKIF, &dwPidOfSKIF);
+  
+    EnumWindows ( []( HWND   hWnd,
+                      LPARAM lParam ) -> BOOL
+    {
+      DWORD                                dwPID = 0;
+      if (GetWindowThreadProcessId (hWnd, &dwPID))
+      {
+        if (dwPID != (DWORD)lParam)
+          return TRUE;
+  
+        if (SK_GetWindowLongPtrW (hWnd, GWL_EXSTYLE) & WS_EX_APPWINDOW)
+        {
+          // Success, we found the app window!
+          hWndSKIF = hWnd;
+  
+          SK_SetWindowLongPtrW (   hWnd, GWL_EXSTYLE,
+            SK_GetWindowLongPtrW ( hWnd, GWL_EXSTYLE ) & ~WS_EX_NOACTIVATE );
+  
+          return FALSE;
+        }
+      }
+  
+      return TRUE;
+    }, (LPARAM)dwPidOfSKIF);
+  }
+
+  // If done constantly (true), it helps with alt-tab
+  if (SK_Inject_IsHookActive ()) 
+  { // If done only when hook is running, it fixes periodic VRR loss,
+    //   but alt-tab can still flicker.
+    if (hWndSKIF != nullptr && IsWindow (hWndSKIF))
+    {
+      DWORD                                dwPid = 0x0;
+      GetWindowThreadProcessId (hWndSKIF, &dwPid);
+    
+      if ( dwPid != 0x0 &&
+           dwPid != GetCurrentProcessId () )
+      {
+        static DWORD
+            dwLastHeartbeat = 0;
+        if (dwLastHeartbeat < SK_timeGetTime () - 133)
+        {   dwLastHeartbeat = SK_timeGetTime ();
+
+          // Wake SKIF up and make it redraw
+          PostMessage (hWndSKIF, WM_NULL, 0x0, 0x0);
+        }
+      }
+    }
+
+    // SKIF's not running, we'll re-check every 1250 ms
+    else
+    {
+      static DWORD
+          dwLastWindowCheck = 0;
+      if (dwLastWindowCheck < SK_timeGetTime () - 1250)
+      {
+        hWndSKIF = nullptr;
+      }
+
+      else
+      {
+        // Deliberately wrong window, it will be the same PID
+        hWndSKIF = game_window.hWnd;
+      }
+    }
+  }
+}
+
+void
 SK_Inject_ReturnToSKIF (void)
 {
   static HWND hWndExisting =
@@ -3486,6 +3569,16 @@ SK_BackgroundRender_EndFrame (void)
         SK_DeferCommand ("Window.TopMost true");
     }
   }
+
+  //
+  // If SKIF is in the foreground, and SK is set to background render mode,
+  //   then post a message to SKIF to keep it drawing constantly so that VRR
+  //     in the game does not disengage.
+  //
+  //  The minor overhead from SKIF drawing constantly is much less than the
+  //    performance oddities caused by the game periodically losing DirectFlip.
+  //
+  SK_Inject_PostHeartbeatToSKIF ();
 }
 
 void

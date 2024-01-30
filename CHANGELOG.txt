@@ -1,4 +1,10 @@
-﻿24.1.30.4
+﻿24.1.30.5
+=========
+ + Add 133 ms heartbeat message to wake SKIF and keep it redrawing when SK is
+     setup in "Continue Rendering" mode, in order to avoid the game losing VRR
+       during Alt-Tab (while injection service is running).
+
+24.1.30.4
 =========
  + Spawn PresentMon worker thread if text OSD's FPS text is enabled in D3D12,
      otherwise the VRR indicator will not work
