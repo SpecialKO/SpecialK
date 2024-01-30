@@ -380,8 +380,8 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
   bool TenBitSwap     = false;
   bool SixteenBitSwap = false;
 
-  TenBitSwap     = __SK_HDR_10BitSwap;
-  SixteenBitSwap = __SK_HDR_16BitSwap;
+  TenBitSwap     = __SK_HDR_10BitSwap && __SK_HDR_UserForced;
+  SixteenBitSwap = __SK_HDR_16BitSwap && __SK_HDR_UserForced;
 
   // Hack to prevent NV's Vulkan/DXGI Interop SwapChain from destroying itself
   //   if HDR is not enabled.
@@ -398,8 +398,8 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
   bool _bFlipOrFullscreen =
         bFlipModel || (! bWindowed);
 
-  if  (_bFlipOrFullscreen && SixteenBitSwap && __SK_HDR_UserForced) fmt_new = DXGI_FORMAT_R16G16B16A16_FLOAT;
-  else if (_bFlipOrFullscreen && TenBitSwap && __SK_HDR_UserForced) fmt_new = DXGI_FORMAT_R10G10B10A2_UNORM;
+  if  (_bFlipOrFullscreen && SixteenBitSwap) fmt_new = DXGI_FORMAT_R16G16B16A16_FLOAT;
+  else if (_bFlipOrFullscreen && TenBitSwap) fmt_new = DXGI_FORMAT_R10G10B10A2_UNORM;
 
   if (fmt_new == fmt_orig)
     return fmt_orig;
