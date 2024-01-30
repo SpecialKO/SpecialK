@@ -1,4 +1,10 @@
-﻿24.1.30.2
+﻿24.1.30.3
+=========
+ + Moved Raw Input input activity to the end of the API list since it is the
+     least likely API to be sampled every frame
+ + Continue tallying Raw Input mouse events while the mouse is blocked
+
+24.1.30.2
 =========
  + Fixed issue preventing SDR users from using DXGI/Vulkan interop on NV GPUs
 

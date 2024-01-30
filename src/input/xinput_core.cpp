@@ -279,10 +279,10 @@ SK_XInput_GetPrimaryHookName (void)
   return "Unknown";
 }
 
-#define SK_XINPUT_READ(type)  SK_XInput_Backend->markRead   (type);
-#define SK_XINPUT_WRITE(type) SK_XInput_Backend->markWrite  (type);
+#define SK_XINPUT_READ(slot)  SK_XInput_Backend->markRead   (slot);
+#define SK_XINPUT_WRITE(slot) SK_XInput_Backend->markWrite  (slot);
 #define SK_XINPUT_VIEW(slot)  SK_XInput_Backend->markViewed ((sk_input_dev_type)(1 << slot));
-#define SK_XINPUT_HIDE(slot)  SK_XInput_Backend->markHidden (    );
+#define SK_XINPUT_HIDE(slot)  SK_XInput_Backend->markHidden ((sk_input_dev_type)(1 << slot));
 
 static SK_LazyGlobal <concurrency::concurrent_unordered_set <HMODULE>> warned_modules;
 
@@ -432,11 +432,8 @@ XInputGetState1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
-  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
   if ( config.input.gamepad.xinput.blackout_api )
   {
-    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
-
     SK_XINPUT_HIDE (dwUserIndex)
 
     return ERROR_DEVICE_NOT_CONNECTED;
@@ -628,11 +625,8 @@ XInputGetStateEx1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
-  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
   if ( config.input.gamepad.xinput.blackout_api )
   {
-    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
-
     SK_XINPUT_HIDE (dwUserIndex)
 
     return ERROR_DEVICE_NOT_CONNECTED;
@@ -719,8 +713,6 @@ XInputGetCapabilities1_4_Detour (
   // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
   if ( config.input.gamepad.xinput.blackout_api )
   {
-    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
-
     SK_XINPUT_HIDE (dwUserIndex)
 
     return ERROR_DEVICE_NOT_CONNECTED;
@@ -785,11 +777,8 @@ XInputGetCapabilitiesEx1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
-  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
   if ( config.input.gamepad.xinput.blackout_api )
   {
-    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
-
     SK_XINPUT_HIDE (dwUserIndex)
 
     return ERROR_DEVICE_NOT_CONNECTED;
@@ -853,11 +842,8 @@ XInputGetBatteryInformation1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
-  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
   if ( config.input.gamepad.xinput.blackout_api )
   {
-    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
-
     SK_XINPUT_HIDE (dwUserIndex)
 
     return ERROR_DEVICE_NOT_CONNECTED;
@@ -925,11 +911,8 @@ XInputSetState1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
   
-  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
   if ( config.input.gamepad.xinput.blackout_api )
   {
-    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
-
     SK_XINPUT_HIDE (dwUserIndex)
 
     return ERROR_DEVICE_NOT_CONNECTED;
@@ -1342,11 +1325,8 @@ XInputPowerOff1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
-  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
   if ( config.input.gamepad.xinput.blackout_api )
   {
-    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
-
     SK_XINPUT_HIDE (dwUserIndex)
 
     return ERROR_DEVICE_NOT_CONNECTED;
@@ -1431,11 +1411,8 @@ XInputGetKeystroke1_4_Detour (
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
 
-  // TODO: Indicate a read attempt, but distinguish it from SK_XINPUT_READ below
   if ( config.input.gamepad.xinput.blackout_api )
   {
-    SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
-
     SK_XINPUT_HIDE (dwUserIndex)
 
     return ERROR_DEVICE_NOT_CONNECTED;

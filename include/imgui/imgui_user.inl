@@ -223,7 +223,7 @@ extern float analog_sensitivity;
 #define SK_RAWINPUT_READ(type)  SK_RawInput_Backend->markRead   (type);
 #define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend->markWrite  (type);
 #define SK_RAWINPUT_VIEW(type)  SK_RawInput_Backend->markViewed (type);
-#define SK_RAWINPUT_HIDE(type)  SK_RawInput_Backend->markHidden (    );
+#define SK_RAWINPUT_HIDE(type)  SK_RawInput_Backend->markHidden (type);
 
 SK_LazyGlobal <SK_Thread_HybridSpinlock> raw_input_lock;
 
@@ -535,11 +535,11 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         return filter;
       };
 
-  filter = (! self) &&
-    FilterRawInput (uiCommand, (RAWINPUT *)pData, mouse, keyboard);
+  filter =
+    FilterRawInput (uiCommand, (RAWINPUT *)pData, mouse, keyboard) && (! self);
 
 
-  if (uiCommand == RID_INPUT /*&& SK_ImGui_Visible*/)
+  if (uiCommand == RID_INPUT)
   {
     switch (((RAWINPUT *)pData)->header.dwType)
     {
@@ -1649,10 +1649,7 @@ SK_ImGui_FilterXInput (
     if (pState->dwPacketNumber < 1)
         pState->dwPacketNumber = 1;
 
-    // Disabled device slots (the other condition in this branch)
-    //   should still be counted as polled slots
-  //if (disable)
-      return true;
+    return true;
   }
 
   return false;

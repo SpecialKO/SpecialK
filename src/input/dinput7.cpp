@@ -37,7 +37,7 @@ using finish_pfn = void (WINAPI *)(void);
 #define SK_DI7_READ(type)  SK_DI7_Backend->markRead   (type);
 #define SK_DI7_WRITE(type) SK_DI7_Backend->markWrite  (type);
 #define SK_DI7_VIEW(type)  SK_DI7_Backend->markViewed (type);
-#define SK_DI7_HIDE(type)  SK_DI7_Backend->markHidden (    );
+#define SK_DI7_HIDE(type)  SK_DI7_Backend->markHidden (type);
 
 
 #define DINPUT7_CALL(_Ret, _Call) {                                     \

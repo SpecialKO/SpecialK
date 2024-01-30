@@ -1259,7 +1259,7 @@ SK_IsSteamOverlayActive (void)
 #define SK_STEAM_READ(type)  SK_Steam_Backend->markRead   (type);
 #define SK_STEAM_WRITE(type) SK_Steam_Backend->markWrite  (type);
 #define SK_STEAM_VIEW(type)  SK_Steam_Backend->markViewed (type);
-#define SK_STEAM_HIDE(type)  SK_Steam_Backend->markHidden (    );
+#define SK_STEAM_HIDE(type)  SK_Steam_Backend->markHidden (type);
 
 using SteamAPI_ISteamController_GetDigitalActionData_pfn = ControllerDigitalActionData_t (S_CALLTYPE *)(ISteamController *, ControllerHandle_t, ControllerDigitalActionHandle_t);
 using SteamAPI_ISteamController_GetAnalogActionData_pfn  = ControllerAnalogActionData_t  (S_CALLTYPE *)(ISteamController *, ControllerHandle_t, ControllerAnalogActionHandle_t);

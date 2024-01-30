@@ -55,12 +55,12 @@ SK_InputUtil_IsHWCursorVisible (void)
 #define SK_HID_READ(type)  SK_HID_Backend->markRead   (type);
 #define SK_HID_WRITE(type) SK_HID_Backend->markWrite  (type);
 #define SK_HID_VIEW(type)  SK_HID_Backend->markViewed (type);
-#define SK_HID_HIDE(type)  SK_HID_Backend->markHidden (    );
+#define SK_HID_HIDE(type)  SK_HID_Backend->markHidden (type);
 
 #define SK_RAWINPUT_READ(type)  SK_RawInput_Backend->markRead   (type);
 #define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend->markWrite  (type);
 #define SK_RAWINPUT_VIEW(type)  SK_RawInput_Backend->markViewed (type);
-#define SK_RAWINPUT_HIDE(type)  SK_RawInput_Backend->markHidden (    );
+#define SK_RAWINPUT_HIDE(type)  SK_RawInput_Backend->markHidden (type);
 
 enum class SK_Input_DeviceFileType
 {
@@ -2039,7 +2039,7 @@ joyGetPos_Detour (_In_  UINT      uJoyID,
   }
 
   else if (result == JOYERR_NOERROR)
-    SK_WinMM_Backend->markHidden ();
+    SK_WinMM_Backend->markHidden (sk_input_dev_type::Gamepad);
 
   return result;
 }
@@ -2173,7 +2173,7 @@ joyGetPosEx_Detour (_In_  UINT        uJoyID,
       return JOYERR_UNPLUGGED;
     }
 
-    SK_WinMM_Backend->markHidden ();
+    SK_WinMM_Backend->markHidden (sk_input_dev_type::Gamepad);
 
     return JOYERR_NOERROR;
   }
@@ -4040,6 +4040,8 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
   if (SK_WantBackgroundRender () && (! SK_IsGameWindowActive ()))
   {
+    SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
+
     *lpPoint = SK_ImGui_Cursor.orig_pos;
 
     SK_ImGui_Cursor.LocalToScreen (lpPoint);
@@ -4062,7 +4064,7 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
     if (SK_ImGui_WantMouseCapture () || implicit_capture)
     {
-      SK_Win32_Backend->markHidden ();
+      SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
 
       *lpPoint = SK_ImGui_Cursor.orig_pos;
 
@@ -4361,7 +4363,10 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
     sKeyState &= ~(1 << 15); // High-Order Bit = 0
     sKeyState &= ~1;         // Low-Order Bit  = 0
 
-    SK_Win32_Backend->markHidden ();
+    if (pfnGetFunc == GetAsyncKeyState_Original)
+      SK_Win32_Backend->markHidden (sk_win32_func::GetAsyncKeystate);
+    else if (pfnGetFunc == GetKeyState_Original)
+      SK_Win32_Backend->markHidden (sk_win32_func::GetKeyState);
 
     return
       sKeyState;
@@ -4504,7 +4509,7 @@ NtUserGetKeyboardState_Detour (PBYTE lpKeyState)
     if (! (capture_keyboard && capture_mouse))
       SK_Win32_Backend->markRead (sk_win32_func::GetKeyboardState);
     else
-      SK_Win32_Backend->markHidden ();
+      SK_Win32_Backend->markHidden (sk_win32_func::GetKeyboardState);
   }
 
   return bRet;
@@ -5183,7 +5188,7 @@ SK_Proxy_MouseProc   (
         case WM_XBUTTONDBLCLK:
         case WM_MOUSEWHEEL:
         case WM_MOUSEHWHEEL:
-          SK_WinHook_Backend->markHidden ();
+          SK_WinHook_Backend->markHidden (sk_input_dev_type::Mouse);
 
           return
             CallNextHookEx (
@@ -5197,7 +5202,7 @@ SK_Proxy_MouseProc   (
       // Game uses a mouse hook for input that the Steam overlay cannot block
       if (SK_GetStoreOverlayState (true))
       {
-        SK_WinHook_Backend->markHidden ();
+        SK_WinHook_Backend->markHidden (sk_input_dev_type::Mouse);
 
         return
           CallNextHookEx (0, nCode, wParam, lParam);
@@ -5296,7 +5301,7 @@ SK_Proxy_LLMouseProc   (
         case WM_XBUTTONDBLCLK:
         case WM_MOUSEWHEEL:
         case WM_MOUSEHWHEEL:
-          SK_WinHook_Backend->markHidden ();
+          SK_WinHook_Backend->markHidden (sk_input_dev_type::Mouse);
 
           return
             CallNextHookEx (
@@ -5310,7 +5315,7 @@ SK_Proxy_LLMouseProc   (
       // Game uses a mouse hook for input that the Steam overlay cannot block
       if (SK_GetStoreOverlayState (true))
       {
-        SK_WinHook_Backend->markHidden ();
+        SK_WinHook_Backend->markHidden (sk_input_dev_type::Mouse);
 
         return
           CallNextHookEx (0, nCode, wParam, lParam);
@@ -5374,7 +5379,7 @@ SK_Proxy_KeyboardProc (
 
     if (SK_ImGui_WantKeyboardCapture ())
     {
-      SK_WinHook_Backend->markHidden ();
+      SK_WinHook_Backend->markHidden (sk_input_dev_type::Keyboard);
 
       return
         CallNextHookEx (
@@ -5387,7 +5392,7 @@ SK_Proxy_KeyboardProc (
       // Game uses a keyboard hook for input that the Steam overlay cannot block
       if (SK_GetStoreOverlayState (true) || SK_Console::getInstance ()->isVisible ())
       {
-        SK_WinHook_Backend->markHidden ();
+        SK_WinHook_Backend->markHidden (sk_input_dev_type::Keyboard);
 
         return
           CallNextHookEx (0, nCode, wParam, lParam);
@@ -5452,7 +5457,7 @@ SK_Proxy_LLKeyboardProc (
 
     if (SK_ImGui_WantKeyboardCapture ())
     {
-      SK_WinHook_Backend->markHidden ();
+      SK_WinHook_Backend->markHidden (sk_input_dev_type::Keyboard);
 
       return
         CallNextHookEx (
@@ -5465,7 +5470,7 @@ SK_Proxy_LLKeyboardProc (
       // Game uses a keyboard hook for input that the Steam overlay cannot block
       if (SK_GetStoreOverlayState (true) || SK_Console::getInstance ()->isVisible ())
       {
-        SK_WinHook_Backend->markHidden ();
+        SK_WinHook_Backend->markHidden (sk_input_dev_type::Keyboard);
 
         return
           CallNextHookEx (0, nCode, wParam, lParam);

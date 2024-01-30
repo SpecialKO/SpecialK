@@ -40,7 +40,7 @@
 #define SK_WGI_READ(backend,type)  (backend)->markRead   (type);
 #define SK_WGI_WRITE(backend,type) (backend)->markWrite  (type);
 #define SK_WGI_VIEW(backend,slot)  (backend)->markViewed ((sk_input_dev_type)(1 << slot));
-#define SK_WGI_HIDE(backend,slot)  (backend)->markHidden (    );
+#define SK_WGI_HIDE(backend,type)  (backend)->markHidden (type);
 
 #include <roapi.h>
 #include <wrl.h>
@@ -76,7 +76,7 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
 
     if (SUCCEEDED (hr))
     {
-      SK_WGI_HIDE (SK_WGI_Backend, 0);
+      SK_WGI_HIDE (SK_WGI_Backend, sk_input_dev_type::Gamepad);
 
       value->Buttons          = GamepadButtons::GamepadButtons_None;
       value->LeftThumbstickX  = 0.0;

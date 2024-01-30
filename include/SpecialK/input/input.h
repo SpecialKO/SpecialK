@@ -152,12 +152,12 @@ struct sk_input_api_context_s
 
   volatile LONG reads  [4] = { },
                 writes [4] = { },
-                hidden     =   0;
+                hidden [4] = { };
 
   struct {
     volatile LONG reads  [4] = { },
                   writes [4] = { },
-                  hidden     =   0;
+                  hidden [4] = { };
   } last_frame;
 
   struct {
@@ -237,10 +237,21 @@ struct sk_input_api_context_s
     }
   }
 
-  void markHidden (void) noexcept
-  {
-    WriteRelease (&last_frame.hidden, 1);
-  }
+  void markHidden (sk_input_dev_type type) noexcept
+  { InterlockedIncrement (&last_frame.reads  [ type == sk_input_dev_type::Mouse    ? 0 :
+                                               type == sk_input_dev_type::Keyboard ? 1 :
+                                               type == sk_input_dev_type::Gamepad  ? 2 : 3 ] );
+    InterlockedIncrement (&last_frame.hidden [ type == sk_input_dev_type::Mouse    ? 0 :
+                                               type == sk_input_dev_type::Keyboard ? 1 :
+                                               type == sk_input_dev_type::Gamepad  ? 2 : 3 ] ); }
+
+  void markHidden (sk_win32_func type) noexcept
+  { InterlockedIncrement (&last_frame.reads  [ type == sk_win32_func::GetCursorPos     ? 0 :
+                                               type == sk_win32_func::GetKeyState      ? 1 :
+                                               type == sk_win32_func::GetKeyboardState ? 2 : 3 ] );
+    InterlockedIncrement (&last_frame.hidden [ type == sk_win32_func::GetCursorPos     ? 0 :
+                                               type == sk_win32_func::GetKeyState      ? 1 :
+                                               type == sk_win32_func::GetKeyboardState ? 2 : 3 ] ); }
 
   bool nextFrameWin32 (void)
   {
@@ -253,45 +264,42 @@ struct sk_input_api_context_s
 
     InterlockedAdd  (&reads   [0], last_frame.reads  [0]);
     InterlockedAdd  (&writes  [0], last_frame.writes [0]);
+    InterlockedAdd  (&hidden  [0], last_frame.hidden [0]);
 
-      if (ReadAcquire (&last_frame.reads  [0]))  { active.mouse = true; active_data = true; }
-      if (ReadAcquire (&last_frame.writes [0]))  { active.mouse = true; active_data = true; }
+      if (ReadAcquire (&last_frame.reads  [0]))  { active.mouse    |= (ReadAcquire (&last_frame.hidden [0]) == 0); active_data = true; }
+      if (ReadAcquire (&last_frame.writes [0]))  { active.mouse    |= (ReadAcquire (&last_frame.hidden [0]) == 0); active_data = true; }
 
     InterlockedAdd  (&reads   [1], last_frame.reads  [1]);
     InterlockedAdd  (&writes  [1], last_frame.writes [1]);
+    InterlockedAdd  (&hidden  [1], last_frame.hidden [1]);
 
-      if (ReadAcquire (&last_frame.reads  [1]))  { active.keyboard = true; active_data = true; }
-      if (ReadAcquire (&last_frame.writes [1]))  { active.keyboard = true; active_data = true; }
+      if (ReadAcquire (&last_frame.reads  [1]))  { active.keyboard |= (ReadAcquire (&last_frame.hidden [1]) == 0); active_data = true; }
+      if (ReadAcquire (&last_frame.writes [1]))  { active.keyboard |= (ReadAcquire (&last_frame.hidden [1]) == 0); active_data = true; }
 
     InterlockedAdd  (&reads   [2], last_frame.reads  [2]);
     InterlockedAdd  (&writes  [2], last_frame.writes [2]);
+    InterlockedAdd  (&hidden  [2], last_frame.hidden [2]);
 
-      if (ReadAcquire (&last_frame.reads  [2]))  { active.keyboard = true; active_data = true; }
-      if (ReadAcquire (&last_frame.writes [2]))  { active.keyboard = true; active_data = true; }
+      if (ReadAcquire (&last_frame.reads  [2]))  { active.keyboard |= (ReadAcquire (&last_frame.hidden [2]) == 0); active_data = true; }
+      if (ReadAcquire (&last_frame.writes [2]))  { active.keyboard |= (ReadAcquire (&last_frame.hidden [2]) == 0); active_data = true; }
 
     InterlockedAdd  (&reads   [3], last_frame.reads  [3]);
     InterlockedAdd  (&writes  [3], last_frame.writes [3]);
+    InterlockedAdd  (&hidden  [3], last_frame.hidden [3]);
 
-      if (ReadAcquire (&last_frame.reads  [3]))  { active.keyboard = true; active_data = true; }
-      if (ReadAcquire (&last_frame.writes [3]))  { active.keyboard = true; active_data = true; }
+      if (ReadAcquire (&last_frame.reads  [3]))  { active.keyboard |= (ReadAcquire (&last_frame.hidden [3]) == 0); active_data = true; }
+      if (ReadAcquire (&last_frame.writes [3]))  { active.keyboard |= (ReadAcquire (&last_frame.hidden [3]) == 0); active_data = true; }
 
-    InterlockedAdd  (&hidden,      last_frame.hidden);
 
-      if (ReadAcquire (&last_frame.hidden))
-      {
-        if ( active.keyboard == false && active.mouse == false )
-        {
-          active.hidden = true;
-          active_data   = true;
-        }
-      }
+    active.hidden = !(active.keyboard || active.mouse);
 
 
     InterlockedExchange (&last_frame.reads  [0], 0);   InterlockedExchange (&last_frame.reads  [1], 0);
     InterlockedExchange (&last_frame.writes [0], 0);   InterlockedExchange (&last_frame.writes [1], 0);
+    InterlockedExchange (&last_frame.hidden [0], 0);   InterlockedExchange (&last_frame.hidden [1], 0);
     InterlockedExchange (&last_frame.reads  [2], 0);   InterlockedExchange (&last_frame.reads  [3], 0);
     InterlockedExchange (&last_frame.writes [2], 0);   InterlockedExchange (&last_frame.writes [3], 0);
-    InterlockedExchange (&last_frame.hidden,     0);
+    InterlockedExchange (&last_frame.hidden [2], 0);   InterlockedExchange (&last_frame.hidden [3], 0);
 
 
     return active_data;
@@ -309,46 +317,42 @@ struct sk_input_api_context_s
 
     InterlockedAdd  (&reads   [0], last_frame.reads  [0]);
     InterlockedAdd  (&writes  [0], last_frame.writes [0]);
+    InterlockedAdd  (&hidden  [0], last_frame.hidden [0]);
 
-      if (ReadAcquire (&last_frame.reads  [0]))  { active.keyboard = true; active_data = true; }
-      if (ReadAcquire (&last_frame.writes [0]))  { active.keyboard = true; active_data = true; }
+      if (ReadAcquire (&last_frame.reads  [0]))  { active.keyboard = ReadAcquire (&last_frame.hidden [0]) == 0; active_data = true; }
+      if (ReadAcquire (&last_frame.writes [0]))  { active.keyboard = ReadAcquire (&last_frame.hidden [0]) == 0; active_data = true; }
 
     InterlockedAdd  (&reads   [1], last_frame.reads  [1]);
     InterlockedAdd  (&writes  [1], last_frame.writes [1]);
+    InterlockedAdd  (&hidden  [1], last_frame.hidden [1]);
 
-      if (ReadAcquire (&last_frame.reads  [1]))  { active.mouse    = true; active_data = true; }
-      if (ReadAcquire (&last_frame.writes [1]))  { active.mouse    = true; active_data = true; }
+      if (ReadAcquire (&last_frame.reads  [1]))  { active.mouse    = ReadAcquire (&last_frame.hidden [1]) == 0; active_data = true; }
+      if (ReadAcquire (&last_frame.writes [1]))  { active.mouse    = ReadAcquire (&last_frame.hidden [1]) == 0; active_data = true; }
 
     InterlockedAdd  (&reads   [2], last_frame.reads  [2]);
     InterlockedAdd  (&writes  [2], last_frame.writes [2]);
+    InterlockedAdd  (&hidden  [2], last_frame.hidden [2]);
 
-      if (ReadAcquire (&last_frame.reads  [2]))  { active.gamepad  = true; active_data = true; }
-      if (ReadAcquire (&last_frame.writes [2]))  { active.gamepad  = true; active_data = true; }
+      if (ReadAcquire (&last_frame.reads  [2]))  { active.gamepad  = ReadAcquire (&last_frame.hidden [2]) == 0; active_data = true; }
+      if (ReadAcquire (&last_frame.writes [2]))  { active.gamepad  = ReadAcquire (&last_frame.hidden [2]) == 0; active_data = true; }
 
     InterlockedAdd  (&reads   [3], last_frame.reads  [3]);
     InterlockedAdd  (&writes  [3], last_frame.writes [3]);
+    InterlockedAdd  (&hidden  [3], last_frame.hidden [3]);
 
-      if (ReadAcquire (&last_frame.reads  [3]))  { active.other    = true; active_data = true; }
-      if (ReadAcquire (&last_frame.writes [3]))  { active.other    = true; active_data = true; }
+      if (ReadAcquire (&last_frame.reads  [3]))  { active.other    = ReadAcquire (&last_frame.hidden [3]) == 0; active_data = true; }
+      if (ReadAcquire (&last_frame.writes [3]))  { active.other    = ReadAcquire (&last_frame.hidden [3]) == 0; active_data = true; }
 
-    InterlockedAdd  (&hidden,      last_frame.hidden);
 
-      if (ReadAcquire (&last_frame.hidden))
-      {
-        if ( active.keyboard == false && active.mouse == false &&
-             active.gamepad  == false && active.other == false )
-        {
-          active.hidden = true;
-          active_data   = true;
-        }
-      }
+    active.hidden = !(active.keyboard || active.mouse || active.gamepad || active.other);
 
 
     InterlockedExchange (&last_frame.reads  [0], 0);   InterlockedExchange (&last_frame.reads  [1], 0);
     InterlockedExchange (&last_frame.writes [0], 0);   InterlockedExchange (&last_frame.writes [1], 0);
+    InterlockedExchange (&last_frame.hidden [0], 0);   InterlockedExchange (&last_frame.hidden [1], 0);
     InterlockedExchange (&last_frame.reads  [2], 0);   InterlockedExchange (&last_frame.reads  [3], 0);
     InterlockedExchange (&last_frame.writes [2], 0);   InterlockedExchange (&last_frame.writes [3], 0);
-    InterlockedExchange (&last_frame.hidden,     0);
+    InterlockedExchange (&last_frame.hidden [2], 0);   InterlockedExchange (&last_frame.hidden [3], 0);
 
 
     return active_data;

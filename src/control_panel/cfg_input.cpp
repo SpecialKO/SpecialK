@@ -209,43 +209,45 @@ SK::ControlPanel::Input::Draw (void)
     win32.cursorpos         = SK_Win32_Backend->reads      [0];
 
 
-#define UPDATE_BACKEND_TIMES(backend,name)                                              \
-  if (SK_##backend##_Backend->nextFrame ())                                             \
+    // Implictly hide slots before tallying read/write activity, these slots
+    //   read-back neutral data and are effectively hidden
+    if (config.input.gamepad.xinput.disable [0]) SK_XInput_Backend->last_frame.hidden [0] = 1;
+    if (config.input.gamepad.xinput.disable [1]) SK_XInput_Backend->last_frame.hidden [1] = 1;
+    if (config.input.gamepad.xinput.disable [2]) SK_XInput_Backend->last_frame.hidden [2] = 1;
+    if (config.input.gamepad.xinput.disable [3]) SK_XInput_Backend->last_frame.hidden [3] = 1;
+
+
+#define UPDATE_BACKEND_TIMES(backend,name,func)                                         \
+  if (SK_##backend##_Backend->##func## ())                                              \
   {                                                                                     \
     last_##name = SK_##backend##_Backend->active.hidden ? last_##name   : current_time; \
     hide_##name = SK_##backend##_Backend->active.hidden ? current_time  : hide_##name;  \
   }
 
-    UPDATE_BACKEND_TIMES (XInput,         xinput);
-    UPDATE_BACKEND_TIMES (ScePad,         scepad);
-    UPDATE_BACKEND_TIMES (WGI,               wgi);
-    UPDATE_BACKEND_TIMES (MessageBus, messagebus);
-    UPDATE_BACKEND_TIMES (Steam,           steam);
-    UPDATE_BACKEND_TIMES (HID,               hid);
-    UPDATE_BACKEND_TIMES (DI7,               di7);
-    UPDATE_BACKEND_TIMES (DI8,               di8);
-    UPDATE_BACKEND_TIMES (RawInput,     rawinput);
-    UPDATE_BACKEND_TIMES (WinHook,       winhook);
-    UPDATE_BACKEND_TIMES (Win32,           win32);
-    UPDATE_BACKEND_TIMES (WinMM,           winmm);
+    UPDATE_BACKEND_TIMES (XInput,         xinput, nextFrame);
+    UPDATE_BACKEND_TIMES (ScePad,         scepad, nextFrame);
+    UPDATE_BACKEND_TIMES (WGI,               wgi, nextFrame);
+    UPDATE_BACKEND_TIMES (MessageBus, messagebus, nextFrame);
+    UPDATE_BACKEND_TIMES (Steam,           steam, nextFrame);
+    UPDATE_BACKEND_TIMES (HID,               hid, nextFrame);
+    UPDATE_BACKEND_TIMES (DI7,               di7, nextFrame);
+    UPDATE_BACKEND_TIMES (DI8,               di8, nextFrame);
+    UPDATE_BACKEND_TIMES (RawInput,     rawinput, nextFrame);
+    UPDATE_BACKEND_TIMES (WinHook,       winhook, nextFrame);
+    UPDATE_BACKEND_TIMES (Win32,           win32, nextFrameWin32);
+    UPDATE_BACKEND_TIMES (WinMM,           winmm, nextFrame);
 
-#define SETUP_LABEL_COLOR(name)                                         \
+#define SETUP_LABEL_COLOR(name,threshold)                               \
       const DWORD input_time = std::max (last_##name##, hide_##name##); \
                                                                         \
       ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * ((float)current_time - \
-                                                                          (float)  input_time) / 500.0f), (hide_##name## >= last_##name##) ? 0.0f : 1.0f, \
-                                                                                                          (hide_##name## >= last_##name##) ? 0.6f : 0.8f).Value);
+                                                                          (float)  input_time) / (threshold)), (hide_##name## >= last_##name##) ? 0.0f : 1.0f, \
+                                                                                                               (hide_##name## >= last_##name##) ? 0.6f : 0.8f).Value);
 
-#define SETUP_LABEL_COLOR2(name)                                        \
-      const DWORD input_time = std::max (last_##name##, hide_##name##); \
-                                                                        \
-      ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * ((float)current_time - \
-                                                                          (float)  input_time) / 10000.0f), (hide_##name## >= last_##name##) ? 0.0f : 1.0f, \
-                                                                                                            (hide_##name## >= last_##name##) ? 0.6f : 0.8f).Value);
-
-    if (last_steam > current_time - 500UL || hide_steam > current_time - 500UL)
+    if ( last_steam > current_time - 500UL ||
+         hide_steam > current_time - 500UL )
     {
-      SETUP_LABEL_COLOR (steam);
+      SETUP_LABEL_COLOR (steam, 500.0f);
 
       if (SK::SteamAPI::AppID () > 0)
       {
@@ -292,9 +294,10 @@ SK::ControlPanel::Input::Draw (void)
       }
     }
 
-    if (last_xinput > current_time - 500UL || hide_xinput > current_time - 500UL)
+    if ( last_xinput > current_time - 500UL ||
+         hide_xinput > current_time - 500UL )
     {
-      SETUP_LABEL_COLOR (xinput);
+      SETUP_LABEL_COLOR (xinput, 500.0f);
 
       ImGui::SameLine       ();
       ImGui::Text           ("       %s", SK_XInput_GetPrimaryHookName ());
@@ -316,9 +319,9 @@ SK::ControlPanel::Input::Draw (void)
         {
           if (xinput.reads [i] > 0)
           {
-            ImGui::TextUnformatted (
+            ImGui::TextColored ( ImVec4 (1.f, 0.f, 0.f, 1.f),
               config.input.gamepad.xinput.disable [i] ?
-                                      " [ Disabled ]" : "" );
+                                      "  Disabled" : "" );
           }
         }
         ImGui::EndGroup     ();
@@ -326,9 +329,10 @@ SK::ControlPanel::Input::Draw (void)
       }
     }
 
-    if (last_wgi > current_time - 500UL || hide_wgi > current_time - 500UL)
+    if ( last_wgi > current_time - 500UL ||
+         hide_wgi > current_time - 500UL )
     {
-      SETUP_LABEL_COLOR (wgi);
+      SETUP_LABEL_COLOR (wgi, 500.0f);
 
       ImGui::SameLine       ();
       ImGui::Text           ("       Windows.Gaming.Input");
@@ -342,18 +346,20 @@ SK::ControlPanel::Input::Draw (void)
       }
     }
 
-    if (last_scepad > current_time - 500UL || hide_scepad > current_time - 500UL)
+    if ( last_scepad > current_time - 500UL ||
+         hide_scepad > current_time - 500UL )
     {
-      SETUP_LABEL_COLOR (scepad);
+      SETUP_LABEL_COLOR (scepad, 500.0f);
 
       ImGui::SameLine       ();
       ImGui::Text           ("       PlayStation");
       ImGui::PopStyleColor  ();
     }
 
-    if (last_hid > current_time - 500UL || hide_hid > current_time - 500UL)
+    if ( last_hid > current_time - 500UL ||
+         hide_hid > current_time - 500UL )
     {
-      SETUP_LABEL_COLOR (hid);
+      SETUP_LABEL_COLOR (hid, 500.0f);
 
       ImGui::SameLine       ();
       ImGui::Text           ("       HID");
@@ -374,9 +380,10 @@ SK::ControlPanel::Input::Draw (void)
       }
     }
 
-    if (last_winmm > current_time - 500UL || hide_winmm > current_time - 500UL)
+    if ( last_winmm > current_time - 500UL ||
+         hide_winmm > current_time - 500UL )
     {
-      SETUP_LABEL_COLOR (winmm);
+      SETUP_LABEL_COLOR (winmm, 500.0f);
 
       ImGui::SameLine       ();
       ImGui::Text           ("    WinMM Joystick");
@@ -396,7 +403,7 @@ SK::ControlPanel::Input::Draw (void)
 #if 0
     if (last_messagebus > current_time - 500UL || hide_messagebus > current_time - 500UL)
     {
-      SETUP_LABEL_COLOR (messagebus);
+      SETUP_LABEL_COLOR (messagebus, 500.0f);
 
       ImGui::SameLine       ();
       ImGui::Text           ("       NVIDIA MessageBus");
@@ -412,9 +419,10 @@ SK::ControlPanel::Input::Draw (void)
     }
 #endif
 
-    if (last_di7 > current_time - 500UL || hide_di7 > current_time - 500UL)
+    if ( last_di7 > current_time - 500UL ||
+         hide_di7 > current_time - 500UL )
     {
-      SETUP_LABEL_COLOR (di7);
+      SETUP_LABEL_COLOR (di7, 500.0f);
 
       ImGui::SameLine       ();
       ImGui::Text           ("       DirectInput 7");
@@ -438,9 +446,10 @@ SK::ControlPanel::Input::Draw (void)
       }
     }
 
-    if (last_di8 > current_time - 500UL || hide_di8 > current_time - 500UL)
+    if ( last_di8 > current_time - 500UL ||
+         hide_di8 > current_time - 500UL )
     {
-      SETUP_LABEL_COLOR (di8);
+      SETUP_LABEL_COLOR (di8, 500.0f);
 
       ImGui::SameLine       ();
       ImGui::Text           ("       DirectInput 8");
@@ -464,35 +473,10 @@ SK::ControlPanel::Input::Draw (void)
       }
     }
 
-    if (last_rawinput > current_time - 500UL || hide_rawinput > current_time - 500UL)
+    if ( last_winhook > current_time - 10000UL ||
+         hide_winhook > current_time - 10000UL )
     {
-      SETUP_LABEL_COLOR (rawinput);
-
-      ImGui::SameLine       ();
-      ImGui::Text           ("       Raw Input");
-      ImGui::PopStyleColor  ();
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip ();
-                                                                             
-        if (raw_input.kbd_reads > 0) {
-          ImGui::Text       ("Keyboard   %lu", raw_input.kbd_reads);
-        }
-        if (raw_input.mouse_reads > 0) {
-          ImGui::Text       ("Mouse      %lu", raw_input.mouse_reads);
-        }
-        if (raw_input.gamepad_reads > 0) {
-          ImGui::Text       ("Gamepad    %lu", raw_input.gamepad_reads);
-        }
-
-        ImGui::EndTooltip   ();
-      }
-    }
-
-    if (last_winhook > current_time - 10000UL || hide_winhook > current_time - 10000UL)
-    {
-      SETUP_LABEL_COLOR2 (winhook);
+      SETUP_LABEL_COLOR (winhook, 10000.0f);
 
       ImGui::SameLine      ();
       ImGui::Text ("       Windows Hook");
@@ -509,9 +493,10 @@ SK::ControlPanel::Input::Draw (void)
       }
     }
 
-    if (last_win32 > current_time - 10000UL || hide_win32 > current_time - 10000UL)
+    if ( last_win32 > current_time - 10000UL ||
+         hide_win32 > current_time - 10000UL )
     {
-      SETUP_LABEL_COLOR2 (win32);
+      SETUP_LABEL_COLOR (win32, 10000.0f);
 
       ImGui::SameLine      ();
       ImGui::Text ("       Win32");
@@ -543,6 +528,34 @@ SK::ControlPanel::Input::Draw (void)
         if (win32.cursorpos > 0)
           ImGui::Text ("%lu", win32.cursorpos);
         ImGui::EndGroup     ();
+        ImGui::EndTooltip   ();
+      }
+    }
+
+    // Place Raw Input at the end, since it's the most likely to disappear
+    if ( last_rawinput > current_time - 500UL ||
+         hide_rawinput > current_time - 500UL )
+    {
+      SETUP_LABEL_COLOR (rawinput, 500.0f);
+
+      ImGui::SameLine       ();
+      ImGui::Text           ("       Raw Input");
+      ImGui::PopStyleColor  ();
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip ();
+                                                                             
+        if (raw_input.kbd_reads > 0) {
+          ImGui::Text       ("Keyboard   %lu", raw_input.kbd_reads);
+        }
+        if (raw_input.mouse_reads > 0) {
+          ImGui::Text       ("Mouse      %lu", raw_input.mouse_reads);
+        }
+        if (raw_input.gamepad_reads > 0) {
+          ImGui::Text       ("Gamepad    %lu", raw_input.gamepad_reads);
+        }
+
         ImGui::EndTooltip   ();
       }
     }
