@@ -4557,6 +4557,7 @@
     <None Include="depends\lib\tobii\x64\tobii_stream_engine_sk64.exp">
       <Filter>Libraries\64-bit\Tobii</Filter>
     </None>
+    <None Include=".editorconfig" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource\Resource.rc">

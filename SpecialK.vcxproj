@@ -2164,6 +2164,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include=".editorconfig" />
     <None Include="depends\include\DirectXTex\DirectXTex.inl" />
     <None Include="depends\include\DXSDK\D3DX10math.inl" />
     <None Include="depends\include\DXSDK\d3dx9math.inl" />
