@@ -810,7 +810,7 @@ SK_DrawOSD (void)
 
   if (pLimiter != nullptr)
   {
-    if (rb.api == SK_RenderAPI::D3D12)
+    if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status && rb.api == SK_RenderAPI::D3D12)
     {
       // It is necessary to start PresentMon in D3D12, or the VRR indicator will not work
       extern void SK_SpawnPresentMonWorker (void);
