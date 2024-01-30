@@ -1,4 +1,9 @@
-﻿24.1.30.3
+﻿24.1.30.4
+=========
+ + Spawn PresentMon worker thread if text OSD's FPS text is enabled in D3D12,
+     otherwise the VRR indicator will not work
+
+24.1.30.3
 =========
  + Moved Raw Input input activity to the end of the API list since it is the
      least likely API to be sampled every frame
