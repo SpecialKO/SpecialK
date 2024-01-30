@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -40,6 +40,7 @@
 #define SK_WGI_READ(backend,type)  (backend)->markRead   (type);
 #define SK_WGI_WRITE(backend,type) (backend)->markWrite  (type);
 #define SK_WGI_VIEW(backend,slot)  (backend)->markViewed ((sk_input_dev_type)(1 << slot));
+#define SK_WGI_HIDE(backend,slot)  (backend)->markHidden (    );
 
 #include <roapi.h>
 #include <wrl.h>
@@ -66,7 +67,7 @@ STDMETHODCALLTYPE
 WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad       *This,
                                         ABI::Windows::Gaming::Input::GamepadReading *value)
 {
-  SK_WGI_VIEW (SK_WGI_Backend, 0);
+  SK_WGI_READ (SK_WGI_Backend, sk_input_dev_type::Gamepad);
 
   if (SK_ImGui_WantGamepadCapture ())
   {
@@ -75,6 +76,8 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
 
     if (SUCCEEDED (hr))
     {
+      SK_WGI_HIDE (SK_WGI_Backend, 0);
+
       value->Buttons          = GamepadButtons::GamepadButtons_None;
       value->LeftThumbstickX  = 0.0;
       value->LeftThumbstickY  = 0.0;
@@ -89,13 +92,13 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
 
   else if (SK_WantBackgroundRender () && (! game_window.active) && config.input.gamepad.disabled_to_game == 0)
   {
-    SK_WGI_READ (SK_WGI_Backend, sk_input_dev_type::Gamepad);
-
     HRESULT hr =
       WGI_Gamepad_GetCurrentReading_Original (This, value);
 
     if (SUCCEEDED (hr))
     {
+      SK_WGI_VIEW (SK_WGI_Backend, 0);
+
       XINPUT_STATE                  xi_state = { };
       SK_XInput_PollController (0, &xi_state);
 
@@ -143,11 +146,16 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
     return hr;
   }
 
-  else if (game_window.active)
-    SK_WGI_READ (SK_WGI_Backend, sk_input_dev_type::Gamepad);
+  else
+  {
+    HRESULT hr =
+      WGI_Gamepad_GetCurrentReading_Original (This, value);
 
-  return
-    WGI_Gamepad_GetCurrentReading_Original (This, value);
+    if (SUCCEEDED (hr) && game_window.active)
+      SK_WGI_VIEW (SK_WGI_Backend, 0);
+
+    return hr;
+  } 
 }
 
 HRESULT

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -151,11 +151,13 @@ struct sk_input_api_context_s
   constexpr sk_input_api_context_s (void) noexcept { };
 
   volatile LONG reads  [4] = { },
-                writes [4] = { };
+                writes [4] = { },
+                hidden     =   0;
 
   struct {
     volatile LONG reads  [4] = { },
-                  writes [4] = { };
+                  writes [4] = { },
+                  hidden     =   0;
   } last_frame;
 
   struct {
@@ -175,7 +177,8 @@ struct sk_input_api_context_s
       bool other;
       bool gamepad_nintendo;
     };
-  } active { false, false, false, false };
+    bool   hidden;
+  } active { false, false, false, false, false };
 
   struct {
     union {
@@ -234,12 +237,18 @@ struct sk_input_api_context_s
     }
   }
 
+  void markHidden (void) noexcept
+  {
+    WriteRelease (&last_frame.hidden, 1);
+  }
+
   bool nextFrameWin32 (void)
   {
     bool active_data = false;
 
     active.keyboard = false; active.gamepad = false;
     active.mouse    = false; active.other   = false;
+    active.hidden   = false;
 
 
     InterlockedAdd  (&reads   [0], last_frame.reads  [0]);
@@ -266,11 +275,23 @@ struct sk_input_api_context_s
       if (ReadAcquire (&last_frame.reads  [3]))  { active.keyboard = true; active_data = true; }
       if (ReadAcquire (&last_frame.writes [3]))  { active.keyboard = true; active_data = true; }
 
+    InterlockedAdd  (&hidden,      last_frame.hidden);
+
+      if (ReadAcquire (&last_frame.hidden))
+      {
+        if ( active.keyboard == false && active.mouse == false )
+        {
+          active.hidden = true;
+          active_data   = true;
+        }
+      }
+
 
     InterlockedExchange (&last_frame.reads  [0], 0);   InterlockedExchange (&last_frame.reads  [1], 0);
     InterlockedExchange (&last_frame.writes [0], 0);   InterlockedExchange (&last_frame.writes [1], 0);
     InterlockedExchange (&last_frame.reads  [2], 0);   InterlockedExchange (&last_frame.reads  [3], 0);
     InterlockedExchange (&last_frame.writes [2], 0);   InterlockedExchange (&last_frame.writes [3], 0);
+    InterlockedExchange (&last_frame.hidden,     0);
 
 
     return active_data;
@@ -283,6 +304,7 @@ struct sk_input_api_context_s
 
     active.keyboard = false; active.gamepad = false;
     active.mouse    = false; active.other   = false;
+    active.hidden   = false;
 
 
     InterlockedAdd  (&reads   [0], last_frame.reads  [0]);
@@ -309,11 +331,24 @@ struct sk_input_api_context_s
       if (ReadAcquire (&last_frame.reads  [3]))  { active.other    = true; active_data = true; }
       if (ReadAcquire (&last_frame.writes [3]))  { active.other    = true; active_data = true; }
 
+    InterlockedAdd  (&hidden,      last_frame.hidden);
+
+      if (ReadAcquire (&last_frame.hidden))
+      {
+        if ( active.keyboard == false && active.mouse == false &&
+             active.gamepad  == false && active.other == false )
+        {
+          active.hidden = true;
+          active_data   = true;
+        }
+      }
+
 
     InterlockedExchange (&last_frame.reads  [0], 0);   InterlockedExchange (&last_frame.reads  [1], 0);
     InterlockedExchange (&last_frame.writes [0], 0);   InterlockedExchange (&last_frame.writes [1], 0);
     InterlockedExchange (&last_frame.reads  [2], 0);   InterlockedExchange (&last_frame.reads  [3], 0);
     InterlockedExchange (&last_frame.writes [2], 0);   InterlockedExchange (&last_frame.writes [3], 0);
+    InterlockedExchange (&last_frame.hidden,     0);
 
 
     return active_data;

@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -1259,6 +1259,7 @@ SK_IsSteamOverlayActive (void)
 #define SK_STEAM_READ(type)  SK_Steam_Backend->markRead   (type);
 #define SK_STEAM_WRITE(type) SK_Steam_Backend->markWrite  (type);
 #define SK_STEAM_VIEW(type)  SK_Steam_Backend->markViewed (type);
+#define SK_STEAM_HIDE(type)  SK_Steam_Backend->markHidden (    );
 
 using SteamAPI_ISteamController_GetDigitalActionData_pfn = ControllerDigitalActionData_t (S_CALLTYPE *)(ISteamController *, ControllerHandle_t, ControllerDigitalActionHandle_t);
 using SteamAPI_ISteamController_GetAnalogActionData_pfn  = ControllerAnalogActionData_t  (S_CALLTYPE *)(ISteamController *, ControllerHandle_t, ControllerAnalogActionHandle_t);
@@ -5644,7 +5645,7 @@ SK_SteamAPIContext::OnFileDetailsDone ( FileDetailsResult_t* pParam,
 }
 
 void
-SK_Steam_SignalEmulatedXInputActivity (DWORD dwSlot)
+SK_Steam_SignalEmulatedXInputActivity (DWORD dwSlot, bool blocked)
 {
   static iSK_INI *controller_ini =
     SK_CreateINI (
@@ -5742,7 +5743,10 @@ SK_Steam_SignalEmulatedXInputActivity (DWORD dwSlot)
 
   if (device_types [dwSlot] != sk_input_dev_type::Other)
   {
-    SK_STEAM_VIEW (device_types [dwSlot])
+    if (! blocked)
+      SK_STEAM_VIEW (device_types [dwSlot])
+    else
+      SK_STEAM_HIDE (device_types [dwSlot])
   }
 
 #if 0

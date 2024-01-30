@@ -220,8 +220,10 @@ extern float analog_sensitivity;
 #include <set>
 #include <SpecialK/log.h>
 
-#define SK_RAWINPUT_READ(type)  SK_RawInput_Backend->markRead  (type);
-#define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend->markWrite (type);
+#define SK_RAWINPUT_READ(type)  SK_RawInput_Backend->markRead   (type);
+#define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend->markWrite  (type);
+#define SK_RAWINPUT_VIEW(type)  SK_RawInput_Backend->markViewed (type);
+#define SK_RAWINPUT_HIDE(type)  SK_RawInput_Backend->markHidden (    );
 
 SK_LazyGlobal <SK_Thread_HybridSpinlock> raw_input_lock;
 
@@ -402,13 +404,15 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
             mouse = true;
 
-            if ( ((! self) && (! already_processed))
-                           && uiCommand == RID_INPUT &&
-                  (! filter) )
+            if ( (! already_processed)
+                           && uiCommand == RID_INPUT )
             {
-              SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
-
-              SK_RawInput_Backend->viewed.mouse = SK_QueryPerf ().QuadPart;
+              if (! filter)
+              {
+                SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
+                SK_RAWINPUT_VIEW (sk_input_dev_type::Mouse)
+              }
+              else SK_RAWINPUT_HIDE (sk_input_dev_type::Mouse)
             }
           } break;
 
@@ -471,13 +475,15 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
               filter = true;
 
 
-            if ( ((! self) && (! already_processed))
-                           && uiCommand == RID_INPUT
-                           && (! filter) )
+            if ( (! already_processed)
+                           && uiCommand == RID_INPUT )
             {
-              SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
-
-              SK_RawInput_Backend->viewed.keyboard = SK_QueryPerf ().QuadPart;
+              if (! filter)
+              {
+                SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
+                SK_RAWINPUT_VIEW (sk_input_dev_type::Keyboard)
+              }
+              else SK_RAWINPUT_HIDE (sk_input_dev_type::Keyboard)
             }
 
         //// Leads to double-input processing, left here in case Legacy Messages are disabled and this is needed
@@ -513,13 +519,15 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             if (SK_ImGui_WantGamepadCapture ())
               filter = true;
 
-            if ( ((! self) && (! already_processed))
-                           && uiCommand == RID_INPUT
-                           && (! filter) )
+            if ( (! already_processed)
+                           && uiCommand == RID_INPUT )
             {
-              SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
-
-              SK_RawInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
+              if (! filter)
+              {
+                SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
+                SK_RAWINPUT_VIEW (sk_input_dev_type::Gamepad)
+              }
+              else SK_RAWINPUT_HIDE (sk_input_dev_type::Gamepad)
             }
           } break;
         }

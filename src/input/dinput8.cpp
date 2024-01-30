@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -36,6 +36,7 @@ using finish_pfn = void (WINAPI *)(void);
 #define SK_DI8_READ(type)  SK_DI8_Backend->markRead   (type);
 #define SK_DI8_WRITE(type) SK_DI8_Backend->markWrite  (type);
 #define SK_DI8_VIEW(type)  SK_DI8_Backend->markViewed (type);
+#define SK_DI8_HIDE(type)  SK_DI8_Backend->markHidden (    );
 
 
 #define DINPUT8_CALL(_Ret, _Call) {                                      \
@@ -1143,6 +1144,9 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
         std::fill ( std::begin (out->rgdwPOV),
                     std::end   (out->rgdwPOV),
                       std::numeric_limits <DWORD>::max () );
+
+        if (disabled_to_game)
+          SK_DI8_HIDE (sk_input_dev_type::Gamepad);
       }
 
       else
@@ -1185,6 +1189,9 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
         std::fill ( std::begin (out->rgdwPOV),
                     std::end   (out->rgdwPOV),
                       std::numeric_limits <DWORD>::max () );
+
+        if (disabled_to_game)
+          SK_DI8_HIDE (sk_input_dev_type::Gamepad);
       }
 
       else
@@ -1202,7 +1209,12 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
         memcpy (SK_Input_GetDI8Keyboard ()->state, lpvData, cbData);
 
       if (disabled_to_game || FAILED (hr))
+      {
         RtlZeroMemory (lpvData, cbData);
+
+        if (disabled_to_game)
+          SK_DI8_HIDE (sk_input_dev_type::Keyboard);
+      }
 
       else
         SK_DI8_VIEW (sk_input_dev_type::Keyboard);
@@ -1225,7 +1237,12 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
         memcpy (&SK_Input_GetDI8Mouse ()->state, lpvData, cbData);
 
       if (disabled_to_game || FAILED (hr))
+      {
         RtlZeroMemory (lpvData, cbData);
+
+        if (disabled_to_game)
+          SK_DI8_HIDE (sk_input_dev_type::Mouse);
+      }
 
       else
         SK_DI8_VIEW (sk_input_dev_type::Mouse);

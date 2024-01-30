@@ -55,10 +55,12 @@ SK_InputUtil_IsHWCursorVisible (void)
 #define SK_HID_READ(type)  SK_HID_Backend->markRead   (type);
 #define SK_HID_WRITE(type) SK_HID_Backend->markWrite  (type);
 #define SK_HID_VIEW(type)  SK_HID_Backend->markViewed (type);
+#define SK_HID_HIDE(type)  SK_HID_Backend->markHidden (    );
 
 #define SK_RAWINPUT_READ(type)  SK_RawInput_Backend->markRead   (type);
 #define SK_RAWINPUT_WRITE(type) SK_RawInput_Backend->markWrite  (type);
 #define SK_RAWINPUT_VIEW(type)  SK_RawInput_Backend->markViewed (type);
+#define SK_RAWINPUT_HIDE(type)  SK_RawInput_Backend->markHidden (    );
 
 enum class SK_Input_DeviceFileType
 {
@@ -487,43 +489,52 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
       case HID_USAGE_GENERIC_JOYSTICK:
       case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
       {
-        SK_HID_READ (sk_input_dev_type::Gamepad)
-
         if (SK_ImGui_WantGamepadCapture () && (! config.input.gamepad.native_ps4))
         {
           filter = true;
+
+          SK_HID_HIDE (sk_input_dev_type::Gamepad);
         }
 
         else
+        {
+          SK_HID_READ (sk_input_dev_type::Gamepad);
           SK_HID_VIEW (sk_input_dev_type::Gamepad);
+        }
       } break;
 
       case HID_USAGE_GENERIC_POINTER:
       case HID_USAGE_GENERIC_MOUSE:
       {
-        SK_HID_READ (sk_input_dev_type::Mouse)
-
         if (SK_ImGui_WantMouseCapture ())
         {
           filter = true;
+
+          SK_HID_HIDE (sk_input_dev_type::Mouse);
         }
 
         else
+        {
+          SK_HID_READ (sk_input_dev_type::Mouse);
           SK_HID_VIEW (sk_input_dev_type::Mouse);
+        }
       } break;
 
       case HID_USAGE_GENERIC_KEYBOARD:
       case HID_USAGE_GENERIC_KEYPAD:
       {
-        SK_HID_READ (sk_input_dev_type::Keyboard)
-
         if (SK_ImGui_WantKeyboardCapture ())
         {
           filter = true;
+
+          SK_HID_HIDE (sk_input_dev_type::Keyboard);
         }
 
         else
+        {
+          SK_HID_READ (sk_input_dev_type::Keyboard);
           SK_HID_VIEW (sk_input_dev_type::Keyboard);
+        }
       } break;
     }
   }
@@ -907,6 +918,8 @@ ReadFile_Detour (HANDLE       hFile,
 
           if (lpOverlapped == nullptr || CancelIo (hFile))
           {
+            SK_HID_HIDE (hid_file->device_type);
+
             if (lpOverlapped == nullptr) // lpNumberOfBytesRead MUST be non-null
             {
               if (hid_file->last_data_read.size () >= *lpNumberOfBytesRead)
@@ -929,18 +942,18 @@ ReadFile_Detour (HANDLE       hFile,
 
         else
         {
+          SK_HID_READ (hid_file->device_type);
+
           if (lpNumberOfBytesRead != nullptr && lpBuffer != nullptr && lpOverlapped == nullptr)
           {
-            SK_HID_READ (hid_file->device_type);
-
             if (hid_file->last_data_read.size () < nNumberOfBytesToRead)
                 hid_file->last_data_read.resize (  nNumberOfBytesToRead * 2);
 
             memcpy (hid_file->last_data_read.data (), pTlsBackedBuffer, *lpNumberOfBytesRead);
             memcpy (lpBuffer,                         pTlsBackedBuffer, *lpNumberOfBytesRead);
-
-            SK_HID_VIEW (hid_file->device_type);
           }
+
+          SK_HID_VIEW (hid_file->device_type);
         }
       }
 
@@ -990,12 +1003,12 @@ ReadFileEx_Detour (HANDLE                          hFile,
       auto hid_file =
         (SK_HID_DeviceFile *)dev_ptr;
 
-      SK_HID_READ (hid_file->device_type);
-
       if (! dev_allowed)
       {
         if (CancelIo (hFile))
         {
+          SK_HID_HIDE (hid_file->device_type);
+
           SK_RunOnce (
             SK_LOGi0 (L"ReadFileEx HID IO Cancelled")
           );
@@ -1004,6 +1017,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
         }
       }
 
+      SK_HID_READ (hid_file->device_type);
       SK_HID_VIEW (hid_file->device_type);
     } break;
 
@@ -1332,6 +1346,8 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
       {
         if (CancelIo (hFile))
         {
+          SK_HID_HIDE (hid_file->device_type);
+
           SK_RunOnce (
             SK_LOGi0 (L"GetOverlappedResultEx HID IO Cancelled")
           );
@@ -1397,6 +1413,8 @@ GetOverlappedResult_Detour (HANDLE       hFile,
       {
         if (CancelIo (hFile))
         {
+          SK_HID_HIDE (hid_file->device_type);
+
           SK_RunOnce (
             SK_LOGi0 (L"GetOverlappedResult HID IO Cancelled")
           );
@@ -1641,7 +1659,7 @@ SetupDiGetDeviceInterfaceDetailA_Detour (
 BOOL
 WINAPI
 SetupDiDestroyDeviceInfoList_Detour (
-  _In_ HDEVINFO DeviceInfoSet)
+  _In_ HDEVINFO DeviceInfoSet )
 {
   if (SK_GetCallingDLL () != SK_GetDLL ())
   {
@@ -1774,10 +1792,10 @@ SK_Input_PreHookHID (void)
 
   static std::filesystem::path path_to_kernel_base =
         (std::filesystem::path (SK_GetInstallPath ()) /
-                               LR"(Drivers\kernel32)"),
+                               LR"(Drivers\Kernel32)"),
                                      kernel_name =
-                  SK_RunLHIfBitness (64, L"kernel32_sk64.dll",
-                                         L"kernel32_sk32.dll"),
+                  SK_RunLHIfBitness (64, L"Kernel32_SK64.dll",
+                                         L"Kernel32_SK32.dll"),
                              path_to_kernel = 
                              path_to_kernel_base /
                                      kernel_name;
@@ -2020,6 +2038,9 @@ joyGetPos_Detour (_In_  UINT      uJoyID,
       SK_WinMM_Backend->markRead (sk_input_dev_type::Gamepad);
   }
 
+  else if (result == JOYERR_NOERROR)
+    SK_WinMM_Backend->markHidden ();
+
   return result;
 }
 
@@ -2151,6 +2172,8 @@ joyGetPosEx_Detour (_In_  UINT        uJoyID,
 
       return JOYERR_UNPLUGGED;
     }
+
+    SK_WinMM_Backend->markHidden ();
 
     return JOYERR_NOERROR;
   }
@@ -2874,7 +2897,10 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
         {
           SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
           if (filter || SK_ImGui_WantKeyboardCapture ())
+          {
+            SK_RAWINPUT_HIDE (sk_input_dev_type::Keyboard);
             remove = true;
+          }
           else
             SK_RAWINPUT_VIEW (sk_input_dev_type::Keyboard);
 
@@ -2910,7 +2936,10 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
         case RIM_TYPEMOUSE:
           SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
           if (filter || SK_ImGui_WantMouseCapture ())
+          {
+            SK_RAWINPUT_HIDE (sk_input_dev_type::Mouse);
             remove = true;
+          }
           else
             SK_RAWINPUT_VIEW (sk_input_dev_type::Mouse);
           break;
@@ -2918,7 +2947,10 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
         default:
           SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
           if (filter || SK_ImGui_WantGamepadCapture ())
+          {
+            SK_RAWINPUT_HIDE (sk_input_dev_type::Gamepad);
             remove = true;
+          }
           else
             SK_RAWINPUT_VIEW (sk_input_dev_type::Gamepad);
           break;
@@ -4030,6 +4062,8 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
     if (SK_ImGui_WantMouseCapture () || implicit_capture)
     {
+      SK_Win32_Backend->markHidden ();
+
       *lpPoint = SK_ImGui_Cursor.orig_pos;
 
       SK_ImGui_Cursor.LocalToScreen (lpPoint);
@@ -4327,6 +4361,8 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
     sKeyState &= ~(1 << 15); // High-Order Bit = 0
     sKeyState &= ~1;         // Low-Order Bit  = 0
 
+    SK_Win32_Backend->markHidden ();
+
     return
       sKeyState;
   };
@@ -4467,6 +4503,8 @@ NtUserGetKeyboardState_Detour (PBYTE lpKeyState)
 
     if (! (capture_keyboard && capture_mouse))
       SK_Win32_Backend->markRead (sk_win32_func::GetKeyboardState);
+    else
+      SK_Win32_Backend->markHidden ();
   }
 
   return bRet;
@@ -5145,6 +5183,8 @@ SK_Proxy_MouseProc   (
         case WM_XBUTTONDBLCLK:
         case WM_MOUSEWHEEL:
         case WM_MOUSEHWHEEL:
+          SK_WinHook_Backend->markHidden ();
+
           return
             CallNextHookEx (
                 nullptr, nCode,
@@ -5157,6 +5197,8 @@ SK_Proxy_MouseProc   (
       // Game uses a mouse hook for input that the Steam overlay cannot block
       if (SK_GetStoreOverlayState (true))
       {
+        SK_WinHook_Backend->markHidden ();
+
         return
           CallNextHookEx (0, nCode, wParam, lParam);
       }
@@ -5254,6 +5296,8 @@ SK_Proxy_LLMouseProc   (
         case WM_XBUTTONDBLCLK:
         case WM_MOUSEWHEEL:
         case WM_MOUSEHWHEEL:
+          SK_WinHook_Backend->markHidden ();
+
           return
             CallNextHookEx (
                 nullptr, nCode,
@@ -5266,6 +5310,8 @@ SK_Proxy_LLMouseProc   (
       // Game uses a mouse hook for input that the Steam overlay cannot block
       if (SK_GetStoreOverlayState (true))
       {
+        SK_WinHook_Backend->markHidden ();
+
         return
           CallNextHookEx (0, nCode, wParam, lParam);
       }
@@ -5328,6 +5374,8 @@ SK_Proxy_KeyboardProc (
 
     if (SK_ImGui_WantKeyboardCapture ())
     {
+      SK_WinHook_Backend->markHidden ();
+
       return
         CallNextHookEx (
             nullptr, nCode,
@@ -5339,6 +5387,8 @@ SK_Proxy_KeyboardProc (
       // Game uses a keyboard hook for input that the Steam overlay cannot block
       if (SK_GetStoreOverlayState (true) || SK_Console::getInstance ()->isVisible ())
       {
+        SK_WinHook_Backend->markHidden ();
+
         return
           CallNextHookEx (0, nCode, wParam, lParam);
       }
@@ -5402,6 +5452,8 @@ SK_Proxy_LLKeyboardProc (
 
     if (SK_ImGui_WantKeyboardCapture ())
     {
+      SK_WinHook_Backend->markHidden ();
+
       return
         CallNextHookEx (
             nullptr, nCode,
@@ -5413,6 +5465,8 @@ SK_Proxy_LLKeyboardProc (
       // Game uses a keyboard hook for input that the Steam overlay cannot block
       if (SK_GetStoreOverlayState (true) || SK_Console::getInstance ()->isVisible ())
       {
+        SK_WinHook_Backend->markHidden ();
+
         return
           CallNextHookEx (0, nCode, wParam, lParam);
       }

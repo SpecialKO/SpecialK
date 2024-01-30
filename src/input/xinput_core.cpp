@@ -42,7 +42,7 @@
 #define XINPUT_UPGRADE
 #define XUSER_MAX_INDEX (DWORD)XUSER_MAX_COUNT-1
 
-void SK_Steam_SignalEmulatedXInputActivity (DWORD dwSlot);
+void SK_Steam_SignalEmulatedXInputActivity (DWORD dwSlot, bool blocked);
 
 struct SK_XInputContext
 {
@@ -282,6 +282,7 @@ SK_XInput_GetPrimaryHookName (void)
 #define SK_XINPUT_READ(type)  SK_XInput_Backend->markRead   (type);
 #define SK_XINPUT_WRITE(type) SK_XInput_Backend->markWrite  (type);
 #define SK_XINPUT_VIEW(slot)  SK_XInput_Backend->markViewed ((sk_input_dev_type)(1 << slot));
+#define SK_XINPUT_HIDE(slot)  SK_XInput_Backend->markHidden (    );
 
 static SK_LazyGlobal <concurrency::concurrent_unordered_set <HMODULE>> warned_modules;
 
@@ -435,6 +436,9 @@ XInputGetState1_4_Detour (
   if ( config.input.gamepad.xinput.blackout_api )
   {
     SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
+
+    SK_XINPUT_HIDE (dwUserIndex)
+
     return ERROR_DEVICE_NOT_CONNECTED;
   }
 
@@ -444,7 +448,11 @@ XInputGetState1_4_Detour (
   RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
+  {
+    SK_XINPUT_HIDE (dwUserIndex)
+
     return ERROR_SUCCESS;
+  }
 
   if (dwUserIndex >= XUSER_MAX_COUNT)
     return ERROR_DEVICE_NOT_CONNECTED;
@@ -489,12 +497,11 @@ XInputGetState1_4_Detour (
 
   if (dwRet == ERROR_SUCCESS)
   {
-    if (! nop) {
-      SK_XINPUT_READ (dwUserIndex);
+    if (! nop) SK_XINPUT_READ (dwUserIndex)
+    else       SK_XINPUT_HIDE (dwUserIndex)
 
-      if (      xinput_ctx.isDeviceSteamInput (dwUserIndex))
-        SK_Steam_SignalEmulatedXInputActivity (dwUserIndex);
-    }
+    if (      xinput_ctx.isDeviceSteamInput (dwUserIndex))
+      SK_Steam_SignalEmulatedXInputActivity (dwUserIndex, nop);
 
     // Game-specific hacks (i.e. button swap)
     SK_XInput_TalesOfAriseButtonSwap (pState);
@@ -625,6 +632,9 @@ XInputGetStateEx1_4_Detour (
   if ( config.input.gamepad.xinput.blackout_api )
   {
     SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
+
+    SK_XINPUT_HIDE (dwUserIndex)
+
     return ERROR_DEVICE_NOT_CONNECTED;
   }
 
@@ -634,7 +644,11 @@ XInputGetStateEx1_4_Detour (
   RtlZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
 
   if (! xinput_enabled)
+  {
+    SK_XINPUT_HIDE (dwUserIndex)
+
     return ERROR_SUCCESS;
+  }
 
   if (dwUserIndex >= XUSER_MAX_COUNT) return ERROR_DEVICE_NOT_CONNECTED;
 
@@ -673,12 +687,13 @@ XInputGetStateEx1_4_Detour (
   //   whatever the game is actively using -- helps with X360Ce
   SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 
-  if (   dwRet == ERROR_SUCCESS && (! nop))
+  if (dwRet == ERROR_SUCCESS)
   {
-    SK_XINPUT_READ (dwUserIndex);
+    if (! nop) SK_XINPUT_READ (dwUserIndex)
+    else       SK_XINPUT_HIDE (dwUserIndex)
 
     if (      xinput_ctx.isDeviceSteamInput (dwUserIndex))
-      SK_Steam_SignalEmulatedXInputActivity (dwUserIndex);
+      SK_Steam_SignalEmulatedXInputActivity (dwUserIndex, nop);
   }
 
   return dwRet;
@@ -705,6 +720,9 @@ XInputGetCapabilities1_4_Detour (
   if ( config.input.gamepad.xinput.blackout_api )
   {
     SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
+
+    SK_XINPUT_HIDE (dwUserIndex)
+
     return ERROR_DEVICE_NOT_CONNECTED;
   }
 
@@ -771,6 +789,9 @@ XInputGetCapabilitiesEx1_4_Detour (
   if ( config.input.gamepad.xinput.blackout_api )
   {
     SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
+
+    SK_XINPUT_HIDE (dwUserIndex)
+
     return ERROR_DEVICE_NOT_CONNECTED;
   }
 
@@ -836,6 +857,9 @@ XInputGetBatteryInformation1_4_Detour (
   if ( config.input.gamepad.xinput.blackout_api )
   {
     SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
+
+    SK_XINPUT_HIDE (dwUserIndex)
+
     return ERROR_DEVICE_NOT_CONNECTED;
   }
 
@@ -905,6 +929,9 @@ XInputSetState1_4_Detour (
   if ( config.input.gamepad.xinput.blackout_api )
   {
     SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
+
+    SK_XINPUT_HIDE (dwUserIndex)
+
     return ERROR_DEVICE_NOT_CONNECTED;
   }
 
@@ -926,7 +953,11 @@ XInputSetState1_4_Detour (
   if (! xinput_enabled)
   {
     xinput_ctx.preventHapticRecursion (dwUserIndex, false);
+
+    SK_XINPUT_HIDE (dwUserIndex)
+
     return ERROR_SUCCESS;
+
   }
 
   if (pVibration  == nullptr)         { xinput_ctx.preventHapticRecursion            (dwUserIndex, false);
@@ -967,7 +998,12 @@ XInputSetState1_4_Detour (
 
   xinput_ctx.preventHapticRecursion (dwUserIndex, false);
 
-  if (   dwRet == ERROR_SUCCESS && (! nop)) SK_XINPUT_WRITE (sk_input_dev_type::Gamepad);
+  if (   dwRet == ERROR_SUCCESS)
+  {
+    if (! nop) SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
+    else       SK_XINPUT_HIDE  (dwUserIndex)
+  }
+
   return dwRet;
 }
 
@@ -1310,6 +1346,9 @@ XInputPowerOff1_4_Detour (
   if ( config.input.gamepad.xinput.blackout_api )
   {
     SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
+
+    SK_XINPUT_HIDE (dwUserIndex)
+
     return ERROR_DEVICE_NOT_CONNECTED;
   }
 
@@ -1396,6 +1435,9 @@ XInputGetKeystroke1_4_Detour (
   if ( config.input.gamepad.xinput.blackout_api )
   {
     SK_XInput_Backend->viewed.gamepad = SK_QueryPerf ().QuadPart;
+
+    SK_XINPUT_HIDE (dwUserIndex)
+
     return ERROR_DEVICE_NOT_CONNECTED;
   }
 
@@ -1403,7 +1445,11 @@ XInputGetKeystroke1_4_Detour (
     return ERROR_INVALID_PARAMETER;
 
   if (! xinput_enabled)
+  {
+    SK_XINPUT_HIDE (dwUserIndex)
+
     return ERROR_EMPTY;
+  }
 
   if (dwUserIndex >= XUSER_MAX_COUNT)
     return ERROR_DEVICE_NOT_CONNECTED;
@@ -1429,7 +1475,11 @@ XInputGetKeystroke1_4_Detour (
       );
 
   if (SK_ImGui_FilterXInputKeystroke      (dwUserIndex, pKeystroke))
+  {
+    SK_XINPUT_HIDE (dwUserIndex)
+
     return ERROR_EMPTY;
+  }
 
   InterlockedExchange (&xinput_ctx.LastSlotState [dwUserIndex], dwRet);
 

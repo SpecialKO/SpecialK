@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -34,9 +34,10 @@ extern bool nav_usable;
 
 using finish_pfn = void (WINAPI *)(void);
 
-
-#define SK_DI7_READ(type)  SK_DI7_Backend->markRead  (type);
-#define SK_DI7_WRITE(type) SK_DI7_Backend->markWrite (type);
+#define SK_DI7_READ(type)  SK_DI7_Backend->markRead   (type);
+#define SK_DI7_WRITE(type) SK_DI7_Backend->markWrite  (type);
+#define SK_DI7_VIEW(type)  SK_DI7_Backend->markViewed (type);
+#define SK_DI7_HIDE(type)  SK_DI7_Backend->markHidden (    );
 
 
 #define DINPUT7_CALL(_Ret, _Call) {                                     \
@@ -829,7 +830,14 @@ IDirectInputDevice7_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE7       This,
       SK_DI7_READ (sk_input_dev_type::Keyboard)
 
       if (SK_ImGui_WantKeyboardCapture ())
+      {
         memset (lpvData, 0, cbData);
+
+        SK_DI7_HIDE (sk_input_dev_type::Keyboard)
+      }
+
+      else
+        SK_DI7_VIEW (sk_input_dev_type::Keyboard)
     }
 
     else if ( cbData == sizeof (DIMOUSESTATE2) ||
@@ -844,6 +852,8 @@ IDirectInputDevice7_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE7       This,
 
       if (SK_ImGui_WantMouseCapture ())
       {
+        SK_DI7_HIDE (sk_input_dev_type::Mouse)
+
         switch (cbData)
         {
           case sizeof (DIMOUSESTATE2):
@@ -860,6 +870,11 @@ IDirectInputDevice7_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE7       This,
             memset (static_cast <DIMOUSESTATE *> (lpvData)->rgbButtons, 0, 4);
             break;
         }
+      }
+
+      else
+      {
+        SK_DI7_VIEW (sk_input_dev_type::Mouse)
       }
     }
   }
