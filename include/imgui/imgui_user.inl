@@ -1287,8 +1287,8 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
         MAKEPOINTS (messagePos);
 
       if ( ( hWnd == game_window.hWnd ||
-             hWnd == game_window.child ) && HIWORD (lParam) == WM_MOUSEMOVE && ( mousePos.x != lastMouse.x ||
-                                                                                 mousePos.y != lastMouse.y ) )
+             hWnd == game_window.child ) && HIWORD (lParam) != WM_NULL && ( mousePos.x != lastMouse.x ||
+                                                                            mousePos.y != lastMouse.y ) )
       {
         static LONG        lastTime = 0;
         if (std::exchange (lastTime, messageTime) != messageTime)

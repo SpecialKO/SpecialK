@@ -6590,7 +6590,12 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
           if (! (game_window.mouse.tracking && game_window.mouse.inside))
             SK_ImGui_UpdateMouseTracker ();
 
-          return 1;
+          // Returning 1 here breaks WM_SETCURSOR behavior;
+          //
+          //   Hopefully we have a subclassed window / window proc hook and
+          //     can remove mouse motion that way, because returning 1 is
+          //       not an option.
+          return 0;
         }
       }
 

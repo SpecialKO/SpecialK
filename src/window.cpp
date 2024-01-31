@@ -5483,7 +5483,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     case WM_SETCURSOR:
     {
-      if ((hWnd == game_window.hWnd || hWnd == game_window.child) && HIWORD (lParam) == WM_MOUSEMOVE)
+      if ((hWnd == game_window.hWnd || hWnd == game_window.child) && HIWORD (lParam) != WM_NULL)
       {
         if ( LOWORD (lParam) == HTCLIENT ||
              LOWORD (lParam) == HTTRANSPARENT )
