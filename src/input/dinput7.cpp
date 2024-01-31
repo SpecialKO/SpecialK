@@ -120,7 +120,6 @@ DirectInputCreateEx ( HINSTANCE hinst,
                       LPUNKNOWN punkOuter )
 {
            SK_BootDI7 ();
-  if (! SK_IsInjected ())
       WaitForInit_DI7 ();
   
 
@@ -195,7 +194,6 @@ DirectInputCreateA ( HINSTANCE       hinst,
                      LPUNKNOWN       punkOuter )
 {
            SK_BootDI7 ();
-  if (! SK_IsInjected ())
       WaitForInit_DI7 ();
 
   dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, "
@@ -243,7 +241,6 @@ DirectInputCreateW ( HINSTANCE       hinst,
                      LPUNKNOWN       punkOuter )
 {
            SK_BootDI7 ();
-  if (! SK_IsInjected ())
       WaitForInit_DI7 ();
 
   dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, "
@@ -456,7 +453,6 @@ CoCreateInstance_DI7 (
   _In_  LPVOID    pCallerAddr )
 {
            SK_BootDI7 ();
-  if (! SK_IsInjected ())
       WaitForInit_DI7 ();
 
   dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, "
@@ -531,7 +527,6 @@ CoCreateInstanceEx_DI7 (
   _In_    LPVOID        pCallerAddr )
 {
            SK_BootDI7 ();
-  if (! SK_IsInjected ())
       WaitForInit_DI7 ();
 
   dll_log->Log ( L"[ DInput 7 ] [!] %s (%08" _L(PRIxPTR) L"h, %lu, {...}, "
@@ -617,7 +612,7 @@ di7_init_callback (finish_pfn finish)
   if (! SK_IsHostAppSKIM ())
   {
              SK_HookDI7 (nullptr);
-    if (! SK_IsInjected ())
+
         WaitForInit_DI7 ();
   }
 

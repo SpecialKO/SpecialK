@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -7743,7 +7743,9 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
        *pSwapChainDesc : DXGI_SWAP_CHAIN_DESC { };
 
   SK_D3D11_Init    ();
-  WaitForInitD3D11 ();
+
+  if (! SK_IsInjected ())
+  { WaitForInitD3D11 ();}
 
 
   dll_log->LogEx ( true,

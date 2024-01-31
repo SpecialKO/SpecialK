@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -2507,8 +2507,7 @@ D3D12CreateDevice_Detour (
   _In_      REFIID             riid,
   _Out_opt_ void             **ppDevice )
 {
-  if (! SK_IsInjected ())
-     WaitForInitD3D12 ();
+  WaitForInitD3D12 ();
 
   DXGI_LOG_CALL_0 ( L"D3D12CreateDevice" );
 
