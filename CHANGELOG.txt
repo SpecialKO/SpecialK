@@ -1,4 +1,9 @@
-﻿24.1.31
+﻿24.1.31.1
+=========
+ + Added local injection version number to system registry
+ + Fixed SK's HW mouse cursor failing to show up when hovering certain windows
+
+24.1.31
 =======
  + Reverted default state of "block mouse input while no game cursor is visible"
     to disabled, because it interferes with games ability to show the cursor in

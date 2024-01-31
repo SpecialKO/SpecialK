@@ -6023,6 +6023,31 @@ SK_SaveConfig ( std::wstring name,
   return_to_skif->store                        (config.system.return_to_skif);
   version->store                               (SK_GetVersionStrW ());
 
+  if (! SK_IsInjected ())
+  {
+    HKEY     hKey;
+    LSTATUS lsKey =
+      RegCreateKeyW (HKEY_CURRENT_USER,
+                       LR"(SOFTWARE\Kaldaien\Special K\Local)",
+                         &hKey);
+    if (ERROR_SUCCESS == lsKey)
+    {
+      LSTATUS lsRegSet = RegSetValueExW (
+             hKey, SK_GetModuleFullName (SK_GetDLL ()).c_str (),
+                0, REG_SZ, (LPBYTE)        SK_GetVersionStrW (),
+                            (DWORD)wcslen (SK_GetVersionStrW ()) * sizeof (wchar_t) );
+
+      if (lsRegSet != ERROR_SUCCESS)
+      {
+        SK_LOGi0 (
+          L"Failed to store local injection record in system registry! Err=%x",
+          lsRegSet );
+      }
+
+      RegCloseKey (hKey);
+    }
+  }
+
   skif_autostop_behavior->store                (config.skif.auto_stop_behavior);
 
 
