@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -920,8 +920,8 @@ struct sk_config_t
         bool  capture             = false;
         bool  capture_mouse;      // Unconditionally capture the mouse (i.e. block it)
       };
-      bool    capture_hidden      =  true; // Capture mouse if HW cursor is not visible
-      bool    capture_keyboard    = false;
+      bool    capture_hidden      = false; // Capture mouse if HW cursor is not visible
+      bool    capture_keyboard    = false; // ^^^ Disabled by default because it interferes with cursor auto-hide
       bool    capture_gamepad     = false;
       bool    use_hw_cursor       =  true;
       bool    use_raw_input       =  true;
