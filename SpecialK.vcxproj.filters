@@ -199,12 +199,6 @@
     <Filter Include="Header Files\External Libraries\LZMA">
       <UniqueIdentifier>{4d14fb72-3c59-42f7-8689-301c47d50537}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\External Libraries\ImGui">
-      <UniqueIdentifier>{6709c4e5-71e0-44ab-bfb0-4a9bfb68a346}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\External Libraries\ImGui\Widgets">
-      <UniqueIdentifier>{be88cd54-d9ff-4a27-b993-c86dcdb61189}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\External Libraries\DirectXTex">
       <UniqueIdentifier>{53877763-ffe5-4232-9427-f0c56a07fa57}</UniqueIdentifier>
     </Filter>
@@ -220,9 +214,6 @@
     <Filter Include="Source Files\Plugins">
       <UniqueIdentifier>{a28dbd7c-faa6-49fb-a3f1-1f61813370e6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\External Libraries\ImGui\Backends">
-      <UniqueIdentifier>{e4cae08f-8c09-4016-96f8-dd61e501bf23}</UniqueIdentifier>
-    </Filter>
     <Filter Include="DLL Export Definitions">
       <UniqueIdentifier>{5b9c5ae0-a6ca-41ed-bf90-f9485960db1e}</UniqueIdentifier>
     </Filter>
@@ -234,9 +225,6 @@
     </Filter>
     <Filter Include="Source Files\Backends\Input\XInput">
       <UniqueIdentifier>{16541fb7-8a2b-4314-887b-7b2f6fb14460}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\External Libraries\ImGui\Fonts">
-      <UniqueIdentifier>{4638ae06-c287-46bf-95a1-479672e60d24}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\Backends\Render\PresentMon">
       <UniqueIdentifier>{1d7182b2-5632-4acb-ac0f-c43dcd7f2607}</UniqueIdentifier>
@@ -376,6 +364,18 @@
     <Filter Include="Header Files\External Libraries\Vulkan">
       <UniqueIdentifier>{9e2c1742-748e-4c1b-9b87-8c919a646679}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\ImGui">
+      <UniqueIdentifier>{6709c4e5-71e0-44ab-bfb0-4a9bfb68a346}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ImGui\Widgets">
+      <UniqueIdentifier>{be88cd54-d9ff-4a27-b993-c86dcdb61189}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ImGui\Backends">
+      <UniqueIdentifier>{e4cae08f-8c09-4016-96f8-dd61e501bf23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ImGui\Fonts">
+      <UniqueIdentifier>{4638ae06-c287-46bf-95a1-479672e60d24}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -475,13 +475,13 @@
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\imconfig.h">
-      <Filter>Header Files\External Libraries\ImGui</Filter>
+      <Filter>Header Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\imgui.h">
-      <Filter>Header Files\External Libraries\ImGui</Filter>
+      <Filter>Header Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\imgui_internal.h">
-      <Filter>Header Files\External Libraries\ImGui</Filter>
+      <Filter>Header Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="include\stb\rect_pack.h">
       <Filter>Header Files\stb</Filter>
@@ -493,7 +493,7 @@
       <Filter>Header Files\stb</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\backends\imgui_vk.h">
-      <Filter>Header Files\External Libraries\ImGui</Filter>
+      <Filter>Header Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\input\input.h">
       <Filter>Header Files\Backends\Input</Filter>
@@ -511,7 +511,7 @@
       <Filter>Header Files\Plugins</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\widgets\widget.h">
-      <Filter>Header Files\External Libraries\ImGui\Widgets</Filter>
+      <Filter>Header Files\ImGui\Widgets</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\plugin\nier.h">
       <Filter>Header Files\Plugins</Filter>
@@ -2137,16 +2137,16 @@
       <Filter>Header Files\Backends\Injection</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\backends\imgui_d3d9.h">
-      <Filter>Header Files\External Libraries\ImGui\Backends</Filter>
+      <Filter>Header Files\ImGui\Backends</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\backends\imgui_d3d11.h">
-      <Filter>Header Files\External Libraries\ImGui\Backends</Filter>
+      <Filter>Header Files\ImGui\Backends</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\backends\imgui_d3d12.h">
-      <Filter>Header Files\External Libraries\ImGui\Backends</Filter>
+      <Filter>Header Files\ImGui\Backends</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\backends\imgui_gl3.h">
-      <Filter>Header Files\External Libraries\ImGui\Backends</Filter>
+      <Filter>Header Files\ImGui\Backends</Filter>
     </ClInclude>
     <ClInclude Include="include\shaders\imgui_d3d11_ps.h">
       <Filter>Header Files\Backends\Render\Shaders</Filter>
@@ -2209,13 +2209,13 @@
       <Filter>Header Files\Control Panel</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\fa_brands_400.ttf.h">
-      <Filter>Header Files\External Libraries\ImGui\Fonts</Filter>
+      <Filter>Header Files\ImGui\Fonts</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\fa_solid_900.ttf.h">
-      <Filter>Header Files\External Libraries\ImGui\Fonts</Filter>
+      <Filter>Header Files\ImGui\Fonts</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\font_awesome.h">
-      <Filter>Header Files\External Libraries\ImGui\Fonts</Filter>
+      <Filter>Header Files\ImGui\Fonts</Filter>
     </ClInclude>
     <ClInclude Include="include\SpecialK\render\present_mon\Debug.hpp">
       <Filter>Header Files\Backends\Render\PresentMon</Filter>
@@ -2935,7 +2935,7 @@
       <Filter>Header Files\Backends\Render\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\imfilebrowser.h">
-      <Filter>Header Files\External Libraries\ImGui</Filter>
+      <Filter>Header Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="depends\include\tobii\tobii.h">
       <Filter>Header Files\External Libraries\Tobii</Filter>
@@ -3669,7 +3669,7 @@
   <ItemGroup>
     <None Include="README.md" />
     <None Include="include\imgui\imgui_user.inl">
-      <Filter>Header Files\External Libraries\ImGui</Filter>
+      <Filter>Header Files\ImGui</Filter>
     </None>
     <None Include="include\SpecialK\commands\mem.inl">
       <Filter>Header Files\Utility</Filter>
@@ -4442,7 +4442,7 @@
       <Filter>Header Files\Other Stuff</Filter>
     </None>
     <None Include="src\imgui\LICENSE">
-      <Filter>Header Files\External Libraries\ImGui</Filter>
+      <Filter>Header Files\ImGui</Filter>
     </None>
     <None Include="@(NativeLibs)" />
     <None Include="@(NativeLibs)" />

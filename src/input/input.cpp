@@ -3348,7 +3348,7 @@ sk_imgui_cursor_s::ScreenToLocal (LPPOINT lpPoint)
 HCURSOR
 ImGui_DesiredCursor (void)
 {
-  if ((! config.input.ui.use_hw_cursor) || (! SK_ImGui_IsAnythingHovered ()))
+  if (! config.input.ui.use_hw_cursor)
     return 0;
 
   static HCURSOR last_cursor = nullptr;

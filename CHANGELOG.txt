@@ -1,4 +1,11 @@
-﻿24.1.30.5
+﻿24.1.31
+=======
+ + Reverted default state of "block mouse input while no game cursor is visible"
+    to disabled, because it interferes with games ability to show the cursor in
+      response to movement in UI screens.
+ + Fixed a few issues with mouse cursor sporadically appearing
+
+24.1.30.5
 =========
  + Add 133 ms heartbeat message to wake SKIF and keep it redrawing when SK is
      setup in "Continue Rendering" mode, in order to avoid the game losing VRR
