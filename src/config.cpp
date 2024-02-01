@@ -249,7 +249,8 @@ SK_GetCurrentGameID (void)
           { L"CrashReport.exe",                        SK_GAME_ID::CrashReport                  },
           { L"StreetFighter6.exe",                     SK_GAME_ID::StreetFighter6               },
           { L"Stardew Valley.exe",                     SK_GAME_ID::StardewValley                },
-          { L"DOOMEternalx64vk.exe",                   SK_GAME_ID::DOOMEternal                  }
+          { L"DOOMEternalx64vk.exe",                   SK_GAME_ID::DOOMEternal                  },
+          { L"granblue_fantasy_relink.exe",            SK_GAME_ID::GranblueFantasy_Relink       }
         };
 
     first_check  = false;
@@ -3362,6 +3363,10 @@ auto DeclKeybind =
       case SK_GAME_ID::DOOMEternal:
         config.apis.NvAPI.vulkan_bridge   = 1;
         config.system.global_inject_delay = 0.0f;
+        break;
+
+      case SK_GAME_ID::GranblueFantasy_Relink:
+        config.render.dxgi.deferred_isolation = true; //Needed for render mods
         break;
 
       case SK_GAME_ID::AlanWake2:
