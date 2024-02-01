@@ -3570,15 +3570,18 @@ SK_BackgroundRender_EndFrame (void)
     }
   }
 
-  //
-  // If SKIF is in the foreground, and SK is set to background render mode,
-  //   then post a message to SKIF to keep it drawing constantly so that VRR
-  //     in the game does not disengage.
-  //
-  //  The minor overhead from SKIF drawing constantly is much less than the
-  //    performance oddities caused by the game periodically losing DirectFlip.
-  //
-  SK_Inject_PostHeartbeatToSKIF ();
+  if (SK_GetForegroundWindow () != game_window.hWnd)
+  {
+    //
+    // If SKIF is in the foreground, and SK is set to background render mode,
+    //   then post a message to SKIF to keep it drawing constantly so that VRR
+    //     in the game does not disengage.
+    //
+    //  The minor overhead from SKIF drawing constantly is much less than the
+    //    performance oddities caused by the game periodically losing DirectFlip.
+    //
+    SK_Inject_PostHeartbeatToSKIF ();
+  }
 }
 
 void

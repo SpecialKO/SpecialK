@@ -1,4 +1,10 @@
-﻿24.1.31.2
+﻿24.2.1
+======
+ + Fixed unintentionally pumping SKIF's heartbeat message when the game
+     SK is active in is already the foreground window
+
+
+24.1.31.2
 =========
  + Fully revert initialization changes introduced in 24.1.27
      (a7d133a4e186e66240e1f21a12734d934437b9ed) for compatibility
