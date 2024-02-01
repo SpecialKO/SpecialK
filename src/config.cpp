@@ -3604,7 +3604,7 @@ auto DeclKeybind =
   {
     if (target_fps.find (L'/') != std::wstring::npos)
     {
-      UINT numerator, denominator;
+      UINT numerator = 1, denominator = 1;
 
       swscanf (target_fps.c_str (), L"%i/%i", (INT*)&numerator, (INT*)&denominator);
 
@@ -3630,7 +3630,7 @@ auto DeclKeybind =
   {
     if (target_fps_bg.find (L'/') != std::wstring::npos)
     {
-      UINT numerator, denominator;
+      UINT numerator = 1, denominator = 1;
 
       swscanf (target_fps_bg.c_str (), L"%i/%i", (INT*)&numerator, (INT*)&denominator);
 
