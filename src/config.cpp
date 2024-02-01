@@ -785,8 +785,8 @@ sk::ParameterStringW*     version                 = nullptr;
 
 struct {
   struct {
-    sk::ParameterFloat*   target_fps              = nullptr;
-    sk::ParameterFloat*   target_fps_bg           = nullptr;
+    sk::ParameterStringW* target_fps              = nullptr;
+    sk::ParameterStringW* target_fps_bg           = nullptr;
     sk::ParameterInt*     prerender_limit         = nullptr;
     sk::ParameterInt*     present_interval        = nullptr;
     sk::ParameterInt*     sync_interval_clamp     = nullptr;
@@ -3598,8 +3598,58 @@ auto DeclKeybind =
     SK_Vulkan_DisableThirdPartyLayers ();
   }
 
-  render.framerate.target_fps->load         (config.render.framerate.target_fps);
-  render.framerate.target_fps_bg->load      (config.render.framerate.target_fps_bg);
+  std::wstring target_fps;
+
+  if (render.framerate.target_fps->load (target_fps))
+  {
+    if (target_fps.find (L'/') != std::wstring::npos)
+    {
+      UINT numerator, denominator;
+
+      swscanf (target_fps.c_str (), L"%i/%i", (INT*)&numerator, (INT*)&denominator);
+
+      if (denominator != 0)
+      {
+        config.render.framerate.target_fps =
+          static_cast <float> (
+            rb.windows.device.getDevCaps ().res.refresh *
+              (sk::narrow_cast <float> (numerator) / sk::narrow_cast <float> (denominator))
+          );
+      }
+    }
+
+    else
+    {
+      swscanf (target_fps.c_str (), L"%f", &config.render.framerate.target_fps);
+    }
+  }
+
+  std::wstring target_fps_bg;
+
+  if (render.framerate.target_fps_bg->load (target_fps_bg))
+  {
+    if (target_fps_bg.find (L'/') != std::wstring::npos)
+    {
+      UINT numerator, denominator;
+
+      swscanf (target_fps_bg.c_str (), L"%i/%i", (INT*)&numerator, (INT*)&denominator);
+
+      if (denominator != 0)
+      {
+        config.render.framerate.target_fps_bg =
+          static_cast <float> (
+            rb.windows.device.getDevCaps ().res.refresh *
+              (sk::narrow_cast <float> (numerator) / sk::narrow_cast <float> (denominator))
+          );
+      }
+    }
+
+    else
+    {
+      swscanf (target_fps_bg.c_str (), L"%f", &config.render.framerate.target_fps_bg);
+    }
+  }
+
   render.framerate.sleepless_render->load   (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->load   (config.render.framerate.sleepless_window);
   render.framerate.enable_mmcss->load       (config.render.framerate.enable_mmcss);
@@ -5582,8 +5632,13 @@ SK_SaveConfig ( std::wstring name,
   }
 
 //if (close_config)
-  render.framerate.target_fps->store          (config.render.framerate.target_fps);//__target_fps);
-  render.framerate.target_fps_bg->store       (config.render.framerate.target_fps_bg);//__target_fps_bg);
+  wchar_t   wszTargetFps   [16] = { };
+  wchar_t   wszTargetFpsBg [16] = { };
+  swprintf (wszTargetFps,   L"%f", config.render.framerate.target_fps);
+  swprintf (wszTargetFpsBg, L"%f", config.render.framerate.target_fps_bg);
+
+  render.framerate.target_fps->store          (wszTargetFps);//__target_fps);
+  render.framerate.target_fps_bg->store       (wszTargetFpsBg);//__target_fps_bg);
   render.framerate.sleepless_render->store    (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->store    (config.render.framerate.sleepless_window);
   render.framerate.enable_mmcss->store        (config.render.framerate.enable_mmcss);
