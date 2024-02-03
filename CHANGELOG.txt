@@ -1,4 +1,12 @@
-﻿24.2.1
+﻿24.2.3
+======
+ + Improved mouse cursor auto-hide behavior in some games that check the
+     return value of SetCursor (...) and call the function infinitely until
+       they get the value they expect.
+
+    >> Do not do this (!!) if no mouse is attached, the value never changes.
+
+24.2.1
 ======
  + Fixed unintentionally pumping SKIF's heartbeat message when the game
      SK is active in is already the foreground window

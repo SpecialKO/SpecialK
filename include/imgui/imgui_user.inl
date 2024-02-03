@@ -3103,7 +3103,7 @@ SK_ImGui_User_NewFrame (void)
         int recursion = 8;
 
         if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-          while ( recursion > 0 && ShowCursor (TRUE) < 0 ) --recursion;
+          while ( recursion > 0 && SK_ShowCursor (TRUE) < 0 ) --recursion;
       }
     }
 
@@ -3114,7 +3114,7 @@ SK_ImGui_User_NewFrame (void)
         int recursion = 8;
 
         if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-          while ( recursion > 0 && ShowCursor (FALSE) > -1 ) --recursion;
+          while ( recursion > 0 && SK_ShowCursor (FALSE) > -1 ) --recursion;
 
         SK_SetCursor (nullptr);
       }

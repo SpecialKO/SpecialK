@@ -1189,8 +1189,8 @@ ActivateWindow ( HWND hWnd,
       if ((! rb.isTrueFullscreen ()) && SK_WantBackgroundRender ())
       {
         game_window.cursor_visible =
-          ShowCursor (TRUE) >= 1;
-          ShowCursor (FALSE);
+          SK_ShowCursor (TRUE) >= 1;
+          SK_ShowCursor (FALSE);
       }
     }
 
@@ -6785,9 +6785,9 @@ SK_InstallWindowHook (HWND hWnd)
             static constexpr auto          _MaxTries = 25;
             for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
             {
-              if (   cursor_visible  && ShowCursor (TRUE) >= 0)
+              if (   cursor_visible  && SK_ShowCursor (TRUE) >= 0)
                 break;
-              if ((! cursor_visible) && ShowCursor (FALSE) < 0)
+              if ((! cursor_visible) && SK_ShowCursor (FALSE) < 0)
                 break;
             }
           }

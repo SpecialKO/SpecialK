@@ -587,6 +587,155 @@ HidD_GetPreparsedData_Detour (
     bRet;
 }
 
+ShowCursor_pfn ShowCursor_Original = nullptr;
+
+int
+WINAPI
+SK_ShowCursor (BOOL bShow)
+{
+  return (ShowCursor_Original != nullptr) ?
+          ShowCursor_Original (bShow)     :
+          ShowCursor          (bShow);
+}
+
+int
+WINAPI
+ShowCursor_Detour (BOOL bShow)
+{
+  CURSORINFO
+    cursor_info        = { };
+    cursor_info.cbSize = sizeof (CURSORINFO);
+
+  SK_GetCursorInfo (&cursor_info);
+
+  const bool bIsShowing =
+    (cursor_info.flags & CURSOR_SHOWING);
+
+  const bool bIsCapturing =
+    (SK_ImGui_WantMouseCapture () && SK_ImGui_IsAnythingHovered ());
+
+  const bool bCanHide =
+    ((config.input.cursor.manage == false || config.input.cursor.timeout == 0 || SK_Window_IsCursorActive () == false) && ((! bIsCapturing) || config.input.ui.use_hw_cursor == false)) || SK_ImGui_Cursor.force == sk_cursor_state::Hidden;
+  const bool bCanShow =
+    ((config.input.cursor.manage == false ||                                     SK_Window_IsCursorActive () == true ) && ((! bIsCapturing) || config.input.ui.use_hw_cursor == true )) || SK_ImGui_Cursor.force == sk_cursor_state::Visible;
+
+
+  static int expected_val = 0;
+
+  SK_RunOnce (expected_val = ShowCursor_Original (FALSE) + 1;
+                             ShowCursor_Original (TRUE));
+
+  static constexpr int  _MAX_TRIES = 8;
+
+  int ret = 0;
+
+  ret = bShow ? ++expected_val
+              : --expected_val;
+
+
+  if (     SK_ImGui_Cursor.force == sk_cursor_state::Visible)
+    bShow = true;
+  else if (SK_ImGui_Cursor.force == sk_cursor_state::Hidden )
+    bShow = false;
+
+
+  if (config.input.cursor.manage && SK_ImGui_Cursor.force == sk_cursor_state::None)
+  {
+    if (bIsCapturing)
+    {
+      bShow = config.input.ui.use_hw_cursor;
+    }
+
+    if (bIsShowing)
+    {
+      if (bShow)
+      {
+        return ret;
+      }
+
+      else
+      {
+        if (! bCanHide)
+        {
+          return ret;
+        }
+
+        ShowCursor_Original (FALSE);
+
+        return ret;
+      }
+    }
+
+    else
+    {
+      if (! bShow)
+      {
+        return ret;
+      }
+
+      else
+      {
+        if (! bCanShow)
+          return ret;
+
+        ShowCursor_Original (TRUE);
+
+        return ret;
+      }
+    }
+  }
+
+
+  else if (bIsCapturing || SK_ImGui_Cursor.force != sk_cursor_state::None)
+  {
+    if (SK_ImGui_Cursor.force == sk_cursor_state::None)
+      bShow = config.input.ui.use_hw_cursor;
+
+    if (bShow)
+    {
+      if (! (cursor_info.flags & CURSOR_SHOWING))
+      {
+        for ( int i = 0 ; i < _MAX_TRIES ; ++i )
+        {
+          if (ShowCursor_Original (TRUE) >= 0)
+            break;
+        }
+      }
+
+      return ret;
+    }
+  
+    else
+    {
+      if (cursor_info.flags & CURSOR_SHOWING)
+      {
+        for ( int i = 0 ; i < _MAX_TRIES ; ++i )
+        {
+          if (ShowCursor_Original (FALSE) < 0)
+            break;
+        }
+      }
+
+      return ret;
+    }
+  }
+
+
+  for ( int x = 0 ; x < 128 ; ++x )
+  {
+    int real_val =
+      ShowCursor_Original (bShow);
+
+    if (     real_val < ret) bShow = true;
+    else if (real_val > ret) bShow = false;
+    else break;
+  }
+
+
+  return
+    ret;
+}
+
 SetCursor_pfn SetCursor_Original = nullptr;
 GetCursor_pfn GetCursor_Original = nullptr;
 
@@ -4555,7 +4704,7 @@ SK_Window_ActivateCursor (bool changed = false)
         int recursion = 4;
 
         if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-          while ( recursion > 0 && ShowCursor (TRUE) < 0 ) --recursion;
+          while ( recursion > 0 && SK_ShowCursor (TRUE) < 0 ) --recursion;
 
         // Deliberately call SetCursor's _hooked_ function, so we can determine whether to
         //   activate the window using the game's cursor or our override
@@ -4616,7 +4765,7 @@ SK_Window_DeactivateCursor (bool ignore_imgui = false)
       int recursion = 4;
 
       if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-        while ( recursion > 0 && ShowCursor (FALSE) > -1 ) --recursion;
+        while ( recursion > 0 && SK_ShowCursor (FALSE) > -1 ) --recursion;
 
       last_mouse.cursor  = false;
       last_mouse.sampled = SK::ControlPanel::current_time;
@@ -5790,6 +5939,11 @@ void SK_Input_PreInit (void)
                               GetCursorPos_Detour,
      static_cast_p2p <void> (&GetCursorPos_Original) );
 
+  SK_CreateDLLHook2 (       L"user32",
+                             "ShowCursor",
+                              ShowCursor_Detour,
+     static_cast_p2p <void> (&ShowCursor_Original) );
+
 
   // Win 8.1 and newer aliases these
   if (SK_GetProcAddress (L"user32", "GetPhysicalCursorPos") !=
@@ -5821,6 +5975,11 @@ void SK_Input_PreInit (void)
                              "SetCursor",
                               SetCursor_Detour,
      static_cast_p2p <void> (&SetCursor_Original) );
+
+  SK_CreateDLLHook2 (       L"user32",
+                             "ShowCursor",
+                              ShowCursor_Detour,
+     static_cast_p2p <void> (&ShowCursor_Original) );
 
   ////////////////////////////SK_CreateDLLHook2 (       L"user32",
   ////////////////////////////                                 "GetCursor",
