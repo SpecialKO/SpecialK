@@ -1,4 +1,4 @@
-﻿/**
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -99,6 +99,11 @@ bool  __SK_HDR_AnyKind          = false;
 bool  __SK_HDR_10BitSwap        = false;
 bool  __SK_HDR_16BitSwap        = false;
 bool  __SK_HDR_UserForced       = false;
+
+// Hide options from users and prevent applying these modes if set
+//   in the INI to prevent known compatibility issues
+bool  __SK_HDR_Disallow16BitSwap= false;
+bool  __SK_HDR_Disallow10BitSwap= false;
 
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
 
@@ -1057,7 +1062,47 @@ public:
       __SK_HDR_Preset = 0;
     }
 
-    if (_SK_HDR_10BitSwapChain->load (__SK_HDR_10BitSwap))
+
+    //
+    // Games where 10-bpc HDR10 or 16-bpc scRGB will cause problems and should be disallowed
+    //
+    switch (SK_GetCurrentGameID ())
+    {
+      case SK_GAME_ID::Blood:
+        __SK_HDR_Disallow16BitSwap  = true;  // scRGB causes crashes during saving
+        break;
+      case SK_GAME_ID::BatmanArkhamKnight:
+        __SK_HDR_Disallow16BitSwap  = true;  // scRGB causes water artifacts
+        config.textures.d3d11.cache = false; // Turn texture caching off
+        break;
+      case SK_GAME_ID::Noita:
+        __SK_HDR_Disallow16BitSwap  = true;  // scRGB has FP blending issues
+        break;
+    }
+
+
+    _SK_HDR_10BitSwapChain->load (__SK_HDR_10BitSwap);
+    _SK_HDR_16BitSwapChain->load (__SK_HDR_16BitSwap);
+
+
+    if (__SK_HDR_Disallow16BitSwap && __SK_HDR_16BitSwap)
+    {
+      __SK_HDR_16BitSwap = false;
+      __SK_HDR_10BitSwap = !__SK_HDR_Disallow10BitSwap;
+
+      _SK_HDR_10BitSwapChain->store (__SK_HDR_10BitSwap);
+    }
+
+    if (__SK_HDR_Disallow10BitSwap && __SK_HDR_10BitSwap)
+    {
+      __SK_HDR_10BitSwap = false;
+      __SK_HDR_16BitSwap = !__SK_HDR_Disallow16BitSwap;
+
+      _SK_HDR_16BitSwapChain->store (__SK_HDR_16BitSwap);
+    }
+
+
+    if ((! __SK_HDR_Disallow10BitSwap) && _SK_HDR_10BitSwapChain->load (__SK_HDR_10BitSwap))
     {
       if (__SK_HDR_10BitSwap)
       {
@@ -1068,7 +1113,7 @@ public:
       }
     }
 
-    if (_SK_HDR_16BitSwapChain->load (__SK_HDR_16BitSwap))
+    if ((! __SK_HDR_Disallow16BitSwap) && _SK_HDR_16BitSwapChain->load (__SK_HDR_16BitSwap))
     {
       if (__SK_HDR_16BitSwap)
       {
@@ -1105,9 +1150,9 @@ public:
       };
 
     static const char* __SK_HDR_ColorSpaceComboStr =
-      (const char *)u8"  sRGB Inverse\t\t\t(SDR -> HDR or Native scRGB HDR) \0"
-                    u8"HDR10 Passthrough\t(Native HDR10)\0"
-                    u8"     Raw Framebuffer\t(Requires ReShade to Process)\0\0";
+      "  sRGB Inverse\t\t\t(SDR -> HDR or Native scRGB HDR) \0"
+      "HDR10 Passthrough\t(Native HDR10)\0"
+      "     Raw Framebuffer\t(Requires ReShade to Process)\0\0";
 
     // If override is not enabled and display is not HDR capable, then do nothing.
     if ((! rb.isHDRCapable ()) && (! (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap)))
@@ -1187,50 +1232,58 @@ public:
         __SK_HDR_UserForced = false;
       }
 
-      ImGui::SameLine ();
 
-      if (ImGui::RadioButton ("HDR10 (Experimental)###SK_HDR_PQ10", &sel, 1))
+      if (! __SK_HDR_Disallow10BitSwap)
       {
-        changed = true;
+        ImGui::SameLine ();
 
-        __SK_HDR_10BitSwap = true;
-        __SK_HDR_16BitSwap = false;
-        __SK_HDR_UserForced = true;
+        if (ImGui::RadioButton ("HDR10 (Experimental)###SK_HDR_PQ10", &sel, 1))
+        {
+          changed = true;
+
+          __SK_HDR_10BitSwap = true;
+          __SK_HDR_16BitSwap = false;
+          __SK_HDR_UserForced = true;
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+          {
+            ImGui::Text       ("Very slight performance boost vs. scRGB on low-end GPUs and DLSS Frame Generation");
+            ImGui::Separator  ();
+            ImGui::BulletText ("This mode is much newer to SK than scRGB, and may not work in all games.");
+            ImGui::BulletText ("SK's UI Luminance setting is inaccurate in HDR10; ignore nits values and use whatever looks best.");
+          }
+          ImGui::EndTooltip ();
+        }
       }
 
-      if (ImGui::IsItemHovered ())
+
+      if (! __SK_HDR_Disallow16BitSwap)
       {
-        ImGui::BeginTooltip ();
+        ImGui::SameLine ();
+
+        if (ImGui::RadioButton ("scRGB HDR (16-bpc)###SK_HDR_scRGB", &sel, 2))
         {
-          ImGui::Text       ("Very slight performance boost vs. scRGB on low-end GPUs and DLSS Frame Generation");
-          ImGui::Separator  ();
-          ImGui::BulletText ("This mode is much newer to SK than scRGB, and may not work in all games.");
-          ImGui::BulletText ("SK's UI Luminance setting is inaccurate in HDR10; ignore nits values and use whatever looks best.");
+          // Insert games that need specific settings here...
+          if (SK_GetCurrentGameID () == SK_GAME_ID::Disgaea5)
+          {
+                                                     SK_HDR_RenderTargets_8bpc->PromoteTo16Bit = true;
+            _SK_HDR_Promote8BitRGBxTo16BitFP->store (SK_HDR_RenderTargets_8bpc->PromoteTo16Bit);
+          }
+
+          changed = true;
+
+          if (__SK_HDR_10BitSwap)
+          {
+            config.nvidia.dlss.allow_scrgb = true;
+          }
+
+          __SK_HDR_16BitSwap  = true;
+          __SK_HDR_10BitSwap  = false;
+          __SK_HDR_UserForced = true;
         }
-        ImGui::EndTooltip ();
-      }
-
-      ImGui::SameLine ();
-
-      if (ImGui::RadioButton ("scRGB HDR (16-bpc)###SK_HDR_scRGB", &sel, 2))
-      {
-        // Insert games that need specific settings here...
-        if (SK_GetCurrentGameID () == SK_GAME_ID::Disgaea5)
-        {
-                                                   SK_HDR_RenderTargets_8bpc->PromoteTo16Bit = true;
-          _SK_HDR_Promote8BitRGBxTo16BitFP->store (SK_HDR_RenderTargets_8bpc->PromoteTo16Bit);
-        }
-
-        changed = true;
-
-        if (__SK_HDR_10BitSwap)
-        {
-          config.nvidia.dlss.allow_scrgb = true;
-        }
-
-        __SK_HDR_16BitSwap  = true;
-        __SK_HDR_10BitSwap  = false;
-        __SK_HDR_UserForced = true;
       }
 
       if (changed)
@@ -1595,7 +1648,7 @@ public:
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip    (  );
-              ImGui::TextUnformatted ((const char *)u8"Brighter HDR highlights are possible when enabled (or by Ctrl-Clicking for manual data input)");
+              ImGui::TextUnformatted ("Brighter HDR highlights are possible when enabled (or by Ctrl-Clicking for manual data input)");
               ImGui::Separator       (  );
               ImGui::BulletText      ("Local contrast behavior may be more consistent with fewer crushed shadow details / highlights when this range is limited.");
               ImGui::EndTooltip      (  );
@@ -1756,7 +1809,7 @@ public:
                 ImGui::SliderFloat ( "###SK_HDR_LUMINANCE", &peak_nits, 80.0f,
                                           __SK_HDR_FullRange  ?  rb.display_gamut.maxLocalY
                                                               :  rb.display_gamut.maxAverageY,
-                (const char *)u8"Peak White Luminance: %.1f cd/m²" );
+                "Peak White Luminance: %.1f cd/m²" );
 
             else
             {
@@ -1799,7 +1852,7 @@ public:
                       bDefaultPB_v1 );
 
               static std::string slider_desc =
-                (const char *)u8"Brightness Scale: %.2fx";
+                "Brightness Scale: %.2fx";
 
               float fPQBoostScale = 160.0f;
 
@@ -1811,7 +1864,7 @@ public:
 
                 slider_desc =
                   SK_FormatString (
-                    (const char *)u8"Brightness Scale: %%.2fx  (~%.1f cd/m²)",
+                    "Brightness Scale: %%.2fx  (~%.1f cd/m²)",
                       peak_nits * fPQBoostScale
                   );
               }
@@ -1819,7 +1872,7 @@ public:
               else
               {
                 slider_desc =
-                  (const char *)u8"Brightness Scale: %.2fx";
+                  "Brightness Scale: %.2fx";
               }
 
               bSliderChanged =
@@ -1872,7 +1925,7 @@ public:
           //////
           //////if (
           //////  ImGui::SliderFloat ("###PaperWhite", &fWhite, 80.0f, std::min ( rb.display_gamut.maxLocalY, __SK_HDR_Luma / 1.0_Nits ),
-          //////         (const char *)u8"Paper White Luminance: %.1f cd/m²")
+          //////         "Paper White Luminance: %.1f cd/m²")
           //////   )
           //////{
           //////  __SK_HDR_PaperWhite =
@@ -1903,7 +1956,7 @@ public:
           {
             if (ImGui::SliderFloat ("###SK_HDR_MIDDLE_GRAY", &fMidGray, bHDR10Passthrough ? -2.5f : -5.0f,
                                                                         bHDR10Passthrough ?  2.5f :  5.0f,
-                              (const char *)u8"Middle Gray Contrast: %+.3f%%"))// %.3f cd/m²"))
+                              "Middle Gray Contrast: %+.3f%%"))// %.3f cd/m²"))
             {
               __SK_HDR_user_sdr_Y =
                 100.0f + fMidGray;
@@ -1915,7 +1968,7 @@ public:
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip    (  );
-              //ImGui::TextUnformatted ((const char *)u8"Technically, 80.0 cd/m² and 100.0 cd/m² are Reference SDR Mid-Grays");
+              //ImGui::TextUnformatted ("Technically, 80.0 cd/m² and 100.0 cd/m² are Reference SDR Mid-Grays");
               //ImGui::Separator       (  );
               ImGui::BulletText      ("SK boosts mid-gray for improved visibility; mid-gray can balance a game's UI luminance levels.");
               ImGui::BulletText      ("If unhappy with available slider range, Ctrl + Click to override.");
@@ -2047,13 +2100,13 @@ public:
                 // Perceptual Boost
                 if (it.pq_boost0 > 0.0f)
                 {
-                  ImGui::Text ( (const char *)u8"Brightness: %.2fx",
+                  ImGui::Text ( "Brightness: %.2fx",
                                 it.peak_white_nits );
                 }
 
                 else
                 {
-                  ImGui::Text ( (const char *)u8"Peak White: %5.1f cd/m²",
+                  ImGui::Text ( "Peak White: %5.1f cd/m²",
                                 it.peak_white_nits / 1.0_Nits );
                 }
               }
@@ -2069,7 +2122,7 @@ public:
           ImGui::BeginGroup ();
           //for ( auto& it : hdr_presets )
           //{
-          //  ImGui::Text ( (const char *)u8"Power-Law ɣ: %3.1f",
+          //  ImGui::Text ( "Power-Law ɣ: %3.1f",
           //                  it.eotf );
           //}
           for ( const auto& it : hdr_presets )
@@ -2087,7 +2140,7 @@ public:
 
               else
               {
-                ImGui::Text ( (const char *)u8"Middle Gray: %+5.1f%%",// cd/m²",
+                ImGui::Text ( "Middle Gray: %+5.1f%%",// cd/m²",
                               (it.middle_gray_nits / 1.0_Nits) - 100.0 );
               }
             }
@@ -2704,7 +2757,7 @@ public:
                   preset.cfg_eotf->store (preset.eotf);
                 }
                 if (ImGui::IsItemHovered ())
-                  ImGui::SetTooltip ((const char *)u8"Ubisoft games (e.g. Watch Dogs Legions) use 0.34 cd/m² as SDR black for video and UI, which is gray in HDR...");
+                  ImGui::SetTooltip ("Ubisoft games (e.g. Watch Dogs Legions) use 0.34 cd/m² as SDR black for video and UI, which is gray in HDR...");
                 //ImGui::BulletText ("Gamma Correction Unsupported for Current Tonemap");
               }
 

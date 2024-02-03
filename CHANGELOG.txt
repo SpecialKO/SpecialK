@@ -1,3 +1,11 @@
+24.2.3.5
+========
+ + Added internal list of games that do not correctly support 10-bpc or 16-bpc
+     HDR and hide these options from users / force INI values to use the
+       alternative format.
+
+    * Currently Blood, Batman Arkham Knight and Noita are 16-bpc disallowed
+
 24.2.3.4
 ========
  + Fixed Valve's half-assed HDR overlay implementation that does not have

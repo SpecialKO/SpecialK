@@ -1,4 +1,4 @@
-﻿/**
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1497,6 +1497,9 @@ enum class SK_GAME_ID
   StreetFighter6,               // StreetFighter6.exe
   StardewValley,                // Stardew Valley.exe
   DOOMEternal,                  // DOOMEternalx64vk.exe
+  Blood,                        // anuket_x64.exe
+  BatmanArkhamKnight,           // BatmanAK.exe
+  Noita,                        // Noita.exe
 
   UNKNOWN_GAME               = 0xffff
 };
