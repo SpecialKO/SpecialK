@@ -5941,11 +5941,6 @@ void SK_Input_PreInit (void)
                               GetCursorPos_Detour,
      static_cast_p2p <void> (&GetCursorPos_Original) );
 
-  SK_CreateDLLHook2 (       L"user32",
-                             "ShowCursor",
-                              ShowCursor_Detour,
-     static_cast_p2p <void> (&ShowCursor_Original) );
-
 
   // Win 8.1 and newer aliases these
   if (SK_GetProcAddress (L"user32", "GetPhysicalCursorPos") !=

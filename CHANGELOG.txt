@@ -1,4 +1,9 @@
-﻿24.2.3.1
+﻿24.2.3.2
+========
+ + Fixed double hook on ShowCursor (...)
+ + Eliminated unnecessary file attributes query before opening some files
+
+24.2.3.1
 ========
  + Optimized control panel open/close and fixed cursor not changing to SK's
      in some applications when opening the control panel
