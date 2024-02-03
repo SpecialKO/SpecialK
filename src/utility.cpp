@@ -3115,7 +3115,6 @@ SK_Generate8Dot3 (const wchar_t* wszLongFileName)
                         FILE_SHARE_WRITE | FILE_SHARE_DELETE,
                           nullptr,
                             OPEN_EXISTING,
-                              GetFileAttributes (wszFileName) |
                               FILE_FLAG_BACKUP_SEMANTICS,
                                 nullptr ) );
 

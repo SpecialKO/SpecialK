@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -339,9 +339,6 @@ SHA1_File (
 
   SHA1Init (&ctx);
 
-  DWORD dwFileAttribs =
-    GetFileAttributes (wszFile);
-
   SK_AutoHandle hFile (
     CreateFile ( wszFile,
                    GENERIC_READ,
@@ -349,7 +346,7 @@ SHA1_File (
                      FILE_SHARE_WRITE,
                        nullptr,
                          OPEN_EXISTING,
-                           dwFileAttribs,
+                           FILE_FLAG_SEQUENTIAL_SCAN,
                              nullptr
                )
     );

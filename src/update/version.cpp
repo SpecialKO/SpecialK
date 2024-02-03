@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -329,7 +329,6 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
                        FILE_SHARE_DELETE,
                          nullptr,
                            OPEN_EXISTING,
-                             GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) |
                              FILE_FLAG_SEQUENTIAL_SCAN,
                                nullptr )
     );
@@ -817,7 +816,6 @@ SK_FetchVersionInfo2 ( const wchar_t* wszProduct,
                        FILE_SHARE_DELETE,
                          nullptr,
                            OPEN_EXISTING,
-                             GetFileAttributes (SK_Version_GetRepoIniPath ().c_str ()) |
                              FILE_FLAG_SEQUENTIAL_SCAN,
                                nullptr )
     );

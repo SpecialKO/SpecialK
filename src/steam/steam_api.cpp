@@ -400,7 +400,7 @@ SK_Steam_GetApplicationManifestPath (AppId64_t appid)
                         GENERIC_READ,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,
                           nullptr,        OPEN_EXISTING,
-                            GetFileAttributesW (wszManifest),
+                            FILE_FLAG_SEQUENTIAL_SCAN,
                               nullptr
                     )
       );
@@ -3593,7 +3593,7 @@ SK_Steam_GetLibraries (steam_library_t** ppLibraries)
                         GENERIC_READ,
                         FILE_SHARE_READ | FILE_SHARE_WRITE,
                           nullptr,        OPEN_EXISTING,
-                            GetFileAttributesW (wszLibraryFolders),
+                            FILE_FLAG_SEQUENTIAL_SCAN,
                               nullptr
                     )
       );

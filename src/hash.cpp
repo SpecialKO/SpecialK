@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -44,9 +44,6 @@ SK_File_GetHash_32 (       sk_hash_algo                 algorithm,
     case SK_CRC32_KAL:
     case SK_CRC32C:
     {
-      DWORD dwFileAttribs =
-        GetFileAttributes (wszFile);
-
       SK_AutoHandle hFile (
         CreateFile ( wszFile,
                        GENERIC_READ,
@@ -54,7 +51,7 @@ SK_File_GetHash_32 (       sk_hash_algo                 algorithm,
                          FILE_SHARE_WRITE,
                            nullptr,
                              OPEN_EXISTING,
-                               dwFileAttribs,
+                               FILE_FLAG_SEQUENTIAL_SCAN,
         nullptr)
       );
 
