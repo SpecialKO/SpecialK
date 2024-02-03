@@ -2566,8 +2566,11 @@ SK_Inject_PostHeartbeatToSKIF (void)
         if (dwLastHeartbeat < SK_timeGetTime () - 133)
         {   dwLastHeartbeat = SK_timeGetTime ();
 
-          // Wake SKIF up and make it redraw
-          PostMessage (hWndSKIF, WM_NULL, 0x0, 0x0);
+          if (SK_GetForegroundWindow () == hWndSKIF)
+          {
+            // Wake SKIF up and make it redraw
+            PostMessage (hWndSKIF, WM_NULL, 0x0, 0x0);
+          }
         }
       }
     }
