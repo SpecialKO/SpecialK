@@ -1,4 +1,14 @@
-﻿24.2.3.3
+24.2.3.4
+========
+ + Fixed Valve's half-assed HDR overlay implementation that does not have
+     configurable luminance levels. Their new shaders are once again replaced
+       with SK's configurable shaders.
+
+    >> Use the HDR menu to control Steam's overlay luminance, the slider is
+         only available in D3D11 games, but it also applies in D3D12
+           (just no real-time adjustments in D3D12)
+
+24.2.3.3
 ========
  + Only pump SKIF's redraw if SKIF is in the foreground
 

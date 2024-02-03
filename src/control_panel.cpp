@@ -1,4 +1,4 @@
-﻿  
+  
 /**
  * This file is part of Special K.
  *
@@ -3363,7 +3363,7 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
           ImGui::SameLine        ();
-          ImGui::Text            ((const char *)u8"Right-click to match Windows SDR white level (%5.1f nits)",
+          ImGui::Text            ("Right-click to match Windows SDR white level (%5.1f nits)",
                                   rb.displays [rb.active_display].hdr.white_level);
 
           ImGui::BulletText      ("Luminance levels above 50%% of slider range are "
@@ -3411,7 +3411,7 @@ SK_ImGui_ControlPanel (void)
         const bool changed =
           ImGui::SliderFloat ( szLabel, &nits,
                                  80.0f, fMaxLuminance,
-                                   (const char *)u8"%.1f cd/m²" );
+                                   "%.1f cd/m²" );
         
         const bool right_clicked =
           ImGui::IsItemClicked (ImGuiMouseButton_Right);
@@ -3438,7 +3438,8 @@ SK_ImGui_ControlPanel (void)
           "Special K Luminance###IMGUI_LUMINANCE", rb.ui_luminance
         );
 
-#define STEAM_OVERLAY_VS_CRC32C 0xf48cf597
+#define STEAM_OVERLAY_VS_CRC32C  0xf48cf597
+#define STEAM_OVERLAY_VS2_CRC32C 0x749795c1
 #define UPLAY_OVERLAY_PS_CRC32C 0x35ae281c
 
         static bool    steam_overlay = false;
@@ -3451,6 +3452,9 @@ SK_ImGui_ControlPanel (void)
         {      steam_overlay =
           SK_D3D11_IsShaderLoaded <ID3D11VertexShader> (pDevice,
             STEAM_OVERLAY_VS_CRC32C
+          ) || // New HDR shader that needs fixing
+          SK_D3D11_IsShaderLoaded <ID3D11VertexShader> (pDevice,
+            STEAM_OVERLAY_VS2_CRC32C
           );
         }
 
@@ -4634,13 +4638,13 @@ SK_ImGui_ControlPanel (void)
     {
       if (translated_d3d9)
       {
-        strncpy  (szAPIName, (const char *) u8"D3D9→12", 32);
+        strncpy  (szAPIName, "D3D9→12", 32);
       }
       else if (api_mask == static_cast <int> (SK_RenderAPI::DDrawOn12)  ||
                api_mask == static_cast <int> (SK_RenderAPI::D3D8On12)   ||
                api_mask == static_cast <int> (SK_RenderAPI::GlideOn12))
       {
-        lstrcatA (szAPIName, (const char *) u8"→12");
+        lstrcatA (szAPIName, "→12");
       }
       else
       {
@@ -4651,8 +4655,8 @@ SK_ImGui_ControlPanel (void)
     else if (0x0 != (api_mask &  static_cast <int> (SK_RenderAPI::D3D11)) &&
                     (api_mask != static_cast <int> (SK_RenderAPI::D3D11)  || translated_d3d9))
     {
-      if (! translated_d3d9)lstrcatA (szAPIName, (const char *)   u8"→11");
-      else                  strncpy  (szAPIName, (const char *)u8"D3D9→11", 32);
+      if (! translated_d3d9)lstrcatA (szAPIName,    "→11");
+      else                  strncpy  (szAPIName, "D3D9→11", 32);
     }
 
     lstrcatA ( szAPIName,
@@ -6996,7 +7000,7 @@ SK_ImGui_StageNextFrame (void)
       ImGui::TreePush      ("");
       ImGui::TextColored   (ImColor::HSV (.08f,.85f,1.f), "%s",
                             utf8_time_checked.c_str ());ImGui::SameLine ();
-      ImGui::TextColored   (ImColor (1.f, 1.f, 1.f, 1.f), (const char *)u8"  ※  ");
+      ImGui::TextColored   (ImColor (1.f, 1.f, 1.f, 1.f), "  ※  ");
                                                         ImGui::SameLine ();
       ImGui::TextColored   (version_color,               "%s",
                             utf8_release_description.c_str ());

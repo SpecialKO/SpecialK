@@ -579,7 +579,9 @@ SK_D3D11_CreateShader_Impl (
 
   if ( hash_only )
   {
-#define STEAM_OVERLAY_PS_CRC32C      0x9aefe985
+#define STEAM_OVERLAY_PS_CRC32C       0x9aefe985
+#define STEAM_OVERLAY_PS_SCRGB_CRC32C 0x940df904
+#define STEAM_OVERLAY_PS_HDR10_CRC32C 0x52955273
 #define RTSS_OVERLAY_PS_CRC32C       0x995f6505
 #define RTSS_OVERLAY_PS1_CRC32C      0x4777629e
     // Not sure why Epic uses a different pixel shader for
@@ -603,7 +605,7 @@ SK_D3D11_CreateShader_Impl (
           __SK_MakeRTSSPS  (false, true, config.rtss.overlay_luminance);
 
         SK_RunOnce (
-           SK_LOG0 ( ( L"RTSS Replacement Pixel Shader <scRGB %f cd/m²>",
+           SK_LOG0 ( ( L"RTSS Replacement Pixel Shader <scRGB %f cd/mÂ²>",
                           config.rtss.overlay_luminance * 80.0 ),
                        L"RTSS Range" )
         );
@@ -637,7 +639,7 @@ SK_D3D11_CreateShader_Impl (
 
         SK_RunOnce (
         {
-          SK_LOG0 ( ( L"RTSS Replacement Pixel Shader <PQ %f cd/m²>",
+          SK_LOG0 ( ( L"RTSS Replacement Pixel Shader <PQ %f cd/mÂ²>",
                              config.rtss.overlay_luminance * 80.0f ),
                       L"RTSS Range" );
         });
@@ -664,7 +666,9 @@ SK_D3D11_CreateShader_Impl (
 
     // Steam
     //
-    else if (type == sk_shader_class::Pixel && checksum == STEAM_OVERLAY_PS_CRC32C)
+    else if (type == sk_shader_class::Pixel && (checksum == STEAM_OVERLAY_PS_CRC32C ||
+                                                checksum == STEAM_OVERLAY_PS_SCRGB_CRC32C ||
+                                                checksum == STEAM_OVERLAY_PS_HDR10_CRC32C ))
     {
       extern bool __SK_HDR_16BitSwap;
       extern bool __SK_HDR_10BitSwap;
@@ -675,7 +679,7 @@ SK_D3D11_CreateShader_Impl (
           __SK_MakeSteamPS (false, true, config.platform.overlay_hdr_luminance);
 
         SK_RunOnce (
-           SK_LOG0 ( ( L"Steam Replacement Pixel Shader <scRGB %f cd/m²>",
+           SK_LOG0 ( ( L"Steam Replacement Pixel Shader <scRGB %f cd/mÂ²>",
                           config.platform.overlay_hdr_luminance * 80.0 ),
                        L"SteamRange" )
         );
@@ -696,7 +700,7 @@ SK_D3D11_CreateShader_Impl (
 
         SK_RunOnce (
         {
-          SK_LOG0 ( ( L"Steam Replacement Pixel Shader <PQ %f cd/m²>",
+          SK_LOG0 ( ( L"Steam Replacement Pixel Shader <PQ %f cd/mÂ²>",
                              config.platform.overlay_hdr_luminance * 80.0f ),
                       L"SteamRange" );
         });
@@ -723,7 +727,7 @@ SK_D3D11_CreateShader_Impl (
           __SK_MakeEpicPS (false, true, config.platform.overlay_hdr_luminance);
 
         SK_RunOnce (
-           SK_LOG0 ( ( L"Epic Replacement Pixel Shader <scRGB %f cd/m²>",
+           SK_LOG0 ( ( L"Epic Replacement Pixel Shader <scRGB %f cd/mÂ²>",
                           config.platform.overlay_hdr_luminance * 80.0 ),
                        L"Epic Range" )
         );
@@ -744,7 +748,7 @@ SK_D3D11_CreateShader_Impl (
 
         SK_RunOnce (
         {
-          SK_LOG0 ( ( L"Epic Replacement Pixel Shader <PQ %f cd/m²>",
+          SK_LOG0 ( ( L"Epic Replacement Pixel Shader <PQ %f cd/mÂ²>",
                              config.platform.overlay_hdr_luminance * 80.0f ),
                       L"Epic Range" );
         });

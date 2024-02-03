@@ -1,4 +1,4 @@
-﻿/**
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -4196,13 +4196,14 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
     uint32_t vs_crc =
       SK_D3D11_Shaders->vertex.current.shader [dev_idx];
 
-#define STEAM_OVERLAY_VS_CRC32C   0xf48cf597
+#define STEAM_OVERLAY_VS_CRC32C  0xf48cf597
+#define STEAM_OVERLAY_VS2_CRC32C 0x749795c1
 #define DISCORD_OVERLAY_VS_CRC32C 0x085ee17b
 #define RTSS_OVERLAY_VS_CRC32C    0x671afc2f
 #define EPIC_OVERLAY_VS_CRC32C    0xa7ee5199
 
-    if ( STEAM_OVERLAY_VS_CRC32C ==
-                       vs_crc )
+    if ( STEAM_OVERLAY_VS_CRC32C  == vs_crc ||
+         STEAM_OVERLAY_VS2_CRC32C == vs_crc )
     {
       if ( SUCCEEDED (
              SK_D3D11_InjectSteamHDR ( pDevCtx, VertexCount,

@@ -1,10 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #define SK_YEAR  24
 #define SK_MONTH 2
 #define SK_DATE  3
-#define SK_REV_N 3
-#define SK_REV   3
+#define SK_REV_N 4
+#define SK_REV   4
 
 #ifndef _A2
 #define _A2(a)     #a
