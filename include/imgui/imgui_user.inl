@@ -1286,17 +1286,21 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
       POINTS mousePos =
         MAKEPOINTS (messagePos);
 
+      bool bRawCapture =
+        ImGui::GetIO ().WantCaptureMouse;
+
       if ( ( hWnd == game_window.hWnd ||
              hWnd == game_window.child ) && HIWORD (lParam) != WM_NULL && ( mousePos.x != lastMouse.x ||
-                                                                            mousePos.y != lastMouse.y ) )
+                                                                            mousePos.y != lastMouse.y ||
+                                                                            bRawCapture ) )
       {
         static LONG        lastTime = 0;
-        if (std::exchange (lastTime, messageTime) != messageTime)
+        if (std::exchange (lastTime, messageTime) != messageTime || bRawCapture)
         {
           static HCURSOR hLastClassCursor = (HCURSOR)(-1);
 
-          if ( SK_ImGui_WantMouseCapture  () &&
-               SK_ImGui_IsAnythingHovered () )
+          if (bRawCapture || ( SK_ImGui_WantMouseCapture  () &&
+                               SK_ImGui_IsAnythingHovered () ) )
           {
             if (hLastClassCursor == (HCURSOR)(-1))
                 hLastClassCursor  = (HCURSOR)GetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR);

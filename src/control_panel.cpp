@@ -7788,12 +7788,98 @@ SK_ImGui_Toggle (void)
       SK::SteamAPI::UpdateNumPlayers ();
 
 
-  const wchar_t* config_name = SK_GetBackend ();
+  static SK_AutoHandle hCfgSave (
+    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr)
+  );
+  static SK_AutoHandle hMoveCursor (
+    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr)
+  );
 
-  if (SK_IsInjected ())
-    config_name = L"SpecialK";
+  static POINT ptCursorPos = { };
 
-  SK_SaveConfig (config_name);
+  SK_RunOnce (
+    SK_Thread_CreateEx ([](LPVOID) -> DWORD
+    {
+      HANDLE hEvents [] = {
+        __SK_DLL_TeardownEvent,
+        hCfgSave.m_h,
+        hMoveCursor.m_h
+      };
+
+      while (true)
+      {
+        DWORD dwWait =
+          WaitForMultipleObjectsEx (3, hEvents, FALSE, INFINITE, FALSE);
+
+        if (dwWait == WAIT_OBJECT_0)
+          break;
+
+        if (dwWait == WAIT_OBJECT_0 + 1)
+        {
+          const wchar_t* config_name = SK_GetBackend ();
+
+          if (SK_IsInjected ())
+            config_name = L"SpecialK";
+
+          SK_SaveConfig (config_name);
+        }
+
+        // Stupid hack to make sure the mouse cursor changes to SK's
+        //   in Unity engine games
+        if (dwWait == WAIT_OBJECT_0 + 2)
+        {
+          auto frames_drawn =
+            SK_GetFramesDrawn ();
+
+          while (frames_drawn > SK_GetFramesDrawn () - 1)
+            SK_Sleep (5);
+
+          ImGuiIO& io =
+            ImGui::GetIO ();
+
+          io.WantSetMousePos  = true;
+          io.WantCaptureMouse = true;
+
+          POINT                 ptCursor;
+          if (SK_GetCursorPos (&ptCursor) && SK_GetForegroundWindow () == game_window.hWnd)
+          {
+            GetWindowRect (game_window.hWnd,
+                          &game_window.actual.window);
+            if (PtInRect (&game_window.actual.window, ptCursor))
+            {
+              SK_SetCursorPos (ptCursor.x + 4, ptCursor.y - 4);
+
+              frames_drawn =
+                SK_GetFramesDrawn ();
+
+              while (frames_drawn > SK_GetFramesDrawn () - 1)
+                SK_Sleep (5);
+
+              SK_SetCursorPos (ptCursor.x - 4, ptCursor.y + 4);
+
+              game_window.CallProc (
+                        game_window.hWnd,                       WM_SETCURSOR,
+                (WPARAM)game_window.hWnd, MAKELPARAM (HTCLIENT, WM_MOUSEMOVE));
+            }
+          }
+        }
+      }
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] Config Save Thread");
+  );
+
+  // Save config on control panel close, not open
+  if (! SK_ImGui_Visible)
+    SetEvent (hCfgSave.m_h);
+  // Move the cursor a couple of times to chnage the loaded image
+  else
+  {
+    if (config.input.ui.use_hw_cursor)
+      SetEvent (hMoveCursor);
+  }
 
 
   // Immediately stop capturing keyboard/mouse events,

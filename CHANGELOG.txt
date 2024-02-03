@@ -1,10 +1,15 @@
-﻿24.2.3
+﻿24.2.3.1
+========
+ + Optimized control panel open/close and fixed cursor not changing to SK's
+     in some applications when opening the control panel
+
+24.2.3
 ======
  + Improved mouse cursor auto-hide behavior in some games that check the
-     return value of SetCursor (...) and call the function infinitely until
+     return value of ShowCursor (...) and call the function infinitely until
        they get the value they expect.
 
-    >> Do not do this (!!) if no mouse is attached, the value never changes.
+    >> Do not do this; if no mouse is attached, the value never changes (!!)
 
 24.2.1
 ======

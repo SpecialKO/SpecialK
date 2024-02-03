@@ -615,9 +615,11 @@ ShowCursor_Detour (BOOL bShow)
     (SK_ImGui_WantMouseCapture () && SK_ImGui_IsAnythingHovered ());
 
   const bool bCanHide =
-    ((config.input.cursor.manage == false || config.input.cursor.timeout == 0 || SK_Window_IsCursorActive () == false) && ((! bIsCapturing) || config.input.ui.use_hw_cursor == false)) || SK_ImGui_Cursor.force == sk_cursor_state::Hidden;
+    ((config.input.cursor.manage == false || config.input.cursor.timeout == 0 || SK_Window_IsCursorActive () == false) &&
+                ((! bIsCapturing) || config.input.ui.use_hw_cursor == false)) || SK_ImGui_Cursor.force == sk_cursor_state::Hidden;
   const bool bCanShow =
-    ((config.input.cursor.manage == false ||                                     SK_Window_IsCursorActive () == true ) && ((! bIsCapturing) || config.input.ui.use_hw_cursor == true )) || SK_ImGui_Cursor.force == sk_cursor_state::Visible;
+    ((config.input.cursor.manage == false ||(config.input.cursor.timeout != 0 && SK_Window_IsCursorActive () == true)) &&
+                ((! bIsCapturing) || config.input.ui.use_hw_cursor == true )) || SK_ImGui_Cursor.force == sk_cursor_state::Visible;
 
 
   static int expected_val = 0;
@@ -721,7 +723,7 @@ ShowCursor_Detour (BOOL bShow)
   }
 
 
-  for ( int x = 0 ; x < 128 ; ++x )
+  for ( int x = 0 ; x < 512 ; ++x )
   {
     int real_val =
       ShowCursor_Original (bShow);
@@ -4037,7 +4039,7 @@ SetCursor_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_ImGui_WantMouseCapture () && SK_ImGui_IsAnythingHovered ())
+  if ((SK_ImGui_WantMouseCapture () && SK_ImGui_IsAnythingHovered ()) || ImGui::GetIO ().WantCaptureMouse)
   {
     if (! config.input.ui.use_hw_cursor)
       return 0;
