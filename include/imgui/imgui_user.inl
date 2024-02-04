@@ -1783,6 +1783,11 @@ SK_ImGui_ToggleEx ( bool& toggle_ui,
 #include <SpecialK/input/dinput8_backend.h>
 #include <SpecialK/input/steam.h>
 
+joyGetDevCapsW_pfn _joyGetDevCapsW = nullptr;
+joyGetPos_pfn      _joyGetPos      = nullptr;
+joyGetPosEx_pfn    _joyGetPosEx    = nullptr;
+joyGetNumDevs_pfn  _joyGetNumDevs  = nullptr;
+
 extern IDirectInputDevice8W_GetDeviceState_pfn
        IDirectInputDevice8W_GetDeviceState_Original;
 
@@ -1795,16 +1800,16 @@ WINAPI
 SK_joyGetPosEx ( _In_  UINT        uJoyID,
                  _Out_ LPJOYINFOEX pji )
 {
-  if (joyGetPosEx_Original == nullptr)
+  if (_joyGetPosEx == nullptr)
   {
     extern void SK_Input_HookWinMM (void);
     SK_RunOnce (SK_Input_HookWinMM ());
   }
 
   return
-    joyGetPosEx_Original == nullptr ? JOYERR_UNPLUGGED
-                                    :
-    joyGetPosEx_Original (uJoyID, pji);
+    _joyGetPosEx == nullptr ? JOYERR_UNPLUGGED
+                            :
+    _joyGetPosEx (uJoyID, pji);
 }
 
 UINT
@@ -1813,16 +1818,15 @@ SK_joyGetDevCapsW ( _In_                     UINT_PTR   uJoyID,
                     _Out_writes_bytes_(cbjc) LPJOYCAPSW pjc,
                     _In_                     UINT       cbjc )
 {
-  static HMODULE hModWinMM =
-    LoadLibraryEx ( L"winmm.dll", nullptr,
-                      LOAD_LIBRARY_SEARCH_SYSTEM32 );
-
-  static  joyGetDevCapsW_pfn
-         _joyGetDevCapsW =
-         (joyGetDevCapsW_pfn)SK_GetProcAddress (hModWinMM,
-         "joyGetDevCapsW"                      );
+  if (_joyGetDevCapsW == nullptr)
+  {
+    extern void SK_Input_HookWinMM (void);
+    SK_RunOnce (SK_Input_HookWinMM ());
+  }
 
   return
+    _joyGetDevCapsW == nullptr ? JOYERR_UNPLUGGED
+                               :
     _joyGetDevCapsW (uJoyID, pjc, cbjc);
 }
 
@@ -1830,16 +1834,15 @@ UINT
 WINAPI
 SK_joyGetNumDevs (void)
 {
-  static HMODULE hModWinMM =
-    LoadLibraryEx ( L"winmm.dll", nullptr,
-                      LOAD_LIBRARY_SEARCH_SYSTEM32 );
-
-  static  joyGetNumDevs_pfn
-         _joyGetNumDevs =
-         (joyGetNumDevs_pfn)SK_GetProcAddress (hModWinMM,
-         "joyGetNumDevs"                      );
+  if (_joyGetNumDevs == nullptr)
+  {
+    extern void SK_Input_HookWinMM (void);
+    SK_RunOnce (SK_Input_HookWinMM ());
+  }
 
   return
+    _joyGetNumDevs == nullptr ? JOYERR_UNPLUGGED
+                              :
     _joyGetNumDevs ();
 }
 
@@ -1967,106 +1970,109 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
         joy_to_xi = { };
 
-        // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
-        //   for no good reason.
-        JOYINFOEX joy_ex   { };
-        JOYCAPSW  joy_caps { };
-    
-        joy_ex.dwSize  = sizeof (JOYINFOEX);
-        joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
-                         JOY_RETURNCENTERED | JOY_USEDEADZONE;
-    
-        SK_joyGetPosEx    (JOYSTICKID1, &joy_ex);
-        SK_joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof (JOYCAPSW));
-
-        if (joy_ex.dwPOV == JOY_POVFORWARD)
-          joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
-
-        if (joy_ex.dwPOV == JOY_POVBACKWARD)
-          joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
-
-        if (joy_ex.dwPOV == JOY_POVLEFT)
-          joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
-
-        if (joy_ex.dwPOV == JOY_POVRIGHT)
-          joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
-
-        ULONG num_usages =
-          static_cast <ULONG> (ps_controller.button_usages.size ());
-
-        if ( HIDP_STATUS_SUCCESS ==
-          SK_HidP_GetUsages ( HidP_Input, ps_controller.buttons [0].UsagePage, 0,
-                                          ps_controller.button_usages.data (),
-                                                          &num_usages,
-                                          ps_controller.pPreparsedData,
-                                   (PCHAR)ps_controller.input_report.data  (),
-                     static_cast <ULONG> (ps_controller.input_report.size  ()) )
-           )
+        if (config.input.gamepad.xinput.ui_slot < 4)
         {
-          for ( auto& button : ps_controller.buttons )
-          {
-            button.last_state =
-              std::exchange (button.state, false);
-          }
+          // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
+          //   for no good reason.
+          JOYINFOEX joy_ex   { };
+          JOYCAPSW  joy_caps { };
+    
+          joy_ex.dwSize  = sizeof (JOYINFOEX);
+          joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
+                           JOY_RETURNCENTERED | JOY_USEDEADZONE;
+    
+          SK_joyGetPosEx    (JOYSTICKID1, &joy_ex);
+          SK_joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof (JOYCAPSW));
 
-          for ( UINT i = 0; i < num_usages; ++i )
-          {
-            ps_controller.buttons [
-              ps_controller.button_usages [i] -
-              ps_controller.buttons       [0].Usage
-            ].state = true;
-          }
-        }
+          if (joy_ex.dwPOV == JOY_POVFORWARD)
+            joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
 
-        if ( config.input.gamepad.scepad.enhanced_ps_button &&
-                        ps_controller.buttons.size () >= 13 &&
-                  (config.input.gamepad.xinput.ui_slot >= 0 && 
-                   config.input.gamepad.xinput.ui_slot <  4) )
-        {
-          if (ps_controller.buttons [12].state && (! ps_controller.buttons [12].last_state))
+          if (joy_ex.dwPOV == JOY_POVBACKWARD)
+            joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
+
+          if (joy_ex.dwPOV == JOY_POVLEFT)
+            joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
+
+          if (joy_ex.dwPOV == JOY_POVRIGHT)
+            joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
+
+          ULONG num_usages =
+            static_cast <ULONG> (ps_controller.button_usages.size ());
+
+          if ( HIDP_STATUS_SUCCESS ==
+            SK_HidP_GetUsages ( HidP_Input, ps_controller.buttons [0].UsagePage, 0,
+                                            ps_controller.button_usages.data (),
+                                                            &num_usages,
+                                            ps_controller.pPreparsedData,
+                                     (PCHAR)ps_controller.input_report.data  (),
+                       static_cast <ULONG> (ps_controller.input_report.size  ()) )
+             )
           {
-            if (SK_ImGui_Active ())
+            for ( auto& button : ps_controller.buttons )
             {
-              bToggleVis |= true;
-              bToggleNav |= true;
+              button.last_state =
+                std::exchange (button.state, false);
             }
 
-            else
+            for ( UINT i = 0; i < num_usages; ++i )
             {
-              bToggleNav |= (! nav_usable);
-              bToggleVis |= true;
+              ps_controller.buttons [
+                ps_controller.button_usages [i] -
+                ps_controller.buttons       [0].Usage
+              ].state = true;
             }
           }
-        }
 
-        if (ps_controller.bDualSense && config.input.gamepad.scepad.mute_applies_to_game)
-        {
-          if (ps_controller.buttons [14].state && (! ps_controller.buttons [14].last_state))
+          if ( config.input.gamepad.scepad.enhanced_ps_button &&
+                          ps_controller.buttons.size () >= 13 &&
+                    (config.input.gamepad.xinput.ui_slot >= 0 && 
+                     config.input.gamepad.xinput.ui_slot <  4) )
           {
-            SK_SetGameMute (! SK_IsGameMuted ());
+            if (ps_controller.buttons [12].state && (! ps_controller.buttons [12].last_state))
+            {
+              if (SK_ImGui_Active ())
+              {
+                bToggleVis |= true;
+                bToggleNav |= true;
+              }
+
+              else
+              {
+                bToggleNav |= (! nav_usable);
+                bToggleVis |= true;
+              }
+            }
           }
-        }
 
-        if (ps_controller.bDualSense)
-        {
-          if (ps_controller.buttons [0].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
-          if (ps_controller.buttons [1].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
-          if (ps_controller.buttons [2].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
-          if (ps_controller.buttons [3].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+          if (ps_controller.bDualSense && config.input.gamepad.scepad.mute_applies_to_game)
+          {
+            if (ps_controller.buttons [14].state && (! ps_controller.buttons [14].last_state))
+            {
+              SK_SetGameMute (! SK_IsGameMuted ());
+            }
+          }
 
-          if (ps_controller.buttons [4].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
-          if (ps_controller.buttons [5].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
-          if (ps_controller.buttons [6].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
-          if (ps_controller.buttons [7].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+          if (ps_controller.bDualSense)
+          {
+            if (ps_controller.buttons [0].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+            if (ps_controller.buttons [1].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+            if (ps_controller.buttons [2].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+            if (ps_controller.buttons [3].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
 
-          if (ps_controller.buttons [8].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
-          if (ps_controller.buttons [9].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+            if (ps_controller.buttons [4].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+            if (ps_controller.buttons [5].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+            if (ps_controller.buttons [6].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+            if (ps_controller.buttons [7].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
 
-          if (ps_controller.buttons [10].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
-          if (ps_controller.buttons [11].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
-          if (ps_controller.buttons [12].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+            if (ps_controller.buttons [8].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+            if (ps_controller.buttons [9].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
 
-          bHasDualSense = true;
+            if (ps_controller.buttons [10].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+            if (ps_controller.buttons [11].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+            if (ps_controller.buttons [12].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+
+            bHasDualSense = true;
+          }
         }
       }
     }

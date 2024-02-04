@@ -1,3 +1,9 @@
+24.2.4.1
+========
+ + Avoid polling native Steam controller if XInput slot is >= 4
+ + Bypass Steam Input's bull@#$% so that SK can actually poll the controller's
+     buttons while Steam Input is enabled... thanks Valve.
+
 24.2.4
 ======
  + Added native support for Dual Sense controllers in SK's UI; all except for
