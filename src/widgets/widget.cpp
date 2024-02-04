@@ -1,4 +1,4 @@
-﻿/**
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -655,7 +655,7 @@ SK_Widget::save (iSK_INI* /*ini*/)
 
   //run_base ();
 
-  if (run_once__)
+  if (run_once__ && param_visible != nullptr)
   {
     param_visible->store        (     visible       );
     param_movable->store        (     movable       );
