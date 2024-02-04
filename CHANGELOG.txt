@@ -1,3 +1,8 @@
+24.2.4.2
+========
+ + Optimized D-Pad button polling for Dual Sense controllers.
+ + Steam Input PS bypass only working in a few games; may never work reliably.
+
 24.2.4.1
 ========
  + Avoid polling native Steam controller if XInput slot is >= 4

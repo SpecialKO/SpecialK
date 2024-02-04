@@ -1972,57 +1972,6 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
         if (config.input.gamepad.xinput.ui_slot < 4)
         {
-          unsigned int x = 0;
-
-          do
-          {
-            // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
-            //   for no good reason.
-            JOYINFOEX joy_ex   { };
-            JOYCAPS2W joy_caps { };
-
-            if ( JOYERR_NOERROR != SK_joyGetDevCapsW (x, (JOYCAPSW *)&joy_caps, sizeof (JOYCAPS2W)) )
-              continue;
-
-            bool bInvalidController =
-              (! (joy_caps.wCaps & JOYCAPS_POV4DIR)) ||
-                  joy_caps.wNumButtons < 4;
-
-            bool pressed = false;
-
-            if (! bInvalidController)
-            {
-              joy_ex.dwSize  = sizeof (JOYINFOEX);
-              joy_ex.dwFlags = JOY_RETURNALL | JOY_RETURNRAWDATA | JOY_RETURNCENTERED | JOY_USEDEADZONE;
-
-              if ( JOYERR_NOERROR != SK_joyGetPosEx (x, &joy_ex) )
-                continue;
-
-              if (joy_ex.dwPOV == JOY_POVFORWARD) {
-                joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
-                pressed = true;
-              }
-
-              if (joy_ex.dwPOV == JOY_POVBACKWARD) {
-                joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
-                pressed = true;
-              }
-
-              if (joy_ex.dwPOV == JOY_POVLEFT) {
-                joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
-                pressed = true;
-              }
-
-              if (joy_ex.dwPOV == JOY_POVRIGHT) {
-                joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
-                pressed = true;
-              }
-
-              if (pressed)
-                break;
-            }
-          } while ( x++ < SK_joyGetNumDevs () );
-
           ULONG num_usages =
             static_cast <ULONG> (ps_controller.button_usages.size ());
 
@@ -2099,6 +2048,55 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
             if (ps_controller.buttons [12].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
 
             bHasDualSense = true;
+
+            if (bHasDualSense && SK_ImGui_WantGamepadCapture ())
+            {
+              unsigned int x = 0;
+
+              do
+              {
+                // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
+                //   for no good reason.
+                       JOYINFOEX joy_ex   { };
+                static JOYCAPS2W joy_caps [15] = { };
+
+                SK_RunOnce (
+                  for ( int i = 0 ; i < 15 ; i++ )
+                    SK_joyGetDevCapsW (i, (JOYCAPSW *)&joy_caps [i], sizeof (JOYCAPS2W));
+                );
+
+                bool bInvalidController =
+                  (! (joy_caps [x].wCaps & JOYCAPS_POV4DIR)) ||
+                      joy_caps [x].wNumButtons < 4;
+
+                if (! bInvalidController)
+                {
+                  joy_ex.dwSize  = sizeof (JOYINFOEX);
+                  joy_ex.dwFlags = JOY_RETURNPOV | JOY_RETURNCENTERED | JOY_USEDEADZONE;
+
+                  if ( JOYERR_NOERROR != SK_joyGetPosEx (x, &joy_ex) )
+                    continue;
+
+                  if (joy_ex.dwPOV == JOY_POVCENTERED)
+                    continue;
+
+                  if (joy_ex.dwPOV == JOY_POVFORWARD)
+                    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
+
+                  else if (joy_ex.dwPOV == JOY_POVBACKWARD)
+                    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
+
+                  else if (joy_ex.dwPOV == JOY_POVLEFT)
+                    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
+
+                  else if (joy_ex.dwPOV == JOY_POVRIGHT)
+                    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
+
+                  break;
+                }
+              } while ( x++ < SK_joyGetNumDevs () );
+            }
+
             break;
           }
         }
