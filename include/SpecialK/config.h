@@ -1500,6 +1500,7 @@ enum class SK_GAME_ID
   Blood,                        // anuket_x64.exe
   BatmanArkhamKnight,           // BatmanAK.exe
   Noita,                        // Noita.exe
+  Persona3,                     // P3R.exe
 
   UNKNOWN_GAME               = 0xffff
 };

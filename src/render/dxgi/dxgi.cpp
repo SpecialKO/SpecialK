@@ -1,4 +1,4 @@
-﻿/**
+ /**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -3738,7 +3738,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
 HRESULT
 STDMETHODCALLTYPE
 SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
-              _In_  const DXGI_MODE_DESC *pModeToMatch,
+                   _In_   DXGI_MODE_DESC *pModeToMatch,
                    _Out_  DXGI_MODE_DESC *pClosestMatch,
                 _In_opt_  IUnknown       *pConcernedDevice,
                           BOOL            bApplyOverrides )
@@ -3751,6 +3751,20 @@ SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
     SK_LOGi0 ( L"SK_DXGI_FindClosestMode (...) called without a hooked IDXGIOutput" );
 
     return E_NOINTERFACE;
+  }
+
+  // Do not allow DXGI_FORMAT_UNKNOWN
+  if (pModeToMatch->Format == DXGI_FORMAT_UNKNOWN)
+  {
+    DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+    pSwapChain->GetDesc (&swapDesc);
+
+    SK_LOGi0 (
+      L"Replacing DXGI_FORMAT_UNKNOWN with %hs",
+        SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data ()
+    );
+
+    pModeToMatch->Format = swapDesc.BufferDesc.Format;
   }
 
   SK_ComPtr <IDXGIDevice> pSwapDevice;
@@ -3862,7 +3876,7 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
 
     bool borderless = config.window.borderless || fake_fullscreen;
 
-    if ( borderless ||
+    if ( borderless || new_new_params.Format == DXGI_FORMAT_UNKNOWN ||
          ( config.render.dxgi.scaling_mode != SK_NoPreference &&
             pNewTargetParameters->Scaling  !=
               (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode )
@@ -3874,6 +3888,21 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
          )
       )
     {
+      // Do not allow DXGI_FORMAT_UNKNOWN
+      if (new_new_params.Format == DXGI_FORMAT_UNKNOWN)
+      {
+        DXGI_SWAP_CHAIN_DESC swapDesc = { };
+        This->GetDesc      (&swapDesc);
+
+        SK_LOGi0 (
+          L"Replacing DXGI_FORMAT_UNKNOWN with %hs",
+            SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data ()
+        );
+
+        new_new_params.Format = swapDesc.BufferDesc.Format;
+      }
+
+
       if ( config.render.framerate.rescan_.Denom          !=  1    ||
            (config.render.framerate.refresh_rate          != -1.0f &&
                      new_new_params.RefreshRate.Numerator != sk::narrow_cast <UINT>
@@ -4426,10 +4455,35 @@ DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                            pNewTargetParameters->ScanlineOrdering
   );
 
-  return
-    SK_DXGI_SwapChain_ResizeTarget_Impl (
-      This, pNewTargetParameters, FALSE
+  // Do not allow DXGI_FORMAT_UNKNOWN
+  if (pNewTargetParameters->Format == DXGI_FORMAT_UNKNOWN)
+  {
+    DXGI_MODE_DESC mode_desc_fixed =
+      *pNewTargetParameters;
+
+    DXGI_SWAP_CHAIN_DESC swapDesc = { };
+    This->GetDesc      (&swapDesc);
+
+    mode_desc_fixed.Format = swapDesc.BufferDesc.Format;
+
+    SK_LOGi0 (
+      L"Replacing DXGI_FORMAT_UNKNOWN with %hs",
+        SK_DXGI_FormatToStr (swapDesc.BufferDesc.Format).data ()
     );
+
+    return
+      SK_DXGI_SwapChain_ResizeTarget_Impl (
+        This, &mode_desc_fixed, FALSE
+      );
+  }
+
+  else
+  {
+    return
+      SK_DXGI_SwapChain_ResizeTarget_Impl (
+        This, pNewTargetParameters, FALSE
+      );
+  }
 }
 
 void

@@ -252,7 +252,8 @@ SK_GetCurrentGameID (void)
           { L"DOOMEternalx64vk.exe",                   SK_GAME_ID::DOOMEternal                  },
           { L"anuket_x64.exe",                         SK_GAME_ID::Blood                        },
           { L"BatmanAK.exe",                           SK_GAME_ID::BatmanArkhamKnight           },
-          { L"Noita.exe",                              SK_GAME_ID::Noita                        }
+          { L"Noita.exe",                              SK_GAME_ID::Noita                        },
+          { L"P3R.exe",                                SK_GAME_ID::Persona3                     }
         };
 
     first_check  = false;

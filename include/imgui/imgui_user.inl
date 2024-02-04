@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <mmsystem.h>
 #include <Windows.h>
@@ -1913,6 +1913,11 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
   static XINPUT_STATE last_state = { 1, 0 };
 
+  bool api_bridge =
+      config.input.gamepad.native_ps4;
+
+  bool bHasDualSense = false;
+
   if (bUseGamepad)
   {
     SK_RunOnce (SK_HID_SetupPlayStationControllers ());
@@ -1953,7 +1958,38 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
           }
 
           SK_LOGs0 (L"InputBkEnd", L"HidD_GetInputReport (...) failed, Error=%d", GetLastError ());
+
+          // Stop polling on the first failure, if the device comes back to life, we'll probably
+          //   get a device arrival notification.
+          ps_controller.bConnected = false;
+          continue;
         }
+
+        joy_to_xi = { };
+
+        // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
+        //   for no good reason.
+        JOYINFOEX joy_ex   { };
+        JOYCAPSW  joy_caps { };
+    
+        joy_ex.dwSize  = sizeof (JOYINFOEX);
+        joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
+                         JOY_RETURNCENTERED | JOY_USEDEADZONE;
+    
+        SK_joyGetPosEx    (JOYSTICKID1, &joy_ex);
+        SK_joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof (JOYCAPSW));
+
+        if (joy_ex.dwPOV == JOY_POVFORWARD)
+          joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
+
+        if (joy_ex.dwPOV == JOY_POVBACKWARD)
+          joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
+
+        if (joy_ex.dwPOV == JOY_POVLEFT)
+          joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
+
+        if (joy_ex.dwPOV == JOY_POVRIGHT)
+          joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
 
         ULONG num_usages =
           static_cast <ULONG> (ps_controller.button_usages.size ());
@@ -2010,14 +2046,33 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
             SK_SetGameMute (! SK_IsGameMuted ());
           }
         }
+
+        if (ps_controller.bDualSense)
+        {
+          if (ps_controller.buttons [0].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+          if (ps_controller.buttons [1].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+          if (ps_controller.buttons [2].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+          if (ps_controller.buttons [3].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+
+          if (ps_controller.buttons [4].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+          if (ps_controller.buttons [5].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+          if (ps_controller.buttons [6].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+          if (ps_controller.buttons [7].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+
+          if (ps_controller.buttons [8].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+          if (ps_controller.buttons [9].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+
+          if (ps_controller.buttons [10].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+          if (ps_controller.buttons [11].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+          if (ps_controller.buttons [12].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+
+          bHasDualSense = true;
+        }
       }
     }
 
     auto& state =
         *pState;
-
-    const bool api_bridge =
-      config.input.gamepad.native_ps4;
 
 #ifdef SK_STEAM_CONTROLLER_SUPPORT
     api_bridge |= ( ControllerPresent (config.input.gamepad.steam.ui_slot) );
@@ -2040,11 +2095,17 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
       SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
     }
 
+    if (! SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state))
 #if 1
     state = joy_to_xi;
 #else
     state = di8_to_xi;
 #endif
+    else
+    {
+      bHasDualSense = false;
+      api_bridge    = false;
+    }
 
 #ifdef SK_STEAM_CONTROLLER_SUPPORT
     if (ControllerPresent (config.input.gamepad.steam.ui_slot))
@@ -2059,7 +2120,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     //            SK_ScePad_PaceMaker ();
 
 
-    if ( api_bridge ||
+    if ( bHasDualSense ||
+            api_bridge ||
          SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, pState) )
     {
       bRet = true;

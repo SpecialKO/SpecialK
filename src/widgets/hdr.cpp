@@ -2757,7 +2757,7 @@ public:
                   preset.cfg_eotf->store (preset.eotf);
                 }
                 if (ImGui::IsItemHovered ())
-                  ImGui::SetTooltip ("Ubisoft games (e.g. Watch Dogs Legions) use 0.34 cd/m² as SDR black for video and UI, which is gray in HDR...");
+                  ImGui::SetTooltip ((const char *)u8"Ubisoft games (e.g. Watch Dogs Legions) use 0.34 cd/m² as SDR black for video and UI, which is gray in HDR...");
                 //ImGui::BulletText ("Gamma Correction Unsupported for Current Tonemap");
               }
 

@@ -1,3 +1,8 @@
+24.2.4
+======
+ + Added native support for Dual Sense controllers in SK's UI; all except for
+     haptic UI freedback (this will be used only if DS4Windows emulates XInput)
+
 24.2.3.5
 ========
  + Added internal list of games that do not correctly support 10-bpc or 16-bpc

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -196,7 +196,7 @@ CreateDXGIFactory2 (              UINT     Flags,
 HRESULT
 STDMETHODCALLTYPE
 SK_DXGI_FindClosestMode ( IDXGISwapChain *pSwapChain,
-              _In_  const DXGI_MODE_DESC *pModeToMatch,
+                    _In_  DXGI_MODE_DESC *pModeToMatch,
                    _Out_  DXGI_MODE_DESC *pClosestMatch,
                 _In_opt_  IUnknown       *pConcernedDevice,
                           BOOL            bApplyOverrides = FALSE );
