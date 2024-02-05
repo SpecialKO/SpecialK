@@ -5228,7 +5228,7 @@ SK_ImGui_ControlPanel (void)
               ( ( target < 0.0f ) ? (-1.0f * target_mag) :
                                              target_mag    );
 
-            if (target > 10.0f || target == 0.0f)
+            if (target >= 0.1f || target == 0.0f)
               cp->ProcessCommandFormatted ("%s %f", command, target);
             else if (target < 0.0f)
             {
