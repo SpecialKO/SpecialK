@@ -1176,7 +1176,7 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
           {
             hw_status.append (
               SK_FormatStringW (
-                L" at %5.2f°C", SK_GPU_GetTempInC (0)
+                L" at %5.2fÂ°C", SK_GPU_GetTempInC (0)
               )
             );
           }
@@ -1470,6 +1470,25 @@ SK_TopLevelExceptionFilter ( _In_ struct _EXCEPTION_POINTERS *ExceptionInfo )
     if (SK_GetFramesDrawn () > 1)
     { 
       SK_Inject_BroadcastExitNotify ();
+    }
+
+    if ( ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_PRIV_INSTRUCTION ||
+         ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_ILLEGAL_INSTRUCTION )
+    {
+      if (
+        SK_GetModuleHandleW (
+          SK_RunLHIfBitness (64, L"RTSSHooks64.dll",
+                                 L"RTSSHooks.dll") )
+         )
+      {
+        SK_RunOnce (
+          SK_MessageBox (
+            L"The game has crashed, and the suspected cause is RivaTuner Statistics Server.\r\n\r\n"
+            L"\tPlease ensure that RTSS is configured to use 'Detours Compatible' mode.",
+              L"Illegal / Privileged Instruction", MB_OK | MB_ICONWARNING
+          )
+        );
+      }
     }
 
     if (! config.system.handle_crashes)

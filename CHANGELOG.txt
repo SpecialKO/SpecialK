@@ -1,3 +1,8 @@
+24.2.6.1
+========
+ + Added warning dialog if game crashes with Illegal or Priviliged Instruction
+     exception and RTSS is loaded; Detours compatibility mode usually fixes.
+
 24.2.6
 ======
  + DualShock 4 controllers can be used with SK's control panel now without any
