@@ -456,20 +456,22 @@ void SK_HID_SetupPlayStationControllers (void)
 // HIDClass (User mode)
 //
 //////////////////////////////////////////////////////////////
-HidD_GetPreparsedData_pfn  HidD_GetPreparsedData_Original  = nullptr;
-HidD_FreePreparsedData_pfn HidD_FreePreparsedData_Original = nullptr;
-HidD_GetFeature_pfn        HidD_GetFeature_Original        = nullptr;
-HidP_GetData_pfn           HidP_GetData_Original           = nullptr;
-HidP_GetCaps_pfn           HidP_GetCaps_Original           = nullptr;
+HidD_GetPreparsedData_pfn   HidD_GetPreparsedData_Original  = nullptr;
+HidD_FreePreparsedData_pfn  HidD_FreePreparsedData_Original = nullptr;
+HidD_GetFeature_pfn         HidD_GetFeature_Original        = nullptr;
+HidP_GetData_pfn            HidP_GetData_Original           = nullptr;
+HidP_GetCaps_pfn            HidP_GetCaps_Original           = nullptr;
 
-HidD_GetPreparsedData_pfn  SK_HidD_GetPreparsedData  = nullptr;
-HidD_FreePreparsedData_pfn SK_HidD_FreePreparsedData = nullptr;
-HidD_GetInputReport_pfn    SK_HidD_GetInputReport    = nullptr;
-HidD_GetFeature_pfn        SK_HidD_GetFeature        = nullptr;
-HidP_GetData_pfn           SK_HidP_GetData           = nullptr;
-HidP_GetCaps_pfn           SK_HidP_GetCaps           = nullptr;
-HidP_GetButtonCaps_pfn     SK_HidP_GetButtonCaps     = nullptr;
-HidP_GetUsages_pfn         SK_HidP_GetUsages         = nullptr;
+HidD_GetPreparsedData_pfn   SK_HidD_GetPreparsedData   = nullptr;
+HidD_FreePreparsedData_pfn  SK_HidD_FreePreparsedData  = nullptr;
+HidD_GetInputReport_pfn     SK_HidD_GetInputReport     = nullptr;
+HidD_GetFeature_pfn         SK_HidD_GetFeature         = nullptr;
+HidP_GetData_pfn            SK_HidP_GetData            = nullptr;
+HidP_GetCaps_pfn            SK_HidP_GetCaps            = nullptr;
+HidP_GetButtonCaps_pfn      SK_HidP_GetButtonCaps      = nullptr;
+HidP_GetUsages_pfn          SK_HidP_GetUsages          = nullptr;
+HidP_GetUsageValue_pfn      SK_HidP_GetUsageValue      = nullptr;
+HidP_GetUsageValueArray_pfn SK_HidP_GetUsageValueArray = nullptr;
 
 bool
 SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
@@ -855,94 +857,6 @@ static CreateFile2_pfn CreateFile2_Original = nullptr;
 
 CreateFile2_pfn              SK_CreateFile2 = nullptr;
 ReadFile_pfn                    SK_ReadFile = nullptr;
-
-#if 0
-NTSTATUS
-WINAPI
-SK_HidP_GetCaps (_In_  PHIDP_PREPARSED_DATA PreparsedData,
-                 _Out_ PHIDP_CAPS           Capabilities)
-{
-  static HidP_GetCaps_pfn _HidP_GetCaps = nullptr;
-
-  if (HidP_GetCaps_Original != nullptr)
-    return HidP_GetCaps_Original (PreparsedData, Capabilities);
-
-  else
-  {
-    if (_HidP_GetCaps == nullptr)
-    {
-      _HidP_GetCaps =
-        (HidP_GetCaps_pfn)SK_GetProcAddress (L"hid.dll",
-        "HidP_GetCaps");
-    }
-  }
-
-  if (_HidP_GetCaps != nullptr)
-  {
-    return
-      _HidP_GetCaps (PreparsedData, Capabilities);
-  }
-
-  return HIDP_STATUS_NOT_IMPLEMENTED;
-}
-
-BOOLEAN
-WINAPI
-SK_HidD_GetPreparsedData (_In_  HANDLE                HidDeviceObject,
-                          _Out_ PHIDP_PREPARSED_DATA *PreparsedData)
-{
-  static HidD_GetPreparsedData_pfn _HidD_GetPreparsedData = nullptr;
-
-  if (HidD_GetPreparsedData_Original != nullptr)
-    return HidD_GetPreparsedData_Original (HidDeviceObject, PreparsedData);
-
-  else
-  {
-    if (_HidD_GetPreparsedData == nullptr)
-    {
-      _HidD_GetPreparsedData =
-        (HidD_GetPreparsedData_pfn)SK_GetProcAddress (L"hid.dll",
-        "HidD_GetPreparsedData");
-    }
-  }
-
-  if (_HidD_GetPreparsedData != nullptr)
-  {
-    return
-      _HidD_GetPreparsedData (HidDeviceObject, PreparsedData);
-  }
-
-  return FALSE;
-}
-
-BOOLEAN
-WINAPI
-SK_HidD_FreePreparsedData (_In_ PHIDP_PREPARSED_DATA PreparsedData)
-{
-  static HidD_FreePreparsedData_pfn _HidD_FreePreparsedData = nullptr;
-
-  if (HidD_FreePreparsedData_Original != nullptr)
-    return HidD_FreePreparsedData_Original (PreparsedData);
-
-  else
-  {
-    if (_HidD_FreePreparsedData == nullptr)
-    {
-      _HidD_FreePreparsedData =
-        (HidD_FreePreparsedData_pfn)SK_GetProcAddress (L"hid.dll",
-        "HidD_FreePreparsedData");
-    }
-  }
-
-  if (_HidD_FreePreparsedData != nullptr)
-  {
-    return
-      _HidD_FreePreparsedData (PreparsedData);
-  }
-
-  return FALSE;
-}
-#endif
 
 BOOL
 WINAPI
@@ -2052,6 +1966,14 @@ SK_Input_PreHookHID (void)
   SK_HidP_GetUsages =
     (HidP_GetUsages_pfn)SK_GetProcAddress (hModHID,
     "HidP_GetUsages");
+
+  SK_HidP_GetUsageValue =
+    (HidP_GetUsageValue_pfn)SK_GetProcAddress (hModHID,
+    "HidP_GetUsageValue");
+
+  SK_HidP_GetUsageValueArray =
+    (HidP_GetUsageValueArray_pfn)SK_GetProcAddress (hModHID,
+    "HidP_GetUsageValueArray");
 
   SK_HidD_GetInputReport =
     (HidD_GetInputReport_pfn)SK_GetProcAddress (hModHID,

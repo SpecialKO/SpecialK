@@ -1,3 +1,10 @@
+24.2.6
+======
+ + DualShock 4 controllers can be used with SK's control panel now without any
+     sort of XInput emulation.
+ + Fixed Start+Select (Share + Whatever) not working as a way of opening SK's
+     control panel on PlayStation controllers (PlayStation button should work).
+
 24.2.4.2
 ========
  + Optimized D-Pad button polling for Dual Sense controllers.

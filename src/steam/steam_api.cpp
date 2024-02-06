@@ -1,4 +1,4 @@
-﻿/**
+/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -5819,6 +5819,18 @@ void
 SK_Steam_ForceInputAppId (AppId64_t appid)
 {
   if (config.platform.silent)
+    return;
+
+  char                                                  configurator [8] = { };
+  GetEnvironmentVariableA ("EnableConfiguratorSupport", configurator, 7);
+
+  char                                                                       xinput_emulation [8] = { };
+  GetEnvironmentVariableA ("SDL_GAMECONTROLLER_ALLOW_STEAM_VIRTUAL_GAMEPAD", xinput_emulation, 7);
+
+  if (*configurator != '\0' && atoi (configurator) == 0)
+    return;
+
+  if (*xinput_emulation != '\0' && atoi (xinput_emulation) == 0)
     return;
 
   //

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -600,6 +600,29 @@ using HidP_GetCaps_pfn = NTSTATUS (__stdcall *)(
   _Out_ PHIDP_CAPS           Capabilities
 );
 
+using HidP_GetUsageValue_pfn = NTSTATUS (__stdcall *)(
+  _In_  HIDP_REPORT_TYPE     ReportType,
+  _In_  USAGE                UsagePage,
+  _In_  USHORT               LinkCollection,
+  _In_  USAGE                Usage,
+  _Out_ PULONG               UsageValue,
+  _In_  PHIDP_PREPARSED_DATA PreparsedData,
+  _In_  PCHAR                Report,
+  _In_  ULONG                ReportLength
+);
+
+using HidP_GetUsageValueArray_pfn = NTSTATUS (__stdcall *)(
+  _In_    HIDP_REPORT_TYPE     ReportType,
+  _In_    USAGE                UsagePage,
+  _In_    USHORT               LinkCollection,
+  _In_    USAGE                Usage,
+  _Inout_ PCHAR                UsageValue,
+  _In_    USHORT               UsageValueByteLength,
+  _In_    PHIDP_PREPARSED_DATA PreparsedData,
+  _In_    PCHAR                Report,
+  _In_    ULONG                ReportLength
+);
+
 using HidD_GetPreparsedData_pfn = BOOLEAN (__stdcall *)(
   _In_  HANDLE                HidDeviceObject,
   _Out_ PHIDP_PREPARSED_DATA *PreparsedData
@@ -680,21 +703,24 @@ BOOL (WINAPI *)(HANDLE       hFile,
                 DWORD        dwMilliseconds,
                 BOOL         bWait);
 
-extern HidP_GetCaps_pfn           HidP_GetCaps_Original          ;
-extern HidD_GetPreparsedData_pfn  HidD_GetPreparsedData_Original ;
-extern HidD_FreePreparsedData_pfn HidD_FreePreparsedData_Original;
-extern HidD_GetFeature_pfn        HidD_GetFeature_Original       ;
-extern HidP_GetData_pfn           HidP_GetData_Original          ;
-extern SetCursor_pfn              SetCursor_Original             ;
+extern SetCursor_pfn               SetCursor_Original;
 
-extern HidD_GetInputReport_pfn    SK_HidD_GetInputReport;
-extern HidD_GetPreparsedData_pfn  SK_HidD_GetPreparsedData;
-extern HidD_FreePreparsedData_pfn SK_HidD_FreePreparsedData;
-extern HidD_GetFeature_pfn        SK_HidD_GetFeature;
-extern HidP_GetData_pfn           SK_HidP_GetData;
-extern HidP_GetCaps_pfn           SK_HidP_GetCaps;
-extern HidP_GetButtonCaps_pfn     SK_HidP_GetButtonCaps;
-extern HidP_GetUsages_pfn         SK_HidP_GetUsages;
+extern HidP_GetCaps_pfn            HidP_GetCaps_Original;
+extern HidD_GetPreparsedData_pfn   HidD_GetPreparsedData_Original;
+extern HidD_FreePreparsedData_pfn  HidD_FreePreparsedData_Original;
+extern HidD_GetFeature_pfn         HidD_GetFeature_Original;
+extern HidP_GetData_pfn            HidP_GetData_Original;
+
+extern HidD_GetInputReport_pfn     SK_HidD_GetInputReport;
+extern HidD_GetPreparsedData_pfn   SK_HidD_GetPreparsedData;
+extern HidD_FreePreparsedData_pfn  SK_HidD_FreePreparsedData;
+extern HidD_GetFeature_pfn         SK_HidD_GetFeature;
+extern HidP_GetData_pfn            SK_HidP_GetData;
+extern HidP_GetCaps_pfn            SK_HidP_GetCaps;
+extern HidP_GetButtonCaps_pfn      SK_HidP_GetButtonCaps;
+extern HidP_GetUsages_pfn          SK_HidP_GetUsages;
+extern HidP_GetUsageValue_pfn      SK_HidP_GetUsageValue;
+extern HidP_GetUsageValueArray_pfn SK_HidP_GetUsageValueArray;
 
 extern ReadFile_pfn               SK_ReadFile;
 extern CreateFile2_pfn            SK_CreateFile2;

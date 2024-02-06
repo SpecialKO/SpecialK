@@ -1919,13 +1919,13 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
   bool api_bridge =
       config.input.gamepad.native_ps4;
 
-  bool bHasDualSense = false;
+  bool bHasPlayStation = false;
 
   if (bUseGamepad)
   {
     SK_RunOnce (SK_HID_SetupPlayStationControllers ());
 
-    joy_to_xi = { };
+    joy_to_xi.Gamepad = { };
 
     for ( auto& ps_controller : SK_HID_PlayStationControllers )
     {
@@ -1997,6 +1997,25 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
                 ps_controller.buttons       [0].Usage
               ].state = true;
             }
+
+            if (num_usages > 0)
+              joy_to_xi.dwPacketNumber++;
+          }
+
+          num_usages = 1;
+
+          if ( HIDP_STATUS_SUCCESS ==
+            SK_HidP_GetUsages ( HidP_Input, ps_controller.dpad.UsagePage, 0,
+                                           &ps_controller.dpad.Usage,
+                                                            &num_usages,
+                                            ps_controller.pPreparsedData,
+                                     (PCHAR)ps_controller.input_report.data  (),
+                       static_cast <ULONG> (ps_controller.input_report.size  ()) )
+             )
+          {
+            if (num_usages > 0)
+            {
+            }
           }
 
           if ( config.input.gamepad.scepad.enhanced_ps_button &&
@@ -2028,77 +2047,74 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
             }
           }
 
-          if (ps_controller.bDualSense)
+          if (ps_controller.buttons [0].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+          if (ps_controller.buttons [1].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+          if (ps_controller.buttons [2].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+          if (ps_controller.buttons [3].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+
+          if (ps_controller.buttons [4].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+          if (ps_controller.buttons [5].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+          if (ps_controller.buttons [6].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+          if (ps_controller.buttons [7].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+
+          if (ps_controller.buttons [8].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+          if (ps_controller.buttons [9].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+
+          if (ps_controller.buttons [10].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+          if (ps_controller.buttons [11].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+          if (ps_controller.buttons [12].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+
+          bHasPlayStation = true;
+
+          if (SK_ImGui_WantGamepadCapture ())
           {
-            if (ps_controller.buttons [0].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
-            if (ps_controller.buttons [1].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
-            if (ps_controller.buttons [2].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
-            if (ps_controller.buttons [3].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+            unsigned int x = 0;
 
-            if (ps_controller.buttons [4].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
-            if (ps_controller.buttons [5].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
-            if (ps_controller.buttons [6].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
-            if (ps_controller.buttons [7].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
-
-            if (ps_controller.buttons [8].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
-            if (ps_controller.buttons [9].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
-
-            if (ps_controller.buttons [10].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
-            if (ps_controller.buttons [11].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
-            if (ps_controller.buttons [12].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
-
-            bHasDualSense = true;
-
-            if (bHasDualSense && SK_ImGui_WantGamepadCapture ())
+            do
             {
-              unsigned int x = 0;
+              // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
+              //   for no good reason.
+                     JOYINFOEX joy_ex   { };
+              static JOYCAPS2W joy_caps [15] = { };
 
-              do
+              SK_RunOnce (
+                for ( int i = 0 ; i < 15 ; i++ )
+                  SK_joyGetDevCapsW (i, (JOYCAPSW *)&joy_caps [i], sizeof (JOYCAPS2W));
+              );
+
+              bool bInvalidController =
+                (! (joy_caps [x].wCaps & JOYCAPS_POV4DIR)) ||
+                    joy_caps [x].wNumButtons < 4;
+
+              if (! bInvalidController)
               {
-                // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
-                //   for no good reason.
-                       JOYINFOEX joy_ex   { };
-                static JOYCAPS2W joy_caps [15] = { };
+                joy_ex.dwSize  = sizeof (JOYINFOEX);
+                joy_ex.dwFlags = JOY_RETURNPOV | JOY_RETURNCENTERED | JOY_USEDEADZONE;
 
-                SK_RunOnce (
-                  for ( int i = 0 ; i < 15 ; i++ )
-                    SK_joyGetDevCapsW (i, (JOYCAPSW *)&joy_caps [i], sizeof (JOYCAPS2W));
-                );
+                if ( JOYERR_NOERROR != SK_joyGetPosEx (x, &joy_ex) )
+                  continue;
 
-                bool bInvalidController =
-                  (! (joy_caps [x].wCaps & JOYCAPS_POV4DIR)) ||
-                      joy_caps [x].wNumButtons < 4;
+                if (joy_ex.dwPOV == JOY_POVCENTERED)
+                  continue;
 
-                if (! bInvalidController)
-                {
-                  joy_ex.dwSize  = sizeof (JOYINFOEX);
-                  joy_ex.dwFlags = JOY_RETURNPOV | JOY_RETURNCENTERED | JOY_USEDEADZONE;
+                if (joy_ex.dwPOV == JOY_POVFORWARD)
+                  joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
 
-                  if ( JOYERR_NOERROR != SK_joyGetPosEx (x, &joy_ex) )
-                    continue;
+                else if (joy_ex.dwPOV == JOY_POVBACKWARD)
+                  joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
 
-                  if (joy_ex.dwPOV == JOY_POVCENTERED)
-                    continue;
+                else if (joy_ex.dwPOV == JOY_POVLEFT)
+                  joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
 
-                  if (joy_ex.dwPOV == JOY_POVFORWARD)
-                    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
+                else if (joy_ex.dwPOV == JOY_POVRIGHT)
+                  joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
 
-                  else if (joy_ex.dwPOV == JOY_POVBACKWARD)
-                    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
-
-                  else if (joy_ex.dwPOV == JOY_POVLEFT)
-                    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
-
-                  else if (joy_ex.dwPOV == JOY_POVRIGHT)
-                    joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
-
-                  break;
-                }
-              } while ( x++ < SK_joyGetNumDevs () );
-            }
-
-            break;
+                break;
+              }
+            } while ( x++ < SK_joyGetNumDevs () );
           }
+
+          break;
         }
       }
     }
@@ -2135,8 +2151,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 #endif
     else
     {
-      bHasDualSense = false;
-      api_bridge    = false;
+      bHasPlayStation = false;
+      api_bridge      = false;
     }
 
 #ifdef SK_STEAM_CONTROLLER_SUPPORT
@@ -2152,8 +2168,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     //            SK_ScePad_PaceMaker ();
 
 
-    if ( bHasDualSense ||
-            api_bridge ||
+    if ( bHasPlayStation ||
+              api_bridge ||
          SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, pState) )
     {
       bRet = true;
