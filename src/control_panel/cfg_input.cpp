@@ -1,4 +1,4 @@
-﻿/**
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -744,16 +744,55 @@ SK::ControlPanel::Input::Draw (void)
         }
       }
 
-      ImGui::Checkbox       ("Disable PS4 HID Input", &config.input.gamepad.disable_ps4_hid);
+      ImGui::SameLine      ();
+      ImGui::SeparatorEx   (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine      ();
 
-      if (ImGui::IsItemHovered ())
+      if (ImGui::BeginMenu (" Block Gamepad Input APIs###Input_API_Select"))
       {
-        ImGui::BeginTooltip  ();
-          ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f),
-                              "Prevents double input processing in games that support XInput and native PS4.");
-          ImGui::Separator   ();
-          ImGui::BulletText  ("This option requires restarting the game.");
-        ImGui::EndTooltip    ();
+        static bool _need_restart = false;
+
+        ImGui::BeginGroup ();
+        if (ImGui::Checkbox ("XInput", &config.input.gamepad.xinput.blackout_api))
+        {
+          _need_restart = true;
+        }
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::TextUnformatted ("Consider blocking XInput in games that natively support non-Xbox controllers.");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("Blocking XInput may prevent double-inputs if using something like DS4Windows.");
+          ImGui::BulletText      ("Blocking XInput may cause the game to use native button prompts for your device.");
+          ImGui::Separator       ();
+          ImGui::TextUnformatted ("A game restart -may- be required after blocking XInput.");
+          ImGui::EndTooltip      ();
+        }
+
+        if (ImGui::Checkbox ("HID",    &config.input.gamepad.disable_hid))
+        {
+          _need_restart = true;
+        }
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::TextUnformatted ("Sometimes a game supports both HID and XInput, but XInput has more features...");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("Blocking HID may prevent double-inputs.");
+          ImGui::BulletText      ("Blocking HID usually causes games to display Xbox buttons.");
+          ImGui::Separator       ();
+          ImGui::TextUnformatted ("A game restart -may- be required after blocking HID.");
+          ImGui::EndTooltip      ();
+        }
+        ImGui::EndGroup   ();
+
+        if (_need_restart)
+        {
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+          ImGui::BulletText     ("Game Restart May Be Required");
+          ImGui::PopStyleColor  ();
+        }
+        ImGui::EndMenu    ();
       }
 
       ImGui::NextColumn ( );
@@ -806,146 +845,149 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::NextColumn ( );
         ImGui::Columns    (2);
 
-        ImGui::Text     ("XInput Slots:\t");
-        ImGui::SameLine ();
-
-        if (ImGui::IsItemHovered ())
+        if (! config.input.gamepad.xinput.blackout_api)
         {
-          ImGui::BeginTooltip ();
-          ImGui::TextColored  (ImVec4 (1.f, 1.f, 1.f, 1.f),
-                               "Substitute (or Disable) XInput Controllers With Virtual Ones Until A Real One Is Connected");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("Placeholding (checked) a slot is useful for games that do not normally support hot-plugging");
-          ImGui::BulletText   ("Disabling (red button) a slot is useful if Steam Input and DS4Windows are both emulating XInput");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("Both may improve performance in games that poll disconnected controllers");
-          ImGui::EndTooltip   ();
-        }
-
-        auto XInputPlaceholderCheckbox = [](const char* szName, DWORD dwIndex)
-        {
-          bool disable_slot =
-            config.input.gamepad.xinput.disable [dwIndex];
-
-          bool placehold_slot =
-            config.input.gamepad.xinput.placehold [dwIndex];
-
-          int state = 0;
-
-          if      (  disable_slot) state = 2;
-          else if (placehold_slot) state = 1;
-          else                     state = 0;
-
-          if (disable_slot)
-          {
-            ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 (1.0f, 0.1f, 0.1f, 1.0f));
-            ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 (0.9f, 0.4f, 0.4f, 1.0f));
-            ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 (1.0f, 0.1f, 0.1f, 1.0f));
-            ImGui::PushStyleColor (ImGuiCol_CheckMark,      ImVec4 (0.0f, 0.0f, 0.0f, 1.0f));
-          }
-
-          else if (SK_ImGui_WantGamepadCapture ())
-          {
-            ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 (1.0f, 1.0f, 0.1f, 1.0f));
-            ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 (0.9f, 0.9f, 0.4f, 1.0f));
-            ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 (1.0f, 1.0f, 0.1f, 1.0f));
-            ImGui::PushStyleColor (ImGuiCol_CheckMark,      ImVec4 (0.0f, 0.0f, 0.0f, 1.0f));
-          }
-
-          if (ImGui::Checkbox (szName, &placehold_slot))
-          {
-            state = (++state % 3);
-
-            switch (state)
-            {
-              case 0:
-                config.input.gamepad.xinput.placehold [dwIndex] = false;
-                config.input.gamepad.xinput.disable   [dwIndex] = false;
-                break;
-              case 1:
-                config.input.gamepad.xinput.placehold [dwIndex] =  true;
-                config.input.gamepad.xinput.disable   [dwIndex] = false;
-                break;
-              case 2:
-                config.input.gamepad.xinput.placehold [dwIndex] = false;
-                config.input.gamepad.xinput.disable   [dwIndex] =  true;
-                break;
-            }
-
-            if (state != 2)
-            {
-              SK_Win32_NotifyDeviceChange ();
-            }
-          }
-
-          if (disable_slot || SK_ImGui_WantGamepadCapture ())
-          {
-            ImGui::PopStyleColor (4);
-          }
+          ImGui::Text     ("XInput Slots:\t");
+          ImGui::SameLine ();
 
           if (ImGui::IsItemHovered ())
           {
-            const SK_XInput_PacketJournal journal =
-                SK_XInput_GetPacketJournal (dwIndex);
-
-            ImGui::BeginTooltip  ( );
-
-            ImGui::BeginGroup    ( );
-            ImGui::TextUnformatted ("Device State: ");
-            ImGui::TextUnformatted ("Placeholding: ");
-            ImGui::EndGroup      ( );
-
-            ImGui::SameLine      ( );
-
-            ImGui::BeginGroup    ( );
-            if (config.input.gamepad.xinput.disable [dwIndex] || config.input.gamepad.xinput.blackout_api)
-              ImGui::TextColored (ImVec4 (1.0f, 0.1f, 0.1f, 1.0f), "Disabled");
-            else if (SK_ImGui_WantGamepadCapture ())
-              ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.1f, 1.0f), "Blocked");
-            else
-              ImGui::TextColored (ImVec4 (0.1f, 1.0f, 0.1f, 1.0f), "Enabled");
-
-            if (config.input.gamepad.xinput.placehold [dwIndex])
-            {
-              if (SK_XInput_Holding (dwIndex))
-                ImGui::TextColored (ImVec4 ( 0.1f,  1.0f,  0.1f, 1.0f), "Enabled and Active");
-              else
-                ImGui::TextColored (ImVec4 (0.75f, 0.75f, 0.75f, 1.0f), "Enabled");
-            }
-
-            else
-                ImGui::TextColored (ImVec4 ( 0.5f,  0.5f,  0.5f, 1.0f), "N/A");
-            ImGui::EndGroup      ( );
-            
-            ImGui::Separator     ( );
-
-            if (config.input.gamepad.xinput.placehold [dwIndex] && journal.packet_count.virt > 0)
-            {
-              ImGui::TextColored (ImColor (255, 255, 255), "Hardware Packet Sequencing");
-              ImGui::TextColored (ImColor (160, 160, 160), "(Last: %lu | Now: %lu)",
-                                  journal.sequence.last, journal.sequence.current);
-              ImGui::Separator   ( );
-              ImGui::Columns     (2, nullptr, false);
-              ImGui::TextColored (ImColor (255, 165, 0), "Virtual Packets..."); ImGui::NextColumn ();
-              ImGui::Text        ("%+07li", journal.packet_count.virt);         ImGui::NextColumn ();
-              ImGui::TextColored (ImColor (127, 255, 0), "Real Packets...");    ImGui::NextColumn ();
-              ImGui::Text        ("%+07li", journal.packet_count.real);
-              ImGui::Columns     (1);
-            }
-
-            else
-            {
-              ImGui::BulletText ("Inputs Processed:\t%d", journal.packet_count.real);
-            }
-
-            ImGui::EndTooltip  ( );
+            ImGui::BeginTooltip ();
+            ImGui::TextColored  (ImVec4 (1.f, 1.f, 1.f, 1.f),
+                                 "Substitute (or Disable) XInput Controllers With Virtual Ones Until A Real One Is Connected");
+            ImGui::Separator    ();
+            ImGui::BulletText   ("Placeholding (checked) a slot is useful for games that do not normally support hot-plugging");
+            ImGui::BulletText   ("Disabling (red button) a slot is useful if Steam Input and DS4Windows are both emulating XInput");
+            ImGui::Separator    ();
+            ImGui::BulletText   ("Both may improve performance in games that poll disconnected controllers");
+            ImGui::EndTooltip   ();
           }
-        };
 
-        XInputPlaceholderCheckbox (ICON_FA_GAMEPAD " 0", 0); ImGui::SameLine ();
-        XInputPlaceholderCheckbox (ICON_FA_GAMEPAD " 1", 1); ImGui::SameLine ();
-        XInputPlaceholderCheckbox (ICON_FA_GAMEPAD " 2", 2); ImGui::SameLine ();
-        XInputPlaceholderCheckbox (ICON_FA_GAMEPAD " 3", 3);
+          auto XInputPlaceholderCheckbox = [](const char* szName, DWORD dwIndex)
+          {
+            bool disable_slot =
+              config.input.gamepad.xinput.disable [dwIndex];
+
+            bool placehold_slot =
+              config.input.gamepad.xinput.placehold [dwIndex];
+
+            int state = 0;
+
+            if      (  disable_slot) state = 2;
+            else if (placehold_slot) state = 1;
+            else                     state = 0;
+
+            if (disable_slot)
+            {
+              ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 (1.0f, 0.1f, 0.1f, 1.0f));
+              ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 (0.9f, 0.4f, 0.4f, 1.0f));
+              ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 (1.0f, 0.1f, 0.1f, 1.0f));
+              ImGui::PushStyleColor (ImGuiCol_CheckMark,      ImVec4 (0.0f, 0.0f, 0.0f, 1.0f));
+            }
+
+            else if (SK_ImGui_WantGamepadCapture ())
+            {
+              ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 (1.0f, 1.0f, 0.1f, 1.0f));
+              ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 (0.9f, 0.9f, 0.4f, 1.0f));
+              ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 (1.0f, 1.0f, 0.1f, 1.0f));
+              ImGui::PushStyleColor (ImGuiCol_CheckMark,      ImVec4 (0.0f, 0.0f, 0.0f, 1.0f));
+            }
+
+            if (ImGui::Checkbox (szName, &placehold_slot))
+            {
+              state = (++state % 3);
+
+              switch (state)
+              {
+                case 0:
+                  config.input.gamepad.xinput.placehold [dwIndex] = false;
+                  config.input.gamepad.xinput.disable   [dwIndex] = false;
+                  break;
+                case 1:
+                  config.input.gamepad.xinput.placehold [dwIndex] =  true;
+                  config.input.gamepad.xinput.disable   [dwIndex] = false;
+                  break;
+                case 2:
+                  config.input.gamepad.xinput.placehold [dwIndex] = false;
+                  config.input.gamepad.xinput.disable   [dwIndex] =  true;
+                  break;
+              }
+
+              if (state != 2)
+              {
+                SK_Win32_NotifyDeviceChange ();
+              }
+            }
+
+            if (disable_slot || SK_ImGui_WantGamepadCapture ())
+            {
+              ImGui::PopStyleColor (4);
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              const SK_XInput_PacketJournal journal =
+                  SK_XInput_GetPacketJournal (dwIndex);
+
+              ImGui::BeginTooltip  ( );
+
+              ImGui::BeginGroup    ( );
+              ImGui::TextUnformatted ("Device State: ");
+              ImGui::TextUnformatted ("Placeholding: ");
+              ImGui::EndGroup      ( );
+
+              ImGui::SameLine      ( );
+
+              ImGui::BeginGroup    ( );
+              if (config.input.gamepad.xinput.disable [dwIndex] || config.input.gamepad.xinput.blackout_api)
+                ImGui::TextColored (ImVec4 (1.0f, 0.1f, 0.1f, 1.0f), "Disabled");
+              else if (SK_ImGui_WantGamepadCapture ())
+                ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.1f, 1.0f), "Blocked");
+              else
+                ImGui::TextColored (ImVec4 (0.1f, 1.0f, 0.1f, 1.0f), "Enabled");
+
+              if (config.input.gamepad.xinput.placehold [dwIndex])
+              {
+                if (SK_XInput_Holding (dwIndex))
+                  ImGui::TextColored (ImVec4 ( 0.1f,  1.0f,  0.1f, 1.0f), "Enabled and Active");
+                else
+                  ImGui::TextColored (ImVec4 (0.75f, 0.75f, 0.75f, 1.0f), "Enabled");
+              }
+
+              else
+                  ImGui::TextColored (ImVec4 ( 0.5f,  0.5f,  0.5f, 1.0f), "N/A");
+              ImGui::EndGroup      ( );
+              
+              ImGui::Separator     ( );
+
+              if (config.input.gamepad.xinput.placehold [dwIndex] && journal.packet_count.virt > 0)
+              {
+                ImGui::TextColored (ImColor (255, 255, 255), "Hardware Packet Sequencing");
+                ImGui::TextColored (ImColor (160, 160, 160), "(Last: %lu | Now: %lu)",
+                                    journal.sequence.last, journal.sequence.current);
+                ImGui::Separator   ( );
+                ImGui::Columns     (2, nullptr, false);
+                ImGui::TextColored (ImColor (255, 165, 0), "Virtual Packets..."); ImGui::NextColumn ();
+                ImGui::Text        ("%+07li", journal.packet_count.virt);         ImGui::NextColumn ();
+                ImGui::TextColored (ImColor (127, 255, 0), "Real Packets...");    ImGui::NextColumn ();
+                ImGui::Text        ("%+07li", journal.packet_count.real);
+                ImGui::Columns     (1);
+              }
+
+              else
+              {
+                ImGui::BulletText ("Inputs Processed:\t%d", journal.packet_count.real);
+              }
+
+              ImGui::EndTooltip  ( );
+            }
+          };
+
+          XInputPlaceholderCheckbox (ICON_FA_GAMEPAD " 0", 0); ImGui::SameLine ();
+          XInputPlaceholderCheckbox (ICON_FA_GAMEPAD " 1", 1); ImGui::SameLine ();
+          XInputPlaceholderCheckbox (ICON_FA_GAMEPAD " 2", 2); ImGui::SameLine ();
+          XInputPlaceholderCheckbox (ICON_FA_GAMEPAD " 3", 3);
+        }
 
         ImGui::NextColumn ( );
 

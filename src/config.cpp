@@ -968,7 +968,7 @@ struct {
   } cursor;
 
   struct {
-    sk::ParameterBool*    disable_ps4_hid         = nullptr;
+    sk::ParameterBool*    disable_hid             = nullptr;
     sk::ParameterBool*    rehook_xinput           = nullptr;
     sk::ParameterBool*    haptic_ui               = nullptr;
     sk::ParameterBool*    disable_rumble          = nullptr;
@@ -1529,7 +1529,7 @@ auto DeclKeybind =
     ConfigEntry (input.cursor.no_warp_visible,           L"Prevent Games from Warping Cursor while Cursor is Visible", dll_ini,         L"Input.Cursor",          L"NoWarpVisibleGameCursor"),
 
     ConfigEntry (input.gamepad.disabled_to_game,         L"Disable ALL Gamepad Input (across all APIs)",               dll_ini,         L"Input.Gamepad",         L"DisabledToGame"),
-    ConfigEntry (input.gamepad.disable_ps4_hid,          L"Disable PS4 HID Interface (prevent double-input)",          dll_ini,         L"Input.Gamepad",         L"DisablePS4HID"),
+    ConfigEntry (input.gamepad.disable_hid,              L"Disable HID Input (prevent double-input if XInput is used)",dll_ini,         L"Input.Gamepad",         L"DisableHID"),
     ConfigEntry (input.gamepad.haptic_ui,                L"Give tactile feedback on gamepads when navigating the UI",  dll_ini,         L"Input.Gamepad",         L"AllowHapticUI"),
     ConfigEntry (input.gamepad.hook_windows_gaming,      L"Install hooks for Windows.Gaming.Input",                    dll_ini,         L"Input.Gamepad",         L"EnableWindowsGamingInput"),
     ConfigEntry (input.gamepad.hook_raw_input,           L"Install hooks for RawInput and process WM_INPUT messages",  dll_ini,         L"Input.Gamepad",         L"EnableRawInput"),
@@ -3129,7 +3129,7 @@ auto DeclKeybind =
         config.render.framerate.target_fps           =    60;
         config.render.framerate.drop_late_flips      =  true;
         config.render.framerate.flip_discard         =  true;
-        config.input.gamepad.disable_ps4_hid         = false; // Automagic
+        config.input.gamepad.disable_hid             = false; // Automagic
         config.input.gamepad.xinput.auto_slot_assign =  true;
         config.threads.enable_file_io_trace          =  true;
         config.steam.preload_overlay                 = false; // Set to false because of loss of rumble
@@ -4016,7 +4016,7 @@ auto DeclKeybind =
   input.cursor.antiwarp_deadzone->load   (config.input.mouse.antiwarp_deadzone);
 
   input.gamepad.disabled_to_game->load   (config.input.gamepad.disabled_to_game);
-  input.gamepad.disable_ps4_hid->load    (config.input.gamepad.disable_ps4_hid);
+  input.gamepad.disable_hid->load        (config.input.gamepad.disable_hid);
   input.gamepad.rehook_xinput->load      (config.input.gamepad.rehook_xinput);
   input.gamepad.hook_xinput->load        (config.input.gamepad.hook_xinput);
   input.gamepad.hook_scepad->load        (config.input.gamepad.hook_scepad);
@@ -5392,7 +5392,7 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.antiwarp_deadzone->store       (config.input.mouse.antiwarp_deadzone);
 
   input.gamepad.disabled_to_game->store       (config.input.gamepad.disabled_to_game);
-  input.gamepad.disable_ps4_hid->store        (config.input.gamepad.disable_ps4_hid);
+  input.gamepad.disable_hid->store            (config.input.gamepad.disable_hid);
   input.gamepad.rehook_xinput->store          (config.input.gamepad.rehook_xinput);
   input.gamepad.haptic_ui->store              (config.input.gamepad.haptic_ui);
   input.gamepad.native_ps4->store             (config.input.gamepad.native_ps4);

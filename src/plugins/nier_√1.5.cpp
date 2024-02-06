@@ -1004,7 +1004,7 @@ SK_NIER_RAD_BeginFrame (void)
     if (_SK_NIER_RAD_FixDInput8EnumDevices)
     {
       //if (SK_XInput_Backend->getInputAge (4UL) < 1.0f /*|| SK_DI8_Backend->getInputAge (sk_input_dev_type::Gamepad ???*/)
-        config.input.gamepad.disable_ps4_hid = true;
+        config.input.gamepad.disable_hid = true;
     }
   }
 
@@ -1387,7 +1387,7 @@ void SK_NIER_RAD_InitPlugin (void)
   SK_EnableHook (             IDirectInput8W_EnumDevices_Detour);
   SK_EnableHook (             SK_Proxy_KeyboardProc);
 
-  config.input.gamepad.disable_ps4_hid = false;
+  config.input.gamepad.disable_hid = false;
 
   plugin_mgr->config_fns.emplace (SK_NIER_RAD_PlugInCfg);
 

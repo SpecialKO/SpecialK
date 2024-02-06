@@ -461,6 +461,7 @@ HidD_FreePreparsedData_pfn  HidD_FreePreparsedData_Original = nullptr;
 HidD_GetFeature_pfn         HidD_GetFeature_Original        = nullptr;
 HidP_GetData_pfn            HidP_GetData_Original           = nullptr;
 HidP_GetCaps_pfn            HidP_GetCaps_Original           = nullptr;
+HidP_GetUsages_pfn          HidP_GetUsages_Original         = nullptr;
 
 HidD_GetPreparsedData_pfn   SK_HidD_GetPreparsedData   = nullptr;
 HidD_FreePreparsedData_pfn  SK_HidD_FreePreparsedData  = nullptr;
@@ -480,7 +481,7 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
 
         HIDP_CAPS caps;
   const NTSTATUS  stat =
-          HidP_GetCaps_Original (pData, &caps);
+          SK_HidP_GetCaps (pData, &caps);
 
   if ( stat           == HIDP_STATUS_SUCCESS &&
        caps.UsagePage == HID_USAGE_PAGE_GENERIC )
@@ -570,7 +571,7 @@ HidD_GetPreparsedData_Detour (
     SK_HID_PreparsedDataP = PreparsedData;
     SK_HID_PreparsedData  = pData;
 
-    if ( config.input.gamepad.disable_ps4_hid  ||
+    if ( config.input.gamepad.disable_hid  ||
                  SK_HID_FilterPreparsedData (pData))
     {
       if (! HidD_FreePreparsedData_Original (pData))
@@ -767,29 +768,84 @@ HidD_GetFeature_Detour ( _In_  HANDLE HidDeviceObject,
                          _Out_ PVOID  ReportBuffer,
                          _In_  ULONG  ReportBufferLength )
 {
+  SK_LOG_FIRST_CALL
+
   ////SK_HID_READ (sk_input_dev_type::Gamepad)
 
   bool                 filter = false;
   PHIDP_PREPARSED_DATA pData  = nullptr;
 
-  if (HidD_GetPreparsedData_Original (HidDeviceObject, &pData))
+  if (SK_ImGui_WantGamepadCapture ())
   {
-    if (SK_HID_FilterPreparsedData (pData))
-      filter = true;
+    if (HidD_GetPreparsedData_Original (HidDeviceObject, &pData))
+    {
+      if (SK_HID_FilterPreparsedData (pData))
+        filter = true;
 
-    HidD_FreePreparsedData_Original (pData);
+      HidD_FreePreparsedData_Original (pData);
+    }
   }
 
-  if (! filter)
+  BOOLEAN bRet =
+    HidD_GetFeature_Original (
+      HidDeviceObject, ReportBuffer,
+                       ReportBufferLength
+    );
+
+  if (filter)
   {
-    return
-      HidD_GetFeature_Original (
-        HidDeviceObject, ReportBuffer,
-                         ReportBufferLength
-      );
+    ZeroMemory (ReportBuffer, ReportBufferLength);
   }
 
-  return FALSE;
+  return bRet;
+}
+
+NTSTATUS
+__stdcall
+HidP_GetUsages_Detour (
+  _In_                                        HIDP_REPORT_TYPE     ReportType,
+  _In_                                        USAGE                UsagePage,
+  _In_opt_                                    USHORT               LinkCollection,
+  _Out_writes_to_(*UsageLength, *UsageLength) PUSAGE               UsageList,
+  _Inout_                                     PULONG               UsageLength,
+  _In_                                        PHIDP_PREPARSED_DATA PreparsedData,
+  _Out_writes_bytes_(ReportLength)            PCHAR                Report,
+  _In_                                        ULONG                ReportLength
+)
+{
+  SK_LOG_FIRST_CALL
+
+  NTSTATUS ret =
+    HidP_GetUsages_Original ( ReportType, UsagePage,
+                                LinkCollection, UsageList,
+                                  UsageLength, PreparsedData,
+                                    Report, ReportLength );
+
+  // De we want block this I/O?
+  bool filter = false;
+
+  if (          ret == HIDP_STATUS_SUCCESS &&
+       ( ReportType == HidP_Input          ||
+         ReportType == HidP_Output         ||
+         ReportType == HidP_Feature ) )
+  {
+    if (SK_ImGui_WantGamepadCapture ())
+    {
+      // This will classify the data for us, so don't record this event yet.
+      filter =
+        SK_HID_FilterPreparsedData (PreparsedData);
+    }
+  }
+
+  if (filter)
+  {
+    SK_ReleaseAssert (UsageLength != nullptr);
+
+    ZeroMemory (UsageList, *UsageLength);
+                           *UsageLength = 0;
+  }
+
+  return ret;
 }
 
 NTSTATUS
@@ -1748,7 +1804,7 @@ SK_Input_HookHID (void)
     SK_LOG0 ( ( L"Game uses HID, installing input hooks..." ),
                 L"  Input   " );
 
-    if (config.input.gamepad.disable_ps4_hid)
+    if (config.input.gamepad.disable_hid)
     {
       SK_CreateDLLHook2 (     L"HID.DLL",
                                "HidP_GetData",
@@ -1765,15 +1821,20 @@ SK_Input_HookHID (void)
                                 HidD_FreePreparsedData_Detour,
        static_cast_p2p <void> (&HidD_FreePreparsedData_Original) );
 
-      SK_CreateDLLHook2 (     L"HID.DLL",
-                               "HidD_GetFeature",
-                                HidD_GetFeature_Detour,
-       static_cast_p2p <void> (&HidD_GetFeature_Original) );
-
       HidP_GetCaps_Original =
         (HidP_GetCaps_pfn)SK_GetProcAddress ( SK_GetModuleHandle (L"HID.DLL"),
                                               "HidP_GetCaps" );
     }
+
+    SK_CreateDLLHook2 (     L"HID.DLL",
+                             "HidD_GetFeature",
+                              HidD_GetFeature_Detour,
+     static_cast_p2p <void> (&HidD_GetFeature_Original) );
+
+    SK_CreateDLLHook2 (     L"HID.DLL",
+                             "HidP_GetUsages",
+                              HidP_GetUsages_Detour,
+     static_cast_p2p <void> (&HidP_GetUsages_Original) );
 
     SK_CreateDLLHook2 (      L"kernel32.dll",
                               "CreateFileA",
