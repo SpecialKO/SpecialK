@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -3178,6 +3178,16 @@ SK_D3D11_PopulateResourceList (bool refresh)
           L"[DX11TexMgr] Low-Spec Mode (reduced D3D11 State Tracking) has "
           L"disabled because end-user has texture mods installed." );
       }
+
+      SK_ImGui_CreateNotification (
+        "D3D11_TexMod_Enumerated", SK_ImGui_Toast::Success,
+          SK_FormatString ( " %li files (%3.1f MiB)\n",
+                            files, (double)liSize.QuadPart / (1024.0 * 1024.0)).c_str (),
+          "D3D11 Texture Mods Found and Will be Loaded", 5000,
+                                           SK_ImGui_Toast::UseDuration |
+                                           SK_ImGui_Toast::ShowTitle   |
+                                           SK_ImGui_Toast::ShowCaption |
+                                           SK_ImGui_Toast::ShowNewest );
     }
   }
 
@@ -3236,6 +3246,19 @@ SK_D3D11_PopulateResourceList (bool refresh)
 
     dll_log->LogEx ( false, L" %li files (%3.1f MiB)\n",
                        files, (double)liSize.QuadPart / (1024.0 * 1024.0) );
+
+    if (files > 0)
+    {
+      SK_ImGui_CreateNotification (
+        "FFX_TexMod_Enumerated", SK_ImGui_Toast::Success,
+          SK_FormatString ( " %li files (%3.1f MiB)\n",
+                            files, (double)liSize.QuadPart / (1024.0 * 1024.0)).c_str (),
+          "Final Fantasy X Texture Mods Found and Will be Loaded", 5000,
+                                           SK_ImGui_Toast::UseDuration |
+                                           SK_ImGui_Toast::ShowTitle   |
+                                           SK_ImGui_Toast::ShowCaption |
+                                           SK_ImGui_Toast::ShowNewest );
+    }
   }
 
   for (auto& it : SK_D3D11_EnumeratedMipmapCache.get ())

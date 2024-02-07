@@ -1,4 +1,4 @@
-  
+﻿  
 /**
  * This file is part of Special K.
  *
@@ -417,10 +417,20 @@ void
 SK_ImGui_WarningWithTitle ( const wchar_t* wszMessage,
                             const wchar_t* wszTitle )
 {
+#if 0
   SK_ImGui_WarningWithTitle (
                        wszMessage,
     SK_WideCharToUTF8 (wszTitle).c_str ()
   );
+#else
+  SK_ImGui_CreateNotification (
+    "Generic_Warning", SK_ImGui_Toast::Warning,
+       SK_WideCharToUTF8 (wszMessage).c_str (),
+       SK_WideCharToUTF8 (wszTitle).c_str   (),
+               10000, SK_ImGui_Toast::UseDuration |
+                      SK_ImGui_Toast::ShowCaption |
+                      SK_ImGui_Toast::ShowTitle );
+#endif
 }
 
 void
@@ -4638,13 +4648,13 @@ SK_ImGui_ControlPanel (void)
     {
       if (translated_d3d9)
       {
-        strncpy  (szAPIName, "D3D9→12", 32);
+        strncpy  (szAPIName, (const char *)u8"D3D9→12", 32);
       }
       else if (api_mask == static_cast <int> (SK_RenderAPI::DDrawOn12)  ||
                api_mask == static_cast <int> (SK_RenderAPI::D3D8On12)   ||
                api_mask == static_cast <int> (SK_RenderAPI::GlideOn12))
       {
-        lstrcatA (szAPIName, "→12");
+        lstrcatA (szAPIName, (const char *)u8"→12");
       }
       else
       {
@@ -4655,8 +4665,8 @@ SK_ImGui_ControlPanel (void)
     else if (0x0 != (api_mask &  static_cast <int> (SK_RenderAPI::D3D11)) &&
                     (api_mask != static_cast <int> (SK_RenderAPI::D3D11)  || translated_d3d9))
     {
-      if (! translated_d3d9)lstrcatA (szAPIName,    "→11");
-      else                  strncpy  (szAPIName, "D3D9→11", 32);
+      if (! translated_d3d9)lstrcatA (szAPIName, (const char *)u8"→11");
+      else                  strncpy  (szAPIName, (const char *)u8"D3D9→11", 32);
     }
 
     lstrcatA ( szAPIName,
@@ -7000,7 +7010,7 @@ SK_ImGui_StageNextFrame (void)
       ImGui::TreePush      ("");
       ImGui::TextColored   (ImColor::HSV (.08f,.85f,1.f), "%s",
                             utf8_time_checked.c_str ());ImGui::SameLine ();
-      ImGui::TextColored   (ImColor (1.f, 1.f, 1.f, 1.f), "  ※  ");
+      ImGui::TextColored   (ImColor (1.f, 1.f, 1.f, 1.f), (const char *)u8"  ※  ");
                                                         ImGui::SameLine ();
       ImGui::TextColored   (version_color,               "%s",
                             utf8_release_description.c_str ());
