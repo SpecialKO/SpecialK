@@ -916,8 +916,19 @@ SK_SetGameMute (bool bMute)
   SK_ISimpleAudioVolume pVolume =
     SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
 
-  if (pVolume != nullptr)
-      pVolume->SetMute (bMute, nullptr);
+  if (             pVolume != nullptr)
+  { if (SUCCEEDED (pVolume->SetMute (bMute, nullptr)))
+    {
+      SK_ImGui_CreateNotification (
+        "mute/unmute", SK_ImGui_Toast::Info,
+          bMute ? "Game has been muted"
+                : "Game has been unmuted",
+          nullptr, 3333UL, SK_ImGui_Toast::UseDuration |
+                           SK_ImGui_Toast::ShowCaption |
+                           SK_ImGui_Toast::ShowNewest
+      );
+    }
+  }
 }
 
 BOOL
@@ -978,6 +989,14 @@ SK_WASAPI_Init (void)
 
           volume =
             std::clamp (volume, 0.0f, 100.0f);
+
+          SK_ImGui_CreateNotification (
+            "OnVarChange_Volume", SK_ImGui_Toast::Info,
+              SK_FormatString ("Game Volume: %1.0f%%", volume).c_str (),
+              nullptr, 3333UL, SK_ImGui_Toast::UseDuration |
+                               SK_ImGui_Toast::ShowCaption |
+                               SK_ImGui_Toast::ShowNewest
+          );
 
           pVolumeCtl->SetMasterVolume (volume / 100.0f, nullptr);
         }

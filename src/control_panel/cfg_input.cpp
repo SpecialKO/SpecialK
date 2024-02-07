@@ -36,7 +36,7 @@ SK_RawInput_GetMice      (bool* pDifferent = nullptr);
 extern std::vector <RAWINPUTDEVICE>
 SK_RawInput_GetKeyboards (bool* pDifferent = nullptr);
 
-extern int SK_ImGui_DrawGamepadStatusBar (void);
+extern int SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
 
 SK_LazyGlobal <SK::Framerate::Stats> gamepad_stats;
 SK_LazyGlobal <SK::Framerate::Stats> gamepad_stats_filtered;
@@ -692,7 +692,7 @@ SK::ControlPanel::Input::Draw (void)
     bool uncollapsed_gamepads =
       ImGui::CollapsingHeader ("Gamepad", ImGuiTreeNodeFlags_AllowOverlap);
 
-  //SK_ImGui_DrawGamepadStatusBar ();
+  //SK_ImGui_ProcessGamepadStatusBar (true);
 
     if (uncollapsed_gamepads)
     {
@@ -748,12 +748,15 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::SeparatorEx   (ImGuiSeparatorFlags_Vertical);
       ImGui::SameLine      ();
 
-      if (ImGui::BeginMenu (" Block Gamepad Input APIs###Input_API_Select"))
+      ImGui::TextColored   (ImVec4 (1.f, 0.f, 0.f, 1.f), ICON_FA_BAN);
+      ImGui::SameLine      ();
+
+      if (ImGui::BeginMenu ("Block Gamepad Input APIs###Input_API_Select"))
       {
         static bool _need_restart = false;
 
-        ImGui::BeginGroup ();
-        if (ImGui::Checkbox ("XInput", &config.input.gamepad.xinput.blackout_api))
+        ImGui::BeginGroup      ();
+        if (ImGui::Checkbox (ICON_FA_XBOX " XInput", &config.input.gamepad.xinput.blackout_api))
         {
           _need_restart = true;
         }
@@ -769,7 +772,7 @@ SK::ControlPanel::Input::Draw (void)
           ImGui::EndTooltip      ();
         }
 
-        if (ImGui::Checkbox ("HID",    &config.input.gamepad.disable_hid))
+        if (ImGui::Checkbox (ICON_FA_USB " HID",    &config.input.gamepad.disable_hid))
         {
           _need_restart = true;
         }
@@ -783,6 +786,18 @@ SK::ControlPanel::Input::Draw (void)
           ImGui::Separator       ();
           ImGui::TextUnformatted ("A game restart -may- be required after blocking HID.");
           ImGui::EndTooltip      ();
+        }
+
+        if (ImGui::Checkbox (ICON_FA_STEAM " Steam", &config.input.gamepad.steam.disabled_to_game))
+        {
+          _need_restart = true;
+        }
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip (
+            "Work In Progress:   "
+            "You probably will not get gamepad input at all if Steam Input is active and blocked."
+          );
         }
         ImGui::EndGroup   ();
 
@@ -994,7 +1009,7 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::ItemSize ( ImVec2 (0.0f, 0.0f),
           ImGui::GetStyle ( ).FramePadding.y );
 
-        SK_ImGui_DrawGamepadStatusBar ();
+        SK_ImGui_ProcessGamepadStatusBar (true);
 
         ImGui::NextColumn ( );
         ImGui::Columns    (1);

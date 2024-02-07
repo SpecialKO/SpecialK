@@ -6321,7 +6321,7 @@ extern bool
 _ShouldRecheckStatus (INT iJoyID);
 
 int
-SK_ImGui_DrawGamepadStatusBar (void)
+SK_ImGui_ProcessGamepadStatusBar (bool bDraw)
 {
   int attached_pads = 0;
 
@@ -6372,7 +6372,7 @@ SK_ImGui_DrawGamepadStatusBar (void)
   auto current_frame =
     SK_GetFramesDrawn ();
 
-  ImGui::BeginGroup ();
+  if (bDraw) ImGui::BeginGroup ();
 
   for ( auto& gamepad : gamepads )
   {
@@ -6422,6 +6422,20 @@ SK_ImGui_DrawGamepadStatusBar (void)
               battery.last_checked = BatteryStateTTL + 1000; // Retry in 1 second
         }
       }
+
+      if (battery.draining && gamepad.attached && battery.battery_info.BatteryLevel <= BATTERY_LEVEL_LOW)
+      {
+        std::string label =
+          SK_FormatString ("XInput::Gamepad%d::Battery_Low", gamepad.slot);
+
+        SK_ImGui_CreateNotification (
+          label.c_str (), SK_ImGui_Toast::Warning,
+            SK_FormatString ("Gamepad %d's Battery Level Is Critically Low", gamepad.slot).c_str (),
+            nullptr, 10000UL, SK_ImGui_Toast::UseDuration |
+                              SK_ImGui_Toast::ShowCaption |
+                              SK_ImGui_Toast::ShowOnce
+        );
+      }
     }
 
     ImVec4 gamepad_color =
@@ -6438,7 +6452,7 @@ SK_ImGui_DrawGamepadStatusBar (void)
                  0.5f + 0.25f * (2.0f - fInputAge), 1.0f );
     }
 
-    if (gamepad.attached)
+    if (bDraw && gamepad.attached)
     {
       ImGui::BeginGroup  ();
       ImGui::TextColored (gamepad_color, szGamepadSymbols [gamepad.slot]);
@@ -6490,8 +6504,11 @@ SK_ImGui_DrawGamepadStatusBar (void)
     }
   }
 
-  ImGui::Spacing  ();
-  ImGui::EndGroup ();
+  if (bDraw)
+  {
+    ImGui::Spacing  ();
+    ImGui::EndGroup ();
+  }
 
   return
     attached_pads;

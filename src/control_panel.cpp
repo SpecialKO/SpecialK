@@ -7211,8 +7211,10 @@ SK_ImGui_StageNextFrame (void)
 
 
 
-  if (SK_GetFramesDrawn () > 1)
-    SK_ImGui_ProcessWarnings ();
+  if (SK_GetFramesDrawn () > 1) {
+    SK_ImGui_ProcessWarnings   ();
+    SK_ImGui_DrawNotifications ();
+  }
 
 
   if (SK_ImGui_UnconfirmedDisplayChanges)

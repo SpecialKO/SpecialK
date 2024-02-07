@@ -1,4 +1,4 @@
-﻿/**
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -315,7 +315,7 @@ SK_RenderBackend::latency_monitor_s::submitQueuedFrame (IDXGISwapChain1* pSwapCh
 
 
 extern int
-SK_ImGui_DrawGamepadStatusBar (void);
+SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
 
        int    extra_status_line = 0;
 
@@ -1097,7 +1097,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
 
   ImGui::SameLine ();
 
-  if (SK_ImGui_DrawGamepadStatusBar () > 0)
+  if (SK_ImGui_ProcessGamepadStatusBar (true) > 0)
     extra_status_line = 1;
 
   bool bDrawProcessorLoad =

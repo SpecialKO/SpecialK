@@ -1,3 +1,10 @@
+24.2.7
+======
+ + Added notification system to replace the annoying orange text warning popups
+ + Added notification when XInput controller batteries are <= 25%
+ + Muting or changing a game's volume using hotkeys (Ctrl+Shift+PgUp/Dn/Home)
+     displays a notification in the bottom-left corner indicating the volume.
+
 24.2.6.2
 ========
  + Added section to 'Input Management | Gamepads' to control blocking individual

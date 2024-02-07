@@ -3320,6 +3320,10 @@ SK_ImGui_User_NewFrame (void)
       }
     }
   }
+
+  // Warn on low gamepad battery
+  extern int SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
+             SK_ImGui_ProcessGamepadStatusBar (false);
 }
 
 bool
