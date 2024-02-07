@@ -235,11 +235,11 @@ SK_PopupManager::OnDestroyPopup (const CEGUI::EventArgs& e)
 
 concurrency::concurrent_queue <SK_ImGui_Toast> SK_ImGui_Notifications;
 
-#define NOTIFY_PADDING_X           20.f  // Bottom-left X padding
-#define NOTIFY_PADDING_Y           20.f  // Bottom-left Y padding
-#define NOTIFY_PADDING_MESSAGE_Y   10.f  // Padding Y between each message
-#define NOTIFY_FADE_IN_OUT_TIME    333   // Fade in and out duration
-#define NOTIFY_OPACITY             0.85f // 0-1 Toast opacity
+#define NOTIFY_PADDING_X           20.f // Bottom-left X padding
+#define NOTIFY_PADDING_Y           20.f // Bottom-left Y padding
+#define NOTIFY_PADDING_MESSAGE_Y   10.f // Padding Y between each message
+#define NOTIFY_FADE_IN_OUT_TIME    420  // Fade in and out duration
+#define NOTIFY_OPACITY             0.8f // 0-1 Toast opacity
 #define NOTIFY_DEFAULT_IMGUI_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoFocusOnAppearing
 
 ImVec4 SK_ImGui_GetToastColor (SK_ImGui_Toast::Type type)

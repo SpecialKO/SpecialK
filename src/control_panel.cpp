@@ -407,10 +407,20 @@ void
 SK_ImGui_WarningWithTitle ( const wchar_t* wszMessage,
                             const    char*  szTitle )
 {
+#if 0
   SK_ImGui_Warnings->push (     {
       std::string  ( szTitle  ),
       std::wstring (wszMessage) }
   );
+#else
+  SK_ImGui_CreateNotification (
+    "Generic_Warning", SK_ImGui_Toast::Warning,
+       SK_WideCharToUTF8 (wszMessage).c_str (),
+                           szTitle,
+               10000, SK_ImGui_Toast::UseDuration |
+                      SK_ImGui_Toast::ShowCaption |
+                      SK_ImGui_Toast::ShowTitle );
+#endif
 }
 
 void

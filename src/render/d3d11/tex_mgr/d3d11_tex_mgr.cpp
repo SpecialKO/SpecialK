@@ -3181,9 +3181,9 @@ SK_D3D11_PopulateResourceList (bool refresh)
 
       SK_ImGui_CreateNotification (
         "D3D11_TexMod_Enumerated", SK_ImGui_Toast::Success,
-          SK_FormatString ( " %li files (%3.1f MiB)\n",
+          SK_FormatString ( "\t%li files\t(%3.1f MiB)\n",
                             files, (double)liSize.QuadPart / (1024.0 * 1024.0)).c_str (),
-          "D3D11 Texture Mods Found and Will be Loaded", 5000,
+          "Injectable D3D11 Textures Found", 7500,
                                            SK_ImGui_Toast::UseDuration |
                                            SK_ImGui_Toast::ShowTitle   |
                                            SK_ImGui_Toast::ShowCaption |
@@ -3251,9 +3251,9 @@ SK_D3D11_PopulateResourceList (bool refresh)
     {
       SK_ImGui_CreateNotification (
         "FFX_TexMod_Enumerated", SK_ImGui_Toast::Success,
-          SK_FormatString ( " %li files (%3.1f MiB)\n",
+          SK_FormatString ( "\t%li files\t(%3.1f MiB)\n",
                             files, (double)liSize.QuadPart / (1024.0 * 1024.0)).c_str (),
-          "Final Fantasy X Texture Mods Found and Will be Loaded", 5000,
+          "Injectable Final Fantasy X Textures Found", 6666,
                                            SK_ImGui_Toast::UseDuration |
                                            SK_ImGui_Toast::ShowTitle   |
                                            SK_ImGui_Toast::ShowCaption |
