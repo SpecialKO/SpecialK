@@ -1,4 +1,9 @@
-﻿24.2.7.3
+﻿24.2.7.4
+========
+ + Added success notification when D3D11 Texture Mods have been detected and
+     will load.
+
+24.2.7.3
 ========
  + Replaced Assertion Failure dialogs with error notifications (20 seconds)
 
