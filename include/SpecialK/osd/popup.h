@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -67,87 +67,5 @@ private:
 
   /*CEGUI::GUIContext*/void* gui_ctx_;
 };
-
-#include <control_panel.h>
-#include <concurrent_queue.h>
-#include <imgui/font_awesome.h>
-
-struct SK_ImGui_Toast {
-  enum Type {
-    Success,
-    Warning,
-    Error,
-    Info,
-    Other
-  } type;
-
-  enum Flags {
-    UseDuration = 0x01,
-    ShowCaption = 0x02,
-    ShowTitle   = 0x04,
-    ShowOnce    = 0x08,
-    ShowNewest  = 0x10,
-    ShowDismiss = 0x20
-  } flags;
-
-  std::string id        = "";
-  std::string caption   = "";
-  std::string title     = "";
-
-  DWORD       duration  = 0;
-  DWORD       displayed = 0;
-  DWORD       inserted  = 0;
-
-  BOOL        finished  = false;
-};
-
-static inline ImVec4 SK_ImGui_GetToastColor (SK_ImGui_Toast::Type type)
-{
-  switch (type)
-  {
-    case SK_ImGui_Toast::Success:
-      return ImVec4 (0.f, 1.f, 0.f, 1.f);
-    case SK_ImGui_Toast::Warning:
-      return ImVec4 (1.f, 1.f, 0.f, 1.f);
-    case SK_ImGui_Toast::Error:
-      return ImVec4 (1.f, 0.f, 0.f, 1.f);
-    case SK_ImGui_Toast::Info:
-      return ImVec4 (0.f, 0.616f, 1.f, 1.f);
-    case SK_ImGui_Toast::Other:
-    default:
-      return ImVec4 (1.f, 1.f, 1.f, 1.f);
-  }
-}
-
-static inline const char* SK_ImGui_GetToastIcon (SK_ImGui_Toast::Type type)
-{
-  switch (type)
-  {
-    case SK_ImGui_Toast::Success:
-      return ICON_FA_CHECK_CIRCLE;
-    case SK_ImGui_Toast::Warning:
-      return ICON_FA_EXCLAMATION_TRIANGLE;
-    case SK_ImGui_Toast::Error:
-      return ICON_FA_EXCLAMATION_CIRCLE;
-    case SK_ImGui_Toast::Info:
-      return ICON_FA_INFO_CIRCLE;
-    case SK_ImGui_Toast::Other:
-    default:
-      return "";
-  }
-}
-
-bool
-SK_ImGui_CreateNotification ( const char* szID,
-                     SK_ImGui_Toast::Type type,
-                              const char* szCaption,
-                              const char* szTitle,
-                                    DWORD dwMilliseconds,
-                                    DWORD flags = SK_ImGui_Toast::UseDuration |
-                                                  SK_ImGui_Toast::ShowCaption |
-                                                  SK_ImGui_Toast::ShowTitle );
-
-void
-SK_ImGui_DrawNotifications (void);
 
 #endif /* __SK__OSD_POPUP_H__ */

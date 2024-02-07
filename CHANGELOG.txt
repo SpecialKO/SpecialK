@@ -1,4 +1,8 @@
-﻿24.2.7.2
+﻿24.2.7.3
+========
+ + Replaced Assertion Failure dialogs with error notifications (20 seconds)
+
+24.2.7.2
 ========
  + Replaced VRAM warning popup with warning notification (20 seconds, one-time)
 

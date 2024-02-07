@@ -229,17 +229,54 @@ SK_PopupManager::OnDestroyPopup (const CEGUI::EventArgs& e)
 }
 #endif
 
+#include <control_panel.h>
+#include <concurrent_queue.h>
+#include <imgui/font_awesome.h>
+
 concurrency::concurrent_queue <SK_ImGui_Toast> SK_ImGui_Notifications;
 
-#define NOTIFY_MAX_MSG_LENGTH      4096
 #define NOTIFY_PADDING_X           20.f  // Bottom-left X padding
 #define NOTIFY_PADDING_Y           20.f  // Bottom-left Y padding
 #define NOTIFY_PADDING_MESSAGE_Y   10.f  // Padding Y between each message
 #define NOTIFY_FADE_IN_OUT_TIME    150   // Fade in and out duration
 #define NOTIFY_OPACITY             0.8f  // 0-1 Toast opacity
-#define NOTIFY_USE_SEPARATOR       false // If true, a separator will be rendered between the title and the content
-#define NOTIFY_USE_DISMISS_BUTTON  true  // If true, a dismiss button will be rendered in the top right corner of the toast
 #define NOTIFY_DEFAULT_IMGUI_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoFocusOnAppearing
+
+ImVec4 SK_ImGui_GetToastColor (SK_ImGui_Toast::Type type)
+{
+  switch (type)
+  {
+    case SK_ImGui_Toast::Success:
+      return ImVec4 (0.f, 1.f, 0.f, 1.f);
+    case SK_ImGui_Toast::Warning:
+      return ImVec4 (1.f, 1.f, 0.f, 1.f);
+    case SK_ImGui_Toast::Error:
+      return ImVec4 (1.f, 0.f, 0.f, 1.f);
+    case SK_ImGui_Toast::Info:
+      return ImVec4 (0.f, 0.616f, 1.f, 1.f);
+    case SK_ImGui_Toast::Other:
+    default:
+      return ImVec4 (1.f, 1.f, 1.f, 1.f);
+  }
+}
+
+const char* SK_ImGui_GetToastIcon (SK_ImGui_Toast::Type type)
+{
+  switch (type)
+  {
+    case SK_ImGui_Toast::Success:
+      return ICON_FA_CHECK_CIRCLE;
+    case SK_ImGui_Toast::Warning:
+      return ICON_FA_EXCLAMATION_TRIANGLE;
+    case SK_ImGui_Toast::Error:
+      return ICON_FA_EXCLAMATION_CIRCLE;
+    case SK_ImGui_Toast::Info:
+      return ICON_FA_INFO_CIRCLE;
+    case SK_ImGui_Toast::Other:
+    default:
+      return "";
+  }
+}
 
 bool
 SK_ImGui_CreateNotification ( const char* szID,
@@ -354,7 +391,7 @@ SK_ImGui_DrawNotifications (void)
       if (toast.displayed == 0)
           toast.displayed = SK::ControlPanel::current_time;
 
-      if (toast.displayed < SK::ControlPanel::current_time - toast.duration)
+      if (toast.displayed < SK::ControlPanel::current_time - toast.duration - 2 * NOTIFY_FADE_IN_OUT_TIME)
         remove = true;
     }
 
@@ -385,7 +422,7 @@ SK_ImGui_DrawNotifications (void)
     ImGui::Begin (window_id, nullptr, window_flags);
     {
       ImGui::BringWindowToDisplayFront (ImGui::GetCurrentWindow ());
-      ImGui::PushTextWrapPos           (viewport_size.x / 4.0f);
+      ImGui::PushTextWrapPos           (viewport_size.x / 3.333f);
 
       ImGui::TextColored (
         SK_ImGui_GetToastColor (toast.type),

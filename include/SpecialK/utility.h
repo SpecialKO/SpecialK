@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -385,6 +385,48 @@ void SK_ImGui_Warning          (const wchar_t* wszMessage);
 void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,
                                 const wchar_t* wszTitle);
 
+struct SK_ImGui_Toast {
+  enum Type {
+    Success,
+    Warning,
+    Error,
+    Info,
+    Other
+  } type;
+
+  enum Flags {
+    UseDuration = 0x01,
+    ShowCaption = 0x02,
+    ShowTitle   = 0x04,
+    ShowOnce    = 0x08,
+    ShowNewest  = 0x10,
+    ShowDismiss = 0x20
+  } flags;
+
+  std::string id        = "";
+  std::string caption   = "";
+  std::string title     = "";
+
+  DWORD       duration  = 0;
+  DWORD       displayed = 0;
+  DWORD       inserted  = 0;
+
+  BOOL        finished  = false;
+};
+
+bool
+SK_ImGui_CreateNotification ( const char* szID,
+                     SK_ImGui_Toast::Type type,
+                              const char* szCaption,
+                              const char* szTitle,
+                                    DWORD dwMilliseconds,
+                                    DWORD flags = SK_ImGui_Toast::UseDuration |
+                                                  SK_ImGui_Toast::ShowCaption |
+                                                  SK_ImGui_Toast::ShowTitle );
+
+void
+SK_ImGui_DrawNotifications (void);
+
 #define SK_ReleaseAssertEx(_expr,_msg,_file,_line,_func) {                \
   if (! (_expr)) [[unlikely]]                                             \
   {                                                                       \
@@ -400,15 +442,20 @@ void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,
                                                                           \
     else                                                                  \
     { SK_RunOnce (                                                        \
-         SK_ImGui_WarningWithTitle (                                      \
-                  SK_FormatStringW ( L"Critical Assertion Failure: "      \
-                                     L"'%ws'\r\n\r\n\tFunction: %hs"      \
-                                               L"\r\n\tSource: (%ws:%u)", \
-                                       (_msg),  (_func),                  \
-                                       (_file), (_line)                   \
-                                   ).c_str (),                            \
-                                 L"First-Chance Assertion Failure" )      \
-                 );                }                               }      }
+          SK_ImGui_CreateNotification (                                   \
+            "Assertion_Failure", SK_ImGui_Toast::Error,                   \
+            SK_FormatString ( "Critical Assertion Failure: "              \
+                              "'%ws'\r\n\r\n\tFunction:\t%hs"             \
+                                       "\r\n\tSource:\t(%ws:%u)",         \
+                                 (_msg),  (_func),                        \
+                                 (_file), (_line)                         \
+                             ).c_str (), "First-Chance Assertion Failure" \
+                                       , 20000,                           \
+                                         SK_ImGui_Toast::UseDuration |    \
+                                         SK_ImGui_Toast::ShowTitle   |    \
+                                         SK_ImGui_Toast::ShowCaption |    \
+                                         SK_ImGui_Toast::ShowNewest )     \
+                 );          }                                      }     }
 
 #define SK_ReleaseAssert(expr) do { SK_ReleaseAssertEx ( (expr),L#expr, \
                                                     __FILEW__,__LINE__, \
