@@ -7343,7 +7343,7 @@ SK_ImGui_StageNextFrame (void)
     ImGui::TextColored (ImColor::HSV (0.075f, 1.0f, 1.0f), "%hs", szDisclaimer);
     ImGui::Separator   ();
 
-    ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),  "%hs"  szConfirm);
+    ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),  "%hs", szConfirm);
 
     ImGui::SameLine    (); ImGui::Spacing (); ImGui::SameLine ();
 
