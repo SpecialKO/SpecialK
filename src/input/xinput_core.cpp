@@ -436,6 +436,11 @@ XInputGetState1_4_Detour (
         {
           extern XINPUT_STATE hid_to_xi;
           memcpy (  pState,  &hid_to_xi, sizeof (XINPUT_STATE) );
+
+          if (SK_ImGui_WantGamepadCapture ())
+          {
+            ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+          }
         }
 
         return ERROR_SUCCESS;
