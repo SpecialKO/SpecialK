@@ -3603,6 +3603,60 @@ SK_SLI_UpdateStatus (IUnknown *device)
   }
 }
 
+void
+SK_Battery_UpdateRemainingPowerForAllDevices (void)
+{
+  extern int SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
+             SK_ImGui_ProcessGamepadStatusBar (false);
+
+  static bool has_battery = true;
+
+  SYSTEM_POWER_STATUS  sps = { };
+  SYSTEM_BATTERY_STATE sbs = { };
+
+  const NTSTATUS ntStatus =
+    CallNtPowerInformation ( SystemBatteryState,
+                             nullptr, 0,
+                             &sbs, sizeof (sbs) );
+
+  if (has_battery || (SUCCEEDED (ntStatus) && sbs.Rate != 0))
+  {
+    if (GetSystemPowerStatus (&sps))
+    {
+      has_battery   = (sps.BatteryFlag & 128) == 0;
+      bool charging = (sps.BatteryFlag & 8  ) == 8;
+
+      uint8_t battery_level =
+        sps.ACLineStatus != 1 ?
+          sps.BatteryLifePercent :
+            charging ? 100 + sps.BatteryLifePercent :
+                       ( (sps.BatteryFlag & 2) ||
+                         (sps.BatteryFlag & 4) ) ? sps.BatteryLifePercent
+                                                 : 255;
+
+      if (battery_level < 255 || sbs.Rate != 0) // 255 = Running on AC (not charging)
+      {
+        if (battery_level  > 100)
+            battery_level -= 100;
+
+        if (battery_level  > 100) // If we're still > 100, it's because running on AC.
+            battery_level  = 100;
+
+        if (battery_level <= 25.0f)
+        {
+          SK_ImGui_CreateNotification (
+            "Computer.Battery_Low", SK_ImGui_Toast::Warning,
+            "Computer's Battery Level Is Critically Low",
+            nullptr, 10000UL, SK_ImGui_Toast::UseDuration |
+                              SK_ImGui_Toast::ShowCaption |
+                              SK_ImGui_Toast::ShowOnce
+          );
+        }
+      }
+    }
+  }
+}
+
 extern void SK_NGX_UpdateDLSSGStatus (void);
 
 void SK_RandomCrapThatShouldBeInPlugIns (void)

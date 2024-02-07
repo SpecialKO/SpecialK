@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <mmsystem.h>
 #include <Windows.h>
@@ -3322,8 +3322,8 @@ SK_ImGui_User_NewFrame (void)
   }
 
   // Warn on low gamepad battery
-  extern int SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
-             SK_ImGui_ProcessGamepadStatusBar (false);
+  extern void SK_Battery_UpdateRemainingPowerForAllDevices (void);
+              SK_Battery_UpdateRemainingPowerForAllDevices ();
 }
 
 bool

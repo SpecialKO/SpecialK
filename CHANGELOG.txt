@@ -1,4 +1,9 @@
-﻿24.2.7.5
+﻿24.2.7.6
+========
+ + Added Battery Low warning for actual computers, not just game controllers.
+ + Remove right-click tooltip on notifications after user right-clicks.
+
+24.2.7.5
 ========
  + Added settings for all common notifications to control how long they are
      visible for, whether they can appear multiple times per-game, or disable
