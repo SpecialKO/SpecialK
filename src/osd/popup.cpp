@@ -594,8 +594,8 @@ SK_ImGui_DrawNotifications (void)
                                                                    : false;
             if (ImGui::Checkbox ("Show This Notification Once Per-Game", &bShowOnce))
             {
-              toast_cfg.add_key_value (L"ShowOnce",   bShowOnce ? L"true"
-                                                                : L"false");
+              toast_cfg.add_key_value (L"ShowOnce", bShowOnce ? L"true"
+                                                              : L"false");
             }
 
             DWORD dwMilliseconds =
@@ -633,7 +633,7 @@ SK_ImGui_DrawNotifications (void)
         toast.stage = SK_ImGui_Toast::Config;
       }
 
-      if (ImGui::IsItemHovered ())
+      if (toast.stage != SK_ImGui_Toast::Config && ImGui::IsItemHovered ())
       {
         ImGui::SetTooltip ("Right-click to configure this notification");
       }
