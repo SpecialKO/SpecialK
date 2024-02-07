@@ -2,6 +2,7 @@
 ========
  + Added success notification when D3D11 Texture Mods have been detected and
      will load.
+ + Added success notification when a Plug-In is loaded.
  + Replaced all warning dialogs with warning notificiations.
 
 24.2.7.3

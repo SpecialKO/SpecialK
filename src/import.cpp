@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -324,6 +324,14 @@ SK_LoadImportModule (import_s& import)
 
   if (import.hLibrary != nullptr)
   {
+    SK_ImGui_CreateNotification (
+      "Module_Load", SK_ImGui_Toast::Success,
+         SK_FormatString ("%ws", import.filename->get_value_ref ()).c_str (),
+                 "Special K Plug-In Loaded",
+                 5000, SK_ImGui_Toast::UseDuration |
+                       SK_ImGui_Toast::ShowCaption |
+                       SK_ImGui_Toast::ShowTitle );
+
     // Scans all loaded DLLs, and initializes SK as an Add-On to ReShade
     //   for the first ReShade DLL found.
     //
