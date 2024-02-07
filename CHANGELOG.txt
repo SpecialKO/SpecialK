@@ -1,4 +1,9 @@
-﻿24.2.7.8
+﻿24.2.7.9
+========
+ + Fixed XInput activity indicator not lighting up when using XInput Emulation
+ + Added support for DualShock 3 controllers
+
+24.2.7.8
 ========
  + Fixed SK not blocking input to the game when its control panel is open and
      XInput emulation is active (lol).

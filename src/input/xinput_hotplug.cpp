@@ -233,8 +233,8 @@ SK_XInput_NotifyDeviceArrival (void)
                           }
                         }
 
-                        else if (playstation)
-                        {
+                        else if (playstation && SK_CreateFile2 != nullptr)
+                        {                       // Does not exist on Windows 7
                           bool has_existing = false;
 
                           for ( auto& controller : SK_HID_PlayStationControllers )
@@ -264,7 +264,7 @@ SK_XInput_NotifyDeviceArrival (void)
                             }
                           }
 
-                          if (! has_existing)
+                          if ((! has_existing) && SK_CreateFile2 != nullptr)
                           {
                             SK_HID_PlayStationDevice controller;
 
@@ -279,9 +279,18 @@ SK_XInput_NotifyDeviceArrival (void)
                             if (controller.hDeviceFile != nullptr)
                             {
                               controller.bConnected = true;
+                              controller.bConnected = true;
                               controller.bDualSense =
                                 StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
                                 StrStrIW (wszFileName, L"PID_0CE6") != nullptr;
+
+                              controller.bDualShock4 =
+                                StrStrIW (wszFileName, L"PID_05C4") != nullptr ||
+                                StrStrIW (wszFileName, L"PID_09CC") != nullptr ||
+                                StrStrIW (wszFileName, L"PID_0BA0") != nullptr;
+
+                              controller.bDualShock3 =
+                                StrStrIW (wszFileName, L"PID_0268") != nullptr;
 
                               if (SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
                               {
@@ -369,6 +378,14 @@ SK_XInput_NotifyDeviceArrival (void)
                               controller.bDualSense =
                                 StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
                                 StrStrIW (wszFileName, L"PID_0CE6") != nullptr;
+
+                              controller.bDualShock4 =
+                                StrStrIW (wszFileName, L"PID_05C4") != nullptr ||
+                                StrStrIW (wszFileName, L"PID_09CC") != nullptr ||
+                                StrStrIW (wszFileName, L"PID_0BA0") != nullptr;
+
+                              controller.bDualShock3 =
+                                StrStrIW (wszFileName, L"PID_0268") != nullptr;
   
                               SK_HID_PlayStationControllers.push_back (controller);
 

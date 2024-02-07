@@ -826,6 +826,8 @@ struct SK_HID_PlayStationDevice {
   bool                 bConnected               =    true;
   bool                 bDualSense               =   false;
   bool                 bDualSenseEdge           =   false;
+  bool                 bDualShock4              =   false;
+  bool                 bDualShock3              =   false;
 
   struct button_s {
     bool state;

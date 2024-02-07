@@ -353,13 +353,13 @@ void SK_HID_SetupPlayStationControllers (void)
         wchar_t *wszFileName =
           pDevInterfaceDetailData->DevicePath;
   
-        if (StrStrIW (wszFileName, L"VID_054c"))
+        if (StrStrIW (wszFileName, L"VID_054c") && SK_CreateFile2 != nullptr)
         {
           SK_HID_PlayStationDevice controller;
   
           wcsncpy_s (controller.wszDevicePath, MAX_PATH,
                                 wszFileName,   _TRUNCATE);
-  
+
           controller.hDeviceFile =
             SK_CreateFile2 ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                                           FILE_SHARE_READ   | FILE_SHARE_WRITE,
@@ -453,6 +453,14 @@ void SK_HID_SetupPlayStationControllers (void)
             controller.bDualSense =
               StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
               StrStrIW (wszFileName, L"PID_0CE6") != nullptr;
+
+            controller.bDualShock4 =
+              StrStrIW (wszFileName, L"PID_05C4") != nullptr ||
+              StrStrIW (wszFileName, L"PID_09CC") != nullptr ||
+              StrStrIW (wszFileName, L"PID_0BA0") != nullptr;
+
+            controller.bDualShock3 =
+              StrStrIW (wszFileName, L"PID_0268") != nullptr;
   
             SK_HID_PlayStationControllers.push_back (controller);
           }

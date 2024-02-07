@@ -2019,6 +2019,15 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
                                 ps_controller.value_caps [i].PhysicalMin == 0);
 #endif
 
+              //if (ps_controller.value_caps [i].PhysicalMin != ps_controller.value_caps [i].PhysicalMax)
+              //{
+              //  SK_ImGui_Warning (
+              //    SK_FormatStringW (L"PS5 Value %x has Physical Range: %d-%d", ps_controller.value_caps [i].Range.UsageMin,
+              //                                                                 ps_controller.value_caps [i].PhysicalMin,
+              //                                                                 ps_controller.value_caps [i].PhysicalMax).c_str ()
+              //  );
+              //}
+
               switch (ps_controller.value_caps [i].Range.UsageMin)
               {
                 case 0x30: // X-axis
@@ -2106,7 +2115,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
           }
 
           if ( config.input.gamepad.scepad.enhanced_ps_button &&
-                          ps_controller.buttons.size () >= 13 &&
+                          ps_controller.buttons.size () >= 12 &&
                     (config.input.gamepad.xinput.ui_slot >= 0 && 
                      config.input.gamepad.xinput.ui_slot <  4) )
           {
@@ -2134,22 +2143,46 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
             }
           }
 
-          if (ps_controller.buttons [0].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
-          if (ps_controller.buttons [1].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
-          if (ps_controller.buttons [2].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
-          if (ps_controller.buttons [3].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+          if (ps_controller.bDualSense || ps_controller.bDualShock4)
+          {
+            if (ps_controller.buttons [0].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+            if (ps_controller.buttons [1].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+            if (ps_controller.buttons [2].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+            if (ps_controller.buttons [3].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
 
-          if (ps_controller.buttons [4].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
-          if (ps_controller.buttons [5].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
-          if (ps_controller.buttons [6].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
-          if (ps_controller.buttons [7].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+            if (ps_controller.buttons [4].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+            if (ps_controller.buttons [5].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+            if (ps_controller.buttons [6].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+            if (ps_controller.buttons [7].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
 
-          if (ps_controller.buttons [8].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
-          if (ps_controller.buttons [9].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+            if (ps_controller.buttons [8].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+            if (ps_controller.buttons [9].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
 
-          if (ps_controller.buttons [10].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
-          if (ps_controller.buttons [11].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
-          if (ps_controller.buttons [12].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+            if (ps_controller.buttons [10].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+            if (ps_controller.buttons [11].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+            if (ps_controller.buttons [12].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+          }
+
+          // Dual Shock 3
+          else if (ps_controller.bDualShock3)
+          {
+            if (ps_controller.buttons [0].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+            if (ps_controller.buttons [1].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+            if (ps_controller.buttons [2].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+            if (ps_controller.buttons [3].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+
+            if (ps_controller.buttons [4].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+            if (ps_controller.buttons [5].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+            if (ps_controller.buttons [6].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+            if (ps_controller.buttons [7].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+
+            if (ps_controller.buttons [8].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+            if (ps_controller.buttons [9].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+
+            if (ps_controller.buttons [10].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+            if (ps_controller.buttons [11].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+            if (ps_controller.buttons [12].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+          }
 
           bHasPlayStation = true;
 
