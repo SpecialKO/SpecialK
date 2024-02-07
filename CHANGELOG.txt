@@ -1,4 +1,8 @@
-﻿24.2.7.1
+﻿24.2.7.2
+========
+ + Replaced VRAM warning popup with warning notification (20 seconds, one-time)
+
+24.2.7.1
 ========
  + Fixed UTF-8 character encoding issues in a few source files, which caused
      garbled text on some of ImGui's menus.

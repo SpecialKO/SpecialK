@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -394,7 +394,7 @@ SK_ImGui_DrawNotifications (void)
 
       bool has_title = false;
 
-      if ((! toast.title.empty ()) && toast.flags & SK_ImGui_Toast::ShowTitle)
+      if ((! toast.title.empty ()) && (toast.flags & SK_ImGui_Toast::ShowTitle))
       {
         ImGui::SameLine ();
 
@@ -403,12 +403,15 @@ SK_ImGui_DrawNotifications (void)
         has_title = true;
       }
 
-      if ((! toast.caption.empty ()) && toast.flags & SK_ImGui_Toast::ShowCaption)
+      if ((! toast.caption.empty ()) && (toast.flags & SK_ImGui_Toast::ShowCaption))
       {
         if (! has_title)
         {
           ImGui::SameLine ();
         }
+
+        else
+          ImGui::Separator ();
 
         ImGui::TextUnformatted (toast.caption.c_str ());
       }

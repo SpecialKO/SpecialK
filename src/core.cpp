@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -33,6 +33,7 @@
 
 #include <SpecialK/nvapi.h>
 #include <SpecialK/adl.h>
+#include <SpecialK/popups/popup.h>
 
 
 #include <SpecialK/commands/mem.inl>
@@ -3968,19 +3969,23 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
           double percent_over   =
                  percent_used - config.render.dxgi.warn_if_vram_exceeds;
 
-          SK_ImGui_WarningWithTitle (
-            SK_FormatStringW ( L"VRAM Used:\t%ls\r\n\t"
-                               L"VRAM Quota:\t%0.1f%% of Available; %ls"
-                               L"\r\n\r\n\t\t %ls "
-                               L"Over Budget by %0.1f%%  (%ls)\r\n\r\n "
-                               L" Configure VRAM Quotas by Right-Clicking the"
-                               L" VRAM Gauge.",
-                                     used.c_str (),
-                                 config.render.dxgi.warn_if_vram_exceeds,
+          SK_ImGui_CreateNotification (
+            "VRAM_OverQuota", SK_ImGui_Toast::Warning,
+            SK_FormatString ( "\tVRAM Used:\t%ls\r\n\t"
+                                "VRAM Quota:\t%0.1f%% of Available; %ls"
+                              "\r\n\r\n\t\t %ls "
+                              "Over Budget by %0.1f%%  (%ls)\r\n\r\n "
+                              " Configure VRAM Quotas by Right-Clicking the"
+                              " VRAM Gauge.", used.c_str (),
+                    config.render.dxgi.warn_if_vram_exceeds,
                                     quota.c_str (), L"*", percent_over,
                                   overage.c_str ()
-                             ).c_str (), L"Insufficient VRAM"
-                           );
+                             ).c_str (), "Insufficient VRAM", 20000,
+                                         SK_ImGui_Toast::UseDuration |
+                                         SK_ImGui_Toast::ShowTitle   |
+                                         SK_ImGui_Toast::ShowCaption |
+                                         SK_ImGui_Toast::ShowNewest
+          );
         }
       }
     }
