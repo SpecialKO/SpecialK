@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -440,7 +440,8 @@ SK::ControlPanel::Steam::Draw (void)
     bool bDefaultOpen = false;
 
     // Uncollapse this header by default if the user is forcing the overlay off; make it obvious!
-    //if (config.steam.disable_overlay) bDefaultOpen = true;
+    if ( config.steam.disable_overlay ||
+         config.platform.silent ) bDefaultOpen = true;
 
     if (ImGui::CollapsingHeader ("Compatibility", bDefaultOpen ? ImGuiTreeNodeFlags_DefaultOpen
                                                                : 0x0))
@@ -448,33 +449,23 @@ SK::ControlPanel::Steam::Draw (void)
       ImGui::TreePush   ("");
       ImGui::BeginGroup (  );
 
-      ImGui::Checkbox   (" Bypass Online \"DRM\" Checks  ",      &config.steam.spoof_BLoggedOn);
+      if (ImGui::Checkbox (" Disable SteamAPI Integration", &config.platform.silent))
+      {
+        SK_SaveConfig ();
+      }
 
       if (ImGui::IsItemHovered ())
       {
-        ImGui::BeginTooltip ();
-        ImGui::TextColored  (ImColor::HSV (0.159f, 1.0f, 1.0f), "Fixes pesky games that use SteamAPI to deny Offline mode");
-        ImGui::Separator    ();
-        ImGui::BulletText   ("This is a much larger problem than you would believe.");
-        ImGui::BulletText   ("This also fixes some games that crash when Steam disconnects (unrelated to DRM).");
-        ImGui::EndTooltip   ();
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("Turns off almost all Steam-related features");
+        ImGui::Separator       ();
+        ImGui::BulletText      ("Steam Input problems will not be fixed, and background input will be unsupported Steam Input games.");
+        ImGui::BulletText      ("Optimized Steam screenshots and achievement popups will be disabled.");
+        ImGui::BulletText      ("The Steam Overlay can still be disabled");
+        ImGui::Separator       ();
+        ImGui::TextUnformatted ("If compatibility is not a problem, consider disabling individual Steam features, rather than all of them.");
+        ImGui::EndTooltip      ();        
       }
-
-      ImGui::Checkbox   (" Load Steam Overlay Early  ",          &config.steam.preload_overlay);
-
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Can make the Steam Overlay work in situations it otherwise would not.");
-
-      ImGui::Checkbox   (" Load Steam Client DLL Early  ",       &config.steam.preload_client);
-
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("May prevent some Steam DRM-based games from hanging at startup.");
-
-      ImGui::EndGroup   (  );
-      ImGui::SameLine   (  );
-      ImGui::BeginGroup (  );
-
-      ImGui::Text       ("");
 
       if (ImGui::Checkbox (" Prevent Overlay From Drawing  ",    &config.steam.disable_overlay))
       {
@@ -487,16 +478,48 @@ SK::ControlPanel::Steam::Draw (void)
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Game Restart Required");
 
-      ImGui::Checkbox (" Disable User Stats Receipt Callback",   &config.steam.block_stat_callback);
-
-      if (ImGui::IsItemHovered ())
+      if (! config.platform.silent)
       {
-        ImGui::BeginTooltip ();
-        ImGui::Text         ("Fix for Games that Panic when Flooded with Achievement Data");
-        ImGui::Separator    ();
-        ImGui::BulletText   ("These Games may shutdown SteamAPI when Special K fetches Friend Achievements");
-        ImGui::BulletText   ("If SteamAPI Frame Counter is STUCK, turn this option ON and restart the Game");
-        ImGui::EndTooltip   ();
+        ImGui::Checkbox (" Disable User Stats Receipt Callback",   &config.steam.block_stat_callback);
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Fix for Games that Panic when Flooded with Achievement Data");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("These Games may shutdown SteamAPI when Special K fetches Friend Achievements");
+          ImGui::BulletText   ("If SteamAPI Frame Counter is STUCK, turn this option ON and restart the Game");
+          ImGui::EndTooltip   ();
+        }
+      }
+
+      if (! config.platform.silent)
+      {
+        ImGui::EndGroup   (  );
+        ImGui::SameLine   (  );
+        ImGui::BeginGroup (  );
+
+        ImGui::Checkbox   (" Bypass Online \"DRM\" Checks  ",      &config.steam.spoof_BLoggedOn);
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+          ImGui::TextColored  (ImColor::HSV (0.159f, 1.0f, 1.0f), "Fixes pesky games that use SteamAPI to deny Offline mode");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("This is a much larger problem than you would believe.");
+          ImGui::BulletText   ("This also fixes some games that crash when Steam disconnects (unrelated to DRM).");
+          ImGui::EndTooltip   ();
+        }
+
+        ImGui::Checkbox   (" Load Steam Overlay Early  ",          &config.steam.preload_overlay);
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Can make the Steam Overlay work in situations it otherwise would not.");
+
+        ImGui::Checkbox   (" Load Steam Client DLL Early  ",       &config.steam.preload_client);
+
+        if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("May prevent some Steam DRM-based games from hanging at startup.");
       }
 
       ImGui::EndGroup ();

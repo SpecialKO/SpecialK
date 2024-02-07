@@ -1,4 +1,12 @@
-﻿24.2.7.9
+﻿24.2.8
+======
+ + Added option to disable SteamAPI integration to the Steam | Compatibility
+     section of the control panel.
+
+    >> "No Draw Overlay" option can still be used with SteamAPI stuff disabled,
+         but not much else can.
+
+24.2.7.9
 ========
  + Fixed XInput activity indicator not lighting up when using XInput Emulation
  + Added support for DualShock 3 controllers

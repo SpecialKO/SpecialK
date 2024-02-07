@@ -147,7 +147,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -185,6 +185,8 @@
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
       <SupportJustMyCode>false</SupportJustMyCode>
       <UseFullPaths>false</UseFullPaths>
+      <GuardEHContMetadata>false</GuardEHContMetadata>
+      <CreateHotpatchableImage>true</CreateHotpatchableImage>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -218,6 +220,7 @@
       <CETCompat>false</CETCompat>
       <StackReserveSize>0x200000</StackReserveSize>
       <StackCommitSize>0x4000</StackCommitSize>
+      <CreateHotPatchableImage>X86Image</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
     <Manifest>
@@ -275,7 +278,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <StringPooling>true</StringPooling>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>DECLSPEC_NOINITALL</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
@@ -334,6 +337,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <CETCompat>false</CETCompat>
       <StackReserveSize>0x200000</StackReserveSize>
       <StackCommitSize>0x4000</StackCommitSize>
+      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
     <ResourceCompile>
@@ -382,7 +386,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ControlFlowGuard>false</ControlFlowGuard>
       <ExpandAttributedSource>false</ExpandAttributedSource>
       <BrowseInformation>false</BrowseInformation>
-      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointExceptions>false</FloatingPointExceptions>
@@ -460,6 +464,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ShowProgress>LinkVerboseSAFESEH</ShowProgress>
       <StackReserveSize>0x200000</StackReserveSize>
       <StackCommitSize>0x4000</StackCommitSize>
+      <CreateHotPatchableImage>X86Image</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -539,7 +544,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <BrowseInformation>false</BrowseInformation>
       <FloatingPointModel>Fast</FloatingPointModel>
       <SDLCheck>false</SDLCheck>
-      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
       <ErrorReporting>Send</ErrorReporting>
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
       <IntelJCCErratum>false</IntelJCCErratum>
@@ -585,6 +590,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ShowProgress>LinkVerboseSAFESEH</ShowProgress>
       <StackReserveSize>0x200000</StackReserveSize>
       <StackCommitSize>0x4000</StackCommitSize>
+      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
