@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -250,10 +250,6 @@ using GetCursorInfo_pfn    = BOOL (WINAPI *)(
   _Inout_ PCURSORINFO pci
 );
 
-using NtUserGetCursorInfo_pfn = BOOL (WINAPI *)(
-  _Inout_ PCURSORINFO pci
-);
-
 using GetAsyncKeyState_pfn = SHORT (WINAPI *)(
   _In_ int vKey
 );
@@ -326,7 +322,6 @@ extern GetCursorPos_pfn            GetPhysicalCursorPos_Original;
 extern SetCursorPos_pfn            SetPhysicalCursorPos_Original;
 extern GetMessagePos_pfn           GetMessagePos_Original;
 extern GetCursorInfo_pfn           GetCursorInfo_Original;
-extern NtUserGetCursorInfo_pfn     NtUserGetCursorInfo_Original;
 
 extern SendInput_pfn               SendInput_Original;
 extern mouse_event_pfn             mouse_event_Original;

@@ -376,6 +376,18 @@
     <Filter Include="Source Files\Backends\Render\D3D12\PresentMon">
       <UniqueIdentifier>{1d7182b2-5632-4acb-ac0f-c43dcd7f2607}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Backends\Input\WinMM">
+      <UniqueIdentifier>{1697542b-81fa-4294-964c-ac1ff2d62f6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\RawInput">
+      <UniqueIdentifier>{37f0a596-0f5e-4ccb-9237-7ccd79a58e88}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\HID">
+      <UniqueIdentifier>{2528b973-c2db-4d29-9ae3-8491bdb832a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\Win32">
+      <UniqueIdentifier>{90a2b3e2-836f-4bcc-8065-fdaf486ff447}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -3664,6 +3676,24 @@
     </ClCompile>
     <ClCompile Include="src\plugins\lords_of_the_fallen2.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\hid.cpp">
+      <Filter>Source Files\Backends\Input\HID</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\raw_input.cpp">
+      <Filter>Source Files\Backends\Input\RawInput</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\winmm_joystickcpp.cpp">
+      <Filter>Source Files\Backends\Input\WinMM</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\winhook_input.cpp">
+      <Filter>Source Files\Backends\Input\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\keyboard.cpp">
+      <Filter>Source Files\Backends\Input\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\cursor.cpp">
+      <Filter>Source Files\Backends\Input\Win32</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

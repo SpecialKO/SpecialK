@@ -49,6 +49,7 @@ bool SK_WantBackgroundRender (void);
 
 void SK_Input_HookDI8         (void);
 void SK_Input_HookHID         (void);
+void SK_Input_HookRawInput    (void);
 
 void SK_Input_HookXInput1_3   (void);
 void SK_Input_HookXInput1_4   (void);
@@ -56,11 +57,17 @@ void SK_Input_HookXInput9_1_0 (void);
 void SK_Input_HookScePad      (void);
 void SK_Input_HookWGI         (void);
 
+void SK_Input_PreHookCursor   (void);
+void SK_Input_PreHookKeyboard (void);
+void SK_Input_PreHookWinHook  (void);
 void SK_Input_PreHookXInput   (void);
 void SK_Input_PreHookScePad   (void);
+bool SK_Input_PreHookHID      (void);
+bool SK_Input_PreHookWinMM    (void);
 
-void SK_Input_PreInit (void);
-void SK_Input_Init    (void);
+void SK_Input_PreInit      (void);
+void SK_Input_Init         (void);
+void SK_Input_InitKeyboard (void);
 
 void SK_Input_SetLatencyMarker (void) noexcept;
 
@@ -69,8 +76,12 @@ void SK_Input_SetLatencyMarker (void) noexcept;
 //     the thread manually so it doesn't crash.
 void SK_SDL_ShutdownInput (void);
 
+BOOL __stdcall SK_IsConsoleVisible (void);
 
 SHORT WINAPI SK_GetAsyncKeyState (int vKey);
+
+bool __SKX_WinHook_InstallInputHooks  (HWND hWnd);
+bool SK_Input_DetermineMouseIdleState (MSG* lpMsg);
 
 
 enum class sk_cursor_state {
@@ -559,6 +570,14 @@ extern keybd_event_pfn keybd_event_Original;
 extern SetCursor_pfn   SetCursor_Original;
 extern GetCursor_pfn   GetCursor_Original;
 
+using GetMouseMovePointsEx_pfn = int (WINAPI *)(
+  _In_  UINT             cbSize,
+  _In_  LPMOUSEMOVEPOINT lppt,
+  _Out_ LPMOUSEMOVEPOINT lpptBuf,
+  _In_  int              nBufPoints,
+  _In_  DWORD            resolution
+);
+
 #include <cstdint>
 
 extern
@@ -881,6 +900,12 @@ SK_RawInput_EnableLegacyKeyboard (bool enable);
 void
 SK_RawInput_RestoreLegacyKeyboard (void);
 
+UINT
+SK_Input_ClassifyRawInput ( HRAWINPUT lParam,
+                            bool&     mouse,
+                            bool&     keyboard,
+                            bool&     gamepad );
+
 
 using GetRegisteredRawInputDevices_pfn = UINT (WINAPI *)(
   _Out_opt_ PRAWINPUTDEVICE pRawInputDevices,
@@ -924,6 +949,13 @@ SK_GetCursor (VOID);
 HCURSOR
 WINAPI
 SK_SetCursor (_In_opt_ HCURSOR hCursor);
+
+struct ImGuiContext;
+extern ImGuiContext* SK_GImDefaultContext (void);
+
+LRESULT
+WINAPI
+ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 SHORT WINAPI SK_GetKeyState      (int   nVirtKey);
 BOOL  WINAPI SK_GetKeyboardState (PBYTE lpKeyState);
