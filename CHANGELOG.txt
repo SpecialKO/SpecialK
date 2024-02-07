@@ -1,4 +1,12 @@
-﻿24.2.7.4
+﻿24.2.7.5
+========
+ + Added settings for all common notifications to control how long they are
+     visible for, whether they can appear multiple times per-game, or disable
+       them completely.
+
+    >> Right-click a notification to configure it.
+
+24.2.7.4
 ========
  + Added success notification when D3D11 Texture Mods have been detected and
      will load.

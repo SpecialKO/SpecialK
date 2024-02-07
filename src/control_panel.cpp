@@ -414,7 +414,7 @@ SK_ImGui_WarningWithTitle ( const wchar_t* wszMessage,
   );
 #else
   SK_ImGui_CreateNotification (
-    "Generic_Warning", SK_ImGui_Toast::Warning,
+    "System.Warning", SK_ImGui_Toast::Warning,
        SK_WideCharToUTF8 (wszMessage).c_str (),
                            szTitle,
                10000, SK_ImGui_Toast::UseDuration |
@@ -434,7 +434,7 @@ SK_ImGui_WarningWithTitle ( const wchar_t* wszMessage,
   );
 #else
   SK_ImGui_CreateNotification (
-    "Generic_Warning", SK_ImGui_Toast::Warning,
+    "System.Warning", SK_ImGui_Toast::Warning,
        SK_WideCharToUTF8 (wszMessage).c_str (),
        SK_WideCharToUTF8 (wszTitle).c_str   (),
                10000, SK_ImGui_Toast::UseDuration |

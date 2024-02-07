@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -920,7 +920,7 @@ SK_SetGameMute (bool bMute)
   { if (SUCCEEDED (pVolume->SetMute (bMute, nullptr)))
     {
       SK_ImGui_CreateNotification (
-        "mute/unmute", SK_ImGui_Toast::Info,
+        "Sound.Mute", SK_ImGui_Toast::Info,
           bMute ? "Game has been muted"
                 : "Game has been unmuted",
           nullptr, 3333UL, SK_ImGui_Toast::UseDuration |
@@ -991,7 +991,7 @@ SK_WASAPI_Init (void)
             std::clamp (volume, 0.0f, 100.0f);
 
           SK_ImGui_CreateNotification (
-            "OnVarChange_Volume", SK_ImGui_Toast::Info,
+            "Sound.Volume", SK_ImGui_Toast::Info,
               SK_FormatString ("Game Volume: %1.0f%%", volume).c_str (),
               nullptr, 3333UL, SK_ImGui_Toast::UseDuration |
                                SK_ImGui_Toast::ShowCaption |

@@ -427,7 +427,8 @@ struct SK_ImGui_Toast {
     FadeIn   = 0x0,
     Drawing  = 0x1,
     FadeOut  = 0x2,
-    Finished = 0x4
+    Finished = 0x4,
+    Config   = 0x8
   } stage = FadeIn;
 };
 
@@ -460,7 +461,7 @@ SK_ImGui_DrawNotifications (void);
     else                                                                  \
     { SK_RunOnce (                                                        \
           SK_ImGui_CreateNotification (                                   \
-            "Assertion_Failure", SK_ImGui_Toast::Error,                   \
+            "Debug.Assertion_Failure", SK_ImGui_Toast::Error,             \
             SK_FormatString ( "Critical Assertion Failure: "              \
                               "'%ws'\r\n\r\n\tFunction:\t%hs"             \
                                        "\r\n\tSource:\t(%ws:%u)",         \

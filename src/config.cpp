@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -44,6 +44,7 @@ iSK_INI* osd_ini      = nullptr;
 iSK_INI* input_ini    = nullptr;
 iSK_INI* platform_ini = nullptr;
 iSK_INI* macro_ini    = nullptr;
+iSK_INI* notify_ini   = nullptr;
 
 SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
 
@@ -1251,7 +1252,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
   std::wstring master_name;
 
   std::wstring   osd_config, platform_config,
-               macro_config,    input_config;
+               macro_config,    input_config,
+              notify_config;
 
   full_name = // For paths with :, do not prepend the config root
     name.find (L':') != std::wstring::npos ?
@@ -1297,16 +1299,19 @@ SK_LoadConfigEx (std::wstring name, bool create)
   osd_config         =
     std::wstring (SK_GetInstallPath ()) + LR"(\Global\osd.ini)";
 
-  input_config         =
+  input_config       =
     std::wstring (SK_GetInstallPath ()) + LR"(\Global\input.ini)";
 
-  platform_config =
+  platform_config    =
     std::wstring (SK_GetInstallPath ()) + LR"(\Global\platform.ini)";
 
   std::wstring migrate_platform_config;
 
   macro_config       =
     std::wstring (SK_GetInstallPath ()) + LR"(\Global\macros.ini)";
+
+  notify_config      =
+    std::wstring (SK_GetInstallPath ()) + LR"(\Global\notifications.ini)";
 
   if (init == FALSE || dll_ini == nullptr)
   {
@@ -1341,6 +1346,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
         SK_CreateINI (platform_config.c_str ());
       macro_ini       =
         SK_CreateINI (macro_config.c_str ());
+      notify_ini       =
+        SK_CreateINI (notify_config.c_str ());
     });
 
 
@@ -1348,6 +1355,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
     input_ini->reload    ();
     platform_ini->reload ();
     macro_ini->reload    ();
+    notify_ini->reload   ();
 
 
 auto DeclKeybind =
@@ -6070,6 +6078,7 @@ SK_SaveConfig ( std::wstring name,
   if (   input_ini)    input_ini->write ();
   if (platform_ini) platform_ini->write ();
   if (   macro_ini)    macro_ini->write ();
+  if (  notify_ini)   notify_ini->write ();
 
 
 

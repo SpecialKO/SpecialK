@@ -3970,7 +3970,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
                  percent_used - config.render.dxgi.warn_if_vram_exceeds;
 
           SK_ImGui_CreateNotification (
-            "VRAM_OverQuota", SK_ImGui_Toast::Warning,
+            "VRAM.OverQuota", SK_ImGui_Toast::Warning,
             SK_FormatString ( "VRAM Used:\t%ls\r\n"
                               "VRAM Quota:\t%0.1f%% of Available; %ls"
                               "\r\n\r\n\t\t %ls "

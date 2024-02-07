@@ -233,6 +233,8 @@ SK_PopupManager::OnDestroyPopup (const CEGUI::EventArgs& e)
 #include <concurrent_queue.h>
 #include <imgui/font_awesome.h>
 
+extern iSK_INI* notify_ini;
+
 concurrency::concurrent_queue <SK_ImGui_Toast> SK_ImGui_Notifications;
 
 #define NOTIFY_PADDING_X           20.f // Bottom-left X padding
@@ -307,7 +309,7 @@ SK_ImGui_CreateNotification ( const char* szID,
                                     DWORD flags )
   
 {
-  if (flags & SK_ImGui_Toast::ShowOnce)
+  if (szID != nullptr && *szID != '\0' && flags & SK_ImGui_Toast::ShowOnce)
   {
     static concurrency::concurrent_unordered_set <std::string> shown_ids;
 
@@ -335,7 +337,66 @@ SK_ImGui_CreateNotification ( const char* szID,
     flags &= ~( SK_ImGui_Toast::ShowOnce |
                 SK_ImGui_Toast::ShowNewest );
 
-  toast.duration = dwMilliseconds;
+  if (notify_ini != nullptr)
+  {
+    std::wstring wstr_id (
+      SK_UTF8ToWideChar (toast.id.c_str ())
+    );
+
+    bool has_section =
+      notify_ini->contains_section (wstr_id.c_str ());
+
+    auto& toast_cfg =
+      notify_ini->get_section (wstr_id.c_str ());
+
+    toast.duration = toast_cfg.contains_key (L"DurationInMs") ?
+              _wtoi (toast_cfg.get_value    (L"DurationInMs").c_str ()):
+                                                               0;
+
+    if (toast.duration == 0)
+        toast_cfg.add_key_value (L"DurationInMs", std::to_wstring (dwMilliseconds)),
+                                                  toast.duration = dwMilliseconds;
+
+    toast.stage = toast_cfg.contains_key (L"DoNotShow") ?
+       SK_IsTrue (toast_cfg.get_value    (L"DoNotShow").c_str ()) ?
+                                         SK_ImGui_Toast::Finished : SK_ImGui_Toast::FadeIn
+                                                                  : SK_ImGui_Toast::FadeIn;
+    if (toast.stage == SK_ImGui_Toast::FadeIn)
+        toast_cfg.add_key_value (L"DoNotShow", L"false");
+
+    const bool bShowOnce =
+      toast_cfg.contains_key           (L"ShowOnce") ?
+        SK_IsTrue (toast_cfg.get_value (L"ShowOnce").c_str ()) ?
+                                                          true : false
+                                                               : false;
+
+    if (bShowOnce) flags |=  SK_ImGui_Toast::ShowOnce;
+    else           flags &= ~SK_ImGui_Toast::ShowOnce;
+
+    if (! toast_cfg.contains_key  (L"ShowOnce"))
+    {     toast_cfg.add_key_value (L"ShowOnce",
+             (flags & SK_ImGui_Toast::ShowOnce) ? L"true"
+                                                : L"false");
+    }
+
+#if 0
+    toast.anchor = toast_cfg.contains_key (L"AnchorPoint") ?
+        SK_IsTrue (toast_cfg.get_value    (L"AnchorPoint").c_str ()) ?
+                                            SK_ImGui_Toast::Finished : SK_ImGui_Toast::FadeIn
+                                                                     : SK_ImGui_Toast::FadeIn;
+#endif
+
+    const bool bDoNotShow =
+      ( toast.stage == SK_ImGui_Toast::Finished );
+
+    toast_cfg.get_value (L"DoNotShow") =
+                          bDoNotShow ? L"true"
+                                     : L"false";
+
+    if (! has_section)
+      SK_SaveConfig ();
+  }
+
   toast.inserted = SK::ControlPanel::current_time;
   toast.type     = type;
   toast.flags    = (SK_ImGui_Toast::Flags)flags;
@@ -412,23 +473,29 @@ SK_ImGui_DrawNotifications (void)
           toast.displayed = SK::ControlPanel::current_time;
 
       if (toast.displayed < SK::ControlPanel::current_time - (toast.duration + 2 * NOTIFY_FADE_IN_OUT_TIME))
-        remove = true;
+      {
+        if (toast.stage != SK_ImGui_Toast::Config)
+          remove = true;
+      }
     }
 
-    DWORD dwElapsed = SK::ControlPanel::current_time - toast.displayed;
-
-    if (dwElapsed > NOTIFY_FADE_IN_OUT_TIME + toast.duration)
-      toast.stage = SK_ImGui_Toast::FadeOut;
-
-    else
+    if (toast.stage != SK_ImGui_Toast::Config)
     {
-      if (dwElapsed > NOTIFY_FADE_IN_OUT_TIME)
-      {
-        toast.stage = SK_ImGui_Toast::Drawing;
-      }
+      DWORD dwElapsed = SK::ControlPanel::current_time - toast.displayed;
+
+      if (dwElapsed > NOTIFY_FADE_IN_OUT_TIME + toast.duration)
+        toast.stage = SK_ImGui_Toast::FadeOut;
 
       else
-        toast.stage = SK_ImGui_Toast::FadeIn;
+      {
+        if (dwElapsed > NOTIFY_FADE_IN_OUT_TIME)
+        {
+          toast.stage = SK_ImGui_Toast::Drawing;
+        }
+
+        else
+          toast.stage = SK_ImGui_Toast::FadeIn;
+      }
     }
 
     ImGui::SetNextWindowBgAlpha (
@@ -461,42 +528,115 @@ SK_ImGui_DrawNotifications (void)
 
     ImGui::Begin (window_id, nullptr, window_flags);
     {
+      ImGui::BeginGroup ();
       ImGui::BringWindowToDisplayFront (ImGui::GetCurrentWindow ());
       ImGui::PushTextWrapPos           (viewport_size.x / 3.333f);
 
-      ImGui::TextColored (
-        SK_ImGui_GetToastColor (toast.type),
-        SK_ImGui_GetToastIcon  (toast.type)
-      );
-
-      bool has_title = false;
-
-      if ((! toast.title.empty ()) && (toast.flags & SK_ImGui_Toast::ShowTitle))
+      if (toast.stage != SK_ImGui_Toast::Config)
       {
-        ImGui::SameLine ();
+        ImGui::TextColored (
+          SK_ImGui_GetToastColor (toast.type),
+          SK_ImGui_GetToastIcon  (toast.type)
+        );
 
-        ImGui::TextUnformatted (toast.title.c_str ());
+        bool has_title = false;
 
-        has_title = true;
-      }
-
-      if ((! toast.caption.empty ()) && (toast.flags & SK_ImGui_Toast::ShowCaption))
-      {
-        if (! has_title)
+        if ((! toast.title.empty ()) && (toast.flags & SK_ImGui_Toast::ShowTitle))
         {
           ImGui::SameLine ();
+
+          ImGui::TextUnformatted (toast.title.c_str ());
+
+          has_title = true;
         }
 
-        else
-          ImGui::Separator ();
+        if ((! toast.caption.empty ()) && (toast.flags & SK_ImGui_Toast::ShowCaption))
+        {
+          if (! has_title)
+          {
+            ImGui::SameLine ();
+          }
 
-        ImGui::TextUnformatted (toast.caption.c_str ());
+          else
+            ImGui::Separator ();
+
+          ImGui::TextColored (
+            ImVec4 (.7f, .7f, .7f, 1.f),
+            toast.caption.c_str ()
+          );
+        }
+
+        ImGui::PopTextWrapPos  ();
       }
 
-      ImGui::PopTextWrapPos  ();
+      else
+      {
+        if (notify_ini != nullptr)
+        {
+          auto& toast_cfg =
+            notify_ini->get_section (
+              SK_UTF8ToWideChar (toast.id.c_str ()).c_str ()
+            );
+
+          bool                                                  bDoNotShow =
+            SK_IsTrue (toast_cfg.get_value (L"DoNotShow").c_str ()) ? true
+                                                                    : false;
+          if (ImGui::Checkbox ("Never Show This Notification", &bDoNotShow))
+          {
+            toast_cfg.add_key_value (L"DoNotShow", bDoNotShow ? L"true"
+                                                              : L"false");
+          }
+
+          if (! bDoNotShow)
+          {
+            bool                                                          bShowOnce =
+            SK_IsTrue (toast_cfg.get_value (L"ShowOnce").c_str ()) ? true
+                                                                   : false;
+            if (ImGui::Checkbox ("Show This Notification Once Per-Game", &bShowOnce))
+            {
+              toast_cfg.add_key_value (L"ShowOnce",   bShowOnce ? L"true"
+                                                                : L"false");
+            }
+
+            DWORD dwMilliseconds =
+              _wtoi (toast_cfg.get_value (L"DurationInMs").c_str ());
+
+            float fSeconds = static_cast <float> (dwMilliseconds) / 1000.0f;
+
+            if (ImGui::SliderFloat ("Duration (seconds)", &fSeconds, 1.f, 60.f))
+            {
+              dwMilliseconds =
+                static_cast <DWORD> (fSeconds * 1000.0f);
+
+              toast_cfg.add_key_value (L"DurationInMs", std::to_wstring (dwMilliseconds));
+            }
+          }
+
+          ImGui::Separator ();
+        }
+
+        if (ImGui::Button ("Save Settings"))
+        {
+          SK_SaveConfig ();
+
+          toast.stage = SK_ImGui_Toast::Drawing;
+        }
+      }
 
       fHeight +=
         ( ImGui::GetWindowHeight () + NOTIFY_PADDING_MESSAGE_Y );
+
+      ImGui::EndGroup ();
+
+      if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
+      {
+        toast.stage = SK_ImGui_Toast::Config;
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ("Right-click to configure this notification");
+      }
     }
     ImGui::End   ();
 

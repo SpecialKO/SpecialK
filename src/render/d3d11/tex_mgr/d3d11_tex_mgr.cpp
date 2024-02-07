@@ -3180,7 +3180,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
       }
 
       SK_ImGui_CreateNotification (
-        "D3D11_TexMod_Enumerated", SK_ImGui_Toast::Success,
+        "D3D11.TexMod_Enumerated", SK_ImGui_Toast::Success,
           SK_FormatString ( "\t%li files\t(%3.1f MiB)\n",
                             files, (double)liSize.QuadPart / (1024.0 * 1024.0)).c_str (),
           "Injectable D3D11 Textures Found", 7500,
@@ -3250,7 +3250,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
     if (files > 0)
     {
       SK_ImGui_CreateNotification (
-        "FFX_TexMod_Enumerated", SK_ImGui_Toast::Success,
+        "FFX.TexMod_Enumerated", SK_ImGui_Toast::Success,
           SK_FormatString ( "\t%li files\t(%3.1f MiB)\n",
                             files, (double)liSize.QuadPart / (1024.0 * 1024.0)).c_str (),
           "Injectable Final Fantasy X Textures Found", 6666,

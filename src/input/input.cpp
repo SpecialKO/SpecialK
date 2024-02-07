@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -6426,7 +6426,7 @@ SK_ImGui_ProcessGamepadStatusBar (bool bDraw)
       if (battery.draining && gamepad.attached && battery.battery_info.BatteryLevel <= BATTERY_LEVEL_LOW)
       {
         std::string label =
-          SK_FormatString ("XInput::Gamepad%d::Battery_Low", gamepad.slot);
+          SK_FormatString ("XInput_Gamepad%d.Battery_Low", gamepad.slot);
 
         SK_ImGui_CreateNotification (
           label.c_str (), SK_ImGui_Toast::Warning,

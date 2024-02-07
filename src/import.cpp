@@ -325,7 +325,7 @@ SK_LoadImportModule (import_s& import)
   if (import.hLibrary != nullptr)
   {
     SK_ImGui_CreateNotification (
-      "Module_Load", SK_ImGui_Toast::Success,
+      "PlugIn.Load", SK_ImGui_Toast::Success,
          SK_FormatString ("%ws", import.filename->get_value_ref ().c_str ()).c_str (),
                  "Special K Plug-In Loaded",
                  5000, SK_ImGui_Toast::UseDuration |
