@@ -56,6 +56,14 @@ static constexpr int SK_MAX_WINDOW_DIM = 16384;
 
 extern bool SK_WantBackgroundRender ();
 
+extern HWND SK_Inject_GetFocusWindow (void);
+extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
+
+extern bool SK_ImGui_IsMouseRelevant       (void);
+extern bool SK_InputUtil_IsHWCursorVisible (void);
+
+extern void SK_Display_ResolutionSelectUI (bool bMarkDirty = false);
+
 bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
 
 BOOL
@@ -1149,7 +1157,7 @@ ActivateWindow ( HWND hWnd,
           static_cast <int> (SK_RenderAPI::D3D9     )
         )                                           )
     {
-      SetWindowLongPtrW    (game_window.hWnd, GWL_EXSTYLE,
+      SK_SetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE,
        ( GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) &
                          ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE
                                          | WS_EX_TOOLWINDOW)
@@ -1450,9 +1458,6 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
 bool SK_ImGui_ImplicitMouseAntiwarp (void)
 {
-  extern bool SK_ImGui_IsMouseRelevant       (void);
-  extern bool SK_InputUtil_IsHWCursorVisible (void);
-
   if (SK_ImGui_IsMouseRelevant ())
   {
     // Depending on warp prefs, we may not allow the game to know about mouse movement
@@ -2810,7 +2815,6 @@ SK_SetWindowLongPtrA (
     dwNewLong;
 }
 
-DECLSPEC_NOINLINE
 LONG_PTR
 WINAPI
 SetWindowLongPtrA_Detour (
@@ -3454,8 +3458,7 @@ SK_Window_RepositionIfNeeded (void)
           CopyRect (&rcClientLast, &game_window.actual.client);
           CopyRect (&rcWindowLast, &game_window.actual.window);
 
-          extern void SK_AdjustClipRect (void);
-                      SK_AdjustClipRect ();
+          SK_AdjustClipRect ();
 
           config.window.fullscreen = _configFullscreen;
           config.window.center     = _configCenter;
@@ -3484,8 +3487,6 @@ SK_Window_RepositionIfNeeded (void)
           {   hMonitorOrig  = rb.monitor;
             rb.assignOutputFromHWND (game_window.hWnd);
 
-            extern void
-            SK_Display_ResolutionSelectUI (bool bMarkDirty = false);
             SK_Display_ResolutionSelectUI (true);
             rb.gsync_state.update         (true);
 
@@ -5086,17 +5087,6 @@ SK_DetourWindowProc2 ( _In_  HWND   hWnd,
 
 float g_fDPIScale = 1.0f;
 
-extern
-LRESULT
-CALLBACK
-SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam);
-
-extern
-LRESULT
-CALLBACK
-SK_ImGui_MouseProc    (int code, WPARAM wParam, LPARAM lParam);
-
-
 bool
 __SKX_WinHook_InstallInputHooks (HWND hWnd)
 {
@@ -5357,14 +5347,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       SleepEx (150UL, FALSE);
 
-      extern VOID WINAPI
-      SK_mouse_event (
-        _In_ DWORD     dwFlags,
-        _In_ DWORD     dx,
-        _In_ DWORD     dy,
-        _In_ DWORD     dwData,
-        _In_ ULONG_PTR dwExtraInfo );
-
       if (SK_GetForegroundWindow () != game_window.hWnd)
       {
         HWND hWndStartMenu =
@@ -5490,8 +5472,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         {
           if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0 && (ImGui::GetIO ().WantCaptureMouse || SK_ImGui_IsAnythingHovered ()))
           {
-            extern bool      __SK_EnableSetCursor;
-                   bool bOrig =
+            bool bOrig =
               std::exchange (__SK_EnableSetCursor, true);
 
             SK_ImGui_Cursor.activateWindow (true);
@@ -5610,8 +5591,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         {
           SK_Win32_DestroyBackgroundWindow ();
 
-          extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
-                      SK_Inject_SetFocusWindow (0);
+          SK_Inject_SetFocusWindow (0);
 
           // It's not clear why this was here, WM_QUIT should be where this is handled...
           //   of course that message is never dispatched.
@@ -6046,9 +6026,6 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd)
   DWORD_PTR dwStyleEx =
     GetWindowLongFn (hWnd, GWL_EXSTYLE);
   DWORD_PTR dwStyleExOrig = dwStyleEx;
-
-  extern HWND SK_Inject_GetFocusWindow (void);
-  extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
 
   SK_Inject_SetFocusWindow (game_window.hWnd);
 
@@ -7964,8 +7941,8 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
 
     if (bTopMost)
     {
-      extern void SK_Inject_SetFocusWindow (HWND);
-                  SK_Inject_SetFocusWindow (game_window.hWnd);
+
+      SK_Inject_SetFocusWindow (game_window.hWnd);
     }
 
     // Misnomer; brings a secondary window up the Z-Order to just below
