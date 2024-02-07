@@ -1617,6 +1617,10 @@ XInputSetState9_1_0_Detour (
 void
 SK_Input_HookXInputContext (SK_XInputContext::instance_s* pCtx)
 {
+  // XInput Emulation Requires at least one slot be Placeheld.
+  if (config.input.gamepad.xinput.emulate)
+      config.input.gamepad.xinput.placehold [0] = true;
+
   pCtx->XInputGetState_Target =
     SK_GetProcAddress ( pCtx->wszModuleName,
                                    "XInputGetState" );

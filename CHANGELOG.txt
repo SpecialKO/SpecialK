@@ -2,6 +2,7 @@
 ========
  + Fixed SK not blocking input to the game when its control panel is open and
      XInput emulation is active (lol).
+ + Enable XInput Placeholding on XInput slot 0 when enabling XInput emulation
 
 24.2.7.7
 ========
