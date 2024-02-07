@@ -584,6 +584,10 @@ extern
 void
 SK_ImGui_CenterCursorOnWindow (void);
 
+extern bool __SK_EnableSetCursor;
+extern HWND   SK_Win32_BackgroundHWND;
+extern bool   SK_ImGui_GamepadComboDialogActive;
+
 //////////////////////////////////////////////////////////////
 //
 // HIDClass (Usermode)
@@ -649,6 +653,8 @@ using HidP_GetUsageValueArray_pfn = NTSTATUS (__stdcall *)(
   _In_    ULONG                ReportLength
 );
 
+using HidP_MaxDataListLength_pfn = NTSTATUS (__stdcall *)(HIDP_REPORT_TYPE, PHIDP_PREPARSED_DATA);
+
 using HidD_GetPreparsedData_pfn = BOOLEAN (__stdcall *)(
   _In_  HANDLE                HidDeviceObject,
   _Out_ PHIDP_PREPARSED_DATA *PreparsedData
@@ -671,6 +677,12 @@ using HidD_GetFeature_pfn = BOOLEAN (__stdcall *)(
   _In_  HANDLE HidDeviceObject,
   _Out_ PVOID  ReportBuffer,
   _In_  ULONG  ReportBufferLength
+);
+
+using HidD_SetFeature_pfn = BOOLEAN (__stdcall *)(
+  _In_ HANDLE HidDeviceObject,
+  _In_ PVOID  ReportBuffer,
+  _In_ ULONG  ReportBufferLength
 );
 
 using  HidD_GetInputReport_pfn = BOOLEAN (__stdcall *)(
@@ -976,6 +988,25 @@ SK_keybd_event (
   _In_ DWORD     dwFlags,
   _In_ ULONG_PTR dwExtraInfo
 );
+
+void
+WINAPI
+SK_mouse_event (
+  _In_ DWORD     dwFlags,
+  _In_ DWORD     dx,
+  _In_ DWORD     dy,
+  _In_ DWORD     dwData,
+  _In_ ULONG_PTR dwExtraInfo );
+
+LRESULT
+CALLBACK
+SK_ImGui_KeyboardProc (int code, WPARAM wParam, LPARAM lParam);
+
+LRESULT
+CALLBACK
+SK_ImGui_MouseProc    (int code, WPARAM wParam, LPARAM lParam);
+
+void SK_AdjustClipRect (void);
 
 int WINAPI SK_ShowCursor (BOOL bShow);
 

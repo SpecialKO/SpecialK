@@ -343,6 +343,32 @@ extern RegisterRawInputDevices_pfn RegisterRawInputDevices_Original;
 
 #include <SpecialK/input/input.h>
 
+LONG_PTR
+WINAPI
+SK_SetWindowLongPtrW (
+  _In_ HWND     hWnd,
+  _In_ int      nIndex,
+  _In_ LONG_PTR dwNewLong );
+
+LONG_PTR
+WINAPI
+SK_SetWindowLongPtrA (
+  _In_ HWND     hWnd,
+  _In_ int      nIndex,
+  _In_ LONG_PTR dwNewLong );
+
+LONG_PTR
+WINAPI
+SK_GetWindowLongPtrA (
+  _In_ HWND     hWnd,
+  _In_ int      nIndex );
+
+LONG_PTR
+WINAPI
+SK_GetWindowLongPtrW (
+  _In_ HWND     hWnd,
+  _In_ int      nIndex );
+
 struct sk_window_s {
        sk_window_s (void) noexcept { };
 
@@ -438,8 +464,8 @@ struct sk_window_s {
   bool    needsCoordTransform (void);
   void    updateDims          (void);
 
-  SetWindowLongPtr_pfn SetWindowLongPtr = SetWindowLongPtrW;
-  GetWindowLongPtr_pfn GetWindowLongPtr = GetWindowLongPtrW;
+  SetWindowLongPtr_pfn SetWindowLongPtr = SK_SetWindowLongPtrW;
+  GetWindowLongPtr_pfn GetWindowLongPtr = SK_GetWindowLongPtrW;
   SetClassLongPtr_pfn  SetClassLongPtr  = ::SetClassLongPtrW;
   GetClassLongPtr_pfn  GetClassLongPtr  = ::GetClassLongPtrW;
   DefWindowProc_pfn    DefWindowProc    = DefWindowProcW;
@@ -681,14 +707,6 @@ extern UINT SK_Inject_GetExplorerLowerMsg (void);
 static
 auto TriggerStartMenu = [](void)
 {
-  extern void
-  WINAPI
-  SK_keybd_event (
-    _In_ BYTE       bVk,
-    _In_ BYTE       bScan,
-    _In_ DWORD     dwFlags,
-    _In_ ULONG_PTR dwExtraInfo );
-
   //HWND hWndStartMenu =
   //  FindWindow (L"Windows.UI.Core.CoreWindow", L"Start");
 

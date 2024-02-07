@@ -326,6 +326,14 @@ void SK_HID_SetupPlayStationControllers (void)
         if (StrStrIW (wszFileName, L"VID_054c") && SK_CreateFile2 != nullptr)
         {
           SK_HID_PlayStationDevice controller;
+
+          CREATEFILE2_EXTENDED_PARAMETERS
+            cf2_ep                      = {                                      };
+            cf2_ep.dwSize               = sizeof (CREATEFILE2_EXTENDED_PARAMETERS);
+            cf2_ep.dwFileAttributes     = FILE_ATTRIBUTE_NORMAL;
+            cf2_ep.dwSecurityQosFlags   = SECURITY_ANONYMOUS;
+            cf2_ep.dwFileFlags          = //FILE_FLAG_NO_BUFFERING |
+                                          FILE_FLAG_WRITE_THROUGH;
   
           wcsncpy_s (controller.wszDevicePath, MAX_PATH,
                                 wszFileName,   _TRUNCATE);
@@ -333,7 +341,7 @@ void SK_HID_SetupPlayStationControllers (void)
           controller.hDeviceFile =
             SK_CreateFile2 ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                                           FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                            OPEN_EXISTING, nullptr );
+                                            OPEN_EXISTING, &cf2_ep );
   
           if (controller.hDeviceFile != nullptr)
           {
@@ -450,21 +458,23 @@ void SK_HID_SetupPlayStationControllers (void)
 HidD_GetPreparsedData_pfn   HidD_GetPreparsedData_Original  = nullptr;
 HidD_FreePreparsedData_pfn  HidD_FreePreparsedData_Original = nullptr;
 HidD_GetFeature_pfn         HidD_GetFeature_Original        = nullptr;
+HidD_SetFeature_pfn         HidD_SetFeature_Original        = nullptr;
 HidP_GetData_pfn            HidP_GetData_Original           = nullptr;
 HidP_GetCaps_pfn            HidP_GetCaps_Original           = nullptr;
 HidP_GetUsages_pfn          HidP_GetUsages_Original         = nullptr;
 
-HidD_GetPreparsedData_pfn   SK_HidD_GetPreparsedData   = nullptr;
-HidD_FreePreparsedData_pfn  SK_HidD_FreePreparsedData  = nullptr;
-HidD_GetInputReport_pfn     SK_HidD_GetInputReport     = nullptr;
-HidD_GetFeature_pfn         SK_HidD_GetFeature         = nullptr;
-HidP_GetData_pfn            SK_HidP_GetData            = nullptr;
-HidP_GetCaps_pfn            SK_HidP_GetCaps            = nullptr;
-HidP_GetButtonCaps_pfn      SK_HidP_GetButtonCaps      = nullptr;
-HidP_GetValueCaps_pfn       SK_HidP_GetValueCaps       = nullptr;
-HidP_GetUsages_pfn          SK_HidP_GetUsages          = nullptr;
-HidP_GetUsageValue_pfn      SK_HidP_GetUsageValue      = nullptr;
-HidP_GetUsageValueArray_pfn SK_HidP_GetUsageValueArray = nullptr;
+HidD_GetPreparsedData_pfn   SK_HidD_GetPreparsedData        = nullptr;
+HidD_FreePreparsedData_pfn  SK_HidD_FreePreparsedData       = nullptr;
+HidD_GetInputReport_pfn     SK_HidD_GetInputReport          = nullptr;
+HidD_GetFeature_pfn         SK_HidD_GetFeature              = nullptr;
+HidD_SetFeature_pfn         SK_HidD_SetFeature              = nullptr;
+HidP_GetData_pfn            SK_HidP_GetData                 = nullptr;
+HidP_GetCaps_pfn            SK_HidP_GetCaps                 = nullptr;
+HidP_GetButtonCaps_pfn      SK_HidP_GetButtonCaps           = nullptr;
+HidP_GetValueCaps_pfn       SK_HidP_GetValueCaps            = nullptr;
+HidP_GetUsages_pfn          SK_HidP_GetUsages               = nullptr;
+HidP_GetUsageValue_pfn      SK_HidP_GetUsageValue           = nullptr;
+HidP_GetUsageValueArray_pfn SK_HidP_GetUsageValueArray      = nullptr;
 
 bool
 SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
@@ -599,6 +609,31 @@ HidD_FreePreparsedData_Detour (
 BOOLEAN
 _Success_ (return)
 __stdcall
+HidD_SetFeature_Detour ( _In_ HANDLE HidDeviceObject,
+                         _In_ PVOID  ReportBuffer,
+                         _In_ ULONG  ReportBufferLength )
+{
+  SK_LOG_FIRST_CALL
+
+#if 0
+  SK_ImGui_CreateNotification (
+    "HidD_SetFeature.Trace", SK_ImGui_Toast::Info,
+    SK_FormatString ( "Device: %p, *pReportBuffer=%p, ReportLength=%d bytes",
+                        HidDeviceObject, ReportBuffer, ReportBufferLength ).c_str (),
+    "HidD_SetFeature (...) called!", 1000UL,
+      SK_ImGui_Toast::UseDuration | SK_ImGui_Toast::ShowCaption |
+      SK_ImGui_Toast::ShowTitle   | SK_ImGui_Toast::ShowNewest );
+#endif
+
+  return
+    HidD_SetFeature_Original ( HidDeviceObject,
+                               ReportBuffer,
+                               ReportBufferLength );
+}
+
+BOOLEAN
+_Success_ (return)
+__stdcall
 HidD_GetFeature_Detour ( _In_  HANDLE HidDeviceObject,
                          _Out_ PVOID  ReportBuffer,
                          _In_  ULONG  ReportBufferLength )
@@ -716,7 +751,6 @@ HidP_GetData_Detour (
 
   if (filter && (DataLength != nullptr))
   {
-    using  HidP_MaxDataListLength_pfn = ULONG (WINAPI *)(HIDP_REPORT_TYPE, PHIDP_PREPARSED_DATA);
     static HidP_MaxDataListLength_pfn
         SK_HidP_MaxDataListLength =
           (HidP_MaxDataListLength_pfn)SK_GetProcAddress (L"hid.dll",
@@ -1667,6 +1701,11 @@ SK_Input_HookHID (void)
      static_cast_p2p <void> (&HidD_GetFeature_Original) );
 
     SK_CreateDLLHook2 (     L"HID.DLL",
+                             "HidD_SetFeature",
+                              HidD_SetFeature_Detour,
+     static_cast_p2p <void> (&HidD_SetFeature_Original) );
+
+    SK_CreateDLLHook2 (     L"HID.DLL",
                              "HidP_GetUsages",
                               HidP_GetUsages_Detour,
      static_cast_p2p <void> (&HidP_GetUsages_Original) );
@@ -1696,7 +1735,8 @@ SK_Input_HookHID (void)
                                DeviceIoControl_Detour,
       static_cast_p2p <void> (&DeviceIoControl_Original) );
 
-#if 1
+#define _HOOK_READ_FILE
+#ifdef  _HOOK_READ_FILE
     SK_CreateDLLHook2 (      L"kernel32.dll",
                               "ReadFile",
                                ReadFile_Detour,
@@ -1846,6 +1886,10 @@ SK_Input_PreHookHID (void)
   SK_HidD_GetFeature =
     (HidD_GetFeature_pfn)SK_GetProcAddress (hModHID,
     "HidD_GetFeature");
+
+  SK_HidD_SetFeature =
+    (HidD_SetFeature_pfn)SK_GetProcAddress (hModHID,
+    "HidD_SetFeature");
 
   SK_HidP_GetData =
     (HidP_GetData_pfn)SK_GetProcAddress (hModHID,

@@ -35,11 +35,6 @@ bool SK_WantBackgroundRender (void)
     config.window.background_render;
 }
 
-
-extern BOOL
-__stdcall
-SK_IsConsoleVisible (void);
-
 bool
 SK_ImGui_WantGamepadCapture (void)
 {
@@ -91,8 +86,6 @@ SK_ImGui_WantGamepadCapture (void)
         imgui_capture = true;
     }
 
-    extern bool
-        SK_ImGui_GamepadComboDialogActive;
     if (SK_ImGui_GamepadComboDialogActive)
       imgui_capture = true;
   }

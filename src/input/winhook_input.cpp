@@ -27,6 +27,9 @@
 #endif
 #define __SK_SUBSYSTEM__ L"Input Mgr."
 
+
+extern bool SK_ImGui_WantExit;
+
 using SetWindowsHookEx_pfn = HHOOK (WINAPI*)(int, HOOKPROC, HINSTANCE, DWORD);
       SetWindowsHookEx_pfn SetWindowsHookExA_Original = nullptr;
       SetWindowsHookEx_pfn SetWindowsHookExW_Original = nullptr;
@@ -345,8 +348,8 @@ SK_Proxy_KeyboardProc (
     {
       if (SK_IsGameWindowFocused () && vKey == VK_F4 && isAltDown && isPressed && (! wasPressed))
       {
-        extern bool SK_ImGui_WantExit;
-                    SK_ImGui_WantExit = true;
+        SK_ImGui_WantExit = true;
+
         return 1;
       }
     }
@@ -423,8 +426,8 @@ SK_Proxy_LLKeyboardProc (
     {
       if (SK_IsGameWindowFocused () && vKey == VK_F4 && isAltDown && isPressed && (! wasPressed))
       {
-        extern bool SK_ImGui_WantExit;
-                    SK_ImGui_WantExit = true;
+        SK_ImGui_WantExit = true;
+
         return 1;
       }
     }

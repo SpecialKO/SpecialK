@@ -309,7 +309,8 @@ SK_ImGui_CreateNotification ( const char* szID,
                                     DWORD flags )
   
 {
-  if (szID != nullptr && *szID != '\0' && flags & SK_ImGui_Toast::ShowOnce)
+  if ( ( szID != nullptr &&
+        *szID != '\0'  ) && ( flags & SK_ImGui_Toast::ShowOnce ) )
   {
     static concurrency::concurrent_unordered_set <std::string> shown_ids;
 

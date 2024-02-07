@@ -361,8 +361,7 @@ ImGui_DesiredCursor (void)
           LoadCursor (nullptr,               IDC_SIZENWSE)       }
     };
 
-  extern bool __SK_EnableSetCursor;
-  if (        __SK_EnableSetCursor)
+  if (__SK_EnableSetCursor)
   {
     const auto&
         it  = __cursor_cache.find (static_cast <unsigned int> (ImGui::GetMouseCursor ()));
@@ -523,8 +522,6 @@ bool
 __stdcall
 SK_IsGameWindowActive (void)
 {
-  extern HWND SK_Win32_BackgroundHWND;
-
   bool bActive =
     game_window.active;
 

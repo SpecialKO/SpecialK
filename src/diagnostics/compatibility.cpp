@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -53,15 +53,15 @@ TaskDialogCallback (
       SK_RealizeForegroundWindow (hWnd);
     }
 
-    SetForegroundWindow   (hWnd);
-    SetWindowPos          (hWnd, HWND_TOPMOST, 0, 0, 0, 0,
-                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
-                           SWP_NOSIZE         | SWP_NOMOVE       |
-                           SWP_NOSENDCHANGING   );
-    SetActiveWindow       (hWnd);
+    SetForegroundWindow      (hWnd);
+    SetWindowPos             (hWnd, HWND_TOPMOST, 0, 0, 0, 0,
+                              SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
+                              SWP_NOSIZE         | SWP_NOMOVE       |
+                              SWP_NOSENDCHANGING   );
+    SetActiveWindow          (hWnd);
 
-    SetWindowLongPtrW     (hWnd, GWL_EXSTYLE,
-     ( (GetWindowLongPtrW (hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST))));
+    SK_SetWindowLongPtrW     (hWnd, GWL_EXSTYLE,
+     ( (SK_GetWindowLongPtrW (hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST))));
   }
 
   if (uNotification == TDN_HYPERLINK_CLICKED)
@@ -78,17 +78,17 @@ TaskDialogCallback (
     InterlockedExchange (&__SK_TaskDialogActive, TRUE);
 
     SK_RealizeForegroundWindow
-                          (hWnd);
-    SetForegroundWindow   (hWnd);
-    SetWindowPos          (hWnd, HWND_TOPMOST, 0, 0, 0, 0,
-                           SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
-                           SWP_NOSIZE         | SWP_NOMOVE       |
-                           SWP_NOSENDCHANGING   );
-    SetActiveWindow       (hWnd);
-    SetFocus              (hWnd);
+                             (hWnd);
+       SetForegroundWindow   (hWnd);
+    SK_SetWindowPos          (hWnd, HWND_TOPMOST, 0, 0, 0, 0,
+                              SWP_ASYNCWINDOWPOS | SWP_SHOWWINDOW   |
+                              SWP_NOSIZE         | SWP_NOMOVE       |
+                              SWP_NOSENDCHANGING   );
+    SK_SetActiveWindow       (hWnd);
+       SetFocus              (hWnd);
 
-    SetWindowLongPtrW     (hWnd, GWL_EXSTYLE,
-     ( (GetWindowLongPtrW (hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST))));
+    SK_SetWindowLongPtrW     (hWnd, GWL_EXSTYLE,
+     ( (SK_GetWindowLongPtrW (hWnd, GWL_EXSTYLE) | (WS_EX_TOPMOST))));
   }
 
   if (uNotification == TDN_CREATED)

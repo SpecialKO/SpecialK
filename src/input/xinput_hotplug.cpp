@@ -241,13 +241,21 @@ SK_XInput_NotifyDeviceArrival (void)
                           {
                             if (! _wcsicmp (controller.wszDevicePath, wszFileName))
                             {
+                              CREATEFILE2_EXTENDED_PARAMETERS
+                                cf2_ep                      = {                                      };
+                                cf2_ep.dwSize               = sizeof (CREATEFILE2_EXTENDED_PARAMETERS);
+                                cf2_ep.dwFileAttributes     = FILE_ATTRIBUTE_NORMAL;
+                                cf2_ep.dwSecurityQosFlags   = SECURITY_ANONYMOUS;
+                                cf2_ep.dwFileFlags          = //FILE_FLAG_NO_BUFFERING |
+                                                              FILE_FLAG_WRITE_THROUGH;
+
                               // We missed a device removal event if this is true
                               SK_ReleaseAssert (controller.bConnected == false);
 
                               controller.hDeviceFile =
                                 SK_CreateFile2 ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                                                               FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                                                OPEN_EXISTING, nullptr );
+                                                                OPEN_EXISTING, &cf2_ep );
 
                               if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
                               {
@@ -271,10 +279,18 @@ SK_XInput_NotifyDeviceArrival (void)
                             wcsncpy_s (controller.wszDevicePath, MAX_PATH,
                                                   wszFileName,   _TRUNCATE);
 
+                            CREATEFILE2_EXTENDED_PARAMETERS
+                              cf2_ep                      = {                                      };
+                              cf2_ep.dwSize               = sizeof (CREATEFILE2_EXTENDED_PARAMETERS);
+                              cf2_ep.dwFileAttributes     = FILE_ATTRIBUTE_NORMAL;
+                              cf2_ep.dwSecurityQosFlags   = SECURITY_ANONYMOUS;
+                              cf2_ep.dwFileFlags          = //FILE_FLAG_NO_BUFFERING |
+                                                            FILE_FLAG_WRITE_THROUGH;
+
                             controller.hDeviceFile =
                               SK_CreateFile2 ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                                                             FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                                              OPEN_EXISTING, nullptr );
+                                                              OPEN_EXISTING, &cf2_ep );
 
                             if (controller.hDeviceFile != nullptr)
                             {
