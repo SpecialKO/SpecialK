@@ -187,6 +187,7 @@
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <AdditionalOptions>/Zo /Zf /Gw /Gm- /GR /cgthreads8 /Zc:implicitNoexcept- /Zc:strictStrings- /O0</AdditionalOptions>
       <UseFullPaths>false</UseFullPaths>
+      <GuardEHContMetadata>false</GuardEHContMetadata>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -297,7 +298,7 @@
       <EnableModules>false</EnableModules>
       <SDLCheck>false</SDLCheck>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <IntelJCCErratum>true</IntelJCCErratum>
+      <IntelJCCErratum>false</IntelJCCErratum>
       <IncludeInUnityFile>false</IncludeInUnityFile>
       <UseFullPaths>false</UseFullPaths>
     </ClCompile>

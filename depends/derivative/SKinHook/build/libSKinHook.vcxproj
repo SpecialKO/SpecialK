@@ -196,6 +196,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <UseFullPaths>false</UseFullPaths>
+      <GuardEHContMetadata>false</GuardEHContMetadata>
     </ClCompile>
     <Lib />
     <Lib>
@@ -304,7 +305,7 @@
       <SDLCheck>false</SDLCheck>
       <DisableSpecificWarnings>4005;4201;4702;4061;4714;4820;5045</DisableSpecificWarnings>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <IntelJCCErratum>true</IntelJCCErratum>
+      <IntelJCCErratum>false</IntelJCCErratum>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <UseFullPaths>false</UseFullPaths>
     </ClCompile>

@@ -225,6 +225,7 @@
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
       <UseFullPaths>false</UseFullPaths>
+      <GuardEHContMetadata>false</GuardEHContMetadata>
     </ClCompile>
     <Link>
       <AdditionalOptions> %(AdditionalOptions)</AdditionalOptions>
@@ -372,7 +373,7 @@
       <EnableModules>false</EnableModules>
       <SDLCheck>false</SDLCheck>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
-      <IntelJCCErratum>true</IntelJCCErratum>
+      <IntelJCCErratum>false</IntelJCCErratum>
       <UseFullPaths>false</UseFullPaths>
     </ClCompile>
     <Link>

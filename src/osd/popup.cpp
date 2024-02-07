@@ -561,7 +561,7 @@ SK_ImGui_DrawNotifications (void)
             ImGui::Separator ();
 
           ImGui::TextColored (
-            ImVec4 (.7f, .7f, .7f, 1.f),
+            ImVec4 (.85f, .85f, .85f, 0.925f), "%hs",
             toast.caption.c_str ()
           );
         }
