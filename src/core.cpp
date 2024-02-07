@@ -3971,12 +3971,12 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
 
           SK_ImGui_CreateNotification (
             "VRAM_OverQuota", SK_ImGui_Toast::Warning,
-            SK_FormatString ( "\tVRAM Used:\t%ls\r\n\t"
-                                "VRAM Quota:\t%0.1f%% of Available; %ls"
+            SK_FormatString ( "VRAM Used:\t%ls\r\n"
+                              "VRAM Quota:\t%0.1f%% of Available; %ls"
                               "\r\n\r\n\t\t %ls "
-                              "Over Budget by %0.1f%%  (%ls)\r\n\r\n "
+                              "Over Budget by %0.1f%%\t (%ls)\r\n\r\n "
                               " Configure VRAM Quotas by Right-Clicking the"
-                              " VRAM Gauge.", used.c_str (),
+                              " VRAM Gauge", used.c_str (),
                     config.render.dxgi.warn_if_vram_exceeds,
                                     quota.c_str (), L"*", percent_over,
                                   overage.c_str ()

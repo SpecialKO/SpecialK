@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -250,7 +250,7 @@ SK_ImGui_DrawVRAMGauge (void)
        vram_used > vram_quota )
   {
     ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.0f, 1.f),
-                           ICON_FA_EXCLAMATION_TRIANGLE " " );
+                           ICON_FA_EXCLAMATION_TRIANGLE );
   
     if (ImGui::IsItemHovered ())
     {
