@@ -426,6 +426,23 @@ XInputGetState1_4_Detour (
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+  {
+    for ( auto& controller : SK_HID_PlayStationControllers )
+    {
+      if (controller.bConnected)
+      {
+        if (dwUserIndex == 0)
+        {
+          extern XINPUT_STATE hid_to_xi;
+          memcpy (  pState,  &hid_to_xi, sizeof (XINPUT_STATE) );
+        }
+
+        return ERROR_SUCCESS;
+      }
+    }
+  }
+
   if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
     dwUserIndex = config.input.gamepad.xinput.ui_slot;
 

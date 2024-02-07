@@ -1792,7 +1792,7 @@ extern IDirectInputDevice8W_GetDeviceState_pfn
        IDirectInputDevice8W_GetDeviceState_Original;
 
 extern XINPUT_STATE  di8_to_xi;
-extern XINPUT_STATE  joy_to_xi;
+extern XINPUT_STATE  hid_to_xi;
 extern XINPUT_STATE  sce_to_xi;
 
 UINT
@@ -1925,7 +1925,9 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
   {
     SK_RunOnce (SK_HID_SetupPlayStationControllers ());
 
-    joy_to_xi.Gamepad = { };
+    static XINPUT_STATE
+      last_hid_to_xi         = { };
+           hid_to_xi.Gamepad = { };
 
     for ( auto& ps_controller : SK_HID_PlayStationControllers )
     {
@@ -1997,24 +1999,109 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
                 ps_controller.buttons       [0].Usage
               ].state = true;
             }
-
-            if (num_usages > 0)
-              joy_to_xi.dwPacketNumber++;
           }
 
-          num_usages = 1;
-
-          if ( HIDP_STATUS_SUCCESS ==
-            SK_HidP_GetUsages ( HidP_Input, ps_controller.dpad.UsagePage, 0,
-                                           &ps_controller.dpad.Usage,
-                                                            &num_usages,
-                                            ps_controller.pPreparsedData,
-                                     (PCHAR)ps_controller.input_report.data  (),
-                       static_cast <ULONG> (ps_controller.input_report.size  ()) )
-             )
+          for ( UINT i = 0 ; i < ps_controller.value_caps.size () ; ++i )
           {
-            if (num_usages > 0)
+            ULONG value;
+
+            if ( HIDP_STATUS_SUCCESS ==
+              SK_HidP_GetUsageValue ( HidP_Input, ps_controller.value_caps [i].UsagePage,   0,
+                                                  ps_controller.value_caps [i].Range.UsageMin,
+                                                                                       &value,
+                                              ps_controller.pPreparsedData,
+                                       (PCHAR)ps_controller.input_report.data  (),
+                         static_cast <ULONG> (ps_controller.input_report.size  ()) ) )
             {
+#if 0
+              SK_ReleaseAssert (ps_controller.value_caps [i].PhysicalMin ==
+                                ps_controller.value_caps [i].PhysicalMax &&
+                                ps_controller.value_caps [i].PhysicalMin == 0);
+#endif
+
+              switch (ps_controller.value_caps [i].Range.UsageMin)
+              {
+                case 0x30: // X-axis
+                  hid_to_xi.Gamepad.sThumbLX =
+                    static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (value) - 128) / 128.0);
+                    break;
+
+                case 0x31: // Y-axis
+                  hid_to_xi.Gamepad.sThumbLY =
+                    static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (value)) / 128.0);
+                    break;
+
+                case 0x32: // Z-axis
+                  hid_to_xi.Gamepad.sThumbRX =
+                    static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (value) - 128) / 128.0);
+                    break;
+
+                case 0x33: // Rotate-X
+                  hid_to_xi.Gamepad.bLeftTrigger =
+                    static_cast <BYTE> (static_cast <BYTE> (value));
+                  break;
+
+                case 0x34: // Rotate-Y
+                  hid_to_xi.Gamepad.bRightTrigger =
+                    static_cast <BYTE> (static_cast <BYTE> (value));
+                  break;
+
+                case 0x35: // Rotate-Z
+                  hid_to_xi.Gamepad.sThumbRY =
+                    static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (value)) / 128.0);
+#if 0
+                  if (value != 0)
+                  {
+                    SK_ImGui_CreateNotification (
+                      "HID.Debug.Axes", SK_ImGui_Toast::Info,
+                        std::to_string (value).c_str (),
+                      SK_FormatString ( "HID Axial State [%d, %d]",
+                                        ps_controller.value_caps [i].PhysicalMin,
+                                        ps_controller.value_caps [i].PhysicalMax
+                                      ).c_str (),
+                          1000UL, SK_ImGui_Toast::UseDuration |
+                                  SK_ImGui_Toast::ShowCaption |
+                                  SK_ImGui_Toast::ShowTitle   |
+                                  SK_ImGui_Toast::ShowNewest );
+                  }
+#endif
+                    break;
+
+                case 0x39: // Hat Switch
+                {
+                  switch (value)
+                  {
+                    case 0: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;
+                    case 1: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
+                            hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT; break;
+                    case 2: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT; break;
+                    case 3: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
+                            hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;  break;
+                    case 4: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;  break;
+                    case 5: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
+                            hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;  break;
+                    case 6: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;  break;
+                    case 7: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
+                            hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;                            
+                    case 8:
+                    default:
+                      // Centered value, do nothing
+                      break;
+                  }
+#if 0
+                  if (value != 8)
+                  {
+                    SK_ImGui_CreateNotification (
+                      "HID.Debug.HatSwitch", SK_ImGui_Toast::Info,
+                        std::to_string (value).c_str (), "HID D-Pad State",
+                          1000UL, SK_ImGui_Toast::UseDuration |
+                                  SK_ImGui_Toast::ShowCaption |
+                                  SK_ImGui_Toast::ShowTitle   |
+                                  SK_ImGui_Toast::ShowNewest );
+                  }
+#endif
+                }
+              }
             }
           }
 
@@ -2047,25 +2134,26 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
             }
           }
 
-          if (ps_controller.buttons [0].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
-          if (ps_controller.buttons [1].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
-          if (ps_controller.buttons [2].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
-          if (ps_controller.buttons [3].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+          if (ps_controller.buttons [0].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+          if (ps_controller.buttons [1].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+          if (ps_controller.buttons [2].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+          if (ps_controller.buttons [3].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
 
-          if (ps_controller.buttons [4].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
-          if (ps_controller.buttons [5].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
-          if (ps_controller.buttons [6].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
-          if (ps_controller.buttons [7].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+          if (ps_controller.buttons [4].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+          if (ps_controller.buttons [5].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+          if (ps_controller.buttons [6].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+          if (ps_controller.buttons [7].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
 
-          if (ps_controller.buttons [8].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
-          if (ps_controller.buttons [9].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+          if (ps_controller.buttons [8].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+          if (ps_controller.buttons [9].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
 
-          if (ps_controller.buttons [10].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
-          if (ps_controller.buttons [11].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
-          if (ps_controller.buttons [12].state) joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+          if (ps_controller.buttons [10].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+          if (ps_controller.buttons [11].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+          if (ps_controller.buttons [12].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
 
           bHasPlayStation = true;
 
+#ifdef CANT_POLL_HAT_SWITCHES_WITH_HID
           if (SK_ImGui_WantGamepadCapture ())
           {
             unsigned int x = 0;
@@ -2098,21 +2186,27 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
                   continue;
 
                 if (joy_ex.dwPOV == JOY_POVFORWARD)
-                  joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
+                  hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
 
                 else if (joy_ex.dwPOV == JOY_POVBACKWARD)
-                  joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
+                  hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
 
                 else if (joy_ex.dwPOV == JOY_POVLEFT)
-                  joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
+                  hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
 
                 else if (joy_ex.dwPOV == JOY_POVRIGHT)
-                  joy_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
+                  hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
 
                 break;
               }
             } while ( x++ < SK_joyGetNumDevs () );
           }
+#endif
+
+          if (memcmp (&last_hid_to_xi.Gamepad, &hid_to_xi.Gamepad, sizeof (XINPUT_GAMEPAD)))
+            hid_to_xi.dwPacketNumber++;
+
+          last_hid_to_xi.Gamepad = hid_to_xi.Gamepad;
 
           break;
         }
@@ -2145,7 +2239,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
     if (! SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state))
 #if 1
-    state = joy_to_xi;
+    state = hid_to_xi;
 #else
     state = di8_to_xi;
 #endif

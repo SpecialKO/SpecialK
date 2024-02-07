@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -584,6 +584,13 @@ using HidP_GetButtonCaps_pfn = NTSTATUS (__stdcall *)(
   _In_                                                  PHIDP_PREPARSED_DATA PreparsedData
 );
 
+using HidP_GetValueCaps_pfn = NTSTATUS (__stdcall *)(
+  _In_    HIDP_REPORT_TYPE     ReportType,
+  _Out_   PHIDP_VALUE_CAPS     ValueCaps,
+  _Inout_ PUSHORT              ValueCapsLength,
+  _In_    PHIDP_PREPARSED_DATA PreparsedData
+);
+
 using HidP_GetUsages_pfn = NTSTATUS (__stdcall *)(
   _In_                                        HIDP_REPORT_TYPE     ReportType,
   _In_                                        USAGE                UsagePage,
@@ -718,6 +725,7 @@ extern HidD_GetFeature_pfn         SK_HidD_GetFeature;
 extern HidP_GetData_pfn            SK_HidP_GetData;
 extern HidP_GetCaps_pfn            SK_HidP_GetCaps;
 extern HidP_GetButtonCaps_pfn      SK_HidP_GetButtonCaps;
+extern HidP_GetValueCaps_pfn       SK_HidP_GetValueCaps;
 extern HidP_GetUsages_pfn          SK_HidP_GetUsages;
 extern HidP_GetUsageValue_pfn      SK_HidP_GetUsageValue;
 extern HidP_GetUsageValueArray_pfn SK_HidP_GetUsageValueArray;
@@ -828,8 +836,8 @@ struct SK_HID_PlayStationDevice {
   };
 
   struct dpad_s {
-    BYTE state;
-    BYTE last_state;
+    ULONG state;
+    ULONG last_state;
 
     USAGE Usage;
     USAGE UsagePage;
@@ -841,9 +849,10 @@ struct SK_HID_PlayStationDevice {
   UCHAR button_report_id;
   UCHAR dpad_report_id;
 
-  std::vector <button_s> buttons;
-  std::vector <USAGE>    button_usages;
-  std::vector <BYTE>     input_report;
+  std::vector <button_s>        buttons;
+  std::vector <USAGE>           button_usages;
+  std::vector <HIDP_VALUE_CAPS> value_caps;
+  std::vector <BYTE>            input_report;
 };
 extern concurrency::concurrent_vector <SK_HID_PlayStationDevice> SK_HID_PlayStationControllers;
 

@@ -294,6 +294,8 @@ SetupDiEnumDeviceInterfaces_pfn      SK_SetupDiEnumDeviceInterfaces      = nullp
 SetupDiGetDeviceInterfaceDetailW_pfn SK_SetupDiGetDeviceInterfaceDetailW = nullptr;
 SetupDiGetDeviceInterfaceDetailA_pfn SK_SetupDiGetDeviceInterfaceDetailA = nullptr;
 SetupDiDestroyDeviceInfoList_pfn     SK_SetupDiDestroyDeviceInfoList     = nullptr;
+
+XINPUT_STATE hid_to_xi { };
   
 void SK_HID_SetupPlayStationControllers (void)
 {
@@ -365,8 +367,6 @@ void SK_HID_SetupPlayStationControllers (void)
   
           if (controller.hDeviceFile != nullptr)
           {
-            std::vector <HIDP_VALUE_CAPS> value_caps;
-
             if (! SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
             	continue;
 
@@ -378,6 +378,10 @@ void SK_HID_SetupPlayStationControllers (void)
             std::vector <HIDP_BUTTON_CAPS>
               buttonCapsArray;
               buttonCapsArray.resize (caps.NumberInputButtonCaps);
+
+            std::vector <HIDP_VALUE_CAPS>
+              valueCapsArray;
+              valueCapsArray.resize (caps.NumberInputValueCaps);
 
             USHORT num_caps =
               caps.NumberInputButtonCaps;
@@ -407,18 +411,27 @@ void SK_HID_SetupPlayStationControllers (void)
                   );
                 }
 
-                // D-Pad
+                // ???
                 else
                 {
                   // No idea what a third set of buttons would be...
                   SK_ReleaseAssert (num_caps <= 2);
+                }
+              }
 
-                  controller.dpad_report_id =
-                    buttonCapsArray [i].ReportID;
-                  controller.dpad.Usage =
-                    buttonCapsArray [i].NotRange.Usage;
-                  controller.dpad.Usage =
-                    buttonCapsArray [i].UsagePage;
+              USHORT value_caps_count =
+                sk::narrow_cast <USHORT> (valueCapsArray.size ());
+
+              if ( HIDP_STATUS_SUCCESS ==
+                     SK_HidP_GetValueCaps ( HidP_Input, valueCapsArray.data (),
+                                                       &value_caps_count,
+                                                        controller.pPreparsedData ) )
+              {
+                controller.value_caps.resize (value_caps_count);
+
+                for ( int idx = 0; idx < value_caps_count; ++idx )
+                {
+                  controller.value_caps [idx] = valueCapsArray [idx];
                 }
               }
 
@@ -470,6 +483,7 @@ HidD_GetFeature_pfn         SK_HidD_GetFeature         = nullptr;
 HidP_GetData_pfn            SK_HidP_GetData            = nullptr;
 HidP_GetCaps_pfn            SK_HidP_GetCaps            = nullptr;
 HidP_GetButtonCaps_pfn      SK_HidP_GetButtonCaps      = nullptr;
+HidP_GetValueCaps_pfn       SK_HidP_GetValueCaps       = nullptr;
 HidP_GetUsages_pfn          SK_HidP_GetUsages          = nullptr;
 HidP_GetUsageValue_pfn      SK_HidP_GetUsageValue      = nullptr;
 HidP_GetUsageValueArray_pfn SK_HidP_GetUsageValueArray = nullptr;
@@ -2023,6 +2037,10 @@ SK_Input_PreHookHID (void)
   SK_HidP_GetButtonCaps =
     (HidP_GetButtonCaps_pfn)SK_GetProcAddress (hModHID,
     "HidP_GetButtonCaps");
+
+  SK_HidP_GetValueCaps =
+    (HidP_GetValueCaps_pfn)SK_GetProcAddress (hModHID,
+    "HidP_GetValueCaps");
 
   SK_HidP_GetUsages =
     (HidP_GetUsages_pfn)SK_GetProcAddress (hModHID,

@@ -1,4 +1,20 @@
-﻿24.2.7.6
+﻿24.2.7.7
+========
+ + SKinput Beta:
+   ------------
+    XInput emulation now available for PlayStation 4/5 controllers.
+
+     For games that do not use other parts of the XInput API to detect connected
+       controllers, polling continuously, SK can now replace DS4Windows (*).
+
+    (*) Only tested on wired USB controllers
+
+    >> See: Input Management | Gamepad | PlayStation  (DualShock 4 / DualSense)
+
+  + SK no longer requires DirectInput to read the D-Pad or analog axes, and can
+      get all input state directly from HID without interference from Steam!
+
+24.2.7.6
 ========
  + Added Battery Low warning for actual computers, not just game controllers.
  + Remove right-click tooltip on notifications after user right-clicks.

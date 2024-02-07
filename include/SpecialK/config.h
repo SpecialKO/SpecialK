@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -954,6 +954,7 @@ struct sk_config_t
         bool  hook_setstate       =  true; // Some software causes feedback loops
         bool  auto_slot_assign    = false;
         bool  blackout_api        = false;
+        bool  emulate             = false;
       } xinput;
 
       struct dinput_s {

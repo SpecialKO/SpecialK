@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1090,6 +1090,39 @@ SK::ControlPanel::Input::Draw (void)
           }
 
           ImGui::EndGroup   ();
+
+          if (config.input.gamepad.hook_xinput)
+          {
+            ImGui::SameLine   ();
+            if (ImGui::Checkbox   ("XInput Emulation (Experimental)", &config.input.gamepad.xinput.emulate))
+            {
+              if (config.input.gamepad.xinput.emulate)
+              {
+                if (config.input.gamepad.xinput.blackout_api)
+                {
+                  SK_ImGui_WarningWithTitle (
+                    L"XInput was being blocked to the game; it must be unblocked"
+                    L" for XInput emulation to work.\r\n\r\n\t"
+                    L"* A game restart may be required",
+                      L"XInput Has Been Unblocked"
+                  );
+
+                  config.input.gamepad.xinput.blackout_api = false;
+                }
+              }
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip    ();
+              ImGui::TextUnformatted ("Translate USB HID to XInput for wired PlayStation controllers");
+              ImGui::Separator       ();
+              ImGui::BulletText      ("May require a game restart, and may not work in all games.");
+              ImGui::BulletText      ("Vibration and multiple individually addressable controllers "
+                                      "are currently unsupported.");
+              ImGui::EndTooltip      ();
+            }
+          }
 
           ImGui::TreePop  (  );
         }

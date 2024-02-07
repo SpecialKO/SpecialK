@@ -283,8 +283,6 @@ SK_XInput_NotifyDeviceArrival (void)
                                 StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
                                 StrStrIW (wszFileName, L"PID_0CE6") != nullptr;
 
-                              std::vector <HIDP_VALUE_CAPS> value_caps;
-
                               if (SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
                               {
                                 HIDP_CAPS                                      caps = { };
@@ -295,6 +293,10 @@ SK_XInput_NotifyDeviceArrival (void)
                                 std::vector <HIDP_BUTTON_CAPS>
                                   buttonCapsArray;
                                   buttonCapsArray.resize (caps.NumberInputButtonCaps);
+
+                                std::vector <HIDP_VALUE_CAPS>
+                                  valueCapsArray;
+                                  valueCapsArray.resize (caps.NumberInputValueCaps);
 
                                 USHORT num_caps =
                                   caps.NumberInputButtonCaps;
@@ -324,18 +326,27 @@ SK_XInput_NotifyDeviceArrival (void)
                                       );
                                     }
 
-                                    // D-Pad
+                                    // ???
                                     else
                                     {
                                       // No idea what a third set of buttons would be...
                                       SK_ReleaseAssert (num_caps <= 2);
+                                    }
+                                  }
 
-                                      controller.dpad_report_id =
-                                        buttonCapsArray [i].ReportID;
-                                      controller.dpad.Usage =
-                                        buttonCapsArray [i].NotRange.Usage;
-                                      controller.dpad.Usage =
-                                        buttonCapsArray [i].UsagePage;
+                                  USHORT value_caps_count =
+                                    sk::narrow_cast <USHORT> (valueCapsArray.size ());
+
+                                  if ( HIDP_STATUS_SUCCESS ==
+                                         SK_HidP_GetValueCaps ( HidP_Input, valueCapsArray.data (),
+                                                                           &value_caps_count,
+                                                                            controller.pPreparsedData ) )
+                                  {
+                                    controller.value_caps.resize (value_caps_count);
+
+                                    for ( int idx = 0; idx < value_caps_count; ++idx )
+                                    {
+                                      controller.value_caps [idx] = valueCapsArray [idx];
                                     }
                                   }
 
