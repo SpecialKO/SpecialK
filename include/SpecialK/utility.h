@@ -392,7 +392,7 @@ struct SK_ImGui_Toast {
     Error,
     Info,
     Other
-  } type;
+  } type = Other;
 
   enum Flags {
     UseDuration = 0x01,
@@ -401,7 +401,19 @@ struct SK_ImGui_Toast {
     ShowOnce    = 0x08,
     ShowNewest  = 0x10,
     ShowDismiss = 0x20
-  } flags;
+  } flags = (Flags)(UseDuration | ShowCaption | ShowTitle);
+
+  enum Anchor {
+    TopLeft      = 0x00,
+    TopCenter    = 0x01,
+    TopRight     = 0x02,
+    MiddleRight  = 0x04,
+    BottomRight  = 0x08,
+    BottomCenter = 0x10,
+    BottomLeft   = 0x20,
+    MiddleLeft   = 0x40,
+    MiddleCenter = 0x80
+  } anchor;
 
   std::string id        = "";
   std::string caption   = "";
@@ -411,7 +423,12 @@ struct SK_ImGui_Toast {
   DWORD       displayed = 0;
   DWORD       inserted  = 0;
 
-  BOOL        finished  = false;
+  enum Stage {
+    FadeIn   = 0x0,
+    Drawing  = 0x1,
+    FadeOut  = 0x2,
+    Finished = 0x4
+  } stage = FadeIn;
 };
 
 bool

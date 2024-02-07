@@ -238,8 +238,8 @@ concurrency::concurrent_queue <SK_ImGui_Toast> SK_ImGui_Notifications;
 #define NOTIFY_PADDING_X           20.f  // Bottom-left X padding
 #define NOTIFY_PADDING_Y           20.f  // Bottom-left Y padding
 #define NOTIFY_PADDING_MESSAGE_Y   10.f  // Padding Y between each message
-#define NOTIFY_FADE_IN_OUT_TIME    150   // Fade in and out duration
-#define NOTIFY_OPACITY             0.8f  // 0-1 Toast opacity
+#define NOTIFY_FADE_IN_OUT_TIME    333   // Fade in and out duration
+#define NOTIFY_OPACITY             0.85f // 0-1 Toast opacity
 #define NOTIFY_DEFAULT_IMGUI_FLAGS ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoFocusOnAppearing
 
 ImVec4 SK_ImGui_GetToastColor (SK_ImGui_Toast::Type type)
@@ -276,6 +276,26 @@ const char* SK_ImGui_GetToastIcon (SK_ImGui_Toast::Type type)
     default:
       return "";
   }
+}
+
+float SK_ImGui_GetToastFadePercent (SK_ImGui_Toast& toast)
+{
+  const DWORD dwElapsed =
+    SK::ControlPanel::current_time - toast.displayed;
+
+  if (toast.stage == SK_ImGui_Toast::FadeIn)
+  {
+  	return ( (float)dwElapsed /
+             (float)NOTIFY_FADE_IN_OUT_TIME ) * NOTIFY_OPACITY;
+  }
+
+  else if (toast.stage == SK_ImGui_Toast::FadeOut)
+  {
+  	return (1.f - (((float)dwElapsed       - (float)NOTIFY_FADE_IN_OUT_TIME -
+                    (float)toast.duration) / (float)NOTIFY_FADE_IN_OUT_TIME)) * NOTIFY_OPACITY;
+  }
+
+  return 1.f * NOTIFY_OPACITY;
 }
 
 bool
@@ -363,7 +383,7 @@ SK_ImGui_DrawNotifications (void)
 
       if (time_shown >= it->inserted)
       {
-        it->finished = true;
+        it->stage = SK_ImGui_Toast::Finished;
       }
 
       else
@@ -381,7 +401,7 @@ SK_ImGui_DrawNotifications (void)
 
   for ( auto& toast : notifications )
   {
-    if (toast.finished)
+    if (toast.stage == SK_ImGui_Toast::Finished)
       continue;
 
     bool remove = false;
@@ -391,9 +411,29 @@ SK_ImGui_DrawNotifications (void)
       if (toast.displayed == 0)
           toast.displayed = SK::ControlPanel::current_time;
 
-      if (toast.displayed < SK::ControlPanel::current_time - toast.duration - 2 * NOTIFY_FADE_IN_OUT_TIME)
+      if (toast.displayed < SK::ControlPanel::current_time - (toast.duration + 2 * NOTIFY_FADE_IN_OUT_TIME))
         remove = true;
     }
+
+    DWORD dwElapsed = SK::ControlPanel::current_time - toast.displayed;
+
+    if (dwElapsed > NOTIFY_FADE_IN_OUT_TIME + toast.duration)
+      toast.stage = SK_ImGui_Toast::FadeOut;
+
+    else
+    {
+      if (dwElapsed > NOTIFY_FADE_IN_OUT_TIME)
+      {
+        toast.stage = SK_ImGui_Toast::Drawing;
+      }
+
+      else
+        toast.stage = SK_ImGui_Toast::FadeIn;
+    }
+
+    ImGui::SetNextWindowBgAlpha (
+      SK_ImGui_GetToastFadePercent (toast)
+    );
 
     const ImVec2 viewport_pos =
       ImGui::GetMainViewport ()->Pos;
@@ -460,7 +500,7 @@ SK_ImGui_DrawNotifications (void)
     }
     ImGui::End   ();
 
-    if (! (remove || toast.finished))
+    if (! (remove || toast.stage == SK_ImGui_Toast::Finished))
       SK_ImGui_Notifications.push (toast);
   }
 
