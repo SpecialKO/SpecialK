@@ -136,13 +136,9 @@ struct SK_HID_DeviceFile {
 
               SK_ImGui_CreateNotification (
                 "HID.GamepadAttached", SK_ImGui_Toast::Info,
-                SK_FormatString (
-                  *wszSerialNumber != L'\0'                                            ?
-                  "%ws %ws -( %ws )- ::\t\t" ICON_FA_GAMEPAD "\t\tHas Joined the Fun!" :
-                            "%ws %ws ::\t\t" ICON_FA_GAMEPAD "\t\tHas Joined the Fun!",
+                SK_FormatString ("%ws\t%ws",
                    wszManufacturerName,
-                   wszProductName,
-                   wszSerialNumber ).c_str (),
+                   wszProductName ).c_str (),
                 "HID Compliant Gamepad Connected", 10000
               );
             } break;
