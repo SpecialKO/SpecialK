@@ -1,4 +1,9 @@
-﻿24.2.8
+﻿24.2.8.1
+========
+ + Added controller vibration to XInput emulation for PlayStation controllers.
+     >> Currently only works for wired controllers, and only for DualSense.
+
+24.2.8
 ======
  + Added option to disable SteamAPI integration to the Steam | Compatibility
      section of the control panel.

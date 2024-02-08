@@ -234,29 +234,21 @@ SK_XInput_NotifyDeviceArrival (void)
                           }
                         }
 
-                        else if (playstation && SK_CreateFile2 != nullptr)
-                        {                       // Does not exist on Windows 7
+                        else if (playstation)
+                        {
                           bool has_existing = false;
 
                           for ( auto& controller : SK_HID_PlayStationControllers )
                           {
                             if (! _wcsicmp (controller.wszDevicePath, wszFileName))
                             {
-                              CREATEFILE2_EXTENDED_PARAMETERS
-                                cf2_ep                      = {                                      };
-                                cf2_ep.dwSize               = sizeof (CREATEFILE2_EXTENDED_PARAMETERS);
-                                cf2_ep.dwFileAttributes     = FILE_ATTRIBUTE_NORMAL;
-                                cf2_ep.dwSecurityQosFlags   = SECURITY_ANONYMOUS;
-                                cf2_ep.dwFileFlags          = //FILE_FLAG_NO_BUFFERING |
-                                                              FILE_FLAG_WRITE_THROUGH;
-
                               // We missed a device removal event if this is true
                               SK_ReleaseAssert (controller.bConnected == false);
 
                               controller.hDeviceFile =
-                                SK_CreateFile2 ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
+                                SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                                                               FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                                                OPEN_EXISTING, &cf2_ep );
+                                                                nullptr, OPEN_EXISTING, 0, nullptr );
 
                               if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
                               {
@@ -286,25 +278,17 @@ SK_XInput_NotifyDeviceArrival (void)
                             }
                           }
 
-                          if ((! has_existing) && SK_CreateFile2 != nullptr)
+                          if (! has_existing)
                           {
                             SK_HID_PlayStationDevice controller;
 
                             wcsncpy_s (controller.wszDevicePath, MAX_PATH,
                                                   wszFileName,   _TRUNCATE);
 
-                            CREATEFILE2_EXTENDED_PARAMETERS
-                              cf2_ep                      = {                                      };
-                              cf2_ep.dwSize               = sizeof (CREATEFILE2_EXTENDED_PARAMETERS);
-                              cf2_ep.dwFileAttributes     = FILE_ATTRIBUTE_NORMAL;
-                              cf2_ep.dwSecurityQosFlags   = SECURITY_ANONYMOUS;
-                              cf2_ep.dwFileFlags          = //FILE_FLAG_NO_BUFFERING |
-                                                            FILE_FLAG_WRITE_THROUGH;
-
                             controller.hDeviceFile =
-                              SK_CreateFile2 ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
+                              SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                                                             FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                                              OPEN_EXISTING, &cf2_ep );
+                                                              nullptr, OPEN_EXISTING, 0, nullptr );
 
                             if (controller.hDeviceFile != nullptr)
                             {
@@ -327,7 +311,8 @@ SK_XInput_NotifyDeviceArrival (void)
                                 HIDP_CAPS                                      caps = { };
                                   SK_HidP_GetCaps (controller.pPreparsedData, &caps);
 
-                                controller.input_report.resize (caps.InputReportByteLength);
+                                controller.input_report.resize  (caps.InputReportByteLength);
+                                controller.output_report.resize (caps.OutputReportByteLength);
 
                                 std::vector <HIDP_BUTTON_CAPS>
                                   buttonCapsArray;

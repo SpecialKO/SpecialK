@@ -3049,7 +3049,7 @@ SK_SetWindowStyle (DWORD_PTR dwStyle_ptr, SetWindowLongPtr_pfn pDispatchFunc)
   game_window.actual.style = dwStyle;
 
   if (pDispatchFunc == nullptr)
-    pDispatchFunc = game_window.SetWindowLongPtr;
+      pDispatchFunc = game_window.SetWindowLongPtr;
 
 
   pDispatchFunc ( game_window.hWnd,

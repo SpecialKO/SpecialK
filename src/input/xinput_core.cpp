@@ -152,9 +152,9 @@ struct SK_XInputContext
 
         SK_ImGui_Warning (L"Problematic third-party XInput software detected (infinite haptic feedback loop), disabling vibration."
                           L"\n\n\tRestart your game to restore vibration support.");
-      }
 
-      config.input.gamepad.xinput.hook_setstate = false;
+        config.input.gamepad.xinput.hook_setstate = false;
+      }
 
       return true;
     }
@@ -447,9 +447,9 @@ XInputGetState1_4_Detour (
           {
             SK_XINPUT_READ (dwUserIndex)
           }
-        }
 
-        return ERROR_SUCCESS;
+          return ERROR_SUCCESS;
+        }
       }
     }
   }
@@ -732,6 +732,26 @@ XInputGetCapabilities1_4_Detour (
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
+  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+  {
+    if (dwUserIndex == 0)
+    {
+      for ( auto& controller : SK_HID_PlayStationControllers )
+      {
+        if (controller.bConnected)
+        {
+          RtlZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
+
+          pCapabilities->Type    = XINPUT_DEVTYPE_GAMEPAD;
+          pCapabilities->SubType = XINPUT_DEVSUBTYPE_GAMEPAD;
+          pCapabilities->Flags   = XINPUT_CAPS_FFB_SUPPORTED;
+
+          return ERROR_SUCCESS;
+        }
+      }
+    }
+  }
+
   if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
     dwUserIndex = config.input.gamepad.xinput.ui_slot;
 
@@ -930,6 +950,37 @@ XInputSetState1_4_Detour (
   _Inout_ XINPUT_VIBRATION *pVibration )
 {
   SK_LOG_FIRST_CALL
+
+  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+  {
+    for ( auto& controller : SK_HID_PlayStationControllers )
+    {
+      if (controller.bConnected)
+      {
+        if (dwUserIndex == 0)
+        {
+          if (SK_ImGui_WantGamepadCapture ())
+          {
+            //SK_XINPUT_HIDE (dwUserIndex)
+          }
+
+          else
+          {
+            controller.setVibration (
+              pVibration->wLeftMotorSpeed,
+              pVibration->wRightMotorSpeed
+            );
+
+            controller.write_output_report ();
+
+            //SK_XINPUT_WRITE (dwUserIndex)
+          }
+
+          return ERROR_SUCCESS;
+        }
+      }
+    }
+  }
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
@@ -2648,8 +2699,11 @@ SK_XInput_PulseController ( INT   iJoyID,
   iJoyID =
     config.input.gamepad.xinput.assignment [std::max (0, std::min (iJoyID, 3))];
 
-  if (ReadULongAcquire (&xinput_ctx.LastSlotState [iJoyID]) != ERROR_SUCCESS)
-    return false;
+  if (! config.input.gamepad.xinput.emulate)
+  {
+    if (ReadULongAcquire (&xinput_ctx.LastSlotState [iJoyID]) != ERROR_SUCCESS)
+      return false;
+  }
 
   static XInputEnable_pfn
          XInputEnable_SK =
@@ -2703,6 +2757,25 @@ SK_XInput_PulseController ( INT   iJoyID,
 
   XInputSetState_pfn XInputSetState =
                      XInputSetState_SK;
+
+  if (iJoyID == 0 && config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+  {
+    for ( auto& controller : SK_HID_PlayStationControllers )
+    {
+      if (controller.bConnected)
+      {
+        controller.setVibration (
+          vibes.wLeftMotorSpeed,
+          vibes.wRightMotorSpeed
+        );
+
+        if (controller.write_output_report ())
+          return true;
+
+        //SK_XINPUT_WRITE (iJoyID)
+      }
+    }
+  }
 
   DWORD dwRet = XInputSetState == nullptr ? ERROR_DEVICE_NOT_CONNECTED :
     SK_XINPUT_CALL ( xinput_ctx.cs_haptic [iJoyID],

@@ -1936,6 +1936,13 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
         if (ps_controller.pPreparsedData == nullptr)
           continue;
 
+        if (ps_controller._vibration.last_set != 0 &&
+            ps_controller._vibration.last_set < SK::ControlPanel::current_time - ps_controller._vibration.MAX_TTL_IN_MSECS)
+        {
+          ps_controller._vibration.last_set = 0;
+          ps_controller.write_output_report ();
+        }
+
         ZeroMemory ( ps_controller.input_report.data (),
                      ps_controller.input_report.size () );
 

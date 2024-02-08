@@ -336,25 +336,17 @@ void SK_HID_SetupPlayStationControllers (void)
         wchar_t *wszFileName =
           pDevInterfaceDetailData->DevicePath;
   
-        if (StrStrIW (wszFileName, L"VID_054c") && SK_CreateFile2 != nullptr)
+        if (StrStrIW (wszFileName, L"VID_054c"))
         {
           SK_HID_PlayStationDevice controller;
-
-          CREATEFILE2_EXTENDED_PARAMETERS
-            cf2_ep                      = {                                      };
-            cf2_ep.dwSize               = sizeof (CREATEFILE2_EXTENDED_PARAMETERS);
-            cf2_ep.dwFileAttributes     = FILE_ATTRIBUTE_NORMAL;
-            cf2_ep.dwSecurityQosFlags   = SECURITY_ANONYMOUS;
-            cf2_ep.dwFileFlags          = //FILE_FLAG_NO_BUFFERING |
-                                          FILE_FLAG_WRITE_THROUGH;
   
           wcsncpy_s (controller.wszDevicePath, MAX_PATH,
                                 wszFileName,   _TRUNCATE);
 
           controller.hDeviceFile =
-            SK_CreateFile2 ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
+            SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                                           FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                            OPEN_EXISTING, &cf2_ep );
+                                            nullptr, OPEN_EXISTING, 0, nullptr );
   
           if (controller.hDeviceFile != nullptr)
           {
@@ -364,7 +356,8 @@ void SK_HID_SetupPlayStationControllers (void)
             HIDP_CAPS                                      caps = { };
               SK_HidP_GetCaps (controller.pPreparsedData, &caps);
 
-            controller.input_report.resize (caps.InputReportByteLength);
+            controller.input_report.resize  (caps.InputReportByteLength);
+            controller.output_report.resize (caps.OutputReportByteLength);
 
             std::vector <HIDP_BUTTON_CAPS>
               buttonCapsArray;
@@ -793,8 +786,10 @@ static CreateFileA_pfn CreateFileA_Original = nullptr;
 static CreateFileW_pfn CreateFileW_Original = nullptr;
 static CreateFile2_pfn CreateFile2_Original = nullptr;
 
+CreateFileW_pfn              SK_CreateFileW = nullptr;
 CreateFile2_pfn              SK_CreateFile2 = nullptr;
 ReadFile_pfn                    SK_ReadFile = nullptr;
+WriteFile_pfn                  SK_WriteFile = nullptr;
 
 BOOL
 WINAPI
@@ -1940,9 +1935,17 @@ SK_Input_PreHookHID (void)
     (CreateFile2_pfn)SK_GetProcAddress (hModKernel32,
     "CreateFile2");
 
+  SK_CreateFileW =
+    (CreateFileW_pfn)SK_GetProcAddress (hModKernel32,
+    "CreateFileW");
+
   SK_ReadFile =
     (ReadFile_pfn)SK_GetProcAddress (hModKernel32,
     "ReadFile");
+
+  SK_WriteFile =
+    (WriteFile_pfn)SK_GetProcAddress (hModKernel32,
+    "WriteFile");
 
   SK_SetupDiGetClassDevsW =
     (SetupDiGetClassDevsW_pfn)SK_GetProcAddress (hModSetupAPI,
@@ -2036,6 +2039,289 @@ SK_Input_PreHookHID (void)
     SK_Input_HookHID ();
 
     return true;
+  }
+
+  return false;
+}
+
+
+enum Direction : uint8_t {
+  North     = 0,
+  NorthEast,
+  East,
+  SouthEast,
+  South,
+  SouthWest,
+  West,
+  NorthWest,
+  Neutral   = 8
+};
+
+enum PowerState : uint8_t {
+  Discharging         = 0x00, // Use PowerPercent
+  Charging            = 0x01, // Use PowerPercent
+  Complete            = 0x02, // PowerPercent not valid? assume 100%?
+  AbnormalVoltage     = 0x0A, // PowerPercent not valid?
+  AbnormalTemperature = 0x0B, // PowerPercent not valid?
+  ChargingError       = 0x0F  // PowerPercent not valid?
+};
+
+enum MuteLight : uint8_t {
+  Off       = 0,
+  On,
+  Breathing,
+  DoNothing, // literally nothing, this input is ignored,
+             // though it might be a faster blink in other versions
+  NoMuteAction4,
+  NoMuteAction5,
+  NoMuteAction6,
+  NoMuteAction7 = 7
+};
+
+enum LightBrightness : uint8_t {
+  Bright    = 0,
+  Mid,
+  Dim,
+  NoLightAction3,
+  NoLightAction4,
+  NoLightAction5,
+  NoLightAction6,
+  NoLightAction7 = 7
+};
+
+enum LightFadeAnimation : uint8_t {
+  Nothing = 0,
+  FadeIn, // from black to blue
+  FadeOut // from blue to black
+};
+
+template <int N> struct BTCRC {
+  uint8_t  Buff [N-4];
+  uint32_t CRC;
+};
+
+// Derived from (2024-02-07):
+// 
+//   https://controllers.fandom.com/wiki/Sony_DualSense#Likely_Interface
+//
+struct SK_HID_DualSense_SetStateData
+{
+/* 0.0*/ uint8_t EnableRumbleEmulation         : 1; // Suggest halving rumble strength
+/* 0.1*/ uint8_t UseRumbleNotHaptics           : 1; // 
+/*    */                                       
+/* 0.2*/ uint8_t AllowRightTriggerFFB          : 1; // Enable setting RightTriggerFFB
+/* 0.3*/ uint8_t AllowLeftTriggerFFB           : 1; // Enable setting LeftTriggerFFB
+/*    */                                       
+/* 0.4*/ uint8_t AllowHeadphoneVolume          : 1; // Enable setting VolumeHeadphones
+/* 0.5*/ uint8_t AllowSpeakerVolume            : 1; // Enable setting VolumeSpeaker
+/* 0.6*/ uint8_t AllowMicVolume                : 1; // Enable setting VolumeMic
+/*    */                                       
+/* 0.7*/ uint8_t AllowAudioControl             : 1; // Enable setting AudioControl section
+/* 1.0*/ uint8_t AllowMuteLight                : 1; // Enable setting MuteLightMode
+/* 1.1*/ uint8_t AllowAudioMute                : 1; // Enable setting MuteControl section
+/*    */                                       
+/* 1.2*/ uint8_t AllowLedColor                 : 1; // Enable RGB LED section
+/*    */                                       
+/* 1.3*/ uint8_t ResetLights                   : 1; // Release the LEDs from Wireless firmware control
+/*    */                                            // When in wireless mode this must be signaled to control LEDs
+/*    */                                            // This cannot be applied during the BT pair animation.
+/*    */                                            // SDL2 waits until the SensorTimestamp value is >= 10200000
+/*    */                                            // before pulsing this bit once.
+/*    */
+/* 1.4*/ uint8_t AllowPlayerIndicators         : 1; // Enable setting PlayerIndicators section
+/* 1.5*/ uint8_t AllowHapticLowPassFilter      : 1; // Enable HapticLowPassFilter
+/* 1.6*/ uint8_t AllowMotorPowerLevel          : 1; // MotorPowerLevel reductions for trigger/haptic
+/* 1.7*/ uint8_t AllowAudioControl2            : 1; // Enable setting AudioControl2 section
+/*    */                                       
+/* 2  */ uint8_t RumbleEmulationRight;              // emulates the light weight
+/* 3  */ uint8_t RumbleEmulationLeft;               // emulated the heavy weight
+/*    */
+/* 4  */ uint8_t VolumeHeadphones;                  // max 0x7f
+/* 5  */ uint8_t VolumeSpeaker;                     // PS5 appears to only use the range 0x3d-0x64
+/* 6  */ uint8_t VolumeMic;                         // not linear, seems to max at 64, 0 is not fully muted
+/*    */
+/*    */ // AudioControl
+/* 7.0*/ uint8_t MicSelect                     : 2; // 0 Auto
+/*    */                                            // 1 Internal Only
+/*    */                                            // 2 External Only
+/*    */                                            // 3 Unclear, sets external mic flag but might use internal mic, do test
+/* 7.2*/ uint8_t EchoCancelEnable              : 1;
+/* 7.3*/ uint8_t NoiseCancelEnable             : 1;
+/* 7.4*/ uint8_t OutputPathSelect              : 2; // 0 L_R_X
+/*    */                                            // 1 L_L_X
+/*    */                                            // 2 L_L_R
+/*    */                                            // 3 X_X_R
+/* 7.6*/ uint8_t InputPathSelect               : 2; // 0 CHAT_ASR
+/*    */                                            // 1 CHAT_CHAT
+/*    */                                            // 2 ASR_ASR
+/*    */                                            // 3 Does Nothing, invalid
+/*    */
+/* 8  */ MuteLight MuteLightMode;
+/*    */
+/*    */ // MuteControl
+/* 9.0*/ uint8_t TouchPowerSave                : 1;
+/* 9.1*/ uint8_t MotionPowerSave               : 1;
+/* 9.2*/ uint8_t HapticPowerSave               : 1; // AKA BulletPowerSave
+/* 9.3*/ uint8_t AudioPowerSave                : 1;
+/* 9.4*/ uint8_t MicMute                       : 1;
+/* 9.5*/ uint8_t SpeakerMute                   : 1;
+/* 9.6*/ uint8_t HeadphoneMute                 : 1;
+/* 9.7*/ uint8_t HapticMute                    : 1; // AKA BulletMute
+/*    */
+/*10  */ uint8_t  RightTriggerFFB [11];
+/*21  */ uint8_t  LeftTriggerFFB  [11];
+/*32  */ uint32_t HostTimestamp;                    // mirrored into report read
+/*    */
+/*    */ // MotorPowerLevel
+/*36.0*/ uint8_t TriggerMotorPowerReduction    : 4; // 0x0-0x7 (no 0x8?) Applied in 12.5% reductions
+/*36.4*/ uint8_t RumbleMotorPowerReduction     : 4; // 0x0-0x7 (no 0x8?) Applied in 12.5% reductions
+/*    */
+/*    */ // AudioControl2
+/*37.0*/ uint8_t SpeakerCompPreGain            : 3; // additional speaker volume boost
+/*37.3*/ uint8_t BeamformingEnable             : 1; // Probably for MIC given there's 2, might be more bits, can't find what it does
+/*37.4*/ uint8_t UnkAudioControl2              : 4; // some of these bits might apply to the above
+/*    */
+/*38.0*/ uint8_t AllowLightBrightnessChange    : 1; // LED_BRIHTNESS_CONTROL
+/*38.1*/ uint8_t AllowColorLightFadeAnimation  : 1; // LIGHTBAR_SETUP_CONTROL
+/*38.2*/ uint8_t EnableImprovedRumbleEmulation : 1; // Use instead of EnableRumbleEmulation
+                                                    // requires FW >= 0x0224
+                                                    // No need to halve rumble strength
+/*38.3*/ uint8_t UNKBITC                       : 5; // unused
+/*    */
+/*39.0*/ uint8_t HapticLowPassFilter           : 1;
+/*39.1*/ uint8_t UNKBIT                        : 7;
+/*    */
+/*40  */ uint8_t UNKBYTE;                           // previous notes suggested this was HLPF, was probably off by 1
+/*    */
+/*41  */ LightFadeAnimation LightFadeAnimation;
+/*42  */ LightBrightness    LightBrightness;
+/*    */
+/*    */ // PlayerIndicators
+/*    */ // These bits control the white LEDs under the touch pad.
+/*    */ // Note the reduction in functionality for later revisions.
+/*    */ // Generation 0x03 - Full Functionality
+/*    */ // Generation 0x04 - Mirrored Only
+/*    */ // Suggested detection: (HardwareInfo & 0x00FFFF00) == 0X00000400
+/*    */ //
+/*    */ // Layout used by PS5:
+/*    */ // 0x04 - -x- -  Player 1
+/*    */ // 0x06 - x-x -  Player 2
+/*    */ // 0x15 x -x- x  Player 3
+/*    */ // 0x1B x x-x x  Player 4
+/*    */ // 0x1F x xxx x  Player 5* (Unconfirmed)
+/*    */ //
+/*    */ //                                         // HW 0x03 // HW 0x04
+/*43.0*/ uint8_t PlayerLight1                  : 1; // x --- - // x --- x
+/*43.1*/ uint8_t PlayerLight2                  : 1; // - x-- - // - x-x -
+/*43.2*/ uint8_t PlayerLight3                  : 1; // - -x- - // - -x- -
+/*43.3*/ uint8_t PlayerLight4                  : 1; // - --x - // - x-x -
+/*43.4*/ uint8_t PlayerLight5                  : 1; // - --- x // x --- x
+/*43.5*/ uint8_t PlayerLightFade               : 1; // if low player lights fade in, if high player lights instantly change
+/*43.6*/ uint8_t PlayerLightUNK                : 2;
+/*    */
+/*    */ // RGB LED
+/*44  */ uint8_t LedRed;
+/*45  */ uint8_t LedGreen;
+/*46  */ uint8_t LedBlue;
+// Structure ends here though on BT there is padding and a CRC, see ReportOut31
+};
+
+void
+SK_HID_PlayStationDevice::setVibration (
+  USHORT left,
+  USHORT right,
+  USHORT max_val )
+{
+  _vibration.left =
+      static_cast  <BYTE> (255.0 *
+    (static_cast <double> (left) /
+     static_cast <double> (max_val)));
+  
+  _vibration.right =
+      static_cast  <BYTE> (255.0 *
+    (static_cast <double> (right)/
+     static_cast <double> (max_val)));
+  
+  _vibration.last_set = SK::ControlPanel::current_time;
+}
+
+bool
+SK_HID_PlayStationDevice::write_output_report (void)
+{
+  if (! bConnected)
+    return false;
+
+  if (bDualSense)
+  {
+    SK_ReleaseAssert (
+      output_report.size () >= sizeof (SK_HID_DualSense_SetStateData)
+    );
+
+    if (output_report.size () < sizeof (SK_HID_DualSense_SetStateData))
+      return false;
+
+    SK_HID_DualSense_SetStateData* output =
+      (SK_HID_DualSense_SetStateData *)output_report.data ();
+
+    BYTE* pOutputRaw  =  (BYTE *)output;
+
+    pOutputRaw [0] = 0x02;
+    pOutputRaw [1] = 0x01 | 0x02;
+    pOutputRaw [2] = 0x04 | 0x10 | 0x01;
+
+    if (_vibration.last_set >= SK::ControlPanel::current_time - _vibration.MAX_TTL_IN_MSECS)
+    {
+      pOutputRaw [3] = _vibration.left;
+      pOutputRaw [4] = _vibration.right;
+    }
+
+    else
+    {
+      pOutputRaw [3] = 0;
+      pOutputRaw [4] = 0;
+
+      _vibration.left  = 0;
+      _vibration.right = 0;
+    }
+
+    pOutputRaw [ 9] = 0;
+
+    pOutputRaw [39] = 2;
+	  pOutputRaw [42] = 2;
+	  pOutputRaw [45] = _color.r;
+	  pOutputRaw [46] = _color.g;
+	  pOutputRaw [47] = _color.b;
+
+    DWORD dwBytesWritten = 0;
+    BOOL  bRet = 
+      SK_WriteFile ( hDeviceFile, pOutputRaw,
+          static_cast <DWORD> ( output_report.size () ),
+                    &dwBytesWritten, nullptr );
+
+    if (! bRet)
+    {
+      SK_ImGui_CreateNotification (
+        "XInput.Emulation.DebugWrite", SK_ImGui_Toast::Error,
+          SK_FormatString ("SK_WriteFile (...) failed with code=%d", GetLastError ()).c_str (),
+                           "HID Debug", INFINITE, SK_ImGui_Toast::UseDuration |
+                                                  SK_ImGui_Toast::ShowCaption |
+                                                  SK_ImGui_Toast::ShowTitle   |
+                                                  SK_ImGui_Toast::ShowNewest );
+    }
+
+    if (SK_ImGui_Active () && config.input.gamepad.steam.disabled_to_game)
+    {
+      SK_ImGui_CreateNotification (
+        "XInput.Emulation.Debug", SK_ImGui_Toast::Info,
+          SK_FormatString ("Left Motor: %d\r\nRight Motor:%d\r\n", _vibration.left, _vibration.right).c_str (),
+                           "Vibration Debug", 15000, SK_ImGui_Toast::UseDuration |
+                                                     SK_ImGui_Toast::ShowCaption |
+                                                     SK_ImGui_Toast::ShowTitle   |
+                                                     SK_ImGui_Toast::ShowNewest );
+    }
+
+    return
+      ( bRet != FALSE );
   }
 
   return false;

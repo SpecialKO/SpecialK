@@ -711,6 +711,9 @@ using ReadFileEx_pfn =
   BOOL (WINAPI *)(HANDLE,LPVOID,DWORD,LPOVERLAPPED,
                     LPOVERLAPPED_COMPLETION_ROUTINE);
 
+using WriteFile_pfn =
+  BOOL (WINAPI *)(HANDLE,LPCVOID,DWORD,LPDWORD,LPOVERLAPPED);
+
 using OpenFileMappingW_pfn =
   HANDLE (WINAPI *)(DWORD,BOOL,LPCWSTR);
 
@@ -762,6 +765,8 @@ extern HidP_GetUsageValue_pfn      SK_HidP_GetUsageValue;
 extern HidP_GetUsageValueArray_pfn SK_HidP_GetUsageValueArray;
 
 extern ReadFile_pfn               SK_ReadFile;
+extern WriteFile_pfn              SK_WriteFile;
+extern CreateFileW_pfn            SK_CreateFileW;
 extern CreateFile2_pfn            SK_CreateFile2;
 
 using SetupDiDestroyDeviceInfoList_pfn = BOOL (WINAPI *)(
@@ -888,7 +893,35 @@ struct SK_HID_PlayStationDevice {
   std::vector <USAGE>           button_usages;
   std::vector <HIDP_VALUE_CAPS> value_caps;
   std::vector <BYTE>            input_report;
+  std::vector <BYTE>            output_report;
+
+  struct rgb_s {
+    BYTE r, g, b;
+  } _color = { 255, 255, 255 };
+
+  struct vibration_s {
+    BYTE  left, right;
+    DWORD last_set;
+
+    // At most, allow the controller to vibrate for 500 ms without
+    //   some kind of attempt to set a new value... otherwise, it
+    //     will tend to vibrate infinitely.
+    static constexpr auto MAX_TTL_IN_MSECS = 500UL;
+  } _vibration = { 0, 0, 0 };
+
+  void setRGB (BYTE red, BYTE green, BYTE blue) {
+    _color.r = red;
+    _color.g = green;
+    _color.b = blue;
+  };
+
+  void setVibration ( USHORT left,
+                      USHORT right,
+                      USHORT max_val = std::numeric_limits <USHORT>::max () );
+
+  bool write_output_report (void);
 };
+
 extern concurrency::concurrent_vector <SK_HID_PlayStationDevice> SK_HID_PlayStationControllers;
 
 bool SK_ImGui_HasPlayStationController   (void);
