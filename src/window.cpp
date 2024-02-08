@@ -1648,52 +1648,66 @@ ClipCursor_Detour (const RECT *lpRect)
       ptCursor.x = std::max (std::min (ptCursor.x, _rect.right ), _rect.left);
       ptCursor.y = std::max (std::min (ptCursor.y, _rect.bottom), _rect.top );
 
-      HWND hwndCursor = WindowFromPoint (ptCursor);
+      HWND hWndForeground =
+         SK_GetForegroundWindow ();
 
-      if (hwndCursor != game_window.hWnd && (! IsChild (game_window.hWnd, hwndCursor)))
+      // Broad-phase elimination of the stuff below to make ClipCursor have
+      //  lower overhead in the best-case
+      if ( hWndForeground != game_window.hWnd ||
+               (! PtInRect (&game_window.actual.window, ptCursor)) )
       {
-        if (SK_GetForegroundWindow () == hwndCursor)
+        HWND hwndCursor  = WindowFromPoint (ptCursor);
+        if ( hwndCursor != game_window.hWnd && (! IsChild (game_window.hWnd, hwndCursor)))
         {
-          SK_RunOnce (
-            SK_LOGi0 (
-              L"Game requested a cursor clip rect that would move the cursor "
-              L"over a different window, saving the requested rect and skipping..."
-            )
-          );
-
-          // Ensure the window really IS active, set active=false otherwise so that this
-          //   clip rect is not repeatedly applied.
-          if (SK_IsGameWindowActive ())
+          if (hWndForeground == hwndCursor)
           {
-            bool active =
-              (                            SK_GetForegroundWindow () == game_window.hWnd ||
-                IsChild (game_window.hWnd, SK_GetForegroundWindow ()) );
+            SK_RunOnce (
+              SK_LOGi0 (
+                L"Game requested a cursor clip rect that would move the cursor "
+                L"over a different window, saving the requested rect and skipping..."
+              )
+            );
 
-            if (active)
+            // Ensure the window really IS active, set active=false otherwise so that this
+            //   clip rect is not repeatedly applied.
+            if (SK_IsGameWindowActive ())
             {
-              game_window.cursor_clip = _rect;
-            }
+              bool active =
+                (          game_window.hWnd==hWndForeground ||
+                  IsChild (game_window.hWnd, hWndForeground) );
 
-            else
-            {
-              ActivateWindow (game_window.hWnd, false);
+              if (active)
+              {
+                game_window.cursor_clip = _rect;
+              }
+
+              else
+              {
+                ActivateWindow (game_window.hWnd, false);
+              }
             }
           }
-        }
 
-        SK_GetCursorPos (&ptCursor);
+          hWndForeground =
+            SK_GetForegroundWindow ();
 
-        hwndCursor =
-          WindowFromPoint (ptCursor);
+          // As above, so below... same optimization
+          if ( hWndForeground != game_window.hWnd ||
+                   (! PtInRect (&game_window.actual.window, ptCursor)) )
+          {
+            hwndCursor =
+              WindowFromPoint (ptCursor);
 
-        if (hwndCursor != game_window.hWnd && (! IsChild (game_window.hWnd, hwndCursor)))
-        {
-          // We're not over the game window to begin with, and the clip rect would not
-          //   change anything, so ignore it.
+            if (hwndCursor != game_window.hWnd && (! IsChild (game_window.hWnd, hwndCursor)))
+            {
+              // We're not over the game window to begin with, and the clip rect would not
+              //   change anything, so ignore it.
 
-          SK_LOGi1 (L"Mouse cursor is not over game window, removing existing clip rect.");
+              SK_LOGi1 (L"Mouse cursor is not over game window, removing existing clip rect.");
 
-          SK_ClipCursor (nullptr);
+              SK_ClipCursor (nullptr);
+            }
+          }
         }
       }
 
