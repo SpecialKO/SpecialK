@@ -1,4 +1,10 @@
-﻿23.2.8.3
+﻿23.2.8.4
+========
+ + Removed 1+ frame(s) of latency from XInput emulation
+ + Optimized SK_D3D11_IgnoreWrappedOrDeferred for lower overhead in D3D11 games
+ + Reduced number of times WindowFromPoint is called during ClipCursor
+
+23.2.8.3
 ========
  + Remove HDR remastering options when using DXGI-Layered Vulkan
  + Optimized PlayStation controller rumble

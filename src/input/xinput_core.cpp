@@ -434,6 +434,10 @@ XInputGetState1_4_Detour (
       {
         if (dwUserIndex == 0)
         {
+          bool
+          SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
+          SK_ImGui_PollGamepad_EndFrame (pState);
+
           extern XINPUT_STATE hid_to_xi;
           memcpy (  pState,  &hid_to_xi, sizeof (XINPUT_STATE) );
 
@@ -749,6 +753,17 @@ XInputGetCapabilities1_4_Detour (
           pCapabilities->SubType = XINPUT_DEVSUBTYPE_GAMEPAD;
           pCapabilities->Flags   = XINPUT_CAPS_FFB_SUPPORTED;
 
+          pCapabilities->Gamepad.bLeftTrigger       = 255;
+          pCapabilities->Gamepad.bRightTrigger      = 255;
+          pCapabilities->Gamepad.sThumbLX           = 32767;
+          pCapabilities->Gamepad.sThumbLY           = 32767;
+          pCapabilities->Gamepad.sThumbRX           = 32767;
+          pCapabilities->Gamepad.sThumbRY           = 32767;
+          pCapabilities->Gamepad.wButtons           = 0xFFFF;
+
+          pCapabilities->Vibration.wLeftMotorSpeed  = 65535;
+          pCapabilities->Vibration.wRightMotorSpeed = 65535;
+
           return ERROR_SUCCESS;
         }
       }
@@ -956,6 +971,8 @@ XInputSetState1_4_Detour (
 
   if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
   {
+    bool bHasSetState = false;
+
     for ( auto& controller : SK_HID_PlayStationControllers )
     {
       if (controller.bConnected)
@@ -969,20 +986,35 @@ XInputSetState1_4_Detour (
 
           else
           {
-            controller.setVibration (
-              pVibration->wLeftMotorSpeed,
-              pVibration->wRightMotorSpeed
-            );
+            static WORD wLastLeft  [4] = { };
+            static WORD wLastRight [4] = { };
 
-            controller.write_output_report ();
+            if (pVibration->wLeftMotorSpeed  != wLastLeft  [dwUserIndex] ||
+                pVibration->wRightMotorSpeed != wLastRight [dwUserIndex])
+            {
+              controller.setVibration (
+                pVibration->wLeftMotorSpeed,
+                pVibration->wRightMotorSpeed
+              );
+
+              pVibration->wLeftMotorSpeed =
+                std::exchange (wLastLeft  [dwUserIndex], pVibration->wLeftMotorSpeed );
+              pVibration->wRightMotorSpeed =
+                std::exchange (wLastRight [dwUserIndex], pVibration->wRightMotorSpeed);
+
+              //controller.write_output_report ();
+            }
+
+            bHasSetState = true;
 
             //SK_XINPUT_WRITE (dwUserIndex)
           }
-
-          return ERROR_SUCCESS;
         }
       }
     }
+
+    if (bHasSetState)
+      return ERROR_SUCCESS;
   }
 
   HMODULE hModCaller = SK_GetCallingDLL ();
@@ -2766,21 +2798,36 @@ SK_XInput_PulseController ( INT   iJoyID,
   if ((iJoyID == 0 && config.input.gamepad.xinput.emulate) ||
                         ReadULongAcquire (&xinput_ctx.LastSlotState [iJoyID]) != ERROR_SUCCESS)
   {
+    bool bSet = false;
+
     for ( auto& controller : SK_HID_PlayStationControllers )
     {
       if (controller.bConnected)
       {
-        controller.setVibration (
-          vibes.wLeftMotorSpeed,
-          vibes.wRightMotorSpeed
-        );
+        static WORD wLastLeft  = 0,
+                    wLastRight = 0;
 
-        if (controller.write_output_report ())
-          return true;
+        if ( std::exchange (wLastLeft,  vibes.wLeftMotorSpeed ) != vibes.wLeftMotorSpeed ||
+             std::exchange (wLastRight, vibes.wRightMotorSpeed) != vibes.wRightMotorSpeed )
+        {
+          controller.setVibration (
+            vibes.wLeftMotorSpeed,
+            vibes.wRightMotorSpeed
+          );
+
+          //if (controller.write_output_report ())
+          //  bSet = true;
+        }
+
+        else
+          bSet = true;
 
         //SK_XINPUT_WRITE (iJoyID)
       }
     }
+
+    if (bSet)
+      return true;
   }
 
   DWORD dwRet = XInputSetState == nullptr ? ERROR_DEVICE_NOT_CONNECTED :

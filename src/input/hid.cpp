@@ -2317,15 +2317,17 @@ SK_HID_PlayStationDevice::setVibration (
   USHORT right,
   USHORT max_val )
 {
-  _vibration.left =
-      static_cast  <BYTE> (255.0 *
-    (static_cast <double> (left) /
-     static_cast <double> (max_val)));
+  WriteULongRelease (&_vibration.left,
+      static_cast  <ULONG> (255.0 *
+        std::clamp (
+          (static_cast <double> (left)/
+           static_cast <double> (max_val)), 0.0, 1.0)));
   
-  _vibration.right =
-      static_cast  <BYTE> (255.0 *
-    (static_cast <double> (right)/
-     static_cast <double> (max_val)));
+  WriteULongRelease (&_vibration.right,
+      static_cast  <ULONG> (255.0 *
+        std::clamp (
+          (static_cast <double> (right)/
+           static_cast <double> (max_val)), 0.0, 1.0)));
   
   _vibration.last_set = SK::ControlPanel::current_time;
 }
@@ -2370,10 +2372,12 @@ SK_HID_PlayStationDevice::write_output_report (void)
           {
             //SK_HidD_FlushQueue (pDevice->hDeviceFile);
 
-            while (pDevice->ulLastFrameOutput == SK_GetFramesDrawn () || pDevice->dwLastTimeOutput > SK::ControlPanel::current_time - 15)
+            while ( pDevice->_vibration.last_set == pDevice->_vibration.last_output &&
+                   (pDevice->ulLastFrameOutput == SK_GetFramesDrawn () ||
+                    pDevice->dwLastTimeOutput > SK::ControlPanel::current_time - 66) )
             {
               DWORD dwInnerWait =
-                WaitForMultipleObjects (_countof (hEvents), hEvents, FALSE, 5UL);
+                WaitForMultipleObjects (_countof (hEvents), hEvents, FALSE, 33UL);
 
               if (dwInnerWait == WAIT_OBJECT_0)
               {   dwWaitState  = WAIT_OBJECT_0;
@@ -2414,20 +2418,36 @@ SK_HID_PlayStationDevice::write_output_report (void)
           output->
              EnableImprovedRumbleEmulation = true;
 
+#if 1
           if ( pDevice->_vibration.last_set >= SK::ControlPanel::current_time -
                pDevice->_vibration.MAX_TTL_IN_MSECS )
           {
-            output->RumbleEmulationRight = pDevice->_vibration.right;
-            output->RumbleEmulationLeft  = pDevice->_vibration.left;
+#endif
+            output->RumbleEmulationRight =
+              sk::narrow_cast <BYTE> (
+                ReadULongAcquire (&pDevice->_vibration.right)
+              );
+            output->RumbleEmulationLeft  =
+              sk::narrow_cast <BYTE> (
+                ReadULongAcquire (&pDevice->_vibration.left)
+              );
+#if 1
           }
 
           else
           {
-            output->RumbleEmulationRight =
-              (  pDevice->_vibration.left  = 0  );
-            output->RumbleEmulationLeft  =
-              (  pDevice->_vibration.right = 0  );
+            output->RumbleEmulationRight = 0;
+            output->RumbleEmulationLeft  = 0;
+
+            WriteULongRelease (&pDevice->_vibration.left,  0);
+            WriteULongRelease (&pDevice->_vibration.right, 0);
           }
+
+          if (std::exchange (pDevice->_vibration.last_left,  output->RumbleEmulationLeft ) != output->RumbleEmulationLeft  || output->RumbleEmulationLeft  == 0)
+            pDevice->_vibration.last_output = pDevice->_vibration.last_set;
+          if (std::exchange (pDevice->_vibration.last_right, output->RumbleEmulationRight) != output->RumbleEmulationRight || output->RumbleEmulationRight == 0)
+            pDevice->_vibration.last_output = pDevice->_vibration.last_set;
+#endif
 
           static bool       bMuted     = SK_IsGameMuted ();
           static DWORD dwLastMuteCheck = SK_timeGetTime ();
@@ -2479,18 +2499,21 @@ SK_HID_PlayStationDevice::write_output_report (void)
                                                         SK_ImGui_Toast::ShowNewest );
           }
 
-          if (SK_ImGui_Active () && config.input.gamepad.steam.disabled_to_game)
+#if 0
+          if (ReadULongAcquire (&pDevice->_vibration.left ) != 0 ||
+              ReadULongAcquire (&pDevice->_vibration.right) != 0)
           {
             SK_ImGui_CreateNotification (
               "XInput.Emulation.Debug", SK_ImGui_Toast::Info,
                 SK_FormatString ("Left Motor: %d\r\nRight Motor:%d\r\n",
-                                 pDevice->_vibration.left,
-                                 pDevice->_vibration.right).c_str (),
+                                 ReadULongAcquire (&pDevice->_vibration.left ),
+                                 ReadULongAcquire (&pDevice->_vibration.right)).c_str (),
                                  "Vibration Debug", 15000, SK_ImGui_Toast::UseDuration |
                                                            SK_ImGui_Toast::ShowCaption |
                                                            SK_ImGui_Toast::ShowTitle   |
                                                            SK_ImGui_Toast::ShowNewest );
           }
+#endif
 
           pDevice->ulLastFrameOutput =
                    SK_GetFramesDrawn ();

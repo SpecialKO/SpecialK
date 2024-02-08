@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -50,9 +50,14 @@
 #define XINPUT_GAMEPAD_X              0x4000
 #define XINPUT_GAMEPAD_Y              0x8000
 
+#define XINPUT_GETSTATE_ORDINAL           MAKEINTRESOURCEA (002)
+#define XINPUT_SETSTATE_ORDINAL           MAKEINTRESOURCEA (003)
+#define XINPUT_GETCAPABILITIES_ORDINAL    MAKEINTRESOURCEA (004)
+#define XINPUT_ENABLE_ORDINAL             MAKEINTRESOURCEA (005)
 #define XINPUT_GETSTATEEX_ORDINAL         MAKEINTRESOURCEA (100)
 #define XINPUT_POWEROFF_ORDINAL           MAKEINTRESOURCEA (103)
 #define XINPUT_GETCAPABILITIES_EX_ORDINAL MAKEINTRESOURCEA (108)
+
 
 #define XINPUT_DEVTYPE_GAMEPAD             0x01
 #define XINPUT_DEVSUBTYPE_UNKNOWN          0x00
