@@ -2333,6 +2333,15 @@ public:
           bool bProfile =
             ImGui::Button ("Profile Display Capabilities");
 
+          if (bProfile && preset.colorspace.tonemap != SK_HDR_TONEMAP_NONE)
+          {
+            SK_RunOnce (
+              SK_ImGui_Warning (
+                L"Profile Display Capabilities must be performed in scRGB Tonemap Mode"
+              )
+            );
+          }
+
           if (ImGui::IsItemHovered ())
               ImGui::SetTooltip ("Improve HDR results by validating luminance capabilities reported by Windows.");
 
