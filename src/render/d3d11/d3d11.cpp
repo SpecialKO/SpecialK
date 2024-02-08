@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -3839,15 +3839,35 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
       return true;
     }
 
+#if 1
+    // Ugly, but effective, optimization
+           ID3D11Device*        pDev        = nullptr;
+    static ID3D11Device*        pLastDev    = nullptr;
+    static ID3D11DeviceContext* pLastDevCtx = nullptr;
+
+    if (pLastDevCtx == pDevCtx)
+            pDev = pLastDev;
+    else
+    {
+      SK_ComPtr <ID3D11Device>
+                           pDevice;
+      pDevCtx->GetDevice (&pDevice.p);
+                pLastDev = pDevice.p;
+                pDev     = pDevice.p;
+    }
+
+    pLastDevCtx = pDevCtx;
+#else
     SK_ComPtr <ID3D11Device>
-                         pDevice;
-    pDevCtx->GetDevice (&pDevice.p);
+                         pDev;
+    pDevCtx->GetDevice (&pDev.p);
+#endif
 
     // TOO HIGH OVERHEAD: Use direct compare and expect a few misses
     //if (! rb.getDevice <ID3D11Device> ().IsEqualObject (pDevice))
-    if (rb.device.p != pDevice.p && (!config.reshade.is_addon))
+    if (rb.device.p != pDev && (! config.reshade.is_addon))
     {
-      if (! SK_D3D11_EnsureMatchingDevices ((ID3D11Device *)rb.device.p, pDevice.p))
+      if (! SK_D3D11_EnsureMatchingDevices ((ID3D11Device *)rb.device.p, pDev))
       {
         if (config.system.log_level > 2)
         {
@@ -3865,13 +3885,32 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
   //
   if (rb.api != SK_RenderAPI::D3D11)
   {
+#if 1
+           ID3D11Device*        pDev        = nullptr;
+    static ID3D11Device*        pLastDev    = nullptr;
+    static ID3D11DeviceContext* pLastDevCtx = nullptr;
+
+    if (pLastDevCtx == pDevCtx)
+            pDev = pLastDev;
+    else
+    {
+      SK_ComPtr <ID3D11Device>
+                           pDevice;
+      pDevCtx->GetDevice (&pDevice.p);
+                pLastDev = pDevice.p;
+                pDev     = pDevice.p;
+    }
+
+    pLastDevCtx = pDevCtx;
+#else
     SK_ComPtr <ID3D11Device>
-                         pDevice;
-    pDevCtx->GetDevice (&pDevice.p);
+                         pDev;
+    pDevCtx->GetDevice (&pDev.p);
+#endif
 
     SK_ComPtr <IUnknown> pD3D11On12Device;
-    if (pDevice)
-        pDevice->QueryInterface (
+    if (pDev)
+        pDev->QueryInterface (
           IID_ID3D11On12Device,
     (void **)&pD3D11On12Device.p);
 
