@@ -853,6 +853,8 @@ SK_DeviceIoControl (HANDLE       hDevice,
 struct SK_HID_PlayStationDevice {
   HANDLE               hDeviceFile              = nullptr;
   wchar_t              wszDevicePath [MAX_PATH] = {     };
+  std::wstring         wszManufacturer          = L"";
+  std::wstring         wszProduct               = L"";
   PHIDP_PREPARSED_DATA pPreparsedData           = nullptr;
   bool                 bConnected               =    true;
   bool                 bDualSense               =   false;

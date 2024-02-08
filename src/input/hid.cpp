@@ -21,6 +21,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <hidclass.h>
+#include <imgui/font_awesome.h>
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -132,6 +133,18 @@ struct SK_HID_DeviceFile {
             case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
             {
               device_type = sk_input_dev_type::Gamepad;
+
+              SK_ImGui_CreateNotification (
+                "HID.GamepadAttached", SK_ImGui_Toast::Info,
+                SK_FormatString (
+                  *wszSerialNumber != L'\0'                                            ?
+                  "%ws %ws -( %ws )- ::\t\t" ICON_FA_GAMEPAD "\t\tHas Joined the Fun!" :
+                            "%ws %ws ::\t\t" ICON_FA_GAMEPAD "\t\tHas Joined the Fun!",
+                   wszManufacturerName,
+                   wszProductName,
+                   wszSerialNumber ).c_str (),
+                "HID Compliant Gamepad Connected", 10000
+              );
             } break;
 
             case HID_USAGE_GENERIC_POINTER:
