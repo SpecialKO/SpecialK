@@ -944,7 +944,10 @@ SK_IsGameMuted (void)
        pVolume->GetMute ( &bMuted )    )
      ) return              bMuted;
 
-  SK_ReleaseAssert (! L"pVolume->GetMute (...) Failed");
+  // Might not be initialized yet, only process this assertion
+  //   if pVolume is an actual COM interface pointer.
+  if ( pVolume != nullptr )
+    SK_ReleaseAssert (! L"pVolume->GetMute (...) Failed");
 
   return
     bMuted;
