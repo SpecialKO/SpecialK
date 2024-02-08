@@ -965,10 +965,11 @@ struct sk_config_t
       } dinput;
 
       struct scepad_s {
-        bool disable_touch        = false;
-        bool share_clicks_touch   =  true;
-        bool mute_applies_to_game =  true;
-        bool enhanced_ps_button   =  true;
+        bool  disable_touch        =  false;
+        bool  share_clicks_touch   =   true;
+        bool  mute_applies_to_game =   true;
+        bool  enhanced_ps_button   =   true;
+        float rumble_power_level   = 100.0f;
       } scepad;
 
       struct steam_s

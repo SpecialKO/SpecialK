@@ -1034,7 +1034,7 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
         ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
 
-        if (ImGui::CollapsingHeader ("PlayStation  (DualShock 4 / DualSense)", ImGuiTreeNodeFlags_DefaultOpen))
+        if (ImGui::CollapsingHeader ("PlayStation  (DualShock 3/4 / DualSense)", ImGuiTreeNodeFlags_DefaultOpen))
         {
           ImGui::TreePush ("");
 
@@ -1126,6 +1126,23 @@ SK::ControlPanel::Input::Draw (void)
             }
           }
 
+#if 0
+          if ( bDualSense &&
+               ImGui::SliderFloat ( "Rumble Motor Power Level",
+                                      &config.input.gamepad.scepad.rumble_power_level,
+                                        12.5f, 100.0f ) )
+          {
+            if ( config.input.gamepad.scepad.rumble_power_level > 93.75f)
+                 config.input.gamepad.scepad.rumble_power_level = 100.0f;
+            else config.input.gamepad.scepad.rumble_power_level -=
+          fmodf (config.input.gamepad.scepad.rumble_power_level, 12.5f);
+
+            for ( auto& ps_controller : SK_HID_PlayStationControllers )
+            {
+              ps_controller.write_output_report ();
+            }
+          }
+#endif
           ImGui::TreePop  (  );
         }
 

@@ -1,4 +1,9 @@
-﻿23.2.8.2
+﻿23.2.8.3
+========
+ + Remove HDR remastering options when using DXGI-Layered Vulkan
+ + Optimized PlayStation controller rumble
+
+23.2.8.2
 ========
  + Apply Tales of Arise button swap when running using SK's own XInput
      emulation.

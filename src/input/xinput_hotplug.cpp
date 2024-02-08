@@ -248,7 +248,7 @@ SK_XInput_NotifyDeviceArrival (void)
                               controller.hDeviceFile =
                                 SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                                                               FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                                                nullptr, OPEN_EXISTING, 0, nullptr );
+                                                                nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH, nullptr );
 
                               if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
                               {
@@ -288,7 +288,7 @@ SK_XInput_NotifyDeviceArrival (void)
                             controller.hDeviceFile =
                               SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                                                             FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                                              nullptr, OPEN_EXISTING, 0, nullptr );
+                                                              nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH, nullptr );
 
                             if (controller.hDeviceFile != nullptr)
                             {

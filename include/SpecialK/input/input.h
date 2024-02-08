@@ -664,6 +664,10 @@ using HidD_FreePreparsedData_pfn = BOOLEAN (__stdcall *)(
   _In_ PHIDP_PREPARSED_DATA PreparsedData
 );
 
+using HidD_FlushQueue_pfn = BOOLEAN (__stdcall *)(
+  _In_ HANDLE HidDeviceObject
+);
+
 using HidP_GetData_pfn = NTSTATUS (__stdcall *)(
   _In_    HIDP_REPORT_TYPE     ReportType,
   _Out_   PHIDP_DATA           DataList,
@@ -752,6 +756,7 @@ extern HidD_FreePreparsedData_pfn  HidD_FreePreparsedData_Original;
 extern HidD_GetFeature_pfn         HidD_GetFeature_Original;
 extern HidP_GetData_pfn            HidP_GetData_Original;
 
+extern HidD_FlushQueue_pfn         SK_HidD_FlushQueue;
 extern HidD_GetInputReport_pfn     SK_HidD_GetInputReport;
 extern HidD_GetPreparsedData_pfn   SK_HidD_GetPreparsedData;
 extern HidD_FreePreparsedData_pfn  SK_HidD_FreePreparsedData;
@@ -855,17 +860,42 @@ SK_DeviceIoControl (HANDLE       hDevice,
                     LPDWORD      lpBytesReturned,
                     LPOVERLAPPED lpOverlapped);
 
-struct SK_HID_PlayStationDevice {
+struct SK_HID_PlayStationDevice
+{
+  enum PowerState : uint8_t {
+    Discharging         = 0x00, // Use PowerPercent
+    Charging            = 0x01, // Use PowerPercent
+    Complete            = 0x02, // PowerPercent not valid? assume 100%?
+    AbnormalVoltage     = 0x0A, // PowerPercent not valid?
+    AbnormalTemperature = 0x0B, // PowerPercent not valid?
+    ChargingError       = 0x0F  // PowerPercent not valid?
+  };
+
+  // Device File Handle
   HANDLE               hDeviceFile              = nullptr;
+  HANDLE               hOutputEvent             = nullptr;
+  HANDLE               hInputEvent              = nullptr;
+  ULONG64              ulLastFrameOutput        =       0;
+  DWORD                dwLastTimeOutput         =       0;
   wchar_t              wszDevicePath [MAX_PATH] = {     };
-  std::wstring         wszManufacturer          = L"";
-  std::wstring         wszProduct               = L"";
+
+  std::wstring         wszManufacturer          =   L""  ;
+  std::wstring         wszProduct               =   L""  ;
+
+  // Interpretation of reports using HID APIs
   PHIDP_PREPARSED_DATA pPreparsedData           = nullptr;
+
+  // General state
   bool                 bConnected               =    true;
   bool                 bDualSense               =   false;
   bool                 bDualSenseEdge           =   false;
   bool                 bDualShock4              =   false;
   bool                 bDualShock3              =   false;
+
+  struct battery_s {
+    float      percentage = 100.0f;
+    PowerState state      = ChargingError;
+  };
 
   struct button_s {
     bool state;

@@ -342,7 +342,7 @@ void SK_HID_SetupPlayStationControllers (void)
           controller.hDeviceFile =
             SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                                           FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                            nullptr, OPEN_EXISTING, 0, nullptr );
+                                            nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH, nullptr );
   
           if (controller.hDeviceFile != nullptr)
           {
@@ -470,6 +470,7 @@ HidD_FreePreparsedData_pfn  SK_HidD_FreePreparsedData       = nullptr;
 HidD_GetInputReport_pfn     SK_HidD_GetInputReport          = nullptr;
 HidD_GetFeature_pfn         SK_HidD_GetFeature              = nullptr;
 HidD_SetFeature_pfn         SK_HidD_SetFeature              = nullptr;
+HidD_FlushQueue_pfn         SK_HidD_FlushQueue              = nullptr;
 HidP_GetData_pfn            SK_HidP_GetData                 = nullptr;
 HidP_GetCaps_pfn            SK_HidP_GetCaps                 = nullptr;
 HidP_GetButtonCaps_pfn      SK_HidP_GetButtonCaps           = nullptr;
@@ -1927,6 +1928,10 @@ SK_Input_PreHookHID (void)
     (HidD_GetInputReport_pfn)SK_GetProcAddress (hModHID,
     "HidD_GetInputReport");
 
+  SK_HidD_FlushQueue =
+    (HidD_FlushQueue_pfn)SK_GetProcAddress (hModHID,
+    "HidD_FlushQueue");
+
   SK_CreateFile2 =
     (CreateFile2_pfn)SK_GetProcAddress (hModKernel32,
     "CreateFile2");
@@ -2091,6 +2096,18 @@ enum LightFadeAnimation : uint8_t {
   FadeOut // from blue to black
 };
 
+struct TouchFingerData { // 4
+/*0.0*/ uint32_t Index       : 7;
+/*0.7*/ uint32_t NotTouching : 1;
+/*1.0*/ uint32_t FingerX     : 12;
+/*2.4*/ uint32_t FingerY     : 12;
+};
+
+struct TouchData { // 9
+/*0*/ TouchFingerData Finger [2];
+/*8*/ uint8_t         Timestamp;
+};
+
 template <int N> struct BTCRC {
   uint8_t  Buff [N-4];
   uint32_t CRC;
@@ -2100,7 +2117,7 @@ template <int N> struct BTCRC {
 // 
 //   https://controllers.fandom.com/wiki/Sony_DualSense#Likely_Interface
 //
-struct SK_HID_DualSense_SetStateData
+struct SK_HID_DualSense_SetStateData // 47
 {
 /* 0.0*/ uint8_t EnableRumbleEmulation         : 1; // Suggest halving rumble strength
 /* 0.1*/ uint8_t UseRumbleNotHaptics           : 1; // 
@@ -2222,6 +2239,78 @@ struct SK_HID_DualSense_SetStateData
 // Structure ends here though on BT there is padding and a CRC, see ReportOut31
 };
 
+struct SK_HID_DualSense_GetStateData // 63
+{
+/* 0  */ uint8_t    LeftStickX;
+/* 1  */ uint8_t    LeftStickY;
+/* 2  */ uint8_t    RightStickX;
+/* 3  */ uint8_t    RightStickY;
+/* 4  */ uint8_t    TriggerLeft;
+/* 5  */ uint8_t    TriggerRight;
+/* 6  */ uint8_t    SeqNo;                   // always 0x01 on BT
+/* 7.0*/ Direction  DPad                : 4;
+/* 7.4*/ uint8_t    ButtonSquare        : 1;
+/* 7.5*/ uint8_t    ButtonCross         : 1;
+/* 7.6*/ uint8_t    ButtonCircle        : 1;
+/* 7.7*/ uint8_t    ButtonTriangle      : 1;
+/* 8.0*/ uint8_t    ButtonL1            : 1;
+/* 8.1*/ uint8_t    ButtonR1            : 1;
+/* 8.2*/ uint8_t    ButtonL2            : 1;
+/* 8.3*/ uint8_t    ButtonR2            : 1;
+/* 8.4*/ uint8_t    ButtonCreate        : 1;
+/* 8.5*/ uint8_t    ButtonOptions       : 1;
+/* 8.6*/ uint8_t    ButtonL3            : 1;
+/* 8.7*/ uint8_t    ButtonR3            : 1;
+/* 9.0*/ uint8_t    ButtonHome          : 1;
+/* 9.1*/ uint8_t    ButtonPad           : 1;
+/* 9.2*/ uint8_t    ButtonMute          : 1;
+/* 9.3*/ uint8_t    ButtonLeftFunction  : 1; // DualSense Edge
+/* 9.4*/ uint8_t    ButtonRightFunction : 1; // DualSense Edge
+/* 9.5*/ uint8_t    ButtonLeftPaddle    : 1; // DualSense Edge
+/* 9.6*/ uint8_t    ButtonRightPaddle   : 1; // DualSense Edge
+/* 9.7*/ uint8_t    UNK1                : 1; // appears unused
+/*10  */ uint8_t    UNK2;                    // appears unused
+/*11  */ uint32_t   UNK_COUNTER;             // Linux driver calls this reserved, tools leak calls the 2 high bytes "random"
+/*15  */ int16_t    AngularVelocityX;
+/*17  */ int16_t    AngularVelocityZ;
+/*19  */ int16_t    AngularVelocityY;
+/*21  */ int16_t    AccelerometerX;
+/*23  */ int16_t    AccelerometerY;
+/*25  */ int16_t    AccelerometerZ;
+/*27  */ uint32_t   SensorTimestamp;
+/*31  */ int8_t     Temperature;                  // reserved2 in Linux driver
+/*32  */ TouchData  TouchData;
+/*41.0*/ uint8_t    TriggerRightStopLocation : 4; // trigger stop can be a range from 0 to 9 (F/9.0 for Apple interface)
+/*41.4*/ uint8_t    TriggerRightStatus       : 4;
+/*42.0*/ uint8_t    TriggerLeftStopLocation  : 4;
+/*42.4*/ uint8_t    TriggerLeftStatus        : 4; // 0 feedbackNoLoad
+                                                  // 1 feedbackLoadApplied
+                                                  // 0 weaponReady
+                                                  // 1 weaponFiring
+                                                  // 2 weaponFired
+                                                  // 0 vibrationNotVibrating
+                                                  // 1 vibrationIsVibrating
+/*43  */ uint32_t   HostTimestamp;                // mirrors data from report write
+/*47.0*/ uint8_t    TriggerRightEffect       : 4; // Active trigger effect, previously we thought this was status max
+/*47.4*/ uint8_t    TriggerLeftEffect        : 4; // 0 for reset and all other effects
+                                                  // 1 for feedback effect
+                                                  // 2 for weapon effect
+                                                  // 3 for vibration
+/*48  */ uint32_t   DeviceTimeStamp;         
+/*52.0*/ uint8_t    PowerPercent             : 4; // 0x00-0x0A
+/*52.4*/ PowerState PowerState               : 4;
+/*53.0*/ uint8_t    PluggedHeadphones        : 1;
+/*53.1*/ uint8_t    PluggedMic               : 1;
+/*53.2*/ uint8_t    MicMuted                 : 1; // Mic muted by powersave/mute command
+/*53.3*/ uint8_t    PluggedUsbData           : 1;
+/*53.4*/ uint8_t    PluggedUsbPower          : 1;
+/*53.5*/ uint8_t    PluggedUnk1              : 3;
+/*54.0*/ uint8_t    PluggedExternalMic       : 1; // Is external mic active (automatic in mic auto mode)
+/*54.1*/ uint8_t    HapticLowPassFilter      : 1; // Is the Haptic Low-Pass-Filter active?
+/*54.2*/ uint8_t    PluggedUnk3              : 6;
+/*55  */ uint8_t    AesCmac [8];
+};
+
 void
 SK_HID_PlayStationDevice::setVibration (
   USHORT left,
@@ -2256,68 +2345,172 @@ SK_HID_PlayStationDevice::write_output_report (void)
     if (output_report.size () < sizeof (SK_HID_DualSense_SetStateData))
       return false;
 
-    SK_HID_DualSense_SetStateData* output =
-      (SK_HID_DualSense_SetStateData *)output_report.data ();
-
-    BYTE* pOutputRaw  =  (BYTE *)output;
-
-    pOutputRaw [0] = 0x02;
-    pOutputRaw [1] = 0x01 | 0x02;
-    pOutputRaw [2] = 0x04 | 0x10 | 0x01;
-
-    if (_vibration.last_set >= SK::ControlPanel::current_time - _vibration.MAX_TTL_IN_MSECS)
+    if (hOutputEvent == nullptr)
     {
-      pOutputRaw [3] = _vibration.left;
-      pOutputRaw [4] = _vibration.right;
+      hOutputEvent =
+        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+
+      SK_Thread_CreateEx ([](LPVOID pData)->DWORD
+      {
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
+
+        SK_HID_PlayStationDevice* pDevice =
+          (SK_HID_PlayStationDevice *)pData;
+
+        HANDLE hEvents [] = {
+          __SK_DLL_TeardownEvent,
+           pDevice->hOutputEvent
+        };
+
+        do {
+          DWORD dwWaitState =
+            WaitForMultipleObjects (_countof (hEvents), hEvents, FALSE, INFINITE);
+
+          if (dwWaitState != WAIT_OBJECT_0)
+          {
+            //SK_HidD_FlushQueue (pDevice->hDeviceFile);
+
+            while (pDevice->ulLastFrameOutput == SK_GetFramesDrawn () || pDevice->dwLastTimeOutput > SK::ControlPanel::current_time - 15)
+            {
+              DWORD dwInnerWait =
+                WaitForMultipleObjects (_countof (hEvents), hEvents, FALSE, 5UL);
+
+              if (dwInnerWait == WAIT_OBJECT_0)
+              {   dwWaitState  = WAIT_OBJECT_0;
+                break;
+              }
+            }
+          }
+
+          if (dwWaitState == WAIT_OBJECT_0)
+            break;
+
+          if (dwWaitState != (WAIT_OBJECT_0 + 1))
+            continue;
+
+          BYTE* pOutputRaw =
+            (BYTE *)pDevice->output_report.data ();
+
+          SK_HID_DualSense_SetStateData* output =
+            (SK_HID_DualSense_SetStateData *)&pOutputRaw [1];
+
+          // Report Type
+          pOutputRaw [0] = 0x02;
+
+          output->EnableRumbleEmulation    = true;
+          output->UseRumbleNotHaptics      = true;
+          output->AllowMuteLight           = true;
+
+          if (false)
+          {
+            // SK's not really interested in this...
+            output->AllowLedColor          = true;
+          }
+
+          output->AllowHapticLowPassFilter = true;
+          output->AllowMotorPowerLevel     = true;
+
+          // Firmware reqs
+          output->
+             EnableImprovedRumbleEmulation = true;
+
+          if ( pDevice->_vibration.last_set >= SK::ControlPanel::current_time -
+               pDevice->_vibration.MAX_TTL_IN_MSECS )
+          {
+            output->RumbleEmulationRight = pDevice->_vibration.right;
+            output->RumbleEmulationLeft  = pDevice->_vibration.left;
+          }
+
+          else
+          {
+            output->RumbleEmulationRight =
+              (  pDevice->_vibration.left  = 0  );
+            output->RumbleEmulationLeft  =
+              (  pDevice->_vibration.right = 0  );
+          }
+
+          static bool       bMuted     = SK_IsGameMuted ();
+          static DWORD dwLastMuteCheck = SK_timeGetTime ();
+
+          if (dwLastMuteCheck < SK::ControlPanel::current_time - 750UL)
+          {   dwLastMuteCheck = SK::ControlPanel::current_time;
+                   bMuted     = SK_IsGameMuted ();
+                   // This API is rather expensive
+          }
+
+          output->MuteLightMode =
+                 bMuted               ?
+               (! game_window.active) ? Breathing
+                                      : On
+                                      : Off;
+
+          output->TouchPowerSave      = true;
+          output->MotionPowerSave     = true;
+          output->AudioPowerSave      = true;
+          output->HapticLowPassFilter = true;
+
+          output->RumbleMotorPowerReduction =
+            config.input.gamepad.scepad.rumble_power_level == 100.0f ? 0
+                                                                     :
+            static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
+
+  //      pOutputRaw [ 9] = 0;
+  //      pOutputRaw [39] = 2;
+	//      pOutputRaw [42] = 2;
+
+	        pOutputRaw [45] = pDevice->_color.r;
+	        pOutputRaw [46] = pDevice->_color.g;
+	        pOutputRaw [47] = pDevice->_color.b;
+
+          DWORD dwBytesWritten = 0;
+          BOOL  bRet =       TRUE;
+            SK_WriteFile ( pDevice->hDeviceFile, pOutputRaw,
+                static_cast <DWORD> ( pDevice->output_report.size () ),
+                          &dwBytesWritten, nullptr );
+
+          if (! bRet)
+          {
+            SK_ImGui_CreateNotification (
+              "XInput.Emulation.DebugWrite", SK_ImGui_Toast::Error,
+                SK_FormatString ("SK_WriteFile (...) failed with code=%d", GetLastError ()).c_str (),
+                                 "HID Debug", INFINITE, SK_ImGui_Toast::UseDuration |
+                                                        SK_ImGui_Toast::ShowCaption |
+                                                        SK_ImGui_Toast::ShowTitle   |
+                                                        SK_ImGui_Toast::ShowNewest );
+          }
+
+          if (SK_ImGui_Active () && config.input.gamepad.steam.disabled_to_game)
+          {
+            SK_ImGui_CreateNotification (
+              "XInput.Emulation.Debug", SK_ImGui_Toast::Info,
+                SK_FormatString ("Left Motor: %d\r\nRight Motor:%d\r\n",
+                                 pDevice->_vibration.left,
+                                 pDevice->_vibration.right).c_str (),
+                                 "Vibration Debug", 15000, SK_ImGui_Toast::UseDuration |
+                                                           SK_ImGui_Toast::ShowCaption |
+                                                           SK_ImGui_Toast::ShowTitle   |
+                                                           SK_ImGui_Toast::ShowNewest );
+          }
+
+          pDevice->ulLastFrameOutput =
+                   SK_GetFramesDrawn ();
+
+          pDevice->dwLastTimeOutput =
+            SK::ControlPanel::current_time;
+
+          SwitchToThread ();
+        } while (true);
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, L"[SK] HID Output Report Thread", this);
     }
 
     else
-    {
-      pOutputRaw [3] = 0;
-      pOutputRaw [4] = 0;
+      SetEvent (hOutputEvent);
 
-      _vibration.left  = 0;
-      _vibration.right = 0;
-    }
-
-    pOutputRaw [ 9] = 0;
-
-    pOutputRaw [39] = 2;
-	  pOutputRaw [42] = 2;
-	  pOutputRaw [45] = _color.r;
-	  pOutputRaw [46] = _color.g;
-	  pOutputRaw [47] = _color.b;
-
-    DWORD dwBytesWritten = 0;
-    BOOL  bRet = 
-      SK_WriteFile ( hDeviceFile, pOutputRaw,
-          static_cast <DWORD> ( output_report.size () ),
-                    &dwBytesWritten, nullptr );
-
-    if (! bRet)
-    {
-      SK_ImGui_CreateNotification (
-        "XInput.Emulation.DebugWrite", SK_ImGui_Toast::Error,
-          SK_FormatString ("SK_WriteFile (...) failed with code=%d", GetLastError ()).c_str (),
-                           "HID Debug", INFINITE, SK_ImGui_Toast::UseDuration |
-                                                  SK_ImGui_Toast::ShowCaption |
-                                                  SK_ImGui_Toast::ShowTitle   |
-                                                  SK_ImGui_Toast::ShowNewest );
-    }
-
-    if (SK_ImGui_Active () && config.input.gamepad.steam.disabled_to_game)
-    {
-      SK_ImGui_CreateNotification (
-        "XInput.Emulation.Debug", SK_ImGui_Toast::Info,
-          SK_FormatString ("Left Motor: %d\r\nRight Motor:%d\r\n", _vibration.left, _vibration.right).c_str (),
-                           "Vibration Debug", 15000, SK_ImGui_Toast::UseDuration |
-                                                     SK_ImGui_Toast::ShowCaption |
-                                                     SK_ImGui_Toast::ShowTitle   |
-                                                     SK_ImGui_Toast::ShowNewest );
-    }
-
-    return
-      ( bRet != FALSE );
+    return true;
   }
 
   return false;

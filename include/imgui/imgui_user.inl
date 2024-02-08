@@ -1929,6 +1929,11 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
       last_hid_to_xi         = { };
            hid_to_xi.Gamepad = { };
 
+    //static DWORD dwLastPolled = 0;
+
+    //if (dwLastPolled < SK::ControlPanel::current_time - 7)
+    //{   dwLastPolled = SK::ControlPanel::current_time;
+    //    bHasPlayStation = false;
     for ( auto& ps_controller : SK_HID_PlayStationControllers )
     {
       if (ps_controller.bConnected)
@@ -1936,11 +1941,13 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
         if (ps_controller.pPreparsedData == nullptr)
           continue;
 
+        bool clear_haptics = false;
+
         if (ps_controller._vibration.last_set != 0 &&
             ps_controller._vibration.last_set < SK::ControlPanel::current_time - ps_controller._vibration.MAX_TTL_IN_MSECS)
         {
           ps_controller._vibration.last_set = 0;
-          ps_controller.write_output_report ();
+          clear_haptics = true;
         }
 
         ZeroMemory ( ps_controller.input_report.data (),
@@ -1971,7 +1978,18 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
             );
           }
 
-          SK_LOGs0 (L"InputBkEnd", L"HidD_GetInputReport (...) failed, Error=%d", GetLastError ());
+          _com_error err (
+            _com_error::WCodeToHRESULT (
+              sk::narrow_cast <WORD> (GetLastError ())
+            )
+          );
+
+          SK_LOGs0 (
+            L"InputBkEnd",
+            L"SK_ReadFile ({%ws}) failed, Error=%d [%ws]",
+              ps_controller.wszDevicePath, GetLastError (),
+                err.ErrorMessage ()
+          );
 
           // Stop polling on the first failure, if the device comes back to life, we'll probably
           //   get a device arrival notification.
@@ -1979,7 +1997,15 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
           continue;
         }
 
-        if (config.input.gamepad.xinput.ui_slot < 4)
+        if (clear_haptics || SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate)
+        {
+          ps_controller.write_output_report ();
+        }
+
+        //SK_HidD_FlushQueue (ps_controller.hDeviceFile);
+
+        if ( config.input.gamepad.xinput.ui_slot < 4 ||
+             config.input.gamepad.xinput.emulate )
         {
           ULONG num_usages =
             static_cast <ULONG> (ps_controller.button_usages.size ());
@@ -2020,21 +2046,6 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
                                        (PCHAR)ps_controller.input_report.data  (),
                          static_cast <ULONG> (ps_controller.input_report.size  ()) ) )
             {
-#if 0
-              SK_ReleaseAssert (ps_controller.value_caps [i].PhysicalMin ==
-                                ps_controller.value_caps [i].PhysicalMax &&
-                                ps_controller.value_caps [i].PhysicalMin == 0);
-#endif
-
-              //if (ps_controller.value_caps [i].PhysicalMin != ps_controller.value_caps [i].PhysicalMax)
-              //{
-              //  SK_ImGui_Warning (
-              //    SK_FormatStringW (L"PS5 Value %x has Physical Range: %d-%d", ps_controller.value_caps [i].Range.UsageMin,
-              //                                                                 ps_controller.value_caps [i].PhysicalMin,
-              //                                                                 ps_controller.value_caps [i].PhysicalMax).c_str ()
-              //  );
-              //}
-
               switch (ps_controller.value_caps [i].Range.UsageMin)
               {
                 case 0x30: // X-axis
@@ -2126,7 +2137,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
                     (config.input.gamepad.xinput.ui_slot >= 0 && 
                      config.input.gamepad.xinput.ui_slot <  4) )
           {
-            if (ps_controller.buttons [12].state && (! ps_controller.buttons [12].last_state))
+            if (   ps_controller.buttons [12].state &&
+                (! ps_controller.buttons [12].last_state) )
             {
               if (SK_ImGui_Active ())
               {
@@ -2144,13 +2156,15 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
           if (ps_controller.bDualSense && config.input.gamepad.scepad.mute_applies_to_game)
           {
-            if (ps_controller.buttons [14].state && (! ps_controller.buttons [14].last_state))
+            if (   ps_controller.buttons [14].state &&
+                (! ps_controller.buttons [14].last_state) )
             {
               SK_SetGameMute (! SK_IsGameMuted ());
             }
           }
 
-          if (ps_controller.bDualSense || ps_controller.bDualShock4)
+          if ( ps_controller.bDualSense ||
+               ps_controller.bDualShock4 )
           {
             if (ps_controller.buttons [0].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
             if (ps_controller.buttons [1].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
@@ -2193,56 +2207,6 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
           bHasPlayStation = true;
 
-#ifdef CANT_POLL_HAT_SWITCHES_WITH_HID
-          if (SK_ImGui_WantGamepadCapture ())
-          {
-            unsigned int x = 0;
-
-            do
-            {
-              // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
-              //   for no good reason.
-                     JOYINFOEX joy_ex   { };
-              static JOYCAPS2W joy_caps [15] = { };
-
-              SK_RunOnce (
-                for ( int i = 0 ; i < 15 ; i++ )
-                  SK_joyGetDevCapsW (i, (JOYCAPSW *)&joy_caps [i], sizeof (JOYCAPS2W));
-              );
-
-              bool bInvalidController =
-                (! (joy_caps [x].wCaps & JOYCAPS_POV4DIR)) ||
-                    joy_caps [x].wNumButtons < 4;
-
-              if (! bInvalidController)
-              {
-                joy_ex.dwSize  = sizeof (JOYINFOEX);
-                joy_ex.dwFlags = JOY_RETURNPOV | JOY_RETURNCENTERED | JOY_USEDEADZONE;
-
-                if ( JOYERR_NOERROR != SK_joyGetPosEx (x, &joy_ex) )
-                  continue;
-
-                if (joy_ex.dwPOV == JOY_POVCENTERED)
-                  continue;
-
-                if (joy_ex.dwPOV == JOY_POVFORWARD)
-                  hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
-
-                else if (joy_ex.dwPOV == JOY_POVBACKWARD)
-                  hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
-
-                else if (joy_ex.dwPOV == JOY_POVLEFT)
-                  hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
-
-                else if (joy_ex.dwPOV == JOY_POVRIGHT)
-                  hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
-
-                break;
-              }
-            } while ( x++ < SK_joyGetNumDevs () );
-          }
-#endif
-
           if (memcmp (&last_hid_to_xi.Gamepad, &hid_to_xi.Gamepad, sizeof (XINPUT_GAMEPAD)))
             hid_to_xi.dwPacketNumber++;
 
@@ -2252,6 +2216,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
         }
       }
     }
+  //}
 
     auto& state =
         *pState;
