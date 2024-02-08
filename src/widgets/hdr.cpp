@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -2416,97 +2416,100 @@ public:
 
               };
 
-              ImGui::BeginGroup        ();
-
-              changed |= ImGui::Checkbox ("Remaster 8-bit Render Passes",  &SK_HDR_RenderTargets_8bpc->PromoteTo16Bit);
-
-              if (ImGui::IsItemHovered ())
+              if (SK_Render_GetVulkanInteropSwapChainType (rb.swapchain) == SK_DXGI_VK_INTEROP_TYPE_NONE)
               {
-                ImGui::BeginTooltip    ();
-                ImGui::TextUnformatted ("May Break FMV in Unreal Engine Games");
-                ImGui::Separator       ();
-                _SummarizeTargets      (ReadULongAcquire (&SK_HDR_RenderTargets_8bpc->TargetsUpgraded),
-                                        ReadULongAcquire (&SK_HDR_RenderTargets_8bpc->CandidatesSeen),
-                                        ReadAcquire64    (&SK_HDR_RenderTargets_8bpc->BytesAllocated));
-                ImGui::EndTooltip      ();
-              }
+                ImGui::BeginGroup        ();
 
-              if (bDetails)
-              {
-                changed |= ImGui::Checkbox ("Remaster 8-bit Compute Passes", &SK_HDR_UnorderedViews_8bpc->PromoteTo16Bit);
+                changed |= ImGui::Checkbox ("Remaster 8-bit Render Passes",  &SK_HDR_RenderTargets_8bpc->PromoteTo16Bit);
 
                 if (ImGui::IsItemHovered ())
                 {
-                  ImGui::BeginTooltip  ();
-                  _SummarizeTargets    (ReadULongAcquire (&SK_HDR_UnorderedViews_8bpc->TargetsUpgraded),
-                                        ReadULongAcquire (&SK_HDR_UnorderedViews_8bpc->CandidatesSeen),
-                                        ReadAcquire64    (&SK_HDR_UnorderedViews_8bpc->BytesAllocated));
-                  ImGui::EndTooltip    ();
+                  ImGui::BeginTooltip    ();
+                  ImGui::TextUnformatted ("May Break FMV in Unreal Engine Games");
+                  ImGui::Separator       ();
+                  _SummarizeTargets      (ReadULongAcquire (&SK_HDR_RenderTargets_8bpc->TargetsUpgraded),
+                                          ReadULongAcquire (&SK_HDR_RenderTargets_8bpc->CandidatesSeen),
+                                          ReadAcquire64    (&SK_HDR_RenderTargets_8bpc->BytesAllocated));
+                  ImGui::EndTooltip      ();
                 }
-              }
 
-              ImGui::EndGroup          ();
-              ImGui::SameLine          ();
-              ImGui::BeginGroup        ();
+                if (bDetails)
+                {
+                  changed |= ImGui::Checkbox ("Remaster 8-bit Compute Passes", &SK_HDR_UnorderedViews_8bpc->PromoteTo16Bit);
 
-              changed |= ImGui::Checkbox ("Remaster 10-bit Render Passes", &SK_HDR_RenderTargets_10bpc->PromoteTo16Bit);
+                  if (ImGui::IsItemHovered ())
+                  {
+                    ImGui::BeginTooltip  ();
+                    _SummarizeTargets    (ReadULongAcquire (&SK_HDR_UnorderedViews_8bpc->TargetsUpgraded),
+                                          ReadULongAcquire (&SK_HDR_UnorderedViews_8bpc->CandidatesSeen),
+                                          ReadAcquire64    (&SK_HDR_UnorderedViews_8bpc->BytesAllocated));
+                    ImGui::EndTooltip    ();
+                  }
+                }
 
-              if (ImGui::IsItemHovered ())
-              {
-                ImGui::BeginTooltip    ();
-                ImGui::TextUnformatted ("May Strengthen Atmospheric Bloom");
-                ImGui::Separator       ();
-                _SummarizeTargets      (ReadULongAcquire (&SK_HDR_RenderTargets_10bpc->TargetsUpgraded),
-                                        ReadULongAcquire (&SK_HDR_RenderTargets_10bpc->CandidatesSeen),
-                                        ReadAcquire64    (&SK_HDR_RenderTargets_10bpc->BytesAllocated));
-                ImGui::EndTooltip      ();
-              }
+                ImGui::EndGroup          ();
+                ImGui::SameLine          ();
+                ImGui::BeginGroup        ();
 
-              if (bDetails)
-              {
-                changed |= ImGui::Checkbox ("Remaster 10-bit Compute Passes", &SK_HDR_UnorderedViews_10bpc->PromoteTo16Bit);
+                changed |= ImGui::Checkbox ("Remaster 10-bit Render Passes", &SK_HDR_RenderTargets_10bpc->PromoteTo16Bit);
 
                 if (ImGui::IsItemHovered ())
                 {
-                  ImGui::BeginTooltip  ();
-                  _SummarizeTargets    (ReadULongAcquire (&SK_HDR_UnorderedViews_10bpc->TargetsUpgraded),
-                                        ReadULongAcquire (&SK_HDR_UnorderedViews_10bpc->CandidatesSeen),
-                                        ReadAcquire64    (&SK_HDR_UnorderedViews_10bpc->BytesAllocated));
-                  ImGui::EndTooltip    ();
+                  ImGui::BeginTooltip    ();
+                  ImGui::TextUnformatted ("May Strengthen Atmospheric Bloom");
+                  ImGui::Separator       ();
+                  _SummarizeTargets      (ReadULongAcquire (&SK_HDR_RenderTargets_10bpc->TargetsUpgraded),
+                                          ReadULongAcquire (&SK_HDR_RenderTargets_10bpc->CandidatesSeen),
+                                          ReadAcquire64    (&SK_HDR_RenderTargets_10bpc->BytesAllocated));
+                  ImGui::EndTooltip      ();
                 }
-              }
 
-              ImGui::EndGroup          ();
-              ImGui::SameLine          ();
-              ImGui::BeginGroup        ();
+                if (bDetails)
+                {
+                  changed |= ImGui::Checkbox ("Remaster 10-bit Compute Passes", &SK_HDR_UnorderedViews_10bpc->PromoteTo16Bit);
 
-              changed |= ImGui::Checkbox ("Remaster 11-bit Render Passes", &SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
+                  if (ImGui::IsItemHovered ())
+                  {
+                    ImGui::BeginTooltip  ();
+                    _SummarizeTargets    (ReadULongAcquire (&SK_HDR_UnorderedViews_10bpc->TargetsUpgraded),
+                                          ReadULongAcquire (&SK_HDR_UnorderedViews_10bpc->CandidatesSeen),
+                                          ReadAcquire64    (&SK_HDR_UnorderedViews_10bpc->BytesAllocated));
+                    ImGui::EndTooltip    ();
+                  }
+                }
 
-              if (ImGui::IsItemHovered ())
-              {
-                ImGui::BeginTooltip    ();
-                ImGui::TextUnformatted ("May Cause -or- Correct Blue / Yellow Hue Shifting");
-                ImGui::Separator       ();
-                _SummarizeTargets      (ReadULongAcquire (&SK_HDR_RenderTargets_11bpc->TargetsUpgraded),
-                                        ReadULongAcquire (&SK_HDR_RenderTargets_11bpc->CandidatesSeen),
-                                        ReadAcquire64    (&SK_HDR_RenderTargets_11bpc->BytesAllocated));
-                ImGui::EndTooltip      ();
-              }
+                ImGui::EndGroup          ();
+                ImGui::SameLine          ();
+                ImGui::BeginGroup        ();
 
-              if (bDetails)
-              {
-                changed |= ImGui::Checkbox ("Remaster 11-bit Compute Passes", &SK_HDR_UnorderedViews_11bpc->PromoteTo16Bit);
+                changed |= ImGui::Checkbox ("Remaster 11-bit Render Passes", &SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
 
                 if (ImGui::IsItemHovered ())
                 {
-                  ImGui::BeginTooltip  ();
-                  _SummarizeTargets    (ReadULongAcquire (&SK_HDR_UnorderedViews_11bpc->TargetsUpgraded),
-                                        ReadULongAcquire (&SK_HDR_UnorderedViews_11bpc->CandidatesSeen),
-                                        ReadAcquire64    (&SK_HDR_UnorderedViews_11bpc->BytesAllocated));
-                  ImGui::EndTooltip    ();
+                  ImGui::BeginTooltip    ();
+                  ImGui::TextUnformatted ("May Cause -or- Correct Blue / Yellow Hue Shifting");
+                  ImGui::Separator       ();
+                  _SummarizeTargets      (ReadULongAcquire (&SK_HDR_RenderTargets_11bpc->TargetsUpgraded),
+                                          ReadULongAcquire (&SK_HDR_RenderTargets_11bpc->CandidatesSeen),
+                                          ReadAcquire64    (&SK_HDR_RenderTargets_11bpc->BytesAllocated));
+                  ImGui::EndTooltip      ();
                 }
+
+                if (bDetails)
+                {
+                  changed |= ImGui::Checkbox ("Remaster 11-bit Compute Passes", &SK_HDR_UnorderedViews_11bpc->PromoteTo16Bit);
+
+                  if (ImGui::IsItemHovered ())
+                  {
+                    ImGui::BeginTooltip  ();
+                    _SummarizeTargets    (ReadULongAcquire (&SK_HDR_UnorderedViews_11bpc->TargetsUpgraded),
+                                          ReadULongAcquire (&SK_HDR_UnorderedViews_11bpc->CandidatesSeen),
+                                          ReadAcquire64    (&SK_HDR_UnorderedViews_11bpc->BytesAllocated));
+                    ImGui::EndTooltip    ();
+                  }
+                }
+                ImGui::EndGroup          ();
               }
-              ImGui::EndGroup          ();
             }
 
             ImGui::PopStyleColor ();
