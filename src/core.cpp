@@ -3606,6 +3606,13 @@ SK_SLI_UpdateStatus (IUnknown *device)
 void
 SK_Battery_UpdateRemainingPowerForAllDevices (void)
 {
+  static auto lastTimeChecked =
+    SK::ControlPanel::current_time - 1000;
+
+  // Avoid expensive API at end-of-frame to minimize stutter
+  if (lastTimeChecked >= SK::ControlPanel::current_time - 5000)
+    return;
+
   extern int SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
              SK_ImGui_ProcessGamepadStatusBar (false);
 

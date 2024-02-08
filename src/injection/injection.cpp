@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1295,7 +1295,7 @@ SK_Inject_SpawnUnloadListener (void)
         {
           InterlockedIncrement (&injected_procs);
 
-          const DWORD dwTimeout   = SK_IsImmersiveProcess () ? 750UL : INFINITE;
+          const DWORD dwTimeout   = SK_IsImmersiveProcess () ? 75UL : INFINITE;
           const DWORD dwWaitState =
             WaitForMultipleObjects ( 2, signals,
                                  FALSE, dwTimeout );
