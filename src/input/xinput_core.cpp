@@ -445,6 +445,9 @@ XInputGetState1_4_Detour (
 
           else
           {
+            // Game-specific hacks (i.e. button swap)
+            SK_XInput_TalesOfAriseButtonSwap (pState);
+
             SK_XINPUT_READ (dwUserIndex)
           }
 
@@ -2699,7 +2702,9 @@ SK_XInput_PulseController ( INT   iJoyID,
   iJoyID =
     config.input.gamepad.xinput.assignment [std::max (0, std::min (iJoyID, 3))];
 
-  if (! config.input.gamepad.xinput.emulate)
+  // If we have PlayStation controllers, we may be able to substitute them for
+  //   the failing XInput slot
+  if (SK_HID_PlayStationControllers.empty ())
   {
     if (ReadULongAcquire (&xinput_ctx.LastSlotState [iJoyID]) != ERROR_SUCCESS)
       return false;
@@ -2758,7 +2763,8 @@ SK_XInput_PulseController ( INT   iJoyID,
   XInputSetState_pfn XInputSetState =
                      XInputSetState_SK;
 
-  if (iJoyID == 0 && config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+  if ((iJoyID == 0 && config.input.gamepad.xinput.emulate) ||
+                        ReadULongAcquire (&xinput_ctx.LastSlotState [iJoyID]) != ERROR_SUCCESS)
   {
     for ( auto& controller : SK_HID_PlayStationControllers )
     {

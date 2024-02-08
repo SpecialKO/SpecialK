@@ -1,4 +1,11 @@
-﻿24.2.8.1
+﻿23.2.8.2
+========
+ + Apply Tales of Arise button swap when running using SK's own XInput
+     emulation.
+ + Allow haptic feedback in SK's control panel on DualSense controllers
+     even if XInput emulation is turned off.
+
+24.2.8.1
 ========
  + Added controller vibration to XInput emulation for PlayStation controllers.
      >> Currently only works for wired controllers, and only for DualSense.
