@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -3684,16 +3684,22 @@ RaiseException_Detour (
   }
 }
 
+BOOL bWasDebuggerPresentInitially = -1;
+
 ///
 /// Anti-debug workaround, avoid CloseHandle (...) exception handler boobytraps
 BOOL
 WINAPI
 CloseHandle_Detour ( HANDLE hObject )
 {
-  if (! SK_IsDebuggerPresent ())
-  {
-    return
-      CloseHandle_Original (hObject);
+  if (    bWasDebuggerPresentInitially == -1 && SK_GetFramesDrawn () > 0 )
+  { if (  bWasDebuggerPresentInitially == -1 )
+          bWasDebuggerPresentInitially = SK_IsDebuggerPresent ();
+    if (! bWasDebuggerPresentInitially)
+    {
+      return
+        CloseHandle_Original (hObject);
+    }
   }
 
   BOOL bRet = FALSE;
