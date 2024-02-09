@@ -3523,6 +3523,8 @@ SK_Window_RepositionIfNeeded (void)
           ullLastFrame =
             SK_GetFramesDrawn ();
         }
+
+        ResetEvent ((HANDLE)user);
       }
 
       hRepoSignal.Close ();
@@ -5515,7 +5517,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       if (hWnd == game_window.hWnd || hWnd == game_window.child)
       {
-        SK_Window_RepositionIfNeeded ();
+        WINDOWPOS* pWindowPos = (WINDOWPOS *)lParam;
+
+        if (! (pWindowPos->flags & SWP_NOSENDCHANGING))
+          SK_Window_RepositionIfNeeded ();
       }
     } break;
 
@@ -5744,9 +5749,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
               game_window.DefWindowProc ( hWnd, uMsg,
                                             wParam, lParam );
 
-              SK_COMPAT_SafeCallProc (&game_window,
-                hWnd, uMsg, TRUE, lParam
-              );
+              ////SK_COMPAT_SafeCallProc (&game_window,
+              ////  hWnd, uMsg, TRUE, lParam
+              ////);
 
               SK_DetourWindowProc ( hWnd, WM_KILLFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
 
@@ -5767,9 +5772,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           GUITHREADINFO gti         =          {   };
                         gti.cbSize  =   sizeof (gti);
           SK_GetGUIThreadInfo ((DWORD)lParam,  &gti);
-          
+
           ActivateWindow (hWnd, wParam, gti.hwndActive);
-          
+
           if (wParam == FALSE)
           {
             if (  (! rb.isTrueFullscreen ()) &&
@@ -5778,17 +5783,17 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             {
               game_window.DefWindowProc ( hWnd, uMsg,
                                             wParam, lParam );
-          
-              SK_COMPAT_SafeCallProc (&game_window,
-                hWnd, uMsg, TRUE, 0
-              );
-          
+
+              //SK_COMPAT_SafeCallProc (&game_window,
+              //  hWnd, uMsg, TRUE, 0
+              //);
+
               SK_DetourWindowProc ( hWnd, WM_KILLFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
-          
+
               return 0;
             }
           }
-          
+
           else if (SK_WantBackgroundRender ())
             SK_DetourWindowProc ( hWnd, WM_SETFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
         }

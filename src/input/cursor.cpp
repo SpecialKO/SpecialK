@@ -572,8 +572,8 @@ SK_IsGameWindowActive (void)
   {
     // This only activates the window if performed on the same thread as the
     //   game's window, so don't do this if called from a different thread.
-    if ( SK_GetForegroundWindow () == SK_Win32_BackgroundHWND &&
-                                 0 != SK_Win32_BackgroundHWND &&
+    if (                         0 != SK_Win32_BackgroundHWND &&
+         SK_GetForegroundWindow () == SK_Win32_BackgroundHWND &&
              GetCurrentThreadId () == GetWindowThreadProcessId (game_window.hWnd, nullptr) )
     {
       game_window.active = true;

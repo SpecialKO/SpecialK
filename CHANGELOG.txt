@@ -1,25 +1,32 @@
-﻿23.2.9.1
+﻿24.2.9.2
+========
+ + Only process WM_WINDOWPOSCHANGED messages where NOSENDCHANGING was not
+     specified when SetWindowPos (...) was called.
+ + Stop sending fake WM_NCACTIVATE messages when background rendering is
+     enabled and non-client deactivation occurs.
+
+24.2.9.1
 ========
  + Fixed potential double-activation of control panel preventing it from
      being opened using a keyboard.
 
-23.2.9
+24.2.9
 ======
  + Switched XInput emulation Input/Output Report Consumer/Producer threads
      to Async Overlapped I/O for better performance and lower latency.
 
-23.2.8.4
+24.2.8.4
 ========
  + Removed 1+ frame(s) of latency from XInput emulation
  + Optimized SK_D3D11_IgnoreWrappedOrDeferred for lower overhead in D3D11 games
  + Reduced number of times WindowFromPoint is called during ClipCursor
 
-23.2.8.3
+24.2.8.3
 ========
  + Remove HDR remastering options when using DXGI-Layered Vulkan
  + Optimized PlayStation controller rumble
 
-23.2.8.2
+24.2.8.2
 ========
  + Apply Tales of Arise button swap when running using SK's own XInput
      emulation.

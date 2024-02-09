@@ -2427,7 +2427,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
             if (dwLastErr != ERROR_INVALID_HANDLE)
               SK_CancelIoEx (pDevice->hDeviceFile, &async_input_request);
 
-            SK_SleepEx (125UL, TRUE); // Prevent runaway CPU usage on failure
+            SK_SleepEx (250UL, TRUE); // Prevent runaway CPU usage on failure
 
             continue;
           }
@@ -2799,7 +2799,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
           output->
              EnableImprovedRumbleEmulation = true;
 
-#if 0
+#if 1
           if ( pDevice->_vibration.last_set >= SK::ControlPanel::current_time -
                pDevice->_vibration.MAX_TTL_IN_MSECS )
           {
@@ -2812,7 +2812,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
               sk::narrow_cast <BYTE> (
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
-#if 0
+#if 1
           }
 
           else
@@ -2901,7 +2901,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
               if (dwLastErr != ERROR_INVALID_HANDLE)
                 SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
 
-              SK_SleepEx (125UL, TRUE); // Prevent runaway CPU usage on failure
+              SK_SleepEx (250UL, TRUE); // Prevent runaway CPU usage on failure
 
               SetEvent (pDevice->hOutputFinished);
               continue;
