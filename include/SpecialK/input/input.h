@@ -30,6 +30,8 @@
 #include <joystickapi.h>
 #include <SetupAPI.h>
 
+#include <SpecialK/input/xinput.h>
+
 #include <cstdint>
 #include <assert.h>
 
@@ -748,6 +750,10 @@ BOOL (WINAPI *)(HANDLE       hFile,
                 DWORD        dwMilliseconds,
                 BOOL         bWait);
 
+using CancelIoEx_pfn =
+BOOL (WINAPI *)(HANDLE       hFile,
+                LPOVERLAPPED lpOverlapped);
+
 extern SetCursor_pfn               SetCursor_Original;
 
 extern HidP_GetCaps_pfn            HidP_GetCaps_Original;
@@ -773,6 +779,8 @@ extern ReadFile_pfn               SK_ReadFile;
 extern WriteFile_pfn              SK_WriteFile;
 extern CreateFileW_pfn            SK_CreateFileW;
 extern CreateFile2_pfn            SK_CreateFile2;
+extern GetOverlappedResult_pfn    SK_GetOverlappedResult;
+extern CancelIoEx_pfn             SK_CancelIoEx;
 
 using SetupDiDestroyDeviceInfoList_pfn = BOOL (WINAPI *)(
   _In_ HDEVINFO DeviceInfoSet );
@@ -873,8 +881,13 @@ struct SK_HID_PlayStationDevice
 
   // Device File Handle
   HANDLE               hDeviceFile              = nullptr;
-  HANDLE               hOutputEvent             = nullptr;
+
   HANDLE               hInputEvent              = nullptr;
+  HANDLE               hOutputFinished          = nullptr;
+  HANDLE               hOutputEnqueued          = nullptr;
+  HANDLE               hReconnectEvent          = nullptr;
+  HANDLE               hDisconnectEvent         = nullptr;
+
   ULONG64              ulLastFrameOutput        =       0;
   DWORD                dwLastTimeOutput         =       0;
   wchar_t              wszDevicePath [MAX_PATH] = {     };
@@ -919,6 +932,11 @@ struct SK_HID_PlayStationDevice
   UCHAR button_report_id;
   UCHAR dpad_report_id;
 
+  struct hid_to_xi {
+    XINPUT_STATE prev_report;
+    XINPUT_STATE report;
+  } xinput;
+
   std::vector <button_s>        buttons;
   std::vector <USAGE>           button_usages;
   std::vector <HIDP_VALUE_CAPS> value_caps;
@@ -952,7 +970,8 @@ struct SK_HID_PlayStationDevice
                       USHORT right,
                       USHORT max_val = std::numeric_limits <USHORT>::max () );
 
-  bool write_output_report (void);
+  bool request_input_report (void);
+  bool write_output_report  (void);
 };
 
 extern concurrency::concurrent_vector <SK_HID_PlayStationDevice> SK_HID_PlayStationControllers;

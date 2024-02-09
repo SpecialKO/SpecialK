@@ -248,7 +248,9 @@ SK_XInput_NotifyDeviceArrival (void)
                               controller.hDeviceFile =
                                 SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                                                               FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                                                nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH, nullptr );
+                                                                nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH  |
+                                                                                        FILE_ATTRIBUTE_TEMPORARY |
+                                                                                        FILE_FLAG_OVERLAPPED, nullptr );
 
                               if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
                               {
@@ -272,6 +274,9 @@ SK_XInput_NotifyDeviceArrival (void)
                                   //SK_ImGui_Warning (L"PlayStation Controller Reconnected");
 
                                   has_existing = true;
+
+                                  if (        controller.hReconnectEvent != nullptr)
+                                    SetEvent (controller.hReconnectEvent);
                                 }
                               }
                               break;
@@ -288,11 +293,12 @@ SK_XInput_NotifyDeviceArrival (void)
                             controller.hDeviceFile =
                               SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                                                             FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                                              nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH, nullptr );
+                                                              nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH  |
+                                                                                      FILE_ATTRIBUTE_TEMPORARY |
+                                                                                      FILE_FLAG_OVERLAPPED, nullptr );
 
-                            if (controller.hDeviceFile != nullptr)
+                            if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
                             {
-                              controller.bConnected = true;
                               controller.bConnected = true;
                               controller.bDualSense =
                                 StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
@@ -448,13 +454,16 @@ SK_XInput_NotifyDeviceArrival (void)
                               );
 */
 
-                              if (                          controller.hDeviceFile != nullptr)
-                                CloseHandle (std::exchange (controller.hDeviceFile,   nullptr));
+                              if (                (intptr_t)controller.hDeviceFile > 0)
+                                CloseHandle (std::exchange (controller.hDeviceFile,  nullptr));
 
                               if (controller.pPreparsedData != nullptr)
                                   SK_HidD_FreePreparsedData (
                                     std::exchange (controller.pPreparsedData, nullptr)
                                   );
+
+                              if (        controller.hDisconnectEvent != nullptr)
+                                SetEvent (controller.hDisconnectEvent);
 
                               //SK_ImGui_Warning (L"PlayStation Controller Disconnected");
 

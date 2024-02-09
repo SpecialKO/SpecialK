@@ -342,9 +342,11 @@ void SK_HID_SetupPlayStationControllers (void)
           controller.hDeviceFile =
             SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
                                           FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                            nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH, nullptr );
+                                            nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH  |
+                                                                    FILE_ATTRIBUTE_TEMPORARY |
+                                                                    FILE_FLAG_OVERLAPPED, nullptr );
   
-          if (controller.hDeviceFile != nullptr)
+          if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
           {
             if (! SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
             	continue;
@@ -783,10 +785,12 @@ static CreateFileA_pfn CreateFileA_Original = nullptr;
 static CreateFileW_pfn CreateFileW_Original = nullptr;
 static CreateFile2_pfn CreateFile2_Original = nullptr;
 
-CreateFileW_pfn              SK_CreateFileW = nullptr;
-CreateFile2_pfn              SK_CreateFile2 = nullptr;
-ReadFile_pfn                    SK_ReadFile = nullptr;
-WriteFile_pfn                  SK_WriteFile = nullptr;
+CreateFileW_pfn                 SK_CreateFileW = nullptr;
+CreateFile2_pfn                 SK_CreateFile2 = nullptr;
+ReadFile_pfn                       SK_ReadFile = nullptr;
+WriteFile_pfn                     SK_WriteFile = nullptr;
+CancelIoEx_pfn                   SK_CancelIoEx = nullptr;
+GetOverlappedResult_pfn SK_GetOverlappedResult = nullptr;
 
 BOOL
 WINAPI
@@ -1948,6 +1952,14 @@ SK_Input_PreHookHID (void)
     (WriteFile_pfn)SK_GetProcAddress (hModKernel32,
     "WriteFile");
 
+  SK_CancelIoEx =
+    (CancelIoEx_pfn)SK_GetProcAddress (hModKernel32,
+    "CancelIoEx");
+
+  SK_GetOverlappedResult =
+    (GetOverlappedResult_pfn)SK_GetProcAddress (hModKernel32,
+    "GetOverlappedResult");
+
   SK_SetupDiGetClassDevsW =
     (SetupDiGetClassDevsW_pfn)SK_GetProcAddress (hModSetupAPI,
     "SetupDiGetClassDevsW");
@@ -2333,6 +2345,382 @@ SK_HID_PlayStationDevice::setVibration (
 }
 
 bool
+SK_HID_PlayStationDevice::request_input_report (void)
+{
+  if (! bConnected)
+    return false;
+
+  if (hInputEvent == nullptr)
+  {   hInputEvent =
+        SK_CreateEvent ( nullptr, TRUE, TRUE,
+          SK_FormatStringW (L"[SK] HID Input Report %p", hDeviceFile).c_str ());
+
+    if (hDisconnectEvent == nullptr)
+        hDisconnectEvent =
+          SK_CreateEvent ( nullptr, FALSE, FALSE,
+            SK_FormatStringW (L"[SK] HID IO Suspend %p", hDeviceFile).c_str ());
+
+    if (hReconnectEvent == nullptr)
+        hReconnectEvent =
+          SK_CreateEvent ( nullptr, FALSE, FALSE,
+            SK_FormatStringW (L"[SK] HID IO Resume %p", hDeviceFile).c_str ());
+
+    SK_Thread_CreateEx ([](LPVOID pUser)->DWORD
+    {
+      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_HIGHEST);
+
+      SK_HID_PlayStationDevice* pDevice =
+        (SK_HID_PlayStationDevice *)pUser;
+
+      HANDLE hOperationalEvents [] = {
+        __SK_DLL_TeardownEvent,
+        pDevice->hInputEvent,
+        pDevice->hDisconnectEvent,
+        pDevice->hReconnectEvent
+      };
+
+      OVERLAPPED async_input_request = { };
+
+      DWORD  dwWaitState  = WAIT_FAILED;
+      while (dwWaitState != WAIT_OBJECT_0)
+      {
+        async_input_request        = { };
+        async_input_request.hEvent = pDevice->hInputEvent;
+
+        ZeroMemory ( pDevice->input_report.data (),
+                     pDevice->input_report.size () );
+
+        pDevice->input_report [0] = pDevice->button_report_id;
+
+        BOOL bReadAsync =
+          SK_ReadFile ( pDevice->hDeviceFile, pDevice->input_report.data (),
+                         static_cast <DWORD> (pDevice->input_report.size ()), nullptr, &async_input_request );
+
+        if (! bReadAsync)
+        {
+          DWORD dwLastErr =
+               GetLastError ();
+
+          // Invalid Handle and Device Not Connected get a 250 ms cooldown
+          if ( dwLastErr != NOERROR              &&
+               dwLastErr != ERROR_IO_PENDING     &&
+               dwLastErr != ERROR_INVALID_HANDLE &&
+               dwLastErr != ERROR_DEVICE_NOT_CONNECTED )
+          {
+            _com_error err (
+              _com_error::WCodeToHRESULT (
+                sk::narrow_cast <WORD> (dwLastErr)
+              )
+            );
+
+            SK_LOGs0 (
+              L"InputBkEnd",
+              L"SK_ReadFile ({%ws}) failed, Error=%d [%ws]",
+                pDevice->wszDevicePath, dwLastErr,
+                  err.ErrorMessage ()
+            );
+          }
+
+          if (dwLastErr != ERROR_IO_PENDING)
+          {
+            if (dwLastErr != ERROR_INVALID_HANDLE)
+              SK_CancelIoEx (pDevice->hDeviceFile, &async_input_request);
+
+            SK_SleepEx (250UL, TRUE); // Prevent runaway CPU usage on failure
+
+            continue;
+          }
+        }
+
+        dwWaitState =
+          WaitForMultipleObjects ( _countof (hOperationalEvents),
+                                             hOperationalEvents, FALSE, INFINITE );
+
+        // Disconnect
+        if (dwWaitState == (WAIT_OBJECT_0 + 2))
+        {
+          SK_ReleaseAssert (
+            SK_CancelIoEx (pDevice->hDeviceFile, &async_input_request)
+          );
+
+          continue;
+        }
+
+        // Input Report Waiting
+        if (dwWaitState == (WAIT_OBJECT_0 + 1))
+        {
+          DWORD dwBytesTransferred = 0;
+
+          if (! SK_GetOverlappedResult (
+                  pDevice->hDeviceFile, &async_input_request,
+                    &dwBytesTransferred, TRUE ) )
+          {
+            // Stop polling on the first failure, if the device comes back to life, we'll probably
+            //   get a device arrival notification.
+            continue;
+          }
+
+          else
+          {
+            if (pDevice->pPreparsedData == nullptr)
+            {
+              SK_ReleaseAssert (pDevice->pPreparsedData != nullptr);
+              continue;
+            }
+
+            bool clear_haptics = false;
+
+            if (pDevice->_vibration.last_set != 0 &&
+                pDevice->_vibration.last_set < SK::ControlPanel::current_time - pDevice->_vibration.MAX_TTL_IN_MSECS)
+            {
+              pDevice->_vibration.last_set = 0;
+              clear_haptics = true;
+            }
+
+            if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate)
+            {
+              //static DWORD dwLastFlush = 0;
+              //if (         dwLastFlush < SK::ControlPanel::current_time - 16)
+              //{            dwLastFlush = SK::ControlPanel::current_time;
+                pDevice->write_output_report ();
+              //}
+            }
+
+            ULONG num_usages =
+              static_cast <ULONG> (pDevice->button_usages.size ());
+
+            if ( HIDP_STATUS_SUCCESS ==
+              SK_HidP_GetUsages ( HidP_Input, pDevice->buttons [0].UsagePage, 0,
+                                              pDevice->button_usages.data (),
+                                                              &num_usages,
+                                              pDevice->pPreparsedData,
+                                       (PCHAR)pDevice->input_report.data  (),
+                         static_cast <ULONG> (pDevice->input_report.size  ()) )
+               )
+            {
+              for ( auto& button : pDevice->buttons )
+              {
+                button.last_state =
+                  std::exchange (button.state, false);
+              }
+
+              for ( UINT i = 0; i < num_usages; ++i )
+              {
+                pDevice->buttons [
+                  pDevice->button_usages [i] -
+                  pDevice->buttons       [0].Usage
+                ].state = true;
+              }
+            }
+
+            pDevice->xinput.report.Gamepad = { };
+
+            for ( UINT i = 0 ; i < pDevice->value_caps.size () ; ++i )
+            {
+              ULONG value;
+
+              if ( HIDP_STATUS_SUCCESS ==
+                SK_HidP_GetUsageValue ( HidP_Input, pDevice->value_caps [i].UsagePage,   0,
+                                                    pDevice->value_caps [i].Range.UsageMin,
+                                                                                    &value,
+                                                    pDevice->pPreparsedData,
+                                             (PCHAR)pDevice->input_report.data  (),
+                               static_cast <ULONG> (pDevice->input_report.size  ()) ) )
+              {
+                switch (pDevice->value_caps [i].Range.UsageMin)
+                {
+                  case 0x30: // X-axis
+                    pDevice->xinput.report.Gamepad.sThumbLX =
+                      static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (value) - 128) / 128.0);
+                      break;
+
+                  case 0x31: // Y-axis
+                    pDevice->xinput.report.Gamepad.sThumbLY =
+                      static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (value)) / 128.0);
+                      break;
+
+                  case 0x32: // Z-axis
+                    pDevice->xinput.report.Gamepad.sThumbRX =
+                      static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (value) - 128) / 128.0);
+                      break;
+
+                  case 0x33: // Rotate-X
+                    pDevice->xinput.report.Gamepad.bLeftTrigger =
+                      static_cast <BYTE> (static_cast <BYTE> (value));
+                    break;
+
+                  case 0x34: // Rotate-Y
+                    pDevice->xinput.report.Gamepad.bRightTrigger =
+                      static_cast <BYTE> (static_cast <BYTE> (value));
+                    break;
+
+                  case 0x35: // Rotate-Z
+                    pDevice->xinput.report.Gamepad.sThumbRY =
+                      static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (value)) / 128.0);
+#if 0
+                    if (value != 0)
+                    {
+                      SK_ImGui_CreateNotification (
+                        "HID.Debug.Axes", SK_ImGui_Toast::Info,
+                          std::to_string (value).c_str (),
+                        SK_FormatString ( "HID Axial State [%d, %d]",
+                                          ps_controller.value_caps [i].PhysicalMin,
+                                          ps_controller.value_caps [i].PhysicalMax
+                                        ).c_str (),
+                            1000UL, SK_ImGui_Toast::UseDuration |
+                                    SK_ImGui_Toast::ShowCaption |
+                                    SK_ImGui_Toast::ShowTitle   |
+                                    SK_ImGui_Toast::ShowNewest );
+                    }
+#endif
+                      break;
+
+                  case 0x39: // Hat Switch
+                  {
+                    switch (value)
+                    {
+                      case 0: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;
+                      case 1: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
+                              pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT; break;
+                      case 2: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT; break;
+                      case 3: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
+                              pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;  break;
+                      case 4: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;  break;
+                      case 5: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
+                              pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;  break;
+                      case 6: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;  break;
+                      case 7: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
+                              pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;                            
+                      case 8:
+                      default:
+                        // Centered value, do nothing
+                        break;
+                    }
+#if 0
+                    if (value != 8)
+                    {
+                      SK_ImGui_CreateNotification (
+                        "HID.Debug.HatSwitch", SK_ImGui_Toast::Info,
+                          std::to_string (value).c_str (), "HID D-Pad State",
+                            1000UL, SK_ImGui_Toast::UseDuration |
+                                    SK_ImGui_Toast::ShowCaption |
+                                    SK_ImGui_Toast::ShowTitle   |
+                                    SK_ImGui_Toast::ShowNewest );
+                    }
+#endif
+                  }
+                }
+              }
+            }
+
+            if ( config.input.gamepad.scepad.enhanced_ps_button &&
+                                 pDevice->buttons.size () >= 12 &&
+                      (config.input.gamepad.xinput.ui_slot >= 0 && 
+                       config.input.gamepad.xinput.ui_slot <  4) )
+            {
+              if (   pDevice->buttons [12].state &&
+                  (! pDevice->buttons [12].last_state) )
+              {
+                bool bToggleVis = false;
+                bool bToggleNav = false;
+
+                if (SK_ImGui_Active ())
+                {
+                  bToggleVis |= true;
+                  bToggleNav |= true;
+                }
+
+                else
+                {
+                  bToggleNav |= (! nav_usable);
+                  bToggleVis |= true;
+                }
+
+                bool
+                WINAPI
+                SK_ImGui_ToggleEx ( bool& toggle_ui,
+                                    bool& toggle_nav );
+
+                if (                 bToggleVis||bToggleNav)
+                  SK_ImGui_ToggleEx (bToggleVis, bToggleNav);
+              }
+            }
+
+            if (pDevice->bDualSense && config.input.gamepad.scepad.mute_applies_to_game)
+            {
+              if (   pDevice->buttons [14].state &&
+                  (! pDevice->buttons [14].last_state) )
+              {
+                SK_SetGameMute (! SK_IsGameMuted ());
+              }
+            }
+
+            if ( pDevice->bDualSense ||
+                 pDevice->bDualShock4 )
+            {
+              if (pDevice->buttons [ 0].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+              if (pDevice->buttons [ 1].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+              if (pDevice->buttons [ 2].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+              if (pDevice->buttons [ 3].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+
+              if (pDevice->buttons [ 4].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+              if (pDevice->buttons [ 5].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+              if (pDevice->buttons [ 6].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+              if (pDevice->buttons [ 7].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+
+              if (pDevice->buttons [ 8].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+              if (pDevice->buttons [ 9].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+
+              if (pDevice->buttons [10].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+              if (pDevice->buttons [11].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+              if (pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+            }
+
+            // Dual Shock 3
+            else if (pDevice->bDualShock3)
+            {
+              if (pDevice->buttons [ 0].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+              if (pDevice->buttons [ 1].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+              if (pDevice->buttons [ 2].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+              if (pDevice->buttons [ 3].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+
+              if (pDevice->buttons [ 4].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+              if (pDevice->buttons [ 5].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+              if (pDevice->buttons [ 6].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+              if (pDevice->buttons [ 7].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+
+              if (pDevice->buttons [ 8].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+              if (pDevice->buttons [ 9].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+
+              if (pDevice->buttons [10].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+              if (pDevice->buttons [11].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+              if (pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+            }
+
+            //pDevice->bHasPlayStation = true;
+
+            if ( memcmp ( &pDevice->xinput.prev_report.Gamepad,
+                          &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD)) )
+            {
+              pDevice->xinput.report.dwPacketNumber++;
+              pDevice->xinput.prev_report = pDevice->xinput.report;
+            }
+
+            ResetEvent (pDevice->hInputEvent);
+          }
+        }
+      }
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] HID Input Report Consumer", this);
+  }
+
+  return true;
+}
+
+bool
 SK_HID_PlayStationDevice::write_output_report (void)
 {
   if (! bConnected)
@@ -2347,37 +2735,43 @@ SK_HID_PlayStationDevice::write_output_report (void)
     if (output_report.size () < sizeof (SK_HID_DualSense_SetStateData))
       return false;
 
-    if (hOutputEvent == nullptr)
+    if (hOutputEnqueued== nullptr)
     {
-      hOutputEvent =
-        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+      hOutputEnqueued =
+        SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
 
       SK_Thread_CreateEx ([](LPVOID pData)->DWORD
       {
-        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_HIGHEST);
 
         SK_HID_PlayStationDevice* pDevice =
           (SK_HID_PlayStationDevice *)pData;
 
         HANDLE hEvents [] = {
           __SK_DLL_TeardownEvent,
-           pDevice->hOutputEvent
+           pDevice->hOutputEnqueued
         };
 
+        OVERLAPPED async_output_request = { };
+
         do {
+          async_output_request = { };
+
           DWORD dwWaitState =
-            WaitForMultipleObjects (_countof (hEvents), hEvents, FALSE, INFINITE);
+            WaitForMultipleObjects ( _countof (hEvents),
+                                               hEvents, FALSE, INFINITE );
 
           if (dwWaitState != WAIT_OBJECT_0)
           {
-            //SK_HidD_FlushQueue (pDevice->hDeviceFile);
-
             while ( pDevice->_vibration.last_set == pDevice->_vibration.last_output &&
                    (pDevice->ulLastFrameOutput == SK_GetFramesDrawn () ||
-                    pDevice->dwLastTimeOutput > SK::ControlPanel::current_time - 66) )
+                    pDevice->dwLastTimeOutput > SK::ControlPanel::current_time - 250) )
             {
+              ResetEvent (pDevice->hOutputEnqueued);
+
               DWORD dwInnerWait =
-                WaitForMultipleObjects (_countof (hEvents), hEvents, FALSE, 33UL);
+                WaitForMultipleObjects ( _countof (hEvents),
+                                                   hEvents, FALSE, 5UL );
 
               if (dwInnerWait == WAIT_OBJECT_0)
               {   dwWaitState  = WAIT_OBJECT_0;
@@ -2390,7 +2784,10 @@ SK_HID_PlayStationDevice::write_output_report (void)
             break;
 
           if (dwWaitState != (WAIT_OBJECT_0 + 1))
+          {
+            ResetEvent (pDevice->hOutputEnqueued);
             continue;
+          }
 
           BYTE* pOutputRaw =
             (BYTE *)pDevice->output_report.data ();
@@ -2483,20 +2880,35 @@ SK_HID_PlayStationDevice::write_output_report (void)
 	        pOutputRaw [47] = pDevice->_color.b;
 
           DWORD dwBytesWritten = 0;
-          BOOL  bRet =       TRUE;
+          BOOL  bRet =
             SK_WriteFile ( pDevice->hDeviceFile, pOutputRaw,
                 static_cast <DWORD> ( pDevice->output_report.size () ),
-                          &dwBytesWritten, nullptr );
+                          &dwBytesWritten, &async_output_request );
 
           if (! bRet)
           {
-            SK_ImGui_CreateNotification (
-              "XInput.Emulation.DebugWrite", SK_ImGui_Toast::Error,
-                SK_FormatString ("SK_WriteFile (...) failed with code=%d", GetLastError ()).c_str (),
-                                 "HID Debug", INFINITE, SK_ImGui_Toast::UseDuration |
-                                                        SK_ImGui_Toast::ShowCaption |
-                                                        SK_ImGui_Toast::ShowTitle   |
-                                                        SK_ImGui_Toast::ShowNewest );
+            DWORD dwLastErr =
+                 GetLastError ();
+
+            if ( dwLastErr != NOERROR              &&
+                 dwLastErr != ERROR_IO_PENDING     &&
+                 dwLastErr != ERROR_INVALID_HANDLE &&
+                 dwLastErr != ERROR_DEVICE_NOT_CONNECTED )
+            {
+              SK_ImGui_CreateNotification (
+                "XInput.Emulation.DebugWrite", SK_ImGui_Toast::Error,
+                  SK_FormatString ("SK_WriteFile (...) failed with code=%d", dwLastErr).c_str (),
+                                   "HID Debug", INFINITE, SK_ImGui_Toast::UseDuration |
+                                                          SK_ImGui_Toast::ShowCaption |
+                                                          SK_ImGui_Toast::ShowTitle   |
+                                                          SK_ImGui_Toast::ShowNewest );
+            }
+
+            if (dwLastErr != ERROR_IO_PENDING)
+            {
+              SK_SleepEx (250UL, TRUE);
+              continue;
+            }
           }
 
 #if 0
@@ -2521,8 +2933,258 @@ SK_HID_PlayStationDevice::write_output_report (void)
           pDevice->dwLastTimeOutput =
             SK::ControlPanel::current_time;
 
-          SwitchToThread ();
+          ResetEvent (pDevice->hOutputEnqueued);
         } while (true);
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, L"[SK] HID Output Report Producer", this);
+    }
+
+    else
+      SetEvent (hOutputEnqueued);
+
+    return true;
+  }
+
+  return false;
+}
+
+#if 0
+bool
+SK_HID_PlayStationDevice::write_output_report (void)
+{
+  if (! bConnected)
+    return false;
+
+  if (bDualSense)
+  {
+    SK_ReleaseAssert (
+      output_report.size () >= sizeof (SK_HID_DualSense_SetStateData)
+    );
+
+    if (output_report.size () < sizeof (SK_HID_DualSense_SetStateData))
+      return false;
+
+    if (hOutputEnqueued == nullptr)
+    {
+      hOutputEnqueued =
+        SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
+      hOutputFinished =
+        SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
+
+      SK_Thread_CreateEx ([](LPVOID pData)->DWORD
+      {
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_HIGHEST);
+
+        SK_HID_PlayStationDevice* pDevice =
+          (SK_HID_PlayStationDevice *)pData;
+
+        HANDLE hEvents [] = {
+          __SK_DLL_TeardownEvent,
+           pDevice->hOutputEnqueued,
+           pDevice->hOutputFinished
+        };
+
+        OVERLAPPED async_output_request = { };
+
+        DWORD  dwWaitState  = WAIT_FAILED;
+        while (dwWaitState != WAIT_OBJECT_0)
+        {
+          async_output_request        = { };
+          async_output_request.hEvent = pDevice->hOutputFinished;
+
+          dwWaitState =
+            WaitForMultipleObjects ( _countof (hEvents),
+                                               hEvents, FALSE, INFINITE );
+
+          // Application Exiting
+          if (dwWaitState == WAIT_OBJECT_0)
+            break;
+
+          //if (dwWaitState == (WAIT_OBJECT_0 + 1))
+          //{
+          //  while ( pDevice->_vibration.last_set == pDevice->_vibration.last_output &&
+          //         (pDevice->ulLastFrameOutput == SK_GetFramesDrawn () ||
+          //          pDevice->dwLastTimeOutput > SK::ControlPanel::current_time - 500) )
+          //  {
+          //    ResetEvent (pDevice->hOutputEnqueued);
+          //
+          //    DWORD dwInnerWait =
+          //      WaitForMultipleObjects (_countof (hEvents), hEvents, FALSE, 33UL);
+          //
+          //    if (dwInnerWait == WAIT_OBJECT_0)
+          //    {   dwWaitState  = WAIT_OBJECT_0;
+          //      break;
+          //    }
+          //  }
+          //}
+
+          //if (dwWaitState != (WAIT_OBJECT_0 + 1))
+          //{
+          //  ResetEvent (pDevice->hOutputEvent);
+          //  continue;
+          //}
+
+          BYTE* pOutputRaw =
+            (BYTE *)pDevice->output_report.data ();
+
+          SK_HID_DualSense_SetStateData* output =
+            (SK_HID_DualSense_SetStateData *)&pOutputRaw [1];
+
+          // Report Type
+          pOutputRaw [0] = 0x02;
+
+          output->EnableRumbleEmulation    = true;
+          output->UseRumbleNotHaptics      = true;
+          output->AllowMuteLight           = true;
+
+          if (false)
+          {
+            // SK's not really interested in this...
+            output->AllowLedColor          = true;
+          }
+
+          output->AllowHapticLowPassFilter = true;
+          output->AllowMotorPowerLevel     = true;
+
+          // Firmware reqs
+          output->
+             EnableImprovedRumbleEmulation = true;
+
+#if 1
+          if ( pDevice->_vibration.last_set >= SK::ControlPanel::current_time -
+               pDevice->_vibration.MAX_TTL_IN_MSECS )
+          {
+#endif
+            output->RumbleEmulationRight =
+              sk::narrow_cast <BYTE> (
+                ReadULongAcquire (&pDevice->_vibration.right)
+              );
+            output->RumbleEmulationLeft  =
+              sk::narrow_cast <BYTE> (
+                ReadULongAcquire (&pDevice->_vibration.left)
+              );
+#if 1
+          }
+
+          else
+          {
+            output->RumbleEmulationRight = 0;
+            output->RumbleEmulationLeft  = 0;
+
+            WriteULongRelease (&pDevice->_vibration.left,  0);
+            WriteULongRelease (&pDevice->_vibration.right, 0);
+          }
+
+          if (std::exchange (pDevice->_vibration.last_left,  output->RumbleEmulationLeft ) != output->RumbleEmulationLeft  || output->RumbleEmulationLeft  == 0)
+            pDevice->_vibration.last_output = pDevice->_vibration.last_set;
+          if (std::exchange (pDevice->_vibration.last_right, output->RumbleEmulationRight) != output->RumbleEmulationRight || output->RumbleEmulationRight == 0)
+            pDevice->_vibration.last_output = pDevice->_vibration.last_set;
+#endif
+
+          static bool       bMuted     = SK_IsGameMuted ();
+          static DWORD dwLastMuteCheck = SK_timeGetTime ();
+
+          if (dwLastMuteCheck < SK::ControlPanel::current_time - 750UL)
+          {   dwLastMuteCheck = SK::ControlPanel::current_time;
+                   bMuted     = SK_IsGameMuted ();
+                   // This API is rather expensive
+          }
+
+          output->MuteLightMode =
+                 bMuted               ?
+               (! game_window.active) ? Breathing
+                                      : On
+                                      : Off;
+
+          output->TouchPowerSave      = true;
+          output->MotionPowerSave     = true;
+          output->AudioPowerSave      = true;
+          output->HapticLowPassFilter = true;
+
+          output->RumbleMotorPowerReduction =
+            config.input.gamepad.scepad.rumble_power_level == 100.0f ? 0
+                                                                     :
+            static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
+
+  //      pOutputRaw [ 9] = 0;
+  //      pOutputRaw [39] = 2;
+	//      pOutputRaw [42] = 2;
+
+	        pOutputRaw [45] = pDevice->_color.r;
+	        pOutputRaw [46] = pDevice->_color.g;
+	        pOutputRaw [47] = pDevice->_color.b;
+
+          // Queued Output Report Finished
+          if (dwWaitState == (WAIT_OBJECT_0 + 2))
+          {
+            ResetEvent (pDevice->hOutputFinished);
+
+            BOOL  bRet =
+              SK_WriteFile ( pDevice->hDeviceFile, pOutputRaw,
+                  static_cast <DWORD> ( pDevice->output_report.size () ),
+                            nullptr, &async_output_request );
+
+            if (! bRet)
+            {
+              DWORD dwLastErr =
+                   GetLastError ();
+
+              if ( dwLastErr != NOERROR              &&
+                   dwLastErr != ERROR_IO_PENDING     &&
+                   dwLastErr != ERROR_INVALID_HANDLE &&
+                   dwLastErr != ERROR_DEVICE_NOT_CONNECTED )
+              {
+                SK_ImGui_CreateNotification (
+                  "XInput.Emulation.DebugWrite", SK_ImGui_Toast::Error,
+                    SK_FormatString ("SK_WriteFile (...) failed with code=%d", GetLastError ()).c_str (),
+                                     "HID Debug", INFINITE, SK_ImGui_Toast::UseDuration |
+                                                            SK_ImGui_Toast::ShowCaption |
+                                                            SK_ImGui_Toast::ShowTitle   |
+                                                            SK_ImGui_Toast::ShowNewest );
+              }
+
+              if (dwLastErr != ERROR_IO_PENDING)
+              {
+                if (dwLastErr != ERROR_INVALID_HANDLE)
+                  SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
+
+                SK_SleepEx (250UL, TRUE); // Prevent runaway CPU usage on failure
+              }
+
+              // Try again the next iteration...
+              SetEvent (pDevice->hOutputFinished);
+
+              continue;
+            }
+
+            pDevice->ulLastFrameOutput =
+                     SK_GetFramesDrawn ();
+
+            pDevice->dwLastTimeOutput =
+              SK::ControlPanel::current_time;
+
+            ResetEvent (pDevice->hOutputEnqueued);
+          }
+
+#if 0
+          if (ReadULongAcquire (&pDevice->_vibration.left ) != 0 ||
+              ReadULongAcquire (&pDevice->_vibration.right) != 0)
+          {
+            SK_ImGui_CreateNotification (
+              "XInput.Emulation.Debug", SK_ImGui_Toast::Info,
+                SK_FormatString ("Left Motor: %d\r\nRight Motor:%d\r\n",
+                                 ReadULongAcquire (&pDevice->_vibration.left ),
+                                 ReadULongAcquire (&pDevice->_vibration.right)).c_str (),
+                                 "Vibration Debug", 15000, SK_ImGui_Toast::UseDuration |
+                                                           SK_ImGui_Toast::ShowCaption |
+                                                           SK_ImGui_Toast::ShowTitle   |
+                                                           SK_ImGui_Toast::ShowNewest );
+          }
+#endif
+        }
 
         SK_Thread_CloseSelf ();
 
@@ -2531,10 +3193,11 @@ SK_HID_PlayStationDevice::write_output_report (void)
     }
 
     else
-      SetEvent (hOutputEvent);
+      SetEvent (hOutputEnqueued);
 
     return true;
   }
 
   return false;
 }
+#endif

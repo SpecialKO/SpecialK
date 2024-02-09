@@ -1925,300 +1925,27 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
   {
     SK_RunOnce (SK_HID_SetupPlayStationControllers ());
 
-    static XINPUT_STATE
-      last_hid_to_xi         = { };
-           hid_to_xi.Gamepad = { };
+    hid_to_xi.Gamepad = { };
 
-    //static DWORD dwLastPolled = 0;
-
-    //if (dwLastPolled < SK::ControlPanel::current_time - 7)
-    //{   dwLastPolled = SK::ControlPanel::current_time;
-    //    bHasPlayStation = false;
     for ( auto& ps_controller : SK_HID_PlayStationControllers )
     {
       if (ps_controller.bConnected)
       {
-        if (ps_controller.pPreparsedData == nullptr)
-          continue;
-
-        bool clear_haptics = false;
-
-#if 1
-        if (ps_controller._vibration.last_set != 0 &&
-            ps_controller._vibration.last_set < SK::ControlPanel::current_time - ps_controller._vibration.MAX_TTL_IN_MSECS)
+        if (ps_controller.request_input_report ())
         {
-          ps_controller._vibration.last_set = 0;
-          clear_haptics = true;
-        }
-#endif
-
-        ZeroMemory ( ps_controller.input_report.data (),
-                     ps_controller.input_report.size () );
-
-        ps_controller.input_report [0] = ps_controller.button_report_id;
-
-#if 1
-        DWORD dwNumBytesRead = 0;
-
-        // This is non-blocking if there's no new data... this is the one we want.
-        if (! SK_ReadFile (
-          ps_controller.hDeviceFile, ps_controller.input_report.data (),
-                static_cast <DWORD> (ps_controller.input_report.size ()), &dwNumBytesRead, nullptr )
-           )
-#else
-        if (! SK_HidD_GetInputReport (
-          ps_controller.hDeviceFile, ps_controller.input_report.data (),
-                static_cast <ULONG> (ps_controller.input_report.size ())
-              )
-           )
-#endif
-        {
-          if (config.system.log_level > 0)
+          if (ps_controller.xinput.prev_report.dwPacketNumber != 0)
           {
-            SK_RunOnce (
-              SK_ImGui_Warning (L"Failed to poll PlayStation Controller...")
-            );
-          }
+            hid_to_xi = ps_controller.xinput.prev_report;
 
-          _com_error err (
-            _com_error::WCodeToHRESULT (
-              sk::narrow_cast <WORD> (GetLastError ())
-            )
-          );
-
-          SK_LOGs0 (
-            L"InputBkEnd",
-            L"SK_ReadFile ({%ws}) failed, Error=%d [%ws]",
-              ps_controller.wszDevicePath, GetLastError (),
-                err.ErrorMessage ()
-          );
-
-          // Stop polling on the first failure, if the device comes back to life, we'll probably
-          //   get a device arrival notification.
-          ps_controller.bConnected = false;
-          continue;
-        }
-
-        if (clear_haptics || SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate)
-        {
-          ps_controller.write_output_report ();
-        }
-
-        //SK_HidD_FlushQueue (ps_controller.hDeviceFile);
-
-        if ( config.input.gamepad.xinput.ui_slot < 4 ||
-             config.input.gamepad.xinput.emulate )
-        {
-          ULONG num_usages =
-            static_cast <ULONG> (ps_controller.button_usages.size ());
-
-          if ( HIDP_STATUS_SUCCESS ==
-            SK_HidP_GetUsages ( HidP_Input, ps_controller.buttons [0].UsagePage, 0,
-                                            ps_controller.button_usages.data (),
-                                                            &num_usages,
-                                            ps_controller.pPreparsedData,
-                                     (PCHAR)ps_controller.input_report.data  (),
-                       static_cast <ULONG> (ps_controller.input_report.size  ()) )
-             )
-          {
-            for ( auto& button : ps_controller.buttons )
-            {
-              button.last_state =
-                std::exchange (button.state, false);
-            }
-
-            for ( UINT i = 0; i < num_usages; ++i )
-            {
-              ps_controller.buttons [
-                ps_controller.button_usages [i] -
-                ps_controller.buttons       [0].Usage
-              ].state = true;
+            if ( config.input.gamepad.xinput.ui_slot >= 0 &&
+                 config.input.gamepad.xinput.ui_slot <  4 )
+            { // Use the HID data to control the UI
+              bHasPlayStation = true;
             }
           }
-
-          for ( UINT i = 0 ; i < ps_controller.value_caps.size () ; ++i )
-          {
-            ULONG value;
-
-            if ( HIDP_STATUS_SUCCESS ==
-              SK_HidP_GetUsageValue ( HidP_Input, ps_controller.value_caps [i].UsagePage,   0,
-                                                  ps_controller.value_caps [i].Range.UsageMin,
-                                                                                       &value,
-                                              ps_controller.pPreparsedData,
-                                       (PCHAR)ps_controller.input_report.data  (),
-                         static_cast <ULONG> (ps_controller.input_report.size  ()) ) )
-            {
-              switch (ps_controller.value_caps [i].Range.UsageMin)
-              {
-                case 0x30: // X-axis
-                  hid_to_xi.Gamepad.sThumbLX =
-                    static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (value) - 128) / 128.0);
-                    break;
-
-                case 0x31: // Y-axis
-                  hid_to_xi.Gamepad.sThumbLY =
-                    static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (value)) / 128.0);
-                    break;
-
-                case 0x32: // Z-axis
-                  hid_to_xi.Gamepad.sThumbRX =
-                    static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (value) - 128) / 128.0);
-                    break;
-
-                case 0x33: // Rotate-X
-                  hid_to_xi.Gamepad.bLeftTrigger =
-                    static_cast <BYTE> (static_cast <BYTE> (value));
-                  break;
-
-                case 0x34: // Rotate-Y
-                  hid_to_xi.Gamepad.bRightTrigger =
-                    static_cast <BYTE> (static_cast <BYTE> (value));
-                  break;
-
-                case 0x35: // Rotate-Z
-                  hid_to_xi.Gamepad.sThumbRY =
-                    static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (value)) / 128.0);
-#if 0
-                  if (value != 0)
-                  {
-                    SK_ImGui_CreateNotification (
-                      "HID.Debug.Axes", SK_ImGui_Toast::Info,
-                        std::to_string (value).c_str (),
-                      SK_FormatString ( "HID Axial State [%d, %d]",
-                                        ps_controller.value_caps [i].PhysicalMin,
-                                        ps_controller.value_caps [i].PhysicalMax
-                                      ).c_str (),
-                          1000UL, SK_ImGui_Toast::UseDuration |
-                                  SK_ImGui_Toast::ShowCaption |
-                                  SK_ImGui_Toast::ShowTitle   |
-                                  SK_ImGui_Toast::ShowNewest );
-                  }
-#endif
-                    break;
-
-                case 0x39: // Hat Switch
-                {
-                  switch (value)
-                  {
-                    case 0: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;
-                    case 1: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
-                            hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT; break;
-                    case 2: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT; break;
-                    case 3: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
-                            hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;  break;
-                    case 4: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;  break;
-                    case 5: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
-                            hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;  break;
-                    case 6: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;  break;
-                    case 7: hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
-                            hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;                            
-                    case 8:
-                    default:
-                      // Centered value, do nothing
-                      break;
-                  }
-#if 0
-                  if (value != 8)
-                  {
-                    SK_ImGui_CreateNotification (
-                      "HID.Debug.HatSwitch", SK_ImGui_Toast::Info,
-                        std::to_string (value).c_str (), "HID D-Pad State",
-                          1000UL, SK_ImGui_Toast::UseDuration |
-                                  SK_ImGui_Toast::ShowCaption |
-                                  SK_ImGui_Toast::ShowTitle   |
-                                  SK_ImGui_Toast::ShowNewest );
-                  }
-#endif
-                }
-              }
-            }
-          }
-
-          if ( config.input.gamepad.scepad.enhanced_ps_button &&
-                          ps_controller.buttons.size () >= 12 &&
-                    (config.input.gamepad.xinput.ui_slot >= 0 && 
-                     config.input.gamepad.xinput.ui_slot <  4) )
-          {
-            if (   ps_controller.buttons [12].state &&
-                (! ps_controller.buttons [12].last_state) )
-            {
-              if (SK_ImGui_Active ())
-              {
-                bToggleVis |= true;
-                bToggleNav |= true;
-              }
-
-              else
-              {
-                bToggleNav |= (! nav_usable);
-                bToggleVis |= true;
-              }
-            }
-          }
-
-          if (ps_controller.bDualSense && config.input.gamepad.scepad.mute_applies_to_game)
-          {
-            if (   ps_controller.buttons [14].state &&
-                (! ps_controller.buttons [14].last_state) )
-            {
-              SK_SetGameMute (! SK_IsGameMuted ());
-            }
-          }
-
-          if ( ps_controller.bDualSense ||
-               ps_controller.bDualShock4 )
-          {
-            if (ps_controller.buttons [0].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
-            if (ps_controller.buttons [1].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
-            if (ps_controller.buttons [2].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
-            if (ps_controller.buttons [3].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
-
-            if (ps_controller.buttons [4].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
-            if (ps_controller.buttons [5].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
-            if (ps_controller.buttons [6].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
-            if (ps_controller.buttons [7].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
-
-            if (ps_controller.buttons [8].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
-            if (ps_controller.buttons [9].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
-
-            if (ps_controller.buttons [10].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
-            if (ps_controller.buttons [11].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
-            if (ps_controller.buttons [12].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
-          }
-
-          // Dual Shock 3
-          else if (ps_controller.bDualShock3)
-          {
-            if (ps_controller.buttons [0].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
-            if (ps_controller.buttons [1].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
-            if (ps_controller.buttons [2].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
-            if (ps_controller.buttons [3].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
-
-            if (ps_controller.buttons [4].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
-            if (ps_controller.buttons [5].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
-            if (ps_controller.buttons [6].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
-            if (ps_controller.buttons [7].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
-
-            if (ps_controller.buttons [8].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
-            if (ps_controller.buttons [9].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
-
-            if (ps_controller.buttons [10].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
-            if (ps_controller.buttons [11].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
-            if (ps_controller.buttons [12].state) hid_to_xi.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
-          }
-
-          bHasPlayStation = true;
-
-          if (memcmp (&last_hid_to_xi.Gamepad, &hid_to_xi.Gamepad, sizeof (XINPUT_GAMEPAD)))
-            hid_to_xi.dwPacketNumber++;
-
-          last_hid_to_xi.Gamepad = hid_to_xi.Gamepad;
-
-          break;
         }
       }
     }
-  //}
 
     auto& state =
         *pState;
@@ -2291,6 +2018,21 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
           }
         }
       }
+
+#if 0
+      if ( config.input.gamepad.scepad.enhanced_ps_button     &&
+           last_state.dwPacketNumber != state.dwPacketNumber  &&
+                state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE &&
+            ( config.input.gamepad.xinput.ui_slot >= 0 &&
+              config.input.gamepad.xinput.ui_slot <  4 ) )
+      {
+        if (! ( last_state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE ) )
+        {
+          bToggleNav |= (! nav_usable);
+          bToggleVis |= true;
+        }
+      }
+#endif
 
       static constexpr DWORD LONG_PRESS  = 400UL;
       static           DWORD dwLastPress = MAXDWORD;
