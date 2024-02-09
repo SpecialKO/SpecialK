@@ -2405,6 +2405,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
           if ( dwLastErr != NOERROR              &&
                dwLastErr != ERROR_IO_PENDING     &&
                dwLastErr != ERROR_INVALID_HANDLE &&
+               dwLastErr != ERROR_NO_SUCH_DEVICE &&
                dwLastErr != ERROR_DEVICE_NOT_CONNECTED )
           {
             _com_error err (
@@ -2426,7 +2427,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
             if (dwLastErr != ERROR_INVALID_HANDLE)
               SK_CancelIoEx (pDevice->hDeviceFile, &async_input_request);
 
-            SK_SleepEx (250UL, TRUE); // Prevent runaway CPU usage on failure
+            SK_SleepEx (125UL, TRUE); // Prevent runaway CPU usage on failure
 
             continue;
           }
@@ -2740,6 +2741,9 @@ SK_HID_PlayStationDevice::write_output_report (void)
       hOutputEnqueued =
         SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
 
+      hOutputFinished =
+        SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
+
       SK_Thread_CreateEx ([](LPVOID pData)->DWORD
       {
         SK_Thread_SetCurrentPriority (THREAD_PRIORITY_HIGHEST);
@@ -2749,54 +2753,34 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
         HANDLE hEvents [] = {
           __SK_DLL_TeardownEvent,
-           pDevice->hOutputEnqueued
+           pDevice->hOutputFinished
         };
 
         OVERLAPPED async_output_request = { };
 
-        do {
-          async_output_request = { };
-
-          DWORD dwWaitState =
+        DWORD  dwWaitState  = WAIT_FAILED;
+        while (dwWaitState != WAIT_OBJECT_0)
+        {
+          dwWaitState =
             WaitForMultipleObjects ( _countof (hEvents),
                                                hEvents, FALSE, INFINITE );
-
-          if (dwWaitState != WAIT_OBJECT_0)
-          {
-            while ( pDevice->_vibration.last_set == pDevice->_vibration.last_output &&
-                   (pDevice->ulLastFrameOutput == SK_GetFramesDrawn () ||
-                    pDevice->dwLastTimeOutput > SK::ControlPanel::current_time - 250) )
-            {
-              ResetEvent (pDevice->hOutputEnqueued);
-
-              DWORD dwInnerWait =
-                WaitForMultipleObjects ( _countof (hEvents),
-                                                   hEvents, FALSE, 5UL );
-
-              if (dwInnerWait == WAIT_OBJECT_0)
-              {   dwWaitState  = WAIT_OBJECT_0;
-                break;
-              }
-            }
-          }
 
           if (dwWaitState == WAIT_OBJECT_0)
             break;
 
-          if (dwWaitState != (WAIT_OBJECT_0 + 1))
-          {
-            ResetEvent (pDevice->hOutputEnqueued);
-            continue;
-          }
+          ResetEvent (pDevice->hOutputFinished);
+
+          ZeroMemory ( pDevice->output_report.data (),
+                       pDevice->output_report.size () );
+
+          // Report Type
+          pDevice->output_report [0] = 0x02;
 
           BYTE* pOutputRaw =
             (BYTE *)pDevice->output_report.data ();
 
           SK_HID_DualSense_SetStateData* output =
             (SK_HID_DualSense_SetStateData *)&pOutputRaw [1];
-
-          // Report Type
-          pOutputRaw [0] = 0x02;
 
           output->EnableRumbleEmulation    = true;
           output->UseRumbleNotHaptics      = true;
@@ -2815,7 +2799,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
           output->
              EnableImprovedRumbleEmulation = true;
 
-#if 1
+#if 0
           if ( pDevice->_vibration.last_set >= SK::ControlPanel::current_time -
                pDevice->_vibration.MAX_TTL_IN_MSECS )
           {
@@ -2828,7 +2812,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
               sk::narrow_cast <BYTE> (
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
-#if 1
+#if 0
           }
 
           else
@@ -2879,53 +2863,56 @@ SK_HID_PlayStationDevice::write_output_report (void)
 	        pOutputRaw [46] = pDevice->_color.g;
 	        pOutputRaw [47] = pDevice->_color.b;
 
-          DWORD dwBytesWritten = 0;
-          BOOL  bRet =
-            SK_WriteFile ( pDevice->hDeviceFile, pOutputRaw,
-                static_cast <DWORD> ( pDevice->output_report.size () ),
-                          &dwBytesWritten, &async_output_request );
+          async_output_request        = { };
+          async_output_request.hEvent = pDevice->hOutputFinished;
 
-          if (! bRet)
+          BOOL bWriteAsync =
+            SK_WriteFile ( pDevice->hDeviceFile, pDevice->output_report.data (),
+                            static_cast <DWORD> (pDevice->output_report.size ()), nullptr, &async_output_request );
+
+          if (! bWriteAsync)
           {
             DWORD dwLastErr =
                  GetLastError ();
 
+            // Invalid Handle and Device Not Connected get a 250 ms cooldown
             if ( dwLastErr != NOERROR              &&
                  dwLastErr != ERROR_IO_PENDING     &&
                  dwLastErr != ERROR_INVALID_HANDLE &&
+                 dwLastErr != ERROR_NO_SUCH_DEVICE &&
                  dwLastErr != ERROR_DEVICE_NOT_CONNECTED )
             {
-              SK_ImGui_CreateNotification (
-                "XInput.Emulation.DebugWrite", SK_ImGui_Toast::Error,
-                  SK_FormatString ("SK_WriteFile (...) failed with code=%d", dwLastErr).c_str (),
-                                   "HID Debug", INFINITE, SK_ImGui_Toast::UseDuration |
-                                                          SK_ImGui_Toast::ShowCaption |
-                                                          SK_ImGui_Toast::ShowTitle   |
-                                                          SK_ImGui_Toast::ShowNewest );
+              _com_error err (
+                _com_error::WCodeToHRESULT (
+                  sk::narrow_cast <WORD> (dwLastErr)
+                )
+              );
+
+              SK_LOGs0 (
+                L"InputBkEnd",
+                L"SK_WriteFile ({%ws}) failed, Error=%d [%ws]",
+                  pDevice->wszDevicePath, dwLastErr,
+                    err.ErrorMessage ()
+              );
             }
 
             if (dwLastErr != ERROR_IO_PENDING)
             {
-              SK_SleepEx (250UL, TRUE);
+              if (dwLastErr != ERROR_INVALID_HANDLE)
+                SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
+
+              SK_SleepEx (125UL, TRUE); // Prevent runaway CPU usage on failure
+
+              SetEvent (pDevice->hOutputFinished);
+              continue;
+            }
+
+            else
+            {
+              WaitForSingleObject (pDevice->hOutputFinished, INFINITE);
               continue;
             }
           }
-
-#if 0
-          if (ReadULongAcquire (&pDevice->_vibration.left ) != 0 ||
-              ReadULongAcquire (&pDevice->_vibration.right) != 0)
-          {
-            SK_ImGui_CreateNotification (
-              "XInput.Emulation.Debug", SK_ImGui_Toast::Info,
-                SK_FormatString ("Left Motor: %d\r\nRight Motor:%d\r\n",
-                                 ReadULongAcquire (&pDevice->_vibration.left ),
-                                 ReadULongAcquire (&pDevice->_vibration.right)).c_str (),
-                                 "Vibration Debug", 15000, SK_ImGui_Toast::UseDuration |
-                                                           SK_ImGui_Toast::ShowCaption |
-                                                           SK_ImGui_Toast::ShowTitle   |
-                                                           SK_ImGui_Toast::ShowNewest );
-          }
-#endif
 
           pDevice->ulLastFrameOutput =
                    SK_GetFramesDrawn ();

@@ -1876,12 +1876,9 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
   bool bToggleNav = false,
        bToggleVis = false;
 
-  extern bool __stdcall
-       SK_IsGameWindowActive (void);
-
   // Reset Mouse / Keyboard State so that we can process all state transitions
   //   that occur during the next frame without losing any input events.
-  if ( SK_IsGameWindowActive(    ) )
+  if ( SK_IsGameWindowActive () )
   {
     bool Alt =
       (SK_GetAsyncKeyState (VK_MENU)    ) != 0;
@@ -1950,10 +1947,6 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     auto& state =
         *pState;
 
-#ifdef SK_STEAM_CONTROLLER_SUPPORT
-    api_bridge |= ( ControllerPresent (config.input.gamepad.steam.ui_slot) );
-#endif
-
     if (api_bridge)
     {
       // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
@@ -1972,29 +1965,18 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     }
 
     if (! SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state))
-#if 1
-    state = hid_to_xi;
-#else
-    state = di8_to_xi;
-#endif
+    {
+      state = hid_to_xi;
+    }
+
     else
     {
       bHasPlayStation = false;
       api_bridge      = false;
     }
 
-#ifdef SK_STEAM_CONTROLLER_SUPPORT
-    if (ControllerPresent (config.input.gamepad.steam.ui_slot))
-    {
-      *state =
-        *steam_input [config.input.gamepad.steam.ui_slot].to_xi;
-    }
-#endif
-
-
     //extern void SK_ScePad_PaceMaker (void);
     //            SK_ScePad_PaceMaker ();
-
 
     if ( bHasPlayStation ||
               api_bridge ||
@@ -2062,10 +2044,19 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     else
       RtlZeroMemory (&state.Gamepad, sizeof (XINPUT_GAMEPAD));
 
+    //
+    // Only allow one toggle per-frame, even if we wind up calling
+    //   this function multiple times to translate HID to XInput...
+    //
+    static ULONG64              ulLastToggleFrame = 0;
+    if (SK_GetFramesDrawn () != ulLastToggleFrame)
+    {
+      if (                 bToggleVis||bToggleNav)
+      { SK_ImGui_ToggleEx (bToggleVis, bToggleNav);
 
-
-    if (                 bToggleVis||bToggleNav)
-      SK_ImGui_ToggleEx (bToggleVis, bToggleNav);
+        ulLastToggleFrame = SK_GetFramesDrawn ();
+      }
+    }
   }
 
   static bool last_haptic = false;
@@ -2100,29 +2091,13 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
                                           haptic_events.PulseButton.duration;
     }
 
-#ifdef SK_STEAM_CONTROLLER_SUPPORT
-    if (! ControllerPresent (config.input.gamepad.steam.ui_slot))
-    {
-      SK_XInput_PulseController ( config.input.gamepad.steam.ui_slot,
+    SK_XInput_PulseController ( config.input.gamepad.xinput.ui_slot,
+                                  haptic_events.PulseTitle.run  () +
+                                  haptic_events.PulseButton.run () +
+                  std::min (0.4f, haptic_events.PulseNav.run ()),
                                     haptic_events.PulseTitle.run  () +
                                     haptic_events.PulseButton.run () +
-                    std::min (0.4f, haptic_events.PulseNav.run ()),
-                                      haptic_events.PulseTitle.run  () +
-                                      haptic_events.PulseButton.run () +
-                      std::min (0.4f, haptic_events.PulseNav.run    ()) );
-    }
-
-    else
-#endif
-    {
-      SK_XInput_PulseController ( config.input.gamepad.xinput.ui_slot,
-                                    haptic_events.PulseTitle.run  () +
-                                    haptic_events.PulseButton.run () +
-                    std::min (0.4f, haptic_events.PulseNav.run ()),
-                                      haptic_events.PulseTitle.run  () +
-                                      haptic_events.PulseButton.run () +
-                      std::min (0.4f, haptic_events.PulseNav.run    ()) );
-    }
+                    std::min (0.4f, haptic_events.PulseNav.run    ()) );
 
     nav_id = g.NavId;
 

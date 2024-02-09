@@ -1,4 +1,9 @@
-﻿23.2.9
+﻿23.2.9.1
+========
+ + Fixed potential double-activation of control panel preventing it from
+     being opened using a keyboard.
+
+23.2.9
 ======
  + Switched XInput emulation Input/Output Report Consumer/Producer threads
      to Async Overlapped I/O for better performance and lower latency.

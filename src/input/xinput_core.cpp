@@ -743,30 +743,25 @@ XInputGetCapabilities1_4_Detour (
   {
     if (dwUserIndex == 0)
     {
-      for ( auto& controller : SK_HID_PlayStationControllers )
-      {
-        if (controller.bConnected)
-        {
-          RtlZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
+      RtlZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
 
-          pCapabilities->Type    = XINPUT_DEVTYPE_GAMEPAD;
-          pCapabilities->SubType = XINPUT_DEVSUBTYPE_GAMEPAD;
-          pCapabilities->Flags   = XINPUT_CAPS_FFB_SUPPORTED;
+      pCapabilities->Type    = XINPUT_DEVTYPE_GAMEPAD;
+      pCapabilities->SubType = XINPUT_DEVSUBTYPE_GAMEPAD;
+      pCapabilities->Flags   = XINPUT_CAPS_FFB_SUPPORTED |
+                               XINPUT_CAPS_PMD_SUPPORTED;
 
-          pCapabilities->Gamepad.bLeftTrigger       = 255;
-          pCapabilities->Gamepad.bRightTrigger      = 255;
-          pCapabilities->Gamepad.sThumbLX           = 32767;
-          pCapabilities->Gamepad.sThumbLY           = 32767;
-          pCapabilities->Gamepad.sThumbRX           = 32767;
-          pCapabilities->Gamepad.sThumbRY           = 32767;
-          pCapabilities->Gamepad.wButtons           = 0xFFFF;
+      pCapabilities->Gamepad.bLeftTrigger       = 0xFF;
+      pCapabilities->Gamepad.bRightTrigger      = 0xFF;
+      pCapabilities->Gamepad.sThumbLX           = (short)(unsigned short)0xFFC0;
+      pCapabilities->Gamepad.sThumbLY           = (short)(unsigned short)0xFFC0;
+      pCapabilities->Gamepad.sThumbRX           = (short)(unsigned short)0xFFC0;
+      pCapabilities->Gamepad.sThumbRY           = (short)(unsigned short)0xFFC0;
+      pCapabilities->Gamepad.wButtons           = 0xF3FF;
 
-          pCapabilities->Vibration.wLeftMotorSpeed  = 65535;
-          pCapabilities->Vibration.wRightMotorSpeed = 65535;
+      pCapabilities->Vibration.wLeftMotorSpeed  = 0x00FF;
+      pCapabilities->Vibration.wRightMotorSpeed = 0x00FF;
 
-          return ERROR_SUCCESS;
-        }
-      }
+      return ERROR_SUCCESS;
     }
   }
 
@@ -986,24 +981,13 @@ XInputSetState1_4_Detour (
 
           else
           {
-            static WORD wLastLeft  [4] = { };
-            static WORD wLastRight [4] = { };
+            controller.setVibration (
+              pVibration->wLeftMotorSpeed,
+              pVibration->wRightMotorSpeed,
+              0x00FF
+            );
 
-            if (pVibration->wLeftMotorSpeed  != wLastLeft  [dwUserIndex] ||
-                pVibration->wRightMotorSpeed != wLastRight [dwUserIndex])
-            {
-              controller.setVibration (
-                pVibration->wLeftMotorSpeed,
-                pVibration->wRightMotorSpeed
-              );
-
-              pVibration->wLeftMotorSpeed =
-                std::exchange (wLastLeft  [dwUserIndex], pVibration->wLeftMotorSpeed );
-              pVibration->wRightMotorSpeed =
-                std::exchange (wLastRight [dwUserIndex], pVibration->wRightMotorSpeed);
-
-              //controller.write_output_report ();
-            }
+            controller.write_output_report ();
 
             bHasSetState = true;
 
