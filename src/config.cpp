@@ -4155,6 +4155,10 @@ auto DeclKeybind =
   window.background_render->load       (config.window.background_render);
   window.background_mute->load         (config.window.background_mute);
 
+  // "Fake Fullscreen" requires background rendering
+  if (config.render.dxgi.fake_fullscreen_mode)
+      config.window.background_render = true;
+
   std::wstring offset;
 
   if (window.offset.x->load (offset))

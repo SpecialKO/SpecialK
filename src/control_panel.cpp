@@ -2981,6 +2981,10 @@ SK_DXGI_FullscreenControlPanel (void)
 
     if (ImGui::Checkbox ("Enable Fake Fullscreen Mode", &config.render.dxgi.fake_fullscreen_mode))
     {
+      // "Fake Fullscreen" requires background rendering
+      if (config.render.dxgi.fake_fullscreen_mode)
+        config.window.background_render = true;
+
       SK_AdjustWindow          ();
       ImGui::CloseCurrentPopup ();
     }

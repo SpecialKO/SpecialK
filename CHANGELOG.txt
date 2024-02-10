@@ -1,5 +1,8 @@
 ﻿24.2.10
 =======
+ + Automatically turn Background Render mode on when using "Fake Fullscreen"
+ + Ignore all calls to ChangeDisplaySettings (...) when "Fake Fullscreen"
+     is enabled.
  + Count the number of OpenGL contexts created, and disable calls to
      ChangeDisplaySettings (...) if more than 0 and OpenGL-IK is enabled.
  + Remove assertion on PlayStation controllers with more than 2 pages of
