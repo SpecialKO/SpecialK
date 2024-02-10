@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -290,7 +290,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       if (input.avg > total.avg) {
           input.avg = 0.0f;
       }
-      
+
       reflex.simulation    = sim.durations     [63];
       reflex.render_submit = render.durations  [63];
       reflex.present       = present.durations [63];
@@ -480,10 +480,10 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
   bool detailed =
     SK_ImGui_Active () || config.nvidia.reflex.show_detailed_widget;
 
-  ImGui::BeginGroup ();
+  //ImGui::BeginGroup ();
 
   const float fPlotXPos =
-    ImGui::GetCursorPosX ();
+    ImGui::GetCursorScreenPos ().x;
 
   if ( ImPlot::BeginPlot ( "##Stage Time", ImVec2 (-1, 0),
                   ImPlotFlags_NoTitle     | ImPlotFlags_NoInputs |
@@ -516,7 +516,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
         snprintf (buff, size, " ") :
         snprintf (buff, size, "%4.1f ms", milliseconds);
     };
-    
+
     ImPlot::SetupAxes       ("Frame", "Milliseconds", flags | ImPlotAxisFlags_NoLabel      |
                                                               ImPlotAxisFlags_NoTickLabels |
                                                               ImPlotAxisFlags_NoTickMarks  |
@@ -539,7 +539,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
        const int elements =
         (tail - head + 1) +
          (wraparound ? 1  :  0);
-     
+
        ImPlot::PlotLine ("Simulation",    &history.sample_age [head], &history.simulation    [head], elements);
        ImPlot::PlotLine ("Render Submit", &history.sample_age [head], &history.render_submit [head], elements);
        ImPlot::PlotLine ("Composite",     &history.sample_age [head], &history.frame_total   [head], elements);
@@ -631,7 +631,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
     {
       SK_SaveConfig ();
     }
-
+  
     if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Show render pipeline timing diagram in widget");
   }
@@ -879,8 +879,6 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
                                    : "No draw calls captured, "
                                      "latency measurements may be inaccurate." );
   }
-
-  ImGui::EndGroup   ();
 }
 
 void
