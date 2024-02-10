@@ -1,5 +1,7 @@
 ﻿24.2.10
 =======
+ + Count the number of OpenGL contexts created, and disable calls to
+     ChangeDisplaySettings (...) if more than 0 and OpenGL-IK is enabled.
  + Remove assertion on PlayStation controllers with more than 2 pages of
      buttons, and log and ignore the device instead.
  + Ensure that special PlayStation buttons (i.e. PS Button / Mute) do not

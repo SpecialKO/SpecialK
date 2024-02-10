@@ -4243,8 +4243,15 @@ ChangeDisplaySettingsExA_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  if (config.display.force_windowed)
+
+  if (config.display.force_windowed || config.render.dxgi.fake_fullscreen_mode)
+  {
+    SK_LOGi0 (
+      L"ChangeDisplaySettingsExA ignored because windowed mode is forced."
+    );
+
     return DISP_CHANGE_SUCCESSFUL;
+  }
 
 
   if (! config.display.allow_refresh_change)
@@ -4270,7 +4277,7 @@ ChangeDisplaySettingsExA_Detour (
       SK_GL_SetVirtualDisplayMode (hWnd, (dwFlags & CDS_UPDATEREGISTRY) || (dwFlags & CDS_FULLSCREEN), Width, Height);
     }
 
-    if (SK_GL_OnD3D11)
+    if (SK_GL_OnD3D11 || SK_GL_ContextCount > 0 || config.apis.last_known == SK_RenderAPI::OpenGL)
       return DISP_CHANGE_SUCCESSFUL;
   }
 
@@ -4345,8 +4352,14 @@ ChangeDisplaySettingsExW_Detour (
   SK_LOG_FIRST_CALL
 
 
-  if (config.display.force_windowed)
+  if (config.display.force_windowed || config.render.dxgi.fake_fullscreen_mode)
+  {
+    SK_LOGi0 (
+      L"ChangeDisplaySettingsExW ignored because windowed mode is forced."
+    );
+
     return DISP_CHANGE_SUCCESSFUL;
+  }
 
 
   if (! config.display.allow_refresh_change)
@@ -4373,7 +4386,7 @@ ChangeDisplaySettingsExW_Detour (
       SK_GL_SetVirtualDisplayMode (hWnd, (dwFlags & CDS_UPDATEREGISTRY) || (dwFlags & CDS_FULLSCREEN), Width, Height);
     }
 
-    if (SK_GL_OnD3D11)
+    if (SK_GL_OnD3D11 || SK_GL_ContextCount > 0)
       return DISP_CHANGE_SUCCESSFUL;
   }
 

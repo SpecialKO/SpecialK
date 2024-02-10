@@ -818,6 +818,7 @@ void SK_Vulkan_DisableThirdPartyLayers (void); // Can only be called during appl
 bool __stdcall SK_DXVK_CheckForInterop (void);
 
 // Move this to a more formal presentation manager
+extern int  SK_GL_ContextCount;
 extern bool SK_GL_OnD3D11;
 extern bool SK_GL_OnD3D11_Reset; // This one especially, this has a signal
 

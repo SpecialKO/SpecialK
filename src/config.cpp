@@ -3443,6 +3443,9 @@ auto DeclKeybind =
 
   if (! apis.last_known->load ((int &)config.apis.last_known))
     config.apis.last_known = SK_RenderAPI::Reserved;
+  else // Implicitly count 1 context if the last launch used OpenGL
+    if (config.apis.last_known == SK_RenderAPI::OpenGL)
+      SK_GL_ContextCount++;
 
 
 #ifdef _M_IX86

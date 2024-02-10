@@ -64,6 +64,11 @@ SK_LazyGlobal <std::unordered_map <HGLRC, BOOL>>  init_;
 struct SK_GL_Context {
 };
 
+// Count the number of contexts seen
+//
+//  * Identifies games that actually USE OpenGL, rather than
+//      strangely call SetPixelFormat and nothing else...
+int  SK_GL_ContextCount  = 0;
 bool SK_GL_OnD3D11       = false;
 bool SK_GL_OnD3D11_Reset = false;
 
@@ -3056,6 +3061,8 @@ wglCreateContextAttribsARB_SK (HDC hDC, HGLRC hshareContext, const int *attribLi
 {
   SK_LOG_FIRST_CALL
 
+  ++SK_GL_ContextCount;
+
   return
     wgl_create_context_attribs (hDC, hshareContext, attribList);
 }
@@ -4816,6 +4823,8 @@ wglCreateContext (HDC hDC)
     }
     wglMakeCurrent (hdc_current, hglrc_current);
   }
+
+  ++SK_GL_ContextCount;
 
   return hglrc;
 }
