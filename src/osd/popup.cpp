@@ -575,6 +575,8 @@ SK_ImGui_DrawNotifications (void)
 
       else
       {
+        bool stop_showing = false;
+
         if (notify_ini != nullptr)
         {
           auto& toast_cfg =
@@ -589,14 +591,9 @@ SK_ImGui_DrawNotifications (void)
           {
             toast_cfg.add_key_value (L"DoNotShow", bDoNotShow ? L"true"
                                                               : L"false");
-
-            // Immediately save and remove the notification
-            if (bDoNotShow)
-            {
-              SK_SaveConfig ();
-              toast.stage = SK_ImGui_Toast::Finished;
-            }
           }
+
+          stop_showing = bDoNotShow;
 
           if (! bDoNotShow)
           {
@@ -630,7 +627,9 @@ SK_ImGui_DrawNotifications (void)
         {
           SK_SaveConfig ();
 
-          toast.stage = SK_ImGui_Toast::Drawing;
+          // Immediately save and remove the notification
+          if (stop_showing) toast.stage = SK_ImGui_Toast::Finished;
+          else              toast.stage = SK_ImGui_Toast::Drawing;
         }
       }
 
