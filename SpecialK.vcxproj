@@ -147,7 +147,7 @@
       <ExceptionHandling>Async</ExceptionHandling>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <ControlFlowGuard>false</ControlFlowGuard>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -278,7 +278,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ExceptionHandling>Async</ExceptionHandling>
       <StringPooling>true</StringPooling>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <UndefinePreprocessorDefinitions>DECLSPEC_NOINITALL</UndefinePreprocessorDefinitions>
       <OpenMPSupport>false</OpenMPSupport>
@@ -386,7 +386,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ControlFlowGuard>false</ControlFlowGuard>
       <ExpandAttributedSource>false</ExpandAttributedSource>
       <BrowseInformation>false</BrowseInformation>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <AssemblerOutput>NoListing</AssemblerOutput>
       <AdditionalIncludeDirectories>$(SolutionDir)include</AdditionalIncludeDirectories>
       <FloatingPointExceptions>false</FloatingPointExceptions>
@@ -544,7 +544,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <BrowseInformation>false</BrowseInformation>
       <FloatingPointModel>Fast</FloatingPointModel>
       <SDLCheck>false</SDLCheck>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <ErrorReporting>Send</ErrorReporting>
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
       <IntelJCCErratum>false</IntelJCCErratum>

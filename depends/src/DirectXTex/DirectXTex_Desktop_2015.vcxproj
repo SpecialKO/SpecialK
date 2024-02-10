@@ -109,7 +109,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Precise</FloatingPointModel>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Async</ExceptionHandling>
       <AdditionalOptions>/Zc:strictStrings- /O0</AdditionalOptions>
       <PreprocessorDefinitions>_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;NTDDI_WIN7SP1=0x06010100;_WIN32_WINNT_WINTHRESHOLD=0x0A00;_UNICODE;UNICODE;WIN32;_DEBUG;_LIB;_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=0x0600;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -221,7 +221,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <ConformanceMode>false</ConformanceMode>
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <RemoveUnreferencedCodeData>false</RemoveUnreferencedCodeData>
@@ -267,7 +267,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ExceptionHandling>Async</ExceptionHandling>
       <AdditionalOptions>/GS- /Gs8192 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- /QIntel-jcc-erratum</AdditionalOptions>
       <PreprocessorDefinitions>NTDDI_VERSION=NTDDI_WIN10_RS2;_WIN32_WINNT=_WIN32_WINNT_WIN10;DIRECTINPUT_VERSION=0x0800;PSAPI_VERSION=1;NOMINMAX;_UNICODE;UNICODE;WIN32;NDEBUG;_LIB;_USRDLL;_WINDOWS;GLEW_STATIC;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;_CRT_STDIO_ARBITRARY_WIDE_SPECIFIERS;_STL_CONCRT_SUPPORT;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -373,7 +373,7 @@
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <EnableModules>false</EnableModules>
       <SDLCheck>false</SDLCheck>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <IntelJCCErratum>false</IntelJCCErratum>
       <UseFullPaths>false</UseFullPaths>
     </ClCompile>

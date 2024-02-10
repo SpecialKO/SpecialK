@@ -124,7 +124,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4201;4702;4061;4820;5045</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <ConformanceMode>false</ConformanceMode>
       <OpenMPSupport>false</OpenMPSupport>
@@ -180,7 +180,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4201;4702;4061;4820;5045</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <ConformanceMode>false</ConformanceMode>
       <OpenMPSupport>false</OpenMPSupport>
       <CompileAsManaged>false</CompileAsManaged>
@@ -228,7 +228,7 @@
       <AdditionalOptions>/GS- /Gs8192 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- /QIntel-jcc-erratum</AdditionalOptions>
       <ProgramDataBaseFileName>$(SolutionDir)depends\lib\lzma\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <ConformanceMode>true</ConformanceMode>
       <CompileAsManaged>false</CompileAsManaged>
       <CompileAsWinRT>false</CompileAsWinRT>
@@ -298,7 +298,7 @@
       <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableModules>false</EnableModules>
       <SDLCheck>false</SDLCheck>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <IntelJCCErratum>false</IntelJCCErratum>
       <IncludeInUnityFile>false</IncludeInUnityFile>
       <UseFullPaths>false</UseFullPaths>

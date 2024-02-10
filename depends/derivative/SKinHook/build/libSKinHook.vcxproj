@@ -106,7 +106,7 @@
       <PreprocessorDefinitions>_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=_WIN32_WINNT_WINBLUE;_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;NTDDI_WIN7SP1=0x06010100;_WIN32_WINNT_WINTHRESHOLD=0x0A00;WIN32;_DEBUG;_LIB;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level4</WarningLevel>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
@@ -164,7 +164,7 @@
       <PreprocessorDefinitions>_WIN7_PLATFORM_UPDATE;_WIN32_WINNT=_WIN32_WINNT_WINBLUE;_CRT_USE_WINAPI_FAMILY_DESKTOP_APP;NTDDI_WIN7SP1=0x06010100;_WIN32_WINNT_WINTHRESHOLD=0x0A00;WIN32;_DEBUG;_LIB;STRICT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <WarningLevel>Level4</WarningLevel>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <OmitFramePointers>false</OmitFramePointers>
@@ -221,7 +221,7 @@
       <WarningLevel>Level4</WarningLevel>
       <CompileAs>Default</CompileAs>
       <WholeProgramOptimization>true</WholeProgramOptimization>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
       <BufferSecurityCheck>false</BufferSecurityCheck>
       <ControlFlowGuard>false</ControlFlowGuard>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
@@ -305,7 +305,7 @@
       <EnableModules>false</EnableModules>
       <SDLCheck>false</SDLCheck>
       <DisableSpecificWarnings>4005;4201;4702;4061;4714;4820;5045</DisableSpecificWarnings>
-      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <IntelJCCErratum>false</IntelJCCErratum>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <UseFullPaths>false</UseFullPaths>
