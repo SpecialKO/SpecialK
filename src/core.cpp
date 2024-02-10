@@ -3662,6 +3662,8 @@ SK_Battery_UpdateRemainingPowerForAllDevices (void)
       }
     }
   }
+
+  lastTimeChecked = SK::ControlPanel::current_time;
 }
 
 extern void SK_NGX_UpdateDLSSGStatus (void);
