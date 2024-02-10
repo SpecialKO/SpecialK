@@ -368,6 +368,16 @@ void SK_HID_SetupPlayStationControllers (void)
             USHORT num_caps =
               caps.NumberInputButtonCaps;
 
+            if (num_caps > 2)
+            {
+              SK_LOGi0 (
+                L"PlayStation Controller has too many button sets (%d);"
+                L" will ignore Device=%ws", num_caps, wszFileName
+              );
+
+              continue;
+            }
+
             if ( HIDP_STATUS_SUCCESS ==
               SK_HidP_GetButtonCaps ( HidP_Input,
                                         buttonCapsArray.data (), &num_caps,
@@ -391,13 +401,6 @@ void SK_HID_SetupPlayStationControllers (void)
                       controller.button_usage_min + 1
                     )
                   );
-                }
-
-                // ???
-                else
-                {
-                  // No idea what a third set of buttons would be...
-                  SK_ReleaseAssert (num_caps <= 2);
                 }
               }
 
@@ -2614,13 +2617,19 @@ SK_HID_PlayStationDevice::request_input_report (void)
               }
             }
 
+            // Do not do in the background unless bg input is enabled
+            const bool bAllowSpecialButtons =
+              ( SK_IsGameWindowActive () ||
+                  config.input.gamepad.disabled_to_game == 0 );
+
             if ( config.input.gamepad.scepad.enhanced_ps_button &&
                                  pDevice->buttons.size () >= 12 &&
                       (config.input.gamepad.xinput.ui_slot >= 0 && 
                        config.input.gamepad.xinput.ui_slot <  4) )
             {
-              if (   pDevice->buttons [12].state &&
-                  (! pDevice->buttons [12].last_state) )
+              if (   pDevice->buttons [12].state       &&
+                  (! pDevice->buttons [12].last_state) &&
+                     bAllowSpecialButtons )
               {
                 bool bToggleVis = false;
                 bool bToggleNav = false;
@@ -2647,7 +2656,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
               }
             }
 
-            if (pDevice->bDualSense && config.input.gamepad.scepad.mute_applies_to_game)
+            if (pDevice->bDualSense && config.input.gamepad.scepad.mute_applies_to_game && bAllowSpecialButtons)
             {
               if (   pDevice->buttons [14].state &&
                   (! pDevice->buttons [14].last_state) )

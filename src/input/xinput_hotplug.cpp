@@ -331,6 +331,16 @@ SK_XInput_NotifyDeviceArrival (void)
                                 USHORT num_caps =
                                   caps.NumberInputButtonCaps;
 
+                                if (num_caps > 2)
+                                {
+                                  SK_LOGi0 (
+                                    L"PlayStation Controller has too many button sets (%d);"
+                                    L" will ignore Device=%ws", num_caps, wszFileName
+                                  );
+
+                                  return 0;
+                                }
+
                                 if ( HIDP_STATUS_SUCCESS ==
                                   SK_HidP_GetButtonCaps ( HidP_Input,
                                                             buttonCapsArray.data (), &num_caps,
@@ -354,13 +364,6 @@ SK_XInput_NotifyDeviceArrival (void)
                                           controller.button_usage_min + 1
                                         )
                                       );
-                                    }
-
-                                    // ???
-                                    else
-                                    {
-                                      // No idea what a third set of buttons would be...
-                                      SK_ReleaseAssert (num_caps <= 2);
                                     }
                                   }
 

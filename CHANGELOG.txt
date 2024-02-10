@@ -1,4 +1,12 @@
-﻿24.2.9.4
+﻿24.2.10
+=======
+ + Remove assertion on PlayStation controllers with more than 2 pages of
+     buttons, and log and ignore the device instead.
+ + Ensure that special PlayStation buttons (i.e. PS Button / Mute) do not
+     trigger SK bindings while the window is in the background, unless the
+       user has enabled background gamepad input.
+
+24.2.9.4
 ========
  + Clear XInput controller vibration before calling XInputEnable (...).
  + Improved handling of SK_ImGui_PollGamepad_EndFrame (...) if it is
