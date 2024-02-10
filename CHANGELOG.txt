@@ -1,4 +1,11 @@
-﻿24.2.9.3
+﻿24.2.9.4
+========
+ + Clear XInput controller vibration before calling XInputEnable (...).
+ + Improved handling of SK_ImGui_PollGamepad_EndFrame (...) if it is
+     called multiple times in a frame.
+       (e.g. SK is emulating XInput and DS4Windows is too)
+
+24.2.9.3
 ========
  + Optimized SK_Battery_UpdateRemainingPowerForAllDevices (...), it was
      only supposed to run every 5 seconds, not every frame!
