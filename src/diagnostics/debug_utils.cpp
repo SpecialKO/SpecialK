@@ -1980,32 +1980,31 @@ ZwSetInformationThread_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  SK_AutoHandle hDuplicate (INVALID_HANDLE_VALUE);
-
-  if ((LONG_PTR)ThreadHandle == -2)
-  {
-    if (
-      DuplicateHandle ( SK_GetCurrentProcess (),
-                        SK_GetCurrentThread  (),
-                        SK_GetCurrentProcess (),
-                          &hDuplicate.m_h,
-                            THREAD_ALL_ACCESS, FALSE,
-                        DUPLICATE_SAME_ACCESS )
-       )
-    {
-      ThreadHandle = hDuplicate.m_h;
-    }
-  }
-
-  if (ThreadHandle == 0)
-  {
-    return 0;
-  }
-
-
   if ( ThreadInformationClass == ThreadZeroTlsCell ||
        ThreadInformationClass == ThreadSetTlsArrayAddress )
   {
+    SK_AutoHandle hDuplicate (INVALID_HANDLE_VALUE);
+
+    if ((LONG_PTR)ThreadHandle == -2)
+    {
+      if (
+        DuplicateHandle ( SK_GetCurrentProcess (),
+                          SK_GetCurrentThread  (),
+                          SK_GetCurrentProcess (),
+                            &hDuplicate.m_h,
+                              THREAD_ALL_ACCESS, FALSE,
+                          DUPLICATE_SAME_ACCESS )
+         )
+      {
+        ThreadHandle = hDuplicate.m_h;
+      }
+    }
+
+    if (ThreadHandle == 0)
+    {
+      return 0;
+    }
+
     DWORD                                 dwExitCode = 0;
     if (GetExitCodeThread (ThreadHandle, &dwExitCode) && dwExitCode == STILL_ACTIVE)
     {
@@ -2020,6 +2019,28 @@ ZwSetInformationThread_Detour (
 
   if ( ThreadInformationClass  == ThreadHideFromDebugger )
   {
+    SK_AutoHandle hDuplicate (INVALID_HANDLE_VALUE);
+
+    if ((LONG_PTR)ThreadHandle == -2)
+    {
+      if (
+        DuplicateHandle ( SK_GetCurrentProcess (),
+                          SK_GetCurrentThread  (),
+                          SK_GetCurrentProcess (),
+                            &hDuplicate.m_h,
+                              THREAD_ALL_ACCESS, FALSE,
+                          DUPLICATE_SAME_ACCESS )
+         )
+      {
+        ThreadHandle = hDuplicate.m_h;
+      }
+    }
+
+    if (ThreadHandle == 0)
+    {
+      return 0;
+    }
+
     // Make sure not to do this if this call is intended to free TLS.
     SK_TLS *pTLS =
           SK_TLS_Bottom ();
