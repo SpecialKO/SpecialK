@@ -4294,8 +4294,10 @@ glNamedFramebufferTexture_SK ( GLuint framebuffer,
       glBindTexture            (GL_TEXTURE_2D, texture);
       glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_INTERNAL_FORMAT, &textureFmt);
 
-      GLint                                                                              immutable = GL_FALSE;
-      glGetTextureParameterIivEXT (texture, GL_TEXTURE_2D, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
+      GLint immutable = GL_FALSE;
+
+      if (__glewGetTextureParameterIivEXT != nullptr)
+              glGetTextureParameterIivEXT (texture, GL_TEXTURE_2D, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
 
       GLint                                                           texWidth, texHeight;
       glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH,  &texWidth);
@@ -4430,19 +4432,22 @@ glFramebufferTexture2D_SK ( GLenum target,
         if ( textureFmt == GL_RGBA8 || textureFmt == GL_RGB8 ||
              textureFmt == GL_RGBA  || textureFmt == GL_RGB )
         {
-          GLint                                                                              immutable = GL_FALSE;
-          glGetTextureParameterIivEXT (texture, GL_TEXTURE_2D, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
-
-          if (immutable == GL_FALSE)
+          if (__glewGetTextureParameterIivEXT != nullptr)
           {
-            GLint                                                           texWidth, texHeight;
-            glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH,  &texWidth);
-            glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &texHeight);
+            GLint                                                                              immutable = GL_FALSE;
+            glGetTextureParameterIivEXT (texture, GL_TEXTURE_2D, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
 
-            SK_LOGi1 (L"GL_RGB{A}[8] replaced with GL_RGB{A}16F");
+            if (immutable == GL_FALSE)
+            {
+              GLint                                                           texWidth, texHeight;
+              glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH,  &texWidth);
+              glGetTexLevelParameteriv (GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &texHeight);
 
-            glTexImage2D (GL_TEXTURE_2D, 0, rgb ? GL_RGB16F : GL_RGBA16F, texWidth, texHeight, 0,
-                                            rgb ? GL_RGB    : GL_RGBA, GL_FLOAT, nullptr);
+              SK_LOGi1 (L"GL_RGB{A}[8] replaced with GL_RGB{A}16F");
+
+              glTexImage2D (GL_TEXTURE_2D, 0, rgb ? GL_RGB16F : GL_RGBA16F, texWidth, texHeight, 0,
+                                              rgb ? GL_RGB    : GL_RGBA, GL_FLOAT, nullptr);
+            }
           }
         }
 
@@ -4478,8 +4483,10 @@ glFramebufferTexture2D_SK ( GLenum target,
         if ( textureFmt == GL_RGBA8 || textureFmt == GL_RGB8 ||
              textureFmt == GL_RGBA  || textureFmt == GL_RGB )
         {
-          GLint                                                                              immutable = GL_FALSE;
-          glGetTextureParameterIivEXT (texture, GL_TEXTURE_2D, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
+          GLint immutable = GL_FALSE;
+
+          if (__glewGetTextureParameterIivEXT != nullptr)
+                  glGetTextureParameterIivEXT (texture, GL_TEXTURE_2D, GL_TEXTURE_IMMUTABLE_FORMAT, &immutable);
 
           if (immutable == GL_FALSE)
           {

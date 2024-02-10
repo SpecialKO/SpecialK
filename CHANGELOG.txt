@@ -1,4 +1,12 @@
-﻿24.2.10.2
+﻿24.2.10.3
+=========
+ + Limit SONY HID input devices to limited set of USB Product IDs that
+     SK knows about (all standard DualShock 3/4, DualSense [Edge] models),
+       and do not attempt to read input from anything else for now.
+ + Fixed potential crash in OpenGL drivers that do not have support for
+     glGetTextureParameterIivEXT
+
+24.2.10.2
 =========
  + Wait until user clicks Save Settings before applying "Never Show"
      to notifications.
