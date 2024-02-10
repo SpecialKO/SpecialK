@@ -335,6 +335,24 @@ void SK_HID_SetupPlayStationControllers (void)
         if (StrStrIW (wszFileName, L"VID_054c"))
         {
           SK_HID_PlayStationDevice controller;
+
+          controller.bDualSense =
+            StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
+            StrStrIW (wszFileName, L"PID_0CE6") != nullptr;
+
+          controller.bDualShock4 =
+            StrStrIW (wszFileName, L"PID_05C4") != nullptr ||
+            StrStrIW (wszFileName, L"PID_09CC") != nullptr ||
+            StrStrIW (wszFileName, L"PID_0BA0") != nullptr;
+
+          controller.bDualShock3 =
+            StrStrIW (wszFileName, L"PID_0268") != nullptr;
+
+          if (! (controller.bDualSense || controller.bDualShock4 || controller.bDualShock3))
+          {
+            SK_LOGi0 (L"SONY Controller with Unknown PID ignored: %ws", wszFileName);
+            continue;
+          }
   
           wcsncpy_s (controller.wszDevicePath, MAX_PATH,
                                 wszFileName,   _TRUNCATE);

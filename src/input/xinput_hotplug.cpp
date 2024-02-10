@@ -287,6 +287,26 @@ SK_XInput_NotifyDeviceArrival (void)
                           {
                             SK_HID_PlayStationDevice controller;
 
+                            controller.bDualSense =
+                              StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
+                              StrStrIW (wszFileName, L"PID_0CE6") != nullptr;
+
+                            controller.bDualShock4 =
+                              StrStrIW (wszFileName, L"PID_05C4") != nullptr ||
+                              StrStrIW (wszFileName, L"PID_09CC") != nullptr ||
+                              StrStrIW (wszFileName, L"PID_0BA0") != nullptr;
+
+                            controller.bDualShock3 =
+                              StrStrIW (wszFileName, L"PID_0268") != nullptr;
+
+                            if (! (controller.bDualSense || controller.bDualShock4 || controller.bDualShock3))
+                            {
+                              SK_LOGi0 (L"SONY Controller with Unknown PID ignored: %ws", wszFileName);
+
+                              return
+                                DefWindowProcW (hwnd, message, wParam, lParam);
+                            }
+
                             wcsncpy_s (controller.wszDevicePath, MAX_PATH,
                                                   wszFileName,   _TRUNCATE);
 
@@ -300,17 +320,6 @@ SK_XInput_NotifyDeviceArrival (void)
                             if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
                             {
                               controller.bConnected = true;
-                              controller.bDualSense =
-                                StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
-                                StrStrIW (wszFileName, L"PID_0CE6") != nullptr;
-
-                              controller.bDualShock4 =
-                                StrStrIW (wszFileName, L"PID_05C4") != nullptr ||
-                                StrStrIW (wszFileName, L"PID_09CC") != nullptr ||
-                                StrStrIW (wszFileName, L"PID_0BA0") != nullptr;
-
-                              controller.bDualShock3 =
-                                StrStrIW (wszFileName, L"PID_0268") != nullptr;
 
                               if (SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
                               {
@@ -338,7 +347,8 @@ SK_XInput_NotifyDeviceArrival (void)
                                     L" will ignore Device=%ws", num_caps, wszFileName
                                   );
 
-                                  return 0;
+                                  return
+                                    DefWindowProcW (hwnd, message, wParam, lParam);
                                 }
 
                                 if ( HIDP_STATUS_SUCCESS ==
@@ -399,18 +409,7 @@ SK_XInput_NotifyDeviceArrival (void)
                               }
 
                               controller.bConnected = true;
-                              controller.bDualSense =
-                                StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
-                                StrStrIW (wszFileName, L"PID_0CE6") != nullptr;
 
-                              controller.bDualShock4 =
-                                StrStrIW (wszFileName, L"PID_05C4") != nullptr ||
-                                StrStrIW (wszFileName, L"PID_09CC") != nullptr ||
-                                StrStrIW (wszFileName, L"PID_0BA0") != nullptr;
-
-                              controller.bDualShock3 =
-                                StrStrIW (wszFileName, L"PID_0268") != nullptr;
-  
                               SK_HID_PlayStationControllers.push_back (controller);
 
                               //SK_ImGui_Warning (L"PlayStation Controller Connected");
