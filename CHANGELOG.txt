@@ -1,4 +1,14 @@
-﻿24.2.10.1
+﻿24.2.10.2
+=========
+ + Wait until user clicks Save Settings before applying "Never Show"
+     to notifications.
+ + Fixed checkbox to show detailed latency analysis statistics being
+     drawn at x,y coordinate (0, screenpos.y) and not being visible.
+ + Do not move the ImGui cursor to the center of the control panel upon
+     opening the control panel if it is already over top a widget that
+       is capturing mouse input (e.g. HDR widget).
+
+24.2.10.1
 =========
  + Add 25 second notification explaining how to configure notifications;
      * Start by configuring that notification to never show it :)

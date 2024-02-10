@@ -6367,7 +6367,11 @@ SK_ImGui_ControlPanel (void)
   SK_ImGui::BatteryMeter ();
 
   if (recenter)
-    SK_ImGui_CenterCursorAtPos ();
+  {
+    // Move the cursor if it's not over any of SK's UI
+    if (! SK_ImGui_IsAnythingHovered ())
+      SK_ImGui_CenterCursorAtPos ();
+  }
 
   ImVec2 pos  = ImGui::GetWindowPos  ();
   ImVec2 size = ImGui::GetWindowSize ();
@@ -7877,19 +7881,23 @@ SK_ImGui_Toggle (void)
                           &game_window.actual.window);
             if (PtInRect (&game_window.actual.window, ptCursor))
             {
-              SK_SetCursorPos (ptCursor.x + 4, ptCursor.y - 4);
+              // Move the cursor if it's not over any of SK's UI
+              if (! SK_ImGui_IsAnythingHovered ())
+              {
+                SK_SetCursorPos (ptCursor.x + 4, ptCursor.y - 4);
 
-              frames_drawn =
-                SK_GetFramesDrawn ();
+                frames_drawn =
+                  SK_GetFramesDrawn ();
 
-              while (frames_drawn > SK_GetFramesDrawn () - 1)
-                SK_Sleep (5);
+                while (frames_drawn > SK_GetFramesDrawn () - 1)
+                  SK_Sleep (5);
 
-              SK_SetCursorPos (ptCursor.x - 4, ptCursor.y + 4);
+                SK_SetCursorPos (ptCursor.x - 4, ptCursor.y + 4);
 
-              game_window.CallProc (
-                        game_window.hWnd,                       WM_SETCURSOR,
-                (WPARAM)game_window.hWnd, MAKELPARAM (HTCLIENT, WM_MOUSEMOVE));
+                game_window.CallProc (
+                          game_window.hWnd,                       WM_SETCURSOR,
+                  (WPARAM)game_window.hWnd, MAKELPARAM (HTCLIENT, WM_MOUSEMOVE));
+              }
             }
           }
         }

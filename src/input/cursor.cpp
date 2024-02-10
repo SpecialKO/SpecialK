@@ -629,19 +629,22 @@ ImGui_ToggleCursor (void)
     SK_ImGui_Cursor.ScreenToLocal (&pos);
 
     // Save original cursor position
-    SK_ImGui_Cursor.orig_pos =      pos;
-    SK_ImGui_Cursor.idle     =    false;
+    SK_ImGui_Cursor.orig_pos    =   pos;
+    SK_ImGui_Cursor.idle        = false;
+    io.WantCaptureMouse         =  true;
 
-    io.WantCaptureMouse      =     true;
-
-    SK_ImGui_CenterCursorOnWindow ();
+    // Move the cursor if it's not over any of SK's UI
+    if (! SK_ImGui_IsAnythingHovered ())
+    {
+      SK_ImGui_CenterCursorOnWindow ();
+    }
   }
 
   else
   {
     SK_ImGui_Cursor.idle = true;
 
-    if (SK_ImGui_WantMouseCapture ())
+    if (! SK_ImGui_IsAnythingHovered ())
     {
       POINT                            screen =
        SK_ImGui_Cursor.orig_pos;
