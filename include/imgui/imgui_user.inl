@@ -1900,18 +1900,71 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     bool Shift =
       (SK_GetAsyncKeyState (VK_SHIFT)   ) != 0;
 
-    io.KeyAlt   = Alt;
-    io.KeyShift = Shift;
-    io.KeyCtrl  = Ctrl;
+    // This code looks strange, but this function is called multiple
+    //   times per-frame if games poll more than one gamepad... so
+    //     we need to OR the modifier key state together and use the
+    //      _instantaneous_ modifier key state for UI activation.
+    struct {
+      struct {
+        bool last    = false;
+        bool now     = false;
+        bool toggled = false;
+      } capslock,
+        backspace;
 
-    bToggleNav |=
-       ( SK_ImGui_Visible &&
-         ImGui::IsKeyPressed (ImGuiKey_CapsLock, false) );
+      ULONG64 last_frame = 0;
+    } static keys;
 
-    bToggleVis |=
-       ( io.KeyCtrl  &&
-         io.KeyShift &&
-         ImGui::IsKeyPressed (ImGuiKey_Backspace, false) );
+    ULONG64 this_frame =
+      SK_GetFramesDrawn ();
+
+    if (keys.last_frame < this_frame)
+    {
+      keys.capslock.last  = keys.capslock.now;
+      keys.backspace.last = keys.backspace.now;
+
+      keys.last_frame     = this_frame;
+
+      keys.capslock.now   =
+        ImGui::IsKeyPressed (ImGuiKey_CapsLock,  false);
+      keys.backspace.now  =
+        ImGui::IsKeyPressed (ImGuiKey_Backspace, false);
+
+      keys.capslock.toggled  = false;
+      keys.backspace.toggled = false;
+
+      io.KeyAlt   = false;
+      io.KeyShift = false;
+      io.KeyCtrl  = false;
+    }
+
+    io.KeyAlt   |= Alt;
+    io.KeyShift |= Shift;
+    io.KeyCtrl  |= Ctrl;
+
+    keys.capslock.now  |=
+      ImGui::IsKeyPressed (ImGuiKey_CapsLock,  false);
+    keys.backspace.now |=
+      ImGui::IsKeyPressed (ImGuiKey_Backspace, false);
+
+    if (! keys.capslock.toggled)
+    {
+      bToggleNav |=
+         ( SK_ImGui_Visible &&
+            ((! keys.capslock.last) && keys.capslock.now) );
+
+      keys.capslock.toggled |= bToggleNav;
+    }
+
+    if (! keys.backspace.toggled)
+    {
+      bToggleVis |=
+         ( Ctrl  &&
+           Shift &&
+            ((! keys.backspace.last) && keys.backspace.now) );
+
+      keys.backspace.toggled |= bToggleVis;
+    }
   }
 
   bool bUseGamepad =
