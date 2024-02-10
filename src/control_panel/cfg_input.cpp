@@ -1120,8 +1120,7 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::TextUnformatted ("Translate USB HID to XInput for wired PlayStation controllers");
               ImGui::Separator       ();
               ImGui::BulletText      ("May require a game restart, and may not work in all games.");
-              ImGui::BulletText      ("Vibration and multiple individually addressable controllers "
-                                      "are currently unsupported.");
+              ImGui::BulletText      ("Does not currently support multiple controllers.");
               ImGui::EndTooltip      ();
             }
           }

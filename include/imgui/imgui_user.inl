@@ -1747,34 +1747,47 @@ WINAPI
 SK_ImGui_ToggleEx ( bool& toggle_ui,
                     bool& toggle_nav )
 {
-  if (toggle_ui)
+  //
+  // Only allow one toggle per-frame, even if we wind up calling
+  //   this function multiple times to translate HID to XInput...
+  //
+  static ULONG64              ulLastToggleFrame = 0;
+  if (SK_GetFramesDrawn () != ulLastToggleFrame)
   {
-    SK_ImGui_Toggle ();
-  }
+    if (toggle_ui||toggle_nav)
+    {
+      ulLastToggleFrame = SK_GetFramesDrawn ();
 
-  if (toggle_nav && SK_ImGui_Active ())
-    nav_usable = (! nav_usable);
+      if (toggle_ui)
+      {
+        SK_ImGui_Toggle ();
+      }
 
-  if (nav_usable)
-    ImGui::SetNextWindowFocus ();
+      if (toggle_nav && SK_ImGui_Active ())
+        nav_usable = (! nav_usable);
 
-  toggle_ui  = SK_ImGui_Active ();
-  toggle_nav = nav_usable;
+      if (nav_usable)
+        ImGui::SetNextWindowFocus ();
 
-  if (SK_ImGui_Active () && nav_usable)
-  {
-    haptic_events.PulseTitle.start = static_cast <float> (SK::ControlPanel::current_time);
-    haptic_events.PulseTitle.end   = haptic_events.PulseTitle.start +
-                                       haptic_events.PulseTitle.duration;
-  }
+      toggle_ui  = SK_ImGui_Active ();
+      toggle_nav = nav_usable;
 
-  //ImGui::GetIO ().NavActive = nav_usable;
+      if (SK_ImGui_Active () && nav_usable)
+      {
+        haptic_events.PulseTitle.start = static_cast <float> (SK::ControlPanel::current_time);
+        haptic_events.PulseTitle.end   = haptic_events.PulseTitle.start +
+                                           haptic_events.PulseTitle.duration;
+      }
 
-  // Zero-out any residual haptic data
-  else
-  {
-    SK_XInput_ZeroHaptics (config.input.gamepad.steam.ui_slot);
-    SK_XInput_ZeroHaptics (config.input.gamepad.xinput.ui_slot);
+      //ImGui::GetIO ().NavActive = nav_usable;
+
+      // Zero-out any residual haptic data
+      else
+      {
+        SK_XInput_ZeroHaptics (config.input.gamepad.steam.ui_slot);
+        SK_XInput_ZeroHaptics (config.input.gamepad.xinput.ui_slot);
+      }
+    }
   }
 
   return SK_ImGui_Active ();
@@ -2044,19 +2057,9 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     else
       RtlZeroMemory (&state.Gamepad, sizeof (XINPUT_GAMEPAD));
 
-    //
-    // Only allow one toggle per-frame, even if we wind up calling
-    //   this function multiple times to translate HID to XInput...
-    //
-    static ULONG64              ulLastToggleFrame = 0;
-    if (SK_GetFramesDrawn () != ulLastToggleFrame)
-    {
-      if (                 bToggleVis||bToggleNav)
-      { SK_ImGui_ToggleEx (bToggleVis, bToggleNav);
 
-        ulLastToggleFrame = SK_GetFramesDrawn ();
-      }
-    }
+    if (                 bToggleVis||bToggleNav)
+      SK_ImGui_ToggleEx (bToggleVis, bToggleNav);
   }
 
   static bool last_haptic = false;

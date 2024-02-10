@@ -2739,7 +2739,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
     if (hOutputEnqueued== nullptr)
     {
       hOutputEnqueued =
-        SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
+        SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
 
       hOutputFinished =
         SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
@@ -2753,10 +2753,14 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
         HANDLE hEvents [] = {
           __SK_DLL_TeardownEvent,
-           pDevice->hOutputFinished
+           pDevice->hOutputFinished,
+           pDevice->hOutputEnqueued
         };
 
         OVERLAPPED async_output_request = { };
+
+        bool bEnqueued = false;
+        bool bFinished = false;
 
         DWORD  dwWaitState  = WAIT_FAILED;
         while (dwWaitState != WAIT_OBJECT_0)
@@ -2768,7 +2772,22 @@ SK_HID_PlayStationDevice::write_output_report (void)
           if (dwWaitState == WAIT_OBJECT_0)
             break;
 
-          ResetEvent (pDevice->hOutputFinished);
+          if (dwWaitState == (WAIT_OBJECT_0 + 2))
+          {
+            ResetEvent (pDevice->hOutputEnqueued);
+            bEnqueued = true;
+          }
+
+          if (dwWaitState == (WAIT_OBJECT_0 + 1))
+          {
+            ResetEvent (pDevice->hOutputFinished);
+            bFinished = true;
+          }
+
+          if (! (bEnqueued && bFinished))
+          {
+            continue;
+          }
 
           ZeroMemory ( pDevice->output_report.data (),
                        pDevice->output_report.size () );
@@ -2920,7 +2939,8 @@ SK_HID_PlayStationDevice::write_output_report (void)
           pDevice->dwLastTimeOutput =
             SK::ControlPanel::current_time;
 
-          ResetEvent (pDevice->hOutputEnqueued);
+          bEnqueued = false;
+          bFinished = false;
         } while (true);
 
         SK_Thread_CloseSelf ();

@@ -1,4 +1,11 @@
-﻿24.2.9.2
+﻿24.2.9.3
+========
+ + Optimized SK_Battery_UpdateRemainingPowerForAllDevices (...), it was
+     only supposed to run every 5 seconds, not every frame!
+ + Optimized ZwSetInformationThread_Detour (...) to only duplicate handles
+     for various anti-debug workaround parameters.
+
+24.2.9.2
 ========
  + Only process WM_WINDOWPOSCHANGED messages where NOSENDCHANGING was not
      specified when SetWindowPos (...) was called.
