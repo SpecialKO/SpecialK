@@ -336,6 +336,12 @@ BOOL xinput_enabled = TRUE;
 bool
 SK_XInput_Enable ( BOOL bEnable )
 {
+  // Clear controller haptics before turning the API off
+  SK_XInput_PulseController (0, 0.0f, 0.0f);
+  SK_XInput_PulseController (1, 0.0f, 0.0f);
+  SK_XInput_PulseController (2, 0.0f, 0.0f);
+  SK_XInput_PulseController (3, 0.0f, 0.0f);
+
   bool before =
    (xinput_enabled != FALSE);
 
