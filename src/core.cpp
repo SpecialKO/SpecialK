@@ -968,6 +968,15 @@ extern void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
 
 void BasicInit (void)
 {
+  // Add a notification that will not go away until a user reads it...
+  SK_ImGui_CreateNotification (
+    "Notification.HelloWorld", SK_ImGui_Toast::Success,
+    "Notifications can be configured by right-clicking them.",
+    "Special K Notification System Initialized Successfully",
+      25000, SK_ImGui_Toast::ShowCaption |
+             SK_ImGui_Toast::ShowTitle   |
+             SK_ImGui_Toast::ShowOnce );
+
   // Setup unhooked function pointers
   SK_PreInitLoadLibrary ();
 

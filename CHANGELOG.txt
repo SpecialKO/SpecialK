@@ -1,4 +1,10 @@
-﻿24.2.10
+﻿24.2.10.1
+=========
+ + Add 25 second notification explaining how to configure notifications;
+     * Start by configuring that notification to never show it :)
+ + Removed requirement for AVX instructions
+
+24.2.10
 =======
  + Automatically turn Background Render mode on when using "Fake Fullscreen"
  + Ignore all calls to ChangeDisplaySettings (...) when "Fake Fullscreen"

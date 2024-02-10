@@ -475,8 +475,11 @@ SK_ImGui_DrawNotifications (void)
 
       if (toast.displayed < SK::ControlPanel::current_time - (toast.duration + 2 * NOTIFY_FADE_IN_OUT_TIME))
       {
-        if (toast.stage != SK_ImGui_Toast::Config)
-          remove = true;
+        if (toast.duration != INFINITE)
+        {
+          if (toast.stage != SK_ImGui_Toast::Config)
+            remove = true;
+        }
       }
     }
 
@@ -586,6 +589,13 @@ SK_ImGui_DrawNotifications (void)
           {
             toast_cfg.add_key_value (L"DoNotShow", bDoNotShow ? L"true"
                                                               : L"false");
+
+            // Immediately save and remove the notification
+            if (bDoNotShow)
+            {
+              SK_SaveConfig ();
+              toast.stage = SK_ImGui_Toast::Finished;
+            }
           }
 
           if (! bDoNotShow)
