@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -863,6 +863,61 @@ D3D11Dev_CreateSamplerState_Override
     D3D11Dev_CreateSamplerState_Original (This, pSamplerDesc, ppSamplerState);
 }
 
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D11Dev_CreateTexture2D1_Override (
+  _In_            ID3D11Device3          *This,
+  _In_      const D3D11_TEXTURE2D_DESC1  *pDesc,
+  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
+  _Out_opt_       ID3D11Texture2D1       **ppTexture2D )
+{
+  SK_LOG_FIRST_CALL
+
+  // Pass this through the normal CreateTexture2D hook;
+  //   the other layouts present a problem, that we'll ignore...
+  if (pDesc->TextureLayout == D3D11_TEXTURE_LAYOUT_UNDEFINED)
+  {
+    D3D11_TEXTURE2D_DESC
+      texDesc = { .Width          = pDesc->Width,
+                  .Height         = pDesc->Height,
+                  .MipLevels      = pDesc->MipLevels,
+                  .ArraySize      = pDesc->ArraySize,
+                  .Format         = pDesc->Format,
+                  .SampleDesc     = pDesc->SampleDesc,
+                  .Usage          = pDesc->Usage,
+                  .BindFlags      = pDesc->BindFlags,
+                  .CPUAccessFlags = pDesc->CPUAccessFlags,
+                  .MiscFlags      = pDesc->MiscFlags
+      };
+
+    SK_ComPtr <ID3D11Texture2D> pTex2D;
+
+    HRESULT hr =
+      D3D11Dev_CreateTexture2D_Override (This, &texDesc, pInitialData, &pTex2D.p);
+
+    if (SUCCEEDED (hr))
+    {
+      pTex2D.p->QueryInterface <ID3D11Texture2D1> (ppTexture2D);
+
+      return hr;
+    }
+  }
+
+  else
+  {
+    SK_RunOnce (
+      SK_LOGi0 (
+        L"ID3D11Device3::CreateTexture2D1 (...) called with unsupported TextureLayout=%x",
+          pDesc->TextureLayout
+      )
+    );
+  }
+
+  return
+    D3D11Dev_CreateTexture2D1_Original (This, pDesc, pInitialData, ppTexture2D);
+}
 
 __declspec (noinline)
 HRESULT

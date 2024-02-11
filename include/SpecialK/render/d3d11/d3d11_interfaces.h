@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -415,6 +415,12 @@ typedef HRESULT (WINAPI *D3D11Dev_CreateTexture2D_pfn)(
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D
 );
+typedef HRESULT (WINAPI *D3D11Dev_CreateTexture2D1_pfn)(
+  _In_            ID3D11Device3          *This,
+  _In_      const D3D11_TEXTURE2D_DESC1  *pDesc1,
+  _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
+  _Out_opt_       ID3D11Texture2D1       **ppTexture2D
+);
 typedef HRESULT (WINAPI *D3D11Dev_CreateRenderTargetView_pfn)(
   _In_            ID3D11Device                   *This,
   _In_            ID3D11Resource                 *pResource,
@@ -645,6 +651,7 @@ typedef HRESULT (WINAPI *D3D11_FinishCommandList_pfn)(
 
 extern D3D11Dev_CreateBuffer_pfn                          D3D11Dev_CreateBuffer_Original;
 extern D3D11Dev_CreateTexture2D_pfn                       D3D11Dev_CreateTexture2D_Original;
+extern D3D11Dev_CreateTexture2D1_pfn                      D3D11Dev_CreateTexture2D1_Original;
 extern D3D11Dev_CreateRenderTargetView_pfn                D3D11Dev_CreateRenderTargetView_Original;
 extern D3D11Dev_CreateShaderResourceView_pfn              D3D11Dev_CreateShaderResourceView_Original;
 

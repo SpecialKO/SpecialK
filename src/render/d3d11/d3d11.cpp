@@ -5317,9 +5317,9 @@ D3D11Dev_CreateTexture2D_Impl (
                          bIgnoreThisUpload == false &&
        pDesc                 != nullptr             &&
        pDesc->Usage          != D3D11_USAGE_STAGING &&
-       pDesc->Usage          != D3D11_USAGE_DYNAMIC &&
-                   ( pInitialData          == nullptr ||
-                     pInitialData->pSysMem == nullptr ) )
+       pDesc->Usage          != D3D11_USAGE_DYNAMIC )//&&
+                   //( pInitialData          == nullptr ||
+                     //pInitialData->pSysMem == nullptr ) )
   {
     extern bool SK_HDR_PromoteUAVsTo16Bit;
 
@@ -5339,7 +5339,9 @@ D3D11Dev_CreateTexture2D_Impl (
                                D3D11_BIND_SHADER_RESOURCE &&
                 pDesc->Width == swapDesc.BufferDesc.Width &&
                pDesc->Height == swapDesc.BufferDesc.Height//&&
-             /*pDesc->Format == swapDesc.BufferDesc.Format*/) &&
+             /*pDesc->Format == swapDesc.BufferDesc.Format*/ &&
+               ( pInitialData          == nullptr ||
+                 pInitialData->pSysMem == nullptr ))         &&
 #endif
            (pDesc->BindFlags & _UnwantedFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) )
        )
@@ -7155,6 +7157,15 @@ HookD3D11 (LPVOID user)
 
       if (pDev3 != nullptr)
       {
+        //if (! _AreVFtablePtrsSame ((void **)&pDev2.p, 51, (void **)pHooks->ppDevice, 27))
+        {
+          DXGI_VIRTUAL_HOOK ( &pDev2, 54,
+                                "ID3D11Device3::CreateTexture2D1",
+                                                 D3D11Dev_CreateTexture2D1_Override,
+                                                 D3D11Dev_CreateTexture2D1_Original,
+                                                 D3D11Dev_CreateTexture2D1_pfn );
+        }
+
         if (! _AreVFtablePtrsSame ((void **)&pDev3.p, 61, (void **)pHooks->ppDevice, 40))
         {
           DXGI_VIRTUAL_HOOK ( &pDev3, 61,

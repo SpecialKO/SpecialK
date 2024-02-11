@@ -1,4 +1,12 @@
-﻿24.2.11.3
+﻿24.2.11.4
+=========
+ + Added hooks for ID3D11Device3::CreateTexture2D1 (...) to catch otherwise
+     missed Render Targets and Textures in Granblue Fantasy Relink;
+
+     * This allows HDR remastering, previously only textures created using
+         ID3D11Device::CreateTexture2D (...) were processed.
+
+24.2.11.3
 =========
  + Add SK_ImGui_Toast::UseDuration to Notification Initialization Message
 

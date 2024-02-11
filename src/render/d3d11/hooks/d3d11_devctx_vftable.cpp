@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -32,6 +32,7 @@ D3D11Dev_CreateRasterizerState_pfn                  D3D11Dev_CreateRasterizerSta
 D3D11Dev_CreateSamplerState_pfn                     D3D11Dev_CreateSamplerState_Original                     = nullptr;
 D3D11Dev_CreateBuffer_pfn                           D3D11Dev_CreateBuffer_Original                           = nullptr;
 D3D11Dev_CreateTexture2D_pfn                        D3D11Dev_CreateTexture2D_Original                        = nullptr;
+D3D11Dev_CreateTexture2D1_pfn                       D3D11Dev_CreateTexture2D1_Original                       = nullptr;
 D3D11Dev_CreateRenderTargetView_pfn                 D3D11Dev_CreateRenderTargetView_Original                 = nullptr;
 D3D11Dev_CreateShaderResourceView_pfn               D3D11Dev_CreateShaderResourceView_Original               = nullptr;
 D3D11Dev_CreateDepthStencilView_pfn                 D3D11Dev_CreateDepthStencilView_Original                 = nullptr;
