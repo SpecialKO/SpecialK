@@ -427,6 +427,12 @@ typedef HRESULT (WINAPI *D3D11Dev_CreateRenderTargetView_pfn)(
   _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC  *pDesc,
   _Out_opt_       ID3D11RenderTargetView        **ppRTView
 );
+typedef HRESULT (WINAPI *D3D11Dev_CreateRenderTargetView1_pfn)(
+  _In_            ID3D11Device3                  *This,
+  _In_            ID3D11Resource                 *pResource,
+  _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC1 *pDesc,
+  _Out_opt_       ID3D11RenderTargetView1       **ppRTView
+);
 typedef void (WINAPI *D3D11_PSSetSamplers_pfn)(
   _In_     ID3D11DeviceContext       *This,
   _In_     UINT                       StartSlot,
@@ -579,6 +585,12 @@ typedef HRESULT (WINAPI *D3D11Dev_CreateShaderResourceView_pfn)(
   _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC  *pDesc,
   _Out_opt_      ID3D11ShaderResourceView        **ppSRView
 );
+typedef HRESULT (WINAPI *D3D11Dev_CreateShaderResourceView1_pfn)(
+  _In_           ID3D11Device3                    *This,
+  _In_           ID3D11Resource                   *pResource,
+  _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC1 *pDesc,
+  _Out_opt_      ID3D11ShaderResourceView1       **ppSRView
+);
 typedef HRESULT (WINAPI *D3D11Dev_CreateDepthStencilView_pfn)(
   _In_            ID3D11Device                  *This,
   _In_            ID3D11Resource                *pResource,
@@ -590,6 +602,12 @@ typedef HRESULT (WINAPI *D3D11Dev_CreateUnorderedAccessView_pfn)(
   _In_            ID3D11Resource                   *pResource,
   _In_opt_  const D3D11_UNORDERED_ACCESS_VIEW_DESC *pDesc,
   _Out_opt_       ID3D11UnorderedAccessView       **ppUAView
+);
+typedef HRESULT (WINAPI *D3D11Dev_CreateUnorderedAccessView1_pfn)(
+  _In_            ID3D11Device3                     *This,
+  _In_            ID3D11Resource                    *pResource,
+  _In_opt_  const D3D11_UNORDERED_ACCESS_VIEW_DESC1 *pDesc,
+  _Out_opt_       ID3D11UnorderedAccessView1       **ppUAView
 );
 
 typedef HRESULT (WINAPI *D3D11Dev_CheckFeatureSupport_pfn)(
@@ -653,6 +671,7 @@ extern D3D11Dev_CreateBuffer_pfn                          D3D11Dev_CreateBuffer_
 extern D3D11Dev_CreateTexture2D_pfn                       D3D11Dev_CreateTexture2D_Original;
 extern D3D11Dev_CreateTexture2D1_pfn                      D3D11Dev_CreateTexture2D1_Original;
 extern D3D11Dev_CreateRenderTargetView_pfn                D3D11Dev_CreateRenderTargetView_Original;
+extern D3D11Dev_CreateRenderTargetView1_pfn               D3D11Dev_CreateRenderTargetView1_Original;
 extern D3D11Dev_CreateShaderResourceView_pfn              D3D11Dev_CreateShaderResourceView_Original;
 
 extern D3D11Dev_CreateVertexShader_pfn                    D3D11Dev_CreateVertexShader_Original;

@@ -34,9 +34,12 @@ D3D11Dev_CreateBuffer_pfn                           D3D11Dev_CreateBuffer_Origin
 D3D11Dev_CreateTexture2D_pfn                        D3D11Dev_CreateTexture2D_Original                        = nullptr;
 D3D11Dev_CreateTexture2D1_pfn                       D3D11Dev_CreateTexture2D1_Original                       = nullptr;
 D3D11Dev_CreateRenderTargetView_pfn                 D3D11Dev_CreateRenderTargetView_Original                 = nullptr;
+D3D11Dev_CreateRenderTargetView1_pfn                D3D11Dev_CreateRenderTargetView1_Original                = nullptr;
 D3D11Dev_CreateShaderResourceView_pfn               D3D11Dev_CreateShaderResourceView_Original               = nullptr;
+D3D11Dev_CreateShaderResourceView1_pfn              D3D11Dev_CreateShaderResourceView1_Original              = nullptr;
 D3D11Dev_CreateDepthStencilView_pfn                 D3D11Dev_CreateDepthStencilView_Original                 = nullptr;
 D3D11Dev_CreateUnorderedAccessView_pfn              D3D11Dev_CreateUnorderedAccessView_Original              = nullptr;
+D3D11Dev_CreateUnorderedAccessView1_pfn             D3D11Dev_CreateUnorderedAccessView1_Original             = nullptr;
 
 D3D11Dev_CreateVertexShader_pfn                     D3D11Dev_CreateVertexShader_Original                     = nullptr;
 D3D11Dev_CreatePixelShader_pfn                      D3D11Dev_CreatePixelShader_Original                      = nullptr;

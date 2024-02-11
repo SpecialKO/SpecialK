@@ -414,6 +414,310 @@ D3D11Dev_CreateShaderResourceView_Override (
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
+D3D11Dev_CreateShaderResourceView1_Override (
+  _In_           ID3D11Device3                    *This,
+  _In_           ID3D11Resource                   *pResource,
+  _In_opt_ const D3D11_SHADER_RESOURCE_VIEW_DESC1 *pDesc,
+  _Out_opt_      ID3D11ShaderResourceView1       **ppSRView )
+{
+  if (pResource == nullptr)
+    return E_INVALIDARG;
+
+#ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
+  if (pResource != nullptr)
+  {
+    SK_ComPtr <ID3D11Device> pActualDevice;
+    pResource->GetDevice   (&pActualDevice.p);
+
+    if (! pActualDevice.IsEqualObject (This))
+    {
+      SK_LOGi0 (L"D3D11 Device Hook Trying to Create SRV for a Resource"
+                L"Belonging to a Different Device");
+      return DXGI_ERROR_DEVICE_RESET;
+    }
+  }
+#endif
+
+#if 0
+  if (! SK_D3D11_EnsureMatchingDevices (pResource, This))
+  {
+    SK_ComPtr <ID3D11Device> pResourceDev;
+    pResource->GetDevice   (&pResourceDev);
+  
+    This = pResourceDev;
+  }
+#endif
+
+  D3D11_RESOURCE_DIMENSION   dim;
+  pResource->GetType       (&dim);
+
+  if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+  {
+    D3D11_SHADER_RESOURCE_VIEW_DESC1 desc =
+    {                .Format          = DXGI_FORMAT_UNKNOWN,
+                     .ViewDimension   = D3D11_SRV_DIMENSION_TEXTURE2D,
+      .Texture2D = { .MostDetailedMip = 0, .MipLevels = (UINT)-1 }
+    };
+
+    if (pDesc != nullptr)
+      desc = *pDesc;
+
+    SK_ComQIPtr <ID3D11Texture2D>
+        pTex (pResource);
+    if (pTex != nullptr)
+    {
+      D3D11_TEXTURE2D_DESC texDesc = { };
+      pTex->GetDesc      (&texDesc);
+
+      // Ys 8 crashes if this nonsense isn't here
+      bool bInvalidType =
+        (pDesc != nullptr && DirectX::IsTypeless (pDesc->Format, false));
+
+      // Fix-up SRV's created using NULL desc's on Typeless SwapChain Backbuffers, or using DXGI_FORMAT_UNKNOWN
+      if (DirectX::IsTypeless (texDesc.Format) && (pDesc == nullptr || pDesc->Format == DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (pDesc->Format)) &&
+                              (texDesc.BindFlags & D3D11_BIND_RENDER_TARGET))
+      {
+        if (pDesc == nullptr)
+            pDesc  = &desc;
+
+        desc.Format = DirectX::MakeTypelessUNORM (
+                      DirectX::MakeTypelessFLOAT (texDesc.Format));
+
+        bInvalidType = true;
+      }
+
+      // SK only overrides the format of RenderTargets, anything else is not our fault.
+      if ( bInvalidType || FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format)) )
+      {
+        if (texDesc.SampleDesc.Count > 1)
+        {
+          if (desc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2DARRAY) desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY;
+          else                                                          desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+        }
+
+        else
+        {
+          if (desc.ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY) desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+          else                                                            desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        }
+
+        if (                                                            bInvalidType ||
+             (                                   (desc.Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (texDesc.Format, false)) /*&&
+              (! SK_D3D11_IsDirectCopyCompatible (desc.Format,                                               texDesc.Format))*/)
+           )
+        {
+          DXGI_FORMAT swapChainFormat = DXGI_FORMAT_UNKNOWN;
+          UINT        sizeOfFormat    = sizeof (DXGI_FORMAT);
+
+          pTex->GetPrivateData (
+            SKID_DXGI_SwapChainBackbufferFormat,
+                                  &sizeOfFormat,
+                               &swapChainFormat );
+
+          if (swapChainFormat != DXGI_FORMAT_UNKNOWN)
+          {
+            // Unsure how to handle arrays of SwapChain backbuffers... I don't think D3D11 supports that
+            SK_ReleaseAssert ( desc.ViewDimension != D3D11_SRV_DIMENSION_TEXTURE2DARRAY &&
+                               desc.ViewDimension != D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY );
+
+            SK_LOGi1 (
+              L"SRV Format Override (Requested=%hs), (Returned=%hs) - [SwapChain]",
+                SK_DXGI_FormatToStr (    desc.Format).data (),
+                SK_DXGI_FormatToStr (swapChainFormat).data () );
+
+            desc.Format =
+              swapChainFormat;
+          }
+
+          // Not a SwapChain Backbuffer, so probably had its format changed for remastering
+          else
+          {
+            SK_LOGi1 (
+              L"SRV Format Override (Requested=%hs), (Returned=%hs) - Non-SwapChain Override",
+                SK_DXGI_FormatToStr (   desc.Format).data (),
+                SK_DXGI_FormatToStr (texDesc.Format).data () );
+
+            desc.Format =
+              texDesc.Format;
+          }
+
+          bool bErrorCorrection = false;
+
+          // If we got this far, the problem wasn't created by Special K, however...
+          //   Special K can still try to fix it.
+          if (DirectX::IsTypeless (desc.Format, false))
+          {
+            auto typedFormat =
+              DirectX::MakeTypelessUNORM   (
+                DirectX::MakeTypelessFLOAT (desc.Format));
+
+            SK_LOGi0 (
+              L"-!- Game tried to create a Typeless SRV (%hs) of a"
+                L" surface ('%hs') not directly managed by Special K",
+                        SK_DXGI_FormatToStr (desc.Format).data (),
+                        SK_D3D11_GetDebugNameUTF8 (pTex).c_str () );
+            SK_LOGi0 (
+              L"<?> Attempting to fix game's mistake by converting to %hs",
+                        SK_DXGI_FormatToStr (typedFormat).data () );
+
+            desc.Format      = typedFormat;
+            bErrorCorrection = true;
+          }
+
+          const HRESULT hr =
+            D3D11Dev_CreateShaderResourceView1_Original (
+              This, pResource,
+                &desc, ppSRView );
+
+          if (SUCCEEDED (hr))
+          {
+            if (bErrorCorrection)
+              SK_LOGi0 (L"==> [ Success ]");
+
+            return hr;
+          }
+        }
+      }
+    }
+  }
+
+  if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D && pDesc != nullptr)
+  {
+    DXGI_FORMAT newFormat    = pDesc->Format;
+    UINT        newMipLevels = pDesc->Texture2D.MipLevels;
+
+    SK_ComQIPtr <ID3D11Texture2D>
+        pTex2D (pResource);
+    D3D11_TEXTURE2D_DESC  tex_desc = { };
+
+    if (pTex2D != nullptr)
+    {
+      pTex2D->GetDesc (&tex_desc);
+
+      bool override = false;
+
+      if (! DirectX::IsDepthStencil (pDesc->Format))
+      {
+        if (                         pDesc->Format  != DXGI_FORMAT_UNKNOWN && (
+            ( DirectX::BitsPerPixel (pDesc->Format) !=
+              DirectX::BitsPerPixel (tex_desc.Format) ) ||
+            ( DirectX::MakeTypeless (pDesc->Format) != // Handle cases such as BC3 -> BC7: Size = Same, Fmt != Same
+              DirectX::MakeTypeless (tex_desc.Format) ) ||
+              DirectX::IsTypeless   (pDesc->Format,
+                                               false) ) && (! DirectX::IsTypeless (tex_desc.Format, false) &&
+                                                           (! DirectX::IsVideo    (tex_desc.Format)))
+           ) // Does not handle sRGB vs. non-sRGB, but generally the game
+        {    //   won't render stuff correctly if injected textures change that.
+          override  = true;
+          newFormat = tex_desc.Format;
+        }
+      }
+
+      if ( SK_D3D11_OverrideDepthStencil (newFormat) )
+        override = true;
+
+      if ( SK_D3D11_TextureIsCached ((ID3D11Texture2D *)pResource) )
+      {
+        auto& textures =
+          SK_D3D11_Textures;
+
+        auto& cache_desc =
+          textures->Textures_2D [(ID3D11Texture2D *)pResource];
+
+        // Texture may have been removed (i.e. dynamic update in Witcher 3)
+        if (cache_desc.texture != nullptr)
+        {
+          SK_ComPtr <ID3D11Device>        pCacheDevice;
+          cache_desc.texture->GetDevice (&pCacheDevice.p);
+
+          if (pCacheDevice.IsEqualObject (This))
+          {
+            newFormat =
+              cache_desc.desc.Format;
+
+            newMipLevels =
+              pDesc->Texture2D.MipLevels;
+
+            if (pDesc->Format != DXGI_FORMAT_UNKNOWN &&
+                DirectX::MakeTypeless (pDesc->Format) !=
+                DirectX::MakeTypeless (newFormat))
+            {
+              if (DirectX::IsSRGB (pDesc->Format))
+                newFormat = DirectX::MakeSRGB (newFormat);
+
+              override = true;
+
+              SK_LOG1 ((L"Overriding Resource View Format for Cached Texture '%08x'  { Was: '%hs', Now: '%hs' }",
+                        cache_desc.crc32c,
+                        SK_DXGI_FormatToStr (pDesc->Format).data (),
+                        SK_DXGI_FormatToStr (newFormat).data ()),
+                       L"DX11TexMgr");
+            }
+
+            if (config.textures.d3d11.generate_mips &&
+                cache_desc.desc.MipLevels != pDesc->Texture2D.MipLevels)
+            {
+              override = true;
+              newMipLevels = cache_desc.desc.MipLevels;
+
+              SK_LOG1 ((L"Overriding Resource View Mip Levels for Cached Texture '%08x'  { Was: %lu, Now: %lu }",
+                        cache_desc.crc32c,
+                        pDesc->Texture2D.MipLevels,
+                        newMipLevels),
+                       L"DX11TexMgr");
+            }
+          }
+
+          else if (config.system.log_level > 0)
+            // TODO: Texture cache needs to be per-device
+            SK_ReleaseAssert (!"Attempted to use a cached texture on the wrong device!");
+        }
+      }
+
+      auto descCopy =
+        *pDesc;
+
+      // SRVs and RTVs cannot be typeless
+      if (DirectX::IsTypeless (newFormat,       false) ||
+          DirectX::IsTypeless (descCopy.Format, false))
+      {
+        if (! DirectX::IsTypeless (tex_desc.Format))
+        {
+          override  = true;
+          newFormat = DXGI_FORMAT_UNKNOWN;
+        }
+      }
+
+      if (override)
+      {
+        descCopy.Format = newFormat;
+
+        if (newMipLevels != pDesc->Texture2D.MipLevels)
+        {
+          descCopy.Texture2D.MipLevels = sk::narrow_cast <UINT>( -1 );
+          descCopy.Texture2D.MostDetailedMip = 0;
+        }
+
+        HRESULT hr =
+          D3D11Dev_CreateShaderResourceView1_Original ( This, pResource,
+                                                          &descCopy, ppSRView );
+
+        if (SUCCEEDED (hr))
+        {
+          return hr;
+        }
+      }
+    }
+  }
+
+  return
+    D3D11Dev_CreateShaderResourceView1_Original ( This, pResource,
+                                                    pDesc, ppSRView );
+}
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
 D3D11Dev_CreateDepthStencilView_Override (
   _In_            ID3D11Device                  *This,
   _In_            ID3D11Resource                *pResource,
@@ -641,6 +945,148 @@ D3D11Dev_CreateUnorderedAccessView_Override (
   const HRESULT hr =
     D3D11Dev_CreateUnorderedAccessView_Original ( This, pResource,
                                                     pDesc, ppUAView );
+  return hr;
+}
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D11Dev_CreateUnorderedAccessView1_Override (
+  _In_            ID3D11Device3                     *This,
+  _In_            ID3D11Resource                    *pResource,
+  _In_opt_  const D3D11_UNORDERED_ACCESS_VIEW_DESC1 *pDesc,
+  _Out_opt_       ID3D11UnorderedAccessView1       **ppUAView )
+{
+  if (pResource == nullptr)
+    return E_INVALIDARG;
+
+#if 0
+  if (pResource != nullptr)
+  {
+    SK_ComPtr <ID3D11Device> pActualDevice;
+    pResource->GetDevice   (&pActualDevice.p);
+
+    if (! pActualDevice.IsEqualObject (This))
+    {
+      SK_LOGi0 (L"D3D11 Device Hook Trying to Create UAV for a Resource"
+                L"Belonging to a Different Device");
+      return DXGI_ERROR_DEVICE_RESET;
+    }
+  }
+#endif
+
+#if 0
+  if (! SK_D3D11_EnsureMatchingDevices (pResource, This))
+  {
+    SK_ComPtr <ID3D11Device> pResourceDev;
+    pResource->GetDevice   (&pResourceDev);
+  
+    This = pResourceDev;
+  }
+#endif
+
+  if (SK_ComQIPtr <ID3D11Texture2D> pTex (pResource);
+                                    pTex != nullptr)
+  {
+    D3D11_RESOURCE_DIMENSION dim;
+    pResource->GetType     (&dim);
+
+    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+    {
+      D3D11_UNORDERED_ACCESS_VIEW_DESC1 desc =
+      { .Format         = DXGI_FORMAT_UNKNOWN,
+        .ViewDimension  = D3D11_UAV_DIMENSION_TEXTURE2D,
+        .Texture2D      = { .MipSlice = 0 }
+      };
+
+      if (pDesc != nullptr)
+        desc = *pDesc;
+
+      D3D11_TEXTURE2D_DESC tex_desc = { };
+      pTex->GetDesc      (&tex_desc);
+
+      DXGI_FORMAT newFormat = desc.Format;
+      bool         override = false;
+
+      // Fix-up UAV's created using NULL desc's on Typeless SwapChain Backbuffers, or using DXGI_FORMAT_UNKNOWN
+      if (DirectX::IsTypeless (tex_desc.Format) && (pDesc == nullptr || pDesc->Format == DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (pDesc->Format)) &&
+                              (tex_desc.BindFlags & D3D11_BIND_RENDER_TARGET))
+      {
+        if (pDesc == nullptr)
+          pDesc    = &desc;
+
+        desc.Format = DirectX::MakeTypelessUNORM (
+                      DirectX::MakeTypelessFLOAT (tex_desc.Format));
+
+        newFormat = desc.Format;
+        override  = true;
+      }
+
+      if ( SK_D3D11_OverrideDepthStencil (newFormat) )
+        override = true;
+
+      if ( SK_D3D11_TextureIsCached ((ID3D11Texture2D *)pResource) )
+      {
+        auto& textures =
+          SK_D3D11_Textures;
+
+        auto& cache_desc =
+          textures->Textures_2D [(ID3D11Texture2D *)pResource];
+
+        newFormat =
+          cache_desc.desc.Format;
+
+        if (                                             pDesc != nullptr &&
+                                    pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+             DirectX::MakeTypeless (pDesc->Format) !=
+             DirectX::MakeTypeless (newFormat    )  )
+        {
+          if (DirectX::IsSRGB (pDesc->Format))
+            newFormat = DirectX::MakeSRGB (newFormat);
+
+          override = true;
+
+          if (config.system.log_level > 0)
+            SK_ReleaseAssert (override == false && L"UAV Format Override Needed");
+
+          SK_LOG1 ( ( L"Overriding Unordered Access View Format for Cached Texture '%08x'  { Was: '%hs', Now: '%hs' }",
+                        cache_desc.crc32c,
+                   SK_DXGI_FormatToStr (pDesc->Format).data      (),
+                            SK_DXGI_FormatToStr (newFormat).data () ),
+                      L"DX11TexMgr" );
+        }
+      }
+
+      if (                        pDesc == nullptr ||
+                                 (pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
+           DirectX::BitsPerPixel (pDesc->Format) !=
+           DirectX::BitsPerPixel (tex_desc.Format)) )
+      {
+        override  = true;
+        newFormat = tex_desc.Format;
+      }
+
+      if (override)
+      {
+        auto descCopy =
+          (pDesc != nullptr) ?
+          *pDesc             : desc;
+
+        descCopy.Format = newFormat;
+
+        const HRESULT hr =
+          D3D11Dev_CreateUnorderedAccessView1_Original ( This, pResource,
+                                                           &descCopy, ppUAView );
+
+        if (SUCCEEDED (hr))
+          return hr;
+      }
+    }
+  }
+
+  const HRESULT hr =
+    D3D11Dev_CreateUnorderedAccessView1_Original ( This, pResource,
+                                                     pDesc, ppUAView );
   return hr;
 }
 
@@ -875,48 +1321,19 @@ D3D11Dev_CreateTexture2D1_Override (
 {
   SK_LOG_FIRST_CALL
 
-  // Pass this through the normal CreateTexture2D hook;
-  //   the other layouts present a problem, that we'll ignore...
-  if (pDesc->TextureLayout == D3D11_TEXTURE_LAYOUT_UNDEFINED)
-  {
-    D3D11_TEXTURE2D_DESC
-      texDesc = { .Width          = pDesc->Width,
-                  .Height         = pDesc->Height,
-                  .MipLevels      = pDesc->MipLevels,
-                  .ArraySize      = pDesc->ArraySize,
-                  .Format         = pDesc->Format,
-                  .SampleDesc     = pDesc->SampleDesc,
-                  .Usage          = pDesc->Usage,
-                  .BindFlags      = pDesc->BindFlags,
-                  .CPUAccessFlags = pDesc->CPUAccessFlags,
-                  .MiscFlags      = pDesc->MiscFlags
-      };
+  if (pDesc == nullptr)
+    return E_INVALIDARG;
 
-    SK_ComPtr <ID3D11Texture2D> pTex2D;
+  const D3D11_TEXTURE2D_DESC1* pDescOrig =  pDesc;
+                          auto descCopy  = *pDescOrig;
 
-    HRESULT hr =
-      D3D11Dev_CreateTexture2D_Override (This, &texDesc, pInitialData, &pTex2D.p);
-
-    if (SUCCEEDED (hr))
-    {
-      pTex2D.p->QueryInterface <ID3D11Texture2D1> (ppTexture2D);
-
-      return hr;
-    }
-  }
-
-  else
-  {
-    SK_RunOnce (
-      SK_LOGi0 (
-        L"ID3D11Device3::CreateTexture2D1 (...) called with unsupported TextureLayout=%x",
-          pDesc->TextureLayout
-      )
+  const HRESULT hr =
+    D3D11Dev_CreateTexture2D1_Impl (
+      This, &descCopy, pInitialData,
+            ppTexture2D, _ReturnAddress ()
     );
-  }
 
-  return
-    D3D11Dev_CreateTexture2D1_Original (This, pDesc, pInitialData, ppTexture2D);
+  return hr;
 }
 
 __declspec (noinline)
@@ -962,7 +1379,7 @@ D3D11Dev_CreateTexture2D_Override (
   //{
   //  dll_log.Log ( L"Code Origin ('%s') - Staging: %lux%lu - Format: %hs, CPU Access: %x, Misc Flags: %x",
   //                  SK_GetCallerName ().c_str (), pDesc->Width, pDesc->Height,
-  //                  SK_DXGI_FormatToStr          (pDesc->Format).c_str (),
+  //                  SK_DX5GI_FormatToStr          (pDesc->Format).c_str (),
   //                         pDesc->CPUAccessFlags, pDesc->MiscFlags );
   //}
   }
@@ -1007,6 +1424,46 @@ D3D11Dev_CreateRenderTargetView_Override (
 
   return
     SK_D3D11Dev_CreateRenderTargetView_Impl ( This,
+                                                pResource, pDesc,
+                                                  ppRTView, FALSE );
+}
+
+__declspec (noinline)
+HRESULT
+STDMETHODCALLTYPE
+D3D11Dev_CreateRenderTargetView1_Override (
+  _In_            ID3D11Device3                  *This,
+  _In_            ID3D11Resource                 *pResource,
+  _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC1 *pDesc,
+  _Out_opt_       ID3D11RenderTargetView1       **ppRTView )
+{
+  if (pResource == nullptr)
+    return E_INVALIDARG;
+
+#if 0
+  SK_ComPtr <ID3D11Device> pActualDevice;
+  pResource->GetDevice   (&pActualDevice.p);
+
+  if (! pActualDevice.IsEqualObject (This))
+  {
+    SK_LOGi0 (L"D3D11 Device Hook Trying to Create RTV for a Resource"
+              L"Belonging to a Different Device");
+    return DXGI_ERROR_DEVICE_RESET;
+  }
+#endif
+
+#if 0
+  if (! SK_D3D11_EnsureMatchingDevices (pResource, This))
+  {
+    SK_ComPtr <ID3D11Device> pResourceDev;
+    pResource->GetDevice   (&pResourceDev);
+  
+    This = pResourceDev;
+  }
+#endif
+
+  return
+    SK_D3D11Dev_CreateRenderTargetView1_Impl ( This,
                                                 pResource, pDesc,
                                                   ppRTView, FALSE );
 }

@@ -937,6 +937,101 @@ SK_D3D11Dev_CreateRenderTargetView_Finish (
 
 HRESULT
 STDMETHODCALLTYPE
+SK_D3D11Dev_CreateRenderTargetView1_Finish (
+  _In_            ID3D11Device3                  *pDev,
+  _In_            ID3D11Resource                 *pResource,
+  _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC1 *pDesc,
+  _Out_opt_       ID3D11RenderTargetView1       **ppRTView,
+                  BOOL                            bWrapped )
+{
+  SK_LOG1 ( ( L"CreateRTV1, Format: %hs",
+                   SK_DXGI_FormatToStr ( pDesc != nullptr ?
+                                         pDesc->Format    :
+                                          DXGI_FORMAT_UNKNOWN).data () ),
+              L"  D3D 11  " );
+
+  HRESULT ret = E_UNEXPECTED;
+
+  D3D11_RESOURCE_DIMENSION res_dim = { };
+  pResource->GetType     (&res_dim);
+
+#ifndef NO_UNITY_HACKS
+  if (res_dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+  {
+    SK_ComQIPtr <ID3D11Texture2D>
+        pTex2D (pResource);
+    if (pTex2D.p != nullptr)
+    {
+      D3D11_TEXTURE2D_DESC
+                        texDesc = { };
+      pTex2D->GetDesc (&texDesc);
+
+      ///D3D11_RENDER_TARGET_VIEW_DESC desc = { };
+      ///
+      ///if (pDesc == nullptr || pDesc->Format == DXGI_FORMAT_UNKNOWN)
+      ///{
+      ///  desc.Format             = texDesc.Format;
+      ///  desc.ViewDimension      = D3D11_RTV_DIMENSION_TEXTURE2D;
+      ///  desc.Texture2D.MipSlice = 0;
+      ///
+      ///  if (DirectX::IsTypeless (texDesc.Format))
+      ///  {
+      ///    desc.Format = DirectX::MakeTypelessUNORM (
+      ///                  DirectX::MakeTypelessFLOAT (texDesc.Format));
+      ///  }
+      ///
+      ///  pDesc = &desc;
+      ///}
+
+      if (pDesc != nullptr)
+      {
+        // For HDR Retrofit, engine may be really stubbornly
+        //   insisting this is some other format.
+        if ( texDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT ||
+            (texDesc.Format == DXGI_FORMAT_R32G32B32A32_FLOAT && config.render.hdr.enable_32bpc) )
+          ((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
+                                            texDesc.Format;
+
+        // Only backbuffers can be casted if they are already a fully-typed format
+        ret =
+          bWrapped ?
+            pDev->CreateRenderTargetView1 ( pResource, pDesc, ppRTView )
+                     :
+            D3D11Dev_CreateRenderTargetView1_Original ( pDev,  pResource,
+                                                        pDesc, ppRTView );
+
+        // Failed, so it's probably not a SwapChain backbuffer :)
+        if (FAILED (ret))
+        {
+          //((D3D11_RENDER_TARGET_VIEW_DESC *)pDesc)->Format =
+          //                                  texDesc.Format;
+        }
+
+        else
+          return ret;
+      }
+
+      if (DirectX::IsTypeless (texDesc.Format))
+        SK_ReleaseAssert ( pDesc         != nullptr             &&
+                           pDesc->Format != DXGI_FORMAT_UNKNOWN &&
+                        (! DirectX::IsTypeless (pDesc->Format)) &&
+                           DirectX::MakeSRGB (DirectX::MakeTypeless (pDesc->Format)) ==
+                                                 DirectX::MakeSRGB (texDesc.Format) );
+    }
+  }
+
+#endif
+
+  return
+    bWrapped ?
+      pDev->CreateRenderTargetView1 ( pResource, pDesc, ppRTView )
+               :
+      D3D11Dev_CreateRenderTargetView1_Original ( pDev,  pResource,
+                                                  pDesc, ppRTView );
+}
+
+HRESULT
+STDMETHODCALLTYPE
 SK_D3D11Dev_CreateRenderTargetView_Impl (
   _In_            ID3D11Device                   *pDev,
   _In_            ID3D11Resource                 *pResource,
@@ -974,6 +1069,268 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
   {
     D3D11_RENDER_TARGET_VIEW_DESC desc = { .Format        = DXGI_FORMAT_UNKNOWN,
                                            .ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D };
+    D3D11_RESOURCE_DIMENSION      dim  = { };
+
+    pResource->GetType (&dim);
+
+    if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
+    {
+      if (pDesc != nullptr)
+        desc = *pDesc;
+
+      DXGI_FORMAT newFormat =
+        desc.Format;
+
+      SK_ComQIPtr <ID3D11Texture2D>
+          pTex (pResource);
+      if (pTex != nullptr)
+      {
+        // Ys 8 crashes if this nonsense isn't here
+        bool bInvalidType =
+          (pDesc != nullptr && DirectX::IsTypeless (pDesc->Format));
+
+        bool bManipulated =
+          (! bInvalidType) && FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format));
+
+        D3D11_TEXTURE2D_DESC  tex_desc = { };
+        pTex->GetDesc       (&tex_desc);
+
+        bool bInvalidCast =
+          DirectX::MakeTypeless (tex_desc.Format) != DirectX::MakeTypeless (desc.Format) && desc.Format != DXGI_FORMAT_UNKNOWN;
+
+        if (bInvalidType || bManipulated || bInvalidCast)
+        {
+          if (                                                            bInvalidType || bInvalidCast ||
+               (                                   (desc.Format != DXGI_FORMAT_UNKNOWN || DirectX::IsTypeless (tex_desc.Format)) &&
+                (! SK_D3D11_IsDirectCopyCompatible (desc.Format,                                               tex_desc.Format)))
+             )
+          {
+            if (DirectX::IsTypeless (desc.Format))
+            {
+              newFormat =
+                tex_desc.Format;
+            }
+
+            // MSAA overrides may cause games to try and create single-sampled RTVs to
+            //   multi-sampled targets, so let's give them some assistance to fix this.
+            if (tex_desc.SampleDesc.Count > 1)
+            {
+              SK_RunOnce (
+                SK_LOGi0 (L"Multisampled SwapChain Backbuffer RTV Created")
+              );
+
+              if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2D)
+              {
+                // This actually won't work if the game uses a depth buffer, since it also
+                //   must be multi-sampled.
+                //
+                //  * In future, SetPrivateDataInterface (...) a multisampled intermediate
+                //      buffer the game can use and we'll do resolve for it.
+                SK_RunOnce (
+                  SK_LOGi0 (L"* Re-typing single-sampled rendertarget view to multi-sampled resource...")
+                );
+
+                desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
+              }
+            }
+
+            else if (desc.ViewDimension == D3D11_RTV_DIMENSION_TEXTURE2DMS)
+                     desc.ViewDimension =  D3D11_RTV_DIMENSION_TEXTURE2D;
+
+            // If the SwapChain was sRGB originally, and this RTV is
+            //   the SwapChain's backbuffer, create an sRGB view
+            //  (of the now typeless SwapChain buffers SK manages).
+            UINT        size = sizeof (DXGI_FORMAT);
+            DXGI_FORMAT internalSwapChainFormat;
+
+            // Is this a surface managed by SK's SwapChain wrapper?
+            if ( SUCCEEDED ( pResource->GetPrivateData (
+                               SKID_DXGI_SwapChainBackbufferFormat, &size,
+                                 &internalSwapChainFormat ) ) )
+            { // Yep
+              //extern bool
+              //    bOriginallysRGB;
+              //if (bOriginallysRGB && (! __SK_HDR_16BitSwap)) {
+              //  //desc.Format = DirectX::MakeSRGB (tex_desc.Format);
+              //} // Game expects sRGB
+
+              if (__SK_HDR_16BitSwap) {
+                desc.Format =                                DXGI_FORMAT_R16G16B16A16_FLOAT;
+                SK_ReleaseAssert (internalSwapChainFormat == DXGI_FORMAT_R16G16B16A16_FLOAT);
+              } // Who cares what game expects, SK is going 16bpc HDR(!!)
+
+              else if (__SK_HDR_10BitSwap) {
+                desc.Format =                                DXGI_FORMAT_R10G10B10A2_UNORM;
+                SK_ReleaseAssert (internalSwapChainFormat == DXGI_FORMAT_R10G10B10A2_UNORM);
+              } // Who cares what game expects, SK is going 10bpc HDR(!!)
+
+              else
+              {
+                if (                    pDesc != nullptr && (
+                                         desc.Format  == DXGI_FORMAT_UNKNOWN ||
+                    DirectX::IsTypeless (desc.Format)) /* Add Check for Bitness */)
+                {
+                  desc.Format = internalSwapChainFormat;
+                } // Game expects UNORM or sRGB, SK has Typeless internally, it'll work.
+
+                else if (DirectX::MakeTypeless (desc.Format) != tex_desc.Format ||
+                                               pDesc == nullptr)
+                {
+                  if (pDesc != nullptr)
+                  {
+                    if ( DirectX::IsSRGB       (                       desc.Format) &&
+                         DirectX::MakeTypeless (                       desc.Format) !=
+                         DirectX::MakeTypeless (DirectX::MakeSRGB (tex_desc.Format))
+                           &&  DXGI_FORMAT_R10G10B10A2_TYPELESS == tex_desc.Format )
+                    {
+                      if (! __SK_HDR_10BitSwap)
+                      {
+                        SK_RunOnce (
+                          SK_ImGui_Warning (L"10-bit SDR is not possible in this game because it uses sRGB gamma.")
+                        );
+                      }
+                    }
+
+                    else
+                    {
+                      if (! config.render.dxgi.suppress_rtv_mismatch)
+                      {
+                        SK_RunOnce (
+                          SK_ImGui_Warning (
+                            SK_FormatStringW (L"Incompatible SwapChain RTV Format Requested: %hs = %hs ??",
+                                             SK_DXGI_FormatToStr (    desc.Format).data (),
+                                             SK_DXGI_FormatToStr (tex_desc.Format).data ()).c_str ()
+                                           )
+                                   );
+                      }
+                    }
+                  }
+
+                  desc.Format = internalSwapChainFormat;
+                } // Give it the wrong type anyway or stuff will blow-up!
+              }
+            }
+
+            if ( SK_D3D11_OverrideDepthStencil (newFormat))
+              desc.Format = newFormat;
+
+            bool bErrorCorrection = false;
+
+            //
+            // If we changed the format of the underlying resource and the code above was unable to
+            //   fix format mismatch, then assign the RTV the changed format.
+            //
+            if (bManipulated || bInvalidCast)
+            {
+              if (desc.Format != DXGI_FORMAT_UNKNOWN && DirectX::MakeTypeless (tex_desc.Format) != DirectX::MakeTypeless (desc.Format))
+              {
+                if (bManipulated)
+                {
+                  bool log_this =
+                    config.system.log_level > 0;
+
+                  // Log first occurrence regardless of log level
+                  SK_RunOnce (log_this = true);
+
+                  if (log_this)
+                  {
+                    SK_LOGi0 (
+                      L"RTV Format changed from %hs to %hs because of SK format "
+                      L"manipulation on the underlying D3D11 resource.",
+
+                      SK_DXGI_FormatToStr (desc.Format    ).data (),
+                      SK_DXGI_FormatToStr (tex_desc.Format).data ()
+                    );
+                  }
+                }
+
+                desc.Format = tex_desc.Format;
+              }
+            }
+
+            // If we got this far, the problem wasn't created by Special K, however...
+            //   Special K can still try to fix it.
+            //
+            //  * Dear Esther tries to use an R24X8_TYPELESS view of its depth buffer,
+            //      for example, and is broken (without SK). It can't hurt to try and fix :)
+            if (DirectX::IsTypeless (desc.Format))
+            {
+              auto typedFormat =
+                DirectX::MakeTypelessUNORM   (
+                  DirectX::MakeTypelessFLOAT (desc.Format));
+
+              SK_LOGi0 (
+                L"-!- Game tried to create a Typeless RTV (%hs) of a"
+                L" surface ('%hs') not directly managed by Special K",
+                          SK_DXGI_FormatToStr (desc.Format).data (),
+                          SK_D3D11_GetDebugNameUTF8 (pTex).c_str () );
+              SK_LOGi0 (
+                L"<?> Attempting to fix game's mistake by converting to %hs",
+                          SK_DXGI_FormatToStr (typedFormat).data () );
+
+              desc.Format      = typedFormat;
+              bErrorCorrection = true;
+            }
+
+            const HRESULT hr =
+              _Finish (&desc);
+
+            if (SUCCEEDED (hr))
+            {
+              if (bErrorCorrection)
+                SK_LOGi0 (L"==> [ Success ]");
+
+              return hr;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return
+    _Finish (pDesc);
+}
+
+HRESULT
+STDMETHODCALLTYPE
+SK_D3D11Dev_CreateRenderTargetView1_Impl (
+  _In_            ID3D11Device3                  *pDev,
+  _In_            ID3D11Resource                 *pResource,
+  _In_opt_  const D3D11_RENDER_TARGET_VIEW_DESC1 *pDesc,
+  _Out_opt_       ID3D11RenderTargetView1       **ppRTView,
+                  BOOL                            bWrapped )
+{
+#if 0
+  if (! SK_D3D11_EnsureMatchingDevices (pResource, pDev))
+  {
+    SK_ComPtr <ID3D11Device> pResourceDev;
+    pResource->GetDevice   (&pResourceDev);
+
+    pDev = pResourceDev;
+  }
+#endif
+
+  auto _Finish =
+  [&](const D3D11_RENDER_TARGET_VIEW_DESC1* pDesc_) ->
+  HRESULT
+  {
+    return
+      SK_D3D11Dev_CreateRenderTargetView1_Finish (
+        pDev, pResource,
+          pDesc_, ppRTView,
+            bWrapped
+      );
+  };
+
+  ///if (bWrapped)
+  ///  return _Finish (pDesc);
+
+  // Unity throws around NULL for pResource
+  if (pResource != nullptr)
+  {
+    D3D11_RENDER_TARGET_VIEW_DESC1 desc = { .Format        = DXGI_FORMAT_UNKNOWN,
+                                            .ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D };
     D3D11_RESOURCE_DIMENSION      dim  = { };
 
     pResource->GetType (&dim);
@@ -5083,11 +5440,11 @@ SK_D3DX11_SAFE_CreateTextureFromFileW ( ID3D11Device*           pDevice,   LPCWS
 
 HRESULT
 WINAPI
-D3D11Dev_CreateTexture2D_Impl (
-  _In_              ID3D11Device            *This,
-  _Inout_opt_       D3D11_TEXTURE2D_DESC    *pDesc,
+D3D11Dev_CreateTexture2D1_Impl (
+  _In_              ID3D11Device3           *This,
+  _Inout_opt_       D3D11_TEXTURE2D_DESC1   *pDesc,
   _In_opt_    const D3D11_SUBRESOURCE_DATA  *pInitialData,
-  _Out_opt_         ID3D11Texture2D        **ppTexture2D,
+  _Out_opt_         ID3D11Texture2D1       **ppTexture2D,
                     LPVOID                   lpCallerAddr,
                     SK_TLS                  *pTLS )
 {
@@ -5103,7 +5460,7 @@ D3D11Dev_CreateTexture2D_Impl (
   if (pD3D11On12Device.p != nullptr || (rb.api != SK_RenderAPI::D3D11 && rb.api != SK_RenderAPI::Reserved))
   {
     return
-      D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
+      D3D11Dev_CreateTexture2D1_Original (This, pDesc, pInitialData, ppTexture2D);
   }
 #endif
 
@@ -5119,7 +5476,7 @@ D3D11Dev_CreateTexture2D_Impl (
     }
 
     return
-      D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
+      D3D11Dev_CreateTexture2D1_Original (This, pDesc, pInitialData, ppTexture2D);
   }
 #endif
 
@@ -5175,7 +5532,7 @@ D3D11Dev_CreateTexture2D_Impl (
         );
 
         if (SK_GetCallingDLL (lpCallerAddr) == SK_GetModuleHandle (nullptr))
-            SK_TVFix_CreateTexture2D (pDesc);
+            SK_TVFix_CreateTexture2D ((D3D11_TEXTURE2D_DESC *)pDesc);
       } break;
 
       case SK_GAME_ID::GalGunReturns:
@@ -5317,9 +5674,9 @@ D3D11Dev_CreateTexture2D_Impl (
                          bIgnoreThisUpload == false &&
        pDesc                 != nullptr             &&
        pDesc->Usage          != D3D11_USAGE_STAGING &&
-       pDesc->Usage          != D3D11_USAGE_DYNAMIC )//&&
-                   //( pInitialData          == nullptr ||
-                     //pInitialData->pSysMem == nullptr ) )
+       pDesc->Usage          != D3D11_USAGE_DYNAMIC &&
+                   ( pInitialData          == nullptr ||
+                     pInitialData->pSysMem == nullptr ) )
   {
     extern bool SK_HDR_PromoteUAVsTo16Bit;
 
@@ -5339,9 +5696,7 @@ D3D11Dev_CreateTexture2D_Impl (
                                D3D11_BIND_SHADER_RESOURCE &&
                 pDesc->Width == swapDesc.BufferDesc.Width &&
                pDesc->Height == swapDesc.BufferDesc.Height//&&
-             /*pDesc->Format == swapDesc.BufferDesc.Format*/ &&
-               ( pInitialData          == nullptr ||
-                 pInitialData->pSysMem == nullptr ))         &&
+             /*pDesc->Format == swapDesc.BufferDesc.Format*/)         &&
 #endif
            (pDesc->BindFlags & _UnwantedFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) )
        )
@@ -5508,8 +5863,8 @@ D3D11Dev_CreateTexture2D_Impl (
           if (bManipulated)
           {
             HRESULT hr =
-              D3D11Dev_CreateTexture2D_Original ( This,            pDesc,
-                                                    pInitialData, ppTexture2D );
+              D3D11Dev_CreateTexture2D1_Original ( This,            pDesc,
+                                                     pInitialData, ppTexture2D );
 
             if (FAILED (hr))
             {
@@ -5517,8 +5872,8 @@ D3D11Dev_CreateTexture2D_Impl (
 
               // Try again with the original format
               return
-                D3D11Dev_CreateTexture2D_Original ( This,            &origDesc,
-                                                      pInitialData, ppTexture2D );
+                D3D11Dev_CreateTexture2D1_Original ( This,            &origDesc,
+                                                       pInitialData, ppTexture2D );
             }
 
             else
@@ -5544,24 +5899,24 @@ D3D11Dev_CreateTexture2D_Impl (
     assert (false);
 
     return
-      D3D11Dev_CreateTexture2D_Original ( This,            pDesc,
-                                            pInitialData, ppTexture2D );
+      D3D11Dev_CreateTexture2D1_Original ( This,            pDesc,
+                                             pInitialData, ppTexture2D );
   }
   //// -----------
 
   if (bIgnoreThisUpload)
   {
     return
-      D3D11Dev_CreateTexture2D_Original ( This,            pDesc,
-                                            pInitialData, ppTexture2D );
+      D3D11Dev_CreateTexture2D1_Original ( This,            pDesc,
+                                             pInitialData, ppTexture2D );
   }
 
   if ( pDesc      == nullptr ||
       ppTexture2D == nullptr )
   {
     return
-      D3D11Dev_CreateTexture2D_Original (This, pDesc,
-                                         pInitialData, ppTexture2D);
+      D3D11Dev_CreateTexture2D1_Original (This, pDesc,
+                                          pInitialData, ppTexture2D);
   }
   //// -----------
 
@@ -5588,7 +5943,7 @@ D3D11Dev_CreateTexture2D_Impl (
   uint32_t cache_tag  = 0;
   size_t   size       = 0;
 
-  SK_ComPtr <ID3D11Texture2D> pCachedTex = nullptr;
+  SK_ComPtr <ID3D11Texture2D1> pCachedTex = nullptr;
 
   bool cacheable = ( config.textures.d3d11.cache &&
                      pInitialData            != nullptr &&
@@ -5702,12 +6057,12 @@ D3D11Dev_CreateTexture2D_Impl (
   if (cacheable)
   {
     checksum =
-      crc32_tex (pDesc, pInitialData, &size, &top_crc32);
+      crc32_tex ((D3D11_TEXTURE2D_DESC *)pDesc, pInitialData, &size, &top_crc32);
 
     if (SK_D3D11_inject_textures_ffx)
     {
       ffx_crc32 =
-        crc32_ffx (pDesc, pInitialData, &size);
+        crc32_ffx ((D3D11_TEXTURE2D_DESC *)pDesc, pInitialData, &size);
     }
 
     injectable = (
@@ -5735,8 +6090,8 @@ D3D11Dev_CreateTexture2D_Impl (
           safe_crc32c (top_crc32, (uint8_t *)(pDesc), sizeof D3D11_TEXTURE2D_DESC);
 
         // Adds and holds a reference
-        pCachedTex =
-          textures->getTexture2D ( cache_tag, pDesc, nullptr, nullptr,
+        pCachedTex = (ID3D11Texture2D1 *)
+          textures->getTexture2D ( cache_tag, (D3D11_TEXTURE2D_DESC *)pDesc, nullptr, nullptr,
                                     pTLS );
       }
     }
@@ -5753,7 +6108,7 @@ D3D11Dev_CreateTexture2D_Impl (
                   //L" (Hash=0x%08X [%05.03f MiB]) <<",
                   //checksum, (float)size / (1024.0f * 1024.0f) );
 
-    (*ppTexture2D = pCachedTex);// ->AddRef();
+    (*ppTexture2D = pCachedTex.p);// ->AddRef();
 
     return S_OK;
   }
@@ -5817,10 +6172,10 @@ D3D11Dev_CreateTexture2D_Impl (
               const LARGE_INTEGER load_end =
                 SK_QueryPerf ();
 
-              D3D11_TEXTURE2D_DESC orig_desc = *pDesc;
-              D3D11_TEXTURE2D_DESC new_desc  = {    };
+              D3D11_TEXTURE2D_DESC1 orig_desc = *pDesc;
+              D3D11_TEXTURE2D_DESC1 new_desc  = {    };
 
-              (*ppTexture2D)->GetDesc (&new_desc);
+              (*ppTexture2D)->GetDesc1 (&new_desc);
 
               pDesc->BindFlags      = new_desc.BindFlags;
               pDesc->CPUAccessFlags = new_desc.CPUAccessFlags;
@@ -5831,6 +6186,7 @@ D3D11Dev_CreateTexture2D_Impl (
               pDesc->MiscFlags      = new_desc.MiscFlags;
               pDesc->Usage          = new_desc.Usage;
               pDesc->Width          = new_desc.Width;
+              pDesc->TextureLayout  = new_desc.TextureLayout;
 
               // To allow texture reloads, we cannot allow immutable usage on these textures.
               //
@@ -5838,20 +6194,20 @@ D3D11Dev_CreateTexture2D_Impl (
               {   pDesc->Usage  = D3D11_USAGE_DEFAULT; }
 
               size =
-                SK_D3D11_ComputeTextureSize (pDesc);
+                SK_D3D11_ComputeTextureSize ((D3D11_TEXTURE2D_DESC *)pDesc);
 
               std::scoped_lock <SK_Thread_HybridSpinlock>
                     scope_lock (*cache_cs);
 
               textures->refTexture2D (
-                *ppTexture2D,
-                  pDesc,
+                (ID3D11Texture2D *)*ppTexture2D,
+                  (D3D11_TEXTURE2D_DESC *)pDesc,
                     cache_tag,
                       size,
                         load_end.QuadPart - load_start.QuadPart,
                           top_crc32,
                             wszTex,
-                              &orig_desc,  (HMODULE)lpCallerAddr,
+                              (D3D11_TEXTURE2D_DESC *)&orig_desc,  (HMODULE)lpCallerAddr,
                                 pTLS );
 
 
@@ -5884,8 +6240,8 @@ D3D11Dev_CreateTexture2D_Impl (
   }
 
 
-  HRESULT              ret       = E_NOT_VALID_STATE;
-  D3D11_TEXTURE2D_DESC orig_desc = *pDesc;
+  HRESULT               ret       = E_NOT_VALID_STATE;
+  D3D11_TEXTURE2D_DESC1 orig_desc = *(D3D11_TEXTURE2D_DESC1 *)pDesc;
 
 
   static const bool bYs8 =
@@ -5927,10 +6283,10 @@ D3D11Dev_CreateTexture2D_Impl (
         SK_D3D11_DeclareTexInjectScope (pTLS)
       );
 
-      SK_ComPtr <ID3D11Texture2D> pTempTex = nullptr;
+      SK_ComPtr <ID3D11Texture2D1> pTempTex = nullptr;
 
       ret =
-        D3D11Dev_CreateTexture2D_Original ( This, &orig_desc,
+        D3D11Dev_CreateTexture2D1_Original ( This, &orig_desc,
                                               pInitialData, &pTempTex.p );
 
       if (SUCCEEDED (ret))
@@ -5948,9 +6304,9 @@ D3D11Dev_CreateTexture2D_Impl (
             pTLS->texture_management.injection_thread = FALSE;
 
             ret =
-              D3D11Dev_CreateTexture2D_Impl (
-                This, (D3D11_TEXTURE2D_DESC *)&orig_desc, pInitialData,
-                               ppTexture2D, lpCallerAddr, pTLS );
+              D3D11Dev_CreateTexture2D1_Impl (
+                This, &orig_desc, pInitialData,
+                     ppTexture2D, lpCallerAddr, pTLS );
 
             if (SUCCEEDED (ret))
               return ret;
@@ -5970,9 +6326,9 @@ D3D11Dev_CreateTexture2D_Impl (
       //
       //   Minimum latency is 1 frame before the texture is `.
       //
-      SK_ComPtr <ID3D11Texture2D>     pFinalTex = nullptr;
+      SK_ComPtr <ID3D11Texture2D1>     pFinalTex = nullptr;
 
-      const D3D11_TEXTURE2D_DESC original_desc =
+      const D3D11_TEXTURE2D_DESC1 original_desc =
         *pDesc;
          pDesc->MipLevels = CalcMipmapLODs (pDesc->Width, pDesc->Height);
 
@@ -6096,11 +6452,11 @@ D3D11Dev_CreateTexture2D_Impl (
 
       else
       {
-        D3D11_TEXTURE2D_DESC newDesc = original_desc;
+        D3D11_TEXTURE2D_DESC1 newDesc = original_desc;
         newDesc.MiscFlags |= D3D11_RESOURCE_MISC_RESOURCE_CLAMP;
 
         ret =
-          D3D11Dev_CreateTexture2D_Original (This, &newDesc, pInitialData, (ID3D11Texture2D **)&pTempTex.p);
+          D3D11Dev_CreateTexture2D1_Original (This, &newDesc, pInitialData, (ID3D11Texture2D1 **)&pTempTex.p);
       }
 
       if (SUCCEEDED (ret))
@@ -6108,7 +6464,7 @@ D3D11Dev_CreateTexture2D_Impl (
         pDesc->MiscFlags |= D3D11_RESOURCE_MISC_RESOURCE_CLAMP;
 
         ret =
-          D3D11Dev_CreateTexture2D_Original (This, pDesc, nullptr, &pFinalTex);
+          D3D11Dev_CreateTexture2D1_Original (This, pDesc, nullptr, &pFinalTex);
 
         if (SUCCEEDED (ret))
         {
@@ -6122,7 +6478,7 @@ D3D11Dev_CreateTexture2D_Impl (
           );
 
           size =
-            SK_D3D11_ComputeTextureSize (pDesc);
+            SK_D3D11_ComputeTextureSize ((D3D11_TEXTURE2D_DESC *)pDesc);
         }
       }
 
@@ -6166,7 +6522,7 @@ D3D11Dev_CreateTexture2D_Impl (
     assert (ret == S_OK || ret == E_NOT_VALID_STATE);
 
       ret =
-        D3D11Dev_CreateTexture2D_Original (This, &orig_desc, pInitialData, ppTexture2D);
+        D3D11Dev_CreateTexture2D1_Original (This, &orig_desc, pInitialData, ppTexture2D);
   }
 
 
@@ -6186,7 +6542,7 @@ D3D11Dev_CreateTexture2D_Impl (
 
       //SK_D3D11_MipmapCacheTexture2D ((*ppTexture2D), top_crc32, pTLS);
 
-      SK_D3D11_DumpTexture2D (&orig_desc, pInitialData, top_crc32, checksum);
+      SK_D3D11_DumpTexture2D ((D3D11_TEXTURE2D_DESC *)&orig_desc, pInitialData, top_crc32, checksum);
     }
   }
 
@@ -6206,19 +6562,50 @@ D3D11Dev_CreateTexture2D_Impl (
     {
       textures->refTexture2D (
         *ppTexture2D,
-          pDesc,
+          (D3D11_TEXTURE2D_DESC *)pDesc,
             cache_tag,
               size,
                 load_end.QuadPart - load_start.QuadPart,
                   top_crc32,
                     L"",
-                      &orig_desc,  (HMODULE)(intptr_t)lpCallerAddr,
+                      (D3D11_TEXTURE2D_DESC *)&orig_desc,  (HMODULE)(intptr_t)lpCallerAddr,
                         pTLS
       );
     }
   }
 
   return ret;
+}
+
+HRESULT
+WINAPI
+D3D11Dev_CreateTexture2D_Impl (
+  _In_              ID3D11Device            *This,
+  _Inout_opt_       D3D11_TEXTURE2D_DESC    *pDesc,
+  _In_opt_    const D3D11_SUBRESOURCE_DATA  *pInitialData,
+  _Out_opt_         ID3D11Texture2D        **ppTexture2D,
+                    LPVOID                   lpCallerAddr,
+                    SK_TLS                  *pTLS )
+{
+  D3D11_TEXTURE2D_DESC1
+    texDesc1 = { .Width          = pDesc->Width,
+                 .Height         = pDesc->Height,
+                 .MipLevels      = pDesc->MipLevels,
+                 .ArraySize      = pDesc->ArraySize,
+                 .Format         = pDesc->Format,
+                 .SampleDesc     = pDesc->SampleDesc,
+                 .Usage          = pDesc->Usage,
+                 .BindFlags      = pDesc->BindFlags,
+                 .CPUAccessFlags = pDesc->CPUAccessFlags,
+                 .MiscFlags      = pDesc->MiscFlags,
+                 .TextureLayout  = D3D11_TEXTURE_LAYOUT_UNDEFINED
+    };
+
+  return
+    D3D11Dev_CreateTexture2D1_Impl (
+      (ID3D11Device3 *)This, &texDesc1, pInitialData,
+      (ID3D11Texture2D1 **)ppTexture2D, lpCallerAddr, pTLS
+    );
 }
 
 volatile LONG SK_D3D11_initialized = FALSE;
@@ -7157,14 +7544,29 @@ HookD3D11 (LPVOID user)
 
       if (pDev3 != nullptr)
       {
-        //if (! _AreVFtablePtrsSame ((void **)&pDev2.p, 51, (void **)pHooks->ppDevice, 27))
-        {
-          DXGI_VIRTUAL_HOOK ( &pDev2, 54,
-                                "ID3D11Device3::CreateTexture2D1",
-                                                 D3D11Dev_CreateTexture2D1_Override,
-                                                 D3D11Dev_CreateTexture2D1_Original,
-                                                 D3D11Dev_CreateTexture2D1_pfn );
-        }
+        DXGI_VIRTUAL_HOOK ( &pDev2, 54,
+                              "ID3D11Device3::CreateTexture2D1",
+                                               D3D11Dev_CreateTexture2D1_Override,
+                                               D3D11Dev_CreateTexture2D1_Original,
+                                               D3D11Dev_CreateTexture2D1_pfn );
+
+        DXGI_VIRTUAL_HOOK ( &pDev2, 57,
+                            "ID3D11Device3::CreateShaderResourceView1",
+                                   D3D11Dev_CreateShaderResourceView1_Override,
+                                   D3D11Dev_CreateShaderResourceView1_Original,
+                                   D3D11Dev_CreateShaderResourceView1_pfn );
+
+        DXGI_VIRTUAL_HOOK ( &pDev2, 58,
+                            "ID3D11Device3::CreateUnorderedAccessView1",
+                                   D3D11Dev_CreateUnorderedAccessView1_Override,
+                                   D3D11Dev_CreateUnorderedAccessView1_Original,
+                                   D3D11Dev_CreateUnorderedAccessView1_pfn );
+
+        DXGI_VIRTUAL_HOOK ( &pDev2, 59,
+                            "ID3D11Device3::CreateRenderTargetView1",
+                                   D3D11Dev_CreateRenderTargetView1_Override,
+                                   D3D11Dev_CreateRenderTargetView1_Original,
+                                   D3D11Dev_CreateRenderTargetView1_pfn );
 
         if (! _AreVFtablePtrsSame ((void **)&pDev3.p, 61, (void **)pHooks->ppDevice, 40))
         {

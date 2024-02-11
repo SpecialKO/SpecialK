@@ -1,4 +1,15 @@
-﻿24.2.11.4
+﻿24.2.11.5
+=========
+ + Supplement changes in 24.2.11.4 with hooks on:
+
+     ID3D11Device3::CreateRenderTargetView1
+     ID3D11Device3::CreateShaderResourceView1
+     ID3D11Device3::CreateUnorderedAccessView1
+
+   * All forms of HDR remastering are now supported in Granblue Fantasy Relink
+       and any other game that uses these higher-versioned device interfaces
+
+24.2.11.4
 =========
  + Added hooks for ID3D11Device3::CreateTexture2D1 (...) to catch otherwise
      missed Render Targets and Textures in Granblue Fantasy Relink;
