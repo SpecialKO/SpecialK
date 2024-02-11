@@ -975,7 +975,8 @@ void BasicInit (void)
     "Special K Notification System Initialized Successfully",
       25000, SK_ImGui_Toast::ShowCaption |
              SK_ImGui_Toast::ShowTitle   |
-             SK_ImGui_Toast::ShowOnce );
+             SK_ImGui_Toast::ShowOnce    |
+             SK_ImGui_Toast::UseDuration );
 
   // Setup unhooked function pointers
   SK_PreInitLoadLibrary ();
