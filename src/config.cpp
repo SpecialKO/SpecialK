@@ -254,7 +254,8 @@ SK_GetCurrentGameID (void)
           { L"anuket_x64.exe",                         SK_GAME_ID::Blood                        },
           { L"BatmanAK.exe",                           SK_GAME_ID::BatmanArkhamKnight           },
           { L"Noita.exe",                              SK_GAME_ID::Noita                        },
-          { L"P3R.exe",                                SK_GAME_ID::Persona3                     }
+          { L"P3R.exe",                                SK_GAME_ID::Persona3                     },
+          { L"granblue_fantasy_relink.exe",            SK_GAME_ID::GranblueFantasyRelink        }
         };
 
     first_check  = false;
@@ -3378,6 +3379,18 @@ auto DeclKeybind =
       case SK_GAME_ID::DOOMEternal:
         config.apis.NvAPI.vulkan_bridge   = 1;
         config.system.global_inject_delay = 0.0f;
+        break;
+
+      case SK_GAME_ID::GranblueFantasyRelink:
+        config.input.gamepad.xinput.emulate         = true;
+        config.input.gamepad.steam.disabled_to_game = true;
+        config.window.background_render             = true;
+        config.window.activate_at_start             = true;
+        config.window.always_on_top                 = 2;
+        config.render.dxgi.fake_fullscreen_mode     = true;
+        config.input.cursor.manage                  = true;
+        config.input.cursor.gamepad_deactivates     = true;
+        config.input.cursor.timeout                 = 3000;
         break;
 
       case SK_GAME_ID::AlanWake2:

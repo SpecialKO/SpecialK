@@ -1,4 +1,13 @@
-﻿24.2.10.4
+﻿24.2.11
+=======
+ + Block WM_STYLECHANGING and WM_STYLECHANGED messages to games,
+     because it has been causing flickering problems when Steam and
+       Epic popup a notification on top of the game using an OS window
+         (as opposed to their in-game overlay).
+ + Added default settings for Granblue Fantasy Relink to address the
+     rampant controller disconnect problems on alt-tab.
+
+24.2.10.4
 =========
  + Added cursor auto-hide on gamepad input option to cursor management,
      see "Input Management | Mouse Cursor".

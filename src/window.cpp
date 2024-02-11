@@ -5513,6 +5513,14 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       }
     } break;
 
+    case WM_STYLECHANGING:
+    case WM_STYLECHANGED:
+      if (hWnd == game_window.hWnd || hWnd == game_window.child)
+      {
+        return 0;
+      }
+      break;
+
     case WM_WINDOWPOSCHANGED:
     {
       if (hWnd == game_window.hWnd || hWnd == game_window.child)
@@ -5520,7 +5528,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         WINDOWPOS* pWindowPos = (WINDOWPOS *)lParam;
 
         if (! (pWindowPos->flags & SWP_NOSENDCHANGING))
-          SK_Window_RepositionIfNeeded ();
+        {
+          if (! ((pWindowPos->flags & SWP_NOMOVE) && (pWindowPos->flags & SWP_NOSIZE)))
+          {
+            SK_Window_RepositionIfNeeded ();
+          }
+        }
       }
     } break;
 
