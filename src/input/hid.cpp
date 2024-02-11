@@ -2809,7 +2809,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
             bFinished = true;
           }
 
-          if (! (bEnqueued && bFinished))
+          if (! bFinished)
           {
             continue;
           }
@@ -2894,10 +2894,10 @@ SK_HID_PlayStationDevice::write_output_report (void)
           output->AudioPowerSave      = true;
           output->HapticLowPassFilter = true;
 
-          output->RumbleMotorPowerReduction =
-            config.input.gamepad.scepad.rumble_power_level == 100.0f ? 0
-                                                                     :
-            static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
+          output->RumbleMotorPowerReduction = 0x0;
+            //config.input.gamepad.scepad.rumble_power_level == 100.0f ? 0
+            //                                                         :
+            //static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
 
   //      pOutputRaw [ 9] = 0;
   //      pOutputRaw [39] = 2;

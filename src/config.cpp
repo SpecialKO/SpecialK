@@ -3386,11 +3386,14 @@ auto DeclKeybind =
         config.input.gamepad.steam.disabled_to_game = true;
         config.window.background_render             = true;
         config.window.activate_at_start             = true;
-        config.window.always_on_top                 = 2;
+        config.window.always_on_top                 =    2;
         config.render.dxgi.fake_fullscreen_mode     = true;
         config.input.cursor.manage                  = true;
         config.input.cursor.gamepad_deactivates     = true;
-        config.input.cursor.timeout                 = 3000;
+        config.input.cursor.timeout                 =    0;
+        SK_ImGui_Cursor.prefs.no_warp.visible       = true;
+        SK_ImGui_Cursor.prefs.no_warp.ui_open       = true;
+        config.window.disable_screensaver           = true;
         break;
 
       case SK_GAME_ID::AlanWake2:

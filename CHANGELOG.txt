@@ -1,4 +1,8 @@
-﻿24.2.11.1
+﻿24.2.11.2
+=========
+ + Increased rumble emulation strength on DualSense controllers
+
+24.2.11.1
 =========
  + Added support for changing Bordered Window <---> Borderless Fullscreen
      using the Display menu; previously you had to change to Borderless
