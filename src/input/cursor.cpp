@@ -1173,6 +1173,10 @@ SK_Window_DeactivateCursor (bool ignore_imgui = false)
 
       last_mouse.cursor  = false;
       last_mouse.sampled = SK::ControlPanel::current_time;
+
+      last_mouse.pos =
+        { (SHORT)SK_ImGui_Cursor.pos.x,
+          (SHORT)SK_ImGui_Cursor.pos.y };
     }
   }
 

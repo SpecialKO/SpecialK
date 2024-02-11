@@ -1,4 +1,9 @@
-﻿24.2.10.3
+﻿24.2.10.4
+=========
+ + Added cursor auto-hide on gamepad input option to cursor management,
+     see "Input Management | Mouse Cursor".
+
+24.2.10.3
 =========
  + Limit SONY HID input devices to limited set of USB Product IDs that
      SK knows about (all standard DualShock 3/4, DualSense [Edge] models),

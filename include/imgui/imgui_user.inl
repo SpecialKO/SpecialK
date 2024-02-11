@@ -3079,6 +3079,82 @@ SK_ImGui_User_NewFrame (void)
                                                         // Disabled to game is a form of capture,
                                                         //   but it is exempt from idle cursor logic
 
+
+    extern bool
+  SK_Window_DeactivateCursor (bool ignore_imgui = false);
+  if (config.input.cursor.manage && config.input.cursor.gamepad_deactivates && SK_Window_IsCursorActive ())
+  {
+    extern XINPUT_STATE
+              hid_to_xi;
+    static XINPUT_STATE
+              hid_state = { };
+
+    DWORD dwLastPacket =
+      hid_state.dwPacketNumber;
+
+    hid_state.dwPacketNumber =
+    hid_to_xi.dwPacketNumber;
+
+    if (hid_to_xi.dwPacketNumber > dwLastPacket)
+    {
+      if ( memcmp ( &hid_to_xi.Gamepad.wButtons,
+                    &hid_state.Gamepad.wButtons, sizeof (WORD) ) ||
+                abs (hid_to_xi.Gamepad.sThumbLX      - hid_state.Gamepad.sThumbLX     ) > 9000 ||
+                abs (hid_to_xi.Gamepad.sThumbLY      - hid_state.Gamepad.sThumbLY     ) > 9000 ||
+                abs (hid_to_xi.Gamepad.sThumbRX      - hid_state.Gamepad.sThumbRX     ) > 9000 ||
+                abs (hid_to_xi.Gamepad.sThumbRY      - hid_state.Gamepad.sThumbRY     ) > 9000 ||
+                abs (hid_to_xi.Gamepad.bLeftTrigger  - hid_state.Gamepad.bLeftTrigger ) > 40   ||
+                abs (hid_to_xi.Gamepad.bRightTrigger - hid_state.Gamepad.bRightTrigger) > 40 )
+      {
+        if (! bWantMouseCaptureForUI)
+        {
+          SK_ImGui_Cursor.idle      = true;
+          SK_ImGui_Cursor.last_move = SK::ControlPanel::current_time - 500;
+          SK_Window_DeactivateCursor (true);
+        }
+      }
+
+      hid_state.Gamepad = hid_to_xi.Gamepad;
+    }
+
+    else
+    {
+      static XINPUT_STATE
+                 xi_state_last = { };
+             XINPUT_STATE
+                 xi_state      = { };
+
+      dwLastPacket =
+        xi_state_last.dwPacketNumber;
+
+      bool bPolled =
+        SK_XInput_PollController (0, &xi_state);
+
+      if (bPolled && xi_state.dwPacketNumber > dwLastPacket)
+      {
+        if ( memcmp ( &xi_state.     Gamepad.wButtons,
+                      &xi_state_last.Gamepad.wButtons, sizeof (WORD) ) ||
+                  abs (xi_state.Gamepad.sThumbLX      - xi_state_last.Gamepad.sThumbLX     ) > 9000 ||
+                  abs (xi_state.Gamepad.sThumbLY      - xi_state_last.Gamepad.sThumbLY     ) > 9000 ||
+                  abs (xi_state.Gamepad.sThumbRX      - xi_state_last.Gamepad.sThumbRX     ) > 9000 ||
+                  abs (xi_state.Gamepad.sThumbRY      - xi_state_last.Gamepad.sThumbRY     ) > 9000 ||
+                  abs (xi_state.Gamepad.bLeftTrigger  - xi_state_last.Gamepad.bLeftTrigger ) > 40   ||
+                  abs (xi_state.Gamepad.bRightTrigger - xi_state_last.Gamepad.bRightTrigger) > 40 )
+        {
+          if (! bWantMouseCaptureForUI)
+          {
+            SK_ImGui_Cursor.idle      = true;
+            SK_ImGui_Cursor.last_move = SK::ControlPanel::current_time - 500;
+            SK_Window_DeactivateCursor (true);
+          }
+        }
+
+        xi_state_last = xi_state;
+      }
+    }
+  }
+
+
   const bool bManageCursor =
     (config.input.cursor.manage || SK_ImGui_Cursor.force != sk_cursor_state::None);
 

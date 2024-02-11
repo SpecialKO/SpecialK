@@ -584,7 +584,7 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::BeginGroup ();
 
       bool bIdleHideChange =
-      ImGui::Checkbox ( "Hide When Not Moved", &config.input.cursor.manage        );
+      ImGui::Checkbox ( "Hide When Not Moved", &config.input.cursor.manage   );
       
       if ( bIdleHideChange )
         SK_ImGui_Cursor.force = sk_cursor_state::None;
@@ -593,8 +593,19 @@ SK::ControlPanel::Input::Draw (void)
 
       if (config.input.cursor.manage) {
         ImGui::TreePush ("");
-        ImGui::Checkbox ( "or Key Pressed",
-                                                 &config.input.cursor.keys_activate );
+        ImGui::Checkbox ( "Keyboard Activates",
+                                          &config.input.cursor.keys_activate );
+#if 1
+        ImGui::Checkbox ( "Gamepad Deactivates",
+                                    &config.input.cursor.gamepad_deactivates );
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip (
+            "Uses XInput or HID (PlayStation) to auto-hide the cursor "
+            "on gamepad input."
+          );
+        }
+#endif
         ImGui::TreePop  ();
         ImGui::SameLine ();
 

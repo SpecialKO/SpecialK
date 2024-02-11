@@ -958,6 +958,7 @@ struct {
   struct {
     sk::ParameterBool*    manage                  = nullptr;
     sk::ParameterBool*    keys_activate           = nullptr;
+    sk::ParameterBool*    gamepad_deactivates     = nullptr;
     sk::ParameterFloat*   timeout                 = nullptr;
     sk::ParameterBool*    ui_capture              = nullptr;
     sk::ParameterBool*    hw_cursor               = nullptr;
@@ -1527,6 +1528,7 @@ auto DeclKeybind =
 
     ConfigEntry (input.cursor.manage,                    L"Manage Cursor Visibility (due to inactivity)",              dll_ini,         L"Input.Cursor",          L"Manage"),
     ConfigEntry (input.cursor.keys_activate,             L"Keyboard Input Activates Cursor",                           dll_ini,         L"Input.Cursor",          L"KeyboardActivates"),
+    ConfigEntry (input.cursor.gamepad_deactivates,       L"Gamepad Input Deactivates Cursor",                          dll_ini,         L"Input.Cursor",          L"GamepadDeactivates"),
     ConfigEntry (input.cursor.timeout,                   L"Inactivity Timeout (in milliseconds)",                      dll_ini,         L"Input.Cursor",          L"Timeout"),
     ConfigEntry (input.cursor.ui_capture,                L"Forcefully Capture Mouse Cursor in UI Mode",                dll_ini,         L"Input.Cursor",          L"ForceCaptureInUI"),
     ConfigEntry (input.cursor.hw_cursor,                 L"Use a Hardware Cursor for Special K's UI Features",         dll_ini,         L"Input.Cursor",          L"UseHardwareCursor"),
@@ -4015,6 +4017,7 @@ auto DeclKeybind =
 
   input.cursor.manage->load              (config.input.cursor.manage);
   input.cursor.keys_activate->load       (config.input.cursor.keys_activate);
+  input.cursor.gamepad_deactivates->load (config.input.cursor.gamepad_deactivates);
 
                             float fTimeout;
   if (input.cursor.timeout->load (fTimeout))
@@ -5400,6 +5403,7 @@ SK_SaveConfig ( std::wstring name,
 
   input.cursor.manage->store                  (config.input.cursor.manage);
   input.cursor.keys_activate->store           (config.input.cursor.keys_activate);
+  input.cursor.gamepad_deactivates->store     (config.input.cursor.gamepad_deactivates);
   input.cursor.timeout->store                 (static_cast <float> (config.input.cursor.timeout) / 1000.0f);
   input.cursor.ui_capture->store              (config.input.ui.capture);
   input.cursor.hw_cursor->store               (config.input.ui.use_hw_cursor);
