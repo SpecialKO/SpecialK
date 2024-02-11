@@ -1,4 +1,12 @@
-﻿24.2.11
+﻿24.2.11.1
+=========
+ + Added support for changing Bordered Window <---> Borderless Fullscreen
+     using the Display menu; previously you had to change to Borderless
+       as an intermediate step.
+ + Resolved flickering issues caused by Epic popup windows when
+     Multitasking-on-Top (or "Fake Fullscreen") mode are in use.
+
+24.2.11
 =======
  + Block WM_STYLECHANGING and WM_STYLECHANGED messages to games,
      because it has been causing flickering problems when Steam and

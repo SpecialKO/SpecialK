@@ -5513,14 +5513,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       }
     } break;
 
-    case WM_STYLECHANGING:
-    case WM_STYLECHANGED:
-      if (hWnd == game_window.hWnd || hWnd == game_window.child)
-      {
-        return 0;
-      }
-      break;
-
     case WM_WINDOWPOSCHANGED:
     {
       if (hWnd == game_window.hWnd || hWnd == game_window.child)
@@ -7992,6 +7984,7 @@ SK_Window_CreateTopMostFixupThread (void)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
+#if 1
   //
   // Create a thread to handle topmost status asynchronously, in case the game
   //   stops responding while it has the wrong topmost state.
@@ -8001,7 +7994,7 @@ SK_Window_CreateTopMostFixupThread (void)
   static SK_AutoHandle _
   ( SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
-      while (WaitForSingleObject (__SK_DLL_TeardownEvent, 250UL) != WAIT_OBJECT_0)
+      while (WaitForSingleObject (__SK_DLL_TeardownEvent, 5000UL) != WAIT_OBJECT_0)
       {
         const bool smart_always_on_top =
            config.window.always_on_top == SmartAlwaysOnTop  ||
@@ -8010,7 +8003,7 @@ SK_Window_CreateTopMostFixupThread (void)
         static LONG64    last_frame_count = 0;
         const bool unresponsive =
           std::exchange (last_frame_count, SK_GetFramesDrawn ()) ==
-                         last_frame_count || dwLastWindowMessageProcessed < SK_timeGetTime () - 250;
+                         last_frame_count;// || dwLastWindowMessageProcessed < SK_timeGetTime () - 250;
 
         const bool topmost =
           SK_Window_IsTopMost (game_window.hWnd);
@@ -8023,7 +8016,7 @@ SK_Window_CreateTopMostFixupThread (void)
           if (unresponsive && topmost)
           {
             SK_LOGi1 (L"Game Window is TopMost and game has not drawn a "
-                      L"frame in > 250 ms; removing TopMost...");
+                      L"frame in > 5000 ms; removing TopMost...");
 
             SK_Window_SetTopMost (false, false, game_window.hWnd);
 
@@ -8066,6 +8059,7 @@ SK_Window_CreateTopMostFixupThread (void)
       return 0;
     }, L"[SK] TopMost Coordinator")
   );
+#endif
 
 
   const bool smart_always_on_top =
@@ -8099,6 +8093,14 @@ SK_Window_CreateTopMostFixupThread (void)
       default:
         break;
     }
+  }
+
+  if (                            smart_always_on_top &&
+                                   game_window.active &&
+      SK_GetForegroundWindow () == game_window.hWnd   && (! SK_Window_IsTopMost ()) )
+  {
+    SK_Window_SetTopMost (true, true, game_window.hWnd);
+    //SK_ImGui_Warning (L"Fix Me!");
   }
 }
 

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -47,8 +47,8 @@ SK::ControlPanel::Window::Draw (void)
 
       // This is a nonsensical combination;
       //   borderless should always be set if fullscreen is...
-      if (fullscreen)
-        SK_DeferCommand ("Window.Borderless true");
+      if (fullscreen && (! borderless))
+        SK_GetCommandProcessor ()->ProcessCommandLine ("Window.Borderless true");
 
       if ( ImGui::Checkbox ( "Borderless  ", &borderless ) )
       {

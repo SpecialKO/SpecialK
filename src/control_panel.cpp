@@ -1,5 +1,4 @@
-﻿  
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -891,6 +890,7 @@ SK_ImGui_ControlPanelTitle (void)
 void
 SK_ImGui_AdjustCursor (void)
 {
+#if 0
   static SK_AutoHandle hAdjustEvent (
     SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
   );
@@ -937,6 +937,14 @@ SK_ImGui_AdjustCursor (void)
     L"[SK] Cursor Adjustment Thread",
     (LPVOID)hAdjustEvent.m_h
   );
+#else
+  // This really doesn't need to be done in a second thread, it's already
+  //   got a thread that waits for signaled work.
+  SK_Window_RepositionIfNeeded ();
+
+  // The logic used to be different, but now RepositionIfNeeded also handles
+  //   any necessary changes to the cursor clipping rectangle.
+#endif
 }
 
 bool reset_frame_history = true;
@@ -2813,6 +2821,10 @@ DisplayModeMenu (bool windowed)
 
   if (! rb.fullscreen_exclusive)
   {
+    // Prevent an invalid combination of states
+    if (config.window.fullscreen && (! config.window.borderless))
+        config.window.borderless = true;
+
     mode      = config.window.borderless ? config.window.fullscreen ? 2 : 1 : 0;
     orig_mode = mode;
 
@@ -2832,39 +2844,96 @@ DisplayModeMenu (bool windowed)
       }
     }
 
-    modes = (config.window.borderless || mode == 2)     ?
-      "Bordered\0Borderless\0Borderless Fullscreen\0\0" :
-      "Bordered\0Borderless\0\0";
+    modes =
+      "Bordered\0Borderless\0Borderless Fullscreen\0\0";
+
+    static bool                     queued_changes = false;
+    static std::stack <std::string> change_commands;
+
+    if (queued_changes)
+    {
+      static ULONG64 next_frame =
+        SK_GetFramesDrawn ();
+
+      if (SK_GetFramesDrawn () >= next_frame)
+      {
+        if (! change_commands.empty ())
+        {
+          SK_DeferCommand (change_commands.top ().c_str ());
+                           change_commands.pop ();
+        }
+
+        else if (std::exchange (queued_changes, false))
+        {
+          SK_Window_RepositionIfNeeded ();
+        }
+
+        next_frame =
+          SK_GetFramesDrawn () + 2;
+      }
+    }
 
     if (ImGui::Combo ("Window Style###SubMenu_WindowBorder_Combo", &mode, modes) &&
                                                                     mode != orig_mode)
     {
-      switch (mode)
+      //
+      // What follows is way more complicated than you would expect, because
+      //   transitioning from Borderless Fullscreen to Bordered must be done
+      //     in two steps.
+      //
+      //   A direct transition between these states is not possible, and we
+      //     must split the work across at least two frames.
+      //
+      //       * A stack is used, so read the commands in reverse-order.
+      //
+      const bool borderless = config.window.borderless;
+      const bool fullscreen = config.window.fullscreen;
+
+      bool change_borderless = (borderless && mode == 0) || ((! borderless) && mode != 0);
+      bool change_fullscreen = (fullscreen && mode != 2) || ((! fullscreen) && mode == 2);
+
+      if (borderless && change_fullscreen)
       {
-        case 0:
-          config.window.borderless = false;
-          break;
+        if (change_borderless)
+        {
+          change_commands.push ("Window.Borderless toggle");
+          change_commands.push ("Window.Fullscreen toggle");
+        }
 
-        case 2:
-          config.window.borderless = true;
-          config.window.fullscreen = true;
-          break;
+        else
+        {
+          // The simplest case to handle:  We're already Borderless Fullscreen
+          if (config.window.fullscreen)
+          { // Toggling Fullscreen off changes nothing about the window;
+            //   we do not actually know the non-fullscreen window size...
+            config.window.fullscreen = false;
 
-        case 1:
-          config.window.borderless = true;
-          config.window.fullscreen = false;
-          break;
+            change_borderless = false;
+            change_fullscreen = false;
+          }
+
+          else
+          {
+            change_commands.push ("Window.Fullscreen toggle");
+          }
+        }
       }
 
-      SK_ImGui_AdjustCursor ();
-
-      if (config.window.borderless != window_is_borderless)
+      // Fullscreen requested, but borderless is not currently set
+      else if (change_fullscreen)
       {
-        config.window.borderless = window_is_borderless;
-        config.window.fullscreen = false;
-
-        SK_DeferCommand ("Window.Borderless toggle");
+        change_commands.push ("Window.Fullscreen toggle");
+        change_commands.push ("Window.Borderless toggle");
       }
+
+      // No change to fullscreen state, just borderless
+      else if (change_borderless)
+      {
+        change_commands.push ("Window.Borderless toggle");
+      }
+
+      if (change_borderless || change_fullscreen)
+        queued_changes = true;
     }
 
     if (ImGui::IsItemHovered ())
