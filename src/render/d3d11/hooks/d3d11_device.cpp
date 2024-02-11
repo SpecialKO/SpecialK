@@ -1428,6 +1428,12 @@ D3D11Dev_CreateRenderTargetView_Override (
                                                   ppRTView, FALSE );
 }
 
+//
+// TODO: This is stupid, and code duplication will cause problems in the future...
+//
+//         Rewrite this so that CreateRenderTargetView forwards its execution
+//           through to this function.
+//
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE

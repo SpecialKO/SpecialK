@@ -1,4 +1,9 @@
-﻿24.2.11.5
+﻿24.2.11.6
+=========
+ + Add workaround for incompletely implemented ID3D11Device3::CreateTexture2D1
+     API in DXVK.
+
+24.2.11.5
 =========
  + Supplement changes in 24.2.11.4 with hooks on:
 
