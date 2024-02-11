@@ -5845,8 +5845,9 @@ D3D11Dev_CreateTexture2D1_Impl (
                   //   but we can still upgrade targets to a UNORM format with greater precision and get some
                   //     remastering benefits...
                   //
-                  if (( pDesc->Width  == swapDesc.BufferDesc.Width    &&
-                        pDesc->Height == swapDesc.BufferDesc.Height ) && (! bUpgradeNativeTargetsToFP) )
+                  if ( ( ( pDesc->Width  == swapDesc.BufferDesc.Width    &&
+                           pDesc->Height == swapDesc.BufferDesc.Height ) && (! bUpgradeNativeTargetsToFP) ) ||
+                           config.render.hdr.remaster_8bpc_as_unorm )
                   {
                     hdr_fmt_override = DXGI_FORMAT_R16G16B16A16_UNORM;
                   }
@@ -6617,7 +6618,7 @@ D3D11Dev_CreateTexture2D_Impl (
   SK_ImGui_CreateNotification (
     "WARNING.DXVK.CreateTexture2D1", SK_ImGui_Toast::Warning,
     "DXVK does not correctly implement ID3D11Device3::CreateTexture2D1 (...)\r\n\r\n"
-    "\tSpecail K will use a fallback code path that is unmaintained and likely to break!",
+    "\tSpecial K will use a fallback code path that is unmaintained and likely to break!",
     "DXVK Incompatibility", 10000UL, SK_ImGui_Toast::UseDuration |
                                      SK_ImGui_Toast::ShowOnce    |
                                      SK_ImGui_Toast::ShowTitle   |

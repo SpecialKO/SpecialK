@@ -1,4 +1,15 @@
-﻿24.2.11.6
+﻿24.2.12
+=======
+ + Add new INI option to keep 8-bpc HDR remastered Render Targets UNORM instead
+     of Floating-Point for games with shaders that do not work correctly in FP.
+
+   [SpecialK.HDR]
+   Keep8BpcRemastersUNORM={true|false}  Default=false (use floating-point)
+
+   * Defaulted Granblue Fantasy Relink to UNORM for 8Bpc HDR Remasters
+
+
+24.2.11.6
 =========
  + Add workaround for incompletely implemented ID3D11Device3::CreateTexture2D1
      API in DXVK.

@@ -895,6 +895,7 @@ struct {
 
   struct {
     sk::ParameterBool*    enable_32bpc            = nullptr;
+    sk::ParameterBool*    remaster_8bpc_as_unorm  = nullptr;
   } hdr;
 } render;
 
@@ -1748,6 +1749,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.dlss.allow_scrgb,                L"Allow scRGB even if DLSS-G DLLs are detected",              dll_ini,         L"NVIDIA.DLSS",           L"AllowSCRGBinDLSSG"),
 
     ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
+    ConfigEntry (render.hdr.remaster_8bpc_as_unorm,      L"Do not use Floating-Point RTs when re-mastering 8-bpc RTs", dll_ini,         L"SpecialK.HDR",          L"Keep8BpcRemastersUNORM"),
 
     ConfigEntry (render.osd.draw_in_vidcap,              L"Changes hook order in order to allow recording the OSD.",   dll_ini,         L"Render.OSD",            L"ShowInVideoCapture"),
 
@@ -3394,6 +3396,7 @@ auto DeclKeybind =
         SK_ImGui_Cursor.prefs.no_warp.visible       = true;
         SK_ImGui_Cursor.prefs.no_warp.ui_open       = true;
         config.window.disable_screensaver           = true;
+        config.render.hdr.remaster_8bpc_as_unorm    = true;
         break;
 
       case SK_GAME_ID::AlanWake2:
@@ -3718,6 +3721,7 @@ auto DeclKeybind =
   nvidia.dlss.allow_scrgb->load              (config.nvidia.dlss.allow_scrgb);
 
   render.hdr.enable_32bpc->load              (config.render.hdr.enable_32bpc);
+  render.hdr.remaster_8bpc_as_unorm->load    (config.render.hdr.remaster_8bpc_as_unorm);
 
   render.framerate.wait_for_vblank->load     (config.render.framerate.wait_for_vblank);
   render.framerate.buffer_count->load        (config.render.framerate.buffer_count);
@@ -5763,6 +5767,7 @@ SK_SaveConfig ( std::wstring name,
       render.framerate.drop_late_frames->store    (config.render.framerate.drop_late_flips);
       if                                          (config.render.hdr.enable_32bpc)
       render.hdr.enable_32bpc->store              (config.render.hdr.enable_32bpc);
+      render.hdr.remaster_8bpc_as_unorm->store    (config.render.hdr.remaster_8bpc_as_unorm);
 
       texture.d3d11.cache->store                  (config.textures.d3d11.cache);
       texture.d3d11.use_l3_hash->store            (config.textures.d3d11.use_l3_hash);

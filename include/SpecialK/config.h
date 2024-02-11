@@ -763,6 +763,7 @@ struct sk_config_t
 
     struct {
       bool enable_32bpc            = false;
+      bool remaster_8bpc_as_unorm  = false;
     } hdr;
   } render;
 
