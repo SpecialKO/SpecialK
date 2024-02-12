@@ -133,9 +133,6 @@ struct sk_config_t
 
       else
         SK_PerfFreqInTsc = SK_QpcFreqInTsc;
-
-      utility.hSignalAsyncSave =
-        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
     }
 
     int      cpuid [4] = { };
@@ -145,6 +142,9 @@ struct sk_config_t
     SK_CPU_HasMWAITX = (cpuid [2] & (1 << 28)) != 0;
 
     SK_PerfTicksPerMs = SK_PerfFreq / 1000LL;
+
+    utility.hSignalAsyncSave =
+      SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
   }
   struct whats_new_s {
     float  duration       = 20.0F;

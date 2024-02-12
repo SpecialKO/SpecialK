@@ -7701,6 +7701,8 @@ sk_config_t::utility_functions_s::save_async (void)
       return 0;
     }, L"[SK] Config Save Thread");
   );
+
+  SetEvent (config.utility.hSignalAsyncSave);
 }
 
 iSK_INI* SK_GetNotifyINI (void)
