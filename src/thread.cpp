@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -106,25 +106,28 @@ SK_Thread_QueryNameFromOS (DWORD dwTid)
                               FALSE,
                                 dwTid ) );
 
-    wchar_t                                          *wszThreadName = nullptr;
-    if (SUCCEEDED (SK_GetThreadDescription (hThread, &wszThreadName)))
+    if (hThread.isValid ())
     {
-      if ( wszThreadName != nullptr &&
-          *wszThreadName != L'\0' ) // Empty strings are not useful :)
+      wchar_t                                          *wszThreadName = nullptr;
+      if (SUCCEEDED (SK_GetThreadDescription (hThread, &wszThreadName)))
       {
-        auto& names =
-          _SK_ThreadNames.get ();
+        if ( wszThreadName != nullptr &&
+            *wszThreadName != L'\0' ) // Empty strings are not useful :)
+        {
+          auto& names =
+            _SK_ThreadNames.get ();
 
-        __make_self_titled (dwTid);
-                     names [dwTid] = wszThreadName;
-    
+          __make_self_titled (dwTid);
+                       names [dwTid] = wszThreadName;
+      
+          LocalFree (wszThreadName);
+
+          return
+            names [dwTid];
+        }
+
         LocalFree (wszThreadName);
-
-        return
-          names [dwTid];
       }
-
-      LocalFree (wszThreadName);
     }
 
     _SK_UntitledThreads->insert (dwTid);

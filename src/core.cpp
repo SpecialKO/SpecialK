@@ -2860,7 +2860,7 @@ SK_ShutdownCore (const wchar_t* backend)
     if (hThread != INVALID_HANDLE_VALUE)
     {
       // Signal the thread to shutdown
-      if ( hSignal == INVALID_HANDLE_VALUE ||
+      if ( hSignal != INVALID_HANDLE_VALUE &&
             SignalObjectAndWait (hSignal, hThread, 66UL, FALSE)
                         != WAIT_OBJECT_0 )  // Give 66 milliseconds, and
       {                                     // then we're killing
@@ -2870,15 +2870,15 @@ SK_ShutdownCore (const wchar_t* backend)
 
       if (hThread != INVALID_HANDLE_VALUE)
       {
-        SK_CloseHandle (hThread);
-                       hThread = INVALID_HANDLE_VALUE;
+        if (SK_CloseHandle (hThread))
+                            hThread = INVALID_HANDLE_VALUE;
       }
     }
 
     if (hSignal != INVALID_HANDLE_VALUE)
     {
-      SK_CloseHandle (hSignal);
-                     hSignal = INVALID_HANDLE_VALUE;
+      if (SK_CloseHandle (hSignal))
+                          hSignal = INVALID_HANDLE_VALUE;
     }
 
     dll_log->LogEx ( false, L"done! (%4u ms)\n",

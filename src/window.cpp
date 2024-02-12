@@ -2719,7 +2719,7 @@ struct args_s {
 struct dispatch_queue_s {
   concurrency::concurrent_queue <args_s>
          queued;
-  HANDLE hSignal;
+  HANDLE hSignal = INVALID_HANDLE_VALUE;
 };
 
 SK_LazyGlobal <dispatch_queue_s> _SK_SetWindowLongPtrA_work;
@@ -2813,7 +2813,8 @@ SK_SetWindowLongPtrA (
         }
       }
 
-      SK_CloseHandle (dispatch->hSignal);
+      if (SK_CloseHandle (dispatch->hSignal))
+                          dispatch->hSignal = INVALID_HANDLE_VALUE;
 
       SK_Thread_CloseSelf ();
 
@@ -2821,9 +2822,21 @@ SK_SetWindowLongPtrA (
     }, L"[SK] SetWindowLongPtrA Async Dispatch", (LPVOID)_SK_SetWindowLongPtrA_work.getPtr () )
   );
 
-  SetEvent (_SK_SetWindowLongPtrA_work->hSignal);
+  if ( _SK_SetWindowLongPtrA_work->hSignal             != INVALID_HANDLE_VALUE &&
+       WaitForSingleObject (__SK_DLL_TeardownEvent, 0) == WAIT_TIMEOUT )
+  {
+    SetEvent (_SK_SetWindowLongPtrA_work->hSignal);
 
-  SK_Window_WaitForAsyncSetWindowLong ();
+    SK_Window_WaitForAsyncSetWindowLong ();
+  }
+
+  else
+  {
+    if (SetWindowLongPtrA_Original != nullptr)
+      return SetWindowLongPtrA_Original (hWnd, nIndex, dwNewLong);
+    else
+      return SetWindowLongPtrA          (hWnd, nIndex, dwNewLong);
+  }
 
   return
     dwNewLong;
@@ -2916,7 +2929,10 @@ SK_SetWindowLongPtrW (
         }
       }
 
-      SK_CloseHandle (dispatch->hSignal);
+      if (SK_CloseHandle (dispatch->hSignal))
+      {
+        dispatch->hSignal = INVALID_HANDLE_VALUE;
+      }
 
       SK_Thread_CloseSelf ();
 
@@ -2924,9 +2940,21 @@ SK_SetWindowLongPtrW (
     }, L"[SK] SetWindowLongPtrW Async Dispatch", (LPVOID)_SK_SetWindowLongPtrW_work.getPtr () )
   );
 
-  SetEvent (_SK_SetWindowLongPtrW_work->hSignal);
+  if ( _SK_SetWindowLongPtrW_work->hSignal             != INVALID_HANDLE_VALUE &&
+       WaitForSingleObject (__SK_DLL_TeardownEvent, 0) == WAIT_TIMEOUT )
+  {
+    SetEvent (_SK_SetWindowLongPtrW_work->hSignal);
 
-  SK_Window_WaitForAsyncSetWindowLong ();
+    SK_Window_WaitForAsyncSetWindowLong ();
+  }
+
+  else
+  {
+    if (SetWindowLongPtrW_Original != nullptr)
+      return SetWindowLongPtrW_Original (hWnd, nIndex, dwNewLong);
+    else
+      return SetWindowLongPtrW          (hWnd, nIndex, dwNewLong);
+  }
 
   return
     dwNewLong;
