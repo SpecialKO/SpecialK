@@ -3093,6 +3093,9 @@
     <ClInclude Include="include\vulkan\vulkan_xlib_xrandr.h">
       <Filter>Header Files\External Libraries\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\control_panel\notifications.h">
+      <Filter>Header Files\Control Panel</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3694,6 +3697,9 @@
     </ClCompile>
     <ClCompile Include="src\input\cursor.cpp">
       <Filter>Source Files\Backends\Input\Win32</Filter>
+    </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_notifications.cpp">
+      <Filter>Source Files\Control Panel</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

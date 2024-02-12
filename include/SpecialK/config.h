@@ -133,6 +133,9 @@ struct sk_config_t
 
       else
         SK_PerfFreqInTsc = SK_QpcFreqInTsc;
+
+      utility.hSignalAsyncSave =
+        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
     }
 
     int      cpuid [4] = { };
@@ -308,6 +311,16 @@ struct sk_config_t
       bool  antialias_contours = true;
     } render;
   } imgui;
+
+  struct notifications_s
+  {
+    int  location = 2; // 0=Top-Left,
+                       // 1=Top-Right,
+                       // 2=Bottom-Left,
+                       // 3=Bottom-Right,
+                       // 4=Don't Care
+    bool silent   = false;
+  } notifications;
 
 
   struct steam_s {
@@ -1188,6 +1201,12 @@ struct sk_config_t
     bool    disable_winsock     =  false;
     bool    strict_blocking     =  false; // Block third-party modules from using Winsock?
   } network;
+
+  struct utility_functions_s {
+    HANDLE hSignalAsyncSave;
+
+    void save_async (void);
+  } utility;
 };
 
 template <class T>
@@ -1557,5 +1576,7 @@ extern SK_LazyGlobal <std::unordered_map <wstring_hash, BYTE>>           humanKe
 extern SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [32]>>           virtKeyCodeToHumanKeyName;
 extern SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [32]>>  virtKeyCodeToFullyLocalizedKeyName;
 extern SK_LazyGlobal <std::unordered_multimap <uint32_t, SK_KeyCommand>> SK_KeyboardMacros;
+
+iSK_INI* SK_GetNotifyINI (void);
 
 #endif /* __SK__CONFIG_H__ */

@@ -1397,6 +1397,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\SpecialK\control_panel\d3d9.h" />
     <ClInclude Include="include\SpecialK\control_panel\epic.h" />
     <ClInclude Include="include\SpecialK\control_panel\input.h" />
+    <ClInclude Include="include\SpecialK\control_panel\notifications.h" />
     <ClInclude Include="include\SpecialK\control_panel\opengl.h" />
     <ClInclude Include="include\SpecialK\control_panel\osd.h" />
     <ClInclude Include="include\SpecialK\control_panel\platform.h" />
@@ -1594,6 +1595,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClCompile Include="src\control_panel\cfg_input.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'"> /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
+    <ClCompile Include="src\control_panel\cfg_notifications.cpp" />
     <ClCompile Include="src\control_panel\cfg_opengl.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'"> /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf /guard:cf- %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>

@@ -71,7 +71,7 @@ auto
   {
     param->store (binding->human_readable);
 
-    SK_SaveConfig ();
+    config.utility.save_async ();
 
     return true;
   }
@@ -1675,7 +1675,7 @@ public:
                                 preset.pq_boost0);
             __SK_HDR_PQBoost0 = preset.pq_boost0;
 
-            SK_SaveConfig ();
+            config.utility.save_async ();
           }
 
           if (ImGui::IsItemHovered ())
@@ -2390,7 +2390,7 @@ public:
                 if (ImGui::Checkbox ("Adaptive Tone Mapping",
                                                  &__SK_HDR_AdaptiveToneMap))
                 { _SK_HDR_AdaptiveToneMap->store (__SK_HDR_AdaptiveToneMap);
-                   SK_SaveConfig ();
+                   config.utility.save_async ();
                 }
 
                 if (ImGui::IsItemHovered ())
@@ -2584,7 +2584,7 @@ public:
                     __SK_HDR_PQBoost2 = preset.pq_boost2;
                     __SK_HDR_PQBoost3 = preset.pq_boost3;
 
-                    SK_SaveConfig ();
+                    config.utility.save_async ();
                   }
                 }
 
@@ -2594,7 +2594,7 @@ public:
                   if ( ImGui::Checkbox (
                          "Enable 32-bpc HDR Remastering",
                            &config.render.hdr.enable_32bpc
-                     )                 ) SK_SaveConfig ();
+                     )                 ) config.utility.save_async ();
 #endif
 
                   if (! __SK_HDR_AdaptiveToneMap)

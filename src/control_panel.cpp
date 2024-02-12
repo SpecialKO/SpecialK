@@ -36,6 +36,7 @@
 #include <SpecialK/control_panel/input.h>
 #include <SpecialK/control_panel/opengl.h>
 #include <SpecialK/control_panel/osd.h>
+#include <SpecialK/control_panel/notifications.h>
 #include <SpecialK/control_panel/plugins.h>
 #include <SpecialK/control_panel/sound.h>
 #include <SpecialK/control_panel/platform.h>
@@ -1255,7 +1256,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       rb.displays [active_display].monitor;
 
     if (config.display.save_monitor_prefs)
-      SK_SaveConfig ();
+        config.utility.save_async ();
 
     if (rb.monitor != rb.next_monitor)
     {
@@ -1832,7 +1833,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     bImmutableDPI =
       ( (IsProcessDPIAware () == TRUE) == bDPIAwareBefore );
 
-    SK_SaveConfig ();
+    config.utility.save_async ();
   }
 
   if (ImGui::IsItemHovered ())
@@ -1874,7 +1875,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
         config.display.monitor_path_ccd = L"";
       }
 
-      SK_SaveConfig ();
+      config.utility.save_async ();
     }
 
     if (ImGui::IsItemHovered ())
@@ -1901,7 +1902,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       config.display.resolution.override.y = 0;
     }
 
-    SK_SaveConfig ();
+    config.utility.save_async ();
   }
 
   if (ImGui::IsItemHovered ())
@@ -1996,7 +1997,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       config.window.center     = true;
     }
 
-    SK_SaveConfig ();
+    config.utility.save_async ();
   }
 
   if (ImGui::IsItemHovered ())
@@ -2271,7 +2272,7 @@ DisplayModeMenu (bool windowed)
       {
         config.render.dxgi.srgb_behavior = srgb_mode - 1;
 
-        SK_SaveConfig ();
+        config.utility.save_async ();
 
         // Trigger the game to resize the SwapChain so we can change its format and colorspace
         //
@@ -2781,7 +2782,7 @@ DisplayModeMenu (bool windowed)
 
         orig_item = current_item;
 
-        SK_SaveConfig ();
+        config.utility.save_async ();
       }
 
       if (! nv_color_encodings.empty ())
@@ -2988,7 +2989,7 @@ SK_NV_LatencyControlPanel (void)
     {
       need_restart = true;
 
-      SK_SaveConfig ();
+      config.utility.save_async ();
     }
 
     if (ImGui::IsItemHovered ())
@@ -3515,7 +3516,7 @@ SK_ImGui_ControlPanel (void)
                                    fNits,
                                      nits );
 
-          SK_SaveConfig ();
+          config.utility.save_async ();
         }
 
         SDRTooltip ();
@@ -3703,7 +3704,7 @@ SK_ImGui_ControlPanel (void)
                   break;
               }
 
-              SK_SaveConfig ();
+              config.utility.save_async ();
             }
 
             if (ImGui::IsItemHovered ())
@@ -3727,7 +3728,7 @@ SK_ImGui_ControlPanel (void)
                     scrgb_bits == 1 ? 10 :
                                       12 );
 
-                SK_SaveConfig ();
+                config.utility.save_async ();
               }
             }
           }
@@ -3762,7 +3763,7 @@ SK_ImGui_ControlPanel (void)
 
           if (changed)
           {
-            SK_SaveConfig ();
+            config.utility.save_async ();
           }
 
           ImGui::TreePop ();
@@ -3797,7 +3798,7 @@ SK_ImGui_ControlPanel (void)
         }
 
         if (hdr_changed)
-          SK_SaveConfig ();
+          config.utility.save_async ();
 
         ImGui::Separator ();
 
@@ -3885,7 +3886,7 @@ SK_ImGui_ControlPanel (void)
                    &config.render.dxgi.temporary_dwm_hdr )
              )
           {
-            SK_SaveConfig ();
+            config.utility.save_async ();
           }
 
           if (ImGui::IsItemHovered ())
@@ -3913,7 +3914,7 @@ SK_ImGui_ControlPanel (void)
           config.apis.NvAPI.disable_hdr       = bDisable;
           config.render.dxgi.hide_hdr_support = bDisable;
 
-          SK_SaveConfig ();
+          config.utility.save_async ();
         }
 
         if (ImGui::IsItemHovered ())
@@ -6144,6 +6145,8 @@ SK_ImGui_ControlPanel (void)
 
             OSD::Draw ();
 
+  Notifications::Draw ();
+
   const bool open_widgets =
     ImGui::CollapsingHeader ("Widgets");
 
@@ -7890,10 +7893,6 @@ SK_ImGui_Toggle (void)
   if (SK::SteamAPI::AppID () != 0 && SK_ImGui_Visible)
       SK::SteamAPI::UpdateNumPlayers ();
 
-
-  static SK_AutoHandle hCfgSave (
-    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr)
-  );
   static SK_AutoHandle hMoveCursor (
     SK_CreateEvent (nullptr, FALSE, FALSE, nullptr)
   );
@@ -7905,31 +7904,20 @@ SK_ImGui_Toggle (void)
     {
       HANDLE hEvents [] = {
         __SK_DLL_TeardownEvent,
-        hCfgSave.m_h,
         hMoveCursor.m_h
       };
 
       while (true)
       {
         DWORD dwWait =
-          WaitForMultipleObjectsEx (3, hEvents, FALSE, INFINITE, FALSE);
+          WaitForMultipleObjectsEx (2, hEvents, FALSE, INFINITE, FALSE);
 
         if (dwWait == WAIT_OBJECT_0)
           break;
 
-        if (dwWait == WAIT_OBJECT_0 + 1)
-        {
-          const wchar_t* config_name = SK_GetBackend ();
-
-          if (SK_IsInjected ())
-            config_name = L"SpecialK";
-
-          SK_SaveConfig (config_name);
-        }
-
         // Stupid hack to make sure the mouse cursor changes to SK's
         //   in Unity engine games
-        if (dwWait == WAIT_OBJECT_0 + 2)
+        if (dwWait == WAIT_OBJECT_0 + 1)
         {
           auto frames_drawn =
             SK_GetFramesDrawn ();
@@ -7975,12 +7963,12 @@ SK_ImGui_Toggle (void)
       SK_Thread_CloseSelf ();
 
       return 0;
-    }, L"[SK] Config Save Thread");
+    }, L"[SK] Rodeo Mouse Wrangler");
   );
 
   // Save config on control panel close, not open
   if (! SK_ImGui_Visible)
-    SetEvent (hCfgSave.m_h);
+    config.utility.save_async ();
   // Move the cursor a couple of times to chnage the loaded image
   else
   {

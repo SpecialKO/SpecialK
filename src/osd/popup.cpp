@@ -235,6 +235,8 @@ SK_PopupManager::OnDestroyPopup (const CEGUI::EventArgs& e)
 
 extern iSK_INI* notify_ini;
 
+int SK_ImGui_SilencedNotifications = 0;
+
 concurrency::concurrent_queue <SK_ImGui_Toast> SK_ImGui_Notifications;
 
 #define NOTIFY_PADDING_X           20.f // Bottom-left X padding
@@ -394,13 +396,72 @@ SK_ImGui_CreateNotification ( const char* szID,
                           bDoNotShow ? L"true"
                                      : L"false";
 
-    if (! has_section)
-      SK_SaveConfig ();
+    if (! (flags & SK_ImGui_Toast::DoNotSaveINI))
+    {
+      if (! has_section)
+        config.utility.save_async ();
+    }
+
+    else
+    {
+      notify_ini->remove_section (
+        toast_cfg.name
+      );
+    }
   }
 
   toast.inserted = SK::ControlPanel::current_time;
   toast.type     = type;
   toast.flags    = (SK_ImGui_Toast::Flags)flags;
+
+  if (config.notifications.silent && 0 == (flags & SK_ImGui_Toast::Unsilencable))
+  {
+    bool silenced = true;
+
+    // Collapse this into a single hidden notification
+    if (flags & SK_ImGui_Toast::ShowNewest)
+    {
+      std::vector <SK_ImGui_Toast> persistent;
+      std::vector <SK_ImGui_Toast> notifications;
+
+      while (! SK_ImGui_Notifications.empty ())
+      {
+        SK_ImGui_Toast                           existing_toast;
+        while (! SK_ImGui_Notifications.try_pop (existing_toast))
+          ;
+
+        notifications.emplace_back (existing_toast);
+      }
+
+      for ( auto& notification : notifications )
+      {
+        if (notification.id._Equal (toast.id))
+        {
+          // We already have one of these...
+          silenced = false;
+
+          // Insert the new one, but don't increment the silenced count
+        }
+
+        else
+          persistent.emplace_back (notification);
+      }
+
+      for ( auto& notification : persistent )
+      {
+        SK_ImGui_Notifications.push (notification);
+      }
+    }
+
+    if (silenced)
+      SK_ImGui_SilencedNotifications++;
+
+    toast.flags =
+      (SK_ImGui_Toast::Flags)((int)toast.flags | SK_ImGui_Toast::Silenced);
+  }
+
+  if (toast.flags & SK_ImGui_Toast::ShowCfgPanel)
+      toast.stage = SK_ImGui_Toast::Config;
 
   SK_ImGui_Notifications.push (toast);
 
@@ -408,11 +469,54 @@ SK_ImGui_CreateNotification ( const char* szID,
 }
 
 void
+SK_ImGui_UnsilenceNotifications (void)
+{
+  std::vector <SK_ImGui_Toast> notifications;
+  std::vector <SK_ImGui_Toast> regular_notifications;
+  std::vector <SK_ImGui_Toast> unsilenced_notifications;
+
+  while (! SK_ImGui_Notifications.empty ())
+  {
+    SK_ImGui_Toast                           toast;
+    while (! SK_ImGui_Notifications.try_pop (toast))
+      ;
+
+    notifications.emplace_back (toast);
+  }
+
+  for ( auto& notification : notifications )
+  {
+    if (! (notification.flags & SK_ImGui_Toast::Silenced))
+    {
+      regular_notifications.emplace_back (notification);
+    }
+
+    else
+    {
+      notification.flags    =
+        (SK_ImGui_Toast::Flags)((int)notification.flags & ~SK_ImGui_Toast::Silenced);
+      notification.inserted = SK::ControlPanel::current_time;
+
+      SK_ImGui_SilencedNotifications--;
+
+      unsilenced_notifications.emplace_back (notification);
+    }
+  }
+
+  for ( auto& notification : regular_notifications )
+  {
+    SK_ImGui_Notifications.push (notification);
+  }
+
+  for ( auto& notification : unsilenced_notifications )
+  {
+    SK_ImGui_Notifications.push (notification);
+  }
+}
+
+void
 SK_ImGui_DrawNotifications (void)
 {
-  auto pFont =
-    ImGui::GetFont ();
-
   std::vector <SK_ImGui_Toast> notifications;
 
   while (! SK_ImGui_Notifications.empty ())
@@ -424,7 +528,7 @@ SK_ImGui_DrawNotifications (void)
     notifications.emplace_back (toast);
   }
 
-  float fHeight = NOTIFY_PADDING_Y;
+  float fHeight = 0.0F;
 
   const ImVec2 viewport_size =
     ImGui::GetMainViewport()->Size;
@@ -456,13 +560,15 @@ SK_ImGui_DrawNotifications (void)
   }
 
 
-  auto orig_scale =
-    pFont->Scale;
-
-  pFont->Scale *= 3.0f;
-
   for ( auto& toast : notifications )
   {
+    if (toast.flags & SK_ImGui_Toast::Silenced)
+    {
+      // We're not going to draw it, but it should stick around...
+      SK_ImGui_Notifications.push (toast);
+      continue;
+    }
+
     if (toast.stage == SK_ImGui_Toast::Finished)
       continue;
 
@@ -509,21 +615,53 @@ SK_ImGui_DrawNotifications (void)
     const ImVec2 viewport_pos =
       ImGui::GetMainViewport ()->Pos;
 
-#if 1
-    ImGui::SetNextWindowPos (
-      ImVec2 (                                   NOTIFY_PADDING_X,
-              viewport_pos.y + viewport_size.y - NOTIFY_PADDING_Y - fHeight),
-        ImGuiCond_Always,
-          ImVec2 (0.0f, 1.0f)
-    );
-#else
-    ImGui::SetNextWindowPos (
-      ImVec2 (viewport_pos.x + viewport_size.x - NOTIFY_PADDING_X,
-              viewport_pos.y + viewport_size.y - NOTIFY_PADDING_Y - fHeight),
-        ImGuiCond_Always,
-          ImVec2 (1.0f, 1.0f)
-    );
-#endif
+    switch (config.notifications.location)
+    {
+      // Top-Left
+      case 0:
+      {
+        ImGui::SetNextWindowPos (
+          ImVec2 (viewport_pos.x + NOTIFY_PADDING_X,
+                  viewport_pos.y + NOTIFY_PADDING_Y + fHeight),
+            ImGuiCond_Always,
+              ImVec2 (0.0f, 0.0f)
+        );
+      } break;
+
+      // Top-Right
+      case 1:
+      {
+        ImGui::SetNextWindowPos (
+          ImVec2 (viewport_pos.x + viewport_size.x - NOTIFY_PADDING_X,
+                  viewport_pos.y +                   NOTIFY_PADDING_Y + fHeight),
+            ImGuiCond_Always,
+              ImVec2 (1.0f, 0.0f)
+        );
+      } break;
+
+      // Bottom-Left
+      default:
+      case 2:
+      {
+        ImGui::SetNextWindowPos (
+          ImVec2 (viewport_pos.x +                   NOTIFY_PADDING_X,
+                  viewport_pos.y + viewport_size.y - NOTIFY_PADDING_Y - fHeight),
+            ImGuiCond_Always,
+              ImVec2 (0.0f, 1.0f)
+        );
+      } break;
+
+      // Bottom-Right
+      case 3:
+      {
+        ImGui::SetNextWindowPos (
+          ImVec2 (viewport_pos.x + viewport_size.x - NOTIFY_PADDING_X,
+                  viewport_pos.y + viewport_size.y - NOTIFY_PADDING_Y - fHeight),
+            ImGuiCond_Always,
+              ImVec2 (1.0f, 1.0f)
+        );
+      } break;
+    }
 
     char         window_id [64] = { };
     _snprintf_s (window_id, 63, "##TOAST%d", (int)i++);
@@ -534,7 +672,7 @@ SK_ImGui_DrawNotifications (void)
     {
       ImGui::BeginGroup ();
       ImGui::BringWindowToDisplayFront (ImGui::GetCurrentWindow ());
-      ImGui::PushTextWrapPos           (viewport_size.x / 3.333f);
+      ImGui::PushTextWrapPos           (viewport_size.x / 1.75f);
 
       if (toast.stage != SK_ImGui_Toast::Config)
       {
@@ -625,12 +763,31 @@ SK_ImGui_DrawNotifications (void)
 
         if (ImGui::Button ("Save Settings"))
         {
-          SK_SaveConfig ();
+          config.utility.save_async ();
 
           // Immediately save and remove the notification
           if (stop_showing) toast.stage = SK_ImGui_Toast::Finished;
           else              toast.stage = SK_ImGui_Toast::Drawing;
         }
+
+        ImGui::SameLine    ();
+        ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine    ();
+
+        ImGui::PushTextWrapPos (0.0f);
+
+        auto vTextSize =
+          ImGui::CalcTextSize (toast.id.c_str ());
+
+        float fx = ImGui::GetCursorPosX         (),
+              fw = ImGui::GetContentRegionAvail ().x;
+
+        ImGui::SetCursorPosX (fx - ImGui::GetStyle ().ItemInnerSpacing.x +
+                              fw -                           vTextSize.x);
+
+        ImGui::TextDisabled ("%hs", toast.id.c_str ());
+
+        ImGui::PopTextWrapPos ();
       }
 
       fHeight +=
@@ -643,7 +800,7 @@ SK_ImGui_DrawNotifications (void)
         toast.stage = SK_ImGui_Toast::Config;
       }
 
-      if (toast.stage != SK_ImGui_Toast::Config && ImGui::IsItemHovered ())
+      if (toast.stage != SK_ImGui_Toast::Config && ImGui::IsItemHovered () && 0 == (toast.flags & SK_ImGui_Toast::DoNotSaveINI))
       {
         ImGui::SetTooltip ("Right-click to configure this notification");
       }
@@ -653,6 +810,4 @@ SK_ImGui_DrawNotifications (void)
     if (! (remove || toast.stage == SK_ImGui_Toast::Finished))
       SK_ImGui_Notifications.push (toast);
   }
-
-  pFont->Scale = orig_scale;
 }

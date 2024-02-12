@@ -395,12 +395,16 @@ struct SK_ImGui_Toast {
   } type = Other;
 
   enum Flags {
-    UseDuration = 0x01,
-    ShowCaption = 0x02,
-    ShowTitle   = 0x04,
-    ShowOnce    = 0x08,
-    ShowNewest  = 0x10,
-    ShowDismiss = 0x20
+    UseDuration  = 0x001,
+    ShowCaption  = 0x002,
+    ShowTitle    = 0x004,
+    ShowOnce     = 0x008,
+    ShowNewest   = 0x010,
+    ShowDismiss  = 0x020,
+    Silenced     = 0x040,
+    Unsilencable = 0x080,
+    DoNotSaveINI = 0x100,
+    ShowCfgPanel = 0x200
   } flags = (Flags)(UseDuration | ShowCaption | ShowTitle);
 
   enum Anchor {

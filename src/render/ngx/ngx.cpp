@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -914,7 +914,7 @@ SK_NGX_DLSS_ControlPanel (void)
 
           restart_required = true;
 
-          SK_SaveConfig ();
+          config.utility.save_async ();
         }
 
         if (ImGui::IsItemHovered ())
@@ -1070,7 +1070,7 @@ SK_NGX_DLSS_ControlPanel (void)
 
                 restart_required = true;
 
-                SK_SaveConfig ();
+                config.utility.save_async ();
               }
 
               ImGui::SameLine ();
@@ -1089,7 +1089,7 @@ SK_NGX_DLSS_ControlPanel (void)
               {
                 restart_required = true;
 
-                SK_SaveConfig ();
+                config.utility.save_async ();
               }
 
               if (! override)
@@ -1118,7 +1118,7 @@ SK_NGX_DLSS_ControlPanel (void)
 
               restart_required = true;
 
-              SK_SaveConfig ();
+              config.utility.save_async ();
             }
 
             percent =
@@ -1130,7 +1130,7 @@ SK_NGX_DLSS_ControlPanel (void)
 
               restart_required = true;
 
-              SK_SaveConfig ();
+              config.utility.save_async ();
             }
 
             ImGui::EndPopup ();
@@ -1147,7 +1147,7 @@ SK_NGX_DLSS_ControlPanel (void)
 
             SK_NGX_Reset ();
 
-            SK_SaveConfig ();
+            config.utility.save_async ();
           }
 
           if (ImGui::IsItemHovered ())
@@ -1179,7 +1179,7 @@ SK_NGX_DLSS_ControlPanel (void)
               use_sharpening - 1;
             restart_required = true;
 
-            SK_SaveConfig ();
+            config.utility.save_async ();
           }
   
           int                                               dlss_creation_flags = 0x0;
@@ -1201,7 +1201,7 @@ SK_NGX_DLSS_ControlPanel (void)
 
               SK_NGX_Reset ();
 
-              SK_SaveConfig ();
+              config.utility.save_async ();
             }
           }
         }
@@ -1240,7 +1240,7 @@ SK_NGX_DLSS_ControlPanel (void)
             {
               bRestartNeeded = true;
 
-              SK_SaveConfig ();
+              config.utility.save_async ();
             }
           }
 
@@ -1333,7 +1333,7 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::BeginGroup  ();
           if (ImGui::Checkbox ("Show Active Features", &config.nvidia.dlss.show_active_features))
           {
-            SK_SaveConfig ();
+            config.utility.save_async ();
           }
 
           if (ImGui::IsItemHovered ())
@@ -1365,7 +1365,7 @@ SK_NGX_DLSS_ControlPanel (void)
 
             restart_required = true;
 
-            SK_SaveConfig ();
+            config.utility.save_async ();
           }
 
           bool bFakeGenericAppID =
@@ -1380,12 +1380,12 @@ SK_NGX_DLSS_ControlPanel (void)
 
             restart_required = true;
 
-            SK_SaveConfig ();
+            config.utility.save_async ();
           }
 
           if (ImGui::Checkbox ("Disable Over-The-Air Updates", &config.nvidia.dlss.disable_ota_updates))
           {
-            SK_SaveConfig ();
+            config.utility.save_async ();
           }
 
           ImGui::TreePop ();

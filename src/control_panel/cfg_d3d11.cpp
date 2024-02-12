@@ -545,7 +545,7 @@ SK::ControlPanel::D3D11::Draw (void)
                 PriorityComboBox ("NxStorage Index", L"NxStorageIndexPriority");
 
               if (changed)
-                SK_SaveConfig ();
+                config.utility.save_async ();
 
               ImGui::TreePop  ();
             }
@@ -568,7 +568,7 @@ SK::ControlPanel::D3D11::Draw (void)
               ImGui::Checkbox ("Disable Telemetry", &config.render.dstorage.disable_telemetry);
 
             if (changed)
-              SK_SaveConfig ();
+              config.utility.save_async ();
 
             ImGui::TreePop ();
           }
@@ -1295,7 +1295,7 @@ SK::ControlPanel::D3D11::Draw (void)
       }
 
       if (changed)
-        SK_SaveConfig ();
+        config.utility.save_async ();
     }
 
     if (d3d11 && (! indirect)) ImGui::SameLine ();

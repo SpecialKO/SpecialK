@@ -330,7 +330,7 @@ public:
             config.display.monitor_handle =
                rb.displays [i].monitor;
 
-            SK_SaveConfig ();
+            config.utility.save_async ();
           }
         }
 

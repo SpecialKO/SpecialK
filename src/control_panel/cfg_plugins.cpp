@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -321,7 +321,7 @@ SK::ControlPanel::PlugIns::Draw (void)
 
         dll_ini->write ();
 
-        SK_SaveConfig ();
+        config.utility.save_async ();
       }
 
       if (ImGui::IsItemHovered ())

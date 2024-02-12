@@ -771,6 +771,11 @@ struct {
   } d3dkmt;
 } microsoft;
 
+struct {
+  sk::ParameterInt*       location                = nullptr;
+  sk::ParameterBool*      silent                  = nullptr;
+} notifications;
+
 sk::ParameterFloat*       mem_reserve             = nullptr;
 sk::ParameterBool*        debug_output            = nullptr;
 sk::ParameterBool*        debug_wait              = nullptr;
@@ -1858,6 +1863,10 @@ auto DeclKeybind =
 
     ConfigEntry (amd.adl.disable,                        L"Disable AMD's ADL library",                                 dll_ini,         L"AMD.ADL",               L"Disable"),
     ConfigEntry (microsoft.d3dkmt.disable_perfdata,      L"Disable Microsoft's D3DKMT Performance Data",               dll_ini,         L"Microsoft.D3DKMT",      L"DisablePerfData"),
+
+    ConfigEntry (notifications.location,                 L"Corner to display notifications, 0=Top-Left,1=Top-Right,"
+                                                         L"2=Bottom-Left,3=Bottom-Right",                              notify_ini,      L"Notification.System",   L"Location"),
+    ConfigEntry (notifications.silent,                   L"Will not draw notifications until user requests them.",     notify_ini,      L"Notification.System",   L"Silent"),
 
     ConfigEntry (reshade_cfg.draw_first,                 L"Draw ReShade before SK's overlay in AddOn capable versions",dll_ini,         L"ReShade.System",        L"DrawFirst"),
 
@@ -3608,6 +3617,9 @@ auto DeclKeybind =
      config.apis.D3DKMT.enable_perfdata = (! microsoft.d3dkmt.disable_perfdata->get_value ());
 
   reshade_cfg.draw_first->load              (config.reshade.draw_first);
+
+  notifications.location->load              (config.notifications.location);
+  notifications.silent->load                (config.notifications.silent);
 
   display.force_fullscreen->load            (config.display.force_fullscreen);
   display.force_windowed->load              (config.display.force_windowed);
@@ -5901,6 +5913,9 @@ SK_SaveConfig ( std::wstring name,
   if (config.reshade.is_addon)
     reshade_cfg.draw_first->store             (config.reshade.draw_first);
 
+  notifications.location->store               (config.notifications.location);
+  notifications.silent->store                 (config.notifications.silent);
+
   if (SK_GetFramesDrawn ())
   {
     render.osd.draw_in_vidcap->store          (config.render.osd.draw_in_vidcap);
@@ -7648,6 +7663,50 @@ namespace sk
     int base_log_lvl = 0;
   };
 };
+
+
+void
+sk_config_t::utility_functions_s::save_async (void)
+{
+  SK_RunOnce (
+    SK_Thread_CreateEx ([](LPVOID) -> DWORD
+    {
+      HANDLE hEvents [] = {
+        __SK_DLL_TeardownEvent,
+        config.utility.hSignalAsyncSave
+      };
+
+      DWORD  dwWaitState  = WAIT_FAILED;
+      while (dwWaitState != WAIT_OBJECT_0)
+      {
+        dwWaitState =
+          WaitForMultipleObjectsEx (2, hEvents, FALSE, INFINITE, FALSE);
+
+        if (dwWaitState == WAIT_OBJECT_0)
+          break;
+
+        if (dwWaitState == WAIT_OBJECT_0 + 1)
+        {
+          const wchar_t* config_name = SK_GetBackend ();
+
+          if (SK_IsInjected ())
+            config_name = L"SpecialK";
+
+          SK_SaveConfig (config_name);
+        }
+      }
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] Config Save Thread");
+  );
+}
+
+iSK_INI* SK_GetNotifyINI (void)
+{
+  return notify_ini;
+}
 
 
 
