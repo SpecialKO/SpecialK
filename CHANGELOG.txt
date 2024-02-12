@@ -6,8 +6,8 @@
  + Added Silent Notification Mode
  + Added flags to create notifications that cannot be silenced, that do
      not store settings in notifications.ini and have custom config modes
- + Most Control Panel settings that used to synchronously write changed settings
-     to INI now do so asynchronously using a dedicated thread.
+ + Most Control Panel settings that used to synchronously write changes
+     to an INI file now do so asynchronously using a dedicated thread.
 
 24.2.12.1
 =========

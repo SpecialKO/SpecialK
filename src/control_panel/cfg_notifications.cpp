@@ -80,6 +80,7 @@ SK::ControlPanel::Notifications::Draw (void)
           3333UL, SK_ImGui_Toast::UseDuration  |
                   SK_ImGui_Toast::ShowCaption  |
                   SK_ImGui_Toast::Unsilencable |
+                  SK_ImGui_Toast::ShowNewest   |
                   SK_ImGui_Toast::DoNotSaveINI );
     }
     ImGui::EndGroup  ();
@@ -97,7 +98,7 @@ SK::ControlPanel::Notifications::Draw (void)
 
       for ( auto& section : sections )
       {
-        if (! section.first._Equal (L"Notify.System"))
+        if (! section.first._Equal (L"Notification.System"))
         {
           ++removed;
           notify_ini->remove_section (section.first);
@@ -114,6 +115,7 @@ SK::ControlPanel::Notifications::Draw (void)
             2345UL, SK_ImGui_Toast::UseDuration  |
                     SK_ImGui_Toast::ShowCaption  |
                     SK_ImGui_Toast::Unsilencable |
+                    SK_ImGui_Toast::ShowNewest   |
                     SK_ImGui_Toast::DoNotSaveINI );
       }
     }
@@ -134,7 +136,7 @@ SK::ControlPanel::Notifications::Draw (void)
 
         for ( auto& section : notify_ini->get_sections () )
         {
-          if (! section.first._Equal (L"Notify.System"))
+          if (! section.first._Equal (L"Notification.System"))
           {
             std::string str_id =
               SK_WideCharToUTF8 (section.first);

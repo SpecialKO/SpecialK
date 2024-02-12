@@ -672,10 +672,11 @@ SK_ImGui_DrawNotifications (void)
     {
       ImGui::BeginGroup ();
       ImGui::BringWindowToDisplayFront (ImGui::GetCurrentWindow ());
-      ImGui::PushTextWrapPos           (viewport_size.x / 1.75f);
 
       if (toast.stage != SK_ImGui_Toast::Config)
       {
+        ImGui::PushTextWrapPos (viewport_size.x / 1.75f);
+
         ImGui::TextColored (
           SK_ImGui_GetToastColor (toast.type),
           SK_ImGui_GetToastIcon  (toast.type)
@@ -713,6 +714,8 @@ SK_ImGui_DrawNotifications (void)
 
       else
       {
+        ImGui::PushTextWrapPos ();
+
         bool stop_showing = false;
 
         if (notify_ini != nullptr)
@@ -774,16 +777,16 @@ SK_ImGui_DrawNotifications (void)
         ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
         ImGui::SameLine    ();
 
-        ImGui::PushTextWrapPos (0.0f);
-
         auto vTextSize =
           ImGui::CalcTextSize (toast.id.c_str ());
 
         float fx = ImGui::GetCursorPosX         (),
               fw = ImGui::GetContentRegionAvail ().x;
 
-        ImGui::SetCursorPosX (fx - ImGui::GetStyle ().ItemInnerSpacing.x +
-                              fw -                           vTextSize.x);
+        ImGui::SetCursorPosX (
+                    std::max (fx,
+                              fx - ImGui::GetStyle ().ItemInnerSpacing.x +
+                              fw -                           vTextSize.x));
 
         ImGui::TextDisabled ("%hs", toast.id.c_str ());
 
@@ -795,14 +798,20 @@ SK_ImGui_DrawNotifications (void)
 
       ImGui::EndGroup ();
 
-      if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
-      {
-        toast.stage = SK_ImGui_Toast::Config;
-      }
+      const bool bHasConfig =
+        0 == (toast.flags & SK_ImGui_Toast::DoNotSaveINI);
 
-      if (toast.stage != SK_ImGui_Toast::Config && ImGui::IsItemHovered () && 0 == (toast.flags & SK_ImGui_Toast::DoNotSaveINI))
+      if (bHasConfig && toast.stage != SK_ImGui_Toast::Config)
       {
-        ImGui::SetTooltip ("Right-click to configure this notification");
+        if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
+        {
+          toast.stage = SK_ImGui_Toast::Config;
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip ("Right-click to configure this notification");
+        }
       }
     }
     ImGui::End   ();
