@@ -1,4 +1,10 @@
-﻿24.2.12.2
+﻿24.2.13
+=======
+ + Fixed a few thread race conditions during initialization and shutdown
+ + Fixed a typo on the SteamAPI 'Disable Integration' checkbox's tooltip
+ + Fixed mismatched utf-8 source files in various code units
+
+24.2.12.2
 =========
  + Added Notification Section to the Control Panel
  + Added User-Configurable Notification Corner

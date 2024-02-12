@@ -459,7 +459,7 @@ SK::ControlPanel::Steam::Draw (void)
         ImGui::BeginTooltip    ();
         ImGui::TextUnformatted ("Turns off almost all Steam-related features");
         ImGui::Separator       ();
-        ImGui::BulletText      ("Steam Input problems will not be fixed, and background input will be unsupported Steam Input games.");
+        ImGui::BulletText      ("Steam Input problems will not be fixed, and background input will be unsupported in Steam Input games.");
         ImGui::BulletText      ("Optimized Steam screenshots and achievement popups will be disabled.");
         ImGui::BulletText      ("The Steam Overlay can still be disabled");
         ImGui::Separator       ();
