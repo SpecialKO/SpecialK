@@ -1,4 +1,10 @@
-﻿24.2.12
+﻿24.2.12.1
+=========
+ + Fixed SK processing keyboard input (triggering its keybinds) while Granblue
+     Fantasy Relink's window is not even active, due to the game's unusual
+       Raw Input device setup.
+
+24.2.12
 =======
  + Add new INI option to keep 8-bpc HDR remastered Render Targets UNORM instead
      of Floating-Point for games with shaders that do not work correctly in FP.

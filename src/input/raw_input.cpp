@@ -703,20 +703,22 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
         //  pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
         //        io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
         //}
-
-          switch (((RAWINPUT *) pData)->data.keyboard.Message)
+          if (game_window.active)
           {
-            case WM_KEYDOWN:
-            case WM_SYSKEYDOWN:
-                    io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
-              pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
-              break;
+            switch (((RAWINPUT *) pData)->data.keyboard.Message)
+            {
+              case WM_KEYDOWN:
+              case WM_SYSKEYDOWN:
+                      io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
+                pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
+                break;
 
-            case WM_KEYUP:
-            case WM_SYSKEYUP:
-                  io.KeysDown [VKey & 0xFF] = false;
-              pConsole->KeyUp (VKey & 0xFF, MAXDWORD);
-              break;
+              case WM_KEYUP:
+              case WM_SYSKEYUP:
+                    io.KeysDown [VKey & 0xFF] = false;
+                pConsole->KeyUp (VKey & 0xFF, MAXDWORD);
+                break;
+            }
           }
         } break;
 

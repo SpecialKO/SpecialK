@@ -3013,6 +3013,10 @@ auto DeclKeybind =
                 VirtualProtect (pSteamInput001, 13, dwOriginal,             &dwOriginal);
             }
           }
+
+          config.input.gamepad.xinput.emulate         = true;
+          config.input.gamepad.steam.disabled_to_game = true;
+          config.input.gamepad.xinput.placehold [0]   = true;
         }
       } break;
 

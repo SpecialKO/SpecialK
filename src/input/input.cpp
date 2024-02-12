@@ -207,20 +207,23 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       case WM_KEYDOWN:
       case WM_SYSKEYDOWN:
       {
-        if ((SK_Console::getInstance ()->KeyDown (
-                      lpMsg->wParam & 0xFF,
-                      lpMsg->lParam
-            ) != 0 && lpMsg->message != WM_SYSKEYDOWN)
-                   ||
-            SK_ImGui_WantKeyboardCapture ()
-          )
+        if (game_window.active)
         {
-          if (ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
-                                    lpMsg->wParam, lpMsg->lParam))
+          if ((SK_Console::getInstance ()->KeyDown (
+                        lpMsg->wParam & 0xFF,
+                        lpMsg->lParam
+              ) != 0 && lpMsg->message != WM_SYSKEYDOWN)
+                     ||
+              SK_ImGui_WantKeyboardCapture ()
+            )
           {
-            game_window.DefWindowProc (lpMsg->hwnd,   lpMsg->message,
-                                       lpMsg->wParam, lpMsg->lParam);
-            handled = true;
+            if (ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
+                                      lpMsg->wParam, lpMsg->lParam))
+            {
+              game_window.DefWindowProc (lpMsg->hwnd,   lpMsg->message,
+                                         lpMsg->wParam, lpMsg->lParam);
+              handled = true;
+            }
           }
         }
       } break;
@@ -228,20 +231,23 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
       case WM_KEYUP:
       case WM_SYSKEYUP:
       {
-        if ((SK_Console::getInstance ()->KeyUp (
-                      lpMsg->wParam & 0xFF,
-                      lpMsg->lParam
-            ) != 0 && lpMsg->message != WM_SYSKEYUP)
-                   ||
-            SK_ImGui_WantKeyboardCapture ()
-          )
+        if (game_window.active)
         {
-          if (ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
-                                    lpMsg->wParam, lpMsg->lParam))
+          if ((SK_Console::getInstance ()->KeyUp (
+                        lpMsg->wParam & 0xFF,
+                        lpMsg->lParam
+              ) != 0 && lpMsg->message != WM_SYSKEYUP)
+                     ||
+              SK_ImGui_WantKeyboardCapture ()
+            )
           {
-            //game_window.DefWindowProc ( lpMsg->hwnd,   lpMsg->message,
-            //                            lpMsg->wParam, lpMsg->lParam );
-            //handled = true;
+            if (ImGui_WndProcHandler (lpMsg->hwnd,   lpMsg->message,
+                                      lpMsg->wParam, lpMsg->lParam))
+            {
+              //game_window.DefWindowProc ( lpMsg->hwnd,   lpMsg->message,
+              //                            lpMsg->wParam, lpMsg->lParam );
+              //handled = true;
+            }
           }
         }
       } break;
