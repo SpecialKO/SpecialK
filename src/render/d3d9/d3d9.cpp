@@ -668,7 +668,7 @@ void
 WINAPI
 SK_HookD3D9 (void)
 {
-  if (config.apis.d3d9.translated)
+  if (config.apis.translated == SK_RenderAPI::D3D9)
     return;
 
   static volatile LONG hooked = FALSE;
@@ -6502,7 +6502,7 @@ HookD3D9 (LPVOID user)
 {
   UNREFERENCED_PARAMETER (user);
 
-  if (config.apis.d3d9.translated || (! config.apis.d3d9.hook))
+  if (config.apis.translated == SK_RenderAPI::D3D9 || (! config.apis.d3d9.hook))
   {
     return 0;
   }
@@ -9973,9 +9973,8 @@ SK_D3D9_QuickHook (void)
 {
   // We don't want to hook this, and we certainly don't want to hook it using
   //   cached addresses!
-  if (    config.apis.d3d9.translated ||
-      (! (config.apis.d3d9.hook       ||
-          config.apis.d3d9ex.hook) ) )
+  if ( (   config.apis.translated == SK_RenderAPI::D3D9       ) ||
+       (! (config.apis.d3d9.hook  || config.apis.d3d9ex.hook) ) )
     return;
 
   if (config.steam.preload_overlay)
