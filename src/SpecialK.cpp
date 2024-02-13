@@ -933,35 +933,59 @@ bool
 __stdcall
 SK_dgVoodoo_CheckForInterop (void)
 {
-  HMODULE hModD3D9 =
-    SK_GetModuleHandle (L"d3d9.dll");
-
-  if (hModD3D9 == 0)
+  const std::map <const wchar_t *, SK_RenderAPI> dgvoodoo_dll_map =
   {
-    wchar_t     wszDllPath [MAX_PATH] = { };
-    PathAppend (wszDllPath, SK_GetHostPath ());
-    PathAppend (wszDllPath, L"d3d9.dll");
+    { L"d3d9.dll",    SK_RenderAPI::D3D9  },
+    { L"d3d8.dll",    SK_RenderAPI::D3D8  },
+    { L"d3dimm.dll",  SK_RenderAPI::DDraw },
+    { L"ddraw.dll",   SK_RenderAPI::DDraw },
+    { L"glide3x.dll", SK_RenderAPI::Glide },
+    { L"glide2x.dll", SK_RenderAPI::Glide },
+    { L"glide.dll",   SK_RenderAPI::Glide }
+  };
 
-    if (PathFileExistsW (wszDllPath))
+  for ( auto& it : dgvoodoo_dll_map )
+  {
+    auto dgvoodoo_dll = it.first;
+
+    HMODULE hMod_dgVoodoo =
+      SK_GetModuleHandle (dgvoodoo_dll);
+
+    if (hMod_dgVoodoo == 0)
     {
-      hModD3D9 =
-        SK_LoadLibraryW (wszDllPath);
+      wchar_t     wszDllPath [MAX_PATH] = { };
+      PathAppend (wszDllPath, SK_GetHostPath ());
+      PathAppend (wszDllPath, dgvoodoo_dll);
+
+      if (PathFileExistsW (wszDllPath))
+      {
+        hMod_dgVoodoo =
+          SK_LoadLibraryW (wszDllPath);
+      }
     }
-  }
 
-  if (hModD3D9 != 0)
-  {
-    std::wstring str_d3d9ver =
-      SK_GetDLLVersionStr (
-        SK_GetModuleFullName (hModD3D9).c_str ()
-                          );
-
-    if (str_d3d9ver.find (L"dgVoodoo") != std::wstring::npos)
+    if (hMod_dgVoodoo != 0)
     {
-      config.apis.d3d9.hook       = false;
-      config.apis.d3d9.translated = true;
+      std::wstring str_dgvoodoo_ver =
+        SK_GetDLLVersionStr (
+          SK_GetModuleFullName (hMod_dgVoodoo).c_str ()
+                            );
 
-      return true;
+      if (str_dgvoodoo_ver.find (L"dgVoodoo") != std::wstring::npos)
+      {
+        config.apis.translated = it.second;
+
+        if (config.apis.translated == SK_RenderAPI::D3D9)
+        {
+          config.apis.d3d9.hook   = false;
+          config.apis.d3d9ex.hook = false;
+        }
+
+        config.render.dxgi.use_factory_cache = false;
+        config.render.dxgi.skip_mode_changes = true;
+
+        return true;
+      }
     }
   }
 
@@ -1049,10 +1073,20 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
 
 #ifndef _M_AMD64
   else if (0 == SK_Path_wcsicmp (wszShort, L"d3d8.dll")  && has_dgvoodoo)
+  {
     SK_SetDLLRole (DLL_ROLE::D3D8);
 
+    config.render.dxgi.use_factory_cache = false;
+    config.render.dxgi.skip_mode_changes = true;
+  }
+
   else if (0 == SK_Path_wcsicmp (wszShort, L"ddraw.dll") && has_dgvoodoo)
+  {
     SK_SetDLLRole (DLL_ROLE::DDraw);
+
+    config.render.dxgi.use_factory_cache = false;
+    config.render.dxgi.skip_mode_changes = true;
+  }
 #endif
 
   else if (0 == SK_Path_wcsicmp (wszShort, L"d3d9.dll"))
@@ -1326,10 +1360,11 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
 
         if (SK_dgVoodoo_CheckForInterop ())
         {
-          config.render.dxgi.use_factory_cache = false;
-          config.render.dxgi.skip_mode_changes = true;
+          if (config.apis.translated == SK_RenderAPI::D3D9)
+          {
+            d3d9 = false;
+          }
 
-          d3d9  = false;
           d3d11 = true;
           d3d12 = true;
         }
