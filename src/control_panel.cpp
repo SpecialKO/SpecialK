@@ -4718,39 +4718,33 @@ SK_ImGui_ControlPanel (void)
       }
     }
 
-          char szAPIName [32] = {             };
-    snprintf ( szAPIName, 32, "%ws",  rb.name );
+    char szAPIName [32] = { };
 
-    // Translation layers (D3D8->11 / D3D8->12 / DDraw->11 / DDraw->12 / D3D11On12)
+    // Translation layers (D3D9/D3D8/DDraw/Glide->11/12 / D3D11On12)
+    bool translated = config.apis.translated != SK_RenderAPI::None;
+
+    if (translated)
+    {
+      snprintf ( szAPIName, 32, "%ws", SK_Render_GetAPIName (config.apis.translated) );
+    }
+
+    else
+    {
+      snprintf ( szAPIName, 32, "%ws", rb.name );
+    }
+
     auto api_mask = static_cast <int> (rb.api);
 
-    bool translated_d3d9 =
-      config.apis.d3d9.translated;
-
     if (0x0 != (api_mask &  static_cast <int> (SK_RenderAPI::D3D12)) &&
-               (api_mask != static_cast <int> (SK_RenderAPI::D3D12)  || translated_d3d9))
+               (api_mask != static_cast <int> (SK_RenderAPI::D3D12)  || translated))
     {
-      if (translated_d3d9)
-      {
-        strncpy  (szAPIName, (const char *)u8"D3D9→12", 32);
-      }
-      else if (api_mask == static_cast <int> (SK_RenderAPI::DDrawOn12)  ||
-               api_mask == static_cast <int> (SK_RenderAPI::D3D8On12)   ||
-               api_mask == static_cast <int> (SK_RenderAPI::GlideOn12))
-      {
-        lstrcatA (szAPIName, (const char *)u8"→12");
-      }
-      else
-      {
-        lstrcatA (szAPIName, "On12");
-      }
+      lstrcatA (szAPIName, (const char *)u8"→12");
     }
 
     else if (0x0 != (api_mask &  static_cast <int> (SK_RenderAPI::D3D11)) &&
-                    (api_mask != static_cast <int> (SK_RenderAPI::D3D11)  || translated_d3d9))
+                    (api_mask != static_cast <int> (SK_RenderAPI::D3D11)  || translated))
     {
-      if (! translated_d3d9)lstrcatA (szAPIName, (const char *)u8"→11");
-      else                  strncpy  (szAPIName, (const char *)u8"D3D9→11", 32);
+      lstrcatA (szAPIName, (const char *)u8"→11");
     }
 
     lstrcatA ( szAPIName,
