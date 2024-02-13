@@ -1,4 +1,8 @@
-﻿24.2.13
+﻿24.2.13.1
+=========
+ + Revert recent changes to window management that broke Fallout: New Vegas
+
+24.2.13
 =======
  + Fixed a few thread race conditions during initialization and shutdown
  + Fixed a typo on the SteamAPI 'Disable Integration' checkbox's tooltip

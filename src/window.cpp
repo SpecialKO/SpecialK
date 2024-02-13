@@ -5548,12 +5548,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         WINDOWPOS* pWindowPos = (WINDOWPOS *)lParam;
 
         if (! (pWindowPos->flags & SWP_NOSENDCHANGING))
-        {
-          if (! ((pWindowPos->flags & SWP_NOMOVE) && (pWindowPos->flags & SWP_NOSIZE)))
-          {
-            SK_Window_RepositionIfNeeded ();
-          }
-        }
+          SK_Window_RepositionIfNeeded ();
       }
     } break;
 
