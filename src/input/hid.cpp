@@ -2863,7 +2863,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                           &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD)) )
             {
               pDevice->xinput.report.dwPacketNumber++;
-              pDevice->xinput.prev_report = pDevice->xinput.report;
+              pDevice->xinput.prev_report  = pDevice->xinput.report;
+              pDevice->xinput.time_sampled = SK_timeGetTime ();
             }
 
             for ( auto& button : pDevice->buttons )

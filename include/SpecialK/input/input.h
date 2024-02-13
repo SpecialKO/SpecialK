@@ -934,8 +934,9 @@ struct SK_HID_PlayStationDevice
   UCHAR dpad_report_id;
 
   struct hid_to_xi {
-    XINPUT_STATE prev_report;
-    XINPUT_STATE report;
+    XINPUT_STATE prev_report  = { };
+    XINPUT_STATE report       = { };
+    DWORD        time_sampled =  0 ;
   } xinput;
 
   std::vector <button_s>        buttons;

@@ -434,35 +434,55 @@ XInputGetState1_4_Detour (
 
   if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
   {
-    for ( auto& controller : SK_HID_PlayStationControllers )
+    if (dwUserIndex == 0 && SK_HID_PlayStationControllers.size () > 0)
     {
-      if (controller.bConnected)
+      SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
+      SK_HID_PlayStationDevice *pBluetoothDevice   = nullptr;
+
+      bool
+      SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
+      SK_ImGui_PollGamepad_EndFrame (pState);
+
+      for ( auto& controller : SK_HID_PlayStationControllers )
       {
-        if (dwUserIndex == 0)
+        if (controller.bConnected)
         {
-          bool
-          SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
-          SK_ImGui_PollGamepad_EndFrame (pState);
-
-          extern XINPUT_STATE hid_to_xi;
-          memcpy (  pState,  &hid_to_xi, sizeof (XINPUT_STATE) );
-
-          if (SK_ImGui_WantGamepadCapture ())
+          if (pNewestInputDevice == nullptr ||
+              pNewestInputDevice->xinput.time_sampled <= controller.xinput.time_sampled ||
+                                                         controller.bBluetooth)
           {
-            SK_XINPUT_HIDE (dwUserIndex)
-            ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+            pNewestInputDevice = &controller;
           }
 
-          else
-          {
-            // Game-specific hacks (i.e. button swap)
-            SK_XInput_TalesOfAriseButtonSwap (pState);
-
-            SK_XINPUT_READ (dwUserIndex)
-          }
-
-          return ERROR_SUCCESS;
+          if (controller.bBluetooth)
+            pBluetoothDevice = &controller;
         }
+      }
+
+      if (pBluetoothDevice != nullptr)
+          pNewestInputDevice = pBluetoothDevice;
+
+      if (pNewestInputDevice != nullptr)
+      {
+        extern XINPUT_STATE hid_to_xi;
+                            hid_to_xi = pNewestInputDevice->xinput.prev_report;
+        memcpy (  pState,  &hid_to_xi, sizeof (XINPUT_STATE) );
+
+        if (SK_ImGui_WantGamepadCapture ())
+        {
+          SK_XINPUT_HIDE (dwUserIndex)
+          ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+        }
+
+        else
+        {
+          // Game-specific hacks (i.e. button swap)
+          SK_XInput_TalesOfAriseButtonSwap (pState);
+
+          SK_XINPUT_READ (dwUserIndex)
+        }
+
+        return ERROR_SUCCESS;
       }
     }
   }

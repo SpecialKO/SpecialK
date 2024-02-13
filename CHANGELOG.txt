@@ -1,4 +1,9 @@
-﻿24.2.13.3
+﻿24.2.13.4
+=========
+ + Handle situations where DualSense controllers are both USB and Bluetooth
+     at the same time; use the device's Bluetooth data instead of USB.
+
+24.2.13.3
 =========
  + Added protection against DualSense controllers with missing buttons
      according to the HID / SetupAPIs (which are manipulated by Steam).
