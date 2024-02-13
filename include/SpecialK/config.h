@@ -1118,7 +1118,6 @@ struct sk_config_t
 
     struct d3d9_s {
       bool   hook        =            true;
-      bool   translated  =           false;
       int    native_dxvk = SK_NoPreference;
       int    hook_next   = SK_NoPreference;
     } d3d9,
