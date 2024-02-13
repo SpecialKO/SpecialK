@@ -6128,7 +6128,7 @@ DXGIFactory_CreateSwapChain_Override (
     {
       if (  pCmdQueue.p    == nullptr &&
             pSwapToRecycle == nullptr &&
-           ppSwapChain     != nullptr /*&& (! config.apis.d3d9.translated)*/ )
+           ppSwapChain     != nullptr /*&& config.apis.translated != SK_RenderAPI::D3D9*/ )
       {
         pSwapToRecycle = *ppSwapChain;
 
