@@ -20,8 +20,28 @@
 **/
 
 #include <SpecialK/stdafx.h>
-#include <hidclass.h>
 #include <imgui/font_awesome.h>
+
+#include <hidclass.h>
+
+//
+// From the Driver SDK, which we would rather not make a dependency
+//   required to build Special K...    (hidport.h)
+//
+#define IOCTL_HID_GET_STRING                     HID_CTL_CODE(4)
+#define IOCTL_HID_ACTIVATE_DEVICE                HID_CTL_CODE(7)
+#define IOCTL_HID_DEACTIVATE_DEVICE              HID_CTL_CODE(8)
+#define IOCTL_HID_GET_DEVICE_ATTRIBUTES          HID_CTL_CODE(9)
+#define IOCTL_HID_SEND_IDLE_NOTIFICATION_REQUEST HID_CTL_CODE(10)
+
+typedef struct _HID_DEVICE_ATTRIBUTES {
+  ULONG  Size;
+  USHORT VendorID;
+  USHORT ProductID;
+  USHORT VersionNumber;
+  USHORT Reserved [11];
+} HID_DEVICE_ATTRIBUTES,
+*PHID_DEVICE_ATTRIBUTES;
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -32,6 +52,37 @@
 #define SK_HID_WRITE(type) SK_HID_Backend->markWrite  (type);
 #define SK_HID_VIEW(type)  SK_HID_Backend->markViewed (type);
 #define SK_HID_HIDE(type)  SK_HID_Backend->markHidden (type);
+
+
+//////////////////////////////////////////////////////////////
+//
+// HIDClass (User mode)
+//
+//////////////////////////////////////////////////////////////
+HidD_GetPreparsedData_pfn   HidD_GetPreparsedData_Original  = nullptr;
+HidD_FreePreparsedData_pfn  HidD_FreePreparsedData_Original = nullptr;
+HidD_GetFeature_pfn         HidD_GetFeature_Original        = nullptr;
+HidD_SetFeature_pfn         HidD_SetFeature_Original        = nullptr;
+HidP_GetData_pfn            HidP_GetData_Original           = nullptr;
+HidP_GetCaps_pfn            HidP_GetCaps_Original           = nullptr;
+HidP_GetUsages_pfn          HidP_GetUsages_Original         = nullptr;
+
+HidD_GetAttributes_pfn      SK_HidD_GetAttributes           = nullptr;
+HidD_GetPreparsedData_pfn   SK_HidD_GetPreparsedData        = nullptr;
+HidD_FreePreparsedData_pfn  SK_HidD_FreePreparsedData       = nullptr;
+HidD_GetInputReport_pfn     SK_HidD_GetInputReport          = nullptr;
+HidD_GetFeature_pfn         SK_HidD_GetFeature              = nullptr;
+HidD_SetFeature_pfn         SK_HidD_SetFeature              = nullptr;
+HidD_FlushQueue_pfn         SK_HidD_FlushQueue              = nullptr;
+HidP_GetData_pfn            SK_HidP_GetData                 = nullptr;
+HidP_GetCaps_pfn            SK_HidP_GetCaps                 = nullptr;
+HidP_GetButtonCaps_pfn      SK_HidP_GetButtonCaps           = nullptr;
+HidP_GetValueCaps_pfn       SK_HidP_GetValueCaps            = nullptr;
+HidP_GetUsages_pfn          SK_HidP_GetUsages               = nullptr;
+HidP_GetUsageValue_pfn      SK_HidP_GetUsageValue           = nullptr;
+HidP_GetUsageValueArray_pfn SK_HidP_GetUsageValueArray      = nullptr;
+
+
 
 enum class SK_Input_DeviceFileType
 {
@@ -62,6 +113,8 @@ struct SK_HID_DeviceFile {
   wchar_t           wszDevicePath       [MAX_PATH + 2] = { };
   std::vector<BYTE> last_data_read;
   sk_input_dev_type device_type                        = sk_input_dev_type::Other;
+  USHORT            device_vid                         = 0x0;
+  USHORT            device_pid                         = 0x0;
   BOOL              bDisableDevice                     = FALSE;
   HANDLE            hFile                              = INVALID_HANDLE_VALUE;
 
@@ -106,21 +159,6 @@ struct SK_HID_DeviceFile {
 
         DWORD dwBytesRead = 0;
 
-        SK_DeviceIoControl (
-          hFile, IOCTL_HID_GET_PRODUCT_STRING, 0, 0,
-          wszProductName, 128, &dwBytesRead, nullptr
-        );
-
-        SK_DeviceIoControl (
-          hFile, IOCTL_HID_GET_MANUFACTURER_STRING, 0, 0,
-          wszManufacturerName, 128, &dwBytesRead, nullptr
-        );
-
-        SK_DeviceIoControl (
-          hFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
-          wszSerialNumber, 128, &dwBytesRead, nullptr
-        );
-
         if (hidpCaps.UsagePage == HID_USAGE_PAGE_GENERIC)
         {
           switch (hidpCaps.Usage)
@@ -129,14 +167,47 @@ struct SK_HID_DeviceFile {
             case HID_USAGE_GENERIC_JOYSTICK:
             case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
             {
+              SK_DeviceIoControl (
+                hFile, IOCTL_HID_GET_PRODUCT_STRING, 0, 0,
+                wszProductName, 128, &dwBytesRead, nullptr
+              );
+
+              SK_DeviceIoControl (
+                hFile, IOCTL_HID_GET_MANUFACTURER_STRING, 0, 0,
+                wszManufacturerName, 128, &dwBytesRead, nullptr
+              );
+
+              SK_DeviceIoControl (
+                hFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
+                wszSerialNumber, 128, &dwBytesRead, nullptr
+              );
+
+              HIDD_ATTRIBUTES hidAttribs      = {                      };
+                              hidAttribs.Size = sizeof (HIDD_ATTRIBUTES);
+
+              SK_HidD_GetAttributes (hFile, &hidAttribs);
+
+              device_pid = hidAttribs.ProductID;
+              device_vid = hidAttribs.VendorID;
+
               device_type = sk_input_dev_type::Gamepad;
+
+              LONG lImmediate = 0;
+
+              SK_DeviceIoControl (
+                hFile, IOCTL_HID_SET_POLL_FREQUENCY_MSEC,
+                  &lImmediate, sizeof (LONG), nullptr, 0, &dwBytesRead, nullptr );
 
               SK_ImGui_CreateNotification (
                 "HID.GamepadAttached", SK_ImGui_Toast::Info,
-                SK_FormatString ("%ws\t%ws\r\nDevice Path: %ws",
-                   wszManufacturerName,
-                   wszProductName,
-                   wszPath ).c_str (),
+                *wszManufacturerName != L'\0' ?
+                  SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
+                     wszManufacturerName,
+                     wszProductName, device_vid,
+                                     device_pid ).c_str () :
+                  SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
+                     wszProductName, device_vid,
+                                     device_pid ).c_str (),
                 "HID Compliant Gamepad Connected", 10000
               );
             } break;
@@ -172,10 +243,28 @@ struct SK_HID_DeviceFile {
 
           else
           {
-            SK_LOGi1 (
-              L"Unknown HID Device Type (Product=%ws):  UsagePage=%x, Usage=%x",
-                wszProductName, hidpCaps.UsagePage, hidpCaps.Usage
-            );
+            if (config.system.log_level > 0)
+            {
+              SK_DeviceIoControl (
+                hFile, IOCTL_HID_GET_PRODUCT_STRING, 0, 0,
+                wszProductName, 128, &dwBytesRead, nullptr
+              );
+
+              SK_DeviceIoControl (
+                hFile, IOCTL_HID_GET_MANUFACTURER_STRING, 0, 0,
+                wszManufacturerName, 128, &dwBytesRead, nullptr
+              );
+
+              SK_DeviceIoControl (
+                hFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
+                wszSerialNumber, 128, &dwBytesRead, nullptr
+              );
+
+              SK_LOGi1 (
+                L"Unknown HID Device Type (Product=%ws):  UsagePage=%x, Usage=%x",
+                  wszProductName, hidpCaps.UsagePage, hidpCaps.Usage
+              );
+            }
           }
         }
 
@@ -329,34 +418,45 @@ void SK_HID_SetupPlayStationControllers (void)
       {
         wchar_t *wszFileName =
           pDevInterfaceDetailData->DevicePath;
+
+        SK_AutoHandle hDeviceFile (
+            SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
+                                          FILE_SHARE_READ   | FILE_SHARE_WRITE,
+                                            nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH  |
+                                                                    FILE_ATTRIBUTE_TEMPORARY |
+                                                                    FILE_FLAG_OVERLAPPED, nullptr )
+                                  );
+
+        HIDD_ATTRIBUTES hidAttribs      = {                      };
+                        hidAttribs.Size = sizeof (HIDD_ATTRIBUTES);
+
+        SK_HidD_GetAttributes (hDeviceFile.m_h, &hidAttribs);
   
         bool bSONY = 
-          StrStrIW (wszFileName, L"VID_054c") ||
-          StrStrIW (wszFileName, L"_VID&0002054c");
+          hidAttribs.VendorID == 0x54c ||
+          hidAttribs.VendorID == 0x2054c;
 
         if (bSONY)
         {
           SK_HID_PlayStationDevice controller;
 
+          controller.pid = hidAttribs.ProductID;
+          controller.vid = hidAttribs.VendorID;
+
           controller.bBluetooth =
-            StrStrIW (wszFileName, L"_VID&0002054c");
+            (controller.vid == 0x2054c);
 
           controller.bDualSense =
-            StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
-            StrStrIW (wszFileName, L"PID_0CE6") != nullptr ||
-            StrStrIW (wszFileName, L"PID&0df2") != nullptr ||
-            StrStrIW (wszFileName, L"PID&0ce6") != nullptr;
+            (controller.pid == 0x0DF2) ||
+            (controller.pid == 0x0CE6);
 
           controller.bDualShock4 =
-            StrStrIW (wszFileName, L"PID_05C4") != nullptr ||
-            StrStrIW (wszFileName, L"PID_09CC") != nullptr ||
-            StrStrIW (wszFileName, L"PID_0BA0") != nullptr ||
-            StrStrIW (wszFileName, L"PID&05c4") != nullptr ||
-            StrStrIW (wszFileName, L"PID&09cc") != nullptr ||
-            StrStrIW (wszFileName, L"PID&0ba0") != nullptr;
+            (controller.pid == 0x05c4) ||
+            (controller.pid == 0x09CC) ||
+            (controller.pid == 0x0BA0);
 
           controller.bDualShock3 =
-            StrStrIW (wszFileName, L"PID_0268") != nullptr;
+            (controller.pid == 0x0268);
 
           if (! (controller.bDualSense || controller.bDualShock4 || controller.bDualShock3))
           {
@@ -474,32 +574,7 @@ void SK_HID_SetupPlayStationControllers (void)
   }
 }
 
-//////////////////////////////////////////////////////////////
-//
-// HIDClass (User mode)
-//
-//////////////////////////////////////////////////////////////
-HidD_GetPreparsedData_pfn   HidD_GetPreparsedData_Original  = nullptr;
-HidD_FreePreparsedData_pfn  HidD_FreePreparsedData_Original = nullptr;
-HidD_GetFeature_pfn         HidD_GetFeature_Original        = nullptr;
-HidD_SetFeature_pfn         HidD_SetFeature_Original        = nullptr;
-HidP_GetData_pfn            HidP_GetData_Original           = nullptr;
-HidP_GetCaps_pfn            HidP_GetCaps_Original           = nullptr;
-HidP_GetUsages_pfn          HidP_GetUsages_Original         = nullptr;
 
-HidD_GetPreparsedData_pfn   SK_HidD_GetPreparsedData        = nullptr;
-HidD_FreePreparsedData_pfn  SK_HidD_FreePreparsedData       = nullptr;
-HidD_GetInputReport_pfn     SK_HidD_GetInputReport          = nullptr;
-HidD_GetFeature_pfn         SK_HidD_GetFeature              = nullptr;
-HidD_SetFeature_pfn         SK_HidD_SetFeature              = nullptr;
-HidD_FlushQueue_pfn         SK_HidD_FlushQueue              = nullptr;
-HidP_GetData_pfn            SK_HidP_GetData                 = nullptr;
-HidP_GetCaps_pfn            SK_HidP_GetCaps                 = nullptr;
-HidP_GetButtonCaps_pfn      SK_HidP_GetButtonCaps           = nullptr;
-HidP_GetValueCaps_pfn       SK_HidP_GetValueCaps            = nullptr;
-HidP_GetUsages_pfn          SK_HidP_GetUsages               = nullptr;
-HidP_GetUsageValue_pfn      SK_HidP_GetUsageValue           = nullptr;
-HidP_GetUsageValueArray_pfn SK_HidP_GetUsageValueArray      = nullptr;
 
 bool
 SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
@@ -1904,6 +1979,10 @@ SK_Input_PreHookHID (void)
     SK_LOGi0 (L"Missing required HID DLLs (!!)");
   }
                                
+  SK_HidD_GetAttributes =
+    (HidD_GetAttributes_pfn)SK_GetProcAddress (hModHID,
+    "HidD_GetAttributes");
+
   SK_HidD_GetPreparsedData =
     (HidD_GetPreparsedData_pfn)SK_GetProcAddress (hModHID,
     "HidD_GetPreparsedData");
@@ -2401,16 +2480,29 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
       OVERLAPPED async_input_request = { };
 
-      ZeroMemory ( pDevice->input_report.data (),
-                   pDevice->input_report.size () );
-
       DWORD  dwWaitState  = WAIT_FAILED;
       while (dwWaitState != WAIT_OBJECT_0)
       {
         async_input_request        = { };
         async_input_request.hEvent = pDevice->hInputEvent;
 
+        ZeroMemory ( pDevice->input_report.data (),
+                     pDevice->input_report.size () );
+
         pDevice->input_report [0] = pDevice->button_report_id;
+
+        
+        bool bHasBluetooth = false;
+
+        for ( auto& ps_controller : SK_HID_PlayStationControllers )
+        {
+          if (ps_controller.bConnected)
+          {
+            if (ps_controller.bBluetooth)
+              bHasBluetooth = true;
+          }
+        }
+
 
         BOOL bReadAsync =
           SK_ReadFile ( pDevice->hDeviceFile, pDevice->input_report.data (),
@@ -2489,22 +2581,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
               continue;
             }
 
-            if (pDevice->bDualSense && pDevice->buttons.size () < 15)
-                                       pDevice->buttons.resize (  15);
-
-
-#if 0
-            SK_ImGui_CreateNotification (
-              "HID.DebugReport", SK_ImGui_Toast::Info,
-              SK_FormatString ("Report Size: %d-bytes", dwBytesTransferred).c_str (), nullptr, INFINITE,
-              SK_ImGui_Toast::UseDuration  |
-              SK_ImGui_Toast::ShowCaption  |
-              SK_ImGui_Toast::ShowNewest   |
-              SK_ImGui_Toast::DoNotSaveINI |
-              SK_ImGui_Toast::Unsilencable
-            );
-#endif
-
             bool clear_haptics = false;
 
             if (pDevice->_vibration.last_set != 0 &&
@@ -2514,51 +2590,30 @@ SK_HID_PlayStationDevice::request_input_report (void)
               clear_haptics = true;
             }
 
-            if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate)
-            {
-              //static DWORD dwLastFlush = 0;
-              //if (         dwLastFlush < SK::ControlPanel::current_time - 16)
-              //{            dwLastFlush = SK::ControlPanel::current_time;
-                pDevice->write_output_report ();
-              //}
-            }
+            ////if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate)
+            ////{
+            ////  //static DWORD dwLastFlush = 0;
+            ////  //if (         dwLastFlush < SK::ControlPanel::current_time - 16)
+            ////  //{            dwLastFlush = SK::ControlPanel::current_time;
+            ////    pDevice->write_output_report ();
+            ////  //}
+            ////}
 
             ULONG num_usages =
               static_cast <ULONG> (pDevice->button_usages.size ());
 
+            pDevice->xinput.report.Gamepad = { };
+
             if (dwBytesTransferred != 78)
             {
-              NTSTATUS ntStatus =          
+              if ( HIDP_STATUS_SUCCESS ==
                 SK_HidP_GetUsages ( HidP_Input, pDevice->buttons [0].UsagePage, 0,
                                                 pDevice->button_usages.data (),
                                                                 &num_usages,
                                                 pDevice->pPreparsedData,
                                          (PCHAR)pDevice->input_report.data  (),
-                           static_cast <ULONG> (pDevice->input_report.size  ()) );
-
-              switch (ntStatus)
-              {
-                case HIDP_STATUS_INVALID_REPORT_LENGTH:
-                  SK_RunOnce (SK_ImGui_Warning (L"HIDP_STATUS_INVALID_REPORT_LENGTH"));
-                  break;
-                case HIDP_STATUS_INVALID_REPORT_TYPE:
-                  SK_RunOnce (SK_ImGui_Warning (L"HIDP_STATUS_INVALID_REPORT_TYPE"));
-                  break;
-                case HIDP_STATUS_BUFFER_TOO_SMALL:
-                  SK_RunOnce (SK_ImGui_Warning (L"HIDP_STATUS_BUFFER_TOO_SMALL"));
-                  break;
-                case HIDP_STATUS_INCOMPATIBLE_REPORT_ID:
-                  SK_RunOnce (SK_ImGui_Warning (L"HIDP_STATUS_INCOMPATIBLE_REPORT_ID"));
-                  break;
-                case HIDP_STATUS_INVALID_PREPARSED_DATA:
-                  SK_RunOnce (SK_ImGui_Warning (L"HIDP_STATUS_INVALID_PREPARSED_DATA"));
-                  break;
-                case HIDP_STATUS_USAGE_NOT_FOUND:
-                  SK_RunOnce (SK_ImGui_Warning (L"HIDP_STATUS_USAGE_NOT_FOUND"));
-                  break;
-              };
-
-              if (ntStatus == HIDP_STATUS_SUCCESS)
+                           static_cast <ULONG> (pDevice->input_report.size  ()) )
+                 )
               {
                 for ( UINT i = 0; i < num_usages; ++i )
                 {
@@ -2568,8 +2623,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   ].state = true;
                 }
               }
-
-              pDevice->xinput.report.Gamepad = { };
 
               for ( UINT i = 0 ; i < pDevice->value_caps.size () ; ++i )
               {
@@ -2672,13 +2725,17 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
             else
             {
+              pDevice->bBluetooth = true;
+                    bHasBluetooth = true;
+
+              if (pDevice->buttons.size () < 15)
+                  pDevice->buttons.resize (  15);
+
               BYTE* pOutputRaw =
                 (BYTE *)pDevice->input_report.data ();
 
               SK_HID_DualSense_GetStateData *pData =
                 (SK_HID_DualSense_GetStateData *)&pOutputRaw [2];
-
-              pDevice->xinput.report.Gamepad = { };
 
               pDevice->buttons [ 0].state = pData->ButtonSquare   != 0;
               pDevice->buttons [ 1].state = pData->ButtonCross    != 0;
@@ -2740,33 +2797,12 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   // Centered value, do nothing
                   break;
               }
-
-#ifdef DEBUG
-              if ((int)pData->DPad != 8)
-              {
-                SK_ImGui_CreateNotification (
-                  "HID.Debug.HatSwitch", SK_ImGui_Toast::Info,
-                    std::to_string ((int)pData->DPad).c_str (), "HID D-Pad State",
-                      1000UL, SK_ImGui_Toast::UseDuration |
-                              SK_ImGui_Toast::ShowCaption |
-                              SK_ImGui_Toast::ShowTitle   |
-                              SK_ImGui_Toast::ShowNewest );
-              }
-
-              SK_ImGui_CreateNotification (
-                  "HID.Debug.Byte0", SK_ImGui_Toast::Info,
-                    std::to_string ((int)*pDevice->input_report.data ()).c_str (), "HID Byte0",
-                      1000UL, SK_ImGui_Toast::UseDuration |
-                              SK_ImGui_Toast::ShowCaption |
-                              SK_ImGui_Toast::ShowTitle   |
-                              SK_ImGui_Toast::ShowNewest );
-#endif
             }
 
             // Do not do in the background unless bg input is enabled
             const bool bAllowSpecialButtons =
               ( config.input.gamepad.disabled_to_game == 0 ||
-                  SK_IsGameWindowActive () );
+                  SK_IsGameWindowActive () ) && ((! bHasBluetooth) || pDevice->bBluetooth);
 
             if ( config.input.gamepad.scepad.enhanced_ps_button &&
                                  pDevice->buttons.size () >= 13 &&
@@ -2802,7 +2838,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
               }
             }
 
-            // Some Dual Sense controllers are missing a button in wireless mode?!
             if ( pDevice->buttons.size () >= 15 &&
                  pDevice->bDualSense            && config.input.gamepad.scepad.mute_applies_to_game && bAllowSpecialButtons )
             {
@@ -2831,9 +2866,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               if (pDevice->buttons [10].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
               if (pDevice->buttons [11].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
-
-              if (pDevice->buttons.size () >= 13 &&
-                  pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
             }
 
             // Dual Shock 3
@@ -2854,27 +2886,23 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               if (pDevice->buttons [10].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
               if (pDevice->buttons [11].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
-
-              if (pDevice->buttons.size () >= 13 &&
-                  pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
             }
+
+            if (pDevice->buttons.size () >= 13 &&
+                pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
 
             if ( memcmp ( &pDevice->xinput.prev_report.Gamepad,
                           &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD)) )
             {
               pDevice->xinput.report.dwPacketNumber++;
-              pDevice->xinput.prev_report  = pDevice->xinput.report;
-              pDevice->xinput.time_sampled = SK_timeGetTime ();
+              pDevice->xinput.prev_report = pDevice->xinput.report;
             }
 
             for ( auto& button : pDevice->buttons )
             {
               button.last_state =
-                   button.state;
+                std::exchange (button.state, false);
             }
-
-            ZeroMemory ( pDevice->input_report.data (),
-                         pDevice->input_report.size () );
 
             ResetEvent (pDevice->hInputEvent);
           }

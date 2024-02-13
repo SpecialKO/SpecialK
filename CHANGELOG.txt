@@ -1,4 +1,9 @@
-﻿24.2.13.4
+﻿24.2.13.5
+=========
+ + Added proper HID VID/PID detection using IOCTL_HID_GET_DEVICE_ATTRIBUTES
+     instead of parsing UNC device paths.
+
+24.2.13.4
 =========
  + Handle situations where DualSense controllers are both USB and Bluetooth
      at the same time; use the device's Bluetooth data instead of USB.

@@ -142,6 +142,8 @@ SK_XInput_GetCapabilities (_In_  DWORD                dwUserIndex,
 void
 SK_XInput_NotifyDeviceArrival (void)
 {
+  extern HidD_GetAttributes_pfn SK_HidD_GetAttributes;
+
   SK_RunOnce (
   {
     SK_XInputHot_NotifyEvent =
@@ -203,9 +205,28 @@ SK_XInput_NotifyDeviceArrival (void)
                       wchar_t    wszFileName [MAX_PATH];
                       wcsncpy_s (wszFileName, MAX_PATH, pDev->dbcc_name, _TRUNCATE);
 
-                      playstation |= wcsstr (wszFileName, L"VID_054C")      != nullptr;
-                      playstation |= wcsstr (wszFileName, L"_VID&0002054c") != nullptr;
-                      xinput      |= wcsstr (wszFileName, L"IG_")           != nullptr;
+                      SK_AutoHandle hDeviceFile (
+                          SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
+                                                        FILE_SHARE_READ   | FILE_SHARE_WRITE,
+                                                          nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH  |
+                                                                                  FILE_ATTRIBUTE_TEMPORARY |
+                                                                                  FILE_FLAG_OVERLAPPED, nullptr )
+                                                );
+                      
+                      HIDD_ATTRIBUTES hidAttribs      = {                      };
+                                      hidAttribs.Size = sizeof (HIDD_ATTRIBUTES);
+
+                      if (hDeviceFile.isValid ())
+                      {
+                        SK_HidD_GetAttributes (hDeviceFile.m_h, &hidAttribs);
+
+                        playstation = ( hidAttribs.VendorID == 0x054c ||
+                                        hidAttribs.VendorID == 0x2054c );
+
+                        hDeviceFile.Close ();
+                      }
+
+                      xinput |= wcsstr (wszFileName, L"IG_") != nullptr;
 
                       if (arrival)
                       {
@@ -288,22 +309,23 @@ SK_XInput_NotifyDeviceArrival (void)
                           {
                             SK_HID_PlayStationDevice controller;
 
+                            controller.pid = hidAttribs.ProductID;
+                            controller.vid = hidAttribs.VendorID;
+
+                            controller.bBluetooth =
+                              (controller.vid == 0x2054c);
+
                             controller.bDualSense =
-                              StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
-                              StrStrIW (wszFileName, L"PID_0CE6") != nullptr ||
-                              StrStrIW (wszFileName, L"PID&0df2") != nullptr ||
-                              StrStrIW (wszFileName, L"PID&0ce6") != nullptr;
+                              (controller.pid == 0x0DF2) ||
+                              (controller.pid == 0x0CE6);
 
                             controller.bDualShock4 =
-                              StrStrIW (wszFileName, L"PID_05C4") != nullptr ||
-                              StrStrIW (wszFileName, L"PID_09CC") != nullptr ||
-                              StrStrIW (wszFileName, L"PID_0BA0") != nullptr ||
-                              StrStrIW (wszFileName, L"PID&05c4") != nullptr ||
-                              StrStrIW (wszFileName, L"PID&09cc") != nullptr ||
-                              StrStrIW (wszFileName, L"PID&0ba0") != nullptr;
+                              (controller.pid == 0x05c4) ||
+                              (controller.pid == 0x09CC) ||
+                              (controller.pid == 0x0BA0);
 
                             controller.bDualShock3 =
-                              StrStrIW (wszFileName, L"PID_0268") != nullptr;
+                              (controller.pid == 0x0268);
 
                             if (! (controller.bDualSense || controller.bDualShock4 || controller.bDualShock3))
                             {

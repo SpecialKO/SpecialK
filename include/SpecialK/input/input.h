@@ -657,6 +657,11 @@ using HidP_GetUsageValueArray_pfn = NTSTATUS (__stdcall *)(
 
 using HidP_MaxDataListLength_pfn = NTSTATUS (__stdcall *)(HIDP_REPORT_TYPE, PHIDP_PREPARSED_DATA);
 
+using HidD_GetAttributes_pfn = BOOLEAN (__stdcall *)(
+  _In_  HANDLE           HidDeviceObject,
+  _Out_ PHIDD_ATTRIBUTES Attributes
+);
+
 using HidD_GetPreparsedData_pfn = BOOLEAN (__stdcall *)(
   _In_  HANDLE                HidDeviceObject,
   _Out_ PHIDP_PREPARSED_DATA *PreparsedData
@@ -894,6 +899,9 @@ struct SK_HID_PlayStationDevice
 
   std::wstring         wszManufacturer          =   L""  ;
   std::wstring         wszProduct               =   L""  ;
+
+  USHORT               vid                      =     0x0;
+  USHORT               pid                      =     0x0;
 
   // Interpretation of reports using HID APIs
   PHIDP_PREPARSED_DATA pPreparsedData           = nullptr;

@@ -459,7 +459,7 @@ XInputGetState1_4_Detour (
         }
       }
 
-      if (pBluetoothDevice != nullptr)
+      if (pBluetoothDevice != nullptr && pBluetoothDevice->bConnected)
           pNewestInputDevice = pBluetoothDevice;
 
       if (pNewestInputDevice != nullptr)

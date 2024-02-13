@@ -1993,15 +1993,32 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
     hid_to_xi.Gamepad = { };
 
+    bool bHasBluetooth = false;
+
     for ( auto& ps_controller : SK_HID_PlayStationControllers )
     {
       if (ps_controller.bConnected)
       {
-        if (ps_controller.request_input_report ())
+        if (ps_controller.bBluetooth)
+          bHasBluetooth = true;
+      }
+    }
+
+    for ( auto& ps_controller : SK_HID_PlayStationControllers )
+    {
+      if (ps_controller.bConnected)
+      {
+        if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate)
         {
-          if (ps_controller.xinput.prev_report.dwPacketNumber != 0)
+          ps_controller.write_output_report ();
+        }
+
+        if ((bHasBluetooth  && ps_controller.bBluetooth) ||
+           (!bHasBluetooth) && ps_controller.request_input_report ())
+        {
+          if (ps_controller.xinput.report.dwPacketNumber != 0)
           {
-            hid_to_xi = ps_controller.xinput.prev_report;
+            hid_to_xi = ps_controller.xinput.report;
 
             if ( config.input.gamepad.xinput.ui_slot >= 0 &&
                  config.input.gamepad.xinput.ui_slot <  4 )
