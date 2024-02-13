@@ -1157,6 +1157,7 @@ struct sk_config_t
     } D3DKMT;
 
     SK_RenderAPI last_known    = SK_RenderAPI::Reserved;
+    SK_RenderAPI translated    = SK_RenderAPI::None;
   } apis;
 
   struct system_s {
