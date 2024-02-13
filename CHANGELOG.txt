@@ -1,4 +1,9 @@
-﻿24.2.13.2
+﻿24.2.13.3
+=========
+ + Added protection against DualSense controllers with missing buttons
+     according to the HID / SetupAPIs (which are manipulated by Steam).
+
+24.2.13.2
 =========
  + Initial support for Bluetooth DualSense controllers
      >> Vibration, lighting and battery level are not supported yet

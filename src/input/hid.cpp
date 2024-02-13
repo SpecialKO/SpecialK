@@ -2556,12 +2556,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               if (ntStatus == HIDP_STATUS_SUCCESS)
               {
-                for ( auto& button : pDevice->buttons )
-                {
-                  button.last_state =
-                    std::exchange (button.state, false);
-                }
-
                 for ( UINT i = 0; i < num_usages; ++i )
                 {
                   pDevice->buttons [
@@ -2682,12 +2676,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               pDevice->xinput.report.Gamepad = { };
 
-              for ( auto& button : pDevice->buttons )
-              {
-                button.last_state =
-                  std::exchange (button.state, false);
-              }
-
               pDevice->buttons [ 0].state = pData->ButtonSquare   != 0;
               pDevice->buttons [ 1].state = pData->ButtonCross    != 0;
               pDevice->buttons [ 2].state = pData->ButtonCircle   != 0;
@@ -2702,9 +2690,14 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               pDevice->buttons [10].state = pData->ButtonL3       != 0;
               pDevice->buttons [11].state = pData->ButtonR3       != 0;
-              pDevice->buttons [12].state = pData->ButtonHome     != 0;
-              pDevice->buttons [13].state = pData->ButtonPad      != 0;
-              pDevice->buttons [14].state = pData->ButtonMute     != 0;
+
+              // Do not write buttons the HID API does not list
+              if (pDevice->buttons.size () >= 13)
+                pDevice->buttons [12].state = pData->ButtonHome   != 0;
+              if (pDevice->buttons.size () >= 14)
+                pDevice->buttons [13].state = pData->ButtonPad    != 0;
+              if (pDevice->buttons.size () >= 15)
+                pDevice->buttons [14].state = pData->ButtonMute   != 0;
 
               pDevice->xinput.report.Gamepad.sThumbLX =
                 static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pData->LeftStickX) - 128) / 128.0);
@@ -2772,7 +2765,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   SK_IsGameWindowActive () );
 
             if ( config.input.gamepad.scepad.enhanced_ps_button &&
-                                 pDevice->buttons.size () >= 12 &&
+                                 pDevice->buttons.size () >= 13 &&
                       (config.input.gamepad.xinput.ui_slot >= 0 && 
                        config.input.gamepad.xinput.ui_slot <  4) )
             {
@@ -2805,7 +2798,9 @@ SK_HID_PlayStationDevice::request_input_report (void)
               }
             }
 
-            if (pDevice->bDualSense && config.input.gamepad.scepad.mute_applies_to_game && bAllowSpecialButtons)
+            // Some Dual Sense controllers are missing a button in wireless mode?!
+            if ( pDevice->buttons.size () >= 15 &&
+                 pDevice->bDualSense            && config.input.gamepad.scepad.mute_applies_to_game && bAllowSpecialButtons )
             {
               if (   pDevice->buttons [14].state &&
                   (! pDevice->buttons [14].last_state) )
@@ -2832,7 +2827,9 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               if (pDevice->buttons [10].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
               if (pDevice->buttons [11].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
-              if (pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+
+              if (pDevice->buttons.size () >= 13 &&
+                  pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
             }
 
             // Dual Shock 3
@@ -2853,7 +2850,15 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               if (pDevice->buttons [10].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
               if (pDevice->buttons [11].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
-              if (pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+
+              if (pDevice->buttons.size () >= 13 &&
+                  pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+            }
+
+            for ( auto& button : pDevice->buttons )
+            {
+              button.last_state =
+                   button.state;
             }
 
             if ( memcmp ( &pDevice->xinput.prev_report.Gamepad,
