@@ -203,8 +203,9 @@ SK_XInput_NotifyDeviceArrival (void)
                       wchar_t    wszFileName [MAX_PATH];
                       wcsncpy_s (wszFileName, MAX_PATH, pDev->dbcc_name, _TRUNCATE);
 
-                      playstation |= wcsstr (wszFileName, L"VID_054C") != nullptr;
-                      xinput      |= wcsstr (wszFileName, L"IG_")      != nullptr;
+                      playstation |= wcsstr (wszFileName, L"VID_054C")      != nullptr;
+                      playstation |= wcsstr (wszFileName, L"_VID&0002054c") != nullptr;
+                      xinput      |= wcsstr (wszFileName, L"IG_")           != nullptr;
 
                       if (arrival)
                       {
@@ -289,12 +290,17 @@ SK_XInput_NotifyDeviceArrival (void)
 
                             controller.bDualSense =
                               StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
-                              StrStrIW (wszFileName, L"PID_0CE6") != nullptr;
+                              StrStrIW (wszFileName, L"PID_0CE6") != nullptr ||
+                              StrStrIW (wszFileName, L"PID&0df2") != nullptr ||
+                              StrStrIW (wszFileName, L"PID&0ce6") != nullptr;
 
                             controller.bDualShock4 =
                               StrStrIW (wszFileName, L"PID_05C4") != nullptr ||
                               StrStrIW (wszFileName, L"PID_09CC") != nullptr ||
-                              StrStrIW (wszFileName, L"PID_0BA0") != nullptr;
+                              StrStrIW (wszFileName, L"PID_0BA0") != nullptr ||
+                              StrStrIW (wszFileName, L"PID&05c4") != nullptr ||
+                              StrStrIW (wszFileName, L"PID&09cc") != nullptr ||
+                              StrStrIW (wszFileName, L"PID&0ba0") != nullptr;
 
                             controller.bDualShock3 =
                               StrStrIW (wszFileName, L"PID_0268") != nullptr;

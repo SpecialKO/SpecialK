@@ -900,6 +900,7 @@ struct SK_HID_PlayStationDevice
 
   // General state
   bool                 bConnected               =    true;
+  bool                 bBluetooth               =   false;
   bool                 bDualSense               =   false;
   bool                 bDualSenseEdge           =   false;
   bool                 bDualShock4              =   false;

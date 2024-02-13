@@ -80,8 +80,6 @@ struct SK_HID_DeviceFile {
       return;
     }
 
-    wchar_t *lpFileName = nullptr;
-
     if (wszPath != nullptr)
     {
       wcsncpy_s ( wszDevicePath, MAX_PATH,
@@ -103,7 +101,6 @@ struct SK_HID_DeviceFile {
           return;
         }
 #else
-        std::ignore = lpFileName;
         hFile       = file;
 #endif
 
@@ -136,9 +133,10 @@ struct SK_HID_DeviceFile {
 
               SK_ImGui_CreateNotification (
                 "HID.GamepadAttached", SK_ImGui_Toast::Info,
-                SK_FormatString ("%ws\t%ws",
+                SK_FormatString ("%ws\t%ws\r\nDevice Path: %ws",
                    wszManufacturerName,
-                   wszProductName ).c_str (),
+                   wszProductName,
+                   wszPath ).c_str (),
                 "HID Compliant Gamepad Connected", 10000
               );
             } break;
@@ -332,18 +330,30 @@ void SK_HID_SetupPlayStationControllers (void)
         wchar_t *wszFileName =
           pDevInterfaceDetailData->DevicePath;
   
-        if (StrStrIW (wszFileName, L"VID_054c"))
+        bool bSONY = 
+          StrStrIW (wszFileName, L"VID_054c") ||
+          StrStrIW (wszFileName, L"_VID&0002054c");
+
+        if (bSONY)
         {
           SK_HID_PlayStationDevice controller;
 
+          controller.bBluetooth =
+            StrStrIW (wszFileName, L"_VID&0002054c");
+
           controller.bDualSense =
             StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
-            StrStrIW (wszFileName, L"PID_0CE6") != nullptr;
+            StrStrIW (wszFileName, L"PID_0CE6") != nullptr ||
+            StrStrIW (wszFileName, L"PID&0df2") != nullptr ||
+            StrStrIW (wszFileName, L"PID&0ce6") != nullptr;
 
           controller.bDualShock4 =
             StrStrIW (wszFileName, L"PID_05C4") != nullptr ||
             StrStrIW (wszFileName, L"PID_09CC") != nullptr ||
-            StrStrIW (wszFileName, L"PID_0BA0") != nullptr;
+            StrStrIW (wszFileName, L"PID_0BA0") != nullptr ||
+            StrStrIW (wszFileName, L"PID&05c4") != nullptr ||
+            StrStrIW (wszFileName, L"PID&09cc") != nullptr ||
+            StrStrIW (wszFileName, L"PID&0ba0") != nullptr;
 
           controller.bDualShock3 =
             StrStrIW (wszFileName, L"PID_0268") != nullptr;
@@ -453,17 +463,6 @@ void SK_HID_SetupPlayStationControllers (void)
             }
 
             controller.bConnected = true;
-            controller.bDualSense =
-              StrStrIW (wszFileName, L"PID_0DF2") != nullptr ||
-              StrStrIW (wszFileName, L"PID_0CE6") != nullptr;
-
-            controller.bDualShock4 =
-              StrStrIW (wszFileName, L"PID_05C4") != nullptr ||
-              StrStrIW (wszFileName, L"PID_09CC") != nullptr ||
-              StrStrIW (wszFileName, L"PID_0BA0") != nullptr;
-
-            controller.bDualShock3 =
-              StrStrIW (wszFileName, L"PID_0268") != nullptr;
   
             SK_HID_PlayStationControllers.push_back (controller);
           }
@@ -2490,6 +2489,18 @@ SK_HID_PlayStationDevice::request_input_report (void)
               continue;
             }
 
+#if 0
+            SK_ImGui_CreateNotification (
+              "HID.DebugReport", SK_ImGui_Toast::Info,
+              SK_FormatString ("Report Size: %d-bytes", dwBytesTransferred).c_str (), nullptr, INFINITE,
+              SK_ImGui_Toast::UseDuration  |
+              SK_ImGui_Toast::ShowCaption  |
+              SK_ImGui_Toast::ShowNewest   |
+              SK_ImGui_Toast::DoNotSaveINI |
+              SK_ImGui_Toast::Unsilencable
+            );
+#endif
+
             bool clear_haptics = false;
 
             if (pDevice->_vibration.last_set != 0 &&
@@ -2511,128 +2522,248 @@ SK_HID_PlayStationDevice::request_input_report (void)
             ULONG num_usages =
               static_cast <ULONG> (pDevice->button_usages.size ());
 
-            if ( HIDP_STATUS_SUCCESS ==
-              SK_HidP_GetUsages ( HidP_Input, pDevice->buttons [0].UsagePage, 0,
-                                              pDevice->button_usages.data (),
-                                                              &num_usages,
-                                              pDevice->pPreparsedData,
-                                       (PCHAR)pDevice->input_report.data  (),
-                         static_cast <ULONG> (pDevice->input_report.size  ()) )
-               )
+            if (dwBytesTransferred != 78)
             {
+              NTSTATUS ntStatus =          
+                SK_HidP_GetUsages ( HidP_Input, pDevice->buttons [0].UsagePage, 0,
+                                                pDevice->button_usages.data (),
+                                                                &num_usages,
+                                                pDevice->pPreparsedData,
+                                         (PCHAR)pDevice->input_report.data  (),
+                           static_cast <ULONG> (pDevice->input_report.size  ()) );
+
+              switch (ntStatus)
+              {
+                case HIDP_STATUS_INVALID_REPORT_LENGTH:
+                  SK_RunOnce (SK_ImGui_Warning (L"HIDP_STATUS_INVALID_REPORT_LENGTH"));
+                  break;
+                case HIDP_STATUS_INVALID_REPORT_TYPE:
+                  SK_RunOnce (SK_ImGui_Warning (L"HIDP_STATUS_INVALID_REPORT_TYPE"));
+                  break;
+                case HIDP_STATUS_BUFFER_TOO_SMALL:
+                  SK_RunOnce (SK_ImGui_Warning (L"HIDP_STATUS_BUFFER_TOO_SMALL"));
+                  break;
+                case HIDP_STATUS_INCOMPATIBLE_REPORT_ID:
+                  SK_RunOnce (SK_ImGui_Warning (L"HIDP_STATUS_INCOMPATIBLE_REPORT_ID"));
+                  break;
+                case HIDP_STATUS_INVALID_PREPARSED_DATA:
+                  SK_RunOnce (SK_ImGui_Warning (L"HIDP_STATUS_INVALID_PREPARSED_DATA"));
+                  break;
+                case HIDP_STATUS_USAGE_NOT_FOUND:
+                  SK_RunOnce (SK_ImGui_Warning (L"HIDP_STATUS_USAGE_NOT_FOUND"));
+                  break;
+              };
+
+              if (ntStatus == HIDP_STATUS_SUCCESS)
+              {
+                for ( auto& button : pDevice->buttons )
+                {
+                  button.last_state =
+                    std::exchange (button.state, false);
+                }
+
+                for ( UINT i = 0; i < num_usages; ++i )
+                {
+                  pDevice->buttons [
+                    pDevice->button_usages [i] -
+                    pDevice->buttons       [0].Usage
+                  ].state = true;
+                }
+              }
+
+              pDevice->xinput.report.Gamepad = { };
+
+              for ( UINT i = 0 ; i < pDevice->value_caps.size () ; ++i )
+              {
+                ULONG value;
+
+                if ( HIDP_STATUS_SUCCESS ==
+                  SK_HidP_GetUsageValue ( HidP_Input, pDevice->value_caps [i].UsagePage,   0,
+                                                      pDevice->value_caps [i].Range.UsageMin,
+                                                                                      &value,
+                                                      pDevice->pPreparsedData,
+                                               (PCHAR)pDevice->input_report.data  (),
+                                 static_cast <ULONG> (pDevice->input_report.size  ()) ) )
+                {
+                  switch (pDevice->value_caps [i].Range.UsageMin)
+                  {
+                    case 0x30: // X-axis
+                      pDevice->xinput.report.Gamepad.sThumbLX =
+                        static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (value) - 128) / 128.0);
+                        break;
+
+                    case 0x31: // Y-axis
+                      pDevice->xinput.report.Gamepad.sThumbLY =
+                        static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (value)) / 128.0);
+                        break;
+
+                    case 0x32: // Z-axis
+                      pDevice->xinput.report.Gamepad.sThumbRX =
+                        static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (value) - 128) / 128.0);
+                        break;
+
+                    case 0x33: // Rotate-X
+                      pDevice->xinput.report.Gamepad.bLeftTrigger =
+                        static_cast <BYTE> (static_cast <BYTE> (value));
+                      break;
+
+                    case 0x34: // Rotate-Y
+                      pDevice->xinput.report.Gamepad.bRightTrigger =
+                        static_cast <BYTE> (static_cast <BYTE> (value));
+                      break;
+
+                    case 0x35: // Rotate-Z
+                      pDevice->xinput.report.Gamepad.sThumbRY =
+                        static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (value)) / 128.0);
+#if 0
+                      if (value != 0)
+                      {
+                        SK_ImGui_CreateNotification (
+                          "HID.Debug.Axes", SK_ImGui_Toast::Info,
+                            std::to_string (value).c_str (),
+                          SK_FormatString ( "HID Axial State [%d, %d]",
+                                            ps_controller.value_caps [i].PhysicalMin,
+                                            ps_controller.value_caps [i].PhysicalMax
+                                          ).c_str (),
+                              1000UL, SK_ImGui_Toast::UseDuration |
+                                      SK_ImGui_Toast::ShowCaption |
+                                      SK_ImGui_Toast::ShowTitle   |
+                                      SK_ImGui_Toast::ShowNewest );
+                      }
+#endif
+                        break;
+
+                    case 0x39: // Hat Switch
+                    {
+                      switch (value)
+                      {
+                        case 0: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;
+                        case 1: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
+                                pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT; break;
+                        case 2: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT; break;
+                        case 3: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
+                                pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;  break;
+                        case 4: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;  break;
+                        case 5: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
+                                pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;  break;
+                        case 6: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;  break;
+                        case 7: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
+                                pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;                            
+                        case 8:
+                        default:
+                          // Centered value, do nothing
+                          break;
+                      }
+#if 0
+                      if (value != 8)
+                      {
+                        SK_ImGui_CreateNotification (
+                          "HID.Debug.HatSwitch", SK_ImGui_Toast::Info,
+                            std::to_string (value).c_str (), "HID D-Pad State",
+                              1000UL, SK_ImGui_Toast::UseDuration |
+                                      SK_ImGui_Toast::ShowCaption |
+                                      SK_ImGui_Toast::ShowTitle   |
+                                      SK_ImGui_Toast::ShowNewest );
+                      }
+#endif
+                    }
+                  }
+                }
+              }
+            }
+
+            else
+            {
+              BYTE* pOutputRaw =
+                (BYTE *)pDevice->input_report.data ();
+
+              SK_HID_DualSense_GetStateData *pData =
+                (SK_HID_DualSense_GetStateData *)&pOutputRaw [2];
+
+              pDevice->xinput.report.Gamepad = { };
+
               for ( auto& button : pDevice->buttons )
               {
                 button.last_state =
                   std::exchange (button.state, false);
               }
 
-              for ( UINT i = 0; i < num_usages; ++i )
+              pDevice->buttons [ 0].state = pData->ButtonSquare   != 0;
+              pDevice->buttons [ 1].state = pData->ButtonCross    != 0;
+              pDevice->buttons [ 2].state = pData->ButtonCircle   != 0;
+              pDevice->buttons [ 3].state = pData->ButtonTriangle != 0;
+              pDevice->buttons [ 4].state = pData->ButtonL1       != 0;
+              pDevice->buttons [ 5].state = pData->ButtonR1       != 0;
+              pDevice->buttons [ 6].state = pData->ButtonL2       != 0;
+              pDevice->buttons [ 7].state = pData->ButtonR2       != 0;
+
+              pDevice->buttons [ 8].state = pData->ButtonCreate   != 0;
+              pDevice->buttons [ 9].state = pData->ButtonOptions  != 0;
+
+              pDevice->buttons [10].state = pData->ButtonL3       != 0;
+              pDevice->buttons [11].state = pData->ButtonR3       != 0;
+              pDevice->buttons [12].state = pData->ButtonHome     != 0;
+              pDevice->buttons [13].state = pData->ButtonPad      != 0;
+              pDevice->buttons [14].state = pData->ButtonMute     != 0;
+
+              pDevice->xinput.report.Gamepad.sThumbLX =
+                static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pData->LeftStickX) - 128) / 128.0);
+
+              pDevice->xinput.report.Gamepad.sThumbLY =
+                static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (pData->LeftStickY)) / 128.0);
+
+              pDevice->xinput.report.Gamepad.sThumbRX =
+                static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pData->RightStickX) - 128) / 128.0);
+
+              pDevice->xinput.report.Gamepad.sThumbRY =
+                static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (pData->RightStickY)) / 128.0);
+              
+              pDevice->xinput.report.Gamepad.bLeftTrigger =
+                static_cast <BYTE> (static_cast <BYTE> (pData->TriggerLeft));
+
+              pDevice->xinput.report.Gamepad.bRightTrigger =
+                static_cast <BYTE> (static_cast <BYTE> (pData->TriggerRight));
+
+              switch ((int)pData->DPad)
               {
-                pDevice->buttons [
-                  pDevice->button_usages [i] -
-                  pDevice->buttons       [0].Usage
-                ].state = true;
+                case 0: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;
+                case 1: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
+                        pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT; break;
+                case 2: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT; break;
+                case 3: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
+                        pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;  break;
+                case 4: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;  break;
+                case 5: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
+                        pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;  break;
+                case 6: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;  break;
+                case 7: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
+                        pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;                            
+                case 8:
+                default:
+                  // Centered value, do nothing
+                  break;
               }
-            }
 
-            pDevice->xinput.report.Gamepad = { };
-
-            for ( UINT i = 0 ; i < pDevice->value_caps.size () ; ++i )
-            {
-              ULONG value;
-
-              if ( HIDP_STATUS_SUCCESS ==
-                SK_HidP_GetUsageValue ( HidP_Input, pDevice->value_caps [i].UsagePage,   0,
-                                                    pDevice->value_caps [i].Range.UsageMin,
-                                                                                    &value,
-                                                    pDevice->pPreparsedData,
-                                             (PCHAR)pDevice->input_report.data  (),
-                               static_cast <ULONG> (pDevice->input_report.size  ()) ) )
+#ifdef DEBUG
+              if ((int)pData->DPad != 8)
               {
-                switch (pDevice->value_caps [i].Range.UsageMin)
-                {
-                  case 0x30: // X-axis
-                    pDevice->xinput.report.Gamepad.sThumbLX =
-                      static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (value) - 128) / 128.0);
-                      break;
-
-                  case 0x31: // Y-axis
-                    pDevice->xinput.report.Gamepad.sThumbLY =
-                      static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (value)) / 128.0);
-                      break;
-
-                  case 0x32: // Z-axis
-                    pDevice->xinput.report.Gamepad.sThumbRX =
-                      static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (value) - 128) / 128.0);
-                      break;
-
-                  case 0x33: // Rotate-X
-                    pDevice->xinput.report.Gamepad.bLeftTrigger =
-                      static_cast <BYTE> (static_cast <BYTE> (value));
-                    break;
-
-                  case 0x34: // Rotate-Y
-                    pDevice->xinput.report.Gamepad.bRightTrigger =
-                      static_cast <BYTE> (static_cast <BYTE> (value));
-                    break;
-
-                  case 0x35: // Rotate-Z
-                    pDevice->xinput.report.Gamepad.sThumbRY =
-                      static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (value)) / 128.0);
-#if 0
-                    if (value != 0)
-                    {
-                      SK_ImGui_CreateNotification (
-                        "HID.Debug.Axes", SK_ImGui_Toast::Info,
-                          std::to_string (value).c_str (),
-                        SK_FormatString ( "HID Axial State [%d, %d]",
-                                          ps_controller.value_caps [i].PhysicalMin,
-                                          ps_controller.value_caps [i].PhysicalMax
-                                        ).c_str (),
-                            1000UL, SK_ImGui_Toast::UseDuration |
-                                    SK_ImGui_Toast::ShowCaption |
-                                    SK_ImGui_Toast::ShowTitle   |
-                                    SK_ImGui_Toast::ShowNewest );
-                    }
-#endif
-                      break;
-
-                  case 0x39: // Hat Switch
-                  {
-                    switch (value)
-                    {
-                      case 0: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;
-                      case 1: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
-                              pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT; break;
-                      case 2: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT; break;
-                      case 3: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
-                              pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;  break;
-                      case 4: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;  break;
-                      case 5: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
-                              pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;  break;
-                      case 6: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;  break;
-                      case 7: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
-                              pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;                            
-                      case 8:
-                      default:
-                        // Centered value, do nothing
-                        break;
-                    }
-#if 0
-                    if (value != 8)
-                    {
-                      SK_ImGui_CreateNotification (
-                        "HID.Debug.HatSwitch", SK_ImGui_Toast::Info,
-                          std::to_string (value).c_str (), "HID D-Pad State",
-                            1000UL, SK_ImGui_Toast::UseDuration |
-                                    SK_ImGui_Toast::ShowCaption |
-                                    SK_ImGui_Toast::ShowTitle   |
-                                    SK_ImGui_Toast::ShowNewest );
-                    }
-#endif
-                  }
-                }
+                SK_ImGui_CreateNotification (
+                  "HID.Debug.HatSwitch", SK_ImGui_Toast::Info,
+                    std::to_string ((int)pData->DPad).c_str (), "HID D-Pad State",
+                      1000UL, SK_ImGui_Toast::UseDuration |
+                              SK_ImGui_Toast::ShowCaption |
+                              SK_ImGui_Toast::ShowTitle   |
+                              SK_ImGui_Toast::ShowNewest );
               }
+
+              SK_ImGui_CreateNotification (
+                  "HID.Debug.Byte0", SK_ImGui_Toast::Info,
+                    std::to_string ((int)*pDevice->input_report.data ()).c_str (), "HID Byte0",
+                      1000UL, SK_ImGui_Toast::UseDuration |
+                              SK_ImGui_Toast::ShowCaption |
+                              SK_ImGui_Toast::ShowTitle   |
+                              SK_ImGui_Toast::ShowNewest );
+#endif
             }
 
             // Do not do in the background unless bg input is enabled
@@ -2750,6 +2881,10 @@ bool
 SK_HID_PlayStationDevice::write_output_report (void)
 {
   if (! bConnected)
+    return false;
+
+  // Not currently supported
+  if (bBluetooth)
     return false;
 
   if (bDualSense)

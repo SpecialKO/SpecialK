@@ -1,4 +1,9 @@
-﻿24.2.13.1
+﻿24.2.13.2
+=========
+ + Initial support for Bluetooth DualSense controllers
+     >> Vibration, lighting and battery level are not supported yet
+
+24.2.13.1
 =========
  + Revert recent changes to window management that broke Fallout: New Vegas
 
