@@ -2401,14 +2401,14 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
       OVERLAPPED async_input_request = { };
 
+      ZeroMemory ( pDevice->input_report.data (),
+                   pDevice->input_report.size () );
+
       DWORD  dwWaitState  = WAIT_FAILED;
       while (dwWaitState != WAIT_OBJECT_0)
       {
         async_input_request        = { };
         async_input_request.hEvent = pDevice->hInputEvent;
-
-        ZeroMemory ( pDevice->input_report.data (),
-                     pDevice->input_report.size () );
 
         pDevice->input_report [0] = pDevice->button_report_id;
 
@@ -2488,6 +2488,10 @@ SK_HID_PlayStationDevice::request_input_report (void)
               SK_ReleaseAssert (pDevice->pPreparsedData != nullptr);
               continue;
             }
+
+            if (pDevice->bDualSense && pDevice->buttons.size () < 15)
+                                       pDevice->buttons.resize (  15);
+
 
 #if 0
             SK_ImGui_CreateNotification (
@@ -2855,18 +2859,21 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
             }
 
-            for ( auto& button : pDevice->buttons )
-            {
-              button.last_state =
-                   button.state;
-            }
-
             if ( memcmp ( &pDevice->xinput.prev_report.Gamepad,
                           &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD)) )
             {
               pDevice->xinput.report.dwPacketNumber++;
               pDevice->xinput.prev_report = pDevice->xinput.report;
             }
+
+            for ( auto& button : pDevice->buttons )
+            {
+              button.last_state =
+                   button.state;
+            }
+
+            ZeroMemory ( pDevice->input_report.data (),
+                         pDevice->input_report.size () );
 
             ResetEvent (pDevice->hInputEvent);
           }
