@@ -385,6 +385,8 @@ void SK_ImGui_Warning          (const wchar_t* wszMessage);
 void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,
                                 const wchar_t* wszTitle);
 
+using SK_ImGui_ToastOwnerDrawn_pfn = bool (__stdcall *)(void *pUserData);
+
 struct SK_ImGui_Toast {
   enum Type {
     Success,
@@ -419,13 +421,18 @@ struct SK_ImGui_Toast {
     MiddleCenter = 0x80
   } anchor;
 
-  std::string id        = "";
-  std::string caption   = "";
-  std::string title     = "";
+  std::string   id        = "";
+  std::string   caption   = "";
+  std::string   title     = "";
 
-  DWORD       duration  = 0;
-  DWORD       displayed = 0;
-  DWORD       inserted  = 0;
+  DWORD         duration  = 0;
+  DWORD         displayed = 0;
+  DWORD         inserted  = 0;
+
+  struct {
+    std::string glyph     = "";
+    uint32_t    color     = 0xFFFFFFFFUL;
+  } icon;
 
   enum Stage {
     FadeIn   = 0x0,
@@ -434,6 +441,9 @@ struct SK_ImGui_Toast {
     Finished = 0x4,
     Config   = 0x8
   } stage = FadeIn;
+
+  SK_ImGui_ToastOwnerDrawn_pfn owner_draw = nullptr;
+  void*                        owner_data = nullptr;
 };
 
 bool
@@ -445,6 +455,20 @@ SK_ImGui_CreateNotification ( const char* szID,
                                     DWORD flags = SK_ImGui_Toast::UseDuration |
                                                   SK_ImGui_Toast::ShowCaption |
                                                   SK_ImGui_Toast::ShowTitle );
+
+bool
+SK_ImGui_CreateNotificationEx ( const char* szID,
+                       SK_ImGui_Toast::Type type,
+                                const char* szCaption,
+                                const char* szTitle,
+                                      DWORD dwMilliseconds,
+                                      DWORD flags = SK_ImGui_Toast::UseDuration |
+                                                    SK_ImGui_Toast::ShowCaption |
+                                                    SK_ImGui_Toast::ShowTitle,
+                                      SK_ImGui_ToastOwnerDrawn_pfn draw_fn   = nullptr,
+                                      void*                        draw_data = nullptr );
+
+int SK_ImGui_DismissNotification (const char* szID);
 
 void
 SK_ImGui_DrawNotifications (void);

@@ -237,7 +237,8 @@ extern iSK_INI* notify_ini;
 
 int SK_ImGui_SilencedNotifications = 0;
 
-concurrency::concurrent_queue <SK_ImGui_Toast> SK_ImGui_Notifications;
+concurrency::concurrent_unordered_set <std::string>    SK_ImGui_ShownNotificationIds;
+concurrency::concurrent_queue         <SK_ImGui_Toast> SK_ImGui_Notifications;
 
 #define NOTIFY_PADDING_X           20.f // Bottom-left X padding
 #define NOTIFY_PADDING_Y           20.f // Bottom-left Y padding
@@ -284,6 +285,9 @@ const char* SK_ImGui_GetToastIcon (SK_ImGui_Toast::Type type)
 
 float SK_ImGui_GetToastFadePercent (SK_ImGui_Toast& toast)
 {
+  if (toast.duration == INFINITE)
+    return NOTIFY_OPACITY;
+
   const DWORD dwElapsed =
     SK::ControlPanel::current_time - toast.displayed;
 
@@ -302,6 +306,44 @@ float SK_ImGui_GetToastFadePercent (SK_ImGui_Toast& toast)
   return 1.f * NOTIFY_OPACITY;
 }
 
+int
+SK_ImGui_DismissNotification (const char* szID)
+{
+  // We were not showing this thing in the first place!
+  if ( SK_ImGui_Notifications.empty () ||
+       SK_ImGui_ShownNotificationIds.find (szID) ==
+       SK_ImGui_ShownNotificationIds.cend (    ) )
+  {
+    return 0;
+  }
+
+  int num_dismissed = 0;
+
+  std::vector <SK_ImGui_Toast> notifications;
+
+  while (! SK_ImGui_Notifications.empty ())
+  {
+    SK_ImGui_Toast                           toast;
+    while (! SK_ImGui_Notifications.try_pop (toast))
+      ;
+
+    notifications.emplace_back (toast);
+  }
+
+  for ( auto& notification : notifications )
+  {
+    if (! notification.id._Equal (szID))
+    {
+      SK_ImGui_Notifications.push (notification);
+    }
+
+    else
+      ++num_dismissed;
+  }
+
+  return num_dismissed;
+}
+
 bool
 SK_ImGui_CreateNotification ( const char* szID,
                      SK_ImGui_Toast::Type type,
@@ -311,22 +353,32 @@ SK_ImGui_CreateNotification ( const char* szID,
                                     DWORD flags )
   
 {
-  if ( ( szID != nullptr &&
-        *szID != '\0'  ) && ( flags & SK_ImGui_Toast::ShowOnce ) )
-  {
-    static concurrency::concurrent_unordered_set <std::string> shown_ids;
+  return
+    SK_ImGui_CreateNotificationEx (
+      szID, type, szCaption,
+        szTitle, dwMilliseconds,
+          flags, nullptr, nullptr
+    );
+}
 
-    if (shown_ids.find (szID) != shown_ids.end ())
-    {
-      return false;
-    }
-
-    shown_ids.insert (szID);
-  }
-
+bool
+SK_ImGui_CreateNotificationEx ( const char* szID,
+                       SK_ImGui_Toast::Type type,
+                                const char* szCaption,
+                                const char* szTitle,
+                                      DWORD dwMilliseconds,
+                                      DWORD flags,
+                                      SK_ImGui_ToastOwnerDrawn_pfn draw_fn,
+                                      void*                        draw_data )
+{
   SK_ImGui_Toast toast;
 
-  if (szID      != nullptr) toast.id      = szID;
+  if ( szID != nullptr &&
+      *szID != '\0' )
+  {
+    toast.id = szID;
+  }
+
   if (szCaption != nullptr) toast.caption = szCaption;
   if (szTitle   != nullptr) toast.title   = szTitle;
 
@@ -340,7 +392,7 @@ SK_ImGui_CreateNotification ( const char* szID,
     flags &= ~( SK_ImGui_Toast::ShowOnce |
                 SK_ImGui_Toast::ShowNewest );
 
-  if (notify_ini != nullptr)
+  if (notify_ini != nullptr && 0 == (flags & SK_ImGui_Toast::DoNotSaveINI) && (! toast.id.empty ()))
   {
     std::wstring wstr_id (
       SK_UTF8ToWideChar (toast.id.c_str ())
@@ -396,72 +448,80 @@ SK_ImGui_CreateNotification ( const char* szID,
                           bDoNotShow ? L"true"
                                      : L"false";
 
-    if (! (flags & SK_ImGui_Toast::DoNotSaveINI))
-    {
-      if (! has_section)
-        config.utility.save_async ();
-    }
-
-    else
-    {
-      notify_ini->remove_section (
-        toast_cfg.name
-      );
-    }
+    if (! has_section)
+      config.utility.save_async ();
   }
 
-  toast.inserted = SK::ControlPanel::current_time;
-  toast.type     = type;
-  toast.flags    = (SK_ImGui_Toast::Flags)flags;
+  toast.inserted   = SK::ControlPanel::current_time;
+  toast.type       = type;
+  toast.flags      = (SK_ImGui_Toast::Flags)flags;
 
-  if (config.notifications.silent && 0 == (flags & SK_ImGui_Toast::Unsilencable))
+  toast.icon.color = ImColor (SK_ImGui_GetToastColor (toast.type));
+  toast.icon.glyph =          SK_ImGui_GetToastIcon  (toast.type);
+
+  if (draw_fn != nullptr)
   {
-    bool silenced = true;
+    toast.owner_draw = draw_fn;
+    toast.owner_data = draw_data;
+  }
 
-    // Collapse this into a single hidden notification
-    if (flags & SK_ImGui_Toast::ShowNewest)
+  // Config mode is a special-case
+  if (flags & SK_ImGui_Toast::ShowCfgPanel)
+  {
+    toast.stage = SK_ImGui_Toast::Config;
+  }
+
+  else
+  {
+    if ( (flags & SK_ImGui_Toast::ShowOnce) )
     {
-      std::vector <SK_ImGui_Toast> persistent;
-      std::vector <SK_ImGui_Toast> notifications;
-
-      while (! SK_ImGui_Notifications.empty ())
+      if ( SK_ImGui_ShownNotificationIds.find (toast.id) !=
+           SK_ImGui_ShownNotificationIds.end  (        ) )
       {
-        SK_ImGui_Toast                           existing_toast;
-        while (! SK_ImGui_Notifications.try_pop (existing_toast))
-          ;
-
-        notifications.emplace_back (existing_toast);
+        return false;
       }
+    }
 
-      for ( auto& notification : notifications )
+    SK_ImGui_ShownNotificationIds.insert (toast.id);
+
+    if (config.notifications.silent && 0 == (flags & SK_ImGui_Toast::Unsilencable))
+    {
+      bool newly_silenced = true;
+
+      // Collapse this into a single hidden notification
+      if (flags & SK_ImGui_Toast::ShowNewest)
       {
-        if (notification.id._Equal (toast.id))
-        {
-          // We already have one of these...
-          silenced = false;
+        std::vector <SK_ImGui_Toast> notifications;
 
-          // Insert the new one, but don't increment the silenced count
+        while (! SK_ImGui_Notifications.empty ())
+        {
+          SK_ImGui_Toast                           existing_toast;
+          while (! SK_ImGui_Notifications.try_pop (existing_toast))
+            ;
+
+          notifications.emplace_back (existing_toast);
         }
 
-        else
-          persistent.emplace_back (notification);
+        for ( auto& notification : notifications )
+        {
+          if (notification.id._Equal (toast.id))
+          {
+            // We already have one of these...
+            newly_silenced = false;
+          }
+
+          else
+            SK_ImGui_Notifications.push (notification);
+        }
       }
 
-      for ( auto& notification : persistent )
-      {
-        SK_ImGui_Notifications.push (notification);
-      }
+      if (newly_silenced)
+        SK_ImGui_SilencedNotifications++;
+
+      toast.flags =
+        (SK_ImGui_Toast::Flags)((int)toast.flags | SK_ImGui_Toast::Silenced);
     }
-
-    if (silenced)
-      SK_ImGui_SilencedNotifications++;
-
-    toast.flags =
-      (SK_ImGui_Toast::Flags)((int)toast.flags | SK_ImGui_Toast::Silenced);
   }
-
-  if (toast.flags & SK_ImGui_Toast::ShowCfgPanel)
-      toast.stage = SK_ImGui_Toast::Config;
 
   SK_ImGui_Notifications.push (toast);
 
@@ -471,7 +531,6 @@ SK_ImGui_CreateNotification ( const char* szID,
 void
 SK_ImGui_UnsilenceNotifications (void)
 {
-  std::vector <SK_ImGui_Toast> notifications;
   std::vector <SK_ImGui_Toast> regular_notifications;
   std::vector <SK_ImGui_Toast> unsilenced_notifications;
 
@@ -481,25 +540,20 @@ SK_ImGui_UnsilenceNotifications (void)
     while (! SK_ImGui_Notifications.try_pop (toast))
       ;
 
-    notifications.emplace_back (toast);
-  }
-
-  for ( auto& notification : notifications )
-  {
-    if (! (notification.flags & SK_ImGui_Toast::Silenced))
+    if (! (toast.flags & SK_ImGui_Toast::Silenced))
     {
-      regular_notifications.emplace_back (notification);
+      regular_notifications.emplace_back (toast);
     }
 
     else
     {
-      notification.flags    =
-        (SK_ImGui_Toast::Flags)((int)notification.flags & ~SK_ImGui_Toast::Silenced);
-      notification.inserted = SK::ControlPanel::current_time;
+      toast.flags    =
+        (SK_ImGui_Toast::Flags)((int)toast.flags & ~SK_ImGui_Toast::Silenced);
+      toast.inserted = SK::ControlPanel::current_time;
 
       SK_ImGui_SilencedNotifications--;
 
-      unsilenced_notifications.emplace_back (notification);
+      unsilenced_notifications.emplace_back (toast);
     }
   }
 
@@ -678,8 +732,8 @@ SK_ImGui_DrawNotifications (void)
         ImGui::PushTextWrapPos (viewport_size.x / 1.75f);
 
         ImGui::TextColored (
-          SK_ImGui_GetToastColor (toast.type),
-          SK_ImGui_GetToastIcon  (toast.type)
+          ImColor (toast.icon.color).Value,
+                   toast.icon.glyph.c_str ()
         );
 
         bool has_title = false;
@@ -708,6 +762,24 @@ SK_ImGui_DrawNotifications (void)
             toast.caption.c_str ()
           );
         }
+
+
+        if (toast.owner_draw != nullptr)
+        {
+          if (! has_title)
+          {
+            ImGui::SameLine ();
+          }
+
+          else
+            ImGui::Separator ();
+
+          if (toast.owner_draw (toast.owner_data))
+          {
+            toast.stage = SK_ImGui_Toast::Finished;
+          }
+        }
+
 
         ImGui::PopTextWrapPos  ();
       }
@@ -767,6 +839,10 @@ SK_ImGui_DrawNotifications (void)
         if (ImGui::Button ("Save Settings"))
         {
           config.utility.save_async ();
+
+          // Toast is only showing because user wanted to config it
+          if (toast.flags & SK_ImGui_Toast::ShowCfgPanel)
+              stop_showing = true;
 
           // Immediately save and remove the notification
           if (stop_showing) toast.stage = SK_ImGui_Toast::Finished;

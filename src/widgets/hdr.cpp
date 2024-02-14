@@ -1237,7 +1237,7 @@ public:
       {
         ImGui::SameLine ();
 
-        if (ImGui::RadioButton ("HDR10 (Experimental)###SK_HDR_PQ10", &sel, 1))
+        if (ImGui::RadioButton ("HDR10###SK_HDR_PQ10", &sel, 1))
         {
           changed = true;
 

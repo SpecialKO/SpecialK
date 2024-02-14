@@ -970,6 +970,7 @@ struct sk_config_t
         bool  auto_slot_assign    = false;
         bool  blackout_api        = false;
         bool  emulate             = false;
+        bool  debug               = false;
       } xinput;
 
       struct dinput_s {

@@ -3018,6 +3018,7 @@ auto DeclKeybind =
             DWORD                                                            dwOriginal = 0;
             if (VirtualProtect (pSteamInput001, 13, PAGE_EXECUTE_READWRITE, &dwOriginal))
             {
+              SK_ImGui_Warning (L"Steam Input Disabled...");
                         memcpy (pSteamInput001, "SteamInputDie", 13);
                 VirtualProtect (pSteamInput001, 13, dwOriginal,             &dwOriginal);
             }

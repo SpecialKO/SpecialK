@@ -468,6 +468,17 @@ XInputGetState1_4_Detour (
                             hid_to_xi = pNewestInputDevice->xinput.prev_report;
         memcpy (  pState,  &hid_to_xi, sizeof (XINPUT_STATE) );
 
+        if (config.input.gamepad.xinput.debug)
+        {
+          SK_ImGui_CreateNotification (
+            "XInput.PacketNum", SK_ImGui_Toast::Info, SK_FormatString ("XInput Packet: %d", pState->dwPacketNumber).c_str (), nullptr, INFINITE,
+                                SK_ImGui_Toast::UseDuration  |
+                                SK_ImGui_Toast::ShowCaption  |
+                                SK_ImGui_Toast::ShowNewest   |
+                                SK_ImGui_Toast::Unsilencable |
+                                SK_ImGui_Toast::DoNotSaveINI );
+        }
+
         if (SK_ImGui_WantGamepadCapture ())
         {
           SK_XINPUT_HIDE (dwUserIndex)
@@ -582,6 +593,76 @@ XInputGetStateEx1_4_Detour (
     //return dwNullptrRet;
 
   SK_LOG_FIRST_CALL
+
+  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+  {
+    if (dwUserIndex == 0 && SK_HID_PlayStationControllers.size () > 0)
+    {
+      SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
+      SK_HID_PlayStationDevice *pBluetoothDevice   = nullptr;
+
+      XINPUT_STATE _state = { };
+
+      bool
+      SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
+      SK_ImGui_PollGamepad_EndFrame (&_state);
+
+      for ( auto& controller : SK_HID_PlayStationControllers )
+      {
+        if (controller.bConnected)
+        {
+          if (pNewestInputDevice == nullptr ||
+              pNewestInputDevice->xinput.time_sampled <= controller.xinput.time_sampled ||
+                                                         controller.bBluetooth)
+          {
+            pNewestInputDevice = &controller;
+          }
+
+          if (controller.bBluetooth)
+            pBluetoothDevice = &controller;
+        }
+      }
+
+      if (pBluetoothDevice != nullptr && pBluetoothDevice->bConnected)
+          pNewestInputDevice = pBluetoothDevice;
+
+      if (pNewestInputDevice != nullptr)
+      {
+        extern XINPUT_STATE hid_to_xi;
+                            hid_to_xi = pNewestInputDevice->xinput.prev_report;
+        memcpy ( &_state,  &hid_to_xi, sizeof (XINPUT_STATE) );
+
+        if (config.input.gamepad.xinput.debug)
+        {
+          SK_ImGui_CreateNotification (
+            "XInput.PacketNum", SK_ImGui_Toast::Info, SK_FormatString ("XInputEx Packet: %d", _state.dwPacketNumber).c_str (), nullptr, INFINITE,
+                                SK_ImGui_Toast::UseDuration  |
+                                SK_ImGui_Toast::ShowCaption  |
+                                SK_ImGui_Toast::ShowNewest   |
+                                SK_ImGui_Toast::Unsilencable |
+                                SK_ImGui_Toast::DoNotSaveINI );
+        }
+
+        if (SK_ImGui_WantGamepadCapture ())
+        {
+          SK_XINPUT_HIDE (dwUserIndex)
+          ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD_EX));
+        }
+
+        else
+        {
+          // Game-specific hacks (i.e. button swap)
+          SK_XInput_TalesOfAriseButtonSwap (&_state);
+
+          SK_XINPUT_READ (dwUserIndex)
+
+          memcpy (pState, &_state, sizeof (XINPUT_STATE));
+        }
+
+        return ERROR_SUCCESS;
+      }
+    }
+  }
 
   struct cached_state_s
   {

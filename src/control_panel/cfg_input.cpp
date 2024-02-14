@@ -1105,6 +1105,7 @@ SK::ControlPanel::Input::Draw (void)
           if (config.input.gamepad.hook_xinput)
           {
             ImGui::SameLine   ();
+            ImGui::BeginGroup ();
             if (ImGui::Checkbox   ("XInput Emulation (Experimental)", &config.input.gamepad.xinput.emulate))
             {
               if (config.input.gamepad.xinput.emulate)
@@ -1128,12 +1129,19 @@ SK::ControlPanel::Input::Draw (void)
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip    ();
-              ImGui::TextUnformatted ("Translate USB HID to XInput for wired PlayStation controllers");
+              ImGui::TextUnformatted ("Translate HID to XInput for PlayStation controllers");
               ImGui::Separator       ();
               ImGui::BulletText      ("May require a game restart, and may not work in all games.");
               ImGui::BulletText      ("Does not currently support multiple controllers.");
               ImGui::EndTooltip      ();
             }
+
+            if (config.input.gamepad.xinput.emulate)
+            {
+              ImGui::Checkbox ("Debug Mode", &config.input.gamepad.xinput.debug);
+            }
+
+            ImGui::EndGroup ();
           }
 
 #if 0

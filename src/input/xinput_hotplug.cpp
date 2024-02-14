@@ -220,10 +220,16 @@ SK_XInput_NotifyDeviceArrival (void)
                       {
                         SK_HidD_GetAttributes (hDeviceFile.m_h, &hidAttribs);
 
-                        playstation = ( hidAttribs.VendorID == 0x054c ||
-                                        hidAttribs.VendorID == 0x2054c );
+                        playstation |= ( hidAttribs.VendorID == 0x054c ||
+                                         hidAttribs.VendorID == 0x2054c );
 
                         hDeviceFile.Close ();
+                      }
+
+                      else
+                      {
+                        // On device removal, all we can do is go by the filename...
+                        playstation |= wcsstr (wszFileName, L"054c") != nullptr;
                       }
 
                       xinput |= wcsstr (wszFileName, L"IG_") != nullptr;
@@ -256,7 +262,7 @@ SK_XInput_NotifyDeviceArrival (void)
                           }
                         }
 
-                        else if (playstation)
+                        else// if (playstation)
                         {
                           bool has_existing = false;
 
@@ -279,6 +285,8 @@ SK_XInput_NotifyDeviceArrival (void)
                                 if (SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
                                 {
                                   controller.bConnected = true;
+                                  controller.bBluetooth =  //Bluetooth_Base_UUID
+                                    StrStrIW (wszFileName, L"{00001124-0000-1000-8000-00805f9b34fb}");
 /*
                                   SK_ImGui_CreateNotification (
                                     "HID.GamepadReetached", SK_ImGui_Toast::Info,
@@ -313,7 +321,10 @@ SK_XInput_NotifyDeviceArrival (void)
                             controller.vid = hidAttribs.VendorID;
 
                             controller.bBluetooth =
-                              (controller.vid == 0x2054c);
+                              StrStrIW (
+                                controller.wszDevicePath, //Bluetooth_Base_UUID
+                                        L"{00001124-0000-1000-8000-00805f9b34fb}"
+                              );
 
                             controller.bDualSense =
                               (controller.pid == 0x0DF2) ||
@@ -462,7 +473,7 @@ SK_XInput_NotifyDeviceArrival (void)
                               SetEvent (SK_XInputCold_DecommisionEvent);
                         }
 
-                        else if (playstation)
+                        else// if (playstation)
                         {
                           for ( auto& controller : SK_HID_PlayStationControllers )
                           {

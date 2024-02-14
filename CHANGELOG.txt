@@ -1,4 +1,12 @@
-﻿24.2.13.5
+﻿24.2.14
+=======
+ + Added full support for Bluetooth DualSense; vibration, lights and battery
+ + Better handle transition between USB and Bluetooth PlayStation data xfer
+ + Added XInputGetStateEx emulation for games that use SDL and poll gamepads
+     using Microsoft's undocumented entry-point to get guide button status
+ + Added debug mode option for XInput Emulation
+
+24.2.13.5
 =========
  + Added proper HID VID/PID detection using IOCTL_HID_GET_DEVICE_ATTRIBUTES
      instead of parsing UNC device paths.

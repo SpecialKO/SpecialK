@@ -662,6 +662,12 @@ using HidD_GetAttributes_pfn = BOOLEAN (__stdcall *)(
   _Out_ PHIDD_ATTRIBUTES Attributes
 );
 
+using HidD_GetSerialNumberString_pfn = BOOLEAN (__stdcall *)(
+   _In_                             HANDLE HidDeviceObject,
+   _Out_writes_bytes_(BufferLength) PVOID  Buffer,
+   _In_                             ULONG  BufferLength
+);
+
 using HidD_GetPreparsedData_pfn = BOOLEAN (__stdcall *)(
   _In_  HANDLE                HidDeviceObject,
   _Out_ PHIDP_PREPARSED_DATA *PreparsedData
@@ -917,7 +923,7 @@ struct SK_HID_PlayStationDevice
   struct battery_s {
     float      percentage = 100.0f;
     PowerState state      = ChargingError;
-  };
+  } battery;
 
   struct button_s {
     bool state;

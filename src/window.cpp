@@ -5577,11 +5577,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
               (DEV_BROADCAST_DEVICEINTERFACE_W *)pDevHdr;
 
             // Input Devices
-            if (IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_HID)      ||
-                IsEqualGUID (pDevW->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS)  ||
-                IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_KEYBOARD) ||
-                IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_MOUSE)    ||
-                IsEqualGUID (pDevW->dbcc_classguid, GUID_BTHPORT_DEVICE_INTERFACE))
+            if (IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_HID)         ||
+                IsEqualGUID (pDevW->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS)     ||
+                IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_KEYBOARD)    ||
+                IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVINTERFACE_MOUSE)       ||
+                IsEqualGUID (pDevW->dbcc_classguid, GUID_BTHPORT_DEVICE_INTERFACE) ||
+                IsEqualGUID (pDevW->dbcc_classguid, GUID_DEVCLASS_BLUETOOTH))
             {
               bIgnore = false;
             }

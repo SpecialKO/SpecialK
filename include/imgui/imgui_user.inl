@@ -1999,10 +1999,12 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     {
       if (ps_controller.bConnected)
       {
-        if (ps_controller.bBluetooth)
+        if (ps_controller.bBluetooth && ps_controller.xinput.time_sampled > SK_timeGetTime () - 250UL)
           bHasBluetooth = true;
       }
     }
+
+    DWORD dwLastSampled = 0;
 
     for ( auto& ps_controller : SK_HID_PlayStationControllers )
     {
@@ -2013,12 +2015,19 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
           ps_controller.write_output_report ();
         }
 
-        if ((bHasBluetooth  && ps_controller.bBluetooth) ||
-           (!bHasBluetooth) && ps_controller.request_input_report ())
+        if (ps_controller.request_input_report ())
         {
-          if (ps_controller.xinput.report.dwPacketNumber != 0)
+          if (ps_controller.xinput.prev_report.dwPacketNumber >= hid_to_xi.dwPacketNumber)
           {
-            hid_to_xi = ps_controller.xinput.report;
+            if (ps_controller.xinput.time_sampled > dwLastSampled)
+            {
+              if (    (bHasBluetooth &&    ps_controller.bBluetooth) ||
+                  ((! bHasBluetooth) && (! ps_controller.bBluetooth)))
+              {
+                dwLastSampled = ps_controller.xinput.time_sampled;
+                    hid_to_xi = ps_controller.xinput.prev_report;
+              }
+            }
 
             if ( config.input.gamepad.xinput.ui_slot >= 0 &&
                  config.input.gamepad.xinput.ui_slot <  4 )
