@@ -646,7 +646,7 @@ XInputGetStateEx1_4_Detour (
         if (SK_ImGui_WantGamepadCapture ())
         {
           SK_XINPUT_HIDE (dwUserIndex)
-          ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD_EX));
+          ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
         }
 
         else

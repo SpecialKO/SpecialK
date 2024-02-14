@@ -1,4 +1,9 @@
-﻿24.2.14
+﻿24.2.14.1
+=========
+ + Fixed stack overrun in Hollow Knight caused by it calling XInputGetStateEx
+     with an incorrectly sized data structure on the stack.
+
+24.2.14
 =======
  + Added full support for Bluetooth DualSense; vibration, lights and battery
  + Better handle transition between USB and Bluetooth PlayStation data xfer
