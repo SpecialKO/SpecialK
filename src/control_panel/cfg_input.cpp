@@ -1104,9 +1104,12 @@ SK::ControlPanel::Input::Draw (void)
 
           if (config.input.gamepad.hook_xinput)
           {
-            ImGui::SameLine   ();
-            ImGui::BeginGroup ();
-            if (ImGui::Checkbox   ("XInput Emulation (Experimental)", &config.input.gamepad.xinput.emulate))
+            ImGui::SameLine    ();
+            ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+            ImGui::SameLine    ();
+
+            ImGui::BeginGroup  ();
+            if (ImGui::Checkbox("XInput Emulation (Experimental)", &config.input.gamepad.xinput.emulate))
             {
               if (config.input.gamepad.xinput.emulate)
               {
@@ -1124,6 +1127,8 @@ SK::ControlPanel::Input::Draw (void)
 
                 config.input.gamepad.xinput.placehold [0] = true;
               }
+
+              config.utility.save_async ();
             }
 
             if (ImGui::IsItemHovered ())
@@ -1138,10 +1143,96 @@ SK::ControlPanel::Input::Draw (void)
 
             if (config.input.gamepad.xinput.emulate)
             {
+              ImGui::TreePush ("");
               ImGui::Checkbox ("Debug Mode", &config.input.gamepad.xinput.debug);
+              ImGui::TreePop  (  );
             }
 
             ImGui::EndGroup ();
+
+            SK_HID_PlayStationDevice* pBatteryDevice = nullptr;
+
+            for ( auto& ps_controller : SK_HID_PlayStationControllers )
+            {
+              if (ps_controller.bConnected && ps_controller.bBluetooth)
+              {
+                pBatteryDevice = &ps_controller;
+                break;
+              }
+            }
+
+            if (pBatteryDevice != nullptr)
+            {
+              ImGui::SameLine    ();
+              ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+              ImGui::SameLine    ();
+              ImGui::BeginGroup  ();
+
+              switch (pBatteryDevice->battery.state)
+              {
+                case SK_HID_PlayStationDevice::Charging:
+                case SK_HID_PlayStationDevice::Discharging:
+                {
+                  SK_HID_PlayStationDevice::battery_s *pBatteryState =
+                    (SK_HID_PlayStationDevice::battery_s *)&pBatteryDevice->battery;
+
+                  static const char* szBatteryLevels [] = {
+                    ICON_FA_BATTERY_EMPTY,
+                    ICON_FA_BATTERY_QUARTER,
+                    ICON_FA_BATTERY_HALF,
+                    ICON_FA_BATTERY_THREE_QUARTERS,
+                    ICON_FA_BATTERY_FULL
+                  };
+
+                  static ImColor battery_colors [] = {
+                    ImColor::HSV (0.0f, 1.0f, 1.0f), ImColor::HSV (0.1f, 1.0f, 1.0f),
+                    ImColor::HSV (0.2f, 1.0f, 1.0f), ImColor::HSV (0.3f, 1.0f, 1.0f),
+                    ImColor::HSV (0.4f, 1.0f, 1.0f)
+                  };
+
+                  const int batteryLevel =
+                    (pBatteryState->percentage > 70.0f) ? 4 :
+                    (pBatteryState->percentage > 50.0f) ? 3 :
+                    (pBatteryState->percentage > 30.0f) ? 2 :
+                    (pBatteryState->percentage > 10.0f) ? 1 : 0;
+
+                  auto batteryColor =
+                    battery_colors [batteryLevel];
+
+                  if (batteryLevel <= 1)
+                  {
+                    batteryColor.Value.w =
+                      static_cast <float> (
+                        0.5 + 0.4 * std::cos (3.14159265359 *
+                          (static_cast <double> (SK::ControlPanel::current_time % 2250) / 1125.0))
+                      );
+                  }
+
+                  ImGui::BeginGroup ();
+                  ImGui::TextColored ( batteryColor, "%hs",
+                      szBatteryLevels [batteryLevel]
+                  );
+
+                  ImGui::SameLine ();
+
+                  if (pBatteryState->state == SK_HID_PlayStationDevice::Discharging)
+                    ImGui::Text ("%3.0f%% " ICON_FA_ARROW_DOWN, pBatteryState->percentage);
+                  else
+                    ImGui::Text ("%3.0f%% " ICON_FA_ARROW_UP,   pBatteryState->percentage);
+
+                  ImGui::EndGroup ();
+                } break;
+                default:
+                  break;
+              }
+
+              if (ImGui::Checkbox ("Power Saving Mode", &config.input.gamepad.scepad.power_save_mode))
+              {
+                config.utility.save_async ();
+              }
+
+              ImGui::EndGroup   ();
+            }
           }
 
 #if 0
@@ -1370,111 +1461,114 @@ extern float SK_ImGui_PulseNav_Strength;
 
       if (config.input.gamepad.hook_xinput)
       {
-        static bool   init       = false;
-        static HANDLE hStartStop =
-          SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
-
-        if (! init)
-        {     init = true;
-          SK_Thread_CreateEx ([](LPVOID) -> DWORD
-          {
-            XINPUT_STATE states [2] = { };
-            ULONGLONG    times  [2] = { };
-            ULONGLONG    times_ [2] = { };
-            int                  i  =  0;
-
-            do
-            {
-              SK_WaitForSingleObject (hStartStop, INFINITE);
-
-              if (SK_XInput_PollController (static_cast <INT> (config.input.gamepad.xinput.ui_slot), &states [i % 2]))
-              {
-                XINPUT_STATE& old = states [(i + 1) % 2];
-                XINPUT_STATE& now = states [ i++    % 2];
-
-                if (old.dwPacketNumber != now.dwPacketNumber)
-                {
-                  LARGE_INTEGER nowTime = SK_QueryPerf ();
-
-                  if (memcmp (&old.Gamepad, &now.Gamepad, sizeof (XINPUT_GAMEPAD)))
-                  {
-                    ULONGLONG oldTime = times_ [0];
-                                        times_ [0] = times_ [1];
-                                        times_ [1] = nowTime.QuadPart;
-
-                    gamepad_stats_filtered->addSample ( 1000.0 *
-                      static_cast <double> (times_ [0] - oldTime) /
-                      static_cast <double> (SK_PerfFreq),
-                        nowTime
-                    );
-                  }
-
-                  ULONGLONG oldTime = times [0];
-                                      times [0] = times [1];
-                                      times [1] = nowTime.QuadPart;
-
-                  gamepad_stats->addSample ( 1000.0 *
-                    static_cast <double> (times [0] - oldTime) /
-                    static_cast <double> (SK_PerfFreq),
-                      nowTime
-                  );
-                }
-              }
-            } while (0 == ReadAcquire (&__SK_DLL_Ending));
-
-            SK_Thread_CloseSelf ();
-
-            return 0;
-          }, L"[SK] XInput Latency Tester", (LPVOID)hStartStop);
-        }
-
         static bool started = false;
 
-        if (ImGui::Button (started ? "Stop Gamepad Latency Test" :
-                                     "Start Gamepad Latency Test"))
+        if (! config.input.gamepad.xinput.emulate)
         {
-          if (! started) { started = true;  SetEvent   (hStartStop); }
-          else           { started = false; ResetEvent (hStartStop); }
+          static bool   init       = false;
+          static HANDLE hStartStop =
+            SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
+
+          if (ImGui::Button (started ? "Stop XInput Latency Test" :
+                                       "Start XInput Latency Test"))
+          {
+            if (! started) { started = true;  SetEvent   (hStartStop); }
+            else           { started = false; ResetEvent (hStartStop); }
+
+            if (! init)
+            {     init = true;
+              SK_Thread_CreateEx ([](LPVOID) -> DWORD
+              {
+                XINPUT_STATE states [2] = { };
+                ULONGLONG    times  [2] = { };
+                ULONGLONG    times_ [2] = { };
+                int                  i  =  0;
+
+                do
+                {
+                  SK_WaitForSingleObject (hStartStop, INFINITE);
+
+                  if (SK_XInput_PollController (static_cast <INT> (config.input.gamepad.xinput.ui_slot), &states [i % 2]))
+                  {
+                    XINPUT_STATE& old = states [(i + 1) % 2];
+                    XINPUT_STATE& now = states [ i++    % 2];
+
+                    if (old.dwPacketNumber != now.dwPacketNumber)
+                    {
+                      LARGE_INTEGER nowTime = SK_QueryPerf ();
+
+                      if (memcmp (&old.Gamepad, &now.Gamepad, sizeof (XINPUT_GAMEPAD)))
+                      {
+                        ULONGLONG oldTime = times_ [0];
+                                            times_ [0] = times_ [1];
+                                            times_ [1] = nowTime.QuadPart;
+
+                        gamepad_stats_filtered->addSample ( 1000.0 *
+                          static_cast <double> (times_ [0] - oldTime) /
+                          static_cast <double> (SK_PerfFreq),
+                            nowTime
+                        );
+                      }
+
+                      ULONGLONG oldTime = times [0];
+                                          times [0] = times [1];
+                                          times [1] = nowTime.QuadPart;
+
+                      gamepad_stats->addSample ( 1000.0 *
+                        static_cast <double> (times [0] - oldTime) /
+                        static_cast <double> (SK_PerfFreq),
+                          nowTime
+                      );
+                    }
+                  }
+                } while (0 == ReadAcquire (&__SK_DLL_Ending));
+
+                SK_Thread_CloseSelf ();
+
+                return 0;
+              }, L"[SK] XInput Latency Tester", (LPVOID)hStartStop);
+            }
+          }
+
+          static double high_min = std::numeric_limits <double>::max (),
+                        high_max,
+                        avg;
+
+          static double high_min_f = std::numeric_limits <double>::max (),
+                        high_max_f,
+                        avg_f;
+
+          ImGui::SameLine    ( );
+          ImGui::BeginGroup  ( );
+
+          if (started)
+          {
+            ImGui::BeginGroup( );
+            ImGui::Text      ( "%lu Raw Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
+                                 gamepad_stats->calcNumSamples (),
+                                 gamepad_stats->calcMin        (),
+                                 gamepad_stats->calcMax        (),
+                                 gamepad_stats->calcMean       () );
+
+            ImGui::Text      ( "%lu Validated Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
+                                 gamepad_stats_filtered->calcNumSamples (),
+                                 gamepad_stats_filtered->calcMin        (),
+                                 gamepad_stats_filtered->calcMax        (),
+                                 gamepad_stats_filtered->calcMean       () );
+            ImGui::EndGroup  ( );
+
+            high_min_f = std::min (gamepad_stats_filtered->calcMin (), high_min_f);
+            high_min   = std::min (gamepad_stats->calcMin          (), high_min  );
+          }
+
+          ImGui::BeginGroup  ( );
+          if (high_min   < 250.0)
+            ImGui::Text      ( "Minimum Latency: %4.2f ms", high_min );
+          if (high_min_f < 250.0)
+            ImGui::Text      ( "Minimum Latency: %4.2f ms (Validation Applied)", high_min_f );
+          ImGui::EndGroup    ( );
+          ImGui::EndGroup    ( );
         }
-
-        static double high_min = std::numeric_limits <double>::max (),
-                      high_max,
-                      avg;
-
-        static double high_min_f = std::numeric_limits <double>::max (),
-                      high_max_f,
-                      avg_f;
-
-        ImGui::SameLine    ( );
-        ImGui::BeginGroup  ( );
-
-        if (started)
-        {
-          ImGui::BeginGroup( );
-          ImGui::Text      ( "%lu Raw Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
-                               gamepad_stats->calcNumSamples (),
-                               gamepad_stats->calcMin        (),
-                               gamepad_stats->calcMax        (),
-                               gamepad_stats->calcMean       () );
-
-          ImGui::Text      ( "%lu Validated Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
-                               gamepad_stats_filtered->calcNumSamples (),
-                               gamepad_stats_filtered->calcMin        (),
-                               gamepad_stats_filtered->calcMax        (),
-                               gamepad_stats_filtered->calcMean       () );
-          ImGui::EndGroup  ( );
-
-          high_min_f = std::min (gamepad_stats_filtered->calcMin (), high_min_f);
-          high_min   = std::min (gamepad_stats->calcMin          (), high_min  );
-        }
-
-        ImGui::BeginGroup  ( );
-        if (high_min   < 250.0)
-          ImGui::Text      ( "Minimum Latency: %4.2f ms", high_min );
-        if (high_min_f < 250.0)
-          ImGui::Text      ( "Minimum Latency: %4.2f ms (Validation Applied)", high_min_f );
-        ImGui::EndGroup    ( );
-        ImGui::EndGroup    ( );
       }
       ImGui::TreePop       ( );
     }

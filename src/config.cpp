@@ -1014,6 +1014,7 @@ struct {
       sk::ParameterBool*  share_clicks_touch      = nullptr;
       sk::ParameterBool*  mute_applies_to_game    = nullptr;
       sk::ParameterBool*  enhanced_ps_button      = nullptr;
+      sk::ParameterBool*  power_save_mode         = nullptr;
     } scepad;
 
     struct {
@@ -1580,6 +1581,7 @@ auto DeclKeybind =
                                    mute_applies_to_game, L"Mute Button on DualSense will Mute the Game",               input_ini,       L"Input.libScePad",       L"MuteButtonAppliesToGame"),
     ConfigEntry (input.gamepad.scepad.enhanced_ps_button,L"PlayStation / Home Button activates SK's control panel and "
                                                          L"may be used for special button combos (e.g. trigger sshot)",input_ini,       L"Input.libScePad",       L"AdvancedPlayStationButton"),
+    ConfigEntry (input.gamepad.scepad.power_save_mode,   L"Reduced power for Audio/Gyro/Touchpad on Bluetooth",        input_ini,       L"Input.libScePad",       L"EnableBluetoothPowerSaving"),
 
  //DEPRECATED  (                                                                                                                       L"Input.XInput",          L"DisableRumble"),
 
@@ -4180,6 +4182,7 @@ auto DeclKeybind =
   input.gamepad.scepad.share_clicks_touch->load   (config.input.gamepad.scepad.share_clicks_touch);
   input.gamepad.scepad.mute_applies_to_game->load (config.input.gamepad.scepad.mute_applies_to_game);
   input.gamepad.scepad.enhanced_ps_button->load   (config.input.gamepad.scepad.enhanced_ps_button);
+  input.gamepad.scepad.power_save_mode->load      (config.input.gamepad.scepad.power_save_mode);
 
   input.gamepad.xinput.ui_slot->load   ((int &)config.input.gamepad.xinput.ui_slot);
   input.gamepad.steam.ui_slot->load    ((int &)config.input.gamepad.steam.ui_slot);
@@ -5517,6 +5520,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.scepad.share_clicks_touch->store   (config.input.gamepad.scepad.share_clicks_touch);
   input.gamepad.scepad.mute_applies_to_game->store (config.input.gamepad.scepad.mute_applies_to_game);
   input.gamepad.scepad.enhanced_ps_button->store   (config.input.gamepad.scepad.enhanced_ps_button);
+  input.gamepad.scepad.power_save_mode->store      (config.input.gamepad.scepad.power_save_mode);
 
 
   threads.enable_mem_alloc_trace->store            (config.threads.enable_mem_alloc_trace);

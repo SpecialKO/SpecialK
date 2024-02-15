@@ -986,6 +986,7 @@ struct sk_config_t
         bool  mute_applies_to_game =   true;
         bool  enhanced_ps_button   =   true;
         float rumble_power_level   = 100.0f;
+        bool  power_save_mode      =   true;
       } scepad;
 
       struct steam_s

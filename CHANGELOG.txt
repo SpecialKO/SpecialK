@@ -1,4 +1,15 @@
-﻿24.2.15
+﻿24.2.15.2
+=========
+ + Added battery indicator to control panel for DualSense controllers when
+     running in Bluetooth mode.
+ + Added option to control powersaving mode on DualSense controllers (BT).
+
+24.2.15.1
+=========
+ + Apply XInput slot disable options to SK's own emulation of XInput
+ + Apply rumble disable option when emulating XInput
+
+24.2.15
 =======
  + Properly handle calls to ID3D11Device[3]::CreateTexture2D[1] (...) with
      nullptr passed for ppTexture2D when HDR remastering is enabled

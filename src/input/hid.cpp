@@ -2807,7 +2807,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
             {
               pDevice->bBluetooth = true;
                     bHasBluetooth = true;
-              
+
               pDevice->write_output_report ();
 
               if (pDevice->buttons.size () < 19)
@@ -3332,9 +3332,9 @@ SK_HID_PlayStationDevice::write_output_report (void)
                                         : On
                                         : Off;
 
-            output->TouchPowerSave      = true;
-            output->MotionPowerSave     = true;
-            output->AudioPowerSave      = true;
+            output->TouchPowerSave      = config.input.gamepad.scepad.power_save_mode;
+            output->MotionPowerSave     = config.input.gamepad.scepad.power_save_mode;
+            output->AudioPowerSave      = config.input.gamepad.scepad.power_save_mode;
             output->HapticLowPassFilter = true;
 
             output->RumbleMotorPowerReduction = 0x0;
