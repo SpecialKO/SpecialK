@@ -5879,7 +5879,12 @@ D3D11Dev_CreateTexture2D1_Impl (
 
             else
             {
-              SK_D3D11_FlagResourceFormatManipulated (*ppTexture2D, origDesc.Format);
+              // The actual texture pointer is optional, sometimes this function is
+              //   called simply to validate parameters.
+              if (ppTexture2D != nullptr)
+              {
+                SK_D3D11_FlagResourceFormatManipulated (*ppTexture2D, origDesc.Format);
+              }
 
               return hr;
             }
@@ -7056,7 +7061,12 @@ D3D11Dev_CreateTexture2D_Impl (
 
             else
             {
-              SK_D3D11_FlagResourceFormatManipulated (*ppTexture2D, origDesc.Format);
+              // The actual texture pointer is optional, sometimes this function is
+              //   called simply to validate parameters.
+              if (ppTexture2D != nullptr)
+              {
+                SK_D3D11_FlagResourceFormatManipulated (*ppTexture2D, origDesc.Format);
+              }
 
               return hr;
             }

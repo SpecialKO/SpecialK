@@ -1,7 +1,12 @@
-﻿24.2.14.2
+﻿24.2.15
+=======
+ + Properly handle calls to ID3D11Device[3]::CreateTexture2D[1] (...) with
+     nullptr passed for ppTexture2D when HDR remastering is enabled
+
+24.2.14.2
 =========
  + Fixed potential buffer overrun if a game calls GetRawInputData (...) with
-     an uninitialized header
+     an uninitialized header.
 
 24.2.14.1
 =========
