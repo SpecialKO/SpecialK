@@ -479,7 +479,7 @@ XInputGetState1_4_Detour (
                                 SK_ImGui_Toast::DoNotSaveINI );
         }
 
-        if (SK_ImGui_WantGamepadCapture ())
+        if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
         {
           SK_XINPUT_HIDE (dwUserIndex)
           ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
@@ -643,7 +643,7 @@ XInputGetStateEx1_4_Detour (
                                 SK_ImGui_Toast::DoNotSaveINI );
         }
 
-        if (SK_ImGui_WantGamepadCapture ())
+        if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
         {
           SK_XINPUT_HIDE (dwUserIndex)
           ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
@@ -1081,20 +1081,23 @@ XInputSetState1_4_Detour (
       {
         if (dwUserIndex == 0)
         {
-          if (SK_ImGui_WantGamepadCapture ())
+          if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
           {
             //SK_XINPUT_HIDE (dwUserIndex)
           }
 
           else
           {
-            controller.setVibration (
-              pVibration->wLeftMotorSpeed,
-              pVibration->wRightMotorSpeed,
-              0x00FF
-            );
+            if (! config.input.gamepad.disable_rumble)
+            {
+              controller.setVibration (
+                pVibration->wLeftMotorSpeed,
+                pVibration->wRightMotorSpeed,
+                0x00FF
+              );
 
-            controller.write_output_report ();
+              controller.write_output_report ();
+            }
 
             bHasSetState = true;
 
