@@ -641,16 +641,16 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
     SK_ReleaseAssert (*pcbSize >= static_cast <UINT> (size) &&
                       *pcbSize >= sizeof (RAWINPUTHEADER));
-    
+
     if (keyboard)
     {
       if (! (((RAWINPUT *)pData)->data.keyboard.Flags & RI_KEY_BREAK))
              ((RAWINPUT *)pData)->data.keyboard.VKey  = 0;
-    
+
       // Fake key release
       ((RAWINPUT *)pData)->data.keyboard.Flags |= RI_KEY_BREAK;
     }
-    
+
     // Block mouse input in The Witness by zeroing-out the memory; most other 
     //   games will see *pcbSize=0 and RIM_INPUTSINK and not process input...
     else
@@ -659,13 +659,19 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         RtlZeroMemory (&((RAWINPUT *)pData)->data.mouse, *pcbSize - sizeof (RAWINPUTHEADER));
       else if (gamepad)
       {
-        SK_ReleaseAssert (
-          *pcbSize - sizeof (RAWINPUTHEADER) >= (((RAWINPUT *)pData)->data.hid.dwCount *
-                                                 ((RAWINPUT *)pData)->data.hid.dwSizeHid) + 2 * sizeof (DWORD));
+        if (*pcbSize <= sizeof (RAWINPUTHEADER))
+          RtlZeroMemory (&((RAWINPUT *)pData)->data.hid, *pcbSize);
+        else
+        {
+          SK_ReleaseAssert (
+            *pcbSize - sizeof (RAWINPUTHEADER) >= (((RAWINPUT *)pData)->data.hid.dwCount *
+                                                   ((RAWINPUT *)pData)->data.hid.dwSizeHid) + 2 * sizeof (DWORD)
+          );
 
-        RtlZeroMemory (&((RAWINPUT *)pData)->data.hid,
-                       (((RAWINPUT *)pData)->data.hid.dwCount *
-                        ((RAWINPUT *)pData)->data.hid.dwSizeHid) + 2 * sizeof (DWORD));
+          RtlZeroMemory (&((RAWINPUT *)pData)->data.hid,
+                         (((RAWINPUT *)pData)->data.hid.dwCount *
+                          ((RAWINPUT *)pData)->data.hid.dwSizeHid) + 2 * sizeof (DWORD));
+        }
       }
     }
 
