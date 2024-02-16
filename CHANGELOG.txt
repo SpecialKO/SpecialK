@@ -1,4 +1,9 @@
-﻿24.2.16.3
+﻿24.2.16.4
+=========
+ + Fixed unintentional removal of Floating-Point from R11G11B10 rendertargets
+     in 24.2.16.3
+
+24.2.16.3
 =========
  + Added option to use UNORM instead of FP for HDR remastering on sub-native
      resolution render passes. This helps with artifacting on bloom effects.

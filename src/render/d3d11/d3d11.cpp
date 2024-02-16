@@ -5728,7 +5728,7 @@ D3D11Dev_CreateTexture2D1_Impl (
         if (pDesc->Width  < swapDesc.BufferDesc.Width &&
             pDesc->Height < swapDesc.BufferDesc.Height)
         {
-          if (config.render.hdr.remaster_subnative_as_unorm)
+          if (config.render.hdr.remaster_subnative_as_unorm && pDesc->Format != DXGI_FORMAT_R11G11B10_FLOAT)
           {
             hdr_fmt_override = DXGI_FORMAT_R16G16B16A16_UNORM;
           }
