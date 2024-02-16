@@ -1,4 +1,17 @@
-﻿24.2.16.4
+﻿24.2.16.5
+=========
+ + Added option to completely kill Steam Input by placing ValvePlug.dll in Steam's
+     install directory and then launching any game using SKIF. The Steam client
+       will remain patched with Steam Input killing code until restarted.
+
+    This works best if you launch a game using SKIF while the Steam client is not
+      already running. Otherwise the client has partial Steam Input functionality
+        and Valve can still harm you.
+
+ + Removed the terms "Experimental" and Emulation from PlayStation XInput Mode,
+     it's very reliable now :)
+
+24.2.16.4
 =========
  + Fixed unintentional removal of Floating-Point from R11G11B10 rendertargets
      in 24.2.16.3

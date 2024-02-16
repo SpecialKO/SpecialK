@@ -1231,6 +1231,9 @@ SK_IsImmersiveProcess (HANDLE hProcess = SK_GetCurrentProcess ())
 void
 SK_Inject_SpawnUnloadListener (void)
 {
+  if (StrStrIW (SK_GetHostApp (), L"Steam"))
+    LoadLibraryW (L"ValvePlug.dll");
+
   if (! InterlockedCompareExchangePointer ((void **)&g_hModule_CBT, (void *)1, nullptr))
   {
     static SK_AutoHandle hHookTeardown (

@@ -1109,7 +1109,7 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::SameLine    ();
 
             ImGui::BeginGroup  ();
-            if (ImGui::Checkbox("XInput Emulation (Experimental)", &config.input.gamepad.xinput.emulate))
+            if (ImGui::Checkbox("XInput Mode", &config.input.gamepad.xinput.emulate))
             {
               if (config.input.gamepad.xinput.emulate)
               {
@@ -1117,7 +1117,7 @@ SK::ControlPanel::Input::Draw (void)
                 {
                   SK_ImGui_WarningWithTitle (
                     L"XInput was being blocked to the game; it must be unblocked"
-                    L" for XInput emulation to work.\r\n\r\n\t"
+                    L" for XInput mode to work.\r\n\r\n\t"
                     L"* A game restart may be required",
                       L"XInput Has Been Unblocked"
                   );
@@ -1134,10 +1134,13 @@ SK::ControlPanel::Input::Draw (void)
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip    ();
-              ImGui::TextUnformatted ("Translate HID to XInput for PlayStation controllers");
+              ImGui::TextUnformatted ("Translates HID to XInput for PlayStation controllers");
               ImGui::Separator       ();
-              ImGui::BulletText      ("May require a game restart, and may not work in all games.");
-              ImGui::BulletText      ("Does not currently support multiple controllers.");
+              ImGui::BulletText      ("Fully supports DualSense (USB and Bluetooth).");
+              ImGui::BulletText      ("Limited support for older-gen PlayStation controllers.");
+              ImGui::Separator       ();
+              ImGui::BulletText      ("Does not support more than one controller.");
+              ImGui::BulletText      ("May require a game restart.");
               ImGui::EndTooltip      ();
             }
 
