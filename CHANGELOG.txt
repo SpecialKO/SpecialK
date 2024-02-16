@@ -1,4 +1,10 @@
-﻿24.2.16.6
+﻿24.2.16.7
+=========
+ + Apply the DualSense brightness slider to the color LEDs around the trackpad
+     as well. The HW setting actually only affects the mute button and player
+       indicators, but SK will now dim the lightbar as part of the setting.
+
+24.2.16.6
 =========
  + Support selecting the control panel's battery icon to power-off a DualSense
      controller iusing a gamepad / keyboard

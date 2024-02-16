@@ -3443,35 +3443,54 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
             if (config.input.gamepad.scepad.led_brightness == 3)
             {
-              output->LightBrightness = (LightBrightness)2;
-              output->LedRed          = 0;
-              output->LedGreen        = 0;
-              output->LedBlue         = 0;
+              output->AllowLightBrightnessChange = 1;
+              output->LightBrightness            = (LightBrightness)3;
+            }
+
+            else if (config.input.gamepad.scepad.led_brightness != -1)
+            {
+              output->AllowLightBrightnessChange = 1;
+              output->LightBrightness            =
+                (LightBrightness)std::clamp (config.input.gamepad.scepad.led_brightness, 0, 2);
+            }
+
+            if (config.input.gamepad.scepad.led_color_r != -1 || 
+                config.input.gamepad.scepad.led_color_g != -1 ||
+                config.input.gamepad.scepad.led_color_b != -1)
+            {
+              output->LedRed   = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_r, 0, 255));
+              output->LedGreen = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_g, 0, 255));
+              output->LedBlue  = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_b, 0, 255));
+
+              if (output->AllowLightBrightnessChange)
+              {
+                switch (output->LightBrightness)
+                {
+                  case Mid:
+                    output->LedRed   /= 2;
+                    output->LedGreen /= 2;
+                    output->LedBlue  /= 2;
+                    break;
+                  case Dim:
+                    output->LedRed   /= 4;
+                    output->LedGreen /= 4;
+                    output->LedBlue  /= 4;
+                    break;
+                  case NoLightAction3:
+                    output->LedRed   /= 8;
+                    output->LedGreen /= 8;
+                    output->LedBlue  /= 8;
+                    output->LightBrightness = Dim;
+                    break;
+                }
+              }
             }
 
             else
             {
-              if (config.input.gamepad.scepad.led_brightness != -1)
-              {
-                output->LightBrightness =
-                  (LightBrightness)std::clamp (config.input.gamepad.scepad.led_brightness, 0, 2);
-              }
-
-              if (config.input.gamepad.scepad.led_color_r != -1 || 
-                  config.input.gamepad.scepad.led_color_g != -1 ||
-                  config.input.gamepad.scepad.led_color_b != -1)
-              {
-                output->LedRed   = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_r, 0, 255));
-                output->LedGreen = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_g, 0, 255));
-                output->LedBlue  = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_b, 0, 255));
-              }
-
-              else
-              {
-                output->LedRed   = pDevice->_color.r;
-                output->LedGreen = pDevice->_color.g;
-                output->LedBlue  = pDevice->_color.b;
-              }
+              output->LedRed   = pDevice->_color.r;
+              output->LedGreen = pDevice->_color.g;
+              output->LedBlue  = pDevice->_color.b;
             }
           }
 
@@ -3588,47 +3607,66 @@ SK_HID_PlayStationDevice::write_output_report (void)
                   output->ResetLights = true;
                 }
 
-                output->LightBrightness = (LightBrightness)2;
-                output->LedRed          = 0;
-                output->LedGreen        = 0;
-                output->LedBlue         = 0;
+                output->AllowLightBrightnessChange = 1;
+                output->LightBrightness            = (LightBrightness)3;
+              }
+
+              else if (config.input.gamepad.scepad.led_brightness != -1)
+              {
+                output->AllowLightBrightnessChange = 1;
+                output->LightBrightness            =
+                  (LightBrightness)std::clamp (config.input.gamepad.scepad.led_brightness, 0, 2);
+
+                if (pDevice->sensor_timestamp >= 10200000 && (! pDevice->reset_rgb))
+                {
+                  pDevice->reset_rgb  = true;
+                  output->ResetLights = true;
+                }
+              }
+
+              if (config.input.gamepad.scepad.led_color_r != -1 || 
+                  config.input.gamepad.scepad.led_color_g != -1 ||
+                  config.input.gamepad.scepad.led_color_b != -1)
+              {
+                if (pDevice->sensor_timestamp >= 10200000 && (! pDevice->reset_rgb))
+                {
+                  pDevice->reset_rgb  = true;
+                  output->ResetLights = true;
+                }
+
+                output->LedRed   = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_r, 0, 255));
+                output->LedGreen = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_g, 0, 255));
+                output->LedBlue  = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_b, 0, 255));
+
+                if (output->AllowLightBrightnessChange)
+                {
+                  switch (output->LightBrightness)
+                  {
+                    case Mid:
+                      output->LedRed   /= 2;
+                      output->LedGreen /= 2;
+                      output->LedBlue  /= 2;
+                      break;
+                    case Dim:
+                      output->LedRed   /= 4;
+                      output->LedGreen /= 4;
+                      output->LedBlue  /= 4;
+                      break;
+                    case NoLightAction3:
+                      output->LedRed   /= 8;
+                      output->LedGreen /= 8;
+                      output->LedBlue  /= 8;
+                      output->LightBrightness = Dim;
+                      break;
+                  }
+                }
               }
 
               else
               {
-                if (config.input.gamepad.scepad.led_brightness != -1)
-                {
-                  if (pDevice->sensor_timestamp >= 10200000 && (! pDevice->reset_rgb))
-                  {
-                    pDevice->reset_rgb  = true;
-                    output->ResetLights = true;
-                  }
-
-                  output->LightBrightness =
-                    (LightBrightness)std::clamp (config.input.gamepad.scepad.led_brightness, 0, 2);
-                }
-
-                if (config.input.gamepad.scepad.led_color_r != -1 || 
-                    config.input.gamepad.scepad.led_color_g != -1 ||
-                    config.input.gamepad.scepad.led_color_b != -1)
-                {
-                  if (pDevice->sensor_timestamp >= 10200000 && (! pDevice->reset_rgb))
-                  {
-                    pDevice->reset_rgb  = true;
-                    output->ResetLights = true;
-                  }
-
-                  output->LedRed   = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_r, 0, 255));
-                  output->LedGreen = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_g, 0, 255));
-                  output->LedBlue  = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_b, 0, 255));
-                }
-
-                else
-                {
-                  output->LedRed   = pDevice->_color.r;
-                  output->LedGreen = pDevice->_color.g;
-                  output->LedBlue  = pDevice->_color.b;
-                }
+                output->LedRed   = pDevice->_color.r;
+                output->LedGreen = pDevice->_color.g;
+                output->LedBlue  = pDevice->_color.b;
               }
             }
 
