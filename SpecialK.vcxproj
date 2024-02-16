@@ -1657,7 +1657,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClCompile Include="src\input\sce_pad.cpp" />
     <ClCompile Include="src\input\windows.gaming.input.cpp" />
     <ClCompile Include="src\input\winhook_input.cpp" />
-    <ClCompile Include="src\input\winmm_joystickcpp.cpp" />
+    <ClCompile Include="src\input\winmm_joystick.cpp" />
     <ClCompile Include="src\lazy_global.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>

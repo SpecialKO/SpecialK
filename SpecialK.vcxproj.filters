@@ -3686,7 +3686,7 @@
     <ClCompile Include="src\input\raw_input.cpp">
       <Filter>Source Files\Backends\Input\RawInput</Filter>
     </ClCompile>
-    <ClCompile Include="src\input\winmm_joystickcpp.cpp">
+    <ClCompile Include="src\input\winmm_joystick.cpp">
       <Filter>Source Files\Backends\Input\WinMM</Filter>
     </ClCompile>
     <ClCompile Include="src\input\winhook_input.cpp">
