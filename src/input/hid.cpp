@@ -23,6 +23,11 @@
 #include <imgui/font_awesome.h>
 
 #include <hidclass.h>
+#include <bluetoothapis.h>
+#include <bthdef.h>
+#include <bthioctl.h>
+
+#pragma comment (lib, "bthprops.lib")
 
 //
 // From the Driver SDK, which we would rather not make a dependency
@@ -370,6 +375,91 @@ SetupDiDestroyDeviceInfoList_pfn     SK_SetupDiDestroyDeviceInfoList     = nullp
 
 XINPUT_STATE hid_to_xi { };
   
+// IOCTL defines.
+#define BTH_IOCTL_BASE      0
+
+#define BTH_CTL(id)         CTL_CODE(FILE_DEVICE_BLUETOOTH,  \
+               (id),                   \
+               METHOD_BUFFERED,        \
+               FILE_ANY_ACCESS)
+#define BTH_KERNEL_CTL(id)  CTL_CODE(FILE_DEVICE_BLUETOOTH,  \
+                      (id),                   \
+                      METHOD_NEITHER,         \
+                      FILE_ANY_ACCESS)
+#define IOCTL_BTH_GET_DEVICE_INFO           BTH_CTL(BTH_IOCTL_BASE+0x02)
+#define IOCTL_BTH_DISCONNECT_DEVICE         BTH_CTL(BTH_IOCTL_BASE+0x03)
+
+void SK_Bluetooth_SetupPowerOff (void)
+{
+  static bool poweroff;
+
+  class SK_Bluetooth_PowerListener : public SK_IVariableListener
+  {
+    bool OnVarChange (SK_IVariable* var, void* val = nullptr)
+    {
+      std::ignore = val;
+
+      if (var->getValuePointer () == &poweroff)
+      {
+        for ( auto& device : SK_HID_PlayStationControllers )
+        {
+          if (device.bBluetooth && device.bConnected)
+          { 
+            // The serial number is actually the Bluetooth MAC address; handy...
+            wchar_t wszSerialNumber [32] = { };
+ 
+            DWORD dwBytesReturned = 0;
+ 
+            SK_DeviceIoControl (
+              device.hDeviceFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
+                                                                     wszSerialNumber, 64,
+                                                                    &dwBytesReturned, nullptr );
+
+            SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws",
+                         wszSerialNumber );
+
+            ULONGLONG                           ullHWAddr = 0x0;
+            swscanf (wszSerialNumber, L"%llx", &ullHWAddr);
+
+            BLUETOOTH_FIND_RADIO_PARAMS findParams =
+              { .dwSize = sizeof (BLUETOOTH_FIND_RADIO_PARAMS) };
+
+            HANDLE hBtRadio    = INVALID_HANDLE_VALUE;
+            HANDLE hFindRadios =
+              BluetoothFindFirstRadio (&findParams, &hBtRadio);
+
+            BOOL   success  = FALSE;
+            while (success == FALSE && hBtRadio != 0)
+            {
+              success =
+                SK_DeviceIoControl (
+                  hBtRadio, IOCTL_BTH_DISCONNECT_DEVICE, &ullHWAddr, 8,
+                                                         nullptr,    0,
+                                       &dwBytesReturned, nullptr );
+
+              CloseHandle (hBtRadio);
+
+              if (! success)
+                if (! BluetoothFindNextRadio (hFindRadios, &hBtRadio))
+                  hBtRadio = 0;
+            }
+
+            BluetoothFindRadioClose (hFindRadios);
+          }
+        }
+      }
+
+      return true;
+    }
+  } static power;
+
+  SK_RunOnce (
+    SK_GetCommandProcessor ()->AddVariable (
+      "Input.Gamepad.PowerOff", SK_CreateVar (SK_IVariable::Boolean, &poweroff, &power)
+    )
+  );
+}
+
 void SK_HID_SetupPlayStationControllers (void)
 {
   HDEVINFO hid_device_set = 
@@ -2807,6 +2897,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
             {
               pDevice->bBluetooth = true;
                     bHasBluetooth = true;
+                    
+              SK_RunOnce (SK_Bluetooth_SetupPowerOff ());
 
               pDevice->write_output_report ();
 

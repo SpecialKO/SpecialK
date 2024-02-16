@@ -1221,6 +1221,16 @@ SK::ControlPanel::Input::Draw (void)
                     ImGui::Text ("%3.0f%% " ICON_FA_ARROW_UP,   pBatteryState->percentage);
 
                   ImGui::EndGroup ();
+
+                  if (ImGui::IsItemHovered ())
+                  {
+                    ImGui::SetTooltip ("Click here to power-off the controller.");
+                  }
+
+                  if (ImGui::IsItemClicked ())
+                  {
+                    SK_GetCommandProcessor ()->ProcessCommandLine ("Input.Gamepad.PowerOff 1");
+                  }
                 } break;
                 default:
                   break;
@@ -1281,10 +1291,13 @@ extern float SK_ImGui_PulseNav_Strength;
 #endif
 
       static LARGE_INTEGER
-        liLastPoll [2] = { { }, { } };
+        liLastPoll [16] = { { }, { }, { }, { }, { }, { }, { }, { },
+                            { }, { }, { }, { }, { }, { }, { }, { } };
       static UINT
-        uiLastErr  [2] = { JOYERR_NOERROR,
-                           JOYERR_NOERROR };
+        uiLastErr  [16] = { JOYERR_NOERROR, JOYERR_NOERROR, JOYERR_NOERROR, JOYERR_NOERROR,
+                            JOYERR_NOERROR, JOYERR_NOERROR, JOYERR_NOERROR, JOYERR_NOERROR,
+                            JOYERR_NOERROR, JOYERR_NOERROR, JOYERR_NOERROR, JOYERR_NOERROR,
+                            JOYERR_NOERROR, JOYERR_NOERROR, JOYERR_NOERROR, JOYERR_NOERROR };
 
       auto GamepadDebug = [&](UINT idx) ->
       void
@@ -1456,7 +1469,11 @@ extern float SK_ImGui_PulseNav_Strength;
           dwLastCount = count;
 
       if (  count > 0) { GamepadDebug (JOYSTICKID1);
-        if (count > 1)   GamepadDebug (JOYSTICKID2); }
+        if (count > 1) {
+          for ( UINT i = 0 ; i < count ; ++i )
+            GamepadDebug (i);
+        }
+      }
 #endif
 
       if (config.input.gamepad.hook_xinput)

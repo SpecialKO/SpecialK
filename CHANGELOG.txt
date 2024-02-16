@@ -1,4 +1,15 @@
-﻿24.2.15.2
+﻿24.2.15.3
+=========
+ + Added ability to power-off Bluetooth DualSense controllers
+     >> Click the battery icon in the control panel
+ + Added console command to power-off gamepads:
+
+     Input.Gamepad.PowerOff 1
+
+   * You can bind this to a keyboard macro to hotkey gamepad power-off;
+       eventually it will be bound to a PlayStation + <button> chord input.
+
+24.2.15.2
 =========
  + Added battery indicator to control panel for DualSense controllers when
      running in Bluetooth mode.
