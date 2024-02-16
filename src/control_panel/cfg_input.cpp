@@ -1149,100 +1149,157 @@ SK::ControlPanel::Input::Draw (void)
             }
 
             ImGui::EndGroup ();
+          }
 
-            SK_HID_PlayStationDevice* pBatteryDevice = nullptr;
+          SK_HID_PlayStationDevice* pBatteryDevice = nullptr;
 
-            for ( auto& ps_controller : SK_HID_PlayStationControllers )
+          for ( auto& ps_controller : SK_HID_PlayStationControllers )
+          {
+            if (ps_controller.bConnected && ps_controller.bBluetooth)
             {
-              if (ps_controller.bConnected && ps_controller.bBluetooth)
+              pBatteryDevice = &ps_controller;
+              break;
+            }
+          }
+
+          if (pBatteryDevice != nullptr)
+          {
+            ImGui::SameLine    ();
+            ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+            ImGui::SameLine    ();
+            ImGui::BeginGroup  ();
+
+            switch (pBatteryDevice->battery.state)
+            {
+              case SK_HID_PlayStationDevice::Charging:
+              case SK_HID_PlayStationDevice::Discharging:
               {
-                pBatteryDevice = &ps_controller;
+                SK_HID_PlayStationDevice::battery_s *pBatteryState =
+                  (SK_HID_PlayStationDevice::battery_s *)&pBatteryDevice->battery;
+
+                static const char* szBatteryLevels [] = {
+                  ICON_FA_BATTERY_EMPTY,
+                  ICON_FA_BATTERY_QUARTER,
+                  ICON_FA_BATTERY_HALF,
+                  ICON_FA_BATTERY_THREE_QUARTERS,
+                  ICON_FA_BATTERY_FULL
+                };
+
+                static ImColor battery_colors [] = {
+                  ImColor::HSV (0.0f, 1.0f, 1.0f), ImColor::HSV (0.1f, 1.0f, 1.0f),
+                  ImColor::HSV (0.2f, 1.0f, 1.0f), ImColor::HSV (0.3f, 1.0f, 1.0f),
+                  ImColor::HSV (0.4f, 1.0f, 1.0f)
+                };
+
+                const int batteryLevel =
+                  (pBatteryState->percentage > 70.0f) ? 4 :
+                  (pBatteryState->percentage > 50.0f) ? 3 :
+                  (pBatteryState->percentage > 30.0f) ? 2 :
+                  (pBatteryState->percentage > 10.0f) ? 1 : 0;
+
+                auto batteryColor =
+                  battery_colors [batteryLevel];
+
+                if (batteryLevel <= 1)
+                {
+                  batteryColor.Value.w =
+                    static_cast <float> (
+                      0.5 + 0.4 * std::cos (3.14159265359 *
+                        (static_cast <double> (SK::ControlPanel::current_time % 2250) / 1125.0))
+                    );
+                }
+
+                ImGui::BeginGroup ();
+                ImGui::TextColored ( batteryColor, "%hs",
+                    szBatteryLevels [batteryLevel]
+                );
+
+                ImGui::SameLine ();
+
+                if (pBatteryState->state == SK_HID_PlayStationDevice::Discharging)
+                  ImGui::Text ("%3.0f%% " ICON_FA_ARROW_DOWN, pBatteryState->percentage);
+                else
+                  ImGui::Text ("%3.0f%% " ICON_FA_ARROW_UP,   pBatteryState->percentage);
+
+                ImGui::EndGroup ();
+
+                if (ImGui::IsItemHovered ())
+                {
+                  ImGui::SetTooltip ("Click here to power-off the controller.");
+                }
+
+                if (ImGui::IsItemClicked ())
+                {
+                  SK_GetCommandProcessor ()->ProcessCommandLine ("Input.Gamepad.PowerOff 1");
+                }
+              } break;
+              default:
                 break;
-              }
             }
 
-            if (pBatteryDevice != nullptr)
+            if (ImGui::Checkbox ("Power Saving Mode", &config.input.gamepad.scepad.power_save_mode))
             {
-              ImGui::SameLine    ();
-              ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
-              ImGui::SameLine    ();
-              ImGui::BeginGroup  ();
+              config.utility.save_async ();
+            }
 
-              switch (pBatteryDevice->battery.state)
+            ImGui::EndGroup   ();
+          }
+
+          if (bDualSense)
+          {
+            bool bOverrideRGB =
+              config.input.gamepad.scepad.led_color_r    != -1 ||
+              config.input.gamepad.scepad.led_color_g    != -1 ||
+              config.input.gamepad.scepad.led_color_b    != -1 ||
+              config.input.gamepad.scepad.led_brightness != -1;
+
+            ImGui::BeginGroup ();
+            if (ImGui::Checkbox ("Override RGB", &bOverrideRGB))
+            {
+              if (! bOverrideRGB)
               {
-                case SK_HID_PlayStationDevice::Charging:
-                case SK_HID_PlayStationDevice::Discharging:
-                {
-                  SK_HID_PlayStationDevice::battery_s *pBatteryState =
-                    (SK_HID_PlayStationDevice::battery_s *)&pBatteryDevice->battery;
-
-                  static const char* szBatteryLevels [] = {
-                    ICON_FA_BATTERY_EMPTY,
-                    ICON_FA_BATTERY_QUARTER,
-                    ICON_FA_BATTERY_HALF,
-                    ICON_FA_BATTERY_THREE_QUARTERS,
-                    ICON_FA_BATTERY_FULL
-                  };
-
-                  static ImColor battery_colors [] = {
-                    ImColor::HSV (0.0f, 1.0f, 1.0f), ImColor::HSV (0.1f, 1.0f, 1.0f),
-                    ImColor::HSV (0.2f, 1.0f, 1.0f), ImColor::HSV (0.3f, 1.0f, 1.0f),
-                    ImColor::HSV (0.4f, 1.0f, 1.0f)
-                  };
-
-                  const int batteryLevel =
-                    (pBatteryState->percentage > 70.0f) ? 4 :
-                    (pBatteryState->percentage > 50.0f) ? 3 :
-                    (pBatteryState->percentage > 30.0f) ? 2 :
-                    (pBatteryState->percentage > 10.0f) ? 1 : 0;
-
-                  auto batteryColor =
-                    battery_colors [batteryLevel];
-
-                  if (batteryLevel <= 1)
-                  {
-                    batteryColor.Value.w =
-                      static_cast <float> (
-                        0.5 + 0.4 * std::cos (3.14159265359 *
-                          (static_cast <double> (SK::ControlPanel::current_time % 2250) / 1125.0))
-                      );
-                  }
-
-                  ImGui::BeginGroup ();
-                  ImGui::TextColored ( batteryColor, "%hs",
-                      szBatteryLevels [batteryLevel]
-                  );
-
-                  ImGui::SameLine ();
-
-                  if (pBatteryState->state == SK_HID_PlayStationDevice::Discharging)
-                    ImGui::Text ("%3.0f%% " ICON_FA_ARROW_DOWN, pBatteryState->percentage);
-                  else
-                    ImGui::Text ("%3.0f%% " ICON_FA_ARROW_UP,   pBatteryState->percentage);
-
-                  ImGui::EndGroup ();
-
-                  if (ImGui::IsItemHovered ())
-                  {
-                    ImGui::SetTooltip ("Click here to power-off the controller.");
-                  }
-
-                  if (ImGui::IsItemClicked ())
-                  {
-                    SK_GetCommandProcessor ()->ProcessCommandLine ("Input.Gamepad.PowerOff 1");
-                  }
-                } break;
-                default:
-                  break;
+                config.input.gamepad.scepad.led_color_r    = -1;
+                config.input.gamepad.scepad.led_color_g    = -1;
+                config.input.gamepad.scepad.led_color_b    = -1;
+                config.input.gamepad.scepad.led_brightness = -1;
               }
 
-              if (ImGui::Checkbox ("Power Saving Mode", &config.input.gamepad.scepad.power_save_mode))
+              else
               {
+                config.input.gamepad.scepad.led_color_r    = 255;
+                config.input.gamepad.scepad.led_color_g    = 255;
+                config.input.gamepad.scepad.led_color_b    = 255;
+                config.input.gamepad.scepad.led_brightness =   0;
+              }
+              config.utility.save_async ();
+            }
+
+            if (bOverrideRGB)
+            {
+              ImGui::SameLine ();
+
+              float color [3] = { (float)config.input.gamepad.scepad.led_color_r / 255.0f,
+                                  (float)config.input.gamepad.scepad.led_color_g / 255.0f,
+                                  (float)config.input.gamepad.scepad.led_color_b / 255.0f };
+              if (ImGui::ColorEdit3 ("###PlayStation_RGB", color))
+              {
+                config.input.gamepad.scepad.led_color_r = (int)(color [0] * 255.0f);
+                config.input.gamepad.scepad.led_color_g = (int)(color [1] * 255.0f);
+                config.input.gamepad.scepad.led_color_b = (int)(color [2] * 255.0f);
                 config.utility.save_async ();
               }
 
-              ImGui::EndGroup   ();
+              ImGui::SameLine ();
+
+              int brightness = 3 - config.input.gamepad.scepad.led_brightness;
+
+              if (ImGui::SliderInt ("Brightness", &brightness, 0, 3))
+              {
+                config.input.gamepad.scepad.led_brightness = 3 - brightness;
+                config.utility.save_async ();
+              }
             }
+            ImGui::EndGroup   ();
           }
 
 #if 0

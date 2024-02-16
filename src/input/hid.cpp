@@ -3364,16 +3364,18 @@ SK_HID_PlayStationDevice::write_output_report (void)
             output->EnableRumbleEmulation    = true;
             output->UseRumbleNotHaptics      = true;
             output->AllowMuteLight           = true;
-            
-            if (true)
+
+            if (config.input.gamepad.scepad.led_color_r    != -1 ||
+                config.input.gamepad.scepad.led_color_g    != -1 ||
+                config.input.gamepad.scepad.led_color_b    != -1 ||
+                config.input.gamepad.scepad.led_brightness != -1)
             {
-              // SK's not really interested in this...
               output->AllowLedColor          = true;
             }
-            
+
             output->AllowHapticLowPassFilter = true;
             output->AllowMotorPowerLevel     = false;
-            
+
             // Firmware reqs
             output->
                EnableImprovedRumbleEmulation = true;
@@ -3434,13 +3436,38 @@ SK_HID_PlayStationDevice::write_output_report (void)
               //                                                         :
               //static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
 
-  //        pOutputRaw [ 9] = 0;
-  //        pOutputRaw [39] = 2;
-  //        pOutputRaw [42] = 2;
+            if (config.input.gamepad.scepad.led_brightness == 3)
+            {
+              output->LightBrightness = (LightBrightness)2;
+              output->LedRed          = 0;
+              output->LedGreen        = 0;
+              output->LedBlue         = 0;
+            }
 
-            pOutputRaw [44] = pDevice->_color.r;
-            pOutputRaw [45] = pDevice->_color.g;
-            pOutputRaw [46] = pDevice->_color.b;
+            else
+            {
+              if (config.input.gamepad.scepad.led_brightness != -1)
+              {
+                output->LightBrightness =
+                  (LightBrightness)std::clamp (config.input.gamepad.scepad.led_brightness, 0, 2);
+              }
+
+              if (config.input.gamepad.scepad.led_color_r != -1 || 
+                  config.input.gamepad.scepad.led_color_g != -1 ||
+                  config.input.gamepad.scepad.led_color_b != -1)
+              {
+                output->LedRed   = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_r, 0, 255));
+                output->LedGreen = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_g, 0, 255));
+                output->LedBlue  = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_b, 0, 255));
+              }
+
+              else
+              {
+                output->LedRed   = pDevice->_color.r;
+                output->LedGreen = pDevice->_color.g;
+                output->LedBlue  = pDevice->_color.b;
+              }
+            }
           }
 
           else if (pDevice->bBluetooth)
@@ -3468,9 +3495,11 @@ SK_HID_PlayStationDevice::write_output_report (void)
             output->UseRumbleNotHaptics   = true;
             output->AllowMuteLight        = true;
 
-            if (false)
+            if (config.input.gamepad.scepad.led_color_r    != -1 || 
+                config.input.gamepad.scepad.led_color_g    != -1 ||
+                config.input.gamepad.scepad.led_color_b    != -1 ||
+                config.input.gamepad.scepad.led_brightness != -1)
             {
-              // SK's not really interested in this...
               output->AllowLedColor       = true;
             }
 
@@ -3546,9 +3575,38 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
             else
             {
-              output->LedRed   = pDevice->_color.r;
-              output->LedGreen = pDevice->_color.g;
-              output->LedBlue  = pDevice->_color.b;
+              if (config.input.gamepad.scepad.led_brightness == 3)
+              {
+                output->LightBrightness = (LightBrightness)2;
+                output->LedRed          = 0;
+                output->LedGreen        = 0;
+                output->LedBlue         = 0;
+              }
+
+              else
+              {
+                if (config.input.gamepad.scepad.led_brightness != -1)
+                {
+                  output->LightBrightness =
+                    (LightBrightness)std::clamp (config.input.gamepad.scepad.led_brightness, 0, 2);
+                }
+
+                if (config.input.gamepad.scepad.led_color_r != -1 || 
+                    config.input.gamepad.scepad.led_color_g != -1 ||
+                    config.input.gamepad.scepad.led_color_b != -1)
+                {
+                  output->LedRed   = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_r, 0, 255));
+                  output->LedGreen = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_g, 0, 255));
+                  output->LedBlue  = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_b, 0, 255));
+                }
+
+                else
+                {
+                  output->LedRed   = pDevice->_color.r;
+                  output->LedGreen = pDevice->_color.g;
+                  output->LedBlue  = pDevice->_color.b;
+                }
+              }
             }
 
             uint32_t crc =

@@ -1,4 +1,9 @@
-﻿24.2.15.3
+﻿24.2.16
+=======
+ + Added option to override DualSense RGB colors
+ + Added option to override DualSense RGB brightness
+
+24.2.15.3
 =========
  + Added ability to power-off Bluetooth DualSense controllers
      >> Click the battery icon in the control panel

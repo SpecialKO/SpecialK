@@ -1015,6 +1015,10 @@ struct {
       sk::ParameterBool*  mute_applies_to_game    = nullptr;
       sk::ParameterBool*  enhanced_ps_button      = nullptr;
       sk::ParameterBool*  power_save_mode         = nullptr;
+      sk::ParameterInt*   led_color_r             = nullptr;
+      sk::ParameterInt*   led_color_g             = nullptr;
+      sk::ParameterInt*   led_color_b             = nullptr;
+      sk::ParameterInt*   led_brightness          = nullptr;
     } scepad;
 
     struct {
@@ -1582,6 +1586,10 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.scepad.enhanced_ps_button,L"PlayStation / Home Button activates SK's control panel and "
                                                          L"may be used for special button combos (e.g. trigger sshot)",input_ini,       L"Input.libScePad",       L"AdvancedPlayStationButton"),
     ConfigEntry (input.gamepad.scepad.power_save_mode,   L"Reduced power for Audio/Gyro/Touchpad on Bluetooth",        input_ini,       L"Input.libScePad",       L"EnableBluetoothPowerSaving"),
+    ConfigEntry (input.gamepad.scepad.led_color_r,       L"Force Red LED Color [0,255] or -1 for No Override",         input_ini,       L"Input.libScePad",       L"LEDColor_R"),
+    ConfigEntry (input.gamepad.scepad.led_color_g,       L"Force Green LED Color [0,255] or -1 for No Override",       input_ini,       L"Input.libScePad",       L"LEDColor_G"),
+    ConfigEntry (input.gamepad.scepad.led_color_b,       L"Force Blue LED Color [0,255] or -1 for No Override",        input_ini,       L"Input.libScePad",       L"LEDColor_B"),
+    ConfigEntry (input.gamepad.scepad.led_brightness,    L"Force LED brightness [0,1,2,3] or -1 for No Override",      input_ini,       L"Input.libScePad",       L"LEDBrightness"),
 
  //DEPRECATED  (                                                                                                                       L"Input.XInput",          L"DisableRumble"),
 
@@ -4183,6 +4191,10 @@ auto DeclKeybind =
   input.gamepad.scepad.mute_applies_to_game->load (config.input.gamepad.scepad.mute_applies_to_game);
   input.gamepad.scepad.enhanced_ps_button->load   (config.input.gamepad.scepad.enhanced_ps_button);
   input.gamepad.scepad.power_save_mode->load      (config.input.gamepad.scepad.power_save_mode);
+  input.gamepad.scepad.led_color_r->load          (config.input.gamepad.scepad.led_color_r);
+  input.gamepad.scepad.led_color_g->load          (config.input.gamepad.scepad.led_color_g);
+  input.gamepad.scepad.led_color_b->load          (config.input.gamepad.scepad.led_color_b);
+  input.gamepad.scepad.led_brightness->load       (config.input.gamepad.scepad.led_brightness);
 
   input.gamepad.xinput.ui_slot->load   ((int &)config.input.gamepad.xinput.ui_slot);
   input.gamepad.steam.ui_slot->load    ((int &)config.input.gamepad.steam.ui_slot);
@@ -5521,6 +5533,10 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.scepad.mute_applies_to_game->store (config.input.gamepad.scepad.mute_applies_to_game);
   input.gamepad.scepad.enhanced_ps_button->store   (config.input.gamepad.scepad.enhanced_ps_button);
   input.gamepad.scepad.power_save_mode->store      (config.input.gamepad.scepad.power_save_mode);
+  input.gamepad.scepad.led_color_r->store          (config.input.gamepad.scepad.led_color_r);
+  input.gamepad.scepad.led_color_g->store          (config.input.gamepad.scepad.led_color_g);
+  input.gamepad.scepad.led_color_b->store          (config.input.gamepad.scepad.led_color_b);
+  input.gamepad.scepad.led_brightness->store       (config.input.gamepad.scepad.led_brightness);
 
 
   threads.enable_mem_alloc_trace->store            (config.threads.enable_mem_alloc_trace);

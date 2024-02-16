@@ -987,6 +987,11 @@ struct sk_config_t
         bool  enhanced_ps_button   =   true;
         float rumble_power_level   = 100.0f;
         bool  power_save_mode      =   true;
+        int   led_color_r          =     -1;
+        int   led_color_g          =     -1;
+        int   led_color_b          =     -1;
+        int   led_brightness       =     -1;
+        int   led_fade             =     -1;
       } scepad;
 
       struct steam_s
