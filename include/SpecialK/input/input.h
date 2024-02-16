@@ -963,6 +963,9 @@ struct SK_HID_PlayStationDevice
     BYTE r, g, b;
   } _color = { 255, 255, 255 };
 
+  uint32_t sensor_timestamp = 0;
+  bool     reset_rgb        = false;
+
   struct vibration_s {
     volatile ULONG left, right;
     BYTE           last_left,

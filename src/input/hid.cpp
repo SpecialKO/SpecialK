@@ -2993,6 +2993,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                     SK_SteamAPI_TakeScreenshot ();
                   }
                 }
+
+                pDevice->sensor_timestamp = pData->SensorTimestamp;
               }
 
               else
@@ -3575,6 +3577,12 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
             else
             {
+              if (pDevice->sensor_timestamp >= 10200000 && (! pDevice->reset_rgb))
+              {
+                pDevice->reset_rgb  = true;
+                output->ResetLights = true;
+              }
+
               if (config.input.gamepad.scepad.led_brightness == 3)
               {
                 output->LightBrightness = (LightBrightness)2;

@@ -1,4 +1,8 @@
-﻿24.2.16
+﻿24.2.16.1
+=========
+ + Enable RGB overrides on DualSense controllers in Bluetooth mode
+
+24.2.16
 =======
  + Added option to override DualSense RGB colors
  + Added option to override DualSense RGB brightness
