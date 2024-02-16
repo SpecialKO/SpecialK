@@ -901,6 +901,7 @@ struct {
   struct {
     sk::ParameterBool*    enable_32bpc            = nullptr;
     sk::ParameterBool*    remaster_8bpc_as_unorm  = nullptr;
+    sk::ParameterBool*    remaster_subnative_unorm= nullptr;
   } hdr;
 } render;
 
@@ -1765,6 +1766,7 @@ auto DeclKeybind =
 
     ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
     ConfigEntry (render.hdr.remaster_8bpc_as_unorm,      L"Do not use Floating-Point RTs when re-mastering 8-bpc RTs", dll_ini,         L"SpecialK.HDR",          L"Keep8BpcRemastersUNORM"),
+    ConfigEntry (render.hdr.remaster_subnative_unorm,    L"Do not use FP RTs when re-mastering reduced resolution RTS",dll_ini,         L"SpecialK.HDR",          L"KeepSubnativeRemastersUNORM"),
 
     ConfigEntry (render.osd.draw_in_vidcap,              L"Changes hook order in order to allow recording the OSD.",   dll_ini,         L"Render.OSD",            L"ShowInVideoCapture"),
 
@@ -3408,19 +3410,21 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::GranblueFantasyRelink:
-        config.input.gamepad.xinput.emulate         = true;
-        config.input.gamepad.steam.disabled_to_game = true;
-        config.window.background_render             = true;
-        config.window.activate_at_start             = true;
-        config.window.always_on_top                 =    2;
-        config.render.dxgi.fake_fullscreen_mode     = true;
-        config.input.cursor.manage                  = true;
-        config.input.cursor.gamepad_deactivates     = true;
-        config.input.cursor.timeout                 =    0;
-        SK_ImGui_Cursor.prefs.no_warp.visible       = true;
-        SK_ImGui_Cursor.prefs.no_warp.ui_open       = true;
-        config.window.disable_screensaver           = true;
-        config.render.hdr.remaster_8bpc_as_unorm    = true;
+        config.input.gamepad.xinput.emulate           = true;
+        config.input.gamepad.steam.disabled_to_game   = true;
+        config.window.background_render               = true;
+        config.window.activate_at_start               = true;
+        config.window.always_on_top                   =    2;
+        config.render.dxgi.fake_fullscreen_mode       = true;
+        config.input.cursor.manage                    = true;
+        config.input.cursor.gamepad_deactivates       = true;
+        config.input.cursor.timeout                   =    0;
+        SK_ImGui_Cursor.prefs.no_warp.visible         = true;
+        SK_ImGui_Cursor.prefs.no_warp.ui_open         = true;
+        config.window.disable_screensaver             = true;
+        config.render.hdr.remaster_8bpc_as_unorm      = true;
+        config.render.hdr.remaster_subnative_as_unorm = true;
+        config.render.dxgi.deferred_isolation         = true; // For render mods
         break;
 
       case SK_GAME_ID::AlanWake2:
@@ -3749,6 +3753,7 @@ auto DeclKeybind =
 
   render.hdr.enable_32bpc->load              (config.render.hdr.enable_32bpc);
   render.hdr.remaster_8bpc_as_unorm->load    (config.render.hdr.remaster_8bpc_as_unorm);
+  render.hdr.remaster_subnative_unorm->load  (config.render.hdr.remaster_subnative_as_unorm);
 
   render.framerate.wait_for_vblank->load     (config.render.framerate.wait_for_vblank);
   render.framerate.buffer_count->load        (config.render.framerate.buffer_count);
@@ -5805,6 +5810,7 @@ SK_SaveConfig ( std::wstring name,
       if                                          (config.render.hdr.enable_32bpc)
       render.hdr.enable_32bpc->store              (config.render.hdr.enable_32bpc);
       render.hdr.remaster_8bpc_as_unorm->store    (config.render.hdr.remaster_8bpc_as_unorm);
+      render.hdr.remaster_subnative_unorm->store  (config.render.hdr.remaster_subnative_as_unorm);
 
       texture.d3d11.cache->store                  (config.textures.d3d11.cache);
       texture.d3d11.use_l3_hash->store            (config.textures.d3d11.use_l3_hash);

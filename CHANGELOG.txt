@@ -1,4 +1,14 @@
-﻿24.2.16.2
+﻿24.2.16.3
+=========
+ + Added option to use UNORM instead of FP for HDR remastering on sub-native
+     resolution render passes. This helps with artifacting on bloom effects.
+
+   [SpecialK.HDR]
+   KeepSubnativeRemastersUNORM={true|false}  Default=false (use floating-point)
+
+ + Defaulted Granblue Fantasy: Relink to using UNORM for sub-native passes.
+
+24.2.16.2
 =========
  + Only reset the firmware LED lighting in Bluetooth mode if user has
      configured LED color overrides

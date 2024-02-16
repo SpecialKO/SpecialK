@@ -5721,15 +5721,18 @@ D3D11Dev_CreateTexture2D1_Impl (
           is_uav ? SK_HDR_UnorderedViews_8bpc.getPtr ()
                  : SK_HDR_RenderTargets_8bpc. getPtr ();
 
-        static const bool bTalesOfArise =
-          SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Arise;
-
-        if (bTalesOfArise && DirectX::MakeTypeless (pDesc->Format) == DXGI_FORMAT_R32G32B32A32_TYPELESS)
-                                                    pDesc->Format   = DXGI_FORMAT_R16G16B16A16_FLOAT;
-
         auto hdr_fmt_override =
           (config.render.hdr.enable_32bpc) ? DXGI_FORMAT_R32G32B32A32_FLOAT
                                            : DXGI_FORMAT_R16G16B16A16_FLOAT;
+
+        if (pDesc->Width  < swapDesc.BufferDesc.Width &&
+            pDesc->Height < swapDesc.BufferDesc.Height)
+        {
+          if (config.render.hdr.remaster_subnative_as_unorm)
+          {
+            hdr_fmt_override = DXGI_FORMAT_R16G16B16A16_UNORM;
+          }
+        }
 
         auto origDesc =
                *pDesc;
