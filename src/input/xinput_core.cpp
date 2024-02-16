@@ -130,6 +130,7 @@ struct SK_XInputContext
 
   volatile instance_s*              primary_hook                         = nullptr;
   volatile LONG                     primary_level                        = XInputLevel_NONE;
+  bool                              translated                           = false;
 
   bool preventHapticRecursion (DWORD dwUserIndex, bool enter)
   {
@@ -239,39 +240,45 @@ const char*
 SK_XInput_GetPrimaryHookName (void)
 {
   if (xinput_ctx.primary_hook == &xinput_ctx.XInput1_4)
-    return "XInput 1.4";
+    return xinput_ctx.translated ? "XInput 1.4  " ICON_FA_PLAYSTATION
+                                 : "XInput 1.4";
 
   if (xinput_ctx.primary_hook == &xinput_ctx.XInput1_3)
 #ifdef XINPUT_UPGRADE
-    return (const char *)u8"XInput 1.3→1.4";
+    return xinput_ctx.translated ? (const char *)  "XInput 1.3\xE2\x86\x92""1.4  " ICON_FA_PLAYSTATION
+                                 : (const char *)u8"XInput 1.3→1.4";
 #else
     return                 "XInput 1.3";
 #endif
 
   if (xinput_ctx.primary_hook == &xinput_ctx.XInput1_2)
 #ifdef XINPUT_UPGRADE
-    return (const char *)u8"XInput 1.2→1.4";
+    return xinput_ctx.translated ? (const char *)  "XInput 1.2→\xE2\x86\x92""1.4  " ICON_FA_PLAYSTATION
+                                 : (const char *)u8"XInput 1.2→1.4";
 #else
     return                 "XInput 1.2";
 #endif
 
   if (xinput_ctx.primary_hook == &xinput_ctx.XInput1_1)
 #ifdef XINPUT_UPGRADE
-    return (const char *)u8"XInput 1.1→1.4";
+    return xinput_ctx.translated ? (const char *)  "XInput 1.1\xE2\x86\x92""1.4  " ICON_FA_PLAYSTATION
+                                 : (const char *)u8"XInput 1.1→1.4";
 #else
     return                 "XInput 1.1";
 #endif
 
   if (xinput_ctx.primary_hook == &xinput_ctx.XInputUap)
 #ifdef XINPUT_UPGRADE
-    return (const char *)u8"XInput UAP→1.4";
+    return xinput_ctx.translated ? (const char *)  "XInput UAP\xE2\x86\x92""1.4  " ICON_FA_PLAYSTATION
+                                 : (const char *)u8"XInput UAP→1.4";
 #else
     return                 "XInput UAP";
 #endif
 
   if (xinput_ctx.primary_hook == &xinput_ctx.XInput9_1_0)
 #ifdef XINPUT_UPGRADE
-    return (const char *)u8"XInput 9.1.0→1.4";
+    return xinput_ctx.translated ? (const char *)  "XInput 9.1.0\xE2\x86\x92""1.4  " ICON_FA_PLAYSTATION
+                                 : (const char *)u8"XInput 9.1.0→1.4";
 #else
     return                 "XInput 9.1.0";
 #endif
@@ -290,10 +297,16 @@ void
 SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
                                  SK_XInputContext::instance_s* pCtx )
 {
+  // If -we- called the function, then ignore this... the goal is to determine
+  //   the API version the GAME is using :)
+  if (hModCaller == SK_GetDLL ())
+    return;
+
   // Calling module (return address) indicates the game made this call
-  if (hModCaller == skModuleRegistry::HostApp () ||
-   ReadPointerAcquire ((volatile LPVOID *)&xinput_ctx.primary_hook) == nullptr)
-    InterlockedExchangePointer ((LPVOID *)&xinput_ctx.primary_hook, pCtx);
+  if (hModCaller == skModuleRegistry::HostApp ())
+  {
+    InterlockedCompareExchangePointer ((volatile LPVOID *)&xinput_ctx.primary_hook, pCtx, nullptr);
+  }
 
   // Third-party software polled the controller, it better be using the same
   //   interface version as the game is or a lot of input emulation software
@@ -493,10 +506,14 @@ XInputGetState1_4_Detour (
           SK_XINPUT_READ (dwUserIndex)
         }
 
+        xinput_ctx.translated = true;
+
         return ERROR_SUCCESS;
       }
     }
   }
+
+  xinput_ctx.translated = false;
 
   if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
     dwUserIndex = config.input.gamepad.xinput.ui_slot;
@@ -659,10 +676,14 @@ XInputGetStateEx1_4_Detour (
           memcpy (pState, &_state, sizeof (XINPUT_STATE));
         }
 
+        xinput_ctx.translated = true;
+
         return ERROR_SUCCESS;
       }
     }
   }
+
+  xinput_ctx.translated = false;
 
   struct cached_state_s
   {
@@ -1108,8 +1129,13 @@ XInputSetState1_4_Detour (
     }
 
     if (bHasSetState)
+    {
+      xinput_ctx.translated = true;
       return ERROR_SUCCESS;
+    }
   }
+
+  xinput_ctx.translated = false;
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 

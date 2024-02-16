@@ -1,4 +1,15 @@
-﻿24.2.16.5
+﻿24.2.16.6
+=========
+ + Support selecting the control panel's battery icon to power-off a DualSense
+     controller iusing a gamepad / keyboard
+ + Add PlayStation icon to XInput API version in Input Management status when
+     a game is actively polling PlayStation translated input using XInput
+ + Fixed XInput translation version sometimes not appearing and reporting native
+     1.4 in games that are not actually native 1.4
+ + Expand the Input Management / Gamepads section of the control panel by default
+     if a PlayStation controller is plugged-in
+
+24.2.16.5
 =========
  + Added option to completely kill Steam Input by placing ValvePlug.dll in Steam's
      install directory and then launching any game using SKIF. The Steam client

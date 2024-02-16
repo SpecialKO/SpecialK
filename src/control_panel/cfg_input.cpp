@@ -135,6 +135,12 @@ SK::ControlPanel::Input::Draw (void)
   auto& io =
     ImGui::GetIO ();
 
+  const bool bHasPlayStation =
+    (last_scepad != 0 || (! SK_HID_PlayStationControllers.empty ()));
+
+  if (bHasPlayStation)
+    ImGui::SetNextItemOpen (true, ImGuiCond_Once);
+
   const bool input_mgmt_open =
     ImGui::CollapsingHeader ("Input Management");
 
@@ -700,6 +706,9 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::TreePop ();
     }
 
+    if (bHasPlayStation)
+      ImGui::SetNextItemOpen (true, ImGuiCond_Once);
+
     bool uncollapsed_gamepads =
       ImGui::CollapsingHeader ("Gamepad", ImGuiTreeNodeFlags_AllowOverlap);
 
@@ -1036,9 +1045,6 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::Separator ( );
       }
 
-      const bool bHasPlayStation =
-        (last_scepad != 0 || (! SK_HID_PlayStationControllers.empty ()));
-
       if (bHasPlayStation)
       {
         ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
@@ -1170,6 +1176,7 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::SameLine    ();
             ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
             ImGui::SameLine    ();
+
             ImGui::BeginGroup  ();
 
             switch (pBatteryDevice->battery.state)
@@ -1212,6 +1219,9 @@ SK::ControlPanel::Input::Draw (void)
                     );
                 }
 
+                ImVec2 vButtonOrigin =
+                  ImGui::GetCursorPos ();
+
                 ImGui::BeginGroup ();
                 ImGui::TextColored ( batteryColor, "%hs",
                     szBatteryLevels [batteryLevel]
@@ -1226,14 +1236,18 @@ SK::ControlPanel::Input::Draw (void)
 
                 ImGui::EndGroup ();
 
+                ImVec2 vButtonEnd =
+                  vButtonOrigin + ImGui::GetItemRectSize ();
+
+                ImGui::SetCursorPos                                           (vButtonOrigin);
+                if (ImGui::InvisibleButton ("###GamepadPowerOff", vButtonEnd - vButtonOrigin))
+                {
+                  SK_GetCommandProcessor ()->ProcessCommandLine ("Input.Gamepad.PowerOff 1");
+                }
+
                 if (ImGui::IsItemHovered ())
                 {
                   ImGui::SetTooltip ("Click here to power-off the controller.");
-                }
-
-                if (ImGui::IsItemClicked ())
-                {
-                  SK_GetCommandProcessor ()->ProcessCommandLine ("Input.Gamepad.PowerOff 1");
                 }
               } break;
               default:
