@@ -2995,6 +2995,9 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 }
 
                 pDevice->sensor_timestamp = pData->SensorTimestamp;
+
+                if (pDevice->sensor_timestamp < 10200000)
+                    pDevice->reset_rgb = false;
               }
 
               else
@@ -3577,14 +3580,14 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
             else
             {
-              if (pDevice->sensor_timestamp >= 10200000 && (! pDevice->reset_rgb))
-              {
-                pDevice->reset_rgb  = true;
-                output->ResetLights = true;
-              }
-
               if (config.input.gamepad.scepad.led_brightness == 3)
               {
+                if (pDevice->sensor_timestamp >= 10200000 && (! pDevice->reset_rgb))
+                {
+                  pDevice->reset_rgb  = true;
+                  output->ResetLights = true;
+                }
+
                 output->LightBrightness = (LightBrightness)2;
                 output->LedRed          = 0;
                 output->LedGreen        = 0;
@@ -3595,6 +3598,12 @@ SK_HID_PlayStationDevice::write_output_report (void)
               {
                 if (config.input.gamepad.scepad.led_brightness != -1)
                 {
+                  if (pDevice->sensor_timestamp >= 10200000 && (! pDevice->reset_rgb))
+                  {
+                    pDevice->reset_rgb  = true;
+                    output->ResetLights = true;
+                  }
+
                   output->LightBrightness =
                     (LightBrightness)std::clamp (config.input.gamepad.scepad.led_brightness, 0, 2);
                 }
@@ -3603,6 +3612,12 @@ SK_HID_PlayStationDevice::write_output_report (void)
                     config.input.gamepad.scepad.led_color_g != -1 ||
                     config.input.gamepad.scepad.led_color_b != -1)
                 {
+                  if (pDevice->sensor_timestamp >= 10200000 && (! pDevice->reset_rgb))
+                  {
+                    pDevice->reset_rgb  = true;
+                    output->ResetLights = true;
+                  }
+
                   output->LedRed   = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_r, 0, 255));
                   output->LedGreen = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_g, 0, 255));
                   output->LedBlue  = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_b, 0, 255));

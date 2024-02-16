@@ -1,4 +1,9 @@
-﻿24.2.16.1
+﻿24.2.16.2
+=========
+ + Only reset the firmware LED lighting in Bluetooth mode if user has
+     configured LED color overrides
+
+24.2.16.1
 =========
  + Enable RGB overrides on DualSense controllers in Bluetooth mode
 

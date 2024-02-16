@@ -480,6 +480,7 @@ SK_XInput_NotifyDeviceArrival (void)
                             if (! _wcsicmp (controller.wszDevicePath, wszFileName))
                             {
                               controller.bConnected = false;
+                              controller.reset_rgb  = false;
 
 /*
                               SK_ImGui_CreateNotification (
