@@ -7720,6 +7720,11 @@ sk_config_t::utility_functions_s::save_async (void)
             config_name = L"SpecialK";
 
           SK_SaveConfig (config_name);
+
+          // Throttle this stuff
+          if ( WAIT_OBJECT_0 ==
+                 WaitForSingleObject (__SK_DLL_TeardownEvent, 150UL) )
+            break;
         }
       }
 

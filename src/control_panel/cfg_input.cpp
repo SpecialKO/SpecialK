@@ -1310,7 +1310,12 @@ SK::ControlPanel::Input::Draw (void)
 
               int brightness = 3 - config.input.gamepad.scepad.led_brightness;
 
-              if (ImGui::SliderInt ("Brightness", &brightness, 0, 3))
+              const char* szLabel = brightness == 0 ? "Very Dim" :
+                                    brightness == 1 ? "Dim"      :
+                                    brightness == 2 ? "Mid"      :
+                                                      "Bright";
+
+              if (ImGui::SliderInt ("Brightness", &brightness, 0, 3, szLabel))
               {
                 config.input.gamepad.scepad.led_brightness = 3 - brightness;
                 config.utility.save_async ();
