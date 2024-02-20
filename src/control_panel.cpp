@@ -7702,6 +7702,11 @@ DWORD
 SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
                                               LPVOID lpUser )
 {
+  static std::mutex
+        lock;
+  if (! lock.try_lock ())
+    return 0;
+
   UNREFERENCED_PARAMETER (dwFlags);
   UNREFERENCED_PARAMETER (lpUser);
 
@@ -7710,6 +7715,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   if ( config.platform.overlay_hides_sk_osd &&
        SK_GetStoreOverlayState (true) )
   {
+    lock.unlock ();
     return 0;
   }
 
@@ -7784,6 +7790,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
   else
   {
+    lock.unlock ();
+
     SK_LOG0 ( (L"No Render API"), L"Overlay" );
     return 0x0;
   }
@@ -7796,6 +7804,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
 
   imgui_staged = false;
+
+  lock.unlock ();
 
   return 0;
 }
