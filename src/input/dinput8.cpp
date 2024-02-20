@@ -1716,9 +1716,6 @@ DI8_CallbackEnumDevicesA (LPCDIDEVICEINSTANCEA dev_inst, LPVOID pUser)
       L"dwSize: %d, guidInstance=%ws, guidProduct=%ws, dwDevType=%d, InstanceName=%hs, ProductName=%hs, FFDriver=%hs, UsagePage=%d, Usage=%d",
       dev_inst->dwSize, wszInstance, wszProduct, dev_inst->dwDevType, dev_inst->tszInstanceName, dev_inst->tszProductName, wszFFDriver, dev_inst->wUsagePage, dev_inst->wUsage
     );
-
-    return
-      DIENUM_CONTINUE;
   }
 
   enum_devices_callback_detour_a* detour =
@@ -1742,6 +1739,7 @@ IDirectInput8A_EnumDevices_Detour ( IDirectInput8A*          This,
     return E_NOTIMPL;
 
 
+#if 0
   if (lpCallback != nullptr && config.input.gamepad.xinput.emulate)
   {
     DIDEVICEINSTANCEA dev_inst;
@@ -1758,6 +1756,7 @@ IDirectInput8A_EnumDevices_Detour ( IDirectInput8A*          This,
 
     lpCallback (&dev_inst, pvRef);
   }
+#endif
 
   enum_devices_callback_detour_a
     detour_callback { .fn    = lpCallback,
@@ -1766,11 +1765,6 @@ IDirectInput8A_EnumDevices_Detour ( IDirectInput8A*          This,
   return
     IDirectInput8A_EnumDevices_Original ( This, dwDevType,
                                             DI8_CallbackEnumDevicesA, &detour_callback,
-                                              dwFlags );
-
-  return
-    IDirectInput8A_EnumDevices_Original ( This, dwDevType,
-                                            lpCallback, pvRef,
                                               dwFlags );
 }
 
@@ -1787,6 +1781,7 @@ IDirectInput8W_EnumDevices_Detour ( IDirectInput8W*          This,
   if (config.input.gamepad.dinput.block_enum_devices)
     return E_NOTIMPL;
 
+#if 0
   if (lpCallback != nullptr && config.input.gamepad.xinput.emulate)
   {
     DIDEVICEINSTANCEW dev_inst;
@@ -1803,6 +1798,7 @@ IDirectInput8W_EnumDevices_Detour ( IDirectInput8W*          This,
 
     lpCallback (&dev_inst, pvRef);
   }
+#endif
 
   return
     IDirectInput8W_EnumDevices_Original ( This, dwDevType,

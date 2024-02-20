@@ -1,4 +1,8 @@
-﻿24.2.20
+﻿24.2.20.1
+=========
+ + Removed DirectInput debug code for XInput that could crash some games.
+
+24.2.20
 =======
  + Fixed potential crash in multi-threaded D3D9 games when drawing ImGui's UI
  + Improved XInput Mode controller hot-plug support in some games
