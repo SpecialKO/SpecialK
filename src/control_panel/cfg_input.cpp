@@ -1117,6 +1117,8 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::BeginGroup  ();
             if (ImGui::Checkbox("XInput Mode", &config.input.gamepad.xinput.emulate))
             {
+              SK_Win32_NotifyDeviceChange ();
+
               if (config.input.gamepad.xinput.emulate)
               {
                 if (config.input.gamepad.xinput.blackout_api)

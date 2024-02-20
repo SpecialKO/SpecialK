@@ -939,15 +939,42 @@ SK_Win32_NotifyDeviceChange (void)
 #define IDT_SDL_DEVICE_CHANGE_TIMER_1 1200
 #define IDT_SDL_DEVICE_CHANGE_TIMER_2 1201
 
-  static DEV_BROADCAST_DEVICEINTERFACE_W     dbcc_xbox = { };
-         dbcc_xbox.dbcc_size       = sizeof (dbcc_xbox);
-         dbcc_xbox.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-         dbcc_xbox.dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
+  static DEV_BROADCAST_DEVICEINTERFACE_W        dbcc_xbox_w [16] = { };
+         dbcc_xbox_w->dbcc_size       = sizeof (dbcc_xbox_w);
+         dbcc_xbox_w->dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+         dbcc_xbox_w->dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
 
-  static DEV_BROADCAST_DEVICEINTERFACE_W    dbcc_hid = { };
-         dbcc_hid.dbcc_size       = sizeof (dbcc_hid);
-         dbcc_hid.dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-         dbcc_hid.dbcc_classguid  = GUID_DEVINTERFACE_HID;
+//Device={EC87F1E3-C13B-4100-B5F7-8B84D54260CB}
+//Size=164, Device Type=5 :: Name=\\?\USB#VID_045E&PID_028E#01#{ec87f1e3-c13b-4100-b5f7-8b84d54260cb}
+//Device={4D1E55B2-F16F-11CF-88CB-001111000030}
+//Size=206, Device Type=5 :: Name=\\?\HID#VID_045E&PID_028E&IG_00#3&1524d57f&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}
+
+  static DEV_BROADCAST_DEVICEINTERFACE_W       dbcc_hid_w [16] = { };
+         dbcc_hid_w->dbcc_size       = sizeof (dbcc_hid_w);
+         dbcc_hid_w->dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+         dbcc_hid_w->dbcc_classguid  = GUID_DEVINTERFACE_HID;
+
+         wcsncpy_s (dbcc_xbox_w->dbcc_name, MAX_PATH, LR"(\\?\HID#VID_054C&PID_0DF2&MI_03#c&1b57575&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030})", _TRUNCATE);
+         wcsncpy_s (dbcc_hid_w->dbcc_name,  MAX_PATH, LR"(\\?\HID#VID_054C&PID_0DF2&MI_03#c&1b57575&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030})", _TRUNCATE);
+
+         dbcc_xbox_w->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_xbox_w->dbcc_name) * 2;
+         dbcc_hid_w->dbcc_size  = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_hid_w-> dbcc_name) * 2;
+
+  static DEV_BROADCAST_DEVICEINTERFACE_A        dbcc_xbox_a [16] = { };
+         dbcc_xbox_a->dbcc_size       = sizeof (dbcc_xbox_a);
+         dbcc_xbox_a->dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+         dbcc_xbox_a->dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
+
+  static DEV_BROADCAST_DEVICEINTERFACE_A       dbcc_hid_a [16] = { };
+         dbcc_hid_a->dbcc_size       = sizeof (dbcc_hid_a);
+         dbcc_hid_a->dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+         dbcc_hid_a->dbcc_classguid  = GUID_DEVINTERFACE_HID;
+
+         strncpy (dbcc_xbox_a->dbcc_name, R"(\\?\HID#VID_054C&PID_0DF2&MI_03#c&1b57575&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030})", MAX_PATH);
+         strncpy (dbcc_hid_a->dbcc_name,  R"(\\?\HID#VID_054C&PID_0DF2&MI_03#c&1b57575&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030})", MAX_PATH);
+
+         dbcc_xbox_a->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_xbox_a->dbcc_name);
+         dbcc_hid_a->dbcc_size  = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_hid_a-> dbcc_name);
 
   for ( auto& notify : SK_Win32_RegisteredDevNotifications.get () )
   {
@@ -956,24 +983,33 @@ SK_Win32_NotifyDeviceChange (void)
       if (notify.bUnicode)
       {
         PostMessageW (
-          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_xbox);
+          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_xbox_w);
         PostMessageW (
-          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_hid);
+          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_hid_w);
       }
 
       else
       {
         PostMessageA (
-          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_xbox);
+          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_xbox_a);
         PostMessageA (
-          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_hid);
+          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_hid_a);
       }
     }
   }
 
   // After handling all registered notifications, send to the game's top-level window
-  PostMessageW (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_xbox);
-  PostMessageW (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)&dbcc_hid);
+  if (IsWindowUnicode (game_window.hWnd))
+  {
+    PostMessageW (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_xbox_w);
+    PostMessageW (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_hid_w);
+  }
+  else
+  {
+    PostMessageA (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_xbox_a);
+    PostMessageA (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_hid_a);
+  }
+
 }
 
 HDEVNOTIFY

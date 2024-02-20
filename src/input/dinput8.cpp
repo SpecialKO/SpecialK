@@ -1293,6 +1293,8 @@ IDirectInputDevice8A_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8A This,
                                              DWORD                 cbData,
                                              LPVOID                lpvData )
 {
+  SK_LOG_FIRST_CALL
+
   SK_TLS_Bottom ()->dinput8->hr_GetDevicestate =
     IDirectInputDevice8A_GetDeviceState_Original ( This, cbData, lpvData );
 
@@ -1306,6 +1308,8 @@ IDirectInputDevice8W_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8W      This,
                                              DWORD                      cbData,
                                              LPVOID                     lpvData )
 {
+  SK_LOG_FIRST_CALL
+
   SK_TLS_Bottom ()->dinput8->hr_GetDevicestate =
     IDirectInputDevice8W_GetDeviceState_Original ( This, cbData, lpvData );
 
@@ -1664,6 +1668,66 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
   return hr;
 }
 
+using GUIDFromStringW_pfn = BOOL (WINAPI *)(_In_  LPCWSTR psz,
+                                            _Out_ LPGUID  pguid);
+
+static GUIDFromStringW_pfn
+       GUIDFromStringW = nullptr;
+
+BOOL
+WINAPI
+SK_GUIDFromStringW (LPCWSTR psz, LPGUID pguid)
+{
+  if (GUIDFromStringW == nullptr)
+      GUIDFromStringW = (GUIDFromStringW_pfn)GetProcAddress (GetModuleHandleW (L"shlwapi.dll"), (LPCSTR)MAKEINTRESOURCE (270));
+
+  if (GUIDFromStringW != nullptr)
+    return GUIDFromStringW (psz, pguid);
+
+  return FALSE;
+}
+
+struct enum_devices_callback_detour_a {
+  LPDIENUMDEVICESCALLBACKA fn;
+  LPVOID                   puser;
+};
+
+BOOL
+WINAPI
+DI8_CallbackEnumDevicesA (LPCDIDEVICEINSTANCEA dev_inst, LPVOID pUser)
+{
+  //SK_LOGs0 (L"DInput8", L"%hs", dev_inst->tszProductName);
+
+  if (StrStrIA (dev_inst->tszProductName, "Controller (XBOX 360 For Windows)"))
+  {
+    OLECHAR wszInstance [128] = { };
+    OLECHAR wszProduct  [128] = { };
+    OLECHAR wszFFDriver [128] = { };
+
+    HRESULT hr =
+      StringFromGUID2 (dev_inst->guidInstance, wszInstance, 127);
+            hr =
+      StringFromGUID2 (dev_inst->guidProduct,  wszProduct,  127);
+            hr =
+      StringFromGUID2 (dev_inst->guidFFDriver, wszFFDriver, 127);
+
+    SK_LOGs0 (
+      L"DInput8",
+      L"dwSize: %d, guidInstance=%ws, guidProduct=%ws, dwDevType=%d, InstanceName=%hs, ProductName=%hs, FFDriver=%hs, UsagePage=%d, Usage=%d",
+      dev_inst->dwSize, wszInstance, wszProduct, dev_inst->dwDevType, dev_inst->tszInstanceName, dev_inst->tszProductName, wszFFDriver, dev_inst->wUsagePage, dev_inst->wUsage
+    );
+
+    return
+      DIENUM_CONTINUE;
+  }
+
+  enum_devices_callback_detour_a* detour =
+    (enum_devices_callback_detour_a *)pUser;
+
+  return
+    detour->fn (dev_inst, detour->puser);
+}
+
 HRESULT
 WINAPI
 IDirectInput8A_EnumDevices_Detour ( IDirectInput8A*          This,
@@ -1672,8 +1736,37 @@ IDirectInput8A_EnumDevices_Detour ( IDirectInput8A*          This,
                                     LPVOID                   pvRef,
                                     DWORD                    dwFlags )
 {
+  SK_LOG_FIRST_CALL
+
   if (config.input.gamepad.dinput.block_enum_devices)
     return E_NOTIMPL;
+
+
+  if (lpCallback != nullptr && config.input.gamepad.xinput.emulate)
+  {
+    DIDEVICEINSTANCEA dev_inst;
+                      dev_inst.dwSize     = sizeof (dev_inst);
+
+                      SK_GUIDFromStringW (L"{375A5B10-2B71-11EC-8001-444553540000}", &dev_inst.guidInstance);
+                      SK_GUIDFromStringW (L"{028E045E-0000-0000-0000-504944564944}", &dev_inst.guidProduct);
+
+                      dev_inst.dwDevType  = 66069;
+              strcpy (dev_inst.tszInstanceName, "Controller (XBOX 360 For Windows)");
+              strcpy (dev_inst.tszProductName,  "Controller (XBOX 360 For Windows)");
+                      dev_inst.wUsage     = 5;
+                      dev_inst.wUsagePage = 1;
+
+    lpCallback (&dev_inst, pvRef);
+  }
+
+  enum_devices_callback_detour_a
+    detour_callback { .fn    = lpCallback,
+                      .puser = pvRef };
+
+  return
+    IDirectInput8A_EnumDevices_Original ( This, dwDevType,
+                                            DI8_CallbackEnumDevicesA, &detour_callback,
+                                              dwFlags );
 
   return
     IDirectInput8A_EnumDevices_Original ( This, dwDevType,
@@ -1689,8 +1782,27 @@ IDirectInput8W_EnumDevices_Detour ( IDirectInput8W*          This,
                                     LPVOID                   pvRef,
                                     DWORD                    dwFlags )
 {
+  SK_LOG_FIRST_CALL
+
   if (config.input.gamepad.dinput.block_enum_devices)
     return E_NOTIMPL;
+
+  if (lpCallback != nullptr && config.input.gamepad.xinput.emulate)
+  {
+    DIDEVICEINSTANCEW dev_inst;
+                      dev_inst.dwSize     = sizeof (dev_inst);
+
+                      SK_GUIDFromStringW (L"{375A5B10-2B71-11EC-8001-444553540000}", &dev_inst.guidInstance);
+                      SK_GUIDFromStringW (L"{028E045E-0000-0000-0000-504944564944}", &dev_inst.guidProduct);
+
+                      dev_inst.dwDevType  = 66069;
+              wcscpy (dev_inst.tszInstanceName, L"Controller (XBOX 360 For Windows)");
+              wcscpy (dev_inst.tszProductName,  L"Controller (XBOX 360 For Windows)");
+                      dev_inst.wUsage     = 5;
+                      dev_inst.wUsagePage = 1;
+
+    lpCallback (&dev_inst, pvRef);
+  }
 
   return
     IDirectInput8W_EnumDevices_Original ( This, dwDevType,

@@ -464,7 +464,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ShowProgress>LinkVerboseSAFESEH</ShowProgress>
       <StackReserveSize>0x200000</StackReserveSize>
       <StackCommitSize>0x4000</StackCommitSize>
-      <CreateHotPatchableImage>X86Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
     <PostBuildEvent>
@@ -590,7 +590,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ShowProgress>LinkVerboseSAFESEH</ShowProgress>
       <StackReserveSize>0x200000</StackReserveSize>
       <StackCommitSize>0x4000</StackCommitSize>
-      <CreateHotPatchableImage>X64Image</CreateHotPatchableImage>
+      <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
     </Link>
     <ProjectReference />
     <PostBuildEvent>

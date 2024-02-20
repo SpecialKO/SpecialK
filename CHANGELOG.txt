@@ -1,4 +1,9 @@
-﻿24.2.16.7
+﻿24.2.20
+=======
+ + Fixed potential crash in multi-threaded D3D9 games when drawing ImGui's UI
+ + Improved XInput Mode controller hot-plug support in some games
+
+24.2.16.7
 =========
  + Apply the DualSense brightness slider to the color LEDs around the trackpad
      as well. The HW setting actually only affects the mute button and player
