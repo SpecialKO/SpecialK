@@ -1168,7 +1168,7 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::TextUnformatted ("Translates HID to XInput for PlayStation controllers");
               ImGui::Separator       ();
               ImGui::BulletText      ("Fully supports DualSense and DualShock 4 (USB and Bluetooth).");
-              ImGui::BulletText      ("Limited support for DualShock .");
+              ImGui::BulletText      ("Limited support for DualShock 3.");
               ImGui::Separator       ();
               ImGui::BulletText      ("Does not support more than one controller.");
               ImGui::BulletText      ("May require a game restart.");
