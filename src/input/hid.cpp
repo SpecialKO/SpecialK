@@ -2823,6 +2823,14 @@ SK_HID_PlayStationDevice::setVibration (
   USHORT right,
   USHORT max_val )
 {
+  if (max_val == 0)
+  {
+    _vibration.max_val =
+      std::max ( { _vibration.max_val, left, right } );
+
+    max_val = _vibration.max_val;
+  }
+
   WriteULongRelease (&_vibration.left,
       static_cast  <ULONG> (255.0 *
         std::clamp (

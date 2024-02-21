@@ -973,6 +973,8 @@ struct SK_HID_PlayStationDevice
     DWORD          last_set;
     DWORD          last_output;
 
+    USHORT         max_val = 0;
+
     // At most, allow the controller to vibrate for 1000 ms without
     //   some kind of attempt to set a new value... otherwise, it
     //     will tend to vibrate infinitely.

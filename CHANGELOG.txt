@@ -1,4 +1,10 @@
-﻿24.2.21.3
+﻿24.2.21.4
+=========
+ + Added rumble motor strength normalization for games that do not respect the
+     XInput device capabilities reported (0-255). Instead, the strength will
+       be normalized to the largest value (up to 65535) the game has used.
+
+24.2.21.3
 =========
  + Added full support (rumble,buttons,lights,battery) for Bluetooth DualShock 4
 

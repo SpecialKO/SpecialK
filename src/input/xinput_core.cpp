@@ -1116,7 +1116,7 @@ XInputSetState1_4_Detour (
               controller.setVibration (
                 pVibration->wLeftMotorSpeed,
                 pVibration->wRightMotorSpeed,
-                0x00FF
+                0x0 // Normalize against largest range seen
               );
 
               controller.write_output_report ();
