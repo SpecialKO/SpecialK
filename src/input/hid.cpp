@@ -3394,7 +3394,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                     
               SK_RunOnce (SK_Bluetooth_SetupPowerOff ());
 
-              //pDevice->write_output_report ();
+              pDevice->write_output_report ();
 
               if (pDevice->buttons.size () < 14)
                   pDevice->buttons.resize (  14);
@@ -4194,7 +4194,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
   }
 
                           // Bluetooth isn't working yet...
-  else if (bDualShock4 && (! bBluetooth))
+  else if (bDualShock4)
   {
     if (! bBluetooth)
     {
@@ -4382,7 +4382,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
               uint8_t UnkB2       : 1; // seems to always be 1
               uint8_t UnkB3       : 1;
               uint8_t EnableAudio : 1;
-            } static header = { 0xA2, 0x11, 1, 0, 1, 0, 0, 0, 1, 0, 0 };
+            } static header = { 0xA2, 0x11, 1, 1, 1, 0, 0, 0, 1, 0, 0 };
 
             memcpy (bt_data, &header, sizeof (header));
 
@@ -4390,7 +4390,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
               (BYTE *)&bt_data [4];
 
             SK_HID_DualShock4_SetStateDataBt* output =
-              (SK_HID_DualShock4_SetStateDataBt *)&pOutputRaw [1];
+              (SK_HID_DualShock4_SetStateDataBt *)&pOutputRaw [0];
 
             output->EnableRumbleUpdate = true;
 
@@ -4452,17 +4452,17 @@ SK_HID_PlayStationDevice::write_output_report (void)
                   // Full-bright
                   default:
                     break;
-                  case 2:
+                  case 1:
                     output->LedRed   /= 2;
                     output->LedGreen /= 2;
                     output->LedBlue  /= 2;
                     break;
-                  case 1:
+                  case 2:
                     output->LedRed   /= 4;
                     output->LedGreen /= 4;
                     output->LedBlue  /= 4;
                     break;
-                  case 0:
+                  case 3:
                     output->LedRed   /= 8;
                     output->LedGreen /= 8;
                     output->LedBlue  /= 8;
@@ -4495,7 +4495,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
             bWriteAsync =
             SK_WriteFile ( pDevice->hDeviceFile, pDevice->output_report.data (),
-                            static_cast <DWORD> (pDevice->bBluetooth ? 79 :
+                            static_cast <DWORD> (pDevice->bBluetooth ? 78 :
                                                                        32), nullptr, &async_output_request );
           }
 

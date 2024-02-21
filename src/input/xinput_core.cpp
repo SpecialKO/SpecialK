@@ -513,7 +513,8 @@ XInputGetState1_4_Detour (
     }
   }
 
-  xinput_ctx.translated = false;
+  if (dwUserIndex == 0)
+    xinput_ctx.translated = false;
 
   if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
     dwUserIndex = config.input.gamepad.xinput.ui_slot;
@@ -683,7 +684,8 @@ XInputGetStateEx1_4_Detour (
     }
   }
 
-  xinput_ctx.translated = false;
+  if (dwUserIndex == 0)
+    xinput_ctx.translated = false;
 
   struct cached_state_s
   {
@@ -1120,10 +1122,10 @@ XInputSetState1_4_Detour (
               controller.write_output_report ();
             }
 
-            bHasSetState = true;
-
             //SK_XINPUT_WRITE (dwUserIndex)
           }
+
+          bHasSetState = true;
         }
       }
     }
@@ -1135,7 +1137,8 @@ XInputSetState1_4_Detour (
     }
   }
 
-  xinput_ctx.translated = false;
+  if (dwUserIndex == 0)
+    xinput_ctx.translated = false;
 
   HMODULE hModCaller = SK_GetCallingDLL ();
 
