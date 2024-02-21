@@ -1,4 +1,13 @@
-﻿24.2.21
+﻿24.2.21.1
+=========
+ + Option to disable HID will actually block games from creating \\?\hid...
+     files now instead of simply returning neutral data if attempting to read
+ + When toggling XInput/HID API Blockage or turning on XInput Mode, call the
+     game's window proc with a WM_DEVICECHANGE message.
+
+    >> Previous attempt to do this used PostMessage (...), which never works.
+
+24.2.21
 =======
  + Added full support (rumble, buttons, lights, battery) for USB DualShock 4
  + Added partial support (buttons, battery) for Bluetooth DualShock 4

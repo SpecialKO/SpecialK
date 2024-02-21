@@ -1133,7 +1133,7 @@ using joyGetDevCapsW_pfn = MMRESULT (WINAPI *)(UINT_PTR,LPJOYCAPSW,UINT);
 extern joyGetPos_pfn   joyGetPos_Original;
 extern joyGetPosEx_pfn joyGetPosEx_Original;
 
-void SK_Win32_NotifyDeviceChange (void);
+void SK_Win32_NotifyDeviceChange (bool add_xusb = true, bool add_hid = true);
 
 #define SK_HID_VID_8BITDO          0x2dc8
 #define SK_HID_VID_LOGITECH        0x046d

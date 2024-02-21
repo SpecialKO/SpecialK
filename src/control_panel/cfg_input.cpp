@@ -778,6 +778,8 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::BeginGroup      ();
         if (ImGui::Checkbox (ICON_FA_XBOX " XInput", &config.input.gamepad.xinput.blackout_api))
         {
+          SK_Win32_NotifyDeviceChange (!config.input.gamepad.xinput.blackout_api, !config.input.gamepad.disable_hid);
+
           _need_restart = true;
         }
         if (ImGui::IsItemHovered ())
@@ -794,6 +796,8 @@ SK::ControlPanel::Input::Draw (void)
 
         if (ImGui::Checkbox (ICON_FA_USB " HID",    &config.input.gamepad.disable_hid))
         {
+          SK_Win32_NotifyDeviceChange (!config.input.gamepad.xinput.blackout_api, !config.input.gamepad.disable_hid);
+
           _need_restart = true;
         }
         if (ImGui::IsItemHovered ())
@@ -1131,10 +1135,10 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::BeginGroup  ();
             if (ImGui::Checkbox("XInput Mode", &config.input.gamepad.xinput.emulate))
             {
-              SK_Win32_NotifyDeviceChange ();
-
               if (config.input.gamepad.xinput.emulate)
               {
+                SK_Win32_NotifyDeviceChange (true, false);
+
                 if (config.input.gamepad.xinput.blackout_api)
                 {
                   SK_ImGui_WarningWithTitle (
@@ -1148,6 +1152,11 @@ SK::ControlPanel::Input::Draw (void)
                 }
 
                 config.input.gamepad.xinput.placehold [0] = true;
+              }
+
+              else
+              {
+                SK_Win32_NotifyDeviceChange (false, true);
               }
 
               config.utility.save_async ();

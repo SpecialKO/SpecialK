@@ -31,6 +31,9 @@
 #include <imgui/font_awesome.h>
 
 
+HWND SK_hWndDeviceListener;
+
+
 struct {
   volatile DWORD RecheckInterval = 2500UL;
   volatile LONG  holding         = FALSE;
@@ -544,13 +547,13 @@ SK_XInput_NotifyDeviceArrival (void)
         {
           DWORD dwWaitStatus = WAIT_OBJECT_0;
 
-          HWND hWndDeviceListener =
+          SK_hWndDeviceListener =
             (HWND)CreateWindowEx ( 0, L"SK_HID_Listener",    NULL, 0,
                                    0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL );
 
           // It's technically unnecessary to register this, but not a bad idea
           HDEVNOTIFY hDevNotify =
-            SK_RegisterDeviceNotification (hWndDeviceListener);
+            SK_RegisterDeviceNotification (SK_hWndDeviceListener);
 
           do
           {
@@ -558,7 +561,7 @@ SK_XInput_NotifyDeviceArrival (void)
             void
             {
               MSG                      msg = { };
-              while (SK_PeekMessageW (&msg, hWndDeviceListener, 0, 0, PM_REMOVE | PM_NOYIELD) > 0)
+              while (SK_PeekMessageW (&msg, SK_hWndDeviceListener, 0, 0, PM_REMOVE | PM_NOYIELD) > 0)
               {
                 SK_TranslateMessage (&msg);
                 SK_DispatchMessageW (&msg);
@@ -600,7 +603,7 @@ SK_XInput_NotifyDeviceArrival (void)
           } while (dwWaitStatus != ShutdownEvent);
 
           UnregisterDeviceNotification (hDevNotify);
-          DestroyWindow                (hWndDeviceListener);
+          DestroyWindow                (SK_hWndDeviceListener);
           UnregisterClassW             (wnd_class.lpszClassName, wnd_class.hInstance);
         }
 
@@ -934,9 +937,19 @@ struct SK_Win32_DeviceNotificationInstance
 SK_LazyGlobal <concurrency::concurrent_vector <SK_Win32_DeviceNotificationInstance>> SK_Win32_RegisteredDevNotifications;
 
 void
-SK_Win32_NotifyDeviceChange (void)
+SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
 {
-  return;
+  // Unity crashes if it receives too many of these in a short period of time
+  //  (stupid engine)
+  static DWORD
+         dwLastCall = 0;
+  while (dwLastCall >= SK_timeGetTime () - 150UL)
+  {
+    SK_SleepEx (25UL, FALSE);
+  }
+
+  static std::mutex                          _lock;
+  std::scoped_lock <std::mutex> scoped_lock (_lock);
 
 #define IDT_SDL_DEVICE_CHANGE_TIMER_1 1200
 #define IDT_SDL_DEVICE_CHANGE_TIMER_2 1201
@@ -956,12 +969,6 @@ SK_Win32_NotifyDeviceChange (void)
          dbcc_hid_w->dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
          dbcc_hid_w->dbcc_classguid  = GUID_DEVINTERFACE_HID;
 
-         wcsncpy_s (dbcc_xbox_w->dbcc_name, MAX_PATH, LR"(\\?\HID#VID_054C&PID_0DF2&MI_03#c&1b57575&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030})", _TRUNCATE);
-         wcsncpy_s (dbcc_hid_w->dbcc_name,  MAX_PATH, LR"(\\?\HID#VID_054C&PID_0DF2&MI_03#c&1b57575&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030})", _TRUNCATE);
-
-         dbcc_xbox_w->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_xbox_w->dbcc_name) * 2;
-         dbcc_hid_w->dbcc_size  = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_hid_w-> dbcc_name) * 2;
-
   static DEV_BROADCAST_DEVICEINTERFACE_A        dbcc_xbox_a [16] = { };
          dbcc_xbox_a->dbcc_size       = sizeof (dbcc_xbox_a);
          dbcc_xbox_a->dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
@@ -972,46 +979,112 @@ SK_Win32_NotifyDeviceChange (void)
          dbcc_hid_a->dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
          dbcc_hid_a->dbcc_classguid  = GUID_DEVINTERFACE_HID;
 
-         strncpy (dbcc_xbox_a->dbcc_name, R"(\\?\HID#VID_054C&PID_0DF2&MI_03#c&1b57575&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030})", MAX_PATH);
-         strncpy (dbcc_hid_a->dbcc_name,  R"(\\?\HID#VID_054C&PID_0DF2&MI_03#c&1b57575&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030})", MAX_PATH);
-
-         dbcc_xbox_a->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_xbox_a->dbcc_name);
-         dbcc_hid_a->dbcc_size  = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_hid_a-> dbcc_name);
-
-  for ( auto& notify : SK_Win32_RegisteredDevNotifications.get () )
+  for (auto& controller : SK_HID_PlayStationControllers )
   {
-    if (! (notify.dwFlags & DEVICE_NOTIFY_SERVICE_HANDLE))
-    {
-      if (notify.bUnicode)
-      {
-        PostMessageW (
-          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_xbox_w);
-        PostMessageW (
-          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_hid_w);
-      }
+    wcsncpy_s (dbcc_xbox_w->dbcc_name, MAX_PATH, controller.wszDevicePath, _TRUNCATE);
+    wcsncpy_s (dbcc_hid_w->dbcc_name,  MAX_PATH, controller.wszDevicePath, _TRUNCATE);
 
-      else
+    dbcc_xbox_w->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_xbox_w->dbcc_name) * 2;
+    dbcc_hid_w->dbcc_size  = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_hid_w-> dbcc_name) * 2;
+
+    strncpy (dbcc_xbox_a->dbcc_name, SK_WideCharToUTF8 (controller.wszDevicePath).c_str (), MAX_PATH);
+    strncpy (dbcc_hid_a->dbcc_name,  SK_WideCharToUTF8 (controller.wszDevicePath).c_str (), MAX_PATH);
+
+    dbcc_xbox_a->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_xbox_a->dbcc_name);
+    dbcc_hid_a->dbcc_size  = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_hid_a-> dbcc_name);
+
+    static concurrency::concurrent_unordered_set <HWND> notified;
+                                                        notified.clear ();
+
+    for ( auto& notify : SK_Win32_RegisteredDevNotifications.get () )
+    {
+      if (! (notify.dwFlags & DEVICE_NOTIFY_SERVICE_HANDLE))
       {
-        PostMessageA (
-          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_xbox_a);
-        PostMessageA (
-          notify.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_hid_a);
+        if (notify.bUnicode)
+        {
+          ((WNDPROC)SK_GetWindowLongPtrW (notify.hWnd, GWLP_WNDPROC))(notify.hWnd, WM_DEVICECHANGE, add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_w);
+          ((WNDPROC)SK_GetWindowLongPtrW (notify.hWnd, GWLP_WNDPROC))(notify.hWnd, WM_DEVICECHANGE, add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_w);
+
+          notified.insert (notify.hWnd);
+        }
+
+        else
+        {
+          ((WNDPROC)SK_GetWindowLongPtrA (notify.hWnd, GWLP_WNDPROC))(notify.hWnd, WM_DEVICECHANGE, add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_a);
+          ((WNDPROC)SK_GetWindowLongPtrA (notify.hWnd, GWLP_WNDPROC))(notify.hWnd, WM_DEVICECHANGE, add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_a);
+
+          notified.insert (notify.hWnd);
+        }
       }
     }
+
+    //DWORD dwRecipients = BSM_APPLICATIONS;
+
+    static bool _add_xusb, _add_hid;
+
+    _add_xusb = add_xusb;
+    _add_hid  = add_hid;
+
+    EnumWindows ([](HWND hWnd, LPARAM)->BOOL
+    {
+      DWORD                            dwPid = 0x0;
+      GetWindowThreadProcessId (hWnd, &dwPid);
+
+      if (dwPid != GetProcessId (SK_GetCurrentProcess ()))
+        return TRUE;
+
+      if (hWnd == SK_hWndDeviceListener)
+        return TRUE;
+
+      if (notified.count (hWnd) != 0)
+        return TRUE;
+
+      EnumChildWindows (hWnd, [](HWND hWnd, LPARAM)->BOOL
+      {
+        if (notified.count (hWnd) != 0)
+          return TRUE;
+
+        if (IsWindowUnicode (hWnd))
+        {
+          notified.insert (hWnd);
+
+          ((WNDPROC)SK_GetWindowLongPtrW (hWnd, GWLP_WNDPROC))(hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_w);
+          ((WNDPROC)SK_GetWindowLongPtrW (hWnd, GWLP_WNDPROC))(hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_w);
+        }
+        else
+        {
+          notified.insert (hWnd);
+
+          ((WNDPROC)SK_GetWindowLongPtrA (hWnd, GWLP_WNDPROC))(hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_w);
+          ((WNDPROC)SK_GetWindowLongPtrA (hWnd, GWLP_WNDPROC))(hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_w);
+        }
+
+        return TRUE;
+      }, (LPARAM)nullptr);
+
+      if (notified.count (hWnd) != 0)
+        return TRUE;
+
+      if (IsWindowUnicode (hWnd))
+      {
+        notified.insert (hWnd);
+
+        ((WNDPROC)SK_GetWindowLongPtrW (hWnd, GWLP_WNDPROC))(hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_w);
+        ((WNDPROC)SK_GetWindowLongPtrW (hWnd, GWLP_WNDPROC))(hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_w);
+      }
+      else
+      {
+        notified.insert (hWnd);
+
+        ((WNDPROC)SK_GetWindowLongPtrA (hWnd, GWLP_WNDPROC))(hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_a);
+        ((WNDPROC)SK_GetWindowLongPtrA (hWnd, GWLP_WNDPROC))(hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_a);
+      }
+
+      return TRUE;
+    }, (LPARAM)nullptr);
   }
 
-  // After handling all registered notifications, send to the game's top-level window
-  if (IsWindowUnicode (game_window.hWnd))
-  {
-    PostMessageW (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_xbox_w);
-    PostMessageW (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_hid_w);
-  }
-  else
-  {
-    PostMessageA (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_xbox_a);
-    PostMessageA (game_window.hWnd, WM_DEVICECHANGE, DBT_DEVICEARRIVAL, (LPARAM)dbcc_hid_a);
-  }
-
+  dwLastCall = SK_timeGetTime ();
 }
 
 HDEVNOTIFY

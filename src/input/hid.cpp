@@ -1090,6 +1090,12 @@ ReadFile_Detour (HANDLE       hFile,
   {
     case SK_Input_DeviceFileType::HID:
     {
+      if (config.input.gamepad.disable_hid)
+      {
+        SetLastError (ERROR_DEVICE_NOT_CONNECTED);
+        return FALSE;
+      }
+
       auto hid_file =
         (SK_HID_DeviceFile *)dev_ptr;
 
@@ -1199,6 +1205,12 @@ ReadFileEx_Detour (HANDLE                          hFile,
   {
     case SK_Input_DeviceFileType::HID:
     {
+      if (config.input.gamepad.disable_hid)
+      {
+        SetLastError (ERROR_DEVICE_NOT_CONNECTED);
+        return FALSE;
+      }
+
       auto hid_file =
         (SK_HID_DeviceFile *)dev_ptr;
 
@@ -1292,6 +1304,15 @@ CreateFileA_Detour (LPCSTR                lpFileName,
 
     if (SK_StrSupA (lpFileName, R"(\\?\hid)", 7))
     {
+      if (config.input.gamepad.disable_hid)
+      {
+        SetLastError (ERROR_NO_SUCH_DEVICE);
+
+        CloseHandle (hRet);
+
+        return INVALID_HANDLE_VALUE;
+      }
+
       bool bSkipExistingFile = false;
 
       if ( auto hid_file  = SK_HID_DeviceFiles.find (hRet);
@@ -1376,6 +1397,15 @@ CreateFile2_Detour (
 
     if (SK_StrSupW (lpFileName, LR"(\\?\hid)", 7))
     {
+      if (config.input.gamepad.disable_hid)
+      {
+        SetLastError (ERROR_NO_SUCH_DEVICE);
+
+        CloseHandle (hRet);
+
+        return INVALID_HANDLE_VALUE;
+      }
+
       bool bSkipExistingFile = false;
 
       if ( auto hid_file  = SK_HID_DeviceFiles.find (hRet);
@@ -1462,6 +1492,15 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
 
     if (SK_StrSupW (lpFileName, LR"(\\?\hid)", 7))
     {
+      if (config.input.gamepad.disable_hid)
+      {
+        SetLastError (ERROR_NO_SUCH_DEVICE);
+
+        CloseHandle (hRet);
+
+        return INVALID_HANDLE_VALUE;
+      }
+
       bool bSkipExistingFile = false;
       
       if ( auto hid_file  = SK_HID_DeviceFiles.find (hRet);
@@ -1536,6 +1575,15 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
   {
     case SK_Input_DeviceFileType::HID:
     {
+      if (config.input.gamepad.disable_hid)
+      {
+        SetLastError (ERROR_DEVICE_NOT_CONNECTED);
+
+        CancelIoEx (hFile, lpOverlapped);
+
+        return FALSE;
+      }
+
       auto hid_file =
         (SK_HID_DeviceFile *)dev_ptr;
 
@@ -1607,6 +1655,15 @@ GetOverlappedResult_Detour (HANDLE       hFile,
         (SK_HID_DeviceFile *)dev_ptr;
 
       BOOL bRet = TRUE;
+
+      if (config.input.gamepad.disable_hid)
+      {
+        SetLastError (ERROR_DEVICE_NOT_CONNECTED);
+
+        CancelIoEx (hFile, lpOverlapped);
+
+        return FALSE;
+      }
 
       if (! dev_allowed)
       {
