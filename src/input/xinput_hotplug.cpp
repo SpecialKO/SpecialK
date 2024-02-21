@@ -936,6 +936,8 @@ SK_LazyGlobal <concurrency::concurrent_vector <SK_Win32_DeviceNotificationInstan
 void
 SK_Win32_NotifyDeviceChange (void)
 {
+  return;
+
 #define IDT_SDL_DEVICE_CHANGE_TIMER_1 1200
 #define IDT_SDL_DEVICE_CHANGE_TIMER_2 1201
 

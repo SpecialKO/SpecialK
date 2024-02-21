@@ -2339,6 +2339,14 @@ template <int N> struct BTCRC {
 };
 #pragma pack(pop)
 
+#pragma pack(push,1)
+template <int N> struct BTAudio {
+  uint16_t FrameNumber;
+  uint8_t  AudioTarget; // 0x02 speaker?, 0x24 headset?, 0x03 mic?
+  uint8_t  SBCData [N-3];
+};
+#pragma pack(pop)
+
 // Derived from (2024-02-07):
 // 
 //   https://controllers.fandom.com/wiki/Sony_DualSense#Likely_Interface
@@ -2589,6 +2597,169 @@ struct SK_HID_DualSense_GetStateData // 63
 };
 #pragma pack(pop)
 
+#pragma pack(push,1)
+struct SK_HID_DualShock4_SetStateData // 47
+{
+  uint8_t EnableRumbleUpdate        : 1;
+  uint8_t EnableLedUpdate           : 1;
+  uint8_t EnableLedBlink            : 1;
+  uint8_t EnableExtWrite            : 1;
+  uint8_t EnableVolumeLeftUpdate    : 1;
+  uint8_t EnableVolumeRightUpdate   : 1;
+  uint8_t EnableVolumeMicUpdate     : 1;
+  uint8_t EnableVolumeSpeakerUpdate : 1;
+  uint8_t UNK_RESET1                : 1; // unknown reset, both set high by Remote Play
+  uint8_t UNK_RESET2                : 1; // unknown reset, both set high by Remote Play
+  uint8_t UNK1                      : 1;
+  uint8_t UNK2                      : 1;
+  uint8_t UNK3                      : 1;
+  uint8_t UNKPad                    : 3;
+  uint8_t Empty1;
+  uint8_t RumbleRight;              // weak
+  uint8_t RumbleLeft;               // strong
+  uint8_t LedRed;
+  uint8_t LedGreen;
+  uint8_t LedBlue;
+  uint8_t LedFlashOnPeriod;
+  uint8_t LedFlashOffPeriod;
+  uint8_t ExtDataSend [8];               // sent to I2C EXT port, stored in 8x8 byte block
+  uint8_t VolumeLeft;                    // 0x00 - 0x4F inclusive
+  uint8_t VolumeRight;                   // 0x00 - 0x4F inclusive
+  uint8_t VolumeMic;                     // 0x00, 0x01 - 0x40 inclusive (0x00 is special behavior)
+  uint8_t VolumeSpeaker;                 // 0x00 - 0x4F
+  uint8_t UNK_AUDIO1                : 7; // clamped to 1-64 inclusive, appears to be set to 5 for audio
+  uint8_t UNK_AUDIO2                : 1; // unknown, appears to be set to 1 for audio
+  uint8_t Pad [8];
+};
+#pragma pack(pop)
+
+#pragma pack(push,1)
+struct SK_HID_DualShock4_SetStateDataBt // 74
+{
+  uint8_t EnableRumbleUpdate        : 1;
+  uint8_t EnableLedUpdate           : 1;
+  uint8_t EnableLedBlink            : 1;
+  uint8_t EnableExtWrite            : 1;
+  uint8_t EnableVolumeLeftUpdate    : 1;
+  uint8_t EnableVolumeRightUpdate   : 1;
+  uint8_t EnableVolumeMicUpdate     : 1;
+  uint8_t EnableVolumeSpeakerUpdate : 1;
+  uint8_t UNK_RESET1                : 1; // unknown reset, both set high by Remote Play
+  uint8_t UNK_RESET2                : 1; // unknown reset, both set high by Remote Play
+  uint8_t UNK1                      : 1;
+  uint8_t UNK2                      : 1;
+  uint8_t UNK3                      : 1;
+  uint8_t UNKPad                    : 3;
+  uint8_t Empty1;
+  uint8_t RumbleRight;              // Weak
+  uint8_t RumbleLeft;               // Strong
+  uint8_t LedRed;
+  uint8_t LedGreen;
+  uint8_t LedBlue;
+  uint8_t LedFlashOnPeriod;
+  uint8_t LedFlashOffPeriod;
+  uint8_t ExtDataSend [8];               // sent to I2C EXT port, stored in 8x8 byte block
+  uint8_t VolumeLeft;                    // 0x00 - 0x4F inclusive
+  uint8_t VolumeRight;                   // 0x00 - 0x4F inclusive
+  uint8_t VolumeMic;                     // 0x00, 0x01 - 0x40 inclusive (0x00 is special behavior)
+  uint8_t VolumeSpeaker;                 // 0x00 - 0x4F
+  uint8_t UNK_AUDIO1                : 7; // clamped to 1-64 inclusive, appears to be set to 5 for audio
+  uint8_t UNK_AUDIO2                : 1; // unknown, appears to be set to 1 for audio
+  uint8_t Pad [52];
+};
+#pragma pack(pop)
+
+#pragma pack(push,1)
+struct SK_HID_DualShock4_ReportOut11 // 78
+{
+  union {
+    BTCRC <78> CRC;
+    struct {
+      uint8_t ReportID;        // 0x11
+      uint8_t PollingRate : 6; // note 0 appears to be clamped to 1
+      uint8_t EnableCRC   : 1;
+      uint8_t EnableHID   : 1;
+      uint8_t EnableMic   : 3; // somehow enables mic, appears to be 3 bit flags
+      uint8_t UnkA4       : 1;
+      uint8_t UnkB1       : 1;
+      uint8_t UnkB2       : 1; // seems to always be 1
+      uint8_t UnkB3       : 1;
+      uint8_t EnableAudio : 1;
+      union {
+        SK_HID_DualShock4_SetStateDataBt State;
+        BTAudio <75> Audio;
+      };
+    } Data;
+  };
+};
+#pragma pack(pop)
+
+#pragma pack(push,1)
+struct SK_HID_DualShock4_BasicGetStateData {
+/*0  */ uint8_t   LeftStickX;
+/*1  */ uint8_t   LeftStickY;
+/*2  */ uint8_t   RightStickX;
+/*3  */ uint8_t   RightStickY;
+/*4.0*/ Direction DPad           : 4;
+/*4.4*/ uint8_t   ButtonSquare   : 1;
+/*4.5*/ uint8_t   ButtonCross    : 1;
+/*4.6*/ uint8_t   ButtonCircle   : 1;
+/*4.7*/ uint8_t   ButtonTriangle : 1;
+/*5.0*/ uint8_t   ButtonL1       : 1;
+/*5.1*/ uint8_t   ButtonR1       : 1;
+/*5.2*/ uint8_t   ButtonL2       : 1;
+/*5.3*/ uint8_t   ButtonR2       : 1;
+/*5.4*/ uint8_t   ButtonShare    : 1;
+/*5.5*/ uint8_t   ButtonOptions  : 1;
+/*5.6*/ uint8_t   ButtonL3       : 1;
+/*5.7*/ uint8_t   ButtonR3       : 1;
+/*6.0*/ uint8_t   ButtonHome     : 1;
+/*6.1*/ uint8_t   ButtonPad      : 1;
+/*6.2*/ uint8_t   Counter        : 6; // always 0 on USB, counts up with some skips on BT
+/*7  */ uint8_t   TriggerLeft;
+/*8  */ uint8_t   TriggerRight;
+};
+#pragma pack(pop)
+
+#pragma pack(push,1)
+struct SK_HID_DualShock4_GetStateData : SK_HID_DualShock4_BasicGetStateData {
+/* 9  */ uint16_t Timestamp; // in 5.33us units?
+/*11  */ uint8_t  Temperature;
+/*12  */ int16_t  AngularVelocityX;
+/*14  */ int16_t  AngularVelocityZ;
+/*16  */ int16_t  AngularVelocityY;
+/*18  */ int16_t  AccelerometerX;
+/*20  */ int16_t  AccelerometerY;
+/*22  */ int16_t  AccelerometerZ;
+/*24  */ uint8_t  ExtData [5]; // range can be set by EXT device
+/*29  */ uint8_t  PowerPercent      : 4; // 0x00-0x0A or 0x01-0x0B if plugged int
+/*29.4*/ uint8_t  PluggedPowerCable : 1;
+/*29.5*/ uint8_t  PluggedHeadphones : 1;
+/*29.6*/ uint8_t  PluggedMic        : 1;
+/*29,7*/ uint8_t  PluggedExt        : 1;
+/*30.0*/ uint8_t  UnkExt1           : 1; // ExtCapableOfExtraData?
+/*30.1*/ uint8_t  UnkExt2           : 1; // ExtHasExtraData?
+/*30.2*/ uint8_t  NotConnected      : 1; // Used by dongle to indicate no controller
+/*30.3*/ uint8_t  Unk1              : 5;
+/*31  */ uint8_t  Unk2; // unused?
+/*32  */ uint8_t  TouchCount;
+};
+#pragma pack(pop)
+
+#pragma pack(push,1)
+struct USBGetStateData : SK_HID_DualShock4_GetStateData {
+  TouchData TouchData [3];
+  uint8_t   Pad       [3];
+};
+#pragma pack(pop)
+
+#pragma pack(push,1)
+struct BTGetStateData : SK_HID_DualShock4_GetStateData {
+  TouchData TouchData [4];
+  uint8_t Pad         [6];
+};
+#pragma pack(pop)
+
 void
 SK_HID_PlayStationDevice::setVibration (
   USHORT left,
@@ -2658,6 +2829,10 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
         pDevice->input_report [0] = pDevice->bBluetooth ? 49
                                                         : pDevice->button_report_id;
+
+        if (pDevice->bDualShock4)
+          pDevice->input_report [0] = pDevice->bBluetooth ? 0x11 :
+                                      pDevice->button_report_id;
 
         bool bHasBluetooth = false;
 
@@ -2774,7 +2949,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
             pDevice->xinput.report.Gamepad = { };
 
-            if (dwBytesTransferred != 78)
+            if (dwBytesTransferred != 78 && (! (pDevice->bDualShock4 && pDevice->bBluetooth)))
             {
               if ( HIDP_STATUS_SUCCESS ==
                 SK_HidP_GetUsages ( HidP_Input, pDevice->buttons [0].UsagePage, 0,
@@ -2893,7 +3068,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
               }
             }
 
-            else
+            else if (! pDevice->bDualShock4)
             {
               pDevice->bBluetooth = true;
                     bHasBluetooth = true;
@@ -2905,16 +3080,16 @@ SK_HID_PlayStationDevice::request_input_report (void)
               if (pDevice->buttons.size () < 19)
                   pDevice->buttons.resize (  19);
 
-              BYTE* pOutputRaw =
+              BYTE* pInputRaw =
                 (BYTE *)pDevice->input_report.data ();
 
               SK_HID_DualSense_GetStateData *pData =
-                (SK_HID_DualSense_GetStateData *)&pOutputRaw [2];
+                (SK_HID_DualSense_GetStateData *)&pInputRaw [2];
 
               bool bSimple = false;
 
               // We're in simplified mode...
-              if (pOutputRaw [0] == 0x1)
+              if (pInputRaw [0] == 0x1)
               {
                 bSimple = true;
               }
@@ -3003,7 +3178,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
               else
               {
                 SK_HID_DualSense_GetSimpleStateDataBt *pSimpleData =
-                  (SK_HID_DualSense_GetSimpleStateDataBt *)&pOutputRaw [1];
+                  (SK_HID_DualSense_GetSimpleStateDataBt *)&pInputRaw [1];
 
                 pDevice->xinput.report.Gamepad.sThumbLX =
                   static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pSimpleData->LeftStickX) - 128) / 128.0);
@@ -3155,6 +3330,180 @@ SK_HID_PlayStationDevice::request_input_report (void)
               }
             }
 
+            else if (pDevice->bDualShock4)
+            {
+                pDevice->bBluetooth = true;
+                      bHasBluetooth = true;
+                    
+              SK_RunOnce (SK_Bluetooth_SetupPowerOff ());
+
+              //pDevice->write_output_report ();
+
+              if (pDevice->buttons.size () < 14)
+                  pDevice->buttons.resize (  14);
+
+              BYTE* pInputRaw =
+                (BYTE *)pDevice->input_report.data ();
+
+              SK_HID_DualShock4_GetStateData *pData =
+                (SK_HID_DualShock4_GetStateData *)&pInputRaw [3];
+
+              pDevice->xinput.report.Gamepad.sThumbLX =
+                static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pData->LeftStickX) - 128) / 128.0);
+
+              pDevice->xinput.report.Gamepad.sThumbLY =
+                static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (pData->LeftStickY)) / 128.0);
+
+              pDevice->xinput.report.Gamepad.sThumbRX =
+                static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pData->RightStickX) - 128) / 128.0);
+
+              pDevice->xinput.report.Gamepad.sThumbRY =
+                static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (pData->RightStickY)) / 128.0);
+              
+              pDevice->xinput.report.Gamepad.bLeftTrigger =
+                static_cast <BYTE> (static_cast <BYTE> (pData->TriggerLeft));
+
+              pDevice->xinput.report.Gamepad.bRightTrigger =
+                static_cast <BYTE> (static_cast <BYTE> (pData->TriggerRight));
+
+              switch ((int)pData->DPad)
+              {
+                case 0: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;
+                case 1: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
+                        pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT; break;
+                case 2: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT; break;
+                case 3: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_RIGHT;
+                        pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;  break;
+                case 4: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;  break;
+                case 5: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_DOWN;
+                        pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;  break;
+                case 6: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;  break;
+                case 7: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_LEFT;
+                        pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;
+                case 8:
+                default:
+                  // Centered value, do nothing
+                  break;
+              }
+
+              pDevice->buttons [ 0].state = pData->ButtonSquare   != 0;
+              pDevice->buttons [ 1].state = pData->ButtonCross    != 0;
+              pDevice->buttons [ 2].state = pData->ButtonCircle   != 0;
+              pDevice->buttons [ 3].state = pData->ButtonTriangle != 0;
+              pDevice->buttons [ 4].state = pData->ButtonL1       != 0;
+              pDevice->buttons [ 5].state = pData->ButtonR1       != 0;
+              pDevice->buttons [ 6].state = pData->ButtonL2       != 0;
+              pDevice->buttons [ 7].state = pData->ButtonR2       != 0;
+
+              pDevice->buttons [ 8].state = pData->ButtonShare    != 0;
+              pDevice->buttons [ 9].state = pData->ButtonOptions  != 0;
+
+              pDevice->buttons [10].state = pData->ButtonL3       != 0;
+              pDevice->buttons [11].state = pData->ButtonR3       != 0;
+
+              // Do not write buttons the HID API does not list
+              if (pDevice->buttons.size () >= 13)
+                pDevice->buttons [12].state = pData->ButtonHome   != 0;
+              if (pDevice->buttons.size () >= 14)
+                pDevice->buttons [13].state = pData->ButtonPad    != 0;
+
+              pDevice->sensor_timestamp = pData->Timestamp;
+
+              //if (pDevice->sensor_timestamp < 10200000)
+              //    pDevice->reset_rgb = false;
+
+              pDevice->battery.state =
+                (SK_HID_PlayStationDevice::PowerState)pData->PluggedPowerCable ?
+                                SK_HID_PlayStationDevice::PowerState::Charging :
+                             SK_HID_PlayStationDevice::PowerState::Discharging;
+
+              const float batteryPercent =
+                (float)(pData->PluggedPowerCable ? (pData->PowerPercent & 0xF) - 1
+                                                 : (pData->PowerPercent & 0xF)) * 10.0f;
+
+              pDevice->battery.percentage = batteryPercent;
+
+              switch (pDevice->battery.state)
+              {
+                case Charging:
+                case Discharging:
+                {
+                  if (pDevice->battery.percentage >= 30.0f)
+                    SK_ImGui_DismissNotification ("DualShock.BatteryCharge");
+                  else
+                    SK_ImGui_CreateNotificationEx (
+                      "DualShock.BatteryCharge", SK_ImGui_Toast::Info, nullptr, nullptr,
+                         INFINITE, SK_ImGui_Toast::UseDuration  |
+                                   SK_ImGui_Toast::ShowNewest   | 
+                                   SK_ImGui_Toast::DoNotSaveINI |
+                                   SK_ImGui_Toast::Unsilencable,
+                      [](void *pUserData)->bool
+                      {
+                        SK_HID_PlayStationDevice::battery_s *pBatteryState =
+                          (SK_HID_PlayStationDevice::battery_s *)pUserData;
+
+                        static const char* szBatteryLevels [] = {
+                          ICON_FA_BATTERY_EMPTY,
+                          ICON_FA_BATTERY_QUARTER,
+                          ICON_FA_BATTERY_HALF,
+                          ICON_FA_BATTERY_THREE_QUARTERS,
+                          ICON_FA_BATTERY_FULL
+                        };
+
+                        static ImColor battery_colors [] = {
+                          ImColor::HSV (0.0f, 1.0f, 1.0f), ImColor::HSV (0.1f, 1.0f, 1.0f),
+                          ImColor::HSV (0.2f, 1.0f, 1.0f), ImColor::HSV (0.3f, 1.0f, 1.0f),
+                          ImColor::HSV (0.4f, 1.0f, 1.0f)
+                        };
+
+                        const int batteryLevel =
+                          (pBatteryState->percentage > 70.0f) ? 4 :
+                          (pBatteryState->percentage > 50.0f) ? 3 :
+                          (pBatteryState->percentage > 30.0f) ? 2 :
+                          (pBatteryState->percentage > 10.0f) ? 1 : 0;
+
+                        // Battery charge is high enough, don't bother showing this...
+                        if (pBatteryState->percentage > 30.0f)
+                          return true;
+
+                        auto batteryColor =
+                          battery_colors [batteryLevel];
+
+                        if (batteryLevel <= 1)
+                        {
+                          batteryColor.Value.w =
+                            static_cast <float> (
+                              0.5 + 0.4 * std::cos (3.14159265359 *
+                                (static_cast <double> (SK::ControlPanel::current_time % 2250) / 1125.0))
+                            );
+                        }
+
+                        ImGui::BeginGroup ();
+                        ImGui::TextColored ( batteryColor, "%hs",
+                            szBatteryLevels [batteryLevel]
+                        );
+
+                        ImGui::SameLine ();
+
+                        if (pBatteryState->state == Discharging)
+                          ImGui::Text ("%3.0f%% " ICON_FA_ARROW_DOWN, pBatteryState->percentage);
+                        else
+                          ImGui::Text ("%3.0f%% " ICON_FA_ARROW_UP,   pBatteryState->percentage);
+
+                        ImGui::EndGroup ();
+
+                        if (ImGui::IsItemClicked ())
+                          SK_ImGui_DismissNotification ("DualShock.BatteryCharge");
+
+                        return false;
+                      }, &pDevice->battery
+                    );
+                } break;
+                default:
+                  break;
+              }
+            }
+
             // Do not do in the background unless bg input is enabled
             const bool bAllowSpecialButtons =
               ( config.input.gamepad.disabled_to_game == 0 ||
@@ -3290,10 +3639,10 @@ SK_HID_PlayStationDevice::write_output_report (void)
     if (! bBluetooth)
     {
       SK_ReleaseAssert (
-        output_report.size () >= sizeof (SK_HID_DualSense_SetStateData)
+        output_report.size () >= sizeof (SK_HID_DualSense_SetStateData) + 1
       );
 
-      if (output_report.size () < sizeof (SK_HID_DualSense_SetStateData))
+      if (output_report.size () <= sizeof (SK_HID_DualSense_SetStateData))
         return false;
     }
 
@@ -3689,6 +4038,408 @@ SK_HID_PlayStationDevice::write_output_report (void)
             SK_WriteFile ( pDevice->hDeviceFile, pDevice->output_report.data (),
                             static_cast <DWORD> (pDevice->bBluetooth ? 78 :
                                                  pDevice->output_report.size ()), nullptr, &async_output_request );
+          }
+
+          if (! bWriteAsync)
+          {
+            DWORD dwLastErr =
+                 GetLastError ();
+
+            // Invalid Handle and Device Not Connected get a 250 ms cooldown
+            if ( dwLastErr != NOERROR              &&
+                 dwLastErr != ERROR_IO_PENDING     &&
+                 dwLastErr != ERROR_INVALID_HANDLE &&
+                 dwLastErr != ERROR_NO_SUCH_DEVICE &&
+                 dwLastErr != ERROR_DEVICE_NOT_CONNECTED )
+            {
+              _com_error err (
+                _com_error::WCodeToHRESULT (
+                  sk::narrow_cast <WORD> (dwLastErr)
+                )
+              );
+
+              SK_LOGs0 (
+                L"InputBkEnd",
+                L"SK_WriteFile ({%ws}) failed, Error=%d [%ws]",
+                  pDevice->wszDevicePath, dwLastErr,
+                    err.ErrorMessage ()
+              );
+            }
+
+            if (dwLastErr != ERROR_IO_PENDING && dwLastErr != NOERROR)
+            {
+              if (dwLastErr != ERROR_INVALID_HANDLE)
+                SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
+
+              SK_SleepEx (250UL, TRUE); // Prevent runaway CPU usage on failure
+
+              SetEvent (pDevice->hOutputFinished);
+              continue;
+            }
+
+            else
+            {
+              DWORD                                                                       dwBytesRead = 0x0;
+              if (! SK_GetOverlappedResult (pDevice->hDeviceFile, &async_output_request, &dwBytesRead, FALSE))
+              {
+                dwLastErr = GetLastError ();
+
+                if (dwLastErr != NOERROR)
+                {
+                  if (dwLastErr != ERROR_IO_INCOMPLETE)
+                  {
+                    _com_error err (
+                      _com_error::WCodeToHRESULT (
+                        sk::narrow_cast <WORD> (dwLastErr)
+                      )
+                    );
+
+                    SK_LOGs0 (
+                      L"InputBkEnd",
+                      L"SK_GetOverlappedResult ({%ws}) failed, Error=%d [%ws]",
+                        pDevice->wszDevicePath, dwLastErr,
+                          err.ErrorMessage ()
+                    );
+
+                    if (dwLastErr != ERROR_INVALID_HANDLE && dwLastErr != NOERROR)
+                      SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
+                  }
+
+                  SK_SleepEx (15UL, TRUE); // Prevent runaway CPU usage on failure
+
+                  SetEvent (pDevice->hOutputFinished);
+                  continue;
+                }
+              }
+            }
+          }
+
+          pDevice->ulLastFrameOutput =
+                   SK_GetFramesDrawn ();
+
+          pDevice->dwLastTimeOutput =
+            SK::ControlPanel::current_time;
+
+          bEnqueued = false;
+          bFinished = false;
+        }
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, L"[SK] HID Output Report Producer", this);
+    }
+
+    else
+      SetEvent (hOutputEnqueued);
+
+    return true;
+  }
+
+                          // Bluetooth isn't working yet...
+  else if (bDualShock4 && (! bBluetooth))
+  {
+    if (! bBluetooth)
+    {
+      if (output_report.size () <= sizeof (SK_HID_DualShock4_SetStateData))
+      {
+        output_report.resize (sizeof (SK_HID_DualShock4_SetStateData) + 1);
+      }
+
+      SK_ReleaseAssert (
+        output_report.size () >= sizeof (SK_HID_DualShock4_SetStateData) + 1
+      );
+
+      if (output_report.size () <= sizeof (SK_HID_DualShock4_SetStateData))
+        return false;
+    }
+
+    if (hOutputEnqueued == nullptr)
+    {
+      hOutputEnqueued =
+        SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
+
+      hOutputFinished =
+        SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
+
+      SK_Thread_CreateEx ([](LPVOID pData)->DWORD
+      {
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_HIGHEST);
+
+        SK_HID_PlayStationDevice* pDevice =
+          (SK_HID_PlayStationDevice *)pData;
+
+        HANDLE hEvents [] = {
+          __SK_DLL_TeardownEvent,
+           pDevice->hOutputFinished,
+           pDevice->hOutputEnqueued
+        };
+
+        OVERLAPPED async_output_request = { };
+
+        bool bEnqueued = false;
+        bool bFinished = false;
+
+        DWORD  dwWaitState  = WAIT_FAILED;
+        while (dwWaitState != WAIT_OBJECT_0)
+        {
+          dwWaitState =
+            WaitForMultipleObjects ( _countof (hEvents),
+                                               hEvents, FALSE, INFINITE );
+
+          if (dwWaitState == WAIT_OBJECT_0)
+            break;
+
+          if (dwWaitState == (WAIT_OBJECT_0 + 2))
+          {
+            ResetEvent (pDevice->hOutputEnqueued);
+            bEnqueued = true;
+          }
+
+          if (dwWaitState == (WAIT_OBJECT_0 + 1))
+          {
+            ResetEvent (pDevice->hOutputFinished);
+            bFinished = true;
+          }
+
+          if (! bFinished)
+          {
+            continue;
+          }
+
+          ZeroMemory ( pDevice->output_report.data (),
+                       pDevice->output_report.size () );
+
+          // Report Type
+          pDevice->output_report [0] =
+            pDevice->bBluetooth ? 0x11 : 0x05;
+
+          if (! pDevice->bBluetooth)
+          {
+            BYTE* pOutputRaw =
+              (BYTE *)pDevice->output_report.data ();
+
+            SK_HID_DualShock4_SetStateData* output =
+              (SK_HID_DualShock4_SetStateData *)&pOutputRaw [1];
+
+            output->EnableRumbleUpdate = true;
+
+            if (config.input.gamepad.scepad.led_color_r    != -1 ||
+                config.input.gamepad.scepad.led_color_g    != -1 ||
+                config.input.gamepad.scepad.led_color_b    != -1 ||
+                config.input.gamepad.scepad.led_brightness != -1)
+            {
+              output->EnableLedUpdate  = true;
+            }
+
+#if 1
+            if ( pDevice->_vibration.last_set >= SK::ControlPanel::current_time -
+                 pDevice->_vibration.MAX_TTL_IN_MSECS )
+            {
+#endif
+              output->RumbleRight =
+                sk::narrow_cast <BYTE> (
+                  ReadULongAcquire (&pDevice->_vibration.right)
+                );
+              output->RumbleLeft  =
+                sk::narrow_cast <BYTE> (
+                  ReadULongAcquire (&pDevice->_vibration.left)
+                );
+#if 1
+            }
+
+            else
+            {
+              output->RumbleRight = 0;
+              output->RumbleLeft  = 0;
+
+              WriteULongRelease (&pDevice->_vibration.left,  0);
+              WriteULongRelease (&pDevice->_vibration.right, 0);
+            }
+
+            //if (std::exchange (pDevice->_vibration.last_left,  output->RumbleEmulationLeft ) != output->RumbleEmulationLeft  || output->RumbleEmulationLeft  == 0)
+            //  pDevice->_vibration.last_output = pDevice->_vibration.last_set;
+            //if (std::exchange (pDevice->_vibration.last_right, output->RumbleEmulationRight) != output->RumbleEmulationRight || output->RumbleEmulationRight == 0)
+            //  pDevice->_vibration.last_output = pDevice->_vibration.last_set;
+#endif
+
+              //config.input.gamepad.scepad.rumble_power_level == 100.0f ? 0
+              //                                                         :
+              //static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
+
+            if (config.input.gamepad.scepad.led_color_r != -1 || 
+                config.input.gamepad.scepad.led_color_g != -1 ||
+                config.input.gamepad.scepad.led_color_b != -1)
+            {
+              output->LedRed   = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_r, 0, 255));
+              output->LedGreen = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_g, 0, 255));
+              output->LedBlue  = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_b, 0, 255));
+
+              if (config.input.gamepad.scepad.led_brightness != -1)
+              {
+                switch (config.input.gamepad.scepad.led_brightness)
+                {
+                  // Full-bright
+                  default:
+                    break;
+                  case 1:
+                    output->LedRed   /= 2;
+                    output->LedGreen /= 2;
+                    output->LedBlue  /= 2;
+                    break;
+                  case 2:
+                    output->LedRed   /= 4;
+                    output->LedGreen /= 4;
+                    output->LedBlue  /= 4;
+                    break;
+                  case 3:
+                    output->LedRed   /= 8;
+                    output->LedGreen /= 8;
+                    output->LedBlue  /= 8;
+                    break;
+                }
+              }
+            }
+
+            else
+            {
+              output->LedRed   = pDevice->_color.r;
+              output->LedGreen = pDevice->_color.g;
+              output->LedBlue  = pDevice->_color.b;
+            }
+          }
+
+          else if (pDevice->bBluetooth)
+          {
+            BYTE bt_data [83] = { };
+
+            struct Header {
+              uint8_t Head;
+              uint8_t ReportID;
+              uint8_t PollingRate : 6; // note 0 appears to be clamped to 1
+              uint8_t EnableCRC   : 1;
+              uint8_t EnableHID   : 1;
+              uint8_t EnableMic   : 3; // somehow enables mic, appears to be 3 bit flags
+              uint8_t UnkA4       : 1;
+              uint8_t UnkB1       : 1;
+              uint8_t UnkB2       : 1; // seems to always be 1
+              uint8_t UnkB3       : 1;
+              uint8_t EnableAudio : 1;
+            } static header = { 0xA2, 0x11, 1, 0, 1, 0, 0, 0, 1, 0, 0 };
+
+            memcpy (bt_data, &header, sizeof (header));
+
+            BYTE* pOutputRaw =
+              (BYTE *)&bt_data [4];
+
+            SK_HID_DualShock4_SetStateDataBt* output =
+              (SK_HID_DualShock4_SetStateDataBt *)&pOutputRaw [1];
+
+            output->EnableRumbleUpdate = true;
+
+            if (config.input.gamepad.scepad.led_color_r    != -1 ||
+                config.input.gamepad.scepad.led_color_g    != -1 ||
+                config.input.gamepad.scepad.led_color_b    != -1 ||
+                config.input.gamepad.scepad.led_brightness != -1)
+            {
+              output->EnableLedUpdate  = true;
+            }
+
+#if 1
+            if ( pDevice->_vibration.last_set >= SK::ControlPanel::current_time -
+                 pDevice->_vibration.MAX_TTL_IN_MSECS )
+            {
+#endif
+              output->RumbleRight =
+                sk::narrow_cast <BYTE> (
+                  ReadULongAcquire (&pDevice->_vibration.right)
+                );
+              output->RumbleLeft  =
+                sk::narrow_cast <BYTE> (
+                  ReadULongAcquire (&pDevice->_vibration.left)
+                );
+#if 1
+            }
+
+            else
+            {
+              output->RumbleRight = 0;
+              output->RumbleLeft  = 0;
+
+              WriteULongRelease (&pDevice->_vibration.left,  0);
+              WriteULongRelease (&pDevice->_vibration.right, 0);
+            }
+
+            //if (std::exchange (pDevice->_vibration.last_left,  output->RumbleEmulationLeft ) != output->RumbleEmulationLeft  || output->RumbleEmulationLeft  == 0)
+            //  pDevice->_vibration.last_output = pDevice->_vibration.last_set;
+            //if (std::exchange (pDevice->_vibration.last_right, output->RumbleEmulationRight) != output->RumbleEmulationRight || output->RumbleEmulationRight == 0)
+            //  pDevice->_vibration.last_output = pDevice->_vibration.last_set;
+#endif
+
+              //config.input.gamepad.scepad.rumble_power_level == 100.0f ? 0
+              //                                                         :
+              //static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
+
+            if (config.input.gamepad.scepad.led_color_r != -1 || 
+                config.input.gamepad.scepad.led_color_g != -1 ||
+                config.input.gamepad.scepad.led_color_b != -1)
+            {
+              output->LedRed   = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_r, 0, 255));
+              output->LedGreen = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_g, 0, 255));
+              output->LedBlue  = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_b, 0, 255));
+
+              if (config.input.gamepad.scepad.led_brightness != -1)
+              {
+                switch (config.input.gamepad.scepad.led_brightness)
+                {
+                  // Full-bright
+                  default:
+                    break;
+                  case 2:
+                    output->LedRed   /= 2;
+                    output->LedGreen /= 2;
+                    output->LedBlue  /= 2;
+                    break;
+                  case 1:
+                    output->LedRed   /= 4;
+                    output->LedGreen /= 4;
+                    output->LedBlue  /= 4;
+                    break;
+                  case 0:
+                    output->LedRed   /= 8;
+                    output->LedGreen /= 8;
+                    output->LedBlue  /= 8;
+                    break;
+                }
+              }
+            }
+
+            else
+            {
+              output->LedRed   = pDevice->_color.r;
+              output->LedGreen = pDevice->_color.g;
+              output->LedBlue  = pDevice->_color.b;
+            }
+
+            uint32_t crc =
+             crc32 (0x0, bt_data, 75);
+
+            memcpy (                                &bt_data [75], &crc, 4);
+            memcpy (pDevice->output_report.data (), &bt_data [ 1],      78);
+          }
+
+          async_output_request        = { };
+          async_output_request.hEvent = pDevice->hOutputFinished;
+
+          BOOL bWriteAsync = FALSE;
+
+          {
+            std::scoped_lock write_lock (s_output_mutex);
+
+            bWriteAsync =
+            SK_WriteFile ( pDevice->hDeviceFile, pDevice->output_report.data (),
+                            static_cast <DWORD> (pDevice->bBluetooth ? 79 :
+                                                                       32), nullptr, &async_output_request );
           }
 
           if (! bWriteAsync)

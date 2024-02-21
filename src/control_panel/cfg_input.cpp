@@ -1081,14 +1081,28 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::SameLine   (0.0f, 30);
           }
 
-          bool bDualSense = false;
+          bool bBluetooth  = false;
+          bool bDualSense  = false;
+          bool bDualShock4 = false;
 
           for ( auto& ps_controller : SK_HID_PlayStationControllers )
           {
+            if (! ps_controller.bConnected)
+              continue;
+
+            if (ps_controller.bBluetooth)
+            {
+              bBluetooth = true;
+            }
+
             if (ps_controller.bDualSense)
             {
               bDualSense = true;
-              break;
+            }
+
+            if (ps_controller.bDualShock4)
+            {
+              bDualShock4 = true;
             }
           }
 
@@ -1256,15 +1270,18 @@ SK::ControlPanel::Input::Draw (void)
                 break;
             }
 
-            if (ImGui::Checkbox ("Power Saving Mode", &config.input.gamepad.scepad.power_save_mode))
+            if (bDualSense)
             {
-              config.utility.save_async ();
+              if (ImGui::Checkbox ("Power Saving Mode", &config.input.gamepad.scepad.power_save_mode))
+              {
+                config.utility.save_async ();
+              }
             }
 
             ImGui::EndGroup   ();
           }
 
-          if (bDualSense)
+          if (bDualSense || bDualShock4)
           {
             bool bOverrideRGB =
               config.input.gamepad.scepad.led_color_r    != -1 ||

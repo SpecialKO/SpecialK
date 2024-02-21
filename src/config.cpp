@@ -1023,11 +1023,9 @@ struct {
     } scepad;
 
     struct {
-      sk::ParameterInt*   ui_slot                 = nullptr;
       sk::ParameterBool*  disable                 = nullptr;
     } steam;
 
-    sk::ParameterBool*    native_ps4              = nullptr;
     sk::ParameterInt*     disabled_to_game        = nullptr;
   } gamepad;
 } input;
@@ -1560,7 +1558,6 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.hook_dinput8,             L"Install hooks for DirectInput 8",                           dll_ini,         L"Input.Gamepad",         L"EnableDirectInput8"),
     ConfigEntry (input.gamepad.hook_dinput7,             L"Install hooks for DirectInput 7",                           dll_ini,         L"Input.Gamepad",         L"EnableDirectInput7"),
     ConfigEntry (input.gamepad.hook_hid,                 L"Install hooks for HID",                                     dll_ini,         L"Input.Gamepad",         L"EnableHID"),
-    ConfigEntry (input.gamepad.native_ps4,               L"Native PS4 Mode (temporary)",                               dll_ini,         L"Input.Gamepad",         L"EnableNativePS4"),
     ConfigEntry (input.gamepad.disable_rumble,           L"Disable Rumble from ALL SOURCES (across all APIs)",         dll_ini,         L"Input.Gamepad",         L"DisableRumble"),
 
     ConfigEntry (input.gamepad.hook_xinput,              L"Install hooks for XInput",                                  dll_ini,         L"Input.XInput",          L"Enable"),
@@ -1594,7 +1591,6 @@ auto DeclKeybind =
 
  //DEPRECATED  (                                                                                                                       L"Input.XInput",          L"DisableRumble"),
 
-    ConfigEntry (input.gamepad.steam.ui_slot,            L"Steam Controller that owns the config UI",                  dll_ini,         L"Input.Steam",           L"UISlot"),
     ConfigEntry (input.gamepad.steam.disable,            L"Disable Steam Input Always (only works for flat API)",      dll_ini,         L"Input.Steam",           L"Disable"),
 
     // Thread Monitoring
@@ -4095,7 +4091,6 @@ auto DeclKeybind =
   input.gamepad.hook_dinput8->load       (config.input.gamepad.hook_dinput8);
   input.gamepad.hook_dinput7->load       (config.input.gamepad.hook_dinput7);
   input.gamepad.hook_hid->load           (config.input.gamepad.hook_hid);
-  input.gamepad.native_ps4->load         (config.input.gamepad.native_ps4);
 
   input.gamepad.haptic_ui->load          (config.input.gamepad.haptic_ui);
 
@@ -4202,7 +4197,6 @@ auto DeclKeybind =
   input.gamepad.scepad.led_brightness->load       (config.input.gamepad.scepad.led_brightness);
 
   input.gamepad.xinput.ui_slot->load   ((int &)config.input.gamepad.xinput.ui_slot);
-  input.gamepad.steam.ui_slot->load    ((int &)config.input.gamepad.steam.ui_slot);
   input.gamepad.steam.disable->load    (config.input.gamepad.steam.disabled_to_game);
 
 
@@ -5474,7 +5468,6 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.disable_hid->store            (config.input.gamepad.disable_hid);
   input.gamepad.rehook_xinput->store          (config.input.gamepad.rehook_xinput);
   input.gamepad.haptic_ui->store              (config.input.gamepad.haptic_ui);
-  input.gamepad.native_ps4->store             (config.input.gamepad.native_ps4);
 
   int placeholder_mask = 0x0;
 
@@ -5485,7 +5478,6 @@ SK_SaveConfig ( std::wstring name,
 
   input.gamepad.xinput.placeholders->store    (placeholder_mask);
   input.gamepad.xinput.ui_slot->store         (config.input.gamepad.xinput.ui_slot);
-  input.gamepad.steam.ui_slot->store          (config.input.gamepad.steam.ui_slot);
   input.gamepad.steam.disable->store          (config.input.gamepad.steam.disabled_to_game);
 
   // Turn off auto-slot assignment if the UI slot is invalid

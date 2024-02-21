@@ -1,4 +1,11 @@
-﻿24.2.20.1
+﻿24.2.21
+=======
+ + Added full support (rumble, buttons, lights, battery) for USB DualShock 4
+ + Added partial support (buttons, battery) for Bluetooth DualShock 4
+    * Pairing a DualShock 4 to Bluetooth AFTER SK has used it as USB tends
+        to require a full game restart.
+
+24.2.20.1
 =========
  + Removed DirectInput debug code for XInput that could crash some games.
 
