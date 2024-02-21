@@ -2048,22 +2048,22 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     auto& state =
         *pState;
 
-    if (api_bridge)
-    {
-      // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
-      //   for no good reason.
-      JOYINFOEX joy_ex   { };
-      JOYCAPSW  joy_caps { };
-    
-      joy_ex.dwSize  = sizeof (JOYINFOEX);
-      joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
-                       JOY_RETURNCENTERED | JOY_USEDEADZONE;
-    
-      SK_joyGetPosEx    (JOYSTICKID1, &joy_ex);
-      SK_joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof (JOYCAPSW));
-    
-      SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
-    }
+    ////if (api_bridge)
+    ////{
+    ////  // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
+    ////  //   for no good reason.
+    ////  JOYINFOEX joy_ex   { };
+    ////  JOYCAPSW  joy_caps { };
+    ////
+    ////  joy_ex.dwSize  = sizeof (JOYINFOEX);
+    ////  joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
+    ////                   JOY_RETURNCENTERED | JOY_USEDEADZONE;
+    ////
+    ////  SK_joyGetPosEx    (JOYSTICKID1, &joy_ex);
+    ////  SK_joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof (JOYCAPSW));
+    ////
+    ////  SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
+    ////}
 
     if (! SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state))
     {

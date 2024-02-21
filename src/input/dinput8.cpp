@@ -1057,45 +1057,82 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
     auto
     _NeutralizeJoystickAxes = [&](LONG* pAxisData)
     {
-      static DIPROPRANGE
-        axes [] = {
-        { sizeof (DIPROPRANGE),
-          sizeof (DIPROPHEADER), DIJOFS_X,
-                                 DIPH_BYOFFSET,
-          0, MAXLONG                         },
-        { sizeof (DIPROPRANGE),
-          sizeof (DIPROPHEADER), DIJOFS_Y,
-                                 DIPH_BYOFFSET,
-          0, MAXLONG                         },
-        { sizeof (DIPROPRANGE),
-          sizeof (DIPROPHEADER), DIJOFS_Z,
-                                 DIPH_BYOFFSET,
-          0, MAXLONG                         },
-        { sizeof (DIPROPRANGE),
-          sizeof (DIPROPHEADER), DIJOFS_RX,
-                                 DIPH_BYOFFSET,
-          0, MAXLONG                         },
-        { sizeof (DIPROPRANGE),
-          sizeof (DIPROPHEADER), DIJOFS_RY,
-                                 DIPH_BYOFFSET,
-          0, MAXLONG                         },
-        { sizeof (DIPROPRANGE),
-          sizeof (DIPROPHEADER), DIJOFS_RZ,
-                                 DIPH_BYOFFSET,
-          0, MAXLONG                         },
+      struct {
+        DIPROPRANGE range;
+        DIPROPDWORD mode;
+      } static axes [] = {
+        { { sizeof (DIPROPRANGE),
+            sizeof (DIPROPHEADER), DIJOFS_X,
+                                   DIPH_BYOFFSET,
+            0, MAXLONG                         },
+          { sizeof (DIPROPDWORD),
+            sizeof (DIPROPHEADER), DIJOFS_X,
+                                   DIPH_BYOFFSET,
+            DIPROPAXISMODE_REL               } },
+        { { sizeof (DIPROPRANGE),
+            sizeof (DIPROPHEADER), DIJOFS_Y,
+                                   DIPH_BYOFFSET,
+            0, MAXLONG                         },
+          { sizeof (DIPROPDWORD),
+            sizeof (DIPROPHEADER), DIJOFS_Y,
+                                   DIPH_BYOFFSET,
+            DIPROPAXISMODE_REL               } },
+        { { sizeof (DIPROPRANGE),
+            sizeof (DIPROPHEADER), DIJOFS_Z,
+                                   DIPH_BYOFFSET,
+            0, MAXLONG                         },
+          { sizeof (DIPROPDWORD),
+            sizeof (DIPROPHEADER), DIJOFS_Z,
+                                   DIPH_BYOFFSET,
+            DIPROPAXISMODE_REL               } },
+        { { sizeof (DIPROPRANGE),
+            sizeof (DIPROPHEADER), DIJOFS_RX,
+                                   DIPH_BYOFFSET,
+            0, MAXLONG                         },
+          { sizeof (DIPROPDWORD),
+            sizeof (DIPROPHEADER), DIJOFS_RX,
+                                   DIPH_BYOFFSET,
+            DIPROPAXISMODE_ABS               } },
+        { { sizeof (DIPROPRANGE),
+            sizeof (DIPROPHEADER), DIJOFS_RY,
+                                   DIPH_BYOFFSET,
+            0, MAXLONG                         },
+          { sizeof (DIPROPDWORD),
+            sizeof (DIPROPHEADER), DIJOFS_RY,
+                                   DIPH_BYOFFSET,
+            DIPROPAXISMODE_ABS               } },
+        { { sizeof (DIPROPRANGE),
+            sizeof (DIPROPHEADER), DIJOFS_RZ,
+                                   DIPH_BYOFFSET,
+            0, MAXLONG                         },
+          { sizeof (DIPROPDWORD),
+            sizeof (DIPROPHEADER), DIJOFS_RZ,
+                                   DIPH_BYOFFSET,
+            DIPROPAXISMODE_REL               } }
       };
 
       for ( auto& axis : axes )
       {
-        if (SUCCEEDED (This->GetProperty (DIPROP_RANGE, &axis.diph)))
-        {
-          *pAxisData++ =
-            ( axis.lMax - axis.lMin ) / 2;
-        }
+        std::ignore = axis;
 
+        if (SUCCEEDED (This->GetProperty (DIPROP_RANGE, &axis.range.diph)))
+        {
+          if (axis.mode.dwData == DIPROPAXISMODE_REL)
+          {
+            const auto mid_pt = 
+              ( axis.range.lMax + axis.range.lMin ) / 2;
+
+            *pAxisData++ =
+              abs (mid_pt) > 1 ?
+                   mid_pt      : 0;
+          }
+
+          else
+            *pAxisData++ =
+              axis.range.lMin;
+        }
         else
-          *pAxisData++ =
-            ( MAXLONG / 2 );
+          pAxisData++;
       }
     };
 
@@ -1118,7 +1155,9 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
 
       if (SUCCEEDED (hr))
       {
-        memcpy (&last_state, out, cbData);
+        if (! disabled_to_game)
+          memcpy (&last_state, out, cbData);
+
         SK_DI8_TranslateToXInput (reinterpret_cast <DIJOYSTATE *> (out));
       }
 
@@ -1164,7 +1203,9 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
       if (SUCCEEDED (hr))
       {
         SK_DI8_TranslateToXInput (out);
-        memcpy (&last_state, out, cbData);
+
+        if (! disabled_to_game)
+          memcpy (&last_state, out, cbData);
       }
 
       if (disabled_to_game || FAILED (hr))
@@ -1450,13 +1491,12 @@ IDirectInput8W_CreateDevice_Detour ( IDirectInput8W        *This,
       rguid == GUID_SysKeyboardEm || rguid == GUID_SysKeyboardEm2 ||
       rguid == GUID_Joystick );
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Persona5)
-  {
-  if (rguid != GUID_SysMouse    && rguid != GUID_SysKeyboard
-    /*rguid != GUID_SysMouseEm2 && rguid != GUID_SysKeyboardEm2*/
-                                && rguid != GUID_Joystick)
-    return E_FAIL;
-  }
+#if 0
+  if (! hookable)
+    return DIERR_DEVICENOTREG;
+#endif
+
+  hookable = true;
 
   uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
 
@@ -1569,6 +1609,13 @@ IDirectInput8A_CreateDevice_Detour ( IDirectInput8A        *This,
       rguid == GUID_SysMouseEm    || rguid == GUID_SysMouseEm2    ||
       rguid == GUID_SysKeyboardEm || rguid == GUID_SysKeyboardEm2 ||
       rguid == GUID_Joystick );
+
+#if 0
+  if (! hookable)
+    return DIERR_DEVICENOTREG;
+#endif
+
+  hookable = true;
 
   uint32_t guid_crc32c = crc32c (0, &rguid, sizeof (REFGUID));
 
@@ -1698,6 +1745,11 @@ DI8_CallbackEnumDevicesA (LPCDIDEVICEINSTANCEA dev_inst, LPVOID pUser)
 {
   //SK_LOGs0 (L"DInput8", L"%hs", dev_inst->tszProductName);
 
+  //if (dev_inst->wUsage == 0x5 && dev_inst->wUsagePage == 0x1)
+  //{
+  //  return TRUE;
+  //}
+
   if (StrStrIA (dev_inst->tszProductName, "Controller (XBOX 360 For Windows)"))
   {
     OLECHAR wszInstance [128] = { };
@@ -1720,6 +1772,49 @@ DI8_CallbackEnumDevicesA (LPCDIDEVICEINSTANCEA dev_inst, LPVOID pUser)
 
   enum_devices_callback_detour_a* detour =
     (enum_devices_callback_detour_a *)pUser;
+
+  return
+    detour->fn (dev_inst, detour->puser);
+}
+
+struct enum_devices_callback_detour_w {
+  LPDIENUMDEVICESCALLBACKW fn;
+  LPVOID                   puser;
+};
+
+BOOL
+WINAPI
+DI8_CallbackEnumDevicesW (LPCDIDEVICEINSTANCEW dev_inst, LPVOID pUser)
+{
+  //SK_LOGs0 (L"DInput8", L"%hs", dev_inst->tszProductName);
+
+  //if (dev_inst->wUsage == 0x5 && dev_inst->wUsagePage == 0x1)
+  //{
+  //  return TRUE;
+  //}
+
+  if (StrStrIW (dev_inst->tszProductName, L"Controller (XBOX 360 For Windows)"))
+  {
+    OLECHAR wszInstance [128] = { };
+    OLECHAR wszProduct  [128] = { };
+    OLECHAR wszFFDriver [128] = { };
+
+    HRESULT hr =
+      StringFromGUID2 (dev_inst->guidInstance, wszInstance, 127);
+            hr =
+      StringFromGUID2 (dev_inst->guidProduct,  wszProduct,  127);
+            hr =
+      StringFromGUID2 (dev_inst->guidFFDriver, wszFFDriver, 127);
+
+    SK_LOGs0 (
+      L"DInput8",
+      L"dwSize: %d, guidInstance=%ws, guidProduct=%ws, dwDevType=%d, InstanceName=%ws, ProductName=%ws, FFDriver=%hs, UsagePage=%d, Usage=%d",
+      dev_inst->dwSize, wszInstance, wszProduct, dev_inst->dwDevType, dev_inst->tszInstanceName, dev_inst->tszProductName, wszFFDriver, dev_inst->wUsagePage, dev_inst->wUsage
+    );
+  }
+
+  enum_devices_callback_detour_w* detour =
+    (enum_devices_callback_detour_w *)pUser;
 
   return
     detour->fn (dev_inst, detour->puser);
@@ -1800,9 +1895,13 @@ IDirectInput8W_EnumDevices_Detour ( IDirectInput8W*          This,
   }
 #endif
 
+  enum_devices_callback_detour_w
+  detour_callback { .fn    = lpCallback,
+                    .puser = pvRef };
+
   return
     IDirectInput8W_EnumDevices_Original ( This, dwDevType,
-                                            lpCallback, pvRef,
+                                            DI8_CallbackEnumDevicesW, &detour_callback,
                                               dwFlags );
 }
 

@@ -2828,7 +2828,10 @@ SK_HID_PlayStationDevice::setVibration (
     _vibration.max_val =
       std::max ( { _vibration.max_val, left, right } );
 
-    max_val = _vibration.max_val;
+    if (_vibration.max_val > 255)
+      max_val = 65535;
+    else
+      max_val = 255;
   }
 
   WriteULongRelease (&_vibration.left,
@@ -3694,6 +3697,9 @@ SK_HID_PlayStationDevice::request_input_report (void)
 bool
 SK_HID_PlayStationDevice::write_output_report (void)
 {
+  //if (bBluetooth/*&& config.input.gamepad.scepad.dumb_mode*/)
+  //  return false;
+
   static std::mutex s_output_mutex;
 
   if (! bConnected)
