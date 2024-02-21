@@ -432,7 +432,33 @@ SK_Proxy_LLKeyboardProc (
       }
     }
 
-    if (SK_IsGameWindowActive () || (! isPressed))
+    //
+    // Because the game is using a low-level keyboard hook, the chances
+    //   that it expects input even when its top-level / render window is
+    //     not focused are very high.
+    //
+    //  Instead of the normal checks for keyboard input focus, in these games
+    //    check if the foreground window belongs to the game process.
+    // 
+    //   * Ignore -which- window is focused; after all, the game's own use of
+    //       a low-level hook does not respect window focus in any way.
+    //
+    bool bWindowActive = 
+      SK_IsGameWindowActive ();
+
+    if (! bWindowActive)
+    {
+      DWORD dwProcId = 0x0;
+
+      GetWindowThreadProcessId (
+        SK_GetForegroundWindow (), &dwProcId
+      );
+
+      bWindowActive = 
+        (dwProcId == GetCurrentProcessId ());
+    }
+
+    if (bWindowActive || (! isPressed))
       ImGui::GetIO ().KeysDown [vKey] = isPressed;
 
     if (SK_ImGui_WantKeyboardCapture ())
