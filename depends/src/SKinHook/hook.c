@@ -1116,6 +1116,14 @@ MH_Initialize (VOID)
     {
       status = MH_ERROR_MEMORY_ALLOC;
     }
+
+    // Initialize these functions now so they do not defer init during
+    //   hook application...
+    ULONG     ldrState  = LDR_LOCK_LOADER_LOCK_DISPOSITION_INVALID;
+    ULONG_PTR ldrCookie = 0x0;
+
+    SK_NtLdr_LockLoaderLock   (0x0, &ldrState, &ldrCookie);
+    SK_NtLdr_UnlockLoaderLock (0x0,             ldrCookie);
   }
 
   else

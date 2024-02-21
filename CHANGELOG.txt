@@ -1,11 +1,17 @@
-﻿24.2.21.5
+﻿24.2.21.6
+=========
+ + Initialize SK_NtLdr_LockLoaderLock and SK_NtLdr_UnlockLoaderLock during
+     MH_Initialize rather than deferring this until MH_ApplyQueuedHooks; avoids
+       very rare deadlocks if other software has hooked GetProcAddress (...).
+
+24.2.21.5
 =========
  + Restored support for blocking input to games that poll DirectInput using a
      custom device GUID (i.e. NieR: Replicant)
  + Handle Rx and Ry axes (analog left/right triggers on Xbox 360 gamepads) as
      absolute coordinate axes rather than relative when returning neutral input
  + In games that use low-level keyboard hooks, check the process that owns the
-     foreground window when processing input rather than the focused window 
+     foreground window when processing input rather than the focused window
 
 24.2.21.4
 =========
