@@ -1027,6 +1027,7 @@ struct {
     } steam;
 
     sk::ParameterInt*     disabled_to_game        = nullptr;
+    sk::ParameterBool*    bt_input_only           = nullptr;
   } gamepad;
 } input;
 
@@ -1560,6 +1561,7 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.hook_dinput7,             L"Install hooks for DirectInput 7",                           dll_ini,         L"Input.Gamepad",         L"EnableDirectInput7"),
     ConfigEntry (input.gamepad.hook_hid,                 L"Install hooks for HID",                                     dll_ini,         L"Input.Gamepad",         L"EnableHID"),
     ConfigEntry (input.gamepad.disable_rumble,           L"Disable Rumble from ALL SOURCES (across all APIs)",         dll_ini,         L"Input.Gamepad",         L"DisableRumble"),
+    ConfigEntry (input.gamepad.bt_input_only,            L"Prevent Bluetooth Output (PlayStation DirectInput compat.)",dll_ini,         L"Input.Gamepad",         L"BluetoothInputOnly"),
 
     ConfigEntry (input.gamepad.hook_xinput,              L"Install hooks for XInput",                                  dll_ini,         L"Input.XInput",          L"Enable"),
     ConfigEntry (input.gamepad.rehook_xinput,            L"Re-install XInput hooks if hookchain is modified",          dll_ini,         L"Input.XInput",          L"Rehook"),
@@ -4106,6 +4108,7 @@ auto DeclKeybind =
     config.input.gamepad.xinput.placehold [3] = ( placeholder_mask & 0x8 );
   }
 
+  input.gamepad.bt_input_only->load            (config.input.gamepad.bt_input_only);
   input.gamepad.disable_rumble->load           (config.input.gamepad.disable_rumble);
   input.gamepad.xinput.hook_setstate->load     (config.input.gamepad.xinput.hook_setstate);
   input.gamepad.xinput.auto_slot_assign->load  (config.input.gamepad.xinput.auto_slot_assign);
@@ -5517,6 +5520,7 @@ SK_SaveConfig ( std::wstring name,
 
   input.gamepad.xinput.assignment->store           (xinput_assign);
   input.gamepad.xinput.disable_slots->store        (xinput_disable);
+  input.gamepad.bt_input_only->store               (config.input.gamepad.bt_input_only);
   input.gamepad.disable_rumble->store              (config.input.gamepad.disable_rumble);
   input.gamepad.xinput.hook_setstate->store        (config.input.gamepad.xinput.hook_setstate);
   input.gamepad.xinput.auto_slot_assign->store     (config.input.gamepad.xinput.auto_slot_assign);

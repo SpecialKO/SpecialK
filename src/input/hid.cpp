@@ -3761,9 +3761,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
 bool
 SK_HID_PlayStationDevice::write_output_report (void)
 {
-  //if (bBluetooth/*&& config.input.gamepad.scepad.dumb_mode*/)
-  //  return false;
-
   static std::mutex s_output_mutex;
 
   if (! bConnected)
@@ -3832,6 +3829,21 @@ SK_HID_PlayStationDevice::write_output_report (void)
           if (! bFinished)
           {
             continue;
+          }
+
+          if (pDevice->bBluetooth)
+          {
+            // Prevent changing the protocol of Bluetooth-paired PlayStation controllers
+            while (config.input.gamepad.bt_input_only)
+            {
+              if ( WAIT_OBJECT_0 ==
+                     WaitForSingleObject (__SK_DLL_TeardownEvent, 1000UL) )
+              {
+                SK_Thread_CloseSelf ();
+
+                return 0;
+              }
+            }
           }
 
           ZeroMemory ( pDevice->output_report.data (),

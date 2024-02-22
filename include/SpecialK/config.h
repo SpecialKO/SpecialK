@@ -959,6 +959,7 @@ struct sk_config_t
       bool    hook_windows_gaming = true;
       bool    hook_winmm          = true;
       bool    native_ps4          = false;
+      bool    bt_input_only       = false;
 
       struct xinput_s {
         unsigned

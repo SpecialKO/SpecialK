@@ -657,21 +657,28 @@ SK_ImGui_IsItemClicked (void)
   if (ImGui::IsItemClicked ())
     return true;
 
-  // Not possible to implement the original behavior following ImGui
-  //   codebase changes... plan on removing this.
-#if 0
+  auto& io =
+    ImGui::GetIO ();
+
+  static auto lastFrame  = SK_GetFramesDrawn ();
+  static auto lastActive =
+    io.NavInputs [ImGuiNavInput_Activate];
+
+  bool activated =         lastActive     > 0.0f &&
+                           lastActive    <= 0.4f &&
+   io.NavInputs [ImGuiNavInput_Activate] == 0.0f;
+
+  if (std::exchange (lastFrame, SK_GetFramesDrawn ()) != SK_GetFramesDrawn ())
+                     lastActive = io.NavInputs [ImGuiNavInput_Activate];
+
   if (ImGui::IsItemHovered ())
   {
-    //auto& io =
-    //  ImGui::GetIO ();
-
-    /// XXX: FIXME
-    //if (io.NavInputs [ImGuiNavInput_Activate] == 0.0f)
-    //{
-    //  return true;
-    //}
+    if (activated)
+    {
+      ImGui::SetHoveredID (0);
+      return true;
+    }
   }
-#endif
 
   return false;
 }
@@ -690,6 +697,7 @@ SK_ImGui_IsItemRightClicked (void)
     // Activate button held for >= .4 seconds -> right-click
     if (io.NavInputs [ImGuiNavInput_Activate] > 0.4f)
     {   io.NavInputs [ImGuiNavInput_Activate] = 0.0f;
+      ImGui::SetHoveredID (0);
       return true;
     }
   }

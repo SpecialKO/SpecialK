@@ -402,6 +402,29 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
   return handled;
 }
 
+using  SetThreadExecutionState_pfn = EXECUTION_STATE (WINAPI *)(EXECUTION_STATE esFlags);
+static SetThreadExecutionState_pfn
+       SetThreadExecutionState_Original = nullptr;
+
+EXECUTION_STATE
+WINAPI
+SetThreadExecutionState_Detour (EXECUTION_STATE esFlags)
+{
+  SK_LOG_FIRST_CALL
+
+  // SK has smarter control over this stuff, prevent games from using this...
+  //   reset any continuous state so we can micromanage screensaver activation
+  if (config.window.disable_screensaver || config.window.fullscreen_no_saver)
+  {
+    //SetThreadExecutionState_Original (0x0);
+
+    return 0x0;//esFlags;
+  }
+
+  return
+    SetThreadExecutionState_Original (esFlags);
+}
+
 // Parts of the Win32 API that are safe to hook from DLL Main
 void SK_Input_PreInit (void)
 {
@@ -425,6 +448,11 @@ void SK_Input_PreInit (void)
                              "mouse_event",
                               mouse_event_Detour,
      static_cast_p2p <void> (&mouse_event_Original) );
+
+  SK_CreateDLLHook2 (      L"kernel32",
+                            "SetThreadExecutionState",
+                             SetThreadExecutionState_Detour,
+    static_cast_p2p <void> (&SetThreadExecutionState_Original) );
 
   if (config.input.gamepad.hook_raw_input)
     SK_Input_HookRawInput ();

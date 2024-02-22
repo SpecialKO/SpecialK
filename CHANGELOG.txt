@@ -1,4 +1,18 @@
-﻿24.2.22.1
+﻿24.2.22.2
+=========
+ + Add Bluetooth Input-Only mode, to prevent removing DualShock 3 compatibility
+     mode from DualShock 4 / DualSense controllers; allows some games that
+       might not normally support PlayStation controllers over Bluetooth to work.
+
+    * This mode is pointless, and unwanted if using XInput Emulation. It is
+        intended for games that have native PlayStation controller support.
+
+      >> SK cannot set lights or use vibration in this mode unless you also
+           plug the controller in.
+
+     ] See the Battery icon in PlayStation control panel for more info.
+
+24.2.22.1
 =========
  + Show Bluetooth controller battery icon in Input Management control panel
      even if the controller is fully charged or an error has occurred, so
