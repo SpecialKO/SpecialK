@@ -851,8 +851,8 @@ SK_DrawOSD (void)
 
       if (config.fps.compact)
       {
-        OSD_PRINTF (gsync ? "%*hs%2.0f VRR\n"
-                          : "%*hs%2.0f\n"), left_padding, pad_str, fps
+        OSD_PRINTF (gsync && config.fps.compact_vrr ? "%*hs%2.0f VRR\n"
+                                                    : "%*hs%2.0f\n"), left_padding, pad_str, fps
         OSD_END
       }
 

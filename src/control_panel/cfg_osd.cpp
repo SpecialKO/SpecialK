@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -22,6 +22,7 @@
 #include <SpecialK/stdafx.h>
 
 #include <SpecialK/control_panel/osd.h>
+#include <SpecialK/nvapi.h>
 
 using namespace SK::ControlPanel;
 
@@ -160,6 +161,11 @@ SK::ControlPanel::OSD::Draw (void)
       }
 
       ImGui::SameLine   ();
+      if (config.fps.compact && sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+      {
+        ImGui::Checkbox ("VRR", &config.fps.compact_vrr);
+        ImGui::SameLine ();
+      }
       ImGui::Checkbox   ("Frame Number", &config.fps.framenumber);
       ImGui::EndGroup   ();
 

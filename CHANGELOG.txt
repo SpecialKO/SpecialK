@@ -1,4 +1,8 @@
-﻿24.2.22.2
+﻿24.2.22.3
+=========
+ + Made VRR status in Compact FPS mode (text OSD) a configurable OSD option
+
+24.2.22.2
 =========
  + Add Bluetooth Input-Only mode, to prevent removing DualShock 3 compatibility
      mode from DualShock 4 / DualSense controllers; allows some games that
