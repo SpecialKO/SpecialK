@@ -1256,6 +1256,64 @@ MessageProc ( const HWND&   hWnd,
   return false;
 };
 
+BOOL
+SK_Window_IsTopMostOnMonitor (HWND hWndToTest)
+{
+  BOOL     bWindowIsTopMostOnMonitor
+                          = TRUE;
+  HMONITOR hMonitorWindow = MonitorFromWindow (hWndToTest, MONITOR_DEFAULTTONEAREST);
+  HWND         hWndAbove  =
+    GetWindow (hWndToTest, GW_HWNDPREV);
+
+  std::set <HWND> hWndTopLevel,
+                  hWndTopLevelOnWindowMonitor;
+
+  EnumWindows ([](HWND hWnd, LPARAM lParam) -> BOOL
+  {
+    std::set <HWND>* pTopLevelSet =
+      (std::set <HWND> *)lParam;
+
+    if (pTopLevelSet != nullptr)
+        pTopLevelSet->emplace (hWnd);
+
+    return TRUE;
+  },      (LPARAM)&hWndTopLevel);
+  for (auto hWnd : hWndTopLevel)
+  {
+    RECT                  rcWindow = { };
+    GetWindowRect (hWnd, &rcWindow);
+
+    POINT pt = {
+      rcWindow.left + (rcWindow.right  - rcWindow.left) / 2,
+      rcWindow.top  + (rcWindow.bottom - rcWindow.top)  / 2
+    };
+
+    if (MonitorFromPoint (pt, MONITOR_DEFAULTTONEAREST) == hMonitorWindow)
+    {
+      if (WindowFromPoint (pt) == hWnd)
+      {
+        hWndTopLevelOnWindowMonitor.emplace (hWnd);
+      }
+    }
+  }
+
+  while (hWndAbove != nullptr && IsWindow (hWndAbove))
+  {
+    if (hWndTopLevelOnWindowMonitor.contains (hWndAbove) && IsWindowVisible (hWndAbove))
+    {  
+      bWindowIsTopMostOnMonitor = FALSE;
+
+      break;
+    }
+
+    hWndAbove =
+      GetWindow (hWndAbove, GW_HWNDPREV);
+  }
+
+  return
+    bWindowIsTopMostOnMonitor;
+}
+
 LRESULT
 WINAPI
 ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
@@ -1459,6 +1517,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
       case SC_SCREENSAVE:
       case SC_MONITORPOWER:
+      {
         //SK_LOG0 ( ( L"ImGui ImGui Examined SysCmd (SC_SCREENSAVE) or (SC_MONITORPOWER)" ),
         //            L"Window Mgr" );
         if (config.window.disable_screensaver)
@@ -1467,7 +1526,24 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
             return 1;
         }
 
-        if (SK_IsGameWindowActive ())
+        static bool bTopMostOnMonitor =
+          SK_Window_IsTopMostOnMonitor (game_window.hWnd);
+        static bool bForegroundChanged = false;
+
+        static HWND        hWndLastForeground = 0;
+        if (std::exchange (hWndLastForeground, SK_GetForegroundWindow ()) != SK_GetForegroundWindow ())
+                                  bForegroundChanged = true;
+
+        if (! SK_IsGameWindowActive ())
+        {
+          if (std::exchange (bForegroundChanged, false))
+          {
+            bTopMostOnMonitor = 
+              SK_Window_IsTopMostOnMonitor (game_window.hWnd);
+          }
+        }
+
+        if (SK_IsGameWindowActive () || bTopMostOnMonitor)
         {
           if (LOWORD (wParam & 0xFFF0) == SC_MONITORPOWER)
           {
@@ -1515,6 +1591,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
           DefWindowProcW (hWnd, msg, wParam, lParam);
 
         return 0;
+      }
 
       default:
         return 0;
