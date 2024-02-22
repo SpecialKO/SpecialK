@@ -423,7 +423,7 @@ SK_ImGui_CreateNotificationEx ( const char* szID,
       toast_cfg.contains_key           (L"ShowOnce") ?
         SK_IsTrue (toast_cfg.get_value (L"ShowOnce").c_str ()) ?
                                                           true : false
-                                                               : false;
+                                                               : flags & SK_ImGui_Toast::ShowOnce;
 
     if (bShowOnce) flags |=  SK_ImGui_Toast::ShowOnce;
     else           flags &= ~SK_ImGui_Toast::ShowOnce;
