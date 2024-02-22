@@ -1,4 +1,20 @@
-﻿24.2.21.6
+﻿24.2.22
+=======
+ + Added new Screensaver Behavior to disable the system screensaver while the
+     game's window is fullscreen and active.
+
+     * This mode is enabled by default, as that is the most sensible behavior...
+
+   >> Refer to Window Management | Input/Output Behavior | Screensaver Behavior
+
+ + Added a notification if SK has blocked screensaver activation because the game
+     is fully covering the monitor it is drawing on (i.e. fullscreen).
+
+ + Fixed notifications that are intended to be shown once, as indicated by use
+     of SK_ImGui_Toast::ShowOnce flag, not actually acquiring this property if
+       no notification INI entry exists for the notification type.
+
+24.2.21.6
 =========
  + Initialize SK_NtLdr_LockLoaderLock and SK_NtLdr_UnlockLoaderLock during
      MH_Initialize rather than deferring this until MH_ApplyQueuedHooks; avoids

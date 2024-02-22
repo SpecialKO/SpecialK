@@ -1057,6 +1057,7 @@ struct {
   sk::ParameterInt*       preferred_monitor_id    = nullptr; // Used if exact match cannot be found
   sk::ParameterStringW*   preferred_monitor_exact = nullptr;
   sk::ParameterBool*      disable_screensaver     = nullptr;
+  sk::ParameterBool*      fullscreen_no_saver     = nullptr;
   sk::ParameterBool*      dont_hook_wndproc       = nullptr;
   sk::ParameterBool*      activate_at_start       = nullptr;
   sk::ParameterBool*      treat_fg_as_active      = nullptr;
@@ -1617,6 +1618,7 @@ auto DeclKeybind =
     ConfigEntry (window.fix_mouse_coords,                L"Re-Compute Mouse Coordinates for Resized Windows",          dll_ini,         L"Window.System",         L"FixMouseCoords"),
     ConfigEntry (window.always_on_top,                   L"Prevent (0) or Force (1) a game's window Always-On-Top",    dll_ini,         L"Window.System",         L"AlwaysOnTop"),
     ConfigEntry (window.disable_screensaver,             L"Prevent the Windows Screensaver from activating",           dll_ini,         L"Window.System",         L"DisableScreensaver"),
+    ConfigEntry (window.fullscreen_no_saver,             L"Prevent the Windows Screensaver in (Borderless) Fullscreen",dll_ini,         L"Window.System",         L"DisableFullscreenSaver"),
     ConfigEntry (window.preferred_monitor_id,            L"GDI Monitor ID of Preferred Monitor",                       dll_ini,         L"Window.System",         L"PreferredMonitor"),
     ConfigEntry (window.preferred_monitor_exact,         L"CCD Display Path (invariant) of Preferred Monitor",         dll_ini,         L"Window.System",         L"PreferredMonitorExact"),
     ConfigEntry (window.dont_hook_wndproc,               L"Disable WndProc / ClassProc hooks (wrap instead of hook)",  dll_ini,         L"Window.System",         L"DontHookWndProc"),
@@ -4254,6 +4256,7 @@ auto DeclKeybind =
   window.fix_mouse_coords->load    (config.window.res.override.fix_mouse);
   window.always_on_top->load       (config.window.always_on_top);
   window.disable_screensaver->load (config.window.disable_screensaver);
+  window.fullscreen_no_saver->load (config.window.fullscreen_no_saver);
   window.dont_hook_wndproc->load   (config.window.dont_hook_wndproc);
   window.activate_at_start->load   (config.window.activate_at_start);
   window.treat_fg_as_active->load  (config.window.treat_fg_as_active);
@@ -5586,6 +5589,7 @@ SK_SaveConfig ( std::wstring name,
   window.fix_mouse_coords->store              (config.window.res.override.fix_mouse);
   window.always_on_top->store                 (config.window.always_on_top);
   window.disable_screensaver->store           (config.window.disable_screensaver);
+  window.fullscreen_no_saver->store           (config.window.fullscreen_no_saver);
   window.dont_hook_wndproc->store             (config.window.dont_hook_wndproc);
   window.activate_at_start->store             (config.window.activate_at_start);
   window.treat_fg_as_active->store            (config.window.treat_fg_as_active);

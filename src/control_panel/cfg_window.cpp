@@ -472,8 +472,42 @@ SK::ControlPanel::Window::Draw (void)
 
       SK_ImGui_CursorBoundaryConfig ();
 
-      ImGui::Checkbox ("Disable Screensaver", &config.window.disable_screensaver);
+      ImGui::Text     ("Screensaver Behavior");
+      ImGui::TreePush ("");
 
+      int screensaver_opt =
+        config.window.disable_screensaver ? 2
+                                          :
+        config.window.fullscreen_no_saver ? 1
+                                          : 0;
+
+      if ( ImGui::Combo ( "###Screensaver_Behavior", &screensaver_opt,
+                          "Game Default\0"
+                          "Disable in (Borderless) Fullscreen\0"
+                          "Always Disable While Running\0\0",
+                            3 ) )
+      {
+        switch (screensaver_opt)
+        {
+          default:
+          case 0:
+            config.window.disable_screensaver = false;
+            config.window.fullscreen_no_saver = false;
+            break;
+          case 1:
+            config.window.disable_screensaver = false;
+            config.window.fullscreen_no_saver = true;
+            break;
+          case 2:
+            config.window.disable_screensaver = true;
+            config.window.fullscreen_no_saver = true;
+            break;
+        }
+
+        config.utility.save_async ();
+      }
+
+      ImGui::TreePop ();
       ImGui::TreePop ();
     }
 

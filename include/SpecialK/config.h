@@ -1075,6 +1075,7 @@ struct sk_config_t
     bool    fullscreen          = false;
     bool    multi_monitor_mode  = false;
     bool    disable_screensaver = false;
+    bool    fullscreen_no_saver =  true; // In Fullscreen, disable screensaver?
     bool    treat_fg_as_active  = false; // Compat. hack for NiNoKuni 2
     bool    dont_hook_wndproc   = false;
     bool    activate_at_start   = false;

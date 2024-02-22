@@ -1474,6 +1474,41 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
             if (lParam != -1) // No power saving when active window, that's silly
               return 1;
           }
+
+          if (config.window.fullscreen_no_saver)
+          {
+            if (LOWORD (wParam & 0xFFF0) == SC_SCREENSAVE)
+            {
+              static auto& rb =
+                SK_GetCurrentRenderBackend ();
+
+              auto& display =
+                rb.displays [rb.active_display];
+
+              if (game_window.actual.window.left   == display.rect.left   &&
+                  game_window.actual.window.right  == display.rect.right  &&
+                  game_window.actual.window.bottom == display.rect.bottom &&
+                  game_window.actual.window.top    == display.rect.top)
+              {
+                if (lParam != -1)
+                {
+                  SK_ImGui_CreateNotification (
+                    "Screensaver.Ignored", SK_ImGui_Toast::Info,
+                    "Screensaver Ignored",
+                    "Screensaver activation has been blocked because the game is "
+                    "running in (Borderless) Fullscreen.",
+                      15000UL,
+                        SK_ImGui_Toast::UseDuration |
+                        SK_ImGui_Toast::ShowCaption |
+                        SK_ImGui_Toast::ShowTitle   |
+                        SK_ImGui_Toast::ShowOnce
+                  );
+
+                  return 1;
+                }
+              }
+            }
+          }
         }
 
         if (lParam == -1) // Pass it through, always
