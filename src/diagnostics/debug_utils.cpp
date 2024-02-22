@@ -2163,29 +2163,6 @@ ZwCreateThreadEx_Detour (
     }
   }
 
-  ulLen =
-    SK_GetSymbolNameFromModuleAddr (
-      hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
-        szSymbol, ulLen );
-
-  if (ulLen > 0)
-  {
-    sprintf ( thread_name, "%s+%s",
-                SK_WideCharToUTF8 (
-                  SK_GetCallerName (StartRoutine)
-                ).c_str (), szSymbol
-    );
-  }
-
-  else
-  {
-    sprintf ( thread_name, "%s",
-                SK_WideCharToUTF8 (
-                  SK_GetCallerName (StartRoutine)
-                ).c_str ()
-    );
-  }
-
   BOOL Suspicious = FALSE;
 
   if ( CreateFlags &   THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER )
@@ -2222,6 +2199,29 @@ ZwCreateThreadEx_Detour (
     if ( ThreadNames.find (tid) ==
          ThreadNames.cend (   ) )
     {
+      ulLen =
+        SK_GetSymbolNameFromModuleAddr (
+          hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
+            szSymbol, ulLen );
+
+      if (ulLen > 0)
+      {
+        sprintf ( thread_name, "%s+%s",
+                    SK_WideCharToUTF8 (
+                      SK_GetCallerName (StartRoutine)
+                    ).c_str (), szSymbol
+        );
+      }
+
+      else
+      {
+        sprintf ( thread_name, "%s",
+                    SK_WideCharToUTF8 (
+                      SK_GetCallerName (StartRoutine)
+                    ).c_str ()
+        );
+      }
+
       std::wstring thr_name (
         SK_UTF8ToWideChar   (
         thread_name       )
@@ -2339,34 +2339,6 @@ NtCreateThreadEx_Detour (
     }
   }
 
-  ulLen =
-    SK_GetSymbolNameFromModuleAddr (
-      hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
-        szSymbol, ulLen
-    );
-
-  if (ulLen > 0)
-  {
-    sprintf ( thread_name, "%s+%s",
-                SK_WideCharToUTF8 (
-                  SK_GetCallerName (StartRoutine)
-                ).c_str (), szSymbol
-    );
-  }
-
-  else
-  {
-    sprintf ( thread_name, "%s",
-                SK_WideCharToUTF8 (
-                  SK_GetCallerName (StartRoutine)
-                ).c_str ()
-    );
-  }
-
-
-
-
-
   BOOL Suspicious = FALSE;
 
   if ( CreateFlags &   THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER )
@@ -2403,6 +2375,30 @@ NtCreateThreadEx_Detour (
     if ( ThreadNames.find (tid) ==
          ThreadNames.cend (   ) )
     {
+      ulLen =
+        SK_GetSymbolNameFromModuleAddr (
+          hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
+            szSymbol, ulLen
+        );
+
+      if (ulLen > 0)
+      {
+        sprintf ( thread_name, "%s+%s",
+                    SK_WideCharToUTF8 (
+                      SK_GetCallerName (StartRoutine)
+                    ).c_str (), szSymbol
+        );
+      }
+
+      else
+      {
+        sprintf ( thread_name, "%s",
+                    SK_WideCharToUTF8 (
+                      SK_GetCallerName (StartRoutine)
+                    ).c_str ()
+        );
+      }
+
       std::wstring thr_name (
         SK_UTF8ToWideChar   (
         thread_name       )

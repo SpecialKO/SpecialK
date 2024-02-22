@@ -852,12 +852,12 @@ HidD_GetFeature_Detour ( _In_  HANDLE HidDeviceObject,
 
   if (SK_ImGui_WantGamepadCapture ())
   {
-    if (HidD_GetPreparsedData_Original (HidDeviceObject, &pData))
+    if (SK_HidD_GetPreparsedData (HidDeviceObject, &pData))
     {
       if (SK_HID_FilterPreparsedData (pData))
         filter = true;
 
-      HidD_FreePreparsedData_Original (pData);
+      SK_HidD_FreePreparsedData (pData);
     }
   }
 
