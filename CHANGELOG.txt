@@ -1,4 +1,18 @@
-﻿24.2.22
+﻿24.2.22.1
+=========
+ + Show Bluetooth controller battery icon in Input Management control panel
+     even if the controller is fully charged or an error has occurred, so
+       that users can click it to disconnect the Bluetooth controller.
+ + Improved ability to deal with multiple PlayStation controllers, including
+     different types connected at the same time.
+ + Added +666 ms input activity timestamp to all Bluetooth controllers when
+     deciding which controller had the most recent input.
+     
+   * This ensures that the same device connected via USB and Bluetooth
+       simultaneously never registers duplicate inputs if HID input reports
+         are processed out-of-order.
+
+24.2.22
 =======
  + Added new Screensaver Behavior to disable the system screensaver while the
      game's window is fullscreen and active.

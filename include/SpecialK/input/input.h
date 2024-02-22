@@ -759,7 +759,7 @@ BOOL (WINAPI *)(HANDLE       hFile,
                 LPOVERLAPPED lpOverlapped,
                 LPDWORD      lpNumberOfBytesTransferred,
                 DWORD        dwMilliseconds,
-                BOOL         bWait);
+                BOOL         bAlertable);
 
 using CancelIoEx_pfn =
 BOOL (WINAPI *)(HANDLE       hFile,
@@ -791,6 +791,7 @@ extern WriteFile_pfn              SK_WriteFile;
 extern CreateFileW_pfn            SK_CreateFileW;
 extern CreateFile2_pfn            SK_CreateFile2;
 extern GetOverlappedResult_pfn    SK_GetOverlappedResult;
+extern GetOverlappedResultEx_pfn  SK_GetOverlappedResultEx;
 extern CancelIoEx_pfn             SK_CancelIoEx;
 
 using SetupDiDestroyDeviceInfoList_pfn = BOOL (WINAPI *)(
@@ -950,7 +951,7 @@ struct SK_HID_PlayStationDevice
   struct hid_to_xi {
     XINPUT_STATE prev_report  = { };
     XINPUT_STATE report       = { };
-    DWORD        time_sampled =  0 ;
+    UINT64       last_active  =  0 ;
   } xinput;
 
   std::vector <button_s>        buttons;

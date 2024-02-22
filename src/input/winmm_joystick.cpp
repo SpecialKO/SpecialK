@@ -79,35 +79,31 @@ struct SK_WINMM_joyGetPosExHistory
     if (auto                  currentTimeInMs = SK_timeGetTime ();
         record.dwLastTested < currentTimeInMs - _TimeBetweenTestsInMs)
     {
-      JOYINFOEX joyInfo =
-        { .dwSize  = sizeof (JOYINFOEX),
-          .dwFlags = JOY_RETURNRAWDATA };
-
-      // This API can crash during Bluetooth device removal, just swallow
-      //   exceptions; the API is rarely used and this is the best action.
-
-      //  KernelBase.dll!LocalReAlloc()	Unknown	Symbols loaded.
-      // 	dinput.dll!_ReallocCbPpv@8()	Unknown	Symbols loaded.
-      // 	dinput.dll!_DIHid_BuildHidListEntry@8()	Unknown	Symbols loaded.
-      // 	dinput.dll!_DIHid_BuildHidList@4()	Unknown	Symbols loaded.
-      // 	dinput.dll!_hResIdJoypInstanceGUID_WDM@8()	Unknown	Symbols loaded.
-      // 	dinput.dll!_JoyReg_GetConfig@16()	Unknown	Symbols loaded.
-      // 	dinput.dll!_CJoyCfg_GetConfig@16()	Unknown	Symbols loaded.
-      // 	winmm.dll!_joyOpen@8()	Unknown	Symbols loaded.
-      // 	winmm.dll!_joyGetPosEx@8()	Unknown	Symbols loaded.
-      // 	GameOverlayRenderer.dll!569a0981()	Unknown	Non-user code.
-
       __try {
-        record.lastResult =
-          joyGetPosEx_Original (uJoyID, &joyInfo);
+        JOYCAPSW joy_caps   = { };
         record.dwLastTested = currentTimeInMs;
+        record.lastResult   =
+          SK_joyGetDevCapsW (uJoyID, &joy_caps, sizeof (JOYCAPSW));
+
+        // This API enumerates random devices that don't qualify as gamepads;
+        //   if there is no D-Pad _AND_ fewer than 4 buttons, then ignore it.
+        bool bInvalidController =
+          (! (joy_caps.wCaps & JOYCAPS_POV4DIR)) ||
+              joy_caps.wNumButtons < 4;
+
+        if (bInvalidController)
+        {
+          record.dwLastTested = currentTimeInMs + _TimeBetweenTestsInMs;
+          record.lastResult   = JOYERR_NOCANDO;
+        }
       }
 
       __except (EXCEPTION_EXECUTE_HANDLER)
       {
         SK_LOGi0 (L"Swallowed a Structured Exception During joyGetPosEx!");
 
-        record.lastResult = JOYERR_NOCANDO;
+        record.dwLastTested = currentTimeInMs + _TimeBetweenTestsInMs;
+        record.lastResult   = JOYERR_NOCANDO;
       }
 
       // Offset the time by a random fractional amount so that games
@@ -127,6 +123,7 @@ struct SK_WINMM_joyGetPosExHistory
 concurrency::concurrent_unordered_map <
   UINT, SK_WINMM_joyGetPosExHistory::test_record_s
 >       SK_WINMM_joyGetPosExHistory::_records;
+
 
 MMRESULT
 WINAPI

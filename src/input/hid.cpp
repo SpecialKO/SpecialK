@@ -985,12 +985,13 @@ static CreateFileA_pfn CreateFileA_Original = nullptr;
 static CreateFileW_pfn CreateFileW_Original = nullptr;
 static CreateFile2_pfn CreateFile2_Original = nullptr;
 
-CreateFileW_pfn                 SK_CreateFileW = nullptr;
-CreateFile2_pfn                 SK_CreateFile2 = nullptr;
-ReadFile_pfn                       SK_ReadFile = nullptr;
-WriteFile_pfn                     SK_WriteFile = nullptr;
-CancelIoEx_pfn                   SK_CancelIoEx = nullptr;
-GetOverlappedResult_pfn SK_GetOverlappedResult = nullptr;
+CreateFileW_pfn                     SK_CreateFileW = nullptr;
+CreateFile2_pfn                     SK_CreateFile2 = nullptr;
+ReadFile_pfn                           SK_ReadFile = nullptr;
+WriteFile_pfn                         SK_WriteFile = nullptr;
+CancelIoEx_pfn                       SK_CancelIoEx = nullptr;
+GetOverlappedResult_pfn     SK_GetOverlappedResult = nullptr;
+GetOverlappedResultEx_pfn SK_GetOverlappedResultEx = nullptr;
 
 BOOL
 WINAPI
@@ -2025,10 +2026,11 @@ SK_Input_HookHID (void)
                                GetOverlappedResultEx_Detour,
       static_cast_p2p <void> (&GetOverlappedResultEx_Original) );
 
-    SK_CreateFile2         = CreateFile2_Original;
-    SK_CreateFileW         = CreateFileW_Original;
-    SK_ReadFile            = ReadFile_Original;
-    SK_GetOverlappedResult = GetOverlappedResult_Original;
+    SK_CreateFile2           = CreateFile2_Original;
+    SK_CreateFileW           = CreateFileW_Original;
+    SK_ReadFile              = ReadFile_Original;
+    SK_GetOverlappedResult   = GetOverlappedResult_Original;
+    SK_GetOverlappedResultEx = GetOverlappedResultEx_Original;
 
     if (ReadAcquire (&__SK_Init) > 0) SK_ApplyQueuedHooks ();
 
@@ -2229,6 +2231,10 @@ SK_Input_PreHookHID (void)
   SK_GetOverlappedResult =
     (GetOverlappedResult_pfn)SK_GetProcAddress (hModKernel32,
     "GetOverlappedResult");
+
+  SK_GetOverlappedResultEx =
+    (GetOverlappedResultEx_pfn)SK_GetProcAddress (hModKernel32,
+    "GetOverlappedResultEx");
 
   SK_SetupDiGetClassDevsW =
     (SetupDiGetClassDevsW_pfn)SK_GetProcAddress (hModSetupAPI,
@@ -2928,6 +2934,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                dwLastErr != ERROR_IO_PENDING     &&
                dwLastErr != ERROR_INVALID_HANDLE &&
                dwLastErr != ERROR_NO_SUCH_DEVICE &&
+               dwLastErr != ERROR_NOT_READY      &&
                dwLastErr != ERROR_DEVICE_NOT_CONNECTED )
           {
             _com_error err (
@@ -2938,7 +2945,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
             SK_LOGs0 (
               L"InputBkEnd",
-              L"SK_ReadFile ({%ws}) failed, Error=%d [%ws]",
+              L"SK_ReadFile ({%ws}, InputReport) failed, Error=%d [%ws]",
                 pDevice->wszDevicePath, dwLastErr,
                   err.ErrorMessage ()
             );
@@ -2978,16 +2985,32 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   pDevice->hDeviceFile, &async_input_request,
                     &dwBytesTransferred, TRUE ) )
           {
+            DWORD dwLastErr =
+              GetLastError ();
+
             // Stop polling on the first failure, if the device comes back to life, we'll probably
             //   get a device arrival notification.
             if (GetLastError () != NOERROR)
+            {
+              // We have an event that will be signalled when the device reconnects...
+              if (dwLastErr != ERROR_DEVICE_NOT_CONNECTED)
+              {
+                _com_error err (dwLastErr);
+
+                SK_LOGs0 (
+                  L"InputBkEnd",
+                  L"SK_GetOverlappedResult ({%ws}, InputReport) failed, Error=%d [%ws]",
+                    pDevice->wszDevicePath, dwLastErr,
+                      err.ErrorMessage ()
+                );
+              }
+
               continue;
+            }
           }
 
           if (dwBytesTransferred != 0)
           {
-            pDevice->xinput.time_sampled = SK_timeGetTime ();
-
             if (pDevice->pPreparsedData == nullptr)
             {
               SK_ReleaseAssert (pDevice->pPreparsedData != nullptr);
@@ -3572,10 +3595,103 @@ SK_HID_PlayStationDevice::request_input_report (void)
               }
             }
 
+            if ( pDevice->bDualSense ||
+                 pDevice->bDualShock4 )
+            {
+              if (pDevice->buttons [ 0].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+              if (pDevice->buttons [ 1].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+              if (pDevice->buttons [ 2].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+              if (pDevice->buttons [ 3].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+
+              if (pDevice->buttons [ 4].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+              if (pDevice->buttons [ 5].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+              if (pDevice->buttons [ 6].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+              if (pDevice->buttons [ 7].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+
+              if (pDevice->buttons [ 8].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+              if (pDevice->buttons [ 9].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+
+              if (pDevice->buttons [10].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+              if (pDevice->buttons [11].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+            }
+
+            // Dual Shock 3
+            else if (pDevice->bDualShock3)
+            {
+              if (pDevice->buttons [ 0].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+              if (pDevice->buttons [ 1].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+              if (pDevice->buttons [ 2].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+              if (pDevice->buttons [ 3].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+
+              if (pDevice->buttons [ 4].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+              if (pDevice->buttons [ 5].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+              if (pDevice->buttons [ 6].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+              if (pDevice->buttons [ 7].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+
+              if (pDevice->buttons [ 8].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+              if (pDevice->buttons [ 9].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+
+              if (pDevice->buttons [10].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+              if (pDevice->buttons [11].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+            }
+
+            if (pDevice->buttons.size () >= 13 &&
+                pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+
+            bool bIsInputActive = false;
+
+            // Button states should repeat
+            if (pDevice->xinput.report.Gamepad.wButtons != 0x0)
+              bIsInputActive = true;
+
+            if (abs (pDevice->xinput.report.Gamepad.sThumbLX) > (XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE * 2)  ||
+                abs (pDevice->xinput.report.Gamepad.sThumbLY) > (XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE * 2)  ||
+                abs (pDevice->xinput.report.Gamepad.sThumbRX) > (XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE * 2) ||
+                abs (pDevice->xinput.report.Gamepad.sThumbRY) > (XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE * 2) ||
+                     pDevice->xinput.report.Gamepad.bLeftTrigger  > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ||
+                     pDevice->xinput.report.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+            {
+              bIsInputActive = true;
+            }
+
+            if ( memcmp ( &pDevice->xinput.prev_report.Gamepad,
+                          &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD)) )
+            {
+              pDevice->xinput.report.dwPacketNumber++;
+              pDevice->xinput.prev_report = pDevice->xinput.report;
+            }
+
+            if (bIsInputActive)
+            {
+              pDevice->xinput.last_active = SK_QueryPerf ().QuadPart;
+
+              // Give Bluetooth devices a +666 ms advantage
+              if (pDevice->bBluetooth)
+                  pDevice->xinput.last_active += (2 * (SK_PerfFreq / 3));
+            }
+
+
+            bool bIsDeviceMostRecentlyActive = true;
+
+            for ( auto& ps_controller : SK_HID_PlayStationControllers )
+            {
+              if (ps_controller.xinput.last_active > pDevice->xinput.last_active)
+              {
+                bIsDeviceMostRecentlyActive = false;
+                break;
+              }
+            }
+
+            //
             // Do not do in the background unless bg input is enabled
+            //
+            //   Also only allow input from the most recently active device,
+            //     in case we're reading the same controller over
+            //       Bluetooth and USB...
+            //
             const bool bAllowSpecialButtons =
               ( config.input.gamepad.disabled_to_game == 0 ||
-                  SK_IsGameWindowActive () ) && ((! bHasBluetooth) || pDevice->bBluetooth);
+                  SK_IsGameWindowActive () ) && bIsDeviceMostRecentlyActive;
 
             if ( config.input.gamepad.scepad.enhanced_ps_button &&
                                  pDevice->buttons.size () >= 13 &&
@@ -3621,58 +3737,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
               }
             }
 
-            if ( pDevice->bDualSense ||
-                 pDevice->bDualShock4 )
-            {
-              if (pDevice->buttons [ 0].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
-              if (pDevice->buttons [ 1].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
-              if (pDevice->buttons [ 2].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
-              if (pDevice->buttons [ 3].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
-
-              if (pDevice->buttons [ 4].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
-              if (pDevice->buttons [ 5].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
-              if (pDevice->buttons [ 6].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
-              if (pDevice->buttons [ 7].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
-
-              if (pDevice->buttons [ 8].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
-              if (pDevice->buttons [ 9].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
-
-              if (pDevice->buttons [10].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
-              if (pDevice->buttons [11].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
-            }
-
-            // Dual Shock 3
-            else if (pDevice->bDualShock3)
-            {
-              if (pDevice->buttons [ 0].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
-              if (pDevice->buttons [ 1].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
-              if (pDevice->buttons [ 2].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
-              if (pDevice->buttons [ 3].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
-
-              if (pDevice->buttons [ 4].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
-              if (pDevice->buttons [ 5].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
-              if (pDevice->buttons [ 6].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
-              if (pDevice->buttons [ 7].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
-
-              if (pDevice->buttons [ 8].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
-              if (pDevice->buttons [ 9].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
-
-              if (pDevice->buttons [10].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
-              if (pDevice->buttons [11].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
-            }
-
-            if (pDevice->buttons.size () >= 13 &&
-                pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
-
-            //if ((! bHasBluetooth) || pDevice->bBluetooth)
-            {
-              if ( memcmp ( &pDevice->xinput.prev_report.Gamepad,
-                            &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD)) )
-              {
-                pDevice->xinput.report.dwPacketNumber++;
-                pDevice->xinput.prev_report = pDevice->xinput.report;
-              }
-            }
 
             for ( auto& button : pDevice->buttons )
             {
@@ -4121,17 +4185,14 @@ SK_HID_PlayStationDevice::write_output_report (void)
                  dwLastErr != ERROR_IO_PENDING     &&
                  dwLastErr != ERROR_INVALID_HANDLE &&
                  dwLastErr != ERROR_NO_SUCH_DEVICE &&
+                 dwLastErr != ERROR_NOT_READY      &&
                  dwLastErr != ERROR_DEVICE_NOT_CONNECTED )
             {
-              _com_error err (
-                _com_error::WCodeToHRESULT (
-                  sk::narrow_cast <WORD> (dwLastErr)
-                )
-              );
+              _com_error err (dwLastErr);
 
               SK_LOGs0 (
                 L"InputBkEnd",
-                L"SK_WriteFile ({%ws}) failed, Error=%d [%ws]",
+                L"SK_WriteFile ({%ws}, OutputReport) failed, Error=%d [%ws]",
                   pDevice->wszDevicePath, dwLastErr,
                     err.ErrorMessage ()
               );
@@ -4142,7 +4203,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
               if (dwLastErr != ERROR_INVALID_HANDLE)
                 SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
 
-              SK_SleepEx (250UL, TRUE); // Prevent runaway CPU usage on failure
+              SK_SleepEx (125UL, TRUE); // Prevent runaway CPU usage on failure
 
               SetEvent (pDevice->hOutputFinished);
               continue;
@@ -4150,33 +4211,36 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
             else
             {
-              DWORD                                                                       dwBytesRead = 0x0;
-              if (! SK_GetOverlappedResult (pDevice->hDeviceFile, &async_output_request, &dwBytesRead, FALSE))
+              DWORD                                                                         dwBytesRead = 0x0;
+              if (! SK_GetOverlappedResultEx (pDevice->hDeviceFile, &async_output_request, &dwBytesRead, 100UL, FALSE))
               {
                 dwLastErr = GetLastError ();
 
-                if (dwLastErr != NOERROR)
+                if (dwLastErr != ERROR_IO_PENDING && dwLastErr != NOERROR)
                 {
                   if (dwLastErr != ERROR_IO_INCOMPLETE)
                   {
-                    _com_error err (
-                      _com_error::WCodeToHRESULT (
-                        sk::narrow_cast <WORD> (dwLastErr)
-                      )
-                    );
+                    if (dwLastErr != ERROR_NOT_READY      &&
+                        dwLastErr != WAIT_TIMEOUT         &&
+                        dwLastErr != ERROR_GEN_FAILURE    &&   // Happens during power-off
+                        dwLastErr != ERROR_OPERATION_ABORTED ) // Happens during power-off
+                    {
+                      _com_error err (dwLastErr);
 
-                    SK_LOGs0 (
-                      L"InputBkEnd",
-                      L"SK_GetOverlappedResult ({%ws}) failed, Error=%d [%ws]",
-                        pDevice->wszDevicePath, dwLastErr,
-                          err.ErrorMessage ()
-                    );
+                      SK_LOGs0 (
+                        L"InputBkEnd",
+                        L"SK_GetOverlappedResultEx ({%ws}, OutputReport) failed, Error=%d [%ws]",
+                          pDevice->wszDevicePath, dwLastErr,
+                            err.ErrorMessage ()
+                      );
+                    }
 
                     if (dwLastErr != ERROR_INVALID_HANDLE && dwLastErr != NOERROR)
                       SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
-                  }
 
-                  SK_SleepEx (15UL, TRUE); // Prevent runaway CPU usage on failure
+                    if (dwLastErr == ERROR_GEN_FAILURE || dwLastErr == ERROR_OPERATION_ABORTED)
+                      SK_SleepEx (150UL, TRUE);
+                  }
 
                   SetEvent (pDevice->hOutputFinished);
                   continue;
@@ -4207,7 +4271,6 @@ SK_HID_PlayStationDevice::write_output_report (void)
     return true;
   }
 
-                          // Bluetooth isn't working yet...
   else if (bDualShock4)
   {
     if (! bBluetooth)
@@ -4519,21 +4582,20 @@ SK_HID_PlayStationDevice::write_output_report (void)
                  GetLastError ();
 
             // Invalid Handle and Device Not Connected get a 250 ms cooldown
-            if ( dwLastErr != NOERROR              &&
-                 dwLastErr != ERROR_IO_PENDING     &&
-                 dwLastErr != ERROR_INVALID_HANDLE &&
-                 dwLastErr != ERROR_NO_SUCH_DEVICE &&
+            if ( dwLastErr != NOERROR                 &&
+                 dwLastErr != ERROR_GEN_FAILURE       && // Happens during power-off
+                 dwLastErr != ERROR_IO_PENDING        &&
+                 dwLastErr != ERROR_INVALID_HANDLE    &&
+                 dwLastErr != ERROR_NO_SUCH_DEVICE    &&
+                 dwLastErr != ERROR_NOT_READY         &&
+                 dwLastErr != ERROR_OPERATION_ABORTED && // Happens during power-off
                  dwLastErr != ERROR_DEVICE_NOT_CONNECTED )
             {
-              _com_error err (
-                _com_error::WCodeToHRESULT (
-                  sk::narrow_cast <WORD> (dwLastErr)
-                )
-              );
+              _com_error err (dwLastErr);
 
               SK_LOGs0 (
                 L"InputBkEnd",
-                L"SK_WriteFile ({%ws}) failed, Error=%d [%ws]",
+                L"SK_WriteFile ({%ws}, OutputReport) failed, Error=%d [%ws]",
                   pDevice->wszDevicePath, dwLastErr,
                     err.ErrorMessage ()
               );
@@ -4544,7 +4606,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
               if (dwLastErr != ERROR_INVALID_HANDLE)
                 SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
 
-              SK_SleepEx (250UL, TRUE); // Prevent runaway CPU usage on failure
+              SK_SleepEx (125UL, TRUE); // Prevent runaway CPU usage on failure
 
               SetEvent (pDevice->hOutputFinished);
               continue;
@@ -4552,33 +4614,36 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
             else
             {
-              DWORD                                                                       dwBytesRead = 0x0;
-              if (! SK_GetOverlappedResult (pDevice->hDeviceFile, &async_output_request, &dwBytesRead, FALSE))
+              DWORD                                                                         dwBytesRead = 0x0;
+              if (! SK_GetOverlappedResultEx (pDevice->hDeviceFile, &async_output_request, &dwBytesRead, 100UL, FALSE))
               {
                 dwLastErr = GetLastError ();
 
-                if (dwLastErr != NOERROR)
+                if (dwLastErr != ERROR_IO_PENDING && dwLastErr != NOERROR)
                 {
                   if (dwLastErr != ERROR_IO_INCOMPLETE)
                   {
-                    _com_error err (
-                      _com_error::WCodeToHRESULT (
-                        sk::narrow_cast <WORD> (dwLastErr)
-                      )
-                    );
+                    if (dwLastErr != ERROR_NOT_READY      &&
+                        dwLastErr != WAIT_TIMEOUT         &&
+                        dwLastErr != ERROR_GEN_FAILURE    &&   // Happens during power-off
+                        dwLastErr != ERROR_OPERATION_ABORTED ) // Happens during power-off
+                    {
+                      _com_error err (dwLastErr);
 
-                    SK_LOGs0 (
-                      L"InputBkEnd",
-                      L"SK_GetOverlappedResult ({%ws}) failed, Error=%d [%ws]",
-                        pDevice->wszDevicePath, dwLastErr,
-                          err.ErrorMessage ()
-                    );
+                      SK_LOGs0 (
+                        L"InputBkEnd",
+                        L"SK_GetOverlappedResultEx ({%ws}, OutputReport) failed, Error=%d [%ws]",
+                          pDevice->wszDevicePath, dwLastErr,
+                            err.ErrorMessage ()
+                      );
+                    }
 
                     if (dwLastErr != ERROR_INVALID_HANDLE && dwLastErr != NOERROR)
                       SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
-                  }
 
-                  SK_SleepEx (15UL, TRUE); // Prevent runaway CPU usage on failure
+                    if (dwLastErr == ERROR_GEN_FAILURE || dwLastErr == ERROR_OPERATION_ABORTED)
+                      SK_SleepEx (150UL, TRUE);
+                  }
 
                   SetEvent (pDevice->hOutputFinished);
                   continue;

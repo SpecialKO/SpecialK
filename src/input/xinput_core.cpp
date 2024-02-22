@@ -450,7 +450,6 @@ XInputGetState1_4_Detour (
     if (dwUserIndex == 0 && SK_HID_PlayStationControllers.size () > 0)
     {
       SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
-      SK_HID_PlayStationDevice *pBluetoothDevice   = nullptr;
 
       bool
       SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
@@ -461,19 +460,12 @@ XInputGetState1_4_Detour (
         if (controller.bConnected)
         {
           if (pNewestInputDevice == nullptr ||
-              pNewestInputDevice->xinput.time_sampled <= controller.xinput.time_sampled ||
-                                                         controller.bBluetooth)
+              pNewestInputDevice->xinput.last_active <= controller.xinput.last_active)
           {
             pNewestInputDevice = &controller;
           }
-
-          if (controller.bBluetooth)
-            pBluetoothDevice = &controller;
         }
       }
-
-      if (pBluetoothDevice != nullptr && pBluetoothDevice->bConnected)
-          pNewestInputDevice = pBluetoothDevice;
 
       if (pNewestInputDevice != nullptr)
       {
@@ -617,7 +609,6 @@ XInputGetStateEx1_4_Detour (
     if (dwUserIndex == 0 && SK_HID_PlayStationControllers.size () > 0)
     {
       SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
-      SK_HID_PlayStationDevice *pBluetoothDevice   = nullptr;
 
       XINPUT_STATE _state = { };
 
@@ -630,19 +621,12 @@ XInputGetStateEx1_4_Detour (
         if (controller.bConnected)
         {
           if (pNewestInputDevice == nullptr ||
-              pNewestInputDevice->xinput.time_sampled <= controller.xinput.time_sampled ||
-                                                         controller.bBluetooth)
+              pNewestInputDevice->xinput.last_active <= controller.xinput.last_active)
           {
             pNewestInputDevice = &controller;
           }
-
-          if (controller.bBluetooth)
-            pBluetoothDevice = &controller;
         }
       }
-
-      if (pBluetoothDevice != nullptr && pBluetoothDevice->bConnected)
-          pNewestInputDevice = pBluetoothDevice;
 
       if (pNewestInputDevice != nullptr)
       {

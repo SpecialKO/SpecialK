@@ -7380,8 +7380,10 @@ SK_ImGui_StageNextFrame (void)
   }
 
 
-  auto _PerformExit = [](void)
+  bool _TriedToExit = false;
+  auto _PerformExit = [&](void)
   {
+    _TriedToExit = true;
     SK_SelfDestruct     (   );
     SK_TerminateProcess (0x0);
     ExitProcess         (0x0);
@@ -7398,6 +7400,14 @@ SK_ImGui_StageNextFrame (void)
       _PerformExit ();
 
     SK_ImGui_WantExit = false;
+  }
+
+  // ImGui's been destroyed, abort if we somehow got this far!
+  if (_TriedToExit)
+  {
+    SK_ImGui_WantExit = true;
+    imgui_staged      = true;
+    return;
   }
 
   if ( ImGui::BeginPopupModal ( SK_ImGui_WantRestart ?

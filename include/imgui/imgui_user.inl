@@ -1570,13 +1570,11 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
                 {
                   SK_ImGui_CreateNotification (
                     "Screensaver.Ignored", SK_ImGui_Toast::Info,
-                    "Screensaver Ignored",
                     "Screensaver activation has been blocked because the game is "
-                    "running in (Borderless) Fullscreen.",
+                    "running in (Borderless) Fullscreen.", nullptr,
                       15000UL,
                         SK_ImGui_Toast::UseDuration |
                         SK_ImGui_Toast::ShowCaption |
-                        SK_ImGui_Toast::ShowTitle   |
                         SK_ImGui_Toast::ShowOnce
                   );
 
@@ -2100,8 +2098,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
   static XINPUT_STATE last_state = { 1, 0 };
 
-  bool api_bridge =
-      config.input.gamepad.native_ps4;
+  hid_to_xi.Gamepad = { };
 
   bool bHasPlayStation = false;
 
@@ -2109,75 +2106,48 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
   {
     SK_RunOnce (SK_HID_SetupPlayStationControllers ());
 
-    hid_to_xi.Gamepad = { };
-
-    bool bHasBluetooth = false;
+    // Figure out the most recent controller with activity
+    UINT64                  ullLastActiveTimestamp  = 0ULL;
+    SK_HID_PlayStationDevice *pLastActiveController = nullptr;
 
     for ( auto& ps_controller : SK_HID_PlayStationControllers )
     {
       if (ps_controller.bConnected)
       {
-        if (ps_controller.bBluetooth && ps_controller.xinput.time_sampled > SK_timeGetTime () - 250UL)
-          bHasBluetooth = true;
+        if (ps_controller.request_input_report ())
+        {
+          if (ps_controller.xinput.last_active >= ullLastActiveTimestamp)
+          {
+            ullLastActiveTimestamp = ps_controller.xinput.last_active;
+            pLastActiveController  = &ps_controller;
+          }
+
+          if ( config.input.gamepad.xinput.ui_slot >= 0 &&
+               config.input.gamepad.xinput.ui_slot <  4 )
+          { // Use the HID data to control the UI
+            bHasPlayStation = true;
+          }
+        }
       }
     }
 
-    DWORD dwLastSampled = 0;
-
-    for ( auto& ps_controller : SK_HID_PlayStationControllers )
+    if (pLastActiveController != nullptr)
     {
-      if (ps_controller.bConnected)
+      hid_to_xi = pLastActiveController->xinput.prev_report;
+
+      if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate)
       {
-        if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate)
-        {
-          ps_controller.write_output_report ();
-        }
-
-        if (ps_controller.request_input_report ())
-        {
-          if (ps_controller.xinput.prev_report.dwPacketNumber >= hid_to_xi.dwPacketNumber)
-          {
-            if (ps_controller.xinput.time_sampled > dwLastSampled)
-            {
-              if (    (bHasBluetooth &&    ps_controller.bBluetooth) ||
-                  ((! bHasBluetooth) && (! ps_controller.bBluetooth)))
-              {
-                dwLastSampled = ps_controller.xinput.time_sampled;
-                    hid_to_xi = ps_controller.xinput.prev_report;
-              }
-            }
-
-            if ( config.input.gamepad.xinput.ui_slot >= 0 &&
-                 config.input.gamepad.xinput.ui_slot <  4 )
-            { // Use the HID data to control the UI
-              bHasPlayStation = true;
-            }
-          }
-        }
+        pLastActiveController->write_output_report ();
       }
     }
 
     auto& state =
         *pState;
 
-    ////if (api_bridge)
-    ////{
-    ////  // Translate DirectInput to XInput, because I'm not writing multiple controller codepaths
-    ////  //   for no good reason.
-    ////  JOYINFOEX joy_ex   { };
-    ////  JOYCAPSW  joy_caps { };
-    ////
-    ////  joy_ex.dwSize  = sizeof (JOYINFOEX);
-    ////  joy_ex.dwFlags = JOY_RETURNALL      | JOY_RETURNPOVCTS |
-    ////                   JOY_RETURNCENTERED | JOY_USEDEADZONE;
-    ////
-    ////  SK_joyGetPosEx    (JOYSTICKID1, &joy_ex);
-    ////  SK_joyGetDevCapsW (JOYSTICKID1, &joy_caps, sizeof (JOYCAPSW));
-    ////
-    ////  SK_JOY_TranslateToXInput (&joy_ex, &joy_caps);
-    ////}
+    bool bHasRealXInputOnUISlot =
+      SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state);
 
-    if (! SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state))
+    if (bHasPlayStation && (! bHasRealXInputOnUISlot))
     {
       state = hid_to_xi;
     }
@@ -2185,15 +2155,13 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     else
     {
       bHasPlayStation = false;
-      api_bridge      = false;
     }
 
     //extern void SK_ScePad_PaceMaker (void);
     //            SK_ScePad_PaceMaker ();
 
     if ( bHasPlayStation ||
-              api_bridge ||
-         SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, pState) )
+         bHasRealXInputOnUISlot )
     {
       bRet = true;
 

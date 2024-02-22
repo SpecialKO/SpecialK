@@ -1206,6 +1206,7 @@ SK::ControlPanel::Input::Draw (void)
 
             switch (pBatteryDevice->battery.state)
             {
+              default:
               case SK_HID_PlayStationDevice::Charging:
               case SK_HID_PlayStationDevice::Discharging:
               {
@@ -1275,8 +1276,6 @@ SK::ControlPanel::Input::Draw (void)
                   ImGui::SetTooltip ("Click here to power-off the controller.");
                 }
               } break;
-              default:
-                break;
             }
 
             if (bDualSense)
