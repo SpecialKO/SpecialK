@@ -3612,8 +3612,7 @@ auto DeclKeybind =
       {
         config.render.framerate.target_fps =
           static_cast <float> (
-            rb.windows.device.getDevCaps ().res.refresh *
-              (sk::narrow_cast <float> (numerator) / sk::narrow_cast <float> (denominator))
+            (rb.windows.device.getDevCaps ().res.refresh * numerator) / denominator
           );
       }
     }
@@ -3638,8 +3637,7 @@ auto DeclKeybind =
       {
         config.render.framerate.target_fps_bg =
           static_cast <float> (
-            rb.windows.device.getDevCaps ().res.refresh *
-              (sk::narrow_cast <float> (numerator) / sk::narrow_cast <float> (denominator))
+            (rb.windows.device.getDevCaps ().res.refresh * numerator) / denominator
           );
       }
     }
