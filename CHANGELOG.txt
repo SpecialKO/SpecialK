@@ -1,4 +1,9 @@
-﻿24.2.28.1
+﻿24.2.28.2
+=========
+ + Fixed mis-detection of sRGB OpenGL framebuffers
+ + Removed some debug logging from DirectInput8 backend
+
+24.2.28.1
 =========
  + Enable D3D11/12 <--> Vulkan interop for all hardware vendors, since there is
      no way to turn it off on AMD drivers anymore.
