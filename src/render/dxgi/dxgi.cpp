@@ -5256,7 +5256,11 @@ SK_DXGI_CreateSwapChain_PostInit (
     RealGetWindowClassW (pDesc->OutputWindow, wszClass, MAX_PATH);
 
   bool dummy_window =
-    SK_Win32_IsDummyWindowClass (pDesc->OutputWindow);
+    SK_Win32_IsDummyWindowClass (pDesc->OutputWindow) ||
+                               // AMD's buggy OpenGL interop...
+                               //   why these dimensions, nobody knows
+                               ( pDesc->BufferDesc.Width  == 176 &&
+                                 pDesc->BufferDesc.Height == 1 );
 
   if ( (! dummy_window) && pDesc != nullptr &&
        ( dwRenderThread == 0 ||
