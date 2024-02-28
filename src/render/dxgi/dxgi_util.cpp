@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -1037,6 +1037,10 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
       codec_params = { .passthrough = -1,
                        .apply       = FALSE,
                        .strip       = FALSE };
+
+    codec_params.apply       = (config.render.dxgi.srgb_behavior ==  1);
+    codec_params.strip       = (config.render.dxgi.srgb_behavior ==  0);
+    codec_params.passthrough = (config.render.dxgi.srgb_behavior == -1);
 
     _ReadWriteBarrier ();
 

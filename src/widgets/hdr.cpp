@@ -977,7 +977,7 @@ public:
       {
         // Only apply sRGB -> Linear on the first frame drawn after turning SK HDR on,
         //   allow the user turn it off manually afterwards
-        if (config.render.dxgi.srgb_behavior == -1)
+        if (config.render.dxgi.srgb_behavior < 0)
         {
           if ( __SK_HDR_10BitSwap ||
                __SK_HDR_16BitSwap )

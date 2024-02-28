@@ -2510,6 +2510,37 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       {
         pSwapChain = nullptr;
 
+        extern bool bOriginallysRGB;
+        SK_RunOnce (bOriginallysRGB = glIsEnabled (GL_FRAMEBUFFER_SRGB));
+
+        if (bOriginallysRGB)
+        {
+          static auto& rb =
+            SK_GetCurrentRenderBackend ();
+
+          rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_SRGB;
+          rb.srgb_stripped      = true;
+
+          const bool bIsHDREnabled =
+            ( __SK_HDR_10BitSwap ||
+              __SK_HDR_16BitSwap );
+
+          if (! bIsHDREnabled)
+          {
+            desc1.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+
+            if (config.render.gl.prefer_10bpc)
+            {
+              config.render.gl.prefer_10bpc = false;
+
+              SK_ImGui_Warning (
+                L"Game is using an sRGB framebuffer, 10-bpc output has been forced off."
+                L"\r\n\r\n\tGamma will be wrong until the game is restarted."
+              );
+            }
+          }
+        }
+
         SK_GL_CreateInteropSwapChain ( pFactory, dx_gl_interop.d3d11.pDevice,
                                          dx_gl_interop.output.hWnd,
                                            &desc1, &pSwapChain.p );
