@@ -1,4 +1,13 @@
-﻿24.2.22.3
+﻿24.2.28
+=======
+ + Add workaround for AMD's D3D12/OpenGL interop; it can no longer be disabled
+ + Run Bluetooth power-off commands from a single thread to help prevent games
+     that do not have thread-safe input code from crashing
+ + Update NieR: Replicant plug-in to work with new HID input code
+ + Default sRGB OpenGL games to Linear content EOTF in HDR
+ + Properly disable 10-bpc OpenGL overrides in sRGB games
+
+24.2.22.3
 =========
  + Made VRR status in Compact FPS mode (text OSD) a configurable OSD option
 

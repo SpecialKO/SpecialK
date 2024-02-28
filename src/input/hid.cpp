@@ -315,6 +315,8 @@ struct SK_HID_DeviceFile {
 
     return true;
   }
+
+  bool neutralizeHidInput (void);
 };
 
        concurrency::concurrent_vector        <SK_HID_PlayStationDevice>     SK_HID_PlayStationControllers;
@@ -391,16 +393,26 @@ XINPUT_STATE hid_to_xi { };
 
 void SK_Bluetooth_SetupPowerOff (void)
 {
-  static bool poweroff;
-
   class SK_Bluetooth_PowerListener : public SK_IVariableListener
   {
+  public:
+    SK_Bluetooth_PowerListener (void)
+    {
+      SK_GetCommandProcessor ()->AddVariable (
+        "Input.Gamepad.PowerOff", SK_CreateVar (SK_IVariable::Boolean, &state, this)
+      );
+    }
+
     bool OnVarChange (SK_IVariable* var, void* val = nullptr)
     {
       std::ignore = val;
 
-      if (var->getValuePointer () == &poweroff)
+      if (var->getValuePointer () == &state)
       {
+        std::scoped_lock <std::mutex> _(mutex);
+
+        // For proper operation, this should always be serialized onto a single
+        //   thread; in other words, use SK_DeferCommand (...) to change this.
         for ( auto& device : SK_HID_PlayStationControllers )
         {
           if (device.bBluetooth && device.bConnected)
@@ -451,13 +463,10 @@ void SK_Bluetooth_SetupPowerOff (void)
 
       return true;
     }
-  } static power;
 
-  SK_RunOnce (
-    SK_GetCommandProcessor ()->AddVariable (
-      "Input.Gamepad.PowerOff", SK_CreateVar (SK_IVariable::Boolean, &poweroff, &power)
-    )
-  );
+    std::mutex mutex;
+    bool       state;
+  } static power;
 }
 
 void SK_HID_SetupPlayStationControllers (void)
@@ -1130,6 +1139,8 @@ ReadFile_Detour (HANDLE       hFile,
             {
               if (hid_file->last_data_read.size () >= *lpNumberOfBytesRead)
               {
+                //hid_file->neutralizeHidInput ();
+
                 // Give the game old data, from before we started blocking stuff...
                 memcpy (lpBuffer, hid_file->last_data_read.data (), *lpNumberOfBytesRead);
               }
@@ -1137,6 +1148,8 @@ ReadFile_Detour (HANDLE       hFile,
 
             else
             {
+              //hid_file->neutralizeHidInput ();
+
               SK_RunOnce (
                 SK_LOGi0 (L"ReadFile HID IO Cancelled")
               );
@@ -1599,6 +1612,8 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
           SK_RunOnce (
             SK_LOGi0 (L"GetOverlappedResultEx HID IO Cancelled")
           );
+
+          //hid_file->neutralizeHidInput ();
         }
       }
 
@@ -2612,11 +2627,11 @@ struct SK_HID_DualSense_GetStateData // 63
 /* 9.0*/ uint8_t    ButtonHome          : 1;
 /* 9.1*/ uint8_t    ButtonPad           : 1;
 /* 9.2*/ uint8_t    ButtonMute          : 1;
-/* 9.3*/ uint8_t    ButtonLeftFunction  : 1; // DualSense Edge
-/* 9.4*/ uint8_t    ButtonRightFunction : 1; // DualSense Edge
-/* 9.5*/ uint8_t    ButtonLeftPaddle    : 1; // DualSense Edge
-/* 9.6*/ uint8_t    ButtonRightPaddle   : 1; // DualSense Edge
-/* 9.7*/ uint8_t    UNK1                : 1; // appears unused
+/* 9.3*/ uint8_t    UNK1                : 1; // appears unused
+/* 9.4*/ uint8_t    ButtonLeftFunction  : 1; // DualSense Edge
+/* 9.5*/ uint8_t    ButtonRightFunction : 1; // DualSense Edge
+/* 9.6*/ uint8_t    ButtonLeftPaddle    : 1; // DualSense Edge
+/* 9.7*/ uint8_t    ButtonRightPaddle   : 1; // DualSense Edge
 /*10  */ uint8_t    UNK2;                    // appears unused
 /*11  */ uint32_t   UNK_COUNTER;             // Linux driver calls this reserved, tools leak calls the 2 high bytes "random"
 /*15  */ int16_t    AngularVelocityX;
@@ -2644,7 +2659,7 @@ struct SK_HID_DualSense_GetStateData // 63
                                                   // 1 for feedback effect
                                                   // 2 for weapon effect
                                                   // 3 for vibration
-/*48  */ uint32_t   DeviceTimeStamp;         
+/*48  */ uint32_t   DeviceTimeStamp;
 /*52.0*/ uint8_t    PowerPercent             : 4; // 0x00-0x0A
 /*52.4*/ PowerState PowerState               : 4;
 /*53.0*/ uint8_t    PluggedHeadphones        : 1;
@@ -3157,6 +3172,34 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   }
                 }
               }
+
+              // Report 0x1, USB Mode
+              if (dwBytesTransferred == 64)
+              {
+                SK_HID_DualSense_GetStateData* pData = 
+                  (SK_HID_DualSense_GetStateData *)&(pDevice->input_report.data ()[1]);
+
+                pDevice->battery.state =
+                  (SK_HID_PlayStationDevice::PowerState)((((BYTE *)pData)[52] & 0xF0) >> 4);
+
+                const float batteryPercent =
+                  ( std::min (((((BYTE *)pData)[52] & 0xF) /*- ((((BYTE *)pData)[53] & 0x10) ? 1 : 0)*/) * 10.0f + 5.0f, 100.0f) );
+
+                if (pDevice->battery.state == Discharging || 
+                    pDevice->battery.state == Charging    ||
+                    pDevice->battery.state == Complete)
+                {
+                  pDevice->battery.percentage = batteryPercent;
+                }
+
+                if (pDevice->buttons.size () < 19)
+                    pDevice->buttons.resize (  19);
+
+                pDevice->buttons [15].state = pData->ButtonLeftFunction  != 0;
+                pDevice->buttons [16].state = pData->ButtonRightFunction != 0;
+                pDevice->buttons [17].state = pData->ButtonLeftPaddle    != 0;
+                pDevice->buttons [18].state = pData->ButtonRightPaddle   != 0;
+              }
             }
 
             else if (! pDevice->bDualShock4)
@@ -3166,7 +3209,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                     
               SK_RunOnce (SK_Bluetooth_SetupPowerOff ());
 
-              pDevice->write_output_report ();
+              if (! config.input.gamepad.bt_input_only)
+                pDevice->write_output_report ();
 
               if (pDevice->buttons.size () < 19)
                   pDevice->buttons.resize (  19);
@@ -3187,6 +3231,18 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               if (! bSimple)
               {
+                if (config.input.gamepad.bt_input_only)
+                {
+                  SK_ImGui_CreateNotification ( "HID.Bluetooth.ModeChange", SK_ImGui_Toast::Warning,
+                    "Reconnect them to Activate DualShock 3 Compatibility Mode",
+                    "Special K has Disconnected all Bluetooth Controllers!",
+                    //"Bluetooth PlayStation Controller(s) Running in DualShock 4 / DualSense Mode!",
+                        15000UL, SK_ImGui_Toast::UseDuration | SK_ImGui_Toast::ShowTitle |
+                                 SK_ImGui_Toast::ShowCaption | SK_ImGui_Toast::ShowNewest );
+
+                  SK_DeferCommand ("Input.Gamepad.PowerOff 1");
+                }
+
                 pDevice->xinput.report.Gamepad.sThumbLX =
                   static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pData->LeftStickX) - 128) / 128.0);
 
@@ -3252,12 +3308,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   pDevice->buttons [16].state = pData->ButtonRightFunction != 0;
                   pDevice->buttons [17].state = pData->ButtonLeftPaddle    != 0;
                   pDevice->buttons [18].state = pData->ButtonRightPaddle   != 0;
-
-                  if (pDevice->buttons [15].state && 
-                    (!pDevice->buttons [15].last_state))
-                  {
-                    SK_SteamAPI_TakeScreenshot ();
-                  }
                 }
 
                 pDevice->sensor_timestamp = pData->SensorTimestamp;
@@ -3333,12 +3383,18 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   pDevice->buttons [14].state = false; // No mute button
               }
 
-              const float batteryPercent =
-                (float)(((BYTE *)pData)[52] & 0xF) * 10.0f;
-
               pDevice->battery.state =
                 (SK_HID_PlayStationDevice::PowerState)((((BYTE *)pData)[52] & 0xF0) >> 4);
-              pDevice->battery.percentage = batteryPercent;
+
+              const float batteryPercent =
+                ( std::min (((((BYTE *)pData)[52] & 0xF) /*- ((((BYTE *)pData)[53] & 0x10) ? 1 : 0)*/) * 10.0f + 5.0f, 100.0f) );
+
+              if (pDevice->battery.state == Discharging || 
+                  pDevice->battery.state == Charging    ||
+                  pDevice->battery.state == Complete)
+              {
+                pDevice->battery.percentage = batteryPercent;
+              }
 
               switch (pDevice->battery.state)
               {
@@ -3402,10 +3458,12 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
                         ImGui::SameLine ();
 
-                        if (pBatteryState->state == Discharging)
+                             if (pBatteryState->state == Discharging)
                           ImGui::Text ("%3.0f%% " ICON_FA_ARROW_DOWN, pBatteryState->percentage);
-                        else
+                        else if (pBatteryState->state == Charging)
                           ImGui::Text ("%3.0f%% " ICON_FA_ARROW_UP,   pBatteryState->percentage);
+                        else
+                          ImGui::Text ("%3.0f%% ",                    pBatteryState->percentage);
 
                         ImGui::EndGroup ();
 
@@ -3428,7 +3486,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                     
               SK_RunOnce (SK_Bluetooth_SetupPowerOff ());
 
-              pDevice->write_output_report ();
+              if (! config.input.gamepad.bt_input_only)
+                pDevice->write_output_report ();
 
               if (pDevice->buttons.size () < 14)
                   pDevice->buttons.resize (  14);
@@ -3576,10 +3635,12 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
                         ImGui::SameLine ();
 
-                        if (pBatteryState->state == Discharging)
+                             if (pBatteryState->state == Discharging)
                           ImGui::Text ("%3.0f%% " ICON_FA_ARROW_DOWN, pBatteryState->percentage);
-                        else
+                        else if (pBatteryState->state == Charging)
                           ImGui::Text ("%3.0f%% " ICON_FA_ARROW_UP,   pBatteryState->percentage);
+                        else
+                          ImGui::Text ("%3.0f%% ",                    pBatteryState->percentage);
 
                         ImGui::EndGroup ();
 
@@ -3736,7 +3797,16 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 SK_SetGameMute (! SK_IsGameMuted ());
               }
             }
-
+            
+            //if ( pDevice->buttons.size () >= 16 && 
+            //     pDevice->bDualSense            && bAllowSpecialButtons )
+            //{
+            //  if (pDevice->buttons [15].state && 
+            //    (!pDevice->buttons [15].last_state))
+            //  {
+            //    SK_SteamAPI_TakeScreenshot ();
+            //  }
+            //}
 
             for ( auto& button : pDevice->buttons )
             {
@@ -4684,6 +4754,65 @@ SK_HID_PlayStationDevice::write_output_report (void)
       SetEvent (hOutputEnqueued);
 
     return true;
+  }
+
+  return false;
+}
+
+
+
+bool SK_HID_DeviceFile::neutralizeHidInput (void)
+{
+  switch (device_vid)
+  {
+    case SK_HID_VID_SONY:
+    {
+      switch (device_pid)
+      {
+        case SK_HID_PID_DUALSENSE_EDGE:
+        case SK_HID_PID_DUALSENSE:
+        {
+          if (last_data_read.size () >= 64)
+          {
+            if (last_data_read [0] == 0x1)
+            {
+              SK_HID_DualSense_GetStateData* pData =
+                (SK_HID_DualSense_GetStateData *)&(last_data_read [1]);
+
+              // The analog axes
+              memset (
+                &pData->LeftStickX,    0,   5);
+                 pData->DPad               = Neutral;
+                 pData->ButtonSquare       = 0;
+                 pData->ButtonCross        = 0;
+                 pData->ButtonCircle       = 0;
+                 pData->ButtonTriangle     = 0;
+                 pData->ButtonL1           = 0;
+                 pData->ButtonR1           = 0;
+                 pData->ButtonL2           = 0;
+                 pData->ButtonR2           = 0;
+                 pData->ButtonCreate       = 0;
+                 pData->ButtonOptions      = 0;
+                 pData->ButtonL3           = 0;
+                 pData->ButtonR3           = 0;
+                 pData->ButtonHome         = 0;
+                 pData->ButtonPad          = 0;
+                 pData->ButtonMute         = 0;
+                 pData->UNK1               = 0;
+                 pData->ButtonLeftFunction = 0;
+                 pData->ButtonRightFunction= 0;
+                 pData->ButtonLeftPaddle   = 0;
+                 pData->ButtonRightPaddle  = 0;
+                 pData->UNK2               = 0;
+              memset (
+                &pData->AngularVelocityX, 0, 12);
+
+              return true;
+            }
+          }
+        } break;
+      }
+    } break;
   }
 
   return false;

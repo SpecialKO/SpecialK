@@ -1185,14 +1185,22 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::EndGroup ();
           }
 
-          SK_HID_PlayStationDevice* pBatteryDevice = nullptr;
+          SK_HID_PlayStationDevice* pBatteryDevice   = nullptr;
+          SK_HID_PlayStationDevice* pBluetoothDevice = nullptr;
 
           for ( auto& ps_controller : SK_HID_PlayStationControllers )
           {
-            if (ps_controller.bConnected && ps_controller.bBluetooth)
+            if (ps_controller.bConnected)
             {
-              pBatteryDevice = &ps_controller;
-              break;
+              if (ps_controller.bBluetooth)
+              {
+                pBluetoothDevice = &ps_controller;
+              }
+
+              if (ps_controller.battery.state != SK_HID_PlayStationDevice::PowerState::ChargingError)
+              {
+                pBatteryDevice = &ps_controller;
+              }
             }
           }
 
@@ -1255,10 +1263,12 @@ SK::ControlPanel::Input::Draw (void)
 
                 ImGui::SameLine ();
 
-                if (pBatteryState->state == SK_HID_PlayStationDevice::Discharging)
+                     if (pBatteryState->state == SK_HID_PlayStationDevice::Discharging)
                   ImGui::Text ("%3.0f%% " ICON_FA_ARROW_DOWN, pBatteryState->percentage);
-                else
+                else if (pBatteryState->state == SK_HID_PlayStationDevice::Charging)
                   ImGui::Text ("%3.0f%% " ICON_FA_ARROW_UP,   pBatteryState->percentage);
+                else
+                  ImGui::Text ("%3.0f%% ",                    pBatteryState->percentage);
 
                 ImGui::EndGroup ();
 
@@ -1268,65 +1278,68 @@ SK::ControlPanel::Input::Draw (void)
                 ImGui::SetCursorPos                                       (vButtonOrigin);
                 ImGui::InvisibleButton ("###GamepadPowerOff", vButtonEnd - vButtonOrigin);
 
-                if (SK_ImGui_IsItemClicked ())
+                if (pBluetoothDevice != nullptr)
                 {
-                  ImGui::ClearActiveID   ( );
-                  SK_GetCommandProcessor ( )->ProcessCommandLine ("Input.Gamepad.PowerOff 1");
-                }
-
-                else if (SK_ImGui_IsItemRightClicked ())
-                {
-                  ImGui::ClearActiveID ( );
-                  ImGui::OpenPopup     ("BluetoothCompatMenu");
-                }
-
-                else if (ImGui::IsItemHovered ())
-                {
-                  ImGui::BeginTooltip    ( );
-                  ImGui::BeginGroup      ( );
-                  ImGui::TextColored     ( ImColor::HSV (0.18f, 0.88f, 0.94f),
-                                             " Left-Click" );
-                  ImGui::TextColored     ( ImColor::HSV (0.18f, 0.88f, 0.94f),
-                                             "Right-Click" );
-                  ImGui::EndGroup        ( );
-                  ImGui::SameLine        ( );
-                  ImGui::BeginGroup      ( );
-                  ImGui::TextUnformatted ( " Power-off Gamepad" );
-                  ImGui::TextUnformatted ( " Bluetooth Config" );
-                  ImGui::EndGroup        ( );
-                  ImGui::EndTooltip      ( );
-                }
-
-                if (ImGui::BeginPopup ("BluetoothCompatMenu"))
-                {
-                  if (ImGui::Checkbox ("Bluetooth Compatibility Mode",
-                      &config.input.gamepad.bt_input_only))
+                  if (SK_ImGui_IsItemClicked ())
                   {
-                    if (config.input.gamepad.bt_input_only)
+                    ImGui::ClearActiveID   ( );
+                    SK_DeferCommand ("Input.Gamepad.PowerOff 1");
+                  }
+
+                  else if (SK_ImGui_IsItemRightClicked ())
+                  {
+                    ImGui::ClearActiveID ( );
+                    ImGui::OpenPopup     ("BluetoothCompatMenu");
+                  }
+
+                  else if (ImGui::IsItemHovered ())
+                  {
+                    ImGui::BeginTooltip    ( );
+                    ImGui::BeginGroup      ( );
+                    ImGui::TextColored     ( ImColor::HSV (0.18f, 0.88f, 0.94f),
+                                               " Left-Click" );
+                    ImGui::TextColored     ( ImColor::HSV (0.18f, 0.88f, 0.94f),
+                                               "Right-Click" );
+                    ImGui::EndGroup        ( );
+                    ImGui::SameLine        ( );
+                    ImGui::BeginGroup      ( );
+                    ImGui::TextUnformatted ( " Power-off Gamepad" );
+                    ImGui::TextUnformatted ( " Bluetooth Config" );
+                    ImGui::EndGroup        ( );
+                    ImGui::EndTooltip      ( );
+                  }
+
+                  if (ImGui::BeginPopup ("BluetoothCompatMenu"))
+                  {
+                    if (ImGui::Checkbox ("Bluetooth Compatibility Mode",
+                        &config.input.gamepad.bt_input_only))
                     {
-                      SK_GetCommandProcessor ()->ProcessCommandLine ("Input.Gamepad.PowerOff 1");
+                      if (config.input.gamepad.bt_input_only)
+                      {
+                        SK_DeferCommand ("Input.Gamepad.PowerOff 1");
+                      }
+
+                      config.utility.save_async ();
+
+                      ImGui::ClearActiveID     ( );
+                      ImGui::CloseCurrentPopup ( );
                     }
 
-                    config.utility.save_async ();
-
-                    ImGui::ClearActiveID     ( );
-                    ImGui::CloseCurrentPopup ( );
+                    if (ImGui::IsItemHovered ())
+                    {
+                      if (! config.input.gamepad.bt_input_only)
+                        ImGui::SetTooltip (
+                          "Power-off Bluetooth Controllers and use DualShock 3 Compatibility Mode when "
+                          "Powered-on"
+                        );
+                      else
+                        ImGui::SetTooltip (
+                          "Enable Enhanced DualShock 4 / DualSense Features in Bluetooth Mode "
+                          "(may break input in native DirectInput/HID games)"
+                        );
+                    }
+                    ImGui::EndPopup     ();
                   }
-
-                  if (ImGui::IsItemHovered ())
-                  {
-                    if (! config.input.gamepad.bt_input_only)
-                      ImGui::SetTooltip (
-                        "Power-off Bluetooth Controllers and use DualShock 3 Compatibility Mode when "
-                        "Powered-on"
-                      );
-                    else
-                      ImGui::SetTooltip (
-                        "Enable Enhanced DualShock 4 / DualSense Features in Bluetooth Mode "
-                        "(may break input in native DirectInput/HID games)"
-                      );
-                  }
-                  ImGui::EndPopup     ();
                 }
               } break;
             }

@@ -1,5 +1,5 @@
-//
-// Copyright 2021-2023 Andon "Kaldaien" Coleman
+﻿//
+// Copyright 2021-2024 Andon "Kaldaien" Coleman
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -28,7 +28,7 @@
 
 #include <SpecialK/control_panel/plugins.h>
 
-#define RADICAL_REPLICANT_VERSION_NUM L"0.9.3.0"
+#define RADICAL_REPLICANT_VERSION_NUM L"0.9.4.0"
 #define RADICAL_REPLICANT_VERSION_STR L"Radical Replicant v " RADICAL_REPLICANT_VERSION_NUM
 
 #define _RR_HDF
@@ -1137,6 +1137,12 @@ IDirectInput8W_EnumDevices_Bypass ( IDirectInput8W*          This,
     if (  dwWait ==  WAIT_OBJECT_0 ||
           dwWait == (WAIT_OBJECT_0 + 1) )
     {
+      if (_SK_NIER_RAD_FixDInput8EnumDevices)
+      {
+        // Temporarily re-enable HID because devices have changed...
+        config.input.gamepad.disable_hid = false;
+      }
+
       ResetEvent (
         events [dwWait - WAIT_OBJECT_0]
       );
@@ -1386,6 +1392,11 @@ void SK_NIER_RAD_InitPlugin (void)
 
   SK_EnableHook (             IDirectInput8W_EnumDevices_Detour);
   SK_EnableHook (             SK_Proxy_KeyboardProc);
+
+  config.input.gamepad.disable_hid = true;
+
+  extern void SK_Input_HookHID (void);
+              SK_Input_HookHID ();
 
   config.input.gamepad.disable_hid = false;
 
