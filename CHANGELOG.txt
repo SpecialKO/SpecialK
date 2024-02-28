@@ -1,4 +1,9 @@
-﻿24.2.28
+﻿24.2.28.1
+=========
+ + Enable D3D11/12 <--> Vulkan interop for all hardware vendors, since there is
+     no way to turn it off on AMD drivers anymore.
+
+24.2.28
 =======
  + Add workaround for AMD's D3D12/OpenGL interop; it can no longer be disabled
  + Run Bluetooth power-off commands from a single thread to help prevent games

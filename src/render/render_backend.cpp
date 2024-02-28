@@ -153,10 +153,7 @@ SK_DXVK_CheckForInterop (void)
 
     if (str_d3d9ver.find (L"DXVK") != std::wstring::npos)
     {
-      if ( config.apis.d3d9.native_dxvk == SK_NoPreference   &&
-             sk::NVAPI::InitializeLibrary (SK_GetHostApp ()) &&
-             sk::NVAPI::nv_hardware
-         )
+      if (config.apis.d3d9.native_dxvk == SK_NoPreference)
       {
         if ( IDYES == 
                SK_MessageBox ( L"Enable native DXVK support?",
@@ -166,11 +163,16 @@ SK_DXVK_CheckForInterop (void)
           config.apis.d3d9ex.hook                      = false;
           config.display.force_windowed                = true;
           config.apis.d3d9.native_dxvk                 = 1;
-          config.apis.NvAPI.vulkan_bridge              = 1;
 
           SK_SaveConfig ();
 
-          SK_NvAPI_EnableVulkanBridge (TRUE);
+          if ( sk::NVAPI::InitializeLibrary (SK_GetHostApp ()) &&
+               sk::NVAPI::nv_hardware )
+          {
+            config.apis.NvAPI.vulkan_bridge            = 1;
+            SK_NvAPI_EnableVulkanBridge (TRUE);
+          }
+
           SK_RestartGame              (    );
         }
 
