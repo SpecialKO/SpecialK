@@ -223,8 +223,7 @@ SK_XInput_NotifyDeviceArrival (void)
                       {
                         SK_HidD_GetAttributes (hDeviceFile.m_h, &hidAttribs);
 
-                        playstation |= ( hidAttribs.VendorID == 0x054c ||
-                                         hidAttribs.VendorID == 0x2054c );
+                        playstation |= ( hidAttribs.VendorID == SK_HID_VID_SONY );
 
                         hDeviceFile.Close ();
                       }
@@ -265,7 +264,7 @@ SK_XInput_NotifyDeviceArrival (void)
                           }
                         }
 
-                        else// if (playstation)
+                        else if (playstation)
                         {
                           bool has_existing = false;
 
@@ -343,7 +342,10 @@ SK_XInput_NotifyDeviceArrival (void)
 
                             if (! (controller.bDualSense || controller.bDualShock4 || controller.bDualShock3))
                             {
-                              SK_LOGi0 (L"SONY Controller with Unknown PID ignored: %ws", wszFileName);
+                              if (controller.vid == SK_HID_VID_SONY)
+                              {
+                                SK_LOGi0 (L"SONY Controller with Unknown PID ignored: %ws", wszFileName);
+                              }
 
                               return
                                 DefWindowProcW (hwnd, message, wParam, lParam);
