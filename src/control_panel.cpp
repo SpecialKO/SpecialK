@@ -2269,7 +2269,8 @@ DisplayModeMenu (bool windowed)
   if ( static_cast <int> (rb.api) &
        static_cast <int> (SK_RenderAPI::D3D11) )
   {
-    if (rb.srgb_stripped)
+    // HDR has a separate configuration setting for this
+    if (rb.srgb_stripped && (! __SK_HDR_UserForced))
     {
       int srgb_mode      = std::max (0, config.render.dxgi.srgb_behavior + 1);
       int srgb_orig_mode =              config.render.dxgi.srgb_behavior + 1;
