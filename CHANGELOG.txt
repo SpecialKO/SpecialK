@@ -1,4 +1,8 @@
-﻿24.2.29.1
+﻿24.2.9.2
+========
+ + Fixed potential nullptr deference when calling SK_XInput_Enable (...)
+
+24.2.29.1
 =========
  + Block USB DualSense input better when opening the control panel,
      in games that use native PlayStation HID for input.
