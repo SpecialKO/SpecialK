@@ -3701,6 +3701,12 @@
     <ClCompile Include="src\control_panel\cfg_notifications.cpp">
       <Filter>Source Files\Control Panel</Filter>
     </ClCompile>
+    <ClCompile Include="src\input\hid_reports\dualshock4.cpp">
+      <Filter>Source Files\Backends\Input\HID</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\hid_reports\dualsense.cpp">
+      <Filter>Source Files\Backends\Input\HID</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
