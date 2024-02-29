@@ -700,6 +700,8 @@ FARPROC
 WINAPI
 SK_GetProcAddress (const HMODULE hMod, const char* szFunc) noexcept
 {
+  SK_RunOnce (SK_ApplyQueuedHooks ());
+
   FARPROC proc = nullptr;
 
   if (hMod != nullptr)

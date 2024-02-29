@@ -349,6 +349,8 @@ BOOL xinput_enabled = TRUE;
 bool
 SK_XInput_Enable ( BOOL bEnable )
 {
+  SK_RunOnce (SK_ApplyQueuedHooks ());
+
   // Clear controller haptics before turning the API off
   SK_XInput_PulseController (0, 0.0f, 0.0f);
   SK_XInput_PulseController (1, 0.0f, 0.0f);
@@ -363,17 +365,12 @@ SK_XInput_Enable ( BOOL bEnable )
         (XInputEnable_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
         "XInputEnable"                      );
 
-  SK_XInputContext::instance_s*
-    contexts [] =
-      { //&(xinput_ctx->XInput9_1_0), // Undefined
-        &(xinput_ctx.XInput1_4),
-        &(xinput_ctx.XInput1_3),
-        &(xinput_ctx.XInputUap) };
+  auto& context = xinput_ctx.XInput1_4;
 
-  for ( auto& context : contexts )
+  if ((intptr_t)context.hMod > 0)
   {
-    if (context->XInputEnable_Original != nullptr)
-        context->XInputEnable_Original (bEnable);
+    if (context.XInputEnable_Original != nullptr)
+        context.XInputEnable_Original (bEnable);
   }
 
   if (XInputEnable_SK != nullptr)
