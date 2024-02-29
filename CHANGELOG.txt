@@ -1,4 +1,26 @@
-﻿24.2.28.2
+﻿24.2.29
+=======
+ + Added += and -= operators to console command processor
+ + Added initial support for PlayStation Button + ... chorded input;
+
+     Current defaults:   ( Will be configurable in the future )
+       PS + Share/Create = Screenshot
+       PS + Triangle     = Power-Off
+       PS + L3           = Play/Pause Media
+       PS + R1           = Next Media Track
+       PS + L1           = Prev Media Track
+       PS + Up           = +10% Game Volume
+       PS + Down         = -10% Game Volume
+
+ + Gamepad input is now blocked to games while holding the PlayStation button
+ + Control Panel opens when -releasing- the PlayStation button, if no chord
+     combinations are triggered.
+ + Chorded input only applies if the option to open SK's control panel using
+     the PlayStation button is enabled.
+ + Do not show sRGB Bypass options in the Display menu to HDR users, since
+     HDR uses a different setting for that.
+
+24.2.28.2
 =========
  + Fixed mis-detection of sRGB OpenGL framebuffers
  + Removed some debug logging from DirectInput8 backend

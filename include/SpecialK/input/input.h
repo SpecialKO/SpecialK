@@ -954,6 +954,8 @@ struct SK_HID_PlayStationDevice
     UINT64       last_active  =  0 ;
   } xinput;
 
+  bool                          chord_activated = false;
+
   std::vector <button_s>        buttons;
   std::vector <USAGE>           button_usages;
   std::vector <HIDP_VALUE_CAPS> value_caps;

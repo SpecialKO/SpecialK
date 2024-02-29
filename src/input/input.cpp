@@ -93,6 +93,16 @@ SK_ImGui_WantGamepadCapture (void)
   if ((! SK_IsGameWindowActive ()) && config.input.gamepad.disabled_to_game != SK_InputEnablement::Enabled)
     imgui_capture = true;
 
+  extern XINPUT_STATE hid_to_xi;
+
+  if ( config.input.gamepad.scepad.enhanced_ps_button &&
+            (config.input.gamepad.xinput.ui_slot >= 0 && 
+             config.input.gamepad.xinput.ui_slot <  4) )
+  {
+    if (hid_to_xi.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)
+      imgui_capture = true;
+  }
+
   return
     _Return (imgui_capture);
 }

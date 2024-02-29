@@ -3715,23 +3715,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
               bIsInputActive = true;
             }
 
-            if ( memcmp ( &pDevice->xinput.prev_report.Gamepad,
-                          &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD)) )
-            {
-              pDevice->xinput.report.dwPacketNumber++;
-              pDevice->xinput.prev_report = pDevice->xinput.report;
-            }
-
-            if (bIsInputActive)
-            {
-              pDevice->xinput.last_active = SK_QueryPerf ().QuadPart;
-
-              // Give Bluetooth devices a +666 ms advantage
-              if (pDevice->bBluetooth)
-                  pDevice->xinput.last_active += (2 * (SK_PerfFreq / 3));
-            }
-
-
             bool bIsDeviceMostRecentlyActive = true;
 
             for ( auto& ps_controller : SK_HID_PlayStationControllers )
@@ -3757,11 +3740,108 @@ SK_HID_PlayStationDevice::request_input_report (void)
             if ( config.input.gamepad.scepad.enhanced_ps_button &&
                                  pDevice->buttons.size () >= 13 &&
                       (config.input.gamepad.xinput.ui_slot >= 0 && 
-                       config.input.gamepad.xinput.ui_slot <  4) )
+                       config.input.gamepad.xinput.ui_slot <  4) &&
+                                          bAllowSpecialButtons )
             {
-              if (   pDevice->buttons [12].state       &&
-                  (! pDevice->buttons [12].last_state) &&
-                     bAllowSpecialButtons )
+              if ( pDevice->buttons [12].state &&
+                 (!pDevice->buttons [12].last_state))
+              {
+                pDevice->chord_activated = false;
+              }
+
+              if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+                  (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_Y)     &&
+                (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_Y)))
+              {
+                SK_DeferCommand ("Input.Gamepad.PowerOff 1");
+                pDevice->chord_activated = true;
+              }
+
+              if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+                  (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)  &&
+                (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)))
+              {
+                SK_SteamAPI_TakeScreenshot ();
+                pDevice->chord_activated = true;
+              }
+
+              if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)      &&
+                  (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) &&
+                (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB)))
+              {
+                BYTE bScancode =
+                  (BYTE)MapVirtualKey (VK_MEDIA_PLAY_PAUSE, 0);
+
+                DWORD dwFlags =
+                  ( bScancode & 0xE0 ) == 0   ?
+                    static_cast <DWORD> (0x0) :
+                    static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+                keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags,                   0);
+                keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+
+                pDevice->chord_activated = true;
+              }
+
+              if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)         &&
+                  (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) &&
+                (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)))
+              {
+                BYTE bScancode =
+                 (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
+
+                DWORD dwFlags =
+                  ( bScancode & 0xE0 ) == 0   ?
+                    static_cast <DWORD> (0x0) :
+                    static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+                keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags,                   0);
+                keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+
+                pDevice->chord_activated = true;
+              }
+
+              if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)          &&
+                  (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) &&
+                (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER)))
+              {
+                BYTE bScancode =
+                 (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
+
+                DWORD dwFlags =
+                  ( bScancode & 0xE0 ) == 0   ?
+                    static_cast <DWORD> (0x0) :
+                    static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+                keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags,                   0);
+                keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+
+                pDevice->chord_activated = true;
+              }
+
+              if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)   &&
+                  (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) &&
+                (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)))
+              {
+                SK_GetCommandProcessor ()->
+                  ProcessCommandLine ("Sound.Volume += 10.0");
+
+                pDevice->chord_activated = true;
+              }
+
+              if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)     &&
+                  (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) &&
+                (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)))
+              {
+                SK_GetCommandProcessor ()->
+                  ProcessCommandLine ("Sound.Volume -= 10.0");
+
+                pDevice->chord_activated = true;
+              }
+
+              if ( (! pDevice->buttons [12].state)     &&
+                      pDevice->buttons [12].last_state &&
+                   (! pDevice->chord_activated) )
               {
                 bool bToggleVis = false;
                 bool bToggleNav = false;
@@ -3807,6 +3887,22 @@ SK_HID_PlayStationDevice::request_input_report (void)
             //    SK_SteamAPI_TakeScreenshot ();
             //  }
             //}
+
+            if ( memcmp ( &pDevice->xinput.prev_report.Gamepad,
+                          &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD)) )
+            {
+              pDevice->xinput.report.dwPacketNumber++;
+              pDevice->xinput.prev_report = pDevice->xinput.report;
+            }
+
+            if (bIsInputActive)
+            {
+              pDevice->xinput.last_active = SK_QueryPerf ().QuadPart;
+
+              // Give Bluetooth devices a +666 ms advantage
+              if (pDevice->bBluetooth)
+                  pDevice->xinput.last_active += (2 * (SK_PerfFreq / 3));
+            }
 
             for ( auto& button : pDevice->buttons )
             {
