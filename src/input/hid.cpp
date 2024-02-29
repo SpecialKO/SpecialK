@@ -316,7 +316,8 @@ struct SK_HID_DeviceFile {
     return true;
   }
 
-  bool neutralizeHidInput (void);
+  int neutralizeHidInput (void);
+  int remapHidInput      (void);
 };
 
        concurrency::concurrent_vector        <SK_HID_PlayStationDevice>     SK_HID_PlayStationControllers;
@@ -1113,6 +1114,9 @@ ReadFile_Detour (HANDLE       hFile,
         SK_TLS_Bottom ()->scratch_memory->log.
                              formatted_output.alloc (nNumberOfBytesToRead);
 
+      pTlsBackedBuffer [0] = ((uint8_t *)lpBuffer) [0];
+      BYTE report_id       = ((uint8_t *)lpBuffer) [0];
+
       auto pBuffer =
         // Overlapped reads should pass their original pointer to ReadFile,
         //   unless we intend to block them (and cancel said IO request).
@@ -1125,8 +1129,20 @@ ReadFile_Detour (HANDLE       hFile,
             lpNumberOfBytesRead, lpOverlapped
         );
 
-      if (bRet)
+#if 0
+      SK_LOGi0 (
+        L"ReadFile (%ws, %p, %d, %p, {overlapped: %p} => %hs",
+          hid_file->wszDevicePath, lpBuffer, nNumberOfBytesToRead,
+              lpNumberOfBytesRead, lpOverlapped, bRet ? "Success" : "Fail"
+      );
+      SK_LOGi0 ("Report ID: %x", report_id);
+#endif
+
+      if (bRet || (! dev_allowed))
       {
+        if (hid_file->last_data_read.size () < nNumberOfBytesToRead)
+            hid_file->last_data_read.resize   (nNumberOfBytesToRead * 2);
+
         if (! dev_allowed)
         {
           SK_ReleaseAssert (lpBuffer != nullptr);
@@ -1139,20 +1155,46 @@ ReadFile_Detour (HANDLE       hFile,
             {
               if (hid_file->last_data_read.size () >= *lpNumberOfBytesRead)
               {
-                //hid_file->neutralizeHidInput ();
+                hid_file->last_data_read.data ()[0] = report_id;
 
                 // Give the game old data, from before we started blocking stuff...
-                memcpy (lpBuffer, hid_file->last_data_read.data (), *lpNumberOfBytesRead);
+                int num_bytes_read =
+                  hid_file->neutralizeHidInput ();
+
+                if (num_bytes_read > 0)
+                {
+                  if (lpNumberOfBytesRead != nullptr)
+                    *lpNumberOfBytesRead = num_bytes_read;
+
+                  memcpy (lpBuffer, hid_file->last_data_read.data (), num_bytes_read);
+                }
               }
             }
 
             else
             {
-              //hid_file->neutralizeHidInput ();
-
               SK_RunOnce (
                 SK_LOGi0 (L"ReadFile HID IO Cancelled")
               );
+
+              hid_file->last_data_read.data ()[0] = report_id;
+
+              int num_bytes_read =
+                hid_file->neutralizeHidInput ();
+
+              if (num_bytes_read > 0)
+              {
+                if (lpNumberOfBytesRead != nullptr)
+                   *lpNumberOfBytesRead = num_bytes_read;
+
+                memcpy (lpBuffer, hid_file->last_data_read.data (), num_bytes_read);
+
+                if (lpOverlapped != nullptr &&
+                    lpOverlapped->hEvent != 0)
+                {
+                  SetEvent (lpOverlapped->hEvent);
+                }
+              }
             }
 
             return TRUE;
@@ -4857,7 +4899,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
 
 
-bool SK_HID_DeviceFile::neutralizeHidInput (void)
+int SK_HID_DeviceFile::neutralizeHidInput (void)
 {
   switch (device_vid)
   {
@@ -4877,7 +4919,10 @@ bool SK_HID_DeviceFile::neutralizeHidInput (void)
 
               // The analog axes
               memset (
-                &pData->LeftStickX,    0,   5);
+                &pData->LeftStickX,  128,   4);
+              memset (
+                &pData->TriggerLeft,   0,   2);
+                 pData->SeqNo++;
                  pData->DPad               = Neutral;
                  pData->ButtonSquare       = 0;
                  pData->ButtonCross        = 0;
@@ -4903,13 +4948,151 @@ bool SK_HID_DeviceFile::neutralizeHidInput (void)
               memset (
                 &pData->AngularVelocityX, 0, 12);
 
-              return true;
+              return 64;
             }
+            //else if (last_data_read [0] == 0x31)
+            //{
+            //  SK_HID_DualSense_GetStateData* pData =
+            //    (SK_HID_DualSense_GetStateData *)&(last_data_read [2]);
+            //
+            //  // The analog axes
+            //  memset (
+            //    &pData->LeftStickX,  128,   4);
+            //  memset (
+            //    &pData->TriggerLeft,   0,   2);
+            //     pData->SeqNo++;
+            //     pData->DPad               = Neutral;
+            //     pData->ButtonSquare       = 0;
+            //     pData->ButtonCross        = 0;
+            //     pData->ButtonCircle       = 0;
+            //     pData->ButtonTriangle     = 0;
+            //     pData->ButtonL1           = 0;
+            //     pData->ButtonR1           = 0;
+            //     pData->ButtonL2           = 0;
+            //     pData->ButtonR2           = 0;
+            //     pData->ButtonCreate       = 0;
+            //     pData->ButtonOptions      = 0;
+            //     pData->ButtonL3           = 0;
+            //     pData->ButtonR3           = 0;
+            //     pData->ButtonHome         = 0;
+            //     pData->ButtonPad          = 0;
+            //     pData->ButtonMute         = 0;
+            //     pData->UNK1               = 0;
+            //     pData->ButtonLeftFunction = 0;
+            //     pData->ButtonRightFunction= 0;
+            //     pData->ButtonLeftPaddle   = 0;
+            //     pData->ButtonRightPaddle  = 0;
+            //     pData->UNK2               = 0;
+            //  memset (
+            //    &pData->AngularVelocityX, 0, 12);
+            //
+            //  return 78;
+            //}
           }
         } break;
       }
     } break;
   }
 
-  return false;
+  return 0;
+}
+
+int SK_HID_DeviceFile::remapHidInput (void)
+{
+  switch (device_vid)
+  {
+    case SK_HID_VID_SONY:
+    {
+      switch (device_pid)
+      {
+        case SK_HID_PID_DUALSENSE_EDGE:
+        case SK_HID_PID_DUALSENSE:
+        {
+          if (last_data_read.size () >= 64)
+          {
+            if (last_data_read [0] == 0x1)
+            {
+              SK_HID_DualSense_GetStateData* pData =
+                (SK_HID_DualSense_GetStateData *)&(last_data_read [1]);
+
+              // The analog axes
+                 pData->DPad               = Neutral;
+                 pData->ButtonSquare       = 0;
+                 pData->ButtonCross        = 0;
+                 pData->ButtonCircle       = 0;
+                 pData->ButtonTriangle     = 0;
+                 pData->ButtonL1           = 0;
+                 pData->ButtonR1           = 0;
+                 pData->ButtonL2           = 0;
+                 pData->ButtonR2           = 0;
+                 pData->ButtonCreate       = 0;
+                 pData->ButtonOptions      = 0;
+                 pData->ButtonL3           = 0;
+                 pData->ButtonR3           = 0;
+                 pData->ButtonHome         = 0;
+
+                 bool create = 
+                   pData->ButtonCreate;
+                 bool pad = 
+                   pData->ButtonPad;
+                 
+                 pData->ButtonPad    = create;
+                 pData->ButtonCreate = pad;
+                 pData->ButtonMute         = 0;
+                 pData->UNK1               = 0;
+                 pData->ButtonLeftFunction = 0;
+                 pData->ButtonRightFunction= 0;
+                 pData->ButtonLeftPaddle   = 0;
+                 pData->ButtonRightPaddle  = 0;
+                 pData->UNK2               = 0;
+              memset (
+                &pData->AngularVelocityX, 0, 12);
+
+              return 64;
+            }
+            //else if (last_data_read [0] == 0x31)
+            //{
+            //  SK_HID_DualSense_GetStateData* pData =
+            //    (SK_HID_DualSense_GetStateData *)&(last_data_read [2]);
+            //
+            //  // The analog axes
+            //  memset (
+            //    &pData->LeftStickX,  128,   4);
+            //  memset (
+            //    &pData->TriggerLeft,   0,   2);
+            //     pData->SeqNo++;
+            //     pData->DPad               = Neutral;
+            //     pData->ButtonSquare       = 0;
+            //     pData->ButtonCross        = 0;
+            //     pData->ButtonCircle       = 0;
+            //     pData->ButtonTriangle     = 0;
+            //     pData->ButtonL1           = 0;
+            //     pData->ButtonR1           = 0;
+            //     pData->ButtonL2           = 0;
+            //     pData->ButtonR2           = 0;
+            //     pData->ButtonCreate       = 0;
+            //     pData->ButtonOptions      = 0;
+            //     pData->ButtonL3           = 0;
+            //     pData->ButtonR3           = 0;
+            //     pData->ButtonHome         = 0;
+            //     pData->ButtonPad          = 0;
+            //     pData->ButtonMute         = 0;
+            //     pData->UNK1               = 0;
+            //     pData->ButtonLeftFunction = 0;
+            //     pData->ButtonRightFunction= 0;
+            //     pData->ButtonLeftPaddle   = 0;
+            //     pData->ButtonRightPaddle  = 0;
+            //     pData->UNK2               = 0;
+            //  memset (
+            //    &pData->AngularVelocityX, 0, 12);
+            //
+            //  return 78;
+            //}
+          }
+        } break;
+      }
+    } break;
+  }
+
+  return 0;
 }

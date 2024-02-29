@@ -1,11 +1,17 @@
-﻿24.2.29
+﻿
+24.2.29.1
+=========
+ + Block USB DualSense input better when opening the control panel,
+     in games that use native PlayStation HID for input.
+ 
+24.2.29
 =======
  + Added += and -= operators to console command processor
  + Added initial support for PlayStation Button + ... chorded input;
 
      Current defaults:   ( Will be configurable in the future )
        PS + Share/Create = Screenshot
-       PS + Triangle     = Power-Off
+       PS + Triangle     = Power-Off (the gamepad)
        PS + L3           = Play/Pause Media
        PS + R1           = Next Media Track
        PS + L1           = Prev Media Track
