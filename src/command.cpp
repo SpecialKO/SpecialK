@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -412,6 +412,16 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
           {
             int_val = -original_val;
           }
+          else if (     StrStrIA (cmd_args.c_str (), "+="))
+          {
+            int_val = original_val +
+                      strtol (&cmd_args.c_str ()[2], nullptr, 0);
+          }
+          else if (     StrStrIA (cmd_args.c_str (), "-="))
+          {
+            int_val = original_val -
+                      strtol (&cmd_args.c_str ()[2], nullptr, 0);
+          }
           else
             int_val = strtol (cmd_args.c_str (), nullptr, 0);
 
@@ -458,6 +468,16 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
           {
             short_val = -original_val;
           }
+          else if (     StrStrIA (cmd_args.c_str (), "-="))
+          {
+            short_val = original_val -
+              (short)strtol (&cmd_args.c_str ()[2], nullptr, 0);
+          }
+          else if (     StrStrIA (cmd_args.c_str (), "+="))
+          {
+            short_val = original_val +
+              (short)strtol (&cmd_args.c_str ()[2], nullptr, 0);
+          }
           else
             short_val = (short)strtol (cmd_args.c_str (), nullptr, 0);
 
@@ -482,6 +502,16 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
           /* Negate */
           else if (0 == _stricmp (cmd_args.c_str (), "~"))
             float_val = -original_val;
+          else if (     StrStrIA (cmd_args.c_str (), "-="))
+          {
+            float_val = original_val -
+              (float)strtof (&cmd_args.c_str ()[2], nullptr);
+          }
+          else if (     StrStrIA (cmd_args.c_str (), "+="))
+          {
+            float_val = original_val +
+              (float)strtof (&cmd_args.c_str ()[2], nullptr);
+          }
           /* Assign */
           else
             float_val = (float)strtof (cmd_args.c_str (), nullptr);
