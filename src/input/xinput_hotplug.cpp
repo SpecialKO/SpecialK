@@ -938,10 +938,10 @@ struct SK_Win32_DeviceNotificationInstance
 
 SK_LazyGlobal <concurrency::concurrent_vector <SK_Win32_DeviceNotificationInstance>> SK_Win32_RegisteredDevNotifications;
 
-static DEV_BROADCAST_DEVICEINTERFACE_W dbcc_xbox_w [16] = { };
-static DEV_BROADCAST_DEVICEINTERFACE_W dbcc_hid_w  [16] = { };
-static DEV_BROADCAST_DEVICEINTERFACE_A dbcc_xbox_a [16] = { };
-static DEV_BROADCAST_DEVICEINTERFACE_A dbcc_hid_a  [16] = { };
+static DEV_BROADCAST_DEVICEINTERFACE_W dbcc_xbox_w [16][9] = { };
+static DEV_BROADCAST_DEVICEINTERFACE_W dbcc_hid_w  [16][9] = { };
+static DEV_BROADCAST_DEVICEINTERFACE_A dbcc_xbox_a [16][9] = { };
+static DEV_BROADCAST_DEVICEINTERFACE_A dbcc_hid_a  [16][9] = { };
 
 SK_LazyGlobal <concurrency::concurrent_unordered_set <HWND>> SK_Win32_NotifiedWindows;
 
@@ -949,7 +949,31 @@ void
 SK_Win32_NotifyHWND_W (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   __try {
+    DWORD  dwProcId   = 0x0,
+           dwThreadId =
+    GetWindowThreadProcessId (hWnd, &dwProcId);
+
+    if (dwProcId != GetCurrentProcessId ())
+      return;
+
+    static UINT64 ulLastFrameNotified = 0;
+
+    int spins = 0;
+
+    if (dwThreadId != GetCurrentThreadId ())
+    {
+      while (SK_GetFramesDrawn () == ulLastFrameNotified)
+      {
+        SK_SleepEx (1ul, FALSE);
+
+        if (++spins > 1)
+          break;
+      }
+    }
+
     ((WNDPROC)SK_GetWindowLongPtrW (hWnd, GWLP_WNDPROC))(hWnd, uMsg, wParam, lParam);
+
+    ulLastFrameNotified = SK_GetFramesDrawn ();
   }
 
   __except (EXCEPTION_EXECUTE_HANDLER)
@@ -961,7 +985,31 @@ void
 SK_Win32_NotifyHWND_A (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   __try {
+    DWORD  dwProcId   = 0x0,
+           dwThreadId =
+    GetWindowThreadProcessId (hWnd, &dwProcId);
+
+    if (dwProcId != GetCurrentProcessId ())
+      return;
+
+    static UINT64 ulLastFrameNotified = 0;
+
+    if (dwThreadId != GetCurrentThreadId ())
+    {
+      int spins = 0;
+
+      while (SK_GetFramesDrawn () == ulLastFrameNotified)
+      {
+        SK_SleepEx (1ul, FALSE);
+
+        if (++spins > 1)
+          break;
+      }
+    }
+
     ((WNDPROC)SK_GetWindowLongPtrA (hWnd, GWLP_WNDPROC))(hWnd, uMsg, wParam, lParam);
+
+    ulLastFrameNotified = SK_GetFramesDrawn ();
   }
 
   __except (EXCEPTION_EXECUTE_HANDLER)
@@ -987,36 +1035,61 @@ SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
 
   SK_RunOnce (
   {
-    dbcc_xbox_w->dbcc_size       = sizeof (dbcc_xbox_w);
-    dbcc_xbox_w->dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-    dbcc_xbox_w->dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
+    for ( auto& xbox_w : dbcc_xbox_w )
+    {
+      xbox_w [0].dbcc_size       = sizeof (xbox_w);
+      xbox_w [0].dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+      xbox_w [0].dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
+    }
 
-    dbcc_hid_w->dbcc_size        = sizeof (dbcc_hid_w);
-    dbcc_hid_w->dbcc_devicetype  = DBT_DEVTYP_DEVICEINTERFACE;
-    dbcc_hid_w->dbcc_classguid   = GUID_DEVINTERFACE_HID;
+    for ( auto& hid_w : dbcc_hid_w )
+    {
+      hid_w [0].dbcc_size        = sizeof (hid_w);
+      hid_w [0].dbcc_devicetype  = DBT_DEVTYP_DEVICEINTERFACE;
+      hid_w [0].dbcc_classguid   = GUID_DEVINTERFACE_HID;
+    }
 
-    dbcc_xbox_a->dbcc_size       = sizeof (dbcc_xbox_a);
-    dbcc_xbox_a->dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
-    dbcc_xbox_a->dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
+    for ( auto& xbox_a : dbcc_xbox_a )
+    {
+      xbox_a [0].dbcc_size       = sizeof (xbox_a);
+      xbox_a [0].dbcc_devicetype = DBT_DEVTYP_DEVICEINTERFACE;
+      xbox_a [0].dbcc_classguid  = GUID_XUSB_INTERFACE_CLASS;
+    }
 
-    dbcc_hid_a->dbcc_size        = sizeof (dbcc_hid_a);
-    dbcc_hid_a->dbcc_devicetype  = DBT_DEVTYP_DEVICEINTERFACE;
-    dbcc_hid_a->dbcc_classguid   = GUID_DEVINTERFACE_HID;
+    for ( auto& hid_a : dbcc_hid_a )
+    {
+      hid_a [0].dbcc_size        = sizeof (hid_a);
+      hid_a [0].dbcc_devicetype  = DBT_DEVTYP_DEVICEINTERFACE;
+      hid_a [0].dbcc_classguid   = GUID_DEVINTERFACE_HID;
+    }
   });
+
+  // Static so that it can be used in the EnumWindows lambda;
+  //   this entire function is guarded by a lock, so this is safe
+  static int idx = 0;
+
+  idx = 0;
 
   for (auto& controller : SK_HID_PlayStationControllers )
   {
-    wcsncpy_s (dbcc_xbox_w->dbcc_name, MAX_PATH, controller.wszDevicePath, _TRUNCATE);
-    wcsncpy_s (dbcc_hid_w->dbcc_name,  MAX_PATH, controller.wszDevicePath, _TRUNCATE);
+    if (idx > 15)
+    {
+      SK_ReleaseAssert (idx <= 15);
 
-    dbcc_xbox_w->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_xbox_w->dbcc_name) * 2;
-    dbcc_hid_w->dbcc_size  = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_hid_w-> dbcc_name) * 2;
+      return;
+    }
 
-    strncpy (dbcc_xbox_a->dbcc_name, SK_WideCharToUTF8 (controller.wszDevicePath).c_str (), MAX_PATH);
-    strncpy (dbcc_hid_a->dbcc_name,  SK_WideCharToUTF8 (controller.wszDevicePath).c_str (), MAX_PATH);
+    wcsncpy_s (dbcc_xbox_w [idx]->dbcc_name, MAX_PATH, controller.wszDevicePath, _TRUNCATE);
+    wcsncpy_s (dbcc_hid_w  [idx]->dbcc_name, MAX_PATH, controller.wszDevicePath, _TRUNCATE);
 
-    dbcc_xbox_a->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_xbox_a->dbcc_name);
-    dbcc_hid_a->dbcc_size  = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_hid_a-> dbcc_name);
+    dbcc_xbox_w [idx]->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_xbox_w [idx]->dbcc_name) * 2;
+    dbcc_hid_w  [idx]->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_W) + (DWORD)wcslen (dbcc_hid_w  [idx]->dbcc_name) * 2;
+
+    strncpy (dbcc_xbox_a [idx]->dbcc_name, SK_WideCharToUTF8 (controller.wszDevicePath).c_str (), MAX_PATH);
+    strncpy (dbcc_hid_a  [idx]->dbcc_name, SK_WideCharToUTF8 (controller.wszDevicePath).c_str (), MAX_PATH);
+
+    dbcc_xbox_a [idx]->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_xbox_a [idx]->dbcc_name);
+    dbcc_hid_a  [idx]->dbcc_size = sizeof (DEV_BROADCAST_DEVICEINTERFACE_A) + (DWORD)strlen (dbcc_hid_a  [idx]->dbcc_name);
 
     for ( auto& notify : SK_Win32_RegisteredDevNotifications.get () )
     {
@@ -1024,17 +1097,17 @@ SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
       {
         if (notify.bUnicode)
         {
-          SK_Win32_NotifyHWND_W (notify.hWnd, WM_DEVICECHANGE, add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_w);
-          SK_Win32_NotifyHWND_W (notify.hWnd, WM_DEVICECHANGE, add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_w);
-
+          SK_Win32_NotifyHWND_W (notify.hWnd, WM_DEVICECHANGE, add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_w [idx]);
+          SK_Win32_NotifyHWND_W (notify.hWnd, WM_DEVICECHANGE, add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_w  [idx]);
+        
           SK_Win32_NotifiedWindows->insert (notify.hWnd);
         }
 
         else
         {
-          SK_Win32_NotifyHWND_A (notify.hWnd, WM_DEVICECHANGE, add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_a);
-          SK_Win32_NotifyHWND_A (notify.hWnd, WM_DEVICECHANGE, add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_a);
-
+          SK_Win32_NotifyHWND_A (notify.hWnd, WM_DEVICECHANGE, add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_a [idx]);
+          SK_Win32_NotifyHWND_A (notify.hWnd, WM_DEVICECHANGE, add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_a  [idx]);
+        
           SK_Win32_NotifiedWindows->insert (notify.hWnd);
         }
       }
@@ -1044,64 +1117,43 @@ SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
 
     _add_xusb = add_xusb;
     _add_hid  = add_hid;
-    
+
     EnumWindows ([](HWND hWnd, LPARAM)->BOOL
     {
       DWORD                            dwPid = 0x0;
       GetWindowThreadProcessId (hWnd, &dwPid);
-    
+
       if (dwPid != GetProcessId (SK_GetCurrentProcess ()))
         return TRUE;
-    
+
       if (hWnd == SK_hWndDeviceListener)
         return TRUE;
-    
+
       if (SK_Win32_NotifiedWindows->count (hWnd) != 0)
         return TRUE;
-    
-      EnumChildWindows (hWnd, [](HWND hWnd, LPARAM)->BOOL
-      {
-        if (SK_Win32_NotifiedWindows->count (hWnd) != 0)
-          return TRUE;
-    
-        if (IsWindowUnicode (hWnd))
-        {
-          SK_Win32_NotifiedWindows->insert (hWnd);
-    
-          SK_Win32_NotifyHWND_W (hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_w);
-          SK_Win32_NotifyHWND_W (hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_w);
-        }
-        else
-        {
-          SK_Win32_NotifiedWindows->insert (hWnd);
-    
-          SK_Win32_NotifyHWND_A (hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_w);
-          SK_Win32_NotifyHWND_A (hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_w);
-        }
-    
-        return TRUE;
-      }, (LPARAM)nullptr);
-    
+
       if (SK_Win32_NotifiedWindows->count (hWnd) != 0)
         return TRUE;
-    
+
       if (IsWindowUnicode (hWnd))
       {
         SK_Win32_NotifiedWindows->insert (hWnd);
 
-        SK_Win32_NotifyHWND_W (hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_w);
-        SK_Win32_NotifyHWND_W (hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_w);
+        SK_Win32_NotifyHWND_W (hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_w [idx]);
+        SK_Win32_NotifyHWND_W (hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_w  [idx]);
       }
       else
       {
         SK_Win32_NotifiedWindows->insert (hWnd);
-    
-        SK_Win32_NotifyHWND_A (hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_a);
-        SK_Win32_NotifyHWND_A (hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_a);
+
+        SK_Win32_NotifyHWND_A (hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_a [idx]);
+        SK_Win32_NotifyHWND_A (hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_a  [idx]);
       }
-    
+
       return TRUE;
     }, (LPARAM)nullptr);
+
+    ++idx;
   }
 }
 

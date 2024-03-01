@@ -1,4 +1,9 @@
-﻿24.3.1.2
+﻿24.3.1.3
+========
+ + Add 1 ms delay between Device Change Notifications sent to other threads
+     when enabling / disabling input APIs to keep Unity from crashing...
+
+24.3.1.2
 ========
  + Bound PS + Square to "Switch to Game" to activate the game window
      if is in the background.
