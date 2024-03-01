@@ -331,6 +331,9 @@ static concurrency::concurrent_unordered_set <HANDLE>                      SK_In
 std::tuple <SK_Input_DeviceFileType, void*, bool>
 SK_Input_GetDeviceFileAndState (HANDLE hFile)
 {
+  // Unnecessary for now, since we only use a single list of HID
+  //   devices...
+#ifdef SK_HAS_DIFFERENT_DEVICE_CLASSES
   // Bloom filter since most file reads -are not- for input devices
   if ( SK_Input_DeviceFiles.find (hFile) ==
        SK_Input_DeviceFiles.cend (     ) )
@@ -338,6 +341,7 @@ SK_Input_GetDeviceFileAndState (HANDLE hFile)
     return
       { SK_Input_DeviceFileType::None, nullptr, true };
   }
+#endif
 
   //
   // Figure out device type
@@ -355,12 +359,14 @@ SK_Input_GetDeviceFileAndState (HANDLE hFile)
     }
   }
 
+#ifdef SK_HAS_DIFFERENT_DEVICE_CLASSES
   else if ( const auto nv_iter  = SK_NVIDIA_DeviceFiles.find (hFile);
                        nv_iter != SK_NVIDIA_DeviceFiles.cend (     ) )
   {
     return
       { SK_Input_DeviceFileType::NVIDIA, &nv_iter->second, true };
   }
+#endif
 
   return
     { SK_Input_DeviceFileType::Invalid, nullptr, true };
@@ -1094,6 +1100,16 @@ ReadFile_Detour (HANDLE       hFile,
 {
   SK_LOG_FIRST_CALL
 
+  // Fast path, we only care about HID Input Reports
+  if (nNumberOfBytesToRead <= 31 || nNumberOfBytesToRead >= 4096)
+  {
+    return
+      ReadFile_Original (
+            hFile, lpBuffer, nNumberOfBytesToRead,
+              lpNumberOfBytesRead, lpOverlapped
+      );
+  }
+
   const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
     SK_Input_GetDeviceFileAndState (hFile);
 
@@ -1114,8 +1130,14 @@ ReadFile_Detour (HANDLE       hFile,
         SK_TLS_Bottom ()->scratch_memory->log.
                              formatted_output.alloc (nNumberOfBytesToRead);
 
-      pTlsBackedBuffer [0] = ((uint8_t *)lpBuffer) [0];
-      BYTE report_id       = ((uint8_t *)lpBuffer) [0];
+      pTlsBackedBuffer [0] = 0;
+      BYTE report_id       = 0;
+
+      if (lpBuffer != nullptr)
+      {
+        pTlsBackedBuffer [0] = ((uint8_t *)lpBuffer)[0];
+        report_id            = ((uint8_t *)lpBuffer)[0];
+      }
 
       auto pBuffer =
         // Overlapped reads should pass their original pointer to ReadFile,
@@ -1153,9 +1175,8 @@ ReadFile_Detour (HANDLE       hFile,
 
             if (lpOverlapped == nullptr) // lpNumberOfBytesRead MUST be non-null
             {
-              if (hid_file->last_data_read.size () >= *lpNumberOfBytesRead)
-              {
-                hid_file->last_data_read.data ()[0] = report_id;
+              if (hid_file->last_data_read.size () >= nNumberOfBytesToRead)
+              {   hid_file->last_data_read.data ()[0] = report_id;
 
                 // Give the game old data, from before we started blocking stuff...
                 int num_bytes_read =
@@ -1166,7 +1187,14 @@ ReadFile_Detour (HANDLE       hFile,
                   if (lpNumberOfBytesRead != nullptr)
                     *lpNumberOfBytesRead = num_bytes_read;
 
-                  memcpy (lpBuffer, hid_file->last_data_read.data (), num_bytes_read);
+                  if (lpBuffer != nullptr)
+                  {
+                    memcpy (
+                      lpBuffer, hid_file->last_data_read.data (),
+                     std::min ((int)nNumberOfBytesToRead,
+                                          num_bytes_read)
+                    );
+                  }
                 }
               }
             }
@@ -1187,12 +1215,13 @@ ReadFile_Detour (HANDLE       hFile,
                 if (lpNumberOfBytesRead != nullptr)
                    *lpNumberOfBytesRead = num_bytes_read;
 
-                memcpy (lpBuffer, hid_file->last_data_read.data (), num_bytes_read);
-
-                if (lpOverlapped != nullptr &&
-                    lpOverlapped->hEvent != 0)
+                if (lpBuffer != nullptr)
                 {
-                  SetEvent (lpOverlapped->hEvent);
+                  memcpy (
+                    lpBuffer, hid_file->last_data_read.data (),
+                   std::min ((int)nNumberOfBytesToRead,
+                                        num_bytes_read)
+                  );
                 }
               }
             }
@@ -1253,6 +1282,12 @@ ReadFileEx_Detour (HANDLE                          hFile,
   // Early-out
   if (! bRet)
     return bRet;
+
+  if (nNumberOfBytesToRead <= 31 || nNumberOfBytesToRead >= 4096)
+  {
+    return
+      bRet;
+  }
 
   const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
     SK_Input_GetDeviceFileAndState (hFile);

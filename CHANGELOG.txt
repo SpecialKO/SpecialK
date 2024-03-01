@@ -1,5 +1,9 @@
-﻿24.2.9.2
-========
+﻿24.3.1
+======
+ + Reduced ReadFile hook overhead when handling HID device files
+
+24.2.29.2
+=========
  + Fixed potential nullptr deference when calling SK_XInput_Enable (...)
 
 24.2.29.1
