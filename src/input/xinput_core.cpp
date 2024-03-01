@@ -1985,6 +1985,9 @@ SK_Input_HookXInput1_4 (void)
 
   if (! InterlockedCompareExchangeAcquire (&__hooked_xi_1_4, TRUE, FALSE))
   {
+    if (! SK_GetModuleHandle (L"XInput1_4.dll"))
+             SK_LoadLibraryW (L"XInput1_4.dll");
+
     if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
       pTLS->input_core->ctx_init_thread = TRUE;
 
@@ -2105,6 +2108,9 @@ SK_Input_HookXInput1_3 (void)
 
   if (! InterlockedCompareExchangeAcquire (&__hooked_xi_1_3, TRUE, FALSE))
   {
+    if (! SK_GetModuleHandle (L"XInput1_3.dll"))
+             SK_LoadLibraryW (L"XInput1_3.dll");
+
     if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
       pTLS->input_core->ctx_init_thread = TRUE;
 
@@ -2290,6 +2296,9 @@ SK_Input_HookXInput9_1_0 (void)
 
   if (! InterlockedCompareExchangeAcquire (&__hooked_xi_9_1_0, TRUE, FALSE))
   {
+    if (! SK_GetModuleHandle (L"XInput9_1_0.dll"))
+             SK_LoadLibraryW (L"XInput9_1_0.dll");
+
     if (ReadPointerAcquire ((LPVOID *)&xinput_ctx.primary_hook) == nullptr)
       pTLS->input_core->ctx_init_thread = TRUE;
 

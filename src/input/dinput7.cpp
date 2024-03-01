@@ -1222,12 +1222,20 @@ SK_Input_HookDI7 (void)
 
   static volatile LONG hooked = FALSE;
 
+  if (! SK_GetModuleHandle (L"dinput.dll"))
+           SK_LoadLibraryW (L"dinput.dll");
+
   if (SK_GetModuleHandle (L"dinput.dll"))
   {
     if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
     {
       ///if (SK_GetDLLRole () & DLL_ROLE::DInput7)
       ///  return;
+      /// 
+
+      // DirectInput is layered on top of HID, so we should start
+      //   by hooking HID.
+      SK_Input_HookHID ();
 
       SK_LOG0 ( ( L"Game uses DirectInput 7, installing input hooks..." ),
                     L"  Input   " );

@@ -1,4 +1,10 @@
-﻿24.3.1.3
+﻿24.3.1.4
+========
+ + Added logging if a DLL being hooked using SK_CreateDLLHook2 (...) was
+     not already loaded, to diagnose loader lock contention.
+ + Load HID.dll, dinput8.dll and dinput.dll _before_ attempting to hook.
+
+24.3.1.3
 ========
  + Add 1 ms delay between Device Change Notifications sent to other threads
      when enabling / disabling input APIs to keep Unity from crashing...

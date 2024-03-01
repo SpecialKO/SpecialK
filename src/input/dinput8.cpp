@@ -1911,11 +1911,18 @@ SK_Input_HookDI8 (void)
   if (! config.input.gamepad.hook_dinput8)
     return;
 
+  if (! SK_GetModuleHandle (L"dinput8.dll"))
+           SK_LoadLibraryW (L"dinput8.dll");
+
   if (SK_GetModuleHandle (L"dinput8.dll") && DirectInput8Create_Import == nullptr)
   {
     static volatile LONG               hooked    =   FALSE;
     if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
     {
+      // DirectInput is layered on top of HID, so we should start
+      //   by hooking HID.
+      SK_Input_HookHID ();
+
       if (SK_GetDLLRole () & DLL_ROLE::DInput8)
       {
         InterlockedIncrement (&hooked);

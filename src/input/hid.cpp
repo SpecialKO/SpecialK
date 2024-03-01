@@ -2029,6 +2029,9 @@ SK_Input_HookHID (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
+    if (! SK_GetModuleHandle (L"hid.dll"))
+             SK_LoadLibraryW (L"hid.dll");
+
     SK_LOG0 ( ( L"Game uses HID, installing input hooks..." ),
                 L"  Input   " );
 
