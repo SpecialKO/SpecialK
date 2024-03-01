@@ -5382,14 +5382,17 @@ SK_ImGui_ControlPanel (void)
             static int                  iFractSel  = 0;
             static auto                *pLastLabel = command;
             static auto                 itemWidth  =
-              ImGui::CalcTextSize ("888.888888888").x;
+              ImGui::CalcTextSize (std::format ("1:1 ({:.10f})", realRefresh).c_str ()).x;
 
             if ( ( std::exchange (pLastLabel,  command)
                                             != command ) ||
                  ( std::exchange (lastRefresh, realRefresh)
                                             != realRefresh ) )
             {
-              int idx = 0;
+              itemWidth =
+                ImGui::CalcTextSize (std::format ("1:1 ({:.10f})", realRefresh).c_str ()).x;
+
+              int idx = 0, denom = 1;
 
               strFractList.clear ();
                 dFractList.clear ();
@@ -5397,12 +5400,25 @@ SK_ImGui_ControlPanel (void)
               double  dRefresh = realRefresh;
               while ( dRefresh >= 12.0 )
               {
+                if (static_cast <int> (dRefresh) == static_cast <int> (realRefresh / (denom + 1)))
+                {
+                  denom = static_cast <int> (realRefresh / static_cast <int> (dRefresh));
+
+                  dRefresh = realRefresh / denom;
+                }
+
                 double dBiasedRefresh =
                              dRefresh - (!bVRRBias ? 0.0f :
                             (dRefresh * dRefresh) / (60.0 * 60.0) + 0.1);
 
-                strFractList +=
-                    ( std::to_string (dBiasedRefresh) + '\0' );
+                strFractList += (
+                  std::format (
+                      "1{}{} ({})",
+                      denom == 1 ? ':' : '/',
+                      denom,
+                      std::to_string (dBiasedRefresh)
+                  ) + '\0'
+                );
                 dFractList.push_back (dBiasedRefresh);
 
                 if ( target_mag < dBiasedRefresh + 0.75 &&
@@ -5411,8 +5427,9 @@ SK_ImGui_ControlPanel (void)
                   iFractSel = idx;
                 }
 
-                dRefresh *= 0.5;
-                ++idx;
+                idx++; denom++;
+
+                dRefresh = realRefresh / denom;
               }
 
               strFractList += "\0\0";
@@ -5424,6 +5441,13 @@ SK_ImGui_ControlPanel (void)
 
 
             extern int __SK_LatentSyncSkip;
+
+            int maxLatentSyncSkip = 0;/*(
+              SK_API_IsLayeredOnD3D11 (rb.api) ||
+              SK_API_IsDirect3D9      (rb.api) ||
+              rb.api == SK_RenderAPI::D3D10    ||
+              rb.api == SK_RenderAPI::OpenGL
+            ) ? 4 : 0;*/
 
             bool bLatentSync =
               config.render.framerate.present_interval == 0 &&
@@ -5438,6 +5462,16 @@ SK_ImGui_ControlPanel (void)
               if (! bLatentSync)
               {
                 config.render.framerate.present_interval = 1;
+
+                if (target_mag > dRefresh)
+                {
+                  __SK_LatentSyncSkip = 0;
+                  iFractSel           = 0;
+
+                  SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                    "TargetFPS %f", static_cast <float> (dRefresh)
+                  );
+                }
 
                 //if (rb.gsync_state.disabled)
                 //{
@@ -5460,11 +5494,16 @@ SK_ImGui_ControlPanel (void)
                 }
 
                 config.render.framerate.present_interval = 0;
-                __SK_LatentSyncSkip                      = 0;
 
-                SK_GetCommandProcessor ()->ProcessCommandFormatted (
-                  "TargetFPS %f", dRefresh
-                );
+                if (maxLatentSyncSkip < 2 && target_mag > dRefresh)
+                {
+                  __SK_LatentSyncSkip = 0;
+                  iFractSel           = 0;
+
+                  SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                    "TargetFPS %f", static_cast <float> (dRefresh)
+                  );
+                }
               }
             }
 
@@ -5475,81 +5514,69 @@ SK_ImGui_ControlPanel (void)
               double dRefresh =
                 rb.getActiveRefreshRate ();
 
-              int iMode = 2; // 1:1
-#if 0
-              if (     fabs (static_cast <double> (__target_fps) / 4.0 - dRefresh) < 1.0)
-              {
-                __SK_LatentSyncSkip = 4;
-                            iMode   = 0;
-              }
+              std::string strModeList = strFractList;
+              int           iMode     = std::max (maxLatentSyncSkip - 1, 0); // 1:1
 
-              else if (fabs (static_cast <double> (__target_fps) / 2.0 - dRefresh) < 1.0)
+              double dMultiplier = std::round (fabs (static_cast <double> (__target_fps) / dRefresh));
+
+              if (maxLatentSyncSkip >= 2 && dMultiplier >= 2.0)
               {
-                __SK_LatentSyncSkip = 2;
-                            iMode   = 1;
+                __SK_LatentSyncSkip = static_cast <int> (dMultiplier);
+
+                if (__SK_LatentSyncSkip >= maxLatentSyncSkip)
+                {
+                  maxLatentSyncSkip = __SK_LatentSyncSkip + (__SK_LatentSyncSkip % 2 == 0 ? 2 : 1);
+                }
+
+                iMode = maxLatentSyncSkip - __SK_LatentSyncSkip;
               }
 
               else
-#endif
               {
                 __SK_LatentSyncSkip = 0;
 
-                if (fabs (static_cast <double> (__target_fps) * 2.0 - dRefresh) < 1.0)
+                dMultiplier = std::round (fabs (dRefresh / static_cast <double> (__target_fps)));
+
+                if (dMultiplier >= 2.0)
                 {
-                  iMode = 3;
-                }
-                if (fabs (static_cast <double> (__target_fps) * 3.0 - dRefresh) < 1.0)
-                {
-                  iMode = 4;
-                }
-                if (fabs (static_cast <double> (__target_fps) * 4.0 - dRefresh) < 1.0)
-                {
-                  iMode = 5;
+                  iMode = iFractSel + std::max (maxLatentSyncSkip - 1, 0);
                 }
               }
 
-              if ( ImGui::Combo ( "Scan Mode", &iMode,
-                                  "4x Refresh (Disabled)\0"
-                                  "2x Refresh (Disabled)\0"
-                                  "1:1 Refresh\0"
-                                  "1/2 Refresh\0"
-                                  "1/3 Refresh\0"
-                                  "1/4 Refresh\0\0" ) )
+              for (int x = 2; x <= maxLatentSyncSkip; x++)
+              {
+                strModeList.insert (
+                  0,
+                  std::format (
+                      "{}x ({})",
+                      x,
+                      std::to_string (dRefresh * x)
+                  ) + '\0'
+                );
+              }
+
+              if ( ImGui::Combo ( "Scan Mode",
+                               &iMode, strModeList.data () ) )
               {
                 float fTargetFPS =
                   static_cast <float> (dRefresh);
 
                 __SK_LatentSyncSkip = 0;
+                iFractSel           = 0;
 
-                switch (iMode)
+                if (maxLatentSyncSkip >= 2 && iMode <= maxLatentSyncSkip - 2)
                 {
-#if 0
-                  case 0:
-                  case 1:
-                  {
-                    if (rb.api == SK_RenderAPI::D3D11 ||
-                        rb.api == SK_RenderAPI::OpenGL)//SK_API_IsDXGIBased (rb.api) || SK_API_IsGDIBased (rb.api))
-                    {
-                      if (iMode == 0)
-                      {
-                        __SK_LatentSyncSkip = 4;
-                             fTargetFPS *= 4.0f;
-                      }
+                  __SK_LatentSyncSkip = maxLatentSyncSkip - iMode;
 
-                      if (iMode == 1)
-                      {
-                        __SK_LatentSyncSkip = 2;
-                             fTargetFPS *= 2.0f;
-                      }
-                    }
-                  } break;
-#endif
+                  fTargetFPS = static_cast <float> (dRefresh * __SK_LatentSyncSkip);
+                }
 
-                  default:
-                  case 2: fTargetFPS *= 1.0f; break;
-                  case 3: fTargetFPS /= 2.0f; break;
-                  case 4: fTargetFPS /= 3.0f; break;
-                  case 5: fTargetFPS /= 4.0f; break;
+                else if ( ( maxLatentSyncSkip >= 2 && iMode >= maxLatentSyncSkip ) ||
+                          ( maxLatentSyncSkip <= 1 && iMode >= 1                 ) )
+                {  
+                  iFractSel = maxLatentSyncSkip >= 2 ? (iMode - maxLatentSyncSkip + 1) : iMode;
+
+                  fTargetFPS = static_cast <float> (dFractList [iFractSel]);
                 }
 
                 SK_GetCommandProcessor ()->ProcessCommandFormatted (
@@ -5567,7 +5594,8 @@ SK_ImGui_ControlPanel (void)
                                &iFractSel, strFractList.data () ) )
               {
                 cp->ProcessCommandFormatted (
-                           "%s %f", command, dFractList [iFractSel] );
+                  "%s %f", command, static_cast <float> (dFractList [iFractSel])
+                );
               }
 
               ImGui::PopItemWidth ();
