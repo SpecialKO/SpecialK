@@ -3896,6 +3896,26 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 pDevice->chord_activated = true;
               }
 
+              if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)      &&
+                  (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) &&
+                (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)))
+              {
+                SK_GetCommandProcessor ()->
+                  ProcessCommandLine ("HDR.Luminance += 0.125");
+
+                pDevice->chord_activated = true;
+              }
+
+              if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)     &&
+                  (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) &&
+                (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)))
+              {
+                SK_GetCommandProcessor ()->
+                  ProcessCommandLine ("HDR.Luminance -= 0.125");
+
+                pDevice->chord_activated = true;
+              }
+
               if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)   &&
                   (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) &&
                 (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)))

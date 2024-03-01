@@ -826,6 +826,7 @@ public:
       SK_IVarStub <bool>*  enable_scrgb = new SK_IVarStub <bool>  (&__SK_HDR_16BitSwap, this);
       SK_IVarStub <bool>*  enable_hdr10 = new SK_IVarStub <bool>  (&__SK_HDR_10BitSwap, this);
       SK_IVarStub <float>* content_eotf = new SK_IVarStub <float> (&__SK_HDR_Content_EOTF);
+      SK_IVarStub <float>* luma         = new SK_IVarStub <float> (&__SK_HDR_Luma);
 
       pCommandProc->AddVariable ( "HDR.Enable",          enable                                 );
       pCommandProc->AddVariable ( "HDR.EnableSCRGB",     enable_scrgb                           );
@@ -837,6 +838,7 @@ public:
       pCommandProc->AddVariable ( "HDR.VerticalSplit",   &vert->setRange         (0.0f, 100.0f) );
       pCommandProc->AddVariable ( "HDR.AdaptiveToneMap", &adaptive->setRange     (false,  true) );
       pCommandProc->AddVariable ( "HDR.ContentEOTF",     &content_eotf->setRange (-2.2f, 2.6f)  );
+      pCommandProc->AddVariable ( "HDR.Luminance",       &luma->setRange         (1.0f, 125.0f) );
     }
 
     catch (...)
