@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -971,6 +971,21 @@ SK_CreateDLLHook2 ( const wchar_t  *pwszModule, const char  *pszProcName,
 
   if (! GetModuleHandleExW (GET_MODULE_HANDLE_EX_FLAG_PIN, pwszModule, &hMod))
   {
+    // Log this because there are some loader lock issues lingering in the code.
+    SK_LOGi0 (
+      L"Module: %ws was not loaded before calling SK_CreateDLLHook2 (...); "
+      L"deadlock may occur...", pwszModule
+    );
+    
+    char szSymbol [512] = { };
+
+    SK_GetSymbolNameFromModuleAddr (
+                         SK_GetCallingDLL (),
+                (uintptr_t)_ReturnAddress (),
+                                    szSymbol, 511 );
+
+    SK_LOGi0 (L"Source of Hook Request: %hs", szSymbol);
+
     // In the future, establish queuing capabilities, for now, just pull the DLL in.
     //
     //  >> Pass the library load through the original (now hooked) function so that
