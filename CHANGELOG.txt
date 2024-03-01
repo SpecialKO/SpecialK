@@ -1,4 +1,10 @@
-﻿24.3.1.1
+﻿24.3.1.2
+========
+ + Bound PS + Square to "Switch to Game" to activate the game window
+     if is in the background.
+    >> Requires "Continue Rendering", and Gamepad Input set to "Enabled"
+
+24.3.1.1
 ========
  + Added console variable: HDR.Luminance , floating-point, 1.0=80 nits
  + Bound PlayStation + Left / Right to HDR +/- 10 nits

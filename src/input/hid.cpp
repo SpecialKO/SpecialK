@@ -3896,6 +3896,16 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 pDevice->chord_activated = true;
               }
 
+              if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+                  (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_X)     &&
+                (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_X)))
+              {
+                SK_RealizeForegroundWindow (game_window.hWnd);
+                ShowWindow                 (game_window.hWnd, SW_NORMAL);
+
+                pDevice->chord_activated = true;
+              }
+
               if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)      &&
                   (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) &&
                 (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)))
