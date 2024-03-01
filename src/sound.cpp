@@ -1002,6 +1002,12 @@ SK_WASAPI_Init (void)
           );
 
           pVolumeCtl->SetMasterVolume (volume / 100.0f, nullptr);
+
+          if (volume != 0.0f)
+          {
+            if (SK_IsGameMuted ())
+                SK_SetGameMute (false);
+          }
         }
 
         else if (var->getValuePointer () == &mute)
