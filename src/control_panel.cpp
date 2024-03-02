@@ -5539,7 +5539,7 @@ SK_ImGui_ControlPanel (void)
 
                 if (dMultiplier >= 2.0)
                 {
-                  iMode = iFractSel + std::max (maxLatentSyncSkip - 1, 0);
+                  iMode += iFractSel;
                 }
               }
 
