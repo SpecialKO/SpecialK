@@ -5526,7 +5526,7 @@ SK_ImGui_ControlPanel (void)
               std::string strModeList = strFractList;
               int           iMode     = std::max (maxLatentSyncSkip - 1, 0); // 1:1
 
-              double dMultiplier = std::round (fabs (static_cast <double> (__target_fps) / dRefresh));
+              double dMultiplier = std::round (static_cast <double> (__target_fps) / dRefresh);
 
               if (maxLatentSyncSkip >= 2 && dMultiplier >= 2.0)
               {
@@ -5544,7 +5544,7 @@ SK_ImGui_ControlPanel (void)
               {
                 __SK_LatentSyncSkip = 0;
 
-                dMultiplier = std::round (fabs (dRefresh / static_cast <double> (__target_fps)));
+                dMultiplier = std::round (dRefresh / static_cast <double> (__target_fps));
 
                 if (dMultiplier >= 2.0)
                 {
