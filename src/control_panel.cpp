@@ -5381,7 +5381,7 @@ SK_ImGui_ControlPanel (void)
             static std::vector <double> dFractList;
             static int                  iFractSel  = 0;
             static auto                *pLastLabel = command;
-            static auto                 itemWidth  =
+                   auto                 itemWidth  =
               ImGui::CalcTextSize (std::format ("1:1 ({:.10f})", realRefresh).c_str ()).x;
 
             if ( ( std::exchange (pLastLabel,  command)
@@ -5389,9 +5389,6 @@ SK_ImGui_ControlPanel (void)
                  ( std::exchange (lastRefresh, realRefresh)
                                             != realRefresh ) )
             {
-              itemWidth =
-                ImGui::CalcTextSize (std::format ("1:1 ({:.10f})", realRefresh).c_str ()).x;
-
               int idx = 0, denom = 1;
 
               strFractList.clear ();
