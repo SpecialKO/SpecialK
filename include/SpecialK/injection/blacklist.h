@@ -1,4 +1,4 @@
-#pragma pack (push,8)
+﻿#pragma pack (push,8)
 typedef struct _UNICODE_STRING {
   USHORT         Length;
   USHORT         MaximumLength;
@@ -120,8 +120,11 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"wallpaper64.exe",
   L"winrtutil64.exe",
   L"diagnostics64.exe",
-  L"applicationwallpaperinject64.exe", // Wallpaper Engine's stpid UI app
+  L"applicationwallpaperinject64.exe", // Wallpaper Engine's UI app
+  L"Reloaded-II.exe",
+
 #else
+  L"Reloaded-II32.exe",
   L"vacodeinspectionsserver.exe",
 
   L"vhui.exe",

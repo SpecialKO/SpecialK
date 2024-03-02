@@ -1,4 +1,8 @@
-﻿24.3.2.2
+﻿24.3.2.3
+========
+ + Added Reloaded-II.exe and Reloaded-II32.exe to internal injection blacklist
+
+24.3.2.2
 ========
  + Reduce overhead when blocking HID device read requests made by games using
      overlapped I/O (asynchronous).
