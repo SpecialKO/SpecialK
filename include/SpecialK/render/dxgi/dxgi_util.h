@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -43,6 +43,9 @@ extern INT              __stdcall SK_DXGI_BytesPerPixel (DXGI_FORMAT fmt);
 bool __stdcall SK_DXGI_IsFormatFloat      (DXGI_FORMAT fmt) noexcept;
 bool __stdcall SK_DXGI_IsFormatInteger    (DXGI_FORMAT fmt) noexcept;
 bool __stdcall SK_DXGI_IsFormatNormalized (DXGI_FORMAT fmt) noexcept;
+
+FARPROC
+SK_GetProcAddressD3D11 (const char* lpProcName);
 
 // Check if SK is responsible for this resource having a different
 //   format than the underlying software initially requested/expects

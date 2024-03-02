@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -22,44 +22,44 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/render/d3dkmt/d3dkmt.h>
 
-extern "C" __declspec (dllexport) FARPROC D3DKMTCloseAdapter                     = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTDestroyAllocation                = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTDestroyContext                   = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTDestroyDevice                    = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTDestroySynchronizationObject     = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTQueryAdapterInfo                 = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTSetDisplayPrivateDriverFormat    = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTSignalSynchronizationObject      = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTUnlock                           = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTWaitForSynchronizationObject     = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTCreateAllocation                 = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTCreateContext                    = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTCreateDevice                     = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTCreateSynchronizationObject      = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTEscape                           = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTGetContextSchedulingPriority     = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTGetDeviceState                   = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTGetDisplayModeList               = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTGetMultisampleMethodList         = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTGetRuntimeData                   = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTGetSharedPrimaryHandle           = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTLock                             = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTOpenAdapterFromHdc               = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTOpenAdapterFromLuid              = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTOpenAdapterFromGdiDisplayName    = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTOpenResource                     = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTPresent                          = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTQueryAllocationResidency         = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTQueryResourceInfo                = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTRender                           = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTSetAllocationPriority            = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTSetContextSchedulingPriority     = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTSetDisplayMode                   = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTSetGammaRamp                     = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTSetVidPnSourceOwner              = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTWaitForVerticalBlankEvent        = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTGetMultiPlaneOverlayCaps         = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DKMTGetScanLine                      = nullptr;
+extern "C" FARPROC D3DKMTCloseAdapter                     = nullptr;
+extern "C" FARPROC D3DKMTDestroyAllocation                = nullptr;
+extern "C" FARPROC D3DKMTDestroyContext                   = nullptr;
+extern "C" FARPROC D3DKMTDestroyDevice                    = nullptr;
+extern "C" FARPROC D3DKMTDestroySynchronizationObject     = nullptr;
+extern "C" FARPROC D3DKMTQueryAdapterInfo                 = nullptr;
+extern "C" FARPROC D3DKMTSetDisplayPrivateDriverFormat    = nullptr;
+extern "C" FARPROC D3DKMTSignalSynchronizationObject      = nullptr;
+extern "C" FARPROC D3DKMTUnlock                           = nullptr;
+extern "C" FARPROC D3DKMTWaitForSynchronizationObject     = nullptr;
+extern "C" FARPROC D3DKMTCreateAllocation                 = nullptr;
+extern "C" FARPROC D3DKMTCreateContext                    = nullptr;
+extern "C" FARPROC D3DKMTCreateDevice                     = nullptr;
+extern "C" FARPROC D3DKMTCreateSynchronizationObject      = nullptr;
+extern "C" FARPROC D3DKMTEscape                           = nullptr;
+extern "C" FARPROC D3DKMTGetContextSchedulingPriority     = nullptr;
+extern "C" FARPROC D3DKMTGetDeviceState                   = nullptr;
+extern "C" FARPROC D3DKMTGetDisplayModeList               = nullptr;
+extern "C" FARPROC D3DKMTGetMultisampleMethodList         = nullptr;
+extern "C" FARPROC D3DKMTGetRuntimeData                   = nullptr;
+extern "C" FARPROC D3DKMTGetSharedPrimaryHandle           = nullptr;
+extern "C" FARPROC D3DKMTLock                             = nullptr;
+extern "C" FARPROC D3DKMTOpenAdapterFromHdc               = nullptr;
+extern "C" FARPROC D3DKMTOpenAdapterFromLuid              = nullptr;
+extern "C" FARPROC D3DKMTOpenAdapterFromGdiDisplayName    = nullptr;
+extern "C" FARPROC D3DKMTOpenResource                     = nullptr;
+extern "C" FARPROC D3DKMTPresent                          = nullptr;
+extern "C" FARPROC D3DKMTQueryAllocationResidency         = nullptr;
+extern "C" FARPROC D3DKMTQueryResourceInfo                = nullptr;
+extern "C" FARPROC D3DKMTRender                           = nullptr;
+extern "C" FARPROC D3DKMTSetAllocationPriority            = nullptr;
+extern "C" FARPROC D3DKMTSetContextSchedulingPriority     = nullptr;
+extern "C" FARPROC D3DKMTSetDisplayMode                   = nullptr;
+extern "C" FARPROC D3DKMTSetGammaRamp                     = nullptr;
+extern "C" FARPROC D3DKMTSetVidPnSourceOwner              = nullptr;
+extern "C" FARPROC D3DKMTWaitForVerticalBlankEvent        = nullptr;
+extern "C" FARPROC D3DKMTGetMultiPlaneOverlayCaps         = nullptr;
+extern "C" FARPROC D3DKMTGetScanLine                      = nullptr;
 
 HRESULT
 SK_D3DKMT_QueryAdapterInfo (D3DKMT_QUERYADAPTERINFO *pQueryAdapterInfo)

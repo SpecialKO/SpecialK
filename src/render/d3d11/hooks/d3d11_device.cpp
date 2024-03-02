@@ -43,21 +43,63 @@
 //                       _Out_opt_        D3D_FEATURE_LEVEL*    pChosenFeatureLevel );
 
 
-extern "C" __declspec (dllexport) FARPROC D3D11CreateDeviceForD3D12              = nullptr;
-extern "C" __declspec (dllexport) FARPROC CreateDirect3D11DeviceFromDXGIDevice   = nullptr;
-extern "C" __declspec (dllexport) FARPROC CreateDirect3D11SurfaceFromDXGISurface = nullptr;
-extern "C" __declspec (dllexport) D3D11On12CreateDevice_pfn
-                                          D3D11On12CreateDevice                  = nullptr;
-extern "C" __declspec (dllexport) FARPROC EnableFeatureLevelUpgrade              = nullptr;
-extern "C" __declspec (dllexport) FARPROC OpenAdapter10                          = nullptr;
-extern "C" __declspec (dllexport) FARPROC OpenAdapter10_2                        = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3D11CoreCreateLayeredDevice           = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3D11CoreGetLayeredDeviceSize          = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3D11CoreRegisterLayers                = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DPerformance_BeginEvent              = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DPerformance_EndEvent                = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DPerformance_GetStatus               = nullptr;
-extern "C" __declspec (dllexport) FARPROC D3DPerformance_SetMarker               = nullptr;
+extern "C" FARPROC D3D11CreateDeviceForD3D12              = nullptr;
+extern "C" FARPROC CreateDirect3D11DeviceFromDXGIDevice   = nullptr;
+extern "C" FARPROC CreateDirect3D11SurfaceFromDXGISurface = nullptr;
+extern "C" D3D11On12CreateDevice_pfn
+                   D3D11On12CreateDevice                  = nullptr;
+extern "C" FARPROC EnableFeatureLevelUpgrade              = nullptr;
+extern "C" FARPROC OpenAdapter10                          = nullptr;
+extern "C" FARPROC OpenAdapter10_2                        = nullptr;
+extern "C" FARPROC D3D11CoreCreateLayeredDevice           = nullptr;
+extern "C" FARPROC D3D11CoreGetLayeredDeviceSize          = nullptr;
+extern "C" FARPROC D3D11CoreRegisterLayers                = nullptr;
+extern "C" FARPROC D3DPerformance_BeginEvent              = nullptr;
+extern "C" FARPROC D3DPerformance_EndEvent                = nullptr;
+extern "C" FARPROC D3DPerformance_GetStatus               = nullptr;
+extern "C" FARPROC D3DPerformance_SetMarker               = nullptr;
+
+FARPROC
+SK_GetProcAddressD3D11 (const char* lpProcName)
+{
+  extern HMODULE SK::DXGI::hModD3D11;
+
+  if (StrStrA (lpProcName, "D3DKMT") == lpProcName)
+  {
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+  }
+
+  if (! StrCmpA (lpProcName, "D3D11CreateDeviceForD3D12"))
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+  if (! StrCmpA (lpProcName, "CreateDirect3D11DeviceFromDXGIDevice"))
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+  if (! StrCmpA (lpProcName, "CreateDirect3D11SurfaceFromDXGISurface"))
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+  if (! StrCmpA (lpProcName, "D3D11On12CreateDevice"))
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+  if (! StrCmpA (lpProcName, "EnableFeatureLevelUpgrade"))
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+  if (! StrCmpA (lpProcName, "OpenAdapter10"))
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+  if (! StrCmpA (lpProcName, "OpenAdapter10_2"))
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+  if (! StrCmpA (lpProcName, "D3D11CoreCreateLayeredDevice"))
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+  if (! StrCmpA (lpProcName, "D3D11CoreGetLayeredDeviceSize"))
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+  if (! StrCmpA (lpProcName, "D3D11CoreRegisterLayers"))
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+  if (! StrCmpA (lpProcName, "D3DPerformance_BeginEvent"))
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+  if (! StrCmpA (lpProcName, "D3DPerformance_EndEvent"))
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+  if (! StrCmpA (lpProcName, "D3DPerformance_GetStatus"))
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+  if (! StrCmpA (lpProcName, "D3DPerformance_SetMarker"))
+    return SK_GetProcAddress (SK::DXGI::hModD3D11, lpProcName);
+
+  return (FARPROC)-1;
+}
 
 
 bool

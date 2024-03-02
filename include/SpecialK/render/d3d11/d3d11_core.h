@@ -2217,8 +2217,7 @@ using D3D11On12CreateDevice_pfn =
 extern "C" SK_API D3D11On12CreateDevice_pfn extern D3D11On12CreateDevice;
 
 
-#define SK_D3D11_Decl(x) extern "C" __declspec (dllexport) extern \
-                                       FARPROC (x)
+#define SK_D3D11_Decl(x) extern "C" extern FARPROC (x)
 
 SK_D3D11_Decl (D3D11CreateDeviceForD3D12);
 SK_D3D11_Decl (CreateDirect3D11DeviceFromDXGIDevice);

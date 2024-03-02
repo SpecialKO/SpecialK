@@ -522,6 +522,23 @@ GetProcAddress_Detour     (
     }
   }
 
+  if (hModule == SK_GetDLL () && (uintptr_t)lpProcName > 65535)
+  {
+    // Handle various exports we do not have stubs for; nothing
+    //   is going to have an import dependency on this stuff...
+    if ( (SK_GetDLLRole () & DLL_ROLE::D3D11) ==
+                             DLL_ROLE::D3D11 )
+    {
+      extern FARPROC SK_GetProcAddressD3D11 (const char* lpProcName);
+
+      FARPROC d3d11_func =
+        SK_GetProcAddressD3D11 (lpProcName);
+
+      if (d3d11_func != (FARPROC)-1)
+        return d3d11_func;
+    }
+  }
+
   DWORD dwLastErr =
     GetLastError ();
 

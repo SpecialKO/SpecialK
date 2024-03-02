@@ -720,8 +720,7 @@ using D3DKMTGetMultiPlaneOverlayCaps_pfn      = NTSTATUS (WINAPI *)(D3DKMT_GET_M
 using D3DKMTOpenAdapterFromGdiDisplayName_pfn = NTSTATUS (WINAPI *)(D3DKMT_OPENADAPTERFROMGDIDISPLAYNAME    *unnamedParam1);
 using D3DKMTOpenAdapterFromLuid_pfn           = NTSTATUS (WINAPI *)(D3DKMT_OPENADAPTERFROMLUID              *unnamedParam1);
 
-#define SK_D3DKMT_Decl(x) extern "C" __declspec (dllexport) extern \
-                                          FARPROC (x)
+#define SK_D3DKMT_Decl(x) extern "C" extern FARPROC (x)
 
 SK_D3DKMT_Decl (D3DKMTCloseAdapter);
 SK_D3DKMT_Decl (D3DKMTDestroyAllocation);

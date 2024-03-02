@@ -1,4 +1,10 @@
-﻿24.3.1.6
+﻿24.3.2
+======
+ + Removed private D3DKMT and D3D11 DLL symbol exports from SK
+ + Passthrough D3DKMT proc address queries to the real DLL if SK is
+     locally injected as d3d11.dll
+
+24.3.1.6
 ========
  + Added PS+Circle (Switch to Last Application) to complement "Switch to Game"
  + Unminimize application windows when attempting to activate them
