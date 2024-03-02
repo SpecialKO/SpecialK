@@ -5460,7 +5460,7 @@ SK_ImGui_ControlPanel (void)
               {
                 config.render.framerate.present_interval = 1;
 
-                if (target_mag > dRefresh)
+                if (__target_fps > dRefresh)
                 {
                   __SK_LatentSyncSkip = 0;
                   iFractSel           = 0;
@@ -5492,13 +5492,25 @@ SK_ImGui_ControlPanel (void)
 
                 config.render.framerate.present_interval = 0;
 
-                if (maxLatentSyncSkip < 2 && target_mag > dRefresh)
+                if (__target_fps == 0.0f || (maxLatentSyncSkip < 2 && target_mag > dRefresh))
                 {
                   __SK_LatentSyncSkip = 0;
                   iFractSel           = 0;
 
                   SK_GetCommandProcessor ()->ProcessCommandFormatted (
                     "TargetFPS %f", static_cast <float> (dRefresh)
+                  );
+                }
+
+                else if (__target_fps < 0.0f)
+                {
+                  if (maxLatentSyncSkip < 2)
+                  {
+                    __SK_LatentSyncSkip = 0;
+                  }
+
+                  SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                    "TargetFPS %f", target_mag
                   );
                 }
               }
