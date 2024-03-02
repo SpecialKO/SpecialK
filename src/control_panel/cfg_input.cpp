@@ -1178,6 +1178,7 @@ SK::ControlPanel::Input::Draw (void)
                   config.input.gamepad.xinput.blackout_api = false;
                 }
 
+                config.input.gamepad.xinput.disable   [0] = false;
                 config.input.gamepad.xinput.placehold [0] = true;
               }
 

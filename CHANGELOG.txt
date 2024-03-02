@@ -1,4 +1,9 @@
-﻿24.3.1.5
+﻿24.3.1.6
+========
+ + Added PS+Circle (Switch to Last Application) to complement "Switch to Game"
+ + Unminimize application windows when attempting to activate them
+
+24.3.1.5
 ========
  + Allow PS+Square (Switch to Game) to cycle between multiple running games
  + PS+Square works even if background input is disabled for a game

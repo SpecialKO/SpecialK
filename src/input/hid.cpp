@@ -3823,14 +3823,45 @@ SK_HID_PlayStationDevice::request_input_report (void)
                        config.input.gamepad.xinput.ui_slot <  4) &&
                                           bIsDeviceMostRecentlyActive )
             {
+              static HWND hWndLastApp =
+                SK_GetForegroundWindow ();
+
               if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
                   (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_X)     &&
                 (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_X)))
               {
                 if (SK_GetForegroundWindow () != game_window.hWnd)
                 {
+                  hWndLastApp =
+                    SK_GetForegroundWindow ();
+
+                  auto show_cmd = 
+                    IsMinimized (game_window.hWnd) ? SW_SHOWNORMAL
+                                                   : SW_SHOW;
+
+                  ShowWindow                 (game_window.hWnd, show_cmd);
                   SK_RealizeForegroundWindow (game_window.hWnd);
-                  ShowWindow                 (game_window.hWnd, SW_NORMAL);
+                  ShowWindow                 (game_window.hWnd, show_cmd);
+                }
+
+                pDevice->chord_activated = true;
+              }
+
+              if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+                  (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_B)     &&
+                (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_B)))
+              {
+                if (SK_GetForegroundWindow () != hWndLastApp &&
+                                            0 != hWndLastApp &&
+                                       IsWindow (hWndLastApp))
+                {
+                  auto show_cmd = 
+                    IsMinimized (hWndLastApp) ? SW_SHOWNORMAL
+                                              : SW_SHOW;
+
+                  ShowWindow                 (hWndLastApp, show_cmd);
+                  SK_RealizeForegroundWindow (hWndLastApp);
+                  ShowWindow                 (hWndLastApp, show_cmd);
                 }
 
                 pDevice->chord_activated = true;

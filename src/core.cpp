@@ -2667,7 +2667,10 @@ constexpr UINT WM_SKIF_EVENT_SIGNAL = WM_USER + 0x3000;
       if (SK_Inject_GetFocusWindow (            ) == nullptr)
           SK_Inject_SetFocusWindow (hWndExisting);
 
-      ShowWindow                   (hWndExisting, SW_SHOW);
+      if (             IsMinimized (hWndExisting))
+        ShowWindow                 (hWndExisting, SW_SHOWNORMAL);
+      else
+        ShowWindow                 (hWndExisting, SW_SHOW);
     }
   }
 }
@@ -3160,7 +3163,10 @@ SK_FrameCallback ( SK_RenderBackend& rb,
                 SK_SAFE_CALLWNDPROC (WM_SETFOCUS,       0, 0);
 
                 // Activate the window
-                ShowWindowAsync (game_window.hWnd, SW_SHOW);
+                if (IsMinimized (  game_window.hWnd))
+                  ShowWindowAsync (game_window.hWnd, SW_SHOWNORMAL);
+                else
+                  ShowWindowAsync (game_window.hWnd, SW_SHOW);
 
                 if (!    SetForegroundWindow (game_window.hWnd))
                   SK_RealizeForegroundWindow (game_window.hWnd);
@@ -3503,7 +3509,11 @@ SK_BackgroundRender_EndFrame (void)
                       & ~WS_EX_TOOLWINDOW );
                      // And remove one that prevents taskbar activation...
 
-      ShowWindowAsync            ( hWndGame,
+      if (IsMinimized (hWndGame))
+        ShowWindowAsync          ( hWndGame,
+                                     SW_SHOWNORMAL );
+      else
+        ShowWindowAsync          ( hWndGame,
                                      SW_SHOW );
 
       if (lpStyleExNew != lpStyleEx)

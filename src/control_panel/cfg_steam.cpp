@@ -1141,7 +1141,7 @@ SK_ShellExecute (const wchar_t* verb, const wchar_t* file)
   SHELLEXECUTEINFO
   sei        = { };
   sei.cbSize = sizeof (sei);
-  sei.nShow  = SW_SHOWMAXIMIZED;
+  sei.nShow  = SW_SHOWNORMAL;
 
   sei.fMask  = SEE_MASK_NOCLOSEPROCESS | SEE_MASK_NOASYNC |
                SEE_MASK_WAITFORINPUTIDLE;
@@ -1290,7 +1290,7 @@ SK::ControlPanel::Steam::DrawMenu (void)
         {
           SK_ShellExecuteW ( HWND_DESKTOP,   L"OPEN",
                              L"notepad.exe", SK_Steam_GetApplicationManifestPath ().c_str (),
-                             nullptr,        SW_SHOWMAXIMIZED );
+                             nullptr,        SW_SHOWNORMAL );
 
           SK_ImGui_Warning (L"Remember to close notepad, Steam will count the game as running until you do.");
         }
