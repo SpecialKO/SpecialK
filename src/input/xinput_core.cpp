@@ -283,7 +283,12 @@ SK_XInput_GetPrimaryHookName (void)
     return                 "XInput 9.1.0";
 #endif
 
-  return "Unknown";
+#ifdef XINPUT_UPGRADE
+    return xinput_ctx.translated ? (const char *)  "XInput(?)\xE2\x86\x92""1.4  " ICON_FA_PLAYSTATION
+                                 : (const char *)u8"XInput(?)→1.4";
+#else
+    return                 "XInput(?)";
+#endif
 }
 
 #define SK_XINPUT_READ(slot)  SK_XInput_Backend->markRead   (slot);
@@ -297,14 +302,19 @@ void
 SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
                                  SK_XInputContext::instance_s* pCtx )
 {
+  static int calls = 0;
+
   // If -we- called the function, then ignore this... the goal is to determine
   //   the API version the GAME is using :)
   if (hModCaller == SK_GetDLL ())
     return;
 
   // Calling module (return address) indicates the game made this call
-  if (hModCaller == skModuleRegistry::HostApp ())
-  {
+  if (hModCaller == skModuleRegistry::HostApp () || ++calls > 20)
+  { // If the game's not calling XInput, then it probably uses SDL or a separate DLL.
+    //
+    //  After 20 times XInput is polled, if the game hasn't done it directly, then expand
+    //    the conditions for "primary hook" to include third-party DLLs.
     InterlockedCompareExchangePointer ((volatile LPVOID *)&xinput_ctx.primary_hook, pCtx, nullptr);
   }
 

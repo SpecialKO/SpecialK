@@ -34,34 +34,6 @@
 joyGetPos_pfn   joyGetPos_Original   = nullptr;
 joyGetPosEx_pfn joyGetPosEx_Original = nullptr;
 
-MMRESULT
-WINAPI
-joyGetPos_Detour (_In_  UINT      uJoyID,
-                  _Out_ LPJOYINFO pjiUINT)
-{
-  SK_LOG_FIRST_CALL
-
-  if (config.input.gamepad.disable_winmm)
-    return JOYERR_UNPLUGGED;
-
-  JOYINFO                                    joyInfo = { };
-  auto result = joyGetPos_Original (uJoyID, &joyInfo);
-
-  if (! SK_ImGui_WantGamepadCapture ())
-  {
-    // Pass-through the polled data
-    *pjiUINT = joyInfo;
-
-    if (result == JOYERR_NOERROR)
-      SK_WinMM_Backend->markRead (sk_input_dev_type::Gamepad);
-  }
-
-  else if (result == JOYERR_NOERROR)
-    SK_WinMM_Backend->markHidden (sk_input_dev_type::Gamepad);
-
-  return result;
-}
-
 // This caching mechanism is only needed for joyGetPosEx, because all calls
 //   to joyGetPos are forwarded to joyGetPosEx
 struct SK_WINMM_joyGetPosExHistory
@@ -228,6 +200,38 @@ joyGetPosEx_Detour (_In_  UINT        uJoyID,
   return result;
 }
 
+MMRESULT
+WINAPI
+joyGetPos_Detour (_In_  UINT      uJoyID,
+                  _Out_ LPJOYINFO pjiUINT)
+{
+  SK_LOG_FIRST_CALL
+
+  JOYINFOEX jex =
+     { .dwSize  = sizeof (JOYINFOEX),
+       .dwFlags = JOY_RETURNX | JOY_RETURNY |
+                  JOY_RETURNZ | JOY_RETURNBUTTONS };
+
+  if (pjiUINT == nullptr || uJoyID > 15)
+    return JOYERR_PARMS;
+
+  if (config.input.gamepad.disable_winmm)
+    return JOYERR_UNPLUGGED;
+
+  MMRESULT result =
+    joyGetPosEx_Detour (uJoyID, &jex);
+
+  if (result == JOYERR_NOERROR)
+  {
+    pjiUINT->wButtons = jex.dwButtons;
+    pjiUINT->wXpos    = jex.dwXpos;
+    pjiUINT->wYpos    = jex.dwYpos;
+    pjiUINT->wZpos    = jex.dwZpos;
+  }
+
+  return result;
+}
+
 void
 SK_Input_HookWinMM (void)
 {
@@ -238,8 +242,19 @@ SK_Input_HookWinMM (void)
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
+    // Not sure why we're calling this if winmm wasn't even loaded yet...
+    if (! GetModuleHandleW (L"winmm.dll"))
+           SK_LoadLibraryW (L"winmm.dll");
+
     SK_LOG0 ( ( L"Game uses WinMM, installing input hooks..." ),
                 L"  Input   " );
+
+    // This is layered on top of DirectInput, which is layered on top of
+    //   HID... let's get this out of the way.
+    if (! GetModuleHandleW (L"HID.dll"))
+           SK_LoadLibraryW (L"HID.dll");
+
+    SK_Input_HookHID ();
 
     // NOTE: API forwards calls to joyGetPosEx, do not call one from the other.
     SK_CreateDLLHook2 (     L"winmm.DLL",
