@@ -948,73 +948,89 @@ SK_LazyGlobal <concurrency::concurrent_unordered_set <HWND>> SK_Win32_NotifiedWi
 void
 SK_Win32_NotifyHWND_W (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  __try {
-    DWORD  dwProcId   = 0x0,
-           dwThreadId =
-    GetWindowThreadProcessId (hWnd, &dwProcId);
+  if (hWnd == nullptr || ! IsWindow (hWnd))
+    return;
 
-    if (dwProcId != GetCurrentProcessId ())
-      return;
+  DWORD  dwProcId   = 0x0,
+         dwThreadId =
+  GetWindowThreadProcessId (hWnd, &dwProcId);
 
-    static UINT64 ulLastFrameNotified = 0;
+  if (dwProcId != GetCurrentProcessId ())
+    return;
 
-    int spins = 0;
+  static UINT64 ulLastFrameNotified = 0;
 
-    if (dwThreadId != GetCurrentThreadId ())
+  int spins = 0;
+
+  if (dwThreadId != GetCurrentThreadId ())
+  {
+    while (SK_GetFramesDrawn () == ulLastFrameNotified)
     {
-      while (SK_GetFramesDrawn () == ulLastFrameNotified)
-      {
-        SK_SleepEx (1ul, FALSE);
+      SK_SleepEx (1ul, FALSE);
 
-        if (++spins > 1)
-          break;
-      }
+      if (++spins > 1)
+        break;
     }
-
-    ((WNDPROC)SK_GetWindowLongPtrW (hWnd, GWLP_WNDPROC))(hWnd, uMsg, wParam, lParam);
-
-    ulLastFrameNotified = SK_GetFramesDrawn ();
   }
 
-  __except (EXCEPTION_EXECUTE_HANDLER)
+  WNDPROC wndProc =
+    (WNDPROC)SK_GetWindowLongPtrW (hWnd, GWLP_WNDPROC);
+
+  __try {
+    CallWindowProcW (wndProc, hWnd, uMsg, wParam, lParam);
+  }
+
+  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ||
+             GetExceptionCode () == EXCEPTION_BREAKPOINT       ?
+                                    EXCEPTION_EXECUTE_HANDLER  : EXCEPTION_CONTINUE_SEARCH )
   {
   }
+
+  ulLastFrameNotified = SK_GetFramesDrawn ();
 }
 
 void
 SK_Win32_NotifyHWND_A (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  __try {
-    DWORD  dwProcId   = 0x0,
-           dwThreadId =
-    GetWindowThreadProcessId (hWnd, &dwProcId);
+  if (hWnd == nullptr || ! IsWindow (hWnd))
+    return;
 
-    if (dwProcId != GetCurrentProcessId ())
-      return;
+  DWORD  dwProcId   = 0x0,
+         dwThreadId =
+  GetWindowThreadProcessId (hWnd, &dwProcId);
 
-    static UINT64 ulLastFrameNotified = 0;
+  if (dwProcId != GetCurrentProcessId ())
+    return;
 
-    if (dwThreadId != GetCurrentThreadId ())
+  static UINT64 ulLastFrameNotified = 0;
+
+  if (dwThreadId != GetCurrentThreadId ())
+  {
+    int spins = 0;
+
+    while (SK_GetFramesDrawn () == ulLastFrameNotified)
     {
-      int spins = 0;
+      SK_SleepEx (1ul, FALSE);
 
-      while (SK_GetFramesDrawn () == ulLastFrameNotified)
-      {
-        SK_SleepEx (1ul, FALSE);
-
-        if (++spins > 1)
-          break;
-      }
+      if (++spins > 1)
+        break;
     }
-
-    ((WNDPROC)SK_GetWindowLongPtrA (hWnd, GWLP_WNDPROC))(hWnd, uMsg, wParam, lParam);
-
-    ulLastFrameNotified = SK_GetFramesDrawn ();
   }
 
-  __except (EXCEPTION_EXECUTE_HANDLER)
+  WNDPROC wndProc =
+    (WNDPROC)SK_GetWindowLongPtrA (hWnd, GWLP_WNDPROC);
+
+  __try {
+    CallWindowProcA (wndProc, hWnd, uMsg, wParam, lParam);
+  }
+
+  __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ||
+             GetExceptionCode () == EXCEPTION_BREAKPOINT       ?
+                                    EXCEPTION_EXECUTE_HANDLER  : EXCEPTION_CONTINUE_SEARCH )
   {
   }
+
+  ulLastFrameNotified = SK_GetFramesDrawn ();
 }
 
 void
@@ -1093,6 +1109,9 @@ SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
 
     for ( auto& notify : SK_Win32_RegisteredDevNotifications.get () )
     {
+      if (SK_Win32_NotifiedWindows->count (notify.hWnd) != 0)
+        continue;
+
       if (! (notify.dwFlags & DEVICE_NOTIFY_SERVICE_HANDLE))
       {
         if (notify.bUnicode)
@@ -1118,40 +1137,23 @@ SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
     _add_xusb = add_xusb;
     _add_hid  = add_hid;
 
-    EnumWindows ([](HWND hWnd, LPARAM)->BOOL
+    HWND hWnd = game_window.hWnd;
+
+    if (SK_Win32_NotifiedWindows->count (hWnd) == 0)
     {
-      DWORD                            dwPid = 0x0;
-      GetWindowThreadProcessId (hWnd, &dwPid);
-
-      if (dwPid != GetProcessId (SK_GetCurrentProcess ()))
-        return TRUE;
-
-      if (hWnd == SK_hWndDeviceListener)
-        return TRUE;
-
-      if (SK_Win32_NotifiedWindows->count (hWnd) != 0)
-        return TRUE;
-
-      if (SK_Win32_NotifiedWindows->count (hWnd) != 0)
-        return TRUE;
-
       if (IsWindowUnicode (hWnd))
       {
-        SK_Win32_NotifiedWindows->insert (hWnd);
-
         SK_Win32_NotifyHWND_W (hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_w [idx]);
         SK_Win32_NotifyHWND_W (hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_w  [idx]);
       }
       else
       {
-        SK_Win32_NotifiedWindows->insert (hWnd);
-
         SK_Win32_NotifyHWND_A (hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_a [idx]);
         SK_Win32_NotifyHWND_A (hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_a  [idx]);
       }
+    }
 
-      return TRUE;
-    }, (LPARAM)nullptr);
+    SK_Win32_NotifiedWindows->clear ();
 
     ++idx;
   }

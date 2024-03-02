@@ -1,4 +1,9 @@
-﻿24.3.2
+﻿24.3.2.1
+========
+ + Handle subclassed windows when sending games Device Change Notifications
+ + Send one Device Change Notification per-HID controller when blocking HID
+
+24.3.2
 ======
  + Removed private D3DKMT and D3D11 DLL symbol exports from SK
  + Passthrough D3DKMT proc address queries to the real DLL if SK is
