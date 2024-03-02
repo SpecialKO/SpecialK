@@ -1145,11 +1145,11 @@ ReadFile_Detour (HANDLE       hFile,
         ((lpBuffer != nullptr && lpOverlapped == nullptr) || (! dev_allowed)) ?
                                                              pTlsBackedBuffer : lpBuffer;
 
-      BOOL bRet =
+      BOOL bRet = dev_allowed ?
         ReadFile_Original (
           hFile, pBuffer, nNumberOfBytesToRead,
             lpNumberOfBytesRead, lpOverlapped
-        );
+        )                     : TRUE;
 
 #if 0
       SK_LOGi0 (
@@ -1169,7 +1169,10 @@ ReadFile_Detour (HANDLE       hFile,
         {
           SK_ReleaseAssert (lpBuffer != nullptr);
 
-          if (lpOverlapped == nullptr || CancelIo (hFile))
+          // For async I/O, rather than queuing and then immediately
+          //   cancelling the IO treat it like a synchronous read using
+          //     the last read data.
+          //if (lpOverlapped == nullptr || CancelIo (hFile))
           {
             SK_HID_HIDE (hid_file->device_type);
 

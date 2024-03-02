@@ -1,4 +1,11 @@
-﻿24.3.2.1
+﻿24.3.2.2
+========
+ + Reduce overhead when blocking HID device read requests made by games using
+     overlapped I/O (asynchronous).
+ + Prevent stale input data from being returned to games when an overlapped I/O
+     request times-out.
+
+24.3.2.1
 ========
  + Handle subclassed windows when sending games Device Change Notifications
  + Send one Device Change Notification per-HID controller when blocking HID

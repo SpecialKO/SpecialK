@@ -1137,21 +1137,46 @@ SK_Win32_NotifyDeviceChange (bool add_xusb, bool add_hid)
     _add_xusb = add_xusb;
     _add_hid  = add_hid;
 
-    HWND hWnd = game_window.hWnd;
-
-    if (SK_Win32_NotifiedWindows->count (hWnd) == 0)
+    EnumWindows ([](HWND hWnd, LPARAM)->BOOL
     {
+      if (hWnd == SK_hWndDeviceListener)
+        return TRUE;
+
+      if (SK_Win32_NotifiedWindows->count (hWnd) != 0)
+        return TRUE;
+
+      DWORD                            dwPid = 0x0;
+      GetWindowThreadProcessId (hWnd, &dwPid);
+
+      if (dwPid != GetProcessId (SK_GetCurrentProcess ()))
+        return TRUE;
+
+      if (SK_GetCurrentRenderBackend ().windows.unity)
+      {
+        if (SK_GetWindowLongPtrW (hWnd, GWL_STYLE) & WS_CHILD)
+          return TRUE;
+      }
+
+      else if (hWnd != game_window.hWnd)
+        return TRUE;
+
       if (IsWindowUnicode (hWnd))
       {
+        SK_Win32_NotifiedWindows->insert (hWnd);
+
         SK_Win32_NotifyHWND_W (hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_w [idx]);
         SK_Win32_NotifyHWND_W (hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_w  [idx]);
       }
       else
       {
+        SK_Win32_NotifiedWindows->insert (hWnd);
+
         SK_Win32_NotifyHWND_A (hWnd, WM_DEVICECHANGE, _add_xusb ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_xbox_a [idx]);
         SK_Win32_NotifyHWND_A (hWnd, WM_DEVICECHANGE, _add_hid  ? DBT_DEVICEARRIVAL : DBT_DEVICEREMOVECOMPLETE, (LPARAM)dbcc_hid_a  [idx]);
       }
-    }
+
+      return TRUE;
+    }, (LPARAM)nullptr);
 
     SK_Win32_NotifiedWindows->clear ();
 
