@@ -1,4 +1,10 @@
-﻿24.3.1.4
+﻿24.3.1.5
+========
+ + Allow PS+Square (Switch to Game) to cycle between multiple running games
+ + PS+Square works even if background input is disabled for a game
+ + Changing volume using chorded gamepad input will unmute the game
+
+24.3.1.4
 ========
  + Added logging if a DLL being hooked using SK_CreateDLLHook2 (...) was
      not already loaded, to diagnose loader lock contention.

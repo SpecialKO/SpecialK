@@ -41,6 +41,9 @@ joyGetPos_Detour (_In_  UINT      uJoyID,
 {
   SK_LOG_FIRST_CALL
 
+  if (config.input.gamepad.disable_winmm)
+    return JOYERR_UNPLUGGED;
+
   JOYINFO                                    joyInfo = { };
   auto result = joyGetPos_Original (uJoyID, &joyInfo);
 
@@ -134,6 +137,9 @@ joyGetPosEx_Detour (_In_  UINT        uJoyID,
 
   if (pjiUINT == nullptr)
     return MMSYSERR_INVALPARAM;
+
+  if (config.input.gamepad.disable_winmm)
+    return JOYERR_UNPLUGGED;
 
   // Keep a cache of previous poll requests, because this has very high
   //   failure overhead and could wreck performance when gamepads are absent.

@@ -948,6 +948,7 @@ struct sk_config_t
       int     predefined_layout   = 1;    //0 = PS4, 1 = Steam, 2 = Xbox
       int     disabled_to_game    = 0;    //0 = Never, 1 = Always, 2 = In Background
       bool    disable_hid         = false;
+      bool    disable_winmm       = false;
       bool    rehook_xinput       = false;
       bool    haptic_ui           = true;
       bool    disable_rumble      = false;

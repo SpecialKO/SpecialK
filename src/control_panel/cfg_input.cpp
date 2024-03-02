@@ -812,6 +812,33 @@ SK::ControlPanel::Input::Draw (void)
           ImGui::EndTooltip      ();
         }
 
+#if 0
+        if (ImGui::Checkbox (ICON_FA_WINDOWS " WinMM", &config.input.gamepad.disable_winmm))
+        {
+          SK_Win32_NotifyDeviceChange (!config.input.gamepad.xinput.blackout_api, !config.input.gamepad.disable_hid);
+
+          _need_restart = true;
+
+          config.utility.save_async ();
+        }
+
+        bool disable_dinput = 
+          config.input.gamepad.dinput.block_enum_devices || 
+          config.input.gamepad.dinput.blackout_gamepads;
+
+        if (ImGui::Checkbox (ICON_FA_WINDOWS " DirectInput", &disable_dinput))
+        {
+          config.input.gamepad.dinput.blackout_gamepads  = disable_dinput;
+          config.input.gamepad.dinput.block_enum_devices = disable_dinput;
+
+          SK_Win32_NotifyDeviceChange (!config.input.gamepad.xinput.blackout_api, !config.input.gamepad.disable_hid);
+
+          _need_restart = true;
+
+          config.utility.save_async ();
+        }
+#endif
+
         if (ImGui::Checkbox (ICON_FA_STEAM " Steam", &config.input.gamepad.steam.disabled_to_game))
         {
           _need_restart = true;
