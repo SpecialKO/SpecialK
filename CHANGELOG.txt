@@ -1,4 +1,9 @@
-﻿24.3.2.3
+﻿24.3.3
+======
+ + Fixed Yuzu disconnecting controllers after opening SK's control panel in
+     input exclusive mode caused by 24.3.2.2
+
+24.3.2.3
 ========
  + Added Reloaded-II.exe and Reloaded-II32.exe to internal injection blacklist
 

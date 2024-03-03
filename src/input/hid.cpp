@@ -1227,6 +1227,9 @@ ReadFile_Detour (HANDLE       hFile,
                   );
                 }
               }
+
+              if (lpOverlapped != nullptr && lpOverlapped->hEvent != 0)
+                SetEvent (lpOverlapped->hEvent);
             }
 
             return TRUE;
@@ -1685,7 +1688,7 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 
       if (! dev_allowed)
       {
-        if (CancelIo (hFile))
+        if (CancelIoEx (hFile, lpOverlapped))
         {
           SK_HID_HIDE (hid_file->device_type);
 
@@ -1694,6 +1697,18 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
           );
 
           //hid_file->neutralizeHidInput ();
+        }
+
+        else
+        {
+          SK_RunOnce (
+            SK_LOGi0 (L"GetOverlappedResultEx HID IO Cancellation Failed")
+          );
+
+          bRet =
+            GetOverlappedResultEx_Original (
+              hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
+            );
         }
       }
 
@@ -1763,13 +1778,25 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 
       if (! dev_allowed)
       {
-        if (CancelIo (hFile))
+        if (CancelIoEx (hFile, lpOverlapped))
         {
           SK_HID_HIDE (hid_file->device_type);
 
           SK_RunOnce (
             SK_LOGi0 (L"GetOverlappedResult HID IO Cancelled")
           );
+        }
+
+        else
+        {
+          SK_RunOnce (
+            SK_LOGi0 (L"GetOverlappedResult HID IO Cancellation Failed")
+          );
+
+          bRet =
+            GetOverlappedResult_Original (
+              hFile, lpOverlapped, lpNumberOfBytesTransferred, bWait
+            );
         }
       }
 
@@ -3872,6 +3899,61 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               if (bAllowSpecialButtons)
               {
+#if 0
+                static bool bIsVLC =
+                  StrStrIW (SK_GetHostApp (), L"vlc");
+
+                if (bIsVLC)
+                {
+                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_A) &&
+                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_A)))
+                  {
+                    BYTE bScancode =
+                      (BYTE)MapVirtualKey (VK_MEDIA_PLAY_PAUSE, 0);
+
+                    DWORD dwFlags =
+                      ( bScancode & 0xE0 ) == 0   ?
+                        static_cast <DWORD> (0x0) :
+                        static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+                    keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags,                   0);
+                    keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+                  }
+
+                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) &&
+                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)))
+                  {
+                    BYTE bScancode =
+                     (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
+
+                    DWORD dwFlags =
+                      ( bScancode & 0xE0 ) == 0   ?
+                        static_cast <DWORD> (0x0) :
+                        static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+                    keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags,                   0);
+                    keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+                  }
+
+                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) &&
+                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)))
+                  {
+                    BYTE bScancode =
+                     (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
+
+                    DWORD dwFlags =
+                      ( bScancode & 0xE0 ) == 0   ?
+                        static_cast <DWORD> (0x0) :
+                        static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+                    keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags,                   0);
+                    keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+                  }
+                }
+#endif
+
+
+
                 if ( pDevice->buttons [12].state &&
                    (!pDevice->buttons [12].last_state))
                 {
