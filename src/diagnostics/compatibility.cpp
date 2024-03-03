@@ -328,7 +328,7 @@ SK_Bypass_CRT (LPVOID)
     bool
     {
       while (
-        MessageBox (HWND_DESKTOP, L"dgVoodoo is required for Direct3D 8 / DirectDraw support\r\n\t"
+        MessageBox (HWND_DESKTOP, L"dgVoodoo is required for Direct3D8 / DirectDraw support\r\n\t"
                                   L"Please install its DLLs to 'Documents\\My Mods\\Special K\\PlugIns\\ThirdParty\\dgVoodoo'",
                                     L"Third-Party Plug-In Required",
                                       MB_ICONSTOP | MB_RETRYCANCEL) == IDRETRY && (! dgVoodoo_Check ())
