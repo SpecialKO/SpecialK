@@ -324,12 +324,12 @@ SK_Bypass_CRT (LPVOID)
         ) != INVALID_FILE_ATTRIBUTES;
     };
 
-  auto dgVooodoo_Nag = [&](void) ->
+  auto dgVoodoo_Nag = [&](void) ->
     bool
     {
       while (
-        MessageBox (HWND_DESKTOP, L"dgVoodoo is required for Direct3D8 / DirecrtDraw support\r\n\t"
-                                  L"Please install its DLLs to 'Documents\\My Mods\\SpecialK\\PlugIns\\ThidParty\\dgVoodoo'",
+        MessageBox (HWND_DESKTOP, L"dgVoodoo is required for Direct3D 8 / DirectDraw support\r\n\t"
+                                  L"Please install its DLLs to 'Documents\\My Mods\\Special K\\PlugIns\\ThirdParty\\dgVoodoo'",
                                     L"Third-Party Plug-In Required",
                                       MB_ICONSTOP | MB_RETRYCANCEL) == IDRETRY && (! dgVoodoo_Check ())
             ) ;
@@ -738,7 +738,7 @@ SK_Bypass_CRT (LPVOID)
         config.apis.dxgi.d3d12.hook = true;  // D3D8 on D3D12 (not native D3D8)
         config.apis.d3d8.hook       = true;
 
-        if (has_dgvoodoo || dgVooodoo_Nag ())
+        if (has_dgvoodoo || dgVoodoo_Nag ())
         {
           if (nButtonPressed == BUTTON_INSTALL)
           {
@@ -772,7 +772,7 @@ SK_Bypass_CRT (LPVOID)
 
         if (nButtonPressed == BUTTON_INSTALL)
         {
-          if (has_dgvoodoo || dgVooodoo_Nag ())
+          if (has_dgvoodoo || dgVoodoo_Nag ())
           {
             if (SK_IsInjected ())
               SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE::DDraw);
