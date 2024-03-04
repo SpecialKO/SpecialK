@@ -157,6 +157,8 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"redprelauncher.exe", // CD PROJEKT RED's pre-launcher included in the root of Cyberpunk 2077
   L"redlauncher.exe",    // CD PROJEKT RED's launcher located below %APPDATA%
   L"chronocross_launcher.exe",
+  L"wrath-epic.exe",  // 32-bit Launcher  (EGS)
+  L"wrath-steam.exe", // 32-bit Launcher  (Steam)
 #endif
 
   L"postcrashdump.exe",

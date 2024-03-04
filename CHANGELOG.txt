@@ -1,4 +1,8 @@
-﻿24.3.4
+﻿24.3.4.1
+========
+ + Fixed potential deadlock in Wrath: Aeon of Ruin during window activation
+
+24.3.4
 ======
  + Added an option to reset NVIDIA driver profile settings to default state
      using RunDLL_NvAPI_SetDWORD and a tilde (~) instead of a hex value.

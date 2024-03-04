@@ -3159,8 +3159,18 @@ SK_FrameCallback ( SK_RenderBackend& rb,
                 extern LRESULT WINAPI
                 SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, LPARAM lParam);
 
-                SK_SAFE_CALLWNDPROC (WM_ACTIVATEAPP, TRUE, 0);
-                SK_SAFE_CALLWNDPROC (WM_SETFOCUS,       0, 0);
+                DWORD                                                                     dwProcId = 0x0;
+                if (GetCurrentThreadId () == GetWindowThreadProcessId (game_window.hWnd, &dwProcId))
+                {
+                  SK_SAFE_CALLWNDPROC (WM_ACTIVATEAPP, TRUE, 0);
+                  SK_SAFE_CALLWNDPROC (WM_SETFOCUS,       0, 0);
+                }
+
+                else
+                {
+                  SendMessageTimeout (game_window.hWnd, WM_ACTIVATEAPP, TRUE, 0, SMTO_ABORTIFHUNG, 150UL, nullptr);
+                  SendMessageTimeout (game_window.hWnd, WM_SETFOCUS,       0, 0, SMTO_ABORTIFHUNG, 150UL, nullptr);
+                }
 
                 // Activate the window
                 if (IsMinimized (  game_window.hWnd))
