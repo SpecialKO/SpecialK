@@ -922,6 +922,9 @@ struct sk_config_t
       bool    allow_scrgb         =   true; // Use Compute Copy HDR10 <--> scRGB
       bool    dump_buffers        =  false;
     } dlss;
+    struct misc_s {
+      int     force_rebar         =     -1;
+    } misc;
   } nvidia;
 
   struct input_s {

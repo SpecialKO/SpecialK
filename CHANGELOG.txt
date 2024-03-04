@@ -1,5 +1,19 @@
-﻿24.3.3
+﻿24.3.4
 ======
+ + Added an option to reset NVIDIA driver profile settings to default state
+     using RunDLL_NvAPI_SetDWORD and a tilde (~) instead of a hex value.
+
+     rundll32 "SpecialK64.dll", RunDLL_NvAPI_SetDWORD 0x000F00BA ~ game.exe
+
+   * This will reset the reBar Enable driver setting to whatever the driver
+       was originally intended to do for game.exe.
+
+24.3.3
+======
+ + Merge pull request #147 from Nustat0/more-refresh-rate-factors
+    * Add more Refresh Rate Factors
+ + Merge pull request #136 from Nustat0/targetfps-factor
+    * Added ability to specify TargetFPS/BackgroundFPS as refresh rate factor
  + Fixed Yuzu disconnecting controllers after opening SK's control panel in
      input exclusive mode caused by 24.3.2.2
 
