@@ -1688,37 +1688,19 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 
       if (! dev_allowed)
       {
-        if (CancelIoEx (hFile, lpOverlapped))
-        {
-          SK_HID_HIDE (hid_file->device_type);
+        SK_HID_HIDE (hid_file->device_type);
 
-          SK_RunOnce (
-            SK_LOGi0 (L"GetOverlappedResultEx HID IO Cancelled")
-          );
+        SK_RunOnce (
+          SK_LOGi0 (L"GetOverlappedResultEx HID IO Cancelled")
+        );
 
-          //hid_file->neutralizeHidInput ();
-        }
-
-        else
-        {
-          SK_RunOnce (
-            SK_LOGi0 (L"GetOverlappedResultEx HID IO Cancellation Failed")
-          );
-
-          bRet =
-            GetOverlappedResultEx_Original (
-              hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
-            );
-        }
+        //hid_file->neutralizeHidInput ();
       }
 
-      else
-      {
-        bRet =
-          GetOverlappedResultEx_Original (
-            hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
-          );
-      }
+      bRet =
+        GetOverlappedResultEx_Original (
+          hFile, lpOverlapped, lpNumberOfBytesTransferred, dwMilliseconds, bWait
+        );
 
       if (bRet != FALSE)
       {
@@ -1778,34 +1760,17 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 
       if (! dev_allowed)
       {
-        if (CancelIoEx (hFile, lpOverlapped))
-        {
-          SK_HID_HIDE (hid_file->device_type);
+        SK_HID_HIDE (hid_file->device_type);
 
-          SK_RunOnce (
-            SK_LOGi0 (L"GetOverlappedResult HID IO Cancelled")
-          );
-        }
-
-        else
-        {
-          SK_RunOnce (
-            SK_LOGi0 (L"GetOverlappedResult HID IO Cancellation Failed")
-          );
-
-          bRet =
-            GetOverlappedResult_Original (
-              hFile, lpOverlapped, lpNumberOfBytesTransferred, bWait
-            );
-        }
+        SK_RunOnce (
+          SK_LOGi0 (L"GetOverlappedResult HID IO Cancelled")
+        );
       }
 
-      else
-        bRet =
-          GetOverlappedResult_Original (
-            hFile, lpOverlapped, lpNumberOfBytesTransferred,
-              bWait
-          );
+      bRet =
+        GetOverlappedResult_Original (
+          hFile, lpOverlapped, lpNumberOfBytesTransferred, bWait
+        );
 
       if (bRet != FALSE)
       {
@@ -3094,9 +3059,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
         // Disconnect
         if (dwWaitState == (WAIT_OBJECT_0 + 2))
         {
-          SK_ReleaseAssert (
-            SK_CancelIoEx (pDevice->hDeviceFile, &async_input_request)
-          );
+          SK_CancelIoEx (pDevice->hDeviceFile, &async_input_request);
 
           continue;
         }
