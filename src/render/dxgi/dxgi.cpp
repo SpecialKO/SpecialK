@@ -8084,6 +8084,13 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
   static bool bSkipLogSpam =
     SK_GetCurrentRenderBackend ().windows.capcom;
 
+  static int
+        calls = 0;
+  if (++calls > 15 && std::exchange (bSkipLogSpam, true) == false)
+  {
+    SK_LOGi0 (L"Excessive calls to CheckColorSpaceSupport, will not log future calls.");
+  }
+
   if (! bSkipLogSpam)
   {
     SK_LOGi0 ( "[!] IDXGISwapChain3::CheckColorSpaceSupport (%hs) ",
@@ -8121,7 +8128,7 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
       }
     }
 
-    if (bSkipLogSpam)
+    if (! bSkipLogSpam)
     {
       if ( *pColorSpaceSupported & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT )
         SK_LOGs0 ( L" DXGI HDR ", L"[#] Color Space Supported." );

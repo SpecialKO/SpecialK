@@ -1,4 +1,8 @@
-﻿24.3.9
+﻿24.3.9.1
+========
+ + Removed yet more CAPCOM log spam
+
+24.3.9
 ======
  + Remove assertion on CancelIoEx (...) when responding to HID device removal
  + Added code to prevent logging per-frame HDR support checks (ugh) in CAPCOM
