@@ -8080,8 +8080,15 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
   _In_  DXGI_COLOR_SPACE_TYPE  ColorSpace,
   _Out_ UINT                  *pColorSpaceSupported )
 {
-  SK_LOGi0 ( "[!] IDXGISwapChain3::CheckColorSpaceSupport (%hs) ",
-                   DXGIColorSpaceToStr (ColorSpace) );
+  // Avoid log spam in some games that abuse this API
+  static bool bSkipLogSpam =
+    SK_GetCurrentRenderBackend ().windows.capcom;
+
+  if (! bSkipLogSpam)
+  {
+    SK_LOGi0 ( "[!] IDXGISwapChain3::CheckColorSpaceSupport (%hs) ",
+                     DXGIColorSpaceToStr (ColorSpace) );
+  }
 
   if (pColorSpaceSupported == nullptr)
     return DXGI_ERROR_INVALID_CALL;
@@ -8114,10 +8121,13 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
       }
     }
 
-    if ( *pColorSpaceSupported & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT )
-      SK_LOGs0 ( L" DXGI HDR ", L"[#] Color Space Supported." );
-    if ( *pColorSpaceSupported & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_OVERLAY_PRESENT )
-      SK_LOGs0 ( L" DXGI HDR ", L"[#] Overlay Supported."     );
+    if (bSkipLogSpam)
+    {
+      if ( *pColorSpaceSupported & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_PRESENT )
+        SK_LOGs0 ( L" DXGI HDR ", L"[#] Color Space Supported." );
+      if ( *pColorSpaceSupported & DXGI_SWAP_CHAIN_COLOR_SPACE_SUPPORT_FLAG_OVERLAY_PRESENT )
+        SK_LOGs0 ( L" DXGI HDR ", L"[#] Overlay Supported."     );
+    }
   }
 
   return hr;
