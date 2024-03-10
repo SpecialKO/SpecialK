@@ -1118,21 +1118,21 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     pHdrColorData->hdrMode = (__SK_HDR_16BitSwap ? NV_HDR_MODE_UHDA :
                               __SK_HDR_10BitSwap ? NV_HDR_MODE_UHDA_PASSTHROUGH
                                                  : pHdrColorData->hdrMode);
+  }
 
-    _LogGameRequestedValues ();
+  _LogGameRequestedValues ();
 
-    if (ret == NVAPI_OK)
-    {
-      rb.scanout.nvapi_hdr.mode           = (__SK_HDR_16BitSwap ? NV_HDR_MODE_UHDA :
-                                             __SK_HDR_10BitSwap ? NV_HDR_MODE_UHDA_PASSTHROUGH
-                                                                : pHdrColorData->hdrMode);
-      rb.scanout.nvapi_hdr.color_format   = pHdrColorData->hdrColorFormat;
-      rb.scanout.nvapi_hdr.dynamic_range  = pHdrColorData->hdrDynamicRange;
-      rb.scanout.nvapi_hdr.bpc            = pHdrColorData->hdrBpc;
-      rb.scanout.nvapi_hdr.active         =(pHdrColorData->hdrMode != NV_HDR_MODE_OFF);
+  if (ret == NVAPI_OK && pHdrColorData->cmd == NV_HDR_CMD_SET)
+  {
+    rb.scanout.nvapi_hdr.mode           = (__SK_HDR_16BitSwap ? NV_HDR_MODE_UHDA :
+                                           __SK_HDR_10BitSwap ? NV_HDR_MODE_UHDA_PASSTHROUGH
+                                                              : pHdrColorData->hdrMode);
+    rb.scanout.nvapi_hdr.color_format   = pHdrColorData->hdrColorFormat;
+    rb.scanout.nvapi_hdr.dynamic_range  = pHdrColorData->hdrDynamicRange;
+    rb.scanout.nvapi_hdr.bpc            = pHdrColorData->hdrBpc;
+    rb.scanout.nvapi_hdr.active         =(pHdrColorData->hdrMode != NV_HDR_MODE_OFF);
 
-      _Push_NvAPI_HDR_Metadata_to_DXGI_Backend ();
-    }
+    _Push_NvAPI_HDR_Metadata_to_DXGI_Backend ();
   }
 
   if (inputData->version == NV_HDR_COLOR_DATA_VER1 ||

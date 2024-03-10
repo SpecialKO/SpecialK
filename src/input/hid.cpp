@@ -98,6 +98,13 @@ enum class SK_Input_DeviceFileType
   Invalid = 4
 };
 
+
+struct SK_HID_OverlappedRequest {
+  HANDLE hFile                 = INVALID_HANDLE_VALUE;
+  DWORD  dwNumberOfBytesToRead = 0;
+  LPVOID lpBuffer              = nullptr;
+};
+
 struct SK_NVIDIA_DeviceFile {
   SK_NVIDIA_DeviceFile (void) = default;
   SK_NVIDIA_DeviceFile (HANDLE file, const wchar_t *wszPath) : hFile (file)
@@ -117,7 +124,6 @@ struct SK_HID_DeviceFile {
   wchar_t           wszManufacturerName [128]          = { };
   wchar_t           wszSerialNumber     [128]          = { };
   wchar_t           wszDevicePath       [MAX_PATH + 2] = { };
-  std::vector<BYTE> last_data_read;
   sk_input_dev_type device_type                        = sk_input_dev_type::Other;
   USHORT            device_vid                         = 0x0;
   USHORT            device_pid                         = 0x0;
@@ -135,158 +141,177 @@ struct SK_HID_DeviceFile {
     //   so keep a cache handy.
     if (known_paths.count (wszPath))
     {
-      memcpy (this, &known_paths.at (wszPath), sizeof (SK_HID_DeviceFile));
-      return;
-    }
+      hidpCaps            = known_paths.at (wszPath).hidpCaps;
 
-    if (wszPath != nullptr)
-    {
       wcsncpy_s ( wszDevicePath, MAX_PATH,
                   wszPath,       _TRUNCATE );
+
+      wcsncpy_s (                          wszProductName,      128,
+                  known_paths.at (wszPath).wszProductName,           _TRUNCATE );
+      wcsncpy_s (                          wszManufacturerName, 128,
+                  known_paths.at (wszPath).wszManufacturerName,      _TRUNCATE );
+      wcsncpy_s (                          wszSerialNumber,     128,
+                  known_paths.at (wszPath).wszSerialNumber,          _TRUNCATE );
+
+      device_type         = known_paths.at (wszPath).device_type;
+      device_vid          = known_paths.at (wszPath).device_vid;
+      device_pid          = known_paths.at (wszPath).device_pid;
+      bDisableDevice      = known_paths.at (wszPath).bDisableDevice;
+
+      hFile = file;
     }
 
-    PHIDP_PREPARSED_DATA                 preparsed_data = nullptr;
-    if (SK_HidD_GetPreparsedData (file, &preparsed_data))
+    else
     {
-      if (HIDP_STATUS_SUCCESS == SK_HidP_GetCaps (preparsed_data, &hidpCaps))
+      if (wszPath != nullptr)
       {
-#if 0
-        if (! DuplicateHandle (
-                GetCurrentProcess (), file,
-                GetCurrentProcess (), &hFile,
-                  0x0, FALSE, DUPLICATE_SAME_ACCESS ) )
+        wcsncpy_s ( wszDevicePath, MAX_PATH,
+                    wszPath,       _TRUNCATE );
+      }
+
+      PHIDP_PREPARSED_DATA                 preparsed_data = nullptr;
+      if (SK_HidD_GetPreparsedData (file, &preparsed_data))
+      {
+        if (HIDP_STATUS_SUCCESS == SK_HidP_GetCaps (preparsed_data, &hidpCaps))
         {
-          SK_LOGi0 (L"Failed to duplicate handle for HID device: %ws!", lpFileName);
-          return;
-        }
+#if 0
+          if (! DuplicateHandle (
+                  GetCurrentProcess (), file,
+                  GetCurrentProcess (), &hFile,
+                    0x0, FALSE, DUPLICATE_SAME_ACCESS ) )
+          {
+            SK_LOGi0 (L"Failed to duplicate handle for HID device: %ws!", lpFileName);
+            return;
+          }
 #else
-        hFile       = file;
+          hFile       = file;
 #endif
 
-        DWORD dwBytesRead = 0;
+          DWORD dwBytesRead = 0;
 
-        if (hidpCaps.UsagePage == HID_USAGE_PAGE_GENERIC)
-        {
-          switch (hidpCaps.Usage)
+          if (hidpCaps.UsagePage == HID_USAGE_PAGE_GENERIC)
           {
-            case HID_USAGE_GENERIC_GAMEPAD:
-            case HID_USAGE_GENERIC_JOYSTICK:
-            case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
+            switch (hidpCaps.Usage)
             {
-              SK_DeviceIoControl (
-                hFile, IOCTL_HID_GET_PRODUCT_STRING, 0, 0,
-                wszProductName, 128, &dwBytesRead, nullptr
-              );
+              case HID_USAGE_GENERIC_GAMEPAD:
+              case HID_USAGE_GENERIC_JOYSTICK:
+              case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
+              {
+                SK_DeviceIoControl (
+                  hFile, IOCTL_HID_GET_PRODUCT_STRING, 0, 0,
+                  wszProductName, 128, &dwBytesRead, nullptr
+                );
 
-              SK_DeviceIoControl (
-                hFile, IOCTL_HID_GET_MANUFACTURER_STRING, 0, 0,
-                wszManufacturerName, 128, &dwBytesRead, nullptr
-              );
+                SK_DeviceIoControl (
+                  hFile, IOCTL_HID_GET_MANUFACTURER_STRING, 0, 0,
+                  wszManufacturerName, 128, &dwBytesRead, nullptr
+                );
 
-              SK_DeviceIoControl (
-                hFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
-                wszSerialNumber, 128, &dwBytesRead, nullptr
-              );
+                SK_DeviceIoControl (
+                  hFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
+                  wszSerialNumber, 128, &dwBytesRead, nullptr
+                );
 
 #ifdef DEBUG
-              SK_ImGui_Warning (wszSerialNumber);
+                SK_ImGui_Warning (wszSerialNumber);
 #endif
 
-              HIDD_ATTRIBUTES hidAttribs      = {                      };
-                              hidAttribs.Size = sizeof (HIDD_ATTRIBUTES);
+                HIDD_ATTRIBUTES hidAttribs      = {                      };
+                                hidAttribs.Size = sizeof (HIDD_ATTRIBUTES);
 
-              SK_HidD_GetAttributes (hFile, &hidAttribs);
+                SK_HidD_GetAttributes (hFile, &hidAttribs);
 
-              device_pid = hidAttribs.ProductID;
-              device_vid = hidAttribs.VendorID;
+                device_pid = hidAttribs.ProductID;
+                device_vid = hidAttribs.VendorID;
 
-              device_type = sk_input_dev_type::Gamepad;
+                device_type = sk_input_dev_type::Gamepad;
 
-              LONG lImmediate = 0;
+                LONG lImmediate = 0;
 
-              SK_DeviceIoControl (
-                hFile, IOCTL_HID_SET_POLL_FREQUENCY_MSEC,
-                  &lImmediate, sizeof (LONG), nullptr, 0, &dwBytesRead, nullptr );
+                SK_DeviceIoControl (
+                  hFile, IOCTL_HID_SET_POLL_FREQUENCY_MSEC,
+                    &lImmediate, sizeof (LONG), nullptr, 0, &dwBytesRead, nullptr );
 
-              SK_ImGui_CreateNotification (
-                "HID.GamepadAttached", SK_ImGui_Toast::Info,
-                *wszManufacturerName != L'\0' ?
-                  SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
-                     wszManufacturerName,
-                     wszProductName, device_vid,
-                                     device_pid ).c_str () :
-                  SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
-                     wszProductName, device_vid,
-                                     device_pid ).c_str (),
-                "HID Compliant Gamepad Connected", 10000
-              );
-            } break;
+                SK_ImGui_CreateNotification (
+                  "HID.GamepadAttached", SK_ImGui_Toast::Info,
+                  *wszManufacturerName != L'\0' ?
+                    SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
+                       wszManufacturerName,
+                       wszProductName, device_vid,
+                                       device_pid ).c_str () :
+                    SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
+                       wszProductName, device_vid,
+                                       device_pid ).c_str (),
+                  "HID Compliant Gamepad Connected", 10000
+                );
+              } break;
 
-            case HID_USAGE_GENERIC_POINTER:
-            case HID_USAGE_GENERIC_MOUSE:
-            {
-              device_type = sk_input_dev_type::Mouse;
-            } break;
+              case HID_USAGE_GENERIC_POINTER:
+              case HID_USAGE_GENERIC_MOUSE:
+              {
+                device_type = sk_input_dev_type::Mouse;
+              } break;
 
-            case HID_USAGE_GENERIC_KEYBOARD:
-            case HID_USAGE_GENERIC_KEYPAD:
-            {
-              device_type = sk_input_dev_type::Keyboard;
-            } break;
-          }
-        }
-
-        if (device_type == sk_input_dev_type::Other)
-        {
-          if (hidpCaps.UsagePage == HID_USAGE_PAGE_KEYBOARD)
-          {
-            device_type = sk_input_dev_type::Keyboard;
-          }
-
-          else if (hidpCaps.UsagePage == HID_USAGE_PAGE_VR    ||
-                   hidpCaps.UsagePage == HID_USAGE_PAGE_SPORT ||
-                   hidpCaps.UsagePage == HID_USAGE_PAGE_GAME  ||
-                   hidpCaps.UsagePage == HID_USAGE_PAGE_ARCADE)
-          {
-            device_type = sk_input_dev_type::Gamepad;
-          }
-
-          else
-          {
-            if (config.system.log_level > 0)
-            {
-              SK_DeviceIoControl (
-                hFile, IOCTL_HID_GET_PRODUCT_STRING, 0, 0,
-                wszProductName, 128, &dwBytesRead, nullptr
-              );
-
-              SK_DeviceIoControl (
-                hFile, IOCTL_HID_GET_MANUFACTURER_STRING, 0, 0,
-                wszManufacturerName, 128, &dwBytesRead, nullptr
-              );
-
-              SK_DeviceIoControl (
-                hFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
-                wszSerialNumber, 128, &dwBytesRead, nullptr
-              );
-
-              SK_ImGui_Warning (wszSerialNumber);
-
-              SK_LOGi1 (
-                L"Unknown HID Device Type (Product=%ws):  UsagePage=%x, Usage=%x",
-                  wszProductName, hidpCaps.UsagePage, hidpCaps.Usage
-              );
+              case HID_USAGE_GENERIC_KEYBOARD:
+              case HID_USAGE_GENERIC_KEYPAD:
+              {
+                device_type = sk_input_dev_type::Keyboard;
+              } break;
             }
           }
+
+          if (device_type == sk_input_dev_type::Other)
+          {
+            if (hidpCaps.UsagePage == HID_USAGE_PAGE_KEYBOARD)
+            {
+              device_type = sk_input_dev_type::Keyboard;
+            }
+
+            else if (hidpCaps.UsagePage == HID_USAGE_PAGE_VR    ||
+                     hidpCaps.UsagePage == HID_USAGE_PAGE_SPORT ||
+                     hidpCaps.UsagePage == HID_USAGE_PAGE_GAME  ||
+                     hidpCaps.UsagePage == HID_USAGE_PAGE_ARCADE)
+            {
+              device_type = sk_input_dev_type::Gamepad;
+            }
+
+            else
+            {
+              if (config.system.log_level > 0)
+              {
+                SK_DeviceIoControl (
+                  hFile, IOCTL_HID_GET_PRODUCT_STRING, 0, 0,
+                  wszProductName, 128, &dwBytesRead, nullptr
+                );
+
+                SK_DeviceIoControl (
+                  hFile, IOCTL_HID_GET_MANUFACTURER_STRING, 0, 0,
+                  wszManufacturerName, 128, &dwBytesRead, nullptr
+                );
+
+                SK_DeviceIoControl (
+                  hFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
+                  wszSerialNumber, 128, &dwBytesRead, nullptr
+                );
+
+                SK_ImGui_Warning (wszSerialNumber);
+
+                SK_LOGi1 (
+                  L"Unknown HID Device Type (Product=%ws):  UsagePage=%x, Usage=%x",
+                    wszProductName, hidpCaps.UsagePage, hidpCaps.Usage
+                );
+              }
+            }
+          }
+
+          SK_ReleaseAssert ( // WTF?
+            SK_HidD_FreePreparsedData (preparsed_data) != FALSE
+          );
         }
-
-        SK_ReleaseAssert ( // WTF?
-          SK_HidD_FreePreparsedData (preparsed_data) != FALSE
-        );
       }
-    }
 
-    known_paths.insert ({ wszPath, *this });
+      known_paths.insert ({ wszPath, *this });
+    }
   }
 
   bool setPollingFrequency (DWORD dwFreq)
@@ -316,8 +341,13 @@ struct SK_HID_DeviceFile {
     return true;
   }
 
-  int neutralizeHidInput (void);
+  int neutralizeHidInput (DWORD dwSize);
   int remapHidInput      (void);
+
+  std::vector<BYTE> last_data_read;
+  concurrency::concurrent_unordered_map <LPOVERLAPPED, SK_HID_OverlappedRequest> _overlappedRequests;
+  concurrency::concurrent_unordered_map <DWORD,        std::vector <byte>>       _cachedInputReportsBySize;
+  concurrency::concurrent_unordered_map <DWORD,        std::vector <byte>>       _blockedInputReportsBySize;
 };
 
        concurrency::concurrent_vector        <SK_HID_PlayStationDevice>     SK_HID_PlayStationControllers;
@@ -1089,6 +1119,21 @@ CreateFileMappingW_Detour (HANDLE                hFile,
     );
 }
 
+bool
+SK_UNTRUSTED_memcpy (void* dst, void* src, size_t size)
+{
+  __try {
+    memcpy (dst, src, size);
+
+    return true;
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    return false;
+  }
+}
+
 static
 BOOL
 WINAPI
@@ -1126,30 +1171,55 @@ ReadFile_Detour (HANDLE       hFile,
       auto hid_file =
         (SK_HID_DeviceFile *)dev_ptr;
 
-      auto pTlsBackedBuffer =
-        SK_TLS_Bottom ()->scratch_memory->log.
-                             formatted_output.alloc (nNumberOfBytesToRead);
-
-      pTlsBackedBuffer [0] = 0;
-      BYTE report_id       = 0;
+      BYTE report_id = 0;
 
       if (lpBuffer != nullptr)
       {
-        pTlsBackedBuffer [0] = ((uint8_t *)lpBuffer)[0];
-        report_id            = ((uint8_t *)lpBuffer)[0];
+        report_id = ((uint8_t *)lpBuffer)[0];
       }
 
-      auto pBuffer =
-        // Overlapped reads should pass their original pointer to ReadFile,
-        //   unless we intend to block them (and cancel said IO request).
-        ((lpBuffer != nullptr && lpOverlapped == nullptr) || (! dev_allowed)) ?
-                                                             pTlsBackedBuffer : lpBuffer;
+      void* pBuffer = lpBuffer;
 
-      BOOL bRet = dev_allowed ?
+      if (! dev_allowed)
+      {
+        if (nNumberOfBytesToRead > 0)
+        {
+          if (        hid_file->_blockedInputReportsBySize [nNumberOfBytesToRead].size () < nNumberOfBytesToRead)
+                      hid_file->_blockedInputReportsBySize [nNumberOfBytesToRead].resize (nNumberOfBytesToRead);
+            pBuffer = hid_file->_blockedInputReportsBySize [nNumberOfBytesToRead].data ();
+
+          if (  hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].empty ())
+          {
+            //hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].resize (nNumberOfBytesToRead);
+            //hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].data ()[0] = 0x1;
+            //
+            //hid_file->neutralizeHidInput (nNumberOfBytesToRead);
+          }
+
+          else
+          {
+            hid_file->neutralizeHidInput (nNumberOfBytesToRead);
+
+            if (                   lpBuffer != nullptr)
+              SK_UNTRUSTED_memcpy (lpBuffer, hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].data (), nNumberOfBytesToRead);
+          }
+        }
+      }
+
+      BOOL bRet =
         ReadFile_Original (
           hFile, pBuffer, nNumberOfBytesToRead,
             lpNumberOfBytesRead, lpOverlapped
-        )                     : TRUE;
+        );
+
+      if (lpOverlapped != nullptr && bRet)
+      {
+        auto& overlapped = hid_file->_overlappedRequests [lpOverlapped];
+
+        overlapped.dwNumberOfBytesToRead = nNumberOfBytesToRead;
+        overlapped.hFile                 = hFile;
+        overlapped.lpBuffer              = lpBuffer;
+      }
 
 #if 0
       SK_LOGi0 (
@@ -1160,93 +1230,111 @@ ReadFile_Detour (HANDLE       hFile,
       SK_LOGi0 ("Report ID: %x", report_id);
 #endif
 
-      if (bRet || (! dev_allowed))
+      if (bRet)
       {
-        if (hid_file->last_data_read.size () < nNumberOfBytesToRead)
-            hid_file->last_data_read.resize   (nNumberOfBytesToRead * 2);
+        //auto& cached_report =
+        //  hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead];
+        //
+        //if ((! lpOverlapped) && dev_allowed)
+        //{
+        //  if (                   cached_report.size   ()          < nNumberOfBytesToRead)
+        //                         cached_report.resize (             nNumberOfBytesToRead);
+        //    SK_UNTRUSTED_memcpy (cached_report.data   (), lpBuffer, nNumberOfBytesToRead);
+        //}
 
-        if (! dev_allowed)
+        bool bDeviceAllowed = dev_allowed;
+
+        //if (cached_report.empty () && (! lpOverlapped))
+        //  bDeviceAllowed = true;
+
+        if (! bDeviceAllowed)
         {
           SK_ReleaseAssert (lpBuffer != nullptr);
 
-          // For async I/O, rather than queuing and then immediately
-          //   cancelling the IO treat it like a synchronous read using
-          //     the last read data.
-          //if (lpOverlapped == nullptr || CancelIo (hFile))
+          SK_HID_HIDE (hid_file->device_type);
+
+          if (lpOverlapped == nullptr) // lpNumberOfBytesRead MUST be non-null
           {
-            SK_HID_HIDE (hid_file->device_type);
-
-            if (lpOverlapped == nullptr) // lpNumberOfBytesRead MUST be non-null
-            {
-              if (hid_file->last_data_read.size () >= nNumberOfBytesToRead)
-              {   hid_file->last_data_read.data ()[0] = report_id;
-
-                // Give the game old data, from before we started blocking stuff...
-                int num_bytes_read =
-                  hid_file->neutralizeHidInput ();
-
-                if (num_bytes_read > 0)
-                {
-                  if (lpNumberOfBytesRead != nullptr)
-                    *lpNumberOfBytesRead = num_bytes_read;
-
-                  if (lpBuffer != nullptr)
-                  {
-                    memcpy (
-                      lpBuffer, hid_file->last_data_read.data (),
-                     std::min ((int)nNumberOfBytesToRead,
-                                          num_bytes_read)
-                    );
-                  }
-                }
-              }
-            }
-
-            else
-            {
-              SK_RunOnce (
-                SK_LOGi0 (L"ReadFile HID IO Cancelled")
-              );
-
-              hid_file->last_data_read.data ()[0] = report_id;
-
-              int num_bytes_read =
-                hid_file->neutralizeHidInput ();
-
-              if (num_bytes_read > 0)
-              {
-                if (lpNumberOfBytesRead != nullptr)
-                   *lpNumberOfBytesRead = num_bytes_read;
-
-                if (lpBuffer != nullptr)
-                {
-                  memcpy (
-                    lpBuffer, hid_file->last_data_read.data (),
-                   std::min ((int)nNumberOfBytesToRead,
-                                        num_bytes_read)
-                  );
-                }
-              }
-
-              if (lpOverlapped != nullptr && lpOverlapped->hEvent != 0)
-                SetEvent (lpOverlapped->hEvent);
-            }
-
-            return TRUE;
+            //if (cached_report.size () >= nNumberOfBytesToRead)
+            //{   cached_report.data ()[0] = 1;//report_id;
+            //
+            //  // Give the game old data, from before we started blocking stuff...
+            //  int num_bytes_read =
+            //    hid_file->neutralizeHidInput ();
+            //
+            //  if (num_bytes_read == 0)
+            //  {
+            //    num_bytes_read = nNumberOfBytesToRead;
+            //  }
+            //
+            //  if (num_bytes_read > 0)
+            //  {
+            //    if (lpNumberOfBytesRead != nullptr)
+            //       *lpNumberOfBytesRead = num_bytes_read;
+            //  }
+            //
+            //  if (lpBuffer != nullptr)
+            //  {
+            //    SK_UNTRUSTED_memcpy (
+            //      lpBuffer, cached_report.data (),
+            //     std::min ((int)nNumberOfBytesToRead,
+            //                          num_bytes_read)
+            //    );
+            //  }
+            //}
           }
+
+          else
+          {
+            SK_RunOnce (
+              SK_LOGi0 (L"ReadFile HID IO Cancelled")
+            );
+
+            //if (cached_report.size () >= nNumberOfBytesToRead)
+            //{   cached_report.data ()[0] = 1;
+            //
+            //  // Give the game old data, from before we started blocking stuff...
+            //  int num_bytes_read =
+            //    hid_file->neutralizeHidInput ();
+            //
+            //  if (num_bytes_read == 0)
+            //  {
+            //    num_bytes_read = nNumberOfBytesToRead;
+            //  }
+            //
+            //  if (num_bytes_read > 0)
+            //  {
+            //    if (lpNumberOfBytesRead != nullptr)
+            //       *lpNumberOfBytesRead = num_bytes_read;
+            //  }
+            //
+            //  if (lpBuffer != nullptr)
+            //  {
+            //    SK_UNTRUSTED_memcpy (
+            //      lpBuffer, cached_report.data (),
+            //     std::min ((int)nNumberOfBytesToRead,
+            //                          num_bytes_read)
+            //    );
+            //  }
+            //}
+          }
+
+          return bRet;
         }
 
         else
         {
           SK_HID_READ (hid_file->device_type);
 
-          if (lpNumberOfBytesRead != nullptr && lpBuffer != nullptr && lpOverlapped == nullptr)
+          if ( lpOverlapped == nullptr && 
+                 hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].empty () )
           {
-            if (hid_file->last_data_read.size () < nNumberOfBytesToRead)
-                hid_file->last_data_read.resize (  nNumberOfBytesToRead * 2);
+            hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].resize (nNumberOfBytesToRead);
+            //hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].data ()[0] = 0x1;
+            //
+            //hid_file->neutralizeHidInput (nNumberOfBytesToRead);
 
-            memcpy (hid_file->last_data_read.data (), pTlsBackedBuffer, *lpNumberOfBytesRead);
-            memcpy (lpBuffer,                         pTlsBackedBuffer, *lpNumberOfBytesRead);
+            SK_UNTRUSTED_memcpy (hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].data (), lpBuffer, nNumberOfBytesToRead);
           }
 
           SK_HID_VIEW (hid_file->device_type);
@@ -1431,7 +1519,13 @@ CreateFileA_Detour (LPCSTR                lpFileName,
         auto&& dev_file =
           SK_HID_DeviceFiles [hRet];
 
-        dev_file.last_data_read.clear ();
+        for (auto& overlapped_request : dev_file._overlappedRequests)
+        {
+          overlapped_request.second.dwNumberOfBytesToRead = 0;
+          overlapped_request.second.hFile                 = INVALID_HANDLE_VALUE;
+          overlapped_request.second.lpBuffer              = nullptr;
+        }
+
         dev_file = std::move (hid_file);
       }
     }
@@ -1524,7 +1618,12 @@ CreateFile2_Detour (
         auto&& dev_file =
           SK_HID_DeviceFiles [hRet];
 
-        dev_file.last_data_read.clear ();
+        for (auto& overlapped_request : dev_file._overlappedRequests)
+        {
+          overlapped_request.second.dwNumberOfBytesToRead = 0;
+          overlapped_request.second.lpBuffer              = nullptr;
+        }
+
         dev_file = std::move (hid_file);
       }
     }
@@ -1619,7 +1718,13 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
         auto&& dev_file =
           SK_HID_DeviceFiles [hRet];
 
-        dev_file.last_data_read.clear ();
+        for (auto& overlapped_request : dev_file._overlappedRequests)
+        {
+          overlapped_request.second.dwNumberOfBytesToRead = 0;
+          overlapped_request.second.hFile                 = INVALID_HANDLE_VALUE;
+          overlapped_request.second.lpBuffer              = nullptr;
+        }
+
         dev_file = std::move (hid_file);
       }
     }
@@ -1686,6 +1791,9 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 
       BOOL bRet = TRUE;
 
+      auto& overlapped_request =
+        hid_file->_overlappedRequests [lpOverlapped];
+
       if (! dev_allowed)
       {
         SK_HID_HIDE (hid_file->device_type);
@@ -1693,6 +1801,16 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
         SK_RunOnce (
           SK_LOGi0 (L"GetOverlappedResultEx HID IO Cancelled")
         );
+
+        //DWORD dwSize = 
+        //  overlapped_request.dwNumberOfBytesToRead;
+
+        //if (dwSize != 0 && (! hid_file->_cachedInputReportsBySize [dwSize].empty ()))
+        //{
+        //  hid_file->neutralizeHidInput ();
+        //
+        //  SK_UNTRUSTED_memcpy (overlapped_request.lpBuffer, hid_file->_cachedInputReportsBySize [dwSize].data (), dwSize);
+        //}
 
         //hid_file->neutralizeHidInput ();
       }
@@ -1706,11 +1824,28 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
       {
         if (dev_allowed)
         {
+          if (overlapped_request.dwNumberOfBytesToRead != 0)
+          {
+            auto& cached_report =
+              hid_file->_cachedInputReportsBySize [overlapped_request.dwNumberOfBytesToRead];
+
+            if (                   cached_report.empty ())
+            {
+              if (((uint8_t *)overlapped_request.lpBuffer)[0] == 0x1)
+              {
+                                     cached_report.resize (                              overlapped_request.dwNumberOfBytesToRead);
+                SK_UNTRUSTED_memcpy (cached_report.data (), overlapped_request.lpBuffer, overlapped_request.dwNumberOfBytesToRead);
+              }
+            }
+          }
+
           SK_HID_READ (hid_file->device_type);
           SK_HID_VIEW (hid_file->device_type);
           // We did the bulk of this processing in ReadFile_Detour (...)
           //   nothing to be done here for now.
         }
+
+        overlapped_request.dwNumberOfBytesToRead = 0;
       }
 
       return bRet;
@@ -1744,11 +1879,6 @@ GetOverlappedResult_Detour (HANDLE       hFile,
   {
     case SK_Input_DeviceFileType::HID:
     {
-      auto hid_file =
-        (SK_HID_DeviceFile *)dev_ptr;
-
-      BOOL bRet = TRUE;
-
       if (config.input.gamepad.disable_hid)
       {
         SetLastError (ERROR_DEVICE_NOT_CONNECTED);
@@ -1758,6 +1888,14 @@ GetOverlappedResult_Detour (HANDLE       hFile,
         return FALSE;
       }
 
+      auto hid_file =
+        (SK_HID_DeviceFile *)dev_ptr;
+
+      BOOL bRet = TRUE;
+
+      auto& overlapped_request =
+        hid_file->_overlappedRequests [lpOverlapped];
+
       if (! dev_allowed)
       {
         SK_HID_HIDE (hid_file->device_type);
@@ -1765,6 +1903,16 @@ GetOverlappedResult_Detour (HANDLE       hFile,
         SK_RunOnce (
           SK_LOGi0 (L"GetOverlappedResult HID IO Cancelled")
         );
+
+        //DWORD dwSize = 
+        //  overlapped_request.dwNumberOfBytesToRead;
+        //
+        //if (dwSize != 0)
+        //{
+        //  SK_UNTRUSTED_memcpy (overlapped_request.lpBuffer, hid_file->_cachedInputReportsBySize [dwSize].data (), dwSize);
+        //}
+
+        //hid_file->neutralizeHidInput ();
       }
 
       bRet =
@@ -1776,15 +1924,32 @@ GetOverlappedResult_Detour (HANDLE       hFile,
       {
         if (dev_allowed)
         {
+          if (overlapped_request.dwNumberOfBytesToRead != 0)
+          {
+            auto& cached_report =
+              hid_file->_cachedInputReportsBySize [overlapped_request.dwNumberOfBytesToRead];
+
+            if (                   cached_report.empty ())
+            {
+              if (((uint8_t *)overlapped_request.lpBuffer)[0] == 0x1)
+              {
+                                     cached_report.resize (                              overlapped_request.dwNumberOfBytesToRead);
+                SK_UNTRUSTED_memcpy (cached_report.data (), overlapped_request.lpBuffer, overlapped_request.dwNumberOfBytesToRead);
+              }
+            }
+          }
+
           SK_HID_READ (hid_file->device_type);
           SK_HID_VIEW (hid_file->device_type);
           // We did the bulk of this processing in ReadFile_Detour (...)
           //   nothing to be done here for now.
         }
+
+        overlapped_request.dwNumberOfBytesToRead = 0;
       }
 
       return bRet;
-    }
+    } break;
 
     case SK_Input_DeviceFileType::NVIDIA:
     {
@@ -1794,10 +1959,10 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 
   return
     GetOverlappedResult_Original (
-      hFile, lpOverlapped, lpNumberOfBytesTransferred,
-        bWait
+      hFile, lpOverlapped, lpNumberOfBytesTransferred, bWait
     );
 }
+
 
 BOOL
 WINAPI
@@ -5052,7 +5217,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
 
 
-int SK_HID_DeviceFile::neutralizeHidInput (void)
+int SK_HID_DeviceFile::neutralizeHidInput (DWORD dwSize)
 {
   switch (device_vid)
   {
@@ -5063,12 +5228,12 @@ int SK_HID_DeviceFile::neutralizeHidInput (void)
         case SK_HID_PID_DUALSENSE_EDGE:
         case SK_HID_PID_DUALSENSE:
         {
-          if (last_data_read.size () >= 64)
+          if (_cachedInputReportsBySize [dwSize].size () >= 64)
           {
-            if (last_data_read [0] == 0x1)
+            if (_cachedInputReportsBySize [dwSize].data ()[0] == 0x1)
             {
               SK_HID_DualSense_GetStateData* pData =
-                (SK_HID_DualSense_GetStateData *)&(last_data_read [1]);
+                (SK_HID_DualSense_GetStateData *)&(_cachedInputReportsBySize [dwSize].data ()[1]);
 
               // The analog axes
               memset (

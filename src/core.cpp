@@ -3142,6 +3142,35 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       //                 * Also fix Steam Input in CAPCOM games
       if (frames_drawn > 15)
       {
+        if (! SK_HID_PlayStationControllers.empty ())
+        {
+          static ULONG64 toggle_frame = 0ULL;
+          static bool    toggling     = false;
+
+          if ((! toggling) && (! config.input.gamepad.disable_hid))
+          {
+            toggling = true;
+
+            config.input.gamepad.disable_hid = true;
+
+            if (toggle_frame == 0)
+            {   toggle_frame  = frames_drawn;
+              SK_Win32_NotifyDeviceChange (false, false);
+            }
+          }
+
+          else if (toggling)
+          {
+            if (frames_drawn > toggle_frame + 15)
+            {
+              SK_RunOnce (
+                config.input.gamepad.disable_hid = false;
+                SK_Win32_NotifyDeviceChange (!config.input.gamepad.xinput.blackout_api, !config.input.gamepad.disable_hid)
+              );
+            }
+          }
+        }
+
         if (game_window.WndProc_Original != nullptr)
         {
           if (game_window.hWnd != 0)
