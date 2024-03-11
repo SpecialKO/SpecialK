@@ -341,12 +341,12 @@ struct SK_HID_DeviceFile {
     return true;
   }
 
-  int neutralizeHidInput (DWORD dwSize);
+  int neutralizeHidInput (uint8_t report_id);
   int remapHidInput      (void);
 
   std::vector<BYTE> last_data_read;
   concurrency::concurrent_unordered_map <LPOVERLAPPED, SK_HID_OverlappedRequest> _overlappedRequests;
-  concurrency::concurrent_unordered_map <DWORD,        std::vector <byte>>       _cachedInputReportsBySize;
+  concurrency::concurrent_unordered_map <DWORD,        std::vector <byte>>       _cachedInputReportsByReportId;
   concurrency::concurrent_unordered_map <DWORD,        std::vector <byte>>       _blockedInputReportsBySize;
 };
 
@@ -1188,20 +1188,13 @@ ReadFile_Detour (HANDLE       hFile,
                       hid_file->_blockedInputReportsBySize [nNumberOfBytesToRead].resize (nNumberOfBytesToRead);
             pBuffer = hid_file->_blockedInputReportsBySize [nNumberOfBytesToRead].data ();
 
-          if (  hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].empty ())
+          if (hid_file->_cachedInputReportsByReportId [report_id].size () >= nNumberOfBytesToRead)
           {
-            //hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].resize (nNumberOfBytesToRead);
-            //hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].data ()[0] = 0x1;
-            //
-            //hid_file->neutralizeHidInput (nNumberOfBytesToRead);
-          }
-
-          else
-          {
-            hid_file->neutralizeHidInput (nNumberOfBytesToRead);
-
-            if (                   lpBuffer != nullptr)
-              SK_UNTRUSTED_memcpy (lpBuffer, hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].data (), nNumberOfBytesToRead);
+            if (hid_file->neutralizeHidInput (report_id))
+            {
+              if (                   lpBuffer != nullptr)
+                SK_UNTRUSTED_memcpy (lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), nNumberOfBytesToRead);
+            }
           }
         }
       }
@@ -1232,20 +1225,30 @@ ReadFile_Detour (HANDLE       hFile,
 
       if (bRet)
       {
-        //auto& cached_report =
-        //  hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead];
-        //
-        //if ((! lpOverlapped) && dev_allowed)
-        //{
-        //  if (                   cached_report.size   ()          < nNumberOfBytesToRead)
-        //                         cached_report.resize (             nNumberOfBytesToRead);
-        //    SK_UNTRUSTED_memcpy (cached_report.data   (), lpBuffer, nNumberOfBytesToRead);
-        //}
+        auto& cached_report =
+          hid_file->_cachedInputReportsByReportId [report_id];
+
+        if ((! lpOverlapped) && dev_allowed)
+        {
+          if (                   cached_report.size   ()          < nNumberOfBytesToRead)
+                                 cached_report.resize (             nNumberOfBytesToRead);
+            SK_UNTRUSTED_memcpy (cached_report.data   (), lpBuffer, nNumberOfBytesToRead);
+        }
 
         bool bDeviceAllowed = dev_allowed;
 
-        //if (cached_report.empty () && (! lpOverlapped))
-        //  bDeviceAllowed = true;
+        if (cached_report.size () < nNumberOfBytesToRead && lpOverlapped != nullptr && SK_GetFramesDrawn () > 15)
+        {
+          hid_file->_cachedInputReportsByReportId [report_id].resize (nNumberOfBytesToRead);
+          hid_file->_cachedInputReportsByReportId [report_id].data ()[0] = ((uint8_t *)lpBuffer) [0];
+
+          if (hid_file->neutralizeHidInput (report_id))
+          {
+            SK_UNTRUSTED_memcpy (
+              lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (),
+                  nNumberOfBytesToRead );
+          }
+        }
 
         if (! bDeviceAllowed)
         {
@@ -1255,33 +1258,32 @@ ReadFile_Detour (HANDLE       hFile,
 
           if (lpOverlapped == nullptr) // lpNumberOfBytesRead MUST be non-null
           {
-            //if (cached_report.size () >= nNumberOfBytesToRead)
-            //{   cached_report.data ()[0] = 1;//report_id;
-            //
-            //  // Give the game old data, from before we started blocking stuff...
-            //  int num_bytes_read =
-            //    hid_file->neutralizeHidInput ();
-            //
-            //  if (num_bytes_read == 0)
-            //  {
-            //    num_bytes_read = nNumberOfBytesToRead;
-            //  }
-            //
-            //  if (num_bytes_read > 0)
-            //  {
-            //    if (lpNumberOfBytesRead != nullptr)
-            //       *lpNumberOfBytesRead = num_bytes_read;
-            //  }
-            //
-            //  if (lpBuffer != nullptr)
-            //  {
-            //    SK_UNTRUSTED_memcpy (
-            //      lpBuffer, cached_report.data (),
-            //     std::min ((int)nNumberOfBytesToRead,
-            //                          num_bytes_read)
-            //    );
-            //  }
-            //}
+            if (cached_report.size () >= nNumberOfBytesToRead)
+            {
+              // Give the game old data, from before we started blocking stuff...
+              int num_bytes_read =
+                hid_file->neutralizeHidInput (report_id);
+            
+              //if (num_bytes_read == 0)
+              //{
+              //  num_bytes_read = nNumberOfBytesToRead;
+              //}
+            
+              if (num_bytes_read > 0)
+              {
+                if (lpNumberOfBytesRead != nullptr)
+                   *lpNumberOfBytesRead = num_bytes_read;
+              }
+            
+              if (lpBuffer != nullptr && num_bytes_read > 0)
+              {
+                SK_UNTRUSTED_memcpy (
+                  lpBuffer, cached_report.data (),
+                 std::min ((int)nNumberOfBytesToRead,
+                                      num_bytes_read)
+                );
+              }
+            }
           }
 
           else
@@ -1290,33 +1292,32 @@ ReadFile_Detour (HANDLE       hFile,
               SK_LOGi0 (L"ReadFile HID IO Cancelled")
             );
 
-            //if (cached_report.size () >= nNumberOfBytesToRead)
-            //{   cached_report.data ()[0] = 1;
-            //
-            //  // Give the game old data, from before we started blocking stuff...
-            //  int num_bytes_read =
-            //    hid_file->neutralizeHidInput ();
-            //
-            //  if (num_bytes_read == 0)
-            //  {
-            //    num_bytes_read = nNumberOfBytesToRead;
-            //  }
-            //
-            //  if (num_bytes_read > 0)
-            //  {
-            //    if (lpNumberOfBytesRead != nullptr)
-            //       *lpNumberOfBytesRead = num_bytes_read;
-            //  }
-            //
-            //  if (lpBuffer != nullptr)
-            //  {
-            //    SK_UNTRUSTED_memcpy (
-            //      lpBuffer, cached_report.data (),
-            //     std::min ((int)nNumberOfBytesToRead,
-            //                          num_bytes_read)
-            //    );
-            //  }
-            //}
+            if (cached_report.size () >= nNumberOfBytesToRead)
+            {
+              // Give the game old data, from before we started blocking stuff...
+              int num_bytes_read =
+                hid_file->neutralizeHidInput (report_id);
+
+              //if (num_bytes_read == 0)
+              //{
+              //  num_bytes_read = nNumberOfBytesToRead;
+              //}
+
+              if (num_bytes_read > 0)
+              {
+                if (lpNumberOfBytesRead != nullptr)
+                   *lpNumberOfBytesRead = num_bytes_read;
+              }
+
+              if (lpBuffer != nullptr && num_bytes_read > 0)
+              {
+                SK_UNTRUSTED_memcpy (
+                  lpBuffer, cached_report.data (),
+                 std::min ((int)nNumberOfBytesToRead,
+                                      num_bytes_read)
+                );
+              }
+            }
           }
 
           return bRet;
@@ -1327,14 +1328,17 @@ ReadFile_Detour (HANDLE       hFile,
           SK_HID_READ (hid_file->device_type);
 
           if ( lpOverlapped == nullptr && 
-                 hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].empty () )
+                 hid_file->_cachedInputReportsByReportId [report_id].size () < nNumberOfBytesToRead )
           {
-            hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].resize (nNumberOfBytesToRead);
-            //hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].data ()[0] = 0x1;
-            //
-            //hid_file->neutralizeHidInput (nNumberOfBytesToRead);
+            hid_file->_cachedInputReportsByReportId [report_id].resize (nNumberOfBytesToRead);
+            hid_file->_cachedInputReportsByReportId [report_id].data ()[0] = report_id;
 
-            SK_UNTRUSTED_memcpy (hid_file->_cachedInputReportsBySize [nNumberOfBytesToRead].data (), lpBuffer, nNumberOfBytesToRead);
+            //if (hid_file->neutralizeHidInput (report_id))
+            {
+              SK_UNTRUSTED_memcpy (
+                hid_file->_cachedInputReportsByReportId [report_id].data (), lpBuffer,
+                    nNumberOfBytesToRead );
+            }
           }
 
           SK_HID_VIEW (hid_file->device_type);
@@ -1799,20 +1803,24 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
         SK_HID_HIDE (hid_file->device_type);
 
         SK_RunOnce (
-          SK_LOGi0 (L"GetOverlappedResultEx HID IO Cancelled")
+          SK_LOGi0 (L"GetOverlappedResult HID IO Cancelled")
         );
 
-        //DWORD dwSize = 
-        //  overlapped_request.dwNumberOfBytesToRead;
+        DWORD dwSize = 
+          overlapped_request.dwNumberOfBytesToRead;
 
-        //if (dwSize != 0 && (! hid_file->_cachedInputReportsBySize [dwSize].empty ()))
-        //{
-        //  hid_file->neutralizeHidInput ();
-        //
-        //  SK_UNTRUSTED_memcpy (overlapped_request.lpBuffer, hid_file->_cachedInputReportsBySize [dwSize].data (), dwSize);
-        //}
+        uint8_t report_id = overlapped_request.lpBuffer != nullptr ?
+                ((uint8_t *)overlapped_request.lpBuffer) [0]       : 0x0;
 
-        //hid_file->neutralizeHidInput ();
+        if (dwSize != 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= dwSize)
+        {
+          if (hid_file->neutralizeHidInput (report_id))
+          {
+            SK_UNTRUSTED_memcpy (
+              overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
+            );
+          }
+        }
       }
 
       bRet =
@@ -1822,16 +1830,19 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 
       if (bRet != FALSE)
       {
+        int report_id = overlapped_request.lpBuffer != nullptr ?
+            ((uint8_t *)overlapped_request.lpBuffer)[0]        : 0x0;
+
         if (dev_allowed)
         {
           if (overlapped_request.dwNumberOfBytesToRead != 0)
           {
             auto& cached_report =
-              hid_file->_cachedInputReportsBySize [overlapped_request.dwNumberOfBytesToRead];
+              hid_file->_cachedInputReportsByReportId [report_id];
 
-            if (                   cached_report.empty ())
+            if (                     cached_report.size () < overlapped_request.dwNumberOfBytesToRead)
             {
-              if (((uint8_t *)overlapped_request.lpBuffer)[0] == 0x1)
+              if (((uint8_t *)overlapped_request.lpBuffer)[0] == 0x0 || ((uint8_t *)overlapped_request.lpBuffer)[0] == report_id)
               {
                                      cached_report.resize (                              overlapped_request.dwNumberOfBytesToRead);
                 SK_UNTRUSTED_memcpy (cached_report.data (), overlapped_request.lpBuffer, overlapped_request.dwNumberOfBytesToRead);
@@ -1904,15 +1915,21 @@ GetOverlappedResult_Detour (HANDLE       hFile,
           SK_LOGi0 (L"GetOverlappedResult HID IO Cancelled")
         );
 
-        //DWORD dwSize = 
-        //  overlapped_request.dwNumberOfBytesToRead;
-        //
-        //if (dwSize != 0)
-        //{
-        //  SK_UNTRUSTED_memcpy (overlapped_request.lpBuffer, hid_file->_cachedInputReportsBySize [dwSize].data (), dwSize);
-        //}
+        DWORD dwSize = 
+          overlapped_request.dwNumberOfBytesToRead;
 
-        //hid_file->neutralizeHidInput ();
+        uint8_t report_id = overlapped_request.lpBuffer != nullptr ?
+                ((uint8_t *)overlapped_request.lpBuffer) [0]       : 0x0;
+
+        if (dwSize != 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= dwSize)
+        {
+          if (hid_file->neutralizeHidInput (report_id))
+          {
+            SK_UNTRUSTED_memcpy (
+              overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
+            );
+          }
+        }
       }
 
       bRet =
@@ -1922,16 +1939,19 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 
       if (bRet != FALSE)
       {
+        int report_id = overlapped_request.lpBuffer != nullptr ?
+            ((uint8_t *)overlapped_request.lpBuffer)[0]        : 0x0;
+
         if (dev_allowed)
         {
           if (overlapped_request.dwNumberOfBytesToRead != 0)
           {
             auto& cached_report =
-              hid_file->_cachedInputReportsBySize [overlapped_request.dwNumberOfBytesToRead];
+              hid_file->_cachedInputReportsByReportId [report_id];
 
-            if (                   cached_report.empty ())
+            if (                     cached_report.size () < overlapped_request.dwNumberOfBytesToRead)
             {
-              if (((uint8_t *)overlapped_request.lpBuffer)[0] == 0x1)
+              if (((uint8_t *)overlapped_request.lpBuffer)[0] == 0x0 || ((uint8_t *)overlapped_request.lpBuffer)[0] == report_id)
               {
                                      cached_report.resize (                              overlapped_request.dwNumberOfBytesToRead);
                 SK_UNTRUSTED_memcpy (cached_report.data (), overlapped_request.lpBuffer, overlapped_request.dwNumberOfBytesToRead);
@@ -4392,10 +4412,10 @@ SK_HID_PlayStationDevice::write_output_report (void)
             output->UseRumbleNotHaptics      = true;
             output->AllowMuteLight           = true;
 
-            if (config.input.gamepad.scepad.led_color_r    != -1 ||
-                config.input.gamepad.scepad.led_color_g    != -1 ||
-                config.input.gamepad.scepad.led_color_b    != -1 ||
-                config.input.gamepad.scepad.led_brightness != -1)
+            if (config.input.gamepad.scepad.led_color_r    >= 0 ||
+                config.input.gamepad.scepad.led_color_g    >= 0 ||
+                config.input.gamepad.scepad.led_color_b    >= 0 ||
+                config.input.gamepad.scepad.led_brightness >= 0)
             {
               output->AllowLedColor          = true;
             }
@@ -4469,16 +4489,16 @@ SK_HID_PlayStationDevice::write_output_report (void)
               output->LightBrightness            = (LightBrightness)3;
             }
 
-            else if (config.input.gamepad.scepad.led_brightness != -1)
+            else if (config.input.gamepad.scepad.led_brightness >= 0)
             {
               output->AllowLightBrightnessChange = 1;
               output->LightBrightness            =
                 (LightBrightness)std::clamp (config.input.gamepad.scepad.led_brightness, 0, 2);
             }
 
-            if (config.input.gamepad.scepad.led_color_r != -1 || 
-                config.input.gamepad.scepad.led_color_g != -1 ||
-                config.input.gamepad.scepad.led_color_b != -1)
+            if (config.input.gamepad.scepad.led_color_r >= 0 || 
+                config.input.gamepad.scepad.led_color_g >= 0 ||
+                config.input.gamepad.scepad.led_color_b >= 0)
             {
               output->LedRed   = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_r, 0, 255));
               output->LedGreen = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_g, 0, 255));
@@ -4541,10 +4561,10 @@ SK_HID_PlayStationDevice::write_output_report (void)
             output->UseRumbleNotHaptics   = true;
             output->AllowMuteLight        = true;
 
-            if (config.input.gamepad.scepad.led_color_r    != -1 || 
-                config.input.gamepad.scepad.led_color_g    != -1 ||
-                config.input.gamepad.scepad.led_color_b    != -1 ||
-                config.input.gamepad.scepad.led_brightness != -1)
+            if (config.input.gamepad.scepad.led_color_r    >= 0 || 
+                config.input.gamepad.scepad.led_color_g    >= 0 ||
+                config.input.gamepad.scepad.led_color_b    >= 0 ||
+                config.input.gamepad.scepad.led_brightness >= 0)
             {
               output->AllowLedColor       = true;
             }
@@ -4633,7 +4653,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
                 output->LightBrightness            = (LightBrightness)3;
               }
 
-              else if (config.input.gamepad.scepad.led_brightness != -1)
+              else if (config.input.gamepad.scepad.led_brightness >= 0)
               {
                 output->AllowLightBrightnessChange = 1;
                 output->LightBrightness            =
@@ -4646,9 +4666,9 @@ SK_HID_PlayStationDevice::write_output_report (void)
                 }
               }
 
-              if (config.input.gamepad.scepad.led_color_r != -1 || 
-                  config.input.gamepad.scepad.led_color_g != -1 ||
-                  config.input.gamepad.scepad.led_color_b != -1)
+              if (config.input.gamepad.scepad.led_color_r >= 0 || 
+                  config.input.gamepad.scepad.led_color_g >= 0 ||
+                  config.input.gamepad.scepad.led_color_b >= 0)
               {
                 if (pDevice->sensor_timestamp >= 10200000 && (! pDevice->reset_rgb))
                 {
@@ -4896,10 +4916,10 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
             output->EnableRumbleUpdate = true;
 
-            if (config.input.gamepad.scepad.led_color_r    != -1 ||
-                config.input.gamepad.scepad.led_color_g    != -1 ||
-                config.input.gamepad.scepad.led_color_b    != -1 ||
-                config.input.gamepad.scepad.led_brightness != -1)
+            if (config.input.gamepad.scepad.led_color_r    >= 0 ||
+                config.input.gamepad.scepad.led_color_g    >= 0 ||
+                config.input.gamepad.scepad.led_color_b    >= 0 ||
+                config.input.gamepad.scepad.led_brightness >= 0)
             {
               output->EnableLedUpdate  = true;
             }
@@ -4939,15 +4959,15 @@ SK_HID_PlayStationDevice::write_output_report (void)
               //                                                         :
               //static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
 
-            if (config.input.gamepad.scepad.led_color_r != -1 || 
-                config.input.gamepad.scepad.led_color_g != -1 ||
-                config.input.gamepad.scepad.led_color_b != -1)
+            if (config.input.gamepad.scepad.led_color_r >= 0 || 
+                config.input.gamepad.scepad.led_color_g >= 0 ||
+                config.input.gamepad.scepad.led_color_b >= 0)
             {
               output->LedRed   = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_r, 0, 255));
               output->LedGreen = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_g, 0, 255));
               output->LedBlue  = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_b, 0, 255));
 
-              if (config.input.gamepad.scepad.led_brightness != -1)
+              if (config.input.gamepad.scepad.led_brightness >= 0)
               {
                 switch (config.input.gamepad.scepad.led_brightness)
                 {
@@ -5009,10 +5029,10 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
             output->EnableRumbleUpdate = true;
 
-            if (config.input.gamepad.scepad.led_color_r    != -1 ||
-                config.input.gamepad.scepad.led_color_g    != -1 ||
-                config.input.gamepad.scepad.led_color_b    != -1 ||
-                config.input.gamepad.scepad.led_brightness != -1)
+            if (config.input.gamepad.scepad.led_color_r    >= 0 ||
+                config.input.gamepad.scepad.led_color_g    >= 0 ||
+                config.input.gamepad.scepad.led_color_b    >= 0 ||
+                config.input.gamepad.scepad.led_brightness >= 0)
             {
               output->EnableLedUpdate  = true;
             }
@@ -5052,15 +5072,15 @@ SK_HID_PlayStationDevice::write_output_report (void)
               //                                                         :
               //static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
 
-            if (config.input.gamepad.scepad.led_color_r != -1 || 
-                config.input.gamepad.scepad.led_color_g != -1 ||
-                config.input.gamepad.scepad.led_color_b != -1)
+            if (config.input.gamepad.scepad.led_color_r >= 0 || 
+                config.input.gamepad.scepad.led_color_g >= 0 ||
+                config.input.gamepad.scepad.led_color_b >= 0)
             {
               output->LedRed   = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_r, 0, 255));
               output->LedGreen = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_g, 0, 255));
               output->LedBlue  = sk::narrow_cast <uint8_t> (std::clamp (config.input.gamepad.scepad.led_color_b, 0, 255));
 
-              if (config.input.gamepad.scepad.led_brightness != -1)
+              if (config.input.gamepad.scepad.led_brightness >= 0)
               {
                 switch (config.input.gamepad.scepad.led_brightness)
                 {
@@ -5217,7 +5237,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
 
 
-int SK_HID_DeviceFile::neutralizeHidInput (DWORD dwSize)
+int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id)
 {
   switch (device_vid)
   {
@@ -5225,15 +5245,53 @@ int SK_HID_DeviceFile::neutralizeHidInput (DWORD dwSize)
     {
       switch (device_pid)
       {
+        case SK_HID_PID_DUALSHOCK4:
+        case SK_HID_PID_DUALSHOCK4_REV2:
+        {
+          if (report_id == 1 && _cachedInputReportsByReportId [report_id].size () >= 34)
+          {
+            if (_cachedInputReportsByReportId [report_id].data ()[0] == report_id)
+            {
+              SK_HID_DualShock4_GetStateData* pData =
+                (SK_HID_DualShock4_GetStateData *)&(_cachedInputReportsByReportId [report_id].data ()[1]);
+
+              // The analog axes
+              memset (
+                &pData->LeftStickX,  128,   4);
+              memset (
+                &pData->TriggerLeft,   0,   2);
+                 pData->Counter++;
+                 pData->DPad               = Neutral;
+                 pData->ButtonSquare       = 0;
+                 pData->ButtonCross        = 0;
+                 pData->ButtonCircle       = 0;
+                 pData->ButtonTriangle     = 0;
+                 pData->ButtonL1           = 0;
+                 pData->ButtonR1           = 0;
+                 pData->ButtonL2           = 0;
+                 pData->ButtonR2           = 0;
+                 pData->ButtonShare        = 0;
+                 pData->ButtonOptions      = 0;
+                 pData->ButtonL3           = 0;
+                 pData->ButtonR3           = 0;
+                 pData->ButtonHome         = 0;
+                 pData->ButtonPad          = 0;
+              memset (
+                &pData->AngularVelocityX, 0, 12);
+
+              return 34;
+            }
+          }
+        } break;
         case SK_HID_PID_DUALSENSE_EDGE:
         case SK_HID_PID_DUALSENSE:
         {
-          if (_cachedInputReportsBySize [dwSize].size () >= 64)
+          if (  _cachedInputReportsByReportId [report_id].size () >= 64)
           {
-            if (_cachedInputReportsBySize [dwSize].data ()[0] == 0x1)
+            if (_cachedInputReportsByReportId [report_id].data ()[0] == 1)
             {
               SK_HID_DualSense_GetStateData* pData =
-                (SK_HID_DualSense_GetStateData *)&(_cachedInputReportsBySize [dwSize].data ()[1]);
+                (SK_HID_DualSense_GetStateData *)&(_cachedInputReportsByReportId [report_id].data ()[1]);
 
               // The analog axes
               memset (
@@ -5268,44 +5326,87 @@ int SK_HID_DeviceFile::neutralizeHidInput (DWORD dwSize)
 
               return 64;
             }
-            //else if (last_data_read [0] == 0x31)
-            //{
-            //  SK_HID_DualSense_GetStateData* pData =
-            //    (SK_HID_DualSense_GetStateData *)&(last_data_read [2]);
-            //
-            //  // The analog axes
-            //  memset (
-            //    &pData->LeftStickX,  128,   4);
-            //  memset (
-            //    &pData->TriggerLeft,   0,   2);
-            //     pData->SeqNo++;
-            //     pData->DPad               = Neutral;
-            //     pData->ButtonSquare       = 0;
-            //     pData->ButtonCross        = 0;
-            //     pData->ButtonCircle       = 0;
-            //     pData->ButtonTriangle     = 0;
-            //     pData->ButtonL1           = 0;
-            //     pData->ButtonR1           = 0;
-            //     pData->ButtonL2           = 0;
-            //     pData->ButtonR2           = 0;
-            //     pData->ButtonCreate       = 0;
-            //     pData->ButtonOptions      = 0;
-            //     pData->ButtonL3           = 0;
-            //     pData->ButtonR3           = 0;
-            //     pData->ButtonHome         = 0;
-            //     pData->ButtonPad          = 0;
-            //     pData->ButtonMute         = 0;
-            //     pData->UNK1               = 0;
-            //     pData->ButtonLeftFunction = 0;
-            //     pData->ButtonRightFunction= 0;
-            //     pData->ButtonLeftPaddle   = 0;
-            //     pData->ButtonRightPaddle  = 0;
-            //     pData->UNK2               = 0;
-            //  memset (
-            //    &pData->AngularVelocityX, 0, 12);
-            //
-            //  return 78;
-            //}
+
+            else if (_cachedInputReportsByReportId [report_id].data ()[0] == 49)
+            {
+              BYTE* pInputRaw =
+                (BYTE *)_cachedInputReportsByReportId [report_id].data ();
+
+              SK_HID_DualSense_GetStateData *pData =
+                (SK_HID_DualSense_GetStateData *)&pInputRaw [2];
+
+              bool bSimple = false;
+
+              // We're in simplified mode...
+              if (pInputRaw [0] == 0x1)
+              {
+                bSimple = true;
+              }
+
+              if (! bSimple)
+              {
+                // The analog axes
+                memset (
+                  &pData->LeftStickX,  128,   4);
+                memset (
+                  &pData->TriggerLeft,   0,   2);
+                   pData->SeqNo++;
+                   pData->DPad               = Neutral;
+                   pData->ButtonSquare       = 0;
+                   pData->ButtonCross        = 0;
+                   pData->ButtonCircle       = 0;
+                   pData->ButtonTriangle     = 0;
+                   pData->ButtonL1           = 0;
+                   pData->ButtonR1           = 0;
+                   pData->ButtonL2           = 0;
+                   pData->ButtonR2           = 0;
+                   pData->ButtonCreate       = 0;
+                   pData->ButtonOptions      = 0;
+                   pData->ButtonL3           = 0;
+                   pData->ButtonR3           = 0;
+                   pData->ButtonHome         = 0;
+                   pData->ButtonPad          = 0;
+                   pData->ButtonMute         = 0;
+                   pData->UNK1               = 0;
+                   pData->ButtonLeftFunction = 0;
+                   pData->ButtonRightFunction= 0;
+                   pData->ButtonLeftPaddle   = 0;
+                   pData->ButtonRightPaddle  = 0;
+                   pData->UNK2               = 0;
+                memset (
+                  &pData->AngularVelocityX, 0, 12);
+              }
+
+              else
+              {
+                SK_HID_DualSense_GetSimpleStateDataBt *pSimpleData =
+                  (SK_HID_DualSense_GetSimpleStateDataBt *)&pInputRaw [1];
+
+                // The analog axes
+                memset (
+                  &pSimpleData->LeftStickX,  128,   4);
+                memset (
+                  &pSimpleData->TriggerLeft,   0,   2);
+                   pSimpleData->Counter++;
+                   pSimpleData->DPad               = Neutral;
+                   pSimpleData->ButtonSquare       = 0;
+                   pSimpleData->ButtonCross        = 0;
+                   pSimpleData->ButtonCircle       = 0;
+                   pSimpleData->ButtonTriangle     = 0;
+                   pSimpleData->ButtonL1           = 0;
+                   pSimpleData->ButtonR1           = 0;
+                   pSimpleData->ButtonL2           = 0;
+                   pSimpleData->ButtonR2           = 0;
+                   pSimpleData->ButtonShare        = 0;
+                   pSimpleData->ButtonOptions      = 0;
+                   pSimpleData->ButtonL3           = 0;
+                   pSimpleData->ButtonR3           = 0;
+                   pSimpleData->ButtonHome         = 0;
+                   pSimpleData->ButtonPad          = 0;
+              }
+
+              return 64;
+            }
           }
         } break;
       }

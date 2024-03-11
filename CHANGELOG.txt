@@ -1,4 +1,14 @@
-﻿24.3.10
+﻿24.3.11
+=======
+ + Remember LED brightness and color settings for DualShock4/DualSense
+     controllers when toggling the override off.
+ + Add support for writing neutral input values when blocking DualShock4 input
+     to games (wired-only).
+
+     (Previously it would reuse the last input data, which often includes
+       the buttons you used to toggle the control panel)
+
+24.3.10
 =======
  + Improved gamepad compatibility with Wrath: Aeon of Ruin
  + Added 15 frame device refresh timer in case SK was injected after a game

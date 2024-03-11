@@ -1386,28 +1386,28 @@ SK::ControlPanel::Input::Draw (void)
           if (bDualSense || bDualShock4)
           {
             bool bOverrideRGB =
-              config.input.gamepad.scepad.led_color_r    != -1 ||
-              config.input.gamepad.scepad.led_color_g    != -1 ||
-              config.input.gamepad.scepad.led_color_b    != -1 ||
-              config.input.gamepad.scepad.led_brightness != -1;
+              config.input.gamepad.scepad.led_color_r    >= 0 ||
+              config.input.gamepad.scepad.led_color_g    >= 0 ||
+              config.input.gamepad.scepad.led_color_b    >= 0 ||
+              config.input.gamepad.scepad.led_brightness >= 0;
 
             ImGui::BeginGroup ();
             if (ImGui::Checkbox ("Override RGB", &bOverrideRGB))
             {
               if (! bOverrideRGB)
               {
-                config.input.gamepad.scepad.led_color_r    = -1;
-                config.input.gamepad.scepad.led_color_g    = -1;
-                config.input.gamepad.scepad.led_color_b    = -1;
-                config.input.gamepad.scepad.led_brightness = -1;
+                config.input.gamepad.scepad.led_color_r    = std::min (-1, -abs (config.input.gamepad.scepad.led_color_r));
+                config.input.gamepad.scepad.led_color_g    = std::min (-1, -abs (config.input.gamepad.scepad.led_color_g));
+                config.input.gamepad.scepad.led_color_b    = std::min (-1, -abs (config.input.gamepad.scepad.led_color_b));
+                config.input.gamepad.scepad.led_brightness = std::min (-1, -abs (config.input.gamepad.scepad.led_brightness));
               }
 
               else
               {
-                config.input.gamepad.scepad.led_color_r    = 255;
-                config.input.gamepad.scepad.led_color_g    = 255;
-                config.input.gamepad.scepad.led_color_b    = 255;
-                config.input.gamepad.scepad.led_brightness =   0;
+                config.input.gamepad.scepad.led_color_r    = std::max (0, abs (config.input.gamepad.scepad.led_color_r));
+                config.input.gamepad.scepad.led_color_g    = std::max (0, abs (config.input.gamepad.scepad.led_color_g));
+                config.input.gamepad.scepad.led_color_b    = std::max (0, abs (config.input.gamepad.scepad.led_color_b));
+                config.input.gamepad.scepad.led_brightness = std::max (0, abs (config.input.gamepad.scepad.led_brightness));
               }
               config.utility.save_async ();
             }
