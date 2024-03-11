@@ -1373,6 +1373,13 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         d3d8   |= (SK_GetModuleHandle (L"d3d8.dll")      != nullptr);
         ddraw  |= (SK_GetModuleHandle (L"ddraw.dll")     != nullptr);
 
+        // Don't use dgVoodoo Plug-In if a game is already translated
+        if (config.apis.translated != SK_RenderAPI::None)
+        {
+          d3d8  = false;
+          ddraw = false;
+        }
+
         if (config.apis.d3d8.hook && d3d8 && has_dgvoodoo)
         {
           if (SK_TryLocalWrapperFirst ({ L"d3d8.dll" }))
