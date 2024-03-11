@@ -977,7 +977,15 @@ SK_Win32_NotifyHWND_W (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     (WNDPROC)SK_GetWindowLongPtrW (hWnd, GWLP_WNDPROC);
 
   __try {
-    CallWindowProcW (wndProc, hWnd, uMsg, wParam, lParam);
+    if (dwThreadId == GetCurrentThreadId ())
+    {
+      CallWindowProcW (wndProc, hWnd, uMsg, wParam, lParam);
+    }
+
+    else
+    {
+      SendMessageTimeoutW (hWnd, uMsg, wParam, lParam, SMTO_ABORTIFHUNG, 150UL, nullptr);
+    }
   }
 
   __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ||
@@ -1021,7 +1029,15 @@ SK_Win32_NotifyHWND_A (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     (WNDPROC)SK_GetWindowLongPtrA (hWnd, GWLP_WNDPROC);
 
   __try {
-    CallWindowProcA (wndProc, hWnd, uMsg, wParam, lParam);
+    if (dwThreadId == GetCurrentThreadId ())
+    {
+      CallWindowProcA (wndProc, hWnd, uMsg, wParam, lParam);
+    }
+
+    else
+    {
+      SendMessageTimeoutA (hWnd, uMsg, wParam, lParam, SMTO_ABORTIFHUNG, 150UL, nullptr);
+    }
   }
 
   __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ||
