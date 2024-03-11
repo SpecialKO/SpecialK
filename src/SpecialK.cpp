@@ -1378,6 +1378,7 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         {
           d3d8  = false;
           ddraw = false;
+          glide = false;
         }
 
         if (config.apis.d3d8.hook && d3d8 && has_dgvoodoo)
