@@ -3136,6 +3136,15 @@ SK_HID_PlayStationDevice::request_input_report (void)
   if (! bConnected)
     return false;
 
+  // If user is overriding RGB, we need to write an output report for every input report
+  if ( config.input.gamepad.scepad.led_color_r    >= 0 ||
+       config.input.gamepad.scepad.led_color_g    >= 0 ||
+       config.input.gamepad.scepad.led_color_b    >= 0 ||
+       config.input.gamepad.scepad.led_brightness >= 0 )
+  {
+    WriteRelease (&bNeedOutput, TRUE);
+  }
+
   if (hInputEvent == nullptr)
   {   hInputEvent =
         SK_CreateEvent ( nullptr, TRUE, TRUE,
@@ -3468,7 +3477,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
               SK_RunOnce (SK_Bluetooth_SetupPowerOff ());
 
               if (! config.input.gamepad.bt_input_only)
-                pDevice->write_output_report ();
+                WriteRelease (&pDevice->bNeedOutput, TRUE);
 
               if (pDevice->buttons.size () < 19)
                   pDevice->buttons.resize (  19);
@@ -3745,7 +3754,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
               SK_RunOnce (SK_Bluetooth_SetupPowerOff ());
 
               if (! config.input.gamepad.bt_input_only)
-                pDevice->write_output_report ();
+                WriteRelease (&pDevice->bNeedOutput, true);
 
               if (pDevice->buttons.size () < 14)
                   pDevice->buttons.resize (  14);
@@ -4045,6 +4054,9 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 pDevice->chord_activated = true;
               }
 
+              if (clear_haptics || ReadAcquire (&pDevice->bNeedOutput))
+                pDevice->write_output_report ();
+
               if (bAllowSpecialButtons)
               {
 #if 0
@@ -4249,11 +4261,17 @@ SK_HID_PlayStationDevice::request_input_report (void)
             }
 
             if ( pDevice->buttons.size () >= 15 &&
-                 pDevice->bDualSense            && config.input.gamepad.scepad.mute_applies_to_game && bAllowSpecialButtons )
+                 pDevice->bDualSense            &&
+                 config.input.gamepad.scepad.mute_applies_to_game &&
+                 bAllowSpecialButtons )
             {
               if (   pDevice->buttons [14].state &&
                   (! pDevice->buttons [14].last_state) )
               {
+                // We need to force an HID output report to
+                //   change the state of the mute LED...
+                WriteRelease (&pDevice->bNeedOutput, TRUE);
+
                 SK_SetGameMute (! SK_IsGameMuted ());
               }
             }

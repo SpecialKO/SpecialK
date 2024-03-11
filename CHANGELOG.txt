@@ -1,4 +1,12 @@
-﻿24.3.11.1
+﻿24.3.11.2
+=========
+ + Added tooltip text explaining the XInput latency test only applies to
+     third-party drivers and cannot be used to test SK's own latency
+       (as it would always be 0).
+ + Write HID output reports to (wired) PlayStation controllers if an
+     RGB / Mute LED override is active instead of waiting for first vibration.
+
+24.3.11.1
 =========
  + Fixed LED brightness reverting to Mid when override is turned off and on
  + Clear PlayStation controller rumble when exiting a game so that it does not

@@ -1747,6 +1747,16 @@ extern float SK_ImGui_PulseNav_Strength;
             }
           }
 
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip    ();
+            ImGui::TextUnformatted ("Tests the latency of DS4Windows, Steam Input or a native Xbox controller");
+            ImGui::Separator       ();
+            ImGui::BulletText      ("If you have no native XInput support or a third-party utility emulating XInput, this will do nothing");
+            ImGui::BulletText      ("SK cannot test its own XInput emulation latency; all readings would come back zero...");
+            ImGui::EndTooltip      ();
+          }
+
           static double high_min = std::numeric_limits <double>::max (),
                         high_max,
                         avg;
