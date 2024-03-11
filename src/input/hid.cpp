@@ -4350,15 +4350,25 @@ SK_HID_PlayStationDevice::write_output_report (void)
         bool bEnqueued = false;
         bool bFinished = false;
 
+        // Will be signaled when DLL teardown is processed and any vibration is cleared to 0.
+        bool bQuit = false;
+
         DWORD  dwWaitState  = WAIT_FAILED;
         while (dwWaitState != WAIT_OBJECT_0)
         {
+          if (bQuit)
+            break;
+
           dwWaitState =
             WaitForMultipleObjects ( _countof (hEvents),
                                                hEvents, FALSE, INFINITE );
 
           if (dwWaitState == WAIT_OBJECT_0)
-            break;
+          {
+            pDevice->setVibration (0, 0);
+            bQuit     = true;
+            bFinished = true;
+          }
 
           if (dwWaitState == (WAIT_OBJECT_0 + 2))
           {
@@ -4872,15 +4882,25 @@ SK_HID_PlayStationDevice::write_output_report (void)
         bool bEnqueued = false;
         bool bFinished = false;
 
+        // Will be signaled when DLL teardown is processed and any vibration is cleared to 0.
+        bool bQuit     = false;
+
         DWORD  dwWaitState  = WAIT_FAILED;
         while (dwWaitState != WAIT_OBJECT_0)
         {
+          if (bQuit)
+            break;
+
           dwWaitState =
             WaitForMultipleObjects ( _countof (hEvents),
                                                hEvents, FALSE, INFINITE );
 
           if (dwWaitState == WAIT_OBJECT_0)
-            break;
+          {
+            pDevice->setVibration (0, 0);
+            bQuit     = true;
+            bFinished = true;
+          }
 
           if (dwWaitState == (WAIT_OBJECT_0 + 2))
           {

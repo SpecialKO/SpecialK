@@ -3191,13 +3191,16 @@ SK_FrameCallback ( SK_RenderBackend& rb,
                 DWORD                                                                     dwProcId = 0x0;
                 if (GetCurrentThreadId () == GetWindowThreadProcessId (game_window.hWnd, &dwProcId))
                 {
-                  SK_SAFE_CALLWNDPROC (WM_ACTIVATEAPP, TRUE, 0);
-                  SK_SAFE_CALLWNDPROC (WM_SETFOCUS,       0, 0);
+                  SK_SAFE_CALLWNDPROC (WM_ACTIVATEAPP,                      TRUE, 0);
+                  SK_SAFE_CALLWNDPROC (WM_ACTIVATE,    MAKEWPARAM (WA_ACTIVE, 0), 0);
+                  SK_SAFE_CALLWNDPROC (WM_SETFOCUS,                            0, 0);
                 }
 
                 else
                 {
                   SendMessageTimeout (game_window.hWnd, WM_ACTIVATEAPP, TRUE, 0, SMTO_ABORTIFHUNG, 150UL, nullptr);
+                  SendMessageTimeout (game_window.hWnd, WM_ACTIVATE,
+                                                   MAKEWPARAM (WA_ACTIVE, 0), 0, SMTO_ABORTIFHUNG, 150UL, nullptr);
                   SendMessageTimeout (game_window.hWnd, WM_SETFOCUS,       0, 0, SMTO_ABORTIFHUNG, 150UL, nullptr);
                 }
 

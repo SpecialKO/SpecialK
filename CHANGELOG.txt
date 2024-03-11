@@ -1,4 +1,10 @@
-﻿24.3.11
+﻿24.3.11.1
+=========
+ + Fixed LED brightness reverting to Mid when override is turned off and on
+ + Clear PlayStation controller rumble when exiting a game so that it does not
+     sustain the vibration until the controller eventually stops on its own.
+
+24.3.11
 =======
  + Remember LED brightness and color settings for DualShock4/DualSense
      controllers when toggling the override off.
