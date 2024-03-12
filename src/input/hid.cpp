@@ -341,7 +341,7 @@ struct SK_HID_DeviceFile {
     return true;
   }
 
-  int neutralizeHidInput (uint8_t report_id);
+  int neutralizeHidInput (uint8_t report_id, DWORD dwSize);
   int remapHidInput      (void);
 
   std::vector<BYTE> last_data_read;
@@ -1176,6 +1176,11 @@ ReadFile_Detour (HANDLE       hFile,
       if (lpBuffer != nullptr)
       {
         report_id = ((uint8_t *)lpBuffer)[0];
+
+        if (! report_id)
+        {
+          report_id = (BYTE)nNumberOfBytesToRead;
+        }
       }
 
       void* pBuffer = lpBuffer;
@@ -1188,9 +1193,9 @@ ReadFile_Detour (HANDLE       hFile,
                       hid_file->_blockedInputReportsBySize [nNumberOfBytesToRead].resize (nNumberOfBytesToRead);
             pBuffer = hid_file->_blockedInputReportsBySize [nNumberOfBytesToRead].data ();
 
-          if (hid_file->_cachedInputReportsByReportId [report_id].size () >= nNumberOfBytesToRead)
+          if (report_id > 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= nNumberOfBytesToRead)
           {
-            if (hid_file->neutralizeHidInput (report_id))
+            if (hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead))
             {
               if (                   lpBuffer != nullptr)
                 SK_UNTRUSTED_memcpy (lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), nNumberOfBytesToRead);
@@ -1237,12 +1242,12 @@ ReadFile_Detour (HANDLE       hFile,
 
         bool bDeviceAllowed = dev_allowed;
 
-        if (cached_report.size () < nNumberOfBytesToRead && lpOverlapped != nullptr && SK_GetFramesDrawn () > 15)
+        if (report_id > 0 && cached_report.size () < nNumberOfBytesToRead && lpOverlapped != nullptr && SK_GetFramesDrawn () > 15)
         {
           hid_file->_cachedInputReportsByReportId [report_id].resize (nNumberOfBytesToRead);
           hid_file->_cachedInputReportsByReportId [report_id].data ()[0] = ((uint8_t *)lpBuffer) [0];
 
-          if (hid_file->neutralizeHidInput (report_id))
+          if (hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead))
           {
             SK_UNTRUSTED_memcpy (
               lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (),
@@ -1258,11 +1263,11 @@ ReadFile_Detour (HANDLE       hFile,
 
           if (lpOverlapped == nullptr) // lpNumberOfBytesRead MUST be non-null
           {
-            if (cached_report.size () >= nNumberOfBytesToRead)
+            if (report_id > 0 && cached_report.size () >= nNumberOfBytesToRead)
             {
               // Give the game old data, from before we started blocking stuff...
               int num_bytes_read =
-                hid_file->neutralizeHidInput (report_id);
+                hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead);
             
               //if (num_bytes_read == 0)
               //{
@@ -1292,11 +1297,11 @@ ReadFile_Detour (HANDLE       hFile,
               SK_LOGi0 (L"ReadFile HID IO Cancelled")
             );
 
-            if (cached_report.size () >= nNumberOfBytesToRead)
+            if (report_id > 0 && cached_report.size () >= nNumberOfBytesToRead)
             {
               // Give the game old data, from before we started blocking stuff...
               int num_bytes_read =
-                hid_file->neutralizeHidInput (report_id);
+                hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead);
 
               //if (num_bytes_read == 0)
               //{
@@ -1327,13 +1332,13 @@ ReadFile_Detour (HANDLE       hFile,
         {
           SK_HID_READ (hid_file->device_type);
 
-          if ( lpOverlapped == nullptr && 
+          if ( lpOverlapped == nullptr && report_id > 0 &&
                  hid_file->_cachedInputReportsByReportId [report_id].size () < nNumberOfBytesToRead )
           {
             hid_file->_cachedInputReportsByReportId [report_id].resize (nNumberOfBytesToRead);
             hid_file->_cachedInputReportsByReportId [report_id].data ()[0] = report_id;
 
-            //if (hid_file->neutralizeHidInput (report_id))
+            //if (hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead))
             {
               SK_UNTRUSTED_memcpy (
                 hid_file->_cachedInputReportsByReportId [report_id].data (), lpBuffer,
@@ -1625,6 +1630,7 @@ CreateFile2_Detour (
         for (auto& overlapped_request : dev_file._overlappedRequests)
         {
           overlapped_request.second.dwNumberOfBytesToRead = 0;
+          overlapped_request.second.hFile                 = INVALID_HANDLE_VALUE;
           overlapped_request.second.lpBuffer              = nullptr;
         }
 
@@ -1814,7 +1820,7 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 
         if (dwSize != 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= dwSize)
         {
-          if (hid_file->neutralizeHidInput (report_id))
+          if (hid_file->neutralizeHidInput (report_id, dwSize))
           {
             SK_UNTRUSTED_memcpy (
               overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
@@ -1830,8 +1836,8 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
 
       if (bRet != FALSE)
       {
-        int report_id = overlapped_request.lpBuffer != nullptr ?
-            ((uint8_t *)overlapped_request.lpBuffer)[0]        : 0x0;
+        uint8_t report_id = overlapped_request.lpBuffer != nullptr ?
+                ((uint8_t *)overlapped_request.lpBuffer)[0]        : 0x0;
 
         if (dev_allowed)
         {
@@ -1854,6 +1860,22 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
           SK_HID_VIEW (hid_file->device_type);
           // We did the bulk of this processing in ReadFile_Detour (...)
           //   nothing to be done here for now.
+        }
+
+        else
+        {
+          DWORD dwSize = 
+            overlapped_request.dwNumberOfBytesToRead;
+
+          if (dwSize != 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= dwSize)
+          {
+            if (hid_file->neutralizeHidInput (report_id, dwSize))
+            {
+              SK_UNTRUSTED_memcpy (
+                overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
+              );
+            }
+          }
         }
 
         overlapped_request.dwNumberOfBytesToRead = 0;
@@ -1923,7 +1945,7 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 
         if (dwSize != 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= dwSize)
         {
-          if (hid_file->neutralizeHidInput (report_id))
+          if (hid_file->neutralizeHidInput (report_id, dwSize))
           {
             SK_UNTRUSTED_memcpy (
               overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
@@ -1939,8 +1961,8 @@ GetOverlappedResult_Detour (HANDLE       hFile,
 
       if (bRet != FALSE)
       {
-        int report_id = overlapped_request.lpBuffer != nullptr ?
-            ((uint8_t *)overlapped_request.lpBuffer)[0]        : 0x0;
+        uint8_t report_id = overlapped_request.lpBuffer != nullptr ?
+                ((uint8_t *)overlapped_request.lpBuffer)[0]        : 0x0;
 
         if (dev_allowed)
         {
@@ -1963,6 +1985,22 @@ GetOverlappedResult_Detour (HANDLE       hFile,
           SK_HID_VIEW (hid_file->device_type);
           // We did the bulk of this processing in ReadFile_Detour (...)
           //   nothing to be done here for now.
+        }
+
+        else
+        {
+          DWORD dwSize = 
+            overlapped_request.dwNumberOfBytesToRead;
+
+          if (dwSize != 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= dwSize)
+          {
+            if (hid_file->neutralizeHidInput (report_id, dwSize))
+            {
+              SK_UNTRUSTED_memcpy (
+                overlapped_request.lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), dwSize
+              );
+            }
+          }
         }
 
         overlapped_request.dwNumberOfBytesToRead = 0;
@@ -5275,7 +5313,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
 
 
-int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id)
+int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
 {
   switch (device_vid)
   {
@@ -5286,7 +5324,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id)
         case SK_HID_PID_DUALSHOCK4:
         case SK_HID_PID_DUALSHOCK4_REV2:
         {
-          if (report_id == 1 && _cachedInputReportsByReportId [report_id].size () >= 34)
+          if (report_id == 1 && _cachedInputReportsByReportId [report_id].size () >= dwSize)
           {
             if (_cachedInputReportsByReportId [report_id].data ()[0] == report_id)
             {
@@ -5324,13 +5362,72 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id)
         case SK_HID_PID_DUALSENSE_EDGE:
         case SK_HID_PID_DUALSENSE:
         {
-          if (  _cachedInputReportsByReportId [report_id].size () >= 64)
+          if (dwSize >= 64 && (report_id == 1 || report_id == dwSize))
           {
-            if (_cachedInputReportsByReportId [report_id].data ()[0] == 1)
-            {
-              SK_HID_DualSense_GetStateData* pData =
-                (SK_HID_DualSense_GetStateData *)&(_cachedInputReportsByReportId [report_id].data ()[1]);
+            //SK_ReleaseAssert (_cachedInputReportsByReportId [report_id].data ()[0] == 1 ||
+            //                  dwSize == report_id);
 
+            SK_HID_DualSense_GetStateData* pData =
+              (SK_HID_DualSense_GetStateData *)&(_cachedInputReportsByReportId [report_id].data ()[1]);
+
+            // The analog axes
+            memset (
+              &pData->LeftStickX,  128,   4);
+            memset (
+              &pData->TriggerLeft,   0,   2);
+               pData->SeqNo++;
+               pData->DPad               = Neutral;
+               pData->ButtonSquare       = 0;
+               pData->ButtonCross        = 0;
+               pData->ButtonCircle       = 0;
+               pData->ButtonTriangle     = 0;
+               pData->ButtonL1           = 0;
+               pData->ButtonR1           = 0;
+               pData->ButtonL2           = 0;
+               pData->ButtonR2           = 0;
+               pData->ButtonCreate       = 0;
+               pData->ButtonOptions      = 0;
+               pData->ButtonL3           = 0;
+               pData->ButtonR3           = 0;
+               pData->ButtonHome         = 0;
+               pData->ButtonPad          = 0;
+               pData->ButtonMute         = 0;
+               pData->UNK1               = 0;
+               pData->ButtonLeftFunction = 0;
+               pData->ButtonRightFunction= 0;
+               pData->ButtonLeftPaddle   = 0;
+               pData->ButtonRightPaddle  = 0;
+               pData->UNK2               = 0;
+            memset (
+              &pData->AngularVelocityX, 0, 12);
+
+            return 64;
+          }
+
+          if (dwSize >= 78 && (report_id == 1 || report_id == 49 || report_id == dwSize))
+          {
+            //SK_ReleaseAssert (
+            //  ((uint8_t *)&_cachedInputReportsByReportId [report_id])[0] == 0x1 ||
+            //  ((uint8_t *)&_cachedInputReportsByReportId [report_id])[0] == 49  ||
+            //  dwSize == report_id
+            //);
+
+            BYTE* pInputRaw =
+              (BYTE *)_cachedInputReportsByReportId [report_id].data ();
+
+            SK_HID_DualSense_GetStateData *pData =
+              (SK_HID_DualSense_GetStateData *)&pInputRaw [2];
+
+            bool bSimple = false;
+
+            // We're in simplified mode...
+            if (pInputRaw [0] == 0x1)
+            {
+              bSimple = true;
+            }
+
+            if (! bSimple)
+            {
               // The analog axes
               memset (
                 &pData->LeftStickX,  128,   4);
@@ -5361,90 +5458,45 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id)
                  pData->UNK2               = 0;
               memset (
                 &pData->AngularVelocityX, 0, 12);
-
-              return 64;
             }
 
-            else if (_cachedInputReportsByReportId [report_id].data ()[0] == 49)
+            else
             {
-              BYTE* pInputRaw =
-                (BYTE *)_cachedInputReportsByReportId [report_id].data ();
+              SK_HID_DualSense_GetSimpleStateDataBt *pSimpleData =
+                (SK_HID_DualSense_GetSimpleStateDataBt *)&pInputRaw [1];
 
-              SK_HID_DualSense_GetStateData *pData =
-                (SK_HID_DualSense_GetStateData *)&pInputRaw [2];
-
-              bool bSimple = false;
-
-              // We're in simplified mode...
-              if (pInputRaw [0] == 0x1)
-              {
-                bSimple = true;
-              }
-
-              if (! bSimple)
-              {
-                // The analog axes
-                memset (
-                  &pData->LeftStickX,  128,   4);
-                memset (
-                  &pData->TriggerLeft,   0,   2);
-                   pData->SeqNo++;
-                   pData->DPad               = Neutral;
-                   pData->ButtonSquare       = 0;
-                   pData->ButtonCross        = 0;
-                   pData->ButtonCircle       = 0;
-                   pData->ButtonTriangle     = 0;
-                   pData->ButtonL1           = 0;
-                   pData->ButtonR1           = 0;
-                   pData->ButtonL2           = 0;
-                   pData->ButtonR2           = 0;
-                   pData->ButtonCreate       = 0;
-                   pData->ButtonOptions      = 0;
-                   pData->ButtonL3           = 0;
-                   pData->ButtonR3           = 0;
-                   pData->ButtonHome         = 0;
-                   pData->ButtonPad          = 0;
-                   pData->ButtonMute         = 0;
-                   pData->UNK1               = 0;
-                   pData->ButtonLeftFunction = 0;
-                   pData->ButtonRightFunction= 0;
-                   pData->ButtonLeftPaddle   = 0;
-                   pData->ButtonRightPaddle  = 0;
-                   pData->UNK2               = 0;
-                memset (
-                  &pData->AngularVelocityX, 0, 12);
-              }
-
-              else
-              {
-                SK_HID_DualSense_GetSimpleStateDataBt *pSimpleData =
-                  (SK_HID_DualSense_GetSimpleStateDataBt *)&pInputRaw [1];
-
-                // The analog axes
-                memset (
-                  &pSimpleData->LeftStickX,  128,   4);
-                memset (
-                  &pSimpleData->TriggerLeft,   0,   2);
-                   pSimpleData->Counter++;
-                   pSimpleData->DPad               = Neutral;
-                   pSimpleData->ButtonSquare       = 0;
-                   pSimpleData->ButtonCross        = 0;
-                   pSimpleData->ButtonCircle       = 0;
-                   pSimpleData->ButtonTriangle     = 0;
-                   pSimpleData->ButtonL1           = 0;
-                   pSimpleData->ButtonR1           = 0;
-                   pSimpleData->ButtonL2           = 0;
-                   pSimpleData->ButtonR2           = 0;
-                   pSimpleData->ButtonShare        = 0;
-                   pSimpleData->ButtonOptions      = 0;
-                   pSimpleData->ButtonL3           = 0;
-                   pSimpleData->ButtonR3           = 0;
-                   pSimpleData->ButtonHome         = 0;
-                   pSimpleData->ButtonPad          = 0;
-              }
-
-              return 64;
+              // The analog axes
+              memset (
+                &pSimpleData->LeftStickX,  128,   4);
+              memset (
+                &pSimpleData->TriggerLeft,   0,   2);
+                 pSimpleData->Counter++;
+                 pSimpleData->DPad               = Neutral;
+                 pSimpleData->ButtonSquare       = 0;
+                 pSimpleData->ButtonCross        = 0;
+                 pSimpleData->ButtonCircle       = 0;
+                 pSimpleData->ButtonTriangle     = 0;
+                 pSimpleData->ButtonL1           = 0;
+                 pSimpleData->ButtonR1           = 0;
+                 pSimpleData->ButtonL2           = 0;
+                 pSimpleData->ButtonR2           = 0;
+                 pSimpleData->ButtonShare        = 0;
+                 pSimpleData->ButtonOptions      = 0;
+                 pSimpleData->ButtonL3           = 0;
+                 pSimpleData->ButtonR3           = 0;
+                 pSimpleData->ButtonHome         = 0;
+                 pSimpleData->ButtonPad          = 0;
             }
+
+            return 78;
+          }
+
+          else
+          {
+            SK_LOGi0 (
+              L"Cannot neutralize a DualSense HID Input Report (id=%d) with Unexpected Size=%d-bytes",
+                report_id, dwSize
+            );
           }
         } break;
       }

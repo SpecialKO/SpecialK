@@ -1,4 +1,11 @@
-﻿24.3.11.2
+﻿24.3.12
+=======
+ + Fixed RawInput device registration flags causing no Mouse and Keyboard input
+     in Planet Coaster
+ + Compatibility hack for Wrath: Aeon of Ruin to delay window activation
+ + Remove unnecessary synchronous INI write when changing HDR tonemap mode
+
+24.3.11.2
 =========
  + Added tooltip text explaining the XInput latency test only applies to
      third-party drivers and cannot be used to test SK's own latency

@@ -447,8 +447,8 @@ RegisterRawInputDevices_Detour (
 
     return
       SK_RegisterRawInputDevices ( pRawInputDevices,
-                                  uiNumDevices,
-                                    cbSize );
+                                     uiNumDevices,
+                                       cbSize );
   }
 
 #ifdef __MANAGE_RAW_INPUT_REGISTRATION
@@ -489,35 +489,78 @@ RegisterRawInputDevices_Detour (
     {      pDevices [i] =
    pRawInputDevices [i];
 
+    bool match_any_in_page = 
+      (pDevices [i].dwFlags & RIDEV_PAGEONLY) && pDevices [i].usUsage == 0;
+
 #define _ALLOW_BACKGROUND_GAMEPAD
+#define _ALLOW_LEGACY_MOUSE
 #define _ALLOW_LEGACY_KEYBOARD
 
 #ifdef _ALLOW_BACKGROUND_GAMEPAD
       if ( pDevices [i].hwndTarget  !=   0                                 &&
            pDevices [i].usUsagePage == HID_USAGE_PAGE_GENERIC              &&
-         ( pDevices [i].usUsage     == HID_USAGE_GENERIC_JOYSTICK          ||
+         ( match_any_in_page                                               ||
+           pDevices [i].usUsage     == HID_USAGE_GENERIC_JOYSTICK          ||
            pDevices [i].usUsage     == HID_USAGE_GENERIC_GAMEPAD           ||
            pDevices [i].usUsage     == HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER ) )
       {
-        pDevices [i].dwFlags        |= RIDEV_INPUTSINK;
+        if (! match_any_in_page)
+          pDevices [i].dwFlags      |= RIDEV_INPUTSINK;
       }
 #endif
 
 #ifdef _ALLOW_LEGACY_KEYBOARD
       if (pDevices [i].usUsagePage ==  HID_USAGE_PAGE_GENERIC &&
-          pDevices [i].usUsage     ==  HID_USAGE_GENERIC_KEYBOARD)
-      {   pDevices [i].dwFlags     &= ~RIDEV_NOLEGACY;
-        /*pDevices [i].dwFlags     |=  RIDEV_NOHOTKEYS;*/ }
-#endif
+         (pDevices [i].usUsage     ==  HID_USAGE_GENERIC_KEYBOARD ||
+          match_any_in_page))
+      {
+        if (! match_any_in_page) // This only works for Mouse and Keyboard Usages
+          pDevices [i].dwFlags     &= ~RIDEV_NOLEGACY;
 
-      pDevices [i].dwFlags &= ~RIDEV_NOLEGACY;
-      pDevices [i].dwFlags &= ~RIDEV_CAPTUREMOUSE;
+        if ((pDevices [i].dwFlags & RIDEV_APPKEYS) &&
+          (!(pDevices [i].dwFlags & RIDEV_NOLEGACY)))
+        {
+          SK_LOGi0 (
+            L"Game tried to register a device with RIDEV_APPKEYS flagged, but "
+            L"this requires RIDEV_NOLEGACY and SK has removed that flag..."
+          );
+
+          pDevices [i].dwFlags &= ~RIDEV_APPKEYS;
+        }
+
+        if (pDevices [i].dwFlags & RIDEV_NOHOTKEYS)
+        {
+          SK_LOGi0 (
+            L"Game has registered a keyboard with the RIDEV_NOHOTKEYS flag..."
+          );
+        }
+      }
+#endif
 
 #ifdef _ALLOW_LEGACY_MOUSE
       if (pDevices [i].usUsagePage ==  HID_USAGE_PAGE_GENERIC &&
-          pDevices [i].usUsage     ==  HID_USAGE_GENERIC_MOUSE)
-      {if(pDevices [i].dwFlags     &   RIDEV_NOLEGACY)
-          pDevices [i].dwFlags     &= ~RIDEV_CAPTUREMOUSE; }
+         (pDevices [i].usUsage     ==  HID_USAGE_GENERIC_MOUSE ||
+           match_any_in_page))
+      {
+        // It is unnecessary for SK to enable legacy mouse APIs, because
+        //   SK will fallback to a low-level mouse hook.
+        //
+        //  The only time legacy mouse messages might need to be enabled
+        //    is for third-party overlays.
+        if (! match_any_in_page) // This only works for Mouse and Keyboard Usages
+          pDevices [i].dwFlags &= ~RIDEV_NOLEGACY;
+
+        if ((pDevices [i].dwFlags & RIDEV_CAPTUREMOUSE) &&
+          (!(pDevices [i].dwFlags & RIDEV_NOLEGACY)))
+        {
+          SK_LOGi0 (
+            L"Game tried to register a device with RIDEV_CAPTUREMOUSE flagged, but "
+            L"this requires RIDEV_NOLEGACY and SK has removed that flag..."
+          );
+
+          pDevices [i].dwFlags &= ~RIDEV_CAPTUREMOUSE;
+        }
+      }
 #endif
 
 #ifdef __MANAGE_RAW_INPUT_REGISTRATION
@@ -566,6 +609,14 @@ RegisterRawInputDevices_Detour (
     SK_RegisterRawInputDevices ( pDevices,
                                    uiNumDevices,
                                      cbSize );
+
+  if (! bRet)
+  {
+    SK_LOGi0 (
+      L"Game's call to RegisterRawInputDevices (...) failed with ErrorCode=%d",
+      GetLastError ()
+    );
+  }
 #endif
 
   return bRet;
