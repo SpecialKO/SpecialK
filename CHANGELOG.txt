@@ -1,4 +1,11 @@
-﻿24.3.12
+﻿24.3.12.1
+=========
+ + Merge pull request #150 from Nustat0:d3d12-32bit-fixes
+    * Fixed some checks that prevented 32-bit D3D12
+ + Merge pull request #144 from Nustat0:dgvoodoo-interop
+    * Detect D3D8/DDraw/Glide in SK_dgVoodoo_CheckForInterop (...)
+
+24.3.12
 =======
  + Fixed RawInput device registration flags causing no Mouse and Keyboard input
      in Planet Coaster
