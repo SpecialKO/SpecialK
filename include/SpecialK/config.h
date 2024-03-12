@@ -1540,6 +1540,7 @@ enum class SK_GAME_ID
   Noita,                        // Noita.exe
   Persona3,                     // P3R.exe
   GranblueFantasyRelink,        // granblue_fantasy_relink.exe
+  WrathAeonOfRuin,              // wrath-sdl.exe
 
   UNKNOWN_GAME               = 0xffff
 };

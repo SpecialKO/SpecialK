@@ -255,7 +255,8 @@ SK_GetCurrentGameID (void)
           { L"BatmanAK.exe",                           SK_GAME_ID::BatmanArkhamKnight           },
           { L"Noita.exe",                              SK_GAME_ID::Noita                        },
           { L"P3R.exe",                                SK_GAME_ID::Persona3                     },
-          { L"granblue_fantasy_relink.exe",            SK_GAME_ID::GranblueFantasyRelink        }
+          { L"granblue_fantasy_relink.exe",            SK_GAME_ID::GranblueFantasyRelink        },
+          { L"wrath-sdl.exe",                          SK_GAME_ID::WrathAeonOfRuin              }
         };
 
     first_check  = false;
@@ -3429,6 +3430,10 @@ auto DeclKeybind =
         config.render.hdr.remaster_8bpc_as_unorm      = true;
         config.render.hdr.remaster_subnative_as_unorm = true;
         config.render.dxgi.deferred_isolation         = true; // For render mods
+        break;
+
+      case SK_GAME_ID::WrathAeonOfRuin:
+        config.window.activate_at_start = true;
         break;
 
       case SK_GAME_ID::AlanWake2:

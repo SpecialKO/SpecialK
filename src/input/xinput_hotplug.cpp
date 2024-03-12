@@ -977,21 +977,14 @@ SK_Win32_NotifyHWND_W (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     (WNDPROC)SK_GetWindowLongPtrW (hWnd, GWLP_WNDPROC);
 
   __try {
-    if (dwThreadId == GetCurrentThreadId ())
-    {
-      CallWindowProcW (wndProc, hWnd, uMsg, wParam, lParam);
-    }
-
-    else
-    {
-      SendMessageTimeoutW (hWnd, uMsg, wParam, lParam, SMTO_ABORTIFHUNG, 150UL, nullptr);
-    }
+    CallWindowProcW (wndProc, hWnd, uMsg, wParam, lParam);
   }
 
   __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ||
              GetExceptionCode () == EXCEPTION_BREAKPOINT       ?
                                     EXCEPTION_EXECUTE_HANDLER  : EXCEPTION_CONTINUE_SEARCH )
   {
+    SendMessageTimeoutW (hWnd, uMsg, wParam, lParam, SMTO_ABORTIFHUNG, 100UL, nullptr);
   }
 
   ulLastFrameNotified = SK_GetFramesDrawn ();
@@ -1029,24 +1022,27 @@ SK_Win32_NotifyHWND_A (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     (WNDPROC)SK_GetWindowLongPtrA (hWnd, GWLP_WNDPROC);
 
   __try {
-    if (dwThreadId == GetCurrentThreadId ())
-    {
-      CallWindowProcA (wndProc, hWnd, uMsg, wParam, lParam);
-    }
-
-    else
-    {
-      SendMessageTimeoutA (hWnd, uMsg, wParam, lParam, SMTO_ABORTIFHUNG, 150UL, nullptr);
-    }
+    CallWindowProcA (wndProc, hWnd, uMsg, wParam, lParam);
   }
 
   __except ( GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ||
              GetExceptionCode () == EXCEPTION_BREAKPOINT       ?
                                     EXCEPTION_EXECUTE_HANDLER  : EXCEPTION_CONTINUE_SEARCH )
   {
+    SendMessageTimeoutA (hWnd, uMsg, wParam, lParam, SMTO_ABORTIFHUNG, 100UL, nullptr);
   }
 
   ulLastFrameNotified = SK_GetFramesDrawn ();
+}
+
+void
+SK_Win32_NotifyHWND (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (IsWindowUnicode (hWnd))
+    return SK_Win32_NotifyHWND_W (hWnd, uMsg, wParam, lParam);
+
+  return
+    SK_Win32_NotifyHWND_A (hWnd, uMsg, wParam, lParam);
 }
 
 void

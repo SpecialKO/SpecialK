@@ -1371,5 +1371,11 @@ SK_VerifyTrust_SignatureInfo
 SK_VerifyTrust_SignatureInfo
 SK_VerifyTrust_GetCodeSignature (const wchar_t *wszExecutableFileName);
 
+void SK_Win32_NotifyHWND   (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+// Avoids a call to IsWindowUnicode (...) if the Unicode status is known
+void SK_Win32_NotifyHWND_W (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+void SK_Win32_NotifyHWND_A (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
 #endif /* __SK__UTILITY_H__ */
 
