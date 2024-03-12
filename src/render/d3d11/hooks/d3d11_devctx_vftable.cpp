@@ -2519,9 +2519,7 @@ SetCurrentThreadDescription (L"[SK] DXGI Hook Crawler");
 
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();
 
-/////#ifdef _WIN64
 /////      if (config.apis.dxgi.d3d12.hook) SK_D3D12_EnableHooks ();
-/////#endif
 
       WriteRelease (&__dxgi_ready, TRUE);
     }

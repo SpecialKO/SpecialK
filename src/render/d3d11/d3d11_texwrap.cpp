@@ -20049,10 +20049,8 @@ HookD3D11 (LPVOID user)
 
   SK_Thread_SpinUntilAtomicMin (&__d3d11_hooked, 2);
 
-#ifdef _WIN64
   if (config.apis.dxgi.d3d12.hook)
     HookD3D12 (nullptr);
-#endif
 
   return 0;
 }
