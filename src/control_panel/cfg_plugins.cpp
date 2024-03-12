@@ -319,8 +319,6 @@ SK::ControlPanel::PlugIns::Draw (void)
                           L"Normal"
         );
 
-        dll_ini->write ();
-
         config.utility.save_async ();
       }
 
@@ -645,7 +643,7 @@ SK::ControlPanel::PlugIns::Draw (void)
         dll_ini->get_section (L"DXGI.Hooks").set_name  (L"Invalid.Section.DoNotFlush");
         dll_ini->get_section (L"D3D11.Hooks").set_name (L"Invalid.Section.DoNotFlush");
 
-        dll_ini->write ();
+        config.utility.save_async ();
       }
     }
 

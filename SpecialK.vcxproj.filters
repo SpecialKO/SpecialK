@@ -373,9 +373,6 @@
     <Filter Include="Header Files\ImGui\Fonts">
       <UniqueIdentifier>{4638ae06-c287-46bf-95a1-479672e60d24}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\Backends\Render\D3D12\PresentMon">
-      <UniqueIdentifier>{1d7182b2-5632-4acb-ac0f-c43dcd7f2607}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\Backends\Input\WinMM">
       <UniqueIdentifier>{1697542b-81fa-4294-964c-ac1ff2d62f6e}</UniqueIdentifier>
     </Filter>
@@ -387,6 +384,9 @@
     </Filter>
     <Filter Include="Source Files\Backends\Input\Win32">
       <UniqueIdentifier>{90a2b3e2-836f-4bcc-8065-fdaf486ff447}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Render\PresentMon">
+      <UniqueIdentifier>{1d7182b2-5632-4acb-ac0f-c43dcd7f2607}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -3308,9 +3308,6 @@
     <ClCompile Include="src\tls.cpp">
       <Filter>Source Files\Core</Filter>
     </ClCompile>
-    <ClCompile Include="src\imgui\backends\imgui_gl3.cpp">
-      <Filter>Source Files\ImGui\Backends</Filter>
-    </ClCompile>
     <ClCompile Include="src\imgui\backends\imgui_vk.cpp">
       <Filter>Source Files\ImGui\Backends</Filter>
     </ClCompile>
@@ -3510,46 +3507,46 @@
       <Filter>Source Files\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\CommandLine.cpp">
-      <Filter>Source Files\Backends\Render\D3D12\PresentMon</Filter>
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\PM_Console.cpp">
-      <Filter>Source Files\Backends\Render\D3D12\PresentMon</Filter>
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\ConsumerThread.cpp">
-      <Filter>Source Files\Backends\Render\D3D12\PresentMon</Filter>
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\CsvOutput.cpp">
-      <Filter>Source Files\Backends\Render\D3D12\PresentMon</Filter>
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\LateStageReprojectionData.cpp">
-      <Filter>Source Files\Backends\Render\D3D12\PresentMon</Filter>
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\MainThread.cpp">
-      <Filter>Source Files\Backends\Render\D3D12\PresentMon</Filter>
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\MixedRealityTraceConsumer.cpp">
-      <Filter>Source Files\Backends\Render\D3D12\PresentMon</Filter>
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\OutputThread.cpp">
-      <Filter>Source Files\Backends\Render\D3D12\PresentMon</Filter>
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\PD_TraceSession.cpp">
-      <Filter>Source Files\Backends\Render\D3D12\PresentMon</Filter>
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\PM_Debug.cpp">
-      <Filter>Source Files\Backends\Render\D3D12\PresentMon</Filter>
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\PM_TraceSession.cpp">
-      <Filter>Source Files\Backends\Render\D3D12\PresentMon</Filter>
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\PresentMonTraceConsumer.cpp">
-      <Filter>Source Files\Backends\Render\D3D12\PresentMon</Filter>
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\Privilege.cpp">
-      <Filter>Source Files\Backends\Render\D3D12\PresentMon</Filter>
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
     <ClCompile Include="src\render\present_mon\TraceConsumer.cpp">
-      <Filter>Source Files\Backends\Render\D3D12\PresentMon</Filter>
+      <Filter>Source Files\Backends\Render\PresentMon</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\nier_√1.5.cpp">
       <Filter>Source Files\Plugins</Filter>
@@ -3706,6 +3703,9 @@
     </ClCompile>
     <ClCompile Include="src\input\hid_reports\dualsense.cpp">
       <Filter>Source Files\Backends\Input\HID</Filter>
+    </ClCompile>
+    <ClCompile Include="src\imgui\backends\imgui_gl3.cpp">
+      <Filter>Source Files\Backends\Render\OpenGL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

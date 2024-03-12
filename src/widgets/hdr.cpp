@@ -1140,9 +1140,6 @@ public:
     static auto& rb =
       SK_GetCurrentRenderBackend ();
 
-    auto dll_ini =
-      SK_GetDLLConfig ();
-
     static SKTL_BidirectionalHashMap <unsigned char, int>
       __SK_HDR_ColorSpaceMap =
       {
@@ -1302,7 +1299,7 @@ public:
           }
         }
 
-        dll_ini->write ();
+        config.utility.save_async ();
 
         SK_ComQIPtr <IDXGISwapChain3> pSwapChain (rb.swapchain);
 
@@ -1631,8 +1628,6 @@ public:
 
           auto& preset =
             hdr_presets [__SK_HDR_Preset];
-
-          auto& pINI = dll_ini;
 
           static float fSliderWidth = 0.0f;
           float        fCursorX0    = ImGui::GetCursorPosX ();
@@ -2685,7 +2680,7 @@ public:
               _SK_HDR_Promote10BitUAVsTo16BitFP->store (SK_HDR_UnorderedViews_10bpc->PromoteTo16Bit);
               _SK_HDR_Promote11BitUAVsTo16BitFP->store (SK_HDR_UnorderedViews_11bpc->PromoteTo16Bit);
 
-              dll_ini->write ();
+              config.utility.save_async ();
             }
           }
 
@@ -2712,7 +2707,7 @@ public:
                 __SK_HDR_tonemap          =     preset.colorspace.tonemap;
                 preset.cfg_tonemap->store      (preset.colorspace.tonemap);
 
-                pINI->write ();
+                config.utility.save_async ();
               }
 
               else

@@ -1569,7 +1569,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
         add_key_value (SK_FormatStringW (L"RenderDevice.%ws", display.path_name),
                                                               display.audio.paired_device);
 
-      dll_ini->write ();
+      config.utility.save_async ();
 
       rb.routeAudioForDisplay (&display);
     }
