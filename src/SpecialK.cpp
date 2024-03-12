@@ -975,6 +975,11 @@ SK_dgVoodoo_CheckForInterop (void)
       {
         config.apis.translated = it.second;
 
+        // Don't use dgVoodoo Plug-In if a game is already translated
+        config.apis.d3d8.hook  = false;
+        config.apis.ddraw.hook = false;
+        config.apis.glide.hook = false;
+
         if (config.apis.translated == SK_RenderAPI::D3D9)
         {
           config.apis.d3d9.hook   = false;
