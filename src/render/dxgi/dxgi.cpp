@@ -9373,9 +9373,7 @@ SK::DXGI::Shutdown (void)
 
   if (config.apis.dxgi.d3d11.hook) SK_D3D11_Shutdown ();
 
-////#ifdef _WIN64
 ////  if (config.apis.dxgi.d3d12.hook) SK_D3D12_Shutdown ();
-////#endif
 
   if (StrStrIW (SK_GetBackend (), L"d3d11"))
     return SK_ShutdownCore (L"d3d11");
