@@ -975,11 +975,6 @@ SK_dgVoodoo_CheckForInterop (void)
       {
         config.apis.translated = it.second;
 
-        // Don't use dgVoodoo Plug-In if a game is already translated
-        config.apis.d3d8.hook  = false;
-        config.apis.ddraw.hook = false;
-        config.apis.glide.hook = false;
-
         if (config.apis.translated == SK_RenderAPI::D3D9)
         {
           config.apis.d3d9.hook   = false;
@@ -1381,6 +1376,10 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         // Don't use dgVoodoo Plug-In if a game is already translated
         if (config.apis.translated != SK_RenderAPI::None)
         {
+          config.apis.d3d8.hook  = false;
+          config.apis.ddraw.hook = false;
+          config.apis.glide.hook = false;
+
           d3d8  = false;
           ddraw = false;
           glide = false;
