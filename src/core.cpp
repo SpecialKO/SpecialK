@@ -2008,12 +2008,22 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   //
   if (SK_GetDLLRole () == DLL_ROLE::D3D8)
   {
+    if (SK_IsInjected () && config.apis.translated == SK_RenderAPI::None)
+    {
+      config.compatibility.init_on_separate_thread = false;
+    }
+
     swprintf (wszProxyName, LR"(%s\PlugIns\ThirdParty\dgVoodoo\d3d8.dll)",
                               SK_GetInstallPath ());
   }
 
   else if (SK_GetDLLRole () == DLL_ROLE::DDraw)
   {
+    if (SK_IsInjected () && config.apis.translated == SK_RenderAPI::None)
+    {
+      config.compatibility.init_on_separate_thread = false;
+    }
+
     swprintf (wszProxyName, LR"(%s\PlugIns\ThirdParty\dgVoodoo\ddraw.dll)",
                               SK_GetInstallPath ());
   }

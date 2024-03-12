@@ -1133,7 +1133,6 @@ struct sk_config_t
 
     struct d3d9_s {
       bool   hook        =            true;
-      bool   translated  =           false;
       int    native_dxvk = SK_NoPreference;
       int    hook_next   = SK_NoPreference;
     } d3d9,
@@ -1172,6 +1171,7 @@ struct sk_config_t
     } D3DKMT;
 
     SK_RenderAPI last_known    = SK_RenderAPI::Reserved;
+    SK_RenderAPI translated    = SK_RenderAPI::None;
   } apis;
 
   struct system_s {

@@ -1508,10 +1508,11 @@ SK_Render_GetAPIName (SK_RenderAPI api)
   static const
     std::unordered_map <SK_RenderAPI, const wchar_t *>
       api_map {
-        { SK_RenderAPI::D3D11,  L"D3D11" }, { SK_RenderAPI::D3D12,    L"D3D12"  },
-        { SK_RenderAPI::D3D9,   L"D3D9"  }, { SK_RenderAPI::D3D9Ex,   L"D3D9Ex" },
-        { SK_RenderAPI::OpenGL, L"OpenGL"}, { SK_RenderAPI::D3D8,     L"D3D8"   },
-        { SK_RenderAPI::DDraw,  L"DDraw" }, { SK_RenderAPI::Reserved, L"N/A"    }
+        { SK_RenderAPI::D3D11,    L"D3D11"  }, { SK_RenderAPI::D3D12,  L"D3D12"  },
+        { SK_RenderAPI::D3D9,     L"D3D9"   }, { SK_RenderAPI::D3D9Ex, L"D3D9Ex" },
+        { SK_RenderAPI::OpenGL,   L"OpenGL" }, { SK_RenderAPI::D3D8,   L"D3D8"   },
+        { SK_RenderAPI::DDraw,    L"DDraw"  }, { SK_RenderAPI::Glide,  L"Glide"  },
+        { SK_RenderAPI::Reserved, L"N/A"    }
       };
 
   if (api_map.count (api) != 0)
