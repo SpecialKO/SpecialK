@@ -3,6 +3,8 @@
  + Added support for int64 command console variables
  + Added support for powering-off specific Bluetooth HW Addrs instead
      of ALL controllers
+ + Improved support for connecting the same gamepad using Bluetooth and
+     USB simultaneously
 
 24.3.12.1
 =========

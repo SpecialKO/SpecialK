@@ -436,30 +436,27 @@ void SK_Bluetooth_SetupPowerOff (void)
       {
         std::scoped_lock <std::mutex> _(mutex);
 
+        int powered_off = 0;
+
         // For proper operation, this should always be serialized onto a single
         //   thread; in other words, use SK_DeferCommand (...) to change this.
         for ( auto& device : SK_HID_PlayStationControllers )
         {
           if (device.bBluetooth && device.bConnected)
           { 
-            // The serial number is actually the Bluetooth MAC address; handy...
-            wchar_t wszSerialNumber [32] = { };
- 
-            DWORD dwBytesReturned = 0;
- 
-            SK_DeviceIoControl (
-              device.hDeviceFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
-                                                                     wszSerialNumber, 64,
-                                                                    &dwBytesReturned, nullptr );
-
-            if ((device.xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
-                (device.xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_Y))
+            if ((device.xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+                (device.xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_Y)     || 
+                (device.xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+                (device.xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_Y))
             {
-              SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws",
-                           wszSerialNumber );
+              if (device.bBluetooth)
+              {
+                SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws",
+                             device.wszSerialNumber );
+              }
 
-              ULONGLONG                           ullHWAddr = 0x0;
-              swscanf (wszSerialNumber, L"%llx", &ullHWAddr);
+              DWORD     dwBytesReturned = 0x0;
+              ULONGLONG ullHWAddr       = device.ullHWAddr;
 
               BLUETOOTH_FIND_RADIO_PARAMS findParams =
                 { .dwSize = sizeof (BLUETOOTH_FIND_RADIO_PARAMS) };
@@ -482,9 +479,65 @@ void SK_Bluetooth_SetupPowerOff (void)
                 if (! success)
                   if (! BluetoothFindNextRadio (hFindRadios, &hBtRadio))
                     hBtRadio = 0;
+
+                if (success)
+                  ++powered_off;
               }
 
               BluetoothFindRadioClose (hFindRadios);
+            }
+          }
+        }
+
+        // Nothing was requesting a power-off, so now power everything off wholesale!
+        if (powered_off == 0)
+        {
+          for ( auto& device : SK_HID_PlayStationControllers )
+          {
+            if (device.bBluetooth && device.bConnected)
+            { 
+              if ((device.xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+                  (device.xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_Y)     || 
+                  (device.xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+                  (device.xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_Y))
+              {
+                if (device.bBluetooth)
+                {
+                  SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws",
+                               device.wszSerialNumber );
+                }
+
+                DWORD     dwBytesReturned = 0x0;
+                ULONGLONG ullHWAddr       = device.ullHWAddr;
+
+                BLUETOOTH_FIND_RADIO_PARAMS findParams =
+                  { .dwSize = sizeof (BLUETOOTH_FIND_RADIO_PARAMS) };
+
+                HANDLE hBtRadio    = INVALID_HANDLE_VALUE;
+                HANDLE hFindRadios =
+                  BluetoothFindFirstRadio (&findParams, &hBtRadio);
+
+                BOOL   success  = FALSE;
+                while (success == FALSE && hBtRadio != 0)
+                {
+                  success =
+                    SK_DeviceIoControl (
+                      hBtRadio, IOCTL_BTH_DISCONNECT_DEVICE, &ullHWAddr, 8,
+                                                             nullptr,    0,
+                                           &dwBytesReturned, nullptr );
+
+                  CloseHandle (hBtRadio);
+
+                  if (! success)
+                    if (! BluetoothFindNextRadio (hFindRadios, &hBtRadio))
+                      hBtRadio = 0;
+
+                  if (success)
+                    ++powered_off;
+                }
+
+                BluetoothFindRadioClose (hFindRadios);
+              }
             }
           }
         }
@@ -614,6 +667,14 @@ void SK_HID_SetupPlayStationControllers (void)
   
           if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
           {
+            DWORD dwBytesRead = 0x0;
+
+            SK_DeviceIoControl (
+              controller.hDeviceFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
+                  controller.wszSerialNumber, 128, &dwBytesRead, nullptr );
+
+            swscanf (controller.wszSerialNumber, L"%llx", &controller.ullHWAddr);
+
             if (! SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
             	continue;
 
@@ -3270,6 +3331,11 @@ SK_HID_PlayStationDevice::request_input_report (void)
           }
         }
 
+        if (! pDevice->bConnected)
+        {
+          SK_SleepEx (50UL, TRUE);
+          continue;
+        }
 
         BOOL bReadAsync =
           SK_ReadFile ( pDevice->hDeviceFile, pDevice->input_report.data (),
@@ -4036,14 +4102,15 @@ SK_HID_PlayStationDevice::request_input_report (void)
             bool bIsInputActive = false;
 
             // Button states should repeat
-            if (pDevice->xinput.report.Gamepad.wButtons != 0x0)
+            if (pDevice->xinput.report.Gamepad.wButtons != 0 ||
+                pDevice->xinput.report.Gamepad.wButtons != pDevice->xinput.prev_report.Gamepad.wButtons)
               bIsInputActive = true;
 
-            if (abs (pDevice->xinput.report.Gamepad.sThumbLX) > (XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE * 2)  ||
-                abs (pDevice->xinput.report.Gamepad.sThumbLY) > (XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE * 2)  ||
-                abs (pDevice->xinput.report.Gamepad.sThumbRX) > (XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE * 2) ||
-                abs (pDevice->xinput.report.Gamepad.sThumbRY) > (XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE * 2) ||
-                     pDevice->xinput.report.Gamepad.bLeftTrigger  > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ||
+            if (abs (pDevice->xinput.report.Gamepad.sThumbLX)     > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE  ||
+                abs (pDevice->xinput.report.Gamepad.sThumbLY)     > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE  ||
+                abs (pDevice->xinput.report.Gamepad.sThumbRX)     > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ||
+                abs (pDevice->xinput.report.Gamepad.sThumbRY)     > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ||
+                     pDevice->xinput.report.Gamepad.bLeftTrigger  > XINPUT_GAMEPAD_TRIGGER_THRESHOLD    ||
                      pDevice->xinput.report.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
             {
               bIsInputActive = true;
@@ -4075,7 +4142,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                                  pDevice->buttons.size () >= 13 &&
                       (config.input.gamepad.xinput.ui_slot >= 0 && 
                        config.input.gamepad.xinput.ui_slot <  4) &&
-                                          bIsDeviceMostRecentlyActive )
+                                     bIsDeviceMostRecentlyActive &&
+                                     bAllowSpecialButtons )
             {
               static HWND hWndLastApp =
                 SK_GetForegroundWindow ();
@@ -4238,8 +4306,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   }
                 }
 #endif
-
-
 
                 if ( pDevice->buttons [12].state &&
                    (!pDevice->buttons [12].last_state))
@@ -4416,17 +4482,20 @@ SK_HID_PlayStationDevice::request_input_report (void)
             if ( memcmp ( &pDevice->xinput.prev_report.Gamepad,
                           &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD)) )
             {
-              pDevice->xinput.report.dwPacketNumber++;
               pDevice->xinput.prev_report = pDevice->xinput.report;
             }
 
             if (bIsInputActive)
             {
+              pDevice->xinput.report.dwPacketNumber++;
               pDevice->xinput.last_active = SK_QueryPerf ().QuadPart;
 
-              // Give Bluetooth devices a +666 ms advantage
-              if (pDevice->bBluetooth)
-                  pDevice->xinput.last_active += (2 * (SK_PerfFreq / 3));
+              // Give most recently active device a +75 ms advantage,
+              //   we may have the same device connected over two
+              //     protocols and do not want repeats of the same
+              //       input...
+              if (bIsDeviceMostRecentlyActive)
+                  pDevice->xinput.last_active += (SK_PerfFreq / 13);
             }
 
             for ( auto& button : pDevice->buttons )
@@ -4525,6 +4594,12 @@ SK_HID_PlayStationDevice::write_output_report (void)
           {
             ResetEvent (pDevice->hOutputFinished);
             bFinished = true;
+          }
+
+          if (! pDevice->bConnected)
+          {
+            SK_SleepEx (50UL, TRUE);
+            continue;
           }
 
           if (! bFinished)

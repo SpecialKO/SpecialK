@@ -907,6 +907,7 @@ struct SK_HID_PlayStationDevice
   std::wstring         wszManufacturer          =   L""  ;
   std::wstring         wszProduct               =   L""  ;
   wchar_t              wszSerialNumber [128]    = {     };
+  ULONG64              ullHWAddr                =       0;
 
   USHORT               vid                      =     0x0;
   USHORT               pid                      =     0x0;
