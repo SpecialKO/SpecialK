@@ -1,4 +1,11 @@
-﻿24.3.13.1
+﻿24.3.13.2
+=========
+ + Fixed spacing issue on Frame Start-to-Frame Start checkbox if framerate
+     limiter is not enabled.
+ + Added additional tooltip detail to Frame Start-to-Frame Start
+ + Added sanity check for games making excessively long calls to Sleep
+
+24.3.13.1
 =========
  + Added Frame Start-to-Frame Start frame time measurement to make SK
      more consistent with new PresentMon and RTSS methodology.

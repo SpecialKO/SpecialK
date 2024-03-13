@@ -5689,16 +5689,30 @@ SK_ImGui_ControlPanel (void)
           ImVec2 vPos2 =
             ImGui::GetCursorPos ();
 
-          ImGui::SetCursorPos (ImVec2 (vPos.x, vPos.y + ImGui::GetFontSize () + ImGui::GetStyle ().FramePadding.y * 2 +
-                                                                                ImGui::GetStyle ().ItemSpacing .y));
+          float yOff = ImGui::GetFontSize () + ImGui::GetStyle ().FramePadding.y * 2.0f +
+                                               ImGui::GetStyle ().ItemSpacing .y;
 
-          if (ImGui::Checkbox ("Start-to-Start", &config.render.framerate.frame_start_to_start))
+          float yPos =
+            limit ? vPos.y + yOff // Extra spacing if the framerate limiter is turned off...
+                  : vPos.y + yOff * 2.0f + ImGui::GetStyle ().ItemSpacing.y;
+
+          ImGui::SetCursorPos (ImVec2 (vPos.x, yPos));
+
+          if (ImGui::Checkbox (limit ? "Start-to-Start" :
+                               "Measure Start-to-Start Frametime", &config.render.framerate.frame_start_to_start))
           {
             config.utility.save_async ();
           }
 
           if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("Alternate frametime measure consistent with new PresentMon / RTSS methodology.");
+          {
+            ImGui::BeginTooltip    ();
+            ImGui::TextUnformatted ("Alternate frametime measure consistent with new PresentMon / RTSS methodology");
+            ImGui::Separator       ();
+            ImGui::BulletText      ("VRR Optimized Framerate Limiter consistency will appear worse...");
+            ImGui::BulletText      ("NVIDIA users can use Reflex End-of-Frame mode to stabilize VRR frametime");
+            ImGui::EndTooltip      ();
+          }
 
           ImGui::SetCursorPos (vPos2);
 
