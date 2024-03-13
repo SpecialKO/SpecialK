@@ -1,4 +1,14 @@
-﻿24.3.13
+﻿24.3.13.1
+=========
+ + Added Frame Start-to-Frame Start frame time measurement to make SK
+     more consistent with new PresentMon and RTSS methodology.
+
+   >> This setting can be found under: Framerate Limiter | Advanced >
+
+    * Has not been tested in all combinations of APIs and layered
+        APIs (GL/Vulkan/D3D9/DXGI) -- Pure D3D11/12 is well-tested.
+
+24.3.13
 =======
  + Added support for int64 command console variables
  + Added support for powering-off specific Bluetooth HW Addrs instead

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -149,6 +149,10 @@ namespace SK
     void Shutdown (void);
 
     void Tick        ( bool           wait       =  true,
+                       double         dt         =   0.0,
+                       LARGE_INTEGER  now        = { 0,0 },
+                       IUnknown*      pSwapChain = nullptr );
+    void TickEx      ( bool           wait       =  true,
                        double         dt         =   0.0,
                        LARGE_INTEGER  now        = { 0,0 },
                        IUnknown*      pSwapChain = nullptr );

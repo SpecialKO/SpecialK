@@ -656,9 +656,10 @@ struct sk_config_t
         bool finish_before_present = false;
 
         bool flush_after_present   = false;
-        bool finish_after_present  = true;
+        bool finish_after_present  =  true;
       } latent_sync;
-      bool    use_amd_mwaitx       = true;
+      bool    use_amd_mwaitx       =  true;
+      bool    frame_start_to_start =  true;
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex         = false;

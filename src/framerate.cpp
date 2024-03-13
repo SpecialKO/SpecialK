@@ -2344,10 +2344,10 @@ extern SK_LazyGlobal <SK_ImGui_FrameHistory> SK_ImGui_Frames;
 extern bool                                  reset_frame_history;
 
 void
-SK::Framerate::Tick ( bool          wait,
-                      double        dt,
-                      LARGE_INTEGER now,
-                      IUnknown*     swapchain )
+SK::Framerate::TickEx ( bool       /*wait*/,
+                        double        dt,
+                        LARGE_INTEGER now,
+                        IUnknown*     swapchain )
 {
   auto *pLimiter =
     SK::Framerate::GetLimiter (swapchain);
@@ -2361,15 +2361,11 @@ SK::Framerate::Tick ( bool          wait,
   if (pLimiter == nullptr)
     return;
 
-  if (wait)
-    pLimiter->wait ();
-
   if (! snapshots.isAllocated () )
   {
     // Late initialization
     Init ();
   }
-
 
   if (now.QuadPart == 0)
       now = SK_CurrentPerf ();
@@ -2499,6 +2495,43 @@ SK::Framerate::Tick ( bool          wait,
   }
 
   pLimiter->amortization._last_frame = now;
+}
+
+void
+SK::Framerate::Tick ( bool          wait,
+                      double        dt,
+                      LARGE_INTEGER now,
+                      IUnknown*     swapchain )
+{
+  auto *pLimiter =
+    SK::Framerate::GetLimiter (swapchain);
+
+  auto& snapshots =
+    pLimiter->frame_history_snapshots;
+
+  SK_ReleaseAssert (pLimiter != nullptr);
+
+  // Should never happen, but better safe.
+  if (pLimiter == nullptr)
+    return;
+
+  if (! snapshots.isAllocated () )
+  {
+    // Late initialization
+    Init ();
+  }
+
+  if (wait)
+    pLimiter->wait ();
+
+  if (! config.render.framerate.frame_start_to_start)
+    TickEx (wait, dt, now, swapchain);
+  else
+  {
+    std::ignore = dt;
+    std::ignore = now;
+    std::ignore = swapchain;
+  }
 };
 
 

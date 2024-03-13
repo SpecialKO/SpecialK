@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1836,6 +1836,11 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
     if (trigger_reset == reset_stage_e::Clear)
     {
       hr = CallFunc ();
+
+      if (config.render.framerate.frame_start_to_start)
+      {
+        SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
+      }
 
       if (hr == D3DERR_WASSTILLDRAWING)
           hr = D3D_OK;

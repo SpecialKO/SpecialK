@@ -824,6 +824,7 @@ struct {
     sk::ParameterBool*    auto_low_latency_optin  = nullptr;
     sk::ParameterBool*    enable_etw_tracing      = nullptr;
     sk::ParameterBool*    use_amd_mwaitx          = nullptr;
+    sk::ParameterBool*    frame_start_to_start    = nullptr;
 
     struct
     {
@@ -1719,6 +1720,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.enforcement_policy,    L"Place Framerate Limiter Wait Before/After Present, etc.",   dll_ini,         L"Render.FrameRate",      L"LimitEnforcementPolicy"),
     ConfigEntry (render.framerate.enable_etw_tracing,    L"Use ETW tracing (PresentMon) for extra latency/flip info",  dll_ini,         L"Render.FrameRate",      L"EnableETWTracing"),
     ConfigEntry (render.framerate.use_amd_mwaitx,        L"Use AMD Power-Saving Instructions for Busy-Wait",           dll_ini,         L"Render.FrameRate",      L"UseAMDMWAITX"),
+    ConfigEntry (render.framerate.frame_start_to_start,  L"Measure frame pacing using Frame Start to Frame Start",     dll_ini,         L"Render.FrameRate",      L"MeasureFrameStartToStart"),
 
     ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Control",     L"MaxRenderAheadFrames"),
     ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Control",     L"OverrideCPUCoreCount"),
@@ -3727,10 +3729,11 @@ auto DeclKeybind =
     }
   }
 
-  render.framerate.sleepless_render->load   (config.render.framerate.sleepless_render);
-  render.framerate.sleepless_window->load   (config.render.framerate.sleepless_window);
-  render.framerate.enable_mmcss->load       (config.render.framerate.enable_mmcss);
-  render.framerate.use_amd_mwaitx->load     (config.render.framerate.use_amd_mwaitx);
+  render.framerate.sleepless_render->load     (config.render.framerate.sleepless_render);
+  render.framerate.sleepless_window->load     (config.render.framerate.sleepless_window);
+  render.framerate.enable_mmcss->load         (config.render.framerate.enable_mmcss);
+  render.framerate.use_amd_mwaitx->load       (config.render.framerate.use_amd_mwaitx);
+  render.framerate.frame_start_to_start->load (config.render.framerate.frame_start_to_start);
 
   if (! SK_CPU_HasMWAITX) // Turn off if CPU does not support
     config.render.framerate.use_amd_mwaitx = false;
@@ -5737,12 +5740,13 @@ SK_SaveConfig ( std::wstring name,
   swprintf (wszTargetFps,   L"%f", config.render.framerate.target_fps);
   swprintf (wszTargetFpsBg, L"%f", config.render.framerate.target_fps_bg);
 
-  render.framerate.target_fps->store          (wszTargetFps);//__target_fps);
-  render.framerate.target_fps_bg->store       (wszTargetFpsBg);//__target_fps_bg);
-  render.framerate.sleepless_render->store    (config.render.framerate.sleepless_render);
-  render.framerate.sleepless_window->store    (config.render.framerate.sleepless_window);
-  render.framerate.enable_mmcss->store        (config.render.framerate.enable_mmcss);
-  render.framerate.use_amd_mwaitx->store      (config.render.framerate.use_amd_mwaitx);
+  render.framerate.target_fps->store           (wszTargetFps);//__target_fps);
+  render.framerate.target_fps_bg->store        (wszTargetFpsBg);//__target_fps_bg);
+  render.framerate.sleepless_render->store     (config.render.framerate.sleepless_render);
+  render.framerate.sleepless_window->store     (config.render.framerate.sleepless_window);
+  render.framerate.enable_mmcss->store         (config.render.framerate.enable_mmcss);
+  render.framerate.use_amd_mwaitx->store       (config.render.framerate.use_amd_mwaitx);
+  render.framerate.frame_start_to_start->store (config.render.framerate.frame_start_to_start);
 
   render.framerate.override_cpu_count->store  (config.render.framerate.override_num_cpus);
 

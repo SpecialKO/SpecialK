@@ -2990,10 +2990,15 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     if (_SkipThisFrame)
       hr = S_OK;
 
+    // Measure frametime after Present returns
+    if (config.render.framerate.frame_start_to_start)
+    {
+      SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
+    }
+
     SK_LatentSync_EndSwap ();
 
     rb.setLatencyMarkerNV (PRESENT_END);
-
 
     if (hr == DXGI_ERROR_WAS_STILL_DRAWING)
         hr = S_OK;

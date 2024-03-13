@@ -5678,11 +5678,30 @@ SK_ImGui_ControlPanel (void)
         ImGui::EndGroup ();
         ImGui::SameLine ();
 
+        ImVec2 vPos =
+          ImGui::GetCursorPos ();
+
         advanced =
           ImGui::TreeNode ("Advanced ###Advanced_FPS");
 
         if (advanced)
         {
+          ImVec2 vPos2 =
+            ImGui::GetCursorPos ();
+
+          ImGui::SetCursorPos (ImVec2 (vPos.x, vPos.y + ImGui::GetFontSize () + ImGui::GetStyle ().FramePadding.y * 2 +
+                                                                                ImGui::GetStyle ().ItemSpacing .y));
+
+          if (ImGui::Checkbox ("Start-to-Start", &config.render.framerate.frame_start_to_start))
+          {
+            config.utility.save_async ();
+          }
+
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Alternate frametime measure consistent with new PresentMon / RTSS methodology.");
+
+          ImGui::SetCursorPos (vPos2);
+
           ImGui::TreePop    ();
           ImGui::Separator  ();
           if (__target_fps > 0.0f)
