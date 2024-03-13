@@ -414,19 +414,7 @@ SetupDiDestroyDeviceInfoList_pfn     SK_SetupDiDestroyDeviceInfoList     = nullp
 
 XINPUT_STATE hid_to_xi { };
   
-// IOCTL defines.
-#define BTH_IOCTL_BASE      0
-
-#define BTH_CTL(id)         CTL_CODE(FILE_DEVICE_BLUETOOTH,  \
-               (id),                   \
-               METHOD_BUFFERED,        \
-               FILE_ANY_ACCESS)
-#define BTH_KERNEL_CTL(id)  CTL_CODE(FILE_DEVICE_BLUETOOTH,  \
-                      (id),                   \
-                      METHOD_NEITHER,         \
-                      FILE_ANY_ACCESS)
-#define IOCTL_BTH_GET_DEVICE_INFO           BTH_CTL(BTH_IOCTL_BASE+0x02)
-#define IOCTL_BTH_DISCONNECT_DEVICE         BTH_CTL(BTH_IOCTL_BASE+0x03)
+#include <bthioctl.h>
 
 void SK_Bluetooth_SetupPowerOff (void)
 {
@@ -464,36 +452,40 @@ void SK_Bluetooth_SetupPowerOff (void)
                                                                      wszSerialNumber, 64,
                                                                     &dwBytesReturned, nullptr );
 
-            SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws",
-                         wszSerialNumber );
-
-            ULONGLONG                           ullHWAddr = 0x0;
-            swscanf (wszSerialNumber, L"%llx", &ullHWAddr);
-
-            BLUETOOTH_FIND_RADIO_PARAMS findParams =
-              { .dwSize = sizeof (BLUETOOTH_FIND_RADIO_PARAMS) };
-
-            HANDLE hBtRadio    = INVALID_HANDLE_VALUE;
-            HANDLE hFindRadios =
-              BluetoothFindFirstRadio (&findParams, &hBtRadio);
-
-            BOOL   success  = FALSE;
-            while (success == FALSE && hBtRadio != 0)
+            if ((device.xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+                (device.xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_Y))
             {
-              success =
-                SK_DeviceIoControl (
-                  hBtRadio, IOCTL_BTH_DISCONNECT_DEVICE, &ullHWAddr, 8,
-                                                         nullptr,    0,
-                                       &dwBytesReturned, nullptr );
+              SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws",
+                           wszSerialNumber );
 
-              CloseHandle (hBtRadio);
+              ULONGLONG                           ullHWAddr = 0x0;
+              swscanf (wszSerialNumber, L"%llx", &ullHWAddr);
 
-              if (! success)
-                if (! BluetoothFindNextRadio (hFindRadios, &hBtRadio))
-                  hBtRadio = 0;
+              BLUETOOTH_FIND_RADIO_PARAMS findParams =
+                { .dwSize = sizeof (BLUETOOTH_FIND_RADIO_PARAMS) };
+
+              HANDLE hBtRadio    = INVALID_HANDLE_VALUE;
+              HANDLE hFindRadios =
+                BluetoothFindFirstRadio (&findParams, &hBtRadio);
+
+              BOOL   success  = FALSE;
+              while (success == FALSE && hBtRadio != 0)
+              {
+                success =
+                  SK_DeviceIoControl (
+                    hBtRadio, IOCTL_BTH_DISCONNECT_DEVICE, &ullHWAddr, 8,
+                                                           nullptr,    0,
+                                         &dwBytesReturned, nullptr );
+
+                CloseHandle (hBtRadio);
+
+                if (! success)
+                  if (! BluetoothFindNextRadio (hFindRadios, &hBtRadio))
+                    hBtRadio = 0;
+              }
+
+              BluetoothFindRadioClose (hFindRadios);
             }
-
-            BluetoothFindRadioClose (hFindRadios);
           }
         }
       }
@@ -1230,29 +1222,50 @@ ReadFile_Detour (HANDLE       hFile,
 
       if (bRet)
       {
+        size_t nNumberOfBytesRead = lpNumberOfBytesRead != nullptr ?
+                           (size_t)*lpNumberOfBytesRead : (size_t)nNumberOfBytesToRead;
+
+
+        if (lpBuffer != nullptr)
+        {
+          report_id = ((uint8_t *)lpBuffer)[0];
+
+          if (! report_id)
+          {
+            report_id = lpNumberOfBytesRead != nullptr ?
+              (uint8_t)*lpNumberOfBytesRead : (BYTE)nNumberOfBytesToRead;
+          }
+        }
+
         auto& cached_report =
           hid_file->_cachedInputReportsByReportId [report_id];
 
         if ((! lpOverlapped) && dev_allowed)
         {
-          if (                   cached_report.size   ()          < nNumberOfBytesToRead)
-                                 cached_report.resize (             nNumberOfBytesToRead);
-            SK_UNTRUSTED_memcpy (cached_report.data   (), lpBuffer, nNumberOfBytesToRead);
+          if (                   cached_report.size   ()          < nNumberOfBytesRead)
+                                 cached_report.resize (             nNumberOfBytesRead);
+            SK_UNTRUSTED_memcpy (cached_report.data   (), lpBuffer, nNumberOfBytesRead);
         }
 
         bool bDeviceAllowed = dev_allowed;
 
-        if (report_id > 0 && cached_report.size () < nNumberOfBytesToRead && lpOverlapped != nullptr && SK_GetFramesDrawn () > 15)
+        if (report_id > 0 && lpOverlapped != nullptr)
         {
-          hid_file->_cachedInputReportsByReportId [report_id].resize (nNumberOfBytesToRead);
-          hid_file->_cachedInputReportsByReportId [report_id].data ()[0] = ((uint8_t *)lpBuffer) [0];
-
-          if (hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead))
-          {
-            SK_UNTRUSTED_memcpy (
-              lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (),
-                  nNumberOfBytesToRead );
-          }
+          ///if (hid_file->_cachedInputReportsByReportId [report_id].size () < nNumberOfBytesRead)
+          ///{   hid_file->_cachedInputReportsByReportId [report_id].resize (  nNumberOfBytesRead);
+          ///}
+          ///
+          ///if (((uint8_t *)lpBuffer)[0] != 0)
+          ///{
+          ///  hid_file->_cachedInputReportsByReportId [report_id].data ()[0] = ((uint8_t *)lpBuffer)[0];
+          ///}
+          ///
+          ///if (hid_file->neutralizeHidInput (report_id, nNumberOfBytesRead))
+          ///{
+          ///  SK_UNTRUSTED_memcpy (
+          ///    lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (),
+          ///        nNumberOfBytesToRead );
+          ///}
         }
 
         if (! bDeviceAllowed)
@@ -1269,15 +1282,16 @@ ReadFile_Detour (HANDLE       hFile,
               int num_bytes_read =
                 hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead);
             
-              //if (num_bytes_read == 0)
-              //{
-              //  num_bytes_read = nNumberOfBytesToRead;
-              //}
-            
               if (num_bytes_read > 0)
               {
                 if (lpNumberOfBytesRead != nullptr)
                    *lpNumberOfBytesRead = num_bytes_read;
+              }
+
+              else
+              {
+                num_bytes_read = lpNumberOfBytesRead != nullptr ?
+                           (int)*lpNumberOfBytesRead : num_bytes_read;
               }
             
               if (lpBuffer != nullptr && num_bytes_read > 0)
@@ -1332,17 +1346,32 @@ ReadFile_Detour (HANDLE       hFile,
         {
           SK_HID_READ (hid_file->device_type);
 
-          if ( lpOverlapped == nullptr && report_id > 0 &&
-                 hid_file->_cachedInputReportsByReportId [report_id].size () < nNumberOfBytesToRead )
+          if (lpOverlapped == nullptr)
           {
-            hid_file->_cachedInputReportsByReportId [report_id].resize (nNumberOfBytesToRead);
+            report_id = ((uint8_t *)lpBuffer)[0];
+          }
+
+          DWORD dwBytesRead = 0;
+
+          if (lpNumberOfBytesRead != nullptr)
+             dwBytesRead = *lpNumberOfBytesRead;
+          else
+             dwBytesRead = nNumberOfBytesToRead;
+
+          if (lpOverlapped == nullptr && report_id > 0)
+          {
+            if (hid_file->_cachedInputReportsByReportId [report_id].size () <= dwBytesRead)
+                hid_file->_cachedInputReportsByReportId [report_id].resize (   dwBytesRead);
+
             hid_file->_cachedInputReportsByReportId [report_id].data ()[0] = report_id;
 
             //if (hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead))
             {
               SK_UNTRUSTED_memcpy (
                 hid_file->_cachedInputReportsByReportId [report_id].data (), lpBuffer,
-                    nNumberOfBytesToRead );
+                    dwBytesRead );
+
+              hid_file->neutralizeHidInput (report_id, dwBytesRead);
             }
           }
 
@@ -4097,7 +4126,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               if (bAllowSpecialButtons)
               {
-#if 0
+#if 1
                 static bool bIsVLC =
                   StrStrIW (SK_GetHostApp (), L"vlc");
 
@@ -4122,6 +4151,66 @@ SK_HID_PlayStationDevice::request_input_report (void)
                     (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)))
                   {
                     BYTE bScancode =
+                     (BYTE)MapVirtualKey (VK_LEFT, 0);
+
+                    DWORD dwFlags =
+                      ( bScancode & 0xE0 ) == 0   ?
+                        static_cast <DWORD> (0x0) :
+                        static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+                    keybd_event_Original (VK_LEFT, bScancode, dwFlags,                   0);
+                    keybd_event_Original (VK_LEFT, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+                  }
+
+                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) &&
+                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)))
+                  {
+                    BYTE bScancode =
+                     (BYTE)MapVirtualKey (VK_RIGHT, 0);
+
+                    DWORD dwFlags =
+                      ( bScancode & 0xE0 ) == 0   ?
+                        static_cast <DWORD> (0x0) :
+                        static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+                    keybd_event_Original (VK_RIGHT, bScancode, dwFlags,                   0);
+                    keybd_event_Original (VK_RIGHT, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+                  }
+
+                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) &&
+                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)))
+                  {
+                    BYTE bScancode =
+                     (BYTE)MapVirtualKey (VK_DOWN, 0);
+
+                    DWORD dwFlags =
+                      ( bScancode & 0xE0 ) == 0   ?
+                        static_cast <DWORD> (0x0) :
+                        static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+                    keybd_event_Original (VK_DOWN, bScancode, dwFlags,                   0);
+                    keybd_event_Original (VK_DOWN, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+                  }
+
+                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) &&
+                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)))
+                  {
+                    BYTE bScancode =
+                     (BYTE)MapVirtualKey (VK_UP, 0);
+
+                    DWORD dwFlags =
+                      ( bScancode & 0xE0 ) == 0   ?
+                        static_cast <DWORD> (0x0) :
+                        static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+                    keybd_event_Original (VK_UP, bScancode, dwFlags,                   0);
+                    keybd_event_Original (VK_UP, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+                  }
+
+                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) &&
+                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)))
+                  {
+                    BYTE bScancode =
                      (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
 
                     DWORD dwFlags =
@@ -4133,8 +4222,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                     keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
                   }
 
-                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) &&
-                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)))
+                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) &&
+                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER)))
                   {
                     BYTE bScancode =
                      (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
@@ -5315,6 +5404,9 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
 int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
 {
+  if (_cachedInputReportsByReportId [report_id].empty ())
+    return 0;
+
   switch (device_vid)
   {
     case SK_HID_VID_SONY:
@@ -5324,9 +5416,9 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
         case SK_HID_PID_DUALSHOCK4:
         case SK_HID_PID_DUALSHOCK4_REV2:
         {
-          if (report_id == 1 && _cachedInputReportsByReportId [report_id].size () >= dwSize)
+          //if (report_id == 1 && _cachedInputReportsByReportId [report_id].size () >= dwSize)
           {
-            if (_cachedInputReportsByReportId [report_id].data ()[0] == report_id)
+            if (_cachedInputReportsByReportId [report_id].data ()[0] == report_id && report_id == 1)
             {
               SK_HID_DualShock4_GetStateData* pData =
                 (SK_HID_DualShock4_GetStateData *)&(_cachedInputReportsByReportId [report_id].data ()[1]);
@@ -5362,7 +5454,8 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
         case SK_HID_PID_DUALSENSE_EDGE:
         case SK_HID_PID_DUALSENSE:
         {
-          if (dwSize >= 64 && (report_id == 1 || report_id == dwSize))
+          if (dwSize != 78 && _cachedInputReportsByReportId [report_id].data ()[0] == report_id && report_id == 1)
+          //if (dwSize >= 64 && (report_id == 1 || report_id == dwSize))
           {
             //SK_ReleaseAssert (_cachedInputReportsByReportId [report_id].data ()[0] == 1 ||
             //                  dwSize == report_id);
@@ -5404,7 +5497,8 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
             return 64;
           }
 
-          if (dwSize >= 78 && (report_id == 1 || report_id == 49 || report_id == dwSize))
+          if (_cachedInputReportsByReportId [report_id].data ()[0] == report_id && (report_id == 49 || report_id == 1))
+          //if (dwSize >= 78 && (report_id == 1 || report_id == 49 || report_id == dwSize))
           {
             //SK_ReleaseAssert (
             //  ((uint8_t *)&_cachedInputReportsByReportId [report_id])[0] == 0x1 ||

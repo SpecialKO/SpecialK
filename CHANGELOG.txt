@@ -1,4 +1,10 @@
-﻿24.3.12.1
+﻿24.3.13
+=======
+ + Added support for int64 command console variables
+ + Added support for powering-off specific Bluetooth HW Addrs instead
+     of ALL controllers
+
+24.3.12.1
 =========
  + Merge pull request #150 from Nustat0:d3d12-32bit-fixes
     * Fixed some checks that prevented 32-bit D3D12

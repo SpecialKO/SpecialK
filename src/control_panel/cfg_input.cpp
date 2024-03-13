@@ -1752,7 +1752,7 @@ extern float SK_ImGui_PulseNav_Strength;
             ImGui::BeginTooltip    ();
             ImGui::TextUnformatted ("Tests the latency of DS4Windows, Steam Input or a native Xbox controller");
             ImGui::Separator       ();
-            ImGui::BulletText      ("If you have no native XInput support or a third-party utility emulating XInput, this will do nothing");
+            ImGui::BulletText      ("If you have no Xbox controllers or third-party utilities emulating XInput, this does nothing");
             ImGui::BulletText      ("SK cannot test its own XInput emulation latency; all readings would come back zero...");
             ImGui::EndTooltip      ();
           }

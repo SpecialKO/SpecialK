@@ -429,6 +429,62 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
         }
       }
 
+      else if (var->getType () == SK_IVariable::LongInt)
+      {
+        if (command_args_len > 0)
+        {
+          SK_IVarStub <uint64>* pVar =
+            (SK_IVarStub <uint64>*) var;
+
+          const uint64 original_val = pVar->getValue ();
+                     uint64 int_val = 0;
+
+          // Wraparound
+          if (! (0 != _stricmp (cmd_args.c_str (), "cycle") &&
+                 0 != _stricmp (cmd_args.c_str (),   "+++")) )
+          {
+            int_val = original_val + 1;
+
+            uint64          *min, *max;
+            pVar->getRange (&min, &max);
+
+            if (        max != nullptr && int_val > *max)
+              int_val = min == nullptr ? INT64_MIN: *min;
+          }
+          /* Increment */
+          else if (! (0 != _stricmp (cmd_args.c_str (),   "++") &&
+                      0 != _stricmp (cmd_args.c_str (),  "inc") &&
+                      0 != _stricmp (cmd_args.c_str (), "next")) )
+          {
+            int_val = original_val + 1;
+          } else if (! (0 != _stricmp (cmd_args.c_str (),   "--") &&
+                        0 != _stricmp (cmd_args.c_str (),  "dec") &&
+                        0 != _stricmp (cmd_args.c_str (), "prev")) )
+          {
+            int_val = original_val - 1;
+          }
+          /* Negate */
+          else if (0 == _stricmp (cmd_args.c_str (), "~"))
+          {
+            int_val = ~original_val;
+          }
+          else if (     StrStrIA (cmd_args.c_str (), "+="))
+          {
+            int_val = original_val +
+                      strtoul (&cmd_args.c_str ()[2], nullptr, 0);
+          }
+          else if (     StrStrIA (cmd_args.c_str (), "-="))
+          {
+            int_val = original_val -
+                      strtoul (&cmd_args.c_str ()[2], nullptr, 0);
+          }
+          else
+            int_val = strtoul (cmd_args.c_str (), nullptr, 0);
+
+          pVar->setValue (int_val);
+        }
+      }
+
       else if (var->getType () == SK_IVariable::Short)
       {
         if (command_args_len > 0)
@@ -647,6 +703,34 @@ SK_IVarStub <bool>::getValueString ( _Out_opt_     char* szOut,
 }
 
 template <>
+SK_IVarStub <uint64>::SK_IVarStub ( uint64*               var,
+                                    SK_IVariableListener* pListener ) :
+  var_ (var)
+{
+  listener_ = pListener;
+  type_     = LongInt;
+}
+
+template <>
+void
+SK_IVarStub <uint64>::getValueString ( _Out_opt_     char* szOut,
+                                       _Inout_   uint32_t* dwLen ) const
+{
+  if (! dwLen)
+    return;
+
+  uint32_t len = 0;
+
+  len =
+    sk::narrow_cast <uint32_t> (strlen (std::to_string (getValue ()).c_str ()));
+
+  if (szOut != nullptr)
+    strncpy (szOut, std::to_string (getValue ()).c_str (), *dwLen);
+
+  *dwLen = std::min (*dwLen, len);
+}
+
+template <>
 SK_IVarStub <char*>::SK_IVarStub ( char**                var,
                                    SK_IVariableListener* pListener ) :
   var_ (var)
@@ -769,7 +853,7 @@ SK_CreateVar ( SK_IVariable::VariableType type,
     case SK_IVariable::Int:
       return new SK_IVarStub <int>    (static_cast <int *>   (var), pListener);
     case SK_IVariable::LongInt:
-      return nullptr;
+      return new SK_IVarStub <uint64> (static_cast <uint64*> (var), pListener);
     case SK_IVariable::String:
       return new SK_IVarStub <char *> (static_cast <char **> (var), pListener);
   }
