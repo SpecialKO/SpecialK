@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1008,6 +1008,10 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     return 0;
   }
 
+  // For sleeps longer than 1 second, let's do some consistency checks
+  const bool bLongSleep = 
+    (dwMilliseconds > 1000UL);
+
   static auto game_id =
     SK_GetCurrentGameID ();
 
@@ -1038,7 +1042,8 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
   bool bWantThreadClassification =
     ( sleepless_render ||
-      sleepless_window );
+      sleepless_window ||
+      bLongSleep );
 
 #ifdef _TVFIX
   bWantThreadClassification |=
@@ -1068,14 +1073,15 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
                      : FALSE;
 #endif
 
-  if (sleepless_render && pTLS == nullptr)
+  if (sleepless_render && pTLS == nullptr && (! bGUIThread))
                           pTLS = SK_TLS_Bottom ();
 
   BOOL bRenderThread =
     sleepless_render ?
       (ReadULongAcquire   (&SK_GetCurrentRenderBackend ().last_thread) == dwTid ||
        ReadULongAcquire   (&SK_GetCurrentRenderBackend ().thread)      == dwTid ||
-       ReadULong64Acquire (&pTLS->render->frames_presented))
+     (!bGUIThread &&
+       ReadULong64Acquire (&pTLS->render->frames_presented)))
                      : FALSE;
 
   // Steam doesn't init correctly without sleeping for 25 ms
@@ -1084,6 +1090,17 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
   if (bRenderThread && SK_GetFramesDrawn () > MIN_FRAMES_DRAWN)
   {
+    if (bLongSleep)
+    { // This warning might happen repeatedly
+      static int times_warned = 0;
+      if (     ++times_warned < 5 || config.system.log_level > 0)
+      {
+        SK_LOGs0 ( L"Scheduler ",
+          L"Excessive sleep duration (%d-ms) detected on render thread, limiting to 500 ms",
+            dwMilliseconds );
+      }     dwMilliseconds = 500;
+    }
+
 #ifdef _TVFIX
 #pragma region Tales of Vesperia Render NoSleep
 #ifdef _M_AMD64
@@ -1133,6 +1150,14 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       }
 
       YieldProcessor ( );
+
+      // Check for I/O Wait Completion Before Going Sleepless
+      if (bAlertable)
+      {
+        if (SK_SleepEx (0, TRUE) == WAIT_IO_COMPLETION)
+                             return WAIT_IO_COMPLETION;
+      }
+
       return 0;
     }
 
@@ -1142,6 +1167,17 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
   if ((bGUIThread || (game_id == SK_GAME_ID::NieR_Sqrt_1_5 && dwMilliseconds < 3)) && SK_GetFramesDrawn () > MIN_FRAMES_DRAWN)
   {
+    if (bLongSleep)
+    { // This warning might happen repeatedly
+      static int times_warned = 0;
+      if (     ++times_warned < 5 || config.system.log_level > 0)
+      {
+        SK_LOGs0 ( L"Scheduler ",
+          L"Excessive sleep duration (%d-ms) detected on window thread, limiting to 250 ms",
+            dwMilliseconds );
+      }     dwMilliseconds = 250;
+    }
+
     if ( sleepless_window && dwMilliseconds != INFINITE &&
                              dwMilliseconds != STEAM_THRESHOLD )
     {
@@ -1163,6 +1199,13 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
         SK::Framerate::events.getMessagePumpStats ().wake (std::max (1UL, dwMilliseconds));
 
       SK_Thread_WaitWhilePumpingMessages (dwMilliseconds, bAlertable, &pTLS);
+
+      // Check for I/O Wait Completion Before Going Sleepless
+      if (bAlertable)
+      {
+        if (SK_SleepEx (0, TRUE) == WAIT_IO_COMPLETION)
+                             return WAIT_IO_COMPLETION;
+      }
 
       return 0;
     }
@@ -1246,7 +1289,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   else if (bAlertable)
   {
     if (SK_SleepEx (0, TRUE) == WAIT_IO_COMPLETION)
-      return WAIT_IO_COMPLETION;
+                         return WAIT_IO_COMPLETION;
   }
 
   return 0;
