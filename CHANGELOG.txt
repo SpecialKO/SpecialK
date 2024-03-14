@@ -3,9 +3,12 @@
  + Added new option to control the size of HID's input queue to assist
      games that use native DualShock/DualSense w/ latency reduction.
 
-   >> Reduced circular queue depth to 2 from default of 32; missed inputs
+   >> Reduced circular queue depth to 3 from default of 32; missed inputs
         are theoretically possible at very low framerates but most games
           do not poll gamepad multiple times per-frame.
+
+       DS4Windows already uses a -0- buffer queue by default, so SK will
+         cause no more dropped inputs than DS4Windows or Steam Input do.
 
  + New option technically works for all HID devices, but many games do
      not use HID and instead use Steam Input; setting does not apply.

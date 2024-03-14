@@ -1010,7 +1010,7 @@ struct sk_config_t
       } steam;
 
       struct hid_s {
-        int   max_allowed_buffers =     8;
+        int   max_allowed_buffers =     3;
       } hid;
     } gamepad;
 
