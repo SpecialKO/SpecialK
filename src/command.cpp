@@ -449,7 +449,7 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
             pVar->getRange (&min, &max);
 
             if (        max != nullptr && int_val > *max)
-              int_val = min == nullptr ? INT64_MIN: *min;
+              int_val = min == nullptr ?         0: *min;
           }
           /* Increment */
           else if (! (0 != _stricmp (cmd_args.c_str (),   "++") &&
@@ -471,15 +471,15 @@ SK_ICommandProcessor::ProcessCommandLine (const char* szCommandLine)
           else if (     StrStrIA (cmd_args.c_str (), "+="))
           {
             int_val = original_val +
-                      strtoul (&cmd_args.c_str ()[2], nullptr, 0);
+                      strtoull (&cmd_args.c_str ()[2], nullptr, 0);
           }
           else if (     StrStrIA (cmd_args.c_str (), "-="))
           {
             int_val = original_val -
-                      strtoul (&cmd_args.c_str ()[2], nullptr, 0);
+                      strtoull (&cmd_args.c_str ()[2], nullptr, 0);
           }
           else
-            int_val = strtoul (cmd_args.c_str (), nullptr, 0);
+            int_val = strtoull (cmd_args.c_str (), nullptr, 0);
 
           pVar->setValue (int_val);
         }
