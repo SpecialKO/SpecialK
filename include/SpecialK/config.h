@@ -979,6 +979,7 @@ struct sk_config_t
         bool  blackout_api        = false;
         bool  emulate             = false;
         bool  debug               = false;
+        bool  standard_deadzone   =  true;
       } xinput;
 
       struct dinput_s {

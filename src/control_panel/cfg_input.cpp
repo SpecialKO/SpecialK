@@ -1205,8 +1205,18 @@ SK::ControlPanel::Input::Draw (void)
 
             if (config.input.gamepad.xinput.emulate)
             {
+              static bool show_debug_option = false;
               ImGui::TreePush ("");
-              ImGui::Checkbox ("Debug Mode", &config.input.gamepad.xinput.debug);
+              ImGui::Checkbox ("Use Deadzone", &config.input.gamepad.xinput.standard_deadzone);
+
+              if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
+                show_debug_option = true;
+
+              else if (ImGui::IsItemHovered ())
+                       ImGui::SetTooltip ("Apply deadzone according to XInput's standard values");
+
+              if (show_debug_option)
+              ImGui::Checkbox ("Debug Mode",   &config.input.gamepad.xinput.debug);
               ImGui::TreePop  (  );
             }
 

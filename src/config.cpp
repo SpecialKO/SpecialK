@@ -1005,6 +1005,7 @@ struct {
       sk::ParameterBool*  auto_slot_assign        = nullptr;
       sk::ParameterBool*  blackout_api            = nullptr;
       sk::ParameterBool*  emulate                 = nullptr;
+      sk::ParameterBool*  standard_deadzone       = nullptr;
     } xinput;
 
     struct {
@@ -1587,6 +1588,7 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.xinput.blackout_api,      L"Prevent game from seeing XInput at all, useful if a game "
                                                          L"supports native SONY input and XInput.",                    dll_ini,         L"Input.XInput",          L"HideAllDevices"),
     ConfigEntry (input.gamepad.xinput.emulate,           L"For non-Xbox controllers, translate HID to XInput",         dll_ini,         L"Input.XInput",          L"EnableEmulation"),
+    ConfigEntry (input.gamepad.xinput.standard_deadzone, L"In HID->XInput, filter analog values using API standards",  dll_ini,         L"Input.XInput",          L"StandardDeadzone"),
     ConfigEntry (input.gamepad.dinput.blackout_gamepads, L"Prevent game from seeing DirectInput gamepads",             dll_ini,         L"Input.DInput",          L"HideGamepads"),
     ConfigEntry (input.gamepad.dinput.blackout_mice,     L"Prevent game from seeing DirectInput mice",                 dll_ini,         L"Input.DInput",          L"HideMice"),
     ConfigEntry (input.gamepad.dinput.blackout_keyboards,L"Prevent game from seeing DirectInput keyboards",            dll_ini,         L"Input.DInput",          L"HideKeyboards"),
@@ -4185,6 +4187,7 @@ auto DeclKeybind =
   input.gamepad.xinput.auto_slot_assign->load  (config.input.gamepad.xinput.auto_slot_assign);
   input.gamepad.xinput.blackout_api->load      (config.input.gamepad.xinput.blackout_api);
   input.gamepad.xinput.emulate->load           (config.input.gamepad.xinput.emulate);
+  input.gamepad.xinput.standard_deadzone->load (config.input.gamepad.xinput.standard_deadzone);
   input.gamepad.dinput.blackout_gamepads->load (config.input.gamepad.dinput.blackout_gamepads);
   input.gamepad.dinput.blackout_mice->load     (config.input.gamepad.dinput.blackout_mice);
   input.gamepad.dinput.blackout_keyboards->load(config.input.gamepad.dinput.blackout_keyboards);
@@ -5600,6 +5603,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.xinput.auto_slot_assign->store     (config.input.gamepad.xinput.auto_slot_assign);
   input.gamepad.xinput.blackout_api->store         (config.input.gamepad.xinput.blackout_api);
   input.gamepad.xinput.emulate->store              (config.input.gamepad.xinput.emulate);
+  input.gamepad.xinput.standard_deadzone->store    (config.input.gamepad.xinput.standard_deadzone);
   input.gamepad.dinput.blackout_gamepads->store    (config.input.gamepad.dinput.blackout_gamepads);
   input.gamepad.dinput.blackout_mice->store        (config.input.gamepad.dinput.blackout_mice);
   input.gamepad.dinput.blackout_keyboards->store   (config.input.gamepad.dinput.blackout_keyboards);
