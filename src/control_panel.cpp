@@ -4980,9 +4980,24 @@ SK_ImGui_ControlPanel (void)
       if (rb.gsync_state.capable)
       {
         strcat (szGSyncStatus, "    Supported + ");
+
         if (rb.gsync_state.active)
         {
-          strcat (szGSyncStatus, "Active");
+          auto& nvapi_display =
+            rb.displays [rb.active_display].nvapi;
+
+          float fVBlankHz =
+            nvapi_display.vblank_counter.getVBlankHz (
+                      SK::ControlPanel::current_time );
+
+          // Is it really "active" if we can't calculate the rate?
+          if (fVBlankHz == 0.0f)
+            strcat (szGSyncStatus, "Active " ICON_FA_QUESTION_CIRCLE);
+          else
+          {
+            std::string_view     status (szGSyncStatus, 128);
+            SK_FormatStringView (status, "Variable Rate : %5.2f Hz", fVBlankHz);
+          }
         }
         else if (! rb.gsync_state.maybe_active)
           strcat (szGSyncStatus, "Inactive");

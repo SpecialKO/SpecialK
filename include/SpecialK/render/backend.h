@@ -284,6 +284,17 @@ public:
                           monitor_caps         = { };
       BOOL                vrr_enabled          =  -1;
 
+      struct vblank_history_s {
+        static constexpr int  MaxVBlankRecords = 128;
+        struct record_s {
+          NvU32           timestamp_ms         =   0;
+          NvU32           vblank_count         =   0;
+        }                 records [MaxVBlankRecords];
+          NvU32           head                 =   0;
+          void  addRecord   (NvDisplayHandle nv_disp, NvU32 tNow)       noexcept;
+          float getVBlankHz (                         NvU32 tNow) const noexcept;
+      } vblank_counter;
+
       static output_s*    getDisplayFromId     (NvU32           display_id)     noexcept;
       static output_s*    getDisplayFromHandle (NvDisplayHandle display_handle) noexcept;
     } nvapi;

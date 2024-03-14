@@ -3442,7 +3442,8 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::WrathAeonOfRuin:
-        config.window.activate_at_start = true;
+        config.window.activate_at_start  = true;
+        config.window.treat_fg_as_active = true;
         break;
 
       case SK_GAME_ID::AlanWake2:

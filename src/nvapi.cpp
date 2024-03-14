@@ -1158,6 +1158,89 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   return ret;
 }
 
+void
+SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDisplayHandle nv_disp, NvU32 tNow) noexcept
+{
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  //
+  // In case it was not patently obvious, NvAPI is not thread-safe :)
+  //
+  //   Without these locks -- rather than a crash -- framerate would plummet
+  //     following any display topology / capability changes.
+  //
+  if (rb.stale_display_info || (! rb.gsync_state.active))
+    return;
+
+  std::scoped_lock
+    lock (SK_NvAPI_Threading->locks.Disp_GetVRRInfo,
+          SK_NvAPI_Threading->locks.D3D_IsGSyncActive);
+
+  NvU32 vblank_count = 0;
+
+  if (NVAPI_OK == NvAPI_GetVBlankCounter (nv_disp, &vblank_count))
+  {
+    head = std::min (head, (NvU32)MaxVBlankRecords-1);
+
+    if (vblank_count != records [head].vblank_count)
+    {
+      if ( head == MaxVBlankRecords-1 )
+           head  = 0;
+      else head++;
+
+      records [head] = { tNow, vblank_count };
+    }
+  }
+}
+
+float
+SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32 tNow) const noexcept
+{
+  NvU32 num_vblanks_in_period = 0;
+
+  NvU32 vblank_count_min = UINT32_MAX,
+        vblank_count_max = 0;
+
+  NvU32 vblank_t0        = UINT32_MAX,
+        vblank_n         = 0;
+
+  for ( UINT record_idx = 0                ;
+             record_idx < MaxVBlankRecords ;
+           ++record_idx )
+  {
+    const auto& record =
+                records [record_idx];
+
+    if ( record.timestamp_ms != 0 &&
+         record.timestamp_ms >= (tNow - 750) ) // Use the last 3/4 of a second
+    {
+      ++num_vblanks_in_period;
+
+      if (       vblank_t0 > record.timestamp_ms)
+                 vblank_t0 = record.timestamp_ms;
+
+      if (        vblank_n < record.timestamp_ms)
+                  vblank_n = record.timestamp_ms;
+
+      if (vblank_count_min > record.vblank_count)
+          vblank_count_min = record.vblank_count;
+
+      if (vblank_count_max < record.vblank_count)
+          vblank_count_max = record.vblank_count;
+    }
+  }
+
+  // ... how?
+  if (num_vblanks_in_period == 0)
+    return 0.0f;
+
+  return
+    static_cast <float> (
+               static_cast <double> (vblank_count_max - vblank_count_min) /
+      (0.001 * static_cast <double> (vblank_n         - vblank_t0)) );
+}
+
 bool
 SK_RenderBackend_V2::scan_out_s::
        nvapi_desc_s::setColorEncoding_HDR ( NV_COLOR_FORMAT fmt_,

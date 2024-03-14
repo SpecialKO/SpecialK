@@ -1,4 +1,8 @@
-﻿24.3.14.1
+﻿24.3.14.2
+=========
+ + Added VRR scanout rate to Control Panel's GSync Status for NVIDIA users
+
+24.3.14.1
 =========
  + Only write HID Output Reports (rumble, lights, powersave mode) when
      the data between two consecutive calls to write_output_report (...)

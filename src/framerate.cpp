@@ -26,6 +26,7 @@
 
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 
+#include <SpecialK/nvapi.h>
 #include <SpecialK/diagnostics/cpu.h>
 
 #include <SpecialK/log.h>
@@ -2649,6 +2650,9 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
         pWorker->hSignalShutdown.m_h
       };
 
+      static auto& rb =
+        SK_GetCurrentRenderBackend ();
+
       while ( WAIT_OBJECT_0 ==
                 WaitForMultipleObjects ( 2, worker_events, FALSE, INFINITE ) )
       {
@@ -2669,6 +2673,24 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
         InterlockedExchange (&pWorker->work_idx, work_idx ? 0 : 1);
 
         SetEvent (pWorker->hSignalConsume.m_h);
+
+        if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+        {
+          //
+          // Sample NVIDIA's VBlank counter from this thread, because that API
+          //   has massive performance penalties and this thread runs constantly
+          //     with little to no real workload.
+          //
+          auto& nvapi_display =
+            rb.displays [rb.active_display].nvapi;
+
+          if (nvapi_display.display_handle != nullptr)
+          {
+            nvapi_display.vblank_counter.addRecord (
+              nvapi_display.display_handle, SK_timeGetTime ()
+            );
+          }
+        }
       }
 
       SK_Thread_CloseSelf ();
