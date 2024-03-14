@@ -1,11 +1,16 @@
-﻿24.3.14
+﻿24.3.14.1
+=========
+ + Only write HID Output Reports (rumble, lights, powersave mode) when
+     the data between two consecutive calls to write_output_report (...)
+       actually have new info to send to a PlayStation controller...
+
+24.3.14
 =======
  + Added new option to control the size of HID's input queue to assist
      games that use native DualShock/DualSense w/ latency reduction.
 
-   >> Reduced circular queue depth to 3 from default of 32; missed inputs
-        are theoretically possible at very low framerates but most games
-          do not poll gamepad multiple times per-frame.
+   >> Reduced circular queue depth to 3 from OS default of 32; missed inputs
+        are theoretically possible at very low framerates.
 
        DS4Windows already uses a -0- buffer queue by default, so SK will
          cause no more dropped inputs than DS4Windows or Steam Input do.

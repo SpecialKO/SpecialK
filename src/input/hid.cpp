@@ -4658,6 +4658,19 @@ SK_HID_PlayStationDevice::write_output_report (void)
         // Will be signaled when DLL teardown is processed and any vibration is cleared to 0.
         bool bQuit = false;
 
+        auto _FinishPollRequest =
+       [&](bool reset_finished = true)
+        {
+          pDevice->ulLastFrameOutput =
+                   SK_GetFramesDrawn ();
+
+          pDevice->dwLastTimeOutput =
+            SK::ControlPanel::current_time;
+
+          if (     true     ) bEnqueued = false;
+          if (reset_finished) bFinished = false;
+        };
+
         DWORD  dwWaitState  = WAIT_FAILED;
         while (dwWaitState != WAIT_OBJECT_0)
         {
@@ -4689,8 +4702,13 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
           if (! pDevice->bConnected)
           {
-            SK_SleepEx (50UL, TRUE);
-            continue;
+            if ( WAIT_TIMEOUT ==
+                   SK_WaitForSingleObject (pDevice->hOutputEnqueued, 125UL) )
+            {
+              continue;
+            }
+
+            bEnqueued = true;
           }
 
           if (! bFinished)
@@ -4855,6 +4873,23 @@ SK_HID_PlayStationDevice::write_output_report (void)
               output->LedGreen = pDevice->_color.g;
               output->LedBlue  = pDevice->_color.b;
             }
+
+            InterlockedIncrement (&pDevice->output.writes_attempted);
+
+            uint32_t base_data_crc =
+              crc32c (0, output, sizeof (*output));
+
+            if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
+                                                            base_data_crc)
+            {
+              SK_SleepEx (5UL, TRUE);
+              SetEvent   (pDevice->hOutputFinished);
+
+              _FinishPollRequest (false);
+              continue;
+            }
+
+            InterlockedIncrement (&pDevice->output.writes_retired);
           }
 
           else if (pDevice->bBluetooth)
@@ -5033,6 +5068,23 @@ SK_HID_PlayStationDevice::write_output_report (void)
               }
             }
 
+            InterlockedIncrement (&pDevice->output.writes_attempted);
+
+            uint32_t base_data_crc =
+              crc32c (0, output, sizeof (*output));
+
+            if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
+                                                            base_data_crc)
+            {
+              SK_SleepEx (5UL, TRUE);
+              SetEvent   (pDevice->hOutputFinished);
+
+              _FinishPollRequest (false);
+              continue;
+            }
+
+            InterlockedIncrement (&pDevice->output.writes_retired);
+
             uint32_t crc =
              crc32 (0x0, bt_data, 75);
 
@@ -5127,15 +5179,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
               }
             }
           }
-
-          pDevice->ulLastFrameOutput =
-                   SK_GetFramesDrawn ();
-
-          pDevice->dwLastTimeOutput =
-            SK::ControlPanel::current_time;
-
-          bEnqueued = false;
-          bFinished = false;
+          _FinishPollRequest ();
         }
 
         SK_Thread_CloseSelf ();
@@ -5195,6 +5239,19 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
         // Will be signaled when DLL teardown is processed and any vibration is cleared to 0.
         bool bQuit     = false;
+
+        auto _FinishPollRequest =
+       [&](bool reset_finished = true)
+        {
+          pDevice->ulLastFrameOutput =
+                   SK_GetFramesDrawn ();
+
+          pDevice->dwLastTimeOutput =
+            SK::ControlPanel::current_time;
+
+          if (     true     ) bEnqueued = false;
+          if (reset_finished) bFinished = false;
+        };
 
         DWORD  dwWaitState  = WAIT_FAILED;
         while (dwWaitState != WAIT_OBJECT_0)
@@ -5330,6 +5387,23 @@ SK_HID_PlayStationDevice::write_output_report (void)
               output->LedGreen = pDevice->_color.g;
               output->LedBlue  = pDevice->_color.b;
             }
+
+            InterlockedIncrement (&pDevice->output.writes_attempted);
+
+            uint32_t base_data_crc =
+              crc32c (0, output, sizeof (*output));
+
+            if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
+                                                            base_data_crc)
+            {
+              SK_SleepEx (5UL, TRUE);
+              SetEvent   (pDevice->hOutputFinished);
+
+              _FinishPollRequest (false);
+              continue;
+            }
+
+            InterlockedIncrement (&pDevice->output.writes_retired);
           }
 
           else if (pDevice->bBluetooth)
@@ -5444,6 +5518,23 @@ SK_HID_PlayStationDevice::write_output_report (void)
               output->LedBlue  = pDevice->_color.b;
             }
 
+            InterlockedIncrement (&pDevice->output.writes_attempted);
+
+            uint32_t base_data_crc =
+              crc32c (0, output, sizeof (*output));
+
+            if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
+                                                            base_data_crc)
+            {
+              SK_SleepEx (5UL, TRUE);
+              SetEvent   (pDevice->hOutputFinished);
+
+              _FinishPollRequest (false);
+              continue;
+            }
+
+            InterlockedIncrement (&pDevice->output.writes_retired);
+
             uint32_t crc =
              crc32 (0x0, bt_data, 75);
 
@@ -5541,14 +5632,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
             }
           }
 
-          pDevice->ulLastFrameOutput =
-                   SK_GetFramesDrawn ();
-
-          pDevice->dwLastTimeOutput =
-            SK::ControlPanel::current_time;
-
-          bEnqueued = false;
-          bFinished = false;
+          _FinishPollRequest ();
         }
 
         SK_Thread_CloseSelf ();

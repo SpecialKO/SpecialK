@@ -969,6 +969,21 @@ struct SK_HID_PlayStationDevice
   std::vector <BYTE>            input_report;
   std::vector <BYTE>            output_report;
 
+  struct output_s {
+             uint32_t           last_crc32c      = 0; // Avoid unnecessary output reports
+    volatile uint64_t           writes_retired   = 0;
+    volatile uint64_t           writes_attempted = 0;
+
+    float getOutputRatio (void) const noexcept
+    {
+      return
+        static_cast <float> (
+          static_cast <double> (ReadULong64Acquire (&writes_retired)) /
+          static_cast <double> (ReadULong64Acquire (&writes_attempted))
+        );      
+    }
+  } output;
+
   struct rgb_s {
     BYTE r, g, b;
   } _color = { 255, 255, 255 };
