@@ -1195,7 +1195,7 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDispl
 }
 
 float
-SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32 tNow) const noexcept
+SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32 tNow) noexcept
 {
   NvU32 num_vblanks_in_period = 0;
 
@@ -1213,7 +1213,7 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32
                 records [record_idx];
 
     if ( record.timestamp_ms != 0 &&
-         record.timestamp_ms >= (tNow - 750) ) // Use the last 3/4 of a second
+         record.timestamp_ms >= (tNow - 500) ) // Use the last 1/2 second of data
     {
       ++num_vblanks_in_period;
 
@@ -1235,10 +1235,21 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32
   if (num_vblanks_in_period == 0)
     return 0.0f;
 
-  return
-    static_cast <float> (
-               static_cast <double> (vblank_count_max - vblank_count_min) /
-      (0.001 * static_cast <double> (vblank_n         - vblank_t0)) );
+  // Apply smoothing because these numbers are hyperactive
+  float new_average = static_cast <float> (
+                      static_cast <double> (vblank_count_max - vblank_count_min) /
+             (0.001 * static_cast <double> (vblank_n         - vblank_t0))
+                                          );
+
+  if (last_average != 0.0f)
+  {
+    new_average =
+      (2.0f * last_average + new_average) * 0.333333f;
+  }
+
+  last_average = new_average;
+
+  return new_average;
 }
 
 bool

@@ -291,8 +291,10 @@ public:
           NvU32           vblank_count         =   0;
         }                 records [MaxVBlankRecords];
           NvU32           head                 =   0;
-          void  addRecord   (NvDisplayHandle nv_disp, NvU32 tNow)       noexcept;
-          float getVBlankHz (                         NvU32 tNow) const noexcept;
+          ULONG64         last_frame_sampled   =   0;
+          float           last_average         =0.0f;
+          void  addRecord   (NvDisplayHandle nv_disp, NvU32 tNow) noexcept;
+          float getVBlankHz (                         NvU32 tNow) noexcept;
       } vblank_counter;
 
       static output_s*    getDisplayFromId     (NvU32           display_id)     noexcept;

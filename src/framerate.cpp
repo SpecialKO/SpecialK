@@ -2667,13 +2667,6 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
           kSortBuffer.second.end   (), std::greater <> ()
         );
 
-        kSortBuffer.first =
-          SK_GetFramesDrawn ();
-
-        InterlockedExchange (&pWorker->work_idx, work_idx ? 0 : 1);
-
-        SetEvent (pWorker->hSignalConsume.m_h);
-
         if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
         {
           //
@@ -2686,11 +2679,24 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
 
           if (nvapi_display.display_handle != nullptr)
           {
-            nvapi_display.vblank_counter.addRecord (
-              nvapi_display.display_handle, SK_timeGetTime ()
-            );
+            const auto current_frame =
+              SK_GetFramesDrawn ();
+
+            if (nvapi_display.vblank_counter.last_frame_sampled < current_frame - 1)
+            {   nvapi_display.vblank_counter.last_frame_sampled = current_frame;
+              nvapi_display.vblank_counter.addRecord (
+                nvapi_display.display_handle, SK_timeGetTime ()
+              );
+            }
           }
         }
+
+        kSortBuffer.first =
+          SK_GetFramesDrawn ();
+
+        InterlockedExchange (&pWorker->work_idx, work_idx ? 0 : 1);
+
+        SetEvent (pWorker->hSignalConsume.m_h);
       }
 
       SK_Thread_CloseSelf ();
