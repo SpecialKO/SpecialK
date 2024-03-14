@@ -4216,24 +4216,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
               bIsInputActive = true;
             }
 
-#pragma region (deadzone)
-            if (config.input.gamepad.xinput.standard_deadzone)
-            {
-              if (abs (pDevice->xinput.report.Gamepad.sThumbLX)     < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
-                       pDevice->xinput.report.Gamepad.sThumbLX = 0;
-              if (abs (pDevice->xinput.report.Gamepad.sThumbLY)     < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
-                       pDevice->xinput.report.Gamepad.sThumbLY = 0;
-              if (abs (pDevice->xinput.report.Gamepad.sThumbRX)     < XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
-                       pDevice->xinput.report.Gamepad.sThumbRX = 0;
-              if (abs (pDevice->xinput.report.Gamepad.sThumbRY)     < XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
-                       pDevice->xinput.report.Gamepad.sThumbRY = 0;
-              if (     pDevice->xinput.report.Gamepad.bLeftTrigger   < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
-                       pDevice->xinput.report.Gamepad.bLeftTrigger  = 0;
-              if (     pDevice->xinput.report.Gamepad.bRightTrigger  < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
-                       pDevice->xinput.report.Gamepad.bRightTrigger = 0;
-            }
-#pragma endregion
-
             bool bIsDeviceMostRecentlyActive = true;
 
             for ( auto& ps_controller : SK_HID_PlayStationControllers )
@@ -4600,8 +4582,27 @@ SK_HID_PlayStationDevice::request_input_report (void)
             if ( memcmp ( &pDevice->xinput.prev_report.Gamepad,
                           &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD)) )
             {
+              pDevice->xinput.report.dwPacketNumber++;
               pDevice->xinput.prev_report = pDevice->xinput.report;
             }
+
+#pragma region (deadzone)
+            if (config.input.gamepad.xinput.standard_deadzone)
+            {
+              if (abs (pDevice->xinput.report.Gamepad.sThumbLX)     < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
+                       pDevice->xinput.report.Gamepad.sThumbLX = 0;
+              if (abs (pDevice->xinput.report.Gamepad.sThumbLY)     < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
+                       pDevice->xinput.report.Gamepad.sThumbLY = 0;
+              if (abs (pDevice->xinput.report.Gamepad.sThumbRX)     < XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
+                       pDevice->xinput.report.Gamepad.sThumbRX = 0;
+              if (abs (pDevice->xinput.report.Gamepad.sThumbRY)     < XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
+                       pDevice->xinput.report.Gamepad.sThumbRY = 0;
+              if (     pDevice->xinput.report.Gamepad.bLeftTrigger   < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+                       pDevice->xinput.report.Gamepad.bLeftTrigger  = 0;
+              if (     pDevice->xinput.report.Gamepad.bRightTrigger  < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+                       pDevice->xinput.report.Gamepad.bRightTrigger = 0;
+            }
+#pragma endregion
 
             if (bIsInputActive)
             {

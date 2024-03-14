@@ -1,4 +1,9 @@
-﻿24.3.15
+﻿24.3.15.1
+=========
+ + Fixed SDL not picking up the first digital input after a deadzone'd
+     analog input was not translated to XInput.
+
+24.3.15
 =======
  + Smooth VRR VBlank rate calculations slightly to avoid unreadable jumps
  + Added XInput deadzone filtering (on by default) to XInput emulation for
