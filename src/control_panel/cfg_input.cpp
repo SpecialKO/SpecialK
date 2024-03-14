@@ -1442,6 +1442,55 @@ SK::ControlPanel::Input::Draw (void)
                 config.utility.save_async ();
               }
             }
+            else {
+              ImGui::SameLine ();
+            }
+
+            bool changed =
+              ImGui::SliderInt ( "HID Input Buffers",
+                &config.input.gamepad.hid.max_allowed_buffers, 2, 128, "%d-Buffer Circular Queue" );
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip    ();
+              ImGui::TextUnformatted ("Reduce Input Buffer Queue (Latency) on Gamepads");
+              ImGui::Separator       ();
+              ImGui::BulletText      (
+                "Applies to DualSense/Shock4 native games and SK's XInput Mode");
+              ImGui::BulletText      (
+                "Lowering this (default=32) may theoretically cause dropped inputs");
+              ImGui::BulletText      (
+                "Does not affect Steam Input or DS4Windows");
+              ImGui::EndTooltip      ();
+            }
+
+            if (changed)
+            {
+              config.input.gamepad.hid.max_allowed_buffers =
+                std::clamp (config.input.gamepad.hid.max_allowed_buffers, 2, 512);
+
+              for ( auto& controller : SK_HID_PlayStationControllers )
+              {
+                if (controller.bConnected)
+                {
+                  controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
+                  controller.setPollingFrequency (0);
+                }
+              }
+
+              for ( auto &[handle, hid_controller] : SK_HID_DeviceFiles )
+              {
+                if (hid_controller.hFile != INVALID_HANDLE_VALUE &&
+                    hid_controller.hFile == handle) // Sanity Check
+                {
+                  hid_controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
+                  hid_controller.setPollingFrequency (0);
+                }
+              }
+
+              config.utility.save_async ();
+            }
+
             ImGui::EndGroup   ();
           }
 

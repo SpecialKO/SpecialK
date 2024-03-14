@@ -1030,6 +1030,10 @@ struct {
       sk::ParameterBool*  disable                 = nullptr;
     } steam;
 
+    struct {
+      sk::ParameterInt*   max_allowed_buffers     = nullptr;
+    } hid;
+
     sk::ParameterInt*     disabled_to_game        = nullptr;
     sk::ParameterBool*    bt_input_only           = nullptr;
   } gamepad;
@@ -1568,6 +1572,9 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.hook_hid,                 L"Install hooks for HID",                                     dll_ini,         L"Input.Gamepad",         L"EnableHID"),
     ConfigEntry (input.gamepad.disable_rumble,           L"Disable Rumble from ALL SOURCES (across all APIs)",         dll_ini,         L"Input.Gamepad",         L"DisableRumble"),
     ConfigEntry (input.gamepad.bt_input_only,            L"Prevent Bluetooth Output (PlayStation DirectInput compat.)",dll_ini,         L"Input.Gamepad",         L"BluetoothInputOnly"),
+    ConfigEntry (input.gamepad.hid.max_allowed_buffers,  L"Maximum allowed HID buffers; 32=NS default, 8=SK default,"
+                                                         L" this will lower latency at the expense of possibly missed"
+                                                         L" inputs...",                                                dll_ini,         L"Input.Gamepad",         L"MaxHIDPollingBuffers"),
 
     ConfigEntry (input.gamepad.hook_xinput,              L"Install hooks for XInput",                                  dll_ini,         L"Input.XInput",          L"Enable"),
     ConfigEntry (input.gamepad.rehook_xinput,            L"Re-install XInput hooks if hookchain is modified",          dll_ini,         L"Input.XInput",          L"Rehook"),
@@ -4170,6 +4177,7 @@ auto DeclKeybind =
     config.input.gamepad.xinput.placehold [3] = ( placeholder_mask & 0x8 );
   }
 
+  input.gamepad.hid.max_allowed_buffers->load  (config.input.gamepad.hid.max_allowed_buffers);
   input.gamepad.bt_input_only->load            (config.input.gamepad.bt_input_only);
   input.gamepad.disable_rumble->load           (config.input.gamepad.disable_rumble);
   input.gamepad.xinput.hook_setstate->load     (config.input.gamepad.xinput.hook_setstate);
@@ -5584,6 +5592,7 @@ SK_SaveConfig ( std::wstring name,
 
   input.gamepad.xinput.assignment->store           (xinput_assign);
   input.gamepad.xinput.disable_slots->store        (xinput_disable);
+  input.gamepad.hid.max_allowed_buffers->store     (config.input.gamepad.hid.max_allowed_buffers);
   input.gamepad.bt_input_only->store               (config.input.gamepad.bt_input_only);
   input.gamepad.disable_rumble->store              (config.input.gamepad.disable_rumble);
   input.gamepad.xinput.hook_setstate->store        (config.input.gamepad.xinput.hook_setstate);

@@ -1008,6 +1008,10 @@ struct sk_config_t
         int   ui_slot             =     0;
         bool  disabled_to_game    = false;
       } steam;
+
+      struct hid_s {
+        int   max_allowed_buffers =     8;
+      } hid;
     } gamepad;
 
     struct keyboard_s {

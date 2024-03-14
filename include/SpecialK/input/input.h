@@ -35,6 +35,8 @@
 #include <cstdint>
 #include <assert.h>
 
+#include <concurrent_unordered_map.h>
+
 extern LARGE_INTEGER SK_QueryPerf (void) noexcept;
 extern int64_t       SK_PerfFreq;
 
@@ -882,6 +884,8 @@ SK_DeviceIoControl (HANDLE       hDevice,
 
 struct SK_HID_PlayStationDevice
 {
+  SK_HID_PlayStationDevice (void);
+
   enum PowerState : uint8_t {
     Discharging         = 0x00, // Use PowerPercent
     Charging            = 0x01, // Use PowerPercent
@@ -999,9 +1003,48 @@ struct SK_HID_PlayStationDevice
 
   bool request_input_report (void);
   bool write_output_report  (void);
+
+  bool setPollingFrequency (DWORD dwFreq);
+  bool setBufferCount      (DWORD dwBuffers);
 };
 
-extern concurrency::concurrent_vector <SK_HID_PlayStationDevice> SK_HID_PlayStationControllers;
+struct SK_HID_OverlappedRequest {
+  HANDLE hFile                 = INVALID_HANDLE_VALUE;
+  DWORD  dwNumberOfBytesToRead = 0;
+  LPVOID lpBuffer              = nullptr;
+};
+
+struct SK_HID_DeviceFile {
+  HIDP_CAPS         hidpCaps                           = { };
+  wchar_t           wszProductName      [128]          = { };
+  wchar_t           wszManufacturerName [128]          = { };
+  wchar_t           wszSerialNumber     [128]          = { };
+  wchar_t           wszDevicePath       [MAX_PATH + 2] = { };
+  sk_input_dev_type device_type                        = sk_input_dev_type::Other;
+  USHORT            device_vid                         = 0x0;
+  USHORT            device_pid                         = 0x0;
+  BOOL              bDisableDevice                     = FALSE;
+  HANDLE            hFile                              = INVALID_HANDLE_VALUE;
+
+  SK_HID_DeviceFile (void) = default;
+
+  SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath);
+
+  bool setPollingFrequency (DWORD dwFreq);
+  bool setBufferCount      (DWORD dwBuffers);
+
+  bool isInputAllowed (void) const;
+
+  int neutralizeHidInput (uint8_t report_id, DWORD dwSize);
+  int remapHidInput      (void);
+
+  concurrency::concurrent_unordered_map <LPOVERLAPPED, SK_HID_OverlappedRequest> _overlappedRequests;
+  concurrency::concurrent_unordered_map <DWORD,        std::vector <byte>>       _cachedInputReportsByReportId;
+  concurrency::concurrent_unordered_map <DWORD,        std::vector <byte>>       _blockedInputReportsBySize;
+};
+
+extern concurrency::concurrent_vector        <SK_HID_PlayStationDevice>  SK_HID_PlayStationControllers;
+extern concurrency::concurrent_unordered_map <HANDLE, SK_HID_DeviceFile> SK_HID_DeviceFiles;
 
 bool SK_ImGui_HasPlayStationController   (void);
 bool SK_ImGui_HasDualSenseController     (void);

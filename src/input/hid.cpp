@@ -98,13 +98,6 @@ enum class SK_Input_DeviceFileType
   Invalid = 4
 };
 
-
-struct SK_HID_OverlappedRequest {
-  HANDLE hFile                 = INVALID_HANDLE_VALUE;
-  DWORD  dwNumberOfBytesToRead = 0;
-  LPVOID lpBuffer              = nullptr;
-};
-
 struct SK_NVIDIA_DeviceFile {
   SK_NVIDIA_DeviceFile (void) = default;
   SK_NVIDIA_DeviceFile (HANDLE file, const wchar_t *wszPath) : hFile (file)
@@ -118,240 +111,285 @@ struct SK_NVIDIA_DeviceFile {
   bool    bDisableDevice               = FALSE;
 };
 
-struct SK_HID_DeviceFile {
-  HIDP_CAPS         hidpCaps                           = { };
-  wchar_t           wszProductName      [128]          = { };
-  wchar_t           wszManufacturerName [128]          = { };
-  wchar_t           wszSerialNumber     [128]          = { };
-  wchar_t           wszDevicePath       [MAX_PATH + 2] = { };
-  sk_input_dev_type device_type                        = sk_input_dev_type::Other;
-  USHORT            device_vid                         = 0x0;
-  USHORT            device_pid                         = 0x0;
-  BOOL              bDisableDevice                     = FALSE;
-  HANDLE            hFile                              = INVALID_HANDLE_VALUE;
+SK_HID_DeviceFile::SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
+{
+  static
+    concurrency::concurrent_unordered_map <std::wstring, SK_HID_DeviceFile> known_paths;
 
-  SK_HID_DeviceFile (void) = default;
-
-  SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
+  // This stuff can be REALLY slow when games are constantly enumerating devices,
+  //   so keep a cache handy.
+  if (known_paths.count (wszPath))
   {
-    static
-      concurrency::concurrent_unordered_map <std::wstring, SK_HID_DeviceFile> known_paths;
+    hidpCaps            = known_paths.at (wszPath).hidpCaps;
 
-    // This stuff can be REALLY slow when games are constantly enumerating devices,
-    //   so keep a cache handy.
-    if (known_paths.count (wszPath))
+    wcsncpy_s ( wszDevicePath, MAX_PATH,
+                wszPath,       _TRUNCATE );
+
+    wcsncpy_s (                          wszProductName,      128,
+                known_paths.at (wszPath).wszProductName,           _TRUNCATE );
+    wcsncpy_s (                          wszManufacturerName, 128,
+                known_paths.at (wszPath).wszManufacturerName,      _TRUNCATE );
+    wcsncpy_s (                          wszSerialNumber,     128,
+                known_paths.at (wszPath).wszSerialNumber,          _TRUNCATE );
+
+    device_type         = known_paths.at (wszPath).device_type;
+    device_vid          = known_paths.at (wszPath).device_vid;
+    device_pid          = known_paths.at (wszPath).device_pid;
+    bDisableDevice      = known_paths.at (wszPath).bDisableDevice;
+
+    hFile = file;
+  }
+
+  else
+  {
+    if (wszPath != nullptr)
     {
-      hidpCaps            = known_paths.at (wszPath).hidpCaps;
-
       wcsncpy_s ( wszDevicePath, MAX_PATH,
                   wszPath,       _TRUNCATE );
-
-      wcsncpy_s (                          wszProductName,      128,
-                  known_paths.at (wszPath).wszProductName,           _TRUNCATE );
-      wcsncpy_s (                          wszManufacturerName, 128,
-                  known_paths.at (wszPath).wszManufacturerName,      _TRUNCATE );
-      wcsncpy_s (                          wszSerialNumber,     128,
-                  known_paths.at (wszPath).wszSerialNumber,          _TRUNCATE );
-
-      device_type         = known_paths.at (wszPath).device_type;
-      device_vid          = known_paths.at (wszPath).device_vid;
-      device_pid          = known_paths.at (wszPath).device_pid;
-      bDisableDevice      = known_paths.at (wszPath).bDisableDevice;
-
-      hFile = file;
     }
 
-    else
+    PHIDP_PREPARSED_DATA                 preparsed_data = nullptr;
+    if (SK_HidD_GetPreparsedData (file, &preparsed_data))
     {
-      if (wszPath != nullptr)
+      if (HIDP_STATUS_SUCCESS == SK_HidP_GetCaps (preparsed_data, &hidpCaps))
       {
-        wcsncpy_s ( wszDevicePath, MAX_PATH,
-                    wszPath,       _TRUNCATE );
-      }
-
-      PHIDP_PREPARSED_DATA                 preparsed_data = nullptr;
-      if (SK_HidD_GetPreparsedData (file, &preparsed_data))
-      {
-        if (HIDP_STATUS_SUCCESS == SK_HidP_GetCaps (preparsed_data, &hidpCaps))
-        {
 #if 0
-          if (! DuplicateHandle (
-                  GetCurrentProcess (), file,
-                  GetCurrentProcess (), &hFile,
-                    0x0, FALSE, DUPLICATE_SAME_ACCESS ) )
-          {
-            SK_LOGi0 (L"Failed to duplicate handle for HID device: %ws!", lpFileName);
-            return;
-          }
+        if (! DuplicateHandle (
+                GetCurrentProcess (), file,
+                GetCurrentProcess (), &hFile,
+                  0x0, FALSE, DUPLICATE_SAME_ACCESS ) )
+        {
+          SK_LOGi0 (L"Failed to duplicate handle for HID device: %ws!", lpFileName);
+          return;
+        }
 #else
-          hFile       = file;
+        hFile       = file;
 #endif
 
-          DWORD dwBytesRead = 0;
+        DWORD dwBytesRead = 0;
 
-          if (hidpCaps.UsagePage == HID_USAGE_PAGE_GENERIC)
+        if (hidpCaps.UsagePage == HID_USAGE_PAGE_GENERIC)
+        {
+          switch (hidpCaps.Usage)
           {
-            switch (hidpCaps.Usage)
+            case HID_USAGE_GENERIC_GAMEPAD:
+            case HID_USAGE_GENERIC_JOYSTICK:
+            case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
             {
-              case HID_USAGE_GENERIC_GAMEPAD:
-              case HID_USAGE_GENERIC_JOYSTICK:
-              case HID_USAGE_GENERIC_MULTI_AXIS_CONTROLLER:
-              {
-                SK_DeviceIoControl (
-                  hFile, IOCTL_HID_GET_PRODUCT_STRING, 0, 0,
-                  wszProductName, 128, &dwBytesRead, nullptr
-                );
+              SK_DeviceIoControl (
+                hFile, IOCTL_HID_GET_PRODUCT_STRING, 0, 0,
+                wszProductName, 128, &dwBytesRead, nullptr
+              );
 
-                SK_DeviceIoControl (
-                  hFile, IOCTL_HID_GET_MANUFACTURER_STRING, 0, 0,
-                  wszManufacturerName, 128, &dwBytesRead, nullptr
-                );
+              SK_DeviceIoControl (
+                hFile, IOCTL_HID_GET_MANUFACTURER_STRING, 0, 0,
+                wszManufacturerName, 128, &dwBytesRead, nullptr
+              );
 
-                SK_DeviceIoControl (
-                  hFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
-                  wszSerialNumber, 128, &dwBytesRead, nullptr
-                );
+              SK_DeviceIoControl (
+                hFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
+                wszSerialNumber, 128, &dwBytesRead, nullptr
+              );
+
+              setPollingFrequency (0);
 
 #ifdef DEBUG
-                SK_ImGui_Warning (wszSerialNumber);
+              SK_ImGui_Warning (wszSerialNumber);
 #endif
 
-                HIDD_ATTRIBUTES hidAttribs      = {                      };
-                                hidAttribs.Size = sizeof (HIDD_ATTRIBUTES);
+              HIDD_ATTRIBUTES hidAttribs      = {                      };
+                              hidAttribs.Size = sizeof (HIDD_ATTRIBUTES);
 
-                SK_HidD_GetAttributes (hFile, &hidAttribs);
+              SK_HidD_GetAttributes (hFile, &hidAttribs);
 
-                device_pid = hidAttribs.ProductID;
-                device_vid = hidAttribs.VendorID;
+              device_pid = hidAttribs.ProductID;
+              device_vid = hidAttribs.VendorID;
 
-                device_type = sk_input_dev_type::Gamepad;
+              device_type = sk_input_dev_type::Gamepad;
 
-                LONG lImmediate = 0;
+              ULONG ulBuffers = 0;
+
+              if (config.input.gamepad.hid.max_allowed_buffers > 0)
+              {
+                dwBytesRead = 0;
 
                 SK_DeviceIoControl (
-                  hFile, IOCTL_HID_SET_POLL_FREQUENCY_MSEC,
-                    &lImmediate, sizeof (LONG), nullptr, 0, &dwBytesRead, nullptr );
+                  hFile, IOCTL_GET_NUM_DEVICE_INPUT_BUFFERS,
+                    nullptr, 0, &ulBuffers, sizeof (ULONG),
+                      &dwBytesRead, nullptr );
 
-                SK_ImGui_CreateNotification (
-                  "HID.GamepadAttached", SK_ImGui_Toast::Info,
-                  *wszManufacturerName != L'\0' ?
-                    SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
-                       wszManufacturerName,
-                       wszProductName, device_vid,
-                                       device_pid ).c_str () :
-                    SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x",
-                       wszProductName, device_vid,
-                                       device_pid ).c_str (),
-                  "HID Compliant Gamepad Connected", 10000
-                );
-              } break;
+                if (ulBuffers > (UINT)config.input.gamepad.hid.max_allowed_buffers)
+                  setBufferCount     (config.input.gamepad.hid.max_allowed_buffers);
+                setPollingFrequency  (0);
+                
+                dwBytesRead = 0;
+                
+                SK_DeviceIoControl (
+                  hFile, IOCTL_GET_NUM_DEVICE_INPUT_BUFFERS,
+                    nullptr, 0, &ulBuffers, sizeof (ULONG),
+                      &dwBytesRead, nullptr );
+              }
 
-              case HID_USAGE_GENERIC_POINTER:
-              case HID_USAGE_GENERIC_MOUSE:
-              {
-                device_type = sk_input_dev_type::Mouse;
-              } break;
+              SK_ImGui_CreateNotification (
+                "HID.GamepadAttached", SK_ImGui_Toast::Info,
+                *wszManufacturerName != L'\0' ?
+                  SK_FormatString ("%ws: %ws\r\n\tVID: 0x%04x | PID: 0x%04x -:- Buffers: %d]",
+                     wszManufacturerName,
+                     wszProductName, device_vid,
+                                     device_pid, ulBuffers ).c_str () :
+                  SK_FormatString ("Generic Driver: %ws\r\n\tVID: 0x%04x | PID: 0x%04x\r\n"
+                                   "\t[Driver Buffers: %d]",
+                     wszProductName, device_vid,
+                                     device_pid, ulBuffers ).c_str (),
+                "HID Compliant Gamepad Connected", 10000
+              );
+            } break;
 
-              case HID_USAGE_GENERIC_KEYBOARD:
-              case HID_USAGE_GENERIC_KEYPAD:
-              {
-                device_type = sk_input_dev_type::Keyboard;
-              } break;
-            }
-          }
+            case HID_USAGE_GENERIC_POINTER:
+            case HID_USAGE_GENERIC_MOUSE:
+            {
+              device_type = sk_input_dev_type::Mouse;
 
-          if (device_type == sk_input_dev_type::Other)
-          {
-            if (hidpCaps.UsagePage == HID_USAGE_PAGE_KEYBOARD)
+              setPollingFrequency (0);
+            } break;
+
+            case HID_USAGE_GENERIC_KEYBOARD:
+            case HID_USAGE_GENERIC_KEYPAD:
             {
               device_type = sk_input_dev_type::Keyboard;
-            }
 
-            else if (hidpCaps.UsagePage == HID_USAGE_PAGE_VR    ||
-                     hidpCaps.UsagePage == HID_USAGE_PAGE_SPORT ||
-                     hidpCaps.UsagePage == HID_USAGE_PAGE_GAME  ||
-                     hidpCaps.UsagePage == HID_USAGE_PAGE_ARCADE)
-            {
-              device_type = sk_input_dev_type::Gamepad;
-            }
+              setPollingFrequency (0);
+            } break;
+          }
+        }
 
-            else
-            {
-              if (config.system.log_level > 0)
-              {
-                SK_DeviceIoControl (
-                  hFile, IOCTL_HID_GET_PRODUCT_STRING, 0, 0,
-                  wszProductName, 128, &dwBytesRead, nullptr
-                );
-
-                SK_DeviceIoControl (
-                  hFile, IOCTL_HID_GET_MANUFACTURER_STRING, 0, 0,
-                  wszManufacturerName, 128, &dwBytesRead, nullptr
-                );
-
-                SK_DeviceIoControl (
-                  hFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
-                  wszSerialNumber, 128, &dwBytesRead, nullptr
-                );
-
-                SK_ImGui_Warning (wszSerialNumber);
-
-                SK_LOGi1 (
-                  L"Unknown HID Device Type (Product=%ws):  UsagePage=%x, Usage=%x",
-                    wszProductName, hidpCaps.UsagePage, hidpCaps.Usage
-                );
-              }
-            }
+        if (device_type == sk_input_dev_type::Other)
+        {
+          if (hidpCaps.UsagePage == HID_USAGE_PAGE_KEYBOARD)
+          {
+            device_type = sk_input_dev_type::Keyboard;
           }
 
-          SK_ReleaseAssert ( // WTF?
-            SK_HidD_FreePreparsedData (preparsed_data) != FALSE
-          );
+          else if (hidpCaps.UsagePage == HID_USAGE_PAGE_VR    ||
+                   hidpCaps.UsagePage == HID_USAGE_PAGE_SPORT ||
+                   hidpCaps.UsagePage == HID_USAGE_PAGE_GAME  ||
+                   hidpCaps.UsagePage == HID_USAGE_PAGE_ARCADE)
+          {
+            device_type = sk_input_dev_type::Gamepad;
+          }
+
+          else
+          {
+            if (config.system.log_level > 0)
+            {
+              SK_DeviceIoControl (
+                hFile, IOCTL_HID_GET_PRODUCT_STRING, 0, 0,
+                wszProductName, 128, &dwBytesRead, nullptr
+              );
+
+              SK_DeviceIoControl (
+                hFile, IOCTL_HID_GET_MANUFACTURER_STRING, 0, 0,
+                wszManufacturerName, 128, &dwBytesRead, nullptr
+              );
+
+              SK_DeviceIoControl (
+                hFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
+                wszSerialNumber, 128, &dwBytesRead, nullptr
+              );
+
+              SK_ImGui_Warning (wszSerialNumber);
+
+              SK_LOGi1 (
+                L"Unknown HID Device Type (Product=%ws):  UsagePage=%x, Usage=%x",
+                  wszProductName, hidpCaps.UsagePage, hidpCaps.Usage
+              );
+            }
+          }
         }
+
+        SK_ReleaseAssert ( // WTF?
+          SK_HidD_FreePreparsedData (preparsed_data) != FALSE
+        );
+
+        setPollingFrequency (0);
       }
-
-      known_paths.insert ({ wszPath, *this });
     }
+
+    known_paths.insert ({ wszPath, *this });
   }
 
-  bool setPollingFrequency (DWORD dwFreq)
-  {
-    std::ignore = dwFreq;
+  setPollingFrequency (0);
+  setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
+}
 
+SK_HID_PlayStationDevice::SK_HID_PlayStationDevice (void)
+{
+  setPollingFrequency (0);
+  setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
+}
+
+bool
+SK_HID_DeviceFile::setPollingFrequency (DWORD dwFreq)
+{
+  if ((intptr_t)hFile <= 0)
     return false;
-  }
 
-  bool isInputAllowed (void) const
+  return
+    SK_DeviceIoControl (
+      hFile, IOCTL_HID_SET_POLL_FREQUENCY_MSEC,
+        &dwFreq, sizeof (DWORD), nullptr, 0,
+          nullptr, nullptr );
+}
+
+bool
+SK_HID_DeviceFile::setBufferCount (DWORD dwBuffers)
+{
+  if (dwBuffers < 2)
   {
-    if (bDisableDevice)
-      return false;
+    SK_LOGi0 (
+      L"Invalid Buffer Count (%d) passed to "
+      L"SK_HID_DeviceFile::setBufferCount (...); "
+      L"Using minimum supported value (2) instead.",
+      dwBuffers
+    );
 
-    switch (device_type)
-    {
-      case sk_input_dev_type::Mouse:
-        return (! SK_ImGui_WantMouseCapture ());
-      case sk_input_dev_type::Keyboard:
-        return (! SK_ImGui_WantKeyboardCapture ());
-      case sk_input_dev_type::Gamepad:
-        return (! SK_ImGui_WantGamepadCapture ());
-      default: // No idea what this is, ignore it...
-        break;
-    }
-
-    return true;
+    dwBuffers = 2;
   }
 
-  int neutralizeHidInput (uint8_t report_id, DWORD dwSize);
-  int remapHidInput      (void);
+  if ((intptr_t)hFile <= 0)
+    return false;
 
-  std::vector<BYTE> last_data_read;
-  concurrency::concurrent_unordered_map <LPOVERLAPPED, SK_HID_OverlappedRequest> _overlappedRequests;
-  concurrency::concurrent_unordered_map <DWORD,        std::vector <byte>>       _cachedInputReportsByReportId;
-  concurrency::concurrent_unordered_map <DWORD,        std::vector <byte>>       _blockedInputReportsBySize;
-};
+  return
+    SK_DeviceIoControl (
+      hFile, IOCTL_SET_NUM_DEVICE_INPUT_BUFFERS,
+        &dwBuffers, sizeof (dwBuffers), nullptr,
+          0, nullptr, nullptr
+    );
+}
+
+bool
+SK_HID_DeviceFile::isInputAllowed (void) const
+{
+  if (bDisableDevice)
+    return false;
+
+  switch (device_type)
+  {
+    case sk_input_dev_type::Mouse:
+      return (! SK_ImGui_WantMouseCapture ());
+    case sk_input_dev_type::Keyboard:
+      return (! SK_ImGui_WantKeyboardCapture ());
+    case sk_input_dev_type::Gamepad:
+      return (! SK_ImGui_WantGamepadCapture ());
+    default: // No idea what this is, ignore it...
+      break;
+  }
+
+  return true;
+}
 
        concurrency::concurrent_vector        <SK_HID_PlayStationDevice>     SK_HID_PlayStationControllers;
-static concurrency::concurrent_unordered_map <HANDLE, SK_HID_DeviceFile>    SK_HID_DeviceFiles;
+       concurrency::concurrent_unordered_map <HANDLE, SK_HID_DeviceFile>    SK_HID_DeviceFiles;
 static concurrency::concurrent_unordered_map <HANDLE, SK_NVIDIA_DeviceFile> SK_NVIDIA_DeviceFiles;
 
 // Faster check for known device files, the type can be checked after determining whether SK
@@ -3273,6 +3311,45 @@ SK_HID_PlayStationDevice::setVibration (
 }
 
 bool
+SK_HID_PlayStationDevice::setPollingFrequency (DWORD dwFreq)
+{
+  if ((intptr_t)hDeviceFile <= 0)
+    return false;
+
+  return
+    SK_DeviceIoControl (
+      hDeviceFile, IOCTL_HID_SET_POLL_FREQUENCY_MSEC,
+        &dwFreq, sizeof (DWORD), nullptr, 0,
+          nullptr, nullptr );
+}
+
+bool
+SK_HID_PlayStationDevice::setBufferCount (DWORD dwBuffers)
+{
+  if (dwBuffers < 2)
+  {
+    SK_LOGi0 (
+      L"Invalid Buffer Count (%d) passed to "
+      L"SK_HID_DeviceFile::setBufferCount (...); "
+      L"Using minimum supported value (2) instead.",
+      dwBuffers
+    );
+
+    dwBuffers = 2;
+  }
+
+  if ((intptr_t)hDeviceFile <= 0)
+    return false;
+
+  return
+    SK_DeviceIoControl (
+      hDeviceFile, IOCTL_SET_NUM_DEVICE_INPUT_BUFFERS,
+        &dwBuffers, sizeof (dwBuffers), nullptr,
+          0, nullptr, nullptr
+    );
+}
+
+bool
 SK_HID_PlayStationDevice::request_input_report (void)
 {
   if (! bConnected)
@@ -4562,7 +4639,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
       SK_Thread_CreateEx ([](LPVOID pData)->DWORD
       {
-        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_HIGHEST);
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_ABOVE_NORMAL);
 
         SK_HID_PlayStationDevice* pDevice =
           (SK_HID_PlayStationDevice *)pData;
@@ -5691,100 +5768,5 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
 
 int SK_HID_DeviceFile::remapHidInput (void)
 {
-  switch (device_vid)
-  {
-    case SK_HID_VID_SONY:
-    {
-      switch (device_pid)
-      {
-        case SK_HID_PID_DUALSENSE_EDGE:
-        case SK_HID_PID_DUALSENSE:
-        {
-          if (last_data_read.size () >= 64)
-          {
-            if (last_data_read [0] == 0x1)
-            {
-              SK_HID_DualSense_GetStateData* pData =
-                (SK_HID_DualSense_GetStateData *)&(last_data_read [1]);
-
-              // The analog axes
-                 pData->DPad               = Neutral;
-                 pData->ButtonSquare       = 0;
-                 pData->ButtonCross        = 0;
-                 pData->ButtonCircle       = 0;
-                 pData->ButtonTriangle     = 0;
-                 pData->ButtonL1           = 0;
-                 pData->ButtonR1           = 0;
-                 pData->ButtonL2           = 0;
-                 pData->ButtonR2           = 0;
-                 pData->ButtonCreate       = 0;
-                 pData->ButtonOptions      = 0;
-                 pData->ButtonL3           = 0;
-                 pData->ButtonR3           = 0;
-                 pData->ButtonHome         = 0;
-
-                 bool create = 
-                   pData->ButtonCreate;
-                 bool pad = 
-                   pData->ButtonPad;
-                 
-                 pData->ButtonPad    = create;
-                 pData->ButtonCreate = pad;
-                 pData->ButtonMute         = 0;
-                 pData->UNK1               = 0;
-                 pData->ButtonLeftFunction = 0;
-                 pData->ButtonRightFunction= 0;
-                 pData->ButtonLeftPaddle   = 0;
-                 pData->ButtonRightPaddle  = 0;
-                 pData->UNK2               = 0;
-              memset (
-                &pData->AngularVelocityX, 0, 12);
-
-              return 64;
-            }
-            //else if (last_data_read [0] == 0x31)
-            //{
-            //  SK_HID_DualSense_GetStateData* pData =
-            //    (SK_HID_DualSense_GetStateData *)&(last_data_read [2]);
-            //
-            //  // The analog axes
-            //  memset (
-            //    &pData->LeftStickX,  128,   4);
-            //  memset (
-            //    &pData->TriggerLeft,   0,   2);
-            //     pData->SeqNo++;
-            //     pData->DPad               = Neutral;
-            //     pData->ButtonSquare       = 0;
-            //     pData->ButtonCross        = 0;
-            //     pData->ButtonCircle       = 0;
-            //     pData->ButtonTriangle     = 0;
-            //     pData->ButtonL1           = 0;
-            //     pData->ButtonR1           = 0;
-            //     pData->ButtonL2           = 0;
-            //     pData->ButtonR2           = 0;
-            //     pData->ButtonCreate       = 0;
-            //     pData->ButtonOptions      = 0;
-            //     pData->ButtonL3           = 0;
-            //     pData->ButtonR3           = 0;
-            //     pData->ButtonHome         = 0;
-            //     pData->ButtonPad          = 0;
-            //     pData->ButtonMute         = 0;
-            //     pData->UNK1               = 0;
-            //     pData->ButtonLeftFunction = 0;
-            //     pData->ButtonRightFunction= 0;
-            //     pData->ButtonLeftPaddle   = 0;
-            //     pData->ButtonRightPaddle  = 0;
-            //     pData->UNK2               = 0;
-            //  memset (
-            //    &pData->AngularVelocityX, 0, 12);
-            //
-            //  return 78;
-            //}
-          }
-        } break;
-      }
-    } break;
-  }
-
   return 0;
 }

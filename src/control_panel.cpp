@@ -5708,9 +5708,6 @@ SK_ImGui_ControlPanel (void)
           {
             ImGui::BeginTooltip    ();
             ImGui::TextUnformatted ("Alternate frametime measure consistent with new PresentMon / RTSS methodology");
-            ImGui::Separator       ();
-            ImGui::BulletText      ("VRR Optimized Framerate Limiter consistency will appear worse...");
-            ImGui::BulletText      ("NVIDIA users can use Reflex End-of-Frame mode to stabilize VRR frametime");
             ImGui::EndTooltip      ();
           }
 

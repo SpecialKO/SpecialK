@@ -1,4 +1,18 @@
-﻿24.3.13.3
+﻿24.3.14
+=======
+ + Added new option to control the size of HID's input queue to assist
+     games that use native DualShock/DualSense w/ latency reduction.
+
+   >> Reduced circular queue depth to 2 from default of 32; missed inputs
+        are theoretically possible at very low framerates but most games
+          do not poll gamepad multiple times per-frame.
+
+ + New option technically works for all HID devices, but many games do
+     not use HID and instead use Steam Input; setting does not apply.
+
+   * The option -DOES- apply to SK's own XInput Emulation, however.
+
+24.3.13.3
 =========
  + Moved the start-of-frame event marker to the very end of Present, after
      any driver latency markers, etc.

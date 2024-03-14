@@ -289,6 +289,9 @@ SK_XInput_NotifyDeviceArrival (void)
                                   controller.bConnected = true;
                                   controller.bBluetooth =  //Bluetooth_Base_UUID
                                     StrStrIW (wszFileName, L"{00001124-0000-1000-8000-00805f9b34fb}");
+
+                                  controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
+                                  controller.setPollingFrequency (0);
 /*
                                   SK_ImGui_CreateNotification (
                                     "HID.GamepadReetached", SK_ImGui_Toast::Info,
@@ -364,6 +367,9 @@ SK_XInput_NotifyDeviceArrival (void)
                             if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
                             {
                               controller.bConnected = true;
+
+                              controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
+                              controller.setPollingFrequency (0);
 
                               if (SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
                               {
