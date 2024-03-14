@@ -33,6 +33,7 @@
 #include <SpecialK/input/xinput.h>
 
 #include <cstdint>
+#include <mutex>
 #include <assert.h>
 
 #include <concurrent_unordered_map.h>
@@ -960,6 +961,16 @@ struct SK_HID_PlayStationDevice
     XINPUT_STATE report       = { };
     UINT64       last_active  =  0 ;
   } xinput;
+
+  struct output_sync_s {
+    output_sync_s (void) {
+      dualshock4 = new std::mutex ();
+      dualsense  = new std::mutex ();
+    }
+
+    std::mutex* dualshock4;
+    std::mutex* dualsense;
+  } s_output_mutex;
 
   bool                          chord_activated = false;
 

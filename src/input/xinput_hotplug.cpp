@@ -290,6 +290,8 @@ SK_XInput_NotifyDeviceArrival (void)
                                   controller.bBluetooth =  //Bluetooth_Base_UUID
                                     StrStrIW (wszFileName, L"{00001124-0000-1000-8000-00805f9b34fb}");
 
+                                  controller.output.last_crc32c = 0;
+
                                   controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
                                   controller.setPollingFrequency (0);
 /*
@@ -309,6 +311,8 @@ SK_XInput_NotifyDeviceArrival (void)
                                   //SK_ImGui_Warning (L"PlayStation Controller Reconnected");
 
                                   has_existing = true;
+
+                                  controller.write_output_report ();
 
                                   if (        controller.hReconnectEvent != nullptr)
                                     SetEvent (controller.hReconnectEvent);
@@ -367,6 +371,8 @@ SK_XInput_NotifyDeviceArrival (void)
                             if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
                             {
                               controller.bConnected = true;
+
+                              controller.output.last_crc32c = 0;
 
                               controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
                               controller.setPollingFrequency (0);
@@ -458,9 +464,13 @@ SK_XInput_NotifyDeviceArrival (void)
                                 }
                               }
 
-                              controller.bConnected = true;
+                              controller.bConnected         = true;
+                              controller.output.last_crc32c = 0;
 
-                              SK_HID_PlayStationControllers.push_back (controller);
+                              auto iter =
+                                SK_HID_PlayStationControllers.push_back (controller);
+
+                              iter->write_output_report ();
 
                               //SK_ImGui_Warning (L"PlayStation Controller Connected");
                             }
@@ -490,8 +500,9 @@ SK_XInput_NotifyDeviceArrival (void)
                           {
                             if (! _wcsicmp (controller.wszDevicePath, wszFileName))
                             {
-                              controller.bConnected = false;
-                              controller.reset_rgb  = false;
+                              controller.bConnected         = false;
+                              controller.reset_rgb          = false;
+                              controller.output.last_crc32c = 0;
 
 /*
                               SK_ImGui_CreateNotification (

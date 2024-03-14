@@ -818,9 +818,13 @@ void SK_HID_SetupPlayStationControllers (void)
               }
             }
 
-            controller.bConnected = true;
+            controller.bConnected         = true;
+            controller.output.last_crc32c = 0;
   
-            SK_HID_PlayStationControllers.push_back (controller);
+            auto iter =
+              SK_HID_PlayStationControllers.push_back (controller);
+
+            iter->write_output_report ();
           }
         }
       }
@@ -3424,8 +3428,11 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
         if (! pDevice->bConnected)
         {
-          SK_SleepEx (50UL, TRUE);
-          continue;
+          if ( WAIT_OBJECT_0 !=
+                 WaitForSingleObject (pDevice->hReconnectEvent, 333UL) )
+          {
+            continue;
+          }
         }
 
         BOOL bReadAsync =
@@ -3437,7 +3444,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
           DWORD dwLastErr =
                GetLastError ();
 
-          // Invalid Handle and Device Not Connected get a 250 ms cooldown
+          // Invalid Handle and Device Not Connected get a 100 ms cooldown
           if ( dwLastErr != NOERROR              &&
                dwLastErr != ERROR_IO_PENDING     &&
                dwLastErr != ERROR_INVALID_HANDLE &&
@@ -3459,12 +3466,14 @@ SK_HID_PlayStationDevice::request_input_report (void)
             );
           }
 
-          if (dwLastErr != ERROR_IO_PENDING)
+          if ( dwLastErr != NOERROR &&
+               dwLastErr != ERROR_IO_PENDING )
           {
-            if (dwLastErr != ERROR_INVALID_HANDLE)
+            if ( dwLastErr != ERROR_INVALID_HANDLE &&
+                 dwLastErr != ERROR_NO_SUCH_DEVICE )
               SK_CancelIoEx (pDevice->hDeviceFile, &async_input_request);
 
-            SK_SleepEx (250UL, TRUE); // Prevent runaway CPU usage on failure
+            SK_SleepEx (100UL, TRUE); // Prevent runaway CPU usage on failure
 
             continue;
           }
@@ -4612,8 +4621,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
 bool
 SK_HID_PlayStationDevice::write_output_report (void)
 {
-  static std::mutex s_output_mutex;
-
   if (! bConnected)
     return false;
 
@@ -4882,8 +4889,8 @@ SK_HID_PlayStationDevice::write_output_report (void)
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
                                                             base_data_crc)
             {
-              SK_SleepEx (5UL, TRUE);
-              SetEvent   (pDevice->hOutputFinished);
+              SK_SleepEx (8UL, TRUE);
+              bFinished = true;
 
               _FinishPollRequest (false);
               continue;
@@ -5076,8 +5083,8 @@ SK_HID_PlayStationDevice::write_output_report (void)
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
                                                             base_data_crc)
             {
-              SK_SleepEx (5UL, TRUE);
-              SetEvent   (pDevice->hOutputFinished);
+              SK_SleepEx (8UL, TRUE);
+              bFinished = true;
 
               _FinishPollRequest (false);
               continue;
@@ -5098,7 +5105,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
           BOOL bWriteAsync = FALSE;
 
           {
-            std::scoped_lock write_lock (s_output_mutex);
+            std::scoped_lock write_lock (*pDevice->s_output_mutex.dualsense);
 
             bWriteAsync =
             SK_WriteFile ( pDevice->hDeviceFile, pDevice->output_report.data (),
@@ -5221,7 +5228,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
       SK_Thread_CreateEx ([](LPVOID pData)->DWORD
       {
-        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_HIGHEST);
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_ABOVE_NORMAL);
 
         SK_HID_PlayStationDevice* pDevice =
           (SK_HID_PlayStationDevice *)pData;
@@ -5396,8 +5403,8 @@ SK_HID_PlayStationDevice::write_output_report (void)
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
                                                             base_data_crc)
             {
-              SK_SleepEx (5UL, TRUE);
-              SetEvent   (pDevice->hOutputFinished);
+              SK_SleepEx (8UL, TRUE);
+              bFinished = true;
 
               _FinishPollRequest (false);
               continue;
@@ -5526,8 +5533,8 @@ SK_HID_PlayStationDevice::write_output_report (void)
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
                                                             base_data_crc)
             {
-              SK_SleepEx (5UL, TRUE);
-              SetEvent   (pDevice->hOutputFinished);
+              SK_SleepEx (8UL, TRUE);
+              bFinished = true;
 
               _FinishPollRequest (false);
               continue;
@@ -5548,7 +5555,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
           BOOL bWriteAsync = FALSE;
 
           {
-            std::scoped_lock write_lock (s_output_mutex);
+            std::scoped_lock write_lock (*pDevice->s_output_mutex.dualshock4);
 
             bWriteAsync =
             SK_WriteFile ( pDevice->hDeviceFile, pDevice->output_report.data (),
@@ -5631,7 +5638,6 @@ SK_HID_PlayStationDevice::write_output_report (void)
               }
             }
           }
-
           _FinishPollRequest ();
         }
 
