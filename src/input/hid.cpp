@@ -424,15 +424,13 @@ void SK_Bluetooth_SetupPowerOff (void)
     SK_Bluetooth_PowerListener (void)
     {
       SK_GetCommandProcessor ()->AddVariable (
-        "Input.Gamepad.PowerOff", SK_CreateVar (SK_IVariable::Boolean, &state, this)
+        "Input.Gamepad.PowerOff", SK_CreateVar (SK_IVariable::LongInt, &hwaddr, this)
       );
     }
 
     bool OnVarChange (SK_IVariable* var, void* val = nullptr)
     {
-      std::ignore = val;
-
-      if (var->getValuePointer () == &state)
+      if (var->getValuePointer () == &hwaddr)
       {
         std::scoped_lock <std::mutex> _(mutex);
 
@@ -443,20 +441,30 @@ void SK_Bluetooth_SetupPowerOff (void)
         for ( auto& device : SK_HID_PlayStationControllers )
         {
           if (device.bBluetooth && device.bConnected)
-          { 
-            if ((device.xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
-                (device.xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_Y)     || 
-                (device.xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
-                (device.xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_Y))
-            {
-              if (device.bBluetooth)
-              {
-                SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws",
-                             device.wszSerialNumber );
-              }
+          {
+            const bool bRequesting =
+              ((device.xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+               (device.xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_Y)     || 
+               (device.xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+               (device.xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_Y));
 
-              DWORD     dwBytesReturned = 0x0;
-              ULONGLONG ullHWAddr       = device.ullHWAddr;
+            // The serial number is actually the Bluetooth MAC address; handy...
+            wchar_t wszSerialNumber [32] = { };
+ 
+            DWORD dwBytesReturned = 0;
+ 
+            SK_DeviceIoControl (
+              device.hDeviceFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
+                                                                     wszSerialNumber, 64,
+                                                                    &dwBytesReturned, nullptr );
+
+            ULONGLONG                           ullHWAddr = 0x0;
+            swscanf (wszSerialNumber, L"%llx", &ullHWAddr);
+
+            if (bRequesting || (*(uint64*)val != 1 && ullHWAddr == *(uint64*)val))
+            {
+              SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws (%lld)",
+                           wszSerialNumber, ullHWAddr );
 
               BLUETOOTH_FIND_RADIO_PARAMS findParams =
                 { .dwSize = sizeof (BLUETOOTH_FIND_RADIO_PARAMS) };
@@ -496,19 +504,23 @@ void SK_Bluetooth_SetupPowerOff (void)
           {
             if (device.bBluetooth && device.bConnected)
             { 
-              if ((device.xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
-                  (device.xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_Y)     || 
-                  (device.xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
-                  (device.xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_Y))
-              {
-                if (device.bBluetooth)
-                {
-                  SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws",
-                               device.wszSerialNumber );
-                }
+              // The serial number is actually the Bluetooth MAC address; handy...
+              wchar_t wszSerialNumber [32] = { };
+ 
+              DWORD dwBytesReturned = 0;
+ 
+              SK_DeviceIoControl (
+                device.hDeviceFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
+                                                                       wszSerialNumber, 64,
+                                                                      &dwBytesReturned, nullptr );
 
-                DWORD     dwBytesReturned = 0x0;
-                ULONGLONG ullHWAddr       = device.ullHWAddr;
+              ULONGLONG                           ullHWAddr = 0x0;
+              swscanf (wszSerialNumber, L"%llx", &ullHWAddr);
+
+              if ((*(uint64*)val == 1 || ullHWAddr == *(uint64*)val))
+              {
+                SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws (%lld)",
+                             wszSerialNumber, ullHWAddr );
 
                 BLUETOOTH_FIND_RADIO_PARAMS findParams =
                   { .dwSize = sizeof (BLUETOOTH_FIND_RADIO_PARAMS) };
@@ -543,11 +555,13 @@ void SK_Bluetooth_SetupPowerOff (void)
         }
       }
 
+      *((uint64*)var->getValuePointer ()) = *(uint64*)val;
+
       return true;
     }
 
     std::mutex mutex;
-    bool       state;
+    uint64     hwaddr;
   } static power;
 }
 
