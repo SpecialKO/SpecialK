@@ -1,4 +1,9 @@
-﻿24.3.13.2
+﻿24.3.13.3
+=========
+ + Moved the start-of-frame event marker to the very end of Present, after
+     any driver latency markers, etc.
+
+24.3.13.2
 =========
  + Fixed spacing issue on Frame Start-to-Frame Start checkbox if framerate
      limiter is not enabled.

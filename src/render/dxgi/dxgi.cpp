@@ -2990,12 +2990,6 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     if (_SkipThisFrame)
       hr = S_OK;
 
-    // Measure frametime after Present returns
-    if (config.render.framerate.frame_start_to_start)
-    {
-      SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
-    }
-
     SK_LatentSync_EndSwap ();
 
     rb.setLatencyMarkerNV (PRESENT_END);
@@ -3042,12 +3036,18 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
       _EndSwap ();
 
-
+      
       // All hooked chains need to be servicing >= this reset request, or restart them
   ////if (_IsBackendD3D11 (rb.api) && InterlockedCompareExchange (&lResetD3D11, 0, 1) == 1) _d3d11_rbk->release (This);
   ////if (_IsBackendD3D12 (rb.api) && InterlockedCompareExchange (&lResetD3D12, 0, 1) == 1) _d3d12_rbk->release (This);
 
       rb.setLatencyMarkerNV (SIMULATION_START);
+
+      // Measure frametime after Present returns
+      if (config.render.framerate.frame_start_to_start)
+      {
+        SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
+      }
 
     // We have hooks in the D3D11/12 state tracker that should take care of this
     //rb.setLatencyMarkerNV (RENDERSUBMIT_START);

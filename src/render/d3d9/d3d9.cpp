@@ -1837,11 +1837,6 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
     {
       hr = CallFunc ();
 
-      if (config.render.framerate.frame_start_to_start)
-      {
-        SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
-      }
-
       if (hr == D3DERR_WASSTILLDRAWING)
           hr = D3D_OK;
 
@@ -1864,6 +1859,12 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
     SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage::EndOfFrame);
 
     SK_D3D9_EndFrame ();
+      
+      
+    if (config.render.framerate.frame_start_to_start)
+    {
+      SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
+    }
 
 
     if (hr != D3D_OK && trigger_reset == reset_stage_e::Clear)
