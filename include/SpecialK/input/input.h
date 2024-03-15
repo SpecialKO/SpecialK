@@ -995,6 +995,13 @@ struct SK_HID_PlayStationDevice
     }
   } output;
 
+  struct latency_s {
+    UINT64 timestamp_epoch = SK_QueryPerf ().QuadPart;
+    UINT32 last_syn        = 0;
+    UINT32 last_ack        = 0;
+    UINT32 ping            = 0;
+  } latency;
+
   struct rgb_s {
     BYTE r, g, b;
   } _color = { 255, 255, 255 };

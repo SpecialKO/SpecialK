@@ -3679,6 +3679,30 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 SK_HID_DualSense_GetStateData* pData = 
                   (SK_HID_DualSense_GetStateData *)&(pDevice->input_report.data ()[1]);
 
+#ifdef __SK_HID_CalculateLatency
+                if (pDevice->latency.last_syn > pDevice->latency.last_ack || pDevice->latency.last_ack == 0)
+                {
+                  uint32_t ack =
+                    static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
+
+                  pDevice->latency.last_ack = ack;
+                  pDevice->latency.ping     = pDevice->latency.last_ack -
+                                                pDevice->latency.last_syn;//pData->HostTimestamp;
+
+                  // Start a new ping
+                  WriteRelease (&pDevice->bNeedOutput, TRUE);
+                                 pDevice->write_output_report ();
+
+                  SK_ImGui_CreateNotification (
+                      "DualSense.Latency", SK_ImGui_Toast::Info, SK_FormatString ("%5.2f ms", static_cast <double> (pDevice->latency.ping) /
+                                                                                              static_cast <double> (SK_QpcTicksPerMs)).c_str (), "DualSense Latency",
+                         INFINITE, SK_ImGui_Toast::UseDuration  | SK_ImGui_Toast::ShowCaption | SK_ImGui_Toast::ShowTitle |
+                                   SK_ImGui_Toast::ShowNewest   | 
+                                   SK_ImGui_Toast::DoNotSaveINI |
+                                   SK_ImGui_Toast::Unsilencable );
+                }
+#endif
+
                 pDevice->battery.state =
                   (SK_HID_PlayStationDevice::PowerState)((((BYTE *)pData)[52] & 0xF0) >> 4);
 
@@ -3731,6 +3755,30 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               if (! bSimple)
               {
+#ifdef __SK_HID_CalculateLatency
+                if (pDevice->latency.last_syn > pDevice->latency.last_ack || pDevice->latency.last_ack == 0)
+                {
+                  uint32_t ack =
+                    static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
+
+                  pDevice->latency.last_ack = ack;
+                  pDevice->latency.ping     = pDevice->latency.last_ack -
+                                                pDevice->latency.last_syn;//pData->HostTimestamp;
+
+                  // Start a new ping
+                  WriteRelease (&pDevice->bNeedOutput, TRUE);
+                                 pDevice->write_output_report ();
+
+                  SK_ImGui_CreateNotification (
+                      "DualSense.Latency", SK_ImGui_Toast::Info, SK_FormatString ("%5.2f ms", static_cast <double> (pDevice->latency.ping) /
+                                                                                              static_cast <double> (SK_QpcTicksPerMs)).c_str (), "DualSense Latency",
+                         INFINITE, SK_ImGui_Toast::UseDuration  | SK_ImGui_Toast::ShowCaption | SK_ImGui_Toast::ShowTitle |
+                                   SK_ImGui_Toast::ShowNewest   | 
+                                   SK_ImGui_Toast::DoNotSaveINI |
+                                   SK_ImGui_Toast::Unsilencable );
+                }
+#endif
+
                 if (config.input.gamepad.bt_input_only)
                 {
                   SK_ImGui_CreateNotification ( "HID.Bluetooth.ModeChange", SK_ImGui_Toast::Warning,
@@ -4298,7 +4346,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 static bool bIsVLC =
                   StrStrIW (SK_GetHostApp (), L"vlc");
 
-                if (bIsVLC)
+                if (bIsVLC && SK_IsGameWindowActive ())
                 {
                   if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_A) &&
                     (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_A)))
@@ -4665,7 +4713,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
       SK_Thread_CreateEx ([](LPVOID pData)->DWORD
       {
-        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_ABOVE_NORMAL);
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
 
         SK_HID_PlayStationDevice* pDevice =
           (SK_HID_PlayStationDevice *)pData;
@@ -4772,6 +4820,19 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
             SK_HID_DualSense_SetStateData* output =
               (SK_HID_DualSense_SetStateData *)&pOutputRaw [1];
+
+#ifdef __SK_HID_CalculateLatency
+            if (pDevice->latency.last_ack > pDevice->latency.last_syn || pDevice->latency.last_syn == 0)
+            {
+              pDevice->latency.ping = pDevice->latency.last_ack - 
+                                      pDevice->latency.last_syn;
+
+              pDevice->latency.last_syn =
+                static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
+
+              output->HostTimestamp = pDevice->latency.last_syn;
+            }
+#endif
 
             output->EnableRumbleEmulation    = true;
             output->UseRumbleNotHaptics      = true;
@@ -4908,7 +4969,6 @@ SK_HID_PlayStationDevice::write_output_report (void)
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
                                                             base_data_crc)
             {
-              SK_SleepEx (8UL, TRUE);
               bFinished = true;
 
               _FinishPollRequest (false);
@@ -4938,6 +4998,19 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
             SK_HID_DualSense_SetStateData* output =
            (SK_HID_DualSense_SetStateData *)&bt_data [3];
+
+#ifdef __SK_HID_CalculateLatency
+            if (pDevice->latency.last_ack > pDevice->latency.last_syn || pDevice->latency.last_syn == 0)
+            {
+              pDevice->latency.ping = pDevice->latency.last_ack - 
+                                      pDevice->latency.last_syn;
+
+              pDevice->latency.last_syn =
+                static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
+
+              output->HostTimestamp = pDevice->latency.last_syn;
+            }
+#endif
 
             output->EnableRumbleEmulation = true;
             output->UseRumbleNotHaptics   = true;
@@ -4983,7 +5056,6 @@ SK_HID_PlayStationDevice::write_output_report (void)
                                         : On
                                         : Off;
 
-            output->HostTimestamp       = SK::ControlPanel::current_time;
             output->HapticLowPassFilter = true;
 
             if (config.input.gamepad.xinput.debug)
@@ -5102,7 +5174,6 @@ SK_HID_PlayStationDevice::write_output_report (void)
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
                                                             base_data_crc)
             {
-              SK_SleepEx (8UL, TRUE);
               bFinished = true;
 
               _FinishPollRequest (false);
@@ -5247,7 +5318,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
       SK_Thread_CreateEx ([](LPVOID pData)->DWORD
       {
-        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_ABOVE_NORMAL);
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
 
         SK_HID_PlayStationDevice* pDevice =
           (SK_HID_PlayStationDevice *)pData;
@@ -5422,7 +5493,6 @@ SK_HID_PlayStationDevice::write_output_report (void)
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
                                                             base_data_crc)
             {
-              SK_SleepEx (8UL, TRUE);
               bFinished = true;
 
               _FinishPollRequest (false);
@@ -5552,7 +5622,6 @@ SK_HID_PlayStationDevice::write_output_report (void)
             if (std::exchange (pDevice->output.last_crc32c, base_data_crc) ==
                                                             base_data_crc)
             {
-              SK_SleepEx (8UL, TRUE);
               bFinished = true;
 
               _FinishPollRequest (false);
