@@ -1197,6 +1197,14 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDispl
 float
 SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32 tNow) noexcept
 {
+  auto *pLimiter =
+    SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain, false);
+
+  // We need to trigger snapshot statistics in order to collect VBlank stats
+  //   required to show VRR effective refresh rate.
+  if (pLimiter != nullptr)
+      pLimiter->frame_history_snapshots->mean.sortAndCacheFrametimeHistory ();
+
   NvU32 num_vblanks_in_period = 0;
 
   NvU32 vblank_count_min = UINT32_MAX,

@@ -1,4 +1,11 @@
-﻿24.3.15.1
+﻿24.3.15.2
+=========
+ + Continue calculating VRR refresh rate even if the Framerate Limiter
+     heading in the control panel is not expanded.
+ + Add preliminary infrastructure for measuring HID device latency on
+     devices that support Input/Output timestamps (i.e. DualSense).
+
+24.3.15.1
 =========
  + Fixed SDL not picking up the first digital input after a deadzone'd
      analog input was not translated to XInput.
