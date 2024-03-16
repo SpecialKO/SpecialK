@@ -626,6 +626,18 @@ void SK_Bluetooth_SetupPowerOff (void)
   } static power;
 }
 
+#pragma pack(push,1)
+struct SK_HID_DualSense_GetHWAddr // 0x09 : USB
+{
+  uint8_t ClientMAC [6]; // Right-to-Left
+  uint8_t Hard08;
+  uint8_t Hard25;
+  uint8_t Hard00;
+  uint8_t HostMAC   [6]; // Right to Left
+  uint8_t Padding   [3]; // Size according to Linux driver
+};
+#pragma pack(pop)
+
 void SK_HID_SetupPlayStationControllers (void)
 {
   HDEVINFO hid_device_set = 
@@ -748,7 +760,26 @@ void SK_HID_SetupPlayStationControllers (void)
               controller.hDeviceFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
                   controller.wszSerialNumber, 128, &dwBytesRead, nullptr );
 
-            swscanf (controller.wszSerialNumber, L"%llx", &controller.ullHWAddr);
+            if (*controller.wszSerialNumber != L'\0')
+              swscanf (controller.wszSerialNumber, L"%llx", &controller.ullHWAddr);
+            else
+            {
+              BYTE  hw_addr_feature_report [19] = { 0x09 };
+                                    
+              if (SK_ReadFile (controller.hDeviceFile, hw_addr_feature_report, 19, &dwBytesRead, nullptr))
+              {
+                SK_HID_DualSense_GetHWAddr *pGetHWAddr =
+                  (SK_HID_DualSense_GetHWAddr *)hw_addr_feature_report;
+
+                SK_ImGui_Warning (
+                  SK_FormatStringW (
+                    L"Controller has MAC Address: %x:%x:%x:%x:%x:%x",
+                      pGetHWAddr->ClientMAC [5], pGetHWAddr->ClientMAC [4], pGetHWAddr->ClientMAC [3], 
+                      pGetHWAddr->ClientMAC [2], pGetHWAddr->ClientMAC [1], pGetHWAddr->ClientMAC [0] ).c_str ()
+                );
+              }
+            }
+
 
             if (! SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
             	continue;
@@ -4275,393 +4306,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
             if (pDevice->buttons.size () >= 13 &&
                 pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
 
-            bool bIsInputActive = false;
-
-            // Button states should repeat
-            if (pDevice->xinput.report.Gamepad.wButtons != 0 ||
-                pDevice->xinput.report.Gamepad.wButtons != pDevice->xinput.prev_report.Gamepad.wButtons)
-              bIsInputActive = true;
-
-            if (abs (pDevice->xinput.report.Gamepad.sThumbLX)     > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE  ||
-                abs (pDevice->xinput.report.Gamepad.sThumbLY)     > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE  ||
-                abs (pDevice->xinput.report.Gamepad.sThumbRX)     > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ||
-                abs (pDevice->xinput.report.Gamepad.sThumbRY)     > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ||
-                     pDevice->xinput.report.Gamepad.bLeftTrigger  > XINPUT_GAMEPAD_TRIGGER_THRESHOLD    ||
-                     pDevice->xinput.report.Gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
-            {
-              bIsInputActive = true;
-            }
-
-            bool bIsDeviceMostRecentlyActive = true;
-
-            for ( auto& ps_controller : SK_HID_PlayStationControllers )
-            {
-              if (ps_controller.xinput.last_active > pDevice->xinput.last_active)
-              {
-                bIsDeviceMostRecentlyActive = false;
-                break;
-              }
-            }
-
-            //
-            // Do not do in the background unless bg input is enabled
-            //
-            //   Also only allow input from the most recently active device,
-            //     in case we're reading the same controller over
-            //       Bluetooth and USB...
-            //
-            const bool bAllowSpecialButtons =
-              ( config.input.gamepad.disabled_to_game == 0 ||
-                  SK_IsGameWindowActive () ) && bIsDeviceMostRecentlyActive;
-
-            if ( config.input.gamepad.scepad.enhanced_ps_button &&
-                                 pDevice->buttons.size () >= 13 &&
-                      (config.input.gamepad.xinput.ui_slot >= 0 && 
-                       config.input.gamepad.xinput.ui_slot <  4) &&
-                                     bIsDeviceMostRecentlyActive &&
-                                     bAllowSpecialButtons )
-            {
-              static HWND hWndLastApp =
-                SK_GetForegroundWindow ();
-
-              if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
-                  (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_X)     &&
-                (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_X)))
-              {
-                if (SK_GetForegroundWindow () != game_window.hWnd)
-                {
-                  hWndLastApp =
-                    SK_GetForegroundWindow ();
-
-                  auto show_cmd = 
-                    IsMinimized (game_window.hWnd) ? SW_SHOWNORMAL
-                                                   : SW_SHOW;
-
-                  ShowWindow                 (game_window.hWnd, show_cmd);
-                  SK_RealizeForegroundWindow (game_window.hWnd);
-                  ShowWindow                 (game_window.hWnd, show_cmd);
-                }
-
-                pDevice->chord_activated = true;
-              }
-
-              if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
-                  (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_B)     &&
-                (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_B)))
-              {
-                if (SK_GetForegroundWindow () != hWndLastApp &&
-                                            0 != hWndLastApp &&
-                                       IsWindow (hWndLastApp))
-                {
-                  auto show_cmd = 
-                    IsMinimized (hWndLastApp) ? SW_SHOWNORMAL
-                                              : SW_SHOW;
-
-                  ShowWindow                 (hWndLastApp, show_cmd);
-                  SK_RealizeForegroundWindow (hWndLastApp);
-                  ShowWindow                 (hWndLastApp, show_cmd);
-                }
-
-                pDevice->chord_activated = true;
-              }
-
-              if (clear_haptics || ReadAcquire (&pDevice->bNeedOutput))
-                pDevice->write_output_report ();
-
-              if (bAllowSpecialButtons)
-              {
-#if 1
-                static bool bIsVLC =
-                  StrStrIW (SK_GetHostApp (), L"vlc");
-
-                if (bIsVLC && SK_IsGameWindowActive ())
-                {
-                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_A) &&
-                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_A)))
-                  {
-                    BYTE bScancode =
-                      (BYTE)MapVirtualKey (VK_MEDIA_PLAY_PAUSE, 0);
-
-                    DWORD dwFlags =
-                      ( bScancode & 0xE0 ) == 0   ?
-                        static_cast <DWORD> (0x0) :
-                        static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
-
-                    keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags,                   0);
-                    keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
-                  }
-
-                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) &&
-                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)))
-                  {
-                    BYTE bScancode =
-                     (BYTE)MapVirtualKey (VK_LEFT, 0);
-
-                    DWORD dwFlags =
-                      ( bScancode & 0xE0 ) == 0   ?
-                        static_cast <DWORD> (0x0) :
-                        static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
-
-                    keybd_event_Original (VK_LEFT, bScancode, dwFlags,                   0);
-                    keybd_event_Original (VK_LEFT, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
-                  }
-
-                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) &&
-                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)))
-                  {
-                    BYTE bScancode =
-                     (BYTE)MapVirtualKey (VK_RIGHT, 0);
-
-                    DWORD dwFlags =
-                      ( bScancode & 0xE0 ) == 0   ?
-                        static_cast <DWORD> (0x0) :
-                        static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
-
-                    keybd_event_Original (VK_RIGHT, bScancode, dwFlags,                   0);
-                    keybd_event_Original (VK_RIGHT, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
-                  }
-
-                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) &&
-                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)))
-                  {
-                    BYTE bScancode =
-                     (BYTE)MapVirtualKey (VK_DOWN, 0);
-
-                    DWORD dwFlags =
-                      ( bScancode & 0xE0 ) == 0   ?
-                        static_cast <DWORD> (0x0) :
-                        static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
-
-                    keybd_event_Original (VK_DOWN, bScancode, dwFlags,                   0);
-                    keybd_event_Original (VK_DOWN, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
-                  }
-
-                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) &&
-                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)))
-                  {
-                    BYTE bScancode =
-                     (BYTE)MapVirtualKey (VK_UP, 0);
-
-                    DWORD dwFlags =
-                      ( bScancode & 0xE0 ) == 0   ?
-                        static_cast <DWORD> (0x0) :
-                        static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
-
-                    keybd_event_Original (VK_UP, bScancode, dwFlags,                   0);
-                    keybd_event_Original (VK_UP, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
-                  }
-
-                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) &&
-                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)))
-                  {
-                    BYTE bScancode =
-                     (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
-
-                    DWORD dwFlags =
-                      ( bScancode & 0xE0 ) == 0   ?
-                        static_cast <DWORD> (0x0) :
-                        static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
-
-                    keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags,                   0);
-                    keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
-                  }
-
-                  if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) &&
-                    (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER)))
-                  {
-                    BYTE bScancode =
-                     (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
-
-                    DWORD dwFlags =
-                      ( bScancode & 0xE0 ) == 0   ?
-                        static_cast <DWORD> (0x0) :
-                        static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
-
-                    keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags,                   0);
-                    keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
-                  }
-                }
-#endif
-
-                if ( pDevice->buttons [12].state &&
-                   (!pDevice->buttons [12].last_state))
-                {
-                  pDevice->chord_activated = false;
-                }
-
-                if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
-                    (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_Y)     &&
-                  (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_Y)))
-                {
-                  SK_DeferCommand ("Input.Gamepad.PowerOff 1");
-                  pDevice->chord_activated = true;
-                }
-
-                if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
-                    (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)  &&
-                  (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)))
-                {
-                  SK_SteamAPI_TakeScreenshot ();
-                  pDevice->chord_activated = true;
-                }
-
-                if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)      &&
-                    (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) &&
-                  (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB)))
-                {
-                  BYTE bScancode =
-                    (BYTE)MapVirtualKey (VK_MEDIA_PLAY_PAUSE, 0);
-
-                  DWORD dwFlags =
-                    ( bScancode & 0xE0 ) == 0   ?
-                      static_cast <DWORD> (0x0) :
-                      static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
-
-                  keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags,                   0);
-                  keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
-
-                  pDevice->chord_activated = true;
-                }
-
-                if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)         &&
-                    (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) &&
-                  (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)))
-                {
-                  BYTE bScancode =
-                   (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
-
-                  DWORD dwFlags =
-                    ( bScancode & 0xE0 ) == 0   ?
-                      static_cast <DWORD> (0x0) :
-                      static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
-
-                  keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags,                   0);
-                  keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
-
-                  pDevice->chord_activated = true;
-                }
-
-                if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)          &&
-                    (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) &&
-                  (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER)))
-                {
-                  BYTE bScancode =
-                   (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
-
-                  DWORD dwFlags =
-                    ( bScancode & 0xE0 ) == 0   ?
-                      static_cast <DWORD> (0x0) :
-                      static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
-
-                  keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags,                   0);
-                  keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
-
-                  pDevice->chord_activated = true;
-                }
-
-                if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)      &&
-                    (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) &&
-                  (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)))
-                {
-                  SK_GetCommandProcessor ()->
-                    ProcessCommandLine ("HDR.Luminance += 0.125");
-
-                  pDevice->chord_activated = true;
-                }
-
-                if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)     &&
-                    (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) &&
-                  (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)))
-                {
-                  SK_GetCommandProcessor ()->
-                    ProcessCommandLine ("HDR.Luminance -= 0.125");
-
-                  pDevice->chord_activated = true;
-                }
-
-                if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)   &&
-                    (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) &&
-                  (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)))
-                {
-                  SK_GetCommandProcessor ()->
-                    ProcessCommandLine ("Sound.Volume += 10.0");
-
-                  pDevice->chord_activated = true;
-                }
-
-                if ((pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)     &&
-                    (pDevice->xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) &&
-                  (!(pDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)))
-                {
-                  SK_GetCommandProcessor ()->
-                    ProcessCommandLine ("Sound.Volume -= 10.0");
-
-                  pDevice->chord_activated = true;
-                }
-
-                if ( (! pDevice->buttons [12].state)     &&
-                        pDevice->buttons [12].last_state &&
-                     (! pDevice->chord_activated) )
-                {
-                  bool bToggleVis = false;
-                  bool bToggleNav = false;
-
-                  if (SK_ImGui_Active ())
-                  {
-                    bToggleVis |= true;
-                    bToggleNav |= true;
-                  }
-
-                  else
-                  {
-                    bToggleNav |= (! nav_usable);
-                    bToggleVis |= true;
-                  }
-
-                  bool
-                  WINAPI
-                  SK_ImGui_ToggleEx ( bool& toggle_ui,
-                                      bool& toggle_nav );
-
-                  if (                 bToggleVis||bToggleNav)
-                    SK_ImGui_ToggleEx (bToggleVis, bToggleNav);
-                }
-              }
-            }
-
-            if ( pDevice->buttons.size () >= 15 &&
-                 pDevice->bDualSense            &&
-                 config.input.gamepad.scepad.mute_applies_to_game &&
-                 bAllowSpecialButtons )
-            {
-              if (   pDevice->buttons [14].state &&
-                  (! pDevice->buttons [14].last_state) )
-              {
-                // We need to force an HID output report to
-                //   change the state of the mute LED...
-                WriteRelease (&pDevice->bNeedOutput, TRUE);
-
-                SK_SetGameMute (! SK_IsGameMuted ());
-              }
-            }
-            
-            //if ( pDevice->buttons.size () >= 16 && 
-            //     pDevice->bDualSense            && bAllowSpecialButtons )
-            //{
-            //  if (pDevice->buttons [15].state && 
-            //    (!pDevice->buttons [15].last_state))
-            //  {
-            //    SK_SteamAPI_TakeScreenshot ();
-            //  }
-            //}
-
-            if ( memcmp ( &pDevice->xinput.prev_report.Gamepad,
-                          &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD)) )
-            {
-              pDevice->xinput.report.dwPacketNumber++;
-              pDevice->xinput.prev_report = pDevice->xinput.report;
-            }
-
 #pragma region (deadzone)
             if (config.input.gamepad.xinput.standard_deadzone)
             {
@@ -4680,18 +4324,73 @@ SK_HID_PlayStationDevice::request_input_report (void)
             }
 #pragma endregion
 
-            if (bIsInputActive)
+            bool bIsInputActive = false;
+
+            if ( memcmp ( &pDevice->xinput.prev_report.Gamepad,
+                          &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD)) )
             {
               pDevice->xinput.report.dwPacketNumber++;
+              pDevice->xinput.prev_report = pDevice->xinput.report;
               pDevice->xinput.last_active = SK_QueryPerf ().QuadPart;
 
+              bIsInputActive = true;
+            }
+
+            bool bIsDeviceMostRecentlyActive = true;
+
+            for ( auto& ps_controller : SK_HID_PlayStationControllers )
+            {
+              if (ps_controller.xinput.last_active > pDevice->xinput.last_active)
+              {
+                bIsDeviceMostRecentlyActive = false;
+                break;
+              }
+            }
+
+            if (bIsInputActive)
+            {
               // Give most recently active device a +75 ms advantage,
               //   we may have the same device connected over two
               //     protocols and do not want repeats of the same
               //       input...
               if (bIsDeviceMostRecentlyActive)
-                  pDevice->xinput.last_active += (SK_PerfFreq / 13);
+              {
+                pDevice->xinput.last_active += (SK_PerfFreq / 13);
+              }
             }
+
+            const bool bAllowSpecialButtons =
+              ( config.input.gamepad.disabled_to_game == 0 ||
+                SK_IsGameWindowActive () );
+                  
+            if ( config.input.gamepad.scepad.mute_applies_to_game &&
+                 bAllowSpecialButtons                             &&
+                 pDevice->bDualSense                              &&
+                 pDevice->buttons.size () >= 15 )
+            {
+              if (   pDevice->buttons [14].state &&
+                  (! pDevice->buttons [14].last_state) )
+              {
+                // We need to force an HID output report to
+                //   change the state of the mute LED...
+                WriteRelease (&pDevice->bNeedOutput, TRUE);
+            
+                SK_SetGameMute (! SK_IsGameMuted ());
+              }
+            }
+
+            if (clear_haptics || ReadAcquire (&pDevice->bNeedOutput))
+              pDevice->write_output_report ();
+            
+            //if ( pDevice->buttons.size () >= 16 && 
+            //     pDevice->bDualSense            && bAllowSpecialButtons )
+            //{
+            //  if (pDevice->buttons [15].state && 
+            //    (!pDevice->buttons [15].last_state))
+            //  {
+            //    SK_SteamAPI_TakeScreenshot ();
+            //  }
+            //}
 
             for ( auto& button : pDevice->buttons )
             {
@@ -5222,16 +4921,10 @@ SK_HID_PlayStationDevice::write_output_report (void)
           async_output_request        = { };
           async_output_request.hEvent = pDevice->hOutputFinished;
 
-          BOOL bWriteAsync = FALSE;
-
-          {
-            std::scoped_lock write_lock (*pDevice->s_output_mutex.dualsense);
-
-            bWriteAsync =
+          BOOL bWriteAsync=
             SK_WriteFile ( pDevice->hDeviceFile, pDevice->output_report.data (),
                             static_cast <DWORD> (pDevice->bBluetooth ? 78 :
                                                  pDevice->output_report.size ()), nullptr, &async_output_request );
-          }
 
           if (! bWriteAsync)
           {
@@ -5670,16 +5363,10 @@ SK_HID_PlayStationDevice::write_output_report (void)
           async_output_request        = { };
           async_output_request.hEvent = pDevice->hOutputFinished;
 
-          BOOL bWriteAsync = FALSE;
-
-          {
-            std::scoped_lock write_lock (*pDevice->s_output_mutex.dualshock4);
-
-            bWriteAsync =
+          BOOL bWriteAsync =
             SK_WriteFile ( pDevice->hDeviceFile, pDevice->output_report.data (),
                             static_cast <DWORD> (pDevice->bBluetooth ? 78 :
                                                                        32), nullptr, &async_output_request );
-          }
 
           if (! bWriteAsync)
           {

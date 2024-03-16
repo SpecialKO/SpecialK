@@ -1,4 +1,19 @@
-﻿24.3.16
+﻿24.3.17
+=======
+ + Added Gamepad Chord Input (Guide button) support for Xbox controllers
+ + Added bullet-point to Protocol / Device Name list to denote the
+     PlayStation controller with the most recently polled input state.
+ + ALL PlayStation controllers will now rumble while XInput Mode is on
+ + Control panel is now useable with PlayStation controllers while a real
+     Xbox controller is plugged-in on slot 0.
+
+     >> If a PlayStation controller is connected, PlayStation XInput Mode
+          will always hide native Xbox controller 0 from the game.
+
+      * A mode to fuse Xbox and PlayStation into a single virtual controller
+          that games read on slot 0 like SK does for its own UI is planned.
+
+24.3.16
 =======
  + Added Protocol, Device Name, Latency and Active Report Rate info
      to the control panel for supported PlayStation controllers.

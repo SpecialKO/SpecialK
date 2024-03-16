@@ -724,8 +724,13 @@ using CreateFileA_pfn =
   HANDLE (WINAPI *)(LPCSTR,DWORD,DWORD,LPSECURITY_ATTRIBUTES,
                       DWORD,DWORD,HANDLE);
 
-using ReadFile_pfn =
-  BOOL (WINAPI *)(HANDLE,LPVOID,DWORD,LPDWORD,LPOVERLAPPED);
+typedef BOOL (WINAPI *ReadFile_pfn)(
+  _In_        HANDLE       hFile,
+  _Out_       LPVOID       lpBuffer,
+  _In_        DWORD        nNumberOfBytesToRead,
+  _Out_opt_   LPDWORD      lpNumberOfBytesRead,
+  _Inout_opt_ LPOVERLAPPED lpOverlapped
+);
 
 using ReadFileEx_pfn =
   BOOL (WINAPI *)(HANDLE,LPVOID,DWORD,LPOVERLAPPED,
@@ -961,16 +966,6 @@ struct SK_HID_PlayStationDevice
     XINPUT_STATE report       = { };
     UINT64       last_active  =  0 ;
   } xinput;
-
-  struct output_sync_s {
-    output_sync_s (void) {
-      dualshock4 = new std::mutex ();
-      dualsense  = new std::mutex ();
-    }
-
-    std::mutex* dualshock4;
-    std::mutex* dualsense;
-  } s_output_mutex;
 
   bool                          chord_activated = false;
 

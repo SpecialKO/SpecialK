@@ -1996,6 +1996,8 @@ SK_XInput_ValidateStatePointer (XINPUT_STATE *pState)
 
 #include <SpecialK/sound.h>
 
+XINPUT_STATE SK_ImGui_XInputState = {};
+
 bool
 SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 {
@@ -2098,7 +2100,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
   static XINPUT_STATE last_state = { 1, 0 };
 
-  hid_to_xi.Gamepad = { };
+  hid_to_xi.Gamepad = {};
 
   bool bHasPlayStation = false;
 
@@ -2137,7 +2139,12 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
       if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate)
       {
-        pLastActiveController->write_output_report ();
+        for ( auto& ps_controller : SK_HID_PlayStationControllers )
+        {
+          if (ps_controller.bConnected)
+              ps_controller.write_output_report ();
+        }
+        //pLastActiveController->write_output_report ();
       }
     }
 
@@ -2147,7 +2154,20 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     bool bHasRealXInputOnUISlot =
       SK_XInput_PollController (config.input.gamepad.xinput.ui_slot, &state);
 
-    if (bHasPlayStation && (! bHasRealXInputOnUISlot))
+    static XINPUT_STATE last_native_state = {};
+    static UINT64       last_native_time  = 0;
+
+    bool bHasNewNativeInput =                                                               // Buttons should repeat
+      bHasRealXInputOnUISlot && (memcmp (&state, &last_native_state, sizeof (XINPUT_STATE)) || state.Gamepad.wButtons != 0);
+
+    memcpy (&last_native_state, &state, sizeof (XINPUT_STATE));
+
+    if (bHasNewNativeInput)
+    {
+      last_native_time = SK_QueryPerf ().QuadPart;
+    }
+
+    if (bHasPlayStation && ullLastActiveTimestamp > last_native_time)
     {
       state = hid_to_xi;
     }
@@ -2160,9 +2180,333 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     //extern void SK_ScePad_PaceMaker (void);
     //            SK_ScePad_PaceMaker ();
 
+    SK_ImGui_XInputState = state;
+
     if ( bHasPlayStation ||
          bHasRealXInputOnUISlot )
     {
+      //
+      // Do not do in the background unless bg input is enabled
+      //
+      //   Also only allow input from the most recently active device,
+      //     in case we're reading the same controller over
+      //       Bluetooth and USB...
+      //
+      const bool bAllowSpecialButtons =
+        ( config.input.gamepad.disabled_to_game == 0 ||
+            SK_IsGameWindowActive () );
+
+      static bool bChordActivated = false;
+
+      if ( config.input.gamepad.scepad.enhanced_ps_button &&
+                               bAllowSpecialButtons )
+      {
+        static HWND hWndLastApp =
+          SK_GetForegroundWindow ();
+
+        if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+            (     state.Gamepad.wButtons & XINPUT_GAMEPAD_X)     &&
+          (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_X)))
+        {
+          if (SK_GetForegroundWindow () != game_window.hWnd)
+          {
+            hWndLastApp =
+              SK_GetForegroundWindow ();
+
+            auto show_cmd = 
+              IsMinimized (game_window.hWnd) ? SW_SHOWNORMAL
+                                             : SW_SHOW;
+
+            ShowWindow                 (game_window.hWnd, show_cmd);
+            SK_RealizeForegroundWindow (game_window.hWnd);
+            ShowWindow                 (game_window.hWnd, show_cmd);
+          }
+
+          bChordActivated = true;
+        }
+
+        if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+            (     state.Gamepad.wButtons & XINPUT_GAMEPAD_B)     &&
+          (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_B)))
+        {
+          if (SK_GetForegroundWindow () != hWndLastApp &&
+                                      0 != hWndLastApp &&
+                                 IsWindow (hWndLastApp))
+          {
+            auto show_cmd = 
+              IsMinimized (hWndLastApp) ? SW_SHOWNORMAL
+                                        : SW_SHOW;
+
+            ShowWindow                 (hWndLastApp, show_cmd);
+            SK_RealizeForegroundWindow (hWndLastApp);
+            ShowWindow                 (hWndLastApp, show_cmd);
+          }
+
+          bChordActivated = true;
+        }
+
+        if (bAllowSpecialButtons)
+        {
+#if 1
+          static bool bIsVLC =
+            StrStrIW (SK_GetHostApp (), L"vlc");
+
+          if (bIsVLC && SK_IsGameWindowActive ())
+          {
+            if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_A) &&
+              (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_A)))
+            {
+              BYTE bScancode =
+                (BYTE)MapVirtualKey (VK_MEDIA_PLAY_PAUSE, 0);
+
+              DWORD dwFlags =
+                ( bScancode & 0xE0 ) == 0   ?
+                  static_cast <DWORD> (0x0) :
+                  static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+              keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags,                   0);
+              keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+            }
+
+            if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) &&
+              (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)))
+            {
+              BYTE bScancode =
+               (BYTE)MapVirtualKey (VK_LEFT, 0);
+
+              DWORD dwFlags =
+                ( bScancode & 0xE0 ) == 0   ?
+                  static_cast <DWORD> (0x0) :
+                  static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+              keybd_event_Original (VK_LEFT, bScancode, dwFlags,                   0);
+              keybd_event_Original (VK_LEFT, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+            }
+
+            if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) &&
+              (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)))
+            {
+              BYTE bScancode =
+               (BYTE)MapVirtualKey (VK_RIGHT, 0);
+
+              DWORD dwFlags =
+                ( bScancode & 0xE0 ) == 0   ?
+                  static_cast <DWORD> (0x0) :
+                  static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+              keybd_event_Original (VK_RIGHT, bScancode, dwFlags,                   0);
+              keybd_event_Original (VK_RIGHT, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+            }
+
+            if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) &&
+              (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)))
+            {
+              BYTE bScancode =
+               (BYTE)MapVirtualKey (VK_DOWN, 0);
+
+              DWORD dwFlags =
+                ( bScancode & 0xE0 ) == 0   ?
+                  static_cast <DWORD> (0x0) :
+                  static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+              keybd_event_Original (VK_DOWN, bScancode, dwFlags,                   0);
+              keybd_event_Original (VK_DOWN, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+            }
+
+            if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) &&
+              (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)))
+            {
+              BYTE bScancode =
+               (BYTE)MapVirtualKey (VK_UP, 0);
+
+              DWORD dwFlags =
+                ( bScancode & 0xE0 ) == 0   ?
+                  static_cast <DWORD> (0x0) :
+                  static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+              keybd_event_Original (VK_UP, bScancode, dwFlags,                   0);
+              keybd_event_Original (VK_UP, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+            }
+
+            if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) &&
+              (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)))
+            {
+              BYTE bScancode =
+               (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
+
+              DWORD dwFlags =
+                ( bScancode & 0xE0 ) == 0   ?
+                  static_cast <DWORD> (0x0) :
+                  static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+              keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags,                   0);
+              keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+            }
+
+            if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) &&
+              (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER)))
+            {
+              BYTE bScancode =
+               (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
+
+              DWORD dwFlags =
+                ( bScancode & 0xE0 ) == 0   ?
+                  static_cast <DWORD> (0x0) :
+                  static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+              keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags,                   0);
+              keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+            }
+          }
+#endif
+
+          // Guide button was just pressed, enter chord processing mode.
+          if ( (     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+             (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)))
+          {
+            bChordActivated = false;
+          }
+
+          if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+              (     state.Gamepad.wButtons & XINPUT_GAMEPAD_Y)     &&
+            (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_Y)))
+          {
+            SK_DeferCommand ("Input.Gamepad.PowerOff 1");
+            bChordActivated = true;
+          }
+
+          if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+              (     state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)  &&
+            (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)))
+          {
+            SK_SteamAPI_TakeScreenshot ();
+            bChordActivated = true;
+          }
+
+          if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)      &&
+              (     state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) &&
+            (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB)))
+          {
+            BYTE bScancode =
+              (BYTE)MapVirtualKey (VK_MEDIA_PLAY_PAUSE, 0);
+
+            DWORD dwFlags =
+              ( bScancode & 0xE0 ) == 0   ?
+                static_cast <DWORD> (0x0) :
+                static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+            keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags,                   0);
+            keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+
+            bChordActivated = true;
+          }
+
+          if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)         &&
+              (     state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) &&
+            (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)))
+          {
+            BYTE bScancode =
+             (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
+
+            DWORD dwFlags =
+              ( bScancode & 0xE0 ) == 0   ?
+                static_cast <DWORD> (0x0) :
+                static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+            keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags,                   0);
+            keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+
+            bChordActivated = true;
+          }
+
+          if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)          &&
+              (     state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) &&
+            (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER)))
+          {
+            BYTE bScancode =
+             (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
+
+            DWORD dwFlags =
+              ( bScancode & 0xE0 ) == 0   ?
+                static_cast <DWORD> (0x0) :
+                static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+            keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags,                   0);
+            keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+
+            bChordActivated = true;
+          }
+
+          if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)      &&
+              (     state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) &&
+            (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)))
+          {
+            SK_GetCommandProcessor ()->
+              ProcessCommandLine ("HDR.Luminance += 0.125");
+
+            bChordActivated = true;
+          }
+
+          if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)     &&
+              (     state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) &&
+            (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)))
+          {
+            SK_GetCommandProcessor ()->
+              ProcessCommandLine ("HDR.Luminance -= 0.125");
+
+            bChordActivated = true;
+          }
+
+          if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)   &&
+              (     state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) &&
+            (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)))
+          {
+            SK_GetCommandProcessor ()->
+              ProcessCommandLine ("Sound.Volume += 10.0");
+
+            bChordActivated = true;
+          }
+
+          if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)     &&
+              (     state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) &&
+            (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)))
+          {
+            SK_GetCommandProcessor ()->
+              ProcessCommandLine ("Sound.Volume -= 10.0");
+
+            bChordActivated = true;
+          }
+
+          if (!(     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+             ( (last_state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE))&&
+             (! bChordActivated) )
+          {
+            //bool bToggleVis = false;
+            //bool bToggleNav = false;
+
+            if (SK_ImGui_Active ())
+            {
+              bToggleVis |= true;
+              bToggleNav |= true;
+            }
+
+            else
+            {
+              bToggleNav |= (! nav_usable);
+              bToggleVis |= true;
+            }
+
+            bool
+            WINAPI
+            SK_ImGui_ToggleEx ( bool& toggle_ui,
+                                bool& toggle_nav );
+
+            if (                 bToggleVis||bToggleNav)
+              SK_ImGui_ToggleEx (bToggleVis, bToggleNav);
+          }
+        }
+      }
+
       bRet = true;
 
       if ( state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK  &&

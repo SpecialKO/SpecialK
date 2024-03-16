@@ -3148,16 +3148,37 @@ SK_XInput_PollController ( INT           iJoyID,
            XInputGetState_SK =
           (XInputGetState_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
           "XInputGetState"                      );
+    static XInputGetStateEx_pfn
+           XInputGetStateEx_SK =
+          (XInputGetStateEx_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
+          XINPUT_GETSTATEEX_ORDINAL               );
 
-    XInputEnable_pfn   XInputEnable =
-                       XInputEnable_SK;
-    XInputGetState_pfn XInputGetState =
-                       XInputGetState_SK;
+    XInputEnable_pfn     XInputEnable =
+                         XInputEnable_SK;
+    XInputGetState_pfn   XInputGetState =
+                         XInputGetState_SK;
+    XInputGetStateEx_pfn XInputGetStateEx =
+                         XInputGetStateEx_SK;
 
     if (XInputEnable != nullptr)
         XInputEnable (true);
 
-    if (XInputGetState != nullptr)
+    // Prefer the Ex variant if available, because it can poll
+    //   the state of the Guide button.
+    if (XInputGetStateEx != nullptr)
+    {
+      dwRet =
+        SK_XINPUT_CALL  ( xinput_ctx.cs_poll [iJoyID],
+                                              iJoyID,
+                            XInputGetStateEx (iJoyID, (XINPUT_STATE_EX *)&xstate) );
+
+      // Error? Mmark the time we saw this error and we'll try again on another frame
+      if (dwRet == ERROR_DEVICE_NOT_CONNECTED)
+        WriteULongRelease (&last_poll [iJoyID], SK_timeGetTime ());
+    }
+
+    // Fallback to the documented API call because of a non-standard XInput DLL
+    else if (XInputGetState != nullptr)
     {
       dwRet =
         SK_XINPUT_CALL  ( xinput_ctx.cs_poll [iJoyID],

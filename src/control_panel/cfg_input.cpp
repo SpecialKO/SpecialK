@@ -1073,6 +1073,16 @@ SK::ControlPanel::Input::Draw (void)
         ////ImGui::InputInt4  ("###Slot Remapping", slots);
         ////ImGui::EndGroup   ();
 
+        ImGui::Checkbox   ("Toggle Control Panel using  (" ICON_FA_XBOX ")", &config.input.gamepad.scepad.enhanced_ps_button);
+
+        if (ImGui::IsItemHovered ())
+        {
+          if (config.input.gamepad.xinput.ui_slot > 3)
+            ImGui::SetTooltip ("Will not work while \"UI Controller\" is set to 'Nothing'");
+          else
+            ImGui::SetTooltip ("Exit \"Exclusive Input Mode\" by Holding Share / Select or Pressing Caps Lock");
+        }
+
         ImGui::Separator ( );
       }
 
@@ -1118,15 +1128,45 @@ SK::ControlPanel::Input::Draw (void)
           bool bDualSense  = false;
           bool bDualShock4 = false;
 
+          ImGui::TreePop ();
+          
+          SK_HID_PlayStationDevice *pNewestInput = nullptr;
+          UINT64                    last_input    = 0;
+
+          for ( auto& ps_controller : SK_HID_PlayStationControllers )
+          {
+            if (! ps_controller.bConnected)
+              continue;
+
+            if (ps_controller.xinput.last_active > last_input)
+            {
+              pNewestInput = &ps_controller;
+              last_input   = pNewestInput->xinput.last_active;
+            }
+
+            bBluetooth  |= ps_controller.bBluetooth;
+            bDualSense  |= ps_controller.bDualSense;
+            bDualShock4 |= ps_controller.bDualShock4;
+          }
+
           ImGui::BeginGroup ();
           for ( auto& ps_controller : SK_HID_PlayStationControllers )
           {
             if (! ps_controller.bConnected)
               continue;
 
-            bBluetooth  |= ps_controller.bBluetooth;
-            bDualSense  |= ps_controller.bDualSense;
-            bDualShock4 |= ps_controller.bDualShock4;
+            if (&ps_controller == pNewestInput)
+            {
+              ImGui::Bullet ();
+            }
+          }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          for ( auto& ps_controller : SK_HID_PlayStationControllers )
+          {
+            if (! ps_controller.bConnected)
+              continue;
 
             ImGui::TextUnformatted ( ps_controller.bBluetooth ? ICON_FA_BLUETOOTH
                                                               : ICON_FA_USB );
@@ -1172,6 +1212,8 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::Text   ( " " );
           }
           ImGui::EndGroup   ();
+
+          ImGui::TreePush   ("");
 
           ImGui::BeginGroup ();
 
