@@ -1084,6 +1084,8 @@ SK::ControlPanel::Input::Draw (void)
 
         if (ImGui::CollapsingHeader ("PlayStation  (DualShock 3/4 / DualSense)", ImGuiTreeNodeFlags_DefaultOpen))
         {
+          config.input.gamepad.hid.calc_latency = true;
+
           ImGui::TreePush ("");
 
           static HMODULE hModScePad =
@@ -1116,26 +1118,60 @@ SK::ControlPanel::Input::Draw (void)
           bool bDualSense  = false;
           bool bDualShock4 = false;
 
+          ImGui::BeginGroup ();
           for ( auto& ps_controller : SK_HID_PlayStationControllers )
           {
             if (! ps_controller.bConnected)
               continue;
 
-            if (ps_controller.bBluetooth)
-            {
-              bBluetooth = true;
-            }
+            bBluetooth  |= ps_controller.bBluetooth;
+            bDualSense  |= ps_controller.bDualSense;
+            bDualShock4 |= ps_controller.bDualShock4;
 
-            if (ps_controller.bDualSense)
-            {
-              bDualSense = true;
-            }
-
-            if (ps_controller.bDualShock4)
-            {
-              bDualShock4 = true;
-            }
+            ImGui::TextUnformatted ( ps_controller.bBluetooth ? ICON_FA_BLUETOOTH
+                                                              : ICON_FA_USB );
           }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          for ( auto& ps_controller : SK_HID_PlayStationControllers )
+          {
+            if (! ps_controller.bConnected)
+              continue;
+
+            ImGui::Text     ( "%ws ", ps_controller.wszProduct );
+          }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          for ( auto& ps_controller : SK_HID_PlayStationControllers )
+          {
+            if (! ps_controller.bConnected)
+              continue;
+
+            if (ps_controller.latency.ping > 0 && ps_controller.latency.ping < 500 * SK_QpcTicksPerMs)
+              ImGui::Text   (" Latency: %5.2f ms ", static_cast <double> (ps_controller.latency.ping) /
+                                                    static_cast <double> (SK_QpcTicksPerMs));
+            else
+              ImGui::Text   (" ");
+          }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          for ( auto& ps_controller : SK_HID_PlayStationControllers )
+          {
+            if (! ps_controller.bConnected)
+              continue;
+
+            if (ps_controller.latency.pollrate != nullptr)
+            {
+              ImGui::Text   ( " Report Rate: %6.0f Hz",
+                                1000.0 / ((SK::Framerate::Stats *)ps_controller.latency.pollrate)->calcMean () );
+            }
+            else
+              ImGui::Text   ( " " );
+          }
+          ImGui::EndGroup   ();
 
           ImGui::BeginGroup ();
 
@@ -1456,6 +1492,7 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::SameLine ();
             }
 
+#if 0
             bool changed =
               ImGui::SliderInt ( "HID Input Buffers",
                 &config.input.gamepad.hid.max_allowed_buffers, 2, 128, "%d-Buffer Circular Queue" );
@@ -1500,6 +1537,7 @@ SK::ControlPanel::Input::Draw (void)
 
               config.utility.save_async ();
             }
+#endif
 
             ImGui::EndGroup   ();
           }
@@ -1523,6 +1561,8 @@ SK::ControlPanel::Input::Draw (void)
 #endif
           ImGui::TreePop  (  );
         }
+        else
+          config.input.gamepad.hid.calc_latency = false;
 
         ImGui::PopStyleColor (3);
       }

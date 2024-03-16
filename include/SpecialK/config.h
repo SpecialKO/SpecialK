@@ -1012,6 +1012,7 @@ struct sk_config_t
 
       struct hid_s {
         int   max_allowed_buffers =     3;
+        bool  calc_latency        = false;
       } hid;
     } gamepad;
 

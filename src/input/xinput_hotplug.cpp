@@ -224,8 +224,6 @@ SK_XInput_NotifyDeviceArrival (void)
                         SK_HidD_GetAttributes (hDeviceFile.m_h, &hidAttribs);
 
                         playstation |= ( hidAttribs.VendorID == SK_HID_VID_SONY );
-
-                        hDeviceFile.Close ();
                       }
 
                       else
@@ -275,12 +273,7 @@ SK_XInput_NotifyDeviceArrival (void)
                               // We missed a device removal event if this is true
                               SK_ReleaseAssert (controller.bConnected == false);
 
-                              controller.hDeviceFile =
-                                SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
-                                                              FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                                                nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH  |
-                                                                                        FILE_ATTRIBUTE_TEMPORARY |
-                                                                                        FILE_FLAG_OVERLAPPED, nullptr );
+                              controller.hDeviceFile = hDeviceFile.Detach ();
 
                               if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
                               {
@@ -324,7 +317,7 @@ SK_XInput_NotifyDeviceArrival (void)
 
                           if (! has_existing)
                           {
-                            SK_HID_PlayStationDevice controller;
+                            SK_HID_PlayStationDevice controller (hDeviceFile.Detach ());
 
                             controller.pid = hidAttribs.ProductID;
                             controller.vid = hidAttribs.VendorID;
@@ -360,13 +353,6 @@ SK_XInput_NotifyDeviceArrival (void)
 
                             wcsncpy_s (controller.wszDevicePath, MAX_PATH,
                                                   wszFileName,   _TRUNCATE);
-
-                            controller.hDeviceFile =
-                              SK_CreateFileW ( wszFileName, FILE_GENERIC_READ | FILE_GENERIC_WRITE,
-                                                            FILE_SHARE_READ   | FILE_SHARE_WRITE,
-                                                              nullptr, OPEN_EXISTING, FILE_FLAG_WRITE_THROUGH  |
-                                                                                      FILE_ATTRIBUTE_TEMPORARY |
-                                                                                      FILE_FLAG_OVERLAPPED, nullptr );
 
                             if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
                             {

@@ -90,6 +90,9 @@ HidP_GetUsageValueArray_pfn    SK_HidP_GetUsageValueArray      = nullptr;
 
 
 
+#define __SK_HID_CalculateLatency
+
+
 enum class SK_Input_DeviceFileType
 {
   None    = 0,
@@ -322,10 +325,30 @@ SK_HID_DeviceFile::SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
   setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
 }
 
-SK_HID_PlayStationDevice::SK_HID_PlayStationDevice (void)
+SK_HID_PlayStationDevice::SK_HID_PlayStationDevice (HANDLE file)
 {
+  DWORD dwBytesRead = 0;
+
+  hDeviceFile = file;
+
+  SK_DeviceIoControl (
+    hDeviceFile, IOCTL_HID_GET_PRODUCT_STRING, 0, 0,
+    wszProduct, 128, &dwBytesRead, nullptr
+  );
+
   setPollingFrequency (0);
   setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
+}
+
+SK_HID_PlayStationDevice::~SK_HID_PlayStationDevice (void)
+{
+  SK::Framerate::Stats *pStats =
+    (SK::Framerate::Stats *)std::exchange (latency.pollrate, nullptr);
+
+  if (pStats != nullptr)
+  {
+    std::free (pStats);
+  }
 }
 
 bool
@@ -682,7 +705,7 @@ void SK_HID_SetupPlayStationControllers (void)
 
         if (bSONY)
         {
-          SK_HID_PlayStationDevice controller;
+          SK_HID_PlayStationDevice controller (hDeviceFile);
 
           controller.pid = hidAttribs.ProductID;
           controller.vid = hidAttribs.VendorID;
@@ -823,6 +846,9 @@ void SK_HID_SetupPlayStationControllers (void)
   
             auto iter =
               SK_HID_PlayStationControllers.push_back (controller);
+
+            iter->setPollingFrequency (0);
+            iter->setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
 
             iter->write_output_report ();
           }
@@ -3358,6 +3384,12 @@ SK_HID_PlayStationDevice::request_input_report (void)
 {
   if (! bConnected)
     return false;
+  
+  if (latency.pollrate == nullptr)
+  {
+    latency.pollrate =
+      new SK::Framerate::Stats ();
+  }
 
   // If user is overriding RGB, we need to write an output report for every input report
   if ( config.input.gamepad.scepad.led_color_r    >= 0 ||
@@ -3680,7 +3712,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   (SK_HID_DualSense_GetStateData *)&(pDevice->input_report.data ()[1]);
 
 #ifdef __SK_HID_CalculateLatency
-                if (pDevice->latency.last_syn > pDevice->latency.last_ack || pDevice->latency.last_ack == 0)
+                if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
+                    (pDevice->latency.last_syn > pDevice->latency.last_ack || pDevice->latency.last_ack == 0))
                 {
                   uint32_t ack =
                     static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
@@ -3692,14 +3725,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   // Start a new ping
                   WriteRelease (&pDevice->bNeedOutput, TRUE);
                                  pDevice->write_output_report ();
-
-                  SK_ImGui_CreateNotification (
-                      "DualSense.Latency", SK_ImGui_Toast::Info, SK_FormatString ("%5.2f ms", static_cast <double> (pDevice->latency.ping) /
-                                                                                              static_cast <double> (SK_QpcTicksPerMs)).c_str (), "DualSense Latency",
-                         INFINITE, SK_ImGui_Toast::UseDuration  | SK_ImGui_Toast::ShowCaption | SK_ImGui_Toast::ShowTitle |
-                                   SK_ImGui_Toast::ShowNewest   | 
-                                   SK_ImGui_Toast::DoNotSaveINI |
-                                   SK_ImGui_Toast::Unsilencable );
                 }
 #endif
 
@@ -3756,7 +3781,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
               if (! bSimple)
               {
 #ifdef __SK_HID_CalculateLatency
-                if (pDevice->latency.last_syn > pDevice->latency.last_ack || pDevice->latency.last_ack == 0)
+                if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
+                    (pDevice->latency.last_syn > pDevice->latency.last_ack || pDevice->latency.last_ack == 0))
                 {
                   uint32_t ack =
                     static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
@@ -3768,14 +3794,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   // Start a new ping
                   WriteRelease (&pDevice->bNeedOutput, TRUE);
                                  pDevice->write_output_report ();
-
-                  SK_ImGui_CreateNotification (
-                      "DualSense.Latency", SK_ImGui_Toast::Info, SK_FormatString ("%5.2f ms", static_cast <double> (pDevice->latency.ping) /
-                                                                                              static_cast <double> (SK_QpcTicksPerMs)).c_str (), "DualSense Latency",
-                         INFINITE, SK_ImGui_Toast::UseDuration  | SK_ImGui_Toast::ShowCaption | SK_ImGui_Toast::ShowTitle |
-                                   SK_ImGui_Toast::ShowNewest   | 
-                                   SK_ImGui_Toast::DoNotSaveINI |
-                                   SK_ImGui_Toast::Unsilencable );
                 }
 #endif
 
@@ -4243,6 +4261,16 @@ SK_HID_PlayStationDevice::request_input_report (void)
               if (pDevice->buttons [10].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
               if (pDevice->buttons [11].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
             }
+
+            LARGE_INTEGER
+                   tNow = SK_QueryPerf ();
+            INT64 tLast = std::exchange (pDevice->latency.last_poll, tNow.QuadPart);
+
+            double dt =
+              static_cast <double> (tNow.QuadPart - tLast) /
+              static_cast <double> (SK_QpcTicksPerMs);
+
+            ((SK::Framerate::Stats *)pDevice->latency.pollrate)->addSample (dt, tNow);
 
             if (pDevice->buttons.size () >= 13 &&
                 pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
@@ -4822,7 +4850,8 @@ SK_HID_PlayStationDevice::write_output_report (void)
               (SK_HID_DualSense_SetStateData *)&pOutputRaw [1];
 
 #ifdef __SK_HID_CalculateLatency
-            if (pDevice->latency.last_ack > pDevice->latency.last_syn || pDevice->latency.last_syn == 0)
+            if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
+                (pDevice->latency.last_ack > pDevice->latency.last_syn || pDevice->latency.last_syn == 0))
             {
               pDevice->latency.ping = pDevice->latency.last_ack - 
                                       pDevice->latency.last_syn;
@@ -5000,7 +5029,8 @@ SK_HID_PlayStationDevice::write_output_report (void)
            (SK_HID_DualSense_SetStateData *)&bt_data [3];
 
 #ifdef __SK_HID_CalculateLatency
-            if (pDevice->latency.last_ack > pDevice->latency.last_syn || pDevice->latency.last_syn == 0)
+            if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
+                (pDevice->latency.last_ack > pDevice->latency.last_syn || pDevice->latency.last_syn == 0))
             {
               pDevice->latency.ping = pDevice->latency.last_ack - 
                                       pDevice->latency.last_syn;

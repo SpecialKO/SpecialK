@@ -885,7 +885,8 @@ SK_DeviceIoControl (HANDLE       hDevice,
 
 struct SK_HID_PlayStationDevice
 {
-  SK_HID_PlayStationDevice (void);
+   SK_HID_PlayStationDevice (HANDLE file);
+  ~SK_HID_PlayStationDevice (void);
 
   enum PowerState : uint8_t {
     Discharging         = 0x00, // Use PowerPercent
@@ -909,8 +910,7 @@ struct SK_HID_PlayStationDevice
   DWORD                dwLastTimeOutput         =       0;
   wchar_t              wszDevicePath [MAX_PATH] = {     };
 
-  std::wstring         wszManufacturer          =   L""  ;
-  std::wstring         wszProduct               =   L""  ;
+  wchar_t              wszProduct      [128]    = {     };
   wchar_t              wszSerialNumber [128]    = {     };
   ULONG64              ullHWAddr                =       0;
 
@@ -1000,6 +1000,9 @@ struct SK_HID_PlayStationDevice
     UINT32 last_syn        = 0;
     UINT32 last_ack        = 0;
     UINT32 ping            = 0;
+
+    void*  pollrate        = nullptr;
+    UINT64 last_poll       = 0;
   } latency;
 
   struct rgb_s {
