@@ -1249,6 +1249,10 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32
              (0.001 * static_cast <double> (vblank_n         - vblank_t0))
                                           );
 
+  // Keep imaginary numbers out of the data set...
+  if (vblank_n - vblank_t0 == 0)
+    new_average = 0.0f;
+
   if (last_average != 0.0f)
   {
     new_average =

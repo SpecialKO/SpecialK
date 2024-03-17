@@ -1,4 +1,10 @@
-﻿24.3.18.1
+﻿24.3.18.2
+=========
+ + Fixed potential imaginary numbers in VRR VBlank counter in 32-bit builds on
+     the first frame drawn, and then compounded into a rolling-average that stays
+       imaginary.
+
+24.3.18.1
 =========
  + Add effective VRR Refresh Rate to text OSD if VRR Compact mode is enabled or
      if G-Sync status is enabled and detailed framerate stats are enabled.
