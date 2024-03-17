@@ -3628,6 +3628,23 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
             pDevice->xinput.report.Gamepad = { };
 
+#ifdef __SK_HID_CalculateLatency
+            if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
+                (pDevice->latency.last_syn > pDevice->latency.last_ack || pDevice->latency.last_ack == 0))
+            {
+              uint32_t ack =
+                static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
+
+              pDevice->latency.last_ack = ack;
+              pDevice->latency.ping     = pDevice->latency.last_ack -
+                                            pDevice->latency.last_syn;//pData->HostTimestamp;
+
+              // Start a new ping
+              WriteRelease (&pDevice->bNeedOutput, TRUE);
+                             pDevice->write_output_report ();
+            }
+#endif
+
             if (dwBytesTransferred != 78 && (! (pDevice->bDualShock4 && pDevice->bBluetooth)))
             {
               if ( HIDP_STATUS_SUCCESS ==
@@ -3752,23 +3769,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 SK_HID_DualSense_GetStateData* pData = 
                   (SK_HID_DualSense_GetStateData *)&(pDevice->input_report.data ()[1]);
 
-#ifdef __SK_HID_CalculateLatency
-                if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
-                    (pDevice->latency.last_syn > pDevice->latency.last_ack || pDevice->latency.last_ack == 0))
-                {
-                  uint32_t ack =
-                    static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
-
-                  pDevice->latency.last_ack = ack;
-                  pDevice->latency.ping     = pDevice->latency.last_ack -
-                                                pDevice->latency.last_syn;//pData->HostTimestamp;
-
-                  // Start a new ping
-                  WriteRelease (&pDevice->bNeedOutput, TRUE);
-                                 pDevice->write_output_report ();
-                }
-#endif
-
                 pDevice->battery.state =
                   (SK_HID_PlayStationDevice::PowerState)((((BYTE *)pData)[52] & 0xF0) >> 4);
 
@@ -3821,23 +3821,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               if (! bSimple)
               {
-#ifdef __SK_HID_CalculateLatency
-                if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
-                    (pDevice->latency.last_syn > pDevice->latency.last_ack || pDevice->latency.last_ack == 0))
-                {
-                  uint32_t ack =
-                    static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
-
-                  pDevice->latency.last_ack = ack;
-                  pDevice->latency.ping     = pDevice->latency.last_ack -
-                                                pDevice->latency.last_syn;//pData->HostTimestamp;
-
-                  // Start a new ping
-                  WriteRelease (&pDevice->bNeedOutput, TRUE);
-                                 pDevice->write_output_report ();
-                }
-#endif
-
                 if (config.input.gamepad.bt_input_only)
                 {
                   SK_ImGui_CreateNotification ( "HID.Bluetooth.ModeChange", SK_ImGui_Toast::Warning,
@@ -4319,18 +4302,86 @@ SK_HID_PlayStationDevice::request_input_report (void)
 #pragma region (deadzone)
             if (config.input.gamepad.xinput.standard_deadzone)
             {
-              if (abs (pDevice->xinput.report.Gamepad.sThumbLX)     < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
-                       pDevice->xinput.report.Gamepad.sThumbLX = 0;
-              if (abs (pDevice->xinput.report.Gamepad.sThumbLY)     < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
-                       pDevice->xinput.report.Gamepad.sThumbLY = 0;
-              if (abs (pDevice->xinput.report.Gamepad.sThumbRX)     < XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
-                       pDevice->xinput.report.Gamepad.sThumbRX = 0;
-              if (abs (pDevice->xinput.report.Gamepad.sThumbRY)     < XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
-                       pDevice->xinput.report.Gamepad.sThumbRY = 0;
-              if (     pDevice->xinput.report.Gamepad.bLeftTrigger   < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
-                       pDevice->xinput.report.Gamepad.bLeftTrigger  = 0;
-              if (     pDevice->xinput.report.Gamepad.bRightTrigger  < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
-                       pDevice->xinput.report.Gamepad.bRightTrigger = 0;
+              float LX   = pDevice->xinput.report.Gamepad.sThumbLX;
+              float LY   = pDevice->xinput.report.Gamepad.sThumbLY;
+              float norm = sqrt ( LX*LX + LY*LY );
+//#if 0
+              float unit = 1.0f;
+
+              if (norm > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
+              {
+                norm = std::min (norm, 32767.0f) - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
+                unit =           norm/(32767.0f  - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+              }
+              else
+              {
+                norm = 0.0f;
+                unit = 0.0f;
+              }
+
+              float uLX = (LX / 32767.0f) * unit;
+              float uLY = (LY / 32767.0f) * unit;
+
+              pDevice->xinput.report.Gamepad.sThumbLX = static_cast <SHORT> (uLX < 0 ? 32768.0f * uLX
+                                                                                     : 32767.0f * uLX);
+              pDevice->xinput.report.Gamepad.sThumbLY = static_cast <SHORT> (uLY < 0 ? 32768.0f * uLY
+                                                                                     : 32767.0f * uLY);
+#if 0
+              pDevice->xinput.report.Gamepad.sThumbLX = (abs (pDevice->xinput.report.Gamepad.sThumbLX) < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) ? 0 :
+              pDevice->xinput.report.Gamepad.sThumbLX;
+              pDevice->xinput.report.Gamepad.sThumbLY = (abs (pDevice->xinput.report.Gamepad.sThumbLY) < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) ? 0 :
+              pDevice->xinput.report.Gamepad.sThumbLY;
+#endif
+
+              float RX   = pDevice->xinput.report.Gamepad.sThumbRX;
+              float RY   = pDevice->xinput.report.Gamepad.sThumbRY;
+                    norm = sqrt ( RX*RX + RY*RY );
+
+//#if 0
+              unit = 1.0f;
+              if (norm > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
+              {
+                norm = std::min (norm, 32767.0f) - XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
+                unit =           norm/(32767.0f  - XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
+              }
+              else
+              {
+                norm = 0.0f;
+                unit = 0.0f;
+              }
+
+              float uRX = (RX / 32767.0f) * unit;
+              float uRY = (RY / 32767.0f) * unit;
+
+              pDevice->xinput.report.Gamepad.sThumbRX = static_cast <SHORT> (uRX < 0 ? 32768.0f * uRX
+                                                                                     : 32767.0f * uRX);
+              pDevice->xinput.report.Gamepad.sThumbRY = static_cast <SHORT> (uRY < 0 ? 32768.0f * uRY
+                                                                                     : 32767.0f * uRY);
+#if 0
+              pDevice->xinput.report.Gamepad.sThumbRX = (abs (pDevice->xinput.report.Gamepad.sThumbRX) < XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE) ? 0 :
+              pDevice->xinput.report.Gamepad.sThumbRX;
+              pDevice->xinput.report.Gamepad.sThumbRY = (abs (pDevice->xinput.report.Gamepad.sThumbRY) < XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE) ? 0 :
+              pDevice->xinput.report.Gamepad.sThumbRY;
+#endif
+
+              if (  pDevice->xinput.report.Gamepad.bLeftTrigger   < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+                    pDevice->xinput.report.Gamepad.bLeftTrigger  = 0;
+              else
+              {
+                pDevice->xinput.report.Gamepad.bLeftTrigger =
+                  static_cast <BYTE> (                             255.0  *
+                     (((float)pDevice->xinput.report.Gamepad.bLeftTrigger - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD) /
+                                                                  (255.0f - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD)));
+              }
+              if (  pDevice->xinput.report.Gamepad.bRightTrigger  < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+                    pDevice->xinput.report.Gamepad.bRightTrigger = 0;
+              else
+              {
+                pDevice->xinput.report.Gamepad.bRightTrigger =
+                  static_cast <BYTE> (                              255.0  *
+                     (((float)pDevice->xinput.report.Gamepad.bRightTrigger - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD) /
+                                                                   (255.0f - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD)));
+              }
             }
 #pragma endregion
 
@@ -4591,6 +4642,21 @@ SK_HID_PlayStationDevice::write_output_report (void)
             pDevice->bBluetooth ? 0x31 :
                                   0x02;
 
+#ifdef __SK_HID_CalculateLatency
+          if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
+              (pDevice->latency.last_ack > pDevice->latency.last_syn || pDevice->latency.last_syn == 0))
+          {
+            pDevice->latency.ping =
+              ( pDevice->latency.ping * 19 + ( pDevice->latency.last_ack - 
+                                               pDevice->latency.last_syn ) ) / 20;
+
+            pDevice->latency.last_syn =
+              static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
+
+            //output->HostTimestamp = pDevice->latency.last_syn;
+          }
+#endif
+
           if (! pDevice->bBluetooth)
           {
             BYTE* pOutputRaw =
@@ -4598,20 +4664,6 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
             SK_HID_DualSense_SetStateData* output =
               (SK_HID_DualSense_SetStateData *)&pOutputRaw [1];
-
-#ifdef __SK_HID_CalculateLatency
-            if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
-                (pDevice->latency.last_ack > pDevice->latency.last_syn || pDevice->latency.last_syn == 0))
-            {
-              pDevice->latency.ping = pDevice->latency.last_ack - 
-                                      pDevice->latency.last_syn;
-
-              pDevice->latency.last_syn =
-                static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
-
-              output->HostTimestamp = pDevice->latency.last_syn;
-            }
-#endif
 
             output->EnableRumbleEmulation    = true;
             output->UseRumbleNotHaptics      = true;
@@ -4755,20 +4807,6 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
             SK_HID_DualSense_SetStateData* output =
            (SK_HID_DualSense_SetStateData *)&bt_data [3];
-
-#ifdef __SK_HID_CalculateLatency
-            if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
-                (pDevice->latency.last_ack > pDevice->latency.last_syn || pDevice->latency.last_syn == 0))
-            {
-              pDevice->latency.ping = pDevice->latency.last_ack - 
-                                      pDevice->latency.last_syn;
-
-              pDevice->latency.last_syn =
-                static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
-
-              output->HostTimestamp = pDevice->latency.last_syn;
-            }
-#endif
 
             output->EnableRumbleEmulation = true;
             output->UseRumbleNotHaptics   = true;
@@ -5092,6 +5130,21 @@ SK_HID_PlayStationDevice::write_output_report (void)
         auto _FinishPollRequest =
        [&](bool reset_finished = true)
         {
+#ifdef __SK_HID_CalculateLatency
+          if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
+              (pDevice->latency.last_ack > pDevice->latency.last_syn || pDevice->latency.last_syn == 0))
+          {
+            pDevice->latency.ping =
+              ( pDevice->latency.ping * 19 + ( pDevice->latency.last_ack - 
+                                               pDevice->latency.last_syn ) ) / 20;
+
+            pDevice->latency.last_syn =
+              static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
+
+            //output->HostTimestamp = pDevice->latency.last_syn;
+          }
+#endif
+
           pDevice->ulLastFrameOutput =
                    SK_GetFramesDrawn ();
 

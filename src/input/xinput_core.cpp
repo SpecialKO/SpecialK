@@ -442,8 +442,8 @@ XInputEnable1_4_Detour (
   SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 }
 
-static DWORD  last_packet [XUSER_MAX_COUNT] = {};
-static UINT64 last_time   [XUSER_MAX_COUNT] = {};
+static volatile DWORD  last_packet [XUSER_MAX_COUNT] = {};
+static volatile UINT64 last_time   [XUSER_MAX_COUNT] = {};
 
 DWORD
 WINAPI
@@ -531,17 +531,14 @@ XInputGetState1_4_Detour (
 
     if (      xinput_ctx.isDeviceSteamInput (dwUserIndex))
       SK_Steam_SignalEmulatedXInputActivity (dwUserIndex, nop);
-
-    // Game-specific hacks (i.e. button swap)
-    SK_XInput_TalesOfAriseButtonSwap (pState);
   }
 
   if (dwUserIndex == 0)
   {
-    if (pState->dwPacketNumber > last_packet [0])
+    if (pState->dwPacketNumber > ReadULongAcquire (&last_packet [dwUserIndex]))
     {
-      last_packet [0] = pState->dwPacketNumber;
-      last_time   [0] = SK_QueryPerf ().QuadPart;
+      InterlockedExchange (&last_packet [dwUserIndex], pState->dwPacketNumber);
+      InterlockedExchange (&last_time   [dwUserIndex], SK_QueryPerf ().QuadPart);
     }
   }
 
@@ -570,7 +567,7 @@ XInputGetState1_4_Detour (
         }
       }
 
-      if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active > last_time [0]))
+      if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active > ReadULong64Acquire (&last_time [0])))
       {
         extern XINPUT_STATE hid_to_xi;
                             hid_to_xi = pNewestInputDevice->xinput.prev_report;
@@ -587,25 +584,25 @@ XInputGetState1_4_Detour (
                                 SK_ImGui_Toast::DoNotSaveINI );
         }
 
-        if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
-        {
-          SK_XINPUT_HIDE (dwUserIndex)
-          ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
-        }
-
-        else
-        {
-          // Game-specific hacks (i.e. button swap)
-          SK_XInput_TalesOfAriseButtonSwap (pState);
-
-          SK_XINPUT_READ (dwUserIndex)
-        }
-
         xinput_ctx.translated = true;
 
-        return ERROR_SUCCESS;
+        dwRet = ERROR_SUCCESS;
       }
     }
+  }
+
+  if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
+  {
+    SK_XINPUT_HIDE (dwUserIndex)
+    ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  }
+
+  else
+  {
+    // Game-specific hacks (i.e. button swap)
+    SK_XInput_TalesOfAriseButtonSwap (pState);
+
+    SK_XINPUT_READ (dwUserIndex)
   }
 
   return dwRet;
@@ -625,6 +622,9 @@ XInputGetStateEx1_4_Detour (
     //return dwNullptrRet;
 
   SK_LOG_FIRST_CALL
+
+  if (dwUserIndex == 0)
+    xinput_ctx.translated = false;
 
   struct cached_state_s
   {
@@ -796,10 +796,10 @@ XInputGetStateEx1_4_Detour (
 
   if (dwUserIndex == 0)
   {
-    if (pState->dwPacketNumber > last_packet [0])
+    if (pState->dwPacketNumber > ReadULongAcquire (&last_packet [dwUserIndex]))
     {
-      last_packet [0] = pState->dwPacketNumber;
-      last_time   [0] = SK_QueryPerf ().QuadPart;
+      InterlockedExchange (&last_packet [dwUserIndex], pState->dwPacketNumber);
+      InterlockedExchange (&last_time   [dwUserIndex], SK_QueryPerf ().QuadPart);
     }
   }
 
@@ -830,16 +830,16 @@ XInputGetStateEx1_4_Detour (
         }
       }
 
-      if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active > last_time [0]))
+      if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active > ReadULong64Acquire (&last_time [0])))
       {
         extern XINPUT_STATE hid_to_xi;
                             hid_to_xi = pNewestInputDevice->xinput.prev_report;
-        memcpy ( &_state,  &hid_to_xi, sizeof (XINPUT_STATE) );
+        memcpy ( pState,   &hid_to_xi, sizeof (XINPUT_STATE) );
 
         if (config.input.gamepad.xinput.debug)
         {
           SK_ImGui_CreateNotification (
-            "XInput.PacketNum", SK_ImGui_Toast::Info, SK_FormatString ("XInputEx Packet: %d", _state.dwPacketNumber).c_str (), nullptr, INFINITE,
+            "XInput.PacketNum", SK_ImGui_Toast::Info, SK_FormatString ("XInputEx Packet: %d", pState->dwPacketNumber).c_str (), nullptr, INFINITE,
                                 SK_ImGui_Toast::UseDuration  |
                                 SK_ImGui_Toast::ShowCaption  |
                                 SK_ImGui_Toast::ShowNewest   |
@@ -847,31 +847,26 @@ XInputGetStateEx1_4_Detour (
                                 SK_ImGui_Toast::DoNotSaveINI );
         }
 
-        if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
-        {
-          SK_XINPUT_HIDE (dwUserIndex)
-          ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
-        }
-
-        else
-        {
-          // Game-specific hacks (i.e. button swap)
-          SK_XInput_TalesOfAriseButtonSwap (&_state);
-
-          SK_XINPUT_READ (dwUserIndex)
-
-          memcpy (pState, &_state, sizeof (XINPUT_STATE));
-        }
-
         xinput_ctx.translated = true;
 
-        return ERROR_SUCCESS;
+        dwRet = ERROR_SUCCESS;
       }
     }
   }
 
-  if (dwUserIndex == 0)
-    xinput_ctx.translated = false;
+  if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
+  {
+    SK_XINPUT_HIDE (dwUserIndex)
+    ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+  }
+
+  else
+  {
+    // Game-specific hacks (i.e. button swap)
+    SK_XInput_TalesOfAriseButtonSwap ((XINPUT_STATE *)pState);
+
+    SK_XINPUT_READ (dwUserIndex)
+  }
 
   return dwRet;
 }
@@ -1177,7 +1172,7 @@ XInputSetState1_4_Detour (
     {
       if (controller.bConnected)
       {
-        if (controller.xinput.last_active > last_time [dwUserIndex])
+        if (controller.xinput.last_active > ReadULong64Acquire (&last_time [dwUserIndex]))
         {
           if ( pNewestInputDevice == nullptr ||
                pNewestInputDevice->xinput.last_active < controller.xinput.last_active )
@@ -2983,6 +2978,7 @@ SK_XInput_PulseController ( INT   iJoyID,
         sk::narrow_cast <WORD>(std::min (0.99999f, fStrengthRight) * 65535.0f)
     };
 
+#if 0
   if (__xi_pulse_set_values.count (iJoyID))
   {
     auto& last_val =
@@ -2999,6 +2995,7 @@ SK_XInput_PulseController ( INT   iJoyID,
       return true;
     }
   }
+#endif
 
   __xi_pulse_set_values [iJoyID] = vibes;
   __xi_pulse_set_frames [iJoyID] = SK_GetFramesDrawn ();
@@ -3011,36 +3008,53 @@ SK_XInput_PulseController ( INT   iJoyID,
   XInputSetState_pfn XInputSetState =
                      XInputSetState_SK;
 
-  if ((iJoyID == 0 && config.input.gamepad.xinput.emulate) ||
-                        ReadULongAcquire (&xinput_ctx.LastSlotState [iJoyID]) != ERROR_SUCCESS)
-  {
-    bool bSet = false;
+  SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
 
+  if (iJoyID == 0)
+  {
     for ( auto& controller : SK_HID_PlayStationControllers )
     {
       if (controller.bConnected)
       {
-        if ( std::exchange (controller.xinput.vibration.wLastLeft,  vibes.wLeftMotorSpeed ) != vibes.wLeftMotorSpeed ||
-             std::exchange (controller.xinput.vibration.wLastRight, vibes.wRightMotorSpeed) != vibes.wRightMotorSpeed )
+        if (controller.xinput.last_active > ReadULong64Acquire (&last_time [iJoyID]))
         {
-          controller.setVibration (
-            vibes.wLeftMotorSpeed,
-            vibes.wRightMotorSpeed
-          );
-
-          //if (controller.write_output_report ())
-          //  bSet = true;
+          if ( pNewestInputDevice == nullptr ||
+               pNewestInputDevice->xinput.last_active < controller.xinput.last_active )
+          {
+            pNewestInputDevice = &controller;
+          }
         }
-
-        else
-          bSet = true;
-
-        //SK_XINPUT_WRITE (iJoyID)
       }
     }
+  }
 
-    if (bSet)
-      return true;
+  bool bSet = false;
+
+  for ( auto& controller : SK_HID_PlayStationControllers )
+  {
+    if (controller.bConnected)
+    {
+      controller.setVibration (
+        &controller == pNewestInputDevice ? vibes.wLeftMotorSpeed  : 0,
+        &controller == pNewestInputDevice ? vibes.wRightMotorSpeed : 0
+      );
+
+      if (controller.write_output_report ())
+      {
+        if (pNewestInputDevice == &controller)
+          bSet = true;
+      }
+    }
+  }
+
+  if (bSet)
+  {
+    if (XInputSetState != nullptr)
+    {
+      XINPUT_VIBRATION         nul_vibes = { 0, 0 };
+      XInputSetState (iJoyID, &nul_vibes);
+    }
+    return true;
   }
 
   DWORD dwRet = XInputSetState == nullptr ? ERROR_DEVICE_NOT_CONNECTED :

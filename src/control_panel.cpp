@@ -7238,8 +7238,8 @@ SK_ImGui_StageNextFrame (void)
         {
           ImGui::TextUnformatted ("/");
           ImGui::SameLine        ();
-          ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
-                                  " (" ICON_FA_PLAYSTATION ")" );
+          ImGui::TextColored     ( ImColor (255, 255, 255, 255),//ImColor (0, 112, 209, 255),
+                                  " " ICON_FA_PLAYSTATION );
         }
 
         else
@@ -7264,7 +7264,18 @@ SK_ImGui_StageNextFrame (void)
                                    R"(Start')" );
         ImGui::SameLine        ();
         ImGui::SameLine        ();
-        ImGui::TextColored     ( ImVec4 (.75f, .75f, .75f, 1.f), " (Xbox) ");
+        if (config.input.gamepad.scepad.enhanced_ps_button)
+        {
+          ImGui::TextUnformatted ("/");
+          ImGui::SameLine        ();
+          ImGui::TextColored     ( ImColor (255, 255, 255, 255),//ImColor (14, 122, 13, 255),
+                                  " " ICON_FA_XBOX );
+        }
+
+        else
+        {
+          ImGui::TextColored     ( ImVec4 (.75f, .75f, .75f, 1.f), " (Xbox)");
+        }
         ImGui::SameLine        ();
       }
     }
