@@ -1,6 +1,7 @@
 ﻿24.3.18.1
 =========
- + Add effective VRR Refresh Rate to text OSD if VRR Compact mode is enabled
+ + Add effective VRR Refresh Rate to text OSD if VRR Compact mode is enabled or
+     if G-Sync status is enabled and detailed framerate stats are enabled.
 
 24.3.18
 =======

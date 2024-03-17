@@ -840,6 +840,18 @@ SK_DrawOSD (void)
       last_fps_time = dwTime;
     }
 
+    float fVBlankHz = 0.0f;
+
+    if (gsync)
+    {
+      auto& nvapi_display =
+        rb.displays [rb.active_display].nvapi;
+
+      fVBlankHz =
+        nvapi_display.vblank_counter.getVBlankHz (
+                  SK::ControlPanel::current_time );
+    }
+
     if (fabs (mean - INFINITY) > std::numeric_limits <double>::epsilon ())
     {
       const char* format = "";
@@ -851,19 +863,7 @@ SK_DrawOSD (void)
 
       if (config.fps.compact)
       {
-        float fVBlankHz = 0.0f;
-
-        if (gsync)
-        {
-          auto& nvapi_display =
-            rb.displays [rb.active_display].nvapi;
-
-          fVBlankHz =
-            nvapi_display.vblank_counter.getVBlankHz (
-                      SK::ControlPanel::current_time );
-        }
-
-        OSD_PRINTF (gsync && config.fps.compact_vrr ? "%*hs%2.0f\n%*hs%5.2f Hz\n"
+        OSD_PRINTF (gsync && config.fps.compact_vrr ? "%*hs%2.0f\n%*hs%#5.01f Hz\n"
                                                     : "%*hs%2.0f\n"), left_padding, pad_str, fps,
                                                                       left_padding, pad_str, fVBlankHz
         OSD_END
@@ -889,39 +889,73 @@ SK_DrawOSD (void)
             ( config.fps.frametime ?
               config.fps.advanced  ?
                 has_cpu_frametime  ?
-                  "%*hs%-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>" :
-                  "%*hs%-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)"                           :
-                  "%*hs%-7ws:  %#4.01f FPS (G-Sync),%#5.01f ms"                                                                    :
-                  "%*hs%-7ws:  %#4.01f FPS (G-Sync)"
+                  "%*hs%-7ws:  %#4.01f FPS (%#5.01f Hz)%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)   <%4.01f FPS / %3.2f ms>" :
+                  "%*hs%-7ws:  %#4.01f FPS (%#5.01f Hz)%#5.01f ms (s=%3.2f,min=%3.2f,max=%3.2f,hitches=%d)"                           :
+                  "%*hs%-7ws:  %#4.01f FPS (%#5.01f Hz)%#5.01f ms"                                                                    :
+                  "%*hs%-7ws:  %#4.01f FPS (%#5.01f Hz)"
             );
         }
 
         if (has_cpu_frametime)
         {
-          OSD_PRINTF format, left_padding, pad_str,
-            rb.name,
-              fps,
-                mean,
-                  sqrt (sd),
-                    min,
-                      max,
-                        hitches,
-                          1000.0 / effective_mean,
-                            effective_mean
-          OSD_END
+          if (gsync)
+          {
+            OSD_PRINTF format, left_padding, pad_str,
+              rb.name,
+                fps, fVBlankHz,
+                  mean,
+                    sqrt (sd),
+                      min,
+                        max,
+                          hitches,
+                            1000.0 / effective_mean,
+                              effective_mean
+            OSD_END
+          }
+
+          else
+          {
+            OSD_PRINTF format, left_padding, pad_str,
+              rb.name,
+                fps,
+                  mean,
+                    sqrt (sd),
+                      min,
+                        max,
+                          hitches,
+                            1000.0 / effective_mean,
+                              effective_mean
+            OSD_END
+          }
         }
 
         else
         {
-          OSD_PRINTF format, left_padding, pad_str,
-            rb.name,
-              fps,
-                mean,
-                  sqrt (sd),
-                    min,
-                      max,
-                        hitches
-          OSD_END
+          if (gsync)
+          {
+            OSD_PRINTF format, left_padding, pad_str,
+              rb.name,
+                fps, fVBlankHz,
+                  mean,
+                    sqrt (sd),
+                      min,
+                        max,
+                          hitches
+            OSD_END
+          }
+
+          else
+          {
+            OSD_PRINTF format, left_padding, pad_str,
+              rb.name,
+                fps,
+                  mean,
+                    sqrt (sd),
+                      min,
+                        max,
+                          hitches
+            OSD_END
+          }
         }
       }
     }
@@ -931,19 +965,31 @@ SK_DrawOSD (void)
     {
       const char* format =
         gsync ?
-          ( config.fps.frametime                           ?
-              "%*hs%-7ws:  %#4.01f FPS (G-Sync),%5.01f ms" :
-              "%*hs%-7ws:  %#4.01f FPS (G-Sync)"             )
+          ( config.fps.frametime                               ?
+              "%*hs%-7ws:  %#4.01f FPS (%#5.01f Hz)%#5.01f ms" :
+              "%*hs%-7ws:  %#4.01f FPS (%#5.01f Hz)"             )
               :
           ( config.fps.frametime                     ?
               "%*hs%-7ws:  %#4.01f FPS, %#13.01f ms" :
               "%*hs%-7ws:  %#4.01f FPS"                );
 
-      OSD_PRINTF format, left_padding, pad_str,
-        rb.name,
-          // Cast to FP to avoid integer division by zero.
-          1000.0f * 0.0f / 1.0f, 0.0f
-      OSD_END
+      if (gsync)
+      {
+        OSD_PRINTF format, left_padding, pad_str,
+          rb.name,
+            // Cast to FP to avoid integer division by zero.
+            1000.0f * 0.0f / 1.0f, fVBlankHz, 0.0f
+        OSD_END
+      }
+
+      else
+      {
+        OSD_PRINTF format, left_padding, pad_str,
+          rb.name,
+            // Cast to FP to avoid integer division by zero.
+            1000.0f * 0.0f / 1.0f, 0.0f
+        OSD_END
+      }
     }
 
     _DrawFrameCountIf (! config.fps.compact);
