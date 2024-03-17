@@ -442,6 +442,9 @@ XInputEnable1_4_Detour (
   SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
 }
 
+static DWORD  last_packet [XUSER_MAX_COUNT] = {};
+static UINT64 last_time   [XUSER_MAX_COUNT] = {};
+
 DWORD
 WINAPI
 XInputGetState1_4_Detour (
@@ -451,66 +454,6 @@ XInputGetState1_4_Detour (
   SK_LOG_FIRST_CALL
 
   HMODULE hModCaller = SK_GetCallingDLL ();
-
-  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
-  {
-    if (dwUserIndex == 0 && SK_HID_PlayStationControllers.size () > 0)
-    {
-      SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
-
-      bool
-      SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
-      SK_ImGui_PollGamepad_EndFrame (pState);
-
-      for ( auto& controller : SK_HID_PlayStationControllers )
-      {
-        if (controller.bConnected)
-        {
-          if (pNewestInputDevice == nullptr ||
-              pNewestInputDevice->xinput.last_active <= controller.xinput.last_active)
-          {
-            pNewestInputDevice = &controller;
-          }
-        }
-      }
-
-      if (pNewestInputDevice != nullptr)
-      {
-        extern XINPUT_STATE hid_to_xi;
-                            hid_to_xi = pNewestInputDevice->xinput.prev_report;
-        memcpy (  pState,  &hid_to_xi, sizeof (XINPUT_STATE) );
-
-        if (config.input.gamepad.xinput.debug)
-        {
-          SK_ImGui_CreateNotification (
-            "XInput.PacketNum", SK_ImGui_Toast::Info, SK_FormatString ("XInput Packet: %d", pState->dwPacketNumber).c_str (), nullptr, INFINITE,
-                                SK_ImGui_Toast::UseDuration  |
-                                SK_ImGui_Toast::ShowCaption  |
-                                SK_ImGui_Toast::ShowNewest   |
-                                SK_ImGui_Toast::Unsilencable |
-                                SK_ImGui_Toast::DoNotSaveINI );
-        }
-
-        if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
-        {
-          SK_XINPUT_HIDE (dwUserIndex)
-          ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
-        }
-
-        else
-        {
-          // Game-specific hacks (i.e. button swap)
-          SK_XInput_TalesOfAriseButtonSwap (pState);
-
-          SK_XINPUT_READ (dwUserIndex)
-        }
-
-        xinput_ctx.translated = true;
-
-        return ERROR_SUCCESS;
-      }
-    }
-  }
 
   if (dwUserIndex == 0)
     xinput_ctx.translated = false;
@@ -593,6 +536,78 @@ XInputGetState1_4_Detour (
     SK_XInput_TalesOfAriseButtonSwap (pState);
   }
 
+  if (dwUserIndex == 0)
+  {
+    if (pState->dwPacketNumber > last_packet [0])
+    {
+      last_packet [0] = pState->dwPacketNumber;
+      last_time   [0] = SK_QueryPerf ().QuadPart;
+    }
+  }
+
+  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+  {
+    // Use emulation if there is no Xbox controller, but also if PlayStation input is newer
+    bool bUseEmulation = (dwRet != ERROR_SUCCESS);
+
+    if (dwUserIndex == 0 && SK_HID_PlayStationControllers.size () > 0)
+    {
+      SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
+
+      bool
+      SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
+      SK_ImGui_PollGamepad_EndFrame (pState);
+
+      for ( auto& controller : SK_HID_PlayStationControllers )
+      {
+        if (controller.bConnected)
+        {
+          if (pNewestInputDevice == nullptr ||
+              pNewestInputDevice->xinput.last_active <= controller.xinput.last_active)
+          {
+            pNewestInputDevice = &controller;
+          }
+        }
+      }
+
+      if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active > last_time [0]))
+      {
+        extern XINPUT_STATE hid_to_xi;
+                            hid_to_xi = pNewestInputDevice->xinput.prev_report;
+        memcpy (  pState,  &hid_to_xi, sizeof (XINPUT_STATE) );
+
+        if (config.input.gamepad.xinput.debug)
+        {
+          SK_ImGui_CreateNotification (
+            "XInput.PacketNum", SK_ImGui_Toast::Info, SK_FormatString ("XInput Packet: %d", pState->dwPacketNumber).c_str (), nullptr, INFINITE,
+                                SK_ImGui_Toast::UseDuration  |
+                                SK_ImGui_Toast::ShowCaption  |
+                                SK_ImGui_Toast::ShowNewest   |
+                                SK_ImGui_Toast::Unsilencable |
+                                SK_ImGui_Toast::DoNotSaveINI );
+        }
+
+        if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
+        {
+          SK_XINPUT_HIDE (dwUserIndex)
+          ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+        }
+
+        else
+        {
+          // Game-specific hacks (i.e. button swap)
+          SK_XInput_TalesOfAriseButtonSwap (pState);
+
+          SK_XINPUT_READ (dwUserIndex)
+        }
+
+        xinput_ctx.translated = true;
+
+        return ERROR_SUCCESS;
+      }
+    }
+  }
+
   return dwRet;
 }
 
@@ -610,73 +625,6 @@ XInputGetStateEx1_4_Detour (
     //return dwNullptrRet;
 
   SK_LOG_FIRST_CALL
-
-  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
-  {
-    if (dwUserIndex == 0 && SK_HID_PlayStationControllers.size () > 0)
-    {
-      SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
-
-      XINPUT_STATE _state = { };
-
-      bool
-      SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
-      SK_ImGui_PollGamepad_EndFrame (&_state);
-
-      for ( auto& controller : SK_HID_PlayStationControllers )
-      {
-        if (controller.bConnected)
-        {
-          if (pNewestInputDevice == nullptr ||
-              pNewestInputDevice->xinput.last_active <= controller.xinput.last_active)
-          {
-            pNewestInputDevice = &controller;
-          }
-        }
-      }
-
-      if (pNewestInputDevice != nullptr)
-      {
-        extern XINPUT_STATE hid_to_xi;
-                            hid_to_xi = pNewestInputDevice->xinput.prev_report;
-        memcpy ( &_state,  &hid_to_xi, sizeof (XINPUT_STATE) );
-
-        if (config.input.gamepad.xinput.debug)
-        {
-          SK_ImGui_CreateNotification (
-            "XInput.PacketNum", SK_ImGui_Toast::Info, SK_FormatString ("XInputEx Packet: %d", _state.dwPacketNumber).c_str (), nullptr, INFINITE,
-                                SK_ImGui_Toast::UseDuration  |
-                                SK_ImGui_Toast::ShowCaption  |
-                                SK_ImGui_Toast::ShowNewest   |
-                                SK_ImGui_Toast::Unsilencable |
-                                SK_ImGui_Toast::DoNotSaveINI );
-        }
-
-        if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
-        {
-          SK_XINPUT_HIDE (dwUserIndex)
-          ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
-        }
-
-        else
-        {
-          // Game-specific hacks (i.e. button swap)
-          SK_XInput_TalesOfAriseButtonSwap (&_state);
-
-          SK_XINPUT_READ (dwUserIndex)
-
-          memcpy (pState, &_state, sizeof (XINPUT_STATE));
-        }
-
-        xinput_ctx.translated = true;
-
-        return ERROR_SUCCESS;
-      }
-    }
-  }
-
-  if (dwUserIndex == 0)
-    xinput_ctx.translated = false;
 
   struct cached_state_s
   {
@@ -846,6 +794,85 @@ XInputGetStateEx1_4_Detour (
       SK_Steam_SignalEmulatedXInputActivity (dwUserIndex, nop);
   }
 
+  if (dwUserIndex == 0)
+  {
+    if (pState->dwPacketNumber > last_packet [0])
+    {
+      last_packet [0] = pState->dwPacketNumber;
+      last_time   [0] = SK_QueryPerf ().QuadPart;
+    }
+  }
+
+  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+  {
+    // Use emulation if there is no Xbox controller, but also if PlayStation input is newer
+    bool bUseEmulation = (dwRet != ERROR_SUCCESS);
+
+    if (dwUserIndex == 0 && SK_HID_PlayStationControllers.size () > 0)
+    {
+      SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
+
+      XINPUT_STATE _state = { };
+
+      bool
+      SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
+      SK_ImGui_PollGamepad_EndFrame (&_state);
+
+      for ( auto& controller : SK_HID_PlayStationControllers )
+      {
+        if (controller.bConnected)
+        {
+          if (pNewestInputDevice == nullptr ||
+              pNewestInputDevice->xinput.last_active <= controller.xinput.last_active)
+          {
+            pNewestInputDevice = &controller;
+          }
+        }
+      }
+
+      if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active > last_time [0]))
+      {
+        extern XINPUT_STATE hid_to_xi;
+                            hid_to_xi = pNewestInputDevice->xinput.prev_report;
+        memcpy ( &_state,  &hid_to_xi, sizeof (XINPUT_STATE) );
+
+        if (config.input.gamepad.xinput.debug)
+        {
+          SK_ImGui_CreateNotification (
+            "XInput.PacketNum", SK_ImGui_Toast::Info, SK_FormatString ("XInputEx Packet: %d", _state.dwPacketNumber).c_str (), nullptr, INFINITE,
+                                SK_ImGui_Toast::UseDuration  |
+                                SK_ImGui_Toast::ShowCaption  |
+                                SK_ImGui_Toast::ShowNewest   |
+                                SK_ImGui_Toast::Unsilencable |
+                                SK_ImGui_Toast::DoNotSaveINI );
+        }
+
+        if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
+        {
+          SK_XINPUT_HIDE (dwUserIndex)
+          ZeroMemory (&pState->Gamepad, sizeof (XINPUT_GAMEPAD));
+        }
+
+        else
+        {
+          // Game-specific hacks (i.e. button swap)
+          SK_XInput_TalesOfAriseButtonSwap (&_state);
+
+          SK_XINPUT_READ (dwUserIndex)
+
+          memcpy (pState, &_state, sizeof (XINPUT_STATE));
+        }
+
+        xinput_ctx.translated = true;
+
+        return ERROR_SUCCESS;
+      }
+    }
+  }
+
+  if (dwUserIndex == 0)
+    xinput_ctx.translated = false;
+
   return dwRet;
 }
 
@@ -859,32 +886,6 @@ XInputGetCapabilities1_4_Detour (
   SK_LOG_FIRST_CALL
 
   HMODULE hModCaller = SK_GetCallingDLL ();
-
-  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
-  {
-    if (dwUserIndex == 0)
-    {
-      RtlZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
-
-      pCapabilities->Type    = XINPUT_DEVTYPE_GAMEPAD;
-      pCapabilities->SubType = XINPUT_DEVSUBTYPE_GAMEPAD;
-      pCapabilities->Flags   = XINPUT_CAPS_FFB_SUPPORTED |
-                               XINPUT_CAPS_PMD_SUPPORTED;
-
-      pCapabilities->Gamepad.bLeftTrigger       = 0xFF;
-      pCapabilities->Gamepad.bRightTrigger      = 0xFF;
-      pCapabilities->Gamepad.sThumbLX           = (short)(unsigned short)0xFFC0;
-      pCapabilities->Gamepad.sThumbLY           = (short)(unsigned short)0xFFC0;
-      pCapabilities->Gamepad.sThumbRX           = (short)(unsigned short)0xFFC0;
-      pCapabilities->Gamepad.sThumbRY           = (short)(unsigned short)0xFFC0;
-      pCapabilities->Gamepad.wButtons           = 0xF3FF;
-
-      pCapabilities->Vibration.wLeftMotorSpeed  = 0x00FF;
-      pCapabilities->Vibration.wRightMotorSpeed = 0x00FF;
-
-      return ERROR_SUCCESS;
-    }
-  }
 
   if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
     dwUserIndex = config.input.gamepad.xinput.ui_slot;
@@ -934,6 +935,35 @@ XInputGetCapabilities1_4_Detour (
     SK_XInput_PlaceHoldCaps (dwRet, dwUserIndex, dwFlags, pCapabilities);
 
   SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
+
+  if (dwRet != ERROR_SUCCESS)
+  {
+    if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+    {
+      if (dwUserIndex == 0)
+      {
+        RtlZeroMemory (pCapabilities, sizeof XINPUT_CAPABILITIES);
+
+        pCapabilities->Type    = XINPUT_DEVTYPE_GAMEPAD;
+        pCapabilities->SubType = XINPUT_DEVSUBTYPE_GAMEPAD;
+        pCapabilities->Flags   = XINPUT_CAPS_FFB_SUPPORTED |
+                                 XINPUT_CAPS_PMD_SUPPORTED;
+
+        pCapabilities->Gamepad.bLeftTrigger       = 0xFF;
+        pCapabilities->Gamepad.bRightTrigger      = 0xFF;
+        pCapabilities->Gamepad.sThumbLX           = (short)(unsigned short)0xFFC0;
+        pCapabilities->Gamepad.sThumbLY           = (short)(unsigned short)0xFFC0;
+        pCapabilities->Gamepad.sThumbRX           = (short)(unsigned short)0xFFC0;
+        pCapabilities->Gamepad.sThumbRY           = (short)(unsigned short)0xFFC0;
+        pCapabilities->Gamepad.wButtons           = 0xF3FF;
+
+        pCapabilities->Vibration.wLeftMotorSpeed  = 0x00FF;
+        pCapabilities->Vibration.wRightMotorSpeed = 0x00FF;
+
+        return ERROR_SUCCESS;
+      }
+    }
+  }
 
 //if (   dwRet == ERROR_SUCCESS) SK_XINPUT_READ (dwUserIndex);
   return dwRet;
@@ -1002,6 +1032,45 @@ XInputGetCapabilitiesEx1_4_Detour (
     SK_XInput_PlaceHoldCaps (dwRet, dwUserIndex, dwFlags, &pCapabilitiesEx->Capabilities);
 
   SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
+
+  if (dwRet != ERROR_SUCCESS)
+  {
+    if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+    {
+      if (dwUserIndex == 0)
+      {
+        RtlZeroMemory (pCapabilitiesEx, sizeof XINPUT_CAPABILITIES_EX);
+
+        pCapabilitiesEx->Capabilities.Type    = XINPUT_DEVTYPE_GAMEPAD;
+        pCapabilitiesEx->Capabilities.SubType = XINPUT_DEVSUBTYPE_GAMEPAD;
+        pCapabilitiesEx->Capabilities.Flags   = XINPUT_CAPS_FFB_SUPPORTED |
+                                                XINPUT_CAPS_PMD_SUPPORTED;
+
+        pCapabilitiesEx->Capabilities.Gamepad.bLeftTrigger       = 0xFF;
+        pCapabilitiesEx->Capabilities.Gamepad.bRightTrigger      = 0xFF;
+        pCapabilitiesEx->Capabilities.Gamepad.sThumbLX           = (short)(unsigned short)0xFFC0;
+        pCapabilitiesEx->Capabilities.Gamepad.sThumbLY           = (short)(unsigned short)0xFFC0;
+        pCapabilitiesEx->Capabilities.Gamepad.sThumbRX           = (short)(unsigned short)0xFFC0;
+        pCapabilitiesEx->Capabilities.Gamepad.sThumbRY           = (short)(unsigned short)0xFFC0;
+        pCapabilitiesEx->Capabilities.Gamepad.wButtons           = 0xF3FF;
+
+        pCapabilitiesEx->Capabilities.Vibration.wLeftMotorSpeed  = 0x00FF;
+        pCapabilitiesEx->Capabilities.Vibration.wRightMotorSpeed = 0x00FF;
+
+        for ( auto& controller : SK_HID_PlayStationControllers )
+        {
+          if (controller.bConnected)
+          {
+            pCapabilitiesEx->VendorId       = controller.vid;
+            pCapabilitiesEx->ProductId      = controller.pid;
+            pCapabilitiesEx->ProductVersion = 1;
+          }
+        }
+
+        return ERROR_SUCCESS;
+      }
+    }
+  }
 
 //if (   dwRet == ERROR_SUCCESS) SK_XINPUT_READ (dwUserIndex);
   return dwRet;
@@ -1085,52 +1154,6 @@ XInputSetState1_4_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
-  {
-    bool bHasSetState = false;
-
-    for ( auto& controller : SK_HID_PlayStationControllers )
-    {
-      if (controller.bConnected)
-      {
-        if (dwUserIndex == 0)
-        {
-          if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
-          {
-            //SK_XINPUT_HIDE (dwUserIndex)
-          }
-
-          else
-          {
-            if (! config.input.gamepad.disable_rumble)
-            {
-              controller.setVibration (
-                pVibration->wLeftMotorSpeed,
-                pVibration->wRightMotorSpeed,
-                0x0 // Normalize against largest range seen
-              );
-
-              controller.write_output_report ();
-            }
-
-            //SK_XINPUT_WRITE (dwUserIndex)
-          }
-
-          bHasSetState = true;
-        }
-      }
-    }
-
-    if (bHasSetState)
-    {
-      xinput_ctx.translated = true;
-      return ERROR_SUCCESS;
-    }
-  }
-
-  if (dwUserIndex == 0)
-    xinput_ctx.translated = false;
-
   HMODULE hModCaller = SK_GetCallingDLL ();
 
   if (config.input.gamepad.xinput.auto_slot_assign && dwUserIndex == 0)
@@ -1138,7 +1161,7 @@ XInputSetState1_4_Detour (
 
   dwUserIndex =
     config.input.gamepad.xinput.assignment [std::min (dwUserIndex, XUSER_MAX_INDEX)];
-  
+
   if ( config.input.gamepad.xinput.blackout_api )
   {
     SK_XINPUT_HIDE (dwUserIndex)
@@ -1146,73 +1169,143 @@ XInputSetState1_4_Detour (
     return ERROR_DEVICE_NOT_CONNECTED;
   }
 
-  if (xinput_ctx.preventHapticRecursion (dwUserIndex, true))
-    return ERROR_SUCCESS;
+  SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
 
-  SK_XInputContext::instance_s* pCtx =
-    &xinput_ctx.XInput1_4;
-
-  if (! pCtx)
-    return ERROR_NOT_SUPPORTED;
-
-  if (pCtx->XInputSetState_Original == nullptr)
-    return ERROR_NOT_SUPPORTED;
-
-  if (! config.input.gamepad.xinput.hook_setstate)
-    return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
-
-  if (! xinput_enabled)
+  if (config.input.gamepad.xinput.emulate && dwUserIndex == 0)
   {
-    xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-
-    SK_XINPUT_HIDE (dwUserIndex)
-
-    return ERROR_SUCCESS;
-
+    for ( auto& controller : SK_HID_PlayStationControllers )
+    {
+      if (controller.bConnected)
+      {
+        if (controller.xinput.last_active > last_time [dwUserIndex])
+        {
+          if ( pNewestInputDevice == nullptr ||
+               pNewestInputDevice->xinput.last_active < controller.xinput.last_active )
+          {
+            pNewestInputDevice = &controller;
+          }
+        }
+      }
+    }
   }
 
-  if (pVibration  == nullptr)         { xinput_ctx.preventHapticRecursion            (dwUserIndex, false);
-                                        return SK_XINPUT_CALL ( xinput_ctx.cs_haptic [dwUserIndex],
-                                                                                      dwUserIndex,
-                                                       pCtx->XInputSetState_Original (dwUserIndex, pVibration));
-                                      }
-  if (dwUserIndex >= XUSER_MAX_COUNT) { xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-                                        RtlZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
-                                        return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
-                                      }
+  DWORD dwRet = ERROR_DEVICE_NOT_CONNECTED;
 
-  bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
-                 /*dwUserIndex == config.input.gamepad.xinput.ui_slot &&*/
-                   config.input.gamepad.haptic_ui ) ||
-               config.input.gamepad.disable_rumble;
-
-  static XInputSetState_pfn
-         XInputSetState_SK =
-        (XInputSetState_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
-        "XInputSetState"                      );
-
-  DWORD dwRet =
-    SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED :
-                                                             nop ?
-                                                   ERROR_SUCCESS :
-    SK_XINPUT_CALL ( xinput_ctx.cs_haptic [dwUserIndex],
-                                           dwUserIndex, config.input.gamepad.steam.disabled_to_game ?
-                        XInputSetState_SK (dwUserIndex, pVibration)                                 :
-            pCtx->XInputSetState_Original (dwUserIndex, pVibration)
-    );
-
-  InterlockedExchange (&xinput_ctx.LastSlotState [dwUserIndex], dwRet);
-
-  dwRet =
-    SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
-    SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
-
-  xinput_ctx.preventHapticRecursion (dwUserIndex, false);
-
-  if (   dwRet == ERROR_SUCCESS)
+  if (pNewestInputDevice == nullptr && (! xinput_ctx.preventHapticRecursion (dwUserIndex, true)))
   {
-    if (! nop) SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
-    else       SK_XINPUT_HIDE  (dwUserIndex)
+    SK_XInputContext::instance_s* pCtx =
+      &xinput_ctx.XInput1_4;
+
+    if (! pCtx)
+      return ERROR_NOT_SUPPORTED;
+
+    if (pCtx->XInputSetState_Original == nullptr)
+      return ERROR_NOT_SUPPORTED;
+
+    if (! config.input.gamepad.xinput.hook_setstate)
+      return pCtx->XInputSetState_Original (dwUserIndex, pVibration);
+
+    if (! xinput_enabled)
+    {
+      xinput_ctx.preventHapticRecursion (dwUserIndex, false);
+
+      SK_XINPUT_HIDE (dwUserIndex)
+
+      return ERROR_SUCCESS;
+    }
+
+    if (pVibration  == nullptr)         { xinput_ctx.preventHapticRecursion            (dwUserIndex, false);
+                                          return SK_XINPUT_CALL ( xinput_ctx.cs_haptic [dwUserIndex],
+                                                                                        dwUserIndex,
+                                                         pCtx->XInputSetState_Original (dwUserIndex, pVibration));
+                                        }
+    if (dwUserIndex >= XUSER_MAX_COUNT) { xinput_ctx.preventHapticRecursion (dwUserIndex, false);
+                                          RtlZeroMemory (pVibration, sizeof (XINPUT_VIBRATION));
+                                          return (DWORD)ERROR_DEVICE_NOT_CONNECTED;
+                                        }
+
+    bool nop = ( SK_ImGui_WantGamepadCapture ()                       &&
+                   /*dwUserIndex == config.input.gamepad.xinput.ui_slot &&*/
+                     config.input.gamepad.haptic_ui ) ||
+                 config.input.gamepad.disable_rumble;
+
+    static XInputSetState_pfn
+           XInputSetState_SK =
+          (XInputSetState_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
+          "XInputSetState"                      );
+
+    dwRet =
+      SK_XInput_Holding (dwUserIndex) ? ERROR_DEVICE_NOT_CONNECTED :
+                                                               nop ?
+                                                     ERROR_SUCCESS :
+      SK_XINPUT_CALL ( xinput_ctx.cs_haptic [dwUserIndex],
+                                             dwUserIndex, config.input.gamepad.steam.disabled_to_game ?
+                          XInputSetState_SK (dwUserIndex, pVibration)                                 :
+              pCtx->XInputSetState_Original (dwUserIndex, pVibration)
+      );
+
+    InterlockedExchange (&xinput_ctx.LastSlotState [dwUserIndex], dwRet);
+
+    dwRet =
+      SK_XInput_PlaceHoldSet (dwRet, dwUserIndex, pVibration);
+      SK_XInput_EstablishPrimaryHook (hModCaller, pCtx);
+
+    xinput_ctx.preventHapticRecursion (dwUserIndex, false);
+
+    if (   dwRet == ERROR_SUCCESS)
+    {
+      if (! nop) SK_XINPUT_WRITE (sk_input_dev_type::Gamepad)
+      else       SK_XINPUT_HIDE  (dwUserIndex)
+    }
+  }
+
+  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api) && dwUserIndex == 0)
+  {
+    bool bHasSetState = false;
+
+    for ( auto& controller : SK_HID_PlayStationControllers )
+    {
+      if (&controller != pNewestInputDevice)
+          continue;
+
+      if (controller.bConnected)
+      {
+        if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
+        {
+          //SK_XINPUT_HIDE (dwUserIndex)
+        }
+
+        else
+        {
+          bool nop = ( SK_ImGui_WantGamepadCapture () &&
+                     config.input.gamepad.haptic_ui ) ||
+                config.input.gamepad.disable_rumble;
+
+          if (! nop)
+          {
+            controller.setVibration (
+              pVibration->wLeftMotorSpeed,
+              pVibration->wRightMotorSpeed,
+              0x0 // Normalize against largest range seen
+            );
+
+            controller.write_output_report ();
+          }
+
+          //SK_XINPUT_WRITE (dwUserIndex)
+        }
+
+        bHasSetState = true;
+      }
+    }
+
+    if (bHasSetState)
+    {
+      if (dwRet != ERROR_SUCCESS)
+        xinput_ctx.translated = true;
+
+      return ERROR_SUCCESS;
+    }
   }
 
   return dwRet;
@@ -2927,11 +3020,8 @@ SK_XInput_PulseController ( INT   iJoyID,
     {
       if (controller.bConnected)
       {
-        static WORD wLastLeft  = 0,
-                    wLastRight = 0;
-
-        if ( std::exchange (wLastLeft,  vibes.wLeftMotorSpeed ) != vibes.wLeftMotorSpeed ||
-             std::exchange (wLastRight, vibes.wRightMotorSpeed) != vibes.wRightMotorSpeed )
+        if ( std::exchange (controller.xinput.vibration.wLastLeft,  vibes.wLeftMotorSpeed ) != vibes.wLeftMotorSpeed ||
+             std::exchange (controller.xinput.vibration.wLastRight, vibes.wRightMotorSpeed) != vibes.wRightMotorSpeed )
         {
           controller.setVibration (
             vibes.wLeftMotorSpeed,

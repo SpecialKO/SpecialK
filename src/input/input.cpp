@@ -713,55 +713,58 @@ SK_ImGui_ProcessGamepadStatusBar (bool bDraw)
                  0.5f + 0.25f * (2.0f - fInputAge), 1.0f );
     }
 
-    if (bDraw && gamepad.attached)
+    if (gamepad.attached)
     {
-      ImGui::BeginGroup  ();
-      ImGui::TextColored (gamepad_color, szGamepadSymbols [gamepad.slot]);
-      ImGui::SameLine    ();
+      ++attached_pads;
 
-      if (battery.draining)
+      if (bDraw)
       {
-        auto batteryLevel =
-          std::min (battery.battery_info.BatteryLevel, 3ui8);
+        ImGui::BeginGroup  ();
+        ImGui::TextColored (gamepad_color, szGamepadSymbols [gamepad.slot]);
+        ImGui::SameLine    ();
 
-        auto batteryColor =
-          battery_colors [batteryLevel];
-
-        if (batteryLevel <= 1)
+        if (battery.draining)
         {
-          batteryColor.Value.w =
-            static_cast <float> (
-              0.5 + 0.4 * std::cos (3.14159265359 *
-                (static_cast <double> (SK::ControlPanel::current_time % 2250) / 1125.0))
-            );
+          auto batteryLevel =
+            std::min (battery.battery_info.BatteryLevel, 3ui8);
+
+          auto batteryColor =
+            battery_colors [batteryLevel];
+
+          if (batteryLevel <= 1)
+          {
+            batteryColor.Value.w =
+              static_cast <float> (
+                0.5 + 0.4 * std::cos (3.14159265359 *
+                  (static_cast <double> (SK::ControlPanel::current_time % 2250) / 1125.0))
+              );
+          }
+
+          ImGui::TextColored ( batteryColor, "%hs",
+              szBatteryLevels [batteryLevel]
+          );
         }
 
-        ImGui::TextColored ( batteryColor, "%hs",
-            szBatteryLevels [batteryLevel]
-        );
+        else
+        {
+          ImGui::TextColored ( gamepad_color,
+              battery.wired ? ICON_FA_USB
+                            : ICON_FA_QUESTION_CIRCLE
+          );
+        }
+
+        ImGui::EndGroup ();
+
+        if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Click to turn off (if supported)");
+
+        if (ImGui::IsItemClicked ())
+        {
+          SK_XInput_PowerOff (gamepad.slot);
+        }
+
+        ImGui::SameLine ();
       }
-
-      else
-      {
-        ImGui::TextColored ( gamepad_color,
-            battery.wired ? ICON_FA_USB
-                          : ICON_FA_QUESTION_CIRCLE
-        );
-      }
-
-      ImGui::EndGroup ();
-
-      if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Click to turn off (if supported)");
-
-      if (ImGui::IsItemClicked ())
-      {
-        SK_XInput_PowerOff (gamepad.slot);
-      }
-
-      ImGui::SameLine ();
-
-      ++attached_pads;
     }
   }
 

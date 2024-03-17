@@ -966,6 +966,10 @@ struct SK_HID_PlayStationDevice
     XINPUT_STATE prev_report  = { };
     XINPUT_STATE report       = { };
     UINT64       last_active  =  0 ;
+    struct {
+      WORD       wLastLeft    =  0 ;
+      WORD       wLastRight   =  0 ;
+    } vibration;
   } xinput;
 
   bool                          chord_activated = false;
@@ -1082,6 +1086,7 @@ struct SK_HID_DeviceFile {
 extern concurrency::concurrent_vector        <SK_HID_PlayStationDevice>  SK_HID_PlayStationControllers;
 extern concurrency::concurrent_unordered_map <HANDLE, SK_HID_DeviceFile> SK_HID_DeviceFiles;
 
+bool SK_ImGui_HasXboxController          (void);
 bool SK_ImGui_HasPlayStationController   (void);
 bool SK_ImGui_HasDualSenseController     (void);
 bool SK_ImGui_HasDualSenseEdgeController (void);

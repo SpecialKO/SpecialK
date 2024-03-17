@@ -135,8 +135,16 @@ SK::ControlPanel::Input::Draw (void)
   auto& io =
     ImGui::GetIO ();
 
-  const bool bHasPlayStation =
-    (last_scepad != 0 || (! SK_HID_PlayStationControllers.empty ()));
+  bool bHasPlayStation = (last_scepad != 0);
+
+  for ( auto& ps_controller : SK_HID_PlayStationControllers )
+  {
+    if (ps_controller.bConnected)
+    {
+      bHasPlayStation = true;
+      break;
+    }
+  }
 
   if (bHasPlayStation)
     ImGui::SetNextItemOpen (true, ImGuiCond_Once);
@@ -895,6 +903,7 @@ SK::ControlPanel::Input::Draw (void)
 
         ImGui::NextColumn ( );
 
+#if 0
         if (config.input.gamepad.xinput.ui_slot >= 0 && config.input.gamepad.xinput.ui_slot < 4)
         {
           ImGui::Checkbox ("Dynamic XInput " ICON_FA_GAMEPAD " 0", &config.input.gamepad.xinput.auto_slot_assign);
@@ -905,7 +914,34 @@ SK::ControlPanel::Input::Draw (void)
 
         else
         {
+#endif
           config.input.gamepad.xinput.auto_slot_assign = false;
+#if 0
+        }
+#endif
+
+        const bool bHasXbox =
+          SK_ImGui_HasXboxController ();
+
+        const char* szChordLabel =
+          ( bHasPlayStation && bHasXbox ) ? "Toggle Control Panel using  (" ICON_FA_XBOX " / " ICON_FA_PLAYSTATION ")" :
+          ( bHasPlayStation             ) ? "Toggle Control Panel using  ("                    ICON_FA_PLAYSTATION ")" :
+          ( bHasXbox                    ) ? "Toggle Control Panel using  (" ICON_FA_XBOX ")"                         :
+                                            "Toggle Control Panel using Imaginary Buttons";
+
+        ImGui::Checkbox (szChordLabel, &config.input.gamepad.scepad.enhanced_ps_button);
+
+        if (ImGui::IsItemHovered ())
+        {
+          if (config.input.gamepad.xinput.ui_slot > 3)
+            ImGui::SetTooltip ("Will not work while \"UI Controller\" is set to 'Nothing'");
+          else
+          {
+            if (bHasPlayStation)
+              ImGui::SetTooltip ("Exit \"Exclusive Input Mode\" by Holding Share/Select or Pressing Caps Lock");
+            else
+              ImGui::SetTooltip ("Exit \"Exclusive Input Mode\" by Holding Back or Pressing Caps Lock");
+          }
         }
 
         ImGui::NextColumn ( );
@@ -1073,16 +1109,6 @@ SK::ControlPanel::Input::Draw (void)
         ////ImGui::InputInt4  ("###Slot Remapping", slots);
         ////ImGui::EndGroup   ();
 
-        ImGui::Checkbox   ("Toggle Control Panel using  (" ICON_FA_XBOX ")", &config.input.gamepad.scepad.enhanced_ps_button);
-
-        if (ImGui::IsItemHovered ())
-        {
-          if (config.input.gamepad.xinput.ui_slot > 3)
-            ImGui::SetTooltip ("Will not work while \"UI Controller\" is set to 'Nothing'");
-          else
-            ImGui::SetTooltip ("Exit \"Exclusive Input Mode\" by Holding Share / Select or Pressing Caps Lock");
-        }
-
         ImGui::Separator ( );
       }
 
@@ -1248,130 +1274,22 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::TextUnformatted
                             ( " " );
           }
-
-          ImGui::EndGroup   (  );
-          ImGui::TreePush   ("");
-          ImGui::BeginGroup (  );
-
-          if (bDualSense)
-            ImGui::Checkbox ("Apply Mute Button to -Game-",                           &config.input.gamepad.scepad.mute_applies_to_game);
-          ImGui::Checkbox   ("Toggle Control Panel using  (" ICON_FA_PLAYSTATION ")", &config.input.gamepad.scepad.enhanced_ps_button);
-
-          if (ImGui::IsItemHovered ())
-          {
-            if (config.input.gamepad.xinput.ui_slot > 3)
-              ImGui::SetTooltip ("Will not work while \"UI Controller\" is set to 'Nothing'");
-            else
-              ImGui::SetTooltip ("Exit \"Exclusive Input Mode\" by Holding Share / Select or Pressing Caps Lock");
-          }
-
           ImGui::EndGroup   ();
-
-          if (config.input.gamepad.hook_xinput)
-          {
-            ImGui::SameLine    ();
-            ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
-            ImGui::SameLine    ();
-
-            ImGui::BeginGroup  ();
-            if (ImGui::Checkbox("XInput Mode", &config.input.gamepad.xinput.emulate))
-            {
-              if (config.input.gamepad.xinput.emulate)
-              {
-                SK_Win32_NotifyDeviceChange (true, false);
-
-                if (config.input.gamepad.xinput.blackout_api)
-                {
-                  SK_ImGui_WarningWithTitle (
-                    L"XInput was being blocked to the game; it must be unblocked"
-                    L" for XInput mode to work.\r\n\r\n\t"
-                    L"* A game restart may be required",
-                      L"XInput Has Been Unblocked"
-                  );
-
-                  config.input.gamepad.xinput.blackout_api = false;
-                }
-
-                config.input.gamepad.xinput.disable   [0] = false;
-                config.input.gamepad.xinput.placehold [0] = true;
-              }
-
-              else
-              {
-                SK_Win32_NotifyDeviceChange (false, true);
-              }
-
-              config.utility.save_async ();
-            }
-
-            if (ImGui::IsItemHovered ())
-            {
-              ImGui::BeginTooltip    ();
-              ImGui::TextUnformatted ("Translates HID to XInput for PlayStation controllers");
-              ImGui::Separator       ();
-              ImGui::BulletText      ("Fully supports DualSense and DualShock 4 (USB and Bluetooth).");
-              ImGui::BulletText      ("Limited support for DualShock 3.");
-              ImGui::Separator       ();
-              ImGui::BulletText      ("Does not support more than one controller.");
-              ImGui::BulletText      ("May require a game restart.");
-              ImGui::EndTooltip      ();
-            }
-
-            if (config.input.gamepad.xinput.emulate)
-            {
-              static bool show_debug_option = false;
-              ImGui::TreePush ("");
-              ImGui::Checkbox ("Use Deadzone", &config.input.gamepad.xinput.standard_deadzone);
-
-              if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
-                show_debug_option = true;
-
-              else if (ImGui::IsItemHovered ())
-                       ImGui::SetTooltip ("Apply deadzone according to XInput's standard values");
-
-              if (show_debug_option)
-              ImGui::Checkbox ("Debug Mode",   &config.input.gamepad.xinput.debug);
-              ImGui::TreePop  (  );
-            }
-
-            ImGui::EndGroup ();
-          }
-
-          SK_HID_PlayStationDevice* pBatteryDevice   = nullptr;
-          SK_HID_PlayStationDevice* pBluetoothDevice = nullptr;
-
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
           for ( auto& ps_controller : SK_HID_PlayStationControllers )
           {
-            if (ps_controller.bConnected)
-            {
-              if (ps_controller.bBluetooth)
-              {
-                pBluetoothDevice = &ps_controller;
-              }
+            if (! ps_controller.bConnected)
+              continue;
 
-              if (ps_controller.battery.state != SK_HID_PlayStationDevice::PowerState::ChargingError)
-              {
-                pBatteryDevice = &ps_controller;
-              }
-            }
-          }
-
-          if (pBatteryDevice != nullptr)
-          {
-            ImGui::SameLine    ();
-            ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
-            ImGui::SameLine    ();
-
-            ImGui::BeginGroup  ();
-
-            switch (pBatteryDevice->battery.state)
+            switch (ps_controller.battery.state)
             {
               default:
               case SK_HID_PlayStationDevice::Charging:
               case SK_HID_PlayStationDevice::Discharging:
               {
                 SK_HID_PlayStationDevice::battery_s *pBatteryState =
-                  (SK_HID_PlayStationDevice::battery_s *)&pBatteryDevice->battery;
+                  (SK_HID_PlayStationDevice::battery_s *)&ps_controller.battery;
 
                 static const char* szBatteryLevels [] = {
                   ICON_FA_BATTERY_EMPTY,
@@ -1430,12 +1348,14 @@ SK::ControlPanel::Input::Draw (void)
                 ImGui::SetCursorPos                                       (vButtonOrigin);
                 ImGui::InvisibleButton ("###GamepadPowerOff", vButtonEnd - vButtonOrigin);
 
-                if (pBluetoothDevice != nullptr)
+                if (ps_controller.bBluetooth)
                 {
                   if (SK_ImGui_IsItemClicked ())
                   {
                     ImGui::ClearActiveID   ( );
-                    SK_DeferCommand ("Input.Gamepad.PowerOff 1");
+                    SK_DeferCommand (
+                      SK_FormatString ("Input.Gamepad.PowerOff %llu", ps_controller.ullHWAddr).c_str ()
+                    );
                   }
 
                   else if (SK_ImGui_IsItemRightClicked ())
@@ -1463,6 +1383,18 @@ SK::ControlPanel::Input::Draw (void)
 
                   if (ImGui::BeginPopup ("BluetoothCompatMenu"))
                   {
+                    if (bDualSense)
+                    {
+                      //ImGui::SameLine    ();
+                      //ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+                      //ImGui::SameLine    ();
+
+                      if (ImGui::Checkbox ("Power Saving Mode", &config.input.gamepad.scepad.power_save_mode))
+                      {
+                        config.utility.save_async ();
+                      }
+                    }
+
                     if (ImGui::Checkbox ("Bluetooth Compatibility Mode",
                         &config.input.gamepad.bt_input_only))
                     {
@@ -1495,27 +1427,104 @@ SK::ControlPanel::Input::Draw (void)
                 }
               } break;
             }
-
-            if (bDualSense)
-            {
-              if (ImGui::Checkbox ("Power Saving Mode", &config.input.gamepad.scepad.power_save_mode))
-              {
-                config.utility.save_async ();
-              }
-            }
-
-            ImGui::EndGroup   ();
           }
 
+          ImGui::EndGroup   (  );
+          ImGui::TreePush   ("");
+          ImGui::Separator  (  );
+          ImGui::BeginGroup (  );
+
+          if (bDualSense)
+            ImGui::Checkbox ("Apply Mute Button to -Game-", &config.input.gamepad.scepad.mute_applies_to_game);
+
+          ImGui::EndGroup   ();
+
+          if (config.input.gamepad.hook_xinput)
+          {
+            ImGui::SameLine    ();
+            ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+            ImGui::SameLine    ();
+
+            ImGui::BeginGroup  ();
+            if (ImGui::Checkbox("XInput Mode", &config.input.gamepad.xinput.emulate))
+            {
+              if (config.input.gamepad.xinput.emulate)
+              {
+                SK_Win32_NotifyDeviceChange (true, false);
+
+                if (config.input.gamepad.xinput.blackout_api)
+                {
+                  SK_ImGui_WarningWithTitle (
+                    L"XInput was being blocked to the game; it must be unblocked"
+                    L" for XInput mode to work.\r\n\r\n\t"
+                    L"* A game restart may be required",
+                      L"XInput Has Been Unblocked"
+                  );
+
+                  config.input.gamepad.xinput.blackout_api = false;
+                }
+
+                config.input.gamepad.xinput.disable   [0] = false;
+                config.input.gamepad.xinput.placehold [0] = true;
+              }
+
+              else
+              {
+                SK_Win32_NotifyDeviceChange (false, true);
+              }
+
+              config.utility.save_async ();
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip    ();
+              ImGui::TextUnformatted ("Translates HID to XInput for PlayStation controllers");
+              ImGui::Separator       ();
+              ImGui::BulletText      ("Fully supports DualSense and DualShock 4 (USB and Bluetooth).");
+              ImGui::BulletText      ("Limited support for DualShock 3.");
+              ImGui::Separator       ();
+              ImGui::BulletText      ("All PlayStation controllers map to Xbox controller slot 0.");
+              ImGui::BulletText      ("May require a game restart.");
+              ImGui::EndTooltip      ();
+            }
+
+            if (config.input.gamepad.xinput.emulate)
+            {
+              static bool show_debug_option = false;
+              //ImGui::TreePush ("");
+              ImGui::SameLine ();
+              ImGui::Checkbox ("Use Deadzone", &config.input.gamepad.xinput.standard_deadzone);
+
+              if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
+                show_debug_option = true;
+
+              else if (ImGui::IsItemHovered ())
+                       ImGui::SetTooltip ("Apply deadzone according to XInput's standard values");
+
+              if (show_debug_option)
+              {
+                ImGui::SameLine ();
+                ImGui::Checkbox ("Debug Mode",   &config.input.gamepad.xinput.debug);
+              }
+              //ImGui::TreePop  (  );
+            }
+
+            ImGui::EndGroup ();
+          }
+          
           if (bDualSense || bDualShock4)
           {
+            ImGui::SameLine    ();
+            ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+            ImGui::SameLine    ();
+
             bool bOverrideRGB =
               config.input.gamepad.scepad.led_color_r    >= 0 ||
               config.input.gamepad.scepad.led_color_g    >= 0 ||
               config.input.gamepad.scepad.led_color_b    >= 0 ||
               config.input.gamepad.scepad.led_brightness >= 0;
 
-            ImGui::BeginGroup ();
             if (ImGui::Checkbox ("Override RGB", &bOverrideRGB))
             {
               if (! bOverrideRGB)
@@ -1536,9 +1545,10 @@ SK::ControlPanel::Input::Draw (void)
               config.utility.save_async ();
             }
 
+            ImGui::BeginGroup ();
             if (bOverrideRGB)
             {
-              ImGui::SameLine ();
+              //ImGui::SameLine ();
 
               float color [3] = { (float)config.input.gamepad.scepad.led_color_r / 255.0f,
                                   (float)config.input.gamepad.scepad.led_color_g / 255.0f,
@@ -1853,126 +1863,123 @@ extern float SK_ImGui_PulseNav_Strength;
       }
 #endif
 
-      if (config.input.gamepad.hook_xinput)
+      if (config.input.gamepad.hook_xinput && SK_ImGui_HasXboxController ())
       {
         static bool started = false;
 
-        if (! config.input.gamepad.xinput.emulate)
+        static bool   init       = false;
+        static HANDLE hStartStop =
+          SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
+
+        if (ImGui::Button (started ? "Stop XInput Latency Test" :
+                                     "Start XInput Latency Test"))
         {
-          static bool   init       = false;
-          static HANDLE hStartStop =
-            SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
+          if (! started) { started = true;  SetEvent   (hStartStop); }
+          else           { started = false; ResetEvent (hStartStop); }
 
-          if (ImGui::Button (started ? "Stop XInput Latency Test" :
-                                       "Start XInput Latency Test"))
-          {
-            if (! started) { started = true;  SetEvent   (hStartStop); }
-            else           { started = false; ResetEvent (hStartStop); }
+          if (! init)
+          {     init = true;
+            SK_Thread_CreateEx ([](LPVOID) -> DWORD
+            {
+              XINPUT_STATE states [2] = { };
+              ULONGLONG    times  [2] = { };
+              ULONGLONG    times_ [2] = { };
+              int                  i  =  0;
 
-            if (! init)
-            {     init = true;
-              SK_Thread_CreateEx ([](LPVOID) -> DWORD
+              do
               {
-                XINPUT_STATE states [2] = { };
-                ULONGLONG    times  [2] = { };
-                ULONGLONG    times_ [2] = { };
-                int                  i  =  0;
+                SK_WaitForSingleObject (hStartStop, INFINITE);
 
-                do
+                if (SK_XInput_PollController (static_cast <INT> (config.input.gamepad.xinput.ui_slot), &states [i % 2]))
                 {
-                  SK_WaitForSingleObject (hStartStop, INFINITE);
+                  XINPUT_STATE& old = states [(i + 1) % 2];
+                  XINPUT_STATE& now = states [ i++    % 2];
 
-                  if (SK_XInput_PollController (static_cast <INT> (config.input.gamepad.xinput.ui_slot), &states [i % 2]))
+                  if (old.dwPacketNumber != now.dwPacketNumber)
                   {
-                    XINPUT_STATE& old = states [(i + 1) % 2];
-                    XINPUT_STATE& now = states [ i++    % 2];
+                    LARGE_INTEGER nowTime = SK_QueryPerf ();
 
-                    if (old.dwPacketNumber != now.dwPacketNumber)
+                    if (memcmp (&old.Gamepad, &now.Gamepad, sizeof (XINPUT_GAMEPAD)))
                     {
-                      LARGE_INTEGER nowTime = SK_QueryPerf ();
+                      ULONGLONG oldTime = times_ [0];
+                                          times_ [0] = times_ [1];
+                                          times_ [1] = nowTime.QuadPart;
 
-                      if (memcmp (&old.Gamepad, &now.Gamepad, sizeof (XINPUT_GAMEPAD)))
-                      {
-                        ULONGLONG oldTime = times_ [0];
-                                            times_ [0] = times_ [1];
-                                            times_ [1] = nowTime.QuadPart;
-
-                        gamepad_stats_filtered->addSample ( 1000.0 *
-                          static_cast <double> (times_ [0] - oldTime) /
-                          static_cast <double> (SK_PerfFreq),
-                            nowTime
-                        );
-                      }
-
-                      ULONGLONG oldTime = times [0];
-                                          times [0] = times [1];
-                                          times [1] = nowTime.QuadPart;
-
-                      gamepad_stats->addSample ( 1000.0 *
-                        static_cast <double> (times [0] - oldTime) /
+                      gamepad_stats_filtered->addSample ( 1000.0 *
+                        static_cast <double> (times_ [0] - oldTime) /
                         static_cast <double> (SK_PerfFreq),
                           nowTime
                       );
                     }
+
+                    ULONGLONG oldTime = times [0];
+                                        times [0] = times [1];
+                                        times [1] = nowTime.QuadPart;
+
+                    gamepad_stats->addSample ( 1000.0 *
+                      static_cast <double> (times [0] - oldTime) /
+                      static_cast <double> (SK_PerfFreq),
+                        nowTime
+                    );
                   }
-                } while (0 == ReadAcquire (&__SK_DLL_Ending));
+                }
+              } while (0 == ReadAcquire (&__SK_DLL_Ending));
 
-                SK_Thread_CloseSelf ();
+              SK_Thread_CloseSelf ();
 
-                return 0;
-              }, L"[SK] XInput Latency Tester", (LPVOID)hStartStop);
-            }
+              return 0;
+            }, L"[SK] XInput Latency Tester", (LPVOID)hStartStop);
           }
-
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::BeginTooltip    ();
-            ImGui::TextUnformatted ("Tests the latency of DS4Windows, Steam Input or a native Xbox controller");
-            ImGui::Separator       ();
-            ImGui::BulletText      ("If you have no Xbox controllers or third-party utilities emulating XInput, this does nothing");
-            ImGui::BulletText      ("SK cannot test its own XInput emulation latency; all readings would come back zero...");
-            ImGui::EndTooltip      ();
-          }
-
-          static double high_min = std::numeric_limits <double>::max (),
-                        high_max,
-                        avg;
-
-          static double high_min_f = std::numeric_limits <double>::max (),
-                        high_max_f,
-                        avg_f;
-
-          ImGui::SameLine    ( );
-          ImGui::BeginGroup  ( );
-
-          if (started)
-          {
-            ImGui::BeginGroup( );
-            ImGui::Text      ( "%lu Raw Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
-                                 gamepad_stats->calcNumSamples (),
-                                 gamepad_stats->calcMin        (),
-                                 gamepad_stats->calcMax        (),
-                                 gamepad_stats->calcMean       () );
-
-            ImGui::Text      ( "%lu Validated Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
-                                 gamepad_stats_filtered->calcNumSamples (),
-                                 gamepad_stats_filtered->calcMin        (),
-                                 gamepad_stats_filtered->calcMax        (),
-                                 gamepad_stats_filtered->calcMean       () );
-            ImGui::EndGroup  ( );
-
-            high_min_f = std::min (gamepad_stats_filtered->calcMin (), high_min_f);
-            high_min   = std::min (gamepad_stats->calcMin          (), high_min  );
-          }
-
-          ImGui::BeginGroup  ( );
-          if (high_min   < 250.0)
-            ImGui::Text      ( "Minimum Latency: %4.2f ms", high_min );
-          if (high_min_f < 250.0)
-            ImGui::Text      ( "Minimum Latency: %4.2f ms (Validation Applied)", high_min_f );
-          ImGui::EndGroup    ( );
-          ImGui::EndGroup    ( );
         }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::TextUnformatted ("Tests the latency of DS4Windows, Steam Input or a native Xbox controller");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("If you have no Xbox controllers or third-party utilities emulating XInput, this does nothing");
+          ImGui::BulletText      ("SK cannot test its own XInput emulation latency; all readings would come back zero...");
+          ImGui::EndTooltip      ();
+        }
+
+        static double high_min = std::numeric_limits <double>::max (),
+                      high_max,
+                      avg;
+
+        static double high_min_f = std::numeric_limits <double>::max (),
+                      high_max_f,
+                      avg_f;
+
+        ImGui::SameLine    ( );
+        ImGui::BeginGroup  ( );
+
+        if (started)
+        {
+          ImGui::BeginGroup( );
+          ImGui::Text      ( "%lu Raw Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
+                               gamepad_stats->calcNumSamples (),
+                               gamepad_stats->calcMin        (),
+                               gamepad_stats->calcMax        (),
+                               gamepad_stats->calcMean       () );
+
+          ImGui::Text      ( "%lu Validated Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
+                               gamepad_stats_filtered->calcNumSamples (),
+                               gamepad_stats_filtered->calcMin        (),
+                               gamepad_stats_filtered->calcMax        (),
+                               gamepad_stats_filtered->calcMean       () );
+          ImGui::EndGroup  ( );
+
+          high_min_f = std::min (gamepad_stats_filtered->calcMin (), high_min_f);
+          high_min   = std::min (gamepad_stats->calcMin          (), high_min  );
+        }
+
+        ImGui::BeginGroup  ( );
+        if (high_min   < 250.0)
+          ImGui::Text      ( "Minimum Latency: %4.2f ms", high_min );
+        if (high_min_f < 250.0)
+          ImGui::Text      ( "Minimum Latency: %4.2f ms (Validation Applied)", high_min_f );
+        ImGui::EndGroup    ( );
+        ImGui::EndGroup    ( );
       }
       ImGui::TreePop       ( );
     }

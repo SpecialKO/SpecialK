@@ -1819,6 +1819,16 @@ struct {
 
 
 bool
+SK_ImGui_HasXboxController (void)
+{
+  extern int
+  SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
+
+  return
+    SK_ImGui_ProcessGamepadStatusBar (false) > 0;
+}
+
+bool
 SK_ImGui_HasPlayStationController (void)
 {
   for ( const auto& controller : SK_HID_PlayStationControllers )

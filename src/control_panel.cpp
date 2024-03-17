@@ -7219,8 +7219,8 @@ SK_ImGui_StageNextFrame (void)
 
     if (config.input.gamepad.xinput.ui_slot < 4)
     {
-                                                          ImGui::SameLine ();
-      ImGui::TextUnformatted ("  or  ");                  ImGui::SameLine ();
+                                         ImGui::SameLine ();
+      ImGui::TextUnformatted ("  or  "); ImGui::SameLine ();
 
       if (SK_ImGui_HasPlayStationController ())
       {
@@ -7246,21 +7246,27 @@ SK_ImGui_StageNextFrame (void)
         {
           ImGui::TextColored     ( ImVec4 (.75f, .75f, .75f, 1.f), " (PlayStation)");
         }
-                                                            ImGui::SameLine ();
-        ImGui::TextUnformatted ("  or  ");                  ImGui::SameLine ();
+
+        if (SK_ImGui_HasXboxController ())
+        {                                    ImGui::SameLine ();
+          ImGui::TextUnformatted ("  or  "); ImGui::SameLine ();
+        }
       }
 
-      ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
-                                 R"('Back)" );
-      ImGui::SameLine        ();
-      ImGui::TextUnformatted ("+");
-      ImGui::SameLine        ();
-      ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
-                                 R"(Start')" );
-      ImGui::SameLine        ();
-      ImGui::SameLine        ();
-      ImGui::TextColored     ( ImVec4 (.75f, .75f, .75f, 1.f), " (Xbox) ");
-      ImGui::SameLine        ();
+      if (SK_ImGui_HasXboxController ())
+      {
+        ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
+                                   R"('Back)" );
+        ImGui::SameLine        ();
+        ImGui::TextUnformatted ("+");
+        ImGui::SameLine        ();
+        ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
+                                   R"(Start')" );
+        ImGui::SameLine        ();
+        ImGui::SameLine        ();
+        ImGui::TextColored     ( ImVec4 (.75f, .75f, .75f, 1.f), " (Xbox) ");
+        ImGui::SameLine        ();
+      }
     }
 
     else {
