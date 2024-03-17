@@ -1156,9 +1156,9 @@ SK::ControlPanel::Input::Draw (void)
               continue;
 
             if (&ps_controller == pNewestInput)
-            {
-              ImGui::Bullet ();
-            }
+              ImGui::BulletText ("%s", "");
+            else
+              ImGui::TextUnformatted (" ");
           }
           ImGui::EndGroup   ();
           ImGui::SameLine   ();
@@ -1179,7 +1179,42 @@ SK::ControlPanel::Input::Draw (void)
             if (! ps_controller.bConnected)
               continue;
 
-            ImGui::Text     ( "%ws ", ps_controller.wszProduct );
+            switch (ps_controller.pid)
+            {
+              case SK_HID_PID_DUALSHOCK3:
+                ImGui::TextUnformatted ("SONY DUALSHOCK®3 Controller ");
+                break;
+              case SK_HID_PID_DUALSHOCK4:
+                ImGui::TextUnformatted ("SONY DUALSHOCK®4 Controller ");
+                break;
+              case SK_HID_PID_DUALSHOCK4_REV2:
+                ImGui::TextUnformatted ("SONY DUALSHOCK®4 Rev. 2 Controller ");
+                break;
+              case SK_HID_PID_DUALSENSE:
+                ImGui::TextUnformatted ("SONY DualSense® Controller ");
+                break;
+              case SK_HID_PID_DUALSENSE_EDGE:
+                ImGui::TextUnformatted ("SONY DualSense Edge™ Controller ");
+                break;
+              default:
+                ImGui::Text ("%ws ", ps_controller.wszProduct);
+                break;
+            }
+
+            if (*ps_controller.wszSerialNumber != L'\0')
+            {
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::SetTooltip (
+                  "Serial # %wc%wc:%wc%wc:%wc%wc:%wc%wc:%wc%wc:%wc%wc",
+                  ps_controller.wszSerialNumber [ 0], ps_controller.wszSerialNumber [ 1],
+                  ps_controller.wszSerialNumber [ 2], ps_controller.wszSerialNumber [ 3],
+                  ps_controller.wszSerialNumber [ 4], ps_controller.wszSerialNumber [ 5],
+                  ps_controller.wszSerialNumber [ 6], ps_controller.wszSerialNumber [ 7],
+                  ps_controller.wszSerialNumber [ 8], ps_controller.wszSerialNumber [ 9],
+                  ps_controller.wszSerialNumber [10], ps_controller.wszSerialNumber [11] );
+              }
+            }
           }
           ImGui::EndGroup   ();
           ImGui::SameLine   ();
@@ -1193,7 +1228,8 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::Text   (" Latency: %5.2f ms ", static_cast <double> (ps_controller.latency.ping) /
                                                     static_cast <double> (SK_QpcTicksPerMs));
             else
-              ImGui::Text   (" ");
+              ImGui::TextUnformatted
+                            (" ");
           }
           ImGui::EndGroup   ();
           ImGui::SameLine   ();
@@ -1209,13 +1245,13 @@ SK::ControlPanel::Input::Draw (void)
                                 1000.0 / ((SK::Framerate::Stats *)ps_controller.latency.pollrate)->calcMean () );
             }
             else
-              ImGui::Text   ( " " );
+              ImGui::TextUnformatted
+                            ( " " );
           }
-          ImGui::EndGroup   ();
 
+          ImGui::EndGroup   (  );
           ImGui::TreePush   ("");
-
-          ImGui::BeginGroup ();
+          ImGui::BeginGroup (  );
 
           if (bDualSense)
             ImGui::Checkbox ("Apply Mute Button to -Game-",                           &config.input.gamepad.scepad.mute_applies_to_game);

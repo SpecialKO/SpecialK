@@ -1,4 +1,12 @@
-﻿24.3.17
+﻿24.3.17.1
+=========
+ + Reset all internal device state after reconnecting PlayStation controllers
+ + Gave PlayStation controllers more descriptive names rather than using the
+     USB/Bluetooth name SONY assigned them
+ + Added gamepad serial # tooltip to PlayStation controller list
+ + Fixed mute button not working on DualSense controllers
+
+24.3.17
 =======
  + Added Gamepad Chord Input (Guide button) support for Xbox controllers
  + Added bullet-point to Protocol / Device Name list to denote the

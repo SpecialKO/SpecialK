@@ -283,7 +283,7 @@ SK_XInput_NotifyDeviceArrival (void)
                                   controller.bBluetooth =  //Bluetooth_Base_UUID
                                     StrStrIW (wszFileName, L"{00001124-0000-1000-8000-00805f9b34fb}");
 
-                                  controller.output.last_crc32c = 0;
+                                  controller.reset_device ();
 
                                   controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
                                   controller.setPollingFrequency (0);
@@ -329,16 +329,19 @@ SK_XInput_NotifyDeviceArrival (void)
                               );
 
                             controller.bDualSense =
-                              (controller.pid == 0x0DF2) ||
-                              (controller.pid == 0x0CE6);
+                              (controller.pid == SK_HID_PID_DUALSENSE_EDGE) ||
+                              (controller.pid == SK_HID_PID_DUALSENSE);
+
+                            controller.bDualSenseEdge =
+                              controller.pid == SK_HID_PID_DUALSENSE_EDGE;
 
                             controller.bDualShock4 =
-                              (controller.pid == 0x05c4) ||
-                              (controller.pid == 0x09CC) ||
-                              (controller.pid == 0x0BA0);
+                              (controller.pid == SK_HID_PID_DUALSHOCK4)      ||
+                              (controller.pid == SK_HID_PID_DUALSHOCK4_REV2) ||
+                              (controller.pid == 0x0BA0); // Dongle
 
                             controller.bDualShock3 =
-                              (controller.pid == 0x0268);
+                              (controller.pid == SK_HID_PID_DUALSHOCK3);
 
                             if (! (controller.bDualSense || controller.bDualShock4 || controller.bDualShock3))
                             {
@@ -356,10 +359,6 @@ SK_XInput_NotifyDeviceArrival (void)
 
                             if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
                             {
-                              controller.bConnected = true;
-
-                              controller.output.last_crc32c = 0;
-
                               controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
                               controller.setPollingFrequency (0);
 
@@ -368,8 +367,11 @@ SK_XInput_NotifyDeviceArrival (void)
                                 HIDP_CAPS                                      caps = { };
                                   SK_HidP_GetCaps (controller.pPreparsedData, &caps);
 
-                                controller.input_report.resize  (caps.InputReportByteLength);
-                                controller.output_report.resize (caps.OutputReportByteLength);
+                                controller.input_report.resize   (caps.InputReportByteLength);
+                                controller.output_report.resize  (caps.OutputReportByteLength);
+                                controller.feature_report.resize (caps.FeatureReportByteLength);
+
+                                controller.initialize_serial ();
 
                                 std::vector <HIDP_BUTTON_CAPS>
                                   buttonCapsArray;
@@ -450,8 +452,8 @@ SK_XInput_NotifyDeviceArrival (void)
                                 }
                               }
 
-                              controller.bConnected         = true;
-                              controller.output.last_crc32c = 0;
+                              controller.bConnected = true;
+                              controller.reset_device ();
 
                               auto iter =
                                 SK_HID_PlayStationControllers.push_back (controller);
@@ -487,8 +489,8 @@ SK_XInput_NotifyDeviceArrival (void)
                             if (! _wcsicmp (controller.wszDevicePath, wszFileName))
                             {
                               controller.bConnected         = false;
+                              controller.reset_device ();
                               controller.reset_rgb          = false;
-                              controller.output.last_crc32c = 0;
 
 /*
                               SK_ImGui_CreateNotification (

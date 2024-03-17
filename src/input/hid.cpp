@@ -708,7 +708,7 @@ void SK_HID_SetupPlayStationControllers (void)
         SK_HidD_GetAttributes (hDeviceFile, &hidAttribs);
   
         bool bSONY = 
-          hidAttribs.VendorID == 0x54c ||
+          hidAttribs.VendorID == SK_HID_VID_SONY ||
           hidAttribs.VendorID == 0x2054c;
           // The 0x2054c VID comes from Bluetooth service discovery.
           //
@@ -729,16 +729,19 @@ void SK_HID_SetupPlayStationControllers (void)
             );
 
           controller.bDualSense =
-            (controller.pid == 0x0DF2) ||
-            (controller.pid == 0x0CE6);
+            (controller.pid == SK_HID_PID_DUALSENSE_EDGE) ||
+            (controller.pid == SK_HID_PID_DUALSENSE);
+
+          controller.bDualSenseEdge =
+            controller.pid == SK_HID_PID_DUALSENSE_EDGE;
 
           controller.bDualShock4 =
-            (controller.pid == 0x05C4) ||
-            (controller.pid == 0x09CC) ||
-            (controller.pid == 0x0BA0);
+            (controller.pid == SK_HID_PID_DUALSHOCK4)      ||
+            (controller.pid == SK_HID_PID_DUALSHOCK4_REV2) ||
+            (controller.pid == 0x0BA0); // Dongle
 
           controller.bDualShock3 =
-            (controller.pid == 0x0268);
+            (controller.pid == SK_HID_PID_DUALSHOCK3);
 
           if (! (controller.bDualSense || controller.bDualShock4 || controller.bDualShock3))
           {
@@ -754,33 +757,6 @@ void SK_HID_SetupPlayStationControllers (void)
   
           if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
           {
-            DWORD dwBytesRead = 0x0;
-
-            SK_DeviceIoControl (
-              controller.hDeviceFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
-                  controller.wszSerialNumber, 128, &dwBytesRead, nullptr );
-
-            if (*controller.wszSerialNumber != L'\0')
-              swscanf (controller.wszSerialNumber, L"%llx", &controller.ullHWAddr);
-            else
-            {
-              BYTE  hw_addr_feature_report [19] = { 0x09 };
-                                    
-              if (SK_ReadFile (controller.hDeviceFile, hw_addr_feature_report, 19, &dwBytesRead, nullptr))
-              {
-                SK_HID_DualSense_GetHWAddr *pGetHWAddr =
-                  (SK_HID_DualSense_GetHWAddr *)hw_addr_feature_report;
-
-                SK_ImGui_Warning (
-                  SK_FormatStringW (
-                    L"Controller has MAC Address: %x:%x:%x:%x:%x:%x",
-                      pGetHWAddr->ClientMAC [5], pGetHWAddr->ClientMAC [4], pGetHWAddr->ClientMAC [3], 
-                      pGetHWAddr->ClientMAC [2], pGetHWAddr->ClientMAC [1], pGetHWAddr->ClientMAC [0] ).c_str ()
-                );
-              }
-            }
-
-
             if (! SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
             	continue;
 
@@ -792,8 +768,11 @@ void SK_HID_SetupPlayStationControllers (void)
             HIDP_CAPS                                      caps = { };
               SK_HidP_GetCaps (controller.pPreparsedData, &caps);
 
-            controller.input_report.resize  (caps.InputReportByteLength);
-            controller.output_report.resize (caps.OutputReportByteLength);
+            controller.input_report.resize   (caps.InputReportByteLength);
+            controller.output_report.resize  (caps.OutputReportByteLength);
+            controller.feature_report.resize (caps.FeatureReportByteLength);
+
+            controller.initialize_serial ();
 
             std::vector <HIDP_BUTTON_CAPS>
               buttonCapsArray;
@@ -3900,7 +3879,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   pDevice->buttons [13].state = pData->ButtonPad    != 0;
                 if (pDevice->buttons.size () >= 15)
                 {
-                  pDevice->buttons [14].state = pData->ButtonMute   != 0;
+                  pDevice->buttons [14].state = pData->ButtonMute          != 0;
                   pDevice->buttons [15].state = pData->ButtonLeftFunction  != 0;
                   pDevice->buttons [16].state = pData->ButtonRightFunction != 0;
                   pDevice->buttons [17].state = pData->ButtonLeftPaddle    != 0;
@@ -4325,16 +4304,41 @@ SK_HID_PlayStationDevice::request_input_report (void)
 #pragma endregion
 
             bool bIsInputActive = false;
+            bool bIsInputNew    =
+              memcmp ( &pDevice->xinput.prev_report.Gamepad,
+                       &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD) );
 
-            if ( memcmp ( &pDevice->xinput.prev_report.Gamepad,
-                          &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD)) )
+            bool bIsAnyButtonDown =
+              (pDevice->xinput.report.Gamepad.wButtons != 0);
+
+                               // Implicitly treat gamepads with buttons pressed as active
+            if (bIsInputNew || bIsAnyButtonDown)
             {
-              pDevice->xinput.report.dwPacketNumber++;
-              pDevice->xinput.prev_report = pDevice->xinput.report;
-              pDevice->xinput.last_active = SK_QueryPerf ().QuadPart;
+              if (bIsInputNew)
+              {
+                pDevice->xinput.report.dwPacketNumber++;
+                pDevice->xinput.prev_report = pDevice->xinput.report;
+              }
 
               bIsInputActive = true;
             }
+
+            // Handle some special buttons that DualSense controllers have that don't map to XInput
+            else if (pDevice->bDualSense)
+            {
+              if (pDevice->buttons [14].state && (! pDevice->buttons [14].last_state)) bIsInputActive = true;
+
+              if (pDevice->bDualSenseEdge)
+              {
+                if (pDevice->buttons [15].state && (! pDevice->buttons [15].last_state)) bIsInputActive = true;
+                if (pDevice->buttons [16].state && (! pDevice->buttons [16].last_state)) bIsInputActive = true;
+                if (pDevice->buttons [17].state && (! pDevice->buttons [17].last_state)) bIsInputActive = true;
+                if (pDevice->buttons [18].state && (! pDevice->buttons [18].last_state)) bIsInputActive = true;
+              }
+            }
+
+            if (bIsInputActive)
+              pDevice->xinput.last_active = SK_QueryPerf ().QuadPart;
 
             bool bIsDeviceMostRecentlyActive = true;
 
@@ -4361,7 +4365,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
             const bool bAllowSpecialButtons =
               ( config.input.gamepad.disabled_to_game == 0 ||
-                SK_IsGameWindowActive () );
+                SK_IsGameWindowActive () ) &&
+                       bIsDeviceMostRecentlyActive;
                   
             if ( config.input.gamepad.scepad.mute_applies_to_game &&
                  bAllowSpecialButtons                             &&
@@ -4581,36 +4586,14 @@ SK_HID_PlayStationDevice::write_output_report (void)
             output->
                EnableImprovedRumbleEmulation = true;
 
-#if 1
-            if ( pDevice->_vibration.last_set >= SK::ControlPanel::current_time -
-                 pDevice->_vibration.MAX_TTL_IN_MSECS )
-            {
-#endif
-              output->RumbleEmulationRight =
-                sk::narrow_cast <BYTE> (
-                  ReadULongAcquire (&pDevice->_vibration.right)
-                );
-              output->RumbleEmulationLeft  =
-                sk::narrow_cast <BYTE> (
-                  ReadULongAcquire (&pDevice->_vibration.left)
-                );
-#if 1
-            }
-
-            else
-            {
-              output->RumbleEmulationRight = 0;
-              output->RumbleEmulationLeft  = 0;
-
-              WriteULongRelease (&pDevice->_vibration.left,  0);
-              WriteULongRelease (&pDevice->_vibration.right, 0);
-            }
-
-            if (std::exchange (pDevice->_vibration.last_left,  output->RumbleEmulationLeft ) != output->RumbleEmulationLeft  || output->RumbleEmulationLeft  == 0)
-              pDevice->_vibration.last_output = pDevice->_vibration.last_set;
-            if (std::exchange (pDevice->_vibration.last_right, output->RumbleEmulationRight) != output->RumbleEmulationRight || output->RumbleEmulationRight == 0)
-              pDevice->_vibration.last_output = pDevice->_vibration.last_set;
-#endif
+            output->RumbleEmulationRight =
+              sk::narrow_cast <BYTE> (
+                ReadULongAcquire (&pDevice->_vibration.right)
+              );
+            output->RumbleEmulationLeft  =
+              sk::narrow_cast <BYTE> (
+                ReadULongAcquire (&pDevice->_vibration.left)
+              );
 
             static bool       bMuted     = SK_IsGameMuted ();
             static DWORD dwLastMuteCheck = SK_timeGetTime ();
@@ -5132,40 +5115,18 @@ SK_HID_PlayStationDevice::write_output_report (void)
               output->EnableLedUpdate  = true;
             }
 
-#if 1
-            if ( pDevice->_vibration.last_set >= SK::ControlPanel::current_time -
-                 pDevice->_vibration.MAX_TTL_IN_MSECS )
-            {
-#endif
-              output->RumbleRight =
-                sk::narrow_cast <BYTE> (
-                  ReadULongAcquire (&pDevice->_vibration.right)
-                );
-              output->RumbleLeft  =
-                sk::narrow_cast <BYTE> (
-                  ReadULongAcquire (&pDevice->_vibration.left)
-                );
-#if 1
-            }
+            output->RumbleRight =
+              sk::narrow_cast <BYTE> (
+                ReadULongAcquire (&pDevice->_vibration.right)
+              );
+            output->RumbleLeft  =
+              sk::narrow_cast <BYTE> (
+                ReadULongAcquire (&pDevice->_vibration.left)
+              );
 
-            else
-            {
-              output->RumbleRight = 0;
-              output->RumbleLeft  = 0;
-
-              WriteULongRelease (&pDevice->_vibration.left,  0);
-              WriteULongRelease (&pDevice->_vibration.right, 0);
-            }
-
-            //if (std::exchange (pDevice->_vibration.last_left,  output->RumbleEmulationLeft ) != output->RumbleEmulationLeft  || output->RumbleEmulationLeft  == 0)
-            //  pDevice->_vibration.last_output = pDevice->_vibration.last_set;
-            //if (std::exchange (pDevice->_vibration.last_right, output->RumbleEmulationRight) != output->RumbleEmulationRight || output->RumbleEmulationRight == 0)
-            //  pDevice->_vibration.last_output = pDevice->_vibration.last_set;
-#endif
-
-              //config.input.gamepad.scepad.rumble_power_level == 100.0f ? 0
-              //                                                         :
-              //static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
+            //config.input.gamepad.scepad.rumble_power_level == 100.0f ? 0
+            //                                                         :
+            //static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
 
             if (config.input.gamepad.scepad.led_color_r >= 0 || 
                 config.input.gamepad.scepad.led_color_g >= 0 ||
@@ -5261,40 +5222,18 @@ SK_HID_PlayStationDevice::write_output_report (void)
               output->EnableLedUpdate  = true;
             }
 
-#if 1
-            if ( pDevice->_vibration.last_set >= SK::ControlPanel::current_time -
-                 pDevice->_vibration.MAX_TTL_IN_MSECS )
-            {
-#endif
-              output->RumbleRight =
-                sk::narrow_cast <BYTE> (
-                  ReadULongAcquire (&pDevice->_vibration.right)
-                );
-              output->RumbleLeft  =
-                sk::narrow_cast <BYTE> (
-                  ReadULongAcquire (&pDevice->_vibration.left)
-                );
-#if 1
-            }
+            output->RumbleRight =
+              sk::narrow_cast <BYTE> (
+                ReadULongAcquire (&pDevice->_vibration.right)
+              );
+            output->RumbleLeft  =
+              sk::narrow_cast <BYTE> (
+                ReadULongAcquire (&pDevice->_vibration.left)
+              );
 
-            else
-            {
-              output->RumbleRight = 0;
-              output->RumbleLeft  = 0;
-
-              WriteULongRelease (&pDevice->_vibration.left,  0);
-              WriteULongRelease (&pDevice->_vibration.right, 0);
-            }
-
-            //if (std::exchange (pDevice->_vibration.last_left,  output->RumbleEmulationLeft ) != output->RumbleEmulationLeft  || output->RumbleEmulationLeft  == 0)
-            //  pDevice->_vibration.last_output = pDevice->_vibration.last_set;
-            //if (std::exchange (pDevice->_vibration.last_right, output->RumbleEmulationRight) != output->RumbleEmulationRight || output->RumbleEmulationRight == 0)
-            //  pDevice->_vibration.last_output = pDevice->_vibration.last_set;
-#endif
-
-              //config.input.gamepad.scepad.rumble_power_level == 100.0f ? 0
-              //                                                         :
-              //static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
+            //config.input.gamepad.scepad.rumble_power_level == 100.0f ? 0
+            //                                                         :
+            //static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
 
             if (config.input.gamepad.scepad.led_color_r >= 0 || 
                 config.input.gamepad.scepad.led_color_g >= 0 ||
@@ -5664,4 +5603,100 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
 int SK_HID_DeviceFile::remapHidInput (void)
 {
   return 0;
+}
+
+
+bool
+SK_HID_PlayStationDevice::initialize_serial (void)
+{
+  DWORD dwBytesRead = 0x0;
+
+  SK_DeviceIoControl (
+    hDeviceFile, IOCTL_HID_GET_SERIALNUMBER_STRING, 0, 0,
+        wszSerialNumber, 128, &dwBytesRead, nullptr );
+  
+  // The HID minidriver couldn't get a serial number (MAC address), but
+  //   we can get the address manually using a special Feature Report...
+  if (*wszSerialNumber == L'\0')
+  {
+    // The structures are the same across all controllers, but USB
+    //   report IDs differ; for Bluetooth we don't even need this.
+    if (bDualSense)
+      feature_report [0] = 0x09;
+    else
+      feature_report [0] = 0x12;
+  
+    if (SK_HidD_GetFeature (hDeviceFile, feature_report.data (),
+                                  (ULONG)feature_report.size ()))
+    {
+      SK_HID_DualSense_GetHWAddr *pGetHWAddr =
+        (SK_HID_DualSense_GetHWAddr *)&feature_report.data ()[1];
+  
+      // If this fails, what the hell did we just read?
+      SK_ReleaseAssert ( pGetHWAddr->Hard00 == 0x00 &&
+                         pGetHWAddr->Hard08 == 0x08 &&
+                         pGetHWAddr->Hard25 == 0x25 );
+  
+      swprintf (
+        wszSerialNumber, L"%02x%02x%02x%02x%02x%02x",
+          pGetHWAddr->ClientMAC [5], pGetHWAddr->ClientMAC [4],
+          pGetHWAddr->ClientMAC [3], pGetHWAddr->ClientMAC [2],
+          pGetHWAddr->ClientMAC [1], pGetHWAddr->ClientMAC [0] );
+  
+      SK_LOGi0 (
+        L"Controller has Serial Number: %ws",
+          wszSerialNumber
+      );
+    }
+  }
+  
+  if (*wszSerialNumber != L'\0')
+  {
+    swscanf (wszSerialNumber, L"%llx", &ullHWAddr);
+    return true;
+  }
+
+  return false;
+}
+
+void
+SK_HID_PlayStationDevice::reset_device (void)
+{
+  battery.percentage = 100.0f;
+  battery.state      = ChargingError;
+
+  output.last_crc32c = 0;
+
+  latency.last_syn  = 0;
+  latency.last_ack  = 0;
+  latency.ping      = 0;
+  latency.last_poll = 0;
+
+  reset_rgb = true;
+
+  _vibration.left        = 0;
+  _vibration.right       = 0;
+  _vibration.last_left   = 0;
+  _vibration.last_right  = 0;
+  _vibration.last_set    = 0;
+  _vibration.last_output = 0;
+  _vibration.max_val     = 0;
+
+  xinput.last_active =  0;
+  xinput.prev_report = {};
+  xinput.     report = {};
+
+  dwLastTimeOutput  = 0;
+  ulLastFrameOutput = 0;
+
+  bNeedOutput = false;
+
+  for ( auto& button : buttons )
+  {
+    button.last_state = 0;
+    button.     state = 0;
+  }
+
+  sensor_timestamp = 0;
+  chord_activated  = false; // Deprecated
 }
