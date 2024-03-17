@@ -924,10 +924,10 @@ SK::ControlPanel::Input::Draw (void)
           SK_ImGui_HasXboxController ();
 
         const char* szChordLabel =
-          ( bHasPlayStation && bHasXbox ) ? "Toggle Control Panel using  (" ICON_FA_XBOX " / " ICON_FA_PLAYSTATION ")" :
-          ( bHasPlayStation             ) ? "Toggle Control Panel using  ("                    ICON_FA_PLAYSTATION ")" :
-          ( bHasXbox                    ) ? "Toggle Control Panel using  (" ICON_FA_XBOX ")"                         :
-                                            "Toggle Control Panel using Imaginary Buttons";
+          ( bHasPlayStation && bHasXbox ) ? "Enable Gamepad Chords using  (" ICON_FA_XBOX " / " ICON_FA_PLAYSTATION ")" :
+          ( bHasPlayStation             ) ? "Enable Gamepad Chords using  ("                    ICON_FA_PLAYSTATION ")" :
+          ( bHasXbox                    ) ? "Enable Gamepad Chords using  (" ICON_FA_XBOX ")"                           :
+                                            "Enable Gamepad Chords using Imaginary Buttons";
 
         ImGui::Checkbox (szChordLabel, &config.input.gamepad.scepad.enhanced_ps_button);
 
@@ -937,10 +937,76 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::SetTooltip ("Will not work while \"UI Controller\" is set to 'Nothing'");
           else
           {
+            ImGui::BeginTooltip ();
             if (bHasPlayStation)
-              ImGui::SetTooltip ("Exit \"Exclusive Input Mode\" by Holding Share/Select or Pressing Caps Lock");
+              ImGui::TextUnformatted ("Exit \"Control Panel Exclusive Input Mode\" by Holding Share/Select or Pressing Caps Lock");
             else
-              ImGui::SetTooltip ("Exit \"Exclusive Input Mode\" by Holding Back or Pressing Caps Lock");
+              ImGui::TextUnformatted ("Exit \"Control Panel Exclusive Input Mode\" by Holding Back or Pressing Caps Lock");
+            ImGui::Separator ();
+            if (bHasPlayStation)
+            {
+              ImGui::BeginGroup ();
+              ImGui::TextUnformatted (ICON_FA_PLAYSTATION);
+              ImGui::Separator  ();
+              ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + Triangle");
+              ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + Square");
+              ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + Circle");
+              ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + Up");
+              ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + Down");
+              ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + Left");
+              ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + Right");
+              ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + Share");
+              ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + L3");
+              ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + L1");
+              ImGui::TextUnformatted (ICON_FA_PLAYSTATION " + R1");
+              ImGui::EndGroup ();
+              if (bHasXbox)
+              {
+                ImGui::SameLine    ();
+                ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+                ImGui::SameLine    ();
+              }
+            }
+            if (bHasXbox)
+            {
+              ImGui::BeginGroup ();
+              ImGui::TextUnformatted (ICON_FA_XBOX);
+              ImGui::Separator  ();
+              ImGui::TextUnformatted (ICON_FA_XBOX " + Y");
+              ImGui::TextUnformatted (ICON_FA_XBOX " + X");
+              ImGui::TextUnformatted (ICON_FA_XBOX " + B");
+              ImGui::TextUnformatted (ICON_FA_XBOX " + Up");
+              ImGui::TextUnformatted (ICON_FA_XBOX " + Down");
+              ImGui::TextUnformatted (ICON_FA_XBOX " + Left");
+              ImGui::TextUnformatted (ICON_FA_XBOX " + Right");
+              ImGui::TextUnformatted (ICON_FA_XBOX " + Back");
+              ImGui::TextUnformatted (ICON_FA_XBOX " + LS");
+              ImGui::TextUnformatted (ICON_FA_XBOX " + LB");
+              ImGui::TextUnformatted (ICON_FA_XBOX " + RB");
+              ImGui::EndGroup ();
+            }
+            if (bHasXbox || bHasPlayStation)
+            {
+              ImGui::SameLine    ();
+              ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+              ImGui::SameLine    ();
+              ImGui::BeginGroup  ();
+              ImGui::TextUnformatted ("Open / Close Control Panel");
+              ImGui::Separator   ();
+              ImGui::TextUnformatted ("Power-Off Wireless Gamepad");
+              ImGui::TextUnformatted ("Alt + Tab App1  (App set when pressed)");
+              ImGui::TextUnformatted ("Alt + Tab App2  (App set when pressed)");
+              ImGui::TextUnformatted ("Game Volume Up 10%");
+              ImGui::TextUnformatted ("Game Volume Down 10%");
+              ImGui::TextUnformatted ("HDR Brightness -10 nits");
+              ImGui::TextUnformatted ("HDR Brightness +10 nits");
+              ImGui::TextUnformatted ("Capture Screenshot");
+              ImGui::TextUnformatted ("Media Play / Pause");
+              ImGui::TextUnformatted ("Media Prev Track");
+              ImGui::TextUnformatted ("Media Next Track");
+              ImGui::EndGroup    ();
+            }
+            ImGui::EndTooltip ();
           }
         }
 
@@ -1251,7 +1317,7 @@ SK::ControlPanel::Input::Draw (void)
               continue;
 
             if (ps_controller.latency.ping > 0 && ps_controller.latency.ping < 500 * SK_QpcTicksPerMs)
-              ImGui::Text   (" Latency: %5.2f ms ", static_cast <double> (ps_controller.latency.ping) /
+              ImGui::Text   (" Latency: %3.0f ms ", static_cast <double> (ps_controller.latency.ping) /
                                                     static_cast <double> (SK_QpcTicksPerMs));
             else
               ImGui::TextUnformatted
@@ -1281,8 +1347,9 @@ SK::ControlPanel::Input::Draw (void)
           {
             if (! ps_controller.bConnected)
               continue;
-
-            switch (ps_controller.battery.state)
+  
+            ImGui::PushID (ps_controller.wszDevicePath);
+            switch        (ps_controller.battery.state)
             {
               default:
               case SK_HID_PlayStationDevice::Charging:
@@ -1333,7 +1400,7 @@ SK::ControlPanel::Input::Draw (void)
 
                 ImGui::SameLine ();
 
-                     if (pBatteryState->state == SK_HID_PlayStationDevice::Discharging)
+                if (pBatteryState->state == SK_HID_PlayStationDevice::Discharging)
                   ImGui::Text ("%3.0f%% " ICON_FA_ARROW_DOWN, pBatteryState->percentage);
                 else if (pBatteryState->state == SK_HID_PlayStationDevice::Charging)
                   ImGui::Text ("%3.0f%% " ICON_FA_ARROW_UP,   pBatteryState->percentage);
@@ -1342,14 +1409,14 @@ SK::ControlPanel::Input::Draw (void)
 
                 ImGui::EndGroup ();
 
-                ImVec2 vButtonEnd =
-                  vButtonOrigin + ImGui::GetItemRectSize ();
-
-                ImGui::SetCursorPos                                       (vButtonOrigin);
-                ImGui::InvisibleButton ("###GamepadPowerOff", vButtonEnd - vButtonOrigin);
-
                 if (ps_controller.bBluetooth)
                 {
+                  ImVec2 vButtonEnd =
+                         vButtonOrigin + ImGui::GetItemRectSize ();
+
+                  ImGui::SetCursorPos                                       (vButtonOrigin);
+                  ImGui::InvisibleButton ("###GamepadPowerOff", vButtonEnd - vButtonOrigin);
+
                   if (SK_ImGui_IsItemClicked ())
                   {
                     ImGui::ClearActiveID   ( );
@@ -1360,8 +1427,8 @@ SK::ControlPanel::Input::Draw (void)
 
                   else if (SK_ImGui_IsItemRightClicked ())
                   {
-                    ImGui::ClearActiveID ( );
-                    ImGui::OpenPopup     ("BluetoothCompatMenu");
+                    ImGui::ClearActiveID   ( );
+                    ImGui::OpenPopup       ("BluetoothCompatMenu");
                   }
 
                   else if (ImGui::IsItemHovered ())
@@ -1383,7 +1450,8 @@ SK::ControlPanel::Input::Draw (void)
 
                   if (ImGui::BeginPopup ("BluetoothCompatMenu"))
                   {
-                    if (bDualSense)
+                    if ( ps_controller.pid == SK_HID_PID_DUALSENSE  ||
+                         ps_controller.pid == SK_HID_PID_DUALSENSE_EDGE )
                     {
                       //ImGui::SameLine    ();
                       //ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
@@ -1396,9 +1464,8 @@ SK::ControlPanel::Input::Draw (void)
                     }
 
                     if (ImGui::Checkbox ("Bluetooth Compatibility Mode",
-                        &config.input.gamepad.bt_input_only))
-                    {
-                      if (config.input.gamepad.bt_input_only)
+                         &config.input.gamepad.bt_input_only))
+                    { if (config.input.gamepad.bt_input_only)
                       {
                         SK_DeferCommand ("Input.Gamepad.PowerOff 1");
                       }
@@ -1427,6 +1494,7 @@ SK::ControlPanel::Input::Draw (void)
                 }
               } break;
             }
+            ImGui::PopID ();
           }
 
           ImGui::EndGroup   (  );

@@ -851,8 +851,21 @@ SK_DrawOSD (void)
 
       if (config.fps.compact)
       {
-        OSD_PRINTF (gsync && config.fps.compact_vrr ? "%*hs%2.0f VRR\n"
-                                                    : "%*hs%2.0f\n"), left_padding, pad_str, fps
+        float fVBlankHz = 0.0f;
+
+        if (gsync)
+        {
+          auto& nvapi_display =
+            rb.displays [rb.active_display].nvapi;
+
+          fVBlankHz =
+            nvapi_display.vblank_counter.getVBlankHz (
+                      SK::ControlPanel::current_time );
+        }
+
+        OSD_PRINTF (gsync && config.fps.compact_vrr ? "%*hs%2.0f\n%*hs%5.2f Hz\n"
+                                                    : "%*hs%2.0f\n"), left_padding, pad_str, fps,
+                                                                      left_padding, pad_str, fVBlankHz
         OSD_END
       }
 

@@ -1,4 +1,14 @@
-﻿24.3.17.3
+﻿24.3.18.1
+=========
+ + Add effective VRR Refresh Rate to text OSD if VRR Compact mode is enabled
+
+24.3.18
+=======
+ + Support latency measurement on DualShock 4 controllers
+ + Improved analog deadzone handling on DualShock 4 controllers
+ + Added Gamepad Chord Button tooltip explaining all the default bindings
+
+24.3.17.3
 =========
  + Moved the PlayStation battery indicator to polling rate / latency line
      >> Power-saving mode (DualSense) is now accessed by right-clicking battery
