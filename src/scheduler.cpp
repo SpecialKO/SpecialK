@@ -979,6 +979,9 @@ DWORD
 WINAPI
 SK_SleepEx (DWORD dwMilliseconds, BOOL bAlertable) noexcept
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+    return 0;
+
   if (ReadAcquire (&__sleep_init) == FALSE)
     return SleepEx (dwMilliseconds, bAlertable);
 

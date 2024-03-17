@@ -932,6 +932,7 @@ struct SK_HID_PlayStationDevice
   bool                 bDualSenseEdge           =   false;
   bool                 bDualShock4              =   false;
   bool                 bDualShock3              =   false;
+  bool                 bTerminating             =   false;
   volatile LONG        bNeedOutput              =   false;
 
   struct battery_s {

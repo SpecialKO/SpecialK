@@ -3392,6 +3392,11 @@ SK_HID_PlayStationDevice::setBufferCount (DWORD dwBuffers)
 bool
 SK_HID_PlayStationDevice::request_input_report (void)
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+  {
+    return false;
+  }
+
   if (! bConnected)
     return false;
   
@@ -3444,6 +3449,9 @@ SK_HID_PlayStationDevice::request_input_report (void)
       DWORD  dwWaitState  = WAIT_FAILED;
       while (dwWaitState != WAIT_OBJECT_0)
       {
+        if (ReadAcquire (&__SK_DLL_Ending))
+          break;
+
         async_input_request        = { };
         async_input_request.hEvent = pDevice->hInputEvent;
 
@@ -3468,13 +3476,21 @@ SK_HID_PlayStationDevice::request_input_report (void)
           }
         }
 
-        if (! pDevice->bConnected)
+        if (! ReadAcquire (&__SK_DLL_Ending))
         {
-          if ( WAIT_OBJECT_0 !=
-                 WaitForSingleObject (pDevice->hReconnectEvent, 333UL) )
+          if (! pDevice->bConnected)
           {
-            continue;
+            if ( WAIT_OBJECT_0 !=
+                   WaitForSingleObject (pDevice->hReconnectEvent, 333UL) )
+            {
+              continue;
+            }
           }
+        }
+
+        else
+        {
+          break;
         }
 
         BOOL bReadAsync =
@@ -3508,22 +3524,37 @@ SK_HID_PlayStationDevice::request_input_report (void)
             );
           }
 
-          if ( dwLastErr != NOERROR &&
-               dwLastErr != ERROR_IO_PENDING )
+          if (! ReadAcquire (&__SK_DLL_Ending))
           {
-            if ( dwLastErr != ERROR_INVALID_HANDLE &&
-                 dwLastErr != ERROR_NO_SUCH_DEVICE )
-              SK_CancelIoEx (pDevice->hDeviceFile, &async_input_request);
+            if ( dwLastErr != NOERROR &&
+                 dwLastErr != ERROR_IO_PENDING )
+            {
+              if ( dwLastErr != ERROR_INVALID_HANDLE &&
+                   dwLastErr != ERROR_NO_SUCH_DEVICE )
+                SK_CancelIoEx (pDevice->hDeviceFile, &async_input_request);
 
-            SK_SleepEx (100UL, TRUE); // Prevent runaway CPU usage on failure
+              SK_SleepEx (100UL, TRUE); // Prevent runaway CPU usage on failure
 
-            continue;
+              continue;
+            }
+          }
+
+          else
+          {
+            break;
           }
         }
 
         dwWaitState =
           WaitForMultipleObjects ( _countof (hOperationalEvents),
                                              hOperationalEvents, FALSE, INFINITE );
+
+        if (dwWaitState == (WAIT_OBJECT_0))
+        {
+          // Clear rumble, then exit
+          pDevice->write_output_report ();
+          break;
+        }
 
         // Disconnect
         if (dwWaitState == (WAIT_OBJECT_0 + 2))
@@ -4420,6 +4451,12 @@ SK_HID_PlayStationDevice::request_input_report (void)
 bool
 SK_HID_PlayStationDevice::write_output_report (void)
 {
+  if (ReadAcquire (&__SK_DLL_Ending))
+  {
+    if (std::exchange (bTerminating, true))
+      return false;
+  }
+
   if (! bConnected)
     return false;
 
@@ -4508,13 +4545,22 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
           if (! pDevice->bConnected)
           {
-            if ( WAIT_TIMEOUT ==
-                   SK_WaitForSingleObject (pDevice->hOutputEnqueued, 125UL) )
+            if (! ReadAcquire (&__SK_DLL_Ending))
             {
-              continue;
+              if ( WAIT_TIMEOUT ==
+                     SK_WaitForSingleObject (pDevice->hOutputEnqueued, 125UL) )
+              {
+                continue;
+              }
+
+              bEnqueued = true;
             }
 
-            bEnqueued = true;
+            else
+            {
+              bQuit = true;
+              continue;
+            }
           }
 
           if (! bFinished)
@@ -5642,11 +5688,6 @@ SK_HID_PlayStationDevice::initialize_serial (void)
           pGetHWAddr->ClientMAC [5], pGetHWAddr->ClientMAC [4],
           pGetHWAddr->ClientMAC [3], pGetHWAddr->ClientMAC [2],
           pGetHWAddr->ClientMAC [1], pGetHWAddr->ClientMAC [0] );
-  
-      SK_LOGi0 (
-        L"Controller has Serial Number: %ws",
-          wszSerialNumber
-      );
     }
   }
   
