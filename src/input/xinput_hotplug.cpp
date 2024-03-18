@@ -543,10 +543,15 @@ SK_XInput_NotifyDeviceArrival (void)
             DefWindowProcW (hwnd, message, wParam, lParam);
         };
 
+        std::wstring wnd_class_name =
+          SK_FormatStringW (
+            L"SK_HID_Listener_pid%x",
+              GetCurrentProcessId () );
+
         WNDCLASSEXW
           wnd_class               = {                          };
           wnd_class.hInstance     = SK_GetModuleHandle (nullptr);
-          wnd_class.lpszClassName = L"SK_HID_Listener";
+          wnd_class.lpszClassName = wnd_class_name.c_str ();
           wnd_class.lpfnWndProc   = SK_HID_DeviceNotifyProc;
           wnd_class.cbSize        = sizeof (WNDCLASSEXW);
 
@@ -555,7 +560,7 @@ SK_XInput_NotifyDeviceArrival (void)
           DWORD dwWaitStatus = WAIT_OBJECT_0;
 
           SK_hWndDeviceListener =
-            (HWND)CreateWindowEx ( 0, L"SK_HID_Listener",    NULL, 0,
+            (HWND)CreateWindowEx ( 0, wnd_class_name.c_str (),     NULL, 0,
                                    0, 0, 0, 0, HWND_MESSAGE, NULL, NULL, NULL );
 
           // It's technically unnecessary to register this, but not a bad idea
