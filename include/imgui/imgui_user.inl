@@ -519,7 +519,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             gamepad = true;
 
             // TODO: Determine which controller the input is from
-            if (SK_ImGui_WantGamepadCapture ())
+            if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.disable_hid)
               filter = true;
 
             if ( (! already_processed)
@@ -1207,7 +1207,7 @@ MessageProc ( const HWND&   hWnd,
                   bWantKeyboardCapture =
           SK_ImGui_WantKeyboardCapture (),
                   bWantGamepadCapture  =
-          SK_ImGui_WantGamepadCapture  ();
+          SK_ImGui_WantGamepadCapture  () || config.input.gamepad.disable_hid;
 
       bool bWantAnyCapture = bWantMouseCapture    ||
                              bWantKeyboardCapture ||
