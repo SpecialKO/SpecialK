@@ -2604,6 +2604,9 @@ auto DeclKeybind =
 
       case SK_GAME_ID::NiNoKuni2:
       {
+        // Game will break itself if it sees a DualSense controller using DirectInput
+        config.input.gamepad.dinput.blackout_gamepads  = true;
+        config.input.gamepad.dinput.block_enum_devices = true;
         config.render.dxgi.fake_fullscreen_mode = true; // For HDR to work
         config.window.treat_fg_as_active        = true;
         config.window.background_render         = true;
