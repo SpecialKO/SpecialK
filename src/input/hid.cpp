@@ -3476,21 +3476,24 @@ SK_HID_PlayStationDevice::request_input_report (void)
           }
         }
 
-        if (! ReadAcquire (&__SK_DLL_Ending))
+        if (! pDevice->bConnected)
         {
-          if (! pDevice->bConnected)
-          {
-            if ( WAIT_OBJECT_0 !=
-                   WaitForSingleObject (pDevice->hReconnectEvent, 333UL) )
-            {
-              continue;
-            }
-          }
-        }
+          HANDLE ReconnectEvents [] = {
+            __SK_DLL_TeardownEvent,
+            pDevice->hReconnectEvent
+          };
 
-        else
-        {
-          break;
+          DWORD dwWait =
+            WaitForMultipleObjects (2, ReconnectEvents, FALSE, 333UL);
+
+          if (dwWait != WAIT_OBJECT_0 && dwWait != (WAIT_OBJECT_0 + 1))
+          {
+            continue;
+          }
+
+          // DLL is ending
+          if (dwWait == WAIT_OBJECT_0)
+            break;
         }
 
         BOOL bReadAsync =
@@ -4490,7 +4493,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
         }
       }
 
-      SK_Thread_CloseSelf ();
+      TerminateThread (GetCurrentThread (), 0x0);
 
       return 0;
     }, L"[SK] HID Input Report Consumer", this);
@@ -4627,7 +4630,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
               if ( WAIT_OBJECT_0 ==
                      WaitForSingleObject (__SK_DLL_TeardownEvent, 1000UL) )
               {
-                SK_Thread_CloseSelf ();
+                TerminateThread (GetCurrentThread (), 0x0);
 
                 return 0;
               }
@@ -5069,7 +5072,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
           _FinishPollRequest ();
         }
 
-        SK_Thread_CloseSelf ();
+        TerminateThread (GetCurrentThread (), 0x0);
 
         return 0;
       }, L"[SK] HID Output Report Producer", this);
@@ -5484,7 +5487,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
           _FinishPollRequest ();
         }
 
-        SK_Thread_CloseSelf ();
+        TerminateThread (GetCurrentThread (), 0x0);
 
         return 0;
       }, L"[SK] HID Output Report Producer", this);
