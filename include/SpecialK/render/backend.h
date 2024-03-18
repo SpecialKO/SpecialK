@@ -550,6 +550,7 @@ public:
     bool                  unity                = false;
     bool                  unreal               = false;
     bool                  capcom               = false;
+    bool                  sdl                  = false;
 
     void setFocus  (HWND hWndFocus);
     void setDevice (HWND hWndRender);

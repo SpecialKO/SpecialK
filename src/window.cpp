@@ -4650,15 +4650,20 @@ GetFocus_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
-  if (config.window.background_render)
+  // This function is hooked before we actually know the game's HWND,
+  //   this would be catastrophic.
+  if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
   {
-    DWORD dwPid = 0x0;
-    DWORD dwTid =
-      GetWindowThreadProcessId (game_window.hWnd, &dwPid);
-
-    if (GetCurrentThreadId () == dwTid)
+    if (config.window.background_render)
     {
-      return game_window.hWnd;
+      DWORD dwPid = 0x0;
+      DWORD dwTid =
+        GetWindowThreadProcessId (game_window.hWnd, &dwPid);
+
+      if (GetCurrentThreadId () == dwTid)
+      {
+        return game_window.hWnd;
+      }
     }
   }
 
@@ -4710,23 +4715,28 @@ GetGUIThreadInfo_Detour ( _In_    DWORD          idThread,
 {
   SK_LOG_FIRST_CALL
 
-  if (config.window.background_render)
+  // This function is hooked before we actually know the game's HWND,
+  //   this would be catastrophic.
+  if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
   {
-    DWORD dwPid = 0x0;
-    DWORD dwTid =
-      GetWindowThreadProcessId (game_window.hWnd, &dwPid);
-
-    if (idThread == dwTid)
+    if (config.window.background_render)
     {
-      BOOL bRet =
-        SK_GetGUIThreadInfo (idThread, pgui);
+      DWORD dwPid = 0x0;
+      DWORD dwTid =
+        GetWindowThreadProcessId (game_window.hWnd, &dwPid);
 
-      if (bRet)
+      if (idThread == dwTid)
       {
-        pgui->hwndActive = game_window.hWnd;
-        pgui->hwndFocus  = game_window.hWnd;
+        BOOL bRet =
+          SK_GetGUIThreadInfo (idThread, pgui);
 
-        return bRet;
+        if (bRet)
+        {
+          pgui->hwndActive = game_window.hWnd;
+          pgui->hwndFocus  = game_window.hWnd;
+
+          return bRet;
+        }
       }
     }
   }
@@ -4791,15 +4801,20 @@ GetActiveWindow_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
-  if (config.window.background_render)
+  // This function is hooked before we actually know the game's HWND,
+  //   this would be catastrophic.
+  if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
   {
-    DWORD dwPid = 0x0;
-    DWORD dwTid =
-      GetWindowThreadProcessId (game_window.hWnd, &dwPid);
-
-    if (GetCurrentThreadId () == dwTid)
+    if (config.window.background_render)
     {
-      return game_window.hWnd;
+      DWORD dwPid = 0x0;
+      DWORD dwTid =
+        GetWindowThreadProcessId (game_window.hWnd, &dwPid);
+
+      if (GetCurrentThreadId () == dwTid)
+      {
+        return game_window.hWnd;
+      }
     }
   }
 
@@ -4895,12 +4910,17 @@ GetForegroundWindow_Detour (void)
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  if (! rb.isTrueFullscreen ())
-  {                                    // Frame Pacing Has Problems w/o this
-    if ( SK_WantBackgroundRender () || config.window.always_on_top == SmartAlwaysOnTop ||
-         config.window.treat_fg_as_active )
-    {
-      return game_window.hWnd;
+  // This function is hooked before we actually know the game's HWND,
+  //   this would be catastrophic.
+  if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
+  {
+    if (! rb.isTrueFullscreen ())
+    {                                    // Frame Pacing Has Problems w/o this
+      if ( SK_WantBackgroundRender () || config.window.always_on_top == SmartAlwaysOnTop ||
+           config.window.treat_fg_as_active )
+      {
+        return game_window.hWnd;
+      }
     }
   }
 
@@ -7074,6 +7094,11 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
 
   else if (! _wcsicmp (wszClassName, L"UnrealWindow"))
     SK_GetCurrentRenderBackend ().windows.unreal = true;
+
+  else if (! _wcsicmp (wszClassName, L"SDL_App"))
+  {
+    SK_GetCurrentRenderBackend ().windows.sdl = true;
+  }
 
 
   if (SK_IsInjected ())
