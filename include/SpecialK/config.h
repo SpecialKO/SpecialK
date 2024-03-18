@@ -1161,12 +1161,13 @@ struct sk_config_t
       OpenGL;
 
     struct NvAPI_s {
-      bool         enable        = true;
-      bool         gsync_status  = true;
-      bool         disable_hdr   = false;
-      int          vulkan_bridge = SK_NoPreference;
-      std::wstring bpc_enum      = L"NV_BPC_DEFAULT";
-      std::wstring col_fmt_enum  = L"NV_COLOR_FORMAT_AUTO";
+      bool         enable         = true;
+      bool         gsync_status   = true;
+      bool         implicit_gsync = false; // Check GSync status even if user hasn't requested
+      bool         disable_hdr    = false;
+      int          vulkan_bridge  = SK_NoPreference;
+      std::wstring bpc_enum       = L"NV_BPC_DEFAULT";
+      std::wstring col_fmt_enum   = L"NV_COLOR_FORMAT_AUTO";
     } NvAPI;
 
     struct ADL_s {

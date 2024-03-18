@@ -2667,7 +2667,7 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
           kSortBuffer.second.end   (), std::greater <> ()
         );
 
-        if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status)
+        if (sk::NVAPI::nv_hardware)
         {
           //
           // Sample NVIDIA's VBlank counter from this thread, because that API

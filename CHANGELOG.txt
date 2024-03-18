@@ -1,4 +1,16 @@
-﻿24.3.18.3
+﻿24.3.18.4
+=========
+ + Added current VRR refresh rate to NVIDIA Latency Analysis section.
+ + Removed the button to trigger Reflex Latency Analysis flash for displays
+     that support the feature since it requires GFE overlay integration.
+ + Terminate HID Input/Output threads rather than using normal thread exit,
+     because pending overlapped IO may cause TLS-related crashes on DLL unload.
+
+   >> Hacky solution, but these threads live for the entire lifetime of the DLL
+        and the DLL only unloads at application exit; skipping cleanup to avoid
+          a crash is harmless.
+
+24.3.18.3
 =========
  + Fixed issues with "Continue Rendering" not working in SDL games because hooks
      on GetFocus (...), GetForegroundWindow (...), GetActiveWindow (...) and

@@ -673,6 +673,9 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::getDisplayFromHandle (NvDisplayHandl
 void
 SK_RenderBackend_V2::gsync_s::update (bool force)
 {
+  if (force)
+    SK_RunOnce (config.render.framerate.auto_low_latency.waiting = true);
+
   static auto& rb =
     SK_GetCurrentRenderBackend ();
 
