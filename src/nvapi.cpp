@@ -1221,7 +1221,7 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32
                 records [record_idx];
 
     if ( record.timestamp_ms != 0 &&
-         record.timestamp_ms >= (tNow - 500) ) // Use the last 1/2 second of data
+         record.timestamp_ms >= (tNow - 750) ) // Use the 3/4 of a second
     {
       ++num_vblanks_in_period;
 
@@ -1257,12 +1257,20 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32
   {
     // Rolling-average because this is really jittery
     new_average =
-      (3.0f * last_average + new_average) * 0.25f;
+      (3.0f * last_average + 2.0f * new_average) * 0.2f;
   }
 
   last_average = new_average;
 
-  return new_average;
+  static DWORD dwLastUpdate = tNow;
+  static float fLastAverage = new_average;
+
+  if (dwLastUpdate < tNow - 200)
+  {   dwLastUpdate = tNow;
+      fLastAverage = new_average;
+  }
+
+  return fLastAverage;
 }
 
 bool

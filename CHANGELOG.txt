@@ -1,4 +1,9 @@
-﻿24.3.18.5  ( Rant on Display setting that warrants explanation )
+﻿24.3.19
+=======
+ + Apply fake HID device removal + arrival compat hack only to SDL games
+ + Reduce the VRR refresh rate update frequency to make it easier to read
+
+24.3.18.5  ( Rant on Display setting that warrants explanation )
 =========
  + Removed unintentional Auto-VRR Optimization on forced G-Sync status check
 
