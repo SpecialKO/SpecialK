@@ -1,4 +1,30 @@
-﻿24.3.18.4
+﻿24.3.18.5  ( Rant on Display setting that warrants explanation )
+=========
+ + Removed unintentional Auto-VRR Optimization on forced G-Sync status check
+
+   >> NOTE that Auto-VRR Framerate Limiter optimization does not work on
+       NVIDIA systems if the "Display G-Sync Status" option is turned off.
+
+     * That option exists historically because G-Sync status APIs in NvAPI have
+         wonky performance overhead because SK is among the only software to
+           ever use the driver API to check VRR status in D3D9/D3D11.
+
+     [ The unpredictable overhead is a non-issue in modern versions of SK... ]
+
+   Fun fact:  NVIDIA did not even know who was responsible for maintaing
+                that part of NvAPI when we discussed implementing it for
+                  D3D12/Vulkan/GL.
+
+         NV opted to create an entirely new API (rofl) instead of extending the
+           original one to support D3D12/Vulkan. SK has had enough time working
+             with their new API to iron out its performance overhead as well,
+               so the setting is largely irrelevant.
+
+    Tl;Dr:  "Display G-Sync Status" is somewhat of a misnomer and turns off
+              various NVIDIA VRR-related functionality as opposed to simply
+                not showing you this status in the control panel.
+
+24.3.18.4
 =========
  + Added current VRR refresh rate to NVIDIA Latency Analysis section.
  + Removed the button to trigger Reflex Latency Analysis flash for displays

@@ -3152,12 +3152,12 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       //                 * Also fix Steam Input in CAPCOM games
       if (frames_drawn > 15)
       {
-        if (! SK_HID_PlayStationControllers.empty ())
+        if (rb.windows.sdl && (! SK_HID_PlayStationControllers.empty ()))
         {
           static ULONG64 toggle_frame = 0ULL;
           static bool    toggling     = false;
 
-          if ((! toggling) && (! config.input.gamepad.disable_hid))
+          if ((! toggling) && (! config.input.gamepad.disable_hid) && frames_drawn > 120)
           {
             toggling = true;
 
