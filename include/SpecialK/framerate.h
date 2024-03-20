@@ -701,6 +701,17 @@ namespace SK
                    std::unique_ptr <SK::Framerate::Limiter> >
                          > limiters_;
   };
+
+  namespace LatentSync
+  {
+    enum TearingMode
+    {
+      AlwaysOn    = 0,
+      AlwaysOff   = 1,
+      AdaptiveOn  = 2,
+      AdaptiveOff = 3
+    };
+  };
 };
 
 using  Sleep_pfn = void (WINAPI *)(DWORD dwMilliseconds);

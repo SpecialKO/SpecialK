@@ -509,12 +509,14 @@ SK_ImGui_LatentSyncConfig (void)
 
         if (ImGui::Checkbox ("Target Input Latency in milliseconds", &auto_bias_target_in_ms))
         {
-          if (auto_bias_target_in_ms) {
+          if (auto_bias_target_in_ms)
+          {
             config.render.framerate.latent_sync.auto_bias_target.ms      = 0.85f;
             config.render.framerate.latent_sync.auto_bias_target.percent = 0.0f;
           }
 
-          else {
+          else
+          {
             config.render.framerate.latent_sync.auto_bias_target.percent = 0.5f;
             config.render.framerate.latent_sync.auto_bias_target.ms      = 0.0f;
           }
@@ -544,28 +546,76 @@ SK_ImGui_LatentSyncConfig (void)
 
       ImGui::Separator ();
 
-      ImGui::Checkbox ("Allow Tearing", &config.render.dxgi.allow_tearing);
+      switch (config.render.framerate.latent_sync.tearing_mode)
+      {
+        case SK::LatentSync::TearingMode::AdaptiveOn:
+        case SK::LatentSync::TearingMode::AdaptiveOff:
+          break;
+        case SK::LatentSync::TearingMode::AlwaysOn:
+          config.render.dxgi.allow_tearing = true;
+          break;
+        case SK::LatentSync::TearingMode::AlwaysOff:
+          config.render.dxgi.allow_tearing = false;
+          break;
+        default:
+          config.render.framerate.latent_sync.tearing_mode =
+             SK::LatentSync::TearingMode::AlwaysOn;
+          config.render.dxgi.allow_tearing = true;
+          break;
+      }
+
+      if  (
+            ImGui::Combo (
+              "Tearing Mode",
+              &config.render.framerate.latent_sync.tearing_mode,
+              "Always On\0"
+              "Always Off\0"
+              "Adaptive (Prefer On)\0"
+              "Adaptive (Prefer Off)\0\0"
+            )
+          )
+      {
+        switch (config.render.framerate.latent_sync.tearing_mode)
+        {
+          case SK::LatentSync::TearingMode::AlwaysOn:
+          case SK::LatentSync::TearingMode::AdaptiveOn:
+            config.render.dxgi.allow_tearing = true;
+            break;
+          case SK::LatentSync::TearingMode::AlwaysOff:
+          case SK::LatentSync::TearingMode::AdaptiveOff:
+            config.render.dxgi.allow_tearing = false;
+            break;
+          default:
+            break;
+        }
+      }
 
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ();
-        ImGui::Text         ("Enabling Tearing Produces the Lowest Possible Input Latency");
+        ImGui::Text         ("Enabling tearing produces the Lowest Possible Input Latency");
         ImGui::Separator    ();
-        ImGui::BulletText   ("If GPU load is very high you may need to disable tearing");
+        ImGui::BulletText   ("If GPU load is very high, you may need to disable tearing");
         ImGui::BulletText   ("Disabling tearing will add between 0 and 1 refresh cycles of latency, depending on GPU load");
+        ImGui::Separator    ();
+        ImGui::Text         ("Adaptive modes control tearing based on Frame Stability or Render Latency");
+        ImGui::Separator    ();
+        ImGui::BulletText   ("Adaptive (Prefer On): only disables tearing if FPS is unstable");
+        ImGui::BulletText   ("Adaptive (Prefer Off): only enables tearing if Render Latency exceeds 1 frame");
         ImGui::EndTooltip   ();
       }
 
-      if (config.render.dxgi.allow_tearing)
+      if ( config.render.framerate.latent_sync.tearing_mode == SK::LatentSync::TearingMode::AdaptiveOn ||
+           config.render.framerate.latent_sync.tearing_mode == SK::LatentSync::TearingMode::AlwaysOn   )
       {
-        ImGui::SameLine ();
-        ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine ();
-
         ImGui::Checkbox ("Visualize Tearlines", &config.render.framerate.latent_sync.show_fcat_bars);
 
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Draws color-cycling bars to help locate tearing while VSYNC is off");
+
+        ImGui::SameLine ();
+        ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine ();
 
         if (ImGui::BeginMenu ("Tear Control Keybinds###TearingMenu"))
         {
@@ -1856,6 +1906,10 @@ SK::Framerate::Limiter::wait (void)
       //if (__SK_LatentSyncSkip == 1)
           __SK_LatentSyncSkip  = 0;
 
+      bool bAdaptiveTearing =
+        config.render.framerate.latent_sync.tearing_mode == SK::LatentSync::TearingMode::AdaptiveOff ||
+        config.render.framerate.latent_sync.tearing_mode == SK::LatentSync::TearingMode::AdaptiveOn;
+
       if (__scanline.lock.isPending ())
       {
         if (                        __SK_LatentSyncSkip  == 0 ||
@@ -1917,7 +1971,7 @@ SK::Framerate::Limiter::wait (void)
         }
       }
 
-      else if (config.render.framerate.latent_sync.auto_bias)
+      else if (config.render.framerate.latent_sync.auto_bias || bAdaptiveTearing)
       {
         static constexpr int _MAX_FRAMES = 6;
 
@@ -1962,46 +2016,195 @@ SK::Framerate::Limiter::wait (void)
         latency_avg.display [latency_avg.frames++ % _MAX_FRAMES] =
                     effective_frametime ();
 
-        float delta = 0.0f;
-
-        float auto_bias_target_ms =
-          config.render.framerate.latent_sync.auto_bias_target.ms;
-        
-        float auto_bias_target_percent =
-          config.render.framerate.latent_sync.auto_bias_target.percent;
-
-        if (auto_bias_target_percent > 0.0f)
+        if (bAdaptiveTearing)
         {
-          auto_bias_target_ms =
-            static_cast <float> ((latency_avg.getInput () + latency_avg.getDisplay ()) * (1.0f - auto_bias_target_percent));
+          // When tearing is disabled, input latency sometimes gets stuck at (-0.1; 0.0]
+          // Enabling tearing fixes it...
+          bool bInputStuckAtZero =
+            !config.render.dxgi.allow_tearing &&
+            latency_avg.getInput () > -0.1    &&
+            latency_avg.getInput () <= 0.0;
+
+          switch (config.render.framerate.latent_sync.tearing_mode)
+          {
+            // Prefer tearing, only disable tearing if FPS is unstable
+            case SK::LatentSync::TearingMode::AdaptiveOn:
+            {
+              if (latency_avg.getInput () < 0.0 && !bInputStuckAtZero)
+              {
+                config.render.dxgi.allow_tearing = false;
+              }
+
+              else
+              {
+                config.render.dxgi.allow_tearing = true;
+              }
+            } break;
+            // Prefer no tearing, only enable tearing if Render Latency exceeds 1 frame
+            case SK::LatentSync::TearingMode::AdaptiveOff:
+            {
+              // After enabling tearing, disable tearing on next frame
+              // and wait for Render Latency to decrease
+              static bool bDisableTearingAndWait = false;
+
+              static constexpr int _MAX_WAIT_FRAMES = 90;
+
+              static int waitFrames = 0;
+
+              bool bIsComposedPresent =
+                rb.presentation.mode == SK_PresentMode::Composed_Composition_Atlas ||
+                rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI      ||
+                rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI      ||
+                rb.presentation.mode == SK_PresentMode::Composed_Flip;
+
+              if (bInputStuckAtZero)
+              {
+                config.render.dxgi.allow_tearing = true;
+
+                bDisableTearingAndWait = !bIsComposedPresent;
+
+                waitFrames = 0;
+
+                break;
+              }
+
+              bool bRenderLatencyExceedsOneFrame = false;
+
+              if (!SK_RenderBackend_V2::latency.stale)
+              {
+                bRenderLatencyExceedsOneFrame =
+                  SK_RenderBackend_V2::latency.delays.PresentQueue > 1;
+              }
+
+              else if (bIsComposedPresent)
+              {
+                bRenderLatencyExceedsOneFrame = true;
+              }
+
+              else if (rb.presentation.avg_stats.display != 0.0)
+              {
+                bRenderLatencyExceedsOneFrame =
+                  rb.presentation.avg_stats.latency /
+                  rb.presentation.avg_stats.display > 1.9;
+              }
+
+              if (bRenderLatencyExceedsOneFrame)
+              {
+                static bool bWasComposedPresent = bIsComposedPresent;
+
+                if (latency_avg.getInput () < 0.0 || bIsComposedPresent)
+                {
+                  std::exchange (bWasComposedPresent, bIsComposedPresent);
+
+                  config.render.dxgi.allow_tearing = true;
+
+                  bDisableTearingAndWait = false;
+
+                  waitFrames = 0;
+
+                  break;
+                }
+
+                // Wait for Render Latency to decrease after recovering from lost Independent Flip
+                if (std::exchange (bWasComposedPresent, bIsComposedPresent))
+                {
+                  config.render.dxgi.allow_tearing = false;
+
+                  bDisableTearingAndWait = true;
+
+                  waitFrames = 0;
+
+                  break;
+                }
+
+                if (bDisableTearingAndWait)
+                {
+                  config.render.dxgi.allow_tearing = false;
+
+                  if (++waitFrames % _MAX_WAIT_FRAMES != 0)
+                  {
+                    break;
+                  }
+
+                  else
+                  {
+                    bDisableTearingAndWait = false;
+
+                    waitFrames = 0;
+                  }
+                }
+
+                else
+                {
+                  waitFrames = 0;
+                }
+
+                config.render.dxgi.allow_tearing = true;
+
+                bDisableTearingAndWait = true;
+
+                waitFrames = 0;
+              }
+
+              else
+              {
+                config.render.dxgi.allow_tearing = false;
+
+                bDisableTearingAndWait = false;
+
+                waitFrames = 0;
+              }
+            } break;
+            default:
+            {
+            } break;
+          }
         }
 
-        if (latency_avg.getInput () > (auto_bias_target_ms * 1.05f))
+        if (config.render.framerate.latent_sync.auto_bias)
         {
-          delta = (float)effective_frametime () * SK_LatentSyncDeltaMultiplier;
+          float delta = 0.0f;
+
+          float auto_bias_target_ms =
+            config.render.framerate.latent_sync.auto_bias_target.ms;
+
+          float auto_bias_target_percent =
+            config.render.framerate.latent_sync.auto_bias_target.percent;
+
+          if (auto_bias_target_percent > 0.0f)
+          {
+            auto_bias_target_ms = static_cast <float> (
+              (latency_avg.getInput () + latency_avg.getDisplay ()) * (1.0f - auto_bias_target_percent)
+            );
+          }
+
+          if (latency_avg.getInput () > (auto_bias_target_ms * 1.05f))
+          {
+            delta = (float)effective_frametime () * SK_LatentSyncDeltaMultiplier;
+
+            config.render.framerate.latent_sync.delay_bias =
+              SK_LatentSyncAlpha * config.render.framerate.latent_sync.delay_bias + (1.0f - SK_LatentSyncAlpha) * delta;
+          }
+
+          else if (latency_avg.getInput () < (auto_bias_target_ms * .95f))
+          {
+            delta = (float)effective_frametime () * SK_LatentSyncDeltaMultiplier * SK_LatentSyncBackOffMultiplier;
+
+            config.render.framerate.latent_sync.delay_bias =
+              SK_LatentSyncAlpha * config.render.framerate.latent_sync.delay_bias - (1.0f - SK_LatentSyncAlpha) * delta;
+            //config.render.framerate.latent_sync.delay_bias -= static_cast <float> (effective_frametime () * 0.000666);
+          }
 
           config.render.framerate.latent_sync.delay_bias =
-            SK_LatentSyncAlpha * config.render.framerate.latent_sync.delay_bias + (1.0f - SK_LatentSyncAlpha) * delta;
+            std::clamp (config.render.framerate.latent_sync.delay_bias, 0.0f, config.render.framerate.latent_sync.max_auto_bias);
+
+          __SK_LatentSyncPostDelay =
+            (config.render.framerate.latent_sync.delay_bias == 0.0f) ? 0
+                                                                     :
+            static_cast <LONGLONG> (
+              static_cast <double> (get_ticks_per_frame ()) *
+                           config.render.framerate.latent_sync.delay_bias );
         }
-
-        else if (latency_avg.getInput () < (auto_bias_target_ms * .95f))
-        {
-          delta = (float)effective_frametime () * SK_LatentSyncDeltaMultiplier * SK_LatentSyncBackOffMultiplier;
-
-          config.render.framerate.latent_sync.delay_bias =
-            SK_LatentSyncAlpha * config.render.framerate.latent_sync.delay_bias - (1.0f - SK_LatentSyncAlpha) * delta;
-          //config.render.framerate.latent_sync.delay_bias -= static_cast <float> (effective_frametime () * 0.000666);
-        }
-
-        config.render.framerate.latent_sync.delay_bias =
-          std::clamp (config.render.framerate.latent_sync.delay_bias, 0.0f, config.render.framerate.latent_sync.max_auto_bias);
-
-        __SK_LatentSyncPostDelay =
-          (config.render.framerate.latent_sync.delay_bias == 0.0f) ? 0
-                                                                   :
-          static_cast <LONGLONG> (
-            static_cast <double> (get_ticks_per_frame ()) *
-                         config.render.framerate.latent_sync.delay_bias );
       }
 
       __SK_LatentSyncFrame++;

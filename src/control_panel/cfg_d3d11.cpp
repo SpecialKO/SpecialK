@@ -928,9 +928,18 @@ SK::ControlPanel::D3D11::Draw (void)
         if (SK_DXGI_SupportsTearing ())
         {
           bool tearing_pref = config.render.dxgi.allow_tearing;
+
           if (ImGui::Checkbox ("Enable Tearing", &tearing_pref))
           {
             config.render.dxgi.allow_tearing = tearing_pref;
+
+            // Latent Sync
+            if (config.render.framerate.present_interval == 0 && config.render.framerate.target_fps > 0.0f)
+            {
+              config.render.framerate.latent_sync.tearing_mode =
+                config.render.dxgi.allow_tearing ? SK::LatentSync::TearingMode::AlwaysOn
+                                                 : SK::LatentSync::TearingMode::AlwaysOff;
+            }
 
             _ResetLimiter ();
           }

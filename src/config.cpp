@@ -840,6 +840,7 @@ struct {
       sk::ParameterBool*    auto_bias             = nullptr;
       sk::ParameterFloat*   max_auto_bias         = nullptr;
       sk::ParameterStringW* auto_bias_target      = nullptr;
+      sk::ParameterInt*     tearing_mode          = nullptr;
     } latent_sync;
   } framerate;
 
@@ -1742,6 +1743,8 @@ auto DeclKeybind =
                                        auto_bias_target, L"Target input latency (in milliseconds or %) for auto-bias", dll_ini,         L"FrameRate.LatentSync",  L"AutoBiasTarget"),
     ConfigEntry (render.framerate.latent_sync.
                                           max_auto_bias, L"Maximum percentage to bias towards low input latency",      dll_ini,         L"FrameRate.LatentSync",  L"MaxAutoBias"),
+    ConfigEntry (render.framerate.latent_sync.
+                                           tearing_mode, L"Tearing mode: Always On/Off, Adaptive (Prefer On/Off)",     dll_ini,         L"FrameRate.LatentSync",  L"TearingMode"),
 
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
     ConfigEntry (render.framerate.drop_late_frames,      L"Enable Flip Model to Render (and drop) frames at rates >"
@@ -3704,10 +3707,9 @@ auto DeclKeybind =
 
       if (denominator != 0)
       {
-        config.render.framerate.target_fps =
-          static_cast <float> (
-            (rb.windows.device.getDevCaps ().res.refresh * numerator) / denominator
-          );
+        config.render.framerate.target_fps = static_cast <float> (
+          (rb.windows.device.getDevCaps ().res.refresh * numerator) / denominator
+        );
       }
     }
 
@@ -3729,10 +3731,9 @@ auto DeclKeybind =
 
       if (denominator != 0)
       {
-        config.render.framerate.target_fps_bg =
-          static_cast <float> (
-            (rb.windows.device.getDevCaps ().res.refresh * numerator) / denominator
-          );
+        config.render.framerate.target_fps_bg = static_cast <float> (
+          (rb.windows.device.getDevCaps ().res.refresh * numerator) / denominator
+        );
       }
     }
 
@@ -3783,6 +3784,8 @@ auto DeclKeybind =
       swscanf (auto_bias_target.c_str (), L"%f", &config.render.framerate.latent_sync.auto_bias_target.ms);
     }
   }
+
+  render.framerate.latent_sync.tearing_mode->load (config.render.framerate.latent_sync.tearing_mode);
 
   render.osd.draw_in_vidcap->load            (config.render.osd. draw_in_vidcap);
 
@@ -5831,13 +5834,15 @@ SK_SaveConfig ( std::wstring name,
 
     else
     {
-        wchar_t wszPercent [16] = { };
+      wchar_t   wszPercent [16] = { };
       swprintf (wszPercent, L"%08.6f", 100.0f * config.render.framerate.latent_sync.auto_bias_target.percent);
 
       SK_RemoveTrailingDecimalZeros                        (wszPercent);
       lstrcatW                                             (wszPercent, L"%");
       render.framerate.latent_sync.auto_bias_target->store (wszPercent);
     }
+
+    render.framerate.latent_sync.tearing_mode->store (config.render.framerate.latent_sync.tearing_mode);
 
     texture.d3d9.clamp_lod_bias->store            (config.textures.clamp_lod_bias);
 
