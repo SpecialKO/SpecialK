@@ -5445,15 +5445,12 @@ SK_ImGui_ControlPanel (void)
               std::min (static_cast <int> (dFractList.size ()),
                                            iFractSel);
 
+            extern int  __SK_LatentSyncSkip;
+            extern bool   SK_LatentSync_WorksAboveRefresh (SK_RenderAPI api);
 
-            extern int __SK_LatentSyncSkip;
+            static bool bWorksAboveRefresh = SK_LatentSync_WorksAboveRefresh (rb.api);
 
-            int maxLatentSyncSkip = 0;/*(
-              SK_API_IsLayeredOnD3D11 (rb.api) ||
-              SK_API_IsDirect3D9      (rb.api) ||
-              rb.api == SK_RenderAPI::D3D10    ||
-              rb.api == SK_RenderAPI::OpenGL
-            ) ? 4 : 0;*/
+            int maxLatentSyncSkip = bWorksAboveRefresh ? 4 : 0;
 
             bool bLatentSync =
               config.render.framerate.present_interval == 0 &&

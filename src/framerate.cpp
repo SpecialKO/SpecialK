@@ -273,6 +273,16 @@ void SK_LatentSync_EndSwap (void) noexcept
                  sampled_swaps;
 }
 
+bool SK_LatentSync_WorksAboveRefresh (SK_RenderAPI api)
+{
+  // TODO: Remove ternary operator to enable 2-4x modes
+  return SK_API_IsLayeredOnD3D11 (api) ||
+         SK_API_IsDirect3D9      (api) ||
+         api == SK_RenderAPI::OpenGL   ||
+         api == SK_RenderAPI::D3D10     ? false
+                                        : false;
+}
+
 
 struct scanline_target_s {
   LARGE_INTEGER qpc_t0 = { 0L, 0UL };
@@ -1900,11 +1910,18 @@ SK::Framerate::Limiter::wait (void)
 
     if (config.render.framerate.present_interval == 0 && ticks_per_scanline > 1)
     {
-      __SK_LatentSyncSkip =
-        static_cast <int> (fps / rb.getActiveRefreshRate ());
+      __SK_LatentSyncSkip = static_cast <int> (
+        std::round (
+          fps / rb.getActiveRefreshRate ()
+        )
+      );
 
-      //if (__SK_LatentSyncSkip == 1)
-          __SK_LatentSyncSkip  = 0;
+      static bool bWorksAboveRefresh = SK_LatentSync_WorksAboveRefresh (rb.api);
+
+      if (!bWorksAboveRefresh || __SK_LatentSyncSkip < 2)
+      {
+        __SK_LatentSyncSkip = 0;
+      }
 
       bool bAdaptiveTearing =
         config.render.framerate.latent_sync.tearing_mode == SK::LatentSync::TearingMode::AdaptiveOff ||
