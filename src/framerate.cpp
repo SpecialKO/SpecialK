@@ -437,7 +437,6 @@ SK_ImGui_LatentSyncConfig (void)
         //ImGui::EndGroup        (  );
         ImGui::TextUnformatted ("");
         ImGui::TextUnformatted ("Increasing input bias will reduce input latency, but gives the CPU / GPU less time to complete each frame");
-        ImGui::TextUnformatted ("Frames that do not complete in time will either tear (Adaptive Sync) or temporarily cut framerate in half");
         ImGui::TextUnformatted ("");
         ImGui::TextUnformatted ("NOTE:\tEven at '*No Input,\tAll Display', Latent Sync eliminates normal VSYNC latency");
         ImGui::EndTooltip      (  );
