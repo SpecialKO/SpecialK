@@ -1827,6 +1827,11 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
     }
 
 
+    if (! config.render.framerate.frame_start_to_start)
+    {
+      SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
+    }
+
     SK_BeginBufferSwap ();
 
 
@@ -1859,8 +1864,8 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
     SK_D3D9_ProcessScreenshotQueue (SK_ScreenshotStage::EndOfFrame);
 
     SK_D3D9_EndFrame ();
-      
-      
+
+
     if (config.render.framerate.frame_start_to_start)
     {
       SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);

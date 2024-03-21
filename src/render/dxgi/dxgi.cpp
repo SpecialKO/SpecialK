@@ -2979,6 +2979,12 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       }
     }
 
+    // Measure frametime before Present is issued
+    if (! config.render.framerate.frame_start_to_start)
+    {
+      SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
+    }
+
     HRESULT hr =
       _SkipThisFrame ? _Present ( rb.d3d11.immediate_ctx != nullptr ?
                                                                   0 : 1,
@@ -3043,7 +3049,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
       rb.setLatencyMarkerNV (SIMULATION_START);
 
-      // Measure frametime after Present returns
+      // Measure frametime after Present returns, and after any additional code SK runs after Present finishes
       if (config.render.framerate.frame_start_to_start)
       {
         SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);

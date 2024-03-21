@@ -1,4 +1,15 @@
-﻿24.3.19
+﻿24.3.21
+=======
+ + Fixed implicit frametime sample collection done in framerate limiter wait
+     function when start-to-start mode is turned off.
+
+    >> Sampling is always done in the Present hook now, either before the
+         real Present function is called, or before the hook returns.
+
+    * VRR optimized mode is applied post-present and thus would sample from the
+        same side of the Present call whether start-to-start was enabled or not
+
+24.3.19
 =======
  + Apply fake HID device removal + arrival compat hack only to SDL games
  + Reduce the VRR refresh rate update frequency to make it easier to read
