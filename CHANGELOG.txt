@@ -1,5 +1,7 @@
 ﻿24.3.22
 =======
+ + Merge pull request #153 from Nustat0:fix-empty-api-name
+    * Update Active API if its name is empty
  + Integrated Ersh's Horizon Forbidden West HDR fix and updated it for
      Steam -and- Epic versions of the game.
 
