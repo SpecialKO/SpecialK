@@ -2525,9 +2525,17 @@ SK::Framerate::Tick ( bool          wait,
   if (wait)
     pLimiter->wait ();
 
-  std::ignore = dt;
-  std::ignore = now;
-  std::ignore = swapchain;
+  if (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && __target_fps > 0.0f)
+  {
+    SK::Framerate::TickEx (false, dt, now, swapchain);
+  }
+
+  else
+  {
+    std::ignore = dt;
+    std::ignore = now;
+    std::ignore = swapchain;
+  }
 };
 
 

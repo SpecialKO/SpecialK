@@ -5212,6 +5212,7 @@ SK_ImGui_ControlPanel (void)
         bool limit = (__target_fps > 0.0f);
 
         ImGui::BeginGroup ();
+        ImGui::BeginGroup ();
 
         if (ImGui::Checkbox ("Framerate Limit", &limit))
         {
@@ -5689,45 +5690,168 @@ SK_ImGui_ControlPanel (void)
             );
           }
         }
+        ImGui::EndGroup ();
+
+        if (advanced)
+        {
+          ImGui::BeginGroup      ();
+          ImGui::Spacing         ();
+          ImGui::TextUnformatted ("Frametime Method");
+          ImGui::EndGroup        ();
+          ImGui::SameLine        ();
+          bool method_changed =
+            ImGui::Combo ( "###Frametime_Method", &config.fps.timing_method,
+                           "Frame Pace\t(Limiter Delay-to-Limiter Delay)\0"
+                           "Frame Submit (Present-to-Present)\0"
+                           "Frame Start\t(Frame Begin-to-Frame Begin)\0\0" );
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip    ();
+            ImGui::TextUnformatted ("Timing Method Used to Measure the Interval Between Two Frames.");
+            ImGui::Separator       ();
+            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+            ImGui::TextUnformatted ("Frame Start  (Latency-Focused)");
+            ImGui::PopStyleColor   ();
+            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+            ImGui::BeginGroup      ();
+            ImGui::BulletText      ("What: ");
+            ImGui::BulletText      ("When: ");
+            ImGui::BulletText      ("Why: ");
+            ImGui::EndGroup        ();
+            ImGui::SameLine        ();
+            ImGui::PopStyleColor   ();
+            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
+            ImGui::BeginGroup      ();
+            ImGui::TextUnformatted ("Earliest possible time a game can start its next frame.");
+            ImGui::TextUnformatted ("After SK's hook on Present returns control to the game.");
+            ImGui::TextUnformatted ("Measures frametime consistency from the perspective of the game engine.");
+            ImGui::EndGroup        ();
+
+#if 0
+            // CPU=Done,
+            // GPU=Started (possibly finished),
+            // Display=May have started scanning the frame submitted immediately before this
+
+            ImGui::Spacing         ();
+
+            ImGui::TreePush        ("");
+            ImGui::BeginGroup      ();
+            ImGui::TextUnformatted ("SwapChain Activity: ");
+            ImGui::TextUnformatted ("Third-Party Overlays: ");
+            ImGui::TextUnformatted ("Third-Party Limiters (Smooth): ");
+            ImGui::EndGroup        ();
+            ImGui::SameLine        ();
+            ImGui::BeginGroup      ();
+            ImGui::TextUnformatted ("Flip Enqueued; Wait-Sync: GPU Completion + Display Scanout Begin (if VSYNC)");
+            ImGui::TextUnformatted ("Finished Drawing");
+            ImGui::TextUnformatted ("Just Finished / Will Start Immediately");
+            ImGui::EndGroup        ();
+            ImGui::TreePop         ();
+#endif
+
+            ImGui::PopStyleColor   ();
+            ImGui::Spacing         ();
+            ImGui::Spacing         ();
+
+            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+            ImGui::TextUnformatted ("Frame Submit  (Smoothness-Focused)");
+            ImGui::PopStyleColor   ();
+            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+            ImGui::BeginGroup      ();
+            ImGui::BulletText      ("What: ");
+            ImGui::BulletText      ("When: ");
+            ImGui::BulletText      ("Why: ");
+            ImGui::EndGroup        ();
+            ImGui::SameLine        ();
+            ImGui::PopStyleColor   ();
+            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
+            ImGui::BeginGroup      ();
+            ImGui::TextUnformatted ("Earliest possible submission time for a finished (CPU-side) frame.");
+            ImGui::TextUnformatted ("When SK's Present hook is called; before submission to flip queue.");
+            ImGui::TextUnformatted ("Measures frametime consistency from the perspective of display-out.");
+            ImGui::EndGroup        ();
+
+            // CPU=Finishing,
+            // GPU=Started (any work not-yet-submitted was added by overlays),
+            // Display=Scanning previous frame
+
+#if 0
+            ImGui::Spacing         ();
+
+            ImGui::TreePush        ("");
+            ImGui::BeginGroup      ();
+            ImGui::TextUnformatted ("SwapChain Activity: ");
+            ImGui::TextUnformatted ("Third-Party Overlays: ");
+            ImGui::TextUnformatted ("Third-Party Limiters (Low-Latency): ");
+            ImGui::EndGroup        ();
+            ImGui::SameLine        ();
+            ImGui::BeginGroup      ();
+            ImGui::TextUnformatted ("Flip Queue Unchanged; Wait-Sync: CPU (Third-Party Overlays) and GPU Completion");
+            ImGui::TextUnformatted ("Have Drawn or are Starting to Draw");
+            ImGui::TextUnformatted ("Just Finished / Will Start Immediately");
+            ImGui::EndGroup        ();
+            ImGui::TreePop         ();
+            ImGui::BulletText      ("Work: Buffer Flip: not enqueued, 3rd-party overlays: Drawing, 3rd-party limiters: Have run if they favor smoothness");
+
+            // CPU=Finished or Finishing,
+            // GPU=Started or Possibly Finished,
+            // Display=Scanning previous frame
+#endif
+            ImGui::PopStyleColor   ();
+            ImGui::Spacing         ();
+            ImGui::Spacing         ();
+            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
+            ImGui::TextUnformatted ("Frame Pace  (Limiter-Focused)");
+            ImGui::PopStyleColor   ();
+            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+            ImGui::BeginGroup      ();
+            ImGui::BulletText      ("What: ");
+            ImGui::BulletText      ("When: ");
+            ImGui::BulletText      ("Why: ");
+            ImGui::EndGroup        ();
+            ImGui::SameLine        ();
+            ImGui::PopStyleColor   ();
+            ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
+            ImGui::BeginGroup      ();
+            ImGui::TextUnformatted ("Earliest possible frame begin/end per-configured framerate limit.");
+            ImGui::TextUnformatted ("SK's Framerate Limiter has finished delaying a frame's begin/end.");
+            ImGui::TextUnformatted ("Measures SK's frame pacing efficacy for the active limit settings.");
+            ImGui::EndGroup        ();
+
+#if 0
+            ImGui::Spacing         ();
+            ImGui::TreePush        ("");
+            ImGui::BeginGroup      ();
+            ImGui::TextUnformatted ("Normal Pacing: ");
+            ImGui::TextUnformatted ("VRR Pacing: ");
+            ImGui::TextUnformatted ("Latent Sync: ");
+            ImGui::EndGroup        ();
+            ImGui::SameLine        ();
+            ImGui::BeginGroup      ();
+            ImGui::TextUnformatted ("Equivalent to Frame Submit");
+            ImGui::TextUnformatted ("Equivalent to Frame Start");
+            ImGui::TextUnformatted ("Hybrid of Frame Submit and Frame Start");
+            ImGui::EndGroup        ();
+            ImGui::TreePop         ();
+#endif
+            ImGui::EndTooltip      ();
+          }
+
+          if (method_changed)
+          {
+            config.utility.save_async ();
+          }
+        }
 
         ImGui::EndGroup ();
         ImGui::SameLine ();
-
-        ImVec2 vPos =
-          ImGui::GetCursorPos ();
 
         advanced =
           ImGui::TreeNode ("Advanced ###Advanced_FPS");
 
         if (advanced)
         {
-          ImVec2 vPos2 =
-            ImGui::GetCursorPos ();
-
-          float yOff = ImGui::GetFontSize () + ImGui::GetStyle ().FramePadding.y * 2.0f +
-                                               ImGui::GetStyle ().ItemSpacing .y;
-
-          float yPos =
-            limit ? vPos.y + yOff // Extra spacing if the framerate limiter is turned off...
-                  : vPos.y + yOff * 2.0f + ImGui::GetStyle ().ItemSpacing.y;
-
-          ImGui::SetCursorPos (ImVec2 (vPos.x, yPos));
-
-          if (ImGui::Checkbox (limit ? "Start-to-Start" :
-                               "Measure Start-to-Start Frametime", &config.render.framerate.frame_start_to_start))
-          {
-            config.utility.save_async ();
-          }
-
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::BeginTooltip    ();
-            ImGui::TextUnformatted ("Alternate frametime measure consistent with new PresentMon / RTSS methodology");
-            ImGui::EndTooltip      ();
-          }
-
-          ImGui::SetCursorPos (vPos2);
-
           ImGui::TreePop    ();
           ImGui::Separator  ();
           if (__target_fps > 0.0f)

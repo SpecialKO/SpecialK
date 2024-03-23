@@ -1,4 +1,15 @@
-﻿24.3.22
+﻿24.3.23
+=======
+ + Replaced "Start-to-Start" frametime mode with a frametime method setting
+ + Frametime measurement method is now a global setting
+ + Added "Frame Pace" to frametime measurement method and made it the default,
+     to use SK's framerate limiter delay point as the frame interval timing
+       point.
+ + When "Frame Pace" is selected, but the limiter is not enabled, frametime
+     measurement will implicitly use "Start-to-Start" now.
+ + Moved the Frametime Method setting underneath framerate limit in Advanced.
+
+24.3.22
 =======
  + Merge pull request #153 from Nustat0:fix-empty-api-name
     * Update Active API if its name is empty

@@ -2980,7 +2980,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     }
 
     // Measure frametime before Present is issued
-    if (! config.render.framerate.frame_start_to_start)
+    if (config.fps.timing_method == SK_FrametimeMeasures_PresentSubmit)
     {
       SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
     }
@@ -3050,7 +3050,9 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       rb.setLatencyMarkerNV (SIMULATION_START);
 
       // Measure frametime after Present returns, and after any additional code SK runs after Present finishes
-      if (config.render.framerate.frame_start_to_start)
+      extern float                                                          __target_fps;
+      if (config.fps.timing_method == SK_FrametimeMeasures_NewFrameBegin ||
+         (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && __target_fps <= 0.0f))
       {
         SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
       }
