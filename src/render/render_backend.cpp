@@ -1558,7 +1558,7 @@ SK_RenderBackend_V2::updateActiveAPI (SK_RenderAPI _api)
   static SK_RenderAPI LastKnownAPI =
          SK_RenderAPI::Reserved;
 
-  if (_api != SK_RenderAPI::Reserved)
+  if (_api != SK_RenderAPI::Reserved && wcslen (name))
   {
     LastKnownAPI = _api;
                  return;
