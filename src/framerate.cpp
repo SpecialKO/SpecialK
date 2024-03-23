@@ -579,12 +579,12 @@ SK_ImGui_LatentSyncConfig (void)
       {
         switch (config.render.framerate.latent_sync.tearing_mode)
         {
-          case SK::LatentSync::TearingMode::AlwaysOn:
-          case SK::LatentSync::TearingMode::AdaptiveOn:
+          case SK_LatentSync_TearingMode_AlwaysOn:
+          case SK_LatentSync_TearingMode_AdaptiveOn:
             config.render.dxgi.allow_tearing = true;
             break;
-          case SK::LatentSync::TearingMode::AlwaysOff:
-          case SK::LatentSync::TearingMode::AdaptiveOff:
+          case SK_LatentSync_TearingMode_AlwaysOff:
+          case SK_LatentSync_TearingMode_AdaptiveOff:
             config.render.dxgi.allow_tearing = false;
             break;
           default:
@@ -607,8 +607,8 @@ SK_ImGui_LatentSyncConfig (void)
         ImGui::EndTooltip   ();
       }
 
-      if ( config.render.framerate.latent_sync.tearing_mode == SK::LatentSync::TearingMode::AdaptiveOn ||
-           config.render.framerate.latent_sync.tearing_mode == SK::LatentSync::TearingMode::AlwaysOn   )
+      if ( config.render.framerate.latent_sync.tearing_mode == SK_LatentSync_TearingMode_AdaptiveOn ||
+           config.render.framerate.latent_sync.tearing_mode == SK_LatentSync_TearingMode_AlwaysOn   )
       {
         ImGui::Checkbox ("Visualize Tearlines", &config.render.framerate.latent_sync.show_fcat_bars);
 
@@ -1916,8 +1916,8 @@ SK::Framerate::Limiter::wait (void)
       }
 
       bool bAdaptiveTearing =
-        config.render.framerate.latent_sync.tearing_mode == SK::LatentSync::TearingMode::AdaptiveOff ||
-        config.render.framerate.latent_sync.tearing_mode == SK::LatentSync::TearingMode::AdaptiveOn;
+        config.render.framerate.latent_sync.tearing_mode == SK_LatentSync_TearingMode_AdaptiveOff ||
+        config.render.framerate.latent_sync.tearing_mode == SK_LatentSync_TearingMode_AdaptiveOn;
 
       if (__scanline.lock.isPending ())
       {
@@ -2020,7 +2020,7 @@ SK::Framerate::Limiter::wait (void)
           switch (config.render.framerate.latent_sync.tearing_mode)
           {
             // Prefer tearing, only disable tearing if FPS is unstable
-            case SK::LatentSync::TearingMode::AdaptiveOn:
+            case SK_LatentSync_TearingMode_AdaptiveOn:
             {
               if (latency_avg.getInput () < 0.0 && !bInputStuckAtZero)
               {
@@ -2033,7 +2033,7 @@ SK::Framerate::Limiter::wait (void)
               }
             } break;
             // Prefer no tearing, only enable tearing if Render Latency exceeds 1 frame
-            case SK::LatentSync::TearingMode::AdaptiveOff:
+            case SK_LatentSync_TearingMode_AdaptiveOff:
             {
               // After enabling tearing, disable tearing on next frame
               // and wait for Render Latency to decrease
@@ -2087,23 +2087,21 @@ SK::Framerate::Limiter::wait (void)
               {
                 static bool bWasComposedPresent = bIsComposedPresent;
 
-                if (latency_avg.getInput () < 0.0 || bIsComposedPresent)
-                {
-                  std::exchange (bWasComposedPresent, bIsComposedPresent);
-
-                  config.render.dxgi.allow_tearing = true;
-
-                  bDisableTearingAndWait = false;
-
-                  break;
-                }
-
                 // Wait for Render Latency to decrease after recovering from lost Independent Flip
-                if (std::exchange (bWasComposedPresent, bIsComposedPresent))
+                if (std::exchange (bWasComposedPresent, bIsComposedPresent) && !bIsComposedPresent)
                 {
                   config.render.dxgi.allow_tearing = false;
 
                   bDisableTearingAndWait = true;
+
+                  break;
+                }
+
+                if (latency_avg.getInput () < 0.0 || bIsComposedPresent)
+                {
+                  config.render.dxgi.allow_tearing = true;
+
+                  bDisableTearingAndWait = false;
 
                   break;
                 }

@@ -3933,18 +3933,18 @@ auto DeclKeybind =
     {
       switch (config.render.framerate.latent_sync.tearing_mode)
       {
-        case SK::LatentSync::TearingMode::AdaptiveOn:
-        case SK::LatentSync::TearingMode::AdaptiveOff:
+        case SK_LatentSync_TearingMode_AdaptiveOn:
+        case SK_LatentSync_TearingMode_AdaptiveOff:
           break;
-        case SK::LatentSync::TearingMode::AlwaysOn:
+        case SK_LatentSync_TearingMode_AlwaysOn:
           config.render.dxgi.allow_tearing = true;
           break;
-        case SK::LatentSync::TearingMode::AlwaysOff:
+        case SK_LatentSync_TearingMode_AlwaysOff:
           config.render.dxgi.allow_tearing = false;
           break;
         default:
           config.render.framerate.latent_sync.tearing_mode =
-             SK::LatentSync::TearingMode::AlwaysOn;
+            SK_LatentSync_TearingMode_AlwaysOn;
           config.render.dxgi.allow_tearing = true;
           break;
       }
