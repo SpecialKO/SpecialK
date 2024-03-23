@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1799,7 +1799,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         {
                           XMVECTOR value = inPixels [j];
 
-                          outPixels [j] = XMVector3Transform (PQToLinear (value), c_from2020to709);;
+                          outPixels [j] = XMVector3Transform (PQToLinear (value), c_from2020to709);
                           outPixels [j].m128_f32 [3] = 1.0f;
                         }
                       }, un_hdr10    )
@@ -1829,10 +1829,10 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   { 0.0,                0.0,                0.0,                1.0 }
                 };
 
-                if ( un_srgb.GetImageCount () == 1 &&
-                     hdr                      && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT &&
-                     rb.scanout.getEOTF    () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
-                { // ^^^ EOTF is not always accurate, but we know SMPTE 2084 is not used w/ FP16 color
+                //if ( un_srgb.GetImageCount () == 1 &&
+                //     hdr                      && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT &&
+                //     rb.scanout.getEOTF    () == SK_RenderBackend::scan_out_s::SMPTE_2084 )
+                //{ // ^^^ EOTF is not always accurate, but we know SMPTE 2084 is not used w/ FP16 color
                   TransformImage ( un_srgb.GetImages     (),
                                    un_srgb.GetImageCount (),
                                    un_srgb.GetMetadata   (),
@@ -1842,14 +1842,14 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     
                       for (size_t j = 0; j < width; ++j)
                       {
-                        XMVECTOR value = inPixels [j];
-                        outPixels [j]  = XMVector3Transform (value, c_from2020to709);
+                                                      //XMVECTOR value = inPixels [j];
+                        outPixels [j]  = inPixels [j];//XMVector3Transform (value, c_from2020to709);
                       }
                     }, un_scrgb
                   );
-
+                
                   std::swap (un_scrgb, un_srgb);
-                }
+                //}
 
                 if ( un_srgb.GetImageCount () == 1 &&
                      hdr )
@@ -2382,12 +2382,14 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                               for (size_t j = 0; j < width; ++j)
                               {
                                 outPixels [j] =
-                                  PQToLinear (
-                                    XMVectorClamp (
-                                      XMVector3Transform (inPixels [j], c_from2020to709),
+                                  XMVector3Transform (
+                                    PQToLinear (
+                                      XMVectorClamp (
+                                        inPixels [j],
                                         g_XMZero,
                                         g_XMOne )
-                                    );
+                                    ),  c_from2020to709
+                                  );
                                 outPixels [j].m128_f32 [3] = 1.0f;
                               }
                             }, un_hdr10    )

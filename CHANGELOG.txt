@@ -1,4 +1,18 @@
-﻿24.3.23.2
+﻿24.3.23.3
+=========
+ + Fixed HDR10 HDR->SDR screenshot tonemapping applying Rec2020 twice in D3D12
+ + Corrected hue shift on colors wider than Rec 709 when saving scRGB AVIF
+     screenshots
+
+    * Microsoft Edge now supports AVIF, and Windows can properly decode 4:2:2
+        and 4:4:4 encoded screenshots w/ appropriate updates to AVIF codec.
+
+        Tooltip left unchanged because it is unlikely most users have received
+          the necessary update to handle 10- and 12-bit 4:2:2 / 4:4:4 content.
+
+      -- Eventually, those will be portable high-quality encodings :)
+
+24.3.23.2
 =========
  + Load Horizon Forbidden West HDR Fix earlier to workaround Steam DRM
  + Corrected internal DLSS resolution reporting in Nixxes games
