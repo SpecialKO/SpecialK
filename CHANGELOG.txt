@@ -1,6 +1,7 @@
 ﻿24.3.23.2
 =========
  + Load Horizon Forbidden West HDR Fix earlier to workaround Steam DRM
+ + Corrected internal DLSS resolution reporting in Nixxes games
 
 24.3.23.1
 =========

@@ -807,7 +807,19 @@ SK_NGX_DLSS_ControlPanel (void)
         ID3D11Resource                           *pD3D11Resource = nullptr;
         params->Get (NVSDK_NGX_Parameter_Color, &pD3D11Resource);
 
-        SK_SEH_NGX_GetInternalResolutionFromDLSS (pD3D12Resource, pD3D11Resource, width, height);
+        NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_DLSS_Render_Subrect_Dimensions_Width,  &width);
+        NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_DLSS_Render_Subrect_Dimensions_Height, &height);
+
+        if (width == 0 || height == 0)
+        {
+          unsigned int res_width;
+          unsigned int res_height;
+
+          SK_SEH_NGX_GetInternalResolutionFromDLSS (pD3D12Resource, pD3D11Resource, res_width, res_height);
+
+          if (width  == 0) width  = res_width;
+          if (height == 0) height = res_height;
+        }
 
         unsigned int perf_quality = NVSDK_NGX_PerfQuality_Value_MaxPerf;
 
