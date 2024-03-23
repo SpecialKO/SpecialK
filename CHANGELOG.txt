@@ -1,4 +1,9 @@
-﻿24.3.21
+﻿24.3.22
+=======
+ + Integrated Ersh's Horizon Forbidden West HDR fix and updated it for
+     Steam -and- Epic versions of the game.
+
+24.3.21
 =======
  + Fixed implicit frametime sample collection done in framerate limiter wait
      function when start-to-start mode is turned off.

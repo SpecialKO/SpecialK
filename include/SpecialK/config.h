@@ -1489,6 +1489,7 @@ enum class SK_GAME_ID
   Persona4,                     // P4G.exe
   Persona5,                     // P5R.exe
   HorizonZeroDawn,              // HorizonZeroDawn.exe
+  HorizonForbiddenWest,         // HorizonForbiddenWest.exe
   BaldursGate3,                 // bg3_dx11.exe
   BaldursGate3_Vulkan,          // bg3.exe
   AssassinsCreed_Valhalla,      // ACValhalla.exe / ACValhalla_Plus.exe

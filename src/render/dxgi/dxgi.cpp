@@ -1661,7 +1661,7 @@ SK_D3D11_InsertBlackFrame (void)
       SK_ComQIPtr <ID3D11DeviceContext1> pDevCtx1 (rb.d3d11.immediate_ctx);
 
       static constexpr FLOAT
-        fClearColor [] = { 0.05f, 0.0f, 0.0f, 1.0f };
+        fClearColor [] = { 0.00f, 0.0f, 0.0f, 1.0f };
 
       SK_ComPtr <ID3D11DepthStencilView> pOrigDSV;
       SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];

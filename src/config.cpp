@@ -196,6 +196,7 @@ SK_GetCurrentGameID (void)
           { L"P4G.exe",                                SK_GAME_ID::Persona4                     },
           { L"P5R.exe",                                SK_GAME_ID::Persona5                     },
           { L"HorizonZeroDawn.exe",                    SK_GAME_ID::HorizonZeroDawn              },
+          { L"HorizonForbiddenWest.exe",               SK_GAME_ID::HorizonForbiddenWest         },
           { L"bg3.exe",                                SK_GAME_ID::BaldursGate3                 },
           { L"bg3_dx11.exe",                           SK_GAME_ID::BaldursGate3                 },
           { L"Atelier_Ryza_2.exe",                     SK_GAME_ID::AtelierRyza2                 },
@@ -2869,6 +2870,74 @@ auto DeclKeybind =
         config.input.mouse.ignore_small_clips     = false;
         config.compatibility.impersonate_debugger = false;
         break;
+
+      case SK_GAME_ID::HorizonForbiddenWest:
+      {
+        bool bSteam = false,
+             bEpic  = false;
+
+        void* hdr_const_addr =
+          (void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0xD2A598);
+
+        DWORD dwOrigProt           =           PAGE_EXECUTE_READ;
+        if (VirtualProtect (hdr_const_addr, 8, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+        {
+          uint64_t                     test_val = 0xF6E0E80511FAC5;
+          if (memcmp (hdr_const_addr, &test_val, 8))
+          {
+            hdr_const_addr = nullptr;
+
+            VirtualProtect (hdr_const_addr, 8, dwOrigProt, &dwOrigProt);
+          }
+
+          else
+          {
+            bSteam = true;
+          }
+        }
+
+        if (hdr_const_addr == nullptr)
+        {
+          dwOrigProt              =              PAGE_EXECUTE_READ;
+          if (VirtualProtect (hdr_const_addr, 8, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+          {
+            hdr_const_addr =
+              (void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0xD23938);
+
+            uint64_t                     test_val = 0xF50C180511FAC5;
+            if (memcmp (hdr_const_addr, &test_val, 8))
+            {
+              hdr_const_addr = nullptr;
+
+              VirtualProtect (hdr_const_addr, 8, dwOrigProt, &dwOrigProt);
+            }
+
+            else
+            {
+              bEpic = true;
+            }
+          }
+        }
+
+        if (hdr_const_addr != nullptr)
+        {
+          uint8_t                  data [] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
+          memcpy (hdr_const_addr, &data, 8);
+
+          VirtualProtect (hdr_const_addr, 8, dwOrigProt, &dwOrigProt);
+
+          SK_ImGui_CreateNotification (
+            "HorizonForbiddenWest.HDR", SK_ImGui_Toast::Success,
+            bEpic ? "Successfully Applied HDR Max Luminance Fix -:- (Epic Version)"
+                  : "Successfully Applied HDR Max Luminance Fix -:- (Steam Version)",
+            "Fixed Horizon Forbidden West HDR (Patch Courtesy of Ersh)", 5000UL,
+            SK_ImGui_Toast::UseDuration |
+            SK_ImGui_Toast::ShowCaption |
+            SK_ImGui_Toast::ShowTitle   |
+            SK_ImGui_Toast::DoNotSaveINI
+          );
+        }
+      } break;
 
       case SK_GAME_ID::Yakuza0:
       {
