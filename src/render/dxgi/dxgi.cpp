@@ -1661,7 +1661,7 @@ SK_D3D11_InsertBlackFrame (void)
       SK_ComQIPtr <ID3D11DeviceContext1> pDevCtx1 (rb.d3d11.immediate_ctx);
 
       static constexpr FLOAT
-        fClearColor [] = { 0.05f, 0.0f, 0.0f, 1.0f };
+        fClearColor [] = { 0.00f, 0.0f, 0.0f, 1.0f };
 
       SK_ComPtr <ID3D11DepthStencilView> pOrigDSV;
       SK_ComPtr <ID3D11RenderTargetView> pOrigRTVs [D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT];
@@ -2979,6 +2979,12 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       }
     }
 
+    // Measure frametime before Present is issued
+    if (config.fps.timing_method == SK_FrametimeMeasures_PresentSubmit)
+    {
+      SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
+    }
+
     HRESULT hr =
       _SkipThisFrame ? _Present ( rb.d3d11.immediate_ctx != nullptr ?
                                                                   0 : 1,
@@ -3043,8 +3049,10 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
       rb.setLatencyMarkerNV (SIMULATION_START);
 
-      // Measure frametime after Present returns
-      if (config.render.framerate.frame_start_to_start)
+      // Measure frametime after Present returns, and after any additional code SK runs after Present finishes
+      extern float                                                          __target_fps;
+      if (config.fps.timing_method == SK_FrametimeMeasures_NewFrameBegin ||
+         (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && __target_fps <= 0.0f))
       {
         SK::Framerate::TickEx (false, 0.0, { 0,0 }, rb.swapchain.p);
       }

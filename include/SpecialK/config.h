@@ -91,6 +91,12 @@ namespace skif
   };
 }
 
+enum SK_FrametimeMethod
+{
+  SK_FrametimeMeasures_LimiterPacing = 0,
+  SK_FrametimeMeasures_PresentSubmit = 1,
+  SK_FrametimeMeasures_NewFrameBegin = 2
+};
 
 struct sk_config_t
 {
@@ -237,6 +243,7 @@ struct sk_config_t
     bool   frametime      = true;
     bool   framenumber    = false;
     bool   compact_vrr    = false;
+    int    timing_method  = SK_FrametimeMeasures_LimiterPacing;
 
     struct keybinds_s {
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'F', 0 };
@@ -660,7 +667,6 @@ struct sk_config_t
         bool finish_after_present  =  true;
       } latent_sync;
       bool    use_amd_mwaitx       =  true;
-      bool    frame_start_to_start =  true;
     } framerate;
     struct d3d9_s {
       bool    force_d3d9ex         = false;
@@ -1490,6 +1496,7 @@ enum class SK_GAME_ID
   Persona4,                     // P4G.exe
   Persona5,                     // P5R.exe
   HorizonZeroDawn,              // HorizonZeroDawn.exe
+  HorizonForbiddenWest,         // HorizonForbiddenWest.exe
   BaldursGate3,                 // bg3_dx11.exe
   BaldursGate3_Vulkan,          // bg3.exe
   AssassinsCreed_Valhalla,      // ACValhalla.exe / ACValhalla_Plus.exe

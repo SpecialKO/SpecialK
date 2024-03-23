@@ -2751,8 +2751,11 @@ SK::Framerate::Tick ( bool          wait,
   if (wait)
     pLimiter->wait ();
 
-  if (! config.render.framerate.frame_start_to_start)
-    TickEx (wait, dt, now, swapchain);
+  if (config.fps.timing_method == SK_FrametimeMeasures_LimiterPacing && __target_fps > 0.0f)
+  {
+    SK::Framerate::TickEx (false, dt, now, swapchain);
+  }
+
   else
   {
     std::ignore = dt;
