@@ -2048,11 +2048,26 @@ SK::Framerate::Limiter::wait (void)
                 waitFrames = 0;
               }
 
-              bool bIsComposedPresent =
-                rb.presentation.mode == SK_PresentMode::Composed_Composition_Atlas ||
-                rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI      ||
-                rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI      ||
-                rb.presentation.mode == SK_PresentMode::Composed_Flip;
+              static SK_PresentMode lastPresentMode = rb.presentation.mode;
+
+              auto _IsComposedPresent = [](const SK_PresentMode& mode)
+              {
+                return mode == SK_PresentMode::Composed_Composition_Atlas ||
+                       mode == SK_PresentMode::Composed_Copy_GPU_GDI      ||
+                       mode == SK_PresentMode::Composed_Copy_CPU_GDI      ||
+                       mode == SK_PresentMode::Composed_Flip;
+              };
+
+              bool bIsComposedPresent  = _IsComposedPresent (
+                rb.presentation.mode
+              );
+
+              bool bWasComposedPresent = _IsComposedPresent (
+                std::exchange (
+                  lastPresentMode,
+                  rb.presentation.mode
+                )
+              );
 
               if (bInputStuckAtZero)
               {
@@ -2085,23 +2100,21 @@ SK::Framerate::Limiter::wait (void)
 
               if (bRenderLatencyExceedsOneFrame)
               {
-                static bool bWasComposedPresent = bIsComposedPresent;
-
-                // Wait for Render Latency to decrease after recovering from lost Independent Flip
-                if (std::exchange (bWasComposedPresent, bIsComposedPresent) && !bIsComposedPresent)
-                {
-                  config.render.dxgi.allow_tearing = false;
-
-                  bDisableTearingAndWait = true;
-
-                  break;
-                }
-
                 if (latency_avg.getInput () < 0.0 || bIsComposedPresent)
                 {
                   config.render.dxgi.allow_tearing = true;
 
                   bDisableTearingAndWait = false;
+
+                  break;
+                }
+
+                // Wait for Render Latency to decrease after recovering from lost Independent Flip
+                if (bWasComposedPresent && !bIsComposedPresent)
+                {
+                  config.render.dxgi.allow_tearing = false;
+
+                  bDisableTearingAndWait = true;
 
                   break;
                 }
