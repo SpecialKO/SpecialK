@@ -566,24 +566,6 @@ SK_ImGui_LatentSyncConfig (void)
 
       ImGui::Separator ();
 
-      switch (config.render.framerate.latent_sync.tearing_mode)
-      {
-        case SK::LatentSync::TearingMode::AdaptiveOn:
-        case SK::LatentSync::TearingMode::AdaptiveOff:
-          break;
-        case SK::LatentSync::TearingMode::AlwaysOn:
-          config.render.dxgi.allow_tearing = true;
-          break;
-        case SK::LatentSync::TearingMode::AlwaysOff:
-          config.render.dxgi.allow_tearing = false;
-          break;
-        default:
-          config.render.framerate.latent_sync.tearing_mode =
-             SK::LatentSync::TearingMode::AlwaysOn;
-          config.render.dxgi.allow_tearing = true;
-          break;
-      }
-
       if  (
             ImGui::Combo (
               "Tearing Mode",
@@ -2000,57 +1982,40 @@ SK::Framerate::Limiter::wait (void)
 
       else if (config.render.framerate.latent_sync.auto_bias || bAdaptiveTearing)
       {
-        static constexpr int _MAX_FRAMES = 6;
-
-        struct {
-          double input   [_MAX_FRAMES] = { };
-          double display [_MAX_FRAMES] = { };
-
-          int frames = 0;
-
-          double getInput (void) noexcept
-          {
-            double avg     = 0.0,
-                   samples = 0.0;
-
-            for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
-            {
-              ++samples; avg += input [i];
-            }
-
-            return
-              ( avg / samples );
-          }
-
-          double getDisplay (void) noexcept
-          {
-            double avg     = 0.0,
-                   samples = 0.0;
-
-            for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
-            {
-              ++samples; avg += display [i];
-            }
-
-            return
-              ( avg / samples );
-          }
-        } static latency_avg;
-
-        latency_avg.input [latency_avg.frames     % _MAX_FRAMES] =
-          (1000.0 / get_limit           ()) -
-                    effective_frametime ();
-        latency_avg.display [latency_avg.frames++ % _MAX_FRAMES] =
-                    effective_frametime ();
-
         if (bAdaptiveTearing)
         {
-          // When tearing is disabled, input latency sometimes gets stuck at (-0.1; 0.0]
+          static constexpr int _MAX_FRAMES = 30;
+
+          struct {
+            double input [_MAX_FRAMES] = { };
+
+            int frames = 0;
+
+            double getInput (void) noexcept
+            {
+              double avg     = 0.0,
+                     samples = 0.0;
+
+              for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
+              {
+                ++samples; avg += input [i];
+              }
+
+              return
+                ( avg / samples );
+            }
+          } static latency_avg;
+
+          latency_avg.input [latency_avg.frames++ % _MAX_FRAMES] =
+            (1000.0 / get_limit           ()) -
+                      effective_frametime ();
+
+          // When tearing is disabled, input latency sometimes gets stuck at (-0.1; 0.0)
           // Enabling tearing fixes it...
           bool bInputStuckAtZero =
             !config.render.dxgi.allow_tearing &&
             latency_avg.getInput () > -0.1    &&
-            latency_avg.getInput () <= 0.0;
+            latency_avg.getInput () <  0.0;
 
           switch (config.render.framerate.latent_sync.tearing_mode)
           {
@@ -2078,6 +2043,11 @@ SK::Framerate::Limiter::wait (void)
 
               static int waitFrames = 0;
 
+              if (!bDisableTearingAndWait)
+              {
+                waitFrames = 0;
+              }
+
               bool bIsComposedPresent =
                 rb.presentation.mode == SK_PresentMode::Composed_Composition_Atlas ||
                 rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI      ||
@@ -2089,8 +2059,6 @@ SK::Framerate::Limiter::wait (void)
                 config.render.dxgi.allow_tearing = true;
 
                 bDisableTearingAndWait = !bIsComposedPresent;
-
-                waitFrames = 0;
 
                 break;
               }
@@ -2127,8 +2095,6 @@ SK::Framerate::Limiter::wait (void)
 
                   bDisableTearingAndWait = false;
 
-                  waitFrames = 0;
-
                   break;
                 }
 
@@ -2138,8 +2104,6 @@ SK::Framerate::Limiter::wait (void)
                   config.render.dxgi.allow_tearing = false;
 
                   bDisableTearingAndWait = true;
-
-                  waitFrames = 0;
 
                   break;
                 }
@@ -2152,25 +2116,11 @@ SK::Framerate::Limiter::wait (void)
                   {
                     break;
                   }
-
-                  else
-                  {
-                    bDisableTearingAndWait = false;
-
-                    waitFrames = 0;
-                  }
-                }
-
-                else
-                {
-                  waitFrames = 0;
                 }
 
                 config.render.dxgi.allow_tearing = true;
 
                 bDisableTearingAndWait = true;
-
-                waitFrames = 0;
               }
 
               else
@@ -2178,8 +2128,6 @@ SK::Framerate::Limiter::wait (void)
                 config.render.dxgi.allow_tearing = false;
 
                 bDisableTearingAndWait = false;
-
-                waitFrames = 0;
               }
             } break;
             default:
@@ -2190,6 +2138,49 @@ SK::Framerate::Limiter::wait (void)
 
         if (config.render.framerate.latent_sync.auto_bias)
         {
+          static constexpr int _MAX_FRAMES = 6;
+
+          struct {
+            double input   [_MAX_FRAMES] = { };
+            double display [_MAX_FRAMES] = { };
+
+            int frames = 0;
+
+            double getInput (void) noexcept
+            {
+              double avg     = 0.0,
+                     samples = 0.0;
+
+              for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
+              {
+                ++samples; avg += input [i];
+              }
+
+              return
+                ( avg / samples );
+            }
+
+            double getDisplay (void) noexcept
+            {
+              double avg     = 0.0,
+                     samples = 0.0;
+
+              for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
+              {
+                ++samples; avg += display [i];
+              }
+
+              return
+                ( avg / samples );
+            }
+          } static latency_avg;
+
+          latency_avg.input   [latency_avg.frames   % _MAX_FRAMES] =
+            (1000.0 / get_limit           ()) -
+                      effective_frametime ();
+          latency_avg.display [latency_avg.frames++ % _MAX_FRAMES] =
+                      effective_frametime ();
+
           float delta = 0.0f;
 
           float auto_bias_target_ms =
