@@ -749,10 +749,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
         });
       }
 
-      else
-      {
-        config.render.framerate.auto_low_latency.waiting = false;
-      }
+      config.render.framerate.auto_low_latency.waiting = false;
     }
   };
 

@@ -1,4 +1,8 @@
-﻿24.3.23.1
+﻿24.3.23.2
+=========
+ + Load Horizon Forbidden West HDR Fix earlier to workaround Steam DRM
+
+24.3.23.1
 =========
  + Default Auto VRR Optimization to enabling VRR Optimized Framerate Limiter
      >> Before, it would only do so for Ultra Low Latency (not default).
