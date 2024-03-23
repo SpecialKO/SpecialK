@@ -3181,7 +3181,9 @@ SK_FrameCallback ( SK_RenderBackend& rb,
           }
         }
 
-        if (SK_GetCurrentGameID () == SK_GAME_ID::HorizonForbiddenWest)
+        static bool patched_hfw = false;
+
+        if (SK_GetCurrentGameID () == SK_GAME_ID::HorizonForbiddenWest && (! std::exchange (patched_hfw, true)))
         {
           bool bSteam = false,
                bEpic  = false;
@@ -3237,9 +3239,9 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
           if (hdr_const_addr != nullptr)
           {
-            uint8_t                  data [] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
-            memcpy (hdr_const_addr, &data, 8);
-
+            static const
+            uint8_t                         data [] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
+            memcpy (        hdr_const_addr, data, 8);
             VirtualProtect (hdr_const_addr, 8, dwOrigProt, &dwOrigProt);
             
             SK_ImGui_CreateNotification (
@@ -3250,7 +3252,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
               SK_ImGui_Toast::UseDuration |
               SK_ImGui_Toast::ShowCaption |
               SK_ImGui_Toast::ShowTitle   |
-              SK_ImGui_Toast::DoNotSaveINI
+              SK_ImGui_Toast::ShowOnce
             );
           }
         }
