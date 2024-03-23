@@ -1,4 +1,16 @@
-﻿24.3.23
+﻿24.3.23.1
+=========
+ + Default Auto VRR Optimization to enabling VRR Optimized Framerate Limiter
+     >> Before, it would only do so for Ultra Low Latency (not default).
+ + Changed Ultra Low Latency to only control Reflex Boost by Latency Markers
+ + Changed VRR Bias to: Optimal VRR (Reflex Rate) - 0.5% instead of + 0.1 FPS
+ + Clicking VRR Bias in the Framerate Limiter section will now immediately
+     engage the closest VRR Bias'd rate if framerate limiting is enabled.
+ + AutoVRR mode will automatically engage and lower the framerate limit if
+     the limit is set higher than refresh, even if AutoVRR already triggered
+       one time.
+
+24.3.23
 =======
  + Replaced "Start-to-Start" frametime mode with a frametime method setting
  + Frametime measurement method is now a global setting

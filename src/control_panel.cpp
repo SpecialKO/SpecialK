@@ -5381,7 +5381,8 @@ SK_ImGui_ControlPanel (void)
 
           if (ImGui::BeginPopup      ("FactoredFramerateMenu"))
           {
-            static bool   bVRRBias = false;
+            static bool bFirstFrame = true; // Don't auto-apply on first frame
+            static bool bVRRBias    = false;
 
             static auto lastRefresh = 0.0;
                    auto realRefresh =
@@ -5394,11 +5395,16 @@ SK_ImGui_ControlPanel (void)
                    auto                 itemWidth  =
               ImGui::CalcTextSize (std::format ("1:1 ({:.10f})", realRefresh).c_str ()).x;
 
-            if ( ( std::exchange (pLastLabel,  command)
-                                            != command ) ||
-                 ( std::exchange (lastRefresh, realRefresh)
-                                            != realRefresh ) )
+            bool activateSelection = (__target_fps > 0.0f);
+            bool resetSelection    = 
+              (lastRefresh != realRefresh);
+
+            if ( pLastLabel  != command ||
+                 lastRefresh != realRefresh )
             {
+              pLastLabel  = command;
+              lastRefresh = realRefresh;
+
               int idx = 0, denom = 1;
 
               strFractList.clear ();
@@ -5416,7 +5422,10 @@ SK_ImGui_ControlPanel (void)
 
                 double dBiasedRefresh =
                              dRefresh - (!bVRRBias ? 0.0f :
-                            (dRefresh * dRefresh) / (60.0 * 60.0) + 0.1);
+                             dRefresh * dRefresh) / (3600.0);
+
+                if (bVRRBias)
+                  dBiasedRefresh -= 0.005 * dBiasedRefresh;
 
                 strFractList += (
                   std::format (
@@ -5445,6 +5454,19 @@ SK_ImGui_ControlPanel (void)
             iFractSel =
               std::min (static_cast <int> (dFractList.size ()),
                                            iFractSel);
+
+            static int                      iLastFractSel =iFractSel;
+            if (iFractSel != std::exchange (iLastFractSel, iFractSel) || (resetSelection && activateSelection))
+            {
+              if (bFirstFrame == false)
+              {
+                SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                  "TargetFPS %f", static_cast <float> (dFractList [iFractSel])
+                );
+              }
+            }
+
+            bFirstFrame = false;
 
 
             extern int __SK_LatentSyncSkip;
@@ -5623,10 +5645,11 @@ SK_ImGui_ControlPanel (void)
               {
                 lastRefresh = 0.0f;
               }
+
               if (bVRRBias)
               {
                 ImGui::SameLine ();
-                ImGui::TextUnformatted ("\t(Reflex - 0.1 FPS)");
+                ImGui::TextUnformatted ("\t(Reflex - 0.5% FPS)");
               }
             }
             //if (                                   bVRRBias &&
@@ -5701,9 +5724,9 @@ SK_ImGui_ControlPanel (void)
           ImGui::SameLine        ();
           bool method_changed =
             ImGui::Combo ( "###Frametime_Method", &config.fps.timing_method,
-                           "Frame Pace\t(Limiter Delay-to-Limiter Delay)\0"
-                           "Frame Submit (Present-to-Present)\0"
-                           "Frame Start\t(Frame Begin-to-Frame Begin)\0\0" );
+                           "Frame Pace\t (Limiter Delay-to-Limiter Delay)\0"
+                           "Frame Submit  (Present-to-Present)\0"
+                           "Frame Start\t (Frame Begin-to-Frame Begin)\0\0" );
 
           if (ImGui::IsItemHovered ())
           {
@@ -6095,10 +6118,10 @@ SK_ImGui_ControlPanel (void)
                 if (config.render.framerate.auto_low_latency.policy.ultra_low_latency)
                 {
                   ImGui::BulletText    ("NVIDIA Reflex will be set to Low Latency + Boost mode");
-                  ImGui::BulletText    ("Framerate limiter mode will be set to VRR Optimized");
                 }
                 else
-                  ImGui::BulletText      ("NVIDIA Reflex will be set to Low Latency mode");
+                  ImGui::BulletText    ("NVIDIA Reflex will be set to Low Latency mode");
+                ImGui::BulletText      ("Framerate limiter mode will be set to VRR Optimized");
                 ImGui::TextColored     (ImVec4 (1.f, 1.f, .5f, 1.f), " " ICON_FA_MOUSE);
                 ImGui::SameLine        ();
                 ImGui::TextUnformatted ("Right-click to configure Auto VRR behavior");

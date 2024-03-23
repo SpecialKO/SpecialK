@@ -681,51 +681,77 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
   auto _EvaluateAutoLowLatency = [&]()
   {
-    // Opt-in to Auto-Low Latency the first time this is seen
-    if (capable && active && config.render.framerate.auto_low_latency.waiting &&
-                             config.render.framerate.present_interval != 0)
-    {
-      config.nvidia.reflex.enable                 = true;
-      config.nvidia.reflex.low_latency            = true;
-      config.render.framerate.sync_interval_clamp = 1; // Prevent games from F'ing VRR up.
-      config.render.framerate.auto_low_latency.
-                                          waiting = false;
-      config.render.framerate.auto_low_latency.
-                                        triggered = true;
-      // ^^^ Now turn auto-low latency off, so the user can select their own setting if they want
+    extern float __target_fps;
 
-      // Use the Low-Latency Limiter mode, even though it might cause stutter.
-      if (config.render.framerate.auto_low_latency.policy.ultra_low_latency)
+    // Opt-in to Auto-Low Latency the first time this is seen
+    if (capable && active && config.render.framerate.present_interval != 0)
+    {
+      if (config.render.framerate.auto_low_latency.waiting)
       {
-        config.nvidia.reflex.low_latency_boost     = true;
-        config.nvidia.reflex.marker_optimization   = true;
-        config.render.framerate.enforcement_policy = 2;
+        config.nvidia.reflex.enable                 = true;
+        config.nvidia.reflex.low_latency            = true;
+        config.render.framerate.sync_interval_clamp = 1; // Prevent games from F'ing VRR up.
+        config.render.framerate.auto_low_latency.
+                                          triggered = true;
+        // ^^^ Now turn auto-low latency off, so the user can select their own setting if they want
+
+        // Use the Low-Latency Limiter mode, even though it might cause stutter.
+        if (config.render.framerate.auto_low_latency.policy.ultra_low_latency)
+        {
+          config.nvidia.reflex.low_latency_boost     = true;
+          config.nvidia.reflex.marker_optimization   = true;
+        }
+        else
+        {
+          // No need to turn this off, just turn off latency marker optimization
+        //config.nvidia.reflex.low_latency_boost     = false;
+          config.nvidia.reflex.marker_optimization   = false;
+        }
+
+        // For VRR, always use VRR Optimized.
+        config.render.framerate.enforcement_policy = 2; // This used to be tied to Ultra Low Latency, but
+                                                        //   it's now the default, it's harmless if VRR is
+                                                        //     ACTUALLY active.
+        //config.render.framerate.enforcement_policy = 4;
       }
-      else
-      {
-        // No need to turn this off, just turn off latency marker optimization
-      //config.nvidia.reflex.low_latency_boost     = false;
-        config.nvidia.reflex.marker_optimization   = false;
-        config.render.framerate.enforcement_policy = 4;
-      }
-    
+
       const double dRefreshRate =
         static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
         static_cast <double> (display.signal.timing.vsync_freq.Denominator);
     
-      const double dVRROptimalFPS =
-        dRefreshRate - (dRefreshRate * dRefreshRate) / (60.0 * 60.0) - 0.1;
-    
-      extern float __target_fps;
-      if (__target_fps == 0.0f || __target_fps > dVRROptimalFPS)
+      double dVRROptimalFPS =
+        (dRefreshRate - (dRefreshRate * dRefreshRate) / (3600.0));
+
+      dVRROptimalFPS -= 0.005 * dVRROptimalFPS;
+
+      if (config.render.framerate.auto_low_latency.waiting)
       {
-        //SK_ImGui_WarningWithTitle (
-        //  SK_FormatStringW (L"Framerate Limit Set to %.2f FPS For Optimal VRR", dVRROptimalFPS).c_str (),
-        //                    L"Auto Low-Latency (VRR) Mode Activated"
-        //);
+        if (__target_fps == 0.0f ||
+            __target_fps > dVRROptimalFPS)
+        {
+          //SK_ImGui_WarningWithTitle (
+          //  SK_FormatStringW (L"Framerate Limit Set to %.2f FPS For Optimal VRR", dVRROptimalFPS).c_str (),
+          //                    L"Auto Low-Latency (VRR) Mode Activated"
+          //);
     
-        config.render.framerate.target_fps = static_cast <float> (dVRROptimalFPS);
-        __target_fps                       = static_cast <float> (dVRROptimalFPS);
+          config.render.framerate.target_fps = static_cast <float> (dVRROptimalFPS);
+          __target_fps                       = static_cast <float> (dVRROptimalFPS);
+        }
+      }
+
+      // Trigger AutoVRR because framerate limit is too high
+      if (__target_fps > dVRROptimalFPS)
+      {
+        SK_RunOnce ({
+          config.render.framerate.auto_low_latency.waiting = true;
+      
+          update (true);
+        });
+      }
+
+      else
+      {
+        config.render.framerate.auto_low_latency.waiting = false;
       }
     }
   };
