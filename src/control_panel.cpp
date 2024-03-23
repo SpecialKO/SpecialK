@@ -5445,6 +5445,7 @@ SK_ImGui_ControlPanel (void)
               std::min (static_cast <int> (dFractList.size ()),
                                            iFractSel);
 
+
             extern int  __SK_LatentSyncSkip;
             extern bool   SK_LatentSync_WorksAboveRefresh (SK_RenderAPI api);
 
