@@ -1937,6 +1937,24 @@ SK::Framerate::Limiter::wait (void)
         config.render.framerate.latent_sync.tearing_mode == SK_LatentSync_TearingMode_AdaptiveOff ||
         config.render.framerate.latent_sync.tearing_mode == SK_LatentSync_TearingMode_AdaptiveOn;
 
+      if (!bAdaptiveTearing)
+      {
+        switch (config.render.framerate.latent_sync.tearing_mode)
+        {
+          case SK_LatentSync_TearingMode_AlwaysOn:
+            config.render.dxgi.allow_tearing = true;
+            break;
+          case SK_LatentSync_TearingMode_AlwaysOff:
+            config.render.dxgi.allow_tearing = false;
+            break;
+          default:
+            config.render.framerate.latent_sync.tearing_mode =
+              SK_LatentSync_TearingMode_AlwaysOn;
+            config.render.dxgi.allow_tearing = true;
+            break;
+        }
+      }
+
       if (__scanline.lock.isPending ())
       {
         if (                        __SK_LatentSyncSkip  == 0 ||

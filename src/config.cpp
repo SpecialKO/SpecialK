@@ -3926,31 +3926,7 @@ auto DeclKeybind =
     config.render.framerate.disable_flip = false;
   }
 
-  if (render.framerate.allow_dwm_tearing->load (config.render.dxgi.allow_tearing))
-  {
-    // Latent Sync
-    if (config.render.framerate.present_interval == 0 && config.render.framerate.target_fps > 0.0f)
-    {
-      switch (config.render.framerate.latent_sync.tearing_mode)
-      {
-        case SK_LatentSync_TearingMode_AdaptiveOn:
-        case SK_LatentSync_TearingMode_AdaptiveOff:
-          break;
-        case SK_LatentSync_TearingMode_AlwaysOn:
-          config.render.dxgi.allow_tearing = true;
-          break;
-        case SK_LatentSync_TearingMode_AlwaysOff:
-          config.render.dxgi.allow_tearing = false;
-          break;
-        default:
-          config.render.framerate.latent_sync.tearing_mode =
-            SK_LatentSync_TearingMode_AlwaysOn;
-          config.render.dxgi.allow_tearing = true;
-          break;
-      }
-    }
-  }
-
+  render.framerate.allow_dwm_tearing->load (config.render.dxgi.allow_tearing);
   render.framerate.flip_sequential->load   (config.render.framerate.flip_sequential);
 
   render.framerate.drop_late_frames->load  (config.render.framerate.drop_late_flips);
