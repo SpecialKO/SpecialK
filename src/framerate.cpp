@@ -584,31 +584,14 @@ SK_ImGui_LatentSyncConfig (void)
 
       ImGui::Separator ();
 
-      if  (
-            ImGui::Combo (
-              "Tearing Mode",
-              &config.render.framerate.latent_sync.tearing_mode,
-              "Always On\0"
-              "Always Off\0"
-              "Adaptive (Prefer On)\0"
-              "Adaptive (Prefer Off)\0\0"
-            )
-          )
-      {
-        switch (config.render.framerate.latent_sync.tearing_mode)
-        {
-          case SK_LatentSync_TearingMode_AlwaysOn:
-          case SK_LatentSync_TearingMode_AdaptiveOn:
-            config.render.dxgi.allow_tearing = true;
-            break;
-          case SK_LatentSync_TearingMode_AlwaysOff:
-          case SK_LatentSync_TearingMode_AdaptiveOff:
-            config.render.dxgi.allow_tearing = false;
-            break;
-          default:
-            break;
-        }
-      }
+      ImGui::Combo (
+        "Tearing Mode",
+        &config.render.framerate.latent_sync.tearing_mode,
+        "Always On\0"
+        "Always Off\0"
+        "Adaptive (Prefer On)\0"
+        "Adaptive (Prefer Off)\0\0"
+      );
 
       if (ImGui::IsItemHovered ())
       {
