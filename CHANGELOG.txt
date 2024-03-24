@@ -1,4 +1,9 @@
-﻿24.3.23.3
+﻿24.3.24
+=======
+ + Added 1 ms global injection delay to Horizon Forbidden West to make it work
+     with Nixxes' wonky Streamline code if the Epic Overlay is turned off.
+
+24.3.23.3
 =========
  + Fixed HDR10 HDR->SDR screenshot tonemapping applying Rec2020 twice in D3D12
  + Corrected hue shift on colors wider than Rec 709 when saving scRGB AVIF

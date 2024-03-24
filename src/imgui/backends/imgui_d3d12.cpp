@@ -1,4 +1,4 @@
-// dear imgui: Renderer for DirectX12
+﻿// dear imgui: Renderer for DirectX12
 // This needs to be used along with a Platform Binding (e.g. Win32)
 
 #include <SpecialK/stdafx.h>
@@ -2846,6 +2846,8 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 {
+  drain_queue ();
+
   if (! ((_pSwapChain.p != nullptr && pSwapChain == nullptr) ||
          (_pSwapChain.p == nullptr && pSwapChain != nullptr) ||
           _pSwapChain.IsEqualObject  (pSwapChain)            ))
