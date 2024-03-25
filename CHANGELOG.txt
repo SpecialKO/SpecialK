@@ -1,9 +1,19 @@
-﻿24.3.25.1
+﻿24.3.25.2
+=========
+ + Disabled unfinished Shin Megami Tensei 2 plug-in
+
+24.3.25.1
 =========
  + Added warning to DLSS section of control panel if DLSS frame generation may
      be b0rked in a game because the Streamline Interposer was loaded before SK
 
-    >> Tooltip explains possible solutions...
+    >> Frame Generation generally works in these scenarios, but the reported
+         framerate will be the real framerate rather than generated framerate,
+           and SK's UI will be completely screwed up.
+
+         * SK HDR (non-native) cannot be used without flickering if this happens
+
+      -- Tooltip explains possible solutions...
 
 24.3.25
 =======

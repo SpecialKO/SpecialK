@@ -219,7 +219,7 @@ SK_GetCurrentGameID (void)
           { L"CHRONOCROSS.exe",                        SK_GAME_ID::ChronoCross                  },
           { L"CHRONOCROSS_LAUNCHER.exe",               SK_GAME_ID::Launcher                     },
           { L"DivaMegaMix.exe",                        SK_GAME_ID::HatsuneMikuDIVAMegaMix       },
-          { L"smt3hd.exe",                             SK_GAME_ID::ShinMegamiTensei3            },
+        //{ L"smt3hd.exe",                             SK_GAME_ID::ShinMegamiTensei3            },
           { L"TheQuarry-Win64-Shipping.exe",           SK_GAME_ID::TheQuarry                    },
           { L"GenshinImpact.exe",                      SK_GAME_ID::GenshinImpact                },
           { L"PathOfExileSteam.exe",                   SK_GAME_ID::PathOfExile                  },
@@ -3479,7 +3479,6 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::RatchetAndClank_RiftApart:
-        config.system.global_inject_delay = std::max (0.01f, config.system.global_inject_delay);
         break;
 
       case SK_GAME_ID::Starfield:
