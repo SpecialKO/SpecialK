@@ -1166,6 +1166,8 @@ ImGui_ImplDX12_Shutdown (void)
                        SK_DXGI_FormatToStr (_imgui_d3d12.RTVFormat).data (),
                                             _imgui_d3d12.hWndSwapChain),
                 L"D3D12BkEnd" );
+
+    _d3d12_rbk->drain_queue ();
   }
 
   _imgui_d3d12.pDevice.Release ();

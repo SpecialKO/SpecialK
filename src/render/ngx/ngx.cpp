@@ -199,6 +199,7 @@ void *SK_NGX_DLSSG_HUDLess_Buffer = nullptr;
 void *SK_NGX_DLSSG_Back_Buffer    = nullptr;
 void *SK_NGX_DLSSG_MVecs_Buffer   = nullptr;
 void *SK_NGX_DLSSG_Depth_Buffer   = nullptr;
+bool  SK_NGX_DLSSG_LateInject     = false;
 
 NVSDK_NGX_Result
 NVSDK_CONV
@@ -1223,6 +1224,22 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
           ImGui::BulletText     ("Game Restart (or Alt+Enter) May Be Required");
           ImGui::PopStyleColor  ();
+        }
+        if (SK_NGX_DLSSG_LateInject && SK_NGX_IsUsingDLSS_G ())
+        {
+          ImGui::TextColored     (ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
+          ImGui::SameLine        ();
+          ImGui::TextUnformatted (" Possible Frame Generation Conflict Detected");
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip    ();
+            ImGui::TextUnformatted ("Streamline Interposer was loaded before Special K");
+            ImGui::Separator       ();
+            ImGui::BulletText      ("SK's UI may be drawn as part of DLSS Frame Generation and full of artifacts.");
+            ImGui::BulletText      ("Framepacing and FPS counting may be inaccurate (raw FPS), but limiting will work.");
+            ImGui::BulletText      ("Try setting GlobalInjectDelay=0.01 or higher, or using Local Injection to fix.");
+            ImGui::EndTooltip      ();
+          }
         }
         ImGui::EndGroup    ();
         ImGui::SameLine    ();

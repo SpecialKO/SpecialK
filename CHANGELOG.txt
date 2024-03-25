@@ -1,4 +1,11 @@
-﻿24.3.25
+﻿24.3.25.1
+=========
+ + Added warning to DLSS section of control panel if DLSS frame generation may
+     be b0rked in a game because the Streamline Interposer was loaded before SK
+
+    >> Tooltip explains possible solutions...
+
+24.3.25
 =======
  + Improved compatibility with some HDR native games using DLSS-G
  + Improved compatibility with Nixxes DLSS3 Frame Generation games
