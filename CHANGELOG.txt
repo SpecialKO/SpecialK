@@ -1,4 +1,11 @@
-﻿24.3.24
+﻿24.3.24.1
+=========
+ + Changed "Frametime Method" setting in Control Panel to "Graph Measurement"
+     to avoid implying any affect on the behavior of SK's framerate limiter.
+ + Freed references to SK's own DLL acquired using GetModuleHandlEx (...) during
+     CBT hook initialization and shutdown.
+
+24.3.24
 =======
  + Added 1 ms global injection delay to Horizon Forbidden West to make it work
      with Nixxes' wonky Streamline code if the Epic Overlay is turned off.

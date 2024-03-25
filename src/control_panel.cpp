@@ -5719,11 +5719,11 @@ SK_ImGui_ControlPanel (void)
         {
           ImGui::BeginGroup      ();
           ImGui::Spacing         ();
-          ImGui::TextUnformatted ("Frametime Method");
+          ImGui::TextUnformatted ("Graph Measurement");
           ImGui::EndGroup        ();
           ImGui::SameLine        ();
           bool method_changed =
-            ImGui::Combo ( "###Frametime_Method", &config.fps.timing_method,
+            ImGui::Combo ( "###Graph_Method", &config.fps.timing_method,
                            "Frame Pace\t (Limiter Delay-to-Limiter Delay)\0"
                            "Frame Submit  (Present-to-Present)\0"
                            "Frame Start\t (Frame Begin-to-Frame Begin)\0\0" );
