@@ -2873,8 +2873,6 @@ auto DeclKeybind =
 
       case SK_GAME_ID::HorizonForbiddenWest:
       {
-        config.system.global_inject_delay = 0.01;
-
         bool bSteam = false,
              bEpic  = false;
 

@@ -3152,6 +3152,50 @@ SK_FrameCallback ( SK_RenderBackend& rb,
       //                 * Also fix Steam Input in CAPCOM games
       if (frames_drawn > 15)
       {
+        // Horizon: Forbidden West Hack
+        // ----------------------------
+        //   Since we have to delay injection as a compatibility hack for Nixxes
+        //     wonky Streamline implementation not to crash the game, do some stuff
+        //       that we normally would have caught during app startup.
+        SK_RunOnce (
+        if ( rb.isHDRCapable () && SK_GetModuleHandleW (L"sl.interposer.dll") && 
+                                   SK_GetModuleHandleW (L"EOSOVH-Win64-Shipping.dll") )
+        {
+          SK_ImGui_CreateNotification (
+            "EOSOVH.Warning", SK_ImGui_Toast::Warning,
+            "If the game crashes while turning on HDR or switching display modes, consider "
+            "deleting EOSOVH-Win64-Shipping.dll from Epic Games\\Launcher\\Portal\\Extras\\Overlay",
+            "Known Incompatibility Detected", 5000UL, SK_ImGui_Toast::UseDuration |
+                                                      SK_ImGui_Toast::ShowTitle   |
+                                                      SK_ImGui_Toast::ShowCaption );
+        }
+        if (SK_GetCurrentGameID () == SK_GAME_ID::HorizonForbiddenWest)
+        {
+          SK_ComQIPtr <IDXGISwapChain>
+              pSwapChain (rb.swapchain);
+          if (pSwapChain != nullptr)
+          {
+            DXGI_SWAP_CHAIN_DESC  swapDesc = { };
+            pSwapChain->GetDesc (&swapDesc);
+            //
+            // We likely will miss the initial call to SetColorSpace1, so make it again...
+            //   this will trigger our own hook and get things rolling.
+            //
+            //  * Game never uses 10-bpc in SDR, sadly... but that's convenient for this.
+            //
+            if (swapDesc.BufferDesc.Format == DXGI_FORMAT_R10G10B10A2_UNORM)
+            {
+              if (! __SK_HDR_16BitSwap)
+                    __SK_HDR_10BitSwap = true;
+
+              SK_ComQIPtr <IDXGISwapChain4>
+                  pSwap4 (pSwapChain);
+              if (pSwap4 != nullptr)
+                  pSwap4->SetColorSpace1 (DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020);
+            }
+          }
+        });
+
         if (rb.windows.sdl && (! SK_HID_PlayStationControllers.empty ()))
         {
           static ULONG64 toggle_frame = 0ULL;

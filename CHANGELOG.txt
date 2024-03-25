@@ -1,8 +1,16 @@
-﻿24.3.24.1
+﻿24.3.25
+=======
+ + Improved compatibility with some HDR native games using DLSS-G
+ + Improved compatibility with Nixxes DLSS3 Frame Generation games
+ + Global injection delay no longer necessary in Horizon Forbidden West
+ + If HFW crashes when turning on HDR (Epic version), try deleting the
+     Epic Overlay DLL as instructed in startup notification
+
+24.3.24.1
 =========
  + Changed "Frametime Method" setting in Control Panel to "Graph Measurement"
      to avoid implying any affect on the behavior of SK's framerate limiter.
- + Freed references to SK's own DLL acquired using GetModuleHandlEx (...) during
+ + Freed references to SK's own DLL acquired using GetModuleHandleEx (...) during
      CBT hook initialization and shutdown.
 
 24.3.24

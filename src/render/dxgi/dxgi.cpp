@@ -8581,6 +8581,10 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
   if (! first_frame)
     return;
 
+  static bool        once = false;
+  if (std::exchange (once, true))
+    return;
+
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     if (! LocalHook_IDXGISwapChain_SetFullscreenState.active)
@@ -9271,17 +9275,15 @@ HookDXGI (LPVOID user)
 
         if (SK_slGetNativeInterface (pDevice.p, (void **)&pNativeDevice.p) == sl::Result::eOk)
                                      pDevice =            pNativeDevice;
-
         if (SK_slGetNativeInterface (pImmediateContext.p, (void **)&pNativeImmediateContext.p) == sl::Result::eOk)
+
                                      pImmediateContext =            pNativeImmediateContext;
 
-        if (SUCCEEDED (pFactory->CreateSwapChain (pDevice.p, &desc, &pSwapChain.p)))
-        {
-          if (SK_slGetNativeInterface (pSwapChain.p, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
-          {                            pSwapChain.p->AddRef ();
-                                       pSwapChain =            pNativeSwapChain;
-          }
+        const bool bSkipSwapChainHook =
+          SK_GetModuleHandleW (L"sl.interposer.dll") || SK_GetCurrentGameID () == SK_GAME_ID::HorizonForbiddenWest;
 
+        if (bSkipSwapChainHook || SUCCEEDED (pFactory->CreateSwapChain (pDevice.p, &desc, &pSwapChain.p)))
+        {
           sk_hook_d3d11_t d3d11_hook_ctx =
             { &pDevice.p, &pImmediateContext.p };
 
