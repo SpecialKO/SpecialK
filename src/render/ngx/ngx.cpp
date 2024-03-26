@@ -1227,7 +1227,10 @@ SK_NGX_DLSS_ControlPanel (void)
         }
         if (SK_NGX_DLSSG_LateInject && SK_NGX_IsUsingDLSS_G ())
         {
-          ImGui::TextColored     (ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
+          float fAlpha = 
+            0.5f + (0.5f + (sin ((float)(SK::ControlPanel::current_time % 750) / 750.0f))) / 2.0f;
+
+          ImGui::TextColored     (ImVec4 (fAlpha, fAlpha, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
           ImGui::SameLine        ();
           ImGui::TextUnformatted (" Possible Frame Generation Conflict Detected");
           if (ImGui::IsItemHovered ())

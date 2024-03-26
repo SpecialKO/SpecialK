@@ -9113,10 +9113,11 @@ HookDXGI (LPVOID user)
     SK_ComPtr <ID3D11Device>        pNativeDevice;
     SK_ComPtr <ID3D11DeviceContext> pNativeImmediateContext;
 
-    // Probably better named Nixxes mode, what an absolute pain :(
+    // Probably better named Nixxes mode, what a pain :(
     const bool bStreamlineMode =
-      SK_GetCurrentGameID () == SK_GAME_ID::HorizonForbiddenWest ||
-      (SK_GetModuleHandleW (L"sl.interposer.dll") && config.system.global_inject_delay == 0.0f);
+      false;
+      //SK_GetCurrentGameID () == SK_GAME_ID::HorizonForbiddenWest ||
+      //(SK_GetModuleHandleW (L"sl.interposer.dll") && config.system.global_inject_delay == 0.0f);
 
     const bool bReShadeMode =
       (config.compatibility.reshade_mode && (! config.compatibility.using_wine));
@@ -9294,7 +9295,10 @@ HookDXGI (LPVOID user)
                       SK_NGX_DLSSG_LateInject = true;
         }
 
-        SK_DXGI_SafeCreateSwapChain (pFactory, pDevice.p, &desc, &pSwapChain.p);
+        else
+        {
+          SK_DXGI_SafeCreateSwapChain (pFactory, pDevice.p, &desc, &pSwapChain.p);
+        }
 
         if (SK_slGetNativeInterface (pFactory, (void **)&pNativeFactory.p) == sl::Result::eOk)
                                      pFactory =          pNativeFactory;

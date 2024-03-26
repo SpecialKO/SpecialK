@@ -1,4 +1,8 @@
-﻿24.3.26
+﻿24.3.26.1
+=========
+ + Fixed Reflex breaking in Horizon Zero Dawn and various other Nixxes games
+
+24.3.26
 =======
  + More fixes for Nixxes Streamline implementation, in particular their launcher
      which loads sl.interposer.dll, but does not initialize it and then crashes
