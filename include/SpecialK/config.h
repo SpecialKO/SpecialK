@@ -1427,6 +1427,7 @@ enum class SK_GAME_ID
   TheWitcher3,                  // witcher3.exe
   ResidentEvil7,                // re7.exe
   DragonsDogma,                 // DDDA.exe
+  DragonsDogma2,                // DD2.exe
   EverQuest,                    // eqgame.exe
   GodEater2RageBurst,           // GE2RB.exe
   GodEater3,                    // ge3.exe

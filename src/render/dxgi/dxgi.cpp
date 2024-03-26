@@ -9289,6 +9289,15 @@ HookDXGI (LPVOID user)
 
       if (SUCCEEDED (hr))
       {
+        if (SK_slGetNativeInterface (pFactory, (void **)&pNativeFactory.p) == sl::Result::eOk)
+                                     pFactory =          pNativeFactory;
+
+        if (SK_slGetNativeInterface (pDevice.p, (void **)&pNativeDevice.p) == sl::Result::eOk)
+                                     pDevice =            pNativeDevice;
+
+        if (SK_slGetNativeInterface (pImmediateContext.p, (void **)&pNativeImmediateContext.p) == sl::Result::eOk)
+                                     pImmediateContext =            pNativeImmediateContext;
+
         if (SK_GetModuleHandleW (L"sl.interposer.dll") && (config.system.global_inject_delay == 0.0f))
         {
           extern bool SK_NGX_DLSSG_LateInject;
@@ -9299,15 +9308,6 @@ HookDXGI (LPVOID user)
         {
           SK_DXGI_SafeCreateSwapChain (pFactory, pDevice.p, &desc, &pSwapChain.p);
         }
-
-        if (SK_slGetNativeInterface (pFactory, (void **)&pNativeFactory.p) == sl::Result::eOk)
-                                     pFactory =          pNativeFactory;
-
-        if (SK_slGetNativeInterface (pDevice.p, (void **)&pNativeDevice.p) == sl::Result::eOk)
-                                     pDevice =            pNativeDevice;
-
-        if (SK_slGetNativeInterface (pImmediateContext.p, (void **)&pNativeImmediateContext.p) == sl::Result::eOk)
-                                     pImmediateContext =            pNativeImmediateContext;
 
         sk_hook_d3d11_t d3d11_hook_ctx =
           { &pDevice.p, &pImmediateContext.p };

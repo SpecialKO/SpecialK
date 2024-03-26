@@ -440,15 +440,17 @@ IWrapDXGISwapChain::GetDevice (REFIID riid, void **ppDevice)
 {
   SK_ReleaseAssert (pDev.p != nullptr);
 
-  if (pDev.p == nullptr && pReal != nullptr)
+  if (pReal != nullptr)
   {
     return
       pReal->GetDevice (riid, ppDevice);
   }
 
   if (pDev.p != nullptr)
+  {
     return
       pDev->QueryInterface (riid, ppDevice);
+  }
 
   return E_NOINTERFACE;
 }

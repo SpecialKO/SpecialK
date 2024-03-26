@@ -257,7 +257,8 @@ SK_GetCurrentGameID (void)
           { L"Noita.exe",                              SK_GAME_ID::Noita                        },
           { L"P3R.exe",                                SK_GAME_ID::Persona3                     },
           { L"granblue_fantasy_relink.exe",            SK_GAME_ID::GranblueFantasyRelink        },
-          { L"wrath-sdl.exe",                          SK_GAME_ID::WrathAeonOfRuin              }
+          { L"wrath-sdl.exe",                          SK_GAME_ID::WrathAeonOfRuin              },
+          { L"dd2.exe",                                SK_GAME_ID::DragonsDogma                 }
         };
 
     first_check  = false;
@@ -2361,6 +2362,10 @@ auto DeclKeybind =
         config.textures.cache.ignore_nonmipped = true; // Invalid use of immutable textures
         break;
 
+
+      case SK_GAME_ID::DragonsDogma2:
+        config.nvidia.dlss.compat.extra_pixels = -2;
+        break;
 
       case SK_GAME_ID::DragonsDogma:
         // BROKEN (by GeForce Experience)

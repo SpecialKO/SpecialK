@@ -1,6 +1,10 @@
-﻿24.3.26.1
+﻿24.3.26.2
 =========
- + Fixed Reflex breaking in Horizon Zero Dawn and various other Nixxes games
+ + Added 2 pixel DLAA compat hack default settings for Dragon's Dogma 2
+
+24.3.26.1
+=========
+ + Fixed Reflex breaking in Horizon Forbidden West and various Nixxes games
 
 24.3.26
 =======
