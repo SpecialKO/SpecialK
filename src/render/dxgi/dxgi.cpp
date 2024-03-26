@@ -5722,6 +5722,8 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
 
+  SK_DXGI_HookSwapChain (pSwapChain);
+
   SK_ComPtr <IDXGISwapChain1>                    pNativeSwapChain;
   SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p);
 
@@ -8937,6 +8939,26 @@ struct DECLSPEC_UUID("ADEC44E2-61F0-45C3-AD9F-1B37379284FF") StreamlineRetrieveB
 {
 };
 
+// A hack to prevent Streamline from crashing in its hook if it does not implement the device interface
+HRESULT
+SK_DXGI_SafeCreateSwapChain ( IDXGIFactory          *pFactory,
+                              IUnknown              *pDevice,
+                              DXGI_SWAP_CHAIN_DESC  *pDesc,
+                              IDXGISwapChain       **ppSwapChain )
+{
+  __try {
+    return
+      pFactory->CreateSwapChain (pDevice, pDesc, ppSwapChain);
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    *ppSwapChain = nullptr;
+  }
+
+  return E_NOTIMPL;
+}
+
 DWORD
 __stdcall
 HookDXGI (LPVOID user)
@@ -9091,9 +9113,17 @@ HookDXGI (LPVOID user)
     SK_ComPtr <ID3D11Device>        pNativeDevice;
     SK_ComPtr <ID3D11DeviceContext> pNativeImmediateContext;
 
+    // Probably better named Nixxes mode, what an absolute pain :(
+    const bool bStreamlineMode =
+      SK_GetCurrentGameID () == SK_GAME_ID::HorizonForbiddenWest ||
+      (SK_GetModuleHandleW (L"sl.interposer.dll") && config.system.global_inject_delay == 0.0f);
+
+    const bool bReShadeMode =
+      (config.compatibility.reshade_mode && (! config.compatibility.using_wine));
+
     // This has benefits, but may prove unreliable with software
     //   that requires NVIDIA's DXGI/Vulkan interop layer
-    if (config.compatibility.reshade_mode && (! config.compatibility.using_wine))
+    if (bStreamlineMode || bReShadeMode)
     {
       SK_slUpgradeInterface ((void **)&pFactory.p);
 
@@ -9178,13 +9208,13 @@ HookDXGI (LPVOID user)
         pDevice->GetImmediateContext (&pImmediateContext.p);
 
         if (! pDevice12)
-          pFactory->CreateSwapChain (pDevice.p, &desc, &pSwapChain.p);
+          SK_DXGI_SafeCreateSwapChain (pFactory, pDevice.p, &desc, &pSwapChain.p);
       }
 
       if (pDevice12 != nullptr)
       {
-        if (FAILED (pFactory->CreateSwapChain (pCmdQueue.p, &desc, &pSwapChain.p)))
-                    pFactory->CreateSwapChain (pDevice.p,   &desc, &pSwapChain.p);
+        if (FAILED (SK_DXGI_SafeCreateSwapChain (pFactory, pCmdQueue.p, &desc, &pSwapChain.p)))
+                    SK_DXGI_SafeCreateSwapChain (pFactory, pDevice.p,   &desc, &pSwapChain.p);
       }
 
       if (bHasStreamline)
@@ -9258,6 +9288,14 @@ HookDXGI (LPVOID user)
 
       if (SUCCEEDED (hr))
       {
+        if (SK_GetModuleHandleW (L"sl.interposer.dll") && (config.system.global_inject_delay == 0.0f))
+        {
+          extern bool SK_NGX_DLSSG_LateInject;
+                      SK_NGX_DLSSG_LateInject = true;
+        }
+
+        SK_DXGI_SafeCreateSwapChain (pFactory, pDevice.p, &desc, &pSwapChain.p);
+
         if (SK_slGetNativeInterface (pFactory, (void **)&pNativeFactory.p) == sl::Result::eOk)
                                      pFactory =          pNativeFactory;
 
@@ -9272,14 +9310,6 @@ HookDXGI (LPVOID user)
 
         HookD3D11           (&d3d11_hook_ctx);
         SK_DXGI_HookFactory (pFactory);
-
-        if ((! SK_GetModuleHandleW (L"sl.interposer.dll")) || config.system.global_inject_delay != 0.0f)
-          pFactory->CreateSwapChain (pDevice.p, &desc, &pSwapChain.p);
-        else
-        {
-          extern bool SK_NGX_DLSSG_LateInject;
-                      SK_NGX_DLSSG_LateInject = true;
-        }
 
         bHookSuccess = true;
       }

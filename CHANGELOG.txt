@@ -1,4 +1,9 @@
-﻿24.3.25.2
+﻿24.3.26
+=======
+ + More fixes for Nixxes Streamline implementation, in particular their launcher
+     which loads sl.interposer.dll, but does not initialize it and then crashes
+
+24.3.25.2
 =========
  + Disabled unfinished Shin Megami Tensei 2 plug-in
 
