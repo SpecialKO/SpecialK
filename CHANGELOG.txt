@@ -1,4 +1,9 @@
-﻿24.3.26.3
+﻿24.3.27
+=======
+ + Fixed Plug-In install path tooltip only printing first character in a path
+     because std::filesystem::path (path).c_str () returns wchar_t*
+
+24.3.26.3
 =========
  + Fixed various issues with the keyboard and gamepad control panel directions
      in the startup banner depending on the current input devices present
