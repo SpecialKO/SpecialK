@@ -5327,7 +5327,7 @@ SK_ImGui_ControlPanel (void)
                      : ImColor (0.73f, 0.73f, 0.73f).Value ) );
 
           if ( ImGui::DragFloat ( label, &target_mag,
-                                      1.0f, 24.0f, 166.0f, target > 0 ?
+                                      1.0f, 0.1f, 1000.0f, target > 0 ?
                           ( active ? "%6.3f fps  (Limit Engaged)" :
                                      "%6.3f fps  (~Window State)" )
                                                                   :
@@ -5341,7 +5341,7 @@ SK_ImGui_ControlPanel (void)
               ( ( target < 0.0f ) ? (-1.0f * target_mag) :
                                              target_mag    );
 
-            if (target > 10.0f || target == 0.0f)
+            if (target >= 0.1f || target == 0.0f)
               cp->ProcessCommandFormatted ("%s %f", command, target);
             else if (target < 0.0f)
             {
