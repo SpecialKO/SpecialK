@@ -1,4 +1,9 @@
-﻿24.3.26.2
+﻿24.3.26.3
+=========
+ + Fixed various issues with the keyboard and gamepad control panel directions
+     in the startup banner depending on the current input devices present
+
+24.3.26.2
 =========
  + Added 2 pixel DLAA compat hack default settings for Dragon's Dogma 2
 

@@ -7364,7 +7364,10 @@ SK_ImGui_StageNextFrame (void)
     ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
                                R"(%hs')", SK_WideCharToUTF8 (virtualToHuman [VK_BACK]).c_str () );
 
-    if (config.input.gamepad.xinput.ui_slot < 4)
+    const bool bHasControllers = 
+      (SK_ImGui_HasPlayStationController () || SK_ImGui_HasXboxController ());
+
+    if (bHasControllers && config.input.gamepad.xinput.ui_slot < 4)
     {
                                          ImGui::SameLine ();
       ImGui::TextUnformatted ("  or  "); ImGui::SameLine ();
@@ -7423,12 +7426,11 @@ SK_ImGui_StageNextFrame (void)
         {
           ImGui::TextColored     ( ImVec4 (.75f, .75f, .75f, 1.f), " (Xbox)");
         }
-        ImGui::SameLine        ();
       }
+      ImGui::SameLine ();
     }
 
     else {
-      ImGui::SameLine ();
       ImGui::SameLine ();
     }
 
