@@ -2849,6 +2849,13 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     int interval =
       config.render.framerate.present_interval;
 
+    if ( config.render.framerate.present_interval > 0 &&
+         config.render.framerate.adaptive_vsync       &&
+         config.render.framerate.turn_vsync_off       )
+    {
+      interval = 0;
+    }
+
     // Fix flags for compliance in broken games
     //
     if (SK_DXGI_IsFlipModelSwapChain (desc))

@@ -595,6 +595,8 @@ struct sk_config_t
       int     pre_render_limit    = SK_NoPreference;
       int     present_interval    = SK_NoPreference;
       int     sync_interval_clamp = SK_NoPreference;
+      bool    adaptive_vsync      = false;
+      bool    turn_vsync_off      = false; // Turns VSync Off in Adaptive VSync mode (not INI-persistent)
       int     buffer_count        = SK_NoPreference;
       int     max_delta_time      =  0; // Bad old setting; needs to be phased
       int     swapchain_wait      =  0;

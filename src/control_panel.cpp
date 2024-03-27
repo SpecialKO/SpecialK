@@ -1379,12 +1379,49 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       }
     }
 
-    static int  last_present_interval = -1;
+    bool bAdaptiveVSync = config.render.framerate.present_interval > 0 &&
+                          config.render.framerate.adaptive_vsync;
+
+    static bool bWasAdaptiveVSync = bAdaptiveVSync;
+
+    bool adaptive_vsync_changed = std::exchange (bWasAdaptiveVSync, bAdaptiveVSync) !=
+                                                                    bAdaptiveVSync;
+
+    static int  last_present_interval_sk = config.render.framerate.present_interval;
+    static int  last_present_interval    = -1;
     static std::vector <char> vsync_list;
 
+    bool present_interval_changed = [&]()
+    {
+      int last_interval_sk = std::exchange (
+        last_present_interval_sk,
+        config.render.framerate.present_interval
+      );
+
+      if (std::exchange (last_present_interval, rb.present_interval) !=
+                                                rb.present_interval)
+      {
+        return true;
+      }
+
+      if (last_interval_sk == config.render.framerate.present_interval)
+      {
+        return false;
+      }
+
+      // Update first_option label if the actual present interval didn't change
+      // BUT SK present interval did change from/to SK_NoPreference (-1 to 0-4 or 0-4 to -1)
+      //  -1 to 0-4: current_no_override_state -> no_override_label
+      // 0-4 to  -1: no_override_label         -> current_no_override_state
+      return std::min (
+        last_interval_sk,
+        config.render.framerate.present_interval
+      ) == SK_NoPreference;
+    }();
+
     // Re-populate the list if the current state changes
-    if (std::exchange (last_present_interval, rb.present_interval) !=
-                                              rb.present_interval)
+    if ( ( vsync_list.empty () || adaptive_vsync_changed ) ||
+         ( present_interval_changed && !bAdaptiveVSync   ) )
     {
       const char* current_no_override_state =
         rb.present_interval == 0 ? "  OFF\0"          :

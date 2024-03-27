@@ -1901,7 +1901,204 @@ SK::Framerate::Limiter::wait (void)
     }
 
 
-    if (config.render.framerate.present_interval == 0 && ticks_per_scanline > 1)
+    static constexpr int SK_TearingMode_AdaptiveVSync = -SK_LatentSync_TearingMode_AdaptiveOff;
+
+    auto _AdaptiveTearing = [&](const int tearingMode)
+    {
+      static constexpr int _MAX_FRAMES = 30;
+
+      struct {
+        double input [_MAX_FRAMES] = { };
+
+        int frames = 0;
+
+        double getInput (void) noexcept
+        {
+          double avg     = 0.0,
+                 samples = 0.0;
+
+          for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
+          {
+            ++samples; avg += input [i];
+          }
+
+          return
+            ( avg / samples );
+        }
+      } static latency_avg;
+
+      latency_avg.input [latency_avg.frames++ % _MAX_FRAMES] =
+        (1000.0 / get_limit           ()) -
+                  effective_frametime ();
+
+      // When tearing is disabled, input latency sometimes gets stuck at (-0.1; 0.0)
+      // Enabling tearing fixes it...
+      bool bInputStuckAtZero =
+        ( config.render.framerate.present_interval > 0 || !config.render.dxgi.allow_tearing ) &&
+        ( latency_avg.getInput () > -0.1 && latency_avg.getInput () < 0.0                   );
+
+      switch (tearingMode)
+      {
+        // Prefer tearing, only disable tearing if FPS is unstable
+        case SK_LatentSync_TearingMode_AdaptiveOn:
+        {
+          if (latency_avg.getInput () < 0.0 && !bInputStuckAtZero)
+          {
+            config.render.dxgi.allow_tearing = false;
+          }
+
+          else
+          {
+            config.render.dxgi.allow_tearing = true;
+          }
+        } break;
+        // Prefer no tearing, only enable tearing if Render Latency exceeds 1 frame
+        case SK_LatentSync_TearingMode_AdaptiveOff:
+        // Prefer VSync On, only turn VSync Off if Render Latency exceeds 1 frame
+        case SK_TearingMode_AdaptiveVSync:
+        {
+          // After enabling tearing, disable tearing on next frame
+          // and wait for Render Latency to decrease
+          static bool bDisableTearingAndWait = false;
+
+          // If Render Latency failed reduce during waiting period,
+          // keep tearing always enabled until latency decreases
+          static bool bFailedToReduceRenderLatency = false;
+
+          static constexpr int _MAX_WAIT_FRAMES = 90;
+
+          static int waitFrames = 0;
+
+          if (! bDisableTearingAndWait)
+          {
+            bFailedToReduceRenderLatency = false;
+
+            waitFrames = 0;
+          }
+
+          static SK_PresentMode lastPresentMode = rb.presentation.mode;
+
+          auto _IsComposedPresent = [](const SK_PresentMode& mode)
+          {
+            return
+              mode == SK_PresentMode::Composed_Composition_Atlas ||
+              mode == SK_PresentMode::Composed_Copy_GPU_GDI      ||
+              mode == SK_PresentMode::Composed_Copy_CPU_GDI      ||
+              mode == SK_PresentMode::Composed_Flip;
+          };
+
+          bool bIsComposedPresent  = _IsComposedPresent (
+            rb.presentation.mode
+          );
+
+          bool bWasComposedPresent = _IsComposedPresent (
+            std::exchange (
+              lastPresentMode,
+              rb.presentation.mode
+            )
+          );
+
+          auto _ToggleTearing = [&](bool bEnableTearing)
+          {
+            if (tearingMode == SK_TearingMode_AdaptiveVSync)
+            {
+              config.render.framerate.turn_vsync_off = bEnableTearing;
+
+              config.render.dxgi.allow_tearing = true;
+            }
+
+            else
+            {
+              config.render.dxgi.allow_tearing = bEnableTearing;
+            }
+          };
+
+          if (bInputStuckAtZero)
+          {
+            _ToggleTearing (true);
+
+            bDisableTearingAndWait = !bIsComposedPresent;
+
+            break;
+          }
+
+          bool bRenderLatencyExceedsOneFrame = false;
+
+          if (!SK_RenderBackend_V2::latency.stale)
+          {
+            bRenderLatencyExceedsOneFrame =
+              SK_RenderBackend_V2::latency.delays.PresentQueue > 1;
+          }
+
+          else if (bIsComposedPresent)
+          {
+            bRenderLatencyExceedsOneFrame = true;
+          }
+
+          else if (rb.presentation.avg_stats.display != 0.0)
+          {
+            bRenderLatencyExceedsOneFrame =
+              rb.presentation.avg_stats.latency /
+              rb.presentation.avg_stats.display > 1.9;
+          }
+
+          if (bRenderLatencyExceedsOneFrame)
+          {
+            if (latency_avg.getInput () < 0.0 || bIsComposedPresent)
+            {
+              _ToggleTearing (true);
+
+              bDisableTearingAndWait = false;
+
+              break;
+            }
+
+            // Wait for Render Latency to decrease after recovering from lost Independent Flip
+            if (bWasComposedPresent && !bIsComposedPresent)
+            {
+              _ToggleTearing (false);
+
+              bDisableTearingAndWait = true;
+
+              break;
+            }
+
+            if (bDisableTearingAndWait)
+            {
+              _ToggleTearing (false);
+
+              if (++waitFrames % _MAX_WAIT_FRAMES != 0)
+              {
+                break;
+              }
+
+              bFailedToReduceRenderLatency = true;
+            }
+
+            _ToggleTearing (true);
+
+            bDisableTearingAndWait = !bFailedToReduceRenderLatency;
+          }
+
+          else
+          {
+            _ToggleTearing (false);
+
+            bDisableTearingAndWait = false;
+          }
+        } break;
+        default:
+        {
+        } break;
+      }
+    };
+
+    if (config.render.framerate.present_interval > 0 && config.render.framerate.adaptive_vsync)
+    {
+      _AdaptiveTearing (SK_TearingMode_AdaptiveVSync);
+    }
+
+    else if (config.render.framerate.present_interval == 0 && ticks_per_scanline > 1)
     {
       __SK_LatentSyncSkip = static_cast <int> (
         std::round (
@@ -2003,167 +2200,7 @@ SK::Framerate::Limiter::wait (void)
       {
         if (bAdaptiveTearing)
         {
-          static constexpr int _MAX_FRAMES = 30;
-
-          struct {
-            double input [_MAX_FRAMES] = { };
-
-            int frames = 0;
-
-            double getInput (void) noexcept
-            {
-              double avg     = 0.0,
-                     samples = 0.0;
-
-              for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
-              {
-                ++samples; avg += input [i];
-              }
-
-              return
-                ( avg / samples );
-            }
-          } static latency_avg;
-
-          latency_avg.input [latency_avg.frames++ % _MAX_FRAMES] =
-            (1000.0 / get_limit           ()) -
-                      effective_frametime ();
-
-          // When tearing is disabled, input latency sometimes gets stuck at (-0.1; 0.0)
-          // Enabling tearing fixes it...
-          bool bInputStuckAtZero =
-            !config.render.dxgi.allow_tearing &&
-            latency_avg.getInput () > -0.1    &&
-            latency_avg.getInput () <  0.0;
-
-          switch (config.render.framerate.latent_sync.tearing_mode)
-          {
-            // Prefer tearing, only disable tearing if FPS is unstable
-            case SK_LatentSync_TearingMode_AdaptiveOn:
-            {
-              if (latency_avg.getInput () < 0.0 && !bInputStuckAtZero)
-              {
-                config.render.dxgi.allow_tearing = false;
-              }
-
-              else
-              {
-                config.render.dxgi.allow_tearing = true;
-              }
-            } break;
-            // Prefer no tearing, only enable tearing if Render Latency exceeds 1 frame
-            case SK_LatentSync_TearingMode_AdaptiveOff:
-            {
-              // After enabling tearing, disable tearing on next frame
-              // and wait for Render Latency to decrease
-              static bool bDisableTearingAndWait = false;
-
-              static constexpr int _MAX_WAIT_FRAMES = 90;
-
-              static int waitFrames = 0;
-
-              if (!bDisableTearingAndWait)
-              {
-                waitFrames = 0;
-              }
-
-              static SK_PresentMode lastPresentMode = rb.presentation.mode;
-
-              auto _IsComposedPresent = [](const SK_PresentMode& mode)
-              {
-                return mode == SK_PresentMode::Composed_Composition_Atlas ||
-                       mode == SK_PresentMode::Composed_Copy_GPU_GDI      ||
-                       mode == SK_PresentMode::Composed_Copy_CPU_GDI      ||
-                       mode == SK_PresentMode::Composed_Flip;
-              };
-
-              bool bIsComposedPresent  = _IsComposedPresent (
-                rb.presentation.mode
-              );
-
-              bool bWasComposedPresent = _IsComposedPresent (
-                std::exchange (
-                  lastPresentMode,
-                  rb.presentation.mode
-                )
-              );
-
-              if (bInputStuckAtZero)
-              {
-                config.render.dxgi.allow_tearing = true;
-
-                bDisableTearingAndWait = !bIsComposedPresent;
-
-                break;
-              }
-
-              bool bRenderLatencyExceedsOneFrame = false;
-
-              if (!SK_RenderBackend_V2::latency.stale)
-              {
-                bRenderLatencyExceedsOneFrame =
-                  SK_RenderBackend_V2::latency.delays.PresentQueue > 1;
-              }
-
-              else if (bIsComposedPresent)
-              {
-                bRenderLatencyExceedsOneFrame = true;
-              }
-
-              else if (rb.presentation.avg_stats.display != 0.0)
-              {
-                bRenderLatencyExceedsOneFrame =
-                  rb.presentation.avg_stats.latency /
-                  rb.presentation.avg_stats.display > 1.9;
-              }
-
-              if (bRenderLatencyExceedsOneFrame)
-              {
-                if (latency_avg.getInput () < 0.0 || bIsComposedPresent)
-                {
-                  config.render.dxgi.allow_tearing = true;
-
-                  bDisableTearingAndWait = false;
-
-                  break;
-                }
-
-                // Wait for Render Latency to decrease after recovering from lost Independent Flip
-                if (bWasComposedPresent && !bIsComposedPresent)
-                {
-                  config.render.dxgi.allow_tearing = false;
-
-                  bDisableTearingAndWait = true;
-
-                  break;
-                }
-
-                if (bDisableTearingAndWait)
-                {
-                  config.render.dxgi.allow_tearing = false;
-
-                  if (++waitFrames % _MAX_WAIT_FRAMES != 0)
-                  {
-                    break;
-                  }
-                }
-
-                config.render.dxgi.allow_tearing = true;
-
-                bDisableTearingAndWait = true;
-              }
-
-              else
-              {
-                config.render.dxgi.allow_tearing = false;
-
-                bDisableTearingAndWait = false;
-              }
-            } break;
-            default:
-            {
-            } break;
-          }
+          _AdaptiveTearing (config.render.framerate.latent_sync.tearing_mode);
         }
 
         if (config.render.framerate.latent_sync.auto_bias)
