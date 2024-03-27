@@ -1961,7 +1961,7 @@ SK::Framerate::Limiter::wait (void)
           // and wait for Render Latency to decrease
           static bool bDisableTearingAndWait = false;
 
-          // If Render Latency failed reduce during waiting period,
+          // If Render Latency failed to reduce during waiting period,
           // keep tearing always enabled until latency decreases
           static bool bFailedToReduceRenderLatency = false;
 
