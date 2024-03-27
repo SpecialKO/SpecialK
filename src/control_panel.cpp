@@ -5754,11 +5754,11 @@ SK_ImGui_ControlPanel (void)
         {
           ImGui::BeginGroup      ();
           ImGui::Spacing         ();
-          ImGui::TextUnformatted ("Frametime Method");
+          ImGui::TextUnformatted ("Graph Measurement");
           ImGui::EndGroup        ();
           ImGui::SameLine        ();
           bool method_changed =
-            ImGui::Combo ( "###Frametime_Method", &config.fps.timing_method,
+            ImGui::Combo ( "###Graph_Method", &config.fps.timing_method,
                            "Frame Pace\t (Limiter Delay-to-Limiter Delay)\0"
                            "Frame Submit  (Present-to-Present)\0"
                            "Frame Start\t (Frame Begin-to-Frame Begin)\0\0" );
@@ -7399,7 +7399,10 @@ SK_ImGui_StageNextFrame (void)
     ImGui::TextColored     ( ImColor::HSV (.16f, 1.f, 1.f),
                                R"(%hs')", SK_WideCharToUTF8 (virtualToHuman [VK_BACK]).c_str () );
 
-    if (config.input.gamepad.xinput.ui_slot < 4)
+    const bool bHasControllers = 
+      (SK_ImGui_HasPlayStationController () || SK_ImGui_HasXboxController ());
+
+    if (bHasControllers && config.input.gamepad.xinput.ui_slot < 4)
     {
                                          ImGui::SameLine ();
       ImGui::TextUnformatted ("  or  "); ImGui::SameLine ();
@@ -7458,12 +7461,11 @@ SK_ImGui_StageNextFrame (void)
         {
           ImGui::TextColored     ( ImVec4 (.75f, .75f, .75f, 1.f), " (Xbox)");
         }
-        ImGui::SameLine        ();
       }
+      ImGui::SameLine ();
     }
 
     else {
-      ImGui::SameLine ();
       ImGui::SameLine ();
     }
 

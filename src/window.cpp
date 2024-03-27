@@ -4087,11 +4087,20 @@ GetWindowInfo_Detour (HWND hwnd, PWINDOWINFO pwi)
   //     message...
   if ( pwi         != nullptr             &&
        pwi->cbSize == sizeof (WINDOWINFO) &&
-       bRet                               &&
-                 hwnd == game_window.hWnd &&
-          SK_WantBackgroundRender () )
+       bRet )
   {
-    pwi->dwWindowStatus = WS_ACTIVECAPTION;
+    if (SK_WantBackgroundRender ())
+    {
+      if (hwnd == game_window.hWnd)
+      {
+        pwi->dwWindowStatus  =  WS_ACTIVECAPTION;
+      }
+
+      else
+      {
+        pwi->dwWindowStatus &= ~WS_ACTIVECAPTION;
+      }
+    }
   }
 
   return bRet;
@@ -4664,6 +4673,13 @@ GetFocus_Detour (void)
       {
         return game_window.hWnd;
       }
+
+      dwPid = 0x0;
+      dwTid =
+        GetWindowThreadProcessId (SK_GetFocus (), &dwPid);
+
+      if (GetCurrentProcessId () != dwPid)
+        return 0;
     }
   }
 
@@ -4815,6 +4831,13 @@ GetActiveWindow_Detour (void)
       {
         return game_window.hWnd;
       }
+
+      dwPid = 0x0;
+      dwTid =
+        GetWindowThreadProcessId (SK_GetActiveWindow (nullptr), &dwPid);
+
+      if (GetCurrentProcessId () != dwPid)
+        return 0;
     }
   }
 
@@ -4914,7 +4937,7 @@ GetForegroundWindow_Detour (void)
   //   this would be catastrophic.
   if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
   {
-    if (! rb.isTrueFullscreen ())
+    if ((! rb.isTrueFullscreen ()) || SK_GetModuleHandleW (L"sl.interposer.dll"))
     {                                    // Frame Pacing Has Problems w/o this
       if ( SK_WantBackgroundRender () || config.window.always_on_top == SmartAlwaysOnTop ||
            config.window.treat_fg_as_active )

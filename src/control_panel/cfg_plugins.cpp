@@ -108,7 +108,7 @@ SK_ImGui_PlugInSelector (iSK_INI* ini, const std::string& name, const wchar_t* p
   if (ImGui::IsItemHovered ())
   {
     if (GetFileAttributesW (path) == INVALID_FILE_ATTRIBUTES)
-      ImGui::SetTooltip ("Please install %s to %hs", name.c_str (), std::filesystem::path (path).c_str ());
+      ImGui::SetTooltip ("Please install %hs to %ws", name.c_str (), path);
   }
 
   if (ini->contains_section (import_name))

@@ -5638,11 +5638,8 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
 
-  SK_ComPtr <IDXGISwapChain>                         pNativeSwapChain;
-  if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
-  {
-    pSwapChain = pNativeSwapChain;
-  }
+  SK_ComPtr <IDXGISwapChain1>                    pNativeSwapChain;
+  SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p);
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -5658,7 +5655,7 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
     rb.api  = SK_RenderAPI::D3D12;
 
     SK_LOGi0 (
-      L" + SwapChain <IDXGISwapChain> (%08" _L(PRIxPTR) L"h) created using D3D12 Command Queue",
+      L" + SwapChain <IDXGISwapChain> (%08" _L(PRIxPTR) L"h) wrapped using D3D12 Command Queue",
                (uintptr_t)pSwapChain
     );
 
@@ -5672,12 +5669,7 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
       pDev12 = pNativeDev12;
     }
 
-    if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
-    {
-      pCmdQueue = pNativeCmdQueue;
-    }
-
-    ret =
+    ret = // TODO: Put these in a list somewhere for proper destruction
       new IWrapDXGISwapChain ((ID3D11Device *)pDev12.p, pSwapChain);
 
     rb.setDevice            (pDev12.p);
@@ -5691,10 +5683,7 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
 
   else if ( pDev11 != nullptr )
   {
-    if (SK_slGetNativeInterface (pDev11, (void **)&pNativeDev11.p) == sl::Result::eOk)
-    {
-      pDev11 = pNativeDev11;
-    }
+    SK_slGetNativeInterface (pDev11, (void **)&pNativeDev11.p);
 
     ret =
       new IWrapDXGISwapChain (pDev11.p, pSwapChain);
@@ -5705,7 +5694,7 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
     );
 
     // Stash the pointer to this device so that we can test equality on wrapped devices
-    pDev11->SetPrivateData (SKID_D3D11DeviceBasePtr, sizeof (uintptr_t), pDev11.p);
+    pDev11->SetPrivateData (SKID_D3D11DeviceBasePtr, sizeof (uintptr_t), pNativeDev11.p != nullptr ? pNativeDev11.p : pDev11.p);
   }
 
   if (ret != nullptr)
@@ -5740,14 +5729,10 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
 
-  // Wrapping the native SwapChain crashes Forza Horizon 5 for some reason
-#if 0
-  SK_ComPtr <IDXGISwapChain1>                        pNativeSwapChain;
-  if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
-  {
-    pSwapChain = pNativeSwapChain;
-  }
-#endif
+  SK_DXGI_HookSwapChain (pSwapChain);
+
+  SK_ComPtr <IDXGISwapChain1>                    pNativeSwapChain;
+  SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p);
 
   static auto& rb =
     SK_GetCurrentRenderBackend ();
@@ -5775,11 +5760,6 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
     if (SK_slGetNativeInterface (pDev12, (void **)&pNativeDev12.p) == sl::Result::eOk)
     {
       pDev12 = pNativeDev12;
-    }
-
-    if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
-    {
-      pCmdQueue = pNativeCmdQueue;
     }
 
     ret = // TODO: Put these in a list somewhere for proper destruction
@@ -6637,6 +6617,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       }
 
       SK_DXGI_CreateSwapChain1_PostInit (pDevice, hWnd, pOrigDesc, pOrigFullscreenDesc, &pTemp);
+      //*ppSwapChain = pTemp;
         SK_DXGI_WrapSwapChain1          (pDevice,                                        pTemp,
                                         ppSwapChain,    orig_desc1.Format);
 
@@ -8588,6 +8569,10 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
   if (! first_frame)
     return;
 
+  static bool        once = false;
+  if (std::exchange (once, true))
+    return;
+
   if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
   {
     if (! LocalHook_IDXGISwapChain_SetFullscreenState.active)
@@ -8748,6 +8733,15 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
         }
       }
     }
+
+    // This won't catch Present1 (...), but no games use that
+    //   and we can deal with it later if it happens.
+    SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain);
+
+    SK_ComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
+
+    if (pSwapChain1 != nullptr)
+      SK_DXGI_HookPresent1 (pSwapChain1);
 
     InterlockedIncrementRelease (&hooked);
   }
@@ -8952,6 +8946,26 @@ struct DECLSPEC_UUID("ADEC44E2-61F0-45C3-AD9F-1B37379284FF") StreamlineRetrieveB
 {
 };
 
+// A hack to prevent Streamline from crashing in its hook if it does not implement the device interface
+HRESULT
+SK_DXGI_SafeCreateSwapChain ( IDXGIFactory          *pFactory,
+                              IUnknown              *pDevice,
+                              DXGI_SWAP_CHAIN_DESC  *pDesc,
+                              IDXGISwapChain       **ppSwapChain )
+{
+  __try {
+    return
+      pFactory->CreateSwapChain (pDevice, pDesc, ppSwapChain);
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+    *ppSwapChain = nullptr;
+  }
+
+  return E_NOTIMPL;
+}
+
 DWORD
 __stdcall
 HookDXGI (LPVOID user)
@@ -9106,9 +9120,18 @@ HookDXGI (LPVOID user)
     SK_ComPtr <ID3D11Device>        pNativeDevice;
     SK_ComPtr <ID3D11DeviceContext> pNativeImmediateContext;
 
+    // Probably better named Nixxes mode, what a pain :(
+    const bool bStreamlineMode =
+      false;
+      //SK_GetCurrentGameID () == SK_GAME_ID::HorizonForbiddenWest ||
+      //(SK_GetModuleHandleW (L"sl.interposer.dll") && config.system.global_inject_delay == 0.0f);
+
+    const bool bReShadeMode =
+      (config.compatibility.reshade_mode && (! config.compatibility.using_wine));
+
     // This has benefits, but may prove unreliable with software
     //   that requires NVIDIA's DXGI/Vulkan interop layer
-    if (config.compatibility.reshade_mode && (! config.compatibility.using_wine))
+    if (bStreamlineMode || bReShadeMode)
     {
       SK_slUpgradeInterface ((void **)&pFactory.p);
 
@@ -9193,13 +9216,13 @@ HookDXGI (LPVOID user)
         pDevice->GetImmediateContext (&pImmediateContext.p);
 
         if (! pDevice12)
-          pFactory->CreateSwapChain (pDevice.p, &desc, &pSwapChain.p);
+          SK_DXGI_SafeCreateSwapChain (pFactory, pDevice.p, &desc, &pSwapChain.p);
       }
 
       if (pDevice12 != nullptr)
       {
-        if (FAILED (pFactory->CreateSwapChain (pCmdQueue.p, &desc, &pSwapChain.p)))
-                    pFactory->CreateSwapChain (pDevice.p,   &desc, &pSwapChain.p);
+        if (FAILED (SK_DXGI_SafeCreateSwapChain (pFactory, pCmdQueue.p, &desc, &pSwapChain.p)))
+                    SK_DXGI_SafeCreateSwapChain (pFactory, pDevice.p,   &desc, &pSwapChain.p);
       }
 
       if (bHasStreamline)
@@ -9282,21 +9305,24 @@ HookDXGI (LPVOID user)
         if (SK_slGetNativeInterface (pImmediateContext.p, (void **)&pNativeImmediateContext.p) == sl::Result::eOk)
                                      pImmediateContext =            pNativeImmediateContext;
 
-        if (SUCCEEDED (pFactory->CreateSwapChain (pDevice.p, &desc, &pSwapChain.p)))
+        if (SK_GetModuleHandleW (L"sl.interposer.dll") && (config.system.global_inject_delay == 0.0f))
         {
-          if (SK_slGetNativeInterface (pSwapChain.p, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
-          {                            pSwapChain.p->AddRef ();
-                                       pSwapChain =            pNativeSwapChain;
-          }
-
-          sk_hook_d3d11_t d3d11_hook_ctx =
-            { &pDevice.p, &pImmediateContext.p };
-
-          HookD3D11           (&d3d11_hook_ctx);
-          SK_DXGI_HookFactory (pFactory);
-
-          bHookSuccess = true;
+          extern bool SK_NGX_DLSSG_LateInject;
+                      SK_NGX_DLSSG_LateInject = true;
         }
+
+        else
+        {
+          SK_DXGI_SafeCreateSwapChain (pFactory, pDevice.p, &desc, &pSwapChain.p);
+        }
+
+        sk_hook_d3d11_t d3d11_hook_ctx =
+          { &pDevice.p, &pImmediateContext.p };
+
+        HookD3D11           (&d3d11_hook_ctx);
+        SK_DXGI_HookFactory (pFactory);
+
+        bHookSuccess = true;
       }
     }
 
@@ -9305,15 +9331,6 @@ HookDXGI (LPVOID user)
       if (pSwapChain != nullptr)
       {
         SK_DXGI_HookSwapChain (pSwapChain);
-
-        // This won't catch Present1 (...), but no games use that
-        //   and we can deal with it later if it happens.
-        SK_DXGI_HookPresentBase ((IDXGISwapChain *)pSwapChain);
-
-        SK_ComQIPtr <IDXGISwapChain1> pSwapChain1 (pSwapChain);
-
-        if (pSwapChain1 != nullptr)
-          SK_DXGI_HookPresent1 (pSwapChain1);
       }
 
       bool  bEnable = SK_EnableApplyQueuedHooks  ();

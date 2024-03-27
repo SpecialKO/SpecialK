@@ -1,4 +1,83 @@
-﻿24.3.23.1
+﻿24.3.27
+=======
+ + Fixed Plug-In install path tooltip only printing first character in a path
+     because std::filesystem::path (path).c_str () returns wchar_t*
+
+24.3.26.3
+=========
+ + Fixed various issues with the keyboard and gamepad control panel directions
+     in the startup banner depending on the current input devices present
+
+24.3.26.2
+=========
+ + Added 2 pixel DLAA compat hack default settings for Dragon's Dogma 2
+
+24.3.26.1
+=========
+ + Fixed Reflex breaking in Horizon Forbidden West and various Nixxes games
+
+24.3.26
+=======
+ + More fixes for Nixxes Streamline implementation, in particular their launcher
+     which loads sl.interposer.dll, but does not initialize it and then crashes
+
+24.3.25.2
+=========
+ + Disabled unfinished Shin Megami Tensei 2 plug-in
+
+24.3.25.1
+=========
+ + Added warning to DLSS section of control panel if DLSS frame generation may
+     be b0rked in a game because the Streamline Interposer was loaded before SK
+
+    >> Frame Generation generally works in these scenarios, but the reported
+         framerate will be the real framerate rather than generated framerate,
+           and SK's UI will be completely screwed up.
+
+         * SK HDR (non-native) cannot be used without flickering if this happens
+
+      -- Tooltip explains possible solutions...
+
+24.3.25
+=======
+ + Improved compatibility with some HDR native games using DLSS-G
+ + Improved compatibility with Nixxes DLSS3 Frame Generation games
+ + Global injection delay no longer necessary in Horizon Forbidden West
+ + If HFW crashes when turning on HDR (Epic version), try deleting the
+     Epic Overlay DLL as instructed in startup notification
+
+24.3.24.1
+=========
+ + Changed "Frametime Method" setting in Control Panel to "Graph Measurement"
+     to avoid implying any affect on the behavior of SK's framerate limiter.
+ + Freed references to SK's own DLL acquired using GetModuleHandleEx (...) during
+     CBT hook initialization and shutdown.
+
+24.3.24
+=======
+ + Added 1 ms global injection delay to Horizon Forbidden West to make it work
+     with Nixxes' wonky Streamline code if the Epic Overlay is turned off.
+
+24.3.23.3
+=========
+ + Fixed HDR10 HDR->SDR screenshot tonemapping applying Rec2020 twice in D3D12
+ + Corrected hue shift on colors wider than Rec 709 when saving scRGB AVIF
+     screenshots
+
+    * Microsoft Edge now supports AVIF, and Windows can properly decode 4:2:2
+        and 4:4:4 encoded screenshots w/ appropriate updates to AVIF codec.
+
+        Tooltip left unchanged because it is unlikely most users have received
+          the necessary update to handle 10- and 12-bit 4:2:2 / 4:4:4 content.
+
+      -- Eventually, those will be portable high-quality encodings :)
+
+24.3.23.2
+=========
+ + Load Horizon Forbidden West HDR Fix earlier to workaround Steam DRM
+ + Corrected internal DLSS resolution reporting in Nixxes games
+
+24.3.23.1
 =========
  + Default Auto VRR Optimization to enabling VRR Optimized Framerate Limiter
      >> Before, it would only do so for Ultra Low Latency (not default).

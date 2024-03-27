@@ -219,7 +219,7 @@ SK_GetCurrentGameID (void)
           { L"CHRONOCROSS.exe",                        SK_GAME_ID::ChronoCross                  },
           { L"CHRONOCROSS_LAUNCHER.exe",               SK_GAME_ID::Launcher                     },
           { L"DivaMegaMix.exe",                        SK_GAME_ID::HatsuneMikuDIVAMegaMix       },
-          { L"smt3hd.exe",                             SK_GAME_ID::ShinMegamiTensei3            },
+        //{ L"smt3hd.exe",                             SK_GAME_ID::ShinMegamiTensei3            },
           { L"TheQuarry-Win64-Shipping.exe",           SK_GAME_ID::TheQuarry                    },
           { L"GenshinImpact.exe",                      SK_GAME_ID::GenshinImpact                },
           { L"PathOfExileSteam.exe",                   SK_GAME_ID::PathOfExile                  },
@@ -257,7 +257,8 @@ SK_GetCurrentGameID (void)
           { L"Noita.exe",                              SK_GAME_ID::Noita                        },
           { L"P3R.exe",                                SK_GAME_ID::Persona3                     },
           { L"granblue_fantasy_relink.exe",            SK_GAME_ID::GranblueFantasyRelink        },
-          { L"wrath-sdl.exe",                          SK_GAME_ID::WrathAeonOfRuin              }
+          { L"wrath-sdl.exe",                          SK_GAME_ID::WrathAeonOfRuin              },
+          { L"dd2.exe",                                SK_GAME_ID::DragonsDogma                 }
         };
 
     first_check  = false;
@@ -2367,6 +2368,10 @@ auto DeclKeybind =
         break;
 
 
+      case SK_GAME_ID::DragonsDogma2:
+        config.nvidia.dlss.compat.extra_pixels = -2;
+        break;
+
       case SK_GAME_ID::DragonsDogma:
         // BROKEN (by GeForce Experience)
         //
@@ -2878,7 +2883,76 @@ auto DeclKeybind =
 
       case SK_GAME_ID::HorizonForbiddenWest:
       {
+        bool bSteam = false,
+             bEpic  = false;
 
+        void* hdr_const_addr =
+          (void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0xD23938);
+
+        DWORD dwOrigProt           =           PAGE_EXECUTE_READ;
+        if (VirtualProtect (hdr_const_addr, 8, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+        {
+          uint64_t                           test_val = 0xf50c180511fac5;
+          if (*(uint64_t *)hdr_const_addr != test_val)
+          {
+            hdr_const_addr = nullptr;
+
+            VirtualProtect (hdr_const_addr, 8, dwOrigProt, &dwOrigProt);
+          }
+
+          else
+          {
+            bEpic = true;
+          }
+        }
+
+        else
+          hdr_const_addr = nullptr;
+
+        if (hdr_const_addr == nullptr)
+        {
+          hdr_const_addr =
+            (void *)((uintptr_t)SK_Debug_GetImageBaseAddr () + 0xD2A598);
+
+          dwOrigProt              =              PAGE_EXECUTE_READ;
+          if (VirtualProtect (hdr_const_addr, 8, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+          {
+            uint64_t                           test_val = 0xf6e0e80511fac5;
+            if (*(uint64_t *)hdr_const_addr != test_val)
+            {
+              hdr_const_addr = nullptr;
+
+              VirtualProtect (hdr_const_addr, 8, dwOrigProt, &dwOrigProt);
+            }
+
+            else
+            {
+              bSteam = true;
+            }
+          }
+
+          else
+            hdr_const_addr = nullptr;
+        }
+
+        if (hdr_const_addr != nullptr)
+        {
+          static const
+          uint8_t                         data [] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
+          memcpy (        hdr_const_addr, data, 8);
+          VirtualProtect (hdr_const_addr, 8, dwOrigProt, &dwOrigProt);
+          
+          SK_ImGui_CreateNotification (
+            "HorizonForbiddenWest.HDR", SK_ImGui_Toast::Success,
+            bEpic ? "Successfully Applied HDR Max Luminance Fix -:- (Epic Version)"
+                  : "Successfully Applied HDR Max Luminance Fix -:- (Steam Version)",
+            "Fixed Horizon Forbidden West HDR (Patch Courtesy of Ersh)", 10000UL,
+            SK_ImGui_Toast::UseDuration |
+            SK_ImGui_Toast::ShowCaption |
+            SK_ImGui_Toast::ShowTitle   |
+            SK_ImGui_Toast::ShowOnce
+          );
+        }
       } break;
 
       case SK_GAME_ID::Yakuza0:
@@ -3415,7 +3489,6 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::RatchetAndClank_RiftApart:
-        config.system.global_inject_delay = std::max (0.01f, config.system.global_inject_delay);
         break;
 
       case SK_GAME_ID::Starfield:

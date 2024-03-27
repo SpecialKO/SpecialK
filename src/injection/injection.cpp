@@ -1468,6 +1468,8 @@ SKX_InstallCBTHook (void)
 
     InterlockedExchange (&__SK_HookContextOwner, TRUE);
   }
+
+  FreeLibrary (hModSelf);
 }
 
 
@@ -1563,6 +1565,8 @@ SKX_RemoveCBTHook (void)
 
     dwHookPID = 0x0;
   }
+
+  FreeLibrary (hModSelf);
 }
 
 bool

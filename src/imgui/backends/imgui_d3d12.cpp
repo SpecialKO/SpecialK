@@ -1,4 +1,4 @@
-// dear imgui: Renderer for DirectX12
+﻿// dear imgui: Renderer for DirectX12
 // This needs to be used along with a Platform Binding (e.g. Win32)
 
 #include <SpecialK/stdafx.h>
@@ -1166,6 +1166,8 @@ ImGui_ImplDX12_Shutdown (void)
                        SK_DXGI_FormatToStr (_imgui_d3d12.RTVFormat).data (),
                                             _imgui_d3d12.hWndSwapChain),
                 L"D3D12BkEnd" );
+
+    _d3d12_rbk->drain_queue ();
   }
 
   _imgui_d3d12.pDevice.Release ();
@@ -2846,6 +2848,8 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 {
+  drain_queue ();
+
   if (! ((_pSwapChain.p != nullptr && pSwapChain == nullptr) ||
          (_pSwapChain.p == nullptr && pSwapChain != nullptr) ||
           _pSwapChain.IsEqualObject  (pSwapChain)            ))

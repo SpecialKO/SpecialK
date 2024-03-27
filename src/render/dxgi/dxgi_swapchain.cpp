@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -87,16 +87,16 @@ SK_DXGI_SwapChainDestructionCallback (void *pData)
   auto pSwapChain =
     (IWrapDXGISwapChain *)pData;
 
-  if ( SK::Framerate::HasLimiter  (pSwapChain) &&
-       SK::Framerate::FreeLimiter (pSwapChain) )
+  if ( SK::Framerate::limiters_->count (pSwapChain) &&
+       SK::Framerate::FreeLimiter      (pSwapChain) )
   {
     SK_LOGi0 (
       L"SwapChain (%ph) and Framerate Limiter Destroyed",
        pSwapChain );
   }
 
-  if ( SK::Framerate::HasLimiter  (pSwapChain->pReal) &&
-       SK::Framerate::FreeLimiter (pSwapChain->pReal) )
+  if ( SK::Framerate::limiters_->count (pSwapChain->pReal) &&
+       SK::Framerate::FreeLimiter      (pSwapChain->pReal) )
   {
     SK_LOGi0 (
       L"SwapChain (%ph) and Framerate Limiter Destroyed",
@@ -440,15 +440,17 @@ IWrapDXGISwapChain::GetDevice (REFIID riid, void **ppDevice)
 {
   SK_ReleaseAssert (pDev.p != nullptr);
 
-  if (pDev.p == nullptr && pReal != nullptr)
+  if (pReal != nullptr)
   {
     return
       pReal->GetDevice (riid, ppDevice);
   }
 
   if (pDev.p != nullptr)
+  {
     return
       pDev->QueryInterface (riid, ppDevice);
+  }
 
   return E_NOINTERFACE;
 }

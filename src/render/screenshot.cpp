@@ -635,8 +635,12 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
     switch (metadata.format)
     {
       case DXGI_FORMAT_R10G10B10A2_UNORM:
-      case DXGI_FORMAT_R16G16B16A16_FLOAT:
         image->colorPrimaries          = AVIF_COLOR_PRIMARIES_BT2020;
+        image->transferCharacteristics = AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084;
+        image->matrixCoefficients      = AVIF_MATRIX_COEFFICIENTS_BT2020_NCL;
+        break;
+      case DXGI_FORMAT_R16G16B16A16_FLOAT:
+        image->colorPrimaries          = AVIF_COLOR_PRIMARIES_BT709;//AVIF_COLOR_PRIMARIES_BT2020;
         image->transferCharacteristics = AVIF_TRANSFER_CHARACTERISTICS_SMPTE2084;
         image->matrixCoefficients      = AVIF_MATRIX_COEFFICIENTS_BT2020_NCL;
         break;
@@ -679,14 +683,6 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
 
       case DXGI_FORMAT_R16G16B16A16_FLOAT:
       {
-        static const XMMATRIX c_from709to2020 =
-        {
-          { 0.627225305694944,  0.329476882715808,  0.0432978115892484, 0.0 },
-          { 0.0690418812810714, 0.919605681354755,  0.0113524373641739, 0.0 },
-          { 0.0163911702607078, 0.0880887513437058, 0.895520078395586,  0.0 },
-          { 0.0,                0.0,                0.0,                1.0 }
-        };
-
         struct ParamsPQ
         {
           XMVECTOR N, M;
@@ -702,6 +698,15 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
           XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
           XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
           XMVectorReplicate (125.0),
+        };
+
+#if 1
+        static const XMMATRIX c_from709to2020 =
+        {
+          { 0.627225305694944,  0.329476882715808,  0.0432978115892484, 0.0 },
+          { 0.0690418812810714, 0.919605681354755,  0.0113524373641739, 0.0 },
+          { 0.0163911702607078, 0.0880887513437058, 0.895520078395586,  0.0 },
+          { 0.0,                0.0,                0.0,                1.0 }
         };
 
         auto LinearToPQ = [](XMVECTOR N)
@@ -720,6 +725,7 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
           return
             XMVectorPow (nd, PQ.M);
         };
+#endif
 
         uint16_t* rgb_pixels = (uint16_t *)rgb.pixels;
 
@@ -733,9 +739,9 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
           for (size_t j = 0; j < width; ++j)
           {
             XMVECTOR  value = pixels [j];
-            XMVECTOR nvalue = XMVectorDivide ( XMVector3Transform (   value, c_from709to2020),
-                                               XMVector3Transform (PQ.MaxPQ, c_from709to2020) );
-                      value = LinearToPQ (XMVectorClamp (nvalue, g_XMZero, g_XMOne));
+            XMVECTOR nvalue = XMVectorDivide (value, PQ.MaxPQ);
+
+                      value = LinearToPQ (nvalue);//XMVectorClamp (nvalue, g_XMZero, g_XMOne));
 
             *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [0] * 65535.0f);
             *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [1] * 65535.0f);
