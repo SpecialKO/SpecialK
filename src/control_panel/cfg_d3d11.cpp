@@ -949,8 +949,8 @@ SK::ControlPanel::D3D11::Draw (void)
             if (config.render.framerate.present_interval == 0 && config.render.framerate.target_fps > 0.0f)
             {
               config.render.framerate.latent_sync.tearing_mode =
-                config.render.dxgi.allow_tearing ? SK_LatentSync_TearingMode_AlwaysOn
-                                                 : SK_LatentSync_TearingMode_AlwaysOff;
+                config.render.dxgi.allow_tearing ? SK_TearingMode::LatentSync_AlwaysOn
+                                                 : SK_TearingMode::LatentSync_AlwaysOff;
             }
 
             _ResetLimiter ();

@@ -608,8 +608,8 @@ SK_ImGui_LatentSyncConfig (void)
         ImGui::EndTooltip   ();
       }
 
-      if ( config.render.framerate.latent_sync.tearing_mode == SK_LatentSync_TearingMode_AdaptiveOn ||
-           config.render.framerate.latent_sync.tearing_mode == SK_LatentSync_TearingMode_AlwaysOn   )
+      if ( config.render.framerate.latent_sync.tearing_mode == SK_TearingMode::LatentSync_AdaptiveOn ||
+           config.render.framerate.latent_sync.tearing_mode == SK_TearingMode::LatentSync_AlwaysOn   )
       {
         ImGui::Checkbox ("Visualize Tearlines", &config.render.framerate.latent_sync.show_fcat_bars);
 
@@ -1901,8 +1901,6 @@ SK::Framerate::Limiter::wait (void)
     }
 
 
-    static constexpr int SK_TearingMode_AdaptiveVSync = -SK_LatentSync_TearingMode_AdaptiveOff;
-
     auto _AdaptiveTearing = [&](const int tearingMode)
     {
       static constexpr int _MAX_FRAMES = 30;
@@ -1940,7 +1938,7 @@ SK::Framerate::Limiter::wait (void)
       switch (tearingMode)
       {
         // Prefer tearing, only disable tearing if FPS is unstable
-        case SK_LatentSync_TearingMode_AdaptiveOn:
+        case SK_TearingMode::LatentSync_AdaptiveOn:
         {
           if (latency_avg.getInput () < 0.0 && !bInputStuckAtZero)
           {
@@ -1953,9 +1951,9 @@ SK::Framerate::Limiter::wait (void)
           }
         } break;
         // Prefer no tearing, only enable tearing if Render Latency exceeds 1 frame
-        case SK_LatentSync_TearingMode_AdaptiveOff:
+        case SK_TearingMode::LatentSync_AdaptiveOff:
         // Prefer VSync On, only turn VSync Off if Render Latency exceeds 1 frame
-        case SK_TearingMode_AdaptiveVSync:
+        case SK_TearingMode::AdaptiveVSync:
         {
           // After enabling tearing, disable tearing on next frame
           // and wait for Render Latency to decrease
@@ -2000,7 +1998,7 @@ SK::Framerate::Limiter::wait (void)
 
           auto _ToggleTearing = [&](bool bEnableTearing)
           {
-            if (tearingMode == SK_TearingMode_AdaptiveVSync)
+            if (tearingMode == SK_TearingMode::AdaptiveVSync)
             {
               config.render.framerate.turn_vsync_off = bEnableTearing;
 
@@ -2024,7 +2022,7 @@ SK::Framerate::Limiter::wait (void)
 
           bool bRenderLatencyExceedsOneFrame = false;
 
-          if (!SK_RenderBackend_V2::latency.stale)
+          if (! SK_RenderBackend_V2::latency.stale)
           {
             bRenderLatencyExceedsOneFrame =
               SK_RenderBackend_V2::latency.delays.PresentQueue > 1;
@@ -2095,7 +2093,7 @@ SK::Framerate::Limiter::wait (void)
 
     if (config.render.framerate.present_interval > 0 && config.render.framerate.adaptive_vsync)
     {
-      _AdaptiveTearing (SK_TearingMode_AdaptiveVSync);
+      _AdaptiveTearing (SK_TearingMode::AdaptiveVSync);
     }
 
     else if (config.render.framerate.present_interval == 0 && ticks_per_scanline > 1)
@@ -2114,22 +2112,22 @@ SK::Framerate::Limiter::wait (void)
       }
 
       bool bAdaptiveTearing =
-        config.render.framerate.latent_sync.tearing_mode == SK_LatentSync_TearingMode_AdaptiveOff ||
-        config.render.framerate.latent_sync.tearing_mode == SK_LatentSync_TearingMode_AdaptiveOn;
+        config.render.framerate.latent_sync.tearing_mode == SK_TearingMode::LatentSync_AdaptiveOff ||
+        config.render.framerate.latent_sync.tearing_mode == SK_TearingMode::LatentSync_AdaptiveOn;
 
-      if (!bAdaptiveTearing)
+      if (! bAdaptiveTearing)
       {
         switch (config.render.framerate.latent_sync.tearing_mode)
         {
-          case SK_LatentSync_TearingMode_AlwaysOn:
+          case SK_TearingMode::LatentSync_AlwaysOn:
             config.render.dxgi.allow_tearing = true;
             break;
-          case SK_LatentSync_TearingMode_AlwaysOff:
+          case SK_TearingMode::LatentSync_AlwaysOff:
             config.render.dxgi.allow_tearing = false;
             break;
           default:
             config.render.framerate.latent_sync.tearing_mode =
-              SK_LatentSync_TearingMode_AlwaysOn;
+              SK_TearingMode::LatentSync_AlwaysOn;
             config.render.dxgi.allow_tearing = true;
             break;
         }

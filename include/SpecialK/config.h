@@ -98,12 +98,13 @@ enum SK_FrametimeMethod
   SK_FrametimeMeasures_NewFrameBegin = 2
 };
 
-enum SK_LatentSync_TearingMode
+enum SK_TearingMode
 {
-  SK_LatentSync_TearingMode_AlwaysOn    = 0,
-  SK_LatentSync_TearingMode_AlwaysOff   = 1,
-  SK_LatentSync_TearingMode_AdaptiveOn  = 2,
-  SK_LatentSync_TearingMode_AdaptiveOff = 3
+  LatentSync_AlwaysOn    = 0,
+  LatentSync_AlwaysOff   = 1,
+  LatentSync_AdaptiveOn  = 2,
+  LatentSync_AdaptiveOff = 3,
+  AdaptiveVSync          = 4
 };
 
 struct sk_config_t
@@ -667,7 +668,7 @@ struct sk_config_t
           float ms                 = 0.85f;
           float percent            = 0.0F;
         } auto_bias_target;
-        int   tearing_mode         = SK_LatentSync_TearingMode_AlwaysOn;
+        int   tearing_mode         = SK_TearingMode::LatentSync_AlwaysOn;
         bool  show_fcat_bars       = false; // Not INI-persistent
 
         bool flush_before_present  = true;
