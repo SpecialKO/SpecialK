@@ -1612,7 +1612,7 @@ SK_DrawOSD (void)
           OSD_DLSS_PRINTF "DLSS Preset:     %hs\n", SK_NGX_DLSS_GetCurrentPresetStr () OSD_END
         }
 
-        else if (config.dlss.show_preset)
+        else if (config.dlss.show_quality)
         {
           OSD_DLSS_PRINTF "DLSS Quality:    %hs\n", SK_NGX_DLSS_GetCurrentPerfQualityStr () OSD_END
         }

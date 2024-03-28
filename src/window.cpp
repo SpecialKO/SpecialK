@@ -4937,7 +4937,7 @@ GetForegroundWindow_Detour (void)
   //   this would be catastrophic.
   if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
   {
-    if ((! rb.isTrueFullscreen ()) || SK_GetModuleHandleW (L"sl.interposer.dll"))
+    if ((! rb.isTrueFullscreen ()) || SK_IsModuleLoaded (L"sl.dlss_g.dll"))
     {                                    // Frame Pacing Has Problems w/o this
       if ( SK_WantBackgroundRender () || config.window.always_on_top == SmartAlwaysOnTop ||
            config.window.treat_fg_as_active )

@@ -2254,7 +2254,7 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
     return;
 
   const bool bHasStreamline =
-    SK_IsModuleLoaded (L"sl.interposer.dll");
+    SK_IsModuleLoaded (L"sl.dlss_g.dll");
 
   SK_ComPtr <ID3D12Device> pDev12;
 

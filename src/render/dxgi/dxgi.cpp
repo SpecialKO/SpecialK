@@ -7704,12 +7704,6 @@ SK_HookDXGI (void)
     bool d3d11 =
       ( SK_GetDLLRole () & DLL_ROLE::D3D11 );
 
-//#define __SK_STREAMLINE_COMPATIBLE
-#ifndef __SK_STREAMLINE_COMPATIBLE
-    static HMODULE hModSLInterposer =
-      SK_GetModuleHandle (L"sl.interposer.dll");
-#endif
-
     HMODULE hBackend =
       ( (SK_GetDLLRole () & DLL_ROLE::DXGI) && (! d3d11) ) ?
              backend_dll : SK_Modules->LoadLibraryLL (L"dxgi.dll");
@@ -8544,7 +8538,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
     return;
 
   const bool bHasStreamline =
-    SK_IsModuleLoaded (L"sl.interposer.dll");
+    SK_IsModuleLoaded (L"sl.dlss_g.dll");
 
   SK_ComPtr <IDXGISwapChain> pSwapChain;
 
@@ -8756,7 +8750,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pProxyFactory)
     return;
 
   const bool bHasStreamline =
-    SK_IsModuleLoaded (L"sl.interposer.dll");
+    SK_IsModuleLoaded (L"sl.dlss_g.dll");
 
   SK_ComPtr <IDXGIFactory> pFactory;
 
@@ -9089,7 +9083,7 @@ HookDXGI (LPVOID user)
 
 
     bool    bHookSuccess   = false;
-    bool    bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll");
+    bool    bHasStreamline = SK_IsModuleLoaded (L"sl.dlss_g.dll");
     HRESULT hr             = E_NOTIMPL;
 
     SK_ComPtr <IDXGIAdapter>
@@ -9117,7 +9111,7 @@ HookDXGI (LPVOID user)
     const bool bStreamlineMode =
       false;
       //SK_GetCurrentGameID () == SK_GAME_ID::HorizonForbiddenWest ||
-      //(SK_GetModuleHandleW (L"sl.interposer.dll") && config.system.global_inject_delay == 0.0f);
+      //(SK_GetModuleHandleW (L"sl.dlss_g.dll") && config.system.global_inject_delay == 0.0f);
 
     const bool bReShadeMode =
       (config.compatibility.reshade_mode && (! config.compatibility.using_wine));
@@ -9298,7 +9292,8 @@ HookDXGI (LPVOID user)
         if (SK_slGetNativeInterface (pImmediateContext.p, (void **)&pNativeImmediateContext.p) == sl::Result::eOk)
                                      pImmediateContext =            pNativeImmediateContext;
 
-        if (SK_GetModuleHandleW (L"sl.interposer.dll") && (config.system.global_inject_delay == 0.0f))
+        // Stupid Nixxes hack, no other implementation of Streamline requires this check
+        if (SK_IsInjected () && SK_IsModuleLoaded (L"sl.dlss_g.dll") && (config.system.global_inject_delay == 0.0f))
         {
           extern bool SK_NGX_DLSSG_LateInject;
                       SK_NGX_DLSSG_LateInject = true;
@@ -10291,7 +10286,7 @@ SK_DXGI_QuickHook (void)
     __SK_DisableQuickHook = TRUE;
   }
 
-  if ( SK_IsModuleLoaded (L"sl.interposer.dll") )
+  if ( SK_IsModuleLoaded (L"sl.dlss_g.dll") )
   {
     SK_LOGi0 (L" # DXGI QuickHook disabled because an NVIDIA Streamline Interposer is present...");
 

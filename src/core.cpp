@@ -3158,8 +3158,8 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         //     wonky Streamline implementation not to crash the game, do some stuff
         //       that we normally would have caught during app startup.
         SK_RunOnce (
-        if ( rb.isHDRCapable () && SK_GetModuleHandleW (L"sl.interposer.dll") && 
-                                   SK_GetModuleHandleW (L"EOSOVH-Win64-Shipping.dll") )
+        if ( rb.isHDRCapable () && SK_IsModuleLoaded (L"sl.interposer.dll") && 
+                                   SK_IsModuleLoaded (L"EOSOVH-Win64-Shipping.dll") )
         {
           SK_ImGui_CreateNotification (
             "EOSOVH.Warning", SK_ImGui_Toast::Warning,
