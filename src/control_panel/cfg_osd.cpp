@@ -192,7 +192,22 @@ SK::ControlPanel::OSD::Draw (void)
         ImGui::TreePop  ();
       }
       ImGui::EndGroup   ();
-
+      ImGui::BeginGroup ();
+      if (sk::NVAPI::nv_hardware)
+      {
+        ImGui::Checkbox ("DLSS", &config.dlss.show);
+        if (config.dlss.show)
+        {
+          ImGui::TreePush ("");
+          ImGui::Checkbox (" Current Quality Level",   &config.dlss.show_quality);
+          ImGui::SameLine ();
+          ImGui::Checkbox (" Current Preset",          &config.dlss.show_preset);
+          ImGui::SameLine ();
+          ImGui::Checkbox (" Frame Generation",        &config.dlss.show_fg);
+          ImGui::TreePop  (  );
+        }
+      }
+      ImGui::EndGroup   ();
       ImGui::TreePop    ();
     }
 

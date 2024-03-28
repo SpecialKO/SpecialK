@@ -26,6 +26,7 @@
 
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/gl/opengl_backend.h>
+#include <SpecialK/render/ngx/ngx_dlss.h>
 
 #include <SpecialK/nvapi.h>
 
@@ -78,6 +79,7 @@ SK_TextOverlayManager::SK_TextOverlayManager (void)
     io_.show       = SK_CreateVar (SK_IVariable::Boolean, &config.io.show);
     pagefile_.show = SK_CreateVar (SK_IVariable::Boolean, &config.pagefile.show);
     sli_.show      = SK_CreateVar (SK_IVariable::Boolean, &config.sli.show);
+    dlss_.show     = SK_CreateVar (SK_IVariable::Boolean, &config.dlss.show);
 
     cmd->AddVariable ("OSD.Show",                osd_.show);
 
@@ -106,6 +108,10 @@ SK_TextOverlayManager::SK_TextOverlayManager (void)
 
     cmd->AddVariable ("OSD.IOPS.Show",           io_.show);
     cmd->AddVariable ("OSD.IOPS.UpdateFreq",     SK_CreateVar (SK_IVariable::Float,   &config.io.interval));
+
+    cmd->AddVariable ("OSD.DLSS.Show",           dlss_.show);
+    cmd->AddVariable ("OSD.DLSS.ShowPreset",     SK_CreateVar (SK_IVariable::Boolean, &config.dlss.show_preset));
+    cmd->AddVariable ("OSD.DLSS.ShowFrameGen",   SK_CreateVar (SK_IVariable::Boolean, &config.dlss.show_fg));
   }
 }
 
@@ -249,6 +255,8 @@ SK_TextOverlay::~SK_TextOverlay (void)
                        ! config.fps.compact) ||\
                         (config.osd.show &&\
                          config.gpu.show)  )  { pszOSD += sprintf (pszOSD,
+#define OSD_DLSS_PRINTF if (config.osd.show &&\
+                            config.dlss.show) { pszOSD += sprintf (pszOSD,
 #define OSD_END    ); }
 
 char szOSD [32768] = { };
@@ -1571,6 +1579,47 @@ SK_DrawOSD (void)
     OSD_END
 
     OSD_M_PRINTF "\n" OSD_END
+  }
+
+  if (config.dlss.show && (SK_NGX_IsUsingDLSS () || SK_NGX_IsUsingDLSS_G ()))
+  {
+    int x = 0,
+        y = 0;
+
+    SK_NGX_DLSS_GetInternalResolution (x,y);
+
+    if (x + y != 0)
+    {
+      OSD_DLSS_PRINTF "DLSS Resolution: %dx%d", x,y OSD_END
+
+      if (config.dlss.show_fg && SK_NGX_IsUsingDLSS_G ())
+      {
+        OSD_DLSS_PRINTF " [FG]" OSD_END
+      }
+
+      OSD_DLSS_PRINTF "\n" OSD_END
+
+      if (config.dlss.show_preset || config.dlss.show_quality)
+      {
+        if (config.dlss.show_preset && config.dlss.show_quality)
+        {
+          OSD_DLSS_PRINTF "DLSS Quality:    %hs [%hs]\n", SK_NGX_DLSS_GetCurrentPerfQualityStr (),
+                                                          SK_NGX_DLSS_GetCurrentPresetStr      () OSD_END
+        }
+
+        else if (config.dlss.show_preset)
+        {
+          OSD_DLSS_PRINTF "DLSS Preset:     %hs\n", SK_NGX_DLSS_GetCurrentPresetStr () OSD_END
+        }
+
+        else if (config.dlss.show_preset)
+        {
+          OSD_DLSS_PRINTF "DLSS Quality:    %hs\n", SK_NGX_DLSS_GetCurrentPerfQualityStr () OSD_END
+        }
+      }
+
+      OSD_DLSS_PRINTF "\n" OSD_END
+    }
   }
 
   static auto& disk_stats = SK_WMI_DiskStats.get ();

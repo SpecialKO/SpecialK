@@ -1,4 +1,8 @@
-﻿24.3.27
+﻿24.3.28
+=======
+ + Added DLSS options to text OSD
+
+24.3.27
 =======
  + Fixed Plug-In install path tooltip only printing first character in a path
      because std::filesystem::path (path).c_str () returns wchar_t*

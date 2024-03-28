@@ -286,6 +286,18 @@ struct sk_config_t
   } pagefile;
 
 
+  struct dlss_osd_s {
+    bool   show           = false;
+    bool   show_quality   = true;
+    bool   show_fg        = true;
+    bool   show_preset    = false;
+
+    struct keybinds_s {
+      BYTE toggle [4]     = { VK_MENU, VK_SHIFT, 'D', 0 };
+    } keys;
+  } dlss;
+
+
   struct cegui_s {
     ULONG   frames_drawn       = 0;     //   Count the number of frames drawn using it
     bool    enable             = true;
