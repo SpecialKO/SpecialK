@@ -1379,49 +1379,34 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       }
     }
 
-    bool bAdaptiveVSync = config.render.framerate.present_interval > 0 &&
-                          config.render.framerate.adaptive_vsync;
-
-    static bool bWasAdaptiveVSync = bAdaptiveVSync;
-
-    bool adaptive_vsync_changed = std::exchange (bWasAdaptiveVSync, bAdaptiveVSync) !=
-                                                                    bAdaptiveVSync;
-
-    static int  last_present_interval_sk = config.render.framerate.present_interval;
-    static int  last_present_interval    = -1;
+    static int  last_app_interval = rb.present_interval;
+    static int  last_sk_interval  = config.render.framerate.present_interval;
     static std::vector <char> vsync_list;
 
-    bool present_interval_changed = [&]()
-    {
-      int last_interval_sk = std::exchange (
-        last_present_interval_sk,
-        config.render.framerate.present_interval
-      );
+    bool app_interval_changed =
+      std::exchange (
+        last_app_interval,
+        rb.present_interval
+      ) != rb.present_interval
+        ? config.render.framerate.present_interval == SK_NoPreference
+        : false;
 
-      if (std::exchange (last_present_interval, rb.present_interval) !=
-                                                rb.present_interval)
-      {
-        return true;
-      }
-
-      if (last_interval_sk == config.render.framerate.present_interval)
-      {
-        return false;
-      }
-
-      // Update first_option label if the actual present interval didn't change
-      // BUT SK present interval did change from/to SK_NoPreference (-1 to 0-4 or 0-4 to -1)
-      //  -1 to 0-4: current_no_override_state -> no_override_label
-      // 0-4 to  -1: no_override_label         -> current_no_override_state
-      return std::min (
-        last_interval_sk,
-        config.render.framerate.present_interval
-      ) == SK_NoPreference;
-    }();
+    // Update first_option label if SK present interval changed from/to SK_NoPreference (-1)
+    //  -1 to 0-4: current_no_override_state -> no_override_label
+    // 0-4 to  -1: no_override_label         -> current_no_override_state
+    bool sk_interval_changed_no_preference =
+      last_sk_interval != config.render.framerate.present_interval
+        ? std::min (
+            std::exchange (
+              last_sk_interval,
+              config.render.framerate.present_interval
+            ),
+            config.render.framerate.present_interval
+          ) == SK_NoPreference
+        : false;
 
     // Re-populate the list if the current state changes
-    if ( ( vsync_list.empty () || adaptive_vsync_changed ) ||
-         ( present_interval_changed && !bAdaptiveVSync   ) )
+    if (vsync_list.empty () || app_interval_changed || sk_interval_changed_no_preference)
     {
       const char* current_no_override_state =
         rb.present_interval == 0 ? "  OFF\0"          :
@@ -1455,8 +1440,6 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
     if (ImGui::Combo ("VSYNC", &idx, vsync_list.data ()))
     {
-      last_present_interval = -1;
-
       switch (idx)
       {
         case VSYNC_ForceOn:
