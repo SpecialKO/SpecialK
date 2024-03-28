@@ -1932,8 +1932,8 @@ SK::Framerate::Limiter::wait (void)
       // When tearing is disabled, input latency sometimes gets stuck at (-0.1; 0.0)
       // Enabling tearing fixes it...
       bool bInputStuckAtZero =
-        ( config.render.framerate.present_interval > 0 || !config.render.dxgi.allow_tearing ) &&
-        ( latency_avg.getInput () > -0.1 && latency_avg.getInput () < 0.0                   );
+        ( rb.present_interval     >    0 || !config.render.dxgi.allow_tearing ) &&
+        ( latency_avg.getInput () > -0.1 && latency_avg.getInput () < 0.0     );
 
       switch (tearingMode)
       {
