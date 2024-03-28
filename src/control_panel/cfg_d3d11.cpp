@@ -910,12 +910,48 @@ SK::ControlPanel::D3D11::Draw (void)
         }
 #endif
 
-        if (SK_DXGI_SupportsTearing ())
+        if ( ( config.render.framerate.present_interval == SK_NoPreference && rb.present_interval > 0 ) ||
+             ( config.render.framerate.present_interval >= 1                                          ) )
+        {
+          if (config.render.framerate.present_interval == SK_NoPreference)
+          {
+            config.render.framerate.adaptive_vsync = false;
+          }
+
+          if (ImGui::Checkbox ("Adaptive V-Sync", &config.render.framerate.adaptive_vsync))
+          {
+            if (config.render.framerate.adaptive_vsync)
+            {
+              if (config.render.framerate.present_interval == SK_NoPreference)
+              {
+                config.render.framerate.present_interval = rb.present_interval;
+              }
+            }
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::Text         ("Temporarily turns V-Sync OFF if Render Latency exceeds 1 frame");
+            ImGui::EndTooltip   ();
+          }
+        }
+
+        else if (SK_DXGI_SupportsTearing ())
         {
           bool tearing_pref = config.render.dxgi.allow_tearing;
+
           if (ImGui::Checkbox ("Enable Tearing", &tearing_pref))
           {
             config.render.dxgi.allow_tearing = tearing_pref;
+
+            // Latent Sync
+            if (config.render.framerate.present_interval == 0 && config.render.framerate.target_fps > 0.0f)
+            {
+              config.render.framerate.latent_sync.tearing_mode =
+                config.render.dxgi.allow_tearing ? SK_TearingMode::LatentSync_AlwaysOn
+                                                 : SK_TearingMode::LatentSync_AlwaysOff;
+            }
 
             _ResetLimiter ();
           }

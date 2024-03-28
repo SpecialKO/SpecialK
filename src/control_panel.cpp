@@ -1379,12 +1379,34 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       }
     }
 
-    static int  last_present_interval = -1;
+    static int  last_app_interval = rb.present_interval;
+    static int  last_sk_interval  = config.render.framerate.present_interval;
     static std::vector <char> vsync_list;
 
+    bool app_interval_changed =
+      std::exchange (
+        last_app_interval,
+        rb.present_interval
+      ) != rb.present_interval
+        ? config.render.framerate.present_interval == SK_NoPreference
+        : false;
+
+    // Update first_option label if SK present interval changed from/to SK_NoPreference (-1)
+    //  -1 to 0-4: current_no_override_state -> no_override_label
+    // 0-4 to  -1: no_override_label         -> current_no_override_state
+    bool sk_interval_changed_no_preference =
+      last_sk_interval != config.render.framerate.present_interval
+        ? std::min (
+            std::exchange (
+              last_sk_interval,
+              config.render.framerate.present_interval
+            ),
+            config.render.framerate.present_interval
+          ) == SK_NoPreference
+        : false;
+
     // Re-populate the list if the current state changes
-    if (std::exchange (last_present_interval, rb.present_interval) !=
-                                              rb.present_interval)
+    if (vsync_list.empty () || app_interval_changed || sk_interval_changed_no_preference)
     {
       const char* current_no_override_state =
         rb.present_interval == 0 ? "  OFF\0"          :
@@ -1418,8 +1440,6 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
     if (ImGui::Combo ("VSYNC", &idx, vsync_list.data ()))
     {
-      last_present_interval = -1;
-
       switch (idx)
       {
         case VSYNC_ForceOn:
@@ -5469,14 +5489,12 @@ SK_ImGui_ControlPanel (void)
             bFirstFrame = false;
 
 
-            extern int __SK_LatentSyncSkip;
+            extern int  __SK_LatentSyncSkip;
+            extern bool   SK_LatentSync_WorksAboveRefresh (SK_RenderAPI api);
 
-            int maxLatentSyncSkip = 0;/*(
-              SK_API_IsLayeredOnD3D11 (rb.api) ||
-              SK_API_IsDirect3D9      (rb.api) ||
-              rb.api == SK_RenderAPI::D3D10    ||
-              rb.api == SK_RenderAPI::OpenGL
-            ) ? 4 : 0;*/
+            static bool bWorksAboveRefresh = SK_LatentSync_WorksAboveRefresh (rb.api);
+
+            int maxLatentSyncSkip = bWorksAboveRefresh ? 4 : 0;
 
             bool bLatentSync =
               config.render.framerate.present_interval == 0 &&

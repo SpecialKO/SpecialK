@@ -98,6 +98,15 @@ enum SK_FrametimeMethod
   SK_FrametimeMeasures_NewFrameBegin = 2
 };
 
+enum SK_TearingMode
+{
+  LatentSync_AlwaysOn    = 0,
+  LatentSync_AlwaysOff   = 1,
+  LatentSync_AdaptiveOn  = 2,
+  LatentSync_AdaptiveOff = 3,
+  AdaptiveVSync          = 4
+};
+
 struct sk_config_t
 {
   sk_config_t (void)
@@ -587,6 +596,8 @@ struct sk_config_t
       int     pre_render_limit    = SK_NoPreference;
       int     present_interval    = SK_NoPreference;
       int     sync_interval_clamp = SK_NoPreference;
+      bool    adaptive_vsync      = false;
+      bool    turn_vsync_off      = false; // Turns VSync Off in Adaptive VSync mode (not INI-persistent)
       int     buffer_count        = SK_NoPreference;
       int     max_delta_time      =  0; // Bad old setting; needs to be phased
       int     swapchain_wait      =  0;
@@ -657,6 +668,7 @@ struct sk_config_t
           float ms                 = 0.85f;
           float percent            = 0.0F;
         } auto_bias_target;
+        int   tearing_mode         = SK_TearingMode::LatentSync_AlwaysOn;
         bool  show_fcat_bars       = false; // Not INI-persistent
 
         bool flush_before_present  = true;
