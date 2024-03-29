@@ -2040,6 +2040,13 @@ SK::Framerate::Limiter::wait (void)
               rb.presentation.avg_stats.display > 1.9;
           }
 
+          else
+          {
+            // Assume that Render Latency exceeds 1 frame if
+            // DXGI/PresentMon stats are unavailable and FPS is unstable
+            bRenderLatencyExceedsOneFrame = latency_avg.getInput () < 0.0;
+          }
+
           if (bRenderLatencyExceedsOneFrame)
           {
             if (latency_avg.getInput () < 0.0 || bIsComposedPresent)
