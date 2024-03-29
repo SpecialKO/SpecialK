@@ -35,6 +35,10 @@ NvAPI_Disp_GetHdrCapabilities_pfn NvAPI_Disp_GetHdrCapabilities_Original = nullp
 NvAPI_Disp_HdrColorControl_pfn    NvAPI_Disp_HdrColorControl_Original    = nullptr;
 NvAPI_Disp_ColorControl_pfn       NvAPI_Disp_ColorControl_Original       = nullptr;
 
+using NvAPI_Mosaic_GetDisplayViewportsByResolution_pfn = NvAPI_Status (__cdecl *)(NvU32 displayId, NvU32 srcWidth, NvU32 srcHeight, NV_RECT viewports[NV_MOSAIC_MAX_DISPLAYS], NvU8* bezelCorrected);
+
+NvAPI_Mosaic_GetDisplayViewportsByResolution_pfn NvAPI_Mosaic_GetDisplayViewportsByResolution_Original = nullptr; 
+
 //
 // Undocumented Functions (unless you sign an NDA)
 //
@@ -420,6 +424,24 @@ SK_NvAPI_GetDefaultDisplayId (void)
 #undef  __SK_SUBSYSTEM__
 #endif
 #define __SK_SUBSYSTEM__ L"  Nv API  "
+
+NvAPI_Status
+__cdecl
+NvAPI_Mosaic_GetDisplayViewportsByResolution_Override ( NvU32   displayId,
+                                                        NvU32   srcWidth,
+                                                        NvU32   srcHeight,
+                                                        NV_RECT viewports [NV_MOSAIC_MAX_DISPLAYS],
+                                                        NvU8*   bezelCorrected )
+{
+  SK_LOG_FIRST_CALL
+
+#ifndef ALLOW_NVAPI_RESOLUTION_QUERY
+  return NVAPI_NOT_SUPPORTED;
+#endif
+
+  return
+    NvAPI_Mosaic_GetDisplayViewportsByResolution_Original (displayId, srcWidth, srcHeight, viewports, bezelCorrected);
+}
 
 NvAPI_Status
 __cdecl
@@ -1724,6 +1746,16 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
 
         MH_QueueEnableHook (NvAPI_QueryInterface (891134500));
         MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
+      }
+
+      if (NvAPI_Mosaic_GetDisplayViewportsByResolution_Original == nullptr)
+      {
+        SK_CreateFuncHook (      L"NvAPI_Mosaic_GetDisplayViewportsByResolution",
+                                   NvAPI_QueryInterface (0xDC6DC8D3),
+                                   NvAPI_Mosaic_GetDisplayViewportsByResolution_Override,
+          static_cast_p2p <void> (&NvAPI_Mosaic_GetDisplayViewportsByResolution_Original) );
+
+        MH_QueueEnableHook (NvAPI_QueryInterface (0xDC6DC8D3));
       }
 
       // Admin privileges are required to do this...
