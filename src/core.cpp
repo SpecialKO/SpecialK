@@ -1713,7 +1713,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                 SK_IsModuleLoaded (L"MSCOREE.dll"); };
 
   // If Global Injection Delay, block initialization thread until the delay period ends
-  if (SK_IsInjected () && (config.system.global_inject_delay > 0.0f || _NeedImplicitDelay ()))
+  if (SK_IsInjected () && (SK_Inject_GetInjectionDelayInSeconds () > 0.0f || _NeedImplicitDelay ()))
   {
     struct packaged_params_s {
       std::wstring backend  = L""; // Persistent copy

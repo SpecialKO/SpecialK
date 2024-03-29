@@ -1,10 +1,19 @@
-﻿24.3.28.1
+﻿24.3.29
+=======
+ + Prevent delayed global injection if the 64-bit Epic Overlay is loaded,
+     because Epic's overlay will deadlock in its LoadLibrary hook.
+
+24.3.28.1
 =========
  + Attempt yet more fixes for Nixxes Streamline / DLSS-G problems, if in doubt
      always delete sl.dlss_g.dll from a Nixxes game and avoid Frame Generation.
 
     >> 0.01 ms injection delay re-introduced to Nixxes games if sl.dlss_g.dll
          is loaded; note that this will cause RTSS to crash Ratchet and Clank.
+
+    >> Give user error message if local injection is attempted in a Nixxes
+         game that uses Streamline and either sl.interposer.dll or sl.dlss_g.dll
+           have not been deleted.
 
 24.3.28
 =======

@@ -9293,7 +9293,7 @@ HookDXGI (LPVOID user)
                                      pImmediateContext =            pNativeImmediateContext;
 
         // Stupid Nixxes hack, no other implementation of Streamline requires this check
-        if (SK_IsInjected () && SK_IsModuleLoaded (L"sl.dlss_g.dll") && (config.system.global_inject_delay == 0.0f))
+        if (SK_IsInjected () && SK_IsModuleLoaded (L"sl.dlss_g.dll") && (SK_Inject_GetInjectionDelayInSeconds () == 0.0f))
         {
           extern bool SK_NGX_DLSSG_LateInject;
                       SK_NGX_DLSSG_LateInject = true;
