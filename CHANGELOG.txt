@@ -1,4 +1,12 @@
-﻿24.3.29
+﻿24.3.29.1
+=========
+ + Fix potentially leftover ReShade.ini files in game's working directory if
+     ReShade DLL is loaded as a plug-in but does not cleanly unload.
+ + Disable NvAPI_Mosaic_GetDisplayViewportsByResolution API calls because they
+     take 300 ms to return for each monitor installed in Nixxes games and are
+       called during startup and every time you open graphics settings.
+
+24.3.29
 =======
  + Prevent delayed global injection if the 64-bit Epic Overlay is loaded,
      because Epic's overlay will deadlock in its LoadLibrary hook.

@@ -968,6 +968,9 @@ extern void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
 
 void BasicInit (void)
 {
+  // Cleanup any leftover temporary files from the last launch
+  SK_DeleteTemporaryFiles ();
+
   // Add a notification that will not go away until a user reads it...
   SK_ImGui_CreateNotification (
     "Notification.HelloWorld", SK_ImGui_Toast::Success,
@@ -2798,8 +2801,6 @@ SK_ShutdownCore (const wchar_t* backend)
   if (config.window.confine_cursor)
     SK_ClipCursor (nullptr);
 
-  SK_ReShadeAddOn_CleanupConfigAndLogs ();
-
   // These games do not handle resolution correctly
   switch (SK_GetCurrentGameID ())
   {
@@ -2975,6 +2976,8 @@ SK_ShutdownCore (const wchar_t* backend)
     SK_Log_CleanupLogs         ();
     dll_log->LogEx             (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
     SK_UnloadImports           ();
+
+    SK_ReShadeAddOn_CleanupConfigAndLogs ();
   }
 
 

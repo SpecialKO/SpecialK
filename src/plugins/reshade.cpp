@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1226,8 +1226,12 @@ SK_ReShadeAddOn_CleanupConfigAndLogs (void)
     // Didn't have a local INI file originally, and we don't want one now either!
     if (! SK_ReShadeAddOn_HadLocalINI)
     {
-      DeleteFileW (L"ReShade.ini");
-      DeleteFileW (L"ReShade.log");
+      SK_File_MoveNoFail (L"ReShade.ini", L"SKI_ReShade.ini.tmp");
+      SK_File_MoveNoFail (L"ReShade.log", L"SKI_ReShade.log.tmp");
+
+      // If they are locked, SK will clean these up on next launch
+      DeleteFileW (L"SKI_ReShade.ini.tmp");
+      DeleteFileW (L"SKI_ReShade.log.tmp");
     }
   }
 }
