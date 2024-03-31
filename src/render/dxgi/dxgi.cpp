@@ -7402,6 +7402,8 @@ WINAPI CreateDXGIFactory (REFIID   riid,
   if (config.render.dxgi.debug_layer)
     return CreateDXGIFactory2 (0x1, riid, ppFactory);
 
+  return CreateDXGIFactory2 (0x0, riid, ppFactory);
+
 
   if (config.render.dxgi.use_factory_cache)
   {
@@ -7478,6 +7480,8 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
   // Forward this through CreateDXGIFactory2 to initialize DXGI Debug
   if (config.render.dxgi.debug_layer)
     return CreateDXGIFactory2 (0x1, riid, ppFactory);
+
+  return CreateDXGIFactory2 (0x0, riid, ppFactory);
 
 
   if (config.render.dxgi.use_factory_cache && ppFactory != nullptr)
@@ -7565,9 +7569,21 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
 
 HRESULT
 WINAPI CreateDXGIFactory2 (UINT     Flags,
-                           REFIID   riid,
+                           REFIID   riid_,
                      _Out_ void   **ppFactory)
 {
+  IID riid = riid_;
+
+  // Upgrade everything to at least IDXGIFactory5 implicitly
+  if (IsEqualGUID (riid_, IID_IDXGIFactory)  ||
+      IsEqualGUID (riid_, IID_IDXGIFactory1) ||
+      IsEqualGUID (riid_, IID_IDXGIFactory2) ||
+      IsEqualGUID (riid_, IID_IDXGIFactory3) ||
+      IsEqualGUID (riid_, IID_IDXGIFactory4))
+  {
+    riid = IID_IDXGIFactory5;
+  }
+
   if (SK_COMPAT_IgnoreDxDiagnCall ())
     return E_NOTIMPL;
 
@@ -7594,8 +7610,8 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
       __SK_DXGI_FactoryCache.reset ();
   }
 
-  std::string iname = SK_GetDXGIFactoryInterfaceEx  (riid);
-  int         iver  = SK_GetDXGIFactoryInterfaceVer (riid);
+  std::string iname = SK_GetDXGIFactoryInterfaceEx  (riid_);
+  int         iver  = SK_GetDXGIFactoryInterfaceVer (riid_);
 
   UNREFERENCED_PARAMETER (iver);
 
@@ -7624,6 +7640,28 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
       CreateDXGIFactory1 (riid, ppFactory);
   }
 
+//#define LEAK_FACTORIES
+#ifdef  LEAK_FACTORIES
+  static IDXGIFactory* pLastFactory = nullptr;
+  static IID           lastIID      = {};
+
+  if (! IsEqualGUID (lastIID, riid))
+  {
+    if (pLastFactory != nullptr)
+        pLastFactory->Release ();
+
+    pLastFactory = nullptr;
+  }
+
+  else
+  {
+    *ppFactory = pLastFactory;
+                 pLastFactory->AddRef ();
+
+    return S_OK;
+  }    
+#endif
+
   void* pFactory_ = nullptr;
 
   HRESULT    ret;
@@ -7648,6 +7686,12 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
     {
       __SK_DXGI_FactoryCache.addFactory (ppFactory, riid);
     }
+
+#ifdef  LEAK_FACTORIES
+    lastIID      =  riid;
+    pLastFactory = (IDXGIFactory *)*ppFactory;
+    pLastFactory->AddRef ();
+#endif
   }
 
   return     ret;
