@@ -2961,19 +2961,6 @@ auto DeclKeybind =
             SK_ImGui_Toast::ShowOnce
           );
         }
-
-        if ((! SK_IsInjected ()) && (PathFileExistsW (L"sl.dlss_g.dll") && PathFileExistsW (L"sl.interposer.dll")))
-        {
-          //SK_MessageBox (
-          //  L"Special K Local Injection cannot be used in Nixxes games unless sl.interposer.dll or sl.dlss_g.dll is deleted",
-          //  L"Nixxes Incompatibility", MB_OK
-          //);
-        }
-
-        else if (SK_IsModuleLoaded (L"sl.dlss_g.dll"))
-        {
-          config.system.global_inject_delay = 0.01;
-        }
       } break;
 
       case SK_GAME_ID::Yakuza0:
@@ -3511,18 +3498,6 @@ auto DeclKeybind =
 
       // Pain in the ass Nixxes port
       case SK_GAME_ID::RatchetAndClank_RiftApart:
-        if ((! SK_IsInjected ()) && (PathFileExistsW (L"sl.dlss_g.dll") && PathFileExistsW (L"sl.interposer.dll")))
-        {
-          SK_MessageBox (
-            L"Special K Local Injection cannot be used in Nixxes games unless sl.interposer.dll or sl.dlss_g.dll is deleted",
-            L"Nixxes Incompatibility", MB_OK
-          );
-        }
-
-        else if (SK_IsModuleLoaded (L"sl.dlss_g.dll"))
-        {
-          config.system.global_inject_delay = 0.01;
-        }
         break;
 
       case SK_GAME_ID::Starfield:

@@ -1,4 +1,12 @@
-﻿24.3.30
+﻿24.3.30.1
+=========
+ + Permit local injection in Ratchet and Clank, as it no longer crashes the game's
+     launcher for the CreateDXGIFactory mismatch issue mentioned in 24.3.30.
+
+    * Turning HDR on/off using local injection will still crash the game, so it is
+        not suggested.
+
+24.3.30
 =======
  + Fixed NVIDIA Reflex not working in Ratchet and Clank without an injection
      delay because the game uses multiple API versions of CreateDXGIFactory;
