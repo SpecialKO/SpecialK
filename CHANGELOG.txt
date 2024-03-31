@@ -1,4 +1,12 @@
-﻿24.3.29.1
+﻿24.3.30
+=======
+ + Fixed NVIDIA Reflex not working in Ratchet and Clank without an injection
+     delay because the game uses multiple API versions of CreateDXGIFactory;
+       all calls will now forward through to CreateDXGIFactory2
+ + Permit local injection for Horizon: Forbidden West even if Streamline is not
+     disabled.
+
+24.3.29.1
 =========
  + Fix potentially leftover ReShade.ini files in game's working directory if
      ReShade DLL is loaded as a plug-in but does not cleanly unload.
