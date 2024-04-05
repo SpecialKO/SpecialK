@@ -1901,7 +1901,7 @@ SK::Framerate::Limiter::wait (void)
     }
 
 
-    auto _AdaptiveTearing = [&](const int tearingMode)
+    auto _AdaptiveTearing = [&](SK_TearingMode tearingMode) -> void
     {
       static constexpr int _MAX_FRAMES = 30;
 
@@ -1929,25 +1929,56 @@ SK::Framerate::Limiter::wait (void)
         (1000.0 / get_limit           ()) -
                   effective_frametime ();
 
-      // When tearing is disabled, input latency sometimes gets stuck at (-0.1; 0.0)
-      // Enabling tearing fixes it...
-      bool bInputStuckAtZero =
+      auto _ToggleTearing = [&](bool bEnableTearing) -> void
+      {
+        if (tearingMode == SK_TearingMode::AdaptiveVSync)
+        {
+          config.render.framerate.turn_vsync_off = bEnableTearing;
+
+          config.render.dxgi.allow_tearing = true;
+        }
+
+        else
+        {
+          config.render.dxgi.allow_tearing = bEnableTearing;
+        }
+      };
+
+      // When tearing is disabled, input latency sometimes gets stuck at (-0.1; 0.1) ms
+      bool bIsInputStuckAtZero =
         ( rb.present_interval     >    0 || !config.render.dxgi.allow_tearing ) &&
-        ( latency_avg.getInput () > -0.1 && latency_avg.getInput () < 0.0     );
+        ( latency_avg.getInput () > -0.1 && latency_avg.getInput () < 0.1     );
+
+      static bool bWasInputStuckAtZero = bIsInputStuckAtZero;
+
+      // Keep tearing enabled until input latency reaches 0.1 ms
+      if (bIsInputStuckAtZero || (bWasInputStuckAtZero && latency_avg.getInput () < 0.1))
+      {
+        _ToggleTearing (true);
+
+        bWasInputStuckAtZero = true;
+
+        return;
+      }
+
+      else
+      {
+        bWasInputStuckAtZero = false;
+      }
 
       switch (tearingMode)
       {
         // Prefer tearing, only disable tearing if FPS is unstable
         case SK_TearingMode::LatentSync_AdaptiveOn:
         {
-          if (latency_avg.getInput () < 0.0 && !bInputStuckAtZero)
+          if (latency_avg.getInput () < 0.0)
           {
-            config.render.dxgi.allow_tearing = false;
+             _ToggleTearing (false);
           }
 
           else
           {
-            config.render.dxgi.allow_tearing = true;
+             _ToggleTearing (true);
           }
         } break;
         // Prefer no tearing, only enable tearing if Render Latency exceeds 1 frame
@@ -1996,30 +2027,6 @@ SK::Framerate::Limiter::wait (void)
             )
           );
 
-          auto _ToggleTearing = [&](bool bEnableTearing)
-          {
-            if (tearingMode == SK_TearingMode::AdaptiveVSync)
-            {
-              config.render.framerate.turn_vsync_off = bEnableTearing;
-
-              config.render.dxgi.allow_tearing = true;
-            }
-
-            else
-            {
-              config.render.dxgi.allow_tearing = bEnableTearing;
-            }
-          };
-
-          if (bInputStuckAtZero)
-          {
-            _ToggleTearing (true);
-
-            bDisableTearingAndWait = !bIsComposedPresent;
-
-            break;
-          }
-
           bool bRenderLatencyExceedsOneFrame = false;
 
           if (! SK_RenderBackend_V2::latency.stale)
@@ -2055,7 +2062,7 @@ SK::Framerate::Limiter::wait (void)
 
               bDisableTearingAndWait = false;
 
-              break;
+              return;
             }
 
             // Wait for Render Latency to decrease after recovering from lost Independent Flip
@@ -2065,7 +2072,7 @@ SK::Framerate::Limiter::wait (void)
 
               bDisableTearingAndWait = true;
 
-              break;
+              return;
             }
 
             if (bDisableTearingAndWait)
@@ -2074,7 +2081,7 @@ SK::Framerate::Limiter::wait (void)
 
               if (++waitFrames % _MAX_WAIT_FRAMES != 0)
               {
-                break;
+                return;
               }
 
               bFailedToReduceRenderLatency = true;
@@ -2118,26 +2125,25 @@ SK::Framerate::Limiter::wait (void)
         __SK_LatentSyncSkip = 0;
       }
 
-      bool bAdaptiveTearing =
-        config.render.framerate.latent_sync.tearing_mode == SK_TearingMode::LatentSync_AdaptiveOff ||
-        config.render.framerate.latent_sync.tearing_mode == SK_TearingMode::LatentSync_AdaptiveOn;
-
-      if (! bAdaptiveTearing)
+      switch (config.render.framerate.latent_sync.tearing_mode)
       {
-        switch (config.render.framerate.latent_sync.tearing_mode)
-        {
-          case SK_TearingMode::LatentSync_AlwaysOn:
-            config.render.dxgi.allow_tearing = true;
-            break;
-          case SK_TearingMode::LatentSync_AlwaysOff:
-            config.render.dxgi.allow_tearing = false;
-            break;
-          default:
-            config.render.framerate.latent_sync.tearing_mode =
-              SK_TearingMode::LatentSync_AlwaysOn;
-            config.render.dxgi.allow_tearing = true;
-            break;
-        }
+        case SK_TearingMode::LatentSync_AdaptiveOn:
+          _AdaptiveTearing (SK_TearingMode::LatentSync_AdaptiveOn);
+          break;
+        case SK_TearingMode::LatentSync_AdaptiveOff:
+          _AdaptiveTearing (SK_TearingMode::LatentSync_AdaptiveOff);
+          break;
+        case SK_TearingMode::LatentSync_AlwaysOn:
+          config.render.dxgi.allow_tearing = true;
+          break;
+        case SK_TearingMode::LatentSync_AlwaysOff:
+          config.render.dxgi.allow_tearing = false;
+          break;
+        default:
+          config.render.framerate.latent_sync.tearing_mode =
+            SK_TearingMode::LatentSync_AlwaysOn;
+          config.render.dxgi.allow_tearing = true;
+          break;
       }
 
       if (__scanline.lock.isPending ())
@@ -2201,105 +2207,97 @@ SK::Framerate::Limiter::wait (void)
         }
       }
 
-      else if (config.render.framerate.latent_sync.auto_bias || bAdaptiveTearing)
+      else if (config.render.framerate.latent_sync.auto_bias)
       {
-        if (bAdaptiveTearing)
-        {
-          _AdaptiveTearing (config.render.framerate.latent_sync.tearing_mode);
-        }
+        static constexpr int _MAX_FRAMES = 6;
 
-        if (config.render.framerate.latent_sync.auto_bias)
-        {
-          static constexpr int _MAX_FRAMES = 6;
+        struct {
+          double input   [_MAX_FRAMES] = { };
+          double display [_MAX_FRAMES] = { };
 
-          struct {
-            double input   [_MAX_FRAMES] = { };
-            double display [_MAX_FRAMES] = { };
+          int frames = 0;
 
-            int frames = 0;
+          double getInput (void) noexcept
+          {
+            double avg     = 0.0,
+                   samples = 0.0;
 
-            double getInput (void) noexcept
+            for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
             {
-              double avg     = 0.0,
-                     samples = 0.0;
-
-              for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
-              {
-                ++samples; avg += input [i];
-              }
-
-              return
-                ( avg / samples );
+              ++samples; avg += input [i];
             }
 
-            double getDisplay (void) noexcept
+            return
+              ( avg / samples );
+          }
+
+          double getDisplay (void) noexcept
+          {
+            double avg     = 0.0,
+                   samples = 0.0;
+
+            for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
             {
-              double avg     = 0.0,
-                     samples = 0.0;
-
-              for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
-              {
-                ++samples; avg += display [i];
-              }
-
-              return
-                ( avg / samples );
+              ++samples; avg += display [i];
             }
-          } static latency_avg;
 
-          latency_avg.input   [latency_avg.frames   % _MAX_FRAMES] =
-            (1000.0 / get_limit           ()) -
-                      effective_frametime ();
-          latency_avg.display [latency_avg.frames++ % _MAX_FRAMES] =
-                      effective_frametime ();
-
-          float delta = 0.0f;
-
-          float auto_bias_target_ms =
-            config.render.framerate.latent_sync.auto_bias_target.ms;
-
-          float auto_bias_target_percent =
-            config.render.framerate.latent_sync.auto_bias_target.percent;
-
-          if (auto_bias_target_percent > 0.0f)
-          {
-            auto_bias_target_ms = static_cast <float> (
-              (latency_avg.getInput () + latency_avg.getDisplay ()) * (1.0f - auto_bias_target_percent)
-            );
+            return
+              ( avg / samples );
           }
+        } static latency_avg;
 
-          if (latency_avg.getInput () > (auto_bias_target_ms * 1.05f))
-          {
-            delta = (float)effective_frametime () * SK_LatentSyncDeltaMultiplier;
+        latency_avg.input   [latency_avg.frames   % _MAX_FRAMES] =
+          (1000.0 / get_limit           ()) -
+                    effective_frametime ();
+        latency_avg.display [latency_avg.frames++ % _MAX_FRAMES] =
+                    effective_frametime ();
 
-            config.render.framerate.latent_sync.delay_bias =
-              SK_LatentSyncAlpha * config.render.framerate.latent_sync.delay_bias + (1.0f - SK_LatentSyncAlpha) * delta;
-          }
+        float delta = 0.0f;
 
-          else if (latency_avg.getInput () < (auto_bias_target_ms * .95f))
-          {
-            delta = (float)effective_frametime () * SK_LatentSyncDeltaMultiplier * SK_LatentSyncBackOffMultiplier;
+        float auto_bias_target_ms =
+          config.render.framerate.latent_sync.auto_bias_target.ms;
 
-            config.render.framerate.latent_sync.delay_bias =
-              SK_LatentSyncAlpha * config.render.framerate.latent_sync.delay_bias - (1.0f - SK_LatentSyncAlpha) * delta;
-            //config.render.framerate.latent_sync.delay_bias -= static_cast <float> (effective_frametime () * 0.000666);
-          }
+        float auto_bias_target_percent =
+          config.render.framerate.latent_sync.auto_bias_target.percent;
 
-          config.render.framerate.latent_sync.delay_bias = std::clamp (
-            config.render.framerate.latent_sync.delay_bias,
-            0.0f,
-            auto_bias_target_percent == 0.0f
-              ? config.render.framerate.latent_sync.max_auto_bias
-              : 1.0f
+        if (auto_bias_target_percent > 0.0f)
+        {
+          auto_bias_target_ms = static_cast <float> (
+            (latency_avg.getInput () + latency_avg.getDisplay ()) * (1.0f - auto_bias_target_percent)
           );
-
-          __SK_LatentSyncPostDelay =
-            (config.render.framerate.latent_sync.delay_bias == 0.0f) ? 0
-                                                                     :
-            static_cast <LONGLONG> (
-              static_cast <double> (get_ticks_per_frame ()) *
-                           config.render.framerate.latent_sync.delay_bias );
         }
+
+        if (latency_avg.getInput () > (auto_bias_target_ms * 1.05f))
+        {
+          delta = (float)effective_frametime () * SK_LatentSyncDeltaMultiplier;
+
+          config.render.framerate.latent_sync.delay_bias =
+            SK_LatentSyncAlpha * config.render.framerate.latent_sync.delay_bias + (1.0f - SK_LatentSyncAlpha) * delta;
+        }
+
+        else if (latency_avg.getInput () < (auto_bias_target_ms * .95f))
+        {
+          delta = (float)effective_frametime () * SK_LatentSyncDeltaMultiplier * SK_LatentSyncBackOffMultiplier;
+
+          config.render.framerate.latent_sync.delay_bias =
+            SK_LatentSyncAlpha * config.render.framerate.latent_sync.delay_bias - (1.0f - SK_LatentSyncAlpha) * delta;
+          //config.render.framerate.latent_sync.delay_bias -= static_cast <float> (effective_frametime () * 0.000666);
+        }
+
+        config.render.framerate.latent_sync.delay_bias = std::clamp (
+          config.render.framerate.latent_sync.delay_bias,
+          0.0f,
+          auto_bias_target_percent == 0.0f
+            ? config.render.framerate.latent_sync.max_auto_bias
+            : 1.0f
+        );
+
+        __SK_LatentSyncPostDelay =
+          (config.render.framerate.latent_sync.delay_bias == 0.0f) ? 0
+                                                                   :
+          static_cast <LONGLONG> (
+            static_cast <double> (get_ticks_per_frame ()) *
+                         config.render.framerate.latent_sync.delay_bias );
       }
 
       __SK_LatentSyncFrame++;
