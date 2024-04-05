@@ -1951,12 +1951,21 @@ SK::Framerate::Limiter::wait (void)
 
       static bool bWasInputStuckAtZero = bIsInputStuckAtZero;
 
-      // Keep tearing enabled until input latency reaches 0.1 ms
-      if (bIsInputStuckAtZero || (bWasInputStuckAtZero && latency_avg.getInput () < 0.1))
+      // Keep tearing enabled until input latency is no longer stuck at (-0.1; 0.1) ms
+      if (bIsInputStuckAtZero)
       {
         _ToggleTearing (true);
 
         bWasInputStuckAtZero = true;
+
+        return;
+      }
+
+      else if ( latency_avg.getInput () > -0.1 &&
+                latency_avg.getInput () <  0.1 &&
+                bWasInputStuckAtZero           )
+      {
+        _ToggleTearing (true);
 
         return;
       }
