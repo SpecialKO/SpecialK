@@ -968,6 +968,9 @@ extern void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
 
 void BasicInit (void)
 {
+  // Cleanup any leftover temporary files from the last launch
+  SK_DeleteTemporaryFiles ();
+
   // Add a notification that will not go away until a user reads it...
   SK_ImGui_CreateNotification (
     "Notification.HelloWorld", SK_ImGui_Toast::Success,
@@ -1713,7 +1716,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
                 SK_IsModuleLoaded (L"MSCOREE.dll"); };
 
   // If Global Injection Delay, block initialization thread until the delay period ends
-  if (SK_IsInjected () && (config.system.global_inject_delay > 0.0f || _NeedImplicitDelay ()))
+  if (SK_IsInjected () && (SK_Inject_GetInjectionDelayInSeconds () > 0.0f || _NeedImplicitDelay ()))
   {
     struct packaged_params_s {
       std::wstring backend  = L""; // Persistent copy
@@ -2798,8 +2801,6 @@ SK_ShutdownCore (const wchar_t* backend)
   if (config.window.confine_cursor)
     SK_ClipCursor (nullptr);
 
-  SK_ReShadeAddOn_CleanupConfigAndLogs ();
-
   // These games do not handle resolution correctly
   switch (SK_GetCurrentGameID ())
   {
@@ -2975,6 +2976,8 @@ SK_ShutdownCore (const wchar_t* backend)
     SK_Log_CleanupLogs         ();
     dll_log->LogEx             (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
     SK_UnloadImports           ();
+
+    SK_ReShadeAddOn_CleanupConfigAndLogs ();
   }
 
 
@@ -3158,8 +3161,8 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         //     wonky Streamline implementation not to crash the game, do some stuff
         //       that we normally would have caught during app startup.
         SK_RunOnce (
-        if ( rb.isHDRCapable () && SK_GetModuleHandleW (L"sl.interposer.dll") && 
-                                   SK_GetModuleHandleW (L"EOSOVH-Win64-Shipping.dll") )
+        if ( rb.isHDRCapable () && SK_IsModuleLoaded (L"sl.interposer.dll") && 
+                                   SK_IsModuleLoaded (L"EOSOVH-Win64-Shipping.dll") )
         {
           SK_ImGui_CreateNotification (
             "EOSOVH.Warning", SK_ImGui_Toast::Warning,

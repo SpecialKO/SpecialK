@@ -1,4 +1,49 @@
-﻿24.3.27
+﻿24.3.30.1
+=========
+ + Permit local injection in Ratchet and Clank, as it no longer crashes the game's
+     launcher for the CreateDXGIFactory mismatch issue mentioned in 24.3.30.
+
+    * Turning HDR on/off using local injection will still crash the game, so it is
+        not suggested.
+
+24.3.30
+=======
+ + Fixed NVIDIA Reflex not working in Ratchet and Clank without an injection
+     delay because the game uses multiple API versions of CreateDXGIFactory;
+       all calls will now forward through to CreateDXGIFactory2
+ + Permit local injection for Horizon: Forbidden West even if Streamline is not
+     disabled.
+
+24.3.29.1
+=========
+ + Fix potentially leftover ReShade.ini files in game's working directory if
+     ReShade DLL is loaded as a plug-in but does not cleanly unload.
+ + Disable NvAPI_Mosaic_GetDisplayViewportsByResolution API calls because they
+     take 300 ms to return for each monitor installed in Nixxes games and are
+       called during startup and every time you open graphics settings.
+
+24.3.29
+=======
+ + Prevent delayed global injection if the 64-bit Epic Overlay is loaded,
+     because Epic's overlay will deadlock in its LoadLibrary hook.
+
+24.3.28.1
+=========
+ + Attempt yet more fixes for Nixxes Streamline / DLSS-G problems, if in doubt
+     always delete sl.dlss_g.dll from a Nixxes game and avoid Frame Generation.
+
+    >> 0.01 ms injection delay re-introduced to Nixxes games if sl.dlss_g.dll
+         is loaded; note that this will cause RTSS to crash Ratchet and Clank.
+
+    >> Give user error message if local injection is attempted in a Nixxes
+         game that uses Streamline and either sl.interposer.dll or sl.dlss_g.dll
+           have not been deleted.
+
+24.3.28
+=======
+ + Added DLSS options to text OSD
+
+24.3.27
 =======
  + Fixed Plug-In install path tooltip only printing first character in a path
      because std::filesystem::path (path).c_str () returns wchar_t*

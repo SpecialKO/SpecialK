@@ -2162,7 +2162,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     return;
 
   // This test for device equality will fail if there is a Streamline interposer; ignore it.
-  if ((! pD3D12Device.IsEqualObject (_pDevice.p)) && (! GetModuleHandleW (L"sl.interposer.dll")))
+  if ((! pD3D12Device.IsEqualObject (_pDevice.p)) && (! SK_IsModuleLoaded (L"sl.interposer.dll")))
     return;
 
   UINT swapIdx =

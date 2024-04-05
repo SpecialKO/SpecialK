@@ -1217,11 +1217,15 @@ using PFun_slUpgradeInterface   = sl::Result(                      void** baseIn
 sl::Result
 SK_slGetNativeInterface (void *proxyInterface, void **baseInterface)
 {
-  static PFun_slGetNativeInterface * slGetNativeInterface =
-        (PFun_slGetNativeInterface *) SK_GetProcAddress (L"sl.interposer.dll", "slGetNativeInterface");
+  // Unsafe to do this for local injection
+  if (SK_IsInjected ())
+  {
+    static PFun_slGetNativeInterface * slGetNativeInterface =
+          (PFun_slGetNativeInterface *) SK_GetProcAddress (L"sl.interposer.dll", "slGetNativeInterface");
 
-  if (     slGetNativeInterface != nullptr)
-    return slGetNativeInterface (proxyInterface, baseInterface);
+    if (     slGetNativeInterface != nullptr)
+      return slGetNativeInterface (proxyInterface, baseInterface);
+  }
 
   return sl::Result::eErrorNotInitialized;
 }
@@ -1229,11 +1233,15 @@ SK_slGetNativeInterface (void *proxyInterface, void **baseInterface)
 sl::Result
 SK_slUpgradeInterface (void **baseInterface)
 {
-  static PFun_slUpgradeInterface * slUpgradeInterface =
-        (PFun_slUpgradeInterface *) SK_GetProcAddress (L"sl.interposer.dll", "slUpgradeInterface");
+  // Unsafe to do this for local injection
+  if (SK_IsInjected ())
+  {
+    static PFun_slUpgradeInterface * slUpgradeInterface =
+          (PFun_slUpgradeInterface *) SK_GetProcAddress (L"sl.interposer.dll", "slUpgradeInterface");
 
-  if (     slUpgradeInterface != nullptr)
-    return slUpgradeInterface (baseInterface);
+    if (     slUpgradeInterface != nullptr)
+      return slUpgradeInterface (baseInterface);
+  }
 
   return sl::Result::eErrorNotInitialized;
 }

@@ -7409,6 +7409,8 @@ WINAPI CreateDXGIFactory (REFIID   riid,
   if (config.render.dxgi.debug_layer)
     return CreateDXGIFactory2 (0x1, riid, ppFactory);
 
+  return CreateDXGIFactory2 (0x0, riid, ppFactory);
+
 
   if (config.render.dxgi.use_factory_cache)
   {
@@ -7485,6 +7487,8 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
   // Forward this through CreateDXGIFactory2 to initialize DXGI Debug
   if (config.render.dxgi.debug_layer)
     return CreateDXGIFactory2 (0x1, riid, ppFactory);
+
+  return CreateDXGIFactory2 (0x0, riid, ppFactory);
 
 
   if (config.render.dxgi.use_factory_cache && ppFactory != nullptr)
@@ -7572,9 +7576,21 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
 
 HRESULT
 WINAPI CreateDXGIFactory2 (UINT     Flags,
-                           REFIID   riid,
+                           REFIID   riid_,
                      _Out_ void   **ppFactory)
 {
+  IID riid = riid_;
+
+  // Upgrade everything to at least IDXGIFactory5 implicitly
+  if (IsEqualGUID (riid_, IID_IDXGIFactory)  ||
+      IsEqualGUID (riid_, IID_IDXGIFactory1) ||
+      IsEqualGUID (riid_, IID_IDXGIFactory2) ||
+      IsEqualGUID (riid_, IID_IDXGIFactory3) ||
+      IsEqualGUID (riid_, IID_IDXGIFactory4))
+  {
+    riid = IID_IDXGIFactory5;
+  }
+
   if (SK_COMPAT_IgnoreDxDiagnCall ())
     return E_NOTIMPL;
 
@@ -7601,8 +7617,8 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
       __SK_DXGI_FactoryCache.reset ();
   }
 
-  std::string iname = SK_GetDXGIFactoryInterfaceEx  (riid);
-  int         iver  = SK_GetDXGIFactoryInterfaceVer (riid);
+  std::string iname = SK_GetDXGIFactoryInterfaceEx  (riid_);
+  int         iver  = SK_GetDXGIFactoryInterfaceVer (riid_);
 
   UNREFERENCED_PARAMETER (iver);
 
@@ -7631,6 +7647,28 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
       CreateDXGIFactory1 (riid, ppFactory);
   }
 
+//#define LEAK_FACTORIES
+#ifdef  LEAK_FACTORIES
+  static IDXGIFactory* pLastFactory = nullptr;
+  static IID           lastIID      = {};
+
+  if (! IsEqualGUID (lastIID, riid))
+  {
+    if (pLastFactory != nullptr)
+        pLastFactory->Release ();
+
+    pLastFactory = nullptr;
+  }
+
+  else
+  {
+    *ppFactory = pLastFactory;
+                 pLastFactory->AddRef ();
+
+    return S_OK;
+  }    
+#endif
+
   void* pFactory_ = nullptr;
 
   HRESULT    ret;
@@ -7655,6 +7693,12 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
     {
       __SK_DXGI_FactoryCache.addFactory (ppFactory, riid);
     }
+
+#ifdef  LEAK_FACTORIES
+    lastIID      =  riid;
+    pLastFactory = (IDXGIFactory *)*ppFactory;
+    pLastFactory->AddRef ();
+#endif
   }
 
   return     ret;
@@ -7710,12 +7754,6 @@ SK_HookDXGI (void)
     // Serves as both D3D11 and DXGI
     bool d3d11 =
       ( SK_GetDLLRole () & DLL_ROLE::D3D11 );
-
-//#define __SK_STREAMLINE_COMPATIBLE
-#ifndef __SK_STREAMLINE_COMPATIBLE
-    static HMODULE hModSLInterposer =
-      SK_GetModuleHandle (L"sl.interposer.dll");
-#endif
 
     HMODULE hBackend =
       ( (SK_GetDLLRole () & DLL_ROLE::DXGI) && (! d3d11) ) ?
@@ -8551,7 +8589,7 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
     return;
 
   const bool bHasStreamline =
-    SK_IsModuleLoaded (L"sl.interposer.dll");
+    SK_IsModuleLoaded (L"sl.dlss_g.dll");
 
   SK_ComPtr <IDXGISwapChain> pSwapChain;
 
@@ -8763,7 +8801,7 @@ SK_DXGI_HookFactory (IDXGIFactory* pProxyFactory)
     return;
 
   const bool bHasStreamline =
-    SK_IsModuleLoaded (L"sl.interposer.dll");
+    SK_IsModuleLoaded (L"sl.dlss_g.dll");
 
   SK_ComPtr <IDXGIFactory> pFactory;
 
@@ -9096,7 +9134,7 @@ HookDXGI (LPVOID user)
 
 
     bool    bHookSuccess   = false;
-    bool    bHasStreamline = SK_IsModuleLoaded (L"sl.interposer.dll");
+    bool    bHasStreamline = SK_IsModuleLoaded (L"sl.dlss_g.dll");
     HRESULT hr             = E_NOTIMPL;
 
     SK_ComPtr <IDXGIAdapter>
@@ -9124,7 +9162,7 @@ HookDXGI (LPVOID user)
     const bool bStreamlineMode =
       false;
       //SK_GetCurrentGameID () == SK_GAME_ID::HorizonForbiddenWest ||
-      //(SK_GetModuleHandleW (L"sl.interposer.dll") && config.system.global_inject_delay == 0.0f);
+      //(SK_GetModuleHandleW (L"sl.dlss_g.dll") && config.system.global_inject_delay == 0.0f);
 
     const bool bReShadeMode =
       (config.compatibility.reshade_mode && (! config.compatibility.using_wine));
@@ -9305,7 +9343,8 @@ HookDXGI (LPVOID user)
         if (SK_slGetNativeInterface (pImmediateContext.p, (void **)&pNativeImmediateContext.p) == sl::Result::eOk)
                                      pImmediateContext =            pNativeImmediateContext;
 
-        if (SK_GetModuleHandleW (L"sl.interposer.dll") && (config.system.global_inject_delay == 0.0f))
+        // Stupid Nixxes hack, no other implementation of Streamline requires this check
+        if (SK_IsInjected () && SK_IsModuleLoaded (L"sl.dlss_g.dll") && (SK_Inject_GetInjectionDelayInSeconds () == 0.0f))
         {
           extern bool SK_NGX_DLSSG_LateInject;
                       SK_NGX_DLSSG_LateInject = true;
@@ -10298,7 +10337,7 @@ SK_DXGI_QuickHook (void)
     __SK_DisableQuickHook = TRUE;
   }
 
-  if ( SK_IsModuleLoaded (L"sl.interposer.dll") )
+  if ( SK_IsModuleLoaded (L"sl.dlss_g.dll") )
   {
     SK_LOGi0 (L" # DXGI QuickHook disabled because an NVIDIA Streamline Interposer is present...");
 

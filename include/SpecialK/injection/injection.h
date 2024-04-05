@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -216,13 +216,8 @@ typedef BOOL (WINAPI *NtUserUnhookWindowsHookEx_pfn)(
 extern NtUserCallNextHookEx_pfn NtUserCallNextHookEx;
 
 
-bool SK_Inject_IsHookActive (void);
-// Part of the DLL Shared Data Segment
-//
-//struct SK_InjectionBase_s
-//{
-//};
-
+bool  SK_Inject_IsHookActive               (void);
+float SK_Inject_GetInjectionDelayInSeconds (void);
 
 
 #endif /* __SK__INJECTION_H__ */

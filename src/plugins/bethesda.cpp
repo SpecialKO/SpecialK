@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -953,7 +953,7 @@ void SK_SF_InitFPS (void)
     SK_SF_PlugIn;
 
   // Assume that DLSS-G mods are going to turn the framerate limiter off always
-  if (SK_IsModuleLoaded (L"sl.interposer.dll"))
+  if (SK_IsModuleLoaded (L"sl.dlss_g.dll"))
     return;
 
   const bool bIsSteam =

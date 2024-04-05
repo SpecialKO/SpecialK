@@ -721,6 +721,129 @@ SK_SEH_NGX_GetInternalResolutionFromDLSS ( ID3D12Resource* pD3D12, ID3D11Resourc
   }
 }
 
+const char*
+SK_NGX_DLSS_GetCurrentPerfQualityStr (void)
+{
+  auto params =
+    SK_NGX_GetDLSSParameters ();
+
+  unsigned int perf_quality = NVSDK_NGX_PerfQuality_Value_MaxPerf;
+
+  NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_PerfQualityValue, &perf_quality);
+
+  switch (perf_quality)
+  {
+    case NVSDK_NGX_PerfQuality_Value_MaxPerf:
+      return "Performance";
+      break;
+    case NVSDK_NGX_PerfQuality_Value_Balanced:
+      return "Balanced";
+      break;
+    case NVSDK_NGX_PerfQuality_Value_MaxQuality:
+      return "Quality";
+      break;
+    case NVSDK_NGX_PerfQuality_Value_UltraPerformance:
+      return "Ultra Performance";
+      break;
+    case NVSDK_NGX_PerfQuality_Value_UltraQuality:
+      return "Ultra Quality";
+      break;
+    case NVSDK_NGX_PerfQuality_Value_DLAA:
+      return "DLAA";
+      break;
+    default:
+      return "Unknown Performance/Quality Mode";
+      break;
+  }
+}
+
+const char*
+SK_NGX_DLSS_GetCurrentPresetStr (void)
+{
+  auto params =
+    SK_NGX_GetDLSSParameters ();
+
+  unsigned int preset;
+  unsigned int perf_quality = NVSDK_NGX_PerfQuality_Value_MaxPerf;
+
+  NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_PerfQualityValue, &perf_quality);
+
+  const char *szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;
+
+  switch (perf_quality)
+  {
+    case NVSDK_NGX_PerfQuality_Value_MaxPerf:           szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Performance;      break;
+    case NVSDK_NGX_PerfQuality_Value_Balanced:          szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Balanced;         break;
+    case NVSDK_NGX_PerfQuality_Value_MaxQuality:        szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_Quality;          break;
+    // Extended PerfQuality modes                                  
+    case NVSDK_NGX_PerfQuality_Value_UltraPerformance:  szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraPerformance; break;
+    case NVSDK_NGX_PerfQuality_Value_UltraQuality:      szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_UltraQuality;     break;
+    case NVSDK_NGX_PerfQuality_Value_DLAA:              szPresetHint = NVSDK_NGX_Parameter_DLSS_Hint_Render_Preset_DLAA;             break;
+    default:
+      break;
+  }
+  
+  NVSDK_NGX_Parameter_GetUI_Original (params, szPresetHint, &preset);
+
+  switch (preset)
+  {
+    case NVSDK_NGX_DLSS_Hint_Render_Preset_Default: return "Default";      break;
+    case NVSDK_NGX_DLSS_Hint_Render_Preset_A:       return "A";            break;
+    case NVSDK_NGX_DLSS_Hint_Render_Preset_B:       return "B";            break;
+    case NVSDK_NGX_DLSS_Hint_Render_Preset_C:       return "C";            break;
+    case NVSDK_NGX_DLSS_Hint_Render_Preset_D:       return "D";            break;
+    case NVSDK_NGX_DLSS_Hint_Render_Preset_E:       return "E";            break;
+    case NVSDK_NGX_DLSS_Hint_Render_Preset_F:       return "F";            break;
+    case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       return "G";            break;
+    default:                                        return "DLSS Default"; break;
+      break;
+  }
+}
+
+void
+SK_NGX_DLSS_GetInternalResolution (int& x, int& y)
+{ 
+  auto params =
+    SK_NGX_GetDLSSParameters ();
+
+  unsigned int     width,     height;
+  unsigned int out_width, out_height;
+  
+  NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_Width,     &width);
+  NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_Height,    &height);
+  NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_OutWidth,  &out_width);
+  NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_OutHeight, &out_height);
+  
+  out_width  = std::max ( width,  out_width);
+  out_height = std::max (height, out_height);
+  
+  //
+  // Get the ACTUAL internal resolution by querying the underlying Direct3D resources
+  //   and using their desc. Many games are not setting the Height/Width parameters.
+  //
+  ID3D12Resource                           *pD3D12Resource = nullptr;
+  params->Get (NVSDK_NGX_Parameter_Color, &pD3D12Resource);
+  ID3D11Resource                           *pD3D11Resource = nullptr;
+  params->Get (NVSDK_NGX_Parameter_Color, &pD3D11Resource);
+  
+  NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_DLSS_Render_Subrect_Dimensions_Width,  &width);
+  NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_DLSS_Render_Subrect_Dimensions_Height, &height);
+  
+  if (width == 0 || height == 0)
+  {
+    unsigned int res_width;
+    unsigned int res_height;
+  
+    SK_SEH_NGX_GetInternalResolutionFromDLSS (pD3D12Resource, pD3D11Resource, res_width, res_height);
+  
+    if (width  == 0) width  = res_width;
+    if (height == 0) height = res_height;
+  }
+
+  x = width;
+  y = height;
+}
+
 void
 SK_NGX_DLSS_ControlPanel (void)
 {

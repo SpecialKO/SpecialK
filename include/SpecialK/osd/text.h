@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -161,7 +161,7 @@ private:
     SK_IVariable*                          show   = nullptr;
   } osd_, fps_, gpu_, disk_, pagefile_,
           mem_, cpu_, io_,   clock_,
-          sli_;
+          sli_, dlss_;
 
 public:
   bool OnVarChange (SK_IVariable* var, void* val = nullptr) override;

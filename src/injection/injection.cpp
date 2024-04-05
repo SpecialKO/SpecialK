@@ -2636,3 +2636,13 @@ void SK_Inject_BroadcastInjectionNotify (bool force)
     SetEvent (hInjectAck.m_h);
   }
 }
+
+float
+SK_Inject_GetInjectionDelayInSeconds (void)
+{
+  // Would lead to deadlock
+  if (SK_IsModuleLoaded (L"EOSOVH-Win64-Shipping.dll"))
+    return 0.0f;
+
+  return config.system.global_inject_delay;
+}
