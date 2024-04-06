@@ -1012,6 +1012,12 @@ SK_NGX_DLSS_ControlPanel (void)
             ImGui::OpenPopup ("DLSS_PerfQuality_Popup");
           }
         }
+        if (bHasAlphaUpscaling)
+        {
+          ImGui::Spacing  ();
+          ImGui::
+          TextUnformatted ("Alpha Upscaling:     ");
+        }
         ImGui::EndGroup   ();
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
@@ -1126,7 +1132,11 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::TextUnformatted ("Preset D");
           ImGui::PopStyleColor   ();
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+          if (! bHasPresetE)
           ImGui::BulletText      ("Default preset for Performance/Balanced/Quality modes; generally favors image stability.");
+          else
+          if (bHasPresetE)
+            ImGui::BulletText    ("Default preset for Perf/Balanced/Quality modes (pre-3.7.0); generally favors image stability.");
           ImGui::PopStyleColor   ();
           ImGui::Spacing         ();
           ImGui::Spacing         ();
@@ -1141,7 +1151,7 @@ SK_NGX_DLSS_ControlPanel (void)
           if (bHasPresetE)
           {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
-            ImGui::BulletText    ("Default preset for everything except DLAA in 3.7.0-native games; if manually upgrading a game, force this on.");
+            ImGui::BulletText    ("The default preset for Perf/Balanced/Quality mode (3.7.0); generally favors image stability.");
             ImGui::PopStyleColor ();
           }
           ImGui::Spacing         ();
@@ -1341,6 +1351,47 @@ SK_NGX_DLSS_ControlPanel (void)
           }
         }
 
+        if (bHasAlphaUpscaling)
+        {
+          ImGui::Spacing ();
+
+          int force_alpha_upscaling =
+            config.nvidia.dlss.forced_alpha_upscale + 1;
+
+          int                                               dlss_creation_flags = 0x0;
+          params->Get (
+            NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags, &dlss_creation_flags);
+  
+          if (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling)
+            ImGui::TextUnformatted ("On");
+          else
+            ImGui::TextUnformatted ("Off");
+
+          ImGui::SameLine ();
+
+          ImGui::SetNextItemWidth (
+            ImGui::CalcTextSize ("Game Default\t  ").x + ImGui::GetStyle ().FramePadding.x * 2
+          );
+  
+          if ( ImGui::Combo (
+                 "###Alpha_Upscaling",
+             &force_alpha_upscaling, "Game Default\0"
+                                     "Force Off\0"
+                                     "Force On\0\0") )
+          {
+            config.nvidia.dlss.forced_alpha_upscale =
+              force_alpha_upscaling - 1;
+            restart_required = true;
+
+            config.utility.save_async ();
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Requires DLSS 3.7.0+ and enabling may degrade application performance.");
+          }
+        }
+
         ImGui::EndGroup ();
   
         if (bHasSharpening)
@@ -1385,30 +1436,6 @@ SK_NGX_DLSS_ControlPanel (void)
 
               config.utility.save_async ();
             }
-          }
-        }
-
-        if (bHasAlphaUpscaling)
-        {
-          int force_alpha_upscaling =
-            config.nvidia.dlss.forced_alpha_upscale + 1;
-  
-          if ( ImGui::Combo (
-                 "Alpha Upscaling",
-             &force_alpha_upscaling, "Game Default\0"
-                                     "Force Off\0"
-                                     "Force On\0\0") )
-          {
-            config.nvidia.dlss.forced_alpha_upscale =
-              force_alpha_upscaling - 1;
-            restart_required = true;
-
-            config.utility.save_async ();
-          }
-
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::SetTooltip ("Requires DLSS 3.7.0+ and enabling may degrade application performance.");
           }
         }
   

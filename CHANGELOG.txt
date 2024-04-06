@@ -1,4 +1,9 @@
-﻿24.4.6
+﻿24.4.6.1
+========
+ + Improved fit of Alpha Upscaling override option in control panel, and
+     add indicator for its current state.
+
+24.4.6
 ======
  + Changed description of DLSS Preset E from Invalid to (DLSS 3.7.0+)
  + Added option to force alpha upscaling on/off if DLSS 3.7.0 is present
