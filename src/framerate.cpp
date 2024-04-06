@@ -1967,7 +1967,7 @@ SK::Framerate::Limiter::wait (void)
       // In Latent Sync 2-4x mode, display latency sometimes gets stuck at >= (1000 / RefreshRate) ms
       bool bIsDisplayLatencyStuck =
         std::round        (fps    / rb.getActiveRefreshRate ()) >= 2.0 &&
-        static_cast <int> (latency_avg.getDisplay           ()) >=
+        std::round        (latency_avg.getDisplay           ()) >=
         static_cast <int> (1000.0 / rb.getActiveRefreshRate ());
 
       // Keep tearing enabled until display latency returns to normal
