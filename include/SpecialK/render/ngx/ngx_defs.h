@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -160,6 +160,7 @@ typedef enum NVSDK_NGX_DLSS_Feature_Flags
   NVSDK_NGX_DLSS_Feature_Flags_Reserved_0     = 1 << 4,
   NVSDK_NGX_DLSS_Feature_Flags_DoSharpening   = 1 << 5,
   NVSDK_NGX_DLSS_Feature_Flags_AutoExposure   = 1 << 6,
+  NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling = 1 << 7,
 } NVSDK_NGX_DLSS_Feature_Flags;
 
 typedef enum NVSDK_NGX_GBufferType

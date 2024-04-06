@@ -134,6 +134,30 @@ NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
         }
       }
     }
+
+    if (config.nvidia.dlss.forced_alpha_upscale != -1)
+    {
+      if ((InValue & NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling) ==
+                     NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling)
+      {
+        if (config.nvidia.dlss.forced_alpha_upscale == 0)
+        {
+          SK_LOGi0 (L"Forcing DLSS Alpha Upscaling OFF");
+
+          InValue &= ~NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling;
+        }
+      }
+
+      else
+      {
+        if (config.nvidia.dlss.forced_alpha_upscale == 1)
+        {
+          SK_LOGi0 (L"Forcing DLSS Alpha Upscaling ON");
+
+          InValue |= NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling;
+        }
+      }
+    }
   }
 
   if (! _stricmp (InName, NVSDK_NGX_Parameter_PerfQualityValue))
@@ -504,6 +528,15 @@ SK_NGX_DLSS_CreateFeatureOverrideParams (NVSDK_NGX_Parameter *InParameters)
 
   if (config.nvidia.dlss.use_sharpening == 1)
     InParameters->Set (NVSDK_NGX_Parameter_Sharpness, config.nvidia.dlss.forced_sharpness);
+
+  if (config.nvidia.dlss.forced_alpha_upscale == 1)
+  {
+    // Check if user is trying to force Alpha Upscaling on, with an incompatible DLL version...
+    if (! SK_DLSS_Context::dlss_s::hasAlphaUpscaling ())
+    {
+      SK_LOGi0 (L"Alpha Upscaling requested, but DLSS version does not support it.");
+    }
+  }
 
   if (config.nvidia.dlss.force_dlaa)
   {
@@ -909,6 +942,12 @@ SK_NGX_DLSS_ControlPanel (void)
         static const bool bHasDLAAQualityLevel =
           SK_DLSS_Context::dlss_s::hasDLAAQualityLevel ();
 
+        static const bool bHasAlphaUpscaling =
+          SK_DLSS_Context::dlss_s::hasAlphaUpscaling ();
+
+        static const bool bHasPresetE =
+          SK_DLSS_Context::dlss_s::hasPresetE ();
+
         static bool restart_required = false;
   
         unsigned int     width,     height;
@@ -1034,7 +1073,7 @@ SK_NGX_DLSS_ControlPanel (void)
                                               "Override: B\0"
                                               "Override: C\0"
                                               "Override: D\0"
-                                              "Override: E (Invalid)\0"
+                                              "Override: E (DLSS 3.7+)\0"
                                               "Override: F\0"
                                               "Override: G (Invalid)\0", 9 )
            )
@@ -1096,8 +1135,15 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::PopStyleColor   ();
           ImGui::SameLine        ();
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.5f, .5f, .5f, 1.f));
-          ImGui::TextUnformatted ("\tNot currently used");
+          if (! bHasPresetE)
+          ImGui::TextUnformatted ("\tNot supported by the current version of DLSS");
           ImGui::PopStyleColor   ();
+          if (bHasPresetE)
+          {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
+            ImGui::BulletText    ("Default preset for everything except DLAA in 3.7.0-native games; if manually upgrading a game, force this on.");
+            ImGui::PopStyleColor ();
+          }
           ImGui::Spacing         ();
           ImGui::Spacing         ();
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
@@ -1117,7 +1163,7 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::PopStyleColor   ();
           ImGui::Separator       ();
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.62f, .62f, .62f, 1.f));
-          ImGui::TextUnformatted ("Descriptions valid as of DLSS 3.5, defaults refer to 'DLSS Default' and are subject to change between DLL versions.");
+          ImGui::TextUnformatted ("Descriptions valid as of DLSS 3.7, defaults refer to 'DLSS Default' and are subject to change between DLL versions.");
           ImGui::PopStyleColor   ();
           ImGui::EndTooltip      ();
         }
@@ -1339,6 +1385,30 @@ SK_NGX_DLSS_ControlPanel (void)
 
               config.utility.save_async ();
             }
+          }
+        }
+
+        if (bHasAlphaUpscaling)
+        {
+          int force_alpha_upscaling =
+            config.nvidia.dlss.forced_alpha_upscale + 1;
+  
+          if ( ImGui::Combo (
+                 "Alpha Upscaling",
+             &force_alpha_upscaling, "Game Default\0"
+                                     "Force Off\0"
+                                     "Force On\0\0") )
+          {
+            config.nvidia.dlss.forced_alpha_upscale =
+              force_alpha_upscaling - 1;
+            restart_required = true;
+
+            config.utility.save_async ();
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Requires DLSS 3.7.0+ and enabling may degrade application performance.");
           }
         }
   

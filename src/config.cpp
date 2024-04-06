@@ -756,6 +756,7 @@ struct {
     sk::ParameterFloat*   forced_sharpness        = nullptr;
     sk::ParameterBool*    auto_redirect_dll       = nullptr;
     sk::ParameterInt*     forced_preset           = nullptr;
+    sk::ParameterInt*     forced_alpha_upscale    = nullptr;
     sk::ParameterBool*    show_active_features    = nullptr;
     sk::ParameterFloat*   performance_scale       = nullptr;
     sk::ParameterFloat*   balanced_scale          = nullptr;
@@ -1782,6 +1783,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.dlss.forced_sharpness,           L"Sharpness Value to Use",                                    dll_ini,         L"NVIDIA.DLSS",           L"ForcedSharpness"),
     ConfigEntry (nvidia.dlss.auto_redirect_dll,          L"Always load SK's Plug-In DLSS DLL instead of the game's",   dll_ini,         L"NVIDIA.DLSS",           L"AutoRedirectDLL"),
     ConfigEntry (nvidia.dlss.forced_preset,              L"Override DLSS Perf/Quality Level's Preset",                 dll_ini,         L"NVIDIA.DLSS",           L"ForcePreset"),
+    ConfigEntry (nvidia.dlss.forced_alpha_upscale,       L"Override DLSS Alpha Upscaling (3.7.0+)",                    dll_ini,         L"NVIDIA.DLSS",           L"ForceAlphaUpscale"),
     ConfigEntry (nvidia.dlss.performance_scale,          L"Custom scale factor (if != 0.0f) to use for Performance",   dll_ini,         L"NVIDIA.DLSS",           L"CustomPerformanceScale"),
     ConfigEntry (nvidia.dlss.balanced_scale,             L"Custom scale factor (if != 0.0f) to use for Balanced",      dll_ini,         L"NVIDIA.DLSS",           L"CustomBalancedScale"),
     ConfigEntry (nvidia.dlss.quality_scale,              L"Custom scale factor (if != 0.0f) to use for Quality",       dll_ini,         L"NVIDIA.DLSS",           L"CustomQualityScale"),
@@ -3911,6 +3913,7 @@ auto DeclKeybind =
   nvidia.dlss.forced_sharpness->load         (config.nvidia.dlss.forced_sharpness);
   nvidia.dlss.auto_redirect_dll->load        (config.nvidia.dlss.auto_redirect_dlss);
   nvidia.dlss.forced_preset->load            (config.nvidia.dlss.forced_preset);
+  nvidia.dlss.forced_alpha_upscale->load     (config.nvidia.dlss.forced_alpha_upscale);
   nvidia.dlss.performance_scale->load        (config.nvidia.dlss.scale.performance);
   nvidia.dlss.balanced_scale->load           (config.nvidia.dlss.scale.balanced);
   nvidia.dlss.quality_scale->load            (config.nvidia.dlss.scale.quality);
@@ -5980,6 +5983,7 @@ SK_SaveConfig ( std::wstring name,
       nvidia.dlss.forced_sharpness->store         (config.nvidia.dlss.forced_sharpness);
       nvidia.dlss.auto_redirect_dll->store        (config.nvidia.dlss.auto_redirect_dlss);
       nvidia.dlss.forced_preset->store            (config.nvidia.dlss.forced_preset);
+      nvidia.dlss.forced_alpha_upscale->store     (config.nvidia.dlss.forced_alpha_upscale);
       nvidia.dlss.performance_scale->store        (config.nvidia.dlss.scale.performance);
       nvidia.dlss.balanced_scale->store           (config.nvidia.dlss.scale.balanced);
       nvidia.dlss.quality_scale->store            (config.nvidia.dlss.scale.quality);
