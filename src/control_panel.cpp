@@ -5492,7 +5492,7 @@ SK_ImGui_ControlPanel (void)
             extern int  __SK_LatentSyncSkip;
             extern bool   SK_LatentSync_WorksAboveRefresh (SK_RenderAPI api);
 
-            static bool bWorksAboveRefresh = SK_LatentSync_WorksAboveRefresh (rb.api);
+            bool bWorksAboveRefresh = SK_LatentSync_WorksAboveRefresh (rb.api);
 
             int maxLatentSyncSkip = bWorksAboveRefresh ? 4 : 0;
 

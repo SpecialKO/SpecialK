@@ -276,11 +276,14 @@ void SK_LatentSync_EndSwap (void) noexcept
 bool SK_LatentSync_WorksAboveRefresh (SK_RenderAPI api)
 {
   // TODO: Remove ternary operator to enable 2-4x modes
-  return SK_API_IsLayeredOnD3D11 (api) ||
-         SK_API_IsDirect3D9      (api) ||
-         api == SK_RenderAPI::OpenGL   ||
-         api == SK_RenderAPI::D3D10     ? false
-                                        : false;
+  return
+    ( config.render.dxgi.allow_d3d12_footguns &&
+      SK_API_IsLayeredOnD3D12           (api)  ) ||
+    ( SK_API_IsLayeredOnD3D11           (api)  ) ||
+    ( SK_API_IsLayeredOnD3D10           (api)  ) ||
+    ( SK_API_IsDirect3D9                (api)  ) ||
+    ( SK_API_IsGDIBased                 (api)  )
+      ? false : false;
 }
 
 
@@ -2127,9 +2130,15 @@ SK::Framerate::Limiter::wait (void)
         )
       );
 
-      static bool bWorksAboveRefresh = SK_LatentSync_WorksAboveRefresh (rb.api);
+      bool bWorksAboveRefresh = SK_LatentSync_WorksAboveRefresh (rb.api);
 
       if (!bWorksAboveRefresh || __SK_LatentSyncSkip < 2)
+      {
+        __SK_LatentSyncSkip = 0;
+      }
+
+      // Disable __SK_LatentSyncSkip if we can't maintain TargetFPS in 2-4x mode
+      else if (std::round (fps / (1000.0 / effective_frametime ())) >= 2.0)
       {
         __SK_LatentSyncSkip = 0;
       }
