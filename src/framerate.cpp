@@ -1909,7 +1909,8 @@ SK::Framerate::Limiter::wait (void)
       static constexpr int _MAX_FRAMES = 30;
 
       struct {
-        double input [_MAX_FRAMES] = { };
+        double input   [_MAX_FRAMES] = { };
+        double display [_MAX_FRAMES] = { };
 
         int frames = 0;
 
@@ -1926,10 +1927,26 @@ SK::Framerate::Limiter::wait (void)
           return
             ( avg / samples );
         }
+
+        double getDisplay (void) noexcept
+        {
+          double avg     = 0.0,
+                 samples = 0.0;
+
+          for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
+          {
+            ++samples; avg += display [i];
+          }
+
+          return
+            ( avg / samples );
+        }
       } static latency_avg;
 
-      latency_avg.input [latency_avg.frames++ % _MAX_FRAMES] =
+      latency_avg.input   [latency_avg.frames   % _MAX_FRAMES] =
         (1000.0 / get_limit           ()) -
+                  effective_frametime ();
+      latency_avg.display [latency_avg.frames++ % _MAX_FRAMES] =
                   effective_frametime ();
 
       auto _ToggleTearing = [&](bool bEnableTearing) -> void
@@ -1946,6 +1963,20 @@ SK::Framerate::Limiter::wait (void)
           config.render.dxgi.allow_tearing = bEnableTearing;
         }
       };
+
+      // In Latent Sync 2-4x mode, display latency sometimes gets stuck at >= (1000 / RefreshRate) ms
+      bool bIsDisplayLatencyStuck =
+        std::round        (fps    / rb.getActiveRefreshRate ()) >= 2.0 &&
+        static_cast <int> (latency_avg.getDisplay           ()) >=
+        static_cast <int> (1000.0 / rb.getActiveRefreshRate ());
+
+      // Keep tearing enabled until display latency returns to normal
+      if (bIsDisplayLatencyStuck)
+      {
+        _ToggleTearing (true);
+
+        return;
+      }
 
       // When tearing is disabled, input latency sometimes gets stuck at (-0.1; 0.1) ms
       bool bIsInputStuckAtZero =
