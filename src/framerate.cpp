@@ -1964,16 +1964,13 @@ SK::Framerate::Limiter::wait (void)
         }
       };
 
-      // In Latent Sync 2-4x mode, display latency sometimes gets stuck at >= (1000 / RefreshRate) ms
-      bool bIsDisplayLatencyStuck =
-        std::round        (fps    / rb.getActiveRefreshRate ()) >= 2.0 &&
-        std::round        (latency_avg.getDisplay           ()) >=
-        static_cast <int> (1000.0 / rb.getActiveRefreshRate ());
-
-      // Keep tearing enabled until display latency returns to normal
-      if (bIsDisplayLatencyStuck)
+      // Enable tearing and disable frame skipping if we can't maintain TargetFPS in 2-4x mode
+      if ( std::round (fps / (rb.getActiveRefreshRate         ())) >= 2.0 &&
+           std::round (fps / (1000.0 / latency_avg.getDisplay ())) >= 2.0 )
       {
         _ToggleTearing (true);
+
+        __SK_LatentSyncSkip = 0;
 
         return;
       }
@@ -2168,7 +2165,7 @@ SK::Framerate::Limiter::wait (void)
         __SK_LatentSyncSkip = 0;
       }
 
-      // Disable __SK_LatentSyncSkip if we can't maintain TargetFPS in 2-4x mode
+      // Disable frame skipping if we can't maintain TargetFPS in 2-4x mode
       else if (std::round (fps / (1000.0 / effective_frametime ())) >= 2.0)
       {
         __SK_LatentSyncSkip = 0;
