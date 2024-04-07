@@ -611,6 +611,22 @@ SK_ImGui_LatentSyncConfig (void)
         ImGui::EndTooltip   ();
       }
 
+      if ( config.render.framerate.latent_sync.tearing_mode != SK_TearingMode::LatentSync_AlwaysOn &&
+           std::round (pLimiter->get_limit () / rb.getActiveRefreshRate ()) >= 2.0                 )
+      {
+        ImGui::SameLine    ();
+        ImGui::TextColored (ImColor (1.0f, 1.0f, 0.0f), ICON_FA_EXCLAMATION_TRIANGLE);
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip ();
+          ImGui::Text         ("Please set Tearing Mode to 'Always On' for 2-4x Scan Mode!");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("Enable NVIDIA's Fast Sync or AMD's Enhanced Sync to eliminate tearing");
+          ImGui::EndTooltip   ();
+        }
+      }
+
       if ( config.render.framerate.latent_sync.tearing_mode == SK_TearingMode::LatentSync_AdaptiveOn ||
            config.render.framerate.latent_sync.tearing_mode == SK_TearingMode::LatentSync_AlwaysOn   )
       {
