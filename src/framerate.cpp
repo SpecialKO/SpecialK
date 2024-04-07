@@ -1925,8 +1925,7 @@ SK::Framerate::Limiter::wait (void)
       static constexpr int _MAX_FRAMES = 30;
 
       struct {
-        double input   [_MAX_FRAMES] = { };
-        double display [_MAX_FRAMES] = { };
+        double input [_MAX_FRAMES] = { };
 
         int frames = 0;
 
@@ -1943,26 +1942,10 @@ SK::Framerate::Limiter::wait (void)
           return
             ( avg / samples );
         }
-
-        double getDisplay (void) noexcept
-        {
-          double avg     = 0.0,
-                 samples = 0.0;
-
-          for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
-          {
-            ++samples; avg += display [i];
-          }
-
-          return
-            ( avg / samples );
-        }
       } static latency_avg;
 
-      latency_avg.input   [latency_avg.frames   % _MAX_FRAMES] =
+      latency_avg.input [latency_avg.frames++ % _MAX_FRAMES] =
         (1000.0 / get_limit           ()) -
-                  effective_frametime ();
-      latency_avg.display [latency_avg.frames++ % _MAX_FRAMES] =
                   effective_frametime ();
 
       auto _ToggleTearing = [&](bool bEnableTearing) -> void
@@ -1980,9 +1963,9 @@ SK::Framerate::Limiter::wait (void)
         }
       };
 
-      // Enable tearing and disable frame skipping if we can't maintain TargetFPS in 2-4x mode
-      if ( std::round (fps / (rb.getActiveRefreshRate         ())) >= 2.0 &&
-           std::round (fps / (1000.0 / latency_avg.getDisplay ())) >= 2.0 )
+      // Enable tearing and disable frame skipping if FPS is unstable in 2-4x mode
+      if ( std::round (fps / rb.getActiveRefreshRate ()) >= 2.0 &&
+           latency_avg.getInput () < 0.1                        )
       {
         _ToggleTearing (true);
 
