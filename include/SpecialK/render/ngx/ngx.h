@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -58,6 +58,8 @@ struct SK_DLSS_Context
 
     static bool hasSharpening       (void) { return ( Version.major <= 2 && ( Version.major != 2 ||   Version.minor < 5 ||   Version.build < 1 ) );                             };
     static bool hasDLAAQualityLevel (void) { return ( Version.major  > 3 || ( Version.major == 3 && ( Version.minor > 1 || ( Version.minor == 1 && Version.build >= 13 ) ) ) ); };
+    static bool hasAlphaUpscaling   (void) { return ( Version.major  > 3 || ( Version.major == 3 && ( Version.minor > 6 )                                                  ) ); };
+    static bool hasPresetE          (void) { return ( Version.major  > 3 || ( Version.major == 3 && ( Version.minor > 6 )                                                  ) ); };
 
     static void showIndicator    (bool show);
     static bool isIndicatorShown (void);
