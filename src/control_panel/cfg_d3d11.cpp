@@ -932,7 +932,7 @@ SK::ControlPanel::D3D11::Draw (void)
           if (ImGui::IsItemHovered ())
           {
             ImGui::BeginTooltip ();
-            ImGui::Text         ("Temporarily turns V-Sync OFF if Render Latency exceeds 1 frame");
+            ImGui::Text         ("Temporarily turns V-Sync OFF if FPS is unstable or Render Latency exceeds 1 frame");
             ImGui::EndTooltip   ();
           }
         }

@@ -604,10 +604,10 @@ SK_ImGui_LatentSyncConfig (void)
         ImGui::BulletText   ("If GPU load is very high, you may need to disable tearing");
         ImGui::BulletText   ("Disabling tearing will add between 0 and 1 refresh cycles of latency, depending on GPU load");
         ImGui::Separator    ();
-        ImGui::Text         ("Adaptive modes control tearing based on Frame Stability or Render Latency");
+        ImGui::Text         ("Adaptive modes control tearing based on Frame Stability and Render Latency");
         ImGui::Separator    ();
         ImGui::BulletText   ("Adaptive (Prefer On): only disables tearing if FPS is unstable");
-        ImGui::BulletText   ("Adaptive (Prefer Off): only enables tearing if Render Latency exceeds 1 frame");
+        ImGui::BulletText   ("Adaptive (Prefer Off): only enables tearing if FPS is unstable or Render Latency exceeds 1 frame");
         ImGui::EndTooltip   ();
       }
 
@@ -1920,7 +1920,7 @@ SK::Framerate::Limiter::wait (void)
     }
 
 
-    auto _AdaptiveTearing = [&](SK_TearingMode tearingMode) -> void
+    auto _ManageTearing = [&](SK_TearingMode tearingMode) -> void
     {
       static constexpr int _MAX_FRAMES = 30;
 
@@ -1948,6 +1948,60 @@ SK::Framerate::Limiter::wait (void)
         (1000.0 / get_limit           ()) -
                   effective_frametime ();
 
+      static SK_PresentMode lastPresentMode = rb.presentation.mode;
+
+      auto _IsComposedPresent = [](const SK_PresentMode& mode)
+      {
+        return
+          mode == SK_PresentMode::Composed_Composition_Atlas ||
+          mode == SK_PresentMode::Composed_Copy_GPU_GDI      ||
+          mode == SK_PresentMode::Composed_Copy_CPU_GDI      ||
+          mode == SK_PresentMode::Composed_Flip;
+      };
+
+      bool bIsComposedPresent  = _IsComposedPresent (
+        rb.presentation.mode
+      );
+
+      bool bWasComposedPresent = _IsComposedPresent (
+        std::exchange (
+          lastPresentMode,
+          rb.presentation.mode
+        )
+      );
+
+      bool bIsFpsUnstable = latency_avg.getInput () < 0.1;
+
+      // Assume that Render Latency exceeds 1 frame if
+      // DXGI / PresentMon stats are unavailable and FPS is unstable
+      bool bRenderLatencyExceedsOneFrame = bIsFpsUnstable;
+
+      if (! SK_RenderBackend_V2::latency.stale)
+      {
+        bRenderLatencyExceedsOneFrame =
+          SK_RenderBackend_V2::latency.delays.PresentQueue > 1;
+      }
+
+      else if (bIsComposedPresent)
+      {
+        bRenderLatencyExceedsOneFrame = true;
+      }
+
+      else if (rb.presentation.avg_stats.display != 0.0)
+      {
+        bRenderLatencyExceedsOneFrame =
+          rb.presentation.avg_stats.latency /
+          rb.presentation.avg_stats.display > 1.9;
+      }
+
+      bool bIsAboveRefresh = std::round (fps / rb.getActiveRefreshRate ()) >= 2.0;
+
+      // Disable frame skipping in 2-4x mode if FPS is unstable or Render Latency exceeds 1 frame
+      if (bIsAboveRefresh && (bIsFpsUnstable || bRenderLatencyExceedsOneFrame))
+      {
+        __SK_LatentSyncSkip = 0;
+      }
+
       auto _ToggleTearing = [&](bool bEnableTearing) -> void
       {
         if (tearingMode == SK_TearingMode::AdaptiveVSync)
@@ -1963,74 +2017,36 @@ SK::Framerate::Limiter::wait (void)
         }
       };
 
-      // Enable tearing and disable frame skipping if FPS is unstable in 2-4x mode
-      if ( std::round (fps / rb.getActiveRefreshRate ()) >= 2.0 &&
-           latency_avg.getInput () < 0.1                        )
-      {
-        _ToggleTearing (true);
-
-        __SK_LatentSyncSkip = 0;
-
-        return;
-      }
-
-      // When tearing is disabled, input latency sometimes gets stuck at (-0.1; 0.1) ms
-      bool bIsInputStuckAtZero =
-        ( rb.present_interval     >    0 || !config.render.dxgi.allow_tearing ) &&
-        ( latency_avg.getInput () > -0.1 && latency_avg.getInput () < 0.1     );
-
-      static bool bWasInputStuckAtZero = bIsInputStuckAtZero;
-
-      // Keep tearing enabled until input latency is no longer stuck at (-0.1; 0.1) ms
-      if (bIsInputStuckAtZero)
-      {
-        _ToggleTearing (true);
-
-        bWasInputStuckAtZero = true;
-
-        return;
-      }
-
-      else if ( latency_avg.getInput () > -0.1 &&
-                latency_avg.getInput () <  0.1 &&
-                bWasInputStuckAtZero           )
-      {
-        _ToggleTearing (true);
-
-        return;
-      }
-
-      else
-      {
-        bWasInputStuckAtZero = false;
-      }
-
       switch (tearingMode)
       {
         // Prefer tearing, only disable tearing if FPS is unstable
+        //
+        // In 2-4x mode, Tearing Mode "Adaptive (Prefer On)" will act the same as "Always On"
+        // because disabling tearing when FPS is unstable causes a sudden drop to 1:1 FPS...
         case SK_TearingMode::LatentSync_AdaptiveOn:
         {
-          if (latency_avg.getInput () < 0.0)
-          {
-             _ToggleTearing (false);
-          }
-
-          else
-          {
-             _ToggleTearing (true);
-          }
+          _ToggleTearing (bIsAboveRefresh || !bIsFpsUnstable);
         } break;
-        // Prefer no tearing, only enable tearing if Render Latency exceeds 1 frame
+
+        // Prefer no tearing, only enable tearing if FPS is unstable or Render Latency exceeds 1 frame
         case SK_TearingMode::LatentSync_AdaptiveOff:
-        // Prefer VSync On, only turn VSync Off if Render Latency exceeds 1 frame
+
+        // Prefer VSync On, only turn VSync Off if FPS is unstable or Render Latency exceeds 1 frame
         case SK_TearingMode::AdaptiveVSync:
         {
+          if (bIsFpsUnstable)
+          {
+            _ToggleTearing (true);
+
+            return;
+          }
+
           // After enabling tearing, disable tearing on next frame
           // and wait for Render Latency to decrease
           static bool bDisableTearingAndWait = false;
 
           // If Render Latency failed to reduce during waiting period,
-          // keep tearing always enabled until latency decreases
+          // keep tearing enabled until latency decreases
           static bool bFailedToReduceRenderLatency = false;
 
           static constexpr int _MAX_WAIT_FRAMES = 90;
@@ -2044,58 +2060,9 @@ SK::Framerate::Limiter::wait (void)
             waitFrames = 0;
           }
 
-          static SK_PresentMode lastPresentMode = rb.presentation.mode;
-
-          auto _IsComposedPresent = [](const SK_PresentMode& mode)
-          {
-            return
-              mode == SK_PresentMode::Composed_Composition_Atlas ||
-              mode == SK_PresentMode::Composed_Copy_GPU_GDI      ||
-              mode == SK_PresentMode::Composed_Copy_CPU_GDI      ||
-              mode == SK_PresentMode::Composed_Flip;
-          };
-
-          bool bIsComposedPresent  = _IsComposedPresent (
-            rb.presentation.mode
-          );
-
-          bool bWasComposedPresent = _IsComposedPresent (
-            std::exchange (
-              lastPresentMode,
-              rb.presentation.mode
-            )
-          );
-
-          bool bRenderLatencyExceedsOneFrame = false;
-
-          if (! SK_RenderBackend_V2::latency.stale)
-          {
-            bRenderLatencyExceedsOneFrame =
-              SK_RenderBackend_V2::latency.delays.PresentQueue > 1;
-          }
-
-          else if (bIsComposedPresent)
-          {
-            bRenderLatencyExceedsOneFrame = true;
-          }
-
-          else if (rb.presentation.avg_stats.display != 0.0)
-          {
-            bRenderLatencyExceedsOneFrame =
-              rb.presentation.avg_stats.latency /
-              rb.presentation.avg_stats.display > 1.9;
-          }
-
-          else
-          {
-            // Assume that Render Latency exceeds 1 frame if
-            // DXGI/PresentMon stats are unavailable and FPS is unstable
-            bRenderLatencyExceedsOneFrame = latency_avg.getInput () < 0.0;
-          }
-
           if (bRenderLatencyExceedsOneFrame)
           {
-            if (latency_avg.getInput () < 0.0 || bIsComposedPresent)
+            if (bIsComposedPresent)
             {
               _ToggleTearing (true);
 
@@ -2138,6 +2105,17 @@ SK::Framerate::Limiter::wait (void)
             bDisableTearingAndWait = false;
           }
         } break;
+
+        case SK_TearingMode::LatentSync_AlwaysOn:
+        {
+          _ToggleTearing (true);
+        } break;
+
+        case SK_TearingMode::LatentSync_AlwaysOff:
+        {
+          _ToggleTearing (false);
+        } break;
+
         default:
         {
         } break;
@@ -2146,7 +2124,7 @@ SK::Framerate::Limiter::wait (void)
 
     if (config.render.framerate.present_interval > 0 && config.render.framerate.adaptive_vsync)
     {
-      _AdaptiveTearing (SK_TearingMode::AdaptiveVSync);
+      _ManageTearing (SK_TearingMode::AdaptiveVSync);
     }
 
     else if (config.render.framerate.present_interval == 0 && ticks_per_scanline > 1)
@@ -2164,30 +2142,25 @@ SK::Framerate::Limiter::wait (void)
         __SK_LatentSyncSkip = 0;
       }
 
-      // Disable frame skipping if we can't maintain TargetFPS in 2-4x mode
-      else if (std::round (fps / (1000.0 / effective_frametime ())) >= 2.0)
-      {
-        __SK_LatentSyncSkip = 0;
-      }
-
       switch (config.render.framerate.latent_sync.tearing_mode)
       {
-        case SK_TearingMode::LatentSync_AdaptiveOn:
-          _AdaptiveTearing (SK_TearingMode::LatentSync_AdaptiveOn);
-          break;
-        case SK_TearingMode::LatentSync_AdaptiveOff:
-          _AdaptiveTearing (SK_TearingMode::LatentSync_AdaptiveOff);
-          break;
         case SK_TearingMode::LatentSync_AlwaysOn:
-          config.render.dxgi.allow_tearing = true;
-          break;
         case SK_TearingMode::LatentSync_AlwaysOff:
-          config.render.dxgi.allow_tearing = false;
+        case SK_TearingMode::LatentSync_AdaptiveOn:
+        case SK_TearingMode::LatentSync_AdaptiveOff:
+          _ManageTearing (
+            static_cast <SK_TearingMode> (
+              config.render.framerate.latent_sync.tearing_mode
+            )
+          );
           break;
         default:
-          config.render.framerate.latent_sync.tearing_mode =
-            SK_TearingMode::LatentSync_AlwaysOn;
-          config.render.dxgi.allow_tearing = true;
+          _ManageTearing (
+            static_cast <SK_TearingMode> (
+              config.render.framerate.latent_sync.tearing_mode =
+                SK_TearingMode::LatentSync_AlwaysOn
+            )
+          );
           break;
       }
 
