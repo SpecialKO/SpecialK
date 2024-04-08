@@ -622,7 +622,14 @@ SK_ImGui_LatentSyncConfig (void)
           ImGui::BeginTooltip ();
           ImGui::Text         ("Please set Tearing Mode to 'Always On' for 2-4x Scan Mode!");
           ImGui::Separator    ();
-          ImGui::BulletText   ("Enable NVIDIA's Fast Sync or AMD's Enhanced Sync to eliminate tearing");
+          ImGui::BulletText   ("Use NVIDIA's Fast Sync or AMD's Enhanced Sync to eliminate tearing");
+          ImGui::Separator    ();
+          ImGui::Text         ("Alternatively, you can choose 'Adaptive (Prefer On/Off)'");
+          ImGui::Separator    ();
+          ImGui::BulletText   ("Adaptive (Prefer On): only disables tearing if FPS is below Refresh Rate");
+          ImGui::BulletText   ("Adaptive (Prefer Off): requires Buffer Count of 4+ and Maximum Device Latency of 1");
+          ImGui::Separator    ();
+          ImGui::Text         ("Avoid 'Always Off' - may result in permanent double-buffered V-Sync!");
           ImGui::EndTooltip   ();
         }
       }
@@ -1925,7 +1932,8 @@ SK::Framerate::Limiter::wait (void)
       static constexpr int _MAX_FRAMES = 30;
 
       struct {
-        double input [_MAX_FRAMES] = { };
+        double input   [_MAX_FRAMES] = { };
+        double display [_MAX_FRAMES] = { };
 
         int frames = 0;
 
@@ -1942,10 +1950,26 @@ SK::Framerate::Limiter::wait (void)
           return
             ( avg / samples );
         }
+
+        double getDisplay (void) noexcept
+        {
+          double avg     = 0.0,
+                 samples = 0.0;
+
+          for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
+          {
+            ++samples; avg += display [i];
+          }
+
+          return
+            ( avg / samples );
+        }
       } static latency_avg;
 
-      latency_avg.input [latency_avg.frames++ % _MAX_FRAMES] =
+      latency_avg.input   [latency_avg.frames   % _MAX_FRAMES] =
         (1000.0 / get_limit           ()) -
+                  effective_frametime ();
+      latency_avg.display [latency_avg.frames++ % _MAX_FRAMES] =
                   effective_frametime ();
 
       static SK_PresentMode lastPresentMode = rb.presentation.mode;
@@ -2020,13 +2044,7 @@ SK::Framerate::Limiter::wait (void)
       switch (tearingMode)
       {
         // Prefer tearing, only disable tearing if FPS is unstable
-        //
-        // In 2-4x mode, Tearing Mode "Adaptive (Prefer On)" will act the same as "Always On"
-        // because disabling tearing when FPS is unstable causes a sudden drop to 1:1 FPS...
         case SK_TearingMode::LatentSync_AdaptiveOn:
-        {
-          _ToggleTearing (bIsAboveRefresh || !bIsFpsUnstable);
-        } break;
 
         // Prefer no tearing, only enable tearing if FPS is unstable or Render Latency exceeds 1 frame
         case SK_TearingMode::LatentSync_AdaptiveOff:
@@ -2034,6 +2052,64 @@ SK::Framerate::Limiter::wait (void)
         // Prefer VSync On, only turn VSync Off if FPS is unstable or Render Latency exceeds 1 frame
         case SK_TearingMode::AdaptiveVSync:
         {
+          int iEffectiveFrametime   = static_cast <int> (
+            latency_avg.getDisplay           ()
+          );
+
+          int iRefreshRateFrametime = static_cast <int> (
+            1000.0 / rb.getActiveRefreshRate ()
+          );
+
+          // When tearing is disabled, display latency sometimes gets stuck at (1000 / RefreshRate) ms
+          bool bIsDisplayLatencyStuck =
+            ( rb.present_interval > 0 ||     !config.render.dxgi.allow_tearing ) &&
+            ( iEffectiveFrametime     ==     iRefreshRateFrametime             );
+
+          static bool bWasDisplayLatencyStuck = bIsDisplayLatencyStuck;
+
+          // Enable tearing to fix stuck display latency
+          if (bIsDisplayLatencyStuck)
+          {
+            _ToggleTearing (true);
+
+            bWasDisplayLatencyStuck = true;
+
+            return;
+          }
+
+          // To fully recover from stuck display latency, keep tearing enabled until FPS is stable
+          // If FPS dips below Refresh Rate, decide the next steps according to Tearing Mode
+          if ( bWasDisplayLatencyStuck &&
+               bIsFpsUnstable          &&
+               iEffectiveFrametime     <=
+               iRefreshRateFrametime   )
+          {
+            _ToggleTearing (true);
+
+            return;
+          }
+
+          bWasDisplayLatencyStuck = false;
+
+          if (tearingMode == SK_TearingMode::LatentSync_AdaptiveOn)
+          {
+            // Only disable tearing in 2-4x mode if FPS is below Refresh Rate
+            if ( bIsAboveRefresh       &&
+                 bIsFpsUnstable        &&
+                 iEffectiveFrametime   <=
+                 iRefreshRateFrametime )
+            {
+              _ToggleTearing (true);
+            }
+
+            else
+            {
+              _ToggleTearing (! bIsFpsUnstable);
+            }
+
+            return;
+          }
+
           if (bIsFpsUnstable)
           {
             _ToggleTearing (true);
