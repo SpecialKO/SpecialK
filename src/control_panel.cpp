@@ -5578,6 +5578,7 @@ SK_ImGui_ControlPanel (void)
 
               double dMultiplier = std::round (static_cast <double> (__target_fps) / dRefresh);
 
+              // 2-4x
               if (maxLatentSyncSkip >= 2 && dMultiplier >= 2.0)
               {
                 __SK_LatentSyncSkip = static_cast <int> (dMultiplier);
@@ -5596,6 +5597,7 @@ SK_ImGui_ControlPanel (void)
 
                 dMultiplier = std::round (dRefresh / static_cast <double> (__target_fps));
 
+                // 1/x
                 if (dMultiplier >= 2.0)
                 {
                   iMode += iFractSel;
@@ -5621,8 +5623,8 @@ SK_ImGui_ControlPanel (void)
                   static_cast <float> (dRefresh);
 
                 __SK_LatentSyncSkip = 0;
-                iFractSel           = 0;
 
+                // 2-4x
                 if (maxLatentSyncSkip >= 2 && iMode <= maxLatentSyncSkip - 2)
                 {
                   __SK_LatentSyncSkip = maxLatentSyncSkip - iMode;
@@ -5630,12 +5632,19 @@ SK_ImGui_ControlPanel (void)
                   fTargetFPS = static_cast <float> (dRefresh * __SK_LatentSyncSkip);
                 }
 
+                // 1/x
                 else if ( ( maxLatentSyncSkip >= 2 && iMode >= maxLatentSyncSkip ) ||
                           ( maxLatentSyncSkip <= 1 && iMode >= 1                 ) )
                 {  
                   iFractSel = maxLatentSyncSkip >= 2 ? (iMode - maxLatentSyncSkip + 1) : iMode;
 
                   fTargetFPS = static_cast <float> (dFractList [iFractSel]);
+                }
+
+                // 1:1
+                else
+                {
+                  iFractSel = 0;
                 }
 
                 SK_GetCommandProcessor ()->ProcessCommandFormatted (
