@@ -273,17 +273,20 @@ void SK_LatentSync_EndSwap (void) noexcept
                  sampled_swaps;
 }
 
-bool SK_LatentSync_WorksAboveRefresh (SK_RenderAPI api)
+bool SK_LatentSync_SupportsFrameSkipping (SK_RenderAPI api)
 {
-  // TODO: Remove ternary operator to enable 2-4x modes
+  if (SK_GL_OnD3D11)
+  {
+    return false;
+  }
+
   return
     ( config.render.dxgi.allow_d3d12_footguns &&
       SK_API_IsLayeredOnD3D12           (api)  ) ||
     ( SK_API_IsLayeredOnD3D11           (api)  ) ||
     ( SK_API_IsLayeredOnD3D10           (api)  ) ||
     ( SK_API_IsDirect3D9                (api)  ) ||
-    ( SK_API_IsGDIBased                 (api)  )
-      ? false : false;
+    ( SK_API_IsGDIBased                 (api)  );
 }
 
 
@@ -624,11 +627,11 @@ SK_ImGui_LatentSyncConfig (void)
           ImGui::Separator    ();
           ImGui::BulletText   ("You may enable NVIDIA's Fast Sync or AMD's Enhanced Sync to eliminate tearing");
           ImGui::Separator    ();
-          ImGui::Text         ("Only use other Tearing Modes under certain conditions");
+          ImGui::Text         ("Only use other Tearing Modes under certain conditions!");
           ImGui::Separator    ();
-          ImGui::BulletText   ("Always Off:                 Buffer Count >= 5 ; Maximum Device Latency = Buffer Count + 1");
-          ImGui::BulletText   ("Adaptive (Prefer On): Buffer Count >= 5 ; Maximum Device Latency = Buffer Count + 1");
-          ImGui::BulletText   ("Adaptive (Prefer Off): Buffer Count >= 5 ; Maximum Device Latency = 1");
+          ImGui::BulletText   ("Always Off:                 Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
+          ImGui::BulletText   ("Adaptive (Prefer On): Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
+          ImGui::BulletText   ("Adaptive (Prefer Off): Buffer Count >= 5 ; Max Device Latency = 1");
           ImGui::EndTooltip   ();
         }
       }
@@ -1976,7 +1979,7 @@ SK::Framerate::Limiter::wait (void)
         )
       );
 
-      bool bIsFpsUnstable = latency_avg.getInput () < 0.1;
+      bool bIsFpsUnstable = latency_avg.getInput () < 0.0;
 
       // Assume that Render Latency exceeds 1 frame if
       // DXGI / PresentMon stats are unavailable and FPS is unstable
@@ -2000,10 +2003,8 @@ SK::Framerate::Limiter::wait (void)
           rb.presentation.avg_stats.display > 1.9;
       }
 
-      bool bIsAboveRefresh = std::round (fps / rb.getActiveRefreshRate ()) >= 2.0;
-
       // Disable frame skipping in 2-4x mode if FPS is unstable or Render Latency exceeds 1 frame
-      if (bIsAboveRefresh && (bIsFpsUnstable || bRenderLatencyExceedsOneFrame))
+      if (bIsFpsUnstable || bRenderLatencyExceedsOneFrame)
       {
         __SK_LatentSyncSkip = 0;
       }
@@ -2027,6 +2028,9 @@ SK::Framerate::Limiter::wait (void)
       {
         // Prefer tearing, only disable tearing if FPS is unstable
         case SK_TearingMode::LatentSync_AdaptiveOn:
+        {
+          _ToggleTearing (latency_avg.getInput () > -1.0);
+        } break;
 
         // Prefer no tearing, only enable tearing if FPS is unstable or Render Latency exceeds 1 frame
         case SK_TearingMode::LatentSync_AdaptiveOff:
@@ -2034,42 +2038,7 @@ SK::Framerate::Limiter::wait (void)
         // Prefer VSync On, only turn VSync Off if FPS is unstable or Render Latency exceeds 1 frame
         case SK_TearingMode::AdaptiveVSync:
         {
-          // When tearing is disabled, input latency sometimes gets stuck at (-0.1 ; 0.1) ms
-          bool bIsInputStuckAtZero =
-            ( rb.present_interval     >    0 || !config.render.dxgi.allow_tearing ) &&
-            ( latency_avg.getInput () > -0.1 && latency_avg.getInput () < 0.1     );
-
-          static bool bWasInputStuckAtZero = bIsInputStuckAtZero;
-
-          // Keep tearing enabled until input latency is no longer stuck at (-0.1 ; 0.1)
-          if (bIsInputStuckAtZero)
-          {
-            _ToggleTearing (true);
-
-            bWasInputStuckAtZero = true;
-
-            return;
-          }
-
-          if ( latency_avg.getInput () > -0.1 &&
-               latency_avg.getInput () <  0.1 &&
-               bWasInputStuckAtZero           )
-          {
-            _ToggleTearing (true);
-
-            return;
-          }
-
-          bWasInputStuckAtZero = false;
-
-          if (tearingMode == SK_TearingMode::LatentSync_AdaptiveOn)
-          {
-            _ToggleTearing (! bIsFpsUnstable);
-
-            return;
-          }
-
-          if (bIsFpsUnstable)
+          if (latency_avg.getInput () < 1.0)
           {
             _ToggleTearing (true);
 
@@ -2170,9 +2139,7 @@ SK::Framerate::Limiter::wait (void)
         )
       );
 
-      bool bWorksAboveRefresh = SK_LatentSync_WorksAboveRefresh (rb.api);
-
-      if (!bWorksAboveRefresh || __SK_LatentSyncSkip < 2)
+      if ((! SK_LatentSync_SupportsFrameSkipping (rb.api)) || __SK_LatentSyncSkip < 2)
       {
         __SK_LatentSyncSkip = 0;
       }

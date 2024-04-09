@@ -5489,12 +5489,7 @@ SK_ImGui_ControlPanel (void)
             bFirstFrame = false;
 
 
-            extern int  __SK_LatentSyncSkip;
-            extern bool   SK_LatentSync_WorksAboveRefresh (SK_RenderAPI api);
-
-            bool bWorksAboveRefresh = SK_LatentSync_WorksAboveRefresh (rb.api);
-
-            int maxLatentSyncSkip = bWorksAboveRefresh ? 4 : 0;
+            extern int __SK_LatentSyncSkip;
 
             bool bLatentSync =
               config.render.framerate.present_interval == 0 &&
@@ -5542,7 +5537,7 @@ SK_ImGui_ControlPanel (void)
 
                 config.render.framerate.present_interval = 0;
 
-                if (__target_fps == 0.0f || (maxLatentSyncSkip < 2 && target_mag > dRefresh))
+                if (__target_fps == 0.0f)
                 {
                   __SK_LatentSyncSkip = 0;
                   iFractSel           = 0;
@@ -5554,11 +5549,6 @@ SK_ImGui_ControlPanel (void)
 
                 else if (__target_fps < 0.0f)
                 {
-                  if (maxLatentSyncSkip < 2)
-                  {
-                    __SK_LatentSyncSkip = 0;
-                  }
-
                   SK_GetCommandProcessor ()->ProcessCommandFormatted (
                     "TargetFPS %f", target_mag
                   );
@@ -5573,38 +5563,58 @@ SK_ImGui_ControlPanel (void)
               double dRefresh =
                 rb.getActiveRefreshRate ();
 
-              std::string strModeList = strFractList;
-              int           iMode     = std::max (maxLatentSyncSkip - 1, 0); // 1:1
+              int iMaxAboveRefreshMode = 4;
 
-              double dMultiplier = std::round (static_cast <double> (__target_fps) / dRefresh);
+              std::string strModeList = strFractList;
+              int           iMode     = std::max (iMaxAboveRefreshMode - 1, 0); // 1:1
+
+              int iMultiplier = static_cast <int> (
+                std::round (
+                  static_cast <double> (__target_fps) / dRefresh
+                )
+              );
+
+              extern bool SK_LatentSync_SupportsFrameSkipping (SK_RenderAPI api);
+
+              bool bSupportsFrameSkipping = SK_LatentSync_SupportsFrameSkipping (rb.api);
+
+              __SK_LatentSyncSkip = 0;
 
               // 2-4x
-              if (maxLatentSyncSkip >= 2 && dMultiplier >= 2.0)
+              if (iMultiplier >= 2)
               {
-                __SK_LatentSyncSkip = static_cast <int> (dMultiplier);
-
-                if (__SK_LatentSyncSkip >= maxLatentSyncSkip)
+                if (bSupportsFrameSkipping)
                 {
-                  maxLatentSyncSkip = __SK_LatentSyncSkip + (__SK_LatentSyncSkip % 2 == 0 ? 2 : 1);
+                  __SK_LatentSyncSkip = iMultiplier;
                 }
 
-                iMode = maxLatentSyncSkip - __SK_LatentSyncSkip;
+                if (iMaxAboveRefreshMode >= 2)
+                {
+                  if (iMultiplier >= iMaxAboveRefreshMode)
+                  {
+                    iMaxAboveRefreshMode = iMultiplier + (iMultiplier % 2 == 0 ? 2 : 1);
+                  }
+
+                  iMode = iMaxAboveRefreshMode - iMultiplier;
+                }
               }
 
               else
               {
-                __SK_LatentSyncSkip = 0;
-
-                dMultiplier = std::round (dRefresh / static_cast <double> (__target_fps));
+                iMultiplier = static_cast <int> (
+                  std::round (
+                    dRefresh / static_cast <double> (__target_fps)
+                  )
+                );
 
                 // 1/x
-                if (dMultiplier >= 2.0)
+                if (iMultiplier >= 2)
                 {
                   iMode += iFractSel;
                 }
               }
 
-              for (int x = 2; x <= maxLatentSyncSkip; x++)
+              for (int x = 2; x <= iMaxAboveRefreshMode; x++)
               {
                 strModeList.insert (
                   0,
@@ -5625,18 +5635,23 @@ SK_ImGui_ControlPanel (void)
                 __SK_LatentSyncSkip = 0;
 
                 // 2-4x
-                if (maxLatentSyncSkip >= 2 && iMode <= maxLatentSyncSkip - 2)
+                if (iMaxAboveRefreshMode >= 2 && iMode <= iMaxAboveRefreshMode - 2)
                 {
-                  __SK_LatentSyncSkip = maxLatentSyncSkip - iMode;
+                  iMultiplier = iMaxAboveRefreshMode - iMode;
 
-                  fTargetFPS = static_cast <float> (dRefresh * __SK_LatentSyncSkip);
+                  if (bSupportsFrameSkipping)
+                  {
+                    __SK_LatentSyncSkip = iMultiplier;
+                  }
+
+                  fTargetFPS = static_cast <float> (dRefresh * iMultiplier);
                 }
 
                 // 1/x
-                else if ( ( maxLatentSyncSkip >= 2 && iMode >= maxLatentSyncSkip ) ||
-                          ( maxLatentSyncSkip <= 1 && iMode >= 1                 ) )
+                else if ( ( iMaxAboveRefreshMode >= 2 && iMode >= iMaxAboveRefreshMode ) ||
+                          ( iMaxAboveRefreshMode <= 1 && iMode >= 1                    ) )
                 {  
-                  iFractSel = maxLatentSyncSkip >= 2 ? (iMode - maxLatentSyncSkip + 1) : iMode;
+                  iFractSel = iMaxAboveRefreshMode >= 2 ? (iMode - iMaxAboveRefreshMode + 1) : iMode;
 
                   fTargetFPS = static_cast <float> (dFractList [iFractSel]);
                 }
