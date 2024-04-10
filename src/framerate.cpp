@@ -623,15 +623,17 @@ SK_ImGui_LatentSyncConfig (void)
         if (ImGui::IsItemHovered ())
         {
           ImGui::BeginTooltip ();
-          ImGui::Text         ("Please set Tearing Mode to 'Always On' for [2x, 3x, ...] Scan Mode!");
+          ImGui::Text         ("Please set Tearing Mode to 'Always On' for 2x.. Scan Mode!");
           ImGui::Separator    ();
           ImGui::BulletText   ("You may enable NVIDIA's Fast Sync or AMD's Enhanced Sync to eliminate tearing");
+          ImGui::BulletText   ("Fast Sync is not compatible with DirectX 12");
           ImGui::Separator    ();
-          ImGui::Text         ("Only use other Tearing Modes under certain conditions!");
+          ImGui::Text         ("Other tearing options require certain settings for 2x.. mode (best to worst):");
           ImGui::Separator    ();
-          ImGui::BulletText   ("Always Off:                 Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
           ImGui::BulletText   ("Adaptive (Prefer On): Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
           ImGui::BulletText   ("Adaptive (Prefer Off): Buffer Count >= 5 ; Max Device Latency = 1");
+          ImGui::BulletText   ("Adaptive (Prefer Off): Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
+          ImGui::BulletText   ("Always Off:                 Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
           ImGui::EndTooltip   ();
         }
       }
@@ -1979,7 +1981,7 @@ SK::Framerate::Limiter::wait (void)
         )
       );
 
-      bool bIsFpsUnstable = latency_avg.getInput () < 0.0;
+      bool bIsFpsUnstable = latency_avg.getInput () < 0.1;
 
       // Assume that Render Latency exceeds 1 frame if
       // DXGI / PresentMon stats are unavailable and FPS is unstable
@@ -2038,7 +2040,24 @@ SK::Framerate::Limiter::wait (void)
         // Prefer VSync On, only turn VSync Off if FPS is unstable or Render Latency exceeds 1 frame
         case SK_TearingMode::AdaptiveVSync:
         {
-          if (latency_avg.getInput () < 0.1)
+          // 2-4x mode with Tearing Off and "PreRenderLimit > 1" would constantly
+          // enable <-> disable tearing because Render Latency is always above 1 frame
+          // In this case, only enable tearing if FPS is unstable
+          if ( std::round (fps / rb.getActiveRefreshRate ()) >= 2.0 &&
+               config.render.framerate.pre_render_limit      != 1   )
+          {
+            _ToggleTearing (
+              ( rb.presentation.avg_stats.display != 0.0 &&
+                rb.presentation.avg_stats.latency /
+                rb.presentation.avg_stats.display >  1.7  ) ||
+              ( latency_avg.getInput           () <  1.0  ) ||
+              ( bIsComposedPresent                        )
+            );
+
+            return;
+          }
+
+          if (bIsFpsUnstable)
           {
             _ToggleTearing (true);
 
