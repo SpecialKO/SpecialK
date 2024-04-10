@@ -1018,7 +1018,7 @@ SK::ControlPanel::D3D11::Draw (void)
         config.render.framerate.sync_interval_clamp = SK_NoPreference;
       }
 
-      if (! ((d3d12 && !config.render.dxgi.allow_d3d12_footguns) || indirect))
+      if (! (d3d12 && !config.render.dxgi.allow_d3d12_footguns))
       {
         if (ImGui::InputInt ("BackBuffer Count", &config.render.framerate.buffer_count))
         {
@@ -1045,7 +1045,7 @@ SK::ControlPanel::D3D11::Draw (void)
       if (config.render.framerate.buffer_count <  0)
           config.render.framerate.buffer_count = SK_NoPreference;
 
-      if (! ((d3d12 && !config.render.dxgi.allow_d3d12_footguns) || indirect))
+      if (! (d3d12 && !config.render.dxgi.allow_d3d12_footguns))
       {
         if (ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit))
         {

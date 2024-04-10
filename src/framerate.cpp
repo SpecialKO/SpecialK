@@ -2029,7 +2029,7 @@ SK::Framerate::Limiter::wait (void)
         // Prefer tearing, only disable tearing if FPS is unstable
         case SK_TearingMode::LatentSync_AdaptiveOn:
         {
-          _ToggleTearing (latency_avg.getInput () > -1.0);
+          _ToggleTearing (latency_avg.getInput () > -0.1);
         } break;
 
         // Prefer no tearing, only enable tearing if FPS is unstable or Render Latency exceeds 1 frame
@@ -2038,7 +2038,7 @@ SK::Framerate::Limiter::wait (void)
         // Prefer VSync On, only turn VSync Off if FPS is unstable or Render Latency exceeds 1 frame
         case SK_TearingMode::AdaptiveVSync:
         {
-          if (latency_avg.getInput () < 1.0)
+          if (latency_avg.getInput () < 0.1)
           {
             _ToggleTearing (true);
 
