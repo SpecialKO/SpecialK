@@ -20,12 +20,11 @@
 **/
 
 #include <SpecialK/stdafx.h>
-
 #include <SpecialK/control_panel/input.h>
 
-#include <hidclass.h>
-
 #include <imgui/font_awesome.h>
+
+#include <hidclass.h>
 
 bool cursor_vis = false;
 
@@ -1461,6 +1460,27 @@ SK::ControlPanel::Input::Draw (void)
                       {
                         config.utility.save_async ();
                       }
+                    }
+
+                    if (ImGui::SliderFloat ("Critical Battery Level", &config.input.gamepad.low_battery_percent, 0.0f, 45.0f, "%3.0f%% Remaining"))
+                    {
+                      config.utility.save_async ();
+
+                      if (! ImGui::IsItemActive ())
+                      {
+                        ImGui::ClearActiveID     ( );
+                        ImGui::CloseCurrentPopup ( );
+                      }
+                    }
+
+                    if (ImGui::IsItemHovered ())
+                    {
+                      ImGui::BeginTooltip    ();
+                      ImGui::TextUnformatted ("Display warning notifications when PlayStation controller battery levels are critical.");
+                      ImGui::Separator       ();
+                      ImGui::BulletText      ("The warning is only displayed while the controller is running on battery.");
+                      ImGui::BulletText      ("The warning can be disabled by setting 0%");
+                      ImGui::EndTooltip      ();
                     }
 
                     if (ImGui::Checkbox ("Bluetooth Compatibility Mode",

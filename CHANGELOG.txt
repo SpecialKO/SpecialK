@@ -1,4 +1,11 @@
-﻿24.4.6.1
+﻿24.4.11
+=======
+ + Improved PlayStation controller battery measurement;
+     Percentage = 3.1 fixed-point instead of Percentage = Level/0xA
+ + Made PlayStation controller critical battery level a user-configurable
+     setting (right-click the Bluetooth PlayStation controller battery).
+
+24.4.6.1
 ========
  + Improved fit of Alpha Upscaling override option in control panel, and
      add indicator for its current state.

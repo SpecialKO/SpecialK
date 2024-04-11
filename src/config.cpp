@@ -1047,6 +1047,7 @@ struct {
 
     sk::ParameterInt*     disabled_to_game        = nullptr;
     sk::ParameterBool*    bt_input_only           = nullptr;
+    sk::ParameterFloat*   low_battery_warning     = nullptr;
   } gamepad;
 } input;
 
@@ -1622,6 +1623,8 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.scepad.led_color_g,       L"Force Green LED Color [0,255] or -1 for No Override",       input_ini,       L"Input.libScePad",       L"LEDColor_G"),
     ConfigEntry (input.gamepad.scepad.led_color_b,       L"Force Blue LED Color [0,255] or -1 for No Override",        input_ini,       L"Input.libScePad",       L"LEDColor_B"),
     ConfigEntry (input.gamepad.scepad.led_brightness,    L"Force LED brightness [0,1,2,3] or -1 for No Override",      input_ini,       L"Input.libScePad",       L"LEDBrightness"),
+
+    ConfigEntry (input.gamepad.low_battery_warning,      L"Percentage when SK will warn controller batteries are low", input_ini,       L"Input.Battery",         L"WarnIfPercentIsBelow"),
 
  //DEPRECATED  (                                                                                                                       L"Input.XInput",          L"DisableRumble"),
 
@@ -4379,6 +4382,8 @@ auto DeclKeybind =
   input.gamepad.scepad.led_color_b->load          (config.input.gamepad.scepad.led_color_b);
   input.gamepad.scepad.led_brightness->load       (config.input.gamepad.scepad.led_brightness);
 
+  input.gamepad.low_battery_warning->load         (config.input.gamepad.low_battery_percent);
+
   input.gamepad.xinput.ui_slot->load   ((int &)config.input.gamepad.xinput.ui_slot);
   input.gamepad.steam.disable->load    (config.input.gamepad.steam.disabled_to_game);
 
@@ -5729,6 +5734,8 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.scepad.led_color_g->store          (config.input.gamepad.scepad.led_color_g);
   input.gamepad.scepad.led_color_b->store          (config.input.gamepad.scepad.led_color_b);
   input.gamepad.scepad.led_brightness->store       (config.input.gamepad.scepad.led_brightness);
+
+  input.gamepad.low_battery_warning->store         (config.input.gamepad.low_battery_percent);
 
 
   threads.enable_mem_alloc_trace->store            (config.threads.enable_mem_alloc_trace);

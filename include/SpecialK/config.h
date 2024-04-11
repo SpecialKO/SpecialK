@@ -985,6 +985,7 @@ struct sk_config_t
       bool    hook_winmm          = true;
       bool    native_ps4          = false;
       bool    bt_input_only       = false;
+      float   low_battery_percent = 25.0f;
 
       struct xinput_s {
         unsigned
