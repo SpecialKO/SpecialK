@@ -4,6 +4,7 @@
      Percentage = 3.1 fixed-point instead of Percentage = Level/0xA
  + Made PlayStation controller critical battery level a user-configurable
      setting (right-click the Bluetooth PlayStation controller battery).
+ + Battery level warnings will go away after plugging the controller in.
 
 24.4.6.1
 ========

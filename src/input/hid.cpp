@@ -3776,13 +3776,19 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   (SK_HID_PlayStationDevice::PowerState)((((BYTE *)pData)[52] & 0xF0) >> 4);
 
                 const float batteryPercent =
-                  ( std::min (((((BYTE *)pData)[52] & 0xF) /*- ((((BYTE *)pData)[53] & 0x10) ? 1 : 0)*/) * 10.0f + 5.0f, 100.0f) );
+                 ( pDevice->battery.state == Charging ?  static_cast <float> (((BYTE *)pData)[52] & 0x7) - 1
+                                                      :  static_cast <float> (((BYTE *)pData)[52] & 0x7) ) * 14.285714f +
+                 ( pDevice->battery.state == Charging ?  static_cast <float> (((BYTE *)pData)[52] >>  3)
+                                                      : -static_cast <float> (((BYTE *)pData)[52] >>  3) ) *  7.142857f;
 
                 if (pDevice->battery.state == Discharging || 
                     pDevice->battery.state == Charging    ||
                     pDevice->battery.state == Complete)
                 {
                   pDevice->battery.percentage = batteryPercent;
+
+                  if (pDevice->battery.state == Complete)
+                      pDevice->battery.percentage = 100.0f;
                 }
 
                 if (pDevice->buttons.size () < 19)
@@ -3980,13 +3986,19 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 (SK_HID_PlayStationDevice::PowerState)((((BYTE *)pData)[52] & 0xF0) >> 4);
 
               const float batteryPercent =
-                ( std::min (((((BYTE *)pData)[52] & 0xF) /*- ((((BYTE *)pData)[53] & 0x10) ? 1 : 0)*/) * 10.0f + 5.0f, 100.0f) );
+               ( pDevice->battery.state == Charging ?  static_cast <float> (((BYTE *)pData)[52] & 0x7) - 1
+                                                    :  static_cast <float> (((BYTE *)pData)[52] & 0x7) ) * 14.285714f +
+               ( pDevice->battery.state == Charging ?  static_cast <float> (((BYTE *)pData)[52] >>  3)
+                                                    : -static_cast <float> (((BYTE *)pData)[52] >>  3) ) *  7.142857f;
 
               if (pDevice->battery.state == Discharging || 
                   pDevice->battery.state == Charging    ||
                   pDevice->battery.state == Complete)
               {
                 pDevice->battery.percentage = batteryPercent;
+
+                if (pDevice->battery.state == Complete)
+                    pDevice->battery.percentage = 100.0f;
               }
 
               switch (pDevice->battery.state)
@@ -3994,7 +4006,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 case Charging:
                 case Discharging:
                 {
-                  if (pDevice->battery.percentage >= 30.0f)
+                  if (pDevice->battery.percentage >= config.input.gamepad.low_battery_percent || pDevice->battery.state == Charging)
                     SK_ImGui_DismissNotification ("DualSense.BatteryCharge");
                   else
                     SK_ImGui_CreateNotificationEx (
@@ -4029,7 +4041,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                           (pBatteryState->percentage > 10.0f) ? 1 : 0;
 
                         // Battery charge is high enough, don't bother showing this...
-                        if (pBatteryState->percentage > 30.0f)
+                        if (pBatteryState->percentage >= config.input.gamepad.low_battery_percent)
                           return true;
 
                         auto batteryColor =
@@ -4160,18 +4172,32 @@ SK_HID_PlayStationDevice::request_input_report (void)
                                 SK_HID_PlayStationDevice::PowerState::Charging :
                              SK_HID_PlayStationDevice::PowerState::Discharging;
 
-              const float batteryPercent =
-                (float)(pData->PluggedPowerCable ? (pData->PowerPercent & 0xF) - 1
-                                                 : (pData->PowerPercent & 0xF)) * 10.0f;
+              //SK_LOGi0 (L"Battery Percent: %x", pData->PowerPercent & 0xF);
+              //SK_LOGi0 (L" ==> %d.%d",         (pData->PowerPercent & 0xF) * 10,
+              //                                  pData->PowerPercent & 0xF);
 
-              pDevice->battery.percentage = batteryPercent;
+              const float batteryPercent =
+               ( pDevice->battery.state == Charging ?  static_cast <float> (((BYTE *)pData)[52] & 0x7) - 1
+                                                    :  static_cast <float> (((BYTE *)pData)[52] & 0x7) ) * 14.285714f +
+               ( pDevice->battery.state == Charging ?  static_cast <float> (((BYTE *)pData)[52] >>  3)
+                                                    : -static_cast <float> (((BYTE *)pData)[52] >>  3) ) *  7.142857f;
+
+              if (pDevice->battery.state == Discharging || 
+                  pDevice->battery.state == Charging    ||
+                  pDevice->battery.state == Complete)
+              {
+                pDevice->battery.percentage = batteryPercent;
+
+                if (pDevice->battery.state == Complete)
+                  pDevice->battery.percentage = 100.0f;
+              }
 
               switch (pDevice->battery.state)
               {
                 case Charging:
                 case Discharging:
                 {
-                  if (pDevice->battery.percentage >= 30.0f)
+                  if (pDevice->battery.percentage >= config.input.gamepad.low_battery_percent || pDevice->battery.state == Charging)
                     SK_ImGui_DismissNotification ("DualShock.BatteryCharge");
                   else
                     SK_ImGui_CreateNotificationEx (
@@ -4206,7 +4232,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                           (pBatteryState->percentage > 10.0f) ? 1 : 0;
 
                         // Battery charge is high enough, don't bother showing this...
-                        if (pBatteryState->percentage > 30.0f)
+                        if (pBatteryState->percentage >= config.input.gamepad.low_battery_percent)
                           return true;
 
                         auto batteryColor =
