@@ -2005,7 +2005,7 @@ SK::Framerate::Limiter::wait (void)
           rb.presentation.avg_stats.display > 1.9;
       }
 
-      // Disable frame skipping in 2-4x mode if FPS is unstable or Render Latency exceeds 1 frame
+      // Disable frame skipping in 2x.. mode if FPS is unstable or Render Latency exceeds 1 frame
       if (bIsFpsUnstable || bRenderLatencyExceedsOneFrame)
       {
         __SK_LatentSyncSkip = 0;
@@ -2040,7 +2040,7 @@ SK::Framerate::Limiter::wait (void)
         // Prefer VSync On, only turn VSync Off if FPS is unstable or Render Latency exceeds 1 frame
         case SK_TearingMode::AdaptiveVSync:
         {
-          // 2-4x mode with Tearing Off and "PreRenderLimit > 1" would constantly
+          // 2x.. mode with Tearing Off and "PreRenderLimit > 1" would constantly
           // enable <-> disable tearing because Render Latency is always above 1 frame
           // In this case, only enable tearing if FPS is unstable
           if ( std::round (fps / rb.getActiveRefreshRate ()) >= 2.0 &&

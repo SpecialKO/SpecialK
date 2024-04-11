@@ -5580,7 +5580,7 @@ SK_ImGui_ControlPanel (void)
 
               __SK_LatentSyncSkip = 0;
 
-              // 2-4x
+              // 2x..
               if (iMultiplier >= 2)
               {
                 if (bSupportsFrameSkipping)
@@ -5593,6 +5593,11 @@ SK_ImGui_ControlPanel (void)
                   if (iMultiplier >= iMaxAboveRefreshMode)
                   {
                     iMaxAboveRefreshMode = iMultiplier + (iMultiplier % 2 == 0 ? 2 : 1);
+                  }
+
+                  if (iMaxAboveRefreshMode == 6)
+                  {
+                    iMaxAboveRefreshMode = 8;
                   }
 
                   iMode = iMaxAboveRefreshMode - iMultiplier;
@@ -5624,6 +5629,11 @@ SK_ImGui_ControlPanel (void)
                       std::to_string (dRefresh * x)
                   ) + '\0'
                 );
+
+                if (iMaxAboveRefreshMode > 8 && x == 4)
+                {
+                  x = iMaxAboveRefreshMode - 4;
+                }
               }
 
               if ( ImGui::Combo ( "Scan Mode",
@@ -5634,10 +5644,18 @@ SK_ImGui_ControlPanel (void)
 
                 __SK_LatentSyncSkip = 0;
 
-                // 2-4x
-                if (iMaxAboveRefreshMode >= 2 && iMode <= iMaxAboveRefreshMode - 2)
+                // 2x..
+                if (iMaxAboveRefreshMode >= 2 && iMode <= std::min (iMaxAboveRefreshMode - 2, 6))
                 {
-                  iMultiplier = iMaxAboveRefreshMode - iMode;
+                  if ((iMaxAboveRefreshMode > 8 && iMode < 4) || iMaxAboveRefreshMode <= 8)
+                  {
+                    iMultiplier = iMaxAboveRefreshMode - iMode;
+                  }
+
+                  else
+                  {
+                    iMultiplier = 8 - iMode;
+                  }
 
                   if (bSupportsFrameSkipping)
                   {
@@ -5648,10 +5666,23 @@ SK_ImGui_ControlPanel (void)
                 }
 
                 // 1/x
-                else if ( ( iMaxAboveRefreshMode >= 2 && iMode >= iMaxAboveRefreshMode ) ||
-                          ( iMaxAboveRefreshMode <= 1 && iMode >= 1                    ) )
-                {  
-                  iFractSel = iMaxAboveRefreshMode >= 2 ? (iMode - iMaxAboveRefreshMode + 1) : iMode;
+                else if ( ( iMaxAboveRefreshMode >= 2 && iMode >= std::min (iMaxAboveRefreshMode, 8) ) ||
+                          ( iMaxAboveRefreshMode <= 1 && iMode >= 1                                  ) )
+                {
+                  if (iMaxAboveRefreshMode > 8)
+                  {
+                    iFractSel = iMode - 7;
+                  }
+
+                  else if (iMaxAboveRefreshMode >= 2)
+                  {
+                    iFractSel = iMode - iMaxAboveRefreshMode + 1;
+                  }
+
+                  else
+                  {
+                    iFractSel = iMode;
+                  }
 
                   fTargetFPS = static_cast <float> (dFractList [iFractSel]);
                 }
