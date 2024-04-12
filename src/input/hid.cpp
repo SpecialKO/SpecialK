@@ -3775,11 +3775,15 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 pDevice->battery.state =
                   (SK_HID_PlayStationDevice::PowerState)((((BYTE *)pData)[52] & 0xF0) >> 4);
 
-                const float batteryPercent =
-                 ( pDevice->battery.state == Charging ?  static_cast <float> (((BYTE *)pData)[52] & 0x7) - 1
-                                                      :  static_cast <float> (((BYTE *)pData)[52] & 0x7) ) * 14.285714f +
-                 ( pDevice->battery.state == Charging ?  static_cast <float> (((BYTE *)pData)[52] >>  3)
-                                                      : -static_cast <float> (((BYTE *)pData)[52] >>  3) ) *  7.142857f;
+              const float batteryPercent =
+               std::clamp (
+                ( pDevice->battery.state == Charging    ? static_cast <float> (std::min (11, ((BYTE *)pData)[52] & 0xF)) - 1 :
+                  pDevice->battery.state == Discharging ? static_cast <float> (std::min (9,  ((BYTE *)pData)[52] & 0xF)) + 1 :
+                                                                                                    0.0f) * 10.0f +
+                ( pDevice->battery.state == Charging    ? 0.0f :
+                  pDevice->battery.state == Discharging ? 5.0f :
+                                                          0.0f ), 0.0f, 100.0f
+               );
 
                 if (pDevice->battery.state == Discharging || 
                     pDevice->battery.state == Charging    ||
@@ -3789,6 +3793,11 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
                   if (pDevice->battery.state == Complete)
                       pDevice->battery.percentage = 100.0f;
+                }
+
+                else
+                {
+                  pDevice->battery.percentage = 100.0f;
                 }
 
                 if (pDevice->buttons.size () < 19)
@@ -3986,10 +3995,14 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 (SK_HID_PlayStationDevice::PowerState)((((BYTE *)pData)[52] & 0xF0) >> 4);
 
               const float batteryPercent =
-               ( pDevice->battery.state == Charging ?  static_cast <float> (((BYTE *)pData)[52] & 0x7) - 1
-                                                    :  static_cast <float> (((BYTE *)pData)[52] & 0x7) ) * 14.285714f +
-               ( pDevice->battery.state == Charging ?  static_cast <float> (((BYTE *)pData)[52] >>  3)
-                                                    : -static_cast <float> (((BYTE *)pData)[52] >>  3) ) *  7.142857f;
+               std::clamp (
+                ( pDevice->battery.state == Charging    ? static_cast <float> (std::min (11, ((BYTE *)pData)[52] & 0xF)) - 1 :
+                  pDevice->battery.state == Discharging ? static_cast <float> (std::min (9,  ((BYTE *)pData)[52] & 0xF)) + 1 :
+                                                                                                    0.0f) * 10.0f +
+                ( pDevice->battery.state == Charging    ? 0.0f :
+                  pDevice->battery.state == Discharging ? 5.0f :
+                                                          0.0f ), 0.0f, 100.0f
+               );
 
               if (pDevice->battery.state == Discharging || 
                   pDevice->battery.state == Charging    ||
@@ -3999,6 +4012,11 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
                 if (pDevice->battery.state == Complete)
                     pDevice->battery.percentage = 100.0f;
+              }
+
+              else
+              {
+                pDevice->battery.percentage = 100.0f;
               }
 
               switch (pDevice->battery.state)
@@ -4173,10 +4191,14 @@ SK_HID_PlayStationDevice::request_input_report (void)
                              SK_HID_PlayStationDevice::PowerState::Discharging;
 
               const float batteryPercent =
-               ( pDevice->battery.state == Charging ?  static_cast <float> (((BYTE *)pData)[52] & 0x7) - 1
-                                                    :  static_cast <float> (((BYTE *)pData)[52] & 0x7) ) * 14.285714f +
-               ( pDevice->battery.state == Charging ?  static_cast <float> (((BYTE *)pData)[52] >>  3)
-                                                    : -static_cast <float> (((BYTE *)pData)[52] >>  3) ) *  7.142857f;
+               std::clamp (
+                ( pDevice->battery.state == Charging    ? static_cast <float> (std::min (11, ((BYTE *)pData)[52] & 0xF)) - 1 :
+                  pDevice->battery.state == Discharging ? static_cast <float> (std::min (9,  ((BYTE *)pData)[52] & 0xF)) + 1 :
+                                                                                                    0.0f) * 10.0f +
+                ( pDevice->battery.state == Charging    ? 0.0f :
+                  pDevice->battery.state == Discharging ? 5.0f :
+                                                          0.0f ), 0.0f, 100.0f
+               );
 
               if (pDevice->battery.state == Discharging || 
                   pDevice->battery.state == Charging    ||
@@ -4185,7 +4207,12 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 pDevice->battery.percentage = batteryPercent;
 
                 if (pDevice->battery.state == Complete)
-                  pDevice->battery.percentage = 100.0f;
+                    pDevice->battery.percentage = 100.0f;
+              }
+
+              else
+              {
+                pDevice->battery.percentage = 100.0f;
               }
 
               switch (pDevice->battery.state)
