@@ -1,5 +1,7 @@
 ﻿24.4.12
 =======
+ + Disabled redundant mode change skip code if NV's Streamline Interposer
+     is loaded. (Helps prevent crashes in Horizon: Forbidden West (Steam))
  + Remove code that prevents games that natively use a Latency Waitable
      SwapChain from using IDXGISwapChain::ResizeTarget (...).
  + Extended the range of the FPS limit slider to 1.25x Refresh Rate

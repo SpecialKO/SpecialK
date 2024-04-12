@@ -1555,7 +1555,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
   BOOL bOrigFullscreen = rb.fullscreen_exclusive;
   BOOL bHadBorders     = SK_Window_HasBorder (game_window.hWnd);
 
-  if (config.render.dxgi.skip_mode_changes || config.display.force_windowed || config.window.background_render)
+  if ((config.render.dxgi.skip_mode_changes || config.display.force_windowed || config.window.background_render) && (! SK_IsModuleLoaded (L"sl.interposer.dll")))
   {
     // Does not work correctly when recycling swapchains
     if ((! bRecycledSwapChains) || config.display.force_windowed || (config.window.background_render && config.render.dxgi.fake_fullscreen_mode == false))
@@ -1622,7 +1622,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
   {
     rb.fullscreen_exclusive = bOrigFullscreen;
 
-    if (config.render.dxgi.skip_mode_changes)
+    if (config.render.dxgi.skip_mode_changes && (! SK_IsModuleLoaded (L"sl.interposer.dll")))
     {
       if (Fullscreen) { if (bHadBorders) SK_Window_RestoreBorders (0x0, 0x0); }
       else                               SK_Window_RemoveBorders  (        );
@@ -2137,7 +2137,7 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
 
   bool skippable = true;
 
-  if (config.render.dxgi.skip_mode_changes)
+  if (config.render.dxgi.skip_mode_changes && (! SK_IsModuleLoaded (L"sl.interposer.dll")))
   {
     // Never skip buffer resizes if we have encountered a fullscreen SwapChain
     static bool was_ever_fullscreen = false;
@@ -2565,7 +2565,7 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
   static UINT           numModeChanges =  0 ;
   static DXGI_MODE_DESC lastModeSet    = { };
 
-  if (config.render.dxgi.skip_mode_changes)
+  if (config.render.dxgi.skip_mode_changes && (! SK_IsModuleLoaded (L"sl.interposer.dll")))
   {
     auto bd =
          sd.BufferDesc;
