@@ -1465,12 +1465,6 @@ SK::ControlPanel::Input::Draw (void)
                     if (ImGui::SliderFloat ("Critical Battery Level", &config.input.gamepad.low_battery_percent, 0.0f, 45.0f, "%3.0f%% Remaining"))
                     {
                       config.utility.save_async ();
-
-                      if (! ImGui::IsItemActive ())
-                      {
-                        ImGui::ClearActiveID     ( );
-                        ImGui::CloseCurrentPopup ( );
-                      }
                     }
 
                     if (ImGui::IsItemHovered ())

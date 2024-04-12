@@ -1,4 +1,9 @@
-﻿24.4.11
+﻿24.4.11.1
+=========
+ + Added more logging if achievement statistics are not working because of
+     server-side problems on https://backend.special-k.info
+
+24.4.11
 =======
  + Improved PlayStation controller battery measurement;
      Percentage = 3.1 fixed-point instead of Percentage = Level/0xA

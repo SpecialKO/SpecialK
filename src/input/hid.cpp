@@ -4172,10 +4172,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
                                 SK_HID_PlayStationDevice::PowerState::Charging :
                              SK_HID_PlayStationDevice::PowerState::Discharging;
 
-              //SK_LOGi0 (L"Battery Percent: %x", pData->PowerPercent & 0xF);
-              //SK_LOGi0 (L" ==> %d.%d",         (pData->PowerPercent & 0xF) * 10,
-              //                                  pData->PowerPercent & 0xF);
-
               const float batteryPercent =
                ( pDevice->battery.state == Charging ?  static_cast <float> (((BYTE *)pData)[52] & 0x7) - 1
                                                     :  static_cast <float> (((BYTE *)pData)[52] & 0x7) ) * 14.285714f +

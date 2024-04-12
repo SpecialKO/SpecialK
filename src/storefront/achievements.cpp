@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -686,7 +686,7 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
     else
     {
       SK_Network_EnqueueDownload (
-      sk_download_request_s (schema, url.c_str (),
+      sk_download_request_s (friend_stats, url.c_str (),
       []( const std::vector <uint8_t>&& data,
           const std::wstring_view       file )
       {
