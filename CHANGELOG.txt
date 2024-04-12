@@ -1,4 +1,10 @@
-﻿24.4.12.2
+﻿24.4.12.3
+=========
+ + Disable Mipmap Generation on BC6H or BC7 textures, it's -too damn slow-!
+ + Preliminary support for narrowing down the textures shown in the D3D11
+     Render Mod Toolkit based on resolution, format, mipmaps, usage, etc.
+
+24.4.12.2
 =========
  + DualSense Edge users can now bind the Left/Right Function buttons and
      Left/Right Paddles to a single button on your keyboard.

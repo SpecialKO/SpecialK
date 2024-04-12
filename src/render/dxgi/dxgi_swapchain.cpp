@@ -1198,15 +1198,32 @@ IWrapDXGISwapChain::SetMaximumFrameLatency (UINT MaxLatency)
 
   SK_LOG_FIRST_CALL
 
-  HRESULT hr =
-    static_cast <IDXGISwapChain2 *>(pReal)->SetMaximumFrameLatency (MaxLatency);
+  HRESULT hr = E_UNEXPECTED;
+
+  if (config.render.framerate.pre_render_limit > 0)
+    hr = S_OK;
+  else
+    hr = static_cast <IDXGISwapChain2 *>(pReal)->SetMaximumFrameLatency (MaxLatency);
 
   if (SUCCEEDED (hr))
   {
+    gameFrameLatency_ = MaxLatency;
+
     SK_LOGi0 (
       L"IWrapDXGISwapChain::SetMaximumFrameLatency ({%d Frames})",
         MaxLatency
     );
+
+    if (config.render.framerate.pre_render_limit > 0)
+    {
+      MaxLatency =         // 16 is valid, but Reflex hates that! :)
+        std::clamp (config.render.framerate.pre_render_limit, 1, 14);
+
+      SK_LOGi0 (L" >> Override=%d Frames", MaxLatency);
+
+      hr =
+        static_cast <IDXGISwapChain2 *>(pReal)->SetMaximumFrameLatency (MaxLatency);
+    }
   }
 
   return hr;
@@ -1220,8 +1237,19 @@ IWrapDXGISwapChain::GetMaximumFrameLatency (UINT *pMaxLatency)
 
   SK_LOG_FIRST_CALL
 
-  HRESULT hr =
-    static_cast <IDXGISwapChain2 *>(pReal)->GetMaximumFrameLatency (pMaxLatency);
+  HRESULT hr = S_OK;
+
+  // We are overriding, do not let the game know...
+  if (config.render.framerate.pre_render_limit > 0)
+  {
+    *pMaxLatency = gameFrameLatency_;
+  }
+
+  else
+  {
+    hr =
+      static_cast <IDXGISwapChain2 *>(pReal)->GetMaximumFrameLatency (pMaxLatency);
+  }
 
   if (SUCCEEDED (hr))
   {
@@ -1229,6 +1257,19 @@ IWrapDXGISwapChain::GetMaximumFrameLatency (UINT *pMaxLatency)
       L"IWrapDXGISwapChain::GetMaximumFrameLatency ({%d Frames})",
         pMaxLatency != nullptr ? *pMaxLatency : 0
     );
+
+    if (config.render.framerate.pre_render_limit > 0)
+    {
+      UINT RealMaxLatency = 0;
+
+      static_cast <IDXGISwapChain2 *>(pReal)->GetMaximumFrameLatency (
+                                                     &RealMaxLatency );
+
+      SK_LOGi0 (
+        L" >> Actual SwapChain Maximum Frame Latency: %d Frames",
+          RealMaxLatency
+      );
+    }
   }
 
   return hr;
@@ -1246,8 +1287,12 @@ IWrapDXGISwapChain::GetFrameLatencyWaitableObject (void)
   static auto &rb =
     SK_GetCurrentRenderBackend ();
 
-  if (rb.windows.unity)
-    static_cast <IDXGISwapChain2 *>(pReal)->SetMaximumFrameLatency (1);
+  if (config.render.framerate.pre_render_limit > 0)
+  {
+    // 16 is valid, but Reflex hates that! :)
+    static_cast <IDXGISwapChain2 *>(pReal)->SetMaximumFrameLatency (
+      std::clamp (config.render.framerate.pre_render_limit, 1, 14) );
+  }
 
   // Disable waitable SwapChains when HW Flip Queue is active, they don't work right...
   if (false)//rb.windows.unity || rb.windows.unreal)// || rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled)

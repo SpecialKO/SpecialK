@@ -4502,10 +4502,10 @@ SK_HID_PlayStationDevice::request_input_report (void)
                     UINT VirtualKey  = binding.uiVirtKey;
                     if ( VirtualKey != 0 ) // A user-configured binding exists
                     {
-                      BYTE bScancode =
+                      const BYTE bScancode =
                         (BYTE)MapVirtualKey (VirtualKey, 0);
 
-                      DWORD dwFlags =
+                      const DWORD dwFlags =
                         ( bScancode & 0xE0 ) == 0   ?
                           static_cast <DWORD> (0x0) :
                           static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
