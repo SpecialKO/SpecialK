@@ -555,36 +555,43 @@ SK_DXGI_DescribeSwapChainFlags (DXGI_SWAP_CHAIN_FLAG swap_flags, INT* pLines)
   std::string out;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_NONPREROTATED)
-    out += "Non-Pre Rotated\n", pLines ? (*pLines)++ : 0;
+  out += " 0x001:  Non-Pre Rotated\n",                                      pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH)
-    out += "Allow Fullscreen Mode Switch\n", pLines ? (*pLines)++ : 0;
+  out += " 0x002:  Allow Fullscreen Mode Switch\n",                         pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_GDI_COMPATIBLE)
-    out += "GDI Compatible\n", pLines ? (*pLines)++ : 0;
+  out += " 0x004:  GDI Compatible\n",                                       pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT)
-    out += "DXGI_SWAP_CHAIN_FLAG_RESTRICTED_CONTENT\n", pLines ? (*pLines)++ : 0;
+  out += " 0x008:  Copy Protected Content\n",                               pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_RESTRICT_SHARED_RESOURCE_DRIVER)
-    out += "DXGI_SWAP_CHAIN_FLAG_RESTRICT_SHARED_RESOURCE_DRIVER\n", pLines ? (*pLines)++ : 0;
+  out += " 0x010:  DXGI_SWAP_CHAIN_FLAG_RESTRICT_SHARED_RESOURCE_DRIVER\n", pLines ? (*pLines)++ : 0;
+
+  if (swap_flags & DXGI_SWAP_CHAIN_FLAG_DISPLAY_ONLY)
+  out += " 0x020:  DXGI_SWAP_CHAIN_FLAG_DISPLAY_ONLY\n",                    pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
-    out += "Latency Waitable\n", pLines ? (*pLines)++ : 0;
+  out += " 0x040:  Latency Waitable\n",                                     pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER)
-    out += "DXGI_SWAP_CHAIN_FLAG_FOREGROUND_LAYER\n", pLines ? (*pLines)++ : 0;
+  out += " 0x080:  Foreground Layer\n",                                     pLines ? (*pLines)++ : 0;
+
+  if (swap_flags & DXGI_SWAP_CHAIN_FLAG_FULLSCREEN_VIDEO)
+  out += " 0x100:  Fullscreen Video\n",                                     pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO)
-    out += "DXGI_SWAP_CHAIN_FLAG_YUV_VIDEO\n", pLines ? (*pLines)++ : 0;
-
-  #define DXGI_SWAP_CHAIN_FLAG_HW_PROTECTED 1024
+  out += " 0x200:  YUV Video\n",                                            pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_HW_PROTECTED)
-    out += "DXGI_SWAP_CHAIN_FLAG_HW_PROTECTED\n", pLines ? (*pLines)++ : 0;
+  out += " 0x400:  Hardware Copy Protected\n",                              pLines ? (*pLines)++ : 0;
 
   if (swap_flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING)
-    out += "Supports Tearing in Windowed Mode\n", pLines ? (*pLines)++ : 0;
+  out += " 0x800:  Supports Tearing in Windowed Mode\n",                    pLines ? (*pLines)++ : 0;
+
+  if (swap_flags & DXGI_SWAP_CHAIN_FLAG_RESTRICTED_TO_ALL_HOLOGRAPHIC_DISPLAYS)
+  out += "0x1000:  Restricted To Holographic Displays\n",                   pLines ? (*pLines)++ : 0;
 
   return out;
 }
@@ -4540,11 +4547,11 @@ SK_DXGI_CreateSwapChain_PreInit (
 
   auto _DescribeSwapChain = [&](const wchar_t* wszLabel) noexcept -> void
   {
-    wchar_t     wszMSAA [128] = { };
+    wchar_t    wszMSAA [128] = { };
     swprintf ( wszMSAA, pDesc->SampleDesc.Count > 1 ?
                                       L"%u Samples" :
                          L"Not Used (or Offscreen)",
-                        pDesc->SampleDesc.Count );
+                          pDesc->SampleDesc.Count );
 
     dll_log->LogEx ( true,
     L"[Swap Chain]  { %ws }\n"
@@ -4556,10 +4563,7 @@ SK_DXGI_CreateSwapChain_PreInit (
     L"  | Mode....... |  %-71ws|\n"
     L"  | Window..... |  0x%08x%-61ws|\n"
     L"  | Scaling.... |  %-71ws|\n"
-    L"  | Scanlines.. |  %-71ws|\n"
-    L"  | Flags...... |  0x%04x%-65ws|\n"
-    L"  | SwapEffect. |  %-71ws|\n"
-    L"  +-------------+-------------------------------------------------------------------------+\n",
+    L"  | Scanlines.. |  %-71ws|\n",
          wszLabel,
     pDesc->BufferDesc.Width,
     pDesc->BufferDesc.Height,
@@ -4570,32 +4574,84 @@ SK_DXGI_CreateSwapChain_PreInit (
     SK_DXGI_FormatToStr (pDesc->BufferDesc.Format).data (),
     pDesc->BufferCount, L" ",
     wszMSAA,
-    pDesc->Windowed ? L"Windowed" : L"Fullscreen",
+    pDesc->Windowed ?
+        L"Windowed" :
+        L"Fullscreen",
     sk::narrow_cast <UINT> ((uintptr_t)pDesc->OutputWindow), L" ",
     pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_UNSPECIFIED ?
-      L"Unspecified" :
-      pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED ?
-        L"Centered" :
-        L"Stretched",
+                                                L"Unspecified" :
+    pDesc->BufferDesc.Scaling == DXGI_MODE_SCALING_CENTERED    ?
+                                                   L"Centered" :
+                                                   L"Stretched",
     pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED ?
-      L"Unspecified" :
-      pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
-        L"Progressive" :
-        pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
-          L"Interlaced Even" :
-          L"Interlaced Odd",
-    pDesc->Flags, L" ",
-    pDesc->SwapEffect         == 0 ?
-      L"Discard" :
-      pDesc->SwapEffect       == 1 ?
-        L"Sequential" :
-        pDesc->SwapEffect     == 2 ?
-          L"<Unknown>" :
-          pDesc->SwapEffect   == 3 ?
-            L"Flip Sequential" :
-            pDesc->SwapEffect == 4 ?
-              L"Flip Discard" :
-              L"<Unknown>" );
+                                                                L"Unspecified" :
+    pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_PROGRESSIVE ?
+                                                                L"Progressive" :
+    pDesc->BufferDesc.ScanlineOrdering == DXGI_MODE_SCANLINE_ORDER_UPPER_FIELD_FIRST ?
+                                                                  L"Interlaced Even" :
+                                                                  L"Interlaced Odd" );
+
+    INT                                                                  lines = 0;
+    std::string flags_str =
+    SK_DXGI_DescribeSwapChainFlags ((DXGI_SWAP_CHAIN_FLAG)pDesc->Flags, &lines);
+
+    const char*
+      begin_str = flags_str.c_str ();
+
+    for (int i = 0 ; i < lines ; ++i)
+    {
+      char* end_str = StrStrIA (begin_str, "\n");
+      if (  end_str != nullptr)
+           *end_str = '\0';
+
+      if (i == 0)
+      {
+        if (lines == 1)
+        {
+          dll_log->LogEx ( false,
+            L"  | Flags...... |  %-71hs|\n",     begin_str);
+        }
+
+        else
+        {
+          dll_log->LogEx ( false,
+            L"  | Flags [%d].. |  %-71hs|\n", i, begin_str);
+        }
+      }
+
+      else
+      {
+        dll_log->LogEx ( false,
+            L"  | Flags [%d].. |  %-71hs|\n", i, begin_str);
+      }
+
+      begin_str =
+        ( end_str + 1 );
+    }
+
+    // Empty Flags
+    if (lines == 0)
+    {
+      dll_log->LogEx ( false,
+        L"  | Flags...... |  0x%04x%-65ws|\n", pDesc->Flags, L" "
+      );
+    }
+
+    dll_log->LogEx ( false,
+      L"  | SwapEffect. |  %-71ws|\n"
+      L"  +-------------+-------------------------------------------------------------------------+\n",
+      pDesc->SwapEffect         == 0 ?
+        L"Discard" :
+        pDesc->SwapEffect       == 1 ?
+          L"Sequential" :
+          pDesc->SwapEffect     == 2 ?
+            L"<Unknown>" :
+            pDesc->SwapEffect   == 3 ?
+              L"Flip Sequential" :
+              pDesc->SwapEffect == 4 ?
+                L"Flip Discard" :
+                L"<Unknown>"
+    );
   };
 
   if (pDesc1 != nullptr)
