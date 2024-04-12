@@ -5326,8 +5326,13 @@ SK_ImGui_ControlPanel (void)
             ( active ? ImColor (1.00f, 1.00f, 1.00f).Value
                      : ImColor (0.73f, 0.73f, 0.73f).Value ) );
 
+          float max_limit =
+            static_cast <float> (
+              rb.windows.device.getDevCaps ().res.refresh
+            ) * 1.25f;
+
           if ( ImGui::DragFloat ( label, &target_mag,
-                                      1.0f, 24.0f, 166.0f, target > 0 ?
+                                      1.0f, 24.0f, max_limit, target > 0 ?
                           ( active ? "%6.3f fps  (Limit Engaged)" :
                                      "%6.3f fps  (~Window State)" )
                                                                   :

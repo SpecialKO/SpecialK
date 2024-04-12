@@ -1,4 +1,11 @@
-﻿24.4.11.1
+﻿24.4.12
+=======
+ + Remove code that prevents games that natively use a Latency Waitable
+     SwapChain from using IDXGISwapChain::ResizeTarget (...).
+ + Extended the range of the FPS limit slider to 1.25x Refresh Rate
+ + Revert parts of battery level measurement changes from 24.4.11
+
+24.4.11.1
 =========
  + Added more logging if achievement statistics are not working because of
      server-side problems on https://backend.special-k.info
