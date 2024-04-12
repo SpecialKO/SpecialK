@@ -1,4 +1,9 @@
-﻿24.4.12
+﻿24.4.12.1
+=========
+ + Added explicit wait for frames drawing an achievement popup to finish
+     GPU-side before unloading the achievement icon; stability improvement.
+
+24.4.12
 =======
  + Disabled redundant mode change skip code if NV's Streamline Interposer
      is loaded. (Helps prevent crashes in Horizon: Forbidden West (Steam))

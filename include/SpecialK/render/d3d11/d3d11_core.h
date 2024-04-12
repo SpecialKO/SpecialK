@@ -2319,9 +2319,9 @@ struct SK_D3D11_RenderCtx {
     ~FrameCtx (void);
   };
 
-  SK_ComPtr <ID3D11BlendState>            pGenericBlend     = nullptr;
+  SK_ComPtr <ID3D11BlendState>              pGenericBlend     = nullptr;
 
-  std::vector <FrameCtx>                frames_;
+  std::vector <FrameCtx> frames_;
 
   void present (IDXGISwapChain*      pSwapChain);
   void release (IDXGISwapChain*      pSwapChain);

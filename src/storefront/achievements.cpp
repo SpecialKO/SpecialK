@@ -24,6 +24,7 @@
 #include <SpecialK/storefront/epic.h>
 #include <SpecialK/resource.h>
 #include <imgui/backends/imgui_d3d12.h> // For D3D12 Texture Mgmt
+#include <imgui/backends/imgui_d3d11.h> // For D3D11 Texture Mgmt
 
 #include <imgui/font_awesome.h>
 
@@ -1716,6 +1717,12 @@ SK_AchievementManager::drawPopups (void)
       {
         if (SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12)
         {
+          if ( _d3d11_rbk.getPtr ()    != nullptr &&
+               _d3d11_rbk->_pDeviceCtx != nullptr )
+          {
+            _d3d11_rbk->_pDeviceCtx->Flush ();
+          }
+
           std::exchange (
               it->icon_texture, nullptr)->Release ();
         }
@@ -1724,8 +1731,11 @@ SK_AchievementManager::drawPopups (void)
         {
           if (it->d3d12_tex != nullptr)
           {
-            std::exchange (
-              it->d3d12_tex, nullptr)->Release ();
+            if (_d3d12_rbk->drain_queue ())
+            {
+              std::exchange (
+                it->d3d12_tex, nullptr)->Release ();
+            }
           }
         }
       }
