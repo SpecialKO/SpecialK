@@ -1,4 +1,22 @@
-﻿24.4.12.1
+﻿24.4.12.2
+=========
+ + DualSense Edge users can now bind the Left/Right Function buttons and
+     Left/Right Paddles to a single button on your keyboard.
+
+    (e.g.)
+
+      [Input.libScePad]
+      LeftFunction=F6
+      RightFunction=F9
+      LeftPaddle=Tab
+      RightPaddle=Enter
+
+    This applies to individual game INIs, and is not stored in Global/input.ini
+
+     * Future versions will allow multiple keys to be bound, or instead of
+         creating keyboard input, send a command to the command console.
+
+24.4.12.1
 =========
  + Added explicit wait for frames drawing an achievement popup to finish
      GPU-side before unloading the achievement icon; stability improvement.

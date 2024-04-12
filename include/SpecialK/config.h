@@ -1021,6 +1021,14 @@ struct sk_config_t
         int   led_color_b          =     -1;
         int   led_brightness       =     -1;
         int   led_fade             =     -1;
+        std::wstring
+              left_fn              = L"<Not Bound>";
+        std::wstring
+              right_fn             = L"<Not Bound>";
+        std::wstring
+              left_paddle          = L"<Not Bound>";
+        std::wstring
+              right_paddle         = L"<Not Bound>";
       } scepad;
 
       struct steam_s

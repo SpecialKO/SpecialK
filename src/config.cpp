@@ -1026,15 +1026,19 @@ struct {
     } dinput;
 
     struct {
-      sk::ParameterBool*  disable_touchpad        = nullptr;
-      sk::ParameterBool*  share_clicks_touch      = nullptr;
-      sk::ParameterBool*  mute_applies_to_game    = nullptr;
-      sk::ParameterBool*  enhanced_ps_button      = nullptr;
-      sk::ParameterBool*  power_save_mode         = nullptr;
-      sk::ParameterInt*   led_color_r             = nullptr;
-      sk::ParameterInt*   led_color_g             = nullptr;
-      sk::ParameterInt*   led_color_b             = nullptr;
-      sk::ParameterInt*   led_brightness          = nullptr;
+      sk::ParameterBool*    disable_touchpad      = nullptr;
+      sk::ParameterBool*    share_clicks_touch    = nullptr;
+      sk::ParameterBool*    mute_applies_to_game  = nullptr;
+      sk::ParameterBool*    enhanced_ps_button    = nullptr;
+      sk::ParameterBool*    power_save_mode       = nullptr;
+      sk::ParameterInt*     led_color_r           = nullptr;
+      sk::ParameterInt*     led_color_g           = nullptr;
+      sk::ParameterInt*     led_color_b           = nullptr;
+      sk::ParameterInt*     led_brightness        = nullptr;
+      sk::ParameterStringW* left_fn_bind          = nullptr;
+      sk::ParameterStringW* right_fn_bind         = nullptr;
+      sk::ParameterStringW* left_paddle_bind      = nullptr;
+      sk::ParameterStringW* right_paddle_bind     = nullptr;
     } scepad;
 
     struct {
@@ -1623,6 +1627,10 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.scepad.led_color_g,       L"Force Green LED Color [0,255] or -1 for No Override",       input_ini,       L"Input.libScePad",       L"LEDColor_G"),
     ConfigEntry (input.gamepad.scepad.led_color_b,       L"Force Blue LED Color [0,255] or -1 for No Override",        input_ini,       L"Input.libScePad",       L"LEDColor_B"),
     ConfigEntry (input.gamepad.scepad.led_brightness,    L"Force LED brightness [0,1,2,3] or -1 for No Override",      input_ini,       L"Input.libScePad",       L"LEDBrightness"),
+    ConfigEntry (input.gamepad.scepad.left_fn_bind,      L"Keyboard Input to Generate when Left Function is Pressed",  dll_ini,         L"Input.libScePad",       L"LeftFunction"),
+    ConfigEntry (input.gamepad.scepad.right_fn_bind,     L"Keyboard Input to Generate when Right Function is Pressed", dll_ini,         L"Input.libScePad",       L"RightFunction"),
+    ConfigEntry (input.gamepad.scepad.left_paddle_bind,  L"Keyboard Input to Generate when Left Paddle is Pressed",    dll_ini,         L"Input.libScePad",       L"LeftPaddle"),
+    ConfigEntry (input.gamepad.scepad.right_paddle_bind, L"Keyboard Input to Generate when Right Paddle is Pressed",   dll_ini,         L"Input.libScePad",       L"RightPaddle"),
 
     ConfigEntry (input.gamepad.low_battery_warning,      L"Percentage when SK will warn controller batteries are low", input_ini,       L"Input.Battery",         L"WarnIfPercentIsBelow"),
 
@@ -4381,6 +4389,10 @@ auto DeclKeybind =
   input.gamepad.scepad.led_color_g->load          (config.input.gamepad.scepad.led_color_g);
   input.gamepad.scepad.led_color_b->load          (config.input.gamepad.scepad.led_color_b);
   input.gamepad.scepad.led_brightness->load       (config.input.gamepad.scepad.led_brightness);
+  input.gamepad.scepad.left_fn_bind->load         (config.input.gamepad.scepad.left_fn);
+  input.gamepad.scepad.left_paddle_bind->load     (config.input.gamepad.scepad.left_paddle);
+  input.gamepad.scepad.right_paddle_bind->load    (config.input.gamepad.scepad.right_paddle);
+  input.gamepad.scepad.right_fn_bind->load        (config.input.gamepad.scepad.right_fn);
 
   input.gamepad.low_battery_warning->load         (config.input.gamepad.low_battery_percent);
 
@@ -5734,6 +5746,10 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.scepad.led_color_g->store          (config.input.gamepad.scepad.led_color_g);
   input.gamepad.scepad.led_color_b->store          (config.input.gamepad.scepad.led_color_b);
   input.gamepad.scepad.led_brightness->store       (config.input.gamepad.scepad.led_brightness);
+  input.gamepad.scepad.left_fn_bind->store         (config.input.gamepad.scepad.left_fn);
+  input.gamepad.scepad.left_paddle_bind->store     (config.input.gamepad.scepad.left_paddle);
+  input.gamepad.scepad.right_paddle_bind->store    (config.input.gamepad.scepad.right_paddle);
+  input.gamepad.scepad.right_fn_bind->store        (config.input.gamepad.scepad.right_fn);
 
   input.gamepad.low_battery_warning->store         (config.input.gamepad.low_battery_percent);
 

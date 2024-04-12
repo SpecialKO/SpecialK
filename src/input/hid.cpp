@@ -4464,10 +4464,57 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               if (pDevice->bDualSenseEdge)
               {
-                if (pDevice->buttons [15].state && (! pDevice->buttons [15].last_state)) bIsInputActive = true;
-                if (pDevice->buttons [16].state && (! pDevice->buttons [16].last_state)) bIsInputActive = true;
-                if (pDevice->buttons [17].state && (! pDevice->buttons [17].last_state)) bIsInputActive = true;
-                if (pDevice->buttons [18].state && (! pDevice->buttons [18].last_state)) bIsInputActive = true;
+                struct cfg_binding_map_s {
+                  std::wstring* wszValName   = nullptr;
+                  UINT           uiVirtKey   = 0;
+                  UINT           uiButtonIdx = 0;
+                } static binding_map [4] = {
+                  { &config.input.gamepad.scepad.left_fn,      0, 15 },
+                  { &config.input.gamepad.scepad.right_fn,     0, 16 },
+                  { &config.input.gamepad.scepad.left_paddle,  0, 17 },
+                  { &config.input.gamepad.scepad.right_paddle, 0, 18 }
+                };
+
+                SK_RunOnce (
+                {
+                  for ( auto& cfg_binding : binding_map )
+                  {
+                    auto& binding =
+                      *cfg_binding.wszValName;
+
+                    if (! (         binding.empty () ||
+                          StrStrIW (binding.c_str (), L"<Not Bound>")) )
+                    {
+                      cfg_binding.uiVirtKey =
+                        (UINT)humanKeyNameToVirtKeyCode.get ()[
+                          hash_string (binding.c_str ())];
+                    }
+                  }
+                });
+
+                for ( const auto& binding : binding_map )
+                {
+                  if (   pDevice->buttons [binding.uiButtonIdx].     state &&
+                      (! pDevice->buttons [binding.uiButtonIdx].last_state) )
+                  {
+                    bIsInputActive = true;
+
+                    UINT VirtualKey  = binding.uiVirtKey;
+                    if ( VirtualKey != 0 ) // A user-configured binding exists
+                    {
+                      BYTE bScancode =
+                        (BYTE)MapVirtualKey (VirtualKey, 0);
+
+                      DWORD dwFlags =
+                        ( bScancode & 0xE0 ) == 0   ?
+                          static_cast <DWORD> (0x0) :
+                          static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
+
+                      SK_keybd_event ((BYTE)VirtualKey, bScancode, dwFlags,                   0);
+                      SK_keybd_event ((BYTE)VirtualKey, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+                    }
+                  }
+                }
               }
             }
 
