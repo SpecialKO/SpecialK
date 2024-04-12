@@ -6,8 +6,8 @@
     (e.g.)
 
       [Input.libScePad]
-      LeftFunction=F6
-      RightFunction=F9
+      LeftFunction=F5
+      RightFunction=F6
       LeftPaddle=Tab
       RightPaddle=Enter
 
