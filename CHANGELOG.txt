@@ -1,4 +1,11 @@
-﻿24.4.13.2
+﻿24.4.13.3
+=========
+ + Added sanity checks for CPU/GPU/Disk update intervals in case INI files
+     have acquired values of 0.0; Sane Range = [0.125,2.5] (in seconds).
+ + Turned XInput deadzone compensation -Off- by default, only a handful of
+     games actually need this... and it makes those that don't harder.
+
+24.4.13.2
 =========
  + Achievement popups no longer steal input focus away from the control panel,
      and always raise their popup over top any widgets below them.

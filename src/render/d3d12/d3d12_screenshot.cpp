@@ -1059,8 +1059,8 @@ SK_D3D12_Screenshot::getData ( UINT* const pWidth,
     SK_ReleaseAssert ( bytesPerPixel * framebuffer.Width <= framebuffer.PackedDstPitch );
 
     size_t src_row_pitch =
-      ( static_cast <size_t> (layout.Footprint.RowPitch) / std::max (1ull, static_cast <size_t> (framebuffer.Height)) ) +
-      ( static_cast <size_t> (layout.Footprint.RowPitch) / std::max (1ull, static_cast <size_t> (framebuffer.Height)) ) % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT,
+      ( static_cast <size_t> (layout.Footprint.RowPitch) / std::max (static_cast <size_t> (1), static_cast <size_t> (framebuffer.Height)) ) +
+      ( static_cast <size_t> (layout.Footprint.RowPitch) / std::max (static_cast <size_t> (1), static_cast <size_t> (framebuffer.Height)) ) % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT,
            dst_row_pitch = ( bytesPerPixel * framebuffer.Width );
 
     SK_ReleaseAssert ( src_row_pitch >=
