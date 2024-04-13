@@ -630,68 +630,77 @@ SK_ImGui_LatentSyncConfig (void)
           ImGui::Separator    ();
           ImGui::Text         ("Other tearing options require certain settings for 2x.. mode (best to worst):");
           ImGui::Separator    ();
-          ImGui::BulletText   ("Adaptive (Prefer On): Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
-          ImGui::BulletText   ("Adaptive (Prefer Off): Buffer Count >= 5 ; Max Device Latency = 1");
-          ImGui::BulletText   ("Adaptive (Prefer Off): Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
-          ImGui::BulletText   ("Always Off:                 Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
+          ImGui::BeginGroup   ();
+          ImGui::BulletText   ("Adaptive (Prefer On)");
+          ImGui::BulletText   ("Adaptive (Prefer Off)");
+          ImGui::BulletText   ("Adaptive (Prefer Off)");
+          ImGui::BulletText   ("Always Off");
+          ImGui::EndGroup     ();
+          ImGui::SameLine     ();
+          ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
+          ImGui::SameLine     ();
+          ImGui::BeginGroup   ();
+          ImGui::Text         ("Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
+          ImGui::Text         ("Buffer Count >= 5 ; Max Device Latency = 1");
+          ImGui::Text         ("Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
+          ImGui::Text         ("Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
+          ImGui::EndGroup     ();
           ImGui::EndTooltip   ();
         }
       }
 
-      if ( config.render.framerate.latent_sync.tearing_mode == SK_TearingMode::LatentSync_AdaptiveOn ||
-           config.render.framerate.latent_sync.tearing_mode == SK_TearingMode::LatentSync_AlwaysOn   )
+      ImGui::Checkbox ("Visualize Tearlines", &config.render.framerate.latent_sync.show_fcat_bars);
+
+      if (ImGui::IsItemHovered ())
       {
-        ImGui::Checkbox ("Visualize Tearlines", &config.render.framerate.latent_sync.show_fcat_bars);
-
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Draws color-cycling bars to help locate tearing while VSYNC is off");
-
-        ImGui::SameLine ();
-        ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine ();
-
-        if (ImGui::BeginMenu ("Tear Control Keybinds###TearingMenu"))
-        {
-          const auto Keybinding =
-          [] (SK_ConfigSerializedKeybind *binding) ->
-          auto
-          {
-            if (binding == nullptr)
-              return false;
-
-            std::string label =
-              SK_WideCharToUTF8      (binding->human_readable);
-
-            ImGui::PushID            (binding->bind_name);
-
-            binding->assigning =
-              SK_ImGui_KeybindSelect (binding, label.c_str ());
-
-            ImGui::PopID             ();
-
-            return true;
-          };
-
-          ImGui::BeginGroup ();
-          for ( auto& keybind : timing_keybinds )
-          {
-            ImGui::Text ( "%s:  ",
-                            keybind->bind_name );
-          }
-          ImGui::EndGroup   ();
-          ImGui::SameLine   ();
-          ImGui::BeginGroup ();
-          for ( auto& keybind : timing_keybinds )
-          {
-            Keybinding  (   keybind );
-          }
-          ImGui::EndGroup   ();
-
-          ImGui::EndMenu    ();
-        }
-
-        ImGui::Separator ();
+        ImGui::SetTooltip ("Draws color-cycling bars to help locate tearing while VSYNC is off");
       }
+
+      ImGui::SameLine ();
+      ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine ();
+
+      if (ImGui::BeginMenu ("Tear Control Keybinds###TearingMenu"))
+      {
+        const auto Keybinding =
+        [] (SK_ConfigSerializedKeybind *binding) ->
+        auto
+        {
+          if (binding == nullptr)
+            return false;
+
+          std::string label =
+            SK_WideCharToUTF8      (binding->human_readable);
+
+          ImGui::PushID            (binding->bind_name);
+
+          binding->assigning =
+            SK_ImGui_KeybindSelect (binding, label.c_str ());
+
+          ImGui::PopID             ();
+
+          return true;
+        };
+
+        ImGui::BeginGroup ();
+        for ( auto& keybind : timing_keybinds )
+        {
+          ImGui::Text ( "%s:  ",
+                          keybind->bind_name );
+        }
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
+        for ( auto& keybind : timing_keybinds )
+        {
+          Keybinding  (   keybind );
+        }
+        ImGui::EndGroup   ();
+
+        ImGui::EndMenu    ();
+      }
+
+      ImGui::Separator ();
 
       bAdvanced =
         ImGui::TreeNode ("Advanced");
@@ -2553,7 +2562,9 @@ SK::Framerate::Limiter::wait (void)
   {
     // Latent Sync -was- on, but now it's off and we need to restore original preference
     if (config.render.framerate.enforcement_policy < 0)
-    {   config.render.framerate.enforcement_policy = -config.render.framerate.enforcement_policy; }
+    {   config.render.framerate.enforcement_policy = -config.render.framerate.enforcement_policy;
+        config.render.framerate.latent_sync.show_fcat_bars = false;
+    }
   }
 
   if (! std::exchange (lazy_init, true))
