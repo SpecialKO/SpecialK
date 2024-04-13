@@ -627,7 +627,8 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
 
   if (detailed)
   {
-    if (ImGui::Checkbox ("", &config.nvidia.reflex.show_detailed_widget))
+    if (ImGui::Checkbox ("###ReflexShowDetailedWidget",
+           &config.nvidia.reflex.show_detailed_widget))
     {
       config.utility.save_async ();
     }
@@ -1185,7 +1186,7 @@ public:
     SK_Widget::config_base ();
 
     ImGui::Separator (  );
-    ImGui::TreePush  ("");
+    ImGui::TreePush  ("###LatencyWidgetConfig");
 
     SK_ImGui_DrawConfig_Latency ();
 

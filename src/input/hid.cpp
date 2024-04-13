@@ -491,6 +491,8 @@ void SK_Bluetooth_SetupPowerOff (void)
 
     bool OnVarChange (SK_IVariable* var, void* val = nullptr)
     {
+      if (var == nullptr) return false;
+
       if (var->getValuePointer () == &hwaddr)
       {
         std::scoped_lock <std::mutex> _(mutex);
@@ -522,7 +524,7 @@ void SK_Bluetooth_SetupPowerOff (void)
             ULONGLONG                           ullHWAddr = 0x0;
             swscanf (wszSerialNumber, L"%llx", &ullHWAddr);
 
-            if (bRequesting || (*(uint64*)val != 1 && ullHWAddr == *(uint64*)val))
+            if (bRequesting || (val != nullptr && *(uint64*)val != 1 && ullHWAddr == *(uint64*)val))
             {
               SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws (%lld)",
                            wszSerialNumber, ullHWAddr );
@@ -580,7 +582,7 @@ void SK_Bluetooth_SetupPowerOff (void)
 
               if ((*(uint64*)val == 1 || ullHWAddr == *(uint64*)val))
               {
-                SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws (%lld)",
+                SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws (%llu)",
                              wszSerialNumber, ullHWAddr );
 
                 BLUETOOTH_FIND_RADIO_PARAMS findParams =
@@ -788,7 +790,7 @@ void SK_HID_SetupPlayStationControllers (void)
             if (num_caps > 2)
             {
               SK_LOGi0 (
-                L"PlayStation Controller has too many button sets (%d);"
+                L"PlayStation Controller has too many button sets (%u);"
                 L" will ignore Device=%ws", num_caps, wszFileName
               );
 
@@ -3407,23 +3409,16 @@ struct cfg_binding_map_s {
 void
 SK_HID_ProcessGamepadButtonBindings (void)
 {
+  const auto frames_drawn =
+    SK_GetFramesDrawn ();
+
   for ( auto& binding : binding_map )
   {
     UINT VirtualKey  = binding.uiVirtKey;
     if ( VirtualKey != 0 ) // A user-configured binding exists
     {
-      bool bPressed  = false;
-      bool bReleased = false;
-  
-      if (binding.thisFrame && (! binding.lastFrame))
-      {
-        bPressed = true;
-      }
-
-      else if (binding.lastFrame && (! binding.thisFrame))
-      {
-        bReleased = true;
-      }
+      const bool bPressed  = (binding.thisFrame && (! binding.lastFrame));
+      const bool bReleased = (binding.lastFrame && (! binding.thisFrame));
 
       if (bPressed || bReleased)
       {
@@ -3439,19 +3434,19 @@ SK_HID_ProcessGamepadButtonBindings (void)
 
         WriteULong64Release (
           &config.input.keyboard.temporarily_allow,
-            SK_GetFramesDrawn () + 40
+            frames_drawn + 40
         );
 
-        SK_keybd_event ((BYTE)VirtualKey, bScancode, dwFlags, 0);
+        SK_keybd_event (static_cast<BYTE>(VirtualKey), bScancode, dwFlags, 0);
       }
 
       binding.lastFrame = binding.thisFrame;
       binding.thisFrame = false;
 
       SK_ReleaseAssert ( binding.frameNum == 0 ||
-                         binding.frameNum <= SK_GetFramesDrawn () );
+                         binding.frameNum <= frames_drawn );
 
-      binding.frameNum = SK_GetFramesDrawn ();
+      binding.frameNum = frames_drawn;
     }
   }
 }
@@ -3729,8 +3724,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 for ( UINT i = 0; i < num_usages; ++i )
                 {
                   pDevice->buttons [
-                    pDevice->button_usages [i] -
-                    pDevice->buttons       [0].Usage
+                    (ULONG)(pDevice->button_usages [i]) -
+                    (ULONG)(pDevice->buttons       [0].Usage)
                   ].state = true;
                 }
               }
@@ -4489,18 +4484,20 @@ SK_HID_PlayStationDevice::request_input_report (void)
               else
               {
                 pDevice->xinput.report.Gamepad.bLeftTrigger =
-                  static_cast <BYTE> (                             255.0  *
+                  static_cast <BYTE> (                             255.0  * std::clamp (
                      (((float)pDevice->xinput.report.Gamepad.bLeftTrigger - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD) /
-                                                                  (255.0f - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD)));
+                                                                  (255.0f - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD)), 0.0f, 1.0f)
+                                     );
               }
               if (  pDevice->xinput.report.Gamepad.bRightTrigger  < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
                     pDevice->xinput.report.Gamepad.bRightTrigger = 0;
               else
               {
                 pDevice->xinput.report.Gamepad.bRightTrigger =
-                  static_cast <BYTE> (                              255.0  *
+                  static_cast <BYTE> (                              255.0  * std::clamp (
                      (((float)pDevice->xinput.report.Gamepad.bRightTrigger - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD) /
-                                                                   (255.0f - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD)));
+                                                                   (255.0f - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD)), 0.0f, 1.0f)
+                                     );
               }
             }
 #pragma endregion
@@ -4556,8 +4553,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                     continue;
                 }
 
-                UINT VirtualKey  = binding.uiVirtKey;
-                if ( VirtualKey != 0 ) // A user-configured binding exists
+                const UINT VirtualKey  = binding.uiVirtKey;
+                if (       VirtualKey != 0 ) // A user-configured binding exists
                 {
                   bool bPressed  = false;
                   bool bReleased = false;
@@ -5177,7 +5174,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
               SK_LOGs0 (
                 L"InputBkEnd",
-                L"SK_WriteFile ({%ws}, OutputReport) failed, Error=%d [%ws]",
+                L"SK_WriteFile ({%ws}, OutputReport) failed, Error=%u [%ws]",
                   pDevice->wszDevicePath, dwLastErr,
                     err.ErrorMessage ()
               );
@@ -5214,7 +5211,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
                       SK_LOGs0 (
                         L"InputBkEnd",
-                        L"SK_GetOverlappedResultEx ({%ws}, OutputReport) failed, Error=%d [%ws]",
+                        L"SK_GetOverlappedResultEx ({%ws}, OutputReport) failed, Error=%u [%ws]",
                           pDevice->wszDevicePath, dwLastErr,
                             err.ErrorMessage ()
                       );
@@ -5592,7 +5589,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
               SK_LOGs0 (
                 L"InputBkEnd",
-                L"SK_WriteFile ({%ws}, OutputReport) failed, Error=%d [%ws]",
+                L"SK_WriteFile ({%ws}, OutputReport) failed, Error=%u [%ws]",
                   pDevice->wszDevicePath, dwLastErr,
                     err.ErrorMessage ()
               );
@@ -5629,7 +5626,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
                       SK_LOGs0 (
                         L"InputBkEnd",
-                        L"SK_GetOverlappedResultEx ({%ws}, OutputReport) failed, Error=%d [%ws]",
+                        L"SK_GetOverlappedResultEx ({%ws}, OutputReport) failed, Error=%u [%ws]",
                           pDevice->wszDevicePath, dwLastErr,
                             err.ErrorMessage ()
                       );
@@ -5763,7 +5760,9 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
             return 64;
           }
 
-          if (_cachedInputReportsByReportId [report_id].data ()[0] == report_id && (report_id == 49 || report_id == 1))
+          if (_cachedInputReportsByReportId [report_id].data ()    != nullptr   &&
+              _cachedInputReportsByReportId [report_id].data ()[0] == report_id &&
+                                                  (report_id == 49 || report_id == 1))
           //if (dwSize >= 78 && (report_id == 1 || report_id == 49 || report_id == dwSize))
           {
             //SK_ReleaseAssert (
@@ -5854,7 +5853,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
           else
           {
             SK_LOGi0 (
-              L"Cannot neutralize a DualSense HID Input Report (id=%d) with Unexpected Size=%d-bytes",
+              L"Cannot neutralize a DualSense HID Input Report (id=%u) with Unexpected Size=%u-bytes",
                 report_id, dwSize
             );
           }

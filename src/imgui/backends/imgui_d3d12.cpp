@@ -1682,9 +1682,9 @@ D3D12GraphicsCommandList_CopyResource_Detour (
       if (copy_stage == 0)
         cmdList->EndQuery (queries.dlssg.pHeap.p, D3D12_QUERY_TYPE_TIMESTAMP, swapIdx * 2);
 
-      D3D12_CPU_DESCRIPTOR_HANDLE dstUAVHandle_CPU;
-      D3D12_GPU_DESCRIPTOR_HANDLE dstUAVHandle_GPU;
-      D3D12_CPU_DESCRIPTOR_HANDLE srcUAVHandle_CPU;
+      D3D12_CPU_DESCRIPTOR_HANDLE dstUAVHandle_CPU = { };
+      D3D12_GPU_DESCRIPTOR_HANDLE dstUAVHandle_GPU = { };
+      D3D12_CPU_DESCRIPTOR_HANDLE srcUAVHandle_CPU = { };
 
       const SIZE_T srvDescriptorSize =
         pDevice->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
