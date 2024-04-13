@@ -1579,10 +1579,19 @@ SK_AchievementManager::drawPopups (void)
           auto text =
             it->achievement->unlocked_ ? &it->achievement->text_.unlocked
                                        : &it->achievement->text_.locked;
-          ImGui::BeginPopup    (szPopupName,
-                                ImGuiWindowFlags_AlwaysAutoResize |
-                                ImGuiWindowFlags_NoCollapse       |
-                                ImGuiWindowFlags_NoInputs         );
+          ImGui::BeginPopup (szPopupName, ImGuiWindowFlags_AlwaysAutoResize      |
+                                          ImGuiWindowFlags_NoDecoration          |
+                                          ImGuiWindowFlags_NoNav                 |
+                                          ImGuiWindowFlags_NoBringToFrontOnFocus |
+                                          ImGuiWindowFlags_NoFocusOnAppearing    |
+                                          ImGuiWindowFlags_NoInputs              |
+                                          ImGuiWindowFlags_NoCollapse);
+
+          //char         window_id [64] = { };
+          //_snprintf_s (window_id, 63, "##TOAST%d", (int)i++);
+
+          ImGui::BeginGroup ();
+          ImGui::BringWindowToDisplayFront (ImGui::GetCurrentWindow ());
 
           float fTopY = ImGui::GetCursorPosY ();
 
@@ -1681,6 +1690,7 @@ SK_AchievementManager::drawPopups (void)
                     y_loc + y_offset + io.DisplaySize.y * 0.025f * y_dir),
                       ImGuiCond_Always
           );
+          ImGui::EndGroup      (  );
           ImGui::EndPopup      (  );
 
           if (it->achievement->global_percent_ < 10.0f)

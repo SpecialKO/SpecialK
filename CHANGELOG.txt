@@ -1,5 +1,7 @@
 ﻿24.4.13.2
 =========
+ + Achievement popups no longer steal input focus away from the control panel,
+     and always raise their popup over top any widgets below them.
  + Fixed several menu items in the Control Panel that might not be selectable
      using a gamepad or keyboard (i.e. "File | Exit" and Latency Analysis).
 
