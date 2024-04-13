@@ -1137,7 +1137,7 @@ SK_AchievementManager::Achievement::Achievement ( int                           
                        buffer.size (), DirectX::WIC_FLAGS_NONE, nullptr, img ) )
        )
     {
-      const auto metadata =
+      const auto& metadata =
         img.GetMetadata ();
 
       // > 256x256 should be converted to JPEG for space savings

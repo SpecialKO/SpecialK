@@ -280,7 +280,7 @@ sk::NVAPI::EnumGPUs_DXGI (void)
     NVAPI_CALL (GPU_GetFullName (_nv_dxgi_gpus [i], name));
 
     NV_GPU_MEMORY_INFO_EX
-      meminfo;
+      meminfo         = { };
       meminfo.version = NV_GPU_MEMORY_INFO_EX_VER_1;
 
     NvAPI_GPU_GetMemoryInfoEx (_nv_dxgi_gpus [i], &meminfo);
@@ -1194,14 +1194,19 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDispl
   //
   if (rb.stale_display_info || (! rb.gsync_state.active))
     return;
+  
+  NvU32   vblank_count =     0;
+  bool bHasVBlankCount = false;
+  {
+    std::scoped_lock
+      lock (SK_NvAPI_Threading->locks.Disp_GetVRRInfo,
+            SK_NvAPI_Threading->locks.D3D_IsGSyncActive);
 
-  std::scoped_lock
-    lock (SK_NvAPI_Threading->locks.Disp_GetVRRInfo,
-          SK_NvAPI_Threading->locks.D3D_IsGSyncActive);
+    bHasVBlankCount =
+      (NVAPI_OK == NvAPI_GetVBlankCounter (nv_disp, &vblank_count));
+  }
 
-  NvU32 vblank_count = 0;
-
-  if (NVAPI_OK == NvAPI_GetVBlankCounter (nv_disp, &vblank_count))
+  if (bHasVBlankCount)
   {
     head = std::min (head, (NvU32)MaxVBlankRecords-1);
 

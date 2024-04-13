@@ -1059,8 +1059,8 @@ SK_D3D12_Screenshot::getData ( UINT* const pWidth,
     SK_ReleaseAssert ( bytesPerPixel * framebuffer.Width <= framebuffer.PackedDstPitch );
 
     size_t src_row_pitch =
-      ( layout.Footprint.RowPitch / std::max (1u, framebuffer.Height) ) +
-      ( layout.Footprint.RowPitch / std::max (1u, framebuffer.Height) ) % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT,
+      ( static_cast <size_t> (layout.Footprint.RowPitch) / std::max (1ull, static_cast <size_t> (framebuffer.Height)) ) +
+      ( static_cast <size_t> (layout.Footprint.RowPitch) / std::max (1ull, static_cast <size_t> (framebuffer.Height)) ) % D3D12_TEXTURE_DATA_PITCH_ALIGNMENT,
            dst_row_pitch = ( bytesPerPixel * framebuffer.Width );
 
     SK_ReleaseAssert ( src_row_pitch >=
@@ -2061,7 +2061,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                               (int)pFrameData->Width, (int)pFrameData->Height,
                                 true );
 
-                      SK_LOG1 ( ( L"Finished Steam Screenshot Import for Handle: '%x' (%lu frame latency)",
+                      SK_LOG1 ( ( L"Finished Steam Screenshot Import for Handle: '%x' (%llu frame latency)",
                                   screenshot, SK_GetFramesDrawn () - pop_off->getStartFrame () ),
                                     L"SteamSShot" );
 
