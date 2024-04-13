@@ -1,4 +1,9 @@
-﻿24.4.13.1
+﻿24.4.13.2
+=========
+ + Fixed several menu items in the Control Panel that might not be selectable
+     using a gamepad or keyboard (i.e. "File | Exit" and Latency Analysis).
+
+24.4.13.1
 =========
  + Improved support for ReShade overlay while SK is blocking keyboard input
  + Improved handling of DualSense Edge macro keybinds

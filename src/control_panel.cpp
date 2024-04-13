@@ -262,8 +262,8 @@ namespace SK_ImGui
     ImGui::PushStyleColor (ImGuiCol_Button, color);
     ImGui::PushID         (text);
 
-    ret = ImGui::Button ( "", ImVec2 (text_size.y + pad * 2,
-                                      text_size.x + pad * 2) );
+    ret = ImGui::Button ( "##VerticalButton", ImVec2 (text_size.y + pad * 2,
+                                                      text_size.x + pad * 2) );
     ImGui::PopStyleColor ();
 
     while ((c = *text++))
@@ -1243,7 +1243,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   display_list += '\0';
 
-  ImGui::TreePush ("");
+  ImGui::TreePush ("###MonitorSubMenu");
 
   int active_display = rb.active_display;
 
@@ -1621,7 +1621,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
     if (state == NV_DITHER_STATE_ENABLED)
     {
-      ImGui::TreePush ("");
+      ImGui::TreePush ("###DitheringSubMenu");
 
       auto bits_orig = bits;
 
@@ -2072,7 +2072,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       }
     }
 
-    if (ImGui::Combo ("", &iVirtualAspect, " 5:4\0 4:3\0 3:2\0 16:10\0 16:9\0 21:9\0 Custom\0\0"))
+    if (ImGui::Combo ("###VirtualAspectRatio", &iVirtualAspect, " 5:4\0 4:3\0 3:2\0 16:10\0 16:9\0 21:9\0 Custom\0\0"))
     {
       switch (iVirtualAspect)
       {
@@ -2976,10 +2976,11 @@ SK_NV_LatencyControlPanel (void)
   if (! (sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (rb.api)))
     return;
 
-  ImGui::Separator ();
+  ImGui::Separator  ();
 
   bool bLatencyManagement =
-    ImGui::TreeNodeEx ("NVIDIA Latency Management", ImGuiTreeNodeFlags_DefaultOpen);
+    ImGui::TreeNodeEx ("NVIDIA Latency Management", ImGuiTreeNodeFlags_DefaultOpen |
+                                                    ImGuiTreeNodeFlags_AllowOverlap);
 
   static bool     native_disabled =
     config.nvidia.reflex.disable_native;
@@ -3024,7 +3025,9 @@ SK_NV_LatencyControlPanel (void)
   }
 
   if (! bLatencyManagement)
+  {
     return;
+  }
 
   if ((! rb.displays [rb.active_display].primary) && config.nvidia.reflex.low_latency
                                                   && config.nvidia.reflex.enable)
@@ -3056,7 +3059,7 @@ SK_DXGI_FullscreenControlPanel (void)
   {
     ImGui::TextUnformatted ("D3D11 / D3D12 Fullscreen Setup\t(Experimental)");
 
-    ImGui::TreePush ("");
+    ImGui::TreePush ("###DXGI_FullscreenCpl");
 
     if (ImGui::Checkbox ("Enable Fake Fullscreen Mode", &config.render.dxgi.fake_fullscreen_mode))
     {
@@ -3102,7 +3105,7 @@ SK_NV_GSYNCControlPanel ()
     {
       ImGui::TextUnformatted ("NVIDIA G-Sync Configuration");
 
-      ImGui::TreePush ("");
+      ImGui::TreePush ("###GSyncConfig");
 
       static bool bEnableFastSync =
              SK_NvAPI_GetFastSync ();
@@ -3410,7 +3413,7 @@ SK_ImGui_ControlPanel (void)
         {
           extern bool
               SK_CanRestartGame (void);
-          if (SK_CanRestartGame () && ImGui::MenuItem ("Restart Game###File_Restart"))
+          if (SK_CanRestartGame () && ImGui::MenuItem ("Restart Game##RestartGame"))
           {
             SK_ImGui_WantRestart = true;
             SK_ImGui_WantExit    = true;
@@ -3423,7 +3426,7 @@ SK_ImGui_ControlPanel (void)
         //  ImGui::SetTooltip ("Exit and Automatically Restart (useful for settings that require a restart)");
         //}
 
-        if (ImGui::MenuItem ("Exit Game###File_Exit", "Alt+F4"))
+        if (ImGui::MenuItem ("Exit Game##ExitGame", "Alt+F4"))
         {
           SK_ImGui_WantRestart = false;
           SK_ImGui_WantExit    = true;
@@ -3483,7 +3486,7 @@ SK_ImGui_ControlPanel (void)
           ImGui::Spacing         ( );
           ImGui::Spacing         ( );
 
-          ImGui::TreePush        ("");
+          ImGui::TreePush        ("###ColorCorrectionWarning");
           ImGui::BulletText      ("Third-party overlay sliders will only appear if SK's own "
                                   "HDR is active and the current game is D3D11");
           ImGui::BulletText      ("HDR Color Correction for third-party overlays -does- "
@@ -3685,7 +3688,7 @@ SK_ImGui_ControlPanel (void)
 
         if (config.screenshots.png_compress)
         {
-          ImGui::TreePush ("");
+          ImGui::TreePush ("###ScreenshotEncoderCfg");
 
           if (config.screenshots.use_avif)
           {
@@ -3784,7 +3787,7 @@ SK_ImGui_ControlPanel (void)
             rb.screenshot_mgr->getRepoStats (hdr_changed);
 
           ImGui::BeginGroup (  );
-          ImGui::TreePush   ("");
+          ImGui::TreePush   ("###ScreenshotSizeTotal");
           ImGui::Text ( "%u files using %ws",
                           repo.files,
                             SK_File_SizeToString (repo.liSize.QuadPart, Auto, pTLS).data ()
@@ -4197,7 +4200,7 @@ SK_ImGui_ControlPanel (void)
 
         //ImGui::MenuItem ("Special K Documentation (Work in Progress)", "Ctrl + Shift + Nul", &selected, false);
 
-        ImGui::TreePush ("");
+        ImGui::TreePush ("###HelpSubmenu");
         {
 #if 0
           if (ImGui::MenuItem (R"("Kaldaien's Mod")", "Discourse Forums", &selected, true))
@@ -4355,7 +4358,7 @@ SK_ImGui_ControlPanel (void)
           }
         }
 
-        ImGui::TreePush  ("");
+        ImGui::TreePush  ("###InjectionSubMenu");
 
         if (SK_IsInjected ())
         {
@@ -4502,8 +4505,8 @@ SK_ImGui_ControlPanel (void)
        ImGui::TreePop   ();
        ImGui::Separator ();
 
-       ImGui::TreePush ("");
-       ImGui::TreePush ("");
+       ImGui::TreePush ("###PlugInTree0");
+       ImGui::TreePush ("###PlugInTree1");
 
        for ( auto& import : imports->imports )
        {
@@ -5131,7 +5134,7 @@ SK_ImGui_ControlPanel (void)
 
     if ((! has_own_scale) && ImGui::CollapsingHeader ("UI Render Settings"))
     {
-      ImGui::TreePush    ("");
+      ImGui::TreePush    ("###UIRenderSettings");
 
       if ( ImGui::SliderFloat ( "###IMGUI_SCALE", &config.imgui.scale,
                                   1.0f, 3.0f, "UI Scaling Factor %.2f" ) )
@@ -5555,7 +5558,7 @@ SK_ImGui_ControlPanel (void)
 
             if (bLatentSync)
             {
-              ImGui::TreePush ("");
+              ImGui::TreePush ("###LatentSync");
 
               double dRefresh =
                 rb.getActiveRefreshRate ();
@@ -6409,7 +6412,7 @@ SK_ImGui_ControlPanel (void)
     bool hdr           = SK_ImGui_Widgets->hdr_control->isVisible     ();
     bool tobii         = SK_ImGui_Widgets->tobii->isVisible           ();
 
-    ImGui::TreePush ("");
+    ImGui::TreePush ("###WidgetSelector");
 
     if (ImGui::Checkbox ("Framepacing", &framepacing))
     {
@@ -6534,7 +6537,7 @@ SK_ImGui_ControlPanel (void)
 
   if (ImGui::CollapsingHeader ("Screenshots"))
   {
-    ImGui::TreePush ("");
+    ImGui::TreePush ("###ScreenshotSubMenu");
 
     ImGui::BeginGroup ();
 
@@ -6638,7 +6641,7 @@ SK_ImGui_ControlPanel (void)
 
       ImGui::BeginGroup (  );
       ImGui::Separator  (  );
-      ImGui::TreePush   ("");
+      ImGui::TreePush   ("###ScreenshotSizeTotal");
       ImGui::Text ( "%u files using %hs",
                       repo.files,
                         SK_WideCharToUTF8 (SK_File_SizeToString (repo.liSize.QuadPart, Auto, pTLS).data ()).c_str ()
@@ -7338,7 +7341,7 @@ SK_ImGui_StageNextFrame (void)
     //ImGui::Text          ("development branch.");
       ImGui::Spacing       ();
       ImGui::Spacing       ();
-      ImGui::TreePush      ("");
+      ImGui::TreePush      ("###VersionInfoBanner");
       ImGui::TextColored   (ImColor::HSV (.08f,.85f,1.f), "%s",
                             utf8_time_checked.c_str ());ImGui::SameLine ();
       ImGui::TextColored   (ImColor (1.f, 1.f, 1.f, 1.f), (const char *)u8"  ※  ");
