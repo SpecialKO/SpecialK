@@ -1,4 +1,9 @@
-﻿24.4.12.4
+﻿24.4.13
+=======
+ + Removed unnecesary load of dxgidebug.dll when user did not request
+     SK's D3D11/12 debugger.
+
+24.4.12.4
 =========
  + For users using the default Steam Overlay, ReShade and Epic Game Store
      overlay activation keybinds (Shift+Tab, Home, Shift+F3), SK always

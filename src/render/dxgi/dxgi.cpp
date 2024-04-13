@@ -4458,6 +4458,9 @@ SK_DXGI_GetDebugInterface (REFIID riid, void **ppDebug)
 HRESULT
 SK_DXGI_OutputDebugString (const std::string& str, DXGI_INFO_QUEUE_MESSAGE_SEVERITY severity)
 {
+  if ((! SK_IsDebuggerPresent ()) && (! config.render.dxgi.debug_layer))
+    return S_OK;
+
   try
   {
     SK_ComPtr <IDXGIInfoQueue>                               pDXGIInfoQueue;
@@ -4476,6 +4479,9 @@ SK_DXGI_OutputDebugString (const std::string& str, DXGI_INFO_QUEUE_MESSAGE_SEVER
 HRESULT
 SK_DXGI_ReportLiveObjects (IUnknown *pDev)
 {
+  if ((! SK_IsDebuggerPresent ()) && (! config.render.dxgi.debug_layer))
+    return S_OK;
+
   try
   {
     if (pDev != nullptr)
