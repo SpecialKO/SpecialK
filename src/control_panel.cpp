@@ -6972,7 +6972,7 @@ SK_ImGui_KeyboardProc (int       code, WPARAM wParam, LPARAM lParam)
 
     WriteULong64Release (
       &config.input.keyboard.temporarily_allow,
-        SK_GetFramesDrawn () + 25
+        SK_GetFramesDrawn () + 40
     );
 
     if (SK_ImGui_Visible || SK_ImGui_WantKeyboardCapture ()) return 1;
@@ -7014,9 +7014,6 @@ SK_ImGui_StageNextFrame (void)
 
   if (last_frame != SK_GetFramesDrawn ())
   {   last_frame  = SK_GetFramesDrawn ();
-
-    SK_ImGui_ExemptOverlaysFromKeyboardCapture ();
-
     auto& io =
       ImGui::GetIO ();
 
@@ -7979,6 +7976,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
         lock;
   if (! lock.try_lock ())
     return 0;
+
+  //SK_ImGui_ExemptOverlaysFromKeyboardCapture ();
 
   UNREFERENCED_PARAMETER (dwFlags);
   UNREFERENCED_PARAMETER (lpUser);

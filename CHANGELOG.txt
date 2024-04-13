@@ -1,4 +1,10 @@
-﻿24.4.13
+﻿24.4.13.1
+=========
+ + Improved support for ReShade overlay while SK is blocking keyboard input
+ + Improved handling of DualSense Edge macro keybinds
+ + Added TouchpadClick macro binding for DualSense + DualSense Edge
+
+24.4.13
 =======
  + Removed unnecesary load of dxgidebug.dll when user did not request
      SK's D3D11/12 debugger.

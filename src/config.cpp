@@ -1039,6 +1039,7 @@ struct {
       sk::ParameterStringW* right_fn_bind         = nullptr;
       sk::ParameterStringW* left_paddle_bind      = nullptr;
       sk::ParameterStringW* right_paddle_bind     = nullptr;
+      sk::ParameterStringW* touch_click_bind      = nullptr;
     } scepad;
 
     struct {
@@ -1631,6 +1632,7 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.scepad.right_fn_bind,     L"Keyboard Input to Generate when Right Function is Pressed", dll_ini,         L"Input.libScePad",       L"RightFunction"),
     ConfigEntry (input.gamepad.scepad.left_paddle_bind,  L"Keyboard Input to Generate when Left Paddle is Pressed",    dll_ini,         L"Input.libScePad",       L"LeftPaddle"),
     ConfigEntry (input.gamepad.scepad.right_paddle_bind, L"Keyboard Input to Generate when Right Paddle is Pressed",   dll_ini,         L"Input.libScePad",       L"RightPaddle"),
+    ConfigEntry (input.gamepad.scepad.touch_click_bind,  L"Keyboard Input to Generate when Touch Pad is Clicked",      dll_ini,         L"Input.libScePad",       L"TouchpadClick"),
 
     ConfigEntry (input.gamepad.low_battery_warning,      L"Percentage when SK will warn controller batteries are low", input_ini,       L"Input.Battery",         L"WarnIfPercentIsBelow"),
 
@@ -4393,6 +4395,7 @@ auto DeclKeybind =
   input.gamepad.scepad.left_paddle_bind->load     (config.input.gamepad.scepad.left_paddle);
   input.gamepad.scepad.right_paddle_bind->load    (config.input.gamepad.scepad.right_paddle);
   input.gamepad.scepad.right_fn_bind->load        (config.input.gamepad.scepad.right_fn);
+  input.gamepad.scepad.touch_click_bind->load     (config.input.gamepad.scepad.touch_click);
 
   input.gamepad.low_battery_warning->load         (config.input.gamepad.low_battery_percent);
 
@@ -5750,6 +5753,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.scepad.left_paddle_bind->store     (config.input.gamepad.scepad.left_paddle);
   input.gamepad.scepad.right_paddle_bind->store    (config.input.gamepad.scepad.right_paddle);
   input.gamepad.scepad.right_fn_bind->store        (config.input.gamepad.scepad.right_fn);
+  input.gamepad.scepad.touch_click_bind->store     (config.input.gamepad.scepad.touch_click);
 
   input.gamepad.low_battery_warning->store         (config.input.gamepad.low_battery_percent);
 

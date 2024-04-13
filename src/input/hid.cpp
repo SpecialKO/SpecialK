@@ -3389,6 +3389,73 @@ SK_HID_PlayStationDevice::setBufferCount (DWORD dwBuffers)
     );
 }
 
+struct cfg_binding_map_s {
+  std::wstring* wszValName   = nullptr;
+  UINT           uiVirtKey   = 0;
+  UINT           uiButtonIdx = 0;
+  bool           lastFrame   = false;
+  bool           thisFrame   = false;
+  UINT64         frameNum    = 0;
+} static binding_map [5] = {
+    { &config.input.gamepad.scepad.touch_click,  0, 13 },
+    // Mute (14, on DualSense) is already reserved...
+    { &config.input.gamepad.scepad.left_fn,      0, 15 },
+    { &config.input.gamepad.scepad.right_fn,     0, 16 },
+    { &config.input.gamepad.scepad.left_paddle,  0, 17 },
+    { &config.input.gamepad.scepad.right_paddle, 0, 18 } };
+
+void
+SK_HID_ProcessGamepadButtonBindings (void)
+{
+  for ( auto& binding : binding_map )
+  {
+    UINT VirtualKey  = binding.uiVirtKey;
+    if ( VirtualKey != 0 ) // A user-configured binding exists
+    {
+      bool bPressed  = false;
+      bool bReleased = false;
+  
+      if (binding.thisFrame && (! binding.lastFrame))
+      {
+        bPressed = true;
+      }
+
+      else if (binding.lastFrame && (! binding.thisFrame))
+      {
+        bReleased = true;
+      }
+
+      if (bPressed || bReleased)
+      {
+        const BYTE bScancode =
+          (BYTE)MapVirtualKey (VirtualKey, 0);
+
+        const DWORD dwFlags =
+          ( ( bScancode & 0xE0 ) == 0   ?
+              static_cast <DWORD> (0x0) :
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY) ) |
+                     ( bReleased ? KEYEVENTF_KEYUP
+                                 : 0x0 );
+
+        WriteULong64Release (
+          &config.input.keyboard.temporarily_allow,
+            SK_GetFramesDrawn () + 40
+        );
+
+        SK_keybd_event ((BYTE)VirtualKey, bScancode, dwFlags, 0);
+      }
+
+      binding.lastFrame = binding.thisFrame;
+      binding.thisFrame = false;
+
+      SK_ReleaseAssert ( binding.frameNum == 0 ||
+                         binding.frameNum <= SK_GetFramesDrawn () );
+
+      binding.frameNum = SK_GetFramesDrawn ();
+    }
+  }
+}
+
 bool
 SK_HID_PlayStationDevice::request_input_report (void)
 {
@@ -3803,6 +3870,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 if (pDevice->buttons.size () < 19)
                     pDevice->buttons.resize (  19);
 
+                pDevice->buttons [13].state = pData->ButtonPad           != 0;
                 pDevice->buttons [15].state = pData->ButtonLeftFunction  != 0;
                 pDevice->buttons [16].state = pData->ButtonRightFunction != 0;
                 pDevice->buttons [17].state = pData->ButtonLeftPaddle    != 0;
@@ -4462,62 +4530,57 @@ SK_HID_PlayStationDevice::request_input_report (void)
             {
               if (pDevice->buttons [14].state && (! pDevice->buttons [14].last_state)) bIsInputActive = true;
 
-              if (pDevice->bDualSenseEdge)
+              SK_RunOnce (
               {
-                struct cfg_binding_map_s {
-                  std::wstring* wszValName   = nullptr;
-                  UINT           uiVirtKey   = 0;
-                  UINT           uiButtonIdx = 0;
-                } static binding_map [4] = {
-                  { &config.input.gamepad.scepad.left_fn,      0, 15 },
-                  { &config.input.gamepad.scepad.right_fn,     0, 16 },
-                  { &config.input.gamepad.scepad.left_paddle,  0, 17 },
-                  { &config.input.gamepad.scepad.right_paddle, 0, 18 }
-                };
-
-                SK_RunOnce (
+                for ( auto& cfg_binding : binding_map )
                 {
-                  for ( auto& cfg_binding : binding_map )
-                  {
-                    auto& binding =
-                      *cfg_binding.wszValName;
+                  auto& binding =
+                    *cfg_binding.wszValName;
 
-                    if (! (         binding.empty () ||
-                          StrStrIW (binding.c_str (), L"<Not Bound>")) )
-                    {
-                      cfg_binding.uiVirtKey =
-                        (UINT)humanKeyNameToVirtKeyCode.get ()[
-                          hash_string (binding.c_str ())];
-                    }
+                  if (! (         binding.empty () ||
+                        StrStrIW (binding.c_str (), L"<Not Bound>")) )
+                  {
+                    cfg_binding.uiVirtKey =
+                      (UINT)humanKeyNameToVirtKeyCode.get ()[
+                        hash_string (binding.c_str ())];
                   }
-                });
+                }
+              });
 
-                for ( const auto& binding : binding_map )
+              for ( auto& binding : binding_map )
+              {
+                if (! pDevice->bDualSenseEdge)
                 {
-                  if (   pDevice->buttons [binding.uiButtonIdx].     state &&
-                      (! pDevice->buttons [binding.uiButtonIdx].last_state) )
+                  // DualSense Edge and DualShock 4 do not have these buttons...
+                  if (binding.uiButtonIdx > 14)
+                    continue;
+                }
+
+                UINT VirtualKey  = binding.uiVirtKey;
+                if ( VirtualKey != 0 ) // A user-configured binding exists
+                {
+                  bool bPressed  = false;
+                  bool bReleased = false;
+
+                  if (pDevice->buttons [binding.uiButtonIdx].state)
                   {
-                    bIsInputActive = true;
-
-                    UINT VirtualKey  = binding.uiVirtKey;
-                    if ( VirtualKey != 0 ) // A user-configured binding exists
+                    if (! pDevice->buttons [binding.uiButtonIdx].last_state)
                     {
-                      const BYTE bScancode =
-                        (BYTE)MapVirtualKey (VirtualKey, 0);
-
-                      const DWORD dwFlags =
-                        ( bScancode & 0xE0 ) == 0   ?
-                          static_cast <DWORD> (0x0) :
-                          static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
-
-                      WriteULong64Release (
-                        &config.input.keyboard.temporarily_allow,
-                          SK_GetFramesDrawn () + 25
-                      );
-
-                      SK_keybd_event ((BYTE)VirtualKey, bScancode, dwFlags,                   0);
-                      SK_keybd_event ((BYTE)VirtualKey, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+                      bPressed = true;
                     }
+
+                    bIsInputActive    = true;
+                    binding.thisFrame = true;
+                    binding.frameNum  = SK_GetFramesDrawn ();
+                  }
+
+                  else if (! pDevice->buttons [binding.uiButtonIdx].     state)
+                  { if (     pDevice->buttons [binding.uiButtonIdx].last_state)
+                    {
+                      bReleased      = true;
+                      bIsInputActive = true;
+                    }
+                    binding.frameNum = SK_GetFramesDrawn ();
                   }
                 }
               }

@@ -478,7 +478,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
     else if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
       imgui_capture = true;
 
-    if (game_window.active && ReadULong64Acquire (&config.input.mouse.temporarily_allow) > SK_GetFramesDrawn () - 10)
+    if (game_window.active && ReadULong64Acquire (&config.input.mouse.temporarily_allow) > SK_GetFramesDrawn () - 1)
       imgui_capture = false;
   }
 
