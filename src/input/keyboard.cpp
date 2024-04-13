@@ -84,20 +84,20 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 
       if (bSteamOverlay || bEpicOverlay)
       {
-        static const BYTE bScancodeShift =
+        const BYTE bScancodeShift =
           (BYTE)MapVirtualKey (vKeyShift, 0);
 
-        static const DWORD dwFlagsShift =
+        const DWORD dwFlagsShift =
           ( bScancodeShift & 0xE0 ) == 0  ?
                 static_cast <DWORD> (0x0) :
                 static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
         if (bSteamOverlay && bTabChanged)
         {
-          static const BYTE bScancodeSteam =
+          const BYTE bScancodeSteam =
             (BYTE)MapVirtualKey (vKeySteam, 0);
 
-          static const DWORD dwFlagsSteam =
+          const DWORD dwFlagsSteam =
             ( bScancodeSteam & 0xE0 ) == 0  ?
                   static_cast <DWORD> (0x0) :
                   static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
@@ -108,10 +108,10 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 
         else if (bEpicOverlay && bF3Changed)
         {
-          static const BYTE bScancodeEpic =
+          const BYTE bScancodeEpic =
             (BYTE)MapVirtualKey (vKeyEpic, 0);
 
-          static const DWORD dwFlagsEpic =
+          const DWORD dwFlagsEpic =
             ( bScancodeEpic & 0xE0 ) == 0  ?
                  static_cast <DWORD> (0x0) :
                  static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
@@ -123,10 +123,10 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 
       else if (bReShadeOverlay && bHomeChanged)
       {
-        static const BYTE bScancodeReShade =
+        const BYTE bScancodeReShade =
           (BYTE)MapVirtualKey (vKeyReShade, 0);
 
-        static const DWORD dwFlagsReShade =
+        const DWORD dwFlagsReShade =
           ( bScancodeReShade & 0xE0 ) == 0 ?
                  static_cast <DWORD> (0x0) :
                  static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
@@ -262,6 +262,13 @@ keybd_event_Detour (
   );
 }
 
+struct SK_Win32_KeybdEvent {
+  BYTE       bVk;
+  BYTE       bScan;
+  DWORD     dwFlags;
+  ULONG_PTR dwExtraInfo;
+};
+
 void
 WINAPI
 SK_keybd_event (
@@ -270,9 +277,47 @@ SK_keybd_event (
   _In_ DWORD     dwFlags,
   _In_ ULONG_PTR dwExtraInfo )
 {
-  ( keybd_event_Original != nullptr )                         ?
-    keybd_event_Original ( bVk, bScan, dwFlags, dwExtraInfo ) :
-    keybd_event          ( bVk, bScan, dwFlags, dwExtraInfo ) ;
+  static concurrency::concurrent_queue <SK_Win32_KeybdEvent> _keybd_events;
+  static HANDLE                                               hInputEvent =
+    SK_CreateEvent (nullptr, FALSE, FALSE, L"[SK] Input Synthesis Requested");
+
+  static HANDLE hKeyboardSynthesisThread =
+    SK_Thread_CreateEx ([](LPVOID/*pUser*/)->DWORD
+    {
+      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_ABOVE_NORMAL);
+
+      HANDLE hSignals [] =
+        { __SK_DLL_TeardownEvent,
+                     hInputEvent };
+
+      while ( WAIT_OBJECT_0 !=
+                WaitForMultipleObjects (2, hSignals, FALSE, INFINITE) )
+      {
+        while (! _keybd_events.empty ())
+        {
+          SK_Win32_KeybdEvent        data = { };
+          if (_keybd_events.try_pop (data))
+          {
+            ( keybd_event_Original != nullptr )                       ?
+              keybd_event_Original ( data.bVk,     data.bScan,
+                                     data.dwFlags, data.dwExtraInfo ) :
+              keybd_event          ( data.bVk,     data.bScan,
+                                     data.dwFlags, data.dwExtraInfo ) ;
+          }
+        }
+      }
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] Keyboard Input Synthesizer"
+  );
+
+  _keybd_events.push (
+    { bVk, bScan, dwFlags, dwExtraInfo }
+  );
+
+  SetEvent (hInputEvent);
 }
 
 GetKeyState_pfn      GetKeyState_Original      = nullptr;

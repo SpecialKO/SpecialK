@@ -285,12 +285,12 @@ SK_DQXI_WindowMessageFilter (LPMSG lpMsg, bool bReserved0, bool bReserved1)
 
             if (! key_release)
             {
-              keybd_event_Original ((BYTE)escape_keybind.vKey, 0, 0x0,             0);
+              SK_keybd_event ((BYTE)escape_keybind.vKey, 0, 0x0,             0);
             }
 
             else
             {
-              keybd_event_Original ((BYTE)escape_keybind.vKey, 0, KEYEVENTF_KEYUP, 0);
+              SK_keybd_event ((BYTE)escape_keybind.vKey, 0, KEYEVENTF_KEYUP, 0);
             }
 
             return true;
