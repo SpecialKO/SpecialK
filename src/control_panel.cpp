@@ -6970,6 +6970,11 @@ SK_ImGui_KeyboardProc (int       code, WPARAM wParam, LPARAM lParam)
     if (SK_ImGui_Active () || config.input.keyboard.catch_alt_f4 || config.input.keyboard.override_alt_f4 || SK_ImGui_WantKeyboardCapture ())
         SK_ImGui_WantExit = true;
 
+    WriteULong64Release (
+      &config.input.keyboard.temporarily_allow,
+        SK_GetFramesDrawn () + 25
+    );
+
     if (SK_ImGui_Visible || SK_ImGui_WantKeyboardCapture ()) return 1;
   }
 
@@ -7009,6 +7014,8 @@ SK_ImGui_StageNextFrame (void)
 
   if (last_frame != SK_GetFramesDrawn ())
   {   last_frame  = SK_GetFramesDrawn ();
+
+    SK_ImGui_ExemptOverlaysFromKeyboardCapture ();
 
     auto& io =
       ImGui::GetIO ();

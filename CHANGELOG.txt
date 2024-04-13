@@ -1,4 +1,19 @@
-﻿24.4.12.3
+﻿24.4.12.4
+=========
+ + For users using the default Steam Overlay, ReShade and Epic Game Store
+     overlay activation keybinds (Shift+Tab, Home, Shift+F3), SK always
+       allows these button combos to pass-through and activate the overlays.
+
+ + Added support for activating gamepad button -> keyboard bindings even when
+     a user has disabled keyboard input to the game.
+
+   >> Gamepad generated kbd input will pass-through the normal input blocking
+
+ + Added implicit Latency Waitable SwapChain support to D3D12 games that do
+     not use the feature; since it is not possible to control device latency
+       in D3D12 (only SwapChain latency).
+
+24.4.12.3
 =========
  + Disable Mipmap Generation on BC6H or BC7 textures, it's -too damn slow-!
  + Preliminary support for narrowing down the textures shown in the D3D11

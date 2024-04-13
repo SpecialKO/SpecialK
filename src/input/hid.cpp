@@ -4510,6 +4510,11 @@ SK_HID_PlayStationDevice::request_input_report (void)
                           static_cast <DWORD> (0x0) :
                           static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
+                      WriteULong64Release (
+                        &config.input.keyboard.temporarily_allow,
+                          SK_GetFramesDrawn () + 25
+                      );
+
                       SK_keybd_event ((BYTE)VirtualKey, bScancode, dwFlags,                   0);
                       SK_keybd_event ((BYTE)VirtualKey, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
                     }

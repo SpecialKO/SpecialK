@@ -1499,8 +1499,13 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
 
             if (SK_ImGui_Active () || config.input.keyboard.override_alt_f4)
             {
+              if (! config.input.keyboard.override_alt_f4)
+                WriteULong64Release (&config.input.keyboard.temporarily_allow, SK_GetFramesDrawn () + 25);
+
               SK_ImGui_WantExit = true;
-              return 1;
+
+              if (config.input.keyboard.override_alt_f4)
+                return 1;
             }
           }
         }
@@ -3709,6 +3714,11 @@ SK_ImGui_User_NewFrame (void)
          ImGui::GetKeyData   (ImGuiKey_Menu)->DownDuration == 0.0f )
          )
       {
+        WriteULong64Release (
+          &config.input.keyboard.temporarily_allow,
+            SK_GetFramesDrawn () + 25
+        );
+
         extern bool SK_ImGui_WantExit;
                     SK_ImGui_WantExit = true;
       }
