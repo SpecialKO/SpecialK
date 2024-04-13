@@ -3745,6 +3745,12 @@ auto DeclKeybind =
 
   monitoring.pagefile.interval->load (config.pagefile.interval);
 
+  config.cpu.interval      = std::clamp (config.cpu.interval,      0.125f, 2.5f);
+  config.gpu.interval      = std::clamp (config.gpu.interval,      0.125f, 2.5f);
+  config.disk.interval     = std::clamp (config.disk.interval,     0.125f, 2.5f);
+  config.pagefile.interval = std::clamp (config.pagefile.interval, 0.125f, 2.5f);
+  config.io.interval       = std::clamp (config.io.interval,       0.125f, 2.5f);
+
   monitoring.dlss.show->load         (config.dlss.show);
   monitoring.dlss.show_quality->load (config.dlss.show_quality);
   monitoring.dlss.show_preset->load  (config.dlss.show_preset);
