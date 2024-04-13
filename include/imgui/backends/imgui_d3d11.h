@@ -1,4 +1,4 @@
-// ImGui Win32 + DirectX11 binding
+﻿// ImGui Win32 + DirectX11 binding
 // In this binding, ImTextureID is used to store a 'ID3D11ShaderResourceView*' texture identifier. Read the FAQ about ImTextureID in imgui.cpp.
 
 // You can copy and use unmodified imgui_impl_* files in your project. See main.cpp for an example of using this.
@@ -7,6 +7,7 @@
 // https://github.com/ocornut/imgui
 
 #include <SpecialK/render/dxgi/dxgi_interfaces.h>
+#include <SpecialK/render/d3d11/d3d11_core.h>
 
 #include "../imgui.h"
 

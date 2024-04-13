@@ -1196,8 +1196,37 @@ IWrapDXGISwapChain::SetMaximumFrameLatency (UINT MaxLatency)
 {
   assert (ver_ >= 2);
 
-  return
-    static_cast <IDXGISwapChain2 *>(pReal)->SetMaximumFrameLatency (MaxLatency);
+  SK_LOG_FIRST_CALL
+
+  HRESULT hr = E_UNEXPECTED;
+
+  if (config.render.framerate.pre_render_limit > 0)
+    hr = S_OK;
+  else
+    hr = static_cast <IDXGISwapChain2 *>(pReal)->SetMaximumFrameLatency (MaxLatency);
+
+  if (SUCCEEDED (hr))
+  {
+    gameFrameLatency_ = MaxLatency;
+
+    SK_LOGi0 (
+      L"IWrapDXGISwapChain::SetMaximumFrameLatency ({%d Frames})",
+        MaxLatency
+    );
+
+    if (config.render.framerate.pre_render_limit > 0)
+    {
+      MaxLatency =         // 16 is valid, but Reflex hates that! :)
+        std::clamp (config.render.framerate.pre_render_limit, 1, 14);
+
+      SK_LOGi0 (L" >> Override=%d Frames", MaxLatency);
+
+      hr =
+        static_cast <IDXGISwapChain2 *>(pReal)->SetMaximumFrameLatency (MaxLatency);
+    }
+  }
+
+  return hr;
 }
 
 HRESULT
@@ -1206,8 +1235,44 @@ IWrapDXGISwapChain::GetMaximumFrameLatency (UINT *pMaxLatency)
 {
   assert (ver_ >= 2);
 
-  return
-    static_cast <IDXGISwapChain2 *>(pReal)->GetMaximumFrameLatency (pMaxLatency);
+  SK_LOG_FIRST_CALL
+
+  HRESULT hr = S_OK;
+
+  // We are overriding, do not let the game know...
+  if (config.render.framerate.pre_render_limit > 0)
+  {
+    *pMaxLatency = gameFrameLatency_;
+  }
+
+  else
+  {
+    hr =
+      static_cast <IDXGISwapChain2 *>(pReal)->GetMaximumFrameLatency (pMaxLatency);
+  }
+
+  if (SUCCEEDED (hr))
+  {
+    SK_LOGi0 (
+      L"IWrapDXGISwapChain::GetMaximumFrameLatency ({%d Frames})",
+        pMaxLatency != nullptr ? *pMaxLatency : 0
+    );
+
+    if (config.render.framerate.pre_render_limit > 0)
+    {
+      UINT RealMaxLatency = 0;
+
+      static_cast <IDXGISwapChain2 *>(pReal)->GetMaximumFrameLatency (
+                                                     &RealMaxLatency );
+
+      SK_LOGi0 (
+        L" >> Actual SwapChain Maximum Frame Latency: %d Frames",
+          RealMaxLatency
+      );
+    }
+  }
+
+  return hr;
 }
 
 HANDLE
@@ -1216,12 +1281,21 @@ IWrapDXGISwapChain::GetFrameLatencyWaitableObject (void)
 {
   assert(ver_ >= 2);
 
-#if 0
+  SK_LOG_FIRST_CALL
+
+#if 1
   static auto &rb =
     SK_GetCurrentRenderBackend ();
 
+  if (config.render.framerate.pre_render_limit > 0)
+  {
+    // 16 is valid, but Reflex hates that! :)
+    static_cast <IDXGISwapChain2 *>(pReal)->SetMaximumFrameLatency (
+      std::clamp (config.render.framerate.pre_render_limit, 1, 14) );
+  }
+
   // Disable waitable SwapChains when HW Flip Queue is active, they don't work right...
-  if (true)//rb.windows.unity || rb.windows.unreal || rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled)
+  if (false)//rb.windows.unity || rb.windows.unreal)// || rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled)
   {
     static HANDLE fake_waitable =
       SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
@@ -1526,7 +1600,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
   BOOL bOrigFullscreen = rb.fullscreen_exclusive;
   BOOL bHadBorders     = SK_Window_HasBorder (game_window.hWnd);
 
-  if (config.render.dxgi.skip_mode_changes || config.display.force_windowed || config.window.background_render)
+  if ((config.render.dxgi.skip_mode_changes || config.display.force_windowed || config.window.background_render) && (! SK_IsModuleLoaded (L"sl.interposer.dll")))
   {
     // Does not work correctly when recycling swapchains
     if ((! bRecycledSwapChains) || config.display.force_windowed || (config.window.background_render && config.render.dxgi.fake_fullscreen_mode == false))
@@ -1593,7 +1667,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
   {
     rb.fullscreen_exclusive = bOrigFullscreen;
 
-    if (config.render.dxgi.skip_mode_changes)
+    if (config.render.dxgi.skip_mode_changes && (! SK_IsModuleLoaded (L"sl.interposer.dll")))
     {
       if (Fullscreen) { if (bHadBorders) SK_Window_RestoreBorders (0x0, 0x0); }
       else                               SK_Window_RemoveBorders  (        );
@@ -2108,7 +2182,7 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
 
   bool skippable = true;
 
-  if (config.render.dxgi.skip_mode_changes)
+  if (config.render.dxgi.skip_mode_changes && (! SK_IsModuleLoaded (L"sl.interposer.dll")))
   {
     // Never skip buffer resizes if we have encountered a fullscreen SwapChain
     static bool was_ever_fullscreen = false;
@@ -2341,24 +2415,27 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
                          (pSwap3);
   }
 
-  SK_ComPtr <ID3D12Device>              pDev12;
-  pSwapChain->GetDevice (IID_PPV_ARGS (&pDev12.p));
-
-  if (pDev12.p == nullptr)
+  if (config.render.framerate.swapchain_wait > 0)
   {
-    //
-    // Latency waitable hack begin
-    //
-    if (sd.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
-    {
-      dll_log->Log (
-        L"[   DXGI   ]  >> Ignoring ResizeTarget (...) on a Latency Waitable SwapChain."
-      );
+    SK_ComPtr <ID3D12Device>              pDev12;
+    pSwapChain->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
-      return
-        _Return (S_OK);
+    if (pDev12.p == nullptr)
+    {
+      //
+      // Latency waitable hack begin
+      //
+      if (sd.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT)
+      {
+        dll_log->Log (
+          L"[   DXGI   ]  >> Ignoring ResizeTarget (...) on a Latency Waitable SwapChain."
+        );
+
+        return
+          _Return (S_OK);
+      }
+      /// Latency Waitable Hack End
     }
-    /// Latency Waitable Hack End
   }
 
   HRESULT ret =
@@ -2374,7 +2451,7 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
     if (new_new_params.RefreshRate.Denominator != 0)
     {
       SK_LOGi0 (
-        L" >> Ignoring Requested Refresh Rate (%4.2f Hz)...",
+        L" >> Ignoring Requested Refresh Rate (%5.2f Hz)...",
           static_cast <float> (new_new_params.RefreshRate.Numerator) /
           static_cast <float> (new_new_params.RefreshRate.Denominator)
       );
@@ -2406,7 +2483,7 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
          !( new_new_params.RefreshRate.Numerator   == config.render.framerate.rescan_.Numerator &&
             new_new_params.RefreshRate.Denominator == config.render.framerate.rescan_.Denom ) )
       {
-        SK_LOGi0 ( L" >> Refresh Override (Requested: %f, Using: %f)",
+        SK_LOGi0 ( L" >> Refresh Override (Requested: %5.2f, Using: %5.2f)",
                                new_new_params.RefreshRate.Denominator != 0 ?
           static_cast <float> (new_new_params.RefreshRate.Numerator)  /
           static_cast <float> (new_new_params.RefreshRate.Denominator)     :
@@ -2533,7 +2610,7 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
   static UINT           numModeChanges =  0 ;
   static DXGI_MODE_DESC lastModeSet    = { };
 
-  if (config.render.dxgi.skip_mode_changes)
+  if (config.render.dxgi.skip_mode_changes && (! SK_IsModuleLoaded (L"sl.interposer.dll")))
   {
     auto bd =
          sd.BufferDesc;

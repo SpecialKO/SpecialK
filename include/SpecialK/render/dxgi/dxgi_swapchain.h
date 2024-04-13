@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -129,6 +129,11 @@ IWrapDXGISwapChain : IDXGISwapChain4
     SK_DXGI_SetDebugName ( pReal,
         SK_FormatStringW ( L"SK_IWrapDXGISwapChain: pReal=%p", pReal ) );
 
+    SK_ComQIPtr <IDXGISwapChain2> pSwapChain2 (pReal);
+
+    if (pSwapChain2.p != nullptr)
+        pSwapChain2->GetMaximumFrameLatency (&gameFrameLatency_);
+
     RegisterDestructionCallback ();
 
     if (! d3d12_)
@@ -227,6 +232,11 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
     SK_DXGI_SetDebugName ( pReal,
         SK_FormatStringW ( L"SK_IWrapDXGISwapChain: pReal=%p", pReal ) );
+
+    SK_ComQIPtr <IDXGISwapChain2> pSwapChain2 (pReal);
+
+    if (pSwapChain2.p != nullptr)
+        pSwapChain2->GetMaximumFrameLatency (&gameFrameLatency_);
 
     RegisterDestructionCallback ();
 
@@ -349,8 +359,9 @@ IWrapDXGISwapChain : IDXGISwapChain4
     }
   } flip_model;
 
-  UINT                  gameWidth_      = 0;
-  UINT                  gameHeight_     = 0;
+  UINT                  gameWidth_        = 0;
+  UINT                  gameHeight_       = 0;
+  UINT                  gameFrameLatency_ = 2; // The latency the game expects
 
   struct state_cache_s {
     DXGI_FORMAT           lastRequested_      = DXGI_FORMAT_UNKNOWN;

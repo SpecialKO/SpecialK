@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -39,6 +39,91 @@ bool convert_typeless = false;
 
 static size_t debug_tex_id = 0x0;
 static size_t tex_dbg_idx  = 0;
+
+struct SK_D3D11_TextureListFilter {
+  struct {
+    UINT minWidth = 1,     minHeight = 1;
+    UINT maxWidth = 16384, maxHeight = 16384;
+  } resolution;
+
+  struct {
+    bool complete   = true;
+    bool incomplete = true;
+    bool single_lod = true;
+  } mipmaps;
+
+  struct {
+    bool bc7           = true;
+    bool bc6h          = true;
+    bool bc5           = true;
+    bool bc4           = true;
+    bool bc3           = true;
+    bool bc2           = true;
+    bool bc1           = true;
+    bool r8g8b8a8      = true;
+    bool b8g8r8a8      = true;
+    bool r10g10b10a2   = true;
+    bool r11g11b10     = true;
+    bool rgba16        = true;
+    bool rgba32        = true;
+    bool rg16          = true;
+    bool rg32          = true;
+    bool others        = true;
+  } formats;
+
+  struct {
+    bool dynamic_usage   = true;
+    bool immutable_usage = true;
+    bool default_usage   = true;
+    bool staging_usage   = true;
+  } usages;
+
+  struct {
+    bool vertex_buffer   = true;
+    bool index_buffer    = true;
+    bool constant_buffer = true;
+    bool shader_resource = true;
+    bool stream_output   = true;
+    bool render_target   = true;
+    bool depth_stencil   = true;
+    bool unordered_access= true;
+    bool video_decoder   = true;
+    bool video_encoder   = true;
+  } bind_types;
+
+  struct {
+    bool read            =  true;
+    bool write           =  true;
+    bool only_read_write = false;
+  } cpu_access;
+
+  struct {
+    bool generate_mips              =  true;
+    bool shared_texture             =  true;
+    bool cubemap                    =  true;
+    bool drawindirect_args          = false;
+    bool allow_raw_buffer_views     = false;
+    bool structured_buffer          = false;
+    bool resource_clamp             =  true;
+    bool shared_keymutex            =  true;
+    bool gdi_compatible             =  true;
+    bool shared_nthandle            =  true;
+    bool restricted_content         = false;
+    bool drm_shared_resource        = false;
+    bool drm_shared_resource_driver = false;
+    bool guarded                    =  true;
+    bool tile_pool                  =  true;
+    bool tiled                      =  true;
+    bool hw_drm_protected           =  true;
+    bool shared_displayable         =  true;
+    bool shared_exclusive_writer    =  true;
+  } misc_flags;
+
+  struct {
+    bool show_modified   = true;
+    bool show_unmodified = true;
+  } tex_mods;
+};
 
 void
 SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
@@ -95,6 +180,9 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
   static              size_t        total_texture_memory = 0ULL;
   static              size_t        non_mipped           = 0ULL; // Num Non-mimpapped textures loaded
 
+  // Whether to include these incredibly compute-intensive to encode textures
+  //   in operations like mipmap generation + re-encoding.
+  const bool bIncludeBC7andBC6H = false;
 
   ImGui::SameLine ();
   ImGui::Text     ("\tCurrent list represents %5.2f MiB of texture memory",
@@ -152,6 +240,23 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
                    StrStrIA (entry.name.c_str (), "LOGO_") == entry.name.c_str () )
               {
                 skip = true;
+              }
+            }
+
+            if (! skip)
+            {
+              switch (entry.desc.Format)
+              {
+                // These formats take an eternity!
+                case DXGI_FORMAT_BC6H_TYPELESS: 
+                case DXGI_FORMAT_BC6H_UF16:
+                case DXGI_FORMAT_BC6H_SF16:
+                case DXGI_FORMAT_BC7_TYPELESS:
+                case DXGI_FORMAT_BC7_UNORM:
+                case DXGI_FORMAT_BC7_UNORM_SRGB:
+                  skip = (! bIncludeBC7andBC6H);
+                default:
+                  break;
               }
             }
 
@@ -911,6 +1016,66 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
           {
             ImGui::SameLine ();
 
+            bool ignore = false;
+
+#if 0
+            if (ImGui::BeginPopup ("BC7_BC6H_MipmapGen_Confirmation"))
+            {
+              if (ImGui::Button ("Really Generate Mipmaps for this Texture?"))
+              {
+                SK_ScopedBool decl_tex_scope (
+                  SK_D3D11_DeclareTexInjectScope (pTLS)
+                );
+
+                if (SUCCEEDED (SK_D3D11_MipmapCacheTexture2D (pTex, entry.crc32c, pTLS)))
+                {
+                  entry.mipmapped = TRUE;
+                  non_mipped--;
+                }
+
+                ImGui::CloseCurrentPopup ();
+              }
+
+              else
+              {
+                    ImGui::SameLine          (         );
+                if (ImGui::Button            ("Cancel"))
+                    ImGui::CloseCurrentPopup (         );
+              }
+            }
+
+            if (ImGui::IsItemHovered ())
+               {ImGui::BeginTooltip  ();
+                ImGui::TextUnformatted (
+                "This operation may take an EXTREMELY long time to complete!!"
+                                       );
+                ImGui::Separator  ();
+                ImGui::BulletText (
+                  "Mipmap generation must first Decompress BC7/BC6H textures");
+                ImGui::BulletText (
+                  "Once decompressed, mipmap generation is simple, but...");
+                ImGui::BulletText (
+                  "The mipmapped copy must be recompressed with BC7/BC6H(!!)");
+                ImGui::Separator  ();
+                ImGui::TextUnformatted ("\tCompressing BC7/BC6H is SLOW!");
+                ImGui::EndTooltip ();}
+#endif
+
+            switch (entry.desc.Format)
+            {
+              // These formats take an eternity!
+              case DXGI_FORMAT_BC6H_TYPELESS: 
+              case DXGI_FORMAT_BC6H_UF16:
+              case DXGI_FORMAT_BC6H_SF16:
+              case DXGI_FORMAT_BC7_TYPELESS:
+              case DXGI_FORMAT_BC7_UNORM:
+              case DXGI_FORMAT_BC7_UNORM_SRGB:
+                ignore = (! bIncludeBC7andBC6H);
+              default:
+                break;
+            }
+
+            if (ignore) ImGui::BeginDisabled ();
             if (ImGui::Button ("  Generate Mipmaps  ###GenerateMipmaps"))
             {
               SK_ScopedBool decl_tex_scope (
@@ -921,6 +1086,26 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
               {
                 entry.mipmapped = TRUE;
                 non_mipped--;
+              }
+            }
+
+            if (ignore)
+            {     ImGui::EndDisabled   ();
+              if (ImGui::IsItemHovered ())
+              {   ImGui::BeginTooltip  ();
+                  ImGui::TextUnformatted (
+                  "This operation may take an EXTREMELY long time to complete!!"
+                                         );
+                ImGui::Separator  ();
+                ImGui::BulletText (
+                  "Mipmap generation must first Decompress BC7/BC6H textures");
+                ImGui::BulletText (
+                  "Once decompressed, mipmap generation is simple, but...");
+                ImGui::BulletText (
+                  "The mipmapped copy must be recompressed with BC7/BC6H(!!)");
+                ImGui::Separator  ();
+                ImGui::TextUnformatted ("\tCompressing BC7/BC6H is SLOW!");
+                ImGui::EndTooltip ();
               }
             }
           }

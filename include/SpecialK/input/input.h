@@ -1204,6 +1204,8 @@ LRESULT
 CALLBACK
 SK_ImGui_MouseProc    (int code, WPARAM wParam, LPARAM lParam);
 
+bool SK_ImGui_ExemptOverlaysFromKeyboardCapture (void);
+
 void SK_AdjustClipRect (void);
 
 int WINAPI SK_ShowCursor (BOOL bShow);

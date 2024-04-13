@@ -237,7 +237,6 @@
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableModules>false</EnableModules>
       <SDLCheck>false</SDLCheck>
       <IntelJCCErratum>false</IntelJCCErratum>
@@ -295,7 +294,6 @@
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <OmitFramePointers>false</OmitFramePointers>
-      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <EnableModules>false</EnableModules>
       <SDLCheck>false</SDLCheck>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>

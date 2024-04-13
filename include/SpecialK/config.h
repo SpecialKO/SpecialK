@@ -997,6 +997,7 @@ struct sk_config_t
       bool    hook_winmm          = true;
       bool    native_ps4          = false;
       bool    bt_input_only       = false;
+      float   low_battery_percent = 25.0f;
 
       struct xinput_s {
         unsigned
@@ -1032,6 +1033,16 @@ struct sk_config_t
         int   led_color_b          =     -1;
         int   led_brightness       =     -1;
         int   led_fade             =     -1;
+        std::wstring
+              touch_click          = L"<Not Bound>";
+        std::wstring
+              left_fn              = L"<Not Bound>";
+        std::wstring
+              right_fn             = L"<Not Bound>";
+        std::wstring
+              left_paddle          = L"<Not Bound>";
+        std::wstring
+              right_paddle         = L"<Not Bound>";
       } scepad;
 
       struct steam_s
@@ -1052,7 +1063,9 @@ struct sk_config_t
       bool    catch_alt_f4        =  true;
       bool    override_alt_f4     = false; // For games that have prompts (i.e. DQ XI / Yakuza)
       int     disabled_to_game    =     2; //0 = Never, 1 = Always, 2 = In Background
-    } keyboard;
+      volatile
+      UINT64  temporarily_allow   =     0; // Up until temporarily_allow + 1 frames,
+    } keyboard;                            //   ignore "disabled_to_game"
 
     struct mouse_s {
       //
@@ -1073,7 +1086,9 @@ struct sk_config_t
       //
       bool    fix_synaptics       = false;
       int     disabled_to_game    =    0; //0 = Never, 1 = Always, 2 = In Background
-      bool    ignore_small_clips  = false; // Ignore mouse clipping rects < 75% the
+      UINT64  temporarily_allow   =    0; // Up until temporarily_allow + 1 frames,
+                                          //   ignore "disabled_to_game"
+      bool    ignore_small_clips  = false;// Ignore mouse clipping rects < 75% the
                                           //   dimensions of the client window, so
                                           //     that UI input works.
     } mouse;

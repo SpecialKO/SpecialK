@@ -295,7 +295,6 @@
       <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
       <DisableSpecificWarnings>4714;5054</DisableSpecificWarnings>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <EnableModules>false</EnableModules>
       <SDLCheck>false</SDLCheck>
@@ -364,7 +363,6 @@
       <CompileAsWinRT>false</CompileAsWinRT>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <ConformanceMode>true</ConformanceMode>
-      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <BrowseInformation>false</BrowseInformation>
       <DisableSpecificWarnings>4714;5054</DisableSpecificWarnings>

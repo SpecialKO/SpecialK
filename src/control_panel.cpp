@@ -5346,8 +5346,13 @@ SK_ImGui_ControlPanel (void)
             ( active ? ImColor (1.00f, 1.00f, 1.00f).Value
                      : ImColor (0.73f, 0.73f, 0.73f).Value ) );
 
+          float max_limit =
+            static_cast <float> (
+              rb.windows.device.getDevCaps ().res.refresh
+            ) * 1.25f;
+
           if ( ImGui::DragFloat ( label, &target_mag,
-                                      1.0f, 24.0f, 166.0f, target > 0 ?
+                                      1.0f, 24.0f, max_limit, target > 0 ?
                           ( active ? "%6.3f fps  (Limit Engaged)" :
                                      "%6.3f fps  (~Window State)" )
                                                                   :
@@ -7038,6 +7043,11 @@ SK_ImGui_KeyboardProc (int       code, WPARAM wParam, LPARAM lParam)
     if (SK_ImGui_Active () || config.input.keyboard.catch_alt_f4 || config.input.keyboard.override_alt_f4 || SK_ImGui_WantKeyboardCapture ())
         SK_ImGui_WantExit = true;
 
+    WriteULong64Release (
+      &config.input.keyboard.temporarily_allow,
+        SK_GetFramesDrawn () + 40
+    );
+
     if (SK_ImGui_Visible || SK_ImGui_WantKeyboardCapture ()) return 1;
   }
 
@@ -7077,7 +7087,6 @@ SK_ImGui_StageNextFrame (void)
 
   if (last_frame != SK_GetFramesDrawn ())
   {   last_frame  = SK_GetFramesDrawn ();
-
     auto& io =
       ImGui::GetIO ();
 
@@ -8040,6 +8049,8 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
         lock;
   if (! lock.try_lock ())
     return 0;
+
+  //SK_ImGui_ExemptOverlaysFromKeyboardCapture ();
 
   UNREFERENCED_PARAMETER (dwFlags);
   UNREFERENCED_PARAMETER (lpUser);

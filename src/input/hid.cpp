@@ -3389,6 +3389,73 @@ SK_HID_PlayStationDevice::setBufferCount (DWORD dwBuffers)
     );
 }
 
+struct cfg_binding_map_s {
+  std::wstring* wszValName   = nullptr;
+  UINT           uiVirtKey   = 0;
+  UINT           uiButtonIdx = 0;
+  bool           lastFrame   = false;
+  bool           thisFrame   = false;
+  UINT64         frameNum    = 0;
+} static binding_map [5] = {
+    { &config.input.gamepad.scepad.touch_click,  0, 13 },
+    // Mute (14, on DualSense) is already reserved...
+    { &config.input.gamepad.scepad.left_fn,      0, 15 },
+    { &config.input.gamepad.scepad.right_fn,     0, 16 },
+    { &config.input.gamepad.scepad.left_paddle,  0, 17 },
+    { &config.input.gamepad.scepad.right_paddle, 0, 18 } };
+
+void
+SK_HID_ProcessGamepadButtonBindings (void)
+{
+  for ( auto& binding : binding_map )
+  {
+    UINT VirtualKey  = binding.uiVirtKey;
+    if ( VirtualKey != 0 ) // A user-configured binding exists
+    {
+      bool bPressed  = false;
+      bool bReleased = false;
+  
+      if (binding.thisFrame && (! binding.lastFrame))
+      {
+        bPressed = true;
+      }
+
+      else if (binding.lastFrame && (! binding.thisFrame))
+      {
+        bReleased = true;
+      }
+
+      if (bPressed || bReleased)
+      {
+        const BYTE bScancode =
+          (BYTE)MapVirtualKey (VirtualKey, 0);
+
+        const DWORD dwFlags =
+          ( ( bScancode & 0xE0 ) == 0   ?
+              static_cast <DWORD> (0x0) :
+              static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY) ) |
+                     ( bReleased ? KEYEVENTF_KEYUP
+                                 : 0x0 );
+
+        WriteULong64Release (
+          &config.input.keyboard.temporarily_allow,
+            SK_GetFramesDrawn () + 40
+        );
+
+        SK_keybd_event ((BYTE)VirtualKey, bScancode, dwFlags, 0);
+      }
+
+      binding.lastFrame = binding.thisFrame;
+      binding.thisFrame = false;
+
+      SK_ReleaseAssert ( binding.frameNum == 0 ||
+                         binding.frameNum <= SK_GetFramesDrawn () );
+
+      binding.frameNum = SK_GetFramesDrawn ();
+    }
+  }
+}
+
 bool
 SK_HID_PlayStationDevice::request_input_report (void)
 {
@@ -3775,19 +3842,35 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 pDevice->battery.state =
                   (SK_HID_PlayStationDevice::PowerState)((((BYTE *)pData)[52] & 0xF0) >> 4);
 
-                const float batteryPercent =
-                  ( std::min (((((BYTE *)pData)[52] & 0xF) /*- ((((BYTE *)pData)[53] & 0x10) ? 1 : 0)*/) * 10.0f + 5.0f, 100.0f) );
+              const float batteryPercent =
+               std::clamp (
+                ( pDevice->battery.state == Charging    ? static_cast <float> (std::min (11, ((BYTE *)pData)[52] & 0xF)) - 1 :
+                  pDevice->battery.state == Discharging ? static_cast <float> (std::min (9,  ((BYTE *)pData)[52] & 0xF)) + 1 :
+                                                                                                    0.0f) * 10.0f +
+                ( pDevice->battery.state == Charging    ? 0.0f :
+                  pDevice->battery.state == Discharging ? 5.0f :
+                                                          0.0f ), 0.0f, 100.0f
+               );
 
                 if (pDevice->battery.state == Discharging || 
                     pDevice->battery.state == Charging    ||
                     pDevice->battery.state == Complete)
                 {
                   pDevice->battery.percentage = batteryPercent;
+
+                  if (pDevice->battery.state == Complete)
+                      pDevice->battery.percentage = 100.0f;
+                }
+
+                else
+                {
+                  pDevice->battery.percentage = 100.0f;
                 }
 
                 if (pDevice->buttons.size () < 19)
                     pDevice->buttons.resize (  19);
 
+                pDevice->buttons [13].state = pData->ButtonPad           != 0;
                 pDevice->buttons [15].state = pData->ButtonLeftFunction  != 0;
                 pDevice->buttons [16].state = pData->ButtonRightFunction != 0;
                 pDevice->buttons [17].state = pData->ButtonLeftPaddle    != 0;
@@ -3980,13 +4063,28 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 (SK_HID_PlayStationDevice::PowerState)((((BYTE *)pData)[52] & 0xF0) >> 4);
 
               const float batteryPercent =
-                ( std::min (((((BYTE *)pData)[52] & 0xF) /*- ((((BYTE *)pData)[53] & 0x10) ? 1 : 0)*/) * 10.0f + 5.0f, 100.0f) );
+               std::clamp (
+                ( pDevice->battery.state == Charging    ? static_cast <float> (std::min (11, ((BYTE *)pData)[52] & 0xF)) - 1 :
+                  pDevice->battery.state == Discharging ? static_cast <float> (std::min (9,  ((BYTE *)pData)[52] & 0xF)) + 1 :
+                                                                                                    0.0f) * 10.0f +
+                ( pDevice->battery.state == Charging    ? 0.0f :
+                  pDevice->battery.state == Discharging ? 5.0f :
+                                                          0.0f ), 0.0f, 100.0f
+               );
 
               if (pDevice->battery.state == Discharging || 
                   pDevice->battery.state == Charging    ||
                   pDevice->battery.state == Complete)
               {
                 pDevice->battery.percentage = batteryPercent;
+
+                if (pDevice->battery.state == Complete)
+                    pDevice->battery.percentage = 100.0f;
+              }
+
+              else
+              {
+                pDevice->battery.percentage = 100.0f;
               }
 
               switch (pDevice->battery.state)
@@ -3994,7 +4092,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 case Charging:
                 case Discharging:
                 {
-                  if (pDevice->battery.percentage >= 30.0f)
+                  if (pDevice->battery.percentage >= config.input.gamepad.low_battery_percent || pDevice->battery.state == Charging)
                     SK_ImGui_DismissNotification ("DualSense.BatteryCharge");
                   else
                     SK_ImGui_CreateNotificationEx (
@@ -4029,7 +4127,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                           (pBatteryState->percentage > 10.0f) ? 1 : 0;
 
                         // Battery charge is high enough, don't bother showing this...
-                        if (pBatteryState->percentage > 30.0f)
+                        if (pBatteryState->percentage >= config.input.gamepad.low_battery_percent)
                           return true;
 
                         auto batteryColor =
@@ -4161,17 +4259,36 @@ SK_HID_PlayStationDevice::request_input_report (void)
                              SK_HID_PlayStationDevice::PowerState::Discharging;
 
               const float batteryPercent =
-                (float)(pData->PluggedPowerCable ? (pData->PowerPercent & 0xF) - 1
-                                                 : (pData->PowerPercent & 0xF)) * 10.0f;
+               std::clamp (
+                ( pDevice->battery.state == Charging    ? static_cast <float> (std::min (11, ((BYTE *)pData)[52] & 0xF)) - 1 :
+                  pDevice->battery.state == Discharging ? static_cast <float> (std::min (9,  ((BYTE *)pData)[52] & 0xF)) + 1 :
+                                                                                                    0.0f) * 10.0f +
+                ( pDevice->battery.state == Charging    ? 0.0f :
+                  pDevice->battery.state == Discharging ? 5.0f :
+                                                          0.0f ), 0.0f, 100.0f
+               );
 
-              pDevice->battery.percentage = batteryPercent;
+              if (pDevice->battery.state == Discharging || 
+                  pDevice->battery.state == Charging    ||
+                  pDevice->battery.state == Complete)
+              {
+                pDevice->battery.percentage = batteryPercent;
+
+                if (pDevice->battery.state == Complete)
+                    pDevice->battery.percentage = 100.0f;
+              }
+
+              else
+              {
+                pDevice->battery.percentage = 100.0f;
+              }
 
               switch (pDevice->battery.state)
               {
                 case Charging:
                 case Discharging:
                 {
-                  if (pDevice->battery.percentage >= 30.0f)
+                  if (pDevice->battery.percentage >= config.input.gamepad.low_battery_percent || pDevice->battery.state == Charging)
                     SK_ImGui_DismissNotification ("DualShock.BatteryCharge");
                   else
                     SK_ImGui_CreateNotificationEx (
@@ -4206,7 +4323,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                           (pBatteryState->percentage > 10.0f) ? 1 : 0;
 
                         // Battery charge is high enough, don't bother showing this...
-                        if (pBatteryState->percentage > 30.0f)
+                        if (pBatteryState->percentage >= config.input.gamepad.low_battery_percent)
                           return true;
 
                         auto batteryColor =
@@ -4413,12 +4530,59 @@ SK_HID_PlayStationDevice::request_input_report (void)
             {
               if (pDevice->buttons [14].state && (! pDevice->buttons [14].last_state)) bIsInputActive = true;
 
-              if (pDevice->bDualSenseEdge)
+              SK_RunOnce (
               {
-                if (pDevice->buttons [15].state && (! pDevice->buttons [15].last_state)) bIsInputActive = true;
-                if (pDevice->buttons [16].state && (! pDevice->buttons [16].last_state)) bIsInputActive = true;
-                if (pDevice->buttons [17].state && (! pDevice->buttons [17].last_state)) bIsInputActive = true;
-                if (pDevice->buttons [18].state && (! pDevice->buttons [18].last_state)) bIsInputActive = true;
+                for ( auto& cfg_binding : binding_map )
+                {
+                  auto& binding =
+                    *cfg_binding.wszValName;
+
+                  if (! (         binding.empty () ||
+                        StrStrIW (binding.c_str (), L"<Not Bound>")) )
+                  {
+                    cfg_binding.uiVirtKey =
+                      (UINT)humanKeyNameToVirtKeyCode.get ()[
+                        hash_string (binding.c_str ())];
+                  }
+                }
+              });
+
+              for ( auto& binding : binding_map )
+              {
+                if (! pDevice->bDualSenseEdge)
+                {
+                  // DualSense Edge and DualShock 4 do not have these buttons...
+                  if (binding.uiButtonIdx > 14)
+                    continue;
+                }
+
+                UINT VirtualKey  = binding.uiVirtKey;
+                if ( VirtualKey != 0 ) // A user-configured binding exists
+                {
+                  bool bPressed  = false;
+                  bool bReleased = false;
+
+                  if (pDevice->buttons [binding.uiButtonIdx].state)
+                  {
+                    if (! pDevice->buttons [binding.uiButtonIdx].last_state)
+                    {
+                      bPressed = true;
+                    }
+
+                    bIsInputActive    = true;
+                    binding.thisFrame = true;
+                    binding.frameNum  = SK_GetFramesDrawn ();
+                  }
+
+                  else if (! pDevice->buttons [binding.uiButtonIdx].     state)
+                  { if (     pDevice->buttons [binding.uiButtonIdx].last_state)
+                    {
+                      bReleased      = true;
+                      bIsInputActive = true;
+                    }
+                    binding.frameNum = SK_GetFramesDrawn ();
+                  }
+                }
               }
             }
 
