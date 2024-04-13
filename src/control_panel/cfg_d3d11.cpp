@@ -924,7 +924,7 @@ SK::ControlPanel::D3D11::Draw (void)
             {
               if (config.render.framerate.present_interval == SK_NoPreference)
               {
-                config.render.framerate.present_interval = rb.present_interval;
+                config.render.framerate.present_interval = 1;
               }
             }
           }

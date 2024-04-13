@@ -636,14 +636,12 @@ SK_ImGui_LatentSyncConfig (void)
           ImGui::BulletText   ("Adaptive (Prefer Off)");
           ImGui::BulletText   ("Always Off");
           ImGui::EndGroup     ();
-          ImGui::SameLine     ();
-          ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
-          ImGui::SameLine     ();
+          ImGui::SameLine     (0.0f, 0.0f);
           ImGui::BeginGroup   ();
-          ImGui::Text         ("Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
-          ImGui::Text         ("Buffer Count >= 5 ; Max Device Latency = 1");
-          ImGui::Text         ("Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
-          ImGui::Text         ("Buffer Count >= 5 ; Max Device Latency = Buffer Count + 1");
+          ImGui::Text         (" : Buffer Count > 4, Max Device Latency = Buffer Count + 1");
+          ImGui::Text         (" : Buffer Count > 4, Max Device Latency = 1");
+          ImGui::Text         (" : Buffer Count > 4, Max Device Latency = Buffer Count + 1");
+          ImGui::Text         (" : Buffer Count > 4, Max Device Latency = Buffer Count + 1");
           ImGui::EndGroup     ();
           ImGui::EndTooltip   ();
         }
