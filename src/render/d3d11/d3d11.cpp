@@ -8512,6 +8512,14 @@ HookD3D11 (LPVOID user)
     if ( pHooks->ppDevice           != nullptr &&
          pHooks->ppImmediateContext != nullptr )
     {
+      SK_ComQIPtr <IDXGIDevice1>
+          pDevice1 (*pHooks->ppDevice);
+      if (pDevice1.p != nullptr)
+      {
+        void SK_DXGI_HookDevice1 (IDXGIDevice1 *pDevice1);
+             SK_DXGI_HookDevice1 (              pDevice1);
+      }
+
       ////// Minimum functionality mode in order to prevent chaos caused by D3D11On12
       ////if (config.apis.last_known == SK_RenderAPI::D3D12)
       ////{

@@ -101,6 +101,73 @@ CreateDXGIFactory2_pfn            CreateDXGIFactory2_Import              = nullp
 extern bool bSwapChainNeedsResize;
 extern bool bRecycledSwapChains;
 
+using DXGIDevice1_SetMaximumFrameLatency_pfn = HRESULT (WINAPI *)(IDXGIDevice1 *This, UINT   MaxLatency);
+using DXGIDevice1_GetMaximumFrameLatency_pfn = HRESULT (WINAPI *)(IDXGIDevice1 *This, UINT *pMaxLatency);
+
+DXGIDevice1_SetMaximumFrameLatency_pfn DXGIDevice1_SetMaximumFrameLatency_Original = nullptr;
+DXGIDevice1_GetMaximumFrameLatency_pfn DXGIDevice1_GetMaximumFrameLatency_Original = nullptr;
+
+static UINT lastDeviceLatency = 0;
+
+HRESULT
+WINAPI
+DXGIDevice1_SetMaximumFrameLatency_Override (IDXGIDevice1 *This, UINT MaxLatency)
+{
+  SK_LOG_FIRST_CALL
+
+  lastDeviceLatency = MaxLatency;
+
+  if (config.render.framerate.pre_render_limit > 0)
+  {
+    MaxLatency =
+      std::clamp (config.render.framerate.pre_render_limit, 1, 14);
+  }
+
+  return
+    DXGIDevice1_SetMaximumFrameLatency_Original (This, MaxLatency);
+}
+
+HRESULT
+WINAPI
+DXGIDevice1_GetMaximumFrameLatency_Override (IDXGIDevice1 *This, UINT *pMaxLatency)
+{
+  SK_LOG_FIRST_CALL
+
+  if (config.render.framerate.pre_render_limit > 0)
+  {
+    if (                                             0 == lastDeviceLatency)
+      DXGIDevice1_GetMaximumFrameLatency_Original (This, &lastDeviceLatency);
+
+    if (pMaxLatency != nullptr)
+       *pMaxLatency  = lastDeviceLatency;
+
+    return
+      DXGIDevice1_SetMaximumFrameLatency_Original (This,
+        std::clamp (config.render.framerate.pre_render_limit, 1, 14)
+      );
+  }
+
+  return
+    DXGIDevice1_GetMaximumFrameLatency_Original (This, pMaxLatency);
+}
+
+HRESULT
+WINAPI
+SK_DXGI_SetDeviceMaximumFrameLatency (IDXGIDevice1 *This, UINT MaxLatency)
+{
+  if (This == nullptr)
+    return E_POINTER;
+
+  if (DXGIDevice1_SetMaximumFrameLatency_Original != nullptr)
+  {
+    return
+      DXGIDevice1_SetMaximumFrameLatency_Original (This, MaxLatency);
+  }
+
+  return
+    This->SetMaximumFrameLatency (MaxLatency);
+}
+
 using DXGIDisableVBlankVirtualization_pfn =
 HRESULT (WINAPI *)(void);
 
@@ -659,6 +726,7 @@ bool  bFlipMode               = false;
 bool  bWait                   = false;
 bool  bOriginallyFlip         = false;
 bool  bOriginallysRGB         = false;
+bool  bImplicitlyWaitable     = false;
 bool  bMisusingDXGIScaling    = false; // Game doesn't understand the purpose of Centered/Stretched
 UINT uiOriginalBltSampleCount = 0UL;
 
@@ -3029,17 +3097,17 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
           if (     _IsBackendD3D12 (rb.api)) SK_D3D12_PostPresent (pDev12.p, This, hr);
           else if (_IsBackendD3D11 (rb.api)) SK_D3D11_PostPresent (pDev.p,   This, hr);
 
-          if (config.render.framerate.swapchain_wait > 0)
+          if (config.render.framerate.swapchain_wait > 0 || bImplicitlyWaitable)
           {
             SK_AutoHandle               hWaitHandle (rb.getSwapWaitHandle ());
             if (SK_WaitForSingleObject (hWaitHandle.m_h, 0) == WAIT_TIMEOUT)
             {
-              if (pLimiter->get_limit () > 0.0)
+              if (bImplicitlyWaitable || pLimiter->get_limit () > 0.0)
               {
                 // Wait on the SwapChain for up to a frame to try and
                 //   shrink the queue without a full-on stutter.
                 SK_WaitForSingleObject (
-                  hWaitHandle.m_h, (DWORD)pLimiter->get_ms_to_next_tick ()
+                  hWaitHandle.m_h, bImplicitlyWaitable ? INFINITE : (DWORD)pLimiter->get_ms_to_next_tick ()
                 );
               }
             }
@@ -5302,8 +5370,8 @@ SK_DXGI_UpdateLatencies (IDXGISwapChain *pSwapChain)
        )
     {
       dll_log->Log ( L"[   DXGI   ] Setting Device    Frame Latency: %lu",
-                                        max_latency);
-      pDevice1->SetMaximumFrameLatency (max_latency);
+                                                      max_latency);
+      SK_DXGI_SetDeviceMaximumFrameLatency (pDevice1, max_latency);
     }
   }
 
@@ -5633,6 +5701,7 @@ public:
 void SK_DXGI_HookFactory     (IDXGIFactory    *pFactory);
 void SK_DXGI_HookPresentBase (IDXGISwapChain  *pSwapChain);
 void SK_DXGI_HookPresent1    (IDXGISwapChain1 *pSwapChain1);
+void SK_DXGI_HookDevice1     (IDXGIDevice1    *pDevice1);
 
 void
 SK_DXGI_LazyHookFactory (IDXGIFactory *pFactory)
@@ -5963,12 +6032,25 @@ DXGIFactory_CreateSwapChain_Override (
     return ret;
   }
 
+  auto                 orig_desc =  pDesc;
+  DXGI_SWAP_CHAIN_DESC new_desc  = *pDesc;
+
   SK_ComQIPtr <ID3D11Device>       pD3D11Dev (pDevice);
   SK_ComQIPtr <ID3D12CommandQueue> pCmdQueue (pDevice);
   SK_ComPtr   <ID3D12Device>       pDev12;
 
   if (pCmdQueue != nullptr)
   {   pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
+
+    if ((new_desc.Flags  & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) == 0)
+    {    new_desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+      bImplicitlyWaitable = true;
+    }
+
+    else
+    {
+      bImplicitlyWaitable = false;
+    }
 
     SK_LOGs0 ( L"Direct3D12", L" <*> Native D3D12 SwapChain Captured" );
 
@@ -5994,9 +6076,6 @@ DXGIFactory_CreateSwapChain_Override (
     config.render.framerate.buffer_count =
       sk::narrow_cast <int> (pDesc->BufferCount);
   }
-
-  auto                 orig_desc =  pDesc;
-  DXGI_SWAP_CHAIN_DESC new_desc  = *pDesc;
 
   SK_DXGI_CreateSwapChain_PreInit (
     &new_desc,              nullptr,
@@ -6165,6 +6244,10 @@ DXGIFactory_CreateSwapChain_Override (
 
         SK_ComQIPtr <IDXGISwapChain3> pSwap3 (pTemp);
         SK_D3D12_HotSwapChainHook (   pSwap3, pDev12.p);
+
+        if (bImplicitlyWaitable)
+          pSwap3->SetMaximumFrameLatency (config.render.framerate.pre_render_limit > 0 ?
+                                          config.render.framerate.pre_render_limit     : 2);
       }
 
       SK_DXGI_CreateSwapChain_PostInit (pDevice, &new_desc, &pTemp);
@@ -6544,6 +6627,17 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
 
   if (pCmdQueue != nullptr)
   {   pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
+
+    if ((new_desc1.Flags  & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) == 0)
+    {    new_desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+      bImplicitlyWaitable = true;
+    }
+
+    else
+    {
+      bImplicitlyWaitable = false;
+    }
+
     SK_LOGs0 ( L"Direct3D12",
                L" <*> Native D3D12 SwapChain Captured" );
 
@@ -6663,6 +6757,10 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       {
         SK_ComQIPtr <IDXGISwapChain3> pSwap3 (pTemp);
         SK_D3D12_HotSwapChainHook (   pSwap3, pDev12.p);
+
+        if (bImplicitlyWaitable)
+          pSwap3->SetMaximumFrameLatency (config.render.framerate.pre_render_limit > 0 ?
+                                          config.render.framerate.pre_render_limit     : 2);
       }
 
       SK_DXGI_CreateSwapChain1_PostInit (pDevice, hWnd, pOrigDesc, pOrigFullscreenDesc, &pTemp);
@@ -8836,6 +8934,77 @@ SK_DXGI_HookSwapChain (IDXGISwapChain* pProxySwapChain)
   SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
+
+void
+SK_DXGI_HookDevice1 (IDXGIDevice1* pProxyDevice)
+{
+  assert (pProxyDevice != nullptr);
+  if (    pProxyDevice == nullptr)
+    return;
+
+  static volatile
+               LONG hooked   = FALSE;
+  if (ReadAcquire (&hooked) != FALSE)
+    return;
+
+  const bool bHasStreamline =
+    SK_IsModuleLoaded (L"sl.dlss_g.dll");
+
+  SK_ComPtr <IDXGIDevice1> pDevice;
+
+  if (bHasStreamline)
+  {
+    if (SK_slGetNativeInterface (pProxyDevice, (void **)&pDevice.p) == sl::Result::eOk)
+      SK_LOGi0 (L"Hooking Streamline Native Interface for IDXGIDevice1...");
+
+    else pDevice = pProxyDevice;
+  } else pDevice = pProxyDevice;
+
+  if (! InterlockedCompareExchangeAcquire (&hooked, TRUE, FALSE))
+  {
+    //int iver = SK_GetDXGIFactoryInterfaceVer (pFactory);
+
+    //  0 QueryInterface
+    //  1 AddRef
+    //  2 Release
+    //
+    //  3 SetPrivateData
+    //  4 SetPrivateDataInterface
+    //  5 GetPrivateData
+    //  6 GetParent
+    // 
+    //  7 GetAdapter
+    //  8 CreateSurface
+    //  9 QueryResourceResidency
+    // 10 SetGPUThreadPriority
+    // 11 GetGPUThreadPriority
+    //
+    // 12 SetMaximumFrameLatency
+    // 13 GetMaximumFrameLatency
+
+    if (DXGIDevice1_SetMaximumFrameLatency_Original == nullptr)
+    {
+      DXGI_VIRTUAL_HOOK ( &pDevice, 12,
+                          "IDXGIDevice1::SetMaximumFrameLatency",
+                             DXGIDevice1_SetMaximumFrameLatency_Override,
+                             DXGIDevice1_SetMaximumFrameLatency_Original,
+                             DXGIDevice1_SetMaximumFrameLatency_pfn );
+    }
+
+    if (DXGIDevice1_GetMaximumFrameLatency_Original == nullptr)
+    {
+      DXGI_VIRTUAL_HOOK ( &pDevice, 13,
+                          "IDXGIDevice1::GetMaximumFrameLatency",
+                             DXGIDevice1_GetMaximumFrameLatency_Override,
+                             DXGIDevice1_GetMaximumFrameLatency_Original,
+                             DXGIDevice1_GetMaximumFrameLatency_pfn );
+    }
+
+    InterlockedIncrementRelease (&hooked);
+  }
+
+  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
+}
 
 void
 SK_DXGI_HookFactory (IDXGIFactory* pProxyFactory)
