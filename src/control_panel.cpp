@@ -3410,7 +3410,7 @@ SK_ImGui_ControlPanel (void)
         {
           extern bool
               SK_CanRestartGame (void);
-          if (SK_CanRestartGame () && ImGui::MenuItem ("Restart Game"))
+          if (SK_CanRestartGame () && ImGui::MenuItem ("Restart Game###File_Restart"))
           {
             SK_ImGui_WantRestart = true;
             SK_ImGui_WantExit    = true;
@@ -3423,7 +3423,7 @@ SK_ImGui_ControlPanel (void)
         //  ImGui::SetTooltip ("Exit and Automatically Restart (useful for settings that require a restart)");
         //}
 
-        if (ImGui::MenuItem ("Exit Game", "Alt+F4"))
+        if (ImGui::MenuItem ("Exit Game###File_Exit", "Alt+F4"))
         {
           SK_ImGui_WantRestart = false;
           SK_ImGui_WantExit    = true;
