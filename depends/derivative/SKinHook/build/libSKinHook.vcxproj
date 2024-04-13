@@ -246,7 +246,6 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <ConformanceMode>true</ConformanceMode>
       <EnableModules>false</EnableModules>
@@ -299,7 +298,6 @@
       <BrowseInformation>false</BrowseInformation>
       <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
-      <EnableParallelCodeGeneration>false</EnableParallelCodeGeneration>
       <GuardEHContMetadata>false</GuardEHContMetadata>
       <ConformanceMode>true</ConformanceMode>
       <EnableModules>false</EnableModules>
