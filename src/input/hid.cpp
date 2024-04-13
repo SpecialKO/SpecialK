@@ -3407,23 +3407,16 @@ struct cfg_binding_map_s {
 void
 SK_HID_ProcessGamepadButtonBindings (void)
 {
+  const auto frames_drawn =
+    SK_GetFramesDrawn ();
+
   for ( auto& binding : binding_map )
   {
     UINT VirtualKey  = binding.uiVirtKey;
     if ( VirtualKey != 0 ) // A user-configured binding exists
     {
-      bool bPressed  = false;
-      bool bReleased = false;
-  
-      if (binding.thisFrame && (! binding.lastFrame))
-      {
-        bPressed = true;
-      }
-
-      else if (binding.lastFrame && (! binding.thisFrame))
-      {
-        bReleased = true;
-      }
+      const bool bPressed  = (binding.thisFrame && (! binding.lastFrame));
+      const bool bReleased = (binding.lastFrame && (! binding.thisFrame));
 
       if (bPressed || bReleased)
       {
@@ -3439,19 +3432,19 @@ SK_HID_ProcessGamepadButtonBindings (void)
 
         WriteULong64Release (
           &config.input.keyboard.temporarily_allow,
-            SK_GetFramesDrawn () + 40
+            frames_drawn + 40
         );
 
-        SK_keybd_event ((BYTE)VirtualKey, bScancode, dwFlags, 0);
+        SK_keybd_event (static_cast<BYTE>(VirtualKey), bScancode, dwFlags, 0);
       }
 
       binding.lastFrame = binding.thisFrame;
       binding.thisFrame = false;
 
       SK_ReleaseAssert ( binding.frameNum == 0 ||
-                         binding.frameNum <= SK_GetFramesDrawn () );
+                         binding.frameNum <= frames_drawn );
 
-      binding.frameNum = SK_GetFramesDrawn ();
+      binding.frameNum = frames_drawn;
     }
   }
 }

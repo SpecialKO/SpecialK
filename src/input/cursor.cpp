@@ -451,15 +451,15 @@ static constexpr const DWORD REASON_DISABLED = 0x4;
 bool
 SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
-  // Allow mouse input while Steam overlay is active
-  if (SK::SteamAPI::GetOverlayState (true))
+  if (! SK_GImDefaultContext ())
     return false;
 
   // Allow mouse input while ReShade overlay is active
   if (SK_ReShadeAddOn_IsOverlayActive ())
     return false;
 
-  if (! SK_GImDefaultContext ())
+  // Allow mouse input while Steam overlay is active
+  if (SK::SteamAPI::GetOverlayState (true))
     return false;
 
   bool imgui_capture = false;
@@ -478,7 +478,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
     else if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
       imgui_capture = true;
 
-    if (game_window.active && ReadULong64Acquire (&config.input.mouse.temporarily_allow) > SK_GetFramesDrawn () - 1)
+    if (game_window.active && ReadULong64Acquire (&config.input.mouse.temporarily_allow) > SK_GetFramesDrawn () - 20)
       imgui_capture = false;
   }
 

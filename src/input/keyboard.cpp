@@ -36,31 +36,29 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
   static const UINT vKeyReShade = VK_HOME;
   static const UINT vKeyShift   = VK_SHIFT;
 
-  static bool bLastTab   = false;
-  static bool bLastF3    = false;
-  static bool bLastShift = false;
-  static bool bLastHome  = false;
+  static bool bLastTab  = false;
+  static bool bLastF3   = false;
+  static bool bLastHome = false;
 
   const bool bTab   = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeySteam  )) & 0x8000) != 0;
   const bool bF3    = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyEpic   )) & 0x8000) != 0;
   const bool bShift = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyShift  )) & 0x8000) != 0;
   const bool bHome  = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyReShade))         ) != 0;
 
-  if (bTab == bLastTab && bF3 == bLastF3 && /*bShift == bLastShift &&*/ bHome == bLastHome)
+  if ( bHome == bLastHome &&
+       bTab  == bLastTab  &&
+       bF3   == bLastF3 )
   {
-    ////WriteULong64Release (&config.input.keyboard.temporarily_allow, 0);
     return false;
   }
 
-  bool bTabChanged   = (bLastTab   != bTab  );
-  bool bF3Changed    = (bLastF3    != bF3   );
-  //bool bShiftChanged = (bLastShift != bShift);
-  bool bHomeChanged  = (bLastHome  != bHome );
+  bool bTabChanged  = (bLastTab  != bTab  );
+  bool bF3Changed   = (bLastF3   != bF3   );
+  bool bHomeChanged = (bLastHome != bHome );
 
-  bLastTab   = bTab;
-  bLastF3    = bF3;
-  bLastShift = bShift;
-  bLastHome  = bHome;
+  bLastTab  = bTab;
+  bLastF3   = bF3;
+  bLastHome = bHome;
 
   if (game_window.active && SK_ImGui_WantKeyboardCapture ())
   {
@@ -134,7 +132,6 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
                  static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
         SK_keybd_event ((BYTE)vKeyReShade, bScancodeReShade, dwFlagsReShade, 0);
-      //SK_keybd_event ((BYTE)vKeyReShade, bScancodeReShade, dwFlagsReShade | KEYEVENTF_KEYUP, 0);
       }
 
       return true;
@@ -143,10 +140,9 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 
   else
   {
-    bLastTab   = false;
-    bLastF3    = false;
-    bLastShift = false;
-    bLastHome  = false;
+    bLastTab  = false;
+    bLastF3   = false;
+    bLastHome = false;
   }
 
   return false;
@@ -155,15 +151,15 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 bool
 SK_ImGui_WantKeyboardCapture (void)
 {
-  // Allow keyboard input while Steam overlay is active
-  if (SK::SteamAPI::GetOverlayState (true))
+  if (! SK_GImDefaultContext ())
     return false;
 
   // Allow keyboard input while ReShade overlay is active
   if (SK_ReShadeAddOn_IsOverlayActive ())
     return false;
 
-  if (! SK_GImDefaultContext ())
+  // Allow keyboard input while Steam overlay is active
+  if (SK::SteamAPI::GetOverlayState (true))
     return false;
 
   bool imgui_capture =
@@ -203,15 +199,15 @@ SK_ImGui_WantKeyboardCapture (void)
 bool
 SK_ImGui_WantTextCapture (void)
 {
-  // Allow keyboard input while Steam overlay is active
-  if (SK::SteamAPI::GetOverlayState (true))
+  if (! SK_GImDefaultContext ())
     return false;
 
   // Allow keyboard input while ReShade overlay is active
   if (SK_ReShadeAddOn_IsOverlayActive ())
     return false;
 
-  if (! SK_GImDefaultContext ())
+  // Allow keyboard input while Steam overlay is active
+  if (SK::SteamAPI::GetOverlayState (true))
     return false;
 
   bool imgui_capture =
