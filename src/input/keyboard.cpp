@@ -31,33 +31,33 @@
 bool
 SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 {
-  static const UINT vKeyEpic    = VK_F3;
+//static const UINT vKeyEpic    = VK_F3;
   static const UINT vKeySteam   = VK_TAB;
   static const UINT vKeyReShade = VK_HOME;
   static const UINT vKeyShift   = VK_SHIFT;
 
   static bool bLastTab  = false;
-  static bool bLastF3   = false;
+//static bool bLastF3   = false;
   static bool bLastHome = false;
 
   const bool bTab   = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeySteam  )) & 0x8000) != 0;
-  const bool bF3    = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyEpic   )) & 0x8000) != 0;
+//const bool bF3    = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyEpic   )) & 0x8000) != 0;
   const bool bShift = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyShift  )) & 0x8000) != 0;
   const bool bHome  = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyReShade)) & 0x8000) != 0;
 
   if ( bHome == bLastHome &&
-       bTab  == bLastTab  &&
-       bF3   == bLastF3 )
+       bTab  == bLastTab )
+     //bF3   == bLastF3 )
   {
     return false;
   }
 
   bool bTabChanged  = (bLastTab  != bTab  );
-  bool bF3Changed   = (bLastF3   != bF3   );
+//bool bF3Changed   = (bLastF3   != bF3   );
   bool bHomeChanged = (bLastHome != bHome );
 
   bLastTab  = bTab;
-  bLastF3   = bF3;
+//bLastF3   = bF3;
   bLastHome = bHome;
 
   if (game_window.active && SK_ImGui_WantKeyboardCapture ())
@@ -69,20 +69,20 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 
     const bool
       bSteamOverlay    =  ( bShift && bTab ),
-      bEpicOverlay     =  ( bShift && bF3  ),
+    //bEpicOverlay     =  ( bShift && bF3  ),
       bReShadeOverlay  =  ( bHome  &&
                         (bHasReShadeDLL ||
       SK_IsModuleLoaded (wszsReShadeDLL)) );
     if (bReShadeOverlay) bHasReShadeDLL = true;
 
-    if (bSteamOverlay || bEpicOverlay || bReShadeOverlay)
+    if (bSteamOverlay /*|| bEpicOverlay*/ || bReShadeOverlay)
     {
       WriteULong64Release (
         &config.input.keyboard.temporarily_allow,
           SK_GetFramesDrawn () + 40
       );
 
-      if (bSteamOverlay || bEpicOverlay)
+      if (bSteamOverlay/*|| bEpicOverlay*/)
       {
         const BYTE bScancodeShift =
           (BYTE)MapVirtualKey (vKeyShift, 0);
@@ -106,6 +106,7 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
           SK_keybd_event ((BYTE)vKeySteam, bScancodeSteam, dwFlagsSteam, 0);
         }
 
+#if 0
         else if (bEpicOverlay && bF3Changed)
         {
           const BYTE bScancodeEpic =
@@ -119,6 +120,7 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
           SK_keybd_event ((BYTE)vKeyShift, bScancodeShift, dwFlagsShift, 0);
           SK_keybd_event ((BYTE)vKeyEpic,  bScancodeEpic,  dwFlagsEpic,  0);
         }
+#endif
       }
 
       else if (bReShadeOverlay && bHomeChanged)
@@ -141,7 +143,7 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
   else
   {
     bLastTab  = false;
-    bLastF3   = false;
+  //bLastF3   = false;
     bLastHome = false;
   }
 
