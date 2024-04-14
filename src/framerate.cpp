@@ -2085,8 +2085,6 @@ SK::Framerate::Limiter::wait (void)
 
           if (! bDisableTearingAndWait)
           {
-            bFailedToReduceRenderLatency = false;
-
             waitFrames = 0;
           }
 
@@ -2133,6 +2131,8 @@ SK::Framerate::Limiter::wait (void)
             _ToggleTearing (false);
 
             bDisableTearingAndWait = false;
+
+            bFailedToReduceRenderLatency = false;
           }
         } break;
 
