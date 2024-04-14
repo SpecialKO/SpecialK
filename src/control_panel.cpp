@@ -1211,9 +1211,11 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   {
     if (display.attached)
     {
-      outputs.push_back ((int)
-        ((intptr_t)&display -
-         (intptr_t)&rb.displays [0]) / sizeof (SK_RenderBackend_V2::output_s)
+      outputs.push_back (
+        sk::narrow_cast <int>
+          ((((intptr_t)&display -
+             (intptr_t)&rb.displays [0]) /
+      sizeof (SK_RenderBackend_V2::output_s)))
       );
     }
   }

@@ -43,7 +43,7 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
   const bool bTab   = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeySteam  )) & 0x8000) != 0;
   const bool bF3    = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyEpic   )) & 0x8000) != 0;
   const bool bShift = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyShift  )) & 0x8000) != 0;
-  const bool bHome  = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyReShade))         ) != 0;
+  const bool bHome  = (sk::narrow_cast <USHORT> (SK_GetAsyncKeyState (vKeyReShade)) & 0x8000) != 0;
 
   if ( bHome == bLastHome &&
        bTab  == bLastTab  &&

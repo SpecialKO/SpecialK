@@ -633,11 +633,11 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::getDisplayFromId (NvU32 display_id) 
     SK_GetCurrentRenderBackend ();
 
   const auto active_display =
-    rb.active_display;
+    std::clamp (rb.active_display,0,_MAX_DISPLAYS-1);
 
   // Try the active display first, most of the time it's the one we're looking for.
-  if (      gsl::at (rb.displays, active_display).nvapi.display_id == display_id)
-    return &gsl::at (rb.displays, active_display);
+  if (      rb.displays [active_display].nvapi.display_id == display_id)
+    return &rb.displays [active_display];
 
   // Exhaustive search otherwise
   for ( auto& display : rb.displays )
@@ -655,11 +655,11 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::getDisplayFromHandle (NvDisplayHandl
     SK_GetCurrentRenderBackend ();
 
   const auto active_display =
-    rb.active_display;
+    std::clamp (rb.active_display,0,_MAX_DISPLAYS-1);
 
   // Try the active display first, most of the time it's the one we're looking for.
-  if (      gsl::at (rb.displays, active_display).nvapi.display_handle == display_handle)
-    return &gsl::at (rb.displays, active_display);
+  if (      rb.displays [active_display].nvapi.display_handle == display_handle)
+    return &rb.displays [active_display];
 
   // Exhaustive search otherwise
   for ( auto& display : rb.displays )

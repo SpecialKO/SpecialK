@@ -416,7 +416,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
                         _ProcessGraphFrameSpan (span0);
 
       for (int i = span0.head; i <= span0.tail; ++i)
-      {
+      {    if (i < 0) continue;
                    history.sample_age [i] =
         (fMaxAge - history.sample_age [i]);
       }

@@ -3498,7 +3498,7 @@ D3DXPLANE::operator != ( CONST D3DXPLANE& p ) const
 D3DXINLINE
 D3DXCOLOR::D3DXCOLOR( DWORD dw )
 {
-    CONST FLOAT f = 1.0f / 255.0f;
+   constexpr FLOAT f = 1.0f / 255.0f;
     r = f * (FLOAT) (unsigned char) (dw >> 16);
     g = f * (FLOAT) (unsigned char) (dw >>  8);
     b = f * (FLOAT) (unsigned char) (dw >>  0);

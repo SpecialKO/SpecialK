@@ -370,7 +370,7 @@ SK_HID_DeviceFile::setBufferCount (DWORD dwBuffers)
   if (dwBuffers < 2)
   {
     SK_LOGi0 (
-      L"Invalid Buffer Count (%d) passed to "
+      L"Invalid Buffer Count (%u) passed to "
       L"SK_HID_DeviceFile::setBufferCount (...); "
       L"Using minimum supported value (2) instead.",
       dwBuffers
@@ -526,7 +526,7 @@ void SK_Bluetooth_SetupPowerOff (void)
 
             if (bRequesting || (val != nullptr && *(uint64*)val != 1 && ullHWAddr == *(uint64*)val))
             {
-              SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws (%lld)",
+              SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws (%llu)",
                            wszSerialNumber, ullHWAddr );
 
               BLUETOOTH_FIND_RADIO_PARAMS findParams =
@@ -580,7 +580,7 @@ void SK_Bluetooth_SetupPowerOff (void)
               ULONGLONG                           ullHWAddr = 0x0;
               swscanf (wszSerialNumber, L"%llx", &ullHWAddr);
 
-              if ((*(uint64*)val == 1 || ullHWAddr == *(uint64*)val))
+              if (val != nullptr && (*(uint64 *)(val) == 1 || ullHWAddr == *(uint64*)(val)))
               {
                 SK_LOGi0 ( L"Attempting to disconnect Bluetooth MAC Address: %ws (%llu)",
                              wszSerialNumber, ullHWAddr );
@@ -592,33 +592,37 @@ void SK_Bluetooth_SetupPowerOff (void)
                 HANDLE hFindRadios =
                   BluetoothFindFirstRadio (&findParams, &hBtRadio);
 
-                BOOL   success  = FALSE;
-                while (success == FALSE && hBtRadio != 0)
+                if (hFindRadios != 0 && hFindRadios != INVALID_HANDLE_VALUE)
                 {
-                  success =
-                    SK_DeviceIoControl (
-                      hBtRadio, IOCTL_BTH_DISCONNECT_DEVICE, &ullHWAddr, 8,
-                                                             nullptr,    0,
-                                           &dwBytesReturned, nullptr );
+                  BOOL   success  = FALSE;
+                  while (success == FALSE && hBtRadio != 0 && hBtRadio != INVALID_HANDLE_VALUE)
+                  {
+                    success =
+                      SK_DeviceIoControl (
+                        hBtRadio, IOCTL_BTH_DISCONNECT_DEVICE, &ullHWAddr, 8,
+                                                               nullptr,    0,
+                                             &dwBytesReturned, nullptr );
 
-                  CloseHandle (hBtRadio);
+                    CloseHandle (hBtRadio);
 
-                  if (! success)
-                    if (! BluetoothFindNextRadio (hFindRadios, &hBtRadio))
-                      hBtRadio = 0;
+                    if (! success)
+                      if (! BluetoothFindNextRadio (hFindRadios, &hBtRadio))
+                        hBtRadio = 0;
 
-                  if (success)
-                    ++powered_off;
+                    if (success)
+                      ++powered_off;
+                  }
+
+                  BluetoothFindRadioClose (hFindRadios);
                 }
-
-                BluetoothFindRadioClose (hFindRadios);
               }
             }
           }
         }
       }
 
-      *((uint64*)var->getValuePointer ()) = *(uint64*)val;
+      if (val != nullptr)
+        *((uint64 *)(var->getValuePointer ())) = *(uint64 *)(val);
 
       return true;
     }
@@ -1316,17 +1320,16 @@ ReadFile_Detour (HANDLE       hFile,
       }
 
       auto hid_file =
-        (SK_HID_DeviceFile *)dev_ptr;
+        (SK_HID_DeviceFile *)(dev_ptr);
 
       BYTE report_id = 0;
 
-      if (lpBuffer != nullptr)
+      if (lpBuffer != nullptr && hid_file != nullptr)
       {
-        report_id = ((uint8_t *)lpBuffer)[0];
+        report_id = ((uint8_t *)(lpBuffer))[0];
 
         if (! report_id)
-        {
-          report_id = (BYTE)nNumberOfBytesToRead;
+        {     report_id = sk::narrow_cast <BYTE> (nNumberOfBytesToRead);
         }
       }
 
@@ -1383,7 +1386,7 @@ ReadFile_Detour (HANDLE       hFile,
 
         if (lpBuffer != nullptr)
         {
-          report_id = ((uint8_t *)lpBuffer)[0];
+          report_id = ((uint8_t *)(lpBuffer))[0];
 
           if (! report_id)
           {
@@ -1501,9 +1504,9 @@ ReadFile_Detour (HANDLE       hFile,
         {
           SK_HID_READ (hid_file->device_type);
 
-          if (lpOverlapped == nullptr)
+          if (lpOverlapped == nullptr && lpBuffer != nullptr)
           {
-            report_id = ((uint8_t *)lpBuffer)[0];
+            report_id = ((uint8_t *)(lpBuffer))[0];
           }
 
           DWORD dwBytesRead = 0;
@@ -1513,7 +1516,7 @@ ReadFile_Detour (HANDLE       hFile,
           else
              dwBytesRead = nNumberOfBytesToRead;
 
-          if (lpOverlapped == nullptr && report_id > 0)
+          if (lpOverlapped == nullptr && report_id > 0 && lpBuffer != nullptr)
           {
             if (hid_file->_cachedInputReportsByReportId [report_id].size () <= dwBytesRead)
                 hid_file->_cachedInputReportsByReportId [report_id].resize (   dwBytesRead);
@@ -1664,7 +1667,7 @@ CreateFileA_Detour (LPCSTR                lpFileName,
         lpSecurityAttributes, dwCreationDisposition,
           dwFlagsAndAttributes, hTemplateFile );
 
-  const bool bSuccess = (LONG_PTR)hRet > 0;
+  const bool bSuccess = LONG_PTR (hRet) > 0;
 
   // Examine all UNC paths closely, some of these files are
   //   input devices in disguise...
@@ -1967,6 +1970,7 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
   const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
     SK_Input_GetDeviceFileAndState (hFile);
 
+  if (    dev_ptr != nullptr)
   switch (dev_file_type)
   {
     case SK_Input_DeviceFileType::HID:
@@ -2030,7 +2034,8 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
             auto& cached_report =
               hid_file->_cachedInputReportsByReportId [report_id];
 
-            if (                     cached_report.size () < overlapped_request.dwNumberOfBytesToRead)
+            if (              overlapped_request.lpBuffer != nullptr
+                                  && cached_report.size () < overlapped_request.dwNumberOfBytesToRead)
             {
               if (((uint8_t *)overlapped_request.lpBuffer)[0] == 0x0 || ((uint8_t *)overlapped_request.lpBuffer)[0] == report_id)
               {
@@ -2155,7 +2160,8 @@ GetOverlappedResult_Detour (HANDLE       hFile,
             auto& cached_report =
               hid_file->_cachedInputReportsByReportId [report_id];
 
-            if (                     cached_report.size () < overlapped_request.dwNumberOfBytesToRead)
+            if (              overlapped_request.lpBuffer != nullptr 
+                                 &&  cached_report.size () < overlapped_request.dwNumberOfBytesToRead)
             {
               if (((uint8_t *)overlapped_request.lpBuffer)[0] == 0x0 || ((uint8_t *)overlapped_request.lpBuffer)[0] == report_id)
               {
@@ -2224,7 +2230,7 @@ DeviceIoControl_Detour (HANDLE       hDevice,
         dwFunctionNum =       (dwIoControlCode >> 2) & 0xFFF;
 
   SK_LOGi2 (
-    L"DeviceIoControl %p (Type: %x, Function: %d)", hDevice,
+    L"DeviceIoControl %p (Type: %x, Function: %u", hDevice,
       dwDeviceType, dwFunctionNum
   );
 
@@ -3338,13 +3344,13 @@ SK_HID_PlayStationDevice::setVibration (
   }
 
   WriteULongRelease (&_vibration.left,
-      static_cast  <ULONG> (255.0 *
+      sk::narrow_cast <ULONG> (255.0 *
         std::clamp (
           (static_cast <double> (left)/
            static_cast <double> (max_val)), 0.0, 1.0)));
   
   WriteULongRelease (&_vibration.right,
-      static_cast  <ULONG> (255.0 *
+      sk::narrow_cast <ULONG> (255.0 *
         std::clamp (
           (static_cast <double> (right)/
            static_cast <double> (max_val)), 0.0, 1.0)));
@@ -3371,7 +3377,7 @@ SK_HID_PlayStationDevice::setBufferCount (DWORD dwBuffers)
   if (dwBuffers < 2)
   {
     SK_LOGi0 (
-      L"Invalid Buffer Count (%d) passed to "
+      L"Invalid Buffer Count (%u) passed to "
       L"SK_HID_DeviceFile::setBufferCount (...); "
       L"Using minimum supported value (2) instead.",
       dwBuffers
@@ -3437,7 +3443,8 @@ SK_HID_ProcessGamepadButtonBindings (void)
             frames_drawn + 40
         );
 
-        SK_keybd_event (static_cast<BYTE>(VirtualKey), bScancode, dwFlags, 0);
+        SK_keybd_event (sk::narrow_cast <BYTE> (VirtualKey),
+                                                  bScancode, dwFlags, 0);
 
         binding.lastFrame = binding.thisFrame;
       }
@@ -3559,7 +3566,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
         BOOL bReadAsync =
           SK_ReadFile ( pDevice->hDeviceFile, pDevice->input_report.data (),
-                         static_cast <DWORD> (pDevice->input_report.size ()), nullptr, &async_input_request );
+                     sk::narrow_cast <DWORD> (pDevice->input_report.size ()), nullptr, &async_input_request );
 
         if (! bReadAsync)
         {
@@ -3582,7 +3589,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
             SK_LOGs0 (
               L"InputBkEnd",
-              L"SK_ReadFile ({%ws}, InputReport) failed, Error=%d [%ws]",
+              L"SK_ReadFile ({%ws}, InputReport) failed, Error=%u [%ws]",
                 pDevice->wszDevicePath, dwLastErr,
                   err.ErrorMessage ()
             );
@@ -3651,7 +3658,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
                 SK_LOGs0 (
                   L"InputBkEnd",
-                  L"SK_GetOverlappedResult ({%ws}, InputReport) failed, Error=%d [%ws]",
+                  L"SK_GetOverlappedResult ({%ws}, InputReport) failed, Error=%u [%ws]",
                     pDevice->wszDevicePath, dwLastErr,
                       err.ErrorMessage ()
                 );
@@ -3688,7 +3695,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
             ////}
 
             ULONG num_usages =
-              static_cast <ULONG> (pDevice->button_usages.size ());
+              ULONG (pDevice->button_usages.size ());
 
             pDevice->xinput.report.Gamepad = { };
 
@@ -3697,7 +3704,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 (pDevice->latency.last_syn > pDevice->latency.last_ack || pDevice->latency.last_ack == 0))
             {
               uint32_t ack =
-                static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
+                uint32_t (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
 
               pDevice->latency.last_ack = ack;
               pDevice->latency.ping     = pDevice->latency.last_ack -
@@ -3716,15 +3723,18 @@ SK_HID_PlayStationDevice::request_input_report (void)
                                                 pDevice->button_usages.data (),
                                                                 &num_usages,
                                                 pDevice->pPreparsedData,
-                                         (PCHAR)pDevice->input_report.data  (),
-                           static_cast <ULONG> (pDevice->input_report.size  ()) )
+                                          PCHAR(pDevice->input_report.data ()),
+                                          ULONG(pDevice->input_report.size ()) )
                  )
               {
                 for ( UINT i = 0; i < num_usages; ++i )
                 {
+                  if (i >= pDevice->button_usages.size ())
+                    continue;
+
                   pDevice->buttons [
-                    (ULONG)(pDevice->button_usages [i]) -
-                    (ULONG)(pDevice->buttons       [0].Usage)
+                    ULONG ((pDevice->button_usages [i]) -
+                           (pDevice->buttons       [0].Usage))
                   ].state = true;
                 }
               }
@@ -4815,7 +4825,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
                                                pDevice->latency.last_syn ) ) / 20;
 
             pDevice->latency.last_syn =
-              static_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
+              sk::narrow_cast <uint32_t> (SK_QueryPerf ().QuadPart - pDevice->latency.timestamp_epoch);
 
             //output->HostTimestamp = pDevice->latency.last_syn;
           }
@@ -5152,9 +5162,9 @@ SK_HID_PlayStationDevice::write_output_report (void)
           async_output_request        = { };
           async_output_request.hEvent = pDevice->hOutputFinished;
 
-          BOOL bWriteAsync=
+          const BOOL bWriteAsync =
             SK_WriteFile ( pDevice->hDeviceFile, pDevice->output_report.data (),
-                            static_cast <DWORD> (pDevice->bBluetooth ? 78 :
+                                          DWORD (pDevice->bBluetooth ? 78 :
                                                  pDevice->output_report.size ()), nullptr, &async_output_request );
 
           if (! bWriteAsync)
@@ -5565,9 +5575,9 @@ SK_HID_PlayStationDevice::write_output_report (void)
           async_output_request        = { };
           async_output_request.hEvent = pDevice->hOutputFinished;
 
-          BOOL bWriteAsync =
+          const BOOL bWriteAsync =
             SK_WriteFile ( pDevice->hDeviceFile, pDevice->output_report.data (),
-                            static_cast <DWORD> (pDevice->bBluetooth ? 78 :
+                                          DWORD (pDevice->bBluetooth ? 78 :
                                                                        32), nullptr, &async_output_request );
 
           if (! bWriteAsync)
@@ -5774,18 +5784,19 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
             BYTE* pInputRaw =
               (BYTE *)_cachedInputReportsByReportId [report_id].data ();
 
-            SK_HID_DualSense_GetStateData *pData =
-              (SK_HID_DualSense_GetStateData *)&pInputRaw [2];
+            SK_HID_DualSense_GetStateData *pData = pInputRaw == nullptr ?
+                                                                nullptr :
+                 (SK_HID_DualSense_GetStateData *)&pInputRaw [2];
 
             bool bSimple = false;
 
             // We're in simplified mode...
-            if (pInputRaw [0] == 0x1)
+            if (pData != nullptr && pInputRaw [0] == 0x1)
             {
               bSimple = true;
             }
 
-            if (! bSimple)
+            if (pData != nullptr && (! bSimple))
             {
               // The analog axes
               memset (
@@ -5819,7 +5830,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
                 &pData->AngularVelocityX, 0, 12);
             }
 
-            else
+            else if (pInputRaw != nullptr)
             {
               SK_HID_DualSense_GetSimpleStateDataBt *pSimpleData =
                 (SK_HID_DualSense_GetSimpleStateDataBt *)&pInputRaw [1];

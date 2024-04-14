@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -98,7 +98,7 @@ public:
       if (pDeferredObject.get () == nullptr)
       {
         pDeferredObject.reset (
-          reinterpret_cast    <T *>
+          static_cast         <T *>
             ( SK_LocalAlloc ( LMEM_FIXED |
                               LMEM_ZEROINIT, sizeof (T) )
             )
@@ -158,9 +158,8 @@ public:
             )
     {
       SK_LocalFree (
-        static_cast <HLOCAL>         (
-          pDeferredObject.release () )
-                   );
+        HLOCAL (pDeferredObject.release ())
+      );
     }
   }
 
