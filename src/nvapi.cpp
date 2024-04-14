@@ -1197,6 +1197,9 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDispl
   
   NvU32   vblank_count =     0;
   bool bHasVBlankCount = false;
+
+  static constexpr auto                                   _PollingFreqInMs = 7;
+  if (last_polled_time <= SK::ControlPanel::current_time -_PollingFreqInMs)
   {
     std::scoped_lock
       lock (SK_NvAPI_Threading->locks.Disp_GetVRRInfo,
@@ -1208,6 +1211,8 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDispl
 
   if (bHasVBlankCount)
   {
+    last_polled_time = SK::ControlPanel::current_time;
+
     head = std::min (head, (NvU32)MaxVBlankRecords-1);
 
     if (vblank_count != records [head].vblank_count)
