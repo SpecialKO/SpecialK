@@ -655,7 +655,7 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::getDisplayFromHandle (NvDisplayHandl
     SK_GetCurrentRenderBackend ();
 
   const auto active_display =
-    std::clamp (rb.active_display,0,_MAX_DISPLAYS-1);
+    std::clamp (rb.active_display,0,_MAX_DISPLAYS-1);;
 
   // Try the active display first, most of the time it's the one we're looking for.
   if (      rb.displays [active_display].nvapi.display_handle == display_handle)
@@ -3873,7 +3873,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           SK_RemoveTrailingDecimalZeros (szHSyncFreq, 16);
 
           SK_LOG0 (
-             (L" ( %20s ) :: PixelClock=%6.1f MHz, vSyncFreq=%7hs Hz, hSyncFreq=%7hs kHz, activeSize=(%lux%lu), totalSize=(%lux%lu), Standard=%hs",
+             (L" ( %20s ) :: PixelClock=%6.1f MHz, vSyncFreq=%7hs Hz, hSyncFreq=%7hs kHz, activeSize=(%lix%li), totalSize=(%lix%li), Standard=%hs",
                                     display.name,
               static_cast <double> (display.signal.timing.pixel_clock) / 1000000.0,
                                                              szVSyncFreq, szHSyncFreq,
@@ -4092,7 +4092,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         L"  | EDID Device Name |  %hs\n"
         L"  | GDI  Device Name |  %ws (HMONITOR: %06p)\n"
         L"  | Desktop Display. |  %ws%ws\n"
-        L"  | Bits Per Color.. |  %u\n"
+        L"  | Bits Per Color.. |  %d\n"
         L"  | Color Space..... |  %hs\n"
         L"  | Red Primary..... |  %f, %f\n"
         L"  | Green Primary... |  %f, %f\n"
@@ -4150,7 +4150,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
       else
         assignOutputFromHWND (game_window.hWnd);
 
-      SK_LOG0 ( ( L"%s Monitor %i: [ %ix%i | (%5i,%#5i) ] %16ws :: %s",
+      SK_LOG0 ( ( L"%s Monitor %u: [ %ix%i | (%5i,%#5i) ] %16ws :: %ws",
                     displays [i].primary ? L"*" : L" ",
                     displays [i].idx,
                     displays [i].rect.right  - displays [i].rect.left,

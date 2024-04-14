@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1497,7 +1497,7 @@ public:
        1023, "%hs (...): Failed on Line %d of %hs -- (HRESULT: %08x) -- \"%ws\"",
              __src_loc.function_name (),
                       __src_loc.line (), __src_loc.file_name (),
-                 (int)__hr, com_desc.ErrorMessage ()
+                                 __hr, com_desc.ErrorMessage ()
              );
   }
 
