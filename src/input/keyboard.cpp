@@ -282,9 +282,9 @@ SK_keybd_event (
     SK_CreateEvent (nullptr, FALSE, FALSE, L"[SK] Input Synthesis Requested");
 
   static HANDLE hKeyboardSynthesisThread =
-    SK_Thread_CreateEx ([](LPVOID/*pUser*/)->DWORD
+    SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
-      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_ABOVE_NORMAL);
+      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
 
       HANDLE hSignals [] =
         { __SK_DLL_TeardownEvent,

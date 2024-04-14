@@ -3438,10 +3438,9 @@ SK_HID_ProcessGamepadButtonBindings (void)
         );
 
         SK_keybd_event (static_cast<BYTE>(VirtualKey), bScancode, dwFlags, 0);
-      }
 
-      binding.lastFrame = binding.thisFrame;
-      binding.thisFrame = false;
+        binding.lastFrame = binding.thisFrame;
+      }
 
       SK_ReleaseAssert ( binding.frameNum == 0 ||
                          binding.frameNum <= frames_drawn );
@@ -4577,7 +4576,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                       bReleased      = true;
                       bIsInputActive = true;
                     }
-                    binding.frameNum = SK_GetFramesDrawn ();
+                    binding.thisFrame = false;
+                    binding.frameNum  = SK_GetFramesDrawn ();
                   }
                 }
               }
