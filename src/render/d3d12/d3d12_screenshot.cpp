@@ -739,6 +739,9 @@ SK_D3D12_TransitionResource (
   if (stateBefore == stateAfter)
       return;
 
+  if (pCmdList == nullptr)
+      return;
+
   D3D12_RESOURCE_BARRIER
     barrier_desc                        = {                                    };
     barrier_desc.Type                   = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -762,14 +765,17 @@ SK_D3D12_CaptureScreenshot (
   D3D12_RESOURCE_STATES  afterState
 )
 {
+  if (pScreenshot == nullptr)
+    return E_POINTER;
+
   auto pStagingCtx =
     pScreenshot->getReadbackContext ();
 
-  auto pCmdQueue =
-    pStagingCtx->pCmdQueue;
+  SK_ComPtr <ID3D12CommandQueue> pCmdQueue =
+                    pStagingCtx->pCmdQueue;
 
-  auto pSource =
-    pStagingCtx->pBackbufferSurface;
+  SK_ComPtr <ID3D12Resource> pSource =
+     pStagingCtx->pBackbufferSurface;
 
   /// TODO: This should be a passed argument, rather than stored.
   pStagingCtx->pBackbufferSurface.Release ();
@@ -1037,11 +1043,11 @@ SK_D3D12_Screenshot::getData ( UINT* const pWidth,
     MemcpySubresource ( &destData, &srcData,
            (SIZE_T)RowSizeInBytes,  NumRows, 1 );
 
-    SK_LOGi0 ( L"Screenshot Readback Complete after %li frames",
+    SK_LOGi0 ( L"Screenshot Readback Complete after %llu frames",
                 SK_GetFramesDrawn () - ulCommandIssuedOnFrame );
 
-    *pWidth  = static_cast <UINT> (framebuffer.Width);
-    *pHeight = static_cast <UINT> (framebuffer.Height);
+    *pWidth  = { framebuffer.Width  };
+    *pHeight = { framebuffer.Height };
     *ppData  =
       framebuffer.PixelBuffer.get ();
 
@@ -1795,6 +1801,12 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       {
                         UNREFERENCED_PARAMETER(y);
 
+                        if ( outPixels == nullptr ||
+                              inPixels == nullptr )
+                        {
+                          return;
+                        }
+
                         for (size_t j = 0; j < width; ++j)
                         {
                           XMVECTOR value = inPixels [j];
@@ -2155,7 +2167,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
             {                                     SK_Thread_CreateEx ([](LPVOID pUser)->DWORD {
               concurrency::concurrent_queue <SK_Screenshot::framebuffer_s *>*
                 images_to_write =
-                  (concurrency::concurrent_queue <SK_Screenshot::framebuffer_s *>*)pUser;
+                  (concurrency::concurrent_queue <SK_Screenshot::framebuffer_s *>*)(pUser);
 
               SetThreadPriority           ( SK_GetCurrentThread (), THREAD_MODE_BACKGROUND_BEGIN );
               SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL );
@@ -2678,7 +2690,8 @@ SK_D3D12_EndFrame (SK_TLS* /* pTLS = SK_TLS_Bottom ()*/)
 {
   for ( auto end_frame_fn : plugin_mgr->end_frame_fns )
   {
-    end_frame_fn ();
+    if (end_frame_fn != nullptr)
+        end_frame_fn ();
   }
 
   dwFrameTime = SK::ControlPanel::current_time;

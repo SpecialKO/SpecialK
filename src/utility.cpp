@@ -419,7 +419,7 @@ SK_CreateDirectoriesEx ( const wchar_t* wszPath, bool strip_filespec )
       *iter = L'\0';
 
       if (GetFileAttributes (wszDirPath) == INVALID_FILE_ATTRIBUTES)
-        CreateDirectoryW (wszSubDir, nullptr);
+           CreateDirectoryW (wszSubDir, nullptr);
 
       *iter = L'\\';
     }
@@ -458,6 +458,9 @@ SK_EvalEnvironmentVars (const wchar_t* wszEvaluateMe)
 bool
 SK_IsTrue (const wchar_t* string)
 {
+  if (! string)
+    return false;
+
   const wchar_t* pstr = string;
 
   if ( wcslen (pstr) == 1 &&
@@ -1075,9 +1078,11 @@ SK_GetDLLConfig (void)
   if (! dll_ini) [[unlikely]]
   {
     // Only log this one time, it may happen repeatedly
-    SK_RunOnce (
-      SK_ReleaseAssert (dll_ini != nullptr)
-    );
+    static bool          once= false;
+    if (! std::exchange (once, true))
+    {
+      SK_ReleaseAssert (dll_ini != nullptr);
+    }
   }
 
   return
@@ -1787,8 +1792,8 @@ SK_IsDLLSpecialK (const wchar_t* wszName)
   UINT cbTranslatedBytes = 0,
        cbProductBytes    = 0;
 
-  size_t dwSize = 16383;
-  uint8_t cbData [16384] = { };
+  size_t  dwSize= 4096;
+  uint8_t cbData [4097] = { };
 
   wchar_t* wszProduct        = nullptr; // Will point somewhere in cbData
 
@@ -1855,12 +1860,12 @@ SK_Assert_SameDLLVersion ( const wchar_t* wszTestFile0,
 
   for ( auto &[wszVerStr, wszTestFile] : tests )
   {
-    UINT     cbTranslatedBytes = 0,
-             cbProductBytes    = 0,
-             cbVersionBytes    = 0;
+    UINT cbTranslatedBytes = 0,
+         cbProductBytes    = 0,
+         cbVersionBytes    = 0;
 
-    uint8_t cbData [16384] = { };
-    size_t dwSize = 16383;
+    uint8_t cbData [4097] = { };
+    size_t  dwSize= 4096;
 
     wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
     wchar_t* wszFileVersion = nullptr; // "
@@ -1936,12 +1941,12 @@ std::wstring
 __stdcall
 SK_GetDLLVersionStr (const wchar_t* wszName)
 {
-  UINT     cbTranslatedBytes = 0,
-           cbProductBytes    = 0,
-           cbVersionBytes    = 0;
+  UINT cbTranslatedBytes = 0,
+       cbProductBytes    = 0,
+       cbVersionBytes    = 0;
 
-  uint8_t cbData [16384] = { };
-  size_t dwSize = 16383;
+  uint8_t cbData [4097] = { };
+  size_t  dwSize= 4096;
 
   wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
   wchar_t* wszFileVersion = nullptr; // "
@@ -2014,12 +2019,12 @@ std::wstring
 __stdcall
 SK_GetDLLVersionShort (const wchar_t* wszName)
 {
-  UINT     cbTranslatedBytes = 0,
-           cbProductBytes    = 0,
-           cbVersionBytes    = 0;
+  UINT cbTranslatedBytes = 0,
+       cbProductBytes    = 0,
+       cbVersionBytes    = 0;
 
-  uint8_t cbData [16384] = { };
-  size_t dwSize = 16383;
+  uint8_t cbData [4097] = { };
+  size_t  dwSize= 4096;
 
   wchar_t* wszFileDescrip = nullptr; // Will point somewhere in cbData
   wchar_t* wszFileVersion = nullptr; // "
@@ -2086,11 +2091,11 @@ std::wstring
 __stdcall
 SK_GetDLLProductName (const wchar_t* wszDLL)
 {
-  UINT     cbTranslatedBytes = 0,
-           cbProductBytes    = 0;
+  UINT cbTranslatedBytes = 0,
+       cbProductBytes    = 0;
 
-  uint8_t cbData [16384] = { };
-  size_t dwSize = 16383;
+  uint8_t cbData [4097] = { };
+  size_t  dwSize= 4096;
 
   wchar_t* wszProductName = nullptr; // Will point somewhere in cbData
 
@@ -2252,7 +2257,7 @@ SKX_ScanAlignedEx ( const void* pattern, size_t len,   const void* mask,
   MODULEINFO mod_info = { };
 
   GetModuleInformation (
-    GetCurrentProcess (), nullptr, &mod_info, sizeof (mod_info)
+    GetCurrentProcess (), SK_GetModuleHandle (nullptr), &mod_info, sizeof (mod_info)
   );
 
   end_addr =
@@ -2962,12 +2967,15 @@ SK_PathCombineW ( _Out_writes_ (MAX_PATH) LPWSTR pszDest,
                                 _In_opt_ LPCWSTR pszDir,
                                 _In_opt_ LPCWSTR pszFile )
 {
-  wchar_t                  wszFile [MAX_PATH + 2] = { };
-  wcsncpy_s               (wszFile, MAX_PATH, pszFile, _TRUNCATE);
-  SK_StripLeadingSlashesW (wszFile);
+  wchar_t                    wszFile [MAX_PATH + 2] = { };
+  if (pszFile != nullptr)
+  { wcsncpy_s               (wszFile, MAX_PATH, pszFile, _TRUNCATE);
+    SK_StripLeadingSlashesW (wszFile);
+  }
 
   return
-    PathCombineW          (pszDest, pszDir, wszFile);
+    PathCombineW (pszDest, pszDir, pszFile != nullptr
+                                 ? wszFile : pszFile);
 }
 
 uint64_t

@@ -1,4 +1,13 @@
-﻿24.4.13.3
+﻿24.4.13.4
+=========
+ + Fixed unintentional repeated keyboard input if a gamepad button -> key
+     binding is held for more than a couple of frames
+ + Only send KeyUp notifications for bound gamepad buttons when transitioning
+     from down to up (duh?)
+ + Give gamepad -> keyboard input synthesis a dedicated thread in order to
+     avoid synchronous OS input queue work on render/game-critical threads.
+
+24.4.13.3
 =========
  + Added sanity checks for CPU/GPU/Disk update intervals in case INI files
      have acquired values of 0.0; Sane Range = [0.125,2.5] (in seconds).

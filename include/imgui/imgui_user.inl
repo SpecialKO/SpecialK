@@ -2278,106 +2278,106 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
             if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_A) &&
               (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_A)))
             {
-              BYTE bScancode =
+              const BYTE bScancode =
                 (BYTE)MapVirtualKey (VK_MEDIA_PLAY_PAUSE, 0);
 
-              DWORD dwFlags =
+              const DWORD dwFlags =
                 ( bScancode & 0xE0 ) == 0   ?
                   static_cast <DWORD> (0x0) :
                   static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
-              keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags,                   0);
-              keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+              SK_keybd_event (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags,                   0);
+              SK_keybd_event (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
             }
 
             if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) &&
               (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)))
             {
-              BYTE bScancode =
-               (BYTE)MapVirtualKey (VK_LEFT, 0);
+              const BYTE bScancode =
+                (BYTE)MapVirtualKey (VK_LEFT, 0);
 
-              DWORD dwFlags =
+              const DWORD dwFlags =
                 ( bScancode & 0xE0 ) == 0   ?
                   static_cast <DWORD> (0x0) :
                   static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
-              keybd_event_Original (VK_LEFT, bScancode, dwFlags,                   0);
-              keybd_event_Original (VK_LEFT, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+              SK_keybd_event (VK_LEFT, bScancode, dwFlags,                   0);
+              SK_keybd_event (VK_LEFT, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
             }
 
             if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) &&
               (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)))
             {
-              BYTE bScancode =
-               (BYTE)MapVirtualKey (VK_RIGHT, 0);
+              const BYTE bScancode =
+                (BYTE)MapVirtualKey (VK_RIGHT, 0);
 
-              DWORD dwFlags =
+              const DWORD dwFlags =
                 ( bScancode & 0xE0 ) == 0   ?
                   static_cast <DWORD> (0x0) :
                   static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
-              keybd_event_Original (VK_RIGHT, bScancode, dwFlags,                   0);
-              keybd_event_Original (VK_RIGHT, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+              SK_keybd_event (VK_RIGHT, bScancode, dwFlags,                   0);
+              SK_keybd_event (VK_RIGHT, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
             }
 
             if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN) &&
               (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)))
             {
-              BYTE bScancode =
-               (BYTE)MapVirtualKey (VK_DOWN, 0);
+              const BYTE bScancode =
+                (BYTE)MapVirtualKey (VK_DOWN, 0);
 
-              DWORD dwFlags =
+              const DWORD dwFlags =
                 ( bScancode & 0xE0 ) == 0   ?
                   static_cast <DWORD> (0x0) :
                   static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
-              keybd_event_Original (VK_DOWN, bScancode, dwFlags,                   0);
-              keybd_event_Original (VK_DOWN, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+              SK_keybd_event (VK_DOWN, bScancode, dwFlags,                   0);
+              SK_keybd_event (VK_DOWN, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
             }
 
             if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP) &&
               (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)))
             {
-              BYTE bScancode =
-               (BYTE)MapVirtualKey (VK_UP, 0);
+              const BYTE bScancode =
+                (BYTE)MapVirtualKey (VK_UP, 0);
 
-              DWORD dwFlags =
+              const DWORD dwFlags =
                 ( bScancode & 0xE0 ) == 0   ?
                   static_cast <DWORD> (0x0) :
                   static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
-              keybd_event_Original (VK_UP, bScancode, dwFlags,                   0);
-              keybd_event_Original (VK_UP, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+              SK_keybd_event (VK_UP, bScancode, dwFlags,                   0);
+              SK_keybd_event (VK_UP, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
             }
 
             if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) &&
               (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)))
             {
-              BYTE bScancode =
-               (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
+              const BYTE bScancode =
+                (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
 
-              DWORD dwFlags =
+              const DWORD dwFlags =
                 ( bScancode & 0xE0 ) == 0   ?
                   static_cast <DWORD> (0x0) :
                   static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
-              keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags,                   0);
-              keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+              SK_keybd_event (VK_MEDIA_PREV_TRACK, bScancode, dwFlags,                   0);
+              SK_keybd_event (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
             }
 
             if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) &&
               (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER)))
             {
-              BYTE bScancode =
-               (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
+              const BYTE bScancode =
+                (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
 
-              DWORD dwFlags =
+              const DWORD dwFlags =
                 ( bScancode & 0xE0 ) == 0   ?
                   static_cast <DWORD> (0x0) :
                   static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
-              keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags,                   0);
-              keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+              SK_keybd_event (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags,                   0);
+              SK_keybd_event (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
             }
           }
 #endif
@@ -2409,16 +2409,16 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
               (     state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB) &&
             (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB)))
           {
-            BYTE bScancode =
+            const BYTE bScancode =
               (BYTE)MapVirtualKey (VK_MEDIA_PLAY_PAUSE, 0);
 
-            DWORD dwFlags =
+            const DWORD dwFlags =
               ( bScancode & 0xE0 ) == 0   ?
                 static_cast <DWORD> (0x0) :
                 static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
-            keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags,                   0);
-            keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+            SK_keybd_event (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags,                   0);
+            SK_keybd_event (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
 
             bChordActivated = true;
           }
@@ -2427,16 +2427,16 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
               (     state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER) &&
             (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)))
           {
-            BYTE bScancode =
-             (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
+            const BYTE bScancode =
+              (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
 
-            DWORD dwFlags =
+            const DWORD dwFlags =
               ( bScancode & 0xE0 ) == 0   ?
                 static_cast <DWORD> (0x0) :
                 static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
-            keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags,                   0);
-            keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+            SK_keybd_event (VK_MEDIA_PREV_TRACK, bScancode, dwFlags,                   0);
+            SK_keybd_event (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
 
             bChordActivated = true;
           }
@@ -2445,16 +2445,16 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
               (     state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) &&
             (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER)))
           {
-            BYTE bScancode =
-             (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
+            const BYTE bScancode =
+              (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
 
-            DWORD dwFlags =
+            const DWORD dwFlags =
               ( bScancode & 0xE0 ) == 0   ?
                 static_cast <DWORD> (0x0) :
                 static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
-            keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags,                   0);
-            keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+            SK_keybd_event (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags,                   0);
+            SK_keybd_event (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
 
             bChordActivated = true;
           }

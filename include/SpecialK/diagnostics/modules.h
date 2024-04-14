@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -284,7 +284,7 @@ public:
   bool
     isValid (HMODULE const hModTest) const noexcept
   {
-    return ( hModTest > (HMODULE)nullptr //&&
+    return ( hModTest > HMODULE (nullptr) //&&
                        );// hModTest != INVALID_MODULE );
   }
 

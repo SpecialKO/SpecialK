@@ -293,6 +293,7 @@ public:
           NvU32           head                 =   0;
           ULONG64         last_frame_sampled   =   0;
           float           last_average         =0.0f;
+          NvU32           last_polled_time     =   0;
           void  addRecord   (NvDisplayHandle nv_disp, NvU32 tNow) noexcept;
           float getVBlankHz (                         NvU32 tNow) noexcept;
       } vblank_counter;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -514,16 +514,16 @@ SK_ImGui_VolumeManager (void)
         if (pMusic->BIsPlaying ()) pMusic->PlayPrevious ();
       }
 
-      BYTE bScancode =
-       (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
+      const BYTE bScancode =
+        (BYTE)MapVirtualKey (VK_MEDIA_PREV_TRACK, 0);
 
-      DWORD dwFlags =
+      const DWORD dwFlags =
         ( bScancode & 0xE0 ) == 0   ?
           static_cast <DWORD> (0x0) :
           static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
-      keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags,                   0);
-      keybd_event_Original (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+      SK_keybd_event (VK_MEDIA_PREV_TRACK, bScancode, dwFlags,                   0);
+      SK_keybd_event (VK_MEDIA_PREV_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
     }
 
     ImGui::SameLine ();
@@ -539,16 +539,16 @@ SK_ImGui_VolumeManager (void)
         else                       pMusic->Play  ();
       }
 
-      BYTE bScancode =
-       (BYTE)MapVirtualKey (VK_MEDIA_PLAY_PAUSE, 0);
+      const BYTE bScancode =
+        (BYTE)MapVirtualKey (VK_MEDIA_PLAY_PAUSE, 0);
 
-      DWORD dwFlags =
+      const DWORD dwFlags =
         ( bScancode & 0xE0 ) == 0   ?
           static_cast <DWORD> (0x0) :
           static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
-      keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags,                   0);
-      keybd_event_Original (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+      SK_keybd_event (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags,                   0);
+      SK_keybd_event (VK_MEDIA_PLAY_PAUSE, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
     }
 
     ImGui::SameLine ();
@@ -563,16 +563,16 @@ SK_ImGui_VolumeManager (void)
         if (pMusic->BIsPlaying ()) pMusic->PlayNext ();
       }
 
-      BYTE bScancode =
-       (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
+      const BYTE bScancode =
+        (BYTE)MapVirtualKey (VK_MEDIA_NEXT_TRACK, 0);
 
-      DWORD dwFlags =
+      const DWORD dwFlags =
         ( bScancode & 0xE0 ) == 0   ?
           static_cast <DWORD> (0x0) :
           static_cast <DWORD> (KEYEVENTF_EXTENDEDKEY);
 
-      keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags,                   0);
-      keybd_event_Original (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
+      SK_keybd_event (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags,                   0);
+      SK_keybd_event (VK_MEDIA_NEXT_TRACK, bScancode, dwFlags | KEYEVENTF_KEYUP, 0);
     }
     ImGui::PopItemWidth ();
   }
