@@ -1,4 +1,11 @@
-﻿24.4.13.4
+﻿24.4.14
+=======
+ + Fixed incorrect battery level for DualShock 4 Bluetooth controllers
+ + Added support for binding DualShock 4 trackpad click to keyboard input
+ + Correctly handle DualSense (Edge) / DualShock 4 macro binds when multiple
+     gamepads are connected or if the same gamepad is connected via USB and Bt
+
+24.4.13.4
 =========
  + Fixed unintentional repeated keyboard input if a gamepad button -> key
      binding is held for more than a couple of frames

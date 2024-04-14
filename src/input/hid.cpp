@@ -3313,14 +3313,14 @@ struct SK_HID_DualShock4_GetStateData : SK_HID_DualShock4_BasicGetStateData {
 #pragma pack(pop)
 
 #pragma pack(push,1)
-struct USBGetStateData : SK_HID_DualShock4_GetStateData {
+struct SK_HID_DualShock4_GetStateDataUSB : SK_HID_DualShock4_GetStateData {
   TouchData TouchData [3];
   uint8_t   Pad       [3];
 };
 #pragma pack(pop)
 
 #pragma pack(push,1)
-struct BTGetStateData : SK_HID_DualShock4_GetStateData {
+struct SK_HID_DualShock4_GetStateDataBt : SK_HID_DualShock4_GetStateData {
   TouchData TouchData [4];
   uint8_t Pad         [6];
 };
@@ -3840,21 +3840,50 @@ SK_HID_PlayStationDevice::request_input_report (void)
               // Report 0x1, USB Mode
               if (dwBytesTransferred == 64)
               {
-                SK_HID_DualSense_GetStateData* pData = 
+                SK_HID_DualSense_GetStateData* pDualSense = 
                   (SK_HID_DualSense_GetStateData *)&(pDevice->input_report.data ()[1]);
 
-                pDevice->battery.state =
-                  (SK_HID_PlayStationDevice::PowerState)((((BYTE *)pData)[52] & 0xF0) >> 4);
+                auto pDualShock4 =
+                  (SK_HID_DualShock4_GetStateData *)pDualSense;
 
-              const float batteryPercent =
-               std::clamp (
-                ( pDevice->battery.state == Charging    ? static_cast <float> (std::min (11, ((BYTE *)pData)[52] & 0xF)) - 1 :
-                  pDevice->battery.state == Discharging ? static_cast <float> (std::min (9,  ((BYTE *)pData)[52] & 0xF)) + 1 :
-                                                                                                    0.0f) * 10.0f +
-                ( pDevice->battery.state == Charging    ? 0.0f :
-                  pDevice->battery.state == Discharging ? 5.0f :
-                                                          0.0f ), 0.0f, 100.0f
-               );
+                float batteryPercent = 0.0f;
+
+                if (! pDevice->bDualShock4)
+                {
+                  pDevice->battery.state =
+                    (SK_HID_PlayStationDevice::PowerState)((((BYTE *)pDualSense)[52] & 0xF0) >> 4);
+
+                  batteryPercent =
+                    std::clamp (
+                      ( pDevice->battery.state == Charging    ? static_cast <float> (std::min (11, ((BYTE *)pDualSense)[52] & 0xF)) - 1 :
+                        pDevice->battery.state == Discharging ? static_cast <float> (std::min (10, ((BYTE *)pDualSense)[52] & 0xF))     :
+                                                                                                          0.0f) * 10.0f +
+                      ( pDevice->battery.state == Charging    ? 0.0f :
+                        pDevice->battery.state == Discharging ? 5.0f :
+                                                                0.0f ), 0.0f, 100.0f );
+                }
+
+                else
+                {
+                  pDevice->battery.state =
+                    pDualShock4->PluggedPowerCable ?
+                                          Charging :
+                                       Discharging;
+
+                  batteryPercent =
+                    std::clamp (
+                      ( pDevice->battery.state == Charging    ? static_cast <float> (std::min (11, (pDualShock4->PowerPercent & 0xF))) - 1 :
+                        pDevice->battery.state == Discharging ? static_cast <float> (std::min (10, (pDualShock4->PowerPercent & 0xF)))     :
+                                                                                                          0.0f) * 10.0f +
+                      ( pDevice->battery.state == Charging    ? 0.0f :
+                        pDevice->battery.state == Discharging ? 5.0f :
+                                                                0.0f ), 0.0f, 100.0f );
+
+                  // Implicitly assign Charging Complete status if battery is full and plugged-in
+                  if ( batteryPercent         >= 100.0f &&
+                       pDevice->battery.state == Charging )
+                       pDevice->battery.state  = Complete;
+                }
 
                 if (pDevice->battery.state == Discharging || 
                     pDevice->battery.state == Charging    ||
@@ -3868,17 +3897,32 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
                 else
                 {
+                  SK_ReleaseAssert (!"Unknown PlayStation Charging Status");
                   pDevice->battery.percentage = 100.0f;
                 }
 
                 if (pDevice->buttons.size () < 19)
                     pDevice->buttons.resize (  19);
 
-                pDevice->buttons [13].state = pData->ButtonPad           != 0;
-                pDevice->buttons [15].state = pData->ButtonLeftFunction  != 0;
-                pDevice->buttons [16].state = pData->ButtonRightFunction != 0;
-                pDevice->buttons [17].state = pData->ButtonLeftPaddle    != 0;
-                pDevice->buttons [18].state = pData->ButtonRightPaddle   != 0;
+                if (pDevice->bDualSense)
+                {
+                  pDevice->buttons [13].state = pDualSense->ButtonPad           != 0;
+                  pDevice->buttons [15].state = pDualSense->ButtonLeftFunction  != 0;
+                  pDevice->buttons [16].state = pDualSense->ButtonRightFunction != 0;
+                  pDevice->buttons [17].state = pDualSense->ButtonLeftPaddle    != 0;
+                  pDevice->buttons [18].state = pDualSense->ButtonRightPaddle   != 0;
+                }
+
+                else
+                {
+                  pDevice->buttons [13].state = pDualShock4->ButtonPad != 0;
+                  // These buttons do not exist...
+                  pDevice->buttons [14].state = false;
+                  pDevice->buttons [15].state = false;
+                  pDevice->buttons [16].state = false;
+                  pDevice->buttons [17].state = false;
+                  pDevice->buttons [18].state = false;
+                }
               }
             }
 
@@ -4069,7 +4113,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
               const float batteryPercent =
                std::clamp (
                 ( pDevice->battery.state == Charging    ? static_cast <float> (std::min (11, ((BYTE *)pData)[52] & 0xF)) - 1 :
-                  pDevice->battery.state == Discharging ? static_cast <float> (std::min (9,  ((BYTE *)pData)[52] & 0xF)) + 1 :
+                  pDevice->battery.state == Discharging ? static_cast <float> (std::min (10, ((BYTE *)pData)[52] & 0xF))     :
                                                                                                     0.0f) * 10.0f +
                 ( pDevice->battery.state == Charging    ? 0.0f :
                   pDevice->battery.state == Discharging ? 5.0f :
@@ -4176,9 +4220,9 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
             else if (pDevice->bDualShock4)
             {
-                pDevice->bBluetooth = true;
-                      bHasBluetooth = true;
-                    
+              pDevice->bBluetooth = true;
+                    bHasBluetooth = true;
+
               SK_RunOnce (SK_Bluetooth_SetupPowerOff ());
 
               if (! config.input.gamepad.bt_input_only)
@@ -4204,7 +4248,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               pDevice->xinput.report.Gamepad.sThumbRY =
                 static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (pData->RightStickY)) / 128.0);
-              
+
               pDevice->xinput.report.Gamepad.bLeftTrigger =
                 static_cast <BYTE> (static_cast <BYTE> (pData->TriggerLeft));
 
@@ -4258,19 +4302,23 @@ SK_HID_PlayStationDevice::request_input_report (void)
               //    pDevice->reset_rgb = false;
 
               pDevice->battery.state =
-                (SK_HID_PlayStationDevice::PowerState)pData->PluggedPowerCable ?
-                                SK_HID_PlayStationDevice::PowerState::Charging :
-                             SK_HID_PlayStationDevice::PowerState::Discharging;
+                pData->PluggedPowerCable ?
+                                Charging :
+                             Discharging;
 
-              const float batteryPercent =
-               std::clamp (
-                ( pDevice->battery.state == Charging    ? static_cast <float> (std::min (11, ((BYTE *)pData)[52] & 0xF)) - 1 :
-                  pDevice->battery.state == Discharging ? static_cast <float> (std::min (9,  ((BYTE *)pData)[52] & 0xF)) + 1 :
-                                                                                                    0.0f) * 10.0f +
-                ( pDevice->battery.state == Charging    ? 0.0f :
-                  pDevice->battery.state == Discharging ? 5.0f :
-                                                          0.0f ), 0.0f, 100.0f
-               );
+              float batteryPercent =
+                std::clamp (
+                  ( pDevice->battery.state == Charging    ? static_cast <float> (std::min (11, (pData->PowerPercent & 0xF))) - 1 :
+                    pDevice->battery.state == Discharging ? static_cast <float> (std::min (10, (pData->PowerPercent & 0xF)))     :
+                                                                                                      0.0f) * 10.0f +
+                  ( pDevice->battery.state == Charging    ? 0.0f :
+                    pDevice->battery.state == Discharging ? 5.0f :
+                                                            0.0f ), 0.0f, 100.0f );
+
+              // Implicitly assign Charging Complete status if battery is full and plugged-in
+              if ( batteryPercent         >= 100.0f &&
+                   pDevice->battery.state == Charging )
+                   pDevice->battery.state  = Complete;
 
               if (pDevice->battery.state == Discharging || 
                   pDevice->battery.state == Charging    ||
@@ -4284,6 +4332,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               else
               {
+                SK_ReleaseAssert (!"Unknown PlayStation Charging Status");
                 pDevice->battery.percentage = 100.0f;
               }
 
@@ -4531,10 +4580,19 @@ SK_HID_PlayStationDevice::request_input_report (void)
               bIsInputActive = true;
             }
 
+            const bool bHasNewExtraButtonData =
+              (pDevice->buttons [13].state != pDevice->buttons [13].last_state) ||
+              (pDevice->buttons [14].state != pDevice->buttons [14].last_state) ||
+              (pDevice->buttons [15].state != pDevice->buttons [15].last_state) ||
+              (pDevice->buttons [16].state != pDevice->buttons [16].last_state) ||
+              (pDevice->buttons [17].state != pDevice->buttons [17].last_state) ||
+              (pDevice->buttons [18].state != pDevice->buttons [18].last_state);
+
+
             // Handle some special buttons that DualSense controllers have that don't map to XInput
-            else if (pDevice->bDualSense)
+            if (bHasNewExtraButtonData)
             {
-              if (pDevice->buttons [14].state && (! pDevice->buttons [14].last_state)) bIsInputActive = true;
+              bIsInputActive = true;
 
               SK_RunOnce (
               {
