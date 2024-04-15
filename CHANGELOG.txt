@@ -1,4 +1,11 @@
-﻿24.4.15
+﻿24.4.15.1
+=========
+ + Removed option to force DLSS Alpha Upscaling -On- in DLSS 3.7.0, only
+     forcing it Off or not overriding it at all are valid options.
+ + Added options to use UNORM rather than FLOAT Render Targets for HDR remastering
+     >> Right-click the HDR widget
+
+24.4.15
 =======
  + Removed ImGui nav focus on plot widgets (i.e. Framepacing Graph) when using
      keyboard or gamepad in the control panel
