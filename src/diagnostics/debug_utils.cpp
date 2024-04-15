@@ -4865,7 +4865,7 @@ SK_Win32_FormatMessageForException (
     if (lpMsgBuf != nullptr)
     {
       va_list      args = nullptr;
-      va_start    (args,           lpMsgFormat);
+      va_start    (args,              nExceptionCode);
       vswprintf_s (lpMsgBuf, 4096, lpMsgFormat, args);
       va_end      (args);
 

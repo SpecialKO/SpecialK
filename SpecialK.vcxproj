@@ -448,7 +448,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <Profile>false</Profile>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <AdditionalOptions>/GUARD:NO /IGNORE:4099,4286 %(AdditionalOptions)</AdditionalOptions>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
@@ -458,7 +458,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <CETCompat>false</CETCompat>
       <SectionAlignment>
       </SectionAlignment>
-      <ShowProgress>LinkVerboseSAFESEH</ShowProgress>
+      <ShowProgress>NotSet</ShowProgress>
       <StackReserveSize>0x200000</StackReserveSize>
       <StackCommitSize>0x4000</StackCommitSize>
       <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>
@@ -497,6 +497,9 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <Xdcmake>
       <DocumentLibraryDependencies>false</DocumentLibraryDependencies>
     </Xdcmake>
+    <ResourceCompile>
+      <NullTerminateStrings>true</NullTerminateStrings>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -573,7 +576,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <Profile>false</Profile>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <DataExecutionPrevention>true</DataExecutionPrevention>
       <AdditionalOptions>/GUARD:NO /IGNORE:4099,4286 %(AdditionalOptions)</AdditionalOptions>
       <LinkErrorReporting>NoErrorReport</LinkErrorReporting>
@@ -583,7 +586,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <CETCompat>false</CETCompat>
       <SectionAlignment>
       </SectionAlignment>
-      <ShowProgress>LinkVerboseSAFESEH</ShowProgress>
+      <ShowProgress>NotSet</ShowProgress>
       <StackReserveSize>0x200000</StackReserveSize>
       <StackCommitSize>0x4000</StackCommitSize>
       <CreateHotPatchableImage>ItaniumImage</CreateHotPatchableImage>

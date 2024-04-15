@@ -289,3 +289,5 @@ paket-files/
 unity_*.cpp
 opengl_stateblock.cpp
 /StructLayoutSettings.json
+/resource/textures/Gamepads/PS5 Button Icons and Controls/Buttons Full Solid/Black/128w/Circle.png
+*.png

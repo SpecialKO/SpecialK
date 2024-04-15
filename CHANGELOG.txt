@@ -1,4 +1,12 @@
-﻿24.4.14
+﻿24.4.15
+=======
+ + Removed ImGui nav focus on plot widgets (i.e. Framepacing Graph) when using
+     keyboard or gamepad in the control panel
+ + Condensed Frametime calculation selection in advanced Framerate Limiter view
+ + Blacklist openxr_load.dll while SK is injected into games, because it will
+     deadlock when the game exits. It's optional and for VR, so not a big deal.
+
+24.4.14
 =======
  + Fixed incorrect battery level for DualShock 4 Bluetooth controllers
  + Added support for binding DualShock 4 trackpad click to keyboard input
