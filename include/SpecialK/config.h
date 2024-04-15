@@ -923,7 +923,7 @@ struct sk_config_t
               dlssg_dll           =    L"";
       int     forced_preset       =     -1;
       bool    show_active_features=   true;
-      int     forced_autoexposure =     -1;
+      int     forced_auto_exposure=     -1;
       bool    disable_ota_updates =  false;
       int     forced_alpha_upscale=     -1;
       struct {

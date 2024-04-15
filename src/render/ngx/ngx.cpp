@@ -158,6 +158,30 @@ NVSDK_NGX_Parameter_SetI_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
         }
       }
     }
+
+    if (config.nvidia.dlss.forced_auto_exposure != -1)
+    {
+      if ((InValue & NVSDK_NGX_DLSS_Feature_Flags_AutoExposure) ==
+                     NVSDK_NGX_DLSS_Feature_Flags_AutoExposure)
+      {
+        if (config.nvidia.dlss.forced_auto_exposure == 0)
+        {
+          SK_LOGi0 (L"Forcing DLSS Auto Exposure OFF");
+
+          InValue &= ~NVSDK_NGX_DLSS_Feature_Flags_AutoExposure;
+        }
+      }
+
+      else
+      {
+        if (config.nvidia.dlss.forced_auto_exposure == 1)
+        {
+          SK_LOGi0 (L"Forcing DLSS Auto Exposure ON");
+
+          InValue |= NVSDK_NGX_DLSS_Feature_Flags_AutoExposure;
+        }
+      }
+    }
   }
 
   if (! _stricmp (InName, NVSDK_NGX_Parameter_PerfQualityValue))
@@ -935,6 +959,10 @@ SK_NGX_DLSS_ControlPanel (void)
         static auto dlssg_version =
           SK_NGX_GetDLSSGVersion ();
 
+        int                                               dlss_creation_flags = 0x0;
+        params->Get (
+          NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags, &dlss_creation_flags);
+
         // Removed in 2.5.1
         static const bool bHasSharpening =
           SK_DLSS_Context::dlss_s::hasSharpening ();
@@ -942,11 +970,19 @@ SK_NGX_DLSS_ControlPanel (void)
         static const bool bHasDLAAQualityLevel =
           SK_DLSS_Context::dlss_s::hasDLAAQualityLevel ();
 
-        static const bool bHasAlphaUpscaling =
-          SK_DLSS_Context::dlss_s::hasAlphaUpscaling ();
-
         static const bool bHasPresetE =
           SK_DLSS_Context::dlss_s::hasPresetE ();
+
+        static const bool bHasAlphaUpscaling =
+          SK_DLSS_Context::dlss_s::hasAlphaUpscaling () &&
+          ( config.nvidia.dlss.forced_alpha_upscale != -1 ||
+              (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling) ==
+                                     NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling );
+
+        static const bool bHasAutoExposure =
+          config.nvidia.dlss.forced_auto_exposure != -1 ||
+            (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_AutoExposure) ==
+                                   NVSDK_NGX_DLSS_Feature_Flags_AutoExposure;
 
         static bool restart_required = false;
   
@@ -994,9 +1030,22 @@ SK_NGX_DLSS_ControlPanel (void)
           TextUnformatted ("Internal Resolution: ");
         ImGui::
           TextUnformatted ("Upscaled Resolution: ");
+        if (bHasAutoExposure)
+        {
+          ImGui::Spacing  ();
+          ImGui::
+          TextUnformatted ("Auto Exposure:       ");
+        }
+        if (bHasAlphaUpscaling)
+        {
+          ImGui::Spacing  ();
+          ImGui::
+          TextUnformatted ("Alpha Upscaling:     ");
+        }
         ImGui::Spacing ();
         ImGui::
           TextUnformatted ("DLSS Preset:         ");
+        ImGui::Spacing ();
         ImGui::Spacing ();
         ImGui::
           TextUnformatted ("DLSS Perf/Quality:   ");
@@ -1012,17 +1061,100 @@ SK_NGX_DLSS_ControlPanel (void)
             ImGui::OpenPopup ("DLSS_PerfQuality_Popup");
           }
         }
-        if (bHasAlphaUpscaling)
-        {
-          ImGui::Spacing  ();
-          ImGui::
-          TextUnformatted ("Alpha Upscaling:     ");
-        }
         ImGui::EndGroup   ();
         ImGui::SameLine   ();
         ImGui::BeginGroup ();
         ImGui::Text       ("%dx%d",     width,     height);
         ImGui::Text       ("%dx%d", out_width, out_height);
+
+        static const char* szPerfQuality = "DLAA";
+        static const char* szPreset      = "DLSS Default";
+
+        const float fItemSpacingX =
+          std::max ({
+               ImGui::CalcTextSize (szPerfQuality).x,
+               ImGui::CalcTextSize (szPreset).x,
+               ImGui::CalcTextSize ("Off").x
+          }) + ImGui::GetStyle ().ItemSpacing.x;
+
+        const float fComboBoxWidth =
+          ImGui::CalcTextSize ("Game Default\t  ").x + ImGui::GetStyle ().FramePadding.x * 2;
+
+        if (bHasAutoExposure)
+        {
+          int force_auto_exposure =
+            config.nvidia.dlss.forced_auto_exposure + 1;
+  
+          ImVec2 vCursor = ImGui::GetCursorPos ();
+
+          ImGui::Spacing ();
+
+          if (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_AutoExposure)
+            ImGui::TextUnformatted ("On");
+          else
+            ImGui::TextUnformatted ("Off");
+
+          ImGui::SetCursorPos (
+            ImVec2 (vCursor.x + fItemSpacingX, vCursor.y)
+          );
+
+          ImGui::SetNextItemWidth (
+            fComboBoxWidth
+          );
+  
+          if ( ImGui::Combo (
+                 "###Auto_Exposure",
+             &force_auto_exposure, "Game Default\0"
+                                   "Force Off\0"
+                                   "Force On\0\0") )
+          {
+            config.nvidia.dlss.forced_auto_exposure =
+              force_auto_exposure - 1;
+
+            restart_required = true;
+
+            config.utility.save_async ();
+          }
+        }
+
+        if (bHasAlphaUpscaling)
+        {
+          int force_alpha_upscaling =
+            config.nvidia.dlss.forced_alpha_upscale + 1;
+
+          ImVec2 vCursor = ImGui::GetCursorPos ();
+
+          if (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling)
+            ImGui::TextUnformatted ("On");
+          else
+            ImGui::TextUnformatted ("Off");
+
+          ImGui::SetCursorPos (
+            ImVec2 (vCursor.x + fItemSpacingX, vCursor.y)
+          );
+
+          ImGui::SetNextItemWidth (
+            fComboBoxWidth
+          );
+  
+          if ( ImGui::Combo (
+                 "###Alpha_Upscaling",
+             &force_alpha_upscaling, "Game Default\0"
+                                     "Force Off\0\0"/*
+                                     "Force On\0\0" */) )
+          { // Forcing on is meaningless, game needs special support
+            config.nvidia.dlss.forced_alpha_upscale =
+              force_alpha_upscaling - 1;
+            restart_required = true;
+
+            config.utility.save_async ();
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Requires DLSS 3.7.0+ and enabling may degrade application performance.");
+          }
+        }
 
         unsigned int preset;
 
@@ -1043,8 +1175,6 @@ SK_NGX_DLSS_ControlPanel (void)
 
         NVSDK_NGX_Parameter_GetUI_Original (params, szPresetHint, &preset);
 
-        const char *szPreset = "DLSS Default";
-
         switch (preset)
         {
           case NVSDK_NGX_DLSS_Hint_Render_Preset_Default: szPreset = "Default"; break;
@@ -1060,16 +1190,19 @@ SK_NGX_DLSS_ControlPanel (void)
         }
 
         ImGui::BeginGroup      ();
+        ImVec2 vCursor = ImGui::GetCursorPos ();
         ImGui::Spacing         ();
         ImGui::TextUnformatted (szPreset);
         ImGui::EndGroup        ();
 
-        ImGui::SameLine ();
+        ImGui::SetCursorPos (
+          ImVec2 (vCursor.x + fItemSpacingX, vCursor.y)
+        );
 
         int preset_override = config.nvidia.dlss.forced_preset + 1;
 
         ImGui::SetNextItemWidth (
-          ImGui::CalcTextSize ("DLSS Default\t  ").x + ImGui::GetStyle ().FramePadding.x * 2
+          fComboBoxWidth
         );
 
         if ( ImGui::Combo ( "",
@@ -1179,7 +1312,9 @@ SK_NGX_DLSS_ControlPanel (void)
         }
   
         ImGui::BeginGroup ();
+        vCursor = ImGui::GetCursorPos ();
         ImGui::Spacing    ();
+
         if (config.nvidia.dlss.force_dlaa && (! SK_DLSS_Context::dlss_s::hasDLAAQualityLevel ()))
         {
           ImGui::TextColored (ImVec4 (.55f, .55f, 1.f, 1.f), ICON_FA_INFO);
@@ -1189,28 +1324,33 @@ SK_NGX_DLSS_ControlPanel (void)
         switch (perf_quality)
         {
           case NVSDK_NGX_PerfQuality_Value_MaxPerf:
-            ImGui::TextUnformatted ("Performance");
+            szPerfQuality = "Performance";
             break;
           case NVSDK_NGX_PerfQuality_Value_Balanced:
-            ImGui::TextUnformatted ("Balanced");
+            szPerfQuality = "Balanced";
             break;
           case NVSDK_NGX_PerfQuality_Value_MaxQuality:
-            ImGui::TextUnformatted ("Quality");
+            szPerfQuality = "Quality";
             break;
           case NVSDK_NGX_PerfQuality_Value_UltraPerformance:
-            ImGui::TextUnformatted ("Ultra Performance");
+            szPerfQuality = "Ultra Performance";
             break;
           case NVSDK_NGX_PerfQuality_Value_UltraQuality:
-            ImGui::TextUnformatted ("Ultra Quality");
+            szPerfQuality = "Ultra Quality";
             break;
           case NVSDK_NGX_PerfQuality_Value_DLAA:
-            ImGui::TextUnformatted ("DLAA");
+            szPerfQuality = "DLAA";
             break;
           default:
-            ImGui::TextUnformatted ("Unknown Performance/Quality Mode");
+            szPerfQuality = "Unknown Performance/Quality Mode";
             break;
         }
+        ImGui::TextUnformatted (szPerfQuality);
         ImGui::EndGroup ();
+
+        ImGui::SetCursorPos (
+          ImVec2 (vCursor.x + fItemSpacingX, vCursor.y)
+        );
 
         if (config.nvidia.dlss.force_dlaa && (! SK_DLSS_Context::dlss_s::hasDLAAQualityLevel ()))
         {
@@ -1329,8 +1469,6 @@ SK_NGX_DLSS_ControlPanel (void)
           }
         }
 
-        ImGui::SameLine ();
-
         if (dlss_version.major > 1)
         {
           if (ImGui::Checkbox ("Force DLAA", &config.nvidia.dlss.force_dlaa))
@@ -1348,47 +1486,6 @@ SK_NGX_DLSS_ControlPanel (void)
               ImGui::SetTooltip ("For best results, set game's DLSS mode = Auto/Ultra Performance if it has them.");
             else
               ImGui::SetTooltip ("For best results, upgrade DLSS DLL to 3.1.13 or newer.");
-          }
-        }
-
-        if (bHasAlphaUpscaling)
-        {
-          ImGui::Spacing ();
-
-          int force_alpha_upscaling =
-            config.nvidia.dlss.forced_alpha_upscale + 1;
-
-          int                                               dlss_creation_flags = 0x0;
-          params->Get (
-            NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags, &dlss_creation_flags);
-  
-          if (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_AlphaUpscaling)
-            ImGui::TextUnformatted ("On");
-          else
-            ImGui::TextUnformatted ("Off");
-
-          ImGui::SameLine ();
-
-          ImGui::SetNextItemWidth (
-            ImGui::CalcTextSize ("Game Default\t  ").x + ImGui::GetStyle ().FramePadding.x * 2
-          );
-  
-          if ( ImGui::Combo (
-                 "###Alpha_Upscaling",
-             &force_alpha_upscaling, "Game Default\0"
-                                     "Force Off\0\0"/*
-                                     "Force On\0\0" */) )
-          { // Forcing on is meaningless, game needs special support
-            config.nvidia.dlss.forced_alpha_upscale =
-              force_alpha_upscaling - 1;
-            restart_required = true;
-
-            config.utility.save_async ();
-          }
-
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::SetTooltip ("Requires DLSS 3.7.0+ and enabling may degrade application performance.");
           }
         }
 
@@ -1414,10 +1511,6 @@ SK_NGX_DLSS_ControlPanel (void)
 
             config.utility.save_async ();
           }
-  
-          int                                               dlss_creation_flags = 0x0;
-          params->Get (
-            NVSDK_NGX_Parameter_DLSS_Feature_Create_Flags, &dlss_creation_flags);
   
           if (use_sharpening == 0 && (dlss_creation_flags & NVSDK_NGX_DLSS_Feature_Flags_DoSharpening))
             ImGui::Text ("Sharpness: %4.2f", fSharpness);

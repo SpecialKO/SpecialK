@@ -1,4 +1,10 @@
-﻿24.4.15.1
+﻿24.4.15.2
+=========
+ + Added Auto Exposure to DLSS control panel
+ + Hide Auto Exposure and Alpha Upscaling overrides unless the game uses them,
+     or they were already forced on/off in a game's INI
+
+24.4.15.1
 =========
  + Removed option to force DLSS Alpha Upscaling -On- in DLSS 3.7.0, only
      forcing it Off or not overriding it at all are valid options.

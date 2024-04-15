@@ -5234,7 +5234,6 @@ SK_ImGui_ControlPanel (void)
         }
 
         float fps_slider_width    = 0.0f;
-        float fps_slider_cursor_x = 0.0f;
 
         bool bg_limit =
               ( limit &&
@@ -5245,6 +5244,7 @@ SK_ImGui_ControlPanel (void)
           ImGui::BeginGroup      ();
           float cursor_y =
             ImGui::GetCursorPosY ();
+          ImGui::Spacing         ();
           ImGui::TextUnformatted ("Graph Measurement");
           ImGui::EndGroup        ();
           ImGui::SameLine        ();
@@ -5472,9 +5472,7 @@ SK_ImGui_ControlPanel (void)
         };
 
         ImGui::EndGroup   ();
-        ImGui::SameLine   ();
-        ImGui::SameLine   ();
-        ImGui::SameLine   ();
+        ImGui::SameLine   (0.0f, ImGui::GetStyle ().ItemSpacing.x * 2.0f);
         ImGui::BeginGroup ();
 
         auto _LimitSlider =
@@ -5870,20 +5868,11 @@ SK_ImGui_ControlPanel (void)
 
 
 
-        fps_slider_cursor_x = ImGui::GetCursorPosX ();
-
         _LimitSlider ( __target_fps, "###FPS_TargetOrLimit",
                                             "TargetFPS",
                         (SK_IsGameWindowActive () || (! bg_limit)) );
 
-        float cursor_y = ImGui::GetCursorPosY ();
-
-        ImGui::SameLine ();
-
-        fps_slider_width = ImGui::GetCursorPosX () - fps_slider_cursor_x -
-                           ImGui::GetStyle      ().ItemSpacing.x;
-
-        ImGui::SetCursorPos (ImVec2 (fps_slider_cursor_x, cursor_y));
+        fps_slider_width = ImGui::GetItemRectSize ().x;
 
 
         if (limit)
@@ -5904,14 +5893,25 @@ SK_ImGui_ControlPanel (void)
               _GraphMeasurementConfig ();
             }
           }
-        } else { bg_limit = false; };
+        }
+
+        else
+        {
+          bg_limit = false;
+        };
+
         ImGui::EndGroup ();
 
         if (((! limit) || bg_limit) && advanced)
         {
+          if (bg_limit)
+          {
+            fps_slider_width += ImGui::GetStyle ().ItemSpacing.x;
+          }
+
           _GraphMeasurementConfig ();
         }
-
+        ImGui::SameLine ();
         ImGui::EndGroup ();
         ImGui::SameLine ();
 
