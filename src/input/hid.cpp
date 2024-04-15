@@ -347,7 +347,8 @@ SK_HID_PlayStationDevice::~SK_HID_PlayStationDevice (void)
 
   if (pStats != nullptr)
   {
-    std::free (pStats);
+    delete
+      std::exchange (pStats, nullptr);
   }
 }
 
@@ -3474,7 +3475,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
   if (latency.pollrate == nullptr)
   {
     latency.pollrate =
-      new SK::Framerate::Stats ();
+      new (std::nothrow) SK::Framerate::Stats ();
   }
 
   // If user is overriding RGB, we need to write an output report for every input report
