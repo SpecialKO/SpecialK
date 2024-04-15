@@ -1309,241 +1309,244 @@ ReadFile_Detour (HANDLE       hFile,
   const auto &[ dev_file_type, dev_ptr, dev_allowed ] =
     SK_Input_GetDeviceFileAndState (hFile);
 
-  switch (dev_file_type)
+  if (dev_ptr != nullptr)
   {
-    case SK_Input_DeviceFileType::HID:
+    switch (dev_file_type)
     {
-      if (config.input.gamepad.disable_hid)
+      case SK_Input_DeviceFileType::HID:
       {
-        SetLastError (ERROR_DEVICE_NOT_CONNECTED);
-        return FALSE;
-      }
-
-      auto hid_file =
-        (SK_HID_DeviceFile *)(dev_ptr);
-
-      BYTE report_id = 0;
-
-      if (lpBuffer != nullptr && hid_file != nullptr)
-      {
-        report_id = ((uint8_t *)(lpBuffer))[0];
-
-        if (! report_id)
-        {     report_id = sk::narrow_cast <BYTE> (nNumberOfBytesToRead);
-        }
-      }
-
-      void* pBuffer = lpBuffer;
-
-      if (! dev_allowed)
-      {
-        if (nNumberOfBytesToRead > 0)
+        if (config.input.gamepad.disable_hid)
         {
-          if (        hid_file->_blockedInputReportsBySize [nNumberOfBytesToRead].size () < nNumberOfBytesToRead)
-                      hid_file->_blockedInputReportsBySize [nNumberOfBytesToRead].resize (nNumberOfBytesToRead);
-            pBuffer = hid_file->_blockedInputReportsBySize [nNumberOfBytesToRead].data ();
-
-          if (report_id > 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= nNumberOfBytesToRead)
-          {
-            if (hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead))
-            {
-              if (                   lpBuffer != nullptr)
-                SK_UNTRUSTED_memcpy (lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), nNumberOfBytesToRead);
-            }
-          }
+          SetLastError (ERROR_DEVICE_NOT_CONNECTED);
+          return FALSE;
         }
-      }
 
-      BOOL bRet =
-        ReadFile_Original (
-          hFile, pBuffer, nNumberOfBytesToRead,
-            lpNumberOfBytesRead, lpOverlapped
-        );
+        auto hid_file =
+          (SK_HID_DeviceFile *)(dev_ptr);
 
-      if (lpOverlapped != nullptr && bRet)
-      {
-        auto& overlapped = hid_file->_overlappedRequests [lpOverlapped];
-
-        overlapped.dwNumberOfBytesToRead = nNumberOfBytesToRead;
-        overlapped.hFile                 = hFile;
-        overlapped.lpBuffer              = lpBuffer;
-      }
-
-#if 0
-      SK_LOGi0 (
-        L"ReadFile (%ws, %p, %d, %p, {overlapped: %p} => %hs",
-          hid_file->wszDevicePath, lpBuffer, nNumberOfBytesToRead,
-              lpNumberOfBytesRead, lpOverlapped, bRet ? "Success" : "Fail"
-      );
-      SK_LOGi0 ("Report ID: %x", report_id);
-#endif
-
-      if (bRet)
-      {
-        size_t nNumberOfBytesRead = lpNumberOfBytesRead != nullptr ?
-                           (size_t)*lpNumberOfBytesRead : (size_t)nNumberOfBytesToRead;
-
+        BYTE report_id = 0;
 
         if (lpBuffer != nullptr)
         {
           report_id = ((uint8_t *)(lpBuffer))[0];
 
           if (! report_id)
-          {
-            report_id = lpNumberOfBytesRead != nullptr ?
-              (uint8_t)*lpNumberOfBytesRead : (BYTE)nNumberOfBytesToRead;
+          {     report_id = sk::narrow_cast <BYTE> (nNumberOfBytesToRead);
           }
         }
 
-        auto& cached_report =
-          hid_file->_cachedInputReportsByReportId [report_id];
+        void* pBuffer = lpBuffer;
 
-        if ((! lpOverlapped) && dev_allowed)
+        if (! dev_allowed)
         {
-          if (                   cached_report.size   ()          < nNumberOfBytesRead)
-                                 cached_report.resize (             nNumberOfBytesRead);
-            SK_UNTRUSTED_memcpy (cached_report.data   (), lpBuffer, nNumberOfBytesRead);
-        }
-
-        bool bDeviceAllowed = dev_allowed;
-
-        if (report_id > 0 && lpOverlapped != nullptr)
-        {
-          ///if (hid_file->_cachedInputReportsByReportId [report_id].size () < nNumberOfBytesRead)
-          ///{   hid_file->_cachedInputReportsByReportId [report_id].resize (  nNumberOfBytesRead);
-          ///}
-          ///
-          ///if (((uint8_t *)lpBuffer)[0] != 0)
-          ///{
-          ///  hid_file->_cachedInputReportsByReportId [report_id].data ()[0] = ((uint8_t *)lpBuffer)[0];
-          ///}
-          ///
-          ///if (hid_file->neutralizeHidInput (report_id, nNumberOfBytesRead))
-          ///{
-          ///  SK_UNTRUSTED_memcpy (
-          ///    lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (),
-          ///        nNumberOfBytesToRead );
-          ///}
-        }
-
-        if (! bDeviceAllowed)
-        {
-          SK_ReleaseAssert (lpBuffer != nullptr);
-
-          SK_HID_HIDE (hid_file->device_type);
-
-          if (lpOverlapped == nullptr) // lpNumberOfBytesRead MUST be non-null
+          if (nNumberOfBytesToRead > 0)
           {
-            if (report_id > 0 && cached_report.size () >= nNumberOfBytesToRead)
-            {
-              // Give the game old data, from before we started blocking stuff...
-              int num_bytes_read =
-                hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead);
-            
-              if (num_bytes_read > 0)
-              {
-                if (lpNumberOfBytesRead != nullptr)
-                   *lpNumberOfBytesRead = num_bytes_read;
-              }
+            if (        hid_file->_blockedInputReportsBySize [nNumberOfBytesToRead].size () < nNumberOfBytesToRead)
+                        hid_file->_blockedInputReportsBySize [nNumberOfBytesToRead].resize (nNumberOfBytesToRead);
+              pBuffer = hid_file->_blockedInputReportsBySize [nNumberOfBytesToRead].data ();
 
-              else
+            if (report_id > 0 && hid_file->_cachedInputReportsByReportId [report_id].size () >= nNumberOfBytesToRead)
+            {
+              if (hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead))
               {
-                num_bytes_read = lpNumberOfBytesRead != nullptr ?
-                           (int)*lpNumberOfBytesRead : num_bytes_read;
-              }
-            
-              if (lpBuffer != nullptr && num_bytes_read > 0)
-              {
-                SK_UNTRUSTED_memcpy (
-                  lpBuffer, cached_report.data (),
-                 std::min ((int)nNumberOfBytesToRead,
-                                      num_bytes_read)
-                );
+                if (                   lpBuffer != nullptr)
+                  SK_UNTRUSTED_memcpy (lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (), nNumberOfBytesToRead);
               }
             }
           }
-
-          else
-          {
-            SK_RunOnce (
-              SK_LOGi0 (L"ReadFile HID IO Cancelled")
-            );
-
-            if (report_id > 0 && cached_report.size () >= nNumberOfBytesToRead)
-            {
-              // Give the game old data, from before we started blocking stuff...
-              int num_bytes_read =
-                hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead);
-
-              //if (num_bytes_read == 0)
-              //{
-              //  num_bytes_read = nNumberOfBytesToRead;
-              //}
-
-              if (num_bytes_read > 0)
-              {
-                if (lpNumberOfBytesRead != nullptr)
-                   *lpNumberOfBytesRead = num_bytes_read;
-              }
-
-              if (lpBuffer != nullptr && num_bytes_read > 0)
-              {
-                SK_UNTRUSTED_memcpy (
-                  lpBuffer, cached_report.data (),
-                 std::min ((int)nNumberOfBytesToRead,
-                                      num_bytes_read)
-                );
-              }
-            }
-          }
-
-          return bRet;
         }
 
-        else
-        {
-          SK_HID_READ (hid_file->device_type);
+        BOOL bRet =
+          ReadFile_Original (
+            hFile, pBuffer, nNumberOfBytesToRead,
+              lpNumberOfBytesRead, lpOverlapped
+          );
 
-          if (lpOverlapped == nullptr && lpBuffer != nullptr)
+        if (lpOverlapped != nullptr && bRet)
+        {
+          auto& overlapped = hid_file->_overlappedRequests [lpOverlapped];
+
+          overlapped.dwNumberOfBytesToRead = nNumberOfBytesToRead;
+          overlapped.hFile                 = hFile;
+          overlapped.lpBuffer              = lpBuffer;
+        }
+
+#if 0
+        SK_LOGi0 (
+          L"ReadFile (%ws, %p, %d, %p, {overlapped: %p} => %hs",
+            hid_file->wszDevicePath, lpBuffer, nNumberOfBytesToRead,
+                lpNumberOfBytesRead, lpOverlapped, bRet ? "Success" : "Fail"
+        );
+        SK_LOGi0 ("Report ID: %x", report_id);
+#endif
+
+        if (bRet)
+        {
+          size_t nNumberOfBytesRead = lpNumberOfBytesRead != nullptr ?
+                             (size_t)*lpNumberOfBytesRead : (size_t)nNumberOfBytesToRead;
+
+
+          if (lpBuffer != nullptr)
           {
             report_id = ((uint8_t *)(lpBuffer))[0];
-          }
 
-          DWORD dwBytesRead = 0;
-
-          if (lpNumberOfBytesRead != nullptr)
-             dwBytesRead = *lpNumberOfBytesRead;
-          else
-             dwBytesRead = nNumberOfBytesToRead;
-
-          if (lpOverlapped == nullptr && report_id > 0 && lpBuffer != nullptr)
-          {
-            if (hid_file->_cachedInputReportsByReportId [report_id].size () <= dwBytesRead)
-                hid_file->_cachedInputReportsByReportId [report_id].resize (   dwBytesRead);
-
-            hid_file->_cachedInputReportsByReportId [report_id].data ()[0] = report_id;
-
-            //if (hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead))
+            if (! report_id)
             {
-              SK_UNTRUSTED_memcpy (
-                hid_file->_cachedInputReportsByReportId [report_id].data (), lpBuffer,
-                    dwBytesRead );
-
-              hid_file->neutralizeHidInput (report_id, dwBytesRead);
+              report_id = lpNumberOfBytesRead != nullptr ?
+                (uint8_t)*lpNumberOfBytesRead : (BYTE)nNumberOfBytesToRead;
             }
           }
 
-          SK_HID_VIEW (hid_file->device_type);
+          auto& cached_report =
+            hid_file->_cachedInputReportsByReportId [report_id];
+
+          if ((! lpOverlapped) && dev_allowed)
+          {
+            if (                   cached_report.size   ()          < nNumberOfBytesRead)
+                                   cached_report.resize (             nNumberOfBytesRead);
+              SK_UNTRUSTED_memcpy (cached_report.data   (), lpBuffer, nNumberOfBytesRead);
+          }
+
+          bool bDeviceAllowed = dev_allowed;
+
+          if (report_id > 0 && lpOverlapped != nullptr)
+          {
+            ///if (hid_file->_cachedInputReportsByReportId [report_id].size () < nNumberOfBytesRead)
+            ///{   hid_file->_cachedInputReportsByReportId [report_id].resize (  nNumberOfBytesRead);
+            ///}
+            ///
+            ///if (((uint8_t *)lpBuffer)[0] != 0)
+            ///{
+            ///  hid_file->_cachedInputReportsByReportId [report_id].data ()[0] = ((uint8_t *)lpBuffer)[0];
+            ///}
+            ///
+            ///if (hid_file->neutralizeHidInput (report_id, nNumberOfBytesRead))
+            ///{
+            ///  SK_UNTRUSTED_memcpy (
+            ///    lpBuffer, hid_file->_cachedInputReportsByReportId [report_id].data (),
+            ///        nNumberOfBytesToRead );
+            ///}
+          }
+
+          if (! bDeviceAllowed)
+          {
+            SK_ReleaseAssert (lpBuffer != nullptr);
+
+            SK_HID_HIDE (hid_file->device_type);
+
+            if (lpOverlapped == nullptr) // lpNumberOfBytesRead MUST be non-null
+            {
+              if (report_id > 0 && cached_report.size () >= nNumberOfBytesToRead)
+              {
+                // Give the game old data, from before we started blocking stuff...
+                int num_bytes_read =
+                  hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead);
+              
+                if (num_bytes_read > 0)
+                {
+                  if (lpNumberOfBytesRead != nullptr)
+                     *lpNumberOfBytesRead = num_bytes_read;
+                }
+
+                else
+                {
+                  num_bytes_read = lpNumberOfBytesRead != nullptr ?
+                             (int)*lpNumberOfBytesRead : num_bytes_read;
+                }
+              
+                if (lpBuffer != nullptr && num_bytes_read > 0)
+                {
+                  SK_UNTRUSTED_memcpy (
+                    lpBuffer, cached_report.data (),
+                   std::min ((int)nNumberOfBytesToRead,
+                                        num_bytes_read)
+                  );
+                }
+              }
+            }
+
+            else
+            {
+              SK_RunOnce (
+                SK_LOGi0 (L"ReadFile HID IO Cancelled")
+              );
+
+              if (report_id > 0 && cached_report.size () >= nNumberOfBytesToRead)
+              {
+                // Give the game old data, from before we started blocking stuff...
+                int num_bytes_read =
+                  hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead);
+
+                //if (num_bytes_read == 0)
+                //{
+                //  num_bytes_read = nNumberOfBytesToRead;
+                //}
+
+                if (num_bytes_read > 0)
+                {
+                  if (lpNumberOfBytesRead != nullptr)
+                     *lpNumberOfBytesRead = num_bytes_read;
+                }
+
+                if (lpBuffer != nullptr && num_bytes_read > 0)
+                {
+                  SK_UNTRUSTED_memcpy (
+                    lpBuffer, cached_report.data (),
+                   std::min ((int)nNumberOfBytesToRead,
+                                        num_bytes_read)
+                  );
+                }
+              }
+            }
+
+            return bRet;
+          }
+
+          else
+          {
+            SK_HID_READ (hid_file->device_type);
+
+            if (lpOverlapped == nullptr && lpBuffer != nullptr)
+            {
+              report_id = ((uint8_t *)(lpBuffer))[0];
+            }
+
+            DWORD dwBytesRead = 0;
+
+            if (lpNumberOfBytesRead != nullptr)
+               dwBytesRead = *lpNumberOfBytesRead;
+            else
+               dwBytesRead = nNumberOfBytesToRead;
+
+            if (lpOverlapped == nullptr && report_id > 0 && lpBuffer != nullptr)
+            {
+              if (hid_file->_cachedInputReportsByReportId [report_id].size () <= dwBytesRead)
+                  hid_file->_cachedInputReportsByReportId [report_id].resize (   dwBytesRead);
+
+              hid_file->_cachedInputReportsByReportId [report_id].data ()[0] = report_id;
+
+              //if (hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead))
+              {
+                SK_UNTRUSTED_memcpy (
+                  hid_file->_cachedInputReportsByReportId [report_id].data (), lpBuffer,
+                      dwBytesRead );
+
+                hid_file->neutralizeHidInput (report_id, dwBytesRead);
+              }
+            }
+
+            SK_HID_VIEW (hid_file->device_type);
+          }
         }
-      }
 
-      return bRet;
-    } break;
+        return bRet;
+      } break;
 
-    case SK_Input_DeviceFileType::NVIDIA:
-    {
-      SK_MessageBus_Backend->markRead (2);
-    } break;
+      case SK_Input_DeviceFileType::NVIDIA:
+      {
+        SK_MessageBus_Backend->markRead (2);
+      } break;
+    }
   }
 
   return
