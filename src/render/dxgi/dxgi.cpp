@@ -41,6 +41,8 @@
 #include <imgui/backends/imgui_d3d11.h>
 #include <imgui/backends/imgui_d3d12.h>
 
+#include <imgui/font_awesome.h>
+
 #include <d3d12.h>
 
 #include <SpecialK/nvapi.h>
@@ -2395,6 +2397,41 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
                       UINT _Flags) ->
   HRESULT
   {
+    if ( config.render.framerate.target_fps_bg > 0.0f && 
+         config.render.framerate.target_fps_bg < rb.getActiveRefreshRate () / 2.0f &&
+         (! SK_IsGameWindowActive ()) )
+    {
+      SK_RunOnce (
+        SK_ImGui_CreateNotification (
+          "VRR.BackgroundFixup", SK_ImGui_Toast::Warning,
+
+          "A very low Background FPS limit is currently active; VRR must be allowed to\r\n"
+          "disengage or it will severely impact overall system responsiveness!\r\n\r\n  "
+
+          ICON_FA_INFO_CIRCLE
+          "  VRR support will be restored once the game regains foreground status.\r\n\r\n"
+
+          "If VRR remains active and your system continues to behave sluggishly, it is\r\n"
+          "most likely because you have forced VSYNC on in driver settings...\r\n\r\n  "
+
+          ICON_FA_COGS
+          "  VRR display users should never force VSYNC on using driver overrides!",
+
+          "\tTemporarily Suspending VRR Support for the Current Game",
+            5000, SK_ImGui_Toast::ShowCaption |
+                  SK_ImGui_Toast::ShowTitle   |
+                  SK_ImGui_Toast::ShowOnce    |
+                  SK_ImGui_Toast::UseDuration );
+      );
+
+      _SyncInterval
+             = std::clamp (
+               (UINT)(rb.getActiveRefreshRate () / config.render.framerate.target_fps_bg),
+                                              2U, 4U );
+      _Flags = (_Flags & ~DXGI_PRESENT_ALLOW_TEARING)
+                       |  DXGI_PRESENT_RESTART;
+    }
+
     BOOL bFullscreen =
       rb.isTrueFullscreen ();
 
