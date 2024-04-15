@@ -1,8 +1,25 @@
-﻿24.4.15.2
+﻿24.4.15.3
+=========
+ + Added warning dialog if SK is injected into a D3D10 game; standard Windows
+     MessageBox, since SK cannot draw anything in D3D10 :)
+
+ + If SK is injected into two or more games at once and one of the games is
+     currently in the foreground, gamepad input will be blocked to the 
+       games running in the background.
+
+ + Added mechanism to disable VRR while SK is applying a background FPS limit,
+     so that the game does not cause all applications on the system to run at
+       a low framerate.
+
+     >> It is critical that you never force VSYNC on in driver settings, or
+          applications that want to opt-out of VRR will be unable to and they
+            will damage the performance of all other applications on the system.
+
+24.4.15.2
 =========
  + Added Auto Exposure to DLSS control panel
  + Hide Auto Exposure and Alpha Upscaling overrides unless the game uses them,
-     or they were already forced on/off in a game's INI
+     or they were already forced on/off in SK's INI for the current game
 
 24.4.15.1
 =========

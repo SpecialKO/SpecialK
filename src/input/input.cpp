@@ -28,11 +28,16 @@
 #define __SK_SUBSYSTEM__ L"Input Mgr."
 
 #include <imgui/backends/imgui_d3d11.h>
+#include <SpecialK/injection/injection.h>
 
 bool SK_WantBackgroundRender (void)
 {
   return
     config.window.background_render;
+}
+
+extern "C" {
+  extern LONG g_sHookedPIDs [MAX_INJECTED_PROCS];
 }
 
 bool
@@ -67,6 +72,28 @@ SK_ImGui_WantGamepadCapture (void)
           if (! bCapture)
           {
             SK_SteamInput_Unfux0r ();
+          }
+        }
+      }
+    }
+
+    if (! bCapture)
+    {
+      // Implicitly block input to this game if SK is currently injected
+      //   into two games at once, and the other game is currently foreground.
+      if (! game_window.active)
+      {
+        HWND hWndForeground =
+          SK_GetForegroundWindow ();
+
+        DWORD                                      dwForegroundPid = 0x0;
+        GetWindowThreadProcessId (hWndForeground, &dwForegroundPid);
+
+        for ( auto pid : g_sHookedPIDs )
+        {
+          if (pid == (LONG)dwForegroundPid)
+          {
+            bCapture = true;
           }
         }
       }

@@ -1276,15 +1276,17 @@ SK_NGX_DLSS_ControlPanel (void)
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
           ImGui::TextUnformatted ("Preset E");
           ImGui::PopStyleColor   ();
-          ImGui::SameLine        ();
-          ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.5f, .5f, .5f, 1.f));
           if (! bHasPresetE)
-          ImGui::TextUnformatted ("\tNot supported by the current version of DLSS");
-          ImGui::PopStyleColor   ();
-          if (bHasPresetE)
+          {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4 (.5f, .5f, .5f, 1.f));
+            ImGui::SameLine      ();
+            ImGui::TextUnformatted("\tNot supported by the current version of DLSS");
+            ImGui::PopStyleColor ();
+          }
+          else
           {
             ImGui::PushStyleColor(ImGuiCol_Text, ImVec4 (.7f, .7f, .7f, 1.f));
-            ImGui::BulletText    ("The default preset for Perf/Balanced/Quality mode (3.7.0); generally favors image stability.");
+            ImGui::BulletText    ("The default preset for Perf/Balanced/Quality mode (3.7.0+); generally favors image stability.");
             ImGui::PopStyleColor ();
           }
           ImGui::Spacing         ();
