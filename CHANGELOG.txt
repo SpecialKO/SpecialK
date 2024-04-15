@@ -1,4 +1,8 @@
-﻿24.4.15.3
+﻿24.4.16
+=======
+ + Fixed ImGui color stack overflow when displaying Frametime Method tooltip
+
+24.4.15.3
 =========
  + Added warning dialog if SK is injected into a D3D10 game; standard Windows
      MessageBox, since SK cannot draw anything in D3D10 :)

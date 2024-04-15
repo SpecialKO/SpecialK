@@ -5106,6 +5106,7 @@ auto DeclKeybind =
   trace_libraries->load   (config.system.trace_load_library);
   strict_compliance->load (config.system.strict_compliance);
   log_level->load         (config.system.log_level);
+  sk::logs::base_log_lvl = config.system.log_level;
   prefer_fahrenheit->load (config.system.prefer_fahrenheit);
   handle_crashes->load    (config.system.handle_crashes);
   silent_crash->load      (config.system.silent_crash);

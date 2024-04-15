@@ -5370,6 +5370,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::TextUnformatted ("SK's Framerate Limiter has finished delaying a frame's begin/end.");
             ImGui::TextUnformatted ("Measures SK's frame pacing efficacy for the active limit settings.");
             ImGui::EndGroup        ();
+            ImGui::PopStyleColor   ();
 
 #if 0
             ImGui::Spacing         ();

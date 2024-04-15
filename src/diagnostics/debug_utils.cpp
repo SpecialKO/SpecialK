@@ -3696,7 +3696,11 @@ RaiseException_Detour (
     // TODO: Add config setting for interactive debug
     if (config.system.log_level > 1 && SK_IsDebuggerPresent ())
     {
-      __debugbreak ();
+      // Ignore Unity
+      if (! SK_GetCurrentRenderBackend ().windows.unity)
+      {
+        __debugbreak ();
+      }
     }
 
     SK::Diagnostics::CrashHandler::Reinstall ();

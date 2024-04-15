@@ -283,6 +283,7 @@ SK_HID_DeviceFile::SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
 
           else
           {
+#if 0
             if (config.system.log_level > 0)
             {
               SK_DeviceIoControl (
@@ -307,6 +308,7 @@ SK_HID_DeviceFile::SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
                   wszProductName, hidpCaps.UsagePage, hidpCaps.Usage
               );
             }
+#endif
           }
         }
 
