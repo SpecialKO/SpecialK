@@ -13,7 +13,7 @@
 
      >> It is critical that you never force VSYNC on in driver settings, or
           applications that want to opt-out of VRR will be unable to and they
-            will damage the performance of all other applications on the system.
+            will harm the performance of all other applications on the system.
 
 24.4.15.2
 =========
