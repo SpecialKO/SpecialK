@@ -1,4 +1,4 @@
-// dear imgui, v1.90 WIP
+﻿// dear imgui, v1.90 WIP
 // (widgets code)
 
 /*
@@ -4634,9 +4634,17 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         // Apply ASCII value
         if (!is_readonly)
         {
-            state->TextAIsValid = true;
-            state->TextA.resize(state->TextW.Size * 4 + 1);
-            ImTextStrToUtf8(state->TextA.Data, state->TextA.Size, state->TextW.Data, NULL);
+            if (state != nullptr)
+            {
+                state->TextAIsValid = true;
+                state->TextA.resize(state->TextW.Size * 4 + 1);
+                ImTextStrToUtf8(state->TextA.Data, state->TextA.Size, state->TextW.Data, NULL);
+            }
+
+            else
+            {
+                IM_ASSERT(state != nullptr);
+            }
         }
 
         // When using 'ImGuiInputTextFlags_EnterReturnsTrue' as a special case we reapply the live buffer back to the input buffer
@@ -7422,8 +7430,11 @@ bool ImGui::BeginMenuBar()
 void ImGui::EndMenuBar()
 {
     ImGuiWindow* window = GetCurrentWindow();
-    if (window->SkipItems)
+    if (window == nullptr || window->SkipItems)
+    {
+        IM_ASSERT(window != nullptr);
         return;
+    }
     ImGuiContext& g = *GImGui;
 
     // Nav: When a move request within one of our child menu failed, capture the request to navigate among our siblings.

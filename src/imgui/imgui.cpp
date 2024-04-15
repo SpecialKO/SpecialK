@@ -1,4 +1,4 @@
-// dear imgui, v1.90 WIP
+﻿// dear imgui, v1.90 WIP
 // (main code and documentation)
 
 // Help:
@@ -6249,10 +6249,14 @@ void ImGui::UpdateWindowParentAndRootLinks(ImGuiWindow* window, ImGuiWindowFlags
         window->RootWindowPopupTree = parent_window->RootWindowPopupTree;
     if (parent_window && !(flags & ImGuiWindowFlags_Modal) && (flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Popup)))
         window->RootWindowForTitleBarHighlight = parent_window->RootWindowForTitleBarHighlight;
-    while (window->RootWindowForNav->Flags & ImGuiWindowFlags_NavFlattened)
+
+    if (window->RootWindowForNav != nullptr)
     {
-        IM_ASSERT(window->RootWindowForNav->ParentWindow != NULL);
-        window->RootWindowForNav = window->RootWindowForNav->ParentWindow;
+        while (window->RootWindowForNav->Flags & ImGuiWindowFlags_NavFlattened)
+        {
+            IM_ASSERT(window->RootWindowForNav->ParentWindow != NULL);
+            window->RootWindowForNav = window->RootWindowForNav->ParentWindow;
+        }
     }
 }
 

@@ -3736,8 +3736,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                     continue;
 
                   pDevice->buttons [
-                    ULONG ((pDevice->button_usages [i]) -
-                           (pDevice->buttons       [0].Usage))
+                    ULONG (pDevice->button_usages [i]) -
+                    ULONG (pDevice->buttons       [0].Usage)
                   ].state = true;
                 }
               }

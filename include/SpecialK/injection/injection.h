@@ -125,12 +125,13 @@ struct SK_InjectionRecord_s
 #pragma pack (push, 1)
 struct SK_SharedMemory_v1
 {
+  SK_SharedMemory_v1 (void);
+
   // Initialized = 0x1
   // Standby     = 0x2
   // Free        = 0x4
   uint32_t MemoryState = 0x0;
-  uint32_t HighDWORD   = sizeof (SK_SharedMemory_v1) -
-                         sizeof (uint32_t);
+  uint32_t HighDWORD;
 
 
   struct WindowState_s {
