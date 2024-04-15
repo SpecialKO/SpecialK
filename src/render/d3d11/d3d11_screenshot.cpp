@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1399,22 +1399,22 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   { 10000.0f, 10000.0f, 10000.0f, 1.f };
 
                 static const XMVECTORF32 s_luminance_2020 =
-                  { 0.2627,   0.678,    0.0593,   0.f };
+                  { 0.2627f,   0.678f,    0.0593f,   0.f };
 
                 static const XMMATRIX c_from2020to709 =
                 {
-                  { 1.6604910f,  -0.1245505f, -0.0181508f, 0.f },
+                  {  1.6604910f, -0.1245505f, -0.0181508f, 0.f },
                   { -0.5876411f,  1.1328999f, -0.1005789f, 0.f },
                   { -0.0728499f, -0.0083494f,  1.1187297f, 0.f },
-                  { 0.f,          0.f,         0.f,        1.f }
+                  {  0.f,         0.f,         0.f,        1.f }
                 };
 
                 static const XMMATRIX c_from709to2020 =
                 {
-                  { 0.627225305694944,  0.329476882715808,  0.0432978115892484, 0.0 },
-                  { 0.0690418812810714, 0.919605681354755,  0.0113524373641739, 0.0 },
-                  { 0.0163911702607078, 0.0880887513437058, 0.895520078395586,  0.0 },
-                  { 0.0,                0.0,                0.0,                1.0 }
+                  { 0.627225305694944f,  0.329476882715808f,  0.0432978115892484f, 0.0f },
+                  { 0.0690418812810714f, 0.919605681354755f,  0.0113524373641739f, 0.0f },
+                  { 0.0163911702607078f, 0.0880887513437058f, 0.895520078395586f,  0.0f },
+                  { 0.0f,                0.0f,                0.0f,                1.0f }
                 };
 
                 HRESULT hr = S_OK;
@@ -1450,7 +1450,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                            maxRGB = XMVectorZero          ();
 
                   static const XMVECTORF32 s_luminance =
-                    { 0.2126729, 0.7151522, 0.0721750, 0.f };
+                    { 0.2126729f, 0.7151522f, 0.0721750f, 0.f };
 
                   float lumTotal   = 0.0f;
                   float N          = 0.0f;
