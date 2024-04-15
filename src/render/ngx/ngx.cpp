@@ -1376,9 +1376,9 @@ SK_NGX_DLSS_ControlPanel (void)
           if ( ImGui::Combo (
                  "###Alpha_Upscaling",
              &force_alpha_upscaling, "Game Default\0"
-                                     "Force Off\0"
-                                     "Force On\0\0") )
-          {
+                                     "Force Off\0\0"/*
+                                     "Force On\0\0" */) )
+          { // Forcing on is meaningless, game needs special support
             config.nvidia.dlss.forced_alpha_upscale =
               force_alpha_upscaling - 1;
             restart_required = true;
