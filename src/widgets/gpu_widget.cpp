@@ -1,4 +1,4 @@
-/**
+ï»¿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -323,6 +323,10 @@ public:
     auto item_inner_spacing =
       ImGui::GetStyle ().ItemInnerSpacing;
 
+    ImGui::PushItemFlag ( ImGuiItemFlags_NoNav             |
+                          ImGuiItemFlags_NoNavDefaultFocus |
+                          ImGuiItemFlags_AllowOverlap, true );
+
     if (gpu_load_prefs.enable)
     {
       snprintf
@@ -370,8 +374,8 @@ public:
       snprintf
         ( szAvg,
             511,
-              (const char *)u8"GPU%lu Temp (°C):\n\n\n"
-                            u8"          min: %3.0f°, max: %3.0f°, avg: %4.1f°\n",
+              (const char *)u8"GPU%lu Temp (Â°C):\n\n\n"
+                            u8"          min: %3.0fÂ°, max: %3.0fÂ°, avg: %4.1fÂ°\n",
                 0,
                   gpu_temp_c.getMin   (), gpu_temp_c.getMax (),
                     gpu_temp_c.getAvg () );
@@ -397,7 +401,7 @@ public:
 
       float fy = ImGui::GetCursorPosY ();
 
-      snprintf (szCur, 31, (const char *)u8"%4.1f°", gpu_temp_c.getLastValue ());
+      snprintf (szCur, 31, (const char *)u8"%4.1fÂ°", gpu_temp_c.getLastValue ());
 
       ImGui::SameLine        (  );
       ImGui::SetCursorPosX   (fx                      - item_inner_spacing.x +
@@ -608,6 +612,8 @@ public:
       ImGui::TextUnformatted (szCur);
       ImGui::SetCursorPosY   (fy);
     }
+
+    ImGui::PopItemFlag ();
   }
 
   void OnConfig (ConfigEvent event) override
@@ -642,7 +648,7 @@ private:
   sk_sensor_prefs_s gpu_load_prefs   { true, "GPU Load (%)",
                                               L"Load",
                                        &gpu_load,       0.0f, 100.0f };
-  sk_sensor_prefs_s gpu_temp_prefs   { true, (const char *)u8"GPU Temperature (°C)",
+  sk_sensor_prefs_s gpu_temp_prefs   { true, (const char *)u8"GPU Temperature (Â°C)",
                                               L"Temperature",
                                        &gpu_temp_c,    40.0f, 94.0f  };
   sk_sensor_prefs_s gpu_fan_prefs    { true, "GPU Fan Speed (RPM)",

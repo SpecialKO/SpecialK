@@ -139,79 +139,82 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
       std::set <DWORD> sessions_listed;
 
-      for (int i = 0; i < count; i++)
+      if (pSessions != nullptr)
       {
-        SK_WASAPI_AudioSession* pSession =
-          pSessions [i];
-
-        if (pSession == nullptr)
-          continue;
-
-        auto pChannelVolume =
-          pSession->getChannelAudioVolume ();
-
-        // No duplicates please
-        if (pChannelVolume == nullptr || (pSession->isActive () && (! sessions_listed.emplace (pSession->getProcessId ()).second)))
-          continue;
-
-        //bool selected     = false;
-        const bool drawing_self =
-          (pSession->getProcessId () == GetCurrentProcessId ());
-
-        SK_ComPtr <ISimpleAudioVolume> volume_ctl =
-          pSession->getSimpleAudioVolume ();
-
-        BOOL mute = FALSE;
-
-        if (volume_ctl != nullptr && SUCCEEDED (volume_ctl->GetMute (&mute)))
+        for (int i = 0; i < count; i++)
         {
-          if (drawing_self)
+          SK_WASAPI_AudioSession* pSession =
+            pSessions [i];
+
+          if (pSession == nullptr)
+            continue;
+
+          auto pChannelVolume =
+            pSession->getChannelAudioVolume ();
+
+          // No duplicates please
+          if (pChannelVolume == nullptr || (pSession->isActive () && (! sessions_listed.emplace (pSession->getProcessId ()).second)))
+            continue;
+
+          //bool selected     = false;
+          const bool drawing_self =
+            (pSession->getProcessId () == GetCurrentProcessId ());
+
+          SK_ComPtr <ISimpleAudioVolume> volume_ctl =
+            pSession->getSimpleAudioVolume ();
+
+          BOOL mute = FALSE;
+
+          if (volume_ctl != nullptr && SUCCEEDED (volume_ctl->GetMute (&mute)))
           {
-            ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
-            ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
-            ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+            if (drawing_self)
+            {
+              ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+              ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+              ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+            }
+            if (ImGui::Selectable (pSession->getName (), drawing_self || pSession == audio_session))
+              sel_idx = i;
+
+            if (drawing_self)
+              ImGui::PopStyleColor (3);
+
+            ImGui::NextColumn ();
+
+            float                         volume = 0.0f;
+            volume_ctl->GetMasterVolume (&volume);
+
+            char      szLabel [32] = { };
+            snprintf (szLabel, 31, "###VolumeSlider%i", i);
+
+            ImGui::PushStyleColor (ImGuiCol_Text,           mute ? ImVec4 (0.5f, 0.5f, 0.5f, 1.f) : ImVec4 (1.0f, 1.0f, 1.0f, 1.f));
+            ImGui::PushStyleColor (ImGuiCol_FrameBg,        (ImVec4&&)ImColor::HSV ( 0.4f * volume, 0.6f, mute ? 0.2f : 0.4f));
+            ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, (ImVec4&&)ImColor::HSV ( 0.4f * volume, 0.7f, mute ? 0.2f : 0.4f));
+            ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  (ImVec4&&)ImColor::HSV ( 0.4f * volume, 0.8f, mute ? 0.2f : 0.4f));
+            ImGui::PushStyleColor (ImGuiCol_SliderGrab,     (ImVec4&&)ImColor::HSV ( 0.4f * volume, 0.9f,        0.6f * (mute ? 0.5f : 1.0f)));
+
+            volume *= 100.0f;
+
+            ImGui::PushItemWidth (ImGui::GetContentRegionAvail ().x - 37.0f);
+            {
+              if (ImGui::SliderFloat (szLabel, &volume, 0.0f, 100.0f, "Volume: %03.1f%%"))
+                volume_ctl->SetMasterVolume (volume / 100.0f, nullptr);
+            }
+            ImGui::PopItemWidth  ( );
+            ImGui::PopStyleColor (5);
+
+            ImGui::SameLine      ( );
+
+            snprintf (szLabel, 31, "###VoumeCheckbox%i", i);
+
+            ImGui::PushItemWidth (35.0f);
+            {
+              if (ImGui::Checkbox (szLabel, (bool *)&mute))
+                volume_ctl->SetMute (mute, nullptr);
+            }
+            ImGui::PopItemWidth  (     );
+            ImGui::NextColumn    (     );
           }
-          if (ImGui::Selectable (pSession->getName (), drawing_self || pSession == audio_session))
-            sel_idx = i;
-
-          if (drawing_self)
-            ImGui::PopStyleColor (3);
-
-          ImGui::NextColumn ();
-
-          float                         volume = 0.0f;
-          volume_ctl->GetMasterVolume (&volume);
-
-          char      szLabel [32] = { };
-          snprintf (szLabel, 31, "###VolumeSlider%i", i);
-
-          ImGui::PushStyleColor (ImGuiCol_Text,           mute ? ImVec4 (0.5f, 0.5f, 0.5f, 1.f) : ImVec4 (1.0f, 1.0f, 1.0f, 1.f));
-          ImGui::PushStyleColor (ImGuiCol_FrameBg,        (ImVec4&&)ImColor::HSV ( 0.4f * volume, 0.6f, mute ? 0.2f : 0.4f));
-          ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, (ImVec4&&)ImColor::HSV ( 0.4f * volume, 0.7f, mute ? 0.2f : 0.4f));
-          ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  (ImVec4&&)ImColor::HSV ( 0.4f * volume, 0.8f, mute ? 0.2f : 0.4f));
-          ImGui::PushStyleColor (ImGuiCol_SliderGrab,     (ImVec4&&)ImColor::HSV ( 0.4f * volume, 0.9f,        0.6f * (mute ? 0.5f : 1.0f)));
-
-          volume *= 100.0f;
-
-          ImGui::PushItemWidth (ImGui::GetContentRegionAvail ().x - 37.0f);
-          {
-            if (ImGui::SliderFloat (szLabel, &volume, 0.0f, 100.0f, "Volume: %03.1f%%"))
-              volume_ctl->SetMasterVolume (volume / 100.0f, nullptr);
-          }
-          ImGui::PopItemWidth  ( );
-          ImGui::PopStyleColor (5);
-
-          ImGui::SameLine      ( );
-
-          snprintf (szLabel, 31, "###VoumeCheckbox%i", i);
-
-          ImGui::PushItemWidth (35.0f);
-          {
-            if (ImGui::Checkbox (szLabel, (bool *)&mute))
-              volume_ctl->SetMute (mute, nullptr);
-          }
-          ImGui::PopItemWidth  (     );
-          ImGui::NextColumn    (     );
         }
       }
 
@@ -226,11 +229,14 @@ SK_ImGui_SelectAudioSessionDlg (void)
       ImGui::EndChild ( );
       //ImGui::ListBoxFooter ();
 
-      if (sel_idx != -1)
+      if (pSessions != nullptr)
       {
-        audio_session = pSessions [sel_idx];
+        if (sel_idx != -1)
+        {
+          audio_session = pSessions [sel_idx];
 
-        changed  = true;
+          changed  = true;
+        }
       }
 
       if (changed)
@@ -1079,6 +1085,9 @@ SK_ImGui_VolumeManager (void)
             lstrcatA (history [i].hashed_name, std::to_string (i).c_str ());
           }
 
+          ImGui::PushItemFlag ( ImGuiItemFlags_NoNav             |
+                                ImGuiItemFlags_NoNavDefaultFocus |
+                                ImGuiItemFlags_AllowOverlap, true );
           ImGui::BeginGroup ();
           ImGui::PushStyleColor (ImGuiCol_PlotHistogram, (ImVec4&&)ImColor::HSV ( ( i + 1 ) / (float)channels, 1.0f, val));
           ImGui::PlotHistogram ( history [i].hashed_name,
@@ -1101,6 +1110,7 @@ SK_ImGui_VolumeManager (void)
           ImGui::ProgressBar    (history [i].vu_peaks.disp_min, ImVec2 (-1.0f, 0.0f));
           ImGui::PopStyleColor  ();
           ImGui::EndGroup       ();
+          ImGui::PopItemFlag    ();
           ImGui::EndGroup       ();
 
           if (! (i % 2))

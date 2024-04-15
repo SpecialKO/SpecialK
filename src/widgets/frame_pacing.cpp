@@ -1348,6 +1348,10 @@ SK_ImGui_DrawGraph_FramePacing (void)
   float fX = ImGui::GetCursorPosX (),
         fY = ImGui::GetCursorPosY ();
 
+  ImGui::PushItemFlag ( ImGuiItemFlags_NoNav             |
+                        ImGuiItemFlags_NoNavDefaultFocus |
+                        ImGuiItemFlags_AllowOverlap, true );
+
   ImGui::PushStyleColor ( ImGuiCol_PlotLines,
                              ImColor::HSV ( 0.31f - 0.31f *
                      std::min ( 1.0f, (max - min) / (2.0f * target_frametime) ),
@@ -1398,6 +1402,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
   
   ImGui::PopStyleColor (2);
   ImGui::EndGroup      ( );
+  ImGui::PopItemFlag   ( );
 
   // Only toggle when clicking the graph and percentiles are off,
   //   to turn them back off, click the progress bars.

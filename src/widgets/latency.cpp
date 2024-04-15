@@ -485,6 +485,10 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
   const float fPlotXPos =
     ImGui::GetCursorScreenPos ().x;
 
+  ImGui::PushItemFlag ( ImGuiItemFlags_NoNav             |
+                        ImGuiItemFlags_NoNavDefaultFocus |
+                        ImGuiItemFlags_AllowOverlap, true );
+
   if ( ImPlot::BeginPlot ( "##Stage Time", ImVec2 (-1, 0),
                   ImPlotFlags_NoTitle     | ImPlotFlags_NoInputs |
                   ImPlotFlags_NoMouseText | ImPlotFlags_NoMenus  |
@@ -624,6 +628,8 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       );
     }
   }
+
+  ImGui::PopItemFlag ();
 
   if (detailed)
   {

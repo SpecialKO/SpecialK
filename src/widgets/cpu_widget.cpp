@@ -2067,6 +2067,9 @@ public:
       }
     }
     ImGui::PushItemWidth (last_longest_line);
+    ImGui::PushItemFlag  (ImGuiItemFlags_NoNav             |
+                          ImGuiItemFlags_NoNavDefaultFocus |
+                          ImGuiItemFlags_AllowOverlap, true);
     ImGui::BeginGroup    ();
     {
       struct SK_CPUCore_PowerLog
@@ -2384,6 +2387,7 @@ public:
       }
     }
     ImGui::EndGroup      ();
+    ImGui::PopItemFlag   ();
     ImGui::PopItemWidth  ();
                           last_longest_line =
                                std::max (longest_line, 450.0f * ui_scale);
