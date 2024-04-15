@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -549,8 +549,10 @@ SK_RawInput_ThreadContext::allocateDevices (size_t needed)
                      devices =
     (RAWINPUTDEVICE *)_aligned_malloc (needed * sizeof (RAWINPUTDEVICE), 16);
 
-    if (devices != nullptr)
-      num_devices = needed;
+    if (                   devices != nullptr)
+    {                  num_devices =   needed;
+      RtlSecureZeroMemory (devices,    needed * sizeof (RAWINPUTDEVICE));
+    }
     else
       num_devices = 0;
   }
@@ -772,6 +774,13 @@ SK_D3D9_ThreadContext::allocTempFullscreenStorage (size_t /*dontcare*/)
   {
     temp_fullscreen =
       _aligned_malloc ( sizeof (D3DDISPLAYMODEEX), 16 );
+
+    if (temp_fullscreen != nullptr)
+    {
+      RtlSecureZeroMemory (
+        temp_fullscreen, sizeof (D3DDISPLAYMODEEX)
+      );
+    }
   }
 
   return temp_fullscreen;
@@ -783,13 +792,13 @@ SK_D3D9_ThreadContext::allocStackScratchStorage (size_t size)
   if (stack_scratch.storage == nullptr)
   {
     stack_scratch.storage =
-                         _aligned_malloc (size, 16);
+                      _aligned_malloc (size, 16);
 
     if (stack_scratch.storage != nullptr)
     {
         stack_scratch.size = (uint32_t)size;
       RtlSecureZeroMemory (
-        stack_scratch.storage, size);
+        stack_scratch.storage,         size);
     }
   }
 
