@@ -480,10 +480,9 @@ SK_ImGui_DrawNotifications (void);
                    (_msg), (_file), (_line), (_func)                      \
               ), L" SpecialK ");                                          \
                                                                           \
-    if (sk::logs::base_log_lvl > 1)                                       \
+    if (sk::logs::base_log_lvl > 1 && SK_IsDebuggerPresent ())            \
     {                                                                     \
-      if (SK_IsDebuggerPresent ())                                        \
-             __debugbreak      ();                                        \
+      __debugbreak ();                                                    \
     }                                                                     \
                                                                           \
     else                                                                  \

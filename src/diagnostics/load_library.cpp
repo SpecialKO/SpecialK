@@ -787,6 +787,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
     if (hModEarly == nullptr && BlacklistLibrary (compliant_path))
     {
       SK_UnlockDllLoader ();
+      SK_SetLastError (ERROR_MOD_NOT_FOUND);
       return nullptr;
     }
 
@@ -2414,6 +2415,14 @@ BlacklistLibrary (const _T* lpFileName)
         return TRUE;
       }
     }
+  }
+
+  if (StrStrI (lpFileName, SK_TEXT("openxr_loader.dll")))
+  {
+    SK_LOGs0 ( L"DLL Loader",
+                 L"OpenXR DLL Blocked to Prevent Deadlock at Shutdown" );
+
+    return TRUE;
   }
 
   return FALSE;

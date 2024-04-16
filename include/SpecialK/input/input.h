@@ -164,7 +164,7 @@ enum class sk_win32_func {
 
 struct sk_input_api_context_s
 {
-  constexpr sk_input_api_context_s (void) noexcept { };
+  sk_input_api_context_s (void) noexcept { };
 
   volatile LONG reads  [4] = { },
                 writes [4] = { },

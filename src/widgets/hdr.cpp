@@ -2843,6 +2843,23 @@ public:
     }
   }
 
+  void config_base (void) override
+  {
+    SK_Widget::config_base ();
+
+    ImGui::Separator ();
+
+    bool changed = false;
+
+    changed |= ImGui::Checkbox ("Keep 8/10-bpc Render Passes UNORM (Unsigned Normalized) when Remastering", &config.render.hdr.remaster_8bpc_as_unorm);
+    changed |= ImGui::Checkbox ("Keep Sub-Native Resolution Render Passes UNORM when Remastering",          &config.render.hdr.remaster_subnative_as_unorm);
+
+    if (changed)
+    {
+      config.utility.save_async ();
+    }
+  }
+
   void OnConfig (ConfigEvent event) override
   {
     switch (event)

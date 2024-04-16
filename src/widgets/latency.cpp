@@ -485,6 +485,10 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
   const float fPlotXPos =
     ImGui::GetCursorScreenPos ().x;
 
+  ImGui::PushItemFlag ( ImGuiItemFlags_NoNav             |
+                        ImGuiItemFlags_NoNavDefaultFocus |
+                        ImGuiItemFlags_AllowOverlap, true );
+
   if ( ImPlot::BeginPlot ( "##Stage Time", ImVec2 (-1, 0),
                   ImPlotFlags_NoTitle     | ImPlotFlags_NoInputs |
                   ImPlotFlags_NoMouseText | ImPlotFlags_NoMenus  |
@@ -565,8 +569,8 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
          span0.head ) _PlotLineData (span1.head, span1.tail, true);
                       _PlotLineData (span0.head, span0.tail); // Contiguous
 
-    ImPlot::DragLineY (0, &dGPU, ImVec4 (1,0,0,1), 3.333, dragline_flags);
-    ImPlot::DragLineY (0, &dCPU, ImVec4 (0,0,1,1), 3.333, dragline_flags);
+    ImPlot::DragLineY (0, &dGPU, ImVec4 (1,0,0,1), 3.333f, dragline_flags);
+    ImPlot::DragLineY (0, &dCPU, ImVec4 (0,0,1,1), 3.333f, dragline_flags);
 
     static std::string utf8_gpu_name;
     static std::string utf8_cpu_name;
@@ -624,6 +628,8 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
       );
     }
   }
+
+  ImGui::PopItemFlag ();
 
   if (detailed)
   {

@@ -1,4 +1,53 @@
-﻿24.4.13.4
+﻿24.4.16
+=======
+ + Fixed ImGui color stack overflow when displaying Frametime Method tooltip
+
+24.4.15.3
+=========
+ + Added warning dialog if SK is injected into a D3D10 game; standard Windows
+     MessageBox, since SK cannot draw anything in D3D10 :)
+
+ + If SK is injected into two or more games at once and one of the games is
+     currently in the foreground, gamepad input will be blocked to the 
+       games running in the background.
+
+ + Added mechanism to disable VRR while SK is applying a background FPS limit,
+     so that the game does not cause all applications on the system to run at
+       a low framerate.
+
+     >> It is critical that you never force VSYNC on in driver settings, or
+          applications that want to opt-out of VRR will be unable to and they
+            will harm the performance of all other applications on the system.
+
+24.4.15.2
+=========
+ + Added Auto Exposure to DLSS control panel
+ + Hide Auto Exposure and Alpha Upscaling overrides unless the game uses them,
+     or they were already forced on/off in SK's INI for the current game
+
+24.4.15.1
+=========
+ + Removed option to force DLSS Alpha Upscaling -On- in DLSS 3.7.0, only
+     forcing it Off or not overriding it at all are valid options.
+ + Added options to use UNORM rather than FLOAT Render Targets for HDR remastering
+     >> Right-click the HDR widget
+
+24.4.15
+=======
+ + Removed ImGui nav focus on plot widgets (i.e. Framepacing Graph) when using
+     keyboard or gamepad in the control panel
+ + Condensed Frametime calculation selection in advanced Framerate Limiter view
+ + Blacklist openxr_load.dll while SK is injected into games, because it will
+     deadlock when the game exits. It's optional and for VR, so not a big deal.
+
+24.4.14
+=======
+ + Fixed incorrect battery level for DualShock 4 Bluetooth controllers
+ + Added support for binding DualShock 4 trackpad click to keyboard input
+ + Correctly handle DualSense (Edge) / DualShock 4 macro binds when multiple
+     gamepads are connected or if the same gamepad is connected via USB and Bt
+
+24.4.13.4
 =========
  + Fixed unintentional repeated keyboard input if a gamepad button -> key
      binding is held for more than a couple of frames

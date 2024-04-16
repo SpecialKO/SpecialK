@@ -2646,3 +2646,9 @@ SK_Inject_GetInjectionDelayInSeconds (void)
 
   return config.system.global_inject_delay;
 }
+
+SK_SharedMemory_v1::SK_SharedMemory_v1 (void)
+{
+  HighDWORD = { sizeof (SK_SharedMemory_v1) -
+                sizeof (uint32_t) };
+}

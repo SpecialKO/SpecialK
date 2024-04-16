@@ -3696,7 +3696,11 @@ RaiseException_Detour (
     // TODO: Add config setting for interactive debug
     if (config.system.log_level > 1 && SK_IsDebuggerPresent ())
     {
-      __debugbreak ();
+      // Ignore Unity
+      if (! SK_GetCurrentRenderBackend ().windows.unity)
+      {
+        __debugbreak ();
+      }
     }
 
     SK::Diagnostics::CrashHandler::Reinstall ();
@@ -4865,7 +4869,7 @@ SK_Win32_FormatMessageForException (
     if (lpMsgBuf != nullptr)
     {
       va_list      args = nullptr;
-      va_start    (args,           lpMsgFormat);
+      va_start    (args,              nExceptionCode);
       vswprintf_s (lpMsgBuf, 4096, lpMsgFormat, args);
       va_end      (args);
 

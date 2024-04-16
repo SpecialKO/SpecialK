@@ -628,8 +628,8 @@ SK::ControlPanel::PlugIns::Draw (void)
       if (reshade_official)
       {
         // Non-Unity engines benefit from a small (0 ms) injection delay
-        if (config.system.global_inject_delay < 0.001)
-        {   config.system.global_inject_delay = 0.001;
+        if (config.system.global_inject_delay < 0.001f)
+        {   config.system.global_inject_delay = 0.001f;
 
           if (bUnity)
           {

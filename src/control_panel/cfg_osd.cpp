@@ -192,6 +192,10 @@ SK::ControlPanel::OSD::Draw (void)
         ImGui::TreePop  ();
       }
       ImGui::EndGroup   ();
+
+      if (! config.gpu.show)
+        ImGui::SameLine ();
+
       ImGui::BeginGroup ();
       if (sk::NVAPI::nv_hardware)
       {

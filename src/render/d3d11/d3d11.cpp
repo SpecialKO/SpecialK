@@ -9300,6 +9300,18 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   if (       ppSwapChain != nullptr) *ppSwapChain        = nullptr;
   if (ppImmediateContext != nullptr) *ppImmediateContext = nullptr;
 
+  // Check for the one in a million game that's actually D3D10...
+  //   the D3D10 runtime calls into D3D11, but has some quirks SK does
+  //     not want to bother with...
+  if (  FeatureLevels     == 1                      &&
+       pFeatureLevels [0] <= D3D_FEATURE_LEVEL_10_1 &&
+                    Flags == 0x40000000             &&
+       SK_GetCallerName ().find (L"d3d10.dll") != std::wstring::npos )
+  {
+    SK_MessageBox ( L"Special K does not support Direct3D 10",
+                    L"Incompatible Game", MB_ICONERROR | MB_OK );
+  }
+
   bool bEOSOverlay =
     SK_COMPAT_IgnoreEOSOVHCall ();
 
