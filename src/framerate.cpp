@@ -622,6 +622,8 @@ SK_ImGui_LatentSyncConfig (void)
 
         if (ImGui::IsItemHovered ())
         {
+          bool bSupportsFrameSkipping = SK_LatentSync_SupportsFrameSkipping (rb.api);
+
           ImGui::BeginTooltip ();
           ImGui::Text         ("Please set Tearing Mode to 'Always On' for 2x.. Scan Mode!");
           ImGui::Separator    ();
@@ -632,14 +634,24 @@ SK_ImGui_LatentSyncConfig (void)
           ImGui::Separator    ();
           ImGui::BeginGroup   ();
           ImGui::BulletText   ("Adaptive (Prefer On)");
-          ImGui::BulletText   ("Adaptive (Prefer Off)");
+
+          if (bSupportsFrameSkipping)
+          {
+            ImGui::BulletText ("Adaptive (Prefer Off)");
+          }
+
           ImGui::BulletText   ("Adaptive (Prefer Off)");
           ImGui::BulletText   ("Always Off");
           ImGui::EndGroup     ();
           ImGui::SameLine     (0.0f, 0.0f);
           ImGui::BeginGroup   ();
           ImGui::Text         (" : Buffer Count > 4, Max Device Latency = Buffer Count + 1");
-          ImGui::Text         (" : Buffer Count > 4, Max Device Latency = 1");
+
+          if (bSupportsFrameSkipping)
+          {
+            ImGui::Text       (" : Buffer Count > 4, Max Device Latency = 1");
+          }
+
           ImGui::Text         (" : Buffer Count > 4, Max Device Latency = Buffer Count + 1");
           ImGui::Text         (" : Buffer Count > 4, Max Device Latency = Buffer Count + 1");
           ImGui::EndGroup     ();
