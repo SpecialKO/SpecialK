@@ -2038,7 +2038,7 @@ SK::Framerate::Limiter::wait (void)
         // Prefer tearing, only disable tearing if FPS is unstable
         case SK_TearingMode::LatentSync_AdaptiveOn:
         {
-          _ToggleTearing (latency_avg.getInput () > -0.1);
+          _ToggleTearing (latency_avg.getInput () > 0.0);
         } break;
 
         // Prefer no tearing, only enable tearing if FPS is unstable or Render Latency exceeds 1 frame
@@ -2049,7 +2049,9 @@ SK::Framerate::Limiter::wait (void)
         {
           // 2x.. mode with Tearing Off and "PreRenderLimit > 1" would constantly
           // enable <-> disable tearing because Render Latency is always above 1 frame
-          // In this case, only enable tearing if FPS is unstable
+          // -
+          // In that case, only enable tearing if FPS is unstable or Render Latency
+          // increases even further (according to PresentMon)
           if ( std::round (fps / rb.getActiveRefreshRate ()) >= 2.0 &&
                config.render.framerate.pre_render_limit      != 1   )
           {
@@ -2057,8 +2059,8 @@ SK::Framerate::Limiter::wait (void)
               ( rb.presentation.avg_stats.display != 0.0 &&
                 rb.presentation.avg_stats.latency /
                 rb.presentation.avg_stats.display >  1.7  ) ||
-              ( latency_avg.getInput           () <  1.0  ) ||
-              ( bIsComposedPresent                        )
+              ( bIsComposedPresent                        ) ||
+              ( bIsFpsUnstable                            )
             );
 
             return;
