@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright 2018 Andon "Kaldaien" Coleman
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -246,7 +246,7 @@ SK_MHW_PlugInCfg (void)
     {
       ImGui::TreePush  ("");
 
-      static auto& rb =
+      SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
       if (rb.isHDRCapable ())

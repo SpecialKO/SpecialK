@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright 2019 Andon "Kaldaien" Coleman
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -769,7 +769,7 @@ SK_TVFix_BeginFrame (void)
 
 
   static volatile LONG  __init = 0;
-  static          auto&     rb =
+  const SK_RenderBackend   &rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.device != nullptr && InterlockedCompareExchange (&__init, 1, 0))

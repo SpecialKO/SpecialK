@@ -878,7 +878,7 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
   if (pTex == nullptr)
     return E_POINTER;
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   auto pDev =
@@ -1835,7 +1835,7 @@ SK_D3D11_TexCacheCheckpoint (void)
   static auto& textures =
     SK_D3D11_Textures;
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   static auto& Entries_2D  = textures->Entries_2D;
@@ -3580,7 +3580,7 @@ SK_D3D11_ReloadTexture ( ID3D11Texture2D* pTex,
   static auto& textures =
     SK_D3D11_Textures;
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
   HRESULT hr =

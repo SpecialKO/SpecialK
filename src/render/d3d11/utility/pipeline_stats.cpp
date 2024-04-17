@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -39,7 +39,7 @@ SK_D3D11_UpdateRenderStatsEx (const IDXGISwapChain* pSwapChain)
   if (pSwapChain == nullptr)
     return;
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   auto pDev =

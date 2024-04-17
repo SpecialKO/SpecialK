@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -68,7 +68,7 @@ SK_ImGui_IsDrawing_OnD3D11Ctx (UINT dev_idx, ID3D11DeviceContext* pDevCtx)
 {
   if (pDevCtx == nullptr || dev_idx == UINT_MAX)
   {
-    static auto& rb =
+    const SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     pDevCtx =
@@ -96,7 +96,7 @@ SK_ImGui_IsDrawing_OnD3D11Ctx (UINT dev_idx, ID3D11DeviceContext* pDevCtx)
 std::pair <BOOL*, BOOL>
 SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx)
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( dev_idx == UINT_MAX )
@@ -185,7 +185,7 @@ SK_D3D11_ShouldTrackRenderOp ( ID3D11DeviceContext* pDevCtx,
   if (pDevCtx == nullptr)
     return false;
 
-  static const SK_RenderBackend& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( rb.d3d11.immediate_ctx == nullptr ||
@@ -353,7 +353,7 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
     return;
 
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   auto pDev =
@@ -407,7 +407,7 @@ d3d11_shader_tracking_s::activate ( ID3D11DeviceContext        *pDevContext,
 void
 d3d11_shader_tracking_s::deactivate (ID3D11DeviceContext* pDevCtx, UINT dev_idx)
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (dev_idx == UINT_MAX)
@@ -580,7 +580,7 @@ SK_D3D11_ShouldTrackDrawCall ( ID3D11DeviceContext* pDevCtx,
                          const SK_D3D11DrawType     draw_type,
                                UINT                 dev_idx )
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   // Don't let D3D11On12 confuse things

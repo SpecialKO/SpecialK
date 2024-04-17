@@ -541,7 +541,7 @@ SK_IsGameWindowActive (void)
 #if 0
   if (! bActive)
   {
-    static auto &rb =
+    const SK_RenderBackend&
       SK_GetCurrentRenderBackend ();
 
     if ( rb.windows.device.hwnd   != 0 &&

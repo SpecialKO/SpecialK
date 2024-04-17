@@ -22,6 +22,7 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/resource.h>
 
+#include <SpecialK/render/backend.h>
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <SpecialK/render/d3d12/d3d12_interfaces.h>
@@ -3388,7 +3389,7 @@ SK_BeginBufferSwapEx (BOOL bWaitOnFail)
     SK_MMCS_BeginBufferSwap ();
   }
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   static SK_RenderAPI LastKnownAPI =
@@ -3578,7 +3579,7 @@ SK_BackgroundRender_EndFrame (void)
   // Side-effect:  Evaluates Steam AppId Override
   SK_ImGui_WantGamepadCapture ();
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   static bool background_last_frame = false;
@@ -3896,7 +3897,7 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   auto qpcTimeOfSwap =
     SK_QueryPerf ();
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   rb.frame_delta.markFrame ();

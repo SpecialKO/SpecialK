@@ -550,7 +550,7 @@ SK_HDR_UpdateMaxLuminanceForActiveDisplay (bool forced = false)
         (std::wstring (SK_GetInstallPath ()) + LR"(\Global\hdr.ini)").c_str ()
       );
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   static std::wstring
@@ -591,7 +591,7 @@ SK_HDR_DisplayProfilerDialog (bool draw = true)
         (std::wstring (SK_GetInstallPath ()) + LR"(\Global\hdr.ini)").c_str ()
       );
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
   
   if (! draw)
@@ -861,7 +861,7 @@ public:
 
       if ( var->getValuePointer () == &__SK_HDR_AnyKind )
       {
-        static auto& rb =
+        SK_RenderBackend& rb =
           SK_GetCurrentRenderBackend ();
 
         if (! *(bool *)val)
@@ -892,7 +892,7 @@ public:
       {
         __SK_HDR_16BitSwap = *(bool *)val;
 
-        static auto& rb =
+        SK_RenderBackend& rb =
           SK_GetCurrentRenderBackend ();
 
         rb.scanout.colorspace_override = __SK_HDR_16BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 :
@@ -909,7 +909,7 @@ public:
       {
         __SK_HDR_10BitSwap = *(bool *)val;
 
-        static auto& rb =
+        SK_RenderBackend& rb =
           SK_GetCurrentRenderBackend ();
 
         rb.scanout.colorspace_override = __SK_HDR_10BitSwap ? DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 :
@@ -930,7 +930,7 @@ public:
   {
     static bool first_widget_run = true;
 
-    static auto& rb =
+    SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     if ( __SK_HDR_10BitSwap ||
@@ -1137,7 +1137,7 @@ public:
     if (ImGui::GetFont () == nullptr)
       return;
 
-    static auto& rb =
+    SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     static SKTL_BidirectionalHashMap <unsigned char, int>
@@ -2961,7 +2961,7 @@ SK_ImGui_DrawGamut (void)
   ImDrawList* draw_list =
     ImGui::GetWindowDrawList ();
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   struct color_triangle_s {

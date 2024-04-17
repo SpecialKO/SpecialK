@@ -1815,7 +1815,7 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
                                    : L"Locked",
             achievement->name_.c_str () );
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   const bool bIsNativeOrLayeredD3D11 =

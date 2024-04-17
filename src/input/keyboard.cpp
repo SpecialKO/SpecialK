@@ -343,7 +343,7 @@ SHORT
 WINAPI
 SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
 {
-  auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   auto SK_ConsumeVKey = [&](int vKey) ->

@@ -1120,7 +1120,7 @@ SK_MMCS_GetTaskForThreadID (DWORD dwTid, const char* name)
 DWORD
 SK_GetRenderThreadID (void)
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   return

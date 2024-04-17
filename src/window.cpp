@@ -263,7 +263,7 @@ public:
               return TRUE;
             }, 0);
 
-            static auto& rb =
+            SK_RenderBackend_V2& rb =
               SK_GetCurrentRenderBackend ();
 
             // TODO: Use this isntead config.display.monitor_handle in RepositionIfNeeded
@@ -303,7 +303,7 @@ public:
 
         config.display.monitor_handle = 0;
 
-        static auto& rb =
+        SK_RenderBackend_V2& rb =
           SK_GetCurrentRenderBackend ();
 
         UINT highest_idx = 1,
@@ -1009,7 +1009,7 @@ ActivateWindow ( HWND hWnd,
 
   SK_ASSERT_NOT_THREADSAFE ();
 
-  static auto& rb =
+  SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
 
   const bool is_game_window =
@@ -1078,6 +1078,9 @@ ActivateWindow ( HWND hWnd,
 
       bool proposeChange (INT _GPU, DWORD _dwProcess)
       {
+        SK_RenderBackend_V2& rb =
+          SK_GetCurrentRenderBackend ();
+
         SK_ComPtr      <ID3D11Device> pDev11 =
           rb.getDevice <ID3D11Device> ();
         SK_ComPtr      <ID3D12Device> pDev12 =
@@ -3396,7 +3399,7 @@ SK_Window_RepositionIfNeeded (void)
 
         if (dwWaitState == WAIT_OBJECT_0 + 1)
         {
-          static auto& rb =
+          SK_RenderBackend_V2& rb =
             SK_GetCurrentRenderBackend ();
 
           ResetEvent (hSignals [1]);
@@ -3807,7 +3810,7 @@ SK_AdjustWindow (void)
     bool nomove = config.window.offset.isZero       ();
     bool nosize = config.window.res.override.isZero ();
 
-    static SK_RenderBackend& rb =
+    SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     if (! bMultiMonitorMode)
@@ -4928,7 +4931,7 @@ GetForegroundWindow_Detour (void)
 {
   SK_LOG_FIRST_CALL
 
-  static auto& rb =
+  const SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
 
   // This function is hooked before we actually know the game's HWND,
@@ -5296,7 +5299,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     SK_Console::getInstance ()->isVisible ();
 
 
-  static auto& rb =
+  SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
 
   if (hWnd != 0)
@@ -6207,7 +6210,7 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
   game_window.game.style_ex = game_window.actual.style_ex;
 
 
-  static auto& rb =
+  SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
 
   auto& windows =
@@ -6822,7 +6825,7 @@ SK_InstallWindowHook (HWND hWnd)
 
     SK_SetLastError (dwLast);
 
-    static SK_RenderBackend& rb =
+    SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     rb.windows.setFocus  (hWnd);
@@ -8066,7 +8069,7 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
 void
 SK_Window_CreateTopMostFixupThread (void)
 {
-  static auto& rb =
+  const SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
 
 #if 1
@@ -8079,6 +8082,9 @@ SK_Window_CreateTopMostFixupThread (void)
   static SK_AutoHandle _
   ( SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
+      const SK_RenderBackend_V2& rb =
+        SK_GetCurrentRenderBackend ();
+
       while (WaitForSingleObject (__SK_DLL_TeardownEvent, 5000UL) != WAIT_OBJECT_0)
       {
         const bool smart_always_on_top =

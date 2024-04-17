@@ -744,7 +744,7 @@ SK_GetFriendlyAppName (void)
                                               PathFileExistsW (L"../.egstore") ||
                           StrStrIW (SK_GetFullyQualifiedApp (), L"Epic Games");
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   static std::string appcache_name =
@@ -804,9 +804,6 @@ SK_ImGui_ControlPanelTitle (void)
                                                  PathFileExistsW (L".egstore") ||
                                               PathFileExistsW (L"../.egstore") ||
                           StrStrIW (SK_GetFullyQualifiedApp (), L"Epic Games");
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
 
   static bool bTBFix = SK_GetModuleHandle (L"tbfix.dll") != nullptr;
 
@@ -994,7 +991,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     return;
   }
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   struct list_s {
@@ -2258,7 +2255,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 void
 DisplayModeMenu (bool windowed)
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   enum {
@@ -2992,7 +2989,7 @@ extern void SK_Framerate_EnergyControlPanel (void);
 void
 SK_NV_LatencyControlPanel (void)
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! (sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (rb.api)))
@@ -3118,7 +3115,7 @@ SK_NV_GSYNCControlPanel ()
 {
   if (sk::NVAPI::nv_hardware)
   {
-    static auto& rb =
+    SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     SK_RunOnce (rb.gsync_state.disabled.for_app = !SK_NvAPI_GetVRREnablement ());
@@ -3173,7 +3170,7 @@ SK_ImGui_ControlPanel (void)
   auto& io =
     ImGui::GetIO ();
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_TLS *pTLS =
@@ -5239,18 +5236,101 @@ SK_ImGui_ControlPanel (void)
         ImGui::BeginGroup ();
         ImGui::BeginGroup ();
 
+        static bool bRefreshRateChanged = false;
+        static bool bDisplayChanged     = false;
+
+        const double dRefreshRate =
+          static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
+          static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator);
+
+        if ( config.render.framerate.last_refresh_rate != 0.0f &&
+             ( config.render.framerate.last_refresh_rate > dRefreshRate + 0.1 ||
+               config.render.framerate.last_refresh_rate < dRefreshRate - 0.1 ) )
+        {
+          bRefreshRateChanged = true;
+        }
+
+        else
+        if (            (! config.render.framerate.last_monitor_path.empty ()) &&
+            0 != _wcsicmp (config.render.framerate.last_monitor_path.c_str (), rb.displays [rb.active_display].path_name))
+        {
+          bDisplayChanged = true;
+        }
+
+        if (bRefreshRateChanged)
+        {
+          ImGui::TextColored (ImVec4 (1.f, .9f, .1f, 1.f), ICON_FA_QUESTION_CIRCLE);
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip (
+              "Your display's refresh rate is different than when you last set this framerate limit, confirm the limit is correct by setting a new value."
+            );
+          }
+
+          ImGui::SameLine    ();
+        }
+
+        else if (bDisplayChanged)
+        {
+          ImGui::TextColored (ImVec4 (1.f, .9f, .1f, 1.f), ICON_FA_QUESTION_CIRCLE);
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip (
+              "Your active display device is different than when you last set this framerate limit, confirm the limit is correct by setting a new value."
+            );
+          }
+
+          ImGui::SameLine    ();
+        }
+
         if (ImGui::Checkbox ("Framerate Limit", &limit))
         {
+          if (bRefreshRateChanged || bDisplayChanged)
+          {
+            double dVRROptimalFPS =
+              ( config.render.framerate.last_refresh_rate -
+               (config.render.framerate.last_refresh_rate *
+                config.render.framerate.last_refresh_rate) / 3600.0 );
+
+            if ( ( config.render.framerate.target_fps <=  config.render.framerate.last_refresh_rate + 0.1f && 
+                   config.render.framerate.target_fps >=  config.render.framerate.last_refresh_rate - 0.1f )
+              || ( config.render.framerate.target_fps <= dVRROptimalFPS + 0.1f &&
+                   config.render.framerate.target_fps >= dVRROptimalFPS - 0.1f ) 
+              || ( config.render.framerate.target_fps <= dVRROptimalFPS - 0.005 * dVRROptimalFPS + 0.1f &&
+                   config.render.framerate.target_fps >= dVRROptimalFPS - 0.005 * dVRROptimalFPS - 0.1f ) )
+            {
+              // Re-apply AutoVRR
+              if ( config.render.framerate.auto_low_latency.triggered ||
+                   config.render.framerate.auto_low_latency.policy.global_opt )
+              {
+                config.render.framerate.auto_low_latency.triggered = false;
+                config.render.framerate.auto_low_latency.waiting   = true;
+              }
+
+              __target_fps = 0.0f;
+            }
+          }
+
           if (__target_fps != 0.0f) // Negative zero... it exists and we don't want it.
               __target_fps = -__target_fps;
 
           if (__target_fps == 0.0f)
           {
             __target_fps =
-              static_cast <float> (SK_GetCurrentRenderBackend ().windows.device.getDevCaps ().res.refresh);
+              static_cast <float> (dRefreshRate);
           }
 
-          config.render.framerate.target_fps = __target_fps;
+          config.render.framerate.target_fps        = __target_fps;
+          config.render.framerate.last_refresh_rate = 
+            static_cast <float> (dRefreshRate);
+          config.render.framerate.last_monitor_path = rb.displays [rb.active_display].path_name;
+
+          bRefreshRateChanged = false;
+          bDisplayChanged     = false;
+
+          config.utility.save_async ();
         }
 
         float fps_slider_width    = 0.0f;
@@ -6264,6 +6344,12 @@ SK_ImGui_ControlPanel (void)
                   ImGui::SetTooltip ("Controls whether games automatically use this feature");
 
                 vrr_changed |=
+                  ImGui::Checkbox ("Reapply If Refresh Rate Changes", &config.render.framerate.auto_low_latency.policy.auto_reapply);
+
+                if (ImGui::IsItemHovered ())
+                  ImGui::SetTooltip ("Framerate limit will be re-optimized when monitors or their refresh rates change");
+
+                vrr_changed |=
                   ImGui::Checkbox ("Ultra Low-Latency", &config.render.framerate.auto_low_latency.policy.ultra_low_latency);
 
                 if (ImGui::IsItemHovered ())
@@ -7113,7 +7199,7 @@ SK_ImGui_StageNextFrame (void)
   if (imgui_staged)
     return;
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   // Excessively long frames from things like toggling the Steam overlay
@@ -8115,7 +8201,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     ImGui::NewFrame ();
   }
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   // Popup Windows, actually
@@ -8212,9 +8298,6 @@ SK_ImGui_Toggle (void)
     current_time  = SK_timeGetTime    ();
     last_frame    = SK_GetFramesDrawn ();
   }
-
-  static SK_RenderBackend& rb =
-    SK_GetCurrentRenderBackend ();
 
   SK_ImGui_Visible = (! SK_ImGui_Visible);
 
@@ -8405,7 +8488,7 @@ SK_ImGui_Toggle (void)
 void
 SK_Display_UpdateOutputTopology (void)
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   rb.updateOutputTopology ();

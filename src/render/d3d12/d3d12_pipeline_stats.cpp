@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -238,7 +238,7 @@ void
 __stdcall
 SK_D3D12_UpdateRenderStatsEx (ID3D12GraphicsCommandList *pList, IDXGISwapChain3 *pSwapChain)
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ReleaseAssert (rb.api == SK_RenderAPI::D3D12);

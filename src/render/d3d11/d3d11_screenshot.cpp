@@ -315,7 +315,7 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
 
   if (pDev != nullptr)
   {
-    static SK_RenderBackend& rb =
+    SK_RenderBackend_V2 &rb =
       SK_GetCurrentRenderBackend ();
 
     auto pTestDev =
@@ -1071,7 +1071,7 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
                               bool               allow_sound = true,
                               std::string        title       = "" )
 {
-  static const SK_RenderBackend_V2& rb =
+  const SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( ((int)rb.api & (int)SK_RenderAPI::D3D11)
@@ -1141,7 +1141,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                     bool               wait   = false,
                                     bool               purge  = false )
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   constexpr int __MaxStage = ARRAYSIZE (SK_ScreenshotQueue::stages) - 1;
@@ -1257,6 +1257,9 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
     hWriteThread =
     SK_Thread_CreateEx ([](LPVOID) -> DWORD
     {
+      SK_RenderBackend& rb =
+        SK_GetCurrentRenderBackend ();
+
       SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_NORMAL );
 
       do
@@ -1739,6 +1742,9 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
             if (InterlockedCompareExchangePointer (&hThread, 0, INVALID_HANDLE_VALUE) == INVALID_HANDLE_VALUE)
             {                                     SK_Thread_CreateEx ([](LPVOID pUser)->DWORD {
+              SK_RenderBackend& rb =
+                SK_GetCurrentRenderBackend ();
+
               concurrency::concurrent_queue <SK_Screenshot::framebuffer_s *>*
                 images_to_write =
                   (concurrency::concurrent_queue <SK_Screenshot::framebuffer_s *>*)pUser;

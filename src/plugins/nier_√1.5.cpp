@@ -712,7 +712,7 @@ SK_NIER_RAD_FramerateCpl (void)
     }
   }
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   auto* pLimiter =

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -223,7 +223,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
     }
   };
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   bool early_out =
@@ -2177,7 +2177,7 @@ const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView
   if (! registrant)
     return;
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( blacklist.find (shader) !=
@@ -2914,7 +2914,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
             if ( pRes != nullptr &&
                  pTex != nullptr )
             {
-              static auto& rb =
+              const SK_RenderBackend& rb =
                 SK_GetCurrentRenderBackend ();
 
               auto pDev =

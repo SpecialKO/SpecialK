@@ -316,7 +316,7 @@ SK::D3D9::VertexBufferTracker::clear (void)
 void
 SK::D3D9::VertexBufferTracker::use (void)
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! rb.device)
@@ -1549,7 +1549,7 @@ __inline
 bool
 SK_D3D9_ShouldProcessPresentCall (SK_D3D9_PresentSource Source)
 {
-  static const auto& rb =
+  const SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.api == SK_RenderAPI::Reserved)
@@ -1719,7 +1719,7 @@ SK_D3D9_Present_GrandCentral ( sk_d3d9_swap_dispatch_s* dispatch )
 
 
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
 
@@ -9605,7 +9605,7 @@ SK_D3D9_EndScene (void)
 void
 SK_D3D9_EndFrame (void)
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   static auto& _Shaders    = Shaders.get    ();
@@ -9680,7 +9680,7 @@ __declspec (noinline)
 bool
 SK_D3D9_ShouldSkipRenderPass (D3DPRIMITIVETYPE /*PrimitiveType*/, UINT/* PrimitiveCount*/, UINT /*StartVertex*/, bool& wireframe)
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.device == nullptr)

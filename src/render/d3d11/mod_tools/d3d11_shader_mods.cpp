@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -262,7 +262,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
     SK_D3D11_DeclareTexInjectScope (pTLS)
   );
 
-  static SK_RenderBackend_V2& rb =
+  const SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
 
   std::scoped_lock < SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,

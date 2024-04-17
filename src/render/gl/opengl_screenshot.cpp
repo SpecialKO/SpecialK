@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -115,9 +115,6 @@ SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice, bool allow_sound, bool 
 
   if (hDevice != nullptr && bValidColorDepth)
   {
-    static SK_RenderBackend& rb =
-      SK_GetCurrentRenderBackend ();
-
     framebuffer.Width               = static_cast <UINT> (io.DisplaySize.x);
     framebuffer.Height              = static_cast <UINT> (io.DisplaySize.y);
     framebuffer.opengl.NativeFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -383,7 +380,7 @@ SK_GL_CaptureScreenshot  ( SK_ScreenshotStage when =
                            bool               allow_sound = true,
                            std::string        title       = "" )
 {
-  static const SK_RenderBackend_V2& rb =
+  const SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( ((int)rb.api & (int)SK_RenderAPI::OpenGL)
@@ -439,9 +436,6 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
                                  bool               wait   = false,
                                  bool               purge  = false )
 {
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
   constexpr int __MaxStage = ARRAYSIZE (SK_ScreenshotQueue::stages) - 1;
   const     int      stage =
     sk::narrow_cast <int> (stage_);
@@ -551,6 +545,9 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
     hWriteThread =
     SK_Thread_CreateEx ([](LPVOID) -> DWORD
     {
+      SK_RenderBackend& rb =
+        SK_GetCurrentRenderBackend ();
+
       SetThreadPriority ( SK_GetCurrentThread (), THREAD_PRIORITY_NORMAL );
 
       do
@@ -978,6 +975,9 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
 
             if (InterlockedCompareExchangePointer (&hThread, 0, INVALID_HANDLE_VALUE) == INVALID_HANDLE_VALUE)
             {                                     SK_Thread_CreateEx ([](LPVOID pUser)->DWORD {
+              SK_RenderBackend& rb =
+                SK_GetCurrentRenderBackend ();
+
               concurrency::concurrent_queue <SK_Screenshot::framebuffer_s *>*
                 images_to_write =
                   (concurrency::concurrent_queue <SK_Screenshot::framebuffer_s *>*)pUser;

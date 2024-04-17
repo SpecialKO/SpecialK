@@ -413,7 +413,7 @@ SK_DQXI_PlugInCfg (void)
   ////iSK_INI* pINI =
   ////  SK_GetDLLConfig ();
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( ImGui::CollapsingHeader (

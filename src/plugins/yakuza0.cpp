@@ -1276,7 +1276,7 @@ SK_Yakuza0_PlugInCfg (void)
                               &config.screenshots.png_compress      );
         }
 
-        static auto& rb =
+        SK_RenderBackend& rb =
           SK_GetCurrentRenderBackend ();
 
         if ( rb.screenshot_mgr->getRepoStats ().files > 0 )

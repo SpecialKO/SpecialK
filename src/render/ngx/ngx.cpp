@@ -81,7 +81,7 @@ NVSDK_NGX_Parameter_SetF_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
 
   if (!_stricmp (InName, NVSDK_NGX_Parameter_FrameTimeDeltaInMsec))
   {
-    static auto &rb =
+    const SK_RenderBackend_V2 &rb =
       SK_GetCurrentRenderBackend ();
 
     const double dFrameTimeDeltaInMsec =
@@ -1379,7 +1379,7 @@ SK_NGX_DLSS_ControlPanel (void)
 
           if (ImGui::BeginPopup ("DLSS_PerfQuality_Popup"))
           {
-            static auto& rb =
+            const SK_RenderBackend& rb =
               SK_GetCurrentRenderBackend ();
 
             SK_ComQIPtr <IDXGISwapChain>

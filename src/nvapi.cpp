@@ -658,7 +658,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
       NvAPI_Disp_HdrColorControl_Original (displayId, pHdrColorData);
   }
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   static NV_HDR_COLOR_DATA_V2  expandedData = { };
@@ -1183,7 +1183,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 void
 SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDisplayHandle nv_disp, NvU32 tNow) noexcept
 {
-  auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   //

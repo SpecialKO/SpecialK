@@ -919,13 +919,14 @@ SK_ImGui_DrawGraph_FramePacing (void)
                            ( 1000.0f   / (ffx ? 30.0f : 60.0f) ) :
                              ( 1000.0f / fabs (target) );
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (target == 0.0f && (! ffx))
   {
     target_frametime = (float)(1000.0 /
-      rb.windows.device.getDevCaps ().res.refresh);
+      (static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) / 
+       static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator)) );
   }
 
   float frames =

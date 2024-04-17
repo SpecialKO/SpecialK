@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1042,7 +1042,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
       else if (  keybind == &config.monitors.monitor_primary_keybind )
       {
-        static auto& rb =
+        const SK_RenderBackend& rb =
           SK_GetCurrentRenderBackend ();
 
         for ( auto& display : rb.displays )
@@ -1070,7 +1070,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
       else if (  keybind == &config.monitors.monitor_toggle_hdr )
       {
-        static auto& rb =
+        SK_RenderBackend& rb =
           SK_GetCurrentRenderBackend ();
 
         if (rb.displays [rb.active_display].hdr.supported)

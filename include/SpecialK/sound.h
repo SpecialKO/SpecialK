@@ -477,7 +477,7 @@ public:
   size_t             getNumCaptureEndpoints (DWORD dwState = DEVICE_STATEMASK_ALL);
   SK_MMDev_Endpoint& getCaptureEndpoint     (UINT idx);
 
-  bool setPersistedDefaultAudioEndpoint (int pid, EDataFlow flow, std::wstring_view deviceId, bool force = false)
+  bool setPersistedDefaultAudioEndpoint (int pid, EDataFlow flow, const std::wstring_view deviceId, bool force = false) const
   {
     if (policy_cfg_factory == nullptr)
       return false;
@@ -490,7 +490,7 @@ public:
       fullDeviceId =
         SK_MMDev_Endpoint::getDeviceId (flow, deviceId.data ());
 
-      auto hr =
+      const auto hr =
         WindowsCreateString ( fullDeviceId.c_str  (),
                       (UINT32)fullDeviceId.length (), &hDeviceId );
 

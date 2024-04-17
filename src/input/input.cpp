@@ -565,7 +565,7 @@ SK_Input_Init (void)
 void
 SK_Input_SetLatencyMarker (void) noexcept
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
                   DWORD64 ulFramesDrawn =

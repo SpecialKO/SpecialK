@@ -1560,7 +1560,7 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
           {
             if (LOWORD (wParam & 0xFFF0) == SC_SCREENSAVE)
             {
-              static auto& rb =
+              const SK_RenderBackend& rb =
                 SK_GetCurrentRenderBackend ();
 
               auto& display =

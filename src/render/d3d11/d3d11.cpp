@@ -771,9 +771,6 @@ void
 SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
                      D3D_FEATURE_LEVEL        FeatureLevel )
 {
-  static SK_RenderBackend_V2& rb =
-    SK_GetCurrentRenderBackend ();
-
   if (ppDevice != nullptr)
   {
     if (*ppDevice != g_pD3D11Dev)
@@ -3009,7 +3006,7 @@ SK_D3D11_DrawHandler ( ID3D11DeviceContext  *pDevCtx,
   std::ignore = draw_type;
   std::ignore = num_verts;
 
-  static SK_RenderBackend& rb =
+  SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
 
   static auto game_type = SK_GetCurrentGameID ();
@@ -4180,10 +4177,10 @@ SK_D3D11_IgnoreWrappedOrDeferred ( bool                 bWrapped,
       return true;
   }
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  if ((! bWrapped) && ( pDevCtx != rb.d3d11.immediate_ctx && !config.reshade.is_addon)) [[unlikely]]
+  if ((! bWrapped) && ( rb.d3d11.immediate_ctx == nullptr || (pDevCtx != rb.d3d11.immediate_ctx && !config.reshade.is_addon))) [[unlikely]]
   {
     if ( rb.d3d11.immediate_ctx == nullptr ||
          rb.device.p            == nullptr )
@@ -4547,7 +4544,7 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
 #endif
     // -------------------------------------------------------
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_TLS *pTLS  = nullptr;
@@ -4759,7 +4756,7 @@ SK_D3D11_DrawIndexed_Impl (
     return _Finish ();
   }
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   static auto& shaders =
@@ -5448,7 +5445,7 @@ D3D11Dev_CreateTexture2D1_Impl (
                     LPVOID                   lpCallerAddr,
                     SK_TLS                  *pTLS )
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComPtr <IUnknown>                                      pD3D11On12Device;
@@ -6632,7 +6629,7 @@ D3D11Dev_CreateTexture2D_Impl (
                                      SK_ImGui_Toast::ShowTitle   |
                                      SK_ImGui_Toast::ShowCaption );
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComPtr <IUnknown>                                      pD3D11On12Device;
@@ -9359,7 +9356,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   Flags =
     SK_D3D11_MakeDebugFlags (Flags);
 
-  static SK_RenderBackend_V2& rb =
+  SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
 
   // Even if the game doesn't care about the feature level, we do.
@@ -10245,10 +10242,10 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
     return;
   }
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  static auto& shaders =
+  auto& shaders =
     SK_D3D11_Shaders;
 
   dwFrameTime = SK::ControlPanel::current_time;
