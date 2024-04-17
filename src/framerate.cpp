@@ -275,18 +275,16 @@ void SK_LatentSync_EndSwap (void) noexcept
 
 bool SK_LatentSync_SupportsFrameSkipping (SK_RenderAPI api)
 {
-  if (SK_GL_OnD3D11)
+  if (SK_API_IsLayeredOnD3D12 (api) || SK_GL_OnD3D11)
   {
     return false;
   }
 
   return
-    ( config.render.dxgi.allow_d3d12_footguns &&
-      SK_API_IsLayeredOnD3D12           (api)  ) ||
-    ( SK_API_IsLayeredOnD3D11           (api)  ) ||
-    ( SK_API_IsLayeredOnD3D10           (api)  ) ||
-    ( SK_API_IsDirect3D9                (api)  ) ||
-    ( SK_API_IsGDIBased                 (api)  );
+    SK_API_IsLayeredOnD3D11 (api) ||
+    SK_API_IsLayeredOnD3D10 (api) ||
+    SK_API_IsDirect3D9      (api) ||
+    SK_API_IsGDIBased       (api);
 }
 
 
@@ -1978,54 +1976,10 @@ SK::Framerate::Limiter::wait (void)
         (1000.0 / get_limit           ()) -
                   effective_frametime ();
 
-      static SK_PresentMode lastPresentMode = rb.presentation.mode;
+      bool bIsFpsUnstable = latency_avg.getInput () < 0.0;
 
-      auto _IsComposedPresent = [](const SK_PresentMode& mode)
-      {
-        return
-          mode == SK_PresentMode::Composed_Composition_Atlas ||
-          mode == SK_PresentMode::Composed_Copy_GPU_GDI      ||
-          mode == SK_PresentMode::Composed_Copy_CPU_GDI      ||
-          mode == SK_PresentMode::Composed_Flip;
-      };
-
-      bool bIsComposedPresent  = _IsComposedPresent (
-        rb.presentation.mode
-      );
-
-      bool bWasComposedPresent = _IsComposedPresent (
-        std::exchange (
-          lastPresentMode,
-          rb.presentation.mode
-        )
-      );
-
-      bool bIsFpsUnstable = latency_avg.getInput () < 0.1;
-
-      // Assume that Render Latency exceeds 1 frame if
-      // DXGI / PresentMon stats are unavailable and FPS is unstable
-      bool bRenderLatencyExceedsOneFrame = bIsFpsUnstable;
-
-      if (! SK_RenderBackend_V2::latency.stale)
-      {
-        bRenderLatencyExceedsOneFrame =
-          SK_RenderBackend_V2::latency.delays.PresentQueue > 1;
-      }
-
-      else if (bIsComposedPresent)
-      {
-        bRenderLatencyExceedsOneFrame = true;
-      }
-
-      else if (rb.presentation.avg_stats.display != 0.0)
-      {
-        bRenderLatencyExceedsOneFrame =
-          rb.presentation.avg_stats.latency /
-          rb.presentation.avg_stats.display > 1.9;
-      }
-
-      // Disable frame skipping in 2x.. mode if FPS is unstable or Render Latency exceeds 1 frame
-      if (bIsFpsUnstable || bRenderLatencyExceedsOneFrame)
+      // Disable frame skipping in 2x.. mode if FPS is unstable
+      if (bIsFpsUnstable)
       {
         __SK_LatentSyncSkip = 0;
       }
@@ -2050,7 +2004,7 @@ SK::Framerate::Limiter::wait (void)
         // Prefer tearing, only disable tearing if FPS is unstable
         case SK_TearingMode::LatentSync_AdaptiveOn:
         {
-          _ToggleTearing (latency_avg.getInput () > 0.0);
+          _ToggleTearing (! bIsFpsUnstable);
         } break;
 
         // Prefer no tearing, only enable tearing if FPS is unstable or Render Latency exceeds 1 frame
@@ -2059,6 +2013,28 @@ SK::Framerate::Limiter::wait (void)
         // Prefer VSync On, only turn VSync Off if FPS is unstable or Render Latency exceeds 1 frame
         case SK_TearingMode::AdaptiveVSync:
         {
+          static SK_PresentMode lastPresentMode = rb.presentation.mode;
+
+          auto _IsComposedPresent = [](const SK_PresentMode& mode)
+          {
+            return
+              mode == SK_PresentMode::Composed_Composition_Atlas ||
+              mode == SK_PresentMode::Composed_Copy_GPU_GDI      ||
+              mode == SK_PresentMode::Composed_Copy_CPU_GDI      ||
+              mode == SK_PresentMode::Composed_Flip;
+          };
+
+          bool bIsComposedPresent  = _IsComposedPresent (
+            rb.presentation.mode
+          );
+
+          bool bWasComposedPresent = _IsComposedPresent (
+            std::exchange (
+              lastPresentMode,
+              rb.presentation.mode
+            )
+          );
+
           // 2x.. mode with Tearing Off and "PreRenderLimit > 1" would constantly
           // enable <-> disable tearing because Render Latency is always above 1 frame
           // -
@@ -2070,7 +2046,11 @@ SK::Framerate::Limiter::wait (void)
             _ToggleTearing (
               ( rb.presentation.avg_stats.display != 0.0 &&
                 rb.presentation.avg_stats.latency /
-                rb.presentation.avg_stats.display >  1.7  ) ||
+                rb.presentation.avg_stats.display >
+                (
+                  __SK_LatentSyncSkip >= 2 ? 2.7
+                                           : 1.7
+                )                                         ) ||
               ( bIsComposedPresent                        ) ||
               ( bIsFpsUnstable                            )
             );
@@ -2100,6 +2080,28 @@ SK::Framerate::Limiter::wait (void)
           if (! bDisableTearingAndWait)
           {
             waitFrames = 0;
+          }
+
+          // Assume that Render Latency exceeds 1 frame if
+          // DXGI / PresentMon stats are unavailable and FPS is unstable
+          bool bRenderLatencyExceedsOneFrame = bIsFpsUnstable;
+
+          if (! SK_RenderBackend_V2::latency.stale)
+          {
+            bRenderLatencyExceedsOneFrame =
+              SK_RenderBackend_V2::latency.delays.PresentQueue > 1;
+          }
+
+          else if (bIsComposedPresent)
+          {
+            bRenderLatencyExceedsOneFrame = true;
+          }
+
+          else if (rb.presentation.avg_stats.display != 0.0)
+          {
+            bRenderLatencyExceedsOneFrame =
+              rb.presentation.avg_stats.latency /
+              rb.presentation.avg_stats.display > 1.9;
           }
 
           if (bRenderLatencyExceedsOneFrame)
