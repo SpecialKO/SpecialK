@@ -1,5 +1,7 @@
 ﻿24.4.17.2
 =========
+ + Added OBS's hook caching executables (get-graphics-offsets{32|64}.exe)
+     to SK's internal injection blacklist.
  + Added support for XInput Emulation for PlayStation controllers in games
      that use Windows.Gaming.Input (mostly Microsoft Store games).
 

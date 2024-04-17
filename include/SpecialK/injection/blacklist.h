@@ -159,6 +159,10 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"chronocross_launcher.exe",
   L"wrath-epic.exe",  // 32-bit Launcher  (EGS)
   L"wrath-steam.exe", // 32-bit Launcher  (Steam)
+
+  // OBS Stuff
+  L"get-graphics-offsets32.exe",
+  L"obs32.exe",
 #endif
 
   L"postcrashdump.exe",
@@ -279,5 +283,6 @@ static constexpr constexpr_module_s::list_type __blacklist = {
 
   // OBS Stuff
   L"obs-browser-page.exe",
+  L"get-graphics-offsets64.exe",
   L"obs64.exe"
 };
