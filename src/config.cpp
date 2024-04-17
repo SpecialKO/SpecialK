@@ -812,6 +812,8 @@ struct {
   struct {
     sk::ParameterStringW* target_fps              = nullptr;
     sk::ParameterStringW* target_fps_bg           = nullptr;
+    sk::ParameterFloat*   last_refresh_rate       = nullptr;
+    sk::ParameterStringW* last_monitor_path       = nullptr;
     sk::ParameterInt*     prerender_limit         = nullptr;
     sk::ParameterInt*     present_interval        = nullptr;
     sk::ParameterInt*     sync_interval_clamp     = nullptr;
@@ -834,6 +836,7 @@ struct {
     sk::ParameterBool*    auto_vrr_triggered      = nullptr;
     sk::ParameterBool*    auto_low_latency_ex     = nullptr;
     sk::ParameterBool*    auto_low_latency_optin  = nullptr;
+    sk::ParameterBool*    auto_low_latency_reapply= nullptr;
     sk::ParameterBool*    enable_etw_tracing      = nullptr;
     sk::ParameterBool*    use_amd_mwaitx          = nullptr;
 
@@ -1745,6 +1748,8 @@ auto DeclKeybind =
 
     ConfigEntry (render.framerate.target_fps,            L"Framerate Target (negative signed values are non-limiting)",dll_ini,         L"Render.FrameRate",      L"TargetFPS"),
     ConfigEntry (render.framerate.target_fps_bg,         L"Framerate Target (window in background;  0.0 = same as fg)",dll_ini,         L"Render.FrameRate",      L"BackgroundFPS"),
+    ConfigEntry (render.framerate.last_refresh_rate,     L"Refresh rate the last time framerate limit was configured.",dll_ini,         L"Render.FrameRate",      L"LastRefreshRate"),
+    ConfigEntry (render.framerate.last_monitor_path,     L"The monitor the last time framerate limit was configured.", dll_ini,         L"Render.FrameRate",      L"LastMonitorPath"),
     ConfigEntry (render.framerate.wait_for_vblank,       L"Limiter Will Wait for VBLANK",                              dll_ini,         L"Render.FrameRate",      L"WaitForVBLANK"),
     ConfigEntry (render.framerate.buffer_count,          L"Number of Backbuffers in the Swapchain",                    dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
     ConfigEntry (render.framerate.present_interval,      L"Presentation Interval (VSYNC)",                             dll_ini,         L"Render.FrameRate",      L"PresentationInterval"),
@@ -1780,6 +1785,8 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.auto_vrr_triggered,    L"Indicates that Auto VRR activated and has turned off",      dll_ini,         L"Render.DXGI",           L"AutoLowLatencyTriggered"),
     ConfigEntry (render.framerate.auto_low_latency_ex,   L"Auto Low-Latency Mode may add stutter to get lower latency",input_ini,       L"Input.AutoLowLatency",  L"UltraLowLatency"),
     ConfigEntry (render.framerate.auto_low_latency_optin,L"Global policy applied when starting a game the first time", input_ini,       L"Input.AutoLowLatency",  L"DefaultPolicy"),
+    ConfigEntry (render.framerate.
+                                auto_low_latency_reapply,L"Global policy to reapply AutoVRR if display/refresh change",input_ini,       L"Input.AutoLowLatency",  L"AutoReapply"),
 
     ConfigEntry (nvidia.reflex.enable,                   L"Enable NVIDIA Reflex Integration w/ SK's limiter",          dll_ini,         L"NVIDIA.Reflex",         L"Enable"),
     ConfigEntry (nvidia.reflex.low_latency,              L"Low Latency Mode",                                          dll_ini,         L"NVIDIA.Reflex",         L"LowLatency"),
@@ -3864,6 +3871,8 @@ auto DeclKeybind =
     }
   }
 
+  render.framerate.last_refresh_rate->load    (config.render.framerate.last_refresh_rate);
+  render.framerate.last_monitor_path->load    (config.render.framerate.last_monitor_path);
   render.framerate.sleepless_render->load     (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->load     (config.render.framerate.sleepless_window);
   render.framerate.enable_mmcss->load         (config.render.framerate.enable_mmcss);
@@ -4046,6 +4055,8 @@ auto DeclKeybind =
   render.framerate.drop_late_frames->load  (config.render.framerate.drop_late_flips);
   render.framerate.auto_low_latency_optin->
                                      load  (config.render.framerate.auto_low_latency.policy.global_opt);
+  render.framerate.
+             auto_low_latency_reapply->load(config.render.framerate.auto_low_latency.policy.auto_reapply);
 
   bool auto_low_latency_preset =
   render.framerate.auto_low_latency->load  (config.render.framerate.auto_low_latency.waiting);
@@ -5895,7 +5906,6 @@ SK_SaveConfig ( std::wstring name,
     }
   }
 
-//if (close_config)
   wchar_t   wszTargetFps   [16] = { };
   wchar_t   wszTargetFpsBg [16] = { };
   swprintf (wszTargetFps,   L"%f", config.render.framerate.target_fps);
@@ -5903,6 +5913,8 @@ SK_SaveConfig ( std::wstring name,
 
   render.framerate.target_fps->store         (wszTargetFps);//__target_fps);
   render.framerate.target_fps_bg->store      (wszTargetFpsBg);//__target_fps_bg);
+  render.framerate.last_monitor_path->store  (config.render.framerate.last_monitor_path);
+  render.framerate.last_refresh_rate->store  (config.render.framerate.last_refresh_rate);
   render.framerate.sleepless_render->store   (config.render.framerate.sleepless_render);
   render.framerate.sleepless_window->store   (config.render.framerate.sleepless_window);
   render.framerate.enable_mmcss->store       (config.render.framerate.enable_mmcss);
@@ -5994,10 +6006,11 @@ SK_SaveConfig ( std::wstring name,
       nvidia.sli.override->store                    (config.nvidia.sli.override);
     }
 
-    render.framerate.auto_low_latency->store      (config.render.framerate.auto_low_latency.waiting);
-    render.framerate.auto_vrr_triggered->store    (config.render.framerate.auto_low_latency.triggered);
-    render.framerate.auto_low_latency_ex->store   (config.render.framerate.auto_low_latency.policy.ultra_low_latency);
-    render.framerate.auto_low_latency_optin->store(config.render.framerate.auto_low_latency.policy.global_opt);
+    render.framerate.auto_low_latency->store        (config.render.framerate.auto_low_latency.waiting);
+    render.framerate.auto_vrr_triggered->store      (config.render.framerate.auto_low_latency.triggered);
+    render.framerate.auto_low_latency_ex->store     (config.render.framerate.auto_low_latency.policy.ultra_low_latency);
+    render.framerate.auto_low_latency_optin->store  (config.render.framerate.auto_low_latency.policy.global_opt);
+    render.framerate.auto_low_latency_reapply->store(config.render.framerate.auto_low_latency.policy.auto_reapply);
 
     if (  SK_IsInjected ()                       ||
         ( SK_GetDLLRole () & DLL_ROLE::DInput8 ) ||

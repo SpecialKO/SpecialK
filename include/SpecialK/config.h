@@ -595,6 +595,9 @@ struct sk_config_t
     struct framerate_s {
       float   target_fps          =  0.0F;
       float   target_fps_bg       =  0.0F;
+      float   last_refresh_rate   =  0.0F;
+      std::wstring
+              last_monitor_path   =   L"";
       int     override_num_cpus   = SK_NoPreference;
       int     pre_render_limit    = SK_NoPreference;
       int     present_interval    = SK_NoPreference;
@@ -626,6 +629,7 @@ struct sk_config_t
         struct {
          bool ultra_low_latency   = false; // VRR auto-optimization goes further (potential stutter)
          bool global_opt          =  true; // Opt-In for Auto Low Latency as default policy
+         bool auto_reapply        =  true; // Opt-In to have Auto Low Latency re-apply if display / refresh rate changes
         } policy;
       } auto_low_latency;
       bool    enable_etw_tracing  =  true;

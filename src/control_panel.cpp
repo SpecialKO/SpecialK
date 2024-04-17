@@ -5219,18 +5219,102 @@ SK_ImGui_ControlPanel (void)
         ImGui::BeginGroup ();
         ImGui::BeginGroup ();
 
-        if (ImGui::Checkbox ("Framerate Limit", &limit))
+        static bool bRefreshRateChanged = false;
+        static bool bDisplayChanged     = false;
+
+        if ( config.render.framerate.last_refresh_rate != 0.0f &&
+             ( config.render.framerate.last_refresh_rate > rb.getActiveRefreshRate () + 0.1 ||
+               config.render.framerate.last_refresh_rate < rb.getActiveRefreshRate () - 0.1 ) )
         {
+          bRefreshRateChanged = true;
+        }
+
+        else
+        if (            (! config.render.framerate.last_monitor_path.empty ()) &&
+            0 != _wcsicmp (config.render.framerate.last_monitor_path.c_str (), rb.displays [rb.active_display].path_name))
+        {
+          bDisplayChanged = true;
+        }
+
+        if (bRefreshRateChanged)
+        {
+          ImGui::TextColored (ImVec4 (1.f, .9f, .1f, 1.f), ICON_FA_QUESTION_CIRCLE);
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip (
+              "Your display's refresh rate is different than when you last set this framerate limit, confirm the limit is correct by setting a new value."
+            );
+          }
+
+          ImGui::SameLine    ();
+        }
+
+        else if (bDisplayChanged)
+        {
+          ImGui::TextColored (ImVec4 (1.f, .9f, .1f, 1.f), ICON_FA_QUESTION_CIRCLE);
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip (
+              "Your active display device is different than when you last set this framerate limit, confirm the limit is correct by setting a new value."
+            );
+          }
+
+          ImGui::SameLine    ();
+        }
+
+        const bool bAutoVRRIsStale =
+          (rb.displays [rb.active_display].nvapi.vrr_enabled == 1) && (bRefreshRateChanged || bDisplayChanged);
+
+        if (ImGui::Checkbox ("Framerate Limit", &limit) || (bAutoVRRIsStale && config.render.framerate.auto_low_latency.policy.auto_reapply &&
+                                                                             ( config.render.framerate.auto_low_latency.triggered ||
+                                                                               config.render.framerate.auto_low_latency.policy.global_opt )))
+        {
+          if (bRefreshRateChanged || bDisplayChanged)
+          {
+            double dVRROptimalFPS =
+              ( config.render.framerate.last_refresh_rate -
+               (config.render.framerate.last_refresh_rate *
+                config.render.framerate.last_refresh_rate) / 3600.0 );
+
+            if ( ( config.render.framerate.target_fps <=  config.render.framerate.last_refresh_rate + 0.1f && 
+                   config.render.framerate.target_fps >=  config.render.framerate.last_refresh_rate - 0.1f )
+              || ( config.render.framerate.target_fps <= dVRROptimalFPS + 0.1f &&
+                   config.render.framerate.target_fps >= dVRROptimalFPS - 0.1f ) 
+              || ( config.render.framerate.target_fps <= dVRROptimalFPS - 0.005 * dVRROptimalFPS + 0.1f &&
+                   config.render.framerate.target_fps >= dVRROptimalFPS - 0.005 * dVRROptimalFPS - 0.1f ) )
+            {
+              // Re-apply AutoVRR
+              if ( config.render.framerate.auto_low_latency.triggered ||
+                   config.render.framerate.auto_low_latency.policy.global_opt )
+              {
+                config.render.framerate.auto_low_latency.triggered = false;
+                config.render.framerate.auto_low_latency.waiting   = true;
+              }
+
+              __target_fps = 0.0f;
+            }
+          }
+
           if (__target_fps != 0.0f) // Negative zero... it exists and we don't want it.
               __target_fps = -__target_fps;
 
           if (__target_fps == 0.0f)
           {
             __target_fps =
-              static_cast <float> (SK_GetCurrentRenderBackend ().windows.device.getDevCaps ().res.refresh);
+              static_cast <float> (rb.getActiveRefreshRate ());
           }
 
-          config.render.framerate.target_fps = __target_fps;
+          config.render.framerate.target_fps        = __target_fps;
+          config.render.framerate.last_refresh_rate = 
+            static_cast <float> (rb.getActiveRefreshRate ());
+          config.render.framerate.last_monitor_path = rb.displays [rb.active_display].path_name;
+
+          bRefreshRateChanged = false;
+          bDisplayChanged     = false;
+
+          config.utility.save_async ();
         }
 
         float fps_slider_width    = 0.0f;
@@ -6189,6 +6273,12 @@ SK_ImGui_ControlPanel (void)
 
                 if (ImGui::IsItemHovered ())
                   ImGui::SetTooltip ("Controls whether games automatically use this feature");
+
+                vrr_changed |=
+                  ImGui::Checkbox ("Reapply If Refresh Rate Changes", &config.render.framerate.auto_low_latency.policy.auto_reapply);
+
+                if (ImGui::IsItemHovered ())
+                  ImGui::SetTooltip ("Framerate limit will be re-optimized when monitors or their refresh rates change");
 
                 vrr_changed |=
                   ImGui::Checkbox ("Ultra Low-Latency", &config.render.framerate.auto_low_latency.policy.ultra_low_latency);

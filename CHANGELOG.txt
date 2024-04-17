@@ -1,4 +1,15 @@
-﻿24.4.16
+﻿24.4.17
+=======
+ + Added feature to reapply AutoVRR optimization if the display device or
+     its refresh rate change after the framerate limit was originally setup.
+ + A global policy controlling whether AutoVRR is reapplied has been added
+     to the AutoVRR config menu (policy is on by default).
+ + If AutoVRR is not set to re-apply, a warning icon will be shown next to
+     the framerate limit slider to indicate it was set when the display had
+       different settings.
+ + Added a notification toast to indicate when AutoVRR has been applied
+
+24.4.16
 =======
  + Fixed ImGui color stack overflow when displaying Frametime Method tooltip
 

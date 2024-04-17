@@ -729,16 +729,30 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
         if (__target_fps == 0.0f ||
             __target_fps > dVRROptimalFPS)
         {
-          //SK_ImGui_WarningWithTitle (
-          //  SK_FormatStringW (L"Framerate Limit Set to %.2f FPS For Optimal VRR", dVRROptimalFPS).c_str (),
-          //                    L"Auto Low-Latency (VRR) Mode Activated"
-          //);
+          SK_ImGui_CreateNotification (
+            "Framerate.AutoVRR", SK_ImGui_Toast::Info,
+               SK_FormatString (
+            "Framerate Limit Set to %.2f FPS For Optimal VRR\r\n\r\n"
+            "\tRight-click the AutoVRR checkbox in Framerate Limiter | "
+            "Advanced to configure this feature.",
+                                dVRROptimalFPS).c_str (),
+                                "Auto Low-Latency (VRR) Mode Activated",
+                        6666, SK_ImGui_Toast::UseDuration |
+                              SK_ImGui_Toast::ShowNewest  |
+                              SK_ImGui_Toast::ShowCaption |
+                              SK_ImGui_Toast::ShowTitle );
     
           config.render.framerate.target_fps = static_cast <float> (dVRROptimalFPS);
           __target_fps                       = static_cast <float> (dVRROptimalFPS);
         }
+
+        config.render.framerate.last_monitor_path = rb.displays [rb.active_display].path_name;
+        config.render.framerate.last_refresh_rate = static_cast <float> (dRefreshRate);
       }
 
+      // We have a better solution for this now, that involves informing the
+      //   user, rather than doing anything automatically...
+#if 0
       // Trigger AutoVRR because framerate limit is too high
       if (__target_fps > dVRROptimalFPS)
       {
@@ -748,6 +762,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
           update (true);
         });
       }
+#endif
 
       config.render.framerate.auto_low_latency.waiting = false;
     }
