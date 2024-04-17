@@ -218,7 +218,8 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
 
     if (bHasPlayStationControllers)
     {
-      if (config.input.gamepad.xinput.emulate)
+                                              // Known incompatibility
+      if (config.input.gamepad.xinput.emulate && SK_GetCurrentGameID () != SK_GAME_ID::ForzaHorizon5)
       {
         SK_ImGui_CreateNotification ( "WindowsGamingInput.Disabled",
                                       SK_ImGui_Toast::Info,
@@ -244,8 +245,8 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
           "This game uses Windows.Gaming.Input\r\n\r\n  "
           ICON_FA_PLAYSTATION "  "
           "Your PlayStation controller may not work unless XInput Mode is"
-          " enabled (Input Management | PlayStation > XInput Mode) and the"
-          " game is restarted.",
+          " enabled\r\n\t(Input Management | PlayStation > XInput Mode) and"
+          " the game is restarted.",
           "Windows.Gaming.Input Incompatibility Detected",
                                       15000UL,
                                     SK_ImGui_Toast::UseDuration |
@@ -264,80 +265,89 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
     if (iid == IID_IGamepadStatics)
       SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepadStatics)");
 
-    ABI::Windows::Gaming::Input::IGamepadStatics *pGamepadStatsFactory;
+    if (iid == IID_IGamepadStatics2)
+      SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepadStatics2)");
 
-    HRESULT hr =
-      RoGetActivationFactory_Original ( activatableClassId,
-                                          iid,
-                                            (void **)&pGamepadStatsFactory );
-
-    if (SUCCEEDED (hr) && pGamepadStatsFactory != nullptr)
+    if (iid == IID_IGamepadStatics)
     {
-      //  0 QueryInterface
-      //  1 AddRef
-      //  2 Release
-      //  3 GetIids
-      //  4 GetRuntimeClassName
-      //  5 GetTrustLevel
-      //  6 add_GamepadAdded
-      //  7 remove_GamepadAdded
-      //  8 add_GamepadRemoved
-      //  9 remove_GamepadRemoved
-      // 10 get_Gamepads
+      ABI::Windows::Gaming::Input::IGamepadStatics *pGamepadStatsFactory;
 
-      SK_RunOnce ({
-        WGI_VIRTUAL_HOOK ( &pGamepadStatsFactory, 10,
-                  "ABI::Windows::Gaming::Input::IGamepadStatics::get_Gamepads",
-                   WGI_GamepadStatistics_get_Gamepads_Override,
-                   WGI_GamepadStatistics_get_Gamepads_Original,
-                   WGI_GamepadStatistics_get_Gamepads_pfn );
-      });
+      HRESULT hr =
+        RoGetActivationFactory_Original ( activatableClassId,
+                                            iid,
+                                              (void **)&pGamepadStatsFactory );
 
-      IVectorView <ABI::Windows::Gaming::Input::Gamepad *>* pGamepads;
-
-      if (SUCCEEDED (pGamepadStatsFactory->get_Gamepads (&pGamepads)) &&
-                                               nullptr != pGamepads)
+      if (SUCCEEDED (hr) && pGamepadStatsFactory != nullptr)
       {
-        uint32_t num_pads = 0;
+        //  0 QueryInterface
+        //  1 AddRef
+        //  2 Release
+        //  3 GetIids
+        //  4 GetRuntimeClassName
+        //  5 GetTrustLevel
+        //  6 add_GamepadAdded
+        //  7 remove_GamepadAdded
+        //  8 add_GamepadRemoved
+        //  9 remove_GamepadRemoved
+        // 10 get_Gamepads
 
-        if (SUCCEEDED (pGamepads->get_Size (&num_pads)) && num_pads > 0)
+#if 1
+        SK_RunOnce ({
+          WGI_VIRTUAL_HOOK ( &pGamepadStatsFactory, 10,
+                    "ABI::Windows::Gaming::Input::IGamepadStatics::get_Gamepads",
+                     WGI_GamepadStatistics_get_Gamepads_Override,
+                     WGI_GamepadStatistics_get_Gamepads_Original,
+                     WGI_GamepadStatistics_get_Gamepads_pfn );
+
+          SK_ApplyQueuedHooks ();
+        });
+#endif
+
+        IVectorView <ABI::Windows::Gaming::Input::Gamepad *>* pGamepads;
+
+        if (SUCCEEDED (pGamepadStatsFactory->get_Gamepads (&pGamepads)) &&
+                                                 nullptr != pGamepads)
         {
-          ABI::Windows::Gaming::Input::IGamepad* pGamepad;
+          uint32_t num_pads = 0;
 
-          if (SUCCEEDED (pGamepads->GetAt (0, &pGamepad)) &&
-                                    nullptr != pGamepad)
+          if (SUCCEEDED (pGamepads->get_Size (&num_pads)) && num_pads > 0)
           {
-            // 0 QueryInterface
-            // 1 AddRef
-            // 2 Release
-            // 3 GetIids
-            // 4 GetRuntimeClassName
-            // 5 GetTrustLevel
-            // 6 get_Vibration
-            // 7 put_Vibration
-            // 8 GetCurrentReading
+            ABI::Windows::Gaming::Input::IGamepad* pGamepad;
 
-            SK_RunOnce ({
-              WGI_VIRTUAL_HOOK ( &pGamepad, 8,
-                        "ABI::Windows::Gaming::Input::IGamepad::GetCurrentReading",
-                         WGI_Gamepad_GetCurrentReading_Override,
-                         WGI_Gamepad_GetCurrentReading_Original,
-                         WGI_Gamepad_GetCurrentReading_pfn );
-            });
+            if (SUCCEEDED (pGamepads->GetAt (0, &pGamepad)) &&
+                                      nullptr != pGamepad)
+            {
+              // 0 QueryInterface
+              // 1 AddRef
+              // 2 Release
+              // 3 GetIids
+              // 4 GetRuntimeClassName
+              // 5 GetTrustLevel
+              // 6 get_Vibration
+              // 7 put_Vibration
+              // 8 GetCurrentReading
 
-            pGamepad->Release ();
+              SK_RunOnce ({
+                WGI_VIRTUAL_HOOK ( &pGamepad, 8,
+                          "ABI::Windows::Gaming::Input::IGamepad::GetCurrentReading",
+                           WGI_Gamepad_GetCurrentReading_Override,
+                           WGI_Gamepad_GetCurrentReading_Original,
+                           WGI_Gamepad_GetCurrentReading_pfn );
+
+                SK_ApplyQueuedHooks ();
+              });
+
+              pGamepad->Release ();
+            }
           }
+
+          pGamepads->Release ();
         }
 
-        pGamepads->Release ();
+        pGamepadStatsFactory->Release ();
       }
-
-      pGamepadStatsFactory->Release ();
     }
   }
-
-  if (iid == IID_IGamepadStatics2)
-    SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepadStatics2)");
 
   return
     RoGetActivationFactory_Original ( activatableClassId,
