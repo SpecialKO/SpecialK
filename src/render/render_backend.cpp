@@ -686,6 +686,61 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
     // Opt-in to Auto-Low Latency the first time this is seen
     if (capable && active && config.render.framerate.present_interval != 0)
     {
+      bool bRefreshRateChanged = false;
+      bool bDisplayChanged     = false;
+
+      const double dRefreshRate =
+        static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
+        static_cast <double> (display.signal.timing.vsync_freq.Denominator);
+
+      if ( config.render.framerate.last_refresh_rate != 0.0f &&
+           ( config.render.framerate.last_refresh_rate > dRefreshRate + 0.1 ||
+             config.render.framerate.last_refresh_rate < dRefreshRate - 0.1 ) )
+      {
+        bRefreshRateChanged = true;
+      }
+
+      else
+      if (            (! config.render.framerate.last_monitor_path.empty ()) &&
+          0 != _wcsicmp (config.render.framerate.last_monitor_path.c_str (), display.path_name))
+      {
+        bDisplayChanged = true;
+      }
+
+      const bool bAutoVRRIsStale =
+        (rb.gsync_state.active && display.nvapi.vrr_enabled == 1) && (bRefreshRateChanged || bDisplayChanged);
+
+      if (bAutoVRRIsStale && config.render.framerate.auto_low_latency.policy.auto_reapply &&
+                           ( config.render.framerate.auto_low_latency.triggered ||
+                             config.render.framerate.auto_low_latency.policy.global_opt ))
+      {
+        if (bRefreshRateChanged || bDisplayChanged)
+        {
+          double dVRROptimalFPS =
+            ( config.render.framerate.last_refresh_rate -
+             (config.render.framerate.last_refresh_rate *
+              config.render.framerate.last_refresh_rate) / 3600.0 );
+
+          if ( ( config.render.framerate.target_fps <=  config.render.framerate.last_refresh_rate + 0.1f && 
+                 config.render.framerate.target_fps >=  config.render.framerate.last_refresh_rate - 0.1f )
+            || ( config.render.framerate.target_fps <= dVRROptimalFPS + 0.1f &&
+                 config.render.framerate.target_fps >= dVRROptimalFPS - 0.1f ) 
+            || ( config.render.framerate.target_fps <= dVRROptimalFPS - 0.005 * dVRROptimalFPS + 0.1f &&
+                 config.render.framerate.target_fps >= dVRROptimalFPS - 0.005 * dVRROptimalFPS - 0.1f ) )
+          {
+            // Re-apply AutoVRR
+            if ( config.render.framerate.auto_low_latency.triggered ||
+                 config.render.framerate.auto_low_latency.policy.global_opt )
+            {
+              config.render.framerate.auto_low_latency.triggered = false;
+              config.render.framerate.auto_low_latency.waiting   = true;
+            }
+          }
+        }
+
+        __target_fps = 0.0f;
+      }
+
       if (config.render.framerate.auto_low_latency.waiting)
       {
         config.nvidia.reflex.enable                 = true;
@@ -714,10 +769,6 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
                                                         //     ACTUALLY active.
         //config.render.framerate.enforcement_policy = 4;
       }
-
-      const double dRefreshRate =
-        static_cast <double> (display.signal.timing.vsync_freq.Numerator) /
-        static_cast <double> (display.signal.timing.vsync_freq.Denominator);
     
       double dVRROptimalFPS =
         (dRefreshRate - (dRefreshRate * dRefreshRate) / (3600.0));

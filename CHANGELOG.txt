@@ -1,4 +1,8 @@
-﻿24.4.17
+﻿24.4.17.1
+=========
+ + AutoVRR re-application no longer requires having the control panel open
+
+24.4.17
 =======
  + Added feature to reapply AutoVRR optimization if the display device or
      its refresh rate change after the framerate limit was originally setup.
@@ -7,7 +11,7 @@
  + If AutoVRR is not set to re-apply, a warning icon will be shown next to
      the framerate limit slider to indicate it was set when the display had
        different settings.
- + Added a notification toast to indicate when AutoVRR has been applied
+ + Added a notification toast to indicate when AutoVRR has been applied.
 
 24.4.16
 =======

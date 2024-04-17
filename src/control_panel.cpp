@@ -5222,9 +5222,13 @@ SK_ImGui_ControlPanel (void)
         static bool bRefreshRateChanged = false;
         static bool bDisplayChanged     = false;
 
+        const double dRefreshRate =
+          static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
+          static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator);
+
         if ( config.render.framerate.last_refresh_rate != 0.0f &&
-             ( config.render.framerate.last_refresh_rate > rb.getActiveRefreshRate () + 0.1 ||
-               config.render.framerate.last_refresh_rate < rb.getActiveRefreshRate () - 0.1 ) )
+             ( config.render.framerate.last_refresh_rate > dRefreshRate + 0.1 ||
+               config.render.framerate.last_refresh_rate < dRefreshRate - 0.1 ) )
         {
           bRefreshRateChanged = true;
         }
@@ -5264,12 +5268,7 @@ SK_ImGui_ControlPanel (void)
           ImGui::SameLine    ();
         }
 
-        const bool bAutoVRRIsStale =
-          (rb.displays [rb.active_display].nvapi.vrr_enabled == 1) && (bRefreshRateChanged || bDisplayChanged);
-
-        if (ImGui::Checkbox ("Framerate Limit", &limit) || (bAutoVRRIsStale && config.render.framerate.auto_low_latency.policy.auto_reapply &&
-                                                                             ( config.render.framerate.auto_low_latency.triggered ||
-                                                                               config.render.framerate.auto_low_latency.policy.global_opt )))
+        if (ImGui::Checkbox ("Framerate Limit", &limit))
         {
           if (bRefreshRateChanged || bDisplayChanged)
           {
@@ -5303,12 +5302,12 @@ SK_ImGui_ControlPanel (void)
           if (__target_fps == 0.0f)
           {
             __target_fps =
-              static_cast <float> (rb.getActiveRefreshRate ());
+              static_cast <float> (dRefreshRate);
           }
 
           config.render.framerate.target_fps        = __target_fps;
           config.render.framerate.last_refresh_rate = 
-            static_cast <float> (rb.getActiveRefreshRate ());
+            static_cast <float> (dRefreshRate);
           config.render.framerate.last_monitor_path = rb.displays [rb.active_display].path_name;
 
           bRefreshRateChanged = false;
