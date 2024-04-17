@@ -37,6 +37,7 @@
 #include <SpecialK/window.h>
 #include <SpecialK/import.h>
 #include <SpecialK/hooks.h>
+#include <SpecialK/injection/injection.h>
 
 #include <SpecialK/osd/popup.h>
 
@@ -48,8 +49,6 @@
 #include <../depends/include/GL/glew.h>
 #include <../depends/include/GL/wglew.h>
 extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
-
-extern void SK_Steam_ClearPopups (void);
 
 //SK_OpenGL_KnownPrograms SK_GL_Programs;
 //SK_OpenGL_KnownTextures SK_GL_Textures;
@@ -2801,15 +2800,6 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
                             &dx_gl_interop.d3d11.staging.hColorBuffer );
     }
 
-
-
-
-    extern void SK_LatentSync_BeginSwap (void);
-    extern void SK_LatentSync_EndSwap   (void);
-
-    extern int __SK_LatentSyncFrame;
-    extern int __SK_LatentSyncSkip;
-
     bool _SkipThisFrame = false;
 
 
@@ -2854,8 +2844,6 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
       else
       {
-        extern bool
-            __SK_BFI;
         if (__SK_BFI)
           SK_GL_SwapInterval (0);
 
@@ -2881,8 +2869,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
       if (config.render.framerate.present_interval == 0 &&
           config.render.framerate.target_fps        > 0.0f)
       {
-        extern bool __SK_BFI;
-        if (        __SK_BFI)
+        if (__SK_BFI)
         {
           ////extern LONGLONG __SK_LatentSync_FrameInterval;
           ////
@@ -2918,9 +2905,6 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           glFlush                 ();
 
           SK_BeginBufferSwap      ();
-
-          extern void SK_LatentSync_BeginSwap (void);
-          extern void SK_LatentSync_EndSwap   (void);
 
           // Time how long the swap actually takes, because
           //   various hooked third-party overlays may be
@@ -2960,8 +2944,6 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 }
 
 
-extern HWND WINAPI SK_GetFocus (void);
-
 void
 SK_GL_TrackHDC (HDC hDC)
 {
@@ -2977,6 +2959,8 @@ SK_GL_TrackHDC (HDC hDC)
 #if 0
   if (rb.windows.device != hWnd_DC && SK_Win32_IsGUIThread ())
   {
+    extern HWND WINAPI SK_GetFocus (void);
+
     if (IsWindowVisible (hWnd_DC) && SK_GetFocus () == hWnd_DC)
     {
       SK_InstallWindowHook (game_window.hWnd/*GetActiveWindow ()*/);
@@ -3010,8 +2994,7 @@ SK_GL_TrackHDC (HDC hDC)
     }
   }
 
-  extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
-              SK_Inject_SetFocusWindow (hWnd_Root);
+  SK_Inject_SetFocusWindow (hWnd_Root);
 #endif
 }
 
@@ -4500,7 +4483,6 @@ glFramebufferTexture2D_SK ( GLenum target,
   }
 
 #if 0
-  extern bool __SK_HDR_10BitSwap;
   if (__SK_HDR_10BitSwap || config.render.gl.enable_10bit_hdr)
   {
     SK_LOGi1 (L"glFramebufferTexture2D (...)");

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -76,5 +76,7 @@ void SK_LoadLazyImports32  (void);
 void SK_LoadPlugIns32      (void);
 
 void SK_UnloadImports (void);
+
+int SK_Import_GetNumberOfPlugIns (void);
 
 #endif /* __SK__IMPORT_H__ */

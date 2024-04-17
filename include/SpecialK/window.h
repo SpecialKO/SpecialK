@@ -825,6 +825,8 @@ bool
     EqualRect (&rectGame, &rectIntersect);
 };
 
+void SK_Window_RemoveBorders (void);
+
 bool SK_Win32_IsDummyWindowClass      (HWND hWnd);
 void SK_Win32_DestroyBackgroundWindow (void);
 

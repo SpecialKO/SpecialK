@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -51,6 +51,8 @@ DWORD SK_GetCurrentMS (void) noexcept;
 void SK_ImGui_Warning          (const wchar_t* wszMessage);
 void SK_ImGui_WarningWithTitle (const wchar_t* wszMessage,
                                 const wchar_t* wszTitle);
+
+void SK_ImGui_ReportModeSwitchFailure (void);
 
 void SKIF_ImGui_PushDisableState (void);
 void SKIF_ImGui_PopDisableState  (void);

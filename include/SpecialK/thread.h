@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -719,5 +719,8 @@ struct SKWG_Thread_Entry
   bool         self_titled = false;
   std::wstring name        = L"";
 };
+
+DWORD WINAPI
+SK_DelayExecution (double dMilliseconds, BOOL bAlertable) noexcept;
 
 #endif /* __SK__THREAD_H__ */

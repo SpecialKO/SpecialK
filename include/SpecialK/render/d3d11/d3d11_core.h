@@ -75,6 +75,8 @@
 //#include <../depends/include/DXSDK/D3DX11.h>
 //#include <../depends/include/DXSDK/D3DX11tex.h>
 
+extern volatile LONG SK_D3D11_initialized;
+
 enum class SK_D3D11_ShaderType {
   Vertex   =  1,
   Pixel    =  2,

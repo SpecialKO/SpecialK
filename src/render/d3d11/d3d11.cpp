@@ -813,8 +813,8 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
                                                    ).c_str ()
                   ), __SK_SUBSYSTEM__ );
 
-      // We ARE technically holding a reference, but we never make calls to this
-      //   interface - it's just for tracking purposes.
+      // No references are held to this object, we just want to track the pointer
+      //   as a means of identifying additional devices the game/overlays may create
       g_pD3D11Dev = *ppDevice;
     }
 
