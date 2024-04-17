@@ -570,33 +570,64 @@ SK_D3D11_SetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx,
   return TRUE;
 }
 
+static constexpr LONG RESOLVE_MAX = 16;
+
+std::pair <ID3D11DeviceContext*, LONG> last_resolve;
+std::pair <ID3D11DeviceContext*, LONG> prev_resolves [RESOLVE_MAX];
+volatile LONG                               resolve_idx   = 0;
+volatile LONG                               resolve_mutex = 0;
+
 LONG
 SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
 {
   if (pDevCtx == nullptr) return SK_D3D11_MAX_DEV_CONTEXTS;
 
-  static constexpr LONG RESOLVE_MAX = 16;
+  while (InterlockedCompareExchange (&resolve_mutex, 1, 0) != 0)
+    YieldProcessor ();
 
-  static std::pair <ID3D11DeviceContext*, LONG>
-    last_resolve [RESOLVE_MAX];
-  static volatile LONG
-         resolve_idx = 0;
-
-  const auto early_out =
-    &last_resolve [std::min (RESOLVE_MAX, ReadAcquire (&resolve_idx))];
+  auto early_out =
+    &last_resolve;
 
   if (early_out->first == pDevCtx)
-    return early_out->second;
+  {
+    LONG ret =
+      early_out->second;
+
+    WriteRelease (&resolve_mutex, 0);
+
+    return ret;
+  }
+
+  early_out =
+    &prev_resolves [std::min (RESOLVE_MAX, ReadAcquire (&resolve_idx) - 1)];
+
+  if (early_out->first == pDevCtx)
+  {
+    LONG ret =
+      early_out->second;
+
+    WriteRelease (&resolve_mutex, 0);
+
+    return ret;
+  }
+
+  WriteRelease (&resolve_mutex, 0);
 
   auto _CacheResolution =
     [&](LONG idx, ID3D11DeviceContext* pCtx, LONG handle) ->
     void
     {
-      auto new_pair ( std::make_pair (pCtx, handle) );
-          std::swap ( last_resolve   [idx],
-                      new_pair );
+      while (InterlockedCompareExchange (&resolve_mutex, 1, 0) != 0) YieldProcessor ();
+      {
+        auto new_pair ( std::make_pair (pCtx, handle) );
+            std::swap ( prev_resolves  [idx],
+                        new_pair );
 
-      InterlockedExchange (&resolve_idx, std::min (RESOLVE_MAX, idx));
+        InterlockedExchange (&resolve_idx, std::min (RESOLVE_MAX, idx));
+
+        last_resolve = std::make_pair (pCtx, handle);
+      }
+      WriteRelease (&resolve_mutex, 0);
     };
 
 

@@ -1,4 +1,18 @@
-﻿24.4.17.1
+﻿24.4.17.2
+=========
+ + Added support for XInput Emulation for PlayStation controllers in games
+     that use Windows.Gaming.Input (mostly Microsoft Store games).
+
+    >> The Windows.Gaming.Input API is not currently emulated, instead this
+         causes games to resort to XInput fallback code...
+
+       This means a few Windows.Gaming.Input features (i.e. Impulse Triggers)
+         for real Xbox controllers will not work.
+
+    * The plan is to eventually emulate the Windows.Gaming.Input API proper,
+        and translate Impulse Triggers to DualSense Force Feedback Triggers.
+
+24.4.17.1
 =========
  + AutoVRR re-application no longer requires having the control panel open
 

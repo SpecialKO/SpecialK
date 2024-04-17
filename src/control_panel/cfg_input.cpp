@@ -1567,7 +1567,14 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::BulletText      ("Limited support for DualShock 3.");
               ImGui::Separator       ();
               ImGui::BulletText      ("All PlayStation controllers map to Xbox controller slot 0.");
-              ImGui::BulletText      ("May require a game restart.");
+
+              // Has the game ever tried to poll XInput slot 0?
+              //
+              //   * If not, maybe it thinks no Xbox controllers are connected.
+              //
+              if (! ReadAcquire (&SK_XInput_Backend->reads [0]))
+                ImGui::BulletText    ("May require a game restart.");
+
               ImGui::EndTooltip      ();
             }
 

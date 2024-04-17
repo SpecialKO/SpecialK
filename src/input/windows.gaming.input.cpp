@@ -22,6 +22,8 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/input/windows.gaming.input.h>
 
+#include <imgui/font_awesome.h>
+
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
 #endif
@@ -57,10 +59,34 @@ using RoGetActivationFactory_pfn = HRESULT (WINAPI *)(HSTRING, REFIID, void **);
       RoGetActivationFactory_pfn
       RoGetActivationFactory_Original = nullptr;
 
-using WGI_Gamepad_GetCurrentReading_pfn =  HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepad       *This,
-                                                                         ABI::Windows::Gaming::Input::GamepadReading *value);
-      WGI_Gamepad_GetCurrentReading_pfn
-      WGI_Gamepad_GetCurrentReading_Original = nullptr;
+using WGI_GamepadStatistics_get_Gamepads_pfn = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepadStatics  *This,
+                                                                IVectorView <ABI::Windows::Gaming::Input::Gamepad*>       **value);
+using WGI_Gamepad_GetCurrentReading_pfn      = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepad         *This,
+                                                                             ABI::Windows::Gaming::Input::GamepadReading   *value);
+
+WGI_GamepadStatistics_get_Gamepads_pfn
+WGI_GamepadStatistics_get_Gamepads_Original = nullptr;
+
+WGI_Gamepad_GetCurrentReading_pfn
+WGI_Gamepad_GetCurrentReading_Original = nullptr;
+
+HRESULT
+STDMETHODCALLTYPE
+WGI_GamepadStatistics_get_Gamepads_Override ( ABI::Windows::Gaming::Input::IGamepadStatics  *This,
+                                 IVectorView <ABI::Windows::Gaming::Input::Gamepad*>       **value )
+{
+  SK_LOG_FIRST_CALL
+
+  HRESULT hr =
+    WGI_GamepadStatistics_get_Gamepads_Original (This, value);
+
+  if (config.input.gamepad.xinput.emulate)
+  {
+    // TODO: How the hell do you add stuff to IVectorView? :)
+  }
+
+  return hr;
+}
 
 HRESULT
 STDMETHODCALLTYPE
@@ -158,6 +184,18 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
   } 
 }
 
+#define WGI_VIRTUAL_HOOK(_Base,_Index,_Name,_Override,_Original,_Type) {      \
+  void** _vftable = *(void***)*(_Base);                                       \
+                                                                              \
+  if ((_Original) == nullptr) {                                               \
+    SK_CreateVFTableHook2 ( L##_Name,                                         \
+                              _vftable,                                       \
+                                (_Index),                                     \
+                                  (_Override),                                \
+                                    (LPVOID *)&(_Original));                  \
+  }                                                                           \
+}
+
 HRESULT
 WINAPI
 RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
@@ -166,15 +204,65 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
 {
   SK_LOG_FIRST_CALL
 
-  if (iid == IID_IGamepad)
-    SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepad)");
-
-  if (iid == IID_IGamepad2)
-    SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepad2)");
-
-  if (iid == IID_IGamepadStatics)
+  if ( iid == IID_IGamepad        ||
+       iid == IID_IGamepad2       ||
+       iid == IID_IGamepadStatics ||
+       iid == IID_IGamepadStatics2 )
   {
-    SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepadStatics)");
+    SK_RunOnce (
+      SK_HID_SetupPlayStationControllers ()
+    );
+
+    const bool bHasPlayStationControllers =
+         (! SK_HID_PlayStationControllers.empty ());
+
+    if (bHasPlayStationControllers)
+    {
+      if (config.input.gamepad.xinput.emulate)
+      {
+        SK_ImGui_CreateNotification ( "WindowsGamingInput.Disabled",
+                                      SK_ImGui_Toast::Info,
+          "Windows.Gaming.Input has been disabled for your PlayStation "
+          "controller to work.\r\n\r\n  " ICON_FA_XBOX "  "
+          "Native Xbox controllers may lose some functionality "
+          "(i.e. Impulse Triggers).",
+          "Windows.Gaming.Input Disabled because of (" ICON_FA_PLAYSTATION
+                                                    ") XInput Mode",
+                                      5000UL,
+                                    SK_ImGui_Toast::UseDuration |
+                                    SK_ImGui_Toast::ShowTitle   |
+                                    SK_ImGui_Toast::ShowCaption |
+                                    SK_ImGui_Toast::ShowOnce );
+
+        return E_NOTIMPL;
+      }
+
+      else
+      {
+        SK_ImGui_CreateNotification ( "WindowsGamingInput.Compatibility",
+                                      SK_ImGui_Toast::Warning,
+          "This game uses Windows.Gaming.Input\r\n\r\n  "
+          ICON_FA_PLAYSTATION "  "
+          "Your PlayStation controller may not work unless XInput Mode is"
+          " enabled (Input Management | PlayStation > XInput Mode) and the"
+          " game is restarted.",
+          "Windows.Gaming.Input Incompatibility Detected",
+                                      15000UL,
+                                    SK_ImGui_Toast::UseDuration |
+                                    SK_ImGui_Toast::ShowTitle   |
+                                    SK_ImGui_Toast::ShowCaption |
+                                    SK_ImGui_Toast::ShowOnce );
+      }
+    }
+
+    if (iid == IID_IGamepad)
+      SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepad)");
+
+    if (iid == IID_IGamepad2)
+      SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepad2)");
+
+    if (iid == IID_IGamepadStatics)
+      SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepadStatics)");
 
     ABI::Windows::Gaming::Input::IGamepadStatics *pGamepadStatsFactory;
 
@@ -185,6 +273,26 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
 
     if (SUCCEEDED (hr) && pGamepadStatsFactory != nullptr)
     {
+      //  0 QueryInterface
+      //  1 AddRef
+      //  2 Release
+      //  3 GetIids
+      //  4 GetRuntimeClassName
+      //  5 GetTrustLevel
+      //  6 add_GamepadAdded
+      //  7 remove_GamepadAdded
+      //  8 add_GamepadRemoved
+      //  9 remove_GamepadRemoved
+      // 10 get_Gamepads
+
+      SK_RunOnce ({
+        WGI_VIRTUAL_HOOK ( &pGamepadStatsFactory, 10,
+                  "ABI::Windows::Gaming::Input::IGamepadStatics::get_Gamepads",
+                   WGI_GamepadStatistics_get_Gamepads_Override,
+                   WGI_GamepadStatistics_get_Gamepads_Original,
+                   WGI_GamepadStatistics_get_Gamepads_pfn );
+      });
+
       IVectorView <ABI::Windows::Gaming::Input::Gamepad *>* pGamepads;
 
       if (SUCCEEDED (pGamepadStatsFactory->get_Gamepads (&pGamepads)) &&
@@ -199,18 +307,6 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
           if (SUCCEEDED (pGamepads->GetAt (0, &pGamepad)) &&
                                     nullptr != pGamepad)
           {
-#define WGI_VIRTUAL_HOOK(_Base,_Index,_Name,_Override,_Original,_Type) {      \
-  void** _vftable = *(void***)*(_Base);                                       \
-                                                                              \
-  if ((_Original) == nullptr) {                                               \
-    SK_CreateVFTableHook2 ( L##_Name,                                         \
-                              _vftable,                                       \
-                                (_Index),                                     \
-                                  (_Override),                                \
-                                    (LPVOID *)&(_Original));                  \
-  }                                                                           \
-}
-
             // 0 QueryInterface
             // 1 AddRef
             // 2 Release
