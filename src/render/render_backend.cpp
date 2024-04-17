@@ -53,7 +53,7 @@ SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor)
 
   if (hLastMonitor != hMonitor || dwLastChecked < SK_timeGetTime () - 250UL)
   {
-    static auto& rb =
+    SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     // Refresh this bastard!
@@ -69,11 +69,13 @@ SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor)
   return dRefresh;
 }
 
+SK_RenderBackend* g_pRenderBackend = nullptr;
 SK_RenderBackend&
 __stdcall
-SK_GetCurrentRenderBackend (void) noexcept
+SK_WarmupRenderBackends (void) noexcept
 {
   static SK_RenderBackend __SK_RBkEnd;
+  g_pRenderBackend     = &__SK_RBkEnd;
   return                  __SK_RBkEnd;
 }
 
@@ -629,7 +631,7 @@ SK_BootVulkan (void)
 SK_RenderBackend_V2::output_s*
 SK_RenderBackend_V2::output_s::nvapi_ctx_s::getDisplayFromId (NvU32 display_id) noexcept
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   const auto active_display =
@@ -651,7 +653,7 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::getDisplayFromId (NvU32 display_id) 
 SK_RenderBackend_V2::output_s*
 SK_RenderBackend_V2::output_s::nvapi_ctx_s::getDisplayFromHandle (NvDisplayHandle display_handle) noexcept
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   const auto active_display =
@@ -673,7 +675,7 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::getDisplayFromHandle (NvDisplayHandl
 void
 SK_RenderBackend_V2::gsync_s::update (bool force)
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   auto& display =
@@ -837,6 +839,9 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
       SK_Thread_CreateEx ([](LPVOID)->
       DWORD
       {
+        SK_RenderBackend& rb =
+          SK_GetCurrentRenderBackend ();
+
         SK_Thread_SetCurrentPriority (THREAD_PRIORITY_BELOW_NORMAL);
 
         do
@@ -978,7 +983,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 bool
 SK_RenderBackendUtil_IsFullscreen (void)
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComQIPtr <IDXGISwapChain>
@@ -1182,7 +1187,7 @@ SK_RenderBackend_V2::requestWindowedMode (bool override)
 
 
 double
-SK_RenderBackend_V2::getActiveRefreshRate (HMONITOR hMonitor)
+SK_RenderBackend_V2::getActiveRefreshRate (HMONITOR hMonitor) const
 {
   // This isn't implemented for arbitrary monitors at the moment
   SK_ReleaseAssert (hMonitor == 0);
@@ -1219,7 +1224,7 @@ SK_COM_ValidateRelease (IUnknown** ppObj)
 }
 
 HANDLE
-SK_RenderBackend_V2::getSwapWaitHandle (void)
+SK_RenderBackend_V2::getSwapWaitHandle (void) const
 {
   SK_ComQIPtr <IDXGISwapChain2>
       pSwap2       (swapchain.p);
@@ -1364,7 +1369,7 @@ SK_Render_GetSwapChain (void)
 
 
 HWND
-SK_RenderBackend_V2::window_registry_s::getDevice (void)
+SK_RenderBackend_V2::window_registry_s::getDevice (void) const
 {
   SK_LOG4 ( (__FUNCTIONW__), L"  DEBUG!  " );
 
@@ -1372,7 +1377,7 @@ SK_RenderBackend_V2::window_registry_s::getDevice (void)
 }
 
 HWND
-SK_RenderBackend_V2::window_registry_s::getFocus (void)
+SK_RenderBackend_V2::window_registry_s::getFocus (void) const
 {
   SK_LOG4 ( (__FUNCTIONW__), L"  DEBUG!  " );
 
@@ -1429,9 +1434,9 @@ SK_RenderBackend_V2::window_registry_s::setDevice (HWND hWnd)
 }
 
 SK_RenderBackend_V2::scan_out_s::SK_HDR_TRANSFER_FUNC
-SK_RenderBackend_V2::scan_out_s::getEOTF (void)
+SK_RenderBackend_V2::scan_out_s::getEOTF (void) const
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (nvapi_hdr.isHDR10 ())
@@ -2650,7 +2655,7 @@ SK_EDID_GetMonitorNameFromBlock ( uint8_t const* block )
 }
 
 std::string
-SK_RenderBackend_V2::parseEDIDForName (uint8_t *edid, size_t length)
+SK_RenderBackend_V2::parseEDIDForName (uint8_t *edid, size_t length) const
 {
   if (edid == nullptr)
     return "";
@@ -2754,7 +2759,7 @@ SK_RenderBackend_V2::parseEDIDForName (uint8_t *edid, size_t length)
 }
 
 POINT
-SK_RenderBackend_V2::parseEDIDForNativeRes (uint8_t* edid, size_t length)
+SK_RenderBackend_V2::parseEDIDForNativeRes (uint8_t* edid, size_t length) const
 {
   if (edid == nullptr)
     return { 0, 0 };
@@ -2868,7 +2873,7 @@ void
 SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
                               DXGI_OUTPUT_DESC&              outDesc )
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (*display.name == L'\0')
@@ -3179,7 +3184,8 @@ SK_RenderBackend_V2::updateWDDMCaps (SK_RenderBackend_V2::output_s *pDisplay)
 }
 
 bool
-SK_RenderBackend_V2::routeAudioForDisplay (SK_RenderBackend_V2::output_s *pDisplay, bool force_update)
+SK_RenderBackend_V2::routeAudioForDisplay ( const output_s *pDisplay,
+                                            bool            force_update ) const
 {
   bool routed = false;
 
@@ -3405,7 +3411,7 @@ SK_RenderBackend_V2::output_s::signal_info_s::timing_s::video_standard_s::toStr 
 
 void SK_Display_EnableHDR (SK_RenderBackend_V2::output_s *pOutput = nullptr)
 {
-  auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (pOutput == nullptr)
@@ -3438,7 +3444,7 @@ void SK_Display_EnableHDR (SK_RenderBackend_V2::output_s *pOutput = nullptr)
 
 void SK_Display_DisableHDR (SK_RenderBackend_V2::output_s *pOutput = nullptr)
 {
-  auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
    if (pOutput == nullptr)
@@ -4237,7 +4243,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 }
 
 const SK_RenderBackend_V2::output_s*
-SK_RenderBackend_V2::getContainingOutput (const RECT& rkRect)
+SK_RenderBackend_V2::getContainingOutput (const RECT& rkRect) const
 {
   const output_s* pOutput = nullptr;
 

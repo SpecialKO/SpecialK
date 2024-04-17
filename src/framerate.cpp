@@ -292,7 +292,7 @@ struct scanline_target_s {
 
     void requestResync (void)
     {
-      static auto& rb =
+      const SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
       const auto pDisplay =
@@ -343,7 +343,7 @@ SK_ImGui_LatentSyncConfig (void)
         &config.render.framerate.latent_sync.toggle_fcat_bars_keybind
       };
 
-    static auto& rb =
+    const SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     const auto pDisplay =
@@ -1047,7 +1047,7 @@ SK_D3D9_GetTimingDevice (void)
 bool
 SK_Framerate_WaitForVBlank (void)
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.adapter.d3dkmt != 0)
@@ -1207,7 +1207,7 @@ SK_Framerate_WaitForVBlank2 (void)
 
   if (D3DKMTWaitForVerticalBlankEvent != nullptr)
   {
-    static auto& rb =
+    const SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     D3DKMT_WAITFORVERTICALBLANKEVENT
@@ -1229,7 +1229,7 @@ SK_Framerate_WaitForVBlank2 (void)
 void
 SK_D3DKMT_WaitForVBlank (void)
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   // Flush batched commands before zonking this thread off
@@ -1311,7 +1311,7 @@ SK::Framerate::Limiter::init (double target, bool _tracks_window)
                  static_cast <double> (target), &dTicksPerFrame );
   ticks_per_frame = sk::narrow_cast <ULONGLONG> (dTicksPerFrame);
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   const auto now  =
@@ -1524,7 +1524,7 @@ SK::Framerate::Limiter::wait (void)
   }
 
   
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
 
@@ -2075,6 +2075,9 @@ SK::Framerate::Limiter::wait (void)
       static HANDLE hReSyncThread =
         SK_Thread_CreateEx ([](LPVOID) -> DWORD
         {
+          SK_RenderBackend& rb =
+            SK_GetCurrentRenderBackend ();
+
           HANDLE hWaitHandles [] = {
             __scanline.lock.signals.resync, __SK_DLL_TeardownEvent
           };
@@ -2653,7 +2656,7 @@ SK::Framerate::Stats::sortAndCacheFrametimeHistory (void) //noexcept
         pWorker->hSignalShutdown.m_h
       };
 
-      static auto& rb =
+      SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
       while ( WAIT_OBJECT_0 ==
@@ -2869,9 +2872,6 @@ SK::Framerate::Limiter::get_ms_to_next_tick (float ticks) noexcept
 void
 SK_Framerate_EnergyControlPanel (void)
 {
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
-
   if (! SK_CPU_IsZen ())
     return;
 

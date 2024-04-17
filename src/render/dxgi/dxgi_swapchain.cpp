@@ -1284,9 +1284,6 @@ IWrapDXGISwapChain::GetFrameLatencyWaitableObject (void)
   SK_LOG_FIRST_CALL
 
 #if 1
-  static auto &rb =
-    SK_GetCurrentRenderBackend ();
-
   if (config.render.framerate.pre_render_limit > 0)
   {
     // 16 is valid, but Reflex hates that! :)
@@ -1482,7 +1479,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
   //
   if (config.render.dxgi.fake_fullscreen_mode)
   {
-    static auto& rb =
+    const SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     if (Fullscreen != FALSE)
@@ -1550,7 +1547,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
     }
   }
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   // Dummy init swapchains (i.e. 1x1 pixel) should not have
@@ -1739,7 +1736,7 @@ extern void ResetImGui_D3D12 (IDXGISwapChain *This);
 extern void ResetImGui_D3D11 (IDXGISwapChain *This);
 
 bool
-SK_RenderBackend_V2::isFakeFullscreen (void)
+SK_RenderBackend_V2::isFakeFullscreen (void) const
 {
   if (! SK_API_IsDXGIBased (api))
     return false;
@@ -1749,7 +1746,7 @@ SK_RenderBackend_V2::isFakeFullscreen (void)
 }
 
 bool
-SK_RenderBackend_V2::isTrueFullscreen (void)
+SK_RenderBackend_V2::isTrueFullscreen (void) const
 {
   return
     fullscreen_exclusive && (! isFakeFullscreen ());
@@ -1783,7 +1780,7 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
   _In_ UINT            SwapChainFlags,
        BOOL            bWrapped )
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   DXGI_SWAP_CHAIN_DESC  swap_desc = { };
@@ -2404,7 +2401,7 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
   DXGI_SWAP_CHAIN_DESC  sd = { };
   pSwapChain->GetDesc (&sd);
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM)

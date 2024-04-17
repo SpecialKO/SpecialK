@@ -40,7 +40,7 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
   UINT                      NumCommandLists,
   ID3D12CommandList* const  *ppCommandLists )
 {
-  static auto& rb =
+  SK_RenderBackend_V2 &rb =
     SK_GetCurrentRenderBackend ();
 
   static bool once = false;

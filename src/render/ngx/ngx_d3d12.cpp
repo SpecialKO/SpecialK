@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -372,7 +372,7 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
     }
   }
 
-  static auto &rb =
+  const SK_RenderBackend_V2 &rb =
     SK_GetCurrentRenderBackend ();
 
   const double dFrameTimeDeltaInMsec =

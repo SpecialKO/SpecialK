@@ -1216,7 +1216,7 @@ SK_WASAPI_EndPointManager::OnDeviceStateChanged (_In_ LPCWSTR pwstrDeviceId, _In
 
   resetSessionManager ();
 
-  static auto &rb =
+  const SK_RenderBackend_V2 &rb =
     SK_GetCurrentRenderBackend ();
 
   if (StrStrW (pwstrDeviceId, rb.displays [rb.active_display].audio.paired_device) && dwNewState == DEVICE_STATE_ACTIVE)
@@ -1233,7 +1233,7 @@ SK_WASAPI_EndPointManager::OnDeviceAdded (_In_ LPCWSTR pwstrDeviceId)
 
   resetSessionManager ();
 
-  static auto &rb =
+  const SK_RenderBackend_V2 &rb =
     SK_GetCurrentRenderBackend ();
 
   if (StrStrW (pwstrDeviceId, rb.displays [rb.active_display].audio.paired_device))

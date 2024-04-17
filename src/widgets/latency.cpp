@@ -119,7 +119,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
     return;
   }
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! rb.isReflexSupported ())
@@ -891,7 +891,7 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
 void
 SK_ImGui_DrawConfig_Latency ()
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   bool bFullReflexSupport =

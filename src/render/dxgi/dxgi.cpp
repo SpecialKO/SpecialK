@@ -323,7 +323,7 @@ ImGui_DX12Startup ( IDXGISwapChain* pSwapChain )
   if (pSwapChain == nullptr)
     return false;
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComPtr <ID3D12Device>       pD3D12Dev = nullptr;
@@ -361,7 +361,7 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
 {
   SK_LOGi2 (L"ImGui_DX11Startup (%p)", pSwapChain);
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComPtr <ID3D11Device>        pD3D11Dev         = nullptr;
@@ -443,7 +443,7 @@ DXGI_FORMAT
 SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
                                               BOOL bFlipModel )
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   bool TenBitSwap     = false;
@@ -1390,7 +1390,7 @@ SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc)
 {
   if (This != nullptr)
   {
-    static auto& rb =
+    SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     if (outDesc != nullptr)
@@ -1487,7 +1487,7 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
   if (This == nullptr)
     return;
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComQIPtr <IDXGISwapChain> pRealSwap (This);
@@ -1691,7 +1691,7 @@ SK_D3D11_ClearSwapchainBackbuffer (IDXGISwapChain *pSwapChain, const float *pCol
 HRESULT
 SK_D3D11_InsertBlackFrame (void)
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComPtr <ID3D11Texture2D>         pBackbuffer0;
@@ -1807,7 +1807,7 @@ SK_D3D11_InsertDuplicateFrame (int MakeBreak = 0)
   if (_d3d11_rbk->frames_.empty ())
     return E_NOT_VALID_STATE;
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComPtr <ID3D11Texture2D> pBackbuffer0;
@@ -1864,7 +1864,7 @@ SK_D3D11_InsertDuplicateFrame (int MakeBreak = 0)
 void
 SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (SUCCEEDED (hr))
@@ -1924,7 +1924,7 @@ SK_D3D12_PostPresent (ID3D12Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
   UNREFERENCED_PARAMETER (pDev);
   UNREFERENCED_PARAMETER (pSwap);
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (SUCCEEDED (hr))
@@ -1945,7 +1945,7 @@ SK_ImGui_DrawD3D12 (IDXGISwapChain* This)
   if (This == nullptr)
     return;
 
-  static auto & rb =
+  SK_RenderBackend_V2 &rb =
     SK_GetCurrentRenderBackend ();
 
   InterlockedIncrement (&__osd_frames_drawn);
@@ -2042,7 +2042,7 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
   if (! This)
     return;
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   auto pDev =
@@ -2390,7 +2390,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
   if (This == nullptr) // This can't happen, just humor static analysis
     return DXGI_ERROR_INVALID_CALL;
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   auto _Present = [&](UINT _SyncInterval,
@@ -3974,7 +3974,7 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
   if (pNewTargetParameters == nullptr)
     return DXGI_ERROR_INVALID_CALL;
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM)
@@ -4422,7 +4422,7 @@ DXGISwap3_ResizeBuffers1_Override (IDXGISwapChain3* This,
   Width   =  std::max ( max_x , min_x );
   Height  =  std::max ( max_y , min_y );
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   // If forcing flip-model, we can't allow sRGB formats...
@@ -5038,7 +5038,7 @@ SK_DXGI_CreateSwapChain_PreInit (
         pDesc->SampleDesc.Count   = 1;
         pDesc->SampleDesc.Quality = 0;
 
-        static auto& rb =
+        SK_RenderBackend& rb =
           SK_GetCurrentRenderBackend ();
 
         // Format overrides must be performed in certain cases (sRGB)
@@ -5427,7 +5427,7 @@ SK_DXGI_CreateSwapChain_PostInit (
   _In_  DXGI_SWAP_CHAIN_DESC  *pDesc,
   _In_  IDXGISwapChain       **ppSwapChain )
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   wchar_t wszClass [MAX_PATH + 2] = { };
@@ -5802,7 +5802,7 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
   SK_ComPtr <IDXGISwapChain1>                    pNativeSwapChain;
   SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p);
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComPtr   <ID3D11Device>       pNativeDev11;
@@ -5895,7 +5895,7 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   SK_ComPtr <IDXGISwapChain1>                    pNativeSwapChain;
   SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p);
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComPtr   <ID3D11Device>       pNativeDev11;
@@ -6152,7 +6152,7 @@ DXGIFactory_CreateSwapChain_Override (
 
         if (! workable)
         {
-          static auto& rb =
+          SK_RenderBackend& rb =
             SK_GetCurrentRenderBackend ();
 
           _d3d11_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
@@ -6240,7 +6240,7 @@ DXGIFactory_CreateSwapChain_Override (
   // Retry creation after releasing the Render Backend resources
   if ( ret == E_ACCESSDENIED )
   {
-    static auto& rb =
+    SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     SK_ReleaseAssert (pDesc->OutputWindow == rb.windows.getDevice ());
@@ -6433,7 +6433,7 @@ DXGIFactory2_CreateSwapChainForCoreWindow_Override (
         //   and try this again...
         if ( ret == E_ACCESSDENIED )
         {
-          static auto& rb =
+          SK_RenderBackend& rb =
             SK_GetCurrentRenderBackend ();
 
           rb.d3d11.clearState ();
@@ -6754,7 +6754,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
 
   if ( ret == E_ACCESSDENIED )
   {
-    static auto& rb =
+    SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     if (config.system.log_level > 0)
@@ -8203,7 +8203,7 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
       return S_OK;
   }
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
@@ -8470,7 +8470,7 @@ SK_DXGISwap3_SetColorSpace1_Impl (
     }
   }
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if ( rb.scanout.colorspace_override != DXGI_COLOR_SPACE_CUSTOM &&
@@ -8619,7 +8619,7 @@ IDXGIOutput6_GetDesc1_Override ( IDXGIOutput6      *This,
 #if 0
   static volatile LONG lRecursion = 0;
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (SUCCEEDED (hr) && rb.swapchain.p != nullptr)
@@ -10293,7 +10293,7 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
                       buffer;
 
 
-    static auto &rb =
+    const SK_RenderBackend_V2 &rb =
       SK_GetCurrentRenderBackend ();
 
 

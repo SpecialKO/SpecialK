@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -165,7 +165,7 @@ struct SK_HDR_FIXUP
                  debug_shader_dir +=
             LR"(SK_Res\Debug\shaders\)";
 
-    static auto& rb =
+    const SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     auto pDev =
@@ -233,7 +233,7 @@ struct SK_HDR_FIXUP
     if (pGamutUAV        != nullptr)  { pGamutUAV->Release        ();         pGamutUAV = nullptr; }
     if (pGamutSRV        != nullptr)  { pGamutSRV->Release        ();         pGamutSRV = nullptr; }
 
-    static auto& rb =
+    const SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     auto pDev =
@@ -483,7 +483,7 @@ SK_HDR_SanitizeFP16SwapChain (void)
   if (! __SK_HDR_16BitSwap)
     return;
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   bool hdr_display =
@@ -728,7 +728,7 @@ SK_HDR_SanitizeFP16SwapChain (void)
 void
 SK_HDR_SnapshotSwapchain (void)
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   bool hdr_display =
@@ -1204,7 +1204,7 @@ SK_D3D11_EndFrameHDR (void)
 {
   static bool hdr_done = false;
 
-  static auto &rb =
+  SK_RenderBackend_V2 &rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComPtr <ID3D11DeviceContext> pDevCtx =

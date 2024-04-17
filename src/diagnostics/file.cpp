@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -110,7 +110,7 @@ NtReadFile_Detour (
       const DWORD dwTid =
         SK_Thread_GetCurrentId ();
 
-      auto& rb =
+      const SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
       const auto dwRenderTid =

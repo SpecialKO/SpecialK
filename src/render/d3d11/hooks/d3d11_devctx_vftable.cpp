@@ -840,7 +840,7 @@ D3D11_RSSetScissorRects_Override (
 
         if (pRects->right == 1280)
         {
-          static auto& rb =
+          const SK_RenderBackend& rb =
             SK_GetCurrentRenderBackend ();
         
           SK_ComQIPtr <IDXGISwapChain>
@@ -2083,7 +2083,7 @@ D3D11_RSSetViewports_Override (
     if (NumViewports        == 1 &&
           pViewports->Width == 1280)
     {
-      static auto& rb =
+      const SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
     
       SK_ComQIPtr <IDXGISwapChain>
@@ -2110,7 +2110,7 @@ D3D11_RSSetViewports_Override (
     //if (NumViewports        == 1 &&
     //      pViewports->Width == 1920)
     //{
-    //  static auto& rb =
+    //  const SK_RenderBackend& rb =
     //    SK_GetCurrentRenderBackend ();
     //
     //  SK_ComQIPtr <IDXGISwapChain>

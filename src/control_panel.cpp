@@ -744,7 +744,7 @@ SK_GetFriendlyAppName (void)
                                               PathFileExistsW (L"../.egstore") ||
                           StrStrIW (SK_GetFullyQualifiedApp (), L"Epic Games");
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   static std::string appcache_name =
@@ -804,9 +804,6 @@ SK_ImGui_ControlPanelTitle (void)
                                                  PathFileExistsW (L".egstore") ||
                                               PathFileExistsW (L"../.egstore") ||
                           StrStrIW (SK_GetFullyQualifiedApp (), L"Epic Games");
-
-  static auto& rb =
-    SK_GetCurrentRenderBackend ();
 
   static bool bTBFix = SK_GetModuleHandle (L"tbfix.dll") != nullptr;
 
@@ -994,7 +991,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     return;
   }
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   struct list_s {
@@ -2238,7 +2235,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 void
 DisplayModeMenu (bool windowed)
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   enum {
@@ -2972,7 +2969,7 @@ extern void SK_Framerate_EnergyControlPanel (void);
 void
 SK_NV_LatencyControlPanel (void)
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! (sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (rb.api)))
@@ -3098,7 +3095,7 @@ SK_NV_GSYNCControlPanel ()
 {
   if (sk::NVAPI::nv_hardware)
   {
-    static auto& rb =
+    SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     SK_RunOnce (rb.gsync_state.disabled.for_app = !SK_NvAPI_GetVRREnablement ());
@@ -3153,7 +3150,7 @@ SK_ImGui_ControlPanel (void)
   auto& io =
     ImGui::GetIO ();
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   SK_TLS *pTLS =
@@ -7129,7 +7126,7 @@ SK_ImGui_StageNextFrame (void)
   if (imgui_staged)
     return;
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   // Excessively long frames from things like toggling the Steam overlay
@@ -8131,7 +8128,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     ImGui::NewFrame ();
   }
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   // Popup Windows, actually
@@ -8228,9 +8225,6 @@ SK_ImGui_Toggle (void)
     current_time  = SK_timeGetTime    ();
     last_frame    = SK_GetFramesDrawn ();
   }
-
-  static SK_RenderBackend& rb =
-    SK_GetCurrentRenderBackend ();
 
   SK_ImGui_Visible = (! SK_ImGui_Visible);
 
@@ -8421,7 +8415,7 @@ SK_ImGui_Toggle (void)
 void
 SK_Display_UpdateOutputTopology (void)
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   rb.updateOutputTopology ();

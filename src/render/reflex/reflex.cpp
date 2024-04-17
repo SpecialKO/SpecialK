@@ -370,7 +370,7 @@ SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
 
     if (ping)
     {
-      static auto &rb =
+      const SK_RenderBackend &rb =
         SK_GetCurrentRenderBackend ();
 
       rb.setLatencyMarkerNV (PC_LATENCY_PING);
@@ -385,7 +385,7 @@ SK_PCL_Heartbeat (const NV_LATENCY_MARKER_PARAMS& marker)
 }
 
 bool
-SK_RenderBackend_V2::isReflexSupported (void)
+SK_RenderBackend_V2::isReflexSupported (void) const
 {
   return 
     sk::NVAPI::nv_hardware && SK_API_IsDXGIBased (api) && 
@@ -393,7 +393,7 @@ SK_RenderBackend_V2::isReflexSupported (void)
 }
 
 bool
-SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
+SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker) const
 {
   if (! isReflexSupported ())
     return false;
@@ -500,7 +500,7 @@ SK_RenderBackend_V2::setLatencyMarkerNV (NV_LATENCY_MARKER_TYPE marker)
 }
 
 bool
-SK_RenderBackend_V2::getLatencyReportNV (NV_LATENCY_RESULT_PARAMS* pGetLatencyParams)
+SK_RenderBackend_V2::getLatencyReportNV (NV_LATENCY_RESULT_PARAMS* pGetLatencyParams) const
 {
   if (! sk::NVAPI::nv_hardware)
     return false;
@@ -520,7 +520,7 @@ SK_RenderBackend_V2::getLatencyReportNV (NV_LATENCY_RESULT_PARAMS* pGetLatencyPa
 
 
 void
-SK_RenderBackend_V2::driverSleepNV (int site)
+SK_RenderBackend_V2::driverSleepNV (int site) const
 {
   if (! sk::NVAPI::nv_hardware)
     return;
@@ -715,7 +715,7 @@ SK_NV_AdaptiveSyncControl (void)
 {
   if (sk::NVAPI::nv_hardware != false)
   {
-    static auto& rb =
+    SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     // We need to force a GSync status check at least once

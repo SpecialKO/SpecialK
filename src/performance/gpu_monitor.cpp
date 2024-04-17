@@ -220,7 +220,7 @@ SK_GPUPollingThread (LPVOID user)
 
           cbSettings.callback = Callback;
 
-        static auto& rb =
+        const SK_RenderBackend& rb =
           SK_GetCurrentRenderBackend ();
 
         auto &display =
@@ -692,7 +692,7 @@ SK_GPUPollingThread (LPVOID user)
 
     else if (ADL_init == ADL_TRUE)
     {
-      static auto &rb =
+      const SK_RenderBackend &rb =
         SK_GetCurrentRenderBackend ();
 
       stats.num_gpus = SK_ADL_CountActiveGPUs ();
@@ -776,7 +776,7 @@ SK_GPUPollingThread (LPVOID user)
       }
     }
 
-    static auto &rb =
+    SK_RenderBackend_V2 &rb =
       SK_GetCurrentRenderBackend ();
 
     static D3DKMT_ADAPTER_PERFDATA

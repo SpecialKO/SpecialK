@@ -131,16 +131,16 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
   auto& io =
     ImGui::GetIO ();
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  static auto& textures =
+  auto& textures =
     SK_D3D11_Textures;
 
-  static auto& TexRefs_2D =
+  auto& TexRefs_2D =
      textures->TexRefs_2D;
 
-  static auto& Textures_2D =
+  auto& Textures_2D =
     textures->Textures_2D;
 
   std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);

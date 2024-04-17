@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -570,7 +570,7 @@ SK_D3D11_CreateShader_Impl (
                            BytecodeLength );
 
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   const bool hash_only =

@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2017-2020 Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -59,7 +59,7 @@ UpdateConsole ( uint32_t           processId,
                              SwapChainData::PRESENT_HISTORY_MAX_COUNT
                              ];
 
-    static auto& rb =
+    SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
     auto cpuAvg  =

@@ -1321,7 +1321,7 @@ SK_LoadConfigEx (std::wstring name, bool create)
   if (create)
     SK_CreateDirectories ( full_name.c_str () );
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
 
@@ -4658,6 +4658,9 @@ auto DeclKeybind =
       [](HMONITOR hMonitor, HDC hDC, LPRECT lpRect, LPARAM lParam)
    -> BOOL
       {
+        SK_RenderBackend& rb =
+          SK_GetCurrentRenderBackend ();
+
         std::ignore = hDC;
         std::ignore = lpRect;
         std::ignore = lParam;
@@ -4710,6 +4713,9 @@ auto DeclKeybind =
         [](HMONITOR hMonitor, HDC, LPRECT, LPARAM)
      -> BOOL
         {
+          SK_RenderBackend& rb =
+            SK_GetCurrentRenderBackend ();
+
           MONITORINFOEXW
             mi = { };
             mi.cbSize = sizeof (MONITORINFOEXW);
@@ -4749,6 +4755,9 @@ auto DeclKeybind =
 
     virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr)
     {
+      const SK_RenderBackend& rb =
+        SK_GetCurrentRenderBackend ();
+
       if (val != nullptr && var != nullptr )
       {
         if (var->getValuePointer () == &config.display.refresh_rate)
@@ -5563,7 +5572,7 @@ SK_SaveConfig ( std::wstring name,
        osd_ini == nullptr    )
     return;
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   // Temp hack to handle GLDX11

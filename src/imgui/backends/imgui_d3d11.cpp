@@ -1,4 +1,4 @@
-// ImGui Win32 + DirectX11 binding
+﻿// ImGui Win32 + DirectX11 binding
 // In this binding, ImTextureID is used to store a 'ID3D11ShaderResourceView*' texture identifier. Read the FAQ about ImTextureID in imgui.cpp.
 
 // You can copy and use unmodified imgui_impl_* files in your project. See main.cpp for an example of using this.
@@ -186,7 +186,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
   ImGuiIO& io =
     ImGui::GetIO ();
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! rb.swapchain)
@@ -1675,7 +1675,7 @@ ImGui_ImplDX11_Init ( IDXGISwapChain*      pSwapChain,
   io.BackendRendererName = "imgui_impl_dx11";
   io.BackendFlags |= ImGuiBackendFlags_RendererHasVtxOffset;  // We can honor the ImDrawCmd::VtxOffset field, allowing for large meshes.
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   ImGui_ImplDX11_CreateDeviceObjects (pSwapChain, pDevice, pDevCtx);
@@ -1707,7 +1707,7 @@ ImGui_ImplDX11_NewFrame (void)
   auto& io =
     ImGui::GetIO ();
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   auto pDev =
@@ -1764,7 +1764,7 @@ ImGui_ImplDX11_Resize ( IDXGISwapChain *This,
   UNREFERENCED_PARAMETER (Height);
   UNREFERENCED_PARAMETER (This);
 
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! rb.getDevice <ID3D11Device> ())
@@ -2028,7 +2028,7 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
   if (! _pDeviceCtx.p)
     return;
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (! SK_D3D11_EnsureMatchingDevices (pSwapChain, _d3d11_rbk->_pDevice))

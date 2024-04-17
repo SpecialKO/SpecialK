@@ -535,7 +535,7 @@ SK_ReShadeAddOn_ActivateOverlay (bool activate)
   std::ignore = activate;
 
 #if 1
-  static auto &rb =
+  const SK_RenderBackend &rb =
     SK_GetCurrentRenderBackend ();
 
   SK_ComQIPtr <IDXGISwapChain1> pSwapChain1 (rb.swapchain);
@@ -1077,7 +1077,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 void
 SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *runtime)
 {
-  static auto &rb =
+  SK_RenderBackend &rb =
     SK_GetCurrentRenderBackend ();
 
   if ( rb.isHDRCapable () &&

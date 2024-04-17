@@ -1655,7 +1655,7 @@ SK_Overlay_DrawGL (void)
   //// Do not touch the default VAO state (assuming the context even has one)
   if (ceGL_VAO == 0 || (! glIsVertexArray (ceGL_VAO))) glGenVertexArrays (1, &ceGL_VAO);
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (last_srgb_framebuffer)
@@ -2071,7 +2071,7 @@ SK_GL_CheckSRGB (DXGI_FORMAT* fmt = nullptr)
 {
   if (bOriginallysRGB)
   {
-    static auto& rb =
+    SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
   
     rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_SRGB;
@@ -2965,7 +2965,7 @@ extern HWND WINAPI SK_GetFocus (void);
 void
 SK_GL_TrackHDC (HDC hDC)
 {
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   HWND hWnd_DC =

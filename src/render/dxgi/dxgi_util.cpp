@@ -927,7 +927,7 @@ SK_LazyGlobal <SK_DXGI_sRGBCoDec> srgb_codec;
 void
 SK_DXGI_ReleaseSRGBLinearizer (void)
 {
-  static auto& rb =
+  const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   if (rb.device != nullptr)

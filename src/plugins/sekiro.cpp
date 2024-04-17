@@ -1,4 +1,4 @@
-//
+﻿//
 // Copyright 2019 Andon "Kaldaien" Coleman
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -444,7 +444,7 @@ SK_Sekiro_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags
   {
     ULONG64 ulFrame = SK_GetFramesDrawn ();
 
-    static auto& rb =
+    SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
 
@@ -531,7 +531,7 @@ SK_Sekiro_PlugInCfg (void)
   ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
   ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
 
-  if (ImGui::CollapsingHeader ((const char *)u8R"(Sekiro�: Shadows Die Twice)", ImGuiTreeNodeFlags_DefaultOpen))
+  if (ImGui::CollapsingHeader ((const char *)u8R"(Sekiro™: Shadows Die Twice)", ImGuiTreeNodeFlags_DefaultOpen))
   {
     ImGui::TreePush ("");
 
@@ -602,7 +602,7 @@ SK_Sekiro_PlugInCfg (void)
 
       if (no_frame_limit)
       {
-        static auto& rb =
+        SK_RenderBackend& rb =
           SK_GetCurrentRenderBackend ();
 
         static UINT                num_modes   = 0;

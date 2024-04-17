@@ -1041,7 +1041,7 @@ public:
             constexpr int WAIT_PRODUCE_DATA    = WAIT_OBJECT_0;
             constexpr int WAIT_SHUTDOWN_THREAD = WAIT_OBJECT_0 + 1;
 
-            static auto& rb =
+            const SK_RenderBackend& rb =
               SK_GetCurrentRenderBackend ();
 
             do

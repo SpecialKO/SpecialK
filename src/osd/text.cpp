@@ -772,7 +772,7 @@ SK_DrawOSD (void)
     OSD_PRINTF "\n\n" OSD_END
   }
 
-  static auto& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   const bool gsync =

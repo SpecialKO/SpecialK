@@ -344,7 +344,7 @@ SK::ControlPanel::D3D11::Draw (void)
   if (show_shader_mod_dlg)
       show_shader_mod_dlg = SK_D3D11_ShaderModDlg ();
 
-  static auto &rb =
+  const SK_RenderBackend &rb =
     SK_GetCurrentRenderBackend ();
 
   const bool d3d11 =
@@ -1895,7 +1895,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
         SUCCEEDED (pSwap1->GetDesc1          (&swap_desc)) &&
         SUCCEEDED (pSwap1->GetFullscreenDesc (&fullscreen_desc)))
     {
-      static SK_RenderBackend& rb =
+      const SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
 
       INT         swap_flag_count = 0;
