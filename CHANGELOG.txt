@@ -1,4 +1,9 @@
-﻿24.4.17.2
+﻿24.4.17.3
+=========
+ + Added full support for HDR remastering in Harold Halibut, with
+     the exception of 8-bpc Compute Shader Passes.
+
+24.4.17.2
 =========
  + Added OBS's hook caching executables (get-graphics-offsets{32|64}.exe)
      to SK's internal injection blacklist.

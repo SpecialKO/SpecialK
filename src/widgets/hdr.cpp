@@ -1038,6 +1038,11 @@ public:
          SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow )
       SK_HDR_RenderTargets_11bpc->PromoteTo16Bit = false;
 
+    // Games where 8-bit Compute Remastering has problems
+    //
+    if (SK_GetCurrentGameID () == SK_GAME_ID::HaroldHalibut)
+      SK_HDR_UnorderedViews_8bpc->PromoteTo16Bit = false;
+
     _SK_HDR_FullRange =
       _CreateConfigParameterBool ( SK_HDR_SECTION,
                                    L"AllowFullLuminance",  __SK_HDR_FullRange,
@@ -2439,8 +2444,14 @@ public:
                   ImGui::EndTooltip      ();
                 }
 
+                const bool bDoesNotSupport8BitCompute =
+                  (SK_GetCurrentGameID () == SK_GAME_ID::HaroldHalibut);
+
                 if (bDetails)
                 {
+                  if (bDoesNotSupport8BitCompute)
+                    ImGui::BeginDisabled ();
+
                   changed |= ImGui::Checkbox ("Remaster 8-bit Compute Passes", &SK_HDR_UnorderedViews_8bpc->PromoteTo16Bit);
 
                   if (ImGui::IsItemHovered ())
@@ -2451,6 +2462,9 @@ public:
                                           ReadAcquire64    (&SK_HDR_UnorderedViews_8bpc->BytesAllocated));
                     ImGui::EndTooltip    ();
                   }
+
+                  if (bDoesNotSupport8BitCompute)
+                    ImGui::EndDisabled ();
                 }
 
                 ImGui::EndGroup          ();

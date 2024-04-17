@@ -5708,25 +5708,35 @@ D3D11Dev_CreateTexture2D1_Impl (
   {
     extern bool SK_HDR_PromoteUAVsTo16Bit;
 
-    static constexpr UINT _UnwantedFlags =
+    static constexpr UINT _UnwantedBindFlags =
         ( D3D11_BIND_VERTEX_BUFFER   | D3D11_BIND_INDEX_BUFFER     |
           D3D11_BIND_CONSTANT_BUFFER | D3D11_BIND_STREAM_OUTPUT    |
           D3D11_BIND_DEPTH_STENCIL   |/*D3D11_BIND_UNORDERED_ACCESS|*/
           D3D11_BIND_DECODER         | D3D11_BIND_VIDEO_ENCODER );
 
-    if ( (((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)     ==
-                               D3D11_BIND_RENDER_TARGET)     ||
-          //// UAVs also need special treatment for Compute Shader work
-           (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)  ==
-                               D3D11_BIND_UNORDERED_ACCESS   ||
+    static constexpr UINT _UnwantedMiscFlags =         
+      (/*D3D11_RESOURCE_MISC_GENERATE_MIPS                |*/ D3D11_RESOURCE_MISC_GDI_COMPATIBLE     |
+        D3D11_RESOURCE_MISC_TEXTURECUBE                     | D3D11_RESOURCE_MISC_TILED              |
+        D3D11_RESOURCE_MISC_TILE_POOL                       | D3D11_RESOURCE_MISC_SHARED_NTHANDLE    |
+        D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX               | D3D11_RESOURCE_MISC_SHARED             |
+        D3D11_RESOURCE_MISC_SHARED                          | D3D11_RESOURCE_MISC_SHARED_DISPLAYABLE |
+        D3D11_RESOURCE_MISC_SHARED_EXCLUSIVE_WRITER         | D3D11_RESOURCE_MISC_RESTRICTED_CONTENT |
+        D3D11_RESOURCE_MISC_RESTRICT_SHARED_RESOURCE        | D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS  |
+        D3D11_RESOURCE_MISC_RESTRICT_SHARED_RESOURCE_DRIVER | D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS );
+
+    if ( ((((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)     ==
+                                D3D11_BIND_RENDER_TARGET)     ||
+           //// UAVs also need special treatment for Compute Shader work
+            (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)  ==
+                                D3D11_BIND_UNORDERED_ACCESS   ||
 #if 1
-          ((pDesc->BindFlags & D3D11_BIND_SHADER_RESOURCE)   ==
-                               D3D11_BIND_SHADER_RESOURCE &&
-                pDesc->Width == swapDesc.BufferDesc.Width &&
-               pDesc->Height == swapDesc.BufferDesc.Height//&&
-             /*pDesc->Format == swapDesc.BufferDesc.Format*/)         &&
+           ((pDesc->BindFlags & D3D11_BIND_SHADER_RESOURCE)   ==
+                                D3D11_BIND_SHADER_RESOURCE &&
+                 pDesc->Width == swapDesc.BufferDesc.Width &&
+                pDesc->Height == swapDesc.BufferDesc.Height//&&
+              /*pDesc->Format == swapDesc.BufferDesc.Format*/))         &&
 #endif
-           (pDesc->BindFlags & _UnwantedFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) )
+           (pDesc->BindFlags & _UnwantedBindFlags) == 0 && (pDesc->MiscFlags & _UnwantedMiscFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) )
        )
     {
       if ( (! ( DirectX::IsVideo        (pDesc->Format) ||
@@ -6892,27 +6902,37 @@ D3D11Dev_CreateTexture2D_Impl (
   {
     extern bool SK_HDR_PromoteUAVsTo16Bit;
 
-    static constexpr UINT _UnwantedFlags =
+    static constexpr UINT _UnwantedBindFlags =
         ( D3D11_BIND_VERTEX_BUFFER   | D3D11_BIND_INDEX_BUFFER     |
           D3D11_BIND_CONSTANT_BUFFER | D3D11_BIND_STREAM_OUTPUT    |
           D3D11_BIND_DEPTH_STENCIL   |/*D3D11_BIND_UNORDERED_ACCESS|*/
           D3D11_BIND_DECODER         | D3D11_BIND_VIDEO_ENCODER );
 
-    if ( (((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)     ==
-                               D3D11_BIND_RENDER_TARGET)     ||
+    static constexpr UINT _UnwantedMiscFlags =         
+      (/*D3D11_RESOURCE_MISC_GENERATE_MIPS                |*/ D3D11_RESOURCE_MISC_GDI_COMPATIBLE     |
+        D3D11_RESOURCE_MISC_TEXTURECUBE                     | D3D11_RESOURCE_MISC_TILED              |
+        D3D11_RESOURCE_MISC_TILE_POOL                       | D3D11_RESOURCE_MISC_SHARED_NTHANDLE    |
+        D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX               | D3D11_RESOURCE_MISC_SHARED             |
+        D3D11_RESOURCE_MISC_SHARED                          | D3D11_RESOURCE_MISC_SHARED_DISPLAYABLE |
+        D3D11_RESOURCE_MISC_SHARED_EXCLUSIVE_WRITER         | D3D11_RESOURCE_MISC_RESTRICTED_CONTENT |
+        D3D11_RESOURCE_MISC_RESTRICT_SHARED_RESOURCE        | D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS  |
+        D3D11_RESOURCE_MISC_RESTRICT_SHARED_RESOURCE_DRIVER | D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS );
+
+    if ( ((((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)     ==
+                                D3D11_BIND_RENDER_TARGET)     ||
           //// UAVs also need special treatment for Compute Shader work
-           (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)  ==
-                               D3D11_BIND_UNORDERED_ACCESS   ||
+            (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)  ==
+                                D3D11_BIND_UNORDERED_ACCESS   ||
 #if 1
-          ((pDesc->BindFlags & D3D11_BIND_SHADER_RESOURCE)   ==
-                               D3D11_BIND_SHADER_RESOURCE &&
-                pDesc->Width == swapDesc.BufferDesc.Width &&
-               pDesc->Height == swapDesc.BufferDesc.Height//&&
-             /*pDesc->Format == swapDesc.BufferDesc.Format*/ &&
+           ((pDesc->BindFlags & D3D11_BIND_SHADER_RESOURCE)   ==
+                                D3D11_BIND_SHADER_RESOURCE &&
+                 pDesc->Width == swapDesc.BufferDesc.Width &&
+                pDesc->Height == swapDesc.BufferDesc.Height//&&
+              /*pDesc->Format == swapDesc.BufferDesc.Format*/ &&
                ( pInitialData          == nullptr ||
-                 pInitialData->pSysMem == nullptr ))         &&
+                 pInitialData->pSysMem == nullptr )))         &&
 #endif
-           (pDesc->BindFlags & _UnwantedFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) )
+           (pDesc->BindFlags & _UnwantedBindFlags) == 0 && (pDesc->MiscFlags & _UnwantedMiscFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) )
        )
     {
       if ( (! ( DirectX::IsVideo        (pDesc->Format) ||

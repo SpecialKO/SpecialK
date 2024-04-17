@@ -245,8 +245,8 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
           "This game uses Windows.Gaming.Input\r\n\r\n  "
           ICON_FA_PLAYSTATION "  "
           "Your PlayStation controller may not work unless XInput Mode is"
-          " enabled\r\n\t(Input Management | PlayStation > XInput Mode) and"
-          " the game is restarted.",
+          " enabled\r\n\r\n\t(Input Management | PlayStation > XInput Mode)"
+          " and the game is restarted.",
           "Windows.Gaming.Input Incompatibility Detected",
                                       15000UL,
                                     SK_ImGui_Toast::UseDuration |

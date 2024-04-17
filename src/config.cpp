@@ -258,7 +258,8 @@ SK_GetCurrentGameID (void)
           { L"P3R.exe",                                SK_GAME_ID::Persona3                     },
           { L"granblue_fantasy_relink.exe",            SK_GAME_ID::GranblueFantasyRelink        },
           { L"wrath-sdl.exe",                          SK_GAME_ID::WrathAeonOfRuin              },
-          { L"dd2.exe",                                SK_GAME_ID::DragonsDogma                 }
+          { L"dd2.exe",                                SK_GAME_ID::DragonsDogma                 },
+          { L"Harold Halibut.exe",                     SK_GAME_ID::HaroldHalibut                },
         };
 
     first_check  = false;

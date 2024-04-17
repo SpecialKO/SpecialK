@@ -1589,6 +1589,7 @@ enum class SK_GAME_ID
   Persona3,                     // P3R.exe
   GranblueFantasyRelink,        // granblue_fantasy_relink.exe
   WrathAeonOfRuin,              // wrath-sdl.exe
+  HaroldHalibut,                // Harold Halibut.exe
 
   UNKNOWN_GAME               = 0xffff
 };
