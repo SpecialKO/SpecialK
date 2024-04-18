@@ -43,6 +43,7 @@
 #define XUSER_MAX_INDEX (DWORD)XUSER_MAX_COUNT-1
 
 void SK_Steam_SignalEmulatedXInputActivity (DWORD dwSlot, bool blocked);
+bool bUseEmulationForSetState = false;
 
 struct SK_XInputContext
 {
@@ -569,6 +570,8 @@ XInputGetState1_4_Detour (
 
       if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active > ReadULong64Acquire (&last_time [0])))
       {
+        bUseEmulationForSetState = true;
+
         extern XINPUT_STATE hid_to_xi;
                             hid_to_xi = pNewestInputDevice->xinput.prev_report;
         memcpy (  pState,  &hid_to_xi, sizeof (XINPUT_STATE) );
@@ -588,7 +591,13 @@ XInputGetState1_4_Detour (
 
         dwRet = ERROR_SUCCESS;
       }
+
+      else
+        bUseEmulationForSetState = false;
     }
+
+    else if (dwUserIndex == 0)
+      bUseEmulationForSetState = false;
   }
 
   if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
@@ -832,6 +841,8 @@ XInputGetStateEx1_4_Detour (
 
       if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active > ReadULong64Acquire (&last_time [0])))
       {
+        bUseEmulationForSetState = true;
+
         extern XINPUT_STATE hid_to_xi;
                             hid_to_xi = pNewestInputDevice->xinput.prev_report;
         memcpy ( pState,   &hid_to_xi, sizeof (XINPUT_STATE) );
@@ -851,7 +862,12 @@ XInputGetStateEx1_4_Detour (
 
         dwRet = ERROR_SUCCESS;
       }
+      else
+        bUseEmulationForSetState = false;
     }
+
+    else if (dwUserIndex == 0)
+      bUseEmulationForSetState = false;
   }
 
   if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
@@ -1186,7 +1202,7 @@ XInputSetState1_4_Detour (
 
   DWORD dwRet = ERROR_DEVICE_NOT_CONNECTED;
 
-  if (pNewestInputDevice == nullptr && (! xinput_ctx.preventHapticRecursion (dwUserIndex, true)))
+  if ((! bUseEmulationForSetState) || (pNewestInputDevice == nullptr && (! xinput_ctx.preventHapticRecursion (dwUserIndex, true))))
   {
     SK_XInputContext::instance_s* pCtx =
       &xinput_ctx.XInput1_4;
@@ -1254,7 +1270,7 @@ XInputSetState1_4_Detour (
     }
   }
 
-  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api) && dwUserIndex == 0)
+  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api) && dwUserIndex == 0 && (bUseEmulationForSetState || dwRet != ERROR_SUCCESS))
   {
     bool bHasSetState = false;
 

@@ -344,11 +344,21 @@ SK::ControlPanel::Input::Draw (void)
 
     if ( last_wgi > current_time - 500UL ||
          hide_wgi > current_time - 500UL )
-    {
+    {if (SK_HID_PlayStationControllers.empty ())
+              SK_WGI_EmulatedPlayStation = false;
+     else if (SK_WGI_EmulatedPlayStation) {
+                         bool bConnected = false;
+       for (auto & controller : SK_HID_PlayStationControllers)
+       {if (       controller.bConnected)
+                              bConnected = true; break;}
+       if (!                  bConnected)
+              SK_WGI_EmulatedPlayStation = false;      }
+
       SETUP_LABEL_COLOR (wgi, 500.0f);
 
       ImGui::SameLine       ();
-      ImGui::Text           ("       Windows.Gaming.Input");
+      ImGui::Text           (SK_WGI_EmulatedPlayStation ? "    Windows.Gaming.Input  " ICON_FA_PLAYSTATION
+                                                        : "      Windows.Gaming.Input");
       ImGui::PopStyleColor  ();
 
       if (ImGui::IsItemHovered ( ))
@@ -1528,7 +1538,7 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::SameLine    ();
 
             ImGui::BeginGroup  ();
-            if (ImGui::Checkbox("XInput Mode", &config.input.gamepad.xinput.emulate))
+            if (ImGui::Checkbox("Xbox Mode", &config.input.gamepad.xinput.emulate))
             {
               if (config.input.gamepad.xinput.emulate)
               {
@@ -1538,7 +1548,7 @@ SK::ControlPanel::Input::Draw (void)
                 {
                   SK_ImGui_WarningWithTitle (
                     L"XInput was being blocked to the game; it must be unblocked"
-                    L" for XInput mode to work.\r\n\r\n\t"
+                    L" for Xbox mode to work.\r\n\r\n\t"
                     L"* A game restart may be required",
                       L"XInput Has Been Unblocked"
                   );
@@ -1561,19 +1571,19 @@ SK::ControlPanel::Input::Draw (void)
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip    ();
-              ImGui::TextUnformatted ("Translates HID to XInput for PlayStation controllers");
+              ImGui::TextUnformatted ("Adds PlayStation controller support to Xbox-only games");
               ImGui::Separator       ();
-              ImGui::BulletText      ("Fully supports DualSense and DualShock 4 (USB and Bluetooth).");
-              ImGui::BulletText      ("Limited support for DualShock 3.");
+              ImGui::BulletText      ("Fully supports DualSense and DualShock 4 (USB and Bluetooth)");
+              ImGui::BulletText      ("Limited support for DualShock 3");
               ImGui::Separator       ();
-              ImGui::BulletText      ("All PlayStation controllers map to Xbox controller slot 0.");
+              ImGui::BulletText      ("All PlayStation controllers will map to Xbox controller slot 0");
 
               // Has the game ever tried to poll XInput slot 0?
               //
               //   * If not, maybe it thinks no Xbox controllers are connected.
               //
               if (! ReadAcquire (&SK_XInput_Backend->reads [0]))
-                ImGui::BulletText    ("May require a game restart.");
+                ImGui::BulletText    ("May require a game restart");
 
               ImGui::EndTooltip      ();
             }
@@ -1589,7 +1599,7 @@ SK::ControlPanel::Input::Draw (void)
                 show_debug_option = true;
 
               else if (ImGui::IsItemHovered ())
-                       ImGui::SetTooltip ("Apply deadzone according to XInput's standard values");
+                       ImGui::SetTooltip ("Apply aggressive deadzone as-per XInput suggested values; many games work fine without adding a deadzone");
 
               if (show_debug_option)
               {
