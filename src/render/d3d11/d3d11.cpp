@@ -9813,6 +9813,19 @@ D3D11CreateDevice_Detour (
 
     if (SK_COMPAT_IgnoreNvCameraCall ())
       return E_NOTIMPL;
+
+    if (StrStrIW (SK_GetCallerName ().c_str (), L"msvproc.dll"))
+    {
+      SK_LOGi0 (L" * Ignoring Media Foundation D3D11 Device.");
+
+      return
+        D3D11CreateDeviceAndSwapChain_Import (
+          pAdapter, DriverType, Software, Flags,
+            pFeatureLevels, FeatureLevels, SDKVersion,
+              nullptr, nullptr, ppDevice, pFeatureLevel,
+                ppImmediateContext
+        );
+    }
   }
 
   Flags =

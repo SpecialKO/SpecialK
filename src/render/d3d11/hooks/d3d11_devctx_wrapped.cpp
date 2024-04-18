@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -497,17 +497,38 @@ public:
     hr =
       pReal->QueryInterface (riid, ppvObj);
 
-    if ( riid == IID_ID3D11VideoContext )
+    if (SUCCEEDED (hr))
     {
-      SK_RunOnce (
-        SK_LOG0 ( (L" * Game is using ID3D11VideoContext..."),
-                   L"D3D11Video" )
-      );
+      if ( riid == IID_ID3D11VideoContext )
+      {
+        SK_RunOnce (
+          SK_LOG0 ( (L" * Game is using ID3D11VideoContext..."),
+                     L"D3D11Video" )
+        );
+      }
+
+      else if ( riid == IID_ID3D11VideoContext1 )
+      {
+        SK_RunOnce (
+          SK_LOG0 ( (L" * Game is using ID3D11VideoContext1..."),
+                     L"D3D11Video" )
+        );
+      }
+
+      else if ( riid == IID_ID3D11VideoContext2 )
+      {
+        SK_RunOnce (
+          SK_LOG0 ( (L" * Game is using ID3D11VideoContext2..."),
+                     L"D3D11Video" )
+        );
+      }
     }
 
     if ( riid != IID_ID3DUserDefinedAnnotation &&
          riid != IID_ID3D11Multithread         &&
-         riid != IID_ID3D11VideoContext )      // 61F21C45-3C0E-4A74-9CEA-67100D9AD5E4)
+         riid != IID_ID3D11VideoContext        &&
+         riid != IID_ID3D11VideoContext1       &&
+         riid != IID_ID3D11VideoContext2 )
     {
       static
         concurrency::concurrent_unordered_set <std::wstring> reported_guids;
