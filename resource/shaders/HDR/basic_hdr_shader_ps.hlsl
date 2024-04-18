@@ -155,7 +155,7 @@ FinalOutput (float4 vColor)
     vColor.rgb *=
       smoothstep ( 0.006978,
                    0.016667, vColor.rgb);
-    
+
     vColor.a = 1.0;
   }
     
@@ -211,7 +211,8 @@ float4 main (PS_INPUT input) : SV_TARGET
     texMainScene.Sample ( sampler0,
                             input.uv );
 
-  float4 orig_color = hdr_color;
+  float3 orig_color =
+    abs (hdr_color.rgb);
 
 #ifdef INCLUDE_NAN_MITIGATION
 #ifdef DEBUG_NAN
@@ -454,7 +455,7 @@ float4 main (PS_INPUT input) : SV_TARGET
                      saturation );
     }
   }
-    
+
   hdr_color.rgb *=
     input.color.xxx;
 
@@ -837,7 +838,7 @@ float4 main (PS_INPUT input) : SV_TARGET
       FinalOutput (float4 (hdr_color.rgb, 1.0f));
   }
 #endif
-    
+
   float4 color_out;
 
   // Extra clipping and gamut expansion logic for regular display output
@@ -851,16 +852,18 @@ float4 main (PS_INPUT input) : SV_TARGET
         expandGamut (hdr_color.rgb, hdrGamutExpansion);
     }
 
-    
     color_out =
       float4 (
         Clamp_scRGB_StripNaN (color_out.rgb),
                     saturate (hdr_color.a)
              );
 
-    color_out.r *= (orig_color.r >= FLT_EPSILON);
-    color_out.g *= (orig_color.g >= FLT_EPSILON);
-    color_out.b *= (orig_color.b >= FLT_EPSILON);
+    // Keep pure black pixels as-per scRGB's limited ability to
+    //   represent a black pixel w/ FP16 precision
+    color_out.rgb *=
+      ( (orig_color.r > FP16_MIN) +
+        (orig_color.g > FP16_MIN) +
+        (orig_color.b > FP16_MIN) > 0.0f );
   }
 #ifdef INCLUDE_TEST_PATTERNS
   else
