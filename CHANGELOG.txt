@@ -1,4 +1,19 @@
-﻿24.4.17.3
+﻿24.4.18
+=======
+ + Merge pull request #164 from audaki:main
+    * Fix gamut visualizers
+ + Dump textures with actual names to subdirectories honoring their name,
+     to make working with named textures simpler.
+ + Prevent selecting 11-bpc Render Pass Remastering in Tales of Arise
+ + Ignore Windows Media Foundation D3D11 devices for video playback in games.
+ + Improved support for Windows.Gaming.Input emulation, includes rumble
+     and secondary trigger rumble (impulse trigger) data is added as
+       additional mild rumble.
+       
+      >> Will attempt to simulate the secondary trigger rumble using haptics
+           waveform stuff in the future, current solution is adequate.
+
+24.4.17.3
 =========
  + Added full support for HDR remastering in Harold Halibut, with
      the exception of 8-bpc Compute Shader Passes.
