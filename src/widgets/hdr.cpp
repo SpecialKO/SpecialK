@@ -1032,10 +1032,11 @@ public:
 
     // Games where 11-bit remastering is a known stability issue
     //
-    if ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0       ||
-         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami  ||
-         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
-         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow )
+    if ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0         ||
+         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami    ||
+         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2   ||
+         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow ||
+         SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Arise ) // Artifacts in Tales of Arise
       SK_HDR_RenderTargets_11bpc->PromoteTo16Bit = false;
 
     // Games where 8-bit Compute Remastering has problems
@@ -2449,8 +2450,7 @@ public:
 
                 if (bDetails)
                 {
-                  if (bDoesNotSupport8BitCompute)
-                    ImGui::BeginDisabled ();
+                  if (bDoesNotSupport8BitCompute) ImGui::BeginDisabled ();
 
                   changed |= ImGui::Checkbox ("Remaster 8-bit Compute Passes", &SK_HDR_UnorderedViews_8bpc->PromoteTo16Bit);
 
@@ -2463,8 +2463,7 @@ public:
                     ImGui::EndTooltip    ();
                   }
 
-                  if (bDoesNotSupport8BitCompute)
-                    ImGui::EndDisabled ();
+                  if (bDoesNotSupport8BitCompute) ImGui::EndDisabled ();
                 }
 
                 ImGui::EndGroup          ();
@@ -2502,6 +2501,11 @@ public:
                 ImGui::SameLine          ();
                 ImGui::BeginGroup        ();
 
+                const bool bDoesNotSupport11BitRender =
+                  (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Arise);
+
+                if (bDoesNotSupport11BitRender) ImGui::BeginDisabled ();
+
                 changed |= ImGui::Checkbox ("Remaster 11-bit Render Passes", &SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
 
                 if (ImGui::IsItemHovered ())
@@ -2514,6 +2518,8 @@ public:
                                           ReadAcquire64    (&SK_HDR_RenderTargets_11bpc->BytesAllocated));
                   ImGui::EndTooltip      ();
                 }
+
+                if (bDoesNotSupport11BitRender) ImGui::EndDisabled ();
 
                 if (bDetails)
                 {
