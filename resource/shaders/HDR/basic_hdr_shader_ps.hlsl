@@ -478,13 +478,12 @@ float4 main (PS_INPUT input) : SV_TARGET
   {
     int cs = visualFunc.x - VISUALIZE_REC709_GAMUT;
 
-    float3 r = SK_Color_xyY_from_RGB ( _ColorSpaces [cs], float3 (1.f, 0.f, 0.f) ),
-           g = SK_Color_xyY_from_RGB ( _ColorSpaces [cs], float3 (0.f, 1.f, 0.f) ),
-           b = SK_Color_xyY_from_RGB ( _ColorSpaces [cs], float3 (0.f, 0.f, 1.f) ),
-           w = SK_Color_xyY_from_RGB ( _ColorSpaces [cs], float3 (D65,             hdrLuminance_MaxLocal / 80.0) );
+    float3 r = float3(_ColorSpaces[cs].xr, _ColorSpaces[cs].yr, 0),
+           g = float3(_ColorSpaces[cs].xg, _ColorSpaces[cs].yg, 0),
+           b = float3(_ColorSpaces[cs].xb, _ColorSpaces[cs].yb, 0);
 
-    float3 vColor_xyY =
-         SK_Color_xyY_from_RGB ( _ColorSpaces [cs], normalize (hdr_color.rgb) );
+    float3 hdr_XYZ = sRGBtoXYZ(hdr_color.rgb);
+    float3 vColor_xyY = float3(hdr_XYZ.x / (hdr_XYZ.x + hdr_XYZ.y + hdr_XYZ.z), hdr_XYZ.y / (hdr_XYZ.x + hdr_XYZ.y + hdr_XYZ.z), 0);
 
     float3 vTriangle [] = {
       r, g, b
