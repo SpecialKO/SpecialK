@@ -1,4 +1,14 @@
-﻿24.4.18
+﻿24.4.19
+=======
+ + Allow XInput emulation setting to apply even for real Xbox controllers
+     in games that use Windows.Gaming.Input. This allows background input,
+       which is impossible in the native UWP API.
+ + Reduced the strictness of Rec 2020 color clamp and limit FP16 black pixel
+     fix logic only to -pure- black pixels, not pixels that have one or two
+       ~0.0 color channels.
+    >> Should improve appearance and gradiation of highly saturated colors
+
+24.4.18
 =======
  + Merge pull request #164 from audaki:main
     * Fix gamut visualizers

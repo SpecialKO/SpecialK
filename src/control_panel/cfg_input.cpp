@@ -344,15 +344,26 @@ SK::ControlPanel::Input::Draw (void)
 
     if ( last_wgi > current_time - 500UL ||
          hide_wgi > current_time - 500UL )
-    {if (SK_HID_PlayStationControllers.empty ())
-              SK_WGI_EmulatedPlayStation = false;
-     else if (SK_WGI_EmulatedPlayStation) {
-                         bool bConnected = false;
-       for (auto & controller : SK_HID_PlayStationControllers)
-       {if (       controller.bConnected)
-                              bConnected = true; break;}
-       if (!                  bConnected)
-              SK_WGI_EmulatedPlayStation = false;      }
+    {
+      if (SK_HID_PlayStationControllers.empty ())
+        SK_WGI_EmulatedPlayStation = false;
+
+      else
+      {
+        bool bConnected = false;
+
+        for (auto& controller : SK_HID_PlayStationControllers)
+        {
+          if (controller.bConnected)
+          {
+            bConnected = true;
+            break;
+          }
+        }
+
+        if (! bConnected)
+          SK_WGI_EmulatedPlayStation = false;
+      }
 
       SETUP_LABEL_COLOR (wgi, 500.0f);
 

@@ -99,16 +99,200 @@ static WGI_VectorView_Gamepads_GetMany_pfn
 static volatile DWORD  last_packet [XUSER_MAX_COUNT] = {};
 static volatile UINT64 last_time   [XUSER_MAX_COUNT] = {};
 
-class SK_HID_WGI_Gamepad : ABI::Windows::Gaming::Input::IGamepad
-{
-  volatile ULONG ulRefs = 1;
+struct SK_HID_WGI_Gamepad;
 
-  ABI::Windows::Gaming::Input::GamepadVibration vibes;
+struct DECLSPEC_UUID("1baf6522-5f64-42c5-8267-b9fe2215bfbd")
+SK_HID_WGI_GameController : ABI::Windows::Gaming::Input::IGameController
+{
+  SK_HID_WGI_Gamepad* parent_;
 
 public:
-  HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, void __RPC_FAR *__RPC_FAR *ppvObject)
+  SK_HID_WGI_GameController (SK_HID_WGI_Gamepad *pParent)
+  {
+    parent_ = pParent;
+  }
+
+  SK_HID_WGI_GameController            (const SK_HID_WGI_GameController &) = delete;
+  SK_HID_WGI_GameController &operator= (const SK_HID_WGI_GameController &) = delete;
+
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, void __RPC_FAR *__RPC_FAR *ppvObject) override
   {
     SK_LOG_FIRST_CALL
+
+    return
+      ((IUnknown *)parent_)->QueryInterface (riid, ppvObject);
+  }
+  
+  virtual ULONG STDMETHODCALLTYPE AddRef (void) override
+  {
+    SK_LOG_FIRST_CALL
+
+    return InterlockedIncrement (&ulRefs);
+  }
+
+  virtual ULONG STDMETHODCALLTYPE Release (void) override
+  {
+    SK_LOG_FIRST_CALL
+
+    return InterlockedDecrement (&ulRefs);
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE GetIids( 
+            /* [out] */ __RPC__out ULONG *iidCount,
+            /* [size_is][size_is][out] */ __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids) override
+  {
+    SK_LOG_FIRST_CALL
+
+    std::ignore = iidCount;
+    std::ignore = iids;
+
+    return E_NOTIMPL;
+  }
+        
+  virtual HRESULT STDMETHODCALLTYPE GetRuntimeClassName ( 
+    /* [out] */ __RPC__deref_out_opt HSTRING *className ) override
+  {
+    SK_LOG_FIRST_CALL
+
+    std::ignore = className;
+
+    return E_NOTIMPL;
+  }        
+
+  virtual HRESULT STDMETHODCALLTYPE GetTrustLevel( 
+    /* [out] */ __RPC__out TrustLevel *trustLevel ) override
+  {
+    SK_LOG_FIRST_CALL
+
+    std::ignore = trustLevel;
+
+    return E_NOTIMPL;
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE add_HeadsetConnected (__FITypedEventHandler_2_Windows__CGaming__CInput__CIGameController_Windows__CGaming__CInput__CHeadset *value,
+                                                          EventRegistrationToken                                                                                *token) override
+  {
+    SK_LOG_FIRST_CALL
+
+    std::ignore = value;
+    std::ignore = token;
+
+    return S_OK; // ?
+  }
+  
+  virtual HRESULT STDMETHODCALLTYPE remove_HeadsetConnected (EventRegistrationToken token) override
+  {
+    SK_LOG_FIRST_CALL
+
+    std::ignore = token;
+
+    return S_OK; // ?
+  }
+  
+  virtual HRESULT STDMETHODCALLTYPE add_HeadsetDisconnected (__FITypedEventHandler_2_Windows__CGaming__CInput__CIGameController_Windows__CGaming__CInput__CHeadset *value,
+                                                             EventRegistrationToken                                                                                *token) override
+  {
+    SK_LOG_FIRST_CALL
+
+    std::ignore = value;
+    std::ignore = token;
+
+    return S_OK; // ?
+  }
+  
+  virtual HRESULT STDMETHODCALLTYPE remove_HeadsetDisconnected (EventRegistrationToken token) override
+  {
+    SK_LOG_FIRST_CALL
+
+    std::ignore = token;
+
+    return S_OK; // ?
+  }
+
+  virtual HRESULT STDMETHODCALLTYPE add_UserChanged (__FITypedEventHandler_2_Windows__CGaming__CInput__CIGameController_Windows__CSystem__CUserChangedEventArgs *value,
+                                                     EventRegistrationToken                                                                                     *token) override
+  {
+    SK_LOG_FIRST_CALL
+
+    std::ignore = value;
+    std::ignore = token;
+
+    return S_OK; // ?
+  }
+  
+  virtual HRESULT STDMETHODCALLTYPE remove_UserChanged (EventRegistrationToken token) override
+  {
+    SK_LOG_FIRST_CALL
+
+    std::ignore = token;
+
+    return S_OK; // ?
+  }
+  
+  virtual HRESULT STDMETHODCALLTYPE get_Headset (ABI::Windows::Gaming::Input::IHeadset **value) override
+  {
+    SK_LOG_FIRST_CALL
+
+    std::ignore = value;
+
+    return E_NOTIMPL;
+  }
+  
+  virtual HRESULT STDMETHODCALLTYPE get_IsWireless (boolean *value) override
+  {
+    SK_LOG_FIRST_CALL
+
+    if (value == nullptr)
+      return E_INVALIDARG;
+
+    for ( auto& controller : SK_HID_PlayStationControllers )
+    {
+      if (controller.bBluetooth && controller.bConnected)
+      {
+        *value = true;
+        return S_OK;
+      }
+    }
+
+    *value = false;
+
+    return S_OK;
+  }
+  
+  virtual HRESULT STDMETHODCALLTYPE get_User (ABI::Windows::System::IUser **value) override
+  {
+    SK_LOG_FIRST_CALL
+
+    std::ignore = value;
+
+    return E_NOTIMPL;
+  }
+
+private:
+  volatile ULONG ulRefs = 1;
+};
+
+struct DECLSPEC_UUID("bc7bb43c-0a69-3903-9e9d-a50f86a45de5")
+SK_HID_WGI_Gamepad : ABI::Windows::Gaming::Input::IGamepad
+{
+public:
+  SK_HID_WGI_Gamepad (void)
+  {
+    controller = new
+      SK_HID_WGI_GameController (this);
+  }
+
+  SK_HID_WGI_Gamepad            (const SK_HID_WGI_Gamepad &) = delete;
+  SK_HID_WGI_Gamepad &operator= (const SK_HID_WGI_Gamepad &) = delete;
+
+  virtual HRESULT STDMETHODCALLTYPE QueryInterface (REFIID riid, void __RPC_FAR *__RPC_FAR *ppvObject) override
+  {
+    SK_LOG_FIRST_CALL
+
+    if (ppvObject == nullptr)
+      return E_INVALIDARG;
+
+    *ppvObject = nullptr;
 
     if ( IsEqualGUID (riid, IID_IUnknown)     ||
          IsEqualGUID (riid, IID_IInspectable) ||
@@ -116,6 +300,15 @@ public:
     {
       AddRef ();
       *ppvObject = this;
+
+      return S_OK;
+    }
+
+    if (IsEqualGUID (riid, IID_IGameController))
+    {
+      controller->AddRef ();
+
+      *ppvObject = controller;
 
       return S_OK;
     }
@@ -140,23 +333,23 @@ public:
     return E_NOINTERFACE;
   }
   
-  ULONG STDMETHODCALLTYPE AddRef (void)
+  virtual ULONG STDMETHODCALLTYPE AddRef (void) override
   {
     SK_LOG_FIRST_CALL
 
     return InterlockedIncrement (&ulRefs);
   }
 
-  ULONG STDMETHODCALLTYPE Release (void)
+  virtual ULONG STDMETHODCALLTYPE Release (void) override
   {
     SK_LOG_FIRST_CALL
 
     return InterlockedDecrement (&ulRefs);
   }
 
-  HRESULT STDMETHODCALLTYPE GetIids( 
+  virtual HRESULT STDMETHODCALLTYPE GetIids( 
             /* [out] */ __RPC__out ULONG *iidCount,
-            /* [size_is][size_is][out] */ __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids)
+            /* [size_is][size_is][out] */ __RPC__deref_out_ecount_full_opt(*iidCount) IID **iids) override
   {
     SK_LOG_FIRST_CALL
 
@@ -166,8 +359,8 @@ public:
     return E_NOTIMPL;
   }
         
-  HRESULT STDMETHODCALLTYPE GetRuntimeClassName ( 
-    /* [out] */ __RPC__deref_out_opt HSTRING *className )
+  virtual HRESULT STDMETHODCALLTYPE GetRuntimeClassName ( 
+    /* [out] */ __RPC__deref_out_opt HSTRING *className ) override
   {
     SK_LOG_FIRST_CALL
 
@@ -176,8 +369,8 @@ public:
     return E_NOTIMPL;
   }        
 
-  HRESULT STDMETHODCALLTYPE GetTrustLevel( 
-    /* [out] */ __RPC__out TrustLevel *trustLevel )
+  virtual HRESULT STDMETHODCALLTYPE GetTrustLevel ( 
+    /* [out] */ __RPC__out TrustLevel *trustLevel ) override
   {
     SK_LOG_FIRST_CALL
 
@@ -186,7 +379,7 @@ public:
     return E_NOTIMPL;
   }
 
-  HRESULT STDMETHODCALLTYPE get_Vibration (ABI::Windows::Gaming::Input::GamepadVibration* value)
+  virtual HRESULT STDMETHODCALLTYPE get_Vibration (ABI::Windows::Gaming::Input::GamepadVibration* value) override
   {
     SK_LOG_FIRST_CALL
 
@@ -198,7 +391,7 @@ public:
     return S_OK;
   }
 
-  HRESULT STDMETHODCALLTYPE put_Vibration (ABI::Windows::Gaming::Input::GamepadVibration value)
+  virtual HRESULT STDMETHODCALLTYPE put_Vibration (ABI::Windows::Gaming::Input::GamepadVibration value) override
   {
     SK_LOG_FIRST_CALL
 
@@ -206,21 +399,30 @@ public:
 
     //SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
 
-    for ( auto& controller : SK_HID_PlayStationControllers )
+    bool bConnected = false;
+
+    for ( auto& ps_controller : SK_HID_PlayStationControllers )
     {
-      if (controller.bConnected)
+      if (ps_controller.bConnected)
       {
-        controller.setVibration (
+        bConnected = true;
+
+        ps_controller.setVibration (
           (std::min (255ui16, static_cast <USHORT> (vibes.LeftMotor  * 255.0 + vibes.LeftTrigger  * 255.0))),
           (std::min (255ui16, static_cast <USHORT> (vibes.RightMotor * 255.0 + vibes.RightTrigger * 255.0))), 255ui16
         );
+
+        ps_controller.write_output_report ();
       }
     }
+
+    if (! bConnected)
+      SK_XInput_PulseController (0, (float)vibes.LeftMotor, (float)vibes.RightMotor);
 
     return S_OK;
   }
 
-  HRESULT STDMETHODCALLTYPE GetCurrentReading (ABI::Windows::Gaming::Input::GamepadReading* value)
+  virtual HRESULT STDMETHODCALLTYPE GetCurrentReading (ABI::Windows::Gaming::Input::GamepadReading* value) override
   {
     SK_LOG_FIRST_CALL
 
@@ -228,6 +430,12 @@ public:
 
     return S_OK;
   }
+
+private:
+  volatile ULONG ulRefs = 1;
+
+  ABI::Windows::Gaming::Input::GamepadVibration vibes;
+  SK_HID_WGI_GameController*                    controller;
 };
 
 SK_HID_WGI_Gamepad SK_HID_WGI_FakeGamepad;
@@ -242,17 +450,17 @@ WGI_VectorView_Gamepads_GetAt_Override (       void     *This,
 
   if (config.input.gamepad.xinput.emulate)
   {
-    if (SK_HID_PlayStationControllers.size () > 0)
-    {
-      for ( auto& controller : SK_HID_PlayStationControllers )
-      {
-        if (controller.bConnected)
-        {
+    //if (SK_HID_PlayStationControllers.size () > 0)
+    //{
+    //  for ( auto& controller : SK_HID_PlayStationControllers )
+    //  {
+    //    if (controller.bConnected)
+    //    {
           *item = (void *)&SK_HID_WGI_FakeGamepad;
           return S_OK;
-        }
-      }
-    }
+    //    }
+    //  }
+    //}
   }
 
   return
@@ -268,17 +476,17 @@ WGI_VectorView_Gamepads_get_Size_Override (       void     *This,
 
   if (config.input.gamepad.xinput.emulate)
   {
-    if (SK_HID_PlayStationControllers.size () > 0)
-    {
-      for ( auto& controller : SK_HID_PlayStationControllers )
-      {
-        if (controller.bConnected)
-        {
+    //if (SK_HID_PlayStationControllers.size () > 0)
+    //{
+    //  for ( auto& controller : SK_HID_PlayStationControllers )
+    //  {
+    //    if (controller.bConnected)
+    //    {
           *size = 1;
           return S_OK;
-        }
-      }
-    }
+    //    }
+    //  }
+    //}
   }
 
   return
@@ -296,18 +504,18 @@ WGI_VectorView_Gamepads_IndexOf_Override (          void     *This,
 
   if (config.input.gamepad.xinput.emulate)
   {
-    if (SK_HID_PlayStationControllers.size () > 0)
-    {
-      for ( auto& controller : SK_HID_PlayStationControllers )
-      {
-        if (controller.bConnected)
-        {
+    //if (SK_HID_PlayStationControllers.size () > 0)
+    //{
+    //  for ( auto& controller : SK_HID_PlayStationControllers )
+    //  {
+    //    if (controller.bConnected)
+    //    {
           *index = 0;
           *found = true;
           return S_OK;
-        }
-      }
-    }
+    //    }
+    //  }
+    //}
   }
 
   return
@@ -402,6 +610,8 @@ STDMETHODCALLTYPE
 WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad       *This,
                                         ABI::Windows::Gaming::Input::GamepadReading *value)
 {
+  SK_LOG_FIRST_CALL
+
   SK_WGI_READ (SK_WGI_Backend, sk_input_dev_type::Gamepad);
 
   if (SK_ImGui_WantGamepadCapture ())
@@ -410,7 +620,7 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
       config.input.gamepad.xinput.emulate ? S_OK
                                           : WGI_Gamepad_GetCurrentReading_Original (This, value);
 
-    //if (SUCCEEDED (hr))
+    if (SUCCEEDED (hr))
     {
       SK_WGI_HIDE (SK_WGI_Backend, sk_input_dev_type::Gamepad);
 
@@ -437,8 +647,14 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
 
       SK_WGI_VIEW (SK_WGI_Backend, 0);
 
-      XINPUT_STATE                  xi_state = { };
-      SK_XInput_PollController (0, &xi_state);
+      static DWORD        dwLastTime =  0 ;
+      static XINPUT_STATE xi_state   = { };
+
+      if (std::exchange (dwLastTime, SK_timeGetTime ()) <
+                                     SK_timeGetTime () - 2)
+      {
+        SK_XInput_PollController (0, &xi_state);
+      }
 
       value->Buttons = GamepadButtons::GamepadButtons_None;
 
@@ -486,12 +702,13 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
 
   else if (! config.input.gamepad.xinput.emulate)
   {
+    SK_WGI_EmulatedPlayStation = false;
+
     HRESULT hr =
       WGI_Gamepad_GetCurrentReading_Original (This, value);
 
     if (SUCCEEDED (hr) && game_window.active)
     {
-      SK_WGI_EmulatedPlayStation = false;
       SK_WGI_VIEW (SK_WGI_Backend, 0);
     }
 
@@ -503,16 +720,12 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
     // Use emulation if there is no Xbox controller, but also if PlayStation input is newer
     bool bUseEmulation = true;
 
+    static XINPUT_STATE xi_state = { };
+
+    SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
+
     if (SK_HID_PlayStationControllers.size () > 0)
     {
-      SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
-
-      XINPUT_STATE _state = { };
-
-      bool
-      SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
-      SK_ImGui_PollGamepad_EndFrame (&_state);
-
       for ( auto& controller : SK_HID_PlayStationControllers )
       {
         if (controller.bConnected)
@@ -524,85 +737,139 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
           }
         }
       }
+    }
 
-      if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active > ReadULong64Acquire (&last_time [0])))
+    if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active > ReadULong64Acquire (&last_time [0])))
+    {
+      SK_WGI_VIEW (SK_WGI_Backend, 0);
+
+      extern XINPUT_STATE hid_to_xi;
+                          hid_to_xi = pNewestInputDevice->xinput.prev_report;
+
+      memcpy (    &xi_state, &hid_to_xi, sizeof (XINPUT_STATE) );
+
+      value->Timestamp = SK_QueryPerf ().QuadPart;
+      value->Buttons   = GamepadButtons::GamepadButtons_None;
+
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP))
+                      value->Buttons |= GamepadButtons::GamepadButtons_DPadUp;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN))
+                      value->Buttons |= GamepadButtons::GamepadButtons_DPadDown;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT))
+                      value->Buttons |= GamepadButtons::GamepadButtons_DPadLeft;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT))
+                      value->Buttons |= GamepadButtons::GamepadButtons_DPadRight;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER))
+                      value->Buttons |= GamepadButtons::GamepadButtons_LeftShoulder;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER))
+                      value->Buttons |= GamepadButtons::GamepadButtons_RightShoulder;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB))
+                      value->Buttons |= GamepadButtons::GamepadButtons_LeftThumbstick;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB))
+                      value->Buttons |= GamepadButtons::GamepadButtons_RightThumbstick;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_A))
+                      value->Buttons |= GamepadButtons::GamepadButtons_A;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_B))
+                      value->Buttons |= GamepadButtons::GamepadButtons_B;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_X))
+                      value->Buttons |= GamepadButtons::GamepadButtons_X;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_Y))
+                      value->Buttons |= GamepadButtons::GamepadButtons_Y;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_START))
+                      value->Buttons |= GamepadButtons::GamepadButtons_Menu;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK))
+                      value->Buttons |= GamepadButtons::GamepadButtons_View;
+
+      if (pNewestInputDevice->bDualSenseEdge)
       {
-        SK_WGI_VIEW (SK_WGI_Backend, 0);
-
-        extern XINPUT_STATE hid_to_xi;
-                            hid_to_xi = pNewestInputDevice->xinput.prev_report;
-
-        XINPUT_STATE xi_state = { };
-        memcpy (    &xi_state, &hid_to_xi, sizeof (XINPUT_STATE) );
-
-        value->Timestamp = SK_QueryPerf ().QuadPart;
-        value->Buttons   = GamepadButtons::GamepadButtons_None;
-
-        if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP))
-                        value->Buttons |= GamepadButtons::GamepadButtons_DPadUp;
-        if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN))
-                        value->Buttons |= GamepadButtons::GamepadButtons_DPadDown;
-        if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT))
-                        value->Buttons |= GamepadButtons::GamepadButtons_DPadLeft;
-        if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT))
-                        value->Buttons |= GamepadButtons::GamepadButtons_DPadRight;
-        if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER))
-                        value->Buttons |= GamepadButtons::GamepadButtons_LeftShoulder;
-        if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER))
-                        value->Buttons |= GamepadButtons::GamepadButtons_RightShoulder;
-        if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB))
-                        value->Buttons |= GamepadButtons::GamepadButtons_LeftThumbstick;
-        if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB))
-                        value->Buttons |= GamepadButtons::GamepadButtons_RightThumbstick;
-        if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_A))
-                        value->Buttons |= GamepadButtons::GamepadButtons_A;
-        if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_B))
-                        value->Buttons |= GamepadButtons::GamepadButtons_B;
-        if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_X))
-                        value->Buttons |= GamepadButtons::GamepadButtons_X;
-        if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_Y))
-                        value->Buttons |= GamepadButtons::GamepadButtons_Y;
-        if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_START))
-                        value->Buttons |= GamepadButtons::GamepadButtons_Menu;
-        if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK))
-                        value->Buttons |= GamepadButtons::GamepadButtons_View;
-
-        if (pNewestInputDevice->bDualSenseEdge)
-        {
-          if (pNewestInputDevice->buttons [15].state)
-            value->Buttons |= GamepadButtons::GamepadButtons_Paddle1;
-          if (pNewestInputDevice->buttons [16].state)
-            value->Buttons |= GamepadButtons::GamepadButtons_Paddle2;
-          if (pNewestInputDevice->buttons [17].state)
-            value->Buttons |= GamepadButtons::GamepadButtons_Paddle3;
-          if (pNewestInputDevice->buttons [18].state)
-            value->Buttons |= GamepadButtons::GamepadButtons_Paddle4;
-        }
-
-        value->LeftThumbstickX  = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbLX / 32767);
-        value->LeftThumbstickY  = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbLY / 32767);
-
-        value->RightThumbstickX = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbRX / 32767);
-        value->RightThumbstickY = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbRY / 32767);
-
-        value->LeftTrigger      = (double)xi_state.Gamepad.bLeftTrigger  / 255;
-        value->RightTrigger     = (double)xi_state.Gamepad.bRightTrigger / 255;
-
-        if (config.input.gamepad.xinput.debug)
-        {
-          SK_ImGui_CreateNotification (
-            "XInput.PacketNum", SK_ImGui_Toast::Info, SK_FormatString ("XInputEx Packet: %d", xi_state.dwPacketNumber).c_str (), nullptr, INFINITE,
-                                SK_ImGui_Toast::UseDuration  |
-                                SK_ImGui_Toast::ShowCaption  |
-                                SK_ImGui_Toast::ShowNewest   |
-                                SK_ImGui_Toast::Unsilencable |
-                                SK_ImGui_Toast::DoNotSaveINI );
-        }
-
-        SK_WGI_EmulatedPlayStation = true;
-
-        return S_OK;
+        if (pNewestInputDevice->buttons [15].state)
+          value->Buttons |= GamepadButtons::GamepadButtons_Paddle1;
+        if (pNewestInputDevice->buttons [16].state)
+          value->Buttons |= GamepadButtons::GamepadButtons_Paddle2;
+        if (pNewestInputDevice->buttons [17].state)
+          value->Buttons |= GamepadButtons::GamepadButtons_Paddle3;
+        if (pNewestInputDevice->buttons [18].state)
+          value->Buttons |= GamepadButtons::GamepadButtons_Paddle4;
       }
+
+      value->LeftThumbstickX  = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbLX / 32767);
+      value->LeftThumbstickY  = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbLY / 32767);
+
+      value->RightThumbstickX = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbRX / 32767);
+      value->RightThumbstickY = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbRY / 32767);
+
+      value->LeftTrigger      = (double)xi_state.Gamepad.bLeftTrigger  / 255;
+      value->RightTrigger     = (double)xi_state.Gamepad.bRightTrigger / 255;
+
+      if (config.input.gamepad.xinput.debug)
+      {
+        SK_ImGui_CreateNotification (
+          "XInput.PacketNum", SK_ImGui_Toast::Info, SK_FormatString ("XInputEx Packet: %d", xi_state.dwPacketNumber).c_str (), nullptr, INFINITE,
+                              SK_ImGui_Toast::UseDuration  |
+                              SK_ImGui_Toast::ShowCaption  |
+                              SK_ImGui_Toast::ShowNewest   |
+                              SK_ImGui_Toast::Unsilencable |
+                              SK_ImGui_Toast::DoNotSaveINI );
+      }
+
+      SK_WGI_EmulatedPlayStation = true;
+
+      return S_OK;
+    }
+
+    else
+    {
+      SK_WGI_EmulatedPlayStation = false;
+
+      SK_WGI_VIEW (SK_WGI_Backend, 0);
+
+      static DWORD dwLastTime =  0 ;
+
+      if (std::exchange (dwLastTime, SK_timeGetTime ()) <
+                                     SK_timeGetTime () - 2)
+      {
+        SK_XInput_PollController (0, &xi_state);
+      }
+
+      value->Buttons = GamepadButtons::GamepadButtons_None;
+
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP))
+                      value->Buttons |= GamepadButtons::GamepadButtons_DPadUp;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN))
+                      value->Buttons |= GamepadButtons::GamepadButtons_DPadDown;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT))
+                      value->Buttons |= GamepadButtons::GamepadButtons_DPadLeft;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT))
+                      value->Buttons |= GamepadButtons::GamepadButtons_DPadRight;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER))
+                      value->Buttons |= GamepadButtons::GamepadButtons_LeftShoulder;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER))
+                      value->Buttons |= GamepadButtons::GamepadButtons_RightShoulder;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB))
+                      value->Buttons |= GamepadButtons::GamepadButtons_LeftThumbstick;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB))
+                      value->Buttons |= GamepadButtons::GamepadButtons_RightThumbstick;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_A))
+                      value->Buttons |= GamepadButtons::GamepadButtons_A;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_B))
+                      value->Buttons |= GamepadButtons::GamepadButtons_B;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_X))
+                      value->Buttons |= GamepadButtons::GamepadButtons_X;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_Y))
+                      value->Buttons |= GamepadButtons::GamepadButtons_Y;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_START))
+                      value->Buttons |= GamepadButtons::GamepadButtons_Menu;
+      if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK))
+                      value->Buttons |= GamepadButtons::GamepadButtons_View;
+
+      value->LeftThumbstickX  = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbLX / 32767);
+      value->LeftThumbstickY  = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbLY / 32767);
+
+      value->RightThumbstickX = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbRX / 32767);
+      value->RightThumbstickY = (double)fmaxf(-1, (float)xi_state.Gamepad.sThumbRY / 32767);
+
+      value->LeftTrigger      = (double)xi_state.Gamepad.bLeftTrigger  / 255;
+      value->RightTrigger     = (double)xi_state.Gamepad.bRightTrigger / 255;
     }
   }
 
@@ -633,7 +900,7 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
     { 
       if ((! config.input.gamepad.xinput.emulate) && SK_GetCurrentGameID () != SK_GAME_ID::HorizonForbiddenWest      &&
                                                      SK_GetCurrentGameID () != SK_GAME_ID::RatchetAndClank_RiftApart &&
-                                                   //SK_GetCurrentGameID () != SK_GAME_ID::ForzaHorizon5             &&
+                                                     SK_GetCurrentGameID () != SK_GAME_ID::ForzaHorizon5             &&
                                                      (! SK_GetCurrentRenderBackend ().windows.sdl))
       {
         SK_ImGui_CreateNotification ( "WindowsGamingInput.Compatibility",
@@ -688,7 +955,7 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
         // 10 get_Gamepads
 
 #if 1
-        if (config.input.gamepad.xinput.emulate)// && SK_GetCurrentGameID () != SK_GAME_ID::ForzaHorizon5)
+        if (config.input.gamepad.xinput.emulate && SK_GetCurrentGameID () != SK_GAME_ID::ForzaHorizon5)
         {
           SK_RunOnce ({
             WGI_VIRTUAL_HOOK ( &pGamepadStatsFactory, 10,
