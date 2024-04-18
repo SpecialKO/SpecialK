@@ -261,9 +261,9 @@ IWrapDXGISwapChain : IDXGISwapChain4
   }
 
 
-  virtual ~IWrapDXGISwapChain (void)
-  {
-  }
+  //virtual ~IWrapDXGISwapChain (void)
+  //{
+  //}
 
 
   IWrapDXGISwapChain            (const IWrapDXGISwapChain &) = delete;
