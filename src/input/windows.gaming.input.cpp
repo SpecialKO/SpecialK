@@ -448,23 +448,16 @@ WGI_VectorView_Gamepads_GetAt_Override (       void     *This,
 {
   SK_LOG_FIRST_CALL
 
-  if (config.input.gamepad.xinput.emulate)
+  HRESULT hr =
+    WGI_VectorView_Gamepads_GetAt_Original (This, index, item);
+
+  if (FAILED (hr) && config.input.gamepad.xinput.emulate)
   {
-    //if (SK_HID_PlayStationControllers.size () > 0)
-    //{
-    //  for ( auto& controller : SK_HID_PlayStationControllers )
-    //  {
-    //    if (controller.bConnected)
-    //    {
-          *item = (void *)&SK_HID_WGI_FakeGamepad;
-          return S_OK;
-    //    }
-    //  }
-    //}
+    *item = (void *)&SK_HID_WGI_FakeGamepad;
+    return S_OK;
   }
 
-  return
-    WGI_VectorView_Gamepads_GetAt_Original (This, index, item);
+  return hr;
 }
 
 HRESULT
@@ -474,23 +467,16 @@ WGI_VectorView_Gamepads_get_Size_Override (       void     *This,
 {
   SK_LOG_FIRST_CALL
 
-  if (config.input.gamepad.xinput.emulate)
+  HRESULT hr =
+    WGI_VectorView_Gamepads_get_Size_Original (This, size);
+
+  if (SUCCEEDED (hr) && config.input.gamepad.xinput.emulate)
   {
-    //if (SK_HID_PlayStationControllers.size () > 0)
-    //{
-    //  for ( auto& controller : SK_HID_PlayStationControllers )
-    //  {
-    //    if (controller.bConnected)
-    //    {
-          *size = 1;
-          return S_OK;
-    //    }
-    //  }
-    //}
+    *size = *size + 1;
   }
 
   return
-    WGI_VectorView_Gamepads_get_Size_Original (This, size);
+    hr;
 }
 
 HRESULT
@@ -502,24 +488,17 @@ WGI_VectorView_Gamepads_IndexOf_Override (          void     *This,
 {
   SK_LOG_FIRST_CALL
 
-  if (config.input.gamepad.xinput.emulate)
+  HRESULT hr =
+    WGI_VectorView_Gamepads_IndexOf_Original (This, value, index, found);
+
+  if (FAILED (hr) && config.input.gamepad.xinput.emulate)
   {
-    //if (SK_HID_PlayStationControllers.size () > 0)
-    //{
-    //  for ( auto& controller : SK_HID_PlayStationControllers )
-    //  {
-    //    if (controller.bConnected)
-    //    {
-          *index = 0;
-          *found = true;
-          return S_OK;
-    //    }
-    //  }
-    //}
+    *index = 0;
+    *found = true;
+    return S_OK;
   }
 
-  return
-    WGI_VectorView_Gamepads_IndexOf_Original (This, value, index, found);
+  return hr;
 }
 
 HRESULT
@@ -954,7 +933,6 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
         //  9 remove_GamepadRemoved
         // 10 get_Gamepads
 
-#if 1
         if (config.input.gamepad.xinput.emulate && SK_GetCurrentGameID () != SK_GAME_ID::ForzaHorizon5)
         {
           SK_RunOnce ({
@@ -967,7 +945,6 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
             SK_ApplyQueuedHooks ();
           });
         }
-#endif
 
         IVectorView <ABI::Windows::Gaming::Input::Gamepad *>* pGamepads;
 

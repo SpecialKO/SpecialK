@@ -3331,7 +3331,15 @@ SK_XInput_PollController ( INT           iJoyID,
 
   static DWORD       dwLastPacketUI [4] = { 0, 0, 0, 0 };
   if (std::exchange (dwLastPacketUI [iJoyID], xstate.dwPacketNumber) != xstate.dwPacketNumber)
+  {
     SK_XInput_UpdateSlotForUI (TRUE, iJoyID,  xstate.dwPacketNumber);
+    
+    if (xstate.dwPacketNumber > ReadULongAcquire (&last_packet [iJoyID]))
+    {
+      InterlockedExchange (&last_packet [iJoyID], xstate.dwPacketNumber);
+      InterlockedExchange (&last_time   [iJoyID], SK_QueryPerf ().QuadPart);
+    }
+  }
 
   if (pState != nullptr)
     memcpy (pState, &xstate, sizeof (XINPUT_STATE));

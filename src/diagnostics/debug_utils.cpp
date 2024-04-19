@@ -2104,6 +2104,30 @@ ZwSetInformationThread_Detour (
 
 
 
+void
+SK_Thread_NotifyCreation (HANDLE  ThreadHandle,
+                          DWORD   ThreadId,
+                          PVOID   StartRoutine,
+                          HMODULE hModStart)
+{
+  // We may use these in the future...
+  std::ignore = ThreadHandle;
+  std::ignore = StartRoutine;
+
+  if (config.input.gamepad.hook_windows_gaming)
+  {
+    // Identify WGI thread(s?)
+    if (StrStrIW (SK_GetModuleName (hModStart).c_str (), L"Windows.Gaming.Input"))
+    {
+      SK_RunOnce (
+        extern DWORD SK_WGI_GamePollingThreadId;
+                     SK_WGI_GamePollingThreadId = ThreadId;
+      );
+    }
+  }
+}
+
+
 NTSTATUS
 NTAPI
 ZwCreateThreadEx_Detour (
@@ -2275,6 +2299,8 @@ ZwCreateThreadEx_Detour (
     {
       ResumeThread (*ThreadHandle);
     }
+
+    SK_Thread_NotifyCreation (*ThreadHandle, tid, StartRoutine, hModStart);
   }
 
   return ret;
