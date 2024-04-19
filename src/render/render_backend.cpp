@@ -3990,6 +3990,14 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         {
           display.hdr.white_level =
             (static_cast <float> (getSdrWhiteLevel.SDRWhiteLevel) / 1000.0f) * 80.0f;
+
+          // Automatically fix SDR white level bug caused by launching OpenGL/Vulkan
+          //   games and them not restoring the SDR whitepoint at exit.
+          if (! display.hdr.applied_sdr_white)
+          {
+            display.hdr.applied_sdr_white =
+              display.setSDRWhiteLevel (display.hdr.white_level);
+          }
         }
 
         else
@@ -4697,6 +4705,56 @@ SK_RenderBackend_V2::resetTemporaryDisplayChanges (void)
       SK_ChangeDisplaySettingsEx (
         nullptr, nullptr,
           0, CDS_RESET, nullptr  ) == DISP_CHANGE_SUCCESSFUL;
+  }
+
+  return false;
+}
+
+#define DISPLAYCONFIG_DEVICE_INFO_SET_SDR_WHITE_LEVEL (DISPLAYCONFIG_DEVICE_INFO_TYPE)0xFFFFFFEE
+
+typedef struct __declspec(align(4)) _DISPLAYCONFIG_SET_SDR_WHITE_LEVEL
+{
+  DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+  ULONG                            SDRWhiteLevel;
+  BYTE                             finalValue;
+} DISPLAYCONFIG_SET_SDR_WHITE_LEVEL;
+
+bool
+SK_RenderBackend_V2::output_s::setSDRWhiteLevel (float fNits)
+{
+  if (hdr.enabled)
+  {
+    DISPLAYCONFIG_SET_SDR_WHITE_LEVEL
+      setSdrWhiteLevel                  = { };
+      setSdrWhiteLevel.header.type      = DISPLAYCONFIG_DEVICE_INFO_SET_SDR_WHITE_LEVEL;
+      setSdrWhiteLevel.header.size      = sizeof         (DISPLAYCONFIG_SET_SDR_WHITE_LEVEL);
+      setSdrWhiteLevel.header.adapterId = vidpn.targetInfo.adapterId;
+      setSdrWhiteLevel.header.id        = vidpn.targetInfo.id;
+
+      setSdrWhiteLevel.SDRWhiteLevel =
+        static_cast <ULONG> ((1000.0f * fNits) / 80.0f);
+      setSdrWhiteLevel.finalValue    = TRUE;
+
+    if ( ERROR_SUCCESS == DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setSdrWhiteLevel ) )
+    {
+      // Expected, but we will read the actual value back below.
+      hdr.white_level = fNits;
+
+      DISPLAYCONFIG_SDR_WHITE_LEVEL
+        getSdrWhiteLevel                  = { };
+        getSdrWhiteLevel.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_SDR_WHITE_LEVEL;
+        getSdrWhiteLevel.header.size      = sizeof         (DISPLAYCONFIG_SDR_WHITE_LEVEL);
+        getSdrWhiteLevel.header.adapterId = vidpn.targetInfo.adapterId;
+        getSdrWhiteLevel.header.id        = vidpn.targetInfo.id;
+
+      if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getSdrWhiteLevel ) )
+      {
+        hdr.white_level =
+          (static_cast <float> (getSdrWhiteLevel.SDRWhiteLevel) / 1000.0f) * 80.0f;
+      }
+
+      return true;
+    }
   }
 
   return false;

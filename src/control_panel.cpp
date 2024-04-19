@@ -1747,11 +1747,14 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   ImVec2 vHDRPos;
 
-  if ( rb.displays [rb.active_display].hdr.supported ||
-                    rb.isHDRCapable () )
+  auto& display =
+    rb.displays [rb.active_display];
+
+  if ( display.hdr.supported ||
+          rb.isHDRCapable () )
   {
     bool hdr_enable =
-      rb.displays [rb.active_display].hdr.enabled;
+      display.hdr.enabled;
 
     if (ImGui::Checkbox ("Enable HDR", &hdr_enable))
     {
@@ -1766,16 +1769,16 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
       if ( ERROR_SUCCESS == DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
       {
-        rb.displays [rb.active_display].hdr.enabled = hdr_enable;
+        display.hdr.enabled = hdr_enable;
       }
     }
 
     if (ImGui::IsItemHovered ())
     {
-      if (rb.displays [rb.active_display].hdr.enabled)
+      if (display.hdr.enabled)
       {
         ImGui::SetTooltip ( "SDR Whitepoint: %4.1f cd/m²",
-                              rb.displays [rb.active_display].hdr.white_level );
+                              display.hdr.white_level );
       }
     }
 
@@ -1809,6 +1812,17 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     vHDRPos.x =
       ImGui::GetCursorPosX ();
     ImGui::Spacing         ();
+  }
+
+  if (display.hdr.enabled)
+  {
+    float sdr_white=
+      display.hdr.white_level;
+
+    if (ImGui::SliderFloat ("###SDR_WHITE_SLIDER", &sdr_white, 80.0f, 480.0f, "SDR Whitepoint: %4.1f cd/m²"))
+    {
+      display.setSDRWhiteLevel (sdr_white);
+    }
   }
 
   static bool bDPIAware  =
@@ -1921,9 +1935,6 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
   ImGui::SameLine    ();
   ImGui::BeginGroup  ();
-
-  auto &display =
-    rb.displays [rb.active_display];
 
   ImGui::Separator   ();
   ImGui::BeginGroup  ();

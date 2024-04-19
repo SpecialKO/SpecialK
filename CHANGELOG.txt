@@ -1,4 +1,12 @@
-﻿24.4.19
+﻿24.4.19.1
+=========
+ + Added SDR White Level slider to the control panel's Display menu
+     >> This sets the OS SDR white level for the current display
+ + Automatically apply system SDR white level preference at game start
+     >> Fixes bug in Windows caused by OpenGL and Vulkan apps setting SDR
+          white level to 80.0 nits temporarily and never restoring it at exit.
+
+24.4.19
 =======
  + Allow XInput emulation setting to apply even for real Xbox controllers
      in games that use Windows.Gaming.Input. This allows background input,

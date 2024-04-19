@@ -260,6 +260,7 @@ public:
       float               white_level          = 80.0f;
       DISPLAYCONFIG_COLOR_ENCODING             
                           encoding             = DISPLAYCONFIG_COLOR_ENCODING_RGB;
+      bool                applied_sdr_white    = false;
     } hdr;                                     
     bool                  attached             = false;
     wchar_t               name      [64]       =  { };
@@ -335,6 +336,8 @@ public:
     struct audio_s {
       wchar_t             paired_device [128]  = L"{*}##No Preference";
     } audio;
+
+    bool setSDRWhiteLevel (float nits);
   } displays [_MAX_DISPLAYS];
 
   int                     active_display       =  0;
