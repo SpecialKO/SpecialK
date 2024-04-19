@@ -63,8 +63,8 @@ Texture2D texLastFrame0 : register (t1);
 
 float4
 SK_ProcessColor4 ( float4 color,
-                      int func,
-                      int strip_eotf = 1 )
+                   int    func,
+                   int    strip_eotf = 1 )
 {
 #ifdef INCLUDE_NAN_MITIGATION
   color = float4
@@ -79,11 +79,11 @@ SK_ProcessColor4 ( float4 color,
   //
   float4 out_color =
     float4 (
-      (strip_eotf && func != sRGB_to_Linear) ?
-                     sdrContentEOTF != -2.2f ? sign (color.rgb) * pow             (abs (color.rgb),
-                     sdrContentEOTF)         :                    RemoveSRGBCurve (     color.rgb) :
-                                                                                        color.rgb,
-                                                                                        color.a
+      ( strip_eotf && func != sRGB_to_Linear ) ?
+                       sdrContentEOTF != -2.2f ?    sign (color.rgb) * pow (abs (color.rgb),
+                       sdrContentEOTF) : RemoveSRGBCurve (color.rgb) :
+                                                          color.rgb,
+                                                          color.a
     );
 
   // Straight Pass-Through
@@ -150,19 +150,22 @@ FinalOutput (float4 vColor)
   if (visualFunc.y == 1)
   {
     vColor.rgb =
-      clamp (LinearToPQ (REC709toREC2020 (vColor.rgb), 125.0f), 0.0, 1.0);
-    
+      clamp (
+        LinearToPQ (REC709toREC2020 (vColor.rgb), 125.0f),
+                                               0.0, 1.0 );
+
     vColor.rgb *=
       smoothstep ( 0.006978,
-                   0.016667, vColor.rgb);
+                   0.016667, vColor.rgb );
 
     vColor.a = 1.0;
   }
-    
+
   return vColor;
 }
 
-float4 main (PS_INPUT input) : SV_TARGET
+float4
+main (PS_INPUT input) : SV_TARGET
 {
   switch (uiToneMapper)
   {
@@ -170,7 +173,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     {
       float4 ret =
         texMainScene.Sample ( sampler0,
-                                input.uv );
+                              input.uv );
 
 #ifdef INCLUDE_NAN_MITIGATION
       // A UNORM RenderTarget would return this instead of NaN,
@@ -181,8 +184,9 @@ float4 main (PS_INPUT input) : SV_TARGET
                  (! IsNan (ret.b)) * (! IsInf (ret.b)) * ret.b,
                  (! IsNan (ret.a)) * (! IsInf (ret.a)) * ret.a );
 #endif
-      return ret;
-    } break;
+        return ret;
+      }
+      break;
 
 #ifdef UTIL_STRIP_NAN
     case TONEMAP_REMOVE_INVALID_COLORS:
@@ -209,7 +213,7 @@ float4 main (PS_INPUT input) : SV_TARGET
 
   float4 hdr_color =
     texMainScene.Sample ( sampler0,
-                            input.uv );
+                          input.uv );
 
   float3 orig_color =
     abs (hdr_color.rgb);
@@ -254,7 +258,7 @@ float4 main (PS_INPUT input) : SV_TARGET
 #endif
 
 
- #ifdef INCLUDE_VISUALIZATIONS
+#ifdef INCLUDE_VISUALIZATIONS
   if (visualFunc.x == VISUALIZE_GRAYSCALE)
   {
     hdr_color =
@@ -268,7 +272,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     float4 (   hdr_color.rgb,      1.0f ) *
     float4 ( ( hdr_color.rgb > hdr_rgb2 ) +
              (           2.0 < hdr_rgb2 ), 1.0f );
-  
+
   over_range.a =
     any (over_range.rgb);
 #endif
@@ -281,7 +285,7 @@ float4 main (PS_INPUT input) : SV_TARGET
 #endif
                          SK_ProcessColor4 ( hdr_color.rgba,
                                             xRGB_to_Linear,
-                             sdrContentEOTF != 1.0f ).rgb;
+                              sdrContentEOTF != 1.0f).rgb;
 
 #ifdef INCLUDE_HDR10
   if (! bIsHDR10)
@@ -297,7 +301,7 @@ float4 main (PS_INPUT input) : SV_TARGET
   }
 #endif
 
-  
+
 #ifdef INCLUDE_SPLITTER
   if ( input.coverage.x < input.uv.x ||
        input.coverage.y < input.uv.y )
@@ -352,8 +356,8 @@ float4 main (PS_INPUT input) : SV_TARGET
     {
       hdr_color.rgb = LinearToLogC (hdr_color.rgb);
       hdr_color.rgb = Contrast     (hdr_color.rgb,
-              0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f,
-                       (sdrLuminance_NonStd / 0.0125f) / 100.0f);
+                  0.18f * (0.1f * input.color.x / 0.0125f) / 100.0f,
+                           (sdrLuminance_NonStd / 0.0125f) / 100.0f);
       hdr_color.rgb = LogCToLinear (hdr_color.rgb);
     }
   }
@@ -405,7 +409,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     hdr_color =
       SK_ProcessColor4 (hdr_color, uiToneMapper);
   }
-    
+
 #ifdef INCLUDE_HDR10
   if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
 #endif
@@ -413,24 +417,24 @@ float4 main (PS_INPUT input) : SV_TARGET
     if (input.color.y != 1.0f)
     {
       hdr_color.rgb =
-        PositivePow ( hdr_color.rgb,
-                    input.color.yyy );
+        PositivePow (  hdr_color.rgb,
+                     input.color.yyy );
     }
   }
 
   if (pqBoostParams.x > 0.1f)
   {
-    float
-      pb_params [4] = {
-        pqBoostParams.x,
-        pqBoostParams.y,
-        pqBoostParams.z,
-        pqBoostParams.w
-      };
+    float pb_params [4] =
+    {
+      pqBoostParams.x,
+      pqBoostParams.y,
+      pqBoostParams.z,
+      pqBoostParams.w
+    };
 
     float3 new_color =
       PQToLinear (
-        LinearToPQ ( hdr_color.rgb, pb_params [0]) *
+        LinearToPQ ( hdr_color.rgb, pb_params [0] ) *
                      pb_params [2], pb_params [1]
                  ) / pb_params [3];
 
@@ -439,7 +443,7 @@ float4 main (PS_INPUT input) : SV_TARGET
 #endif
       hdr_color.rgb = new_color;
   }
-    
+
 #ifdef INCLUDE_HDR10
   if (uiToneMapper != TONEMAP_HDR10_to_scRGB)
 #endif
@@ -448,8 +452,8 @@ float4 main (PS_INPUT input) : SV_TARGET
          hdrSaturation <= 1.0f - FLT_EPSILON || uiToneMapper == TONEMAP_ACES_FILMIC )
     {
       float saturation =
-        hdrSaturation + 0.05 * ( uiToneMapper == TONEMAP_ACES_FILMIC );
-  
+         hdrSaturation + 0.05 * (uiToneMapper == TONEMAP_ACES_FILMIC);
+
       hdr_color.rgb =
         Saturation ( hdr_color.rgb,
                      saturation );
@@ -483,8 +487,22 @@ float4 main (PS_INPUT input) : SV_TARGET
            g = float3(_ColorSpaces[cs].xg, _ColorSpaces[cs].yg, 0),
            b = float3(_ColorSpaces[cs].xb, _ColorSpaces[cs].yb, 0);
 
-    float3 hdr_XYZ = sRGBtoXYZ(hdr_color.rgb);
-    float3 vColor_xyY = float3(hdr_XYZ.x / (hdr_XYZ.x + hdr_XYZ.y + hdr_XYZ.z), hdr_XYZ.y / (hdr_XYZ.x + hdr_XYZ.y + hdr_XYZ.z), 0);
+    // Same clamp color_output receives
+    hdr_color =
+      float4 (
+        Clamp_scRGB_StripNaN (hdr_color.rgb),
+                    saturate (hdr_color.a)
+             );
+
+    float3 xy_from_sRGB;
+    {
+      float3 XYZ = sRGBtoXYZ ( hdr_color.rgb );
+      xy_from_sRGB = float3 (
+        XYZ.x / (XYZ.x + XYZ.y + XYZ.z),
+        XYZ.y / (XYZ.x + XYZ.y + XYZ.z),
+        0
+      );
+    }
 
     float3 vTriangle [] = {
       r, g, b
@@ -495,66 +513,38 @@ float4 main (PS_INPUT input) : SV_TARGET
 
     float3 fDistField =
       float3 (
-        distance ( r, vColor_xyY ),
-        distance ( g, vColor_xyY ),
-        distance ( b, vColor_xyY )
+        distance ( r, xy_from_sRGB ),
+        distance ( g, xy_from_sRGB ),
+        distance ( b, xy_from_sRGB )
       );
 
     fDistField.x = IsNan (fDistField.x) ? 0 : fDistField.x;
     fDistField.y = IsNan (fDistField.y) ? 0 : fDistField.y;
     fDistField.z = IsNan (fDistField.z) ? 0 : fDistField.z;
 
-    bool bContained =
-      SK_Triangle_ContainsPoint ( vColor_xyY,
-        vTriangle ) &&            vColor_xyY.x !=
-                                  vColor_xyY.y;
+    float3 xy_to_analyze = xy_from_sRGB;
 
-    if (bContained)
+    // is HDR_10BitSwap?
+    if (visualFunc.y == 1)
     {
-#if 0
-      // Visualize wider-than-Rec709
-      if (cs > 0)
-      {
-        r = SK_Color_xyY_from_RGB ( _ColorSpaces [0], float3 (1.f, 0.f, 0.f) ),
-        g = SK_Color_xyY_from_RGB ( _ColorSpaces [0], float3 (0.f, 1.f, 0.f) ),
-        b = SK_Color_xyY_from_RGB ( _ColorSpaces [0], float3 (0.f, 0.f, 1.f) );
+      float4 analyze_color = FinalOutput(hdr_color);
 
-        fColorXYZ =
-          SK_Color_xyY_from_RGB ( _ColorSpaces [0], hdr_color.rgb );
-
-        float3 vTriangle2 [] = {
-          r, g, b
-        };
-
-        bContained =
-          SK_Triangle_ContainsPoint (fColorXYZ, vTriangle2);
-
-        if (! bContained)
-        {
-          fScale = 0.0f;
-        }
-      }
-#endif
+      // roll back transfer functions for HDR10 bit swap so we can analyze
+      float3 XYZ = sRGBtoXYZ (REC2020toREC709 (PQToLinear (analyze_color.rgb, 125.0f)));
+      xy_to_analyze = float3 (
+        XYZ.x / (XYZ.x + XYZ.y + XYZ.z),
+        XYZ.y / (XYZ.x + XYZ.y + XYZ.z),
+        0
+      );
     }
+
+    bool bContained =
+      SK_Triangle_ContainsPoint ( xy_to_analyze,
+        vTriangle ) &&            xy_to_analyze.x !=
+                                  xy_to_analyze.y;
 
     float3 vDist =
       bContained ? (hdrLuminance_MaxAvg / 320.0) * Luminance (hdr_color.rgb) : fDistField;
-                                                            //hdr_color.rgb;
-
-#if 0
-    // Gamut Overshoot
-    if (fScale == 1.0f && (! bContained) && cs != 0)
-    {
-      float fTime =
-        TWO_PI * (float)(currentTime % 3333) / 3333.3;
-
-      vDist.r = sin (fTime);
-      vDist.g = sin (fTime * 2.0f);
-      vDist.b = cos (fTime);
-
-      vDist *= ( hdrLuminance_MaxLocal / 80.0 );
-    }
-#endif
 
     return
       FinalOutput (float4 (vDist, 1.0f));
@@ -587,18 +577,18 @@ float4 main (PS_INPUT input) : SV_TARGET
   }
 
   if (visualFunc.x == VISUALIZE_MAX_LOCAL_CLIP)
-  { 
+  {
     float  scale = 8.0f;
     float2 uv3   = frac (1.0f * (scale * input.uv) + 0.5f) - 0.5f;
     float      t = 0.01f;
-    
+
     // thickness thick line
     float d3 = 3.0 * scale * t;
-    
+
     // background
     hdr_color.rgb =
       float3 (125.0f, 125.0f, 125.0f);
-    
+
     if ( (input.uv.x > 0.333 && input.uv.x < 0.666) &&
          (input.uv.y > 0.333 && input.uv.y < 0.666) )
     {
@@ -621,15 +611,15 @@ float4 main (PS_INPUT input) : SV_TARGET
     float2     uv = input.uv;
     float2  scale =   float2 ( texDims.x / 10.0,
                                texDims.y / 10.0 );
-                         
+
     float2 size = texDims.xy / scale;
     float total =
         floor (uv.x * size.x) +
         floor (uv.y * size.y);
-               
+
     bool isEven =
       fmod (total, 2.0f) == 0.0f;
-    
+
     float4 color1 = float4 (input.color.x, input.color.x, input.color.x, 1.0);
     float4 color2 = float4 (125.0,         125.0,                 125.0, 1.0);
     
@@ -644,7 +634,7 @@ float4 main (PS_INPUT input) : SV_TARGET
       float4 (0.0, 0.0, 0.0, 1.0);
 
     float2 uv = input.uv;
-    
+
     if ( (uv.x > 0.45 && uv.x < 0.55) &&
          (uv.y > 0.45 && uv.y < 0.55) )
     {
@@ -711,37 +701,8 @@ float4 main (PS_INPUT input) : SV_TARGET
 
       float4 result;
 
-#if 0
-      // find brightest component
-      float lum   = max  (hdr_color.r, max (hdr_color.g, hdr_color.b));
-      float Scale = log2 (lum / ((_fSDRTarget / 80.0) * 0.18)) / 2.0f + 2.0f;
-      
-      Scale = min (Scale, 7.0);
-      Scale = max (Scale, 0.0);
-      
-      const float3 Colors[] =
-      {
-        { 0.0f, 0.0f, 0.0f },
-        { 0.0f, 0.0f, 1.0f },
-        { 0.0f, 1.0f, 1.0f },
-        { 0.0f, 1.0f, 0.0f },
-        { 1.0f, 1.0f, 0.0f },
-        //{ 1.0f, 0.5f, 0.0f },
-        { 1.0f, 0.2f, 0.0f },
-        { 1.0f, 0.0f, 0.0f },
-        { 1.0f, 0.0f, 1.0f },
-        { 1.0f, 1.0f, 1.0f }
-      };
-      int index = int (Scale);
-
-      result.rgb =
-        lerp ( Colors [index    ],
-               Colors [index + 1], Scale - index) *
-         min (          Luminance (hdr_color.rgb) * 2.0F,
-                                            0.15F * hdrLuminance_MaxAvg / 80.0 );
-#else
 // Taken from https://github.com/microsoft/Windows-universal-samples/blob/main/Samples/D2DAdvancedColorImages/cpp/D2DAdvancedColorImages/LuminanceHeatmapEffect.hlsl in order to match HDR + WCG Image Viewer's Heatmap
-// 
+//
 // Define constants based on above behavior: 9 "stops" for a piecewise linear gradient in scRGB space.
 #define STOP0_NITS 0.00f
 #define STOP1_NITS 3.16f
@@ -753,21 +714,21 @@ float4 main (PS_INPUT input) : SV_TARGET
 #define STOP7_NITS 3160.f
 #define STOP8_NITS 10000.f
 
-#define STOP0_COLOR float4(0.0f, 0.0f, 0.0f, 1.0f) // Black
-#define STOP1_COLOR float4(0.0f, 0.0f, 1.0f, 1.0f) // Blue
-#define STOP2_COLOR float4(0.0f, 1.0f, 1.0f, 1.0f) // Cyan
-#define STOP3_COLOR float4(0.0f, 1.0f, 0.0f, 1.0f) // Green
-#define STOP4_COLOR float4(1.0f, 1.0f, 0.0f, 1.0f) // Yellow
-#define STOP5_COLOR float4(1.0f, 0.2f, 0.0f, 1.0f) // Orange
+#define STOP0_COLOR float4 (0.0f, 0.0f, 0.0f, 1.0f) // Black
+#define STOP1_COLOR float4 (0.0f, 0.0f, 1.0f, 1.0f) // Blue
+#define STOP2_COLOR float4 (0.0f, 1.0f, 1.0f, 1.0f) // Cyan
+#define STOP3_COLOR float4 (0.0f, 1.0f, 0.0f, 1.0f) // Green
+#define STOP4_COLOR float4 (1.0f, 1.0f, 0.0f, 1.0f) // Yellow
+#define STOP5_COLOR float4 (1.0f, 0.2f, 0.0f, 1.0f) // Orange
 // Orange isn't a simple combination of primary colors but allows us to have 8 gradient segments,
 // which gives us cleaner definitions for the nits --> color mappings.
-#define STOP6_COLOR float4(1.0f, 0.0f, 0.0f, 1.0f) // Red
-#define STOP7_COLOR float4(1.0f, 0.0f, 1.0f, 1.0f) // Magenta
-#define STOP8_COLOR float4(1.0f, 1.0f, 1.0f, 1.0f) // White
+#define STOP6_COLOR float4 (1.0f, 0.0f, 0.0f, 1.0f) // Red
+#define STOP7_COLOR float4 (1.0f, 0.0f, 1.0f, 1.0f) // Magenta
+#define STOP8_COLOR float4 (1.0f, 1.0f, 1.0f, 1.0f) // White
 
       // 1: Calculate luminance in nits.
       // Input is in scRGB. First convert to Y from CIEXYZ, then scale by whitepoint of 80 nits.
-      float nits = dot(float3(0.2126f, 0.7152f, 0.0722f), hdr_color.rgb) * 80.0f;
+      float nits = dot (float3 (0.2126f, 0.7152f, 0.0722f), hdr_color.rgb) * 80.0f;
 
       // 2: Determine which gradient segment will be used.
       // Only one of useSegmentN will be 1 (true) for a given nits value.
@@ -792,17 +753,16 @@ float4 main (PS_INPUT input) : SV_TARGET
 
       //  Only the "active" gradient segment contributes to the output color.
       result =
-          lerp(STOP0_COLOR, STOP1_COLOR, lerpSegment0) * useSegment0 +
-          lerp(STOP1_COLOR, STOP2_COLOR, lerpSegment1) * useSegment1 +
-          lerp(STOP2_COLOR, STOP3_COLOR, lerpSegment2) * useSegment2 +
-          lerp(STOP3_COLOR, STOP4_COLOR, lerpSegment3) * useSegment3 +
-          lerp(STOP4_COLOR, STOP5_COLOR, lerpSegment4) * useSegment4 +
-          lerp(STOP5_COLOR, STOP6_COLOR, lerpSegment5) * useSegment5 +
-          lerp(STOP6_COLOR, STOP7_COLOR, lerpSegment6) * useSegment6 +
-          lerp(STOP7_COLOR, STOP8_COLOR, lerpSegment7) * useSegment7;
-#endif
+        lerp (STOP0_COLOR, STOP1_COLOR, lerpSegment0) * useSegment0 +
+        lerp (STOP1_COLOR, STOP2_COLOR, lerpSegment1) * useSegment1 +
+        lerp (STOP2_COLOR, STOP3_COLOR, lerpSegment2) * useSegment2 +
+        lerp (STOP3_COLOR, STOP4_COLOR, lerpSegment3) * useSegment3 +
+        lerp (STOP4_COLOR, STOP5_COLOR, lerpSegment4) * useSegment4 +
+        lerp (STOP5_COLOR, STOP6_COLOR, lerpSegment5) * useSegment5 +
+        lerp (STOP6_COLOR, STOP7_COLOR, lerpSegment6) * useSegment6 +
+        lerp (STOP7_COLOR, STOP8_COLOR, lerpSegment7) * useSegment7;
       result.a = 1;
-      
+
       return
         FinalOutput (result);
     }
