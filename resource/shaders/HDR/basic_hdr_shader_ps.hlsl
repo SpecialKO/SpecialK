@@ -509,52 +509,8 @@ float4 main (PS_INPUT input) : SV_TARGET
         vTriangle ) &&            vColor_xyY.x !=
                                   vColor_xyY.y;
 
-    if (bContained)
-    {
-#if 0
-      // Visualize wider-than-Rec709
-      if (cs > 0)
-      {
-        r = SK_Color_xyY_from_RGB ( _ColorSpaces [0], float3 (1.f, 0.f, 0.f) ),
-        g = SK_Color_xyY_from_RGB ( _ColorSpaces [0], float3 (0.f, 1.f, 0.f) ),
-        b = SK_Color_xyY_from_RGB ( _ColorSpaces [0], float3 (0.f, 0.f, 1.f) );
-
-        fColorXYZ =
-          SK_Color_xyY_from_RGB ( _ColorSpaces [0], hdr_color.rgb );
-
-        float3 vTriangle2 [] = {
-          r, g, b
-        };
-
-        bContained =
-          SK_Triangle_ContainsPoint (fColorXYZ, vTriangle2);
-
-        if (! bContained)
-        {
-          fScale = 0.0f;
-        }
-      }
-#endif
-    }
-
     float3 vDist =
       bContained ? (hdrLuminance_MaxAvg / 320.0) * Luminance (hdr_color.rgb) : fDistField;
-                                                            //hdr_color.rgb;
-
-#if 0
-    // Gamut Overshoot
-    if (fScale == 1.0f && (! bContained) && cs != 0)
-    {
-      float fTime =
-        TWO_PI * (float)(currentTime % 3333) / 3333.3;
-
-      vDist.r = sin (fTime);
-      vDist.g = sin (fTime * 2.0f);
-      vDist.b = cos (fTime);
-
-      vDist *= ( hdrLuminance_MaxLocal / 80.0 );
-    }
-#endif
 
     return
       FinalOutput (float4 (vDist, 1.0f));
