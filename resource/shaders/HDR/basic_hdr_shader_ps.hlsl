@@ -483,8 +483,22 @@ float4 main (PS_INPUT input) : SV_TARGET
            g = float3(_ColorSpaces[cs].xg, _ColorSpaces[cs].yg, 0),
            b = float3(_ColorSpaces[cs].xb, _ColorSpaces[cs].yb, 0);
 
-    float3 hdr_XYZ = sRGBtoXYZ(hdr_color.rgb);
-    float3 vColor_xyY = float3(hdr_XYZ.x / (hdr_XYZ.x + hdr_XYZ.y + hdr_XYZ.z), hdr_XYZ.y / (hdr_XYZ.x + hdr_XYZ.y + hdr_XYZ.z), 0);
+    // Same clamp color_output receives
+    hdr_color =
+      float4 (
+        Clamp_scRGB_StripNaN (hdr_color.rgb),
+                    saturate (hdr_color.a)
+             );
+
+    float3 xy_from_sRGB;
+    {
+      float3 XYZ = sRGBtoXYZ ( hdr_color.rgb );
+      xy_from_sRGB = float3 (
+        XYZ.x / (XYZ.x + XYZ.y + XYZ.z),
+        XYZ.y / (XYZ.x + XYZ.y + XYZ.z),
+        0
+      );
+    }
 
     float3 vTriangle [] = {
       r, g, b
@@ -495,19 +509,35 @@ float4 main (PS_INPUT input) : SV_TARGET
 
     float3 fDistField =
       float3 (
-        distance ( r, vColor_xyY ),
-        distance ( g, vColor_xyY ),
-        distance ( b, vColor_xyY )
+        distance ( r, xy_from_sRGB ),
+        distance ( g, xy_from_sRGB ),
+        distance ( b, xy_from_sRGB )
       );
 
     fDistField.x = IsNan (fDistField.x) ? 0 : fDistField.x;
     fDistField.y = IsNan (fDistField.y) ? 0 : fDistField.y;
     fDistField.z = IsNan (fDistField.z) ? 0 : fDistField.z;
 
+    float3 xy_to_analyze = xy_from_sRGB;
+
+    // is HDR_10BitSwap?
+    if (visualFunc.y == 1)
+    {
+      float4 analyze_color = FinalOutput(hdr_color);
+
+      // roll back transfer functions for HDR10 bit swap so we can analyze
+      float3 XYZ = sRGBtoXYZ (REC2020toREC709 (PQToLinear (analyze_color.rgb, 125.0f)));
+      xy_to_analyze = float3 (
+        XYZ.x / (XYZ.x + XYZ.y + XYZ.z),
+        XYZ.y / (XYZ.x + XYZ.y + XYZ.z),
+        0
+      );
+    }
+
     bool bContained =
-      SK_Triangle_ContainsPoint ( vColor_xyY,
-        vTriangle ) &&            vColor_xyY.x !=
-                                  vColor_xyY.y;
+      SK_Triangle_ContainsPoint ( xy_to_analyze,
+        vTriangle ) &&            xy_to_analyze.x !=
+                                  xy_to_analyze.y;
 
     float3 vDist =
       bContained ? (hdrLuminance_MaxAvg / 320.0) * Luminance (hdr_color.rgb) : fDistField;
