@@ -5616,9 +5616,7 @@ D3D11Dev_CreateTexture2D1_Impl (
 #ifdef _REMOVE_MSAA
   // Handle stuff like DSV textures created for SwapChains that had their
   //   MSAA status removed to be compatible with Flip
-  extern bool
-        bOriginallyFlip;
-  if (! bOriginallyFlip)
+  if (! rb.active_traits.bOriginallyFlip)
   {
     extern UINT
         uiOriginalBltSampleCount;
@@ -6810,9 +6808,7 @@ D3D11Dev_CreateTexture2D_Impl (
 #ifdef _REMOVE_MSAA
   // Handle stuff like DSV textures created for SwapChains that had their
   //   MSAA status removed to be compatible with Flip
-  extern bool
-        bOriginallyFlip;
-  if (! bOriginallyFlip)
+  if (! rb.active_traits.bOriginallyFlip)
   {
     extern UINT
         uiOriginalBltSampleCount;

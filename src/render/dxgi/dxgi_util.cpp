@@ -1860,8 +1860,6 @@ SK_D3D11_AreTexturesDirectCopyable (D3D11_TEXTURE2D_DESC* pSrcDesc, D3D11_TEXTUR
     return false;
   }
 
-  extern
-   bool SK_D3D11_IsDirectCopyCompatible (DXGI_FORMAT src, DXGI_FORMAT dst);
   if (! SK_D3D11_IsDirectCopyCompatible (pSrcDesc->Format, pDstDesc->Format))
     return false;
 

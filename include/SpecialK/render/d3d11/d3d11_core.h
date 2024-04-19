@@ -2439,6 +2439,8 @@ struct D3DX11_STATE_BLOCK
 };
 
 
+bool SK_D3D11_IsDirectCopyCompatible (DXGI_FORMAT src, DXGI_FORMAT dst);
+
 void SK_D3D11_BeginFrame (void);
 void SK_D3D11_EndFrame   (SK_TLS* pTLS = SK_TLS_Bottom ());
 

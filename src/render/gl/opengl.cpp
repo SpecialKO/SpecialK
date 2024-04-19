@@ -2063,16 +2063,14 @@ SK_GL_CreateInteropSwapChain ( IDXGIFactory2         *pFactory,
   return hr;
 }
 
-extern bool bOriginallysRGB;
-
 void
 SK_GL_CheckSRGB (DXGI_FORMAT* fmt = nullptr)
 {
-  if (bOriginallysRGB)
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  if (rb.active_traits.bOriginallysRGB)
   {
-    SK_RenderBackend& rb =
-      SK_GetCurrentRenderBackend ();
-  
     rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_SRGB;
     rb.srgb_stripped      = true;
   
@@ -2107,7 +2105,10 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
   if (! hDC) // WTF Disgaea?
     return FALSE;
 
-  bOriginallysRGB |= static_cast <bool> (glIsEnabled (GL_FRAMEBUFFER_SRGB));
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  rb.active_traits.bOriginallysRGB |= static_cast <bool> (glIsEnabled (GL_FRAMEBUFFER_SRGB));
   SK_GL_CheckSRGB ();
 
   SK_TLS* pTLS =

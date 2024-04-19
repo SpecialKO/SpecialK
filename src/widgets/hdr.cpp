@@ -974,8 +974,7 @@ public:
     else
     {
       //// Automatically handle sRGB -> Linear if the original SwapChain used it
-      extern bool             bOriginallysRGB;
-      if (rb.srgb_stripped || bOriginallysRGB)
+      if (rb.srgb_stripped || rb.active_traits.bOriginallysRGB)
       {
         // Only apply sRGB -> Linear on the first frame drawn after turning SK HDR on,
         //   allow the user turn it off manually afterwards

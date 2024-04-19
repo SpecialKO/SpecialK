@@ -52,6 +52,14 @@ enum class SK_DXGI_PresentSource
 };
 
 
+extern bool __SK_HDR_10BitSwap;
+extern bool __SK_HDR_16BitSwap;
+
+extern bool SK_Window_HasBorder      (HWND hWnd);
+extern void SK_Window_RemoveBorders  (void);
+extern void SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx);
+
+
 HRESULT
 STDMETHODCALLTYPE
 SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
@@ -586,6 +594,9 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
 {
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   if (SK_DXGI_ZeroCopy == -1)
       SK_DXGI_ZeroCopy = (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap);
 
@@ -659,10 +670,6 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
 
         if (pDev11.p != nullptr)
         {
-          // TODO: Pass this during wrapping
-          extern UINT uiOriginalBltSampleCount;
-          extern bool bOriginallysRGB;
-
           constexpr UINT size =
                  sizeof (DXGI_FORMAT);
 
@@ -677,7 +684,7 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
             swapDesc.BufferDesc.Format == DXGI_FORMAT_R16G16B16A16_FLOAT;
 
           // sRGB is being turned off for Flip Model
-          if (bOriginallysRGB && (! scrgb_hdr))
+          if (rb.active_traits.bOriginallysRGB && (! scrgb_hdr))
           {
             if (config.render.dxgi.srgb_behavior >= 1)
               texDesc.Format =
@@ -700,7 +707,7 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
 
           texDesc.ArraySize          = 1;
           texDesc.SampleDesc.Count   = config.render.dxgi.msaa_samples > 0 ?
-                                           config.render.dxgi.msaa_samples : uiOriginalBltSampleCount;
+                                           config.render.dxgi.msaa_samples : rb.active_traits.uiOriginalBltSampleCount;
           texDesc.SampleDesc.Quality = 0;
           texDesc.MipLevels          = 1;
           texDesc.Usage              = D3D11_USAGE_DEFAULT;
@@ -1364,12 +1371,10 @@ IWrapDXGISwapChain::SetColorSpace1 (DXGI_COLOR_SPACE_TYPE ColorSpace)
   assert (ver_ >= 3);
 
   // Don't let the game do this if SK's HDR overrides are active
-  extern bool __SK_HDR_16BitSwap;
-  if (        __SK_HDR_16BitSwap && __SK_HDR_UserForced)
+  if (__SK_HDR_16BitSwap && __SK_HDR_UserForced)
     ColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709;
 
-  extern bool __SK_HDR_10BitSwap;
-  if (        __SK_HDR_10BitSwap && __SK_HDR_UserForced)
+  if (__SK_HDR_10BitSwap && __SK_HDR_UserForced)
     ColorSpace = DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
 
   return
@@ -1408,9 +1413,6 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
   assert (ver_ >= 4);
 
   dll_log->Log (L"[ DXGI HDR ] <*> HDR Metadata");
-
-  extern bool __SK_HDR_10BitSwap;
-  extern bool __SK_HDR_16BitSwap;
 
   if (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap)
     return S_OK;
@@ -1502,8 +1504,6 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
 
           SK_DXGI_SetPrivateData <state_cache_s> ((IDXGIObject *)rb.swapchain.p, &state_cache);
 
-          extern void SK_Window_RemoveBorders (void);
-
           SK_Window_RemoveBorders      ();
           SK_Window_RepositionIfNeeded ();
 
@@ -1517,8 +1517,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
       // Add borders back only if transitioning Fullscreen -> Windowed
       if (rb.isFakeFullscreen ())
       {
-        extern void SK_Window_RestoreBorders (DWORD,DWORD);
-                    SK_Window_RestoreBorders (0,0);
+        SK_Window_RestoreBorders (0,0);
       }
     }
   }
@@ -1590,10 +1589,6 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
 
   SK_COMPAT_FixUpFullscreen_DXGI (Fullscreen);
 
-  extern bool SK_Window_HasBorder      (HWND hWnd);
-  extern void SK_Window_RemoveBorders  (void);
-  extern void SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx);
-
   BOOL bOrigFullscreen = rb.fullscreen_exclusive;
   BOOL bHadBorders     = SK_Window_HasBorder (game_window.hWnd);
 
@@ -1630,7 +1625,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
     if (SK_DXGI_IsFlipModelSwapChain (sd))
     {
       // Any Flip Model game already knows to do this stuff...
-      if ((! bOriginallyFlip) && (pDev12.p == nullptr))
+      if ((! rb.active_traits.bOriginallyFlip) && (pDev12.p == nullptr))
       {
         HRESULT hr =
           pSwapChain->Present (0, DXGI_PRESENT_TEST);
@@ -1722,15 +1717,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
     _Return (ret);
 }
 
-extern bool __SK_HDR_16BitSwap;
-extern bool __SK_HDR_10BitSwap;
 extern bool  bAlwaysAllowFullscreen;
-extern bool  bFlipMode;
-extern bool  bWait;
-extern bool  bOriginallyFlip;
-extern bool  bOriginallysRGB;
-extern bool  bMisusingDXGIScaling; // Game doesn't understand the purpose of Centered/Stretched
-extern UINT uiOriginalBltSampleCount;
 
 extern void ResetImGui_D3D12 (IDXGISwapChain *This);
 extern void ResetImGui_D3D11 (IDXGISwapChain *This);
@@ -1932,10 +1919,6 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
     }
 
 
-    extern bool
-           __SK_HDR_16BitSwap;
-    extern bool
-           __SK_HDR_10BitSwap;
     if (! (__SK_HDR_16BitSwap || __SK_HDR_10BitSwap))
     {
     //if (state_cache.lastNonHDRFormat != DXGI_FORMAT_UNKNOWN)
@@ -2156,7 +2139,7 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
   if ( config.render.framerate.flip_discard &&
        SK_DXGI_IsFlipModelSwapChain (swap_desc) )
   {
-    bFlipMode =
+    rb.active_traits.bFlipMode =
       dxgi_caps.present.flip_sequential;
 
     // Format overrides must be performed in some cases (sRGB)

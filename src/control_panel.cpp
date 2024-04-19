@@ -4780,12 +4780,10 @@ SK_ImGui_ControlPanel (void)
 
     ImGui::Separator ();
 
-    // Flip model may be fudging with the actual format of the framebuffer
-    extern bool bOriginallysRGB;
-
     char szResolution [128] = { };
 
-    bool sRGB     = (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_SRGB) || bOriginallysRGB;
+    // Flip model may be fudging with the actual format of the framebuffer
+    bool sRGB     = (rb.framebuffer_flags & SK_FRAMEBUFFER_FLAG_SRGB) || rb.active_traits.bOriginallysRGB;
     bool hdr_out  =  rb.isHDRCapable ()  &&
                      rb.isHDRActive  ();
     bool override = false;

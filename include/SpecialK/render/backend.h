@@ -599,6 +599,17 @@ public:
     SK_ComPtr <ID3D12CommandQueue> command_queue = nullptr;
   } d3d12;
 
+  struct game_traits_s
+  {
+    bool  bFlipMode               = false;
+    bool  bWait                   = false;
+    bool  bOriginallyFlip         = false;
+    bool  bOriginallysRGB         = false;
+    bool  bImplicitlyWaitable     = false;
+    bool  bMisusingDXGIScaling    = false; // Game doesn't understand the purpose of Centered/Stretched
+    UINT uiOriginalBltSampleCount = 0UL;
+  } active_traits;
+
 
           HRESULT       setDevice (IUnknown* pDevice);
   template <typename Q>

@@ -714,14 +714,7 @@ SK_DXGI_FeatureLevelsToStr (       int    FeatureLevels,
 
 UINT SK_DXGI_FixUpLatencyWaitFlag (gsl::not_null <IDXGISwapChain*> pSwapChainRaw, UINT Flags, BOOL bCreation = FALSE);
 
-bool  bAlwaysAllowFullscreen  = false;
-bool  bFlipMode               = false;
-bool  bWait                   = false;
-bool  bOriginallyFlip         = false;
-bool  bOriginallysRGB         = false;
-bool  bImplicitlyWaitable     = false;
-bool  bMisusingDXGIScaling    = false; // Game doesn't understand the purpose of Centered/Stretched
-UINT uiOriginalBltSampleCount = 0UL;
+bool bAlwaysAllowFullscreen = false;
 
 // Used for integrated GPU override
 int SK_DXGI_preferred_adapter = SK_NoPreference;
@@ -2463,7 +2456,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
         _d3d12_rbk->release (This);
       }
 
-      if ( ret != S_OK && (! bOriginallyFlip) && SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12 )
+      if ( ret != S_OK && (! rb.active_traits.bOriginallyFlip) && SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12 )
       {
         // This would recurse infinitely without the ghetto lock
         //
@@ -3106,17 +3099,17 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
           if (     _IsBackendD3D12 (rb.api)) SK_D3D12_PostPresent (pDev12.p, This, hr);
           else if (_IsBackendD3D11 (rb.api)) SK_D3D11_PostPresent (pDev.p,   This, hr);
 
-          if (config.render.framerate.swapchain_wait > 0 || bImplicitlyWaitable)
+          if (config.render.framerate.swapchain_wait > 0 || rb.active_traits.bImplicitlyWaitable)
           {
             SK_AutoHandle               hWaitHandle (rb.getSwapWaitHandle ());
             if (SK_WaitForSingleObject (hWaitHandle.m_h, 0) == WAIT_TIMEOUT)
             {
-              if (bImplicitlyWaitable || pLimiter->get_limit () > 0.0)
+              if (rb.active_traits.bImplicitlyWaitable || pLimiter->get_limit () > 0.0)
               {
                 // Wait on the SwapChain for up to a frame to try and
                 //   shrink the queue without a full-on stutter.
                 SK_WaitForSingleObject (
-                  hWaitHandle.m_h, bImplicitlyWaitable ? INFINITE : (DWORD)pLimiter->get_ms_to_next_tick ()
+                  hWaitHandle.m_h, rb.active_traits.bImplicitlyWaitable ? INFINITE : (DWORD)pLimiter->get_ms_to_next_tick ()
                 );
               }
             }
@@ -3204,6 +3197,9 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
                                      DXGISwapChain_Present );
   }
 
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   // Backup and restore the RTV bindings Before / After Present for games that
   //   are using Flip Model but weren't originally designed to use it
   //
@@ -3215,7 +3211,7 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   SK_ComPtr      <ID3D11Device>           pDevice;
   SK_ComPtr      <ID3D11DeviceContext>    pDevCtx;
 
-  if (! bOriginallyFlip &&
+  if (! rb.active_traits.bOriginallyFlip &&
           SUCCEEDED (This->GetDevice (IID_ID3D11Device, (void **)&pDevice.p)))
   {
     pDevice->GetImmediateContext (
@@ -3551,6 +3547,9 @@ DXGIOutput_GetDisplayModeList_Override ( IDXGIOutput    *This,
 _Out_writes_to_opt_(*pNumModes,*pNumModes)
                                          DXGI_MODE_DESC *pDesc)
 {
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   // For sanity sake, clear the number of modes rather than leaving it undefined in log calls :)
   if (pDesc == nullptr && pNumModes != nullptr)
     *pNumModes = 0;
@@ -3640,7 +3639,7 @@ _Out_writes_to_opt_(*pNumModes,*pNumModes)
     Flags |=  DXGI_ENUM_MODES_INTERLACED;
 
   // Game would be missing resolutions
-  if (bMisusingDXGIScaling)
+  if (rb.active_traits.bMisusingDXGIScaling)
     Flags &= ~DXGI_ENUM_MODES_SCALING;
 
   HRESULT hr =
@@ -4136,6 +4135,9 @@ DXGIOutput_FindClosestMatchingMode_Override (
  _Out_          DXGI_MODE_DESC *pClosestMatch,
  _In_opt_       IUnknown       *pConcernedDevice )
 {
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   DXGI_LOG_CALL_I4 (
     L"       IDXGIOutput", L"FindClosestMatchingMode         ",
     L"%p, %08" _L(PRIxPTR) L"h, %08" _L(PRIxPTR) L"h, %08"
@@ -4216,7 +4218,7 @@ DXGIOutput_FindClosestMatchingMode_Override (
       (DXGI_MODE_SCALING)config.render.dxgi.scaling_mode;
   }
 
-  if ( bMisusingDXGIScaling && mode_to_match.Scaling != DXGI_MODE_SCALING_UNSPECIFIED )
+  if ( rb.active_traits.bMisusingDXGIScaling && mode_to_match.Scaling != DXGI_MODE_SCALING_UNSPECIFIED )
   {
     dll_log->Log ( L"[   DXGI   ]  >> Scaling Override "
                    L"(Requested: %hs, Using: %hs) "
@@ -4406,7 +4408,7 @@ DXGISwap3_ResizeBuffers1_Override (IDXGISwapChain3* This,
   if ( config.render.framerate.flip_discard &&
        SK_DXGI_IsFlipModelSwapChain (swap_desc) )
   {
-    bFlipMode =
+    rb.active_traits.bFlipMode =
       dxgi_caps.present.flip_sequential;
 
     // Format overrides must be performed in some cases (sRGB)
@@ -4603,6 +4605,9 @@ SK_DXGI_CreateSwapChain_PreInit (
   _In_opt_    IUnknown                        *pDevice,
               bool                             bIsD3D12 )
 {
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   // Move the window to the origin of the user-forced monitor...
   //
   //   Old logic, disabled for reasons lost to time.
@@ -4634,7 +4639,7 @@ SK_DXGI_CreateSwapChain_PreInit (
   // If forcing flip-model, kill multisampling (of primary framebuffer)
   if (config.render.framerate.flip_discard)
   {
-    bFlipMode =
+    rb.active_traits.bFlipMode =
       dxgi_caps.present.flip_sequential;
   }
 
@@ -4822,7 +4827,7 @@ SK_DXGI_CreateSwapChain_PreInit (
     bool already_flip_model =
       SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect);
 
-    bOriginallyFlip = already_flip_model;
+    rb.active_traits.bOriginallyFlip = already_flip_model;
 
     // These games may want the contents of the SwapChain
     //    backbuffer to remain defined.
@@ -4898,7 +4903,7 @@ SK_DXGI_CreateSwapChain_PreInit (
 
     if (bScalingIsProblematic)
     {
-      bMisusingDXGIScaling = true;
+      rb.active_traits.bMisusingDXGIScaling = true;
 
       SK_LOGi0 (
         L" >> Removing Scaling Mode (%hs) Because It Prevents Native Resolution",
@@ -4956,7 +4961,7 @@ SK_DXGI_CreateSwapChain_PreInit (
         pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
       if (SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect))
-        bFlipMode = true;
+        rb.active_traits.bFlipMode = true;
 
       if (request_mode_change == mode_change_request_e::Fullscreen)
       {
@@ -5008,20 +5013,17 @@ SK_DXGI_CreateSwapChain_PreInit (
       // If forcing flip-model, then force multisampling (of the primary framebuffer) off
       if (config.render.framerate.flip_discard)
       {
-        bFlipMode =
+        rb.active_traits.bFlipMode =
           dxgi_caps.present.flip_sequential;
 
         // Allow manually enabling MSAA in a game while using Flip Model
         if (config.render.dxgi.msaa_samples > 0)
-          uiOriginalBltSampleCount = config.render.dxgi.msaa_samples;
+          rb.active_traits.uiOriginalBltSampleCount = config.render.dxgi.msaa_samples;
         else
-          uiOriginalBltSampleCount = pDesc->SampleDesc.Count;
+          rb.active_traits.uiOriginalBltSampleCount = pDesc->SampleDesc.Count;
 
         pDesc->SampleDesc.Count   = 1;
         pDesc->SampleDesc.Quality = 0;
-
-        SK_RenderBackend& rb =
-          SK_GetCurrentRenderBackend ();
 
         // Format overrides must be performed in certain cases (sRGB)
         switch (pDesc->BufferDesc.Format)
@@ -5029,8 +5031,8 @@ SK_DXGI_CreateSwapChain_PreInit (
           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
             SK_LOGs0 ( L" DXGI 1.2 ",
                        L" >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
-            rb.srgb_stripped = true;
-            bOriginallysRGB  = true;
+            rb.srgb_stripped                  = true;
+            rb.active_traits.bOriginallysRGB  = true;
             [[fallthrough]];
           case DXGI_FORMAT_B8G8R8A8_UNORM:
           case DXGI_FORMAT_B8G8R8A8_TYPELESS:
@@ -5042,8 +5044,8 @@ SK_DXGI_CreateSwapChain_PreInit (
             SK_LOGs0 ( L" DXGI 1.2 ",
                        L" >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
 
-            rb.srgb_stripped = true;
-            bOriginallysRGB  = true;
+            rb.srgb_stripped                 = true;
+            rb.active_traits.bOriginallysRGB = true;
             [[fallthrough]];
           case DXGI_FORMAT_R8G8B8A8_UNORM:
           case DXGI_FORMAT_R8G8B8A8_TYPELESS:
@@ -5089,7 +5091,7 @@ SK_DXGI_CreateSwapChain_PreInit (
       }
 
       if ( ( config.render.framerate.flip_discard ||
-                                      bFlipMode ) &&
+                     rb.active_traits.bFlipMode ) &&
               dxgi_caps.swapchain.allow_tearing )
       {
         if ((pDesc->Flags & DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING) == 0)
@@ -5190,17 +5192,17 @@ SK_DXGI_CreateSwapChain_PreInit (
         }
       }
 
-      bWait =
-        bFlipMode && dxgi_caps.present.waitable;
+      rb.active_traits.bWait =
+        rb.active_traits.bFlipMode && dxgi_caps.present.waitable;
 
-      bWait =
-        bWait && ( config.render.framerate.swapchain_wait > 0 );
+      rb.active_traits.bWait =
+        rb.active_traits.bWait && ( config.render.framerate.swapchain_wait > 0 );
 
       // User is forcing flip mode
       //
-      if (bFlipMode || SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect))
+      if (rb.active_traits.bFlipMode || SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect))
       {
-        if (bWait)
+        if (rb.active_traits.bWait)
           pDesc->Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
 
         // Flip Presentation Model requires 3 Buffers (1 is implicit)
@@ -5246,8 +5248,8 @@ SK_DXGI_CreateSwapChain_PreInit (
                L"  >> Using %s Presentation Model  [Waitable: %s - %li ms]",
                  (pDesc->SwapEffect >= DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL) ?
                    L"Flip" : L"Traditional",
-                     bWait ? L"Yes" : L"No",
-                     bWait ? config.render.framerate.swapchain_wait : 0
+                     rb.active_traits.bWait ? L"Yes" : L"No",
+                     rb.active_traits.bWait ? config.render.framerate.swapchain_wait : 0
              );
 
 
@@ -5971,6 +5973,9 @@ DXGIFactory_CreateSwapChain_Override (
   _In_  const DXGI_SWAP_CHAIN_DESC  *pDesc,
   _Out_       IDXGISwapChain       **ppSwapChain )
 {
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   SK_ReleaseAssert (pDesc       != nullptr);
 //SK_ReleaseAssert (ppSwapChain != nullptr); // This happens from time to time
 
@@ -6072,12 +6077,12 @@ DXGIFactory_CreateSwapChain_Override (
 
     if ((new_desc.Flags  & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) == 0)
     {    new_desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-      bImplicitlyWaitable = true;
+      rb.active_traits.bImplicitlyWaitable = true;
     }
 
     else
     {
-      bImplicitlyWaitable = false;
+      rb.active_traits.bImplicitlyWaitable = false;
     }
 
     SK_LOGs0 ( L"Direct3D12", L" <*> Native D3D12 SwapChain Captured" );
@@ -6137,9 +6142,6 @@ DXGIFactory_CreateSwapChain_Override (
 
         if (! workable)
         {
-          SK_RenderBackend& rb =
-            SK_GetCurrentRenderBackend ();
-
           _d3d11_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
           _d3d12_rbk->release ((IDXGISwapChain *)rb.swapchain.p);
 
@@ -6225,9 +6227,6 @@ DXGIFactory_CreateSwapChain_Override (
   // Retry creation after releasing the Render Backend resources
   if ( ret == E_ACCESSDENIED )
   {
-    SK_RenderBackend& rb =
-      SK_GetCurrentRenderBackend ();
-
     SK_ReleaseAssert (pDesc->OutputWindow == rb.windows.getDevice ());
 
     rb.d3d11.clearState ();
@@ -6273,7 +6272,7 @@ DXGIFactory_CreateSwapChain_Override (
         SK_ComQIPtr <IDXGISwapChain3> pSwap3 (pTemp);
         SK_D3D12_HotSwapChainHook (   pSwap3, pDev12.p);
 
-        if (bImplicitlyWaitable)
+        if (rb.active_traits.bImplicitlyWaitable)
           pSwap3->SetMaximumFrameLatency (config.render.framerate.pre_render_limit > 0 ?
                                           config.render.framerate.pre_render_limit     : 2);
       }
@@ -6588,6 +6587,9 @@ _In_opt_       DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
 _In_opt_       IDXGIOutput                     *pRestrictToOutput,
    _Out_       IDXGISwapChain1                 **ppSwapChain )
 {
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   SK_ReleaseAssert (pDesc != nullptr);
 
   if (! config.render.dxgi.hooks.create_swapchain4hwnd)
@@ -6658,12 +6660,12 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
 
     if ((new_desc1.Flags  & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) == 0)
     {    new_desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-      bImplicitlyWaitable = true;
+      rb.active_traits.bImplicitlyWaitable = true;
     }
 
     else
     {
-      bImplicitlyWaitable = false;
+      rb.active_traits.bImplicitlyWaitable = false;
     }
 
     SK_LOGs0 ( L"Direct3D12",
@@ -6739,9 +6741,6 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
 
   if ( ret == E_ACCESSDENIED )
   {
-    SK_RenderBackend& rb =
-      SK_GetCurrentRenderBackend ();
-
     if (config.system.log_level > 0)
       SK_ReleaseAssert (hWnd == rb.windows.getDevice ());
 
@@ -6786,7 +6785,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
         SK_ComQIPtr <IDXGISwapChain3> pSwap3 (pTemp);
         SK_D3D12_HotSwapChainHook (   pSwap3, pDev12.p);
 
-        if (bImplicitlyWaitable)
+        if (rb.active_traits.bImplicitlyWaitable)
           pSwap3->SetMaximumFrameLatency (config.render.framerate.pre_render_limit > 0 ?
                                           config.render.framerate.pre_render_limit     : 2);
       }
@@ -10545,7 +10544,7 @@ SK_DXGI_IsScalingPreventingRequestedResolution ( DXGI_MODE_DESC *pDesc,
       ( matchedMode_NoScaling.Width  != matchedMode.Width ||
         matchedMode_NoScaling.Height != matchedMode.Height );
 
-    ::bMisusingDXGIScaling |= prevented;
+    SK_GetCurrentRenderBackend ().active_traits.bMisusingDXGIScaling |= prevented;
 
     return prevented;
   }

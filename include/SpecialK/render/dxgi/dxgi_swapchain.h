@@ -43,8 +43,6 @@ const GUID IID_IUnwrappedDXGISwapChain =
 const GUID IID_IWrapDXGISwapChain =
 { 0x24430a12, 0x6e3c, 0x4706, { 0xaf, 0xfa, 0xb3, 0xee, 0xf2, 0xdf, 0x41, 0x2 } };
 
-extern bool bOriginallyFlip;
-
 void
 __stdcall
 SK_DXGI_SwapChainDestructionCallback (void *pSwapChain);
@@ -59,6 +57,9 @@ IWrapDXGISwapChain : IDXGISwapChain4
   {
     if (pSwapChain == nullptr || pDevice == nullptr)
       return;
+
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
 
     DXGI_SWAP_CHAIN_DESC            sd = { };
     if (SUCCEEDED (pReal->GetDesc (&sd)))
@@ -122,7 +123,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
     flip_model.active =
       ( sd.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD ||
         sd.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL );
-    flip_model.native = bOriginallyFlip;
+    flip_model.native = rb.active_traits.bOriginallyFlip;
 
     SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
 
@@ -166,6 +167,9 @@ IWrapDXGISwapChain : IDXGISwapChain4
   {
     if (pSwapChain == nullptr || pDevice == nullptr)
       return;
+
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
 
     ///creation_desc.actual    = *pOverrideDesc;
     ///creation_desc.requested = *pOrigDesc;
@@ -226,7 +230,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
     flip_model.active =
       ( sd.SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD ||
         sd.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL );
-    flip_model.native = bOriginallyFlip;
+    flip_model.native = rb.active_traits.bOriginallyFlip;
 
     SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
 
