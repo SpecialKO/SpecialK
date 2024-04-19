@@ -607,53 +607,147 @@ SK_ImGui_LatentSyncConfig (void)
         ImGui::Separator    ();
         ImGui::Text         ("Adaptive modes control tearing based on Frame Stability or Render Latency");
         ImGui::Separator    ();
-        ImGui::BulletText   ("Adaptive (Prefer On): only disables tearing if FPS is unstable");
-        ImGui::BulletText   ("Adaptive (Prefer Off): only enables tearing if FPS is unstable or Render Latency exceeds 1 frame");
+        ImGui::BulletText   ("Adaptive (Prefer On) : only disables tearing if FPS is unstable");
+        ImGui::BulletText   ("Adaptive (Prefer Off) : only enables tearing if FPS is unstable or Render Latency exceeds 1 frame");
         ImGui::EndTooltip   ();
       }
 
-      if ( config.render.framerate.latent_sync.tearing_mode != SK_TearingMode::LatentSync_AlwaysOn &&
-           std::round (pLimiter->get_limit () / rb.getActiveRefreshRate ()) >= 2.0                 )
+      if (config.render.framerate.latent_sync.tearing_mode != SK_TearingMode::LatentSync_AlwaysOn)
       {
-        ImGui::SameLine    ();
-        ImGui::TextColored (ImColor (1.0f, 1.0f, 0.0f), ICON_FA_EXCLAMATION_TRIANGLE);
+        int iMultiplier = static_cast <int> (
+          std::round (
+            pLimiter->get_limit () / rb.getActiveRefreshRate ()
+          )
+        );
 
-        if (ImGui::IsItemHovered ())
+        if (iMultiplier >= 2)
         {
-          bool bSupportsFrameSkipping = SK_LatentSync_SupportsFrameSkipping (rb.api);
+          bool bIsTearingModeAdaptiveOff =
+            config.render.framerate.latent_sync.tearing_mode ==
+              SK_TearingMode::LatentSync_AdaptiveOff;
 
-          ImGui::BeginTooltip ();
-          ImGui::Text         ("Please set Tearing Mode to 'Always On' for 2x.. Scan Mode!");
-          ImGui::Separator    ();
-          ImGui::BulletText   ("You may enable NVIDIA's Fast Sync or AMD's Enhanced Sync to eliminate tearing");
-          ImGui::BulletText   ("Fast Sync is not compatible with DirectX 12");
-          ImGui::Separator    ();
-          ImGui::Text         ("Other tearing options require certain settings for 2x.. mode (best to worst):");
-          ImGui::Separator    ();
-          ImGui::BeginGroup   ();
-          ImGui::BulletText   ("Adaptive (Prefer On)");
+          bool bSupportsFrameSkipping =
+            SK_LatentSync_SupportsFrameSkipping (rb.api);
 
-          if (bSupportsFrameSkipping)
+          int iBufferCount =
+            config.render.framerate.buffer_count;
+
+          int iMaxDeviceLatency =
+            config.render.framerate.pre_render_limit;
+
+          int iRequiredBufferCount =
+            5 + (2 * (iMultiplier - 2));
+
+          int iRequiredMaxDeviceLatency =
+            iRequiredBufferCount + 1;
+
+          bool bIsInvalidBufferCount =
+            iBufferCount < iRequiredBufferCount;
+
+          bool bIsInvalidMaxDeviceLatency = ! (
+            ( bIsTearingModeAdaptiveOff &&
+              bSupportsFrameSkipping    &&
+              iMaxDeviceLatency == 1     ) ||
+            ( iMaxDeviceLatency >=
+              iRequiredMaxDeviceLatency  )
+          );
+
+          if (bIsInvalidBufferCount || bIsInvalidMaxDeviceLatency)
           {
-            ImGui::BulletText ("Adaptive (Prefer Off)");
+            ImGui::SameLine    ();
+            ImGui::TextColored (ImColor (1.0f, 1.0f, 0.0f), ICON_FA_EXCLAMATION_TRIANGLE);
+
+            if (ImGui::IsItemHovered ())
+            {
+              bool bIsD3D12 =
+                SK_API_IsLayeredOnD3D12 (rb.api);
+
+              ImGui::BeginTooltip   ();
+              ImGui::Text           (
+                std::format         (
+                  "Please set Tearing Mode to 'Always On' for {}x Scan Mode!",
+                  iMultiplier
+                ).c_str             ()
+              );
+
+              ImGui::Separator      ();
+              ImGui::BulletText     (
+                std::format         (
+                  "You may enable{}AMD's Enhanced Sync to eliminate tearing",
+                  !bIsD3D12 ? " NVIDIA's Fast Sync or " : " "
+                ).c_str             ()
+              );
+
+              if (bIsD3D12)
+              {
+                ImGui::BulletText   ("NVIDIA's Fast Sync is not compatible with DirectX 12");
+              }
+
+              if ( !( bIsD3D12 && !config.render.dxgi.allow_d3d12_footguns ) &&
+                    ( iRequiredBufferCount <= 15                           ) )
+              {
+                ImGui::Separator    ();
+                ImGui::Text         (
+                  std::format       (
+                    "Other tearing options require certain settings for {}x Mode (Best to Worst):",
+                    iMultiplier
+                  ).c_str           ()
+                );
+
+                ImGui::Separator    ();
+                ImGui::BeginGroup   ();
+                ImGui::BulletText   ("Adaptive (Prefer On)");
+
+                if (bSupportsFrameSkipping)
+                {
+                  ImGui::BulletText ("Adaptive (Prefer Off)");
+                }
+
+                ImGui::BulletText   ("Adaptive (Prefer Off)");
+                ImGui::BulletText   ("Always Off");
+                ImGui::EndGroup     ();
+                ImGui::SameLine     (0.0f, 0.0f);
+                ImGui::BeginGroup   ();
+                ImGui::Text         (
+                  std::format       (
+                    " : Buffer Count = {}, Max Device Latency = {}",
+                    iRequiredBufferCount,
+                    iRequiredMaxDeviceLatency
+                  ).c_str           ()
+                );
+
+                if (bSupportsFrameSkipping)
+                {
+                  ImGui::Text       (
+                    std::format     (
+                      " : Buffer Count = {}, Max Device Latency = 1",
+                      iRequiredBufferCount
+                    ).c_str         ()
+                  );
+                }
+
+                ImGui::Text         (
+                  std::format       (
+                    " : Buffer Count = {}, Max Device Latency = {}",
+                    iRequiredBufferCount,
+                    iRequiredMaxDeviceLatency
+                  ).c_str           ()
+                );
+
+                ImGui::Text         (
+                  std::format       (
+                    " : Buffer Count = {}, Max Device Latency = {}",
+                    iRequiredBufferCount,
+                    iRequiredMaxDeviceLatency
+                  ).c_str           ()
+                );
+
+                ImGui::EndGroup     ();
+              }
+
+              ImGui::EndTooltip     ();
+            }
           }
-
-          ImGui::BulletText   ("Adaptive (Prefer Off)");
-          ImGui::BulletText   ("Always Off");
-          ImGui::EndGroup     ();
-          ImGui::SameLine     (0.0f, 0.0f);
-          ImGui::BeginGroup   ();
-          ImGui::Text         (" : Buffer Count > 4, Max Device Latency = Buffer Count + 1");
-
-          if (bSupportsFrameSkipping)
-          {
-            ImGui::Text       (" : Buffer Count > 4, Max Device Latency = 1");
-          }
-
-          ImGui::Text         (" : Buffer Count > 4, Max Device Latency = Buffer Count + 1");
-          ImGui::Text         (" : Buffer Count > 4, Max Device Latency = Buffer Count + 1");
-          ImGui::EndGroup     ();
-          ImGui::EndTooltip   ();
         }
       }
 
