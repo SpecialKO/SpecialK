@@ -219,6 +219,7 @@ extern NtUserCallNextHookEx_pfn NtUserCallNextHookEx;
 
 bool  SK_Inject_IsHookActive               (void);
 float SK_Inject_GetInjectionDelayInSeconds (void);
+void  SK_Inject_SetFocusWindow             (HWND hWndFocus);
 
 
 #endif /* __SK__INJECTION_H__ */

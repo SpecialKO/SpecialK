@@ -184,7 +184,7 @@ float3 Clamp_scRGB (float3 c)
   // Clamp to Rec 2020
   return
     REC2020toREC709 (
-      max (REC709toREC2020 (c), FP16_MIN)
+      max (REC709toREC2020 (c), 0.0f)
     );
 }
 

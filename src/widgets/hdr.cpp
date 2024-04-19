@@ -974,8 +974,7 @@ public:
     else
     {
       //// Automatically handle sRGB -> Linear if the original SwapChain used it
-      extern bool             bOriginallysRGB;
-      if (rb.srgb_stripped || bOriginallysRGB)
+      if (rb.srgb_stripped || rb.active_traits.bOriginallysRGB)
       {
         // Only apply sRGB -> Linear on the first frame drawn after turning SK HDR on,
         //   allow the user turn it off manually afterwards
@@ -1032,11 +1031,17 @@ public:
 
     // Games where 11-bit remastering is a known stability issue
     //
-    if ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0       ||
-         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami  ||
-         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
-         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow )
+    if ( SK_GetCurrentGameID () == SK_GAME_ID::Yakuza0         ||
+         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami    ||
+         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2   ||
+         SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow ||
+         SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Arise ) // Artifacts in Tales of Arise
       SK_HDR_RenderTargets_11bpc->PromoteTo16Bit = false;
+
+    // Games where 8-bit Compute Remastering has problems
+    //
+    if (SK_GetCurrentGameID () == SK_GAME_ID::HaroldHalibut)
+      SK_HDR_UnorderedViews_8bpc->PromoteTo16Bit = false;
 
     _SK_HDR_FullRange =
       _CreateConfigParameterBool ( SK_HDR_SECTION,
@@ -2439,8 +2444,13 @@ public:
                   ImGui::EndTooltip      ();
                 }
 
+                const bool bDoesNotSupport8BitCompute =
+                  (SK_GetCurrentGameID () == SK_GAME_ID::HaroldHalibut);
+
                 if (bDetails)
                 {
+                  if (bDoesNotSupport8BitCompute) ImGui::BeginDisabled ();
+
                   changed |= ImGui::Checkbox ("Remaster 8-bit Compute Passes", &SK_HDR_UnorderedViews_8bpc->PromoteTo16Bit);
 
                   if (ImGui::IsItemHovered ())
@@ -2451,6 +2461,8 @@ public:
                                           ReadAcquire64    (&SK_HDR_UnorderedViews_8bpc->BytesAllocated));
                     ImGui::EndTooltip    ();
                   }
+
+                  if (bDoesNotSupport8BitCompute) ImGui::EndDisabled ();
                 }
 
                 ImGui::EndGroup          ();
@@ -2488,6 +2500,11 @@ public:
                 ImGui::SameLine          ();
                 ImGui::BeginGroup        ();
 
+                const bool bDoesNotSupport11BitRender =
+                  (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Arise);
+
+                if (bDoesNotSupport11BitRender) ImGui::BeginDisabled ();
+
                 changed |= ImGui::Checkbox ("Remaster 11-bit Render Passes", &SK_HDR_RenderTargets_11bpc->PromoteTo16Bit);
 
                 if (ImGui::IsItemHovered ())
@@ -2500,6 +2517,8 @@ public:
                                           ReadAcquire64    (&SK_HDR_RenderTargets_11bpc->BytesAllocated));
                   ImGui::EndTooltip      ();
                 }
+
+                if (bDoesNotSupport11BitRender) ImGui::EndDisabled ();
 
                 if (bDetails)
                 {

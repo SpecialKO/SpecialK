@@ -1940,7 +1940,6 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
           static_cast <DXGI_SWAP_CHAIN_FLAG> (swap_desc.Flags),
                   &swap_flag_count     );
 
-      extern UINT uiOriginalBltSampleCount;
       extern DXGI_SWAP_CHAIN_DESC  _ORIGINAL_SWAP_CHAIN_DESC;
 
       ImGui::BeginTooltip      ();
@@ -1963,7 +1962,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
         ImGui::TextUnformatted ("Refresh Rate:");
       ImGui::TextUnformatted   ("Swap Interval:");
       ImGui::TextUnformatted   ("Swap Effect:");
-      if  (swap_desc.SampleDesc.Count > 1 || uiOriginalBltSampleCount > 1)
+      if  (swap_desc.SampleDesc.Count > 1 || rb.active_traits.uiOriginalBltSampleCount > 1)
         ImGui::TextUnformatted ("MSAA Samples:");
       if (swap_desc.Flags != 0)
       {
@@ -2060,8 +2059,8 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
                                                                             swap_desc.SampleDesc.Count);
       if  (swap_desc.SampleDesc.Count   > 1)
         ImGui::Text          ("%u",                                         swap_desc.SampleDesc.Count);
-      else if (uiOriginalBltSampleCount > 1)
-        ImGui::Text          ("%u",                                         uiOriginalBltSampleCount);
+      else if (rb.active_traits.uiOriginalBltSampleCount > 1)
+        ImGui::Text          ("%u",                                         rb.active_traits.uiOriginalBltSampleCount);
       if (swap_desc.Flags != 0)
       {
         ImGui::Text          ("%hs",                                        swap_flags.c_str ());

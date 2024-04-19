@@ -40,6 +40,8 @@ extern "C" {
   extern LONG g_sHookedPIDs [MAX_INJECTED_PROCS];
 }
 
+DWORD SK_WGI_GamePollingThreadId = 0;
+
 bool
 SK_ImGui_WantGamepadCapture (void)
 {
@@ -55,11 +57,43 @@ SK_ImGui_WantGamepadCapture (void)
       );
     }
 
-    // Conditionally block Steam Input
-    else
+    static BOOL        lastCapture = -1;
+    if (std::exchange (lastCapture, bCapture) != bCapture)
     {
-      static BOOL        lastCapture = -1;
-      if (std::exchange (lastCapture, bCapture) != bCapture)
+      // Suspend the Windows.Gaming.Input thread in case we did not
+      //   manage to hook the necessary UWP interface APIs
+      if (SK_WGI_GamePollingThreadId != 0)
+      {
+        SK_AutoHandle hThread__ (
+          OpenThread ( THREAD_SUSPEND_RESUME,
+                         FALSE,
+                           SK_WGI_GamePollingThreadId )
+        );
+
+        if ((intptr_t)hThread__.m_h > 0)
+        {
+          static int suspensions = 0;
+
+          if (bCapture)
+          {
+            if (suspensions == 0)
+            { ++suspensions;
+              SuspendThread (hThread__);
+            }
+          }
+
+          else
+          {
+            if (suspensions > 0)
+            { --suspensions;
+              ResumeThread (hThread__);
+            }
+          }
+        }
+      }
+
+      // Conditionally block Steam Input
+      if (! config.input.gamepad.steam.disabled_to_game)
       {
         // Prefer to force an override in the Steam client itself,
         //   but fallback to forced input appid if necessary

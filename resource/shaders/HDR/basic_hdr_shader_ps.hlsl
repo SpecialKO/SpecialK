@@ -155,7 +155,7 @@ FinalOutput (float4 vColor)
     vColor.rgb *=
       smoothstep ( 0.006978,
                    0.016667, vColor.rgb);
-    
+
     vColor.a = 1.0;
   }
     
@@ -211,7 +211,8 @@ float4 main (PS_INPUT input) : SV_TARGET
     texMainScene.Sample ( sampler0,
                             input.uv );
 
-  float4 orig_color = hdr_color;
+  float3 orig_color =
+    abs (hdr_color.rgb);
 
 #ifdef INCLUDE_NAN_MITIGATION
 #ifdef DEBUG_NAN
@@ -454,7 +455,7 @@ float4 main (PS_INPUT input) : SV_TARGET
                      saturation );
     }
   }
-    
+
   hdr_color.rgb *=
     input.color.xxx;
 
@@ -478,13 +479,12 @@ float4 main (PS_INPUT input) : SV_TARGET
   {
     int cs = visualFunc.x - VISUALIZE_REC709_GAMUT;
 
-    float3 r = SK_Color_xyY_from_RGB ( _ColorSpaces [cs], float3 (1.f, 0.f, 0.f) ),
-           g = SK_Color_xyY_from_RGB ( _ColorSpaces [cs], float3 (0.f, 1.f, 0.f) ),
-           b = SK_Color_xyY_from_RGB ( _ColorSpaces [cs], float3 (0.f, 0.f, 1.f) ),
-           w = SK_Color_xyY_from_RGB ( _ColorSpaces [cs], float3 (D65,             hdrLuminance_MaxLocal / 80.0) );
+    float3 r = float3(_ColorSpaces[cs].xr, _ColorSpaces[cs].yr, 0),
+           g = float3(_ColorSpaces[cs].xg, _ColorSpaces[cs].yg, 0),
+           b = float3(_ColorSpaces[cs].xb, _ColorSpaces[cs].yb, 0);
 
-    float3 vColor_xyY =
-         SK_Color_xyY_from_RGB ( _ColorSpaces [cs], normalize (hdr_color.rgb) );
+    float3 hdr_XYZ = sRGBtoXYZ(hdr_color.rgb);
+    float3 vColor_xyY = float3(hdr_XYZ.x / (hdr_XYZ.x + hdr_XYZ.y + hdr_XYZ.z), hdr_XYZ.y / (hdr_XYZ.x + hdr_XYZ.y + hdr_XYZ.z), 0);
 
     float3 vTriangle [] = {
       r, g, b
@@ -838,7 +838,7 @@ float4 main (PS_INPUT input) : SV_TARGET
       FinalOutput (float4 (hdr_color.rgb, 1.0f));
   }
 #endif
-    
+
   float4 color_out;
 
   // Extra clipping and gamut expansion logic for regular display output
@@ -852,16 +852,18 @@ float4 main (PS_INPUT input) : SV_TARGET
         expandGamut (hdr_color.rgb, hdrGamutExpansion);
     }
 
-    
     color_out =
       float4 (
         Clamp_scRGB_StripNaN (color_out.rgb),
                     saturate (hdr_color.a)
              );
 
-    color_out.r *= (orig_color.r >= FLT_EPSILON);
-    color_out.g *= (orig_color.g >= FLT_EPSILON);
-    color_out.b *= (orig_color.b >= FLT_EPSILON);
+    // Keep pure black pixels as-per scRGB's limited ability to
+    //   represent a black pixel w/ FP16 precision
+    color_out.rgb *=
+      ( (orig_color.r > FP16_MIN) +
+        (orig_color.g > FP16_MIN) +
+        (orig_color.b > FP16_MIN) > 0.0f );
   }
 #ifdef INCLUDE_TEST_PATTERNS
   else

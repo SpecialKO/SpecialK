@@ -570,33 +570,64 @@ SK_D3D11_SetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx,
   return TRUE;
 }
 
+static constexpr LONG RESOLVE_MAX = 16;
+
+std::pair <ID3D11DeviceContext*, LONG> last_resolve;
+std::pair <ID3D11DeviceContext*, LONG> prev_resolves [RESOLVE_MAX];
+volatile LONG                               resolve_idx   = 0;
+volatile LONG                               resolve_mutex = 0;
+
 LONG
 SK_D3D11_GetDeviceContextHandle ( ID3D11DeviceContext *pDevCtx )
 {
   if (pDevCtx == nullptr) return SK_D3D11_MAX_DEV_CONTEXTS;
 
-  static constexpr LONG RESOLVE_MAX = 16;
+  while (InterlockedCompareExchange (&resolve_mutex, 1, 0) != 0)
+    YieldProcessor ();
 
-  static std::pair <ID3D11DeviceContext*, LONG>
-    last_resolve [RESOLVE_MAX];
-  static volatile LONG
-         resolve_idx = 0;
-
-  const auto early_out =
-    &last_resolve [std::min (RESOLVE_MAX, ReadAcquire (&resolve_idx))];
+  auto early_out =
+    &last_resolve;
 
   if (early_out->first == pDevCtx)
-    return early_out->second;
+  {
+    LONG ret =
+      early_out->second;
+
+    WriteRelease (&resolve_mutex, 0);
+
+    return ret;
+  }
+
+  early_out =
+    &prev_resolves [std::min (RESOLVE_MAX, ReadAcquire (&resolve_idx) - 1)];
+
+  if (early_out->first == pDevCtx)
+  {
+    LONG ret =
+      early_out->second;
+
+    WriteRelease (&resolve_mutex, 0);
+
+    return ret;
+  }
+
+  WriteRelease (&resolve_mutex, 0);
 
   auto _CacheResolution =
     [&](LONG idx, ID3D11DeviceContext* pCtx, LONG handle) ->
     void
     {
-      auto new_pair ( std::make_pair (pCtx, handle) );
-          std::swap ( last_resolve   [idx],
-                      new_pair );
+      while (InterlockedCompareExchange (&resolve_mutex, 1, 0) != 0) YieldProcessor ();
+      {
+        auto new_pair ( std::make_pair (pCtx, handle) );
+            std::swap ( prev_resolves  [idx],
+                        new_pair );
 
-      InterlockedExchange (&resolve_idx, std::min (RESOLVE_MAX, idx));
+        InterlockedExchange (&resolve_idx, std::min (RESOLVE_MAX, idx));
+
+        last_resolve = std::make_pair (pCtx, handle);
+      }
+      WriteRelease (&resolve_mutex, 0);
     };
 
 
@@ -782,8 +813,8 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
                                                    ).c_str ()
                   ), __SK_SUBSYSTEM__ );
 
-      // We ARE technically holding a reference, but we never make calls to this
-      //   interface - it's just for tracking purposes.
+      // No references are held to this object, we just want to track the pointer
+      //   as a means of identifying additional devices the game/overlays may create
       g_pD3D11Dev = *ppDevice;
     }
 
@@ -5585,9 +5616,7 @@ D3D11Dev_CreateTexture2D1_Impl (
 #ifdef _REMOVE_MSAA
   // Handle stuff like DSV textures created for SwapChains that had their
   //   MSAA status removed to be compatible with Flip
-  extern bool
-        bOriginallyFlip;
-  if (! bOriginallyFlip)
+  if (! rb.active_traits.bOriginallyFlip)
   {
     extern UINT
         uiOriginalBltSampleCount;
@@ -5677,25 +5706,35 @@ D3D11Dev_CreateTexture2D1_Impl (
   {
     extern bool SK_HDR_PromoteUAVsTo16Bit;
 
-    static constexpr UINT _UnwantedFlags =
+    static constexpr UINT _UnwantedBindFlags =
         ( D3D11_BIND_VERTEX_BUFFER   | D3D11_BIND_INDEX_BUFFER     |
           D3D11_BIND_CONSTANT_BUFFER | D3D11_BIND_STREAM_OUTPUT    |
           D3D11_BIND_DEPTH_STENCIL   |/*D3D11_BIND_UNORDERED_ACCESS|*/
           D3D11_BIND_DECODER         | D3D11_BIND_VIDEO_ENCODER );
 
-    if ( (((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)     ==
-                               D3D11_BIND_RENDER_TARGET)     ||
-          //// UAVs also need special treatment for Compute Shader work
-           (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)  ==
-                               D3D11_BIND_UNORDERED_ACCESS   ||
+    static constexpr UINT _UnwantedMiscFlags =         
+      (/*D3D11_RESOURCE_MISC_GENERATE_MIPS                |*/ D3D11_RESOURCE_MISC_GDI_COMPATIBLE     |
+        D3D11_RESOURCE_MISC_TEXTURECUBE                     | D3D11_RESOURCE_MISC_TILED              |
+        D3D11_RESOURCE_MISC_TILE_POOL                       | D3D11_RESOURCE_MISC_SHARED_NTHANDLE    |
+        D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX               | D3D11_RESOURCE_MISC_SHARED             |
+        D3D11_RESOURCE_MISC_SHARED                          | D3D11_RESOURCE_MISC_SHARED_DISPLAYABLE |
+        D3D11_RESOURCE_MISC_SHARED_EXCLUSIVE_WRITER         | D3D11_RESOURCE_MISC_RESTRICTED_CONTENT |
+        D3D11_RESOURCE_MISC_RESTRICT_SHARED_RESOURCE        | D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS  |
+        D3D11_RESOURCE_MISC_RESTRICT_SHARED_RESOURCE_DRIVER | D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS );
+
+    if ( ((((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)     ==
+                                D3D11_BIND_RENDER_TARGET)     ||
+           //// UAVs also need special treatment for Compute Shader work
+            (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)  ==
+                                D3D11_BIND_UNORDERED_ACCESS   ||
 #if 1
-          ((pDesc->BindFlags & D3D11_BIND_SHADER_RESOURCE)   ==
-                               D3D11_BIND_SHADER_RESOURCE &&
-                pDesc->Width == swapDesc.BufferDesc.Width &&
-               pDesc->Height == swapDesc.BufferDesc.Height//&&
-             /*pDesc->Format == swapDesc.BufferDesc.Format*/)         &&
+           ((pDesc->BindFlags & D3D11_BIND_SHADER_RESOURCE)   ==
+                                D3D11_BIND_SHADER_RESOURCE &&
+                 pDesc->Width == swapDesc.BufferDesc.Width &&
+                pDesc->Height == swapDesc.BufferDesc.Height//&&
+              /*pDesc->Format == swapDesc.BufferDesc.Format*/))         &&
 #endif
-           (pDesc->BindFlags & _UnwantedFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) )
+           (pDesc->BindFlags & _UnwantedBindFlags) == 0 && (pDesc->MiscFlags & _UnwantedMiscFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) )
        )
     {
       if ( (! ( DirectX::IsVideo        (pDesc->Format) ||
@@ -6769,9 +6808,7 @@ D3D11Dev_CreateTexture2D_Impl (
 #ifdef _REMOVE_MSAA
   // Handle stuff like DSV textures created for SwapChains that had their
   //   MSAA status removed to be compatible with Flip
-  extern bool
-        bOriginallyFlip;
-  if (! bOriginallyFlip)
+  if (! rb.active_traits.bOriginallyFlip)
   {
     extern UINT
         uiOriginalBltSampleCount;
@@ -6861,27 +6898,37 @@ D3D11Dev_CreateTexture2D_Impl (
   {
     extern bool SK_HDR_PromoteUAVsTo16Bit;
 
-    static constexpr UINT _UnwantedFlags =
+    static constexpr UINT _UnwantedBindFlags =
         ( D3D11_BIND_VERTEX_BUFFER   | D3D11_BIND_INDEX_BUFFER     |
           D3D11_BIND_CONSTANT_BUFFER | D3D11_BIND_STREAM_OUTPUT    |
           D3D11_BIND_DEPTH_STENCIL   |/*D3D11_BIND_UNORDERED_ACCESS|*/
           D3D11_BIND_DECODER         | D3D11_BIND_VIDEO_ENCODER );
 
-    if ( (((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)     ==
-                               D3D11_BIND_RENDER_TARGET)     ||
+    static constexpr UINT _UnwantedMiscFlags =         
+      (/*D3D11_RESOURCE_MISC_GENERATE_MIPS                |*/ D3D11_RESOURCE_MISC_GDI_COMPATIBLE     |
+        D3D11_RESOURCE_MISC_TEXTURECUBE                     | D3D11_RESOURCE_MISC_TILED              |
+        D3D11_RESOURCE_MISC_TILE_POOL                       | D3D11_RESOURCE_MISC_SHARED_NTHANDLE    |
+        D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX               | D3D11_RESOURCE_MISC_SHARED             |
+        D3D11_RESOURCE_MISC_SHARED                          | D3D11_RESOURCE_MISC_SHARED_DISPLAYABLE |
+        D3D11_RESOURCE_MISC_SHARED_EXCLUSIVE_WRITER         | D3D11_RESOURCE_MISC_RESTRICTED_CONTENT |
+        D3D11_RESOURCE_MISC_RESTRICT_SHARED_RESOURCE        | D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS  |
+        D3D11_RESOURCE_MISC_RESTRICT_SHARED_RESOURCE_DRIVER | D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS );
+
+    if ( ((((pDesc->BindFlags & D3D11_BIND_RENDER_TARGET)     ==
+                                D3D11_BIND_RENDER_TARGET)     ||
           //// UAVs also need special treatment for Compute Shader work
-           (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)  ==
-                               D3D11_BIND_UNORDERED_ACCESS   ||
+            (pDesc->BindFlags & D3D11_BIND_UNORDERED_ACCESS)  ==
+                                D3D11_BIND_UNORDERED_ACCESS   ||
 #if 1
-          ((pDesc->BindFlags & D3D11_BIND_SHADER_RESOURCE)   ==
-                               D3D11_BIND_SHADER_RESOURCE &&
-                pDesc->Width == swapDesc.BufferDesc.Width &&
-               pDesc->Height == swapDesc.BufferDesc.Height//&&
-             /*pDesc->Format == swapDesc.BufferDesc.Format*/ &&
+           ((pDesc->BindFlags & D3D11_BIND_SHADER_RESOURCE)   ==
+                                D3D11_BIND_SHADER_RESOURCE &&
+                 pDesc->Width == swapDesc.BufferDesc.Width &&
+                pDesc->Height == swapDesc.BufferDesc.Height//&&
+              /*pDesc->Format == swapDesc.BufferDesc.Format*/ &&
                ( pInitialData          == nullptr ||
-                 pInitialData->pSysMem == nullptr ))         &&
+                 pInitialData->pSysMem == nullptr )))         &&
 #endif
-           (pDesc->BindFlags & _UnwantedFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) )
+           (pDesc->BindFlags & _UnwantedBindFlags) == 0 && (pDesc->MiscFlags & _UnwantedMiscFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) )
        )
     {
       if ( (! ( DirectX::IsVideo        (pDesc->Format) ||
@@ -9762,6 +9809,19 @@ D3D11CreateDevice_Detour (
 
     if (SK_COMPAT_IgnoreNvCameraCall ())
       return E_NOTIMPL;
+
+    if (StrStrIW (SK_GetCallerName ().c_str (), L"msvproc.dll"))
+    {
+      SK_LOGi0 (L" * Ignoring Media Foundation D3D11 Device.");
+
+      return
+        D3D11CreateDeviceAndSwapChain_Import (
+          pAdapter, DriverType, Software, Flags,
+            pFeatureLevels, FeatureLevels, SDKVersion,
+              nullptr, nullptr, ppDevice, pFeatureLevel,
+                ppImmediateContext
+        );
+    }
   }
 
   Flags =

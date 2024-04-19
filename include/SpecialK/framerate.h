@@ -765,6 +765,11 @@ NTSTATUS (NTAPI *NtWaitForMultipleObjects_pfn)(
   IN PLARGE_INTEGER       TimeOut OPTIONAL );
 
 
+
+extern void SK_LatentSync_BeginSwap (void) noexcept;
+extern void SK_LatentSync_EndSwap   (void) noexcept;
+
+
 extern void SK_Scheduler_Init     (void);
 extern void SK_Scheduler_Shutdown (void);
 
@@ -776,9 +781,16 @@ SK_DWM_GetCompositionTimingInfo (DWM_TIMING_INFO *pTimingInfo);
 
 extern volatile LONG64 lD3DKMTPresentCalls;
 
-  extern bool __SK_HasDLSSGStatusSupport;
-  extern bool __SK_IsDLSSGActive;
-  extern bool __SK_ForceDLSSGPacing;
+extern bool __SK_HasDLSSGStatusSupport;
+extern bool __SK_IsDLSSGActive;
+extern bool __SK_ForceDLSSGPacing;
+
+extern bool __SK_BFI;
+extern int  __SK_BFI_Interval;
+extern int  __SK_LatentSyncFrame;
+extern int  __SK_LatentSyncSkip;
+
+extern float __target_fps;
 
 
 #endif /* __SK__FRAMERATE_H__ */

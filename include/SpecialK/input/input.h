@@ -1229,6 +1229,8 @@ extern joyGetPosEx_pfn joyGetPosEx_Original;
 
 void SK_Win32_NotifyDeviceChange (bool add_xusb = true, bool add_hid = true);
 
+extern bool SK_WGI_EmulatedPlayStation;
+
 #define SK_HID_VID_8BITDO          0x2dc8
 #define SK_HID_VID_LOGITECH        0x046d
 #define SK_HID_VID_MICROSOFT       0x045e

@@ -940,26 +940,46 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
 
       wchar_t wszOutName [MAX_PATH + 2] = { };
 
-      // Use filename to denote compression (not needed if metadata is spitout)
-#if 1
-      if (compressed)
+      bool         bHasDebugName = false;
+      std::wstring wszSubDir     = L"";
+
+      if (SK_D3D11_HasDebugName (pTex))
       {
-        swprintf ( wszOutName, typeless ? LR"(%s\Compressed_%08X_TYPELESS.dds)"
-                                        : LR"(%s\Compressed_%08X.dds)",
-                     wszPath, crc32c );
+        wszSubDir =           SK_D3D11_GetDebugNameW (pTex) .empty () ?
+           SK_UTF8ToWideChar (SK_D3D11_GetDebugNameA (pTex)) :
+                              SK_D3D11_GetDebugNameW (pTex);
+
+        if (wcslen (wszSubDir.c_str ()))
+        {
+          PathAppendW (wszPath, wszSubDir.c_str ());
+          lstrcatW    (wszPath, L"/");
+          bHasDebugName = true;
+        }
       }
 
+      // Use filename to denote compression (not needed if metadata is spit-out)
+      if (! bHasDebugName)
+      {
+        if (compressed)
+        {
+          swprintf ( wszOutName, typeless ? LR"(%s\Compressed_%08X_TYPELESS.dds)"
+                                          : LR"(%s\Compressed_%08X.dds)",
+                       wszPath, crc32c );
+        }
+
+        else
+        {
+          swprintf ( wszOutName, typeless ? LR"(%s\Uncompressed_%08X_TYPELESS.dds)"
+                                          : LR"(%s\Uncompressed_%08X.dds)",
+                       wszPath, crc32c );
+        }
+      }
       else
       {
-        swprintf ( wszOutName, typeless ? LR"(%s\Uncompressed_%08X_TYPELESS.dds)"
-                                        : LR"(%s\Uncompressed_%08X.dds)",
+        swprintf ( wszOutName, typeless ? LR"(%s\%08X_TYPELESS.dds)"
+                                        : LR"(%s\%08X.dds)",
                      wszPath, crc32c );
       }
-#else
-      swprintf ( wszOutName, typeless ? LR"(%s\%08X_TYPELESS.dds)"
-                                      : LR"(%s\%08X.dds)",
-                   wszPath, crc32c );
-#endif
 
       SK_CreateDirectories (wszPath);
 
@@ -990,8 +1010,10 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
         SK_D3D11_AddDumped (crc32c, crc32c);
 
 
-        wchar_t   wszMetaFilename [ MAX_PATH + 2 ] = { };
-        swprintf (wszMetaFilename, L"%s.txt", wszOutName);
+        wchar_t               wszMetaFilename [ MAX_PATH + 2 ] = { };
+        swprintf (            wszMetaFilename, L"%s", wszOutName);
+        PathRemoveExtensionW (wszMetaFilename);
+        PathAddExtensionW    (wszMetaFilename, L".txt");
 
         FILE* fMetaData =
           _wfopen (wszMetaFilename, L"w+");

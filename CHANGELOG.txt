@@ -1,4 +1,50 @@
-﻿24.4.17.1
+﻿24.4.19
+=======
+ + Allow XInput emulation setting to apply even for real Xbox controllers
+     in games that use Windows.Gaming.Input. This allows background input,
+       which is impossible in the native UWP API.
+ + Reduced the strictness of Rec 2020 color clamp and limit FP16 black pixel
+     fix logic only to -pure- black pixels, not pixels that have one or two
+       ~0.0 color channels.
+    >> Should improve appearance and gradiation of highly saturated colors
+
+24.4.18
+=======
+ + Merge pull request #164 from audaki:main
+    * Fix gamut visualizers
+ + Dump textures with actual names to subdirectories honoring their name,
+     to make working with named textures simpler.
+ + Prevent selecting 11-bpc Render Pass Remastering in Tales of Arise
+ + Ignore Windows Media Foundation D3D11 devices for video playback in games.
+ + Improved support for Windows.Gaming.Input emulation, includes rumble
+     and secondary trigger rumble (impulse trigger) data is added as
+       additional mild rumble.
+       
+      >> Will attempt to simulate the secondary trigger rumble using haptics
+           waveform stuff in the future, current solution is adequate.
+
+24.4.17.3
+=========
+ + Added full support for HDR remastering in Harold Halibut, with
+     the exception of 8-bpc Compute Shader Passes.
+
+24.4.17.2
+=========
+ + Added OBS's hook caching executables (get-graphics-offsets{32|64}.exe)
+     to SK's internal injection blacklist.
+ + Added support for XInput Emulation for PlayStation controllers in games
+     that use Windows.Gaming.Input (mostly Microsoft Store games).
+
+    >> The Windows.Gaming.Input API is not currently emulated, instead this
+         causes games to resort to XInput fallback code...
+
+       This means a few Windows.Gaming.Input features (i.e. Impulse Triggers)
+         for real Xbox controllers will not work.
+
+    * The plan is to eventually emulate the Windows.Gaming.Input API proper,
+        and translate Impulse Triggers to DualSense Force Feedback Triggers.
+
+24.4.17.1
 =========
  + AutoVRR re-application no longer requires having the control panel open
 
