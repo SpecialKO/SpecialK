@@ -1945,6 +1945,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   ImGui::BeginGroup  ();
 
   static bool restart_required = false;
+         bool hovering_rebar   = false;
+         bool configure_rebar  = false;
 
   ImGui::Separator   ();
   ImGui::BeginGroup  ();
@@ -1954,6 +1956,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   if (sk::NVAPI::nv_hardware)
   {
     ImGui::Text      ("Resizable BAR: ");
+
+    configure_rebar = ImGui::IsItemClicked (ImGuiMouseButton_Right);
+    hovering_rebar  = ImGui::IsItemHovered ();
   }
   ImGui::EndGroup    ();
   ImGui::SameLine    ();
@@ -2007,7 +2012,10 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     else
       ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f), "Off " );
 
-    if (ImGui::IsItemHovered ())
+    configure_rebar |= ImGui::IsItemClicked (ImGuiMouseButton_Right);
+    hovering_rebar  |= ImGui::IsItemHovered ();
+
+    if (hovering_rebar)
     {
       ImGui::BeginTooltip    ( );
       ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
@@ -2019,7 +2027,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
       ImGui::EndTooltip      ( );
     }
 
-    if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
+    if (configure_rebar)
     {
       ImGui::OpenPopup         ("ReBarSubMenu");
       ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);

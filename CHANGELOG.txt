@@ -1,4 +1,13 @@
-﻿24.4.19.3
+﻿24.4.20
+=======
+ + Merge pull request #165 from audaki:fix-hdr10-gamut-visualizer
+    * Fix hdr10 gamut visualizer
+ + When enabling HDR image processing on native HDR games, processing
+     will now stay enabled on future launches. Making it easier to
+       do simple fixes like rescale maximum luminance without ReShade
+ + Made Resizable BAR easier to right-click in Display menu
+
+24.4.19.3
 =========
  + Add current game's relative executable path to DRS profile on NVIDIA
      GPUs if the fully-qualified path is not present when attempting to
