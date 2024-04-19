@@ -1,4 +1,10 @@
-﻿24.4.19.2
+﻿24.4.19.3
+=========
+ + Add current game's relative executable path to DRS profile on NVIDIA
+     GPUs if the fully-qualified path is not present when attempting to
+       read a driver setting DWORD.
+
+24.4.19.2
 =========
  + Added Resizable BAR status to Display menu on NVIDIA GPUs
      >> Setting can be changed (per-game) by right-clicking it
