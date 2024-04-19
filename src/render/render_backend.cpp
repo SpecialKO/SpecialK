@@ -3429,7 +3429,7 @@ void SK_Display_EnableHDR (SK_RenderBackend_V2::output_s *pOutput = nullptr)
 
         setHdrState.enableAdvancedColor = true;
 
-      if ( ERROR_SUCCESS == DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
+      if ( ERROR_SUCCESS == SK_DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
       {
         pOutput->hdr.enabled = setHdrState.enableAdvancedColor;
 
@@ -3462,7 +3462,7 @@ void SK_Display_DisableHDR (SK_RenderBackend_V2::output_s *pOutput = nullptr)
 
         setHdrState.enableAdvancedColor = false;
 
-      if ( ERROR_SUCCESS == DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
+      if ( ERROR_SUCCESS == SK_DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
       {
         pOutput->hdr.enabled = setHdrState.enableAdvancedColor;
 
@@ -3480,7 +3480,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 {
   // This needs to be limited to once per-frame
   //
-  static volatile   ULONG64 ulLastUpdate = 0LL;
+  static volatile   ULONG64 ulLastUpdate = ULONG64_MAX;
   if (InterlockedExchange (&ulLastUpdate, SK_GetFramesDrawn ())
                                        == SK_GetFramesDrawn ()) return;
 
@@ -3962,7 +3962,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         getHdrInfo.header.adapterId = display.vidpn.targetInfo.adapterId;
         getHdrInfo.header.id        = display.vidpn.targetInfo.id;
 
-      if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getHdrInfo ) )
+      if ( ERROR_SUCCESS == SK_DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getHdrInfo ) )
       {
         display.hdr.supported = getHdrInfo.advancedColorSupported;
         display.hdr.enabled   = getHdrInfo.advancedColorEnabled;
@@ -3986,7 +3986,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           getSdrWhiteLevel.header.adapterId = display.vidpn.targetInfo.adapterId;
           getSdrWhiteLevel.header.id        = display.vidpn.targetInfo.id;
 
-        if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getSdrWhiteLevel ) )
+        if ( ERROR_SUCCESS == SK_DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getSdrWhiteLevel ) )
         {
           display.hdr.white_level =
             (static_cast <float> (getSdrWhiteLevel.SDRWhiteLevel) / 1000.0f) * 80.0f;
@@ -4020,7 +4020,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           getPreferredMode.header.adapterId = display.vidpn.targetInfo.adapterId;
           getPreferredMode.header.id        = display.vidpn.targetInfo.id;
 
-        if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getPreferredMode ) )
+        if ( ERROR_SUCCESS == SK_DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getPreferredMode ) )
         {
           display.native.width   = getPreferredMode.width;
           display.native.height  = getPreferredMode.height;
@@ -4038,7 +4038,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
           getTargetName.header.adapterId    = display.vidpn.targetInfo.adapterId;
           getTargetName.header.id           = display.vidpn.targetInfo.id;
 
-        if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getTargetName ) )
+        if ( ERROR_SUCCESS == SK_DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getTargetName ) )
         {
           switch (getTargetName.outputTechnology)
           {
@@ -4349,6 +4349,7 @@ ChangeDisplaySettingsExA_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  LONG lRet = 0;
 
   if (config.display.force_windowed || config.render.dxgi.fake_fullscreen_mode)
   {
@@ -4412,15 +4413,21 @@ ChangeDisplaySettingsExA_Detour (
 
     called = true;
 
-    return
+    lRet =
       ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, CDS_FULLSCREEN, lParam);
   }
 
   else
   {
-    return
+    lRet =
       ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
   }
+
+  for ( auto& display : SK_GetCurrentRenderBackend ().displays )
+              display.setSDRWhiteLevel (0.0f);
+
+  return
+    lRet;
 }
 
 
@@ -4457,6 +4464,7 @@ ChangeDisplaySettingsExW_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  LONG lRet = 0;
 
   if (config.display.force_windowed || config.render.dxgi.fake_fullscreen_mode)
   {
@@ -4524,15 +4532,21 @@ ChangeDisplaySettingsExW_Detour (
 
     called = true;
 
-    return
+    lRet =
       ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, CDS_FULLSCREEN, lParam);
   }
 
   else
   {
-    return
+    lRet =
       ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
   }
+
+  for ( auto& display : SK_GetCurrentRenderBackend ().displays )
+              display.setSDRWhiteLevel (0.0f);
+
+  return
+    lRet;
 }
 
 LONG
@@ -4561,6 +4575,65 @@ ChangeDisplaySettingsW_Detour (
     ChangeDisplaySettingsExW_Detour (nullptr, lpDevMode, nullptr, dwFlags, nullptr);
 }
 
+using DisplayConfigSetDeviceInfo_pfn = LONG (WINAPI *)(
+  _In_ DISPLAYCONFIG_DEVICE_INFO_HEADER *setPacket
+);
+using DisplayConfigGetDeviceInfo_pfn = LONG (WINAPI *)(
+  _In_ DISPLAYCONFIG_DEVICE_INFO_HEADER *getPacket
+);
+
+DisplayConfigGetDeviceInfo_pfn DisplayConfigGetDeviceInfo_Original = nullptr;
+DisplayConfigSetDeviceInfo_pfn DisplayConfigSetDeviceInfo_Original = nullptr;
+
+LONG
+WINAPI
+DisplayConfigSetDeviceInfo_Detour (_In_ DISPLAYCONFIG_DEVICE_INFO_HEADER *setPacket)
+{
+  SK_LOG_FIRST_CALL
+
+  if (setPacket != nullptr)
+  {
+    // Nope, can't let OpenGL or Vulkan do this.
+    if (setPacket->type == DISPLAYCONFIG_DEVICE_INFO_SET_SDR_WHITE_LEVEL)
+    {
+      SK_LOGi0 (L"*** Blocked attempt by application to change SDR White Level!");
+
+      return ERROR_SUCCESS;
+    }
+  }
+  
+  return
+    DisplayConfigSetDeviceInfo_Original (setPacket);
+}
+
+LONG
+WINAPI
+DisplayConfigGetDeviceInfo_Detour (_In_ DISPLAYCONFIG_DEVICE_INFO_HEADER *getPacket)
+{
+  SK_LOG_FIRST_CALL
+  
+  return
+    DisplayConfigGetDeviceInfo_Original (getPacket);
+}
+
+LONG
+WINAPI
+SK_DisplayConfigSetDeviceInfo (_In_ DISPLAYCONFIG_DEVICE_INFO_HEADER *setPacket)
+{
+  return DisplayConfigSetDeviceInfo_Original != nullptr  ?
+         DisplayConfigSetDeviceInfo_Original (setPacket) :
+         DisplayConfigSetDeviceInfo          (setPacket);
+}
+
+LONG
+WINAPI
+SK_DisplayConfigGetDeviceInfo (_In_ DISPLAYCONFIG_DEVICE_INFO_HEADER *getPacket)
+{
+  return DisplayConfigGetDeviceInfo_Original != nullptr  ?
+         DisplayConfigGetDeviceInfo_Original (getPacket) :
+         DisplayConfigGetDeviceInfo          (getPacket);
+}
+
 void
 SK_Display_HookModeChangeAPIs (void)
 {
@@ -4586,6 +4659,14 @@ SK_Display_HookModeChangeAPIs (void)
                               "ChangeDisplaySettingsExW",
                                ChangeDisplaySettingsExW_Detour,
       static_cast_p2p <void> (&ChangeDisplaySettingsExW_Original) );
+    SK_CreateDLLHook2 (       L"user32",
+                              "DisplayConfigSetDeviceInfo",
+                               DisplayConfigSetDeviceInfo_Detour,
+      static_cast_p2p <void> (&DisplayConfigSetDeviceInfo_Original) );
+    SK_CreateDLLHook2 (       L"user32",
+                              "DisplayConfigGetDeviceInfo",
+                               DisplayConfigGetDeviceInfo_Detour,
+      static_cast_p2p <void> (&DisplayConfigGetDeviceInfo_Original) );
 
     EnumDisplaySettingsA_Original =
       (EnumDisplaySettingsA_pfn) SK_GetProcAddress
@@ -4691,39 +4772,49 @@ SK_Vulkan_DisableThirdPartyLayers (void)
 bool
 SK_RenderBackend_V2::resetTemporaryDisplayChanges (void)
 {
-  if (config.render.dxgi.temporary_dwm_hdr)
+  if (SK_GetFramesDrawn () > 0 || config.render.dxgi.temporary_dwm_hdr || config.display.resolution.applied || SK_IsModuleLoaded (L"vulkan-1.dll"))
   {
-    for ( auto pHDROutput : hdr_enabled_displays )
+    if (config.render.dxgi.temporary_dwm_hdr)
     {
-      SK_Display_DisableHDR (pHDROutput);
+      for ( auto pHDROutput : hdr_enabled_displays )
+      {
+        SK_Display_DisableHDR (pHDROutput);
+      }
     }
-  }
 
-  if (config.display.resolution.applied)
-  {
-    return 
-      SK_ChangeDisplaySettingsEx (
-        nullptr, nullptr,
-          0, CDS_RESET, nullptr  ) == DISP_CHANGE_SUCCESSFUL;
+    if (config.display.resolution.applied)
+    {
+      return 
+        SK_ChangeDisplaySettingsEx (
+          nullptr, nullptr,
+            0, CDS_RESET, nullptr  ) == DISP_CHANGE_SUCCESSFUL;
+    }
+
+    updateOutputTopology ();
+
+    for ( auto& display : displays )
+    {
+      display.setSDRWhiteLevel (0.0);
+    }
+
+    return true;
   }
 
   return false;
 }
-
-#define DISPLAYCONFIG_DEVICE_INFO_SET_SDR_WHITE_LEVEL (DISPLAYCONFIG_DEVICE_INFO_TYPE)0xFFFFFFEE
-
-typedef struct __declspec(align(4)) _DISPLAYCONFIG_SET_SDR_WHITE_LEVEL
-{
-  DISPLAYCONFIG_DEVICE_INFO_HEADER header;
-  ULONG                            SDRWhiteLevel;
-  BYTE                             finalValue;
-} DISPLAYCONFIG_SET_SDR_WHITE_LEVEL;
 
 bool
 SK_RenderBackend_V2::output_s::setSDRWhiteLevel (float fNits)
 {
   if (hdr.enabled)
   {
+    DISPLAYCONFIG_SDR_WHITE_LEVEL
+      getSdrWhiteLevel                  = { };
+      getSdrWhiteLevel.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_SDR_WHITE_LEVEL;
+      getSdrWhiteLevel.header.size      = sizeof         (DISPLAYCONFIG_SDR_WHITE_LEVEL);
+      getSdrWhiteLevel.header.adapterId = vidpn.targetInfo.adapterId;
+      getSdrWhiteLevel.header.id        = vidpn.targetInfo.id;
+
     DISPLAYCONFIG_SET_SDR_WHITE_LEVEL
       setSdrWhiteLevel                  = { };
       setSdrWhiteLevel.header.type      = DISPLAYCONFIG_DEVICE_INFO_SET_SDR_WHITE_LEVEL;
@@ -4731,30 +4822,35 @@ SK_RenderBackend_V2::output_s::setSDRWhiteLevel (float fNits)
       setSdrWhiteLevel.header.adapterId = vidpn.targetInfo.adapterId;
       setSdrWhiteLevel.header.id        = vidpn.targetInfo.id;
 
-      setSdrWhiteLevel.SDRWhiteLevel =
-        static_cast <ULONG> ((1000.0f * fNits) / 80.0f);
-      setSdrWhiteLevel.finalValue    = TRUE;
+    if (fNits == 0.0f)
+    {
+      if ( ERROR_SUCCESS == SK_DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getSdrWhiteLevel ) )
+      {
+        fNits =
+          (static_cast <float> (getSdrWhiteLevel.SDRWhiteLevel) / 1000.0f) * 80.0f;
+      }
 
-    if ( ERROR_SUCCESS == DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setSdrWhiteLevel ) )
+      else
+        return false;
+    }
+
+    setSdrWhiteLevel.SDRWhiteLevel =
+      static_cast <ULONG> ((1000.0f * fNits) / 80.0f);
+    setSdrWhiteLevel.finalValue    = TRUE;
+
+    if ( ERROR_SUCCESS == SK_DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setSdrWhiteLevel ) )
     {
       // Expected, but we will read the actual value back below.
       hdr.white_level = fNits;
 
-      DISPLAYCONFIG_SDR_WHITE_LEVEL
-        getSdrWhiteLevel                  = { };
-        getSdrWhiteLevel.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_SDR_WHITE_LEVEL;
-        getSdrWhiteLevel.header.size      = sizeof         (DISPLAYCONFIG_SDR_WHITE_LEVEL);
-        getSdrWhiteLevel.header.adapterId = vidpn.targetInfo.adapterId;
-        getSdrWhiteLevel.header.id        = vidpn.targetInfo.id;
-
-      if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getSdrWhiteLevel ) )
+      if ( ERROR_SUCCESS == SK_DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getSdrWhiteLevel ) )
       {
         hdr.white_level =
           (static_cast <float> (getSdrWhiteLevel.SDRWhiteLevel) / 1000.0f) * 80.0f;
       }
-
-      return true;
     }
+
+    return true;
   }
 
   return false;

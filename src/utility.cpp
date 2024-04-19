@@ -3966,7 +3966,7 @@ SK_WinRing0_Install (void)
 }
 
 void
-SK_ElevateToAdmin (const wchar_t *wszCommand)
+SK_ElevateToAdmin (const wchar_t *wszCommand, bool bRestart)
 {
   if (wszCommand == nullptr)
       wszCommand = SK_GetFullyQualifiedApp ();
@@ -4010,9 +4010,12 @@ SK_ElevateToAdmin (const wchar_t *wszCommand)
     }
   }
 
-  // Save config prior to committing suicide
-  SK_SelfDestruct     (    );
-  SK_TerminateProcess (0x00);
+  if (bRestart)
+  {
+    // Save config prior to committing suicide
+    SK_SelfDestruct     (    );
+    SK_TerminateProcess (0x00);
+  }
 }
 
 std::string

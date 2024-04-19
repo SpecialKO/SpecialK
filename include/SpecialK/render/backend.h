@@ -337,6 +337,7 @@ public:
       wchar_t             paired_device [128]  = L"{*}##No Preference";
     } audio;
 
+    // nits = 0.0 will read the OS preference and apply it
     bool setSDRWhiteLevel (float nits);
   } displays [_MAX_DISPLAYS];
 
@@ -454,6 +455,10 @@ public:
     SK_HDR_TRANSFER_FUNC
     getEOTF (void) const;
   } scanout;
+
+  struct nvapi_s {
+    bool rebar = false;
+  } nvapi;
 
   // Set of displays that SK has enabled HDR on, so we can turn it back
   //   off if user wants
@@ -837,6 +842,18 @@ SK_D3D_Compile (
   _In_                                    UINT              Flags2,
   _Out_                                   ID3DBlob**        ppCode,
   _Always_(_Outptr_opt_result_maybenull_) ID3DBlob**        ppErrorMsgs);
+
+#define DISPLAYCONFIG_DEVICE_INFO_SET_SDR_WHITE_LEVEL (DISPLAYCONFIG_DEVICE_INFO_TYPE)0xFFFFFFEE
+
+typedef struct __declspec(align(4)) _DISPLAYCONFIG_SET_SDR_WHITE_LEVEL
+{
+  DISPLAYCONFIG_DEVICE_INFO_HEADER header;
+  ULONG                            SDRWhiteLevel;
+  BYTE                             finalValue;
+} DISPLAYCONFIG_SET_SDR_WHITE_LEVEL;
+
+LONG WINAPI SK_DisplayConfigSetDeviceInfo (_In_ DISPLAYCONFIG_DEVICE_INFO_HEADER *setPacket);
+LONG WINAPI SK_DisplayConfigGetDeviceInfo (_In_ DISPLAYCONFIG_DEVICE_INFO_HEADER *getPacket) ;
 
 bool SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi);
 

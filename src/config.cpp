@@ -4607,7 +4607,7 @@ auto DeclKeybind =
             getTargetName.header.adapterId = pVidPn->targetInfo.adapterId;
             getTargetName.header.id        = pVidPn->targetInfo.id;
 
-          if ( ERROR_SUCCESS == DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getTargetName ) )
+          if ( ERROR_SUCCESS == SK_DisplayConfigGetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&getTargetName ) )
           {
             _PathDeviceToHMONITOR [getTargetName.monitorDevicePath] = hMonitor;
           }

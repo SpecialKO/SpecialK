@@ -1087,7 +1087,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
             setHdrState.enableAdvancedColor = hdr_enable;
 
-          if ( ERROR_SUCCESS == DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
+          if ( ERROR_SUCCESS == SK_DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
           {
             rb.displays [rb.active_display].hdr.enabled = hdr_enable;
           }

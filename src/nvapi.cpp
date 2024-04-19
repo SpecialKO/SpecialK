@@ -1780,6 +1780,12 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
 
       SK_ApplyQueuedHooks ();
 
+      if (! SK_IsRunDLLInvocation ())
+      {
+        SK_GetCurrentRenderBackend ().nvapi.rebar =
+          SK_NvAPI_DRS_GetDWORD (0x000F00BA) != 0x0;
+      }
+
 //#ifdef SK_AGGRESSIVE_HOOKS
 //      SK_ApplyQueuedHooks ();
 //#endif
@@ -3154,6 +3160,159 @@ RunDLL_RestartNVIDIADriver ( HWND   hwnd,        HINSTANCE hInst,
       );
     }
   }
+}
+
+DWORD
+SK_NvAPI_DRS_GetDWORD (NvU32 setting_id)
+{
+  if (! nv_hardware)
+    return (DWORD)-1;
+
+  NvAPI_Status       ret       = NVAPI_ERROR;
+  NvDRSSessionHandle hSession  = { };
+
+  NVAPI_CALL (DRS_CreateSession (&hSession));
+  NVAPI_CALL (DRS_LoadSettings  ( hSession));
+
+               NvDRSProfileHandle hProfile       = { };
+  std::unique_ptr    <NVDRS_APPLICATION> app_ptr =
+    std::make_unique <NVDRS_APPLICATION> ();
+  NVDRS_APPLICATION&                     app     =
+                                        *app_ptr;
+
+  NVAPI_SILENT ();
+
+  app.version = NVDRS_APPLICATION_VER;
+  ret         = NVAPI_ERROR;
+
+  NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
+                                              (NvU16 *)app_name.c_str (),
+                                                &hProfile,
+                                                  &app ),
+                ret );
+
+  if (ret != NVAPI_OK)
+  {
+    NVAPI_CALL (DRS_DestroySession (hSession));
+    return 0;
+  }
+
+  NVDRS_SETTING get_val               = {               };
+                get_val.version       = NVDRS_SETTING_VER;
+
+  // These settings may not exist, and getting back a value of 0 is okay...
+  NVAPI_SILENT  ();
+  NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, setting_id, &get_val));
+  NVAPI_VERBOSE ();
+
+  NVAPI_CALL (DRS_DestroySession (hSession));
+
+  return get_val.u32CurrentValue;
+}
+
+bool
+SK_NvAPI_DRS_SetDWORD (NvU32 setting_id, DWORD dwValue)
+{
+  if (! nv_hardware)
+    return FALSE;
+
+
+  NvAPI_Status       ret       = NVAPI_ERROR;
+  NvDRSSessionHandle hSession  = { };
+
+  NVAPI_CALL (DRS_CreateSession (&hSession));
+  NVAPI_CALL (DRS_LoadSettings  ( hSession));
+
+               NvDRSProfileHandle hProfile       = { };
+  std::unique_ptr    <NVDRS_APPLICATION> app_ptr =
+    std::make_unique <NVDRS_APPLICATION> ();
+  NVDRS_APPLICATION&                     app     =
+                                        *app_ptr;
+
+  NVAPI_SILENT ();
+
+  app.version = NVDRS_APPLICATION_VER;
+  ret         = NVAPI_ERROR;
+
+  NVAPI_CALL2 ( DRS_FindApplicationByName ( hSession,
+                                              (NvU16 *)app_name.c_str (),
+                                                &hProfile,
+                                                  &app ),
+                ret );
+
+  // If no executable exists anywhere by this name, create a profile for it
+  //   and then add the executable to it.
+  if (ret == NVAPI_EXECUTABLE_NOT_FOUND)
+  {
+    NVDRS_PROFILE custom_profile = {   };
+
+    if (friendly_name.empty ()) // Avoid NVAPI failure: NVAPI_PROFILE_NAME_EMPTY
+        friendly_name = app_name;
+
+    custom_profile.isPredefined  = FALSE;
+    lstrcpyW ((wchar_t *)custom_profile.profileName, friendly_name.c_str ());
+    custom_profile.version = NVDRS_PROFILE_VER;
+
+    // It's not necessarily wrong if this does not return NVAPI_OK, so don't
+    //   raise a fuss if it happens.
+    NVAPI_SILENT ()
+    {
+      NVAPI_CALL2 (DRS_CreateProfile (hSession, &custom_profile, &hProfile), ret);
+    }
+    NVAPI_VERBOSE ()
+
+    // Add the application name to the profile, if a profile already exists
+    if (ret == NVAPI_PROFILE_NAME_IN_USE)
+    {
+      NVAPI_CALL2 ( DRS_FindProfileByName ( hSession,
+                                              (NvU16 *)friendly_name.c_str (),
+                                                &hProfile),
+                      ret );
+    }
+
+    if (ret == NVAPI_OK)
+    {
+      RtlZeroMemory (app_ptr.get (), sizeof NVDRS_APPLICATION);
+
+      lstrcpyW ((wchar_t *)app.appName,          app_name.c_str      ());
+      lstrcpyW ((wchar_t *)app.userFriendlyName, friendly_name.c_str ());
+
+      app.version      = NVDRS_APPLICATION_VER;
+      app.isPredefined = FALSE;
+      app.isMetro      = FALSE;
+
+      NVAPI_CALL2 (DRS_CreateApplication (hSession, hProfile, &app), ret);
+      NVAPI_CALL2 (DRS_SaveSettings      (hSession), ret);
+    }
+  }
+
+  NVDRS_SETTING set_val               = {               };
+                set_val.version       = NVDRS_SETTING_VER;
+
+  // These settings may not exist, and getting back a value of 0 is okay...
+  NVAPI_SILENT  ();
+  NVAPI_CALL    (DRS_GetSetting (hSession, hProfile, setting_id, &set_val));
+  NVAPI_VERBOSE ();
+
+
+  BOOL already_set = TRUE;
+
+  // Do this first so we don't touch other settings if this fails
+  if (set_val.u32CurrentValue != dwValue)
+  {
+    ret = NVAPI_ERROR;
+
+    // This requires admin privs, and we will handle that gracefully...
+    NVAPI_SILENT    ();
+    NVAPI_SET_DWORD (set_val, setting_id, dwValue);
+    NVAPI_CALL2     (DRS_SetSetting (hSession, hProfile, &set_val), ret);
+    NVAPI_VERBOSE   ();
+
+    already_set = FALSE;
+  }
+
+  return
+    (! already_set);
 }
 
 void

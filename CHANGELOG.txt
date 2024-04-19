@@ -1,4 +1,9 @@
-﻿24.4.19.1
+﻿24.4.19.2
+=========
+ + Added Resizable BAR status to Display menu on NVIDIA GPUs
+     >> Setting can be changed (per-game) by right-clicking it
+
+24.4.19.1
 =========
  + Added SDR White Level slider to the control panel's Display menu
      >> This sets the OS SDR white level for the current display

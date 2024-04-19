@@ -1750,6 +1750,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   auto& display =
     rb.displays [rb.active_display];
 
+  static float fWhitePointSliderWidth = 0.0f;
+
   if ( display.hdr.supported ||
           rb.isHDRCapable () )
   {
@@ -1767,18 +1769,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
         setHdrState.enableAdvancedColor = hdr_enable;
 
-      if ( ERROR_SUCCESS == DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
+      if ( ERROR_SUCCESS == SK_DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
       {
         display.hdr.enabled = hdr_enable;
-      }
-    }
-
-    if (ImGui::IsItemHovered ())
-    {
-      if (display.hdr.enabled)
-      {
-        ImGui::SetTooltip ( "SDR Whitepoint: %4.1f cd/m²",
-                              display.hdr.white_level );
       }
     }
 
@@ -1814,15 +1807,27 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     ImGui::Spacing         ();
   }
 
+  ImGui::BeginGroup ();
+
   if (display.hdr.enabled)
   {
-    float sdr_white=
+    float orig_lvl  = display.hdr.white_level;
+    float sdr_white =
       display.hdr.white_level;
 
-    if (ImGui::SliderFloat ("###SDR_WHITE_SLIDER", &sdr_white, 80.0f, 480.0f, "SDR Whitepoint: %4.1f cd/m²"))
+    ImGui::PushItemWidth (fWhitePointSliderWidth);
+
+    if (ImGui::SliderFloat ("###SDR_WHITE_SLIDER", &sdr_white, 80.0f, 480.0f, "SDR White: %4.1f cd/m²"))
     {
-      display.setSDRWhiteLevel (sdr_white);
+      // Sanity checks because this API is somewhat expensive and triggers
+      //   a WM_DISPLAYCHANGE even if nothing changes
+      if (sdr_white >= 80.0f && sdr_white <= 480.0f && sdr_white != orig_lvl)
+      {
+        display.setSDRWhiteLevel (sdr_white);
+      }
     }
+
+    ImGui::PopItemWidth ();
   }
 
   static bool bDPIAware  =
@@ -1931,16 +1936,25 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
                          " will apply to future launches of this game");
 
   ImGui::EndGroup    ();
+  fWhitePointSliderWidth =
+    ImGui::GetItemRectSize ().x;
+  ImGui::EndGroup    ();
   ImGui::SameLine    ();
   ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
   ImGui::SameLine    ();
   ImGui::BeginGroup  ();
+
+  static bool restart_required = false;
 
   ImGui::Separator   ();
   ImGui::BeginGroup  ();
   ImGui::Text        ("MPO Planes: ");
   ImGui::Text        ("HW Scheduling: ");
   ImGui::Text        ("HW Flip Queue: ");
+  if (sk::NVAPI::nv_hardware)
+  {
+    ImGui::Text      ("Resizable BAR: ");
+  }
   ImGui::EndGroup    ();
   ImGui::SameLine    ();
   ImGui::BeginGroup  ();
@@ -1986,7 +2000,66 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   _PrintWDDMCapability (display.wddm_caps._3_0.HwFlipQueueEnabled,
                         display.wddm_caps._3_0.HwFlipQueueSupportState);
 
+  if (sk::NVAPI::nv_hardware)
+  {
+    if (rb.nvapi.rebar)
+      ImGui::TextColored ( ImVec4 (0.f, 1.f, 0.f, 1.f), "On " );
+    else
+      ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f), "Off " );
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip    ( );
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
+
+      ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
+      ImGui::SameLine        ( );
+      ImGui::TextUnformatted ("Right-click to configure");
+      ImGui::PopStyleColor   ( );
+      ImGui::EndTooltip      ( );
+    }
+
+    if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
+    {
+      ImGui::OpenPopup         ("ReBarSubMenu");
+      ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
+    }
+
+    if (ImGui::BeginPopup      ("ReBarSubMenu"))
+    {
+      bool change_value =
+        ImGui::Checkbox ("Enable###EnableReBar", &rb.nvapi.rebar);
+
+      bool reset_value =
+        ImGui::Button ("Reset to Default");
+
+      if (change_value || reset_value)
+      {
+        std::wstring wszCommand =
+          SK_FormatStringW (
+            L"rundll32.exe \"%ws\", RunDLL_NvAPI_SetDWORD %x %ws %ws",
+              SK_GetModuleFullName (SK_GetDLL ()).c_str (),
+                0x000F00BA, reset_value ? L"~"   :
+                         rb.nvapi.rebar ? L"0x1" :
+                                          L"0x0",
+                  sk::NVAPI::app_name.c_str ()
+          );
+
+        SK_ElevateToAdmin (wszCommand.c_str (), false);
+        restart_required = true;
+
+        ImGui::CloseCurrentPopup ();
+      }
+
+      ImGui::EndPopup ();
+    }
+  }
+
   ImGui::EndGroup    ();
+
+  if (restart_required)
+      ImGui::BulletText ("Game Restart Required");
+
   ImGui::EndGroup    ();
 
   if (ImGui::Checkbox ("Aspect Ratio Stretch", &config.display.aspect_ratio_stretch))
