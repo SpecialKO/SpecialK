@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -111,10 +111,6 @@ struct SK_DI7_Mouse {
   DIMOUSESTATE2         state       = { };
   DWORD                 coop_level  =  0; // The level the game requested, not necessarily
                                           //   its current state (changes based on UI).
-
-  // Weird hack for some touchpads that don't send out mousewheel events in any API
-  //   other than Win32.
-  volatile LONG       delta_z = 0;
 };
 
 

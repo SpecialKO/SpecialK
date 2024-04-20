@@ -1260,11 +1260,6 @@ IDirectInputDevice8_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE8 This,
     {
       SK_DI8_READ (sk_input_dev_type::Mouse)
 
-      //dll_log.Log (L"Mouse");
-
-      //((DIMOUSESTATE *)lpvData)->lZ += InterlockedAdd      (&SK_Input_GetDI8Mouse ()->delta_z, 0);
-                                       //InterlockedExchange (&SK_Input_GetDI8Mouse ()->delta_z, 0);
-
       bool disabled_to_game =
         SK_ImGui_WantMouseCapture ();
 
