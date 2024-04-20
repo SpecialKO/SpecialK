@@ -160,9 +160,12 @@ SK_ImGui_WantKeyboardCapture (void)
   if (SK_ReShadeAddOn_IsOverlayActive ())
     return false;
 
-  // Allow keyboard input while Steam overlay is active
-  if (SK::SteamAPI::GetOverlayState (true))
+  // Allow keyboard input while Steam /EOS overlays are active
+  if (SK::SteamAPI::GetOverlayState (true) ||
+           SK::EOS::GetOverlayState (true))
+  {
     return false;
+  }
 
   bool imgui_capture =
     config.input.keyboard.disabled_to_game == SK_InputEnablement::Disabled;
@@ -208,9 +211,12 @@ SK_ImGui_WantTextCapture (void)
   if (SK_ReShadeAddOn_IsOverlayActive ())
     return false;
 
-  // Allow keyboard input while Steam overlay is active
-  if (SK::SteamAPI::GetOverlayState (true))
+  // Allow keyboard input while Steam /EOS overlays are active
+  if (SK::SteamAPI::GetOverlayState (true) ||
+           SK::EOS::GetOverlayState (true))
+  {
     return false;
+  }
 
   bool imgui_capture =
     config.input.keyboard.disabled_to_game == SK_InputEnablement::Disabled;

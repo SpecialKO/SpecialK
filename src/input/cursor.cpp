@@ -458,9 +458,12 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
   if (SK_ReShadeAddOn_IsOverlayActive ())
     return false;
 
-  // Allow mouse input while Steam overlay is active
-  if (SK::SteamAPI::GetOverlayState (true))
+  // Allow mouse input while Steam /EOS overlays are active
+  if (SK::SteamAPI::GetOverlayState (true) ||
+           SK::EOS::GetOverlayState (true))
+  {
     return false;
+  }
 
   bool imgui_capture = false;
 

@@ -3570,7 +3570,7 @@ SK_ImGui_ControlPanel (void)
           ImGui::Spacing         ( );
 
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
-          ImGui::TextUnformatted ("Special K can apply Color Correction for Third-party SDR Overlays");
+          ImGui::TextUnformatted ("Special K can apply Color Correction for third-party SDR overlays");
 
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.75f, .75f, .75f, 1.f));
 
@@ -3588,8 +3588,8 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.933f, .933f, .933f, 1.f));
 
-          ImGui::TextUnformatted ("For overlay Color Correction in native HDR games, use SK's HDR10 or scRGB Mode + "
-                                  "HDR10 Native or scRGB Native Preset");
+        //ImGui::TextUnformatted ("For overlay Color Correction in native HDR games, use SK's HDR10 or scRGB Mode + "
+        //                        "HDR10 Native or scRGB Native Preset");
           ImGui::TreePop         ( );
           ImGui::PopStyleColor   (4);
           ImGui::EndTooltip      ( );
