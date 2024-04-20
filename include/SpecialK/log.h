@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -68,6 +68,7 @@ interface iSK_Logger : public IUnknown
 
         // To satisfy the noexcept, swallow exceptions
         __except (EXCEPTION_EXECUTE_HANDLER) {
+          std::ignore = log_;
           // Can't exactly log this, so ignore it.
         };
 

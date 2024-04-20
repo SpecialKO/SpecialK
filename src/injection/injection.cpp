@@ -1167,11 +1167,11 @@ GetModuleLoadCount (HMODULE hDll)
       //
       //  http://www.geoffchappell.com/studies/windows/win32/ntdll/structs/ldr_data_table_entry.htm
       //
-      int offDdagNode =
-        (0x14 - BITNESS) * sizeof(void*);   // See offset on LDR_DDAG_NODE *DdagNode;
+      unsigned long long offDdagNode =
+        (0x14 - BITNESS) * sizeof (void *);   // See offset on LDR_DDAG_NODE *DdagNode;
 
       ULONG count        = 0;
-      char* addrDdagNode = ((char*)pLdrEntry) + offDdagNode;
+      char* addrDdagNode = ((char *)pLdrEntry) + offDdagNode;
 
       //
       //  http://www.geoffchappell.com/studies/windows/win32/ntdll/structs/ldr_ddag_node.htm
@@ -1183,7 +1183,7 @@ GetModuleLoadCount (HMODULE hDll)
           return 0;
 
       return
-        (int)count;
+        static_cast <int> (count);
     } //if
 
     head = LdrEntry.InMemoryOrderLinks.Flink;
@@ -1231,9 +1231,6 @@ SK_IsImmersiveProcess (HANDLE hProcess = SK_GetCurrentProcess ())
 void
 SK_Inject_SpawnUnloadListener (void)
 {
-  if (StrStrIW (SK_GetHostApp (), L"Steam"))
-    LoadLibraryW (L"ValvePlug.dll");
-
   if (! InterlockedCompareExchangePointer ((void **)&g_hModule_CBT, (void *)1, nullptr))
   {
     static SK_AutoHandle hHookTeardown (
@@ -1260,7 +1257,6 @@ SK_Inject_SpawnUnloadListener (void)
       });
     }
 
-#if 1
     g_hPacifierThread = (HANDLE)
       CreateThread (nullptr, 0, [](LPVOID) ->
       DWORD
@@ -1348,11 +1344,10 @@ SK_Inject_SpawnUnloadListener (void)
 
       else
       {
-        TerminateThread            (g_hPacifierThread, 0x0);
+        SetEvent                   (hHookTeardown);
         SK_CloseHandle             (g_hPacifierThread);
       }
     }
-#endif
   }
 }
 
@@ -2315,7 +2310,7 @@ SKX_GetInjectedPIDs ( DWORD* pdwList,
 BOOL
 SK_IsWindowsVersionOrGreater (DWORD dwMajorVersion, DWORD dwMinorVersion, DWORD dwBuildNumber)
 {
-  NTSTATUS(WINAPI *RtlGetVersion)(LPOSVERSIONINFOEXW);
+  NTSTATUS(WINAPI *RtlGetVersion)(LPOSVERSIONINFOEXW) = nullptr;
 
   OSVERSIONINFOEXW
     osInfo                     = { };
