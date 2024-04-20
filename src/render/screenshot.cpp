@@ -743,7 +743,7 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
                                                XMVectorMin (value, PQ.MaxPQ)),
                                                                    PQ.MaxPQ);
 
-                      value = XMVectorClamp (LinearToPQ (nvalue), g_XMZero, g_XMOne));
+                      value = XMVectorClamp (LinearToPQ (nvalue), g_XMZero, g_XMOne);
 
             *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [0] * 65535.0f);
             *(rgb_pixels++) = static_cast <uint16_t> (value.m128_f32 [1] * 65535.0f);
