@@ -6250,13 +6250,10 @@ void ImGui::UpdateWindowParentAndRootLinks(ImGuiWindow* window, ImGuiWindowFlags
     if (parent_window && !(flags & ImGuiWindowFlags_Modal) && (flags & (ImGuiWindowFlags_ChildWindow | ImGuiWindowFlags_Popup)))
         window->RootWindowForTitleBarHighlight = parent_window->RootWindowForTitleBarHighlight;
 
-    if (window->RootWindowForNav != nullptr)
+    while (window->RootWindowForNav != nullptr && window->RootWindowForNav->Flags & ImGuiWindowFlags_NavFlattened)
     {
-        while (window->RootWindowForNav->Flags & ImGuiWindowFlags_NavFlattened)
-        {
-            IM_ASSERT(window->RootWindowForNav->ParentWindow != NULL);
-            window->RootWindowForNav = window->RootWindowForNav->ParentWindow;
-        }
+        IM_ASSERT(window->RootWindowForNav->ParentWindow != NULL);
+        window->RootWindowForNav = window->RootWindowForNav->ParentWindow;
     }
 }
 

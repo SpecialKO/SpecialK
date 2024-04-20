@@ -1416,8 +1416,8 @@ SK_NGX_DLSS_ControlPanel (void)
                              &cfg_var : &fDefaultScale;
 
               char      fmt [128] = { };
-              sprintf ( fmt, "%%6.4f\t(%ux%u)", static_cast <UINT> (swapDesc.BufferDesc.Width  * *scale),
-                                                static_cast <UINT> (swapDesc.BufferDesc.Height * *scale) );
+              sprintf ( fmt, "%%6.4f\t(%ix%i)", static_cast <INT> (swapDesc.BufferDesc.Width  * *scale),
+                                                static_cast <INT> (swapDesc.BufferDesc.Height * *scale) );
 
               if (ImGui::SliderFloat (szName, scale, 0.01f, 0.999f, fmt))
               {

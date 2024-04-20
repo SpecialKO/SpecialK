@@ -446,9 +446,10 @@ public:
     HRESULT        hr =
       WindowsCreateStringReference (name, len, &header, &hClassName);
 
-    if (FAILED (hr))
+    if (FAILED (hr) || hClassName == nullptr)
     {
-      WindowsDeleteString (hClassName);
+      if (        nullptr != hClassName)
+        WindowsDeleteString (hClassName);
 
       return false;
     }

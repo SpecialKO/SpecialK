@@ -257,30 +257,41 @@ SK_ScreenshotManager::copyToClipboard (const DirectX::Image& image) const
         static_cast <size_t> (_height )
            );
 
-    HDC  hdcSrc  = CreateCompatibleDC (GetDC (nullptr));
-    HDC  hdcDst  = CreateCompatibleDC (GetDC (nullptr));
+    HDC hdcSrc = CreateCompatibleDC (GetDC (nullptr));
+    HDC hdcDst = CreateCompatibleDC (GetDC (nullptr));
 
-    auto hbmpSrc = (HBITMAP)SelectObject (hdcSrc, hBitmap);
-    auto hbmpDst = (HBITMAP)SelectObject (hdcDst, hBitmapCopy);
+    if ( hBitmap    != nullptr &&
+        hBitmapCopy != nullptr )
+    {
+      auto hbmpSrc = (HBITMAP)SelectObject (hdcSrc, hBitmap);
+      auto hbmpDst = (HBITMAP)SelectObject (hdcDst, hBitmapCopy);
 
-    BitBlt (hdcDst, 0, 0, _width,
-                          _height, hdcSrc, 0, 0, SRCCOPY);
+      BitBlt (hdcDst, 0, 0, _width,
+                            _height, hdcSrc, 0, 0, SRCCOPY);
 
-    SelectObject     (hdcSrc, hbmpSrc);
-    SelectObject     (hdcDst, hbmpDst);
+      SelectObject     (hdcSrc, hbmpSrc);
+      SelectObject     (hdcDst, hbmpDst);
 
-    EmptyClipboard   ();
-    SetClipboardData (CF_BITMAP, hBitmapCopy);
+      EmptyClipboard   ();
+      SetClipboardData (CF_BITMAP, hBitmapCopy);
+    }
+
     CloseClipboard   ();
 
     DeleteDC         (hdcSrc);
     DeleteDC         (hdcDst);
     DeleteDC         (hdcDIB);
 
-    DeleteBitmap     (hBitmap);
-    DeleteBitmap     (hBitmapCopy);
+    if ( hBitmap     != nullptr &&
+         hBitmapCopy != nullptr )
+    {
+      DeleteBitmap   (hBitmap);
+      DeleteBitmap   (hBitmapCopy);
 
-    return true;
+      return true;
+    }
+
+    return false;
   }
 
   return false;
@@ -672,7 +683,8 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
 
           for (size_t j = 0; j < width; ++j)
           {
-            DirectX::XMVECTOR v = *pixels++;
+            DirectX::XMVECTOR v =
+              XMVectorClamp (*pixels++, g_XMZero, g_XMOne);
 
             *(rgb_pixels++) = static_cast <uint16_t> (v.m128_f32 [0] * 1023.0f);
             *(rgb_pixels++) = static_cast <uint16_t> (v.m128_f32 [1] * 1023.0f);

@@ -2546,7 +2546,7 @@ extern float SK_ImGui_PulseNav_Strength;
 bool
 SK_ImGui_KeybindSelect (SK_Keybind* keybind, const char* szLabel)
 {
-  (void)keybind;
+  std::ignore = keybind;
 
   bool ret = false;
 
