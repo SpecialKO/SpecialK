@@ -260,10 +260,10 @@ SK::ControlPanel::Input::Draw (void)
     if ( last_steam > current_time - 500UL ||
          hide_steam > current_time - 500UL )
     {
-      SETUP_LABEL_COLOR (steam, 500.0f);
-
       if (SK::SteamAPI::AppID () > 0)
       {
+        SETUP_LABEL_COLOR (steam, 500.0f);
+
         ImGui::SameLine ( );
         ImGui::Text ("       Steam");
         ImGui::PopStyleColor ( );
@@ -1065,6 +1065,9 @@ SK::ControlPanel::Input::Draw (void)
             else if (placehold_slot) state = 1;
             else                     state = 0;
 
+            const bool want_capture =
+              SK_ImGui_WantGamepadCapture ();
+
             if (disable_slot)
             {
               ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 (1.0f, 0.1f, 0.1f, 1.0f));
@@ -1073,7 +1076,7 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::PushStyleColor (ImGuiCol_CheckMark,      ImVec4 (0.0f, 0.0f, 0.0f, 1.0f));
             }
 
-            else if (SK_ImGui_WantGamepadCapture ())
+            else if (want_capture)
             {
               ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 (1.0f, 1.0f, 0.1f, 1.0f));
               ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 (0.9f, 0.9f, 0.4f, 1.0f));
@@ -1107,7 +1110,7 @@ SK::ControlPanel::Input::Draw (void)
               }
             }
 
-            if (disable_slot || SK_ImGui_WantGamepadCapture ())
+            if (disable_slot || want_capture)
             {
               ImGui::PopStyleColor (4);
             }
