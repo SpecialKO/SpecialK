@@ -1,4 +1,18 @@
-﻿24.4.20
+﻿24.4.20.1
+=========
+ + Fixed rare ImGui color overflow if gamepad capture status changes
+     in the middle of drawing the control panel's input management tab.
+ + Give Windows Media Foundation (HW video acceleration) surfaces a
+     fast-path that avoids texture caching hooks in D3D11.
+ + Added DLSS config parameter to spoof HW feature support for some
+     broken DLSS implementations (i.e. Harold Halibut's Unity DLSS).
+
+       [NVIDIA.DLSS]
+       SpoofFeatureSupport={true|false}  Default: false
+
+    * Only works for D3D11/D3D12, SK ignores broken Vulkan stuff :)
+
+24.4.20
 =======
  + Merge pull request #165 from audaki:fix-hdr10-gamut-visualizer
     * Fix hdr10 gamut visualizer
