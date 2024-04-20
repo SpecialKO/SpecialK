@@ -153,11 +153,7 @@ FinalOutput (float4 vColor)
       clamp (
         LinearToPQ (REC709toREC2020 (vColor.rgb), 125.0f),
                                                0.0, 1.0 );
-
-    vColor.rgb *=
-      smoothstep ( 0.006978,
-                   0.016667, vColor.rgb );
-
+    
     vColor.a = 1.0;
   }
 
