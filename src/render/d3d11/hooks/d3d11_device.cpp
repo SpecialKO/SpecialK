@@ -1378,6 +1378,9 @@ D3D11Dev_CreateTexture2D1_Override (
   return hr;
 }
 
+HMODULE SK_KnownModule_MSMPEG2VDEC = 0;
+HMODULE SK_KnownModule_MFPLAT      = 0;
+
 __declspec (noinline)
 HRESULT
 STDMETHODCALLTYPE
@@ -1389,6 +1392,18 @@ D3D11Dev_CreateTexture2D_Override (
 {
   if (pDesc == nullptr)
     return E_INVALIDARG;
+
+  auto hCallingMod =
+    SK_GetCallingDLL ();
+
+  // Give Media Foundation video surfaces a fast-path to bypass our hooks
+  if ( hCallingMod == SK_KnownModule_MSMPEG2VDEC ||
+       hCallingMod == SK_KnownModule_MFPLAT      ||
+         (pDesc->BindFlags & (D3D11_BIND_DECODER | D3D11_BIND_VIDEO_ENCODER)) != 0x0 )
+  {
+    return
+      D3D11Dev_CreateTexture2D_Original (This, pDesc, pInitialData, ppTexture2D);
+  }
 
   const D3D11_TEXTURE2D_DESC* pDescOrig =  pDesc;
                          auto descCopy  = *pDescOrig;

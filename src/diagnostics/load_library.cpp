@@ -539,6 +539,18 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     {
       SK_COMPAT_CheckStreamlineSupport ();
     }
+    else if (   StrStrI ( lpFileName, SK_TEXT("msmpeg2vdec.dll")) ||
+                StrStrIW (wszModName,        L"msmpeg2vdec.dll"))
+    {
+      extern HMODULE SK_KnownModule_MSMPEG2VDEC;
+                     SK_KnownModule_MSMPEG2VDEC = SK_GetModuleHandle (L"msmpeg2vdec.dll");
+    }
+    else if (   StrStrI ( lpFileName, SK_TEXT("mfplat.dll")) ||
+                StrStrIW (wszModName,        L"mfplat.dll"))
+    {
+      extern HMODULE SK_KnownModule_MFPLAT;
+                     SK_KnownModule_MFPLAT = SK_GetModuleHandleW (L"mfplat.dll");
+    }
     else if (   StrStrI ( lpFileName, SK_TEXT("_nvngx.dll")) ||
                 StrStrIW (wszModName,        L"_nvngx.dll") )
     {
