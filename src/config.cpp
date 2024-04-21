@@ -3404,12 +3404,12 @@ auto DeclKeybind =
         config.render.framerate.sync_interval_clamp = 1;
 
         // Work around DRM / Anti-Debug Quirks
-        //config.compatibility.disable_debug_features = true;
-        //config.window.dont_hook_wndproc             = true;
+        config.compatibility.disable_debug_features = true;
+        config.window.dont_hook_wndproc             = true;
 
-        config.input.cursor.manage                  = true;  // Mouse cursor doesn't auto-hide
+        config.input.cursor.manage                  =  true; // Mouse cursor doesn't auto-hide
         config.input.gamepad.xinput.hook_setstate   = false; // Breaks haptic feedback
-        config.input.gamepad.xinput.placehold [0]   = false;
+        config.input.gamepad.xinput.placehold [0]   =  true;
         config.input.gamepad.xinput.placehold [1]   = false;
         config.input.gamepad.xinput.placehold [2]   = false;
         config.input.gamepad.xinput.placehold [3]   = false;
