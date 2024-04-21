@@ -585,6 +585,15 @@ IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
     SyncInterval = 0;
   }
 
+  // Route this through Present1 rather than Present so that
+  //   DXVK does not call Present twice per-frame.
+  if (ver_ >= 1)
+  {
+    return
+      SK_DXGI_DispatchPresent1 ( (IDXGISwapChain1 *)pReal, SyncInterval, Flags, nullptr,
+                                  nullptr, SK_DXGI_PresentSource::Wrapper );
+  }
+
   return
     SK_DXGI_DispatchPresent ( pReal, SyncInterval, Flags,
                                 nullptr, SK_DXGI_PresentSource::Wrapper );

@@ -1,4 +1,12 @@
-﻿24.4.20.2
+﻿24.4.21
+=======
+ + Apply analog input deadzone to idle controller determination, even if
+     deadzone is not being applied to input readings sent to games.
+ + Reverted default Forza Horizon 5 settings to workaround anti-debug.
+ + SK's DXGI SwapChain Present hooks / wrapped functions will now call
+     Present1 immediately in order to workaround problems in DXVK
+
+24.4.20.2
 =========
  + Fixed AVIF HDR screenshots with content that exceeds 10k nits or
      125.0 (scRGB) in a single color channel producing inverted color.
