@@ -963,12 +963,16 @@ struct SK_HID_PlayStationDevice
   UCHAR dpad_report_id;
 
   struct hid_to_xi {
-    XINPUT_STATE prev_report  = { };
-    XINPUT_STATE report       = { };
-    UINT64       last_active  =  0 ;
+    XINPUT_STATE   prev_report = { };
+    XINPUT_STATE   report      = { };
     struct {
-      WORD       wLastLeft    =  0 ;
-      WORD       wLastRight   =  0 ;
+      XINPUT_STATE prev_report = { };
+      XINPUT_STATE report      = { };
+    } deadzoned;
+    UINT64         last_active =  0 ;
+    struct {
+      WORD         wLastLeft   =  0 ;
+      WORD         wLastRight  =  0 ;
     } vibration;
   } xinput;
 

@@ -3629,7 +3629,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                    dwLastErr != ERROR_NO_SUCH_DEVICE )
                 SK_CancelIoEx (pDevice->hDeviceFile, &async_input_request);
 
-              SK_SleepEx (100UL, TRUE); // Prevent runaway CPU usage on failure
+              SK_SleepEx (333UL, TRUE); // Prevent runaway CPU usage on failure
 
               continue;
             }
@@ -4497,98 +4497,102 @@ SK_HID_PlayStationDevice::request_input_report (void)
             if (pDevice->buttons.size () >= 13 &&
                 pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
 
+            //
+            // Apply an aggressive deadzone, moreso than necessary for gameplay, to
+            //   filter out stick drift and accidentally bumping controllers when
+            //     determining which gamepad was most recently interacted with...
+            //
 #pragma region (deadzone)
-            if (config.input.gamepad.xinput.standard_deadzone)
+            pDevice->xinput.deadzoned.report = pDevice->xinput.report;
+
+            float LX   = pDevice->xinput.deadzoned.report.Gamepad.sThumbLX;
+            float LY   = pDevice->xinput.deadzoned.report.Gamepad.sThumbLY;
+            float norm = sqrt ( LX*LX + LY*LY );
+//#if 0
+            float unit = 1.0f;
+
+            if (norm > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
             {
-              float LX   = pDevice->xinput.report.Gamepad.sThumbLX;
-              float LY   = pDevice->xinput.report.Gamepad.sThumbLY;
-              float norm = sqrt ( LX*LX + LY*LY );
-//#if 0
-              float unit = 1.0f;
+              norm = std::min (norm, 32767.0f) - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
+              unit =           norm/(32767.0f  - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
+            }
+            else
+            {
+              norm = 0.0f;
+              unit = 0.0f;
+            }
 
-              if (norm > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
-              {
-                norm = std::min (norm, 32767.0f) - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
-                unit =           norm/(32767.0f  - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
-              }
-              else
-              {
-                norm = 0.0f;
-                unit = 0.0f;
-              }
+            float uLX = (LX / 32767.0f) * unit;
+            float uLY = (LY / 32767.0f) * unit;
 
-              float uLX = (LX / 32767.0f) * unit;
-              float uLY = (LY / 32767.0f) * unit;
-
-              pDevice->xinput.report.Gamepad.sThumbLX = static_cast <SHORT> (uLX < 0 ? 32768.0f * uLX
-                                                                                     : 32767.0f * uLX);
-              pDevice->xinput.report.Gamepad.sThumbLY = static_cast <SHORT> (uLY < 0 ? 32768.0f * uLY
-                                                                                     : 32767.0f * uLY);
+            pDevice->xinput.deadzoned.report.Gamepad.sThumbLX = static_cast <SHORT> (uLX < 0 ? 32768.0f * uLX
+                                                                                             : 32767.0f * uLX);
+            pDevice->xinput.deadzoned.report.Gamepad.sThumbLY = static_cast <SHORT> (uLY < 0 ? 32768.0f * uLY
+                                                                                             : 32767.0f * uLY);
 #if 0
-              pDevice->xinput.report.Gamepad.sThumbLX = (abs (pDevice->xinput.report.Gamepad.sThumbLX) < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) ? 0 :
-              pDevice->xinput.report.Gamepad.sThumbLX;
-              pDevice->xinput.report.Gamepad.sThumbLY = (abs (pDevice->xinput.report.Gamepad.sThumbLY) < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) ? 0 :
-              pDevice->xinput.report.Gamepad.sThumbLY;
+            pDevice->xinput.deadzoned.report.Gamepad.sThumbLX = (abs (pDevice->xinput.report.Gamepad.sThumbLX) < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) ? 0 :
+            pDevice->xinput.deadzoned.report.Gamepad.sThumbLX;
+            pDevice->xinput.deadzoned.report.Gamepad.sThumbLY = (abs (pDevice->xinput.report.Gamepad.sThumbLY) < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) ? 0 :
+            pDevice->xinput.deadzoned.report.Gamepad.sThumbLY;
 #endif
 
-              float RX   = pDevice->xinput.report.Gamepad.sThumbRX;
-              float RY   = pDevice->xinput.report.Gamepad.sThumbRY;
-                    norm = sqrt ( RX*RX + RY*RY );
+            float RX   = pDevice->xinput.deadzoned.report.Gamepad.sThumbRX;
+            float RY   = pDevice->xinput.deadzoned.report.Gamepad.sThumbRY;
+                  norm = sqrt ( RX*RX + RY*RY );
 
 //#if 0
-              unit = 1.0f;
-              if (norm > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
-              {
-                norm = std::min (norm, 32767.0f) - XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
-                unit =           norm/(32767.0f  - XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
-              }
-              else
-              {
-                norm = 0.0f;
-                unit = 0.0f;
-              }
+            unit = 1.0f;
+            if (norm > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
+            {
+              norm = std::min (norm, 32767.0f) - XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
+              unit =           norm/(32767.0f  - XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE);
+            }
+            else
+            {
+              norm = 0.0f;
+              unit = 0.0f;
+            }
 
-              float uRX = (RX / 32767.0f) * unit;
-              float uRY = (RY / 32767.0f) * unit;
+            float uRX = (RX / 32767.0f) * unit;
+            float uRY = (RY / 32767.0f) * unit;
 
-              pDevice->xinput.report.Gamepad.sThumbRX = static_cast <SHORT> (uRX < 0 ? 32768.0f * uRX
-                                                                                     : 32767.0f * uRX);
-              pDevice->xinput.report.Gamepad.sThumbRY = static_cast <SHORT> (uRY < 0 ? 32768.0f * uRY
-                                                                                     : 32767.0f * uRY);
+            pDevice->xinput.deadzoned.report.Gamepad.sThumbRX = static_cast <SHORT> (uRX < 0 ? 32768.0f * uRX
+                                                                                             : 32767.0f * uRX);
+            pDevice->xinput.deadzoned.report.Gamepad.sThumbRY = static_cast <SHORT> (uRY < 0 ? 32768.0f * uRY
+                                                                                             : 32767.0f * uRY);
 #if 0
-              pDevice->xinput.report.Gamepad.sThumbRX = (abs (pDevice->xinput.report.Gamepad.sThumbRX) < XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE) ? 0 :
-              pDevice->xinput.report.Gamepad.sThumbRX;
-              pDevice->xinput.report.Gamepad.sThumbRY = (abs (pDevice->xinput.report.Gamepad.sThumbRY) < XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE) ? 0 :
-              pDevice->xinput.report.Gamepad.sThumbRY;
+            pDevice->xinput.deadzoned.report.Gamepad.sThumbRX = (abs (pDevice->xinput.report.Gamepad.sThumbRX) < XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE) ? 0 :
+            pDevice->xinput.deadzoned.report.Gamepad.sThumbRX;
+            pDevice->xinput.deadzoned.report.Gamepad.sThumbRY = (abs (pDevice->xinput.report.Gamepad.sThumbRY) < XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE) ? 0 :
+            pDevice->xinput.deadzoned.report.Gamepad.sThumbRY;
 #endif
 
-              if (  pDevice->xinput.report.Gamepad.bLeftTrigger   < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
-                    pDevice->xinput.report.Gamepad.bLeftTrigger  = 0;
-              else
-              {
-                pDevice->xinput.report.Gamepad.bLeftTrigger =
-                  static_cast <BYTE> (                             255.0  * std::clamp (
-                     (((float)pDevice->xinput.report.Gamepad.bLeftTrigger - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD) /
-                                                                  (255.0f - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD)), 0.0f, 1.0f)
-                                     );
-              }
-              if (  pDevice->xinput.report.Gamepad.bRightTrigger  < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
-                    pDevice->xinput.report.Gamepad.bRightTrigger = 0;
-              else
-              {
-                pDevice->xinput.report.Gamepad.bRightTrigger =
-                  static_cast <BYTE> (                              255.0  * std::clamp (
-                     (((float)pDevice->xinput.report.Gamepad.bRightTrigger - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD) /
-                                                                   (255.0f - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD)), 0.0f, 1.0f)
-                                     );
-              }
+            if (  pDevice->xinput.deadzoned.report.Gamepad.bLeftTrigger   < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+                  pDevice->xinput.deadzoned.report.Gamepad.bLeftTrigger  = 0;
+            else
+            {
+              pDevice->xinput.deadzoned.report.Gamepad.bLeftTrigger =
+                static_cast <BYTE> (                             255.0  * std::clamp (
+                   (((float)pDevice->xinput.deadzoned.report.Gamepad.bLeftTrigger - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD) /
+                                                                          (255.0f - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD)), 0.0f, 1.0f)
+                                   );
+            }
+            if (  pDevice->xinput.deadzoned.report.Gamepad.bRightTrigger  < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+                  pDevice->xinput.deadzoned.report.Gamepad.bRightTrigger = 0;
+            else
+            {
+              pDevice->xinput.deadzoned.report.Gamepad.bRightTrigger =
+                static_cast <BYTE> (                              255.0  * std::clamp (
+                   (((float)pDevice->xinput.deadzoned.report.Gamepad.bRightTrigger - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD) /
+                                                                           (255.0f - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD)), 0.0f, 1.0f)
+                                   );
             }
 #pragma endregion
 
             bool bIsInputActive = false;
             bool bIsInputNew    =
-              memcmp ( &pDevice->xinput.prev_report.Gamepad,
-                       &pDevice->xinput.     report.Gamepad, sizeof (XINPUT_GAMEPAD) );
+              memcmp ( &pDevice->xinput.deadzoned.prev_report.Gamepad,
+                       &pDevice->xinput.deadzoned.     report.Gamepad, sizeof (XINPUT_GAMEPAD) );
 
             bool bIsAnyButtonDown =
               (pDevice->xinput.report.Gamepad.wButtons != 0);
@@ -4598,8 +4602,19 @@ SK_HID_PlayStationDevice::request_input_report (void)
             {
               if (bIsInputNew)
               {
-                pDevice->xinput.report.dwPacketNumber++;
-                pDevice->xinput.prev_report = pDevice->xinput.report;
+                pDevice->xinput.          report.dwPacketNumber++;
+                pDevice->xinput.deadzoned.report.dwPacketNumber++;
+
+                pDevice->xinput.prev_report           = pDevice->xinput.report;
+                pDevice->xinput.deadzoned.prev_report = pDevice->xinput.deadzoned.report;
+
+                // Apply the same deadzone that SK uses to filter out analog jitter
+                //   as the actual input the game sees if this option is enabled.
+                if (config.input.gamepad.xinput.standard_deadzone)
+                {
+                  pDevice->xinput.report      = pDevice->xinput.deadzoned.report;
+                  pDevice->xinput.prev_report = pDevice->xinput.deadzoned.prev_report;
+                }
               }
 
               bIsInputActive = true;
@@ -5278,7 +5293,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
               if (dwLastErr != ERROR_INVALID_HANDLE)
                 SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
 
-              SK_SleepEx (125UL, TRUE); // Prevent runaway CPU usage on failure
+              SK_SleepEx (333UL, TRUE); // Prevent runaway CPU usage on failure
 
               SetEvent (pDevice->hOutputFinished);
               continue;
@@ -5287,7 +5302,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
             else
             {
               DWORD                                                                         dwBytesRead = 0x0;
-              if (! SK_GetOverlappedResultEx (pDevice->hDeviceFile, &async_output_request, &dwBytesRead, 100UL, FALSE))
+              if (! SK_GetOverlappedResultEx (pDevice->hDeviceFile, &async_output_request, &dwBytesRead, 333UL, FALSE))
               {
                 dwLastErr = GetLastError ();
 
@@ -5314,7 +5329,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
                       SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
 
                     if (dwLastErr == ERROR_GEN_FAILURE || dwLastErr == ERROR_OPERATION_ABORTED)
-                      SK_SleepEx (150UL, TRUE);
+                      SK_SleepEx (333UL, TRUE);
                   }
 
                   SetEvent (pDevice->hOutputFinished);
@@ -5693,7 +5708,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
               if (dwLastErr != ERROR_INVALID_HANDLE)
                 SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
 
-              SK_SleepEx (125UL, TRUE); // Prevent runaway CPU usage on failure
+              SK_SleepEx (333UL, TRUE); // Prevent runaway CPU usage on failure
 
               SetEvent (pDevice->hOutputFinished);
               continue;
@@ -5702,7 +5717,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
             else
             {
               DWORD                                                                         dwBytesRead = 0x0;
-              if (! SK_GetOverlappedResultEx (pDevice->hDeviceFile, &async_output_request, &dwBytesRead, 100UL, FALSE))
+              if (! SK_GetOverlappedResultEx (pDevice->hDeviceFile, &async_output_request, &dwBytesRead, 333UL, FALSE))
               {
                 dwLastErr = GetLastError ();
 
@@ -5729,7 +5744,7 @@ SK_HID_PlayStationDevice::write_output_report (void)
                       SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
 
                     if (dwLastErr == ERROR_GEN_FAILURE || dwLastErr == ERROR_OPERATION_ABORTED)
-                      SK_SleepEx (150UL, TRUE);
+                      SK_SleepEx (333UL, TRUE);
                   }
 
                   SetEvent (pDevice->hOutputFinished);
