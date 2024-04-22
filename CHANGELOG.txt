@@ -1,4 +1,11 @@
-﻿24.4.20.2
+﻿﻿24.4.21
+=======
+ + Added hooks on NGX Get/SetULL, GetI, SetD for DLSS completeness
+ + Apply analog input deadzone to idle controller determination, even if
+     deadzone is not being applied to input readings sent to games.
+ + Reverted default Forza Horizon 5 settings to workaround anti-debug.
+
+24.4.20.2
 =========
  + Fixed AVIF HDR screenshots with content that exceeds 10k nits or
      125.0 (scRGB) in a single color channel producing inverted color.
