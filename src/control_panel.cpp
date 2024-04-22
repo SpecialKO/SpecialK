@@ -5829,8 +5829,6 @@ SK_ImGui_ControlPanel (void)
             bFirstFrame = false;
 
 
-            extern int __SK_LatentSyncSkip;
-
             bool bLatentSync =
               config.render.framerate.present_interval == 0 &&
              (config.render.framerate.target_fps        > 0.0f ||
@@ -5847,8 +5845,7 @@ SK_ImGui_ControlPanel (void)
 
                 if (__target_fps > dRefresh)
                 {
-                  __SK_LatentSyncSkip = 0;
-                  iFractSel           = 0;
+                  iFractSel = 0;
 
                   SK_GetCommandProcessor ()->ProcessCommandFormatted (
                     "TargetFPS %f", static_cast <float> (dRefresh)
@@ -5879,8 +5876,7 @@ SK_ImGui_ControlPanel (void)
 
                 if (__target_fps == 0.0f)
                 {
-                  __SK_LatentSyncSkip = 0;
-                  iFractSel           = 0;
+                  iFractSel = 0;
 
                   SK_GetCommandProcessor ()->ProcessCommandFormatted (
                     "TargetFPS %f", static_cast <float> (dRefresh)
@@ -5914,20 +5910,9 @@ SK_ImGui_ControlPanel (void)
                 )
               );
 
-              extern bool SK_LatentSync_SupportsFrameSkipping (SK_RenderAPI api);
-
-              bool bSupportsFrameSkipping = SK_LatentSync_SupportsFrameSkipping (rb.api);
-
-              __SK_LatentSyncSkip = 0;
-
               // 2x..
               if (iMultiplier >= 2)
               {
-                if (bSupportsFrameSkipping)
-                {
-                  __SK_LatentSyncSkip = iMultiplier;
-                }
-
                 if (iMaxAboveRefreshMode >= 2)
                 {
                   if (iMultiplier >= iMaxAboveRefreshMode)
@@ -5982,8 +5967,6 @@ SK_ImGui_ControlPanel (void)
                 float fTargetFPS =
                   static_cast <float> (dRefresh);
 
-                __SK_LatentSyncSkip = 0;
-
                 // 2x..
                 if (iMaxAboveRefreshMode >= 2 && iMode <= std::min (iMaxAboveRefreshMode - 2, 6))
                 {
@@ -5995,11 +5978,6 @@ SK_ImGui_ControlPanel (void)
                   else
                   {
                     iMultiplier = 8 - iMode;
-                  }
-
-                  if (bSupportsFrameSkipping)
-                  {
-                    __SK_LatentSyncSkip = iMultiplier;
                   }
 
                   fTargetFPS = static_cast <float> (dRefresh * iMultiplier);

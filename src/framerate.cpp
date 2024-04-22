@@ -641,8 +641,12 @@ SK_ImGui_LatentSyncConfig (void)
           int iRequiredMaxDeviceLatency =
             iRequiredBufferCount + 1;
 
-          bool bIsInvalidBufferCount =
-            iBufferCount < iRequiredBufferCount;
+          bool bIsInvalidBufferCount = ! (
+            ( bIsTearingModeAdaptiveOff &&
+              bSupportsFrameSkipping     ) ||
+            ( iBufferCount >=
+              iRequiredBufferCount       )
+          );
 
           bool bIsInvalidMaxDeviceLatency = ! (
             ( bIsTearingModeAdaptiveOff &&
@@ -684,63 +688,73 @@ SK_ImGui_LatentSyncConfig (void)
               }
 
               if ( !( bIsD3D12 && !config.render.dxgi.allow_d3d12_footguns ) &&
-                    ( iRequiredBufferCount <= 15                           ) )
+                    ( bSupportsFrameSkipping || iRequiredBufferCount <= 15 ) )
               {
                 ImGui::Separator    ();
                 ImGui::Text         (
                   std::format       (
-                    "Other tearing options require certain settings for {}x Mode (Best to Worst):",
-                    iMultiplier
+                    "Other tearing options require certain settings for {}x Mode{}",
+                    iMultiplier,
+                    iRequiredBufferCount <= 15 ? " (Best to Worst):" : ":"
                   ).c_str           ()
                 );
 
                 ImGui::Separator    ();
                 ImGui::BeginGroup   ();
-                ImGui::BulletText   ("Adaptive (Prefer On)");
 
-                if (bSupportsFrameSkipping)
+                if (iRequiredBufferCount <= 15)
                 {
-                  ImGui::BulletText ("Adaptive (Prefer Off)");
+                  ImGui::BulletText ("Adaptive (Prefer On)");
                 }
 
                 ImGui::BulletText   ("Adaptive (Prefer Off)");
-                ImGui::BulletText   ("Always Off");
+
+                if (iRequiredBufferCount <= 15)
+                {
+                  ImGui::BulletText ("Always Off");
+                }
+
                 ImGui::EndGroup     ();
                 ImGui::SameLine     (0.0f, 0.0f);
                 ImGui::BeginGroup   ();
-                ImGui::Text         (
-                  std::format       (
-                    " : Buffer Count = {}, Max Device Latency = {}",
-                    iRequiredBufferCount,
-                    iRequiredMaxDeviceLatency
-                  ).c_str           ()
-                );
 
-                if (bSupportsFrameSkipping)
+                if (iRequiredBufferCount <= 15)
                 {
                   ImGui::Text       (
                     std::format     (
-                      " : Buffer Count = {}, Max Device Latency = 1",
+                      " :\tMax Device Latency = {}\tBuffer Count = {}",
+                      iRequiredMaxDeviceLatency,
                       iRequiredBufferCount
                     ).c_str         ()
                   );
                 }
 
-                ImGui::Text         (
-                  std::format       (
-                    " : Buffer Count = {}, Max Device Latency = {}",
-                    iRequiredBufferCount,
-                    iRequiredMaxDeviceLatency
-                  ).c_str           ()
-                );
+                if (bSupportsFrameSkipping)
+                {
+                  ImGui::Text       (" :\tMax Device Latency = 1");
+                }
 
-                ImGui::Text         (
-                  std::format       (
-                    " : Buffer Count = {}, Max Device Latency = {}",
-                    iRequiredBufferCount,
-                    iRequiredMaxDeviceLatency
-                  ).c_str           ()
-                );
+                else
+                {
+                  ImGui::Text       (
+                    std::format     (
+                      " :\tMax Device Latency = {}\tBuffer Count = {}",
+                      iRequiredMaxDeviceLatency,
+                      iRequiredBufferCount
+                    ).c_str         ()
+                  );
+                }
+
+                if (iRequiredBufferCount <= 15)
+                {
+                  ImGui::Text       (
+                    std::format     (
+                      " :\tMax Device Latency = {}\tBuffer Count = {}",
+                      iRequiredMaxDeviceLatency,
+                      iRequiredBufferCount
+                    ).c_str         ()
+                  );
+                }
 
                 ImGui::EndGroup     ();
               }
@@ -2129,32 +2143,27 @@ SK::Framerate::Limiter::wait (void)
             )
           );
 
+          if (bIsFpsUnstable)
+          {
+            _ToggleTearing (true);
+
+            return;
+          }
+
           // 2x.. mode with Tearing Off and "PreRenderLimit > 1" would constantly
           // enable <-> disable tearing because Render Latency is always above 1 frame
           // -
-          // In that case, only enable tearing if FPS is unstable or Render Latency
-          // increases even further (according to PresentMon)
+          // In that case, only enable tearing if Render Latency increases even further
+          // (according to PresentMon)
           if ( std::round (fps / rb.getActiveRefreshRate ()) >= 2.0 &&
                config.render.framerate.pre_render_limit      != 1   )
           {
             _ToggleTearing (
               ( rb.presentation.avg_stats.display != 0.0 &&
                 rb.presentation.avg_stats.latency /
-                rb.presentation.avg_stats.display >
-                (
-                  __SK_LatentSyncSkip >= 2 ? 2.7
-                                           : 1.7
-                )                                         ) ||
-              ( bIsComposedPresent                        ) ||
-              ( bIsFpsUnstable                            )
+                rb.presentation.avg_stats.display >  1.7  ) ||
+              ( bIsComposedPresent                        )
             );
-
-            return;
-          }
-
-          if (bIsFpsUnstable)
-          {
-            _ToggleTearing (true);
 
             return;
           }
@@ -2283,8 +2292,9 @@ SK::Framerate::Limiter::wait (void)
       switch (config.render.framerate.latent_sync.tearing_mode)
       {
         case SK_TearingMode::LatentSync_AlwaysOn:
-        case SK_TearingMode::LatentSync_AlwaysOff:
         case SK_TearingMode::LatentSync_AdaptiveOn:
+          __SK_LatentSyncSkip = 0;
+        case SK_TearingMode::LatentSync_AlwaysOff:
         case SK_TearingMode::LatentSync_AdaptiveOff:
           _ManageTearing (
             static_cast <SK_TearingMode> (
