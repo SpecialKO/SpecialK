@@ -643,7 +643,8 @@ SK_ImGui_LatentSyncConfig (void)
 
           bool bIsInvalidBufferCount = ! (
             ( bIsTearingModeAdaptiveOff &&
-              bSupportsFrameSkipping     ) ||
+              bSupportsFrameSkipping    &&
+              iMaxDeviceLatency == 1     ) ||
             ( iBufferCount >=
               iRequiredBufferCount       )
           );
@@ -707,10 +708,14 @@ SK_ImGui_LatentSyncConfig (void)
                   ImGui::BulletText ("Adaptive (Prefer On)");
                 }
 
-                ImGui::BulletText   ("Adaptive (Prefer Off)");
+                if (bSupportsFrameSkipping)
+                {
+                  ImGui::BulletText ("Adaptive (Prefer Off)");
+                }
 
                 if (iRequiredBufferCount <= 15)
                 {
+                  ImGui::BulletText ("Adaptive (Prefer Off)");
                   ImGui::BulletText ("Always Off");
                 }
 
@@ -734,7 +739,7 @@ SK_ImGui_LatentSyncConfig (void)
                   ImGui::Text       (" :\tMax Device Latency = 1");
                 }
 
-                else
+                if (iRequiredBufferCount <= 15)
                 {
                   ImGui::Text       (
                     std::format     (
@@ -743,10 +748,7 @@ SK_ImGui_LatentSyncConfig (void)
                       iRequiredBufferCount
                     ).c_str         ()
                   );
-                }
 
-                if (iRequiredBufferCount <= 15)
-                {
                   ImGui::Text       (
                     std::format     (
                       " :\tMax Device Latency = {}\tBuffer Count = {}",
