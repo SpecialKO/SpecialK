@@ -2014,7 +2014,7 @@ public:
               ImGui::Spacing  ();
               ImGui::SameLine (); ImGui::SameLine ();
 
-              if (ImGui::Button ("Enable Processing"))
+              if (ImGui::Button ("Enable Processing") || preset.cfg_nits->get_value () != 1.0f)
               {
                 if (preset.preset_idx == 2)
                 {

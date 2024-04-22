@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -250,6 +250,9 @@ void __stdcall SK_NvAPI_SetAppFriendlyName (const wchar_t* wszFriendlyName);
 void __stdcall SK_NvAPI_SetAppName         (const wchar_t* wszAppName);
 
 extern SK_LazyGlobal <NV_GET_CURRENT_SLI_STATE> SK_NV_sli_state;
+
+DWORD SK_NvAPI_DRS_GetDWORD (NvU32 setting_id);
+bool  SK_NvAPI_DRS_SetDWORD (NvU32 setting_id, DWORD dwValue);
 
 
 #endif /* __SK__NVAPI_H__ */

@@ -840,11 +840,6 @@ IDirectInputDevice7_GetDeviceState_Detour ( LPDIRECTINPUTDEVICE7       This,
     {
       SK_DI7_READ (sk_input_dev_type::Mouse)
 
-      //dll_log.Log (L"Mouse");
-
-      //((DIMOUSESTATE *)lpvData)->lZ += InterlockedAdd      (&SK_Input_GetDI8Mouse ()->delta_z, 0);
-                                       //InterlockedExchange (&SK_Input_GetDI8Mouse ()->delta_z, 0);
-
       if (SK_ImGui_WantMouseCapture ())
       {
         SK_DI7_HIDE (sk_input_dev_type::Mouse)

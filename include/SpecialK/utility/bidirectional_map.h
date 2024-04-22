@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -126,26 +126,26 @@ public:
     { return cbegin_ ( nullptr, pVKIter ); };
 
   inline
-    const bool cbegin_ ( typename std::unordered_map <_K, _V>::const_iterator* pKVIter = nullptr,
-                         typename std::unordered_map <_V, _K>::const_iterator* pVKIter = nullptr ) const
-  {
-    if (pKVIter != nullptr)
+    bool cbegin_ ( typename std::unordered_map <_K, _V>::const_iterator* pKVIter = nullptr,
+                   typename std::unordered_map <_V, _K>::const_iterator* pVKIter = nullptr ) const
     {
-      *pKVIter = fwd_map.cbegin ();
+      if (pKVIter != nullptr)
+      {
+        *pKVIter = fwd_map.cbegin ();
 
-      return (*pKVIter != fwd_map.cend ());
+        return (*pKVIter != fwd_map.cend ());
+      }
+
+      else if (pVKIter != nullptr)
+      {
+        *pVKIter = rev_map.cbegin ();
+
+        return (*pVKIter != rev_map.cend ());
+      }
+
+      else
+        return false;
     }
-
-    else if (pVKIter != nullptr)
-    {
-      *pVKIter = rev_map.cbegin ();
-
-      return (*pVKIter != rev_map.cend ());
-    }
-
-    else
-      return false;
-  }
 
   inline typename std::unordered_map <_V, _K>::iterator
   begin_v (void)
@@ -238,21 +238,21 @@ public:
     { return cend_ ( nullptr, pVKIter ); };
 
   inline
-    const bool cend_ ( typename std::unordered_map <_K, _V>::const_iterator* pKVIter = nullptr,
-                       typename std::unordered_map <_V, _K>::const_iterator* pVKIter = nullptr ) const
-  {
-    if (pKVIter != nullptr)
+    bool cend_ ( typename std::unordered_map <_K, _V>::const_iterator* pKVIter = nullptr,
+                 typename std::unordered_map <_V, _K>::const_iterator* pVKIter = nullptr ) const
     {
-      *pKVIter = fwd_map.cend ();
-    }
+      if (pKVIter != nullptr)
+      {
+        *pKVIter = fwd_map.cend ();
+      }
 
-    else if (pVKIter != nullptr)
-    {
-      *pVKIter = rev_map.cend ();
-    }
+      else if (pVKIter != nullptr)
+      {
+        *pVKIter = rev_map.cend ();
+      }
 
-    return true;
-  }
+      return true;
+    }
 
   inline typename std::unordered_map <_V, _K>::iterator
   end_v (void)

@@ -808,9 +808,9 @@ SK_D3D11_Screenshot::getData ( UINT* const pWidth,
       framebuffer.PackedDstPitch      = PackedDstPitch;
 
       size_t allocSize =
-        (framebuffer.Height + 1)
-                            *
-         framebuffer.PackedDstPitch;
+        (static_cast <size_t> (framebuffer.Height) + 1ULL)
+                                                   *
+                               framebuffer.PackedDstPitch;
 
       try
       {
@@ -1885,8 +1885,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                       if (hdr && config.screenshots.use_avif)
                       {
-                        SK_Screenshot_SaveAVIF (un_srgb, wszAbsolutePathToLossless, static_cast <uint16_t> (pFrameData->hdr.max_cll_nits),
-                                                                                    static_cast <uint16_t> (pFrameData->hdr.avg_cll_nits));
+                        SK_Screenshot_SaveAVIF (un_srgb, wszAbsolutePathToLossless, static_cast <uint16_t> (std::max (0.0f, pFrameData->hdr.max_cll_nits)),
+                                                                                    static_cast <uint16_t> (std::max (0.0f, pFrameData->hdr.avg_cll_nits)));
                       }
 
                       HRESULT hrSaveToWIC = S_OK;

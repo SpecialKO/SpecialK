@@ -1767,11 +1767,16 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
   ImVec2 vHDRPos;
 
-  if ( rb.displays [rb.active_display].hdr.supported ||
-                    rb.isHDRCapable () )
+  auto& display =
+    rb.displays [rb.active_display];
+
+  static float fWhitePointSliderWidth = 0.0f;
+
+  if ( display.hdr.supported ||
+          rb.isHDRCapable () )
   {
     bool hdr_enable =
-      rb.displays [rb.active_display].hdr.enabled;
+      display.hdr.enabled;
 
     if (ImGui::Checkbox ("Enable HDR", &hdr_enable))
     {
@@ -1784,18 +1789,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
 
         setHdrState.enableAdvancedColor = hdr_enable;
 
-      if ( ERROR_SUCCESS == DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
+      if ( ERROR_SUCCESS == SK_DisplayConfigSetDeviceInfo ( (DISPLAYCONFIG_DEVICE_INFO_HEADER *)&setHdrState ) )
       {
-        rb.displays [rb.active_display].hdr.enabled = hdr_enable;
-      }
-    }
-
-    if (ImGui::IsItemHovered ())
-    {
-      if (rb.displays [rb.active_display].hdr.enabled)
-      {
-        ImGui::SetTooltip ( "SDR Whitepoint: %4.1f cd/m²",
-                              rb.displays [rb.active_display].hdr.white_level );
+        display.hdr.enabled = hdr_enable;
       }
     }
 
@@ -1829,6 +1825,29 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
     vHDRPos.x =
       ImGui::GetCursorPosX ();
     ImGui::Spacing         ();
+  }
+
+  ImGui::BeginGroup ();
+
+  if (display.hdr.enabled)
+  {
+    float orig_lvl  = display.hdr.white_level;
+    float sdr_white =
+      display.hdr.white_level;
+
+    ImGui::PushItemWidth (fWhitePointSliderWidth);
+
+    if (ImGui::SliderFloat ("###SDR_WHITE_SLIDER", &sdr_white, 80.0f, 480.0f, "SDR White: %4.1f cd/m²"))
+    {
+      // Sanity checks because this API is somewhat expensive and triggers
+      //   a WM_DISPLAYCHANGE even if nothing changes
+      if (sdr_white >= 80.0f && sdr_white <= 480.0f && sdr_white != orig_lvl)
+      {
+        display.setSDRWhiteLevel (sdr_white);
+      }
+    }
+
+    ImGui::PopItemWidth ();
   }
 
   static bool bDPIAware  =
@@ -1937,19 +1956,30 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
                          " will apply to future launches of this game");
 
   ImGui::EndGroup    ();
+  fWhitePointSliderWidth =
+    ImGui::GetItemRectSize ().x;
+  ImGui::EndGroup    ();
   ImGui::SameLine    ();
   ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
   ImGui::SameLine    ();
   ImGui::BeginGroup  ();
 
-  auto &display =
-    rb.displays [rb.active_display];
+  static bool restart_required = false;
+         bool hovering_rebar   = false;
+         bool configure_rebar  = false;
 
   ImGui::Separator   ();
   ImGui::BeginGroup  ();
   ImGui::Text        ("MPO Planes: ");
   ImGui::Text        ("HW Scheduling: ");
   ImGui::Text        ("HW Flip Queue: ");
+  if (sk::NVAPI::nv_hardware)
+  {
+    ImGui::Text      ("Resizable BAR: ");
+
+    configure_rebar = ImGui::IsItemClicked (ImGuiMouseButton_Right);
+    hovering_rebar  = ImGui::IsItemHovered ();
+  }
   ImGui::EndGroup    ();
   ImGui::SameLine    ();
   ImGui::BeginGroup  ();
@@ -1995,7 +2025,69 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
   _PrintWDDMCapability (display.wddm_caps._3_0.HwFlipQueueEnabled,
                         display.wddm_caps._3_0.HwFlipQueueSupportState);
 
+  if (sk::NVAPI::nv_hardware)
+  {
+    if (rb.nvapi.rebar)
+      ImGui::TextColored ( ImVec4 (0.f, 1.f, 0.f, 1.f), "On " );
+    else
+      ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f), "Off " );
+
+    configure_rebar |= ImGui::IsItemClicked (ImGuiMouseButton_Right);
+    hovering_rebar  |= ImGui::IsItemHovered ();
+
+    if (hovering_rebar)
+    {
+      ImGui::BeginTooltip    ( );
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
+
+      ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
+      ImGui::SameLine        ( );
+      ImGui::TextUnformatted ("Right-click to configure");
+      ImGui::PopStyleColor   ( );
+      ImGui::EndTooltip      ( );
+    }
+
+    if (configure_rebar)
+    {
+      ImGui::OpenPopup         ("ReBarSubMenu");
+      ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
+    }
+
+    if (ImGui::BeginPopup      ("ReBarSubMenu"))
+    {
+      bool change_value =
+        ImGui::Checkbox ("Enable###EnableReBar", &rb.nvapi.rebar);
+
+      bool reset_value =
+        ImGui::Button ("Reset to Default");
+
+      if (change_value || reset_value)
+      {
+        std::wstring wszCommand =
+          SK_FormatStringW (
+            L"rundll32.exe \"%ws\", RunDLL_NvAPI_SetDWORD %x %ws %ws",
+              SK_GetModuleFullName (SK_GetDLL ()).c_str (),
+                0x000F00BA, reset_value ? L"~"   :
+                         rb.nvapi.rebar ? L"0x1" :
+                                          L"0x0",
+                  sk::NVAPI::app_name.c_str ()
+          );
+
+        SK_ElevateToAdmin (wszCommand.c_str (), false);
+        restart_required = true;
+
+        ImGui::CloseCurrentPopup ();
+      }
+
+      ImGui::EndPopup ();
+    }
+  }
+
   ImGui::EndGroup    ();
+
+  if (restart_required)
+      ImGui::BulletText ("Game Restart Required");
+
   ImGui::EndGroup    ();
 
   if (ImGui::Checkbox ("Aspect Ratio Stretch", &config.display.aspect_ratio_stretch))
@@ -3498,7 +3590,7 @@ SK_ImGui_ControlPanel (void)
           ImGui::Spacing         ( );
 
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
-          ImGui::TextUnformatted ("Special K can apply Color Correction for Third-party SDR Overlays");
+          ImGui::TextUnformatted ("Special K can apply Color Correction for third-party SDR overlays");
 
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.75f, .75f, .75f, 1.f));
 
@@ -3516,8 +3608,8 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.933f, .933f, .933f, 1.f));
 
-          ImGui::TextUnformatted ("For overlay Color Correction in native HDR games, use SK's HDR10 or scRGB Mode + "
-                                  "HDR10 Native or scRGB Native Preset");
+        //ImGui::TextUnformatted ("For overlay Color Correction in native HDR games, use SK's HDR10 or scRGB Mode + "
+        //                        "HDR10 Native or scRGB Native Preset");
           ImGui::TreePop         ( );
           ImGui::PopStyleColor   (4);
           ImGui::EndTooltip      ( );

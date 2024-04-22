@@ -3160,11 +3160,9 @@ SK_Exception_HandleThreadName (
           {
             static volatile LONG count = 0;
 
-            InterlockedIncrement (&count);
-
             auto* task =
               SK_MMCS_GetTaskForThreadIDEx ( dwTid,
-                SK_FormatString ("Render Thread #%li", count).c_str (),
+                SK_FormatString ("Render Thread #%li", InterlockedIncrement (&count)).c_str (),
                   "Games",
                   "DisplayPostProcessing"
               );
@@ -4141,14 +4139,19 @@ SK_IsDebuggerPresent (void)
     return _IsDebuggerPresent ();
   }
 
+  bool bDebugger = false;
+
   // Now we get serious, and avoid anti-debug stuff...
   __try {
-    return _IsDebuggerPresent ();
+    bDebugger = _IsDebuggerPresent ();
   }
 
-  __finally {
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
     return FALSE;
   }
+
+  return bDebugger;
 }
 
 

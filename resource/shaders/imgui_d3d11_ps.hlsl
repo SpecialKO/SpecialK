@@ -77,8 +77,8 @@ float4 main (PS_INPUT input) : SV_Target
     float4 hdr_out =
       float4 (   ( hdr10 ?
         LinearToST2084 (
-          REC709toREC2020 ( expandGamut (out_col.rgb            , 0.16667) * ui_alpha) * hdr_scale) :
-     Clamp_scRGB_StripNaN ( expandGamut (out_col.rgb * hdr_scale, 0.16667) )
+          REC709toREC2020 ( expandGamut (out_col.rgb            , 0.08) * ui_alpha) * hdr_scale) :
+     Clamp_scRGB_StripNaN ( expandGamut (out_col.rgb * hdr_scale, 0.08) )
                  )                                   + hdr_offset, 
                    hdr10 ?         LinearToPQY (       ui_alpha, 5.5)
                          :                             out_col.a );
@@ -86,9 +86,9 @@ float4 main (PS_INPUT input) : SV_Target
     // Keep pure black pixels as-per scRGB's limited ability to
     //   represent a black pixel w/ FP16 precision
     hdr_out.rgb *=
-      ((orig_col.r > FP16_MIN) +
-       (orig_col.g > FP16_MIN) +
-       (orig_col.b > FP16_MIN) > 0.0f);
+      ( (orig_col.r > FP16_MIN) +
+        (orig_col.g > FP16_MIN) +
+        (orig_col.b > FP16_MIN) > 0.0f );
 
     hdr_out.a *= (orig_col.a > FP16_MIN);
 
@@ -98,10 +98,7 @@ float4 main (PS_INPUT input) : SV_Target
     
     if (hdr10)
     {
-      hdr_out.rgba =    clamp (hdr_out.rgba, 0.0, 1.0);
-      hdr_out.rgba *=
-        smoothstep ( 0.006978,
-                     0.016667, hdr_out.rgba );
+      hdr_out.rgba = clamp (hdr_out.rgba, 0.0, 1.0);
     }
 
     return
@@ -122,6 +119,6 @@ float4 main (PS_INPUT input) : SV_Target
     out_col = float4 (ui_color * ui_alpha,
                                  ui_alpha);
   }
-  
+
   return out_col;
 };
