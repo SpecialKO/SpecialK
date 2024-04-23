@@ -93,45 +93,6 @@ HidP_GetUsageValueArray_pfn    SK_HidP_GetUsageValueArray      = nullptr;
 
 #define __SK_HID_CalculateLatency
 
-BOOLEAN
-WINAPI
-HidD_GetAttributes_Detour (_In_  HANDLE           HidDeviceObject,
-                           _Out_ PHIDD_ATTRIBUTES Attributes)
-{
-  BOOLEAN ret =
-    HidD_GetAttributes_Original (HidDeviceObject, Attributes);
-
-  if (ret)
-  {
-    if (Attributes->VendorID == SK_HID_VID_SONY)
-    {
-      if (config.input.gamepad.scepad.hide_ds4_v2_pid)
-      {
-        if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4_REV2)
-        {   Attributes->ProductID  = SK_HID_PID_DUALSHOCK4;
-            SK_LOGi0 (L"Identifying DualShock 4 v2 controller as DualShock 4 to game.");
-        }
-
-        if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4_DONGLE)
-        {   Attributes->ProductID  = SK_HID_PID_DUALSHOCK4;
-            SK_LOGi0 (L"Identifying DualShock 4 (via Dongle) controller as DualShock 4 to game.");
-        }
-      }
-
-      if (config.input.gamepad.scepad.hide_ds_edge_pid)
-      {
-        if (Attributes->ProductID == SK_HID_PID_DUALSENSE_EDGE)
-        {   Attributes->ProductID  = SK_HID_PID_DUALSENSE;
-            SK_LOGi0 (L"Identifying DualSense Edge controller as DualSense to game.");
-        }
-      }
-    }
-  }
-
-  return ret;
-}
-
-
 enum class SK_Input_DeviceFileType
 {
   None    = 0,
@@ -1008,6 +969,46 @@ SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)
               //L" HIDInput ");
 
   return filter;
+}
+
+BOOLEAN
+WINAPI
+HidD_GetAttributes_Detour (_In_  HANDLE           HidDeviceObject,
+                           _Out_ PHIDD_ATTRIBUTES Attributes)
+{
+  SK_LOG_FIRST_CALL
+
+  BOOLEAN ret =
+    HidD_GetAttributes_Original (HidDeviceObject, Attributes);
+
+  if (ret)
+  {
+    if (Attributes->VendorID == SK_HID_VID_SONY)
+    {
+      if (config.input.gamepad.scepad.hide_ds4_v2_pid)
+      {
+        if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4_REV2)
+        {   Attributes->ProductID  = SK_HID_PID_DUALSHOCK4;
+            SK_LOGi0 (L"Identifying DualShock 4 v2 controller as DualShock 4 to game.");
+        }
+
+        if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4_DONGLE)
+        {   Attributes->ProductID  = SK_HID_PID_DUALSHOCK4;
+            SK_LOGi0 (L"Identifying DualShock 4 (via Dongle) controller as DualShock 4 to game.");
+        }
+      }
+
+      if (config.input.gamepad.scepad.hide_ds_edge_pid)
+      {
+        if (Attributes->ProductID == SK_HID_PID_DUALSENSE_EDGE)
+        {   Attributes->ProductID  = SK_HID_PID_DUALSENSE;
+            SK_LOGi0 (L"Identifying DualSense Edge controller as DualSense to game.");
+        }
+      }
+    }
+  }
+
+  return ret;
 }
 
 PHIDP_PREPARSED_DATA* SK_HID_PreparsedDataP = nullptr;

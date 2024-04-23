@@ -1,4 +1,11 @@
-﻿24.4.23
+﻿24.4.23.1
+=========
+ + Do not hook NVSDK_NGX_D3D12_GetFeatureRequirements or
+     NVSDK_NGX_D3D11_GetFeatureRequirements unless DLSS feature support
+       spoofing is enabled, because the APIs will not return correct values
+         if NGX detects they have been hooked.
+
+24.4.23
 =======
  + Added options to identify DualShock 4 v2 and DualSense Edge controllers
      to games as DualShock 4 and DualSense respectively, for games that
