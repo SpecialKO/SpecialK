@@ -596,9 +596,14 @@ SK_NGX_InitD3D11 (void)
                             NVSDK_NGX_D3D11_GetCapabilityParameters_Detour,
                   (void **)&NVSDK_NGX_D3D11_GetCapabilityParameters_Original );
 
-    SK_CreateDLLHook2 ( L"_nvngx.dll",
-                           "NVSDK_NGX_D3D11_GetFeatureRequirements",
-                            NVSDK_NGX_D3D11_GetFeatureRequirements_Detour,
-                  (void **)&NVSDK_NGX_D3D11_GetFeatureRequirements_Original );
+    // Do not hook unless overriding, NGX will not return valid
+    //   results if the function is hooked
+    if (config.nvidia.dlss.spoof_support)
+    {
+      SK_CreateDLLHook2 ( L"_nvngx.dll",
+                             "NVSDK_NGX_D3D11_GetFeatureRequirements",
+                              NVSDK_NGX_D3D11_GetFeatureRequirements_Detour,
+                    (void **)&NVSDK_NGX_D3D11_GetFeatureRequirements_Original );
+    }
   });
 }

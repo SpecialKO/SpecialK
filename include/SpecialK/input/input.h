@@ -1235,24 +1235,25 @@ void SK_Win32_NotifyDeviceChange (bool add_xusb = true, bool add_hid = true);
 
 extern bool SK_WGI_EmulatedPlayStation;
 
-#define SK_HID_VID_8BITDO          0x2dc8
-#define SK_HID_VID_LOGITECH        0x046d
-#define SK_HID_VID_MICROSOFT       0x045e
-#define SK_HID_VID_NINTENDO        0x057e
-#define SK_HID_VID_NVIDIA          0x0955
-#define SK_HID_VID_RAZER           0x1532
-#define SK_HID_VID_SONY            0x054c
-#define SK_HID_VID_VALVE           0x28de
+#define SK_HID_VID_8BITDO            0x2dc8
+#define SK_HID_VID_LOGITECH          0x046d
+#define SK_HID_VID_MICROSOFT         0x045e
+#define SK_HID_VID_NINTENDO          0x057e
+#define SK_HID_VID_NVIDIA            0x0955
+#define SK_HID_VID_RAZER             0x1532
+#define SK_HID_VID_SONY              0x054c
+#define SK_HID_VID_VALVE             0x28de
 
-#define SK_HID_PID_XUSB            0x02a1 // Xbox 360 Controller Protocol
-#define SK_HID_PID_XBOXGIP         0x02ff // Xbox One Controller Protocol
-#define SK_HID_PID_STEAM_VIRTUAL   0x11ff // Steam Emulated Controller
+#define SK_HID_PID_XUSB              0x02a1 // Xbox 360 Controller Protocol
+#define SK_HID_PID_XBOXGIP           0x02ff // Xbox One Controller Protocol
+#define SK_HID_PID_STEAM_VIRTUAL     0x11ff // Steam Emulated Controller
 
-#define SK_HID_PID_DUALSHOCK3      0x0268
-#define SK_HID_PID_DUALSHOCK4      0x05c4
-#define SK_HID_PID_DUALSHOCK4_REV2 0x09cc
-#define SK_HID_PID_DUALSENSE       0x0ce6
-#define SK_HID_PID_DUALSENSE_EDGE  0x0df2
+#define SK_HID_PID_DUALSHOCK3        0x0268
+#define SK_HID_PID_DUALSHOCK4        0x05c4
+#define SK_HID_PID_DUALSHOCK4_REV2   0x09cc
+#define SK_HID_PID_DUALSHOCK4_DONGLE 0x0BA0
+#define SK_HID_PID_DUALSENSE         0x0ce6
+#define SK_HID_PID_DUALSENSE_EDGE    0x0df2
 
 static constexpr GUID GUID_XUSB_INTERFACE_CLASS =
   { 0xEC87F1E3L, 0xC13B, 0x4100, { 0xB5, 0xF7, 0x8B, 0x84, 0xD5, 0x42, 0x60, 0xCB } };
