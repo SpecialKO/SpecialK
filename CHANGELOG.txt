@@ -1,4 +1,19 @@
-﻿﻿24.4.21
+﻿24.4.23
+=======
+ + Added options to identify DualShock 4 v2 and DualSense Edge controllers
+     to games as DualShock 4 and DualSense respectively, for games that
+       understand the general DualShock4 / DualSense protocols but are too
+         old to recognize the newer model.
+
+    [Input.libScePad]
+    IdentifyDualShock4v2AsDualShock4={true|false}  Default: true
+    IdentifyDualSenseEdgeAsDualSense={true|false}  Default: true
+
+    This feature is enabled by default since the communication protocol
+      between these different models is the same, and games generally do
+        not make use of special features like DualSense Edge's paddles.
+
+﻿24.4.21
 =======
  + Added hooks on NGX Get/SetULL, GetI, SetD for DLSS completeness
  + Apply analog input deadzone to idle controller determination, even if

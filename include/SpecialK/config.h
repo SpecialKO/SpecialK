@@ -1026,6 +1026,8 @@ struct sk_config_t
         int   led_color_b          =     -1;
         int   led_brightness       =     -1;
         int   led_fade             =     -1;
+        bool  hide_ds4_v2_pid      =   true;
+        bool  hide_ds_edge_pid     =   true;
         std::wstring
               touch_click          = L"<Not Bound>";
         std::wstring

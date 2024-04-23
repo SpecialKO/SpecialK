@@ -68,6 +68,7 @@ HidD_GetPreparsedData_pfn      HidD_GetPreparsedData_Original  = nullptr;
 HidD_FreePreparsedData_pfn     HidD_FreePreparsedData_Original = nullptr;
 HidD_GetFeature_pfn            HidD_GetFeature_Original        = nullptr;
 HidD_SetFeature_pfn            HidD_SetFeature_Original        = nullptr;
+HidD_GetAttributes_pfn         HidD_GetAttributes_Original     = nullptr;
 HidP_GetData_pfn               HidP_GetData_Original           = nullptr;
 HidP_GetCaps_pfn               HidP_GetCaps_Original           = nullptr;
 HidP_GetUsages_pfn             HidP_GetUsages_Original         = nullptr;
@@ -91,6 +92,44 @@ HidP_GetUsageValueArray_pfn    SK_HidP_GetUsageValueArray      = nullptr;
 
 
 #define __SK_HID_CalculateLatency
+
+BOOLEAN
+WINAPI
+HidD_GetAttributes_Detour (_In_  HANDLE           HidDeviceObject,
+                           _Out_ PHIDD_ATTRIBUTES Attributes)
+{
+  BOOLEAN ret =
+    HidD_GetAttributes_Original (HidDeviceObject, Attributes);
+
+  if (ret)
+  {
+    if (Attributes->VendorID == SK_HID_VID_SONY)
+    {
+      if (config.input.gamepad.scepad.hide_ds4_v2_pid)
+      {
+        if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4_REV2)
+        {   Attributes->ProductID  = SK_HID_PID_DUALSHOCK4;
+            SK_LOGi0 (L"Identifying DualShock 4 v2 controller as DualShock 4 to game.");
+        }
+
+        if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4_DONGLE)
+        {   Attributes->ProductID  = SK_HID_PID_DUALSHOCK4;
+            SK_LOGi0 (L"Identifying DualShock 4 (via Dongle) controller as DualShock 4 to game.");
+        }
+      }
+
+      if (config.input.gamepad.scepad.hide_ds_edge_pid)
+      {
+        if (Attributes->ProductID == SK_HID_PID_DUALSENSE_EDGE)
+        {   Attributes->ProductID  = SK_HID_PID_DUALSENSE;
+            SK_LOGi0 (L"Identifying DualSense Edge controller as DualSense to game.");
+        }
+      }
+    }
+  }
+
+  return ret;
+}
 
 
 enum class SK_Input_DeviceFileType
@@ -754,7 +793,7 @@ void SK_HID_SetupPlayStationControllers (void)
             controller.bDualShock4 =
               (controller.pid == SK_HID_PID_DUALSHOCK4)      ||
               (controller.pid == SK_HID_PID_DUALSHOCK4_REV2) ||
-              (controller.pid == 0x0BA0); // Dongle
+              (controller.pid == SK_HID_PID_DUALSHOCK4_DONGLE);
 
             controller.bDualShock3 =
               (controller.pid == SK_HID_PID_DUALSHOCK3);
@@ -2485,6 +2524,11 @@ SK_Input_HookHID (void)
         (HidP_GetCaps_pfn)SK_GetProcAddress ( SK_GetModuleHandle (L"HID.DLL"),
                                               "HidP_GetCaps" );
     }
+
+    SK_CreateDLLHook2 (     L"HID.DLL",
+                             "HidD_GetAttributes",
+                              HidD_GetAttributes_Detour,
+     static_cast_p2p <void> (&HidD_GetAttributes_Original) );
 
     SK_CreateDLLHook2 (     L"HID.DLL",
                              "HidD_GetFeature",
