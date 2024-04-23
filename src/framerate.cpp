@@ -644,7 +644,8 @@ SK_ImGui_LatentSyncConfig (void)
           bool bIsInvalidBufferCount = ! (
             ( bIsTearingModeAdaptiveOff &&
               bSupportsFrameSkipping    &&
-              iMaxDeviceLatency == 1     ) ||
+              iMaxDeviceLatency == 1    &&
+              iBufferCount ==   15       ) ||
             ( iBufferCount >=
               iRequiredBufferCount       )
           );
@@ -727,33 +728,41 @@ SK_ImGui_LatentSyncConfig (void)
                 {
                   ImGui::Text       (
                     std::format     (
-                      " :\tMax Device Latency = {}\tBuffer Count = {}",
-                      iRequiredMaxDeviceLatency,
-                      iRequiredBufferCount
+                      " :\tBuffer Count = {}\tMax Device Latency = {}",
+                      iRequiredBufferCount,
+                      iRequiredMaxDeviceLatency
                     ).c_str         ()
                   );
                 }
 
                 if (bSupportsFrameSkipping)
                 {
-                  ImGui::Text       (" :\tMax Device Latency = 1");
+                  ImGui::Text       (
+                    std::format     (
+                      " :\tBuffer Count = {}\tMax Device Latency = 1",
+                      std::min      (
+                        iRequiredBufferCount,
+                        15
+                      )
+                    ).c_str         ()
+                  );
                 }
 
                 if (iRequiredBufferCount <= 15)
                 {
                   ImGui::Text       (
                     std::format     (
-                      " :\tMax Device Latency = {}\tBuffer Count = {}",
-                      iRequiredMaxDeviceLatency,
-                      iRequiredBufferCount
+                      " :\tBuffer Count = {}\tMax Device Latency = {}",
+                      iRequiredBufferCount,
+                      iRequiredMaxDeviceLatency
                     ).c_str         ()
                   );
 
                   ImGui::Text       (
                     std::format     (
-                      " :\tMax Device Latency = {}\tBuffer Count = {}",
-                      iRequiredMaxDeviceLatency,
-                      iRequiredBufferCount
+                      " :\tBuffer Count = {}\tMax Device Latency = {}",
+                      iRequiredBufferCount,
+                      iRequiredMaxDeviceLatency
                     ).c_str         ()
                   );
                 }
