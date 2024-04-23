@@ -1,4 +1,4 @@
-name: Builds
+name: Build
 
 on: [push, pull_request]
 
@@ -8,36 +8,46 @@ jobs:
 
     strategy:
       fail-fast: false
-      matrix:
-        config: [Release]
-        platform: [Win32, x64]
+      #matrix:
+      #  config: [Release]
+      #  platform: [Win32, x64]
+      # Originally the build was then executed with this:
+      # msbuild SpecialK.sln -p:Configuration="${{ matrix.config }}" -p:Platform="${{ matrix.platform }}" -m
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - uses: SpecialKO/GA-setup-cpp@master
+    - uses: SpecialKO/GA-setup-cpp-n20@master
 
-    - uses: microsoft/setup-msbuild@v1.1
+    - uses: microsoft/setup-msbuild@v2
 
-    - name: Build the Special K source code
+    #- name: Restore the required Nuget packages
+    #  run: |
+    #    nuget restore SpecialK.sln
+
+    - name: Build the codebase (64-bit)
       run: |
-        msbuild SpecialK.sln -p:Configuration="${{ matrix.config }}" -p:Platform="${{ matrix.platform }}" -m
+        msbuild SpecialK.sln -p:Configuration="Release" -p:Platform="x64" -m
+
+    - name: Build the codebase (32-bit)
+      run: |
+        msbuild SpecialK.sln -p:Configuration="Release" -p:Platform="Win32" -m
 
     - name: Prepare environment variables for the artifact name
       run: |
-        $Version = (Get-Item "$HOME\Documents\My Mods\SpecialK\SpecialK*.dll").VersionInfo.ProductVersion
+        $Version = (Get-Item "$HOME\Documents\My Mods\SpecialK\SpecialK*.dll").VersionInfo.ProductVersion | Select-Object -First 1
         If ($null -eq $Version) { $Version = "unknown" }
         "SK_VERSION=$Version" | Out-File -FilePath $env:GITHUB_ENV -Encoding UTF8 -Append
         "SHORT_SHA=$("${{ github.sha }}".SubString(0, 8))" | Out-File -FilePath $env:GITHUB_ENV -Encoding UTF8 -Append
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: SpecialK_${{ env.SK_VERSION }}_${{ env.SHORT_SHA }}
         path: |
           ~\Documents\My Mods\SpecialK\*.dll
         if-no-files-found: error
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         name: SpecialK_${{ env.SK_VERSION }}_${{ env.SHORT_SHA }}_debug_symbols
         path: |
