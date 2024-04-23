@@ -1,4 +1,11 @@
-﻿24.4.23.1
+﻿24.4.23.2
+=========
+ + Do not block gamepad/keyboard input (unless set to always disable) during
+     the first frame drawn.
+
+    >> Helps some Unity games w/ HID gamepad initialization.
+
+24.4.23.1
 =========
  + Do not hook NVSDK_NGX_D3D12_GetFeatureRequirements or
      NVSDK_NGX_D3D11_GetFeatureRequirements unless DLSS feature support

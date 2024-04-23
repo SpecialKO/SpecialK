@@ -45,6 +45,13 @@ DWORD SK_WGI_GamePollingThreadId = 0;
 bool
 SK_ImGui_WantGamepadCapture (void)
 {
+  // Do not block on first frame drawn unless explicitly disabled
+  if (SK_GetFramesDrawn () < 1 && (config.input.gamepad.disabled_to_game != 1))
+    return false;
+
+  if (! SK_GImDefaultContext ())
+    return false;
+
   auto _Return = [](BOOL bCapture) ->
   bool
   {
