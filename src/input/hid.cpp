@@ -985,6 +985,14 @@ HidD_GetAttributes_Detour (_In_  HANDLE           HidDeviceObject,
   {
     if (Attributes->VendorID == SK_HID_VID_SONY)
     {
+      if (config.input.gamepad.scepad.show_ds4_v1_as_v2)
+      {
+        if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4)
+        {   Attributes->ProductID  = SK_HID_PID_DUALSHOCK4_REV2;
+            SK_LOGi0 (L"Identifying DualShock 4 controller as DualShock 4 v2 to game.");
+        }
+      }
+
       if (config.input.gamepad.scepad.hide_ds4_v2_pid)
       {
         if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4_REV2)

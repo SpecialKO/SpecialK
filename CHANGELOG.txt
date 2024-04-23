@@ -1,4 +1,9 @@
-﻿24.4.23.2
+﻿24.4.32.3
+=========
+ + Add option to report v1 DualShock 4s as v2, disabled by default because it
+     will break games.
+
+24.4.23.2
 =========
  + Do not block gamepad/keyboard input (unless set to always disable) during
      the first frame drawn.

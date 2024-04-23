@@ -1041,6 +1041,7 @@ struct {
       sk::ParameterInt*     led_color_g           = nullptr;
       sk::ParameterInt*     led_color_b           = nullptr;
       sk::ParameterInt*     led_brightness        = nullptr;
+      sk::ParameterBool*    show_ds4_as_ds4_v2    = nullptr;
       sk::ParameterBool*    hide_ds4_v2_pid       = nullptr;
       sk::ParameterBool*    hide_ds_edge_pid      = nullptr;
       sk::ParameterStringW* left_fn_bind          = nullptr;
@@ -1501,7 +1502,7 @@ auto DeclKeybind =
     ConfigEntry (monitoring.gpu.print_slowdown,          L"Print GPU Slowdown Reason (NVIDA GPUs)",                    osd_ini,         L"Monitor.GPU",           L"PrintSlowdown"),
 
     ConfigEntry (monitoring.pagefile.show,               L"Show Pagefile Monitoring",                                  osd_ini,         L"Monitor.Pagefile",      L"Show"),
-    ConfigEntry (monitoring.pagefile.interval,           L"Pagefile Monitoring INterval (seconds)",                    osd_ini,         L"Monitor.Pagefile",      L"Interval"),
+    ConfigEntry (monitoring.pagefile.interval,           L"Pagefile Monitoring Interval (seconds)",                    osd_ini,         L"Monitor.Pagefile",      L"Interval"),
 
     ConfigEntry (monitoring.dlss.show,                   L"Show DLSS Resolution Information",                          osd_ini,         L"Monitor.DLSS",          L"Show"),
     ConfigEntry (monitoring.dlss.show_quality,           L"Print DLSS Quality Level",                                  osd_ini,         L"Monitor.DLSS",          L"ShowQuality"),
@@ -1636,6 +1637,7 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.scepad.led_color_g,       L"Force Green LED Color [0,255] or -1 for No Override",       input_ini,       L"Input.libScePad",       L"LEDColor_G"),
     ConfigEntry (input.gamepad.scepad.led_color_b,       L"Force Blue LED Color [0,255] or -1 for No Override",        input_ini,       L"Input.libScePad",       L"LEDColor_B"),
     ConfigEntry (input.gamepad.scepad.led_brightness,    L"Force LED brightness [0,1,2,3] or -1 for No Override",      input_ini,       L"Input.libScePad",       L"LEDBrightness"),
+    ConfigEntry (input.gamepad.scepad.show_ds4_as_ds4_v2,L"Cause games to see DualShock 4 v1 as DualShock 4 v2",       input_ini,       L"Input.libScePad",       L"IdentifyDualShock4AsDualShock4v2"),
     ConfigEntry (input.gamepad.scepad.hide_ds4_v2_pid,   L"Cause games to see DualShock 4 v2 as DualShock 4",          input_ini,       L"Input.libScePad",       L"IdentifyDualShock4v2AsDualShock4"),
     ConfigEntry (input.gamepad.scepad.hide_ds_edge_pid,  L"Cause games to see DualSense Edge as DualSense",            input_ini,       L"Input.libScePad",       L"IdentifyDualSenseEdgeAsDualSense"),
     ConfigEntry (input.gamepad.scepad.left_fn_bind,      L"Keyboard Input to Generate when Left Function is Pressed",  dll_ini,         L"Input.libScePad",       L"LeftFunction"),
@@ -4419,6 +4421,7 @@ auto DeclKeybind =
   input.gamepad.scepad.led_color_g->load          (config.input.gamepad.scepad.led_color_g);
   input.gamepad.scepad.led_color_b->load          (config.input.gamepad.scepad.led_color_b);
   input.gamepad.scepad.led_brightness->load       (config.input.gamepad.scepad.led_brightness);
+  input.gamepad.scepad.show_ds4_as_ds4_v2->load   (config.input.gamepad.scepad.show_ds4_v1_as_v2);
   input.gamepad.scepad.hide_ds4_v2_pid->load      (config.input.gamepad.scepad.hide_ds4_v2_pid);
   input.gamepad.scepad.hide_ds_edge_pid->load     (config.input.gamepad.scepad.hide_ds_edge_pid);
   input.gamepad.scepad.left_fn_bind->load         (config.input.gamepad.scepad.left_fn);
@@ -5789,6 +5792,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.scepad.led_color_g->store          (config.input.gamepad.scepad.led_color_g);
   input.gamepad.scepad.led_color_b->store          (config.input.gamepad.scepad.led_color_b);
   input.gamepad.scepad.led_brightness->store       (config.input.gamepad.scepad.led_brightness);
+  input.gamepad.scepad.show_ds4_as_ds4_v2->store   (config.input.gamepad.scepad.show_ds4_v1_as_v2);
   input.gamepad.scepad.hide_ds4_v2_pid->store      (config.input.gamepad.scepad.hide_ds4_v2_pid);
   input.gamepad.scepad.hide_ds_edge_pid->store     (config.input.gamepad.scepad.hide_ds_edge_pid);
   input.gamepad.scepad.left_fn_bind->store         (config.input.gamepad.scepad.left_fn);

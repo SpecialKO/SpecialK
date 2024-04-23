@@ -1026,6 +1026,7 @@ struct sk_config_t
         int   led_color_b          =     -1;
         int   led_brightness       =     -1;
         int   led_fade             =     -1;
+        bool  show_ds4_v1_as_v2    =  false;
         bool  hide_ds4_v2_pid      =   true;
         bool  hide_ds_edge_pid     =   true;
         std::wstring
