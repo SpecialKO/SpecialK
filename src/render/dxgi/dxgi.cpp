@@ -2377,28 +2377,37 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
          config.render.framerate.target_fps_bg < rb.getActiveRefreshRate () / 2.0f &&
          (! SK_IsGameWindowActive ()) )
     {
-      SK_RunOnce (
-        SK_ImGui_CreateNotification (
-          "VRR.BackgroundFixup", SK_ImGui_Toast::Warning,
+      if ( SK_GetFramesDrawn () > 30 && rb.displays [rb.active_display].nvapi.vrr_enabled &&
+           ( config.window.background_render ||
+             config.window.always_on_top == SmartAlwaysOnTop ) )
+      {
+        SK_RunOnce (
+          SK_ImGui_CreateNotification (
+            "VRR.BackgroundFixup", SK_ImGui_Toast::Warning,
 
-          "A very low Background FPS limit is currently active; VRR must be allowed to\r\n"
-          "disengage or it will severely impact overall system responsiveness!\r\n\r\n  "
+            "A very low Background FPS limit is currently active; VRR must be allowed to\r\n"
+            "disengage or it will severely impact overall system responsiveness!\r\n\r\n  "
 
-          ICON_FA_INFO_CIRCLE
-          "  VRR support will be restored once the game regains foreground status.\r\n\r\n"
+            ICON_FA_INFO_CIRCLE
+            "  VRR support will be restored once the game regains foreground status."
+            
+            /*
+            "\r\n\r\n"
 
-          "If VRR remains active and your system continues to behave sluggishly, it is\r\n"
-          "most likely because you have forced VSYNC on in driver settings...\r\n\r\n  "
+            "If VRR remains active and your system continues to behave sluggishly, it is\r\n"
+            "most likely because you have forced VSYNC on in driver settings...\r\n\r\n  "
 
-          ICON_FA_COGS
-          "  VRR display users should never force VSYNC on using driver overrides!",
+            ICON_FA_COGS
+            "  VRR display users should never force VSYNC on using driver overrides!"
+            */,
 
-          "\tTemporarily Suspending VRR Support for the Current Game",
-            5000, SK_ImGui_Toast::ShowCaption |
-                  SK_ImGui_Toast::ShowTitle   |
-                  SK_ImGui_Toast::ShowOnce    |
-                  SK_ImGui_Toast::UseDuration );
-      );
+            "\tTemporarily Suspending VRR Support for the Current Game",
+              5000, SK_ImGui_Toast::ShowCaption |
+                    SK_ImGui_Toast::ShowTitle   |
+                    SK_ImGui_Toast::ShowOnce    |
+                    SK_ImGui_Toast::UseDuration );
+        );
+      }
 
       _SyncInterval
              = std::clamp (
