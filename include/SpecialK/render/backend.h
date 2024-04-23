@@ -731,6 +731,12 @@ SK_ChangeDisplaySettingsEx ( _In_ LPCWSTR   lpszDeviceName,
                              _In_ DWORD     dwFlags,
                              _In_ LPVOID    lParam );
 
+using  ChangeDisplaySettingsA_pfn = LONG (WINAPI *)(
+                                     _In_opt_ DEVMODEA *lpDevMode,
+                                     _In_     DWORD     dwFlags );
+extern ChangeDisplaySettingsA_pfn
+       ChangeDisplaySettingsA_Original;
+
 using SK_RenderBackend = SK_RenderBackend_V2;
 
 extern                                 SK_RenderBackend*  g_pRenderBackend;
@@ -802,6 +808,7 @@ SK_GetThreadDpiAwareness (void);
 bool SK_RenderBackendUtil_IsFullscreen (void);
 void SK_D3D_SetupShaderCompiler        (void);
 void SK_Display_DisableDPIScaling      (void);
+void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
 
 interface
 SK_ICommandProcessor;
@@ -856,6 +863,9 @@ LONG WINAPI SK_DisplayConfigSetDeviceInfo (_In_ DISPLAYCONFIG_DEVICE_INFO_HEADER
 LONG WINAPI SK_DisplayConfigGetDeviceInfo (_In_ DISPLAYCONFIG_DEVICE_INFO_HEADER *getPacket) ;
 
 bool SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi);
+
+// PresentMon
+bool SK_ETW_EndTracing (void);
 
 uint32_t
 SK_Render_GetVulkanInteropSwapChainType (IUnknown *swapchain);

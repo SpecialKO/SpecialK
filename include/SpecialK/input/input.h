@@ -1258,4 +1258,8 @@ extern bool SK_WGI_EmulatedPlayStation;
 static constexpr GUID GUID_XUSB_INTERFACE_CLASS =
   { 0xEC87F1E3L, 0xC13B, 0x4100, { 0xB5, 0xF7, 0x8B, 0x84, 0xD5, 0x42, 0x60, 0xCB } };
 
+bool __SKX_WinHook_InstallInputHooks  (HWND hWnd);
+int  SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
+void SK_ScePad_PaceMaker              (void);
+
 #endif /* __SK__INPUT_H__ */

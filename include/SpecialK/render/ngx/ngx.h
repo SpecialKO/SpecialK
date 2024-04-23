@@ -137,3 +137,6 @@ extern void *SK_NGX_DLSSG_HUDLess_Buffer;
 extern void *SK_NGX_DLSSG_Back_Buffer;
 extern void *SK_NGX_DLSSG_MVecs_Buffer;
 extern void *SK_NGX_DLSSG_Depth_Buffer;
+
+void SK_NGX_Init              (void);
+void SK_NGX_UpdateDLSSGStatus (void);

@@ -1382,5 +1382,7 @@ void SK_Win32_NotifyHWND   (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void SK_Win32_NotifyHWND_W (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 void SK_Win32_NotifyHWND_A (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+void SK_WinSock_GoOffline (void);
+
 #endif /* __SK__UTILITY_H__ */
 

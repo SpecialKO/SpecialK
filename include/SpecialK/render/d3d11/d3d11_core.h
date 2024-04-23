@@ -2892,3 +2892,5 @@ struct SK_IMGUI_D3D11StateBlock {
        pDevCtx->RSSetScissorRects      ( Scissor.RectCount,   Scissor.Rects  );
     }
 };
+
+void SK_D3D11_InitMutexes (void);

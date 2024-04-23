@@ -178,6 +178,7 @@ struct SK_SharedMemory_v1
 };
 #pragma pack (pop)
 
+
 SK_InjectionRecord_s*
 __stdcall
 SK_Inject_GetRecordByIdx (int idx);
@@ -220,6 +221,7 @@ extern NtUserCallNextHookEx_pfn NtUserCallNextHookEx;
 bool  SK_Inject_IsHookActive               (void);
 float SK_Inject_GetInjectionDelayInSeconds (void);
 void  SK_Inject_SetFocusWindow             (HWND hWndFocus);
+HWND  SK_Inject_GetFocusWindow             (void);
 
 
 #endif /* __SK__INJECTION_H__ */

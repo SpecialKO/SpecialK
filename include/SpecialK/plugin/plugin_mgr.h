@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -134,23 +134,42 @@ HRESULT __stdcall
 HRESULT __stdcall
      SK_OPT_PresentFirstFrame    (IUnknown *, UINT, UINT);
 
-void SK_Yakuza0_PlugInInit (void);
-bool SK_Yakuza0_PlugInCfg  (void);
+void SK_Yakuza0_PlugInInit         (void);
+bool SK_Yakuza0_PlugInCfg          (void);
 
-void SK_Persona4_InitPlugin (void);
-void SK_YS8_InitPlugin      (void);
-void SK_ER_InitPlugin       (void);
-void SK_ELEX2_InitPlugin    (void);
+void SK_Persona4_InitPlugin        (void);
+void SK_YS8_InitPlugin             (void);
+void SK_ER_InitPlugin              (void);
+void SK_ELEX2_InitPlugin           (void);
 
 void __stdcall
-     SK_HatsuneMiku_BeginFrame (void);
+     SK_HatsuneMiku_BeginFrame     (void);
 
-void SK_BGS_InitPlugin   (void);
-void SK_LOTF2_InitPlugin (void);
+void SK_BGS_InitPlugin             (void);
+void SK_LOTF2_InitPlugin           (void);
 
-void SK_SO2R_InitPlugin  (void);
-bool SK_SO2R_PlugInCfg   (void);
-bool SK_SO2R_DrawHandler (ID3D11DeviceContext *pDevCtx, uint32_t current_ps, int num_verts);
+bool SK_NIER_RAD_PlugInCfg         (void);
+bool SK_Okami_PlugInCfg            (void);
+bool SK_LSBTS_PlugInCfg            (void);
+bool SK_POE2_PlugInCfg             (void);
+bool SK_SO4_PlugInCfg              (void);
+void SK_ACO_PlugInInit             (void);
+void SK_MHW_PlugInInit             (void);
+void SK_DQXI_PlugInInit            (void);
+void SK_SM_PlugInInit              (void);
+void SK_NIER_RAD_InitPlugin        (void);
+void SK_FF7R_InitPlugin            (void);
+void SK_Sekiro_InitPlugin          (void);
+void SK_FFXV_InitPlugin            (void);
+void SK_FFXV_SetupThreadPriorities (void);
+
+void SK_SO2R_InitPlugin            (void);
+bool SK_SO2R_PlugInCfg             (void);
+bool SK_SO2R_DrawHandler           (ID3D11DeviceContext *pDevCtx, uint32_t current_ps, int num_verts);
+
+void SK_MHW_PlugIn_Shutdown (void);
+
+extern volatile LONG  __SK_SHENMUE_FinishedButNotPresented;
 
 #else
 HRESULT __stdcall

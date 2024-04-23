@@ -779,6 +779,8 @@ extern void SK_Scheduler_Shutdown (void);
 extern HRESULT WINAPI
 SK_DWM_GetCompositionTimingInfo (DWM_TIMING_INFO *pTimingInfo);
 
+void SK_Framerate_WaitUntilQPC (LONGLONG llQPC, HANDLE& hTimer);
+
 extern volatile LONG64 lD3DKMTPresentCalls;
 
 extern bool __SK_HasDLSSGStatusSupport;
@@ -791,6 +793,8 @@ extern int  __SK_LatentSyncFrame;
 extern int  __SK_LatentSyncSkip;
 
 extern float __target_fps;
+
+extern LONGLONG __SK_LatentSyncPostDelay;
 
 
 #endif /* __SK__FRAMERATE_H__ */
