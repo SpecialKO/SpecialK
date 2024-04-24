@@ -1,4 +1,9 @@
-﻿24.4.24.5
+﻿24.4.25
+=======
+ + Added named achievement screenshots for Epic Game Store games
+ + Disabled DirectInput 8 hooks in Yakuza games by default
+
+24.4.24.5
 =========
  + Correctly disable HID output reports for non-Bluetooth devices when
      HID hooks are disabled.

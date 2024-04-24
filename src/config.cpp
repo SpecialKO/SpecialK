@@ -3010,6 +3010,7 @@ auto DeclKeybind =
         config.window.fullscreen                  =  true;
         config.input.keyboard.override_alt_f4     =  true;
         config.input.keyboard.catch_alt_f4        =  true;
+        config.input.gamepad.hook_dinput8         = false;
 
         // Game's busted without this
         config.display.force_windowed             =  true;
@@ -3017,6 +3018,7 @@ auto DeclKeybind =
       break;
 
       case SK_GAME_ID::YakuzaKiwami2:
+        config.input.gamepad.hook_dinput8         =  false;
         config.apis.d3d9.hook                     =  false;
         config.apis.d3d9ex.hook                   =  false;
 
@@ -3056,6 +3058,7 @@ auto DeclKeybind =
         config.window.borderless                  =   true;
         config.window.fullscreen                  =   true;
         config.input.keyboard.override_alt_f4     =   true;
+        config.input.gamepad.hook_dinput8         =  false;
       }
       break;
 

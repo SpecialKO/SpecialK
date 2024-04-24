@@ -405,8 +405,6 @@ public:
     {
       if (ps_controller.bConnected)
       {
-        bConnected = true;
-
         ps_controller.setVibration (
           (std::min (255ui16, static_cast <USHORT> (vibes.LeftMotor  * 255.0 + vibes.LeftTrigger  * 255.0))),
           (std::min (255ui16, static_cast <USHORT> (vibes.RightMotor * 255.0 + vibes.RightTrigger * 255.0))), 255ui16
@@ -416,9 +414,19 @@ public:
         {
         }
 
-        //else if ((! ps_controller.bBluetooth) || (vibes.LeftMotor > 0.0 || vibes.RightMotor > 0.0))
+        else if ((! (ps_controller.bBluetooth && ps_controller.bSimpleMode)) || (vibes.LeftMotor > 0.0 || vibes.RightMotor > 0.0))
         {
-          ps_controller.write_output_report (true);
+          if (ps_controller.bBluetooth && (vibes.LeftMotor <= 0.0 && vibes.RightMotor <= 0.0))
+          {
+            if (ps_controller.write_output_report ()) // Let the device decide whether to process this or not
+              bConnected = true;
+          }
+          else
+          {
+            // Force an update
+            if (ps_controller.write_output_report (true))
+              bConnected = true;
+          }
         }
       }
     }

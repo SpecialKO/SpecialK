@@ -1292,7 +1292,7 @@ XInputSetState1_4_Detour (
               // Device doesn't want rumble
             }
 
-            else if ((! controller.bBluetooth) || (pVibration->wLeftMotorSpeed > 0 || pVibration->wRightMotorSpeed > 0))
+            else if ((! (controller.bBluetooth && controller.bSimpleMode)) || (pVibration->wLeftMotorSpeed > 0 || pVibration->wRightMotorSpeed > 0))
             {
               if (controller.bBluetooth && (pVibration->wLeftMotorSpeed == 0 && pVibration->wRightMotorSpeed == 0))
               {
