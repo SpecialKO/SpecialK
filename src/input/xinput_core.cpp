@@ -1289,18 +1289,27 @@ XInputSetState1_4_Detour (
 
             if ((controller.bBluetooth && config.input.gamepad.bt_input_only))
             {
+              // Device doesn't want rumble
             }
-            
+
             else if ((! controller.bBluetooth) || (pVibration->wLeftMotorSpeed > 0 || pVibration->wRightMotorSpeed > 0))
             {
-              controller.write_output_report (true);
+              if (controller.bBluetooth && (pVibration->wLeftMotorSpeed == 0 && pVibration->wRightMotorSpeed == 0))
+              {
+                if (controller.write_output_report ()) // Let the device decide whether to process this or not
+                  bHasSetState = true;
+              }
+              else
+              {
+                // Force an update
+                if (controller.write_output_report (true))
+                  bHasSetState = true;
+              }
             }
           }
 
           //SK_XINPUT_WRITE (dwUserIndex)
         }
-
-        bHasSetState = true;
       }
     }
 
