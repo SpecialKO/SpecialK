@@ -6131,6 +6131,7 @@ SK_HID_PlayStationDevice::reset_device (void)
   ulLastFrameOutput = 0;
 
   bNeedOutput = false;
+  bSimpleMode =  true;
 
   for ( auto& button : buttons )
   {

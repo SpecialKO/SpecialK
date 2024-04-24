@@ -1,4 +1,10 @@
-﻿24.4.24
+﻿24.4.24.1
+=========
+ + Do not use haptics or LEDs on Bluetooth PlayStation controllers until a
+     game first uses rumble, or if the controller is already in
+       DualShock4/DualSense mode.
+
+24.4.24
 =======
  + Added stupid hack for systems with broken PresentMon running D3D12, where
      VRR status cannot be determined. VBlank rate < Reflex rate is assumed

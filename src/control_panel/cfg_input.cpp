@@ -130,14 +130,24 @@ SK::ControlPanel::Input::Draw (void)
   auto& io =
     ImGui::GetIO ();
 
-  bool bHasPlayStation = (last_scepad != 0);
+  bool bHasPlayStation  = (last_scepad != 0);
+  bool bHasSimpleBluetooth = false;
+  bool bHasBluetooth       = false;
+  bool bHasNonBluetooth    = false;
 
   for ( auto& ps_controller : SK_HID_PlayStationControllers )
   {
     if (ps_controller.bConnected)
     {
+      if (ps_controller.bBluetooth)
+      {
+        bHasSimpleBluetooth = ps_controller.bSimpleMode;
+        bHasBluetooth       = true;
+      }
+      else
+        bHasNonBluetooth = true;
+
       bHasPlayStation = true;
-      break;
     }
   }
 
@@ -1655,6 +1665,7 @@ SK::ControlPanel::Input::Draw (void)
             }
 
             ImGui::BeginGroup ();
+            ImGui::BeginGroup ();
             if (bOverrideRGB)
             {
               //ImGui::SameLine ();
@@ -1687,6 +1698,20 @@ SK::ControlPanel::Input::Draw (void)
             }
             else {
               ImGui::SameLine ();
+            }
+            ImGui::EndGroup ();
+
+            if (bHasBluetooth && bHasSimpleBluetooth && (! bHasNonBluetooth))
+            {
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::BeginTooltip    ();
+                ImGui::TextUnformatted ("Bluetooth Compatibility Mode is Active");
+                ImGui::Separator       ();
+                ImGui::BulletText      ("RGB Overrides may only apply after a game triggers rumble, or if you use USB.");
+                ImGui::BulletText      ("This avoids changing your Bluetooth controller from DualShock3 mode to DualShock4/DualSense in games that do not use DualShock4+ features.");
+                ImGui::EndTooltip      ();
+              }
             }
 
 #if 0
