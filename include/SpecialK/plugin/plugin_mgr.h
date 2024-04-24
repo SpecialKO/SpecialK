@@ -164,7 +164,6 @@ void SK_FF7R_InitPlugin            (void);
 void SK_Sekiro_InitPlugin          (void);
 void SK_FFXV_InitPlugin            (void);
 void SK_FFXV_SetupThreadPriorities (void);
-bool SK_GalGun_PlugInCfg           (void);
 bool SK_FarCry6_PlugInCfg          (void);
 
 void SK_SO2R_InitPlugin            (void);
@@ -184,6 +183,9 @@ HRESULT __stdcall
 
 void
 SK_SOM_InitPlugin (void);
+
+bool
+SK_GalGun_PlugInCfg (void);
 
 void
 SK_Persona4_DrawHandler ( ID3D11DeviceContext* pDevCtx,

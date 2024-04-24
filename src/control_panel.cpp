@@ -5248,10 +5248,12 @@ SK_ImGui_ControlPanel (void)
         SK_GalGun_PlugInCfg ();
       } break;
 
+#ifdef _WIN64
       case SK_GAME_ID::FarCry6:
       {
         SK_FarCry6_PlugInCfg ();
       } break;
+#endif
     };
 
 
