@@ -66,5 +66,6 @@ bool                 SK_Power_InitEffectiveModeCallbacks (void);
 bool                 SK_Power_StopEffectiveModeCallbacks (void);
 
 void                 SK_CPU_InstallHooks                 (void);
+bool                 SK_CPU_IsZen                        (void);
 
 #endif /* __SK__CPU_H__ */

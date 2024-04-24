@@ -53,10 +53,6 @@ float SK_LatentSyncBackOffMultiplier = 1.020f;
 
 bool SK_HasHighResWaitableTimer = false;
 
-extern NtQueryTimerResolution_pfn NtQueryTimerResolution;
-extern NtSetTimerResolution_pfn   NtSetTimerResolution;
-extern NtSetTimerResolution_pfn   NtSetTimerResolution_Original;
-
 // Set these clocks to non-zero before init. to prevent division by zero races
 int64_t                     SK_QpcFreq        = 1;
 int64_t                     SK_QpcTicksPerMs  = 1;
@@ -97,8 +93,6 @@ LONGLONG __SK_LatentSync_LastSwap      =   0LL;
 LONGLONG __SK_LatentSync_FrameInterval =   0LL;
 float    __SK_LatentSync_SwapSecs      =  3.3f;
 int      __SK_LatentSync_Adaptive      =    15;
-
-extern bool SK_CPU_IsZen (void);
 
 __forceinline
 static void
@@ -843,6 +837,10 @@ class SK_FramerateLimiter_CfgProxy : public SK_IVariableListener {
     return true;
   }
 } __ProdigalFramerateSon;
+
+extern NtQueryTimerResolution_pfn NtQueryTimerResolution;
+extern NtSetTimerResolution_pfn   NtSetTimerResolution;
+extern NtSetTimerResolution_pfn   NtSetTimerResolution_Original;
 
 void
 SK::Framerate::Init (void)

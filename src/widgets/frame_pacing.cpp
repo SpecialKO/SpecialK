@@ -23,8 +23,6 @@
 
 extern iSK_INI* osd_ini;
 
-extern void SK_ImGui_DrawGraph_FramePacing (void);
-
 #include <SpecialK/render/d3d11/d3d11_core.h>
 #include <imgui/font_awesome.h>
 
@@ -47,7 +45,6 @@ SK_ImGui
 {
   bool BatteryMeter (void);
 };
-
 
 static bool has_battery   = false;
 static bool has_vram      = false;
@@ -200,9 +197,6 @@ float SK_Framerate_GetPercentileByIdx (int idx)
   return 0.0f;
 }
 
-extern float __target_fps;
-extern float __target_fps_bg;
-
 class SK_ImGui_FrameHistory : public SK_Stat_DataHistory <float, 120>
 {
 public:
@@ -314,13 +308,7 @@ SK_RenderBackend::latency_monitor_s::submitQueuedFrame (IDXGISwapChain1* pSwapCh
 }
 
 
-extern int
-SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
-
-       int    extra_status_line = 0;
-
-extern int  SK_PresentMon_Main (int argc, char **argv);
-extern bool StopTraceSession   (void);
+int extra_status_line = 0;
 
 HANDLE __SK_ETW_PresentMon_Thread = INVALID_HANDLE_VALUE;
 
@@ -565,8 +553,6 @@ public:
 
     if (has_vram)
     {
-      extern void
-      SK_ImGui_DrawVRAMGauge (void);
       SK_ImGui_DrawVRAMGauge ();
     }
     ImGui::EndGroup   ();
@@ -1004,10 +990,6 @@ SK_ImGui_DrawGraph_FramePacing (void)
       ImGui::EndGroup        ();
       ImGui::EndTooltip      ();
     }
-
-    extern float SK_Framerate_GetBusyWaitPercent (void);
-    extern float SK_Framerate_GetBusyWaitMs      (void);
-    extern float SK_Framerate_GetSleepWaitMs     (void);
 
     const float
       fBusyWaitMs      = SK_Framerate_GetBusyWaitMs      (),
