@@ -221,13 +221,13 @@ SK_Network_EnqueueDownload (sk_download_request_s&& req, bool high_prio)
   if (! high_prio)
   {
     download_queue.push (
-        std::move (req) );
+                    req );
   }
 
   else
   {
     download_queueX.push (
-      std::move (req));
+                     req );
   }
 
   SetEvent (hFetchEvent.m_h);
@@ -475,12 +475,11 @@ SK_HTTP_BundleArgs =
    for ( auto& entry : list_ )
    {
      bundle.push_back (
-       std::move (entry)
+            entry
      );
    }
 
-   return
-     std::move (bundle);
+   return bundle;
  };
 
 kvpair_s

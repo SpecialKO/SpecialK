@@ -2007,7 +2007,7 @@ SK_TextOverlay::update (const char* szText)
      data_.text_len =   0 ;
   }
 
-  // Empty the gometry buffer and bail-out.
+  // Empty the geometry buffer and bail-out.
   if (szText == nullptr || *data_.text == '\0')
   {
            data_.extent = 0.0f;
@@ -2091,13 +2091,21 @@ SK_TextOverlay::update (const char* szText)
     // Add 1.0 so that an X position of -1.0 is perfectly flush with the right
     x = ImGui::GetIO ().DisplaySize.x + x - longest_line + 1.0f;
 
-    strncpy_s ( tokenized_text, data_.text_len,
-                                data_.text, _TRUNCATE );
+    if (tokenized_text != nullptr)
+    {
+      strncpy_s ( tokenized_text, data_.text_len,
+                                  data_.text, _TRUNCATE );
 
-    // Restart tokenizing
-    line =
-      ( has_tokens ? strtok_ex (tokenized_text, token)
-                   :            tokenized_text );
+      // Restart tokenizing
+      line =
+        ( has_tokens ? strtok_ex (tokenized_text, token)
+                     :            tokenized_text );
+    }
+
+    else
+    {
+      SK_LOGs0 (L"SKTokenize", L"Tokenizer Failure!");
+    }
   }
 
   else x += 5.0f; // Fix-up for text off-screen

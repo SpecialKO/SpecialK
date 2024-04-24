@@ -86,7 +86,7 @@ SK_Proxy_MouseProc   (
         {
           case WM_MOUSEMOVE:
           {
-            // No TrackMouseEvent available, gotta do this manually
+            // No TrackMouseEvent available, have to do this manually
             if (! game_window.mouse.can_track)
             {
               POINT                                          pt (mhs->pt);

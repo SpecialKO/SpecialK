@@ -2704,7 +2704,7 @@ public:
           }
 
           if (
-            ImGui::CollapsingHeader ( "Advanced###HDR_Widget_Advaced",
+            ImGui::CollapsingHeader ( "Advanced###HDR_Widget_Advanced",
                                         ImGuiTreeNodeFlags_DefaultOpen )
           )
           {

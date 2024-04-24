@@ -254,7 +254,7 @@ public:
             SK_RenderBackend_V2& rb =
               SK_GetCurrentRenderBackend ();
 
-            // TODO: Use this isntead config.display.monitor_handle in RepositionIfNeeded
+            // TODO: Use this instead config.display.monitor_handle in RepositionIfNeeded
             //
             //   This will prevent locking a game window unless the user wants that
             //
@@ -3497,7 +3497,7 @@ SK_Window_RepositionIfNeeded (void)
           extern volatile LONG lResetD3D11;
 
           // Client rect changed, we probably want to reset our render context to
-          //   accomodate the new internal resolution
+          //   accommodate the new internal resolution
           if (! EqualRect (&rcClientOrig, &game_window.actual.client))
           {
           //if ( rcClientOrig.right  - rcClientOrig.left != rcClientLast.right  - rcClientLast.left ||
@@ -5368,7 +5368,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     ////if (! SK_IsGameWindowActive ())
     ////{
-    ////  // Using a static kinda prevents us from supporting multiple windows,
+    ////  // Using a static kind of prevents us from supporting multiple windows,
     ////  //   but it's good enough for now.
     ////  static ULONG64 ulLastReset = 0;
     ////

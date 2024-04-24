@@ -7138,6 +7138,8 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 
     //SK_ImGui_Cursor.last_move = current_time;
       break;
+    default:
+      break;
   }
 
   return
@@ -8438,7 +8440,7 @@ SK_ImGui_Toggle (void)
   // Save config on control panel close, not open
   if (! SK_ImGui_Visible)
     config.utility.save_async ();
-  // Move the cursor a couple of times to chnage the loaded image
+  // Move the cursor a couple of times to change the loaded image
   else
   {
     if (config.input.ui.use_hw_cursor)

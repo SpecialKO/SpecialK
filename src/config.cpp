@@ -2496,7 +2496,7 @@ auto DeclKeybind =
 
       case SK_GAME_ID::FinalFantasyX_X2:
         // Don't auto-pump callbacks
-        //  Excessively lenghty startup is followed by actual SteamAPI init eventually...
+        //  Excessively lengthy startup is followed by actual SteamAPI init eventually...
         config.steam.auto_pump_callbacks = false;
         break;
 
@@ -4567,11 +4567,11 @@ auto DeclKeybind =
             DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
               &modeArray [path->sourceInfo.modeInfoIdx].sourceMode;
 
-            RECT rect;
-            rect.left   = pSourceMode->position.x;
-            rect.top    = pSourceMode->position.y;
-            rect.right  = pSourceMode->position.x + pSourceMode->width;
-            rect.bottom = pSourceMode->position.y + pSourceMode->height;
+            RECT rect =
+              { pSourceMode->position.x,
+                pSourceMode->position.y,
+                pSourceMode->position.x + pSourceMode->width,
+                pSourceMode->position.y + pSourceMode->height };
 
             if (! IsRectEmpty (&rect))
             {

@@ -1430,7 +1430,7 @@ SK_RenderBackend_V2::window_registry_s::setDevice (HWND hWnd)
   device.update      (hWnd);
   game_window.child = hWnd;
 
-  SK_LOG1 ( (__FUNCTIONW__ L" (%X)", hWnd), L"  DEBUG!  " );
+  SK_LOG1 ( (__FUNCTIONW__ L" (%X)", sk::narrow_cast <int> (hWnd)), L"  DEBUG!  " );
 }
 
 SK_RenderBackend_V2::scan_out_s::SK_HDR_TRANSFER_FUNC
