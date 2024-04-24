@@ -147,6 +147,8 @@ void __stdcall
 
 void SK_BGS_InitPlugin             (void);
 void SK_LOTF2_InitPlugin           (void);
+void SK_OPT_InitPlugin             (void);
+void SK_ACV_InitPlugin             (void);
 
 bool SK_NIER_RAD_PlugInCfg         (void);
 bool SK_Okami_PlugInCfg            (void);
@@ -192,6 +194,10 @@ void SK_CC_DrawHandler  ( ID3D11DeviceContext* pDevCtx,
                           uint32_t             current_vs,
                           uint32_t             current_ps );
 #endif
+
+extern void SK_SEH_LaunchEldenRing         (void);
+extern void SK_SEH_LaunchArmoredCoreVI     (void);
+extern void SK_SEH_LaunchLordsOfTheFallen2 (void);
 
 enum class SK_PlugIn_Type
 {

@@ -723,4 +723,6 @@ struct SKWG_Thread_Entry
 DWORD WINAPI
 SK_DelayExecution (double dMilliseconds, BOOL bAlertable) noexcept;
 
+void SK_Widget_InvokeThreadProfiler (void);
+
 #endif /* __SK__THREAD_H__ */

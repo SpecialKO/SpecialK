@@ -301,6 +301,9 @@ using mouse_event_pfn       = void (WINAPI *)(
   _In_ ULONG_PTR dwExtraInfo
 );
 
+using SetWindowsHookEx_pfn    = HHOOK (WINAPI*)(int, HOOKPROC, HINSTANCE, DWORD);
+using UnhookWindowsHookEx_pfn = BOOL  (WINAPI*)(HHOOK);
+
 extern ClipCursor_pfn              ClipCursor_Original;
 extern SetWindowPos_pfn            SetWindowPos_Original;
 extern MoveWindow_pfn              MoveWindow_Original;
@@ -332,6 +335,10 @@ extern GetKeyboardState_pfn        GetKeyboardState_Original;
 extern GetRawInputData_pfn         GetRawInputData_Original;
 extern GetRawInputBuffer_pfn       GetRawInputBuffer_Original;
 extern RegisterRawInputDevices_pfn RegisterRawInputDevices_Original;
+
+extern SetWindowsHookEx_pfn        SetWindowsHookExA_Original;
+extern SetWindowsHookEx_pfn        SetWindowsHookExW_Original;
+extern UnhookWindowsHookEx_pfn     UnhookWindowsHookEx_Original;
 
 #define SK_HWND_DESKTOP                            nullptr
 #define SK_HWND_BOTTOM    reinterpret_cast <HWND> (   1   )

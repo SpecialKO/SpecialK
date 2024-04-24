@@ -474,9 +474,6 @@
     <ClInclude Include="include\SpecialK\ini.h">
       <Filter>Header Files\Config</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\steam_api.h">
-      <Filter>Header Files\Storefronts\Steam</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\hooks.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
@@ -3095,6 +3092,9 @@
     </ClInclude>
     <ClInclude Include="include\SpecialK\control_panel\notifications.h">
       <Filter>Header Files\Control Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\steam_api.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -64,9 +64,10 @@ SK_Inject_TestWhitelists (const wchar_t* wszExecutable);
 bool
 SK_Inject_TestBlacklists (const wchar_t* wszExecutable);
 
-
 // Internal use only
 //
+void SK_Inject_SpawnUnloadListener      (void);
+void SK_Inject_CleanupSharedMemory      (void);
 void SK_Inject_ReleaseProcess           (void);
 void SK_Inject_AcquireProcess           (void);
 void SK_Inject_SuppressExitNotify       (void);

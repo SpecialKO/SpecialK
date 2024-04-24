@@ -209,10 +209,10 @@ extern volatile LONG __SK_DLL_Attached;
 extern volatile LONG __SK_DLL_Refs;
 
 extern volatile LONG __SK_Init;
-
 extern BOOL          __SK_DisableQuickHook;
 
-void SK_ImGui_Init (void);
+void        SK_ImGui_Init (void);
+extern bool SK_ImGui_WantExit;
 
 HANDLE
 WINAPI

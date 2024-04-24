@@ -762,8 +762,6 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
 
   if (detailed)
   {
-    extern void
-    SK_NV_AdaptiveSyncControl ();
     SK_NV_AdaptiveSyncControl ();
 
     float fMaxWidth  = ImGui::GetContentRegionAvail ().x;

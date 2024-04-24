@@ -802,13 +802,14 @@ ComputeIntersectionArea ( int ax1, int ay1, int ax2, int ay2,
 }
 
 
-DPI_AWARENESS
-SK_GetThreadDpiAwareness (void);
-
-bool SK_RenderBackendUtil_IsFullscreen (void);
-void SK_D3D_SetupShaderCompiler        (void);
-void SK_Display_DisableDPIScaling      (void);
-void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
+bool SK_RenderBackendUtil_IsFullscreen          (void);
+void SK_D3D_SetupShaderCompiler                 (void);
+void SK_Display_DisableDPIScaling               (void);
+DPI_AWARENESS SK_GetThreadDpiAwareness          (void);
+void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
+void SK_Display_SetMonitorDPIAwareness          (bool bOnlyIfWin10);
+bool SK_Display_ApplyDesktopResolution          (MONITORINFOEX& mi);
+void SK_Display_ResolutionSelectUI              (bool bMarkDirty = false);
 
 interface
 SK_ICommandProcessor;
@@ -861,8 +862,6 @@ typedef struct __declspec(align(4)) _DISPLAYCONFIG_SET_SDR_WHITE_LEVEL
 
 LONG WINAPI SK_DisplayConfigSetDeviceInfo (_In_ DISPLAYCONFIG_DEVICE_INFO_HEADER *setPacket);
 LONG WINAPI SK_DisplayConfigGetDeviceInfo (_In_ DISPLAYCONFIG_DEVICE_INFO_HEADER *getPacket) ;
-
-bool SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi);
 
 // PresentMon
 bool SK_ETW_EndTracing (void);

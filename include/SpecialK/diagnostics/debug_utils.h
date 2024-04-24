@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -564,6 +564,10 @@ void WINAPI SK_SymRefreshModuleList (HANDLE hProc = GetCurrentProcess ());
 BOOL WINAPI SK_IsDebuggerPresent    (void);
 
 BOOL __stdcall SK_TerminateProcess (UINT uExitCode);
+
+void NTAPI RtlAcquirePebLock_Detour (void);
+void NTAPI RtlReleasePebLock_Detour (void);
+bool   SK_Debug_CheckDebugFlagInPEB (void);
 
 using TerminateProcess_pfn   = BOOL (WINAPI *)(HANDLE hProcess, UINT uExitCode);
 using ExitProcess_pfn        = void (WINAPI *)(UINT   uExitCode);

@@ -981,7 +981,7 @@ SK_PlugIn_ControlPanelWidget (void)
 #pragma optimize( "", on )
 
 void
-SK_Display_ResolutionSelectUI (bool bMarkDirty = false)
+SK_Display_ResolutionSelectUI (bool bMarkDirty)
 {
   static bool dirty = true;
 

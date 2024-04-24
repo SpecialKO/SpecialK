@@ -254,5 +254,7 @@ extern SK_LazyGlobal <NV_GET_CURRENT_SLI_STATE> SK_NV_sli_state;
 DWORD SK_NvAPI_DRS_GetDWORD (NvU32 setting_id);
 bool  SK_NvAPI_DRS_SetDWORD (NvU32 setting_id, DWORD dwValue);
 
+extern void     SK_NV_AdaptiveSyncControl ();
+
 
 #endif /* __SK__NVAPI_H__ */

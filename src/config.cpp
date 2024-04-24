@@ -52,15 +52,6 @@ SK_LazyGlobal <std::unordered_map <wstring_hash, BYTE>> humanKeyNameToVirtKeyCod
 SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [32]>> virtKeyCodeToHumanKeyName;
 SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [32]>> virtKeyCodeToFullyLocalizedKeyName;
 
-extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_DepotList> >           SK_Steam_DepotManifestRegistry;
-extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_Steam_DepotManifest> > SK_Steam_InstalledManifest;
-
-extern float __target_fps;
-extern float __target_fps_bg;
-
-void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
-void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
-
 UINT SK_RecursiveMove ( const wchar_t* wszOrigDir,
                         const wchar_t* wszDestDir,
                               bool     replace );
@@ -282,8 +273,7 @@ SK_GetCurrentGameID (void)
       {
         current_game = SK_GAME_ID::FinalFantasyXV;
 
-        extern void SK_FFXV_InitPlugin (void);
-                    SK_FFXV_InitPlugin ();
+        SK_FFXV_InitPlugin ();
       }
 
       else if ( StrStrIW ( SK_GetHostApp (), L"ff7remake" ) )
@@ -295,8 +285,7 @@ SK_GetCurrentGameID (void)
       {
         current_game = SK_GAME_ID::AssassinsCreed_Valhalla;
 
-        extern void SK_ACV_InitPlugin (void);
-                    SK_ACV_InitPlugin ();
+        SK_ACV_InitPlugin ();
       }
 
       // Basically, _every single Yakuza game ever_ releases more references than it acquires...
@@ -407,23 +396,17 @@ SK_GetCurrentGameID (void)
         {
           if (std::filesystem::exists (L"eldenring.exe",         ec))
           {
-            extern void
-            SK_SEH_LaunchEldenRing (void);
-            SK_SEH_LaunchEldenRing (    );
+            SK_SEH_LaunchEldenRing ();
           }
 
           else if (std::filesystem::exists (L"armoredcore6.exe", ec))
           {
-            extern void
-            SK_SEH_LaunchArmoredCoreVI (void);
-            SK_SEH_LaunchArmoredCoreVI (    );
+            SK_SEH_LaunchArmoredCoreVI ();
           }
 
           else if (std::filesystem::exists (LR"(LOTF2\Binaries\Win64\LOTF2-Win64-Shipping.exe)", ec))
           {
-            extern void
-            SK_SEH_LaunchLordsOfTheFallen2 (void);
-            SK_SEH_LaunchLordsOfTheFallen2 (    );
+            SK_SEH_LaunchLordsOfTheFallen2 ();
           }
         }
       }
@@ -2808,9 +2791,6 @@ auto DeclKeybind =
 
       case SK_GAME_ID::ChronoCross:
       {
-        extern bool SK_PE32_IsLargeAddressAware       (void);
-        extern bool SK_PE32_MakeLargeAddressAwareCopy (void);
-
         if (! SK_PE32_IsLargeAddressAware ())
               SK_PE32_MakeLargeAddressAwareCopy ();
 
@@ -3236,9 +3216,8 @@ auto DeclKeybind =
         config.apis.OpenGL.hook                   = false;
 
         config.threads.enable_file_io_trace       =  true;
-
-        extern void SK_OPT_InitPlugin (void);
-                    SK_OPT_InitPlugin (    );
+        
+        SK_OPT_InitPlugin ();
 
         apis.d3d9.hook->store   (config.apis.d3d9.  hook);
         apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
@@ -5324,10 +5303,6 @@ auto DeclKeybind =
   if (config.system.wait_for_debugger)
   {
     SK_ApplyQueuedHooks ();
-
-    extern void NTAPI RtlAcquirePebLock_Detour (void);
-    extern void NTAPI RtlReleasePebLock_Detour (void);
-    extern bool   SK_Debug_CheckDebugFlagInPEB (void);
 
     if (      ! SK_IsDebuggerPresent ())
     { while ((! SK_IsDebuggerPresent ()))

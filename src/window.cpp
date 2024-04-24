@@ -54,18 +54,6 @@ static constexpr int SK_MAX_WINDOW_DIM = 16384;
 # define SK_WINDOW_LOG_CALL_UNTESTED() { }
 #endif
 
-extern bool SK_WantBackgroundRender ();
-
-extern HWND SK_Inject_GetFocusWindow (void);
-extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
-
-extern bool SK_ImGui_IsMouseRelevant       (void);
-extern bool SK_InputUtil_IsHWCursorVisible (void);
-
-extern void SK_Display_ResolutionSelectUI (bool bMarkDirty = false);
-
-bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
-
 BOOL
 WINAPI
 SetWindowPlacement_Detour (
@@ -5182,10 +5170,6 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
     HHOOK (WINAPI *)(int, HOOKPROC, HINSTANCE, DWORD);
   using  UnhookWindowsHookEx_pfn =
     BOOL (WINAPI *)(HHOOK);
-
-  extern SetWindowsHookEx_pfn    SetWindowsHookExA_Original;
-  extern SetWindowsHookEx_pfn    SetWindowsHookExW_Original;
-  extern UnhookWindowsHookEx_pfn UnhookWindowsHookEx_Original;
 
   if (SetWindowsHookExW_Original == nullptr)
     return false;
