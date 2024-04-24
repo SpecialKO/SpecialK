@@ -4647,7 +4647,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
             }
 #pragma endregion
 
-#ifdef SK_HID_BROKEN_DUALSHOCK4_REV2
+#define SK_HID_BROKEN_DUALSHOCK4_REV2
+#ifdef  SK_HID_BROKEN_DUALSHOCK4_REV2
             if ( pDevice->pid == SK_HID_PID_DUALSHOCK4_REV2 &&
                  pDevice->bBluetooth                        &&
                  pDevice->bSimpleMode )

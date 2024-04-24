@@ -1726,6 +1726,11 @@ SK::ControlPanel::Input::Draw (void)
               //ImGui::TreePop  (  );
             }
 
+            if (! config.input.gamepad.hook_hid)
+            {
+              ImGui::TextUnformatted (ICON_FA_EXCLAMATION_TRIANGLE " Rumble cannot be emulated unless HID hooks are enabled.");
+            }
+
             ImGui::EndGroup ();
           }
 
@@ -1875,7 +1880,8 @@ SK::ControlPanel::Input::Draw (void)
                 "Plug your controller in, or trigger rumble in-game to put the "
                 "Bluetooth controller into DualShock 4 / DualSense mode."
               );
-#ifdef SK_HID_BROKEN_DUALSHOCK4_REV2
+#define SK_HID_BROKEN_DUALSHOCK4_REV2
+#ifdef  SK_HID_BROKEN_DUALSHOCK4_REV2
               if (bHasDualShock4v2_Bt)
               {
                 ImGui::BulletText (
