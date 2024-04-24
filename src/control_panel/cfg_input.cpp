@@ -53,10 +53,6 @@ void SK_ImGui_UpdateCursor (void)
   SK_SetCursorPos (orig_pos.x, orig_pos.y);
 }
 
-extern bool SK_Window_IsCursorActive   (void);
-extern bool SK_Window_ActivateCursor   (bool changed      = false);
-extern bool SK_Window_DeactivateCursor (bool ignore_imgui = false);
-
 extern ImVec2& __SK_ImGui_LastWindowCenter (void);
 #define SK_ImGui_LastWindowCenter  __SK_ImGui_LastWindowCenter()
 

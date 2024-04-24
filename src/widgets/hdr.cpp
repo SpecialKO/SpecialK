@@ -543,7 +543,7 @@ SK_Display_ComparePathNameGUIDs ( const wchar_t *wszPathName0,
 }
 
 void
-SK_HDR_UpdateMaxLuminanceForActiveDisplay (bool forced = false)
+SK_HDR_UpdateMaxLuminanceForActiveDisplay (bool forced)
 {
   static auto pINI =
       SK_CreateINI (

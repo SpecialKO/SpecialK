@@ -37,12 +37,6 @@
 #include <SpecialK/nvapi.h>
 
 volatile ULONG64 SK_RenderBackend::frames_drawn = 0ULL;
-extern void
-SK_Display_EnableHDR (SK_RenderBackend_V2::output_s *pDisplay);
-
-bool SK_Display_IsDPIAwarenessUsingAppCompat (void);
-void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
-void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
 
 double
 SK_Display_GetDefaultRefreshRate (HMONITOR hMonitor)
@@ -683,8 +677,6 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
   auto _EvaluateAutoLowLatency = [&]()
   {
-    extern float __target_fps;
-
     // Opt-in to Auto-Low Latency the first time this is seen
     if (capable && active && config.render.framerate.present_interval != 0)
     {
@@ -1430,7 +1422,7 @@ SK_RenderBackend_V2::window_registry_s::setDevice (HWND hWnd)
   device.update      (hWnd);
   game_window.child = hWnd;
 
-  SK_LOG1 ( (__FUNCTIONW__ L" (%X)", sk::narrow_cast <int> (hWnd)), L"  DEBUG!  " );
+  SK_LOG1 ( (__FUNCTIONW__ L" (%X)", sk::narrow_cast <UINT> (((intptr_t)hWnd) & 0xFFFFFFFFUL)), L"  DEBUG!  " );
 }
 
 SK_RenderBackend_V2::scan_out_s::SK_HDR_TRANSFER_FUNC
@@ -3080,9 +3072,6 @@ SK_WDDM_CAPS::init (D3DKMT_HANDLE hAdapter)
   }
 }
 
-extern void
-SK_Display_ResolutionSelectUI (bool bMarkDirty);
-
 void
 SK_RenderBackend_V2::queueUpdateOutputs (void)
 {
@@ -3324,8 +3313,6 @@ sizeof (output_s));
       // Reload the MaxLuminance setting from hdr.ini so that it overrides
       //   whatever values we just got from DXGI
       //
-      extern void
-      SK_HDR_UpdateMaxLuminanceForActiveDisplay (bool forced = false);
       SK_HDR_UpdateMaxLuminanceForActiveDisplay (true);
 
       if ((! isHDRCapable ()) && ( __SK_HDR_16BitSwap ||
@@ -4162,8 +4149,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
       if (bIsActiveDisplay)
       {
-        extern void SK_HDR_UpdateMaxLuminanceForActiveDisplay (bool forced = false);
-                    SK_HDR_UpdateMaxLuminanceForActiveDisplay (true);
+        SK_HDR_UpdateMaxLuminanceForActiveDisplay (true);
       }
 
       dll_log->LogEx ( true,

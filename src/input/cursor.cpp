@@ -1141,7 +1141,7 @@ SK_Window_ActivateCursor (bool changed = false)
 };
 
 bool
-SK_Window_DeactivateCursor (bool ignore_imgui = false)
+SK_Window_DeactivateCursor (bool ignore_imgui)
 {
   if (! ignore_imgui)
   {

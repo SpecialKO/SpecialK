@@ -96,22 +96,19 @@ extern SK_LazyGlobal <SK_PluginRegistry> plugin_mgr;
 
 // As a general rule, plug-ins are only _built-in_ to the 64-bit DLL
 #ifdef _WIN64
-void
-SK_DGPU_InitPlugin (void);
-
-void
-SK_IT_InitPlugin (void);
-
-void
-SK_NNK2_InitPlugin (void);
-
-void
-SK_TVFix_InitPlugin (void);
+void SK_DGPU_InitPlugin      (void);
+void SK_IT_InitPlugin        (void);
+void SK_NNK2_InitPlugin      (void);
+void SK_TVFix_InitPlugin     (void);
+bool SK_TVFix_SharpenShadows (void);
+void SK_TVFix_CreateTexture2D(D3D11_TEXTURE2D_DESC *pDesc);
 
 // TODO: Get this stuff out of here, it's breaking what little design work there is.
 void SK_DS3_InitPlugin         (void);
 bool SK_DS3_UseFlipMode        (void);
 bool SK_DS3_IsBorderless       (void);
+bool WINAPI
+     SK_DS3_ShutdownPlugin (const wchar_t* backend);
 
 HRESULT __stdcall
      SK_DS3_PresentFirstFrame  (IUnknown *, UINT, UINT);
@@ -137,6 +134,12 @@ HRESULT __stdcall
 void SK_Yakuza0_PlugInInit         (void);
 bool SK_Yakuza0_PlugInCfg          (void);
 
+extern bool __SK_Yakuza_TrackRTVs;
+extern bool __SK_Y0_SafetyLeak;
+extern bool __SK_Y0_FixAniso;
+extern bool __SK_Y0_ClampLODBias;
+extern int  __SK_Y0_ForceAnisoLevel;
+
 void SK_Persona4_InitPlugin        (void);
 void SK_YS8_InitPlugin             (void);
 void SK_ER_InitPlugin              (void);
@@ -152,17 +155,21 @@ void SK_ACV_InitPlugin             (void);
 
 bool SK_NIER_RAD_PlugInCfg         (void);
 bool SK_Okami_PlugInCfg            (void);
+void SK_Okami_LoadConfig           (void);
 bool SK_LSBTS_PlugInCfg            (void);
 bool SK_POE2_PlugInCfg             (void);
 bool SK_SO4_PlugInCfg              (void);
 void SK_ACO_PlugInInit             (void);
+bool SK_ACO_PlugInCfg              (void);
 void SK_MHW_PlugInInit             (void);
 void SK_DQXI_PlugInInit            (void);
 void SK_SM_PlugInInit              (void);
+bool SK_SM_PlugInCfg               (void);
 void SK_NIER_RAD_InitPlugin        (void);
 void SK_FF7R_InitPlugin            (void);
 void SK_Sekiro_InitPlugin          (void);
 void SK_FFXV_InitPlugin            (void);
+bool SK_FFXV_PlugInCfg             (void);
 void SK_FFXV_SetupThreadPriorities (void);
 bool SK_FarCry6_PlugInCfg          (void);
 
@@ -171,11 +178,14 @@ bool SK_SO2R_PlugInCfg             (void);
 bool SK_SO2R_DrawHandler           (ID3D11DeviceContext *pDevCtx, uint32_t current_ps, int num_verts);
 
 void SK_MHW_PlugIn_Shutdown (void);
+extern bool __SK_MHW_KillAntiDebug;
 
 bool __stdcall SK_FAR_IsPlugIn      (void);
 void __stdcall SK_FAR_ControlPanel  (void);
 
-extern volatile LONG  __SK_SHENMUE_FinishedButNotPresented;
+extern volatile LONG __SK_SHENMUE_FinishedButNotPresented;
+extern volatile LONG __SK_SHENMUE_FullAspectCutscenes;
+extern float         __SK_SHENMUE_ClockFuzz;
 
 #else
 HRESULT __stdcall
@@ -183,9 +193,6 @@ HRESULT __stdcall
 
 void
 SK_SOM_InitPlugin (void);
-
-bool
-SK_GalGun_PlugInCfg (void);
 
 void
 SK_Persona4_DrawHandler ( ID3D11DeviceContext* pDevCtx,
@@ -200,7 +207,11 @@ void SK_CC_InitPlugin   ( void );
 void SK_CC_DrawHandler  ( ID3D11DeviceContext* pDevCtx,
                           uint32_t             current_vs,
                           uint32_t             current_ps );
+extern float             __SK_CC_ResMultiplier;
+extern ID3D11SamplerState* SK_CC_NearestSampler;
 #endif
+
+bool SK_GalGun_PlugInCfg (void);
 
 extern void SK_SEH_LaunchEldenRing         (void);
 extern void SK_SEH_LaunchArmoredCoreVI     (void);

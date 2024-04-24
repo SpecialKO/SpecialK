@@ -603,10 +603,6 @@ public:
       SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Hull);
       SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Compute);
 
-      extern BOOL
-      SK_D3D11_SetWrappedImmediateContext ( ID3D11Device        *pDev,
-                                            ID3D11DeviceContext *pDevCtx );
-
       SK_D3D11_SetWrappedImmediateContext (pDevice, nullptr);
       SK_DXGI_ReportLiveObjects           (pDevice);
 
@@ -1326,8 +1322,6 @@ public:
     {
       case SK_GAME_ID::ChronoCross:
       {
-        extern float
-            __SK_CC_ResMultiplier;
         if (__SK_CC_ResMultiplier)
         {
           if (NumViewports == 1)
@@ -1427,8 +1421,6 @@ public:
     {
       case SK_GAME_ID::ChronoCross:
       {
-        extern float
-            __SK_CC_ResMultiplier;
         if (__SK_CC_ResMultiplier > 1.0f)
         {
           SK_ComQIPtr <ID3D11Texture2D>

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -24,9 +24,6 @@
 #include <SpecialK/render/d3d11/d3d11_core.h>
 
 extern iSK_INI* osd_ini;
-
-extern std::string
-SK_CountToString (uint64_t count);
 
 class SKWG_D3D11_Pipeline : public SK_Widget
 {

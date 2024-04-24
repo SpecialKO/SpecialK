@@ -4570,8 +4570,8 @@ auto DeclKeybind =
             RECT rect =
               { pSourceMode->position.x,
                 pSourceMode->position.y,
-                pSourceMode->position.x + pSourceMode->width,
-                pSourceMode->position.y + pSourceMode->height };
+                pSourceMode->position.x + sk::narrow_cast <LONG> (pSourceMode->width),
+                pSourceMode->position.y + sk::narrow_cast <LONG> (pSourceMode->height) };
 
             if (! IsRectEmpty (&rect))
             {

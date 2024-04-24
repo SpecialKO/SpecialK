@@ -783,6 +783,7 @@ void SK_Framerate_WaitUntilQPC       (LONGLONG llQPC, HANDLE& hTimer);
 void SK_Framerate_EnergyControlPanel (void);
 
 void SK_ImGui_DrawGraph_FramePacing  (void);
+void SK_ImGui_DrawFramePercentiles   (void);
 void SK_ImGui_DrawGraph_Latency      (bool predraw);
 void SK_ImGui_DrawConfig_Latency     (void);
 void SK_ImGui_LatentSyncConfig       (void);

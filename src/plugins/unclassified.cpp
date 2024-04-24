@@ -1,4 +1,4 @@
-// A bunch of stupid "plug-ins," not even worth copyrighting.
+ï»¿// A bunch of stupid "plug-ins," not even worth copyrighting.
 //
 
 #include <SpecialK/stdafx.h>
@@ -7,15 +7,8 @@
 
 #include <SpecialK/render/d3d9/d3d9_backend.h>
 #include <SpecialK/render/d3d11/d3d11_core.h>
-
-extern bool SK_D3D11_EnableTracking;
-
-bool SK_FFXV_PlugInCfg  (void);
-bool SK_POE2_PlugInCfg  (void);
-bool SK_SM_PlugInCfg    (void);
-bool SK_ACO_PlugInCfg   (void);
-bool SK_SO4_PlugInCfg   (void);
-bool SK_LSBTS_PlugInCfg (void);
+#include <SpecialK/render/d3d11/d3d11_state_tracker.h>
+#include <SpecialK/plugin/plugin_mgr.h>
 
 struct SK_MemScan_Params__v0
 {
@@ -307,8 +300,6 @@ SK_LSBTS_PlugInCfg (void)
 
     //bool enable = evil || even_stranger || wired;
     //
-    //extern void
-    //SK_D3D11_EnableTracking (bool state);
     //SK_D3D11_EnableTracking (enable || show_shader_mod_dlg);
 
     ImGui::TreePop ();
@@ -535,7 +526,7 @@ SK_FFXV_PlugInCfg (void)
     static auto& shaders =
       SK_D3D11_Shaders.get ();
 
-    if (ImGui::Checkbox ((const char *)u8R"(Ignis Vision ™)", &ignis_vision))
+    if (ImGui::Checkbox ((const char *)u8R"(Ignis Vision â„¢)", &ignis_vision))
     {
       if (ignis_vision)
       {
@@ -549,7 +540,7 @@ SK_FFXV_PlugInCfg (void)
 
     ImGui::SameLine ();
 
-    if (ImGui::Checkbox ((const char *)u8R"((No)Hair Club for Men™)", &hair_club))
+    if (ImGui::Checkbox ((const char *)u8R"((No)Hair Club for Menâ„¢)", &hair_club))
     {
       if (hair_club)
       {
@@ -812,11 +803,6 @@ sk::ParameterFloat*   _SK_SM_ClockFuzz           = nullptr;
 sk::ParameterBool*    _SK_SM_BypassLimiter       = nullptr;
 
 bool SK_Shenmue_UseNtDllQPC = true;
-
-extern volatile
-LONG SK_D3D11_DrawTrackingReqs;
-
-extern float __SK_SHENMUE_ClockFuzz;
 
 struct shenmue_limit_ctrl_s {
 public:
@@ -1178,11 +1164,6 @@ SK_SM_PlugInCfg (void)
 
 }
 
-extern void SK_ImGui_RebalanceThreadButton (void);
-
-extern float __SK_Thread_RebalanceEveryNSeconds;
-extern bool  __SK_MHW_KillAntiDebug;
-
 sk::ParameterBool*  _SK_ACO_AlternateTaskScheduling;
 sk::ParameterFloat* _SK_ACO_AutoRebalanceInterval;
 
@@ -1280,8 +1261,6 @@ SK_HatsuneMiku_BeginFrame (void)
   //
   if (SK_GetFramesDrawn () < 333)
     return;
-
-  extern float __target_fps;
 
   // 1.00: 0x14B2A78
   // 1.01: 0x14ACA68

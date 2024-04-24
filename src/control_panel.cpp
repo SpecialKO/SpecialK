@@ -5788,9 +5788,6 @@ SK_ImGui_ControlPanel (void)
 
             bFirstFrame = false;
 
-
-            extern int __SK_LatentSyncSkip;
-
             int maxLatentSyncSkip = 0;/*(
               SK_API_IsLayeredOnD3D11 (rb.api) ||
               SK_API_IsDirect3D9      (rb.api) ||
@@ -6109,8 +6106,6 @@ SK_ImGui_ControlPanel (void)
               }
             }
 
-            extern bool
-                __SK_ForceDLSSGPacing;
             if (__SK_ForceDLSSGPacing)
             {
               if (mode != 0)
@@ -7276,8 +7271,6 @@ SK_ImGui_StageNextFrame (void)
   else
     style.Colors [ImGuiCol_WindowBg].w = orgWindowBg;
 
-  extern volatile
-               LONG __SK_ScreenShot_CapturingHUDless;
   if (ReadAcquire (&__SK_ScreenShot_CapturingHUDless))
   {
     imgui_staged = false;

@@ -1198,10 +1198,6 @@ D3D11Dev_CreateSamplerState_Override
 
   if (__yakuza)
   {
-    extern bool __SK_Y0_FixAniso;
-    extern bool __SK_Y0_ClampLODBias;
-    extern int  __SK_Y0_ForceAnisoLevel;
-
     if (__SK_Y0_ClampLODBias)
     {
       new_desc.MipLODBias = std::max (0.0f, new_desc.MipLODBias);
@@ -1319,7 +1315,6 @@ D3D11Dev_CreateSamplerState_Override
   {
     if (SK_GetCallingDLL () == GetModuleHandle (nullptr))
     {
-      extern ID3D11SamplerState* SK_CC_NearestSampler;
       const char*
       SK_D3D11_FilterToStr (D3D11_FILTER filter) noexcept;
 

@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2017-2021 Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -164,3 +164,4 @@ double QpcDeltaToSeconds(uint64_t qpcDelta);
 uint64_t SecondsDeltaToQpc(double secondsDelta);
 double QpcToSeconds(uint64_t qpc);
 
+void SK_SpawnPresentMonWorker (void);

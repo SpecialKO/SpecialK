@@ -724,5 +724,7 @@ DWORD WINAPI
 SK_DelayExecution (double dMilliseconds, BOOL bAlertable) noexcept;
 
 void SK_Widget_InvokeThreadProfiler (void);
+void SK_ImGui_RebalanceThreadButton (void);
+extern float __SK_Thread_RebalanceEveryNSeconds;
 
 #endif /* __SK__THREAD_H__ */

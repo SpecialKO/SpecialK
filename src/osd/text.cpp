@@ -25,8 +25,10 @@
 #include <SpecialK/osd/text.h>
 
 #include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/gl/opengl_backend.h>
 #include <SpecialK/render/ngx/ngx_dlss.h>
+#include <SpecialK/render/present_mon/PresentMon.hpp>
 
 #include <SpecialK/nvapi.h>
 
@@ -821,8 +823,7 @@ SK_DrawOSD (void)
     if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status && rb.api == SK_RenderAPI::D3D12)
     {
       // It is necessary to start PresentMon in D3D12, or the VRR indicator will not work
-      extern void SK_SpawnPresentMonWorker (void);
-                  SK_SpawnPresentMonWorker ();
+      SK_SpawnPresentMonWorker ();
     }
 
     auto &history =
@@ -1568,12 +1569,8 @@ SK_DrawOSD (void)
     OSD_M_PRINTF "\n" OSD_END
   }
 
-  extern bool SK_D3D11_cache_textures;
-
   if (SK_D3D11_cache_textures && SK_IsD3D11 ())
   {
-    extern std::string SK_D3D11_SummarizeTexCache (void);
-
     OSD_M_PRINTF "%s\n",
       SK_D3D11_SummarizeTexCache ().c_str ()
     OSD_END
@@ -2014,8 +2011,8 @@ SK_TextOverlay::update (const char* szText)
     return data_.extent;
   }
 
-  extern ImFont*  SK_ImGui_GetFont_Consolas (void);
-  ImFont* pFont = SK_ImGui_GetFont_Consolas (    );
+  ImFont* pFont =
+    SK_ImGui_GetFont_Consolas ();
 
   if (ImGui::GetCurrentWindowRead () == nullptr || pFont == nullptr)
     return data_.extent;

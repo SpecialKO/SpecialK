@@ -41,6 +41,9 @@ bool __stdcall SKX_IsHookingCBT   (void) noexcept;
 
 size_t __stdcall SKX_GetInjectedPIDs (DWORD* pdwList, size_t capacity);
 
+LPVOID
+SK_Inject_GetViewOf32BitRecords (void);
+
 bool
 SK_Inject_SwitchToGlobalInjector (void);
 

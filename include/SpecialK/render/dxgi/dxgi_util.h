@@ -119,3 +119,12 @@ void        SK_DXGI_SignalBudgetThread (void);
 bool WINAPI SK_DXGI_IsTrackingBudget   (void) noexcept;
 
 bool SK_DXGI_IsFakeFullscreen (IUnknown *pSwapChain) noexcept;
+
+void SK_HDR_ReleaseResources       (void);
+void SK_DXGI_ReleaseSRGBLinearizer (void);
+
+extern volatile LONG lResetD3D12;
+extern volatile LONG lResetD3D11;
+extern          bool bAlwaysAllowFullscreen;
+
+extern void SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen);

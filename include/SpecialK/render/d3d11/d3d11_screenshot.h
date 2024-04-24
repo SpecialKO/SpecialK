@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 /**
  * This file is part of Special K.
  *
@@ -96,8 +96,11 @@ protected:
   SK_ComPtr <ID3D11Query>         pPixelBufferFence      = nullptr;
 };
 
-void SK_D3D11_WaitOnAllScreenshots   (void);
-void SK_D3D11_ProcessScreenshotQueue (SK_ScreenshotStage stage = SK_ScreenshotStage::EndOfFrame);
+void SK_D3D11_WaitOnAllScreenshots     (void);
+void SK_D3D11_ProcessScreenshotQueue   (SK_ScreenshotStage stage  = SK_ScreenshotStage::EndOfFrame);
+void SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage stage_ = SK_ScreenshotStage::EndOfFrame,
+                                        bool               wait   = false,
+                                        bool               purge  = false);
 bool SK_Screenshot_D3D11_BeginFrame  (void);
 void SK_Screenshot_D3D11_EndFrame    (void);
 void SK_Screenshot_D3D11_RestoreHUD  (void);

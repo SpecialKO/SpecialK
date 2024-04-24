@@ -69,10 +69,12 @@ void SK_Input_PreHookXInput   (void);
 void SK_Input_PreHookScePad   (void);
 bool SK_Input_PreHookHID      (void);
 bool SK_Input_PreHookWinMM    (void);
+void SK_Input_HookWinMM       (void);
 
 void SK_Input_PreInit      (void);
 void SK_Input_Init         (void);
 void SK_Input_InitKeyboard (void);
+
 
 void SK_Input_SetLatencyMarker (void) noexcept;
 
@@ -87,6 +89,11 @@ SHORT WINAPI SK_GetAsyncKeyState (int vKey);
 
 bool __SKX_WinHook_InstallInputHooks  (HWND hWnd);
 bool SK_Input_DetermineMouseIdleState (MSG* lpMsg);
+
+UINT
+SK_Input_ClassifyRawInput ( HRAWINPUT lParam, bool& mouse,
+                                              bool& keyboard,
+                                              bool& gamepad );
 
 
 enum class sk_cursor_state {
@@ -1114,13 +1121,6 @@ SK_RawInput_EnableLegacyKeyboard (bool enable);
 void
 SK_RawInput_RestoreLegacyKeyboard (void);
 
-UINT
-SK_Input_ClassifyRawInput ( HRAWINPUT lParam,
-                            bool&     mouse,
-                            bool&     keyboard,
-                            bool&     gamepad );
-
-
 using GetRegisteredRawInputDevices_pfn = UINT (WINAPI *)(
   _Out_opt_ PRAWINPUTDEVICE pRawInputDevices,
   _Inout_   PUINT           puiNumDevices,
@@ -1208,16 +1208,16 @@ LRESULT
 CALLBACK
 SK_ImGui_MouseProc    (int code, WPARAM wParam, LPARAM lParam);
 
-bool SK_ImGui_ExemptOverlaysFromKeyboardCapture (void);
-
 void SK_AdjustClipRect (void);
 
 int WINAPI SK_ShowCursor (BOOL bShow);
 
-bool SK_ImGui_IsMouseRelevant       (void);
-void ImGui_ToggleCursor             (void);
-bool SK_InputUtil_IsHWCursorVisible (void);
-bool SK_Window_IsCursorActive       (void);
+bool SK_ImGui_ExemptOverlaysFromKeyboardCapture (void);
+bool SK_ImGui_IsMouseRelevant                   (void);
+void    ImGui_ToggleCursor                      (void);
+HCURSOR ImGui_DesiredCursor                     (void);
+bool SK_InputUtil_IsHWCursorVisible             (void);
+bool SK_Window_IsCursorActive                   (void);
 
 enum SK_InputEnablement {
   Enabled              = 0,
@@ -1263,5 +1263,9 @@ static constexpr GUID GUID_XUSB_INTERFACE_CLASS =
 bool __SKX_WinHook_InstallInputHooks  (HWND hWnd);
 int  SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
 void SK_ScePad_PaceMaker              (void);
+
+void SK_HID_ProcessGamepadButtonBindings (void);
+
+extern HidD_GetAttributes_pfn SK_HidD_GetAttributes;
 
 #endif /* __SK__INPUT_H__ */

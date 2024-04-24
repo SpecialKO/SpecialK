@@ -98,14 +98,6 @@ volatile HANDLE hMapShared                   = INVALID_HANDLE_VALUE;
 volatile HANDLE hMapRecords                  = INVALID_HANDLE_VALUE;
          HANDLE hWhitelistChangeNotification = INVALID_HANDLE_VALUE;
 
-
-extern void SK_Process_Snapshot    (void);
-extern bool SK_Process_IsSuspended (DWORD dwPid);
-extern bool SK_Process_Suspend     (DWORD dwPid);
-extern bool SK_Process_Resume      (DWORD dwPid);
-
-extern volatile LONG  __SK_HookContextOwner;
-
 SK_InjectionRecord_s* __stdcall  SK_Inject_GetRecord32      (DWORD dwPid);
 SK_InjectionRecord_s* __stdcall  SK_Inject_GetRecord32ByIdx (int   idx);
 
@@ -202,8 +194,6 @@ SK_Inject_AuditRecord ( DWORD                 dwPid,
          __SK_InjectionHistory [idx].platform.steam_appid = __SK_InjectionHistory_AppId  [idx];
 
 #ifndef _M_AMD64
-        extern LPVOID SK_Inject_GetViewOf32BitRecords (void);
-
         auto   *pRecords = (SK_InjectionRecord_s *)SK_Inject_GetViewOf32BitRecords ();
         memcpy (pRecords, __SK_InjectionHistory, sizeof (__SK_InjectionHistory));
 #endif

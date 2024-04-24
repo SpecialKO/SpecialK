@@ -554,9 +554,6 @@ window_t
 SK_FindRootWindow (DWORD proc_id);
 
 bool
-SK_Window_HasBorder (HWND hWnd = game_window.hWnd);
-
-bool
 SK_Window_IsFullscreen (HWND hWnd = game_window.hWnd);
 
 
@@ -832,7 +829,9 @@ bool
     EqualRect (&rectGame, &rectIntersect);
 };
 
-void SK_Window_RemoveBorders (void);
+bool SK_Window_HasBorder      (HWND hWnd = game_window.hWnd);
+void SK_Window_RemoveBorders  (void);
+void SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx);
 
 bool SK_Win32_IsDummyWindowClass      (HWND hWnd);
 void SK_Win32_DestroyBackgroundWindow (void);
@@ -845,6 +844,7 @@ void        SK_Win32_CreateBackgroundWindow     (void);
 void        SK_Window_CreateTopMostFixupThread  (void);
 bool        SK_Window_OnFocusChange             ( HWND hWndNewTarget,
                                                   HWND hWndOld );
+bool        SK_Window_DeactivateCursor          (bool ignore_imgui = false);
 BOOL WINAPI SK_GetGUIThreadInfo                 (DWORD, PGUITHREADINFO);
 
 bool SK_IsRectTooSmall        (RECT* lpRect0, RECT* lpRect1);

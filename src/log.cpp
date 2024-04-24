@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -346,9 +346,6 @@ SK_OutputDebugStringA (const char *szOutput)
 
   RtlRaiseException (&DebugOutputException);
 }
-#else
-extern void WINAPI SK_OutputDebugStringW (LPCWSTR lpOutputString);
-extern void WINAPI SK_OutputDebugStringA (LPCSTR  lpOutputString);
 #endif
 
 __declspec(nothrow)

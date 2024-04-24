@@ -2541,9 +2541,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
               SK_D3D12_WriteResources ();
 
   SK_D3D12_CommitUploadQueue (pCommandList);
-
-  extern DWORD SK_ImGui_DrawFrame ( DWORD dwFlags, void* user    );
-               SK_ImGui_DrawFrame (       0x00,          nullptr );
+  SK_ImGui_DrawFrame         (0x00,nullptr);
 
   // Queue-up Post-SK OSD Screenshots  (If done here, will not include ReShade)
   SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::PrePresent, rb);

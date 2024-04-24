@@ -154,6 +154,8 @@ void __stdcall SK_InitCore     (const wchar_t* backend, void* callback);
 bool __stdcall SK_StartupCore  (const wchar_t* backend, void* callback);
 bool __stdcall SK_ShutdownCore (const wchar_t* backend);
 
+std::string SK_GetFriendlyAppName (void);
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -216,6 +218,8 @@ void
 __stdcall   SK_ImGui_DrawEULA      (LPVOID reserved);
 bool        SK_ImGui_IsEULAVisible (void);
 
+void SK_Battery_UpdateRemainingPowerForAllDevices (void);
+
 HANDLE
 WINAPI
 SK_CreateEvent (
@@ -230,5 +234,13 @@ SK_SetThreadIdealProcessor (
   HANDLE hThread,
   DWORD  dwIdealProcessor
 );
+
+void
+SK_ImGui_User_NewFrame (void);
+
+SK_API
+DWORD
+SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
+                                              LPVOID lpUser );
 
 #endif /* __SK__CORE_H__ */

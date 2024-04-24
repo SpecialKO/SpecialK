@@ -41,9 +41,6 @@
 
 bool running_on_12 = false;
 
-extern void
-SK_ImGui_User_NewFrame (void);
-
 // Data
 static ImGuiMouseCursor         g_LastMouseCursor       = ImGuiMouseCursor_COUNT;
 static bool                     g_HasGamepad            = false;
@@ -688,9 +685,6 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
             static_cast <LONG> (clip_min.x), static_cast <LONG> (clip_min.y),
             static_cast <LONG> (clip_max.x), static_cast <LONG> (clip_max.y)
           };
-
-          extern ID3D11ShaderResourceView*
-            SK_HDR_GetUnderlayResourceView (void);
 
           ID3D11ShaderResourceView* views [2] =
           {
@@ -1978,12 +1972,7 @@ SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
 
     frames_.clear         ();
 
-    void
-    SK_HDR_ReleaseResources (void);
-    SK_HDR_ReleaseResources ();
-
-    void
-    SK_DXGI_ReleaseSRGBLinearizer (void);
+    SK_HDR_ReleaseResources       ();
     SK_DXGI_ReleaseSRGBLinearizer ();
 
     ImGui_ImplDX11_InvalidateDeviceObjects ();
@@ -2008,13 +1997,10 @@ SK_D3D11_RenderCtx::FrameCtx::~FrameCtx (void)
 
 #include <SpecialK/nvapi.h>
 
-extern volatile LONG __SK_NVAPI_UpdateGSync;
-
 //extern D3D11_PSSetSamplers_pfn D3D11_PSSetSamplers_Original;
 
 void  SK_HDR_SnapshotSwapchain (void);
 bool  ImGui_DX11Startup        (IDXGISwapChain* pSwapChain);
-DWORD SK_ImGui_DrawFrame       (DWORD dwFlags, void* user);
 
 void
 SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)

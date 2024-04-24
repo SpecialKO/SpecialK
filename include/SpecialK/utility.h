@@ -1384,5 +1384,7 @@ void SK_Win32_NotifyHWND_A (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 void SK_WinSock_GoOffline (void);
 
+std::string SK_CountToString (uint64_t count);
+
 #endif /* __SK__UTILITY_H__ */
 

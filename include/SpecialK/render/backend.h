@@ -806,17 +806,27 @@ bool SK_RenderBackendUtil_IsFullscreen          (void);
 void SK_D3D_SetupShaderCompiler                 (void);
 void SK_Display_DisableDPIScaling               (void);
 DPI_AWARENESS SK_GetThreadDpiAwareness          (void);
+bool SK_Display_IsDPIAwarenessUsingAppCompat    (void);
 void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
 void SK_Display_SetMonitorDPIAwareness          (bool bOnlyIfWin10);
 bool SK_Display_ApplyDesktopResolution          (MONITORINFOEX& mi);
 void SK_Display_ResolutionSelectUI              (bool bMarkDirty = false);
 void SK_Display_EnableHDR                       (SK_RenderBackend_V2::output_s *pDisplay);
+void SK_HDR_UpdateMaxLuminanceForActiveDisplay  (bool forced = false);
+
+extern bool SK_HDR_PromoteUAVsTo16Bit;
+
+extern ID3D11ShaderResourceView*
+ SK_HDR_GetUnderlayResourceView (void);
 
 interface
 SK_ICommandProcessor;
 SK_ICommandProcessor*
      SK_Render_InitializeSharedCVars   (void);
 void SK_Display_HookModeChangeAPIs     (void);
+
+extern DWORD        __stdcall HookD3D11 (LPVOID user);
+extern unsigned int __stdcall HookD3D12 (LPVOID user);
 
 HMODULE
 SK_D3D_GetShaderCompiler (void);
@@ -880,5 +890,7 @@ bool __stdcall SK_DXVK_CheckForInterop (void);
 extern int  SK_GL_ContextCount;
 extern bool SK_GL_OnD3D11;
 extern bool SK_GL_OnD3D11_Reset; // This one especially, this has a signal
+
+extern volatile LONG __SK_NVAPI_UpdateGSync;
 
 #endif /* __SK__RENDER_BACKEND__H__ */

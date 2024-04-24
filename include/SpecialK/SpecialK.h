@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -63,5 +63,7 @@
 #define SK_GetVersionStr SK_GetVersionStrW
 const wchar_t* __stdcall SK_GetVersionStrW (void) noexcept;
 const char*    __stdcall SK_GetVersionStrA (void) noexcept;
+
+extern volatile LONG  __SK_HookContextOwner;
 
 #endif /* __SK__SPECIALK_H__ */

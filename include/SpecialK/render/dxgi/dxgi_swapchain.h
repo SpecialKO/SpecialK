@@ -394,5 +394,13 @@ IWrapDXGISwapChain : IDXGISwapChain4
   HRESULT                 RegisterDestructionCallback (void);
 };
 
+bool SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept;
+void ResetImGui_D3D12        (IDXGISwapChain *This);
+void ResetImGui_D3D11        (IDXGISwapChain *This);
+
+extern SetFullscreenState_pfn SetFullscreenState_Original;
+extern ResizeTarget_pfn       ResizeTarget_Original;
+extern ResizeBuffers_pfn      ResizeBuffers_Original;
+
 
 #endif /* __SK__DXGI_SWAPCHAIN_H__ */

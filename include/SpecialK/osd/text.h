@@ -167,4 +167,6 @@ public:
   bool OnVarChange (SK_IVariable* var, void* val = nullptr) override;
 };
 
+ImFont* SK_ImGui_GetFont_Consolas (void);
+
 #endif /* __SK__OSD_TEXT_H__ */

@@ -871,4 +871,12 @@ extern SK_LazyGlobal <
   concurrency::concurrent_unordered_set <DWORD>
 > _SK_SelfTitledThreads;
 
+void SK_Process_Snapshot    (void);
+bool SK_Process_IsSuspended (DWORD dwPid);
+bool SK_Process_Suspend     (DWORD dwPid);
+bool SK_Process_Resume      (DWORD dwPid);
+
+void WINAPI SK_OutputDebugStringW (LPCWSTR lpOutputString);
+void WINAPI SK_OutputDebugStringA (LPCSTR  lpOutputString);
+
 #endif /* __SK__DEBUG_UTILS_H__ */

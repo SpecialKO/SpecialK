@@ -679,9 +679,7 @@ SK_D3D12_Screenshot::SK_D3D12_Screenshot ( const SK_ComPtr <ID3D12Device>&      
     }
   }
 
-
-  extern void SK_Steam_CatastropicScreenshotFail (void);
-              SK_Steam_CatastropicScreenshotFail ();
+  SK_Steam_CatastropicScreenshotFail ();
 
   // Something went wrong, crap!
   dispose ();
@@ -1217,11 +1215,8 @@ SK_D3D12_Screenshot::getData ( UINT* const pWidth,
                              false         );
 }
 
-
-extern volatile LONG __SK_ScreenShot_CapturingHUDless;
-
-volatile LONG __SK_D3D12_QueuedShots           = 0;
-volatile LONG __SK_D3D12_InitiateHudFreeShot   = 0;
+volatile LONG __SK_D3D12_QueuedShots         = 0;
+volatile LONG __SK_D3D12_InitiateHudFreeShot = 0;
 
 SK_LazyGlobal <concurrency::concurrent_queue <SK_D3D12_Screenshot *>> screenshot_queue;
 SK_LazyGlobal <concurrency::concurrent_queue <SK_D3D12_Screenshot *>> screenshot_write_queue;
@@ -2621,7 +2616,6 @@ SK_D3D12_WaitOnAllScreenshots (void)
 
 void SK_Screenshot_D3D12_EndFrame (void)
 {
-  extern bool   SK_D3D12_ShouldSkipHUD (void);
   std::ignore = SK_D3D12_ShouldSkipHUD (    );
 
   if (InterlockedCompareExchange (&__SK_D3D12_InitiateHudFreeShot, 0, -1) == -1)

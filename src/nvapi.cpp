@@ -21,7 +21,6 @@
 
 #include <SpecialK/stdafx.h>
 
-
 #include <SpecialK/nvapi.h>
 #include <nvapi/NvApiDriverSettings.h>
 
@@ -1625,8 +1624,6 @@ SK_NvAPI_PreInitHDR (void)
     }
   }
 }
-
-extern SK_LazyGlobal <SK_AppCache_Manager> app_cache_mgr;
 
 BOOL
 NVAPI::InitializeLibrary (const wchar_t* wszAppName)

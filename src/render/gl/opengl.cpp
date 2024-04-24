@@ -43,19 +43,20 @@
 
 // For OpenGL-IK
 #include <SpecialK/render/dxgi/dxgi_util.h>
+#include <SpecialK/render/dxgi/dxgi_hdr.h>
 
 #include <SpecialK/render/gl/opengl_backend.h>
 #include <imgui/backends/imgui_gl3.h>
 #include <../depends/include/GL/glew.h>
 #include <../depends/include/GL/wglew.h>
-extern DWORD SK_ImGui_DrawFrame (DWORD dwFlags, void* user);
+#include <imgui/imgui.h>
 
 //SK_OpenGL_KnownPrograms SK_GL_Programs;
 //SK_OpenGL_KnownTextures SK_GL_Textures;
 //SK_OpenGL_KnownBuffers  SK_GL_Buffers;
 
 SK_Thread_HybridSpinlock *cs_gl_ctx = nullptr;
-HGLRC                             __gl_primary_context = nullptr;
+HGLRC          __gl_primary_context = nullptr;
 
 SK_LazyGlobal <std::unordered_map <HGLRC, HGLRC>> __gl_shared_contexts;
 SK_LazyGlobal <std::unordered_map <HGLRC, BOOL>>  init_;
@@ -74,16 +75,8 @@ bool SK_GL_OnD3D11_Reset = false;
 unsigned int SK_GL_SwapHook = 0;
 volatile LONG __gl_ready = FALSE;
 
-
-extern bool __SK_HDR_10BitSwap;
-extern bool __SK_HDR_16BitSwap;
-extern BOOL SK_DXGI_ZeroCopy;
-
-
 void __stdcall
 SK_GL_UpdateRenderStats (void);
-
-extern "C++" int SK_Steam_DrawOSD (void);
 
 using wglGetProcAddress_pfn = PROC (WINAPI *)(LPCSTR);
       wglGetProcAddress_pfn
@@ -3416,9 +3409,6 @@ SK_GL_UpdateRenderStats (void)
     }
   }
 }
-
-extern std::string
-SK_CountToString (uint64_t count);
 
 std::string
 SK::OpenGL::getPipelineStatsDesc (void)

@@ -9554,9 +9554,6 @@ HookDXGI (LPVOID user)
   return 0;
 }
 
-
-extern bool WINAPI SK_DS3_ShutdownPlugin (const wchar_t* backend);
-
 bool
 SK::DXGI::Shutdown (void)
 {

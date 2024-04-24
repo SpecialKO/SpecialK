@@ -3494,8 +3494,6 @@ SK_Window_RepositionIfNeeded (void)
           config.window.fullscreen = _configFullscreen;
           config.window.center     = _configCenter;
 
-          extern volatile LONG lResetD3D11;
-
           // Client rect changed, we probably want to reset our render context to
           //   accommodate the new internal resolution
           if (! EqualRect (&rcClientOrig, &game_window.actual.client))
@@ -3555,9 +3553,6 @@ SK_Window_RepositionIfNeeded (void)
 
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
-
-extern volatile LONG lResetD3D12;
-extern volatile LONG lResetD3D11;
 
 void
 SK_AdjustClipRect (void)
@@ -5348,9 +5343,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     }
   }
 
-
-  //extern bool SK_ImGui_WantExit;
-
   // HDR caps, Refresh Rate and Display Mode may have changed,
   //   let's try to be smart about this (for a change)...
   if ( uMsg == WM_DISPLAYCHANGE ||
@@ -6688,8 +6680,6 @@ SK_InstallWindowHook (HWND hWnd)
   // Not sure why this was conditional upon 1 frame drawn, but NOT
   //   continuing beyond this point w/ no frames drawn will crash Disgaea PC
 #if 0
-  extern bool
-         SK_GL_OnD3D11;
   if ((! SK_GL_OnD3D11) && (! SK_GetFramesDrawn ()))
     return;
 #endif
