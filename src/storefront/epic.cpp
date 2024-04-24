@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -30,28 +30,58 @@
 #endif
 #define __SK_SUBSYSTEM__ L"EpicOnline"
 
+static void *g_EOSAchievements = nullptr;
+
 class SK_EOS_AchievementManager : public SK_AchievementManager
 {
 public:
   void unlock (const char* szAchievement)
   {
-    std::ignore = szAchievement;
+    if (g_EOSAchievements == nullptr)
+        g_EOSAchievements = this;
 
-    if (config.platform.achievements.play_sound && (! unlock_sound.empty ()))
+    for (uint32 i = 0; i < SK_EOS_GetNumPossibleAchievements (); i++)
     {
-      SK_PlaySound ( (LPCWSTR)unlock_sound.data (),
-                               nullptr, SND_ASYNC |
-                                        SND_MEMORY );
-    }
+      const Achievement* achievement =
+                         achievements.list [i];
 
-    // If the user wants a screenshot, but no popups (why?!), this is when
-    //   the screenshot needs to be taken.
-    if (       config.platform.achievements.take_screenshot )
-    {
-      SK::SteamAPI::TakeScreenshot ();
-    }
+      if (achievement == nullptr || achievement->name_.empty ())
+        continue;
 
-    log_all_achievements ();
+      if (! _stricmp (achievement->name_.c_str (), szAchievement))
+      {
+        SK_Thread_CreateEx ([](LPVOID pUser)->DWORD
+        {
+          std::wstring* pwszName = (std::wstring *)pUser;
+
+          SK_SleepEx (3333UL, FALSE);
+
+          if (config.platform.achievements.play_sound && (! ((SK_EOS_AchievementManager *)g_EOSAchievements)->unlock_sound.empty ()))
+          {
+            SK_PlaySound ( (LPCWSTR)((SK_EOS_AchievementManager *)g_EOSAchievements)->unlock_sound.data (),
+                                     nullptr, SND_ASYNC |
+                                              SND_MEMORY );
+          }
+
+          // If the user wants a screenshot, but no popups (why?!), this is when
+          //   the screenshot needs to be taken.
+          if (config.platform.achievements.take_screenshot)
+          {
+            SK::SteamAPI::TakeScreenshot (
+              SK_ScreenshotStage::EndOfFrame, true,
+                SK_WideCharToUTF8 (pwszName->c_str ())
+            );
+          }
+
+          ((SK_EOS_AchievementManager *)g_EOSAchievements)->log_all_achievements ();
+
+          SK_Thread_CloseSelf ();
+
+          return 0;
+        }, L"[SK] EOS Delayed Achievement Screenshot", (LPVOID)&achievement->text_.unlocked.human_name);
+        break;
+      }
+    }
   }
 
   void log_all_achievements (void) const
