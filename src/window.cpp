@@ -7671,8 +7671,6 @@ SK_SetWindowPos ( HWND hWnd,
 }
 
 HWND SK_Win32_BackgroundHWND = HWND_DESKTOP;
-void SK_Win32_BringBackgroundWindowToTop (void);
-
 
 void
 SK_Win32_DestroyBackgroundWindow (void)

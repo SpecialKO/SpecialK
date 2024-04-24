@@ -50,6 +50,7 @@
 #include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/dxgi/dxgi_util.h>
 #include <SpecialK/render/dxgi/dxgi_hdr.h>
+#include <SpecialK/render/d3d9/d3d9_backend.h>
 
 #include <imgui/font_awesome.h>
 
@@ -129,9 +130,6 @@ SK_API
 void
 SK_ImGui_Toggle (void);
 
-extern bool __stdcall SK_FAR_IsPlugIn      (void);
-extern void __stdcall SK_FAR_ControlPanel  (void);
-
 std::string
 SK_NvAPI_GetGPUInfoStr (void);
 
@@ -190,9 +188,6 @@ UINT SK_DPI_Update (void)
 
   if (GetDpiForSystem != nullptr)
   {
-    extern float
-      g_fDPIScale;
-
     UINT dpi = ( GetDpiForWindow != nullptr &&
                         IsWindow (game_window.hWnd) ) ?
                  GetDpiForWindow (game_window.hWnd)   :
@@ -211,12 +206,9 @@ UINT SK_DPI_Update (void)
     _uiDPI;
 };
 
-extern void __stdcall SK_ImGui_DrawEULA (LPVOID reserved);
-       bool IMGUI_API SK_ImGui_Visible          = false;
-       bool           SK_ImGuiEx_Visible        = false;
-       bool           SK_ControlPanel_Activated = false;
-
-extern void ImGui_ToggleCursor (void);
+bool IMGUI_API SK_ImGui_Visible          = false;
+bool           SK_ImGuiEx_Visible        = false;
+bool           SK_ControlPanel_Activated = false;
 
 bool SK_ImGui_WantExit    = false;
 bool SK_ImGui_WantRestart = false;
@@ -491,8 +483,6 @@ SK_ImGui_SetNextWindowPosCenter (ImGuiCond cond)
 void
 SK_ImGui_ProcessWarnings (void)
 {
-  extern bool
-      SK_ImGui_IsEULAVisible (void);
   if (SK_ImGui_IsEULAVisible ())
     return;
 
@@ -820,8 +810,6 @@ SK_ImGui_ControlPanelTitle (void)
   }
 
   title += "  Control Panel";
-
-  extern __time64_t __SK_DLL_AttachTime;
 
   __time64_t now     = 0ULL;
    _time64 (&now);
@@ -1465,8 +1453,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       {
         if (rb.fullscreen_exclusive)
         {
-          extern void SK_D3D9_TriggerReset (bool);
-                      SK_D3D9_TriggerReset (false);
+          SK_D3D9_TriggerReset (false);
         }
 
         else // User should not even see this menu in windowed...
@@ -2256,8 +2243,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
           MAKELPARAM (config.window.res.override.x, config.window.res.override.y)
                     );
 
-        extern void SK_Win32_BringBackgroundWindowToTop (void);
-                    SK_Win32_BringBackgroundWindowToTop ();
+        SK_Win32_BringBackgroundWindowToTop ();
       }
 
       SK_ImGui_AdjustCursor ();
@@ -3048,16 +3034,6 @@ DisplayModeMenu (bool windowed)
   }
 }
 
-
-extern float __target_fps;
-extern float __target_fps_bg;
-
-extern void SK_ImGui_DrawGraph_FramePacing (void);
-extern void SK_ImGui_DrawGraph_Latency     (bool predraw);
-extern void SK_ImGui_DrawConfig_Latency    (void);
-
-extern void SK_Framerate_EnergyControlPanel (void);
-
 void
 SK_NV_LatencyControlPanel (void)
 {
@@ -3502,8 +3478,6 @@ SK_ImGui_ControlPanel (void)
 
         if ((! SK_IsInjected ()) || SK_Inject_IsHookActive ())
         {
-          extern bool
-              SK_CanRestartGame (void);
           if (SK_CanRestartGame () && ImGui::MenuItem ("Restart Game##RestartGame"))
           {
             SK_ImGui_WantRestart = true;
@@ -3956,8 +3930,6 @@ SK_ImGui_ControlPanel (void)
 
           if (ImGui::Checkbox ("Enable HDR###EnableHDRUsingCPL", &bEnabled))
           {
-            extern void
-            SK_Display_EnableHDR (SK_RenderBackend_V2::output_s *pDisplay);
             SK_Display_EnableHDR (&rb.displays [rb.active_display]);
 
             hdr_toggled = true;
@@ -4416,10 +4388,6 @@ SK_ImGui_ControlPanel (void)
 
         if (sk::NVAPI::nv_hardware)
         {
-          extern INT  SK_NvAPI_GetAnselEnablement (DLL_ROLE role);
-          extern BOOL SK_NvAPI_EnableAnsel        (DLL_ROLE role);
-          extern BOOL SK_NvAPI_DisableAnsel       (DLL_ROLE role);
-
           static INT enablement =
             SK_NvAPI_GetAnselEnablement (SK_GetDLLRole ());
 
@@ -5265,14 +5233,12 @@ SK_ImGui_ControlPanel (void)
     {
       case SK_GAME_ID::GalGun_Double_Peace:
       {
-        extern bool SK_GalGun_PlugInCfg (void);
-                    SK_GalGun_PlugInCfg ();
+        SK_GalGun_PlugInCfg ();
       } break;
 
       case SK_GAME_ID::FarCry6:
       {
-        extern bool SK_FarCry6_PlugInCfg (void);
-                    SK_FarCry6_PlugInCfg ();
+        SK_FarCry6_PlugInCfg ();
       } break;
     };
 
@@ -5998,8 +5964,7 @@ SK_ImGui_ControlPanel (void)
             //{
             //
             //}
-            extern void SK_ImGui_LatentSyncConfig (void);
-                        SK_ImGui_LatentSyncConfig ();
+            SK_ImGui_LatentSyncConfig ();
 
             ImGui::EndPopup     ();
           }
@@ -7319,8 +7284,7 @@ SK_ImGui_StageNextFrame (void)
 
   if (config.render.framerate.latent_sync.show_fcat_bars)
   {
-    extern void SK_ImGui_DrawFCAT (void);
-                SK_ImGui_DrawFCAT ();
+    SK_ImGui_DrawFCAT ();
   }
 
   static auto widgets =
@@ -8298,11 +8262,6 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
 
   return 0;
 }
-
-extern bool SK_IsRectTooSmall (RECT* lpRect0, RECT* lpRect1);
-
-extern RECT SK_Input_SaveClipRect    (RECT *pSave = nullptr);
-extern RECT SK_Input_RestoreClipRect (void);
 
 SK_API
 void

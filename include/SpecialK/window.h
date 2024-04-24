@@ -840,11 +840,17 @@ void SK_Win32_DestroyBackgroundWindow (void);
 bool WINAPI SK_IsRectZero     (_In_ const    RECT *lpRect);
 bool WINAPI SK_IsRectInfinite (_In_ const tagRECT *lpRect);
 
-void        SK_Win32_CreateBackgroundWindow    (void);
-void        SK_Window_CreateTopMostFixupThread (void);
-bool        SK_Window_OnFocusChange            ( HWND hWndNewTarget,
-                                                 HWND hWndOld );
-BOOL WINAPI SK_GetGUIThreadInfo                (DWORD, PGUITHREADINFO);
+void        SK_Win32_BringBackgroundWindowToTop (void);
+void        SK_Win32_CreateBackgroundWindow     (void);
+void        SK_Window_CreateTopMostFixupThread  (void);
+bool        SK_Window_OnFocusChange             ( HWND hWndNewTarget,
+                                                  HWND hWndOld );
+BOOL WINAPI SK_GetGUIThreadInfo                 (DWORD, PGUITHREADINFO);
+
+bool SK_IsRectTooSmall        (RECT* lpRect0, RECT* lpRect1);
+RECT SK_Input_SaveClipRect    (RECT *pSave = nullptr);
+RECT SK_Input_RestoreClipRect (void);
+
 
 LRESULT WINAPI SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, LPARAM lParam);
 

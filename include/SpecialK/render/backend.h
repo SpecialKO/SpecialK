@@ -810,6 +810,7 @@ void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
 void SK_Display_SetMonitorDPIAwareness          (bool bOnlyIfWin10);
 bool SK_Display_ApplyDesktopResolution          (MONITORINFOEX& mi);
 void SK_Display_ResolutionSelectUI              (bool bMarkDirty = false);
+void SK_Display_EnableHDR                       (SK_RenderBackend_V2::output_s *pDisplay);
 
 interface
 SK_ICommandProcessor;

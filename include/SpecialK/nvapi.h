@@ -233,6 +233,7 @@ NVAPI_INTERFACE SK_NvAPI_D3D_IsGSyncActive           (__in IUnknown          *pD
 void           SK_NvAPI_PreInitHDR         (void);
 bool           SK_NvAPI_InitializeHDR      (void);
 
+INT            SK_NvAPI_GetAnselEnablement (DLL_ROLE role);
 BOOL           SK_NvAPI_EnableAnsel        (DLL_ROLE role);
 BOOL           SK_NvAPI_DisableAnsel       (DLL_ROLE role);
 

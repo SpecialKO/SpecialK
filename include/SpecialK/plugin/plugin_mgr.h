@@ -164,12 +164,17 @@ void SK_FF7R_InitPlugin            (void);
 void SK_Sekiro_InitPlugin          (void);
 void SK_FFXV_InitPlugin            (void);
 void SK_FFXV_SetupThreadPriorities (void);
+bool SK_GalGun_PlugInCfg           (void);
+bool SK_FarCry6_PlugInCfg          (void);
 
 void SK_SO2R_InitPlugin            (void);
 bool SK_SO2R_PlugInCfg             (void);
 bool SK_SO2R_DrawHandler           (ID3D11DeviceContext *pDevCtx, uint32_t current_ps, int num_verts);
 
 void SK_MHW_PlugIn_Shutdown (void);
+
+bool __stdcall SK_FAR_IsPlugIn      (void);
+void __stdcall SK_FAR_ControlPanel  (void);
 
 extern volatile LONG  __SK_SHENMUE_FinishedButNotPresented;
 

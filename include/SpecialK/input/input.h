@@ -1215,6 +1215,7 @@ void SK_AdjustClipRect (void);
 int WINAPI SK_ShowCursor (BOOL bShow);
 
 bool SK_ImGui_IsMouseRelevant       (void);
+void ImGui_ToggleCursor             (void);
 bool SK_InputUtil_IsHWCursorVisible (void);
 bool SK_Window_IsCursorActive       (void);
 

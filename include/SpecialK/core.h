@@ -130,10 +130,13 @@ BOOL __stdcall SK_EstablishDllRole    ( skWin32Module&& module );
 
 extern HMODULE                  backend_dll;
 
-extern          __time64_t __SK_DLL_AttachTime;
-extern          HANDLE     __SK_DLL_TeardownEvent;
-extern volatile LONG       __SK_DLL_Ending;
-extern volatile LONGLONG   SK_SteamAPI_CallbackRunCount;
+extern volatile LONG            __SK_Init;
+extern volatile LONG            __SK_DLL_Refs;
+extern volatile LONG            __SK_DLL_Attached;
+extern          __time64_t      __SK_DLL_AttachTime;
+extern          HANDLE          __SK_DLL_TeardownEvent;
+extern volatile LONG            __SK_DLL_Ending;
+extern volatile LONGLONG        SK_SteamAPI_CallbackRunCount;
 
 extern void SK_DS3_InitPlugin    (void);
 extern void SK_REASON_InitPlugin (void);
@@ -177,6 +180,7 @@ void           __cdecl   SK_SetDLLRole        (DLL_ROLE role);
 bool           __cdecl   SK_IsHostAppSKIM     (void);
 bool           __stdcall SK_IsInjected        (bool set = false) noexcept;
 bool           __stdcall SK_HasGlobalInjector (void);
+bool                     SK_CanRestartGame    (void);
 
 
 extern SK_LazyGlobal <iSK_Logger> dll_log;
@@ -204,15 +208,13 @@ void __stdcall SK_StartPerfMonThreads (void);
 //
 void SK_FetchBuiltinSounds (void);
 
-extern volatile LONG __SK_DLL_Ending;
-extern volatile LONG __SK_DLL_Attached;
-extern volatile LONG __SK_DLL_Refs;
-
-extern volatile LONG __SK_Init;
 extern BOOL          __SK_DisableQuickHook;
 
 void        SK_ImGui_Init (void);
 extern bool SK_ImGui_WantExit;
+void
+__stdcall   SK_ImGui_DrawEULA      (LPVOID reserved);
+bool        SK_ImGui_IsEULAVisible (void);
 
 HANDLE
 WINAPI
