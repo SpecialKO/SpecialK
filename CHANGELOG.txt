@@ -1,4 +1,9 @@
-﻿24.4.24.1
+﻿24.4.24.2
+=========
+ + Added bulletpoint explaining why some DualShock4 / DualSense features
+     no longer work over Bluetooth.
+
+24.4.24.1
 =========
  + Do not use haptics or LEDs on Bluetooth PlayStation controllers until a
      game first uses rumble, or if the controller is already in

@@ -1546,7 +1546,7 @@ SK::ControlPanel::Input::Draw (void)
           ImGui::Separator  (  );
           ImGui::BeginGroup (  );
 
-          if (bDualSense)
+          if (bDualSense && ((! bHasBluetooth) || (! bHasSimpleBluetooth) || bHasNonBluetooth))
             ImGui::Checkbox ("Apply Mute Button to -Game-", &config.input.gamepad.scepad.mute_applies_to_game);
 
           ImGui::EndGroup   ();
@@ -1631,8 +1631,8 @@ SK::ControlPanel::Input::Draw (void)
 
             ImGui::EndGroup ();
           }
-          
-          if (bDualSense || bDualShock4)
+
+          if ((bDualSense || bDualShock4) && ((! bHasBluetooth) || (! bHasSimpleBluetooth) || bHasNonBluetooth))
           {
             ImGui::SameLine    ();
             ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
@@ -1701,18 +1701,18 @@ SK::ControlPanel::Input::Draw (void)
             }
             ImGui::EndGroup ();
 
-            if (bHasBluetooth && bHasSimpleBluetooth && (! bHasNonBluetooth))
-            {
-              if (ImGui::IsItemHovered ())
-              {
-                ImGui::BeginTooltip    ();
-                ImGui::TextUnformatted ("Bluetooth Compatibility Mode is Active");
-                ImGui::Separator       ();
-                ImGui::BulletText      ("RGB Overrides may only apply after a game triggers rumble, or if you use USB.");
-                ImGui::BulletText      ("This avoids changing your Bluetooth controller from DualShock3 mode to DualShock4/DualSense in games that do not use DualShock4+ features.");
-                ImGui::EndTooltip      ();
-              }
-            }
+            ///if (bHasBluetooth && bHasSimpleBluetooth && (! bHasNonBluetooth))
+            ///{
+            ///  if (ImGui::IsItemHovered ())
+            ///  {
+            ///    ImGui::BeginTooltip    ();
+            ///    ImGui::TextUnformatted ("Bluetooth Compatibility Mode is Active");
+            ///    ImGui::Separator       ();
+            ///    ImGui::BulletText      ("RGB Overrides may only apply after a game triggers rumble, or if you use USB.");
+            ///    ImGui::BulletText      ("This avoids changing your Bluetooth controller from DualShock3 mode to DualShock4/DualSense in games that do not use DualShock4+ features.");
+            ///    ImGui::EndTooltip      ();
+            ///  }
+            ///}
 
 #if 0
             bool changed =
@@ -1762,6 +1762,15 @@ SK::ControlPanel::Input::Draw (void)
 #endif
 
             ImGui::EndGroup   ();
+          }
+
+          else
+          {
+            ImGui::SameLine ();
+            ImGui::BulletText (ICON_FA_BLUETOOTH " Compatibility Mode: Features newer than DualShock 3 are unusable.");
+
+            if (ImGui::IsItemHovered ())
+              ImGui::SetTooltip ("Plug your controller in, or trigger rumble in-game to put the Bluetooth controller into DualShock 4 / DualSense mode.");
           }
 
 #if 0
