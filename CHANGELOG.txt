@@ -1,7 +1,12 @@
-﻿24.4.23.4
+﻿24.4.23.5
+=========
+ + Prevent setting LED color in DualShock 3 Bluetooth Compatibility mode on
+     DualShock 4 controllers.
+
+24.4.23.4
 =========
  + Slim down NVSDK_NGX_Parameter_GetI_Detour hook, it does not work correctly
-     for DLSS resolution scaling
+     for DLSS resolution scaling.
  + Prevent crashing if DLSS text OSD is enabled, but game has not yet
      fully initialized DLSS.
 

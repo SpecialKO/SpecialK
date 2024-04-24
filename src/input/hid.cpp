@@ -5514,6 +5514,21 @@ SK_HID_PlayStationDevice::write_output_report (void)
             continue;
           }
 
+          if (pDevice->bBluetooth)
+          {
+            // Prevent changing the protocol of Bluetooth-paired PlayStation controllers
+            while (config.input.gamepad.bt_input_only)
+            {
+              if ( WAIT_OBJECT_0 ==
+                     WaitForSingleObject (__SK_DLL_TeardownEvent, 1000UL) )
+              {
+                TerminateThread (GetCurrentThread (), 0x0);
+
+                return 0;
+              }
+            }
+          }
+
           ZeroMemory ( pDevice->output_report.data (),
                        pDevice->output_report.size () );
 
