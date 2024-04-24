@@ -753,6 +753,96 @@ SK::ControlPanel::Input::Draw (void)
     bool uncollapsed_gamepads =
       ImGui::CollapsingHeader ("Gamepad", ImGuiTreeNodeFlags_AllowOverlap);
 
+    bool hooks_changed = false;
+
+    if (config.input.gamepad.hook_hid == false)
+    {
+      ImGui::SameLine        (    );
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+
+      if (ImGui::Checkbox ("Hook HID", &config.input.gamepad.hook_hid))
+      {
+        hooks_changed = true;
+      }
+    }
+
+    if (config.input.gamepad.hook_dinput8 == false)
+    {
+      ImGui::SameLine        (    );
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+
+      if (ImGui::Checkbox ("Hook DirectInput 8", &config.input.gamepad.hook_dinput8))
+      {
+        hooks_changed = true;
+      }
+    }
+
+    if (config.input.gamepad.hook_raw_input == false)
+    {
+      ImGui::SameLine        (    );
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+
+      if (ImGui::Checkbox ("Hook RawInput", &config.input.gamepad.hook_raw_input))
+      {
+        hooks_changed = true;
+      }
+    }
+
+    if (config.input.gamepad.hook_windows_gaming == false)
+    {
+      ImGui::SameLine        (    );
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+
+      if (ImGui::Checkbox ("Hook Windows.Gaming.Input", &config.input.gamepad.hook_windows_gaming))
+      {
+        hooks_changed = true;
+      }
+    }
+
+    if (config.input.gamepad.hook_winmm == false)
+    {
+      ImGui::SameLine        (    );
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+
+      if (ImGui::Checkbox ("Hook WinMM", &config.input.gamepad.hook_winmm))
+      {
+        hooks_changed = true;
+      }
+    }
+
+    if (config.input.gamepad.hook_xinput == false)
+    {
+      ImGui::SameLine        (    );
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+
+      if (ImGui::Checkbox ("Hook XInput", &config.input.gamepad.hook_xinput))
+      {
+        hooks_changed = true;
+      }
+    }
+
+    static bool restart_required = false;
+
+    if (hooks_changed)
+    {
+      config.utility.save_async ();
+      restart_required = true;
+    }
+
+    if (restart_required)
+    {
+      ImGui::SameLine        (    );
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+      ImGui::BulletText      ("Game Restart Required");
+    }
+
   //SK_ImGui_ProcessGamepadStatusBar (true);
 
     if (uncollapsed_gamepads)
@@ -1639,7 +1729,7 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::EndGroup ();
           }
 
-          if ((bDualSense || bDualShock4) && ((! bHasBluetooth) || (! bHasSimpleBluetooth) || bHasNonBluetooth))
+          if (config.input.gamepad.hook_hid && ((bDualSense || bDualShock4) && ((! bHasBluetooth) || (! bHasSimpleBluetooth) || bHasNonBluetooth)))
           {
             ImGui::SameLine    ();
             ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);

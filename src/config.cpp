@@ -1131,6 +1131,15 @@ struct {
   sk::ParameterInt*       last_known              = nullptr;
 } apis;
 
+bool hook_xinput_orig    = true;
+bool hook_scepad_orig    = true;
+bool hook_wgi_orig       = true;
+bool hook_raw_input_orig = true;
+bool hook_dinput7_orig   = true;
+bool hook_dinput8_orig   = true;
+bool hook_hid_orig       = true;
+bool hook_winmm_orig     = true;
+
 bool
 SK_LoadConfig (const std::wstring& name)
 {
@@ -4301,6 +4310,15 @@ auto DeclKeybind =
   input.gamepad.hook_dinput7->load       (config.input.gamepad.hook_dinput7);
   input.gamepad.hook_hid->load           (config.input.gamepad.hook_hid);
 
+  SK_RunOnce (hook_xinput_orig    = config.input.gamepad.hook_xinput);
+  SK_RunOnce (hook_scepad_orig    = config.input.gamepad.hook_scepad);
+  SK_RunOnce (hook_wgi_orig       = config.input.gamepad.hook_windows_gaming);
+  SK_RunOnce (hook_raw_input_orig = config.input.gamepad.hook_raw_input);
+  SK_RunOnce (hook_dinput7_orig   = config.input.gamepad.hook_dinput7);
+  SK_RunOnce (hook_dinput8_orig   = config.input.gamepad.hook_dinput8);
+  SK_RunOnce (hook_hid_orig       = config.input.gamepad.hook_hid);
+  SK_RunOnce (hook_winmm_orig     = config.input.gamepad.hook_winmm);
+
   input.gamepad.haptic_ui->load          (config.input.gamepad.haptic_ui);
 
   int placeholder_mask;
@@ -5706,6 +5724,25 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.disable_winmm->store          (config.input.gamepad.disable_winmm);
   input.gamepad.rehook_xinput->store          (config.input.gamepad.rehook_xinput);
   input.gamepad.haptic_ui->store              (config.input.gamepad.haptic_ui);
+
+  if (config.input.gamepad.hook_dinput8 != hook_dinput8_orig)
+             input.gamepad.hook_dinput8->store (config.input.gamepad.hook_dinput8);
+  if (config.input.gamepad.hook_dinput7 != hook_dinput7_orig)
+             input.gamepad.hook_dinput7->store (config.input.gamepad.hook_dinput7);
+  if (config.input.gamepad.hook_windows_gaming != hook_wgi_orig)
+             input.gamepad.hook_windows_gaming->
+                                         store (config.input.gamepad.hook_windows_gaming);
+  if (config.input.gamepad.hook_raw_input != hook_raw_input_orig)
+             input.gamepad.hook_raw_input->
+                                         store (config.input.gamepad.hook_raw_input);
+  if (config.input.gamepad.hook_hid != hook_hid_orig)
+             input.gamepad.hook_hid->store     (config.input.gamepad.hook_hid);
+  //if (config.input.gamepad.hook_winmm != hook_winmm_orig)
+  //           input.gamepad.hook_winmm->store     (config.input.gamepad.hook_winmm);
+  if (config.input.gamepad.hook_scepad != hook_scepad_orig)
+             input.gamepad.hook_scepad->store  (config.input.gamepad.hook_scepad);
+  if (config.input.gamepad.hook_xinput != hook_xinput_orig)
+             input.gamepad.hook_xinput->store  (config.input.gamepad.hook_xinput);
 
   int placeholder_mask = 0x0;
 

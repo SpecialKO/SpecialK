@@ -4849,9 +4849,12 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
   if (! bConnected)
     return false;
 
+  if (! config.input.gamepad.hook_hid)
+    return false;
+
   if (bBluetooth)
   {
-    if (config.input.gamepad.bt_input_only || (! config.input.gamepad.hook_hid))
+    if (config.input.gamepad.bt_input_only)
       return false;
 
     if (config.input.gamepad.scepad.enable_full_bluetooth)

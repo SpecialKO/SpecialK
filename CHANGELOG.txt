@@ -1,4 +1,9 @@
-﻿24.4.24.4
+﻿24.4.24.5
+=========
+ + Correctly disable HID output reports for non-Bluetooth devices when
+     HID hooks are disabled.
+
+24.4.24.4
 =========
  + Disable DualShock 4 v2 controllers running in simplified Bluetooth
      mode.
