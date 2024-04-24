@@ -1,7 +1,7 @@
 ﻿24.4.25
 =======
  + Added named achievement screenshots for Epic Game Store games
- + Disabled DirectInput 8 hooks in Yakuza games by default
+ + Disabled SteamAPI integration in Yakuza 0 by default
 
 24.4.24.5
 =========
