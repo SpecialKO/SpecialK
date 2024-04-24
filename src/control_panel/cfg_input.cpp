@@ -134,6 +134,7 @@ SK::ControlPanel::Input::Draw (void)
   bool bHasSimpleBluetooth = false;
   bool bHasBluetooth       = false;
   bool bHasNonBluetooth    = false;
+  bool bHasDualShock4v2_Bt = false;
 
   for ( auto& ps_controller : SK_HID_PlayStationControllers )
   {
@@ -141,6 +142,12 @@ SK::ControlPanel::Input::Draw (void)
     {
       if (ps_controller.bBluetooth)
       {
+        if (ps_controller.pid == SK_HID_PID_DUALSHOCK4_REV2 &&
+            ps_controller.bSimpleMode)
+        {
+          bHasDualShock4v2_Bt = true;
+        }
+
         bHasSimpleBluetooth = ps_controller.bSimpleMode;
         bHasBluetooth       = true;
       }
@@ -1778,6 +1785,12 @@ SK::ControlPanel::Input::Draw (void)
                 "Plug your controller in, or trigger rumble in-game to put the "
                 "Bluetooth controller into DualShock 4 / DualSense mode."
               );
+              if (bHasDualShock4v2_Bt)
+              {
+                ImGui::BulletText (
+                  "DualShock 4 v2 controllers will not work over Bluetooth with SK in compatibility mode"
+                );
+              }
               ImGui::Separator       ( );
               ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
 

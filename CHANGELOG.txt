@@ -1,4 +1,9 @@
-﻿24.4.24.3
+﻿24.4.24.4
+=========
+ + Disable DualShock 4 v2 controllers running in simplified Bluetooth
+     mode.
+
+24.4.24.3
 =========
  + Added option to enable full DualShock4 / DualSense capabilities over
      Bluetooth even if a game has not yet put the controller in that mode.

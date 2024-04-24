@@ -4647,6 +4647,14 @@ SK_HID_PlayStationDevice::request_input_report (void)
             }
 #pragma endregion
 
+            if ( pDevice->pid == SK_HID_PID_DUALSHOCK4_REV2 &&
+                 pDevice->bBluetooth                        &&
+                 pDevice->bSimpleMode )
+            {
+              ResetEvent (pDevice->hInputEvent);
+              continue;
+            }
+
             bool bIsInputActive = false;
             bool bIsInputNew    =
               memcmp ( &pDevice->xinput.deadzoned.prev_report.Gamepad,
@@ -4843,7 +4851,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
   if (bBluetooth)
   {
-    if (config.input.gamepad.bt_input_only)
+    if (config.input.gamepad.bt_input_only || (! config.input.gamepad.hook_hid))
       return false;
 
     if (config.input.gamepad.scepad.enable_full_bluetooth)
