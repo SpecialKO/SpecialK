@@ -1875,12 +1875,14 @@ SK::ControlPanel::Input::Draw (void)
                 "Plug your controller in, or trigger rumble in-game to put the "
                 "Bluetooth controller into DualShock 4 / DualSense mode."
               );
+#ifdef SK_HID_BROKEN_DUALSHOCK4_REV2
               if (bHasDualShock4v2_Bt)
               {
                 ImGui::BulletText (
                   "DualShock 4 v2 controllers will not work over Bluetooth with SK in compatibility mode"
                 );
               }
+#endif
               ImGui::Separator       ( );
               ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
 
