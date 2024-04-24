@@ -25,8 +25,10 @@
 #include <SpecialK/osd/text.h>
 
 #include <SpecialK/render/d3d9/d3d9_backend.h>
+#include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
 #include <SpecialK/render/gl/opengl_backend.h>
 #include <SpecialK/render/ngx/ngx_dlss.h>
+#include <SpecialK/render/present_mon/PresentMon.hpp>
 
 #include <SpecialK/nvapi.h>
 
@@ -821,8 +823,7 @@ SK_DrawOSD (void)
     if (sk::NVAPI::nv_hardware && config.apis.NvAPI.gsync_status && rb.api == SK_RenderAPI::D3D12)
     {
       // It is necessary to start PresentMon in D3D12, or the VRR indicator will not work
-      extern void SK_SpawnPresentMonWorker (void);
-                  SK_SpawnPresentMonWorker ();
+      SK_SpawnPresentMonWorker ();
     }
 
     auto &history =
@@ -1568,12 +1569,8 @@ SK_DrawOSD (void)
     OSD_M_PRINTF "\n" OSD_END
   }
 
-  extern bool SK_D3D11_cache_textures;
-
   if (SK_D3D11_cache_textures && SK_IsD3D11 ())
   {
-    extern std::string SK_D3D11_SummarizeTexCache (void);
-
     OSD_M_PRINTF "%s\n",
       SK_D3D11_SummarizeTexCache ().c_str ()
     OSD_END
@@ -2007,15 +2004,15 @@ SK_TextOverlay::update (const char* szText)
      data_.text_len =   0 ;
   }
 
-  // Empty the gometry buffer and bail-out.
+  // Empty the geometry buffer and bail-out.
   if (szText == nullptr || *data_.text == '\0')
   {
            data_.extent = 0.0f;
     return data_.extent;
   }
 
-  extern ImFont*  SK_ImGui_GetFont_Consolas (void);
-  ImFont* pFont = SK_ImGui_GetFont_Consolas (    );
+  ImFont* pFont =
+    SK_ImGui_GetFont_Consolas ();
 
   if (ImGui::GetCurrentWindowRead () == nullptr || pFont == nullptr)
     return data_.extent;
@@ -2091,13 +2088,21 @@ SK_TextOverlay::update (const char* szText)
     // Add 1.0 so that an X position of -1.0 is perfectly flush with the right
     x = ImGui::GetIO ().DisplaySize.x + x - longest_line + 1.0f;
 
-    strncpy_s ( tokenized_text, data_.text_len,
-                                data_.text, _TRUNCATE );
+    if (tokenized_text != nullptr)
+    {
+      strncpy_s ( tokenized_text, data_.text_len,
+                                  data_.text, _TRUNCATE );
 
-    // Restart tokenizing
-    line =
-      ( has_tokens ? strtok_ex (tokenized_text, token)
-                   :            tokenized_text );
+      // Restart tokenizing
+      line =
+        ( has_tokens ? strtok_ex (tokenized_text, token)
+                     :            tokenized_text );
+    }
+
+    else
+    {
+      SK_LOGs0 (L"SKTokenize", L"Tokenizer Failure!");
+    }
   }
 
   else x += 5.0f; // Fix-up for text off-screen

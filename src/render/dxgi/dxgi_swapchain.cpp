@@ -52,14 +52,6 @@ enum class SK_DXGI_PresentSource
 };
 
 
-extern bool __SK_HDR_10BitSwap;
-extern bool __SK_HDR_16BitSwap;
-
-extern bool SK_Window_HasBorder      (HWND hWnd);
-extern void SK_Window_RemoveBorders  (void);
-extern void SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx);
-
-
 HRESULT
 STDMETHODCALLTYPE
 SK_DXGI_DispatchPresent1 (IDXGISwapChain1         *This,
@@ -1428,12 +1420,6 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
   return hr;
 }
 
-extern void SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen);
-
-extern SetFullscreenState_pfn SetFullscreenState_Original;
-extern ResizeTarget_pfn       ResizeTarget_Original;
-extern ResizeBuffers_pfn      ResizeBuffers_Original;
-
 bool bSwapChainNeedsResize = false;
 bool bRecycledSwapChains   = false;
 
@@ -1716,11 +1702,6 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
   return
     _Return (ret);
 }
-
-extern bool  bAlwaysAllowFullscreen;
-
-extern void ResetImGui_D3D12 (IDXGISwapChain *This);
-extern void ResetImGui_D3D11 (IDXGISwapChain *This);
 
 bool
 SK_RenderBackend_V2::isFakeFullscreen (void) const

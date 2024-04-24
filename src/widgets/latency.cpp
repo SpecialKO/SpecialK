@@ -762,8 +762,6 @@ SK_ImGui_DrawGraph_Latency (bool predraw)
 
   if (detailed)
   {
-    extern void
-    SK_NV_AdaptiveSyncControl ();
     SK_NV_AdaptiveSyncControl ();
 
     float fMaxWidth  = ImGui::GetContentRegionAvail ().x;
@@ -1081,8 +1079,6 @@ SK_ImGui_DrawConfig_Latency ()
   //
   //if (ImGui::Checkbox ("Use Unlimited Reflex FPS", &unlimited))
   //{
-  //  extern float __target_fps;
-  //
   //  if (unlimited) config.nvidia.reflex.frame_interval_us = 0;
   //  else           config.nvidia.reflex.frame_interval_us =
   //           static_cast <UINT> ((1000.0 / __target_fps) * 1000.0);

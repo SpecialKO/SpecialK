@@ -123,9 +123,6 @@ static HANDLE SK_XInputHot_ReconnectThread   = 0;
 // Wakes the dumb polling thread when its job is done
 static HANDLE SK_XInputCold_DecommisionEvent = 0;
 
-extern void SK_XInput_SetRefreshInterval   (ULONG ulIntervalMS);
-extern void SK_XInput_Refresh              (UINT iJoyID);
-
 void
 SK_XInput_RefreshControllers (void)
 {
@@ -145,8 +142,6 @@ SK_XInput_GetCapabilities (_In_  DWORD                dwUserIndex,
 void
 SK_XInput_NotifyDeviceArrival (void)
 {
-  extern HidD_GetAttributes_pfn SK_HidD_GetAttributes;
-
   SK_RunOnce (
   {
     SK_XInputHot_NotifyEvent =
@@ -305,7 +300,8 @@ SK_XInput_NotifyDeviceArrival (void)
 
                                   has_existing = true;
 
-                                  controller.write_output_report ();
+                                  if ((! controller.bBluetooth) || (! config.input.gamepad.bt_input_only))
+                                    controller.write_output_report ();
 
                                   if (        controller.hReconnectEvent != nullptr)
                                     SetEvent (controller.hReconnectEvent);

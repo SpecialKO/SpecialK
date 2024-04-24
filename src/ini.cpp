@@ -60,7 +60,7 @@ ErrorMessage (errno_t        err,
               const char*    function_name,
               const char*    file_name)
 {
-  wchar_t wszFormattedError [1024];
+  wchar_t wszFormattedError [1024] = {};
 
   *wszFormattedError = L'\0';
 

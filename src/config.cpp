@@ -52,15 +52,6 @@ SK_LazyGlobal <std::unordered_map <wstring_hash, BYTE>> humanKeyNameToVirtKeyCod
 SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [32]>> virtKeyCodeToHumanKeyName;
 SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [32]>> virtKeyCodeToFullyLocalizedKeyName;
 
-extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_DepotList> >           SK_Steam_DepotManifestRegistry;
-extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_Steam_DepotManifest> > SK_Steam_InstalledManifest;
-
-extern float __target_fps;
-extern float __target_fps_bg;
-
-void SK_Display_ForceDPIAwarenessUsingAppCompat (bool set);
-void SK_Display_SetMonitorDPIAwareness (bool bOnlyIfWin10);
-
 UINT SK_RecursiveMove ( const wchar_t* wszOrigDir,
                         const wchar_t* wszDestDir,
                               bool     replace );
@@ -282,8 +273,7 @@ SK_GetCurrentGameID (void)
       {
         current_game = SK_GAME_ID::FinalFantasyXV;
 
-        extern void SK_FFXV_InitPlugin (void);
-                    SK_FFXV_InitPlugin ();
+        SK_FFXV_InitPlugin ();
       }
 
       else if ( StrStrIW ( SK_GetHostApp (), L"ff7remake" ) )
@@ -295,8 +285,7 @@ SK_GetCurrentGameID (void)
       {
         current_game = SK_GAME_ID::AssassinsCreed_Valhalla;
 
-        extern void SK_ACV_InitPlugin (void);
-                    SK_ACV_InitPlugin ();
+        SK_ACV_InitPlugin ();
       }
 
       // Basically, _every single Yakuza game ever_ releases more references than it acquires...
@@ -407,23 +396,17 @@ SK_GetCurrentGameID (void)
         {
           if (std::filesystem::exists (L"eldenring.exe",         ec))
           {
-            extern void
-            SK_SEH_LaunchEldenRing (void);
-            SK_SEH_LaunchEldenRing (    );
+            SK_SEH_LaunchEldenRing ();
           }
 
           else if (std::filesystem::exists (L"armoredcore6.exe", ec))
           {
-            extern void
-            SK_SEH_LaunchArmoredCoreVI (void);
-            SK_SEH_LaunchArmoredCoreVI (    );
+            SK_SEH_LaunchArmoredCoreVI ();
           }
 
           else if (std::filesystem::exists (LR"(LOTF2\Binaries\Win64\LOTF2-Win64-Shipping.exe)", ec))
           {
-            extern void
-            SK_SEH_LaunchLordsOfTheFallen2 (void);
-            SK_SEH_LaunchLordsOfTheFallen2 (    );
+            SK_SEH_LaunchLordsOfTheFallen2 ();
           }
         }
       }
@@ -1043,6 +1026,7 @@ struct {
       sk::ParameterInt*     led_color_g           = nullptr;
       sk::ParameterInt*     led_color_b           = nullptr;
       sk::ParameterInt*     led_brightness        = nullptr;
+      sk::ParameterBool*    show_ds4_as_ds4_v2    = nullptr;
       sk::ParameterBool*    hide_ds4_v2_pid       = nullptr;
       sk::ParameterBool*    hide_ds_edge_pid      = nullptr;
       sk::ParameterStringW* left_fn_bind          = nullptr;
@@ -1503,7 +1487,7 @@ auto DeclKeybind =
     ConfigEntry (monitoring.gpu.print_slowdown,          L"Print GPU Slowdown Reason (NVIDA GPUs)",                    osd_ini,         L"Monitor.GPU",           L"PrintSlowdown"),
 
     ConfigEntry (monitoring.pagefile.show,               L"Show Pagefile Monitoring",                                  osd_ini,         L"Monitor.Pagefile",      L"Show"),
-    ConfigEntry (monitoring.pagefile.interval,           L"Pagefile Monitoring INterval (seconds)",                    osd_ini,         L"Monitor.Pagefile",      L"Interval"),
+    ConfigEntry (monitoring.pagefile.interval,           L"Pagefile Monitoring Interval (seconds)",                    osd_ini,         L"Monitor.Pagefile",      L"Interval"),
 
     ConfigEntry (monitoring.dlss.show,                   L"Show DLSS Resolution Information",                          osd_ini,         L"Monitor.DLSS",          L"Show"),
     ConfigEntry (monitoring.dlss.show_quality,           L"Print DLSS Quality Level",                                  osd_ini,         L"Monitor.DLSS",          L"ShowQuality"),
@@ -1638,8 +1622,9 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.scepad.led_color_g,       L"Force Green LED Color [0,255] or -1 for No Override",       input_ini,       L"Input.libScePad",       L"LEDColor_G"),
     ConfigEntry (input.gamepad.scepad.led_color_b,       L"Force Blue LED Color [0,255] or -1 for No Override",        input_ini,       L"Input.libScePad",       L"LEDColor_B"),
     ConfigEntry (input.gamepad.scepad.led_brightness,    L"Force LED brightness [0,1,2,3] or -1 for No Override",      input_ini,       L"Input.libScePad",       L"LEDBrightness"),
-    ConfigEntry (input.gamepad.scepad.hide_ds4_v2_pid,   L"Cause games to see DualShock 4 v2 as DualShock 4",          input_ini,       L"Input.libScePad",       L"IdentifyDualShock4v2AsDualShock4"),
-    ConfigEntry (input.gamepad.scepad.hide_ds_edge_pid,  L"Cause games to see DualSense Edge as DualSense",            input_ini,       L"Input.libScePad",       L"IdentifyDualSenseEdgeAsDualSense"),
+    ConfigEntry (input.gamepad.scepad.show_ds4_as_ds4_v2,L"Cause games to see DualShock 4 v1 as DualShock 4 v2",       dll_ini,         L"Input.libScePad",       L"IdentifyDualShock4AsDualShock4v2"),
+    ConfigEntry (input.gamepad.scepad.hide_ds4_v2_pid,   L"Cause games to see DualShock 4 v2 as DualShock 4",          dll_ini,         L"Input.libScePad",       L"IdentifyDualShock4v2AsDualShock4"),
+    ConfigEntry (input.gamepad.scepad.hide_ds_edge_pid,  L"Cause games to see DualSense Edge as DualSense",            dll_ini,         L"Input.libScePad",       L"IdentifyDualSenseEdgeAsDualSense"),
     ConfigEntry (input.gamepad.scepad.left_fn_bind,      L"Keyboard Input to Generate when Left Function is Pressed",  dll_ini,         L"Input.libScePad",       L"LeftFunction"),
     ConfigEntry (input.gamepad.scepad.right_fn_bind,     L"Keyboard Input to Generate when Right Function is Pressed", dll_ini,         L"Input.libScePad",       L"RightFunction"),
     ConfigEntry (input.gamepad.scepad.left_paddle_bind,  L"Keyboard Input to Generate when Left Paddle is Pressed",    dll_ini,         L"Input.libScePad",       L"LeftPaddle"),
@@ -2516,7 +2501,7 @@ auto DeclKeybind =
 
       case SK_GAME_ID::FinalFantasyX_X2:
         // Don't auto-pump callbacks
-        //  Excessively lenghty startup is followed by actual SteamAPI init eventually...
+        //  Excessively lengthy startup is followed by actual SteamAPI init eventually...
         config.steam.auto_pump_callbacks = false;
         break;
 
@@ -2811,9 +2796,6 @@ auto DeclKeybind =
 
       case SK_GAME_ID::ChronoCross:
       {
-        extern bool SK_PE32_IsLargeAddressAware       (void);
-        extern bool SK_PE32_MakeLargeAddressAwareCopy (void);
-
         if (! SK_PE32_IsLargeAddressAware ())
               SK_PE32_MakeLargeAddressAwareCopy ();
 
@@ -3239,9 +3221,8 @@ auto DeclKeybind =
         config.apis.OpenGL.hook                   = false;
 
         config.threads.enable_file_io_trace       =  true;
-
-        extern void SK_OPT_InitPlugin (void);
-                    SK_OPT_InitPlugin (    );
+        
+        SK_OPT_InitPlugin ();
 
         apis.d3d9.hook->store   (config.apis.d3d9.  hook);
         apis.d3d9ex.hook->store (config.apis.d3d9ex.hook);
@@ -3534,6 +3515,10 @@ auto DeclKeybind =
 
       // Pain in the ass Nixxes port
       case SK_GAME_ID::RatchetAndClank_RiftApart:
+        break;
+
+      case SK_GAME_ID::BatmanArkhamKnight:
+        config.input.gamepad.scepad.hide_ds4_v2_pid = true;
         break;
 
       case SK_GAME_ID::Starfield:
@@ -4425,6 +4410,7 @@ auto DeclKeybind =
   input.gamepad.scepad.led_color_g->load          (config.input.gamepad.scepad.led_color_g);
   input.gamepad.scepad.led_color_b->load          (config.input.gamepad.scepad.led_color_b);
   input.gamepad.scepad.led_brightness->load       (config.input.gamepad.scepad.led_brightness);
+  input.gamepad.scepad.show_ds4_as_ds4_v2->load   (config.input.gamepad.scepad.show_ds4_v1_as_v2);
   input.gamepad.scepad.hide_ds4_v2_pid->load      (config.input.gamepad.scepad.hide_ds4_v2_pid);
   input.gamepad.scepad.hide_ds_edge_pid->load     (config.input.gamepad.scepad.hide_ds_edge_pid);
   input.gamepad.scepad.left_fn_bind->load         (config.input.gamepad.scepad.left_fn);
@@ -4587,11 +4573,11 @@ auto DeclKeybind =
             DISPLAYCONFIG_SOURCE_MODE *pSourceMode =
               &modeArray [path->sourceInfo.modeInfoIdx].sourceMode;
 
-            RECT rect;
-            rect.left   = pSourceMode->position.x;
-            rect.top    = pSourceMode->position.y;
-            rect.right  = pSourceMode->position.x + pSourceMode->width;
-            rect.bottom = pSourceMode->position.y + pSourceMode->height;
+            RECT rect =
+              { pSourceMode->position.x,
+                pSourceMode->position.y,
+                pSourceMode->position.x + sk::narrow_cast <LONG> (pSourceMode->width),
+                pSourceMode->position.y + sk::narrow_cast <LONG> (pSourceMode->height) };
 
             if (! IsRectEmpty (&rect))
             {
@@ -5324,10 +5310,6 @@ auto DeclKeybind =
   {
     SK_ApplyQueuedHooks ();
 
-    extern void NTAPI RtlAcquirePebLock_Detour (void);
-    extern void NTAPI RtlReleasePebLock_Detour (void);
-    extern bool   SK_Debug_CheckDebugFlagInPEB (void);
-
     if (      ! SK_IsDebuggerPresent ())
     { while ((! SK_IsDebuggerPresent ()))
       {
@@ -5795,6 +5777,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.scepad.led_color_g->store          (config.input.gamepad.scepad.led_color_g);
   input.gamepad.scepad.led_color_b->store          (config.input.gamepad.scepad.led_color_b);
   input.gamepad.scepad.led_brightness->store       (config.input.gamepad.scepad.led_brightness);
+  input.gamepad.scepad.show_ds4_as_ds4_v2->store   (config.input.gamepad.scepad.show_ds4_v1_as_v2);
   input.gamepad.scepad.hide_ds4_v2_pid->store      (config.input.gamepad.scepad.hide_ds4_v2_pid);
   input.gamepad.scepad.hide_ds_edge_pid->store     (config.input.gamepad.scepad.hide_ds_edge_pid);
   input.gamepad.scepad.left_fn_bind->store         (config.input.gamepad.scepad.left_fn);

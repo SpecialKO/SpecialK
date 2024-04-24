@@ -153,6 +153,10 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 bool
 SK_ImGui_WantKeyboardCapture (void)
 {
+  // Do not block on first frame drawn unless explicitly disabled
+  if (SK_GetFramesDrawn () < 1 && (config.input.keyboard.disabled_to_game != 1))
+    return false;
+
   if (! SK_GImDefaultContext ())
     return false;
 

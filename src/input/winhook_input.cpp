@@ -28,14 +28,9 @@
 #define __SK_SUBSYSTEM__ L"Input Mgr."
 
 
-extern bool SK_ImGui_WantExit;
-
-using SetWindowsHookEx_pfn = HHOOK (WINAPI*)(int, HOOKPROC, HINSTANCE, DWORD);
-      SetWindowsHookEx_pfn SetWindowsHookExA_Original = nullptr;
-      SetWindowsHookEx_pfn SetWindowsHookExW_Original = nullptr;
-
-using UnhookWindowsHookEx_pfn = BOOL (WINAPI *)(HHOOK);
-      UnhookWindowsHookEx_pfn UnhookWindowsHookEx_Original = nullptr;
+SetWindowsHookEx_pfn    SetWindowsHookExA_Original   = nullptr;
+SetWindowsHookEx_pfn    SetWindowsHookExW_Original   = nullptr;
+UnhookWindowsHookEx_pfn UnhookWindowsHookEx_Original = nullptr;
 
 
 class SK_Win32_WindowHookManager {
@@ -91,7 +86,7 @@ SK_Proxy_MouseProc   (
         {
           case WM_MOUSEMOVE:
           {
-            // No TrackMouseEvent available, gotta do this manually
+            // No TrackMouseEvent available, have to do this manually
             if (! game_window.mouse.can_track)
             {
               POINT                                          pt (mhs->pt);

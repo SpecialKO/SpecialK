@@ -54,18 +54,6 @@ static constexpr int SK_MAX_WINDOW_DIM = 16384;
 # define SK_WINDOW_LOG_CALL_UNTESTED() { }
 #endif
 
-extern bool SK_WantBackgroundRender ();
-
-extern HWND SK_Inject_GetFocusWindow (void);
-extern void SK_Inject_SetFocusWindow (HWND hWndFocus);
-
-extern bool SK_ImGui_IsMouseRelevant       (void);
-extern bool SK_InputUtil_IsHWCursorVisible (void);
-
-extern void SK_Display_ResolutionSelectUI (bool bMarkDirty = false);
-
-bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld);
-
 BOOL
 WINAPI
 SetWindowPlacement_Detour (
@@ -266,7 +254,7 @@ public:
             SK_RenderBackend_V2& rb =
               SK_GetCurrentRenderBackend ();
 
-            // TODO: Use this isntead config.display.monitor_handle in RepositionIfNeeded
+            // TODO: Use this instead config.display.monitor_handle in RepositionIfNeeded
             //
             //   This will prevent locking a game window unless the user wants that
             //
@@ -3506,10 +3494,8 @@ SK_Window_RepositionIfNeeded (void)
           config.window.fullscreen = _configFullscreen;
           config.window.center     = _configCenter;
 
-          extern volatile LONG lResetD3D11;
-
           // Client rect changed, we probably want to reset our render context to
-          //   accomodate the new internal resolution
+          //   accommodate the new internal resolution
           if (! EqualRect (&rcClientOrig, &game_window.actual.client))
           {
           //if ( rcClientOrig.right  - rcClientOrig.left != rcClientLast.right  - rcClientLast.left ||
@@ -3567,9 +3553,6 @@ SK_Window_RepositionIfNeeded (void)
 
 
 #include <SpecialK/render/d3d11/d3d11_core.h>
-
-extern volatile LONG lResetD3D12;
-extern volatile LONG lResetD3D11;
 
 void
 SK_AdjustClipRect (void)
@@ -5183,10 +5166,6 @@ __SKX_WinHook_InstallInputHooks (HWND hWnd)
   using  UnhookWindowsHookEx_pfn =
     BOOL (WINAPI *)(HHOOK);
 
-  extern SetWindowsHookEx_pfn    SetWindowsHookExA_Original;
-  extern SetWindowsHookEx_pfn    SetWindowsHookExW_Original;
-  extern UnhookWindowsHookEx_pfn UnhookWindowsHookEx_Original;
-
   if (SetWindowsHookExW_Original == nullptr)
     return false;
 
@@ -5364,9 +5343,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     }
   }
 
-
-  //extern bool SK_ImGui_WantExit;
-
   // HDR caps, Refresh Rate and Display Mode may have changed,
   //   let's try to be smart about this (for a change)...
   if ( uMsg == WM_DISPLAYCHANGE ||
@@ -5384,7 +5360,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     ////if (! SK_IsGameWindowActive ())
     ////{
-    ////  // Using a static kinda prevents us from supporting multiple windows,
+    ////  // Using a static kind of prevents us from supporting multiple windows,
     ////  //   but it's good enough for now.
     ////  static ULONG64 ulLastReset = 0;
     ////
@@ -6704,8 +6680,6 @@ SK_InstallWindowHook (HWND hWnd)
   // Not sure why this was conditional upon 1 frame drawn, but NOT
   //   continuing beyond this point w/ no frames drawn will crash Disgaea PC
 #if 0
-  extern bool
-         SK_GL_OnD3D11;
   if ((! SK_GL_OnD3D11) && (! SK_GetFramesDrawn ()))
     return;
 #endif
@@ -7687,8 +7661,6 @@ SK_SetWindowPos ( HWND hWnd,
 }
 
 HWND SK_Win32_BackgroundHWND = HWND_DESKTOP;
-void SK_Win32_BringBackgroundWindowToTop (void);
-
 
 void
 SK_Win32_DestroyBackgroundWindow (void)

@@ -985,6 +985,14 @@ HidD_GetAttributes_Detour (_In_  HANDLE           HidDeviceObject,
   {
     if (Attributes->VendorID == SK_HID_VID_SONY)
     {
+      if (config.input.gamepad.scepad.show_ds4_v1_as_v2)
+      {
+        if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4)
+        {   Attributes->ProductID  = SK_HID_PID_DUALSHOCK4_REV2;
+            SK_LOGi0 (L"Identifying DualShock 4 controller as DualShock 4 v2 to game.");
+        }
+      }
+
       if (config.input.gamepad.scepad.hide_ds4_v2_pid)
       {
         if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4_REV2)
@@ -4037,6 +4045,11 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   SK_DeferCommand ("Input.Gamepad.PowerOff 1");
                 }
 
+                else
+                {
+                  pDevice->bSimpleMode = false;
+                }
+
                 pDevice->xinput.report.Gamepad.sThumbLX =
                   static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pData->LeftStickX) - 128) / 128.0);
 
@@ -4817,7 +4830,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 }
 
 bool
-SK_HID_PlayStationDevice::write_output_report (void)
+SK_HID_PlayStationDevice::write_output_report (bool force)
 {
   if (ReadAcquire (&__SK_DLL_Ending))
   {
@@ -4827,6 +4840,20 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
   if (! bConnected)
     return false;
+
+  if (bBluetooth)
+  {
+    if (config.input.gamepad.bt_input_only)
+      return false;
+
+    if (bSimpleMode && (! force))
+    {
+      return false;
+    }
+
+    if (force)
+      bSimpleMode = false;
+  }
 
   if (bDualSense)
   {
@@ -6104,6 +6131,7 @@ SK_HID_PlayStationDevice::reset_device (void)
   ulLastFrameOutput = 0;
 
   bNeedOutput = false;
+  bSimpleMode =  true;
 
   for ( auto& button : buttons )
   {

@@ -97,8 +97,6 @@ void SK_Screenshot_ProcessQueue ( SK_ScreenshotStage stage,
 bool
 SK_Screenshot_IsCapturingHUDless (void)
 {
-  extern volatile
-               LONG __SK_ScreenShot_CapturingHUDless;
   if (ReadAcquire (&__SK_ScreenShot_CapturingHUDless))
   {
     return true;
@@ -418,7 +416,6 @@ SK_TriggerHudFreeScreenshot (void) noexcept
   {
     if (ReadAcquire (&SK_D3D11_TrackingCount->Conditional) > 0)
     {
-      extern volatile LONG   __SK_D3D11_QueuedShots;
       InterlockedIncrement (&__SK_D3D11_QueuedShots);
     }
   }
@@ -427,7 +424,6 @@ SK_TriggerHudFreeScreenshot (void) noexcept
   {
     //if (ReadAcquire (&SK_D3D11_TrackingCount->Conditional) > 0)
     //{
-      extern volatile LONG   __SK_D3D12_QueuedShots;
       InterlockedIncrement (&__SK_D3D12_QueuedShots);
     //}
   }
@@ -863,8 +859,6 @@ SK_WIC_SetMetadataTitle (IWICMetadataQueryWriter *pMQW, std::string& title)
 void
 SK_WIC_SetBasicMetadata (IWICMetadataQueryWriter *pMQW)
 {
-  extern std::string SK_GetFriendlyAppName (void);
-
   PROPVARIANT       value;
   PropVariantInit (&value);
 

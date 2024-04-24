@@ -1,4 +1,40 @@
-﻿24.4.23.1
+﻿24.4.24.1
+=========
+ + Do not use haptics or LEDs on Bluetooth PlayStation controllers until a
+     game first uses rumble, or if the controller is already in
+       DualShock4/DualSense mode.
+
+24.4.24
+=======
+ + Added stupid hack for systems with broken PresentMon running D3D12, where
+     VRR status cannot be determined. VBlank rate < Reflex rate is assumed
+       VRR active.
+
+24.4.23.5
+=========
+ + Prevent setting LED color in DualShock 3 Bluetooth Compatibility mode on
+     DualShock 4 controllers.
+
+24.4.23.4
+=========
+ + Slim down NVSDK_NGX_Parameter_GetI_Detour hook, it does not work correctly
+     for DLSS resolution scaling.
+ + Prevent crashing if DLSS text OSD is enabled, but game has not yet
+     fully initialized DLSS.
+
+24.4.23.3
+=========
+ + Add option to report v1 DualShock 4s as v2, disabled by default because it
+     will break games.
+
+24.4.23.2
+=========
+ + Do not block gamepad/keyboard input (unless set to always disable) during
+     the first frame drawn.
+
+    >> Helps some Unity games w/ HID gamepad initialization.
+
+24.4.23.1
 =========
  + Do not hook NVSDK_NGX_D3D12_GetFeatureRequirements or
      NVSDK_NGX_D3D11_GetFeatureRequirements unless DLSS feature support

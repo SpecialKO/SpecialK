@@ -341,18 +341,6 @@ SK_XInput_EstablishPrimaryHook ( HMODULE                       hModCaller,
   }
 }
 
-
-extern bool
-SK_ImGui_FilterXInput (
-  _In_  DWORD         dwUserIndex,
-  _Out_ XINPUT_STATE *pState );
-
-extern bool
-_Success_(false)
-SK_ImGui_FilterXInputKeystroke (
-  _In_  DWORD             dwUserIndex,
-  _Out_ XINPUT_KEYSTROKE *pKeystroke );
-
 BOOL xinput_enabled = TRUE;
 
 // Unlike our hook, this actually turns XInput off. The hook just causes
@@ -1148,7 +1136,6 @@ XInputGetBatteryInformation1_4_Detour (
   {
     if (dwRet != ERROR_DEVICE_NOT_CONNECTED)
     {
-      extern DWORD WINAPI SK_DelayExecution (double dMilliseconds, BOOL bAlertable) noexcept;
       SK_DelayExecution (0.5, TRUE);
     }
   }
@@ -1300,7 +1287,14 @@ XInputSetState1_4_Detour (
               0x0 // Normalize against largest range seen
             );
 
-            controller.write_output_report ();
+            if ((controller.bBluetooth && config.input.gamepad.bt_input_only))
+            {
+            }
+            
+            else if ((! controller.bBluetooth) || (pVibration->wLeftMotorSpeed > 0 || pVibration->wRightMotorSpeed > 0))
+            {
+              controller.write_output_report (true);
+            }
           }
 
           //SK_XINPUT_WRITE (dwUserIndex)
@@ -3055,7 +3049,7 @@ SK_XInput_PulseController ( INT   iJoyID,
         &controller == pNewestInputDevice ? vibes.wRightMotorSpeed : 0
       );
 
-      if (controller.write_output_report ())
+      if ((controller.bBluetooth && (config.input.gamepad.bt_input_only || controller.bSimpleMode)) || controller.write_output_report ())
       {
         if (pNewestInputDevice == &controller)
           bSet = true;
@@ -3103,7 +3097,7 @@ void SK_XInput_Refresh (UINT iJoyID)
 }
 
 static bool
-_ShouldRecheckStatus (INT iJoyID)
+_ShouldRecheckXInputStatus (INT iJoyID)
 {
   auto idx =
     std::clamp (iJoyID, 0, (INT)XUSER_MAX_INDEX);
@@ -3257,7 +3251,7 @@ SK_XInput_PollController ( INT           iJoyID,
 
   // This function is actually a performance hazard when no controllers
   //   are plugged in, so ... throttle the sucker.
-  if (_ShouldRecheckStatus (iJoyID))
+  if (_ShouldRecheckXInputStatus (iJoyID))
   {
     // Steam does not disable XInput 1.1, awesome!
     static XInputEnable_pfn
@@ -3554,6 +3548,8 @@ SK_XInput_ZeroHaptics (INT iJoyID)
   SK_XInput_Enable          (orig_enable);
 }
 
+#include <SpecialK/render/d3d11/d3d11_tex_mgr.h>
+
 void
 SK_XInput_TalesOfAriseButtonSwap (XINPUT_STATE* pState)
 {
@@ -3575,7 +3571,6 @@ SK_XInput_TalesOfAriseButtonSwap (XINPUT_STATE* pState)
 
   if (SK_GetFramesDrawn () > 200)
   {
-    extern int            SK_D3D11_ReloadAllTextures (void);
     if (A||B) SK_RunOnce (SK_D3D11_ReloadAllTextures ());
   }
 }

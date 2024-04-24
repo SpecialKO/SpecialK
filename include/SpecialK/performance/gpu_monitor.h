@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -142,6 +142,7 @@ struct gpu_sensors_t
 gpu_sensors_t*
   SK_GPU_CurrentSensorData (void);
 
+void               SK_GPU_InitSensorData       (void);
 uint32_t __stdcall SK_GPU_GetClockRateInkHz    (int gpu);
 uint32_t __stdcall SK_GPU_GetMemClockRateInkHz (int gpu);
 uint64_t __stdcall SK_GPU_GetMemoryBandwidth   (int GPU);

@@ -222,55 +222,43 @@ using XInputGetKeystroke_pfn = DWORD (WINAPI *)(
 );
 
 
-DWORD
-WINAPI
-SK_XInput_GetBatteryInformation (_In_  DWORD                       dwUserIndex,
-                                 _In_  BYTE                        devType,
-                                 _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation);
 
-DWORD
-WINAPI
-SK_XInput_PowerOff              (_In_  DWORD                       dwUserIndex);
+
+XINPUT_STATE WINAPI SK_JOY_TranslateToXInput  (JOYINFOEX* pJoy, const JOYCAPSW* pCaps);
+
+DWORD WINAPI SK_XInput_GetBatteryInformation  (_In_  DWORD                       dwUserIndex,
+                                               _In_  BYTE                        devType,
+                                               _Out_ XINPUT_BATTERY_INFORMATION *pBatteryInformation);
+
+DWORD WINAPI SK_XInput_PowerOff               (_In_  DWORD                       dwUserIndex);
+bool         SK_XInput_Enable                 ( BOOL bEnable = TRUE );
+bool WINAPI  SK_XInput_WasLastPollSuccessful  ( INT iJoyID );
+bool WINAPI  SK_XInput_PollController         ( INT           iJoyID,
+                                               XINPUT_STATE* pState = nullptr );
+bool WINAPI  SK_XInput_PulseController        ( INT           iJoyID,
+                                               float         fStrengthLeft,
+                                               float         fStrengthRight   );
+void WINAPI  SK_XInput_ZeroHaptics            ( INT           iJoyID          );
+
+void         SK_XInput_SetRefreshInterval     (ULONG ulIntervalMS);
+void         SK_XInput_Refresh                (UINT iJoyID);
+
+const char*  SK_XInput_GetPrimaryHookName     (void);
+void         SK_XInput_DeferredStatusChecks   (void);
+void         SK_XInput_TalesOfAriseButtonSwap (XINPUT_STATE *pState);
+FARPROC      SK_XInput_GetProcAddress         (HMODULE hModule, PCSTR lpFuncName, LPCVOID pCaller);
 
 bool
-SK_XInput_Enable          ( BOOL bEnable = TRUE );
+_Success_(false)
+SK_ImGui_FilterXInput (
+  _In_  DWORD         dwUserIndex,
+  _Out_ XINPUT_STATE *pState );
 
 bool
-WINAPI
-SK_XInput_WasLastPollSuccessful ( INT iJoyID );
-
-bool
-WINAPI
-SK_XInput_PollController  ( INT           iJoyID,
-                            XINPUT_STATE* pState = nullptr );
-
-bool
-WINAPI
-SK_XInput_PulseController ( INT           iJoyID,
-                            float         fStrengthLeft,
-                            float         fStrengthRight   );
-
-void
-WINAPI
-SK_XInput_ZeroHaptics     ( INT           iJoyID           );
-
-
-XINPUT_STATE
-WINAPI
-SK_JOY_TranslateToXInput (JOYINFOEX* pJoy, const JOYCAPSW* pCaps);
-
-
- const char*
- SK_XInput_GetPrimaryHookName (void);
-
- void
- SK_XInput_DeferredStatusChecks (void);
-
-void
-SK_XInput_TalesOfAriseButtonSwap (XINPUT_STATE *pState);
-
-FARPROC
-SK_XInput_GetProcAddress (HMODULE hModule, PCSTR lpFuncName, LPCVOID pCaller);
+_Success_(false)
+SK_ImGui_FilterXInputKeystroke (
+  _In_  DWORD             dwUserIndex,
+  _Out_ XINPUT_KEYSTROKE *pKeystroke );
 
 
 #endif /* __SK__XINPUT_H__ */

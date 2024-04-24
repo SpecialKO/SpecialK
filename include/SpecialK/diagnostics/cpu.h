@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -64,5 +64,7 @@ EFFECTIVE_POWER_MODE SK_Power_GetCurrentEffectiveMode    (void);
 const char*          SK_Power_GetEffectiveModeStr        (EFFECTIVE_POWER_MODE mode);
 bool                 SK_Power_InitEffectiveModeCallbacks (void);
 bool                 SK_Power_StopEffectiveModeCallbacks (void);
+
+void                 SK_CPU_InstallHooks                 (void);
 
 #endif /* __SK__CPU_H__ */

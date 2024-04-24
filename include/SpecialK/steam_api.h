@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -737,7 +737,9 @@ extern SK_Thread_HybridSpinlock* steam_callback_cs;
 extern SK_Thread_HybridSpinlock* platform_popup_cs;
 extern SK_Thread_HybridSpinlock* steam_init_cs;
 
-
 extern void SK_Platform_GetUserName (char *pszName, int max_len);
+
+extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_DepotList> >           SK_Steam_DepotManifestRegistry;
+extern SK_LazyGlobal <Concurrency::concurrent_unordered_map <DepotId_t, SK_Steam_DepotManifest> > SK_Steam_InstalledManifest;
 
 #endif /* __SK__STEAM_API_H__ */

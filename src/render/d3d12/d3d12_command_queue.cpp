@@ -27,6 +27,7 @@
 #define __SK_SUBSYSTEM__ L"Direct3D12"
 
 #include <SpecialK/render/d3d12/d3d12_command_queue.h>
+#include <SpecialK/render/ngx/ngx_dlss.h>
 
 D3D12CommandQueue_ExecuteCommandLists_pfn
 D3D12CommandQueue_ExecuteCommandLists_Original = nullptr;
@@ -102,8 +103,6 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
 
   else if (queueDesc.Type == D3D12_COMMAND_LIST_TYPE_COMPUTE)
   {
-    extern ID3D12GraphicsCommandList *SK_DLSSG_CopyCommandList;
-
     for (UINT i = 0; i < NumCommandLists ; ++i)
     {
       if (ppCommandLists [i] == SK_DLSSG_CopyCommandList)

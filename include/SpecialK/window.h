@@ -301,6 +301,9 @@ using mouse_event_pfn       = void (WINAPI *)(
   _In_ ULONG_PTR dwExtraInfo
 );
 
+using SetWindowsHookEx_pfn    = HHOOK (WINAPI*)(int, HOOKPROC, HINSTANCE, DWORD);
+using UnhookWindowsHookEx_pfn = BOOL  (WINAPI*)(HHOOK);
+
 extern ClipCursor_pfn              ClipCursor_Original;
 extern SetWindowPos_pfn            SetWindowPos_Original;
 extern MoveWindow_pfn              MoveWindow_Original;
@@ -332,6 +335,10 @@ extern GetKeyboardState_pfn        GetKeyboardState_Original;
 extern GetRawInputData_pfn         GetRawInputData_Original;
 extern GetRawInputBuffer_pfn       GetRawInputBuffer_Original;
 extern RegisterRawInputDevices_pfn RegisterRawInputDevices_Original;
+
+extern SetWindowsHookEx_pfn        SetWindowsHookExA_Original;
+extern SetWindowsHookEx_pfn        SetWindowsHookExW_Original;
+extern UnhookWindowsHookEx_pfn     UnhookWindowsHookEx_Original;
 
 #define SK_HWND_DESKTOP                            nullptr
 #define SK_HWND_BOTTOM    reinterpret_cast <HWND> (   1   )
@@ -545,9 +552,6 @@ SK_Win32_IsGUIThread ( DWORD    dwTid = SK_Thread_GetCurrentId (),
 
 window_t
 SK_FindRootWindow (DWORD proc_id);
-
-bool
-SK_Window_HasBorder (HWND hWnd = game_window.hWnd);
 
 bool
 SK_Window_IsFullscreen (HWND hWnd = game_window.hWnd);
@@ -825,12 +829,29 @@ bool
     EqualRect (&rectGame, &rectIntersect);
 };
 
-void SK_Window_RemoveBorders (void);
+bool SK_Window_HasBorder      (HWND hWnd = game_window.hWnd);
+void SK_Window_RemoveBorders  (void);
+void SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx);
 
 bool SK_Win32_IsDummyWindowClass      (HWND hWnd);
 void SK_Win32_DestroyBackgroundWindow (void);
 
 bool WINAPI SK_IsRectZero     (_In_ const    RECT *lpRect);
 bool WINAPI SK_IsRectInfinite (_In_ const tagRECT *lpRect);
+
+void        SK_Win32_BringBackgroundWindowToTop (void);
+void        SK_Win32_CreateBackgroundWindow     (void);
+void        SK_Window_CreateTopMostFixupThread  (void);
+bool        SK_Window_OnFocusChange             ( HWND hWndNewTarget,
+                                                  HWND hWndOld );
+bool        SK_Window_DeactivateCursor          (bool ignore_imgui = false);
+BOOL WINAPI SK_GetGUIThreadInfo                 (DWORD, PGUITHREADINFO);
+
+bool SK_IsRectTooSmall        (RECT* lpRect0, RECT* lpRect1);
+RECT SK_Input_SaveClipRect    (RECT *pSave = nullptr);
+RECT SK_Input_RestoreClipRect (void);
+
+
+LRESULT WINAPI SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 #endif /* __SK__WINDOW_H__ */

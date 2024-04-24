@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -88,3 +88,31 @@ SK_D3D11_MakeDrawableCopy ( ID3D11Device              *pDevice,
 //   the selected RTV
 void SK_D3D11_ShaderModDlg_RTVContributors (void);
 void SK_D3D11_LiveShaderView               (bool& can_scroll);
+
+extern HRESULT
+  SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
+                            _In_ UINT                 VertexCount,
+                            _In_ UINT                 StartVertexLocation,
+                            _In_ D3D11_Draw_pfn       pfnD3D11Draw );
+
+extern HRESULT
+  SK_D3D11_InjectGenericHDROverlay ( _In_ ID3D11DeviceContext *pDevCtx,
+                                     _In_ UINT                 VertexCount,
+                                     _In_ UINT                 StartVertexLocation,
+                                     _In_ uint32_t             crc32,
+                                     _In_ D3D11_Draw_pfn       pfnD3D11Draw );
+extern HRESULT
+  SK_D3D11_Inject_uPlayHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
+                             _In_ UINT                  IndexCount,
+                             _In_ UINT                  StartIndexLocation,
+                             _In_ INT                   BaseVertexLocation,
+                             _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed );
+
+extern HRESULT
+  SK_D3D11_Inject_EpicHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
+                            _In_ UINT                  IndexCount,
+                            _In_ UINT                  StartIndexLocation,
+                            _In_ INT                   BaseVertexLocation,
+                            _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed );
+
+extern bool SK_D3D11_ShowShaderModDlg (void);

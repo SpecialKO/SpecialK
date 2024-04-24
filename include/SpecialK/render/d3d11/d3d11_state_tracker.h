@@ -1158,3 +1158,9 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext*        pDevCtx,
                           UINT                        NumClassInstances,
                           bool                        Wrapped = false,
                           UINT                        dev_idx = UINT_MAX );
+
+// Indicates whether the shader mod window is tracking render target refs
+extern bool live_rt_view;
+
+void
+SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS);

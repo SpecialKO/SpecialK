@@ -1137,9 +1137,9 @@ float _cSdrPower  = 0.74f;//0.84f;
 float _cLerpScale = 1.3f; //2.5f;
 
 void
-SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage::EndOfFrame,
-                                    bool               wait   = false,
-                                    bool               purge  = false )
+SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
+                                    bool               wait,
+                                    bool               purge)
 {
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();

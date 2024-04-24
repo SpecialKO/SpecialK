@@ -807,10 +807,6 @@ void SK_Widget_InitFramePacing (void)
   SK_RunOnce (__frame_pacing__.get ());
 }
 
-
-
-extern void SK_ImGui_DrawFramePercentiles (void);
-
 using namespace ImGui;
 using namespace std;
 

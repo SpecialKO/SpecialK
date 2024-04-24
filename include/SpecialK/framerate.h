@@ -779,6 +779,17 @@ extern void SK_Scheduler_Shutdown (void);
 extern HRESULT WINAPI
 SK_DWM_GetCompositionTimingInfo (DWM_TIMING_INFO *pTimingInfo);
 
+void SK_Framerate_WaitUntilQPC       (LONGLONG llQPC, HANDLE& hTimer);
+void SK_Framerate_EnergyControlPanel (void);
+
+void SK_ImGui_DrawGraph_FramePacing  (void);
+void SK_ImGui_DrawFramePercentiles   (void);
+void SK_ImGui_DrawGraph_Latency      (bool predraw);
+void SK_ImGui_DrawConfig_Latency     (void);
+void SK_ImGui_LatentSyncConfig       (void);
+void SK_ImGui_DrawFCAT               (void);
+
+
 extern volatile LONG64 lD3DKMTPresentCalls;
 
 extern bool __SK_HasDLSSGStatusSupport;
@@ -791,6 +802,9 @@ extern int  __SK_LatentSyncFrame;
 extern int  __SK_LatentSyncSkip;
 
 extern float __target_fps;
+extern float __target_fps_bg;
+
+extern LONGLONG __SK_LatentSyncPostDelay;
 
 
 #endif /* __SK__FRAMERATE_H__ */

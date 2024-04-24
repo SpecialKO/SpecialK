@@ -41,7 +41,6 @@
 #include <concurrent_unordered_map.h>
 #include <concurrent_unordered_set.h>
 
-extern volatile LONG  __d3d12_hooked;
 LPVOID pfnD3D12CreateDevice = nullptr;
 
 D3D12Device_CreateGraphicsPipelineState_pfn
@@ -2474,9 +2473,7 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
                                  nullptr, IID_PPV_ARGS (&pCmdList.p)));
                                                          pCmdList->Close ();
 
-      extern void
-        _InitCopyTextureRegionHook (ID3D12GraphicsCommandList* pCmdList);
-        _InitCopyTextureRegionHook (pCmdList);
+      _InitCopyTextureRegionHook (pCmdList);
     }
 
     catch (const SK_ComException& e) {

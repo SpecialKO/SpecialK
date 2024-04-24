@@ -41,6 +41,9 @@ bool __stdcall SKX_IsHookingCBT   (void) noexcept;
 
 size_t __stdcall SKX_GetInjectedPIDs (DWORD* pdwList, size_t capacity);
 
+LPVOID
+SK_Inject_GetViewOf32BitRecords (void);
+
 bool
 SK_Inject_SwitchToGlobalInjector (void);
 
@@ -64,9 +67,10 @@ SK_Inject_TestWhitelists (const wchar_t* wszExecutable);
 bool
 SK_Inject_TestBlacklists (const wchar_t* wszExecutable);
 
-
 // Internal use only
 //
+void SK_Inject_SpawnUnloadListener      (void);
+void SK_Inject_CleanupSharedMemory      (void);
 void SK_Inject_ReleaseProcess           (void);
 void SK_Inject_AcquireProcess           (void);
 void SK_Inject_SuppressExitNotify       (void);
@@ -178,6 +182,7 @@ struct SK_SharedMemory_v1
 };
 #pragma pack (pop)
 
+
 SK_InjectionRecord_s*
 __stdcall
 SK_Inject_GetRecordByIdx (int idx);
@@ -220,6 +225,7 @@ extern NtUserCallNextHookEx_pfn NtUserCallNextHookEx;
 bool  SK_Inject_IsHookActive               (void);
 float SK_Inject_GetInjectionDelayInSeconds (void);
 void  SK_Inject_SetFocusWindow             (HWND hWndFocus);
+HWND  SK_Inject_GetFocusWindow             (void);
 
 
 #endif /* __SK__INJECTION_H__ */

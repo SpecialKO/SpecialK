@@ -67,33 +67,7 @@ DWORD D3D11_GetFrameTime (void)
 bool
 SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader);
 
-extern HRESULT
-  SK_D3D11_InjectSteamHDR ( _In_ ID3D11DeviceContext *pDevCtx,
-                            _In_ UINT                 VertexCount,
-                            _In_ UINT                 StartVertexLocation,
-                            _In_ D3D11_Draw_pfn       pfnD3D11Draw );
 
-extern HRESULT
-  SK_D3D11_InjectGenericHDROverlay ( _In_ ID3D11DeviceContext *pDevCtx,
-                                     _In_ UINT                 VertexCount,
-                                     _In_ UINT                 StartVertexLocation,
-                                     _In_ uint32_t             crc32,
-                                     _In_ D3D11_Draw_pfn       pfnD3D11Draw );
-extern HRESULT
-  SK_D3D11_Inject_uPlayHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
-                             _In_ UINT                  IndexCount,
-                             _In_ UINT                  StartIndexLocation,
-                             _In_ INT                   BaseVertexLocation,
-                             _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed );
-
-extern HRESULT
-  SK_D3D11_Inject_EpicHDR ( _In_ ID3D11DeviceContext  *pDevCtx,
-                            _In_ UINT                  IndexCount,
-                            _In_ UINT                  StartIndexLocation,
-                            _In_ INT                   BaseVertexLocation,
-                            _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed );
-
-extern bool SK_D3D11_ShowShaderModDlg (void);
 
 LPVOID pfnD3D11CreateDevice             = nullptr;
 LPVOID pfnD3D11CreateDeviceAndSwapChain = nullptr;
@@ -189,11 +163,6 @@ SK_D3D11_CleanupMutexes (void)
     cs_render_view.reset ();
   }
 }
-
-extern std::pair <BOOL*, BOOL>
-SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
-extern bool
-SK_ImGui_IsDrawing_OnD3D11Ctx   (UINT dev_idx, ID3D11DeviceContext* pDevCtx);
 
 SK_LazyGlobal <
    std::array < SK_D3D11_ContextResources,
@@ -1176,9 +1145,7 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
                                SKID_DXGI_SwapChainBackbufferFormat, &size,
                                  &internalSwapChainFormat ) ) )
             { // Yep
-              //extern bool
-              //    bOriginallysRGB;
-              //if (bOriginallysRGB && (! __SK_HDR_16BitSwap)) {
+              //if (rb.active_traits.bOriginallysRGB && (! __SK_HDR_16BitSwap)) {
               //  //desc.Format = DirectX::MakeSRGB (tex_desc.Format);
               //} // Game expects sRGB
 
@@ -1438,9 +1405,7 @@ SK_D3D11Dev_CreateRenderTargetView1_Impl (
                                SKID_DXGI_SwapChainBackbufferFormat, &size,
                                  &internalSwapChainFormat ) ) )
             { // Yep
-              //extern bool
-              //    bOriginallysRGB;
-              //if (bOriginallysRGB && (! __SK_HDR_16BitSwap)) {
+              //if (rb.active_traits.bOriginallysRGB && (! __SK_HDR_16BitSwap)) {
               //  //desc.Format = DirectX::MakeSRGB (tex_desc.Format);
               //} // Game expects sRGB
 
@@ -2984,9 +2949,6 @@ SK_LazyGlobal <concurrency::concurrent_vector <d3d11_shader_tracking_s::cbuffer_
 
 bool SK_D3D11_KnownShaders::reshade_triggered;
 
-// Indicates whether the shader mod window is tracking render target refs
-extern bool live_rt_view;
-
 bool
 SK_D3D11_DrawCallFilter (int elem_cnt, int vtx_cnt, uint32_t vtx_shader)
 {
@@ -4505,7 +4467,6 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
     //  return;
     //}
 
-    ////extern volatile LONG __SK_SHENMUE_FullAspectCutscenes;
     ////if (ReadAcquire (&__SK_SHENMUE_FullAspectCutscenes))
     ////{
     ////  if (SK_D3D11_Shaders->pixel.current.shader [dev_idx] == 0x29b11b07)
@@ -4527,8 +4488,6 @@ SK_D3D11_Draw_Impl (ID3D11DeviceContext* pDevCtx,
     {
       case SK_GAME_ID::Tales_of_Vesperia:
       {
-        extern bool SK_TVFix_SharpenShadows (void);
-
         if (    SK_TVFix_SharpenShadows   (       ) &&
              (! SK_D3D11_IsDevCtxDeferred (pDevCtx)    )
            )
@@ -4800,7 +4759,6 @@ SK_D3D11_DrawIndexed_Impl (
 
   if (bIsShenmue)
   {
-    extern volatile LONG  __SK_SHENMUE_FinishedButNotPresented;
     InterlockedExchange (&__SK_SHENMUE_FinishedButNotPresented, 1L);
   }
 #endif
@@ -5185,7 +5143,6 @@ SK_D3D11_OMSetRenderTargetsAndUnorderedAccessViews_Impl (
                          SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami ||
                          SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
                          SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow );
-  extern bool __SK_Yakuza_TrackRTVs;
 #endif
 
   // ImGui gets to pass-through without invoking the hook
@@ -5324,7 +5281,6 @@ _In_opt_ ID3D11DepthStencilView        *pDepthStencilView,
                          SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami ||
                          SK_GetCurrentGameID () == SK_GAME_ID::YakuzaKiwami2 ||
                          SK_GetCurrentGameID () == SK_GAME_ID::YakuzaUnderflow );
-  extern bool __SK_Yakuza_TrackRTVs;
 #endif
 
   if (
@@ -5555,10 +5511,6 @@ D3D11Dev_CreateTexture2D1_Impl (
 #ifdef _M_AMD64
       case SK_GAME_ID::Tales_of_Vesperia:
       {
-        extern void SK_TVFix_CreateTexture2D (
-          D3D11_TEXTURE2D_DESC    *pDesc
-        );
-
         if (SK_GetCallingDLL (lpCallerAddr) == SK_GetModuleHandle (nullptr))
             SK_TVFix_CreateTexture2D ((D3D11_TEXTURE2D_DESC *)pDesc);
       } break;
@@ -5591,8 +5543,6 @@ D3D11Dev_CreateTexture2D1_Impl (
 #else
       case SK_GAME_ID::ChronoCross:
       {
-        extern float
-            __SK_CC_ResMultiplier;
         if (__SK_CC_ResMultiplier)
         {
           if (pDesc->Format != DXGI_FORMAT_R16_UINT &&
@@ -5611,6 +5561,7 @@ D3D11Dev_CreateTexture2D1_Impl (
     }
   }
 
+  
 
   // New versions of SK attempt to preserve MSAA, so this code is counter-productive
 #ifdef _REMOVE_MSAA
@@ -5618,9 +5569,7 @@ D3D11Dev_CreateTexture2D1_Impl (
   //   MSAA status removed to be compatible with Flip
   if (! rb.active_traits.bOriginallyFlip)
   {
-    extern UINT
-        uiOriginalBltSampleCount;
-    if (uiOriginalBltSampleCount == pDesc->SampleDesc.Count && pDesc->SampleDesc.Count > 1)
+    if (rb.active_traits.uiOriginalBltSampleCount == pDesc->SampleDesc.Count && pDesc->SampleDesc.Count > 1)
     {
       if ( (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ==
                                D3D11_BIND_DEPTH_STENCIL )
@@ -5704,8 +5653,6 @@ D3D11Dev_CreateTexture2D1_Impl (
                    ( pInitialData          == nullptr ||
                      pInitialData->pSysMem == nullptr ) )
   {
-    extern bool SK_HDR_PromoteUAVsTo16Bit;
-
     static constexpr UINT _UnwantedBindFlags =
         ( D3D11_BIND_VERTEX_BUFFER   | D3D11_BIND_INDEX_BUFFER     |
           D3D11_BIND_CONSTANT_BUFFER | D3D11_BIND_STREAM_OUTPUT    |
@@ -6747,10 +6694,6 @@ D3D11Dev_CreateTexture2D_Impl (
 #ifdef _M_AMD64
       case SK_GAME_ID::Tales_of_Vesperia:
       {
-        extern void SK_TVFix_CreateTexture2D (
-          D3D11_TEXTURE2D_DESC    *pDesc
-        );
-
         if (SK_GetCallingDLL (lpCallerAddr) == SK_GetModuleHandle (nullptr))
             SK_TVFix_CreateTexture2D (pDesc);
       } break;
@@ -6783,8 +6726,6 @@ D3D11Dev_CreateTexture2D_Impl (
 #else
       case SK_GAME_ID::ChronoCross:
       {
-        extern float
-            __SK_CC_ResMultiplier;
         if (__SK_CC_ResMultiplier)
         {
           if (pDesc->Format != DXGI_FORMAT_R16_UINT &&
@@ -6810,9 +6751,7 @@ D3D11Dev_CreateTexture2D_Impl (
   //   MSAA status removed to be compatible with Flip
   if (! rb.active_traits.bOriginallyFlip)
   {
-    extern UINT
-        uiOriginalBltSampleCount;
-    if (uiOriginalBltSampleCount == pDesc->SampleDesc.Count && pDesc->SampleDesc.Count > 1)
+    if (rb.active_traits.uiOriginalBltSampleCount == pDesc->SampleDesc.Count && pDesc->SampleDesc.Count > 1)
     {
       if ( (pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL) ==
                                D3D11_BIND_DEPTH_STENCIL )
@@ -6896,8 +6835,6 @@ D3D11Dev_CreateTexture2D_Impl (
                    //( pInitialData          == nullptr ||
                      //pInitialData->pSysMem == nullptr ) )
   {
-    extern bool SK_HDR_PromoteUAVsTo16Bit;
-
     static constexpr UINT _UnwantedBindFlags =
         ( D3D11_BIND_VERTEX_BUFFER   | D3D11_BIND_INDEX_BUFFER     |
           D3D11_BIND_CONSTANT_BUFFER | D3D11_BIND_STREAM_OUTPUT    |
@@ -8448,8 +8385,7 @@ SK_D3D11_HookDevCtx (sk_hook_d3d11_t *pHooks)
 }
 
 
-extern
-unsigned int __stdcall HookD3D12 (LPVOID user);
+
 
 DWORD
 __stdcall
@@ -8814,9 +8750,6 @@ HookD3D11 (LPVOID user)
 }
 
 SK_LazyGlobal <SK_D3D11_StateTrackingCounters> SK_D3D11_TrackingCount;
-
-extern void
-SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS);
 
 UINT _GetStashedRTVIndex (_Notnull_ ID3D11RenderTargetView* pRTV)
 {
@@ -9298,9 +9231,6 @@ SK_D3D11_ReleaseDeviceOnHWnd (IDXGISwapChain1* pChain, HWND hWnd, IUnknown* pDev
 
   return ret;
 }
-
-extern bool
-SK_DXGI_IsSwapChainReal (const DXGI_SWAP_CHAIN_DESC& desc) noexcept;
 
 bool
 SK_D3D11_IsFeatureLevelSufficient ( D3D_FEATURE_LEVEL   FeatureLevelSupported,

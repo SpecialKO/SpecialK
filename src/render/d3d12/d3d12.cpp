@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -175,9 +175,6 @@ SK_D3D12_HotSwapChainHook ( IDXGISwapChain3* pSwapChain,
 
   return init;
 }
-
-extern void
-SK_D3D11_SetPipelineStats (void* pData);
 
 void
 __stdcall

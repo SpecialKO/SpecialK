@@ -2514,7 +2514,6 @@ SetCurrentThreadDescription (L"[SK] DXGI Hook Crawler");
       SK_ApplyQueuedHooks ();
 
 
-      extern volatile LONG          SK_D3D11_initialized;
       InterlockedIncrementRelease (&SK_D3D11_initialized);
 
       if (config.apis.dxgi.d3d11.hook) SK_D3D11_EnableHooks ();

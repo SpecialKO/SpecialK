@@ -582,6 +582,7 @@ protected:
   } cached_stats;
 };
 
-bool SK_Widget_InitEverything (void);
+bool SK_Widget_InitEverything    (void);
+     SK_Widget* SK_HDR_GetWidget (void);
 
 #endif /* __SK__WIDGET_H__ */

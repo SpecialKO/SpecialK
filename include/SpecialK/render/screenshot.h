@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 /**
  * This file is part of Special K.
  *
@@ -265,4 +265,12 @@ void SK_WIC_SetMaximumQuality (IPropertyBag2 *props);
 void SK_WIC_SetBasicMetadata  (IWICMetadataQueryWriter *pMQW);
 void SK_WIC_SetMetadataTitle  (IWICMetadataQueryWriter *pMQW, std::string& title);
 
-extern std::string SK_GetFriendlyAppName (void);
+extern volatile LONG __SK_ScreenShot_CapturingHUDless;
+
+extern volatile LONG __SK_D3D11_QueuedShots;
+extern volatile LONG __SK_D3D12_QueuedShots;
+
+extern volatile LONG __SK_D3D11_InitiateHudFreeShot;
+extern volatile LONG __SK_D3D12_InitiateHudFreeShot;
+
+extern          bool   SK_D3D12_ShouldSkipHUD (void);

@@ -308,15 +308,6 @@ SK_D3D12_UpdateRenderStats (ID3D12GraphicsCommandList *pList, IDXGISwapChain3* p
 
 
 
-
-
-
-
-
-extern std::string
-SK_CountToString (uint64_t count);
-
-
 class SKWG_D3D12_Pipeline : public SK_Widget
 {
 public:

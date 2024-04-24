@@ -371,6 +371,8 @@ public:
   std::unordered_set <uint32_t>               injectable_ffx; // HACK FOR FFX
 };
 
+extern uint64_t SK_D3D11_MipmapCacheSize;
+
 bool
 SK_D3D11_Resampler_PostJob         ( resample_job_s       job );
 
@@ -379,8 +381,10 @@ SK_D3D11_Resampler_ProcessFinished ( ID3D11Device        *pDev,
                                      ID3D11DeviceContext *pDevCtx,
                                      SK_TLS              *pTLS = SK_TLS_Bottom () );
 
-extern LONG SK_D3D11_Resampler_GetActiveJobCount  (void);
-extern LONG SK_D3D11_Resampler_GetWaitingJobCount (void);
-extern LONG SK_D3D11_Resampler_GetErrorCount      (void);
+extern LONG        SK_D3D11_Resampler_GetActiveJobCount  (void);
+extern LONG        SK_D3D11_Resampler_GetWaitingJobCount (void);
+extern LONG        SK_D3D11_Resampler_GetErrorCount      (void);
+extern int         SK_D3D11_ReloadAllTextures            (void);
+extern std::string SK_D3D11_SummarizeTexCache            (void);
 
 extern SK_LazyGlobal <SK_D3D11_TexMgr> SK_D3D11_Textures;

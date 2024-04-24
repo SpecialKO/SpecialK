@@ -69,10 +69,12 @@ void SK_Input_PreHookXInput   (void);
 void SK_Input_PreHookScePad   (void);
 bool SK_Input_PreHookHID      (void);
 bool SK_Input_PreHookWinMM    (void);
+void SK_Input_HookWinMM       (void);
 
 void SK_Input_PreInit      (void);
 void SK_Input_Init         (void);
 void SK_Input_InitKeyboard (void);
+
 
 void SK_Input_SetLatencyMarker (void) noexcept;
 
@@ -87,6 +89,11 @@ SHORT WINAPI SK_GetAsyncKeyState (int vKey);
 
 bool __SKX_WinHook_InstallInputHooks  (HWND hWnd);
 bool SK_Input_DetermineMouseIdleState (MSG* lpMsg);
+
+UINT
+SK_Input_ClassifyRawInput ( HRAWINPUT lParam, bool& mouse,
+                                              bool& keyboard,
+                                              bool& gamepad );
 
 
 enum class sk_cursor_state {
@@ -932,6 +939,7 @@ struct SK_HID_PlayStationDevice
   bool                 bDualSenseEdge           =   false;
   bool                 bDualShock4              =   false;
   bool                 bDualShock3              =   false;
+  bool                 bSimpleMode              =    true;
   bool                 bTerminating             =   false;
   volatile LONG        bNeedOutput              =   false;
 
@@ -1043,7 +1051,7 @@ struct SK_HID_PlayStationDevice
                       USHORT max_val = std::numeric_limits <USHORT>::max () );
 
   bool request_input_report (void);
-  bool write_output_report  (void);
+  bool write_output_report  (bool force = false);
 
   bool setPollingFrequency (DWORD dwFreq);
   bool setBufferCount      (DWORD dwBuffers);
@@ -1113,13 +1121,6 @@ SK_RawInput_EnableLegacyKeyboard (bool enable);
 // Restore the game's original setting
 void
 SK_RawInput_RestoreLegacyKeyboard (void);
-
-UINT
-SK_Input_ClassifyRawInput ( HRAWINPUT lParam,
-                            bool&     mouse,
-                            bool&     keyboard,
-                            bool&     gamepad );
-
 
 using GetRegisteredRawInputDevices_pfn = UINT (WINAPI *)(
   _Out_opt_ PRAWINPUTDEVICE pRawInputDevices,
@@ -1208,14 +1209,16 @@ LRESULT
 CALLBACK
 SK_ImGui_MouseProc    (int code, WPARAM wParam, LPARAM lParam);
 
-bool SK_ImGui_ExemptOverlaysFromKeyboardCapture (void);
-
 void SK_AdjustClipRect (void);
 
 int WINAPI SK_ShowCursor (BOOL bShow);
 
-bool SK_InputUtil_IsHWCursorVisible (void);
-bool SK_Window_IsCursorActive       (void);
+bool SK_ImGui_ExemptOverlaysFromKeyboardCapture (void);
+bool SK_ImGui_IsMouseRelevant                   (void);
+void    ImGui_ToggleCursor                      (void);
+HCURSOR ImGui_DesiredCursor                     (void);
+bool SK_InputUtil_IsHWCursorVisible             (void);
+bool SK_Window_IsCursorActive                   (void);
 
 enum SK_InputEnablement {
   Enabled              = 0,
@@ -1257,5 +1260,13 @@ extern bool SK_WGI_EmulatedPlayStation;
 
 static constexpr GUID GUID_XUSB_INTERFACE_CLASS =
   { 0xEC87F1E3L, 0xC13B, 0x4100, { 0xB5, 0xF7, 0x8B, 0x84, 0xD5, 0x42, 0x60, 0xCB } };
+
+bool __SKX_WinHook_InstallInputHooks  (HWND hWnd);
+int  SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
+void SK_ScePad_PaceMaker              (void);
+
+void SK_HID_ProcessGamepadButtonBindings (void);
+
+extern HidD_GetAttributes_pfn SK_HidD_GetAttributes;
 
 #endif /* __SK__INPUT_H__ */
