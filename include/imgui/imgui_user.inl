@@ -2113,7 +2113,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
       {
         for ( auto& ps_controller : SK_HID_PlayStationControllers )
         {
-          if (ps_controller.bConnected)
+          if (ps_controller.bConnected)// && (ps_controller.bSimpleMode == false || ps_controller.bBluetooth == false))
               ps_controller.write_output_report ();
         }
         //pLastActiveController->write_output_report ();

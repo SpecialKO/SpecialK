@@ -4045,6 +4045,11 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   SK_DeferCommand ("Input.Gamepad.PowerOff 1");
                 }
 
+                else
+                {
+                  pDevice->bSimpleMode = false;
+                }
+
                 pDevice->xinput.report.Gamepad.sThumbLX =
                   static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pData->LeftStickX) - 128) / 128.0);
 
@@ -4825,7 +4830,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 }
 
 bool
-SK_HID_PlayStationDevice::write_output_report (void)
+SK_HID_PlayStationDevice::write_output_report (bool force)
 {
   if (ReadAcquire (&__SK_DLL_Ending))
   {
@@ -4835,6 +4840,20 @@ SK_HID_PlayStationDevice::write_output_report (void)
 
   if (! bConnected)
     return false;
+
+  if (bBluetooth)
+  {
+    if (config.input.gamepad.bt_input_only)
+      return false;
+
+    if (bSimpleMode && (! force))
+    {
+      return false;
+    }
+
+    if (force)
+      bSimpleMode = false;
+  }
 
   if (bDualSense)
   {
@@ -5512,21 +5531,6 @@ SK_HID_PlayStationDevice::write_output_report (void)
           if (! bFinished)
           {
             continue;
-          }
-
-          if (pDevice->bBluetooth)
-          {
-            // Prevent changing the protocol of Bluetooth-paired PlayStation controllers
-            while (config.input.gamepad.bt_input_only)
-            {
-              if ( WAIT_OBJECT_0 ==
-                     WaitForSingleObject (__SK_DLL_TeardownEvent, 1000UL) )
-              {
-                TerminateThread (GetCurrentThread (), 0x0);
-
-                return 0;
-              }
-            }
           }
 
           ZeroMemory ( pDevice->output_report.data (),

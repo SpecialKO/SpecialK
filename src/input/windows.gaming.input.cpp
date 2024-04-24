@@ -412,7 +412,14 @@ public:
           (std::min (255ui16, static_cast <USHORT> (vibes.RightMotor * 255.0 + vibes.RightTrigger * 255.0))), 255ui16
         );
 
-        ps_controller.write_output_report ();
+        if ((ps_controller.bBluetooth && config.input.gamepad.bt_input_only))
+        {
+        }
+
+        //else if ((! ps_controller.bBluetooth) || (vibes.LeftMotor > 0.0 || vibes.RightMotor > 0.0))
+        {
+          ps_controller.write_output_report (true);
+        }
       }
     }
 

@@ -1287,7 +1287,14 @@ XInputSetState1_4_Detour (
               0x0 // Normalize against largest range seen
             );
 
-            controller.write_output_report ();
+            if ((controller.bBluetooth && config.input.gamepad.bt_input_only))
+            {
+            }
+            
+            else if ((! controller.bBluetooth) || (pVibration->wLeftMotorSpeed > 0 || pVibration->wRightMotorSpeed > 0))
+            {
+              controller.write_output_report (true);
+            }
           }
 
           //SK_XINPUT_WRITE (dwUserIndex)
@@ -3042,7 +3049,7 @@ SK_XInput_PulseController ( INT   iJoyID,
         &controller == pNewestInputDevice ? vibes.wRightMotorSpeed : 0
       );
 
-      if (controller.write_output_report ())
+      if ((controller.bBluetooth && (config.input.gamepad.bt_input_only || controller.bSimpleMode)) || controller.write_output_report ())
       {
         if (pNewestInputDevice == &controller)
           bSet = true;

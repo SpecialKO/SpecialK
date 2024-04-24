@@ -939,6 +939,7 @@ struct SK_HID_PlayStationDevice
   bool                 bDualSenseEdge           =   false;
   bool                 bDualShock4              =   false;
   bool                 bDualShock3              =   false;
+  bool                 bSimpleMode              =    true;
   bool                 bTerminating             =   false;
   volatile LONG        bNeedOutput              =   false;
 
@@ -1050,7 +1051,7 @@ struct SK_HID_PlayStationDevice
                       USHORT max_val = std::numeric_limits <USHORT>::max () );
 
   bool request_input_report (void);
-  bool write_output_report  (void);
+  bool write_output_report  (bool force = false);
 
   bool setPollingFrequency (DWORD dwFreq);
   bool setBufferCount      (DWORD dwBuffers);

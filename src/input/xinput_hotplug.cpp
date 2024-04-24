@@ -300,7 +300,8 @@ SK_XInput_NotifyDeviceArrival (void)
 
                                   has_existing = true;
 
-                                  controller.write_output_report ();
+                                  if ((! controller.bBluetooth) || (! config.input.gamepad.bt_input_only))
+                                    controller.write_output_report ();
 
                                   if (        controller.hReconnectEvent != nullptr)
                                     SetEvent (controller.hReconnectEvent);
