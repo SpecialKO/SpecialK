@@ -1,4 +1,10 @@
-﻿24.4.23.5
+﻿24.4.24
+=======
+ + Added stupid hack for systems with broken PresentMon running D3D12, where
+     VRR status cannot be determined. VBlank rate < Reflex rate is assumed
+       VRR active.
+
+24.4.23.5
 =========
  + Prevent setting LED color in DualShock 3 Bluetooth Compatibility mode on
      DualShock 4 controllers.

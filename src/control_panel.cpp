@@ -5041,15 +5041,27 @@ SK_ImGui_ControlPanel (void)
       {
         strcat (szGSyncStatus, "    Supported + ");
 
+        auto& nvapi_display =
+          rb.displays [rb.active_display].nvapi;
+
+        float fVBlankHz =
+          nvapi_display.vblank_counter.getVBlankHz (
+                    SK::ControlPanel::current_time );
+
+        if (rb.api == SK_RenderAPI::D3D12)
+        {
+          float fFixedHz =
+            (static_cast <float> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
+             static_cast <float> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator));
+
+          if (fVBlankHz <= fFixedHz - (fFixedHz * fFixedHz) / 3600.0)
+          {
+            rb.gsync_state.active = true;
+          }
+        }
+
         if (rb.gsync_state.active)
         {
-          auto& nvapi_display =
-            rb.displays [rb.active_display].nvapi;
-
-          float fVBlankHz =
-            nvapi_display.vblank_counter.getVBlankHz (
-                      SK::ControlPanel::current_time );
-
           // Is it really "active" if we can't calculate the rate?
           if (fVBlankHz == 0.0f)
             strcat (szGSyncStatus, "Active " ICON_FA_QUESTION_CIRCLE);
