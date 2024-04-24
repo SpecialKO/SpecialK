@@ -54,7 +54,7 @@ public:
         {
           std::wstring* pwszName = (std::wstring *)pUser;
 
-          SK_SleepEx (3333UL, FALSE);
+          SK_SleepEx (500UL, FALSE);
 
           if (config.platform.achievements.play_sound && (! ((SK_EOS_AchievementManager *)g_EOSAchievements)->unlock_sound.empty ()))
           {
@@ -68,8 +68,8 @@ public:
           if (config.platform.achievements.take_screenshot)
           {
             SK::SteamAPI::TakeScreenshot (
-              SK_ScreenshotStage::EndOfFrame, true,
-                SK_WideCharToUTF8 (pwszName->c_str ())
+              SK_ScreenshotStage::EndOfFrame, false,
+                SK_FormatString ("Achievements\\%ws", pwszName->c_str ())
             );
           }
 

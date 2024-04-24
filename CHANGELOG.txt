@@ -1,4 +1,11 @@
-﻿24.4.25
+﻿24.4.25.1
+=========
+ + Adjust timing on Epic Game Store Achievement screenshots to catch
+     the EOS unlock graphics
+ + Place EOS achievement screenshots in Achievements\ subdirectory as
+     done with Steam achievement screenshots
+
+24.4.25
 =======
  + Added named achievement screenshots for Epic Game Store games
  + Disabled SteamAPI integration in Yakuza 0 by default
