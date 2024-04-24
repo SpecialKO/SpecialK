@@ -1766,11 +1766,54 @@ SK::ControlPanel::Input::Draw (void)
 
           else
           {
-            ImGui::SameLine ();
-            ImGui::BulletText (ICON_FA_BLUETOOTH " Compatibility Mode: Features newer than DualShock 3 are unusable.");
+            ImGui::SameLine   ();
+            ImGui::BulletText ( ICON_FA_BLUETOOTH
+              " Compatibility Mode: Features newer than DualShock 3 are unusable."
+            );
 
-            if (ImGui::IsItemHovered ())
-              ImGui::SetTooltip ("Plug your controller in, or trigger rumble in-game to put the Bluetooth controller into DualShock 4 / DualSense mode.");
+            if (ImGui::IsItemHovered ( ))
+            {
+              ImGui::BeginTooltip    ( );
+              ImGui::TextUnformatted (
+                "Plug your controller in, or trigger rumble in-game to put the "
+                "Bluetooth controller into DualShock 4 / DualSense mode."
+              );
+              ImGui::Separator       ( );
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
+
+              ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
+              ImGui::SameLine        ( );
+              ImGui::TextUnformatted ("Right-click to configure compatibility mode");
+              ImGui::PopStyleColor   ( );
+              ImGui::EndTooltip      ( );
+            }
+
+            if (SK_ImGui_IsItemRightClicked ())
+            {
+              ImGui::ClearActiveID   ( );
+              ImGui::OpenPopup       ("BluetoothCompatMenu2");
+            }
+
+            if (ImGui::BeginPopup ("BluetoothCompatMenu2"))
+            {
+              if (ImGui::Checkbox ( "Always Enable Full Capabilities in " ICON_FA_BLUETOOTH,
+                                    &config.input.gamepad.scepad.enable_full_bluetooth))
+              {
+                config.utility.save_async ();
+                ImGui::CloseCurrentPopup  ();
+              }
+
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::SetTooltip (
+                  "Your gamepad will no longer work correctly in DirectInput "
+                  "software until powered off...\r\nHowever, that is normal after running "
+                  "any game that supports Bluetooth DualShock/DualSense controllers."
+                );
+              }
+
+              ImGui::EndPopup ();
+            }
           }
 
 #if 0

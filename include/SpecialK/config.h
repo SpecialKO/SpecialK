@@ -1029,6 +1029,7 @@ struct sk_config_t
         bool  show_ds4_v1_as_v2    =  false;
         bool  hide_ds4_v2_pid      =   true;
         bool  hide_ds_edge_pid     =   true;
+        bool  enable_full_bluetooth=  false;
         std::wstring
               touch_click          = L"<Not Bound>";
         std::wstring

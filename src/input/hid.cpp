@@ -4846,6 +4846,9 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
     if (config.input.gamepad.bt_input_only)
       return false;
 
+    if (config.input.gamepad.scepad.enable_full_bluetooth)
+        force = true;
+
     if (bSimpleMode && (! force))
     {
       return false;

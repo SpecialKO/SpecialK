@@ -1,4 +1,9 @@
-﻿24.4.24.2
+﻿24.4.24.3
+=========
+ + Added option to enable full DualShock4 / DualSense capabilities over
+     Bluetooth even if a game has not yet put the controller in that mode.
+
+24.4.24.2
 =========
  + Added bulletpoint explaining why some DualShock4 / DualSense features
      no longer work over Bluetooth.
