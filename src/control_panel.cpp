@@ -5828,6 +5828,12 @@ SK_ImGui_ControlPanel (void)
 
             bFirstFrame = false;
 
+            int maxLatentSyncSkip = 0;/*(
+              SK_API_IsLayeredOnD3D11 (rb.api) ||
+              SK_API_IsDirect3D9      (rb.api) ||
+              rb.api == SK_RenderAPI::D3D10    ||
+              rb.api == SK_RenderAPI::OpenGL
+            ) ? 4 : 0;*/
 
             bool bLatentSync =
               config.render.framerate.present_interval == 0 &&
