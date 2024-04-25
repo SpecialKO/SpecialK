@@ -134,12 +134,33 @@ SK::ControlPanel::Input::Draw (void)
   bool bHasSimpleBluetooth = false;
   bool bHasBluetooth       = false;
   bool bHasNonBluetooth    = false;
+  bool bHasDualSense       = false;
+  bool bHasDualSenseEdge   = false;
+  bool bHasDualShock4      = false;
+  bool bHasDualShock4v2    = false;
   bool bHasDualShock4v2_Bt = false;
 
   for ( auto& ps_controller : SK_HID_PlayStationControllers )
   {
     if (ps_controller.bConnected)
     {
+      if ( ps_controller.bDualSense ||
+           ps_controller.bDualSenseEdge )
+      {
+        bHasDualSense = true;
+
+        if (ps_controller.bDualSenseEdge)
+          bHasDualSenseEdge = true;
+      }
+
+      if (ps_controller.bDualShock4)
+      {
+        if (ps_controller.pid == SK_HID_PID_DUALSHOCK4_REV2)
+          bHasDualShock4v2 = true;
+        else
+          bHasDualShock4 = true;
+      }
+
       if (ps_controller.bBluetooth)
       {
         if (ps_controller.pid == SK_HID_PID_DUALSHOCK4_REV2 &&
@@ -1948,6 +1969,78 @@ SK::ControlPanel::Input::Draw (void)
         }
         else
           config.input.gamepad.hid.calc_latency = false;
+
+        if (bHasDualSenseEdge || bHasDualShock4v2 || bHasDualShock4)
+        {
+          if (ImGui::TreeNode ("Compatibility Options"))
+          {
+            bool hovered = false;
+            bool changed = false;
+
+            if (bHasDualSenseEdge)
+            {
+              bool spoof =
+                (config.input.gamepad.scepad.hide_ds_edge_pid == SK_Enabled);
+
+              if (ImGui::Checkbox ("Identify DualSense Edge as DualSense", &spoof))
+              {
+                changed = true;
+
+                config.input.gamepad.scepad.hide_ds_edge_pid = spoof ? SK_Enabled
+                                                                     : SK_Disabled;
+              }
+
+              hovered |= ImGui::IsItemHovered ();
+            }
+
+            if (bHasDualShock4v2)
+            {
+              bool spoof =
+                (config.input.gamepad.scepad.hide_ds4_v2_pid == SK_Enabled);
+
+              if (ImGui::Checkbox ("Identify DualShock 4 v2 as DualShock 4", &spoof))
+              {
+                changed = true;
+
+                config.input.gamepad.scepad.hide_ds4_v2_pid = spoof ? SK_Enabled
+                                                                    : SK_Disabled;
+              }
+
+              hovered |= ImGui::IsItemHovered ();
+            }
+
+            if (bHasDualShock4)
+            {
+              bool spoof =
+                (config.input.gamepad.scepad.show_ds4_v1_as_v2 == SK_Enabled);
+
+              if (ImGui::Checkbox ("Identify DualShock 4 as DualShock 4 v2", &spoof))
+              {
+                changed = true;
+
+                config.input.gamepad.scepad.show_ds4_v1_as_v2 = spoof ? SK_Enabled
+                                                                      : SK_Disabled;
+              }
+
+              hovered |= ImGui::IsItemHovered ();
+            }
+
+            if (hovered)
+            {
+              ImGui::BeginTooltip    ();
+              ImGui::TextUnformatted ("Identifying as an alternate product may help "
+                                      "to enable a game's native support for your controller");
+              ImGui::Separator       ();
+              ImGui::BulletText      ("Game restart required");
+              ImGui::EndTooltip      ();
+            }
+
+            if (changed)
+              config.utility.save_async ();
+
+            ImGui::TreePop  (  );
+          }
+        }
 
         ImGui::PopStyleColor (3);
       }

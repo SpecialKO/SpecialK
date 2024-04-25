@@ -985,7 +985,7 @@ HidD_GetAttributes_Detour (_In_  HANDLE           HidDeviceObject,
   {
     if (Attributes->VendorID == SK_HID_VID_SONY)
     {
-      if (config.input.gamepad.scepad.show_ds4_v1_as_v2)
+      if (config.input.gamepad.scepad.show_ds4_v1_as_v2 == SK_Enabled)
       {
         if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4)
         {   Attributes->ProductID  = SK_HID_PID_DUALSHOCK4_REV2;
@@ -993,7 +993,7 @@ HidD_GetAttributes_Detour (_In_  HANDLE           HidDeviceObject,
         }
       }
 
-      if (config.input.gamepad.scepad.hide_ds4_v2_pid)
+      if (config.input.gamepad.scepad.hide_ds4_v2_pid == SK_Enabled)
       {
         if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4_REV2)
         {   Attributes->ProductID  = SK_HID_PID_DUALSHOCK4;
@@ -1006,7 +1006,7 @@ HidD_GetAttributes_Detour (_In_  HANDLE           HidDeviceObject,
         }
       }
 
-      if (config.input.gamepad.scepad.hide_ds_edge_pid)
+      if (config.input.gamepad.scepad.hide_ds_edge_pid == SK_Enabled)
       {
         if (Attributes->ProductID == SK_HID_PID_DUALSENSE_EDGE)
         {   Attributes->ProductID  = SK_HID_PID_DUALSENSE;

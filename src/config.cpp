@@ -1024,9 +1024,9 @@ struct {
       sk::ParameterInt*     led_color_g           = nullptr;
       sk::ParameterInt*     led_color_b           = nullptr;
       sk::ParameterInt*     led_brightness        = nullptr;
-      sk::ParameterBool*    show_ds4_as_ds4_v2    = nullptr;
-      sk::ParameterBool*    hide_ds4_v2_pid       = nullptr;
-      sk::ParameterBool*    hide_ds_edge_pid      = nullptr;
+      sk::ParameterInt*     show_ds4_as_ds4_v2    = nullptr;
+      sk::ParameterInt*     hide_ds4_v2_pid       = nullptr;
+      sk::ParameterInt*     hide_ds_edge_pid      = nullptr;
       sk::ParameterBool*    enable_full_bluetooth = nullptr;
       sk::ParameterStringW* left_fn_bind          = nullptr;
       sk::ParameterStringW* right_fn_bind         = nullptr;
@@ -1823,7 +1823,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.dlss.spoof_feature_support,      L"Report all NGX (D3D11/D3D12) features supported on all HW.",dll_ini,         L"NVIDIA.DLSS",           L"SpoofFeatureSupport"),
 
     ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
-    ConfigEntry (render.hdr.remaster_8bpc_as_unorm,      L"Do not use Floating-Point RTs when re-mastering 8-bpc RTs", dll_ini,         L"SpecialK.HDR",          L"Keep8BpcRemastersUNORM"),
+    ConfigEntry (render.hdr.remaster_8bpc_as_unorm,      L"Do not use Floating-Point RTs when re-mastering 8-bpc+ RTs",dll_ini,         L"SpecialK.HDR",          L"Keep8BpcRemastersUNORM"),
     ConfigEntry (render.hdr.remaster_subnative_unorm,    L"Do not use FP RTs when re-mastering reduced resolution RTS",dll_ini,         L"SpecialK.HDR",          L"KeepSubnativeRemastersUNORM"),
 
     ConfigEntry (render.osd.draw_in_vidcap,              L"Changes hook order in order to allow recording the OSD.",   dll_ini,         L"Render.OSD",            L"ShowInVideoCapture"),
@@ -3526,7 +3526,7 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::BatmanArkhamKnight:
-        config.input.gamepad.scepad.hide_ds4_v2_pid = true;
+        config.input.gamepad.scepad.hide_ds4_v2_pid = SK_Enabled;
         break;
 
       case SK_GAME_ID::Starfield:

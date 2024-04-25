@@ -1,4 +1,22 @@
-﻿24.4.25.1
+﻿24.4.25.2
+=========
+ + Auto-identify SONY PlayStation controllers as the base model in Unity engine
+     games because they often cannot recognize newer models.
+ + Auto-identify DualShock 4 v2 controllers as DualShock 4 to Arkham Knight
+ + Added Compatibility Options section to control panel for PlayStation
+     controllers, where alternate controller identification can be configured.
+ + Changed controller identification override INI settings to an integer:
+
+     -1=No Preference  (Default)
+      0=Do Not Apply
+      1=Apply
+
+    >> This is necessary so that auto-enabling the feature for specific engines
+         is possible, and users can reverse the auto-enable decision.
+
+       * Auto-enablement only applies if -1 is set.
+
+24.4.25.1
 =========
  + Adjust timing on Epic Game Store Achievement screenshots to catch
      the EOS unlock graphics
