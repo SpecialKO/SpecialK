@@ -1747,7 +1747,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.buffer_count,          L"Number of Backbuffers in the Swapchain",                    dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
     ConfigEntry (render.framerate.present_interval,      L"Presentation Interval (VSYNC)",                             dll_ini,         L"Render.FrameRate",      L"PresentationInterval"),
     ConfigEntry (render.framerate.sync_interval_clamp,   L"Maximum Sync Interval (Clamp VSYNC)",                       dll_ini,         L"Render.FrameRate",      L"SyncIntervalClamp"),
-    ConfigEntry (render.framerate.adaptive_vsync,        L"Adaptive VSYNC (VSYNC OFF if Render Latency > 1 frame)",    dll_ini,         L"Render.FrameRate",      L"AdaptiveVSync"),
+    ConfigEntry (render.framerate.adaptive_vsync,        L"VSYNC OFF if FPS is unstable or Render Latency > 1 frame)", dll_ini,         L"Render.FrameRate",      L"AdaptiveVSync"),
     ConfigEntry (render.framerate.prerender_limit,       L"Maximum Frames to Render-Ahead",                            dll_ini,         L"Render.FrameRate",      L"PreRenderLimit"),
     ConfigEntry (render.framerate.sleepless_render,      L"Sleep Free Render Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessRenderThread"),
     ConfigEntry (render.framerate.sleepless_window,      L"Sleep Free Window Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessWindowThread"),
@@ -3824,15 +3824,20 @@ auto DeclKeybind =
   {
     if (target_fps.find (L'/') != std::wstring::npos)
     {
-      UINT numerator = 1, denominator = 1;
+      int numerator = 1, denominator = 1;
 
-      swscanf (target_fps.c_str (), L"%i/%i", (INT*)&numerator, (INT*)&denominator);
+      swscanf (target_fps.c_str (), L"%i/%i", &numerator, &denominator);
 
       if (denominator != 0)
       {
         config.render.framerate.target_fps = static_cast <float> (
           (rb.windows.device.getDevCaps ().res.refresh * numerator) / denominator
         );
+      }
+
+      else
+      {
+        config.render.framerate.target_fps = 0.0f;
       }
     }
 
@@ -3848,15 +3853,20 @@ auto DeclKeybind =
   {
     if (target_fps_bg.find (L'/') != std::wstring::npos)
     {
-      UINT numerator = 1, denominator = 1;
+      int numerator = 1, denominator = 1;
 
-      swscanf (target_fps_bg.c_str (), L"%i/%i", (INT*)&numerator, (INT*)&denominator);
+      swscanf (target_fps_bg.c_str (), L"%i/%i", &numerator, &denominator);
 
       if (denominator != 0)
       {
         config.render.framerate.target_fps_bg = static_cast <float> (
           (rb.windows.device.getDevCaps ().res.refresh * numerator) / denominator
         );
+      }
+
+      else
+      {
+        config.render.framerate.target_fps_bg = 0.0f;
       }
     }
 
