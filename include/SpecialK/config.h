@@ -38,6 +38,8 @@
 #include <SpecialK/core.h>
 
 #define SK_NoPreference -1
+#define SK_Disabled      0
+#define SK_Enabled       1
 
 struct SK_Keybind
 {
@@ -687,7 +689,7 @@ struct sk_config_t
         int   tearing_mode         = SK_TearingMode::LatentSync_AlwaysOn;
         bool  show_fcat_bars       = false; // Not INI-persistent
 
-        bool flush_before_present  = true;
+        bool flush_before_present  =  true;
         bool finish_before_present = false;
 
         bool flush_after_present   = false;
@@ -739,7 +741,8 @@ struct sk_config_t
       bool    deferred_isolation   = false;
       bool    present_test_skip    = false;
       bool    hide_hdr_support     = false; // Games won't know HDR is supported
-      int     hdr_metadata_override = SK_NoPreference; // -1 = Don't Care, -2 Disable outright
+      int     hdr_metadata_override=
+                           SK_NoPreference; // -1 = Don't Care, -2 Disable outright
       bool    use_factory_cache    =  true; // Fix performance issues in Resident Evil 8
       bool    skip_mode_changes    =  true; // Try to skip rendundant resolution changes
       bool    temporary_dwm_hdr    = false; // Always turns HDR on and off for this game
@@ -767,11 +770,11 @@ struct sk_config_t
     } dstorage;
 
     struct {
-      bool    disable_fullscreen   = true;
+      bool    disable_fullscreen   =  true;
       bool    enable_16bit_hdr     = false;
       bool    enable_10bit_hdr     = false;
-      bool    upgrade_zbuffer      = true;
-      bool    prefer_10bpc         = true;
+      bool    upgrade_zbuffer      =  true;
+      bool    prefer_10bpc         =  true;
 
       struct {
 #ifdef _DEBUG
@@ -828,11 +831,11 @@ struct sk_config_t
     bool      force_windowed       = false;
     bool      allow_refresh_change =  true;
     bool      aspect_ratio_stretch = false;
-    bool      confirm_mode_changes = true;
-    bool      save_monitor_prefs   = true;
+    bool      confirm_mode_changes =  true;
+    bool      save_monitor_prefs   =  true;
     bool      warn_no_mpo_planes   = false;
     struct resolution_s {
-      bool           save          = true;
+      bool           save          =  true;
       bool           applied       = false;
       struct desktop_override_s {
         unsigned int x             = 0;
@@ -849,11 +852,11 @@ struct sk_config_t
       std::wstring
         res_root                   = L"SK_Res";
       bool    precise_hash         = false;
-      bool    use_l3_hash          = true;
+      bool    use_l3_hash          =  true;
       bool    dump                 = false;
-      bool    inject               = true;
-      bool    cache                = true;
-      bool    highlight_debug      = true;
+      bool    inject               =  true;
+      bool    cache                =  true;
+      bool    highlight_debug      =  true;
       bool    injection_keeps_fmt  = false;
       bool    generate_mips        = false;
       bool    cache_gen_mips       =  true;
@@ -930,18 +933,18 @@ struct sk_config_t
     } reflex;
     struct dlss_s {
       bool    force_dlaa          =  false;
-      int     use_sharpening      =     -1;
-      float   forced_sharpness    =   0.0f;
       bool    auto_redirect_dlss  =  false;
       std::wstring
               dlss_dll            =    L"";
       std::wstring
               dlssg_dll           =    L"";
-      int     forced_preset       =     -1;
       bool    show_active_features=   true;
-      int     forced_auto_exposure=     -1;
       bool    disable_ota_updates =  false;
-      int     forced_alpha_upscale=     -1;
+      int     forced_preset       = SK_NoPreference;
+      int     forced_auto_exposure= SK_NoPreference;
+      int     forced_alpha_upscale= SK_NoPreference;
+      int     use_sharpening      = SK_NoPreference;
+      float   forced_sharpness    =   0.0f;
       struct {
         float performance         =   0.0f;
         float balanced            =   0.0f;
@@ -960,7 +963,7 @@ struct sk_config_t
       bool    spoof_support       =  false;
     } dlss;
     struct misc_s {
-      int     force_rebar         =     -1;
+      int     force_rebar         = SK_NoPreference;
     } misc;
   } nvidia;
 
@@ -1033,14 +1036,15 @@ struct sk_config_t
         bool  enhanced_ps_button   =   true;
         float rumble_power_level   = 100.0f;
         bool  power_save_mode      =   true;
-        int   led_color_r          =     -1;
-        int   led_color_g          =     -1;
-        int   led_color_b          =     -1;
-        int   led_brightness       =     -1;
-        int   led_fade             =     -1;
-        bool  show_ds4_v1_as_v2    =  false;
-        bool  hide_ds4_v2_pid      =   true;
-        bool  hide_ds_edge_pid     =   true;
+        int   led_color_r          = SK_NoPreference;
+        int   led_color_g          = SK_NoPreference;
+        int   led_color_b          = SK_NoPreference;
+        int   led_brightness       = SK_NoPreference;
+        int   led_fade             = SK_NoPreference;
+        int   show_ds4_v1_as_v2    = SK_NoPreference;
+        int   hide_ds4_v2_pid      = SK_NoPreference;
+        int   hide_ds_edge_pid     = SK_NoPreference;
+        bool  enable_full_bluetooth=  false;
         std::wstring
               touch_click          = L"<Not Bound>";
         std::wstring

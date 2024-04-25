@@ -1026,9 +1026,10 @@ struct {
       sk::ParameterInt*     led_color_g           = nullptr;
       sk::ParameterInt*     led_color_b           = nullptr;
       sk::ParameterInt*     led_brightness        = nullptr;
-      sk::ParameterBool*    show_ds4_as_ds4_v2    = nullptr;
-      sk::ParameterBool*    hide_ds4_v2_pid       = nullptr;
-      sk::ParameterBool*    hide_ds_edge_pid      = nullptr;
+      sk::ParameterInt*     show_ds4_as_ds4_v2    = nullptr;
+      sk::ParameterInt*     hide_ds4_v2_pid       = nullptr;
+      sk::ParameterInt*     hide_ds_edge_pid      = nullptr;
+      sk::ParameterBool*    enable_full_bluetooth = nullptr;
       sk::ParameterStringW* left_fn_bind          = nullptr;
       sk::ParameterStringW* right_fn_bind         = nullptr;
       sk::ParameterStringW* left_paddle_bind      = nullptr;
@@ -1131,6 +1132,15 @@ struct {
 
   sk::ParameterInt*       last_known              = nullptr;
 } apis;
+
+bool hook_xinput_orig    = true;
+bool hook_scepad_orig    = true;
+bool hook_wgi_orig       = true;
+bool hook_raw_input_orig = true;
+bool hook_dinput7_orig   = true;
+bool hook_dinput8_orig   = true;
+bool hook_hid_orig       = true;
+bool hook_winmm_orig     = true;
 
 bool
 SK_LoadConfig (const std::wstring& name)
@@ -1625,6 +1635,8 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.scepad.show_ds4_as_ds4_v2,L"Cause games to see DualShock 4 v1 as DualShock 4 v2",       dll_ini,         L"Input.libScePad",       L"IdentifyDualShock4AsDualShock4v2"),
     ConfigEntry (input.gamepad.scepad.hide_ds4_v2_pid,   L"Cause games to see DualShock 4 v2 as DualShock 4",          dll_ini,         L"Input.libScePad",       L"IdentifyDualShock4v2AsDualShock4"),
     ConfigEntry (input.gamepad.scepad.hide_ds_edge_pid,  L"Cause games to see DualSense Edge as DualSense",            dll_ini,         L"Input.libScePad",       L"IdentifyDualSenseEdgeAsDualSense"),
+    ConfigEntry (input.gamepad.scepad.
+                                   enable_full_bluetooth,L"Allow SK to use all available features over Bluetooth",     dll_ini,         L"Input.libScePad",       L"EnableFullBluetoothSupport"),
     ConfigEntry (input.gamepad.scepad.left_fn_bind,      L"Keyboard Input to Generate when Left Function is Pressed",  dll_ini,         L"Input.libScePad",       L"LeftFunction"),
     ConfigEntry (input.gamepad.scepad.right_fn_bind,     L"Keyboard Input to Generate when Right Function is Pressed", dll_ini,         L"Input.libScePad",       L"RightFunction"),
     ConfigEntry (input.gamepad.scepad.left_paddle_bind,  L"Keyboard Input to Generate when Left Paddle is Pressed",    dll_ini,         L"Input.libScePad",       L"LeftPaddle"),
@@ -1816,7 +1828,7 @@ auto DeclKeybind =
     ConfigEntry (nvidia.dlss.spoof_feature_support,      L"Report all NGX (D3D11/D3D12) features supported on all HW.",dll_ini,         L"NVIDIA.DLSS",           L"SpoofFeatureSupport"),
 
     ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
-    ConfigEntry (render.hdr.remaster_8bpc_as_unorm,      L"Do not use Floating-Point RTs when re-mastering 8-bpc RTs", dll_ini,         L"SpecialK.HDR",          L"Keep8BpcRemastersUNORM"),
+    ConfigEntry (render.hdr.remaster_8bpc_as_unorm,      L"Do not use Floating-Point RTs when re-mastering 8-bpc+ RTs",dll_ini,         L"SpecialK.HDR",          L"Keep8BpcRemastersUNORM"),
     ConfigEntry (render.hdr.remaster_subnative_unorm,    L"Do not use FP RTs when re-mastering reduced resolution RTS",dll_ini,         L"SpecialK.HDR",          L"KeepSubnativeRemastersUNORM"),
 
     ConfigEntry (render.osd.draw_in_vidcap,              L"Changes hook order in order to allow recording the OSD.",   dll_ini,         L"Render.OSD",            L"ShowInVideoCapture"),
@@ -3003,6 +3015,7 @@ auto DeclKeybind =
         config.window.fullscreen                  =  true;
         config.input.keyboard.override_alt_f4     =  true;
         config.input.keyboard.catch_alt_f4        =  true;
+        config.platform.silent                    =  true; // Game crashes w/ SteamAPI
 
         // Game's busted without this
         config.display.force_windowed             =  true;
@@ -3518,7 +3531,7 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::BatmanArkhamKnight:
-        config.input.gamepad.scepad.hide_ds4_v2_pid = true;
+        config.input.gamepad.scepad.hide_ds4_v2_pid = SK_Enabled;
         break;
 
       case SK_GAME_ID::Starfield:
@@ -4314,6 +4327,15 @@ auto DeclKeybind =
   input.gamepad.hook_dinput7->load       (config.input.gamepad.hook_dinput7);
   input.gamepad.hook_hid->load           (config.input.gamepad.hook_hid);
 
+  SK_RunOnce (hook_xinput_orig    = config.input.gamepad.hook_xinput);
+  SK_RunOnce (hook_scepad_orig    = config.input.gamepad.hook_scepad);
+  SK_RunOnce (hook_wgi_orig       = config.input.gamepad.hook_windows_gaming);
+  SK_RunOnce (hook_raw_input_orig = config.input.gamepad.hook_raw_input);
+  SK_RunOnce (hook_dinput7_orig   = config.input.gamepad.hook_dinput7);
+  SK_RunOnce (hook_dinput8_orig   = config.input.gamepad.hook_dinput8);
+  SK_RunOnce (hook_hid_orig       = config.input.gamepad.hook_hid);
+  SK_RunOnce (hook_winmm_orig     = config.input.gamepad.hook_winmm);
+
   input.gamepad.haptic_ui->load          (config.input.gamepad.haptic_ui);
 
   int placeholder_mask;
@@ -4423,6 +4445,7 @@ auto DeclKeybind =
   input.gamepad.scepad.show_ds4_as_ds4_v2->load   (config.input.gamepad.scepad.show_ds4_v1_as_v2);
   input.gamepad.scepad.hide_ds4_v2_pid->load      (config.input.gamepad.scepad.hide_ds4_v2_pid);
   input.gamepad.scepad.hide_ds_edge_pid->load     (config.input.gamepad.scepad.hide_ds_edge_pid);
+  input.gamepad.scepad.enable_full_bluetooth->load(config.input.gamepad.scepad.enable_full_bluetooth);
   input.gamepad.scepad.left_fn_bind->load         (config.input.gamepad.scepad.left_fn);
   input.gamepad.scepad.left_paddle_bind->load     (config.input.gamepad.scepad.left_paddle);
   input.gamepad.scepad.right_paddle_bind->load    (config.input.gamepad.scepad.right_paddle);
@@ -5719,6 +5742,25 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.rehook_xinput->store          (config.input.gamepad.rehook_xinput);
   input.gamepad.haptic_ui->store              (config.input.gamepad.haptic_ui);
 
+  if (config.input.gamepad.hook_dinput8 != hook_dinput8_orig)
+             input.gamepad.hook_dinput8->store (config.input.gamepad.hook_dinput8);
+  if (config.input.gamepad.hook_dinput7 != hook_dinput7_orig)
+             input.gamepad.hook_dinput7->store (config.input.gamepad.hook_dinput7);
+  if (config.input.gamepad.hook_windows_gaming != hook_wgi_orig)
+             input.gamepad.hook_windows_gaming->
+                                         store (config.input.gamepad.hook_windows_gaming);
+  if (config.input.gamepad.hook_raw_input != hook_raw_input_orig)
+             input.gamepad.hook_raw_input->
+                                         store (config.input.gamepad.hook_raw_input);
+  if (config.input.gamepad.hook_hid != hook_hid_orig)
+             input.gamepad.hook_hid->store     (config.input.gamepad.hook_hid);
+  //if (config.input.gamepad.hook_winmm != hook_winmm_orig)
+  //           input.gamepad.hook_winmm->store     (config.input.gamepad.hook_winmm);
+  if (config.input.gamepad.hook_scepad != hook_scepad_orig)
+             input.gamepad.hook_scepad->store  (config.input.gamepad.hook_scepad);
+  if (config.input.gamepad.hook_xinput != hook_xinput_orig)
+             input.gamepad.hook_xinput->store  (config.input.gamepad.hook_xinput);
+
   int placeholder_mask = 0x0;
 
   placeholder_mask |= (config.input.gamepad.xinput.placehold [0] ? 0x1 : 0x0);
@@ -5790,6 +5832,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.scepad.show_ds4_as_ds4_v2->store   (config.input.gamepad.scepad.show_ds4_v1_as_v2);
   input.gamepad.scepad.hide_ds4_v2_pid->store      (config.input.gamepad.scepad.hide_ds4_v2_pid);
   input.gamepad.scepad.hide_ds_edge_pid->store     (config.input.gamepad.scepad.hide_ds_edge_pid);
+  input.gamepad.scepad.enable_full_bluetooth->store(config.input.gamepad.scepad.enable_full_bluetooth);
   input.gamepad.scepad.left_fn_bind->store         (config.input.gamepad.scepad.left_fn);
   input.gamepad.scepad.left_paddle_bind->store     (config.input.gamepad.scepad.left_paddle);
   input.gamepad.scepad.right_paddle_bind->store    (config.input.gamepad.scepad.right_paddle);

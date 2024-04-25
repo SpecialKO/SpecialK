@@ -134,13 +134,41 @@ SK::ControlPanel::Input::Draw (void)
   bool bHasSimpleBluetooth = false;
   bool bHasBluetooth       = false;
   bool bHasNonBluetooth    = false;
+  bool bHasDualSense       = false;
+  bool bHasDualSenseEdge   = false;
+  bool bHasDualShock4      = false;
+  bool bHasDualShock4v2    = false;
+  bool bHasDualShock4v2_Bt = false;
 
   for ( auto& ps_controller : SK_HID_PlayStationControllers )
   {
     if (ps_controller.bConnected)
     {
+      if ( ps_controller.bDualSense ||
+           ps_controller.bDualSenseEdge )
+      {
+        bHasDualSense = true;
+
+        if (ps_controller.bDualSenseEdge)
+          bHasDualSenseEdge = true;
+      }
+
+      if (ps_controller.bDualShock4)
+      {
+        if (ps_controller.pid == SK_HID_PID_DUALSHOCK4_REV2)
+          bHasDualShock4v2 = true;
+        else
+          bHasDualShock4 = true;
+      }
+
       if (ps_controller.bBluetooth)
       {
+        if (ps_controller.pid == SK_HID_PID_DUALSHOCK4_REV2 &&
+            ps_controller.bSimpleMode)
+        {
+          bHasDualShock4v2_Bt = true;
+        }
+
         bHasSimpleBluetooth = ps_controller.bSimpleMode;
         bHasBluetooth       = true;
       }
@@ -745,6 +773,96 @@ SK::ControlPanel::Input::Draw (void)
 
     bool uncollapsed_gamepads =
       ImGui::CollapsingHeader ("Gamepad", ImGuiTreeNodeFlags_AllowOverlap);
+
+    bool hooks_changed = false;
+
+    if (config.input.gamepad.hook_hid == false)
+    {
+      ImGui::SameLine        (    );
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+
+      if (ImGui::Checkbox ("Hook HID", &config.input.gamepad.hook_hid))
+      {
+        hooks_changed = true;
+      }
+    }
+
+    if (config.input.gamepad.hook_dinput8 == false)
+    {
+      ImGui::SameLine        (    );
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+
+      if (ImGui::Checkbox ("Hook DirectInput 8", &config.input.gamepad.hook_dinput8))
+      {
+        hooks_changed = true;
+      }
+    }
+
+    if (config.input.gamepad.hook_raw_input == false)
+    {
+      ImGui::SameLine        (    );
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+
+      if (ImGui::Checkbox ("Hook RawInput", &config.input.gamepad.hook_raw_input))
+      {
+        hooks_changed = true;
+      }
+    }
+
+    if (config.input.gamepad.hook_windows_gaming == false)
+    {
+      ImGui::SameLine        (    );
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+
+      if (ImGui::Checkbox ("Hook Windows.Gaming.Input", &config.input.gamepad.hook_windows_gaming))
+      {
+        hooks_changed = true;
+      }
+    }
+
+    if (config.input.gamepad.hook_winmm == false)
+    {
+      ImGui::SameLine        (    );
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+
+      if (ImGui::Checkbox ("Hook WinMM", &config.input.gamepad.hook_winmm))
+      {
+        hooks_changed = true;
+      }
+    }
+
+    if (config.input.gamepad.hook_xinput == false)
+    {
+      ImGui::SameLine        (    );
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+
+      if (ImGui::Checkbox ("Hook XInput", &config.input.gamepad.hook_xinput))
+      {
+        hooks_changed = true;
+      }
+    }
+
+    static bool restart_required = false;
+
+    if (hooks_changed)
+    {
+      config.utility.save_async ();
+      restart_required = true;
+    }
+
+    if (restart_required)
+    {
+      ImGui::SameLine        (    );
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+      ImGui::BulletText      ("Game Restart Required");
+    }
 
   //SK_ImGui_ProcessGamepadStatusBar (true);
 
@@ -1546,7 +1664,7 @@ SK::ControlPanel::Input::Draw (void)
           ImGui::Separator  (  );
           ImGui::BeginGroup (  );
 
-          if (bDualSense)
+          if (bDualSense && ((! bHasBluetooth) || (! bHasSimpleBluetooth) || bHasNonBluetooth))
             ImGui::Checkbox ("Apply Mute Button to -Game-", &config.input.gamepad.scepad.mute_applies_to_game);
 
           ImGui::EndGroup   ();
@@ -1629,10 +1747,15 @@ SK::ControlPanel::Input::Draw (void)
               //ImGui::TreePop  (  );
             }
 
+            if (! config.input.gamepad.hook_hid)
+            {
+              ImGui::TextUnformatted (ICON_FA_EXCLAMATION_TRIANGLE " Rumble cannot be emulated unless HID hooks are enabled.");
+            }
+
             ImGui::EndGroup ();
           }
-          
-          if (bDualSense || bDualShock4)
+
+          if (config.input.gamepad.hook_hid && ((bDualSense || bDualShock4) && ((! bHasBluetooth) || (! bHasSimpleBluetooth) || bHasNonBluetooth)))
           {
             ImGui::SameLine    ();
             ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
@@ -1701,18 +1824,18 @@ SK::ControlPanel::Input::Draw (void)
             }
             ImGui::EndGroup ();
 
-            if (bHasBluetooth && bHasSimpleBluetooth && (! bHasNonBluetooth))
-            {
-              if (ImGui::IsItemHovered ())
-              {
-                ImGui::BeginTooltip    ();
-                ImGui::TextUnformatted ("Bluetooth Compatibility Mode is Active");
-                ImGui::Separator       ();
-                ImGui::BulletText      ("RGB Overrides may only apply after a game triggers rumble, or if you use USB.");
-                ImGui::BulletText      ("This avoids changing your Bluetooth controller from DualShock3 mode to DualShock4/DualSense in games that do not use DualShock4+ features.");
-                ImGui::EndTooltip      ();
-              }
-            }
+            ///if (bHasBluetooth && bHasSimpleBluetooth && (! bHasNonBluetooth))
+            ///{
+            ///  if (ImGui::IsItemHovered ())
+            ///  {
+            ///    ImGui::BeginTooltip    ();
+            ///    ImGui::TextUnformatted ("Bluetooth Compatibility Mode is Active");
+            ///    ImGui::Separator       ();
+            ///    ImGui::BulletText      ("RGB Overrides may only apply after a game triggers rumble, or if you use USB.");
+            ///    ImGui::BulletText      ("This avoids changing your Bluetooth controller from DualShock3 mode to DualShock4/DualSense in games that do not use DualShock4+ features.");
+            ///    ImGui::EndTooltip      ();
+            ///  }
+            ///}
 
 #if 0
             bool changed =
@@ -1764,6 +1887,67 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::EndGroup   ();
           }
 
+          else
+          {
+            ImGui::SameLine   ();
+            ImGui::BulletText ( ICON_FA_BLUETOOTH
+              " Compatibility Mode: Features newer than DualShock 3 are unusable."
+            );
+
+            if (ImGui::IsItemHovered ( ))
+            {
+              ImGui::BeginTooltip    ( );
+              ImGui::TextUnformatted (
+                "Plug your controller in, or trigger rumble in-game to put the "
+                "Bluetooth controller into DualShock 4 / DualSense mode."
+              );
+#define SK_HID_BROKEN_DUALSHOCK4_REV2
+#ifdef  SK_HID_BROKEN_DUALSHOCK4_REV2
+              if (bHasDualShock4v2_Bt)
+              {
+                ImGui::BulletText (
+                  "DualShock 4 v2 controllers will not work over Bluetooth with SK in compatibility mode"
+                );
+              }
+#endif
+              ImGui::Separator       ( );
+              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
+
+              ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
+              ImGui::SameLine        ( );
+              ImGui::TextUnformatted ("Right-click to configure compatibility mode");
+              ImGui::PopStyleColor   ( );
+              ImGui::EndTooltip      ( );
+            }
+
+            if (SK_ImGui_IsItemRightClicked ())
+            {
+              ImGui::ClearActiveID   ( );
+              ImGui::OpenPopup       ("BluetoothCompatMenu2");
+            }
+
+            if (ImGui::BeginPopup ("BluetoothCompatMenu2"))
+            {
+              if (ImGui::Checkbox ( "Always Enable Full Capabilities in " ICON_FA_BLUETOOTH,
+                                    &config.input.gamepad.scepad.enable_full_bluetooth))
+              {
+                config.utility.save_async ();
+                ImGui::CloseCurrentPopup  ();
+              }
+
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::SetTooltip (
+                  "Your gamepad will no longer work correctly in DirectInput "
+                  "software until powered off...\r\nHowever, that is normal after running "
+                  "any game that supports Bluetooth DualShock/DualSense controllers."
+                );
+              }
+
+              ImGui::EndPopup ();
+            }
+          }
+
 #if 0
           if ( bDualSense &&
                ImGui::SliderFloat ( "Rumble Motor Power Level",
@@ -1785,6 +1969,78 @@ SK::ControlPanel::Input::Draw (void)
         }
         else
           config.input.gamepad.hid.calc_latency = false;
+
+        if (bHasDualSenseEdge || bHasDualShock4v2 || bHasDualShock4)
+        {
+          if (ImGui::TreeNode ("Compatibility Options"))
+          {
+            bool hovered = false;
+            bool changed = false;
+
+            if (bHasDualSenseEdge)
+            {
+              bool spoof =
+                (config.input.gamepad.scepad.hide_ds_edge_pid == SK_Enabled);
+
+              if (ImGui::Checkbox ("Identify DualSense Edge as DualSense", &spoof))
+              {
+                changed = true;
+
+                config.input.gamepad.scepad.hide_ds_edge_pid = spoof ? SK_Enabled
+                                                                     : SK_Disabled;
+              }
+
+              hovered |= ImGui::IsItemHovered ();
+            }
+
+            if (bHasDualShock4v2)
+            {
+              bool spoof =
+                (config.input.gamepad.scepad.hide_ds4_v2_pid == SK_Enabled);
+
+              if (ImGui::Checkbox ("Identify DualShock 4 v2 as DualShock 4", &spoof))
+              {
+                changed = true;
+
+                config.input.gamepad.scepad.hide_ds4_v2_pid = spoof ? SK_Enabled
+                                                                    : SK_Disabled;
+              }
+
+              hovered |= ImGui::IsItemHovered ();
+            }
+
+            if (bHasDualShock4)
+            {
+              bool spoof =
+                (config.input.gamepad.scepad.show_ds4_v1_as_v2 == SK_Enabled);
+
+              if (ImGui::Checkbox ("Identify DualShock 4 as DualShock 4 v2", &spoof))
+              {
+                changed = true;
+
+                config.input.gamepad.scepad.show_ds4_v1_as_v2 = spoof ? SK_Enabled
+                                                                      : SK_Disabled;
+              }
+
+              hovered |= ImGui::IsItemHovered ();
+            }
+
+            if (hovered)
+            {
+              ImGui::BeginTooltip    ();
+              ImGui::TextUnformatted ("Identifying as an alternate product may help "
+                                      "to enable a game's native support for your controller");
+              ImGui::Separator       ();
+              ImGui::BulletText      ("Game restart required");
+              ImGui::EndTooltip      ();
+            }
+
+            if (changed)
+              config.utility.save_async ();
+
+            ImGui::TreePop  (  );
+          }
+        }
 
         ImGui::PopStyleColor (3);
       }

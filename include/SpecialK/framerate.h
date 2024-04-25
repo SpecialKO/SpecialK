@@ -774,6 +774,10 @@ extern void SK_Scheduler_Init     (void);
 extern void SK_Scheduler_Shutdown (void);
 
 
+extern float SK_Framerate_GetBusyWaitPercent (void) noexcept;
+extern float SK_Framerate_GetBusyWaitMs      (void) noexcept;
+extern float SK_Framerate_GetSleepWaitMs     (void) noexcept;
+
 #include <dwmapi.h>
 
 extern HRESULT WINAPI
@@ -788,7 +792,10 @@ void SK_ImGui_DrawGraph_Latency      (bool predraw);
 void SK_ImGui_DrawConfig_Latency     (void);
 void SK_ImGui_LatentSyncConfig       (void);
 void SK_ImGui_DrawFCAT               (void);
-
+void SK_ImGui_DrawVRAMGauge           (void);
+int  SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
+int  SK_PresentMon_Main               (int argc, char **argv);
+bool StopTraceSession                 (void);
 
 extern volatile LONG64 lD3DKMTPresentCalls;
 

@@ -34,6 +34,7 @@
 #include <SpecialK/storefront/epic.h>
 
 #include <SpecialK/nvapi.h>
+#include <nvapi/NvApiDriverSettings.h>
 #include <SpecialK/adl.h>
 #include <SpecialK/popups/popup.h>
 
@@ -692,6 +693,14 @@ extern void BasicInit (void);
   }
 
   SK_Input_Init ();
+
+  if (sk::NVAPI::nv_hardware)
+  {
+    if (config.render.framerate.target_fps_bg > 0.0f)
+    {
+      SK_NvAPI_DRS_SetDWORD (VSYNCMODE_ID, VSYNCMODE_PASSIVE);
+    }
+  }
 
   void
      __stdcall SK_InitFinishCallback (void);

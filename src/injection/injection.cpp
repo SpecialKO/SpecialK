@@ -1055,7 +1055,6 @@ SK_Inject_RenameProcess (void)
   //RtlReleasePebLock ();
 }
 
-#include <winternl.h>                   //PROCESS_BASIC_INFORMATION
 bool
 ReadMem (void *addr, void *buf, int size)
 {
@@ -1779,43 +1778,6 @@ SK_Inject_SwitchToRenderWrapperEx (DLL_ROLE role)
   }
 
 
-  //std::queue <DWORD> suspended =
-  //  SK_SuspendAllOtherThreads ();
-  //
-  //extern volatile LONG   SK_bypass_dialog_active;
-  //InterlockedIncrement (&SK_bypass_dialog_active);
-  //
-  //int mb_ret =
-  //       SK_MessageBox ( L"Link the Installed Wrapper to the Global DLL?\r\n"
-  //                       L"\r\n"
-  //                       L"Linked installs allow you to update wrapped games the same way "
-  //                       L"as global injection, but require administrator privileges to setup.",
-  //                         L"Perform a Linked Wrapper Install?",
-  //                           MB_YESNO | MB_ICONQUESTION
-  //                     );
-  //
-  //InterlockedIncrement (&SK_bypass_dialog_active);
-  //
-  //SK_ResumeThreads (suspended);
-
-  //if ( mb_ret == IDYES )
-  //{
-  //  wchar_t   wszCmd [MAX_PATH * 3] = { };
-  //  swprintf (wszCmd, L"/c mklink \"%s\" \"%s\"", wszOut, wszIn);
-  //
-  //  ShellExecuteW ( GetActiveWindow (),
-  //                    L"runas",
-  //                      L"cmd.exe",
-  //                        wszCmd,
-  //                          nullptr,
-  //                            SW_HIDE );
-  //
-  //  SK_Inject_EnableCentralizedConfig ();
-  //
-  //  return true;
-  //}
-
-
   if (CopyFile (wszIn, wszOut, TRUE) != FALSE)
   {
     SK_Inject_EnableCentralizedConfig ();
@@ -1920,43 +1882,6 @@ SK_Inject_SwitchToRenderWrapper (void)
       //lstrcatW (wszOut, L"\\vk-1.dll");
       //break;
   }
-
-
-  //std::queue <DWORD> suspended =
-  //  SK_SuspendAllOtherThreads ();
-  //
-  //extern volatile LONG   SK_bypass_dialog_active;
-  //InterlockedIncrement (&SK_bypass_dialog_active);
-  //
-  //int mb_ret =
-  //       SK_MessageBox ( L"Link the Installed Wrapper to the Global DLL?\r\n"
-  //                       L"\r\n"
-  //                       L"Linked installs allow you to update wrapped games the same way "
-  //                       L"as global injection, but require administrator privileges to setup.",
-  //                         L"Perform a Linked Wrapper Install?",
-  //                           MB_YESNO | MB_ICONQUESTION
-  //                     );
-  //
-  //InterlockedIncrement (&SK_bypass_dialog_active);
-  //
-  //SK_ResumeThreads (suspended);
-  //
-  //if ( mb_ret == IDYES )
-  //{
-  //  wchar_t   wszCmd [MAX_PATH * 3] = { };
-  //  swprintf (wszCmd, L"/c mklink \"%s\" \"%s\"", wszOut, wszIn);
-  //
-  //  ShellExecuteW ( GetActiveWindow (),
-  //                    L"runas",
-  //                      L"cmd.exe",
-  //                        wszCmd,
-  //                          nullptr,
-  //                            SW_HIDE );
-  //
-  //  SK_Inject_EnableCentralizedConfig ();
-  //
-  //  return true;
-  //}
 
 
   if (CopyFile (wszIn, wszOut, TRUE))

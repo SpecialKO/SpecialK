@@ -1,4 +1,54 @@
-﻿24.4.24.1
+﻿24.4.25.2
+=========
+ + Auto-identify SONY PlayStation controllers as the base model in Unity engine
+     games because they often cannot recognize newer models.
+ + Auto-identify DualShock 4 v2 controllers as DualShock 4 to Arkham Knight
+ + Added Compatibility Options section to control panel for PlayStation
+     controllers, where alternate controller identification can be configured.
+ + Changed controller identification override INI settings to an integer:
+
+     -1=No Preference  (Default)
+      0=Do Not Apply
+      1=Apply
+
+    >> This is necessary so that auto-enabling the feature for specific engines
+         is possible, and users can reverse the auto-enable decision.
+
+       * Auto-enablement only applies if -1 is set.
+
+24.4.25.1
+=========
+ + Adjust timing on Epic Game Store Achievement screenshots to catch
+     the EOS unlock graphics
+ + Place EOS achievement screenshots in Achievements\ subdirectory as
+     done with Steam achievement screenshots
+
+24.4.25
+=======
+ + Added named achievement screenshots for Epic Game Store games
+ + Disabled SteamAPI integration in Yakuza 0 by default
+
+24.4.24.5
+=========
+ + Correctly disable HID output reports for non-Bluetooth devices when
+     HID hooks are disabled.
+
+24.4.24.4
+=========
+ + Disable DualShock 4 v2 controllers running in simplified Bluetooth
+     mode.
+
+24.4.24.3
+=========
+ + Added option to enable full DualShock4 / DualSense capabilities over
+     Bluetooth even if a game has not yet put the controller in that mode.
+
+24.4.24.2
+=========
+ + Added bulletpoint explaining why some DualShock4 / DualSense features
+     no longer work over Bluetooth.
+
+24.4.24.1
 =========
  + Do not use haptics or LEDs on Bluetooth PlayStation controllers until a
      game first uses rumble, or if the controller is already in

@@ -1496,9 +1496,6 @@ SK_CPU_UpdateAllSensors (void)
   }
 }
 
-extern std::string_view
-SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit, SK_TLS* pTLS);
-
 void
 SK_ImGui_DrawCPUTemperature (void)
 {

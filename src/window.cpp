@@ -7090,6 +7090,19 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   {
     SK_GetCurrentRenderBackend ().windows.unity =  true;
 
+    bool changed = false;
+
+    // Auto-enable this for Unity Engine games
+    if (config.input.gamepad.scepad.hide_ds_edge_pid == SK_NoPreference) {
+        config.input.gamepad.scepad.hide_ds_edge_pid =  SK_Enabled;
+        changed = true;
+    }
+
+    if (config.input.gamepad.scepad.hide_ds4_v2_pid == SK_NoPreference) {
+        config.input.gamepad.scepad.hide_ds4_v2_pid =  SK_Enabled;
+        changed = true;
+    }
+
     if ( config.apis.last_known != SK_RenderAPI::Reserved &&
          config.apis.last_known != SK_RenderAPI::OpenGL )
     {
@@ -7098,6 +7111,12 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
 
     config.textures.cache.ignore_nonmipped      =  true;
     cache_opts.ignore_non_mipped                =  true; // Push this change through immediately
+
+    if (changed)
+    {
+      config.utility.save_async ();
+      SK_RestartGame ();
+    }
   }
 
   else if (! _wcsicmp (wszClassName, L"UnrealWindow"))
