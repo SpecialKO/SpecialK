@@ -4125,6 +4125,10 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               else
               {
+                // Prevent battery warnings, we can't actually get battery status in simple mode.
+                pDevice->battery.state      = Complete;
+                pDevice->battery.percentage = 100.0f;
+
                 SK_HID_DualSense_GetSimpleStateDataBt *pSimpleData =
                   (SK_HID_DualSense_GetSimpleStateDataBt *)&pInputRaw [1];
 

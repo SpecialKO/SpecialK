@@ -1,4 +1,10 @@
-﻿24.4.25.2
+﻿24.4.26
+=======
+ + Do not display battery level warnings on DualSense controllers in DualShock 3
+     mode connected over Bluetooth, because the data is invalid garbage left in
+       the Windows HID driver from the last time the controller was in full mode.
+
+24.4.25.2
 =========
  + Auto-identify SONY PlayStation controllers as the base model in Unity engine
      games because they often cannot recognize newer models.
