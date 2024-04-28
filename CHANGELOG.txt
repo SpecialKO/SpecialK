@@ -1,6 +1,7 @@
 ﻿34.4.28.5
 =========
  + Set 33% Color Boost in default HDR profiles
+ + Clamp non-native scRGB inputs to Rec 709
 
 24.4.28.4
 =========
