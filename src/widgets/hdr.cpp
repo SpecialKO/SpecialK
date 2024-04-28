@@ -141,8 +141,8 @@ struct SK_HDR_PQBoostParams
   float PQBoost2;
   float PQBoost3;
   float EstimatedMaxCLLScale;
-} SK_HDR_PQBoost_v0 = {  true, 30.0f, 11.5f, 1.500f, 1.0f,  570.0f },
-  SK_HDR_PQBoost_v1 = {  true,  1.0f,  0.1f, 1.273f, 0.5f,  267.0f };
+} SK_HDR_PQBoost_v0 = {  false, 30.0f, 11.5f, 1.500f, 1.0f,  570.0f },
+  SK_HDR_PQBoost_v1 = {  false,  1.0f,  0.1f, 1.273f, 0.5f,  267.0f };
 
 bool  __SK_HDR_ColorBoost = SK_HDR_PQBoost_v1.ColorBoost;
 float __SK_HDR_PQBoost0   = SK_HDR_PQBoost_v1.PQBoost0;
@@ -161,7 +161,7 @@ struct SK_HDR_Preset_s {
   float        paper_white_nits = 0.0f;
   float        middle_gray_nits = 100.0_Nits;
   float        eotf             = 0.0f;
-  float        saturation       = 1.0f;
+  float        saturation       = 1.15f;
   float        gamut            = 0.01f;
 
   struct {
@@ -330,8 +330,8 @@ struct SK_HDR_Preset_s {
       store ();
     }
   }
-} static hdr_presets  [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.0f, 0.015f,  { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v1.ColorBoost,  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.920f, 1.0f, 0.010f,  { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v0.ColorBoost,  SK_HDR_PQBoost_v0.PQBoost0, SK_HDR_PQBoost_v0.PQBoost1, SK_HDR_PQBoost_v0.PQBoost2, SK_HDR_PQBoost_v0.PQBoost3, L"Shift+F2" },
+} static hdr_presets  [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.15f, 0.015f, { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v1.ColorBoost,  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.920f, 1.15f, 0.010f, { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v0.ColorBoost,  SK_HDR_PQBoost_v0.PQBoost0, SK_HDR_PQBoost_v0.PQBoost1, SK_HDR_PQBoost_v0.PQBoost2, SK_HDR_PQBoost_v0.PQBoost3, L"Shift+F2" },
                               { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f,  { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F3" },
                               { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f,  { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F4" } },
          hdr_defaults [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.0f, 0.015f,  { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v1.ColorBoost,  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
@@ -1701,6 +1701,21 @@ public:
             ImGui::SameLine ();
             if (ImGui::Checkbox ("Color Boost", &preset.pq_colorboost))
             {
+              if (preset.pq_colorboost)
+              {
+                if (preset.saturation > 1.0f)
+                    preset.saturation = 0.85f;
+              }
+              else
+              {
+                if (preset.saturation < 1.0f)
+                    preset.saturation = 1.15f;
+              }
+
+              preset.cfg_saturation->store (
+                                    preset.saturation);
+              __SK_HDR_Saturation = preset.saturation;
+
               preset.cfg_colorboost->store (
                                     preset.pq_colorboost);
               __SK_HDR_ColorBoost = preset.pq_colorboost;
@@ -1710,8 +1725,12 @@ public:
 
             if (ImGui::IsItemHovered ())
             {
-              ImGui::SetTooltip ("Perceptual Boost will also increase color saturation, "
-                                 "you may want to set saturation somewhere between 92%%-98%%.");
+              ImGui::BeginTooltip    ();
+              ImGui::TextUnformatted ("Perceptual Boost will also increase color saturation");
+              ImGui::Separator       ();
+              ImGui::BulletText      ("You may wish to set saturation somewhere between 85%%-95%%.");
+              ImGui::BulletText      ("Saturation > 100% is HIGHLY discouraged.");
+              ImGui::EndTooltip      ();
             }
           }
 

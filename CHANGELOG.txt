@@ -1,4 +1,9 @@
-﻿24.4.28.1
+﻿24.4.28.2
+=========
+ + Default "Color Boost" to off, and use 115% saturation as default now
+ + When toggling "Color Boost," raise or lower default saturation if applicable
+
+24.4.28.1
 =========
  + Added option to apply Perceptual Boost to Chroma (Default) or Luminance
     >> New option is called "Color Boost" when Perceptual Boost HDR is enabled.
