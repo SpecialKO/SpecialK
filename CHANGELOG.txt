@@ -1,4 +1,8 @@
-﻿24.4.29
+﻿24.4.29.1
+=========
+ + Added 1 frame delay to achievement unlock screenshots
+
+24.4.29
 =======
  + Fixed temporary HDR mode not working after the SDR whitepoint option
      was added (24.4.19.1).
