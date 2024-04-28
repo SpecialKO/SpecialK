@@ -432,8 +432,14 @@ main (PS_INPUT input) : SV_TARGET
 
     if (! colorBoost)
     {
+      static const float3 fLumaCoeffs2020 =
+                   float3 (0.2627f, 0.678f, 0.0593f);
+
+      float3 rec2020_color =
+        REC709toREC2020 (hdr_color.rgb);
+
       float fLuma =
-        Luminance (hdr_color.rgb);
+        max (0.0f, dot (rec2020_color, fLumaCoeffs2020));
 
       new_color =
         PQToLinear (
@@ -442,7 +448,8 @@ main (PS_INPUT input) : SV_TARGET
                        pb_params [2], pb_params [1]
                    ) / pb_params [3];
 
-      new_color *= (hdr_color.rgb / fLuma);
+      new_color =
+        REC2020toREC709 (rec2020_color * (new_color / fLuma));
     }
 
     else

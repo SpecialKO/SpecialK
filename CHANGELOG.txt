@@ -1,6 +1,10 @@
-﻿24.4.28.2
+﻿24.4.28.3
 =========
- + Default "Color Boost" to off, and use 115% saturation as default now
+ + Apply non-Color Boosted Perceptual Boost in Rec 2020 colorspace
+
+24.4.28.2
+=========
+ + Default "Color Boost" to off, and use 112.5% saturation as default now
  + When toggling "Color Boost," raise or lower default saturation if applicable
 
 24.4.28.1
