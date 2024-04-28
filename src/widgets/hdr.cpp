@@ -198,6 +198,11 @@ struct SK_HDR_Preset_s {
       }, L"Activate"
     };
 
+  bool has_pq_boost(void) const noexcept
+  {
+    return pq_boost0 > 0.0f;
+  }
+
   int activate (void)
   {
     __SK_HDR_Preset =
@@ -1671,7 +1676,7 @@ public:
 
           //float fCursorX = ImGui::GetCursorPosX ();
 
-          bool pboost = (preset.pq_boost0 > 0.0f);
+          bool pboost = preset.has_pq_boost();
 
           if (ImGui::Checkbox ("Perceptual Boost", &pboost))
           {
@@ -1696,7 +1701,7 @@ public:
                                ">> Use HDR Tonemap Curve / Grayscale Visualization (first Profile Display Capabilities) to ensure valid (unclipped) dynamic range.");
           }
 
-          if (pboost)
+          if (preset.has_pq_boost())
           {
             ImGui::SameLine ();
             if (ImGui::Checkbox ("Color Boost", &preset.pq_colorboost))
@@ -1854,7 +1859,7 @@ public:
           {
             bool bSliderChanged = false;
 
-            if (! pboost)
+            if (! preset.has_pq_boost())
               bSliderChanged =
                 ImGui::SliderFloat ( "###SK_HDR_LUMINANCE", &peak_nits, 80.0f,
                                           __SK_HDR_FullRange  ?  rb.display_gamut.maxLocalY
@@ -2148,7 +2153,7 @@ public:
               else
               {
                 // Perceptual Boost
-                if (it.pq_boost0 > 0.0f)
+                if (it.has_pq_boost())
                 {
                   ImGui::Text ( "Brightness: %.2fx",
                                 it.peak_white_nits );
@@ -2597,7 +2602,7 @@ public:
 
             ImGui::PopStyleColor ();
 
-            if ( preset.pq_boost0 > 0.1f || __SK_HDR_AdaptiveToneMap || SK_API_IsLayeredOnD3D11 (rb.api) )
+            if ( preset.has_pq_boost() || __SK_HDR_AdaptiveToneMap || SK_API_IsLayeredOnD3D11 (rb.api) )
             {
               if (SK_API_IsLayeredOnD3D11 (rb.api))
               {
@@ -2629,7 +2634,7 @@ public:
                 ImGui::Separator  ();
                 ImGui::BeginGroup ();
 
-                if ((! bRawImageMode) && preset.pq_boost0 > 0.1f)
+                if ((! bRawImageMode) && preset.has_pq_boost())
                 {
                   bool boost_changed = false;
 
