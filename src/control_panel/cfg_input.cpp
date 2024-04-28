@@ -1641,7 +1641,7 @@ SK::ControlPanel::Input::Draw (void)
                       ImGui::TextUnformatted ("Display warning notifications when PlayStation controller battery levels are critical.");
                       ImGui::Separator       ();
                       ImGui::BulletText      ("The warning is only displayed while the controller is running on battery.");
-                      ImGui::BulletText      ("The warning can be disabled by setting 0%");
+                      ImGui::BulletText      ("The warning can be disabled by setting 0%%");
                       ImGui::EndTooltip      ();
                     }
                     ImGui::EndPopup     ();
