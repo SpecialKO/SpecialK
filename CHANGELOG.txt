@@ -1,5 +1,7 @@
 ﻿24.4.27
 =======
+ + Moved various Bluetooth settings for DualShock 4 / DualSense controllers to
+     the "Compatibility Options" section of the gamepad control panel.
  + Only take achievement unlock screenshots for actual achievement unlocks
      (i.e. ignore percentage updates for Steam achievements with n/m progress).
  + Added support for achievement popups in Epic Game Store games.

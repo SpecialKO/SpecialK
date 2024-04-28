@@ -1467,8 +1467,13 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::Text   (" Latency: %3.0f ms ", static_cast <double> (ps_controller.latency.ping) /
                                                     static_cast <double> (SK_QpcTicksPerMs));
             else
+            {
               ImGui::TextUnformatted
                             (" ");
+
+              // Restart latency tests if timing is suspiciously wrong.
+              ps_controller.latency.last_ack = 0;
+            }
           }
           ImGui::EndGroup   ();
           ImGui::SameLine   ();
@@ -1480,9 +1485,24 @@ SK::ControlPanel::Input::Draw (void)
 
             if (ps_controller.latency.pollrate != nullptr)
             {
+              const double dMean =
+                ((SK::Framerate::Stats *)ps_controller.latency.pollrate)->calcMean ();
+
               ImGui::Text   ( " Report Rate: %6.0f Hz",
-                                1000.0 / ((SK::Framerate::Stats *)ps_controller.latency.pollrate)->calcMean () );
+                                1000.0 / dMean );
+
+              // Something's wrong, we're not getting data anymore, so just mark this
+              //   as disconnected.
+              if (std::isinf (dMean))
+              {
+                ps_controller.bConnected = false;
+
+                SK_LOGs0 ( L"InputMgr.",
+                           L"Controller has had no reporting samples in 1 "
+                           L"second, assuming it is disconnected." );
+              }
             }
+
             else
               ImGui::TextUnformatted
                             ( " " );
@@ -1575,7 +1595,7 @@ SK::ControlPanel::Input::Draw (void)
                   else if (SK_ImGui_IsItemRightClicked ())
                   {
                     ImGui::ClearActiveID   ( );
-                    ImGui::OpenPopup       ("BluetoothCompatMenu");
+                    ImGui::OpenPopup       ("PowerManagementMenu");
                   }
 
                   else if (ImGui::IsItemHovered ())
@@ -1590,12 +1610,12 @@ SK::ControlPanel::Input::Draw (void)
                     ImGui::SameLine        ( );
                     ImGui::BeginGroup      ( );
                     ImGui::TextUnformatted ( " Power-off Gamepad" );
-                    ImGui::TextUnformatted ( " Bluetooth Config" );
+                    ImGui::TextUnformatted ( " Power Management" );
                     ImGui::EndGroup        ( );
                     ImGui::EndTooltip      ( );
                   }
 
-                  if (ImGui::BeginPopup ("BluetoothCompatMenu"))
+                  if (ImGui::BeginPopup ("PowerManagementMenu"))
                   {
                     if ( ps_controller.pid == SK_HID_PID_DUALSENSE  ||
                          ps_controller.pid == SK_HID_PID_DUALSENSE_EDGE )
@@ -1623,33 +1643,6 @@ SK::ControlPanel::Input::Draw (void)
                       ImGui::BulletText      ("The warning is only displayed while the controller is running on battery.");
                       ImGui::BulletText      ("The warning can be disabled by setting 0%");
                       ImGui::EndTooltip      ();
-                    }
-
-                    if (ImGui::Checkbox ("Bluetooth Compatibility Mode",
-                         &config.input.gamepad.bt_input_only))
-                    { if (config.input.gamepad.bt_input_only)
-                      {
-                        SK_DeferCommand ("Input.Gamepad.PowerOff 1");
-                      }
-
-                      config.utility.save_async ();
-
-                      ImGui::ClearActiveID     ( );
-                      ImGui::CloseCurrentPopup ( );
-                    }
-
-                    if (ImGui::IsItemHovered ())
-                    {
-                      if (! config.input.gamepad.bt_input_only)
-                        ImGui::SetTooltip (
-                          "Power-off Bluetooth Controllers and use DualShock 3 Compatibility Mode when "
-                          "Powered-on"
-                        );
-                      else
-                        ImGui::SetTooltip (
-                          "Enable Enhanced DualShock 4 / DualSense Features in Bluetooth Mode "
-                          "(may break input in native DirectInput/HID games)"
-                        );
                     }
                     ImGui::EndPopup     ();
                   }
@@ -1891,7 +1884,7 @@ SK::ControlPanel::Input::Draw (void)
           {
             ImGui::SameLine   ();
             ImGui::BulletText ( ICON_FA_BLUETOOTH
-              " Compatibility Mode: Features newer than DualShock 3 are unusable."
+              " Compatibility Mode: Features newer than DualShock 3 are unsupported."
             );
 
             if (ImGui::IsItemHovered ( ))
@@ -1899,52 +1892,20 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::BeginTooltip    ( );
               ImGui::TextUnformatted (
                 "Plug your controller in, or trigger rumble in-game to put the "
-                "Bluetooth controller into DualShock 4 / DualSense mode."
+                "Bluetooth controller into DualShock 4 / DualSense mode; "
+                "refer to Compatibility Options for more info."
               );
 #define SK_HID_BROKEN_DUALSHOCK4_REV2
 #ifdef  SK_HID_BROKEN_DUALSHOCK4_REV2
-              if (bHasDualShock4v2_Bt)
-              {
-                ImGui::BulletText (
-                  "DualShock 4 v2 controllers will not work over Bluetooth with SK in compatibility mode"
-                );
-              }
+                if (bHasDualShock4v2_Bt)
+                {
+                  ImGui::Separator        ();
+                  ImGui::BulletText       (
+                    "DualShock 4 v2 controllers will not work over Bluetooth with SK in Compatibility Mode."
+                  );
+                }
 #endif
-              ImGui::Separator       ( );
-              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
-
-              ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
-              ImGui::SameLine        ( );
-              ImGui::TextUnformatted ("Right-click to configure compatibility mode");
-              ImGui::PopStyleColor   ( );
               ImGui::EndTooltip      ( );
-            }
-
-            if (SK_ImGui_IsItemRightClicked ())
-            {
-              ImGui::ClearActiveID   ( );
-              ImGui::OpenPopup       ("BluetoothCompatMenu2");
-            }
-
-            if (ImGui::BeginPopup ("BluetoothCompatMenu2"))
-            {
-              if (ImGui::Checkbox ( "Always Enable Full Capabilities in " ICON_FA_BLUETOOTH,
-                                    &config.input.gamepad.scepad.enable_full_bluetooth))
-              {
-                config.utility.save_async ();
-                ImGui::CloseCurrentPopup  ();
-              }
-
-              if (ImGui::IsItemHovered ())
-              {
-                ImGui::SetTooltip (
-                  "Your gamepad will no longer work correctly in DirectInput "
-                  "software until powered off...\r\nHowever, that is normal after running "
-                  "any game that supports Bluetooth DualShock/DualSense controllers."
-                );
-              }
-
-              ImGui::EndPopup ();
             }
           }
 
@@ -1970,15 +1931,19 @@ SK::ControlPanel::Input::Draw (void)
         else
           config.input.gamepad.hid.calc_latency = false;
 
-        if (bHasDualSenseEdge || bHasDualShock4v2 || bHasDualShock4)
+        if (bHasDualSenseEdge || bHasDualShock4v2 || bHasDualShock4 || bHasBluetooth)
         {
           if (ImGui::TreeNode ("Compatibility Options"))
           {
-            bool hovered = false;
-            bool changed = false;
+            bool hovered    = false;
+            bool changed    = false;
+            bool alt_models = false;
 
+            ImGui::BeginGroup ();
             if (bHasDualSenseEdge)
             {
+              alt_models = true;
+
               bool spoof =
                 (config.input.gamepad.scepad.hide_ds_edge_pid == SK_Enabled);
 
@@ -1995,6 +1960,8 @@ SK::ControlPanel::Input::Draw (void)
 
             if (bHasDualShock4v2)
             {
+              alt_models = true;
+
               bool spoof =
                 (config.input.gamepad.scepad.hide_ds4_v2_pid == SK_Enabled);
 
@@ -2011,6 +1978,8 @@ SK::ControlPanel::Input::Draw (void)
 
             if (bHasDualShock4)
             {
+              alt_models = true;
+
               bool spoof =
                 (config.input.gamepad.scepad.show_ds4_v1_as_v2 == SK_Enabled);
 
@@ -2033,6 +2002,65 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::Separator       ();
               ImGui::BulletText      ("Game restart required");
               ImGui::EndTooltip      ();
+            }
+            ImGui::EndGroup ();
+
+            if (bHasBluetooth)
+            {
+              if (alt_models) ImGui::SameLine ();
+
+              ImGui::BeginGroup ();
+              if (ImGui::Checkbox ("Current Game Requires " ICON_FA_BLUETOOTH " Compatibility Mode",
+                   &config.input.gamepad.bt_input_only))
+              { if (config.input.gamepad.bt_input_only)
+                {
+                  SK_DeferCommand ("Input.Gamepad.PowerOff 1");
+                }
+
+                changed = true;
+              }
+
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::SetTooltip (
+                  "Enable this if your current game only supports DirectInput, "
+                  "SK will power-off your controller(s) if necessary."
+                );
+              }
+
+              if (! config.input.gamepad.bt_input_only)
+              {
+                if (ImGui::Checkbox ( "Always Enable Full Capabilities in " ICON_FA_BLUETOOTH,
+                                        &config.input.gamepad.scepad.enable_full_bluetooth))
+                {
+                  changed = true;
+                }
+
+                if (ImGui::IsItemHovered ())
+                {
+                  ImGui::BeginTooltip    ();
+                  ImGui::TextUnformatted ("Allow SK to use your controller's full functionality, "
+                                          "even if that requires enabling Advanced Bluetooth mode.");
+                  ImGui::Separator       ();
+                  ImGui::BulletText      ("Normally SK keeps a Bluetooth controller in the mode "
+                                          "it originally started, but this causes a loss in SK's functionality.");
+                  ImGui::BulletText      ("If SK switches a Bluetooth controller to full functionality "
+                                          "mode, some DirectInput games may not work until the controller "
+                                          "is powered-off.");
+#define SK_HID_BROKEN_DUALSHOCK4_REV2
+#ifdef  SK_HID_BROKEN_DUALSHOCK4_REV2
+                  if (bHasDualShock4v2_Bt)
+                  {
+                    ImGui::Separator        ();
+                    ImGui::BulletText       (
+                      "DualShock 4 v2 controllers will not work over Bluetooth with SK unless this is enabled"
+                    );
+                  }
+#endif
+                  ImGui::EndTooltip      ();
+                }
+              }
+              ImGui::EndGroup ();
             }
 
             if (changed)
