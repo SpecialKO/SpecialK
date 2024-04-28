@@ -1,4 +1,9 @@
-﻿24.4.28.6
+﻿24.4.29
+=======
+ + Fixed temporary HDR mode not working after the SDR whitepoint option
+     was added (24.4.19.1).
+
+24.4.28.6
 =========
  + Apply Rec 709 clamping whenever Perceptual Boost is enabled
 
