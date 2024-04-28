@@ -1,7 +1,27 @@
-﻿24.4.27
+﻿24.4.28
 =======
  + Moved various Bluetooth settings for DualShock 4 / DualSense controllers to
      the "Compatibility Options" section of the gamepad control panel.
+
+    >> Functionality SK cannot use while Bluetooth is in Compatibility Mode:
+
+         Latency Measurement
+         Battery Levels
+         Mute Button      (DualSense [Edge])
+         Paddle Buttons   (DualSense Edge)
+         Function Buttons (DualSense Edge)
+         LED Color
+         Rumble
+         DualShock4 v2 (-ALL- features)
+
+    Compatibility mode exists because older DirectInput-based games only work
+      w/ these controllers in Bluetooth mode if the functionality above is not
+        used at any time after powering the controller on.
+
+      * If you do not require compatibility with very old games or the ancient
+          joy.cpl control panel that ships with Windows, you are encouraged to
+            select "Always Enable Full Capabilities in Bluetooth."
+ + Changed "Always Enable Full Capabilities in BT" to a global setting.
  + Only take achievement unlock screenshots for actual achievement unlocks
      (i.e. ignore percentage updates for Steam achievements with n/m progress).
  + Added support for achievement popups in Epic Game Store games.

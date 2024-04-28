@@ -2056,6 +2056,12 @@ SK::ControlPanel::Input::Draw (void)
                       "DualShock 4 v2 controllers will not work over Bluetooth with SK unless this is enabled"
                     );
                   }
+                  else
+                  {
+                    ImGui::Separator ();
+                  }
+
+                  ImGui::TextUnformatted ("This is a global setting.");
 #endif
                   ImGui::EndTooltip      ();
                 }
