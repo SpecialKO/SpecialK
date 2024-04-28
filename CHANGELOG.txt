@@ -1,6 +1,8 @@
 ﻿24.4.28.3
 =========
  + Apply non-Color Boosted Perceptual Boost in Rec 2020 colorspace
+ + Fixed Reset button in HDR widget not using the same default values as
+     used during initialization on first run.
 
 24.4.28.2
 =========
