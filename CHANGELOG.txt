@@ -1,4 +1,9 @@
-﻿24.4.26
+﻿24.4.27
+=======
+ + Set the window title of SK's Aspect Ratio Background to match a game's main
+     window so that Discord does not get confused and display the wrong name.
+
+24.4.26
 =======
  + Do not display battery level warnings on DualSense controllers in DualShock 3
      mode connected over Bluetooth, because the data is invalid garbage left in

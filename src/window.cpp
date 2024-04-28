@@ -7847,6 +7847,12 @@ SK_Win32_CreateBackgroundWindow (void)
       return 0;
     }
 
+    // Discord could become confused without this and report that
+    //   users are playing the Aspect Ratio window...
+    wchar_t                                     wszTitle [128] = { };
+    if (GetWindowText (game_window.hWnd,        wszTitle, 127))
+        SetWindowText (SK_Win32_BackgroundHWND, wszTitle);
+
     ShowWindow   (SK_Win32_BackgroundHWND, SW_SHOW);
     UpdateWindow (SK_Win32_BackgroundHWND);
 
