@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -31,4 +31,19 @@ void SK_Platform_SetNotifyCorner (void)
     if (SK::EOS::UserID () != nullptr) SK_EOS_SetNotifyCorner   ();
     else                               SK_Steam_SetNotifyCorner ();
   }
+}
+
+int
+SK_Platform_DrawOSD (void)
+{
+  int ret =
+    SK_Steam_DrawOSD ();
+
+  if (! ret)
+  {
+    ret =
+      SK_EOS_DrawOSD ();
+  }
+
+  return ret;
 }

@@ -243,4 +243,7 @@ DWORD
 SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
                                               LPVOID lpUser );
 
+int
+SK_Platform_DrawOSD (void);
+
 #endif /* __SK__CORE_H__ */

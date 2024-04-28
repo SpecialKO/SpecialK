@@ -1,5 +1,9 @@
 ﻿24.4.27
 =======
+ + Only take achievement unlock screenshots for actual achievement unlocks
+     (i.e. ignore percentage updates for Steam achievements with n/m progress).
+ + Added support for achievement popups in Epic Game Store games.
+ + Fixed width on achievement popups aligned to the left side of the screen.
  + Set the window title of SK's Aspect Ratio Background to match a game's main
      window so that Discord does not get confused and display the wrong name.
 

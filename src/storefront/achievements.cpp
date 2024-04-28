@@ -1452,6 +1452,8 @@ SK_AchievementManager::drawPopups (void)
 
   std::unordered_set <std::string> displayed;
 
+  bool any_eligible_for_screenshots = false;
+
   while (it != popups.cend ())
   {
     if (displayed.contains (it->achievement->name_))
@@ -1461,6 +1463,11 @@ SK_AchievementManager::drawPopups (void)
 
     if (it->time == 0)
         it->time = SK_timeGetTime ();
+
+    bool eligible_for_screenshots =
+      (config.platform.achievements.take_screenshot && it->achievement->unlocked_);
+
+    any_eligible_for_screenshots |= eligible_for_screenshots;
 
     if (SK_timeGetTime () < (it->time + POPUP_DURATION_MS))
     {
@@ -1554,7 +1561,10 @@ SK_AchievementManager::drawPopups (void)
 #endif
         if (! it->final_pos)
         {
-          take_screenshot = it->achievement->unlocked_ ? 2 : take_screenshot;
+          if (eligible_for_screenshots)
+          {
+            take_screenshot = it->achievement->unlocked_ ? 2 : take_screenshot;
+          }
           it->final_pos   = true;
         }
 
@@ -1572,7 +1582,10 @@ SK_AchievementManager::drawPopups (void)
                                  std::min ( static_cast <float>(0.333 +  (dwNow % 500) / 500.0f -
                                                                  floor ( (dwNow % 500) / 500.0f) ), 1.0f) );
 
-          if (it->achievement->global_percent_ < 10.0f)
+          const float fGlobalPercent =
+            it->achievement->global_percent_;
+
+          if (fGlobalPercent < 10.0f)
             ImGui::PushStyleColor (ImGuiCol_Border, rare_border_color);
 
           auto text =
@@ -1589,7 +1602,7 @@ SK_AchievementManager::drawPopups (void)
           //char         window_id [64] = { };
           //_snprintf_s (window_id, 63, "##TOAST%d", (int)i++);
 
-          ImGui::BeginGroup ();
+          //ImGui::BeginGroup ();
           ImGui::BringWindowToDisplayFront (ImGui::GetCurrentWindow ());
 
           float fTopY = ImGui::GetCursorPosY ();
@@ -1629,15 +1642,20 @@ SK_AchievementManager::drawPopups (void)
           ImGui::EndGroup      (  );
           ImGui::EndChild      (  );
           ImGui::PopID         (  );
-          
+
+          const bool bSteam =
+            (SK::SteamAPI::AppID () != 0);
+
           ImGui::BeginGroup    (  );
+          if (bSteam) // Only Steam has unlock percentage stats
           ImGui::TextUnformatted ("Global: ");
           if (it->achievement->friends_.possible > 0)
           ImGui::TextUnformatted ("Friends: ");
           ImGui::EndGroup      (  );
           ImGui::SameLine      (  );
           ImGui::BeginGroup    (  );
-          ImGui::Text          ("%6.2f%%", it->achievement->global_percent_);
+          if (bSteam) // Only Steam has unlock percentage stats
+          ImGui::Text          ("%6.2f%%", fGlobalPercent);
           if (it->achievement->friends_.possible > 0)
           ImGui::Text          ("%6.2f%%",
                100.0 * ( (double)          it->achievement->friends_.unlocked /
@@ -1689,10 +1707,10 @@ SK_AchievementManager::drawPopups (void)
                     y_loc + y_offset + io.DisplaySize.y * 0.025f * y_dir),
                       ImGuiCond_Always
           );
-          ImGui::EndGroup      (  );
+          //ImGui::EndGroup      (  );
           ImGui::EndPopup      (  );
 
-          if (it->achievement->global_percent_ < 10.0f)
+          if (fGlobalPercent < 10.0f)
             ImGui::PopStyleColor( );
         }
       }
@@ -1717,7 +1735,8 @@ SK_AchievementManager::drawPopups (void)
 
     else
     {
-      displayed.emplace        (it->achievement->name_);
+      if (it->achievement->unlocked_)
+        displayed.emplace      (it->achievement->name_);
       ImGui::BeginPopup        (it->achievement->name_.c_str ());
       ImGui::CloseCurrentPopup ();
       ImGui::EndPopup          ();
@@ -1756,14 +1775,14 @@ SK_AchievementManager::drawPopups (void)
 
   // Invalidate text overlays any time a window is removed,
   //   this prevents flicker.
-  if (removed || created || take_screenshot > 0)
+  if (removed || created || (any_eligible_for_screenshots && take_screenshot > 0))
   {
     SK_TextOverlayManager::getInstance ()->drawAllOverlays  (0.0f, 0.0f, true);
   }
 
   // Popup is in the final location, so now is when screenshots
   //   need to be taken.
-  if (config.platform.achievements.take_screenshot && take_screenshot > 0)
+  if (any_eligible_for_screenshots && take_screenshot > 0)
   {
     // Delay the screenshot so it doesn't show up twice
     --take_screenshot;

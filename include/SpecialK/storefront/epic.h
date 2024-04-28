@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -375,6 +375,9 @@ SK_EOS_LoadUnlockSound (const wchar_t* wszUnlockSound);
 ////
 ////std::string
 ////SK_UseManifestToGetAppName (AppId_t appid = 0);
+
+int
+SK_EOS_DrawOSD (void);
 
 
 #endif /* __SK__EPIC_ONLINE_SERVICES_H__ */

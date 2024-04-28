@@ -30,58 +30,104 @@
 #endif
 #define __SK_SUBSYSTEM__ L"EpicOnline"
 
-static void *g_EOSAchievements = nullptr;
-
 class SK_EOS_AchievementManager : public SK_AchievementManager
 {
 public:
   void unlock (const char* szAchievement)
   {
-    if (g_EOSAchievements == nullptr)
-        g_EOSAchievements = this;
+    if (szAchievement == nullptr)
+      return;
+
+    int  index   = -1;
+    bool numeric = true;
+
+    for ( const char* ch = szAchievement ;
+                     *ch != '\0'         ;
+                      ch = CharNextA (ch) )
+    {
+      if ((! isalnum (ch [0])) || isalpha (ch [0]))
+      {
+        numeric = false;
+        break;
+      }
+    }
+
+    if (numeric)
+    {
+      index = atoi (szAchievement);
+    }
 
     for (uint32 i = 0; i < SK_EOS_GetNumPossibleAchievements (); i++)
     {
-      const Achievement* achievement =
-                         achievements.list [i];
+      Achievement* achievement =
+                   achievements.list [i];
 
       if (achievement == nullptr || achievement->name_.empty ())
         continue;
 
       if (! _stricmp (achievement->name_.c_str (), szAchievement))
       {
-        SK_Thread_CreateEx ([](LPVOID pUser)->DWORD
-        {
-          std::wstring* pwszName = (std::wstring *)pUser;
-
-          SK_SleepEx (500UL, FALSE);
-
-          if (config.platform.achievements.play_sound && (! ((SK_EOS_AchievementManager *)g_EOSAchievements)->unlock_sound.empty ()))
-          {
-            SK_PlaySound ( (LPCWSTR)((SK_EOS_AchievementManager *)g_EOSAchievements)->unlock_sound.data (),
-                                     nullptr, SND_ASYNC |
-                                              SND_MEMORY );
-          }
-
-          // If the user wants a screenshot, but no popups (why?!), this is when
-          //   the screenshot needs to be taken.
-          if (config.platform.achievements.take_screenshot)
-          {
-            SK::SteamAPI::TakeScreenshot (
-              SK_ScreenshotStage::EndOfFrame, false,
-                SK_FormatString ("Achievements\\%ws", pwszName->c_str ())
-            );
-          }
-
-          ((SK_EOS_AchievementManager *)g_EOSAchievements)->log_all_achievements ();
-
-          SK_Thread_CloseSelf ();
-
-          return 0;
-        }, L"[SK] EOS Delayed Achievement Screenshot", (LPVOID)&achievement->text_.unlocked.human_name);
+        index = i;
         break;
       }
     }
+
+    if (index >= SK_EOS_GetNumPossibleAchievements ())
+      return;
+
+    Achievement* achievement =
+                 achievements.list [index];
+
+    if ( config.platform.achievements.popup.show
+              && achievement != nullptr )
+    {
+      if (platform_popup_cs != nullptr)
+          platform_popup_cs->lock ();
+
+      SK_AchievementPopup popup = { };
+
+      // Little bit of sanity goes a long way
+      if (achievement->progress_.current ==
+          achievement->progress_.max)
+      {
+        // It's implicit
+        achievement->unlocked_ = true;
+
+        if (achievement->time_ == 0)
+            achievement->time_ = time (nullptr);
+      }
+
+      popup.window      = nullptr;
+      popup.final_pos   = false;
+      popup.time        = SK_timeGetTime ();
+      popup.achievement = achievement;
+
+      popups.push_back (popup);
+
+      if (platform_popup_cs != nullptr)
+          platform_popup_cs->unlock ();
+    }
+
+    if (config.platform.achievements.play_sound && (! unlock_sound.empty ()))
+    {
+      SK_PlaySound ( (LPCWSTR)unlock_sound.data (),
+                               nullptr, SND_ASYNC |
+                                        SND_MEMORY );
+    }
+
+    // If the user wants a screenshot, but no popups (why?!), this is when
+    //   the screenshot needs to be taken.
+    if (       config.platform.achievements.take_screenshot )
+    {  if ( (! config.platform.achievements.popup.show) )
+       {
+         SK::SteamAPI::TakeScreenshot (
+           SK_ScreenshotStage::EndOfFrame, false,
+             SK_FormatString ("Achievements\\%ws", achievement->text_.unlocked.human_name.c_str ())
+         );
+       }
+    }
+
+    log_all_achievements ();
   }
 
   void log_all_achievements (void) const
@@ -428,6 +474,18 @@ SK_EOS_UI_OnDisplaySettingsUpdatedCallback_Proxy (const EOS_UI_OnDisplaySettings
   );
 
   eos_overlay->OnActivate (Data);
+}
+
+int
+SK_EOS_DrawOSD ()
+{
+  if (eos_achievements.getPtr () != nullptr)
+  {
+    return
+      eos_achievements->drawPopups ();
+  }
+
+  return 0;
 }
 
 static bool has_unlock_callback = false;

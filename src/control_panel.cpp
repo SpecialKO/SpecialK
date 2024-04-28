@@ -8195,7 +8195,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     SK_GetCurrentRenderBackend ();
 
   // Popup Windows, actually
-  SK_Steam_DrawOSD ();
+  SK_Platform_DrawOSD ();
 
   if (rb.api == SK_RenderAPI::OpenGL)
   {
