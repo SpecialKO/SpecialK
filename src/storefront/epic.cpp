@@ -38,8 +38,8 @@ public:
     if (szAchievement == nullptr)
       return;
 
-    int  index   = -1;
-    bool numeric = true;
+    size_t index   = (size_t)-1;
+    bool   numeric = true;
 
     for ( const char* ch = szAchievement ;
                      *ch != '\0'         ;
