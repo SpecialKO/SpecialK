@@ -211,13 +211,14 @@ main (PS_INPUT input) : SV_TARGET
     texMainScene.Sample ( sampler0,
                           input.uv );
 
-  // For scRGB Inverse Tonemapping (luminance scale > 1.0), clamp to Rec 709
-  if (input.color.x >= 1.0f + FLT_EPSILON)
+  // For scRGB Inverse Tonemapping (luminance scale > 1.0 or Perceptual Boost),
+  //   clamp to Rec 709
+  if (input.color.x >= 1.0f + FLT_EPSILON || pqBoostParams.x > 0.0f)
   {
     hdr_color.rgb =
       max (0.0f, hdr_color.rgb);
   }
-  
+
   float3 orig_color =
     abs (hdr_color.rgb);
 

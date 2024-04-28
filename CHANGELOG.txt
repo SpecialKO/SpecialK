@@ -1,4 +1,8 @@
-﻿34.4.28.5
+﻿24.4.28.6
+=========
+ + Apply Rec 709 clamping whenever Perceptual Boost is enabled
+
+24.4.28.5
 =========
  + Set 33% Color Boost in default HDR profiles
  + Clamp non-native scRGB inputs to Rec 709
