@@ -1701,44 +1701,6 @@ public:
                                ">> Use HDR Tonemap Curve / Grayscale Visualization (first Profile Display Capabilities) to ensure valid (unclipped) dynamic range.");
           }
 
-          if (preset.has_pq_boost())
-          {
-            ImGui::SameLine ();
-            if (ImGui::Checkbox ("Color Boost", &preset.pq_colorboost))
-            {
-              if (preset.pq_colorboost)
-              {
-                if (preset.saturation > 1.0f)
-                    preset.saturation = 0.88f;
-              }
-              else
-              {
-                if (preset.saturation < 1.0f)
-                    preset.saturation = 1.125f;
-              }
-
-              preset.cfg_saturation->store (
-                                    preset.saturation);
-              __SK_HDR_Saturation = preset.saturation;
-
-              preset.cfg_colorboost->store (
-                                    preset.pq_colorboost);
-              __SK_HDR_ColorBoost = preset.pq_colorboost;
-
-              config.utility.save_async ();
-            }
-
-            if (ImGui::IsItemHovered ())
-            {
-              ImGui::BeginTooltip    ();
-              ImGui::TextUnformatted ("Perceptual Boost will also increase color saturation");
-              ImGui::Separator       ();
-              ImGui::BulletText      ("You may wish to set saturation somewhere between 85%%-95%%.");
-              ImGui::BulletText      ("Saturation > 100%% is HIGHLY discouraged.");
-              ImGui::EndTooltip      ();
-            }
-          }
-
           if (! bHDR10Passthrough)
           {
             ImGui::SameLine    ();
@@ -2636,6 +2598,46 @@ public:
 
                 if ((! bRawImageMode) && preset.has_pq_boost())
                 {
+                  // Color Boost
+                  {
+                    if (ImGui::Checkbox("Color Volume Boost", &preset.pq_colorboost))
+                    {
+                      if (preset.pq_colorboost)
+                      {
+                        if (preset.saturation > 1.0f)
+                          preset.saturation = 0.88f;
+                      }
+                      else
+                      {
+                        if (preset.saturation < 1.0f)
+                          preset.saturation = 1.125f;
+                      }
+
+                      preset.cfg_saturation->store(
+                        preset.saturation);
+                      __SK_HDR_Saturation = preset.saturation;
+
+                      preset.cfg_colorboost->store(
+                        preset.pq_colorboost);
+                      __SK_HDR_ColorBoost = preset.pq_colorboost;
+
+                      config.utility.save_async();
+                    }
+
+                    if (ImGui::IsItemHovered())
+                    {
+                      ImGui::BeginTooltip();
+                      ImGui::TextUnformatted("When this is activated, Perceptual Boost will also boost Color Volume");
+                      ImGui::Separator();
+                      ImGui::BulletText("Most monitors won’t be able to properly display boosted Color Volume.");
+                      ImGui::BulletText("Colors may clip on your monitor in bright saturated spots.");
+                      ImGui::BulletText("You may wish to set saturation somewhere between 85%%-95%%.");
+                      ImGui::BulletText("Saturation > 100%% is HIGHLY discouraged.");
+                      ImGui::EndTooltip();
+                    }
+                  }
+
+
                   bool boost_changed = false;
 
                   boost_changed |=
@@ -2807,7 +2809,7 @@ public:
                 float fSat =
                   __SK_HDR_Saturation * 100.0f;
 
-                if (ImGui::SliderFloat("Saturation", &fSat, 0.0f, 125.0f, (preset.has_pq_boost() && preset.pq_colorboost) ? "Color Boost * %.3f%%" : "%.3f%%"))
+                if (ImGui::SliderFloat("Saturation", &fSat, 0.0f, 125.0f, (preset.has_pq_boost() && preset.pq_colorboost) ? "Color Volume Boost * %.3f%%" : "%.3f%%"))
                 {
                   __SK_HDR_Saturation =
                     std::max (0.0f, std::min (2.0f, fSat / 100.0f));
