@@ -215,7 +215,7 @@ main (PS_INPUT input) : SV_TARGET
   if (input.color.x >= 1.0f + FLT_EPSILON)
   {
     hdr_color.rgb =
-      abs (hdr_color.rgb);
+      max (0.0f, hdr_color.rgb);
   }
   
   float3 orig_color =
