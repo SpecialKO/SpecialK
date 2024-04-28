@@ -1552,7 +1552,7 @@ SK_AchievementManager::drawPopups (void)
 
           else if (! it->final_pos)
           {
-            take_screenshot = it->achievement->unlocked_ ? 2 : take_screenshot;
+            take_screenshot = it->achievement->unlocked_ ? 3 : take_screenshot;
             it->final_pos   = true;
           }
         }
@@ -1563,7 +1563,7 @@ SK_AchievementManager::drawPopups (void)
         {
           if (eligible_for_screenshots)
           {
-            take_screenshot = it->achievement->unlocked_ ? 2 : take_screenshot;
+            take_screenshot = it->achievement->unlocked_ ? 3 : take_screenshot;
           }
           it->final_pos   = true;
         }
