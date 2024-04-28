@@ -135,7 +135,7 @@ bool  __SK_HDR_AdaptiveToneMap =  false;
 
 struct SK_HDR_PQBoostParams
 {
-  bool  ColorBoost;
+  float ColorBoost;
   float PQBoost0;
   float PQBoost1;
   float PQBoost2;
@@ -144,7 +144,7 @@ struct SK_HDR_PQBoostParams
 } SK_HDR_PQBoost_v0 = {  false, 30.0f, 11.5f, 1.500f, 1.0f,  570.0f },
   SK_HDR_PQBoost_v1 = {  false,  1.0f,  0.1f, 1.273f, 0.5f,  267.0f };
 
-bool  __SK_HDR_ColorBoost = SK_HDR_PQBoost_v1.ColorBoost;
+float __SK_HDR_ColorBoost = SK_HDR_PQBoost_v1.ColorBoost;
 float __SK_HDR_PQBoost0   = SK_HDR_PQBoost_v1.PQBoost0;
 float __SK_HDR_PQBoost1   = SK_HDR_PQBoost_v1.PQBoost1;
 float __SK_HDR_PQBoost2   = SK_HDR_PQBoost_v1.PQBoost2;
@@ -168,7 +168,7 @@ struct SK_HDR_Preset_s {
     int tonemap = SK_HDR_TONEMAP_NONE;
   } colorspace;
 
-  bool         pq_colorboost   = SK_HDR_PQBoost_v1.ColorBoost;
+  float        pq_colorboost   = SK_HDR_PQBoost_v1.ColorBoost;
   float        pq_boost0       = SK_HDR_PQBoost_v1.PQBoost0;
   float        pq_boost1       = SK_HDR_PQBoost_v1.PQBoost1;
   float        pq_boost2       = SK_HDR_PQBoost_v1.PQBoost2;
@@ -184,7 +184,7 @@ struct SK_HDR_Preset_s {
   sk::ParameterFloat*   cfg_middlegray   = nullptr;
   sk::ParameterInt*     cfg_tonemap      = nullptr;
 
-  sk::ParameterBool*    cfg_colorboost   = nullptr;
+  sk::ParameterFloat*   cfg_colorboost   = nullptr;
   sk::ParameterFloat*   cfg_pq_boost0    = nullptr;
   sk::ParameterFloat*   cfg_pq_boost1    = nullptr;
   sk::ParameterFloat*   cfg_pq_boost2    = nullptr;
@@ -288,7 +288,7 @@ struct SK_HDR_Preset_s {
                    middle_gray_nits, L"Middle Gray Luminance" );
 
       cfg_colorboost =
-        _CreateConfigParameterBool ( SK_HDR_SECTION,
+        _CreateConfigParameterFloat ( SK_HDR_SECTION,
                  SK_FormatStringW   (L"ColorBoost_[%lu]", preset_idx).c_str (),
                     pq_colorboost,   L"ColorBoost" );
 
@@ -330,14 +330,14 @@ struct SK_HDR_Preset_s {
       store ();
     }
   }
-} static hdr_presets  [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.125f, 0.015f, { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v1.ColorBoost,  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.920f, 1.125f, 0.010f, { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v0.ColorBoost,  SK_HDR_PQBoost_v0.PQBoost0, SK_HDR_PQBoost_v0.PQBoost1, SK_HDR_PQBoost_v0.PQBoost2, SK_HDR_PQBoost_v0.PQBoost3, L"Shift+F2" },
-                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f,   0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F3" },
-                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f,   0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F4" } },
-         hdr_defaults [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.25f,  0.015f, { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v1.ColorBoost,  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.920f, 1.25f,  0.010f, { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v0.ColorBoost,  SK_HDR_PQBoost_v0.PQBoost0, SK_HDR_PQBoost_v0.PQBoost1, SK_HDR_PQBoost_v0.PQBoost2, SK_HDR_PQBoost_v0.PQBoost3, L"Shift+F2" },
-                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f,   0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F3" },
-                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f,   0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F4" } };
+} static hdr_presets  [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.0f, 0.015f, { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v1.ColorBoost,  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.920f, 1.0f, 0.010f, { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v0.ColorBoost,  SK_HDR_PQBoost_v0.PQBoost0, SK_HDR_PQBoost_v0.PQBoost1, SK_HDR_PQBoost_v0.PQBoost2, SK_HDR_PQBoost_v0.PQBoost3, L"Shift+F2" },
+                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F3" },
+                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F4" } },
+         hdr_defaults [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.0f, 0.015f, { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v1.ColorBoost,  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.920f, 1.0f, 0.010f, { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v0.ColorBoost,  SK_HDR_PQBoost_v0.PQBoost0, SK_HDR_PQBoost_v0.PQBoost1, SK_HDR_PQBoost_v0.PQBoost2, SK_HDR_PQBoost_v0.PQBoost3, L"Shift+F2" },
+                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F3" },
+                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F4" } };
 
 BOOL
 CALLBACK
@@ -1698,23 +1698,21 @@ public:
 
           if (pboost)
           {
+            bool cboost =
+              (preset.pq_colorboost > 0.0f);
+
             ImGui::SameLine ();
-            if (ImGui::Checkbox ("Color Boost", &preset.pq_colorboost))
+            if (ImGui::Checkbox ("Color Boost", &cboost))
             {
-              if (preset.pq_colorboost)
+              if (cboost)
               {
-                if (preset.saturation > 1.0f)
-                    preset.saturation = 0.88f;
-              }
-              else
-              {
-                if (preset.saturation < 1.0f)
-                    preset.saturation = 1.125f;
+                preset.pq_colorboost = 0.333f;
               }
 
-              preset.cfg_saturation->store (
-                                    preset.saturation);
-              __SK_HDR_Saturation = preset.saturation;
+              else
+              {
+                preset.pq_colorboost = 0.0f;
+              }
 
               preset.cfg_colorboost->store (
                                     preset.pq_colorboost);
@@ -1726,10 +1724,9 @@ public:
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip    ();
-              ImGui::TextUnformatted ("Perceptual Boost will also increase color saturation");
+              ImGui::TextUnformatted ("Perceptual Boost will also Increase Color Intensity");
               ImGui::Separator       ();
-              ImGui::BulletText      ("You may wish to set saturation somewhere between 85%%-95%%.");
-              ImGui::BulletText      ("Saturation > 100%% is HIGHLY discouraged.");
+              ImGui::BulletText      ("Enabled by Default along with 100%% Boost in Perceptual Boost pre-24.4.28");
               ImGui::EndTooltip      ();
             }
           }
@@ -2442,6 +2439,23 @@ public:
                    bool changed      = false;
 
             ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV (0.15f, 0.95f, 0.55f).Value);
+
+            const bool pboost = (preset.pq_boost0 > 0.0f);
+
+            if (pboost)
+            {
+              float colorboost =
+                100.0f * preset.pq_colorboost;
+
+              if (ImGui::SliderFloat ("Color Boost Intensity", &colorboost, 0.0f, 100.0f, "%4.1f%%"))
+              {
+                preset.pq_colorboost = colorboost / 100.0f;
+
+                preset.cfg_colorboost->store (
+                                      preset.pq_colorboost);
+                __SK_HDR_ColorBoost = preset.pq_colorboost;
+              }
+            }
 
             if (SK_API_IsLayeredOnD3D11 (rb.api))
             {

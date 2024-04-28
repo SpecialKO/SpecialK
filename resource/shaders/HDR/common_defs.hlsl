@@ -41,7 +41,7 @@ cbuffer colorSpaceTransform : register (b0)
   uint   uiToneMapper;
 
   float4 pqBoostParams;
-  bool   colorBoost;
+  float  colorBoost;
   bool   alignmentPadding0;
   bool   alignmentPadding1;
   bool   alignmentPadding2;
@@ -911,7 +911,8 @@ float3 LinearToPQ (float3 x, float maxPQValue)
       (1.0 + PQ.C3 * x);
 
   return
-    Clamp_scRGB (PositivePow (nd, PQ.M));
+    PositivePow (nd, PQ.M);
+    //Clamp_scRGB (PositivePow (nd, PQ.M));
 }
 
 float3 LinearToPQ (float3 x)
@@ -930,7 +931,8 @@ float3 PQToLinear (float3 x, float maxPQValue)
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    Clamp_scRGB (PositivePow (nd, rcp (PQ.N)) * maxPQValue);
+    //Clamp_scRGB (PositivePow (nd, rcp (PQ.N)) * maxPQValue);
+    PositivePow (nd, rcp (PQ.N)) * maxPQValue;
 }
 
 float3 PQToLinear (float3 x)

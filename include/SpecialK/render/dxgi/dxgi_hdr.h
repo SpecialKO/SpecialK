@@ -83,7 +83,7 @@ struct SK_DXGI_HDRControl
     float    sdrContentEOTF        =      -2.2f;
     uint32_t uiToneMapper          =          0;
     float    pqBoostParams [4]     =        { };
-    BOOL     colorBoost            =       true;
+    float    colorBoost            =     0.333f;
     BOOL     alignmentPadding16B[3]= {    false,
                                           false,
                                           false };

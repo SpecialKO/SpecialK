@@ -1,4 +1,14 @@
-﻿24.4.28.3
+﻿24.4.28.4
+=========
+ + Slightly optimized Perceptual Boost by removing Rec 2020 color clamp.
+ + Changed Color Boost to a mix between Pure Luminance and Pure Chrominance
+     implementations of Perceptual Boost.
+
+    >> A new slider controls the weighting between Luminance and Chrominance
+
+       * 0.0% and 100.0% are highest performance, since they only run PB once
+
+24.4.28.3
 =========
  + Apply non-Color Boosted Perceptual Boost in Rec 2020 colorspace
  + Fixed Reset button in HDR widget not using the same default values as

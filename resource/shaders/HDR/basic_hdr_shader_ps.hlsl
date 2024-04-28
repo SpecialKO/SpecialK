@@ -430,16 +430,10 @@ main (PS_INPUT input) : SV_TARGET
 
     float3 new_color;
 
-    if (! colorBoost)
+    if (colorBoost == 0.0)
     {
-      static const float3 fLumaCoeffs2020 =
-                   float3 (0.2627f, 0.678f, 0.0593f);
-
-      float3 rec2020_color =
-        REC709toREC2020 (hdr_color.rgb);
-
       float fLuma =
-        max (0.0f, dot (rec2020_color, fLumaCoeffs2020));
+        Luminance (hdr_color.rgb);
 
       new_color =
         PQToLinear (
@@ -449,9 +443,35 @@ main (PS_INPUT input) : SV_TARGET
                    ) / pb_params [3];
 
       new_color =
-        REC2020toREC709 (rec2020_color * (new_color / fLuma));
+        hdr_color.rgb * (new_color / fLuma);
     }
 
+    else if (colorBoost != 1.0)
+    {
+      float fLuma =
+        Luminance (hdr_color.rgb);
+
+      float3 new_color0 =
+        PQToLinear (
+          LinearToPQ ( float3 (fLuma, fLuma, fLuma),
+                       pb_params [0] ) *
+                       pb_params [2], pb_params [1]
+                   ) / pb_params [3];
+
+      new_color0 =
+        hdr_color.rgb * (new_color0 / fLuma);
+
+      float3 new_color1 =
+        PQToLinear (
+          LinearToPQ ( hdr_color.rgb,
+                       pb_params [0] ) *
+                       pb_params [2], pb_params [1]
+                   ) / pb_params [3];
+
+      new_color =
+        lerp (new_color0, new_color1, float3 (colorBoost, colorBoost, colorBoost));
+    }
+    
     else
     {
       new_color =
@@ -835,6 +855,8 @@ main (PS_INPUT input) : SV_TARGET
       color_out.rgb =
         expandGamut (hdr_color.rgb, hdrGamutExpansion);
     }
+    else
+      color_out.rgb = hdr_color.rgb;
 
     color_out =
       float4 (

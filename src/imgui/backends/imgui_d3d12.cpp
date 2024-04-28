@@ -2413,7 +2413,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       cbuffer_cspace.hdrLuminance_Min      = rb.display_gamut.minY * 1.0_Nits;
       cbuffer_cspace.currentTime           = (float)SK_timeGetTime ();
 
-      extern bool                        __SK_HDR_ColorBoost;
+      extern float                       __SK_HDR_ColorBoost;
       extern float                       __SK_HDR_PQBoost0;
       extern float                       __SK_HDR_PQBoost1;
       extern float                       __SK_HDR_PQBoost2;
