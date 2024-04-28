@@ -1,4 +1,8 @@
-﻿24.4.28.4
+﻿34.4.28.5
+=========
+ + Set 33% Color Boost in default HDR profiles
+
+24.4.28.4
 =========
  + Slightly optimized Perceptual Boost by removing Rec 2020 color clamp.
  + Changed Color Boost to a mix between Pure Luminance and Pure Chrominance
