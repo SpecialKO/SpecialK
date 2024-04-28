@@ -2413,6 +2413,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       cbuffer_cspace.hdrLuminance_Min      = rb.display_gamut.minY * 1.0_Nits;
       cbuffer_cspace.currentTime           = (float)SK_timeGetTime ();
 
+      extern bool                        __SK_HDR_ColorBoost;
       extern float                       __SK_HDR_PQBoost0;
       extern float                       __SK_HDR_PQBoost1;
       extern float                       __SK_HDR_PQBoost2;
@@ -2421,6 +2422,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       cbuffer_cspace.pqBoostParams [1] = __SK_HDR_PQBoost1;
       cbuffer_cspace.pqBoostParams [2] = __SK_HDR_PQBoost2;
       cbuffer_cspace.pqBoostParams [3] = __SK_HDR_PQBoost3;
+      cbuffer_cspace.colorBoost        = __SK_HDR_ColorBoost;
 
 
     if ( config.reshade.is_addon   &&
@@ -2454,7 +2456,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     pCommandList->SetGraphicsRootSignature          ( pHDRSignature                                  );
     pCommandList->SetPipelineState                  ( pHDRPipeline                                   );
     pCommandList->SetGraphicsRoot32BitConstants     ( 0, 4,  &cbuffer_luma,   0                      );
-    pCommandList->SetGraphicsRoot32BitConstants     ( 1, 16, &cbuffer_cspace, 0                      );
+    pCommandList->SetGraphicsRoot32BitConstants     ( 1, 20, &cbuffer_cspace, 0                      );
     pCommandList->IASetPrimitiveTopology            ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP           );
     pCommandList->SetDescriptorHeaps                ( 1, &descriptorHeaps.pHDR.p                     );
     pCommandList->SetGraphicsRootDescriptorTable    ( 2,  stagingFrame.hdr.hSwapChainCopySRV.GPU     );

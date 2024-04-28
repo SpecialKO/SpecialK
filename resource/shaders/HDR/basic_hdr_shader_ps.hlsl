@@ -428,11 +428,32 @@ main (PS_INPUT input) : SV_TARGET
       pqBoostParams.w
     };
 
-    float3 new_color =
-      PQToLinear (
-        LinearToPQ ( hdr_color.rgb, pb_params [0] ) *
-                     pb_params [2], pb_params [1]
-                 ) / pb_params [3];
+    float3 new_color;
+
+    if (! colorBoost)
+    {
+      float fLuma =
+        Luminance (hdr_color.rgb);
+
+      new_color =
+        PQToLinear (
+          LinearToPQ ( float3 (fLuma, fLuma, fLuma),
+                       pb_params [0] ) *
+                       pb_params [2], pb_params [1]
+                   ) / pb_params [3];
+
+      new_color *= (hdr_color.rgb / fLuma);
+    }
+
+    else
+    {
+      new_color =
+        PQToLinear (
+          LinearToPQ ( hdr_color.rgb,
+                       pb_params [0] ) *
+                       pb_params [2], pb_params [1]
+                   ) / pb_params [3];
+    }
 
 #ifdef INCLUDE_NAN_MITIGATION
     if (! AnyIsNan (  new_color))

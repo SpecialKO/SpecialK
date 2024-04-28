@@ -135,18 +135,20 @@ bool  __SK_HDR_AdaptiveToneMap =  false;
 
 struct SK_HDR_PQBoostParams
 {
+  bool  ColorBoost;
   float PQBoost0;
   float PQBoost1;
   float PQBoost2;
   float PQBoost3;
   float EstimatedMaxCLLScale;
-} SK_HDR_PQBoost_v0 = {  30.0f, 11.5f, 1.500f, 1.0f,  570.0f },
-  SK_HDR_PQBoost_v1 = {   1.0f,  0.1f, 1.273f, 0.5f,  267.0f };
+} SK_HDR_PQBoost_v0 = {  true, 30.0f, 11.5f, 1.500f, 1.0f,  570.0f },
+  SK_HDR_PQBoost_v1 = {  true,  1.0f,  0.1f, 1.273f, 0.5f,  267.0f };
 
-float __SK_HDR_PQBoost0 = SK_HDR_PQBoost_v1.PQBoost0;
-float __SK_HDR_PQBoost1 = SK_HDR_PQBoost_v1.PQBoost1;
-float __SK_HDR_PQBoost2 = SK_HDR_PQBoost_v1.PQBoost2;
-float __SK_HDR_PQBoost3 = SK_HDR_PQBoost_v1.PQBoost3;
+bool  __SK_HDR_ColorBoost = SK_HDR_PQBoost_v1.ColorBoost;
+float __SK_HDR_PQBoost0   = SK_HDR_PQBoost_v1.PQBoost0;
+float __SK_HDR_PQBoost1   = SK_HDR_PQBoost_v1.PQBoost1;
+float __SK_HDR_PQBoost2   = SK_HDR_PQBoost_v1.PQBoost2;
+float __SK_HDR_PQBoost3   = SK_HDR_PQBoost_v1.PQBoost3;
 
 
 #define MAX_HDR_PRESETS 4
@@ -166,6 +168,7 @@ struct SK_HDR_Preset_s {
     int tonemap = SK_HDR_TONEMAP_NONE;
   } colorspace;
 
+  bool         pq_colorboost   = SK_HDR_PQBoost_v1.ColorBoost;
   float        pq_boost0       = SK_HDR_PQBoost_v1.PQBoost0;
   float        pq_boost1       = SK_HDR_PQBoost_v1.PQBoost1;
   float        pq_boost2       = SK_HDR_PQBoost_v1.PQBoost2;
@@ -181,6 +184,7 @@ struct SK_HDR_Preset_s {
   sk::ParameterFloat*   cfg_middlegray   = nullptr;
   sk::ParameterInt*     cfg_tonemap      = nullptr;
 
+  sk::ParameterBool*    cfg_colorboost   = nullptr;
   sk::ParameterFloat*   cfg_pq_boost0    = nullptr;
   sk::ParameterFloat*   cfg_pq_boost1    = nullptr;
   sk::ParameterFloat*   cfg_pq_boost2    = nullptr;
@@ -207,6 +211,7 @@ struct SK_HDR_Preset_s {
     __SK_HDR_Saturation    = saturation;
     __SK_HDR_Gamut         = gamut;
     __SK_HDR_tonemap       = colorspace.tonemap;
+    __SK_HDR_ColorBoost    = pq_colorboost;
     __SK_HDR_PQBoost0      = pq_boost0;
     __SK_HDR_PQBoost1      = pq_boost1;
     __SK_HDR_PQBoost2      = pq_boost2;
@@ -228,7 +233,7 @@ struct SK_HDR_Preset_s {
           {
             cfg_nits,       cfg_paperwhite, cfg_eotf,
             cfg_saturation, cfg_middlegray, cfg_tonemap,
-            cfg_gamut,
+            cfg_gamut,      cfg_colorboost,
             cfg_pq_boost0,  cfg_pq_boost1,
             cfg_pq_boost2,  cfg_pq_boost3
           }
@@ -282,6 +287,11 @@ struct SK_HDR_Preset_s {
                  SK_FormatStringW   (L"MiddleGray_[%lu]", preset_idx).c_str (),
                    middle_gray_nits, L"Middle Gray Luminance" );
 
+      cfg_colorboost =
+        _CreateConfigParameterBool ( SK_HDR_SECTION,
+                 SK_FormatStringW   (L"ColorBoost_[%lu]", preset_idx).c_str (),
+                    pq_colorboost,   L"ColorBoost" );
+
       cfg_pq_boost0 =
         _CreateConfigParameterFloat ( SK_HDR_SECTION,
                  SK_FormatStringW   (L"PerceptualBoost0_[%lu]", preset_idx).c_str (),
@@ -320,14 +330,14 @@ struct SK_HDR_Preset_s {
       store ();
     }
   }
-} static hdr_presets  [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.0f, 0.015f,  { SK_HDR_TONEMAP_NONE      },  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.920f, 1.0f, 0.010f,  { SK_HDR_TONEMAP_NONE      },  SK_HDR_PQBoost_v0.PQBoost0, SK_HDR_PQBoost_v0.PQBoost1, SK_HDR_PQBoost_v0.PQBoost2, SK_HDR_PQBoost_v0.PQBoost3, L"Shift+F2" },
-                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f,  { SK_HDR_TONEMAP_RAW_IMAGE }, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F3" },
-                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f,  { SK_HDR_TONEMAP_RAW_IMAGE }, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F4" } },
-         hdr_defaults [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.0f, 0.015f,  { SK_HDR_TONEMAP_NONE      },  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.920f, 1.0f, 0.010f,  { SK_HDR_TONEMAP_NONE      },  SK_HDR_PQBoost_v0.PQBoost0, SK_HDR_PQBoost_v0.PQBoost1, SK_HDR_PQBoost_v0.PQBoost2, SK_HDR_PQBoost_v0.PQBoost3, L"Shift+F2" },
-                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f,  { SK_HDR_TONEMAP_RAW_IMAGE }, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F3" },
-                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f,  { SK_HDR_TONEMAP_RAW_IMAGE }, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F4" } };
+} static hdr_presets  [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.0f, 0.015f,  { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v1.ColorBoost,  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.920f, 1.0f, 0.010f,  { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v0.ColorBoost,  SK_HDR_PQBoost_v0.PQBoost0, SK_HDR_PQBoost_v0.PQBoost1, SK_HDR_PQBoost_v0.PQBoost2, SK_HDR_PQBoost_v0.PQBoost3, L"Shift+F2" },
+                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f,  { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F3" },
+                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f,  { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F4" } },
+         hdr_defaults [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.0f, 0.015f,  { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v1.ColorBoost,  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.920f, 1.0f, 0.010f,  { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v0.ColorBoost,  SK_HDR_PQBoost_v0.PQBoost0, SK_HDR_PQBoost_v0.PQBoost1, SK_HDR_PQBoost_v0.PQBoost2, SK_HDR_PQBoost_v0.PQBoost3, L"Shift+F2" },
+                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f,  { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F3" },
+                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f,  { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F4" } };
 
 BOOL
 CALLBACK
@@ -1642,7 +1652,7 @@ public:
           {
           if (! bHDR10Passthrough)
           {
-            if (ImGui::Checkbox ("Enable FULL HDR Luminance###SK_HDR_ShowFullRange", &__SK_HDR_FullRange))
+            if (ImGui::Checkbox ("FULL Luminance###SK_HDR_ShowFullRange", &__SK_HDR_FullRange))
             {
               _SK_HDR_FullRange->store (__SK_HDR_FullRange);
             }
@@ -1684,6 +1694,25 @@ public:
           {
             ImGui::SetTooltip ("NOTE: When active, the luminance slider does not measure physical brightness.\r\n\r\n\t"
                                ">> Use HDR Tonemap Curve / Grayscale Visualization (first Profile Display Capabilities) to ensure valid (unclipped) dynamic range.");
+          }
+
+          if (pboost)
+          {
+            ImGui::SameLine ();
+            if (ImGui::Checkbox ("Color Boost", &preset.pq_colorboost))
+            {
+              preset.cfg_colorboost->store (
+                                    preset.pq_colorboost);
+              __SK_HDR_ColorBoost = preset.pq_colorboost;
+
+              config.utility.save_async ();
+            }
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::SetTooltip ("Perceptual Boost will also increase color saturation, "
+                                 "you may want to set saturation somewhere between 92%%-98%%.");
+            }
           }
 
           if (! bHDR10Passthrough)
@@ -2202,6 +2231,9 @@ public:
               SK_FormatStringW (L"MiddleGray_[%lu]", __SK_HDR_Preset),
                                              std::to_wstring (preset.middle_gray_nits) );
             sec.add_key_value (
+              SK_FormatStringW (L"ColorBoost_[%lu]", __SK_HDR_Preset),
+                                             std::to_wstring (preset.pq_colorboost) );
+            sec.add_key_value (
               SK_FormatStringW (L"PerceptualBoost0_[%lu]", __SK_HDR_Preset),
                                              std::to_wstring (preset.pq_boost0) );
             sec.add_key_value (
@@ -2289,7 +2321,13 @@ public:
                 pSection->contains_key (                                SK_FormatStringW (L"ToneMapper_[%lu]", __SK_HDR_Preset)))
                  preset.cfg_tonemap->store_str    (pSection->get_value (SK_FormatStringW (L"ToneMapper_[%lu]", __SK_HDR_Preset)));
             else preset.cfg_tonemap->store        (default_preset.colorspace.tonemap);
-                                                  
+
+            if (bImport && 
+                pSection != nullptr &&
+                pSection->contains_key (                                 SK_FormatStringW (L"ColorBoost_[%lu]", __SK_HDR_Preset)))
+                 preset.cfg_colorboost->store_str  (pSection->get_value (SK_FormatStringW (L"ColorBoost_[%lu]", __SK_HDR_Preset)));
+            else preset.cfg_colorboost->store      (default_preset.pq_colorboost);
+
             if (bImport && 
                 pSection != nullptr &&
                 pSection->contains_key (                                SK_FormatStringW (L"PerceptualBoost0_[%lu]", __SK_HDR_Preset)))
@@ -2322,6 +2360,7 @@ public:
             preset.cfg_gamut->load        (preset.gamut);
             preset.cfg_tonemap->load      (preset.colorspace.tonemap);
 
+            preset.cfg_colorboost->load   (preset.pq_colorboost);
             preset.cfg_pq_boost0->load    (preset.pq_boost0);
             preset.cfg_pq_boost1->load    (preset.pq_boost1);
             preset.cfg_pq_boost2->load    (preset.pq_boost2);

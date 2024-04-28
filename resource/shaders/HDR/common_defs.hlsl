@@ -41,6 +41,10 @@ cbuffer colorSpaceTransform : register (b0)
   uint   uiToneMapper;
 
   float4 pqBoostParams;
+  bool   colorBoost;
+  bool   alignmentPadding0;
+  bool   alignmentPadding1;
+  bool   alignmentPadding2;
 };
 
 #define FLT_EPSILON     1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0

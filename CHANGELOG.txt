@@ -1,4 +1,9 @@
-﻿24.4.28
+﻿24.4.28.1
+=========
+ + Added option to apply Perceptual Boost to Chroma (Default) or Luminance
+    >> New option is called "Color Boost" when Perceptual Boost HDR is enabled.
+
+24.4.28
 =======
  + Moved various Bluetooth settings for DualShock 4 / DualSense controllers to
      the "Compatibility Options" section of the gamepad control panel.
