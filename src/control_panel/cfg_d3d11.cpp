@@ -172,9 +172,12 @@ SK_ImGui_DrawTexCache_Chart (void)
     {
       ImGui::Separator ();
 
-      ImGui::Checkbox ("Measure residency", &config.textures.cache.residency_managemnt);
-
-      ImGui::SameLine ();
+      //
+      // Residency queries have been broken for a long time, and would only
+      //   cause crashes... so hide this option.  (4/29/24)
+      //
+      //ImGui::Checkbox ("Measure residency", &config.textures.cache.residency_managemnt);
+      //ImGui::SameLine ();
       ImGui::Checkbox ("Vibrate on cache miss", &config.textures.cache.vibrate_on_miss);
 
       if (config.textures.cache.residency_managemnt)
