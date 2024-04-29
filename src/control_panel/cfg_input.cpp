@@ -660,7 +660,8 @@ SK::ControlPanel::Input::Draw (void)
       ImVec2 vCursorWidgetPos (0.0f, 0.0f);
 
       if (config.input.cursor.manage) {
-        ImGui::TreePush ("");
+        ImGui::TreePush   ("");
+        ImGui::BeginGroup (  );
         ImGui::Checkbox ( "Keyboard Activates",
                                           &config.input.cursor.keys_activate );
 #if 1
@@ -674,11 +675,11 @@ SK::ControlPanel::Input::Draw (void)
           );
         }
 #endif
-        ImGui::TreePop  ();
-        ImGui::SameLine ();
-
+        ImGui::EndGroup   (  );
+        ImGui::SameLine   (  );
         vCursorWidgetPos =
           ImGui::GetCursorPos ();
+        ImGui::TreePop    (  );
       }
 
       ImGui::EndGroup   ();
@@ -686,7 +687,7 @@ SK::ControlPanel::Input::Draw (void)
 
       if (config.input.cursor.manage)
       {
-        ImGui::SameLine   ();
+        ImGui::SameLine ();
 
         float seconds =
           (float)config.input.cursor.timeout  / 1000.0f;
@@ -706,10 +707,9 @@ SK::ControlPanel::Input::Draw (void)
             static_cast <LONG> ( seconds * 1000.0f );
         }
 
-        ImGui::PopStyleColor (4);
-
+        ImGui::PopStyleColor  (4);
         ImGui::SetCursorPos   (vCursorWidgetPos);
-        _CursorBoundaryWidget ();
+        _CursorBoundaryWidget ( );
       }
 
 #if 1
