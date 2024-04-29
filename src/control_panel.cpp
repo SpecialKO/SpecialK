@@ -3124,7 +3124,7 @@ SK_DXGI_FullscreenControlPanel (void)
 {
   if (ImGui::BeginPopup ("DXGI Fullscreen Control Panel"))
   {
-    ImGui::TextUnformatted ("D3D11 / D3D12 Fullscreen Setup\t(Experimental)");
+    ImGui::TextUnformatted ("D3D11 / D3D12 Fullscreen Setup");
 
     ImGui::TreePush ("###DXGI_FullscreenCpl");
 
