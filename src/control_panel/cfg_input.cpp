@@ -1723,14 +1723,27 @@ SK::ControlPanel::Input::Draw (void)
             {
               static bool show_debug_option = false;
               //ImGui::TreePush ("");
-              ImGui::SameLine ();
-              ImGui::Checkbox ("Use Deadzone", &config.input.gamepad.xinput.standard_deadzone);
+              ImGui::SameLine        ();
+              ImGui::PushItemWidth   (
+                ImGui::GetStyle ().ItemSpacing.x +
+                ImGui::CalcTextSize ("888.8% Deadzone").x
+              );
+              if (ImGui::SliderFloat (            "###XInput_Deadzone",
+                                      &config.input.gamepad.xinput.deadzone,
+                                       0.0f, 30.0f, "%4.1f%% Deadzone"))
+              {
+                config.input.gamepad.xinput.deadzone =
+                  std::clamp (config.input.gamepad.xinput.deadzone, 0.0f, 100.0f);
 
-              if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
+                config.utility.save_async ();
+              }
+              ImGui::PopItemWidth    ();
+
+              if (SK_ImGui_IsItemRightClicked ())
                 show_debug_option = true;
 
               else if (ImGui::IsItemHovered ())
-                       ImGui::SetTooltip ("Apply aggressive deadzone as-per XInput suggested values; many games work fine without adding a deadzone");
+                       ImGui::SetTooltip ("Apply a Deadzone to Left/Right Analog Stick input (in Xbox Mode)");
 
               if (show_debug_option)
               {

@@ -1007,7 +1007,7 @@ struct sk_config_t
         bool  blackout_api        = false;
         bool  emulate             = false;
         bool  debug               = false;
-        bool  standard_deadzone   = false;
+        float deadzone            = 0.05f; // 5% Left/Right Analog Stick Deadzone
       } xinput;
 
       struct dinput_s {

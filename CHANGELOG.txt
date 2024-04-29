@@ -1,4 +1,9 @@
-﻿24.4.29.2
+﻿24.4.29.3
+=========
+ + Added user-configurable XInput deadzone for PlayStation controllers
+     >> Default: 5% (likely too small if a game actually needs this)
+
+24.4.29.2
 =========
  + Extend HDR Gamut Expansion slider to 20%
  + Re-word AVIF encoding disclaimer to reflect recent changes in
