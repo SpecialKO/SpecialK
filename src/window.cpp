@@ -7116,7 +7116,7 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   else if (! _wcsicmp (wszClassName, L"UnrealWindow"))
     SK_GetCurrentRenderBackend ().windows.unreal = true;
 
-  else if (! _wcsicmp (wszClassName, L"SDL_App"))
+  else if (StrStrIW (wszClassName, L"SDL_App"))
   {
     SK_GetCurrentRenderBackend ().windows.sdl = true;
   }
