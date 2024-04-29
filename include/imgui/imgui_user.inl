@@ -1294,8 +1294,10 @@ SK_Window_IsTopMostOnMonitor (HWND hWndToTest)
 
 LRESULT
 WINAPI
-ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
-                       WPARAM wParam, LPARAM lParam )
+ImGui_WndProcHandler ( HWND         hWnd,   UINT   msg,
+                       WPARAM       wParam, LPARAM lParam,
+                       WNDPROC      wndproc,
+                       sk_window_s* window )
 {
   static auto& io =
     ImGui::GetIO ();
@@ -1544,15 +1546,27 @@ ImGui_WndProcHandler ( HWND   hWnd,    UINT  msg,
               {
                 if (lParam != -1)
                 {
-                  SK_ImGui_CreateNotification (
-                    "Screensaver.Ignored", SK_ImGui_Toast::Info,
-                    "Screensaver activation has been blocked because the game is "
-                    "running in (Borderless) Fullscreen.", nullptr,
-                      15000UL,
-                        SK_ImGui_Toast::UseDuration |
-                        SK_ImGui_Toast::ShowCaption |
-                        SK_ImGui_Toast::ShowOnce
-                  );
+                  LRESULT lRet = 1;
+
+                  if (                nullptr  !=  window)
+                    lRet = SK_COMPAT_SafeCallProc (window, hWnd, msg, wParam, lParam);
+                  else if (wndproc != nullptr)
+                    lRet = wndproc (                       hWnd, msg, wParam, lParam);
+
+                  // Game did not block screensaver activation, but we will...
+                  //   notify user in case this is unexpected.
+                  if (lRet != 0)
+                  {
+                    SK_ImGui_CreateNotification (
+                      "Screensaver.Ignored", SK_ImGui_Toast::Info,
+                      "Screensaver activation has been blocked because the game is "
+                      "running in (Borderless) Fullscreen.", nullptr,
+                        15000UL,
+                          SK_ImGui_Toast::UseDuration |
+                          SK_ImGui_Toast::ShowCaption |
+                          SK_ImGui_Toast::ShowOnce
+                    );
+                  }
 
                   return 1;
                 }

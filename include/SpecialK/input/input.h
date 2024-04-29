@@ -1168,9 +1168,11 @@ SK_SetCursor (_In_opt_ HCURSOR hCursor);
 struct ImGuiContext;
 extern ImGuiContext* SK_GImDefaultContext (void);
 
+struct sk_window_s;
+
 LRESULT
 WINAPI
-ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, WNDPROC wndproc = nullptr, sk_window_s* window = nullptr);
 
 SHORT WINAPI SK_GetKeyState      (int   nVirtKey);
 BOOL  WINAPI SK_GetKeyboardState (PBYTE lpKeyState);

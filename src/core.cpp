@@ -2303,10 +2303,6 @@ SK_LazyGlobal <SK_DummyWindows> dummy_windows;
 
 LRESULT
 WINAPI
-ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-LRESULT
-WINAPI
 DummyWindowProc (_In_  HWND   hWnd,
                  _In_  UINT   uMsg,
                  _In_  WPARAM wParam,
@@ -2331,7 +2327,7 @@ DummyWindowProc (_In_  HWND   hWnd,
 
     bool SK_ImGui_HandlesMessage (MSG * lpMsg, bool /*remove*/, bool /*peek*/);
     if  (SK_ImGui_HandlesMessage (&msg, false, false))
-      return ImGui_WndProcHandler (pWindow->parent.hWnd, uMsg, wParam, lParam);
+      return ImGui_WndProcHandler (pWindow->parent.hWnd, uMsg, wParam, lParam, DefWindowProcW);
   }
 
   return

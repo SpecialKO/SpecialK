@@ -4165,12 +4165,6 @@ TranslateMessage_Detour (_In_ const MSG *lpMsg)
   return TranslateMessage_Original (lpMsg);
 }
 
-LRESULT
-WINAPI
-ImGui_WndProcHandler ( HWND hWnd, UINT   msg,
-                       WPARAM wParam,
-                       LPARAM lParam );
-
 bool
 SK_EarlyDispatchMessage (MSG *lpMsg, bool remove, bool peek)
 {
@@ -5534,7 +5528,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         if ( LOWORD (lParam) == HTCLIENT ||
              LOWORD (lParam) == HTTRANSPARENT )
         {
-          if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0 && (ImGui::GetIO ().WantCaptureMouse || SK_ImGui_IsAnythingHovered ()))
+          if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam, nullptr, &game_window) != 0 && (ImGui::GetIO ().WantCaptureMouse || SK_ImGui_IsAnythingHovered ()))
           {
             const bool bOrig =
               std::exchange (__SK_EnableSetCursor, true);
@@ -5554,7 +5548,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     {
       if (hWnd == game_window.hWnd || hWnd == game_window.child)
       {
-        if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0)
+        if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam, nullptr, &game_window) != 0)
         {
           return 0;
         }
@@ -5573,7 +5567,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
     } break;
 
     case WM_SYSCOMMAND:
-      if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0)
+      if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam, nullptr, &game_window) != 0)
       {
         return 0;
       }
