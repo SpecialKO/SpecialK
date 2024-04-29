@@ -429,6 +429,53 @@ SK_DLL_SetAttached (bool bAttached) noexcept
                                 1UL : 0UL );
 }
 
+int
+SK_NT_GetProcessProtection (void)
+{
+#ifdef SK_AVOID_CET_PROCESSES
+  using GetProcessMitigationPolicy_pfn =
+    BOOL (WINAPI *)(HANDLE,PROCESS_MITIGATION_POLICY,PVOID,SIZE_T);
+
+  GetProcessMitigationPolicy_pfn
+ _GetProcessMitigationPolicy =
+ (GetProcessMitigationPolicy_pfn)SK_GetProcAddress ( L"kernel32.dll",
+ "GetProcessMitigationPolicy" );
+
+  if (_GetProcessMitigationPolicy != nullptr)
+  {
+    PROCESS_MITIGATION_USER_SHADOW_STACK_POLICY
+      shadow_stack_policy = { };
+
+    if (_GetProcessMitigationPolicy (
+         GetCurrentProcess (),
+                   ProcessUserShadowStackPolicy, &shadow_stack_policy,
+                                          sizeof (shadow_stack_policy)))
+    {
+      if (shadow_stack_policy.EnableUserShadowStack)
+        return ProcessUserShadowStackPolicy;
+    }
+
+#ifdef SK_AVOID_CFG_PROCESSES
+    PROCESS_MITIGATION_CONTROL_FLOW_GUARD_POLICY
+      control_flow_guard_policy = { };
+
+    if (_GetProcessMitigationPolicy (
+         GetCurrentProcess (),
+                   ProcessControlFlowGuardPolicy, &control_flow_guard_policy,
+                                           sizeof (control_flow_guard_policy)))
+    {
+      if (control_flow_guard_policy.EnableControlFlowGuard)
+      {
+        return ProcessControlFlowGuardPolicy;
+      }
+    }
+#endif
+  }
+#endif
+
+  return 0;
+}
+
 //=========================================================================
 BOOL
 APIENTRY
@@ -450,6 +497,13 @@ DllMain ( HMODULE hModule,
     case DLL_PROCESS_ATTACH:
     {
       if (SK_IsServiceHost ())
+        return FALSE;
+
+      int process_protection =
+        SK_NT_GetProcessProtection ();
+
+      // Stay out of web browsers and such, SK gets stuck in them a lot
+      if (process_protection == ProcessUserShadowStackPolicy)
         return FALSE;
 
       AuxUlibInitialize ();

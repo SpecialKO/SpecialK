@@ -1,4 +1,10 @@
-﻿24.4.29.1
+﻿24.4.29.2
+=========
+ + Extend HDR Gamut Expansion slider to 20%
+ + Re-word AVIF encoding disclaimer to reflect recent changes in
+     Windows support for 4:2:2 and 4:4:4 10- and 12-bpc AV1 images.
+
+24.4.29.1
 =========
  + Added 1 frame delay to achievement unlock screenshots
 

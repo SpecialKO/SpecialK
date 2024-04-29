@@ -2028,7 +2028,7 @@ public:
           float fGamut =
             __SK_HDR_Gamut * 100.0f;
 
-          if (ImGui::SliderFloat ( "###SK_HDR_GAMUT_EXPANSION", &fGamut, 0.0f, 10.0f,
+          if (ImGui::SliderFloat ( "###SK_HDR_GAMUT_EXPANSION", &fGamut, 0.0f, 20.0f,
                                    "Gamut Expansion: +%.3f%%"))
           {
             __SK_HDR_Gamut =

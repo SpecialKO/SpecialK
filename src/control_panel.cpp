@@ -3787,8 +3787,8 @@ SK_ImGui_ControlPanel (void)
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip ();
-              ImGui::BulletText   ("Windows natively supports 10-bit and 12-bit AVIF images at 4:2:0, or 8-bit at up to 4:4:4");
-              ImGui::BulletText   ("Higher quality chroma subsampled AVIF images will only render correctly in Chrome.");
+              ImGui::BulletText   ("Windows 10 natively supports 10-bit and 12-bit AVIF images at 4:2:0, or 8-bit at up to 4:4:4");
+              ImGui::BulletText   ("Higher chroma subsampled AVIF images only render correctly in Windows 11 and Chrome/Edge");
               ImGui::EndTooltip   ();
             }
 
