@@ -1696,7 +1696,8 @@ public:
                                ">> Use HDR Tonemap Curve / Grayscale Visualization (first Profile Display Capabilities) to ensure valid (unclipped) dynamic range.");
           }
 
-          if (pboost)
+          // Only show this setting for Perceptual Boost and for non-Raw Framebuffer Mode
+          if (pboost && preset.colorspace.tonemap != 255)
           {
             bool cboost =
               (preset.pq_colorboost > 0.0f);
@@ -2449,6 +2450,9 @@ public:
 
               if (ImGui::SliderFloat ("Color Boost Intensity", &colorboost, 0.0f, 100.0f, "%4.1f%%"))
               {
+                colorboost =
+                  std::clamp (colorboost, 0.0f, 100.0f);
+
                 preset.pq_colorboost = colorboost / 100.0f;
 
                 preset.cfg_colorboost->store (
