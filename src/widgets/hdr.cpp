@@ -141,8 +141,8 @@ struct SK_HDR_PQBoostParams
   float PQBoost2;
   float PQBoost3;
   float EstimatedMaxCLLScale;
-} SK_HDR_PQBoost_v0 = { 0.275f, 30.0f, 11.5f, 1.500f, 1.0f,  570.0f },
-  SK_HDR_PQBoost_v1 = { 0.275f,  1.0f,  0.1f, 1.273f, 0.5f,  267.0f };
+} SK_HDR_PQBoost_v0 = { 0.3f, 30.0f, 11.5f, 1.500f, 1.0f,  570.0f },
+  SK_HDR_PQBoost_v1 = { 0.3f,  1.0f,  0.1f, 1.273f, 0.5f,  267.0f };
 
 float __SK_HDR_ColorBoost = SK_HDR_PQBoost_v1.ColorBoost;
 float __SK_HDR_PQBoost0   = SK_HDR_PQBoost_v1.PQBoost0;
@@ -1707,7 +1707,7 @@ public:
             {
               if (cboost)
               {
-                preset.pq_colorboost = 0.275f;
+                preset.pq_colorboost = 0.3f;
               }
 
               else
@@ -1727,7 +1727,7 @@ public:
               ImGui::BeginTooltip    ();
               ImGui::TextUnformatted ("Perceptual Boost will also Increase Color Intensity");
               ImGui::Separator       ();
-              ImGui::BulletText      ("Enabled by Default along with 100%% Boost in Perceptual Boost pre-24.4.28");
+              ImGui::BulletText      ("This used to be Enabled always (pre-24.4.28) and equivalent to 100% Color Boost");
               ImGui::EndTooltip      ();
             }
           }
@@ -2458,6 +2458,16 @@ public:
                 preset.cfg_colorboost->store (
                                       preset.pq_colorboost);
                 __SK_HDR_ColorBoost = preset.pq_colorboost;
+              }
+
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::BeginTooltip    ();
+                ImGui::TextUnformatted ("Effect is Amplified at Higher Luminance");
+                ImGui::Separator       ();
+                ImGui::BulletText      ("Consider using lower intensity for high (i.e. 1k+ nits) luminance targets");
+                ImGui::BulletText      ("Use Gamut Expansion for more fine-grained control");
+                ImGui::EndTooltip      ();
               }
             }
 
