@@ -1660,9 +1660,10 @@ public:
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip    (  );
-              ImGui::TextUnformatted ("Brighter HDR highlights are possible when enabled (or by Ctrl-Clicking for manual data input)");
+              ImGui::TextUnformatted ("Allow Sliders to Use Full Display-Reported Luminance Range");
               ImGui::Separator       (  );
-              ImGui::BulletText      ("Local contrast behavior may be more consistent with fewer crushed shadow details / highlights when this range is limited.");
+              ImGui::BulletText      ("Brighter HDR highlights are possible when enabled (or by Ctrl-Clicking for manual data input)");
+              ImGui::BulletText      ("Local contrast may be more consistent with less ABL-related detail loss when range is limited");
               ImGui::EndTooltip      (  );
             }
 
@@ -1727,7 +1728,7 @@ public:
               ImGui::BeginTooltip    ();
               ImGui::TextUnformatted ("Perceptual Boost will also Increase Color Intensity");
               ImGui::Separator       ();
-              ImGui::BulletText      ("This used to be Enabled always (pre-24.4.28) and equivalent to 100% Color Boost");
+              ImGui::BulletText      ("This used to be Always-On (pre-24.4.28) and Equivalent to 100%% Color Boost");
               ImGui::EndTooltip      ();
             }
           }

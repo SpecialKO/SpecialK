@@ -1726,7 +1726,7 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::SameLine        ();
               ImGui::PushItemWidth   (
                 ImGui::GetStyle ().ItemSpacing.x +
-                ImGui::CalcTextSize ("888.8% Deadzone").x
+                ImGui::CalcTextSize ("888.8% Deadzone ").x
               );
               if (ImGui::SliderFloat (            "###XInput_Deadzone",
                                       &config.input.gamepad.xinput.deadzone,
@@ -1743,7 +1743,7 @@ SK::ControlPanel::Input::Draw (void)
                 show_debug_option = true;
 
               else if (ImGui::IsItemHovered ())
-                       ImGui::SetTooltip ("Apply a Deadzone to Left/Right Analog Stick input (in Xbox Mode)");
+                       ImGui::SetTooltip ("Apply a Deadzone to Analog Stick Input (" ICON_FA_XBOX " Mode)");
 
               if (show_debug_option)
               {
