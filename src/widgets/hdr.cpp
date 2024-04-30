@@ -141,8 +141,8 @@ struct SK_HDR_PQBoostParams
   float PQBoost2;
   float PQBoost3;
   float EstimatedMaxCLLScale;
-} SK_HDR_PQBoost_v0 = { 0.3f, 30.0f, 11.5f, 1.500f, 1.0f,  570.0f },
-  SK_HDR_PQBoost_v1 = { 0.3f,  1.0f,  0.1f, 1.273f, 0.5f,  267.0f };
+} SK_HDR_PQBoost_v0 = { 0.5f, 30.0f, 11.5f, 1.500f, 1.0f,  570.0f },
+  SK_HDR_PQBoost_v1 = { 0.5f,  1.0f,  0.1f, 1.273f, 0.5f,  267.0f };
 
 float __SK_HDR_ColorBoost = SK_HDR_PQBoost_v1.ColorBoost;
 float __SK_HDR_PQBoost0   = SK_HDR_PQBoost_v1.PQBoost0;
@@ -1708,7 +1708,7 @@ public:
             {
               if (cboost)
               {
-                preset.pq_colorboost = 0.3f;
+                preset.pq_colorboost = 0.5f;
               }
 
               else
