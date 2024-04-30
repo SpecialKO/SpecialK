@@ -3490,6 +3490,47 @@ struct cfg_binding_map_s {
     { &config.input.gamepad.scepad.left_paddle,  0, 17 },
     { &config.input.gamepad.scepad.right_paddle, 0, 18 } };
 
+std::wstring*
+SK_HID_GetGamepadButtonBinding (UINT idx)
+{
+  for ( auto& binding : binding_map )
+  {
+    if (binding.uiButtonIdx == idx)
+    {
+      return binding.wszValName;
+    }
+  }
+
+  return nullptr;
+}
+
+void
+SK_HID_AssignGamepadButtonBinding (UINT idx, const wchar_t* wszKeyName, UINT vKey)
+{
+  for ( auto& binding : binding_map )
+  {
+    if (binding.uiButtonIdx == idx)
+    {
+      // Release the button if it had a binding already
+      if (binding.lastFrame)
+      {   binding.thisFrame = false;
+        SK_HID_ProcessGamepadButtonBindings ();
+      }
+
+      if (vKey == 0 || wszKeyName == nullptr)
+           *binding.wszValName = L"<Not Bound>";
+      else *binding.wszValName = wszKeyName;
+
+      binding.uiVirtKey   = vKey;
+      binding.lastFrame   = false;
+      binding.thisFrame   = false;
+      binding.frameNum    = 0;
+
+      break;
+    }
+  }
+}
+
 void
 SK_HID_ProcessGamepadButtonBindings (void)
 {

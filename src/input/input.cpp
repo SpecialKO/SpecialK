@@ -857,3 +857,165 @@ SK_LazyGlobal <sk_input_api_context_s> SK_MessageBus_Backend; // NVIDIA stuff
 SK_LazyGlobal <sk_input_api_context_s> SK_Win32_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_WinHook_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_WinMM_Backend;
+
+
+
+#if 0
+struct SK_Buttonbind
+{
+  const char*  bind_name      = nullptr;
+  std::wstring human_readable =     L"";
+
+  enum bind_type {
+    Invalid,
+    Gamepad,
+    Keyboard,
+    Macro
+  } type = Invalid;
+
+  union
+  {
+    struct {
+      SHORT vButton = 0;
+    } gamepad_button;
+
+    struct {
+      SHORT vKey  = 0;
+      BOOL  ctrl  = FALSE,
+            shift = FALSE,
+            alt   = FALSE;
+    } keyboard_key;
+
+    struct {
+      std::wstring command = L"";
+    } macro_command;
+  };
+
+  void parse  (void);
+  void update (void);
+};
+
+struct SK_ConfigSerializedButtonbind : public SK_Buttonbind
+{
+  SK_ConfigSerializedButtonbind ( SK_Buttonbind&& bind,
+                                const wchar_t* cfg_name) :
+                                  SK_Buttonbind  (bind)
+  {
+    if (cfg_name != nullptr)
+    {
+      wcsncpy_s ( short_name, 32,
+                    cfg_name, _TRUNCATE );
+    }
+  }
+
+  bool                  assigning       = false;
+  wchar_t               short_name [32] = L"Uninitialized";
+  sk::ParameterStringW* param           = nullptr;
+};
+
+void
+SK_Buttonbind::parse (void)
+{
+#if 0
+  // Buttons start with: @
+  // Macros start with:  !
+  // Keys start with:    a Key Name, or Ctrl/Shift/Alt
+
+  "Cross",         "A",
+  "Circle",        "B",
+  "Square",        "X",
+  "Triangle",      "Y",
+  "DPadUp",        "North", "Up",
+  "DPadDown",      "South", "Down",
+  "DPadLeft",      "West",  "Left",
+  "DPadRight",     "East",  "Right",
+  "Right Bumper",  "R1",    "RB",
+  "Right Trigger", "R2",    "RT",
+  "Right Stick",   "R3",    "RS",
+  "Left Bumper",   "L1",    "LB",
+  "Left Trigger",  "L2",    "LT",
+  "Left Stick",    "L3",    "LS",
+
+  "P4",            "Function 1", "Fn1",
+  "P2",            "Function 2", "Fn2",
+  "P3",            "Left Back",  "BL",
+  "P1",            "Right Back", "BR",
+
+  "Guide",         "PS",
+  "Xbox",          "PlayStation",
+
+                   "Touchpad",
+                   "Mute",
+
+  "Back",          "Select",
+  "View",          "Share", "Create",
+  "Start",       //"Start",
+  "Menu",          "Options";
+
+#if 0
+XB_A     PS_Cross
+XB_B     PS_Circle
+XB_X     PS_Square
+XB_Y     PS_Triangle
+XB_Up    PS_Up
+         PS_North // From libScePad
+XB_Down  PS_Down
+         PS_South // From libScePad
+XB_Left  PS_Left
+         PS_West  // From libScePad
+XB_Right PS_Right
+         PS_East  // From libScePad
+
+XB_RB    PS_R1   | "Right Bumper"  | "R1"
+XB_RT    PS_R2   | "Right Trigger" | "R2"
+XB_RS    PS_R3   | "Right Stick"   | "R3"
+XB_LB    PS_L1   | "Left Bumper"   | "L1"
+XB_LT    PS_L2   | "Left Trigger"  | "L2"
+XB_LS    PS_L3   | "Left Stick"    | "L3"
+
+XB_Pad4  PS_Fn1  | "P4" | "Function 1"  // Xbox Elite / DualSense Edge
+XB_Pad2  PS_Fn2  | "P2" | "Function 2"  // Xbox Elite / DualSense Edge
+XB_Pad3  PS_LB   | "P3" | "Left Back"   // Xbox Elite / DualSense Edge
+XB_Pad1  PS_RB   | "P1" | "Right Back"  // Xbox Elite / DualSense Edge
+
+XB_Guide PS_PSButton    | "Guide" | "PS"         (Name from libScePad)
+XB_Xbox  PS_PlayStation | "Xbox"  | "PlayStation" 
+
+XB_NULL  PS_Touch       |         | "Touchpad"
+XB_NULL  PS_Mute        |         | "Mute"       (DualSense)
+
+PS_Select  |-// DualShock 1-3          | "Select"
+PS_Share   |-// DualShock 4            | "Share"
+PS_Create  |-// DualSense              | "Create"
+
+PS_Start   |-// DualShock 1-3          | "Start"
+PS_Options |-// DualShock 4, DualSense | "Options"
+
+
+XB_View  |- // Xbox One, Series S/X    | "View"
+XB_Back  |- // Xbox 360                | "Back"
+
+XB_Menu  |- // Xbox One, Series S/X    | "Menu"
+XB_Start |- // Xbox 360                | "Start"
+
+// Xbox Series S/X & DualShock4 / DualSense
+XB_Share PS_Share                      | "Share" | "Share"
+
+PS_Select ~= XB_Back
+PS_Start  ~= XB_Start
+#endif
+#endif
+
+  SK_RunOnce (
+    SK_LOGi0 (L"stub SK_Buttonbind::parse")
+  );
+}
+
+void
+SK_Buttonbind::update (void)
+{
+  SK_RunOnce (
+    SK_LOGi0 (L"stub SK_Buttonbind::update")
+  );
+}
+#endif

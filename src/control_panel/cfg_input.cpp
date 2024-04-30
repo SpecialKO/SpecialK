@@ -1946,6 +1946,7 @@ SK::ControlPanel::Input::Draw (void)
 
         if (bHasDualSenseEdge || bHasDualShock4v2 || bHasDualShock4 || bHasBluetooth)
         {
+          ImGui::BeginGroup ();
           if (ImGui::TreeNode ("Compatibility Options"))
           {
             bool hovered    = false;
@@ -2087,6 +2088,114 @@ SK::ControlPanel::Input::Draw (void)
 
             ImGui::TreePop  (  );
           }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          if (ImGui::TreeNode ("Button Mapping"))
+          {
+            ImGui::BeginGroup      ();
+            ImGui::TextUnformatted ("Touchpad:   ");
+            if (bHasDualSenseEdge)
+            {
+              ImGui::TextUnformatted ("Fn Left:    ");
+              ImGui::TextUnformatted ("Fn Right:   ");
+              ImGui::TextUnformatted ("Back Left:  ");
+              ImGui::TextUnformatted ("Back Right: ");
+            }
+            ImGui::EndGroup        ();
+            ImGui::SameLine        ();
+            ImGui::BeginGroup      ();
+            bool               selected     = false;
+            static std::string mapping_name = "";
+            static UINT        mapping_idx  = 0;
+            if (ImGui::Selectable  (SK_FormatString ("%ws###Touchpad_Binding", SK_HID_GetGamepadButtonBinding (13)->c_str ()).c_str (),  &selected))
+            {
+              mapping_idx  = 13;
+              mapping_name = "Touchpad Click";
+
+              ImGui::OpenPopup ("PlayStationButtonBinding_v1");
+            }
+            if (bHasDualSenseEdge)
+            {
+              if (ImGui::Selectable  (SK_FormatString ("%ws###FnLeft_Binding", SK_HID_GetGamepadButtonBinding (15)->c_str ()).c_str (),  &selected))
+              {
+                mapping_idx  = 15;
+                mapping_name = "Fn Left";
+
+                ImGui::OpenPopup ("PlayStationButtonBinding_v1");
+              }
+              if (ImGui::Selectable  (SK_FormatString ("%ws###FnRight_Binding", SK_HID_GetGamepadButtonBinding (16)->c_str ()).c_str (),  &selected))
+              {
+                mapping_idx  = 16;
+                mapping_name = "Fn Right";
+
+                ImGui::OpenPopup ("PlayStationButtonBinding_v1");
+              }
+              if (ImGui::Selectable  (SK_FormatString ("%ws###BackLeft_Binding", SK_HID_GetGamepadButtonBinding (17)->c_str ()).c_str (),  &selected))
+              {
+                mapping_idx  = 17;
+                mapping_name = "Back Left";
+
+                ImGui::OpenPopup ("PlayStationButtonBinding_v1");
+              }
+              if (ImGui::Selectable  (SK_FormatString ("%ws###BackRight_Binding", SK_HID_GetGamepadButtonBinding (18)->c_str ()).c_str (),  &selected))
+              {
+                mapping_idx  = 18;
+                mapping_name = "Back Right";
+
+                ImGui::OpenPopup ("PlayStationButtonBinding_v1");
+              }
+            }
+            ImGui::EndGroup        ();
+
+            if (ImGui::BeginPopup ("PlayStationButtonBinding_v1"))
+            {
+              ImGui::Text (
+                "Press a Key to Map to \"%hs\".",
+                  mapping_name.c_str ()
+              );
+
+              ImGui::Separator ();
+
+              if (ImGui::Button ("Cancel"))
+              {
+                ImGui::CloseCurrentPopup ();
+              }
+
+              else
+              {
+                ImGui::SameLine ();
+
+                if (ImGui::Button ("Clear"))
+                {
+                  SK_HID_AssignGamepadButtonBinding (
+                            mapping_idx, nullptr, 0 );
+
+                  ImGui::CloseCurrentPopup ();
+                }
+
+                else
+                {
+                  for ( UINT idx = 0; idx < 255 ; ++idx )
+                  {
+                    if (ImGui::GetIO ().KeysDown [idx])
+                    {
+                      SK_HID_AssignGamepadButtonBinding (
+                        mapping_idx,
+                          virtKeyCodeToHumanKeyName [(BYTE)idx],
+                                                           idx);
+
+                      ImGui::CloseCurrentPopup ();
+                      break;
+                    }
+                  }
+                }
+              }
+
+              ImGui::EndPopup ();
+            }
+          }
+          ImGui::EndGroup ();
         }
 
         ImGui::PopStyleColor (3);
