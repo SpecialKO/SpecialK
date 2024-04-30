@@ -1173,7 +1173,7 @@ struct sk_window_s;
 
 LRESULT
 WINAPI
-ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam, WNDPROC wndproc = nullptr, sk_window_s* window = nullptr);
+ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 SHORT WINAPI SK_GetKeyState      (int   nVirtKey);
 BOOL  WINAPI SK_GetKeyboardState (PBYTE lpKeyState);

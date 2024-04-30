@@ -2327,7 +2327,7 @@ DummyWindowProc (_In_  HWND   hWnd,
 
     bool SK_ImGui_HandlesMessage (MSG * lpMsg, bool /*remove*/, bool /*peek*/);
     if  (SK_ImGui_HandlesMessage (&msg, false, false))
-      return ImGui_WndProcHandler (pWindow->parent.hWnd, uMsg, wParam, lParam, DefWindowProcW);
+      return ImGui_WndProcHandler (pWindow->parent.hWnd, uMsg, wParam, lParam);
   }
 
   return

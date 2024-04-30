@@ -1234,70 +1234,10 @@ MessageProc ( const HWND&   hWnd,
   return false;
 };
 
-BOOL
-SK_Window_IsTopMostOnMonitor (HWND hWndToTest)
-{
-  BOOL     bWindowIsTopMostOnMonitor
-                          = TRUE;
-  HMONITOR hMonitorWindow = MonitorFromWindow (hWndToTest, MONITOR_DEFAULTTONEAREST);
-  HWND         hWndAbove  =
-    GetWindow (hWndToTest, GW_HWNDPREV);
-
-  std::set <HWND> hWndTopLevel,
-                  hWndTopLevelOnWindowMonitor;
-
-  EnumWindows ([](HWND hWnd, LPARAM lParam) -> BOOL
-  {
-    std::set <HWND>* pTopLevelSet =
-      (std::set <HWND> *)lParam;
-
-    if (pTopLevelSet != nullptr)
-        pTopLevelSet->emplace (hWnd);
-
-    return TRUE;
-  },      (LPARAM)&hWndTopLevel);
-  for (auto hWnd : hWndTopLevel)
-  {
-    RECT                  rcWindow = { };
-    GetWindowRect (hWnd, &rcWindow);
-
-    POINT pt = {
-      rcWindow.left + (rcWindow.right  - rcWindow.left) / 2,
-      rcWindow.top  + (rcWindow.bottom - rcWindow.top)  / 2
-    };
-
-    if (MonitorFromPoint (pt, MONITOR_DEFAULTTONEAREST) == hMonitorWindow)
-    {
-      if (WindowFromPoint (pt) == hWnd)
-      {
-        hWndTopLevelOnWindowMonitor.emplace (hWnd);
-      }
-    }
-  }
-
-  while (hWndAbove != nullptr && IsWindow (hWndAbove))
-  {
-    if (hWndTopLevelOnWindowMonitor.contains (hWndAbove) && IsWindowVisible (hWndAbove))
-    {  
-      bWindowIsTopMostOnMonitor = FALSE;
-
-      break;
-    }
-
-    hWndAbove =
-      GetWindow (hWndAbove, GW_HWNDPREV);
-  }
-
-  return
-    bWindowIsTopMostOnMonitor;
-}
-
 LRESULT
 WINAPI
-ImGui_WndProcHandler ( HWND         hWnd,   UINT   msg,
-                       WPARAM       wParam, LPARAM lParam,
-                       WNDPROC      wndproc,
-                       sk_window_s* window )
+ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
+                       WPARAM wParam, LPARAM lParam )
 {
   static auto& io =
     ImGui::GetIO ();
@@ -1491,95 +1431,7 @@ ImGui_WndProcHandler ( HWND         hWnd,   UINT   msg,
       {
         if (config.window.disable_screensaver)
           return 1;
-        } break;
-
-      case SC_SCREENSAVE:
-      case SC_MONITORPOWER:
-      {
-        //SK_LOG0 ( ( L"ImGui ImGui Examined SysCmd (SC_SCREENSAVE) or (SC_MONITORPOWER)" ),
-        //            L"Window Mgr" );
-        if (config.window.disable_screensaver)
-        {
-          if (lParam != -1) // -1 == Monitor Power On, we do not want to block that!
-            return 1;
-        }
-
-        static bool bTopMostOnMonitor =
-          SK_Window_IsTopMostOnMonitor (game_window.hWnd);
-        static bool bForegroundChanged = false;
-
-        static HWND        hWndLastForeground = 0;
-        if (std::exchange (hWndLastForeground, SK_GetForegroundWindow ()) != SK_GetForegroundWindow ())
-                                  bForegroundChanged = true;
-
-        if (! SK_IsGameWindowActive ())
-        {
-          if (std::exchange (bForegroundChanged, false))
-          {
-            bTopMostOnMonitor = 
-              SK_Window_IsTopMostOnMonitor (game_window.hWnd);
-          }
-        }
-
-        if (SK_IsGameWindowActive () || bTopMostOnMonitor)
-        {
-          if (LOWORD (wParam & 0xFFF0) == SC_MONITORPOWER)
-          {
-            if (lParam != -1) // No power saving when active window, that's silly
-              return 1;
-          }
-
-          if (config.window.fullscreen_no_saver)
-          {
-            if (LOWORD (wParam & 0xFFF0) == SC_SCREENSAVE)
-            {
-              const SK_RenderBackend& rb =
-                SK_GetCurrentRenderBackend ();
-
-              auto& display =
-                rb.displays [rb.active_display];
-
-              if (game_window.actual.window.left   == display.rect.left   &&
-                  game_window.actual.window.right  == display.rect.right  &&
-                  game_window.actual.window.bottom == display.rect.bottom &&
-                  game_window.actual.window.top    == display.rect.top)
-              {
-                if (lParam != -1)
-                {
-                  LRESULT lRet = 1;
-
-                  if (                nullptr  !=  window)
-                    lRet = SK_COMPAT_SafeCallProc (window, hWnd, msg, wParam, lParam);
-                  else if (wndproc != nullptr)
-                    lRet = wndproc (                       hWnd, msg, wParam, lParam);
-
-                  // Game did not block screensaver activation, but we will...
-                  //   notify user in case this is unexpected.
-                  if (lRet != 0)
-                  {
-                    SK_ImGui_CreateNotification (
-                      "Screensaver.Ignored", SK_ImGui_Toast::Info,
-                      "Screensaver activation has been blocked because the game is "
-                      "running in (Borderless) Fullscreen.", nullptr,
-                        15000UL,
-                          SK_ImGui_Toast::UseDuration |
-                          SK_ImGui_Toast::ShowCaption |
-                          SK_ImGui_Toast::ShowOnce
-                    );
-                  }
-
-                  return 1;
-                }
-              }
-            }
-          }
-        }
-
-        if (lParam == -1) // Pass it through, always
-          DefWindowProcW (hWnd, msg, wParam, lParam);
-
-        return 0;
-      }
+      } break;
 
       default:
         return 0;

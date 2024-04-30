@@ -842,6 +842,7 @@ bool WINAPI SK_IsRectInfinite (_In_ const tagRECT *lpRect);
 void        SK_Win32_BringBackgroundWindowToTop (void);
 void        SK_Win32_CreateBackgroundWindow     (void);
 void        SK_Window_CreateTopMostFixupThread  (void);
+BOOL        SK_Window_IsTopMostOnMonitor        ( HWND hWndToTest );
 bool        SK_Window_OnFocusChange             ( HWND hWndNewTarget,
                                                   HWND hWndOld );
 bool        SK_Window_DeactivateCursor          (bool ignore_imgui = false);
