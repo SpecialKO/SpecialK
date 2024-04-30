@@ -941,7 +941,7 @@ struct SK_HID_PlayStationDevice
   bool                 bDualShock3              =   false;
   bool                 bSimpleMode              =    true;
   bool                 bTerminating             =   false;
-  volatile LONG        bNeedOutput              =   false;
+  volatile LONG        bNeedOutput              =    true;
 
   struct battery_s {
     float      percentage = 100.0f;
@@ -1039,7 +1039,7 @@ struct SK_HID_PlayStationDevice
     //   some kind of attempt to set a new value... otherwise, it
     //     will tend to vibrate infinitely.
     static constexpr auto MAX_TTL_IN_MSECS = 1000UL;
-  } _vibration = { 0, 0, 0 };
+  } _vibration = { 0, 0, 0, 0, 0, 0 };
 
   void setRGB (BYTE red, BYTE green, BYTE blue) {
     _color.r = red;

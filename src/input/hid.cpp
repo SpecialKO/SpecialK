@@ -3639,6 +3639,9 @@ SK_HID_PlayStationDevice::request_input_report (void)
         if (ReadAcquire (&__SK_DLL_Ending))
           break;
 
+        if (ReadAcquire (&pDevice->bNeedOutput))
+          pDevice->write_output_report ();
+
         async_input_request        = { };
         async_input_request.hEvent = pDevice->hInputEvent;
 
@@ -5080,6 +5083,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             }
           }
 
+          WriteRelease (&pDevice->bNeedOutput, FALSE);
+
           ZeroMemory ( pDevice->output_report.data (),
                        pDevice->output_report.size () );
 
@@ -5634,6 +5639,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
           {
             continue;
           }
+
+          WriteRelease (&pDevice->bNeedOutput, FALSE);
 
           ZeroMemory ( pDevice->output_report.data (),
                        pDevice->output_report.size () );
@@ -6215,8 +6222,6 @@ SK_HID_PlayStationDevice::reset_device (void)
   latency.ping      = 0;
   latency.last_poll = 0;
 
-  reset_rgb = true;
-
   _vibration.left        = 0;
   _vibration.right       = 0;
   _vibration.last_left   = 0;
@@ -6226,14 +6231,20 @@ SK_HID_PlayStationDevice::reset_device (void)
   _vibration.max_val     = 0;
 
   xinput.last_active =  0;
-  xinput.prev_report = {};
-  xinput.     report = {};
+
+  xinput.         prev_report = {};
+  xinput.              report = {};
+  xinput.internal.prev_report = {};
+  xinput.internal.     report = {};
+
+  xinput.vibration.wLastLeft  = 0;
+  xinput.vibration.wLastRight = 0;
 
   dwLastTimeOutput  = 0;
   ulLastFrameOutput = 0;
 
-  bNeedOutput = false;
-  bSimpleMode =  true;
+  bNeedOutput = true;
+  bSimpleMode = true;
 
   for ( auto& button : buttons )
   {
@@ -6242,5 +6253,6 @@ SK_HID_PlayStationDevice::reset_device (void)
   }
 
   sensor_timestamp = 0;
+  reset_rgb        = false;
   chord_activated  = false; // Deprecated
 }
