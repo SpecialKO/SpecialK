@@ -211,6 +211,14 @@ main (PS_INPUT input) : SV_TARGET
     texMainScene.Sample ( sampler0,
                           input.uv );
 
+  // For scRGB Inverse Tonemapping (luminance scale > 1.0 or Perceptual Boost),
+  //   clamp to Rec 709
+  if (input.color.x >= 1.0f + FLT_EPSILON || pqBoostParams.x > 0.0f)
+  {
+    hdr_color.rgb =
+      max (0.0f, hdr_color.rgb);
+  }
+
   float3 orig_color =
     abs (hdr_color.rgb);
 
@@ -428,11 +436,59 @@ main (PS_INPUT input) : SV_TARGET
       pqBoostParams.w
     };
 
-    float3 new_color =
-      PQToLinear (
-        LinearToPQ ( hdr_color.rgb, pb_params [0] ) *
-                     pb_params [2], pb_params [1]
-                 ) / pb_params [3];
+    float3 new_color;
+
+    if (colorBoost == 0.0)
+    {
+      float fLuma =
+        Luminance (hdr_color.rgb);
+
+      new_color =
+        PQToLinear (
+          LinearToPQ ( float3 (fLuma, fLuma, fLuma),
+                       pb_params [0] ) *
+                       pb_params [2], pb_params [1]
+                   ) / pb_params [3];
+
+      new_color =
+        hdr_color.rgb * (new_color / fLuma);
+    }
+
+    else if (colorBoost != 1.0)
+    {
+      float fLuma =
+        Luminance (hdr_color.rgb);
+
+      float3 new_color0 =
+        PQToLinear (
+          LinearToPQ ( float3 (fLuma, fLuma, fLuma),
+                       pb_params [0] ) *
+                       pb_params [2], pb_params [1]
+                   ) / pb_params [3];
+
+      new_color0 =
+        hdr_color.rgb * (new_color0 / fLuma);
+
+      float3 new_color1 =
+        PQToLinear (
+          LinearToPQ ( hdr_color.rgb,
+                       pb_params [0] ) *
+                       pb_params [2], pb_params [1]
+                   ) / pb_params [3];
+
+      new_color =
+        lerp (new_color0, new_color1, float3 (colorBoost, colorBoost, colorBoost));
+    }
+    
+    else
+    {
+      new_color =
+        PQToLinear (
+          LinearToPQ ( hdr_color.rgb,
+                       pb_params [0] ) *
+                       pb_params [2], pb_params [1]
+                   ) / pb_params [3];
+    }
 
 #ifdef INCLUDE_NAN_MITIGATION
     if (! AnyIsNan (  new_color))
@@ -807,6 +863,8 @@ main (PS_INPUT input) : SV_TARGET
       color_out.rgb =
         expandGamut (hdr_color.rgb, hdrGamutExpansion);
     }
+    else
+      color_out.rgb = hdr_color.rgb;
 
     color_out =
       float4 (

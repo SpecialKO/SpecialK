@@ -941,7 +941,7 @@ struct SK_HID_PlayStationDevice
   bool                 bDualShock3              =   false;
   bool                 bSimpleMode              =    true;
   bool                 bTerminating             =   false;
-  volatile LONG        bNeedOutput              =   false;
+  volatile LONG        bNeedOutput              =    true;
 
   struct battery_s {
     float      percentage = 100.0f;
@@ -976,7 +976,8 @@ struct SK_HID_PlayStationDevice
     struct {
       XINPUT_STATE prev_report = { };
       XINPUT_STATE report      = { };
-    } deadzoned;
+    } internal; // For detection of last active gamepad,
+                //   includes an unusually strong deadzone
     UINT64         last_active =  0 ;
     struct {
       WORD         wLastLeft   =  0 ;
@@ -1038,7 +1039,7 @@ struct SK_HID_PlayStationDevice
     //   some kind of attempt to set a new value... otherwise, it
     //     will tend to vibrate infinitely.
     static constexpr auto MAX_TTL_IN_MSECS = 1000UL;
-  } _vibration = { 0, 0, 0 };
+  } _vibration = { 0, 0, 0, 0, 0, 0 };
 
   void setRGB (BYTE red, BYTE green, BYTE blue) {
     _color.r = red;
@@ -1168,6 +1169,8 @@ SK_SetCursor (_In_opt_ HCURSOR hCursor);
 struct ImGuiContext;
 extern ImGuiContext* SK_GImDefaultContext (void);
 
+struct sk_window_s;
+
 LRESULT
 WINAPI
 ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -1266,6 +1269,9 @@ int  SK_ImGui_ProcessGamepadStatusBar (bool bDraw);
 void SK_ScePad_PaceMaker              (void);
 
 void SK_HID_ProcessGamepadButtonBindings (void);
+
+std::wstring* SK_HID_GetGamepadButtonBinding    (UINT idx);
+void          SK_HID_AssignGamepadButtonBinding (UINT idx, const wchar_t* wszKeyName, UINT vKey);
 
 extern HidD_GetAttributes_pfn SK_HidD_GetAttributes;
 

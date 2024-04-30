@@ -660,7 +660,8 @@ SK::ControlPanel::Input::Draw (void)
       ImVec2 vCursorWidgetPos (0.0f, 0.0f);
 
       if (config.input.cursor.manage) {
-        ImGui::TreePush ("");
+        ImGui::TreePush   ("");
+        ImGui::BeginGroup (  );
         ImGui::Checkbox ( "Keyboard Activates",
                                           &config.input.cursor.keys_activate );
 #if 1
@@ -674,11 +675,11 @@ SK::ControlPanel::Input::Draw (void)
           );
         }
 #endif
-        ImGui::TreePop  ();
-        ImGui::SameLine ();
-
+        ImGui::EndGroup   (  );
+        ImGui::SameLine   (  );
         vCursorWidgetPos =
           ImGui::GetCursorPos ();
+        ImGui::TreePop    (  );
       }
 
       ImGui::EndGroup   ();
@@ -686,7 +687,7 @@ SK::ControlPanel::Input::Draw (void)
 
       if (config.input.cursor.manage)
       {
-        ImGui::SameLine   ();
+        ImGui::SameLine ();
 
         float seconds =
           (float)config.input.cursor.timeout  / 1000.0f;
@@ -706,10 +707,9 @@ SK::ControlPanel::Input::Draw (void)
             static_cast <LONG> ( seconds * 1000.0f );
         }
 
-        ImGui::PopStyleColor (4);
-
+        ImGui::PopStyleColor  (4);
         ImGui::SetCursorPos   (vCursorWidgetPos);
-        _CursorBoundaryWidget ();
+        _CursorBoundaryWidget ( );
       }
 
 #if 1
@@ -1467,8 +1467,13 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::Text   (" Latency: %3.0f ms ", static_cast <double> (ps_controller.latency.ping) /
                                                     static_cast <double> (SK_QpcTicksPerMs));
             else
+            {
               ImGui::TextUnformatted
                             (" ");
+
+              // Restart latency tests if timing is suspiciously wrong.
+              ps_controller.latency.last_ack = 0;
+            }
           }
           ImGui::EndGroup   ();
           ImGui::SameLine   ();
@@ -1480,9 +1485,24 @@ SK::ControlPanel::Input::Draw (void)
 
             if (ps_controller.latency.pollrate != nullptr)
             {
+              const double dMean =
+                ((SK::Framerate::Stats *)ps_controller.latency.pollrate)->calcMean ();
+
               ImGui::Text   ( " Report Rate: %6.0f Hz",
-                                1000.0 / ((SK::Framerate::Stats *)ps_controller.latency.pollrate)->calcMean () );
+                                1000.0 / dMean );
+
+              // Something's wrong, we're not getting data anymore, so just mark this
+              //   as disconnected.
+              if (std::isinf (dMean))
+              {
+                ps_controller.bConnected = false;
+
+                SK_LOGs0 ( L"InputMgr.",
+                           L"Controller has had no reporting samples in 1 "
+                           L"second, assuming it is disconnected." );
+              }
             }
+
             else
               ImGui::TextUnformatted
                             ( " " );
@@ -1575,7 +1595,7 @@ SK::ControlPanel::Input::Draw (void)
                   else if (SK_ImGui_IsItemRightClicked ())
                   {
                     ImGui::ClearActiveID   ( );
-                    ImGui::OpenPopup       ("BluetoothCompatMenu");
+                    ImGui::OpenPopup       ("PowerManagementMenu");
                   }
 
                   else if (ImGui::IsItemHovered ())
@@ -1590,12 +1610,12 @@ SK::ControlPanel::Input::Draw (void)
                     ImGui::SameLine        ( );
                     ImGui::BeginGroup      ( );
                     ImGui::TextUnformatted ( " Power-off Gamepad" );
-                    ImGui::TextUnformatted ( " Bluetooth Config" );
+                    ImGui::TextUnformatted ( " Power Management" );
                     ImGui::EndGroup        ( );
                     ImGui::EndTooltip      ( );
                   }
 
-                  if (ImGui::BeginPopup ("BluetoothCompatMenu"))
+                  if (ImGui::BeginPopup ("PowerManagementMenu"))
                   {
                     if ( ps_controller.pid == SK_HID_PID_DUALSENSE  ||
                          ps_controller.pid == SK_HID_PID_DUALSENSE_EDGE )
@@ -1621,35 +1641,8 @@ SK::ControlPanel::Input::Draw (void)
                       ImGui::TextUnformatted ("Display warning notifications when PlayStation controller battery levels are critical.");
                       ImGui::Separator       ();
                       ImGui::BulletText      ("The warning is only displayed while the controller is running on battery.");
-                      ImGui::BulletText      ("The warning can be disabled by setting 0%");
+                      ImGui::BulletText      ("The warning can be disabled by setting 0%%");
                       ImGui::EndTooltip      ();
-                    }
-
-                    if (ImGui::Checkbox ("Bluetooth Compatibility Mode",
-                         &config.input.gamepad.bt_input_only))
-                    { if (config.input.gamepad.bt_input_only)
-                      {
-                        SK_DeferCommand ("Input.Gamepad.PowerOff 1");
-                      }
-
-                      config.utility.save_async ();
-
-                      ImGui::ClearActiveID     ( );
-                      ImGui::CloseCurrentPopup ( );
-                    }
-
-                    if (ImGui::IsItemHovered ())
-                    {
-                      if (! config.input.gamepad.bt_input_only)
-                        ImGui::SetTooltip (
-                          "Power-off Bluetooth Controllers and use DualShock 3 Compatibility Mode when "
-                          "Powered-on"
-                        );
-                      else
-                        ImGui::SetTooltip (
-                          "Enable Enhanced DualShock 4 / DualSense Features in Bluetooth Mode "
-                          "(may break input in native DirectInput/HID games)"
-                        );
                     }
                     ImGui::EndPopup     ();
                   }
@@ -1730,14 +1723,27 @@ SK::ControlPanel::Input::Draw (void)
             {
               static bool show_debug_option = false;
               //ImGui::TreePush ("");
-              ImGui::SameLine ();
-              ImGui::Checkbox ("Use Deadzone", &config.input.gamepad.xinput.standard_deadzone);
+              ImGui::SameLine        ();
+              ImGui::PushItemWidth   (
+                ImGui::GetStyle ().ItemSpacing.x +
+                ImGui::CalcTextSize ("888.8% Deadzone ").x
+              );
+              if (ImGui::SliderFloat (            "###XInput_Deadzone",
+                                      &config.input.gamepad.xinput.deadzone,
+                                       0.0f, 30.0f, "%4.1f%% Deadzone"))
+              {
+                config.input.gamepad.xinput.deadzone =
+                  std::clamp (config.input.gamepad.xinput.deadzone, 0.0f, 100.0f);
 
-              if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
+                config.utility.save_async ();
+              }
+              ImGui::PopItemWidth    ();
+
+              if (SK_ImGui_IsItemRightClicked ())
                 show_debug_option = true;
 
               else if (ImGui::IsItemHovered ())
-                       ImGui::SetTooltip ("Apply aggressive deadzone as-per XInput suggested values; many games work fine without adding a deadzone");
+                       ImGui::SetTooltip ("Apply a Deadzone to Analog Stick Input (" ICON_FA_XBOX " Mode)");
 
               if (show_debug_option)
               {
@@ -1891,7 +1897,7 @@ SK::ControlPanel::Input::Draw (void)
           {
             ImGui::SameLine   ();
             ImGui::BulletText ( ICON_FA_BLUETOOTH
-              " Compatibility Mode: Features newer than DualShock 3 are unusable."
+              " Compatibility Mode: Features newer than DualShock 3 are unsupported."
             );
 
             if (ImGui::IsItemHovered ( ))
@@ -1899,52 +1905,20 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::BeginTooltip    ( );
               ImGui::TextUnformatted (
                 "Plug your controller in, or trigger rumble in-game to put the "
-                "Bluetooth controller into DualShock 4 / DualSense mode."
+                "Bluetooth controller into DualShock 4 / DualSense mode; "
+                "refer to Compatibility Options for more info."
               );
 #define SK_HID_BROKEN_DUALSHOCK4_REV2
 #ifdef  SK_HID_BROKEN_DUALSHOCK4_REV2
-              if (bHasDualShock4v2_Bt)
-              {
-                ImGui::BulletText (
-                  "DualShock 4 v2 controllers will not work over Bluetooth with SK in compatibility mode"
-                );
-              }
+                if (bHasDualShock4v2_Bt)
+                {
+                  ImGui::Separator        ();
+                  ImGui::BulletText       (
+                    "DualShock 4 v2 controllers will not work over Bluetooth with SK in Compatibility Mode."
+                  );
+                }
 #endif
-              ImGui::Separator       ( );
-              ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
-
-              ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
-              ImGui::SameLine        ( );
-              ImGui::TextUnformatted ("Right-click to configure compatibility mode");
-              ImGui::PopStyleColor   ( );
               ImGui::EndTooltip      ( );
-            }
-
-            if (SK_ImGui_IsItemRightClicked ())
-            {
-              ImGui::ClearActiveID   ( );
-              ImGui::OpenPopup       ("BluetoothCompatMenu2");
-            }
-
-            if (ImGui::BeginPopup ("BluetoothCompatMenu2"))
-            {
-              if (ImGui::Checkbox ( "Always Enable Full Capabilities in " ICON_FA_BLUETOOTH,
-                                    &config.input.gamepad.scepad.enable_full_bluetooth))
-              {
-                config.utility.save_async ();
-                ImGui::CloseCurrentPopup  ();
-              }
-
-              if (ImGui::IsItemHovered ())
-              {
-                ImGui::SetTooltip (
-                  "Your gamepad will no longer work correctly in DirectInput "
-                  "software until powered off...\r\nHowever, that is normal after running "
-                  "any game that supports Bluetooth DualShock/DualSense controllers."
-                );
-              }
-
-              ImGui::EndPopup ();
             }
           }
 
@@ -1970,15 +1944,20 @@ SK::ControlPanel::Input::Draw (void)
         else
           config.input.gamepad.hid.calc_latency = false;
 
-        if (bHasDualSenseEdge || bHasDualShock4v2 || bHasDualShock4)
+        if (bHasDualSenseEdge || bHasDualShock4v2 || bHasDualShock4 || bHasBluetooth)
         {
+          ImGui::BeginGroup ();
           if (ImGui::TreeNode ("Compatibility Options"))
           {
-            bool hovered = false;
-            bool changed = false;
+            bool hovered    = false;
+            bool changed    = false;
+            bool alt_models = false;
 
+            ImGui::BeginGroup ();
             if (bHasDualSenseEdge)
             {
+              alt_models = true;
+
               bool spoof =
                 (config.input.gamepad.scepad.hide_ds_edge_pid == SK_Enabled);
 
@@ -1995,6 +1974,8 @@ SK::ControlPanel::Input::Draw (void)
 
             if (bHasDualShock4v2)
             {
+              alt_models = true;
+
               bool spoof =
                 (config.input.gamepad.scepad.hide_ds4_v2_pid == SK_Enabled);
 
@@ -2011,6 +1992,8 @@ SK::ControlPanel::Input::Draw (void)
 
             if (bHasDualShock4)
             {
+              alt_models = true;
+
               bool spoof =
                 (config.input.gamepad.scepad.show_ds4_v1_as_v2 == SK_Enabled);
 
@@ -2034,12 +2017,185 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::BulletText      ("Game restart required");
               ImGui::EndTooltip      ();
             }
+            ImGui::EndGroup ();
+
+            if (bHasBluetooth)
+            {
+              if (alt_models) ImGui::SameLine ();
+
+              ImGui::BeginGroup ();
+              if (ImGui::Checkbox ("Current Game Requires " ICON_FA_BLUETOOTH " Compatibility Mode",
+                   &config.input.gamepad.bt_input_only))
+              { if (config.input.gamepad.bt_input_only)
+                {
+                  SK_DeferCommand ("Input.Gamepad.PowerOff 1");
+                }
+
+                changed = true;
+              }
+
+              if (ImGui::IsItemHovered ())
+              {
+                ImGui::SetTooltip (
+                  "Enable this if your current game only supports DirectInput, "
+                  "SK will power-off your controller(s) if necessary."
+                );
+              }
+
+              if (! config.input.gamepad.bt_input_only)
+              {
+                if (ImGui::Checkbox ( "Always Enable Full Capabilities in " ICON_FA_BLUETOOTH,
+                                        &config.input.gamepad.scepad.enable_full_bluetooth))
+                {
+                  changed = true;
+                }
+
+                if (ImGui::IsItemHovered ())
+                {
+                  ImGui::BeginTooltip    ();
+                  ImGui::TextUnformatted ("Allow SK to use your controller's full functionality, "
+                                          "even if that requires enabling Advanced Bluetooth mode.");
+                  ImGui::Separator       ();
+                  ImGui::BulletText      ("Normally SK keeps a Bluetooth controller in the mode "
+                                          "it originally started, but this causes a loss in SK's functionality.");
+                  ImGui::BulletText      ("If SK switches a Bluetooth controller to full functionality "
+                                          "mode, some DirectInput games may not work until the controller "
+                                          "is powered-off.");
+#define SK_HID_BROKEN_DUALSHOCK4_REV2
+#ifdef  SK_HID_BROKEN_DUALSHOCK4_REV2
+                  if (bHasDualShock4v2_Bt)
+                  {
+                    ImGui::Separator        ();
+                    ImGui::BulletText       (
+                      "DualShock 4 v2 controllers will not work over Bluetooth with SK unless this is enabled"
+                    );
+                  }
+                  else
+                  {
+                    ImGui::Separator ();
+                  }
+
+                  ImGui::TextUnformatted ("This is a global setting.");
+#endif
+                  ImGui::EndTooltip      ();
+                }
+              }
+              ImGui::EndGroup ();
+            }
 
             if (changed)
               config.utility.save_async ();
 
             ImGui::TreePop  (  );
           }
+          ImGui::EndGroup   ();
+          ImGui::SameLine   ();
+          ImGui::BeginGroup ();
+          if (ImGui::TreeNode ("Button Mapping"))
+          {
+            ImGui::BeginGroup      ();
+            ImGui::TextUnformatted ("Touchpad:   ");
+            if (bHasDualSenseEdge)
+            {
+              ImGui::TextUnformatted ("Fn Left:    ");
+              ImGui::TextUnformatted ("Fn Right:   ");
+              ImGui::TextUnformatted ("Back Left:  ");
+              ImGui::TextUnformatted ("Back Right: ");
+            }
+            ImGui::EndGroup        ();
+            ImGui::SameLine        ();
+            ImGui::BeginGroup      ();
+            bool               selected     = false;
+            static std::string mapping_name = "";
+            static UINT        mapping_idx  = 0;
+            if (ImGui::Selectable  (SK_FormatString ("%ws###Touchpad_Binding", SK_HID_GetGamepadButtonBinding (13)->c_str ()).c_str (),  &selected))
+            {
+              mapping_idx  = 13;
+              mapping_name = "Touchpad Click";
+
+              ImGui::OpenPopup ("PlayStationButtonBinding_v1");
+            }
+            if (bHasDualSenseEdge)
+            {
+              if (ImGui::Selectable  (SK_FormatString ("%ws###FnLeft_Binding", SK_HID_GetGamepadButtonBinding (15)->c_str ()).c_str (),  &selected))
+              {
+                mapping_idx  = 15;
+                mapping_name = "Fn Left";
+
+                ImGui::OpenPopup ("PlayStationButtonBinding_v1");
+              }
+              if (ImGui::Selectable  (SK_FormatString ("%ws###FnRight_Binding", SK_HID_GetGamepadButtonBinding (16)->c_str ()).c_str (),  &selected))
+              {
+                mapping_idx  = 16;
+                mapping_name = "Fn Right";
+
+                ImGui::OpenPopup ("PlayStationButtonBinding_v1");
+              }
+              if (ImGui::Selectable  (SK_FormatString ("%ws###BackLeft_Binding", SK_HID_GetGamepadButtonBinding (17)->c_str ()).c_str (),  &selected))
+              {
+                mapping_idx  = 17;
+                mapping_name = "Back Left";
+
+                ImGui::OpenPopup ("PlayStationButtonBinding_v1");
+              }
+              if (ImGui::Selectable  (SK_FormatString ("%ws###BackRight_Binding", SK_HID_GetGamepadButtonBinding (18)->c_str ()).c_str (),  &selected))
+              {
+                mapping_idx  = 18;
+                mapping_name = "Back Right";
+
+                ImGui::OpenPopup ("PlayStationButtonBinding_v1");
+              }
+            }
+            ImGui::EndGroup        ();
+
+            if (ImGui::BeginPopup ("PlayStationButtonBinding_v1"))
+            {
+              ImGui::Text (
+                "Press a Key to Map to \"%hs\".",
+                  mapping_name.c_str ()
+              );
+
+              ImGui::Separator ();
+
+              if (ImGui::Button ("Cancel"))
+              {
+                ImGui::CloseCurrentPopup ();
+              }
+
+              else
+              {
+                ImGui::SameLine ();
+
+                if (ImGui::Button ("Clear"))
+                {
+                  SK_HID_AssignGamepadButtonBinding (
+                            mapping_idx, nullptr, 0 );
+
+                  ImGui::CloseCurrentPopup ();
+                }
+
+                else
+                {
+                  for ( UINT idx = 0; idx < 255 ; ++idx )
+                  {
+                    if (ImGui::GetIO ().KeysDown [idx])
+                    {
+                      SK_HID_AssignGamepadButtonBinding (
+                        mapping_idx,
+                          virtKeyCodeToHumanKeyName [(BYTE)idx],
+                                                           idx);
+
+                      ImGui::CloseCurrentPopup ();
+                      break;
+                    }
+                  }
+                }
+              }
+
+              ImGui::EndPopup ();
+            }
+          }
+          ImGui::EndGroup ();
         }
 
         ImGui::PopStyleColor (3);

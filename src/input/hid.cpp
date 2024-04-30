@@ -3490,6 +3490,47 @@ struct cfg_binding_map_s {
     { &config.input.gamepad.scepad.left_paddle,  0, 17 },
     { &config.input.gamepad.scepad.right_paddle, 0, 18 } };
 
+std::wstring*
+SK_HID_GetGamepadButtonBinding (UINT idx)
+{
+  for ( auto& binding : binding_map )
+  {
+    if (binding.uiButtonIdx == idx)
+    {
+      return binding.wszValName;
+    }
+  }
+
+  return nullptr;
+}
+
+void
+SK_HID_AssignGamepadButtonBinding (UINT idx, const wchar_t* wszKeyName, UINT vKey)
+{
+  for ( auto& binding : binding_map )
+  {
+    if (binding.uiButtonIdx == idx)
+    {
+      // Release the button if it had a binding already
+      if (binding.lastFrame)
+      {   binding.thisFrame = false;
+        SK_HID_ProcessGamepadButtonBindings ();
+      }
+
+      if (vKey == 0 || wszKeyName == nullptr)
+           *binding.wszValName = L"<Not Bound>";
+      else *binding.wszValName = wszKeyName;
+
+      binding.uiVirtKey   = vKey;
+      binding.lastFrame   = false;
+      binding.thisFrame   = false;
+      binding.frameNum    = 0;
+
+      break;
+    }
+  }
+}
+
 void
 SK_HID_ProcessGamepadButtonBindings (void)
 {
@@ -3597,6 +3638,9 @@ SK_HID_PlayStationDevice::request_input_report (void)
       {
         if (ReadAcquire (&__SK_DLL_Ending))
           break;
+
+        if (ReadAcquire (&pDevice->bNeedOutput))
+          pDevice->write_output_report ();
 
         async_input_request        = { };
         async_input_request.hEvent = pDevice->hInputEvent;
@@ -4125,6 +4169,10 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
               else
               {
+                // Prevent battery warnings, we can't actually get battery status in simple mode.
+                pDevice->battery.state      = Complete;
+                pDevice->battery.percentage = 100.0f;
+
                 SK_HID_DualSense_GetSimpleStateDataBt *pSimpleData =
                   (SK_HID_DualSense_GetSimpleStateDataBt *)&pInputRaw [1];
 
@@ -4555,18 +4603,20 @@ SK_HID_PlayStationDevice::request_input_report (void)
             if (pDevice->buttons.size () >= 13 &&
                 pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
 
+            const float fUserDeadzone =
+              (32767.0f * config.input.gamepad.xinput.deadzone * 0.01f);
+
             //
             // Apply an aggressive deadzone, moreso than necessary for gameplay, to
             //   filter out stick drift and accidentally bumping controllers when
             //     determining which gamepad was most recently interacted with...
             //
 #pragma region (deadzone)
-            pDevice->xinput.deadzoned.report = pDevice->xinput.report;
+            pDevice->xinput.internal.report = pDevice->xinput.report;
 
-            float LX   = pDevice->xinput.deadzoned.report.Gamepad.sThumbLX;
-            float LY   = pDevice->xinput.deadzoned.report.Gamepad.sThumbLY;
+            float LX   = pDevice->xinput.internal.report.Gamepad.sThumbLX;
+            float LY   = pDevice->xinput.internal.report.Gamepad.sThumbLY;
             float norm = sqrt ( LX*LX + LY*LY );
-//#if 0
             float unit = 1.0f;
 
             if (norm > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
@@ -4583,23 +4633,41 @@ SK_HID_PlayStationDevice::request_input_report (void)
             float uLX = (LX / 32767.0f) * unit;
             float uLY = (LY / 32767.0f) * unit;
 
-            pDevice->xinput.deadzoned.report.Gamepad.sThumbLX = static_cast <SHORT> (uLX < 0 ? 32768.0f * uLX
-                                                                                             : 32767.0f * uLX);
-            pDevice->xinput.deadzoned.report.Gamepad.sThumbLY = static_cast <SHORT> (uLY < 0 ? 32768.0f * uLY
-                                                                                             : 32767.0f * uLY);
-#if 0
-            pDevice->xinput.deadzoned.report.Gamepad.sThumbLX = (abs (pDevice->xinput.report.Gamepad.sThumbLX) < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) ? 0 :
-            pDevice->xinput.deadzoned.report.Gamepad.sThumbLX;
-            pDevice->xinput.deadzoned.report.Gamepad.sThumbLY = (abs (pDevice->xinput.report.Gamepad.sThumbLY) < XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE) ? 0 :
-            pDevice->xinput.deadzoned.report.Gamepad.sThumbLY;
-#endif
+            pDevice->xinput.internal.report.Gamepad.sThumbLX = static_cast <SHORT> (uLX < 0 ? 32768.0f * uLX
+                                                                                            : 32767.0f * uLX);
+            pDevice->xinput.internal.report.Gamepad.sThumbLY = static_cast <SHORT> (uLY < 0 ? 32768.0f * uLY
+                                                                                            : 32767.0f * uLY);
 
-            float RX   = pDevice->xinput.deadzoned.report.Gamepad.sThumbRX;
-            float RY   = pDevice->xinput.deadzoned.report.Gamepad.sThumbRY;
+            if (config.input.gamepad.xinput.deadzone > 0.0f)
+            {
+              norm = sqrt ( LX*LX + LY*LY );
+              unit = 1.0f;
+
+              if (norm > fUserDeadzone)
+              {
+                norm = std::min (norm, 32767.0f) - fUserDeadzone;
+                unit =           norm/(32767.0f  - fUserDeadzone);
+              }
+              else
+              {
+                norm = 0.0f;
+                unit = 0.0f;
+              }
+
+              uLX = (LX / 32767.0f) * unit;
+              uLY = (LY / 32767.0f) * unit;
+
+              pDevice->xinput.report.Gamepad.sThumbLX = static_cast <SHORT> (uLX < 0 ? 32768.0f * uLX
+                                                                                     : 32767.0f * uLX);
+              pDevice->xinput.report.Gamepad.sThumbLY = static_cast <SHORT> (uLY < 0 ? 32768.0f * uLY
+                                                                                     : 32767.0f * uLY);
+            }
+
+            float RX   = pDevice->xinput.internal.report.Gamepad.sThumbRX;
+            float RY   = pDevice->xinput.internal.report.Gamepad.sThumbRY;
                   norm = sqrt ( RX*RX + RY*RY );
+                  unit = 1.0f;
 
-//#if 0
-            unit = 1.0f;
             if (norm > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
             {
               norm = std::min (norm, 32767.0f) - XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
@@ -4614,35 +4682,54 @@ SK_HID_PlayStationDevice::request_input_report (void)
             float uRX = (RX / 32767.0f) * unit;
             float uRY = (RY / 32767.0f) * unit;
 
-            pDevice->xinput.deadzoned.report.Gamepad.sThumbRX = static_cast <SHORT> (uRX < 0 ? 32768.0f * uRX
-                                                                                             : 32767.0f * uRX);
-            pDevice->xinput.deadzoned.report.Gamepad.sThumbRY = static_cast <SHORT> (uRY < 0 ? 32768.0f * uRY
-                                                                                             : 32767.0f * uRY);
-#if 0
-            pDevice->xinput.deadzoned.report.Gamepad.sThumbRX = (abs (pDevice->xinput.report.Gamepad.sThumbRX) < XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE) ? 0 :
-            pDevice->xinput.deadzoned.report.Gamepad.sThumbRX;
-            pDevice->xinput.deadzoned.report.Gamepad.sThumbRY = (abs (pDevice->xinput.report.Gamepad.sThumbRY) < XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE) ? 0 :
-            pDevice->xinput.deadzoned.report.Gamepad.sThumbRY;
-#endif
+            pDevice->xinput.internal.report.Gamepad.sThumbRX = static_cast <SHORT> (uRX < 0 ? 32768.0f * uRX
+                                                                                            : 32767.0f * uRX);
+            pDevice->xinput.internal.report.Gamepad.sThumbRY = static_cast <SHORT> (uRY < 0 ? 32768.0f * uRY
+                                                                                            : 32767.0f * uRY);
 
-            if (  pDevice->xinput.deadzoned.report.Gamepad.bLeftTrigger   < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
-                  pDevice->xinput.deadzoned.report.Gamepad.bLeftTrigger  = 0;
+            if (config.input.gamepad.xinput.deadzone > 0.0f)
+            {
+              norm = sqrt ( RX*RX + RY*RY );
+              unit = 1.0f;
+
+              if (norm > fUserDeadzone)
+              {
+                norm = std::min (norm, 32767.0f) - fUserDeadzone;
+                unit =           norm/(32767.0f  - fUserDeadzone);
+              }
+              else
+              {
+                norm = 0.0f;
+                unit = 0.0f;
+              }
+
+              uRX = (RX / 32767.0f) * unit;
+              uRY = (RY / 32767.0f) * unit;
+
+              pDevice->xinput.report.Gamepad.sThumbRX = static_cast <SHORT> (uRX < 0 ? 32768.0f * uRX
+                                                                                     : 32767.0f * uRX);
+              pDevice->xinput.report.Gamepad.sThumbRY = static_cast <SHORT> (uRY < 0 ? 32768.0f * uRY
+                                                                                     : 32767.0f * uRY);
+            }
+
+            if (  pDevice->xinput.internal.report.Gamepad.bLeftTrigger   < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+                  pDevice->xinput.internal.report.Gamepad.bLeftTrigger  = 0;
             else
             {
-              pDevice->xinput.deadzoned.report.Gamepad.bLeftTrigger =
+              pDevice->xinput.internal.report.Gamepad.bLeftTrigger =
                 static_cast <BYTE> (                             255.0  * std::clamp (
-                   (((float)pDevice->xinput.deadzoned.report.Gamepad.bLeftTrigger - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD) /
-                                                                          (255.0f - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD)), 0.0f, 1.0f)
+                   (((float)pDevice->xinput.internal.report.Gamepad.bLeftTrigger - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD) /
+                                                                         (255.0f - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD)), 0.0f, 1.0f)
                                    );
             }
-            if (  pDevice->xinput.deadzoned.report.Gamepad.bRightTrigger  < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
-                  pDevice->xinput.deadzoned.report.Gamepad.bRightTrigger = 0;
+            if (  pDevice->xinput.internal.report.Gamepad.bRightTrigger  < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
+                  pDevice->xinput.internal.report.Gamepad.bRightTrigger = 0;
             else
             {
-              pDevice->xinput.deadzoned.report.Gamepad.bRightTrigger =
+              pDevice->xinput.internal.report.Gamepad.bRightTrigger =
                 static_cast <BYTE> (                              255.0  * std::clamp (
-                   (((float)pDevice->xinput.deadzoned.report.Gamepad.bRightTrigger - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD) /
-                                                                           (255.0f - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD)), 0.0f, 1.0f)
+                   (((float)pDevice->xinput.internal.report.Gamepad.bRightTrigger - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD) /
+                                                                          (255.0f - (float)XINPUT_GAMEPAD_TRIGGER_THRESHOLD)), 0.0f, 1.0f)
                                    );
             }
 #pragma endregion
@@ -4658,35 +4745,36 @@ SK_HID_PlayStationDevice::request_input_report (void)
             }
 #endif
 
-            bool bIsInputActive = false;
-            bool bIsInputNew    =
-              memcmp ( &pDevice->xinput.deadzoned.prev_report.Gamepad,
-                       &pDevice->xinput.deadzoned.     report.Gamepad, sizeof (XINPUT_GAMEPAD) );
+            bool bIsInputActive      = false;
+            bool bIsInputNewInternal =
+              memcmp ( &pDevice->xinput.internal.prev_report.Gamepad,
+                       &pDevice->xinput.internal.     report.Gamepad, sizeof (XINPUT_GAMEPAD) );
+            bool bIsInputNew =
+              memcmp ( &pDevice->xinput.prev_report.Gamepad,
+                       &pDevice->xinput.     report.Gamepad,          sizeof (XINPUT_GAMEPAD) );
 
             bool bIsAnyButtonDown =
               (pDevice->xinput.report.Gamepad.wButtons != 0);
 
-                               // Implicitly treat gamepads with buttons pressed as active
-            if (bIsInputNew || bIsAnyButtonDown)
+                                                      // Implicitly treat gamepads with buttons pressed as active
+            if (bIsInputNew || bIsInputNewInternal || bIsAnyButtonDown)
             {
-              if (bIsInputNew)
+              if (bIsInputNewInternal || bIsAnyButtonDown)
               {
-                pDevice->xinput.          report.dwPacketNumber++;
-                pDevice->xinput.deadzoned.report.dwPacketNumber++;
+                bIsInputActive = true;
 
-                pDevice->xinput.prev_report           = pDevice->xinput.report;
-                pDevice->xinput.deadzoned.prev_report = pDevice->xinput.deadzoned.report;
-
-                // Apply the same deadzone that SK uses to filter out analog jitter
-                //   as the actual input the game sees if this option is enabled.
-                if (config.input.gamepad.xinput.standard_deadzone)
+                if (bIsInputNewInternal)
                 {
-                  pDevice->xinput.report      = pDevice->xinput.deadzoned.report;
-                  pDevice->xinput.prev_report = pDevice->xinput.deadzoned.prev_report;
+                  pDevice->xinput.internal.report.dwPacketNumber++;
+                  pDevice->xinput.internal.prev_report = pDevice->xinput.internal.report;
                 }
               }
 
-              bIsInputActive = true;
+              if (bIsInputNew)
+              {
+                pDevice->xinput.     report.dwPacketNumber++;
+                pDevice->xinput.prev_report = pDevice->xinput.report;
+              }
             }
 
             const bool bHasNewExtraButtonData =
@@ -4994,6 +5082,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               }
             }
           }
+
+          WriteRelease (&pDevice->bNeedOutput, FALSE);
 
           ZeroMemory ( pDevice->output_report.data (),
                        pDevice->output_report.size () );
@@ -5549,6 +5639,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
           {
             continue;
           }
+
+          WriteRelease (&pDevice->bNeedOutput, FALSE);
 
           ZeroMemory ( pDevice->output_report.data (),
                        pDevice->output_report.size () );
@@ -6130,8 +6222,6 @@ SK_HID_PlayStationDevice::reset_device (void)
   latency.ping      = 0;
   latency.last_poll = 0;
 
-  reset_rgb = true;
-
   _vibration.left        = 0;
   _vibration.right       = 0;
   _vibration.last_left   = 0;
@@ -6141,14 +6231,20 @@ SK_HID_PlayStationDevice::reset_device (void)
   _vibration.max_val     = 0;
 
   xinput.last_active =  0;
-  xinput.prev_report = {};
-  xinput.     report = {};
+
+  xinput.         prev_report = {};
+  xinput.              report = {};
+  xinput.internal.prev_report = {};
+  xinput.internal.     report = {};
+
+  xinput.vibration.wLastLeft  = 0;
+  xinput.vibration.wLastRight = 0;
 
   dwLastTimeOutput  = 0;
   ulLastFrameOutput = 0;
 
-  bNeedOutput = false;
-  bSimpleMode =  true;
+  bNeedOutput = true;
+  bSimpleMode = true;
 
   for ( auto& button : buttons )
   {
@@ -6157,5 +6253,6 @@ SK_HID_PlayStationDevice::reset_device (void)
   }
 
   sensor_timestamp = 0;
+  reset_rgb        = false;
   chord_activated  = false; // Deprecated
 }

@@ -1006,7 +1006,7 @@ struct {
       sk::ParameterBool*  auto_slot_assign        = nullptr;
       sk::ParameterBool*  blackout_api            = nullptr;
       sk::ParameterBool*  emulate                 = nullptr;
-      sk::ParameterBool*  standard_deadzone       = nullptr;
+      sk::ParameterFloat* deadzone                = nullptr;
     } xinput;
 
     struct {
@@ -1614,7 +1614,7 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.xinput.blackout_api,      L"Prevent game from seeing XInput at all, useful if a game "
                                                          L"supports native SONY input and XInput.",                    dll_ini,         L"Input.XInput",          L"HideAllDevices"),
     ConfigEntry (input.gamepad.xinput.emulate,           L"For non-Xbox controllers, translate HID to XInput",         dll_ini,         L"Input.XInput",          L"EnableEmulation"),
-    ConfigEntry (input.gamepad.xinput.standard_deadzone, L"In HID->XInput, filter analog values using API standards",  dll_ini,         L"Input.XInput",          L"StandardDeadzone"),
+    ConfigEntry (input.gamepad.xinput.deadzone,          L"In HID->XInput, filter analog values below this threshold", dll_ini,         L"Input.XInput",          L"DeadzonePercent"),
     ConfigEntry (input.gamepad.dinput.blackout_gamepads, L"Prevent game from seeing DirectInput gamepads",             dll_ini,         L"Input.DInput",          L"HideGamepads"),
     ConfigEntry (input.gamepad.dinput.blackout_mice,     L"Prevent game from seeing DirectInput mice",                 dll_ini,         L"Input.DInput",          L"HideMice"),
     ConfigEntry (input.gamepad.dinput.blackout_keyboards,L"Prevent game from seeing DirectInput keyboards",            dll_ini,         L"Input.DInput",          L"HideKeyboards"),
@@ -1632,11 +1632,11 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.scepad.led_color_g,       L"Force Green LED Color [0,255] or -1 for No Override",       input_ini,       L"Input.libScePad",       L"LEDColor_G"),
     ConfigEntry (input.gamepad.scepad.led_color_b,       L"Force Blue LED Color [0,255] or -1 for No Override",        input_ini,       L"Input.libScePad",       L"LEDColor_B"),
     ConfigEntry (input.gamepad.scepad.led_brightness,    L"Force LED brightness [0,1,2,3] or -1 for No Override",      input_ini,       L"Input.libScePad",       L"LEDBrightness"),
+    ConfigEntry (input.gamepad.scepad.
+                                   enable_full_bluetooth,L"Allow SK to use all available features over Bluetooth",     input_ini,       L"Input.libScePad",       L"EnableFullBluetoothSupport"),
     ConfigEntry (input.gamepad.scepad.show_ds4_as_ds4_v2,L"Cause games to see DualShock 4 v1 as DualShock 4 v2",       dll_ini,         L"Input.libScePad",       L"IdentifyDualShock4AsDualShock4v2"),
     ConfigEntry (input.gamepad.scepad.hide_ds4_v2_pid,   L"Cause games to see DualShock 4 v2 as DualShock 4",          dll_ini,         L"Input.libScePad",       L"IdentifyDualShock4v2AsDualShock4"),
     ConfigEntry (input.gamepad.scepad.hide_ds_edge_pid,  L"Cause games to see DualSense Edge as DualSense",            dll_ini,         L"Input.libScePad",       L"IdentifyDualSenseEdgeAsDualSense"),
-    ConfigEntry (input.gamepad.scepad.
-                                   enable_full_bluetooth,L"Allow SK to use all available features over Bluetooth",     dll_ini,         L"Input.libScePad",       L"EnableFullBluetoothSupport"),
     ConfigEntry (input.gamepad.scepad.left_fn_bind,      L"Keyboard Input to Generate when Left Function is Pressed",  dll_ini,         L"Input.libScePad",       L"LeftFunction"),
     ConfigEntry (input.gamepad.scepad.right_fn_bind,     L"Keyboard Input to Generate when Right Function is Pressed", dll_ini,         L"Input.libScePad",       L"RightFunction"),
     ConfigEntry (input.gamepad.scepad.left_paddle_bind,  L"Keyboard Input to Generate when Left Paddle is Pressed",    dll_ini,         L"Input.libScePad",       L"LeftPaddle"),
@@ -4355,7 +4355,7 @@ auto DeclKeybind =
   input.gamepad.xinput.auto_slot_assign->load  (config.input.gamepad.xinput.auto_slot_assign);
   input.gamepad.xinput.blackout_api->load      (config.input.gamepad.xinput.blackout_api);
   input.gamepad.xinput.emulate->load           (config.input.gamepad.xinput.emulate);
-  input.gamepad.xinput.standard_deadzone->load (config.input.gamepad.xinput.standard_deadzone);
+  input.gamepad.xinput.deadzone->load          (config.input.gamepad.xinput.deadzone);
   input.gamepad.dinput.blackout_gamepads->load (config.input.gamepad.dinput.blackout_gamepads);
   input.gamepad.dinput.blackout_mice->load     (config.input.gamepad.dinput.blackout_mice);
   input.gamepad.dinput.blackout_keyboards->load(config.input.gamepad.dinput.blackout_keyboards);
@@ -5813,7 +5813,7 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.xinput.auto_slot_assign->store     (config.input.gamepad.xinput.auto_slot_assign);
   input.gamepad.xinput.blackout_api->store         (config.input.gamepad.xinput.blackout_api);
   input.gamepad.xinput.emulate->store              (config.input.gamepad.xinput.emulate);
-  input.gamepad.xinput.standard_deadzone->store    (config.input.gamepad.xinput.standard_deadzone);
+  input.gamepad.xinput.deadzone->store             (config.input.gamepad.xinput.deadzone);
   input.gamepad.dinput.blackout_gamepads->store    (config.input.gamepad.dinput.blackout_gamepads);
   input.gamepad.dinput.blackout_mice->store        (config.input.gamepad.dinput.blackout_mice);
   input.gamepad.dinput.blackout_keyboards->store   (config.input.gamepad.dinput.blackout_keyboards);

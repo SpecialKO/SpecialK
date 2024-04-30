@@ -3144,7 +3144,7 @@ SK_DXGI_FullscreenControlPanel (void)
 {
   if (ImGui::BeginPopup ("DXGI Fullscreen Control Panel"))
   {
-    ImGui::TextUnformatted ("D3D11 / D3D12 Fullscreen Setup\t(Experimental)");
+    ImGui::TextUnformatted ("D3D11 / D3D12 Fullscreen Setup");
 
     ImGui::TreePush ("###DXGI_FullscreenCpl");
 
@@ -3807,8 +3807,8 @@ SK_ImGui_ControlPanel (void)
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip ();
-              ImGui::BulletText   ("Windows natively supports 10-bit and 12-bit AVIF images at 4:2:0, or 8-bit at up to 4:4:4");
-              ImGui::BulletText   ("Higher quality chroma subsampled AVIF images will only render correctly in Chrome.");
+              ImGui::BulletText   ("Windows 10 natively supports 10-bit and 12-bit AVIF images at 4:2:0, or 8-bit at up to 4:4:4");
+              ImGui::BulletText   ("Higher chroma subsampled AVIF images only render correctly in Windows 11 and Chrome/Edge");
               ImGui::EndTooltip   ();
             }
 
@@ -8248,7 +8248,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     SK_GetCurrentRenderBackend ();
 
   // Popup Windows, actually
-  SK_Steam_DrawOSD ();
+  SK_Platform_DrawOSD ();
 
   if (rb.api == SK_RenderAPI::OpenGL)
   {

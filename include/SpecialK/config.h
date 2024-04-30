@@ -872,7 +872,7 @@ struct sk_config_t
                                             //  Overhead of managing a large hashmap is
                                             //    much lower.
       int     min_size             = 384L;
-      int     max_size             = 2048L;
+      int     max_size             = 4096L;
       bool    ignore_nonmipped     = false;
       bool    allow_staging        = false;
       bool    allow_unsafe_refs    = false; // Allow texture caching even in engines that
@@ -1019,7 +1019,7 @@ struct sk_config_t
         bool  blackout_api        = false;
         bool  emulate             = false;
         bool  debug               = false;
-        bool  standard_deadzone   = false;
+        float deadzone            =  5.0f; // 5% Left/Right Analog Stick Deadzone
       } xinput;
 
       struct dinput_s {

@@ -903,7 +903,7 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
           ICON_FA_PLAYSTATION "  "
           "Your PlayStation controller may not work unless Xbox Mode is"
           " enabled\r\n\r\n\t(Input Management | PlayStation > Xbox Mode)"
-          " and the game is restarted.",
+          " and restart the game.",
           "Windows.Gaming.Input Incompatibility Detected",
                                       15000UL,
                                     SK_ImGui_Toast::UseDuration |

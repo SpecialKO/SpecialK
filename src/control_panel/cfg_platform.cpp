@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -203,10 +203,8 @@ SK::ControlPanel::Platform::Draw (void)
           ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
           ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
 
-          // TODO: Implement popup for non-Steam
           const bool uncollapsed =
-            bSteam ? ImGui::CollapsingHeader ("Enhanced Popup", ImGuiTreeNodeFlags_AllowOverlap)
-                   : false;
+            ImGui::CollapsingHeader ("Enhanced Popup", ImGuiTreeNodeFlags_AllowOverlap);
 
           if (bSteam) {
             ImGui::SameLine (); ImGui::Checkbox        ("   Fetch Friend Unlock Stats", &config.platform.achievements.pull_friend_stats);

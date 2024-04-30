@@ -2303,10 +2303,6 @@ SK_LazyGlobal <SK_DummyWindows> dummy_windows;
 
 LRESULT
 WINAPI
-ImGui_WndProcHandler (HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
-
-LRESULT
-WINAPI
 DummyWindowProc (_In_  HWND   hWnd,
                  _In_  UINT   uMsg,
                  _In_  WPARAM wParam,

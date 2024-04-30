@@ -4776,7 +4776,11 @@ SK_RenderBackend_V2::resetTemporaryDisplayChanges (void)
             0, CDS_RESET, nullptr  ) == DISP_CHANGE_SUCCESSFUL;
     }
 
-    updateOutputTopology ();
+    if (WaitForSingleObject (__SK_DLL_TeardownEvent, 0) != WAIT_OBJECT_0)
+    {
+      // This may re-enable HDR, we don't want that while shutting down
+      updateOutputTopology ();
+    }
 
     for ( auto& display : displays )
     {
