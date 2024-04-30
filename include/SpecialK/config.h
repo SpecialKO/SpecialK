@@ -677,7 +677,7 @@ struct sk_config_t
             }, L"ToggleFCATBars"
           };
         int   scanline_offset      =    -1;
-        int   scanline_resync      =   750;
+        float scanline_resync      = 90.0f;
         int   scanline_error       =     1;
         float delay_bias           =  0.0f;
         bool  auto_bias            = false;

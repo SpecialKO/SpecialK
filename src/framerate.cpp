@@ -555,9 +555,11 @@ SK_ImGui_LatentSyncConfig (void)
           {
             std::exchange (
               fLastTargetInputPercent,
-              config.render.framerate.latent_sync.auto_bias_target.percent =
-                fTargetInputPercent > 0.0f ? fTargetInputPercent / 100.0f
-                                           : 0.000001f
+              config.render.framerate.latent_sync.auto_bias_target.percent = std::clamp (
+                fTargetInputPercent / 100.0f,
+                0.000001f,
+                1.0f
+              )
             );
           }
         }
@@ -573,9 +575,11 @@ SK_ImGui_LatentSyncConfig (void)
 
           if (ImGui::SliderFloat ("Maximum Bias", &fMaxBiasPercent, 0.0f, 90.0f, "%4.1f%%"))
           {
-            config.render.framerate.latent_sync.max_auto_bias =
-              fMaxBiasPercent > 0.0f ? fMaxBiasPercent / 100.0f
-                                     : 0.0f;
+            config.render.framerate.latent_sync.max_auto_bias = std::clamp (
+              fMaxBiasPercent / 100.0f,
+              0.0f,
+              1.0f
+            );
           }
         }
       }
@@ -828,10 +832,10 @@ SK_ImGui_LatentSyncConfig (void)
 
       if (bAdvanced)
       {
-        if ( ImGui::SliderInt ( "Resync Rate",
-                                  &config.render.framerate.latent_sync.scanline_resync,
-                                    0, 1000, "%d Frames" ) )
-        {   config.render.framerate.latent_sync.scanline_resync = std::max (0,
+        if ( ImGui::SliderFloat ( "Resync Rate",
+                                    &config.render.framerate.latent_sync.scanline_resync,
+                                      0.0f, 900.0f, "%.0f Second(s)" ) )
+        {   config.render.framerate.latent_sync.scanline_resync = std::max (0.0f,
             config.render.framerate.latent_sync.scanline_resync);
         }
 
@@ -1045,10 +1049,10 @@ class SK_FramerateLimiter_CfgProxy : public SK_IVariableListener {
 
     }
 
-    if ( static_cast <int *> (var->getValuePointer ()) == &config.render.framerate.latent_sync.scanline_resync )
+    if ( static_cast <float *> (var->getValuePointer ()) == &config.render.framerate.latent_sync.scanline_resync )
     {
       config.render.framerate.latent_sync.scanline_resync =
-        *static_cast <int *> (val);
+        *static_cast <float *> (val);
 
       __scanline.lock.requestResync ();
     }
@@ -1115,13 +1119,13 @@ SK::Framerate::Init (void)
           new SK_IVarStub <float> (&SK::Framerate::Limiter::undershoot_percent));
 
   pCommandProc->AddVariable ( "LatentSync.TearLocation",
-          new SK_IVarStub <int> (&config.render.framerate.latent_sync.scanline_offset, &__ProdigalFramerateSon));
+          new SK_IVarStub <int>   (&config.render.framerate.latent_sync.scanline_offset, &__ProdigalFramerateSon));
 
   pCommandProc->AddVariable ( "LatentSync.ResyncRate",
-          new SK_IVarStub <int> (&config.render.framerate.latent_sync.scanline_resync, &__ProdigalFramerateSon));
+          new SK_IVarStub <float> (&config.render.framerate.latent_sync.scanline_resync, &__ProdigalFramerateSon));
 
   pCommandProc->AddVariable ( "LatentSync.ShowFCATBars",
-          new SK_IVarStub <bool> (&config.render.framerate.latent_sync.show_fcat_bars));
+          new SK_IVarStub <bool>  (&config.render.framerate.latent_sync.show_fcat_bars));
 
   // Implicitly applies queued hooks
   SK_Scheduler_Init ();
@@ -2185,13 +2189,13 @@ SK::Framerate::Limiter::wait (void)
           // keep tearing enabled until latency decreases
           static bool bFailedToReduceRenderLatency = false;
 
-          static constexpr int _MAX_WAIT_FRAMES = 90;
+          static constexpr float _MAX_WAIT_SECONDS = 3.0f;
 
-          static int waitFrames = 0;
+          static float waitSeconds = 0.0f;
 
           if (! bDisableTearingAndWait)
           {
-            waitFrames = 0;
+            waitSeconds = 0.0f;
           }
 
           // Assume that Render Latency exceeds 1 frame if
@@ -2241,7 +2245,14 @@ SK::Framerate::Limiter::wait (void)
             {
               _ToggleTearing (false);
 
-              if (++waitFrames % _MAX_WAIT_FRAMES != 0)
+              waitSeconds += static_cast <float> (
+                std::max (
+                  effective_ms,
+                  ms
+                ) / 1000.0
+              );
+
+              if (waitSeconds < _MAX_WAIT_SECONDS)
               {
                 return;
               }
@@ -2532,12 +2543,21 @@ SK::Framerate::Limiter::wait (void)
 
     bool bSync = false;
 
-    static int                     iTry  = 0; // First time signals resync
-    if (                           iTry == 0 || (
-      config.render.framerate.latent_sync.scanline_resync != 0 &&
-                                  (iTry++ %
-        config.render.framerate.latent_sync.scanline_resync) == 0
-                                                 )
+    static bool   bTry  = true; // First time signals resync
+    static float  fTry  = 0.0f;
+                  fTry += static_cast <float> (
+                    std::max (
+                      effective_ms,
+                      ms
+                    ) / 1000.0
+                  );
+
+    if (        std::exchange
+                ( bTry, false ) ||
+                ( config.render.framerate.latent_sync.scanline_resync != 0.0f &&
+                 (fTry >=
+                  config.render.framerate.latent_sync.scanline_resync)
+                )
        )                                bSync = true;
     if (D3DKMTGetScanLine != nullptr && bSync)
     {
@@ -2632,7 +2652,7 @@ SK::Framerate::Limiter::wait (void)
                         __scanline.lock.scan_time  =       tReturn - qpc_start.QuadPart;
                         __scanline.qpc_t0.QuadPart =       tReturn - __scanline.lock.margin;
 
-                        iTry = 1;
+                        fTry = 0.0f;
 
                         __scanline.lock.notifyAcquired ();
 

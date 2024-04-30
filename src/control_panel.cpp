@@ -6235,8 +6235,8 @@ SK_ImGui_ControlPanel (void)
                   config.render.framerate.enforcement_policy = 4;
 
                   // Trigger a re-sync
-                  SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %d", config.render.framerate.latent_sync.scanline_resync - 1);
-                  SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %d", config.render.framerate.latent_sync.scanline_resync + 1);
+                  SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %f", config.render.framerate.latent_sync.scanline_resync - 1.0f);
+                  SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %f", config.render.framerate.latent_sync.scanline_resync + 1.0f);
                   break;
 
                 case limiter_mode_e::Reflex:
