@@ -1767,15 +1767,27 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
             ImGui::SameLine    ();
 
-            bool bOverrideRGB =
+            const bool bOverrideRGB =
               config.input.gamepad.scepad.led_color_r    >= 0 ||
               config.input.gamepad.scepad.led_color_g    >= 0 ||
               config.input.gamepad.scepad.led_color_b    >= 0 ||
               config.input.gamepad.scepad.led_brightness >= 0;
 
-            if (ImGui::Checkbox ("Override RGB", &bOverrideRGB))
+            const bool bDisableRGB =
+              config.input.gamepad.scepad.led_color_r == 0 &&
+              config.input.gamepad.scepad.led_color_g == 0 &&
+              config.input.gamepad.scepad.led_color_b == 0;
+
+            int iRGBSel = bOverrideRGB ? bDisableRGB ? 2 : 1 : 0;
+
+            const bool bChangeRGB =
+              ImGui::Combo ("###PS_RGB", &iRGBSel, "Default RGB Lighting\0"
+                                                   "Override RGB Lighting\0"
+                                                   "Disable RGB Lighting\0\0");
+
+            if (bChangeRGB)
             {
-              if (! bOverrideRGB)
+              if (iRGBSel == 0)
               {
                 config.input.gamepad.scepad.led_color_r    = std::min (-1, -abs (config.input.gamepad.scepad.led_color_r    + 1));
                 config.input.gamepad.scepad.led_color_g    = std::min (-1, -abs (config.input.gamepad.scepad.led_color_g    + 1));
@@ -1783,14 +1795,36 @@ SK::ControlPanel::Input::Draw (void)
                 config.input.gamepad.scepad.led_brightness = std::min (-1, -abs (config.input.gamepad.scepad.led_brightness + 1));
               }
 
-              else
+              else if (iRGBSel == 1)
               {
                 config.input.gamepad.scepad.led_color_r    = std::max (0, abs (config.input.gamepad.scepad.led_color_r   ) - 1);
                 config.input.gamepad.scepad.led_color_g    = std::max (0, abs (config.input.gamepad.scepad.led_color_g   ) - 1);
                 config.input.gamepad.scepad.led_color_b    = std::max (0, abs (config.input.gamepad.scepad.led_color_b   ) - 1);
                 config.input.gamepad.scepad.led_brightness = std::max (0, abs (config.input.gamepad.scepad.led_brightness) - 1);
+
+                // We need a non-zero value
+                if (config.input.gamepad.scepad.led_color_r == 0 &&
+                    config.input.gamepad.scepad.led_color_g == 0 &&
+                    config.input.gamepad.scepad.led_color_b == 0)
+                {
+                  config.input.gamepad.scepad.led_color_r = 1;
+                  config.input.gamepad.scepad.led_color_g = 1;
+                  config.input.gamepad.scepad.led_color_b = 1;
+                }
+              }
+
+              else
+              {
+                config.input.gamepad.scepad.led_color_r    = 0;
+                config.input.gamepad.scepad.led_color_g    = 0;
+                config.input.gamepad.scepad.led_color_b    = 0;
               }
               config.utility.save_async ();
+            }
+
+            if (ImGui::IsItemHovered () && bHasBluetooth)
+            {
+              ImGui::SetTooltip ("RGB lighting can be turned off to save battery...");
             }
 
             ImGui::BeginGroup ();
@@ -1798,6 +1832,9 @@ SK::ControlPanel::Input::Draw (void)
             if (bOverrideRGB)
             {
               //ImGui::SameLine ();
+
+              if (iRGBSel != 1)
+                ImGui::BeginDisabled ();
 
               float color [3] = { (float)config.input.gamepad.scepad.led_color_r / 255.0f,
                                   (float)config.input.gamepad.scepad.led_color_g / 255.0f,
@@ -1818,6 +1855,9 @@ SK::ControlPanel::Input::Draw (void)
 
               ImGui::SameLine ();
 
+              if (iRGBSel != 1)
+                ImGui::EndDisabled ();
+
               int brightness = 3 - config.input.gamepad.scepad.led_brightness;
 
               const char* szLabel = brightness == 0 ? "Very Dim" :
@@ -1825,11 +1865,14 @@ SK::ControlPanel::Input::Draw (void)
                                     brightness == 2 ? "Mid"      :
                                                       "Bright";
 
-              if (ImGui::SliderInt ("Brightness", &brightness, 0, 3, szLabel))
+              if (ImGui::SliderInt ("LED Brightness", &brightness, 0, 3, szLabel))
               {
                 config.input.gamepad.scepad.led_brightness = 3 - brightness;
                 config.utility.save_async ();
               }
+
+              if (ImGui::IsItemHovered ())
+                  ImGui::SetTooltip ("Controls the brightness of status lights as well as RGB");
             }
             else {
               ImGui::SameLine ();
@@ -2020,7 +2063,7 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::TextUnformatted ("Identifying as an alternate product may help "
                                       "to enable a game's native support for your controller");
               ImGui::Separator       ();
-              ImGui::BulletText      ("Game restart required");
+              ImGui::BulletText      ("Reconnect controller for this to take effect");
               ImGui::EndTooltip      ();
             }
             ImGui::EndGroup ();

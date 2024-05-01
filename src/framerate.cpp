@@ -2232,9 +2232,39 @@ SK::Framerate::Limiter::wait (void)
 }
 
 
-void
-SK::Framerate::Limiter::set_limit (double target)
+double SK_Framerate_GetLimitEnvVar (double target)
 {
+  static double dEnvVarFPS = 0.0;
+
+  SK_RunOnce (
+  {
+    wchar_t                                              wszEnvVarFPS [32] = { };
+    if (GetEnvironmentVariableW (L"SUNSHINE_CLIENT_FPS", wszEnvVarFPS, 31))
+    {
+      dEnvVarFPS = _wtof (wszEnvVarFPS);
+    }
+
+    else if (GetEnvironmentVariableW (L"SK_FPS_LIMIT", wszEnvVarFPS, 31))
+    {
+      dEnvVarFPS = _wtof (wszEnvVarFPS);
+    }
+  });
+
+  if (dEnvVarFPS == 0.0)
+    return target;
+
+  return dEnvVarFPS;
+}
+
+void
+SK::Framerate::Limiter::set_limit (float& target)
+{
+  // Allow environment variable override
+  //
+  //   XXX: __target_fps should probably be changed to double
+  //
+  target = sk::narrow_cast <float> (SK_Framerate_GetLimitEnvVar (target));
+
   // Skip redundant set_limit calls
   if (fabs (fps - target) < DBL_EPSILON && tracks_window == true)
     return;

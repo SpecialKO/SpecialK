@@ -1,4 +1,18 @@
-﻿24.4.29.3
+﻿24.5.1
+======
+ + Changed default HDR Color Boost to 50%
+ + Update various HDR and input management tooltips for clarity
+ + Added UI to configure PlayStation special button (e.g. touchpad click)
+     key bindings.
+ + Added "Disable RGB Lighting" option for DualShock 4 / DualSense controllers
+ + Added support for environment variable-defined framerate limits
+
+     SK_FPS_LIMIT=...
+
+   This value will be forcefully applied and immutable, and will not be written
+     to INI when game exits.
+
+24.4.29.3
 =========
  + Added user-configurable XInput deadzone for PlayStation controllers
      >> Default: 5% (likely too small if a game actually needs this)
