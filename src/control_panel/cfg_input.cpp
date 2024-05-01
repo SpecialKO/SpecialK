@@ -1802,6 +1802,12 @@ SK::ControlPanel::Input::Draw (void)
               float color [3] = { (float)config.input.gamepad.scepad.led_color_r / 255.0f,
                                   (float)config.input.gamepad.scepad.led_color_g / 255.0f,
                                   (float)config.input.gamepad.scepad.led_color_b / 255.0f };
+              
+              ImGui::SetColorEditOptions (ImGuiColorEditFlags_DisplayRGB     |
+                                          ImGuiColorEditFlags_PickerHueWheel |
+                                          ImGuiColorEditFlags_NoSidePreview  |
+                                          ImGuiColorEditFlags_NoAlpha);
+
               if (ImGui::ColorEdit3 ("###PlayStation_RGB", color))
               {
                 config.input.gamepad.scepad.led_color_r = (int)(color [0] * 255.0f);
