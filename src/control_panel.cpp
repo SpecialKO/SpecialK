@@ -5041,6 +5041,7 @@ SK_ImGui_ControlPanel (void)
       {
         strcat (szGSyncStatus, "    Supported + ");
 
+#if 0   // Hack for broken D3D12 drivers, not worth maintaining
         auto& nvapi_display =
           rb.displays [rb.active_display].nvapi;
 
@@ -5059,9 +5060,17 @@ SK_ImGui_ControlPanel (void)
             rb.gsync_state.active = true;
           }
         }
+#endif
 
         if (rb.gsync_state.active)
         {
+          auto& nvapi_display =
+            rb.displays [rb.active_display].nvapi;
+
+          float fVBlankHz =
+            nvapi_display.vblank_counter.getVBlankHz (
+                      SK::ControlPanel::current_time );
+
           // Is it really "active" if we can't calculate the rate?
           if (fVBlankHz == 0.0f)
             strcat (szGSyncStatus, "Active " ICON_FA_QUESTION_CIRCLE);
