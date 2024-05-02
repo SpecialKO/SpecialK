@@ -1,4 +1,10 @@
-﻿24.5.1
+﻿24.5.2
+======
+ + Merge pull request #166 from Nustat0:fix-32bit-d3d12
+    * Added a workaround for 32-bit D3D12
+ + Disable hack for flaky D3D12 drivers not reporting VRR correctly
+
+24.5.1
 ======
  + Changed default HDR Color Boost to 50%
  + Update various HDR and input management tooltips for clarity
@@ -8,6 +14,7 @@
  + Added support for environment variable-defined framerate limits
 
      SK_FPS_LIMIT=...
+     SUNSHINE_CLIENT_FPS=... (auto-set by some software, do not use)
 
    This value will be forcefully applied and immutable, and will not be written
      to INI when game exits.

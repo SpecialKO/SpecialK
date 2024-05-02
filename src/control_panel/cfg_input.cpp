@@ -1628,6 +1628,9 @@ SK::ControlPanel::Input::Draw (void)
                       {
                         config.utility.save_async ();
                       }
+
+                      if (ImGui::IsItemHovered ())
+                          ImGui::SetTooltip ("Polls gyro and touchpad less frequently to save power.");
                     }
 
                     if (ImGui::SliderFloat ("Critical Battery Level", &config.input.gamepad.low_battery_percent, 0.0f, 45.0f, "%3.0f%% Remaining"))
