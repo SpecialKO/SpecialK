@@ -294,24 +294,16 @@ SK_D3D11Dev_CreateRenderTargetView1_Impl (
                   BOOL                            bWrapped );
 
 HRESULT
-STDMETHODCALLTYPE
-D3D11Dev_CreateTexture2D_Impl (
+WINAPI
+D3D11Dev_CreateTexture2DCore_Impl (
   _In_              ID3D11Device            *This,
-  _Inout_opt_       D3D11_TEXTURE2D_DESC    *pDesc,
+  _Inout_opt_       D3D11_TEXTURE2D_DESC    *pDesc0,
+  _Inout_opt_       D3D11_TEXTURE2D_DESC1   *pDesc1,
   _In_opt_    const D3D11_SUBRESOURCE_DATA  *pInitialData,
-  _Out_opt_         ID3D11Texture2D        **ppTexture2D,
+  _Out_opt_         ID3D11Texture2D        **ppTexture2D0,
+  _Out_opt_         ID3D11Texture2D1       **ppTexture2D1,
                     LPVOID                   lpCallerAddr,
-                    SK_TLS                  *pTLS = SK_TLS_Bottom () );
-
-HRESULT
-STDMETHODCALLTYPE
-D3D11Dev_CreateTexture2D1_Impl (
-  _In_              ID3D11Device3           *This,
-  _Inout_opt_       D3D11_TEXTURE2D_DESC1   *pDesc,
-  _In_opt_    const D3D11_SUBRESOURCE_DATA  *pInitialData,
-  _Out_opt_         ID3D11Texture2D1       **ppTexture2D,
-                    LPVOID                   lpCallerAddr,
-                    SK_TLS                  *pTLS = SK_TLS_Bottom () );
+                    SK_TLS                  *pTLS = nullptr );
 
 void
 STDMETHODCALLTYPE
