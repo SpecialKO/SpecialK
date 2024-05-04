@@ -2182,6 +2182,12 @@ SK_TextOverlay::getScale (void) noexcept
   return font_.scale;
 }
 
+float
+SK_TextOverlay::getExtent (void) noexcept
+{
+  return data_.extent;
+}
+
 void
 SK_TextOverlay::resize (float incr) noexcept
 {
