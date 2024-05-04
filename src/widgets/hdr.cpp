@@ -1837,7 +1837,7 @@ public:
             if (ImGui::IsItemHovered ())
             {
               ImGui::BeginTooltip    ();
-              ImGui::TextUnformatted ("scRGB native HDR and some Unity/Unreal engine games require Linear or they will be too dark.");
+              ImGui::TextUnformatted ("scRGB native HDR and some Unity / Unreal engine games require Linear or they will be too dark.");
               ImGui::Separator       ();
               ImGui::BulletText      ("For most other games try sRGB or 2.2.");
               ImGui::EndTooltip      ();
@@ -2464,9 +2464,10 @@ public:
               if (ImGui::IsItemHovered ())
               {
                 ImGui::BeginTooltip    ();
-                ImGui::TextUnformatted ("Effect is Amplified at Higher Luminance");
+                ImGui::TextUnformatted ("Increases Luminance of Highly Saturated Colors");
                 ImGui::Separator       ();
-                ImGui::BulletText      ("Consider using lower intensity for high (i.e. 1k+ nits) luminance targets");
+                ImGui::BulletText      ("Some display types (i.e. QD-OLED) are more capable of displaying bright colors than others");
+                ImGui::BulletText      ("Consider using lower intensity for high luminance targets on QD-OLED or in pixel art games");
                 ImGui::BulletText      ("Use Gamut Expansion for more fine-grained control");
                 ImGui::EndTooltip      ();
               }

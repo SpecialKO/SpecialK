@@ -2958,6 +2958,10 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
   if (_pDevice.p == nullptr)
   {
+    // TODO: Figure out why 32-bit D3D12 crashes when
+    // pNativeDev12 is placed below _pCommandQueue...
+    SK_ComPtr <ID3D12Device> pNativeDev12;
+
     if ( _pCommandQueue.p != nullptr && FAILED (
            _pCommandQueue->GetDevice ( IID_PPV_ARGS (&_pDevice.p) )
                                                )
@@ -2966,7 +2970,6 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       return false;
     }
 
-    SK_ComPtr <ID3D12Device>                           pNativeDev12;
     if (SK_slGetNativeInterface (_pDevice.p, (void **)&pNativeDev12.p) == sl::Result::eOk)
                                  _pDevice =            pNativeDev12;
   }

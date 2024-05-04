@@ -1,4 +1,31 @@
-﻿24.4.29.3
+﻿24.5.3
+======
+ + Unify ID3D11Device::CreateTexture2D{1} (...) shared logic into
+     D3D11Dev_CreateTexture2DCore_Impl rather than forwarding
+       CreateTexture2D to CreateTexture2D1
+
+24.5.2
+======
+ + Merge pull request #166 from Nustat0:fix-32bit-d3d12
+    * Added a workaround for 32-bit D3D12
+ + Disable hack for flaky D3D12 drivers not reporting VRR correctly
+
+24.5.1
+======
+ + Changed default HDR Color Boost to 50%
+ + Update various HDR and input management tooltips for clarity
+ + Added UI to configure PlayStation special button (e.g. touchpad click)
+     key bindings.
+ + Added "Disable RGB Lighting" option for DualShock 4 / DualSense controllers
+ + Added support for environment variable-defined framerate limits
+
+     SK_FPS_LIMIT=...
+     SUNSHINE_CLIENT_FPS=... (auto-set by some software, do not use)
+
+   This value will be forcefully applied and immutable, and will not be written
+     to INI when game exits.
+
+24.4.29.3
 =========
  + Added user-configurable XInput deadzone for PlayStation controllers
      >> Default: 5% (likely too small if a game actually needs this)

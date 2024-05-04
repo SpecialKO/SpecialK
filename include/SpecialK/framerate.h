@@ -482,7 +482,7 @@ namespace SK
       bool        try_wait            (void); // No actual wait, just return
                                               //  whether a wait would have occurred.
 
-      void        set_limit           (double target);
+      void        set_limit           (float& target);
       double      get_limit           (void) noexcept { return fps;  };
 
       LONG64      get_ticks_per_frame (void) noexcept { return ticks_per_frame; };

@@ -1346,6 +1346,8 @@ D3D11Dev_CreateSamplerState_Override
     D3D11Dev_CreateSamplerState_Original (This, pSamplerDesc, ppSamplerState);
 }
 
+HMODULE SK_KnownModule_MSMPEG2VDEC = 0;
+HMODULE SK_KnownModule_MFPLAT      = 0;
 
 __declspec (noinline)
 HRESULT
@@ -1361,20 +1363,29 @@ D3D11Dev_CreateTexture2D1_Override (
   if (pDesc == nullptr)
     return E_INVALIDARG;
 
+  auto hCallingMod =
+    SK_GetCallingDLL ();
+
+  // Give Media Foundation video surfaces a fast-path to bypass our hooks
+  if ( hCallingMod == SK_KnownModule_MSMPEG2VDEC ||
+       hCallingMod == SK_KnownModule_MFPLAT      ||
+         (pDesc->BindFlags & (D3D11_BIND_DECODER | D3D11_BIND_VIDEO_ENCODER)) != 0x0 )
+  {
+    return
+      D3D11Dev_CreateTexture2D1_Original (This, pDesc, pInitialData, ppTexture2D);
+  }
+
   const D3D11_TEXTURE2D_DESC1* pDescOrig =  pDesc;
                           auto descCopy  = *pDescOrig;
 
   const HRESULT hr =
-    D3D11Dev_CreateTexture2D1_Impl (
-      This, &descCopy, pInitialData,
-            ppTexture2D, _ReturnAddress ()
+    D3D11Dev_CreateTexture2DCore_Impl (
+      This, nullptr, &descCopy, pInitialData,
+            nullptr, ppTexture2D, _ReturnAddress ()
     );
 
   return hr;
 }
-
-HMODULE SK_KnownModule_MSMPEG2VDEC = 0;
-HMODULE SK_KnownModule_MFPLAT      = 0;
 
 __declspec (noinline)
 HRESULT
@@ -1385,6 +1396,8 @@ D3D11Dev_CreateTexture2D_Override (
   _In_opt_  const D3D11_SUBRESOURCE_DATA *pInitialData,
   _Out_opt_       ID3D11Texture2D        **ppTexture2D )
 {
+  SK_LOG_FIRST_CALL
+
   if (pDesc == nullptr)
     return E_INVALIDARG;
 
@@ -1404,37 +1417,10 @@ D3D11Dev_CreateTexture2D_Override (
                          auto descCopy  = *pDescOrig;
 
   const HRESULT hr =
-    D3D11Dev_CreateTexture2D_Impl (
-      This, &descCopy, pInitialData,
-            ppTexture2D, _ReturnAddress ()
+    D3D11Dev_CreateTexture2DCore_Impl (
+      This, &descCopy, nullptr, pInitialData,
+            ppTexture2D, nullptr, _ReturnAddress ()
     );
-
-  if ( pDesc->Width  < 4 &&
-       pDesc->Height < 4 )
-  {
-    return hr;
-  }
-
-  if (SUCCEEDED (hr))
-  {
-    //auto orig_se =
-    //SK_SEH_SetTranslator (SK_FilteringStructuredExceptionTranslator (EXCEPTION_ACCESS_VIOLATION));
-    //try {
-    //  *const_cast <D3D11_TEXTURE2D_DESC *> ( pDesc ) =
-    //    descCopy;
-    //}
-    //catch (const SK_SEH_IgnoredException&) { };
-    //SK_SEH_SetTranslator (orig_se);
-
-
-  //if (pDesc->Usage == D3D11_USAGE_STAGING)
-  //{
-  //  dll_log.Log ( L"Code Origin ('%s') - Staging: %lux%lu - Format: %hs, CPU Access: %x, Misc Flags: %x",
-  //                  SK_GetCallerName ().c_str (), pDesc->Width, pDesc->Height,
-  //                  SK_DX5GI_FormatToStr          (pDesc->Format).c_str (),
-  //                         pDesc->CPUAccessFlags, pDesc->MiscFlags );
-  //}
-  }
 
   return hr;
 }
