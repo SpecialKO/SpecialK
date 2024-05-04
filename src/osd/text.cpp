@@ -708,6 +708,9 @@ SK_DrawOSD (void)
   buffer_t buffer = dxgi_mem_info [     0].buffer;
   int      nodes  = dxgi_mem_info [buffer].nodes;
 
+  if (SK_IsConsoleVisible ())
+    OSD_PRINTF "\n\n" OSD_END;
+
   if (config.title.show)
   {
     static HMODULE hModGame = skModuleRegistry::HostApp ();
