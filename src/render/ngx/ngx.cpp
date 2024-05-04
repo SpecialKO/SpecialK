@@ -1168,7 +1168,7 @@ SK_NGX_DLSS_GetCurrentPresetStr (void)
 }
 
 void
-SK_NGX_DLSS_GetInternalResolution (int& x, int& y)
+SK_NGX_DLSS_GetResolution (int& x, int& y, int& out_x, int& out_y)
 { 
   if (NVSDK_NGX_Parameter_GetUI_Original == nullptr)
   {
@@ -1223,8 +1223,10 @@ SK_NGX_DLSS_GetInternalResolution (int& x, int& y)
     if (height == 0) height = res_height;
   }
 
-  x = width;
-  y = height;
+  x     = width;
+  y     = height;
+  out_x = out_width;
+  out_y = out_height;
 }
 
 void
