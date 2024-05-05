@@ -699,7 +699,8 @@ SK_DrawOSD (void)
   int         left_padding =  0;
   const char *pad_str      = "";
 
-  if (config.title.show || config.time.show)
+  // Render stats require 2-space padding
+  if (config.title.show || config.time.show || config.render.show)
       left_padding = 2;
 
   static io_perf_t
@@ -848,7 +849,7 @@ SK_DrawOSD (void)
 
     if (dwTime - last_fps_time > 666)
     {
-      fps           = sk::narrow_cast <double>(1000.0 / mean);
+      fps           = sk::narrow_cast <double> (1000.0 / mean);
       last_fps_time = dwTime;
     }
 
