@@ -2189,7 +2189,7 @@ SK::Framerate::Limiter::wait (void)
           // keep tearing enabled until latency decreases
           static bool bFailedToReduceRenderLatency = false;
 
-          static constexpr float _MAX_WAIT_SECONDS = 3.0f;
+          static constexpr float _MAX_WAIT_SECONDS = 1.5f;
 
           static float waitSeconds = 0.0f;
 
