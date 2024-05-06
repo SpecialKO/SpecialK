@@ -924,21 +924,42 @@ SK::ControlPanel::D3D11::Draw (void)
         }
 #endif
 
-        if ( ( config.render.framerate.present_interval == SK_NoPreference && rb.present_interval > 0 ) ||
-             ( config.render.framerate.present_interval >= 1                                          ) )
+        if ( ( config.render.framerate.present_interval == SK_NoPreference &&
+                                    rb.present_interval >= 1                ) ||
+             ( config.render.framerate.present_interval >= 1                ) )
         {
-          if (config.render.framerate.present_interval == SK_NoPreference)
-          {
-            config.render.framerate.adaptive_vsync = false;
-          }
+          bool bAdaptiveVSync =
+            config.render.framerate.present_interval > 0 &&
+            config.render.framerate.target_fps > 0.0f    &&
+            config.render.framerate.adaptive_vsync;
 
-          if (ImGui::Checkbox ("Adaptive V-Sync", &config.render.framerate.adaptive_vsync))
+          if (ImGui::Checkbox ("Adaptive V-Sync", &bAdaptiveVSync))
           {
+            config.render.framerate.adaptive_vsync = bAdaptiveVSync;
+
             if (config.render.framerate.adaptive_vsync)
             {
               if (config.render.framerate.present_interval == SK_NoPreference)
               {
                 config.render.framerate.present_interval = 1;
+              }
+
+              if (__target_fps == 0.0f)
+              {
+                SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                  "TargetFPS %f",
+                  static_cast <float> (
+                    rb.getActiveRefreshRate () /
+                    config.render.framerate.present_interval
+                  )
+                );
+              }
+
+              else if (__target_fps < 0.0f)
+              {
+                SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                  "TargetFPS %f", -__target_fps
+                );
               }
             }
           }
