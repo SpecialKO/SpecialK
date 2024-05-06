@@ -1,4 +1,9 @@
-﻿24.5.3
+﻿24.5.5
+======
+ + Fixed removed 2 blank lines in text OSD when displaying console
+ + Fixed removed 2 space padding in text OSD when displaying render stats
+
+24.5.3
 ======
  + Unify ID3D11Device::CreateTexture2D{1} (...) shared logic into
      D3D11Dev_CreateTexture2DCore_Impl rather than forwarding
