@@ -2543,21 +2543,20 @@ SK::Framerate::Limiter::wait (void)
 
     bool bSync = false;
 
-    static bool   bTry  = true; // First time signals resync
-    static float  fTry  = 0.0f;
-                  fTry += static_cast <float> (
-                    std::max (
-                      effective_ms,
-                      ms
-                    ) / 1000.0
-                  );
-
-    if (        std::exchange
-                ( bTry, false ) ||
-                ( config.render.framerate.latent_sync.scanline_resync != 0.0f &&
-                 (fTry >=
-                  config.render.framerate.latent_sync.scanline_resync)
-                )
+    static float  fTry  = 0.0f; // First time signals resync
+    if (          fTry == 0.0f ||
+                  (
+                    config.render.framerate.latent_sync.scanline_resync != 0.0f &&
+                    (
+                      fTry += static_cast <float> (
+                        std::max (
+                          effective_ms,
+                          ms
+                        ) / 1000.0
+                      )
+                    ) >=
+                    config.render.framerate.latent_sync.scanline_resync
+                  )
        )                                bSync = true;
     if (D3DKMTGetScanLine != nullptr && bSync)
     {
@@ -2652,7 +2651,7 @@ SK::Framerate::Limiter::wait (void)
                         __scanline.lock.scan_time  =       tReturn - qpc_start.QuadPart;
                         __scanline.qpc_t0.QuadPart =       tReturn - __scanline.lock.margin;
 
-                        fTry = 0.0f;
+                        fTry = FLT_MIN;
 
                         __scanline.lock.notifyAcquired ();
 
