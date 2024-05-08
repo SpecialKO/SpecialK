@@ -1,4 +1,9 @@
-﻿24.5.5
+﻿24.5.8
+======
+ + Merge pull request #175 from Aemony:dlss_indicator_oneliner
+    * Improved DLSS indicator 
+
+24.5.5
 ======
  + Fixed removed 2 blank lines in text OSD when displaying console
  + Fixed removed 2 space padding in text OSD when displaying render stats
