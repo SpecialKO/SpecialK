@@ -289,10 +289,11 @@ struct sk_config_t
 
 
   struct dlss_osd_s {
-    bool   show           = false;
-    bool   show_quality   = true;
-    bool   show_fg        = true;
-    bool   show_preset    = false;
+    bool   show            = false;
+    bool   show_output_res = false;
+    bool   show_quality    = true;
+    bool   show_fg         = true;
+    bool   show_preset     = false;
 
     struct keybinds_s {
       BYTE toggle [4]     = { VK_MENU, VK_SHIFT, 'D', 0 };

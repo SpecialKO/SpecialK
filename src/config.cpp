@@ -508,6 +508,7 @@ struct {
 
   struct {
     sk::ParameterBool*    show                    = nullptr;
+    sk::ParameterBool*    show_output_res         = nullptr;
     sk::ParameterBool*    show_quality            = nullptr;
     sk::ParameterBool*    show_preset             = nullptr;
     sk::ParameterBool*    show_fg                 = nullptr;
@@ -1498,6 +1499,7 @@ auto DeclKeybind =
     ConfigEntry (monitoring.pagefile.interval,           L"Pagefile Monitoring Interval (seconds)",                    osd_ini,         L"Monitor.Pagefile",      L"Interval"),
 
     ConfigEntry (monitoring.dlss.show,                   L"Show DLSS Resolution Information",                          osd_ini,         L"Monitor.DLSS",          L"Show"),
+    ConfigEntry (monitoring.dlss.show_output_res,        L"Print DLSS Output Resolution",                              osd_ini,         L"Monitor.DLSS",          L"ShowOutputResolution"),
     ConfigEntry (monitoring.dlss.show_quality,           L"Print DLSS Quality Level",                                  osd_ini,         L"Monitor.DLSS",          L"ShowQuality"),
     ConfigEntry (monitoring.dlss.show_preset,            L"Print DLSS Preset",                                         osd_ini,         L"Monitor.DLSS",          L"ShowPreset"),
     ConfigEntry (monitoring.dlss.show_fg,                L"Print DLSS Frame Generation Status",                        osd_ini,         L"Monitor.DLSS",          L"ShowFrameGeneration"),
@@ -3765,10 +3767,11 @@ auto DeclKeybind =
   config.pagefile.interval = std::clamp (config.pagefile.interval, 0.125f, 2.5f);
   config.io.interval       = std::clamp (config.io.interval,       0.125f, 2.5f);
 
-  monitoring.dlss.show->load         (config.dlss.show);
-  monitoring.dlss.show_quality->load (config.dlss.show_quality);
-  monitoring.dlss.show_preset->load  (config.dlss.show_preset);
-  monitoring.dlss.show_fg->load      (config.dlss.show_fg);
+  monitoring.dlss.show->load            (config.dlss.show);
+  monitoring.dlss.show_output_res->load (config.dlss.show_output_res);
+  monitoring.dlss.show_quality->load    (config.dlss.show_quality);
+  monitoring.dlss.show_preset->load     (config.dlss.show_preset);
+  monitoring.dlss.show_fg->load         (config.dlss.show_fg);
 
   monitoring.title.show->load (config.title.show);
   monitoring.time.show->load  (config.time.show);
@@ -5638,6 +5641,7 @@ SK_SaveConfig ( std::wstring name,
   monitoring.pagefile.interval->store         (config.pagefile.interval);
 
   monitoring.dlss.show->store                 (config.dlss.show);
+  monitoring.dlss.show_output_res->store      (config.dlss.show_output_res);
   monitoring.dlss.show_quality->store         (config.dlss.show_quality);
   monitoring.dlss.show_preset->store          (config.dlss.show_preset);
   monitoring.dlss.show_fg->store              (config.dlss.show_fg);
