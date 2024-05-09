@@ -989,7 +989,7 @@ HidD_GetAttributes_Detour (_In_  HANDLE           HidDeviceObject,
       {
         if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4)
         {   Attributes->ProductID  = SK_HID_PID_DUALSHOCK4_REV2;
-            SK_LOGi0 (L"Identifying DualShock 4 controller as DualShock 4 v2 to game.");
+            SK_RunOnce (SK_LOGi0 (L"Identifying DualShock 4 controller as DualShock 4 v2 to game."));
         }
       }
 
@@ -997,12 +997,12 @@ HidD_GetAttributes_Detour (_In_  HANDLE           HidDeviceObject,
       {
         if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4_REV2)
         {   Attributes->ProductID  = SK_HID_PID_DUALSHOCK4;
-            SK_LOGi0 (L"Identifying DualShock 4 v2 controller as DualShock 4 to game.");
+            SK_RunOnce (SK_LOGi0 (L"Identifying DualShock 4 v2 controller as DualShock 4 to game."));
         }
 
         if (Attributes->ProductID == SK_HID_PID_DUALSHOCK4_DONGLE)
         {   Attributes->ProductID  = SK_HID_PID_DUALSHOCK4;
-            SK_LOGi0 (L"Identifying DualShock 4 (via Dongle) controller as DualShock 4 to game.");
+            SK_RunOnce (SK_LOGi0 (L"Identifying DualShock 4 (via Dongle) controller as DualShock 4 to game."));
         }
       }
 
@@ -1010,7 +1010,7 @@ HidD_GetAttributes_Detour (_In_  HANDLE           HidDeviceObject,
       {
         if (Attributes->ProductID == SK_HID_PID_DUALSENSE_EDGE)
         {   Attributes->ProductID  = SK_HID_PID_DUALSENSE;
-            SK_LOGi0 (L"Identifying DualSense Edge controller as DualSense to game.");
+            SK_RunOnce (SK_LOGi0 (L"Identifying DualSense Edge controller as DualSense to game."));
         }
       }
     }
