@@ -1,6 +1,7 @@
-﻿24.5.9.1
-========
- + Clear emulated rumble when motor data reach 0 on DualSense controllers
+﻿24.5.10
+=======
+ + Implement 500 msec grace period after rumble motor output before
+     switching back to native haptics for DualSense controllers.
 
 24.5.9
 ======
