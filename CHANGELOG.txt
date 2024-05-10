@@ -1,4 +1,8 @@
-﻿24.5.9
+﻿24.5.9.1
+========
+ + Clear emulated rumble when motor data reach 0 on DualSense controllers
+
+24.5.9
 ======
  + Disable "rumble emulation" on DualSense controllers when there are no
      emulated left/right motor data in order to maintain compatibility with

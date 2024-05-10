@@ -5116,8 +5116,16 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             SK_HID_DualSense_SetStateData* output =
               (SK_HID_DualSense_SetStateData *)&pOutputRaw [1];
 
-            const bool bRumble =
-              ReadULongAcquire (&pDevice->_vibration.right) != 0 || ReadULongAcquire (&pDevice->_vibration.left) != 0;
+            const ULONG dwRightMotor =
+              ReadULongAcquire (&pDevice->_vibration.right);
+            const ULONG dwLeftMotor  = 
+              ReadULongAcquire (&pDevice->_vibration.left);
+
+            const bool bRumble = dwRightMotor != 0 || dwLeftMotor                   != 0 ||
+              pDevice->_vibration.last_right  != 0 || pDevice->_vibration.last_left != 0;
+
+            pDevice->_vibration.last_right   = dwRightMotor != 0 ? 1 : 0;
+            pDevice->_vibration.last_left    = dwLeftMotor  != 0 ? 1 : 0;
 
             output->EnableRumbleEmulation    = bRumble;
             output->UseRumbleNotHaptics      = bRumble;
@@ -5262,12 +5270,20 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             SK_HID_DualSense_SetStateData* output =
            (SK_HID_DualSense_SetStateData *)&bt_data [3];
 
-            const bool bRumble =
-              ReadULongAcquire (&pDevice->_vibration.right) != 0 || ReadULongAcquire (&pDevice->_vibration.left) != 0;
+            const ULONG dwRightMotor =
+              ReadULongAcquire (&pDevice->_vibration.right);
+            const ULONG dwLeftMotor  = 
+              ReadULongAcquire (&pDevice->_vibration.left);
 
-            output->EnableRumbleEmulation = bRumble;
-            output->UseRumbleNotHaptics   = bRumble;
-            output->AllowMuteLight        = true;
+            const bool bRumble = dwRightMotor != 0 || dwLeftMotor                   != 0 ||
+              pDevice->_vibration.last_right  != 0 || pDevice->_vibration.last_left != 0;
+
+            pDevice->_vibration.last_right = dwRightMotor != 0 ? 1 : 0;
+            pDevice->_vibration.last_left  = dwLeftMotor  != 0 ? 1 : 0;
+
+            output->EnableRumbleEmulation  = bRumble;
+            output->UseRumbleNotHaptics    = bRumble;
+            output->AllowMuteLight         = true;
 
             if (config.input.gamepad.scepad.led_color_r    >= 0 || 
                 config.input.gamepad.scepad.led_color_g    >= 0 ||
