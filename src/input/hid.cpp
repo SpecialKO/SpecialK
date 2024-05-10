@@ -5116,8 +5116,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             SK_HID_DualSense_SetStateData* output =
               (SK_HID_DualSense_SetStateData *)&pOutputRaw [1];
 
-            output->EnableRumbleEmulation    = true;
-            output->UseRumbleNotHaptics      = true;
+            const bool bRumble =
+              ReadULongAcquire (&pDevice->_vibration.right) != 0 || ReadULongAcquire (&pDevice->_vibration.left) != 0;
+
+            output->EnableRumbleEmulation    = bRumble;
+            output->UseRumbleNotHaptics      = bRumble;
             output->AllowMuteLight           = true;
 
             if (config.input.gamepad.scepad.led_color_r    >= 0 ||
@@ -5259,8 +5262,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             SK_HID_DualSense_SetStateData* output =
            (SK_HID_DualSense_SetStateData *)&bt_data [3];
 
-            output->EnableRumbleEmulation = true;
-            output->UseRumbleNotHaptics   = true;
+            const bool bRumble =
+              ReadULongAcquire (&pDevice->_vibration.right) != 0 || ReadULongAcquire (&pDevice->_vibration.left) != 0;
+
+            output->EnableRumbleEmulation = bRumble;
+            output->UseRumbleNotHaptics   = bRumble;
             output->AllowMuteLight        = true;
 
             if (config.input.gamepad.scepad.led_color_r    >= 0 || 

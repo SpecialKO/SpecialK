@@ -1,4 +1,10 @@
-﻿24.5.8
+﻿24.5.9
+======
+ + Disable "rumble emulation" on DualSense controllers when there are no
+     emulated left/right motor data in order to maintain compatibility with
+       games that use native haptics.
+
+24.5.8
 ======
  + Merge pull request #175 from Aemony:dlss_indicator_oneliner
     * Improved DLSS indicator 
