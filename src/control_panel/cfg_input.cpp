@@ -653,7 +653,7 @@ SK::ControlPanel::Input::Draw (void)
 
       bool bIdleHideChange =
       ImGui::Checkbox ( "Hide When Not Moved", &config.input.cursor.manage   );
-      
+
       if ( bIdleHideChange )
         SK_ImGui_Cursor.force = sk_cursor_state::None;
 
@@ -722,6 +722,17 @@ SK::ControlPanel::Input::Draw (void)
             if (ImGui::Button (" Force Mouse Cursor Visible "))
             {
               SK_ImGui_Cursor.force = sk_cursor_state::Visible;
+
+              // The correct way to handle this is send a message to the game's
+              //  window proc, and let the wndprochandler call ShowCursor from its thread...
+              //
+              //    But this works in enough cases for now.
+              static constexpr auto          _MaxTries = 25;
+              for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
+              {
+                if (SK_ShowCursor (TRUE) >= 0)
+                  break;
+              }
             }
           }
 
@@ -730,6 +741,17 @@ SK::ControlPanel::Input::Draw (void)
             if (ImGui::Button (" Force Mouse Cursor Hidden "))
             {
               SK_ImGui_Cursor.force = sk_cursor_state::Hidden;
+
+              // The correct way to handle this is send a message to the game's
+              //  window proc, and let the wndprochandler call ShowCursor from its thread...
+              //
+              //    But this works in enough cases for now.
+              static constexpr auto          _MaxTries = 25;
+              for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
+              {
+                if (SK_ShowCursor (FALSE) < 0)
+                  break;
+              }
             }
 
             if (ImGui::IsItemHovered ())

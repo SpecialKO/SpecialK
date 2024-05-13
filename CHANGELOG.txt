@@ -1,4 +1,9 @@
-﻿24.5.10
+﻿24.5.13
+=======
+ + Add slightly more reliable force cursor visible/hidden option to cursor
+     management UI.
+
+24.5.10
 =======
  + Implement 500 msec grace period after rumble motor output before
      switching back to native haptics for DualSense controllers.
