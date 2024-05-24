@@ -707,8 +707,8 @@ public:
   bool getLatencyReportNV (NV_LATENCY_RESULT_PARAMS *pGetLatencyParams) const;
   void driverSleepNV      (int site)                                    const;
 
-  std::string parseEDIDForName      (uint8_t* edid, size_t length) const;
-  POINT       parseEDIDForNativeRes (uint8_t* edid, size_t length) const;
+  std::string decodeEDIDForName      (uint8_t* edid, size_t length) const;
+  POINT       decodeEDIDForNativeRes (uint8_t* edid, size_t length) const;
 
   bool resetTemporaryDisplayChanges (void);
 
