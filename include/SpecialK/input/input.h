@@ -1275,4 +1275,6 @@ void          SK_HID_AssignGamepadButtonBinding (UINT idx, const wchar_t* wszKey
 
 extern HidD_GetAttributes_pfn SK_HidD_GetAttributes;
 
+extern void SK_Bluetooth_InitPowerMgmt (void);
+
 #endif /* __SK__INPUT_H__ */

@@ -1,4 +1,11 @@
-﻿24.5.13
+﻿24.5.24
+=======
+ + Added more verbose warnings if a PlayStation controller's battery charge
+     status is invalid.
+ + Hide battery level warnings on DualSense controllers paired over Bluetooth
+     while Bluetooth compatibility mode is enabled.
+
+24.5.13
 =======
  + Add slightly more reliable force cursor visible/hidden option to cursor
      management UI.

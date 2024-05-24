@@ -1971,7 +1971,7 @@ SK::ControlPanel::Input::Draw (void)
           {
             ImGui::SameLine   ();
             ImGui::BulletText ( ICON_FA_BLUETOOTH
-              " Compatibility Mode: Features newer than DualShock 3 are unsupported."
+              " Compatibility Mode:   Features newer than DualShock 3 unsupported."
             );
 
             if (ImGui::IsItemHovered ( ))
