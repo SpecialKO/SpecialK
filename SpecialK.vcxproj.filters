@@ -4782,5 +4782,6 @@
     <FxCompile Include="resource\shaders\blt_copy_cs.hlsl">
       <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="resource\shaders\HDR\cs_luminance_analysis.hlsl" />
   </ItemGroup>
 </Project>

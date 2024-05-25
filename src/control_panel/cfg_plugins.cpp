@@ -264,11 +264,11 @@ SK::ControlPanel::PlugIns::Draw (void)
     {
       ImGui::TreePush    ("");
 
-      if (! config.reshade.is_addon)
+      //if (! config.reshade.is_addon)
       {
         changed |=
             SK_ImGui_PlugInSelector (
-              dll_ini, "ReShade (Un|Official)", imp_path_reshade, imp_name_reshade, reshade_official, order,
+              dll_ini, "ReShade", imp_path_reshade, imp_name_reshade, reshade_official, order,
                 SK_IsInjected () ? SK_Import_LoadOrder::Lazy :
                                    SK_Import_LoadOrder::PlugIn );
 
@@ -285,7 +285,7 @@ SK::ControlPanel::PlugIns::Draw (void)
           }
         }
 
-        if (! GetModuleHandleW (imp_path_reshade))
+        if ((! config.reshade.is_addon) && (! GetModuleHandleW (imp_path_reshade)))
         {
           ImGui::SameLine ();
 
@@ -402,7 +402,6 @@ SK::ControlPanel::PlugIns::Draw (void)
         }
       }
 
-      if (! config.reshade.is_addon)
       ImGui::TreePop     (  );
       ImGui::TreePop     (  );
     }

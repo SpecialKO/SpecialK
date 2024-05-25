@@ -1,4 +1,13 @@
-﻿24.5.25.3
+﻿24.5.26
+=======
+ + Add warning, and disable all ReShade functionality, if attempting to load
+     ReShade as dxgi.dll or d3d12.dll in a D3D12 game.
+
+24.5.25.4
+=========
+ + Fixed UI spacing if ReShade is loaded as an add-on
+
+24.5.25.3
 =========
  + Removed ReShade Injection keybind if ReShade is already injected
  + Removed ReShade config directory button unless ReShade is loaded as an add-on

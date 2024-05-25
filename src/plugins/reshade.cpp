@@ -1042,6 +1042,35 @@ void SK_ReShadeAddOn_Present (reshade::api::command_queue *queue, reshade::api::
 bool
 SK_ReShadeAddOn_Init (HMODULE reshade_module)
 {
+  if (reshade_module == nullptr)
+      reshade_module = reshade::internal::get_reshade_module_handle (reshade_module);
+
+  std::wstring mod_name =
+    SK_GetModuleName (reshade_module);
+
+  if ( StrStrIW (mod_name.c_str (), L"dxgi.dll") ||
+       StrStrIW (mod_name.c_str (), L"d3d12.dll") )
+  {
+    if ((config.apis.last_last_known == SK_RenderAPI::Reserved &&
+         config.apis.     last_known == SK_RenderAPI::Reserved) ||
+  (((int)config.apis.     last_known & (int)SK_RenderAPI::D3D12) ==
+                                       (int)SK_RenderAPI::D3D12 ||
+   ((int)config.apis.last_last_known & (int)SK_RenderAPI::D3D12) ==
+                                       (int)SK_RenderAPI::D3D12))
+    {
+      SK_RunOnce (
+        SK_ImGui_WarningWithTitle (
+          L"ReShade may cause serious problems if loaded as dxgi.dll/d3d12.dll in D3D12 games rather than a plug-in.\r\n\r\n"
+          L"\tThis may be a false positive\r\n\r\n"
+          L"If you are not using D3D12, the message will go away and all of ReShade's features should work after restarting the game.",
+          L"Incompatible ReShade Install Detected"
+        )
+      );
+
+      return false;
+    }
+  }
+
   static bool registered = false;
 
   if (registered)
