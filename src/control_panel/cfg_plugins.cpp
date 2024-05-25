@@ -402,6 +402,7 @@ SK::ControlPanel::PlugIns::Draw (void)
         }
       }
 
+      if (! config.reshade.is_addon)
       ImGui::TreePop     (  );
       ImGui::TreePop     (  );
     }
