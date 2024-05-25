@@ -264,102 +264,108 @@ SK::ControlPanel::PlugIns::Draw (void)
     {
       ImGui::TreePush    ("");
 
-      changed |=
-          SK_ImGui_PlugInSelector (
-            dll_ini, "ReShade (Un|Official)", imp_path_reshade, imp_name_reshade, reshade_official, order,
-              SK_IsInjected () ? SK_Import_LoadOrder::Lazy :
-                                 SK_Import_LoadOrder::PlugIn );
-
-      bool compatibility = false;
-
-      if (reshade_official)
+      if (! config.reshade.is_addon)
       {
-        auto& mode =
-          dll_ini->get_section (imp_name_reshade).get_cvalue (L"Mode");
+        changed |=
+            SK_ImGui_PlugInSelector (
+              dll_ini, "ReShade (Un|Official)", imp_path_reshade, imp_name_reshade, reshade_official, order,
+                SK_IsInjected () ? SK_Import_LoadOrder::Lazy :
+                                   SK_Import_LoadOrder::PlugIn );
 
-        if (! mode._Equal (L"Normal"))
+        bool compatibility = false;
+
+        if (reshade_official)
         {
-          compatibility = true;
-        }
-      }
+          auto& mode =
+            dll_ini->get_section (imp_name_reshade).get_cvalue (L"Mode");
 
-      if (! GetModuleHandleW (imp_path_reshade))
-      {
-        ImGui::SameLine ();
-
-        if (ImGui::Button ("Load Now"))
-        {
-          HMODULE hModReShade =
-            SK_ReShade_LoadDLL (imp_path_reshade, L"Compatibility");
-
-          if (hModReShade != 0)
+          if (! mode._Equal (L"Normal"))
           {
-            if (SK_ReShadeAddOn_Init (hModReShade))
+            compatibility = true;
+          }
+        }
+
+        if (! GetModuleHandleW (imp_path_reshade))
+        {
+          ImGui::SameLine ();
+
+          if (ImGui::Button ("Load Now"))
+          {
+            HMODULE hModReShade =
+              SK_ReShade_LoadDLL (imp_path_reshade, L"Compatibility");
+
+            if (hModReShade != 0)
             {
-              //
+              if (SK_ReShadeAddOn_Init (hModReShade))
+              {
+                //
+              }
             }
           }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip (
+              "If using a version of ReShade 6.0 or newer, you can "
+              "hot-load ReShade without restarting the game."
+            );
+          }
+        }
+
+        ImGui::TreePush ("");
+
+        if (ImGui::Checkbox ("Compatibility Mode", &compatibility))
+        {
+          dll_ini->get_section (imp_name_reshade).get_value (L"Mode").assign (
+            compatibility ? L"Compatibility" :
+                            L"Normal"
+          );
+
+          config.utility.save_async ();
         }
 
         if (ImGui::IsItemHovered ())
         {
-          ImGui::SetTooltip (
-            "If using a version of ReShade 6.0 or newer, you can "
-            "hot-load ReShade without restarting the game."
-          );
+          ImGui::BeginTooltip    ();
+          ImGui::TextUnformatted ("Compatibility mode should be preferred unless you need a specific Add-On.");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("Load-Order is irrelevant in Compatibility mode.");
+          ImGui::BulletText      ("Frame Generation games are more stable in Compatibility mode.");
+          ImGui::BulletText      ("May disable support for some ReShade Add-Ons.");
+          ImGui::BulletText      ("Very little support can be offered for non-Compatibility mode.");
+          ImGui::EndTooltip      ();
         }
+
+        ImGui::SameLine    ();
+        ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+        ImGui::SameLine    ();
       }
 
-      ImGui::TreePush ("");
-
-      if (ImGui::Checkbox ("Compatibility Mode", &compatibility))
+      if (! config.reshade.is_addon)
       {
-        dll_ini->get_section (imp_name_reshade).get_value (L"Mode").assign (
-          compatibility ? L"Compatibility" :
-                          L"Normal"
-        );
+        static std::set <SK_ConfigSerializedKeybind *>
+          keybinds = {
+            &config.reshade.inject_reshade_keybind,
+            //&config.reshade.toggle_overlay_keybind,
+          };
 
-        config.utility.save_async ();
+        ImGui::BeginGroup ();
+        ImGui::BeginGroup ();
+        for ( auto& keybind : keybinds )
+        {
+          ImGui::Text
+          ( "%s:  ",keybind->bind_name );
+        }
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
+        for ( auto& keybind : keybinds )
+        {Keybinding(keybind,  keybind->param);}
+        ImGui::EndGroup   ();
+        ImGui::EndGroup   ();
       }
 
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip    ();
-        ImGui::TextUnformatted ("Compatibility mode should be preferred unless you need a specific Add-On.");
-        ImGui::Separator       ();
-        ImGui::BulletText      ("Load-Order is irrelevant in Compatibility mode.");
-        ImGui::BulletText      ("Frame Generation games are more stable in Compatibility mode.");
-        ImGui::BulletText      ("May disable support for some ReShade Add-Ons.");
-        ImGui::BulletText      ("Very little support can be offered for non-Compatibility mode.");
-        ImGui::EndTooltip      ();
-      }
-
-      ImGui::SameLine    ();
-      ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
-      ImGui::SameLine    ();
-
-      static std::set <SK_ConfigSerializedKeybind *>
-        keybinds = {
-          &config.reshade.inject_reshade_keybind,
-          //&config.reshade.toggle_overlay_keybind,
-        };
-
-      ImGui::BeginGroup ();
-      ImGui::BeginGroup ();
-      for ( auto& keybind : keybinds )
-      {
-        ImGui::Text
-        ( "%s:  ",keybind->bind_name );
-      }
-      ImGui::EndGroup   ();
-      ImGui::SameLine   ();
-      ImGui::BeginGroup ();
-      for ( auto& keybind : keybinds )
-      {Keybinding(keybind,  keybind->param);}
-      ImGui::EndGroup   ();
-      ImGui::EndGroup   ();
-
-      if (ImGui::Button ("Browse ReShade Config / Logs"))
+      else if (ImGui::Button ("Browse ReShade Config / Logs"))
       {
         std::wstring reshade_profile_path =
           std::wstring (SK_GetConfigPath ()) + LR"(\ReShade)";

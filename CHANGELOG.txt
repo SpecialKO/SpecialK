@@ -1,4 +1,11 @@
-﻿24.5.25.2
+﻿24.5.25.3
+=========
+ + Removed ReShade Injection keybind if ReShade is already injected
+ + Removed ReShade config directory button unless ReShade is loaded as an add-on
+ + Removed ReShade plug-in selection if ReShade is loaded as an add-on
+ + Removed ReShade Compatibility Mode option if ReShade is loaded as an add-on
+
+24.5.25.2
 =========
  + Only handle mouse cursor hide/show functions using PostMessage (...) if the
      calling thread does not already own the game window
