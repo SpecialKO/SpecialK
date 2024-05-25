@@ -1,4 +1,8 @@
-﻿24.5.26
+﻿24.5.26.1
+=========
+ + Fixed warning triggering in non-D3D12 cases.
+
+24.5.26
 =======
  + Add warning, and disable all ReShade functionality, if attempting to load
      ReShade as dxgi.dll or d3d12.dll in a D3D12 game.

@@ -1561,9 +1561,6 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         // Write any default values to the config file
         SK_LoadConfig (L"SpecialK");
 
-        config.apis.last_last_known =
-             config.apis.last_known;
-
         config.apis.last_known =
           SK_RenderAPI::Reserved;
       }

@@ -1053,10 +1053,8 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
   {
     if ((config.apis.last_last_known == SK_RenderAPI::Reserved &&
          config.apis.     last_known == SK_RenderAPI::Reserved) ||
-  (((int)config.apis.     last_known & (int)SK_RenderAPI::D3D12) ==
-                                       (int)SK_RenderAPI::D3D12 ||
-   ((int)config.apis.last_last_known & (int)SK_RenderAPI::D3D12) ==
-                                       (int)SK_RenderAPI::D3D12))
+         config.apis.     last_known == SK_RenderAPI::D3D12     ||
+         config.apis.last_last_known == SK_RenderAPI::D3D12)
     {
       SK_RunOnce (
         SK_ImGui_WarningWithTitle (

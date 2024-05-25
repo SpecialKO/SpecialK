@@ -3644,6 +3644,11 @@ auto DeclKeybind =
     if (config.apis.last_known == SK_RenderAPI::OpenGL)
       SK_GL_ContextCount++;
 
+  SK_RunOnce (
+    config.apis.last_last_known =
+         config.apis.last_known
+  );
+
 
 #ifdef _M_IX86
   apis.ddraw.hook->load  (config.apis.ddraw.hook);
