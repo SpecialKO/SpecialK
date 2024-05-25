@@ -1,4 +1,8 @@
-﻿24.5.25
+﻿24.5.25.1
+=========
+ + Properly handle "deactivate mouse cursor on gamepad input" for auto-hide
+
+24.5.25
 =======
  + Improved reliability of various timer-based and input-based events that
      change the visibility or shape of the Windows mouse cursor.
