@@ -1,4 +1,9 @@
-﻿24.5.24
+﻿24.5.25
+=======
+ + Improved reliability of various timer-based and input-based events that
+     change the visibility or shape of the Windows mouse cursor.
+
+24.5.24
 =======
  + Added more verbose warnings if a PlayStation controller's battery charge
      status is invalid.

@@ -47,6 +47,42 @@ SK_InputUtil_IsHWCursorVisible (void)
 
 ShowCursor_pfn ShowCursor_Original = nullptr;
 
+BOOL
+WINAPI
+SK_SendMsgShowCursor (BOOL bShow)
+{
+  if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
+  {
+    if (bShow) PostMessageA (game_window.hWnd, game_window.messages [game_window.messages->ShowCursor].uiMessage, 0, 0);
+    else       PostMessageA (game_window.hWnd, game_window.messages [game_window.messages->HideCursor].uiMessage, 0, 0);
+
+    return TRUE;
+  }
+
+  static constexpr auto          _MaxTries = 25;
+  for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
+  {
+    if (        bShow  && SK_ShowCursor (TRUE) >= 0)
+      return TRUE;
+
+    else if ((! bShow) && SK_ShowCursor (FALSE) < 0)
+      return TRUE;
+  }
+
+  return FALSE;
+}
+
+HCURSOR
+WINAPI
+SK_SendMsgSetCursor (HCURSOR hCursor)
+{
+  if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
+    SendMessageA (game_window.hWnd, game_window.messages [game_window.messages->SetCursorImg].uiMessage, (WPARAM)(hCursor), 0);
+
+  return
+    SK_SetCursor (hCursor);
+}
+
 int
 WINAPI
 SK_ShowCursor (BOOL bShow)
@@ -402,7 +438,7 @@ ImGuiCursor_Impl (void)
   {
     if (SK_ImGui_IsMouseRelevant ())
     {
-      SK_SetCursor (0);
+      SK_SendMsgSetCursor (0);
     }
 
     io.MouseDrawCursor = (! SK_ImGui_Cursor.idle) && (! SK_InputUtil_IsHWCursorVisible ());
@@ -1110,16 +1146,14 @@ SK_Window_ActivateCursor (bool changed = false)
     {
       if (config.input.ui.use_hw_cursor)
       {
-        // This would start a war with the Epic Overlay if we didn't add an escape
-        int recursion = 4;
-
-        if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-          while ( recursion > 0 && SK_ShowCursor (TRUE) < 0 ) --recursion;
+        SK_SendMsgShowCursor (TRUE);
 
         // Deliberately call SetCursor's _hooked_ function, so we can determine whether to
         //   activate the window using the game's cursor or our override
         SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, (LONG_PTR)last_mouse.class_cursor);
         SK_SetCursor                                               (last_mouse.class_cursor);
+
+        SK_SendMsgSetCursor (last_mouse.class_cursor);
       }
 
       else
@@ -1128,6 +1162,9 @@ SK_Window_ActivateCursor (bool changed = false)
         //   activate the window using the game's cursor or our override
         SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, (LONG_PTR)0);
         SK_SetCursor                                               (0);
+
+        SK_SendMsgSetCursor  ((HCURSOR)0);
+        SK_SendMsgShowCursor (FALSE);
       }
 
       last_mouse.cursor = true;
@@ -1170,12 +1207,9 @@ SK_Window_DeactivateCursor (bool ignore_imgui)
       }
 
       SetClassLongPtrW (game_window.hWnd, GCLP_HCURSOR, 0);
-      SK_SetCursor     (0);
 
-      int recursion = 4;
-
-      if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-        while ( recursion > 0 && SK_ShowCursor (FALSE) > -1 ) --recursion;
+      SK_SendMsgSetCursor  (0);
+      SK_SendMsgShowCursor (FALSE);
 
       last_mouse.cursor  = false;
       last_mouse.sampled = SK::ControlPanel::current_time;

@@ -3466,23 +3466,23 @@ SK_ImGui_User_NewFrame (void)
     {
       if (! SK_InputUtil_IsHWCursorVisible ())
       {
-        int recursion = 8;
-
         if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-          while ( recursion > 0 && SK_ShowCursor (TRUE) < 0 ) --recursion;
+        {
+          SK_SendMsgShowCursor (TRUE);
       }
+        }
     }
 
     else if (config.input.cursor.manage || SK_ImGui_Cursor.force == sk_cursor_state::Hidden)
     {
       if (SK_InputUtil_IsHWCursorVisible ())
       {
-        int recursion = 8;
-
         if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-          while ( recursion > 0 && SK_ShowCursor (FALSE) > -1 ) --recursion;
+        {
+          SK_SendMsgShowCursor (FALSE);
+        }
 
-        SK_SetCursor (nullptr);
+        SK_SendMsgSetCursor (nullptr);
       }
     }
   }
@@ -3492,7 +3492,7 @@ SK_ImGui_User_NewFrame (void)
   {
     if (SK_ImGui_WantMouseCapture () && SK_ImGui_IsAnythingHovered ())
     {
-      SK_SetCursor (ImGui_DesiredCursor ());
+      SK_SendMsgSetCursor (ImGui_DesiredCursor ());
     }
 
     io.MouseDrawCursor =

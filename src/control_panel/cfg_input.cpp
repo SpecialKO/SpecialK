@@ -723,16 +723,7 @@ SK::ControlPanel::Input::Draw (void)
             {
               SK_ImGui_Cursor.force = sk_cursor_state::Visible;
 
-              // The correct way to handle this is send a message to the game's
-              //  window proc, and let the wndprochandler call ShowCursor from its thread...
-              //
-              //    But this works in enough cases for now.
-              static constexpr auto          _MaxTries = 25;
-              for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
-              {
-                if (SK_ShowCursor (TRUE) >= 0)
-                  break;
-              }
+              SK_SendMsgShowCursor (TRUE);
             }
           }
 
@@ -742,23 +733,7 @@ SK::ControlPanel::Input::Draw (void)
             {
               SK_ImGui_Cursor.force = sk_cursor_state::Hidden;
 
-              // The correct way to handle this is send a message to the game's
-              //  window proc, and let the wndprochandler call ShowCursor from its thread...
-              //
-              //    But this works in enough cases for now.
-              static constexpr auto          _MaxTries = 25;
-              for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
-              {
-                if (SK_ShowCursor (FALSE) < 0)
-                  break;
-              }
-            }
-
-            if (ImGui::IsItemHovered ())
-            {
-              ImGui::SetTooltip (
-                "May not work in some games, auto-hide (0.0 seconds) may help..."
-              );
+              SK_SendMsgShowCursor (FALSE);
             }
           }
         }

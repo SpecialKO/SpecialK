@@ -492,6 +492,22 @@ struct sk_window_s {
   ) ;
 
   bool hooked = false;
+
+  struct message_def_s {
+    char szName [64] = "\0";
+    UINT uiMessage   =  UINT_MAX ;
+    UINT idx         =  0 ;
+
+    static const UINT ShowCursor   = 0;
+    static const UINT HideCursor   = 1;
+    static const UINT SetCursorImg = 2;
+  //static const UINT ToggleCursor = 2;
+
+  } messages [8] = { { "ShowCursor",   0, message_def_s::ShowCursor   },
+                     { "HideCursor",   0, message_def_s::HideCursor   },
+                     { "SetCursorImg", 0, message_def_s::SetCursorImg } };
+                   //{ "ToggleCursor", 0, message_def_s::ToggleCursor } };
+                   // Toggle is not that useful, and we already are registering 3 messages per-launch...
 };
 
 extern sk_window_s game_window;

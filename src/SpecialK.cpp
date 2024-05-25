@@ -512,7 +512,8 @@ DllMain ( HMODULE hModule,
       std::atexit (SK_LazyCleanup);
 #endif
 
-      config =
+      game_window =  sk_window_s {};
+      config      =
         sk_config_t::sk_config_t ();
 
 
