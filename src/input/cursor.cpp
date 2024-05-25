@@ -53,19 +53,13 @@ SK_SendMsgShowCursor (BOOL bShow)
 {
   if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
   {
-    if (InSendMessage ())
+    if (GetActiveWindow () != game_window.hWnd)
     {
-      if (bShow) PostMessageA (game_window.hWnd, game_window.messages [game_window.messages->ShowCursor].uiMessage, 0, 0);
-      else       PostMessageA (game_window.hWnd, game_window.messages [game_window.messages->HideCursor].uiMessage, 0, 0);
-    }
+           if (  bShow) PostMessageA (game_window.hWnd, game_window.messages [game_window.messages->ShowCursor].uiMessage, 0, 0);
+      else if (! bShow) PostMessageA (game_window.hWnd, game_window.messages [game_window.messages->HideCursor].uiMessage, 0, 0);
 
-    else
-    {
-      if (bShow) SendMessageTimeoutA (game_window.hWnd, game_window.messages [game_window.messages->ShowCursor].uiMessage, 0, 0, 0x0, 15UL, nullptr);
-      else       SendMessageTimeoutA (game_window.hWnd, game_window.messages [game_window.messages->HideCursor].uiMessage, 0, 0, 0x0, 15UL, nullptr);
+      return TRUE;
     }
-
-    ////return TRUE;
   }
 
   static constexpr auto          _MaxTries = 25;
@@ -85,12 +79,9 @@ HCURSOR
 WINAPI
 SK_SendMsgSetCursor (HCURSOR hCursor)
 {
-  if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
+  if (GetActiveWindow () != game_window.hWnd)
   {
-    if (InSendMessage ())
-         PostMessageA        (game_window.hWnd, game_window.messages [game_window.messages->SetCursorImg].uiMessage, (WPARAM)(hCursor), 0);
-    else
-         SendMessageTimeoutA (game_window.hWnd, game_window.messages [game_window.messages->SetCursorImg].uiMessage, (WPARAM)(hCursor), 0, 0, 15UL, nullptr);
+    PostMessageA (game_window.hWnd, game_window.messages [game_window.messages->SetCursorImg].uiMessage, (WPARAM)(hCursor), 0);
   }
 
   return

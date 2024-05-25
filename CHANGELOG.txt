@@ -1,4 +1,9 @@
-﻿24.5.25.1
+﻿24.5.25.2
+=========
+ + Only handle mouse cursor hide/show functions using PostMessage (...) if the
+     calling thread does not already own the game window
+
+24.5.25.1
 =========
  + Properly handle "deactivate mouse cursor on gamepad input" for auto-hide
 
