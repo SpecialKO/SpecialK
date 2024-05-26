@@ -144,11 +144,12 @@ struct SK_HDR_PQBoostParams
 } SK_HDR_PQBoost_v0 = { 0.5f, 30.0f, 11.5f, 1.500f, 1.0f,  570.0f },
   SK_HDR_PQBoost_v1 = { 0.5f,  1.0f,  0.1f, 1.273f, 0.5f,  267.0f };
 
-float __SK_HDR_ColorBoost = SK_HDR_PQBoost_v1.ColorBoost;
-float __SK_HDR_PQBoost0   = SK_HDR_PQBoost_v1.PQBoost0;
-float __SK_HDR_PQBoost1   = SK_HDR_PQBoost_v1.PQBoost1;
-float __SK_HDR_PQBoost2   = SK_HDR_PQBoost_v1.PQBoost2;
-float __SK_HDR_PQBoost3   = SK_HDR_PQBoost_v1.PQBoost3;
+bool  __SK_HDR_LinearIsG22 = false;
+float __SK_HDR_ColorBoost  = SK_HDR_PQBoost_v1.ColorBoost;
+float __SK_HDR_PQBoost0    = SK_HDR_PQBoost_v1.PQBoost0;
+float __SK_HDR_PQBoost1    = SK_HDR_PQBoost_v1.PQBoost1;
+float __SK_HDR_PQBoost2    = SK_HDR_PQBoost_v1.PQBoost2;
+float __SK_HDR_PQBoost3    = SK_HDR_PQBoost_v1.PQBoost3;
 
 
 #define MAX_HDR_PRESETS 4
@@ -1508,24 +1509,39 @@ public:
 
         auto constexpr _DLSSG_FRAME_THRESHOLD { 8 };
 
+        static char szClockRate [16] = { };
+
+        uint32_t clocks_khz =
+          SK_GPU_GetClockRateInkHz (0);
+
+        if (clocks_khz <= 0)
+          *szClockRate = '\0';
+        else
+        {
+          snprintf (
+            szClockRate, 15, " @ %4.2f GHz",
+              static_cast <double> (clocks_khz) / 1000000
+          );
+        }
+
         static char   szProcessingText [128] = { };
         static const char* string_format [ ] = {
-          "Format Conversion Passes:\t%u\t\tDLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms",
-                                           "DLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms",
-                                                "Format Conversion Passes:\t%u\t\tHDR Processing:\t%5.4f ms",
-                                                                                 "HDR Processing:\t%5.4f ms",
-                                                           "HDR Zero-Copy Mode\t\tHDR Processing:\t%5.4f ms"
+          "Format Conversion Passes:\t%u\t\tDLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms%hs",
+                                           "DLSS3 Format Conversion:\t%5.4f ms\t\tHDR Processing:\t%5.4f ms%hs",
+                                                "Format Conversion Passes:\t%u\t\tHDR Processing:\t%5.4f ms%hs",
+                                                                                 "HDR Processing:\t%5.4f ms%hs",
+                                                           "HDR Zero-Copy Mode\t\tHDR Processing:\t%5.4f ms%hs"
         };
 
         if (dComputeCopyTime != 0.0 && computeCopy.lastFrameActive > SK_GetFramesDrawn () - _DLSSG_FRAME_THRESHOLD)
         { if (                                                     format_conversions > 0)
-               snprintf (szProcessingText, 127, string_format [0], format_conversions, dComputeCopyTime, SK_D3D11_HDR_RuntimeMs);
-          else snprintf (szProcessingText, 127, string_format [1],                     dComputeCopyTime, SK_D3D11_HDR_RuntimeMs);
+               snprintf (szProcessingText, 127, string_format [0], format_conversions, dComputeCopyTime, SK_D3D11_HDR_RuntimeMs, szClockRate);
+          else snprintf (szProcessingText, 127, string_format [1],                     dComputeCopyTime, SK_D3D11_HDR_RuntimeMs, szClockRate);
         } else { if (                                              format_conversions > 0)
-               snprintf (szProcessingText, 127, string_format [2], format_conversions,                   SK_D3D11_HDR_RuntimeMs);
-          else snprintf (szProcessingText, 127, string_format [3],                                       SK_D3D11_HDR_RuntimeMs);
+               snprintf (szProcessingText, 127, string_format [2], format_conversions,                   SK_D3D11_HDR_RuntimeMs, szClockRate);
+          else snprintf (szProcessingText, 127, string_format [3],                                       SK_D3D11_HDR_RuntimeMs, szClockRate);
           if (SK_D3D11_HDR_ZeroCopy)
-               snprintf (szProcessingText, 127, string_format [4],                                       SK_D3D11_HDR_RuntimeMs);
+               snprintf (szProcessingText, 127, string_format [4],                                       SK_D3D11_HDR_RuntimeMs, szClockRate);
 
           dComputeCopyTime = 0.0;
         }
@@ -2443,6 +2459,8 @@ public:
             ImGui::PushStyleColor (ImGuiCol_PlotHistogram, ImColor::HSV (0.15f, 0.95f, 0.55f).Value);
 
             const bool pboost = (preset.pq_boost0 > 0.0f);
+
+            //ImGui::Checkbox ("Linear is 2.2", &__SK_HDR_LinearIsG22);
 
             if (pboost)
             {

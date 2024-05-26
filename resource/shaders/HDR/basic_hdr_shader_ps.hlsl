@@ -77,12 +77,20 @@ SK_ProcessColor4 ( float4 color,
   // This looks weird because power-law EOTF does not work as intended on negative colors, and
   //   we may very well have negative colors on WCG SDR input.
   //
+  float eotf = sdrContentEOTF;
+
+  /*
+  if (treatLinearAsG22 && eotf == 1.0f)
+                          eotf  = 2.2f;
+  */
+
   float4 out_color =
     float4 (
       ( strip_eotf && func != sRGB_to_Linear ) ?
-                       sdrContentEOTF != -2.2f ?    sign (color.rgb) * pow (abs (color.rgb),
-                       sdrContentEOTF) : RemoveSRGBCurve (color.rgb) :
-                                                          color.rgb,
+                                 eotf != -2.2f ?    sign (color.rgb) * pow (abs (color.rgb),
+                                 eotf) : RemoveSRGBCurve (color.rgb) :/*
+                              treatLinearAsG22 ?    sign (color.rgb) * pow (abs (color.rgb),
+                                         2.2f) :*/        color.rgb,
                                                           color.a
     );
 
@@ -153,7 +161,7 @@ FinalOutput (float4 vColor)
       clamp (
         LinearToPQ (REC709toREC2020 (vColor.rgb), 125.0f),
                                                0.0, 1.0 );
-    
+
     vColor.a = 1.0;
   }
 
@@ -211,35 +219,38 @@ main (PS_INPUT input) : SV_TARGET
     texMainScene.Sample ( sampler0,
                           input.uv );
 
+  float3 orig_color =
+    abs (hdr_color.rgb);
+
   // For scRGB Inverse Tonemapping (luminance scale > 1.0 or Perceptual Boost),
   //   clamp to Rec 709
   if (input.color.x >= 1.0f + FLT_EPSILON || pqBoostParams.x > 0.0f)
   {
     hdr_color.rgb =
       max (0.0f, hdr_color.rgb);
-  }
 
-  float3 orig_color =
-    abs (hdr_color.rgb);
-
-  if ((hdr_color.r > 1.115f  &&
-       hdr_color.g > 1.115f  &&
-       hdr_color.b > 1.115f) ||
-      (hdr_color.r > 1.5f    ||
-       hdr_color.g > 1.5f    ||
-       hdr_color.b > 1.5f))
-  {
-    float fLuma =
-      Luminance (hdr_color.rgb);
-
-    if (fLuma > 1.0f)
+    if (any (max (0.0f, hdr_color.rgb - float3 (1.0f, 1.0f, 1.0f))))
     {
-      float3 fNormalColor =
-        normalize (hdr_color.rgb);
+      if (  1.5f <   hdr_color.r ||
+            1.5f <   hdr_color.g ||
+            1.5f <   hdr_color.b ||
+           3.35f < ( hdr_color.r +
+                     hdr_color.g +
+                     hdr_color.b ) )
+      {
+        float fLuma =
+          Luminance (hdr_color.rgb);
 
-      hdr_color.rgb =                    fNormalColor +
-        NeutralTonemap (hdr_color.rgb - (fNormalColor * fLuma));
-    };
+        if (fLuma > 1.0f)
+        {
+          float3 fNormalColor   = saturate ( hdr_color.rgb );
+          float3 fResidualColor = max (0.0f, hdr_color.rgb - fNormalColor);
+
+          hdr_color.rgb =   fNormalColor +
+            NeutralTonemap (fResidualColor);
+        };
+      }
+    }
   }
 
 #ifdef INCLUDE_NAN_MITIGATION
@@ -309,7 +320,7 @@ main (PS_INPUT input) : SV_TARGET
 #endif
                          SK_ProcessColor4 ( hdr_color.rgba,
                                             xRGB_to_Linear,
-                              sdrContentEOTF != 1.0f).rgb;
+                              sdrContentEOTF != 1.0f || treatLinearAsG22).rgb;
 
 #ifdef INCLUDE_HDR10
   if (! bIsHDR10)
