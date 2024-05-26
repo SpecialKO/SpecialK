@@ -1,4 +1,9 @@
-﻿24.5.26.3
+﻿24.5.26.4
+=========
+ + Added experimental Overbright Bits tonemapping for HDR games that qualify.
+     >> The feature is always on and has no configuration at the moment.
+
+24.5.26.3
 =========
  + Various minor static analysis guided code cleanup
 

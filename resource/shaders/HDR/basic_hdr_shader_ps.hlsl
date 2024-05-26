@@ -222,6 +222,26 @@ main (PS_INPUT input) : SV_TARGET
   float3 orig_color =
     abs (hdr_color.rgb);
 
+  if ((hdr_color.r > 1.115f  &&
+       hdr_color.g > 1.115f  &&
+       hdr_color.b > 1.115f) ||
+      (hdr_color.r > 1.5f    ||
+       hdr_color.g > 1.5f    ||
+       hdr_color.b > 1.5f))
+  {
+    float fLuma =
+      Luminance (hdr_color.rgb);
+
+    if (fLuma > 1.0f)
+    {
+      float3 fNormalColor =
+        normalize (hdr_color.rgb);
+
+      hdr_color.rgb =                    fNormalColor +
+        NeutralTonemap (hdr_color.rgb - (fNormalColor * fLuma));
+    };
+  }
+
 #ifdef INCLUDE_NAN_MITIGATION
 #ifdef DEBUG_NAN
   if ( AnyIsNan      (hdr_color)/*||
