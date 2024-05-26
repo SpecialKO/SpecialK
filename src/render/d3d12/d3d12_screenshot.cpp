@@ -1735,7 +1735,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                 if (hdr && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT)
                 {
-                  auto hdr10_metadata        = un_srgb.GetMetadata ();
+                  auto hdr10_metadata        = (TexMetadata)un_srgb.GetMetadata ();
                        hdr10_metadata.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
                        hdr10_metadata.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
 
@@ -1786,7 +1786,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   };
 
                   auto metadata =
-                    un_srgb.GetMetadata ();
+                    (TexMetadata)un_srgb.GetMetadata ();
 
                   metadata.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
 
@@ -2312,7 +2312,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                       if (hdr && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT)
                       {
-                        auto hdr10_metadata        = un_srgb.GetMetadata ();
+                        auto hdr10_metadata        = (TexMetadata)un_srgb.GetMetadata ();
                              hdr10_metadata.format = DXGI_FORMAT_R16G16B16A16_FLOAT;
                              hdr10_metadata.SetAlphaMode (TEX_ALPHA_MODE_OPAQUE);
 

@@ -1,4 +1,4 @@
-// dear imgui: Renderer for DirectX12
+﻿// dear imgui: Renderer for DirectX12
 // This needs to be used along with a Platform Binding (e.g. Win32)
 
 // Implemented features:
@@ -40,7 +40,7 @@ struct sk_d3d12_texture_s {
   D3D12_CPU_DESCRIPTOR_HANDLE hTextureSrvCpuDescHandle = { };
   D3D12_GPU_DESCRIPTOR_HANDLE hTextureSrvGpuDescHandle = { };
 
-  static int num_textures;
+  static size_t num_textures;
 };
 
 sk_d3d12_texture_s

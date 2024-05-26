@@ -302,6 +302,12 @@ _In_   const D3D12_GRAPHICS_PIPELINE_STATE_DESC *pDesc_,
              REFIID                              riid,
 _COM_Outptr_ void                              **ppPipelineState )
 {
+  if (ppPipelineState == nullptr)
+    return E_INVALIDARG;
+
+  if (ppPipelineState == nullptr)
+    return E_INVALIDARG;
+
   if (riid != __uuidof (ID3D12PipelineState) || ppPipelineState == nullptr)
   {
     wchar_t                wszGUID [41] = { };
@@ -801,6 +807,9 @@ _COM_Outptr_  void                            **ppPipelineState )
 {
   SK_LOG_FIRST_CALL
 
+  if (ppPipelineState == nullptr)
+    return E_INVALIDARG;
+
   HRESULT hr =
     D3D12Device2_CreatePipelineState_Original (
            This, pDesc, riid, ppPipelineState );
@@ -897,114 +906,114 @@ D3D12Device_CreateCommandAllocator_Detour (
   REFIID                   riid,
   _COM_Outptr_  void      **ppCommandAllocator )
 {
-  static bool bEldenRing =
-    (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
-  if (bEldenRing)
+  if (ppCommandAllocator != nullptr)
   {
-  if (riid == __uuidof (ID3D12CommandAllocator))
-  {
-    struct allocator_cache_s {
-      using heap_type_t =
-        concurrency::concurrent_unordered_map <ID3D12Device*,
-        concurrency::concurrent_unordered_map <ID3D12CommandAllocator*, volatile ULONG64>>;
-
-      const char* type   = "Unknown";
-      heap_type_t heap   = heap_type_t ();
-      int         cycles = 0;
-    } static
-      direct_ { .type = "Direct" }, bundle_  { .type = "Bundle"  },
-      copy_   { .type = "Copy"   }, compute_ { .type = "Compute" };
-
-    allocator_cache_s*
-             pCache = nullptr;
-
-    switch (type)
+    static bool bEldenRing =
+      (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
+    if (bEldenRing && riid == __uuidof (ID3D12CommandAllocator))
     {
-      case D3D12_COMMAND_LIST_TYPE_DIRECT:  pCache = &direct_;  break;
-      case D3D12_COMMAND_LIST_TYPE_BUNDLE:  pCache = &bundle_;  break;
-      case D3D12_COMMAND_LIST_TYPE_COPY:    pCache = &copy_;    break;
-      case D3D12_COMMAND_LIST_TYPE_COMPUTE: pCache = &compute_; break;
-      default:
-        break;
-    }
+      struct allocator_cache_s {
+        using heap_type_t =
+          concurrency::concurrent_unordered_map <ID3D12Device*,
+          concurrency::concurrent_unordered_map <ID3D12CommandAllocator*, volatile ULONG64>>;
 
-    if (pCache != nullptr)
-    {
-      int extra = 0;
+        const char* type   = "Unknown";
+        heap_type_t heap   = heap_type_t ();
+        int         cycles = 0;
+      } static
+        direct_ { .type = "Direct" }, bundle_  { .type = "Bundle"  },
+        copy_   { .type = "Copy"   }, compute_ { .type = "Compute" };
 
-      for ( auto &[pAllocator, LastFrame] : pCache->heap [This] )
+      allocator_cache_s*
+               pCache = nullptr;
+
+      switch (type)
       {
-        if (pAllocator != nullptr && ReadULong64Acquire (&LastFrame) != 0)
+        case D3D12_COMMAND_LIST_TYPE_DIRECT:  pCache = &direct_;  break;
+        case D3D12_COMMAND_LIST_TYPE_BUNDLE:  pCache = &bundle_;  break;
+        case D3D12_COMMAND_LIST_TYPE_COPY:    pCache = &copy_;    break;
+        case D3D12_COMMAND_LIST_TYPE_COMPUTE: pCache = &compute_; break;
+        default:
+          break;
+      }
+
+      if (pCache != nullptr)
+      {
+        int extra = 0;
+
+        for ( auto &[pAllocator, LastFrame] : pCache->heap [This] )
         {
-          if (pAllocator->AddRef () == 2)
+          if (pAllocator != nullptr && ReadULong64Acquire (&LastFrame) != 0)
           {
-            if (extra++ == 0)
+            if (pAllocator->AddRef () == 2)
             {
-              *ppCommandAllocator =
-                       pAllocator;
-                       pAllocator->Reset ();
-
-              SK_LOG1 ( ( L"%hs Command Allocator Reused", pCache->type ),
-                            __SK_SUBSYSTEM__ );
-
-              SK_LOG1 ( ( L"Allocator Heap Size: %d", pCache->heap [This].size ()),
-                            __SK_SUBSYSTEM__ );
-            }
-
-            // We found a cached allocator, but let's continue looking for any
-            // dead allocators to free.
-            else
-            {
-              // There are an insane number (200+) of live Direct Cmd Allocators
-              //   in Elden Ring
-              if (pAllocator->Release () == 1 && extra > 256)
+              if (extra++ == 0)
               {
-                // Hopefully this is not still live...
-                pAllocator->SetName (
-                  SK_FormatStringW ( L"Zombie %hs Allocator (%d)",
-                                       pCache->type, pCache->cycles ).c_str ()
-                                    );
+                *ppCommandAllocator =
+                         pAllocator;
+                         pAllocator->Reset ();
 
-                WriteULong64Release (&LastFrame, 0); // Dead
+                SK_LOG1 ( ( L"%hs Command Allocator Reused", pCache->type ),
+                              __SK_SUBSYSTEM__ );
 
-                pAllocator->Release ();
+                SK_LOG1 ( ( L"Allocator Heap Size: %d", pCache->heap [This].size ()),
+                              __SK_SUBSYSTEM__ );
+              }
 
-                SK_LOG1 ( ( L"%hs Command Allocator Released (%p)", pCache->type,
-                                                                    pAllocator ),
-                            __SK_SUBSYSTEM__ );
+              // We found a cached allocator, but let's continue looking for any
+              // dead allocators to free.
+              else
+              {
+                // There are an insane number (200+) of live Direct Cmd Allocators
+                //   in Elden Ring
+                if (pAllocator->Release () == 1 && extra > 256)
+                {
+                  // Hopefully this is not still live...
+                  pAllocator->SetName (
+                    SK_FormatStringW ( L"Zombie %hs Allocator (%d)",
+                                         pCache->type, pCache->cycles ).c_str ()
+                                      );
+
+                  WriteULong64Release (&LastFrame, 0); // Dead
+
+                  pAllocator->Release ();
+
+                  SK_LOG1 ( ( L"%hs Command Allocator Released (%p)", pCache->type,
+                                                                      pAllocator ),
+                              __SK_SUBSYSTEM__ );
+                }
               }
             }
-          }
 
-          else
-          {
-            ++pCache->cycles;
+            else
+            {
+              ++pCache->cycles;
 
-            pAllocator->Release ();
+              pAllocator->Release ();
+            }
           }
         }
-      }
 
-      if (extra > 0) // Cache hit
-        return S_OK;
+        if (extra > 0) // Cache hit
+          return S_OK;
 
-      if ( SUCCEEDED (
-             D3D12Device_CreateCommandAllocator_Original (
-               This, type,
-               riid, ppCommandAllocator
-             )       )
-         )
-      {
-        (*(ID3D12CommandAllocator **)ppCommandAllocator)->AddRef ();
+        if ( SUCCEEDED (
+               D3D12Device_CreateCommandAllocator_Original (
+                 This, type,
+                 riid, ppCommandAllocator
+               )       )
+           )
+        {
+          (*(ID3D12CommandAllocator **)ppCommandAllocator)->AddRef ();
 
-        pCache->heap [This].insert (
-          std::make_pair ( *(ID3D12CommandAllocator **)ppCommandAllocator,
-                               SK_GetFramesDrawn () + 1 ) );
+          pCache->heap [This].insert (
+            std::make_pair ( *(ID3D12CommandAllocator **)ppCommandAllocator,
+                                 SK_GetFramesDrawn () + 1 ) );
 
-        return S_OK;
+          return S_OK;
+        }
       }
     }
-  }
   }
 
   return

@@ -1389,6 +1389,8 @@ float3 sRGB_to_DCIP3 (float3 x)
         mul ( sRGB_2_AP1, x)
           )
         );
+
+  return x;
 }
 
 // sRGB to ACES

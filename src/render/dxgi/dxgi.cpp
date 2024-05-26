@@ -4467,6 +4467,9 @@ DXGISwap3_ResizeBuffers1_Override (IDXGISwapChain3* This,
 HRESULT
 SK_DXGI_GetDebugInterface (REFIID riid, void **ppDebug)
 {
+  if (ppDebug == nullptr)
+    return ERROR_INVALID_PARAMETER;
+
   static HMODULE hModDXGIDebug =
     LoadLibraryExW ( L"dxgidebug.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32 );
 
@@ -7582,6 +7585,9 @@ HRESULT
 WINAPI CreateDXGIFactory (REFIID   riid,
                     _Out_ void   **ppFactory)
 {
+  if (ppFactory == nullptr)
+    return E_INVALIDARG;
+
   if (SK_COMPAT_IgnoreDxDiagnCall ())
     return E_NOTIMPL;
 
@@ -7639,6 +7645,12 @@ WINAPI CreateDXGIFactory (REFIID   riid,
     DXGI_CALL (ret, CreateDXGIFactory_Import (riid, ppFactory));
   }
 
+  if ( ppFactory == nullptr ||
+      *ppFactory == nullptr)
+  {
+    ret = E_INVALIDARG;
+  }
+
   if (SUCCEEDED (ret) && *ppFactory != nullptr)
   {
     SK_DXGI_LazyHookFactory ((IDXGIFactory *)*ppFactory);
@@ -7647,6 +7659,12 @@ WINAPI CreateDXGIFactory (REFIID   riid,
     {
       __SK_DXGI_FactoryCache.addFactory (ppFactory, riid);
     }
+  }
+
+  if ( ppFactory == nullptr ||
+      *ppFactory == nullptr)
+  {
+    ret = E_INVALIDARG;
   }
 
   return ret;
@@ -7661,6 +7679,9 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
                      _Out_ void   **ppFactory)
 
 {
+  if (ppFactory == nullptr)
+    return E_INVALIDARG;
+
   if (SK_COMPAT_IgnoreDxDiagnCall ())
     return E_NOTIMPL;
 
@@ -7734,6 +7755,12 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
   HRESULT    ret;
   DXGI_CALL (ret, CreateDXGIFactory1_Import (riid, &pFactory_));
 
+  if (ppFactory  == nullptr ||
+       pFactory_ == nullptr)
+  {
+    ret = E_INVALIDARG;
+  }
+
   if (SUCCEEDED (ret) && pFactory_ != nullptr)
   {
 #if 0
@@ -7754,7 +7781,13 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
     }
   }
 
-  return     ret;
+  if ( ppFactory == nullptr ||
+      *ppFactory == nullptr)
+  {
+    ret = E_INVALIDARG;
+  }
+
+  return ret;
 }
 
 HRESULT
@@ -7762,6 +7795,9 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
                            REFIID   riid_,
                      _Out_ void   **ppFactory)
 {
+  if (ppFactory == nullptr)
+    return E_INVALIDARG;
+
   IID riid = riid_;
 
   // Upgrade everything to at least IDXGIFactory5 implicitly
@@ -7856,6 +7892,12 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
 
   HRESULT    ret;
   DXGI_CALL (ret, CreateDXGIFactory2_Import (Flags, riid, &pFactory_));
+
+  if ( ppFactory == nullptr ||
+       pFactory_ == nullptr)
+  {
+    ret = E_INVALIDARG;
+  }
 
   if (SUCCEEDED (ret) && pFactory_ != nullptr)
   {

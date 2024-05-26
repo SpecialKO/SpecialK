@@ -89,29 +89,33 @@ void SK_Bluetooth_InitPowerMgmt (void)
                 { .dwSize = sizeof (BLUETOOTH_FIND_RADIO_PARAMS) };
 
               HANDLE hBtRadio    = INVALID_HANDLE_VALUE;
-              HANDLE hFindRadios =
-                BluetoothFindFirstRadio (&findParams, &hBtRadio);
+              HANDLE hFindRadios = INVALID_HANDLE_VALUE;
 
-              BOOL   success  = FALSE;
-              while (success == FALSE && hBtRadio != 0)
+              BluetoothFindFirstRadio (&findParams, &hBtRadio);
+
+              if ((intptr_t)hFindRadios > 0 && (intptr_t)hBtRadio > 0)
               {
-                success =
-                  SK_DeviceIoControl (
-                    hBtRadio, IOCTL_BTH_DISCONNECT_DEVICE, &ullHWAddr, 8,
-                                                           nullptr,    0,
-                                         &dwBytesReturned, nullptr );
+                BOOL   success  = FALSE;
+                while (success == FALSE && hBtRadio != 0)
+                {
+                  success =
+                    SK_DeviceIoControl (
+                      hBtRadio, IOCTL_BTH_DISCONNECT_DEVICE, &ullHWAddr, 8,
+                                                             nullptr,    0,
+                                           &dwBytesReturned, nullptr );
 
-                CloseHandle (hBtRadio);
+                  CloseHandle (hBtRadio);
 
-                if (! success)
-                  if (! BluetoothFindNextRadio (hFindRadios, &hBtRadio))
-                    hBtRadio = 0;
+                  if (! success)
+                    if (! BluetoothFindNextRadio (hFindRadios, &hBtRadio))
+                      hBtRadio = 0;
 
-                if (success)
-                  ++powered_off;
+                  if (success)
+                    ++powered_off;
+                }
+
+                BluetoothFindRadioClose (hFindRadios);
               }
-
-              BluetoothFindRadioClose (hFindRadios);
             }
           }
         }

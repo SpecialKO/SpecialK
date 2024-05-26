@@ -1,4 +1,8 @@
-﻿24.5.26.2
+﻿24.5.26.3
+=========
+ + Various minor static analysis guided code cleanup
+
+24.5.26.2
 =========
  + Added HDR Screenshot Compatibility Mode checkbox to HDR control panel menu
 

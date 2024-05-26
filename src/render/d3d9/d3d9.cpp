@@ -5677,12 +5677,15 @@ SK_D3D9_SwapEffectToStr (pPresentationParameters->SwapEffect).c_str (),
         config.window.fullscreen         = true;
         config.display.force_windowed    = true;
 
-        SetWindowPos (
-          hFocusWindow, 0,
-            0, 0,
-              pPresentationParameters->BackBufferWidth,
-              pPresentationParameters->BackBufferHeight, SWP_SHOWWINDOW
-        );
+        if ((uintptr_t)hFocusWindow > 0)
+        {
+          SetWindowPos (
+            hFocusWindow, 0,
+              0, 0,
+                pPresentationParameters->BackBufferWidth,
+                pPresentationParameters->BackBufferHeight, SWP_SHOWWINDOW
+          );
+        }
 
         SK_SetPresentParamsD3D9 ( nullptr,
                                     pPresentationParameters );
@@ -9408,7 +9411,7 @@ SK_D3D9_DumpShader ( const wchar_t* wszPrefix,
     if (comments_end  != nullptr) *comments_end  = '\0'; else (comments_end  = (char *)"  ");
     if (footer_begins != nullptr) *footer_begins = '\0'; else (footer_begins = (char *)"  ");
 
-    if (! _wcsicmp (wszPrefix, L"ps"))
+    if ((! _wcsicmp (wszPrefix, L"ps")) && szDisasm != nullptr)
     {
       ps_disassembly->emplace ( crc32c, SK::D3D9::ShaderDisassembly {
                                          szDisasm,

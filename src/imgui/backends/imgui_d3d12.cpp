@@ -516,11 +516,14 @@ ImGui_ImplDX12_CreateFontsTexture (void)
     return;
 
   unsigned char* pixels = nullptr;
-  int            width  = 0,
-                 height = 0;
+  int           _width  = 0,
+                _height = 0;
 
   io.Fonts->GetTexDataAsRGBA32 ( &pixels,
-                                 &width, &height );
+                                 &_width, &_height );
+
+  uintptr_t width  = _width;
+  uintptr_t height = _height;
 
   try {
     SK_ComPtr <ID3D12Resource>            pTexture;
@@ -548,8 +551,8 @@ ImGui_ImplDX12_CreateFontsTexture (void)
     D3D12_RESOURCE_DESC
       desc                  = { };
       desc.Dimension        = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-      desc.Width            = width;
-      desc.Height           = height;
+      desc.Width            = (UINT)width;
+      desc.Height           = (UINT)height;
       desc.DepthOrArraySize = 1;
       desc.MipLevels        = 1;
       desc.Format           = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -563,9 +566,9 @@ ImGui_ImplDX12_CreateFontsTexture (void)
     );SK_D3D12_SetDebugName (   pTexture.p,
               L"ImGui D3D12 Font Texture");
 
-    UINT uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
-                                & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
-    UINT uploadSize  = height * uploadPitch;
+    size_t uploadPitch = ((size_t)width * (size_t)4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - (size_t)1u)
+                                                  & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - (size_t)1u);
+    size_t uploadSize  =  (size_t)height * uploadPitch;
 
     props.Type            = D3D12_HEAP_TYPE_UPLOAD;
     desc.Dimension        = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -587,7 +590,7 @@ ImGui_ImplDX12_CreateFontsTexture (void)
 
     ThrowIfFailed (uploadBuffer->Map (0, &range, &mapped));
 
-    for ( int y = 0; y < height; y++ )
+    for ( uintptr_t y = 0; y < height; y++ )
     {
       memcpy ( (void*) ((uintptr_t) mapped + y * uploadPitch),
                                     pixels + y * width * 4,
@@ -601,10 +604,10 @@ ImGui_ImplDX12_CreateFontsTexture (void)
       srcLocation                                    = { .pResource = uploadBuffer };
       srcLocation.Type                               = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
       srcLocation.PlacedFootprint.Footprint.Format   = DXGI_FORMAT_R8G8B8A8_UNORM;
-      srcLocation.PlacedFootprint.Footprint.Width    = width;
-      srcLocation.PlacedFootprint.Footprint.Height   = height;
+      srcLocation.PlacedFootprint.Footprint.Width    = (UINT)width;
+      srcLocation.PlacedFootprint.Footprint.Height   = (UINT)height;
       srcLocation.PlacedFootprint.Footprint.Depth    = 1;
-      srcLocation.PlacedFootprint.Footprint.RowPitch = uploadPitch;
+      srcLocation.PlacedFootprint.Footprint.RowPitch = (UINT)uploadPitch;
 
     D3D12_RESOURCE_BARRIER
       barrier                        = { };
@@ -693,7 +696,7 @@ ImGui_ImplDX12_CreateFontsTexture (void)
   };
 }
 
-int sk_d3d12_texture_s::num_textures = 0;
+size_t sk_d3d12_texture_s::num_textures = 0;
 
 sk_d3d12_texture_s
 SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
@@ -705,8 +708,8 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
     return texture;
 
   unsigned char* pixels = image.GetImage (0, 0, 0)->pixels;
-  int            width  = static_cast <int> (metadata.width),
-                 height = static_cast <int> (metadata.height);
+  intptr_t       width  = static_cast <intptr_t> (metadata.width),
+                 height = static_cast <intptr_t> (metadata.height);
 
   try {
     SK_ComPtr <ID3D12Resource>            pTexture;
@@ -732,8 +735,8 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
     D3D12_RESOURCE_DESC
       desc                  = { };
       desc.Dimension        = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-      desc.Width            = width;
-      desc.Height           = height;
+      desc.Width            = (UINT)width;
+      desc.Height           = (UINT)height;
       desc.DepthOrArraySize = 1;
       desc.MipLevels        = 1;
       desc.Format           = metadata.format;
@@ -749,9 +752,9 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
     );SK_D3D12_SetDebugName (   pTexture.p, SK_FormatStringW (
               L"SK D3D12 Generic Texture%d", uiTexNum++ ) );
 
-    UINT uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
-                                & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
-    UINT uploadSize  = height * uploadPitch;
+    uintptr_t uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
+                                     & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
+    uintptr_t uploadSize  = height * uploadPitch;
 
     props.Type     = D3D12_HEAP_TYPE_UPLOAD;
     desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -787,10 +790,10 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
       srcLocation                                    = { .pResource = uploadBuffer };
       srcLocation.Type                               = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
       srcLocation.PlacedFootprint.Footprint.Format   = metadata.format;
-      srcLocation.PlacedFootprint.Footprint.Width    = width;
-      srcLocation.PlacedFootprint.Footprint.Height   = height;
+      srcLocation.PlacedFootprint.Footprint.Width    = (UINT)width;
+      srcLocation.PlacedFootprint.Footprint.Height   = (UINT)height;
       srcLocation.PlacedFootprint.Footprint.Depth    = 1;
-      srcLocation.PlacedFootprint.Footprint.RowPitch = uploadPitch;
+      srcLocation.PlacedFootprint.Footprint.RowPitch = (UINT)uploadPitch;
 
     D3D12_RESOURCE_BARRIER
       barrier                        = { };
@@ -854,7 +857,7 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
       srvDesc.Texture2D.MipLevels       = desc.MipLevels;
       srvDesc.Shader4ComponentMapping   = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-    const auto  srvDescriptorSize =
+    const size_t srvDescriptorSize =
       _imgui_d3d12.pDevice->GetDescriptorHandleIncrementSize (D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
     auto& descriptorHeaps =
@@ -865,7 +868,7 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
     auto      srvHandleGPU     =
       descriptorHeaps.pImGui->GetGPUDescriptorHandleForHeapStart ();
 
-    int tex_id = ++texture.num_textures;
+    size_t tex_id = ++texture.num_textures;
 
     texture.hTextureSrvCpuDescHandle.ptr =
               srvHandleCPU.ptr + tex_id * srvDescriptorSize;
@@ -3234,9 +3237,9 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
           _pSwapChain->GetBuffer (frame.iBufferIdx,                 IID_PPV_ARGS (&frame.pBackBuffer.p)));
 
         frame.hBackBufferRTV.ptr =
-                  rtvHandle.ptr + (frame.iBufferIdx * 2)     * rtvDescriptorSize;
+                  rtvHandle.ptr + ((size_t)frame.iBufferIdx * (size_t)2)             * rtvDescriptorSize;
         frame.hBackBufferRTV_sRGB.ptr =
-                  rtvHandle.ptr + (frame.iBufferIdx * 2 + 1) * rtvDescriptorSize;
+                  rtvHandle.ptr + ((size_t)frame.iBufferIdx * (size_t)2 + (size_t)1) * rtvDescriptorSize;
 
         //
         // Wrap this using ReShade's internal device, so that it can map the CPU descriptor back to a resource

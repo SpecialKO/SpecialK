@@ -422,6 +422,9 @@ STDMETHODCALLTYPE IWrapDXGISwapChain::GetPrivateData (REFGUID Name, UINT *pDataS
     }
   }
 
+  if (pDataSize == nullptr || pData == nullptr)
+    return E_INVALIDARG;
+
   return
     pReal->GetPrivateData (Name, pDataSize, pData);
 }

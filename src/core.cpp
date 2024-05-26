@@ -114,6 +114,9 @@ SK_SetBackend (const wchar_t* wszBackend)
 {
   SK_ReleaseAssert (wszBackend != nullptr);
 
+  if (wszBackend == nullptr)
+    return L"InvalidPointer";
+
   wcsncpy_s ( SKX_GetBackend (), 127,
                 wszBackend,      _TRUNCATE );
 

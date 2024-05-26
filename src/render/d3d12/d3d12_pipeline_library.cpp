@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -279,6 +279,9 @@ _In_    const D3D12_GRAPHICS_PIPELINE_STATE_DESC *pDesc,
 _COM_Outptr_  void                              **ppPipelineState )
 {
   SK_LOG_FIRST_CALL
+
+  if (ppPipelineState == nullptr)
+    return E_INVALIDARG;
 
   SK_LOG0 ( ( L"LoadGraphicsPipeline (%ws)", pName ), __SK_SUBSYSTEM__ );
 
