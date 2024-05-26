@@ -1,4 +1,8 @@
-﻿24.5.26.1
+﻿24.5.26.2
+=========
+ + Added HDR Screenshot Compatibility Mode checkbox to HDR control panel menu
+
+24.5.26.1
 =========
  + Fixed warning triggering in non-D3D12 cases.
 

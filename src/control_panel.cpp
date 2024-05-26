@@ -3846,6 +3846,17 @@ SK_ImGui_ControlPanel (void)
           ImGui::TreePop ();
         }
 
+        if (config.screenshots.png_compress)
+        {
+          hdr_changed |=
+            ImGui::Checkbox ("HDR Screenshot Compatibility Mode", &config.screenshots.compatibility_mode);
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Disables advanced compression features and formats not supported by all software.");
+          }
+        }
+
         if ( rb.screenshot_mgr->getRepoStats ().files > 0 )
         {
           const SK_ScreenshotManager::screenshot_repository_s& repo =
