@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -555,6 +555,20 @@ sk::ParameterStringW::load (std::wstring& ref)
     ref.assign (get_value ());
 
   return bRet;
+}
+
+bool
+sk::ParameterStringW::is_equal (const std::wstring& str,
+                                      bool          case_sensitive) const
+{
+  if (case_sensitive)
+  {
+    return
+      value._Equal (str);
+  }
+
+  return
+    (! _wcsicmp (value.c_str (), str.c_str ()));
 }
 
 

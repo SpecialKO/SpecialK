@@ -2120,94 +2120,104 @@ auto DeclKeybind =
   }
 
 
+  SK_RunOnce (
+    while (sec != sections.cend ())
+    {
+      auto& import_ =
+        imports->imports
+           [import_idx];
+
+      if (sec->first.find (L"Import.") != std::wstring::npos)
+      {
+        const wchar_t* wszNext =
+          wcschr (sec->first.c_str (), L'.');
+
+        import_.name =
+          wszNext != nullptr       ?
+            SK_CharNextW (wszNext) : L"";
+
+        import_.filename =
+           dynamic_cast <sk::ParameterStringW *>
+               (g_ParameterFactory->create_parameter <std::wstring> (
+                  L"Import Filename")
+               );
+        import_.filename->register_to_ini (
+          dll_ini,
+            sec->first,
+              L"Filename" );
+
+        import_.when =
+           dynamic_cast <sk::ParameterStringW *>
+               (g_ParameterFactory->create_parameter <std::wstring> (
+                  L"Import Timeframe")
+               );
+        import_.when->register_to_ini (
+          dll_ini,
+            sec->first,
+              L"When" );
+
+        import_.role =
+           dynamic_cast <sk::ParameterStringW *>
+               (g_ParameterFactory->create_parameter <std::wstring> (
+                  L"Import Role")
+               );
+        import_.role->register_to_ini (
+          dll_ini,
+            sec->first,
+              L"Role" );
+
+        import_.architecture =
+           dynamic_cast <sk::ParameterStringW *>
+               (g_ParameterFactory->create_parameter <std::wstring> (
+                  L"Import Architecture")
+               );
+        import_.architecture->register_to_ini (
+          dll_ini,
+            sec->first,
+              L"Architecture" );
+
+        import_.blacklist =
+           dynamic_cast <sk::ParameterStringW *>
+               (g_ParameterFactory->create_parameter <std::wstring> (
+                  L"Blacklisted Executables")
+               );
+        import_.blacklist->register_to_ini (
+          dll_ini,
+            sec->first,
+              L"Blacklist" );
+
+        import_.mode =
+           dynamic_cast <sk::ParameterStringW *>
+               (g_ParameterFactory->create_parameter <std::wstring> (
+                  L"Plug-In Mode (application defined)")
+               );
+        import_.mode->register_to_ini (
+          dll_ini,
+            sec->first,
+              L"Mode" );
+
+        static_cast <sk::iParameter *> (import_.filename    )->load ();
+        static_cast <sk::iParameter *> (import_.when        )->load ();
+        static_cast <sk::iParameter *> (import_.blacklist   )->load ();
+        static_cast <sk::iParameter *> (import_.mode        )->load ();
+
+        if (! static_cast <sk::iParameter *> (import_.role        )->load ())
+                                              import_.role->set_value         (L"Any");
+        if (! static_cast <sk::iParameter *> (import_.architecture)->load ())
+                                              import_.architecture->set_value (L"Any");
+
+        import_.hLibrary = nullptr;
+
+        if (++import_idx > SK_MAX_IMPORTS)
+          break;
+      }
+
+      ++sec;
+    }
+  );
+
   while (sec != sections.cend ())
   {
-    auto& import_ =
-      imports->imports
-         [import_idx];
-
-    if (sec->first.find (L"Import.") != std::wstring::npos)
-    {
-      const wchar_t* wszNext =
-        wcschr (sec->first.c_str (), L'.');
-
-      import_.name =
-        wszNext != nullptr       ?
-          SK_CharNextW (wszNext) : L"";
-
-      import_.filename =
-         dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory->create_parameter <std::wstring> (
-                L"Import Filename")
-             );
-      import_.filename->register_to_ini (
-        dll_ini,
-          sec->first,
-            L"Filename" );
-
-      import_.when =
-         dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory->create_parameter <std::wstring> (
-                L"Import Timeframe")
-             );
-      import_.when->register_to_ini (
-        dll_ini,
-          sec->first,
-            L"When" );
-
-      import_.role =
-         dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory->create_parameter <std::wstring> (
-                L"Import Role")
-             );
-      import_.role->register_to_ini (
-        dll_ini,
-          sec->first,
-            L"Role" );
-
-      import_.architecture =
-         dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory->create_parameter <std::wstring> (
-                L"Import Architecture")
-             );
-      import_.architecture->register_to_ini (
-        dll_ini,
-          sec->first,
-            L"Architecture" );
-
-      import_.blacklist =
-         dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory->create_parameter <std::wstring> (
-                L"Blacklisted Executables")
-             );
-      import_.blacklist->register_to_ini (
-        dll_ini,
-          sec->first,
-            L"Blacklist" );
-
-      import_.mode =
-         dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory->create_parameter <std::wstring> (
-                L"Plug-In Mode (application defined)")
-             );
-      import_.mode->register_to_ini (
-        dll_ini,
-          sec->first,
-            L"Mode" );
-
-      static_cast <sk::iParameter *> (import_.filename    )->load ();
-      static_cast <sk::iParameter *> (import_.when        )->load ();
-      static_cast <sk::iParameter *> (import_.role        )->load ();
-      static_cast <sk::iParameter *> (import_.architecture)->load ();
-      static_cast <sk::iParameter *> (import_.blacklist   )->load ();
-      static_cast <sk::iParameter *> (import_.mode        )->load ();
-
-      import_.hLibrary = nullptr;
-
-      if (++import_idx > SK_MAX_IMPORTS)
-        break;
-    }
-
     if (sec->first.find (L"Macro.") != std::wstring::npos)
     {
       for ( auto &[key_name, command] : sec->second.keys )

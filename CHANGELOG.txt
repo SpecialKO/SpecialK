@@ -1,4 +1,11 @@
-﻿24.5.27
+﻿24.5.27.1
+=========
+ + Added support for "Any" Role or Architecture to DLL import INI records
+ + If "Role" or "Architecture" are missing from a DLL import, they assume "Any"
+ + Removed case sensitivity from DLL import config entries
+ + Removed HDR Overbright Bits Tonemapping
+
+24.5.27
 =======
  + Added GPU clockrate to HDR Processing time since the time to execute varies
      due to power management under low GPU load...
