@@ -229,28 +229,6 @@ main (PS_INPUT input) : SV_TARGET
     hdr_color.rgb =
       max (0.0f, hdr_color.rgb);
 
-    if (any (max (0.0f, hdr_color.rgb - float3 (1.0f, 1.0f, 1.0f))))
-    {
-      if (  1.5f <   hdr_color.r ||
-            1.5f <   hdr_color.g ||
-            1.5f <   hdr_color.b ||
-           3.35f < ( hdr_color.r +
-                     hdr_color.g +
-                     hdr_color.b ) )
-      {
-        float fLuma =
-          Luminance (hdr_color.rgb);
-
-        if (fLuma > 1.0f)
-        {
-          float3 fNormalColor   = saturate ( hdr_color.rgb );
-          float3 fResidualColor = max (0.0f, hdr_color.rgb - fNormalColor);
-
-          hdr_color.rgb =   fNormalColor +
-            NeutralTonemap (fResidualColor);
-        };
-      }
-    }
   }
 
 #ifdef INCLUDE_NAN_MITIGATION

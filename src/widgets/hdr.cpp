@@ -2460,10 +2460,16 @@ public:
 
             const bool pboost = (preset.pq_boost0 > 0.0f);
 
-            //ImGui::Checkbox ("Linear is 2.2", &__SK_HDR_LinearIsG22);
+#ifdef SK_HAS_OVERBRIGHT_TONEMAP
+            ImGui::Checkbox ("Tonemap Overbright Bits", &__SK_HDR_LinearIsG22);
+#endif
 
             if (pboost)
             {
+#ifdef SK_HAS_OVERBRIGHT_TONEMAP
+              ImGui::SameLine ();
+#endif
+
               float colorboost =
                 100.0f * preset.pq_colorboost;
 
