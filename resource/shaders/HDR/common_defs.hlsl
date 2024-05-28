@@ -211,8 +211,8 @@ float Clamp_scRGB (float c, bool strip_nan = false)
   if (strip_nan)
     c = (! IsNan (c)) * (! IsInf (c)) * c;
 
-  return clamp (c + sign (c) * FP16_MIN, -125.0f,
-                                          125.0f);
+  return clamp (c + sign (c) * FP16_MIN, -float_MAX,
+                                          float_MAX);
 }
 
 // Using pow often result to a warning like this
@@ -616,6 +616,12 @@ float Luminance (float4 linearRgba)
 {
   return
     Luminance (linearRgba.rgb);
+}
+
+float LuminanceRec2020 (float3 linearRgb)
+{
+  return
+    max (0.0f, dot (linearRgb, float3 (0.2627, 0.678, 0.0593)));
 }
 
 //

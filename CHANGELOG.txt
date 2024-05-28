@@ -1,4 +1,9 @@
-﻿24.5.27.2
+﻿24.5.28
+=======
+ + Perform overbright processing in Rec 2020 and eliminate Rec 709 clamp
+     on input if luminance scale > 1.0
+
+24.5.27.2
 =========
  + Add HDR Overbright Bit Tonemapping back as a per-profile INI setting
 

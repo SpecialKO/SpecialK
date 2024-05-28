@@ -216,31 +216,36 @@ main (PS_INPUT input) : SV_TARGET
     abs (hdr_color.rgb);
 
   // For scRGB Inverse Tonemapping (luminance scale > 1.0 or Perceptual Boost),
-  //   clamp to Rec 709
+  //   clamp to Rec 2020
   if (input.color.x >= 1.0f + FLT_EPSILON || pqBoostParams.x > 0.0f)
   {
-    hdr_color.rgb =
-      max (0.0f, hdr_color.rgb);
+    float3 rec2020_color =
+      max (0.0f, REC709toREC2020 (hdr_color.rgb));
+
+    hdr_color.rgb = rec2020_color;
 
     if (tonemapOverbrightBits)
     {
-      float fLuma =
-        Luminance (hdr_color.rgb);
+      float fLuminance =
+        LuminanceRec2020 (rec2020_color);
 
-      if (fLuma > 1.0f)
+      if (fLuminance > 1.0f)
       {
         float3 vNormalizedColor =
-          (hdr_color.rgb / fLuma);
+          (rec2020_color.rgb / fLuminance);
 
 #if 1
-        hdr_color.rgb =                   vNormalizedColor +
-          NeutralTonemap (hdr_color.rgb - vNormalizedColor) / 2.5f;
+        hdr_color.rgb =                       vNormalizedColor +
+          NeutralTonemap (rec2020_color.rgb - vNormalizedColor) / 2.5f;
 #else
         hdr_color.rgb =    vNormalizedColor +
          ((hdr_color.rgb - vNormalizedColor) / (1.0f + (hdr_color.rgb - vNormalizedColor))) / 2.0f;
 #endif
       }
     }
+
+    hdr_color.rgb =
+      REC2020toREC709 (hdr_color.rgb);
   }
 
 #ifdef INCLUDE_NAN_MITIGATION
@@ -278,7 +283,7 @@ main (PS_INPUT input) : SV_TARGET
       getNonNanSample (hdr_color, input.uv);
 
   hdr_color =
-    clamp (hdr_color, 0.0, 125.0);
+    clamp (hdr_color, 0.0, float_MAX);
 #endif
 #endif
 
@@ -411,7 +416,7 @@ main (PS_INPUT input) : SV_TARGET
     {
       hdr_color.rgb  *= float3 (125.0, 125.0, 125.0);
       hdr_color.rgb   =
-        min (hdr_color.rgb, 125.0f);
+        min (hdr_color.rgb, float_MAX);
 
       if (input.color.y != 1.0)
       {
