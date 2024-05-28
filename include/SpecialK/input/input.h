@@ -672,6 +672,12 @@ using HidD_GetAttributes_pfn = BOOLEAN (__stdcall *)(
   _Out_ PHIDD_ATTRIBUTES Attributes
 );
 
+using HidD_GetProductString_pfn = BOOLEAN (__stdcall *)(
+   _In_                             HANDLE HidDeviceObject,
+   _Out_writes_bytes_(BufferLength) PVOID  Buffer,
+   _In_                             ULONG  BufferLength
+);
+
 using HidD_GetSerialNumberString_pfn = BOOLEAN (__stdcall *)(
    _In_                             HANDLE HidDeviceObject,
    _Out_writes_bytes_(BufferLength) PVOID  Buffer,
@@ -1275,7 +1281,8 @@ void SK_HID_ProcessGamepadButtonBindings (void);
 std::wstring* SK_HID_GetGamepadButtonBinding    (UINT idx);
 void          SK_HID_AssignGamepadButtonBinding (UINT idx, const wchar_t* wszKeyName, UINT vKey);
 
-extern HidD_GetAttributes_pfn SK_HidD_GetAttributes;
+extern HidD_GetAttributes_pfn    SK_HidD_GetAttributes;
+extern HidD_GetProductString_pfn SK_HidD_GetProductString;
 
 extern void SK_Bluetooth_InitPowerMgmt (void);
 

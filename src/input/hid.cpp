@@ -68,6 +68,7 @@ HidP_GetCaps_pfn               HidP_GetCaps_Original           = nullptr;
 HidP_GetUsages_pfn             HidP_GetUsages_Original         = nullptr;
 
 HidD_GetAttributes_pfn         SK_HidD_GetAttributes           = nullptr;
+HidD_GetProductString_pfn      SK_HidD_GetProductString        = nullptr;
 HidD_GetSerialNumberString_pfn SK_HidD_GetSerialNumberString   = nullptr;
 HidD_GetPreparsedData_pfn      SK_HidD_GetPreparsedData        = nullptr;
 HidD_FreePreparsedData_pfn     SK_HidD_FreePreparsedData       = nullptr;
@@ -2281,6 +2282,10 @@ SK_Input_PreHookHID (void)
   SK_HidD_GetAttributes =
     (HidD_GetAttributes_pfn)SK_GetProcAddress (hModHID,
     "HidD_GetAttributes");
+
+  SK_HidD_GetProductString =
+    (HidD_GetProductString_pfn)SK_GetProcAddress (hModHID,
+    "HidD_GetProductString");
 
   SK_HidD_GetSerialNumberString =
     (HidD_GetSerialNumberString_pfn)SK_GetProcAddress (hModHID,
