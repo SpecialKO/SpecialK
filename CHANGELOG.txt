@@ -1,4 +1,8 @@
-﻿24.5.27.1
+﻿24.5.27.2
+=========
+ + Add HDR Overbright Bit Tonemapping back as a per-profile INI setting
+
+24.5.27.1
 =========
  + Added support for "Any" Role or Architecture to DLL import INI records
  + If "Role" or "Architecture" are missing from a DLL import, they assume "Any"

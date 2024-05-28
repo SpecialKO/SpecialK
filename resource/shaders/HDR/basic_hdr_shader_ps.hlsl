@@ -79,18 +79,11 @@ SK_ProcessColor4 ( float4 color,
   //
   float eotf = sdrContentEOTF;
 
-  /*
-  if (treatLinearAsG22 && eotf == 1.0f)
-                          eotf  = 2.2f;
-  */
-
   float4 out_color =
     float4 (
       ( strip_eotf && func != sRGB_to_Linear ) ?
                                  eotf != -2.2f ?    sign (color.rgb) * pow (abs (color.rgb),
-                                 eotf) : RemoveSRGBCurve (color.rgb) :/*
-                              treatLinearAsG22 ?    sign (color.rgb) * pow (abs (color.rgb),
-                                         2.2f) :*/        color.rgb,
+                                 eotf) : RemoveSRGBCurve (color.rgb) :           color.rgb,
                                                           color.a
     );
 
@@ -229,6 +222,25 @@ main (PS_INPUT input) : SV_TARGET
     hdr_color.rgb =
       max (0.0f, hdr_color.rgb);
 
+    if (tonemapOverbrightBits)
+    {
+      float fLuma =
+        Luminance (hdr_color.rgb);
+
+      if (fLuma > 1.0f)
+      {
+        float3 vNormalizedColor =
+          (hdr_color.rgb / fLuma);
+
+#if 1
+        hdr_color.rgb =                   vNormalizedColor +
+          NeutralTonemap (hdr_color.rgb - vNormalizedColor) / 2.5f;
+#else
+        hdr_color.rgb =    vNormalizedColor +
+         ((hdr_color.rgb - vNormalizedColor) / (1.0f + (hdr_color.rgb - vNormalizedColor))) / 2.0f;
+#endif
+      }
+    }
   }
 
 #ifdef INCLUDE_NAN_MITIGATION
@@ -298,7 +310,7 @@ main (PS_INPUT input) : SV_TARGET
 #endif
                          SK_ProcessColor4 ( hdr_color.rgba,
                                             xRGB_to_Linear,
-                              sdrContentEOTF != 1.0f || treatLinearAsG22).rgb;
+                              sdrContentEOTF != 1.0f).rgb;
 
 #ifdef INCLUDE_HDR10
   if (! bIsHDR10)

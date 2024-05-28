@@ -42,7 +42,7 @@ cbuffer colorSpaceTransform : register (b0)
 
   float4 pqBoostParams;
   float  colorBoost;
-  bool   treatLinearAsG22;
+  bool   tonemapOverbrightBits;
   bool   alignmentPadding0;
   bool   alignmentPadding1;
 };

@@ -144,12 +144,12 @@ struct SK_HDR_PQBoostParams
 } SK_HDR_PQBoost_v0 = { 0.5f, 30.0f, 11.5f, 1.500f, 1.0f,  570.0f },
   SK_HDR_PQBoost_v1 = { 0.5f,  1.0f,  0.1f, 1.273f, 0.5f,  267.0f };
 
-bool  __SK_HDR_LinearIsG22 = false;
-float __SK_HDR_ColorBoost  = SK_HDR_PQBoost_v1.ColorBoost;
-float __SK_HDR_PQBoost0    = SK_HDR_PQBoost_v1.PQBoost0;
-float __SK_HDR_PQBoost1    = SK_HDR_PQBoost_v1.PQBoost1;
-float __SK_HDR_PQBoost2    = SK_HDR_PQBoost_v1.PQBoost2;
-float __SK_HDR_PQBoost3    = SK_HDR_PQBoost_v1.PQBoost3;
+bool  __SK_HDR_TonemapOverbright = true;
+float __SK_HDR_ColorBoost        = SK_HDR_PQBoost_v1.ColorBoost;
+float __SK_HDR_PQBoost0          = SK_HDR_PQBoost_v1.PQBoost0;
+float __SK_HDR_PQBoost1          = SK_HDR_PQBoost_v1.PQBoost1;
+float __SK_HDR_PQBoost2          = SK_HDR_PQBoost_v1.PQBoost2;
+float __SK_HDR_PQBoost3          = SK_HDR_PQBoost_v1.PQBoost3;
 
 
 #define MAX_HDR_PRESETS 4
@@ -169,11 +169,12 @@ struct SK_HDR_Preset_s {
     int tonemap = SK_HDR_TONEMAP_NONE;
   } colorspace;
 
-  float        pq_colorboost   = SK_HDR_PQBoost_v1.ColorBoost;
-  float        pq_boost0       = SK_HDR_PQBoost_v1.PQBoost0;
-  float        pq_boost1       = SK_HDR_PQBoost_v1.PQBoost1;
-  float        pq_boost2       = SK_HDR_PQBoost_v1.PQBoost2;
-  float        pq_boost3       = SK_HDR_PQBoost_v1.PQBoost3;
+  bool         tonemap_overbright = true;
+  float        pq_colorboost      = SK_HDR_PQBoost_v1.ColorBoost;
+  float        pq_boost0          = SK_HDR_PQBoost_v1.PQBoost0;
+  float        pq_boost1          = SK_HDR_PQBoost_v1.PQBoost1;
+  float        pq_boost2          = SK_HDR_PQBoost_v1.PQBoost2;
+  float        pq_boost3          = SK_HDR_PQBoost_v1.PQBoost3;
 
   std::wstring annotation = L"";
 
@@ -184,6 +185,7 @@ struct SK_HDR_Preset_s {
   sk::ParameterFloat*   cfg_gamut        = nullptr;
   sk::ParameterFloat*   cfg_middlegray   = nullptr;
   sk::ParameterInt*     cfg_tonemap      = nullptr;
+  sk::ParameterBool*    cfg_tonemap_ob   = nullptr;
 
   sk::ParameterFloat*   cfg_colorboost   = nullptr;
   sk::ParameterFloat*   cfg_pq_boost0    = nullptr;
@@ -204,19 +206,20 @@ struct SK_HDR_Preset_s {
     __SK_HDR_Preset =
       preset_idx;
 
-    __SK_HDR_Luma          = peak_white_nits;
-    __SK_HDR_PaperWhite    = paper_white_nits;
-    __SK_HDR_MiddleLuma    = middle_gray_nits / 1.0_Nits;
-    __SK_HDR_user_sdr_Y    = middle_gray_nits / 1.0_Nits;
-    __SK_HDR_Exp           = eotf;
-    __SK_HDR_Saturation    = saturation;
-    __SK_HDR_Gamut         = gamut;
-    __SK_HDR_tonemap       = colorspace.tonemap;
-    __SK_HDR_ColorBoost    = pq_colorboost;
-    __SK_HDR_PQBoost0      = pq_boost0;
-    __SK_HDR_PQBoost1      = pq_boost1;
-    __SK_HDR_PQBoost2      = pq_boost2;
-    __SK_HDR_PQBoost3      = pq_boost3;
+    __SK_HDR_Luma              = peak_white_nits;
+    __SK_HDR_PaperWhite        = paper_white_nits;
+    __SK_HDR_MiddleLuma        = middle_gray_nits / 1.0_Nits;
+    __SK_HDR_user_sdr_Y        = middle_gray_nits / 1.0_Nits;
+    __SK_HDR_Exp               = eotf;
+    __SK_HDR_Saturation        = saturation;
+    __SK_HDR_Gamut             = gamut;
+    __SK_HDR_tonemap           = colorspace.tonemap;
+    __SK_HDR_TonemapOverbright = tonemap_overbright;
+    __SK_HDR_ColorBoost        = pq_colorboost;
+    __SK_HDR_PQBoost0          = pq_boost0;
+    __SK_HDR_PQBoost1          = pq_boost1;
+    __SK_HDR_PQBoost2          = pq_boost2;
+    __SK_HDR_PQBoost3          = pq_boost3;
 
     if (_SK_HDR_ActivePreset != nullptr)
     {   _SK_HDR_ActivePreset->store (preset_idx);
@@ -293,6 +296,11 @@ struct SK_HDR_Preset_s {
                  SK_FormatStringW   (L"ColorBoost_[%lu]", preset_idx).c_str (),
                     pq_colorboost,   L"ColorBoost" );
 
+      cfg_tonemap_ob =
+        _CreateConfigParameterBool ( SK_HDR_SECTION,
+                 SK_FormatStringW   (L"TonemapOverbright_[%lu]", preset_idx).c_str (),
+               tonemap_overbright,   L"TonemapOverbright" );
+
       cfg_pq_boost0 =
         _CreateConfigParameterFloat ( SK_HDR_SECTION,
                  SK_FormatStringW   (L"PerceptualBoost0_[%lu]", preset_idx).c_str (),
@@ -331,14 +339,14 @@ struct SK_HDR_Preset_s {
       store ();
     }
   }
-} static hdr_presets  [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.0f, 0.020f, { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v1.ColorBoost,  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.920f, 1.0f, 0.015f, { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v0.ColorBoost,  SK_HDR_PQBoost_v0.PQBoost0, SK_HDR_PQBoost_v0.PQBoost1, SK_HDR_PQBoost_v0.PQBoost2, SK_HDR_PQBoost_v0.PQBoost3, L"Shift+F2" },
-                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F3" },
-                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F4" } },
-         hdr_defaults [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.0f, 0.020f, { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v1.ColorBoost,  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
-                              { "HDR Preset 1", 1,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.920f, 1.0f, 0.015f, { SK_HDR_TONEMAP_NONE      }, SK_HDR_PQBoost_v0.ColorBoost,  SK_HDR_PQBoost_v0.PQBoost0, SK_HDR_PQBoost_v0.PQBoost1, SK_HDR_PQBoost_v0.PQBoost2, SK_HDR_PQBoost_v0.PQBoost3, L"Shift+F2" },
-                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F3" },
-                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F4" } };
+} static hdr_presets  [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.0f, 0.020f, { SK_HDR_TONEMAP_NONE      }, true, SK_HDR_PQBoost_v1.ColorBoost,  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.920f, 1.0f, 0.015f, { SK_HDR_TONEMAP_NONE      }, true, SK_HDR_PQBoost_v0.ColorBoost,  SK_HDR_PQBoost_v0.PQBoost0, SK_HDR_PQBoost_v0.PQBoost1, SK_HDR_PQBoost_v0.PQBoost2, SK_HDR_PQBoost_v0.PQBoost3, L"Shift+F2" },
+                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, true, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F3" },
+                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, true, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F4" } },
+         hdr_defaults [4] = { { "HDR Preset 0", 0,  160.0_Nits,  80.0_Nits, 100.0_Nits, 0.955f, 1.0f, 0.020f, { SK_HDR_TONEMAP_NONE      }, true, SK_HDR_PQBoost_v1.ColorBoost,  SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F1" },
+                              { "HDR Preset 1", 1,   80.0_Nits,  80.0_Nits, 100.0_Nits, 0.920f, 1.0f, 0.015f, { SK_HDR_TONEMAP_NONE      }, true, SK_HDR_PQBoost_v0.ColorBoost,  SK_HDR_PQBoost_v0.PQBoost0, SK_HDR_PQBoost_v0.PQBoost1, SK_HDR_PQBoost_v0.PQBoost2, SK_HDR_PQBoost_v0.PQBoost3, L"Shift+F2" },
+                              { "scRGB Native", 2,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, true, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F3" },
+                              { "HDR10 Native", 3,   80.0_Nits,  80.0_Nits, 100.0_Nits, 1.000f, 1.0f, 0.000f, { SK_HDR_TONEMAP_RAW_IMAGE }, true, SK_HDR_PQBoost_v1.ColorBoost, -SK_HDR_PQBoost_v1.PQBoost0, SK_HDR_PQBoost_v1.PQBoost1, SK_HDR_PQBoost_v1.PQBoost2, SK_HDR_PQBoost_v1.PQBoost3, L"Shift+F4" } };
 
 BOOL
 CALLBACK
@@ -2393,6 +2401,7 @@ public:
             preset.cfg_saturation->load   (preset.saturation);
             preset.cfg_gamut->load        (preset.gamut);
             preset.cfg_tonemap->load      (preset.colorspace.tonemap);
+            preset.cfg_tonemap_ob->load   (preset.tonemap_overbright);
 
             preset.cfg_colorboost->load   (preset.pq_colorboost);
             preset.cfg_pq_boost0->load    (preset.pq_boost0);
@@ -2460,15 +2469,17 @@ public:
 
             const bool pboost = (preset.pq_boost0 > 0.0f);
 
-#ifdef SK_HAS_OVERBRIGHT_TONEMAP
-            ImGui::Checkbox ("Tonemap Overbright Bits", &__SK_HDR_LinearIsG22);
-#endif
+            if (ImGui::Checkbox ("Tonemap Overbright Bits", &preset.tonemap_overbright))
+            {
+              preset.cfg_tonemap_ob->store (preset.tonemap_overbright);
+              __SK_HDR_TonemapOverbright =  preset.tonemap_overbright;
+
+              config.utility.save_async ();
+            }
 
             if (pboost)
             {
-#ifdef SK_HAS_OVERBRIGHT_TONEMAP
               ImGui::SameLine ();
-#endif
 
               float colorboost =
                 100.0f * preset.pq_colorboost;
