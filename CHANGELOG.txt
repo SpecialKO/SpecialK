@@ -1,4 +1,10 @@
-﻿24.5.28
+﻿24.5.29
+=======
+ + Vectorized NaN / Infinity checks in HDR shaders for better performance
+ + Precompute Perceptual Quantization coefficient reciprocals for faster
+     scRGB <--> HDR10 transformation
+
+24.5.28
 =======
  + Perform overbright processing in Rec 2020 and eliminate Rec 709 clamp
      on input if luminance scale > 1.0

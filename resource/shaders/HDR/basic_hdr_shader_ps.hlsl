@@ -67,11 +67,14 @@ SK_ProcessColor4 ( float4 color,
                    int    strip_eotf = 1 )
 {
 #ifdef INCLUDE_NAN_MITIGATION
-  color = float4
-    ( (! IsNan (color.r)) * (! IsInf (color.r)) * color.r,
-      (! IsNan (color.g)) * (! IsInf (color.g)) * color.g,
-      (! IsNan (color.b)) * (! IsInf (color.b)) * color.b,
-      (! IsNan (color.a)) * (! IsInf (color.a)) * color.a );
+  if (AnyIsInfOrNan (color))
+  {
+    color = float4
+      ( (! IsNan (color.r)) * IsInf (color.r) ? sign (color.r) * float_MAX : color.r,
+        (! IsNan (color.g)) * IsInf (color.g) ? sign (color.g) * float_MAX : color.g,
+        (! IsNan (color.b)) * IsInf (color.b) ? sign (color.b) * float_MAX : color.b,
+        (! IsNan (color.a)) * IsInf (color.a) ? sign (color.a) * float_MAX : color.a );
+  }
 #endif
 
   // This looks weird because power-law EOTF does not work as intended on negative colors, and
@@ -168,18 +171,21 @@ main (PS_INPUT input) : SV_TARGET
   {
     case TONEMAP_COPYRESOURCE:
     {
-      float4 ret =
-        texMainScene.Sample ( sampler0,
-                              input.uv );
+        float4 ret =
+        texMainScene.Sample(sampler0,
+                              input.uv);
 
 #ifdef INCLUDE_NAN_MITIGATION
-      // A UNORM RenderTarget would return this instead of NaN,
-      //   and the game is expecting UNORM render targets :)
-      return
-        float4 ( (! IsNan (ret.r)) * (! IsInf (ret.r)) * ret.r,
-                 (! IsNan (ret.g)) * (! IsInf (ret.g)) * ret.g,
-                 (! IsNan (ret.b)) * (! IsInf (ret.b)) * ret.b,
-                 (! IsNan (ret.a)) * (! IsInf (ret.a)) * ret.a );
+      if (AnyIsInfOrNan (ret))
+      {
+        // A UNORM RenderTarget would return this instead of NaN,
+        //   and the game is expecting UNORM render targets :)
+        return
+          float4 ( (! IsNan (ret.r)) * IsInf (ret.r) ? sign (ret.r) * float_MAX : ret.r,
+                   (! IsNan (ret.g)) * IsInf (ret.g) ? sign (ret.g) * float_MAX : ret.g,
+                   (! IsNan (ret.b)) * IsInf (ret.b) ? sign (ret.b) * float_MAX : ret.b,
+                   (! IsNan (ret.a)) * IsInf (ret.a) ? sign (ret.a) * float_MAX : ret.a );
+      }
 #endif
         return ret;
       }
@@ -192,11 +198,16 @@ main (PS_INPUT input) : SV_TARGET
         texMainScene.Sample ( sampler0,
                                 input.uv );
 
-      return
-        float4 ( (! IsNan (color.r)) * (! IsInf (color.r)) * color.r,
-                 (! IsNan (color.g)) * (! IsInf (color.g)) * color.g,
-                 (! IsNan (color.b)) * (! IsInf (color.b)) * color.b,
-                 (! IsNan (color.a)) * (! IsInf (color.a)) * color.a );
+      if (AnyIsInfOrNan (color))
+      {
+        return
+          float4 ( (! IsNan (color.r)) * IsInf (color.r) ? sign (color.r) * float_MAX : color.r,
+                   (! IsNan (color.g)) * IsInf (color.g) ? sign (color.g) * float_MAX : color.g,
+                   (! IsNan (color.b)) * IsInf (color.b) ? sign (color.b) * float_MAX : color.b,
+                   (! IsNan (color.a)) * IsInf (color.a) ? sign (color.a) * float_MAX : color.a );
+      }
+
+      return color;
     } break;
 #endif
   }
