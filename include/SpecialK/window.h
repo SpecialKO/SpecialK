@@ -135,6 +135,11 @@ using SetWindowPlacement_pfn = BOOL (WINAPI *)(
   _In_ const WINDOWPLACEMENT *lpwndpl
 );
 
+using ShowWindow_pfn = BOOL (WINAPI *)(
+  _In_ HWND hWnd,
+  _In_ int  nCmdShow
+);
+
 using SetWindowPos_pfn       = BOOL (WINAPI *)(
   _In_     HWND hWnd,
   _In_opt_ HWND hWndInsertAfter,

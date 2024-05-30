@@ -81,6 +81,7 @@ GetMessagePos_pfn        GetMessagePos_Original        = nullptr;
 SendInput_pfn            SendInput_Original            = nullptr;
 mouse_event_pfn          mouse_event_Original          = nullptr;
 
+ShowWindow_pfn           ShowWindow_Original           = nullptr;
 SetWindowPos_pfn         SetWindowPos_Original         = nullptr;
 SetWindowPlacement_pfn   SetWindowPlacement_Original   = nullptr;
 MoveWindow_pfn           MoveWindow_Original           = nullptr;
@@ -1949,6 +1950,33 @@ SetWindowPlacement_Detour(
 
   return
     SK_SetWindowPlacement ( hWnd, lpwndpl );
+}
+
+BOOL
+WINAPI
+ShowWindow_Detour(
+  _In_ HWND hWnd,
+  _In_ int  nCmdShow)
+{
+  SK_LOG_FIRST_CALL
+
+  if (hWnd != 0 && hWnd == game_window.hWnd)
+  {
+    if (nCmdShow == SW_SHOWMINIMIZED)
+        nCmdShow  = SW_SHOW;
+
+    else
+    {
+      if (nCmdShow == SW_MINIMIZE ||
+          nCmdShow == SW_FORCEMINIMIZE)
+      {
+        return TRUE;
+      }
+    }
+  }
+
+  return
+    ShowWindow_Original (hWnd, nCmdShow);
 }
 
 BOOL
@@ -7417,6 +7445,11 @@ SK_HookWinAPI (void)
                               "SetWindowPos",
                                SetWindowPos_Detour,
       static_cast_p2p <void> (&SetWindowPos_Original) );
+
+    SK_CreateDLLHook2 (      L"user32",
+                              "ShowWindow",
+                               ShowWindow_Detour,
+      static_cast_p2p <void> (&ShowWindow_Original) );
 
     SK_CreateDLLHook2 (      L"user32",
                               "SetWindowPlacement",

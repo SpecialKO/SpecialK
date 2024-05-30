@@ -4,6 +4,8 @@
  + Add "background render" option for all games configured to use
      fake fullscreen by default.
  + Activate game windows when engaging Fake Fullscreen
+ + Prevent games like Cyberpunk 2077 from minimizing themselves in an
+     endless loop at startup.
 
 24.5.30
 =======
