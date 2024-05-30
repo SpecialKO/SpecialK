@@ -3,6 +3,7 @@
  + Disable game-specific plug-in for Sekiro
  + Add "background render" option for all games configured to use
      fake fullscreen by default.
+ + Activate game windows when engaging Fake Fullscreen
 
 24.5.30
 =======

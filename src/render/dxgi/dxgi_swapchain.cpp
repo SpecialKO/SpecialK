@@ -1441,6 +1441,20 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
   _Return =
     [&](HRESULT hr)
     {
+      if (SUCCEEDED (hr) && Fullscreen == TRUE)
+      {
+        if (config.render.dxgi.fake_fullscreen_mode)
+        {
+          HWND hWnd = game_window.hWnd;
+
+          SK_ComQIPtr <IDXGISwapChain1>
+                           pSwapChain1 (pSwapChain);
+                                        pSwapChain1->GetHwnd (&hWnd);
+          SK_RealizeForegroundWindow (                         hWnd);
+                          ShowWindow (hWnd,                 SW_SHOW);
+        }
+      }
+
       return hr;
     };
 
