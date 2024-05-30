@@ -98,7 +98,7 @@ sk::ParameterBool* disable_netcode = nullptr;
 sk::ParameterBool* uncap_framerate = nullptr;
 sk::ParameterBool* kill_limiter    = nullptr;
 
-static bool disable_network_code   = true;
+static bool disable_network_code   = false;
 static bool no_frame_limit         = false;
 static bool kill_limit             = false;
 
