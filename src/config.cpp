@@ -2741,6 +2741,7 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Sekiro:
         config.render.dxgi.fake_fullscreen_mode   = true;
+        config.window.background_render           = true;
         config.input.gamepad.xinput.placehold [0] = true;
         config.input.gamepad.xinput.placehold [1] = true;
         config.input.gamepad.xinput.placehold [2] = true;
@@ -3082,6 +3083,7 @@ auto DeclKeybind =
       case SK_GAME_ID::YakuzaLikeADragonGaiden:
       {
         config.render.dxgi.fake_fullscreen_mode   = true;
+        config.window.background_render           = true;
         config.render.dxgi.hooks.
                             create_swapchain4hwnd = false;
       }
@@ -3326,6 +3328,8 @@ auto DeclKeybind =
         config.render.framerate.drop_late_flips      =  true;
         config.render.framerate.flip_discard         =  true;
         config.input.gamepad.disable_hid             =  true;
+        config.input.gamepad.xinput.emulate          =  true;
+        config.input.gamepad.xinput.placehold [0]    =  true;
         config.input.gamepad.xinput.auto_slot_assign =  true;
         config.threads.enable_file_io_trace          =  true;
         config.steam.preload_overlay                 = false; // Set to false because of loss of rumble
