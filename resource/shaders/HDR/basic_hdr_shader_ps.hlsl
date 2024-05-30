@@ -80,15 +80,17 @@ SK_ProcessColor4 ( float4 color,
   // This looks weird because power-law EOTF does not work as intended on negative colors, and
   //   we may very well have negative colors on WCG SDR input.
   //
+  //   sRGB was amended to support negative colors, and the correct behavior is to use the
+  //     absolute value of the input color and then apply the original sign to the result.
   float eotf = sdrContentEOTF;
 
   float4 out_color =
     float4 (
       ( strip_eotf && func != sRGB_to_Linear ) ?
-                                 eotf != -2.2f ?    sign (color.rgb) * pow (abs (color.rgb),
-                                 eotf) : RemoveSRGBCurve (color.rgb) :           color.rgb,
-                                                          color.a
-    );
+                                 eotf != -2.2f ? sign (color.rgb) * pow (            abs (color.rgb),
+                                 eotf) :         sign (color.rgb) * RemoveSRGBCurve (abs (color.rgb)) :
+                                                       color.rgb,
+                                                       color.a );
 
   // Straight Pass-Through
   if (func <= xRGB_to_Linear)
@@ -226,33 +228,23 @@ main (PS_INPUT input) : SV_TARGET
   float3 orig_color =
     abs (hdr_color.rgb);
 
-  // For scRGB Inverse Tonemapping (luminance scale > 1.0 or Perceptual Boost),
-  //   clamp to Rec 2020
-  if (input.color.x >= 1.0f + FLT_EPSILON || pqBoostParams.x > 0.0f)
+  if (tonemapOverbrightBits && any (abs (hdr_color.rgb) > 1.0f))
   {
     float3 rec2020_color =
       max (0.0f, REC709toREC2020 (hdr_color.rgb));
 
     hdr_color.rgb = rec2020_color;
 
-    if (tonemapOverbrightBits)
+    float fLuminance =
+      LuminanceRec2020 (rec2020_color);
+
+    if (fLuminance > 1.0f)
     {
-      float fLuminance =
-        LuminanceRec2020 (rec2020_color);
-
-      if (fLuminance > 1.0f)
-      {
-        float3 vNormalizedColor =
-          (rec2020_color.rgb / fLuminance);
-
-#if 1
-        hdr_color.rgb =                       vNormalizedColor +
-          NeutralTonemap (rec2020_color.rgb - vNormalizedColor) / 2.5f;
-#else
-        hdr_color.rgb =    vNormalizedColor +
-         ((hdr_color.rgb - vNormalizedColor) / (1.0f + (hdr_color.rgb - vNormalizedColor))) / 2.0f;
-#endif
-      }
+      float3 vNormalizedColor =
+        (rec2020_color.rgb / fLuminance);
+      
+      hdr_color.rgb =                       vNormalizedColor +
+        NeutralTonemap (rec2020_color.rgb - vNormalizedColor) / 2.5f;
     }
 
     hdr_color.rgb =
