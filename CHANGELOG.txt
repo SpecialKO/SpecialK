@@ -1,4 +1,9 @@
-﻿24.5.29
+﻿24.5.30
+=======
+ + Default Fake Fullscreen mode in NieR: Replicant and NieR: Automata
+ + Disable texture caching for non-mipped textures in Kingdom Come...
+
+24.5.29
 =======
  + Vectorized NaN / Infinity checks in HDR shaders for better performance
  + Precompute Perceptual Quantization coefficient reciprocals for faster
