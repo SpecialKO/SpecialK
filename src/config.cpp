@@ -2740,6 +2740,7 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Sekiro:
+        config.window.activate_at_start           = true;
         config.render.dxgi.fake_fullscreen_mode   = true;
         config.window.background_render           = true;
         config.input.gamepad.xinput.placehold [0] = true;

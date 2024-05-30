@@ -1,4 +1,10 @@
-﻿24.5.30
+﻿24.5.30.1
+=========
+ + Disable game-specific plug-in for Sekiro
+ + Add "background render" option for all games configured to use
+     fake fullscreen by default.
+
+24.5.30
 =======
  + Default Fake Fullscreen mode in NieR: Replicant and NieR: Automata
  + Disable texture caching for non-mipped textures in Kingdom Come...
