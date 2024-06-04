@@ -1131,10 +1131,10 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
 
 
 UINT filterFlags =
-  0x100000FF;
+  0x110000FF;
 
-float _cSdrPower  = 0.925f;//0.74f;//0.84f;
-float _cLerpScale = 2.333f;//1.3f; //2.5f;
+float _cSdrPower  = 0.425f;//0.74f;//0.84f;
+float _cLerpScale = 2.25f;//1.3f; //2.5f;
 
 void
 SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
@@ -1544,6 +1544,9 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                           XMVectorReplicate (
                             XMVectorMax (XMVector3Transform (value, c_from709toXYZ), g_XMZero).m128_f32 [1]
                           );
+
+                        value =
+                          XMVectorMax (value, g_XMZero);
 
                         XMVECTOR numerator =
                           XMVectorAdd (

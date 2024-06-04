@@ -1965,6 +1965,9 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                             XMVectorMax (XMVector3Transform (value, c_from709toXYZ), g_XMZero).m128_f32 [1]
                           );
 
+                        value =
+                          XMVectorMax (value, g_XMZero);
+
                         XMVECTOR numerator =
                           XMVectorAdd (
                             g_XMOne,

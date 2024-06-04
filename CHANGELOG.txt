@@ -1,4 +1,9 @@
-﻿24.6.4
+﻿24.6.4.1
+========
+ + Add Rec 709 clamp before tonemapping SDR screenshots since gamut mapping
+     is not implemented.
+
+24.6.4
 ======
  + Fix transposed Rec 709 to Rec 2020 matrix so that standard transfer
      characteristics (i.e. Rec 2020 primaries) can be used when converting
