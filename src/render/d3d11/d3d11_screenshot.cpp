@@ -1133,8 +1133,8 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
 UINT filterFlags =
   0x100000FF;
 
-float _cSdrPower  = 0.74f;//0.84f;
-float _cLerpScale = 1.3f; //2.5f;
+float _cSdrPower  = 0.925f;//0.74f;//0.84f;
+float _cLerpScale = 2.333f;//1.3f; //2.5f;
 
 void
 SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
@@ -1404,20 +1404,28 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                 static const XMVECTORF32 s_luminance_2020 =
                   { 0.2627f,   0.678f,    0.0593f,   0.f };
 
-                static const XMMATRIX c_from2020to709 =
+                static const XMMATRIX c_from2020to709 = // Transposed
                 {
-                  {  1.6604910f, -0.1245505f, -0.0181508f, 0.f },
-                  { -0.5876411f,  1.1328999f, -0.1005789f, 0.f },
-                  { -0.0728499f, -0.0083494f,  1.1187297f, 0.f },
+                  {  1.6604910f, -0.5876411f, -0.0728499f, 0.f },
+                  { -0.1245505f,  1.1328999f, -0.0083494f, 0.f },
+                  { -0.0181508f, -0.1005789f,  1.1187297f, 0.f },
                   {  0.f,         0.f,         0.f,        1.f }
                 };
 
-                static const XMMATRIX c_from709to2020 =
+                static const XMMATRIX c_from709to2020 = // Transposed
                 {
-                  { 0.627225305694944f,  0.329476882715808f,  0.0432978115892484f, 0.0f },
-                  { 0.0690418812810714f, 0.919605681354755f,  0.0113524373641739f, 0.0f },
-                  { 0.0163911702607078f, 0.0880887513437058f, 0.895520078395586f,  0.0f },
+                  { 0.627225305694944f,  0.0690418812810714f, 0.0163911702607078f, 0.0f },
+                  { 0.329476882715808f,  0.919605681354755f,  0.0880887513437058f, 0.0f },
+                  { 0.0432978115892484f, 0.0113524373641739f, 0.895520078395586f,  0.0f },
                   { 0.0f,                0.0f,                0.0f,                1.0f }
+                };
+
+                static const XMMATRIX c_from709toXYZ = // Transposed
+                {
+                  { 0.4123907983303070068359375f,  0.2126390039920806884765625f,   0.0193308182060718536376953125f, 0.0f },
+                  { 0.3575843274593353271484375f,  0.715168654918670654296875f,    0.119194783270359039306640625f,  0.0f },
+                  { 0.18048079311847686767578125f, 0.072192318737506866455078125f, 0.950532138347625732421875f,     0.0f },
+                  { 0.0f,                          0.0f,                           0.0f,                            1.0f }
                 };
 
                 HRESULT hr = S_OK;
@@ -1468,8 +1476,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
                       for (size_t j = 0; j < width; ++j)
                       {
-                        XMVECTOR v =
-                          XMVectorMax (*pixels, g_XMZero);
+                        XMVECTOR v = *pixels;
 
                         maxRGB =
                           XMVectorMax (v, maxRGB);
@@ -1477,7 +1484,13 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                         maxCLL =
                           XMVectorMax (XMVectorMultiply (v, s_luminance), maxCLL);
 
-                        v = XMVector3Dot (v, s_luminance);
+                        v =
+                          XMVectorMax (XMVector3Transform (v, c_from709toXYZ), g_XMZero);
+
+                        float fLum =
+                          v.m128_f32 [1];
+
+                        v = XMVectorReplicate (fLum);
 
                         maxLum =
                           XMVectorMax (v, maxLum);
@@ -1526,8 +1539,11 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
                       for (size_t j = 0; j < width; ++j)
                       {
-                        XMVECTOR value = XMVectorMax (inPixels [j], g_XMZero);
-                        XMVECTOR luma  = XMVector3Dot ( value, s_luminance );
+                        XMVECTOR value = inPixels [j];
+                        XMVECTOR luma  = 
+                          XMVectorReplicate (
+                            XMVectorMax (XMVector3Transform (value, c_from709toXYZ), g_XMZero).m128_f32 [1]
+                          );
 
                         XMVECTOR numerator =
                           XMVectorAdd (

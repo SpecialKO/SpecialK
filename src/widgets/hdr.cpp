@@ -2744,16 +2744,22 @@ public:
                   }
                 }
 
-#if 0
-                extern UINT filterFlags;
-                ImGui::InputInt ("Filter Flags", (int *)&filterFlags, 1, 100, ImGuiInputTextFlags_CharsHexadecimal);
+                static bool bShowDebug = false;
 
-                extern float _cSdrPower;
-                extern float _cLerpScale;
+                if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
+                  bShowDebug = true;
 
-                ImGui::InputFloat ("Sdr Power",  &_cSdrPower);
-                ImGui::InputFloat ("Lerp Scale", &_cLerpScale);
-#endif
+                if (bShowDebug)
+                {
+                  extern UINT filterFlags;
+                  ImGui::InputInt ("Filter Flags", (int *)&filterFlags, 1, 100, ImGuiInputTextFlags_CharsHexadecimal);
+
+                  extern float _cSdrPower;
+                  extern float _cLerpScale;
+
+                  ImGui::InputFloat ("Sdr Power",  &_cSdrPower);
+                  ImGui::InputFloat ("Lerp Scale", &_cLerpScale);
+                }
 
                 ImGui::EndGroup ();
                 

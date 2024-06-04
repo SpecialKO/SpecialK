@@ -1,4 +1,15 @@
-﻿24.5.30.1
+﻿24.6.4
+======
+ + Fix transposed Rec 709 to Rec 2020 matrix so that standard transfer
+     characteristics (i.e. Rec 2020 primaries) can be used when converting
+       scRGB screenshots to HDR10 for AVIF encode
+ + Fix rounding problems in AVIF encode
+ + Exposed SDR screenshot tonemapping tuning knobs if PBoost3 slider or
+     Gamut Visualizer disclaimer are right-clicked.
+    * Lerp scale controls bias towards chroma preservation
+        (lower = more saturation at the expense of highlight "whiteness").
+
+24.5.30.1
 =========
  + Disable game-specific plug-in for Sekiro
  + Add "background render" option for all games configured to use
