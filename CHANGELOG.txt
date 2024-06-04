@@ -1,4 +1,9 @@
-﻿24.6.4.1
+﻿24.6.4.2
+========
+ + Add AllowDxDiagn=false for God of War and God of War Ragnarok
+     (assuming executable name contains GoW, case-sensitive)
+
+24.6.4.1
 ========
  + Add Rec 709 clamp before tonemapping SDR screenshots since gamut mapping
      is not implemented.

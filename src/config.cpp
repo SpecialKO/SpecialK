@@ -252,6 +252,7 @@ SK_GetCurrentGameID (void)
           { L"dd2.exe",                                SK_GAME_ID::DragonsDogma                 },
           { L"Harold Halibut.exe",                     SK_GAME_ID::HaroldHalibut                },
           { L"KingdomCome.exe",                        SK_GAME_ID::KingdomComeDeliverance       },
+          { L"GoW.exe",                                SK_GAME_ID::GodOfWar                     }
         };
 
     first_check  = false;
@@ -280,6 +281,11 @@ SK_GetCurrentGameID (void)
       else if ( StrStrIW ( SK_GetHostApp (), L"ff7remake" ) )
       {
         current_game = SK_GAME_ID::FinalFantasy7Remake;
+      }
+
+      else if ( StrStrW ( SK_GetHostApp (), L"GoW" ) )
+      {
+        current_game = SK_GAME_ID::GodOfWar;
       }
 
       else if ( StrStrIW ( SK_GetHostApp (), L"ACValhalla" ) )
@@ -3656,6 +3662,12 @@ auto DeclKeybind =
           return S_OK;
         });
 
+      } break;
+
+      case SK_GAME_ID::GodOfWar:
+      {
+        // Prevent crashes in the Steam and GOG versions of the game
+        config.compatibility.allow_dxdiagn = false;
       } break;
     }
   }
