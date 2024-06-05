@@ -1,4 +1,9 @@
-﻿24.6.4.2
+﻿24.6.4.3
+========
+ + Improved luminance heatmap (exposure) visualization on wide gamut colors
+ + Improved NaN/Infinity mitigation performance in FP16 color buffers
+
+24.6.4.2
 ========
  + Add AllowDxDiagn=false for God of War and God of War Ragnarok
      (assuming executable name contains GoW, case-sensitive)

@@ -77,101 +77,77 @@ bool IsFinite (float x)
     (asuint (x) & 0x7F800000) != 0x7F800000;
 }
 
-bool IsInf (float x)
+bool    IsNegative (float  x)    { return      x    < 0.0f;  }
+bool AnyIsNegative (float2 xy)   { return any (xy   < 0.0f); }
+bool AnyIsNegative (float3 xyz)  { return any (xyz  < 0.0f); }
+bool AnyIsNegative (float4 xyzw) { return any (xyzw < 0.0f); }
+
+bool   IsNan (float  x) { return (asuint (x) & 0x7fffffff)  > 0x7f800000; } // Scalar NaN checker
+float2 IsNan (float2 v) { return float2 ( IsNan (v.x), IsNan (v.y) );                           }
+float3 IsNan (float3 v) { return float3 ( IsNan (v.x), IsNan (v.y), IsNan (v.z) );              }
+float4 IsNan (float4 v) { return float4 ( IsNan (v.x), IsNan (v.y), IsNan (v.z), IsNan (v.w) ); }
+
+bool   IsInf (float  x) { return (asuint (x) & 0x7f800000) == 0x7f800000; } // Scalar Infinity checker
+float2 IsInf (float2 v) { return float2 ( IsInf (v.x), IsInf (v.y) );                           }
+float3 IsInf (float3 v) { return float3 ( IsInf (v.x), IsInf (v.y), IsInf (v.z) );              }
+float4 IsInf (float4 v) { return float4 ( IsInf (v.x), IsInf (v.y), IsInf (v.z), IsInf (v.w) ); }
+
+// Vectorized versions
+bool AnyIsInf (float  x)    { return        IsInf (x);                                 }
+bool AnyIsInf (float2 xy)   { return any ((asuint (xy)   & 0x7f800000) == 0x7f800000); }
+bool AnyIsInf (float3 xyz)  { return any ((asuint (xyz)  & 0x7f800000) == 0x7f800000); }
+bool AnyIsInf (float4 xyzw) { return any ((asuint (xyzw) & 0x7f800000) == 0x7f800000); }
+
+bool AnyIsNan (float  x)    { return        IsNan (x);                                 }
+bool AnyIsNan (float2 xy)   { return any ((asuint (xy)   & 0x7fffffff)  > 0x7f800000); }
+bool AnyIsNan (float3 xyz)  { return any ((asuint (xyz)  & 0x7fffffff)  > 0x7f800000); }
+bool AnyIsNan (float4 xyzw) { return any ((asuint (xyzw) & 0x7fffffff)  > 0x7f800000); }
+
+// Combined NaN and Infinity check
+bool isnormal (float  x)    { return (! (     (asuint (x)    & 0x7fffffff) >= 0x7f800000));  }
+bool isnormal (float2 xy)   { return (! (any ((asuint (xy)   & 0x7fffffff) >= 0x7f800000))); }
+bool isnormal (float3 xyz)  { return (! (any ((asuint (xyz)  & 0x7fffffff) >= 0x7f800000))); }
+bool isnormal (float4 xyzw) { return (! (any ((asuint (xyzw) & 0x7fffffff) >= 0x7f800000))); }
+
+// Remove special floating-point bit patterns, clamping is the
+//   final step before output and outputting NaN or Infinity would
+//     break color blending!
+#define SanitizeFP(c) ((! isnormal ((c))) ? (! IsNan ((c))) * (IsInf ((c)) ? sign ((c)) * float_MAX : (c)) : (c))
+
+#define FP16_MIN     0.000000059604645 // Minimum subnormal positive fp16 value
+#define FP16_EPSILON 0.000488          // Smallest positive number, such that 1.0 + FP16_EPSILON != 1.0
+
+float3 REC2020toREC709 (float3 c);
+float3 REC709toREC2020 (float3 c);
+
+float3 Clamp_scRGB (float3 c)
 {
-  return
-    (asuint (x) & 0x7FFFFFFF) == 0x7F800000;
+  if (any (c < 0.0f) || (! isnormal (c)))
+  {
+    // Clamp to Rec 2020
+    return
+      REC2020toREC709 (
+        max (REC709toREC2020 (c), 0.0f)
+      );
+  }
+
+  return c;
 }
 
-bool AnyIsInf (float2 x)
+float Clamp_scRGB (float c, bool strip_nan = false)
 {
-  return
-    any ((asuint (x) & 0x7FFFFFFF) == 0x7F800000);
+  // No colorspace clamp here, just keep it away from 0.0
+  if (strip_nan)
+    c = SanitizeFP (c);
+
+  return clamp (c + sign (c) * FP16_MIN, -float_MAX,
+                                          float_MAX);
 }
 
-bool AnyIsInf (float3 x)
+float3 Clamp_scRGB_StripNaN (float3 c)
 {
   return
-    any ((asuint (x) & 0x7FFFFFFF) == 0x7F800000);
-}
-
-bool AnyIsInf (float4 x)
-{
-  return
-    any ((asuint(x) & 0x7FFFFFFF) == 0x7F800000);
-}
-
-bool IsNegative (float x)
-{
-  return
-    x < 0.0f;
-}
-
-bool AnyIsNegative (float2 x)
-{
-  return
-    any (x < 0.0f);
-}
-
-bool AnyIsNegative (float3 x)
-{
-  return
-    any (x < 0.0f);
-}
-
-bool AnyIsNegative (float4 x)
-{
-  return
-    any (x < 0.0f);
-}
-
-// NaN checker
-bool IsNan (float x)
-{
-  return
-    (asuint (x) & 0x7fffffff) > 0x7f800000;
-}
-
-bool AnyIsNan (float2 x)
-{
-  return
-    any ((asuint (x) & 0x7fffffff) > 0x7f800000);
-}
-
-bool AnyIsNan (float3 x)
-{
-  return
-    any ((asuint (x) & 0x7fffffff) > 0x7f800000);
-}
-
-bool AnyIsNan (float4 x)
-{
-  return
-    any ((asuint (x) & 0x7fffffff) > 0x7f800000);
-}
-
-bool IsInfOrNan (float x)
-{
-  return
-    (asuint (x) & 0x7fffffff) >= 0x7f800000;
-}
-
-bool AnyIsInfOrNan (float2 x)
-{
-  return
-    any ((asuint (x) & 0x7fffffff) >= 0x7f800000);
-}
-
-bool AnyIsInfOrNan (float3 x)
-{
-  return
-    any ((asuint (x) & 0x7fffffff) >= 0x7f800000);
-}
-
-bool AnyIsInfOrNan (float4 x)
-{
-  return
-    any ((asuint (x) & 0x7fffffff) >= 0x7f800000);
+    Clamp_scRGB (SanitizeFP (c));
 }
 
 // Clamp HDR value within a safe range
@@ -211,52 +187,6 @@ float4 FastSign (float4 x)
 {
   return
     saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
-}
-
-#define FP16_MIN     0.000000059604645 // Minimum subnormal positive fp16 value
-#define FP16_EPSILON 0.000488          // Smallest positive number, such that 1.0 + FP16_EPSILON != 1.0
-
-float3 REC2020toREC709 (float3 c);
-float3 REC709toREC2020 (float3 c);
-
-float3 Clamp_scRGB (float3 c)
-{
-  if (any (c < 0.0f) || AnyIsInfOrNan (c))
-  {
-    // Clamp to Rec 2020
-    return
-      REC2020toREC709 (
-        max (REC709toREC2020 (c), 0.0f)
-      );
-  }
-
-  return c;
-}
-
-float3 Clamp_scRGB_StripNaN (float3 c)
-{
-  // Remove special floating-point bit patterns, clamping is the
-  //   final step before output and outputting NaN or Infinity would
-  //     break color blending!
-  if (AnyIsInfOrNan (c))
-  {
-    c =
-      float3 ( (! IsNan (c.r)) * IsInf (c.r) ? sign (c.r) * float_MAX : c.r,
-               (! IsNan (c.g)) * IsInf (c.g) ? sign (c.g) * float_MAX : c.g,
-               (! IsNan (c.b)) * IsInf (c.b) ? sign (c.b) * float_MAX : c.b );
-  }
-
-  return Clamp_scRGB (c);
-}
-
-float Clamp_scRGB (float c, bool strip_nan = false)
-{
-  // No colorspace clamp here, just keep it away from 0.0
-  if (strip_nan && IsInfOrNan (c))
-    c = (! IsNan (c)) * IsInf (c) ? sign (c) * float_MAX : c;
-
-  return clamp (c + sign (c) * FP16_MIN, -float_MAX,
-                                          float_MAX);
 }
 
 // Using pow often result to a warning like this
@@ -427,26 +357,26 @@ SK_Color_xyY_from_RGB ( const SK_ColorSpace cs, float3 RGB )
                    - ( XYZ.y / ( XYZ.x + XYZ.y + XYZ.z ) ) );
 }
 
-float3 RGB_to_XYZ (float3 RGB)
+float3 Rec709_to_XYZ (float3 linearRec709)
 {
   static const float3x3 ConvMat =
   {
-    0.6369580483012914, 0.14461690358620832,  0.1688809751641721,
-    0.2627002120112671, 0.6779980715188708,   0.05930171646986196,
-    0.000000000000000,  0.028072693049087428, 1.060985057710791
+    0.4123907983303070068359375f,    0.3575843274593353271484375f,   0.18048079311847686767578125f,
+    0.2126390039920806884765625f,    0.715168654918670654296875f,    0.072192318737506866455078125f,
+    0.0193308182060718536376953125f, 0.119194783270359039306640625f, 0.950532138347625732421875f
   };
 
   return
-    mul (ConvMat, RGB);
+    mul (ConvMat, linearRec709);
 }
 
-float3 XYZ_to_RGB (float3 XYZ)
+float3 XYZ_to_Rec709 (float3 XYZ)
 {
   static const float3x3 ConvMat =
   {
-     1.716651187971268, -0.355670783776392, -0.253366281373660,
-    -0.666684351832489,  1.616481236634939,  0.0157685458139111,
-     0.017639857445311, -0.042770613257809,  0.942103121235474
+     3.2409698963165283203125f,      -1.53738319873809814453125f,   -0.4986107647418975830078125f,
+    -0.96924364566802978515625f,      1.875967502593994140625f,      0.0415550582110881805419921875f,
+     0.055630080401897430419921875f, -0.2039769589900970458984375f,  1.05697154998779296875f
   };
 
   return
@@ -517,18 +447,18 @@ float3 RGB_to_ICtCp (float3 color)
 {
   color /= 125.0f;
 
-  color = RGB_to_XYZ   (color);
-  color = XYZ_to_LMS   (color);
-  color = LMS_to_ICtCp (color);
+  color = Rec709_to_XYZ (color);
+  color = XYZ_to_LMS    (color);
+  color = LMS_to_ICtCp  (color);
 
   return color;
 }
 
 float3 ICtCp_to_RGB (float3 color)
 {
-  color = ICtCp_to_LMS (color);
-  color = LMS_to_XYZ   (color);
-  color = XYZ_to_RGB   (color);
+  color = ICtCp_to_LMS  (color);
+  color = LMS_to_XYZ    (color);
+  color = XYZ_to_Rec709 (color);
 
   color *= 125.0f;
 

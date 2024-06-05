@@ -86,9 +86,7 @@ float4 main (PS_INPUT input) : SV_Target
     // Keep pure black pixels as-per scRGB's limited ability to
     //   represent a black pixel w/ FP16 precision
     hdr_out.rgb *=
-      ( (orig_col.r > FP16_MIN) +
-        (orig_col.g > FP16_MIN) +
-        (orig_col.b > FP16_MIN) > 0.0f );
+      (dot (orig_col.rgb, float3 (1.0f, 1.0f, 1.0f)) > FP16_MIN);
 
     hdr_out.a *= (orig_col.a > FP16_MIN);
 
@@ -98,7 +96,8 @@ float4 main (PS_INPUT input) : SV_Target
     
     if (hdr10)
     {
-      hdr_out.rgba = clamp (hdr_out.rgba, 0.0, 1.0);
+      hdr_out.rgba =
+        saturate (hdr_out.rgba);
     }
 
     return
