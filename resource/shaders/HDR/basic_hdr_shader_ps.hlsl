@@ -166,9 +166,9 @@ main (PS_INPUT input) : SV_TARGET
   {
     case TONEMAP_COPYRESOURCE:
     {
-        float4 ret =
-        texMainScene.Sample(sampler0,
-                              input.uv);
+      float4 ret =
+        texMainScene.Sample ( sampler0,
+                              input.uv );
 
 #ifdef INCLUDE_NAN_MITIGATION
       // A UNORM RenderTarget would return this instead of NaN,
@@ -436,67 +436,41 @@ main (PS_INPUT input) : SV_TARGET
 
   if (pqBoostParams.x > 0.1f)
   {
-    float pb_params [4] =
-    {
-      pqBoostParams.x,
-      pqBoostParams.y,
-      pqBoostParams.z,
-      pqBoostParams.w
-    };
-
-    float3 new_color;
-
-    if (colorBoost == 0.0)
-    {
-      float fLuma =
-        Rec709_to_XYZ (hdr_color.rgb).y;
-
-      new_color =
-        PQToLinear (
-          LinearToPQ ( float3 (fLuma, fLuma, fLuma),
-                       pb_params [0] ) *
-                       pb_params [2], pb_params [1]
-                   ) / pb_params [3];
-
-      new_color =
-        hdr_color.rgb * (new_color / fLuma);
-    }
-
-    else if (colorBoost != 1.0)
-    {
-      float fLuma =
-        Rec709_to_XYZ (hdr_color.rgb).y;
-
-      float3 new_color0 =
-        PQToLinear (
-          LinearToPQ ( float3 (fLuma, fLuma, fLuma),
-                       pb_params [0] ) *
-                       pb_params [2], pb_params [1]
-                   ) / pb_params [3];
-
-      new_color0 =
-        hdr_color.rgb * (new_color0 / fLuma);
-
-      float3 new_color1 =
-        PQToLinear (
-          LinearToPQ ( hdr_color.rgb,
-                       pb_params [0] ) *
-                       pb_params [2], pb_params [1]
-                   ) / pb_params [3];
-
-      new_color =
-        lerp (new_color0, new_color1, float3 (colorBoost, colorBoost, colorBoost));
-    }
+    const float pb_param_0 = pqBoostParams.x;
+    const float pb_param_1 = pqBoostParams.y;
+    const float pb_param_2 = pqBoostParams.z;
+    const float pb_param_3 = pqBoostParams.w;
     
-    else
+    float fLuma =
+      Rec709_to_XYZ (hdr_color.rgb).y;
+
+    float3 new_color  = 0.0f,
+           new_color0 = 0.0f,
+           new_color1 = 0.0f;
+
+    if (colorBoost < 1.0)
     {
-      new_color =
+      new_color0 =
+       PQToLinear (
+          LinearToPQ ( fLuma,
+                       pb_param_0 ) *
+                       pb_param_2, pb_param_1
+                   ) / pb_param_3;
+    }
+
+    if (colorBoost > 0.0)
+    {
+      new_color1 =
         PQToLinear (
           LinearToPQ ( hdr_color.rgb,
-                       pb_params [0] ) *
-                       pb_params [2], pb_params [1]
-                   ) / pb_params [3];
+                       pb_param_0 ) *
+                       pb_param_2, pb_param_1
+                   ) / pb_param_3;
     }
+
+    new_color =
+      lerp (hdr_color.rgb * new_color0 / fLuma,
+                            new_color1, colorBoost);
 
 #ifdef INCLUDE_NAN_MITIGATION
     if (! AnyIsNan (  new_color))
