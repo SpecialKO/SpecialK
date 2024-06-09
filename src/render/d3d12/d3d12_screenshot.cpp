@@ -1959,6 +1959,18 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   extern float _cLerpScale;
                   extern float _cSdrPower;
 
+                  // After tonemapping, re-normalize the image to preserve peak white,
+                  //   this is important in cases where the maximum luminance was < 1000 nits
+                  XMVECTOR maxTonemappedRGB = g_XMZero;
+
+                  DirectX::TexMetadata  tonemapped_metadata = un_srgb.GetMetadata ();
+                  DirectX::ScratchImage tonemapped_image;
+                    tonemapped_image.Initialize2D (
+                      tonemapped_metadata.format,
+                      tonemapped_metadata.width,
+                      tonemapped_metadata.height, 1, 1
+                    );
+
                   hr =               un_srgb.GetImageCount () == 1 ?
                     TransformImage ( un_srgb.GetImages     (),
                                      un_srgb.GetImageCount (),
@@ -1981,20 +1993,60 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         XMVECTOR maxcomp = XMVectorMax (value, g_XMZero);
 
                         float fMaxComp =
-                          std::max ({1.0f, XMVectorGetX (maxcomp), XMVectorGetY (maxcomp), XMVectorGetZ (maxcomp)});
+                          std::max ({0.0f, XMVectorGetX (maxRGB), XMVectorGetY (maxRGB), XMVectorGetZ (maxRGB)});
 
-                        value =
-                          XMVectorDivide (value, XMVectorReplicate (fMaxComp));
+                        if (fMaxComp > 0.0f)
+                        {
+                          value =
+                            XMVectorDivide (value, XMVectorReplicate (fMaxComp));
+                        }
 
-                        value =
-                          XMVectorDivide (value, XMVectorReplicate (XMVectorGetY (maxLum) / (1000.0f / _cLerpScale)));
+                        else fMaxComp = 1.0f;
+
+                        if (_cLerpScale != 1.0)
+                        {
+                          value =
+                            XMVectorDivide (value, XMVectorReplicate (_cLerpScale));
+                        }
+
+                        else
+                        {
+                          value =
+                            XMVectorDivide (value, XMVectorMultiply (XMVectorPow (XMVectorReplicate (XMVectorGetY (maxLum) / 12.5f), XMVectorReplicate (_cSdrPower)), XMVectorReplicate (10.0f)));
+                        }
 
                         static const XMVECTOR vMaxFP16 = XMVectorSet (65504.0f, 65504.0f, 65504.0f, 65504.0f);
 
-                        outPixels [j] = XMVectorPow (XMVectorMultiply (XMVectorReplicate (fMaxComp), XMVectorSaturate (XMVector3Transform (ToneMapACESFilmic (XMVectorClamp (XMVector3Transform (value, c_from709to2020), g_XMZero, vMaxFP16)), c_from2020to709))), XMVectorReplicate (_cSdrPower));
+                        value =
+                          XMVectorPow (XMVectorMultiply (XMVectorReplicate (fMaxComp), XMVectorSaturate (XMVector3Transform (ToneMapACESFilmic (XMVectorClamp (XMVector3Transform (value, c_from709to2020), g_XMZero, vMaxFP16)), c_from2020to709))), XMVectorReplicate (_cSdrPower));
+
+                        maxTonemappedRGB = XMVectorMax (maxTonemappedRGB, value);
+
+                        outPixels [j] = value;
                       }
-                    }, final_sdr
-                  ) : E_POINTER;
+                    }, tonemapped_image) : E_POINTER;
+
+                    float fMaxTonemappedRGB =
+                      std::max ({ 1.0f, XMVectorGetX (maxTonemappedRGB), XMVectorGetY (maxTonemappedRGB), XMVectorGetZ (maxTonemappedRGB) });
+
+                    maxTonemappedRGB = XMVectorReplicate (fMaxTonemappedRGB);
+
+                    hr =
+                    TransformImage ( tonemapped_image.GetImages     (),
+                                     tonemapped_image.GetImageCount (),
+                                     tonemapped_image.GetMetadata   (),
+                                     [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+                    {
+                      UNREFERENCED_PARAMETER(y);
+                      
+                      for (size_t j = 0; j < width; ++j)
+                      {
+                        XMVECTOR value = inPixels [j];
+                      
+                        outPixels [j] = XMVectorDivide (value, maxTonemappedRGB);
+                      }
+                    },
+                  final_sdr );
 
                   extern UINT filterFlags; // Pending removal, this is to debug WIC
 
