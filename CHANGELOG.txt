@@ -1,4 +1,8 @@
-﻿24.6.8
+﻿24.6.9
+======
+ + Fix potential Return to Monkey Island crash when opening SK's control panel
+
+24.6.8
 ======
  + Improved HDR->SDR screenshot tonemapping
  + Apply overbright processing -after- de-gamma

@@ -8435,7 +8435,7 @@ SK_ImGui_Toggle (void)
 
                 SK_SetCursorPos (ptCursor.x - 4, ptCursor.y + 4);
 
-                game_window.CallProc (
+                SK_COMPAT_SafeCallProc (&game_window,
                           game_window.hWnd,                       WM_SETCURSOR,
                   (WPARAM)game_window.hWnd, MAKELPARAM (HTCLIENT, WM_MOUSEMOVE));
               }
