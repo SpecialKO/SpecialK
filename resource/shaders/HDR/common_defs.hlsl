@@ -74,7 +74,7 @@ cbuffer colorSpaceTransform : register (b0)
 bool IsFinite (float x)
 {
   return
-    (asuint (x) & 0x7F800000) != 0x7F800000;
+    (asuint (x) & 0x7F8FFFFF) != 0x7F800000;
 }
 
 bool    IsNegative (float  x)    { return      x    < 0.0f;  }
@@ -87,16 +87,16 @@ float2 IsNan (float2 v) { return float2 ( IsNan (v.x), IsNan (v.y) );           
 float3 IsNan (float3 v) { return float3 ( IsNan (v.x), IsNan (v.y), IsNan (v.z) );              }
 float4 IsNan (float4 v) { return float4 ( IsNan (v.x), IsNan (v.y), IsNan (v.z), IsNan (v.w) ); }
 
-bool   IsInf (float  x) { return (asuint (x) & 0x7f800000) == 0x7f800000; } // Scalar Infinity checker
+bool   IsInf (float  x) { return (asuint (x) & 0x7f8fffff) == 0x7f800000; } // Scalar Infinity checker
 float2 IsInf (float2 v) { return float2 ( IsInf (v.x), IsInf (v.y) );                           }
 float3 IsInf (float3 v) { return float3 ( IsInf (v.x), IsInf (v.y), IsInf (v.z) );              }
 float4 IsInf (float4 v) { return float4 ( IsInf (v.x), IsInf (v.y), IsInf (v.z), IsInf (v.w) ); }
 
 // Vectorized versions
 bool AnyIsInf (float  x)    { return        IsInf (x);                                 }
-bool AnyIsInf (float2 xy)   { return any ((asuint (xy)   & 0x7f800000) == 0x7f800000); }
-bool AnyIsInf (float3 xyz)  { return any ((asuint (xyz)  & 0x7f800000) == 0x7f800000); }
-bool AnyIsInf (float4 xyzw) { return any ((asuint (xyzw) & 0x7f800000) == 0x7f800000); }
+bool AnyIsInf (float2 xy)   { return any ((asuint (xy)   & 0x7f8fffff) == 0x7f800000); }
+bool AnyIsInf (float3 xyz)  { return any ((asuint (xyz)  & 0x7f8fffff) == 0x7f800000); }
+bool AnyIsInf (float4 xyzw) { return any ((asuint (xyzw) & 0x7f8fffff) == 0x7f800000); }
 
 bool AnyIsNan (float  x)    { return        IsNan (x);                                 }
 bool AnyIsNan (float2 xy)   { return any ((asuint (xy)   & 0x7fffffff)  > 0x7f800000); }
@@ -112,24 +112,18 @@ bool isnormal (float4 xyzw) { return (! (any ((asuint (xyzw) & 0x7fffffff) >= 0x
 // Remove special floating-point bit patterns, clamping is the
 //   final step before output and outputting NaN or Infinity would
 //     break color blending!
-#define SanitizeFP(c) ((! isnormal ((c))) ? (! IsNan ((c))) * (IsInf ((c)) ? sign ((c)) * float_MAX : (c)) : (c))
+#define SanitizeFP(c) ((! isnormal ((c))) ? (IsInf ((c)) ? sign ((c)) * float_MAX : (! IsNan ((c))) * (c)) : (c))
 
-#define FP16_MIN     0.000000059604645 // Minimum subnormal positive fp16 value
+#define FP16_MIN     asfloat (0x33C00000)
 #define FP16_EPSILON 0.000488          // Smallest positive number, such that 1.0 + FP16_EPSILON != 1.0
 
-float3 REC2020toREC709 (float3 c);
-float3 REC709toREC2020 (float3 c);
+float3 Rec709toAP0_D65 (float3 linearRec709);
+float3 AP0_D65toRec709 (float3 linearAP0);
 
 float3 Clamp_scRGB (float3 c)
 {
-  if (any (c < 0.0f) || (! isnormal (c)))
-  {
-    // Clamp to Rec 2020
-    return
-      REC2020toREC709 (
-        max (REC709toREC2020 (c), 0.0f)
-      );
-  }
+  c =
+    clamp (SanitizeFP (c), -float_MAX, float_MAX);
 
   return c;
 }
@@ -361,9 +355,9 @@ float3 Rec709_to_XYZ (float3 linearRec709)
 {
   static const float3x3 ConvMat =
   {
-    0.4123907983303070068359375f,    0.3575843274593353271484375f,   0.18048079311847686767578125f,
-    0.2126390039920806884765625f,    0.715168654918670654296875f,    0.072192318737506866455078125f,
-    0.0193308182060718536376953125f, 0.119194783270359039306640625f, 0.950532138347625732421875f
+    0.4123907983303070068359375000f, 0.357584327459335327148437500f, 0.180480793118476867675781250f,
+    0.2126390039920806884765625000f, 0.715168654918670654296875000f, 0.072192318737506866455078125f,
+    0.0193308182060718536376953125f, 0.119194783270359039306640625f, 0.950532138347625732421875000f
   };
 
   return
@@ -374,9 +368,9 @@ float3 XYZ_to_Rec709 (float3 XYZ)
 {
   static const float3x3 ConvMat =
   {
-     3.2409698963165283203125f,      -1.53738319873809814453125f,   -0.4986107647418975830078125f,
-    -0.96924364566802978515625f,      1.875967502593994140625f,      0.0415550582110881805419921875f,
-     0.055630080401897430419921875f, -0.2039769589900970458984375f,  1.05697154998779296875f
+     3.240969896316528320312500000f, -1.5373831987380981445312500f, -0.4986107647418975830078125000f,
+    -0.969243645668029785156250000f,  1.8759675025939941406250000f,  0.0415550582110881805419921875f,
+     0.055630080401897430419921875f, -0.2039769589900970458984375f,  1.0569715499877929687500000000f
   };
 
   return
@@ -675,16 +669,28 @@ ApplyREC709Curve (float3 x)
 }
 
 float3
-REC709toREC2020 (float3 RGB709)
+REC709toREC2020 (float3 linearRec709)
 {
   static const float3x3 ConvMat =
   {
-    0.627225305694944,  0.329476882715808,  0.0432978115892484,
-    0.0690418812810714, 0.919605681354755,  0.0113524373641739,
-    0.0163911702607078, 0.0880887513437058, 0.895520078395586
+    0.627403914928436279296875f,      0.3292830288410186767578125f,  0.0433130674064159393310546875f,
+    0.069097287952899932861328125f,   0.9195404052734375f,           0.011362315155565738677978515625f,
+    0.01639143936336040496826171875f, 0.08801330626010894775390625f, 0.895595252513885498046875f
   };
 
-  return mul (ConvMat, RGB709);
+  return mul (ConvMat, linearRec709);
+}
+
+float3 REC2020toREC709 (float3 linearRec2020)
+{
+  static const float3x3 ConvMat =
+  {
+     1.66049098968505859375f,          -0.58764111995697021484375f,     -0.072849862277507781982421875f,
+    -0.12455047667026519775390625f,     1.13289988040924072265625f,     -0.0083494223654270172119140625f,
+    -0.01815076358616352081298828125f, -0.100578896701335906982421875f,  1.11872971057891845703125f
+  };
+  
+  return mul (ConvMat, linearRec2020);
 }
 
 #ifndef INTRINSIC_MINMAX3
@@ -1944,15 +1950,28 @@ float4 colormap (float x)
 }
 
 
-float3 REC2020toREC709 (float3 RGB2020)
+float3 Rec709toAP0_D65 (float3 linearRec709)
 {
   static const float3x3 ConvMat =
   {
-     1.66096379471340,   -0.588112737547978, -0.0728510571654192,
-    -0.124477196529907,   1.13281946828499,  -0.00834227175508652,
-    -0.0181571579858552, -0.100666415661988,  1.11882357364784
+    0.4339316189289093017578125f,   0.3762523829936981201171875f,   0.1898159682750701904296875f,
+    0.088618390262126922607421875f, 0.809275329113006591796875f,    0.10210628807544708251953125f,
+    0.01775003969669342041015625f,  0.109447620809078216552734375f, 0.872802317142486572265625f
   };
-  return mul (ConvMat, RGB2020);
+
+  return mul (ConvMat, linearRec709);
+}
+
+float3 AP0_D65toRec709 (float3 linearAP0)
+{
+  static const float3x3 ConvMat =
+  {
+     2.552483081817626953125f,         -1.12950992584228515625f,       -0.422973215579986572265625f,
+    -0.2773441374301910400390625f,      1.3782665729522705078125f,     -0.1009224355220794677734375f,
+    -0.01713105104863643646240234375f, -0.14986114203929901123046875f,  1.1669921875f
+  };
+
+  return mul (ConvMat, linearAP0);
 }
 
 float3 RemoveREC2084Curve (float3 N)
@@ -2044,6 +2063,9 @@ XYZtosRGB (float3 color)
 float3
 expandGamut (float3 vHDRColor, float fExpandGamut = 1.0f)
 {
+  if (fExpandGamut <= 0.0f)
+    return vHDRColor;
+
   //AP1 with D65 white point instead of the custom white point from ACES which is around 6000K
   const float3x3 sRGB_2_AP1_D65_MAT =
   {
@@ -2076,7 +2098,7 @@ expandGamut (float3 vHDRColor, float fExpandGamut = 1.0f)
     0.00192582885428273, 0.0303727970124423, 0.96770137413327500
   };
   const float3x3
-         ExpandMat = mul (Wide_2_AP1_D65_MAT, AP1_D65_2_sRGB_MAT);   
+         ExpandMat = mul (Wide_2_AP1_D65_MAT, AP1_D65_2_sRGB_MAT);
   float3 ColorAP1  = mul (sRGB_2_AP1_D65_MAT, vHDRColor);
 
   float  LumaAP1   = dot (ColorAP1, AP1_RGB2Y);

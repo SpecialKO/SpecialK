@@ -542,8 +542,8 @@ main (PS_INPUT input) : SV_TARGET
     // Same clamp color_output receives
     hdr_color =
       float4 (
-        Clamp_scRGB_StripNaN (hdr_color.rgb),
-                    saturate (hdr_color.a)
+        Clamp_scRGB (hdr_color.rgb),
+           saturate (hdr_color.a)
              );
 
     float3 xy_from_sRGB;

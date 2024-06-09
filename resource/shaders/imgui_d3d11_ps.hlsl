@@ -49,7 +49,16 @@ float4 main (PS_INPUT input) : SV_Target
   if (viewport.z > 0.f)
   {
     bool hdr10 = (input.uv3.x < 0.0);
-        
+
+    float hdr_scale = hdr10 ? (-input.uv3.x / 10000.0)
+                              : input.uv3.x;
+
+    float3 expanded_color =
+      ApplyGammaExp (expandGamut (RemoveGammaExp (ui_color, 2.2f) * hdr_scale, 0.08) / hdr_scale, 2.2f);
+
+    if (any (expanded_color > 0.0))
+      ui_color = expanded_color;
+
     if ( input.uv2.x > 0.0f &&
          input.uv2.y > 0.0f )
     {
@@ -68,20 +77,17 @@ float4 main (PS_INPUT input) : SV_Target
             1.0f - RemoveAlphaGammaExp ( max (0.0, 1.0f - ui_alpha), 2.2f ) );
     }
 
-    float hdr_scale  = hdr10 ? ( -input.uv3.x / 10000.0 )
-                             :    input.uv3.x;
-
     float hdr_offset = 0.0f;//hdr10 ? 0.0f : input.uv3.z;
                             //hdr_scale -= hdr_offset;
 
     float4 hdr_out =
       float4 (   ( hdr10 ?
         LinearToST2084 (
-          REC709toREC2020 ( expandGamut (out_col.rgb            , 0.08) * ui_alpha) * hdr_scale) :
-     Clamp_scRGB_StripNaN ( expandGamut (out_col.rgb * hdr_scale, 0.08) )
-                 )                                   + hdr_offset, 
-                   hdr10 ?         LinearToPQY (       ui_alpha, 5.5)
-                         :                             out_col.a );
+          REC709toREC2020 ( out_col.rgb * ui_alpha) * hdr_scale ) :
+              Clamp_scRGB ( out_col.rgb             * hdr_scale )
+                 )                                  + hdr_offset, 
+                   hdr10 ?         LinearToPQY (      ui_alpha, 5.5)
+                         :                            out_col.a );
 
     // Keep pure black pixels as-per scRGB's limited ability to
     //   represent a black pixel w/ FP16 precision

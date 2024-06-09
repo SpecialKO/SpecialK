@@ -1,4 +1,13 @@
-﻿24.6.9
+﻿24.6.9.1
+========
+ + Normalize HDR->SDR tonemapped screenshots if peak white was < 1000.0 nits
+     in order to keep relative luminance range in SDR representation
+       (i.e. avoid unnecessary dimming).
+ + Remove Rec 2020 clamp from various scRGB processing, and replace it with
+     simpler logic that only strips NaN/Infinity and keeps maximum FP values
+       lower than 65504.0.
+
+24.6.9
 ======
  + Fix potential Return to Monkey Island crash when opening SK's control panel
 
