@@ -1,4 +1,11 @@
-﻿24.6.5
+﻿24.6.8
+======
+ + Improved HDR->SDR screenshot tonemapping
+ + Apply overbright processing -after- de-gamma
+ + Reduced luminance of HDR overbright bits; prevent values > 1.0 in de-gamma
+ + Changed default overbright behavior to luminance clip (preserve chrominance)
+
+24.6.5
 ======
  + Added LosslessScaling.exe to injection blacklist to prevent mistaking the
      Steam version of the software for a game and auto-whitelisting it.

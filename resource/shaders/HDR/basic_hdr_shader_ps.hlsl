@@ -207,29 +207,6 @@ main (PS_INPUT input) : SV_TARGET
   float3 orig_color =
     abs (hdr_color.rgb);
 
-  if (tonemapOverbrightBits && any (orig_color > 1.0f))
-  {
-    float3 rec2020_color =
-      max (0.0f, REC709toREC2020 (hdr_color.rgb));
-
-    hdr_color.rgb = rec2020_color;
-
-    float fLuminance =
-      LuminanceRec2020 (rec2020_color);
-
-    if (fLuminance > 1.0f)
-    {
-      float3 vNormalizedColor =
-        (rec2020_color.rgb / fLuminance);
-      
-      hdr_color.rgb =                       vNormalizedColor +
-        NeutralTonemap (rec2020_color.rgb - vNormalizedColor) / 2.5f;
-    }
-
-    hdr_color.rgb =
-      REC2020toREC709 (hdr_color.rgb);
-  }
-
 #ifdef INCLUDE_NAN_MITIGATION
 #ifdef DEBUG_NAN
   if ( AnyIsNan      (hdr_color)/*||
@@ -274,7 +251,7 @@ main (PS_INPUT input) : SV_TARGET
   if (visualFunc.x == VISUALIZE_GRAYSCALE)
   {
     hdr_color =
-      input.uv.x * float4 (1.0f, 1.0f, 1.0f, 1.0f);
+      input.uv.xxxx;
   }
 
   float3 hdr_rgb2 =
@@ -290,6 +267,12 @@ main (PS_INPUT input) : SV_TARGET
 #endif
 
 
+  float3 hdr_color_abs = abs (hdr_color.rgb);
+  float  max_rgb_comp  =
+    max (1.0, max (hdr_color_abs.r, max (hdr_color_abs.g, hdr_color_abs.b)));
+
+  hdr_color.rgb /= max_rgb_comp;
+
   hdr_color.rgb =
 #ifdef INCLUDE_HDR10
     bIsHDR10 ?
@@ -298,6 +281,9 @@ main (PS_INPUT input) : SV_TARGET
                          SK_ProcessColor4 ( hdr_color.rgba,
                                             xRGB_to_Linear,
                               sdrContentEOTF != 1.0f).rgb;
+
+  hdr_color.rgb *= max_rgb_comp;
+
 
 #ifdef INCLUDE_HDR10
   if (! bIsHDR10)
@@ -314,12 +300,41 @@ main (PS_INPUT input) : SV_TARGET
 #endif
 
 
-#ifdef INCLUDE_SPLITTER
-  if ( input.coverage.x < input.uv.x ||
-       input.coverage.y < input.uv.y )
+  if (overbrightColorFlags != 0x0 && ( any (hdr_color > 1.0f) ||
+                                       any (hdr_color < 0.0f)) )
   {
-    return
-      FinalOutput (float4 (hdr_color.rgb * sdrLuminance_White, 1.0f));
+#if 1
+    float3 xyz_color =
+      Rec709_to_XYZ (hdr_color.rgb);
+
+    if (xyz_color.y > 1.0f)
+    {
+#if 0
+      float3 vNormalizedColor =
+        hdr_color.rgb / xyz_color.y;
+
+      hdr_color.rgb =                    vNormalizedColor +
+        NeutralTonemap ((hdr_color.rgb - vNormalizedColor) * xyz_color.y) / 2.5f;
+#else
+      // Rescale the final output, not the input pixel
+      input.color.x /= xyz_color.y;
+#endif
+    }
+#else
+    float3 hdr_color_abs = abs (hdr_color.rgb);
+    float  max_rgb_comp  =
+      max (hdr_color_abs.r, max (hdr_color_abs.g, hdr_color_abs.b));
+
+    hdr_color.rgb /= max_rgb_comp;
+#endif
+  }
+
+
+#ifdef INCLUDE_SPLITTER
+  if (any (input.coverage < input.uv))
+  {
+    return // Clamp to [0,1] range as the game would have in SDR
+      FinalOutput (float4 (saturate (hdr_color.rgb) * sdrLuminance_White, 1.0f));
   }
 #endif
 
@@ -410,8 +425,7 @@ main (PS_INPUT input) : SV_TARGET
           hdr_color.rgb = 0;
       }
 
-      input.color.y   = 1.0;
-      input.color.x   = 1.0;
+      input.color.xy = 1.0;
     }
 #endif
   }
@@ -440,9 +454,11 @@ main (PS_INPUT input) : SV_TARGET
     const float pb_param_1 = pqBoostParams.y;
     const float pb_param_2 = pqBoostParams.z;
     const float pb_param_3 = pqBoostParams.w;
-    
+
     float fLuma =
       Rec709_to_XYZ (hdr_color.rgb).y;
+
+    hdr_color.rgb = REC709toREC2020 (hdr_color.rgb);
 
     float3 new_color  = 0.0f,
            new_color0 = 0.0f,
@@ -476,6 +492,8 @@ main (PS_INPUT input) : SV_TARGET
     if (! AnyIsNan (  new_color))
 #endif
       hdr_color.rgb = new_color;
+
+    hdr_color.rgb = REC2020toREC709 (hdr_color.rgb);
   }
 
 #ifdef INCLUDE_HDR10
@@ -860,9 +878,7 @@ main (PS_INPUT input) : SV_TARGET
     // Keep pure black pixels as-per scRGB's limited ability to
     //   represent a black pixel w/ FP16 precision
     color_out.rgb *=
-      ( (orig_color.r > FP16_MIN) +
-        (orig_color.g > FP16_MIN) +
-        (orig_color.b > FP16_MIN) > 0.0f );
+      (dot (orig_color.rgb, 1.0f) > FP16_MIN);
   }
 #ifdef INCLUDE_TEST_PATTERNS
   else

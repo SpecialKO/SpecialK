@@ -30,7 +30,7 @@ float4 main (PS_INPUT input) : SV_Target
     texture0.Sample (sampler0, input.uv);
  
   // Font Width/Height is only set on Font passes...
-  if (font_dims.x + font_dims.y > 0.0f)
+  if (dot (font_dims, 1.0f) > 0.0f)
   {
     // Font is a single-channel alpha texture,
     //   supply 1.0 for rgb channels
@@ -86,7 +86,7 @@ float4 main (PS_INPUT input) : SV_Target
     // Keep pure black pixels as-per scRGB's limited ability to
     //   represent a black pixel w/ FP16 precision
     hdr_out.rgb *=
-      (dot (orig_col.rgb, float3 (1.0f, 1.0f, 1.0f)) > FP16_MIN);
+      (dot (orig_col.rgb, 1.0f) > FP16_MIN);
 
     hdr_out.a *= (orig_col.a > FP16_MIN);
 
