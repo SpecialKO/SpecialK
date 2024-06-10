@@ -1,4 +1,14 @@
-﻿24.6.9.1
+﻿24.6.10
+=======
+ + Revert HDR->SDR screenshot tonemapping
+ + Change HDR overbright bit processing from soft clip (overbright was allowed
+     to influence the input to Perceptual Boost and output was scaled down),
+       to hard clip (pre-scaled so that output never exceeds tonemap target).
+ + Clamp various PQ EOTF encoding functions to [0,oo) since PQ is undefined for
+     negative values
+ + Apply Perceptual Boost in AP0 colorspace and apply clamp (see note about PQ)
+
+24.6.9.1
 ========
  + Normalize HDR->SDR tonemapped screenshots if peak white was < 1000.0 nits
      in order to keep relative luminance range in SDR representation

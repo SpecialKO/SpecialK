@@ -147,11 +147,12 @@ FinalOutput (float4 vColor)
 {
   // HDR10 -Output-, transform scRGB to HDR10
   if (visualFunc.y == 1)
+  if (visualFunc.y == 1)
   {
     vColor.rgb =
-      clamp (
-        LinearToPQ (REC709toREC2020 (vColor.rgb), 125.0f),
-                                               0.0, 1.0 );
+      saturate ( // PQ is not defined for negative inputs
+        LinearToPQ (max (0.0, REC709toREC2020 (vColor.rgb)), 125.0f)
+      );
 
     vColor.a = 1.0;
   }
@@ -316,8 +317,12 @@ main (PS_INPUT input) : SV_TARGET
       hdr_color.rgb =                    vNormalizedColor +
         NeutralTonemap ((hdr_color.rgb - vNormalizedColor) * xyz_color.y) / 2.5f;
 #else
-      // Rescale the final output, not the input pixel
-      input.color.x /= xyz_color.y;
+      // Soft Clamp?
+      //// Rescale the final output, not the input pixel
+      //input.color.x /= xyz_color.y;
+
+      // Hard Clamp (Perceptual Boost will not boost beyond target)
+      hdr_color.rgb /= xyz_color.y;
 #endif
     }
 #else
@@ -351,9 +356,14 @@ main (PS_INPUT input) : SV_TARGET
     input.color.x = hdrLuminance_MaxAvg / 80.0;
   }
 
+  // These visualizations do not support negative values, thus
+  //   we clamp to 0.0... though lose wide gamut color in the process.
   if (visualFunc.x >= VISUALIZE_8BIT_QUANTIZE &&
       visualFunc.x <= VISUALIZE_16BIT_QUANTIZE)
   {
+    hdr_color.rgb =
+      clamp (hdr_color.rgb, 0.0f, FLT_MAX);
+
     uint scale_i = visualFunc.x == VISUALIZE_8BIT_QUANTIZE  ?  255  :
                    visualFunc.x == VISUALIZE_10BIT_QUANTIZE ? 1023  :
                    visualFunc.x == VISUALIZE_12BIT_QUANTIZE ? 4095  :
@@ -458,7 +468,7 @@ main (PS_INPUT input) : SV_TARGET
     float fLuma =
       Rec709_to_XYZ (hdr_color.rgb).y;
 
-    hdr_color.rgb = REC709toREC2020 (hdr_color.rgb);
+    hdr_color.rgb = max (Rec709toAP0_D65 (hdr_color.rgb), 0.0f);
 
     float3 new_color  = 0.0f,
            new_color0 = 0.0f,
@@ -493,7 +503,7 @@ main (PS_INPUT input) : SV_TARGET
 #endif
       hdr_color.rgb = new_color;
 
-    hdr_color.rgb = REC2020toREC709 (hdr_color.rgb);
+    hdr_color.rgb = AP0_D65toRec709 (hdr_color.rgb);
   }
 
 #ifdef INCLUDE_HDR10
@@ -871,8 +881,8 @@ main (PS_INPUT input) : SV_TARGET
 
     color_out =
       float4 (
-        Clamp_scRGB (SanitizeFP (color_out.rgb)),
-                       saturate (hdr_color.a)
+        Clamp_scRGB (color_out.rgb),
+           saturate (hdr_color.a)
              );
 
     // Keep pure black pixels as-per scRGB's limited ability to
