@@ -1131,10 +1131,10 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
 
 
 UINT filterFlags =
-  0x200000FF;
+  0x100000FF;
 
 float _cSdrPower  = .685f;
-float _cLerpScale =  1.0f;
+float _cLerpScale =  .34f;//1.0f;
 
 void
 SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
@@ -1575,33 +1575,13 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
                         XMVECTOR maxcomp = XMVectorMax (value, g_XMZero);
 
-                        float fMaxComp =
-                          std::max ({0.0f, XMVectorGetX (maxRGB), XMVectorGetY (maxRGB), XMVectorGetZ (maxRGB)});
-
-                        if (fMaxComp > 0.0f)
-                        {
-                          value =
-                            XMVectorDivide (value, XMVectorReplicate (fMaxComp));
-                        }
-
-                        else fMaxComp = 1.0f;
-
-                        if (_cLerpScale != 1.0)
-                        {
-                          value =
-                            XMVectorDivide (value, XMVectorReplicate (_cLerpScale));
-                        }
-
-                        else
-                        {
-                          value =
-                            XMVectorDivide (value, XMVectorMultiply (XMVectorPow (XMVectorReplicate (XMVectorGetY (maxLum) / 12.5f), XMVectorReplicate (_cSdrPower)), XMVectorReplicate (10.0f)));
-                        }
-
-                        static const XMVECTOR vMaxFP16 = XMVectorSet (65504.0f, 65504.0f, 65504.0f, 65504.0f);
 
                         value =
-                          XMVectorPow (XMVectorMultiply (XMVectorReplicate (fMaxComp), XMVectorSaturate (XMVector3Transform (ToneMapACESFilmic (XMVectorClamp (XMVector3Transform (value, c_from709to2020), g_XMZero, vMaxFP16)), c_from2020to709))), XMVectorReplicate (_cSdrPower));
+                          XMVector3Transform (
+                            ToneMapACESFilmic (XMVectorMax (g_XMZero,
+                              XMVector3Transform (XMVectorMultiply (XMVectorDivide (value, maxLum),
+                                                                    XMVectorDivide (       maxLum, XMVectorReplicate (12.5f))), c_from709to2020))),
+                                                                                                                                c_from2020to709);
 
                         maxTonemappedRGB = XMVectorMax (maxTonemappedRGB, value);
 
@@ -1610,7 +1590,10 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                     }, tonemapped_image) : E_POINTER;
 
                     float fMaxTonemappedRGB =
-                      std::max ({ 1.0f, XMVectorGetX (maxTonemappedRGB), XMVectorGetY (maxTonemappedRGB), XMVectorGetZ (maxTonemappedRGB) });
+                      std::max ({ 1.0f,
+                                  XMVectorGetX (maxTonemappedRGB),
+                                  XMVectorGetY (maxTonemappedRGB),
+                                  XMVectorGetZ (maxTonemappedRGB) });
 
                     maxTonemappedRGB = XMVectorReplicate (fMaxTonemappedRGB);
 
@@ -1625,8 +1608,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                       for (size_t j = 0; j < width; ++j)
                       {
                         XMVECTOR value = inPixels [j];
-                      
-                        outPixels [j] = XMVectorDivide (value, maxTonemappedRGB);
+
+                        outPixels [j] = XMVectorPow (XMVectorDivide (value, XMVectorReplicate (fMaxTonemappedRGB)), XMVectorReplicate (_cLerpScale));
                       }
                     },
                   final_sdr );
