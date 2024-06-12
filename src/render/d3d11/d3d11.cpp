@@ -8120,6 +8120,11 @@ SK_D3D11_IsFeatureLevelSufficient ( D3D_FEATURE_LEVEL   FeatureLevelSupported,
     ( FeatureLevelSupported >= maxLevel );
 }
 
+// Sometimes, because of the Steam Overlay, we cannot detect
+//   Vulkan interop SwapChains and need to record if an interop
+//     device has ever been created.
+bool SK_NV_D3D11_HasInteropDevice = false;
+
 __declspec (noinline)
 HRESULT
 WINAPI
@@ -8192,6 +8197,8 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
 
   if (bNvInterop)
   {
+    SK_NV_D3D11_HasInteropDevice = true;
+
     Flags = 0x9;
 
     // NV's DXGI interop is always featureless and without a SwapChain

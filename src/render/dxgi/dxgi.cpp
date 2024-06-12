@@ -6818,13 +6818,15 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     {
       if (pDev11.p != nullptr)
       {
+        extern bool SK_NV_D3D11_HasInteropDevice;
+
         bool bNvInterop = false;
 
         //
         // Detect NVIDIA's Interop SwapChain
         //
         if ( SK_GetModuleHandle (L"vulkan-1.dll") &&
-             SK_GetCallerName ().find (L"nvoglv") != std::wstring::npos )
+             (SK_GetCallerName ().find (L"nvoglv") != std::wstring::npos || SK_NV_D3D11_HasInteropDevice) )
         {
           UINT                                 uiFlagAsInterop = SK_DXGI_VK_INTEROP_TYPE_NV;
           (*ppSwapChain)->SetPrivateData (
