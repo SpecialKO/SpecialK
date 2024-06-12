@@ -200,13 +200,228 @@ SK_ScreenshotManager::getBasePath (void) const
 }
 
 bool
-SK_ScreenshotManager::copyToClipboard (const DirectX::Image& image) const
+SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchImage& png_img)
+{
+  using namespace DirectX;
+
+  if (auto typeless_fmt = DirectX::MakeTypeless (raw_hdr_img.format);
+           typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS  ||
+           typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS ||
+           typeless_fmt == DXGI_FORMAT_R32G32B32A32_TYPELESS)
+  {
+    if (png_img.GetImageCount () == 0)
+    {
+      if (FAILED (png_img.Initialize2D (DXGI_FORMAT_R16G16B16A16_UNORM,
+              raw_hdr_img.width,
+              raw_hdr_img.height, 1, 1)))
+      {
+        return false;
+      }
+    }
+
+    if (png_img.GetMetadata ().format != DXGI_FORMAT_R16G16B16A16_UNORM)
+      return false;
+
+    uint16_t* rgb16_pixels =
+      reinterpret_cast <uint16_t *> (png_img.GetPixels ());
+
+    if (rgb16_pixels == nullptr)
+      return false;
+
+    struct ParamsPQ
+    {
+      XMVECTOR N, M;
+      XMVECTOR C1, C2, C3;
+      XMVECTOR MaxPQ;
+    };
+
+    static const ParamsPQ PQ =
+    {
+      XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
+      XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
+      XMVectorReplicate (3424.0 / 4096.0),         // C1
+      XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
+      XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
+      XMVectorReplicate (125.0),
+    };
+
+    static const XMMATRIX c_from709to2020 =
+    {
+      { 0.627225305694944f,  0.0690418812810714f, 0.0163911702607078f, 0.0f },
+      { 0.329476882715808f,  0.919605681354755f,  0.0880887513437058f, 0.0f },
+      { 0.0432978115892484f, 0.0113524373641739f, 0.895520078395586f,  0.0f },
+      { 0.0f,                0.0f,                0.0f,                1.0f }
+    };
+
+    auto LinearToPQ = [](XMVECTOR N)
+    {
+      XMVECTOR ret;
+
+      ret =
+        XMVectorPow (N, PQ.N);
+
+      XMVECTOR nd =
+        XMVectorDivide (
+           XMVectorAdd (  PQ.C1, XMVectorMultiply (PQ.C2, ret)),
+           XMVectorAdd (g_XMOne, XMVectorMultiply (PQ.C3, ret))
+        );
+
+      return
+        XMVectorPow (nd, PQ.M);
+    };
+
+    EvaluateImage ( raw_hdr_img,
+    [&](const XMVECTOR* pixels, size_t width, size_t y)
+    {
+      UNREFERENCED_PARAMETER(y);
+
+      static const XMVECTOR pq_range_10bpc = XMVectorReplicate (1023.0f),
+                            pq_range_12bpc = XMVectorReplicate (4095.0f),
+                            pq_range_16bpc = XMVectorReplicate (65535.0f),
+                            pq_range_32bpc = XMVectorReplicate (4294967295.0f);
+
+      const auto pq_range_out =
+        (typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS)  ? pq_range_10bpc :
+        (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? pq_range_12bpc :
+                                                              pq_range_16bpc;
+      const auto pq_range_in  =
+        (typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS)  ? pq_range_10bpc :
+        (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? pq_range_16bpc :
+                                                              pq_range_32bpc;
+
+      for (size_t j = 0; j < width; ++j)
+      {
+        XMVECTOR v =
+          *pixels++;
+
+        // Assume scRGB for any FP32 input, though uncommon
+        if (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS ||
+            typeless_fmt == DXGI_FORMAT_R32G32B32A32_TYPELESS)
+        {
+          XMVECTOR  value = XMVector3Transform (v, c_from709to2020);
+          XMVECTOR nvalue = XMVectorDivide     ( XMVectorMax (g_XMZero,
+                                                   XMVectorMin (value, PQ.MaxPQ)),
+                                                                       PQ.MaxPQ );
+                        v = LinearToPQ (nvalue);
+        }
+
+        v = // Quantize to 12bpc before expanding to 16bpc in order to improve
+          XMVectorMultiply ( // compression efficiency.
+            XMVectorDivide (
+              XMVectorRound (
+                XMVectorMultiply (
+                  XMVectorSaturate (v), pq_range_12bpc)),
+                                        pq_range_12bpc), pq_range_16bpc);
+
+        *(rgb16_pixels++) = static_cast <uint16_t> (DirectX::XMVectorGetX (v));
+        *(rgb16_pixels++) = static_cast <uint16_t> (DirectX::XMVectorGetY (v));
+        *(rgb16_pixels++) = static_cast <uint16_t> (DirectX::XMVectorGetZ (v));
+          rgb16_pixels++; // We have an unused alpha channel that needs skipping
+      }
+    });
+  }
+
+  return true;
+}
+
+bool
+SK_HDR_SavePNGToDisk (const wchar_t* wszPNGPath, const DirectX::Image* png_image)
+{
+  if ( wszPNGPath == nullptr ||
+        png_image == nullptr )
+  {
+    return false;
+  }
+
+  if (SUCCEEDED (
+    DirectX::SaveToWICFile (*png_image, DirectX::WIC_FLAGS_DITHER |
+                                        DirectX::WIC_FLAGS_IGNORE_SRGB,
+                           GetWICCodec (DirectX::WIC_CODEC_PNG),
+                               wszPNGPath, &GUID_WICPixelFormat48bppRGB)))
+  {
+    extern bool
+      sk_png_make_hdr (const wchar_t* wszFilePath, const DirectX::Image& img);
+
+    return
+      sk_png_make_hdr (wszPNGPath, *png_image);
+  }
+
+  return false;
+}
+
+bool
+SK_PNG_CopyToClipboard (const DirectX::Image& image, const void *pData, size_t data_size)
+{
+  std::ignore = image;
+
+  SK_ReleaseAssert (data_size <= DWORD_MAX);
+
+  if (OpenClipboard (nullptr))
+  {
+    int clpSize = sizeof (DROPFILES);
+
+    clpSize += sizeof (wchar_t) * static_cast <int> (wcslen ((wchar_t *)pData) + 1); // + 1 => '\0'
+    clpSize += sizeof (wchar_t);                                                     // two \0 needed at the end
+
+    HDROP hdrop =
+      (HDROP)GlobalAlloc (GHND, clpSize);
+
+    DROPFILES* df =
+      (DROPFILES *)GlobalLock (hdrop);
+
+    df->pFiles = sizeof (DROPFILES);
+    df->fWide  = TRUE;
+
+    wcscpy ((wchar_t*)&df [1], (const wchar_t *)pData);
+
+    GlobalUnlock     (hdrop);
+    EmptyClipboard   ();
+    SetClipboardData (CF_HDROP, hdrop);
+    CloseClipboard   ();
+
+    return true;
+  }
+
+  return false;
+}
+
+bool
+SK_ScreenshotManager::copyToClipboard ( const DirectX::Image& image,
+                                        const DirectX::Image* pOptionalHDR,
+                                        const wchar_t*        wszOptionalFilename ) const
 {
   if (! config.screenshots.copy_to_clipboard)
     return false;
 
   if (OpenClipboard (nullptr))
   {
+    if (pOptionalHDR != nullptr)
+    {
+      DirectX::ScratchImage                        hdr10_img;
+      if (SK_HDR_ConvertImageToPNG (*pOptionalHDR, hdr10_img))
+      {
+        wchar_t wszPNGPath [MAX_PATH + 2] = { };
+
+        if (wszOptionalFilename != nullptr)
+        {
+          wcsncpy_s (           wszPNGPath, wszOptionalFilename, MAX_PATH);
+          PathRemoveExtensionW (wszPNGPath);
+          PathRemoveFileSpecW  (wszPNGPath);
+        }
+
+        PathAppendW       (wszPNGPath, L"hdr10_clipboard");
+        PathAddExtensionW (wszPNGPath, L".png");
+
+        if (SK_HDR_SavePNGToDisk (wszPNGPath, hdr10_img.GetImages ()))
+        {
+          if (SK_PNG_CopyToClipboard (*hdr10_img.GetImage (0,0,0), wszPNGPath, 0))
+          {
+            return true;
+          }
+        }
+      }
+    }
+
     const int
         _bpc    =
       sk::narrow_cast <int> (DirectX::BitsPerPixel (image.format)),
@@ -294,12 +509,6 @@ SK_ScreenshotManager::copyToClipboard (const DirectX::Image& image) const
 
   return false;
 }
-
-#if 0
-  if (IsClipboardFormatAvailable (CF_BITMAP))
-  {
-
-#endif
 
 bool
 SK_ScreenshotManager::checkDiskSpace (uint64_t bytes_needed) const
@@ -676,11 +885,11 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
           for (size_t j = 0; j < width; ++j)
           {
             DirectX::XMVECTOR v =
-              XMVectorClamp (*pixels++, g_XMZero, g_XMOne);
+              XMVectorSaturate (*pixels++);
 
-            *(rgb_pixels++) = static_cast <uint16_t> (roundf (v.m128_f32 [0] * 1023.0f));
-            *(rgb_pixels++) = static_cast <uint16_t> (roundf (v.m128_f32 [1] * 1023.0f));
-            *(rgb_pixels++) = static_cast <uint16_t> (roundf (v.m128_f32 [2] * 1023.0f));
+            *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetX (v) * 1023.0f));
+            *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetY (v) * 1023.0f));
+            *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetZ (v) * 1023.0f));
           }
         } );
       } break;
@@ -704,7 +913,6 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
           XMVectorReplicate (125.0),
         };
 
-#if 1
         static const XMMATRIX c_from709to2020 = // Transposed
         {
           { 0.627225305694944f,  0.0690418812810714f, 0.0163911702607078f, 0.0f },
@@ -729,7 +937,6 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
           return
             XMVectorPow (nd, PQ.M);
         };
-#endif
 
         uint16_t* rgb_pixels = (uint16_t *)rgb.pixels;
 
@@ -738,47 +945,27 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
           hdr10_img.InitializeFromImage (*src_image.GetImages ());
 
 
-        TransformImage ( src_image.GetImages     (),
-                         src_image.GetImageCount (),
-                         metadata,
-        [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
-        //[&](const XMVECTOR* pixels, size_t width, size_t y)
+        EvaluateImage ( src_image.GetImages     (),
+                        src_image.GetImageCount (),
+                        metadata,
+        [&](_In_reads_ (width) const XMVECTOR* pixels, size_t width, size_t y)
         {
-          UNREFERENCED_PARAMETER(y);
+          UNREFERENCED_PARAMETER (y);
 
           for (size_t j = 0; j < width; ++j)
           {
-            XMVECTOR  value = XMVector3Transform (inPixels [j], c_from709to2020);
+            XMVECTOR  value = XMVector3Transform (pixels [j], c_from709to2020);
             XMVECTOR nvalue = XMVectorDivide ( XMVectorMax (g_XMZero,
                                                XMVectorMin (value, PQ.MaxPQ)),
                                                                    PQ.MaxPQ);
 
-                      value = XMVectorClamp (LinearToPQ (nvalue), g_XMZero, g_XMOne);
+                      value = XMVectorSaturate (LinearToPQ (nvalue));
 
-            outPixels [j] = XMColorSRGBToRGB (value);
-
-            *(rgb_pixels++) = static_cast <uint16_t> (roundf (value.m128_f32 [0] * 65535.0f));
-            *(rgb_pixels++) = static_cast <uint16_t> (roundf (value.m128_f32 [1] * 65535.0f));
-            *(rgb_pixels++) = static_cast <uint16_t> (roundf (value.m128_f32 [2] * 65535.0f));
+            *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetX (value) * 65535.0f));
+            *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetY (value) * 65535.0f));
+            *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetZ (value) * 65535.0f));
           }
-        }, hdr10_img );
-
-        wchar_t    wszPNGPath [MAX_PATH + 2] = { };
-        wcsncpy_s (wszPNGPath, wszFilePath, MAX_PATH);
-
-        PathRemoveExtensionW (wszPNGPath);
-        PathRemoveFileSpecW  (wszPNGPath);
-        PathAppendW          (wszPNGPath, L"hdr10_test");
-        PathAddExtensionW    (wszPNGPath, L".png");
-
-        if (SUCCEEDED (
-          DirectX::SaveToWICFile (*hdr10_img.GetImages (), WIC_FLAGS_DITHER | WIC_FLAGS_IGNORE_SRGB,
-                                              GetWICCodec (WIC_CODEC_PNG),
-                                        wszPNGPath, &GUID_WICPixelFormat48bppRGB)))
-        {
-          extern bool sk_png_make_hdr (const wchar_t* wszFilePath);
-                      sk_png_make_hdr (wszPNGPath);
-        }
+        } );
       } break;
     }
 
@@ -1253,7 +1440,7 @@ sk_png_remove_chunk (const char* szName, void* data, size_t& size)
   return true;
 }
 
-bool sk_png_make_hdr (const wchar_t* wszFilePath)
+bool sk_png_make_hdr (const wchar_t* wszFilePath, const DirectX::Image& img)
 {
   static const BYTE _test [] = { 0x49, 0x45, 0x4E, 0x44 };
 
@@ -1351,7 +1538,18 @@ bool sk_png_make_hdr (const wchar_t* wszFilePath)
 
       // Write the remainder of the original file
       fwrite (insert_ptr, size - insert_pos, 1, fPNG);
+
+      auto final_size =
+        ftell (fPNG);
+
+      auto full_png =
+        std::make_unique <unsigned char []> (final_size);
+
+      rewind (fPNG);
+      fread  (full_png.get (), final_size, 1, fPNG);
       fclose (fPNG);
+
+      SK_PNG_CopyToClipboard (img, wszFilePath /*full_png.get ()*/, final_size);
 
       SK_LOGi0 (L"Applied HDR10 PNG chunks to %ws.", wszFilePath);
 

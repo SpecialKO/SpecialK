@@ -2141,7 +2141,10 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                 if (un_scrgb.GetImageCount () == 1 && pop_off->wantClipboardCopy () && (config.screenshots.copy_to_clipboard || (! pFrameData->AllowSaveToDisk)))
                 {
-                  rb.screenshot_mgr->copyToClipboard (*un_scrgb.GetImages ());
+                  rb.screenshot_mgr->copyToClipboard (*un_scrgb.GetImages (), hdr ? &raw_img
+                                                                                  : nullptr,
+                                                                              hdr ? wszAbsolutePathToScreenshot
+                                                                                  : nullptr);
                 }
 
                 if (               pFrameData->AllowSaveToDisk    &&

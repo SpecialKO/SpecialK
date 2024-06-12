@@ -148,7 +148,9 @@ public:
   screenshot_repository_s& getRepoStats    (bool refresh = false);
 
   bool                     checkDiskSpace  (uint64_t bytes_needed) const;
-  bool                     copyToClipboard (const DirectX::Image& image) const;
+  bool                     copyToClipboard (const DirectX::Image& image,
+                                            const DirectX::Image* pOptionalHDR        = nullptr,
+                                            const wchar_t*        wszOptionalFilename = nullptr) const;
 
 protected:
   screenshot_repository_s screenshots = { };

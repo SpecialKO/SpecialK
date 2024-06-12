@@ -1,7 +1,13 @@
-﻿24.6.12
+﻿24.6.13
 =======
- + Apply separate screenshot tonemaps to native HDR and SK inverse tonemapped
-     content.
+ + Added PNG HDR screenshot support
+    * A PNG will be copied to the clipboard every time a screenshot is taken
+        in HDR games so that you can paste the HDR image directly to Discord.
+ + Overbright tonemapping is now disabled when HDR is in passthrough mode
+
+24.6.12
+=======
+ + Apply separate screenshot tonemaps to native HDR and SK inverse tonemapping.
     * The tonemap used for native HDR content is roughly equivalent, but with
          correct colors, to gamebar's tonemap... so not particularly good.
  + Add warning if a third-party overlay is detected to be interfering with

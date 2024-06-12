@@ -2469,12 +2469,15 @@ public:
 
             const bool pboost = (preset.pq_boost0 > 0.0f);
 
-            if (ImGui::Checkbox ("Tonemap Overbright Bits", &preset.tonemap_overbright))
+            if (abs (__SK_HDR_Luma) != 1.0f)
             {
-              preset.cfg_tonemap_ob->store (preset.tonemap_overbright);
-              __SK_HDR_TonemapOverbright =  preset.tonemap_overbright;
+              if (ImGui::Checkbox ("Tonemap Overbright Bits", &preset.tonemap_overbright))
+              {
+                preset.cfg_tonemap_ob->store (preset.tonemap_overbright);
+                __SK_HDR_TonemapOverbright =  preset.tonemap_overbright;
 
-              config.utility.save_async ();
+                config.utility.save_async ();
+              }
             }
 
             if (pboost)
