@@ -1131,10 +1131,10 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
 
 
 UINT filterFlags =
-  0x100000FF;
+  0x200000FF;
 
 float _cSdrPower  = .685f;
-float _cLerpScale =  .34f;//1.0f;
+float _cLerpScale = .685f;
 
 void
 SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
@@ -1468,8 +1468,9 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                   static const XMVECTORF32 s_luminance =
                     { 0.2126729f, 0.7151522f, 0.0721750f, 0.f };
 
-                  float lumTotal   = 0.0f;
-                  float N          = 0.0f;
+                  double lumTotal    = 0.0;
+                  double logLumTotal = 0.0;
+                  double N           = 0.0;
 
                   hr =              un_srgb.GetImageCount () == 1 ?
                     EvaluateImage ( un_srgb.GetImages     (),
@@ -1483,14 +1484,11 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                       {
                         XMVECTOR v = *pixels;
 
-                        maxRGB =
-                          XMVectorMax (XMVectorAbs (v), maxRGB);
-
                         maxCLL =
                           XMVectorMax (XMVectorMultiply (v, s_luminance), maxCLL);
 
                         v =
-                          XMVectorMax (XMVector3Transform (v, c_from709toXYZ), g_XMZero);
+                          XMVector3Transform (v, c_from709toXYZ);
 
                         maxLum =
                           XMVectorMax (v, maxLum);
@@ -1498,9 +1496,15 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                         minLum =
                           XMVectorMin (v, minLum);
 
-                        lumTotal +=
-                          logf ( std::max (0.000001f, 0.000001f + XMVectorGetY (v)) ),
+                        logLumTotal +=
+                          log2 ( std::max (0.000001, static_cast <double> (XMVectorGetY (v))) );
+                           lumTotal +=               static_cast <double> (XMVectorGetY (v));
                         ++N;
+
+                        v = XMVectorMax (g_XMZero, v);
+
+                        maxRGB =
+                          XMVectorMax (v, maxRGB);
 
                         pixels++;
                       }
@@ -1515,12 +1519,11 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                   SK_LOGi0 ( L"Min Luminance: %f, Max Luminance: %f", XMVectorGetY (minLum) * 80.0f,
                                                                       XMVectorGetY (maxLum) * 80.0f );
 
-                  SK_LOGi0 ( L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0f * ( XMVectorGetY (minLum) + XMVectorGetY (maxLum) ) * 0.5f,
-                                                                                80.0f * expf ( (1.0f / N) * lumTotal ) );
+                  SK_LOGi0 ( L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0 *      ( lumTotal    / N ),
+                                                                                80.0 * exp2 ( logLumTotal / N ) );
 
-                  pFrameData->hdr.max_cll_nits = 80.0f *   XMVectorGetX (maxCLL);
-                  pFrameData->hdr.avg_cll_nits = 80.0f * ( XMVectorGetY (minLum) + XMVectorGetY (maxLum) ) * 0.5f +
-                                                 80.0f * expf ( (1.0f / N) * lumTotal );
+                  pFrameData->hdr.max_cll_nits =                      80.0f * XMVectorGetX (maxCLL);
+                  pFrameData->hdr.avg_cll_nits = static_cast <float> (80.0 * ( lumTotal / N ));
 
                   auto ToneMapACESFilmic = [](XMVECTOR x) -> XMVECTOR
                   {
@@ -1554,6 +1557,27 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                       tonemapped_metadata.height, 1, 1
                     );
 
+                  extern float __SK_HDR_Luma;
+
+                  bool bLDR = 
+                    (__SK_HDR_Luma != 1.0f && __SK_HDR_Luma != -1.0f);
+
+                  if (! bLDR)
+                  {
+                    filterFlags = 0x200000FF;
+                  
+                    _cSdrPower  = 1.081f;
+                    _cLerpScale = 2.225f;
+                  }
+
+                  else
+                  {
+                    filterFlags = 0x200000FF;
+                  
+                    _cSdrPower  = .685f;
+                    _cLerpScale = .685f;
+                  }
+
                   hr =               un_srgb.GetImageCount () == 1 ?
                     TransformImage ( un_srgb.GetImages     (),
                                      un_srgb.GetImageCount (),
@@ -1565,23 +1589,80 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                       extern float __SK_HDR_Exp;
 
                       const XMVECTORF32 c_SdrPower =
-                        { __SK_HDR_Exp == 1.0f ? .719f : _cSdrPower,
-                          __SK_HDR_Exp == 1.0f ? .719f : _cSdrPower,
-                          __SK_HDR_Exp == 1.0f ? .719f : _cSdrPower, 1.f };
+                        { _cSdrPower,
+                          _cSdrPower,
+                          _cSdrPower, 1.f };
 
                       for (size_t j = 0; j < width; ++j)
                       {
                         XMVECTOR value = inPixels [j];
 
+                        if (bLDR)
+                        {
                         XMVECTOR maxcomp = XMVectorMax (value, g_XMZero);
 
+                        if (! bLDR)
+                        {
+                          value = XMVectorMultiply (XMVectorReplicate (4.0f), value);
+
+                          value =
+                            XMVector3Transform (
+                              ToneMapACESFilmic (
+                                XMVector3Transform (XMVectorDivide (XMVectorMultiply (XMVectorDivide (value, maxLum),
+                                                                                      XMVectorDivide (       maxLum, XMVectorReplicate (12.5f))), maxRGB), c_from709to2020)),
+                                                                                                                                                           c_from2020to709);
+
+                          value = XMVectorMultiply (value, maxRGB);
+                        }
+                        }
+
+                        else
+                        {
+                        XMVECTOR maxLumExp =
+                          XMVectorMultiply ( maxLum,
+                                             maxLum );
+
+                        XMVECTOR luma  = 
+                          XMVectorReplicate (
+                            XMVectorGetY (XMVectorMax (XMVector3Transform (value, c_from709toXYZ), g_XMZero))
+                          );
 
                         value =
-                          XMVector3Transform (
-                            ToneMapACESFilmic (XMVectorMax (g_XMZero,
-                              XMVector3Transform (XMVectorMultiply (XMVectorDivide (value, maxLum),
-                                                                    XMVectorDivide (       maxLum, XMVectorReplicate (12.5f))), c_from709to2020))),
-                                                                                                                                c_from2020to709);
+                          XMVectorMax (XMVector3Transform (XMVectorDivide (value, maxRGB), c_from709to2020), g_XMZero);
+
+                        XMVECTOR numerator =
+                          XMVectorAdd (
+                            g_XMOne,
+                              XMVectorDivide (
+                                luma, maxLumExp
+                              )
+                          );
+
+                        XMVECTOR scale0 =
+                          XMVectorDivide (
+                            numerator, XMVectorAdd (
+                              g_XMOne, luma
+                            )
+                          );
+
+                        XMVECTOR scale1 =
+                          XMVectorDivide (
+                            numerator, XMVectorAdd (
+                              g_XMOne, value
+                            )
+                          );
+
+                        value =
+                          XMVectorMultiply (value, XMVectorLerp (scale1, scale0, XMVectorGetX (luma) /
+                                                                                 XMVectorGetX (maxLum) / _cLerpScale));
+
+                        value = XMVectorMax (g_XMZero, XMVector3Transform (value, c_from2020to709));
+
+                        value =
+                          XMVectorPow ( value, c_SdrPower );
+
+                        value = XMVectorMultiply (value, maxRGB);
+                        }
 
                         maxTonemappedRGB = XMVectorMax (maxTonemappedRGB, value);
 
@@ -1609,7 +1690,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                       {
                         XMVECTOR value = inPixels [j];
 
-                        outPixels [j] = XMVectorPow (XMVectorDivide (value, XMVectorReplicate (fMaxTonemappedRGB)), XMVectorReplicate (_cLerpScale));
+                        outPixels [j] = XMVectorDivide (value, maxTonemappedRGB);
                       }
                     },
                   final_sdr );
