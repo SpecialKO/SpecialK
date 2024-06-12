@@ -3578,6 +3578,29 @@ SK_BackgroundRender_EndFrame (void)
     }
   }
 
+  else
+  {
+    // Check if we can correctly handle input such as mousewheel
+    //   and keyboard bindings that rely on window focus info.
+    if (SK_GetFramesDrawn () > 30)
+    {
+      SK_RunOnce (
+        if (! game_window.mouse.can_track)
+        {
+          SK_ImGui_WarningWithTitle (
+            L"Special K cannot manage window state and "
+            L"some input functionality will not work."
+            L"\r\n\r\n"
+            L" * This is likely caused by a third-party overlay."
+            L"\r\n\r\n"
+            L"Please restart the game.",
+            L"Window Management Is Not Working Correctly"
+          );
+        }
+      );
+    }
+  }
+
   fullscreen_last_frame =
         rb.isTrueFullscreen ();
   if (! fullscreen_last_frame)

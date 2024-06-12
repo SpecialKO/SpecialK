@@ -1,4 +1,15 @@
-﻿24.6.10
+﻿24.6.12
+=======
+ + Apply separate screenshot tonemaps to native HDR and SK inverse tonemapped
+     content.
+    * The tonemap used for native HDR content is roughly equivalent, but with
+         correct colors, to gamebar's tonemap... so not particularly good.
+ + Add warning if a third-party overlay is detected to be interfering with
+     window management and preventing keybinds and other input from working.
+ + Detect NVIDIA DXGI/Vk interop SwapChains even if the Steam overlay has
+     hooked D3D11.
+
+24.6.10
 =======
  + Revert HDR->SDR screenshot tonemapping
  + Change HDR overbright bit processing from soft clip (overbright was allowed
