@@ -1,4 +1,12 @@
-﻿24.6.13.2
+﻿24.6.13.3
+=========
+ + Added display primaries and whitepoint to mDCv chunk of HDR PNGs
+
+     * It was using reference Bt.2020 values because many displays have invalid
+         information (i.e. they just report Bt.709), but that may lead to
+           oversaturation in SDR tonemapped images.
+
+24.6.13.2
 =========
  + Fixed accidental no tonemapping (linear range scaling) introduced in 4.6.12
      when storing tonemapped screenshots in Steam.

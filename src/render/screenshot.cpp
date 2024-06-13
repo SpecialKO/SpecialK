@@ -1753,6 +1753,26 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
       mdcv_data.luminance.maximum =
         static_cast <uint32_t> (round (active_display.gamut.maxY / 0.0001f));
 
+      mdcv_data.primaries.red_x =
+        static_cast <uint32_t> (round (active_display.gamut.xr / 0.00002));
+      mdcv_data.primaries.red_y =
+        static_cast <uint32_t> (round (active_display.gamut.yr / 0.00002));
+
+      mdcv_data.primaries.green_x =
+        static_cast <uint32_t> (round (active_display.gamut.xg / 0.00002));
+      mdcv_data.primaries.green_y =
+        static_cast <uint32_t> (round (active_display.gamut.yg / 0.00002));
+
+      mdcv_data.primaries.blue_x =
+        static_cast <uint32_t> (round (active_display.gamut.xb / 0.00002));
+      mdcv_data.primaries.blue_y =
+        static_cast <uint32_t> (round (active_display.gamut.yb / 0.00002));
+
+      mdcv_data.white_point.x =
+        static_cast <uint32_t> (round (active_display.gamut.Xw / 0.00002));
+      mdcv_data.white_point.y =
+        static_cast <uint32_t> (round (active_display.gamut.Yw / 0.00002));
+
       SK_PNG_Chunk iccp_chunk = { sizeof (SK_PNG_HDR_iCCP_Payload), { 'i','C','C','P' }, &iccp_data };
       SK_PNG_Chunk cicp_chunk = { sizeof (cicp_data),               { 'c','I','C','P' }, &cicp_data };
       SK_PNG_Chunk clli_chunk = { sizeof (clli_data),               { 'c','L','L','i' }, &clli_data };
