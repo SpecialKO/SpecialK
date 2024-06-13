@@ -1,7 +1,12 @@
-﻿24.6.13.1
+﻿24.6.13.2
+=========
+ + Fixed accidental no tonemapping (linear range scaling) introduced in 4.6.12
+     when storing tonemapped screenshots in Steam.
+
+24.6.13.1
 =========
  + Added cHRM, sBIT, cLLi and mDCv chunks with content and display information
-     to captured HDR PNGs to assist software with tonemapping.
+     to captured HDR PNGs to assist color managed software with tonemapping.
 
 24.6.13
 =======

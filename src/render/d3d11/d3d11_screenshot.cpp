@@ -1560,7 +1560,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                   extern float __SK_HDR_Luma;
 
                   bool bLDR = 
-                    (__SK_HDR_Luma != 1.0f && __SK_HDR_Luma != -1.0f);
+                    (abs (__SK_HDR_Luma) != 1.0f);
 
                   if (! bLDR)
                   {
@@ -1574,8 +1574,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                   {
                     filterFlags = 0x200000FF;
                   
-                    _cSdrPower  = .685f;
-                    _cLerpScale = .685f;
+                    _cSdrPower  = .61f;
+                    _cLerpScale = .61f;
                   }
 
                   hr =               un_srgb.GetImageCount () == 1 ?
@@ -1599,69 +1599,64 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
                         if (bLDR)
                         {
-                        XMVECTOR maxcomp = XMVectorMax (value, g_XMZero);
-
-                        if (! bLDR)
-                        {
-                          value = XMVectorMultiply (XMVectorReplicate (4.0f), value);
+                          value = XMVectorMultiply (XMVectorReplicate (3.5f), value);
 
                           value =
                             XMVector3Transform (
-                              ToneMapACESFilmic (
+                              ToneMapACESFilmic (XMVectorMax (g_XMZero,
                                 XMVector3Transform (XMVectorDivide (XMVectorMultiply (XMVectorDivide (value, maxLum),
-                                                                                      XMVectorDivide (       maxLum, XMVectorReplicate (12.5f))), maxRGB), c_from709to2020)),
+                                                                                      XMVectorDivide (       maxLum, XMVectorReplicate (12.5f))), maxRGB), c_from709to2020))),
                                                                                                                                                            c_from2020to709);
 
-                          value = XMVectorMultiply (value, maxRGB);
-                        }
+                          value = XMVectorPow (XMVectorMultiply (value, maxRGB), c_SdrPower);
                         }
 
                         else
                         {
-                        XMVECTOR maxLumExp =
-                          XMVectorMultiply ( maxLum,
-                                             maxLum );
+                          XMVECTOR maxLumExp =
+                            XMVectorMultiply ( maxLum,
+                                               maxLum );
 
-                        XMVECTOR luma  = 
-                          XMVectorReplicate (
-                            XMVectorGetY (XMVectorMax (XMVector3Transform (value, c_from709toXYZ), g_XMZero))
-                          );
+                          XMVECTOR luma  = 
+                            XMVectorReplicate (
+                              XMVectorGetY (XMVectorMax (XMVector3Transform (value, c_from709toXYZ), g_XMZero))
+                            );
 
-                        value =
-                          XMVectorMax (XMVector3Transform (XMVectorDivide (value, maxRGB), c_from709to2020), g_XMZero);
+                          value =
+                            XMVectorMax (XMVector3Transform (XMVectorDivide (value, maxRGB), c_from709to2020), g_XMZero);
 
-                        XMVECTOR numerator =
-                          XMVectorAdd (
-                            g_XMOne,
-                              XMVectorDivide (
-                                luma, maxLumExp
+                          XMVECTOR numerator =
+                            XMVectorAdd (
+                              g_XMOne,
+                                XMVectorDivide (
+                                  luma, maxLumExp
+                                )
+                            );
+
+                          XMVECTOR scale0 =
+                            XMVectorDivide (
+                              numerator, XMVectorAdd (
+                                g_XMOne, luma
                               )
-                          );
+                            );
 
-                        XMVECTOR scale0 =
-                          XMVectorDivide (
-                            numerator, XMVectorAdd (
-                              g_XMOne, luma
-                            )
-                          );
+                          XMVECTOR scale1 =
+                            XMVectorDivide (
+                              numerator, XMVectorAdd (
+                                g_XMOne, value
+                              )
+                            );
 
-                        XMVECTOR scale1 =
-                          XMVectorDivide (
-                            numerator, XMVectorAdd (
-                              g_XMOne, value
-                            )
-                          );
+                          value =
+                            XMVectorMultiply (value, XMVectorLerp (scale1, scale0, XMVectorGetX (luma) /
+                                                                                   XMVectorGetX (maxLum) / _cLerpScale));
 
-                        value =
-                          XMVectorMultiply (value, XMVectorLerp (scale1, scale0, XMVectorGetX (luma) /
-                                                                                 XMVectorGetX (maxLum) / _cLerpScale));
+                          value = XMVectorMax (g_XMZero, XMVector3Transform (value, c_from2020to709));
 
-                        value = XMVectorMax (g_XMZero, XMVector3Transform (value, c_from2020to709));
+                          value =
+                            XMVectorPow ( value, c_SdrPower );
 
-                        value =
-                          XMVectorPow ( value, c_SdrPower );
-
-                        value = XMVectorMultiply (value, maxRGB);
+                          value = XMVectorMultiply (value, maxRGB);
                         }
 
                         maxTonemappedRGB = XMVectorMax (maxTonemappedRGB, value);
