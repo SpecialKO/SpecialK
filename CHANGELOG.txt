@@ -1,4 +1,9 @@
-﻿24.6.13
+﻿24.6.13.1
+=========
+ + Added cHRM, sBIT, cLLi and mDCv chunks with content and display information
+     to captured HDR PNGs to assist software with tonemapping.
+
+24.6.13
 =======
  + Added PNG HDR screenshot support
     * A PNG will be copied to the clipboard every time a screenshot is taken
