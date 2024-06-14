@@ -267,6 +267,16 @@ void SK_WIC_SetMaximumQuality (IPropertyBag2 *props);
 void SK_WIC_SetBasicMetadata  (IWICMetadataQueryWriter *pMQW);
 void SK_WIC_SetMetadataTitle  (IWICMetadataQueryWriter *pMQW, std::string& title);
 
+bool SK_PNG_MakeHDR (const wchar_t*        wszFilePath,
+                     const DirectX::Image& encoded_img,
+                     const DirectX::Image& raw_img);
+
+bool SK_PNG_CopyToClipboard   (const DirectX::Image& image, const void *pData, size_t data_size);
+bool SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchImage& png_img);
+bool SK_HDR_SavePNGToDisk     (const wchar_t* wszPNGPath, const DirectX::Image* png_image,
+                                                          const DirectX::Image* raw_image,
+                                  const char* szUtf8MetadataTitle = nullptr);
+
 extern volatile LONG __SK_ScreenShot_CapturingHUDless;
 
 extern volatile LONG __SK_D3D11_QueuedShots;

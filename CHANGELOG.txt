@@ -1,4 +1,10 @@
-﻿24.6.13.3
+﻿24.6.14
+=======
+ + Added HDR PNG as a third format option for saving HDR screenshots to disk
+ + Added preference to control whether HDR clipboard screenshots contain
+     actual HDR data (PNG; new default) or an SDR tonemapped copy.
+
+24.6.13.3
 =========
  + Added display primaries and whitepoint to mDCv chunk of HDR PNGs
 

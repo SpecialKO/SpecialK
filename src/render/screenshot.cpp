@@ -326,7 +326,8 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
 
 bool
 SK_HDR_SavePNGToDisk (const wchar_t* wszPNGPath, const DirectX::Image* png_image,
-                                                 const DirectX::Image* raw_image)
+                                                 const DirectX::Image* raw_image,
+                         const char* szUtf8MetadataTitle)
 {
   if ( wszPNGPath == nullptr ||
         png_image == nullptr ||
@@ -335,17 +336,21 @@ SK_HDR_SavePNGToDisk (const wchar_t* wszPNGPath, const DirectX::Image* png_image
     return false;
   }
 
-  if (SUCCEEDED (
-    DirectX::SaveToWICFile (*png_image, DirectX::WIC_FLAGS_DITHER |
-                                        DirectX::WIC_FLAGS_IGNORE_SRGB,
-                           GetWICCodec (DirectX::WIC_CODEC_PNG),
-                               wszPNGPath, &GUID_WICPixelFormat48bppRGB)))
-  {
-    extern bool
-    SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
-                     const DirectX::Image& encoded_img,
-                     const DirectX::Image& raw_img );
+  std::string metadata_title (
+         szUtf8MetadataTitle != nullptr ?
+         szUtf8MetadataTitle            :
+         "HDR10 PNG" );
 
+  if (SUCCEEDED (
+    DirectX::SaveToWICFile (*png_image, DirectX::WIC_FLAGS_NONE,
+                           GetWICCodec (DirectX::WIC_CODEC_PNG),
+                               wszPNGPath, &GUID_WICPixelFormat48bppRGB,
+                                              SK_WIC_SetMaximumQuality,
+                                            [&](IWICMetadataQueryWriter *pMQW)
+                                            {
+                                              SK_WIC_SetMetadataTitle (pMQW, metadata_title);
+                                            })))
+  {
     return
       SK_PNG_MakeHDR (wszPNGPath, *png_image, *raw_image);
   }
@@ -399,7 +404,7 @@ SK_ScreenshotManager::copyToClipboard ( const DirectX::Image& image,
 
   if (OpenClipboard (nullptr))
   {
-    if (pOptionalHDR != nullptr)
+    if (pOptionalHDR != nullptr && config.screenshots.allow_hdr_clipboard)
     {
       DirectX::ScratchImage                        hdr10_img;
       if (SK_HDR_ConvertImageToPNG (*pOptionalHDR, hdr10_img))
@@ -418,6 +423,8 @@ SK_ScreenshotManager::copyToClipboard ( const DirectX::Image& image,
 
         if (SK_HDR_SavePNGToDisk (wszPNGPath, hdr10_img.GetImages (), pOptionalHDR))
         {
+          CloseClipboard ();
+
           if (SK_PNG_CopyToClipboard (*hdr10_img.GetImage (0,0,0), wszPNGPath, 0))
           {
             return true;
@@ -1562,14 +1569,16 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
     return ret;
   };
 
-  double N         = 0.0;
-  double dLumAccum = 0.0;
+  float N         = 0.0f;
+  float fLumAccum = 0.0f;
   XMVECTOR vMaxLum = g_XMZero;
 
   EvaluateImage ( img,
     [&](const XMVECTOR* pixels, size_t width, size_t y)
     {
       UNREFERENCED_PARAMETER(y);
+
+      float fScanlineLum = 0.0f;
 
       switch (img.format)
       {
@@ -1588,8 +1597,7 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
             vMaxLum =
               XMVectorMax (vMaxLum, v);
 
-            dLumAccum += XMVectorGetY (v);
-            ++N;
+            fScanlineLum += XMVectorGetY (v);
           }
         } break;
 
@@ -1607,8 +1615,7 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
             vMaxLum =
               XMVectorMax (vMaxLum, v);
 
-            dLumAccum += XMVectorGetY (v);
-            ++N;
+            fScanlineLum += XMVectorGetY (v);
           }
         } break;
 
@@ -1616,15 +1623,19 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
           SK_ReleaseAssert (!"Unsupported CLLI input format");
           break;
       }
+
+      fLumAccum +=
+        (fScanlineLum / static_cast <float> (width));
+      ++N;
     }
   );
 
   if (N > 0.0)
   {
     clli.max_cll  =
-      static_cast <uint32_t> (round ((80.0 * XMVectorGetY (vMaxLum)) / 0.0001));
+      static_cast <uint32_t> (round ((80.0f * XMVectorGetY (vMaxLum)) / 0.0001f));
     clli.max_fall = 
-      static_cast <uint32_t> (round ((80.0 * (dLumAccum / N))        / 0.0001));
+      static_cast <uint32_t> (round ((80.0f * (fLumAccum / N))        / 0.0001f));
   }
 
   return clli;
@@ -1635,6 +1646,8 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
                  const DirectX::Image& encoded_img,
                  const DirectX::Image& raw_img )
 {
+  std::ignore = encoded_img;
+
   static const BYTE _test [] = { 0x49, 0x45, 0x4E, 0x44 };
 
   if (png_crc32 ((const BYTE *)_test, 0, 4, 0) == 0xae426082)
@@ -1799,8 +1812,6 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
       rewind (fPNG);
       fread  (full_png.get (), final_size, 1, fPNG);
       fclose (fPNG);
-
-      SK_PNG_CopyToClipboard (encoded_img, wszFilePath /*full_png.get ()*/, final_size);
 
       SK_LOGi1 (L"Applied HDR10 PNG chunks to %ws.", wszFilePath);
       SK_LOGi1 (L" >> MaxCLL: %.6f nits, MaxFALL: %.6f nits",

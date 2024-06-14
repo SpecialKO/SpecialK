@@ -1712,7 +1712,37 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                   }
                 }
 
-                if (un_scrgb.GetImageCount () == 1 && pop_off->wantClipboardCopy () && (config.screenshots.copy_to_clipboard || (! pFrameData->AllowSaveToDisk)))
+                bool bCopiedToClipboard = false;
+
+                // Store HDR PNG copy
+                if (pFrameData->AllowSaveToDisk && config.screenshots.use_hdr_png && hdr)
+                {
+                  DirectX::ScratchImage                  hdr10_img;
+                  if (SK_HDR_ConvertImageToPNG (raw_img, hdr10_img))
+                  {
+                    wchar_t       wszAbsolutePathToLossless [ MAX_PATH + 2 ] = { };
+                    wcsncpy_s   ( wszAbsolutePathToLossless,  MAX_PATH,
+                                    rb.screenshot_mgr->getBasePath (),
+                                      _TRUNCATE );
+
+                    PathAppendW ( wszAbsolutePathToLossless,
+                      SK_FormatStringW ( L"HDR\\%ws.png",
+                                  pFrameData->file_name.c_str () ).c_str () );
+
+                    if (SK_HDR_SavePNGToDisk (wszAbsolutePathToLossless, hdr10_img.GetImages (), &raw_img, pFrameData->title.c_str ()))
+                    {
+                      if (un_scrgb.GetImageCount () == 1 && pop_off->wantClipboardCopy () && (config.screenshots.copy_to_clipboard))
+                      {
+                        if (SK_PNG_CopyToClipboard (*hdr10_img.GetImage (0,0,0), wszAbsolutePathToLossless, 0))
+                        {
+                          bCopiedToClipboard = true;
+                        }
+                      }
+                    }
+                  }
+                }
+
+                if (un_scrgb.GetImageCount () == 1 && pop_off->wantClipboardCopy () && (config.screenshots.copy_to_clipboard || (! pFrameData->AllowSaveToDisk)) && (! bCopiedToClipboard))
                 {
                   rb.screenshot_mgr->copyToClipboard (*un_scrgb.GetImages (), hdr ? &raw_img
                                                                                   : nullptr,
@@ -1720,6 +1750,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                                                                                   : nullptr);
                 }
 
+                // Store tonemapped copy
                 if (               pFrameData->AllowSaveToDisk    &&
                                    un_scrgb.GetImageCount () == 1 &&
                       SUCCEEDED (
@@ -2007,7 +2038,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                       }
                     }
 
-                    if (pFrameData->AllowSaveToDisk && config.screenshots.png_compress)
+                    // Handle Normal PNG or JXR/AVIF; HDR PNG was already handled above...
+                    if (pFrameData->AllowSaveToDisk && config.screenshots.png_compress && ((! config.screenshots.use_hdr_png) || (! hdr)))
                     {
                       SK_CreateDirectories (wszAbsolutePathToLossless);
 

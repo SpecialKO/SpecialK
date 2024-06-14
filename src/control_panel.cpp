@@ -3690,16 +3690,18 @@ SK_ImGui_ControlPanel (void)
           static bool bFetchingAVIF = false;
 
           int selection =
-            ( config.screenshots.use_avif ?
-                                        1 : 0 );
+            ( config.screenshots.use_avif    ? 2 :
+              config.screenshots.use_hdr_png ? 1 :
+                                               0 );
 
           if (
             ImGui::Combo ( "HDR File Format", &selection,
                            "JPEG-XR (.jxr)\0"
+                           "PNG\t\t(.png)\0"
                            "AVIF\t\t(.avif)\0\0" )
              )
           {
-            if (selection == 1)
+            if (selection == 2)
             {
               if (! bFetchingAVIF)
               {
@@ -3740,6 +3742,9 @@ SK_ImGui_ControlPanel (void)
             }
             else
             {
+              config.screenshots.use_hdr_png =
+                (selection == 1);
+
               config.screenshots.use_avif            = false;
               config.screenshots.compression_quality = 90;
             }
@@ -3749,6 +3754,56 @@ SK_ImGui_ControlPanel (void)
           {
             ImGui::TextColored (ImVec4 (.1f,.9f,.1f,1.f), "Downloading AVIF Plug-In...");
           }
+        }
+
+        else if (config.screenshots.png_compress && SK_GetBitness () == SK_Bitness::ThirtyTwoBit)
+        {
+          int selection =
+            ( config.screenshots.use_hdr_png ? 1 :
+                                               0 );
+
+          if (
+            ImGui::Combo ( "HDR File Format", &selection,
+                           "JPEG-XR (.jxr)\0"
+                           "PNG\t\t(.png)\0\0" )
+             )
+          {
+            config.screenshots.use_hdr_png =
+              (selection == 1);
+
+            config.screenshots.use_avif            = false;
+            config.screenshots.compression_quality = 90;
+          }
+        }
+
+        int clipboard_selection =
+          config.screenshots.copy_to_clipboard   ?
+          config.screenshots.allow_hdr_clipboard ? 1 : 2 : 0;
+
+        if (ImGui::Combo ( "Clipboard Format", &clipboard_selection,
+                           "None (Do Not Copy)\0"
+                           "Lossless HDR\0"
+                           "Tone-mapped SDR\0\0" ))
+        {
+          hdr_changed = true;
+
+          if (clipboard_selection > 0)
+          {
+            config.screenshots.allow_hdr_clipboard =
+              (clipboard_selection == 1);
+          }
+          config.screenshots.copy_to_clipboard =
+            (clipboard_selection > 0);
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::TextUnformatted ("Lossless HDR copies are compatible with SKIV and Discord");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("Instead of tone mapping HDR->SDR, clipboard will contain a real HDR image.");
+          ImGui::BulletText      ("HDR copies have limited compatibility, and cannot be pasted to MSPaint, etc.");
+          ImGui::EndTooltip      ();
         }
 
         if (config.screenshots.png_compress)
@@ -3816,11 +3871,14 @@ SK_ImGui_ControlPanel (void)
 
           bool changed = false;
 
-          changed |=
-            ImGui::SliderInt ("Compression Quality", &config.screenshots.compression_quality, 80, 100, szCompressionQualityFormat);
+          if (! config.screenshots.use_hdr_png)
+          {
+            changed |=
+              ImGui::SliderInt ("Compression Quality", &config.screenshots.compression_quality, 80, 100, szCompressionQualityFormat);
 
-          if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("You can manually enter values < 80 using ctrl+click, but the results will be terrible.");
+            if (ImGui::IsItemHovered ())
+              ImGui::SetTooltip ("You can manually enter values < 80 using ctrl+click, but the results will be terrible.");
+          }
 
           if (config.screenshots.use_avif)
           {
@@ -3846,6 +3904,7 @@ SK_ImGui_ControlPanel (void)
           ImGui::TreePop ();
         }
 
+#if 0
         if (config.screenshots.png_compress)
         {
           hdr_changed |=
@@ -3856,6 +3915,9 @@ SK_ImGui_ControlPanel (void)
             ImGui::SetTooltip ("Disables advanced compression features and formats not supported by all software.");
           }
         }
+#else
+        config.screenshots.compatibility_mode = true;
+#endif
 
         if ( rb.screenshot_mgr->getRepoStats ().files > 0 )
         {
@@ -3924,7 +3986,7 @@ SK_ImGui_ControlPanel (void)
           if (    same_line)
             ImGui::SameLine ();
 
-          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
           ImGui::BulletText     ("Game Restart May Be Required");
           ImGui::PopStyleColor  ();
         }

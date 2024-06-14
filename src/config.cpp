@@ -651,6 +651,7 @@ struct {
   sk::ParameterBool*      keep_png_copy           = nullptr;
   sk::ParameterBool*      play_sound              = nullptr;
   sk::ParameterBool*      copy_to_clipboard       = nullptr;
+  sk::ParameterBool*      allow_hdr_clipboard     = nullptr;
   sk::ParameterBool*      embed_nickname          = nullptr;
   sk::ParameterStringW*   override_path           = nullptr;
   sk::ParameterStringW*   filename_format         = nullptr;
@@ -665,6 +666,10 @@ struct {
     //bool                full_range              =  true;
     //int                 max_threads             =     3;
   } avif;
+
+  struct {
+    sk::ParameterBool*    store_hdr               = nullptr;
+  } png;
 } screenshots;
 
 struct {
@@ -1532,7 +1537,7 @@ auto DeclKeybind =
 
     ConfigEntry (screenshots.keep_png_copy,              L"Keep a .PNG compressed copy of each screenshot?",           osd_ini,         L"Screenshot.System",     L"KeepLosslessPNG"),
     ConfigEntry (screenshots.play_sound,                 L"Play a Sound when triggering Screenshot Capture",           osd_ini,         L"Screenshot.System",     L"PlaySoundOnCapture"),
-    ConfigEntry (screenshots.copy_to_clipboard,          L"Copy an LDR copy to the Windows Clipboard",                 osd_ini,         L"Screenshot.System",     L"CopyToClipboard"),
+    ConfigEntry (screenshots.copy_to_clipboard,          L"Copy an LDR/HDR copy to the Windows Clipboard",             osd_ini,         L"Screenshot.System",     L"CopyToClipboard"),
     ConfigEntry (screenshots.embed_nickname,             L"Add Steam/Epic nickname as Author to Screenshot Metadata",  osd_ini,         L"Screenshot.System",     L"AuthorMetadata"),
     ConfigEntry (screenshots.override_path,              L"Where to store screenshots (if non-empty)",                 osd_ini,         L"Screenshot.System",     L"OverridePath"),
     ConfigEntry (screenshots.filename_format,            L"wcsftime format; Non-Standard Specifier: %G = <Game Name>", osd_ini,         L"Screenshot.System",     L"FilenameFormat"),
@@ -1542,6 +1547,8 @@ auto DeclKeybind =
     ConfigEntry (screenshots.avif.yuv_subsampling,       L"Chroma Subsampling (444, 422, 420, 400)",                   osd_ini,         L"Screenshot.AVIF",       L"SubsampleYUV"),
     ConfigEntry (screenshots.avif.scrgb_bit_depth,       L"Bits to use for scRGB to PQ encoded images",                osd_ini,         L"Screenshot.AVIF",       L"scRGBtoPQBits"),
     ConfigEntry (screenshots.avif.compression_speed,     L"Compression Speed: 0=Slowest (Smallest File), 10=Fastest",  osd_ini,         L"Screenshot.AVIF",       L"Speed"),
+    ConfigEntry (screenshots.png.store_hdr,              L"Use HDR PNG file format for HDR screenshots",               osd_ini,         L"Screenshot.HDR",        L"StorePNG"),
+    ConfigEntry (screenshots.allow_hdr_clipboard,        L"Use HDR for Windows Clipboard screenshots",                 osd_ini,         L"Screenshot.HDR",        L"AllowClipboardHDR"),
     Keybind ( &config.render.keys.hud_toggle,            L"Toggle Game's HUD",                                         osd_ini,         L"Game.HUD"),
     Keybind ( &config.screenshots.game_hud_free_keybind, L"Take a screenshot without the HUD",                         osd_ini,         L"Screenshot.System"),
     Keybind ( &config.screenshots.sk_osd_free_keybind,   L"Take a screenshot without SK's OSD",                        osd_ini,         L"Screenshot.System"),
@@ -5086,6 +5093,9 @@ auto DeclKeybind =
   screenshots.avif.scrgb_bit_depth->load      (config.screenshots.avif.scrgb_bit_depth);
   screenshots.avif.compression_speed->load    (config.screenshots.avif.compression_speed);
 
+  screenshots.png.store_hdr->load             (config.screenshots.use_hdr_png);
+  screenshots.allow_hdr_clipboard->load       (config.screenshots.allow_hdr_clipboard);
+
   // AVIF Unsupported in 32-bit
   if (SK_GetBitness () == SK_Bitness::ThirtyTwoBit)
     config.screenshots.use_avif = false;
@@ -6405,6 +6415,9 @@ SK_SaveConfig ( std::wstring name,
 
   screenshots.compression_quality->store       (config.screenshots.compression_quality);
   screenshots.compatibility_mode->store        (config.screenshots.compatibility_mode);
+
+  screenshots.png.store_hdr->store             (config.screenshots.use_hdr_png);
+  screenshots.allow_hdr_clipboard->store       (config.screenshots.allow_hdr_clipboard);
 
   // AVIF Unsupported in 32-bit
   if (SK_GetBitness () != SK_Bitness::ThirtyTwoBit)
