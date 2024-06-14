@@ -1,4 +1,9 @@
-﻿24.6.14.1
+﻿24.6.14.2
+=========
+ + Fixed unintentional black pixels on some SDR->HDR inverse tonemapped content
+     caused by Middle-gray Contrast setting being active when it should not be.
+
+24.6.14.1
 =========
  + Fixed selecting AVIF screenshot format not turning HDR PNG off
 
