@@ -3578,6 +3578,7 @@ SK_BackgroundRender_EndFrame (void)
     }
   }
 
+#if 0
   else
   {
     // Check if we can correctly handle input such as mousewheel
@@ -3600,6 +3601,7 @@ SK_BackgroundRender_EndFrame (void)
       );
     }
   }
+#endif
 
   fullscreen_last_frame =
         rb.isTrueFullscreen ();
