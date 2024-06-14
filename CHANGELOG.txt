@@ -1,4 +1,8 @@
-﻿24.6.14
+﻿24.6.14.1
+=========
+ + Fixed selecting AVIF screenshot format not turning HDR PNG off
+
+24.6.14
 =======
  + Added HDR PNG as a third format option for saving HDR screenshots to disk
  + Added preference to control whether HDR clipboard screenshots contain

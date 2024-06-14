@@ -3703,6 +3703,8 @@ SK_ImGui_ControlPanel (void)
           {
             if (selection == 2)
             {
+              config.screenshots.use_hdr_png = false;
+
               if (! bFetchingAVIF)
               {
                 static std::filesystem::path avif_dll =
