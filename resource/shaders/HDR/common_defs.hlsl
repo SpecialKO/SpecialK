@@ -860,6 +860,20 @@ static const ParamsPQ PQ =
        2392.0 / 4096.0 * 32.0,   // C3
 };
 
+float4 LinearToPQ (float4 x, float maxPQValue)
+{
+  x =
+    PositivePow ( x / maxPQValue,
+                         PQ.N );
+ 
+  float4 nd =
+    (PQ.C1 + PQ.C2 * x) /
+      (1.0 + PQ.C3 * x);
+
+  return
+    PositivePow (nd, PQ.M);
+}
+
 float3 LinearToPQ (float3 x, float maxPQValue)
 {
   x =
@@ -874,10 +888,37 @@ float3 LinearToPQ (float3 x, float maxPQValue)
     PositivePow (nd, PQ.M);
 }
 
+float LinearToPQ (float x, float maxPQValue)
+{
+  x =
+    PositivePow ( x / maxPQValue,
+                         PQ.N );
+ 
+  float nd =
+    (PQ.C1 + PQ.C2 * x) /
+      (1.0 + PQ.C3 * x);
+
+  return
+    PositivePow (nd, PQ.M);
+}
+
 float3 LinearToPQ (float3 x)
 {
   return
     LinearToPQ (x, DEFAULT_MAX_PQ);
+}
+
+float PQToLinear (float x, float maxPQValue)
+{
+  x =
+    PositivePow (x, PQ.rcpM);
+
+  float nd =
+    max (x - PQ.C1, 0.0) /
+            (PQ.C2 - (PQ.C3 * x));
+
+  return
+    PositivePow (nd, PQ.rcpN) * maxPQValue;
 }
 
 float3 PQToLinear (float3 x, float maxPQValue)
@@ -886,6 +927,19 @@ float3 PQToLinear (float3 x, float maxPQValue)
     PositivePow (x, PQ.rcpM);
 
   float3 nd =
+    max (x - PQ.C1, 0.0) /
+            (PQ.C2 - (PQ.C3 * x));
+
+  return
+    PositivePow (nd, PQ.rcpN) * maxPQValue;
+}
+
+float4 PQToLinear (float4 x, float maxPQValue)
+{
+  x =
+    PositivePow (x, PQ.rcpM);
+
+  float4 nd =
     max (x - PQ.C1, 0.0) /
             (PQ.C2 - (PQ.C3 * x));
 

@@ -1,4 +1,8 @@
-﻿24.6.14.2
+﻿24.6.14.3
+=========
+ + Optimized Perceptual/Color Boost perf. slightly for values > 0% and < 100%
+
+24.6.14.2
 =========
  + Fixed unintentional black pixels on some SDR->HDR inverse tonemapped content
      caused by Middle-gray Contrast setting being active when it should not be.

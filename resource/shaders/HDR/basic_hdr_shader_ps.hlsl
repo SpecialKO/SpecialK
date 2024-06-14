@@ -478,38 +478,58 @@ main (PS_INPUT input) : SV_TARGET
 
     hdr_color.rgb = max (Rec709_to_XYZ (hdr_color.rgb), 0.0f);
 
-    float3 new_color  = 0.0f,
-           new_color0 = 0.0f,
+    float4 new_color = 0.0f;
+    float3 new_color0 = 0.0f,
            new_color1 = 0.0f;
 
-    if (colorBoost < 1.0)
+    if (colorBoost == 0.0 || colorBoost == 1.0)
     {
-      new_color0 =
-       PQToLinear (
-          LinearToPQ ( fLuma,
-                       pb_param_0 ) *
-                       pb_param_2, pb_param_1
-                   ) / pb_param_3;
+      // Optimized for no color boost
+      if (colorBoost == 0.0)
+      {
+        new_color0 =
+          ( PQToLinear (
+              LinearToPQ ( fLuma,
+                           pb_param_0 ) *
+                           pb_param_2, pb_param_1
+                       ) / pb_param_3 ).xxx;
+      }
+
+      // Optimized for full color boost
+      if (colorBoost == 1.0)
+      {
+        new_color1 =
+          PQToLinear (
+            LinearToPQ ( hdr_color.rgb,
+                         pb_param_0 ) *
+                         pb_param_2, pb_param_1
+                     ) / pb_param_3;
+      }
+
+      new_color.rgb =
+        lerp (hdr_color.rgb * new_color0 / fLuma,
+                              new_color1, colorBoost);
     }
 
-    if (colorBoost > 0.0)
+    // Optimization for both at the same time.
+    else
     {
-      new_color1 =
-        PQToLinear (
-          LinearToPQ ( hdr_color.rgb,
-                       pb_param_0 ) *
-                       pb_param_2, pb_param_1
-                   ) / pb_param_3;
-    }
+      new_color =
+         PQToLinear (
+            LinearToPQ ( float4 (hdr_color.rgb, fLuma),
+                         pb_param_0 ) *
+                         pb_param_2, pb_param_1
+                     ) / pb_param_3;
 
-    new_color =
-      lerp (hdr_color.rgb * new_color0 / fLuma,
-                            new_color1, colorBoost);
+      new_color.rgb =
+        lerp (hdr_color.rgb * new_color.www / fLuma,
+                              new_color.rgb, colorBoost);
+    }
 
 #ifdef INCLUDE_NAN_MITIGATION
     if (! AnyIsNan (  new_color))
 #endif
-      hdr_color.rgb = new_color;
+      hdr_color.rgb = new_color.rgb;
 
     hdr_color.rgb = XYZ_to_Rec709 (hdr_color.rgb);
   }
