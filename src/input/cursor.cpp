@@ -265,8 +265,11 @@ SK_ImGui_IsAnythingHovered (void)
 bool
 SK_ImGui_IsMouseRelevantEx (void)
 {
+  auto& screenshot_mgr = SK_GetCurrentRenderBackend ().screenshot_mgr;
+  bool snipping        = screenshot_mgr->getSnipState () != SK_ScreenshotManager::SnippingInactive;
+
   bool relevant =
-    config.input.mouse.disabled_to_game || SK_ImGui_Active () || (SK_GetCurrentRenderBackend ().screenshot_mgr->getSnipState () == SK_ScreenshotManager::SnippingActive);
+    config.input.mouse.disabled_to_game || SK_ImGui_Active () || snipping;
 
   if (! relevant)
   {
@@ -496,7 +499,9 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
     return false;
 
   // Block mouse input while snipping
-  if (SK_GetCurrentRenderBackend ().screenshot_mgr->getSnipState () == SK_ScreenshotManager::SnippingActive)
+  auto& screenshot_mgr = SK_GetCurrentRenderBackend ().screenshot_mgr;
+  bool snipping        = screenshot_mgr->getSnipState () != SK_ScreenshotManager::SnippingInactive;
+  if ( snipping )
     return true;
 
   // Allow mouse input while ReShade overlay is active

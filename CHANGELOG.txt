@@ -1,4 +1,10 @@
-﻿24.6.15
+﻿24.6.15.1
+=========
+ + Made screenshot snipping into a dedicated keybind, you must click
+     to begin the selection after pressing the keybind. The selection
+       rectangle will only show up when clicked.
+
+24.6.15
 =======
  + Added support for snipping clipboard-only screenshots (HDR or SDR) using
      the mouse. Press the clipboard-only binding twice to use fullscreen.

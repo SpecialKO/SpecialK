@@ -6879,6 +6879,7 @@ SK_ImGui_ControlPanel (void)
         &config.screenshots.sk_osd_insertion_keybind,
         &config.screenshots.no_3rd_party_keybind,
         &config.screenshots.clipboard_only_keybind,
+        &config.screenshots.snipping_keybind
       };
 
     // Add a HUD Free Screenshot keybind option if HUD shaders are present
@@ -8333,14 +8334,30 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   auto& screenshot_mgr =
     rb.screenshot_mgr.get ();
 
-  if (screenshot_mgr.getSnipState () == SK_ScreenshotManager::SnippingActive)
+  static bool        queued_snipped_shot = false;
+  if (std::exchange (queued_snipped_shot, false))
+  {
+    screenshot_mgr.setSnipState (SK_ScreenshotManager::SnippingInactive);
+
+    SK::SteamAPI::TakeScreenshot (
+      SK_ScreenshotStage::ClipboardOnly
+    );
+  }
+
+  if (screenshot_mgr.getSnipState () == SK_ScreenshotManager::SnippingActive ||
+      screenshot_mgr.getSnipState () == SK_ScreenshotManager::SnippingRequested)
   {
     static ImRect selection;
+
+    if (screenshot_mgr.getSnipState () == SK_ScreenshotManager::SnippingRequested)
+    {
+      selection.Min = { 0.0f, 0.0f };
+    }
 
     ImRect allowed { { static_cast <float> (game_window.actual.window.left),  static_cast <float> (game_window.actual.window.top)    },
                      { static_cast <float> (game_window.actual.window.right), static_cast <float> (game_window.actual.window.bottom) } };
 
-    if (SK_ImGui_SelectionRect (&selection, allowed, ImGuiMouseButton_Left, SK_IMGUI_SELECT_FLAG_SINGLE_CLICK))
+    if (SK_ImGui_SelectionRect (&selection, allowed, ImGuiMouseButton_Left))
     {
       DirectX::Rect snip_rect = { static_cast <size_t> (selection.GetTL    ().x), static_cast <size_t> (selection.GetTL     ().y),
                                   static_cast <size_t> (selection.GetWidth ()),   static_cast <size_t> (selection.GetHeight ()) };
@@ -8350,9 +8367,7 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
       screenshot_mgr.setSnipRect  (snip_rect);
       screenshot_mgr.setSnipState (SK_ScreenshotManager::SnippingComplete);
 
-      SK::SteamAPI::TakeScreenshot (
-        SK_ScreenshotStage::ClipboardOnly
-      );
+      queued_snipped_shot = true;
     }
   }
 

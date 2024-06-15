@@ -1556,6 +1556,7 @@ auto DeclKeybind =
                                sk_osd_insertion_keybind, L"Take a screenshot and insert SK's OSD",                     osd_ini,         L"Screenshot.System"),
     Keybind ( &config.screenshots.no_3rd_party_keybind,  L"Take a screenshot before third-party overlays",             osd_ini,         L"Screenshot.System"),
     Keybind ( &config.screenshots.clipboard_only_keybind,L"Take a screenshot and copy it to the clipboard only",       osd_ini,         L"Screenshot.System"),
+    Keybind ( &config.screenshots.snipping_keybind,      L"Snip a screenshot and copy it to the clipboard",            osd_ini,         L"Screenshot.System"),
 
     Keybind ( &config.monitors.monitor_primary_keybind,  L"Move Game to Primary Monitor",                              osd_ini,         L"Display.Monitor"),
     Keybind ( &config.monitors.monitor_next_keybind,     L"Move Game to Next Monitor",                                 osd_ini,         L"Display.Monitor"),
@@ -5106,6 +5107,7 @@ auto DeclKeybind =
   LoadKeybind (&config.screenshots.sk_osd_insertion_keybind);
   LoadKeybind (&config.screenshots.no_3rd_party_keybind);
   LoadKeybind (&config.screenshots.clipboard_only_keybind);
+  LoadKeybind (&config.screenshots.snipping_keybind);
 
   LoadKeybind (&config.monitors.monitor_primary_keybind);
   LoadKeybind (&config.monitors.monitor_next_keybind);

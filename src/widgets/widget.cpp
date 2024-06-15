@@ -946,13 +946,14 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
 
   static
-    std::array <SK_ConfigSerializedKeybind *, 19>
+    std::array <SK_ConfigSerializedKeybind *, 20>
         special_keys = {
           &config.screenshots.game_hud_free_keybind,
           &config.screenshots.sk_osd_free_keybind,
           &config.screenshots.sk_osd_insertion_keybind,
           &config.screenshots.no_3rd_party_keybind,
           &config.screenshots.clipboard_only_keybind,
+          &config.screenshots.snipping_keybind,
 
           &config.monitors.monitor_primary_keybind,
           &config.monitors.monitor_next_keybind,
@@ -1034,6 +1035,20 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
       }
 
       else if (  keybind == &config.screenshots.clipboard_only_keybind )
+      {
+        auto& screenshot_mgr =
+          SK_GetCurrentRenderBackend ().screenshot_mgr;
+
+        // Normal screenshot, disable any left-over snipping...
+        screenshot_mgr->setSnipRect  ({0,0,0,0});
+        screenshot_mgr->setSnipState (SK_ScreenshotManager::SnippingComplete);
+        
+        SK::SteamAPI::TakeScreenshot (
+          SK_ScreenshotStage::ClipboardOnly
+        );
+      }
+
+      else if ( keybind == &config.screenshots.snipping_keybind )
       {
         auto& screenshot_mgr =
           SK_GetCurrentRenderBackend ().screenshot_mgr;

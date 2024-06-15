@@ -546,9 +546,17 @@ struct sk_config_t
     SK_ConfigSerializedKeybind
          clipboard_only_keybind = {
       SK_Keybind {
-        "Copy a Normal Screenshot to Clipboard Only", L"",
+        "Copy a Screenshot to Clipboard Only", L"",
          false, false, false, VK_PRINT
       }, L"ClipboardOnly"
+    };
+
+    SK_ConfigSerializedKeybind
+         snipping_keybind = {
+      SK_Keybind {
+        "Snip a Screenshot to the Clipboard", L"",
+         true, false, false, VK_PRINT
+      }, L"Snipping"
     };
   } screenshots;
 
