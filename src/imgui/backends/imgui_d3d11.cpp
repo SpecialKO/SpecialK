@@ -85,6 +85,16 @@ struct SK_ImGui_D3D11_BackbufferResourceIsolation {
       ID3D11UnorderedAccessView
   >                         pUnorderedAccessView    = nullptr;
 
+  // Keep a temporary copy of the last frame for use during
+  //   screenshot snipping.
+  struct {
+    SK_ComPtr
+      < ID3D11Texture2D >  pScreenCopy              = nullptr;
+    SK_ComPtr <
+      ID3D11ShaderResourceView
+    >                      pScreenView              = nullptr;
+  } snipping;
+
   ID3D11Buffer*             pVB                     = nullptr;
   ID3D11Buffer*             pIB                     = nullptr;
 
@@ -1636,6 +1646,12 @@ ImGui_ImplDX11_InvalidateDeviceObjects (void)
 
     if (_P->pBackBuffer.p)
         _P->pBackBuffer.Release ();
+
+    if (_P->snipping.pScreenCopy.p)
+        _P->snipping.pScreenCopy.Release ();
+
+    if (_P->snipping.pScreenView.p)
+        _P->snipping.pScreenView.Release ();
   };
 
   //for ( UINT i = 0 ; i < _MAX_BACKBUFFERS ; ++i )
@@ -2093,6 +2109,27 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
     {
       // Last-ditch effort to get the HDR post-process done before the UI.
       SK_HDR_SnapshotSwapchain ();
+    }
+
+    if (rb.screenshot_mgr->getSnipState () == SK_ScreenshotManager::SnippingRequested)
+    {
+      rb.screenshot_mgr->setSnipState (SK_ScreenshotManager::SnippingInactive);
+
+      _Frame [0].snipping.pScreenCopy = nullptr;
+      _Frame [0].snipping.pScreenView = nullptr;
+
+      if (_Frame [0].pBackBuffer.p != nullptr)
+      {
+        D3D11_TEXTURE2D_DESC              texDesc = { };
+        _Frame [0].pBackBuffer->GetDesc (&texDesc);
+
+        if (SUCCEEDED (_pDevice->CreateTexture2D (&texDesc, nullptr, &_Frame [0].snipping.pScreenCopy)))
+        {
+          _pDevice->CreateShaderResourceView (_Frame [0].snipping.pScreenCopy, nullptr, &_Frame [0].snipping.pScreenView.p);
+
+          rb.screenshot_mgr->setSnipState (SK_ScreenshotManager::SnippingActive);
+        }
+      }
     }
 
     if (_pSwapChain == pSwapChain || ImGui_DX11Startup (_pSwapChain))

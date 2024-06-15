@@ -6553,6 +6553,7 @@ SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
     StrStrIW (pWindowClass->lpszClassName, L"CurseOverlayTemporaryDirect3D11Window") || // Twitch
     StrStrIW (pWindowClass->lpszClassName, L"TestDX11WindowClass")                   || // X-Ray Oxygen
     StrStrIW (pWindowClass->lpszClassName, L"static")                                || // AMD's stupid OpenGL interop
+    StrStrIW (pWindowClass->lpszClassName, L"SKIV_NotificationIcon")                 || // SKIV's thingy...
 
     // F' it, there's a pattern here, just ignore all dummies.
     StrStrIW (pWindowClass->lpszClassName, L"dummy");
@@ -6560,6 +6561,13 @@ SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
   if (StrStrIW (pWindowClass->lpszClassName, L"Qt") &&
    (! StrStrIW (pWindowClass->lpszClassName, L"qtopengltest")))
     return false;
+
+  if (! dummy_window)
+  {
+    // If it starts life minimized, we don't care about it...
+    return
+      (pWindowClass->style & WS_ICONIC);
+  }
 
   return
     dummy_window;

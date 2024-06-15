@@ -1035,9 +1035,25 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
       else if (  keybind == &config.screenshots.clipboard_only_keybind )
       {
-        SK::SteamAPI::TakeScreenshot (
-          SK_ScreenshotStage::ClipboardOnly
-        );
+        auto& screenshot_mgr =
+          SK_GetCurrentRenderBackend ().screenshot_mgr;
+
+        if (screenshot_mgr->getSnipState () != SK_ScreenshotManager::SnippingRequested &&
+            screenshot_mgr->getSnipState () != SK_ScreenshotManager::SnippingActive)
+        {
+          screenshot_mgr->setSnipState (SK_ScreenshotManager::SnippingRequested);
+        }
+
+        // Pressing the button a second time cancels snipping
+        else
+        {
+          screenshot_mgr->setSnipRect ({0,0,0,0});
+          screenshot_mgr->setSnipState (SK_ScreenshotManager::SnippingComplete);
+
+          SK::SteamAPI::TakeScreenshot (
+            SK_ScreenshotStage::ClipboardOnly
+          );
+        }
       }
 
       else if (  keybind == &config.monitors.monitor_primary_keybind )

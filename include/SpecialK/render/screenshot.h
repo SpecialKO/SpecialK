@@ -135,6 +135,13 @@ public:
     UINT           files =      0U ;
   };
 
+  enum SnippingState {
+    SnippingInactive,
+    SnippingRequested,
+    SnippingActive,
+    SnippingComplete
+  };
+
   SK_ScreenshotManager (void) noexcept
   {
     init ();
@@ -152,8 +159,15 @@ public:
                                             const DirectX::Image* pOptionalHDR        = nullptr,
                                             const wchar_t*        wszOptionalFilename = nullptr) const;
 
+  SnippingState            getSnipState (void) const;
+  void                     setSnipState (SnippingState state);
+  void                     setSnipRect  (const DirectX::Rect& rect);
+  DirectX::Rect            getSnipRect  (void) const;
+
 protected:
   screenshot_repository_s screenshots = { };
+  SnippingState           snip_state  = SnippingInactive;
+  DirectX::Rect           snip_rect   = { 0,0,0,0 };
 
 private:
 };

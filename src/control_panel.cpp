@@ -8238,6 +8238,54 @@ extern IMGUI_API    void ImGui_ImplDX9_RenderDrawData  (ImDrawData* draw_data);
 extern IMGUI_API    void ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data);
 extern/*IMGUI_API*/ void ImGui_ImplDX12_RenderDrawData (ImDrawData* draw_data, ID3D12GraphicsCommandList* ctx);
 
+#define SK_IMGUI_SELECT_FLAG_NONE           0x0
+#define SK_IMGUI_SELECT_FLAG_SINGLE_CLICK   0x1
+#define SK_IMGUI_SELECT_FLAG_ALLOW_INVERTED 0x2
+#define SK_IMGUI_SELECT_FLAG_FILLED         0x4
+
+bool
+SK_ImGui_SelectionRect (ImRect* selection, ImRect allowed, ImGuiMouseButton mouse_button, int flags = SK_IMGUI_SELECT_FLAG_FILLED)
+{
+  const bool single_click =
+    (flags & SK_IMGUI_SELECT_FLAG_SINGLE_CLICK);
+
+  // Update start position on click
+  if ((single_click && selection->Min.x == 0.0f && selection->Min.y == 0.0f) || ((! single_click) && ImGui::IsMouseClicked (mouse_button)))
+    selection->Min = ImGui::GetMousePos ( );
+
+  // Update end position while being held down
+  if (single_click || ImGui::IsMouseDown (mouse_button))
+    selection->Max = ImGui::GetMousePos ( );
+
+  // Keep the selection within the allowed rectangle
+  selection->ClipWithFull (allowed);
+
+  static const auto inset = ImVec2 (1.0f, 1.0f);
+
+  // Draw the selection rectangle
+  if (single_click || ImGui::IsMouseDown (mouse_button))
+  {
+    ImDrawList* draw_list = ImGui::GetForegroundDrawList ( ); //ImGui::GetWindowDrawList ( );
+    draw_list->AddRect       (selection->Min - inset, selection->Max + inset, ImGui::GetColorU32 (IM_COL32(0, 130, 216, 255))); // Border
+
+    if (flags & SK_IMGUI_SELECT_FLAG_FILLED)
+      draw_list->AddRectFilled (selection->Min, selection->Max, ImGui::GetColorU32 (IM_COL32(0, 130, 216, 50)));  // Background
+  }
+
+  bool complete =
+    (single_click && ImGui::IsMouseClicked  (mouse_button)) ||
+                     ImGui::IsMouseReleased (mouse_button);
+
+  if (complete && (! (flags & SK_IMGUI_SELECT_FLAG_ALLOW_INVERTED)))
+  {
+    if (selection->IsInverted ( ))
+       *selection = ImRect (selection->Max - inset, selection->Min + inset);
+  }
+
+  return complete;
+}
+
+
 //
 // Hook this to override Special K's GUI
 //
@@ -8275,11 +8323,39 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     ImGui::NewFrame ();
   }
 
-  const SK_RenderBackend& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   // Popup Windows, actually
   SK_Platform_DrawOSD ();
+
+
+  auto& screenshot_mgr =
+    rb.screenshot_mgr.get ();
+
+  if (screenshot_mgr.getSnipState () == SK_ScreenshotManager::SnippingActive)
+  {
+    static ImRect selection;
+
+    ImRect allowed { { static_cast <float> (game_window.actual.window.left),  static_cast <float> (game_window.actual.window.top)    },
+                     { static_cast <float> (game_window.actual.window.right), static_cast <float> (game_window.actual.window.bottom) } };
+
+    if (SK_ImGui_SelectionRect (&selection, allowed, ImGuiMouseButton_Left, SK_IMGUI_SELECT_FLAG_SINGLE_CLICK))
+    {
+      DirectX::Rect snip_rect = { static_cast <size_t> (selection.GetTL    ().x), static_cast <size_t> (selection.GetTL     ().y),
+                                  static_cast <size_t> (selection.GetWidth ()),   static_cast <size_t> (selection.GetHeight ()) };
+
+      selection.Min = { 0.0f, 0.0f };
+
+      screenshot_mgr.setSnipRect  (snip_rect);
+      screenshot_mgr.setSnipState (SK_ScreenshotManager::SnippingComplete);
+
+      SK::SteamAPI::TakeScreenshot (
+        SK_ScreenshotStage::ClipboardOnly
+      );
+    }
+  }
+
 
   if (rb.api == SK_RenderAPI::OpenGL)
   {

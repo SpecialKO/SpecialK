@@ -1,4 +1,9 @@
-﻿24.6.14.3
+﻿24.6.15
+=======
+ + Added support for snipping clipboard-only screenshots (HDR or SDR) using
+     the mouse. Press the clipboard-only binding twice to use fullscreen.
+
+24.6.14.3
 =========
  + Optimized Perceptual/Color Boost perf. slightly for values > 0% and < 100%
 

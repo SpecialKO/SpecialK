@@ -266,7 +266,7 @@ bool
 SK_ImGui_IsMouseRelevantEx (void)
 {
   bool relevant =
-    config.input.mouse.disabled_to_game || SK_ImGui_Active ();
+    config.input.mouse.disabled_to_game || SK_ImGui_Active () || (SK_GetCurrentRenderBackend ().screenshot_mgr->getSnipState () == SK_ScreenshotManager::SnippingActive);
 
   if (! relevant)
   {
@@ -494,6 +494,10 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
   if (! SK_GImDefaultContext ())
     return false;
+
+  // Block mouse input while snipping
+  if (SK_GetCurrentRenderBackend ().screenshot_mgr->getSnipState () == SK_ScreenshotManager::SnippingActive)
+    return true;
 
   // Allow mouse input while ReShade overlay is active
   if (SK_ReShadeAddOn_IsOverlayActive ())

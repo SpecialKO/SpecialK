@@ -283,11 +283,17 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
       const auto pq_range_out =
         (typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS)  ? pq_range_10bpc :
         (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? pq_range_12bpc :
-                                                              pq_range_16bpc;
+                                                              pq_range_12bpc;//pq_range_16bpc;
       const auto pq_range_in  =
         (typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS)  ? pq_range_10bpc :
         (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? pq_range_16bpc :
                                                               pq_range_32bpc;
+
+      int intermediate_bits = 16;
+      int output_bits       = 
+        (typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS)  ? 10 :
+        (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? 12 :
+                                                              12;//16;
 
       for (size_t j = 0; j < width; ++j)
       {
@@ -305,17 +311,17 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
                         v = LinearToPQ (nvalue);
         }
 
-        v = // Quantize to 12bpc before expanding to 16bpc in order to improve
-          XMVectorMultiply ( // compression efficiency.
-            XMVectorDivide (
-              XMVectorRound (
-                XMVectorMultiply (
-                  XMVectorSaturate (v), pq_range_12bpc)),
-                                        pq_range_12bpc), pq_range_16bpc);
+        v = // Quantize to 10- or 12-bpc before expanding to 16-bpc in order to improve
+          XMVectorRound ( // compression efficiency
+            XMVectorMultiply (
+              XMVectorSaturate (v), pq_range_out));
 
-        *(rgb16_pixels++) = static_cast <uint16_t> (DirectX::XMVectorGetX (v));
-        *(rgb16_pixels++) = static_cast <uint16_t> (DirectX::XMVectorGetY (v));
-        *(rgb16_pixels++) = static_cast <uint16_t> (DirectX::XMVectorGetZ (v));
+        *(rgb16_pixels++) =
+          static_cast <uint16_t> (DirectX::XMVectorGetX (v)) << (intermediate_bits - output_bits);
+        *(rgb16_pixels++) =
+          static_cast <uint16_t> (DirectX::XMVectorGetY (v)) << (intermediate_bits - output_bits);
+        *(rgb16_pixels++) =
+          static_cast <uint16_t> (DirectX::XMVectorGetZ (v)) << (intermediate_bits - output_bits);
           rgb16_pixels++; // We have an unused alpha channel that needs skipping
       }
     });
@@ -358,6 +364,9 @@ SK_HDR_SavePNGToDisk (const wchar_t* wszPNGPath, const DirectX::Image* png_image
   return false;
 }
 
+// The parameters are screwy here because currently the only successful way
+//   of doing this copy involves passing the path to a file, but the intention
+//     is actually to pass raw image data and transfer it using OLE.
 bool
 SK_PNG_CopyToClipboard (const DirectX::Image& image, const void *pData, size_t data_size)
 {
@@ -402,52 +411,89 @@ SK_ScreenshotManager::copyToClipboard ( const DirectX::Image& image,
   if (! config.screenshots.copy_to_clipboard)
     return false;
 
+  if (pOptionalHDR != nullptr && config.screenshots.allow_hdr_clipboard)
+  {
+    auto snip = 
+      getSnipRect ();
+
+    const DirectX::Image *pImg = pOptionalHDR;
+    DirectX::ScratchImage sub_img;
+
+    if (snip.w != 0 && snip.h != 0)
+    {
+      if (SUCCEEDED (sub_img.Initialize2D (pImg->format, snip.w, snip.h, 1, 1)))
+      {
+        if (SUCCEEDED (DirectX::CopyRectangle (*pOptionalHDR, snip, *sub_img.GetImage (0,0,0), 0, 0, 0)))
+        {
+          pImg =
+            sub_img.GetImages ();
+
+          SK_GetCurrentRenderBackend ().screenshot_mgr->setSnipRect ({0,0,0,0});
+        }
+      }
+    }
+
+
+    DirectX::ScratchImage                hdr10_img;
+    if (SK_HDR_ConvertImageToPNG (*pImg, hdr10_img))
+    {
+      wchar_t                   wszPNGPath [MAX_PATH + 2] = { };
+      if (                                  wszOptionalFilename != nullptr)
+      { wcsncpy_s (             wszPNGPath, wszOptionalFilename, MAX_PATH);
+        PathRemoveExtensionW   (wszPNGPath);
+        PathRemoveFileSpecW    (wszPNGPath);
+      } else {
+        wcsncpy_s              (wszPNGPath, getBasePath (), MAX_PATH);
+      }
+      PathAppendW              (wszPNGPath, L"hdr10_clipboard");
+      PathAddExtensionW        (wszPNGPath, L".png");
+      if (SK_HDR_SavePNGToDisk (wszPNGPath, hdr10_img.GetImages (), pOptionalHDR))
+      {
+        if (SK_PNG_CopyToClipboard (*hdr10_img.GetImage (0,0,0), wszPNGPath, 0))
+        {
+          return true;
+        }
+      }
+    }
+  }
+
   if (OpenClipboard (nullptr))
   {
-    if (pOptionalHDR != nullptr && config.screenshots.allow_hdr_clipboard)
+    auto snip = 
+      getSnipRect ();
+
+    const DirectX::Image *pImg = &image;
+    DirectX::ScratchImage sub_img;
+
+    if (snip.w != 0 && snip.h != 0)
     {
-      DirectX::ScratchImage                        hdr10_img;
-      if (SK_HDR_ConvertImageToPNG (*pOptionalHDR, hdr10_img))
+      if (SUCCEEDED (sub_img.Initialize2D (pImg->format, snip.w, snip.h, 1, 1)))
       {
-        wchar_t wszPNGPath [MAX_PATH + 2] = { };
-
-        if (wszOptionalFilename != nullptr)
+        if (SUCCEEDED (DirectX::CopyRectangle (image, snip, *sub_img.GetImage (0,0,0), 0, 0, 0)))
         {
-          wcsncpy_s (           wszPNGPath, wszOptionalFilename, MAX_PATH);
-          PathRemoveExtensionW (wszPNGPath);
-          PathRemoveFileSpecW  (wszPNGPath);
-        }
+          pImg =
+            sub_img.GetImages ();
 
-        PathAppendW       (wszPNGPath, L"hdr10_clipboard");
-        PathAddExtensionW (wszPNGPath, L".png");
-
-        if (SK_HDR_SavePNGToDisk (wszPNGPath, hdr10_img.GetImages (), pOptionalHDR))
-        {
-          CloseClipboard ();
-
-          if (SK_PNG_CopyToClipboard (*hdr10_img.GetImage (0,0,0), wszPNGPath, 0))
-          {
-            return true;
-          }
+          SK_GetCurrentRenderBackend ().screenshot_mgr->setSnipRect ({0,0,0,0});
         }
       }
     }
 
     const int
         _bpc    =
-      sk::narrow_cast <int> (DirectX::BitsPerPixel (image.format)),
+      sk::narrow_cast <int> (DirectX::BitsPerPixel (pImg->format)),
         _width  =
-      sk::narrow_cast <int> (                       image.width),
+      sk::narrow_cast <int> (                       pImg->width),
         _height =
-      sk::narrow_cast <int> (                       image.height);
+      sk::narrow_cast <int> (                       pImg->height);
 
-    SK_ReleaseAssert (image.format == DXGI_FORMAT_B8G8R8X8_UNORM ||
-                      image.format == DXGI_FORMAT_B8G8R8A8_UNORM);
+    SK_ReleaseAssert (pImg->format == DXGI_FORMAT_B8G8R8X8_UNORM ||
+                      pImg->format == DXGI_FORMAT_B8G8R8A8_UNORM);
 
     HBITMAP hBitmapCopy =
        CreateBitmap (
          _width, _height, 1,
-           _bpc, image.pixels
+           _bpc, pImg->pixels
        );
 
     BITMAPINFOHEADER
@@ -475,7 +521,7 @@ SK_ScreenshotManager::copyToClipboard ( const DirectX::Image& image,
         CreateDIBSection ( hdcDIB, &bmi, DIB_RGB_COLORS,
             &bitplane, nullptr, 0 );
     memcpy ( bitplane,
-               image.pixels,
+               pImg->pixels,
         static_cast <size_t> (_bpc / 8) *
         static_cast <size_t> (_width  ) *
         static_cast <size_t> (_height )
@@ -1826,4 +1872,30 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
   }
 
   return false;
+}
+
+
+
+SK_ScreenshotManager::SnippingState
+SK_ScreenshotManager::getSnipState (void) const
+{
+  return snip_state;
+}
+
+void
+SK_ScreenshotManager::setSnipState (SK_ScreenshotManager::SnippingState state)
+{
+  snip_state = state;
+}
+
+DirectX::Rect
+SK_ScreenshotManager::getSnipRect (void) const
+{
+  return snip_rect;
+}
+
+void
+SK_ScreenshotManager::setSnipRect (const DirectX::Rect& rect)
+{
+  snip_rect = rect;
 }
