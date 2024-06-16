@@ -1040,8 +1040,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
           SK_GetCurrentRenderBackend ().screenshot_mgr;
 
         // Normal screenshot, disable any left-over snipping...
-        screenshot_mgr->setSnipRect  ({0,0,0,0});
-        screenshot_mgr->setSnipState (SK_ScreenshotManager::SnippingComplete);
+        screenshot_mgr->setSnipRect ({0,0,0,0});
         
         SK::SteamAPI::TakeScreenshot (
           SK_ScreenshotStage::ClipboardOnly
@@ -1062,7 +1061,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
         // Pressing the button a second time cancels snipping
         else
         {
-          screenshot_mgr->setSnipRect ({0,0,0,0});
+          screenshot_mgr->setSnipRect  ({0,0,0,0});
           screenshot_mgr->setSnipState (SK_ScreenshotManager::SnippingComplete);
 
           SK::SteamAPI::TakeScreenshot (

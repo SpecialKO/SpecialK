@@ -1,4 +1,9 @@
-﻿24.6.15.1
+﻿24.6.15.2
+=========
+ + Fixed various cursor management issues when using the new snipping tool.
+ + Added gray translucent overlay while snipping mode is active.
+
+24.6.15.1
 =========
  + Made screenshot snipping into a dedicated keybind, you must click
      to begin the selection after pressing the keybind. The selection

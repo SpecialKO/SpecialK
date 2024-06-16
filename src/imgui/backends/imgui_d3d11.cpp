@@ -2111,26 +2111,26 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
       SK_HDR_SnapshotSwapchain ();
     }
 
-    if (rb.screenshot_mgr->getSnipState () == SK_ScreenshotManager::SnippingRequested)
-    {
-      rb.screenshot_mgr->setSnipState (SK_ScreenshotManager::SnippingInactive);
-
-      _Frame [0].snipping.pScreenCopy = nullptr;
-      _Frame [0].snipping.pScreenView = nullptr;
-
-      if (_Frame [0].pBackBuffer.p != nullptr)
-      {
-        D3D11_TEXTURE2D_DESC              texDesc = { };
-        _Frame [0].pBackBuffer->GetDesc (&texDesc);
-
-        if (SUCCEEDED (_pDevice->CreateTexture2D (&texDesc, nullptr, &_Frame [0].snipping.pScreenCopy)))
-        {
-          _pDevice->CreateShaderResourceView (_Frame [0].snipping.pScreenCopy, nullptr, &_Frame [0].snipping.pScreenView.p);
-
-          rb.screenshot_mgr->setSnipState (SK_ScreenshotManager::SnippingActive);
-        }
-      }
-    }
+    /////if (rb.screenshot_mgr->getSnipState () == SK_ScreenshotManager::SnippingRequested)
+    /////{
+    /////  rb.screenshot_mgr->setSnipState (SK_ScreenshotManager::SnippingInactive);
+    /////
+    /////  _Frame [0].snipping.pScreenCopy = nullptr;
+    /////  _Frame [0].snipping.pScreenView = nullptr;
+    /////
+    /////  if (_Frame [0].pBackBuffer.p != nullptr)
+    /////  {
+    /////    D3D11_TEXTURE2D_DESC              texDesc = { };
+    /////    _Frame [0].pBackBuffer->GetDesc (&texDesc);
+    /////
+    /////    if (SUCCEEDED (_pDevice->CreateTexture2D (&texDesc, nullptr, &_Frame [0].snipping.pScreenCopy)))
+    /////    {
+    /////      _pDevice->CreateShaderResourceView (_Frame [0].snipping.pScreenCopy, nullptr, &_Frame [0].snipping.pScreenView.p);
+    /////
+    /////      rb.screenshot_mgr->setSnipState (SK_ScreenshotManager::SnippingActive);
+    /////    }
+    /////  }
+    /////}
 
     if (_pSwapChain == pSwapChain || ImGui_DX11Startup (_pSwapChain))
     {

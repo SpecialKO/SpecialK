@@ -1885,6 +1885,35 @@ SK_ScreenshotManager::getSnipState (void) const
 void
 SK_ScreenshotManager::setSnipState (SK_ScreenshotManager::SnippingState state)
 {
+  static thread_local
+    int _ExtraCursorRefs = 0;
+
+  if (snip_state == state)
+    return;
+
+  if (state == SnippingInactive ||
+      state == SnippingComplete)
+  {
+    if (     _ExtraCursorRefs > 0) {
+      while (_ExtraCursorRefs-- > 0)
+      {
+        ShowCursor (FALSE);
+      }
+    }
+  }
+
+  else if (state == SnippingRequested ||
+           state == SnippingActive)
+  {
+    if (! SK_InputUtil_IsHWCursorVisible ())
+    {
+      do
+      {
+        ++_ExtraCursorRefs;
+      } while (ShowCursor (TRUE) < 0);
+    }
+  }
+
   snip_state = state;
 }
 
