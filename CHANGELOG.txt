@@ -1,4 +1,10 @@
-﻿24.6.15.2
+﻿24.6.15.3
+=========
+ + Switch to WIC's scanline adaptive PNG encoder optimization for better
+     data compression rates while being completely lossless unlike SK's
+       previous compression optimization strategy.
+
+24.6.15.2
 =========
  + Fixed various cursor management issues when using the new snipping tool.
  + Added gray translucent overlay while snipping mode is active.

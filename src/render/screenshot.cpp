@@ -280,10 +280,13 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
                             pq_range_16bpc = XMVectorReplicate (65535.0f),
                             pq_range_32bpc = XMVectorReplicate (4294967295.0f);
 
-      const auto pq_range_out =
+      auto pq_range_out =
         (typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS)  ? pq_range_10bpc :
         (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? pq_range_12bpc :
                                                               pq_range_12bpc;//pq_range_16bpc;
+
+      pq_range_out = pq_range_16bpc;
+
       const auto pq_range_in  =
         (typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS)  ? pq_range_10bpc :
         (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? pq_range_16bpc :
@@ -294,6 +297,8 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
         (typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS)  ? 10 :
         (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? 12 :
                                                               12;//16;
+
+      output_bits = 16;
 
       for (size_t j = 0; j < width; ++j)
       {
@@ -1098,7 +1103,11 @@ SK_WIC_SetMaximumQuality (IPropertyBag2 *props)
   PROPBAG2 opt = {   .pstrName = L"ImageQuality"   };
   VARIANT  var = { VT_R4,0,0,0, { .fltVal = 1.0f } };
 
-  props->Write (1, &opt, &var);
+  PROPBAG2 opt2 = { .pstrName = L"FilterOption"                    };
+  VARIANT  var2 = { VT_UI1,0,0,0, { .bVal = WICPngFilterAdaptive } };
+
+  props->Write (1, &opt,  &var);
+  props->Write (1, &opt2, &var2);
 }
 
 void
@@ -1199,12 +1208,6 @@ SK_WIC_SetBasicMetadata (IWICMetadataQueryWriter *pMQW)
 }
 
 
-uint32_t png_crc_table [256] = { };
-
-// Stores a running CRC (initialized with the CRC of "IDAT" string). When
-// you write this to the PNG, write as a big-endian value
-//static uint idatCrc = Crc32(new byte[] { (byte)'I', (byte)'D', (byte)'A', (byte)'T' }, 0, 4, 0);
-
 uint32_t
 png_crc32 (const void* typeless_data, size_t offset, size_t len, uint32_t crc)
 {
@@ -1213,7 +1216,9 @@ png_crc32 (const void* typeless_data, size_t offset, size_t len, uint32_t crc)
 
   uint32_t c;
 
-  if (png_crc_table [0] == 0)
+  static uint32_t
+      png_crc_table [256] = { };
+  if (png_crc_table [ 0 ] == 0)
   {
     for (auto i = 0 ; i < 256 ; ++i)
     {
@@ -1312,6 +1317,11 @@ struct SK_PNG_HDR_cLLi_Payload
   uint32_t max_fall =  2500000; //  250 / 0.0001
 };
 
+//
+// ICC Profile for tonemapping comes courtesy of ledoge
+//
+//   https://github.com/ledoge/jxr_to_png
+//
 struct SK_PNG_HDR_iCCP_Payload
 {
   char          profile_name [20]   = "RGB_D65_202_Rel_PeQ";
@@ -1797,9 +1807,9 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
       };
 
       // If using compression optimization, max bits = 12
-      sbit_data.red_bits   = std::min (sbit_data.red_bits,   12ui8);
-      sbit_data.green_bits = std::min (sbit_data.green_bits, 12ui8);
-      sbit_data.blue_bits  = std::min (sbit_data.blue_bits,  12ui8);
+      sbit_data.red_bits   = 16;//std::min (sbit_data.red_bits,   12ui8);
+      sbit_data.green_bits = 16;//std::min (sbit_data.green_bits, 12ui8);
+      sbit_data.blue_bits  = 16;//std::min (sbit_data.blue_bits,  12ui8);
 
       auto& rb =
         SK_GetCurrentRenderBackend ();
