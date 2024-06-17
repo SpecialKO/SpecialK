@@ -3684,6 +3684,36 @@ SK_ImGui_ControlPanel (void)
             ImGui::Checkbox ( "Keep Full-Range HDR Screenshots",
                                 &config.screenshots.png_compress );
 
+                int clipboard_selection =
+          config.screenshots.copy_to_clipboard   ?
+          config.screenshots.allow_hdr_clipboard ? 1 : 2 : 0;
+
+        if (ImGui::Combo ( "Clipboard Format", &clipboard_selection,
+                           "None (Do Not Copy)\0"
+                           "Lossless HDR\0"
+                           "Tone-mapped SDR\0\0" ))
+        {
+          hdr_changed = true;
+
+          if (clipboard_selection > 0)
+          {
+            config.screenshots.allow_hdr_clipboard =
+              (clipboard_selection == 1);
+          }
+          config.screenshots.copy_to_clipboard =
+            (clipboard_selection > 0);
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::TextUnformatted ("Lossless HDR copies are compatible with SKIV and Discord");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("Instead of tone mapping HDR->SDR, clipboard will contain a real HDR image.");
+          ImGui::BulletText      ("HDR copies have limited compatibility, and cannot be pasted to MSPaint, etc.");
+          ImGui::EndTooltip      ();
+        }
+
         // Show AVIF options in 64-bit builds
         if (config.screenshots.png_compress && SK_GetBitness () == SK_Bitness::SixtyFourBit)
         {
@@ -3776,36 +3806,6 @@ SK_ImGui_ControlPanel (void)
             config.screenshots.use_avif            = false;
             config.screenshots.compression_quality = 90;
           }
-        }
-
-        int clipboard_selection =
-          config.screenshots.copy_to_clipboard   ?
-          config.screenshots.allow_hdr_clipboard ? 1 : 2 : 0;
-
-        if (ImGui::Combo ( "Clipboard Format", &clipboard_selection,
-                           "None (Do Not Copy)\0"
-                           "Lossless HDR\0"
-                           "Tone-mapped SDR\0\0" ))
-        {
-          hdr_changed = true;
-
-          if (clipboard_selection > 0)
-          {
-            config.screenshots.allow_hdr_clipboard =
-              (clipboard_selection == 1);
-          }
-          config.screenshots.copy_to_clipboard =
-            (clipboard_selection > 0);
-        }
-
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::BeginTooltip    ();
-          ImGui::TextUnformatted ("Lossless HDR copies are compatible with SKIV and Discord");
-          ImGui::Separator       ();
-          ImGui::BulletText      ("Instead of tone mapping HDR->SDR, clipboard will contain a real HDR image.");
-          ImGui::BulletText      ("HDR copies have limited compatibility, and cannot be pasted to MSPaint, etc.");
-          ImGui::EndTooltip      ();
         }
 
         if (config.screenshots.png_compress)
