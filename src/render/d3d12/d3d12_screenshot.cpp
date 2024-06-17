@@ -1927,8 +1927,13 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         maxCLL =
                           XMVectorMax (XMVectorMultiply (v, s_luminance), maxCLL);
 
+                        maxRGB =
+                          XMVectorMax (v, maxRGB);
+
                         v =
                           XMVector3Transform (v, c_from709toXYZ);
+
+                        v = XMVectorMax (g_XMZero, v);
 
                         maxLum =
                           XMVectorMax (v, maxLum);
@@ -1937,14 +1942,9 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           XMVectorMin (v, minLum);
 
                         logLumTotal +=
-                          log2 ( std::max (0.000001, static_cast <double> (XMVectorGetY (v))) );
-                           lumTotal +=               static_cast <double> (XMVectorGetY (v));
+                          log2 ( std::max (0.000001, static_cast <double> (std::max (0.0f, XMVectorGetY (v)))) );
+                           lumTotal +=               static_cast <double> (std::max (0.0f, XMVectorGetY (v)));
                         ++N;
-
-                        v = XMVectorMax (g_XMZero, v);
-
-                        maxRGB =
-                          XMVectorMax (v, maxRGB);
 
                         pixels++;
                       }
@@ -1956,8 +1956,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       std::max ({ XMVectorGetX (maxCLL), XMVectorGetY (maxCLL), XMVectorGetZ (maxCLL) })
                     );
 
-                  SK_LOGi0 ( L"Min Luminance: %f, Max Luminance: %f", XMVectorGetY (minLum) * 80.0f,
-                                                                      XMVectorGetY (maxLum) * 80.0f );
+                  SK_LOGi0 ( L"Min Luminance: %f, Max Luminance: %f", max (0.0f, XMVectorGetY (minLum)) * 80.0f,
+                                                                                 XMVectorGetY (maxLum)  * 80.0f );
 
                   SK_LOGi0 ( L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0 *      ( lumTotal    / N ),
                                                                                 80.0 * exp2 ( logLumTotal / N ) );
