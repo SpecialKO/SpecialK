@@ -1491,10 +1491,10 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                           XMVector3Transform (v, c_from709toXYZ);
 
                         maxLum =
-                          XMVectorMax (v, maxLum);
+                          XMVectorReplicate (XMVectorGetY (XMVectorMax (v, maxLum)));
 
                         minLum =
-                          XMVectorMin (v, minLum);
+                          XMVectorReplicate (XMVectorGetY (XMVectorMin (v, minLum)));
 
                         logLumTotal +=
                           log2 ( std::max (0.000001, static_cast <double> (std::max (0.0f, XMVectorGetY (v)))) );
@@ -1549,35 +1549,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                   //   this is important in cases where the maximum luminance was < 1000 nits
                   XMVECTOR maxTonemappedRGB = g_XMZero;
 
-                  DirectX::TexMetadata  tonemapped_metadata = un_srgb.GetMetadata ();
-                  DirectX::ScratchImage tonemapped_image;
-                    tonemapped_image.Initialize2D (
-                      tonemapped_metadata.format,
-                      tonemapped_metadata.width,
-                      tonemapped_metadata.height, 1, 1
-                    );
-
-                  extern float __SK_HDR_Luma;
-
-                  bool bLDR = 
-                    (abs (__SK_HDR_Luma) != 1.0f);
-
-                  if (! bLDR)
-                  {
-                    filterFlags = 0x200000FF;
-                  
-                    _cSdrPower  = 1.081f;
-                    _cLerpScale = 2.225f;
-                  }
-
-                  else
-                  {
-                    filterFlags = 0x200000FF;
-                  
-                    _cSdrPower  = .61f;
-                    _cLerpScale = .61f;
-                  }
-
                   hr =               un_srgb.GetImageCount () == 1 ?
                     TransformImage ( un_srgb.GetImages     (),
                                      un_srgb.GetImageCount (),
@@ -1586,109 +1557,53 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                     {
                       UNREFERENCED_PARAMETER(y);
 
-                      extern float __SK_HDR_Exp;
+                      auto TonemapHDR = [](float L, float Lc, float Ld) -> float
+                      {
+                        float a = (  Ld / pow (Lc, 2.0f));
+                        float b = (1.0f / Ld);
+                      
+                        return
+                          L * (1 + a * L) / (1 + b * L);
+                      };
 
-                      const XMVECTORF32 c_SdrPower =
-                        { _cSdrPower,
-                          _cSdrPower,
-                          _cSdrPower, 1.f };
+                      static const XMVECTOR vLumaRescale =
+                        XMVectorReplicate (1.0f/3.333f);
 
                       for (size_t j = 0; j < width; ++j)
                       {
                         XMVECTOR value = inPixels [j];
 
-                        if (bLDR)
+                        value =
+                          XMVectorMultiply (value, vLumaRescale);
+
+                        XMVECTOR xyz =
+                          XMVector3Transform (value, c_from709toXYZ);
+                        
+                        float Y_in  = std::max (XMVectorGetY (xyz), 0.0f);
+                        float Y_out = 1.0f;
+
+                        Y_out =
+                          TonemapHDR (Y_in, XMVectorGetY (maxLum), 1.25f);
+
+                        if (Y_out + Y_in > 0.0f)
                         {
-                          value = XMVectorMultiply (XMVectorReplicate (3.5f), value);
-
-                          value =
-                            XMVector3Transform (
-                              ToneMapACESFilmic (XMVectorMax (g_XMZero,
-                                XMVector3Transform (XMVectorDivide (XMVectorMultiply (XMVectorDivide (value, maxLum),
-                                                                                      XMVectorDivide (       maxLum, XMVectorReplicate (12.5f))), maxRGB), c_from709to2020))),
-                                                                                                                                                           c_from2020to709);
-
-                          value = XMVectorPow (XMVectorMultiply (value, maxRGB), c_SdrPower);
+                          xyz =
+                            XMVectorMultiply ( xyz,
+                                                 XMVectorReplicate (std::max ((Y_out / Y_in), 0.0f)) );
                         }
 
                         else
-                        {
-                          XMVECTOR maxLumExp =
-                            XMVectorMultiply ( maxLum,
-                                               maxLum );
+                          xyz = g_XMZero;
 
-                          XMVECTOR luma  = 
-                            XMVectorReplicate (
-                              XMVectorGetY (XMVectorMax (XMVector3Transform (value, c_from709toXYZ), g_XMZero))
-                            );
+                        value =
+                          XMVector3Transform (xyz, c_fromXYZto709);
 
-                          value =
-                            XMVectorMax (XMVector3Transform (XMVectorDivide (value, maxRGB), c_from709to2020), g_XMZero);
-
-                          XMVECTOR numerator =
-                            XMVectorAdd (
-                              g_XMOne,
-                                XMVectorDivide (
-                                  luma, maxLumExp
-                                )
-                            );
-
-                          XMVECTOR scale0 =
-                            XMVectorDivide (
-                              numerator, XMVectorAdd (
-                                g_XMOne, luma
-                              )
-                            );
-
-                          XMVECTOR scale1 =
-                            XMVectorDivide (
-                              numerator, XMVectorAdd (
-                                g_XMOne, value
-                              )
-                            );
-
-                          value =
-                            XMVectorMultiply (value, XMVectorLerp (scale1, scale0, XMVectorGetX (luma) /
-                                                                                   XMVectorGetX (maxLum) / _cLerpScale));
-
-                          value = XMVectorMax (g_XMZero, XMVector3Transform (value, c_from2020to709));
-
-                          value =
-                            XMVectorPow ( value, c_SdrPower );
-
-                          value = XMVectorMultiply (value, maxRGB);
-                        }
-
-                        maxTonemappedRGB = XMVectorMax (maxTonemappedRGB, value);
+                        maxTonemappedRGB =
+                          XMVectorMax (maxTonemappedRGB, value);
 
                         outPixels [j] = value;
                       }
-                    }, tonemapped_image) : E_POINTER;
-
-                    float fMaxTonemappedRGB =
-                      std::max ({ 1.0f,
-                                  XMVectorGetX (maxTonemappedRGB),
-                                  XMVectorGetY (maxTonemappedRGB),
-                                  XMVectorGetZ (maxTonemappedRGB) });
-
-                    maxTonemappedRGB = XMVectorReplicate (fMaxTonemappedRGB);
-
-                    hr =
-                    TransformImage ( tonemapped_image.GetImages     (),
-                                     tonemapped_image.GetImageCount (),
-                                     tonemapped_image.GetMetadata   (),
-                                     [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
-                    {
-                      UNREFERENCED_PARAMETER(y);
-                      
-                      for (size_t j = 0; j < width; ++j)
-                      {
-                        XMVECTOR value = inPixels [j];
-
-                        outPixels [j] = XMVectorDivide (value, maxTonemappedRGB);
-                      }
-                    },
-                  final_sdr );
+                    }, final_sdr) : E_POINTER;
 
                   if (         final_sdr.GetImageCount () == 1) {
                     Convert ( *final_sdr.GetImages     (),

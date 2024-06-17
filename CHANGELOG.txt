@@ -1,4 +1,9 @@
-﻿24.6.15.3
+﻿24.6.16
+=======
+ + Integrated SKIV's HDR->SDR screenshot tonemapping algorithm and apply
+     it to all HDR content, whether inverse tonemapped using SK or native.
+
+24.6.15.3
 =========
  + Switch to WIC's scanline adaptive PNG encoder optimization for better
      data compression rates while being completely lossless unlike SK's
