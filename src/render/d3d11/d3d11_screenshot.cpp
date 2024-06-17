@@ -1516,8 +1516,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                       std::max ({ XMVectorGetX (maxCLL), XMVectorGetY (maxCLL), XMVectorGetZ (maxCLL) })
                     );
 
-                  SK_LOGi0 ( L"Min Luminance: %f, Max Luminance: %f", max (0.0f, XMVectorGetY (minLum)) * 80.0f,
-                                                                                 XMVectorGetY (maxLum)  * 80.0f );
+                  SK_LOGi0 ( L"Min Luminance: %f, Max Luminance: %f", std::max (0.0f, XMVectorGetY (minLum)) * 80.0f,
+                                                                                      XMVectorGetY (maxLum)  * 80.0f );
 
                   SK_LOGi0 ( L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0 *      ( lumTotal    / N ),
                                                                                 80.0 * exp2 ( logLumTotal / N ) );
