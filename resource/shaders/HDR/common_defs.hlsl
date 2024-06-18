@@ -2206,3 +2206,41 @@ expandGamut (float3 vHDRColor, float fExpandGamut = 1.0f)
   
   return vHDRColor;
 }
+
+float3 Rec709toICtCp (float3 c)
+{
+  c = Rec709_to_XYZ (c);
+  c = XYZ_to_LMS    (c);
+  
+  c =
+    LinearToPQ (c, 125.0f);
+
+  static const float3x3 ConvMat =
+  {
+    0.5000,  0.5000,  0.0000,
+    1.6137, -3.3234,  1.7097,
+    4.3780, -4.2455, -0.1325
+  };
+
+  return
+    mul (ConvMat, c);
+}
+
+float3 ICtCptoRec709 (float3 c)
+{
+  static const float3x3 ConvMat =
+  {
+    1.0,  0.00860514569398152,  0.11103560447547328,
+    1.0, -0.00860514569398152, -0.11103560447547328,
+    1.0,  0.56004885956263900, -0.32063747023212210
+  };
+  
+  c =
+    mul (ConvMat, c);
+  
+  c = PQToLinear (c, 125.0f);
+  c = LMS_to_XYZ (c);
+  
+  return
+    XYZ_to_Rec709 (c);
+}

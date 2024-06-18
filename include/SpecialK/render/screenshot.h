@@ -172,6 +172,10 @@ protected:
 private:
 };
 
+float             LinearToPQY   (float N);
+DirectX::XMVECTOR Rec709toICtCp (DirectX::XMVECTOR N);
+DirectX::XMVECTOR ICtCptoRec709 (DirectX::XMVECTOR N);
+
 class SK_Screenshot
 {
 public:

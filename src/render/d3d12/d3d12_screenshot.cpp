@@ -1755,26 +1755,6 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   {  0.0f,                          0.0f,                             0.0f,                           1.0f }
                 };
 
-                auto ToneMapACESFilmic = [](XMVECTOR x) -> XMVECTOR
-                {
-                  static const XMVECTOR a = XMVectorReplicate (2.51f);
-                  static const XMVECTOR b = XMVectorReplicate (0.03f);
-                  static const XMVECTOR c = XMVectorReplicate (2.43f);
-                  static const XMVECTOR d = XMVectorReplicate (0.59f);
-                  static const XMVECTOR e = XMVectorReplicate (0.14f);
-
-                  XMVECTOR vOut =
-                    XMVectorSaturate (
-                      XMVectorDivide ( XMVectorMultiply    (x, XMVectorMultiplyAdd (a, x, b)),
-                                       XMVectorMultiplyAdd (x, XMVectorMultiplyAdd (c, x, d), e)
-                                     )
-                                     );
-
-                  XMVectorSetW (vOut, 1.0f);
-
-                  return vOut;
-                };
-
                 HRESULT hr = S_OK;
 
                 if (hdr && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT)
@@ -1795,7 +1775,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     XMVECTOR C1, C2, C3;
                     XMVECTOR MaxPQ;
                   };
-                  
+
                   static const ParamsPQ PQ =
                   {
                     XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
@@ -1870,6 +1850,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   final_sdr;
                   final_sdr.Initialize (meta);
 
+                ScratchImage tonemapped_copy;
+
                 hr = S_OK;
 
                 //if ( un_srgb.GetImageCount () == 1 &&
@@ -1890,12 +1872,9 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       }
                     }, un_scrgb
                   );
-                
+
                   std::swap (un_scrgb, un_srgb);
                 //}
-
-                //extern float _cLerpScale;
-                //extern float _cSdrPower;
 
                 if ( un_srgb.GetImageCount () == 1 &&
                      hdr )
@@ -1964,13 +1943,17 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                   pFrameData->hdr.max_cll_nits =                      80.0f * XMVectorGetX (maxCLL);
                   pFrameData->hdr.avg_cll_nits = static_cast <float> (80.0 * ( lumTotal / N ));
-                  
 
                   // After tonemapping, re-normalize the image to preserve peak white,
                   //   this is important in cases where the maximum luminance was < 1000 nits
                   XMVECTOR maxTonemappedRGB = g_XMZero;
 
-                  extern UINT filterFlags;
+                  static constexpr float _maxNitsToTonemap = 10000.0f/80.0f;
+
+                  const float maxYInPQ =
+                    LinearToPQY (std::min (_maxNitsToTonemap, XMVectorGetY (maxLum))),
+                             SDR_YInPQ =
+                    LinearToPQY (                                              1.25f);
 
                   hr =               un_srgb.GetImageCount () == 1 ?
                     TransformImage ( un_srgb.GetImages     (),
@@ -1990,7 +1973,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       };
 
                       static const XMVECTOR vLumaRescale =
-                        XMVectorReplicate (1.0f/3.333f);
+                        XMVectorReplicate (1.0f/1.6f);
 
                       for (size_t j = 0; j < width; ++j)
                       {
@@ -1999,34 +1982,79 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         value =
                           XMVectorMultiply (value, vLumaRescale);
 
-                        XMVECTOR xyz =
-                          XMVector3Transform (value, c_from709toXYZ);
+                        XMVECTOR ICtCp =
+                          Rec709toICtCp (value);
 
-                        float Y_in  = std::max (XMVectorGetY (xyz), 0.0f);
+                        float Y_in  = std::max (XMVectorGetX (ICtCp), 0.0f);
                         float Y_out = 1.0f;
 
                         Y_out =
-                          TonemapHDR (Y_in, XMVectorGetY (maxLum), 1.25f);
+                          TonemapHDR (Y_in, maxYInPQ, SDR_YInPQ);
 
                         if (Y_out + Y_in > 0.0f)
                         {
-                          xyz =
-                            XMVectorMultiply ( xyz,
-                                                 XMVectorReplicate (std::max ((Y_out / Y_in), 0.0f)) );
+                          ICtCp.m128_f32 [0] *=
+                            std::max ((Y_out / Y_in), 0.0f);
                         }
 
-                        else
-                          xyz = g_XMZero;
-
                         value =
-                          XMVector3Transform (xyz, c_fromXYZto709);
+                          ICtCptoRec709 (ICtCp);
 
                         maxTonemappedRGB =
-                          XMVectorMax (maxTonemappedRGB, value);
+                          XMVectorMax (maxTonemappedRGB, XMVectorMax (value, g_XMZero));
 
                         outPixels [j] = value;
                       }
                     }, final_sdr) : E_POINTER;
+
+                  float fMaxR = XMVectorGetX (maxTonemappedRGB);
+                  float fMaxG = XMVectorGetY (maxTonemappedRGB);
+                  float fMaxB = XMVectorGetZ (maxTonemappedRGB);
+
+                  if (( fMaxR <  1.0f ||
+                        fMaxG <  1.0f ||
+                        fMaxB <  1.0f ) &&
+                      ( fMaxR >= 1.0f ||
+                        fMaxG >= 1.0f ||
+                        fMaxB >= 1.0f ))
+                  {
+                    SK_LOGi0 (
+                      L"After tone mapping, maximum RGB was %4.2fR %4.2fG %4.2fB -- "
+                      L"SDR image will be normalized to min (R|G|B) and clipped.",
+                        fMaxR, fMaxG, fMaxB
+                    );
+
+                    float fSmallestComp =
+                      std::min ({fMaxR, fMaxG, fMaxB});
+
+                    float fRescale =
+                      (1.0f / fSmallestComp);
+
+                    XMVECTOR vNormalizationScale =
+                      XMVectorReplicate (fRescale);
+
+                    TransformImage (*final_sdr.GetImages (),
+                      [&]( _Out_writes_ (width)       XMVECTOR* outPixels,
+                            _In_reads_  (width) const XMVECTOR* inPixels,
+                                                      size_t    width,
+                                                      size_t )
+                      {
+                        for (size_t j = 0; j < width; ++j)
+                        {
+                          XMVECTOR value =
+                           inPixels [j];
+                          outPixels [j] =
+                            XMVectorSaturate (
+                              XMVectorMultiply (value, vNormalizationScale)
+                            );
+                        }
+                      }, tonemapped_copy
+                    );
+
+                    std::swap (final_sdr, tonemapped_copy);
+                  }
+
+                  extern UINT filterFlags;
 
                   if (         final_sdr.GetImageCount () == 1) {
                     Convert ( *final_sdr.GetImages     (),
@@ -2071,7 +2099,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     {
                       if (un_scrgb.GetImageCount () == 1 && pop_off->wantClipboardCopy () && (config.screenshots.copy_to_clipboard))
                       {
-                        if (SK_PNG_CopyToClipboard (*hdr10_img.GetImage (0,0,0), wszAbsolutePathToLossless, 0))
+                        if (SK_PNG_CopyToClipboard (*hdr10_img.GetImages (), wszAbsolutePathToLossless, 0))
                         {
                           bCopiedToClipboard = true;
                         }
