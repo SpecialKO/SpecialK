@@ -1,4 +1,10 @@
-﻿24.6.16
+﻿24.6.19
+=======
+ + Correctly handle inverted selection rectangles when snipping screenshots
+ + Apply whitebalance fix for SDR tonemapped screenshots
+ + Use ICtCp during HDR->SDR screenshot tonemapping
+
+24.6.16
 =======
  + Integrated SKIV's HDR->SDR screenshot tonemapping algorithm and apply
      it to all HDR content, whether inverse tonemapped using SK or native.
