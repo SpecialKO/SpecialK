@@ -80,6 +80,9 @@ SK_VirtualProtect =
 void
 code_patch_s::apply (code_patch_s::executable_code_s *pExec)
 {
+  if (pAddr == nullptr)
+    return;
+
   DWORD dwOldProtect =
     SK_VirtualProtect (
           pAddr, pExec->inst_bytes.size (), PAGE_EXECUTE_READWRITE);
@@ -105,13 +108,13 @@ SK_ER_EndFrame (void)
     SK_ER_PlugIn.addresses [
        SK_GetDLLVersionStr (SK_GetHostApp ())
                            ].cached;
-
+  
   static float* fAddr = addresses.contains ("dt_float") ?
       (float *)((uintptr_t)SK_Debug_GetImageBaseAddr () + addresses ["dt_float"])
                                                         : nullptr;
-
+  
   SK_RunOnce (fAddr = SK_ValidatePointer (fAddr, true) ? fAddr : nullptr);
-
+  
   if (fAddr != nullptr)
   {
     *fAddr =
@@ -500,7 +503,8 @@ SK_ER_PlugInCfg (void)
                                     bPlayStation_AtStart,
                                     bFetching   = false;
 
-  if (ImGui::Checkbox ("Enable " ICON_FA_PLAYSTATION " Buttons", &bPlayStation))
+#if 0
+      if (ImGui::Checkbox ("Enable " ICON_FA_PLAYSTATION " Buttons", &bPlayStation))
       {
         if (! bFetching)
         {
@@ -545,6 +549,7 @@ SK_ER_PlugInCfg (void)
                        ImGui::TextColored (ImVec4 (1.f,1.f,0.f,1.f), "Game Restart Required");
         }
       }
+#endif
 
       ImGui::TreePop     ( );
     }
@@ -620,8 +625,24 @@ SK_ER_InitConfig (void)
           { "write_delta",  0x25B2D42 }, { "dt_float",     0x3B63FE8 },
         };
 
+  addresses [L"ELDEN RING™  2.2.0.0"].
+   cached =
+        { { "clock_tick0",  0x0E82692 }, { "clock_tick1",  0x0E826B1 },
+          { "clock_tick2",  0x0E826E0 }, { "clock_tick3",  0x0E821AD },
+          { "clock_tick4",  0x0E826BD }, { "clock_tick5",  0x0F8CD18 },
+//  //        //{ "write_delta",  0x25B2D42 }, { "dt_float",     0x3B63FE8 },
+        };
+
+  uint8_t stack_size = 0x1C; // 2.2.0.0+
+
   std::wstring game_ver_str =
     SK_GetDLLVersionStr (SK_GetHostApp ());
+
+  if (StrStrIW (game_ver_str.c_str (), L"ELDEN RING™  1.") ||
+      StrStrIW (game_ver_str.c_str (), L"ELDEN RING™  2.0."))
+  {
+    stack_size = 0x20; // 2.0 and older.
+  }
 
   if (! addresses.contains (game_ver_str))
   {
@@ -629,23 +650,31 @@ SK_ER_InitConfig (void)
       SK_Debug_GetImageBaseAddr ();
 
     const uint8_t pattern0 [] = { 0xC7, 0x43, 0x18, 0x02, 0x00,
-                                  0x00, 0x00, 0xc7, 0x43, 0x20 };
-    const uint8_t pattern1 [] = { 0x18, 0xC7, 0x43, 0x20, 0x89 };
+                                  0x00, 0x00, 0xc7, 0x43, stack_size, 0x89, 0x88, 0x08 };
+    const uint8_t pattern1 [] = { 0x18, 0xC7, 0x43, 0x00, 0x89 };
+    const uint8_t mask1    [] = { 0xFF, 0xFF, 0xFF, 0x00, 0xFF };
     const uint8_t pattern2 [] = { 0x7B, 0x18, 0xC7, 0x43, 0x20 };
 
     auto
       p0 = (void *)( 7 + static_cast <uint8_t *>
-       ( SK_ScanAlignedEx ( pattern0, 10, nullptr, pBaseAddr ) ) ),
+       ( SK_ScanAlignedEx ( pattern0, 13, nullptr, nullptr ) ) );
+
+    void* p1 = nullptr;
+    void* p2 = nullptr;
+
+    if (p0 != nullptr)
+    {
       p1 = (void *)( 7 + static_cast <uint8_t *>
-       ( SK_ScanAlignedEx ( pattern0, 10, nullptr, p0 ) ) ),
+       ( SK_ScanAlignedEx ( pattern0, 13, nullptr, p0 ) ) );
       p2 = (void *)( 7 + static_cast <uint8_t *>
-       ( SK_ScanAlignedEx ( pattern0, 10, nullptr, p1 ) ) );
+       ( SK_ScanAlignedEx ( pattern0, 13, nullptr, p1 ) ) );
+    }
 
     auto
       p3 = (void *)( 1 + static_cast <uint8_t *>
-       ( SK_ScanAlignedEx ( pattern1, 5, nullptr, pBaseAddr ) ) ),
+       ( SK_ScanAlignedEx ( pattern1, 5, mask1, nullptr ) ) ),
       p4 = (void *)( 1 + static_cast <uint8_t *>
-       ( SK_ScanAlignedEx ( pattern1, 5, nullptr, p3 ) ) );
+       ( SK_ScanAlignedEx ( pattern1, 5, mask1, p3 ) ) );
 
     auto
       p5 = (void *)( 2 + static_cast <uint8_t *>
@@ -683,8 +712,8 @@ SK_ER_InitConfig (void)
   {
     record = {
       .pAddr       = (void *)addr_cache [name],
-      .original    = code_bytes_t <8> {0   ,0   ,0,   0,0,0,0},
-      .replacement = code_bytes_t <8> {0xC7,0x43,0x20,0,0,0,0} };
+      .original    = code_bytes_t <8> {0   ,0   ,0,         0,0,0,0},
+      .replacement = code_bytes_t <8> {0xC7,0x43,stack_size,0,0,0,0} };
   }
 }
 
@@ -696,17 +725,6 @@ SK_ER_DeferredInit (void)
   {
     std::wstring game_ver_str =
       SK_GetDLLVersionStr (SK_GetHostApp ());
-
-    if (! (StrStrIW (game_ver_str.c_str (), L"ELDEN RING™  1.") ||
-           StrStrIW (game_ver_str.c_str (), L"ELDEN RING™  2.0.")))
-    {
-      SK_ImGui_WarningWithTitle (
-        L"The final fully supported version is 2.0.1.0.",
-        L"Unsupported version of Elden Ring"
-      );
-
-      return;
-    }
 
     SK_ER_InitConfig ();
 
@@ -747,16 +765,19 @@ SK_ER_DeferredInit (void)
       {
         patch.pAddr = (void *)addr_cache [name];
 
-        (uintptr_t&)patch.pAddr +=
-          (uintptr_t)SK_Debug_GetImageBaseAddr ();
+        if ((intptr_t)patch.pAddr > 7)
+        {
+          (uintptr_t&)patch.pAddr +=
+            (uintptr_t)SK_Debug_GetImageBaseAddr ();
 
-        memcpy (
-          patch.original.inst_bytes.data (),
-          patch.pAddr, 7
-        );
+          memcpy (
+            patch.original.inst_bytes.data (),
+            patch.pAddr, 7
+          );
 
-        patch.apply ( SK_ER_PlugIn.bUncapFramerate ?
-                                &patch.replacement : &patch.original );
+          patch.apply ( SK_ER_PlugIn.bUncapFramerate ?
+                                  &patch.replacement : &patch.original );
+        }
       }
 
 
