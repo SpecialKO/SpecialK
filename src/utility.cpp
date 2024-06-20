@@ -2244,6 +2244,9 @@ SKX_ScanAlignedEx ( const void* pattern, size_t len,   const void* mask,
                           SK_MemScan_Params__v0 params =
                           SK_MemScan_Params__v0 ()       )
 {
+  DWORD dwStartTime =
+    SK_timeGetTime ();
+
   MEMORY_BASIC_INFORMATION  minfo = { };
   VirtualQuery (base_addr, &minfo, sizeof (minfo));
 
@@ -2334,6 +2337,13 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
 
   while (it < end_addr)
   {
+    if (SK_timeGetTime () - dwStartTime > 2000UL)
+    {
+      SK_LOG0 ( ( L"Pattern search took too long, aborting..." ),
+                  L" Sig Scan " );
+      return nullptr;
+    }
+
     VirtualQuery (it, &minfo, sizeof (minfo));
 
     // Bail-out once we walk into an address range that is not resident, because
@@ -2377,6 +2387,13 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
 
     while (it < next_rgn)
     {
+      if (SK_timeGetTime () - dwStartTime > 2000UL)
+      {
+        SK_LOG0 ( ( L"Pattern search took too long, aborting..." ),
+                    L" Sig Scan " );
+        return nullptr;
+      }
+
       uint8_t* scan_addr = it;
 
       uint8_t test_val = static_cast <const uint8_t *> (pattern)[idx];
