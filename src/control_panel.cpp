@@ -1366,39 +1366,39 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       }
     }
 
-    static int  last_app_interval = rb.present_interval;
-    static int  last_sk_interval  = config.render.framerate.present_interval;
     static std::vector <char> vsync_list;
 
-    bool app_interval_changed =
-      (
-        config.render.framerate.present_interval ==
-        SK_NoPreference
-      ) &&
-      (
-        std::exchange (
-          last_app_interval,
-          rb.present_interval
-        ) != rb.present_interval
-      );
+    static int last_app_interval =
+      rb.present_interval;
+
+    static int last_sk_interval  =
+      config.render.framerate.present_interval;
+
+    bool app_interval_changed = (
+      config.render.framerate.present_interval ==
+      SK_NoPreference
+    ) && (
+      std::exchange (
+        last_app_interval,
+        rb.present_interval
+      ) != rb.present_interval
+    );
 
     // Update first_option label if SK present interval changed from/to SK_NoPreference (-1)
     //  -1 to 0-4: current_no_override_state -> no_override_label
     // 0-4 to  -1: no_override_label         -> current_no_override_state
-    bool sk_interval_changed_no_preference =
-      (
-        config.render.framerate.present_interval !=
-        last_sk_interval
-      ) &&
-      (
-        std::min (
-          std::exchange (
-            last_sk_interval,
-            config.render.framerate.present_interval
-          ),
+    bool sk_interval_changed_no_preference = (
+      config.render.framerate.present_interval !=
+      last_sk_interval
+    ) && (
+      std::min (
+        std::exchange (
+          last_sk_interval,
           config.render.framerate.present_interval
-        ) == SK_NoPreference
-      );
+        ),
+        config.render.framerate.present_interval
+      ) == SK_NoPreference
+    );
 
     // Re-populate the list if the current state changes
     if (vsync_list.empty () || app_interval_changed || sk_interval_changed_no_preference)
