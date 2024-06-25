@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2017-2021 Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -60,6 +60,9 @@ EnableDebugPrivilege (void)
 {
   auto hModule =
     LoadLibraryEx ( L"advapi32.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32 );
+
+  if ((intptr_t)hModule <= 0)
+    return false;
 
   auto pOpenProcessToken      = (decltype(&OpenProcessToken))      SK_GetProcAddress (hModule, "OpenProcessToken"     );
   auto pGetTokenInformation   = (decltype(&GetTokenInformation))   SK_GetProcAddress (hModule, "GetTokenInformation"  );

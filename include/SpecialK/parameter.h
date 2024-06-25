@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -216,6 +216,9 @@ public:
   bool         load          (      std::wstring&  ref) override;
 
          std::wstring& get_value_ref (void);
+
+  bool         is_equal      (const std::wstring& str,
+                                    bool          case_sensitive = false) const;
 };
 
 class ParameterVec2f : public Parameter <ImVec2>

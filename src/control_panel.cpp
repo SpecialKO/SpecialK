@@ -3712,23 +3712,57 @@ SK_ImGui_ControlPanel (void)
             ImGui::Checkbox ( "Keep Full-Range HDR Screenshots",
                                 &config.screenshots.png_compress );
 
+                int clipboard_selection =
+          config.screenshots.copy_to_clipboard   ?
+          config.screenshots.allow_hdr_clipboard ? 1 : 2 : 0;
+
+        if (ImGui::Combo ( "Clipboard Format", &clipboard_selection,
+                           "None (Do Not Copy)\0"
+                           "Lossless HDR\0"
+                           "Tone-mapped SDR\0\0" ))
+        {
+          hdr_changed = true;
+
+          if (clipboard_selection > 0)
+          {
+            config.screenshots.allow_hdr_clipboard =
+              (clipboard_selection == 1);
+          }
+          config.screenshots.copy_to_clipboard =
+            (clipboard_selection > 0);
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::BeginTooltip    ();
+          ImGui::TextUnformatted ("Lossless HDR copies are compatible with SKIV and Discord");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("Instead of tone mapping HDR->SDR, clipboard will contain a real HDR image.");
+          ImGui::BulletText      ("HDR copies have limited compatibility, and cannot be pasted to MSPaint, etc.");
+          ImGui::EndTooltip      ();
+        }
+
         // Show AVIF options in 64-bit builds
         if (config.screenshots.png_compress && SK_GetBitness () == SK_Bitness::SixtyFourBit)
         {
           static bool bFetchingAVIF = false;
 
           int selection =
-            ( config.screenshots.use_avif ?
-                                        1 : 0 );
+            ( config.screenshots.use_avif    ? 2 :
+              config.screenshots.use_hdr_png ? 1 :
+                                               0 );
 
           if (
             ImGui::Combo ( "HDR File Format", &selection,
                            "JPEG-XR (.jxr)\0"
+                           "PNG\t\t(.png)\0"
                            "AVIF\t\t(.avif)\0\0" )
              )
           {
-            if (selection == 1)
+            if (selection == 2)
             {
+              config.screenshots.use_hdr_png = false;
+
               if (! bFetchingAVIF)
               {
                 static std::filesystem::path avif_dll =
@@ -3768,6 +3802,9 @@ SK_ImGui_ControlPanel (void)
             }
             else
             {
+              config.screenshots.use_hdr_png =
+                (selection == 1);
+
               config.screenshots.use_avif            = false;
               config.screenshots.compression_quality = 90;
             }
@@ -3776,6 +3813,26 @@ SK_ImGui_ControlPanel (void)
           if (bFetchingAVIF)
           {
             ImGui::TextColored (ImVec4 (.1f,.9f,.1f,1.f), "Downloading AVIF Plug-In...");
+          }
+        }
+
+        else if (config.screenshots.png_compress && SK_GetBitness () == SK_Bitness::ThirtyTwoBit)
+        {
+          int selection =
+            ( config.screenshots.use_hdr_png ? 1 :
+                                               0 );
+
+          if (
+            ImGui::Combo ( "HDR File Format", &selection,
+                           "JPEG-XR (.jxr)\0"
+                           "PNG\t\t(.png)\0\0" )
+             )
+          {
+            config.screenshots.use_hdr_png =
+              (selection == 1);
+
+            config.screenshots.use_avif            = false;
+            config.screenshots.compression_quality = 90;
           }
         }
 
@@ -3844,11 +3901,14 @@ SK_ImGui_ControlPanel (void)
 
           bool changed = false;
 
-          changed |=
-            ImGui::SliderInt ("Compression Quality", &config.screenshots.compression_quality, 80, 100, szCompressionQualityFormat);
+          if (! config.screenshots.use_hdr_png)
+          {
+            changed |=
+              ImGui::SliderInt ("Compression Quality", &config.screenshots.compression_quality, 80, 100, szCompressionQualityFormat);
 
-          if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("You can manually enter values < 80 using ctrl+click, but the results will be terrible.");
+            if (ImGui::IsItemHovered ())
+              ImGui::SetTooltip ("You can manually enter values < 80 using ctrl+click, but the results will be terrible.");
+          }
 
           if (config.screenshots.use_avif)
           {
@@ -3873,6 +3933,21 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::TreePop ();
         }
+
+#if 0
+        if (config.screenshots.png_compress)
+        {
+          hdr_changed |=
+            ImGui::Checkbox ("HDR Screenshot Compatibility Mode", &config.screenshots.compatibility_mode);
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::SetTooltip ("Disables advanced compression features and formats not supported by all software.");
+          }
+        }
+#else
+        config.screenshots.compatibility_mode = true;
+#endif
 
         if ( rb.screenshot_mgr->getRepoStats ().files > 0 )
         {
@@ -3941,7 +4016,7 @@ SK_ImGui_ControlPanel (void)
           if (    same_line)
             ImGui::SameLine ();
 
-          ImGui::PushStyleColor (ImGuiCol_Text, (ImVec4&&)ImColor::HSV (.3f, .8f, .9f));
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
           ImGui::BulletText     ("Game Restart May Be Required");
           ImGui::PopStyleColor  ();
         }
@@ -6851,6 +6926,7 @@ SK_ImGui_ControlPanel (void)
         &config.screenshots.sk_osd_insertion_keybind,
         &config.screenshots.no_3rd_party_keybind,
         &config.screenshots.clipboard_only_keybind,
+        &config.screenshots.snipping_keybind
       };
 
     // Add a HUD Free Screenshot keybind option if HUD shaders are present
@@ -8210,6 +8286,72 @@ extern IMGUI_API    void ImGui_ImplDX9_RenderDrawData  (ImDrawData* draw_data);
 extern IMGUI_API    void ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data);
 extern/*IMGUI_API*/ void ImGui_ImplDX12_RenderDrawData (ImDrawData* draw_data, ID3D12GraphicsCommandList* ctx);
 
+#define SK_IMGUI_SELECT_FLAG_NONE           0x0
+#define SK_IMGUI_SELECT_FLAG_SINGLE_CLICK   0x1
+#define SK_IMGUI_SELECT_FLAG_ALLOW_INVERTED 0x2
+#define SK_IMGUI_SELECT_FLAG_FILLED         0x4
+#define SK_IMGUI_SELECT_FLAG_DEFAULT        SK_IMGUI_SELECT_FLAG_FILLED
+
+bool
+SK_ImGui_SelectionRect ( ImRect*          selection,
+                         ImRect           allowed,
+                         ImGuiMouseButton mouse_button,
+                         int              flags = SK_IMGUI_SELECT_FLAG_DEFAULT )
+{
+  const bool single_click =
+    (flags & SK_IMGUI_SELECT_FLAG_SINGLE_CLICK);
+
+  const bool min_is_zero =
+    (selection->Min.x == selection->Min.y && selection->Min.y == 0.0f);
+
+  // Update start position on click
+  if ((ImGui::IsMouseClicked (mouse_button) && (! single_click)) ||
+                                  (min_is_zero && single_click))
+    selection->Min = ImGui::GetMousePos ();
+
+  // Update end position while being held down
+  if (ImGui::IsMouseDown (mouse_button) || single_click)
+    selection->Max = ImGui::GetMousePos ();
+
+  // Keep the selection within the allowed rectangle
+  selection->ClipWithFull (allowed);
+
+  static const auto
+    inset = ImVec2 (0.0f, 0.0f);
+
+  // Draw the selection rectangle
+  if (ImGui::IsMouseDown (mouse_button) || single_click)
+  {
+    ImDrawList* draw_list =
+      ImGui::GetForegroundDrawList ();
+
+      draw_list->AddRect       (selection->Min-inset, selection->Max+inset, ImGui::GetColorU32 (IM_COL32(0,130,216,255))); // Border
+
+    if (flags & SK_IMGUI_SELECT_FLAG_FILLED)
+      draw_list->AddRectFilled (selection->Min,       selection->Max,       ImGui::GetColorU32 (IM_COL32(0,130,216,50)));  // Background
+  }
+
+  const bool complete =
+    (single_click && ImGui::IsMouseClicked  (mouse_button)) ||
+                     ImGui::IsMouseReleased (mouse_button);
+
+  const bool allow_inversion =
+    (flags & SK_IMGUI_SELECT_FLAG_ALLOW_INVERTED);
+
+  if (complete)
+  {
+    if (! allow_inversion)
+    {
+      if (selection->Min.x > selection->Max.x) std::swap (selection->Min.x, selection->Max.x);
+      if (selection->Min.y > selection->Max.y) std::swap (selection->Min.y, selection->Max.y);
+    }
+  }
+
+  return
+    complete;
+}
+
+
 //
 // Hook this to override Special K's GUI
 //
@@ -8247,11 +8389,80 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
     ImGui::NewFrame ();
   }
 
-  const SK_RenderBackend& rb =
+  SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
   // Popup Windows, actually
   SK_Platform_DrawOSD ();
+
+
+  auto& screenshot_mgr =
+    rb.screenshot_mgr.get ();
+
+  static volatile ULONG64  queued_snipped_shot = ULONG64_MAX;
+  if (ReadULong64Acquire (&queued_snipped_shot) == SK_GetFramesDrawn ())
+  {
+    screenshot_mgr.setSnipState (SK_ScreenshotManager::SnippingInactive);
+
+    SK::SteamAPI::TakeScreenshot (
+      SK_ScreenshotStage::ClipboardOnly
+    );
+  }
+
+  const auto snip_state =
+    screenshot_mgr.getSnipState ();
+
+  if (snip_state == SK_ScreenshotManager::SnippingRequested)
+  {
+    screenshot_mgr.setSnipState (SK_ScreenshotManager::SnippingInactive);
+
+    // If setup snipping is successful...
+    //
+    screenshot_mgr.setSnipState (SK_ScreenshotManager::SnippingActive);
+  }
+
+  if (snip_state == SK_ScreenshotManager::SnippingActive)
+  {
+    static ImRect selection =
+      { 0.0f,0.0f, 0.0f,0.0f };
+
+    const ImRect window_dims =
+      { static_cast <float> (game_window.actual.window.left),
+        static_cast <float> (game_window.actual.window.top),
+        static_cast <float> (game_window.actual.window.right),
+        static_cast <float> (game_window.actual.window.bottom) };
+
+    ImDrawList* const draw_list =
+      ImGui::GetForegroundDrawList ();
+
+    draw_list->AddRectFilled ( window_dims.GetTL (),
+                               window_dims.GetBR (),
+                                 ImGui::GetColorU32 (IM_COL32 (25,25,25,50)) );
+
+    ///if (snip_state == SK_ScreenshotManager::SnippingRequested)
+    ///{
+    ///  selection.Min.x =
+    ///  selection.Min.y = 0.0f;
+    ///}
+
+    if (SK_ImGui_SelectionRect (&selection, window_dims, ImGuiMouseButton_Left))
+    {
+      const size_t
+        x      = static_cast <size_t> (std::max (selection.Min.x,        0.0f)),
+        y      = static_cast <size_t> (std::max (selection.Min.y,        0.0f)),
+        width  = static_cast <size_t> (std::max (selection.GetWidth  (), 0.0f)),
+        height = static_cast <size_t> (std::max (selection.GetHeight (), 0.0f));
+
+      selection.Min.x =
+      selection.Min.y = 0.0f;
+
+      screenshot_mgr.setSnipRect  ({ x,y, width,height });
+      screenshot_mgr.setSnipState (SK_ScreenshotManager::SnippingComplete);
+
+      WriteULong64Release (&queued_snipped_shot, SK_GetFramesDrawn ()+2);
+    }
+  }
+
 
   if (rb.api == SK_RenderAPI::OpenGL)
   {
@@ -8471,7 +8682,7 @@ SK_ImGui_Toggle (void)
 
                 SK_SetCursorPos (ptCursor.x - 4, ptCursor.y + 4);
 
-                game_window.CallProc (
+                SK_COMPAT_SafeCallProc (&game_window,
                           game_window.hWnd,                       WM_SETCURSOR,
                   (WPARAM)game_window.hWnd, MAKELPARAM (HTCLIENT, WM_MOUSEMOVE));
               }

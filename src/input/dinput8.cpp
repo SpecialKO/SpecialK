@@ -1721,10 +1721,18 @@ WINAPI
 SK_GUIDFromStringW (LPCWSTR psz, LPGUID pguid)
 {
   if (GUIDFromStringW == nullptr)
-      GUIDFromStringW = (GUIDFromStringW_pfn)GetProcAddress (GetModuleHandleW (L"shlwapi.dll"), (LPCSTR)MAKEINTRESOURCE (270));
+  {
+    static HMODULE   hMod_shlwapi =
+      GetModuleHandleW (L"shlwapi.dll");
 
-  if (GUIDFromStringW != nullptr)
-    return GUIDFromStringW (psz, pguid);
+    if ((intptr_t)hMod_shlwapi > 0)
+    {
+      GUIDFromStringW = (GUIDFromStringW_pfn)GetProcAddress (hMod_shlwapi, (LPCSTR)MAKEINTRESOURCE (270));
+
+      if (GUIDFromStringW != nullptr)
+        return GUIDFromStringW (psz, pguid);
+    }
+  }
 
   return FALSE;
 }

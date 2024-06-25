@@ -81,6 +81,7 @@ GetMessagePos_pfn        GetMessagePos_Original        = nullptr;
 SendInput_pfn            SendInput_Original            = nullptr;
 mouse_event_pfn          mouse_event_Original          = nullptr;
 
+ShowWindow_pfn           ShowWindow_Original           = nullptr;
 SetWindowPos_pfn         SetWindowPos_Original         = nullptr;
 SetWindowPlacement_pfn   SetWindowPlacement_Original   = nullptr;
 MoveWindow_pfn           MoveWindow_Original           = nullptr;
@@ -1949,6 +1950,33 @@ SetWindowPlacement_Detour(
 
   return
     SK_SetWindowPlacement ( hWnd, lpwndpl );
+}
+
+BOOL
+WINAPI
+ShowWindow_Detour(
+  _In_ HWND hWnd,
+  _In_ int  nCmdShow)
+{
+  SK_LOG_FIRST_CALL
+
+  if (hWnd != 0 && hWnd == game_window.hWnd)
+  {
+    if (nCmdShow == SW_SHOWMINIMIZED)
+        nCmdShow  = SW_SHOW;
+
+    else
+    {
+      if (nCmdShow == SW_MINIMIZE ||
+          nCmdShow == SW_FORCEMINIMIZE)
+      {
+        return TRUE;
+      }
+    }
+  }
+
+  return
+    ShowWindow_Original (hWnd, nCmdShow);
 }
 
 BOOL
@@ -6525,6 +6553,7 @@ SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
     StrStrIW (pWindowClass->lpszClassName, L"CurseOverlayTemporaryDirect3D11Window") || // Twitch
     StrStrIW (pWindowClass->lpszClassName, L"TestDX11WindowClass")                   || // X-Ray Oxygen
     StrStrIW (pWindowClass->lpszClassName, L"static")                                || // AMD's stupid OpenGL interop
+    StrStrIW (pWindowClass->lpszClassName, L"SKIV_NotificationIcon")                 || // SKIV's thingy...
 
     // F' it, there's a pattern here, just ignore all dummies.
     StrStrIW (pWindowClass->lpszClassName, L"dummy");
@@ -6532,6 +6561,13 @@ SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
   if (StrStrIW (pWindowClass->lpszClassName, L"Qt") &&
    (! StrStrIW (pWindowClass->lpszClassName, L"qtopengltest")))
     return false;
+
+  if (! dummy_window)
+  {
+    // If it starts life minimized, we don't care about it...
+    return
+      (pWindowClass->style & WS_ICONIC);
+  }
 
   return
     dummy_window;
@@ -6567,6 +6603,27 @@ SK_Win32_IsDummyWindowClass (HWND hWndInstance)
 void
 SK_InstallWindowHook (HWND hWnd)
 {
+  for ( auto& window_msg : game_window.messages)
+  {
+    if (*window_msg.szName == '\0' || window_msg.uiMessage != 0)
+      continue;
+
+    if (StrStrIA (window_msg.szName, "pid") == window_msg.szName)
+      continue;
+
+    strncpy_s (
+      window_msg.szName, SK_FormatString ("pid%x_%hs", GetCurrentProcessId (),
+      window_msg.szName).c_str (), 63
+    );
+
+    UINT uiMsg =
+      RegisterWindowMessageA (window_msg.szName);
+
+    if ( uiMsg >= 0xC000 &&
+         uiMsg <= 0xFFFF )    window_msg.uiMessage = uiMsg;
+    else                      window_msg.uiMessage = UINT_MAX;
+  }
+
   static constexpr int                 _MaxClassLen  = 128;
   wchar_t                    wszClass [_MaxClassLen] = { };
   RealGetWindowClassW (hWnd, wszClass, _MaxClassLen - 1);
@@ -6833,14 +6890,8 @@ SK_InstallWindowHook (HWND hWnd)
           {
             cursor_visible = *(bool *)val;
 
-            static constexpr auto          _MaxTries = 25;
-            for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
-            {
-              if (   cursor_visible  && SK_ShowCursor (TRUE) >= 0)
-                break;
-              if ((! cursor_visible) && SK_ShowCursor (FALSE) < 0)
-                break;
-            }
+            if (cursor_visible) SK_SendMsgShowCursor (TRUE);
+            else                SK_SendMsgShowCursor (FALSE);
           }
         }
 
@@ -7234,6 +7285,60 @@ DefWindowProcW_Detour ( _In_ HWND   hWnd,
   if (Msg == WM_SYSCOMMAND && SK_Win32_IgnoreSysCommand (hWnd, wParam, lParam))
     return 0;
 
+  if (Msg >= 0xC000 && Msg <= 0xFFFF)
+  {
+    if (Msg == game_window.messages [sk_window_s::message_def_s::ShowCursor].uiMessage)
+    {
+      static constexpr auto          _MaxTries = 25;
+      for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
+      {
+        if (SK_ShowCursor (TRUE) >= 0)
+          break;
+      }
+    }
+
+    else if (Msg == game_window.messages [sk_window_s::message_def_s::HideCursor].uiMessage)
+    {
+      static constexpr auto          _MaxTries = 25;
+      for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
+      {
+        if (SK_ShowCursor (FALSE) < 0)
+          break;
+      }
+    }
+
+#if 0
+    else if (Msg == game_window.messages [sk_window_s::message_def_s::ToggleCursor].uiMessage)
+    {
+      bool bVisible =
+        SK_InputUtil_IsHWCursorVisible ();
+
+      if (bVisible)
+      {
+        return 
+          DefWindowProcW_Detour ( hWnd,
+                                  game_window.messages [sk_window_s::message_def_s::HideCursor].uiMessage,
+                                  wParam,
+                                  lParam );
+      }
+
+      else
+      {
+        return 
+          DefWindowProcW_Detour ( hWnd,
+                                  game_window.messages [sk_window_s::message_def_s::ShowCursor].uiMessage,
+                                  wParam,
+                                  lParam );
+      }
+    }
+#endif
+
+    else if (Msg == game_window.messages [sk_window_s::message_def_s::SetCursorImg].uiMessage)
+    {
+      SK_SetCursor ((HCURSOR)wParam);
+    }
+  }
+
   return
     DefWindowProcW_Original (hWnd, Msg, wParam, lParam);
 }
@@ -7251,6 +7356,55 @@ DefWindowProcA_Detour ( _In_ HWND   hWnd,
   //   based on the actual return value of the game's window proc...
   if (Msg == WM_SYSCOMMAND && SK_Win32_IgnoreSysCommand (hWnd, wParam, lParam))
     return 0;
+
+  if (Msg >= 0xC000 && Msg <= 0xFFFF)
+  {
+    if (Msg == game_window.messages [sk_window_s::message_def_s::ShowCursor].uiMessage)
+    {
+      static constexpr auto          _MaxTries = 25;
+      for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
+      {
+        if (SK_ShowCursor (TRUE) >= 0)
+          break;
+      }
+    }
+
+    else if (Msg == game_window.messages [sk_window_s::message_def_s::HideCursor].uiMessage)
+    {
+      static constexpr auto          _MaxTries = 25;
+      for ( UINT tries = 0 ; tries < _MaxTries ; ++tries )
+      {
+        if (SK_ShowCursor (FALSE) < 0)
+          break;
+      }
+    }
+
+#if 0
+    else if (Msg == game_window.messages [sk_window_s::message_def_s::ToggleCursor].uiMessage)
+    {
+      bool bVisible =
+        SK_InputUtil_IsHWCursorVisible ();
+
+      if (bVisible)
+      {
+        return 
+          DefWindowProcA_Detour ( hWnd,
+                                  game_window.messages [sk_window_s::message_def_s::HideCursor].uiMessage,
+                                  wParam,
+                                  lParam );
+      }
+
+      else
+      {
+        return 
+          DefWindowProcA_Detour ( hWnd,
+                                  game_window.messages [sk_window_s::message_def_s::ShowCursor].uiMessage,
+                                  wParam,
+                                  lParam );
+      }
+    }
+#endif
+  }
 
   return
     DefWindowProcA_Original (hWnd, Msg, wParam, lParam);
@@ -7299,6 +7453,11 @@ SK_HookWinAPI (void)
                               "SetWindowPos",
                                SetWindowPos_Detour,
       static_cast_p2p <void> (&SetWindowPos_Original) );
+
+    SK_CreateDLLHook2 (      L"user32",
+                              "ShowWindow",
+                               ShowWindow_Detour,
+      static_cast_p2p <void> (&ShowWindow_Original) );
 
     SK_CreateDLLHook2 (      L"user32",
                               "SetWindowPlacement",

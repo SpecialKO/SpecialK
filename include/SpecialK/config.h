@@ -298,10 +298,11 @@ struct sk_config_t
 
 
   struct dlss_osd_s {
-    bool   show           = false;
-    bool   show_quality   = true;
-    bool   show_fg        = true;
-    bool   show_preset    = false;
+    bool   show            = false;
+    bool   show_output_res = false;
+    bool   show_quality    = true;
+    bool   show_fg         = true;
+    bool   show_preset     = false;
 
     struct keybinds_s {
       BYTE toggle [4]     = { VK_MENU, VK_SHIFT, 'D', 0 };
@@ -498,10 +499,12 @@ struct sk_config_t
 
   struct screenshots_s {
     bool         use_avif              = false;
+    bool         use_hdr_png           = false;
     bool         png_compress          =  true;
     bool         show_osd_by_default   =  true;
     bool         play_sound            =  true;
     bool         copy_to_clipboard     =  true;
+    bool         allow_hdr_clipboard   =  true;
     bool         embed_nickname        = false;
     std::wstring override_path         =   L"";
     std::wstring filename_format       = L"%G %F %T";
@@ -515,7 +518,7 @@ struct sk_config_t
     } avif;
 
     int          compression_quality   =    90;
-    bool         compatibility_mode    = false;
+    bool         compatibility_mode    =  true;
 
     SK_ConfigSerializedKeybind
          game_hud_free_keybind = {
@@ -552,9 +555,17 @@ struct sk_config_t
     SK_ConfigSerializedKeybind
          clipboard_only_keybind = {
       SK_Keybind {
-        "Copy a Normal Screenshot to Clipboard Only", L"",
+        "Copy a Screenshot to Clipboard Only", L"",
          false, false, false, VK_PRINT
       }, L"ClipboardOnly"
+    };
+
+    SK_ConfigSerializedKeybind
+         snipping_keybind = {
+      SK_Keybind {
+        "Snip a Screenshot to the Clipboard", L"",
+         true, false, false, VK_PRINT
+      }, L"Snipping"
     };
   } screenshots;
 
@@ -1236,8 +1247,9 @@ struct sk_config_t
       bool   enable_perfdata  = true;
     } D3DKMT;
 
-    SK_RenderAPI last_known    = SK_RenderAPI::Reserved;
-    SK_RenderAPI translated    = SK_RenderAPI::None;
+    SK_RenderAPI last_last_known = SK_RenderAPI::Reserved;
+    SK_RenderAPI last_known      = SK_RenderAPI::Reserved;
+    SK_RenderAPI translated      = SK_RenderAPI::None;
   } apis;
 
   struct system_s {
@@ -1610,6 +1622,8 @@ enum class SK_GAME_ID
   GranblueFantasyRelink,        // granblue_fantasy_relink.exe
   WrathAeonOfRuin,              // wrath-sdl.exe
   HaroldHalibut,                // Harold Halibut.exe
+  KingdomComeDeliverance,       // KingdomCome.exe
+  GodOfWar,                     // GoW.exe
 
   UNKNOWN_GAME               = 0xffff
 };

@@ -400,8 +400,9 @@ SK_NvAPI_GetDefaultDisplayId (void)
 
       // Query list of displays connected to this GPU
       if (NVAPI_OK == NvAPI_GPU_GetConnectedDisplayIds (
-                        ahGPU [i], displayIdArray,
-                          &displayIdCount, flags))
+           (const NvPhysicalGpuHandle) ahGPU [i],
+                                  displayIdArray,
+                                 &displayIdCount, flags))
       {
         if (displayIdArray [0].isActive)
         {

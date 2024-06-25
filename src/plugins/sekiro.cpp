@@ -98,7 +98,7 @@ sk::ParameterBool* disable_netcode = nullptr;
 sk::ParameterBool* uncap_framerate = nullptr;
 sk::ParameterBool* kill_limiter    = nullptr;
 
-static bool disable_network_code   = true;
+static bool disable_network_code   = false;
 static bool no_frame_limit         = false;
 static bool kill_limit             = false;
 
@@ -786,6 +786,9 @@ void SK_WinSock_GoOffline (void)
 void
 SK_Sekiro_InitPlugin (void)
 {
+  // Decomissioned as of 5/30/24
+  return;
+  
   plugin_mgr->config_fns.emplace      (SK_Sekiro_PlugInCfg);
   plugin_mgr->first_frame_fns.emplace (SK_Sekiro_PresentFirstFrame);
 

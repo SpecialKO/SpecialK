@@ -251,6 +251,8 @@ SK_GetCurrentGameID (void)
           { L"wrath-sdl.exe",                          SK_GAME_ID::WrathAeonOfRuin              },
           { L"dd2.exe",                                SK_GAME_ID::DragonsDogma                 },
           { L"Harold Halibut.exe",                     SK_GAME_ID::HaroldHalibut                },
+          { L"KingdomCome.exe",                        SK_GAME_ID::KingdomComeDeliverance       },
+          { L"GoW.exe",                                SK_GAME_ID::GodOfWar                     }
         };
 
     first_check  = false;
@@ -279,6 +281,11 @@ SK_GetCurrentGameID (void)
       else if ( StrStrIW ( SK_GetHostApp (), L"ff7remake" ) )
       {
         current_game = SK_GAME_ID::FinalFantasy7Remake;
+      }
+
+      else if ( StrStrW ( SK_GetHostApp (), L"GoW" ) )
+      {
+        current_game = SK_GAME_ID::GodOfWar;
       }
 
       else if ( StrStrIW ( SK_GetHostApp (), L"ACValhalla" ) )
@@ -508,6 +515,7 @@ struct {
 
   struct {
     sk::ParameterBool*    show                    = nullptr;
+    sk::ParameterBool*    show_output_res         = nullptr;
     sk::ParameterBool*    show_quality            = nullptr;
     sk::ParameterBool*    show_preset             = nullptr;
     sk::ParameterBool*    show_fg                 = nullptr;
@@ -643,6 +651,7 @@ struct {
   sk::ParameterBool*      keep_png_copy           = nullptr;
   sk::ParameterBool*      play_sound              = nullptr;
   sk::ParameterBool*      copy_to_clipboard       = nullptr;
+  sk::ParameterBool*      allow_hdr_clipboard     = nullptr;
   sk::ParameterBool*      embed_nickname          = nullptr;
   sk::ParameterStringW*   override_path           = nullptr;
   sk::ParameterStringW*   filename_format         = nullptr;
@@ -657,6 +666,10 @@ struct {
     //bool                full_range              =  true;
     //int                 max_threads             =     3;
   } avif;
+
+  struct {
+    sk::ParameterBool*    store_hdr               = nullptr;
+  } png;
 } screenshots;
 
 struct {
@@ -1500,6 +1513,7 @@ auto DeclKeybind =
     ConfigEntry (monitoring.pagefile.interval,           L"Pagefile Monitoring Interval (seconds)",                    osd_ini,         L"Monitor.Pagefile",      L"Interval"),
 
     ConfigEntry (monitoring.dlss.show,                   L"Show DLSS Resolution Information",                          osd_ini,         L"Monitor.DLSS",          L"Show"),
+    ConfigEntry (monitoring.dlss.show_output_res,        L"Print DLSS Output Resolution",                              osd_ini,         L"Monitor.DLSS",          L"ShowOutputResolution"),
     ConfigEntry (monitoring.dlss.show_quality,           L"Print DLSS Quality Level",                                  osd_ini,         L"Monitor.DLSS",          L"ShowQuality"),
     ConfigEntry (monitoring.dlss.show_preset,            L"Print DLSS Preset",                                         osd_ini,         L"Monitor.DLSS",          L"ShowPreset"),
     ConfigEntry (monitoring.dlss.show_fg,                L"Print DLSS Frame Generation Status",                        osd_ini,         L"Monitor.DLSS",          L"ShowFrameGeneration"),
@@ -1525,7 +1539,7 @@ auto DeclKeybind =
 
     ConfigEntry (screenshots.keep_png_copy,              L"Keep a .PNG compressed copy of each screenshot?",           osd_ini,         L"Screenshot.System",     L"KeepLosslessPNG"),
     ConfigEntry (screenshots.play_sound,                 L"Play a Sound when triggering Screenshot Capture",           osd_ini,         L"Screenshot.System",     L"PlaySoundOnCapture"),
-    ConfigEntry (screenshots.copy_to_clipboard,          L"Copy an LDR copy to the Windows Clipboard",                 osd_ini,         L"Screenshot.System",     L"CopyToClipboard"),
+    ConfigEntry (screenshots.copy_to_clipboard,          L"Copy an LDR/HDR copy to the Windows Clipboard",             osd_ini,         L"Screenshot.System",     L"CopyToClipboard"),
     ConfigEntry (screenshots.embed_nickname,             L"Add Steam/Epic nickname as Author to Screenshot Metadata",  osd_ini,         L"Screenshot.System",     L"AuthorMetadata"),
     ConfigEntry (screenshots.override_path,              L"Where to store screenshots (if non-empty)",                 osd_ini,         L"Screenshot.System",     L"OverridePath"),
     ConfigEntry (screenshots.filename_format,            L"wcsftime format; Non-Standard Specifier: %G = <Game Name>", osd_ini,         L"Screenshot.System",     L"FilenameFormat"),
@@ -1535,6 +1549,8 @@ auto DeclKeybind =
     ConfigEntry (screenshots.avif.yuv_subsampling,       L"Chroma Subsampling (444, 422, 420, 400)",                   osd_ini,         L"Screenshot.AVIF",       L"SubsampleYUV"),
     ConfigEntry (screenshots.avif.scrgb_bit_depth,       L"Bits to use for scRGB to PQ encoded images",                osd_ini,         L"Screenshot.AVIF",       L"scRGBtoPQBits"),
     ConfigEntry (screenshots.avif.compression_speed,     L"Compression Speed: 0=Slowest (Smallest File), 10=Fastest",  osd_ini,         L"Screenshot.AVIF",       L"Speed"),
+    ConfigEntry (screenshots.png.store_hdr,              L"Use HDR PNG file format for HDR screenshots",               osd_ini,         L"Screenshot.HDR",        L"StorePNG"),
+    ConfigEntry (screenshots.allow_hdr_clipboard,        L"Use HDR for Windows Clipboard screenshots",                 osd_ini,         L"Screenshot.HDR",        L"AllowClipboardHDR"),
     Keybind ( &config.render.keys.hud_toggle,            L"Toggle Game's HUD",                                         osd_ini,         L"Game.HUD"),
     Keybind ( &config.screenshots.game_hud_free_keybind, L"Take a screenshot without the HUD",                         osd_ini,         L"Screenshot.System"),
     Keybind ( &config.screenshots.sk_osd_free_keybind,   L"Take a screenshot without SK's OSD",                        osd_ini,         L"Screenshot.System"),
@@ -1542,6 +1558,7 @@ auto DeclKeybind =
                                sk_osd_insertion_keybind, L"Take a screenshot and insert SK's OSD",                     osd_ini,         L"Screenshot.System"),
     Keybind ( &config.screenshots.no_3rd_party_keybind,  L"Take a screenshot before third-party overlays",             osd_ini,         L"Screenshot.System"),
     Keybind ( &config.screenshots.clipboard_only_keybind,L"Take a screenshot and copy it to the clipboard only",       osd_ini,         L"Screenshot.System"),
+    Keybind ( &config.screenshots.snipping_keybind,      L"Snip a screenshot and copy it to the clipboard",            osd_ini,         L"Screenshot.System"),
 
     Keybind ( &config.monitors.monitor_primary_keybind,  L"Move Game to Primary Monitor",                              osd_ini,         L"Display.Monitor"),
     Keybind ( &config.monitors.monitor_next_keybind,     L"Move Game to Next Monitor",                                 osd_ini,         L"Display.Monitor"),
@@ -2123,94 +2140,104 @@ auto DeclKeybind =
   }
 
 
+  SK_RunOnce (
+    while (sec != sections.cend ())
+    {
+      auto& import_ =
+        imports->imports
+           [import_idx];
+
+      if (sec->first.find (L"Import.") != std::wstring::npos)
+      {
+        const wchar_t* wszNext =
+          wcschr (sec->first.c_str (), L'.');
+
+        import_.name =
+          wszNext != nullptr       ?
+            SK_CharNextW (wszNext) : L"";
+
+        import_.filename =
+           dynamic_cast <sk::ParameterStringW *>
+               (g_ParameterFactory->create_parameter <std::wstring> (
+                  L"Import Filename")
+               );
+        import_.filename->register_to_ini (
+          dll_ini,
+            sec->first,
+              L"Filename" );
+
+        import_.when =
+           dynamic_cast <sk::ParameterStringW *>
+               (g_ParameterFactory->create_parameter <std::wstring> (
+                  L"Import Timeframe")
+               );
+        import_.when->register_to_ini (
+          dll_ini,
+            sec->first,
+              L"When" );
+
+        import_.role =
+           dynamic_cast <sk::ParameterStringW *>
+               (g_ParameterFactory->create_parameter <std::wstring> (
+                  L"Import Role")
+               );
+        import_.role->register_to_ini (
+          dll_ini,
+            sec->first,
+              L"Role" );
+
+        import_.architecture =
+           dynamic_cast <sk::ParameterStringW *>
+               (g_ParameterFactory->create_parameter <std::wstring> (
+                  L"Import Architecture")
+               );
+        import_.architecture->register_to_ini (
+          dll_ini,
+            sec->first,
+              L"Architecture" );
+
+        import_.blacklist =
+           dynamic_cast <sk::ParameterStringW *>
+               (g_ParameterFactory->create_parameter <std::wstring> (
+                  L"Blacklisted Executables")
+               );
+        import_.blacklist->register_to_ini (
+          dll_ini,
+            sec->first,
+              L"Blacklist" );
+
+        import_.mode =
+           dynamic_cast <sk::ParameterStringW *>
+               (g_ParameterFactory->create_parameter <std::wstring> (
+                  L"Plug-In Mode (application defined)")
+               );
+        import_.mode->register_to_ini (
+          dll_ini,
+            sec->first,
+              L"Mode" );
+
+        static_cast <sk::iParameter *> (import_.filename    )->load ();
+        static_cast <sk::iParameter *> (import_.when        )->load ();
+        static_cast <sk::iParameter *> (import_.blacklist   )->load ();
+        static_cast <sk::iParameter *> (import_.mode        )->load ();
+
+        if (! static_cast <sk::iParameter *> (import_.role        )->load ())
+                                              import_.role->set_value         (L"Any");
+        if (! static_cast <sk::iParameter *> (import_.architecture)->load ())
+                                              import_.architecture->set_value (L"Any");
+
+        import_.hLibrary = nullptr;
+
+        if (++import_idx > SK_MAX_IMPORTS)
+          break;
+      }
+
+      ++sec;
+    }
+  );
+
   while (sec != sections.cend ())
   {
-    auto& import_ =
-      imports->imports
-         [import_idx];
-
-    if (sec->first.find (L"Import.") != std::wstring::npos)
-    {
-      const wchar_t* wszNext =
-        wcschr (sec->first.c_str (), L'.');
-
-      import_.name =
-        wszNext != nullptr       ?
-          SK_CharNextW (wszNext) : L"";
-
-      import_.filename =
-         dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory->create_parameter <std::wstring> (
-                L"Import Filename")
-             );
-      import_.filename->register_to_ini (
-        dll_ini,
-          sec->first,
-            L"Filename" );
-
-      import_.when =
-         dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory->create_parameter <std::wstring> (
-                L"Import Timeframe")
-             );
-      import_.when->register_to_ini (
-        dll_ini,
-          sec->first,
-            L"When" );
-
-      import_.role =
-         dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory->create_parameter <std::wstring> (
-                L"Import Role")
-             );
-      import_.role->register_to_ini (
-        dll_ini,
-          sec->first,
-            L"Role" );
-
-      import_.architecture =
-         dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory->create_parameter <std::wstring> (
-                L"Import Architecture")
-             );
-      import_.architecture->register_to_ini (
-        dll_ini,
-          sec->first,
-            L"Architecture" );
-
-      import_.blacklist =
-         dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory->create_parameter <std::wstring> (
-                L"Blacklisted Executables")
-             );
-      import_.blacklist->register_to_ini (
-        dll_ini,
-          sec->first,
-            L"Blacklist" );
-
-      import_.mode =
-         dynamic_cast <sk::ParameterStringW *>
-             (g_ParameterFactory->create_parameter <std::wstring> (
-                L"Plug-In Mode (application defined)")
-             );
-      import_.mode->register_to_ini (
-        dll_ini,
-          sec->first,
-            L"Mode" );
-
-      static_cast <sk::iParameter *> (import_.filename    )->load ();
-      static_cast <sk::iParameter *> (import_.when        )->load ();
-      static_cast <sk::iParameter *> (import_.role        )->load ();
-      static_cast <sk::iParameter *> (import_.architecture)->load ();
-      static_cast <sk::iParameter *> (import_.blacklist   )->load ();
-      static_cast <sk::iParameter *> (import_.mode        )->load ();
-
-      import_.hLibrary = nullptr;
-
-      if (++import_idx > SK_MAX_IMPORTS)
-        break;
-    }
-
     if (sec->first.find (L"Macro.") != std::wstring::npos)
     {
       for ( auto &[key_name, command] : sec->second.keys )
@@ -2408,6 +2435,9 @@ auto DeclKeybind =
         config.textures.cache.ignore_nonmipped = true; // Invalid use of immutable textures
         break;
 
+      case SK_GAME_ID::KingdomComeDeliverance:
+        config.textures.cache.ignore_nonmipped = true;
+        break;
 
       case SK_GAME_ID::DragonsDogma2:
         config.nvidia.dlss.compat.extra_pixels = -2;
@@ -2468,7 +2498,9 @@ auto DeclKeybind =
         // Maximize compatibility with 3rd party injectors that corrupt hooks
         //config.render.dxgi.slow_state_cache    = false;
         //SK_DXGI_SlowStateCache                 = config.render.dxgi.slow_state_cache;
-        config.render.dxgi.scaling_mode        = DXGI_MODE_SCALING_UNSPECIFIED;
+        config.render.dxgi.scaling_mode         = DXGI_MODE_SCALING_UNSPECIFIED;
+        config.render.dxgi.fake_fullscreen_mode = true;
+        config.window.background_render         = true;
 
         // Prevent VRR disable when game plays cutscenes
         config.render.framerate.sync_interval_clamp  =     1;
@@ -2727,7 +2759,9 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Sekiro:
+        config.window.activate_at_start           = true;
         config.render.dxgi.fake_fullscreen_mode   = true;
+        config.window.background_render           = true;
         config.input.gamepad.xinput.placehold [0] = true;
         config.input.gamepad.xinput.placehold [1] = true;
         config.input.gamepad.xinput.placehold [2] = true;
@@ -3069,6 +3103,7 @@ auto DeclKeybind =
       case SK_GAME_ID::YakuzaLikeADragonGaiden:
       {
         config.render.dxgi.fake_fullscreen_mode   = true;
+        config.window.background_render           = true;
         config.render.dxgi.hooks.
                             create_swapchain4hwnd = false;
       }
@@ -3313,10 +3348,13 @@ auto DeclKeybind =
         config.render.framerate.drop_late_flips      =  true;
         config.render.framerate.flip_discard         =  true;
         config.input.gamepad.disable_hid             =  true;
+        config.input.gamepad.xinput.emulate          =  true;
+        config.input.gamepad.xinput.placehold [0]    =  true;
         config.input.gamepad.xinput.auto_slot_assign =  true;
         config.threads.enable_file_io_trace          =  true;
         config.steam.preload_overlay                 = false; // Set to false because of loss of rumble
-        config.window.background_render              = false;
+        config.window.background_render              =  true;
+        config.render.dxgi.fake_fullscreen_mode      =  true;
 
         SK_D3D11_DeclHUDShader_Vtx (0x3e464f00);
 
@@ -3638,6 +3676,12 @@ auto DeclKeybind =
         });
 
       } break;
+
+      case SK_GAME_ID::GodOfWar:
+      {
+        // Prevent crashes in the Steam and GOG versions of the game
+        config.compatibility.allow_dxdiagn = false;
+      } break;
     }
   }
 
@@ -3646,6 +3690,11 @@ auto DeclKeybind =
   else // Implicitly count 1 context if the last launch used OpenGL
     if (config.apis.last_known == SK_RenderAPI::OpenGL)
       SK_GL_ContextCount++;
+
+  SK_RunOnce (
+    config.apis.last_last_known =
+         config.apis.last_known
+  );
 
 
 #ifdef _M_IX86
@@ -3770,10 +3819,11 @@ auto DeclKeybind =
   config.pagefile.interval = std::clamp (config.pagefile.interval, 0.125f, 2.5f);
   config.io.interval       = std::clamp (config.io.interval,       0.125f, 2.5f);
 
-  monitoring.dlss.show->load         (config.dlss.show);
-  monitoring.dlss.show_quality->load (config.dlss.show_quality);
-  monitoring.dlss.show_preset->load  (config.dlss.show_preset);
-  monitoring.dlss.show_fg->load      (config.dlss.show_fg);
+  monitoring.dlss.show->load            (config.dlss.show);
+  monitoring.dlss.show_output_res->load (config.dlss.show_output_res);
+  monitoring.dlss.show_quality->load    (config.dlss.show_quality);
+  monitoring.dlss.show_preset->load     (config.dlss.show_preset);
+  monitoring.dlss.show_fg->load         (config.dlss.show_fg);
 
   monitoring.title.show->load (config.title.show);
   monitoring.time.show->load  (config.time.show);
@@ -5060,6 +5110,9 @@ auto DeclKeybind =
   screenshots.avif.scrgb_bit_depth->load      (config.screenshots.avif.scrgb_bit_depth);
   screenshots.avif.compression_speed->load    (config.screenshots.avif.compression_speed);
 
+  screenshots.png.store_hdr->load             (config.screenshots.use_hdr_png);
+  screenshots.allow_hdr_clipboard->load       (config.screenshots.allow_hdr_clipboard);
+
   // AVIF Unsupported in 32-bit
   if (SK_GetBitness () == SK_Bitness::ThirtyTwoBit)
     config.screenshots.use_avif = false;
@@ -5070,6 +5123,7 @@ auto DeclKeybind =
   LoadKeybind (&config.screenshots.sk_osd_insertion_keybind);
   LoadKeybind (&config.screenshots.no_3rd_party_keybind);
   LoadKeybind (&config.screenshots.clipboard_only_keybind);
+  LoadKeybind (&config.screenshots.snipping_keybind);
 
   LoadKeybind (&config.monitors.monitor_primary_keybind);
   LoadKeybind (&config.monitors.monitor_next_keybind);
@@ -5654,6 +5708,7 @@ SK_SaveConfig ( std::wstring name,
   monitoring.pagefile.interval->store         (config.pagefile.interval);
 
   monitoring.dlss.show->store                 (config.dlss.show);
+  monitoring.dlss.show_output_res->store      (config.dlss.show_output_res);
   monitoring.dlss.show_quality->store         (config.dlss.show_quality);
   monitoring.dlss.show_preset->store          (config.dlss.show_preset);
   monitoring.dlss.show_fg->store              (config.dlss.show_fg);
@@ -6381,6 +6436,9 @@ SK_SaveConfig ( std::wstring name,
 
   screenshots.compression_quality->store       (config.screenshots.compression_quality);
   screenshots.compatibility_mode->store        (config.screenshots.compatibility_mode);
+
+  screenshots.png.store_hdr->store             (config.screenshots.use_hdr_png);
+  screenshots.allow_hdr_clipboard->store       (config.screenshots.allow_hdr_clipboard);
 
   // AVIF Unsupported in 32-bit
   if (SK_GetBitness () != SK_Bitness::ThirtyTwoBit)

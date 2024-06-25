@@ -135,6 +135,13 @@ public:
     UINT           files =      0U ;
   };
 
+  enum SnippingState {
+    SnippingInactive,
+    SnippingRequested,
+    SnippingActive,
+    SnippingComplete
+  };
+
   SK_ScreenshotManager (void) noexcept
   {
     init ();
@@ -148,13 +155,26 @@ public:
   screenshot_repository_s& getRepoStats    (bool refresh = false);
 
   bool                     checkDiskSpace  (uint64_t bytes_needed) const;
-  bool                     copyToClipboard (const DirectX::Image& image) const;
+  bool                     copyToClipboard (const DirectX::Image& image,
+                                            const DirectX::Image* pOptionalHDR        = nullptr,
+                                            const wchar_t*        wszOptionalFilename = nullptr) const;
+
+  SnippingState            getSnipState (void) const;
+  void                     setSnipState (SnippingState state);
+  void                     setSnipRect  (const DirectX::Rect& rect);
+  DirectX::Rect            getSnipRect  (void) const;
 
 protected:
   screenshot_repository_s screenshots = { };
+  SnippingState           snip_state  = SnippingInactive;
+  DirectX::Rect           snip_rect   = { 0,0,0,0 };
 
 private:
 };
+
+float             LinearToPQY   (float N);
+DirectX::XMVECTOR Rec709toICtCp (DirectX::XMVECTOR N);
+DirectX::XMVECTOR ICtCptoRec709 (DirectX::XMVECTOR N);
 
 class SK_Screenshot
 {
@@ -264,6 +284,16 @@ bool SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *ws
 void SK_WIC_SetMaximumQuality (IPropertyBag2 *props);
 void SK_WIC_SetBasicMetadata  (IWICMetadataQueryWriter *pMQW);
 void SK_WIC_SetMetadataTitle  (IWICMetadataQueryWriter *pMQW, std::string& title);
+
+bool SK_PNG_MakeHDR (const wchar_t*        wszFilePath,
+                     const DirectX::Image& encoded_img,
+                     const DirectX::Image& raw_img);
+
+bool SK_PNG_CopyToClipboard   (const DirectX::Image& image, const void *pData, size_t data_size);
+bool SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchImage& png_img);
+bool SK_HDR_SavePNGToDisk     (const wchar_t* wszPNGPath, const DirectX::Image* png_image,
+                                                          const DirectX::Image* raw_image,
+                                  const char* szUtf8MetadataTitle = nullptr);
 
 extern volatile LONG __SK_ScreenShot_CapturingHUDless;
 

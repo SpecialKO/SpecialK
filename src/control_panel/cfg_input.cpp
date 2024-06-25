@@ -653,7 +653,7 @@ SK::ControlPanel::Input::Draw (void)
 
       bool bIdleHideChange =
       ImGui::Checkbox ( "Hide When Not Moved", &config.input.cursor.manage   );
-      
+
       if ( bIdleHideChange )
         SK_ImGui_Cursor.force = sk_cursor_state::None;
 
@@ -722,6 +722,8 @@ SK::ControlPanel::Input::Draw (void)
             if (ImGui::Button (" Force Mouse Cursor Visible "))
             {
               SK_ImGui_Cursor.force = sk_cursor_state::Visible;
+
+              SK_SendMsgShowCursor (TRUE);
             }
           }
 
@@ -730,13 +732,8 @@ SK::ControlPanel::Input::Draw (void)
             if (ImGui::Button (" Force Mouse Cursor Hidden "))
             {
               SK_ImGui_Cursor.force = sk_cursor_state::Hidden;
-            }
 
-            if (ImGui::IsItemHovered ())
-            {
-              ImGui::SetTooltip (
-                "May not work in some games, auto-hide (0.0 seconds) may help..."
-              );
+              SK_SendMsgShowCursor (FALSE);
             }
           }
         }
@@ -1949,7 +1946,7 @@ SK::ControlPanel::Input::Draw (void)
           {
             ImGui::SameLine   ();
             ImGui::BulletText ( ICON_FA_BLUETOOTH
-              " Compatibility Mode: Features newer than DualShock 3 are unsupported."
+              " Compatibility Mode:   Features newer than DualShock 3 unsupported."
             );
 
             if (ImGui::IsItemHovered ( ))

@@ -13,7 +13,7 @@ struct tileData
   uint  maxLuminance;
   uint  avgLuminance;
   uint  blackPixelCount;
-  
+
   //// Gamut coverage counters
   //float minx, maxx, avgx;
   //float miny, maxy, avgy;
@@ -42,9 +42,9 @@ cbuffer colorSpaceTransform : register (b0)
 
   float4 pqBoostParams;
   float  colorBoost;
+  uint   overbrightColorFlags;
   bool   alignmentPadding0;
   bool   alignmentPadding1;
-  bool   alignmentPadding2;
 };
 
 #define FLT_EPSILON     1.192092896e-07 // Smallest positive number, such that 1.0 + FLT_EPSILON != 1.0
@@ -74,68 +74,77 @@ cbuffer colorSpaceTransform : register (b0)
 bool IsFinite (float x)
 {
   return
-    (asuint (x) & 0x7F800000) != 0x7F800000;
+    (asuint (x) & 0x7F8FFFFF) != 0x7F800000;
 }
 
-bool IsInf (float x)
+bool    IsNegative (float  x)    { return      x    < 0.0f;  }
+bool AnyIsNegative (float2 xy)   { return any (xy   < 0.0f); }
+bool AnyIsNegative (float3 xyz)  { return any (xyz  < 0.0f); }
+bool AnyIsNegative (float4 xyzw) { return any (xyzw < 0.0f); }
+
+bool   IsNan (float  x) { return (asuint (x) & 0x7fffffff)  > 0x7f800000; } // Scalar NaN checker
+float2 IsNan (float2 v) { return float2 ( IsNan (v.x), IsNan (v.y) );                           }
+float3 IsNan (float3 v) { return float3 ( IsNan (v.x), IsNan (v.y), IsNan (v.z) );              }
+float4 IsNan (float4 v) { return float4 ( IsNan (v.x), IsNan (v.y), IsNan (v.z), IsNan (v.w) ); }
+
+bool   IsInf (float  x) { return (asuint (x) & 0x7f8fffff) == 0x7f800000; } // Scalar Infinity checker
+float2 IsInf (float2 v) { return float2 ( IsInf (v.x), IsInf (v.y) );                           }
+float3 IsInf (float3 v) { return float3 ( IsInf (v.x), IsInf (v.y), IsInf (v.z) );              }
+float4 IsInf (float4 v) { return float4 ( IsInf (v.x), IsInf (v.y), IsInf (v.z), IsInf (v.w) ); }
+
+// Vectorized versions
+bool AnyIsInf (float  x)    { return        IsInf (x);                                 }
+bool AnyIsInf (float2 xy)   { return any ((asuint (xy)   & 0x7f8fffff) == 0x7f800000); }
+bool AnyIsInf (float3 xyz)  { return any ((asuint (xyz)  & 0x7f8fffff) == 0x7f800000); }
+bool AnyIsInf (float4 xyzw) { return any ((asuint (xyzw) & 0x7f8fffff) == 0x7f800000); }
+
+bool AnyIsNan (float  x)    { return        IsNan (x);                                 }
+bool AnyIsNan (float2 xy)   { return any ((asuint (xy)   & 0x7fffffff)  > 0x7f800000); }
+bool AnyIsNan (float3 xyz)  { return any ((asuint (xyz)  & 0x7fffffff)  > 0x7f800000); }
+bool AnyIsNan (float4 xyzw) { return any ((asuint (xyzw) & 0x7fffffff)  > 0x7f800000); }
+
+// Combined NaN and Infinity check
+bool isnormal (float  x)    { return (! (     (asuint (x)    & 0x7fffffff) >= 0x7f800000));  }
+bool isnormal (float2 xy)   { return (! (any ((asuint (xy)   & 0x7fffffff) >= 0x7f800000))); }
+bool isnormal (float3 xyz)  { return (! (any ((asuint (xyz)  & 0x7fffffff) >= 0x7f800000))); }
+bool isnormal (float4 xyzw) { return (! (any ((asuint (xyzw) & 0x7fffffff) >= 0x7f800000))); }
+
+// Remove special floating-point bit patterns, clamping is the
+//   final step before output and outputting NaN or Infinity would
+//     break color blending!
+#define SanitizeFP(c) ((! isnormal ((c))) ? (IsInf ((c)) ? sign ((c)) * float_MAX : (! IsNan ((c))) * (c)) : (c))
+
+#define FP16_MIN     asfloat (0x33C00000)
+#define FP16_EPSILON 0.000488          // Smallest positive number, such that 1.0 + FP16_EPSILON != 1.0
+
+float3 Rec709toAP0_D65 (float3 linearRec709);
+float3 AP0_D65toRec709 (float3 linearAP0);
+
+float3 Clamp_scRGB (float3 c)
+{
+  c = SanitizeFP (c);
+
+  c =
+    clamp (c, -float_MAX,
+               float_MAX);
+
+  return c;
+}
+
+float Clamp_scRGB (float c, bool strip_nan = false)
+{
+  // No colorspace clamp here, just keep it away from 0.0
+  if (strip_nan)
+    c = SanitizeFP (c);
+
+  return clamp (c + sign (c) * FP16_MIN, -float_MAX,
+                                          float_MAX);
+}
+
+float3 Clamp_scRGB_StripNaN (float3 c)
 {
   return
-    (asuint (x) & 0x7FFFFFFF) == 0x7F800000;
-}
-
-bool IsNegative (float x)
-{
-  return
-    x < 0.0f;
-}
-
-bool AnyIsNegative (float2 x)
-{
-  return IsNegative (x.x) ||
-         IsNegative (x.y);
-}
-
-bool AnyIsNegative (float3 x)
-{
-  return IsNegative (x.x) ||
-         IsNegative (x.y) ||
-         IsNegative (x.z);
-}
-
-bool AnyIsNegative (float4 x)
-{
-  return IsNegative (x.x) ||
-         IsNegative (x.y) ||
-         IsNegative (x.z) ||
-         IsNegative (x.w);
-}
-
-// NaN checker
-bool IsNan (float x)
-{
-  return
-    (asuint (x) & 0x7fffffff) > 0x7f800000;
-}
-
-bool AnyIsNan (float2 x)
-{
-  return IsNan (x.x) ||
-         IsNan (x.y);
-}
-
-bool AnyIsNan (float3 x)
-{
-  return IsNan (x.x) ||
-         IsNan (x.y) ||
-         IsNan (x.z);
-}
-
-bool AnyIsNan (float4 x)
-{
-  return IsNan (x.x) ||
-         IsNan (x.y) ||
-         IsNan (x.z) ||
-         IsNan (x.w);
+    Clamp_scRGB (SanitizeFP (c));
 }
 
 // Clamp HDR value within a safe range
@@ -175,44 +184,6 @@ float4 FastSign (float4 x)
 {
   return
     saturate (x * FLT_MAX + 0.5) * 2.0 - 1.0;
-}
-
-#define FP16_MIN     0.000000059604645 // Minimum subnormal positive fp16 value
-#define FP16_EPSILON 0.000488          // Smallest positive number, such that 1.0 + FP16_EPSILON != 1.0
-
-float3 REC2020toREC709 (float3 c);
-float3 REC709toREC2020 (float3 c);
-
-float3 Clamp_scRGB (float3 c)
-{
-  // Clamp to Rec 2020
-  return
-    REC2020toREC709 (
-      max (REC709toREC2020 (c), 0.0f)
-    );
-}
-
-float3 Clamp_scRGB_StripNaN (float3 c)
-{
-  // Remove special floating-point bit patterns, clamping is the
-  //   final step before output and outputting NaN or Infinity would
-  //     break color blending!
-  c =
-    float3 ( (! IsNan (c.r)) * (! IsInf (c.r)) * c.r,
-             (! IsNan (c.g)) * (! IsInf (c.g)) * c.g,
-             (! IsNan (c.b)) * (! IsInf (c.b)) * c.b );
-
-  return Clamp_scRGB (c);
-}
-
-float Clamp_scRGB (float c, bool strip_nan = false)
-{
-  // No colorspace clamp here, just keep it away from 0.0
-  if (strip_nan)
-    c = (! IsNan (c)) * (! IsInf (c)) * c;
-
-  return clamp (c + sign (c) * FP16_MIN, -125.0f,
-                                          125.0f);
 }
 
 // Using pow often result to a warning like this
@@ -383,26 +354,26 @@ SK_Color_xyY_from_RGB ( const SK_ColorSpace cs, float3 RGB )
                    - ( XYZ.y / ( XYZ.x + XYZ.y + XYZ.z ) ) );
 }
 
-float3 RGB_to_XYZ (float3 RGB)
+float3 Rec709_to_XYZ (float3 linearRec709)
 {
   static const float3x3 ConvMat =
   {
-    0.6369580483012914, 0.14461690358620832,  0.1688809751641721,
-    0.2627002120112671, 0.6779980715188708,   0.05930171646986196,
-    0.000000000000000,  0.028072693049087428, 1.060985057710791
+    0.4123907983303070068359375000f, 0.357584327459335327148437500f, 0.180480793118476867675781250f,
+    0.2126390039920806884765625000f, 0.715168654918670654296875000f, 0.072192318737506866455078125f,
+    0.0193308182060718536376953125f, 0.119194783270359039306640625f, 0.950532138347625732421875000f
   };
 
   return
-    mul (ConvMat, RGB);
+    mul (ConvMat, linearRec709);
 }
 
-float3 XYZ_to_RGB (float3 XYZ)
+float3 XYZ_to_Rec709 (float3 XYZ)
 {
   static const float3x3 ConvMat =
   {
-     1.716651187971268, -0.355670783776392, -0.253366281373660,
-    -0.666684351832489,  1.616481236634939,  0.0157685458139111,
-     0.017639857445311, -0.042770613257809,  0.942103121235474
+     3.240969896316528320312500000f, -1.5373831987380981445312500f, -0.4986107647418975830078125000f,
+    -0.969243645668029785156250000f,  1.8759675025939941406250000f,  0.0415550582110881805419921875f,
+     0.055630080401897430419921875f, -0.2039769589900970458984375f,  1.0569715499877929687500000000f
   };
 
   return
@@ -473,18 +444,18 @@ float3 RGB_to_ICtCp (float3 color)
 {
   color /= 125.0f;
 
-  color = RGB_to_XYZ   (color);
-  color = XYZ_to_LMS   (color);
-  color = LMS_to_ICtCp (color);
+  color = Rec709_to_XYZ (color);
+  color = XYZ_to_LMS    (color);
+  color = LMS_to_ICtCp  (color);
 
   return color;
 }
 
 float3 ICtCp_to_RGB (float3 color)
 {
-  color = ICtCp_to_LMS (color);
-  color = LMS_to_XYZ   (color);
-  color = XYZ_to_RGB   (color);
+  color = ICtCp_to_LMS  (color);
+  color = LMS_to_XYZ    (color);
+  color = XYZ_to_Rec709 (color);
 
   color *= 125.0f;
 
@@ -507,42 +478,27 @@ transformRGBtoLogY (float3 rgb)
 }
 
 
-
-
 float3
 RemoveSRGBCurve (float3 x)
 {
-  return     AnyIsNegative (x) ?
-                     ( abs (x) < 0.04045f ) ?
+  return             ( abs (x) < 0.04045f ) ?
     sign (x) *       ( abs (x) / 12.92f   ) :
-    sign (x) * pow ( ( abs (x) + 0.055f   ) / 1.055f, 2.4f )
-                               :
-                          ((x) < 0.04045f ) ?
-                          ((x) / 12.92f   ) :
-               pow (      ((x) + 0.055f   ) / 1.055f, 2.4f );
+    sign (x) * pow ( ( abs (x) + 0.055f   ) / 1.055f, 2.4f );
 }
 
 float
 RemoveSRGBAlpha (float a)
 {
-  return        IsNegative (a) ?
-                     ( abs (a) < 0.04045f ) ?
+  return             ( abs (a) < 0.04045f ) ?
     sign (a) *       ( abs (a) / 12.92f   ) :
-    sign (a) * pow ( ( abs (a) + 0.055f   ) / 1.055f, 2.4f )
-                               :
-                          ((a) < 0.04045f ) ?
-                          ((a) / 12.92f   ) :
-               pow (      ((a) + 0.055f   ) / 1.055f, 2.4f );
+    sign (a) * pow ( ( abs (a) + 0.055f   ) / 1.055f, 2.4f );
 }
 
 float3
 RemoveGammaExp (float3 x, float exp)
 {
-  return
-    AnyIsNegative (x) ?
-             sign (x) *
-         pow (abs (x), exp)
-       : pow (    (x), exp);
+  return     sign (x) *
+         pow (abs (x) + FP16_MIN, exp);
 }
 
 // Alpha blending works best in linear-space, so -removing- gamma,
@@ -550,45 +506,31 @@ RemoveGammaExp (float3 x, float exp)
 float
 RemoveAlphaGammaExp (float a, float exp)
 {
-  return
-    IsNegative (a) ?
-          sign (a) *
-      pow (abs (a), exp)
-    : pow (    (a), exp);
+  return  sign (a) *
+      pow (abs (a), exp);
 }
 
 float3
 ApplySRGBCurve (float3 x)
 {
-  return
-    AnyIsNegative (x) ? ( abs (x) < 0.0031308f ?
-                         sign (x) * ( 12.92f *       abs (x) ) :
-                         sign (x) *   1.055f * pow ( abs (x), 1.0 / 2.4f ) - 0.55f )
-                      : (      x  < 0.0031308f ?
-                                    ( 12.92f *            x )  :
-                                      1.055f * pow (      x,  1.0 / 2.4f ) - 0.55f );
+  return ( abs (x) < 0.0031308f ?
+          sign (x) * ( 12.92f *       abs (x) ) :
+          sign (x) *   1.055f * pow ( abs (x), 1.0 / 2.4f ) - 0.55f );
 }
 
 float
 ApplySRGBAlpha (float a)
 {
-  return
-    IsNegative (a) ? ( abs (a) < 0.0031308f ?
-                      sign (a) * ( 12.92f *       abs (a) ) :
-                      sign (a) *   1.055f * pow ( abs (a), 1.0 / 2.4f ) - 0.55f )
-                   : (      a  < 0.0031308f ?
-                                 ( 12.92f *            a )  :
-                                   1.055f * pow (      a,  1.0 / 2.4f ) - 0.55f );
+  return ( abs (a) < 0.0031308f ?
+          sign (a) * ( 12.92f *       abs (a) ) :
+          sign (a) *   1.055f * pow ( abs (a), 1.0 / 2.4f ) - 0.55f );
 }
 
 float3
 ApplyGammaExp (float3 x, float exp)
 {
-  return
-    AnyIsNegative (x) ?
-             sign (x) *
-         pow (abs (x), 1.0f / exp)
-       : pow (    (x), exp);
+  return     sign (x) *
+         pow (abs (x), 1.0f / exp);
 }
 
 // Alpha blending works best in linear-space, so -removing- gamma,
@@ -596,11 +538,8 @@ ApplyGammaExp (float3 x, float exp)
 float
 ApplyAlphaGammaExp (float a, float exp)
 {
-  return
-    IsNegative (a) ?
-          sign (a) *
-      pow (abs (a), 1.0f / exp)
-    : pow (    (a),        exp);
+  return  sign (a) *
+      pow (abs (a), 1.0f / exp);
 }
 
 //
@@ -616,6 +555,12 @@ float Luminance (float4 linearRgba)
 {
   return
     Luminance (linearRgba.rgb);
+}
+
+float LuminanceRec2020 (float3 linearRgb)
+{
+  return
+    max (0.0f, dot (linearRgb, float3 (0.2627, 0.678, 0.0593)));
 }
 
 //
@@ -727,16 +672,28 @@ ApplyREC709Curve (float3 x)
 }
 
 float3
-REC709toREC2020 (float3 RGB709)
+REC709toREC2020 (float3 linearRec709)
 {
   static const float3x3 ConvMat =
   {
-    0.627225305694944,  0.329476882715808,  0.0432978115892484,
-    0.0690418812810714, 0.919605681354755,  0.0113524373641739,
-    0.0163911702607078, 0.0880887513437058, 0.895520078395586
+    0.627403914928436279296875f,      0.3292830288410186767578125f,  0.0433130674064159393310546875f,
+    0.069097287952899932861328125f,   0.9195404052734375f,           0.011362315155565738677978515625f,
+    0.01639143936336040496826171875f, 0.08801330626010894775390625f, 0.895595252513885498046875f
   };
 
-  return mul (ConvMat, RGB709);
+  return mul (ConvMat, linearRec709);
+}
+
+float3 REC2020toREC709 (float3 linearRec2020)
+{
+  static const float3x3 ConvMat =
+  {
+     1.66049098968505859375f,          -0.58764111995697021484375f,     -0.072849862277507781982421875f,
+    -0.12455047667026519775390625f,     1.13289988040924072265625f,     -0.0083494223654270172119140625f,
+    -0.01815076358616352081298828125f, -0.100578896701335906982421875f,  1.11872971057891845703125f
+  };
+  
+  return mul (ConvMat, linearRec2020);
 }
 
 #ifndef INTRINSIC_MINMAX3
@@ -887,32 +844,62 @@ float3 LogCToLinear (float3 x)
 //
 struct ParamsPQ
 {
-  float N, M;
+  float N, rcpN;
+  float M, rcpM;
   float C1, C2, C3;
 };
 
 static const ParamsPQ PQ =
 {
-  2610.0 / 4096.0 / 4.0,   // N
-  2523.0 / 4096.0 * 128.0, // M
-  3424.0 / 4096.0,         // C1
-  2413.0 / 4096.0 * 32.0,  // C2
-  2392.0 / 4096.0 * 32.0,  // C3
+       2610.0 / 4096.0 / 4.0,    // N
+  rcp (2610.0 / 4096.0 / 4.0),   // rcp (N)
+       2523.0 / 4096.0 * 128.0,  // M
+  rcp (2523.0 / 4096.0 * 128.0), // rcp (M)
+       3424.0 / 4096.0,          // C1
+       2413.0 / 4096.0 * 32.0,   // C2
+       2392.0 / 4096.0 * 32.0,   // C3
 };
+
+float4 LinearToPQ (float4 x, float maxPQValue)
+{
+  x =
+    PositivePow ( x / maxPQValue,
+                         PQ.N );
+ 
+  float4 nd =
+    (PQ.C1 + PQ.C2 * x) /
+      (1.0 + PQ.C3 * x);
+
+  return
+    PositivePow (nd, PQ.M);
+}
 
 float3 LinearToPQ (float3 x, float maxPQValue)
 {
   x =
     PositivePow ( x / maxPQValue,
                          PQ.N );
-  
+ 
   float3 nd =
     (PQ.C1 + PQ.C2 * x) /
       (1.0 + PQ.C3 * x);
 
   return
     PositivePow (nd, PQ.M);
-    //Clamp_scRGB (PositivePow (nd, PQ.M));
+}
+
+float LinearToPQ (float x, float maxPQValue)
+{
+  x =
+    PositivePow ( x / maxPQValue,
+                         PQ.N );
+ 
+  float nd =
+    (PQ.C1 + PQ.C2 * x) /
+      (1.0 + PQ.C3 * x);
+
+  return
+    PositivePow (nd, PQ.M);
 }
 
 float3 LinearToPQ (float3 x)
@@ -921,18 +908,43 @@ float3 LinearToPQ (float3 x)
     LinearToPQ (x, DEFAULT_MAX_PQ);
 }
 
+float PQToLinear (float x, float maxPQValue)
+{
+  x =
+    PositivePow (x, PQ.rcpM);
+
+  float nd =
+    max (x - PQ.C1, 0.0) /
+            (PQ.C2 - (PQ.C3 * x));
+
+  return
+    PositivePow (nd, PQ.rcpN) * maxPQValue;
+}
+
 float3 PQToLinear (float3 x, float maxPQValue)
 {
   x =
-    PositivePow (x, rcp (PQ.M));
+    PositivePow (x, PQ.rcpM);
 
   float3 nd =
     max (x - PQ.C1, 0.0) /
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    //Clamp_scRGB (PositivePow (nd, rcp (PQ.N)) * maxPQValue);
-    PositivePow (nd, rcp (PQ.N)) * maxPQValue;
+    PositivePow (nd, PQ.rcpN) * maxPQValue;
+}
+
+float4 PQToLinear (float4 x, float maxPQValue)
+{
+  x =
+    PositivePow (x, PQ.rcpM);
+
+  float4 nd =
+    max (x - PQ.C1, 0.0) /
+            (PQ.C2 - (PQ.C3 * x));
+
+  return
+    PositivePow (nd, PQ.rcpN) * maxPQValue;
 }
 
 float3 PQToLinear (float3 x)
@@ -965,14 +977,14 @@ float LinearToPQY (float x)
 float PQToLinearY (float x, float maxPQValue)
 {
   x =
-    PositivePow (x, rcp (PQ.M));
+    PositivePow (x, PQ.rcpM);
 
   float nd =
     max (x - PQ.C1, 0.0) /
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    Clamp_scRGB (PositivePow (nd, rcp (PQ.N)) * maxPQValue);
+    Clamp_scRGB (PositivePow (nd, PQ.rcpN) * maxPQValue);
 }
 
 float PQToLinearY (float x)
@@ -1389,6 +1401,8 @@ float3 sRGB_to_DCIP3 (float3 x)
         mul ( sRGB_2_AP1, x)
           )
         );
+
+  return x;
 }
 
 // sRGB to ACES
@@ -1993,15 +2007,59 @@ float4 colormap (float x)
 }
 
 
-float3 REC2020toREC709 (float3 RGB2020)
+float3 Rec709toAP0_D65 (float3 linearRec709)
 {
   static const float3x3 ConvMat =
   {
-     1.66096379471340,   -0.588112737547978, -0.0728510571654192,
-    -0.124477196529907,   1.13281946828499,  -0.00834227175508652,
-    -0.0181571579858552, -0.100666415661988,  1.11882357364784
+    0.433931618928909301757812500f, 0.376252382993698120117187500f, 0.18981596827507019042968750f,
+    0.088618390262126922607421875f, 0.809275329113006591796875000f, 0.10210628807544708251953125f,
+    0.017750039696693420410156250f, 0.109447620809078216552734375f, 0.87280231714248657226562500f
   };
-  return mul (ConvMat, RGB2020);
+
+  return mul (ConvMat, linearRec709);
+}
+
+float3 AP0_D65toRec709 (float3 linearAP0)
+{
+  static const float3x3 ConvMat =
+  {
+     2.55248308181762695312500000000f, -1.12950992584228515625000000f, -0.4229732155799865722656250f,
+    -0.27734413743019104003906250000f,  1.37826657295227050781250000f, -0.1009224355220794677734375f,
+    -0.01713105104863643646240234375f, -0.14986114203929901123046875f,  1.1669921875000000000000000f
+  };
+
+  return mul (ConvMat, linearAP0);
+}
+
+float3 Rec709toAP1_D65 (float3 linearRec709)
+{
+  static const float3x3 ConvMat =
+  {
+    0.61702883243560791015625000000f, 0.333867609500885009765625000f, 0.049103543162345886230468750000f,
+    0.06992232054471969604492187500f, 0.917349696159362792968750000f, 0.012727967463433742523193359375f,
+    0.02054978720843791961669921875f, 0.107552029192447662353515625f, 0.871898174285888671875000000000f
+  };
+
+  return mul (ConvMat, linearRec709);
+}
+
+float3 AP1_D65toRec709 (float3 linearAP1)
+{
+  static const float3x3 AP1_D65toXYZ =
+  {
+     0.64750719070434570312500000000f, 0.134379133582115173339843750000f, 0.168569594621658325195312500f,
+     0.26608639955520629882812500000f, 0.675967812538146972656250000000f, 0.057945795357227325439453125f,
+    -0.00544886849820613861083984375f, 0.004072095267474651336669921875f, 1.090434551239013671875000000f
+  };
+
+  static const float3x3 XYZtoRec709 =
+  {
+     3.240969896316528320312500000f, -1.5373831987380981445312500f, -0.4986107647418975830078125000f,
+    -0.969243645668029785156250000f,  1.8759675025939941406250000f,  0.0415550582110881805419921875f,
+     0.055630080401897430419921875f, -0.2039769589900970458984375f,  1.0569715499877929687500000000f
+  };
+
+  return mul (XYZtoRec709, mul (AP1_D65toXYZ, linearAP1));
 }
 
 float3 RemoveREC2084Curve (float3 N)
@@ -2093,6 +2151,9 @@ XYZtosRGB (float3 color)
 float3
 expandGamut (float3 vHDRColor, float fExpandGamut = 1.0f)
 {
+  if (fExpandGamut <= 0.0f)
+    return vHDRColor;
+
   //AP1 with D65 white point instead of the custom white point from ACES which is around 6000K
   const float3x3 sRGB_2_AP1_D65_MAT =
   {
@@ -2125,7 +2186,7 @@ expandGamut (float3 vHDRColor, float fExpandGamut = 1.0f)
     0.00192582885428273, 0.0303727970124423, 0.96770137413327500
   };
   const float3x3
-         ExpandMat = mul (Wide_2_AP1_D65_MAT, AP1_D65_2_sRGB_MAT);   
+         ExpandMat = mul (Wide_2_AP1_D65_MAT, AP1_D65_2_sRGB_MAT);
   float3 ColorAP1  = mul (sRGB_2_AP1_D65_MAT, vHDRColor);
 
   float  LumaAP1   = dot (ColorAP1, AP1_RGB2Y);
@@ -2144,4 +2205,42 @@ expandGamut (float3 vHDRColor, float fExpandGamut = 1.0f)
     mul (AP1_2_sRGB, ColorAP1);
   
   return vHDRColor;
+}
+
+float3 Rec709toICtCp (float3 c)
+{
+  c = Rec709_to_XYZ (c);
+  c = XYZ_to_LMS    (c);
+  
+  c =
+    LinearToPQ (c, 125.0f);
+
+  static const float3x3 ConvMat =
+  {
+    0.5000,  0.5000,  0.0000,
+    1.6137, -3.3234,  1.7097,
+    4.3780, -4.2455, -0.1325
+  };
+
+  return
+    mul (ConvMat, c);
+}
+
+float3 ICtCptoRec709 (float3 c)
+{
+  static const float3x3 ConvMat =
+  {
+    1.0,  0.00860514569398152,  0.11103560447547328,
+    1.0, -0.00860514569398152, -0.11103560447547328,
+    1.0,  0.56004885956263900, -0.32063747023212210
+  };
+  
+  c =
+    mul (ConvMat, c);
+  
+  c = PQToLinear (c, 125.0f);
+  c = LMS_to_XYZ (c);
+  
+  return
+    XYZ_to_Rec709 (c);
 }

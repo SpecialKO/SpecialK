@@ -2647,7 +2647,7 @@ SK_EDID_GetMonitorNameFromBlock ( uint8_t const* block )
 }
 
 std::string
-SK_RenderBackend_V2::parseEDIDForName (uint8_t *edid, size_t length) const
+SK_RenderBackend_V2::decodeEDIDForName (uint8_t *edid, size_t length) const
 {
   if (edid == nullptr)
     return "";
@@ -2751,7 +2751,7 @@ SK_RenderBackend_V2::parseEDIDForName (uint8_t *edid, size_t length) const
 }
 
 POINT
-SK_RenderBackend_V2::parseEDIDForNativeRes (uint8_t* edid, size_t length) const
+SK_RenderBackend_V2::decodeEDIDForNativeRes (uint8_t* edid, size_t length) const
 {
   if (edid == nullptr)
     return { 0, 0 };
@@ -2917,10 +2917,10 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
            )
         {
           edid_name =
-            rb.parseEDIDForName ( edid.EDID_Data, edid.sizeofEDID );
+            rb.decodeEDIDForName ( edid.EDID_Data, edid.sizeofEDID );
 
           auto nativeRes =
-            rb.parseEDIDForNativeRes ( edid.EDID_Data, edid.sizeofEDID );
+            rb.decodeEDIDForNativeRes ( edid.EDID_Data, edid.sizeofEDID );
 
           if (                      nativeRes.x != 0 &&
                                     nativeRes.y != 0 )
@@ -2996,10 +2996,10 @@ SK_RBkEnd_UpdateMonitorName ( SK_RenderBackend_V2::output_s& display,
             if (ERROR_SUCCESS == lStat)
             {
               edid_name =
-                rb.parseEDIDForName ( EDID_Data, edid_size );
+                rb.decodeEDIDForName ( EDID_Data, edid_size );
 
               auto nativeRes =
-                rb.parseEDIDForNativeRes ( EDID_Data, edid_size );
+                rb.decodeEDIDForNativeRes ( EDID_Data, edid_size );
 
               if (                      nativeRes.x != 0 &&
                                         nativeRes.y != 0 )
@@ -4094,7 +4094,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
                  )
               {
                 edid_name =
-                  parseEDIDForName ( edid.EDID_Data, edid.sizeofEDID );
+                  decodeEDIDForName ( edid.EDID_Data, edid.sizeofEDID );
               }
 
               if (! edid_name.empty ())

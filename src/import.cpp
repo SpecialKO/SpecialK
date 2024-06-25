@@ -27,6 +27,7 @@ const wchar_t* SK_IMPORT_LATE          = L"Late";
 const wchar_t* SK_IMPORT_LAZY          = L"Lazy";
 const wchar_t* SK_IMPORT_PROXY         = L"Proxy";
 
+const wchar_t* SK_IMPORT_ROLE_ANY      = L"Any";
 const wchar_t* SK_IMPORT_ROLE_DXGI     = L"dxgi";
 const wchar_t* SK_IMPORT_ROLE_D3D11    = L"d3d11";
 const wchar_t* SK_IMPORT_ROLE_D3D9     = L"d3d9";
@@ -34,8 +35,10 @@ const wchar_t* SK_IMPORT_ROLE_OPENGL   = L"OpenGL32";
 const wchar_t* SK_IMPORT_ROLE_PLUGIN   = L"PlugIn";
 const wchar_t* SK_IMPORT_ROLE_3RDPARTY = L"ThirdParty";
 
+const wchar_t* SK_IMPORT_ARCH_ARM64    = L"ARM64"; // Unsupported
 const wchar_t* SK_IMPORT_ARCH_X64      = L"x64";
 const wchar_t* SK_IMPORT_ARCH_WIN32    = L"Win32";
+const wchar_t* SK_IMPORT_ARCH_ANY      = L"Any";
 
 SK_LazyGlobal <SK_Import_Datastore> imports;
 
@@ -49,6 +52,34 @@ using SKPlugIn_Shutdown_pfn = BOOL (WINAPI *)(LPVOID  user);
 #include <dbghelp.h>
 
 #include <diagnostics/debug_utils.h>
+
+bool
+_IsRoleSame ( const std::wstring& role,
+              const std::wstring& test )
+{
+  if (! _wcsicmp (role.c_str (), SK_IMPORT_ROLE_ANY))
+    return true;
+
+  if (! _wcsicmp (test.c_str (), SK_IMPORT_ROLE_ANY))
+    return true;
+
+  return
+    (! _wcsicmp (role.c_str (), test.c_str ()));
+}
+
+bool
+_IsArchSame ( const std::wstring& arch,
+              const std::wstring& test )
+{
+  if (! _wcsicmp (arch.c_str (), SK_IMPORT_ARCH_ANY))
+    return true;
+
+  if (! _wcsicmp (test.c_str (), SK_IMPORT_ARCH_ANY))
+    return true;
+
+  return
+    (! _wcsicmp (arch.c_str (), test.c_str ()));
+}
 
 int
 SK_Import_GetNumberOfPlugIns (void)
@@ -67,9 +98,9 @@ SK_Import_GetNumberOfPlugIns (void)
     if (import.name.empty ())
       continue;
 
-    if (import.architecture->get_value ()._Equal (target_arch))
+    if (_IsArchSame (import.architecture->get_value_ref (), target_arch))
     {
-      if (import.when->get_value ()._Equal (SK_IMPORT_PLUGIN))
+      if (import.when->is_equal (SK_IMPORT_PLUGIN))
       {
         ++num;
       }
@@ -410,8 +441,8 @@ SK_LoadEarlyImports64 (void)
       {
         if (import.architecture != nullptr)
         {
-          if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_X64) &&
-              import.when->get_value         ()._Equal (SK_IMPORT_EARLY))
+          if (_IsArchSame (import.architecture->get_value_ref (), SK_IMPORT_ARCH_X64) &&
+                           import.when->is_equal                 (SK_IMPORT_EARLY))
           {
             CHeapPtr <wchar_t> file (
               _wcsdup (import.filename->get_value_str ().c_str ())
@@ -439,7 +470,7 @@ SK_LoadEarlyImports64 (void)
                 dll_log->LogEx (false, L"success!\n");
                 ++success;
 
-                if (import.role->get_value ()._Equal (SK_IMPORT_ROLE_PLUGIN)) {
+                if (import.role->is_equal (SK_IMPORT_ROLE_PLUGIN)) {
                   import.hLibrary = SK_InitPlugIn64 (import.hLibrary);
 
                   if (import.hLibrary == nullptr)
@@ -494,8 +525,8 @@ SK_LoadPlugIns64 (void)
       {
         if (import.architecture != nullptr)
         {
-          if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_X64) &&
-              import.when->get_value         ()._Equal (SK_IMPORT_PLUGIN))
+          if (_IsArchSame (import.architecture->get_value_ref (), SK_IMPORT_ARCH_X64) &&
+                           import.when->is_equal                 (SK_IMPORT_PLUGIN))
           {
             CHeapPtr <wchar_t> file (
               _wcsdup (import.filename->get_value_str ().c_str ())
@@ -523,7 +554,7 @@ SK_LoadPlugIns64 (void)
                     SK_GetModuleFullName ( import.hLibrary ).c_str ()
                   );
 
-                if (import.role->get_value ()._Equal (SK_IMPORT_ROLE_PLUGIN))
+                if (import.role->is_equal (SK_IMPORT_ROLE_PLUGIN))
                 {
                   import.hLibrary = SK_InitPlugIn64 (import.hLibrary);
 
@@ -579,8 +610,8 @@ SK_LoadLateImports64 (void)
       {
         if (import.architecture != nullptr)
         {
-          if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_X64) &&
-              import.when->get_value         ()._Equal (SK_IMPORT_LATE))
+          if (_IsArchSame (import.architecture->get_value_ref (), SK_IMPORT_ARCH_X64) &&
+                           import.when->is_equal                 (SK_IMPORT_LATE))
           {
             CHeapPtr <wchar_t> file (
               _wcsdup (import.filename->get_value_str ().c_str ())
@@ -656,8 +687,8 @@ SK_LoadLazyImports64 (void)
       {
         if (import.architecture != nullptr)
         {
-          if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_X64) &&
-              import.when->get_value         ()._Equal (SK_IMPORT_LAZY))
+          if (_IsArchSame (import.architecture->get_value_ref (), SK_IMPORT_ARCH_X64) &&
+                           import.when->is_equal                 (SK_IMPORT_LAZY))
           {
             CHeapPtr <wchar_t> file (
               _wcsdup (import.filename->get_value_str ().c_str ())
@@ -776,8 +807,8 @@ SK_LoadEarlyImports32 (void)
       {
         if (import.architecture != nullptr)
         {
-          if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_WIN32) &&
-              import.when->get_value         ()._Equal (SK_IMPORT_EARLY))
+          if (_IsArchSame (import.architecture->get_value_ref (), SK_IMPORT_ARCH_WIN32) &&
+                           import.when->is_equal                 (SK_IMPORT_EARLY))
           {
             CHeapPtr <wchar_t> file (
               _wcsdup (import.filename->get_value_str ().c_str ())
@@ -805,7 +836,7 @@ SK_LoadEarlyImports32 (void)
                     SK_GetModuleFullName ( import.hLibrary ).c_str ()
                   );
 
-                if (import.role->get_value ()._Equal (SK_IMPORT_ROLE_PLUGIN))
+                if (import.role->is_equal (SK_IMPORT_ROLE_PLUGIN))
                 {
                   import.hLibrary = SK_InitPlugIn32 (import.hLibrary);
 
@@ -861,8 +892,8 @@ SK_LoadPlugIns32 (void)
       {
         if (import.architecture != nullptr)
         {
-          if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_WIN32) &&
-              import.when->get_value         ()._Equal (SK_IMPORT_PLUGIN))
+          if (_IsArchSame (import.architecture->get_value_ref (), SK_IMPORT_ARCH_WIN32) &&
+                           import.when->is_equal                 (SK_IMPORT_PLUGIN))
           {
             CHeapPtr <wchar_t> file (
               _wcsdup (import.filename->get_value_str ().c_str ())
@@ -890,7 +921,7 @@ SK_LoadPlugIns32 (void)
                     SK_GetModuleFullName ( import.hLibrary ).c_str ()
                   );
 
-                if (import.role->get_value ()._Equal (SK_IMPORT_ROLE_PLUGIN))
+                if (import.role->is_equal (SK_IMPORT_ROLE_PLUGIN))
                 {
                   import.hLibrary = SK_InitPlugIn32 (import.hLibrary);
 
@@ -946,8 +977,8 @@ SK_LoadLateImports32 (void)
       {
         if (import.architecture != nullptr)
         {
-          if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_WIN32) &&
-              import.when->get_value         ()._Equal (SK_IMPORT_LATE))
+          if (_IsArchSame (import.architecture->get_value_ref (), SK_IMPORT_ARCH_WIN32) &&
+                           import.when->is_equal                 (SK_IMPORT_LATE))
           {
             CHeapPtr <wchar_t> file (
               _wcsdup (import.filename->get_value_str ().c_str ())
@@ -1023,8 +1054,8 @@ SK_LoadLazyImports32 (void)
       {
         if (import.architecture != nullptr)
         {
-          if (import.architecture->get_value ()._Equal (SK_IMPORT_ARCH_WIN32) &&
-              import.when->get_value         ()._Equal (SK_IMPORT_LAZY))
+          if (_IsArchSame (import.architecture->get_value_ref (), SK_IMPORT_ARCH_WIN32) &&
+                           import.when->is_equal                 (SK_IMPORT_LAZY))
           {
             CHeapPtr <wchar_t> file (
               _wcsdup (import.filename->get_value_str ().c_str ())
@@ -1085,14 +1116,6 @@ SK_LogLastErr (void)
                        err.WCode (),
                          err.ErrorMessage ()
                  );
-}
-
-bool
-_IsRoleSame ( const std::wstring& role,
-              const std::wstring& test )
-{
-  return
-    role._Equal (test);
 }
 
 void

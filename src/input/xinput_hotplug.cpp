@@ -192,11 +192,6 @@ SK_XInput_NotifyDeviceArrival (void)
                     if (IsEqualGUID (pDev->dbcc_classguid, GUID_DEVINTERFACE_HID) ||
                         IsEqualGUID (pDev->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS))
                     {
-                      SK_LOG0 ( ( L" Device %s:\t%s",  arrival ? L"Arrival"
-                                                               : L"Removal",
-                                                       pDev->dbcc_name ),
-                                  __SK_SUBSYSTEM__ );
-
                       bool playstation = false;
                       bool xinput      = IsEqualGUID (pDev->dbcc_classguid, GUID_XUSB_INTERFACE_CLASS);
 
@@ -214,11 +209,18 @@ SK_XInput_NotifyDeviceArrival (void)
                       HIDD_ATTRIBUTES hidAttribs      = {                      };
                                       hidAttribs.Size = sizeof (HIDD_ATTRIBUTES);
 
+                      wchar_t wszDeviceName [128] = L"Unknown";
+
                       if (hDeviceFile.isValid ())
                       {
-                        SK_HidD_GetAttributes (hDeviceFile.m_h, &hidAttribs);
+                        // If user disabled HID, this will be nullptr
+                        if (SK_HidD_GetProductString != nullptr)
+                        {
+                          SK_HidD_GetProductString (hDeviceFile.m_h, wszDeviceName, 254);
+                          SK_HidD_GetAttributes    (hDeviceFile.m_h, &hidAttribs);
 
-                        playstation |= ( hidAttribs.VendorID == SK_HID_VID_SONY );
+                          playstation |= ( hidAttribs.VendorID == SK_HID_VID_SONY );
+                        }
                       }
 
                       else
@@ -226,6 +228,12 @@ SK_XInput_NotifyDeviceArrival (void)
                         // On device removal, all we can do is go by the filename...
                         playstation |= wcsstr (wszFileName, L"054c") != nullptr;
                       }
+
+                      SK_LOG0 ( ( L" Device %s:\t%32ws (%s)", arrival ? L"Arrival"
+                                                                      : L"Removal",
+                                                            wszDeviceName,
+                                                            pDev->dbcc_name ),
+                                  __SK_SUBSYSTEM__ );
 
                       xinput |= wcsstr (wszFileName, L"IG_") != nullptr;
 
@@ -270,9 +278,10 @@ SK_XInput_NotifyDeviceArrival (void)
 
                               controller.hDeviceFile = hDeviceFile.Detach ();
 
-                              if (controller.hDeviceFile != INVALID_HANDLE_VALUE)
-                              {
-                                if (SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
+                                                                          // If user disabled HID, this will be nullptr
+                              if (controller.hDeviceFile != INVALID_HANDLE_VALUE &&
+                                    SK_HidD_GetPreparsedData != nullptr)
+                              { if (SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
                                 {
                                   controller.bConnected = true;
                                   controller.bBluetooth =  //Bluetooth_Base_UUID
@@ -358,7 +367,8 @@ SK_XInput_NotifyDeviceArrival (void)
                               controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
                               controller.setPollingFrequency (0);
 
-                              if (SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
+                              if (SK_HidD_GetPreparsedData != nullptr &&
+                                  SK_HidD_GetPreparsedData (controller.hDeviceFile, &controller.pPreparsedData))
                               {
                                 HIDP_CAPS                                      caps = { };
                                   SK_HidP_GetCaps (controller.pPreparsedData, &caps);
@@ -505,7 +515,8 @@ SK_XInput_NotifyDeviceArrival (void)
                               if (                (intptr_t)controller.hDeviceFile > 0)
                                 CloseHandle (std::exchange (controller.hDeviceFile,  nullptr));
 
-                              if (controller.pPreparsedData != nullptr)
+                              if (controller.pPreparsedData != nullptr &&
+                                  SK_HidD_FreePreparsedData != nullptr)
                                   SK_HidD_FreePreparsedData (
                                     std::exchange (controller.pPreparsedData, nullptr)
                                   );
