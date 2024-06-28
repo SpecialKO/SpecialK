@@ -2942,6 +2942,23 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     int interval =
       config.render.framerate.present_interval;
 
+    if (config.render.framerate.target_fps > 0.0f)
+    {
+      if ( config.render.framerate.present_interval > 0 &&
+           config.render.framerate.adaptive_vsync       &&
+           config.render.framerate.turn_vsync_off       )
+      {
+        interval = 0;
+      }
+
+      else if ( config.render.framerate.present_interval == 0 &&
+               !config.render.dxgi.allow_tearing              &&
+                rb.isTrueFullscreen ()                        )
+      {
+        interval = 1;
+      }
+    }
+
     // Fix flags for compliance in broken games
     //
     if (SK_DXGI_IsFlipModelSwapChain (desc))

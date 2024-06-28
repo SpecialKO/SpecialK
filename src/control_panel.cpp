@@ -1366,12 +1366,42 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       }
     }
 
-    static int  last_present_interval = -1;
     static std::vector <char> vsync_list;
 
+    static int last_app_interval =
+      rb.present_interval;
+
+    static int last_sk_interval  =
+      config.render.framerate.present_interval;
+
+    bool app_interval_changed = (
+      config.render.framerate.present_interval ==
+      SK_NoPreference
+    ) && (
+      std::exchange (
+        last_app_interval,
+        rb.present_interval
+      ) != rb.present_interval
+    );
+
+    // Update first_option label if SK present interval changed from/to SK_NoPreference (-1)
+    //  -1 to 0-4: current_no_override_state -> no_override_label
+    // 0-4 to  -1: no_override_label         -> current_no_override_state
+    bool sk_interval_changed_no_preference = (
+      config.render.framerate.present_interval !=
+      last_sk_interval
+    ) && (
+      std::min (
+        std::exchange (
+          last_sk_interval,
+          config.render.framerate.present_interval
+        ),
+        config.render.framerate.present_interval
+      ) == SK_NoPreference
+    );
+
     // Re-populate the list if the current state changes
-    if (std::exchange (last_present_interval, rb.present_interval) !=
-                                              rb.present_interval)
+    if (vsync_list.empty () || app_interval_changed || sk_interval_changed_no_preference)
     {
       const char* current_no_override_state =
         rb.present_interval == 0 ? "  OFF\0"          :
@@ -1405,8 +1435,6 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
 
     if (ImGui::Combo ("VSYNC", &idx, vsync_list.data ()))
     {
-      last_present_interval = -1;
-
       switch (idx)
       {
         case VSYNC_ForceOn:
@@ -5872,13 +5900,6 @@ SK_ImGui_ControlPanel (void)
 
             bFirstFrame = false;
 
-            int maxLatentSyncSkip = 0;/*(
-              SK_API_IsLayeredOnD3D11 (rb.api) ||
-              SK_API_IsDirect3D9      (rb.api) ||
-              rb.api == SK_RenderAPI::D3D10    ||
-              rb.api == SK_RenderAPI::OpenGL
-            ) ? 4 : 0;*/
-
             bool bLatentSync =
               config.render.framerate.present_interval == 0 &&
              (config.render.framerate.target_fps        > 0.0f ||
@@ -5895,8 +5916,7 @@ SK_ImGui_ControlPanel (void)
 
                 if (__target_fps > dRefresh)
                 {
-                  __SK_LatentSyncSkip = 0;
-                  iFractSel           = 0;
+                  iFractSel = 0;
 
                   SK_GetCommandProcessor ()->ProcessCommandFormatted (
                     "TargetFPS %f", static_cast <float> (dRefresh)
@@ -5925,10 +5945,9 @@ SK_ImGui_ControlPanel (void)
 
                 config.render.framerate.present_interval = 0;
 
-                if (__target_fps == 0.0f || (maxLatentSyncSkip < 2 && target_mag > dRefresh))
+                if (__target_fps == 0.0f)
                 {
-                  __SK_LatentSyncSkip = 0;
-                  iFractSel           = 0;
+                  iFractSel = 0;
 
                   SK_GetCommandProcessor ()->ProcessCommandFormatted (
                     "TargetFPS %f", static_cast <float> (dRefresh)
@@ -5937,11 +5956,6 @@ SK_ImGui_ControlPanel (void)
 
                 else if (__target_fps < 0.0f)
                 {
-                  if (maxLatentSyncSkip < 2)
-                  {
-                    __SK_LatentSyncSkip = 0;
-                  }
-
                   SK_GetCommandProcessor ()->ProcessCommandFormatted (
                     "TargetFPS %f", target_mag
                   );
@@ -5956,36 +5970,51 @@ SK_ImGui_ControlPanel (void)
               double dRefresh =
                 rb.getActiveRefreshRate ();
 
+              int iMaxAboveRefreshMode = 4;
+
               std::string strModeList = strFractList;
-              int           iMode     = std::max (maxLatentSyncSkip - 1, 0); // 1:1
+              int           iMode     = std::max (iMaxAboveRefreshMode - 1, 0); // 1:1
 
-              double dMultiplier = std::round (static_cast <double> (__target_fps) / dRefresh);
+              int iMultiplier = static_cast <int> (
+                std::round (
+                  static_cast <double> (__target_fps) / dRefresh
+                )
+              );
 
-              if (maxLatentSyncSkip >= 2 && dMultiplier >= 2.0)
+              // 2x..
+              if (iMultiplier >= 2)
               {
-                __SK_LatentSyncSkip = static_cast <int> (dMultiplier);
-
-                if (__SK_LatentSyncSkip >= maxLatentSyncSkip)
+                if (iMaxAboveRefreshMode >= 2)
                 {
-                  maxLatentSyncSkip = __SK_LatentSyncSkip + (__SK_LatentSyncSkip % 2 == 0 ? 2 : 1);
-                }
+                  if (iMultiplier >= iMaxAboveRefreshMode)
+                  {
+                    iMaxAboveRefreshMode = iMultiplier + (iMultiplier % 2 == 0 ? 2 : 1);
+                  }
 
-                iMode = maxLatentSyncSkip - __SK_LatentSyncSkip;
+                  iMode = iMaxAboveRefreshMode - iMultiplier;
+                }
               }
 
               else
               {
-                __SK_LatentSyncSkip = 0;
+                iMultiplier = static_cast <int> (
+                  std::round (
+                    dRefresh / static_cast <double> (__target_fps)
+                  )
+                );
 
-                dMultiplier = std::round (dRefresh / static_cast <double> (__target_fps));
-
-                if (dMultiplier >= 2.0)
+                // 1/x
+                if (iMultiplier >= 2)
                 {
                   iMode += iFractSel;
                 }
               }
 
-              for (int x = 2; x <= maxLatentSyncSkip; x++)
+              for (
+                    int x  = std::max (iMaxAboveRefreshMode - 4, 2);
+                        x <=           iMaxAboveRefreshMode;
+                        x ++
+                  )
               {
                 strModeList.insert (
                   0,
@@ -6003,22 +6032,40 @@ SK_ImGui_ControlPanel (void)
                 float fTargetFPS =
                   static_cast <float> (dRefresh);
 
-                __SK_LatentSyncSkip = 0;
-                iFractSel           = 0;
-
-                if (maxLatentSyncSkip >= 2 && iMode <= maxLatentSyncSkip - 2)
+                // 2x..
+                if (iMaxAboveRefreshMode >= 2 && iMode <= std::min (iMaxAboveRefreshMode - 2, 4))
                 {
-                  __SK_LatentSyncSkip = maxLatentSyncSkip - iMode;
+                  iMultiplier = iMaxAboveRefreshMode - iMode;
 
-                  fTargetFPS = static_cast <float> (dRefresh * __SK_LatentSyncSkip);
+                  fTargetFPS = static_cast <float> (dRefresh * iMultiplier);
                 }
 
-                else if ( ( maxLatentSyncSkip >= 2 && iMode >= maxLatentSyncSkip ) ||
-                          ( maxLatentSyncSkip <= 1 && iMode >= 1                 ) )
-                {  
-                  iFractSel = maxLatentSyncSkip >= 2 ? (iMode - maxLatentSyncSkip + 1) : iMode;
+                // 1/x
+                else if ( ( iMaxAboveRefreshMode >= 2 && iMode >= std::min (iMaxAboveRefreshMode, 6) ) ||
+                          ( iMaxAboveRefreshMode <= 1 && iMode >= 1                                  ) )
+                {
+                  if (iMaxAboveRefreshMode > 6)
+                  {
+                    iFractSel = iMode - 5;
+                  }
+
+                  else if (iMaxAboveRefreshMode >= 2)
+                  {
+                    iFractSel = iMode - iMaxAboveRefreshMode + 1;
+                  }
+
+                  else
+                  {
+                    iFractSel = iMode;
+                  }
 
                   fTargetFPS = static_cast <float> (dFractList [iFractSel]);
+                }
+
+                // 1:1
+                else
+                {
+                  iFractSel = 0;
                 }
 
                 SK_GetCommandProcessor ()->ProcessCommandFormatted (
@@ -6266,8 +6313,8 @@ SK_ImGui_ControlPanel (void)
                   config.render.framerate.enforcement_policy = 4;
 
                   // Trigger a re-sync
-                  SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %d", config.render.framerate.latent_sync.scanline_resync - 1);
-                  SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %d", config.render.framerate.latent_sync.scanline_resync + 1);
+                  SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %f", config.render.framerate.latent_sync.scanline_resync - 1.0f);
+                  SK_GetCommandProcessor ()->ProcessCommandFormatted ("LatentSync.ResyncRate %f", config.render.framerate.latent_sync.scanline_resync + 1.0f);
                   break;
 
                 case limiter_mode_e::Reflex:

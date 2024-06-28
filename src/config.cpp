@@ -815,6 +815,7 @@ struct {
     sk::ParameterInt*     prerender_limit         = nullptr;
     sk::ParameterInt*     present_interval        = nullptr;
     sk::ParameterInt*     sync_interval_clamp     = nullptr;
+    sk::ParameterBool*    adaptive_vsync          = nullptr;
     sk::ParameterInt*     buffer_count            = nullptr;
     sk::ParameterInt*     max_delta_time          = nullptr;
     sk::ParameterBool*    flip_discard            = nullptr;
@@ -846,12 +847,13 @@ struct {
     struct
     {
       sk::ParameterInt*     offset                = nullptr;
-      sk::ParameterInt*     resync                = nullptr;
+      sk::ParameterFloat*   resync                = nullptr;
       sk::ParameterInt*     error                 = nullptr;
       sk::ParameterFloat*   bias                  = nullptr;
       sk::ParameterBool*    auto_bias             = nullptr;
       sk::ParameterFloat*   max_auto_bias         = nullptr;
       sk::ParameterStringW* auto_bias_target      = nullptr;
+      sk::ParameterInt*     tearing_mode          = nullptr;
     } latent_sync;
   } framerate;
 
@@ -1774,6 +1776,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.buffer_count,          L"Number of Backbuffers in the Swapchain",                    dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
     ConfigEntry (render.framerate.present_interval,      L"Presentation Interval (VSYNC)",                             dll_ini,         L"Render.FrameRate",      L"PresentationInterval"),
     ConfigEntry (render.framerate.sync_interval_clamp,   L"Maximum Sync Interval (Clamp VSYNC)",                       dll_ini,         L"Render.FrameRate",      L"SyncIntervalClamp"),
+    ConfigEntry (render.framerate.adaptive_vsync,        L"VSYNC OFF if FPS is unstable or Render Latency > 1 frame)", dll_ini,         L"Render.FrameRate",      L"AdaptiveVSync"),
     ConfigEntry (render.framerate.prerender_limit,       L"Maximum Frames to Render-Ahead",                            dll_ini,         L"Render.FrameRate",      L"PreRenderLimit"),
     ConfigEntry (render.framerate.sleepless_render,      L"Sleep Free Render Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessRenderThread"),
     ConfigEntry (render.framerate.sleepless_window,      L"Sleep Free Window Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessWindowThread"),
@@ -1788,7 +1791,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.control.render_ahead,  L"Maximum number of CPU-side frames to work ahead of GPU.",   dll_ini,         L"FrameRate.Control",     L"MaxRenderAheadFrames"),
     ConfigEntry (render.framerate.override_cpu_count,    L"Number of CPU cores to tell the game about",                dll_ini,         L"FrameRate.Control",     L"OverrideCPUCoreCount"),
     ConfigEntry (render.framerate.latent_sync.offset,    L"Offset in Scanlines from Top of Screen to Steer Tearing",   dll_ini,         L"FrameRate.LatentSync",  L"TearlineOffset"),
-    ConfigEntry (render.framerate.latent_sync.resync,    L"Frequency (in frames) to Resync Timing",                    dll_ini,         L"FrameRate.LatentSync",  L"ResyncFrequency"),
+    ConfigEntry (render.framerate.latent_sync.resync,    L"Frequency (in seconds) to Resync Timing",                   dll_ini,         L"FrameRate.LatentSync",  L"ResyncFrequency"),
     ConfigEntry (render.framerate.latent_sync.error,     L"Expected Error (in QPC ticks) of Refresh Rate Calculation", dll_ini,         L"FrameRate.LatentSync",  L"RoundingError"),
     ConfigEntry (render.framerate.latent_sync.bias,      L"Controls Distribution of Idle Time Per-Delayed Frame",      dll_ini,         L"FrameRate.LatentSync",  L"DelayBias"),
     ConfigEntry (render.framerate.latent_sync.auto_bias, L"Automatically Sets Delay Bias For Minimum Latency",         dll_ini,         L"FrameRate.LatentSync",  L"AutoBias"),
@@ -1796,6 +1799,8 @@ auto DeclKeybind =
                                        auto_bias_target, L"Target input latency (in milliseconds or %) for auto-bias", dll_ini,         L"FrameRate.LatentSync",  L"AutoBiasTarget"),
     ConfigEntry (render.framerate.latent_sync.
                                           max_auto_bias, L"Maximum percentage to bias towards low input latency",      dll_ini,         L"FrameRate.LatentSync",  L"MaxAutoBias"),
+    ConfigEntry (render.framerate.latent_sync.
+                                           tearing_mode, L"Tearing mode: Always On/Off, Adaptive (Prefer On/Off)",     dll_ini,         L"FrameRate.LatentSync",  L"TearingMode"),
 
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
     ConfigEntry (render.framerate.drop_late_frames,      L"Enable Flip Model to Render (and drop) frames at rates >"
@@ -3882,16 +3887,20 @@ auto DeclKeybind =
   {
     if (target_fps.find (L'/') != std::wstring::npos)
     {
-      UINT numerator = 1, denominator = 1;
+      int numerator = 1, denominator = 1;
 
-      swscanf (target_fps.c_str (), L"%i/%i", (INT*)&numerator, (INT*)&denominator);
+      swscanf (target_fps.c_str (), L"%i/%i", &numerator, &denominator);
 
       if (denominator != 0)
       {
-        config.render.framerate.target_fps =
-          static_cast <float> (
-            (rb.windows.device.getDevCaps ().res.refresh * numerator) / denominator
-          );
+        config.render.framerate.target_fps = static_cast <float> (
+          (rb.windows.device.getDevCaps ().res.refresh * numerator) / denominator
+        );
+      }
+
+      else
+      {
+        config.render.framerate.target_fps = 0.0f;
       }
     }
 
@@ -3907,16 +3916,20 @@ auto DeclKeybind =
   {
     if (target_fps_bg.find (L'/') != std::wstring::npos)
     {
-      UINT numerator = 1, denominator = 1;
+      int numerator = 1, denominator = 1;
 
-      swscanf (target_fps_bg.c_str (), L"%i/%i", (INT*)&numerator, (INT*)&denominator);
+      swscanf (target_fps_bg.c_str (), L"%i/%i", &numerator, &denominator);
 
       if (denominator != 0)
       {
-        config.render.framerate.target_fps_bg =
-          static_cast <float> (
-            (rb.windows.device.getDevCaps ().res.refresh * numerator) / denominator
-          );
+        config.render.framerate.target_fps_bg = static_cast <float> (
+          (rb.windows.device.getDevCaps ().res.refresh * numerator) / denominator
+        );
+      }
+
+      else
+      {
+        config.render.framerate.target_fps_bg = 0.0f;
       }
     }
 
@@ -3968,6 +3981,8 @@ auto DeclKeybind =
       swscanf (auto_bias_target.c_str (), L"%f", &config.render.framerate.latent_sync.auto_bias_target.ms);
     }
   }
+
+  render.framerate.latent_sync.tearing_mode->load (config.render.framerate.latent_sync.tearing_mode);
 
   render.osd.draw_in_vidcap->load            (config.render.osd. draw_in_vidcap);
 
@@ -4022,6 +4037,7 @@ auto DeclKeybind =
   render.framerate.prerender_limit->load     (config.render.framerate.pre_render_limit);
   render.framerate.present_interval->load    (config.render.framerate.present_interval);
   render.framerate.sync_interval_clamp->load (config.render.framerate.sync_interval_clamp);
+  render.framerate.adaptive_vsync->load      (config.render.framerate.adaptive_vsync);
 
   if (render.framerate.refresh_rate)
   {
@@ -6067,6 +6083,7 @@ SK_SaveConfig ( std::wstring name,
 
     render.framerate.present_interval->store      (config.render.framerate.present_interval);
     render.framerate.sync_interval_clamp->store   (config.render.framerate.sync_interval_clamp);
+    render.framerate.adaptive_vsync->store        (config.render.framerate.adaptive_vsync);
     render.framerate.enforcement_policy->store    (config.render.framerate.enforcement_policy);
     render.framerate.enable_etw_tracing->store    (config.render.framerate.enable_etw_tracing);
 
@@ -6088,13 +6105,15 @@ SK_SaveConfig ( std::wstring name,
 
     else
     {
-        wchar_t wszPercent [16] = { };
+      wchar_t   wszPercent [16] = { };
       swprintf (wszPercent, L"%08.6f", 100.0f * config.render.framerate.latent_sync.auto_bias_target.percent);
 
       SK_RemoveTrailingDecimalZeros                        (wszPercent);
       lstrcatW                                             (wszPercent, L"%");
       render.framerate.latent_sync.auto_bias_target->store (wszPercent);
     }
+
+    render.framerate.latent_sync.tearing_mode->store (config.render.framerate.latent_sync.tearing_mode);
 
     texture.d3d9.clamp_lod_bias->store            (config.textures.clamp_lod_bias);
 

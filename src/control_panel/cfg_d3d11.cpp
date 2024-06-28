@@ -924,12 +924,69 @@ SK::ControlPanel::D3D11::Draw (void)
         }
 #endif
 
-        if (SK_DXGI_SupportsTearing ())
+        if ( ( config.render.framerate.present_interval == SK_NoPreference &&
+                                    rb.present_interval >= 1                ) ||
+             ( config.render.framerate.present_interval >= 1                ) )
+        {
+          bool bAdaptiveVSync =
+            config.render.framerate.present_interval > 0 &&
+            config.render.framerate.target_fps > 0.0f    &&
+            config.render.framerate.adaptive_vsync;
+
+          if (ImGui::Checkbox ("Adaptive V-Sync", &bAdaptiveVSync))
+          {
+            config.render.framerate.adaptive_vsync = bAdaptiveVSync;
+
+            if (config.render.framerate.adaptive_vsync)
+            {
+              if (config.render.framerate.present_interval == SK_NoPreference)
+              {
+                config.render.framerate.present_interval = 1;
+              }
+
+              if (__target_fps == 0.0f)
+              {
+                SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                  "TargetFPS %f",
+                  static_cast <float> (
+                    rb.getActiveRefreshRate () /
+                    config.render.framerate.present_interval
+                  )
+                );
+              }
+
+              else if (__target_fps < 0.0f)
+              {
+                SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                  "TargetFPS %f", -__target_fps
+                );
+              }
+            }
+          }
+
+          if (ImGui::IsItemHovered ())
+          {
+            ImGui::BeginTooltip ();
+            ImGui::Text         ("Temporarily turns V-Sync -OFF- if FPS is unstable or Render Latency exceeds 1 frame");
+            ImGui::EndTooltip   ();
+          }
+        }
+
+        else if (SK_DXGI_SupportsTearing ())
         {
           bool tearing_pref = config.render.dxgi.allow_tearing;
+
           if (ImGui::Checkbox ("Enable Tearing", &tearing_pref))
           {
             config.render.dxgi.allow_tearing = tearing_pref;
+
+            // Latent Sync
+            if (config.render.framerate.present_interval == 0 && config.render.framerate.target_fps > 0.0f)
+            {
+              config.render.framerate.latent_sync.tearing_mode =
+                config.render.dxgi.allow_tearing ? SK_TearingMode::LatentSync_AlwaysOn
+                                                 : SK_TearingMode::LatentSync_AlwaysOff;
+            }
 
             _ResetLimiter ();
           }
@@ -996,7 +1053,7 @@ SK::ControlPanel::D3D11::Draw (void)
         config.render.framerate.sync_interval_clamp = SK_NoPreference;
       }
 
-      if (! ((d3d12 && !config.render.dxgi.allow_d3d12_footguns) || indirect))
+      if (! (d3d12 && !config.render.dxgi.allow_d3d12_footguns))
       {
         if (ImGui::InputInt ("BackBuffer Count", &config.render.framerate.buffer_count))
         {
@@ -1023,7 +1080,7 @@ SK::ControlPanel::D3D11::Draw (void)
       if (config.render.framerate.buffer_count <  0)
           config.render.framerate.buffer_count = SK_NoPreference;
 
-      if (! ((d3d12 && !config.render.dxgi.allow_d3d12_footguns) || indirect))
+      if (! (d3d12 && !config.render.dxgi.allow_d3d12_footguns))
       {
         if (ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit))
         {

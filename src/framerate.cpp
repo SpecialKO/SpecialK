@@ -267,6 +267,20 @@ void SK_LatentSync_EndSwap (void) noexcept
                  sampled_swaps;
 }
 
+bool SK_LatentSync_SupportsFrameSkipping (SK_RenderAPI api)
+{
+  if (SK_API_IsLayeredOnD3D12 (api) || SK_GL_OnD3D11)
+  {
+    return false;
+  }
+
+  return
+    SK_API_IsLayeredOnD3D11 (api) ||
+    SK_API_IsLayeredOnD3D10 (api) ||
+    SK_API_IsDirect3D9      (api) ||
+    SK_API_IsGDIBased       (api);
+}
+
 
 struct scanline_target_s {
   LARGE_INTEGER qpc_t0 = { 0L, 0UL };
@@ -421,7 +435,6 @@ SK_ImGui_LatentSyncConfig (void)
         //ImGui::EndGroup        (  );
         ImGui::TextUnformatted ("");
         ImGui::TextUnformatted ("Increasing input bias will reduce input latency, but gives the CPU / GPU less time to complete each frame");
-        ImGui::TextUnformatted ("Frames that do not complete in time will either tear (Adaptive Sync) or temporarily cut framerate in half");
         ImGui::TextUnformatted ("");
         ImGui::TextUnformatted ("NOTE:\tEven at '*No Input,\tAll Display', Latent Sync eliminates normal VSYNC latency");
         ImGui::EndTooltip      (  );
@@ -493,126 +506,392 @@ SK_ImGui_LatentSyncConfig (void)
 
       if (config.render.framerate.latent_sync.auto_bias)
       {
-        float fBiasPercent = config.render.framerate.latent_sync.max_auto_bias * 100.0f;
+        bool bTargetInputInMs =
+          config.render.framerate.latent_sync.auto_bias_target.percent == 0.0f;
 
-        if (ImGui::SliderFloat ("Maximum Bias", &fBiasPercent, 0.0f, 90.0f, "%4.1f%%"))
-          config.render.framerate.latent_sync.max_auto_bias = fBiasPercent > 0.0f ? fBiasPercent / 100.0f
-                                                                                  : 0.0f;
+        static float fLastTargetInputMs = bTargetInputInMs
+          ? config.render.framerate.latent_sync.auto_bias_target.ms
+          : 0.85f;
 
-        bool auto_bias_target_in_ms = config.render.framerate.latent_sync.auto_bias_target.percent == 0.0f;
+        static float fLastTargetInputPercent = !bTargetInputInMs
+          ? config.render.framerate.latent_sync.auto_bias_target.percent
+          : 0.5f;
 
-        if (ImGui::Checkbox ("Target Input Latency in milliseconds", &auto_bias_target_in_ms))
+        if (ImGui::Checkbox ("Target Input Latency in milliseconds", &bTargetInputInMs))
         {
-          if (auto_bias_target_in_ms) {
-            config.render.framerate.latent_sync.auto_bias_target.ms      = 0.85f;
+          if (bTargetInputInMs)
+          {
             config.render.framerate.latent_sync.auto_bias_target.percent = 0.0f;
+            config.render.framerate.latent_sync.auto_bias_target.ms      = fLastTargetInputMs;
           }
 
-          else {
-            config.render.framerate.latent_sync.auto_bias_target.percent = 0.5f;
+          else
+          {
+            config.render.framerate.latent_sync.auto_bias_target.percent = fLastTargetInputPercent;
             config.render.framerate.latent_sync.auto_bias_target.ms      = 0.0f;
           }
         }
 
-        if (auto_bias_target_in_ms)
+        if (bTargetInputInMs)
         {
           if (ImGui::InputFloat ("Target Input Latency", &config.render.framerate.latent_sync.auto_bias_target.ms))
           {
-            config.render.framerate.latent_sync.auto_bias_target.ms =
-              std::clamp (config.render.framerate.latent_sync.auto_bias_target.ms, 0.0f, 25.0f);
+            std::exchange (
+              fLastTargetInputMs,
+              config.render.framerate.latent_sync.auto_bias_target.ms = std::clamp (
+                config.render.framerate.latent_sync.auto_bias_target.ms,
+                0.0f,
+                25.0f
+              )
+            );
           }
         }
 
         else
         {
-          float fAutoBiasTargetPercent = config.render.framerate.latent_sync.auto_bias_target.percent * 100.0f;
+          float fTargetInputPercent = config.render.framerate.latent_sync.auto_bias_target.percent * 100.0f;
 
-          if (ImGui::SliderFloat ("Target Input Latency", &fAutoBiasTargetPercent, 0.000001f, 100.0f, "%4.1f%%"))
-            config.render.framerate.latent_sync.auto_bias_target.percent = fAutoBiasTargetPercent > 0.0f ? fAutoBiasTargetPercent / 100.0f
-                                                                                                         : 0.000001f;
+          if (ImGui::SliderFloat ("Target Input Latency", &fTargetInputPercent, 0.000001f, 100.0f, "%4.1f%%"))
+          {
+            std::exchange (
+              fLastTargetInputPercent,
+              config.render.framerate.latent_sync.auto_bias_target.percent = std::clamp (
+                fTargetInputPercent / 100.0f,
+                0.000001f,
+                1.0f
+              )
+            );
+          }
         }
 
         if (ImGui::IsItemHovered ())
+        {
           ImGui::SetTooltip ("Setting this too low (ms) or too high (%%) is likely to cause visible tearing and possible framerate instability.");
+        }
+
+        if (bTargetInputInMs)
+        {
+          float fMaxBiasPercent = config.render.framerate.latent_sync.max_auto_bias * 100.0f;
+
+          if (ImGui::SliderFloat ("Maximum Bias", &fMaxBiasPercent, 0.0f, 90.0f, "%4.1f%%"))
+          {
+            config.render.framerate.latent_sync.max_auto_bias = std::clamp (
+              fMaxBiasPercent / 100.0f,
+              0.0f,
+              1.0f
+            );
+          }
+        }
       }
+
+      bool bIsD3D9 =
+        SK_API_IsDirect3D9 (rb.api);
 
       ImGui::Separator ();
 
-      ImGui::Checkbox ("Allow Tearing", &config.render.dxgi.allow_tearing);
+      ImGui::Combo (
+        "Tearing Mode",
+        &config.render.framerate.latent_sync.tearing_mode,
+        bIsD3D9 ? (
+          "Always On\0"
+          "Always Off\0\0"
+        ) : (
+          "Always On\0"
+          "Always Off\0"
+          "Adaptive (Prefer On)\0"
+          "Adaptive (Prefer Off)\0\0"
+        )
+      );
 
       if (ImGui::IsItemHovered ())
       {
         ImGui::BeginTooltip ();
-        ImGui::Text         ("Enabling Tearing Produces the Lowest Possible Input Latency");
+        ImGui::Text         ("Enabling tearing produces the Lowest Possible Input Latency");
         ImGui::Separator    ();
-        ImGui::BulletText   ("If GPU load is very high you may need to disable tearing");
+        ImGui::BulletText   ("If GPU load is very high, you may need to disable tearing");
         ImGui::BulletText   ("Disabling tearing will add between 0 and 1 refresh cycles of latency, depending on GPU load");
+        if (! bIsD3D9)
+        {
+          ImGui::Separator  ();
+          ImGui::Text       ("Adaptive modes control tearing based on Frame Stability or Render Latency");
+          ImGui::Separator  ();
+          ImGui::BulletText ("Adaptive (Prefer On) : only disables tearing if FPS is unstable");
+          ImGui::BulletText ("Adaptive (Prefer Off) : only enables tearing if FPS is unstable or Render Latency exceeds 1 frame");
+        }
         ImGui::EndTooltip   ();
       }
 
-      if (config.render.dxgi.allow_tearing)
+      int iMultiplier = static_cast <int> (
+        std::round (
+          pLimiter->get_limit     () /
+          rb.getActiveRefreshRate ()
+        )
+      );
+
+      bool bIsInvalidTearingMode = false;
+
+      if ( config.render.framerate.latent_sync.tearing_mode != SK_TearingMode::LatentSync_AlwaysOn &&
+                                                iMultiplier >= 2                                   )
       {
-        ImGui::SameLine ();
-        ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
-        ImGui::SameLine ();
+        bool bIsTearingModeAdaptiveOff =
+          config.render.framerate.latent_sync.tearing_mode ==
+            SK_TearingMode::LatentSync_AdaptiveOff;
 
-        ImGui::Checkbox ("Visualize Tearlines", &config.render.framerate.latent_sync.show_fcat_bars);
+        bool bSupportsFrameSkipping =
+          SK_LatentSync_SupportsFrameSkipping (rb.api);
 
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Draws color-cycling bars to help locate tearing while VSYNC is off");
+        int iBufferCount =
+          config.render.framerate.buffer_count;
 
-        if (ImGui::BeginMenu ("Tear Control Keybinds###TearingMenu"))
+        int iMaxDeviceLatency =
+          config.render.framerate.pre_render_limit;
+
+        int iRequiredBufferCount =
+          5 + (2 * (iMultiplier - 2));
+
+        int iRequiredMaxDeviceLatency =
+          iRequiredBufferCount + 1;
+
+        bool bIsInvalidBufferCount = ! (
+          ( bIsTearingModeAdaptiveOff &&
+            bSupportsFrameSkipping    &&
+            iMaxDeviceLatency == 1    &&
+            iBufferCount ==   15       ) ||
+          ( iBufferCount >=
+            iRequiredBufferCount       )
+        );
+
+        bool bIsInvalidMaxDeviceLatency = ! (
+          ( bIsTearingModeAdaptiveOff &&
+            bSupportsFrameSkipping    &&
+            iMaxDeviceLatency == 1     ) ||
+          ( iMaxDeviceLatency >=
+            iRequiredMaxDeviceLatency  )
+        );
+
+        bool bIsTrueFullscreen =
+          rb.isTrueFullscreen ();
+
+        if ( bIsInvalidMaxDeviceLatency ||
+             bIsInvalidBufferCount      ||
+             bIsTrueFullscreen          ||
+             bIsD3D9                    )
         {
-          const auto Keybinding =
-          [] (SK_ConfigSerializedKeybind *binding) ->
-          auto
+          bIsInvalidTearingMode = true;
+
+          ImGui::SameLine    ();
+          ImGui::TextColored (ImColor (1.0f, 1.0f, 0.0f), ICON_FA_EXCLAMATION_TRIANGLE);
+
+          if (ImGui::IsItemHovered ())
           {
-            if (binding == nullptr)
-              return false;
+            bool bIsD3D12 =
+              SK_API_IsLayeredOnD3D12 (rb.api);
 
-            std::string label =
-              SK_WideCharToUTF8      (binding->human_readable);
+            ImGui::BeginTooltip   ();
+            ImGui::Text           (
+              std::format         (
+                "Please set Tearing Mode to 'Always On' for {}x Scan Mode!",
+                iMultiplier
+              ).c_str             ()
+            );
 
-            ImGui::PushID            (binding->bind_name);
+            ImGui::Separator      ();
+            ImGui::BulletText     (
+              std::format         (
+                "You may enable{}AMD's Enhanced Sync to eliminate tearing",
+                !bIsD3D12 ? " NVIDIA's Fast Sync or " : " "
+              ).c_str             ()
+            );
 
-            binding->assigning =
-              SK_ImGui_KeybindSelect (binding, label.c_str ());
+            if (bIsD3D12)
+            {
+              ImGui::BulletText   ("NVIDIA's Fast Sync is not compatible with DirectX 12");
+            }
 
-            ImGui::PopID             ();
+            if ( ( bSupportsFrameSkipping || iRequiredBufferCount <= 15 ) &&
+                !( bIsD3D12 && !config.render.dxgi.allow_d3d12_footguns ) &&
+                !( bIsD3D9  ||  bIsTrueFullscreen                       ) )
+            {
+              ImGui::Separator    ();
+              ImGui::Text         (
+                std::format       (
+                  "Other tearing options require certain settings for {}x Mode{}",
+                  iMultiplier,
+                  iRequiredBufferCount <= 15 ? " (Best to Worst):" : ":"
+                ).c_str           ()
+              );
 
-            return true;
-          };
+              ImGui::Separator    ();
+              ImGui::BeginGroup   ();
 
-          ImGui::BeginGroup ();
-          for ( auto& keybind : timing_keybinds )
-          {
-            ImGui::Text ( "%s:  ",
-                            keybind->bind_name );
+              if (iRequiredBufferCount <= 15)
+              {
+                ImGui::BulletText ("Adaptive (Prefer On)");
+              }
+
+              if (bSupportsFrameSkipping)
+              {
+                ImGui::BulletText ("Adaptive (Prefer Off)");
+              }
+
+              if (iRequiredBufferCount <= 15)
+              {
+                ImGui::BulletText ("Adaptive (Prefer Off)");
+                ImGui::BulletText ("Always Off");
+              }
+
+              ImGui::EndGroup     ();
+              ImGui::SameLine     (0.0f, 0.0f);
+              ImGui::BeginGroup   ();
+
+              if (iRequiredBufferCount <= 15)
+              {
+                ImGui::Text       (
+                  std::format     (
+                    " :\tBuffer Count = {}\tMax Device Latency = {}",
+                    iRequiredBufferCount,
+                    iRequiredMaxDeviceLatency
+                  ).c_str         ()
+                );
+              }
+
+              if (bSupportsFrameSkipping)
+              {
+                ImGui::Text       (
+                  std::format     (
+                    " :\tBuffer Count = {}\tMax Device Latency = 1",
+                    std::min      (
+                      iRequiredBufferCount,
+                      15
+                    )
+                  ).c_str         ()
+                );
+              }
+
+              if (iRequiredBufferCount <= 15)
+              {
+                ImGui::Text       (
+                  std::format     (
+                    " :\tBuffer Count = {}\tMax Device Latency = {}",
+                    iRequiredBufferCount,
+                    iRequiredMaxDeviceLatency
+                  ).c_str         ()
+                );
+
+                ImGui::Text       (
+                  std::format     (
+                    " :\tBuffer Count = {}\tMax Device Latency = {}",
+                    iRequiredBufferCount,
+                    iRequiredMaxDeviceLatency
+                  ).c_str         ()
+                );
+              }
+
+              ImGui::EndGroup     ();
+            }
+
+            ImGui::EndTooltip     ();
           }
-          ImGui::EndGroup   ();
-          ImGui::SameLine   ();
-          ImGui::BeginGroup ();
-          for ( auto& keybind : timing_keybinds )
-          {
-            Keybinding  (   keybind );
-          }
-          ImGui::EndGroup   ();
+        }
+      }
 
-          ImGui::EndMenu    ();
+      if (bIsD3D9)
+      {
+        static int iTearingModeOrig =
+          config.render.framerate.latent_sync.tearing_mode;
+
+        static bool bAsyncInitOrig  =
+          config.compatibility.init_on_separate_thread;
+
+        if (config.render.framerate.latent_sync.tearing_mode != iTearingModeOrig)
+        {
+          if (SK_IsInjected () && config.compatibility.init_on_separate_thread)
+          {
+            config.compatibility.init_on_separate_thread = false;
+          }
+
+          if (! bIsInvalidTearingMode)
+          {
+            ImGui::SameLine    ();
+            ImGui::TextColored (ImColor (1.0f, 1.0f, 0.0f), ICON_FA_EXCLAMATION_TRIANGLE);
+
+            if (ImGui::IsItemHovered ())
+            {
+              ImGui::BeginTooltip ();
+              ImGui::Text         ("Game Restart Required");
+              ImGui::EndTooltip   ();
+            }
+          }
         }
 
-        ImGui::Separator ();
+        else
+        {
+          config.compatibility.init_on_separate_thread = bAsyncInitOrig;
+        }
       }
+
+      ImGui::Checkbox ("Visualize Tearlines", &config.render.framerate.latent_sync.show_fcat_bars);
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip ("Draws color-cycling bars to help locate tearing while VSYNC is off");
+      }
+
+      ImGui::SameLine ();
+      ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine ();
+
+      if (ImGui::BeginMenu ("Tear Control Keybinds###TearingMenu"))
+      {
+        const auto Keybinding =
+        [] (SK_ConfigSerializedKeybind *binding) ->
+        auto
+        {
+          if (binding == nullptr)
+            return false;
+
+          std::string label =
+            SK_WideCharToUTF8      (binding->human_readable);
+
+          ImGui::PushID            (binding->bind_name);
+
+          binding->assigning =
+            SK_ImGui_KeybindSelect (binding, label.c_str ());
+
+          ImGui::PopID             ();
+
+          return true;
+        };
+
+        ImGui::BeginGroup ();
+        for ( auto& keybind : timing_keybinds )
+        {
+          ImGui::Text ( "%s:  ",
+                          keybind->bind_name );
+        }
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
+        for ( auto& keybind : timing_keybinds )
+        {
+          Keybinding  (   keybind );
+        }
+        ImGui::EndGroup   ();
+
+        ImGui::EndMenu    ();
+      }
+
+      ImGui::Separator ();
 
       bAdvanced =
         ImGui::TreeNode ("Advanced");
 
       if (bAdvanced)
       {
-        if ( ImGui::SliderInt ( "Resync Rate",
-                                  &config.render.framerate.latent_sync.scanline_resync,
-                                    0, 1000, "%d Frames" ) )
-        {   config.render.framerate.latent_sync.scanline_resync = std::max (0,
+        if ( ImGui::SliderFloat ( "Resync Rate",
+                                    &config.render.framerate.latent_sync.scanline_resync,
+                                      0.0f, 900.0f, "%.0f Second(s)" ) )
+        {   config.render.framerate.latent_sync.scanline_resync = std::max (0.0f,
             config.render.framerate.latent_sync.scanline_resync);
         }
 
@@ -826,10 +1105,10 @@ class SK_FramerateLimiter_CfgProxy : public SK_IVariableListener {
 
     }
 
-    if ( static_cast <int *> (var->getValuePointer ()) == &config.render.framerate.latent_sync.scanline_resync )
+    if ( static_cast <float *> (var->getValuePointer ()) == &config.render.framerate.latent_sync.scanline_resync )
     {
       config.render.framerate.latent_sync.scanline_resync =
-        *static_cast <int *> (val);
+        *static_cast <float *> (val);
 
       __scanline.lock.requestResync ();
     }
@@ -896,13 +1175,13 @@ SK::Framerate::Init (void)
           new SK_IVarStub <float> (&SK::Framerate::Limiter::undershoot_percent));
 
   pCommandProc->AddVariable ( "LatentSync.TearLocation",
-          new SK_IVarStub <int> (&config.render.framerate.latent_sync.scanline_offset, &__ProdigalFramerateSon));
+          new SK_IVarStub <int>   (&config.render.framerate.latent_sync.scanline_offset, &__ProdigalFramerateSon));
 
   pCommandProc->AddVariable ( "LatentSync.ResyncRate",
-          new SK_IVarStub <int> (&config.render.framerate.latent_sync.scanline_resync, &__ProdigalFramerateSon));
+          new SK_IVarStub <float> (&config.render.framerate.latent_sync.scanline_resync, &__ProdigalFramerateSon));
 
   pCommandProc->AddVariable ( "LatentSync.ShowFCATBars",
-          new SK_IVarStub <bool> (&config.render.framerate.latent_sync.show_fcat_bars));
+          new SK_IVarStub <bool>  (&config.render.framerate.latent_sync.show_fcat_bars));
 
   // Implicitly applies queued hooks
   SK_Scheduler_Init ();
@@ -1846,13 +2125,351 @@ SK::Framerate::Limiter::wait (void)
     }
 
 
-    if (config.render.framerate.present_interval == 0 && ticks_per_scanline > 1)
+    auto _ManageTearing = [&](SK_TearingMode tearingMode) -> void
     {
-      __SK_LatentSyncSkip =
-        static_cast <int> (fps / rb.getActiveRefreshRate ());
+      static constexpr int _MAX_FRAMES = 30;
 
-      //if (__SK_LatentSyncSkip == 1)
-          __SK_LatentSyncSkip  = 0;
+      struct {
+        double input [_MAX_FRAMES] = { };
+
+        int frames = 0;
+
+        double getInput (void) noexcept
+        {
+          double avg     = 0.0,
+                 samples = 0.0;
+
+          for (int i = 0; i < std::min (frames, _MAX_FRAMES); ++i)
+          {
+            ++samples; avg += input [i];
+          }
+
+          return
+            ( avg / samples );
+        }
+      } static latency_avg;
+
+      latency_avg.input [latency_avg.frames++ % _MAX_FRAMES] =
+        (1000.0 / get_limit           ()) -
+                  effective_frametime ();
+
+      bool bIsFpsUnstable = latency_avg.getInput () < 0.0;
+
+      // Disable frame skipping in 2x.. mode if FPS is unstable
+      if (bIsFpsUnstable)
+      {
+        __SK_LatentSyncSkip = 0;
+      }
+
+      auto _ToggleTearing = [&](bool bEnableTearing) -> void
+      {
+        if (tearingMode == SK_TearingMode::AdaptiveVSync)
+        {
+          config.render.framerate.turn_vsync_off = bEnableTearing;
+
+          config.render.dxgi.allow_tearing = true;
+        }
+
+        else
+        {
+          config.render.dxgi.allow_tearing = bEnableTearing;
+        }
+      };
+
+      switch (tearingMode)
+      {
+        // Prefer tearing, only disable tearing if FPS is unstable
+        case SK_TearingMode::LatentSync_AdaptiveOn:
+        {
+          _ToggleTearing (! bIsFpsUnstable);
+
+          __SK_LatentSyncSkip = 0;
+        } break;
+
+        // Prefer no tearing, only enable tearing if FPS is unstable or Render Latency exceeds 1 frame
+        case SK_TearingMode::LatentSync_AdaptiveOff:
+
+        // Prefer VSync On, only turn VSync Off if FPS is unstable or Render Latency exceeds 1 frame
+        case SK_TearingMode::AdaptiveVSync:
+        {
+          bool bIsComposedPresent =
+            rb.presentation.mode == SK_PresentMode::Composed_Composition_Atlas ||
+            rb.presentation.mode == SK_PresentMode::Composed_Copy_GPU_GDI      ||
+            rb.presentation.mode == SK_PresentMode::Composed_Copy_CPU_GDI      ||
+            rb.presentation.mode == SK_PresentMode::Composed_Flip;
+
+          bool bIsRenderLatencyAboveOneFrame = false;
+
+          // 2x.. mode with Tearing Off and "PreRenderLimit > 1" would constantly
+          // enable <-> disable tearing because Render Latency is always above 1 frame
+          // -
+          // In that case, only enable tearing if Render Latency increases even further
+          // (frametime graph becomes unstable beyond 1.7x Display ms)
+          if ( std::round (fps / rb.getActiveRefreshRate ()) >= 2.0 &&
+               config.render.framerate.pre_render_limit      != 1   &&
+               rb.presentation.avg_stats.display             != 0.0 )
+          {
+            bIsRenderLatencyAboveOneFrame =
+              rb.presentation.avg_stats.latency /
+              rb.presentation.avg_stats.display > 1.7;
+          }
+
+          else if (! SK_RenderBackend_V2::latency.stale)
+          {
+            bIsRenderLatencyAboveOneFrame =
+              SK_RenderBackend_V2::latency.delays.PresentQueue > 1;
+          }
+
+          else if (rb.presentation.avg_stats.display != 0.0)
+          {
+            bIsRenderLatencyAboveOneFrame =
+              rb.presentation.avg_stats.latency /
+              rb.presentation.avg_stats.display > 1.9;
+          }
+
+          static bool bReduceRenderLatencyAndWait = false;
+
+          static float fTargetFPS = __target_fps;
+
+          static float fTempTargetFPS = 0.0f;
+
+          if ( bIsRenderLatencyAboveOneFrame &&
+              !bIsComposedPresent            &&
+              !bIsFpsUnstable                )
+          {
+            static float fWaitSeconds = 0.0f;
+
+            if (SK_API_IsDirect3D9 (rb.api) || rb.isTrueFullscreen ())
+            {
+              // Toggling VSync Off -> On is not a reliable way to reduce
+              // Render Latency in FSE, resetting frame limiter is better
+              if (bReduceRenderLatencyAndWait)
+              {
+                _ToggleTearing (false);
+
+                static bool bResetTargetFPS = false;
+
+                if (fWaitSeconds <= 1.5f)
+                {
+                  if (fWaitSeconds == 0.0f)
+                  {
+                    if (fTargetFPS != __target_fps)
+                    {
+                      fTargetFPS = __target_fps;
+                    }
+
+                    fTempTargetFPS = fTargetFPS - 1.0f;
+
+                    bResetTargetFPS = false;
+
+                    SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                      "TargetFPS %f",
+                      __target_fps = fTempTargetFPS
+                    );
+                  }
+
+                  else
+                  {
+                    if (fTempTargetFPS != __target_fps)
+                    {
+                      bReduceRenderLatencyAndWait = false;
+
+                      fTargetFPS = __target_fps;
+
+                      fTempTargetFPS = 0.0f;
+
+                      return;
+                    }
+
+                    if (fWaitSeconds == 1.5f)
+                    {
+                      SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                        "TargetFPS %f",
+                        __target_fps = fTargetFPS
+                      );
+
+                      fTempTargetFPS = 0.0f;
+                    }
+                  }
+                }
+
+                else if (fTargetFPS != __target_fps)
+                {
+                  bReduceRenderLatencyAndWait = false;
+
+                  fTargetFPS = __target_fps;
+
+                  return;
+                }
+
+                fWaitSeconds += static_cast <float> (
+                  std::max (
+                    effective_ms,
+                    ms
+                  ) / 1000.0
+                );
+
+                if (fWaitSeconds < 3.0f)
+                {
+                  if (!bResetTargetFPS && fWaitSeconds >= 1.5f)
+                  {
+                    bResetTargetFPS = true;
+
+                    fWaitSeconds = 1.5f;
+                  }
+
+                  return;
+                }
+              }
+
+              _ToggleTearing (false);
+
+              bReduceRenderLatencyAndWait = true;
+
+              if (fTargetFPS != __target_fps)
+              {
+                fTargetFPS = __target_fps;
+              }
+
+              fTempTargetFPS = 0.0f;
+
+              fWaitSeconds = 0.0f;
+
+              return;
+            }
+
+            fTempTargetFPS = 0.0f;
+
+            // If Render Latency failed to reduce during waiting period,
+            // keep tearing enabled until latency decreases
+            static bool bFailedToReduceRenderLatency = false;
+
+            // After enabling tearing, disable tearing on next frame
+            // and wait for Render Latency to decrease
+            if (bReduceRenderLatencyAndWait)
+            {
+              if (bFailedToReduceRenderLatency)
+              {
+                _ToggleTearing (true);
+
+                return;
+              }
+
+              _ToggleTearing (false);
+
+              fWaitSeconds += static_cast <float> (
+                std::max (
+                  effective_ms,
+                  ms
+                ) / 1000.0
+              );
+
+              if (fWaitSeconds < 1.5f)
+              {
+                return;
+              }
+
+              bFailedToReduceRenderLatency = true;
+
+              _ToggleTearing (true);
+
+              return;
+            }
+
+            _ToggleTearing (true);
+
+            bFailedToReduceRenderLatency = false;
+
+            bReduceRenderLatencyAndWait = true;
+
+            fWaitSeconds = 0.0f;
+          }
+
+          else
+          {
+            _ToggleTearing (bIsFpsUnstable);
+
+            if (bReduceRenderLatencyAndWait)
+            {
+              if (__target_fps == fTempTargetFPS)
+              {
+                SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                  "TargetFPS %f",
+                  __target_fps = fTargetFPS
+                );
+              }
+
+              bReduceRenderLatencyAndWait = false;
+            }
+          }
+        } break;
+
+        case SK_TearingMode::LatentSync_AlwaysOn:
+        {
+          _ToggleTearing (true);
+
+          __SK_LatentSyncSkip = 0;
+        } break;
+
+        case SK_TearingMode::LatentSync_AlwaysOff:
+        {
+          _ToggleTearing (false);
+        } break;
+
+        default:
+        {
+        } break;
+      }
+    };
+
+    if (config.render.framerate.present_interval > 0 && config.render.framerate.adaptive_vsync)
+    {
+      _ManageTearing (SK_TearingMode::AdaptiveVSync);
+    }
+
+    else if (config.render.framerate.present_interval == 0 && ticks_per_scanline > 1)
+    {
+      __SK_LatentSyncSkip = static_cast <int> (
+        std::round (
+          fps / rb.getActiveRefreshRate ()
+        )
+      );
+
+      if ((! SK_LatentSync_SupportsFrameSkipping (rb.api)) || __SK_LatentSyncSkip < 2)
+      {
+        __SK_LatentSyncSkip = 0;
+      }
+
+      switch (config.render.framerate.latent_sync.tearing_mode)
+      {
+        case SK_TearingMode::LatentSync_AdaptiveOn:
+        case SK_TearingMode::LatentSync_AdaptiveOff:
+          if (SK_API_IsDirect3D9 (rb.api))
+          {
+            config.render.framerate.latent_sync.tearing_mode =
+              config.render.dxgi.allow_tearing
+                ? SK_TearingMode::LatentSync_AlwaysOn
+                : SK_TearingMode::LatentSync_AlwaysOff;
+          }
+        case SK_TearingMode::LatentSync_AlwaysOn:
+        case SK_TearingMode::LatentSync_AlwaysOff:
+          _ManageTearing (
+            static_cast <SK_TearingMode> (
+              config.render.framerate.latent_sync.tearing_mode
+            )
+          );
+          break;
+        default:
+          _ManageTearing (
+            static_cast <SK_TearingMode> (
+              config.render.framerate.latent_sync.tearing_mode =
+                config.render.dxgi.allow_tearing
+                  ? SK_TearingMode::LatentSync_AlwaysOn
+                  : SK_TearingMode::LatentSync_AlwaysOff
+            )
+          );
+          break;
+      }
 
       if (__scanline.lock.isPending ())
       {
@@ -1954,7 +2571,7 @@ SK::Framerate::Limiter::wait (void)
           }
         } static latency_avg;
 
-        latency_avg.input [latency_avg.frames     % _MAX_FRAMES] =
+        latency_avg.input   [latency_avg.frames   % _MAX_FRAMES] =
           (1000.0 / get_limit           ()) -
                     effective_frametime ();
         latency_avg.display [latency_avg.frames++ % _MAX_FRAMES] =
@@ -1964,14 +2581,15 @@ SK::Framerate::Limiter::wait (void)
 
         float auto_bias_target_ms =
           config.render.framerate.latent_sync.auto_bias_target.ms;
-        
+
         float auto_bias_target_percent =
           config.render.framerate.latent_sync.auto_bias_target.percent;
 
         if (auto_bias_target_percent > 0.0f)
         {
-          auto_bias_target_ms =
-            static_cast <float> ((latency_avg.getInput () + latency_avg.getDisplay ()) * (1.0f - auto_bias_target_percent));
+          auto_bias_target_ms = static_cast <float> (
+            (latency_avg.getInput () + latency_avg.getDisplay ()) * (1.0f - auto_bias_target_percent)
+          );
         }
 
         if (latency_avg.getInput () > (auto_bias_target_ms * 1.05f))
@@ -1991,8 +2609,13 @@ SK::Framerate::Limiter::wait (void)
           //config.render.framerate.latent_sync.delay_bias -= static_cast <float> (effective_frametime () * 0.000666);
         }
 
-        config.render.framerate.latent_sync.delay_bias =
-          std::clamp (config.render.framerate.latent_sync.delay_bias, 0.0f, config.render.framerate.latent_sync.max_auto_bias);
+        config.render.framerate.latent_sync.delay_bias = std::clamp (
+          config.render.framerate.latent_sync.delay_bias,
+          0.0f,
+          auto_bias_target_percent == 0.0f
+            ? config.render.framerate.latent_sync.max_auto_bias
+            : 1.0f
+        );
 
         __SK_LatentSyncPostDelay =
           (config.render.framerate.latent_sync.delay_bias == 0.0f) ? 0
@@ -2059,12 +2682,20 @@ SK::Framerate::Limiter::wait (void)
 
     bool bSync = false;
 
-    static int                     iTry  = 0; // First time signals resync
-    if (                           iTry == 0 || (
-      config.render.framerate.latent_sync.scanline_resync != 0 &&
-                                  (iTry++ %
-        config.render.framerate.latent_sync.scanline_resync) == 0
-                                                 )
+    static float  fTry  = 0.0f; // First time signals resync
+    if (          fTry == 0.0f ||
+                  (
+                    config.render.framerate.latent_sync.scanline_resync != 0.0f &&
+                    (
+                      fTry += static_cast <float> (
+                        std::max (
+                          effective_ms,
+                          ms
+                        ) / 1000.0
+                      )
+                    ) >=
+                    config.render.framerate.latent_sync.scanline_resync
+                  )
        )                                bSync = true;
     if (D3DKMTGetScanLine != nullptr && bSync)
     {
@@ -2159,7 +2790,7 @@ SK::Framerate::Limiter::wait (void)
                         __scanline.lock.scan_time  =       tReturn - qpc_start.QuadPart;
                         __scanline.qpc_t0.QuadPart =       tReturn - __scanline.lock.margin;
 
-                        iTry = 1;
+                        fTry = FLT_MIN;
 
                         __scanline.lock.notifyAcquired ();
 
@@ -2219,7 +2850,9 @@ SK::Framerate::Limiter::wait (void)
   {
     // Latent Sync -was- on, but now it's off and we need to restore original preference
     if (config.render.framerate.enforcement_policy < 0)
-    {   config.render.framerate.enforcement_policy = -config.render.framerate.enforcement_policy; }
+    {   config.render.framerate.enforcement_policy = -config.render.framerate.enforcement_policy;
+        config.render.framerate.latent_sync.show_fcat_bars = false;
+    }
   }
 
   if (! std::exchange (lazy_init, true))
