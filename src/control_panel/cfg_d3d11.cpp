@@ -924,79 +924,104 @@ SK::ControlPanel::D3D11::Draw (void)
         }
 #endif
 
-        if ( ( config.render.framerate.present_interval == SK_NoPreference &&
-                                    rb.present_interval >= 1                ) ||
-             ( config.render.framerate.present_interval >= 1                ) )
+        if (SK_DXGI_SupportsTearing ())
         {
-          bool bAdaptiveVSync =
-            config.render.framerate.present_interval > 0 &&
-            config.render.framerate.target_fps > 0.0f    &&
-            config.render.framerate.adaptive_vsync;
+          bool bIsAdaptiveLatentSync =
+            ( config.render.framerate.present_interval == 0 ) &&
+            ( config.render.framerate.target_fps > 0.0f     ) &&
+            ( config.render.framerate.tearing_mode ==
+                SK_TearingMode::AdaptiveOn                 ||
+              config.render.framerate.tearing_mode ==
+                SK_TearingMode::AdaptiveOff                 );
 
-          if (ImGui::Checkbox ("Adaptive V-Sync", &bAdaptiveVSync))
+          bool bIsAdaptiveVSync      =
+            ( config.render.framerate.present_interval >= 1 ) &&
+            ( config.render.framerate.target_fps > 0.0f     ) &&
+            ( config.render.framerate.tearing_mode ==
+                SK_TearingMode::AdaptiveOff                 );
+
+          bool tearing_pref = bIsAdaptiveVSync
+            ? config.render.framerate.turn_vsync_off
+            : config.render.dxgi.allow_tearing;
+
+          if  (
+                ImGui::Checkbox (
+                  bIsAdaptiveLatentSync || bIsAdaptiveVSync
+                    ? "Enable Tearing (Adaptive)"
+                    : "Enable Tearing",
+                  &tearing_pref
+                )
+              )
           {
-            config.render.framerate.adaptive_vsync = bAdaptiveVSync;
-
-            if (config.render.framerate.adaptive_vsync)
+            if (! (bIsAdaptiveLatentSync || bIsAdaptiveVSync))
             {
-              if (config.render.framerate.present_interval == SK_NoPreference)
+              config.render.dxgi.allow_tearing = tearing_pref;
+
+              if ( ( config.render.framerate.present_interval == SK_NoPreference &&
+                                          rb.present_interval == 0                ) ||
+                   ( config.render.framerate.present_interval == 0                ) )
               {
-                config.render.framerate.present_interval = 1;
+                if ( config.render.framerate.present_interval == SK_NoPreference ||
+                     config.render.framerate.target_fps       <= 0.0f            )
+                {
+                  config.render.framerate.tearing_mode =
+                    config.render.dxgi.allow_tearing
+                      ? SK_TearingMode::AlwaysOn
+                      : SK_TearingMode::AlwaysOff;
+                }
+
+                else
+                {
+                  static int iLastAlwaysOffTearingMode =
+                    SK_TearingMode::AlwaysOff;
+
+                  if ( config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff_LowLatency ||
+                       config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff            )
+                  {
+                    iLastAlwaysOffTearingMode =
+                      config.render.framerate.tearing_mode;
+                  }
+
+                  config.render.framerate.tearing_mode =
+                    config.render.dxgi.allow_tearing
+                      ? SK_TearingMode::AlwaysOn
+                      : iLastAlwaysOffTearingMode;
+                }
               }
 
-              if (__target_fps == 0.0f)
-              {
-                SK_GetCommandProcessor ()->ProcessCommandFormatted (
-                  "TargetFPS %f",
-                  static_cast <float> (
-                    rb.getActiveRefreshRate () /
-                    config.render.framerate.present_interval
-                  )
-                );
-              }
-
-              else if (__target_fps < 0.0f)
-              {
-                SK_GetCommandProcessor ()->ProcessCommandFormatted (
-                  "TargetFPS %f", -__target_fps
-                );
-              }
+              _ResetLimiter ();
             }
           }
 
           if (ImGui::IsItemHovered ())
           {
             ImGui::BeginTooltip ();
-            ImGui::Text         ("Temporarily turns V-Sync -OFF- if FPS is unstable or Render Latency exceeds 1 frame");
-            ImGui::EndTooltip   ();
-          }
-        }
-
-        else if (SK_DXGI_SupportsTearing ())
-        {
-          bool tearing_pref = config.render.dxgi.allow_tearing;
-
-          if (ImGui::Checkbox ("Enable Tearing", &tearing_pref))
-          {
-            config.render.dxgi.allow_tearing = tearing_pref;
-
-            // Latent Sync
-            if (config.render.framerate.present_interval == 0 && config.render.framerate.target_fps > 0.0f)
+            if (! (bIsAdaptiveLatentSync || bIsAdaptiveVSync))
             {
-              config.render.framerate.latent_sync.tearing_mode =
-                config.render.dxgi.allow_tearing ? SK_TearingMode::LatentSync_AlwaysOn
-                                                 : SK_TearingMode::LatentSync_AlwaysOff;
+              ImGui::Text       ("Enables True VSYNC -OFF- in Windowed Mode");
+              ImGui::Separator  ();
+              ImGui::BulletText ("Presentation Interval 0 will turn VSYNC off");
             }
-
-            _ResetLimiter ();
-          }
-
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::BeginTooltip ();
-            ImGui::Text         ("Enables True VSYNC -OFF- in Windowed Mode");
-            ImGui::Separator    ();
-            ImGui::BulletText   ("Presentation Interval 0 will turn VSYNC off");
+            else
+            {
+              if (bIsAdaptiveLatentSync)
+              {
+                if (config.render.framerate.tearing_mode == SK_TearingMode::AdaptiveOn)
+                {
+                  ImGui::Text   ("Tearing is currently managed by 'Adaptive (Prefer On)' mode");
+                }
+                else
+                {
+                  ImGui::Text   ("Tearing is currently managed by 'Adaptive (Prefer Off)' mode");
+                }
+              }
+              else
+              {
+                ImGui::Text     ("Tearing is currently managed by 'Adaptive V-Sync' mode");
+              }
+              ImGui::Separator  ();
+              ImGui::BulletText ("For manual control, change Tearing Mode to 'Always On/Off'");
+            }
             ImGui::EndTooltip   ();
           }
         }

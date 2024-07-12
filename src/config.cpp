@@ -815,7 +815,7 @@ struct {
     sk::ParameterInt*     prerender_limit         = nullptr;
     sk::ParameterInt*     present_interval        = nullptr;
     sk::ParameterInt*     sync_interval_clamp     = nullptr;
-    sk::ParameterBool*    adaptive_vsync          = nullptr;
+    sk::ParameterInt*     tearing_mode            = nullptr;
     sk::ParameterInt*     buffer_count            = nullptr;
     sk::ParameterInt*     max_delta_time          = nullptr;
     sk::ParameterBool*    flip_discard            = nullptr;
@@ -853,7 +853,6 @@ struct {
       sk::ParameterBool*    auto_bias             = nullptr;
       sk::ParameterFloat*   max_auto_bias         = nullptr;
       sk::ParameterStringW* auto_bias_target      = nullptr;
-      sk::ParameterInt*     tearing_mode          = nullptr;
     } latent_sync;
   } framerate;
 
@@ -1776,7 +1775,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.buffer_count,          L"Number of Backbuffers in the Swapchain",                    dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
     ConfigEntry (render.framerate.present_interval,      L"Presentation Interval (VSYNC)",                             dll_ini,         L"Render.FrameRate",      L"PresentationInterval"),
     ConfigEntry (render.framerate.sync_interval_clamp,   L"Maximum Sync Interval (Clamp VSYNC)",                       dll_ini,         L"Render.FrameRate",      L"SyncIntervalClamp"),
-    ConfigEntry (render.framerate.adaptive_vsync,        L"VSYNC OFF if FPS is unstable or Render Latency > 1 frame)", dll_ini,         L"Render.FrameRate",      L"AdaptiveVSync"),
+    ConfigEntry (render.framerate.tearing_mode,          L"Tearing mode: Always On/Off, Adaptive (Prefer On/Off)",     dll_ini,         L"Render.FrameRate",      L"TearingMode"),
     ConfigEntry (render.framerate.prerender_limit,       L"Maximum Frames to Render-Ahead",                            dll_ini,         L"Render.FrameRate",      L"PreRenderLimit"),
     ConfigEntry (render.framerate.sleepless_render,      L"Sleep Free Render Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessRenderThread"),
     ConfigEntry (render.framerate.sleepless_window,      L"Sleep Free Window Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessWindowThread"),
@@ -1799,8 +1798,6 @@ auto DeclKeybind =
                                        auto_bias_target, L"Target input latency (in milliseconds or %) for auto-bias", dll_ini,         L"FrameRate.LatentSync",  L"AutoBiasTarget"),
     ConfigEntry (render.framerate.latent_sync.
                                           max_auto_bias, L"Maximum percentage to bias towards low input latency",      dll_ini,         L"FrameRate.LatentSync",  L"MaxAutoBias"),
-    ConfigEntry (render.framerate.latent_sync.
-                                           tearing_mode, L"Tearing mode: Always On/Off, Adaptive (Prefer On/Off)",     dll_ini,         L"FrameRate.LatentSync",  L"TearingMode"),
 
     ConfigEntry (render.framerate.allow_dwm_tearing,     L"Enable DWM Tearing (Windows 10+)",                          dll_ini,         L"Render.DXGI",           L"AllowTearingInDWM"),
     ConfigEntry (render.framerate.drop_late_frames,      L"Enable Flip Model to Render (and drop) frames at rates >"
@@ -3982,8 +3979,6 @@ auto DeclKeybind =
     }
   }
 
-  render.framerate.latent_sync.tearing_mode->load (config.render.framerate.latent_sync.tearing_mode);
-
   render.osd.draw_in_vidcap->load            (config.render.osd. draw_in_vidcap);
 
   if (render.osd.hdr_luminance->load         (config.render.osd.hdr_luminance))
@@ -4037,7 +4032,7 @@ auto DeclKeybind =
   render.framerate.prerender_limit->load     (config.render.framerate.pre_render_limit);
   render.framerate.present_interval->load    (config.render.framerate.present_interval);
   render.framerate.sync_interval_clamp->load (config.render.framerate.sync_interval_clamp);
-  render.framerate.adaptive_vsync->load      (config.render.framerate.adaptive_vsync);
+  render.framerate.tearing_mode->load        (config.render.framerate.tearing_mode);
 
   if (render.framerate.refresh_rate)
   {
@@ -6083,7 +6078,7 @@ SK_SaveConfig ( std::wstring name,
 
     render.framerate.present_interval->store      (config.render.framerate.present_interval);
     render.framerate.sync_interval_clamp->store   (config.render.framerate.sync_interval_clamp);
-    render.framerate.adaptive_vsync->store        (config.render.framerate.adaptive_vsync);
+    render.framerate.tearing_mode->store          (config.render.framerate.tearing_mode);
     render.framerate.enforcement_policy->store    (config.render.framerate.enforcement_policy);
     render.framerate.enable_etw_tracing->store    (config.render.framerate.enable_etw_tracing);
 
@@ -6112,8 +6107,6 @@ SK_SaveConfig ( std::wstring name,
       lstrcatW                                             (wszPercent, L"%");
       render.framerate.latent_sync.auto_bias_target->store (wszPercent);
     }
-
-    render.framerate.latent_sync.tearing_mode->store (config.render.framerate.latent_sync.tearing_mode);
 
     texture.d3d9.clamp_lod_bias->store            (config.textures.clamp_lod_bias);
 
