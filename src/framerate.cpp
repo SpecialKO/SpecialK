@@ -2313,12 +2313,14 @@ SK::Framerate::Limiter::wait (void)
             // In that case, only enable tearing if Render Latency increases even further
             // (frametime graph becomes unstable beyond 1.7x Display ms)
             if ( std::round (fps / rb.getActiveRefreshRate ()) >= 2.0 &&
-                 config.render.framerate.pre_render_limit      != 1   &&
-                 rb.presentation.avg_stats.display             != 0.0 )
+                 config.render.framerate.pre_render_limit      != 1   )
             {
-              bIsRenderLatencyAboveOneFrame =
-                rb.presentation.avg_stats.latency /
-                rb.presentation.avg_stats.display > 1.7;
+              if (rb.presentation.avg_stats.display != 0.0)
+              {
+                bIsRenderLatencyAboveOneFrame =
+                  rb.presentation.avg_stats.latency /
+                  rb.presentation.avg_stats.display > 1.7;
+              }
             }
 
             else if (! SK_RenderBackend_V2::latency.stale)
