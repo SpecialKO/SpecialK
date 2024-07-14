@@ -1,4 +1,8 @@
-﻿24.7.14.2
+﻿24.7.14.3
+=========
+ + Fixed OpenGL instability in Tomb Raider 2
+
+24.7.14.2
 =========
  + Fixed potential crash in Elden Ring when turning the game's framerate
      limiter back on starting with the latest patch.

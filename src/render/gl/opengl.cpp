@@ -220,7 +220,7 @@ bool
 SK::OpenGL::Startup (void)
 {
   bool ret =
-    SK_StartupCore (L"OpenGL32", (void *)opengl_init_callback);
+    SK_StartupCore (L"OpenGL32", static_cast_pfn <void*> (opengl_init_callback));
 
   return ret;
 }
@@ -236,7 +236,7 @@ extern "C"
 {
 #define OPENGL_STUB(_Return, _Name, _Proto, _Args)                       \
     typedef _Return (WINAPI *imp_##_Name##_pfn) _Proto;                  \
-    imp_##_Name##_pfn imp_##_Name = nullptr;                             \
+    static imp_##_Name##_pfn imp_##_Name = nullptr;                      \
                                                                          \
   _Return WINAPI                                                         \
   _Name _Proto {                                                         \
@@ -260,7 +260,7 @@ extern "C"
 
 #define OPENGL_STUB_(_Name, _Proto, _Args)                               \
     typedef void (WINAPI *imp_##_Name##_pfn) _Proto;                     \
-    imp_##_Name##_pfn imp_##_Name = nullptr;                             \
+    static imp_##_Name##_pfn imp_##_Name = nullptr;                      \
                                                                          \
   void WINAPI                                                            \
   _Name _Proto {                                                         \
@@ -2315,11 +2315,12 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           if ( SK_ComPtr <IDXGIDevice>
                        pDevDXGI = nullptr ;
 
-              SUCCEEDED (hr)                                                &&
-                       (pDevice != nullptr                                  &&
-                  ( (pFactory.p != nullptr && pAdapter [0].p != nullptr)    ||
-             SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI))) &&
-             SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter [0].p))
+              SUCCEEDED (hr)                                                     &&
+                        pDevice != nullptr                                       &&
+                  ( (pFactory.p != nullptr && pAdapter [0].p != nullptr)         ||
+             SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI))       &&
+             SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter [0].p)) &&
+             SUCCEEDED (pAdapter [0]->GetParent (IID_PPV_ARGS (&pFactory)))
                   )
              )
           {
