@@ -19,7 +19,41 @@ jobs:
 
     - uses: SpecialKO/GA-setup-cpp-n20@master
 
+    - name: Uninstall MSVC Toolset (latest) components
+      run: |
+              Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+              $InstallPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+              $componentsToRemove= @(
+                  "Microsoft.VisualStudio.Component.VC.ATL"
+                  "Microsoft.VisualStudio.Component.VC.ATLMFC"
+                  "Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
+                  "Microsoft.VisualStudio.Component.VC.CLI.Support"
+              )
+              [string]$workloadArgs = $componentsToRemove | ForEach-Object {" --remove " +  $_}
+              $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"",$workloadArgs, '--quiet', '--norestart', '--nocache')
+              # should be run twice
+              $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+              $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+    
+    - name: Install MSVC Toolset (v14.36-17.6) components
+      run: |
+              Set-Location "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+              $InstallPath = "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+              $componentsToRemove= @(
+                "Microsoft.VisualStudio.Component.VC.14.36.17.6.ATL"
+                "Microsoft.VisualStudio.Component.VC.14.36.17.6.MFC"
+                "Microsoft.VisualStudio.Component.VC.14.36.17.6.x86.x64"
+                "Microsoft.VisualStudio.Component.VC.14.36.17.6.CLI.Support"
+              )
+              [string]$workloadArgs = $componentsToRemove | ForEach-Object {" --add " +  $_}
+              $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "`"$InstallPath`"",$workloadArgs, '--quiet', '--norestart', '--nocache')
+              # should be run twice
+              $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+              $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+
     - uses: microsoft/setup-msbuild@v2
+    #  with:
+    #    vs-version: '[17.6]'
 
     #- name: Restore the required Nuget packages
     #  run: |
