@@ -206,6 +206,7 @@ SK_ER_PlugInCfg (void)
       ImGui::TreePop     (  );
     }
 
+#if 0
     if (ImGui::CollapsingHeader (ICON_FA_IMAGE "\tGraphics Settings", ImGuiTreeNodeFlags_DefaultOpen))
     {
       static bool show_hud = true;
@@ -553,6 +554,7 @@ SK_ER_PlugInCfg (void)
 
       ImGui::TreePop     ( );
     }
+#endif
 
     ImGui::PopStyleColor (3);
     ImGui::TreePop       ( );
@@ -615,23 +617,23 @@ SK_ER_InitConfig (void)
           { "clock_tick2",  0x0E07F9D }, { "clock_tick3",  0x0E07F6F },
           { "clock_tick4",  0x0E07F80 }, { "clock_tick5",  0x0E07F8D },
           { "write_delta",  0x25B2D62 }, { "dt_float",     0x3B63FE8 },
-          { "write_delta0", 0x0D75074 }, { "write_delta1", 0x0D75086 },
-        };
+          { "write_delta0", 0x0D75074 }, { "write_delta1", 0x0D75086 } };
   addresses [L"ELDEN RING™  1.3.2.0"].
    cached =
         { { "clock_tick0",  0x0E07F27 }, { "clock_tick1",  0x0E07F43 },
           { "clock_tick2",  0x0E07F7D }, { "clock_tick3",  0x0E07F4F },
           { "clock_tick4",  0x0E07F60 }, { "clock_tick5",  0x0E07F6D },
-          { "write_delta",  0x25B2D42 }, { "dt_float",     0x3B63FE8 },
-        };
-
+          { "write_delta",  0x25B2D42 }, { "dt_float",     0x3B63FE8 } };
   addresses [L"ELDEN RING™  2.2.0.0"].
    cached =
         { { "clock_tick0",  0x0E82692 }, { "clock_tick1",  0x0E826B1 },
           { "clock_tick2",  0x0E826E0 }, { "clock_tick3",  0x0E821AD },
-          { "clock_tick4",  0x0E826BD }, { "clock_tick5",  0x0F8CD18 },
-//  //        //{ "write_delta",  0x25B2D42 }, { "dt_float",     0x3B63FE8 },
-        };
+          { "clock_tick4",  0x0E826BD }, { "clock_tick5",  0x0F8CD18 } };
+  addresses [L"ELDEN RING™  2.2.3.0"].
+   cached =
+       { { "clock_tick0",  0x0E826B2 }, { "clock_tick1",  0x0E826D1 },
+         { "clock_tick2",  0x0       }, { "clock_tick3",  0x0E821CD },
+         { "clock_tick4",  0x0E826DD }, { "clock_tick5",  0x0F8CD38 } };
 
   uint8_t stack_size = 0x1C; // 2.2.0.0+
 
@@ -689,11 +691,23 @@ SK_ER_InitConfig (void)
             { "clock_tick4", (uintptr_t)p4 - (uintptr_t)pBaseAddr },
             { "clock_tick5", (uintptr_t)p5 - (uintptr_t)pBaseAddr } };
 
-    for ( const auto &[name, address] :
+    for ( auto &[name, address] :
                              addresses [game_ver_str].cached )
     {
-      SK_LOG0 ( ( L"Uncached Address (%hs) => %ph", name.c_str (), address ),
-                  L"Elden Ring" );
+      if (address > 2 * (uintptr_t)p0)
+      {
+        address = 0;
+
+        SK_LOG0 (
+          ( L"Skipping Incorrect Framerate Limit Memory Address: %hs",
+              name.c_str () ), L"Elden Ring" );
+      }
+
+      else
+      {
+        SK_LOG0 ( ( L"Uncached Address (%hs) => %ph", name.c_str (), address ),
+                    L"Elden Ring" );
+      }
     }
   }
 

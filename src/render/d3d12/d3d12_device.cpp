@@ -452,8 +452,9 @@ _COM_Outptr_ void                              **ppPipelineState )
   {
     // Do not enable in other games for now, needs more testing
     //
-    static bool bEldenRing =
-      (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
+    static const bool bEldenRing =
+    //(SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
+      false;
 
     if (bEldenRing || config.render.dxgi.allow_d3d12_footguns)
     {
@@ -740,8 +741,10 @@ struct SK_D3D12_PipelineParser : ID3DX12PipelineParserCallbacks
                                       DxilContainerHashSize,
                                                  pHash );
 
-          static bool bEldenRing =
-            (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
+          static const bool bEldenRing =
+          //(SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
+            false;
+
           // Do not enable in other games for now, needs more testing
           //
           if (bEldenRing || config.render.dxgi.allow_d3d12_footguns)
@@ -816,8 +819,9 @@ _COM_Outptr_  void                            **ppPipelineState )
 
   // Do not enable in other games for now, needs more testing
   //
-  static bool bEldenRing =
-    (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
+  static const bool bEldenRing =
+  //(SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
+    false;
 
   if (bEldenRing || config.render.dxgi.allow_d3d12_footguns)
   {
@@ -908,8 +912,10 @@ D3D12Device_CreateCommandAllocator_Detour (
 {
   if (ppCommandAllocator != nullptr)
   {
-    static bool bEldenRing =
-      (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
+    static const bool bEldenRing =
+    //(SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
+      false;
+
     if (bEldenRing && riid == __uuidof (ID3D12CommandAllocator))
     {
       struct allocator_cache_s {

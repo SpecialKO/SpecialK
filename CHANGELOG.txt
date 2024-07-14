@@ -1,9 +1,14 @@
-﻿
+﻿24.7.14.2
+=========
+ + Fixed potential crash in Elden Ring when turning the game's framerate
+     limiter back on starting with the latest patch.
+ + Added cached memory addresses for Elden Ring 2.2.3.0 to speed-up game start.
+
 24.7.14.1
 =========
  + Revert project settings to use the latest Windows SDK version installed
  + Various code has been refactored to eliminate compiler crashing when trying
-     to compile SK using clang.
+     to compile SK using clang (lol).
 
 24.7.14
 =======
