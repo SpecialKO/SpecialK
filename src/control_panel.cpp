@@ -6380,11 +6380,11 @@ SK_ImGui_ControlPanel (void)
                       ImGui::Combo (
                         "Tearing Mode",
                         &iTearingMode,
-                        ! (bIsD3D9 || bIsTrueFullscreen) ? (
+                        bIsD3D9 || bIsTrueFullscreen ? (
+                          "Always On\0\0"
+                        ) : (
                           "Always On\0"
                           "Always Off\0\0"
-                        ) : (
-                          "Always On\0\0"
                         )
                       )
                     )
