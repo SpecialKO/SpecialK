@@ -957,36 +957,24 @@ SK::ControlPanel::D3D11::Draw (void)
             {
               config.render.dxgi.allow_tearing = tearing_pref;
 
-              if ( ( config.render.framerate.present_interval == SK_NoPreference &&
-                                          rb.present_interval == 0                ) ||
-                   ( config.render.framerate.present_interval == 0                ) )
+              // Latent Sync
+              if ( config.render.framerate.present_interval == 0 &&
+                   config.render.framerate.target_fps > 0.0f     )
               {
-                if ( config.render.framerate.present_interval == SK_NoPreference ||
-                     config.render.framerate.target_fps       <= 0.0f            )
+                static int iLastAlwaysOffTearingMode =
+                  SK_TearingMode::AlwaysOff;
+
+                if ( config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff_LowLatency ||
+                     config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff            )
                 {
-                  config.render.framerate.tearing_mode =
-                    config.render.dxgi.allow_tearing
-                      ? SK_TearingMode::AlwaysOn
-                      : SK_TearingMode::AlwaysOff;
+                  iLastAlwaysOffTearingMode =
+                    config.render.framerate.tearing_mode;
                 }
 
-                else
-                {
-                  static int iLastAlwaysOffTearingMode =
-                    SK_TearingMode::AlwaysOff;
-
-                  if ( config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff_LowLatency ||
-                       config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff            )
-                  {
-                    iLastAlwaysOffTearingMode =
-                      config.render.framerate.tearing_mode;
-                  }
-
-                  config.render.framerate.tearing_mode =
-                    config.render.dxgi.allow_tearing
-                      ? SK_TearingMode::AlwaysOn
-                      : iLastAlwaysOffTearingMode;
-                }
+                config.render.framerate.tearing_mode =
+                  config.render.dxgi.allow_tearing
+                    ? SK_TearingMode::AlwaysOn
+                    : iLastAlwaysOffTearingMode;
               }
 
               _ResetLimiter ();

@@ -587,6 +587,25 @@ SK_ImGui_LatentSyncConfig (void)
       bool bIsD3D9 =
         SK_API_IsDirect3D9 (rb.api);
 
+      switch (config.render.framerate.tearing_mode)
+      {
+        case  SK_TearingMode::AdaptiveOn:
+        case  SK_TearingMode::AdaptiveOff:
+          if (bIsD3D9) [[unlikely]]
+          {
+            config.render.framerate.tearing_mode =
+              SK_TearingMode::AlwaysOn;
+          }
+        case  SK_TearingMode::AlwaysOn:
+        case  SK_TearingMode::AlwaysOff:
+        case  SK_TearingMode::AlwaysOff_LowLatency:
+          break;
+        [[unlikely]] default:
+          config.render.framerate.tearing_mode =
+              SK_TearingMode::AlwaysOn;
+          break;
+      }
+
       ImGui::Separator ();
 
       ImGui::Combo (
@@ -3005,7 +3024,8 @@ SK::Framerate::Limiter::wait (void)
     // Latent Sync -was- on, but now it's off and we need to restore original preference
     if (config.render.framerate.enforcement_policy < 0)
     {   config.render.framerate.enforcement_policy = -config.render.framerate.enforcement_policy;
-        config.render.framerate.latent_sync.show_fcat_bars = false;
+        config.render.framerate.latent_sync.
+                                    show_fcat_bars = false;
     }
   }
 

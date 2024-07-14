@@ -6125,7 +6125,7 @@ SK_ImGui_ControlPanel (void)
                 );
               }
 
-              if (bIsD3D9)
+              if (bIsD3D9 && SK_IsInjected ())
               {
                 if ( ( !bIsTearingD3D9 && config.render.framerate.tearing_mode != SK_TearingMode::AlwaysOn ) ||
                      (  bIsTearingD3D9 && config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOn ) )
@@ -6178,40 +6178,49 @@ SK_ImGui_ControlPanel (void)
               {
                 int iTearingMode = 0; // "Always Off"
 
-                if (config.render.framerate.present_interval == SK_NoPreference)
+                if (config.render.framerate.target_fps <= 0.0f)
                 {
-                  config.render.framerate.tearing_mode =
-                    SK_TearingMode::AppControlled;
-                }
-
-                else if (config.render.framerate.target_fps <= 0.0f)
-                {
-                  config.render.framerate.tearing_mode =
-                    SK_TearingMode::AlwaysOff;
-                }
-
-                else
-                {
-                  switch (config.render.framerate.tearing_mode)
+                  if (config.render.framerate.present_interval > 0)
                   {
-                    case  SK_TearingMode::AlwaysOff_LowLatency:
-                      iTearingMode = 1;
-                      break;
-                    case  SK_TearingMode::AdaptiveOff:
-                      if (! bIsD3D9)
-                      {
-                        iTearingMode = 2;
-                        break;
-                      }
-                      config.render.framerate.tearing_mode =
-                          SK_TearingMode::AlwaysOff;
-                    case  SK_TearingMode::AlwaysOff:
-                      break;
-                    default:
-                      config.render.framerate.tearing_mode =
-                          SK_TearingMode::AlwaysOff;
-                      break;
+                    config.render.framerate.tearing_mode =
+                      SK_TearingMode::AlwaysOff;
                   }
+
+                  else
+                  {
+                    config.render.framerate.tearing_mode =
+                      SK_TearingMode::AppControlled;
+                  }
+                }
+
+                switch (config.render.framerate.tearing_mode)
+                {
+                  case SK_TearingMode::AlwaysOff_LowLatency:
+                    if (config.render.framerate.present_interval > 0) [[likely]]
+                    {
+                      iTearingMode = 1;
+                    }
+                    else [[unlikely]]
+                    {
+                      config.render.framerate.tearing_mode =
+                        SK_TearingMode::AppControlled;
+                    }
+                    break;
+                  case SK_TearingMode::AdaptiveOff:
+                    if (config.render.framerate.present_interval > 0 && !bIsD3D9) [[likely]]
+                    {
+                      iTearingMode = 2;
+                    }
+                    else [[unlikely]]
+                    {
+                      config.render.framerate.tearing_mode =
+                        config.render.framerate.present_interval > 0
+                          ? SK_TearingMode::AlwaysOff
+                          : SK_TearingMode::AppControlled;
+                    }
+                    break;
+                  default:
+                    break;
                 }
 
                 if  (
@@ -6245,7 +6254,8 @@ SK_ImGui_ControlPanel (void)
                       break;
                   }
 
-                  if (config.render.framerate.tearing_mode != SK_TearingMode::AlwaysOff)
+                  if ( config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff_LowLatency ||
+                       config.render.framerate.tearing_mode == SK_TearingMode::AdaptiveOff          )
                   {
                     if (config.render.framerate.present_interval == SK_NoPreference)
                     {
@@ -6303,9 +6313,12 @@ SK_ImGui_ControlPanel (void)
                     }
                   }
 
-                  else if (config.compatibility.init_on_separate_thread != bAsyncInitOrig)
+                  else if (SK_IsInjected ())
                   {
-                    config.compatibility.init_on_separate_thread = bAsyncInitOrig;
+                    if (config.compatibility.init_on_separate_thread != bAsyncInitOrig)
+                    {
+                      config.compatibility.init_on_separate_thread = bAsyncInitOrig;
+                    }
                   }
                 }
 
@@ -6332,44 +6345,52 @@ SK_ImGui_ControlPanel (void)
 
                 int iTearingMode = 0; // "Always On"
 
-                if (bIsD3D9 || bIsTrueFullscreen)
+                if (config.render.framerate.target_fps <= 0.0f)
                 {
-                  config.render.framerate.tearing_mode =
-                    SK_TearingMode::AppControlled;
-                }
-
-                else
-                {
-                  iTearingMode =
+                  if (! (bIsD3D9 || bIsTrueFullscreen))
+                  {
                     config.render.framerate.tearing_mode =
                       config.render.dxgi.allow_tearing
                         ? SK_TearingMode::AlwaysOn
                         : SK_TearingMode::AlwaysOff;
+                  }
+
+                  else
+                  {
+                    config.render.framerate.tearing_mode =
+                      SK_TearingMode::AppControlled;
+                  }
+                }
+
+                if (config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff)
+                {
+                  if (! (bIsD3D9 || bIsTrueFullscreen)) [[likely]]
+                  {
+                    iTearingMode = 1;
+                  }
+
+                  else [[unlikely]]
+                  {
+                    config.render.framerate.tearing_mode =
+                      SK_TearingMode::AppControlled;
+                  }
                 }
 
                 if  (
                       ImGui::Combo (
                         "Tearing Mode",
                         &iTearingMode,
-                        bIsD3D9 || bIsTrueFullscreen ? (
-                          "Always On\0\0"
-                        ) : (
+                        ! (bIsD3D9 || bIsTrueFullscreen) ? (
                           "Always On\0"
                           "Always Off\0\0"
+                        ) : (
+                          "Always On\0\0"
                         )
                       )
                     )
                 {
-                  if (! (bIsD3D9 || bIsTrueFullscreen))
-                  {
-                    config.render.dxgi.allow_tearing =
-                      iTearingMode == 0;
-
-                    config.render.framerate.tearing_mode =
-                      config.render.dxgi.allow_tearing
-                        ? SK_TearingMode::AlwaysOn
-                        : SK_TearingMode::AlwaysOff;
-                  }
+                  config.render.dxgi.allow_tearing =
+                    iTearingMode == 0;
                 }
 
                 if (ImGui::IsItemHovered ())
@@ -6379,7 +6400,7 @@ SK_ImGui_ControlPanel (void)
                   ImGui::EndTooltip   ();
                 }
 
-                if (bIsD3D9)
+                if (bIsD3D9 && SK_IsInjected ())
                 {
                   if (config.compatibility.init_on_separate_thread != bAsyncInitOrig)
                   {
