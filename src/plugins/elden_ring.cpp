@@ -36,10 +36,10 @@ template <auto _N>
      boost::container::static_vector <uint8_t, _N>;
 
 struct code_patch_s {
-  void* pAddr;
+  void* pAddr = nullptr;
 
   struct executable_code_s {
-    code_bytes_t <8> inst_bytes;
+    code_bytes_t <8> inst_bytes = { };
   } original, replacement;
   
   void apply (executable_code_s *pExec);

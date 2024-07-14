@@ -689,8 +689,8 @@ SK_ImGui_ProcessGamepadStatusBar (bool bDraw)
     } battery;
   } static
       gamepads [4] =
-        { { 0 }, { 1 },
-          { 2 }, { 3 } };
+        { { 0, FALSE, INFINITE, { } }, { 1, FALSE, INFINITE, { } },
+          { 2, FALSE, INFINITE, { } }, { 3, FALSE, INFINITE, { } } };
 
   static auto constexpr
     _BatteryPollingIntervalMs = 10000UL;
@@ -788,7 +788,7 @@ SK_ImGui_ProcessGamepadStatusBar (bool bDraw)
       if (bDraw)
       {
         ImGui::BeginGroup  ();
-        ImGui::TextColored (gamepad_color, szGamepadSymbols [gamepad.slot]);
+        ImGui::TextColored (gamepad_color, "%hs", szGamepadSymbols [gamepad.slot]);
         ImGui::SameLine    ();
 
         if (battery.draining)

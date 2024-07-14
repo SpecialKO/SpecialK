@@ -1,4 +1,4 @@
-/* LzmaEnc.c -- LZMA Encoder
+﻿/* LzmaEnc.c -- LZMA Encoder
 2016-05-16 : Igor Pavlov : Public domain */
 
 #include <lzma/Precomp.h>
@@ -1397,56 +1397,56 @@ static UInt32 GetOptimum(CLzmaEnc *p, UInt32 position, UInt32 *backRes)
       }
       while (--lenTest >= 2);
       lenTest = lenTestTemp;
-      
+
       if (repIndex == 0)
         startLen = lenTest + 1;
-        
+
       /* if (_maxMode) */
-        {
-          UInt32 lenTest2 = lenTest + 1;
-          UInt32 limit = lenTest2 + p->numFastBytes;
-          if (limit > numAvailFull)
+      {
+        UInt32 lenTest2 = lenTest + 1;
+        UInt32 limit = lenTest2 + p->numFastBytes;
+        if (limit > numAvailFull)
             limit = numAvailFull;
-          for (; lenTest2 < limit && data[lenTest2] == data2[lenTest2]; lenTest2++);
-          lenTest2 -= lenTest + 1;
-          if (lenTest2 >= 2)
+        for (; lenTest2 < limit && data[lenTest2] == data2[lenTest2]; lenTest2++) { };
+            lenTest2 -= lenTest + 1;
+        if (lenTest2 >= 2)
+        {
+          UInt32 nextRepMatchPrice;
+          UInt32 state2 = kRepNextStates[state];
+          UInt32 posStateNext = (position + lenTest) & p->pbMask;
+          UInt32 curAndLenCharPrice =
+              price + p->repLenEnc.prices[posState][lenTest - 2] +
+              GET_PRICE_0(p->isMatch[state2][posStateNext]) +
+              LitEnc_GetPriceMatched(LIT_PROBS(position + lenTest, data[lenTest - 1]),
+                  data[lenTest], data2[lenTest], p->ProbPrices);
+          state2 = kLiteralNextStates[state2];
+          posStateNext = (position + lenTest + 1) & p->pbMask;
+          nextRepMatchPrice = curAndLenCharPrice +
+              GET_PRICE_1(p->isMatch[state2][posStateNext]) +
+              GET_PRICE_1(p->isRep[state2]);
+
+          /* for (; lenTest2 >= 2; lenTest2--) */
           {
-            UInt32 nextRepMatchPrice;
-            UInt32 state2 = kRepNextStates[state];
-            UInt32 posStateNext = (position + lenTest) & p->pbMask;
-            UInt32 curAndLenCharPrice =
-                price + p->repLenEnc.prices[posState][lenTest - 2] +
-                GET_PRICE_0(p->isMatch[state2][posStateNext]) +
-                LitEnc_GetPriceMatched(LIT_PROBS(position + lenTest, data[lenTest - 1]),
-                    data[lenTest], data2[lenTest], p->ProbPrices);
-            state2 = kLiteralNextStates[state2];
-            posStateNext = (position + lenTest + 1) & p->pbMask;
-            nextRepMatchPrice = curAndLenCharPrice +
-                GET_PRICE_1(p->isMatch[state2][posStateNext]) +
-                GET_PRICE_1(p->isRep[state2]);
-            
-            /* for (; lenTest2 >= 2; lenTest2--) */
+            UInt32 curAndLenPrice;
+            COptimal *opt;
+            UInt32 offset = cur + lenTest + 1 + lenTest2;
+            while (lenEnd < offset)
+              p->opt[++lenEnd].price = kInfinityPrice;
+            curAndLenPrice = nextRepMatchPrice + GetRepPrice(p, 0, lenTest2, state2, posStateNext);
+            opt = &p->opt[offset];
+            if (curAndLenPrice < opt->price)
             {
-              UInt32 curAndLenPrice;
-              COptimal *opt;
-              UInt32 offset = cur + lenTest + 1 + lenTest2;
-              while (lenEnd < offset)
-                p->opt[++lenEnd].price = kInfinityPrice;
-              curAndLenPrice = nextRepMatchPrice + GetRepPrice(p, 0, lenTest2, state2, posStateNext);
-              opt = &p->opt[offset];
-              if (curAndLenPrice < opt->price)
-              {
-                opt->price = curAndLenPrice;
-                opt->posPrev = cur + lenTest + 1;
-                opt->backPrev = 0;
-                opt->prev1IsChar = True;
-                opt->prev2 = True;
-                opt->posPrev2 = cur;
-                opt->backPrev2 = repIndex;
-              }
+              opt->price = curAndLenPrice;
+              opt->posPrev = cur + lenTest + 1;
+              opt->backPrev = 0;
+              opt->prev1IsChar = True;
+              opt->prev2 = True;
+              opt->posPrev2 = cur;
+              opt->backPrev2 = repIndex;
             }
           }
         }
+      }
     }
     }
     /* for (UInt32 lenTest = 2; lenTest <= newLen; lenTest++) */

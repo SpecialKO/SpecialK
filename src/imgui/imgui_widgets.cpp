@@ -7082,10 +7082,8 @@ int ImGui::PlotEx(ImGuiPlotType plot_type, const char* label, float (*values_get
 #else
 int
 ImGui::PlotEx ( ImGuiPlotType plot_type,   const char*  label,
-           /*-*\-----------------------------------------------\-*-\
-           \*-*/float      (* values_getter)(    void*  data,/*/-*-/
-           /-*-\                           */    int    idx),/*\*-*\
-           \-*-/-----------------------------------------------/*-*/
+                float      (* values_getter)(    void*  data,
+                                                 int    idx),
                 void*         data,
                 int           values_count,      int    values_offset,
           const char*         overlay_text,      float  scale_min,

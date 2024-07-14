@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2020 Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -100,14 +100,15 @@ enum class Channel : uint8_t {
 };
 
 // Event descriptors:
-#define EVENT_DESCRIPTOR_DECL(name_, id_, version_, channel_, level_, opcode_, task_, keyword_) struct name_ { \
-    static uint16_t const Id      = id_;                \
-    static uint8_t  const Version = version_;           \
-    static uint8_t  const Channel = channel_;           \
-    static uint8_t  const Level   = level_;             \
-    static uint8_t  const Opcode  = opcode_;            \
-    static uint16_t const Task    = task_;              \
-    static Keyword  const Keyword = (Keyword) keyword_; \
+#define EVENT_DESCRIPTOR_DECL(name_, id_, version_, channel_, level_, opcode_, task_, keyword_)\
+struct name_ {                                                                                 \
+  static uint16_t const Id      =                       id_;                                   \
+  static uint8_t  const Version =                  version_;                                   \
+  static uint8_t  const Channel =                  channel_;                                   \
+  static uint8_t  const Level   =                    level_;                                   \
+  static uint8_t  const Opcode  =                   opcode_;                                   \
+  static uint16_t const Task    =                     task_;                                   \
+  static Keyword  const Keyword = {  (enum Keyword)keyword_ };                                 \
 };
 
 EVENT_DESCRIPTOR_DECL(Blit_Info                     , 0x00a6, 0x00, 0x11, 0x04, 0x00, 0x0067, 0x4000000000000001);

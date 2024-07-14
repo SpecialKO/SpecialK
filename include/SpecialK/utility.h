@@ -248,6 +248,8 @@ BOOL           SK_File_ApplyAttribMask      (const wchar_t* file,      DWORD    
 BOOL           SK_File_SetHidden            (const wchar_t* file,      bool           hidden);
 BOOL           SK_File_SetTemporary         (const wchar_t* file,      bool           temp);
 uint64_t       SK_File_GetSize              (const wchar_t* wszFile);
+BOOL           SK_File_GetAttribs           (const wchar_t* wszFile, const wchar_t* wszPerms = nullptr, int buf_len = 0);
+
 
 //
 // These all return a view of Thread Local Memory; the returned view is not valid across multiple calls.
@@ -746,6 +748,35 @@ hash_lower_utf8 (const char* const ustr)
 
 
 
+#ifdef SK_BUILT_BY_CLANG
+#if __i386__
+#define __llvm_cpuid(__leaf, __eax, __ebx, __ecx, __edx) \
+    __asm("cpuid" : "=a"(__eax), "=b" (__ebx), "=c"(__ecx), "=d"(__edx) \
+                  : "0"(__leaf))
+
+#define __llvm_cpuid_count(__leaf, __count, __eax, __ebx, __ecx, __edx) \
+    __asm("cpuid" : "=a"(__eax), "=b" (__ebx), "=c"(__ecx), "=d"(__edx) \
+                  : "0"(__leaf), "2"(__count))
+#else
+/* x86-64 uses %rbx as the base register, so preserve it. */
+#define __llvm_cpuid(__leaf, __eax, __ebx, __ecx, __edx) \
+    __asm("  xchgq  %%rbx,%q1\n" \
+          "  cpuid\n" \
+          "  xchgq  %%rbx,%q1" \
+        : "=a"(__eax), "=r" (__ebx), "=c"(__ecx), "=d"(__edx) \
+        : "0"(__leaf))
+
+#define __llvm_cpuid_count(__leaf, __count, __eax, __ebx, __ecx, __edx) \
+    __asm("  xchgq  %%rbx,%q1\n" \
+          "  cpuid\n" \
+          "  xchgq  %%rbx,%q1" \
+        : "=a"(__eax), "=r" (__ebx), "=c"(__ecx), "=d"(__edx) \
+        : "0"(__leaf), "2"(__count))
+#endif
+#endif
+
+
+
 class InstructionSet
 {
   // Fwd decl
@@ -857,8 +888,14 @@ private:
       // Calling __cpuid with 0x0 as the function_id argument
       // gets the number of the highest valid function ID.
 
+#ifndef SK_BUILT_BY_CLANG
       __cpuid (cpui.data (), 0);
-       nIds_ = cpui [0];
+#else
+      __llvm_cpuid (0, cpui [0], cpui [1],
+                       cpui [2], cpui [3]);
+#endif
+
+      nIds_ = cpui [0];
 
       for (int i = 0; i <= nIds_; ++i)
       {
@@ -909,8 +946,14 @@ private:
       // Calling __cpuid with 0x80000000 as the function_id argument
       // gets the number of the highest valid extended ID.
       //
+#ifndef SK_BUILT_BY_CLANG
        __cpuid (cpui.data ( ), 0x80000000U);
       nExIds_ = cpui      [0];
+#else
+      __llvm_cpuid (0x80000000U, cpui [0], cpui [1],
+                                 cpui [2], cpui [3]);
+      nExIds_                  = cpui [0];
+#endif
 
       for (int i = 0x80000000U; i <= nExIds_; ++i)
       {

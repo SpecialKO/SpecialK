@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2017-2020 Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -47,11 +47,11 @@ enum PropertyStatus {
 };
 
 struct EventDataDesc {
-    wchar_t const* name_;   // Property name
-    uint32_t arrayIndex_;   // Array index (optional)
-    void* data_;            // OUT pointer to property data
-    uint32_t size_;         // OUT size of property data
-    uint32_t status_;       // OUT PropertyStatus result of search
+    wchar_t const* name_;                 // Property name
+    uint32_t       arrayIndex_ = 0;       // Array index (optional)
+    void*          data_       = nullptr; // OUT pointer to property data
+    uint32_t       size_       = 0;       // OUT size of property data
+    uint32_t       status_     = 0;       // OUT PropertyStatus result of search
 
     template<typename T> T GetData() const
     {
@@ -69,7 +69,7 @@ struct EventDataDesc {
     }
 };
 
-template<> std::string EventDataDesc::GetData<std::string>() const;
+template<> std::string  EventDataDesc::GetData<std::string >() const;
 template<> std::wstring EventDataDesc::GetData<std::wstring>() const;
 
 struct EventMetadata {

@@ -1976,10 +1976,10 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
       if (_ORIGINAL_SWAP_CHAIN_DESC.OutputWindow == SK_GetGameWindow ( )  &&
           _ORIGINAL_SWAP_CHAIN_DESC.BufferCount  != swap_desc.BufferCount &&
           _ORIGINAL_SWAP_CHAIN_DESC.BufferCount  != 0)
-        ImGui::Text            ("%lu %hs %lu",                             std::max (1U, _ORIGINAL_SWAP_CHAIN_DESC.BufferCount),  (const char*)u8"\u2192",
+        ImGui::Text            ("%u %hs %u",                               std::max (1U, _ORIGINAL_SWAP_CHAIN_DESC.BufferCount),  (const char*)u8"\u2192",
                                                                            std::max (1U, swap_desc.BufferCount));
       else
-        ImGui::Text            ("%lu",                                     std::max (1U, swap_desc.BufferCount));
+        ImGui::Text            ("%u",                                      std::max (1U, swap_desc.BufferCount));
 
       if ((! fullscreen_desc.Windowed) && fullscreen_desc.Scaling          != DXGI_MODE_SCALING_UNSPECIFIED)
         ImGui::Text          ("%hs",        SK_DXGI_DescribeScalingMode (fullscreen_desc.Scaling));
@@ -2020,7 +2020,7 @@ SK_ImGui_SummarizeDXGISwapchain (IDXGISwapChain* pSwapDXGI)
                                   ? "4: 1/4 Refresh V-SYNC" :
                                     "0: UNKNOWN or Invalid";
 
-      ImGui::Text             (present_interval_text.c_str());
+      ImGui::TextUnformatted    (present_interval_text.c_str ());
 
 
       if (_ORIGINAL_SWAP_CHAIN_DESC.OutputWindow == SK_GetGameWindow ( ) &&

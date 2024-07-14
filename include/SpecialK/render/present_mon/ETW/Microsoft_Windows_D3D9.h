@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2020 Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -24,6 +24,8 @@ SOFTWARE.
 //     version:    development branch 4676a0924b2a2d446f58e1104732a2553a4ca60d
 //     parameters: --show=all --output=c++ --event=Present::Start --event=Present::Stop --provider=Microsoft-Windows-D3D9
 
+#include <SpecialK/stdafx.h>
+
 namespace Microsoft_Windows_D3D9 {
 
 struct __declspec(uuid("{783ACA0A-790E-4D7F-8451-AA850511C6B9}")) GUID_STRUCT;
@@ -43,18 +45,19 @@ enum class Channel : uint8_t {
 };
 
 // Event descriptors:
-#define EVENT_DESCRIPTOR_DECL(name_, id_, version_, channel_, level_, opcode_, task_, keyword_) struct name_ { \
-    static constexpr uint16_t const Id      = id_;                \
-    static constexpr uint8_t  const Version = version_;           \
-    static constexpr uint8_t  const Channel = channel_;           \
-    static constexpr uint8_t  const Level   = level_;             \
-    static constexpr uint8_t  const Opcode  = opcode_;            \
-    static constexpr uint16_t const Task    = task_;              \
-    static           Keyword  const Keyword = (Keyword) keyword_; \
+#define EVENT_DESCRIPTOR_DECL(name_, id_, version_, channel_, level_, opcode_, task_, keyword_)\
+struct name_ {                                                                                 \
+  static uint16_t const Id      =                       id_;                                   \
+  static uint8_t  const Version =                  version_;                                   \
+  static uint8_t  const Channel =                  channel_;                                   \
+  static uint8_t  const Level   =                    level_;                                   \
+  static uint8_t  const Opcode  =                   opcode_;                                   \
+  static uint16_t const Task    =                     task_;                                   \
+  static Keyword  const Keyword = { (enum Keyword)keyword_ };                                  \
 };
 
-EVENT_DESCRIPTOR_DECL(Present_Start, 0x0001, 0x00, 0x10, 0x00, 0x01, 0x0001, 0x8000000000000002)
-EVENT_DESCRIPTOR_DECL(Present_Stop , 0x0002, 0x00, 0x10, 0x00, 0x02, 0x0001, 0x8000000000000002)
+EVENT_DESCRIPTOR_DECL(Present_Start, 0x0001, 0x00, 0x10, 0x00, 0x01, 0x0001, 0x8000000000000002);
+EVENT_DESCRIPTOR_DECL(Present_Stop , 0x0002, 0x00, 0x10, 0x00, 0x02, 0x0001, 0x8000000000000002);
 
 #undef EVENT_DESCRIPTOR_DECL
 

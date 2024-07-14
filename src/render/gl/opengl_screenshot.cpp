@@ -684,10 +684,10 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
 
                 static const XMMATRIX c_from2020to709 =
                 {
-                  { 1.6604910f,  -0.1245505f, -0.0181508f, 0.f },
-                  { -0.5876411f,  1.1328999f, -0.1005789f, 0.f },
-                  { -0.0728499f, -0.0083494f,  1.1187297f, 0.f },
-                  { 0.f,          0.f,         0.f,        1.f }
+                  1.6604910f,  -0.1245505f, -0.0181508f, 0.f,
+                  -0.5876411f,  1.1328999f, -0.1005789f, 0.f,
+                  -0.0728499f, -0.0083494f,  1.1187297f, 0.f,
+                  0.f,          0.f,         0.f,        1.f
                 };
 
                 auto RemoveGamma_sRGB = [](XMVECTOR value) ->

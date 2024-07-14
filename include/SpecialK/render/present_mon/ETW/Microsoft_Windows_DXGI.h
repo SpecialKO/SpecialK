@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2020 Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -47,20 +47,21 @@ enum class Channel : uint8_t {
 };
 
 // Event descriptors:
-#define EVENT_DESCRIPTOR_DECL(name_, id_, version_, channel_, level_, opcode_, task_, keyword_) struct name_ { \
-    static uint16_t const Id      = id_; \
-    static uint8_t  const Version = version_; \
-    static uint8_t  const Channel = channel_; \
-    static uint8_t  const Level   = level_; \
-    static uint8_t  const Opcode  = opcode_; \
-    static uint16_t const Task    = task_; \
-    static Keyword  const Keyword = (Keyword) keyword_; \
+#define EVENT_DESCRIPTOR_DECL(name_, id_, version_, channel_, level_, opcode_, task_, keyword_)\
+struct name_ {                                                                                 \
+  static uint16_t const Id      =                       id_;                                   \
+  static uint8_t  const Version =                  version_;                                   \
+  static uint8_t  const Channel =                  channel_;                                   \
+  static uint8_t  const Level   =                    level_;                                   \
+  static uint8_t  const Opcode  =                   opcode_;                                   \
+  static uint16_t const Task    =                     task_;                                   \
+  static Keyword  const Keyword = { (enum Keyword)keyword_ };                                  \
 };
 
-EVENT_DESCRIPTOR_DECL(Present_Start                 , 0x002a, 0x00, 0x10, 0x00, 0x01, 0x0009, 0x8000000000000002)
-EVENT_DESCRIPTOR_DECL(Present_Stop                  , 0x002b, 0x00, 0x10, 0x00, 0x02, 0x0009, 0x8000000000000002)
-EVENT_DESCRIPTOR_DECL(PresentMultiplaneOverlay_Start, 0x0037, 0x00, 0x10, 0x00, 0x01, 0x000e, 0x8000000000000002)
-EVENT_DESCRIPTOR_DECL(PresentMultiplaneOverlay_Stop , 0x0038, 0x00, 0x10, 0x00, 0x02, 0x000e, 0x8000000000000002)
+EVENT_DESCRIPTOR_DECL(Present_Start                 , 0x002a, 0x00, 0x10, 0x00, 0x01, 0x0009, 0x8000000000000002);
+EVENT_DESCRIPTOR_DECL(Present_Stop                  , 0x002b, 0x00, 0x10, 0x00, 0x02, 0x0009, 0x8000000000000002);
+EVENT_DESCRIPTOR_DECL(PresentMultiplaneOverlay_Start, 0x0037, 0x00, 0x10, 0x00, 0x01, 0x000e, 0x8000000000000002);
+EVENT_DESCRIPTOR_DECL(PresentMultiplaneOverlay_Stop , 0x0038, 0x00, 0x10, 0x00, 0x02, 0x000e, 0x8000000000000002);
 
 #undef EVENT_DESCRIPTOR_DECL
 

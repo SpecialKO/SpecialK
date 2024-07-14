@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -183,7 +183,7 @@ SK_D3D11_GetDebugName (ID3D11DeviceChild* pD3D11Obj)
   }
 
   return
-    std::basic_string <_T> (reinterpret_cast <_T *> (L""));
+    std::basic_string <_T> (reinterpret_cast <const _T *> (L""));
 }
 
 std::wstring

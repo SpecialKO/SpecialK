@@ -422,7 +422,7 @@ SK_TVFix_PlugInCfg (void)
     }
 
     if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Eliminate Microstutter, but will raise CPU usage %");
+        ImGui::SetTooltip ("Eliminate Microstutter, but will raise CPU usage %%");
 
     ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine (); ImGui::Spacing ();
     ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine ();
@@ -576,13 +576,13 @@ SK_TVFix_PlugInCfg (void)
     const bool tex_manage =
       ImGui::CollapsingHeader ("Texture Management##ToV", ImGuiTreeNodeFlags_DefaultOpen);
 
-    bool changed = false;
+    //bool changed = false;
 
     if (tex_manage)
     {
       ImGui::TreePush    ("");
       ImGui::BeginGroup  (  );
-      changed |= ImGui::Checkbox ("Generate Mipmaps", &config.textures.d3d11.generate_mips);
+    /*changed |=*/ ImGui::Checkbox ("Generate Mipmaps", &config.textures.d3d11.generate_mips);
 
       if (ImGui::IsItemHovered ())
       {
@@ -665,9 +665,9 @@ SK_TVFix_PlugInCfg (void)
           ImGui::Text     ("Current Cache Size: %.2f MiB", (double)SK_D3D11_MipmapCacheSize / (1024.0 * 1024.0));
         }
 
-        static uint64_t       last_MipmapCacheSize =         0ULL;
-        static ULARGE_INTEGER ulBytesAvailable     = { 0UL, 0UL },
-                              ulBytesTotal         = { 0UL, 0UL };
+        static uint64_t       last_MipmapCacheSize =          0ULL;
+        static ULARGE_INTEGER ulBytesAvailable     = { { 0UL, 0UL } },
+                              ulBytesTotal         = { { 0UL, 0UL } };
 
         //
         // GetDiskFreeSpaceEx has highly unpredictable call overhead

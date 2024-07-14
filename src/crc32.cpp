@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -432,10 +432,14 @@ int
 __cdecl
 crc32c_hw_available (void)
 {
-  int      info [4] = { 0 };
-  __cpuid (info, 1);
+  int              info [4] = { 0 };
+#ifndef SK_BUILT_BY_CLANG
+  __cpuid         (info, 1);
+#else
+  __llvm_cpuid (1, info [0], info [1],
+                   info [2], info [3]);
+#endif
   return ( info [2] & (1 << 20)) != 0;
-
 }
 
 extern "C"

@@ -413,8 +413,8 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
   ctx->IASetIndexBuffer (
     std::array <D3D12_INDEX_BUFFER_VIEW, 1> (
-    { pHeap->Ib->GetGPUVirtualAddress (),
-      pHeap->Ib.size * sizeof (ImDrawIdx),
+    { pHeap->Ib->GetGPUVirtualAddress (), sk::narrow_cast <UINT> (
+      pHeap->Ib.size * sizeof (ImDrawIdx)),
                        sizeof (ImDrawIdx) == 2 ?
                           DXGI_FORMAT_R16_UINT :
                           DXGI_FORMAT_R32_UINT

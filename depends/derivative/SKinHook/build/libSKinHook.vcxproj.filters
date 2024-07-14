@@ -39,7 +39,9 @@
     <ClInclude Include="..\..\..\src\SKinHook\trampoline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\include\MinHook\MinHook.h" />
+    <ClInclude Include="..\..\..\include\MinHook\MinHook.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

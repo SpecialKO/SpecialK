@@ -1,4 +1,4 @@
-/* AesOpt.c -- Intel's AES
+﻿/* AesOpt.c -- Intel's AES
 2013-11-12 : Igor Pavlov : Public domain */
 
 #include <lzma/Precomp.h>
@@ -11,7 +11,8 @@
 #endif
 #endif
 
-#ifdef USE_INTEL_AES
+#if (defined USE_INTEL_AES) && \
+  (! defined (SK_BUILT_BY_CLANG))
 
 #include <wmmintrin.h>
 

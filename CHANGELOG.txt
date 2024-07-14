@@ -1,4 +1,11 @@
-﻿24.7.14
+﻿
+24.7.14.1
+=========
+ + Revert project settings to use the latest Windows SDK version installed
+ + Various code has been refactored to eliminate compiler crashing when trying
+     to compile SK using clang.
+
+24.7.14
 =======
  + Create HDR screenshots directory when saving HDR screenshots as .png, if
      the directory does not already exist.

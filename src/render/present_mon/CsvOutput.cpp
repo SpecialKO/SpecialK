@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2017-2020 Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -403,11 +403,15 @@ CloseOutputCsv (ProcessInfo *processInfo)
                        args.mMultiCsv; }
 
   if ( closeFile )
+  {
     if (       csv->mFile    != nullptr)
       fclose ( csv->mFile              );
+
     if (       csv->mWmrFile != nullptr)
       fclose ( csv->mWmrFile           );
-               csv->mFile     = nullptr;
-               csv->mWmrFile  = nullptr;
+
+    csv->mFile     = nullptr;
+    csv->mWmrFile  = nullptr;
+  }
 }
 

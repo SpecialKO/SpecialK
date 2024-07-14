@@ -66,6 +66,14 @@ template <typename T, typename Q>
                                 );
     };
 
+  template <typename T, typename Q>
+  constexpr
+  T
+    static_cast_pfn (Q* p2p) noexcept
+    {
+      return static_cast <T> (p2p);
+    };
+
 constexpr static DWORD SK_WINNT_THREAD_NAME_EXCEPTION = 0x406D1388;
 
 #pragma pack(push,8)

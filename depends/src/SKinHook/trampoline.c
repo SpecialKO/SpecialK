@@ -26,6 +26,8 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <SpecialK/targetver.h>
+
 #include <windows.h>
 #include <assert.h>
 

@@ -88,7 +88,7 @@ HidP_GetUsageValueArray_pfn    SK_HidP_GetUsageValueArray      = nullptr;
 
 #define __SK_HID_CalculateLatency
 
-enum class SK_Input_DeviceFileType
+enum class SK_Input_DeviceFileType : int
 {
   None    = 0,
   HID     = 1,
@@ -1162,6 +1162,13 @@ ReadFile_Detour (HANDLE       hFile,
       {
         SK_MessageBus_Backend->markRead (2);
       } break;
+
+      default:
+      {
+        SK_RunOnce (
+          SK_LOGi0 (L"Unexpected Device Type (%d) [%ws:%d]", dev_file_type,
+                                                  __FILEW__, __LINE__) );
+      } break;
     }
   }
 
@@ -1236,6 +1243,13 @@ ReadFileEx_Detour (HANDLE                          hFile,
     {
       SK_MessageBus_Backend->markRead (2);
     }
+
+    default:
+    {
+      SK_RunOnce (
+        SK_LOGi0 (L"Unexpected Device Type (%d) [%ws:%d]", dev_file_type,
+                                                __FILEW__, __LINE__) );
+    } break;
   }
 
   return bRet;
@@ -1696,6 +1710,13 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
     {
       SK_MessageBus_Backend->markRead (2);
     } break;
+
+    default:
+    {
+      SK_RunOnce (
+        SK_LOGi0 (L"Unexpected Device Type (%d) [%ws:%d]", dev_file_type,
+                                                __FILEW__, __LINE__) );
+    } break;
   }
 
   return
@@ -1821,6 +1842,13 @@ GetOverlappedResult_Detour (HANDLE       hFile,
     case SK_Input_DeviceFileType::NVIDIA:
     {
       SK_MessageBus_Backend->markRead (2);
+    } break;
+
+    default:
+    {
+      SK_RunOnce (
+        SK_LOGi0 (L"Unexpected Device Type (%d) [%ws:%d]", dev_file_type,
+                                                __FILEW__, __LINE__) );
     } break;
   }
 

@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2017-2021 Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -1437,6 +1437,8 @@ PMTraceConsumer::RemoveLostPresent (std::shared_ptr<PresentEvent> p)
 
   // We expect an element to be removed here.
   assert (hasRemovedElement);
+
+  std::ignore = hasRemovedElement;
 
   // Update the list of lost presents.
   {

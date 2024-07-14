@@ -2599,9 +2599,9 @@ struct SK_IMGUI_D3D11StateBlock {
 #define        STAGE_SAMPLER_SLOT_COUNT \
   D3D11_COMMONSHADER_SAMPLER_SLOT_COUNT
 
-#define _Stage(StageName) Shaders.##StageName
-#define Stage_Get(_Tp)    pDevCtx->##_Tp##Get
-#define Stage_Set(_Tp)    pDevCtx->##_Tp##Set
+#define _Stage(StageName)   Shaders.##StageName
+#define Stage_Get(_Tp,Func) pDevCtx->##_Tp##Get##Func
+#define Stage_Set(_Tp,Func) pDevCtx->##_Tp##Set##Func
 
   static constexpr UINT
     minus_one [D3D11_PS_CS_UAV_REGISTER_COUNT] =
@@ -2644,21 +2644,21 @@ struct SK_IMGUI_D3D11StateBlock {
 
 #define _BackupStage(_Tp,StageName)                                                    \
     if (iStateMask & StageName##Stage) {                                               \
-      Stage_Get(_Tp)ShaderResources      ( 0, STAGE_INPUT_RESOURCE_SLOT_COUNT,         \
+      Stage_Get(_Tp,ShaderResources)     ( 0, STAGE_INPUT_RESOURCE_SLOT_COUNT,         \
                                             &_Stage(StageName).Resources       [0].p );\
-      Stage_Get(_Tp)ConstantBuffers      ( 0, STAGE_CONSTANT_BUFFER_API_SLOT_COUNT,    \
+      Stage_Get(_Tp,ConstantBuffers)     ( 0, STAGE_CONSTANT_BUFFER_API_SLOT_COUNT,    \
                                             &_Stage(StageName).Constants       [0].p );\
-      Stage_Get(_Tp)ConstantBuffers      ( 0, STAGE_CONSTANT_BUFFER_API_SLOT_COUNT,    \
+      Stage_Get(_Tp,ConstantBuffers)     ( 0, STAGE_CONSTANT_BUFFER_API_SLOT_COUNT,    \
                                             &_Stage(StageName).Constants       [0].p );\
-      Stage_Get(_Tp)Samplers             ( 0, STAGE_SAMPLER_SLOT_COUNT,                \
+      Stage_Get(_Tp,Samplers)            ( 0, STAGE_SAMPLER_SLOT_COUNT,                \
                                             &_Stage(StageName).Samplers        [0].p );\
-      Stage_Get(_Tp)Shader               (  &_Stage(StageName).Shader,                 \
+      Stage_Get(_Tp,Shader)              (  &_Stage(StageName).Shader,                 \
                                             &_Stage(StageName).Instances.Array [0].p,  \
                                             &_Stage(StageName).Instances.Count       );\
     }
 
-#define _BackupStageUAV(_Tp,StageName)                                        \
-      Stage_Get(_Tp)UnorderedAccessViews ( 0, D3D11_PS_CS_UAV_REGISTER_COUNT, \
+#define _BackupStageUAV(_Tp,StageName)                                         \
+      Stage_Get(_Tp,UnorderedAccessViews) ( 0, D3D11_PS_CS_UAV_REGISTER_COUNT, \
                                             &_Stage(StageName).Unordered [0].p );
 
     _BackupStage        ( VS, Vertex   );
@@ -2813,23 +2813,23 @@ struct SK_IMGUI_D3D11StateBlock {
 
   #define _RestoreStage(_Tp,StageName)                                              \
     if (iStateMask & StageName##Stage) {                                            \
-      Stage_Set(_Tp)Shader          (   _Stage(StageName).Shader,                   \
+      Stage_Set(_Tp,Shader)         (   _Stage(StageName).Shader,                   \
                                        &_Stage(StageName).Instances.Array  [0].p,   \
                                         _Stage(StageName).Instances.Count );        \
                             std::fill ( _Stage(StageName).Instances.Array.begin ( ),\
                                         _Stage(StageName).Instances.Array.end   ( ),\
                                          nullptr );                                 \
-      Stage_Set(_Tp)Samplers        ( 0, STAGE_SAMPLER_SLOT_COUNT,                  \
+      Stage_Set(_Tp,Samplers)       ( 0, STAGE_SAMPLER_SLOT_COUNT,                  \
                                        &_Stage(StageName).Samplers        [0].p );  \
                             std::fill ( _Stage(StageName).Samplers.begin  ( ),      \
                                         _Stage(StageName).Samplers.end    ( ),      \
                                           nullptr );                                \
-      Stage_Set(_Tp)ConstantBuffers ( 0, STAGE_CONSTANT_BUFFER_API_SLOT_COUNT,      \
+      Stage_Set(_Tp,ConstantBuffers)( 0, STAGE_CONSTANT_BUFFER_API_SLOT_COUNT,      \
                                        &_Stage(StageName).Constants       [0].p );  \
                             std::fill ( _Stage(StageName).Constants.begin ( ),      \
                                         _Stage(StageName).Constants.end   ( ),      \
                                            nullptr );                               \
-      Stage_Set(_Tp)ShaderResources ( 0, STAGE_INPUT_RESOURCE_SLOT_COUNT,           \
+      Stage_Set(_Tp,ShaderResources)( 0, STAGE_INPUT_RESOURCE_SLOT_COUNT,           \
                                        &_Stage(StageName).Resources       [0].p );  \
                             std::fill ( _Stage(StageName).Resources.begin ( ),      \
                                         _Stage(StageName).Resources.end   ( ),      \
@@ -2837,7 +2837,7 @@ struct SK_IMGUI_D3D11StateBlock {
     }
 
   #define _RestoreStageUAV(_Tp,StageName)                                           \
-      Stage_Set(_Tp)UnorderedAccessViews                                            \
+      Stage_Set(_Tp,UnorderedAccessViews)                                           \
                                     ( 0, D3D11_PS_CS_UAV_REGISTER_COUNT,            \
                                        &_Stage(StageName).Unordered       [0].p,    \
                                         minus_one );                                \

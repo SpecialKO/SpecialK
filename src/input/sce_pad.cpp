@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -464,7 +464,7 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
     last_result [handle] =
       std::make_pair (
          result, iData != nullptr ?
-                *iData            : SK_ScePadData { 0 }
+                *iData            : SK_ScePadData { }
       );
 
     if (result == SK_SCE_ERROR_OK)

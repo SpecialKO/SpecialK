@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2017-2020 Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -266,6 +266,9 @@ DisableProviders (TRACEHANDLE sessionHandle)
   status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_DxgKrnl::GUID,        EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
   status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_Win32k::GUID,         EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
   status = EnableTraceEx2 (sessionHandle, &Microsoft_Windows_Dwm_Core::GUID,       EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, nullptr);
+
+  // :shrug:
+  std::ignore = status;
 }
 
 template<
@@ -487,6 +490,8 @@ TraceSession::Stop (void)
 
     mSessionHandle = 0;
   }
+
+  std::ignore = status;
 }
 
 #include <SpecialK/injection/injection.h>
@@ -542,6 +547,8 @@ StopMultipleSessions (SK_SharedMemory_v1::EtwSessionList_s* sessions)
       session.hSession = 0;
     }
   }
+
+  std::ignore = status;
 }
 
 ULONG

@@ -566,7 +566,7 @@ SK_NIER_RAD_GamepadLatencyTester (void)
   if (started)
   {
     ImGui::SameLine  ( );
-    ImGui::Text      ( "%lu Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
+    ImGui::Text      ( "%i Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
                          gamepad_stats.calcNumSamples (),
                          gamepad_stats.calcMin        (),
                          gamepad_stats.calcMax        (),

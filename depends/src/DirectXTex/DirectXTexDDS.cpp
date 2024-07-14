@@ -560,8 +560,10 @@ HRESULT DirectX::_EncodeDDSHeader(
 
         // Legacy D3DX formats using D3DFMT enum value as FourCC
         case DXGI_FORMAT_R32G32B32A32_FLOAT:
+        case DXGI_FORMAT_R32G32B32A32_TYPELESS:
             ddpf.dwSize = sizeof(DDS_PIXELFORMAT); ddpf.dwFlags = DDS_FOURCC; ddpf.dwFourCC = 116;  // D3DFMT_A32B32G32R32F
             break;
+        case DXGI_FORMAT_R16G16B16A16_TYPELESS:
         case DXGI_FORMAT_R16G16B16A16_FLOAT:
             ddpf.dwSize = sizeof(DDS_PIXELFORMAT); ddpf.dwFlags = DDS_FOURCC; ddpf.dwFourCC = 113;  // D3DFMT_A16B16G16R16F
             break;
@@ -572,16 +574,26 @@ HRESULT DirectX::_EncodeDDSHeader(
             ddpf.dwSize = sizeof(DDS_PIXELFORMAT); ddpf.dwFlags = DDS_FOURCC; ddpf.dwFourCC = 110;  // D3DFMT_Q16W16V16U16
             break;
         case DXGI_FORMAT_R32G32_FLOAT:
+        case DXGI_FORMAT_R32G32_TYPELESS:
             ddpf.dwSize = sizeof(DDS_PIXELFORMAT); ddpf.dwFlags = DDS_FOURCC; ddpf.dwFourCC = 115;  // D3DFMT_G32R32F
             break;
         case DXGI_FORMAT_R16G16_FLOAT:
+        case DXGI_FORMAT_R16G16_TYPELESS:
             ddpf.dwSize = sizeof(DDS_PIXELFORMAT); ddpf.dwFlags = DDS_FOURCC; ddpf.dwFourCC = 112;  // D3DFMT_G16R16F
             break;
         case DXGI_FORMAT_R32_FLOAT:
+        case DXGI_FORMAT_R32_TYPELESS:
             ddpf.dwSize = sizeof(DDS_PIXELFORMAT); ddpf.dwFlags = DDS_FOURCC; ddpf.dwFourCC = 114;  // D3DFMT_R32F
             break;
         case DXGI_FORMAT_R16_FLOAT:
+        case DXGI_FORMAT_R16_TYPELESS:
             ddpf.dwSize = sizeof(DDS_PIXELFORMAT); ddpf.dwFlags = DDS_FOURCC; ddpf.dwFourCC = 111;  // D3DFMT_R16F
+            break;
+
+        // Static analysis isn't particularly happy that DXGI_FORMAT_FORCE_UINT (...?),
+        //   DXGI_FORMAT_UNKNOWN, R32G32B32A32_TYPELESS (among other things) are not
+        //     correctly handled by this switch...
+        default:   // Default's good enough.
             break;
         }
     }

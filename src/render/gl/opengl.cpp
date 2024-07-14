@@ -220,7 +220,7 @@ bool
 SK::OpenGL::Startup (void)
 {
   bool ret =
-    SK_StartupCore (L"OpenGL32", opengl_init_callback);
+    SK_StartupCore (L"OpenGL32", (void *)opengl_init_callback);
 
   return ret;
 }
@@ -244,7 +244,7 @@ extern "C"
                                                                          \
       SK_LoadRealGL ();                                                  \
                                                                          \
-      static constexpr const char* szName = #_Name;                      \
+      const char * const szName = #_Name;                                \
       imp_##_Name=(imp_##_Name##_pfn)SK_GetProcAddress(local_gl, szName);\
                                                                          \
       if (imp_##_Name == nullptr) {                                      \
@@ -268,7 +268,7 @@ extern "C"
                                                                          \
       SK_LoadRealGL ();                                                  \
                                                                          \
-      static constexpr char* szName = #_Name;                            \
+      const char * const szName = #_Name;                                \
       imp_##_Name=(imp_##_Name##_pfn)SK_GetProcAddress(local_gl, szName);\
                                                                          \
       if (imp_##_Name == nullptr) {                                      \
@@ -1627,8 +1627,6 @@ SK_GL_PopMostStates (void)
 
 
 
-static bool __reset_overlays = false;
-
 void
 SK_Overlay_DrawGL (void)
 {
@@ -2317,15 +2315,18 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           if ( SK_ComPtr <IDXGIDevice>
                        pDevDXGI = nullptr ;
 
-              SUCCEEDED (hr)                                                     &&
-                        pDevice != nullptr                                       &&
-                  ( (pFactory.p != nullptr && pAdapter [0].p != nullptr)         ||
-             SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI))       &&
-             SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter [0].p)) &&
-             SUCCEEDED (pAdapter [0]->GetParent (IID_PPV_ARGS (&pFactory)))
+              SUCCEEDED (hr)                                                &&
+                       (pDevice != nullptr                                  &&
+                  ( (pFactory.p != nullptr && pAdapter [0].p != nullptr)    ||
+             SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI))) &&
+             SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter [0].p))
                   )
              )
           {
+            if (pFactory.p     == nullptr &&
+                pAdapter [0].p != nullptr)
+            {   pAdapter [0]->GetParent (IID_PPV_ARGS (&pFactory)); }
+
             SK_GL_OnD3D11 = true;
 
             SK_ComQIPtr <IDXGIFactory5>
@@ -2842,7 +2843,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
           SK_GL_SwapInterval (0);
 
         status =
-          static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
+          static_cast_pfn <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
       }
 
     }
@@ -2907,7 +2908,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
 
           SK_GL_SwapInterval (1);
           status =
-            static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
+            static_cast_pfn <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
           SK_GL_SwapInterval (0);
 
           // This info is used to dynamically adjust target
@@ -2931,7 +2932,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
   else
   {
     status =
-      static_cast <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
+      static_cast_pfn <wglSwapBuffers_pfn> (pfnSwapFunc)(hDC);
   }
 
   return status;
@@ -3027,7 +3028,7 @@ wglSwapBuffers (HDC hDC)
     SK_GL_SwapInterval (config.render.framerate.present_interval);
 
   if (! config.render.osd.draw_in_vidcap)
-    bRet = SK_GL_SwapBuffers (hDC, wgl_swap_buffers);
+    bRet = SK_GL_SwapBuffers (hDC, static_cast_pfn <LPVOID> (wgl_swap_buffers));
 
   else
     bRet = wgl_swap_buffers (hDC);
@@ -3064,7 +3065,7 @@ SwapBuffers (HDC hDC)
     SK_GL_SwapInterval (config.render.framerate.present_interval);
 
   if (config.render.osd.draw_in_vidcap)
-    bRet = SK_GL_SwapBuffers (hDC, gdi_swap_buffers);
+    bRet = SK_GL_SwapBuffers (hDC, static_cast_pfn <LPVOID> (gdi_swap_buffers));
 
   else
     bRet = gdi_swap_buffers (hDC);
@@ -3135,14 +3136,14 @@ wglSwapMultipleBuffers (UINT n, const WGLSWAP* ps)
 typedef int64_t  GLint64;
 typedef uint64_t GLuint64;
 
-typedef GLvoid    (WINAPI *glGenQueries_pfn)   (GLsizei n,       GLuint *ids​);
-typedef GLvoid    (WINAPI *glDeleteQueries_pfn)(GLsizei n​, const GLuint *ids​);
+typedef GLvoid    (WINAPI *glGenQueries_pfn)   (GLsizei n,       GLuint *ids);
+typedef GLvoid    (WINAPI *glDeleteQueries_pfn)(GLsizei n, const GLuint *ids);
 
-typedef GLvoid    (WINAPI *glBeginQuery_pfn)       (GLenum target​, GLuint id​);
-typedef GLvoid    (WINAPI *glBeginQueryIndexed_pfn)(GLenum target​, GLuint index​, GLuint id​);
-typedef GLvoid    (WINAPI *glEndQuery_pfn)         (GLenum target​);
+typedef GLvoid    (WINAPI *glBeginQuery_pfn)       (GLenum target, GLuint id);
+typedef GLvoid    (WINAPI *glBeginQueryIndexed_pfn)(GLenum target, GLuint index, GLuint id);
+typedef GLvoid    (WINAPI *glEndQuery_pfn)         (GLenum target);
 
-typedef GLboolean (WINAPI *glIsQuery_pfn)            (GLuint id​);
+typedef GLboolean (WINAPI *glIsQuery_pfn)            (GLuint id);
 typedef GLvoid    (WINAPI *glQueryCounter_pfn)       (GLuint id, GLenum target);
 typedef GLvoid    (WINAPI *glGetQueryObjectiv_pfn)   (GLuint id, GLenum pname, GLint    *params);
 typedef GLvoid    (WINAPI *glGetQueryObjecti64v_pfn) (GLuint id, GLenum pname, GLint64  *params);
@@ -3495,9 +3496,9 @@ SK::OpenGL::getPipelineStatsDesc (void)
   {
     sprintf ( szDesc,
                  "%s  RASTER : %5.1f%% Filled     (%s Triangles IN )\n",
-                   std::string (szDesc).c_str (), 100.0f *
-                       ( static_cast <long double> (stats.CPrimitives) /
-                         static_cast <long double> (stats.CInvocations) ),
+                   std::string (szDesc).c_str (), 100.0 *
+                       ( static_cast <double> (stats.CPrimitives) /
+                         static_cast <double> (stats.CInvocations) ),
                      SK_CountToString (stats.CInvocations).c_str () );
   }
 
@@ -3551,8 +3552,8 @@ SK::OpenGL::getPipelineStatsDesc (void)
 #define SK_DLL_HOOK(Backend,Func)                          \
   SK_CreateDLLHook2 ( Backend,                             \
                      #Func,                                \
-                      Func,                                \
-    static_cast_p2p <void> (&imp_ ## Func) ); ++GL_HOOKS;
+    static_cast_pfn <void*> (Func),                        \
+    static_cast_p2p <void > (&imp_ ## Func) ); ++GL_HOOKS;
 
 #define SK_GL_HOOK(Func) SK_DLL_HOOK(wszBackendDLL,Func)
 
@@ -3632,42 +3633,42 @@ SK_HookGL (LPVOID)
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglSwapBuffers",
-                                  wglSwapBuffers,
+         static_cast_pfn <void*> (wglSwapBuffers),
          static_cast_p2p <void> (&wgl_swap_buffers) );
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglMakeCurrent",
-                                  wglMakeCurrent,
+         static_cast_pfn <void*> (wglMakeCurrent),
          static_cast_p2p <void> (&wgl_make_current) );
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglShareLists",
-                                  wglShareLists,
+         static_cast_pfn <void*> (wglShareLists),
          static_cast_p2p <void> (&wgl_share_lists) );
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglCreateContext",
-                                  wglCreateContext,
+         static_cast_pfn <void*> (wglCreateContext),
          static_cast_p2p <void> (&wgl_create_context) );
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglChoosePixelFormat",
-                                  wglChoosePixelFormat,
+         static_cast_pfn <void*> (wglChoosePixelFormat),
          static_cast_p2p <void> (&wgl_choose_pixel_format) );
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglSetPixelFormat",
-                                  wglSetPixelFormat,
+         static_cast_pfn <void*> (wglSetPixelFormat),
          static_cast_p2p <void> (&wgl_set_pixel_format) );
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglSwapMultipleBuffers",
-                                  wglSwapMultipleBuffers,
+         static_cast_pfn <void*> (wglSwapMultipleBuffers),
          static_cast_p2p <void> (&wgl_swap_multiple_buffers) );
 
       SK_CreateDLLHook2 (         SK_GetModuleFullName (local_gl).c_str (),
                                  "wglDeleteContext",
-                                  wglDeleteContext,
+         static_cast_pfn <void*> (wglDeleteContext),
          static_cast_p2p <void> (&wgl_delete_context) );
 
       SK_GL_HOOK(wglGetCurrentContext);
@@ -4055,8 +4056,8 @@ SK_HookGL (LPVOID)
     //
     SK_CreateDLLHook2 (       L"gdi32.dll",
                                "SwapBuffers",
-                                SwapBuffers,
-       static_cast_p2p <void> (&gdi_swap_buffers) );
+       static_cast_pfn <void*> (SwapBuffers),
+       static_cast_p2p <void > (&gdi_swap_buffers) );
 
     // Temporarily setup function pointers, they will be overwritten when queued
     //   hooks are installed.
@@ -4103,7 +4104,12 @@ SK_HookGL (LPVOID)
         {             sizeof (pfd), 1,
                               PFD_DOUBLEBUFFER   |
                               PFD_DRAW_TO_WINDOW |
-                              PFD_SUPPORT_OPENGL };
+                              PFD_SUPPORT_OPENGL,
+                              0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0
+        };
 
         if ( SetPixelFormat       (      hDC,
                wgl_choose_pixel_format ( hDC, &pfd ),
@@ -4119,69 +4125,69 @@ SK_HookGL (LPVOID)
             wgl_choose_pixel_format_arb = (wglChoosePixelFormatARB_pfn)
               wgl_get_proc_address ("wglChoosePixelFormatARB");
 
-            if ( MH_OK == SK_CreateFuncHook ( L"wglCreateContextAttribsARB",
-                         wgl_get_proc_address ("wglCreateContextAttribsARB"),
-                                                wglCreateContextAttribsARB_SK,
-                       static_cast_p2p <void> (&wgl_create_context_attribs) )
+            if ( MH_OK == SK_CreateFuncHook ( L"wglCreateContextAttribsARB", static_cast_pfn <void *> (
+                         wgl_get_proc_address ("wglCreateContextAttribsARB")),
+                       static_cast_pfn <void*>( wglCreateContextAttribsARB_SK),
+                       static_cast_p2p <void >(&wgl_create_context_attribs) )
                )
             {
               MH_QueueEnableHook (
-                wgl_get_proc_address ("wglCreateContextAttribsARB")
+                static_cast_pfn <void*> (wgl_get_proc_address ("wglCreateContextAttribsARB"))
               );
             }
 
-            if ( MH_OK == SK_CreateFuncHook ( L"glRenderbufferStorage",
-                         wgl_get_proc_address ("glRenderbufferStorage"),
-                                                glRenderbufferStorage_SK,
-                       static_cast_p2p <void> (&gl_renderbuffer_storage) )
+            if ( MH_OK == SK_CreateFuncHook ( L"glRenderbufferStorage", static_cast_pfn <void *> (
+                         wgl_get_proc_address ("glRenderbufferStorage")),
+                       static_cast_pfn <void*>( glRenderbufferStorage_SK),
+                       static_cast_p2p <void >(&gl_renderbuffer_storage) )
                )
             {
               MH_QueueEnableHook (
-                wgl_get_proc_address ("glRenderbufferStorage")
+                static_cast_pfn <void*> (wgl_get_proc_address ("glRenderbufferStorage"))
               );
             }
 
-            if ( MH_OK == SK_CreateFuncHook ( L"glFramebufferTexture",
-                         wgl_get_proc_address ("glFramebufferTexture"),
-                                                glFramebufferTexture_SK,
-                       static_cast_p2p <void> (&gl_framebuffer_texture) )
+            if ( MH_OK == SK_CreateFuncHook ( L"glFramebufferTexture", static_cast_pfn <void *> (
+                         wgl_get_proc_address ("glFramebufferTexture")),
+                       static_cast_pfn <void*>( glFramebufferTexture_SK),
+                       static_cast_p2p <void >(&gl_framebuffer_texture) )
                )
             {
               MH_QueueEnableHook (
-                wgl_get_proc_address ("glFramebufferTexture")
+                static_cast_pfn <void*> (wgl_get_proc_address ("glFramebufferTexture"))
               );
             }
 
-            if ( MH_OK == SK_CreateFuncHook ( L"glFramebufferTexture2D",
-                         wgl_get_proc_address ("glFramebufferTexture2D"),
-                                                glFramebufferTexture2D_SK,
-                       static_cast_p2p <void> (&gl_framebuffer_texture2d) )
+            if ( MH_OK == SK_CreateFuncHook ( L"glFramebufferTexture2D", static_cast_pfn <void *> (
+                         wgl_get_proc_address ("glFramebufferTexture2D")),
+                       static_cast_pfn <void*>( glFramebufferTexture2D_SK),
+                       static_cast_p2p <void >(&gl_framebuffer_texture2d) )
                )
             {
               MH_QueueEnableHook (
-                wgl_get_proc_address ("glFramebufferTexture2D")
+                static_cast_pfn <void*> (wgl_get_proc_address ("glFramebufferTexture2D"))
               );
             }
 
-            if ( MH_OK == SK_CreateFuncHook ( L"glNamedRenderbufferStorage",
-                         wgl_get_proc_address ("glNamedRenderbufferStorage"),
-                                                glNamedRenderbufferStorage_SK,
-                       static_cast_p2p <void> (&gl_named_renderbuffer_storage) )
+            if ( MH_OK == SK_CreateFuncHook ( L"glNamedRenderbufferStorage", static_cast_pfn <void *> (
+                         wgl_get_proc_address ("glNamedRenderbufferStorage")),
+                       static_cast_pfn <void*>( glNamedRenderbufferStorage_SK),
+                       static_cast_p2p <void >(&gl_named_renderbuffer_storage) )
                )
             {
               MH_QueueEnableHook (
-                wgl_get_proc_address ("glNamedRenderbufferStorage")
+                static_cast_pfn <void*> (wgl_get_proc_address ("glNamedRenderbufferStorage"))
               );
             }
 
-            if ( MH_OK == SK_CreateFuncHook ( L"glNamedFramebufferTexture",
-                         wgl_get_proc_address ("glNamedFramebufferTexture"),
-                                                glNamedFramebufferTexture_SK,
-                       static_cast_p2p <void> (&gl_named_framebuffer_texture) )
+            if ( MH_OK == SK_CreateFuncHook ( L"glNamedFramebufferTexture", static_cast_pfn <void *> (
+                         wgl_get_proc_address ("glNamedFramebufferTexture")),
+                       static_cast_pfn <void*>( glNamedFramebufferTexture_SK),
+                       static_cast_p2p <void >(&gl_named_framebuffer_texture) )
                )
             {
               MH_QueueEnableHook (
-                wgl_get_proc_address ("glNamedFramebufferTexture")
+                static_cast_pfn <void*> (wgl_get_proc_address ("glNamedFramebufferTexture"))
               );
             }
 

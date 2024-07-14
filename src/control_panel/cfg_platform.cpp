@@ -93,12 +93,9 @@ SK::ControlPanel::Platform::Draw (void)
         {
           ImGui::BeginTooltip   ();
 
-        //static int num_records = 0;
-
           const auto max_lines =
             static_cast <int> ((io.DisplaySize.y * 0.725f) / (font.size_multiline * 0.9f));
           int  cur_line    = 0;
-          int  num_records = 0;
 
           ImGui::BeginGroup     ();
 
@@ -120,8 +117,6 @@ SK::ControlPanel::Platform::Draw (void)
               ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.81f, 0.81f, 0.81f, 1.f));
               ImGui::TextUnformatted (name.c_str ());
               ImGui::PopStyleColor   (1);
-
-              ++num_records;
 
               if (cur_line >= max_lines)
               {

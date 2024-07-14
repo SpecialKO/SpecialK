@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -235,28 +235,36 @@ GetLogicalProcessorInformationEx_Detour (
         memcpy (Buffer, spoof.first, spoof.second);
              *ReturnedLength =       spoof.second;
 
+#ifdef LOG_CORE_DISTRIBUTION
         size_t cores   = 0;
         size_t logical = 0;
+#endif
 
         char*  ptr = (char *)Buffer;
-				while (ptr < (char *)Buffer + spoof.second)
+        while (ptr < (char *)Buffer + spoof.second)
         {
-				  PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX pi = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
+          PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX pi = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
 
           if (pi->Relationship == RelationProcessorCore)
           {
-				  	cores++;
+#ifdef LOG_CORE_DISTRIBUTION
+            cores++;
+#endif
 
             for (size_t g = 0; g < pi->Processor.GroupCount; ++g)
             {
-				  		logical +=
+#ifdef LOG_CORE_DISTRIBUTION
+              logical +=
                 CountSetBits (pi->Processor.GroupMask [g].Mask);
-				  	}
-				  }
-				  ptr += pi->Size;
-				}
+#endif
+            }
+          }
+          ptr += pi->Size;
+        }
 
-        ////dll_log->Log (L"Returning %lu cores, %lu logical", cores, logical);
+#ifdef LOG_CORE_DISTRIBUTION
+        dll_log->Log (L"Returning %lu cores, %lu logical", cores, logical);
+#endif
       }
 
       return TRUE;

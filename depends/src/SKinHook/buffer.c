@@ -26,6 +26,8 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <SpecialK/targetver.h>
+
 #include <windows.h>
 #include "buffer.h"
 
@@ -43,20 +45,22 @@
 // Memory slot.
 typedef struct _MEMORY_SLOT
 {
-    union _UNION
-    {
-        struct _MEMORY_SLOT *pNext;
-        UINT8 buffer[MEMORY_SLOT_SIZE];
-    };
-} MEMORY_SLOT, *PMEMORY_SLOT;
+  union
+  {
+    struct _MEMORY_SLOT *pNext;
+    UINT8                buffer [MEMORY_SLOT_SIZE];
+  };
+} MEMORY_SLOT,
+*PMEMORY_SLOT;
 
 // Memory block info. Placed at the head of each block.
 typedef struct _MEMORY_BLOCK
 {
-    struct _MEMORY_BLOCK *pNext;
-    PMEMORY_SLOT pFree;         // First element of the free slot list.
-    UINT usedCount;
-} MEMORY_BLOCK, *PMEMORY_BLOCK;
+  struct _MEMORY_BLOCK *pNext;
+  PMEMORY_SLOT          pFree; // First element of the free slot list.
+  UINT              usedCount;
+} MEMORY_BLOCK,
+*PMEMORY_BLOCK;
 
 //-------------------------------------------------------------------------
 // Global Variables:
@@ -66,90 +70,113 @@ typedef struct _MEMORY_BLOCK
 PMEMORY_BLOCK g_pMemoryBlocks;
 
 //-------------------------------------------------------------------------
-VOID InitializeBuffer(VOID)
+VOID
+InitializeBuffer (VOID)
 {
-    // Nothing to do for now.
+  // Nothing to do for now.
 }
 
 //-------------------------------------------------------------------------
-VOID UninitializeBuffer(VOID)
+VOID
+UninitializeBuffer (VOID)
 {
-    PMEMORY_BLOCK pBlock = g_pMemoryBlocks;
-    g_pMemoryBlocks = NULL;
+  PMEMORY_BLOCK pBlock = g_pMemoryBlocks;
+  g_pMemoryBlocks = NULL;
 
-    while (pBlock)
-    {
-        PMEMORY_BLOCK pNext = pBlock->pNext;
-        VirtualFree(pBlock, 0, MEM_RELEASE);
-        pBlock = pNext;
-    }
+  while (pBlock)
+  {
+    PMEMORY_BLOCK        pNext =
+                 pBlock->pNext;
+    VirtualFree (pBlock, 0, MEM_RELEASE);
+                 pBlock =pNext;
+  }
 }
 
 //-------------------------------------------------------------------------
 #ifdef _M_X64
-static LPVOID FindPrevFreeRegion(LPVOID pAddress, LPVOID pMinAddr, DWORD dwAllocationGranularity)
+static LPVOID
+FindPrevFreeRegion (LPVOID pAddress, LPVOID pMinAddr, DWORD dwAllocationGranularity)
 {
-    ULONG_PTR tryAddr = (ULONG_PTR)pAddress;
+  ULONG_PTR tryAddr = (ULONG_PTR)pAddress;
 
-    // Round down to the allocation granularity.
-    tryAddr -= tryAddr % dwAllocationGranularity;
+  // Round down to the allocation granularity.
+  tryAddr -= tryAddr % dwAllocationGranularity;
 
-    // Start from the previous allocation granularity multiply.
-    tryAddr -= dwAllocationGranularity;
+  // Start from the previous allocation granularity multiply.
+  tryAddr -= dwAllocationGranularity;
 
-    while (tryAddr >= (ULONG_PTR)pMinAddr)
+  while (tryAddr >= (ULONG_PTR)pMinAddr)
+  {
+    MEMORY_BASIC_INFORMATION mbi;
+    if (VirtualQuery ((LPVOID)tryAddr, &mbi, sizeof (mbi)) == 0)
     {
-        MEMORY_BASIC_INFORMATION mbi;
-        if (VirtualQuery((LPVOID)tryAddr, &mbi, sizeof(mbi)) == 0)
-            break;
-
-        if (mbi.State == MEM_FREE)
-            return (LPVOID)tryAddr;
-
-        if ((ULONG_PTR)mbi.AllocationBase < dwAllocationGranularity)
-            break;
-
-        tryAddr = (ULONG_PTR)mbi.AllocationBase - dwAllocationGranularity;
+      break;
     }
 
-    return NULL;
+    if (mbi.State == MEM_FREE)
+    {
+      return (LPVOID)tryAddr;
+    }
+
+    if ((ULONG_PTR)mbi.AllocationBase <
+                     dwAllocationGranularity)
+    {
+      break;
+    }
+
+    tryAddr = (ULONG_PTR)mbi.AllocationBase -
+                           dwAllocationGranularity;
+  }
+
+  return NULL;
 }
 #endif
 
 //-------------------------------------------------------------------------
 #ifdef _M_X64
-static LPVOID FindNextFreeRegion(LPVOID pAddress, LPVOID pMaxAddr, DWORD dwAllocationGranularity)
+static LPVOID
+FindNextFreeRegion (LPVOID pAddress, LPVOID pMaxAddr, DWORD dwAllocationGranularity)
 {
-    ULONG_PTR tryAddr = (ULONG_PTR)pAddress;
+  ULONG_PTR tryAddr =
+    (ULONG_PTR)pAddress;
 
-    // Round down to the allocation granularity.
-    tryAddr -= tryAddr % dwAllocationGranularity;
+  // Round down to the allocation granularity.
+  tryAddr -=
+    ( tryAddr % dwAllocationGranularity );
 
-    // Start from the next allocation granularity multiply.
-    tryAddr += dwAllocationGranularity;
+  // Start from the next allocation granularity multiply.
+  tryAddr +=
+    dwAllocationGranularity;
 
-    while (tryAddr <= (ULONG_PTR)pMaxAddr)
-    {
-        MEMORY_BASIC_INFORMATION mbi;
-        if (VirtualQuery((LPVOID)tryAddr, &mbi, sizeof(mbi)) == 0)
-            break;
-
-        if (mbi.State == MEM_FREE)
-            return (LPVOID)tryAddr;
-
-        tryAddr = (ULONG_PTR)mbi.BaseAddress + mbi.RegionSize;
-
-        // Round up to the next allocation granularity.
-        tryAddr += dwAllocationGranularity - 1;
-        tryAddr -= tryAddr % dwAllocationGranularity;
+  while (tryAddr <= (ULONG_PTR)pMaxAddr)
+  {
+    MEMORY_BASIC_INFORMATION            mbi;
+    ZeroMemory                        (&mbi, sizeof (mbi));
+    if (VirtualQuery ((LPVOID)tryAddr, &mbi, sizeof (mbi)) == 0) {
+      break;
     }
 
-    return NULL;
+    if (mbi.State == MEM_FREE)
+    {
+      return
+        (LPVOID)tryAddr;
+    }
+
+    tryAddr =
+      (ULONG_PTR)mbi.BaseAddress + mbi.RegionSize;
+
+    // Round up to the next allocation granularity.
+    tryAddr +=           dwAllocationGranularity - 1;
+    tryAddr -= tryAddr % dwAllocationGranularity;
+  }
+
+  return NULL;
 }
 #endif
 
 //-------------------------------------------------------------------------
-static PMEMORY_BLOCK GetMemoryBlock (LPVOID pOrigin)
+static PMEMORY_BLOCK
+GetMemoryBlock (LPVOID pOrigin)
 {
   UNREFERENCED_PARAMETER (pOrigin);
 
@@ -247,7 +274,8 @@ static PMEMORY_BLOCK GetMemoryBlock (LPVOID pOrigin)
 }
 
 //-------------------------------------------------------------------------
-LPVOID AllocateBuffer(LPVOID pOrigin)
+LPVOID
+AllocateBuffer (LPVOID pOrigin)
 {
     PMEMORY_SLOT  pSlot;
     PMEMORY_BLOCK pBlock = GetMemoryBlock(pOrigin);
@@ -266,7 +294,8 @@ LPVOID AllocateBuffer(LPVOID pOrigin)
 }
 
 //-------------------------------------------------------------------------
-VOID FreeBuffer(LPVOID pBuffer)
+VOID
+FreeBuffer (LPVOID pBuffer)
 {
     PMEMORY_BLOCK pBlock = g_pMemoryBlocks;
     PMEMORY_BLOCK pPrev = NULL;
@@ -306,10 +335,13 @@ VOID FreeBuffer(LPVOID pBuffer)
 }
 
 //-------------------------------------------------------------------------
-BOOL IsExecutableAddress(LPVOID pAddress)
+BOOL
+IsExecutableAddress (LPVOID pAddress)
 {
-    MEMORY_BASIC_INFORMATION mi;
-    VirtualQuery(pAddress, &mi, sizeof(mi));
+  MEMORY_BASIC_INFORMATION mi;
+  VirtualQuery (pAddress, &mi, sizeof (mi));
 
-    return (mi.State == MEM_COMMIT && (mi.Protect & PAGE_EXECUTE_FLAGS));
+  return
+     (mi.State == MEM_COMMIT &&
+     (mi.Protect & PAGE_EXECUTE_FLAGS));
 }

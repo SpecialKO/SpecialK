@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright 2017-2021 Intel Corporation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -95,7 +95,7 @@ bool StartTraceSession()
         case ERROR_BAD_PATHNAME:      fprintf(stderr, " (invalid --session_name)"); break;
         case ERROR_ACCESS_DENIED:     fprintf(stderr, " (access denied)"); break;
         case ERROR_FILE_CORRUPT:      fprintf(stderr, " (invalid --etl_file)"); break;
-        default:                      fprintf(stderr, " (error=%u)", status); break;
+        default:                      fprintf(stderr, " (error=%lu)", status); break;
         }
         fprintf(stderr, ".\n");
 

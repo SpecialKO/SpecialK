@@ -873,7 +873,7 @@ SK_ImGui_VolumeManager (void)
         }
 
         else
-          ImGui::Text ( "Latency:\t%.1f ms @ %d kHz",
+          ImGui::Text ( "Latency:\t%.1f ms @ %lu kHz",
                           cur_lat.milliseconds,
                           cur_lat.samples_per_sec / 1000UL );
       }

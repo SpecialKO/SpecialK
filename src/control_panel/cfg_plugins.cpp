@@ -217,7 +217,7 @@ SK::ControlPanel::PlugIns::Draw (void)
 
     else
     {
-      static constexpr wchar_t* wszShimFormat =
+      static const wchar_t wszShimFormat [] =
         LR"(%ws\PlugIns\Unofficial\ReShade\ReShade%u.dll)";
 
       swprintf (imp_path_reshade_ex,  wszShimFormat,

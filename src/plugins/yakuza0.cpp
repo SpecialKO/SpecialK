@@ -1288,7 +1288,7 @@ SK_Yakuza0_PlugInCfg (void)
 
           ImGui::BeginGroup (  );
           ImGui::TreePush   ("");
-          ImGui::Text ( "%lu files using %ws",
+          ImGui::Text ( "%u files using %ws",
                                              repo.files,
                        SK_File_SizeToString (repo.liSize.QuadPart).data ()
           );

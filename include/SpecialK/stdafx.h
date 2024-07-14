@@ -33,6 +33,14 @@
 #endif
 #endif
 
+#ifdef min
+#undef min
+#endif
+
+#ifdef max
+#undef max
+#endif
+
 //#define _CRT_NON_CONFORMING_WCSTOK
 //#define WIN32_LEAN_AND_MEAN
 
@@ -143,6 +151,7 @@
 #include <algorithm>
 
 #include <string>
+#include <xstring>
 #include <sstream>
 
 #include <map>

@@ -2835,7 +2835,7 @@ ImGui::PlotCEx ( ImGuiPlotType,                               const char* label,
 
   ItemSize (total_bb, style.FramePadding.y);
 
-  if (! ItemAdd (total_bb, (ImGuiID)nullptr, &frame_bb))
+  if (! ItemAdd (total_bb, (ImGuiID)0, &frame_bb))
   {
     EndChildFrame ();
     return;

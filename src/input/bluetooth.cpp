@@ -62,10 +62,10 @@ void SK_Bluetooth_InitPowerMgmt (void)
           if (device.bBluetooth && device.bConnected)
           {
             const bool bRequesting =
-              ((device.xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
-               (device.xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_Y)     || 
-               (device.xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
-               (device.xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_Y));
+             (((device.xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+               (device.xinput.     report.Gamepad.wButtons & XINPUT_GAMEPAD_Y))    ||
+              ((device.xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+               (device.xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_Y)));
 
             // The serial number is actually the Bluetooth MAC address; handy...
             wchar_t wszSerialNumber [32] = { };

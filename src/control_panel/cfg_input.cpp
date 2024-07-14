@@ -25,6 +25,7 @@
 #include <imgui/font_awesome.h>
 
 #include <hidclass.h>
+#include <cwctype>
 
 bool cursor_vis = false;
 
@@ -265,7 +266,7 @@ SK::ControlPanel::Input::Draw (void)
 
 
 #define UPDATE_BACKEND_TIMES(backend,name,func)                                         \
-  if (SK_##backend##_Backend->##func## ())                                              \
+  if ((SK_##backend##_Backend)->##func ())                                              \
   {                                                                                     \
     last_##name = SK_##backend##_Backend->active.hidden ? last_##name   : current_time; \
     hide_##name = SK_##backend##_Backend->active.hidden ? current_time  : hide_##name;  \
@@ -284,12 +285,12 @@ SK::ControlPanel::Input::Draw (void)
     UPDATE_BACKEND_TIMES (Win32,           win32, nextFrameWin32);
     UPDATE_BACKEND_TIMES (WinMM,           winmm, nextFrame);
 
-#define SETUP_LABEL_COLOR(name,threshold)                               \
-      const DWORD input_time = std::max (last_##name##, hide_##name##); \
-                                                                        \
+#define SETUP_LABEL_COLOR(name,threshold)                           \
+      const DWORD input_time = std::max (last_##name, hide_##name); \
+                                                                    \
       ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (0.4f - (0.4f * ((float)current_time - \
-                                                                          (float)  input_time) / (threshold)), (hide_##name## >= last_##name##) ? 0.0f : 1.0f, \
-                                                                                                               (hide_##name## >= last_##name##) ? 0.6f : 0.8f).Value);
+                                                                          (float)  input_time) / (threshold)), (hide_##name >= last_##name) ? 0.0f : 1.0f, \
+                                                                                                               (hide_##name >= last_##name) ? 0.6f : 0.8f).Value);
 
     if ( last_steam > current_time - 500UL ||
          hide_steam > current_time - 500UL )
@@ -1288,7 +1289,7 @@ SK::ControlPanel::Input::Draw (void)
 
               else
               {
-                ImGui::BulletText ("Inputs Processed:\t%d", journal.packet_count.real);
+                ImGui::BulletText ("Inputs Processed:\t%lu", journal.packet_count.real);
               }
 
               ImGui::EndTooltip  ( );
@@ -1443,12 +1444,12 @@ SK::ControlPanel::Input::Draw (void)
               {
                 ImGui::SetTooltip (
                   "Serial # %wc%wc:%wc%wc:%wc%wc:%wc%wc:%wc%wc:%wc%wc",
-                  ps_controller.wszSerialNumber [ 0], ps_controller.wszSerialNumber [ 1],
-                  ps_controller.wszSerialNumber [ 2], ps_controller.wszSerialNumber [ 3],
-                  ps_controller.wszSerialNumber [ 4], ps_controller.wszSerialNumber [ 5],
-                  ps_controller.wszSerialNumber [ 6], ps_controller.wszSerialNumber [ 7],
-                  ps_controller.wszSerialNumber [ 8], ps_controller.wszSerialNumber [ 9],
-                  ps_controller.wszSerialNumber [10], ps_controller.wszSerialNumber [11] );
+                  (unsigned short)ps_controller.wszSerialNumber [ 0], (unsigned short)ps_controller.wszSerialNumber [ 1],
+                  (unsigned short)ps_controller.wszSerialNumber [ 2], (unsigned short)ps_controller.wszSerialNumber [ 3],
+                  (unsigned short)ps_controller.wszSerialNumber [ 4], (unsigned short)ps_controller.wszSerialNumber [ 5],
+                  (unsigned short)ps_controller.wszSerialNumber [ 6], (unsigned short)ps_controller.wszSerialNumber [ 7],
+                  (unsigned short)ps_controller.wszSerialNumber [ 8], (unsigned short)ps_controller.wszSerialNumber [ 9],
+                  (unsigned short)ps_controller.wszSerialNumber [10], (unsigned short)ps_controller.wszSerialNumber [11] );
               }
             }
           }
@@ -2551,13 +2552,13 @@ extern float SK_ImGui_PulseNav_Strength;
         if (started)
         {
           ImGui::BeginGroup( );
-          ImGui::Text      ( "%lu Raw Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
+          ImGui::Text      ( "%i Raw Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
                                gamepad_stats->calcNumSamples (),
                                gamepad_stats->calcMin        (),
                                gamepad_stats->calcMax        (),
                                gamepad_stats->calcMean       () );
 
-          ImGui::Text      ( "%lu Validated Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
+          ImGui::Text      ( "%i Validated Samples - (Min | Max | Mean) - %4.2f ms | %4.2f ms | %4.2f ms",
                                gamepad_stats_filtered->calcNumSamples (),
                                gamepad_stats_filtered->calcMin        (),
                                gamepad_stats_filtered->calcMax        (),

@@ -115,15 +115,22 @@ struct sk_config_t
     SK_QpcTicksPerMs = SK_QpcFreq / 1000LL;
     SK_PerfFreq      = SK_QpcFreq;
 
-    PROCESSOR_POWER_INFORMATION pwi [64] = { };
+    PROCESSOR_POWER_INFORMATION pwi   [64] = { };
+    int                         cpuid [ 4] = { }; // Store eax,ebx,ecx,edx
 
     // Setup TSC-based timing instead of QPC when applicable
     //   (i.e. CPU has invariant timestamps)
     if ( 0x0 ==
            CallNtPowerInformation (ProcessorInformation, nullptr, 0, pwi, sizeof (pwi)) )
     {
-      int      cpuid [4] = { };
+      ZeroMemory (cpuid, sizeof (int) * 4);
+
+#ifndef SK_BUILT_BY_CLANG
       __cpuid (cpuid, 0x80000007);
+#else
+      __llvm_cpuid (0x80000007, cpuid [0], cpuid [1],
+                                cpuid [1], cpuid [2]);
+#endif
 
       SK_TscFreq =
         (1000ULL * 1000ULL * pwi [0].MaxMhz);
@@ -143,8 +150,16 @@ struct sk_config_t
         SK_PerfFreqInTsc = SK_QpcFreqInTsc;
     }
 
-    int      cpuid [4] = { };
-    __cpuid (cpuid, 0x80000001);
+    ZeroMemory (cpuid, sizeof (int) * 4);
+
+#ifndef SK_BUILT_BY_CLANG
+      __cpuid (cpuid, 0x80000001);
+#else
+      __llvm_cpuid (0x80000001, cpuid [0], cpuid [1],
+                                cpuid [1], cpuid [2]);
+#endif
+
+    
 
     // MWAITX = ECX Bit 29 (8000_0001h)
     SK_CPU_HasMWAITX = (cpuid [2] & (1 << 28)) != 0;
