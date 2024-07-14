@@ -1,4 +1,9 @@
-﻿24.7.13
+﻿24.7.14
+=======
+ + Create HDR screenshots directory when saving HDR screenshots as .png, if
+     the directory does not already exist.
+
+24.7.13
 =======
  + Fixed potentially blown-out SDR tonemapped screenshots caused by ICtCp max
      luminance being stored as a static variable.

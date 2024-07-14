@@ -1804,6 +1804,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                       SK_FormatStringW ( L"HDR\\%ws.png",
                                   pFrameData->file_name.c_str () ).c_str () );
 
+                    SK_CreateDirectories (wszAbsolutePathToLossless);
+
                     if (SK_HDR_SavePNGToDisk (wszAbsolutePathToLossless, hdr10_img.GetImages (), &raw_img, pFrameData->title.c_str ()))
                     {
                       if (un_scrgb.GetImageCount () == 1 && pop_off->wantClipboardCopy () && (config.screenshots.copy_to_clipboard))
