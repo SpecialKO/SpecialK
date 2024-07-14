@@ -1,4 +1,9 @@
-﻿24.6.20.1
+﻿24.7.13
+=======
+ + Fixed potentially blown-out SDR tonemapped screenshots caused by ICtCp max
+     luminance being stored as a static variable.
+
+24.6.20.1
 =========
  + Added 2 second timeout to any memory pattern scan to prevent freezing after
      patches in some games with excessively large executables.

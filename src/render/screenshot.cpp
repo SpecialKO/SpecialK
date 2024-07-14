@@ -493,7 +493,8 @@ SK_ScreenshotManager::copyToClipboard ( const DirectX::Image& image,
       sk::narrow_cast <int> (                       pImg->height);
 
     SK_ReleaseAssert (pImg->format == DXGI_FORMAT_B8G8R8X8_UNORM ||
-                      pImg->format == DXGI_FORMAT_B8G8R8A8_UNORM);
+                      pImg->format == DXGI_FORMAT_B8G8R8A8_UNORM ||
+                      pImg->format == DXGI_FORMAT_B8G8R8X8_UNORM_SRGB);
 
     HBITMAP hBitmapCopy =
        CreateBitmap (

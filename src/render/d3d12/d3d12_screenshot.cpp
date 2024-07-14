@@ -1906,13 +1906,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         maxCLL =
                           XMVectorMax (XMVectorMultiply (v, s_luminance), maxCLL);
 
-                        maxRGB =
-                          XMVectorMax (v, maxRGB);
-
                         v =
                           XMVector3Transform (v, c_from709toXYZ);
-
-                        v = XMVectorMax (g_XMZero, v);
 
                         maxLum =
                           XMVectorReplicate (XMVectorGetY (XMVectorMax (v, maxLum)));
@@ -1924,6 +1919,11 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           log2 ( std::max (0.000001, static_cast <double> (std::max (0.0f, XMVectorGetY (v)))) );
                            lumTotal +=               static_cast <double> (std::max (0.0f, XMVectorGetY (v)));
                         ++N;
+
+                        v = XMVectorMax (g_XMZero, v);
+
+                        maxRGB =
+                          XMVectorMax (v, maxRGB);
 
                         pixels++;
                       }
@@ -2018,49 +2018,49 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         fMaxG >= 1.0f ||
                         fMaxB >= 1.0f ))
                   {
-                    SK_LOGi0 (
-                      L"After tone mapping, maximum RGB was %4.2fR %4.2fG %4.2fB -- "
-                      L"SDR image will be normalized to min (R|G|B) and clipped.",
-                        fMaxR, fMaxG, fMaxB
-                    );
-
                     float fSmallestComp =
                       std::min ({fMaxR, fMaxG, fMaxB});
 
-                    float fRescale =
-                      (1.0f / fSmallestComp);
+                    if (fSmallestComp > .875f)
+                    {
+                      SK_LOGi0 (
+                        L"After tone mapping, maximum RGB was %4.2fR %4.2fG %4.2fB -- "
+                        L"SDR image will be normalized to min (R|G|B) and clipped.",
+                          fMaxR, fMaxG, fMaxB
+                      );
 
-                    XMVECTOR vNormalizationScale =
-                      XMVectorReplicate (fRescale);
+                      float fRescale =
+                        (1.0f / fSmallestComp);
 
-                    TransformImage (*final_sdr.GetImages (),
-                      [&]( _Out_writes_ (width)       XMVECTOR* outPixels,
-                            _In_reads_  (width) const XMVECTOR* inPixels,
-                                                      size_t    width,
-                                                      size_t )
-                      {
-                        for (size_t j = 0; j < width; ++j)
+                      XMVECTOR vNormalizationScale =
+                        XMVectorReplicate (fRescale);
+
+                      TransformImage (*final_sdr.GetImages (),
+                        [&]( _Out_writes_ (width)       XMVECTOR* outPixels,
+                              _In_reads_  (width) const XMVECTOR* inPixels,
+                                                        size_t    width,
+                                                        size_t )
                         {
-                          XMVECTOR value =
-                           inPixels [j];
-                          outPixels [j] =
-                            XMVectorSaturate (
-                              XMVectorMultiply (value, vNormalizationScale)
-                            );
-                        }
-                      }, tonemapped_copy
-                    );
+                          for (size_t j = 0; j < width; ++j)
+                          {
+                            XMVECTOR value =
+                             inPixels [j];
+                            outPixels [j] =
+                              XMVectorSaturate (
+                                XMVectorMultiply (value, vNormalizationScale)
+                              );
+                          }
+                        }, tonemapped_copy
+                      );
 
-                    std::swap (final_sdr, tonemapped_copy);
+                      std::swap (final_sdr, tonemapped_copy);
+                    }
                   }
-
-                  extern UINT filterFlags;
 
                   if (         final_sdr.GetImageCount () == 1) {
                     Convert ( *final_sdr.GetImages     (),
-                                DXGI_FORMAT_B8G8R8X8_UNORM,
-                                  filterFlags,
-                                    TEX_THRESHOLD_DEFAULT,
+                                DXGI_FORMAT_B8G8R8X8_UNORM_SRGB,
+                                  (TEX_FILTER_FLAGS)0x200000FF, 1.0f,
                                       un_srgb );
 
                     std::swap (un_scrgb, un_srgb);

@@ -2752,6 +2752,7 @@ public:
                 if (ImGui::IsItemClicked (ImGuiMouseButton_Right))
                   bShowDebug = true;
 
+#if 0
                 if (bShowDebug)
                 {
                   extern UINT filterFlags;
@@ -2763,6 +2764,7 @@ public:
                   ImGui::InputFloat ("Sdr Power",  &_cSdrPower);
                   ImGui::InputFloat ("Lerp Scale", &_cLerpScale);
                 }
+#endif
 
                 ImGui::EndGroup ();
                 
