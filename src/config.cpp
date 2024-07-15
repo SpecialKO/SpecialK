@@ -2432,6 +2432,7 @@ auto DeclKeybind =
 
       case SK_GAME_ID::KingdomComeDeliverance:
         config.textures.cache.ignore_nonmipped = true;
+        config.textures.d3d11.cache            = false; // Fix grass artifacts
         break;
 
       case SK_GAME_ID::DragonsDogma2:
