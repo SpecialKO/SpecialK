@@ -2353,62 +2353,14 @@ SK::Framerate::Limiter::wait (void)
               {
                 if (bReduceRenderLatencyAndWait)
                 {
-                  _ToggleTearing (false);
-
                   static bool bResetTargetFPS = false;
 
-                  if (fWaitSeconds <= 1.5f)
+                  if (fWaitSeconds == 0.0f)
                   {
-                    if (fWaitSeconds == 0.0f)
-                    {
-                      bResetTargetFPS = false;
-
-                      if (fTargetFPS != __target_fps)
-                      {
-                        fTargetFPS = __target_fps;
-                      }
-
-                      fTempTargetFPS = fTargetFPS - 1.0f;
-
-                      SK_GetCommandProcessor ()->ProcessCommandFormatted (
-                        "TargetFPS %f",
-                        __target_fps = fTempTargetFPS
-                      );
-                    }
-
-                    else
-                    {
-                      if (fTempTargetFPS != __target_fps)
-                      {
-                        bReduceRenderLatencyAndWait = false;
-
-                        fTempTargetFPS = 0.0f;
-
-                        fTargetFPS = __target_fps;
-
-                        return;
-                      }
-
-                      if (fWaitSeconds == 1.5f)
-                      {
-                        SK_GetCommandProcessor ()->ProcessCommandFormatted (
-                          "TargetFPS %f",
-                          __target_fps = fTargetFPS
-                        );
-
-                        fTempTargetFPS = 0.0f;
-                      }
-                    }
+                    bResetTargetFPS = false;
                   }
 
-                  else if (fTargetFPS != __target_fps)
-                  {
-                    bReduceRenderLatencyAndWait = false;
-
-                    fTargetFPS = __target_fps;
-
-                    return;
-                  }
+                  _ToggleTearing (false);
 
                   fWaitSeconds += static_cast <float> (
                     std::max (
@@ -2417,15 +2369,52 @@ SK::Framerate::Limiter::wait (void)
                     ) / 1000.0
                   );
 
+                  if (fTempTargetFPS > 0.0f)
+                  {
+                    if (fTempTargetFPS != __target_fps)
+                    {
+                      bReduceRenderLatencyAndWait = false;
+
+                      fWaitSeconds = 0.0f;
+
+                      fTempTargetFPS = 0.0f;
+
+                      fTargetFPS = __target_fps;
+
+                      return;
+                    }
+                  }
+
+                  else
+                  {
+                    if (fTargetFPS != __target_fps)
+                    {
+                      bReduceRenderLatencyAndWait = false;
+
+                      fWaitSeconds = 0.0f;
+
+                      fTargetFPS = __target_fps;
+
+                      return;
+                    }
+                  }
+
+                  if (!bResetTargetFPS && fWaitSeconds >= 1.5f)
+                  {
+                    bResetTargetFPS = true;
+
+                    fTempTargetFPS = 0.0f;
+
+                    fWaitSeconds = 1.5f;
+
+                    SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                      "TargetFPS %f",
+                      __target_fps = fTargetFPS
+                    );
+                  }
+
                   if (fWaitSeconds < 3.0f)
                   {
-                    if (!bResetTargetFPS && fWaitSeconds >= 1.5f)
-                    {
-                      bResetTargetFPS = true;
-
-                      fWaitSeconds = 1.5f;
-                    }
-
                     return;
                   }
                 }
@@ -2434,14 +2423,19 @@ SK::Framerate::Limiter::wait (void)
 
                 bReduceRenderLatencyAndWait = true;
 
+                fWaitSeconds = 0.0f;
+
                 if (fTargetFPS != __target_fps)
                 {
                   fTargetFPS = __target_fps;
                 }
 
-                fTempTargetFPS = 0.0f;
+                fTempTargetFPS = fTargetFPS - 1.0f;
 
-                fWaitSeconds = 0.0f;
+                SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                  "TargetFPS %f",
+                  __target_fps = fTempTargetFPS
+                );
 
                 return;
               }

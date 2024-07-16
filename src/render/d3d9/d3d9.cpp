@@ -1399,11 +1399,13 @@ SK_D3D9_SetFPSTarget ( D3DPRESENT_PARAMETERS* pPresentationParameters,
       config.render.framerate.present_interval;
 
     // Latent VSync...
-    if  ( config.render.framerate.present_interval == 0 &&
-          config.render.framerate.target_fps   >   0.0f &&
-          pPresentationParameters->Windowed    == FALSE &&
-          config.render.framerate.tearing_mode !=
-            SK_TearingMode::AlwaysOn                    )
+    if  ( ( config.render.framerate.present_interval == 0 &&
+            config.render.framerate.target_fps   >   0.0f &&
+            pPresentationParameters->Windowed    == FALSE  ) &&
+          ( config.render.framerate.tearing_mode ==
+            SK_TearingMode::AlwaysOff                     ||
+            config.render.framerate.tearing_mode ==
+            SK_TearingMode::AlwaysOff_LowLatency           ) )
     {
       presentationInterval = 1;
     }
