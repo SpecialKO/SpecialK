@@ -1627,6 +1627,7 @@ enum class SK_GAME_ID
   HaroldHalibut,                // Harold Halibut.exe
   KingdomComeDeliverance,       // KingdomCome.exe
   GodOfWar,                     // GoW.exe
+  TalosPrinciple2,              // Talos2-Win64-Shipping.exe
 
   UNKNOWN_GAME               = 0xffff
 };

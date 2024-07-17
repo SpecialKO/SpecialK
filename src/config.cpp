@@ -252,7 +252,8 @@ SK_GetCurrentGameID (void)
           { L"dd2.exe",                                SK_GAME_ID::DragonsDogma                 },
           { L"Harold Halibut.exe",                     SK_GAME_ID::HaroldHalibut                },
           { L"KingdomCome.exe",                        SK_GAME_ID::KingdomComeDeliverance       },
-          { L"GoW.exe",                                SK_GAME_ID::GodOfWar                     }
+          { L"GoW.exe",                                SK_GAME_ID::GodOfWar                     },
+          { L"Talos2-Win64-Shipping.exe",              SK_GAME_ID::TalosPrinciple2              }
         };
 
     first_check  = false;
@@ -3677,6 +3678,15 @@ auto DeclKeybind =
       {
         // Prevent crashes in the Steam and GOG versions of the game
         config.compatibility.allow_dxdiagn = false;
+      } break;
+
+      case SK_GAME_ID::TalosPrinciple2:
+      {
+        // Speed-up initialization by skipping these APIs
+        //   (why the game loads their DLLs is anyone's guess)
+        config.apis.d3d9.hook   = false;
+        config.apis.d3d9ex.hook = false;
+        config.apis.OpenGL.hook = false;
       } break;
     }
   }
