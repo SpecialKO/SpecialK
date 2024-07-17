@@ -521,14 +521,18 @@ SK_ImGui_LatentSyncConfig (void)
         {
           if (bTargetInputInMs)
           {
+            config.render.framerate.latent_sync.auto_bias_target.ms =
+              fLastTargetInputMs;
+
             config.render.framerate.latent_sync.auto_bias_target.percent = 0.0f;
-            config.render.framerate.latent_sync.auto_bias_target.ms      = fLastTargetInputMs;
           }
 
           else
           {
-            config.render.framerate.latent_sync.auto_bias_target.percent = fLastTargetInputPercent;
-            config.render.framerate.latent_sync.auto_bias_target.ms      = 0.0f;
+            config.render.framerate.latent_sync.auto_bias_target.percent =
+              fLastTargetInputPercent;
+
+            config.render.framerate.latent_sync.auto_bias_target.ms = 0.0f;
           }
         }
 
@@ -536,8 +540,7 @@ SK_ImGui_LatentSyncConfig (void)
         {
           if (ImGui::InputFloat ("Target Input Latency", &config.render.framerate.latent_sync.auto_bias_target.ms))
           {
-            std::exchange (
-              fLastTargetInputMs,
+            fLastTargetInputMs = (
               config.render.framerate.latent_sync.auto_bias_target.ms = std::clamp (
                 config.render.framerate.latent_sync.auto_bias_target.ms,
                 0.0f,
@@ -553,8 +556,7 @@ SK_ImGui_LatentSyncConfig (void)
 
           if (ImGui::SliderFloat ("Target Input Latency", &fTargetInputPercent, 0.000001f, 100.0f, "%4.1f%%"))
           {
-            std::exchange (
-              fLastTargetInputPercent,
+            fLastTargetInputPercent = (
               config.render.framerate.latent_sync.auto_bias_target.percent = std::clamp (
                 fTargetInputPercent / 100.0f,
                 0.000001f,
