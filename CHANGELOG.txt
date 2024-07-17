@@ -1,4 +1,9 @@
-﻿24.7.17
+﻿24.7.17.1
+=========
+ + Disable D3D9[Ex] and OpenGL hooks in Talos Principle 2 to speed up init
+ + Fixed potential loss of window tracking when games create new SwapChains
+
+24.7.17
 =======
  + Added fix-up for Talos Principle 2's addition of FSR3 Frame Generation;
      FSR3 always destroys the existing SwapChain and creates a new one when

@@ -5438,9 +5438,7 @@ SK_DXGI_CreateSwapChain_PostInit (
                                ( pDesc->BufferDesc.Width  == 176 &&
                                  pDesc->BufferDesc.Height == 1 );
 
-  if ( (! dummy_window) && pDesc != nullptr &&
-       ( dwRenderThread == 0 ||
-         dwRenderThread == SK_Thread_GetCurrentId () )
+  if ( (! dummy_window) && pDesc != nullptr
      )
   {
     HWND hWndDevice = pDesc->OutputWindow;
