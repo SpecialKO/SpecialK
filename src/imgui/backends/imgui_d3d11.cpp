@@ -1943,6 +1943,12 @@ SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
     if (_pSwapChain.p != nullptr)
         _pSwapChain->GetDesc (&swapDesc);
 
+    if (_pSwapChain.p == nullptr && _pDevice.p == nullptr)
+    {
+      SK_LOGi1 (L"Releasing D3D11 Render Context that was never initialized!");
+    }
+
+    else
     SK_LOG0 ( ( L"(-) Releasing D3D11 Render Context: Device=%08xh, SwapChain: {%lu x %hs, HWND=%08xh}",
                                         _pDevice.p,
                                         swapDesc.BufferCount,

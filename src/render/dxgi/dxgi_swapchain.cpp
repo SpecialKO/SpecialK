@@ -197,6 +197,27 @@ IWrapDXGISwapChain::QueryInterface (REFIID riid, void **ppvObj)
     return S_OK;
   }
 
+
+#if 0
+  static IID IID_Mystery0;
+  static IID IID_Mystery1;
+
+  SK_RunOnce (IIDFromString (L"{10B90151-4435-4004-9FAD-19361488899A}", &IID_Mystery0));
+  SK_RunOnce (IIDFromString (L"{AABDF0C6-6A76-4F65-987D-F2CC4C27ED0E}", &IID_Mystery1));
+
+  if (InlineIsEqualGUID (IID_Mystery0, riid) ||
+      InlineIsEqualGUID (IID_Mystery1, riid))
+  {
+    wchar_t                wszGUID [41] = { };
+    StringFromGUID2 (riid, wszGUID, 40);
+
+    SK_LOGi0 (L"Disabling unknown interface: %ws", wszGUID);
+
+    return E_NOINTERFACE;
+  }
+#endif
+
+
   HRESULT hr =
     pReal->QueryInterface (riid, ppvObj);
 
@@ -228,10 +249,19 @@ ULONG
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::AddRef (void)
 {
-  InterlockedIncrement (&refs_);
+  ULONG xrefs =
+    InterlockedIncrement (&refs_);
+
+  ULONG refs =
+    pReal->AddRef ();
+
+  SK_LOGi3 (
+    L"IWrapDXGISwapChain::AddRef (...): "
+    L"External=%lu, Actual=%lu",
+      xrefs, refs );
 
   return
-    pReal->AddRef ();
+    refs;
 }
 
 ULONG
@@ -272,6 +302,8 @@ IWrapDXGISwapChain::Release (void)
 
   HWND hwnd = hWnd_;
 
+  // External references are now 0... game expects SwapChain destruction.
+  //
   if (xrefs == 0)
   {
     // We're going to make this available for recycling
@@ -281,10 +313,42 @@ IWrapDXGISwapChain::Release (void)
         this, std::exchange (hWnd_, (HWND)0), pDev
       );
     }
+
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
+
+    //  If this SwapChain is the primary one that SK is rendering to,
+    //    then we must teardown our render backend to eliminate internal
+    //      references preventing the SwapChain from being destroyed.
+    if ( rb.swapchain.p == this ||
+         rb.swapchain.p == pReal )
+    {
+      rb.releaseOwnedResources ();
+
+      // This is a hard reset, we're going to get a new cmd queue
+      _d3d11_rbk->release (_d3d11_rbk->_pSwapChain);
+      _d3d12_rbk->release (_d3d12_rbk->_pSwapChain);
+      _d3d12_rbk->_pCommandQueue.Release ();
+    }
   }
 
   ULONG refs =
     pReal->Release ();
+
+
+  SK_LOGi3 (
+    L"IWrapDXGISwapChain::Release (...): "
+    L"External=%lu, Actual=%lu",
+     xrefs, refs );
+
+  if (xrefs == 0 && refs != 0)
+  {
+    SK_LOGi0 (
+      L"IWrapDXGISwapChain::Release (...) should have returned 0, "
+      L"but %lu references remain...", refs
+    );
+  }
+
 
   if (refs == 0)
   {

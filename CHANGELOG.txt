@@ -1,4 +1,10 @@
-﻿24.7.15
+﻿24.7.17
+=======
+ + Added fix-up for Talos Principle 2's addition of FSR3 Frame Generation;
+     FSR3 always destroys the existing SwapChain and creates a new one when
+       toggling frame generation on/off.
+
+24.7.15
 =======
  + Disable texture caching in Kingdom Come Deliverance by default
 

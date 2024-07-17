@@ -2872,6 +2872,11 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
     SK_ReShadeAddOn_CleanupRTVs (SK_ReShadeAddOn_GetRuntimeForSwapChain (_pSwapChain.p), true);
   }
 
+  if (_pSwapChain.p == nullptr && _pDevice.p == nullptr)
+  {
+    SK_LOGi1 (L"Releasing D3D12 Render Context that was never initialized!");
+  }
+
   SK_ReShadeAddOn_CleanupRTVs (SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain), true);
 
   if (SK_IsDebuggerPresent ())
