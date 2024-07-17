@@ -759,6 +759,7 @@ SK_ImGui_LatentSyncConfig (void)
               if (iRequiredBufferCount <= 15)
               {
                 ImGui::BulletText ("Adaptive (Prefer Off)");
+                ImGui::BulletText ("Always Off (LL)");
                 ImGui::BulletText ("Always Off");
               }
 
@@ -792,6 +793,14 @@ SK_ImGui_LatentSyncConfig (void)
 
               if (iRequiredBufferCount <= 15)
               {
+                ImGui::Text       (
+                  std::format     (
+                    " :\tBuffer Count = {}\tMax Device Latency = {}",
+                    iRequiredBufferCount,
+                    iRequiredMaxDeviceLatency
+                  ).c_str         ()
+                );
+
                 ImGui::Text       (
                   std::format     (
                     " :\tBuffer Count = {}\tMax Device Latency = {}",
@@ -2238,6 +2247,12 @@ SK::Framerate::Limiter::wait (void)
         // No tearing, temporarily decrease FPS limit if Render Latency exceeds 1 frame
         case SK_TearingMode::AlwaysOff_LowLatency:
         {
+          static bool bReduceRenderLatencyAndWait = false;
+
+          static bool bFpsBecameStable = false;
+
+          static float fWaitSeconds = 0.0f;
+
           bool bIsTearingModeAdaptiveOn  =
             tearingMode == SK_TearingMode::AdaptiveOn;
 
@@ -2246,12 +2261,6 @@ SK::Framerate::Limiter::wait (void)
 
           bool bIsTrueFullscreen =
             rb.isTrueFullscreen ();
-
-          static bool bReduceRenderLatencyAndWait = false;
-
-          static bool bFpsBecameStable = false;
-
-          static float fWaitSeconds = 0.0f;
 
           // Adaptive tearing causes a hitch in FSE, add wait to prevent
           // Unstable <-> Stable FPS (Tearing <-> No Tearing) loop

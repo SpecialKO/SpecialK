@@ -6180,17 +6180,10 @@ SK_ImGui_ControlPanel (void)
 
                 if (config.render.framerate.target_fps <= 0.0f)
                 {
-                  if (config.render.framerate.present_interval > 0)
-                  {
-                    config.render.framerate.tearing_mode =
-                      SK_TearingMode::AlwaysOff;
-                  }
-
-                  else
-                  {
-                    config.render.framerate.tearing_mode =
-                      SK_TearingMode::AppControlled;
-                  }
+                  config.render.framerate.tearing_mode =
+                    config.render.framerate.present_interval > 0
+                      ? SK_TearingMode::AlwaysOff
+                      : SK_TearingMode::AppControlled;
                 }
 
                 switch (config.render.framerate.tearing_mode)
