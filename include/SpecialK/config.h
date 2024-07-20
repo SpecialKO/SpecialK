@@ -1628,6 +1628,7 @@ enum class SK_GAME_ID
   KingdomComeDeliverance,       // KingdomCome.exe
   GodOfWar,                     // GoW.exe
   TalosPrinciple2,              // Talos2-Win64-Shipping.exe
+  CrashBandicootNSaneTrilogy,   // CrashBandicootNSaneTrilogy.exe
 
   UNKNOWN_GAME               = 0xffff
 };

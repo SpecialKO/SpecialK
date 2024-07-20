@@ -253,7 +253,8 @@ SK_GetCurrentGameID (void)
           { L"Harold Halibut.exe",                     SK_GAME_ID::HaroldHalibut                },
           { L"KingdomCome.exe",                        SK_GAME_ID::KingdomComeDeliverance       },
           { L"GoW.exe",                                SK_GAME_ID::GodOfWar                     },
-          { L"Talos2-Win64-Shipping.exe",              SK_GAME_ID::TalosPrinciple2              }
+          { L"Talos2-Win64-Shipping.exe",              SK_GAME_ID::TalosPrinciple2              },
+          { L"CrashBandicootNSaneTrilogy.exe",         SK_GAME_ID::CrashBandicootNSaneTrilogy   },
         };
 
     first_check  = false;
@@ -3687,6 +3688,12 @@ auto DeclKeybind =
         config.apis.d3d9.hook   = false;
         config.apis.d3d9ex.hook = false;
         config.apis.OpenGL.hook = false;
+      } break;
+
+      case SK_GAME_ID::CrashBandicootNSaneTrilogy:
+      {
+        // Requires synchronous init or the game will get GDI Copy
+        config.compatibility.init_on_separate_thread = false;
       } break;
     }
   }
