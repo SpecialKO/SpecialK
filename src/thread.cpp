@@ -21,6 +21,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <SpecialK/diagnostics/debug_utils.h>
+#include <SpecialK/utility.h>
 
 #ifdef  __SK_SUBSYSTEM__
 #undef  __SK_SUBSYSTEM__
@@ -1170,6 +1171,30 @@ SK_GetMainThreadID (void)
     return static_cast <DWORD> (-1);
 
   return tid;
+}
+
+
+void
+SK_Thread_SpinUntilFlaggedEx ( _In_ _Interlocked_operand_ LONG volatile const *pFlag,
+                                                          LONG                 _TimeoutMs,
+                                                          LONG                 _SpinMax ) noexcept
+{
+  DWORD dwStartTime =
+    SK_timeGetTime ();
+
+  while (ReadAcquire (pFlag) == 0)
+  {
+    for (int i = 0; i < _SpinMax && (ReadAcquire (pFlag) == 0); i++)
+      YieldProcessor ();
+
+    if (ReadAcquire (pFlag) == 1)
+      break;
+
+    SK_SleepEx (0UL, FALSE);
+
+    if (SK_timeGetTime () > dwStartTime + _TimeoutMs)
+      return;
+  }
 }
 
 

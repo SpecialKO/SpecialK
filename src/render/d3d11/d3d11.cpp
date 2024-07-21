@@ -8648,6 +8648,8 @@ D3D11CreateDevice_Detour (
 
   SK_RunOnce ({
     SK_D3D11_Init ();
+    if (        0 == ReadAcquire   (&__d3d11_ready))
+      SK_Thread_SpinUntilFlaggedEx (&__d3d11_ready); // Ex spins up to 250 ms
   });
 
   // Detect NVIDIA Vk/DXGI Interop

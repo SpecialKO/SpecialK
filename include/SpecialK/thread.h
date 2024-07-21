@@ -221,6 +221,11 @@ SK_Thread_SpinUntilFlagged ( _In_ _Interlocked_operand_ LONG volatile const *pFl
   }
 }
 
+void
+SK_Thread_SpinUntilFlaggedEx ( _In_ _Interlocked_operand_ LONG volatile const *pFlag,
+                                                          LONG                 _TimeoutMs = 250UL,
+                                                          LONG                 _SpinMax   = 75L ) noexcept;
+
 static void
 SK_Thread_SpinUntilAtomicMin ( _In_ _Interlocked_operand_ LONG volatile const *pVar,
                                                           LONG                 count,

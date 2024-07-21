@@ -1,4 +1,10 @@
-﻿24.7.21
+﻿24.7.21.1
+=========
+ + Add maximum 250 ms initialization sync delay when games call
+     D3D11CreateDevice rather than D3D11CreateDeviceAndSwapChain
+       to ensure Flip Model SwapChain overrides work.
+
+24.7.21
 =======
  + Fixed incorrect ICtCp chroma scaling during HDR->SDR screenshot tonemapping
 
