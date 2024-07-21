@@ -1,4 +1,8 @@
-﻿24.7.20
+﻿24.7.21
+=======
+ + Fixed incorrect ICtCp chroma scaling during HDR->SDR screenshot tonemapping
+
+24.7.20
 =======
  + Added default config AsyncInit=false for Crash Bandicoot N'Sane Trilogy
      in order to ensure SK can upgrade it from Blit Model to Flip Model

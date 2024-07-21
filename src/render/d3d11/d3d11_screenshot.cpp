@@ -1702,8 +1702,23 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
                         if (Y_out + Y_in > 0.0f)
                         {
+                          float I0      = XMVectorGetX (ICtCp);
+                          float I1      = 0.0f;
+                          float I_scale = 0.0f;
+
                           ICtCp.m128_f32 [0] *=
                             std::max ((Y_out / Y_in), 0.0f);
+
+                          I1 = XMVectorGetX (ICtCp);
+
+                          if (I0 != 0.0f && I1 != 0.0f)
+                          {
+                            I_scale =
+                              std::min (I0 / I1, I1 / I0);
+                          }
+
+                          ICtCp.m128_f32 [1] *= I_scale;
+                          ICtCp.m128_f32 [2] *= I_scale;
                         }
 
                         value =
