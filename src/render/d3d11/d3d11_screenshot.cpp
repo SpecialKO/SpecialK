@@ -1676,7 +1676,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
                       auto TonemapHDR = [](float L, float Lc, float Ld) -> float
                       {
-                        float a = (  Ld / pow (Lc, 2.0f));
+                        float a = (  Ld / pow (Lc, 2.15f));
                         float b = (1.0f / Ld);
                       
                         return
