@@ -231,6 +231,13 @@ struct sk_config_t
       BYTE toggle [4]     = { VK_CONTROL, VK_SHIFT, 'O',          0 };
       BYTE shrink [4]     = { VK_CONTROL, VK_SHIFT, VK_OEM_MINUS, 0 };
       BYTE expand [4]     = { VK_CONTROL, VK_SHIFT, VK_OEM_PLUS,  0 };
+      SK_ConfigSerializedKeybind
+        console_toggle = {
+          SK_Keybind {
+            "Toggle SK's Command Console", L"Ctrl+Shift+Tab",
+             true, true, false, VK_TAB
+          }, L"ConsoleToggle"
+        };
     } keys;
 
     bool   remember_state = false;
@@ -811,7 +818,6 @@ struct sk_config_t
     // OSD Render Stats
     bool      show                 = false;
     struct keybinds_s {
-      //BYTE    toggle [4]         = { VK_CONTROL, VK_SHIFT, 'R', 0 };
       SK_ConfigSerializedKeybind
         hud_toggle = {
           SK_Keybind {

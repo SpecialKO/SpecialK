@@ -1,4 +1,14 @@
-﻿24.7.22
+﻿24.7.22.1
+=========
+ + Slightly increase the overall brightness of HDR->SDR tonemapped screenshots
+ + Added option to Global\osd.ini to assign a keybind to toggle command console
+
+    [OSD.System]
+    ConsoleToggle=...  Default=Ctrl+Shift+Tab
+
+     * Set ConsoleToggle=<Not Bound> to disable the console
+
+24.7.22
 =======
  + When saving HDR->SDR screenshots, use the display's maximum luminance as the
      maximum tonemapped light level if the content's maximum level exceeds it.

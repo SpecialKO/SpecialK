@@ -1552,6 +1552,7 @@ auto DeclKeybind =
     ConfigEntry (screenshots.png.store_hdr,              L"Use HDR PNG file format for HDR screenshots",               osd_ini,         L"Screenshot.HDR",        L"StorePNG"),
     ConfigEntry (screenshots.allow_hdr_clipboard,        L"Use HDR for Windows Clipboard screenshots",                 osd_ini,         L"Screenshot.HDR",        L"AllowClipboardHDR"),
     Keybind ( &config.render.keys.hud_toggle,            L"Toggle Game's HUD",                                         osd_ini,         L"Game.HUD"),
+    Keybind ( &config.osd.keys.console_toggle,           L"Toggle SK's Command Console",                               osd_ini,         L"OSD.System"),
     Keybind ( &config.screenshots.game_hud_free_keybind, L"Take a screenshot without the HUD",                         osd_ini,         L"Screenshot.System"),
     Keybind ( &config.screenshots.sk_osd_free_keybind,   L"Take a screenshot without SK's OSD",                        osd_ini,         L"Screenshot.System"),
     Keybind ( &config.screenshots.
@@ -5120,6 +5121,7 @@ auto DeclKeybind =
     config.screenshots.use_avif = false;
 
   LoadKeybind (&config.render.keys.hud_toggle);
+  LoadKeybind (&config.osd.keys.console_toggle);
   LoadKeybind (&config.screenshots.game_hud_free_keybind);
   LoadKeybind (&config.screenshots.sk_osd_free_keybind);
   LoadKeybind (&config.screenshots.sk_osd_insertion_keybind);

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -231,7 +231,8 @@ SK_ImGui_ProcessKeyPress (const BYTE& vkCode)
     {
       // Finally, toggle the command console
       if ( SK_MakeKeyMask (vkCode, keys_ [VK_CONTROL], keys_ [VK_SHIFT], keys_ [VK_MENU]) ==
-           SK_MakeKeyMask (VK_TAB, 1, 1, 0) )
+           config.osd.keys.console_toggle.masked_code &&
+           config.osd.keys.console_toggle.masked_code != 0 /* 0 = Not Bound */ )
       {
         visible = ! visible;
 
