@@ -1,4 +1,16 @@
-﻿24.7.21.1
+﻿24.7.22
+=======
+ + When saving HDR->SDR screenshots, use the display's maximum luminance as the
+     maximum tonemapped light level if the content's maximum level exceeds it.
+
+   >> Often overlays, UIs, or other unintended things on screen contribute to a
+        higher calculated maximum luminance and would dim the tonemapped image.
+
+    * Your display is the mastering display, so the tonemap should adhere to its
+        limitations to prevent dimming from details that were not even visible
+          to you due to your display's capabilities.
+
+24.7.21.1
 =========
  + Add maximum 250 ms initialization sync delay when games call
      D3D11CreateDevice rather than D3D11CreateDeviceAndSwapChain

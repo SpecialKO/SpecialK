@@ -1948,7 +1948,9 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   //   this is important in cases where the maximum luminance was < 1000 nits
                   XMVECTOR maxTonemappedRGB = g_XMZero;
 
-                  static constexpr float _maxNitsToTonemap = 10000.0f/80.0f;
+                  // User's display is the canonical mastering display, anything that would have clipped
+                  //   on their display should be clipped in the tonemapped SDR image.
+                  float _maxNitsToTonemap = rb.displays [rb.active_display].gamut.maxLocalY / 80.0f;
 
                   const float maxYInPQ =
                     LinearToPQY (std::min (_maxNitsToTonemap, XMVectorGetY (maxLum))),
