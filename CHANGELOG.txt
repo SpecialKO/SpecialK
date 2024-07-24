@@ -1,4 +1,9 @@
-﻿24.7.23
+﻿24.7.23.1
+=========
+ + Change size of sBIT chunk when adding HDR chunks to PNG data to account for
+     missing alpha channel
+
+24.7.23
 =======
  + Use Windows SDR white level as SDR reference white level in HDR->SDR tonemap
 

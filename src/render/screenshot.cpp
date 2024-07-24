@@ -1286,7 +1286,6 @@ struct SK_PNG_HDR_sBIT_Payload
   uint8_t red_bits   = 10; // 12 if source was scRGB (compression optimization)
   uint8_t green_bits = 10; // 12 if source was scRGB (compression optimization)
   uint8_t blue_bits  = 10; // 12 if source was scRGB (compression optimization)
-  uint8_t alpha_bits =  1; // Spec says it must be > 0... :shrug:
 };
 
 struct SK_PNG_HDR_mDCv_Payload
@@ -1802,7 +1801,7 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
       sbit_data = {
         static_cast <unsigned char> (DirectX::BitsPerColor (raw_img.format)),
         static_cast <unsigned char> (DirectX::BitsPerColor (raw_img.format)),
-        static_cast <unsigned char> (DirectX::BitsPerColor (raw_img.format)), 1
+        static_cast <unsigned char> (DirectX::BitsPerColor (raw_img.format))
       };
 
       // If using compression optimization, max bits = 12
