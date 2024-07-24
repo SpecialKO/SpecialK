@@ -1,4 +1,8 @@
-﻿24.7.22.1
+﻿24.7.23
+=======
+ + Use Windows SDR white level as SDR reference white level in HDR->SDR tonemap
+
+24.7.22.1
 =========
  + Slightly increase the overall brightness of HDR->SDR tonemapped screenshots
  + Added option to Global\osd.ini to assign a keybind to toggle command console
