@@ -6127,8 +6127,7 @@ SK_ImGui_ControlPanel (void)
 
               if (bIsD3D9 && SK_IsInjected ())
               {
-                if ( ( !bIsTearingD3D9 && config.render.framerate.tearing_mode != SK_TearingMode::AlwaysOn ) ||
-                     (  bIsTearingD3D9 && config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOn ) )
+                if ( bIsTearingD3D9 == (config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOn) )
                 {
                   if (config.compatibility.init_on_separate_thread != bAsyncInitOrig)
                   {
@@ -6189,22 +6188,22 @@ SK_ImGui_ControlPanel (void)
                 switch (config.render.framerate.tearing_mode)
                 {
                   case SK_TearingMode::AlwaysOff_LowLatency:
-                    if (config.render.framerate.present_interval > 0) [[likely]]
+                    if (config.render.framerate.present_interval > 0)
                     {
                       iTearingMode = 1;
                     }
-                    else [[unlikely]]
+                    else
                     {
                       config.render.framerate.tearing_mode =
                         SK_TearingMode::AppControlled;
                     }
                     break;
                   case SK_TearingMode::AdaptiveOff:
-                    if (config.render.framerate.present_interval > 0 && !bIsD3D9) [[likely]]
+                    if (config.render.framerate.present_interval > 0 && !bIsD3D9)
                     {
                       iTearingMode = 2;
                     }
-                    else [[unlikely]]
+                    else
                     {
                       config.render.framerate.tearing_mode =
                         config.render.framerate.present_interval > 0
@@ -6357,12 +6356,12 @@ SK_ImGui_ControlPanel (void)
 
                 if (config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff)
                 {
-                  if (! (bIsD3D9 || bIsTrueFullscreen)) [[likely]]
+                  if (! (bIsD3D9 || bIsTrueFullscreen))
                   {
                     iTearingMode = 1;
                   }
 
-                  else [[unlikely]]
+                  else
                   {
                     config.render.framerate.tearing_mode =
                       SK_TearingMode::AppControlled;

@@ -593,7 +593,7 @@ SK_ImGui_LatentSyncConfig (void)
       {
         case  SK_TearingMode::AdaptiveOn:
         case  SK_TearingMode::AdaptiveOff:
-          if (bIsD3D9) [[unlikely]]
+          if (bIsD3D9)
           {
             config.render.framerate.tearing_mode =
               SK_TearingMode::AlwaysOn;
@@ -602,7 +602,7 @@ SK_ImGui_LatentSyncConfig (void)
         case  SK_TearingMode::AlwaysOff:
         case  SK_TearingMode::AlwaysOff_LowLatency:
           break;
-        [[unlikely]] default:
+        default:
           config.render.framerate.tearing_mode =
               SK_TearingMode::AlwaysOn;
           break;
@@ -769,55 +769,47 @@ SK_ImGui_LatentSyncConfig (void)
               ImGui::SameLine     (0.0f, 0.0f);
               ImGui::BeginGroup   ();
 
-              if (iRequiredBufferCount <= 15)
-              {
+              auto _PrintRequiredSettings = [](
+                int requiredBufferCount,
+                int requiredMaxDeviceLatency
+              ) -> void {
                 ImGui::Text       (
                   std::format     (
-                    " :\tBuffer Count = {}\tMax Device Latency = {}",
-                    iRequiredBufferCount,
-                    iRequiredMaxDeviceLatency
+                    "\t:\tBuffer Count = {}\tMax Device Latency = {}",
+                    requiredBufferCount,
+                    requiredMaxDeviceLatency
                   ).c_str         ()
+                );
+              };
+
+              if (iRequiredBufferCount <= 15)
+              {
+                _PrintRequiredSettings (
+                  iRequiredBufferCount,
+                  iRequiredMaxDeviceLatency
                 );
               }
 
               if (bSupportsFrameSkipping)
               {
-                ImGui::Text       (
-                  std::format     (
-                    " :\tBuffer Count = {}\tMax Device Latency = 1",
-                    std::min      (
-                      iRequiredBufferCount,
-                      15
-                    )
-                  ).c_str         ()
+                _PrintRequiredSettings (
+                  std::min (
+                    iRequiredBufferCount,
+                    15
+                  ),
+                  1
                 );
               }
 
               if (iRequiredBufferCount <= 15)
               {
-                ImGui::Text       (
-                  std::format     (
-                    " :\tBuffer Count = {}\tMax Device Latency = {}",
+                for ( int i = 0; i < 3; i++ )
+                {
+                  _PrintRequiredSettings (
                     iRequiredBufferCount,
                     iRequiredMaxDeviceLatency
-                  ).c_str         ()
-                );
-
-                ImGui::Text       (
-                  std::format     (
-                    " :\tBuffer Count = {}\tMax Device Latency = {}",
-                    iRequiredBufferCount,
-                    iRequiredMaxDeviceLatency
-                  ).c_str         ()
-                );
-
-                ImGui::Text       (
-                  std::format     (
-                    " :\tBuffer Count = {}\tMax Device Latency = {}",
-                    iRequiredBufferCount,
-                    iRequiredMaxDeviceLatency
-                  ).c_str         ()
-                );
+                  );
+                }
               }
 
               ImGui::EndGroup     ();
@@ -855,8 +847,7 @@ SK_ImGui_LatentSyncConfig (void)
           return false;
         }();
 
-        if ( ( !bIsTearingD3D9 && config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOn ) ||
-             (  bIsTearingD3D9 && config.render.framerate.tearing_mode != SK_TearingMode::AlwaysOn ) )
+        if ( bIsTearingD3D9 != (config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOn) )
         {
           if (SK_IsInjected () && config.compatibility.init_on_separate_thread)
           {
@@ -1749,6 +1740,18 @@ SK::Framerate::Limiter::try_wait (void)
 extern NtSetTimerResolution_pfn
        NtSetTimerResolution_Original;
 
+class SK_ImGui_FrameHistory : public SK_Stat_DataHistory <float, 120>
+{
+public:
+  void timeFrame       (double seconds)
+  {
+    addValue ((float)(1000.0 * seconds));
+  }
+};
+
+extern SK_LazyGlobal <SK_ImGui_FrameHistory> SK_ImGui_Frames;
+extern bool                                  reset_frame_history;
+
 void
 SK::Framerate::Limiter::wait (void)
 {
@@ -2201,8 +2204,16 @@ SK::Framerate::Limiter::wait (void)
         (1000.0 / get_limit           ()) -
                   effective_frametime ();
 
+      static constexpr int ACTION_None                      = 0,
+                           ACTION_HighVariation             = 1,
+                           ACTION_HighRenderLatency         = 2,
+                           ACTION_AdaptiveTearingHitchInFSE = 3;
+
+      static int iACTION = ACTION_None;
+
       static float fTargetFPS     = __target_fps,
-                   fTempTargetFPS =         0.0f;
+                   fTempTargetFPS =         0.0f,
+                   fWaitSeconds   =         0.0f;
 
       bool bIsFpsUnstable = latency_avg.getInput () < 0.0;
 
@@ -2214,6 +2225,11 @@ SK::Framerate::Limiter::wait (void)
 
       auto _ToggleTearing = [&](bool bEnableTearing) -> void
       {
+        if (tearingMode == SK_TearingMode::AppControlled)
+        {
+          return;
+        }
+
         if (config.render.framerate.present_interval > 0)
         {
           // Adaptive VSync
@@ -2224,8 +2240,6 @@ SK::Framerate::Limiter::wait (void)
 
             config.render.dxgi.allow_tearing = true;
           }
-
-          // Do nothing for regular VSync
         }
 
         else
@@ -2235,7 +2249,64 @@ SK::Framerate::Limiter::wait (void)
         }
       };
 
-      switch (tearingMode)
+      int iTearingMode = tearingMode;
+
+      if (tearingMode == SK_TearingMode::AppControlled)
+      {
+        if (SK_API_IsDirect3D9 (rb.api))
+        {
+          auto _IsTearingD3D9 = [&]() -> bool
+          {
+            auto pDev9 =
+              rb.getDevice <IDirect3DDevice9> ();
+
+            if (pDev9 != nullptr)
+            {
+              SK_ComQIPtr <IDirect3DSwapChain9> pSwap9 (rb.swapchain);
+
+              if (pSwap9 != nullptr)
+              {
+                D3DPRESENT_PARAMETERS pparams = { };
+
+                if (SUCCEEDED (pSwap9->GetPresentParameters (&pparams)))
+                {
+                  return
+                    pparams.PresentationInterval == D3DPRESENT_INTERVAL_IMMEDIATE ||
+                    pparams.PresentationInterval == D3DPRESENT_FORCEIMMEDIATE;
+                }
+              }
+            }
+
+            return false;
+          };
+
+          static bool bIsTearingD3D9 = _IsTearingD3D9 ();
+
+          static int iFrame = 1;
+
+          if (iFrame++ >= static_cast <int> (__target_fps * 90.0f))
+          {
+            bIsTearingD3D9 = _IsTearingD3D9 ();
+
+            iFrame = 1;
+          }
+
+          iTearingMode =
+            bIsTearingD3D9
+              ? SK_TearingMode::AlwaysOn
+              : SK_TearingMode::AlwaysOff;
+        }
+
+        else
+        {
+          iTearingMode =
+            rb.present_interval == 0
+              ? SK_TearingMode::AlwaysOn
+              : SK_TearingMode::AlwaysOff;
+        }
+      }
+
+      switch (iTearingMode)
       {
         // Prefer tearing, only disable tearing if FPS is unstable
         case SK_TearingMode::AdaptiveOn:
@@ -2248,31 +2319,31 @@ SK::Framerate::Limiter::wait (void)
 
         // No tearing, temporarily decrease FPS limit if Render Latency exceeds 1 frame
         case SK_TearingMode::AlwaysOff_LowLatency:
+
+        // No tearing, only reset limiter is variation is high or input latency is stuck at (-0.1, 0.0) ms
+        case SK_TearingMode::AlwaysOff:
         {
-          static bool bReduceRenderLatencyAndWait = false;
+          bool  bIsTearingModeAdaptiveOn  =
+                  iTearingMode == SK_TearingMode::AdaptiveOn,
 
-          static bool bFpsBecameStable = false;
+                bIsTearingModeAdaptiveOff =
+                  iTearingMode == SK_TearingMode::AdaptiveOff,
 
-          static float fWaitSeconds = 0.0f;
+                bIsTearingModeAlwaysOffLL =
+                  iTearingMode == SK_TearingMode::AlwaysOff_LowLatency,
 
-          bool bIsTearingModeAdaptiveOn  =
-            tearingMode == SK_TearingMode::AdaptiveOn;
+                bIsTearingModeAlwaysOff   =
+                  iTearingMode == SK_TearingMode::AlwaysOff,
 
-          bool bIsTearingModeAdaptiveOff =
-            tearingMode == SK_TearingMode::AdaptiveOff;
-
-          bool bIsTearingModeAlwaysOffLL =
-            tearingMode == SK_TearingMode::AlwaysOff_LowLatency;
-
-          bool bIsTrueFullscreen =
-            rb.isTrueFullscreen ();
+                bIsTrueFullscreen         =
+                  rb.isTrueFullscreen ();
 
           // Adaptive tearing causes a hitch in FSE, add wait to prevent
           // Unstable <-> Stable FPS (Tearing <-> No Tearing) loop
           if ( ( bIsTearingModeAdaptiveOn || bIsTearingModeAdaptiveOff ) &&
                ( bIsTrueFullscreen                                     ) )
           {
-            if (bFpsBecameStable)
+            if (iACTION == ACTION_AdaptiveTearingHitchInFSE)
             {
               _ToggleTearing (
                 bIsTearingModeAdaptiveOn
@@ -2300,9 +2371,7 @@ SK::Framerate::Limiter::wait (void)
                 bIsTearingModeAdaptiveOn
               );
 
-              bReduceRenderLatencyAndWait = false;
-
-              bFpsBecameStable = true;
+              iACTION = ACTION_AdaptiveTearingHitchInFSE;
 
               fWaitSeconds = 0.0f;
 
@@ -2310,9 +2379,9 @@ SK::Framerate::Limiter::wait (void)
             }
           }
 
-          if (bFpsBecameStable)
+          if (iACTION == ACTION_AdaptiveTearingHitchInFSE)
           {
-            bFpsBecameStable = false;
+            iACTION = ACTION_None;
 
             fWaitSeconds = 0.0f;
           }
@@ -2322,56 +2391,269 @@ SK::Framerate::Limiter::wait (void)
                rb.presentation.mode != SK_PresentMode::Composed_Copy_CPU_GDI      &&
                rb.presentation.mode != SK_PresentMode::Composed_Flip              )
           {
-            if (bIsTearingModeAdaptiveOff || bIsTearingModeAlwaysOffLL)
+            if ( bIsTearingModeAdaptiveOff ||
+                 bIsTearingModeAlwaysOffLL ||
+                 bIsTearingModeAlwaysOff   )
             {
-              bool bIsRenderLatencyAboveOneFrame = false;
+              bool bAbortAction = false;
+              bool bIsNewAction = false;
 
-              // 2x.. mode with Tearing Off and "PreRenderLimit > 1" would constantly
-              // enable <-> disable tearing because Render Latency is always above 1 frame
-              // -
-              // In that case, only enable tearing if Render Latency increases even further
-              // (frametime graph becomes unstable beyond 1.7x Display ms)
-              if ( std::round (fps / rb.getActiveRefreshRate ()) >= 2.0 &&
-                   config.render.framerate.pre_render_limit      != 1   )
+              static int iLastTearingMode = iTearingMode;
+
+              if (std::exchange (iLastTearingMode, iTearingMode) !=
+                                                   iTearingMode)
               {
-                if (rb.presentation.avg_stats.display != 0.0)
+                bAbortAction = true;
+              }
+
+              static bool bWasTrueFullscreen = bIsTrueFullscreen;
+
+              if (std::exchange (bWasTrueFullscreen, bIsTrueFullscreen) !=
+                                                     bIsTrueFullscreen)
+              {
+                bAbortAction = true;
+              }
+#if 1
+              // TODO: remove this block when VRR status is detectable on all vendors
+              // -
+              // ACTION_HighVariation is meant for fixed-refresh users and it should be ignored for VRR
+              // To preserve old behaviour, we are keeping regular "Always Off" mode unaffected for now
+              if (bIsTearingModeAlwaysOff)
+              {
+                bAbortAction = true;
+              }
+#endif
+              if (! bAbortAction)
+              {
+                auto _IsRenderLatencyAboveOneFrame = [&]() -> bool
                 {
-                  bIsRenderLatencyAboveOneFrame =
-                    rb.presentation.avg_stats.latency /
-                    rb.presentation.avg_stats.display > 1.7;
+                  // 2x.. mode with Tearing Off and "PreRenderLimit > 1" would constantly
+                  // enable <-> disable tearing because Render Latency is always above 1 frame
+                  // -
+                  // In that case, only enable tearing if Render Latency increases even further
+                  // (frametime graph becomes unstable beyond 1.7x Display ms)
+                  if ( std::round (fps / rb.getActiveRefreshRate ()) >= 2.0 &&
+                       config.render.framerate.pre_render_limit      != 1   )
+                  {
+                    if (rb.presentation.avg_stats.display != 0.0)
+                    {
+                      return
+                        rb.presentation.avg_stats.latency /
+                        rb.presentation.avg_stats.display > 1.7;
+                    }
+                  }
+
+                  else if (! SK_RenderBackend_V2::latency.stale)
+                  {
+                    return
+                      SK_RenderBackend_V2::latency.delays.PresentQueue > 1;
+                  }
+
+                  else if (rb.presentation.avg_stats.display != 0.0)
+                  {
+                    return
+                      rb.presentation.avg_stats.latency /
+                      rb.presentation.avg_stats.display > 1.5;
+                  }
+
+                  return false;
+                };
+
+                auto _IsHighVariation = [&]() -> bool
+                {
+                  float min = FLT_MAX,
+                        max =    0.0f;
+
+                  for ( const auto& val : SK_ImGui_Frames->getValues () )
+                  {
+                    if (val > max)
+                    {
+                      max = val;
+                    }
+
+                    if (val < min)
+                    {
+                      min = val;
+                    }
+                  }
+
+                  return (double)max - (double)min > 1.0;
+                };
+
+                bool bIgnoreHighVariation = (
+                  config.render.framerate.enforcement_policy == 4 &&
+                  config.fps.timing_method ==
+                    SK_FrametimeMeasures_NewFrameBegin
+                ) || (
+                  config.render.framerate.enforcement_policy == 2
+                ) || (
+                  config.nvidia.reflex.use_limiter
+                ) || (
+                  latency_avg.getInput () < -0.1
+                );
+
+                switch (iACTION)
+                {
+                  case ACTION_HighRenderLatency:
+                  {
+                    if (bIsTearingModeAlwaysOff) [[unlikely]]
+                    {
+                      bAbortAction = true;
+
+                      break;
+                    }
+
+                    if ( (! _IsRenderLatencyAboveOneFrame () ) ||
+                         (  bIsFpsUnstable                   ) )
+                    {
+                      bAbortAction = true;
+                    }
+                  } break;
+
+                  case ACTION_HighVariation:
+                  {
+                    if ( (! _IsHighVariation  () ) ||
+                         (  bIgnoreHighVariation ) )
+                    {
+                      bAbortAction = true;
+                    }
+                  } break;
+
+                  default:
+                  {
+                    iACTION = ACTION_None;
+
+                    if ( ( config.render.framerate.present_interval == 0 &&
+                           config.render.dxgi.allow_tearing               ) ||
+                         ( config.render.framerate.present_interval >= 1 &&
+                           config.render.framerate.turn_vsync_off        &&
+                           bIsTearingModeAdaptiveOff                      ) )
+                    {
+                      break;
+                    }
+
+                    if ( !bIsFpsUnstable                &&
+                         !bIsTearingModeAlwaysOff       &&
+                          _IsRenderLatencyAboveOneFrame () )
+                    {
+                      iACTION = ACTION_HighRenderLatency;
+                    }
+
+                    else if ( !bIgnoreHighVariation &&
+                               _IsHighVariation     () )
+                    {
+                      iACTION = ACTION_HighVariation;
+                    }
+
+                    if (iACTION != ACTION_None)
+                    {
+                      bIsNewAction = true;
+                    }
+                  } break;
                 }
               }
 
-              else if (! SK_RenderBackend_V2::latency.stale)
+              if (! (iACTION == ACTION_None || bAbortAction))
               {
-                bIsRenderLatencyAboveOneFrame =
-                  SK_RenderBackend_V2::latency.delays.PresentQueue > 1;
-              }
-
-              else if (rb.presentation.avg_stats.display != 0.0)
-              {
-                bIsRenderLatencyAboveOneFrame =
-                  rb.presentation.avg_stats.latency /
-                  rb.presentation.avg_stats.display > 1.5;
-              }
-
-              if ( ( bIsRenderLatencyAboveOneFrame  &&
-                    !bIsFpsUnstable                  ) ||
-                   ( latency_avg.getInput () > -0.1 && // Decrease FPS limit if VSync input
-                     latency_avg.getInput () <  0.0 && // latency gets stuck at (-0.1, 0.0) ms
-                     bIsTearingModeAlwaysOffLL       ) )
-              {
-                // Toggling VSync Off -> On is not a reliable way to reduce
-                // Render Latency in FSE, resetting frame limiter is better
-                if (bIsTearingModeAlwaysOffLL || bIsTrueFullscreen)
+                if (! bIsNewAction)
                 {
-                  if (bReduceRenderLatencyAndWait)
+                  float fMaxWaitSeconds =
+                    iACTION == ACTION_HighVariation
+                      ? 4.0f
+                      : 1.5f;
+
+                  // Toggling VSync Off -> On is not a reliable way to reduce
+                  // Render Latency in FSE, resetting frame limiter is better
+                  if ( bIsTearingModeAlwaysOffLL ||
+                       bIsTearingModeAlwaysOff   ||
+                       bIsTrueFullscreen         )
                   {
-                    static bool bResetTargetFPS = false;
+                    _ToggleTearing (false);
+
+                    switch (iACTION)
+                    {
+                      case ACTION_HighRenderLatency:
+                      {
+                        static bool bResetTargetFPS = false;
+
+                        if (fWaitSeconds == 0.0f)
+                        {
+                          bResetTargetFPS = false;
+                        }
+
+                        fWaitSeconds += static_cast <float> (
+                          std::max (
+                            effective_ms,
+                            ms
+                          ) / 1000.0
+                        );
+
+                        if (fTempTargetFPS > 0.0f && fTempTargetFPS != __target_fps)
+                        {
+                          bAbortAction = true;
+
+                          break;
+                        }
+
+                        if (!bResetTargetFPS && fWaitSeconds >= fMaxWaitSeconds)
+                        {
+                          bResetTargetFPS = true;
+                          fTempTargetFPS  = 0.0f;
+
+                          fWaitSeconds = fMaxWaitSeconds;
+
+                          SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                            "TargetFPS %f",
+                            __target_fps = fTargetFPS
+                          );
+                        }
+
+                        if (fWaitSeconds < fMaxWaitSeconds * 2.0f)
+                        {
+                          return;
+                        }
+                      } break;
+
+                      case ACTION_HighVariation:
+                      {
+                        fWaitSeconds += static_cast <float> (
+                          std::max (
+                            effective_ms,
+                            ms
+                          ) / 1000.0
+                        );
+
+                        if (fWaitSeconds < fMaxWaitSeconds)
+                        {
+                          return;
+                        }
+                      } break;
+
+                      [[unlikely]] default:
+                      {
+                        bAbortAction = true;
+                      } break;
+                    }
+                  }
+
+                  // After enabling tearing, disable tearing on next frame
+                  // and wait for Render Latency to decrease
+                  else
+                  {
+                    // If Render Latency failed to reduce during waiting period,
+                    // keep tearing enabled until latency decreases
+                    static bool bFailedToReduceRenderLatency = false;
 
                     if (fWaitSeconds == 0.0f)
                     {
-                      bResetTargetFPS = false;
+                      bFailedToReduceRenderLatency = false;
+                    }
+
+                    if (bFailedToReduceRenderLatency)
+                    {
+                      _ToggleTearing (true);
+
+                      return;
                     }
 
                     _ToggleTearing (false);
@@ -2383,125 +2665,68 @@ SK::Framerate::Limiter::wait (void)
                       ) / 1000.0
                     );
 
-                    if (fTempTargetFPS > 0.0f)
-                    {
-                      if (fTempTargetFPS != __target_fps)
-                      {
-                        bReduceRenderLatencyAndWait = false;
-
-                        fWaitSeconds = 0.0f;
-
-                        fTempTargetFPS = 0.0f;
-
-                        fTargetFPS = __target_fps;
-
-                        return;
-                      }
-                    }
-
-                    else
-                    {
-                      if (fTargetFPS != __target_fps)
-                      {
-                        bReduceRenderLatencyAndWait = false;
-
-                        fWaitSeconds = 0.0f;
-
-                        fTargetFPS = __target_fps;
-
-                        return;
-                      }
-                    }
-
-                    if (!bResetTargetFPS && fWaitSeconds >= 1.5f)
-                    {
-                      bResetTargetFPS = true;
-
-                      fTempTargetFPS = 0.0f;
-
-                      fWaitSeconds = 1.5f;
-
-                      SK_GetCommandProcessor ()->ProcessCommandFormatted (
-                        "TargetFPS %f",
-                        __target_fps = fTargetFPS
-                      );
-                    }
-
-                    if (fWaitSeconds < 3.0f)
+                    if (fWaitSeconds < fMaxWaitSeconds)
                     {
                       return;
                     }
-                  }
 
-                  _ToggleTearing (false);
+                    bFailedToReduceRenderLatency = true;
 
-                  bReduceRenderLatencyAndWait = true;
-
-                  fWaitSeconds = 0.0f;
-
-                  if (fTargetFPS != __target_fps)
-                  {
-                    fTargetFPS = __target_fps;
-                  }
-
-                  fTempTargetFPS = fTargetFPS - 1.0f;
-
-                  SK_GetCommandProcessor ()->ProcessCommandFormatted (
-                    "TargetFPS %f",
-                    __target_fps = fTempTargetFPS
-                  );
-
-                  return;
-                }
-
-                // After enabling tearing, disable tearing on next frame
-                // and wait for Render Latency to decrease
-                if (bReduceRenderLatencyAndWait)
-                {
-                  // If Render Latency failed to reduce during waiting period,
-                  // keep tearing enabled until latency decreases
-                  static bool bFailedToReduceRenderLatency = false;
-
-                  if (fWaitSeconds == 0.0f)
-                  {
-                    bFailedToReduceRenderLatency = false;
-                  }
-
-                  if (bFailedToReduceRenderLatency)
-                  {
                     _ToggleTearing (true);
 
                     return;
                   }
+                }
 
-                  _ToggleTearing (false);
+                if (! bAbortAction)
+                {
+                  fWaitSeconds = 0.0f;
 
-                  fWaitSeconds += static_cast <float> (
-                    std::max (
-                      effective_ms,
-                      ms
-                    ) / 1000.0
-                  );
+                  if ( bIsTearingModeAlwaysOffLL ||
+                       bIsTearingModeAlwaysOff   ||
+                       bIsTrueFullscreen         )
+                  {
+                    _ToggleTearing (false);
 
-                  if (fWaitSeconds < 1.5f)
+                    switch (iACTION)
+                    {
+                      case ACTION_HighRenderLatency:
+                      {
+                        if (fTargetFPS != __target_fps)
+                        {
+                          fTargetFPS = __target_fps;
+                        }
+
+                        fTempTargetFPS = fTargetFPS - 1.0f;
+
+                        SK_GetCommandProcessor ()->ProcessCommandFormatted (
+                          "TargetFPS %f",
+                          __target_fps = fTempTargetFPS
+                        );
+                      } break;
+
+                      case ACTION_HighVariation:
+                      {
+                        reset (true);
+                      } break;
+
+                      [[unlikely]] default:
+                      {
+                        bAbortAction = true;
+                      } break;
+                    }
+                  }
+
+                  else
+                  {
+                    _ToggleTearing (true);
+                  }
+
+                  if (! bAbortAction)
                   {
                     return;
                   }
-
-                  bFailedToReduceRenderLatency = true;
-
-                  _ToggleTearing (true);
-
-                  return;
                 }
-
-                _ToggleTearing (true);
-
-                bReduceRenderLatencyAndWait = true;
-
-                fWaitSeconds = 0.0f;
-
-                return;
               }
             }
           }
@@ -2510,14 +2735,12 @@ SK::Framerate::Limiter::wait (void)
             ( bIsTearingModeAdaptiveOn  && !bIsFpsUnstable ) ||
             ( bIsTearingModeAdaptiveOff &&  bIsFpsUnstable )
           );
-
-          bReduceRenderLatencyAndWait = false;
-
-          fWaitSeconds = 0.0f;
         }
 
         default:
         {
+          iACTION = ACTION_None;
+
           if (__target_fps == fTempTargetFPS)
           {
             SK_GetCommandProcessor ()->ProcessCommandFormatted (
@@ -2526,25 +2749,16 @@ SK::Framerate::Limiter::wait (void)
             );
           }
 
-          else if (fTargetFPS != __target_fps)
-          {
-            fTargetFPS = __target_fps;
-          }
-
           fTempTargetFPS = 0.0f;
+          fWaitSeconds   = 0.0f;
 
-          switch (tearingMode)
+          switch (iTearingMode)
           {
             case SK_TearingMode::AlwaysOn:
             {
               _ToggleTearing (true);
 
               __SK_LatentSyncSkip = 0;
-            } break;
-
-            case SK_TearingMode::AlwaysOff:
-            {
-              _ToggleTearing (false);
             } break;
 
             default:
@@ -3180,18 +3394,6 @@ SK::Framerate::FreeLimiter (IUnknown *pSwapChain)
 
   return false;
 }
-
-class SK_ImGui_FrameHistory : public SK_Stat_DataHistory <float, 120>
-{
-public:
-  void timeFrame       (double seconds)
-  {
-    addValue ((float)(1000.0 * seconds));
-  }
-};
-
-extern SK_LazyGlobal <SK_ImGui_FrameHistory> SK_ImGui_Frames;
-extern bool                                  reset_frame_history;
 
 void
 SK::Framerate::TickEx ( bool       /*wait*/,
