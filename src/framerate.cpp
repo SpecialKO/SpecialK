@@ -2207,7 +2207,8 @@ SK::Framerate::Limiter::wait (void)
       static constexpr int ACTION_None                      = 0,
                            ACTION_HighVariation             = 1,
                            ACTION_HighRenderLatency         = 2,
-                           ACTION_AdaptiveTearingHitchInFSE = 3;
+                           ACTION_StuckInputLatency         = 3,
+                           ACTION_AdaptiveTearingHitchInFSE = 4;
 
       static int iACTION = ACTION_None;
 
@@ -2416,7 +2417,7 @@ SK::Framerate::Limiter::wait (void)
 #if 1
               // TODO: remove this block when VRR status is detectable on all vendors
               // -
-              // ACTION_HighVariation is meant for fixed-refresh users and it should be ignored for VRR
+              // ACTION_HighVariation and ACTION_StuckInputLatency should be ignored when VRR is active
               // To preserve old behaviour, we are keeping regular "Always Off" mode unaffected for now
               if (bIsTearingModeAlwaysOff)
               {
@@ -2480,31 +2481,36 @@ SK::Framerate::Limiter::wait (void)
                   return (double)max - (double)min > 1.0;
                 };
 
-                bool bIgnoreHighVariation = (
-                  config.render.framerate.enforcement_policy == 4 &&
-                  config.fps.timing_method ==
-                    SK_FrametimeMeasures_NewFrameBegin
+                auto _IsInputLatencyStuck = [&]() -> bool
+                {
+                  return
+                    latency_avg.getInput () > -0.1 &&
+                    latency_avg.getInput () <  0.0;
+                };
+
+                bool bIgnoreHighRenderLatency = (
+                  bIsTearingModeAlwaysOff
                 ) || (
+                  bIsFpsUnstable
+                );
+
+                bool bIgnoreHighVariation = (
                   config.render.framerate.enforcement_policy == 2
                 ) || (
                   config.nvidia.reflex.use_limiter
                 ) || (
-                  latency_avg.getInput () < -0.1
+                  config.fps.timing_method ==
+                    SK_FrametimeMeasures_NewFrameBegin
+                ) || (
+                  bIsFpsUnstable
                 );
 
                 switch (iACTION)
                 {
                   case ACTION_HighRenderLatency:
                   {
-                    if (bIsTearingModeAlwaysOff) [[unlikely]]
-                    {
-                      bAbortAction = true;
-
-                      break;
-                    }
-
                     if ( (! _IsRenderLatencyAboveOneFrame () ) ||
-                         (  bIsFpsUnstable                   ) )
+                         (  bIgnoreHighRenderLatency         ) )
                     {
                       bAbortAction = true;
                     }
@@ -2514,6 +2520,14 @@ SK::Framerate::Limiter::wait (void)
                   {
                     if ( (! _IsHighVariation  () ) ||
                          (  bIgnoreHighVariation ) )
+                    {
+                      bAbortAction = true;
+                    }
+                  } break;
+
+                  case ACTION_StuckInputLatency:
+                  {
+                    if (! _IsInputLatencyStuck ())
                     {
                       bAbortAction = true;
                     }
@@ -2532,8 +2546,7 @@ SK::Framerate::Limiter::wait (void)
                       break;
                     }
 
-                    if ( !bIsFpsUnstable                &&
-                         !bIsTearingModeAlwaysOff       &&
+                    if ( !bIgnoreHighRenderLatency      &&
                           _IsRenderLatencyAboveOneFrame () )
                     {
                       iACTION = ACTION_HighRenderLatency;
@@ -2543,6 +2556,11 @@ SK::Framerate::Limiter::wait (void)
                                _IsHighVariation     () )
                     {
                       iACTION = ACTION_HighVariation;
+                    }
+
+                    else if (_IsInputLatencyStuck ())
+                    {
+                      iACTION = ACTION_StuckInputLatency;
                     }
 
                     if (iACTION != ACTION_None)
@@ -2615,6 +2633,7 @@ SK::Framerate::Limiter::wait (void)
                       } break;
 
                       case ACTION_HighVariation:
+                      case ACTION_StuckInputLatency:
                       {
                         fWaitSeconds += static_cast <float> (
                           std::max (
@@ -2706,6 +2725,7 @@ SK::Framerate::Limiter::wait (void)
                       } break;
 
                       case ACTION_HighVariation:
+                      case ACTION_StuckInputLatency:
                       {
                         reset (true);
                       } break;
