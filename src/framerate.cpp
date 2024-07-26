@@ -2454,7 +2454,7 @@ SK::Framerate::Limiter::wait (void)
                   {
                     return
                       rb.presentation.avg_stats.latency /
-                      rb.presentation.avg_stats.display > 1.5;
+                      rb.presentation.avg_stats.display > 1.8;
                   }
 
                   return false;
