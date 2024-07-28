@@ -76,7 +76,7 @@ SK_DXGI_GET_OBJECT_NAME_N ( IDXGIObject *pObject,
                             UINT        *pBytes,
                             char        *pName )
 {
-  if ( (! pObject) &&
+  if ( (! pObject) ||
        (! pBytes ) )
     return E_POINTER;
 
@@ -93,7 +93,7 @@ SK_DXGI_GET_OBJECT_NAME_N ( IDXGIObject *pObject,
                             UINT        *pBytes,
                             wchar_t     *pName )
 {
-  if ( (! pObject) &&
+  if ( (! pObject) ||
        (! pBytes ) )
     return E_POINTER;
 

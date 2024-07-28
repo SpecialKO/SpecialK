@@ -95,7 +95,7 @@ SK_D3D11_GET_OBJECT_NAME_N ( ID3D11DeviceChild *pObject,
                              UINT              *pBytes,
                              char              *pName )
 {
-  if ( (! pObject) &&
+  if ( (! pObject) ||
        (! pBytes ) )
     return E_POINTER;
 
@@ -112,7 +112,7 @@ SK_D3D11_GET_OBJECT_NAME_N ( ID3D11DeviceChild *pObject,
                              UINT              *pBytes,
                              wchar_t           *pName )
 {
-  if ( (! pObject) &&
+  if ( (! pObject) ||
        (! pBytes ) )
     return E_POINTER;
 
