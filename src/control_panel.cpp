@@ -647,19 +647,16 @@ SK_ImGui_IsItemClicked (void)
   if (ImGui::IsItemClicked ())
     return true;
 
-  auto& io =
-    ImGui::GetIO ();
-
   static auto lastFrame  = SK_GetFramesDrawn ();
   static auto lastActive =
-    io.NavInputs [ImGuiNavInput_Activate];
+    ImGui::GetKeyData (ImGuiKey_GamepadFaceDown)->DownDuration;
 
-  bool activated =         lastActive     > 0.0f &&
-                           lastActive    <= 0.4f &&
-   io.NavInputs [ImGuiNavInput_Activate] == 0.0f;
+  bool activated = lastActive  > 0.0f &&
+                   lastActive <= 0.4f &&
+   (ImGui::GetKeyData (ImGuiKey_GamepadFaceDown)->DownDuration == 0.0f);
 
   if (std::exchange (lastFrame, SK_GetFramesDrawn ()) != SK_GetFramesDrawn ())
-                     lastActive = io.NavInputs [ImGuiNavInput_Activate];
+                     lastActive = ImGui::GetKeyData (ImGuiKey_GamepadFaceDown)->DownDuration;
 
   if (ImGui::IsItemHovered ())
   {
@@ -681,13 +678,15 @@ SK_ImGui_IsItemRightClicked (void)
 
   if (ImGui::IsItemHovered ())
   {
-    auto& io =
-      ImGui::GetIO ();
-
     // Activate button held for >= .4 seconds -> right-click
-    if (io.NavInputs [ImGuiNavInput_Activate] > 0.4f)
-    {   io.NavInputs [ImGuiNavInput_Activate] = 0.0f;
-      ImGui::SetHoveredID (0);
+    if (ImGui::GetKeyData (ImGuiKey_GamepadFaceDown)->DownDuration > 0.4f &&
+        ImGui::GetKeyData (ImGuiKey_GamepadFaceDown)->DownDuration < 5.0f)
+    {
+      ImGui::GetKeyData (ImGuiKey_GamepadFaceDown)->DownDuration     = 5.0f;
+      ImGui::GetKeyData (ImGuiKey_GamepadFaceDown)->DownDurationPrev = 0.0f;
+
+      ImGui::ClearActiveID ( );
+      ImGui::SetHoveredID  (0);
       return true;
     }
   }
@@ -704,6 +703,11 @@ SK_ImGui_IsWindowRightClicked (const ImGuiIO& io)
       return true;
 
     if (ImGui::IsWindowFocused () && io.MouseDoubleClicked [4])
+    {
+      return true;
+    }
+
+    if (ImGui::IsWindowFocused () && ImGui::GetKeyData (ImGuiKey_GamepadFaceDown)->DownDuration > 0.4f)
     {
       return true;
     }

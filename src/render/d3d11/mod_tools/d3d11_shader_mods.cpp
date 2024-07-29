@@ -651,6 +651,8 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
     scale = (live_rt_view ? (1.0f * (uncollapsed_tex ? 0.25f : 1.0f)) : -1.0f);
 
+    static float max_name_len = 100.0f; // For dynamic rtv name list sizing
+
     ImGui::BeginChild     ( ImGui::GetID ("Live_RenderTarget_View_Panel"),
                             ImVec2 ( -1.0f, scale == -1.0f ? font_size_multiline * 1.666f :
                    ( ImGui::GetWindowContentRegionMax ().y - ImGui::GetWindowContentRegionMin ().y ) *
@@ -953,6 +955,10 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                               )                  && uiDebugLen > sizeof (wchar_t)
                  )
               {
+                max_name_len =
+                  std::max (max_name_len,
+                            ImGui::CalcTextSize (SK_FormatString ("%ws", wszDebugDesc).c_str (), nullptr, true).x);
+
                 snprintf (szDesc, 127, "%ws###rtv_%u", wszDebugDesc, rtv_idx);
                 named = true;
               }
@@ -967,8 +973,49 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                                )                && uiDebugLen > sizeof (char)
                    )
                 {
+                  max_name_len = std::max (max_name_len, ImGui::CalcTextSize (szDebugDesc, nullptr, true).x);
+
                   snprintf (szDesc, 127, "%s###rtv_%u", szDebugDesc, rtv_idx);
                   named = true;
+                }
+              }
+
+              if (! named)
+              {
+                uiDebugLen = sizeof (wszDebugDesc) - sizeof (wchar_t);
+
+                SK_ComPtr <ID3D11Resource> pRes;
+                it->GetResource (         &pRes.p);
+
+                if ( SUCCEEDED (
+                       pRes->GetPrivateData (
+                         WKPDID_D3DDebugObjectNameW, &uiDebugLen, wszDebugDesc )
+                                )                  && uiDebugLen > sizeof (wchar_t)
+                   )
+                {
+                  max_name_len =
+                    std::max (max_name_len,
+                              ImGui::CalcTextSize (SK_FormatString ("%ws", wszDebugDesc).c_str (), nullptr, true).x);
+
+                  snprintf (szDesc, 127, "%ws###rtv_%u", wszDebugDesc, rtv_idx);
+                  named = true;
+                }
+
+                else
+                {
+                  uiDebugLen = sizeof (szDebugDesc) - sizeof (char);
+
+                  if ( SUCCEEDED (
+                       pRes->GetPrivateData (
+                         WKPDID_D3DDebugObjectName, &uiDebugLen, szDebugDesc )
+                                 )                && uiDebugLen > sizeof (char)
+                     )
+                  {
+                    max_name_len = std::max (max_name_len, ImGui::CalcTextSize (szDebugDesc, nullptr, true).x);
+
+                    snprintf (szDesc, 127, "%s###rtv_%u", szDebugDesc, rtv_idx);
+                    named = true;
+                  }
                 }
               }
             }
@@ -1072,8 +1119,12 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
       ImGui::PushStyleVar   (ImGuiStyleVar_ChildRounding, 0.0f);
       ImGui::PushStyleColor (ImGuiCol_Border, ImVec4 (0.9f, 0.7f, 0.5f, 1.0f));
 
+      const float text_spacing = 2.5f * ImGui::GetStyle ().ItemInnerSpacing.x +
+                                        ImGui::GetStyle ().ScrollbarSize;
+
       ImGui::BeginChild ( ImGui::GetID ("RenderTargetViewList"),
-                          ImVec2 ( font_size * 7.0f, -1.0f),
+                          ImVec2 ( io.FontGlobalScale * text_spacing +
+                                   io.FontGlobalScale * max_name_len, std::max (font_size * 15.0f, last_ht)),
                             true, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NavFlattened );
 
       if (! render_textures.empty ())

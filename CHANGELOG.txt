@@ -1,4 +1,11 @@
-﻿24.7.23.1
+﻿24.7.28
+=======
+ + Use a RenderTargetView's Resource name if the RTV does not have a debug
+     name in D3D11 Live RenderTarget View (mod tools).
+ + Enable right-click emulation by holding gamepad activation button for
+     > 0.4 seconds.
+
+24.7.23.1
 =========
  + Change size of sBIT chunk when adding HDR chunks to PNG data to account for
      missing alpha channel
