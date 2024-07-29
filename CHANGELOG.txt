@@ -1,4 +1,8 @@
-﻿24.7.28
+﻿24.7.29
+=======
+ + Remove debug log on calls to ID3D11DeviceContext1::UpdateSubresource1 (...)
+
+24.7.28
 =======
  + Use a RenderTargetView's Resource name if the RTV does not have a debug
      name in D3D11 Live RenderTarget View (mod tools).

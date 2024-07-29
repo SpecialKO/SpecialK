@@ -1194,16 +1194,8 @@ D3D11_UpdateSubresource1_Override (
       );
   }
 
-
-  dll_log->Log (L"UpdateSubresource1 ({%hs}",
-    SK_D3D11_DescribeResource (pDstResource).c_str ());
-
-
-  //dll_log->Log (L"[   DXGI   ] [!]D3D11_UpdateSubresource1 (%ph, %lu, %ph, %ph, %lu, %lu, %x)",
-  //           pDstResource, DstSubresource, pDstBox, pSrcData, SrcRowPitch, SrcDepthPitch, CopyFlags);
-
   D3D11_RESOURCE_DIMENSION rdim = D3D11_RESOURCE_DIMENSION_UNKNOWN;
-  pDstResource->GetType  (&rdim); //-V1004
+  pDstResource->GetType  (&rdim);
 
   if (SK_D3D11_IsStagingCacheable (rdim, pDstResource) && DstSubresource == 0)
   {
