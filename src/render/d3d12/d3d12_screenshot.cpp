@@ -1952,8 +1952,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   //   on their display should be clipped in the tonemapped SDR image.
                   float _maxNitsToTonemap = rb.displays [rb.active_display].gamut.maxLocalY / 80.0f;
 
-                  const float SDR_YInPQ = // Use the user's desktop SDR white level
-                    LinearToPQY (rb.displays [rb.active_display].hdr.white_level / 80.0f);
+                  const float SDR_YInPQ =
+                    LinearToPQY (1.3f);
 
                   const float  maxYInPQ =
                     std::max (SDR_YInPQ,
@@ -1977,15 +1977,9 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                           L * (1 + a * L) / (1 + b * L);
                       };
 
-                      static const XMVECTOR vLumaRescale =
-                        XMVectorReplicate (1.0f / std::max (1.0f, rb.displays [rb.active_display].hdr.white_level / 80.0f)); // user's SDR white level
-
                       for (size_t j = 0; j < width; ++j)
                       {
                         XMVECTOR value = inPixels [j];
-
-                        value =
-                          XMVectorMultiply (value, vLumaRescale);
 
                         XMVECTOR ICtCp =
                           Rec709toICtCp (value);
@@ -1998,6 +1992,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                         if (Y_out + Y_in > 0.0f)
                         {
+                          ICtCp.m128_f32 [0] = std::pow (XMVectorGetX (ICtCp), 1.18f);
+
                           float I0      = XMVectorGetX (ICtCp);
                           float I1      = 0.0f;
                           float I_scale = 0.0f;

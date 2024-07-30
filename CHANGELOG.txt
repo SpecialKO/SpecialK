@@ -1,4 +1,8 @@
-﻿24.7.29
+﻿24.7.30
+=======
+ + Improved (brightened) HDR->SDR screenshot tonemapping
+
+24.7.29
 =======
  + Remove debug log on calls to ID3D11DeviceContext1::UpdateSubresource1 (...)
 
