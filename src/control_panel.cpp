@@ -1371,9 +1371,6 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     static int last_app_interval =
       rb.present_interval;
 
-    static int last_sk_interval  =
-      config.render.framerate.present_interval;
-
     bool app_interval_changed = (
       config.render.framerate.present_interval ==
         SK_NoPreference
@@ -1383,6 +1380,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
         rb.present_interval
       ) != rb.present_interval
     );
+
+    static int last_sk_interval =
+      config.render.framerate.present_interval;
 
     // Update first_option label if SK present interval changed from/to SK_NoPreference (-1)
     //  -1 to 0-4: current_no_override_state -> no_override_label
@@ -5911,9 +5911,8 @@ SK_ImGui_ControlPanel (void)
                 : SK_TearingMode::AlwaysOn;
 
             static int iLastVSyncTearingMode      =
-              ( config.render.framerate.present_interval > 0     ) &&
-              ( config.render.framerate.target_fps       > 0.0f ||
-                                      __target_fps       > 0.0f  )
+              config.render.framerate.present_interval > 0 &&
+              config.render.framerate.target_fps       > 0.0f
                 ? config.render.framerate.tearing_mode
                 : SK_TearingMode::AlwaysOff;
 
@@ -6089,7 +6088,7 @@ SK_ImGui_ControlPanel (void)
                 {
                   iMultiplier = iMaxAboveRefreshMode - iMode;
 
-                  fTargetFPS = static_cast <float> (dRefresh * iMultiplier);
+                  fTargetFPS  = static_cast <float> (dRefresh * iMultiplier);
                 }
 
                 // 1/x
@@ -6280,8 +6279,10 @@ SK_ImGui_ControlPanel (void)
                   ImGui::BulletText   ("Low Latency mode temporarily lowers FPS limit if Render Latency exceeds 1 frame");
                   if (! bIsD3D9)
                   {
-                    ImGui::BulletText ("Adaptive V-Sync mode temporarily turns V-Sync -OFF- if FPS is unstable or Render Latency exceeds 1 frame");
+                    ImGui::BulletText ("Adaptive V-Sync temporarily turns V-Sync -OFF- if FPS is unstable or Render Latency exceeds 1 frame");
                   }
+                  ImGui::Separator    ();
+                  ImGui::Text         ("NOTE: Use the default 'Always Off' mode for VRR");
                   ImGui::EndTooltip   ();
                 }
 

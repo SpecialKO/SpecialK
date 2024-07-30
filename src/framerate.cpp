@@ -661,27 +661,27 @@ SK_ImGui_LatentSyncConfig (void)
           config.render.framerate.tearing_mode ==
             SK_TearingMode::AdaptiveOff;
 
-        bool bSupportsFrameSkipping =
+        bool bSupportsFrameSkipping    =
           SK_LatentSync_SupportsFrameSkipping (rb.api);
 
-        int iBufferCount =
+        int iBufferCount      =
           config.render.framerate.buffer_count;
 
         int iMaxDeviceLatency =
           config.render.framerate.pre_render_limit;
 
-        int iRequiredBufferCount =
+        int iRequiredBufferCount      =
           5 + (2 * (iMultiplier - 2));
 
         int iRequiredMaxDeviceLatency =
           iRequiredBufferCount + 1;
 
-        bool bIsInvalidBufferCount = ! (
+        bool bIsInvalidBufferCount      = ! (
           ( bIsTearingModeAdaptiveOff &&
             bSupportsFrameSkipping    &&
             iMaxDeviceLatency == 1    &&
-            iBufferCount ==   15       ) ||
-          ( iBufferCount >=
+            iBufferCount      == 15    ) ||
+          ( iBufferCount      >=
             iRequiredBufferCount       )
         );
 
@@ -2176,7 +2176,7 @@ SK::Framerate::Limiter::wait (void)
     }
 
 
-    auto _ManageTearing = [&](SK_TearingMode tearingMode) -> void
+    auto _ManageTearing = [&]() -> void
     {
       static constexpr int _MAX_FRAMES = 30;
 
@@ -2226,7 +2226,7 @@ SK::Framerate::Limiter::wait (void)
 
       auto _ToggleTearing = [&](bool bEnableTearing) -> void
       {
-        if (tearingMode == SK_TearingMode::AppControlled)
+        if (config.render.framerate.tearing_mode == SK_TearingMode::AppControlled)
         {
           return;
         }
@@ -2234,7 +2234,7 @@ SK::Framerate::Limiter::wait (void)
         if (config.render.framerate.present_interval > 0)
         {
           // Adaptive VSync
-          if (tearingMode == SK_TearingMode::AdaptiveOff)
+          if (config.render.framerate.tearing_mode == SK_TearingMode::AdaptiveOff)
           {
             config.render.framerate.turn_vsync_off =
               bEnableTearing;
@@ -2250,9 +2250,9 @@ SK::Framerate::Limiter::wait (void)
         }
       };
 
-      int iTearingMode = tearingMode;
+      int iTearingMode = config.render.framerate.tearing_mode;
 
-      if (tearingMode == SK_TearingMode::AppControlled)
+      if (iTearingMode == SK_TearingMode::AppControlled)
       {
         if (SK_API_IsDirect3D9 (rb.api))
         {
@@ -2285,7 +2285,7 @@ SK::Framerate::Limiter::wait (void)
 
           static int iFrame = 1;
 
-          if (iFrame++ >= static_cast <int> (__target_fps * 90.0f))
+          if (iFrame++ >= static_cast <int> (__target_fps * 60.0f))
           {
             bIsTearingD3D9 = _IsTearingD3D9 ();
 
@@ -2324,20 +2324,20 @@ SK::Framerate::Limiter::wait (void)
         // No tearing, only reset limiter is variation is high or input latency is stuck at (-0.1, 0.0) ms
         case SK_TearingMode::AlwaysOff:
         {
-          bool  bIsTearingModeAdaptiveOn  =
-                  iTearingMode == SK_TearingMode::AdaptiveOn,
+          bool bIsTearingModeAdaptiveOn  =
+            iTearingMode == SK_TearingMode::AdaptiveOn;
 
-                bIsTearingModeAdaptiveOff =
-                  iTearingMode == SK_TearingMode::AdaptiveOff,
+          bool bIsTearingModeAdaptiveOff =
+            iTearingMode == SK_TearingMode::AdaptiveOff;
 
-                bIsTearingModeAlwaysOffLL =
-                  iTearingMode == SK_TearingMode::AlwaysOff_LowLatency,
+          bool bIsTearingModeAlwaysOffLL =
+            iTearingMode == SK_TearingMode::AlwaysOff_LowLatency;
 
-                bIsTearingModeAlwaysOff   =
-                  iTearingMode == SK_TearingMode::AlwaysOff,
+          bool bIsTearingModeAlwaysOff   =
+            iTearingMode == SK_TearingMode::AlwaysOff;
 
-                bIsTrueFullscreen         =
-                  rb.isTrueFullscreen ();
+          bool bIsTrueFullscreen         =
+            rb.isTrueFullscreen ();
 
           // Adaptive tearing causes a hitch in FSE, add wait to prevent
           // Unstable <-> Stable FPS (Tearing <-> No Tearing) loop
@@ -2396,8 +2396,8 @@ SK::Framerate::Limiter::wait (void)
                  bIsTearingModeAlwaysOffLL ||
                  bIsTearingModeAlwaysOff   )
             {
-              bool bAbortAction = false;
-              bool bIsNewAction = false;
+              bool bAbortAction = false,
+                   bIsNewAction = false;
 
               static int iLastTearingMode = iTearingMode;
 
@@ -2797,24 +2797,16 @@ SK::Framerate::Limiter::wait (void)
              rb.isTrueFullscreen ()       ||
              rb.present_interval > 0      )
         {
-          _ManageTearing (
-            static_cast <SK_TearingMode> (
-              config.render.framerate.tearing_mode =
-                SK_TearingMode::AppControlled
-            )
-          );
+          config.render.framerate.tearing_mode =
+            SK_TearingMode::AppControlled;
         }
 
         else
         {
-          _ManageTearing (
-            static_cast <SK_TearingMode> (
-              config.render.framerate.tearing_mode =
-                config.render.dxgi.allow_tearing
-                  ? SK_TearingMode::AlwaysOn
-                  : SK_TearingMode::AlwaysOff
-            )
-          );
+          config.render.framerate.tearing_mode =
+            config.render.dxgi.allow_tearing
+              ? SK_TearingMode::AlwaysOn
+              : SK_TearingMode::AlwaysOff;
         }
       }
 
@@ -2830,22 +2822,15 @@ SK::Framerate::Limiter::wait (void)
             }
           case  SK_TearingMode::AlwaysOff:
           case  SK_TearingMode::AlwaysOff_LowLatency:
-            _ManageTearing (
-              static_cast <SK_TearingMode> (
-                config.render.framerate.tearing_mode
-              )
-            );
             break;
           default:
-            _ManageTearing (
-              static_cast <SK_TearingMode> (
-                config.render.framerate.tearing_mode =
-                  SK_TearingMode::AlwaysOff
-              )
-            );
+            config.render.framerate.tearing_mode =
+                SK_TearingMode::AlwaysOff;
             break;
         }
       }
+
+      _ManageTearing ();
     }
 
     else if (config.render.framerate.present_interval == 0 && ticks_per_scanline > 1)
@@ -2873,21 +2858,14 @@ SK::Framerate::Limiter::wait (void)
         case  SK_TearingMode::AlwaysOn:
         case  SK_TearingMode::AlwaysOff:
         case  SK_TearingMode::AlwaysOff_LowLatency:
-          _ManageTearing (
-            static_cast <SK_TearingMode> (
-              config.render.framerate.tearing_mode
-            )
-          );
           break;
         default:
-          _ManageTearing (
-            static_cast <SK_TearingMode> (
-              config.render.framerate.tearing_mode =
-                SK_TearingMode::AlwaysOn
-            )
-          );
+          config.render.framerate.tearing_mode =
+              SK_TearingMode::AlwaysOn;
           break;
       }
+
+      _ManageTearing ();
 
       if (__scanline.lock.isPending ())
       {
