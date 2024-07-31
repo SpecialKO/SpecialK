@@ -6023,8 +6023,8 @@ SK_ImGui_ControlPanel (void)
 
               int iMaxAboveRefreshMode = 4;
 
-              std::string strModeList = strFractList;
-              int           iMode     = std::max (iMaxAboveRefreshMode - 1, 0); // 1:1
+              std::string strModeList  = strFractList;
+              int           iMode      = std::max (iMaxAboveRefreshMode - 1, 0); // 1:1
 
               int iMultiplier = static_cast <int> (
                 std::round (
@@ -6080,15 +6080,18 @@ SK_ImGui_ControlPanel (void)
               if ( ImGui::Combo ( "Scan Mode",
                                &iMode, strModeList.data () ) )
               {
-                float fTargetFPS =
-                  static_cast <float> (dRefresh);
+                float fTargetFPS = static_cast <float> (
+                  dRefresh
+                );
 
                 // 2x..
                 if (iMaxAboveRefreshMode >= 2 && iMode <= std::min (iMaxAboveRefreshMode - 2, 4))
                 {
-                  iMultiplier = iMaxAboveRefreshMode - iMode;
-
-                  fTargetFPS  = static_cast <float> (dRefresh * iMultiplier);
+                  fTargetFPS = static_cast <float> (
+                    dRefresh * (
+                      iMaxAboveRefreshMode - iMode
+                    )
+                  );
                 }
 
                 // 1/x
@@ -6110,7 +6113,9 @@ SK_ImGui_ControlPanel (void)
                     iFractSel = iMode;
                   }
 
-                  fTargetFPS = static_cast <float> (dFractList [iFractSel]);
+                  fTargetFPS = static_cast <float> (
+                    dFractList [iFractSel]
+                  );
                 }
 
                 // 1:1

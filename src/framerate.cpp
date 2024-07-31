@@ -2426,13 +2426,10 @@ SK::Framerate::Limiter::wait (void)
 #endif
               if (! bAbortAction)
               {
-                auto _IsRenderLatencyAboveOneFrame = [&]() -> bool
+                auto _IsHighRenderLatency = [&]() -> bool
                 {
-                  // 2x.. mode with Tearing Off and "PreRenderLimit > 1" would constantly
-                  // enable <-> disable tearing because Render Latency is always above 1 frame
-                  // -
-                  // In that case, only enable tearing if Render Latency increases even further
-                  // (frametime graph becomes unstable beyond 1.7x Display ms)
+                  // Frametime graph becomes unstable in 2x.. non-tearing mode
+                  // when Present Latency exceeds Display Frame Time by 1.7x..
                   if ( std::round (fps / rb.getActiveRefreshRate ()) >= 2.0 &&
                        config.render.framerate.pre_render_limit      != 1   )
                   {
@@ -2509,8 +2506,8 @@ SK::Framerate::Limiter::wait (void)
                 {
                   case ACTION_HighRenderLatency:
                   {
-                    if ( (! _IsRenderLatencyAboveOneFrame () ) ||
-                         (  bIgnoreHighRenderLatency         ) )
+                    if ( (! _IsHighRenderLatency  () ) ||
+                         (  bIgnoreHighRenderLatency ) )
                     {
                       bAbortAction = true;
                     }
@@ -2546,8 +2543,8 @@ SK::Framerate::Limiter::wait (void)
                       break;
                     }
 
-                    if ( !bIgnoreHighRenderLatency      &&
-                          _IsRenderLatencyAboveOneFrame () )
+                    if ( !bIgnoreHighRenderLatency &&
+                          _IsHighRenderLatency     () )
                     {
                       iACTION = ACTION_HighRenderLatency;
                     }
