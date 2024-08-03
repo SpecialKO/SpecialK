@@ -383,25 +383,86 @@ SK_ImGui_LatentSyncConfig (void)
                                   pDisplay->signal.timing.total_size.cy / 3,
                                     "%d Scanlines" );
 
+      auto *pLimiter         =
+        SK::Framerate::GetLimiter (rb.swapchain);
+
+      auto _DelayBiasPercent = [&]() -> int
+      {
+        return static_cast <int> (
+          std::round (
+            config.render.framerate.latent_sync.delay_bias * 100.0f
+          )
+        );
+      };
+
+      static int iDelayBiasPercent = _DelayBiasPercent ();
+
       int sel = 0;
 
-      if      (config.render.framerate.latent_sync.delay_bias >= 0.99f ) sel = 0;
-      else if (config.render.framerate.latent_sync.delay_bias >= 0.90f ) sel = 1;
-      else if (config.render.framerate.latent_sync.delay_bias >= 0.75f ) sel = 2;
-      else if (config.render.framerate.latent_sync.delay_bias >= 0.5f  ) sel = 3;
-      else if (config.render.framerate.latent_sync.delay_bias >= 0.25f ) sel = 4;
-      else if (config.render.framerate.latent_sync.delay_bias >= 0.10f ) sel = 5;
-      else                                                               sel = 6;
+      if (config.render.framerate.latent_sync.auto_bias)
+      {
+        static double dSeconds = 0.0;
 
-      if (
-        ImGui::Combo ("Delay Bias", &sel, "All Input,\t No Display\0"
-                                          "90% Input,\t10% Display\0"
-                                          "75% Input,\t25% Display\0"
-                                          "50% Input,\t50% Display\0"
-                                          "25% Input,\t75% Display\0"
-                                          "10% Input,\t90% Display\0"
-                                          "*No Input,\t All Display\0\0")
-         )
+        dSeconds += std::max (
+          1000.0 / pLimiter->get_limit  (),
+          pLimiter->effective_frametime ()
+        ) / 1000.0;
+
+        if (dSeconds >= 0.25)
+        {
+          iDelayBiasPercent = _DelayBiasPercent ();
+
+          dSeconds = 0.0;
+        }
+
+        ImGui::PushItemFlag (
+          ImGuiItemFlags_Disabled,
+          true
+        );
+      }
+
+      else
+      {
+        if      (config.render.framerate.latent_sync.delay_bias >= 0.99f ) sel = 0;
+        else if (config.render.framerate.latent_sync.delay_bias >= 0.90f ) sel = 1;
+        else if (config.render.framerate.latent_sync.delay_bias >= 0.75f ) sel = 2;
+        else if (config.render.framerate.latent_sync.delay_bias >= 0.5f  ) sel = 3;
+        else if (config.render.framerate.latent_sync.delay_bias >= 0.25f ) sel = 4;
+        else if (config.render.framerate.latent_sync.delay_bias >= 0.10f ) sel = 5;
+        else                                                               sel = 6;
+      }
+
+      if  (
+            ImGui::Combo (
+              config.render.framerate.latent_sync.auto_bias
+                ? "Delay Bias (Auto)"
+                : "Delay Bias",
+              &sel,
+              config.render.framerate.latent_sync.auto_bias ? (
+                std::format (
+                  "{} Input,\t{} Display\0\0",
+                  iDelayBiasPercent == 100
+                    ? "All"
+                    : iDelayBiasPercent == 0
+                        ? "*No"
+                        : std::to_string (      iDelayBiasPercent) + "%",
+                  iDelayBiasPercent == 100
+                    ? "No"
+                    : iDelayBiasPercent == 0
+                        ? "All"
+                        : std::to_string (100 - iDelayBiasPercent) + "%"
+                ).c_str ()
+              ) : (
+                "All Input,\t No Display\0"
+                "90% Input,\t10% Display\0"
+                "75% Input,\t25% Display\0"
+                "50% Input,\t50% Display\0"
+                "25% Input,\t75% Display\0"
+                "10% Input,\t90% Display\0"
+                "*No Input,\t All Display\0\0"
+              )
+            )
+          )
       {
         switch (sel)
         {
@@ -419,7 +480,7 @@ SK_ImGui_LatentSyncConfig (void)
         __scanline.lock.requestResync ();
       }
 
-      if (ImGui::IsItemHovered (  ))
+      if (ImGui::IsItemHovered (ImGuiHoveredFlags_AllowWhenDisabled))
       {
         ImGui::BeginTooltip    (  );
         ImGui::TextUnformatted ("Controls the Distribution of Idle Time Per-Frame");
@@ -440,8 +501,10 @@ SK_ImGui_LatentSyncConfig (void)
         ImGui::EndTooltip      (  );
       }
 
-      auto *pLimiter =
-        SK::Framerate::GetLimiter (rb.swapchain);
+      if (config.render.framerate.latent_sync.auto_bias)
+      {
+        ImGui::PopItemFlag     (  );
+      }
 
       static constexpr int _MAX_FRAMES = 30;
 
@@ -509,7 +572,7 @@ SK_ImGui_LatentSyncConfig (void)
         bool bTargetInputInMs =
           config.render.framerate.latent_sync.auto_bias_target.percent <= 0.0f;
 
-        static float fLastTargetInputMs = bTargetInputInMs
+        static float fLastTargetInputMs      =  bTargetInputInMs
           ? config.render.framerate.latent_sync.auto_bias_target.ms
           : 0.85f;
 
@@ -521,18 +584,16 @@ SK_ImGui_LatentSyncConfig (void)
         {
           if (bTargetInputInMs)
           {
-            config.render.framerate.latent_sync.auto_bias_target.ms =
-              fLastTargetInputMs;
-
             config.render.framerate.latent_sync.auto_bias_target.percent = 0.0f;
+            config.render.framerate.latent_sync.auto_bias_target.ms      =
+              fLastTargetInputMs;
           }
 
           else
           {
+            config.render.framerate.latent_sync.auto_bias_target.ms      = 0.0f;
             config.render.framerate.latent_sync.auto_bias_target.percent =
               fLastTargetInputPercent;
-
-            config.render.framerate.latent_sync.auto_bias_target.ms = 0.0f;
           }
         }
 
@@ -2007,6 +2068,11 @@ SK::Framerate::Limiter::wait (void)
             0.0  );
     };
 
+  auto _GetFrametimeSeconds = [&]() -> double
+  {
+    return std::max (effective_ms, ms) / 1000.0;
+  };
+
   if (next_ > 0LL)
   {
     // Flush batched commands before zonking this thread off
@@ -2212,9 +2278,10 @@ SK::Framerate::Limiter::wait (void)
 
       static int iACTION = ACTION_None;
 
-      static float fTargetFPS     = __target_fps,
-                   fTempTargetFPS =         0.0f,
-                   fWaitSeconds   =         0.0f;
+      static float  fTargetFPS     = __target_fps,
+                    fTempTargetFPS =         0.0f;
+
+      static double dWaitSeconds   =         0.0;
 
       bool bIsFpsUnstable = latency_avg.getInput () < 0.0;
 
@@ -2283,13 +2350,15 @@ SK::Framerate::Limiter::wait (void)
 
           static bool bIsTearingD3D9 = _IsTearingD3D9 ();
 
-          static int iFrame = 1;
+          static double dSeconds = 0.0;
 
-          if (iFrame++ >= static_cast <int> (__target_fps * 60.0f))
+          dSeconds += _GetFrametimeSeconds ();
+
+          if (dSeconds >= 30.0)
           {
             bIsTearingD3D9 = _IsTearingD3D9 ();
 
-            iFrame = 1;
+            dSeconds = 0.0;
           }
 
           iTearingMode =
@@ -2342,21 +2411,16 @@ SK::Framerate::Limiter::wait (void)
               bIsTearingModeAdaptiveOn
             );
 
-            fWaitSeconds += static_cast <float> (
-              std::max (
-                effective_ms,
-                ms
-              ) / 1000.0
-            );
+            dWaitSeconds += _GetFrametimeSeconds ();
 
-            if (fWaitSeconds < 1.5f)
+            if (dWaitSeconds < 1.5)
             {
               return;
             }
 
             iACTION = ACTION_None;
 
-            fWaitSeconds = 0.0f;
+            dWaitSeconds = 0.0;
           }
 
           static bool bWasFpsUnstable = bIsFpsUnstable;
@@ -2370,7 +2434,7 @@ SK::Framerate::Limiter::wait (void)
 
             iACTION = ACTION_FpsBecameStable;
 
-            fWaitSeconds = 0.0f;
+            dWaitSeconds = 0.0;
 
             return;
           }
@@ -2561,10 +2625,10 @@ SK::Framerate::Limiter::wait (void)
               {
                 if (! bIsNewAction)
                 {
-                  float fMaxWaitSeconds =
+                  double dMaxWaitSeconds =
                     iACTION == ACTION_HighVariation
-                      ? 4.0f
-                      : 1.5f;
+                      ? 4.0
+                      : 1.5;
 
                   switch (iACTION)
                   {
@@ -2577,19 +2641,14 @@ SK::Framerate::Limiter::wait (void)
                       {
                         static bool bResetTargetFPS = false;
 
-                        if (fWaitSeconds == 0.0f)
+                        if (dWaitSeconds == 0.0)
                         {
                           bResetTargetFPS = false;
                         }
 
                         _ToggleTearing (false);
 
-                        fWaitSeconds += static_cast <float> (
-                          std::max (
-                            effective_ms,
-                            ms
-                          ) / 1000.0
-                        );
+                        dWaitSeconds += _GetFrametimeSeconds ();
 
                         if (fTempTargetFPS > 0.0f && fTempTargetFPS != __target_fps)
                         {
@@ -2598,12 +2657,12 @@ SK::Framerate::Limiter::wait (void)
                           break;
                         }
 
-                        if (!bResetTargetFPS && fWaitSeconds >= fMaxWaitSeconds)
+                        if (!bResetTargetFPS && dWaitSeconds >= dMaxWaitSeconds)
                         {
                           bResetTargetFPS = true;
                           fTempTargetFPS  = 0.0f;
 
-                          fWaitSeconds    = fMaxWaitSeconds;
+                          dWaitSeconds    = dMaxWaitSeconds;
 
                           SK_GetCommandProcessor ()->ProcessCommandFormatted (
                             "TargetFPS %f",
@@ -2611,7 +2670,7 @@ SK::Framerate::Limiter::wait (void)
                           );
                         }
 
-                        if (fWaitSeconds < fMaxWaitSeconds * 2.0f)
+                        if (dWaitSeconds < dMaxWaitSeconds * 2.0)
                         {
                           return;
                         }
@@ -2625,7 +2684,7 @@ SK::Framerate::Limiter::wait (void)
                         // keep tearing enabled until latency decreases
                         static bool bFailedToReduceRenderLatency = false;
 
-                        if (fWaitSeconds == 0.0f)
+                        if (dWaitSeconds == 0.0)
                         {
                           bFailedToReduceRenderLatency = false;
                         }
@@ -2639,14 +2698,9 @@ SK::Framerate::Limiter::wait (void)
 
                         _ToggleTearing (false);
 
-                        fWaitSeconds += static_cast <float> (
-                          std::max (
-                            effective_ms,
-                            ms
-                          ) / 1000.0
-                        );
+                        dWaitSeconds += _GetFrametimeSeconds ();
 
-                        if (fWaitSeconds < fMaxWaitSeconds)
+                        if (dWaitSeconds < dMaxWaitSeconds)
                         {
                           return;
                         }
@@ -2664,14 +2718,9 @@ SK::Framerate::Limiter::wait (void)
                     {
                       _ToggleTearing (false);
 
-                      fWaitSeconds += static_cast <float> (
-                        std::max (
-                          effective_ms,
-                          ms
-                        ) / 1000.0
-                      );
+                      dWaitSeconds += _GetFrametimeSeconds ();
 
-                      if (fWaitSeconds < fMaxWaitSeconds)
+                      if (dWaitSeconds < dMaxWaitSeconds)
                       {
                         return;
                       }
@@ -2686,7 +2735,7 @@ SK::Framerate::Limiter::wait (void)
 
                 if (! bAbortAction)
                 {
-                  fWaitSeconds = 0.0f;
+                  dWaitSeconds = 0.0;
 
                   switch (iACTION)
                   {
@@ -2758,7 +2807,7 @@ SK::Framerate::Limiter::wait (void)
           }
 
           fTempTargetFPS = 0.0f;
-          fWaitSeconds   = 0.0f;
+          dWaitSeconds   = 0.0;
 
           switch (iTearingMode)
           {
@@ -3066,20 +3115,13 @@ SK::Framerate::Limiter::wait (void)
 
     bool bSync = false;
 
-    static float  fTry  = 0.0f; // First time signals resync
-    if (          fTry == 0.0f ||
-                  (
-                    config.render.framerate.latent_sync.scanline_resync != 0.0f &&
-                    (
-                      fTry += static_cast <float> (
-                        std::max (
-                          effective_ms,
-                          ms
-                        ) / 1000.0
-                      )
-                    ) >=
-                    config.render.framerate.latent_sync.scanline_resync
-                  )
+    static bool   bTry =  true; // First time signals resync
+    if (          bTry)
+    {             bTry = false;         bSync = true; }
+    static double dTry =   0.0;
+    if (          config.render.framerate.latent_sync.scanline_resync   != 0.0f &&
+                  static_cast <float> (dTry += _GetFrametimeSeconds ()) >=
+                  config.render.framerate.latent_sync.scanline_resync
        )                                bSync = true;
     if (D3DKMTGetScanLine != nullptr && bSync)
     {
@@ -3174,7 +3216,7 @@ SK::Framerate::Limiter::wait (void)
                         __scanline.lock.scan_time  =       tReturn - qpc_start.QuadPart;
                         __scanline.qpc_t0.QuadPart =       tReturn - __scanline.lock.margin;
 
-                        fTry = FLT_MIN;
+                        dTry = 0.0;
 
                         __scanline.lock.notifyAcquired ();
 

@@ -944,6 +944,14 @@ SK::ControlPanel::D3D11::Draw (void)
             ? config.render.framerate.turn_vsync_off
             : config.render.dxgi.allow_tearing;
 
+          if (bIsAdaptiveLatentSync || bIsAdaptiveVSync)
+          {
+            ImGui::PushItemFlag (
+              ImGuiItemFlags_Disabled,
+              true
+            );
+          }
+
           if  (
                 ImGui::Checkbox (
                   bIsAdaptiveLatentSync || bIsAdaptiveVSync
@@ -953,35 +961,32 @@ SK::ControlPanel::D3D11::Draw (void)
                 )
               )
           {
-            if (! (bIsAdaptiveLatentSync || bIsAdaptiveVSync))
+            config.render.dxgi.allow_tearing = tearing_pref;
+
+            // Latent Sync
+            if ( config.render.framerate.present_interval == 0 &&
+                 config.render.framerate.target_fps > 0.0f     )
             {
-              config.render.dxgi.allow_tearing = tearing_pref;
+              static int iLastAlwaysOffTearingMode =
+                SK_TearingMode::AlwaysOff;
 
-              // Latent Sync
-              if ( config.render.framerate.present_interval == 0 &&
-                   config.render.framerate.target_fps > 0.0f     )
+              if ( config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff_LowLatency ||
+                   config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff            )
               {
-                static int iLastAlwaysOffTearingMode =
-                  SK_TearingMode::AlwaysOff;
-
-                if ( config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff_LowLatency ||
-                     config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff            )
-                {
-                  iLastAlwaysOffTearingMode =
-                    config.render.framerate.tearing_mode;
-                }
-
-                config.render.framerate.tearing_mode =
-                  config.render.dxgi.allow_tearing
-                    ? SK_TearingMode::AlwaysOn
-                    : iLastAlwaysOffTearingMode;
+                iLastAlwaysOffTearingMode =
+                  config.render.framerate.tearing_mode;
               }
 
-              _ResetLimiter ();
+              config.render.framerate.tearing_mode =
+                config.render.dxgi.allow_tearing
+                  ? SK_TearingMode::AlwaysOn
+                  : iLastAlwaysOffTearingMode;
             }
+
+            _ResetLimiter ();
           }
 
-          if (ImGui::IsItemHovered ())
+          if (ImGui::IsItemHovered (ImGuiHoveredFlags_AllowWhenDisabled))
           {
             ImGui::BeginTooltip ();
             if (! (bIsAdaptiveLatentSync || bIsAdaptiveVSync))
@@ -1011,6 +1016,11 @@ SK::ControlPanel::D3D11::Draw (void)
               ImGui::BulletText ("For manual control, change Tearing Mode to 'Always On/Off'");
             }
             ImGui::EndTooltip   ();
+          }
+
+          if (bIsAdaptiveLatentSync || bIsAdaptiveVSync)
+          {
+            ImGui::PopItemFlag  ();
           }
         }
       }
