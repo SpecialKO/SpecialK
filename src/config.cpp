@@ -6108,7 +6108,7 @@ SK_SaveConfig ( std::wstring name,
       render.framerate.latent_sync.auto_bias_target->store (wszPercent);
     }
 
-    texture.d3d9.clamp_lod_bias->store            (config.textures.clamp_lod_bias);
+    texture.d3d9.clamp_lod_bias->store              (config.textures.clamp_lod_bias);
 
     // SLI only works in Direct3D
     //  + Keep these out of the INI on non-SLI systems for simplicity
