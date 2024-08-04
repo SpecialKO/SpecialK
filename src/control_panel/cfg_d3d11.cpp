@@ -940,11 +940,7 @@ SK::ControlPanel::D3D11::Draw (void)
             ( config.render.framerate.tearing_mode ==
                 SK_TearingMode::AdaptiveOff                 );
 
-          bool tearing_pref = bIsAdaptiveVSync
-            ? config.render.framerate.turn_vsync_off
-            : config.render.dxgi.allow_tearing;
-
-          if (bIsAdaptiveLatentSync || bIsAdaptiveVSync)
+          if (bIsAdaptiveVSync || bIsAdaptiveLatentSync)
           {
             ImGui::PushItemFlag (
               ImGuiItemFlags_Disabled,
@@ -954,15 +950,15 @@ SK::ControlPanel::D3D11::Draw (void)
 
           if  (
                 ImGui::Checkbox (
-                  bIsAdaptiveLatentSync || bIsAdaptiveVSync
+                  bIsAdaptiveVSync || bIsAdaptiveLatentSync
                     ? "Enable Tearing (Adaptive)"
                     : "Enable Tearing",
-                  &tearing_pref
+                  bIsAdaptiveVSync
+                    ? &config.render.framerate.turn_vsync_off
+                    : &config.render.dxgi.allow_tearing
                 )
               )
           {
-            config.render.dxgi.allow_tearing = tearing_pref;
-
             // Latent Sync
             if ( config.render.framerate.present_interval == 0 &&
                  config.render.framerate.target_fps > 0.0f     )
@@ -989,7 +985,7 @@ SK::ControlPanel::D3D11::Draw (void)
           if (ImGui::IsItemHovered (ImGuiHoveredFlags_AllowWhenDisabled))
           {
             ImGui::BeginTooltip ();
-            if (! (bIsAdaptiveLatentSync || bIsAdaptiveVSync))
+            if (! (bIsAdaptiveVSync || bIsAdaptiveLatentSync))
             {
               ImGui::Text       ("Enables True VSYNC -OFF- in Windowed Mode");
               ImGui::Separator  ();
@@ -997,7 +993,11 @@ SK::ControlPanel::D3D11::Draw (void)
             }
             else
             {
-              if (bIsAdaptiveLatentSync)
+              if (bIsAdaptiveVSync)
+              {
+                ImGui::Text     ("Tearing is currently managed by 'Adaptive V-Sync' mode");
+              }
+              else
               {
                 if (config.render.framerate.tearing_mode == SK_TearingMode::AdaptiveOn)
                 {
@@ -1008,17 +1008,13 @@ SK::ControlPanel::D3D11::Draw (void)
                   ImGui::Text   ("Tearing is currently managed by 'Adaptive (Prefer Off)' mode");
                 }
               }
-              else
-              {
-                ImGui::Text     ("Tearing is currently managed by 'Adaptive V-Sync' mode");
-              }
               ImGui::Separator  ();
               ImGui::BulletText ("For manual control, change Tearing Mode to 'Always On/Off'");
             }
             ImGui::EndTooltip   ();
           }
 
-          if (bIsAdaptiveLatentSync || bIsAdaptiveVSync)
+          if (bIsAdaptiveVSync  ||  bIsAdaptiveLatentSync)
           {
             ImGui::PopItemFlag  ();
           }

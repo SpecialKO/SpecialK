@@ -3121,7 +3121,7 @@ SK::Framerate::Limiter::wait (void)
 
     static bool   bTry =  true; // First time signals resync
     if (          bTry)
-    {             bTry = false;         bSync = true; }
+    {             bTry = !bTry;         bSync = true; }
     static double dTry =   0.0;
     if (  config.render.framerate.latent_sync.scanline_resync != 0.0f &&
           static_cast <float>  (dTry += _FrametimeSeconds ()) >=
