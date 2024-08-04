@@ -5958,8 +5958,7 @@ SK_ImGui_ControlPanel (void)
               if (! bLatentSync)
               {
                 config.render.framerate.present_interval = 1;
-
-                config.render.framerate.tearing_mode =
+                config.render.framerate.tearing_mode     =
                   iLastVSyncTearingMode;
 
                 if (__target_fps > dRefresh)
@@ -5992,8 +5991,7 @@ SK_ImGui_ControlPanel (void)
                 }
 
                 config.render.framerate.present_interval = 0;
-
-                config.render.framerate.tearing_mode =
+                config.render.framerate.tearing_mode     =
                   iLastLatentSyncTearingMode;
 
                 if (__target_fps == 0.0f)
@@ -6339,7 +6337,7 @@ SK_ImGui_ControlPanel (void)
               else
               {
                 bool bIsTrueFullscreen =
-                  rb.isTrueFullscreen ();
+                  rb .isTrueFullscreen ();
 
                 int iTearingMode = 0; // "Always On"
 

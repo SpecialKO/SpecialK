@@ -395,7 +395,8 @@ SK_ImGui_LatentSyncConfig (void)
         );
       };
 
-      static int iDelayBiasPercent = _DelayBiasPercent ();
+      static int iDelayBiasPercent =
+                 _DelayBiasPercent ();
 
       int sel = 0;
 
@@ -410,7 +411,8 @@ SK_ImGui_LatentSyncConfig (void)
 
         if (dSeconds >= 0.25)
         {
-          iDelayBiasPercent = _DelayBiasPercent ();
+          iDelayBiasPercent =
+          _DelayBiasPercent ();
 
           dSeconds = 0.0;
         }
@@ -755,7 +757,7 @@ SK_ImGui_LatentSyncConfig (void)
         );
 
         bool bIsTrueFullscreen =
-          rb.isTrueFullscreen ();
+          rb .isTrueFullscreen ();
 
         if ( bIsInvalidMaxDeviceLatency ||
              bIsInvalidBufferCount      ||
@@ -2068,7 +2070,7 @@ SK::Framerate::Limiter::wait (void)
             0.0  );
     };
 
-  auto _GetFrametimeSeconds = [&]() -> double
+  auto _FrametimeSeconds = [&]() -> double
   {
     return std::max (effective_ms, ms) / 1000.0;
   };
@@ -2348,15 +2350,17 @@ SK::Framerate::Limiter::wait (void)
             return false;
           };
 
-          static bool bIsTearingD3D9 = _IsTearingD3D9 ();
+          static bool bIsTearingD3D9 =
+                      _IsTearingD3D9 ();
 
           static double dSeconds = 0.0;
 
-          dSeconds += _GetFrametimeSeconds ();
+          dSeconds += _FrametimeSeconds ();
 
           if (dSeconds >= 30.0)
           {
-            bIsTearingD3D9 = _IsTearingD3D9 ();
+            bIsTearingD3D9 =
+            _IsTearingD3D9 ();
 
             dSeconds = 0.0;
           }
@@ -2411,7 +2415,7 @@ SK::Framerate::Limiter::wait (void)
               bIsTearingModeAdaptiveOn
             );
 
-            dWaitSeconds += _GetFrametimeSeconds ();
+            dWaitSeconds += _FrametimeSeconds ();
 
             if (dWaitSeconds < 1.5)
             {
@@ -2423,10 +2427,10 @@ SK::Framerate::Limiter::wait (void)
             dWaitSeconds = 0.0;
           }
 
-          static bool bWasFpsUnstable = bIsFpsUnstable;
+          static bool        bWasFpsUnstable = bIsFpsUnstable;
 
-          if (std::exchange (bWasFpsUnstable, bIsFpsUnstable) &&
-                                             !bIsFpsUnstable)
+          if (std::exchange (bWasFpsUnstable,  bIsFpsUnstable) &&
+                                              !bIsFpsUnstable)
           {
             _ToggleTearing (
               bIsTearingModeAdaptiveOn
@@ -2449,21 +2453,21 @@ SK::Framerate::Limiter::wait (void)
               bool bAbortAction = false,
                    bIsNewAction = false;
 
-              static int iLastTearingMode = iTearingMode;
+              static int         iLastTearingMode = iTearingMode;
 
-              if (std::exchange (iLastTearingMode, iTearingMode) !=
-                                                   iTearingMode)
+              if (std::exchange (iLastTearingMode,  iTearingMode) !=
+                                                    iTearingMode)
               {
                 bAbortAction = true;
               }
 
               bool bIsTrueFullscreen =
-                rb.isTrueFullscreen ();
+                rb .isTrueFullscreen ();
 
-              static bool bWasTrueFullscreen = bIsTrueFullscreen;
+              static bool        bWasTrueFullscreen = bIsTrueFullscreen;
 
-              if (std::exchange (bWasTrueFullscreen, bIsTrueFullscreen) !=
-                                                     bIsTrueFullscreen)
+              if (std::exchange (bWasTrueFullscreen,  bIsTrueFullscreen) !=
+                                                      bIsTrueFullscreen)
               {
                 bAbortAction = true;
               }
@@ -2559,8 +2563,8 @@ SK::Framerate::Limiter::wait (void)
                 {
                   case ACTION_HighRenderLatency:
                   {
-                    if ( (! _IsHighRenderLatency  () ) ||
-                         (  bIgnoreHighRenderLatency ) )
+                    if ( bIgnoreHighRenderLatency ||
+                            !_IsHighRenderLatency () )
                     {
                       bAbortAction = true;
                     }
@@ -2568,8 +2572,8 @@ SK::Framerate::Limiter::wait (void)
 
                   case ACTION_HighVariation:
                   {
-                    if ( (! _IsHighVariation  () ) ||
-                         (  bIgnoreHighVariation ) )
+                    if ( bIgnoreHighVariation ||
+                            !_IsHighVariation () )
                     {
                       bAbortAction = true;
                     }
@@ -2597,13 +2601,13 @@ SK::Framerate::Limiter::wait (void)
                     }
 
                     if ( !bIgnoreHighRenderLatency &&
-                          _IsHighRenderLatency     () )
+                              _IsHighRenderLatency () )
                     {
                       iACTION = ACTION_HighRenderLatency;
                     }
 
                     else if ( !bIgnoreHighVariation &&
-                               _IsHighVariation     () )
+                                   _IsHighVariation () )
                     {
                       iACTION = ACTION_HighVariation;
                     }
@@ -2648,7 +2652,7 @@ SK::Framerate::Limiter::wait (void)
 
                         _ToggleTearing (false);
 
-                        dWaitSeconds += _GetFrametimeSeconds ();
+                        dWaitSeconds += _FrametimeSeconds ();
 
                         if (fTempTargetFPS > 0.0f && fTempTargetFPS != __target_fps)
                         {
@@ -2698,7 +2702,7 @@ SK::Framerate::Limiter::wait (void)
 
                         _ToggleTearing (false);
 
-                        dWaitSeconds += _GetFrametimeSeconds ();
+                        dWaitSeconds += _FrametimeSeconds ();
 
                         if (dWaitSeconds < dMaxWaitSeconds)
                         {
@@ -2718,7 +2722,7 @@ SK::Framerate::Limiter::wait (void)
                     {
                       _ToggleTearing (false);
 
-                      dWaitSeconds += _GetFrametimeSeconds ();
+                      dWaitSeconds += _FrametimeSeconds ();
 
                       if (dWaitSeconds < dMaxWaitSeconds)
                       {
@@ -3119,9 +3123,9 @@ SK::Framerate::Limiter::wait (void)
     if (          bTry)
     {             bTry = false;         bSync = true; }
     static double dTry =   0.0;
-    if (          config.render.framerate.latent_sync.scanline_resync   != 0.0f &&
-                  static_cast <float> (dTry += _GetFrametimeSeconds ()) >=
-                  config.render.framerate.latent_sync.scanline_resync
+    if (  config.render.framerate.latent_sync.scanline_resync != 0.0f &&
+          static_cast <float>  (dTry += _FrametimeSeconds ()) >=
+          config.render.framerate.latent_sync.scanline_resync
        )                                bSync = true;
     if (D3DKMTGetScanLine != nullptr && bSync)
     {
