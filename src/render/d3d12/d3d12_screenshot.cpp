@@ -1953,7 +1953,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   float _maxNitsToTonemap = rb.displays [rb.active_display].gamut.maxLocalY / 80.0f;
 
                   const float SDR_YInPQ =
-                    LinearToPQY (1.3f);
+                    LinearToPQY (1.5f);
 
                   const float  maxYInPQ =
                     std::max (SDR_YInPQ,

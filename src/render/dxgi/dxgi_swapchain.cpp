@@ -1471,7 +1471,41 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
 {
   assert (ver_ >= 4);
 
-  dll_log->Log (L"[ DXGI HDR ] <*> HDR Metadata");
+  dll_log->Log (L"[ DXGI HDR ] <*> HDR Metadata: %ws",
+                      Type == DXGI_HDR_METADATA_TYPE_NONE ? L"Disabled"
+                                                          : L"HDR10 (Uh oh)");
+
+  if (Size == sizeof (DXGI_HDR_METADATA_HDR10) && Type == DXGI_HDR_METADATA_TYPE_HDR10)
+  {
+    auto metadata =
+      *(DXGI_HDR_METADATA_HDR10 *)pMetaData;
+
+    SK_LOGi0 (
+      L"HDR Metadata: Max Mastering=%d nits, Min Mastering=%f nits, MaxCLL=%d nits, MaxFaLL=%d nits",
+      metadata.MaxMasteringLuminance, (double)metadata.MinMasteringLuminance * 0.0001,
+      metadata.MaxContentLightLevel, metadata.MaxFrameAverageLightLevel
+    );
+
+    if (config.render.dxgi.hdr_metadata_override == -1)
+    {
+      auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      auto& display =
+        rb.displays [rb.active_display];
+
+      if ((float)metadata.MaxMasteringLuminance > display.gamut.maxY)
+                 metadata.MaxMasteringLuminance = (INT)floor (display.gamut.maxY);
+
+      if (metadata.MaxContentLightLevel >                           metadata.MaxMasteringLuminance)
+          metadata.MaxContentLightLevel = sk::narrow_cast <UINT16> (metadata.MaxMasteringLuminance);
+
+      if (metadata.MaxContentLightLevel      < metadata.MaxFrameAverageLightLevel)
+          metadata.MaxFrameAverageLightLevel = metadata.MaxContentLightLevel;
+
+      *(DXGI_HDR_METADATA_HDR10 *)pMetaData = metadata;
+    }
+  }
 
   if (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap)
     return S_OK;

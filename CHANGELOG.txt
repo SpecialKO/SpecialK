@@ -1,4 +1,10 @@
-﻿24.7.30
+﻿24.8.4
+======
+ + Add additional HDR metadata logging in games that use HDR metadata
+ + Auto-fix games that use invalid HDR metadata values when SK is not
+     configured to disable HDR metadata outright (HDRMetadataType=-2)
+
+24.7.30
 =======
  + Improved (brightened) HDR->SDR screenshot tonemapping
 
