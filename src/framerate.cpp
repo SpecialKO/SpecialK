@@ -2436,6 +2436,11 @@ SK::Framerate::Limiter::wait (void)
               bIsTearingModeAdaptiveOn
             );
 
+            if (! bIsTearingModeAdaptiveOn)
+            {
+              reset (true);
+            }
+
             iACTION = ACTION_FpsBecameStable;
 
             dWaitSeconds = 0.0;
@@ -2566,6 +2571,11 @@ SK::Framerate::Limiter::wait (void)
                     if ( bIgnoreHighRenderLatency ||
                             !_IsHighRenderLatency () )
                     {
+                      if (! bIsFpsUnstable)
+                      {
+                        reset (true);
+                      }
+
                       bAbortAction = true;
                     }
                   } break;
