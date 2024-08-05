@@ -3125,7 +3125,7 @@ SK_ImGui_User_NewFrame (void)
     io.KeyMap [ImGuiKey_Enter]          = VK_RETURN;
     io.KeyMap [ImGuiKey_Escape]         = VK_ESCAPE;
     io.KeyMap [ImGuiKey_ScrollLock]     = VK_SCROLL;
-    io.KeyMap [ImGuiKey_PrintScreen]    = VK_PRINT;
+    io.KeyMap [ImGuiKey_PrintScreen]    = VK_SNAPSHOT;
     io.KeyMap [ImGuiKey_Pause]          = VK_PAUSE;
     io.KeyMap [ImGuiKey_CapsLock]       = VK_CAPITAL;
     io.KeyMap [ImGuiKey_NumLock]        = VK_NUMLOCK;
