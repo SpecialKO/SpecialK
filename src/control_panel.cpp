@@ -1368,26 +1368,26 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
 
     static std::vector <char> vsync_list;
 
-    static int last_app_interval =
+    static int last_rb_interval =
       rb.present_interval;
-
-    bool app_interval_changed = (
-      config.render.framerate.present_interval ==
-        SK_NoPreference
-    ) && (
-      std::exchange (
-        last_app_interval,
-        rb.present_interval
-      ) != rb.present_interval
-    );
 
     static int last_sk_interval =
       config.render.framerate.present_interval;
 
+    bool rb_interval_changed = (
+      config.render.framerate.present_interval ==
+        SK_NoPreference
+    ) && (
+      std::exchange (
+        last_rb_interval,
+        rb.present_interval
+      ) != rb.present_interval
+    );
+
     // Update first_option label if SK present interval changed from/to SK_NoPreference (-1)
     //  -1 to 0-4: current_no_override_state -> no_override_label
     // 0-4 to  -1: no_override_label         -> current_no_override_state
-    bool sk_interval_changed_no_preference = (
+    bool sk_interval_no_pref = (
       config.render.framerate.present_interval !=
         last_sk_interval
     ) && (
@@ -1401,7 +1401,9 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     );
 
     // Re-populate the list if the current state changes
-    if (vsync_list.empty () || app_interval_changed || sk_interval_changed_no_preference)
+    if ( rb_interval_changed ||
+         sk_interval_no_pref ||
+         vsync_list.empty () )
     {
       const char* current_no_override_state =
         rb.present_interval == 0 ? "  OFF\0"          :
@@ -6258,6 +6260,8 @@ SK_ImGui_ControlPanel (void)
 
                     if (__target_fps == 0.0f)
                     {
+                      lastRefresh = 0.0f;
+
                       SK_GetCommandProcessor ()->ProcessCommandFormatted (
                         "TargetFPS %f",
                         static_cast <float> (

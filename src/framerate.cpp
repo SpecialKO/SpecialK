@@ -428,7 +428,7 @@ SK_ImGui_LatentSyncConfig (void)
         if      (config.render.framerate.latent_sync.delay_bias >= 0.99f ) sel = 0;
         else if (config.render.framerate.latent_sync.delay_bias >= 0.90f ) sel = 1;
         else if (config.render.framerate.latent_sync.delay_bias >= 0.75f ) sel = 2;
-        else if (config.render.framerate.latent_sync.delay_bias >= 0.5f  ) sel = 3;
+        else if (config.render.framerate.latent_sync.delay_bias >= 0.50f ) sel = 3;
         else if (config.render.framerate.latent_sync.delay_bias >= 0.25f ) sel = 4;
         else if (config.render.framerate.latent_sync.delay_bias >= 0.10f ) sel = 5;
         else                                                               sel = 6;
@@ -739,21 +739,21 @@ SK_ImGui_LatentSyncConfig (void)
         int iRequiredMaxDeviceLatency =
           iRequiredBufferCount + 1;
 
-        bool bIsInvalidBufferCount      = ! (
-          ( bIsTearingModeAdaptiveOff &&
-            bSupportsFrameSkipping    &&
-            iMaxDeviceLatency == 1    &&
-            iBufferCount      == 15    ) ||
+        bool bIsInvalidBufferCount  =  !(
+          ( bIsTearingModeAdaptiveOff  &&
+            bSupportsFrameSkipping     &&
+            iMaxDeviceLatency == 1     &&
+            iBufferCount      == 15     ) ||
           ( iBufferCount      >=
-            iRequiredBufferCount       )
+            iRequiredBufferCount        )
         );
 
-        bool bIsInvalidMaxDeviceLatency = ! (
-          ( bIsTearingModeAdaptiveOff &&
-            bSupportsFrameSkipping    &&
-            iMaxDeviceLatency == 1     ) ||
+        bool bIsInvalidMaxDeviceLatency = !(
+          ( bIsTearingModeAdaptiveOff  &&
+            bSupportsFrameSkipping     &&
+            iMaxDeviceLatency == 1      ) ||
           ( iMaxDeviceLatency >=
-            iRequiredMaxDeviceLatency  )
+            iRequiredMaxDeviceLatency   )
         );
 
         bool bIsTrueFullscreen =
@@ -2639,10 +2639,19 @@ SK::Framerate::Limiter::wait (void)
               {
                 if (! bIsNewAction)
                 {
-                  double dMaxWaitSeconds =
-                    iACTION == ACTION_HighVariation
-                      ? 4.0
-                      : 1.5;
+                  double dMaxWaitSeconds = 1.5;
+
+                  if (iACTION == ACTION_HighVariation)
+                  {
+                    double dMultiplier = std::round (
+                      SK_ImGui_Frames->getCapacity () / fps
+                    );
+
+                    if (dMultiplier >= 1.0)
+                    {
+                      dMaxWaitSeconds = dMultiplier * 2.0;
+                    }
+                  }
 
                   switch (iACTION)
                   {
