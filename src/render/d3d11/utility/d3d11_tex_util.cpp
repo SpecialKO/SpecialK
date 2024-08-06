@@ -1,4 +1,4 @@
-/**
+﻿/**
 * This file is part of Special K.
 *
 * Special K is free software : you can redistribute it
@@ -101,6 +101,15 @@ crc32_tex (  _In_      const D3D11_TEXTURE2D_DESC   *__restrict pDesc,
     //SK_LOG0 ( ( L">>Neat! A cubemap!  [%lux%lu - Array: %lu :: pInitialData: %ph ]",
     //              pDesc->Width, pDesc->Height, pDesc->ArraySize, pInitialData ),
     //           L"DX11TexMgr" );
+    return 0;
+  }
+
+  if (pDesc->ArraySize > 1)
+  {
+    SK_RunOnce (
+      SK_LOG0 ( ( L"Ignoring texture hash on array texture..." ), L"DX11TexMgr" )
+    );
+
     return 0;
   }
 
