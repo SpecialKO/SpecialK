@@ -1,4 +1,12 @@
-﻿24.8.4
+﻿24.8.6
+======
+ + Ignore texture hashing on D3D11 array textures because injection is not
+     supported and it reads from unallocated memory in Trine 4.
+ + Increase maximum HDR pipeline remaster RenderTarget size (after upgrade)
+     from 128 MiB to 256 MiB. Resources that require more VRAM will continue
+       to be ignored, which may affect users supersampling to > 8K.
+
+24.8.4
 ======
  + Add additional HDR metadata logging in games that use HDR metadata
  + Auto-fix games that use invalid HDR metadata values when SK is not

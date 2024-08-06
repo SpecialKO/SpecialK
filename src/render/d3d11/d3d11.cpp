@@ -5704,7 +5704,7 @@ D3D11Dev_CreateTexture2DCore_Impl (
                 pDesc->Height == swapDesc.BufferDesc.Height//&&
               /*pDesc->Format == swapDesc.BufferDesc.Format*/))         &&
 #endif
-           (pDesc->BindFlags & _UnwantedBindFlags) == 0 && (pDesc->MiscFlags & _UnwantedMiscFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 128 * 1024 * 1024 ) )
+           (pDesc->BindFlags & _UnwantedBindFlags) == 0 && (pDesc->MiscFlags & _UnwantedMiscFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 256 * 1024 * 1024 ) )
        )
     {
       if ( (! ( DirectX::IsVideo        (pDesc->Format) ||
