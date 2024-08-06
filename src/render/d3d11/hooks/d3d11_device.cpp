@@ -959,11 +959,16 @@ D3D11Dev_CreateUnorderedAccessView_Override (
 
       if (                        pDesc == nullptr ||
                                  (pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-           DirectX::BitsPerPixel (pDesc->Format) !=
-           DirectX::BitsPerPixel (tex_desc.Format)) )
+           DirectX::MakeTypeless (pDesc->Format) !=
+           DirectX::MakeTypeless (tex_desc.Format)) )
       {
         override  = true;
-        newFormat = tex_desc.Format;
+
+        if (! DirectX::IsTypeless (tex_desc.Format))
+          newFormat = DXGI_FORMAT_UNKNOWN; // Inherit resource's format
+        else // Guess the appropriate format
+          newFormat = DirectX::MakeTypelessUNORM (
+                      DirectX::MakeTypelessFLOAT (tex_desc.Format));
       }
 
       if (override)
@@ -1101,11 +1106,16 @@ D3D11Dev_CreateUnorderedAccessView1_Override (
 
       if (                        pDesc == nullptr ||
                                  (pDesc->Format  != DXGI_FORMAT_UNKNOWN &&
-           DirectX::BitsPerPixel (pDesc->Format) !=
-           DirectX::BitsPerPixel (tex_desc.Format)) )
+           DirectX::MakeTypeless (pDesc->Format) !=
+           DirectX::MakeTypeless (tex_desc.Format)) )
       {
         override  = true;
-        newFormat = tex_desc.Format;
+
+        if (! DirectX::IsTypeless (tex_desc.Format))
+          newFormat = DXGI_FORMAT_UNKNOWN; // Inherit resource's format
+        else // Guess the appropriate format
+          newFormat = DirectX::MakeTypelessUNORM (
+                      DirectX::MakeTypelessFLOAT (tex_desc.Format));
       }
 
       if (override)
