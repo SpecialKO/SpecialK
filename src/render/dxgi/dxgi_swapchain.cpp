@@ -1494,6 +1494,7 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
       auto& display =
         rb.displays [rb.active_display];
 
+#if 0
       if ((float)metadata.MaxMasteringLuminance > display.gamut.maxY)
                  metadata.MaxMasteringLuminance = (INT)floor (display.gamut.maxY);
 
@@ -1502,6 +1503,24 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
 
       if (metadata.MaxContentLightLevel      < metadata.MaxFrameAverageLightLevel)
           metadata.MaxFrameAverageLightLevel = metadata.MaxContentLightLevel;
+#else
+      metadata.MaxMasteringLuminance     = (INT)floor (display.gamut.maxY);
+      metadata.MinMasteringLuminance     = 0;
+      metadata.MaxContentLightLevel      = sk::narrow_cast <UINT16> (metadata.MaxMasteringLuminance);
+      metadata.MaxFrameAverageLightLevel = metadata.MaxContentLightLevel;
+
+      metadata.WhitePoint   [0] = sk::narrow_cast <UINT16> (0.3127 * 50000.0);
+      metadata.WhitePoint   [1] = sk::narrow_cast <UINT16> (0.3290 * 50000.0);
+
+      metadata.BluePrimary  [0] = 0ui16;
+      metadata.BluePrimary  [1] = 0ui16;
+
+      metadata.RedPrimary   [0] = 0ui16;
+      metadata.RedPrimary   [1] = 0ui16;
+
+      metadata.GreenPrimary [0] = 0ui16;
+      metadata.GreenPrimary [1] = 0ui16;
+#endif
 
       *(DXGI_HDR_METADATA_HDR10 *)pMetaData = metadata;
     }
