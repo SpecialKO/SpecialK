@@ -2393,9 +2393,15 @@ SK::Framerate::Limiter::wait (void)
 
         // No tearing, temporarily decrease FPS limit if Render Latency exceeds 1 frame
         case SK_TearingMode::AlwaysOff_LowLatency:
+#if 0
+        // TODO: enable this case when VRR status is detectable on all vendors
+        // -
+        // ACTION_HighVariation and ACTION_StuckInputLatency should be ignored when VRR is active
+        // To preserve old behaviour, we are keeping regular "Always Off" mode unaffected for now
 
         // No tearing, reset limiter if variation is too high or input latency is stuck at (-0.1, 0.0) ms
         case SK_TearingMode::AlwaysOff:
+#endif
         {
           bool bIsTearingModeAdaptiveOn  =
             iTearingMode == SK_TearingMode::AdaptiveOn;
@@ -2477,16 +2483,7 @@ SK::Framerate::Limiter::wait (void)
               {
                 bAbortAction = true;
               }
-#if 1
-              // TODO: remove this block when VRR status is detectable on all vendors
-              // -
-              // ACTION_HighVariation and ACTION_StuckInputLatency should be ignored when VRR is active
-              // To preserve old behaviour, we are keeping regular "Always Off" mode unaffected for now
-              if (bIsTearingModeAlwaysOff)
-              {
-                bAbortAction = true;
-              }
-#endif
+
               if (! bAbortAction)
               {
                 auto _IsHighRenderLatency = [&]() -> bool
@@ -2842,7 +2839,13 @@ SK::Framerate::Limiter::wait (void)
 
               __SK_LatentSyncSkip = 0;
             } break;
-
+#if 1
+            // TODO: remove this case when VRR status is detectable on all vendors (see previous #if)
+            case SK_TearingMode::AlwaysOff:
+            {
+              _ToggleTearing (false);
+            } break;
+#endif
             default:
             {
             } break;
