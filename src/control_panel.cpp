@@ -6023,8 +6023,11 @@ SK_ImGui_ControlPanel (void)
 
               int iMaxAboveRefreshMode = 4;
 
-              std::string strModeList  = strFractList;
-              int           iMode      = std::max (iMaxAboveRefreshMode - 1, 0); // 1:1
+              std::string  strModeList = strFractList;
+              int            iMode     = std::max ( // 1:1
+                  iMaxAboveRefreshMode - 1,
+                  0
+              );
 
               int iMultiplier = static_cast <int> (
                 std::round (

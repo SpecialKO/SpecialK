@@ -2436,7 +2436,8 @@ SK::Framerate::Limiter::wait (void)
               bIsTearingModeAdaptiveOn
             );
 
-            if (! bIsTearingModeAdaptiveOn)
+            if ( iACTION != ACTION_StuckInputLatency &&
+                         !  bIsTearingModeAdaptiveOn )
             {
               reset (true);
             }
@@ -2685,7 +2686,8 @@ SK::Framerate::Limiter::wait (void)
                           bResetTargetFPS = true;
                           fTempTargetFPS  = 0.0f;
 
-                          dWaitSeconds    = dMaxWaitSeconds;
+                          dWaitSeconds =
+                            dMaxWaitSeconds;
 
                           SK_GetCommandProcessor ()->ProcessCommandFormatted (
                             "TargetFPS %f",
