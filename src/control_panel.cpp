@@ -6008,7 +6008,7 @@ SK_ImGui_ControlPanel (void)
                 else if (__target_fps < 0.0f)
                 {
                   SK_GetCommandProcessor ()->ProcessCommandFormatted (
-                    "TargetFPS %f", target_mag
+                    "TargetFPS %f", -__target_fps
                   );
                 }
               }
@@ -6266,8 +6266,7 @@ SK_ImGui_ControlPanel (void)
                       lastRefresh = 0.0f;
 
                       SK_GetCommandProcessor ()->ProcessCommandFormatted (
-                        "TargetFPS %f",
-                        static_cast <float> (
+                        "TargetFPS %f", static_cast <float> (
                           rb.getActiveRefreshRate () /
                           config.render.framerate.present_interval
                         )
@@ -6306,7 +6305,10 @@ SK_ImGui_ControlPanel (void)
                     }
 
                     ImGui::SameLine    ();
-                    ImGui::TextColored (ImColor (1.0f, 1.0f, 0.0f), ICON_FA_EXCLAMATION_TRIANGLE);
+                    ImGui::TextColored (
+                      ImColor (1.0f, 1.0f, 0.0f),
+                      ICON_FA_EXCLAMATION_TRIANGLE
+                    );
 
                     if (ImGui::IsItemHovered ())
                     {

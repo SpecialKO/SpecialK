@@ -767,7 +767,10 @@ SK_ImGui_LatentSyncConfig (void)
           bIsInvalidTearingMode = true;
 
           ImGui::SameLine    ();
-          ImGui::TextColored (ImColor (1.0f, 1.0f, 0.0f), ICON_FA_EXCLAMATION_TRIANGLE);
+          ImGui::TextColored (
+            ImColor (1.0f, 1.0f, 0.0f),
+            ICON_FA_EXCLAMATION_TRIANGLE
+          );
 
           if (ImGui::IsItemHovered ())
           {
@@ -920,7 +923,10 @@ SK_ImGui_LatentSyncConfig (void)
           if (! bIsInvalidTearingMode)
           {
             ImGui::SameLine    ();
-            ImGui::TextColored (ImColor (1.0f, 1.0f, 0.0f), ICON_FA_EXCLAMATION_TRIANGLE);
+            ImGui::TextColored (
+              ImColor (1.0f, 1.0f, 0.0f),
+              ICON_FA_EXCLAMATION_TRIANGLE
+            );
 
             if (ImGui::IsItemHovered ())
             {
@@ -2687,8 +2693,7 @@ SK::Framerate::Limiter::wait (void)
                             dMaxWaitSeconds;
 
                           SK_GetCommandProcessor ()->ProcessCommandFormatted (
-                            "TargetFPS %f",
-                            __target_fps = fTargetFPS
+                            "TargetFPS %f", __target_fps = fTargetFPS
                           );
                         }
 
@@ -2776,8 +2781,7 @@ SK::Framerate::Limiter::wait (void)
                         fTempTargetFPS = fTargetFPS - 1.0f;
 
                         SK_GetCommandProcessor ()->ProcessCommandFormatted (
-                          "TargetFPS %f",
-                          __target_fps = fTempTargetFPS
+                          "TargetFPS %f", __target_fps = fTempTargetFPS
                         );
                       }
 
@@ -2823,8 +2827,7 @@ SK::Framerate::Limiter::wait (void)
           if (__target_fps == fTempTargetFPS)
           {
             SK_GetCommandProcessor ()->ProcessCommandFormatted (
-              "TargetFPS %f",
-              __target_fps = fTargetFPS
+              "TargetFPS %f", __target_fps = fTargetFPS
             );
           }
 

@@ -625,8 +625,7 @@ struct sk_config_t
       int     pre_render_limit    = SK_NoPreference;
       int     present_interval    = SK_NoPreference;
       int     sync_interval_clamp = SK_NoPreference;
-      int     tearing_mode        = SK_TearingMode::AppControlled;
-      bool    turn_vsync_off      = false; // Turns VSync Off in Adaptive VSync mode (not INI-persistent)
+      int     tearing_mode        = SK_NoPreference;
       int     buffer_count        = SK_NoPreference;
       int     max_delta_time      =  0; // Bad old setting; needs to be phased
       int     swapchain_wait      =  0;
@@ -639,6 +638,7 @@ struct sk_config_t
       } rescan_;
       int     refresh_denom       =     1;
       int     pin_render_thread   = SK_NoPreference;
+      bool    turn_vsync_off      = false; // Turns VSync Off in Adaptive VSync mode
       bool    flip_discard        =  true; // Enabled by default (7/6/21)
       bool    flip_sequential     = false;
       bool    disable_flip        = false;
