@@ -841,7 +841,7 @@ SK_ImGui_LatentSyncConfig (void)
               ) -> void {
                 ImGui::Text       (
                   std::format     (
-                    "\t:\tBuffer Count = {}\tMax Device Latency = {}",
+                    "  :  Buffer Count = {}\tMax Device Latency = {}",
                     requiredBufferCount,
                     requiredMaxDeviceLatency
                   ).c_str         ()
