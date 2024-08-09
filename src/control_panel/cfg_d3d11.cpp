@@ -926,21 +926,97 @@ SK::ControlPanel::D3D11::Draw (void)
 
         if (SK_DXGI_SupportsTearing ())
         {
-          bool tearing_pref = config.render.dxgi.allow_tearing;
-          if (ImGui::Checkbox ("Enable Tearing", &tearing_pref))
+          bool bIsAdaptiveLatentSync =
+            ( config.render.framerate.present_interval == 0 ) &&
+            ( config.render.framerate.target_fps > 0.0f     ) &&
+            ( config.render.framerate.tearing_mode ==
+                SK_TearingMode::AdaptiveOn                 ||
+              config.render.framerate.tearing_mode ==
+                SK_TearingMode::AdaptiveOff                 );
+
+          bool bIsAdaptiveVSync      =
+            ( config.render.framerate.present_interval >= 1 ) &&
+            ( config.render.framerate.target_fps > 0.0f     ) &&
+            ( config.render.framerate.tearing_mode ==
+                SK_TearingMode::AdaptiveOff                 );
+
+          if (bIsAdaptiveVSync || bIsAdaptiveLatentSync)
           {
-            config.render.dxgi.allow_tearing = tearing_pref;
+            ImGui::PushItemFlag (
+              ImGuiItemFlags_Disabled,
+              true
+            );
+          }
+
+          if  (
+                ImGui::Checkbox (
+                  bIsAdaptiveVSync || bIsAdaptiveLatentSync
+                    ? "Enable Tearing (Adaptive)"
+                    : "Enable Tearing",
+                  bIsAdaptiveVSync
+                    ? &config.render.framerate.turn_vsync_off
+                    : &config.render.dxgi.allow_tearing
+                )
+              )
+          {
+            // Latent Sync
+            if ( config.render.framerate.present_interval == 0 &&
+                 config.render.framerate.target_fps > 0.0f     )
+            {
+              static int iLastAlwaysOffTearingMode =
+                SK_TearingMode::AlwaysOff;
+
+              if ( config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff_LowLatency ||
+                   config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff            )
+              {
+                iLastAlwaysOffTearingMode =
+                  config.render.framerate.tearing_mode;
+              }
+
+              config.render.framerate.tearing_mode =
+                config.render.dxgi.allow_tearing
+                  ? SK_TearingMode::AlwaysOn
+                  : iLastAlwaysOffTearingMode;
+            }
 
             _ResetLimiter ();
           }
 
-          if (ImGui::IsItemHovered ())
+          if (ImGui::IsItemHovered (ImGuiHoveredFlags_AllowWhenDisabled))
           {
             ImGui::BeginTooltip ();
-            ImGui::Text         ("Enables True VSYNC -OFF- in Windowed Mode");
-            ImGui::Separator    ();
-            ImGui::BulletText   ("Presentation Interval 0 will turn VSYNC off");
+            if (! (bIsAdaptiveVSync || bIsAdaptiveLatentSync))
+            {
+              ImGui::Text       ("Enables True VSYNC -OFF- in Windowed Mode");
+              ImGui::Separator  ();
+              ImGui::BulletText ("Presentation Interval 0 will turn VSYNC off");
+            }
+            else
+            {
+              if (bIsAdaptiveVSync)
+              {
+                ImGui::Text     ("Tearing is currently managed by 'Adaptive V-Sync' mode");
+              }
+              else
+              {
+                if (config.render.framerate.tearing_mode == SK_TearingMode::AdaptiveOn)
+                {
+                  ImGui::Text   ("Tearing is currently managed by 'Adaptive (Prefer On)' mode");
+                }
+                else
+                {
+                  ImGui::Text   ("Tearing is currently managed by 'Adaptive (Prefer Off)' mode");
+                }
+              }
+              ImGui::Separator  ();
+              ImGui::BulletText ("For manual control, change Tearing Mode to 'Always On/Off'");
+            }
             ImGui::EndTooltip   ();
+          }
+
+          if (bIsAdaptiveVSync  ||  bIsAdaptiveLatentSync)
+          {
+            ImGui::PopItemFlag  ();
           }
         }
       }
@@ -996,7 +1072,7 @@ SK::ControlPanel::D3D11::Draw (void)
         config.render.framerate.sync_interval_clamp = SK_NoPreference;
       }
 
-      if (! ((d3d12 && !config.render.dxgi.allow_d3d12_footguns) || indirect))
+      if (! (d3d12 && !config.render.dxgi.allow_d3d12_footguns))
       {
         if (ImGui::InputInt ("BackBuffer Count", &config.render.framerate.buffer_count))
         {
@@ -1023,7 +1099,7 @@ SK::ControlPanel::D3D11::Draw (void)
       if (config.render.framerate.buffer_count <  0)
           config.render.framerate.buffer_count = SK_NoPreference;
 
-      if (! ((d3d12 && !config.render.dxgi.allow_d3d12_footguns) || indirect))
+      if (! (d3d12 && !config.render.dxgi.allow_d3d12_footguns))
       {
         if (ImGui::InputInt ("Maximum Device Latency", &config.render.framerate.pre_render_limit))
         {
