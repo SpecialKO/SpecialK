@@ -1,4 +1,9 @@
-﻿24.8.6.1
+﻿24.8.9
+======
+ + Apply IDXGISwapChain3::SetColorSpace1 (...) whenever a D3D11/D3D12 SwapChain
+     overlay instance is (re)created, for compatibility with RenoDX / ReShade.
+
+24.8.6.1
 ========
  + Add support for HDR10 UAV upgrades in Trine 4.
 

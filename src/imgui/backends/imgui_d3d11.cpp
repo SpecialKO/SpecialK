@@ -1849,6 +1849,31 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
                                      swapDesc.OutputWindow ),
               L"D3D11BkEnd" );
 
+
+    // Re-apply colorspace if necessary
+
+    // {018B57E4-1493-4953-ADF2-DE6D99CC05E5}
+    static constexpr GUID SKID_SwapChainColorSpace =
+    { 0x18b57e4, 0x1493, 0x4953, { 0xad, 0xf2, 0xde, 0x6d, 0x99, 0xcc, 0x5, 0xe5 } };
+
+    UINT                  uiColorSpaceSize = sizeof (DXGI_COLOR_SPACE_TYPE);
+    DXGI_COLOR_SPACE_TYPE csp              = DXGI_COLOR_SPACE_RESERVED;
+
+    // Since SwapChains don't have a Get method, we'll just have the SwapChain remember the last one
+    //   set and check it for consistency... set a colorspace override if necessary.
+    if (SUCCEEDED (pSwapChain->GetPrivateData (SKID_SwapChainColorSpace, &uiColorSpaceSize, &csp)))
+    {
+      SK_ComQIPtr <IDXGISwapChain3>
+                       pSwapChain3
+                      (pSwapChain);
+
+      // Invoke our own hook using the private data, in case an external application has set this,
+      //  that way we can handle HDR correctly even if the hook on SetColorSpace1 isn't working.
+      if (pSwapChain3 != nullptr)
+          pSwapChain3->SetColorSpace1 (csp);
+    }
+
+
     if ((! ImGui_ImplDX11_Init (pSwapChain, pDevice, pDeviceCtx)) ||
                 _Frame [0].pBackBuffer.p          == nullptr  ||
                 _Frame [0].pRenderTargetView.p    == nullptr/*||

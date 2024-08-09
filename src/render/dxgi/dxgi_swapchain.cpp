@@ -1473,7 +1473,7 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
 
   dll_log->Log (L"[ DXGI HDR ] <*> HDR Metadata: %ws",
                       Type == DXGI_HDR_METADATA_TYPE_NONE ? L"Disabled"
-                                                          : L"HDR10 (Uh oh)");
+                                                          : L"HDR10");
 
   if (Size == sizeof (DXGI_HDR_METADATA_HDR10) && Type == DXGI_HDR_METADATA_TYPE_HDR10)
   {
@@ -1504,22 +1504,19 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
       if (metadata.MaxContentLightLevel      < metadata.MaxFrameAverageLightLevel)
           metadata.MaxFrameAverageLightLevel = metadata.MaxContentLightLevel;
 #else
-      metadata.MaxMasteringLuminance     = (INT)floor (display.gamut.maxY);
-      metadata.MinMasteringLuminance     = 0;
-      metadata.MaxContentLightLevel      = sk::narrow_cast <UINT16> (metadata.MaxMasteringLuminance);
-      metadata.MaxFrameAverageLightLevel = metadata.MaxContentLightLevel;
+        metadata.MinMasteringLuminance     = sk::narrow_cast <UINT>   (display.gamut.minY / 0.0001);
+        metadata.MaxMasteringLuminance     = sk::narrow_cast <UINT>   (display.gamut.maxY);
+        metadata.MaxContentLightLevel      = sk::narrow_cast <UINT16> (display.gamut.maxLocalY);
+        metadata.MaxFrameAverageLightLevel = sk::narrow_cast <UINT16> (display.gamut.maxAverageY);
 
-      metadata.WhitePoint   [0] = sk::narrow_cast <UINT16> (0.3127 * 50000.0);
-      metadata.WhitePoint   [1] = sk::narrow_cast <UINT16> (0.3290 * 50000.0);
-
-      metadata.BluePrimary  [0] = 0ui16;
-      metadata.BluePrimary  [1] = 0ui16;
-
-      metadata.RedPrimary   [0] = 0ui16;
-      metadata.RedPrimary   [1] = 0ui16;
-
-      metadata.GreenPrimary [0] = 0ui16;
-      metadata.GreenPrimary [1] = 0ui16;
+        metadata.BluePrimary  [0]          = sk::narrow_cast <UINT16> (50000.0 * 0.1500/*display.gamut.xb*/);
+        metadata.BluePrimary  [1]          = sk::narrow_cast <UINT16> (50000.0 * 0.0600/*display.gamut.yb*/);
+        metadata.RedPrimary   [0]          = sk::narrow_cast <UINT16> (50000.0 * 0.6400/*display.gamut.xr*/);
+        metadata.RedPrimary   [1]          = sk::narrow_cast <UINT16> (50000.0 * 0.3300/*display.gamut.yr*/);
+        metadata.GreenPrimary [0]          = sk::narrow_cast <UINT16> (50000.0 * 0.3000/*display.gamut.xg*/);
+        metadata.GreenPrimary [1]          = sk::narrow_cast <UINT16> (50000.0 * 0.6000/*display.gamut.yg*/);
+        metadata.WhitePoint   [0]          = sk::narrow_cast <UINT16> (50000.0 * 0.3127/*display.gamut.Xw*/);
+        metadata.WhitePoint   [1]          = sk::narrow_cast <UINT16> (50000.0 * 0.3290/*display.gamut.Yw*/);
 #endif
 
       *(DXGI_HDR_METADATA_HDR10 *)pMetaData = metadata;
