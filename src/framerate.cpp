@@ -447,12 +447,12 @@ SK_ImGui_LatentSyncConfig (void)
                     ? "All"
                     : iDelayBiasPercent == 0
                         ? "*No"
-                        : std::to_string (      iDelayBiasPercent) + "%",
+                        : std::to_string       ( iDelayBiasPercent ) + "%",
                   iDelayBiasPercent == 100
                     ? "No"
                     : iDelayBiasPercent == 0
                         ? "All"
-                        : std::to_string (100 - iDelayBiasPercent) + "%"
+                        : std::to_string ( 100 - iDelayBiasPercent ) + "%"
                 ).c_str ()
               ) : (
                 "All Input,\t No Display\0"
@@ -571,8 +571,8 @@ SK_ImGui_LatentSyncConfig (void)
 
       if (config.render.framerate.latent_sync.auto_bias)
       {
-        bool bTargetInputInMs =
-          config.render.framerate.latent_sync.auto_bias_target.percent <= 0.0f;
+        bool bTargetInputInMs                =
+          ( config.render.framerate.latent_sync.auto_bias_target.percent <= 0.0f );
 
         static float fLastTargetInputMs      =  bTargetInputInMs
           ? config.render.framerate.latent_sync.auto_bias_target.ms
@@ -2287,9 +2287,9 @@ SK::Framerate::Limiter::wait (void)
       static int iACTION = ACTION_None;
 
       static float  fTargetFPS     = __target_fps,
-                    fTempTargetFPS =         0.0f;
+                    fTempTargetFPS =   0.0f;
 
-      static double dWaitSeconds   =         0.0;
+      static double dWaitSeconds   =   0.0;
 
       bool bIsFpsUnstable = latency_avg.getInput () < 0.0;
 
@@ -2526,7 +2526,7 @@ SK::Framerate::Limiter::wait (void)
                 auto _IsHighVariation = [&]() -> bool
                 {
                   float min = FLT_MAX,
-                        max =    0.0f;
+                        max = 0.0f;
 
                   for ( const auto& val : SK_ImGui_Frames->getValues () )
                   {
@@ -2666,16 +2666,7 @@ SK::Framerate::Limiter::wait (void)
                       if ( bIsTearingModeAlwaysOffLL ||
                            bIsTrueFullscreen         )
                       {
-                        static bool bResetTargetFPS = false;
-
-                        if (dWaitSeconds == 0.0)
-                        {
-                          bResetTargetFPS = false;
-                        }
-
                         _ToggleTearing (false);
-
-                        dWaitSeconds += _FrametimeSeconds ();
 
                         if (fTempTargetFPS > 0.0f && fTempTargetFPS != __target_fps)
                         {
@@ -2684,20 +2675,19 @@ SK::Framerate::Limiter::wait (void)
                           break;
                         }
 
-                        if (!bResetTargetFPS && dWaitSeconds >= dMaxWaitSeconds)
-                        {
-                          bResetTargetFPS = true;
-                          fTempTargetFPS  = 0.0f;
+                        dWaitSeconds += _FrametimeSeconds ();
 
-                          dWaitSeconds =
-                            dMaxWaitSeconds;
+                        if (fTempTargetFPS > 0.0f && dWaitSeconds >= dMaxWaitSeconds)
+                        {
+                          fTempTargetFPS = 0.0f;
+                          dWaitSeconds   = 0.0;
 
                           SK_GetCommandProcessor ()->ProcessCommandFormatted (
                             "TargetFPS %f", __target_fps = fTargetFPS
                           );
                         }
 
-                        if (dWaitSeconds < dMaxWaitSeconds * 2.0)
+                        if (dWaitSeconds < dMaxWaitSeconds)
                         {
                           return;
                         }
@@ -2709,14 +2699,7 @@ SK::Framerate::Limiter::wait (void)
                       {
                         // If Render Latency failed to reduce during waiting period,
                         // keep tearing enabled until latency decreases
-                        static bool bFailedToReduceRenderLatency = false;
-
-                        if (dWaitSeconds == 0.0)
-                        {
-                          bFailedToReduceRenderLatency = false;
-                        }
-
-                        if (bFailedToReduceRenderLatency)
+                        if (dWaitSeconds >= dMaxWaitSeconds)
                         {
                           _ToggleTearing (true);
 
@@ -2726,15 +2709,6 @@ SK::Framerate::Limiter::wait (void)
                         _ToggleTearing (false);
 
                         dWaitSeconds += _FrametimeSeconds ();
-
-                        if (dWaitSeconds < dMaxWaitSeconds)
-                        {
-                          return;
-                        }
-
-                        bFailedToReduceRenderLatency = true;
-
-                        _ToggleTearing (true);
 
                         return;
                       }
@@ -3307,9 +3281,10 @@ SK::Framerate::Limiter::wait (void)
   {
     // Latent Sync -was- on, but now it's off and we need to restore original preference
     if (config.render.framerate.enforcement_policy < 0)
-    {   config.render.framerate.enforcement_policy = -config.render.framerate.enforcement_policy;
-        config.render.framerate.latent_sync.
-                                    show_fcat_bars = false;
+    {   config.render.framerate.enforcement_policy =
+       -config.render.framerate.enforcement_policy;
+        config.render.framerate.latent_sync
+              .show_fcat_bars = false;
     }
   }
 
