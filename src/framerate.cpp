@@ -631,7 +631,12 @@ SK_ImGui_LatentSyncConfig (void)
 
         if (ImGui::IsItemHovered ())
         {
-          ImGui::SetTooltip ("Setting this too low (ms) or too high (%%) is likely to cause visible tearing and possible framerate instability.");
+          ImGui::SetTooltip (
+            std::format     (
+              "Setting this too {} is likely to cause visible tearing and possible framerate instability.",
+              bTargetInputInMs ? "low" : "high"
+            ).c_str         ()
+          );
         }
 
         if (bTargetInputInMs)
@@ -930,9 +935,7 @@ SK_ImGui_LatentSyncConfig (void)
 
             if (ImGui::IsItemHovered ())
             {
-              ImGui::BeginTooltip ();
-              ImGui::Text         ("Game Restart Required");
-              ImGui::EndTooltip   ();
+              ImGui::SetTooltip ("Game Restart Required");
             }
           }
         }
@@ -2666,14 +2669,14 @@ SK::Framerate::Limiter::wait (void)
                       if ( bIsTearingModeAlwaysOffLL ||
                            bIsTrueFullscreen         )
                       {
-                        _ToggleTearing (false);
-
                         if (fTempTargetFPS > 0.0f && fTempTargetFPS != __target_fps)
                         {
                           bAbortAction = true;
 
                           break;
                         }
+
+                        _ToggleTearing (false);
 
                         dWaitSeconds += _FrametimeSeconds ();
 

@@ -822,8 +822,12 @@ SK::ControlPanel::D3D11::Draw (void)
 
       ImGui::BeginGroup ();
 
+      int iLeftGroupCount = 0;
+
       if (! indirect)
       {
+        iLeftGroupCount++;
+
         if (d3d12)
           ImGui::Checkbox   ("Force Flip Discard in D3D12", &config.render.framerate.flip_discard);
         else
@@ -840,6 +844,8 @@ SK::ControlPanel::D3D11::Draw (void)
           }
         }
       }
+
+      iLeftGroupCount++;
 
       bool clamp_sync_interval =
         (config.render.framerate.sync_interval_clamp > 0);
@@ -926,6 +932,8 @@ SK::ControlPanel::D3D11::Draw (void)
 
         if (SK_DXGI_SupportsTearing ())
         {
+          iLeftGroupCount++;
+
           bool bIsAdaptiveLatentSync =
             ( config.render.framerate.present_interval == 0 ) &&
             ( config.render.framerate.target_fps > 0.0f     ) &&
@@ -1021,6 +1029,14 @@ SK::ControlPanel::D3D11::Draw (void)
         }
       }
 
+      if (! (d3d12 && !config.render.dxgi.allow_d3d12_footguns))
+      {
+        for ( int i = 0; i < 3 - iLeftGroupCount; i++ )
+        {
+          ImGui::Dummy (ImVec2 (0.0f, ImGui::GetFrameHeight ()));
+        }
+      }
+
       const float ui_scale =
         config.imgui.scale;
 
@@ -1029,7 +1045,7 @@ SK::ControlPanel::D3D11::Draw (void)
       ImGui::SameLine   ();
       ImGui::ItemSize   (ImVec2 (50.0f * ui_scale, 0.0f));
       ImGui::SameLine   ();
-      
+
       ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
 
       ImGui::SameLine   ();

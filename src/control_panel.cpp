@@ -6312,9 +6312,7 @@ SK_ImGui_ControlPanel (void)
 
                     if (ImGui::IsItemHovered ())
                     {
-                      ImGui::BeginTooltip ();
-                      ImGui::Text         ("Game Restart Required");
-                      ImGui::EndTooltip   ();
+                      ImGui::SetTooltip ("Game Restart Required");
                     }
                   }
 
