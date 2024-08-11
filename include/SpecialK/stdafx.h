@@ -189,6 +189,7 @@
 #include <DirectXMathVector.inl>
 #include <DirectXMathMatrix.inl>
 #include <DirectXMathMisc.inl>
+#include <DirectXPackedVector.h>
 
 #include <LibLoaderAPI.h>
 

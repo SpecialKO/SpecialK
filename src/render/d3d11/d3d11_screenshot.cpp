@@ -1115,11 +1115,22 @@ static const DirectX::XMMATRIX c_fromXYZto709 = // Transposed
 static const DirectX::XMVECTOR g_MaxPQValue =
   DirectX::XMVectorReplicate (125.0f);
 
+auto XMVectorSign = [](DirectX::XMVECTOR v)
+{
+using namespace DirectX;
+
+  XMVECTOR Control = XMVectorLess   (v, g_XMZero);
+  XMVECTOR Sign    = XMVectorSelect (g_XMOne, g_XMNegativeOne, Control);
+
+  return Sign;
+};
+
 auto PQToLinear = [](DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = g_MaxPQValue)
 {
 using namespace DirectX;
 
   XMVECTOR ret;
+  XMVECTOR sign_N = XMVectorSign (N);
 
   ret =
     XMVectorPow (XMVectorAbs (N), XMVectorDivide (g_XMOne, PQ.M));
@@ -1133,7 +1144,7 @@ using namespace DirectX;
             XMVectorMultiply (PQ.C3, ret)));
 
   ret =
-    XMVectorMultiply (XMVectorPow (XMVectorAbs (nd), XMVectorDivide (g_XMOne, PQ.N)), maxPQValue);
+    XMVectorMultiply (sign_N, XMVectorMultiply (XMVectorPow (XMVectorAbs (nd), XMVectorDivide (g_XMOne, PQ.N)), maxPQValue));
 
   return ret;
 };
@@ -1145,7 +1156,7 @@ auto LinearToPQ = [](DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = g_MaxPQ
   XMVECTOR ret;
 
   ret =
-    XMVectorPow (XMVectorAbs (XMVectorDivide (N, maxPQValue)), PQ.N);
+    XMVectorMultiply (XMVectorSign (XMVectorDivide (N, maxPQValue)), XMVectorPow (XMVectorAbs (XMVectorDivide (N, maxPQValue)), PQ.N));
 
   XMVECTOR nd =
     XMVectorDivide (
@@ -1154,7 +1165,7 @@ auto LinearToPQ = [](DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = g_MaxPQ
     );
 
   return
-    XMVectorPow (XMVectorAbs (nd), PQ.M);
+    XMVectorMultiply (XMVectorSign (nd), XMVectorPow (XMVectorAbs (nd), PQ.M));
 };
 
 float LinearToPQY (float N)
@@ -1661,6 +1672,48 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                   //   on their display should be clipped in the tonemapped SDR image.
                   float _maxNitsToTonemap = rb.displays [rb.active_display].gamut.maxLocalY / 80.0f;
 
+                  static unsigned int luminance_freq [100000];
+
+                  ZeroMemory (luminance_freq, sizeof (unsigned int) * 100000);
+
+                  float fLumRange =
+                    XMVectorGetY (maxLum) -
+                    XMVectorGetY (minLum);
+
+                  EvaluateImage ( un_srgb.GetImages     (),
+                                  un_srgb.GetImageCount (),
+                                  un_srgb.GetMetadata   (),
+                  [&](const XMVECTOR* pixels, size_t width, size_t y)
+                  {
+                    UNREFERENCED_PARAMETER(y);
+
+                    for (size_t j = 0; j < width; ++j)
+                    {
+                      XMVECTOR v = *pixels++;
+
+                      v =
+                        XMVector3Transform (v, c_from709toXYZ);
+
+                      luminance_freq [std::clamp ((int)std::roundf ((XMVectorGetY (v) - XMVectorGetY (minLum)) / (fLumRange / 100000.0f)), 0, 99999)]++;
+                    }
+                  });
+
+                  double percent = 0.0;
+
+                  for (auto i = 0 ; i < 100000; ++i)
+                  {
+                    percent +=
+                      (100.0 * ((double)luminance_freq [i] / ((double)un_srgb.GetMetadata ().width * (double)un_srgb.GetMetadata ().height)));
+
+                    if (percent >= 99.0)
+                    {
+                      maxLum =
+                        XMVectorReplicate (XMVectorGetY (minLum) + (fLumRange * ((float)i / 100000.0f)));
+
+                      break;
+                    }
+                  }
+
                   const float SDR_YInPQ =
                     LinearToPQY (1.5f);
 
@@ -2085,17 +2138,16 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
                         case DXGI_FORMAT_R16G16B16A16_FLOAT:
                         {
+                          using namespace DirectX::PackedVector;
+
+                          static const HALF g_XMOneFP16 (XMConvertFloatToHalf (1.0f));
+
                           for ( UINT j  = 0                          ;
                                      j < pFrameData->PackedDstPitch  ;
                                      j += 8 )
                           {
-                            glm::vec4 color =
-                              glm::unpackHalf4x16 (*((uint64*)&(pDst [j])));
-
-                            color.a = 1.0f;
-
-                            *((uint64*)& (pDst[j])) =
-                              glm::packHalf4x16 (color);
+                            ((XMHALF4 *)&(pDst [j]))->w =
+                              g_XMOneFP16;
                           }
                         } break;
                       }

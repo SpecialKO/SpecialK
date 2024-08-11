@@ -1,4 +1,8 @@
-﻿24.8.9
+﻿24.8.11
+=======
+ + Improved handling of wide gamut scRGB colors when doing HDR->SDR tonemapping
+
+24.8.9
 ======
  + Apply IDXGISwapChain3::SetColorSpace1 (...) whenever a D3D11/D3D12 SwapChain
      overlay instance is (re)created, for compatibility with RenoDX / ReShade.
