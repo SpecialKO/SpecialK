@@ -1,4 +1,9 @@
-﻿24.8.11
+﻿24.8.11.1
+=========
+ + Fixed display of achievement titles and descriptions containing % characters
+     in ImGui popups since ImGui expects a printf-formatted string...
+
+24.8.11
 =======
  + Improved handling of wide gamut scRGB colors when doing HDR->SDR tonemapping
 
