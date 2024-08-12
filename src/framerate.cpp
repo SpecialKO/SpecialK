@@ -657,25 +657,6 @@ SK_ImGui_LatentSyncConfig (void)
       bool bIsD3D9 =
         SK_API_IsDirect3D9 (rb.api);
 
-      switch (config.render.framerate.tearing_mode)
-      {
-        case  SK_TearingMode::AdaptiveOn:
-        case  SK_TearingMode::AdaptiveOff:
-          if (bIsD3D9)
-          {
-            config.render.framerate.tearing_mode =
-              SK_TearingMode::AlwaysOn;
-          }
-        case  SK_TearingMode::AlwaysOn:
-        case  SK_TearingMode::AlwaysOff:
-        case  SK_TearingMode::AlwaysOff_LowLatency:
-          break;
-        default:
-          config.render.framerate.tearing_mode =
-              SK_TearingMode::AlwaysOn;
-          break;
-      }
-
       ImGui::Separator ();
 
       ImGui::Combo (
@@ -744,14 +725,9 @@ SK_ImGui_LatentSyncConfig (void)
         int iRequiredMaxDeviceLatency =
           iRequiredBufferCount + 1;
 
-        bool bIsInvalidBufferCount  =  !(
-          ( bIsTearingModeAdaptiveOff  &&
-            bSupportsFrameSkipping     &&
-            iMaxDeviceLatency == 1     &&
-            iBufferCount      == 15     ) ||
-          ( iBufferCount      >=
-            iRequiredBufferCount        )
-        );
+        bool bIsInvalidBufferCount =
+                      iBufferCount <
+              iRequiredBufferCount;
 
         bool bIsInvalidMaxDeviceLatency = !(
           ( bIsTearingModeAdaptiveOff  &&
@@ -803,39 +779,30 @@ SK_ImGui_LatentSyncConfig (void)
               ImGui::BulletText   ("NVIDIA's Fast Sync is not compatible with DirectX 12");
             }
 
-            if ( ( bSupportsFrameSkipping || iRequiredBufferCount <= 15 ) &&
-                !( bIsD3D12 && !config.render.dxgi.allow_d3d12_footguns ) &&
-                !( bIsD3D9  ||  bIsTrueFullscreen                       ) )
+            if ( !( bIsD3D12 && !config.render.dxgi.allow_d3d12_footguns ) &&
+                 !( bIsD3D9  ||  bIsTrueFullscreen                       ) &&
+                  ( iRequiredBufferCount   <=   15                       ) )
             {
               ImGui::Separator    ();
               ImGui::Text         (
                 std::format       (
-                  "Other tearing options require certain settings for {}x Mode{}",
-                  iMultiplier,
-                  iRequiredBufferCount <= 15 ? " (Best to Worst):" : ":"
+                  "Other tearing options require certain settings for {}x Mode (Best to Worst)",
+                  iMultiplier
                 ).c_str           ()
               );
 
               ImGui::Separator    ();
               ImGui::BeginGroup   ();
-
-              if (iRequiredBufferCount <= 15)
-              {
-                ImGui::BulletText ("Adaptive (Prefer On)");
-              }
+              ImGui::BulletText   ("Adaptive (Prefer On)");
 
               if (bSupportsFrameSkipping)
               {
                 ImGui::BulletText ("Adaptive (Prefer Off)");
               }
 
-              if (iRequiredBufferCount <= 15)
-              {
-                ImGui::BulletText ("Adaptive (Prefer Off)");
-                ImGui::BulletText ("Always Off (LL)");
-                ImGui::BulletText ("Always Off");
-              }
-
+              ImGui::BulletText   ("Adaptive (Prefer Off)");
+              ImGui::BulletText   ("Always Off (LL)");
+              ImGui::BulletText   ("Always Off");
               ImGui::EndGroup     ();
               ImGui::SameLine     (0.0f, 0.0f);
               ImGui::BeginGroup   ();
@@ -853,34 +820,25 @@ SK_ImGui_LatentSyncConfig (void)
                 );
               };
 
-              if (iRequiredBufferCount <= 15)
+              _PrintRequiredSettings (
+                iRequiredBufferCount,
+                iRequiredMaxDeviceLatency
+              );
+
+              if (bSupportsFrameSkipping)
+              {
+                _PrintRequiredSettings (
+                  iRequiredBufferCount,
+                  1
+                );
+              }
+
+              for ( int i = 0; i < 3; i++ )
               {
                 _PrintRequiredSettings (
                   iRequiredBufferCount,
                   iRequiredMaxDeviceLatency
                 );
-              }
-
-              if (bSupportsFrameSkipping)
-              {
-                _PrintRequiredSettings (
-                  std::min (
-                    iRequiredBufferCount,
-                    15
-                  ),
-                  1
-                );
-              }
-
-              if (iRequiredBufferCount <= 15)
-              {
-                for ( int i = 0; i < 3; i++ )
-                {
-                  _PrintRequiredSettings (
-                    iRequiredBufferCount,
-                    iRequiredMaxDeviceLatency
-                  );
-                }
               }
 
               ImGui::EndGroup     ();
@@ -2451,8 +2409,7 @@ SK::Framerate::Limiter::wait (void)
               bIsTearingModeAdaptiveOn
             );
 
-            if ( iACTION != ACTION_StuckInputLatency &&
-                         !  bIsTearingModeAdaptiveOn )
+            if (! bIsTearingModeAdaptiveOn)
             {
               reset (true);
             }
@@ -2836,11 +2793,14 @@ SK::Framerate::Limiter::wait (void)
 
     if (config.render.framerate.present_interval != 0)
     {
+      bool bIsD3D9 =
+        SK_API_IsDirect3D9 (rb.api);
+
       if (config.render.framerate.present_interval == SK_NoPreference)
       {
-        if ( SK_API_IsDirect3D9  (rb.api) ||
-             rb.isTrueFullscreen ()       ||
-             rb.present_interval > 0      )
+        if ( rb.isTrueFullscreen ( ) ||
+             rb.present_interval > 0 ||
+             bIsD3D9                 )
         {
           config.render.framerate.tearing_mode =
             SK_TearingMode::AppControlled;
@@ -2860,7 +2820,7 @@ SK::Framerate::Limiter::wait (void)
         switch (config.render.framerate.tearing_mode)
         {
           case  SK_TearingMode::AdaptiveOff:
-            if (SK_API_IsDirect3D9 (rb.api))
+            if (bIsD3D9)
             {
               config.render.framerate.tearing_mode =
                 SK_TearingMode::AlwaysOff;

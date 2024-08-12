@@ -5965,7 +5965,7 @@ SK_ImGui_ControlPanel (void)
 
                 if (__target_fps > dRefresh)
                 {
-                  iFractSel = 0;
+                  lastRefresh = 0.0f;
 
                   SK_GetCommandProcessor ()->ProcessCommandFormatted (
                     "TargetFPS %f", static_cast <float> (dRefresh)
@@ -5998,7 +5998,7 @@ SK_ImGui_ControlPanel (void)
 
                 if (__target_fps == 0.0f)
                 {
-                  iFractSel = 0;
+                  lastRefresh = 0.0f;
 
                   SK_GetCommandProcessor ()->ProcessCommandFormatted (
                     "TargetFPS %f", static_cast <float> (dRefresh)
@@ -6007,6 +6007,8 @@ SK_ImGui_ControlPanel (void)
 
                 else if (__target_fps < 0.0f)
                 {
+                  lastRefresh = 0.0f;
+
                   SK_GetCommandProcessor ()->ProcessCommandFormatted (
                     "TargetFPS %f", -__target_fps
                   );
@@ -6195,28 +6197,10 @@ SK_ImGui_ControlPanel (void)
                 switch (config.render.framerate.tearing_mode)
                 {
                   case SK_TearingMode::AlwaysOff_LowLatency:
-                    if (config.render.framerate.present_interval > 0)
-                    {
-                      iTearingMode = 1;
-                    }
-                    else
-                    {
-                      config.render.framerate.tearing_mode =
-                        SK_TearingMode::AppControlled;
-                    }
+                    iTearingMode = 1;
                     break;
                   case SK_TearingMode::AdaptiveOff:
-                    if (config.render.framerate.present_interval > 0 && !bIsD3D9)
-                    {
-                      iTearingMode = 2;
-                    }
-                    else
-                    {
-                      config.render.framerate.tearing_mode =
-                        config.render.framerate.present_interval > 0
-                          ? SK_TearingMode::AlwaysOff
-                          : SK_TearingMode::AppControlled;
-                    }
+                    iTearingMode = 2;
                     break;
                   default:
                     break;
@@ -6275,6 +6259,8 @@ SK_ImGui_ControlPanel (void)
 
                     else if (__target_fps < 0.0f)
                     {
+                      lastRefresh = 0.0f;
+
                       SK_GetCommandProcessor ()->ProcessCommandFormatted (
                         "TargetFPS %f", -__target_fps
                       );
@@ -6365,18 +6351,13 @@ SK_ImGui_ControlPanel (void)
                   }
                 }
 
-                if (config.render.framerate.tearing_mode == SK_TearingMode::AlwaysOff)
+                switch (config.render.framerate.tearing_mode)
                 {
-                  if (! (bIsD3D9 || bIsTrueFullscreen))
-                  {
+                  case SK_TearingMode::AlwaysOff:
                     iTearingMode = 1;
-                  }
-
-                  else
-                  {
-                    config.render.framerate.tearing_mode =
-                      SK_TearingMode::AppControlled;
-                  }
+                    break;
+                  default:
+                    break;
                 }
 
                 if  (
