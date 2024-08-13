@@ -402,19 +402,19 @@ SK_ImGui_LatentSyncConfig (void)
 
       if (config.render.framerate.latent_sync.auto_bias)
       {
-        static double dSeconds = 0.0;
+        static double dMilliseconds = 0.0;
 
-        dSeconds += std::max (
+        dMilliseconds += std::max (
           1000.0 / pLimiter->get_limit  (),
           pLimiter->effective_frametime ()
-        ) / 1000.0;
+        );
 
-        if (dSeconds >= 0.25)
+        if (dMilliseconds >= 200.0)
         {
           iDelayBiasPercent =
           _DelayBiasPercent ();
 
-          dSeconds = 0.0;
+          dMilliseconds = 0.0;
         }
 
         ImGui::PushItemFlag (

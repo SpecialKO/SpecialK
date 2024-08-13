@@ -6184,8 +6184,6 @@ SK_ImGui_ControlPanel (void)
 
               if (bIsVSync)
               {
-                int iTearingMode = 0; // "Always Off"
-
                 if (config.render.framerate.target_fps <= 0.0f)
                 {
                   config.render.framerate.tearing_mode =
@@ -6193,6 +6191,8 @@ SK_ImGui_ControlPanel (void)
                       ? SK_TearingMode::AlwaysOff
                       : SK_TearingMode::AppControlled;
                 }
+
+                int iTearingMode = 0; // "Always Off"
 
                 switch (config.render.framerate.tearing_mode)
                 {
@@ -6332,8 +6332,6 @@ SK_ImGui_ControlPanel (void)
                 bool bIsTrueFullscreen =
                   rb .isTrueFullscreen ();
 
-                int iTearingMode = 0; // "Always On"
-
                 if (config.render.framerate.target_fps <= 0.0f)
                 {
                   if (! (bIsD3D9 || bIsTrueFullscreen))
@@ -6350,6 +6348,8 @@ SK_ImGui_ControlPanel (void)
                       SK_TearingMode::AppControlled;
                   }
                 }
+
+                int iTearingMode = 0; // "Always On"
 
                 switch (config.render.framerate.tearing_mode)
                 {
