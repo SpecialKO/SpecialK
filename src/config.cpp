@@ -1775,7 +1775,7 @@ auto DeclKeybind =
     ConfigEntry (render.framerate.buffer_count,          L"Number of Backbuffers in the Swapchain",                    dll_ini,         L"Render.FrameRate",      L"BackBufferCount"),
     ConfigEntry (render.framerate.present_interval,      L"Presentation Interval (VSYNC)",                             dll_ini,         L"Render.FrameRate",      L"PresentationInterval"),
     ConfigEntry (render.framerate.sync_interval_clamp,   L"Maximum Sync Interval (Clamp VSYNC)",                       dll_ini,         L"Render.FrameRate",      L"SyncIntervalClamp"),
-    ConfigEntry (render.framerate.tearing_mode,          L"Tearing mode: Always On/Off, Adaptive (Prefer On/Off)",     dll_ini,         L"Render.FrameRate",      L"TearingMode"),
+    ConfigEntry (render.framerate.tearing_mode,          L"Tearing Mode (Always On/Off or Adaptive)",                  dll_ini,         L"Render.FrameRate",      L"TearingMode"),
     ConfigEntry (render.framerate.prerender_limit,       L"Maximum Frames to Render-Ahead",                            dll_ini,         L"Render.FrameRate",      L"PreRenderLimit"),
     ConfigEntry (render.framerate.sleepless_render,      L"Sleep Free Render Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessRenderThread"),
     ConfigEntry (render.framerate.sleepless_window,      L"Sleep Free Window Thread",                                  dll_ini,         L"Render.FrameRate",      L"SleeplessWindowThread"),

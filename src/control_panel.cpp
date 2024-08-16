@@ -6271,10 +6271,12 @@ SK_ImGui_ControlPanel (void)
                 if (ImGui::IsItemHovered ())
                 {
                   ImGui::BeginTooltip ();
-                  ImGui::BulletText   ("Low Latency mode temporarily lowers FPS limit if Render Latency exceeds 1 frame");
+                  ImGui::Text         ("Controls tearing behavior of V-Sync");
+                  ImGui::Separator    ();
+                  ImGui::BulletText   ("Low Latency mode temporarily decreases FPS limit if Render Latency exceeds 1 frame");
                   if (! bIsD3D9)
                   {
-                    ImGui::BulletText ("Adaptive V-Sync temporarily turns V-Sync -OFF- if FPS is unstable or Render Latency exceeds 1 frame");
+                    ImGui::BulletText ("Adaptive V-Sync enables tearing if FPS is unstable or Render Latency exceeds 1 frame");
                   }
                   ImGui::Separator    ();
                   ImGui::Text         ("NOTE: Use the default 'Always Off' mode for VRR");
@@ -6360,6 +6362,14 @@ SK_ImGui_ControlPanel (void)
                     break;
                 }
 
+                if (bIsD3D9 || bIsTrueFullscreen)
+                {
+                  ImGui::PushItemFlag (
+                    ImGuiItemFlags_Disabled,
+                    true
+                  );
+                }
+
                 if  (
                       ImGui::Combo (
                         "Tearing Mode",
@@ -6377,11 +6387,25 @@ SK_ImGui_ControlPanel (void)
                     iTearingMode == 0;
                 }
 
-                if (ImGui::IsItemHovered ())
+                if (ImGui::IsItemHovered (ImGuiHoveredFlags_AllowWhenDisabled))
                 {
                   ImGui::BeginTooltip ();
+                  if (bIsD3D9 || bIsTrueFullscreen)
+                  {
+                    ImGui::Text       ("Tearing is currently App-Controlled (V-Sync Off)");
+                  }
+                  else
+                  {
+                    ImGui::Text       ("Controls tearing in Windowed Mode");
+                  }
+                  ImGui::Separator    ();
                   ImGui::BulletText   ("Enable V-Sync or Latent Sync for more Tearing Modes");
                   ImGui::EndTooltip   ();
+                }
+
+                if (bIsD3D9 || bIsTrueFullscreen)
+                {
+                  ImGui::PopItemFlag  ();
                 }
 
                 if (bIsD3D9 && SK_IsInjected ())

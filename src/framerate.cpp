@@ -682,7 +682,7 @@ SK_ImGui_LatentSyncConfig (void)
         ImGui::Separator    ();
         ImGui::BulletText   ("If GPU load is very high, you may need to disable tearing");
         ImGui::BulletText   ("Disabling tearing will add between 0 and 1 refresh cycles of latency, depending on GPU load");
-        ImGui::BulletText   ("Low Latency mode temporarily lowers FPS limit if Render Latency exceeds 1 frame");
+        ImGui::BulletText   ("Low Latency mode temporarily decreases FPS limit if Render Latency exceeds 1 frame");
         if (! bIsD3D9)
         {
           ImGui::Separator  ();
@@ -776,7 +776,7 @@ SK_ImGui_LatentSyncConfig (void)
 
             if (bIsD3D12)
             {
-              ImGui::BulletText   ("NVIDIA's Fast Sync is not compatible with DirectX 12");
+              ImGui::BulletText   ("NVIDIA's Fast Sync is not compatible with Direct3D 12");
             }
 
             if ( !( bIsD3D12 && !config.render.dxgi.allow_d3d12_footguns ) &&
@@ -2361,7 +2361,7 @@ SK::Framerate::Limiter::wait (void)
         // No tearing, temporarily decrease FPS limit if Render Latency exceeds 1 frame
         case SK_TearingMode::AlwaysOff_LowLatency:
 #if 0
-        // TODO: enable this case when VRR status is detectable on all vendors
+        // TODO: Enable this case when VRR status is detectable on all vendors
         // -
         // ACTION_HighVariation and ACTION_StuckInputLatency should be ignored when VRR is active
         // To preserve old behaviour, we are keeping regular "Always Off" mode unaffected for now
@@ -2777,7 +2777,7 @@ SK::Framerate::Limiter::wait (void)
               __SK_LatentSyncSkip = 0;
             } break;
 #if 1
-            // TODO: remove this case when VRR status is detectable on all vendors (see previous #if)
+            // TODO: Remove this case when VRR status is detectable on all vendors (see previous #if)
             case SK_TearingMode::AlwaysOff:
             {
               _ToggleTearing (false);
