@@ -314,10 +314,7 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
             typeless_fmt == DXGI_FORMAT_R32G32B32A32_TYPELESS)
         {
           XMVECTOR  value = XMVector3Transform (v, c_from709to2020);
-          XMVECTOR nvalue = XMVectorDivide     ( XMVectorMax (g_XMZero,
-                                                   XMVectorMin (value, PQ.MaxPQ)),
-                                                                       PQ.MaxPQ );
-                        v = LinearToPQ (nvalue);
+                        v = LinearToPQ (value);
         }
 
         v = // Quantize to 10- or 12-bpc before expanding to 16-bpc in order to improve
@@ -1022,11 +1019,7 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
           for (size_t j = 0; j < width; ++j)
           {
             XMVECTOR  value = XMVector3Transform (pixels [j], c_from709to2020);
-            XMVECTOR nvalue = XMVectorDivide ( XMVectorMax (g_XMZero,
-                                               XMVectorMin (value, PQ.MaxPQ)),
-                                                                   PQ.MaxPQ);
-
-                      value = XMVectorSaturate (LinearToPQ (nvalue));
+                      value = XMVectorSaturate (LinearToPQ (value));
 
             *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetX (value) * 65535.0f));
             *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetY (value) * 65535.0f));

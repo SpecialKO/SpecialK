@@ -1,4 +1,8 @@
-﻿24.8.16.1
+﻿24.8.16.2
+=========
+ + Fixed PQ being 1/125th as bright as it should be in AVIF and PNG screenshots
+
+24.8.16.1
 =========
  + Write 99th percentile luminance to AVIF MaxCLL metadata
  + Improve PQ <--> Linear calculations for pixels in > Rec 709 gamuts
