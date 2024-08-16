@@ -173,6 +173,7 @@ private:
 };
 
 float             LinearToPQY   (float N);
+float             PQToLinearY   (float N);
 DirectX::XMVECTOR Rec709toICtCp (DirectX::XMVECTOR N);
 DirectX::XMVECTOR ICtCptoRec709 (DirectX::XMVECTOR N);
 

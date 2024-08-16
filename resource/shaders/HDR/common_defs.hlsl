@@ -209,25 +209,6 @@ float4 PositivePow (float4 base, float4 power)
                                    FLT_MIN, FLT_MIN )), power );
 }
 
-float3 LinearToST2084 (float3 normalizedLinearValue)
-{
-  return
-    PositivePow (
-      (0.8359375f + 18.8515625f * sign (normalizedLinearValue) * pow (abs (normalizedLinearValue), 0.1593017578f)) /
-            (1.0f + 18.6875f    * sign (normalizedLinearValue) * pow (abs (normalizedLinearValue), 0.1593017578f)), 78.84375f
-        );
-}
-
-float3 ST2084ToLinear (float3 ST2084)
-{
-  return
-    pow ( max (
-      PositivePow ( ST2084, 1.0f / 78.84375f) - 0.8359375f, 0.0f) / (18.8515625f - 18.6875f *
-      PositivePow ( ST2084, 1.0f / 78.84375f)),
-                            1.0f / 0.1593017578f
-        );
-}
-
 struct SK_ColorSpace
 {
   float xr, yr,
@@ -404,62 +385,6 @@ float3 LMS_to_XYZ (float3 LMS)
 
   return
     mul (ConvMat, LMS);
-}
-
-float3 LMS_to_ICtCp (float3 LMS)
-{
-  LMS =
-    LinearToST2084 (LMS);
-
-  static const float3x3 ConvMat =
-  {
-     2048.0,   2048.0,    0.0,
-     6610.0, -13613.0, 7003.0,
-    17933.0, -17390.0, -543.0
-  };
-
-  return
-    mul (mul (ConvMat, 1.0 / 4096.0), LMS);
-}
-
-float3 ICtCp_to_LMS (float3 ICtCp)
-{
-  static const float3x3 ConvMat =
-  {
-    0.99998889656284013833,  0.00860505014728705821,  0.11103437159861647860,
-    1.00001110343715986160, -0.00860505014728705821, -0.11103437159861647860,
-    1.00003206339100541200,  0.56004913547279000113, -0.32063391005412026469
-  };
-
-  ICtCp =
-    mul (ConvMat, ICtCp);
-
-  ICtCp =
-    ST2084ToLinear (ICtCp);
-
-  return ICtCp;
-}
-
-float3 RGB_to_ICtCp (float3 color)
-{
-  color /= 125.0f;
-
-  color = Rec709_to_XYZ (color);
-  color = XYZ_to_LMS    (color);
-  color = LMS_to_ICtCp  (color);
-
-  return color;
-}
-
-float3 ICtCp_to_RGB (float3 color)
-{
-  color = ICtCp_to_LMS  (color);
-  color = LMS_to_XYZ    (color);
-  color = XYZ_to_Rec709 (color);
-
-  color *= 125.0f;
-
-  return color;
 }
 
 float
@@ -862,44 +787,50 @@ static const ParamsPQ PQ =
 
 float4 LinearToPQ (float4 x, float maxPQValue)
 {
+  float4 sign_bits = sign (x);
+
   x =
-    PositivePow ( x / maxPQValue,
-                         PQ.N );
+    pow ( abs (x) / maxPQValue,
+                       PQ.N );
  
   float4 nd =
     (PQ.C1 + PQ.C2 * x) /
       (1.0 + PQ.C3 * x);
 
   return
-    PositivePow (nd, PQ.M);
+    sign_bits * pow (nd, PQ.M);
 }
 
 float3 LinearToPQ (float3 x, float maxPQValue)
 {
+  float3 sign_bits = sign (x);
+
   x =
-    PositivePow ( x / maxPQValue,
-                         PQ.N );
+    pow ( abs (x) / maxPQValue,
+                       PQ.N );
  
   float3 nd =
     (PQ.C1 + PQ.C2 * x) /
       (1.0 + PQ.C3 * x);
 
   return
-    PositivePow (nd, PQ.M);
+    sign_bits * pow (nd, PQ.M);
 }
 
 float LinearToPQ (float x, float maxPQValue)
 {
+  float sign_bit = sign (x);
+
   x =
-    PositivePow ( x / maxPQValue,
-                         PQ.N );
+    pow ( abs (x) / maxPQValue,
+                       PQ.N );
  
   float nd =
     (PQ.C1 + PQ.C2 * x) /
       (1.0 + PQ.C3 * x);
 
   return
-    PositivePow (nd, PQ.M);
+    sign_bit * pow (nd, PQ.M);
 }
 
 float3 LinearToPQ (float3 x)
@@ -910,41 +841,47 @@ float3 LinearToPQ (float3 x)
 
 float PQToLinear (float x, float maxPQValue)
 {
+  float sign_bit = sign (x);
+
   x =
-    PositivePow (x, PQ.rcpM);
+    pow (abs (x), PQ.rcpM);
 
   float nd =
     max (x - PQ.C1, 0.0) /
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    PositivePow (nd, PQ.rcpN) * maxPQValue;
+    sign_bit * pow (nd, PQ.rcpN) * maxPQValue;
 }
 
 float3 PQToLinear (float3 x, float maxPQValue)
 {
+  float3 sign_bits = sign (x);
+
   x =
-    PositivePow (x, PQ.rcpM);
+    pow (abs (x), PQ.rcpM);
 
   float3 nd =
     max (x - PQ.C1, 0.0) /
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    PositivePow (nd, PQ.rcpN) * maxPQValue;
+    sign_bits * pow (nd, PQ.rcpN) * maxPQValue;
 }
 
 float4 PQToLinear (float4 x, float maxPQValue)
 {
+  float4 sign_bits = sign (x);
+
   x =
-    PositivePow (x, PQ.rcpM);
+    pow (abs (x), PQ.rcpM);
 
   float4 nd =
     max (x - PQ.C1, 0.0) /
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    PositivePow (nd, PQ.rcpN) * maxPQValue;
+    sign_bits * pow (nd, PQ.rcpN) * maxPQValue;
 }
 
 float3 PQToLinear (float3 x)
@@ -956,16 +893,18 @@ float3 PQToLinear (float3 x)
 
 float LinearToPQY (float x, float maxPQValue)
 {
+  float sign_bit = sign (x);
+
   x =
-    PositivePow ( x / maxPQValue,
-                         PQ.N );
-  
+    pow ( abs (x) / maxPQValue,
+                       PQ.N );
+ 
   float nd =
     (PQ.C1 + PQ.C2 * x) /
       (1.0 + PQ.C3 * x);
 
   return
-    Clamp_scRGB (PositivePow (nd, PQ.M));
+    sign_bit * pow (nd, PQ.M);
 }
 
 float LinearToPQY (float x)
@@ -976,15 +915,17 @@ float LinearToPQY (float x)
 
 float PQToLinearY (float x, float maxPQValue)
 {
+  float sign_bit = sign (x);
+
   x =
-    PositivePow (x, PQ.rcpM);
+    pow (abs (x), PQ.rcpM);
 
   float nd =
     max (x - PQ.C1, 0.0) /
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    Clamp_scRGB (PositivePow (nd, PQ.rcpN) * maxPQValue);
+    sign_bit * pow (nd, PQ.rcpN) * maxPQValue;
 }
 
 float PQToLinearY (float x)
@@ -2067,6 +2008,8 @@ float3 RemoveREC2084Curve (float3 N)
   if (AnyIsNan (N))
     return 0.0f;
 
+  float3 sign_bits = sign (N);
+
   float  m1 = 2610.0 / 4096.0 / 4;
   float  m2 = 2523.0 / 4096.0 * 128;
   float  c1 = 3424.0 / 4096.0;
@@ -2074,7 +2017,7 @@ float3 RemoveREC2084Curve (float3 N)
   float  c3 = 2392.0 / 4096.0 * 32;
   float3 Np = PositivePow (N, 1 / m2);
 
-  return
+  return sign_bits *
     PositivePow ( max (Np - c1,   0) /
                       (c2 - c3 * Np),
                         1 / m1);
@@ -2091,10 +2034,12 @@ float3 ApplyREC2084Curve (float3 L, float maxLuminance)
   float maxLuminanceScale = maxLuminance / 10000.0f;
    L *= maxLuminanceScale;
 
+  float3 sign_bits = sign (L);
+
   float3 Lp =
     PositivePow (L, m1);
 
-  return
+  return sign_bits *
     PositivePow ( (c1 + c2 * Lp) /
                    (1 + c3 * Lp), m2 );
 }
@@ -2243,4 +2188,60 @@ float3 ICtCptoRec709 (float3 c)
   
   return
     XYZ_to_Rec709 (c);
+}
+
+float3 LMS_to_ICtCp (float3 LMS)
+{
+  LMS =
+    LinearToPQ (LMS);
+
+  static const float3x3 ConvMat =
+  {
+     2048.0,   2048.0,    0.0,
+     6610.0, -13613.0, 7003.0,
+    17933.0, -17390.0, -543.0
+  };
+
+  return
+    mul (mul (ConvMat, 1.0 / 4096.0), LMS);
+}
+
+float3 ICtCp_to_LMS (float3 ICtCp)
+{
+  static const float3x3 ConvMat =
+  {
+    0.99998889656284013833,  0.00860505014728705821,  0.11103437159861647860,
+    1.00001110343715986160, -0.00860505014728705821, -0.11103437159861647860,
+    1.00003206339100541200,  0.56004913547279000113, -0.32063391005412026469
+  };
+
+  ICtCp =
+    mul (ConvMat, ICtCp);
+
+  ICtCp =
+    PQToLinear (ICtCp);
+
+  return ICtCp;
+}
+
+float3 RGB_to_ICtCp (float3 color)
+{
+  color /= 125.0f;
+
+  color = Rec709_to_XYZ (color);
+  color = XYZ_to_LMS    (color);
+  color = LMS_to_ICtCp  (color);
+
+  return color;
+}
+
+float3 ICtCp_to_RGB (float3 color)
+{
+  color = ICtCp_to_LMS  (color);
+  color = LMS_to_XYZ    (color);
+  color = XYZ_to_Rec709 (color);
+
+  color *= 125.0f;
+
+  return color;
 }

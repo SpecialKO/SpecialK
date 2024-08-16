@@ -2034,6 +2034,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                         if (Y_out + Y_in > 0.0f)
                         {
+                          ICtCp.m128_f32 [0] = std::pow (XMVectorGetX (ICtCp), 1.18f);
+
                           float I0      = XMVectorGetX (ICtCp);
                           float I1      = 0.0f;
                           float I_scale = 0.0f;
@@ -2054,7 +2056,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         }
 
                         value =
-                          XMVectorPow (ICtCptoRec709 (ICtCp), XMVectorReplicate (1.18f));
+                          ICtCptoRec709 (ICtCp);
 
                         maxTonemappedRGB =
                           XMVectorMax (maxTonemappedRGB, XMVectorMax (value, g_XMZero));

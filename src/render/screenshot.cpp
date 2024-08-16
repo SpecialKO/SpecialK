@@ -256,9 +256,13 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
     auto LinearToPQ = [](XMVECTOR N)
     {
       XMVECTOR ret;
+      XMVECTOR sign =
+        XMVectorSet (XMVectorGetX (N) < 0.0f ? -1.0f : 1.0f,
+                     XMVectorGetY (N) < 0.0f ? -1.0f : 1.0f,
+                     XMVectorGetZ (N) < 0.0f ? -1.0f : 1.0f, 1.0f);
 
       ret =
-        XMVectorPow (N, PQ.N);
+        XMVectorPow (XMVectorDivide (XMVectorAbs (N), PQ.MaxPQ), PQ.N);
 
       XMVECTOR nd =
         XMVectorDivide (
@@ -267,7 +271,7 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
         );
 
       return
-        XMVectorPow (nd, PQ.M);
+        XMVectorMultiply (XMVectorPow (nd, PQ.M), sign);
     };
 
     EvaluateImage ( raw_hdr_img,
@@ -1604,8 +1608,13 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
   {
     XMVECTOR ret;
 
+    XMVECTOR sign =
+      XMVectorSet (XMVectorGetX (N) < 0.0f ? -1.0f : 1.0f,
+                   XMVectorGetY (N) < 0.0f ? -1.0f : 1.0f,
+                   XMVectorGetZ (N) < 0.0f ? -1.0f : 1.0f, 1.0f);
+
     ret =
-      XMVectorPow (N, XMVectorDivide (g_XMOne, PQ.M));
+      XMVectorPow (XMVectorAbs (N), XMVectorDivide (g_XMOne, PQ.M));
 
     XMVECTOR nd;
 
@@ -1616,9 +1625,7 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
               XMVectorMultiply (PQ.C3, ret)));
 
     ret =
-      XMVectorMultiply (
-        XMVectorPow (nd, XMVectorDivide (g_XMOne, PQ.N)), PQ.MaxPQ
-      );
+      XMVectorMultiply (XMVectorMultiply (XMVectorPow (nd, XMVectorDivide (g_XMOne, PQ.N)), PQ.MaxPQ), sign);
 
     return ret;
   };

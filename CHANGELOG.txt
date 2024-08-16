@@ -1,4 +1,10 @@
-﻿24.8.16
+﻿24.8.16.1
+=========
+ + Write 99th percentile luminance to AVIF MaxCLL metadata
+ + Improve PQ <--> Linear calculations for pixels in > Rec 709 gamuts
+    * Improves HDR->SDR tone mapping in some games
+
+24.8.16
 =======
  + Write 99th percentile luminance to HDR PNG clli chunk
  + Reverse the search direction (high->low) when searching percentile cutoffs

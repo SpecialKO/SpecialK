@@ -1121,6 +1121,11 @@ using namespace DirectX;
 
   XMVECTOR ret;
 
+  XMVECTOR sign =
+    XMVectorSet (XMVectorGetX (N) < 0.0f ? -1.0f : 1.0f,
+                 XMVectorGetY (N) < 0.0f ? -1.0f : 1.0f,
+                 XMVectorGetZ (N) < 0.0f ? -1.0f : 1.0f, 1.0f);
+
   ret =
     XMVectorPow (XMVectorAbs (N), XMVectorDivide (g_XMOne, PQ.M));
 
@@ -1133,7 +1138,7 @@ using namespace DirectX;
             XMVectorMultiply (PQ.C3, ret)));
 
   ret =
-    XMVectorMultiply (XMVectorPow (XMVectorAbs (nd), XMVectorDivide (g_XMOne, PQ.N)), maxPQValue);
+    XMVectorMultiply (XMVectorMultiply (XMVectorPow (nd, XMVectorDivide (g_XMOne, PQ.N)), maxPQValue), sign);
 
   return ret;
 };
@@ -1143,9 +1148,13 @@ auto LinearToPQ = [](DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = g_MaxPQ
   using namespace DirectX;
 
   XMVECTOR ret;
+  XMVECTOR sign =
+    XMVectorSet (XMVectorGetX (N) < 0.0f ? -1.0f : 1.0f,
+                 XMVectorGetY (N) < 0.0f ? -1.0f : 1.0f,
+                 XMVectorGetZ (N) < 0.0f ? -1.0f : 1.0f, 1.0f);
 
   ret =
-    XMVectorPow (XMVectorAbs (XMVectorDivide (N, maxPQValue)), PQ.N);
+    XMVectorPow (XMVectorDivide (XMVectorAbs (N), maxPQValue), PQ.N);
 
   XMVECTOR nd =
     XMVectorDivide (
@@ -1154,7 +1163,7 @@ auto LinearToPQ = [](DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = g_MaxPQ
     );
 
   return
-    XMVectorPow (XMVectorAbs (nd), PQ.M);
+    XMVectorMultiply (XMVectorPow (nd, PQ.M), sign);
 };
 
 float LinearToPQY (float N)
@@ -1743,15 +1752,14 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
                         if (Y_out + Y_in > 0.0f)
                         {
-                          ICtCp.m128_f32 [0] =
-                            std::pow (Y_in, 1.18f);
+                          ICtCp.m128_f32 [0] = std::pow (XMVectorGetX (ICtCp), 1.18f);
 
                           float I0      = XMVectorGetX (ICtCp);
                           float I1      = 0.0f;
                           float I_scale = 0.0f;
 
                           ICtCp.m128_f32 [0] *=
-                            std::pow (std::max ((Y_out / Y_in), 0.0f), 1.0f/1.18f);
+                            std::max ((Y_out / Y_in), 0.0f);
 
                           I1 = XMVectorGetX (ICtCp);
 
