@@ -1941,17 +1941,6 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   SK_LOGi0 ( L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0 *      ( lumTotal    / N ),
                                                                                 80.0 * exp2 ( logLumTotal / N ) );
 
-                  pFrameData->hdr.max_cll_nits =                      80.0f * XMVectorGetX (maxCLL);
-                  pFrameData->hdr.avg_cll_nits = static_cast <float> (80.0 * ( lumTotal / N ));
-
-                  // After tonemapping, re-normalize the image to preserve peak white,
-                  //   this is important in cases where the maximum luminance was < 1000 nits
-                  XMVECTOR maxTonemappedRGB = g_XMZero;
-
-                  // User's display is the canonical mastering display, anything that would have clipped
-                  //   on their display should be clipped in the tonemapped SDR image.
-                  float _maxNitsToTonemap = rb.displays [rb.active_display].gamut.maxLocalY / 80.0f;
-
                   static unsigned int luminance_freq [100000];
 
                   ZeroMemory (luminance_freq, sizeof (unsigned int) * 100000);
@@ -1994,6 +1983,17 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     }
                   }
 
+                  pFrameData->hdr.max_cll_nits =                      80.0f * XMVectorGetY (maxLum);
+                  pFrameData->hdr.avg_cll_nits = static_cast <float> (80.0 * ( lumTotal / N ));
+
+                  // After tonemapping, re-normalize the image to preserve peak white,
+                  //   this is important in cases where the maximum luminance was < 1000 nits
+                  XMVECTOR maxTonemappedRGB = g_XMZero;
+
+                  // User's display is the canonical mastering display, anything that would have clipped
+                  //   on their display should be clipped in the tonemapped SDR image.
+                  float _maxNitsToTonemap = rb.displays [rb.active_display].gamut.maxLocalY / 80.0f;
+
                   const float SDR_YInPQ =
                     LinearToPQY (1.5f);
 
@@ -2034,8 +2034,6 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                         if (Y_out + Y_in > 0.0f)
                         {
-                          ICtCp.m128_f32 [0] = std::pow (XMVectorGetX (ICtCp), 1.18f);
-
                           float I0      = XMVectorGetX (ICtCp);
                           float I1      = 0.0f;
                           float I_scale = 0.0f;
@@ -2056,7 +2054,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         }
 
                         value =
-                          ICtCptoRec709 (ICtCp);
+                          XMVectorPow (ICtCptoRec709 (ICtCp), XMVectorReplicate (1.18f));
 
                         maxTonemappedRGB =
                           XMVectorMax (maxTonemappedRGB, XMVectorMax (value, g_XMZero));
