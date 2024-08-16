@@ -1978,14 +1978,14 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     }
                   });
 
-                  double percent = 0.0;
+                  double percent = 100.0;
 
-                  for (auto i = 0 ; i < 100000; ++i)
+                  for (auto i = 99999; i >= 0; --i)
                   {
-                    percent +=
+                    percent -=
                       (100.0 * ((double)luminance_freq [i] / ((double)un_srgb.GetMetadata ().width * (double)un_srgb.GetMetadata ().height)));
 
-                    if (percent >= 99.0)
+                    if (percent <= 99.0)
                     {
                       maxLum =
                         XMVectorReplicate (XMVectorGetY (minLum) + (fLumRange * ((float)i / 100000.0f)));

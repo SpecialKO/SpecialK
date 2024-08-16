@@ -863,7 +863,6 @@ static const ParamsPQ PQ =
 float4 LinearToPQ (float4 x, float maxPQValue)
 {
   x =
-           sign ( x / maxPQValue) *
     PositivePow ( x / maxPQValue,
                          PQ.N );
  
@@ -872,13 +871,12 @@ float4 LinearToPQ (float4 x, float maxPQValue)
       (1.0 + PQ.C3 * x);
 
   return
-    sign (nd) * PositivePow (nd, PQ.M);
+    PositivePow (nd, PQ.M);
 }
 
 float3 LinearToPQ (float3 x, float maxPQValue)
 {
   x =
-           sign ( x / maxPQValue) *
     PositivePow ( x / maxPQValue,
                          PQ.N );
  
@@ -887,13 +885,12 @@ float3 LinearToPQ (float3 x, float maxPQValue)
       (1.0 + PQ.C3 * x);
 
   return
-    sign (nd) * PositivePow (nd, PQ.M);
+    PositivePow (nd, PQ.M);
 }
 
 float LinearToPQ (float x, float maxPQValue)
 {
   x =
-           sign ( x / maxPQValue) *
     PositivePow ( x / maxPQValue,
                          PQ.N );
  
@@ -902,7 +899,7 @@ float LinearToPQ (float x, float maxPQValue)
       (1.0 + PQ.C3 * x);
 
   return
-    sign (nd) * PositivePow (nd, PQ.M);
+    PositivePow (nd, PQ.M);
 }
 
 float3 LinearToPQ (float3 x)
@@ -913,8 +910,6 @@ float3 LinearToPQ (float3 x)
 
 float PQToLinear (float x, float maxPQValue)
 {
-  float sign_x = sign (x);
-
   x =
     PositivePow (x, PQ.rcpM);
 
@@ -923,13 +918,11 @@ float PQToLinear (float x, float maxPQValue)
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    sign_x * PositivePow (nd, PQ.rcpN) * maxPQValue;
+    PositivePow (nd, PQ.rcpN) * maxPQValue;
 }
 
 float3 PQToLinear (float3 x, float maxPQValue)
 {
-  float3 sign_x = sign (x);
-
   x =
     PositivePow (x, PQ.rcpM);
 
@@ -938,13 +931,11 @@ float3 PQToLinear (float3 x, float maxPQValue)
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    sign_x * PositivePow (nd, PQ.rcpN) * maxPQValue;
+    PositivePow (nd, PQ.rcpN) * maxPQValue;
 }
 
 float4 PQToLinear (float4 x, float maxPQValue)
 {
-  float4 sign_x = sign (x);
-
   x =
     PositivePow (x, PQ.rcpM);
 
@@ -953,7 +944,7 @@ float4 PQToLinear (float4 x, float maxPQValue)
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    sign_x * PositivePow (nd, PQ.rcpN) * maxPQValue;
+    PositivePow (nd, PQ.rcpN) * maxPQValue;
 }
 
 float3 PQToLinear (float3 x)

@@ -1115,22 +1115,11 @@ static const DirectX::XMMATRIX c_fromXYZto709 = // Transposed
 static const DirectX::XMVECTOR g_MaxPQValue =
   DirectX::XMVectorReplicate (125.0f);
 
-auto XMVectorSign = [](DirectX::XMVECTOR v)
-{
-using namespace DirectX;
-
-  XMVECTOR Control = XMVectorLess   (v, g_XMZero);
-  XMVECTOR Sign    = XMVectorSelect (g_XMOne, g_XMNegativeOne, Control);
-
-  return Sign;
-};
-
 auto PQToLinear = [](DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = g_MaxPQValue)
 {
 using namespace DirectX;
 
   XMVECTOR ret;
-  XMVECTOR sign_N = XMVectorSign (N);
 
   ret =
     XMVectorPow (XMVectorAbs (N), XMVectorDivide (g_XMOne, PQ.M));
@@ -1144,7 +1133,7 @@ using namespace DirectX;
             XMVectorMultiply (PQ.C3, ret)));
 
   ret =
-    XMVectorMultiply (sign_N, XMVectorMultiply (XMVectorPow (XMVectorAbs (nd), XMVectorDivide (g_XMOne, PQ.N)), maxPQValue));
+    XMVectorMultiply (XMVectorPow (XMVectorAbs (nd), XMVectorDivide (g_XMOne, PQ.N)), maxPQValue);
 
   return ret;
 };
@@ -1156,7 +1145,7 @@ auto LinearToPQ = [](DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = g_MaxPQ
   XMVECTOR ret;
 
   ret =
-    XMVectorMultiply (XMVectorSign (XMVectorDivide (N, maxPQValue)), XMVectorPow (XMVectorAbs (XMVectorDivide (N, maxPQValue)), PQ.N));
+    XMVectorPow (XMVectorAbs (XMVectorDivide (N, maxPQValue)), PQ.N);
 
   XMVECTOR nd =
     XMVectorDivide (
@@ -1165,7 +1154,7 @@ auto LinearToPQ = [](DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = g_MaxPQ
     );
 
   return
-    XMVectorMultiply (XMVectorSign (nd), XMVectorPow (XMVectorAbs (nd), PQ.M));
+    XMVectorPow (XMVectorAbs (nd), PQ.M);
 };
 
 float LinearToPQY (float N)
@@ -1698,14 +1687,14 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                     }
                   });
 
-                  double percent = 0.0;
+                  double percent = 100.0;
 
-                  for (auto i = 0 ; i < 100000; ++i)
+                  for (auto i = 99999; i >= 0; --i)
                   {
-                    percent +=
+                    percent -=
                       (100.0 * ((double)luminance_freq [i] / ((double)un_srgb.GetMetadata ().width * (double)un_srgb.GetMetadata ().height)));
 
-                    if (percent >= 99.0)
+                    if (percent <= 99.0)
                     {
                       maxLum =
                         XMVectorReplicate (XMVectorGetY (minLum) + (fLumRange * ((float)i / 100000.0f)));

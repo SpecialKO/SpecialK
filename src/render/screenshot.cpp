@@ -199,76 +199,6 @@ SK_ScreenshotManager::getBasePath (void) const
   return         wszAbsolutePathToScreenshots;
 }
 
-struct ParamsPQ
-{
-  DirectX::XMVECTOR N, M;
-  DirectX::XMVECTOR C1, C2, C3;
-  DirectX::XMVECTOR MaxPQ;
-};
-
-static const ParamsPQ PQ =
-{
-  DirectX::XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
-  DirectX::XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
-  DirectX::XMVectorReplicate (3424.0 / 4096.0),         // C1
-  DirectX::XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
-  DirectX::XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
-  DirectX::XMVectorReplicate (125.0),
-};
-
-static auto XMVectorSign = [](DirectX::XMVECTOR v)
-{
-using namespace DirectX;
-
-  XMVECTOR Control = XMVectorLess   (v, g_XMZero);
-  XMVECTOR Sign    = XMVectorSelect (g_XMOne, g_XMNegativeOne, Control);
-
-  return Sign;
-};
-
-static auto PQToLinear = [](DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = PQ.MaxPQ)
-{
-using namespace DirectX;
-
-  XMVECTOR ret;
-  XMVECTOR sign_N = XMVectorSign (N);
-
-  ret =
-    XMVectorPow (XMVectorAbs (N), XMVectorDivide (g_XMOne, PQ.M));
-
-  XMVECTOR nd;
-
-  nd =
-    XMVectorDivide (
-      XMVectorMax (XMVectorSubtract (ret, PQ.C1), g_XMZero),
-                   XMVectorSubtract (     PQ.C2,
-            XMVectorMultiply (PQ.C3, ret)));
-
-  ret =
-    XMVectorMultiply (sign_N, XMVectorMultiply (XMVectorPow (XMVectorAbs (nd), XMVectorDivide (g_XMOne, PQ.N)), maxPQValue));
-
-  return ret;
-};
-
-static auto LinearToPQ = [](DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = PQ.MaxPQ)
-{
-  using namespace DirectX;
-
-  XMVECTOR ret;
-
-  ret =
-    XMVectorMultiply (XMVectorSign (XMVectorDivide (N, maxPQValue)), XMVectorPow (XMVectorAbs (XMVectorDivide (N, maxPQValue)), PQ.N));
-
-  XMVECTOR nd =
-    XMVectorDivide (
-       XMVectorAdd (  PQ.C1, XMVectorMultiply (PQ.C2, ret)),
-       XMVectorAdd (g_XMOne, XMVectorMultiply (PQ.C3, ret))
-    );
-
-  return
-    XMVectorMultiply (XMVectorSign (nd), XMVectorPow (XMVectorAbs (nd), PQ.M));
-};
-
 bool
 SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchImage& png_img)
 {
@@ -298,12 +228,46 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
     if (rgb16_pixels == nullptr)
       return false;
 
+    struct ParamsPQ
+    {
+      XMVECTOR N, M;
+      XMVECTOR C1, C2, C3;
+      XMVECTOR MaxPQ;
+    };
+
+    static const ParamsPQ PQ =
+    {
+      XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
+      XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
+      XMVectorReplicate (3424.0 / 4096.0),         // C1
+      XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
+      XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
+      XMVectorReplicate (125.0),
+    };
+
     static const XMMATRIX c_from709to2020 =
     {
       0.627225305694944f,  0.0690418812810714f, 0.0163911702607078f, 0.0f,
       0.329476882715808f,  0.919605681354755f,  0.0880887513437058f, 0.0f,
       0.0432978115892484f, 0.0113524373641739f, 0.895520078395586f,  0.0f,
       0.0f,                0.0f,                0.0f,                1.0f
+    };
+
+    auto LinearToPQ = [](XMVECTOR N)
+    {
+      XMVECTOR ret;
+
+      ret =
+        XMVectorPow (N, PQ.N);
+
+      XMVECTOR nd =
+        XMVectorDivide (
+           XMVectorAdd (  PQ.C1, XMVectorMultiply (PQ.C2, ret)),
+           XMVectorAdd (g_XMOne, XMVectorMultiply (PQ.C3, ret))
+        );
+
+      return
+        XMVectorPow (nd, PQ.M);
     };
 
     EvaluateImage ( raw_hdr_img,
@@ -995,12 +959,46 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
 
       case DXGI_FORMAT_R16G16B16A16_FLOAT:
       {
+        struct ParamsPQ
+        {
+          XMVECTOR N, M;
+          XMVECTOR C1, C2, C3;
+          XMVECTOR MaxPQ;
+        };
+
+        static const ParamsPQ PQ =
+        {
+          XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
+          XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
+          XMVectorReplicate (3424.0 / 4096.0),         // C1
+          XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
+          XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
+          XMVectorReplicate (125.0),
+        };
+
         static const XMMATRIX c_from709to2020 = // Transposed
         {
           0.627225305694944f,  0.0690418812810714f, 0.0163911702607078f, 0.0f,
           0.329476882715808f,  0.919605681354755f,  0.0880887513437058f, 0.0f,
           0.0432978115892484f, 0.0113524373641739f, 0.895520078395586f,  0.0f,
           0.0f,                0.0f,                0.0f,                1.0f
+        };
+
+        auto LinearToPQ = [](XMVECTOR N)
+        {
+          XMVECTOR ret;
+
+          ret =
+            XMVectorPow (N, PQ.N);
+
+          XMVECTOR nd =
+            XMVectorDivide (
+               XMVectorAdd (  PQ.C1, XMVectorMultiply (PQ.C2, ret)),
+               XMVectorAdd (g_XMOne, XMVectorMultiply (PQ.C3, ret))
+            );
+
+          return
+            XMVectorPow (nd, PQ.M);
         };
 
         uint16_t* rgb_pixels = (uint16_t *)rgb.pixels;
@@ -1584,10 +1582,51 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
     0.168880969f, 0.0593017153f, 1.0609850800f, 0.0f,
     0.0f,         0.0f,          0.0f,          1.0f
   };
+  
+  struct ParamsPQ
+  {
+    XMVECTOR N, M;
+    XMVECTOR C1, C2, C3;
+    XMVECTOR MaxPQ;
+  };
+  
+  static const ParamsPQ PQ =
+  {
+    XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
+    XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
+    XMVectorReplicate (3424.0 / 4096.0),         // C1
+    XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
+    XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
+    XMVectorReplicate (125.0),
+  };
 
-  float N         = 0.0f;
-  float fLumAccum = 0.0f;
+  auto PQToLinear = [](XMVECTOR N)
+  {
+    XMVECTOR ret;
+
+    ret =
+      XMVectorPow (N, XMVectorDivide (g_XMOne, PQ.M));
+
+    XMVECTOR nd;
+
+    nd =
+      XMVectorDivide (
+        XMVectorMax (XMVectorSubtract (ret, PQ.C1), g_XMZero),
+                     XMVectorSubtract (     PQ.C2,
+              XMVectorMultiply (PQ.C3, ret)));
+
+    ret =
+      XMVectorMultiply (
+        XMVectorPow (nd, XMVectorDivide (g_XMOne, PQ.N)), PQ.MaxPQ
+      );
+
+    return ret;
+  };
+
+  float N          = 0.0f;
+  float fLumAccum  = 0.0f;
   XMVECTOR vMaxLum = g_XMZero;
+  XMVECTOR vMinLum = g_XMInfinity;
 
   EvaluateImage ( img,
     [&](const XMVECTOR* pixels, size_t width, size_t y)
@@ -1613,6 +1652,9 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
             vMaxLum =
               XMVectorMax (vMaxLum, v);
 
+            vMinLum =
+              XMVectorMin (vMinLum, v);
+
             fScanlineLum += XMVectorGetY (v);
           }
         } break;
@@ -1631,12 +1673,14 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
             vMaxLum =
               XMVectorMax (vMaxLum, v);
 
+            vMinLum =
+              XMVectorMin (vMinLum, v);
+
             fScanlineLum += XMVectorGetY (v);
           }
         } break;
 
         default:
-          SK_ReleaseAssert (!"Unsupported CLLI input format");
           break;
       }
 
@@ -1648,6 +1692,46 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
 
   if (N > 0.0)
   {
+    float fLumRange =
+      XMVectorGetY (vMaxLum) -
+      XMVectorGetY (vMinLum);
+
+    static unsigned int luminance_freq [100000];
+
+    ZeroMemory (luminance_freq, sizeof (unsigned int) * 100000);
+
+    EvaluateImage ( img,
+    [&](const XMVECTOR* pixels, size_t width, size_t y)
+    {
+      UNREFERENCED_PARAMETER(y);
+
+      for (size_t j = 0; j < width; ++j)
+      {
+        XMVECTOR v = *pixels++;
+
+        v =
+          XMVector3Transform (v, c_from709toXYZ);
+
+        luminance_freq [std::clamp ((int)std::roundf ((XMVectorGetY (v) - XMVectorGetY (vMinLum)) / (fLumRange / 100000.0f)), 0, 99999)]++;
+      }
+    });
+
+    double percent = 100.0;
+
+    for (auto i = 99999; i >= 0; --i)
+    {
+      percent -=
+        (100.0 * ((double)luminance_freq [i] / ((double)img.width * (double)img.height)));
+
+      if (percent <= 99.0)
+      {
+        vMaxLum =
+          XMVectorReplicate (XMVectorGetY (vMinLum) + (fLumRange * ((float)i / 100000.0f)));
+
+        break;
+      }
+    }
+
     clli.max_cll  =
       static_cast <uint32_t> (round ((80.0f * XMVectorGetY (vMaxLum)) / 0.0001f));
     clli.max_fall = 
