@@ -761,7 +761,7 @@ SK_ImGui_LatentSyncConfig (void)
             ImGui::BeginTooltip   ();
             ImGui::Text           (
               std::format         (
-                "Please set Tearing Mode to 'Always On' for {}x Scan Mode!",
+                "Please set Tearing Mode to \"Always On\" for {}x Scan Mode!",
                 iMultiplier
               ).c_str             ()
             );
@@ -2382,11 +2382,25 @@ SK::Framerate::Limiter::wait (void)
           bool bIsTearingModeAlwaysOff   =
             iTearingMode == SK_TearingMode::AlwaysOff;
 
+          bool bIsTrueFullscreen =
+            rb .isTrueFullscreen ();
+
           if (iACTION == ACTION_FpsBecameStable)
           {
-            _ToggleTearing (
-              bIsTearingModeAdaptiveOn
-            );
+            if (bIsTrueFullscreen)
+            {
+              _ToggleTearing (
+                bIsTearingModeAdaptiveOn
+              );
+            }
+
+            else
+            {
+              _ToggleTearing (
+                ( bIsTearingModeAdaptiveOn  && !bIsFpsUnstable ) ||
+                ( bIsTearingModeAdaptiveOff &&  bIsFpsUnstable )
+              );
+            }
 
             dWaitSeconds += _FrametimeSeconds ();
 
@@ -2438,9 +2452,6 @@ SK::Framerate::Limiter::wait (void)
               {
                 bAbortAction = true;
               }
-
-              bool bIsTrueFullscreen =
-                rb .isTrueFullscreen ();
 
               static bool        bWasTrueFullscreen = bIsTrueFullscreen;
 

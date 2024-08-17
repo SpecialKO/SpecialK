@@ -6279,7 +6279,7 @@ SK_ImGui_ControlPanel (void)
                     ImGui::BulletText ("Adaptive V-Sync enables tearing if FPS is unstable or Render Latency exceeds 1 frame");
                   }
                   ImGui::Separator    ();
-                  ImGui::Text         ("NOTE: Use the default 'Always Off' mode for VRR");
+                  ImGui::Text         ("NOTE: Use the default \"Always Off\" mode for VRR");
                   ImGui::EndTooltip   ();
                 }
 

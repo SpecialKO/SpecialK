@@ -1003,21 +1003,21 @@ SK::ControlPanel::D3D11::Draw (void)
             {
               if (bIsAdaptiveVSync)
               {
-                ImGui::Text     ("Tearing is currently managed by 'Adaptive V-Sync' mode");
+                ImGui::Text     ("Tearing is currently managed by \"Adaptive V-Sync\" mode");
               }
               else
               {
                 if (config.render.framerate.tearing_mode == SK_TearingMode::AdaptiveOn)
                 {
-                  ImGui::Text   ("Tearing is currently managed by 'Adaptive (Prefer On)' mode");
+                  ImGui::Text   ("Tearing is currently managed by \"Adaptive (Prefer On)\" mode");
                 }
                 else
                 {
-                  ImGui::Text   ("Tearing is currently managed by 'Adaptive (Prefer Off)' mode");
+                  ImGui::Text   ("Tearing is currently managed by \"Adaptive (Prefer Off)\" mode");
                 }
               }
               ImGui::Separator  ();
-              ImGui::BulletText ("For manual control, change Tearing Mode to 'Always On/Off'");
+              ImGui::BulletText ("For manual control, change Tearing Mode to \"Always On/Off\"");
             }
             ImGui::EndTooltip   ();
           }
