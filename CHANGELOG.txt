@@ -1,4 +1,10 @@
-﻿24.8.17
+﻿24.8.17.1
+=========
+ + Byte-swap > 1-byte fields in PNG chunks when building on x86/x64
+ + Use 99.5th percentile luminance for PNG / AVIF MaxCLL as discussed:
+     https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=9508136
+
+24.8.17
 =======
  + Fixed artifacts when using Gamut Expansion on input colors wider than AP1
  + Improved alpha transparency when drawing SK's UI in HDR10

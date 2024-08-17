@@ -1266,16 +1266,24 @@ constexpr uint8_t PNG_COMPRESSION_TYPE_BASE = 0; /* Deflate method 8, 32K window
 //  (6) Add cHRM  [Unnecessary, but probably a good idea]
 //
 
+#if (defined _M_IX86) || (defined _M_X64)
+# define SK_PNG_SetUint32(x,y)              x = _byteswap_ulong (y);
+# define SK_PNG_DeclareUint32(x,y) uint32_t x = SK_PNG_SetUint32((x),(y));
+#else
+# define SK_PNG_SetUint32(x,y)              x = (y);
+# define SK_PNG_DeclareUint32(x,y) uint32_t x = SK_PNG_SetUint32((x),(y));
+#endif
+
 struct SK_PNG_HDR_cHRM_Payload
 {
-  uint32_t white_x = 31270;
-  uint32_t white_y = 32900;
-  uint32_t red_x   = 70800;
-  uint32_t red_y   = 29200;
-  uint32_t green_x = 17000;
-  uint32_t green_y = 79700;
-  uint32_t blue_x  = 13100;
-  uint32_t blue_y  = 04600;
+  SK_PNG_DeclareUint32 (white_x, 31270);
+  SK_PNG_DeclareUint32 (white_y, 32900);
+  SK_PNG_DeclareUint32 (red_x,   70800);
+  SK_PNG_DeclareUint32 (red_y,   29200);
+  SK_PNG_DeclareUint32 (green_x, 17000);
+  SK_PNG_DeclareUint32 (green_y, 79700);
+  SK_PNG_DeclareUint32 (blue_x,  13100);
+  SK_PNG_DeclareUint32 (blue_y,  04600);
 };
 
 struct SK_PNG_HDR_sBIT_Payload
@@ -1288,30 +1296,30 @@ struct SK_PNG_HDR_sBIT_Payload
 struct SK_PNG_HDR_mDCv_Payload
 {
   struct {
-    uint32_t red_x   = 35400; // 0.708 / 0.00002
-    uint32_t red_y   = 14600; // 0.292 / 0.00002
-    uint32_t green_x =  8500; // 0.17  / 0.00002
-    uint32_t green_y = 39850; // 0.797 / 0.00002
-    uint32_t blue_x  =  6550; // 0.131 / 0.00002
-    uint32_t blue_y  =  2300; // 0.046 / 0.00002
+    SK_PNG_DeclareUint32 (red_x,   35400); // 0.708 / 0.00002
+    SK_PNG_DeclareUint32 (red_y,   14600); // 0.292 / 0.00002
+    SK_PNG_DeclareUint32 (green_x,  8500); // 0.17  / 0.00002
+    SK_PNG_DeclareUint32 (green_y, 39850); // 0.797 / 0.00002
+    SK_PNG_DeclareUint32 (blue_x,   6550); // 0.131 / 0.00002
+    SK_PNG_DeclareUint32 (blue_y,   2300); // 0.046 / 0.00002
   } primaries;
 
   struct {
-    uint32_t x       = 15635; // 0.3127 / 0.00002
-    uint32_t y       = 16450; // 0.3290 / 0.00002
+    SK_PNG_DeclareUint32 (x, 15635); // 0.3127 / 0.00002
+    SK_PNG_DeclareUint32 (y, 16450); // 0.3290 / 0.00002
   } white_point;
 
   // The only real data we need to fill-in
   struct {
-    uint32_t maximum = 10000000; // 1000.0 cd/m^2
-    uint32_t minimum = 1;        // 0.0001 cd/m^2
+    SK_PNG_DeclareUint32 (maximum, 10000000); // 1000.0 cd/m^2
+    SK_PNG_DeclareUint32 (minimum, 1);        // 0.0001 cd/m^2
   } luminance;
 };
 
 struct SK_PNG_HDR_cLLi_Payload
 {
-  uint32_t max_cll  = 10000000; // 1000 / 0.0001
-  uint32_t max_fall =  2500000; //  250 / 0.0001
+  SK_PNG_DeclareUint32 (max_cll,  10000000); // 1000 / 0.0001
+  SK_PNG_DeclareUint32 (max_fall,  2500000); //  250 / 0.0001
 };
 
 //
@@ -1723,7 +1731,7 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
       percent -=
         (100.0 * ((double)luminance_freq [i] / ((double)img.width * (double)img.height)));
 
-      if (percent <= 99.0)
+      if (percent <= 99.5)
       {
         vMaxLum =
           XMVectorReplicate (XMVectorGetY (vMinLum) + (fLumRange * ((float)i / 100000.0f)));
@@ -1732,10 +1740,10 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
       }
     }
 
-    clli.max_cll  =
-      static_cast <uint32_t> (round ((80.0f * XMVectorGetY (vMaxLum)) / 0.0001f));
-    clli.max_fall = 
-      static_cast <uint32_t> (round ((80.0f * (fLumAccum / N))        / 0.0001f));
+    SK_PNG_SetUint32 (clli.max_cll,
+      static_cast <uint32_t> ((80.0f * XMVectorGetY (vMaxLum)) / 0.0001f));
+    SK_PNG_SetUint32 (clli.max_fall,
+      static_cast <uint32_t> ((80.0f * (fLumAccum / N))        / 0.0001f));
   }
 
   return clli;
@@ -1820,6 +1828,10 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
           crc =
             png_crc32 (data, 0, _native_len, png_crc32 (name, 0, 4, 0x0));
 
+#if (defined _M_IX86) || (defined _M_X64)
+          crc = _byteswap_ulong (crc);
+#endif
+
           fwrite (&len, 8,           1, fStream);
           fwrite (data, _native_len, 1, fStream);
           fwrite (&crc, 4,           1, fStream);
@@ -1861,30 +1873,30 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
       auto& active_display =
         rb.displays [rb.active_display];
 
-      mdcv_data.luminance.minimum =
-        static_cast <uint32_t> (round (active_display.gamut.minY / 0.0001f));
-      mdcv_data.luminance.maximum =
-        static_cast <uint32_t> (round (active_display.gamut.maxY / 0.0001f));
+      SK_PNG_SetUint32 (mdcv_data.luminance.minimum,
+        static_cast <uint32_t> (round (active_display.gamut.minY / 0.0001f)));
+      SK_PNG_SetUint32 (mdcv_data.luminance.maximum,
+        static_cast <uint32_t> (round (active_display.gamut.maxY / 0.0001f)));
 
-      mdcv_data.primaries.red_x =
-        static_cast <uint32_t> (round (active_display.gamut.xr / 0.00002));
-      mdcv_data.primaries.red_y =
-        static_cast <uint32_t> (round (active_display.gamut.yr / 0.00002));
+      SK_PNG_SetUint32 (mdcv_data.primaries.red_x,
+        static_cast <uint32_t> (round (active_display.gamut.xr / 0.00002)));
+      SK_PNG_SetUint32 (mdcv_data.primaries.red_y,
+        static_cast <uint32_t> (round (active_display.gamut.yr / 0.00002)));
 
-      mdcv_data.primaries.green_x =
-        static_cast <uint32_t> (round (active_display.gamut.xg / 0.00002));
-      mdcv_data.primaries.green_y =
-        static_cast <uint32_t> (round (active_display.gamut.yg / 0.00002));
+      SK_PNG_SetUint32 (mdcv_data.primaries.green_x,
+        static_cast <uint32_t> (round (active_display.gamut.xg / 0.00002)));
+      SK_PNG_SetUint32 (mdcv_data.primaries.green_y,
+        static_cast <uint32_t> (round (active_display.gamut.yg / 0.00002)));
 
-      mdcv_data.primaries.blue_x =
-        static_cast <uint32_t> (round (active_display.gamut.xb / 0.00002));
-      mdcv_data.primaries.blue_y =
-        static_cast <uint32_t> (round (active_display.gamut.yb / 0.00002));
+      SK_PNG_SetUint32 (mdcv_data.primaries.blue_x,
+        static_cast <uint32_t> (round (active_display.gamut.xb / 0.00002)));
+      SK_PNG_SetUint32 (mdcv_data.primaries.blue_y,
+        static_cast <uint32_t> (round (active_display.gamut.yb / 0.00002)));
 
-      mdcv_data.white_point.x =
-        static_cast <uint32_t> (round (active_display.gamut.Xw / 0.00002));
-      mdcv_data.white_point.y =
-        static_cast <uint32_t> (round (active_display.gamut.Yw / 0.00002));
+      SK_PNG_SetUint32 (mdcv_data.white_point.x,
+        static_cast <uint32_t> (round (active_display.gamut.Xw / 0.00002)));
+      SK_PNG_SetUint32 (mdcv_data.white_point.y,
+        static_cast <uint32_t> (round (active_display.gamut.Yw / 0.00002)));
 
       SK_PNG_Chunk iccp_chunk = { sizeof (SK_PNG_HDR_iCCP_Payload), { 'i','C','C','P' }, &iccp_data };
       SK_PNG_Chunk cicp_chunk = { sizeof (cicp_data),               { 'c','I','C','P' }, &cicp_data };
