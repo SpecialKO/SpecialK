@@ -423,7 +423,7 @@ float3
 RemoveGammaExp (float3 x, float exp)
 {
   return     sign (x) *
-         pow (abs (x) + FP16_MIN, exp);
+         pow (abs (x), exp);
 }
 
 // Alpha blending works best in linear-space, so -removing- gamma,
@@ -2134,11 +2134,17 @@ expandGamut (float3 vHDRColor, float fExpandGamut = 1.0f)
          ExpandMat = mul (Wide_2_AP1_D65_MAT, AP1_D65_2_sRGB_MAT);
   float3 ColorAP1  = mul (sRGB_2_AP1_D65_MAT, vHDRColor);
 
-  float  LumaAP1   = dot (ColorAP1, AP1_RGB2Y);
+  float  LumaAP1   = Rec709_to_XYZ (AP1_D65toRec709 (ColorAP1)).y;
   float3 ChromaAP1 =      ColorAP1 / LumaAP1;
 
-  float ChromaDistSqr = dot (ChromaAP1 - 1, ChromaAP1 - 1);
-  float ExpandAmount  = (1 - exp2 (-4 * ChromaDistSqr)) * (1 - exp2 (-4 * fExpandGamut * LumaAP1 * LumaAP1));
+  float ChromaDistSqr =
+    dot (ChromaAP1 - 1.0f,
+         ChromaAP1 - 1.0f);
+
+  ChromaDistSqr =
+    max (abs (ChromaDistSqr), 0.000001f);
+
+  float ExpandAmount  = (1.0f - exp2 (-4.0f * ChromaDistSqr)) * (1.0f - exp2 (-4.0f * fExpandGamut * LumaAP1 * LumaAP1));
 
   float3 ColorExpand =
     mul (ExpandMat, ColorAP1);
