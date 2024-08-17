@@ -1941,11 +1941,10 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   SK_LOGi0 ( L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0 *      ( lumTotal    / N ),
                                                                                 80.0 * exp2 ( logLumTotal / N ) );
 
-                  static unsigned int luminance_freq [100000];
+                  auto        luminance_freq = std::make_unique <uint32_t []> (16384);
+                  ZeroMemory (luminance_freq.get (),     sizeof (uint32_t)  *  16384);
 
-                  ZeroMemory (luminance_freq, sizeof (unsigned int) * 100000);
-
-                  float fLumRange =
+                  const float fLumRange =
                     XMVectorGetY (maxLum) -
                     XMVectorGetY (minLum);
 
@@ -1963,21 +1962,28 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                       v =
                         XMVector3Transform (v, c_from709toXYZ);
 
-                      luminance_freq [std::clamp ((int)std::roundf ((XMVectorGetY (v) - XMVectorGetY (minLum)) / (fLumRange / 100000.0f)), 0, 99999)]++;
+                      luminance_freq [
+                        std::clamp ( (int)
+                          std::roundf (
+                            (XMVectorGetY (v) - XMVectorGetY (minLum)) /
+                                                            (fLumRange / 16384.0f) ),
+                                                                      0, 16383 ) ]++;
                     }
                   });
 
-                  double percent = 100.0;
+                        double percent  = 100.0;
+                  const double img_size = (double)un_srgb.GetMetadata ().width *
+                                          (double)un_srgb.GetMetadata ().height;
 
-                  for (auto i = 99999; i >= 0; --i)
+                  for (auto i = 16383; i >= 0; --i)
                   {
                     percent -=
-                      (100.0 * ((double)luminance_freq [i] / ((double)un_srgb.GetMetadata ().width * (double)un_srgb.GetMetadata ().height)));
+                      100.0 * ((double)luminance_freq [i] / img_size);
 
-                    if (percent <= 99.75)
+                    if (percent <= 99.8)
                     {
                       maxLum =
-                        XMVectorReplicate (XMVectorGetY (minLum) + (fLumRange * ((float)i / 100000.0f)));
+                        XMVectorReplicate (XMVectorGetY (minLum) + (fLumRange * ((float)i / 16384.0f)));
 
                       break;
                     }

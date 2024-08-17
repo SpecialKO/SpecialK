@@ -1,4 +1,11 @@
-﻿24.8.17.1
+﻿24.8.18
+=======
+ + Add LastUsedColorSpace INI setting to help tonemap third-party
+     overlays in D3D12 games with native HDR support
+ + Reduce luminance histogram buckets for frequency analysis during
+     tonemapping to 16384
+
+24.8.17.1
 =========
  + Byte-swap > 1-byte fields in PNG chunks when building on x86/x64
  + Use 99.5th percentile luminance for PNG / AVIF MaxCLL as discussed:

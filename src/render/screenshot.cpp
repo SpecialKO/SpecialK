@@ -1267,11 +1267,13 @@ constexpr uint8_t PNG_COMPRESSION_TYPE_BASE = 0; /* Deflate method 8, 32K window
 //
 
 #if (defined _M_IX86) || (defined _M_X64)
-# define SK_PNG_SetUint32(x,y)              x = _byteswap_ulong (y);
-# define SK_PNG_DeclareUint32(x,y) uint32_t x = SK_PNG_SetUint32((x),(y));
+# define SK_PNG_GetUint32(x)                    _byteswap_ulong (x)
+# define SK_PNG_SetUint32(x,y)              x = _byteswap_ulong (y)
+# define SK_PNG_DeclareUint32(x,y) uint32_t x = SK_PNG_SetUint32((x),(y))
 #else
-# define SK_PNG_SetUint32(x,y)              x = (y);
-# define SK_PNG_DeclareUint32(x,y) uint32_t x = SK_PNG_SetUint32((x),(y));
+# define SK_PNG_GetUint32(x)                    (x)
+# define SK_PNG_SetUint32(x,y)              x = (y)
+# define SK_PNG_DeclareUint32(x,y) uint32_t x = SK_PNG_SetUint32((x),(y))
 #endif
 
 struct SK_PNG_HDR_cHRM_Payload
@@ -1700,13 +1702,12 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
 
   if (N > 0.0)
   {
-    float fLumRange =
+    const float fLumRange =
       XMVectorGetY (vMaxLum) -
       XMVectorGetY (vMinLum);
 
-    static unsigned int luminance_freq [100000];
-
-    ZeroMemory (luminance_freq, sizeof (unsigned int) * 100000);
+    auto        luminance_freq = std::make_unique <uint32_t []> (16384);
+    ZeroMemory (luminance_freq.get (),     sizeof (uint32_t)  *  16384);
 
     EvaluateImage ( img,
     [&](const XMVECTOR* pixels, size_t width, size_t y)
@@ -1720,21 +1721,28 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
         v =
           XMVector3Transform (v, c_from709toXYZ);
 
-        luminance_freq [std::clamp ((int)std::roundf ((XMVectorGetY (v) - XMVectorGetY (vMinLum)) / (fLumRange / 100000.0f)), 0, 99999)]++;
+        luminance_freq [
+          std::clamp ( (int)
+            std::roundf (
+              (XMVectorGetY (v) - XMVectorGetY (vMinLum)) /
+                                               (fLumRange / 16384.0f) ),
+                                                         0, 16383 ) ]++;
       }
     });
 
-    double percent = 100.0;
+          double percent  = 100.0;
+    const double img_size = (double)img.width *
+                            (double)img.height;
 
-    for (auto i = 99999; i >= 0; --i)
+    for (auto i = 16383; i >= 0; --i)
     {
       percent -=
-        (100.0 * ((double)luminance_freq [i] / ((double)img.width * (double)img.height)));
+        100.0 * ((double)luminance_freq [i] / img_size);
 
-      if (percent <= 99.75)
+      if (percent <= 99.8)
       {
         vMaxLum =
-          XMVectorReplicate (XMVectorGetY (vMinLum) + (fLumRange * ((float)i / 100000.0f)));
+          XMVectorReplicate (XMVectorGetY (vMinLum) + (fLumRange * ((float)i / 16384.0f)));
 
         break;
       }
@@ -1927,11 +1935,11 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
 
       SK_LOGi1 (L"Applied HDR10 PNG chunks to %ws.", wszFilePath);
       SK_LOGi1 (L" >> MaxCLL: %.6f nits, MaxFALL: %.6f nits",
-                static_cast <double> (clli_data.max_cll)  * 0.0001,
-                static_cast <double> (clli_data.max_fall) * 0.0001);
+                static_cast <double> (SK_PNG_GetUint32 (clli_data.max_cll))  * 0.0001,
+                static_cast <double> (SK_PNG_GetUint32 (clli_data.max_fall)) * 0.0001);
       SK_LOGi1 (L" >> Mastering Display Min/Max Luminance: %.6f/%.6f nits",
-                static_cast <double> (mdcv_data.luminance.minimum) * 0.0001,
-                static_cast <double> (mdcv_data.luminance.maximum) * 0.0001);
+                static_cast <double> (SK_PNG_GetUint32 (mdcv_data.luminance.minimum)) * 0.0001,
+                static_cast <double> (SK_PNG_GetUint32 (mdcv_data.luminance.maximum)) * 0.0001);
 
       return true;
     }
