@@ -597,7 +597,8 @@ SK_D3D11_CreateShader_Impl (
       extern bool __SK_HDR_16BitSwap;
       extern bool __SK_HDR_10BitSwap;
       if (        __SK_HDR_16BitSwap || ( rb.hdr_capable &&
-                                          rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ))
+                                          rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ) ||
+                              config.render.hdr.last_used_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 )
       {
         static std::string rtss_ps_scRGB =
           __SK_MakeSteamPS (false, true, config.rtss.overlay_luminance);
@@ -615,6 +616,9 @@ SK_D3D11_CreateShader_Impl (
         static ID3D10Blob* rtss1_blob_scRGB =
         __SK_MakeRTSS_PS1_Bytecode (false, true, config.rtss.overlay_luminance);
 
+        rtss_blob_scRGB-> AddRef ();
+        rtss1_blob_scRGB->AddRef ();
+
         switch (checksum)
         {
           case RTSS_OVERLAY_PS_CRC32C:
@@ -630,7 +634,8 @@ SK_D3D11_CreateShader_Impl (
       }
 
       else if ( __SK_HDR_10BitSwap || ( rb.hdr_capable &&
-                                        rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ))
+                                        rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ) ||
+                            config.render.hdr.last_used_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 )
       {
         static std::string rtss_ps_PQ =
           __SK_MakeSteamPS (true, false, config.rtss.overlay_luminance * 80.0f);
@@ -648,6 +653,9 @@ SK_D3D11_CreateShader_Impl (
           __SK_MakeSteamPS_Bytecode  (true, false, config.rtss.overlay_luminance * 80.0f);
         static ID3D10Blob* rtss1_blob_PQ =
           __SK_MakeRTSS_PS1_Bytecode (true, false, config.rtss.overlay_luminance * 80.0f);
+
+        rtss_blob_PQ-> AddRef ();
+        rtss1_blob_PQ->AddRef ();
 
         switch (checksum)
         {
@@ -673,7 +681,8 @@ SK_D3D11_CreateShader_Impl (
       extern bool __SK_HDR_16BitSwap;
       extern bool __SK_HDR_10BitSwap;
       if (        __SK_HDR_16BitSwap || ( rb.hdr_capable &&
-                                          rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ))
+                                          rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ) ||
+                              config.render.hdr.last_used_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 )
       {
         static std::string steam_ps_scRGB =
           __SK_MakeSteamPS (false, true, config.platform.overlay_hdr_luminance);
@@ -687,13 +696,16 @@ SK_D3D11_CreateShader_Impl (
         static ID3D10Blob* steam_blob_scRGB =
         __SK_MakeSteamPS_Bytecode (false, true, config.platform.overlay_hdr_luminance);
 
+        steam_blob_scRGB->AddRef ();
+
         pShaderBytecode = steam_blob_scRGB->GetBufferPointer ();
         BytecodeLength  = steam_blob_scRGB->GetBufferSize    ();
 
       }
 
       else if ( __SK_HDR_10BitSwap || ( rb.hdr_capable &&
-                                        rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ))
+                                        rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ) ||
+                            config.render.hdr.last_used_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 )
       {
         static std::string steam_ps_PQ =
           __SK_MakeSteamPS (true, false, config.platform.overlay_hdr_luminance * 80.0f);
@@ -708,6 +720,8 @@ SK_D3D11_CreateShader_Impl (
         static ID3D10Blob* steam_blob_PQ =
           __SK_MakeSteamPS_Bytecode (true, false, config.platform.overlay_hdr_luminance * 80.0f);
 
+        steam_blob_PQ->AddRef ();
+
         pShaderBytecode = steam_blob_PQ->GetBufferPointer ();
         BytecodeLength  = steam_blob_PQ->GetBufferSize    ();
       }
@@ -721,7 +735,8 @@ SK_D3D11_CreateShader_Impl (
       extern bool __SK_HDR_16BitSwap;
       extern bool __SK_HDR_10BitSwap;
       if (        __SK_HDR_16BitSwap || ( rb.hdr_capable &&
-                                          rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ))
+                                          rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 ) ||
+                              config.render.hdr.last_used_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G10_NONE_P709 )
       {
         static std::string epic_ps_scRGB =
           __SK_MakeEpicPS (false, true, config.platform.overlay_hdr_luminance);
@@ -735,13 +750,16 @@ SK_D3D11_CreateShader_Impl (
         static ID3D10Blob* epic_blob_scRGB =
         __SK_MakeEpicPS_Bytecode (false, true, config.platform.overlay_hdr_luminance);
 
+        epic_blob_scRGB->AddRef ();
+
         pShaderBytecode = epic_blob_scRGB->GetBufferPointer ();
         BytecodeLength  = epic_blob_scRGB->GetBufferSize    ();
 
       }
 
       else if ( __SK_HDR_10BitSwap || ( rb.hdr_capable &&
-                                        rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ))
+                                        rb.scanout.dxgi_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 ) ||
+                            config.render.hdr.last_used_colorspace == DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020 )
       {
         static std::string epic_ps_PQ =
           __SK_MakeEpicPS (true, false, config.platform.overlay_hdr_luminance * 80.0f);
@@ -755,6 +773,8 @@ SK_D3D11_CreateShader_Impl (
 
         static ID3D10Blob* epic_blob_PQ =
           __SK_MakeEpicPS_Bytecode (true, false, config.platform.overlay_hdr_luminance * 80.0f);
+
+        epic_blob_PQ->AddRef ();
 
         pShaderBytecode = epic_blob_PQ->GetBufferPointer ();
         BytecodeLength  = epic_blob_PQ->GetBufferSize    ();

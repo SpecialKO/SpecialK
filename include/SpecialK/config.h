@@ -837,6 +837,7 @@ struct sk_config_t
       bool enable_32bpc                = false;
       bool remaster_8bpc_as_unorm      = false;
       bool remaster_subnative_as_unorm = false;
+      int  last_used_colorspace        = 0;
     } hdr;
   } render;
 

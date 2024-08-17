@@ -919,6 +919,7 @@ struct {
     sk::ParameterBool*    enable_32bpc            = nullptr;
     sk::ParameterBool*    remaster_8bpc_as_unorm  = nullptr;
     sk::ParameterBool*    remaster_subnative_unorm= nullptr;
+    sk::ParameterInt*     last_used_colorspace    = nullptr;
   } hdr;
 } render;
 
@@ -1845,6 +1846,7 @@ auto DeclKeybind =
     ConfigEntry (render.hdr.enable_32bpc,                L"Experimental - Use 32bpc for HDR",                          dll_ini,         L"SpecialK.HDR",          L"Enable128BitPipeline"),
     ConfigEntry (render.hdr.remaster_8bpc_as_unorm,      L"Do not use Floating-Point RTs when re-mastering 8-bpc+ RTs",dll_ini,         L"SpecialK.HDR",          L"Keep8BpcRemastersUNORM"),
     ConfigEntry (render.hdr.remaster_subnative_unorm,    L"Do not use FP RTs when re-mastering reduced resolution RTS",dll_ini,         L"SpecialK.HDR",          L"KeepSubnativeRemastersUNORM"),
+    ConfigEntry (render.hdr.last_used_colorspace,        L"Last Used DXGI Colorspace; auto-enables HDR features...",   dll_ini,         L"SpecialK.HDR",          L"LastUsedColorSpace"),
 
     ConfigEntry (render.osd.draw_in_vidcap,              L"Changes hook order in order to allow recording the OSD.",   dll_ini,         L"Render.OSD",            L"ShowInVideoCapture"),
 
@@ -4035,6 +4037,7 @@ auto DeclKeybind =
   render.hdr.enable_32bpc->load              (config.render.hdr.enable_32bpc);
   render.hdr.remaster_8bpc_as_unorm->load    (config.render.hdr.remaster_8bpc_as_unorm);
   render.hdr.remaster_subnative_unorm->load  (config.render.hdr.remaster_subnative_as_unorm);
+  render.hdr.last_used_colorspace->load      (config.render.hdr.last_used_colorspace);
 
   render.framerate.wait_for_vblank->load     (config.render.framerate.wait_for_vblank);
   render.framerate.buffer_count->load        (config.render.framerate.buffer_count);
@@ -6179,6 +6182,7 @@ SK_SaveConfig ( std::wstring name,
       render.hdr.enable_32bpc->store              (config.render.hdr.enable_32bpc);
       render.hdr.remaster_8bpc_as_unorm->store    (config.render.hdr.remaster_8bpc_as_unorm);
       render.hdr.remaster_subnative_unorm->store  (config.render.hdr.remaster_subnative_as_unorm);
+      render.hdr.last_used_colorspace->store      (config.render.hdr.last_used_colorspace);
 
       texture.d3d11.cache->store                  (config.textures.d3d11.cache);
       texture.d3d11.use_l3_hash->store            (config.textures.d3d11.use_l3_hash);

@@ -889,7 +889,7 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
               monitor_caps.data.caps.currentlyCapableOfVRR;
           }
         } while ( WAIT_OBJECT_0 !=
-                  WaitForSingleObject (__SK_DLL_TeardownEvent, 750UL) );
+                  WaitForSingleObject (__SK_DLL_TeardownEvent, 1500UL) );
 
         SK_Thread_CloseSelf ();
 
