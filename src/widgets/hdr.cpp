@@ -1276,7 +1276,7 @@ public:
             ImGui::Text       ("Very slight performance boost vs. scRGB on low-end GPUs and DLSS Frame Generation");
             ImGui::Separator  ();
             ImGui::BulletText ("This mode is much newer to SK than scRGB, and may not work in all games.");
-            ImGui::BulletText ("SK's UI Luminance setting is inaccurate in HDR10; ignore nits values and use whatever looks best.");
+            ImGui::BulletText ("SK's Alpha Transparency is Less Effective in HDR10; ignore nits values and use whatever looks best.");
           }
           ImGui::EndTooltip ();
         }

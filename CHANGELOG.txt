@@ -1,4 +1,9 @@
-﻿24.8.16.2
+﻿24.8.17
+=======
+ + Fixed artifacts when using Gamut Expansion on input colors wider than AP1
+ + Improved alpha transparency when drawing SK's UI in HDR10
+
+24.8.16.2
 =========
  + Fixed PQ being 1/125th as bright as it should be in AVIF and PNG screenshots
 
