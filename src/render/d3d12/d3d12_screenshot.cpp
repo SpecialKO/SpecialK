@@ -1974,7 +1974,7 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                     percent -=
                       (100.0 * ((double)luminance_freq [i] / ((double)un_srgb.GetMetadata ().width * (double)un_srgb.GetMetadata ().height)));
 
-                    if (percent <= 99.666)
+                    if (percent <= 99.75)
                     {
                       maxLum =
                         XMVectorReplicate (XMVectorGetY (minLum) + (fLumRange * ((float)i / 100000.0f)));
