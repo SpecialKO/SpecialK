@@ -2476,15 +2476,29 @@ SK::Framerate::Limiter::wait (void)
                 bAbortAction = true;
               }
 
+              bool bIsAboveRefresh = std::round (
+                fps / rb.getActiveRefreshRate ()
+              ) >= 2.0;
+
               if (! bAbortAction)
               {
                 auto _IsHighRenderLatency = [&]() -> bool
                 {
                   // Frametime graph becomes unstable in 2x.. non-tearing mode
                   // when Present Latency exceeds Display Frame Time by 1.7x..
-                  if ( std::round (fps / rb.getActiveRefreshRate ()) >= 2.0 &&
-                       config.render.framerate.pre_render_limit      != 1   )
+                  if (bIsAboveRefresh)
                   {
+                    if (config.render.framerate.pre_render_limit == 1)
+                    {
+                      if (! SK_RenderBackend_V2::latency.stale)
+                      {
+                        if (SK_RenderBackend_V2::latency.delays.PresentQueue > 1)
+                        {
+                          return true;
+                        }
+                      }
+                    }
+
                     if (rb.presentation.avg_stats.display != 0.0)
                     {
                       return
@@ -2493,17 +2507,20 @@ SK::Framerate::Limiter::wait (void)
                     }
                   }
 
-                  else if (! SK_RenderBackend_V2::latency.stale)
+                  else
                   {
-                    return
-                      SK_RenderBackend_V2::latency.delays.PresentQueue > 1;
-                  }
+                    if (! SK_RenderBackend_V2::latency.stale)
+                    {
+                      return
+                        SK_RenderBackend_V2::latency.delays.PresentQueue > 1;
+                    }
 
-                  else if (rb.presentation.avg_stats.display != 0.0)
-                  {
-                    return
-                      rb.presentation.avg_stats.latency /
-                      rb.presentation.avg_stats.display > 1.8;
+                    if (rb.presentation.avg_stats.display != 0.0)
+                    {
+                      return
+                        rb.presentation.avg_stats.latency /
+                        rb.presentation.avg_stats.display > 1.8;
+                    }
                   }
 
                   return false;
@@ -2544,8 +2561,10 @@ SK::Framerate::Limiter::wait (void)
                 );
 
                 bool bIgnoreStuckInputLatency = (
-                  std::round (fps / rb.getActiveRefreshRate ()) >= 2.0 &&
-                  config.render.framerate.pre_render_limit      == 1   &&
+                  bIsTearingModeAdaptiveOff
+                ) && (
+                  bIsAboveRefresh
+                ) && (
                   bIsFpsUnstable
                 );
 
@@ -2714,10 +2733,27 @@ SK::Framerate::Limiter::wait (void)
 
                         return;
                       }
-                    }
+
+                      _ToggleTearing (false);
+
+                      dWaitSeconds += _FrametimeSeconds ();
+
+                      if (dWaitSeconds < dMaxWaitSeconds)
+                      {
+                        return;
+                      }
+                    } break;
 
                     case ACTION_HighVariation:
                     {
+                      if ( bIsTearingModeAdaptiveOff &&
+                           bIsAboveRefresh           )
+                      {
+                        _ToggleTearing (true);
+
+                        return;
+                      }
+
                       _ToggleTearing (false);
 
                       dWaitSeconds += _FrametimeSeconds ();
@@ -2767,9 +2803,18 @@ SK::Framerate::Limiter::wait (void)
                     } break;
 
                     case ACTION_StuckInputLatency:
-                    case ACTION_HighVariation:
                     {
                       _ToggleTearing (false);
+
+                      reset (true);
+                    } break;
+
+                    case ACTION_HighVariation:
+                    {
+                      _ToggleTearing (
+                        bIsTearingModeAdaptiveOff &&
+                        bIsAboveRefresh
+                      );
 
                       reset (true);
                     } break;
