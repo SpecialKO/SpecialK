@@ -2409,9 +2409,16 @@ SK::Framerate::Limiter::wait (void)
               return;
             }
 
+            if (! bIsTearingModeAdaptiveOn)
+            {
+              reset (true);
+            }
+
             iACTION = ACTION_None;
 
             dWaitSeconds = 0.0;
+
+            return;
           }
 
           static bool        bWasFpsUnstable = bIsFpsUnstable;
@@ -2422,11 +2429,6 @@ SK::Framerate::Limiter::wait (void)
             _ToggleTearing (
               bIsTearingModeAdaptiveOn
             );
-
-            if (! bIsTearingModeAdaptiveOn)
-            {
-              reset (true);
-            }
 
             iACTION = ACTION_FpsBecameStable;
 
@@ -2494,7 +2496,14 @@ SK::Framerate::Limiter::wait (void)
                   return false;
                 };
 
-                auto _IsHighVariation = [&]() -> bool
+                auto _IsStuckInputLatency = [&]() -> bool
+                {
+                  return
+                    latency_avg.getInput () > -0.1 &&
+                    latency_avg.getInput () <  0.0;
+                };
+
+                auto _IsHighVariation   =   [&]() -> bool
                 {
                   float min = FLT_MAX,
                         max = 0.0f;
@@ -2515,20 +2524,19 @@ SK::Framerate::Limiter::wait (void)
                   return (double)max - (double)min > 1.0;
                 };
 
-                auto _IsInputLatencyStuck = [&]() -> bool
-                {
-                  return
-                    latency_avg.getInput () > -0.1 &&
-                    latency_avg.getInput () <  0.0;
-                };
-
                 bool bIgnoreHighRenderLatency = (
                   bIsTearingModeAlwaysOff
                 ) || (
                   bIsFpsUnstable
                 );
 
-                bool bIgnoreHighVariation = (
+                bool bIgnoreStuckInputLatency = (
+                  std::round (fps / rb.getActiveRefreshRate ()) >= 2.0 &&
+                  config.render.framerate.pre_render_limit      == 1   &&
+                  bIsFpsUnstable
+                );
+
+                bool bIgnoreHighVariation   =   (
                   config.render.framerate.enforcement_policy == 2
                 ) || (
                   config.nvidia.reflex.use_limiter
@@ -2555,18 +2563,19 @@ SK::Framerate::Limiter::wait (void)
                     }
                   } break;
 
-                  case ACTION_HighVariation:
+                  case ACTION_StuckInputLatency:
                   {
-                    if ( bIgnoreHighVariation ||
-                            !_IsHighVariation () )
+                    if ( bIgnoreStuckInputLatency ||
+                            !_IsStuckInputLatency () )
                     {
                       bAbortAction = true;
                     }
                   } break;
 
-                  case ACTION_StuckInputLatency:
+                  case ACTION_HighVariation:
                   {
-                    if (! _IsInputLatencyStuck ())
+                    if ( bIgnoreHighVariation ||
+                            !_IsHighVariation () )
                     {
                       bAbortAction = true;
                     }
@@ -2585,21 +2594,22 @@ SK::Framerate::Limiter::wait (void)
                       break;
                     }
 
-                    if ( !bIgnoreHighRenderLatency &&
-                              _IsHighRenderLatency () )
+                    if      ( !bIgnoreHighRenderLatency &&
+                                   _IsHighRenderLatency () )
                     {
                       iACTION = ACTION_HighRenderLatency;
+                    }
+
+                    else if ( !bIgnoreStuckInputLatency &&
+                                   _IsStuckInputLatency () )
+                    {
+                      iACTION = ACTION_StuckInputLatency;
                     }
 
                     else if ( !bIgnoreHighVariation &&
                                    _IsHighVariation () )
                     {
                       iACTION = ACTION_HighVariation;
-                    }
-
-                    else if (_IsInputLatencyStuck ())
-                    {
-                      iACTION = ACTION_StuckInputLatency;
                     }
 
                     if (iACTION != ACTION_None)
@@ -2664,12 +2674,8 @@ SK::Framerate::Limiter::wait (void)
                         }
                       }
 
-                      // After enabling tearing, disable tearing on next frame
-                      // and wait for Render Latency to decrease
                       else
                       {
-                        // If Render Latency failed to reduce during waiting period,
-                        // keep tearing enabled until latency decreases
                         if (dWaitSeconds >= dMaxWaitSeconds)
                         {
                           _ToggleTearing (true);
@@ -2685,8 +2691,19 @@ SK::Framerate::Limiter::wait (void)
                       }
                     } break;
 
-                    case ACTION_HighVariation:
                     case ACTION_StuckInputLatency:
+                    {
+                      if ( dWaitSeconds >= dMaxWaitSeconds &&
+                           bIsTearingModeAdaptiveOff       &&
+                           bIsFpsUnstable                  )
+                      {
+                        _ToggleTearing (true);
+
+                        return;
+                      }
+                    }
+
+                    case ACTION_HighVariation:
                     {
                       _ToggleTearing (false);
 
@@ -2736,8 +2753,8 @@ SK::Framerate::Limiter::wait (void)
                       }
                     } break;
 
-                    case ACTION_HighVariation:
                     case ACTION_StuckInputLatency:
+                    case ACTION_HighVariation:
                     {
                       _ToggleTearing (false);
 
