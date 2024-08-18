@@ -2397,8 +2397,8 @@ SK::Framerate::Limiter::wait (void)
             else
             {
               _ToggleTearing (
-                ( bIsTearingModeAdaptiveOn  && !bIsFpsUnstable ) ||
-                ( bIsTearingModeAdaptiveOff &&  bIsFpsUnstable )
+                bIsTearingModeAdaptiveOn ||
+                bIsTearingModeAdaptiveOff
               );
             }
 
@@ -2411,6 +2411,8 @@ SK::Framerate::Limiter::wait (void)
 
             if (! bIsTearingModeAdaptiveOn)
             {
+              _ToggleTearing (false);
+
               reset (true);
             }
 
@@ -2426,9 +2428,20 @@ SK::Framerate::Limiter::wait (void)
           if (std::exchange (bWasFpsUnstable,  bIsFpsUnstable) &&
                                               !bIsFpsUnstable)
           {
-            _ToggleTearing (
-              bIsTearingModeAdaptiveOn
-            );
+            if (bIsTrueFullscreen)
+            {
+              _ToggleTearing (
+                bIsTearingModeAdaptiveOn
+              );
+            }
+
+            else
+            {
+              _ToggleTearing (
+                bIsTearingModeAdaptiveOn ||
+                bIsTearingModeAdaptiveOff
+              );
+            }
 
             iACTION = ACTION_FpsBecameStable;
 
