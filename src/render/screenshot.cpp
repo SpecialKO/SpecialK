@@ -1739,7 +1739,7 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
       percent -=
         100.0 * ((double)luminance_freq [i] / img_size);
 
-      if (percent <= 99.8)
+      if (percent <= 99.825)
       {
         vMaxLum =
           XMVectorReplicate (XMVectorGetY (vMinLum) + (fLumRange * ((float)i / 16384.0f)));
