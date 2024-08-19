@@ -275,9 +275,17 @@ SK_GetCurrentGameID (void)
 
       if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) )
       {
-        current_game = SK_GAME_ID::FinalFantasyXV;
+        if ( StrStrIW ( SK_GetHostApp (), L"ffxv_" ) )
+        {
+          current_game = SK_GAME_ID::FinalFantasyXV;
 
-        SK_FFXV_InitPlugin ();
+          SK_FFXV_InitPlugin ();
+        }
+
+        else if ( StrStrIW ( SK_GetHostApp (), L"ffxvi_" ) )
+        {
+          current_game = SK_GAME_ID::FinalFantasyXVI;
+        }
       }
 
       else if ( StrStrIW ( SK_GetHostApp (), L"ff7remake" ) )

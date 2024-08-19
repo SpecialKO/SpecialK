@@ -1541,8 +1541,9 @@ enum class SK_GAME_ID
   Fallout4,                     // Fallout4.exe
   DisgaeaPC,                    // dis1_st.exe
   SecretOfMana,                 // Secret_of_Mana.exe
-  FinalFantasyXV,               // ffxv*.exe
+  FinalFantasyXV,               // ffxv_*.exe
   FinalFantasyXIV,              // ffxiv_dx11.exe
+  FinalFantasyXVI,              // ffxvi_*.exe
   DragonBallFighterZ,           // DBFighterZ.exe
   NiNoKuni2,                    // Nino2.exe
   FarCry5,                      // FarCry5.exe

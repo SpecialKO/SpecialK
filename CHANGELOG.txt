@@ -1,4 +1,9 @@
-﻿24.8.18
+﻿24.8.19
+=======
+ + Correctly distinguish FFXVI from FFXV since the executable naming
+     pattern's underscore and store name are consistent.
+
+24.8.18
 =======
  + Add LastUsedColorSpace INI setting to help tonemap third-party
      overlays in D3D12 games with native HDR support
