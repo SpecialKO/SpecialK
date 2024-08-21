@@ -1,4 +1,8 @@
-﻿24.8.20
+﻿24.8.21
+=======
+ + Fixed potential DLSS3 Frame Generation crash when exiting Final Fantasy XVI
+
+24.8.20
 =======
  + Increased opacity of SK's UI in HDR10 mode.
  + Fixed a typo in ApplySRGBCurve (...) in shaders/common_defs.hlsl that
