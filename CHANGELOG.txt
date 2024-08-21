@@ -1,4 +1,12 @@
-﻿24.8.19
+﻿24.8.20
+=======
+ + Increased opacity of SK's UI in HDR10 mode.
+ + Fixed a typo in ApplySRGBCurve (...) in shaders/common_defs.hlsl that
+     would cause black clipping when converting between sRGB and Linear
+       when direct copies between two resources are impossible due
+         to format mismatch.
+
+24.8.19
 =======
  + Correctly distinguish FFXVI from FFXV since the executable naming
      pattern's underscore and store name are consistent.

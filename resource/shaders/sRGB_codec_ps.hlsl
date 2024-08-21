@@ -31,10 +31,7 @@ float4 main (PS_INPUT input) : SV_TARGET
                                input.uv );
 
   vLinear =
-    float4 ( (! IsNan (vLinear.r)) * (! IsInf (vLinear.r)) * vLinear.r,
-             (! IsNan (vLinear.g)) * (! IsInf (vLinear.g)) * vLinear.g,
-             (! IsNan (vLinear.b)) * (! IsInf (vLinear.b)) * vLinear.b,
-             (! IsNan (vLinear.a)) * (! IsInf (vLinear.a)) * vLinear.a );
+    float4 ( isnormal (vLinear) * vLinear );
 
   vLinear.rgba =
     float4 ( clamp (vLinear.rgb, 0.0f, 125.0f),

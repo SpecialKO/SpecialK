@@ -440,7 +440,7 @@ ApplySRGBCurve (float3 x)
 {
   return ( abs (x) < 0.0031308f ?
           sign (x) * ( 12.92f *       abs (x) ) :
-          sign (x) *   1.055f * pow ( abs (x), 1.0 / 2.4f ) - 0.55f );
+          sign (x) *   1.055f * pow ( abs (x), 1.0 / 2.4f ) - 0.055f );
 }
 
 float
@@ -448,7 +448,7 @@ ApplySRGBAlpha (float a)
 {
   return ( abs (a) < 0.0031308f ?
           sign (a) * ( 12.92f *       abs (a) ) :
-          sign (a) *   1.055f * pow ( abs (a), 1.0 / 2.4f ) - 0.55f );
+          sign (a) *   1.055f * pow ( abs (a), 1.0 / 2.4f ) - 0.055f );
 }
 
 float3
