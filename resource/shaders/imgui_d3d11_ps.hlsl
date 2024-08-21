@@ -79,9 +79,9 @@ float4 main (PS_INPUT input) : SV_Target
 
     float4 hdr_out =
       hdr10 ? float4 (  LinearToPQ (
-                   REC709toREC2020 ( out_col.rgb * ui_alpha * hdr_scale ), 100.0f ) /*+ LinearToPQY (hdr_offset)*/,
-                        LinearToPQ ( out_col.a              * 5.0f,        125.0f ) )
-            : float4 ( Clamp_scRGB ( out_col.rgb            * hdr_scale )           /*+              hdr_offset */,
+                   REC709toREC2020 ( out_col.rgb * (ui_alpha / 2.0f) * (hdr_scale * 2.0f) ), 100.0f ),
+                        LinearToPQ ( out_col.a               * 8.66f,                        125.0f ) )
+            : float4 ( Clamp_scRGB ( out_col.rgb             * hdr_scale ),
                                      out_col.a );
 
     // Keep pure black pixels as-per scRGB's limited ability to
