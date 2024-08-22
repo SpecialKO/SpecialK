@@ -6077,12 +6077,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
   // Post-Process the game's result to fix any non-compliant behaviors
   //
 
-  if (hWnd == game_window.hWnd)
-  {
-    // Fix for Skyrim SE beeping when Alt is pressed.
-    if (uMsg == WM_MENUCHAR && (HIWORD (lRet) == MNC_IGNORE))
-      return MAKEWPARAM (0, MNC_CLOSE);
-  }
+  // Fix for Skyrim SE and FFXVI beeping when Alt is pressed.
+  if (uMsg == WM_MENUCHAR && (HIWORD (lRet) == MNC_IGNORE))
+    return MAKEWPARAM (0, MNC_CLOSE);
 
 
   return lRet;

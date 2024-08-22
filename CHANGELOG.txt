@@ -1,4 +1,9 @@
-﻿24.8.22
+﻿24.8.22.1
+=========
+ + Add workaround for FFXVI beeping after Alt-Tab because it thinks the Alt
+     key is stuck down.
+
+24.8.22
 =======
  + Added FFXVI plug-in to improve JPEG-XL screenshot quality after looking at
      the artifacts caused by Square-Enix's default compression settings.
