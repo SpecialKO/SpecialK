@@ -168,6 +168,7 @@ bool SK_SM_PlugInCfg               (void);
 void SK_NIER_RAD_InitPlugin        (void);
 void SK_FF7R_InitPlugin            (void);
 void SK_Sekiro_InitPlugin          (void);
+void SK_FFXVI_InitPlugin           (void);
 void SK_FFXV_InitPlugin            (void);
 bool SK_FFXV_PlugInCfg             (void);
 void SK_FFXV_SetupThreadPriorities (void);

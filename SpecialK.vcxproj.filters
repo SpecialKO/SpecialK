@@ -3152,9 +3152,6 @@
     <ClCompile Include="src\diagnostics\compatibility.cpp">
       <Filter>Source Files\Diagnostics</Filter>
     </ClCompile>
-    <ClCompile Include="src\sound.cpp">
-      <Filter>Source Files\Utility</Filter>
-    </ClCompile>
     <ClCompile Include="src\plugins\ds3.cpp">
       <Filter>Source Files\Plugins</Filter>
     </ClCompile>
@@ -3712,6 +3709,12 @@
     </ClCompile>
     <ClCompile Include="src\input\bluetooth.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\sound.cpp">
+      <Filter>Source Files\Widgets</Filter>
+    </ClCompile>
+    <ClCompile Include="src\plugins\ffxvi.cpp">
+      <Filter>Source Files\Plugins</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

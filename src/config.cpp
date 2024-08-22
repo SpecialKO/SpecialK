@@ -285,6 +285,8 @@ SK_GetCurrentGameID (void)
         else if ( StrStrIW ( SK_GetHostApp (), L"ffxvi_" ) )
         {
           current_game = SK_GAME_ID::FinalFantasyXVI;
+
+          SK_FFXVI_InitPlugin ();
         }
       }
 

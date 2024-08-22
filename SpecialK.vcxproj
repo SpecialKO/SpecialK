@@ -1916,6 +1916,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (clang)|Win32'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="src\plugins\ffxvi.cpp" />
     <ClCompile Include="src\plugins\lords_of_the_fallen2.cpp" />
     <ClCompile Include="src\plugins\monster_hunter_world.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>

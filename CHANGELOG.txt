@@ -1,4 +1,13 @@
-﻿24.8.21
+﻿24.8.22
+=======
+ + Added FFXVI plug-in to improve JPEG-XL screenshot quality after looking at
+     the artifacts caused by Square-Enix's default compression settings.
+
+    >> Screenshots are now 16-bpc instead of 8-bpc and quality set to 98.5%
+
+    * Lossless screenshots are possible, but will be significantly larger.
+
+24.8.21
 =======
  + Fixed potential DLSS3 Frame Generation crash when exiting Final Fantasy XVI
 

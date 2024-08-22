@@ -3,6 +3,10 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
+#define __SK_SUBSYSTEM__ L"BasicPlugN"
 
 
 #include <SpecialK/render/d3d9/d3d9_backend.h>
