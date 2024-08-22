@@ -313,8 +313,8 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
         if (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS ||
             typeless_fmt == DXGI_FORMAT_R32G32B32A32_TYPELESS)
         {
-          XMVECTOR  value = XMVector3Transform (v, c_from709to2020);
-                        v = LinearToPQ (value);
+          XMVECTOR nvalue = XMVector3Transform (v, c_from709to2020);
+                        v = LinearToPQ (XMVectorClamp (nvalue, g_XMZero, g_XMInfinity));
         }
 
         v = // Quantize to 10- or 12-bpc before expanding to 16-bpc in order to improve
@@ -948,8 +948,7 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
 
           for (size_t j = 0; j < width; ++j)
           {
-            DirectX::XMVECTOR v =
-              XMVectorSaturate (*pixels++);
+            DirectX::XMVECTOR v = *pixels++;
 
             *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetX (v) * 1023.0f));
             *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetY (v) * 1023.0f));
@@ -1018,8 +1017,10 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
 
           for (size_t j = 0; j < width; ++j)
           {
-            XMVECTOR  value = XMVector3Transform (pixels [j], c_from709to2020);
-                      value = XMVectorSaturate (LinearToPQ (value));
+            XMVECTOR value = pixels [j];
+
+            value = XMVector3Transform (XMVectorDivide   (value, PQ.MaxPQ), c_from709to2020);
+            value =         LinearToPQ (XMVectorSaturate (value));
 
             *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetX (value) * 65535.0f));
             *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetY (value) * 65535.0f));
@@ -1044,7 +1045,7 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
       encoder->qualityAlpha    = config.screenshots.compression_quality; // N/A?
       encoder->timescale       = 1;
       encoder->repetitionCount = AVIF_REPETITION_COUNT_INFINITE;
-      encoder->maxThreads      = config.screenshots.avif.max_threads;
+      encoder->maxThreads      = config.screenshots.avif.max_threads * 4;
       encoder->speed           = config.screenshots.avif.compression_speed;
       encoder->minQuantizer    = AVIF_QUANTIZER_BEST_QUALITY;
       encoder->maxQuantizer    = AVIF_QUANTIZER_BEST_QUALITY;
