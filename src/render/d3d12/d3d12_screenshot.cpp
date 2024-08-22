@@ -1944,8 +1944,12 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   SK_LOGi0 ( L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0 *      ( lumTotal    / N ),
                                                                                 80.0 * exp2 ( logLumTotal / N ) );
 
-                  auto        luminance_freq = std::make_unique <uint32_t []> (4096);
-                  ZeroMemory (luminance_freq.get (),     sizeof (uint32_t)  *  4096);
+                  auto        luminance_freq = std::make_unique <uint32_t []> (65536);
+                  ZeroMemory (luminance_freq.get (),     sizeof (uint32_t)  *  65536);
+
+                  // 0 nits - 10k nits (appropriate for screencap, but not HDR photography)
+                  minLum = std::clamp (minLum, 0.0f,   125.0f);
+                  maxLum = std::clamp (maxLum, minLum, 125.0f);
 
                   const float fLumRange =
                            (maxLum - minLum);
@@ -1968,8 +1972,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         std::clamp ( (int)
                           std::roundf (
                             (XMVectorGetY (v) - minLum)     /
-                                                 (fLumRange / 4096.0f) ),
-                                                           0, 4095 ) ]++;
+                                                 (fLumRange / 65536.0f) ),
+                                                           0, 65535 ) ]++;
                     }
                   });
 
@@ -1977,15 +1981,15 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   const double img_size = (double)un_srgb.GetMetadata ().width *
                                           (double)un_srgb.GetMetadata ().height;
 
-                  for (auto i = 4095; i >= 0; --i)
+                  for (auto i = 65535; i >= 0; --i)
                   {
                     percent -=
                       100.0 * ((double)luminance_freq [i] / img_size);
 
-                    if (percent <= 99.825)
+                    if (percent <= 99.9)
                     {
                       maxLum =
-                        minLum + (fLumRange * ((float)i / 4096.0f));
+                        minLum + (fLumRange * ((float)i / 65536.0f));
 
                       break;
                     }
