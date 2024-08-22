@@ -1633,10 +1633,10 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
     return ret;
   };
 
-  float N          = 0.0f;
-  float fLumAccum  = 0.0f;
-  XMVECTOR vMaxLum = g_XMZero;
-  XMVECTOR vMinLum = g_XMInfinity;
+  float N         =       0.0f;
+  float fLumAccum =       0.0f;
+  float fMaxLum   =       0.0f;
+  float fMinLum   = 5240320.0f;
 
   EvaluateImage ( img,
     [&](const XMVECTOR* pixels, size_t width, size_t y)
@@ -1659,13 +1659,16 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
                 PQToLinear (XMVectorSaturate (v)), c_from2020toXYZ
               );
 
-            vMaxLum =
-              XMVectorMax (vMaxLum, v);
+            const float fLum =
+              XMVectorGetY (v);
 
-            vMinLum =
-              XMVectorMin (vMinLum, v);
+            fMaxLum =
+              std::max (fMaxLum, fLum);
 
-            fScanlineLum += XMVectorGetY (v);
+            fMinLum =
+              std::min (fMinLum, fLum);
+
+            fScanlineLum += fLum;
           }
         } break;
 
@@ -1680,13 +1683,16 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
             v =
               XMVector3Transform (v, c_from709toXYZ);
 
-            vMaxLum =
-              XMVectorMax (vMaxLum, v);
+            const float fLum =
+              XMVectorGetY (v);
 
-            vMinLum =
-              XMVectorMin (vMinLum, v);
+            fMaxLum =
+              std::max (fMaxLum, fLum);
 
-            fScanlineLum += XMVectorGetY (v);
+            fMinLum =
+              std::min (fMinLum, fLum);
+
+            fScanlineLum += fLum;
           }
         } break;
 
@@ -1703,11 +1709,10 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
   if (N > 0.0)
   {
     const float fLumRange =
-      XMVectorGetY (vMaxLum) -
-      XMVectorGetY (vMinLum);
+            (fMaxLum - fMinLum);
 
-    auto        luminance_freq = std::make_unique <uint32_t []> (16384);
-    ZeroMemory (luminance_freq.get (),     sizeof (uint32_t)  *  16384);
+    auto        luminance_freq = std::make_unique <uint32_t []> (4096);
+    ZeroMemory (luminance_freq.get (),     sizeof (uint32_t)  *  4096);
 
     EvaluateImage ( img,
     [&](const XMVECTOR* pixels, size_t width, size_t y)
@@ -1724,9 +1729,9 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
         luminance_freq [
           std::clamp ( (int)
             std::roundf (
-              (XMVectorGetY (v) - XMVectorGetY (vMinLum)) /
-                                               (fLumRange / 16384.0f) ),
-                                                         0, 16383 ) ]++;
+              (XMVectorGetY (v) - fMinLum)     /
+                                    (fLumRange / 4096.0f) ),
+                                              0, 4095 ) ]++;
       }
     });
 
@@ -1734,24 +1739,24 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
     const double img_size = (double)img.width *
                             (double)img.height;
 
-    for (auto i = 16383; i >= 0; --i)
+    for (auto i = 4095; i >= 0; --i)
     {
       percent -=
         100.0 * ((double)luminance_freq [i] / img_size);
 
       if (percent <= 99.825)
       {
-        vMaxLum =
-          XMVectorReplicate (XMVectorGetY (vMinLum) + (fLumRange * ((float)i / 16384.0f)));
+        fMaxLum =
+          fMinLum + (fLumRange * ((float)i / 4096.0f));
 
         break;
       }
     }
 
     SK_PNG_SetUint32 (clli.max_cll,
-      static_cast <uint32_t> ((80.0f * XMVectorGetY (vMaxLum)) / 0.0001f));
+      static_cast <uint32_t> ((80.0f *          fMaxLum) / 0.0001f));
     SK_PNG_SetUint32 (clli.max_fall,
-      static_cast <uint32_t> ((80.0f * (fLumAccum / N))        / 0.0001f));
+      static_cast <uint32_t> ((80.0f * (fLumAccum / N))  / 0.0001f));
   }
 
   return clli;

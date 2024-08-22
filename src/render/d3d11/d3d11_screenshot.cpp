@@ -1597,10 +1597,10 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                 if ( un_srgb.GetImageCount () == 1 &&
                      hdr )
                 {
-                  XMVECTOR maxLum = XMVectorZero          (),
-                           minLum = XMVectorSplatInfinity (),
-                           maxCLL = XMVectorZero          (),
-                           maxRGB = XMVectorZero          ();
+                  float    maxLum = 0.0f,
+                           minLum = 5240320.0f;
+                  XMVECTOR maxCLL = XMVectorZero (),
+                           maxRGB = XMVectorZero ();
 
                   static const XMVECTORF32 s_luminance =
                     { 0.2126729f, 0.7151522f, 0.0721750f, 0.f };
@@ -1627,18 +1627,22 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                         v =
                           XMVector3Transform (v, c_from709toXYZ);
 
+                        const float fLum =
+                          XMVectorGetY (v);
+
                         maxLum =
-                          XMVectorReplicate (XMVectorGetY (XMVectorMax (v, maxLum)));
+                          std::max (fLum, maxLum);
 
                         minLum =
-                          XMVectorReplicate (XMVectorGetY (XMVectorMin (v, minLum)));
+                          std::min (fLum, minLum);
 
                         logLumTotal +=
                           log2 ( std::max (0.000001, static_cast <double> (std::max (0.0f, XMVectorGetY (v)))) );
                            lumTotal +=               static_cast <double> (std::max (0.0f, XMVectorGetY (v)));
                         ++N;
 
-                        v = XMVectorMax (g_XMZero, v);
+                        v =
+                          XMVectorMax (g_XMZero, v);
 
                         maxRGB =
                           XMVectorMax (v, maxRGB);
@@ -1653,18 +1657,17 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                       std::max ({ XMVectorGetX (maxCLL), XMVectorGetY (maxCLL), XMVectorGetZ (maxCLL) })
                     );
 
-                  SK_LOGi0 ( L"Min Luminance: %f, Max Luminance: %f", std::max (0.0f, XMVectorGetY (minLum)) * 80.0f,
-                                                                                      XMVectorGetY (maxLum)  * 80.0f );
+                  SK_LOGi0 ( L"Min Luminance: %f, Max Luminance: %f", std::max (0.0f, minLum) * 80.0f,
+                                                                                      maxLum  * 80.0f );
 
                   SK_LOGi0 ( L"Mean Luminance (arithmetic, geometric): %f, %f", 80.0 *      ( lumTotal    / N ),
                                                                                 80.0 * exp2 ( logLumTotal / N ) );
 
-                  auto        luminance_freq = std::make_unique <uint32_t []> (16384);
-                  ZeroMemory (luminance_freq.get (),     sizeof (uint32_t)  *  16384);
+                  auto        luminance_freq = std::make_unique <uint32_t []> (4096);
+                  ZeroMemory (luminance_freq.get (),     sizeof (uint32_t)  *  4096);
 
                   const float fLumRange =
-                    XMVectorGetY (maxLum) -
-                    XMVectorGetY (minLum);
+                           (maxLum - minLum);
 
                   EvaluateImage ( un_srgb.GetImages     (),
                                   un_srgb.GetImageCount (),
@@ -1683,9 +1686,9 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                       luminance_freq [
                         std::clamp ( (int)
                           std::roundf (
-                            (XMVectorGetY (v) - XMVectorGetY (minLum)) /
-                                                            (fLumRange / 16384.0f) ),
-                                                                      0, 16383 ) ]++;
+                            (XMVectorGetY (v) - minLum)     /
+                                                 (fLumRange / 4096.0f) ),
+                                                           0, 4095 ) ]++;
                     }
                   });
 
@@ -1693,7 +1696,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                   const double img_size = (double)un_srgb.GetMetadata ().width *
                                           (double)un_srgb.GetMetadata ().height;
 
-                  for (auto i = 16383; i >= 0; --i)
+                  for (auto i = 4095; i >= 0; --i)
                   {
                     percent -=
                       100.0 * ((double)luminance_freq [i] / img_size);
@@ -1701,14 +1704,14 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                     if (percent <= 99.825)
                     {
                       maxLum =
-                        XMVectorReplicate (XMVectorGetY (minLum) + (fLumRange * ((float)i / 16384.0f)));
+                        minLum + (fLumRange * ((float)i / 4096.0f));
 
                       break;
                     }
                   }
 
-                  pFrameData->hdr.max_cll_nits =                      80.0f * XMVectorGetY (maxLum);
-                  pFrameData->hdr.avg_cll_nits = static_cast <float> (80.0 * ( lumTotal / N ));
+                  pFrameData->hdr.max_cll_nits =                      80.0f * maxLum;
+                  pFrameData->hdr.avg_cll_nits = static_cast <float> (80.0  * ( lumTotal / N ));
 
                   // After tonemapping, re-normalize the image to preserve peak white,
                   //   this is important in cases where the maximum luminance was < 1000 nits
@@ -1723,7 +1726,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
                   const float  maxYInPQ =
                     std::max (SDR_YInPQ,
-                      LinearToPQY (std::min (_maxNitsToTonemap, XMVectorGetY (maxLum)))
+                      LinearToPQY (std::min (_maxNitsToTonemap, maxLum))
                     );
 
                   hr =               un_srgb.GetImageCount () == 1 ?

@@ -1,5 +1,5 @@
 ﻿//
-// Copyright 2022 Andon "Kaldaien" Coleman
+// Copyright 2024 Andon "Kaldaien" Coleman
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to
@@ -29,7 +29,7 @@
 
 #include <SpecialK/plugin/plugin_mgr.h>
 
-static float SK_FFXVI_JXLQuality = 98.5f;
+static float SK_FFXVI_JXLQuality = 99.95f;
 
 typedef enum {
   JXL_ENC_SUCCESS          = 0,
@@ -285,5 +285,5 @@ SK_FFXVI_InitPlugin (void)
                                   L"Traditional JPEG Quality %" );
 
   if (! ini.jxl_quality->load  (SK_FFXVI_JXLQuality))
-        ini.jxl_quality->store (98.5f);
+        ini.jxl_quality->store (99.95f);
 }
