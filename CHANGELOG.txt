@@ -1,4 +1,12 @@
-﻿24.8.24
+﻿24.8.24.1
+=========
+ + Added support for JPEG-XL screenshots (64-bit only; 32-bit will be added)
+
+   * Default quality level is 99%, this is primarily a lossy format.
+   * JXL lossless compression ratio is poor, but not as poor as PNG.
+   * AVIF or PNG are better choices for sharing lossless reference images.
+
+24.8.24
 =======
  + Fixed issues with "hide mouse cursor" feature not working in some games
      after alt-tab following changes in 24.5.25.2.

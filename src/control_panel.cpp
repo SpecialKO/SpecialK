@@ -3722,22 +3722,30 @@ SK_ImGui_ControlPanel (void)
         if (config.screenshots.png_compress && SK_GetBitness () == SK_Bitness::SixtyFourBit)
         {
           static bool bFetchingAVIF = false;
+          static bool bFetchingJXL  = false;
+
+          static constexpr int SK_CODEC_JXL  = 3;
+          static constexpr int SK_CODEC_AVIF = 2;
+          static constexpr int SK_CODEC_PNG  = 1;
 
           int selection =
-            ( config.screenshots.use_avif    ? 2 :
-              config.screenshots.use_hdr_png ? 1 :
+            ( config.screenshots.use_jxl     ? SK_CODEC_JXL  :
+              config.screenshots.use_avif    ? SK_CODEC_AVIF :
+              config.screenshots.use_hdr_png ? SK_CODEC_PNG  :
                                                0 );
 
           if (
             ImGui::Combo ( "HDR File Format", &selection,
                            "JPEG-XR (.jxr)\0"
                            "PNG\t\t(.png)\0"
-                           "AVIF\t\t(.avif)\0\0" )
+                           "AVIF\t\t(.avif)\0"
+                           "JPEG-XL (.jxl)\0\0" )
              )
           {
-            if (selection == 2)
+            if (selection == SK_CODEC_AVIF)
             {
               config.screenshots.use_hdr_png = false;
+              config.screenshots.use_jxl     = false;
 
               if (! bFetchingAVIF)
               {
@@ -3776,11 +3784,130 @@ SK_ImGui_ControlPanel (void)
                 }
               }
             }
+
+            else if (selection == SK_CODEC_JXL)
+            {
+              config.screenshots.use_hdr_png = false;
+              config.screenshots.use_avif    = false;
+
+              if (! bFetchingJXL)
+              {
+                static std::filesystem::path jxl_dll =
+                       std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) /
+                    SK_RunLHIfBitness ( 64, LR"(Image Codecs\libjxl\x64\jxl.dll)",
+                                            LR"(Image Codecs\libjxl\x86\jxl.dll)" );
+
+                static std::filesystem::path jxl_threads_dll =
+                       std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) /
+                    SK_RunLHIfBitness ( 64, LR"(Image Codecs\libjxl\x64\jxl_threads.dll)",
+                                            LR"(Image Codecs\libjxl\x86\jxl_threads.dll)" );
+
+                static std::filesystem::path jxl_cms_dll =
+                       std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) /
+                    SK_RunLHIfBitness ( 64, LR"(Image Codecs\libjxl\x64\jxl_cms.dll)",
+                                            LR"(Image Codecs\libjxl\x86\jxl_cms.dll)" );
+
+                static std::error_code                           ec;
+                if (! (std::filesystem::exists (jxl_dll,         ec) &&
+                       std::filesystem::exists (jxl_cms_dll,     ec) &&
+                       std::filesystem::exists (jxl_threads_dll, ec)))
+                {
+                  bFetchingJXL = true;
+
+                  SK_Network_EnqueueDownload (
+                       sk_download_request_s (
+                         jxl_dll.wstring (),
+                           R"(https://sk-data.special-k.info/addon/ImageCodecs/)"
+#ifdef _M_X64
+                           R"(libjxl/x64/jxl.dll)",
+#else
+                           R"(libjxl/x86/jxl.dll)",
+#endif
+                  []( const std::vector <uint8_t>&&,
+                      const std::wstring_view )
+                   -> bool
+                      {
+                        if (std::filesystem::exists (jxl_dll,         ec) &&
+                            std::filesystem::exists (jxl_cms_dll,     ec) &&
+                            std::filesystem::exists (jxl_threads_dll, ec))
+                        {
+                          bFetchingJXL                           = false;
+                          config.screenshots.use_jxl             = true;
+                          config.screenshots.compression_quality = 99;
+                        }
+                  
+                        return false;
+                      }
+                    ), true
+                  );
+
+                  SK_Network_EnqueueDownload (
+                       sk_download_request_s (
+                         jxl_dll.wstring (),
+                           R"(https://sk-data.special-k.info/addon/ImageCodecs/)"
+#ifdef _M_X64
+                           R"(libjxl/x64/jxl_threads.dll)",
+#else
+                           R"(libjxl/x86/jxl_threads.dll)",
+#endif
+                  []( const std::vector <uint8_t>&&,
+                      const std::wstring_view )
+                   -> bool
+                      {
+                        if (std::filesystem::exists (jxl_dll,         ec) &&
+                            std::filesystem::exists (jxl_cms_dll,     ec) &&
+                            std::filesystem::exists (jxl_threads_dll, ec))
+                        {
+                          bFetchingJXL                           = false;
+                          config.screenshots.use_jxl             = true;
+                          config.screenshots.compression_quality = 99;
+                        }
+                  
+                        return false;
+                      }
+                    ), true
+                  );
+
+                  SK_Network_EnqueueDownload (
+                       sk_download_request_s (
+                         jxl_dll.wstring (),
+                           R"(https://sk-data.special-k.info/addon/ImageCodecs/)"
+#ifdef _M_X64
+                           R"(libjxl/x64/jxl_cms.dll)",
+#else
+                           R"(libjxl/x86/jxl_cms.dll)",
+#endif
+                  []( const std::vector <uint8_t>&&,
+                      const std::wstring_view )
+                   -> bool
+                      {
+                        if (std::filesystem::exists (jxl_dll,         ec) &&
+                            std::filesystem::exists (jxl_cms_dll,     ec) &&
+                            std::filesystem::exists (jxl_threads_dll, ec))
+                        {
+                          bFetchingJXL                           = false;
+                          config.screenshots.use_jxl             = true;
+                          config.screenshots.compression_quality = 99;
+                        }
+                  
+                        return false;
+                      }
+                    ), true
+                  );
+                }
+                else
+                {
+                  config.screenshots.use_jxl             = true;
+                  config.screenshots.compression_quality = 99;
+                }
+              }
+            }
             else
             {
               config.screenshots.use_hdr_png =
                 (selection == 1);
 
+              config.screenshots.use_jxl             = false;
               config.screenshots.use_avif            = false;
               config.screenshots.compression_quality = 90;
             }
@@ -3789,6 +3916,11 @@ SK_ImGui_ControlPanel (void)
           if (bFetchingAVIF)
           {
             ImGui::TextColored (ImVec4 (.1f,.9f,.1f,1.f), "Downloading AVIF Plug-In...");
+          }
+
+          if (bFetchingJXL)
+          {
+            ImGui::TextColored (ImVec4 (.1f,.9f,.1f,1.f), "Downloading JPEG-XL Plug-In...");
           }
         }
 
@@ -3808,6 +3940,7 @@ SK_ImGui_ControlPanel (void)
               (selection == 1);
 
             config.screenshots.use_avif            = false;
+            config.screenshots.use_jxl             = false;
             config.screenshots.compression_quality = 90;
           }
         }

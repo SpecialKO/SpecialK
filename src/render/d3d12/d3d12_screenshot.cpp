@@ -2489,6 +2489,11 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                                                                                     static_cast <uint16_t> (pFrameData->hdr.avg_cll_nits));
                       }
 
+                      if (hdr && config.screenshots.use_jxl)
+                      {
+                        SK_Screenshot_SaveJXL (un_srgb, wszAbsolutePathToLossless);
+                      }
+
                       if (hdr && raw_img.format != DXGI_FORMAT_R16G16B16A16_FLOAT)
                       {
                         auto hdr10_metadata        = (TexMetadata)un_srgb.GetMetadata ();
@@ -2596,7 +2601,8 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
                       HRESULT hrSaveToWIC = S_OK;
                       
-                      if ((! hdr) || (! config.screenshots.use_avif))
+                      if ((! hdr) || (! (config.screenshots.use_avif ||
+                                         config.screenshots.use_jxl)))
                       {
                         const bool bUseCompatHacks =
                           config.screenshots.compatibility_mode;

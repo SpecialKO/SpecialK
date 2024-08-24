@@ -1098,6 +1098,316 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
     ( encodeResult == AVIF_RESULT_OK );
 }
 
+#include <jxl/codestream_header.h>
+#include <jxl/encode.h>
+#include <jxl/encode_cxx.h>
+#include <jxl/resizable_parallel_runner.h>
+#include <jxl/resizable_parallel_runner_cxx.h>
+#include <jxl/thread_parallel_runner.h>
+#include <jxl/thread_parallel_runner_cxx.h>
+#include <jxl/types.h>
+
+bool isJXLEncoderAvailable (void)
+{
+  static HMODULE hModJXL        = nullptr;
+  static HMODULE hModJXLCMS     = nullptr;
+  static HMODULE hModJXLThreads = nullptr;
+
+  SK_RunOnce (
+  {
+    static const wchar_t* wszPluginArch =
+      SK_RunLHIfBitness ( 64, LR"(x64\)",
+                              LR"(x86\)" );
+
+    std::filesystem::path path_to_codecs =
+      SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty);
+
+    std::error_code                              ec;
+    if (std::filesystem::exists (path_to_codecs, ec))
+    {
+      path_to_codecs /= LR"(Image Codecs\libjxl)";
+      path_to_codecs /= wszPluginArch;
+
+      std::filesystem::create_directories
+                                  (path_to_codecs, ec);
+      if (std::filesystem::exists (path_to_codecs, ec))
+      {
+        std::filesystem::path path_to_jxl_threads = path_to_codecs / L"jxl_threads.dll";
+        std::filesystem::path path_to_jxl_cms     = path_to_codecs / L"jxl_cms.dll";
+        std::filesystem::path path_to_jxl         = path_to_codecs / L"jxl.dll";
+
+        // JXL depends on CMS to be loaded first
+
+        hModJXLThreads = LoadLibraryW (path_to_jxl_threads.c_str ());
+        hModJXLCMS     = LoadLibraryW (path_to_jxl_cms.    c_str ());
+        hModJXL        = LoadLibraryW (path_to_jxl.        c_str ());
+
+        if ( hModJXL        != nullptr &&
+             hModJXLCMS     != nullptr &&
+             hModJXLThreads != nullptr )
+        {
+          //SK_LOGi0 ("Loaded JPEG-XL DLLs from: %ws", path_to_sk.c_str ());
+          return true;
+        }
+      }
+    }
+
+    if (hModJXLThreads == nullptr) hModJXLThreads = LoadLibraryW (L"jxl_threads.dll");
+    if (hModJXLCMS     == nullptr) hModJXLCMS     = LoadLibraryW (L"jxl_cms.dll");
+    if (hModJXL        == nullptr) hModJXL        = LoadLibraryW (L"jxl.dll");
+
+    if ( hModJXL        != nullptr &&
+         hModJXLCMS     != nullptr &&
+         hModJXLThreads != nullptr )
+    {
+      //SK_LOGi0 ("Loaded JPEG-XL DLLs from default DLL search path");
+      return true;
+    }
+  });
+
+  const bool supported =
+    ( hModJXL        != nullptr &&
+      hModJXLThreads != nullptr &&
+      hModJXLCMS     != nullptr );
+
+  return supported;
+}
+
+bool
+SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFilePath)
+{
+  extern bool isJXLEncoderAvailable (void);
+  if (!       isJXLEncoderAvailable ())
+    return false;
+
+  static HMODULE hModJXL;
+  SK_RunOnce (   hModJXL = LoadLibraryW (L"jxl.dll"));
+
+  static HMODULE hModJXLThreads;
+  SK_RunOnce (   hModJXLThreads = LoadLibraryW (L"jxl_threads.dll"));
+
+  using JxlEncoderCreate_pfn                               = JxlEncoder*              (*)(const JxlMemoryManager* memory_manager);
+  using JxlEncoderDestroy_pfn                              = void                     (*)(JxlEncoder* enc);
+  using JxlEncoderCloseInput_pfn                           = void                     (*)(JxlEncoder* enc);
+  using JxlEncoderProcessOutput_pfn                        = JxlEncoderStatus         (*)(JxlEncoder* enc, uint8_t** next_out, size_t* avail_out);
+  using JxlEncoderFrameSettingsCreate_pfn                  = JxlEncoderFrameSettings* (*)(JxlEncoder* enc, const JxlEncoderFrameSettings* source);
+  using JxlEncoderInitBasicInfo_pfn                        = void                     (*)(JxlBasicInfo* info);
+  using JxlEncoderSetBasicInfo_pfn                         = JxlEncoderStatus         (*)(JxlEncoder* enc, const JxlBasicInfo* info);
+  using JxlEncoderAddImageFrame_pfn                        = JxlEncoderStatus         (*)(const JxlEncoderFrameSettings* frame_settings, const JxlPixelFormat* pixel_format, const void* buffer, size_t size);
+  using JxlEncoderSetColorEncoding_pfn                     = JxlEncoderStatus         (*)(JxlEncoder* enc, const JxlColorEncoding* color);
+  using JxlEncoderFrameSettingsSetOption_pfn               = JxlEncoderStatus         (*)(JxlEncoderFrameSettings *frame_settings, JxlEncoderFrameSettingId option, int64_t value);
+  using JxlEncoderSetParallelRunner_pfn                    = JxlEncoderStatus         (*)(JxlEncoder* enc, JxlParallelRunner parallel_runner, void* parallel_runner_opaque);
+
+  using JxlThreadParallelRunner_pfn                        = JxlParallelRetCode       (*)(void* runner_opaque, void* jpegxl_opaque, JxlParallelRunInit init, JxlParallelRunFunction func, uint32_t start_range, uint32_t end_range);
+  using JxlThreadParallelRunnerCreate_pfn                  = void*                    (*)(const JxlMemoryManager* memory_manager, size_t num_worker_threads);
+  using JxlThreadParallelRunnerDestroy_pfn                 = void                     (*)(void* runner_opaque);
+  using JxlThreadParallelRunnerDefaultNumWorkerThreads_pfn = size_t                   (*)(void);
+
+  static JxlEncoderCreate_pfn                 jxlEncoderCreate                 = (JxlEncoderCreate_pfn)                GetProcAddress (hModJXL, "JxlEncoderCreate");
+  static JxlEncoderDestroy_pfn                jxlEncoderDestroy                = (JxlEncoderDestroy_pfn)               GetProcAddress (hModJXL, "JxlEncoderDestroy");
+  static JxlEncoderCloseInput_pfn             jxlEncoderCloseInput             = (JxlEncoderCloseInput_pfn)            GetProcAddress (hModJXL, "JxlEncoderCloseInput");
+  static JxlEncoderProcessOutput_pfn          jxlEncoderProcessOutput          = (JxlEncoderProcessOutput_pfn)         GetProcAddress (hModJXL, "JxlEncoderProcessOutput");
+  static JxlEncoderFrameSettingsCreate_pfn    jxlEncoderFrameSettingsCreate    = (JxlEncoderFrameSettingsCreate_pfn)   GetProcAddress (hModJXL, "JxlEncoderFrameSettingsCreate");
+  static JxlEncoderInitBasicInfo_pfn          jxlEncoderInitBasicInfo          = (JxlEncoderInitBasicInfo_pfn)         GetProcAddress (hModJXL, "JxlEncoderInitBasicInfo");
+  static JxlEncoderSetBasicInfo_pfn           jxlEncoderSetBasicInfo           = (JxlEncoderSetBasicInfo_pfn)          GetProcAddress (hModJXL, "JxlEncoderSetBasicInfo");
+  static JxlEncoderAddImageFrame_pfn          jxlEncoderAddImageFrame          = (JxlEncoderAddImageFrame_pfn)         GetProcAddress (hModJXL, "JxlEncoderAddImageFrame");
+  static JxlEncoderSetColorEncoding_pfn       jxlEncoderSetColorEncoding       = (JxlEncoderSetColorEncoding_pfn)      GetProcAddress (hModJXL, "JxlEncoderSetColorEncoding");
+  static JxlEncoderFrameSettingsSetOption_pfn jxlEncoderFrameSettingsSetOption = (JxlEncoderFrameSettingsSetOption_pfn)GetProcAddress (hModJXL, "JxlEncoderFrameSettingsSetOption");
+  static JxlEncoderSetParallelRunner_pfn      jxlEncoderSetParallelRunner      = (JxlEncoderSetParallelRunner_pfn)     GetProcAddress (hModJXL, "JxlEncoderSetParallelRunner");
+
+  static JxlThreadParallelRunner_pfn                        jxlThreadParallelRunner                        = (JxlThreadParallelRunner_pfn)                       GetProcAddress (hModJXLThreads, "JxlThreadParallelRunner");
+  static JxlThreadParallelRunnerCreate_pfn                  jxlThreadParallelRunnerCreate                  = (JxlThreadParallelRunnerCreate_pfn)                 GetProcAddress (hModJXLThreads, "JxlThreadParallelRunnerCreate");
+  static JxlThreadParallelRunnerDestroy_pfn                 jxlThreadParallelRunnerDestroy                 = (JxlThreadParallelRunnerDestroy_pfn)                GetProcAddress (hModJXLThreads, "JxlThreadParallelRunnerDestroy");
+  static JxlThreadParallelRunnerDefaultNumWorkerThreads_pfn jxlThreadParallelRunnerDefaultNumWorkerThreads = (JxlThreadParallelRunnerDefaultNumWorkerThreads_pfn)GetProcAddress (hModJXLThreads, "JxlThreadParallelRunnerDefaultNumWorkerThreads");
+
+  using JxlEncoderSetFrameLossless_pfn    = JxlEncoderStatus (*)(JxlEncoderFrameSettings *frame_settings, JXL_BOOL lossless);
+  using JxlEncoderSetFrameDistance_pfn    = JxlEncoderStatus (*)(JxlEncoderFrameSettings *frame_settings, float distance);
+  using JxlEncoderSetFrameBitDepth_pfn    = JxlEncoderStatus (*)(JxlEncoderFrameSettings *frame_settings, const JxlBitDepth *bit_depth);
+  using JxlEncoderDistanceFromQuality_pfn = float            (*)(float quality);
+
+  static JxlEncoderSetFrameLossless_pfn    jxlEncoderSetFrameLossless    = (JxlEncoderSetFrameLossless_pfn)   GetProcAddress (hModJXL, "JxlEncoderSetFrameLossless");  
+  static JxlEncoderSetFrameDistance_pfn    jxlEncoderSetFrameDistance    = (JxlEncoderSetFrameDistance_pfn)   GetProcAddress (hModJXL, "JxlEncoderSetFrameDistance");    
+  static JxlEncoderSetFrameBitDepth_pfn    jxlEncoderSetFrameBitDepth    = (JxlEncoderSetFrameBitDepth_pfn)   GetProcAddress (hModJXL, "JxlEncoderSetFrameBitDepth");  
+  static JxlEncoderDistanceFromQuality_pfn jxlEncoderDistanceFromQuality = (JxlEncoderDistanceFromQuality_pfn)GetProcAddress (hModJXL, "JxlEncoderDistanceFromQuality");
+
+  bool succeeded = false;
+
+  if ( jxlEncoderCreate                               == nullptr ||
+       jxlThreadParallelRunnerCreate                  == nullptr ||
+       jxlThreadParallelRunnerDefaultNumWorkerThreads == nullptr )
+  {
+    SK_LOGi0 (L"JPEG-XL library unavailable");
+    return false;//E_NOINTERFACE;
+  }
+
+         auto  jxl_encoder = jxlEncoderCreate              (nullptr);
+  static void* jxl_runner  = jxlThreadParallelRunnerCreate (nullptr, config.screenshots.avif.max_threads);
+  // Keep max thread count low, or it will hitch...
+
+  for (;;)
+  {
+    if ( jxl_encoder == nullptr ||
+         jxl_runner  == nullptr )
+      break;
+
+    const DirectX::Image& image =
+      *src_image.GetImages ();
+    
+    if ( JXL_ENC_SUCCESS !=
+           jxlEncoderSetParallelRunner ( jxl_encoder,
+                                           jxlThreadParallelRunner,
+                                             jxl_runner ) )
+    {
+      SK_LOGi0 (L"JxlEncoderSetParallelRunner failed");
+      break;
+    }
+
+    JxlDataType type = JXL_TYPE_FLOAT;
+    size_t      size = sizeof (float);
+
+    std::vector <float> fp_pixels (image.width * image.height * 3);
+
+    auto fp_pixel_comp =
+      fp_pixels.begin ();
+
+    EvaluateImage ( image,
+      [&](const XMVECTOR* pixels, size_t width, size_t y)
+      {
+        UNREFERENCED_PARAMETER(y);
+
+        for (size_t j = 0; j < width; ++j)
+        {
+          XMVECTOR v =
+            *pixels++;
+
+          *fp_pixel_comp++ = XMVectorGetX (v);
+          *fp_pixel_comp++ = XMVectorGetY (v);
+          *fp_pixel_comp++ = XMVectorGetZ (v);
+        }
+      }
+    );
+
+    JxlPixelFormat pixel_format =
+      { 3, type, JXL_NATIVE_ENDIAN, 0 };
+
+    JxlBasicInfo              basic_info = { };
+    jxlEncoderInitBasicInfo (&basic_info);
+
+    float compression_quality =
+      std::min (100.0f, static_cast <float> (config.screenshots.compression_quality) + 0.75f);
+
+    const bool bLossless =
+      (compression_quality == 100.0f);
+
+    basic_info.xsize                    = static_cast <uint32_t> (image.width);
+    basic_info.ysize                    = static_cast <uint32_t> (image.height);
+    basic_info.bits_per_sample          = static_cast <uint32_t> (DirectX::BitsPerColor (image.format));
+    basic_info.exponent_bits_per_sample =                         DirectX::BitsPerColor (image.format) == 32 ? 8 : 5;
+    basic_info.uses_original_profile    = bLossless ? JXL_TRUE : JXL_FALSE;
+
+    if ( JXL_ENC_SUCCESS !=
+           jxlEncoderSetBasicInfo (jxl_encoder, &basic_info) )
+    {
+      SK_LOGi0 (L"JxlEncoderSetBasicInfo failed");
+      break;
+    }
+
+    JxlColorEncoding color_encoding = { };
+
+    color_encoding.color_space       = JXL_COLOR_SPACE_RGB;
+    color_encoding.white_point       = JXL_WHITE_POINT_D65;
+    color_encoding.primaries         = JXL_PRIMARIES_SRGB;
+    color_encoding.transfer_function = JXL_TRANSFER_FUNCTION_LINEAR;
+    color_encoding.rendering_intent  = JXL_RENDERING_INTENT_PERCEPTUAL;
+
+    if ( JXL_ENC_SUCCESS !=
+           jxlEncoderSetColorEncoding (jxl_encoder, &color_encoding) )
+    {
+      SK_LOGi0 (L"JxlEncoderSetColorEncoding failed");
+      break;
+    }
+
+    JxlEncoderFrameSettings* frame_settings =
+      jxlEncoderFrameSettingsCreate (jxl_encoder, nullptr);
+
+    jxlEncoderSetFrameLossless       (frame_settings, bLossless ? JXL_TRUE : JXL_FALSE);
+    jxlEncoderSetFrameDistance       (frame_settings, jxlEncoderDistanceFromQuality (compression_quality));
+    jxlEncoderFrameSettingsSetOption (frame_settings, JXL_ENC_FRAME_SETTING_EFFORT, 7);
+
+    if ( JXL_ENC_SUCCESS !=
+           jxlEncoderAddImageFrame ( frame_settings, &pixel_format,
+             static_cast <const void *> (fp_pixels.data ()),
+                                  size * fp_pixels.size () ) )
+    {
+      SK_LOGi0 (L"JxlEncoderAddImageFrame failed");
+      break;
+    }
+
+    jxlEncoderCloseInput (jxl_encoder);
+
+    std::vector <uint8_t> output (64);
+
+    uint8_t* next_out  = output.data ();
+    size_t   avail_out = output.size () - (next_out - output.data ());
+
+    JxlEncoderStatus process_result = JXL_ENC_NEED_MORE_OUTPUT;
+
+    while (process_result == JXL_ENC_NEED_MORE_OUTPUT)
+    {
+      process_result =
+        jxlEncoderProcessOutput (jxl_encoder, &next_out, &avail_out);
+
+      if (process_result == JXL_ENC_NEED_MORE_OUTPUT)
+      {
+        size_t offset = next_out - output.data ();
+
+        output.resize (output.size () * 2);
+
+        next_out  = output.data () + offset;
+        avail_out = output.size () - offset;
+      }
+    }
+
+    output.resize (next_out - output.data ());
+
+    if (JXL_ENC_SUCCESS != process_result)
+    {
+      SK_LOGi0 (L"JxlEncoderProcessOutput failed");
+      break;
+    }
+
+    wchar_t    wszJXLPath [MAX_PATH + 2] = { };
+    wcsncpy_s (wszJXLPath, wszFilePath, MAX_PATH);
+
+    PathRemoveExtensionW (wszJXLPath);
+    PathAddExtensionW    (wszJXLPath, L".jxl");
+
+    FILE* fOutput =
+      _wfopen (wszJXLPath, L"wb");
+
+    if (fOutput != nullptr)
+    {
+      fwrite (output.data (), output.size (), 1, fOutput);
+      fclose (fOutput);
+
+      SK_LOGi1 (L"JPEG-XL Encode Finished");
+
+      succeeded = true;
+    }
+
+    break;
+  }
+
+  if (jxl_encoder != nullptr)
+    jxlEncoderDestroy (jxl_encoder);
+
+  //if (jxl_runner != nullptr)
+  //  jxlThreadParallelRunnerDestroy (jxl_runner);
+
+  return
+    succeeded;
+}
+
 void
 SK_WIC_SetMaximumQuality (IPropertyBag2 *props)
 {

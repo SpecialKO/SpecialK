@@ -513,6 +513,7 @@ struct sk_config_t
   struct screenshots_s {
     bool         use_avif              = false;
     bool         use_hdr_png           = false;
+    bool         use_jxl               = false;
     bool         png_compress          =  true;
     bool         show_osd_by_default   =  true;
     bool         play_sound            =  true;
@@ -527,7 +528,7 @@ struct sk_config_t
       int        yuv_subsampling       =   444;
       bool       full_range            =  true;
       int        compression_speed     =     8;
-      int        max_threads           =     6;
+      int        max_threads           =     5;
     } avif;
 
     int          compression_quality   =    90;

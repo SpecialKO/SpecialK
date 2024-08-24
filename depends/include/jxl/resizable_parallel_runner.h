@@ -16,7 +16,7 @@
  * created can be changed after creation of the thread pool; the threads
  * (including the main thread) are re-used for every
  * ResizableParallelRunner::Runner call. Only one concurrent
- * JxlResizableParallelRunner call per instance is allowed at a time.
+ * @ref JxlResizableParallelRunner call per instance is allowed at a time.
  *
  * This is a scalable, lower-overhead thread pool runner, especially suitable
  * for data-parallel computations in the fork-join model, where clients need to
@@ -30,31 +30,32 @@
 #ifndef JXL_RESIZABLE_PARALLEL_RUNNER_H_
 #define JXL_RESIZABLE_PARALLEL_RUNNER_H_
 
-#include <jxl/jxl_threads_export.h>
+#define JXL_THREADS_EXPORT
+//#include <jxl/jxl_threads_export.h>
 #include <jxl/memory_manager.h>
 #include <jxl/parallel_runner.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 
-#if defined(__cplusplus) || defined(c_plusplus)
+#ifdef __cplusplus
 extern "C" {
 #endif
 
-/** Parallel runner internally using std::thread. Use as JxlParallelRunner.
+/** Parallel runner internally using std::thread. Use as @ref JxlParallelRunner.
  */
 JXL_THREADS_EXPORT JxlParallelRetCode JxlResizableParallelRunner(
     void* runner_opaque, void* jpegxl_opaque, JxlParallelRunInit init,
     JxlParallelRunFunction func, uint32_t start_range, uint32_t end_range);
 
-/** Creates the runner for JxlResizableParallelRunner. Use as the opaque
+/** Creates the runner for @ref JxlResizableParallelRunner. Use as the opaque
  * runner. The runner will execute tasks on the calling thread until
  * @ref JxlResizableParallelRunnerSetThreads is called.
  */
 JXL_THREADS_EXPORT void* JxlResizableParallelRunnerCreate(
     const JxlMemoryManager* memory_manager);
 
-/** Changes the number of threads for JxlResizableParallelRunner.
+/** Changes the number of threads for @ref JxlResizableParallelRunner.
  */
 JXL_THREADS_EXPORT void JxlResizableParallelRunnerSetThreads(
     void* runner_opaque, size_t num_threads);
@@ -64,11 +65,11 @@ JXL_THREADS_EXPORT void JxlResizableParallelRunnerSetThreads(
 JXL_THREADS_EXPORT uint32_t
 JxlResizableParallelRunnerSuggestThreads(uint64_t xsize, uint64_t ysize);
 
-/** Destroys the runner created by JxlResizableParallelRunnerCreate.
+/** Destroys the runner created by @ref JxlResizableParallelRunnerCreate.
  */
 JXL_THREADS_EXPORT void JxlResizableParallelRunnerDestroy(void* runner_opaque);
 
-#if defined(__cplusplus) || defined(c_plusplus)
+#ifdef __cplusplus
 }
 #endif
 
