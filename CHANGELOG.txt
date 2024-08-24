@@ -1,4 +1,8 @@
-﻿24.8.24.3
+﻿24.8.24.4
+=========
+ + Disable Final Fantasy XVI's Splash Screen so it cannot break DirectFlip
+
+24.8.24.3
 =========
  + Reduce the number of threads Final Fantasy XVI uses for JPEG XL screenshots
      in its photo mode to eliminate hitching (libjxl spawns 1 thread per-core).

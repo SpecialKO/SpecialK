@@ -31,6 +31,11 @@
 
 #include <SpecialK/render/present_mon/TraceSession.hpp>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
+#define __SK_SUBSYSTEM__ L"GlobalHook"
+
 #define SK_INVALID_HANDLE nullptr
 
 NtUserSetWindowsHookEx_pfn    NtUserSetWindowsHookEx    = nullptr;
@@ -1376,6 +1381,17 @@ CBTProc ( _In_ int    nCode,
       CallNextHookEx (
         0, nCode, wParam, lParam
       );
+  }
+
+  if (SK_IsInjected ())
+  {
+    if (nCode == HCBT_CREATEWND && SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXVI)
+    {
+      __try {
+        if (! wcscmp (((CBT_CREATEWNDW *)lParam)->lpcs->lpszClass, L"SplashClass"))
+          return 1;
+      } __except (EXCEPTION_EXECUTE_HANDLER) {}
+    }
   }
 
   if (game_window.hWnd == nullptr && (HWND)wParam != nullptr)
