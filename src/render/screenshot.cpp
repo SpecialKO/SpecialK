@@ -279,10 +279,10 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
     {
       UNREFERENCED_PARAMETER(y);
 
-      static const XMVECTOR pq_range_10bpc = XMVectorReplicate (1023.0f),
-                            pq_range_12bpc = XMVectorReplicate (4095.0f),
-                            pq_range_16bpc = XMVectorReplicate (65535.0f),
-                            pq_range_32bpc = XMVectorReplicate (4294967295.0f);
+      static const XMVECTOR pq_range_10bpc = XMVectorReplicate (1024.0f),
+                            pq_range_12bpc = XMVectorReplicate (4096.0f),
+                            pq_range_16bpc = XMVectorReplicate (65536.0f),
+                            pq_range_32bpc = XMVectorReplicate (4294967296.0f);
 
       auto pq_range_out =
         (typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS)  ? pq_range_10bpc :
@@ -313,8 +313,8 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
         if (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS ||
             typeless_fmt == DXGI_FORMAT_R32G32B32A32_TYPELESS)
         {
-          XMVECTOR nvalue = XMVector3Transform (v, c_from709to2020);
-                        v = LinearToPQ (XMVectorClamp (nvalue, g_XMZero, g_XMInfinity));
+          v =
+            LinearToPQ (XMVector3Transform (v, c_from709to2020));
         }
 
         v = // Quantize to 10- or 12-bpc before expanding to 16-bpc in order to improve
@@ -950,9 +950,9 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
           {
             DirectX::XMVECTOR v = *pixels++;
 
-            *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetX (v) * 1023.0f));
-            *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetY (v) * 1023.0f));
-            *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetZ (v) * 1023.0f));
+            *(rgb_pixels++) = static_cast <uint16_t> (std::min (1023, static_cast <int> (XMVectorGetX (v) * 1024.0f)));
+            *(rgb_pixels++) = static_cast <uint16_t> (std::min (1023, static_cast <int> (XMVectorGetY (v) * 1024.0f)));
+            *(rgb_pixels++) = static_cast <uint16_t> (std::min (1023, static_cast <int> (XMVectorGetZ (v) * 1024.0f)));
           }
         } );
       } break;
@@ -984,21 +984,27 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
           0.0f,                0.0f,                0.0f,                1.0f
         };
 
-        auto LinearToPQ = [](XMVECTOR N)
+        auto LinearToPQ = [](DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = XMVectorReplicate (125.0))
         {
+          using namespace DirectX;
+        
           XMVECTOR ret;
-
+          XMVECTOR sign =
+            XMVectorSet (XMVectorGetX (N) < 0.0f ? -1.0f : 1.0f,
+                         XMVectorGetY (N) < 0.0f ? -1.0f : 1.0f,
+                         XMVectorGetZ (N) < 0.0f ? -1.0f : 1.0f, 1.0f);
+        
           ret =
-            XMVectorPow (N, PQ.N);
-
+            XMVectorPow (XMVectorDivide (XMVectorAbs (N), maxPQValue), PQ.N);
+        
           XMVECTOR nd =
             XMVectorDivide (
                XMVectorAdd (  PQ.C1, XMVectorMultiply (PQ.C2, ret)),
                XMVectorAdd (g_XMOne, XMVectorMultiply (PQ.C3, ret))
             );
-
+        
           return
-            XMVectorPow (nd, PQ.M);
+            XMVectorMultiply (XMVectorPow (nd, PQ.M), sign);
         };
 
         uint16_t* rgb_pixels = (uint16_t *)rgb.pixels;
@@ -1006,7 +1012,6 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
         DirectX::ScratchImage
           hdr10_img;
           hdr10_img.InitializeFromImage (*src_image.GetImages ());
-
 
         EvaluateImage ( src_image.GetImages     (),
                         src_image.GetImageCount (),
@@ -1019,12 +1024,12 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
           {
             XMVECTOR value = pixels [j];
 
-            value = XMVector3Transform (XMVectorDivide   (value, PQ.MaxPQ), c_from709to2020);
-            value =         LinearToPQ (XMVectorSaturate (value));
+            value =
+              LinearToPQ (XMVector3Transform (value, c_from709to2020));
 
-            *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetX (value) * 65535.0f));
-            *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetY (value) * 65535.0f));
-            *(rgb_pixels++) = static_cast <uint16_t> (roundf (XMVectorGetZ (value) * 65535.0f));
+            *(rgb_pixels++) = static_cast <uint16_t> (std::min (65535, static_cast <int> (XMVectorGetX (value) * 65536.0f)));
+            *(rgb_pixels++) = static_cast <uint16_t> (std::min (65535, static_cast <int> (XMVectorGetY (value) * 65536.0f)));
+            *(rgb_pixels++) = static_cast <uint16_t> (std::min (65535, static_cast <int> (XMVectorGetZ (value) * 65536.0f)));
           }
         } );
       } break;
@@ -1749,7 +1754,7 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
       percent -=
         100.0 * ((double)luminance_freq [i] / img_size);
 
-      if (percent <= 99.9)
+      if (percent <= 99.975)
       {
         fMaxLum =
           fMinLum + (fLumRange * ((float)i / 65536.0f));
