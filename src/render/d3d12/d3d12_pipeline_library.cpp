@@ -373,6 +373,8 @@ D3D12Device1_CreatePipelineLibrary_Detour (
 void
 SK_D3D12_HookPipelineLibrary (ID3D12Device1* pDevice1)
 {
+  return;
+
   if (pDevice1 == nullptr)
     return;
 

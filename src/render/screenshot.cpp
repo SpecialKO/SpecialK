@@ -1173,6 +1173,54 @@ bool isJXLEncoderAvailable (void)
   return supported;
 }
 
+static const DirectX::XMVECTOR g_MaxPQValue =
+  DirectX::XMVectorReplicate (125.0f);
+
+struct ParamsPQ
+{
+  XMVECTOR N, M;
+  XMVECTOR C1, C2, C3;
+  XMVECTOR MaxPQ;
+};
+
+static const ParamsPQ PQ =
+{
+  XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
+  XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
+  XMVectorReplicate (3424.0 / 4096.0),         // C1
+  XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
+  XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
+  XMVectorReplicate (125.0),
+};
+
+static auto PQToLinear = [](DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = g_MaxPQValue)
+{
+using namespace DirectX;
+
+  XMVECTOR ret;
+
+  XMVECTOR sign =
+    XMVectorSet (XMVectorGetX (N) < 0.0f ? -1.0f : 1.0f,
+                 XMVectorGetY (N) < 0.0f ? -1.0f : 1.0f,
+                 XMVectorGetZ (N) < 0.0f ? -1.0f : 1.0f, 1.0f);
+
+  ret =
+    XMVectorPow (XMVectorAbs (N), XMVectorDivide (g_XMOne, PQ.M));
+
+  XMVECTOR nd;
+
+  nd =
+    XMVectorDivide (
+      XMVectorMax (XMVectorSubtract (ret, PQ.C1), g_XMZero),
+                   XMVectorSubtract (     PQ.C2,
+            XMVectorMultiply (PQ.C3, ret)));
+
+  ret =
+    XMVectorMultiply (XMVectorMultiply (XMVectorPow (nd, XMVectorDivide (g_XMOne, PQ.N)), maxPQValue), sign);
+
+  return ret;
+};
+
 bool
 SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFilePath)
 {
@@ -1270,6 +1318,14 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
     auto fp_pixel_comp =
       fp_pixels.begin ();
 
+    static const XMMATRIX c_from2020to709 = // Transposed
+    {
+       1.66096379471340f,   -0.124477196529907f,   -0.0181571579858552f, 0.0f,
+      -0.588112737547978f,   1.13281946828499f,    -0.100666415661988f,  0.0f,
+      -0.0728510571654192f, -0.00834227175508652f,  1.11882357364784f,   0.0f,
+       0.0f,                 0.0f,                  0.0f,                1.0f
+    };
+
     EvaluateImage ( image,
       [&](const XMVECTOR* pixels, size_t width, size_t y)
       {
@@ -1279,6 +1335,14 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
         {
           XMVECTOR v =
             *pixels++;
+
+          if (image.format == DXGI_FORMAT_R10G10B10A2_UNORM)
+          {
+            v =
+              XMVector3Transform (
+                PQToLinear (XMVectorSaturate (v)), c_from2020to709
+              );
+          }
 
           *fp_pixel_comp++ = XMVectorGetX (v);
           *fp_pixel_comp++ = XMVectorGetY (v);
@@ -1904,49 +1968,6 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
     0.144616901f, 0.6779980650f, 0.0280726924f, 0.0f,
     0.168880969f, 0.0593017153f, 1.0609850800f, 0.0f,
     0.0f,         0.0f,          0.0f,          1.0f
-  };
-  
-  struct ParamsPQ
-  {
-    XMVECTOR N, M;
-    XMVECTOR C1, C2, C3;
-    XMVECTOR MaxPQ;
-  };
-  
-  static const ParamsPQ PQ =
-  {
-    XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
-    XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
-    XMVectorReplicate (3424.0 / 4096.0),         // C1
-    XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
-    XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
-    XMVectorReplicate (125.0),
-  };
-
-  auto PQToLinear = [](XMVECTOR N)
-  {
-    XMVECTOR ret;
-
-    XMVECTOR sign =
-      XMVectorSet (XMVectorGetX (N) < 0.0f ? -1.0f : 1.0f,
-                   XMVectorGetY (N) < 0.0f ? -1.0f : 1.0f,
-                   XMVectorGetZ (N) < 0.0f ? -1.0f : 1.0f, 1.0f);
-
-    ret =
-      XMVectorPow (XMVectorAbs (N), XMVectorDivide (g_XMOne, PQ.M));
-
-    XMVECTOR nd;
-
-    nd =
-      XMVectorDivide (
-        XMVectorMax (XMVectorSubtract (ret, PQ.C1), g_XMZero),
-                     XMVectorSubtract (     PQ.C2,
-              XMVectorMultiply (PQ.C3, ret)));
-
-    ret =
-      XMVectorMultiply (XMVectorMultiply (XMVectorPow (nd, XMVectorDivide (g_XMOne, PQ.N)), PQ.MaxPQ), sign);
-
-    return ret;
   };
 
   float N         =       0.0f;

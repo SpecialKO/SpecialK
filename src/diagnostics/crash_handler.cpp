@@ -129,10 +129,16 @@ SK_Crash_PlaySound (void)
     extern bool SK_ImGui_WantExit;          // Mute crash sound while exiting
     if (0 == ReadAcquire (&__SK_DLL_Ending) && (! SK_ImGui_WantExit))
     {
-      SK_PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound->buf),
-                       nullptr,
-                         SND_SYNC |
-                         SND_MEMORY );
+      if ((SK_GetAsyncKeyState (VK_MENU)  & 0x8000) == 0x0 &&
+          (SK_GetAsyncKeyState (VK_LMENU) & 0x8000) == 0x0 &&
+          (SK_GetAsyncKeyState (VK_RMENU) & 0x8000) == 0x0 &&
+          (SK_GetAsyncKeyState (VK_F4)    & 0x8000) == 0x0)
+      {
+        SK_PlaySound ( reinterpret_cast <LPCWSTR> (crash_sound->buf),
+                         nullptr,
+                           SND_SYNC |
+                           SND_MEMORY );
+      }
     }
 
     ret = true;

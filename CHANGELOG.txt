@@ -1,4 +1,8 @@
-﻿24.8.24.1
+﻿24.8.24.2
+=========
+ + Transform HDR10 to scRGB before encoding JPEG-XL screenshots in HDR10 games
+
+24.8.24.1
 =========
  + Added support for JPEG-XL screenshots (64-bit only; 32-bit will be added)
 
