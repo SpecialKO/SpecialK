@@ -1292,6 +1292,15 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                                     bool               wait,
                                     bool               purge)
 {
+  static std::atomic_int run_count = 0;
+
+  if (stage_ != SK_ScreenshotStage::_FlushQueue)
+    ++run_count;
+
+  else if (run_count == 0)
+    return;
+
+
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 

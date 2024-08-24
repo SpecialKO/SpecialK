@@ -1313,18 +1313,10 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
     JxlDataType type = JXL_TYPE_FLOAT;
     size_t      size = sizeof (float);
 
-    std::vector <float> fp_pixels (image.width * image.height * 3);
+    std::vector <float> fp32_pixels (image.width * image.height * 3);
 
-    auto fp_pixel_comp =
-      fp_pixels.begin ();
-
-    static const XMMATRIX c_from2020to709 = // Transposed
-    {
-       1.66096379471340f,   -0.124477196529907f,   -0.0181571579858552f, 0.0f,
-      -0.588112737547978f,   1.13281946828499f,    -0.100666415661988f,  0.0f,
-      -0.0728510571654192f, -0.00834227175508652f,  1.11882357364784f,   0.0f,
-       0.0f,                 0.0f,                  0.0f,                1.0f
-    };
+    auto fp32_pixel =
+      fp32_pixels.begin ();
 
     EvaluateImage ( image,
       [&](const XMVECTOR* pixels, size_t width, size_t y)
@@ -1336,17 +1328,9 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
           XMVECTOR v =
             *pixels++;
 
-          if (image.format == DXGI_FORMAT_R10G10B10A2_UNORM)
-          {
-            v =
-              XMVector3Transform (
-                PQToLinear (XMVectorSaturate (v)), c_from2020to709
-              );
-          }
-
-          *fp_pixel_comp++ = XMVectorGetX (v);
-          *fp_pixel_comp++ = XMVectorGetY (v);
-          *fp_pixel_comp++ = XMVectorGetZ (v);
+          *fp32_pixel++ = XMVectorGetX (v);
+          *fp32_pixel++ = XMVectorGetY (v);
+          *fp32_pixel++ = XMVectorGetZ (v);
         }
       }
     );
@@ -1380,8 +1364,14 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
 
     color_encoding.color_space       = JXL_COLOR_SPACE_RGB;
     color_encoding.white_point       = JXL_WHITE_POINT_D65;
-    color_encoding.primaries         = JXL_PRIMARIES_SRGB;
-    color_encoding.transfer_function = JXL_TRANSFER_FUNCTION_LINEAR;
+    color_encoding.primaries         =
+          (image.format == DXGI_FORMAT_R10G10B10A2_UNORM) ?
+                                       JXL_PRIMARIES_2100 :
+                                       JXL_PRIMARIES_SRGB;
+    color_encoding.transfer_function =
+          (image.format == DXGI_FORMAT_R10G10B10A2_UNORM)       ?
+                                       JXL_TRANSFER_FUNCTION_PQ :
+                                       JXL_TRANSFER_FUNCTION_LINEAR;
     color_encoding.rendering_intent  = JXL_RENDERING_INTENT_PERCEPTUAL;
 
     if ( JXL_ENC_SUCCESS !=
@@ -1400,8 +1390,8 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
 
     if ( JXL_ENC_SUCCESS !=
            jxlEncoderAddImageFrame ( frame_settings, &pixel_format,
-             static_cast <const void *> (fp_pixels.data ()),
-                                  size * fp_pixels.size () ) )
+             static_cast <const void *> (fp32_pixels.data ()),
+                                  size * fp32_pixels.size () ) )
     {
       SK_LOGi0 (L"JxlEncoderAddImageFrame failed");
       break;
@@ -1409,13 +1399,13 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
 
     jxlEncoderCloseInput (jxl_encoder);
 
-    std::vector <uint8_t> output (64);
+    std::vector <uint8_t> output (65536);
 
     uint8_t* next_out  = output.data ();
     size_t   avail_out = output.size () - (next_out - output.data ());
 
-    JxlEncoderStatus process_result = JXL_ENC_NEED_MORE_OUTPUT;
-
+    JxlEncoderStatus
+           process_result  = JXL_ENC_NEED_MORE_OUTPUT;
     while (process_result == JXL_ENC_NEED_MORE_OUTPUT)
     {
       process_result =
@@ -1432,7 +1422,8 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
       }
     }
 
-    output.resize (next_out - output.data ());
+    size_t output_size =
+      (next_out - output.data ());
 
     if (JXL_ENC_SUCCESS != process_result)
     {
@@ -1451,7 +1442,7 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
 
     if (fOutput != nullptr)
     {
-      fwrite (output.data (), output.size (), 1, fOutput);
+      fwrite (output.data (), output_size, 1, fOutput);
       fclose (fOutput);
 
       SK_LOGi1 (L"JPEG-XL Encode Finished");
