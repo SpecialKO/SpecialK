@@ -56,7 +56,7 @@ float4 main (PS_INPUT input) : SV_Target
     if ( input.uv2.x > 0.0f &&
          input.uv2.y > 0.0f )
     {
-      out_col.rgb =
+      out_col.rgb =  sign (out_col.rgb) *
         pow (
           RemoveSRGBCurve (out_col.rgb),
                 input.uv2.yyy

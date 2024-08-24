@@ -192,21 +192,21 @@ float4 FastSign (float4 x)
 float PositivePow (float base, float power)
 {
   return
-    pow ( max (abs (base), float (FLT_MIN)), power );
+    sign (base) * pow ( max (abs (base), float (FLT_MIN)), power );
 }
 
 float3 PositivePow (float3 base, float3 power)
 {
   return
-    pow (max (abs (base), float3 ( FLT_MIN, FLT_MIN,
-                                   FLT_MIN )), power );
+    sign (base) * pow (max (abs (base), float3 ( FLT_MIN, FLT_MIN,
+                                                 FLT_MIN )), power );
 }
 
 float4 PositivePow (float4 base, float4 power)
 {
   return
-    pow (max (abs (base), float4 ( FLT_MIN, FLT_MIN,
-                                   FLT_MIN, FLT_MIN )), power );
+    sign (base) * pow (max (abs (base), float4 ( FLT_MIN, FLT_MIN,
+                                                 FLT_MIN, FLT_MIN )), power );
 }
 
 struct SK_ColorSpace

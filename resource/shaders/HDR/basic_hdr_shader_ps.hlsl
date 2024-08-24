@@ -460,9 +460,9 @@ main (PS_INPUT input) : SV_TARGET
   {
     if (input.color.y != 1.0f)
     {
-      hdr_color.rgb =
-        PositivePow (  hdr_color.rgb,
-                     input.color.yyy );
+      hdr_color.rgb = sign (hdr_color.rgb) *
+                  pow (abs (hdr_color.rgb),
+                          input.color.yyy);
     }
   }
 
@@ -473,65 +473,71 @@ main (PS_INPUT input) : SV_TARGET
     const float pb_param_2 = pqBoostParams.z;
     const float pb_param_3 = pqBoostParams.w;
 
-    float fLuma =
-      Rec709_to_XYZ (hdr_color.rgb).y;
+    float3 hdr_color_xyz =
+      Rec709_to_XYZ (hdr_color.rgb);
+    
+    float fLuma   =
+      max (hdr_color_xyz.y, 0.0f);
+    hdr_color.rgb =
+      max (hdr_color_xyz  , 0.0f);
 
-    hdr_color.rgb = max (Rec709_to_XYZ (hdr_color.rgb), 0.0f);
-
-    float4 new_color = 0.0f;
+    float4 new_color  = 0.0f;
     float3 new_color0 = 0.0f,
            new_color1 = 0.0f;
 
-    if (colorBoost == 0.0 || colorBoost == 1.0)
+    if (fLuma > 0.0f)
     {
-      // Optimized for no color boost
-      if (colorBoost == 0.0)
+      if (colorBoost == 0.0 || colorBoost == 1.0)
       {
-        new_color0 =
-          ( PQToLinear (
-              LinearToPQ ( fLuma,
+        // Optimized for no color boost
+        if (colorBoost == 0.0)
+        {
+          new_color0 =
+            ( PQToLinear (
+                LinearToPQ ( fLuma,
+                             pb_param_0 ) *
+                             pb_param_2, pb_param_1
+                         ) / pb_param_3 ).xxx;
+        }
+
+        // Optimized for full color boost
+        if (colorBoost == 1.0)
+        {
+          new_color1 =
+            PQToLinear (
+              LinearToPQ ( hdr_color.rgb,
                            pb_param_0 ) *
                            pb_param_2, pb_param_1
-                       ) / pb_param_3 ).xxx;
+                       ) / pb_param_3;
+        }
+
+        new_color.rgb =
+          lerp (hdr_color.rgb * new_color0 / fLuma,
+                                new_color1, colorBoost);
       }
 
-      // Optimized for full color boost
-      if (colorBoost == 1.0)
+      // Optimization for both at the same time.
+      else
       {
-        new_color1 =
-          PQToLinear (
-            LinearToPQ ( hdr_color.rgb,
-                         pb_param_0 ) *
-                         pb_param_2, pb_param_1
-                     ) / pb_param_3;
+        new_color =
+           PQToLinear(
+              LinearToPQ(float4(hdr_color.rgb, fLuma),
+                           pb_param_0) *
+                           pb_param_2, pb_param_1
+                       ) / pb_param_3;
+
+        new_color.rgb =
+          lerp(hdr_color.rgb * new_color.www / fLuma,
+                                new_color.rgb, colorBoost);
       }
-
-      new_color.rgb =
-        lerp (hdr_color.rgb * new_color0 / fLuma,
-                              new_color1, colorBoost);
-    }
-
-    // Optimization for both at the same time.
-    else
-    {
-      new_color =
-         PQToLinear (
-            LinearToPQ ( float4 (hdr_color.rgb, fLuma),
-                         pb_param_0 ) *
-                         pb_param_2, pb_param_1
-                     ) / pb_param_3;
-
-      new_color.rgb =
-        lerp (hdr_color.rgb * new_color.www / fLuma,
-                              new_color.rgb, colorBoost);
-    }
 
 #ifdef INCLUDE_NAN_MITIGATION
-    if (! AnyIsNan (  new_color))
+      if (! AnyIsNan (  new_color))
 #endif
-      hdr_color.rgb = new_color.rgb;
-
-    hdr_color.rgb = XYZ_to_Rec709 (hdr_color.rgb);
+        hdr_color.rgb = new_color.rgb;
+      
+      hdr_color.rgb = XYZ_to_Rec709 (hdr_color.rgb);
+    }
   }
 
 #ifdef INCLUDE_HDR10
