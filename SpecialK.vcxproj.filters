@@ -49,9 +49,6 @@
     <Filter Include="Source Files\ImGui">
       <UniqueIdentifier>{cf214024-b450-4bab-88b6-9b0f9bf7aee2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\stb">
-      <UniqueIdentifier>{fe26823d-cc7b-4371-99fc-33ea554633c7}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\Backends\Input">
       <UniqueIdentifier>{72c67e28-e403-4857-b012-3e8c3d5987cd}</UniqueIdentifier>
     </Filter>
@@ -388,6 +385,12 @@
     <Filter Include="Source Files\Backends\Render\PresentMon">
       <UniqueIdentifier>{1d7182b2-5632-4acb-ac0f-c43dcd7f2607}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\External Libraries\jxl">
+      <UniqueIdentifier>{a9af97e5-a22d-4661-8d83-84f5171a1c11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\External Libraries\stb">
+      <UniqueIdentifier>{fe26823d-cc7b-4371-99fc-33ea554633c7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -477,9 +480,6 @@
     <ClInclude Include="include\SpecialK\hooks.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\window.h">
-      <Filter>Header Files\Backends</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\sound.h">
       <Filter>Header Files\Utility</Filter>
     </ClInclude>
@@ -493,13 +493,13 @@
       <Filter>Header Files\ImGui</Filter>
     </ClInclude>
     <ClInclude Include="include\stb\rect_pack.h">
-      <Filter>Header Files\stb</Filter>
+      <Filter>Header Files\External Libraries\stb</Filter>
     </ClInclude>
     <ClInclude Include="include\stb\textedit.h">
-      <Filter>Header Files\stb</Filter>
+      <Filter>Header Files\External Libraries\stb</Filter>
     </ClInclude>
     <ClInclude Include="include\stb\truetype.h">
-      <Filter>Header Files\stb</Filter>
+      <Filter>Header Files\External Libraries\stb</Filter>
     </ClInclude>
     <ClInclude Include="include\imgui\backends\imgui_vk.h">
       <Filter>Header Files\ImGui</Filter>
@@ -3093,8 +3093,65 @@
     <ClInclude Include="include\SpecialK\control_panel\notifications.h">
       <Filter>Header Files\Control Panel</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\window.h">
+      <Filter>Header Files\Core</Filter>
+    </ClInclude>
     <ClInclude Include="include\SpecialK\steam_api.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Storefronts\Steam</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\cms.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\cms_interface.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\codestream_header.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\color_encoding.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\compressed_icc.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\decode.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\decode_cxx.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\encode.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\encode_cxx.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\gain_map.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\memory_manager.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\parallel_runner.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\resizable_parallel_runner.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\resizable_parallel_runner_cxx.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\stats.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\thread_parallel_runner.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\thread_parallel_runner_cxx.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\jxl\types.h">
+      <Filter>Header Files\External Libraries\jxl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -3704,17 +3761,17 @@
     <ClCompile Include="src\imgui\backends\imgui_gl3.cpp">
       <Filter>Source Files\Backends\Render\OpenGL</Filter>
     </ClCompile>
-    <ClCompile Include="src\input\hid_reports\playstation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\input\bluetooth.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\sound.cpp">
       <Filter>Source Files\Widgets</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\ffxvi.cpp">
       <Filter>Source Files\Plugins</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\hid_reports\playstation.cpp">
+      <Filter>Source Files\Backends\Input\HID</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\bluetooth.cpp">
+      <Filter>Source Files\Backends\Input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -4785,6 +4842,8 @@
     <FxCompile Include="resource\shaders\blt_copy_cs.hlsl">
       <Filter>Resource Files\Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="resource\shaders\HDR\cs_luminance_analysis.hlsl" />
+    <FxCompile Include="resource\shaders\HDR\cs_luminance_analysis.hlsl">
+      <Filter>Resource Files\Shaders\HDR</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

@@ -8241,7 +8241,7 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
     SK_LOGi0 (
       L"HDR Metadata: Max Mastering=%d nits, Min Mastering=%f nits, MaxCLL=%d nits, MaxFALL=%d nits",
       metadata.MaxMasteringLuminance, (double)metadata.MinMasteringLuminance * 0.0001,
-      metadata.MaxContentLightLevel, metadata.MaxFrameAverageLightLevel
+      metadata.MaxContentLightLevel,          metadata.MaxFrameAverageLightLevel
     );
 
     if (config.render.dxgi.hdr_metadata_override == -1)
@@ -8251,6 +8251,12 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
 
       auto& display =
         rb.displays [rb.active_display];
+
+      if (display.gamut.maxY == 0.0f)
+      {
+        return
+          IDXGISwapChain4_SetHDRMetaData_Original (This, DXGI_HDR_METADATA_TYPE_NONE, 0, nullptr);
+      }
 
 #if 0
       if ((float)metadata.MaxMasteringLuminance > display.gamut.maxY)

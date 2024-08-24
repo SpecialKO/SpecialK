@@ -1,6 +1,11 @@
-﻿24.8.24.4
+﻿24.8.25
+=======
+ + Implement half-float (scRGB) and uint16 (HDR10) lossless JPEG XL encoding
+
+24.8.24.4
 =========
  + Disable Final Fantasy XVI's Splash Screen so it cannot break DirectFlip
+     >> Only works for Global Injection
 
 24.8.24.3
 =========

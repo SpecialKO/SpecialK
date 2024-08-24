@@ -1107,12 +1107,12 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
 #include <jxl/thread_parallel_runner_cxx.h>
 #include <jxl/types.h>
 
+static HMODULE hModJXL        = nullptr;
+static HMODULE hModJXLCMS     = nullptr;
+static HMODULE hModJXLThreads = nullptr;
+
 bool isJXLEncoderAvailable (void)
 {
-  static HMODULE hModJXL        = nullptr;
-  static HMODULE hModJXLCMS     = nullptr;
-  static HMODULE hModJXLThreads = nullptr;
-
   SK_RunOnce (
   {
     static const wchar_t* wszPluginArch =
@@ -1228,12 +1228,6 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
   if (!       isJXLEncoderAvailable ())
     return false;
 
-  static HMODULE hModJXL;
-  SK_RunOnce (   hModJXL = LoadLibraryW (L"jxl.dll"));
-
-  static HMODULE hModJXLThreads;
-  SK_RunOnce (   hModJXLThreads = LoadLibraryW (L"jxl_threads.dll"));
-
   using JxlEncoderCreate_pfn                               = JxlEncoder*              (*)(const JxlMemoryManager* memory_manager);
   using JxlEncoderDestroy_pfn                              = void                     (*)(JxlEncoder* enc);
   using JxlEncoderCloseInput_pfn                           = void                     (*)(JxlEncoder* enc);
@@ -1310,27 +1304,56 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
       break;
     }
 
-    JxlDataType type = JXL_TYPE_FLOAT;
-    size_t      size = sizeof (float);
+    float compression_quality =
+      std::min (100.0f, static_cast <float> (config.screenshots.compression_quality) + 0.75f);
 
-    std::vector <float> fp32_pixels (image.width * image.height * 3);
+    const bool bLossless =
+      (compression_quality == 100.0f);
 
-    auto fp32_pixel =
-      fp32_pixels.begin ();
+    JxlDataType type;
+    size_t      size = sizeof (uint16_t);
+
+    switch (image.format)
+    {
+      default:
+      case DXGI_FORMAT_R16G16B16A16_UNORM: type = JXL_TYPE_FLOAT16; break;
+      case DXGI_FORMAT_R10G10B10A2_UNORM:  type = JXL_TYPE_UINT16;  break;
+    }
+
+    std::vector <uint16_t> rgb16_pixels (image.width * image.height * 3);
+
+    auto rgb16_pixel =
+      rgb16_pixels.begin ();
 
     EvaluateImage ( image,
       [&](const XMVECTOR* pixels, size_t width, size_t y)
       {
+        using namespace DirectX::PackedVector;
+
         UNREFERENCED_PARAMETER(y);
 
-        for (size_t j = 0; j < width; ++j)
+        if (image.format == DXGI_FORMAT_R10G10B10A2_UNORM)
         {
-          XMVECTOR v =
-            *pixels++;
+          for (size_t j = 0; j < width; ++j)
+          {
+            XMVECTOR v = *pixels++;
 
-          *fp32_pixel++ = XMVectorGetX (v);
-          *fp32_pixel++ = XMVectorGetY (v);
-          *fp32_pixel++ = XMVectorGetZ (v);
+            *rgb16_pixel++ = static_cast <uint16_t> (std::min (65535ui32, (uint32_t)(XMVectorGetX (v) * 65536.0f)));
+            *rgb16_pixel++ = static_cast <uint16_t> (std::min (65535ui32, (uint32_t)(XMVectorGetY (v) * 65536.0f)));
+            *rgb16_pixel++ = static_cast <uint16_t> (std::min (65535ui32, (uint32_t)(XMVectorGetZ (v) * 65536.0f)));
+          }
+        }
+
+        else
+        {
+          for (size_t j = 0; j < width; ++j)
+          {
+            XMHALF4 half4 (pixels++->m128_f32);
+
+            *rgb16_pixel++ = half4.x;
+            *rgb16_pixel++ = half4.y;
+            *rgb16_pixel++ = half4.z;
+          }
         }
       }
     );
@@ -1341,17 +1364,25 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
     JxlBasicInfo              basic_info = { };
     jxlEncoderInitBasicInfo (&basic_info);
 
-    float compression_quality =
-      std::min (100.0f, static_cast <float> (config.screenshots.compression_quality) + 0.75f);
+    basic_info.xsize                 = static_cast <uint32_t> (image.width);
+    basic_info.ysize                 = static_cast <uint32_t> (image.height);
+    basic_info.uses_original_profile = bLossless ? JXL_TRUE : JXL_FALSE;
 
-    const bool bLossless =
-      (compression_quality == 100.0f);
-
-    basic_info.xsize                    = static_cast <uint32_t> (image.width);
-    basic_info.ysize                    = static_cast <uint32_t> (image.height);
-    basic_info.bits_per_sample          = static_cast <uint32_t> (DirectX::BitsPerColor (image.format));
-    basic_info.exponent_bits_per_sample =                         DirectX::BitsPerColor (image.format) == 32 ? 8 : 5;
-    basic_info.uses_original_profile    = bLossless ? JXL_TRUE : JXL_FALSE;
+    switch (image.format)
+    {
+      case DXGI_FORMAT_R16G16B16A16_FLOAT:
+        basic_info.bits_per_sample          = 16;
+        basic_info.exponent_bits_per_sample =  5;
+        break;
+      case DXGI_FORMAT_R10G10B10A2_UNORM:
+        basic_info.bits_per_sample          = 10;
+        basic_info.exponent_bits_per_sample =  0;
+        break;
+      default:
+        basic_info.bits_per_sample          = static_cast <uint32_t> (DirectX::BitsPerColor (image.format));
+        basic_info.exponent_bits_per_sample =                         DirectX::BitsPerColor (image.format) == 32 ? 8 : 5;
+        break;
+    }
 
     if ( JXL_ENC_SUCCESS !=
            jxlEncoderSetBasicInfo (jxl_encoder, &basic_info) )
@@ -1362,17 +1393,22 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
 
     JxlColorEncoding color_encoding = { };
 
-    color_encoding.color_space       = JXL_COLOR_SPACE_RGB;
-    color_encoding.white_point       = JXL_WHITE_POINT_D65;
-    color_encoding.primaries         =
-          (image.format == DXGI_FORMAT_R10G10B10A2_UNORM) ?
-                                       JXL_PRIMARIES_2100 :
-                                       JXL_PRIMARIES_SRGB;
-    color_encoding.transfer_function =
-          (image.format == DXGI_FORMAT_R10G10B10A2_UNORM)       ?
-                                       JXL_TRANSFER_FUNCTION_PQ :
-                                       JXL_TRANSFER_FUNCTION_LINEAR;
-    color_encoding.rendering_intent  = JXL_RENDERING_INTENT_PERCEPTUAL;
+    color_encoding.color_space      = JXL_COLOR_SPACE_RGB;
+    color_encoding.white_point      = JXL_WHITE_POINT_D65;
+    color_encoding.rendering_intent = JXL_RENDERING_INTENT_PERCEPTUAL;
+
+    switch (image.format)
+    {
+      default:
+      case DXGI_FORMAT_R16G16B16A16_FLOAT:
+        color_encoding.primaries         = JXL_PRIMARIES_SRGB;
+        color_encoding.transfer_function = JXL_TRANSFER_FUNCTION_LINEAR;
+        break;
+      case DXGI_FORMAT_R10G10B10A2_UNORM:
+        color_encoding.primaries         = JXL_PRIMARIES_2100;
+        color_encoding.transfer_function = JXL_TRANSFER_FUNCTION_PQ;
+        break;
+    }
 
     if ( JXL_ENC_SUCCESS !=
            jxlEncoderSetColorEncoding (jxl_encoder, &color_encoding) )
@@ -1390,8 +1426,8 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
 
     if ( JXL_ENC_SUCCESS !=
            jxlEncoderAddImageFrame ( frame_settings, &pixel_format,
-             static_cast <const void *> (fp32_pixels.data ()),
-                                  size * fp32_pixels.size () ) )
+             static_cast <const void *> (rgb16_pixels.data ()),
+                                  size * rgb16_pixels.size () ) )
     {
       SK_LOGi0 (L"JxlEncoderAddImageFrame failed");
       break;
