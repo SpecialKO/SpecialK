@@ -273,7 +273,8 @@ SK_GetCurrentGameID (void)
       if (app_id == 1382330)
         current_game = SK_GAME_ID::Persona5Strikers;
 
-      if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) )
+      if ( StrStrIW ( SK_GetHostApp (), L"ffxv" ) ==
+                      SK_GetHostApp () )
       {
         if ( StrStrIW ( SK_GetHostApp (), L"ffxv_" ) )
         {
@@ -282,7 +283,7 @@ SK_GetCurrentGameID (void)
           SK_FFXV_InitPlugin ();
         }
 
-        else if ( StrStrIW ( SK_GetHostApp (), L"ffxvi_" ) )
+        else if ( StrStrIW ( SK_GetHostApp (), L"ffxvi" ) )
         {
           current_game = SK_GAME_ID::FinalFantasyXVI;
 

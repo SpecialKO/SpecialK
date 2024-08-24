@@ -276,6 +276,9 @@ SK_FFXVI_PlugInCfg (void)
 void
 SK_FFXVI_InitPlugin (void)
 {
+  // Game always crashes at shutdown
+  config.system.silent_crash = true;
+
   plugin_mgr->first_frame_fns.emplace (SK_FFXVI_PresentFirstFrame);
   plugin_mgr->config_fns.emplace      (SK_FFXVI_PlugInCfg);
 
