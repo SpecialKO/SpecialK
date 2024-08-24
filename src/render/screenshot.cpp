@@ -1146,7 +1146,7 @@ bool isJXLEncoderAvailable (void)
              hModJXLCMS     != nullptr &&
              hModJXLThreads != nullptr )
         {
-          //SK_LOGi0 ("Loaded JPEG-XL DLLs from: %ws", path_to_sk.c_str ());
+          //SK_LOGi0 ("Loaded JPEG XL DLLs from: %ws", path_to_sk.c_str ());
           return true;
         }
       }
@@ -1160,7 +1160,7 @@ bool isJXLEncoderAvailable (void)
          hModJXLCMS     != nullptr &&
          hModJXLThreads != nullptr )
     {
-      //SK_LOGi0 ("Loaded JPEG-XL DLLs from default DLL search path");
+      //SK_LOGi0 ("Loaded JPEG XL DLLs from default DLL search path");
       return true;
     }
   });
@@ -1284,7 +1284,7 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
        jxlThreadParallelRunnerCreate                  == nullptr ||
        jxlThreadParallelRunnerDefaultNumWorkerThreads == nullptr )
   {
-    SK_LOGi0 (L"JPEG-XL library unavailable");
+    SK_LOGi0 (L"JPEG XL library unavailable");
     return false;//E_NOINTERFACE;
   }
 
@@ -1445,7 +1445,7 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
       fwrite (output.data (), output_size, 1, fOutput);
       fclose (fOutput);
 
-      SK_LOGi1 (L"JPEG-XL Encode Finished");
+      SK_LOGi1 (L"JPEG XL Encode Finished");
 
       succeeded = true;
     }

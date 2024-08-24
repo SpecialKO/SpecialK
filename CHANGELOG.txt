@@ -1,10 +1,10 @@
 ﻿24.8.24.2
 =========
- + Transform HDR10 to scRGB before encoding JPEG-XL screenshots in HDR10 games
+ + Transform HDR10 to scRGB before encoding JPEG XL screenshots in HDR10 games
 
 24.8.24.1
 =========
- + Added support for JPEG-XL screenshots (64-bit only; 32-bit will be added)
+ + Added support for JPEG XL screenshots (64-bit only; 32-bit will be added)
 
    * Default quality level is 99%, this is primarily a lossy format.
    * JXL lossless compression ratio is poor, but not as poor as PNG.
@@ -24,7 +24,7 @@
 
 24.8.22
 =======
- + Added FFXVI plug-in to improve JPEG-XL screenshot quality after looking at
+ + Added FFXVI plug-in to improve JPEG XL screenshot quality after looking at
      the artifacts caused by Square-Enix's default compression settings.
 
     >> Screenshots are now 16-bpc instead of 8-bpc and quality set to 98.5%
@@ -2957,7 +2957,7 @@
 23.12.22
 ========
  + Added option to use compatibility hacks when storing screenshots to make
-     them work with software that does not completely implement AVIF and JPEG-XR
+     them work with software that does not completely implement AVIF and JPEG XR
        decoding.
 
    Global\osd.ini:
@@ -3026,7 +3026,7 @@
 
 23.12.18.2
 ==========
- + Added compression quality setting for JPEG-XR HDR screenshots (Default: 90%)
+ + Added compression quality setting for JPEG XR HDR screenshots (Default: 90%)
 
 23.12.18.1
 ==========

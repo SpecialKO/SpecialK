@@ -3736,10 +3736,10 @@ SK_ImGui_ControlPanel (void)
 
           if (
             ImGui::Combo ( "HDR File Format", &selection,
-                           "JPEG-XR (.jxr)\0"
+                           "JPEG XR (.jxr)\0"
                            "PNG\t\t(.png)\0"
                            "AVIF\t\t(.avif)\0"
-                           "JPEG-XL (.jxl)\0\0" )
+                           "JPEG XL (.jxl)\0\0" )
              )
           {
             if (selection == SK_CODEC_AVIF)
@@ -3920,7 +3920,7 @@ SK_ImGui_ControlPanel (void)
 
           if (bFetchingJXL)
           {
-            ImGui::TextColored (ImVec4 (.1f,.9f,.1f,1.f), "Downloading JPEG-XL Plug-In...");
+            ImGui::TextColored (ImVec4 (.1f,.9f,.1f,1.f), "Downloading JPEG XL Plug-In...");
           }
         }
 
@@ -3932,7 +3932,7 @@ SK_ImGui_ControlPanel (void)
 
           if (
             ImGui::Combo ( "HDR File Format", &selection,
-                           "JPEG-XR (.jxr)\0"
+                           "JPEG XR (.jxr)\0"
                            "PNG\t\t(.png)\0\0" )
              )
           {

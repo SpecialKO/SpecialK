@@ -255,7 +255,7 @@ SK_FFXVI_PlugInCfg (void)
     ImGui::TreePush ("");
 
     bool bChanged = 
-      ImGui::SliderFloat ( "JPEG-XL Screenshot Quality", &SK_FFXVI_JXLQuality, 96.0f, 100.0f,
+      ImGui::SliderFloat ( "JPEG XL Screenshot Quality", &SK_FFXVI_JXLQuality, 96.0f, 100.0f,
                                                           SK_FFXVI_JXLQuality != 100.0f ?
                            "%4.1f%%" : "Lossless" );
 
