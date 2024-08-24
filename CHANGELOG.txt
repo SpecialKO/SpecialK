@@ -1,4 +1,11 @@
-﻿24.8.22.1
+﻿24.8.24
+=======
+ + Fixed issues with "hide mouse cursor" feature not working in some games
+     after alt-tab following changes in 24.5.25.2.
+ + Fixed potential black pixel artifacts on ImGui's UI when using HDR10->scRGB
+     translation mode.
+
+24.8.22.1
 =========
  + Add workaround for FFXVI beeping after Alt-Tab because it thinks the Alt
      key is stuck down.
