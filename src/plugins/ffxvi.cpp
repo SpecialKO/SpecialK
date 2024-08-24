@@ -29,7 +29,8 @@
 
 #include <SpecialK/plugin/plugin_mgr.h>
 
-static float SK_FFXVI_JXLQuality = 99.95f;
+static float SK_FFXVI_JXLQuality    = 99.95f;
+static int   SK_FFXVI_JXLMaxThreads = 5;
 
 typedef enum {
   JXL_ENC_SUCCESS          = 0,
@@ -135,6 +136,28 @@ using JxlEncoderAddImageFrame_pfn = JxlEncoderStatus (*)(
       JxlEncoderAddImageFrame_pfn
       JxlEncoderAddImageFrame_Original = nullptr;
 
+using JxlThreadParallelRunnerDefaultNumWorkerThreads_pfn = size_t (*)(void);
+      JxlThreadParallelRunnerDefaultNumWorkerThreads_pfn
+      JxlThreadParallelRunnerDefaultNumWorkerThreads_Original = nullptr;
+
+// Reduce the number of threads libjxl uses to prevent hitching when using
+//   the game's screenshot feature...
+size_t
+JxlThreadParallelRunnerDefaultNumWorkerThreads_Detour (void)
+{
+  SK_LOG_FIRST_CALL
+
+  size_t real_default =
+    JxlThreadParallelRunnerDefaultNumWorkerThreads_Original ();
+
+  SK_RunOnce (
+    SK_LOGi0 (
+      L"JxlThreadParallelRunnerDefaultNumWorkerThreads: %d", real_default));
+
+  return
+    std::min (real_default, static_cast <size_t> (SK_FFXVI_JXLMaxThreads));
+}
+
 JxlEncoderStatus
 JxlEncoderSetBasicInfo_Detour (JxlEncoder* enc, const JxlBasicInfo* info)
 {
@@ -233,13 +256,19 @@ SK_FFXVI_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
                              JxlEncoderSetBasicInfo_Detour,
     static_cast_p2p <void> (&JxlEncoderSetBasicInfo_Original) );
 
+  SK_CreateDLLHook2 (      L"jxl_threads.dll",
+                            "JxlThreadParallelRunnerDefaultNumWorkerThreads",
+                             JxlThreadParallelRunnerDefaultNumWorkerThreads_Detour,
+    static_cast_p2p <void> (&JxlThreadParallelRunnerDefaultNumWorkerThreads_Original) );
+
   SK_ApplyQueuedHooks ();
 
   return S_OK;
 }
 
 struct {
-  sk::ParameterFloat* jxl_quality = nullptr;
+  sk::ParameterFloat* jxl_quality     = nullptr;
+  sk::ParameterInt*   jxl_max_threads = nullptr;
 } static ini;
 
 bool
@@ -259,9 +288,25 @@ SK_FFXVI_PlugInCfg (void)
                                                           SK_FFXVI_JXLQuality != 100.0f ?
                            "%4.1f%%" : "Lossless" );
 
+    bChanged |=
+      ImGui::SliderInt ( "Maximum JPEG XL Threads", &SK_FFXVI_JXLMaxThreads,
+                           2, config.priority.available_cpu_cores );
+
+    if (ImGui::IsItemHovered ())
+    {
+      ImGui::BeginTooltip    ();
+      ImGui::TextUnformatted ("Reduce thread count to eliminate stutter in photo mode.");
+      ImGui::Separator       ();
+      ImGui::BulletText      ("Default Max Threads (too many): %d",
+                                JxlThreadParallelRunnerDefaultNumWorkerThreads_Original ());
+      ImGui::EndTooltip      ();
+    }
+
     if (bChanged)
     {
-      ini.jxl_quality->store (SK_FFXVI_JXLQuality);
+      ini.jxl_quality->store     (SK_FFXVI_JXLQuality);
+      ini.jxl_max_threads->store (SK_FFXVI_JXLMaxThreads);
+
       config.utility.save_async ();
     }
 
@@ -279,6 +324,9 @@ SK_FFXVI_InitPlugin (void)
   // Game always crashes at shutdown
   config.system.silent_crash = true;
 
+  SK_FFXVI_JXLMaxThreads =
+    config.screenshots.avif.max_threads;
+
   plugin_mgr->first_frame_fns.emplace (SK_FFXVI_PresentFirstFrame);
   plugin_mgr->config_fns.emplace      (SK_FFXVI_PlugInCfg);
 
@@ -288,5 +336,17 @@ SK_FFXVI_InitPlugin (void)
                                   L"Traditional JPEG Quality %" );
 
   if (! ini.jxl_quality->load  (SK_FFXVI_JXLQuality))
-        ini.jxl_quality->store (99.95f);
+        ini.jxl_quality->store (SK_FFXVI_JXLQuality);
+
+  ini.jxl_max_threads =
+    _CreateConfigParameterInt ( L"FFXVI.PlugIn",
+                                L"JXLMaxThreads", SK_FFXVI_JXLMaxThreads,
+                                  L"Maximum Worker Threads" );
+
+  if (! ini.jxl_max_threads->load  (SK_FFXVI_JXLMaxThreads))
+        ini.jxl_max_threads->store (SK_FFXVI_JXLMaxThreads);
+
+  SK_FFXVI_JXLMaxThreads =
+    std::min ( static_cast <DWORD> (SK_FFXVI_JXLMaxThreads),
+                      config.priority.available_cpu_cores );
 }

@@ -1050,7 +1050,7 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
       encoder->qualityAlpha    = config.screenshots.compression_quality; // N/A?
       encoder->timescale       = 1;
       encoder->repetitionCount = AVIF_REPETITION_COUNT_INFINITE;
-      encoder->maxThreads      = config.screenshots.avif.max_threads * 4;
+      encoder->maxThreads      = config.screenshots.avif.max_threads;
       encoder->speed           = config.screenshots.avif.compression_speed;
       encoder->minQuantizer    = AVIF_QUANTIZER_BEST_QUALITY;
       encoder->maxQuantizer    = AVIF_QUANTIZER_BEST_QUALITY;

@@ -1,4 +1,9 @@
-﻿24.8.24.2
+﻿24.8.24.3
+=========
+ + Reduce the number of threads Final Fantasy XVI uses for JPEG XL screenshots
+     in its photo mode to eliminate hitching (libjxl spawns 1 thread per-core).
+
+24.8.24.2
 =========
  + Transform HDR10 to scRGB before encoding JPEG XL screenshots in HDR10 games
 
