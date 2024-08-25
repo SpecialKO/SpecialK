@@ -1383,17 +1383,6 @@ CBTProc ( _In_ int    nCode,
       );
   }
 
-  if (SK_IsInjected ())
-  {
-    if (nCode == HCBT_CREATEWND && SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXVI)
-    {
-      __try {
-        if (! wcscmp (((CBT_CREATEWNDW *)lParam)->lpcs->lpszClass, L"SplashClass"))
-          return 1;
-      } __except (EXCEPTION_EXECUTE_HANDLER) {}
-    }
-  }
-
   if (game_window.hWnd == nullptr && (HWND)wParam != nullptr)
   {
     if (nCode == HCBT_MOVESIZE)
