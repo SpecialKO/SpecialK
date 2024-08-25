@@ -1197,9 +1197,10 @@ DirectX::XMVECTOR Rec709toICtCp (DirectX::XMVECTOR N)
   return
     XMVector3Transform (
       LinearToPQ (
+        XMVectorMax (g_XMZero,
         XMVector3Transform (
         XMVector3Transform (N, c_from709toXYZ), c_fromXYZtoLMS)
-                 ), ConvMat
+                 )), ConvMat
     );
 };
 
