@@ -215,7 +215,6 @@ SK_LoadLibrary_IsPinnable (const _T* pStr)
     SK_TEXT ("nvapi"), SK_TEXT ("NvCameraAllowlisting"),
 
     SK_TEXT ("nvofapi"),   // DLSS-G spam reloads this when changing resolution
-    SK_TEXT ("sl.dlss_g"), // DLSS-G may crash at application exit if not pinned
 
     SK_TEXT ("kbd"), // Keyboard Layouts take > ~20 ms to load, leave 'em loaded
 
@@ -845,7 +844,7 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
 
       bool bVulkanLayerDisabled = false;
 
-      if (SK_GetCallingDLL (lpRet) == SK_GetModuleHandle (L"vulkan-1.dll") && config.apis.NvAPI.vulkan_bridge == 1)
+      if (config.apis.NvAPI.vulkan_bridge == 1 && SK_GetCallingDLL (lpRet) == SK_GetModuleHandle (L"vulkan-1.dll"))
       {
         if (StrStrIW (compliant_path, L"graphics-hook"))
         {
@@ -1206,7 +1205,7 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
   
   bool bVulkanLayerDisabled = false;
 
-  if (SK_GetCallingDLL (lpRet) == SK_GetModuleHandle (L"vulkan-1.dll") && config.apis.NvAPI.vulkan_bridge == 1)
+  if (config.apis.NvAPI.vulkan_bridge == 1 && SK_GetCallingDLL (lpRet) == SK_GetModuleHandle (L"vulkan-1.dll"))
   {
     if (StrStrIW (compliant_path, L"graphics-hook"))
     {
