@@ -2621,6 +2621,11 @@ IsDebuggerPresent_Detour (void)
     }
   }
 
+  else if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXVI)
+  {
+    return FALSE;
+  }
+
 //#ifdef _DEBUG
 //  return TRUE;
 //#endif

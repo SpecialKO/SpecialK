@@ -349,4 +349,13 @@ SK_FFXVI_InitPlugin (void)
   SK_FFXVI_JXLMaxThreads =
     std::min ( static_cast <DWORD> (SK_FFXVI_JXLMaxThreads),
                       config.priority.available_cpu_cores );
+
+  uint16_t* pAntiDebugBranch =
+    (uint16_t *)((uintptr_t)(SK_Debug_GetImageBaseAddr ()) + 0x957223);
+
+  DWORD                                                          dwOrigProtection = 0x0;
+  VirtualProtect (pAntiDebugBranch, 2, PAGE_EXECUTE_READWRITE, &dwOrigProtection);
+  if (*pAntiDebugBranch == 0x0d74)
+      *pAntiDebugBranch  = 0x0deb;
+  VirtualProtect (pAntiDebugBranch, 2, dwOrigProtection,       &dwOrigProtection);
 }
