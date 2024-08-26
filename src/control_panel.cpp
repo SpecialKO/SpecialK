@@ -74,6 +74,7 @@ SK_RenderAPI                 SK::ControlPanel::render_api;
 DWORD                        SK::ControlPanel::current_time = 0;
 uint64_t                     SK::ControlPanel::current_tick;// Perf Counter
 SK::ControlPanel::font_cfg_s SK::ControlPanel::font;
+SK::ControlPanel::window_s   SK::ControlPanel::imgui_window = { };
 
 DWORD
 SK_GetCurrentMS (void) noexcept
@@ -4985,6 +4986,9 @@ SK_ImGui_ControlPanel (void)
                                           ImGuiWindowFlags_MenuBar )
   );
 
+  SK::ControlPanel::imgui_window.id =
+    ImGui::GetCurrentWindow ()->ID;
+
   style = orig;
 
   if (open)
@@ -7098,6 +7102,9 @@ SK_ImGui_ControlPanel (void)
   SK_ImGui_LastWindowCenter.y = ( pos.y + size.y / 2.0f );
   }
 
+  SK::ControlPanel::imgui_window.hovered =
+    ImGui::IsWindowHovered ();
+
   ImGui::End           ();
   ImGui::PopStyleColor ();
 
@@ -8625,10 +8632,54 @@ SK_ImGui_DrawFrame ( _Unreferenced_parameter_ DWORD  dwFlags,
   return 0;
 }
 
+void
+SK_ImGui_BackupAndRestoreCursorPos (void)
+{
+  static POINT
+    ptOriginalCursorPos = {};
+
+  POINT             ptCursorPos = {};
+  SK_GetCursorPos (&ptCursorPos);
+
+  GetWindowRect (game_window.hWnd,
+                &game_window.actual.window);
+
+  if (! SK_ImGui_Visible)
+  {
+    if (PtInRect (&game_window.actual.window, ptCursorPos))
+    {
+      ptOriginalCursorPos = ptCursorPos;
+    }
+
+    else
+    {
+      ptOriginalCursorPos.x = LONG_MAX;
+      ptOriginalCursorPos.y = LONG_MIN;
+    }
+  }
+
+  else if (ptOriginalCursorPos.x != LONG_MAX ||
+           ptOriginalCursorPos.y != LONG_MIN)
+  {
+    if (PtInRect (&game_window.actual.window, ptCursorPos))
+    {
+      // Only restore the cursor pos if it is over the control panel when
+      //   closing the control panel.
+      if (SK::ControlPanel::imgui_window.hovered)
+      {
+        SK_SetCursorPos (ptOriginalCursorPos.x,
+                         ptOriginalCursorPos.y);
+      }
+    }
+  }
+}
+
 SK_API
 void
 SK_ImGui_Toggle (void)
 {
+  SK_ImGui_BackupAndRestoreCursorPos ();
+
   static ULONG64 last_frame = 0;
 
   if (last_frame != SK_GetFramesDrawn ())
@@ -8664,6 +8715,17 @@ SK_ImGui_Toggle (void)
 
   // Turns the hardware cursor on/off as needed
   ImGui_ToggleCursor ();
+
+
+  static auto Send_WM_SETCURSOR = [&](void)
+  {
+    SK_COMPAT_SafeCallProc (&game_window,
+            game_window.hWnd,                       WM_SETCURSOR,
+    (WPARAM)game_window.hWnd, MAKELPARAM (HTCLIENT, WM_MOUSEMOVE));
+  };
+
+  Send_WM_SETCURSOR ();
+
 
   // Most games
   if (! hModTBFix)
@@ -8740,12 +8802,11 @@ SK_ImGui_Toggle (void)
             SK_GetFramesDrawn ();
 
           while (frames_drawn > SK_GetFramesDrawn () - 1)
-            SK_Sleep (5);
+            SK_Sleep (0);
 
           ImGuiIO& io =
             ImGui::GetIO ();
 
-          io.WantSetMousePos  = true;
           io.WantCaptureMouse = true;
 
           POINT                 ptCursor;
@@ -8755,19 +8816,20 @@ SK_ImGui_Toggle (void)
                           &game_window.actual.window);
             if (PtInRect (&game_window.actual.window, ptCursor))
             {
-              SK_SetCursorPos (ptCursor.x + 4, ptCursor.y - 4);
+              SK_SetCursorPos   (ptCursor.x + 1, ptCursor.y - 1);
+              Send_WM_SETCURSOR ();
 
               frames_drawn =
                 SK_GetFramesDrawn ();
 
               while (frames_drawn > SK_GetFramesDrawn () - 1)
-                SK_Sleep (5);
+              {
+                SK_Sleep (0);
+              }
 
-              SK_SetCursorPos (ptCursor.x - 4, ptCursor.y + 4);
-
-              SK_COMPAT_SafeCallProc (&game_window,
-                        game_window.hWnd,                       WM_SETCURSOR,
-                (WPARAM)game_window.hWnd, MAKELPARAM (HTCLIENT, WM_MOUSEMOVE));
+              SK_GetCursorPos   (&ptCursor);
+              SK_SetCursorPos   ( ptCursor.x - 1, ptCursor.y + 1);
+              Send_WM_SETCURSOR (         );
             }
           }
         }

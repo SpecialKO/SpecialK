@@ -34,6 +34,11 @@ namespace SK
 {
   namespace ControlPanel
   {
+    struct window_s {
+      ImGuiID id;
+      bool    hovered;
+    } extern            imgui_window;
+
     extern SK_RenderAPI render_api;
     extern uint64_t     current_tick;
     extern DWORD        current_time;
@@ -42,7 +47,7 @@ namespace SK
     {
       float size;
       float size_multiline;
-    } extern             font;
+    } extern            font;
   };
 };
 
