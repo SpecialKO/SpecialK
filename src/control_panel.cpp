@@ -8732,8 +8732,8 @@ SK_ImGui_Toggle (void)
         if (dwWait == WAIT_OBJECT_0)
           break;
 
-        // Stupid hack to make sure the mouse cursor changes to SK's
-        //   in Unity engine games
+        // Stupid hack to make sure the mouse cursor swaps between SK's and
+        //   the game's in response to opening/closing the control panel
         if (dwWait == WAIT_OBJECT_0 + 1)
         {
           auto frames_drawn =
@@ -8755,23 +8755,19 @@ SK_ImGui_Toggle (void)
                           &game_window.actual.window);
             if (PtInRect (&game_window.actual.window, ptCursor))
             {
-              // Move the cursor if it's not over any of SK's UI
-              if (! SK_ImGui_IsAnythingHovered ())
-              {
-                SK_SetCursorPos (ptCursor.x + 4, ptCursor.y - 4);
+              SK_SetCursorPos (ptCursor.x + 4, ptCursor.y - 4);
 
-                frames_drawn =
-                  SK_GetFramesDrawn ();
+              frames_drawn =
+                SK_GetFramesDrawn ();
 
-                while (frames_drawn > SK_GetFramesDrawn () - 1)
-                  SK_Sleep (5);
+              while (frames_drawn > SK_GetFramesDrawn () - 1)
+                SK_Sleep (5);
 
-                SK_SetCursorPos (ptCursor.x - 4, ptCursor.y + 4);
+              SK_SetCursorPos (ptCursor.x - 4, ptCursor.y + 4);
 
-                SK_COMPAT_SafeCallProc (&game_window,
-                          game_window.hWnd,                       WM_SETCURSOR,
-                  (WPARAM)game_window.hWnd, MAKELPARAM (HTCLIENT, WM_MOUSEMOVE));
-              }
+              SK_COMPAT_SafeCallProc (&game_window,
+                        game_window.hWnd,                       WM_SETCURSOR,
+                (WPARAM)game_window.hWnd, MAKELPARAM (HTCLIENT, WM_MOUSEMOVE));
             }
           }
         }
@@ -8786,12 +8782,10 @@ SK_ImGui_Toggle (void)
   // Save config on control panel close, not open
   if (! SK_ImGui_Visible)
     config.utility.save_async ();
+
   // Move the cursor a couple of times to change the loaded image
-  else
-  {
-    if (config.input.ui.use_hw_cursor)
-      SetEvent (hMoveCursor);
-  }
+  if (config.input.ui.use_hw_cursor)
+    SetEvent (hMoveCursor);
 
 
   // Immediately stop capturing keyboard/mouse events,
