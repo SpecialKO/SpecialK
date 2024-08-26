@@ -1783,7 +1783,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                   EvaluateImage ( *un_srgb.GetImages (),
                     [&](const DirectX::XMVECTOR *pixels, size_t width, size_t y)
                     {
-                      for (auto i = 0; i < width; ++i)
+                      for (size_t i = 0; i < width; ++i)
                       {
                         parallel_pixels [width * y + i] = *pixels++;
                       }
