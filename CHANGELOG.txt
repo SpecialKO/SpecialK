@@ -2,6 +2,7 @@
 =========
  + Perform HDR->SDR tonemapping in parallel on multiple threads to reduce
      wait time to paste tonemapped screenshots.
+ + Optimize clipboard acquire lock/release behavior.
 
 24.8.26.1
 =========

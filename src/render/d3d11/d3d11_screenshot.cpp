@@ -1744,8 +1744,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                     );
 
                   struct parallel_job_s {
+                    HANDLE    hStartEvent;
                     HANDLE    hCompletionEvent;
-                    HANDLE    hJobThread;
 
                     XMVECTOR* pFirstPixel;
                     XMVECTOR* pLastPixel;
@@ -1753,21 +1753,35 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                     XMVECTOR  maxTonemappedRGB;
                     float     SDR_YInPQ;
                     float     maxYInPQ;
+
+                    int       job_id;
                   };
 
-                  std::vector <parallel_job_s> parallel_jobs   (config.screenshots.avif.max_threads);
-                  std::vector <HANDLE>         parallel_events (config.screenshots.avif.max_threads);
-                  std::vector <XMVECTOR>       parallel_pixels (un_srgb.GetMetadata ().width *
-                                                                un_srgb.GetMetadata ().height);
+                  static std::vector <parallel_job_s> parallel_jobs   (config.screenshots.avif.max_threads);
+                  static std::vector <HANDLE>         parallel_start  (config.screenshots.avif.max_threads);
+                  static std::vector <HANDLE>         parallel_finish (config.screenshots.avif.max_threads);
+                         std::vector <XMVECTOR>       parallel_pixels (un_srgb.GetMetadata ().width *
+                                                                       un_srgb.GetMetadata ().height);
+
+                  SK_RunOnce (
+                    for ( auto i = 0; i < config.screenshots.avif.max_threads; ++i )
+                    {
+                      parallel_finish [i] =
+                        CreateEvent (nullptr, FALSE, FALSE, nullptr);
+                      parallel_start [i] =
+                        CreateEvent (nullptr, FALSE, FALSE, nullptr);
+
+                      parallel_jobs [i].hCompletionEvent =
+                        parallel_finish [i];
+                      parallel_jobs [i].hStartEvent =
+                        parallel_start [i];
+
+                      parallel_jobs [i].job_id = i;
+                    }
+                  );
 
                   for ( auto i = 0; i < config.screenshots.avif.max_threads; ++i )
                   {
-                    parallel_events [i] =
-                      CreateEvent (nullptr, FALSE, FALSE, nullptr);
-
-                    parallel_jobs [i].hCompletionEvent =
-                      parallel_events [i];
-
                     size_t iStartRow = (un_srgb.GetMetadata ().height / config.screenshots.avif.max_threads) * i;
                     size_t iEndRow   = (un_srgb.GetMetadata ().height / config.screenshots.avif.max_threads) * (i + 1);
 
@@ -1790,84 +1804,99 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                     }
                   );
 
-                  for (auto& job : parallel_jobs)
-                  {
-                    job.hJobThread =
-                      CreateThread (nullptr, 0x0, [](LPVOID lpUser) -> DWORD
+                  SK_RunOnce (
+                    for (auto& job : parallel_jobs)
+                    {
+                      SK_Thread_CreateEx ([](LPVOID lpUser)->DWORD
                       {
                         parallel_job_s* pJob =
                           (parallel_job_s *)lpUser;
 
-                        auto TonemapHDR = [](float L, float Lc, float Ld) -> float
+                        SK_SetThreadDescription (
+                          GetCurrentThread (), SK_FormatStringW (L"[SK] Tonemap Parallel Job %d", pJob->job_id).c_str ()
+                        );
+
+                        HANDLE events [] = { pJob->hStartEvent, __SK_DLL_TeardownEvent };
+
+                        while (WaitForMultipleObjects (2, events, FALSE, INFINITE) != (WAIT_OBJECT_0 + 1))
                         {
-                          float a = (  Ld / pow (Lc, 2.0f));
-                          float b = (1.0f / Ld);
-                        
-                          return
-                            L * (1 + a * L) / (1 + b * L);
-                        };
-
-                        for (auto pixel = pJob->pFirstPixel; pixel < pJob->pLastPixel + 1; ++pixel)
-                        {
-                          XMVECTOR value = *pixel;
-
-                          XMVECTOR ICtCp =
-                            Rec709toICtCp (value);
-
-                          float Y_in  = std::max (XMVectorGetX (ICtCp), 0.0f);
-                          float Y_out = 1.0f;
-
-                          Y_out =
-                            TonemapHDR (Y_in, pJob->maxYInPQ, pJob->SDR_YInPQ);
-
-                          if (Y_out + Y_in > 0.0f)
+                          auto TonemapHDR = [](float L, float Lc, float Ld) -> float
                           {
-                            ICtCp.m128_f32 [0] = std::pow (XMVectorGetX (ICtCp), 1.18f);
+                            float a = (  Ld / pow (Lc, 2.0f));
+                            float b = (1.0f / Ld);
+                          
+                            return
+                              L * (1 + a * L) / (1 + b * L);
+                          };
 
-                            float I0      = XMVectorGetX (ICtCp);
-                            float I1      = 0.0f;
-                            float I_scale = 0.0f;
+                          for (auto pixel = pJob->pFirstPixel; pixel < pJob->pLastPixel + 1; ++pixel)
+                          {
+                            XMVECTOR value = *pixel;
 
-                            ICtCp.m128_f32 [0] *=
-                              std::max ((Y_out / Y_in), 0.0f);
+                            XMVECTOR ICtCp =
+                              Rec709toICtCp (value);
 
-                            I1 = XMVectorGetX (ICtCp);
+                            float Y_in  = std::max (XMVectorGetX (ICtCp), 0.0f);
+                            float Y_out = 1.0f;
 
-                            if (I0 != 0.0f && I1 != 0.0f)
+                            Y_out =
+                              TonemapHDR (Y_in, pJob->maxYInPQ, pJob->SDR_YInPQ);
+
+                            if (Y_out + Y_in > 0.0f)
                             {
-                              I_scale =
-                                std::min (I0 / I1, I1 / I0);
+                              ICtCp.m128_f32 [0] = std::pow (XMVectorGetX (ICtCp), 1.18f);
+
+                              float I0      = XMVectorGetX (ICtCp);
+                              float I1      = 0.0f;
+                              float I_scale = 0.0f;
+
+                              ICtCp.m128_f32 [0] *=
+                                std::max ((Y_out / Y_in), 0.0f);
+
+                              I1 = XMVectorGetX (ICtCp);
+
+                              if (I0 != 0.0f && I1 != 0.0f)
+                              {
+                                I_scale =
+                                  std::min (I0 / I1, I1 / I0);
+                              }
+
+                              ICtCp.m128_f32 [1] *= I_scale;
+                              ICtCp.m128_f32 [2] *= I_scale;
                             }
 
-                            ICtCp.m128_f32 [1] *= I_scale;
-                            ICtCp.m128_f32 [2] *= I_scale;
+                            value =
+                              ICtCptoRec709 (ICtCp);
+
+                            pJob->maxTonemappedRGB =
+                              XMVectorMax (pJob->maxTonemappedRGB, XMVectorMax (value, g_XMZero));
+
+                            *pixel = value;
                           }
 
-                          value =
-                            ICtCptoRec709 (ICtCp);
-
-                          pJob->maxTonemappedRGB =
-                            XMVectorMax (pJob->maxTonemappedRGB, XMVectorMax (value, g_XMZero));
-
-                          *pixel = value;
+                          SetEvent (pJob->hCompletionEvent);
                         }
 
-                        SetEvent (pJob->hCompletionEvent);
+                        CloseHandle (pJob->hStartEvent);
+                        CloseHandle (pJob->hCompletionEvent);
+
+                        SK_Thread_CloseSelf ();
 
                         return 0;
-                      }, &job, 0x0, nullptr
-                    );
-                  }
+                      }, nullptr, &job );
+                    }
+                  );
 
-                  WaitForMultipleObjects (config.screenshots.avif.max_threads, parallel_events.data (), TRUE, INFINITE);
+                  for ( auto& job : parallel_jobs )
+                    SetEvent (job.hStartEvent);
+
+                  WaitForMultipleObjects ( config.screenshots.avif.max_threads,
+                                             parallel_finish.data (), TRUE, INFINITE );
 
                   for (auto& job : parallel_jobs)
                   {
                     maxTonemappedRGB =
                       XMVectorMax (job.maxTonemappedRGB, maxTonemappedRGB);
-
-                    CloseHandle (job.hCompletionEvent);
-                    CloseHandle (job.hJobThread);
                   }
 
                   hr =               un_srgb.GetImageCount () == 1 ?
