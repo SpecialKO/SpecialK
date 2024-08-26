@@ -350,6 +350,7 @@ SK_FFXVI_InitPlugin (void)
     std::min ( static_cast <DWORD> (SK_FFXVI_JXLMaxThreads),
                       config.priority.available_cpu_cores );
 
+#if 1
   uint16_t* pAntiDebugBranch =
     (uint16_t *)((uintptr_t)(SK_Debug_GetImageBaseAddr ()) + 0x957223);
 
@@ -358,4 +359,19 @@ SK_FFXVI_InitPlugin (void)
   if (*pAntiDebugBranch == 0x0d74)
       *pAntiDebugBranch  = 0x0deb;
   VirtualProtect (pAntiDebugBranch, 2, dwOrigProtection,       &dwOrigProtection);
+#else
+  uint8_t* pAntiDebugStart = (uint8_t *)0x1409C37DD;
+  uint8_t* pAntiDebugEnd   = (uint8_t *)0x1409C383B;
+
+  size_t size = 
+    (uintptr_t)pAntiDebugEnd - (uintptr_t)pAntiDebugStart;
+
+  DWORD                                                           dwOrigProtection = 0x0;
+  VirtualProtect (pAntiDebugStart, size, PAGE_EXECUTE_READWRITE, &dwOrigProtection);
+  for ( UINT i = 0 ; i < size ; ++i )
+  {
+    *(pAntiDebugStart + i) = 0x90;
+  }
+  VirtualProtect (pAntiDebugStart, size, dwOrigProtection,       &dwOrigProtection);
+#endif
 }

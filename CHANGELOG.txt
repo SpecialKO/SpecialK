@@ -1,4 +1,12 @@
-﻿24.8.25
+﻿24.8.26.1
+=========
+ + Fixed JPEG XL DLLs not downloading correctly when selected from the HDR menu
+
+24.8.26
+=======
+ + Patch end-of-frame anti-debug checks for graphics debuggers out of FFXVI
+
+24.8.25
 =======
  + Implement half-float (scRGB) and uint16 (HDR10) lossless JPEG XL encoding
 

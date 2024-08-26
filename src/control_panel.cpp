@@ -3722,7 +3722,7 @@ SK_ImGui_ControlPanel (void)
         if (config.screenshots.png_compress && SK_GetBitness () == SK_Bitness::SixtyFourBit)
         {
           static bool bFetchingAVIF = false;
-          static bool bFetchingJXL  = false;
+          static int  iFetchingJXL  = 0;
 
           static constexpr int SK_CODEC_JXL  = 3;
           static constexpr int SK_CODEC_AVIF = 2;
@@ -3790,7 +3790,7 @@ SK_ImGui_ControlPanel (void)
               config.screenshots.use_hdr_png = false;
               config.screenshots.use_avif    = false;
 
-              if (! bFetchingJXL)
+              if (! iFetchingJXL)
               {
                 static std::filesystem::path jxl_dll =
                        std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) /
@@ -3812,8 +3812,11 @@ SK_ImGui_ControlPanel (void)
                        std::filesystem::exists (jxl_cms_dll,     ec) &&
                        std::filesystem::exists (jxl_threads_dll, ec)))
                 {
-                  bFetchingJXL = true;
+                  iFetchingJXL += (! std::filesystem::exists (jxl_dll,         ec)) ? 1 : 0;
+                  iFetchingJXL += (! std::filesystem::exists (jxl_cms_dll,     ec)) ? 1 : 0;
+                  iFetchingJXL += (! std::filesystem::exists (jxl_threads_dll, ec)) ? 1 : 0;
 
+                  if (! std::filesystem::exists (jxl_dll, ec))
                   SK_Network_EnqueueDownload (
                        sk_download_request_s (
                          jxl_dll.wstring (),
@@ -3827,11 +3830,8 @@ SK_ImGui_ControlPanel (void)
                       const std::wstring_view )
                    -> bool
                       {
-                        if (std::filesystem::exists (jxl_dll,         ec) &&
-                            std::filesystem::exists (jxl_cms_dll,     ec) &&
-                            std::filesystem::exists (jxl_threads_dll, ec))
+                        if (--iFetchingJXL == 0)
                         {
-                          bFetchingJXL                           = false;
                           config.screenshots.use_jxl             = true;
                           config.screenshots.compression_quality = 99;
                         }
@@ -3841,9 +3841,10 @@ SK_ImGui_ControlPanel (void)
                     ), true
                   );
 
+                  if (! std::filesystem::exists (jxl_threads_dll, ec))
                   SK_Network_EnqueueDownload (
                        sk_download_request_s (
-                         jxl_dll.wstring (),
+                         jxl_threads_dll.wstring (),
                            R"(https://sk-data.special-k.info/addon/ImageCodecs/)"
 #ifdef _M_X64
                            R"(libjxl/x64/jxl_threads.dll)",
@@ -3854,23 +3855,21 @@ SK_ImGui_ControlPanel (void)
                       const std::wstring_view )
                    -> bool
                       {
-                        if (std::filesystem::exists (jxl_dll,         ec) &&
-                            std::filesystem::exists (jxl_cms_dll,     ec) &&
-                            std::filesystem::exists (jxl_threads_dll, ec))
+                        if (--iFetchingJXL == 0)
                         {
-                          bFetchingJXL                           = false;
                           config.screenshots.use_jxl             = true;
                           config.screenshots.compression_quality = 99;
                         }
-                  
+
                         return false;
                       }
                     ), true
                   );
 
+                  if (! std::filesystem::exists (jxl_cms_dll, ec))
                   SK_Network_EnqueueDownload (
                        sk_download_request_s (
-                         jxl_dll.wstring (),
+                         jxl_cms_dll.wstring (),
                            R"(https://sk-data.special-k.info/addon/ImageCodecs/)"
 #ifdef _M_X64
                            R"(libjxl/x64/jxl_cms.dll)",
@@ -3881,15 +3880,12 @@ SK_ImGui_ControlPanel (void)
                       const std::wstring_view )
                    -> bool
                       {
-                        if (std::filesystem::exists (jxl_dll,         ec) &&
-                            std::filesystem::exists (jxl_cms_dll,     ec) &&
-                            std::filesystem::exists (jxl_threads_dll, ec))
+                        if (--iFetchingJXL == 0)
                         {
-                          bFetchingJXL                           = false;
                           config.screenshots.use_jxl             = true;
                           config.screenshots.compression_quality = 99;
                         }
-                  
+
                         return false;
                       }
                     ), true
@@ -3918,7 +3914,7 @@ SK_ImGui_ControlPanel (void)
             ImGui::TextColored (ImVec4 (.1f,.9f,.1f,1.f), "Downloading AVIF Plug-In...");
           }
 
-          if (bFetchingJXL)
+          if (iFetchingJXL != 0)
           {
             ImGui::TextColored (ImVec4 (.1f,.9f,.1f,1.f), "Downloading JPEG XL Plug-In...");
           }

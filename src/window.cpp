@@ -6084,12 +6084,13 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       return MAKEWPARAM (0, MNC_CLOSE);
 
     // Fix for FFXVI beeping when it fails to process WM_SYSCHAR messages
-    if (uMsg == WM_SYSCHAR && lRet != 0)
+    if (uMsg == WM_CHAR       || uMsg == WM_SYSCHAR || uMsg == WM_UNICHAR ||
+        uMsg == WM_SYSKEYDOWN || uMsg == WM_SYSKEYUP)
     {
-      return 0;
+      if (lRet != 0)
+        return 0;
     }
   }
-
 
   return lRet;
 }
