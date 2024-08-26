@@ -1,4 +1,13 @@
-﻿24.8.26.2
+﻿24.8.26.3
+=========
+ + Fix intermittent mouse cursor flickering after opening SK's control panel
+     in some games.
+ + Re-implement feature to save and restore mouse cursor position when the
+     control panel is opened / closed.
+ + Do not center mouse cursor on control panel if it is already hovering one
+     of SK's mouse-interactable widgets (i.e. HDR).
+
+24.8.26.2
 =========
  + Perform HDR->SDR tonemapping in parallel on multiple threads to reduce
      wait time to paste tonemapped screenshots.
