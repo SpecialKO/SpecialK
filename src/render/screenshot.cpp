@@ -380,31 +380,42 @@ SK_PNG_CopyToClipboard (const DirectX::Image& image, const void *pData, size_t d
 
   SK_ReleaseAssert (data_size <= DWORD_MAX);
 
-  if (OpenClipboard (game_window.hWnd))
+  int clpSize = sizeof (DROPFILES);
+
+  clpSize += sizeof (wchar_t) * static_cast <int> (wcslen ((wchar_t *)pData) + 1); // + 1 => '\0'
+  clpSize += sizeof (wchar_t);                                                     // two \0 needed at the end
+
+  HDROP hdrop =
+    (HDROP)GlobalAlloc (GHND, clpSize);
+
+  DROPFILES* df =
+    (DROPFILES *)GlobalLock (hdrop);
+
+  df->pFiles = sizeof (DROPFILES);
+  df->fWide  = TRUE;
+
+  wcscpy ((wchar_t*)&df [1], (const wchar_t *)pData);
+
+  bool clipboard_open = false;
+  for (UINT i = 0 ; i < 5 ; ++i)
   {
-    int clpSize = sizeof (DROPFILES);
+    clipboard_open = OpenClipboard (game_window.hWnd);
 
-    clpSize += sizeof (wchar_t) * static_cast <int> (wcslen ((wchar_t *)pData) + 1); // + 1 => '\0'
-    clpSize += sizeof (wchar_t);                                                     // two \0 needed at the end
+    if (! clipboard_open)
+      SK_Sleep (2);
+  }
 
-    HDROP hdrop =
-      (HDROP)GlobalAlloc (GHND, clpSize);
-
-    DROPFILES* df =
-      (DROPFILES *)GlobalLock (hdrop);
-
-    df->pFiles = sizeof (DROPFILES);
-    df->fWide  = TRUE;
-
-    wcscpy ((wchar_t*)&df [1], (const wchar_t *)pData);
-
-    GlobalUnlock     (hdrop);
+  if (clipboard_open)
+  {
     EmptyClipboard   ();
     SetClipboardData (CF_HDROP, hdrop);
+    GlobalUnlock               (hdrop);
     CloseClipboard   ();
 
     return true;
   }
+
+  GlobalUnlock (hdrop);
 
   return false;
 }
@@ -462,113 +473,119 @@ SK_ScreenshotManager::copyToClipboard ( const DirectX::Image& image,
       }
     }
   }
+ 
+  auto snip = 
+    getSnipRect ();
 
-  if (OpenClipboard (game_window.hWnd))
+  const DirectX::Image *pImg = &image;
+  DirectX::ScratchImage sub_img;
+
+  if (snip.w != 0 && snip.h != 0)
   {
-    auto snip = 
-      getSnipRect ();
-
-    const DirectX::Image *pImg = &image;
-    DirectX::ScratchImage sub_img;
-
-    if (snip.w != 0 && snip.h != 0)
+    if (SUCCEEDED (sub_img.Initialize2D (pImg->format, snip.w, snip.h, 1, 1)))
     {
-      if (SUCCEEDED (sub_img.Initialize2D (pImg->format, snip.w, snip.h, 1, 1)))
+      if (SUCCEEDED (DirectX::CopyRectangle (image, snip, *sub_img.GetImage (0,0,0), 0, 0, 0)))
       {
-        if (SUCCEEDED (DirectX::CopyRectangle (image, snip, *sub_img.GetImage (0,0,0), 0, 0, 0)))
-        {
-          pImg =
-            sub_img.GetImages ();
+        pImg =
+          sub_img.GetImages ();
 
-          SK_GetCurrentRenderBackend ().screenshot_mgr->setSnipRect ({0,0,0,0});
-        }
+        SK_GetCurrentRenderBackend ().screenshot_mgr->setSnipRect ({0,0,0,0});
       }
     }
+  }
 
-    const int
-        _bpc    =
-      sk::narrow_cast <int> (DirectX::BitsPerPixel (pImg->format)),
-        _width  =
-      sk::narrow_cast <int> (                       pImg->width),
-        _height =
-      sk::narrow_cast <int> (                       pImg->height);
+  const int
+      _bpc    =
+    sk::narrow_cast <int> (DirectX::BitsPerPixel (pImg->format)),
+      _width  =
+    sk::narrow_cast <int> (                       pImg->width),
+      _height =
+    sk::narrow_cast <int> (                       pImg->height);
 
-    SK_ReleaseAssert (pImg->format == DXGI_FORMAT_B8G8R8X8_UNORM ||
-                      pImg->format == DXGI_FORMAT_B8G8R8A8_UNORM ||
-                      pImg->format == DXGI_FORMAT_B8G8R8X8_UNORM_SRGB);
+  SK_ReleaseAssert (pImg->format == DXGI_FORMAT_B8G8R8X8_UNORM ||
+                    pImg->format == DXGI_FORMAT_B8G8R8A8_UNORM ||
+                    pImg->format == DXGI_FORMAT_B8G8R8X8_UNORM_SRGB);
 
-    HBITMAP hBitmapCopy =
-       CreateBitmap (
-         _width, _height, 1,
-           _bpc, pImg->pixels
-       );
+  HBITMAP hBitmapCopy =
+     CreateBitmap (
+       _width, _height, 1,
+         _bpc, pImg->pixels
+     );
 
-    BITMAPINFOHEADER
-      bmh                 = { };
-      bmh.biSize          = sizeof (BITMAPINFOHEADER);
-      bmh.biWidth         =   _width;
-      bmh.biHeight        =  -_height;
-      bmh.biPlanes        =  1;
-      bmh.biBitCount      = sk::narrow_cast <WORD> (_bpc);
-      bmh.biCompression   = BI_RGB;
-      bmh.biXPelsPerMeter = 10;
-      bmh.biYPelsPerMeter = 10;
+  BITMAPINFOHEADER
+    bmh                 = { };
+    bmh.biSize          = sizeof (BITMAPINFOHEADER);
+    bmh.biWidth         =   _width;
+    bmh.biHeight        =  -_height;
+    bmh.biPlanes        =  1;
+    bmh.biBitCount      = sk::narrow_cast <WORD> (_bpc);
+    bmh.biCompression   = BI_RGB;
+    bmh.biXPelsPerMeter = 10;
+    bmh.biYPelsPerMeter = 10;
 
-    BITMAPINFO
-      bmi                 = { };
-      bmi.bmiHeader       = bmh;
+  BITMAPINFO
+    bmi                 = { };
+    bmi.bmiHeader       = bmh;
 
-    HDC hdcDIB =
-      CreateCompatibleDC (GetDC (nullptr));
+  HDC hdcDIB =
+    CreateCompatibleDC (GetDC (nullptr));
 
-    void* bitplane = nullptr;
+  void* bitplane = nullptr;
 
-    HBITMAP
-      hBitmap =
-        CreateDIBSection ( hdcDIB, &bmi, DIB_RGB_COLORS,
-            &bitplane, nullptr, 0 );
-    memcpy ( bitplane,
-               pImg->pixels,
-        static_cast <size_t> (_bpc / 8) *
-        static_cast <size_t> (_width  ) *
-        static_cast <size_t> (_height )
-           );
+  HBITMAP
+    hBitmap =
+      CreateDIBSection ( hdcDIB, &bmi, DIB_RGB_COLORS,
+          &bitplane, nullptr, 0 );
+  memcpy ( bitplane,
+             pImg->pixels,
+      static_cast <size_t> (_bpc / 8) *
+      static_cast <size_t> (_width  ) *
+      static_cast <size_t> (_height )
+         );
 
-    HDC hdcSrc = CreateCompatibleDC (GetDC (nullptr));
-    HDC hdcDst = CreateCompatibleDC (GetDC (nullptr));
+  HDC hdcSrc = CreateCompatibleDC (GetDC (nullptr));
+  HDC hdcDst = CreateCompatibleDC (GetDC (nullptr));
 
-    if ( hBitmap    != nullptr &&
-        hBitmapCopy != nullptr )
+  if ( hBitmap    != nullptr &&
+      hBitmapCopy != nullptr )
+  {
+    auto hbmpSrc = (HBITMAP)SelectObject (hdcSrc, hBitmap);
+    auto hbmpDst = (HBITMAP)SelectObject (hdcDst, hBitmapCopy);
+
+    BitBlt (hdcDst, 0, 0, _width,
+                          _height, hdcSrc, 0, 0, SRCCOPY);
+
+    SelectObject     (hdcSrc, hbmpSrc);
+    SelectObject     (hdcDst, hbmpDst);
+
+    bool clipboard_open = false;
+    for (UINT i = 0 ; i < 5 ; ++i)
     {
-      auto hbmpSrc = (HBITMAP)SelectObject (hdcSrc, hBitmap);
-      auto hbmpDst = (HBITMAP)SelectObject (hdcDst, hBitmapCopy);
+      clipboard_open = OpenClipboard (game_window.hWnd);
 
-      BitBlt (hdcDst, 0, 0, _width,
-                            _height, hdcSrc, 0, 0, SRCCOPY);
+      if (! clipboard_open)
+        SK_Sleep (2);
+    }
 
-      SelectObject     (hdcSrc, hbmpSrc);
-      SelectObject     (hdcDst, hbmpDst);
-
+    if (clipboard_open)
+    {
       EmptyClipboard   ();
       SetClipboardData (CF_BITMAP, hBitmapCopy);
+      CloseClipboard   ();
     }
+  }
 
-    CloseClipboard   ();
+  DeleteDC         (hdcSrc);
+  DeleteDC         (hdcDst);
+  DeleteDC         (hdcDIB);
 
-    DeleteDC         (hdcSrc);
-    DeleteDC         (hdcDst);
-    DeleteDC         (hdcDIB);
+  if ( hBitmap     != nullptr &&
+       hBitmapCopy != nullptr )
+  {
+    DeleteBitmap   (hBitmap);
+    DeleteBitmap   (hBitmapCopy);
 
-    if ( hBitmap     != nullptr &&
-         hBitmapCopy != nullptr )
-    {
-      DeleteBitmap   (hBitmap);
-      DeleteBitmap   (hBitmapCopy);
-
-      return true;
-    }
-
-    return false;
+    return true;
   }
 
   return false;
