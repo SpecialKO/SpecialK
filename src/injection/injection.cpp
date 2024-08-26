@@ -1535,7 +1535,7 @@ SKX_RemoveCBTHook (void)
       DWORD_PTR dwpResult = 0x0;
       SendMessageTimeout ( HWND_BROADCAST,
                             WM_NULL, 0, 0,
-                         SMTO_ABORTIFHUNG,
+                               SMTO_BLOCK,
                                       8UL,
                &dwpResult );
 
