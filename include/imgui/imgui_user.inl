@@ -2067,7 +2067,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
             (     state.Gamepad.wButtons & XINPUT_GAMEPAD_A)     &&
           (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_A)))
         {
-          SendMessage (GetDesktopWindow (), WM_SYSCOMMAND, SC_SCREENSAVE, 0);
+          SendMessageTimeout (GetDesktopWindow (), WM_SYSCOMMAND, SC_SCREENSAVE, 0, SMTO_BLOCK, INFINITE, nullptr);
         }
 
         if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&

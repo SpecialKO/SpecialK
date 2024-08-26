@@ -1001,7 +1001,7 @@ SK_Win32_NotifyHWND_W (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
              GetExceptionCode () == EXCEPTION_BREAKPOINT       ?
                                     EXCEPTION_EXECUTE_HANDLER  : EXCEPTION_CONTINUE_SEARCH )
   {
-    SendMessageTimeoutW (hWnd, uMsg, wParam, lParam, SMTO_ABORTIFHUNG, 100UL, nullptr);
+    SendMessageTimeoutW (hWnd, uMsg, wParam, lParam, SMTO_ABORTIFHUNG | SMTO_BLOCK, 100UL, nullptr);
   }
 
   ulLastFrameNotified = SK_GetFramesDrawn ();
@@ -1046,7 +1046,7 @@ SK_Win32_NotifyHWND_A (HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
              GetExceptionCode () == EXCEPTION_BREAKPOINT       ?
                                     EXCEPTION_EXECUTE_HANDLER  : EXCEPTION_CONTINUE_SEARCH )
   {
-    SendMessageTimeoutA (hWnd, uMsg, wParam, lParam, SMTO_ABORTIFHUNG, 100UL, nullptr);
+    SendMessageTimeoutA (hWnd, uMsg, wParam, lParam, SMTO_ABORTIFHUNG | SMTO_BLOCK, 100UL, nullptr);
   }
 
   ulLastFrameNotified = SK_GetFramesDrawn ();

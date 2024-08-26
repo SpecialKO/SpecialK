@@ -77,10 +77,19 @@ HCURSOR
 WINAPI
 SK_SendMsgSetCursor (HCURSOR hCursor)
 {
-  //if (GetActiveWindow () != game_window.hWnd)
   if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
   {
-    PostMessageA (game_window.hWnd, game_window.messages [game_window.messages->SetCursorImg].uiMessage, (WPARAM)(hCursor), 0);
+    HCURSOR hLastCursor =
+      SK_GetCursor ();
+
+    if (hLastCursor == hCursor)
+      return hLastCursor;
+
+    if (SendMessageTimeout (game_window.hWnd, game_window.messages [game_window.messages->SetCursorImg].uiMessage, (WPARAM)(hCursor), 0, SMTO_BLOCK, 0, nullptr))
+      return hLastCursor;
+
+    if (GetActiveWindow () != game_window.hWnd)
+      return hLastCursor;
   }
 
   return

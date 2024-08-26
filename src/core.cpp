@@ -3215,10 +3215,10 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
                 else
                 {
-                  SendMessageTimeout (game_window.hWnd, WM_ACTIVATEAPP, TRUE, 0, SMTO_ABORTIFHUNG, 100UL, nullptr);
+                  SendMessageTimeout (game_window.hWnd, WM_ACTIVATEAPP, TRUE, 0, SMTO_ABORTIFHUNG | SMTO_BLOCK, 100UL, nullptr);
                   SendMessageTimeout (game_window.hWnd, WM_ACTIVATE,
-                                                   MAKEWPARAM (WA_ACTIVE, 0), 0, SMTO_ABORTIFHUNG, 100UL, nullptr);
-                  SendMessageTimeout (game_window.hWnd, WM_SETFOCUS,       0, 0, SMTO_ABORTIFHUNG, 100UL, nullptr);
+                                                   MAKEWPARAM (WA_ACTIVE, 0), 0, SMTO_ABORTIFHUNG | SMTO_BLOCK, 100UL, nullptr);
+                  SendMessageTimeout (game_window.hWnd, WM_SETFOCUS,       0, 0, SMTO_ABORTIFHUNG | SMTO_BLOCK, 100UL, nullptr);
                 }
 
                 // Activate the window
