@@ -380,7 +380,7 @@ SK_PNG_CopyToClipboard (const DirectX::Image& image, const void *pData, size_t d
 
   SK_ReleaseAssert (data_size <= DWORD_MAX);
 
-  if (OpenClipboard (nullptr))
+  if (OpenClipboard (game_window.hWnd))
   {
     int clpSize = sizeof (DROPFILES);
 
@@ -463,7 +463,7 @@ SK_ScreenshotManager::copyToClipboard ( const DirectX::Image& image,
     }
   }
 
-  if (OpenClipboard (nullptr))
+  if (OpenClipboard (game_window.hWnd))
   {
     auto snip = 
       getSnipRect ();

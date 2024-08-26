@@ -1,4 +1,9 @@
-﻿24.8.26.1
+﻿24.8.26.2
+=========
+ + Perform HDR->SDR tonemapping in parallel on multiple threads to reduce
+     wait time to paste tonemapped screenshots.
+
+24.8.26.1
 =========
  + Fixed JPEG XL DLLs not downloading correctly when selected from the HDR menu
 
