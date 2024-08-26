@@ -2083,11 +2083,12 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                         parallel_job_s* pJob =
                           (parallel_job_s *)lpUser;
 
-                        SK_SetThreadDescription (
-                          GetCurrentThread (), SK_FormatStringW (L"[SK] Tonemap Parallel Job %d", pJob->job_id).c_str ()
-                        );
+                        SetThreadPriority       (SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
+                        SK_SetThreadDescription (SK_GetCurrentThread (),
+                            SK_FormatStringW (L"[SK] Tonemap Parallel Job %d", pJob->job_id).c_str ());
 
-                        HANDLE events [] = { pJob->hStartEvent, __SK_DLL_TeardownEvent };
+                        HANDLE events [] =
+                          { pJob->hStartEvent, __SK_DLL_TeardownEvent };
 
                         while (WaitForMultipleObjects (2, events, FALSE, INFINITE) != (WAIT_OBJECT_0 + 1))
                         {
