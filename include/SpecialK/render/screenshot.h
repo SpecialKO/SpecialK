@@ -21,6 +21,7 @@
 **/
 
 #include <SpecialK/render/backend.h>
+#include <DirectXMath.h>
 
 enum class SK_ScreenshotStage
 {
@@ -306,3 +307,31 @@ extern volatile LONG __SK_D3D11_InitiateHudFreeShot;
 extern volatile LONG __SK_D3D12_InitiateHudFreeShot;
 
 extern          bool   SK_D3D12_ShouldSkipHUD (void);
+
+struct parallel_tonemap_job_s {
+  HANDLE             hStartEvent;
+  HANDLE             hCompletionEvent;
+
+  DirectX::XMVECTOR* pFirstPixel;
+  DirectX::XMVECTOR* pLastPixel;
+
+  DirectX::XMVECTOR  maxTonemappedRGB;
+  float              SDR_YInPQ;
+  float              maxYInPQ;
+
+  int                job_id;
+};
+
+void SK_Image_EnqueueTonemapTask ( DirectX::ScratchImage&                image,
+                                   std::vector <parallel_tonemap_job_s>& jobs,
+                                   std::vector <DirectX::XMVECTOR>&      pixels,
+                                   float                                 maxLuminance,
+                                   float                                 sdrLuminance);
+void SK_Image_InitializeTonemap   (std::vector <parallel_tonemap_job_s>& jobs,
+                                   std::vector <HANDLE>&       parallel_start,
+                                   std::vector <HANDLE>&      parallel_finish);
+void SK_Image_DispatchTonemapJobs (std::vector <parallel_tonemap_job_s>& jobs);
+void SK_Image_GetTonemappedPixels (DirectX::ScratchImage&                output,
+                                   DirectX::ScratchImage&                source,
+                                   std::vector <DirectX::XMVECTOR>&      pixels,
+                                   std::vector <HANDLE>&                 fence);

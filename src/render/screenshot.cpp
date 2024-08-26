@@ -2392,3 +2392,171 @@ SK_ScreenshotManager::setSnipRect (const DirectX::Rect& rect)
 {
   snip_rect = rect;
 }
+
+
+void
+SK_Image_InitializeTonemap ( std::vector <parallel_tonemap_job_s>& jobs,
+                             std::vector <HANDLE>&       parallel_start,
+                             std::vector <HANDLE>&      parallel_finish )
+{
+  SK_RunOnce (
+  {
+    for ( auto i = 0; i < config.screenshots.avif.max_threads; ++i )
+    {
+      parallel_finish [i] =
+        CreateEvent (nullptr, FALSE, FALSE, nullptr);
+      parallel_start [i] =
+        CreateEvent (nullptr, FALSE, FALSE, nullptr);
+  
+      jobs [i].hCompletionEvent = parallel_finish [i];
+      jobs [i].hStartEvent      = parallel_start  [i];
+      jobs [i].job_id           =                  i;
+    }
+  });
+}
+
+void
+SK_Image_DispatchTonemapJobs (std::vector <parallel_tonemap_job_s>& jobs)
+{
+  static bool          _once = false;
+  if (! std::exchange (_once, true))
+  {
+    for (auto& job : jobs)
+    {
+      SK_Thread_CreateEx ([](LPVOID lpUser)->DWORD
+      {
+        parallel_tonemap_job_s* pJob =
+          (parallel_tonemap_job_s *)lpUser;
+
+        SetThreadPriority       (SK_GetCurrentThread (), THREAD_PRIORITY_BELOW_NORMAL);
+        SK_SetThreadDescription (SK_GetCurrentThread (),
+            SK_FormatStringW (L"[SK] Tonemap Parallel Job %d", pJob->job_id).c_str ());
+
+        HANDLE events [] =
+          { pJob->hStartEvent, __SK_DLL_TeardownEvent };
+
+        while (WaitForMultipleObjects (2, events, FALSE, INFINITE) != (WAIT_OBJECT_0 + 1))
+        {
+          auto TonemapHDR = [](float L, float Lc, float Ld) -> float
+          {
+            float a = (  Ld / pow (Lc, 2.0f));
+            float b = (1.0f / Ld);
+          
+            return
+              L * (1 + a * L) / (1 + b * L);
+          };
+
+          for (auto pixel = pJob->pFirstPixel; pixel < pJob->pLastPixel + 1; ++pixel)
+          {
+            XMVECTOR value = *pixel;
+
+            XMVECTOR ICtCp =
+              Rec709toICtCp (value);
+
+            float Y_in  = std::max (XMVectorGetX (ICtCp), 0.0f);
+            float Y_out = 1.0f;
+
+            Y_out =
+              TonemapHDR (Y_in, pJob->maxYInPQ, pJob->SDR_YInPQ);
+
+            if (Y_out + Y_in > 0.0f)
+            {
+              ICtCp.m128_f32 [0] = std::pow (XMVectorGetX (ICtCp), 1.18f);
+
+              float I0      = XMVectorGetX (ICtCp);
+              float I1      = 0.0f;
+              float I_scale = 0.0f;
+
+              ICtCp.m128_f32 [0] *=
+                std::max ((Y_out / Y_in), 0.0f);
+
+              I1 = XMVectorGetX (ICtCp);
+
+              if (I0 != 0.0f && I1 != 0.0f)
+              {
+                I_scale =
+                  std::min (I0 / I1, I1 / I0);
+              }
+
+              ICtCp.m128_f32 [1] *= I_scale;
+              ICtCp.m128_f32 [2] *= I_scale;
+            }
+
+            value =
+              ICtCptoRec709 (ICtCp);
+
+            pJob->maxTonemappedRGB =
+              XMVectorMax (pJob->maxTonemappedRGB, XMVectorMax (value, g_XMZero));
+
+            *pixel = value;
+          }
+
+          SetEvent (pJob->hCompletionEvent);
+        }
+
+        CloseHandle (pJob->hStartEvent);
+        CloseHandle (pJob->hCompletionEvent);
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, nullptr, &job );
+    }
+  }
+  
+  for ( auto& job : jobs )
+    SetEvent (job.hStartEvent);
+}
+
+void
+SK_Image_EnqueueTonemapTask ( DirectX::ScratchImage&                image,
+                              std::vector <parallel_tonemap_job_s>& jobs,
+                              std::vector <DirectX::XMVECTOR>&      pixels,
+                              float                                 maxLuminance,
+                              float                                 sdrLuminance)
+{
+  for ( auto i = 0; i < config.screenshots.avif.max_threads; ++i )
+  {
+    size_t iStartRow = (image.GetMetadata ().height / config.screenshots.avif.max_threads) * i;
+    size_t iEndRow   = (image.GetMetadata ().height / config.screenshots.avif.max_threads) * (i + 1);
+    
+    jobs [i].pFirstPixel =
+      &pixels [iStartRow * image.GetMetadata ().width];
+    jobs [i].pLastPixel  =
+      &pixels [iEndRow   * image.GetMetadata ().width - 1];
+    
+    jobs [i].maxYInPQ    = maxLuminance;
+    jobs [i].SDR_YInPQ   = sdrLuminance;
+  }
+
+  EvaluateImage ( *image.GetImages (),
+    [&](const DirectX::XMVECTOR *image_pixels, size_t width, size_t y)
+    {
+      for (size_t i = 0; i < width; ++i)
+      {
+        pixels [width * y + i] = *image_pixels++;
+      }
+    }
+  );
+}
+
+void
+SK_Image_GetTonemappedPixels (DirectX::ScratchImage&           output,
+                              DirectX::ScratchImage&           source,
+                              std::vector <DirectX::XMVECTOR>& pixels,
+                              std::vector <HANDLE>&            fence)
+{
+  WaitForMultipleObjects ( config.screenshots.avif.max_threads,
+                             fence.data (), TRUE, INFINITE );
+
+  TransformImage ( *source.GetImages (),
+    [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+    {
+      std::ignore = inPixels;
+
+      for (size_t j = 0; j < width; ++j)
+      {
+        outPixels [j] = pixels [width * y + j];
+      }
+    }, output);
+}
