@@ -1094,6 +1094,11 @@ SK_NGX_DLSS_GetCurrentPerfQualityStr (void)
   auto params =
     SK_NGX_GetDLSSParameters ();
 
+  if (! params)
+  {
+    return "Unknown Performance/Quality Mode";
+  }
+
   unsigned int perf_quality = NVSDK_NGX_PerfQuality_Value_MaxPerf;
 
   NVSDK_NGX_Parameter_GetUI_Original (params, NVSDK_NGX_Parameter_PerfQualityValue, &perf_quality);
@@ -1129,6 +1134,11 @@ SK_NGX_DLSS_GetCurrentPresetStr (void)
 {
   auto params =
     SK_NGX_GetDLSSParameters ();
+
+  if (! params)
+  {
+    return "Unknown/Invalid";
+  }
 
   unsigned int preset;
   unsigned int perf_quality = NVSDK_NGX_PerfQuality_Value_MaxPerf;

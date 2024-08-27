@@ -1475,16 +1475,21 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
                       Type == DXGI_HDR_METADATA_TYPE_NONE ? L"Disabled"
                                                           : L"HDR10");
 
-  if (Size == sizeof (DXGI_HDR_METADATA_HDR10) && Type == DXGI_HDR_METADATA_TYPE_HDR10)
-  {
-    auto metadata =
-      *(DXGI_HDR_METADATA_HDR10 *)pMetaData;
+  DXGI_HDR_METADATA_HDR10 metadata = {};
 
-    SK_LOGi0 (
-      L"HDR Metadata: Max Mastering=%d nits, Min Mastering=%f nits, MaxCLL=%d nits, MaxFALL=%d nits",
-      metadata.MaxMasteringLuminance, (double)metadata.MinMasteringLuminance * 0.0001,
-      metadata.MaxContentLightLevel,          metadata.MaxFrameAverageLightLevel
-    );
+  if (Type == DXGI_HDR_METADATA_TYPE_NONE || (Size == sizeof (DXGI_HDR_METADATA_HDR10) && Type == DXGI_HDR_METADATA_TYPE_HDR10))
+  {
+    if (Size == sizeof (DXGI_HDR_METADATA_HDR10) && Type == DXGI_HDR_METADATA_TYPE_HDR10)
+    {
+      metadata =
+        *(DXGI_HDR_METADATA_HDR10 *)pMetaData;
+
+      SK_LOGi0 (
+        L"HDR Metadata: Max Mastering=%d nits, Min Mastering=%f nits, MaxCLL=%d nits, MaxFALL=%d nits",
+        metadata.MaxMasteringLuminance, (double)metadata.MinMasteringLuminance * 0.0001,
+        metadata.MaxContentLightLevel,          metadata.MaxFrameAverageLightLevel
+      );
+    }
 
     if (config.render.dxgi.hdr_metadata_override == -1)
     {
@@ -1536,12 +1541,18 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
           )
         );
 
-      *(DXGI_HDR_METADATA_HDR10 *)pMetaData = metadata;
+      if (Size == sizeof (DXGI_HDR_METADATA_HDR10) && Type == DXGI_HDR_METADATA_TYPE_HDR10)
+        *(DXGI_HDR_METADATA_HDR10 *)pMetaData = metadata;
+      else
+      {
+        pMetaData = &metadata;
+        Size      = sizeof (DXGI_HDR_METADATA_HDR10);
+      }
     }
   }
 
-  if (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap)
-    return S_OK;
+  //if (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap)
+  //  return S_OK;
 
   //SK_LOG_FIRST_CALL
 

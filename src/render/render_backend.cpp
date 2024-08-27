@@ -3772,6 +3772,19 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
             display.hdr.enabled       = outDesc1.ColorSpace ==
               DXGI_COLOR_SPACE_RGB_FULL_G2084_NONE_P2020;
+
+            DXGI_OUTPUT_DESC              swap_out_desc = { };
+            SK_ComQIPtr <IDXGISwapChain4> pSwapChain4      (swapchain.p);
+            SK_ComPtr   <IDXGIOutput>     pSwapChainOutput;
+            if (pSwapChain4.p != nullptr && SUCCEEDED (pSwapChain4->GetContainingOutput (&pSwapChainOutput.p)))
+            {
+              pSwapChainOutput->GetDesc (&swap_out_desc);
+
+              if (swap_out_desc.Monitor == outDesc1.Monitor && display.hdr.enabled && config.render.dxgi.hdr_metadata_override == -1)
+              {
+                pSwapChain4->SetHDRMetaData (DXGI_HDR_METADATA_TYPE_NONE, 0, nullptr);
+              }
+            }
           }
         }
       }

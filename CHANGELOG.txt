@@ -1,4 +1,9 @@
-﻿24.8.27
+﻿24.8.27.1
+=========
+ + Fixed potential crash if DLSS text OSD is enabled and game completely turns
+     DLSS off.
+
+24.8.27
 =======
  + Fixed mouse performance issues in Black Myth: Wukong when the cursor is
      inside the game window's client region.

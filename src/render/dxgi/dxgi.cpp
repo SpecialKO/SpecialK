@@ -8219,7 +8219,10 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
 {
   SK_LOG_FIRST_CALL
 
-  if (__SK_HDR_10BitSwap || __SK_HDR_16BitSwap)
+  auto                    orig_type = Type;
+  DXGI_HDR_METADATA_HDR10 metadata  = {};
+
+  if ((__SK_HDR_10BitSwap || __SK_HDR_16BitSwap) && Type != DXGI_HDR_METADATA_TYPE_NONE)
     return S_OK;
 
   if (config.render.dxgi.hdr_metadata_override >= 0)
@@ -8233,16 +8236,19 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
       return S_OK;
   }
 
-  if (Size == sizeof (DXGI_HDR_METADATA_HDR10) && Type == DXGI_HDR_METADATA_TYPE_HDR10)
+  if (Type == DXGI_HDR_METADATA_TYPE_NONE || (Size == sizeof (DXGI_HDR_METADATA_HDR10) && Type == DXGI_HDR_METADATA_TYPE_HDR10))
   {
-    auto metadata =
-      *(DXGI_HDR_METADATA_HDR10 *)pMetaData;
+    if (Size == sizeof (DXGI_HDR_METADATA_HDR10) && Type == DXGI_HDR_METADATA_TYPE_HDR10)
+    {
+      metadata =
+        *(DXGI_HDR_METADATA_HDR10 *)pMetaData;
 
-    SK_LOGi0 (
-      L"HDR Metadata: Max Mastering=%d nits, Min Mastering=%f nits, MaxCLL=%d nits, MaxFALL=%d nits",
-      metadata.MaxMasteringLuminance, (double)metadata.MinMasteringLuminance * 0.0001,
-      metadata.MaxContentLightLevel,          metadata.MaxFrameAverageLightLevel
-    );
+      SK_LOGi0 (
+        L"HDR Metadata: Max Mastering=%d nits, Min Mastering=%f nits, MaxCLL=%d nits, MaxFALL=%d nits",
+        metadata.MaxMasteringLuminance, (double)metadata.MinMasteringLuminance * 0.0001,
+        metadata.MaxContentLightLevel,          metadata.MaxFrameAverageLightLevel
+      );
+    }
 
     if (config.render.dxgi.hdr_metadata_override == -1)
     {
@@ -8291,14 +8297,20 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
           )
         );
 
-      *(DXGI_HDR_METADATA_HDR10 *)pMetaData = metadata;
+      if (Size == sizeof (DXGI_HDR_METADATA_HDR10) && Type == DXGI_HDR_METADATA_TYPE_HDR10)
+        *(DXGI_HDR_METADATA_HDR10 *)pMetaData = metadata;
+      else
+      {
+        pMetaData = &metadata;
+        Size      = sizeof (DXGI_HDR_METADATA_HDR10);
+      }
     }
   }
 
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
+  //rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
 
   DXGI_SWAP_CHAIN_DESC swapDesc = { };
   This->GetDesc      (&swapDesc);
@@ -8308,7 +8320,7 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
 
   //SK_HDR_GetControl ()->meta._AdjustmentCount++;
 
-  if (SUCCEEDED (hr) && Type == DXGI_HDR_METADATA_TYPE_HDR10)
+  if (SUCCEEDED (hr) && orig_type == DXGI_HDR_METADATA_TYPE_HDR10)
   {
     // HDR requires Fullscreen Exclusive or DXGI Flip Model, this should never succeed
     if (config.system.log_level > 0)

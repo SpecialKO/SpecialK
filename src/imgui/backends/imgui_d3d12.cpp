@@ -1822,11 +1822,11 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
     return;
   }
 
+#if 0
   D3D12_RESOURCE_DESC
     src_desc = pSrc->pResource->GetDesc (),
     dst_desc = pDst->pResource->GetDesc ();
 
-#if 1
   static bool
     bUseInjection =
       SK_D3D12_IsTextureInjectionNeeded ();
@@ -1860,11 +1860,15 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
   if ( __SK_HDR_16BitSwap ||
        __SK_HDR_10BitSwap )
   {
+    D3D12_RESOURCE_DESC
+      src_desc = pSrc->pResource->GetDesc ();
+
     // Format override siliness in D3D12
     static volatile LONG lSizeSkips   = 0;
     static volatile LONG lFormatSkips = 0;
 
-    if (D3D12_RESOURCE_DIMENSION_TEXTURE2D == src_desc.Dimension)
+    if (D3D12_RESOURCE_DIMENSION_TEXTURE2D == src_desc.Dimension &&
+        1                                  == src_desc.MipLevels)
     {
       const SK_RenderBackend& rb =
         SK_GetCurrentRenderBackend ();
@@ -1878,6 +1882,9 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
       auto expectedTyplessSrc =
            __SK_HDR_16BitSwap ? DXGI_FORMAT_R16G16B16A16_TYPELESS
                               : DXGI_FORMAT_R10G10B10A2_TYPELESS;
+
+      D3D12_RESOURCE_DESC
+        dst_desc = pDst->pResource->GetDesc ();
 
       //
       // SwapChain Copies:   Potentially fixable using shader-based copy
