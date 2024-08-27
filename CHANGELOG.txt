@@ -1,4 +1,9 @@
-﻿24.8.26.3
+﻿24.8.27
+=======
+ + Fixed mouse performance issues in Black Myth: Wukong when the cursor is
+     inside the game window's client region.
+
+24.8.26.3
 =========
  + Fix intermittent mouse cursor flickering after opening SK's control panel
      in some games.

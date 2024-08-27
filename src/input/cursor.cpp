@@ -85,11 +85,13 @@ SK_SendMsgSetCursor (HCURSOR hCursor)
     if (hLastCursor == hCursor)
       return hLastCursor;
 
-    if (SendMessageTimeout (game_window.hWnd, game_window.messages [game_window.messages->SetCursorImg].uiMessage, (WPARAM)(hCursor), 0, SMTO_BLOCK, 0, nullptr))
-      return hLastCursor;
-
     if (GetActiveWindow () != game_window.hWnd)
+    {
+      PostMessageA ( game_window.hWnd,
+                     game_window.messages [game_window.messages->SetCursorImg].uiMessage,
+                       (WPARAM)(hCursor), 0 );
       return hLastCursor;
+    }
   }
 
   return

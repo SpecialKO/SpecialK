@@ -276,7 +276,6 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"ipoint.exe",
   L"itype.exe",
   L"vsgraphics.exe",
-  L"msedgewebview2.exe",
   L"powershell.exe",
   L"devenv.exe",
 
