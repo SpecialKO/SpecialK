@@ -1435,7 +1435,7 @@ SK_DXGI_UpdateColorSpace (IDXGISwapChain3* This, DXGI_OUTPUT_DESC1 *outDesc)
 
         DXGI_HDR_METADATA_HDR10 hdr10   = { };
 
-        hdr10.MinMasteringLuminance     = sk::narrow_cast <UINT>   (rb.display_gamut.minY / 0.0001);
+        hdr10.MinMasteringLuminance     = sk::narrow_cast <UINT>   (0);//rb.display_gamut.minY / 0.0001);
         hdr10.MaxMasteringLuminance     = sk::narrow_cast <UINT>   (rb.display_gamut.maxY);
         hdr10.MaxContentLightLevel      = sk::narrow_cast <UINT16> (rb.display_gamut.maxLocalY);
         hdr10.MaxFrameAverageLightLevel = sk::narrow_cast <UINT16> (rb.display_gamut.maxAverageY);
@@ -8222,9 +8222,6 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
   auto                    orig_type = Type;
   DXGI_HDR_METADATA_HDR10 metadata  = {};
 
-  if ((__SK_HDR_10BitSwap || __SK_HDR_16BitSwap) && Type != DXGI_HDR_METADATA_TYPE_NONE)
-    return S_OK;
-
   if (config.render.dxgi.hdr_metadata_override >= 0)
   {
     SK_LOGi0 (L"Invalid HDR metadata override, ignoring...");
@@ -8258,44 +8255,57 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
       auto& display =
         rb.displays [rb.active_display];
 
-      if (display.gamut.maxY == 0.0f)
+      if (display.gamut.maxLocalY == 0.0f)
       {
-        return
-          IDXGISwapChain4_SetHDRMetaData_Original (This, DXGI_HDR_METADATA_TYPE_NONE, 0, nullptr);
+        SK_ComPtr <IDXGIOutput>     pOutput;
+        This->GetContainingOutput (&pOutput.p);
+
+        SK_ComQIPtr <IDXGIOutput6>
+            pOutput6 (   pOutput);
+        if (pOutput6.p != nullptr)
+        {
+          DXGI_OUTPUT_DESC1    outDesc1 = { };
+          pOutput6->GetDesc1 (&outDesc1);
+
+          display.gamut.maxLocalY   = outDesc1.MaxLuminance;
+          display.gamut.maxAverageY = outDesc1.MaxFullFrameLuminance;
+          display.gamut.maxY        = outDesc1.MaxLuminance;
+          display.gamut.minY        = outDesc1.MinLuminance;
+          display.gamut.xb          = outDesc1.BluePrimary  [0];
+          display.gamut.yb          = outDesc1.BluePrimary  [1];
+          display.gamut.xg          = outDesc1.GreenPrimary [0];
+          display.gamut.yg          = outDesc1.GreenPrimary [1];
+          display.gamut.xr          = outDesc1.RedPrimary   [0];
+          display.gamut.yr          = outDesc1.RedPrimary   [1];
+          display.gamut.Xw          = outDesc1.WhitePoint   [0];
+          display.gamut.Yw          = outDesc1.WhitePoint   [1];
+          display.gamut.Zw          = 1.0f - display.gamut.Xw - display.gamut.Yw;
+
+          SK_ReleaseAssert (outDesc1.Monitor == display.monitor || display.monitor == 0);
+        }
       }
 
-#if 0
-      if ((float)metadata.MaxMasteringLuminance > display.gamut.maxY)
-                 metadata.MaxMasteringLuminance = (INT)floor (display.gamut.maxY);
+      metadata.MinMasteringLuminance     = sk::narrow_cast <UINT>   (display.gamut.minY / 0.0001);
+      metadata.MaxMasteringLuminance     = sk::narrow_cast <UINT>   (display.gamut.maxY);
+      metadata.MaxContentLightLevel      = sk::narrow_cast <UINT16> (display.gamut.maxLocalY);
+      metadata.MaxFrameAverageLightLevel = sk::narrow_cast <UINT16> (display.gamut.maxAverageY);
 
-      if (metadata.MaxContentLightLevel >                           metadata.MaxMasteringLuminance)
-          metadata.MaxContentLightLevel = sk::narrow_cast <UINT16> (metadata.MaxMasteringLuminance);
+      metadata.BluePrimary  [0]          = sk::narrow_cast <UINT16> (display.gamut.xb * 50000.0F);
+      metadata.BluePrimary  [1]          = sk::narrow_cast <UINT16> (display.gamut.yb * 50000.0F);
+      metadata.RedPrimary   [0]          = sk::narrow_cast <UINT16> (display.gamut.xr * 50000.0F);
+      metadata.RedPrimary   [1]          = sk::narrow_cast <UINT16> (display.gamut.yr * 50000.0F);
+      metadata.GreenPrimary [0]          = sk::narrow_cast <UINT16> (display.gamut.xg * 50000.0F);
+      metadata.GreenPrimary [1]          = sk::narrow_cast <UINT16> (display.gamut.yg * 50000.0F);
+      metadata.WhitePoint   [0]          = sk::narrow_cast <UINT16> (display.gamut.Xw * 50000.0F);
+      metadata.WhitePoint   [1]          = sk::narrow_cast <UINT16> (display.gamut.Yw * 50000.0F);
 
-      if (metadata.MaxContentLightLevel      < metadata.MaxFrameAverageLightLevel)
-          metadata.MaxFrameAverageLightLevel = metadata.MaxContentLightLevel;
-#else
-        metadata.MinMasteringLuminance     = sk::narrow_cast <UINT>   (display.gamut.minY / 0.0001);
-        metadata.MaxMasteringLuminance     = sk::narrow_cast <UINT>   (display.gamut.maxY);
-        metadata.MaxContentLightLevel      = sk::narrow_cast <UINT16> (display.gamut.maxLocalY);
-        metadata.MaxFrameAverageLightLevel = sk::narrow_cast <UINT16> (display.gamut.maxLocalY);
-
-        metadata.BluePrimary  [0]          = sk::narrow_cast <UINT16> (display.gamut.xb);
-        metadata.BluePrimary  [1]          = sk::narrow_cast <UINT16> (display.gamut.yb);
-        metadata.RedPrimary   [0]          = sk::narrow_cast <UINT16> (display.gamut.xr);
-        metadata.RedPrimary   [1]          = sk::narrow_cast <UINT16> (display.gamut.yr);
-        metadata.GreenPrimary [0]          = sk::narrow_cast <UINT16> (display.gamut.xg);
-        metadata.GreenPrimary [1]          = sk::narrow_cast <UINT16> (display.gamut.yg);
-        metadata.WhitePoint   [0]          = sk::narrow_cast <UINT16> (display.gamut.Xw);
-        metadata.WhitePoint   [1]          = sk::narrow_cast <UINT16> (display.gamut.Yw);
-#endif
-
-        SK_RunOnce (
-          SK_LOGi0 (
-            L"Metadata Override: Max Mastering=%d nits, Min Mastering=%f nits, MaxCLL=%d nits, MaxFALL=%d nits",
-            metadata.MaxMasteringLuminance, (double)metadata.MinMasteringLuminance * 0.0001,
-            metadata.MaxContentLightLevel,          metadata.MaxFrameAverageLightLevel
-          )
-        );
+      SK_RunOnce (
+        SK_LOGi0 (
+          L"Metadata Override: Max Mastering=%d nits, Min Mastering=%f nits, MaxCLL=%d nits, MaxFALL=%d nits",
+          metadata.MaxMasteringLuminance, (double)metadata.MinMasteringLuminance * 0.0001,
+          metadata.MaxContentLightLevel,          metadata.MaxFrameAverageLightLevel
+        )
+      );
 
       if (Size == sizeof (DXGI_HDR_METADATA_HDR10) && Type == DXGI_HDR_METADATA_TYPE_HDR10)
         *(DXGI_HDR_METADATA_HDR10 *)pMetaData = metadata;
@@ -8309,8 +8319,6 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
 
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
-
-  //rb.framebuffer_flags &= ~SK_FRAMEBUFFER_FLAG_HDR;
 
   DXGI_SWAP_CHAIN_DESC swapDesc = { };
   This->GetDesc      (&swapDesc);
