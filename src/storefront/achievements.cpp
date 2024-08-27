@@ -1585,7 +1585,8 @@ SK_AchievementManager::drawPopups (void)
           const float fGlobalPercent =
             it->achievement->global_percent_;
 
-          if (fGlobalPercent < 10.0f)
+          // Only Steam has rarity information; Epic has XP, but SK is unable to use that info.
+          if (fGlobalPercent < 10.0f && SK::SteamAPI::AppID () != 0)
             ImGui::PushStyleColor (ImGuiCol_Border, rare_border_color);
 
           auto text =
@@ -1710,7 +1711,7 @@ SK_AchievementManager::drawPopups (void)
           //ImGui::EndGroup      (  );
           ImGui::EndPopup      (  );
 
-          if (fGlobalPercent < 10.0f)
+          if (fGlobalPercent < 10.0f && SK::SteamAPI::AppID () != 0)
             ImGui::PopStyleColor( );
         }
       }
@@ -1921,24 +1922,10 @@ SK_AchievementManager::createPopupWindow (SK_AchievementPopup* popup)
                                          (IDirect3DTexture9 **)&popup->icon_texture );
   }
 
-#ifdef _HAS_CEGUI_REPLACEMENT
-  if (config.platform.achievements.popup.show_title)
-  {
-    std::string app_name = SK::SteamAPI::AppName ();
-
-    if (! app_name.empty ())
-    {
-      achv_popup->setText (
-        (const CEGUI::utf8 *)app_name.c_str ()
-      );
-    }
-  }
-#else
   popup->window =
     (ImGuiWindow *)1;
 
   return popup->window;
-#endif
 }
 
 bool
