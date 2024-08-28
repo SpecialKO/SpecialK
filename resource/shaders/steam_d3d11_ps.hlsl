@@ -31,10 +31,8 @@ float4 main (PS_INPUT input) : SV_Target
   // Negative = HDR10
   if (linear_mul.x < 0.0)
   {
-    out_col.rgb =
-      ApplyREC2084Curve ( REC709toREC2020 (out_col.rgb),
-                            -linear_mul.x );
-
+    out_col.rgb = LinearToPQ          (-linear_mul.x * REC709toREC2020 (out_col.rgb), 10000.0f);
+    out_col.a   = RemoveAlphaGammaExp (                                 out_col.a,        2.2f);
   }
 
   // Positive = scRGB

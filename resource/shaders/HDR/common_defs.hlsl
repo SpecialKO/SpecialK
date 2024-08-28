@@ -590,13 +590,6 @@ float3 HSVtoRGB (in float3 HSV)
 }
 
 float3
-ApplyREC709Curve (float3 x)
-{
-	return ( x < 0.0181f ) ?
-    4.5f * x : 1.0993f * PositivePow (x, 0.45f) - 0.0993f;
-}
-
-float3
 REC709toREC2020 (float3 linearRec709)
 {
   static const float3x3 ConvMat =
@@ -787,50 +780,44 @@ static const ParamsPQ PQ =
 
 float4 LinearToPQ (float4 x, float maxPQValue)
 {
-  float4 sign_bits = sign (x);
-
   x =
-    pow ( abs (x) / maxPQValue,
-                       PQ.N );
+    pow ( max (x, 0) / maxPQValue,
+                          PQ.N );
  
   float4 nd =
     (PQ.C1 + PQ.C2 * x) /
       (1.0 + PQ.C3 * x);
 
   return
-    sign_bits * pow (nd, PQ.M);
+    pow (nd, PQ.M);
 }
 
 float3 LinearToPQ (float3 x, float maxPQValue)
 {
-  float3 sign_bits = sign (x);
-
   x =
-    pow ( abs (x) / maxPQValue,
-                       PQ.N );
+    pow ( max (x, 0) / maxPQValue,
+                          PQ.N );
  
   float3 nd =
     (PQ.C1 + PQ.C2 * x) /
       (1.0 + PQ.C3 * x);
 
   return
-    sign_bits * pow (nd, PQ.M);
+    pow (nd, PQ.M);
 }
 
 float LinearToPQ (float x, float maxPQValue)
 {
-  float sign_bit = sign (x);
-
   x =
-    pow ( abs (x) / maxPQValue,
-                       PQ.N );
+    pow ( max (x, 0) / maxPQValue,
+                          PQ.N );
  
   float nd =
     (PQ.C1 + PQ.C2 * x) /
       (1.0 + PQ.C3 * x);
 
   return
-    sign_bit * pow (nd, PQ.M);
+    pow (nd, PQ.M);
 }
 
 float3 LinearToPQ (float3 x)
@@ -841,47 +828,41 @@ float3 LinearToPQ (float3 x)
 
 float PQToLinear (float x, float maxPQValue)
 {
-  float sign_bit = sign (x);
-
   x =
-    pow (abs (x), PQ.rcpM);
+    pow (max (x, 0), PQ.rcpM);
 
   float nd =
     max (x - PQ.C1, 0.0) /
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    sign_bit * pow (nd, PQ.rcpN) * maxPQValue;
+    pow (nd, PQ.rcpN) * maxPQValue;
 }
 
 float3 PQToLinear (float3 x, float maxPQValue)
 {
-  float3 sign_bits = sign (x);
-
   x =
-    pow (abs (x), PQ.rcpM);
+    pow (max (x, 0), PQ.rcpM);
 
   float3 nd =
     max (x - PQ.C1, 0.0) /
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    sign_bits * pow (nd, PQ.rcpN) * maxPQValue;
+    pow (nd, PQ.rcpN) * maxPQValue;
 }
 
 float4 PQToLinear (float4 x, float maxPQValue)
 {
-  float4 sign_bits = sign (x);
-
   x =
-    pow (abs (x), PQ.rcpM);
+    pow (max (x, 0), PQ.rcpM);
 
   float4 nd =
     max (x - PQ.C1, 0.0) /
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    sign_bits * pow (nd, PQ.rcpN) * maxPQValue;
+    pow (nd, PQ.rcpN) * maxPQValue;
 }
 
 float3 PQToLinear (float3 x)
@@ -893,18 +874,16 @@ float3 PQToLinear (float3 x)
 
 float LinearToPQY (float x, float maxPQValue)
 {
-  float sign_bit = sign (x);
-
   x =
-    pow ( abs (x) / maxPQValue,
-                       PQ.N );
+    pow ( max (x, 0) / maxPQValue,
+                          PQ.N );
  
   float nd =
     (PQ.C1 + PQ.C2 * x) /
       (1.0 + PQ.C3 * x);
 
   return
-    sign_bit * pow (nd, PQ.M);
+    pow (nd, PQ.M);
 }
 
 float LinearToPQY (float x)
@@ -915,17 +894,15 @@ float LinearToPQY (float x)
 
 float PQToLinearY (float x, float maxPQValue)
 {
-  float sign_bit = sign (x);
-
   x =
-    pow (abs (x), PQ.rcpM);
+    pow (max (x, 0), PQ.rcpM);
 
   float nd =
     max (x - PQ.C1, 0.0) /
             (PQ.C2 - (PQ.C3 * x));
 
   return
-    sign_bit * pow (nd, PQ.rcpN) * maxPQValue;
+    pow (nd, PQ.rcpN) * maxPQValue;
 }
 
 float PQToLinearY (float x)
@@ -2001,47 +1978,6 @@ float3 AP1_D65toRec709 (float3 linearAP1)
   };
 
   return mul (XYZtoRec709, mul (AP1_D65toXYZ, linearAP1));
-}
-
-float3 RemoveREC2084Curve (float3 N)
-{
-  if (AnyIsNan (N))
-    return 0.0f;
-
-  float3 sign_bits = sign (N);
-
-  float  m1 = 2610.0 / 4096.0 / 4;
-  float  m2 = 2523.0 / 4096.0 * 128;
-  float  c1 = 3424.0 / 4096.0;
-  float  c2 = 2413.0 / 4096.0 * 32;
-  float  c3 = 2392.0 / 4096.0 * 32;
-  float3 Np = PositivePow (N, 1 / m2);
-
-  return sign_bits *
-    PositivePow ( max (Np - c1,   0) /
-                      (c2 - c3 * Np),
-                        1 / m1);
-}
-
-float3 ApplyREC2084Curve (float3 L, float maxLuminance)
-{
-  float m1 = 2610.0 / 4096.0 / 4;
-  float m2 = 2523.0 / 4096.0 * 128;
-  float c1 = 3424.0 / 4096.0;
-  float c2 = 2413.0 / 4096.0 * 32;
-  float c3 = 2392.0 / 4096.0 * 32;
-
-  float maxLuminanceScale = maxLuminance / 10000.0f;
-   L *= maxLuminanceScale;
-
-  float3 sign_bits = sign (L);
-
-  float3 Lp =
-    PositivePow (L, m1);
-
-  return sign_bits *
-    PositivePow ( (c1 + c2 * Lp) /
-                   (1 + c3 * Lp), m2 );
 }
 
 float3

@@ -461,7 +461,7 @@ static auto PQToLinear = [](DirectX::XMVECTOR N)
   XMVECTOR ret;
 
   ret =
-    XMVectorPow (N, PQ.RcpM);
+    XMVectorPow (XMVectorMax (N, g_XMZero), PQ.RcpM);
 
   XMVECTOR nd;
 
