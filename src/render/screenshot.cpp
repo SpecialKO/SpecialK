@@ -228,52 +228,6 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
     if (rgb16_pixels == nullptr)
       return false;
 
-    struct ParamsPQ
-    {
-      XMVECTOR N, M;
-      XMVECTOR C1, C2, C3;
-      XMVECTOR MaxPQ;
-    };
-
-    static const ParamsPQ PQ =
-    {
-      XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
-      XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
-      XMVectorReplicate (3424.0 / 4096.0),         // C1
-      XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
-      XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
-      XMVectorReplicate (125.0),
-    };
-
-    static const XMMATRIX c_from709to2020 =
-    {
-      0.627225305694944f,  0.0690418812810714f, 0.0163911702607078f, 0.0f,
-      0.329476882715808f,  0.919605681354755f,  0.0880887513437058f, 0.0f,
-      0.0432978115892484f, 0.0113524373641739f, 0.895520078395586f,  0.0f,
-      0.0f,                0.0f,                0.0f,                1.0f
-    };
-
-    auto LinearToPQ = [](XMVECTOR N)
-    {
-      XMVECTOR ret;
-      XMVECTOR sign =
-        XMVectorSet (XMVectorGetX (N) < 0.0f ? -1.0f : 1.0f,
-                     XMVectorGetY (N) < 0.0f ? -1.0f : 1.0f,
-                     XMVectorGetZ (N) < 0.0f ? -1.0f : 1.0f, 1.0f);
-
-      ret =
-        XMVectorPow (XMVectorDivide (XMVectorAbs (N), PQ.MaxPQ), PQ.N);
-
-      XMVECTOR nd =
-        XMVectorDivide (
-           XMVectorAdd (  PQ.C1, XMVectorMultiply (PQ.C2, ret)),
-           XMVectorAdd (g_XMOne, XMVectorMultiply (PQ.C3, ret))
-        );
-
-      return
-        XMVectorMultiply (XMVectorPow (nd, PQ.M), sign);
-    };
-
     EvaluateImage ( raw_hdr_img,
     [&](const XMVECTOR* pixels, size_t width, size_t y)
     {
@@ -976,54 +930,6 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
 
       case DXGI_FORMAT_R16G16B16A16_FLOAT:
       {
-        struct ParamsPQ
-        {
-          XMVECTOR N, M;
-          XMVECTOR C1, C2, C3;
-          XMVECTOR MaxPQ;
-        };
-
-        static const ParamsPQ PQ =
-        {
-          XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
-          XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
-          XMVectorReplicate (3424.0 / 4096.0),         // C1
-          XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
-          XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
-          XMVectorReplicate (125.0),
-        };
-
-        static const XMMATRIX c_from709to2020 = // Transposed
-        {
-          0.627225305694944f,  0.0690418812810714f, 0.0163911702607078f, 0.0f,
-          0.329476882715808f,  0.919605681354755f,  0.0880887513437058f, 0.0f,
-          0.0432978115892484f, 0.0113524373641739f, 0.895520078395586f,  0.0f,
-          0.0f,                0.0f,                0.0f,                1.0f
-        };
-
-        auto LinearToPQ = [](DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = XMVectorReplicate (125.0))
-        {
-          using namespace DirectX;
-        
-          XMVECTOR ret;
-          XMVECTOR sign =
-            XMVectorSet (XMVectorGetX (N) < 0.0f ? -1.0f : 1.0f,
-                         XMVectorGetY (N) < 0.0f ? -1.0f : 1.0f,
-                         XMVectorGetZ (N) < 0.0f ? -1.0f : 1.0f, 1.0f);
-        
-          ret =
-            XMVectorPow (XMVectorDivide (XMVectorAbs (N), maxPQValue), PQ.N);
-        
-          XMVECTOR nd =
-            XMVectorDivide (
-               XMVectorAdd (  PQ.C1, XMVectorMultiply (PQ.C2, ret)),
-               XMVectorAdd (g_XMOne, XMVectorMultiply (PQ.C3, ret))
-            );
-        
-          return
-            XMVectorMultiply (XMVectorPow (nd, PQ.M), sign);
-        };
-
         uint16_t* rgb_pixels = (uint16_t *)rgb.pixels;
 
         DirectX::ScratchImage
@@ -1189,54 +1095,6 @@ bool isJXLEncoderAvailable (void)
 
   return supported;
 }
-
-static const DirectX::XMVECTOR g_MaxPQValue =
-  DirectX::XMVectorReplicate (125.0f);
-
-struct ParamsPQ
-{
-  XMVECTOR N, M;
-  XMVECTOR C1, C2, C3;
-  XMVECTOR MaxPQ;
-};
-
-static const ParamsPQ PQ =
-{
-  XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
-  XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
-  XMVectorReplicate (3424.0 / 4096.0),         // C1
-  XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
-  XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
-  XMVectorReplicate (125.0),
-};
-
-static auto PQToLinear = [](DirectX::XMVECTOR N, DirectX::XMVECTOR maxPQValue = g_MaxPQValue)
-{
-using namespace DirectX;
-
-  XMVECTOR ret;
-
-  XMVECTOR sign =
-    XMVectorSet (XMVectorGetX (N) < 0.0f ? -1.0f : 1.0f,
-                 XMVectorGetY (N) < 0.0f ? -1.0f : 1.0f,
-                 XMVectorGetZ (N) < 0.0f ? -1.0f : 1.0f, 1.0f);
-
-  ret =
-    XMVectorPow (XMVectorAbs (N), XMVectorDivide (g_XMOne, PQ.M));
-
-  XMVECTOR nd;
-
-  nd =
-    XMVectorDivide (
-      XMVectorMax (XMVectorSubtract (ret, PQ.C1), g_XMZero),
-                   XMVectorSubtract (     PQ.C2,
-            XMVectorMultiply (PQ.C3, ret)));
-
-  ret =
-    XMVectorMultiply (XMVectorMultiply (XMVectorPow (nd, XMVectorDivide (g_XMOne, PQ.N)), maxPQValue), sign);
-
-  return ret;
-};
 
 bool
 SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFilePath)
@@ -1990,22 +1848,6 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
 {
   SK_PNG_HDR_cLLi_Payload clli;
 
-  static const XMMATRIX c_from709to2020 =
-  {
-    0.627225305694944f,  0.0690418812810714f, 0.0163911702607078f, 0.0f,
-    0.329476882715808f,  0.919605681354755f,  0.0880887513437058f, 0.0f,
-    0.0432978115892484f, 0.0113524373641739f, 0.895520078395586f,  0.0f,
-    0.0f,                0.0f,                0.0f,                1.0f
-  };
-
-  static const XMMATRIX c_from709toXYZ =
-  {
-    0.4123907983303070068359375f,  0.2126390039920806884765625f,   0.0193308182060718536376953125f, 0.0f,
-    0.3575843274593353271484375f,  0.715168654918670654296875f,    0.119194783270359039306640625f,  0.0f,
-    0.18048079311847686767578125f, 0.072192318737506866455078125f, 0.950532138347625732421875f,     0.0f,
-    0.0f,                          0.0f,                           0.0f,                            1.0f
-  };
-
   static const XMMATRIX c_from2020toXYZ =
   {
     0.636958062f, 0.2627002000f, 0.0000000000f, 0.0f,
@@ -2559,4 +2401,347 @@ SK_Image_GetTonemappedPixels (DirectX::ScratchImage&           output,
         outPixels [j] = pixels [width * y + j];
       }
     }, output);
+}
+
+
+
+
+const ParamsPQ PQ =
+{
+  DirectX::XMVectorReplicate (2610.0 / 4096.0 / 4.0),   // N
+  DirectX::XMVectorReplicate (2523.0 / 4096.0 * 128.0), // M
+  DirectX::XMVectorReplicate (3424.0 / 4096.0),         // C1
+  DirectX::XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
+  DirectX::XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
+  DirectX::XMVectorReplicate (125.0f)                   // MaxPQ
+};
+
+const DirectX::XMMATRIX c_fromXYZtoLMS = // Transposed
+{
+    0.3592f, -0.1922f, 0.0070f, 0.0f,
+    0.6976f,  1.1004f, 0.0749f, 0.0f,
+   -0.0358f,  0.0755f, 0.8434f, 0.0f,
+    0.0f,     0.0f,    0.0f,    1.0f
+};
+
+const DirectX::XMMATRIX c_fromLMStoXYZ = // Transposed
+{
+   2.070180056695613509600f,  0.364988250032657479740f, -0.049595542238932107896f, 0.0f,
+  -1.326456876103021025500f,  0.680467362852235141020f, -0.049421161186757487412f, 0.0f,
+   0.206616006847855170810f, -0.045421753075853231409f,  1.187995941732803439400f, 0.0f,
+   0.0f,                      0.0f,                      0.0f,                     1.0f
+};
+
+const DirectX::XMMATRIX c_from709toXYZ = // Transposed
+{
+  0.4123907983303070068359375f,  0.2126390039920806884765625f,   0.0193308182060718536376953125f, 0.0f,
+  0.3575843274593353271484375f,  0.715168654918670654296875f,    0.119194783270359039306640625f,  0.0f,
+  0.18048079311847686767578125f, 0.072192318737506866455078125f, 0.950532138347625732421875f,     0.0f,
+  0.0f,                          0.0f,                           0.0f,                            1.0f
+};
+
+const DirectX::XMMATRIX c_fromXYZto709 = // Transposed
+{
+   3.2409698963165283203125f,    -0.96924364566802978515625f,       0.055630080401897430419921875f, 0.0f,
+  -1.53738319873809814453125f,    1.875967502593994140625f,        -0.2039769589900970458984375f,   0.0f,
+  -0.4986107647418975830078125f,  0.0415550582110881805419921875f,  1.05697154998779296875f,        0.0f,
+   0.0f,                          0.0f,                             0.0f,                           1.0f
+};
+
+const DirectX::XMMATRIX c_from709to2020 = // Transposed
+{
+  0.627225305694944f,  0.0690418812810714f, 0.0163911702607078f, 0.0f,
+  0.329476882715808f,  0.919605681354755f,  0.0880887513437058f, 0.0f,
+  0.0432978115892484f, 0.0113524373641739f, 0.895520078395586f,  0.0f,
+  0.0f,                0.0f,                0.0f,                1.0f
+};
+
+float LinearToPQY (float N)
+{
+  const float fScaledN =
+    fabs (N * 0.008f); // 0.008 = 1/125.0
+
+  float ret =
+    pow (fScaledN, 0.1593017578125f);
+
+  float nd =
+    fabs ( (0.8359375f + (18.8515625f * ret)) /
+           (1.0f       + (18.6875f    * ret)) );
+
+  return
+    pow (nd, 78.84375f);
+};
+
+DirectX::XMVECTOR Rec709toICtCp (DirectX::XMVECTOR N)
+{
+  using namespace DirectX;
+
+  static const DirectX::XMMATRIX ConvMat = // Transposed
+  {
+    0.5000f,  1.6137f,  4.3780f, 0.0f,
+    0.5000f, -3.3234f, -4.2455f, 0.0f,
+    0.0000f,  1.7097f, -0.1325f, 0.0f,
+    0.0f,     0.0f,     0.0f,    1.0f
+  };
+
+  return
+    XMVector3Transform (
+      LinearToPQ (
+        XMVectorMax (g_XMZero,
+        XMVector3Transform (
+        XMVector3Transform (N, c_from709toXYZ), c_fromXYZtoLMS)
+                 )), ConvMat
+    );
+};
+
+DirectX::XMVECTOR ICtCptoRec709 (DirectX::XMVECTOR N)
+{
+  using namespace DirectX;
+
+  static const DirectX::XMMATRIX ConvMat = // Transposed
+  {
+    1.0f,                  1.0f,                  1.0f,                 0.0f,
+    0.00860514569398152f, -0.00860514569398152f,  0.56004885956263900f, 0.0f,
+    0.11103560447547328f, -0.11103560447547328f, -0.32063747023212210f, 0.0f,
+    0.0f,                  0.0f,                  0.0f,                 1.0f
+  };
+
+  return
+    XMVector3Transform (
+    XMVector3Transform (
+      PQToLinear (XMVector3Transform (N, ConvMat)),
+        c_fromLMStoXYZ ),
+        c_fromXYZto709 );
+};
+
+#include <ultrahdr/ultrahdr_api.h>
+
+using uhdr_create_encoder_pfn                = uhdr_codec_private_t*    (*)(void);
+using uhdr_enc_set_quality_pfn               = uhdr_error_info_t        (*)(uhdr_codec_private_t* enc, int quality,           uhdr_img_label_t intent);
+using uhdr_enc_set_raw_image_pfn             = uhdr_error_info_t        (*)(uhdr_codec_private_t* enc, uhdr_raw_image_t* img, uhdr_img_label_t intent);
+using uhdr_enc_set_output_format_pfn         = uhdr_error_info_t        (*)(uhdr_codec_private_t* enc, uhdr_codec_t media_type);
+using uhdr_encode_pfn                        = uhdr_error_info_t        (*)(uhdr_codec_private_t* enc);
+using uhdr_get_encoded_stream_pfn            = uhdr_compressed_image_t* (*)(uhdr_codec_private_t* enc);
+using uhdr_release_encoder_pfn               = void                     (*)(uhdr_codec_private_t* enc);
+using uhdr_enc_set_min_max_content_boost_pfn = uhdr_error_info_t        (*)(uhdr_codec_private_t* enc, float min_boost, float max_boost);
+using uhdr_enc_set_preset_pfn                = uhdr_error_info_t        (*)(uhdr_codec_private_t* enc, uhdr_enc_preset_t preset);
+
+uhdr_create_encoder_pfn                sk_uhdr_create_encoder                = nullptr;
+uhdr_enc_set_quality_pfn               sk_uhdr_enc_set_quality               = nullptr;
+uhdr_enc_set_raw_image_pfn             sk_uhdr_enc_set_raw_image             = nullptr;
+uhdr_enc_set_output_format_pfn         sk_uhdr_enc_set_output_format         = nullptr;
+uhdr_encode_pfn                        sk_uhdr_encode                        = nullptr;
+uhdr_get_encoded_stream_pfn            sk_uhdr_get_encoded_stream            = nullptr;
+uhdr_release_encoder_pfn               sk_uhdr_release_encoder               = nullptr;
+uhdr_enc_set_min_max_content_boost_pfn sk_uhdr_enc_set_min_max_content_boost = nullptr;
+uhdr_enc_set_preset_pfn                sk_uhdr_enc_set_preset                = nullptr;
+
+bool isUHDREncoderAvailable (void)
+{
+  static HMODULE hModUHDR = nullptr;
+
+  static const wchar_t* wszPluginArch =
+    SK_RunLHIfBitness ( 64, LR"(x64\)",
+                            LR"(x86\)" );
+
+  SK_RunOnce (
+  {
+    std::wstring path_to_sk =
+      SK_GetInstallPath ();
+
+    std::error_code                          ec;
+    if (std::filesystem::exists (path_to_sk, ec))
+    {
+      path_to_sk += LR"(\PlugIns\ThirdParty\Image Codecs\libultrahdr\)";
+      path_to_sk += wszPluginArch;
+
+      std::filesystem::create_directories
+                                  (path_to_sk, ec);
+      if (std::filesystem::exists (path_to_sk, ec))
+      {
+        std::wstring path_to_uhdr = path_to_sk + L"uhdr.dll";
+
+        if (! std::filesystem::exists (path_to_uhdr, ec))
+        {
+          SK_Network_EnqueueDownload (
+               sk_download_request_s (
+                 path_to_uhdr.c_str (), SK_RunLHIfBitness (64,
+                   R"(https://sk-data.special-k.info/addon/ImageCodecs/libuhdr/x64/uhdr.dll)",
+                   R"(https://sk-data.special-k.info/addon/ImageCodecs/libuhdr/x86/uhdr.dll)"),
+          []( const std::vector <uint8_t>&&,
+              const std::wstring_view )
+           -> bool
+              {          
+                return false;
+              }
+            ), true
+          );
+        }
+
+        hModUHDR = LoadLibraryW (path_to_uhdr.c_str ());
+
+        if (hModUHDR != nullptr)
+        {
+          //PLOG_INFO << "Loaded Ultra HDR from: " << path_to_sk;
+        }
+      }
+    }
+
+    if (hModUHDR == nullptr)
+    {
+      hModUHDR = LoadLibraryW (L"uhdr.dll");
+
+      if (hModUHDR != nullptr)
+      {
+        //PLOG_INFO << "Loaded Ultra HDR from default DLL search path";
+      }
+    }
+
+    if (hModUHDR != nullptr)
+    {
+      sk_uhdr_create_encoder                = (uhdr_create_encoder_pfn)               GetProcAddress (hModUHDR, "uhdr_create_encoder");
+      sk_uhdr_enc_set_quality               = (uhdr_enc_set_quality_pfn)              GetProcAddress (hModUHDR, "uhdr_enc_set_quality");
+      sk_uhdr_enc_set_raw_image             = (uhdr_enc_set_raw_image_pfn)            GetProcAddress (hModUHDR, "uhdr_enc_set_raw_image");
+      sk_uhdr_enc_set_output_format         = (uhdr_enc_set_output_format_pfn)        GetProcAddress (hModUHDR, "uhdr_enc_set_output_format");
+      sk_uhdr_encode                        = (uhdr_encode_pfn)                       GetProcAddress (hModUHDR, "uhdr_encode");
+      sk_uhdr_get_encoded_stream            = (uhdr_get_encoded_stream_pfn)           GetProcAddress (hModUHDR, "uhdr_get_encoded_stream");
+      sk_uhdr_release_encoder               = (uhdr_release_encoder_pfn)              GetProcAddress (hModUHDR, "uhdr_release_encoder");
+      sk_uhdr_enc_set_min_max_content_boost = (uhdr_enc_set_min_max_content_boost_pfn)GetProcAddress (hModUHDR, "uhdr_enc_set_min_max_content_boost");
+      sk_uhdr_enc_set_preset                = (uhdr_enc_set_preset_pfn)               GetProcAddress (hModUHDR, "uhdr_enc_set_preset");
+
+      return true;
+    }
+
+    return false;
+  });
+
+  const bool supported =
+    (hModUHDR != nullptr);
+
+  return supported;
+}
+
+void
+SK_Screenshot_SaveUHDR (const DirectX::Image& image, const DirectX::Image& sdr_image, const wchar_t* wszFileName)
+{
+  if (! isUHDREncoderAvailable ())
+    return;
+
+  uhdr_raw_image raw_hdr;
+
+  raw_hdr.fmt   = UHDR_IMG_FMT_32bppRGBA1010102;
+  raw_hdr.cg    = UHDR_CG_BT_2100;
+  raw_hdr.ct    = UHDR_CT_PQ;  
+  raw_hdr.range = UHDR_CR_FULL_RANGE;  
+  raw_hdr.w     = static_cast <unsigned int> (image.width);
+  raw_hdr.h     = static_cast <unsigned int> (image.height);
+
+  using namespace DirectX;
+
+  const
+  DirectX::Image*      pHDR10_Image;
+  DirectX::ScratchImage hdr10_image;
+  DirectX::ScratchImage  temp_image;
+
+  // Convert to HDR10
+  if (image.format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+  {
+    DirectX::TransformImage (image,
+      [&](XMVECTOR* outPixels, const XMVECTOR* inPixels, size_t width, size_t y)
+      {
+        std::ignore = y;
+
+        for (size_t j = 0; j < width; ++j)
+        {
+          XMVECTOR value = inPixels [j];
+
+          outPixels [j] =
+            LinearToPQ (
+              XMVectorMax (g_XMZero, XMVector3Transform (value, c_from709to2020))
+            );
+        }
+      },temp_image
+    );
+
+    DirectX::Convert (*temp_image.GetImages (), DXGI_FORMAT_R10G10B10A2_UNORM, DirectX::TEX_FILTER_DEFAULT, 1.0f, hdr10_image);
+    pHDR10_Image = hdr10_image.GetImage (0,0,0);
+  }
+
+  else
+  {
+    pHDR10_Image = &image;
+  }
+  
+  raw_hdr.planes [UHDR_PLANE_PACKED] =                             pHDR10_Image->pixels;
+  raw_hdr.stride [UHDR_PLANE_PACKED] = static_cast <unsigned int> (pHDR10_Image->rowPitch / sizeof (uint32_t));
+
+  temp_image.Release ();
+
+  DirectX::Convert (sdr_image, DXGI_FORMAT_R8G8B8A8_UNORM, DirectX::TEX_FILTER_SRGB, 1.0f, temp_image);
+
+  uhdr_raw_image raw_sdr;
+
+  raw_sdr.fmt   = UHDR_IMG_FMT_32bppRGBA8888;
+  raw_sdr.cg    = UHDR_CG_BT_709;
+  raw_sdr.ct    = UHDR_CT_SRGB;
+  raw_sdr.range = UHDR_CR_FULL_RANGE;  
+  raw_sdr.w     = static_cast <unsigned int> (image.width);
+  raw_sdr.h     = static_cast <unsigned int> (image.height);
+
+  raw_sdr.planes [UHDR_PLANE_PACKED] =                             temp_image.GetImage (0,0,0)->pixels;
+  raw_sdr.stride [UHDR_PLANE_PACKED] = static_cast <unsigned int> (temp_image.GetImage (0,0,0)->rowPitch / sizeof (uint32_t));
+
+  auto encoder =
+    sk_uhdr_create_encoder ();
+
+  auto
+  err = sk_uhdr_enc_set_quality   (encoder, 100,      UHDR_BASE_IMG);
+  err = sk_uhdr_enc_set_quality   (encoder, 100,      UHDR_GAIN_MAP_IMG);
+
+  err = sk_uhdr_enc_set_raw_image (encoder, &raw_hdr, UHDR_HDR_IMG);
+
+  if (err.error_code != UHDR_CODEC_OK)
+    SK_LOGi0 (L"uhdr_enc_set_raw_image (...) failed: %d (%hs)", err.error_code, err.detail);
+
+  err = sk_uhdr_enc_set_raw_image (encoder, &raw_sdr, UHDR_SDR_IMG);
+
+  if (err.error_code != UHDR_CODEC_OK)
+    SK_LOGi0 (L"uhdr_enc_set_raw_image (...) failed: %d (%hs)", err.error_code, err.detail);
+
+  err = sk_uhdr_enc_set_output_format (encoder, UHDR_CODEC_JPG);
+
+  if (err.error_code != UHDR_CODEC_OK)
+    SK_LOGi0 (L"uhdr_enc_set_output_format (...) failed: %d (%hs)", err.error_code, err.detail);
+
+  err = sk_uhdr_enc_set_min_max_content_boost (encoder, 2.0f, 125.0f);
+
+  if (err.error_code != UHDR_CODEC_OK)
+    SK_LOGi0 (L"uhdr_enc_set_min_max_content_boost (...) failed: %d (%hs)", err.error_code, err.detail);
+
+  err = sk_uhdr_enc_set_preset                (encoder, UHDR_USAGE_BEST_QUALITY);
+
+  if (err.error_code != UHDR_CODEC_OK)
+    SK_LOGi0 (L"uhdr_enc_set_preset (...) failed: %d (%hs)", err.error_code, err.detail);
+
+  err = sk_uhdr_encode (encoder);
+ 
+  if (err.error_code != UHDR_CODEC_OK)
+    SK_LOGi0 (L"uhdr_encode (...) failed: %d (%hs)", err.error_code, err.detail);
+
+  auto img =
+    sk_uhdr_get_encoded_stream (encoder);
+
+  if (img != nullptr)
+  {
+    FILE* fJPEG =
+      _wfopen (wszFileName, L"wb");
+
+    if (fJPEG != nullptr)
+    {
+      fwrite (img->data, img->data_sz, 1, fJPEG);
+      fclose (                            fJPEG);
+    }
+  }
+
+  sk_uhdr_release_encoder (encoder);
 }

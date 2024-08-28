@@ -283,6 +283,7 @@ void SK_Screenshot_PlaySound            (void);
 
 bool SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFilePath, uint16_t max_cll, uint16_t max_pall);
 bool SK_Screenshot_SaveJXL  (DirectX::ScratchImage &src_image, const wchar_t *wszFilePath);
+void SK_Screenshot_SaveUHDR (const DirectX::Image& hdr10_image, const DirectX::Image& sdr_image, const wchar_t* wszFileName);
 
 void SK_WIC_SetMaximumQuality (IPropertyBag2 *props);
 void SK_WIC_SetBasicMetadata  (IWICMetadataQueryWriter *pMQW);
@@ -335,3 +336,61 @@ void SK_Image_GetTonemappedPixels (DirectX::ScratchImage&                output,
                                    DirectX::ScratchImage&                source,
                                    std::vector <DirectX::XMVECTOR>&      pixels,
                                    std::vector <HANDLE>&                 fence);
+
+struct ParamsPQ
+{
+  DirectX::XMVECTOR N, M;
+  DirectX::XMVECTOR C1, C2, C3;
+  DirectX::XMVECTOR MaxPQ;
+};
+
+extern const ParamsPQ PQ;
+extern const DirectX::XMMATRIX c_fromXYZtoLMS;
+extern const DirectX::XMMATRIX c_fromLMStoXYZ;
+extern const DirectX::XMMATRIX c_from709toXYZ;
+extern const DirectX::XMMATRIX c_fromXYZto709;
+extern const DirectX::XMMATRIX c_from709to2020;
+
+static auto LinearToPQ = [](DirectX::XMVECTOR N)
+{
+  using namespace DirectX;
+
+  XMVECTOR ret;
+
+  ret =
+    XMVectorPow (XMVectorDivide (XMVectorMax (N, g_XMZero), PQ.MaxPQ), PQ.N);
+
+  XMVECTOR nd =
+    XMVectorDivide (
+       XMVectorAdd (  PQ.C1, XMVectorMultiply (PQ.C2, ret)),
+       XMVectorAdd (g_XMOne, XMVectorMultiply (PQ.C3, ret))
+    );
+
+  return
+    XMVectorPow (nd, PQ.M);
+};
+
+static auto PQToLinear = [](DirectX::XMVECTOR N)
+{
+  using namespace DirectX;
+
+  XMVECTOR ret;
+
+  ret =
+    XMVectorPow (N, XMVectorDivide (g_XMOne, PQ.M));
+
+  XMVECTOR nd;
+
+  nd =
+    XMVectorDivide (
+      XMVectorMax (XMVectorSubtract (ret, PQ.C1), g_XMZero),
+                   XMVectorSubtract (     PQ.C2,
+            XMVectorMultiply (PQ.C3, ret)));
+
+  ret =
+    XMVectorMultiply (
+      XMVectorPow (nd, XMVectorDivide (g_XMOne, PQ.N)), PQ.MaxPQ
+    );
+
+  return ret;
+};
