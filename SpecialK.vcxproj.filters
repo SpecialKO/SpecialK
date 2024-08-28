@@ -391,6 +391,9 @@
     <Filter Include="Header Files\External Libraries\stb">
       <UniqueIdentifier>{fe26823d-cc7b-4371-99fc-33ea554633c7}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\External Libraries\ultrahdr">
+      <UniqueIdentifier>{66e76b0e-72c4-46e4-af00-6bc57613bee9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -3152,6 +3155,42 @@
     </ClInclude>
     <ClInclude Include="depends\include\jxl\types.h">
       <Filter>Header Files\External Libraries\jxl</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ultrahdr\editorhelper.h">
+      <Filter>Header Files\External Libraries\ultrahdr</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ultrahdr\gainmapmath.h">
+      <Filter>Header Files\External Libraries\ultrahdr</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ultrahdr\gainmapmetadata.h">
+      <Filter>Header Files\External Libraries\ultrahdr</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ultrahdr\icc.h">
+      <Filter>Header Files\External Libraries\ultrahdr</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ultrahdr\jpegdecoderhelper.h">
+      <Filter>Header Files\External Libraries\ultrahdr</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ultrahdr\jpegencoderhelper.h">
+      <Filter>Header Files\External Libraries\ultrahdr</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ultrahdr\jpegr.h">
+      <Filter>Header Files\External Libraries\ultrahdr</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ultrahdr\jpegrutils.h">
+      <Filter>Header Files\External Libraries\ultrahdr</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ultrahdr\multipictureformat.h">
+      <Filter>Header Files\External Libraries\ultrahdr</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ultrahdr\ultrahdr.h">
+      <Filter>Header Files\External Libraries\ultrahdr</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ultrahdr\ultrahdr_api.h">
+      <Filter>Header Files\External Libraries\ultrahdr</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ultrahdr\ultrahdrcommon.h">
+      <Filter>Header Files\External Libraries\ultrahdr</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
