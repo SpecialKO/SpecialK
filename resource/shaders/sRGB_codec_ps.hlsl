@@ -34,7 +34,7 @@ float4 main (PS_INPUT input) : SV_TARGET
     float4 ( isnormal (vLinear) * vLinear );
 
   vLinear.rgba =
-    float4 ( clamp (vLinear.rgb, 0.0f, 125.0f),
+    float4 ( clamp (vLinear.rgb, 0.0f, 65504.0f),
           saturate (vLinear.a) );
 
   if (passthrough)

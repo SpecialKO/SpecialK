@@ -137,14 +137,8 @@ float Clamp_scRGB (float c, bool strip_nan = false)
   if (strip_nan)
     c = SanitizeFP (c);
 
-  return clamp (c + sign (c) * FP16_MIN, -float_MAX,
-                                          float_MAX);
-}
-
-float3 Clamp_scRGB_StripNaN (float3 c)
-{
-  return
-    Clamp_scRGB (SanitizeFP (c));
+  return clamp (c, -float_MAX,
+                    float_MAX);
 }
 
 // Clamp HDR value within a safe range
@@ -909,6 +903,25 @@ float PQToLinearY (float x)
 {
   return
     PQToLinearY (x, DEFAULT_MAX_PQ);
+}
+
+
+float3 RemoveREC2084Curve (float3 N)
+{
+  if (AnyIsNan (N))
+    return 0.0f;
+
+  float  m1 = 2610.0 / 4096.0 / 4;
+  float  m2 = 2523.0 / 4096.0 * 128;
+  float  c1 = 3424.0 / 4096.0;
+  float  c2 = 2413.0 / 4096.0 * 32;
+  float  c3 = 2392.0 / 4096.0 * 32;
+  float3 Np = pow (max (N, 0.0), 1 / m2);
+
+  return
+    PositivePow ( max (Np - c1,   0) /
+                      (c2 - c3 * Np),
+                        1 / m1);
 }
 
 

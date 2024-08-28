@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -389,14 +389,18 @@ __SK_MakeSteamPS ( bool  hdr10,
     "sampler   PS_QUAD_Sampler   : register (s0);    \n"
     "Texture2D PS_QUAD_Texture2D : register (t0);    \n"
     "                                                \n"
-    "float3 RemoveSRGBCurve (float3 x)               \n"
+    "float3                                          \n"
+    "RemoveGammaExp (float3 x, float exp)            \n"
     "{                                               \n"
-    "  x =                                           \n"
-    "    max ( 0.0, isfinite (x) ? x : 0.0 );        \n"
+    "  return     sign (x) *                         \n"
+    "         pow (abs (x), exp);                    \n"
+    "}                                               \n"
     "                                                \n"
-    "  return ( x < 0.04045f ) ?                     \n"
-    "          (x / 12.92f)    :                     \n"
-    "    pow ( (x + 0.055f) / 1.055f, 2.4f );        \n"
+    "float                                           \n"
+    "RemoveAlphaGammaExp (float a, float exp)        \n"
+    "{                                               \n"
+    "  return  sign (a) *                            \n"
+    "      pow (abs (a), exp);                       \n"
     "}                                               \n"
     "                                                \n";
 
@@ -404,6 +408,8 @@ __SK_MakeSteamPS ( bool  hdr10,
     { out +=
       "float3 ApplyREC2084Curve (float3 L, float maxLuminance)\n"
       "{                                                      \n"
+      "  L = max (L, 0.0);                                    \n"
+      "                                                       \n"
       "  float m1 = 2610.0 / 4096.0 / 4;                      \n"
       "  float m2 = 2523.0 / 4096.0 * 128;                    \n"
       "  float c1 = 3424.0 / 4096.0;                          \n"
@@ -442,8 +448,8 @@ __SK_MakeSteamPS ( bool  hdr10,
     "  out_col =                                              \n"
     "    saturate (                                           \n"
     "      float4 (                                           \n"
-    "        RemoveSRGBCurve ( input.col.rgb * out_col.rgb ), \n"
-    "                          input.col.a   * out_col.a)     \n"
+    "    RemoveGammaExp ( input.col.rgb * out_col.rgb, 2.2f ),\n"
+    "                     input.col.a   * out_col.a )         \n"
     "             );                                          \n"
     "                                                         \n";
 
@@ -459,6 +465,8 @@ __SK_MakeSteamPS ( bool  hdr10,
 
       out    +=
       "                    );                                 \n"
+      "  out_col.a   =                                        \n"
+      "     RemoveAlphaGammaExp ( out_col.a, 2.2f );          \n"
       "                                                       \n";
     }
 
@@ -529,14 +537,18 @@ __SK_MakeEpicPS ( bool  hdr10,
     "sampler   Sampler : register (s0);              \n"
     "Texture2D Texture : register (t0);              \n"
     "                                                \n"
-    "float3 RemoveSRGBCurve (float3 x)               \n"
+    "float3                                          \n"
+    "RemoveGammaExp (float3 x, float exp)            \n"
     "{                                               \n"
-    "  x =                                           \n"
-    "    max ( 0.0, isfinite (x) ? x : 0.0 );        \n"
+    "  return     sign (x) *                         \n"
+    "         pow (abs (x), exp);                    \n"
+    "}                                               \n"
     "                                                \n"
-    "  return ( x < 0.04045f ) ?                     \n"
-    "          (x / 12.92f)    :                     \n"
-    "    pow ( (x + 0.055f) / 1.055f, 2.4f );        \n"
+    "float                                           \n"
+    "RemoveAlphaGammaExp (float a, float exp)        \n"
+    "{                                               \n"
+    "  return  sign (a) *                            \n"
+    "      pow (abs (a), exp);                       \n"
     "}                                               \n"
     "                                                \n";
 
@@ -544,6 +556,8 @@ __SK_MakeEpicPS ( bool  hdr10,
     { out +=
       "float3 ApplyREC2084Curve (float3 L, float maxLuminance)\n"
       "{                                                      \n"
+      "  L = max (L, 0.0);                                    \n"
+      "                                                       \n"
       "  float m1 = 2610.0 / 4096.0 / 4;                      \n"
       "  float m2 = 2523.0 / 4096.0 * 128;                    \n"
       "  float c1 = 3424.0 / 4096.0;                          \n"
@@ -573,21 +587,21 @@ __SK_MakeEpicPS ( bool  hdr10,
 
 
     out +=
-    "                                                          \n"
-    "float4 main (PS_INPUT input) : SV_Target                  \n"
-    "{                                                         \n"
-    "  float4 out_col =                                        \n"
-    "    Texture.Sample ( Sampler, float2 ( input.uv.x,        \n"
-    "                        bFlipY ? 1.0 - input.uv.y         \n"
-    "                               :       input.uv.y ) );    \n"
-    "                                                          \n"
-    "  out_col =                                               \n"
-    "    saturate (                                            \n"
-    "      float4 (                                            \n"
-    "        RemoveSRGBCurve ( out_col.rgb * input.color.rgb ),\n"
-    "                          out_col.a   * input.color.a )   \n"
-    "             );                                           \n"
-    "                                                          \n";
+    "                                                         \n"
+    "float4 main (PS_INPUT input) : SV_Target                 \n"
+    "{                                                        \n"
+    "  float4 out_col =                                       \n"
+    "    Texture.Sample ( Sampler, float2 ( input.uv.x,       \n"
+    "                        bFlipY ? 1.0 - input.uv.y        \n"
+    "                               :       input.uv.y ) );   \n"
+    "                                                         \n"
+    "  out_col =                                              \n"
+    "    saturate (                                           \n"
+    "      float4 (                                           \n"
+    "    RemoveGammaExp ( input.col.rgb * out_col.rgb, 2.2f ),\n"
+    "                     input.col.a   * out_col.a )         \n"
+    "             );                                          \n"
+    "                                                         \n";
 
     if (hdr10)
     { out +=
@@ -601,6 +615,8 @@ __SK_MakeEpicPS ( bool  hdr10,
 
       out    +=
       "                    );                                 \n"
+      "  out_col.a   =                                        \n"
+      "     RemoveAlphaGammaExp ( out_col.a, 2.2f );          \n"
       "                                                       \n";
     }
 
@@ -659,14 +675,18 @@ __SK_MakeRTSSPS ( bool  hdr10,
     "  float2 uv    : TEXCOORD0;                     \n"
     "};                                              \n"
     "                                                \n"
-    "float3 RemoveSRGBCurve (float3 x)               \n"
+    "float3                                          \n"
+    "RemoveGammaExp (float3 x, float exp)            \n"
     "{                                               \n"
-    "  x =                                           \n"
-    "    max ( 0.0, isfinite (x) ? x : 0.0 );        \n"
+    "  return     sign (x) *                         \n"
+    "         pow (abs (x), exp);                    \n"
+    "}                                               \n"
     "                                                \n"
-    "  return ( x < 0.04045f ) ?                     \n"
-    "          (x / 12.92f)    :                     \n"
-    "    pow ( (x + 0.055f) / 1.055f, 2.4f );        \n"
+    "float                                           \n"
+    "RemoveAlphaGammaExp (float a, float exp)        \n"
+    "{                                               \n"
+    "  return  sign (a) *                            \n"
+    "      pow (abs (a), exp);                       \n"
     "}                                               \n"
     "                                                \n";
 
@@ -674,6 +694,8 @@ __SK_MakeRTSSPS ( bool  hdr10,
     { out +=
       "float3 ApplyREC2084Curve (float3 L, float maxLuminance)\n"
       "{                                                      \n"
+      "  L = max (L, 0.0);                                    \n"
+      "                                                       \n"
       "  float m1 = 2610.0 / 4096.0 / 4;                      \n"
       "  float m2 = 2523.0 / 4096.0 * 128;                    \n"
       "  float c1 = 3424.0 / 4096.0;                          \n"
@@ -711,9 +733,8 @@ __SK_MakeRTSSPS ( bool  hdr10,
     "  out_col =                                              \n"
     "    saturate (                                           \n"
     "      float4 (                                           \n"
-    "        RemoveSRGBCurve ( out_col.rgb ),                 \n"
-    "                          out_col.a                      \n"
-    "             )                                           \n"
+    "                    RemoveGammaExp ( out_col.rgb, 2.2f ),\n"
+    "                                     out_col.a )         \n"
     "             );                                          \n"
     "                                                         \n";
 
@@ -729,6 +750,8 @@ __SK_MakeRTSSPS ( bool  hdr10,
 
       out    +=
       "                    );                                 \n"
+      "  out_col.a   =                                        \n"
+      "     RemoveAlphaGammaExp ( out_col.a, 2.2f );          \n"
       "                                                       \n";
     }
 

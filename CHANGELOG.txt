@@ -1,4 +1,10 @@
-﻿24.8.27.1
+﻿24.8.28
+=======
+ + Use 2.2 gamma when HDR color correcting third-party overlays instead of sRGB
+ + Brighten alpha transparency on Steam overlay in HDR10 mode
+ + Add support for UltraHDR JPEG screenshot encoding
+
+24.8.27.1
 =========
  + Fixed potential crash if DLSS text OSD is enabled and game completely turns
      DLSS off.

@@ -281,7 +281,7 @@ main (PS_INPUT input) : SV_TARGET
   hdr_color.rgb =
 #ifdef INCLUDE_HDR10
     bIsHDR10 ?
-      REC2020toREC709 (PQToLinear ( hdr_color.rgb )) :
+      REC2020toREC709 (RemoveREC2084Curve ( hdr_color.rgb )) :
 #endif
                  SK_ProcessColor4 ( hdr_color.rgba,
                                     xRGB_to_Linear,
