@@ -1848,14 +1848,6 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
 {
   SK_PNG_HDR_cLLi_Payload clli;
 
-  static const XMMATRIX c_from2020toXYZ =
-  {
-    0.636958062f, 0.2627002000f, 0.0000000000f, 0.0f,
-    0.144616901f, 0.6779980650f, 0.0280726924f, 0.0f,
-    0.168880969f, 0.0593017153f, 1.0609850800f, 0.0f,
-    0.0f,         0.0f,          0.0f,          1.0f
-  };
-
   float N         =       0.0f;
   float fLumAccum =       0.0f;
   float fMaxLum   =       0.0f;
@@ -2413,47 +2405,9 @@ const ParamsPQ PQ =
   DirectX::XMVectorReplicate (3424.0 / 4096.0),         // C1
   DirectX::XMVectorReplicate (2413.0 / 4096.0 * 32.0),  // C2
   DirectX::XMVectorReplicate (2392.0 / 4096.0 * 32.0),  // C3
-  DirectX::XMVectorReplicate (125.0f)                   // MaxPQ
-};
-
-const DirectX::XMMATRIX c_fromXYZtoLMS = // Transposed
-{
-    0.3592f, -0.1922f, 0.0070f, 0.0f,
-    0.6976f,  1.1004f, 0.0749f, 0.0f,
-   -0.0358f,  0.0755f, 0.8434f, 0.0f,
-    0.0f,     0.0f,    0.0f,    1.0f
-};
-
-const DirectX::XMMATRIX c_fromLMStoXYZ = // Transposed
-{
-   2.070180056695613509600f,  0.364988250032657479740f, -0.049595542238932107896f, 0.0f,
-  -1.326456876103021025500f,  0.680467362852235141020f, -0.049421161186757487412f, 0.0f,
-   0.206616006847855170810f, -0.045421753075853231409f,  1.187995941732803439400f, 0.0f,
-   0.0f,                      0.0f,                      0.0f,                     1.0f
-};
-
-const DirectX::XMMATRIX c_from709toXYZ = // Transposed
-{
-  0.4123907983303070068359375f,  0.2126390039920806884765625f,   0.0193308182060718536376953125f, 0.0f,
-  0.3575843274593353271484375f,  0.715168654918670654296875f,    0.119194783270359039306640625f,  0.0f,
-  0.18048079311847686767578125f, 0.072192318737506866455078125f, 0.950532138347625732421875f,     0.0f,
-  0.0f,                          0.0f,                           0.0f,                            1.0f
-};
-
-const DirectX::XMMATRIX c_fromXYZto709 = // Transposed
-{
-   3.2409698963165283203125f,    -0.96924364566802978515625f,       0.055630080401897430419921875f, 0.0f,
-  -1.53738319873809814453125f,    1.875967502593994140625f,        -0.2039769589900970458984375f,   0.0f,
-  -0.4986107647418975830078125f,  0.0415550582110881805419921875f,  1.05697154998779296875f,        0.0f,
-   0.0f,                          0.0f,                             0.0f,                           1.0f
-};
-
-const DirectX::XMMATRIX c_from709to2020 = // Transposed
-{
-  0.627225305694944f,  0.0690418812810714f, 0.0163911702607078f, 0.0f,
-  0.329476882715808f,  0.919605681354755f,  0.0880887513437058f, 0.0f,
-  0.0432978115892484f, 0.0113524373641739f, 0.895520078395586f,  0.0f,
-  0.0f,                0.0f,                0.0f,                1.0f
+  DirectX::XMVectorReplicate (125.0f),                  // MaxPQ
+  DirectX::XMVectorReciprocal (DirectX::XMVectorReplicate (2610.0 / 4096.0 / 4.0)),
+  DirectX::XMVectorReciprocal (DirectX::XMVectorReplicate (2523.0 / 4096.0 * 128.0)),
 };
 
 float LinearToPQY (float N)
