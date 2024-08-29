@@ -3719,8 +3719,7 @@ SK_ImGui_ControlPanel (void)
           ImGui::EndTooltip      ();
         }
 
-        // Show AVIF options in 64-bit builds
-        if (config.screenshots.png_compress && SK_GetBitness () == SK_Bitness::SixtyFourBit)
+        if (config.screenshots.png_compress)
         {
           static bool bFetchingAVIF = false;
           static int  iFetchingJXL  = 0;
@@ -3762,9 +3761,9 @@ SK_ImGui_ControlPanel (void)
 
                   SK_Network_EnqueueDownload (
                        sk_download_request_s (
-                         avif_dll.wstring (),
-                           R"(https://sk-data.special-k.info/addon/ImageCodecs/)"
-                                     R"(libavif/libavif_x64.dll)",
+                         avif_dll.wstring (),                           
+                           SK_RunLHIfBitness ( 64, R"(https://sk-data.special-k.info/addon/ImageCodecs/libavif/libavif_x64.dll)",
+                                                   R"(https://sk-data.special-k.info/addon/ImageCodecs/libavif/libavif_x86.dll)" ),
                   []( const std::vector <uint8_t>&&,
                       const std::wstring_view )
                    -> bool
@@ -3808,14 +3807,35 @@ SK_ImGui_ControlPanel (void)
                     SK_RunLHIfBitness ( 64, LR"(Image Codecs\libjxl\x64\jxl_cms.dll)",
                                             LR"(Image Codecs\libjxl\x86\jxl_cms.dll)" );
 
+                static std::filesystem::path brotlicommon_dll =
+                       std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) /
+                    SK_RunLHIfBitness ( 64, LR"(Image Codecs\libjxl\x64\brotlicommon.dll)",
+                                            LR"(Image Codecs\libjxl\x86\brotlicommon.dll)" );
+
+                static std::filesystem::path brotlidec_dll =
+                       std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) /
+                    SK_RunLHIfBitness ( 64, LR"(Image Codecs\libjxl\x64\brotlidec.dll)",
+                                            LR"(Image Codecs\libjxl\x86\brotlidec.dll)" );
+
+                static std::filesystem::path brotlienc_dll =
+                       std::filesystem::path (SK_GetPlugInDirectory (SK_PlugIn_Type::ThirdParty)) /
+                    SK_RunLHIfBitness ( 64, LR"(Image Codecs\libjxl\x64\brotlienc.dll)",
+                                            LR"(Image Codecs\libjxl\x86\brotlienc.dll)" );
+
                 static std::error_code                           ec;
                 if (! (std::filesystem::exists (jxl_dll,         ec) &&
                        std::filesystem::exists (jxl_cms_dll,     ec) &&
-                       std::filesystem::exists (jxl_threads_dll, ec)))
+                       std::filesystem::exists (jxl_threads_dll, ec) &&
+                       std::filesystem::exists (brotlicommon_dll,ec) &&
+                       std::filesystem::exists (brotlidec_dll,   ec) &&
+                       std::filesystem::exists (brotlienc_dll,   ec)))
                 {
                   iFetchingJXL += (! std::filesystem::exists (jxl_dll,         ec)) ? 1 : 0;
                   iFetchingJXL += (! std::filesystem::exists (jxl_cms_dll,     ec)) ? 1 : 0;
                   iFetchingJXL += (! std::filesystem::exists (jxl_threads_dll, ec)) ? 1 : 0;
+                  iFetchingJXL += (! std::filesystem::exists (brotlicommon_dll,ec)) ? 1 : 0;
+                  iFetchingJXL += (! std::filesystem::exists (brotlidec_dll,   ec)) ? 1 : 0;
+                  iFetchingJXL += (! std::filesystem::exists (brotlienc_dll,   ec)) ? 1 : 0;
 
                   if (! std::filesystem::exists (jxl_dll, ec))
                   SK_Network_EnqueueDownload (
@@ -3891,6 +3911,81 @@ SK_ImGui_ControlPanel (void)
                       }
                     ), true
                   );
+
+                  if (! std::filesystem::exists (brotlicommon_dll, ec))
+                  SK_Network_EnqueueDownload (
+                       sk_download_request_s (
+                         brotlicommon_dll.wstring (),
+                           R"(https://sk-data.special-k.info/addon/ImageCodecs/)"
+#ifdef _M_X64
+                           R"(libjxl/x64/brotlicommon.dll)",
+#else
+                           R"(libjxl/x86/brotlicommon.dll)",
+#endif
+                  []( const std::vector <uint8_t>&&,
+                      const std::wstring_view )
+                   -> bool
+                      {
+                        if (--iFetchingJXL == 0)
+                        {
+                          config.screenshots.use_jxl             = true;
+                          config.screenshots.compression_quality = 99;
+                        }
+
+                        return false;
+                      }
+                    ), true
+                  );
+
+                  if (! std::filesystem::exists (brotlienc_dll, ec))
+                  SK_Network_EnqueueDownload (
+                       sk_download_request_s (
+                         brotlienc_dll.wstring (),
+                           R"(https://sk-data.special-k.info/addon/ImageCodecs/)"
+#ifdef _M_X64
+                           R"(libjxl/x64/brotlienc.dll)",
+#else
+                           R"(libjxl/x86/brotlienc.dll)",
+#endif
+                  []( const std::vector <uint8_t>&&,
+                      const std::wstring_view )
+                   -> bool
+                      {
+                        if (--iFetchingJXL == 0)
+                        {
+                          config.screenshots.use_jxl             = true;
+                          config.screenshots.compression_quality = 99;
+                        }
+
+                        return false;
+                      }
+                    ), true
+                  );
+
+                  if (! std::filesystem::exists (brotlidec_dll, ec))
+                  SK_Network_EnqueueDownload (
+                       sk_download_request_s (
+                         brotlidec_dll.wstring (),
+                           R"(https://sk-data.special-k.info/addon/ImageCodecs/)"
+#ifdef _M_X64
+                           R"(libjxl/x64/brotlidec.dll)",
+#else
+                           R"(libjxl/x86/brotlidec.dll)",
+#endif
+                  []( const std::vector <uint8_t>&&,
+                      const std::wstring_view )
+                   -> bool
+                      {
+                        if (--iFetchingJXL == 0)
+                        {
+                          config.screenshots.use_jxl             = true;
+                          config.screenshots.compression_quality = 99;
+                        }
+
+                        return false;
+                      }
+                    ), true
+                  );
                 }
                 else
                 {
@@ -3918,27 +4013,6 @@ SK_ImGui_ControlPanel (void)
           if (iFetchingJXL != 0)
           {
             ImGui::TextColored (ImVec4 (.1f,.9f,.1f,1.f), "Downloading JPEG XL Plug-In...");
-          }
-        }
-
-        else if (config.screenshots.png_compress && SK_GetBitness () == SK_Bitness::ThirtyTwoBit)
-        {
-          int selection =
-            ( config.screenshots.use_hdr_png ? 1 :
-                                               0 );
-
-          if (
-            ImGui::Combo ( "HDR File Format", &selection,
-                           "JPEG XR (.jxr)\0"
-                           "PNG\t\t(.png)\0\0" )
-             )
-          {
-            config.screenshots.use_hdr_png =
-              (selection == 1);
-
-            config.screenshots.use_avif            = false;
-            config.screenshots.use_jxl             = false;
-            config.screenshots.compression_quality = 90;
           }
         }
 

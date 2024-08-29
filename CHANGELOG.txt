@@ -1,4 +1,8 @@
-﻿24.8.28
+﻿24.8.29
+=======
+ + Added support for AVIF and JXL screenshots in 32-bit games (finally)
+
+24.8.28
 =======
  + Use 2.2 gamma when HDR color correcting third-party overlays instead of sRGB
  + Brighten alpha transparency on Steam overlay in HDR10 mode

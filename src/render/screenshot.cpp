@@ -1030,9 +1030,12 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
 #include <jxl/thread_parallel_runner_cxx.h>
 #include <jxl/types.h>
 
-static HMODULE hModJXL        = nullptr;
-static HMODULE hModJXLCMS     = nullptr;
-static HMODULE hModJXLThreads = nullptr;
+static HMODULE hModJXL          = nullptr;
+static HMODULE hModJXLCMS       = nullptr;
+static HMODULE hModJXLThreads   = nullptr;
+static HMODULE hModBrotliCommon = nullptr;
+static HMODULE hModBrotliDec    = nullptr;
+static HMODULE hModBrotliEnc    = nullptr;
 
 bool isJXLEncoderAvailable (void)
 {
@@ -1055,19 +1058,29 @@ bool isJXLEncoderAvailable (void)
                                   (path_to_codecs, ec);
       if (std::filesystem::exists (path_to_codecs, ec))
       {
-        std::filesystem::path path_to_jxl_threads = path_to_codecs / L"jxl_threads.dll";
-        std::filesystem::path path_to_jxl_cms     = path_to_codecs / L"jxl_cms.dll";
-        std::filesystem::path path_to_jxl         = path_to_codecs / L"jxl.dll";
+        std::filesystem::path path_to_brotlicommon = path_to_codecs / L"brotlicommon.dll";
+        std::filesystem::path path_to_brotlidec    = path_to_codecs / L"brotlidec.dll";
+        std::filesystem::path path_to_brotlienc    = path_to_codecs / L"brotlienc.dll";
+        std::filesystem::path path_to_jxl_threads  = path_to_codecs / L"jxl_threads.dll";
+        std::filesystem::path path_to_jxl_cms      = path_to_codecs / L"jxl_cms.dll";
+        std::filesystem::path path_to_jxl_dec      = path_to_codecs / L"jxl_dec.dll";
+        std::filesystem::path path_to_jxl          = path_to_codecs / L"jxl.dll";
 
         // JXL depends on CMS to be loaded first
 
-        hModJXLThreads = LoadLibraryW (path_to_jxl_threads.c_str ());
-        hModJXLCMS     = LoadLibraryW (path_to_jxl_cms.    c_str ());
-        hModJXL        = LoadLibraryW (path_to_jxl.        c_str ());
+        hModBrotliCommon = LoadLibraryW (path_to_brotlicommon.c_str ());
+        hModBrotliEnc    = LoadLibraryW (path_to_brotlienc.   c_str ());
+        hModBrotliDec    = LoadLibraryW (path_to_brotlidec.   c_str ());
+        hModJXLThreads   = LoadLibraryW (path_to_jxl_threads. c_str ());
+        hModJXLCMS       = LoadLibraryW (path_to_jxl_cms.     c_str ());
+        hModJXL          = LoadLibraryW (path_to_jxl.         c_str ());
 
-        if ( hModJXL        != nullptr &&
-             hModJXLCMS     != nullptr &&
-             hModJXLThreads != nullptr )
+        if ( hModJXL          != nullptr &&
+             hModJXLCMS       != nullptr &&
+             hModJXLThreads   != nullptr &&
+             hModBrotliCommon != nullptr &&
+             hModBrotliEnc    != nullptr &&
+             hModBrotliDec    != nullptr )
         {
           //SK_LOGi0 ("Loaded JPEG XL DLLs from: %ws", path_to_sk.c_str ());
           return true;
@@ -1075,13 +1088,19 @@ bool isJXLEncoderAvailable (void)
       }
     }
 
-    if (hModJXLThreads == nullptr) hModJXLThreads = LoadLibraryW (L"jxl_threads.dll");
-    if (hModJXLCMS     == nullptr) hModJXLCMS     = LoadLibraryW (L"jxl_cms.dll");
-    if (hModJXL        == nullptr) hModJXL        = LoadLibraryW (L"jxl.dll");
+    if (hModBrotliCommon == nullptr) hModBrotliCommon = LoadLibraryW (L"brotlicommon.dll");
+    if (hModBrotliEnc    == nullptr) hModBrotliEnc    = LoadLibraryW (L"brotlienc.dll");
+    if (hModBrotliDec    == nullptr) hModBrotliDec    = LoadLibraryW (L"brotlidec.dll");
+    if (hModJXLThreads   == nullptr) hModJXLThreads   = LoadLibraryW (L"jxl_threads.dll");
+    if (hModJXLCMS       == nullptr) hModJXLCMS       = LoadLibraryW (L"jxl_cms.dll");
+    if (hModJXL          == nullptr) hModJXL          = LoadLibraryW (L"jxl.dll");
 
-    if ( hModJXL        != nullptr &&
-         hModJXLCMS     != nullptr &&
-         hModJXLThreads != nullptr )
+    if ( hModJXL          != nullptr &&
+         hModJXLCMS       != nullptr &&
+         hModJXLThreads   != nullptr &&
+         hModBrotliCommon != nullptr &&
+         hModBrotliEnc    != nullptr &&
+         hModBrotliDec    != nullptr )
     {
       //SK_LOGi0 ("Loaded JPEG XL DLLs from default DLL search path");
       return true;
@@ -1089,9 +1108,12 @@ bool isJXLEncoderAvailable (void)
   });
 
   const bool supported =
-    ( hModJXL        != nullptr &&
-      hModJXLThreads != nullptr &&
-      hModJXLCMS     != nullptr );
+    ( hModJXL          != nullptr &&
+      hModJXLThreads   != nullptr &&
+      hModJXLCMS       != nullptr && 
+      hModBrotliCommon != nullptr &&
+      hModBrotliEnc    != nullptr &&
+      hModBrotliDec    != nullptr );
 
   return supported;
 }
@@ -2480,6 +2502,20 @@ using uhdr_release_encoder_pfn               = void                     (*)(uhdr
 using uhdr_enc_set_min_max_content_boost_pfn = uhdr_error_info_t        (*)(uhdr_codec_private_t* enc, float min_boost, float max_boost);
 using uhdr_enc_set_preset_pfn                = uhdr_error_info_t        (*)(uhdr_codec_private_t* enc, uhdr_enc_preset_t preset);
 
+using is_uhdr_image_pfn                      = int                      (*)(void* data, int size);
+
+using uhdr_create_decoder_pfn                = uhdr_codec_private_t*    (*)(void);
+using uhdr_release_decoder_pfn               = void                     (*)(uhdr_codec_private_t* dec);
+using uhdr_dec_set_image_pfn                 = uhdr_error_info_t        (*)(uhdr_codec_private_t* dec, uhdr_compressed_image_t* img);
+using uhdr_dec_set_out_color_transfer_pfn    = uhdr_error_info_t        (*)(uhdr_codec_private_t* dec, uhdr_color_transfer_t ct);
+using uhdr_dec_set_out_img_format_pfn        = uhdr_error_info_t        (*)(uhdr_codec_private_t* dec, uhdr_img_fmt_t fmt);
+using uhdr_dec_set_out_max_display_boost_pfn = uhdr_error_info_t        (*)(uhdr_codec_private_t* dec, float display_boost);
+using uhdr_dec_probe_pfn                     = uhdr_error_info_t        (*)(uhdr_codec_private_t* dec);
+using uhdr_decode_pfn                        = uhdr_error_info_t        (*)(uhdr_codec_private_t* dec);
+using uhdr_get_decoded_image_pfn             = uhdr_raw_image_t*        (*)(uhdr_codec_private_t* dec);
+using uhdr_get_gain_map_image_pfn            = uhdr_raw_image_t*        (*)(uhdr_codec_private_t* dec);
+using uhdr_dec_get_gain_map_metadata_pfn     = uhdr_gainmap_metadata_t* (*)(uhdr_codec_private_t* dec);
+
 uhdr_create_encoder_pfn                sk_uhdr_create_encoder                = nullptr;
 uhdr_enc_set_quality_pfn               sk_uhdr_enc_set_quality               = nullptr;
 uhdr_enc_set_raw_image_pfn             sk_uhdr_enc_set_raw_image             = nullptr;
@@ -2489,6 +2525,20 @@ uhdr_get_encoded_stream_pfn            sk_uhdr_get_encoded_stream            = n
 uhdr_release_encoder_pfn               sk_uhdr_release_encoder               = nullptr;
 uhdr_enc_set_min_max_content_boost_pfn sk_uhdr_enc_set_min_max_content_boost = nullptr;
 uhdr_enc_set_preset_pfn                sk_uhdr_enc_set_preset                = nullptr;
+
+is_uhdr_image_pfn                      sk_is_uhdr_image                      = nullptr;
+
+uhdr_create_decoder_pfn                sk_uhdr_create_decoder                = nullptr;
+uhdr_release_decoder_pfn               sk_uhdr_release_decoder               = nullptr;
+uhdr_dec_set_image_pfn                 sk_uhdr_dec_set_image                 = nullptr;
+uhdr_dec_set_out_color_transfer_pfn    sk_uhdr_dec_set_out_color_transfer    = nullptr;
+uhdr_dec_set_out_img_format_pfn        sk_uhdr_dec_set_out_img_format        = nullptr;
+uhdr_dec_set_out_max_display_boost_pfn sk_uhdr_dec_set_out_max_display_boost = nullptr;
+uhdr_dec_probe_pfn                     sk_uhdr_dec_probe                     = nullptr;
+uhdr_decode_pfn                        sk_uhdr_decode                        = nullptr;
+uhdr_get_decoded_image_pfn             sk_uhdr_get_decoded_image             = nullptr;
+uhdr_get_gain_map_image_pfn            sk_uhdr_get_gain_map_image            = nullptr;
+uhdr_dec_get_gain_map_metadata_pfn     sk_uhdr_dec_get_gain_map_metadata     = nullptr;
 
 bool isUHDREncoderAvailable (void)
 {
@@ -2562,6 +2612,20 @@ bool isUHDREncoderAvailable (void)
       sk_uhdr_release_encoder               = (uhdr_release_encoder_pfn)              GetProcAddress (hModUHDR, "uhdr_release_encoder");
       sk_uhdr_enc_set_min_max_content_boost = (uhdr_enc_set_min_max_content_boost_pfn)GetProcAddress (hModUHDR, "uhdr_enc_set_min_max_content_boost");
       sk_uhdr_enc_set_preset                = (uhdr_enc_set_preset_pfn)               GetProcAddress (hModUHDR, "uhdr_enc_set_preset");
+
+      sk_is_uhdr_image                      = (is_uhdr_image_pfn)                     GetProcAddress (hModUHDR, "is_uhdr_image");
+      
+      sk_uhdr_create_decoder                = (uhdr_create_decoder_pfn)               GetProcAddress (hModUHDR, "uhdr_create_decoder");
+      sk_uhdr_release_decoder               = (uhdr_release_decoder_pfn)              GetProcAddress (hModUHDR, "uhdr_release_decoder");
+      sk_uhdr_dec_set_image                 = (uhdr_dec_set_image_pfn)                GetProcAddress (hModUHDR, "uhdr_dec_set_image");
+      sk_uhdr_dec_set_out_color_transfer    = (uhdr_dec_set_out_color_transfer_pfn)   GetProcAddress (hModUHDR, "uhdr_dec_set_out_color_transfer");
+      sk_uhdr_dec_set_out_img_format        = (uhdr_dec_set_out_img_format_pfn)       GetProcAddress (hModUHDR, "uhdr_dec_set_out_img_format");
+      sk_uhdr_dec_set_out_max_display_boost = (uhdr_dec_set_out_max_display_boost_pfn)GetProcAddress (hModUHDR, "uhdr_dec_set_out_max_display_boost");
+      sk_uhdr_dec_probe                     = (uhdr_dec_probe_pfn)                    GetProcAddress (hModUHDR, "uhdr_dec_probe");
+      sk_uhdr_decode                        = (uhdr_decode_pfn)                       GetProcAddress (hModUHDR, "uhdr_decode");
+      sk_uhdr_get_decoded_image             = (uhdr_get_decoded_image_pfn)            GetProcAddress (hModUHDR, "uhdr_get_decoded_image");
+      sk_uhdr_get_gain_map_image            = (uhdr_get_gain_map_image_pfn)           GetProcAddress (hModUHDR, "uhdr_get_gain_map_image");
+      sk_uhdr_dec_get_gain_map_metadata     = (uhdr_dec_get_gain_map_metadata_pfn)    GetProcAddress (hModUHDR, "uhdr_dec_get_gain_map_metadata");
 
       return true;
     }
@@ -2649,8 +2713,8 @@ SK_Screenshot_SaveUHDR (const DirectX::Image& image, const DirectX::Image& sdr_i
     sk_uhdr_create_encoder ();
 
   auto
-  err = sk_uhdr_enc_set_quality   (encoder, 100,      UHDR_BASE_IMG);
-  err = sk_uhdr_enc_set_quality   (encoder, 100,      UHDR_GAIN_MAP_IMG);
+  err = sk_uhdr_enc_set_quality (encoder, 96, UHDR_BASE_IMG);
+  err = sk_uhdr_enc_set_quality (encoder, 92, UHDR_GAIN_MAP_IMG);
 
   err = sk_uhdr_enc_set_raw_image (encoder, &raw_hdr, UHDR_HDR_IMG);
 
@@ -2667,12 +2731,12 @@ SK_Screenshot_SaveUHDR (const DirectX::Image& image, const DirectX::Image& sdr_i
   if (err.error_code != UHDR_CODEC_OK)
     SK_LOGi0 (L"uhdr_enc_set_output_format (...) failed: %d (%hs)", err.error_code, err.detail);
 
-  err = sk_uhdr_enc_set_min_max_content_boost (encoder, 2.0f, 125.0f);
+  err = sk_uhdr_enc_set_min_max_content_boost (encoder, 250.0f, 2500.0f);
 
   if (err.error_code != UHDR_CODEC_OK)
     SK_LOGi0 (L"uhdr_enc_set_min_max_content_boost (...) failed: %d (%hs)", err.error_code, err.detail);
 
-  err = sk_uhdr_enc_set_preset                (encoder, UHDR_USAGE_BEST_QUALITY);
+  err = sk_uhdr_enc_set_preset (encoder, UHDR_USAGE_BEST_QUALITY);
 
   if (err.error_code != UHDR_CODEC_OK)
     SK_LOGi0 (L"uhdr_enc_set_preset (...) failed: %d (%hs)", err.error_code, err.detail);
@@ -2694,6 +2758,32 @@ SK_Screenshot_SaveUHDR (const DirectX::Image& image, const DirectX::Image& sdr_i
     {
       fwrite (img->data, img->data_sz, 1, fJPEG);
       fclose (                            fJPEG);
+
+      auto decoder =
+        sk_uhdr_create_decoder ();
+
+      sk_uhdr_dec_set_image (decoder, img);
+      sk_uhdr_dec_probe     (decoder);
+
+      //sk_uhdr_dec_set_out_color_transfer
+      //sk_uhdr_dec_set_out_img_format
+      //sk_uhdr_dec_set_out_max_display_boost
+      //sk_uhdr_dec_probe
+      //sk_uhdr_decode
+      //sk_uhdr_get_decoded_image
+      //sk_uhdr_get_gain_map_image (decoder)
+
+      auto metadata =
+        sk_uhdr_dec_get_gain_map_metadata (decoder);
+
+      SK_LOGi0 (L"UltraHDR Min/Max Content Boost: %fx / %fx", metadata->min_content_boost, metadata->max_content_boost);
+      SK_LOGi0 (L"UltraHDR Offset SDR/HDR:        %f / %f",   metadata->offset_sdr,        metadata->offset_hdr);
+
+  //  float gamma;             /**< Encoding Gamma of the gainmap image. */
+
+      SK_LOGi0 (L"UltraHDR Min/Max HDR Capacity:  %fx / %fx", metadata->hdr_capacity_min, metadata->hdr_capacity_max);
+
+      sk_uhdr_release_decoder (decoder);
     }
   }
 

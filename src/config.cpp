@@ -5137,13 +5137,6 @@ auto DeclKeybind =
   screenshots.png.store_hdr->load             (config.screenshots.use_hdr_png);
   screenshots.allow_hdr_clipboard->load       (config.screenshots.allow_hdr_clipboard);
 
-  // AVIF Unsupported in 32-bit
-  if (SK_GetBitness () == SK_Bitness::ThirtyTwoBit)
-  {
-    config.screenshots.use_avif = false;
-    config.screenshots.use_jxl  = false; // TODO: Build 32-bit version
-  }
-
   LoadKeybind (&config.render.keys.hud_toggle);
   LoadKeybind (&config.osd.keys.console_toggle);
   LoadKeybind (&config.screenshots.game_hud_free_keybind);
@@ -6466,15 +6459,11 @@ SK_SaveConfig ( std::wstring name,
   screenshots.png.store_hdr->store             (config.screenshots.use_hdr_png);
   screenshots.allow_hdr_clipboard->store       (config.screenshots.allow_hdr_clipboard);
 
-  // AVIF Unsupported in 32-bit
-  if (SK_GetBitness () != SK_Bitness::ThirtyTwoBit)
-  {
-    screenshots.jxl.use_jxl->store             (config.screenshots.use_jxl);
-    screenshots.avif.use_avif->store           (config.screenshots.use_avif);
-    screenshots.avif.yuv_subsampling->store    (config.screenshots.avif.yuv_subsampling);
-    screenshots.avif.scrgb_bit_depth->store    (config.screenshots.avif.scrgb_bit_depth);
-    screenshots.avif.compression_speed->store  (config.screenshots.avif.compression_speed);
-  }
+  screenshots.jxl.use_jxl->store               (config.screenshots.use_jxl);
+  screenshots.avif.use_avif->store             (config.screenshots.use_avif);
+  screenshots.avif.yuv_subsampling->store      (config.screenshots.avif.yuv_subsampling);
+  screenshots.avif.scrgb_bit_depth->store      (config.screenshots.avif.scrgb_bit_depth);
+  screenshots.avif.compression_speed->store    (config.screenshots.avif.compression_speed);
 
   uplay.overlay.hdr_luminance->store           (config.uplay.overlay_luminance);
   discord.overlay.hdr_luminance->store         (config.discord.overlay_luminance);
