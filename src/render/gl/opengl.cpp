@@ -3415,7 +3415,7 @@ SK_GL_UpdateRenderStats (void)
 std::string
 SK::OpenGL::getPipelineStatsDesc (void)
 {
-  char szDesc [1024];
+  char szDesc [1024] = { };
 
   D3D11_QUERY_DATA_PIPELINE_STATISTICS stats = { };
 

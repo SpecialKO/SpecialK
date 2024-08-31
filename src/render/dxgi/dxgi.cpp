@@ -7568,13 +7568,13 @@ DXGIGetDebugInterface1 ( UINT     Flags,
   if (pDebug == nullptr)
     return DXGI_ERROR_INVALID_CALL;
 
-  *pDebug = nullptr;
-
   if (DXGIGetDebugInterface1_Import == nullptr)
   {
     SK_RunOnce (SK_BootDXGI ());
             WaitForInitDXGI ();
   }
+
+  *pDebug = nullptr;
 
   return DXGIGetDebugInterface1_Import != nullptr            ?
          DXGIGetDebugInterface1_Import (Flags, riid, pDebug) :
@@ -7587,6 +7587,8 @@ WINAPI CreateDXGIFactory (REFIID   riid,
 {
   if (ppFactory == nullptr)
     return E_INVALIDARG;
+
+  *ppFactory = nullptr;
 
   if (SK_COMPAT_IgnoreDxDiagnCall ())
     return E_NOTIMPL;
@@ -7681,6 +7683,8 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
 {
   if (ppFactory == nullptr)
     return E_INVALIDARG;
+
+  *ppFactory = nullptr;
 
   if (SK_COMPAT_IgnoreDxDiagnCall ())
     return E_NOTIMPL;

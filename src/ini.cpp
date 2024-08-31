@@ -26,13 +26,16 @@ class SK_ScopedLocale {
 public:
   SK_ScopedLocale (const wchar_t *wszLocale)
   {
-    prev_locale_policy =
-      _configthreadlocale (_ENABLE_PER_THREAD_LOCALE);
-
-    if (prev_locale_policy != -1)
+    if (wszLocale != nullptr)
     {
-      orig_locale =
-      _wsetlocale (LC_ALL, wszLocale);
+      prev_locale_policy =
+        _configthreadlocale (_ENABLE_PER_THREAD_LOCALE);
+
+      if (prev_locale_policy != -1)
+      {
+        orig_locale =
+        _wsetlocale (LC_ALL, wszLocale);
+      }
     }
   }
 

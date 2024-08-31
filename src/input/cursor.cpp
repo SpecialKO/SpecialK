@@ -1050,7 +1050,8 @@ GetPhysicalCursorPos_Detour (LPPOINT lpPoint)
   {
     if (LogicalToPhysicalPoint (0, &pt))
     {
-      *lpPoint = pt;
+      if (lpPoint != nullptr)
+         *lpPoint = pt;
 
       return TRUE;
     }

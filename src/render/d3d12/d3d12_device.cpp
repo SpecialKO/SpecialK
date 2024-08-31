@@ -305,8 +305,7 @@ _COM_Outptr_ void                              **ppPipelineState )
   if (ppPipelineState == nullptr)
     return E_INVALIDARG;
 
-  if (ppPipelineState == nullptr)
-    return E_INVALIDARG;
+  *ppPipelineState = nullptr;
 
   if (riid != __uuidof (ID3D12PipelineState) || ppPipelineState == nullptr)
   {
@@ -911,7 +910,9 @@ D3D12Device_CreateCommandAllocator_Detour (
   _COM_Outptr_  void      **ppCommandAllocator )
 {
   if (ppCommandAllocator != nullptr)
-  {
+  {  *ppCommandAllocator  = nullptr;
+
+#if 0
     static const bool bEldenRing =
     //(SK_GetCurrentGameID () == SK_GAME_ID::EldenRing);
       false;
@@ -1020,6 +1021,7 @@ D3D12Device_CreateCommandAllocator_Detour (
         }
       }
     }
+#endif
   }
 
   return
@@ -2070,6 +2072,9 @@ _In_       const D3D12_HEAP_DESC *pDesc,
                  REFIID           riid,
 _COM_Outptr_opt_ void           **ppvHeap)
 {
+  if (ppvHeap != nullptr)
+     *ppvHeap  = nullptr;
+
   return
     D3D12Device_CreateHeap_Original (This, pDesc, riid, ppvHeap);
 }
@@ -2086,6 +2091,9 @@ _In_opt_   const D3D12_CLEAR_VALUE      *pOptimizedClearValue,
                  REFIID                  riidResource,
 _COM_Outptr_opt_ void                  **ppvResource )
 {
+  if (ppvResource != nullptr)
+     *ppvResource  = nullptr;
+
   if (pDesc != nullptr) // Not optional, but some games try it anyway :)
   {
 #if 0
@@ -2210,6 +2218,9 @@ _In_opt_   const D3D12_CLEAR_VALUE      *pOptimizedClearValue,
                  REFIID                  riid,
 _COM_Outptr_opt_ void                  **ppvResource )
 {
+  if (ppvResource != nullptr)
+     *ppvResource  = nullptr;
+
   return
     D3D12Device_CreatePlacedResource_Original ( This,
       pHeap, HeapOffset, pDesc, InitialState,

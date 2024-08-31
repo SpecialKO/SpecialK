@@ -386,52 +386,54 @@ struct SK_HDR_FIXUP
         uavDesc.Texture2D.MipSlice = 0;
         uavDesc.Format             = DXGI_FORMAT_R32_FLOAT;
 
-      pDev->CreateTexture2D           (&texDesc, nullptr, &pLuminanceTex);
-      pDev->CreateUnorderedAccessView (                    pLuminanceTex,
-                                       &uavDesc,          &pLuminanceUAV);
-      pDev->CreateShaderResourceView  (                    pLuminanceTex,
-                                                 nullptr, &pLuminanceSRV);
+      if (SUCCEEDED (pDev->CreateTexture2D           (&texDesc, nullptr, &pLuminanceTex)) &&
+          SUCCEEDED (pDev->CreateUnorderedAccessView (                    pLuminanceTex,
+                                                      &uavDesc,          &pLuminanceUAV)) &&
+          SUCCEEDED (pDev->CreateShaderResourceView  (                    pLuminanceTex,
+                                                                nullptr, &pLuminanceSRV)))
+      {
+        SK_D3D11_SetDebugName (pLuminanceTex,     L"SK HDR Luminance Tilemap");
+        SK_D3D11_SetDebugName (pLuminanceUAV,     L"SK HDR Luminance UAV");
+        SK_D3D11_SetDebugName (pLuminanceSRV,     L"SK HDR Luminance SRV");
 
-      texDesc                    = {  };
-      texDesc.Width              = 1024;
-      texDesc.Height             = 1024;
-      texDesc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
-      texDesc.BindFlags          = D3D11_BIND_UNORDERED_ACCESS |
-                                   D3D11_BIND_SHADER_RESOURCE;
-      texDesc.SampleDesc.Count   = 1;
-      texDesc.MipLevels          = 1;
-      texDesc.ArraySize          = 1;
+        texDesc                    = {  };
+        texDesc.Width              = 1024;
+        texDesc.Height             = 1024;
+        texDesc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
+        texDesc.BindFlags          = D3D11_BIND_UNORDERED_ACCESS |
+                                     D3D11_BIND_SHADER_RESOURCE;
+        texDesc.SampleDesc.Count   = 1;
+        texDesc.MipLevels          = 1;
+        texDesc.ArraySize          = 1;
 
-      uavDesc                    = {  };
-      uavDesc.ViewDimension      = D3D11_UAV_DIMENSION_TEXTURE2D;
-      uavDesc.Texture2D.MipSlice = 0;
-      uavDesc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
+        uavDesc                    = {  };
+        uavDesc.ViewDimension      = D3D11_UAV_DIMENSION_TEXTURE2D;
+        uavDesc.Texture2D.MipSlice = 0;
+        uavDesc.Format             = DXGI_FORMAT_R8G8B8A8_UNORM;
 
-      pDev->CreateTexture2D           (&texDesc, nullptr, &pGamutTex);
-      pDev->CreateUnorderedAccessView (                    pGamutTex,
-                                       &uavDesc,          &pGamutUAV);
-      pDev->CreateShaderResourceView  (                    pGamutTex,
-                                                 nullptr, &pGamutSRV);
+        if (SUCCEEDED (pDev->CreateTexture2D           (&texDesc, nullptr, &pGamutTex)) &&
+            SUCCEEDED (pDev->CreateUnorderedAccessView (                    pGamutTex,
+                                                        &uavDesc,          &pGamutUAV)) &&
+            SUCCEEDED (pDev->CreateShaderResourceView  (                    pGamutTex,
+                                                                  nullptr, &pGamutSRV)))
+        {
+          SK_D3D11_SetDebugName (pGamutTex,     L"SK HDR Gamut Coverage Texture");
+          SK_D3D11_SetDebugName (pGamutUAV,     L"SK HDR Gamut Coverage UAV");
+          SK_D3D11_SetDebugName (pGamutSRV,     L"SK HDR Gamut Coverage SRV");
+        }
+      }
 
-      SK_D3D11_SetDebugName (pSampler0,        L"SK HDR SamplerState");
-      SK_D3D11_SetDebugName (pDSState,         L"SK HDR Depth/Stencil State");
-      SK_D3D11_SetDebugName (pRasterizerState, L"SK HDR Rasterizer State");
+      SK_D3D11_SetDebugName (pSampler0,         L"SK HDR SamplerState");
+      SK_D3D11_SetDebugName (pDSState,          L"SK HDR Depth/Stencil State");
+      SK_D3D11_SetDebugName (pRasterizerState,  L"SK HDR Rasterizer State");
 
     // This is about to exit scope anyway, don't give it a name
-    //SK_D3D11_SetDebugName (pHDRTexture,  L"SK HDR OutputTex");
-      SK_D3D11_SetDebugName (pMainSrv,     L"SK HDR OutputSRV");
-      SK_D3D11_SetDebugName (pCopySrv,     L"SK HDR LastFrameSRV");
+    //SK_D3D11_SetDebugName (pHDRTexture,       L"SK HDR OutputTex");
+      SK_D3D11_SetDebugName (pMainSrv,          L"SK HDR OutputSRV");
+      SK_D3D11_SetDebugName (pCopySrv,          L"SK HDR LastFrameSRV");
 
       SK_D3D11_SetDebugName (colorSpaceCBuffer, L"SK HDR ColorSpace CBuffer");
       SK_D3D11_SetDebugName (mainSceneCBuffer,  L"SK HDR MainScene CBuffer");
-
-      SK_D3D11_SetDebugName (pLuminanceTex,     L"SK HDR Luminance Tilemap");
-      SK_D3D11_SetDebugName (pLuminanceUAV,     L"SK HDR Luminance UAV");
-      SK_D3D11_SetDebugName (pLuminanceSRV,     L"SK HDR Luminance SRV");
-
-      SK_D3D11_SetDebugName (pGamutTex,         L"SK HDR Gamut Coverage Texture");
-      SK_D3D11_SetDebugName (pGamutUAV,         L"SK HDR Gamut Coverage UAV");
-      SK_D3D11_SetDebugName (pGamutSRV,         L"SK HDR Gamut Coverage SRV");
     }
   }
 };

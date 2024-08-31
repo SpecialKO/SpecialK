@@ -283,6 +283,8 @@ _COM_Outptr_  void                              **ppPipelineState )
   if (ppPipelineState == nullptr)
     return E_INVALIDARG;
 
+  *ppPipelineState = nullptr;
+
   SK_LOG0 ( ( L"LoadGraphicsPipeline (%ws)", pName ), __SK_SUBSYSTEM__ );
 
   return

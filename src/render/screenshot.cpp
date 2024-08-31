@@ -345,31 +345,34 @@ SK_PNG_CopyToClipboard (const DirectX::Image& image, const void *pData, size_t d
   DROPFILES* df =
     (DROPFILES *)GlobalLock (hdrop);
 
-  df->pFiles = sizeof (DROPFILES);
-  df->fWide  = TRUE;
-
-  wcscpy ((wchar_t*)&df [1], (const wchar_t *)pData);
-
-  bool clipboard_open = false;
-  for (UINT i = 0 ; i < 5 ; ++i)
+  if (df != nullptr)
   {
-    clipboard_open = OpenClipboard (game_window.hWnd);
+    df->pFiles = sizeof (DROPFILES);
+    df->fWide  = TRUE;
 
-    if (! clipboard_open)
-      SK_Sleep (2);
+    wcscpy ((wchar_t*)&df [1], (const wchar_t *)pData);
+
+    bool clipboard_open = false;
+    for (UINT i = 0 ; i < 5 ; ++i)
+    {
+      clipboard_open = OpenClipboard (game_window.hWnd);
+
+      if (! clipboard_open)
+        SK_Sleep (2);
+    }
+
+    if (clipboard_open)
+    {
+      EmptyClipboard   ();
+      SetClipboardData (CF_HDROP, hdrop);
+      GlobalUnlock               (hdrop);
+      CloseClipboard   ();
+
+      return true;
+    }
+
+    GlobalUnlock (hdrop);
   }
-
-  if (clipboard_open)
-  {
-    EmptyClipboard   ();
-    SetClipboardData (CF_HDROP, hdrop);
-    GlobalUnlock               (hdrop);
-    CloseClipboard   ();
-
-    return true;
-  }
-
-  GlobalUnlock (hdrop);
 
   return false;
 }

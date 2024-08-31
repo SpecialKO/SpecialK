@@ -1441,9 +1441,12 @@ public:
                  SK_Thread_GetName (dwLocalTID)
               };
 
-            SKWG_Threads->insert (
-              std::make_pair ( dwLocalTID, ptEntry )
-            );
+            if (ptEntry != nullptr)
+            {
+              SKWG_Threads->insert (
+                std::make_pair ( dwLocalTID, ptEntry )
+              );
+            }
 
             if ( config.render.framerate.enable_mmcss &&
                  SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey )

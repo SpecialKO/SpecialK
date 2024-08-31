@@ -844,6 +844,9 @@ namespace streaming_memory {
         HeapCreate (0, 0, 0);
     }
 
+    if (heap == nullptr)
+      return nullptr;
+
     return
       HeapAlloc (heap, 0x0, len);
   }

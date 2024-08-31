@@ -1162,7 +1162,7 @@ GetModuleLoadCount (HMODULE hDll)
       //  http://www.geoffchappell.com/studies/windows/win32/ntdll/structs/ldr_data_table_entry.htm
       //
       unsigned long long offDdagNode =
-        (0x14 - BITNESS) * sizeof (void *);   // See offset on LDR_DDAG_NODE *DdagNode;
+        (unsigned long long)(0x14 - BITNESS) * sizeof (void *);   // See offset on LDR_DDAG_NODE *DdagNode;
 
       ULONG count        = 0;
       char* addrDdagNode = ((char *)pLdrEntry) + offDdagNode;
