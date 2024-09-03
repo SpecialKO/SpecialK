@@ -1,4 +1,9 @@
-﻿24.8.29
+﻿24.9.3
+======
+ + Enable loading HDR presets in native HDR games even when the override does
+     not specify any change to luminance.
+
+24.8.29
 =======
  + Added support for AVIF and JXL screenshots in 32-bit games (finally)
 

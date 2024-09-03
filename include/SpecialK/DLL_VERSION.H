@@ -1,8 +1,8 @@
 ﻿#pragma once
 
 #define SK_YEAR  24
-#define SK_MONTH 8
-#define SK_DATE  29
+#define SK_MONTH 9
+#define SK_DATE  3
 #define SK_REV_N 0
 #define SK_REV   0
 

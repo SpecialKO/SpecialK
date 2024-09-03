@@ -1988,7 +1988,7 @@ SK_HDR_CalculateContentLightInfo (const DirectX::Image& img)
       percent -=
         100.0 * ((double)luminance_freq [i] / img_size);
 
-      if (percent <= 99.975)
+      if (percent <= 99.5)
       {
         fMaxLum =
           fMinLum + (fLumRange * ((float)i / 65536.0f));

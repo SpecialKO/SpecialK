@@ -1940,6 +1940,12 @@ public:
                   preset.colorspace.tonemap = SK_HDR_TONEMAP_NONE;
                   preset.eotf               = 1.0f;
 
+                  if (preset.cfg_nits->get_value () == 1.0f)
+                  {
+                    preset.peak_white_nits = 0.99999f;
+                    preset.cfg_nits->set_value (preset.peak_white_nits);
+                  }
+
                   preset.activate ();
                   preset.store    ();
                 }
@@ -1950,6 +1956,12 @@ public:
 
                   preset.colorspace.tonemap = SK_HDR_TONEMAP_HDR10_PASSTHROUGH;
                   preset.eotf               = 1.0f;
+
+                  if (preset.cfg_nits->get_value () == 1.0f)
+                  {
+                    preset.peak_white_nits = 0.99999f;
+                    preset.cfg_nits->set_value (preset.peak_white_nits);
+                  }
 
                   preset.activate ();
                   preset.store    ();
@@ -2099,10 +2111,10 @@ public:
 
             sec.add_key_value (
               SK_FormatStringW (L"scRGBLuminance_[%lu]", __SK_HDR_Preset),
-                                                 std::to_wstring (preset.peak_white_nits) );
+                                             std::to_wstring (preset.peak_white_nits) );
             sec.add_key_value (
               SK_FormatStringW (L"scRGBPaperWhite_[%lu]", __SK_HDR_Preset),
-                                                  std::to_wstring (preset.paper_white_nits) );
+                                             std::to_wstring (preset.paper_white_nits) );
             sec.add_key_value (
               SK_FormatStringW (L"scRGBGamma_[%lu]", __SK_HDR_Preset),
                                              std::to_wstring (preset.eotf) );

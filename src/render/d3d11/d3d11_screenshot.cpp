@@ -1548,7 +1548,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                     percent -=
                       100.0 * ((double)luminance_freq [i] / img_size);
 
-                    if (percent <= 99.975)
+                    if (percent <= 99.94)
                     {
                       maxLum =
                         minLum + (fLumRange * ((float)i / 65536.0f));
