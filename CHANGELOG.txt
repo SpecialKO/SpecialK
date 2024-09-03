@@ -1,9 +1,13 @@
-﻿24.9.3
+﻿24.9.3.1
+========
+ + Disable overbright tonemapping unless luminance scale is >= 1.0
+
+24.9.3
 ======
  + Enable loading HDR presets in native HDR games even when the override does
      not specify any change to luminance.
-+ Auto-switch to HDR10 Passthrough tonemap mode when switching from HDR10
-    native to scRGB.
+ + Auto-switch to HDR10 Passthrough tonemap mode when switching from HDR10
+     native to scRGB.
 
 24.8.29
 =======

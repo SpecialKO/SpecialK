@@ -2352,7 +2352,7 @@ public:
 
             const bool pboost = (preset.pq_boost0 > 0.0f);
 
-            if (abs (__SK_HDR_Luma) != 1.0f)
+            if (abs (__SK_HDR_Luma) >= 1.0f)
             {
               if (ImGui::Checkbox ("Tonemap Overbright Bits", &preset.tonemap_overbright))
               {
@@ -2365,7 +2365,8 @@ public:
 
             if (pboost)
             {
-              ImGui::SameLine ();
+              if (abs (__SK_HDR_Luma) >= 1.0f)
+                ImGui::SameLine ();
 
               float colorboost =
                 100.0f * preset.pq_colorboost;

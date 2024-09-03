@@ -306,7 +306,8 @@ main (PS_INPUT input) : SV_TARGET
 
 
   if (overbrightColorFlags != 0x0 && ( any (hdr_color > 1.0f) ||
-                                       any (hdr_color < 0.0f)) )
+                                       any (hdr_color < 0.0f)) &&
+                                       input.color.x >= 1.0f)
   {
 #if 1
     float3 xyz_color =
