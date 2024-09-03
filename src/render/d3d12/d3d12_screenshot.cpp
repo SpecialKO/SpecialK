@@ -1561,12 +1561,13 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
                   float fMaxG = XMVectorGetY (maxTonemappedRGB);
                   float fMaxB = XMVectorGetZ (maxTonemappedRGB);
 
-                  if (( fMaxR <  1.0f ||
-                        fMaxG <  1.0f ||
-                        fMaxB <  1.0f ) &&
-                      ( fMaxR >= 1.0f ||
-                        fMaxG >= 1.0f ||
-                        fMaxB >= 1.0f ))
+                  if (false)
+                      //( fMaxR <  1.0f ||
+                      //  fMaxG <  1.0f ||
+                      //  fMaxB <  1.0f ) &&
+                      //( fMaxR >= 1.0f ||
+                      //  fMaxG >= 1.0f ||
+                      //  fMaxB >= 1.0f ))
                   {
                     float fSmallestComp =
                       std::min ({fMaxR, fMaxG, fMaxB});
