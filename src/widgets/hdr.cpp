@@ -1190,6 +1190,31 @@ public:
           }
         }
 
+        // Swap presets when changing between scRGB and HDR10 native
+        if (__SK_HDR_Preset == 3 && __SK_HDR_16BitSwap)
+        {
+          __SK_HDR_Preset = 2;
+          hdr_presets [__SK_HDR_Preset].cfg_tonemap->set_value (SK_HDR_TONEMAP_HDR10_PASSTHROUGH);
+        }
+
+        else if (__SK_HDR_Preset == 2 && __SK_HDR_10BitSwap)
+        {
+          __SK_HDR_Preset = 3;
+          hdr_presets [__SK_HDR_Preset].cfg_tonemap->set_value (SK_HDR_TONEMAP_HDR10_PASSTHROUGH);
+        }
+
+        auto& preset =
+          hdr_presets [__SK_HDR_Preset];
+
+        if (preset.cfg_nits->get_value () == 1.0f)
+        {
+          preset.peak_white_nits = 0.99999f;
+          preset.cfg_nits->set_value (preset.peak_white_nits);
+
+          preset.activate ();
+          preset.store    ();
+        }
+
         config.utility.save_async ();
 
         SK_ComQIPtr <IDXGISwapChain3> pSwapChain (rb.swapchain);

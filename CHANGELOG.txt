@@ -2,6 +2,8 @@
 ======
  + Enable loading HDR presets in native HDR games even when the override does
      not specify any change to luminance.
++ Auto-switch to HDR10 Passthrough tonemap mode when switching from HDR10
+    native to scRGB.
 
 24.8.29
 =======
