@@ -1200,7 +1200,7 @@ public:
         else if (__SK_HDR_Preset == 2 && __SK_HDR_10BitSwap)
         {
           __SK_HDR_Preset = 3;
-          hdr_presets [__SK_HDR_Preset].cfg_tonemap->set_value (SK_HDR_TONEMAP_HDR10_PASSTHROUGH);
+          hdr_presets [__SK_HDR_Preset].cfg_tonemap->set_value (SK_HDR_TONEMAP_RAW_IMAGE);
         }
 
         auto& preset =

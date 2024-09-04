@@ -1,4 +1,10 @@
-﻿24.9.3.2
+﻿24.9.4
+======
+ + Added extra frames of delay when capturing a snipped screenshot region for
+     games that have more than 2 backbuffers, so that the screenshot does not
+       include the light blue snipping rectangle :)
+
+24.9.3.2
 ========
  + Removed code to lighten images where max tonemapped R,G or B are below 1.0
 
