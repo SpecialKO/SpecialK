@@ -1,36 +1,28 @@
- /************************************************************************************************************************************\
-|*                                                                                                                                    *|
-|*     Copyright © 2012 NVIDIA Corporation.  All rights reserved.                                                                     *|
-|*                                                                                                                                    *|
-|*  NOTICE TO USER:                                                                                                                   *|
-|*                                                                                                                                    *|
-|*  This software is subject to NVIDIA ownership rights under U.S. and international Copyright laws.                                  *|
-|*                                                                                                                                    *|
-|*  This software and the information contained herein are PROPRIETARY and CONFIDENTIAL to NVIDIA                                     *|
-|*  and are being provided solely under the terms and conditions of an NVIDIA software license agreement.                             *|
-|*  Otherwise, you have no rights to use or access this software in any manner.                                                       *|
-|*                                                                                                                                    *|
-|*  If not covered by the applicable NVIDIA software license agreement:                                                               *|
-|*  NVIDIA MAKES NO REPRESENTATION ABOUT THE SUITABILITY OF THIS SOFTWARE FOR ANY PURPOSE.                                            *|
-|*  IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR IMPLIED WARRANTY OF ANY KIND.                                                           *|
-|*  NVIDIA DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE,                                                                     *|
-|*  INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE.                       *|
-|*  IN NO EVENT SHALL NVIDIA BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES,                               *|
-|*  OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,  WHETHER IN AN ACTION OF CONTRACT,                         *|
-|*  NEGLIGENCE OR OTHER TORTIOUS ACTION,  ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOURCE CODE.            *|
-|*                                                                                                                                    *|
-|*  U.S. Government End Users.                                                                                                        *|
-|*  This software is a "commercial item" as that term is defined at 48 C.F.R. 2.101 (OCT 1995),                                       *|
-|*  consisting  of "commercial computer  software"  and "commercial computer software documentation"                                  *|
-|*  as such terms are  used in 48 C.F.R. 12.212 (SEPT 1995) and is provided to the U.S. Government only as a commercial end item.     *|
-|*  Consistent with 48 C.F.R.12.212 and 48 C.F.R. 227.7202-1 through 227.7202-4 (JUNE 1995),                                          *|
-|*  all U.S. Government End Users acquire the software with only those rights set forth herein.                                       *|
-|*                                                                                                                                    *|
-|*  Any use of this software in individual and commercial software must include,                                                      *|
-|*  in the user documentation and internal comments to the code,                                                                      *|
-|*  the above Disclaimer (as applicable) and U.S. Government End Users Notice.                                                        *|
-|*                                                                                                                                    *|
- \************************************************************************************************************************************/
+/*********************************************************************************************************\
+|*                                                                                                        *|
+|* SPDX-FileCopyrightText: Copyright (c) 2019-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.  *|
+|* SPDX-License-Identifier: MIT                                                                           *|
+|*                                                                                                        *|
+|* Permission is hereby granted, free of charge, to any person obtaining a                                *|
+|* copy of this software and associated documentation files (the "Software"),                             *|
+|* to deal in the Software without restriction, including without limitation                              *|
+|* the rights to use, copy, modify, merge, publish, distribute, sublicense,                               *|
+|* and/or sell copies of the Software, and to permit persons to whom the                                  *|
+|* Software is furnished to do so, subject to the following conditions:                                   *|
+|*                                                                                                        *|
+|* The above copyright notice and this permission notice shall be included in                             *|
+|* all copies or substantial portions of the Software.                                                    *|
+|*                                                                                                        *|
+|* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR                             *|
+|* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,                               *|
+|* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL                               *|
+|* THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER                             *|
+|* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING                                *|
+|* FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER                                    *|
+|* DEALINGS IN THE SOFTWARE.                                                                              *|
+|*                                                                                                        *|
+|*                                                                                                        *|
+\*********************************************************************************************************/
 
 ////////////////////////// NVIDIA SHADER EXTENSIONS /////////////////
 
@@ -1624,6 +1616,123 @@ uint4 NvWaveMultiPrefixExclusiveXOr(uint4 val, uint mask)
     val = remainingThreads != 0 ? temp : uint4(0, 0, 0, 0);
     return NvWaveMultiPrefixInclusiveXOr(val, mask);
 }
+
+
+//----------------------------------------------------------------------------//
+//------------------------- DXR Micro-map Extension --------------------------//
+//----------------------------------------------------------------------------//
+
+float3x3 NvRtTriangleObjectPositions()
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].opcode = NV_EXTN_OP_RT_TRIANGLE_OBJECT_POSITIONS;
+
+    float3x3 ret;
+    ret[0][0] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[0][1] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[0][2] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[1][0] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[1][1] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[1][2] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[2][0] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[2][1] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[2][2] = asfloat(g_NvidiaExt.IncrementCounter());
+    return ret;
+}
+
+float3x3 NvRtMicroTriangleObjectPositions()
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].opcode = NV_EXTN_OP_RT_MICRO_TRIANGLE_OBJECT_POSITIONS;
+
+    float3x3 ret;
+    ret[0][0] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[0][1] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[0][2] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[1][0] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[1][1] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[1][2] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[2][0] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[2][1] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[2][2] = asfloat(g_NvidiaExt.IncrementCounter());
+    return ret;
+}
+
+float3x2 NvRtMicroTriangleBarycentrics()
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].opcode = NV_EXTN_OP_RT_MICRO_TRIANGLE_BARYCENTRICS;
+
+    float3x2 ret;
+    ret[0][0] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[0][1] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[1][0] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[1][1] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[2][0] = asfloat(g_NvidiaExt.IncrementCounter());
+    ret[2][1] = asfloat(g_NvidiaExt.IncrementCounter());
+    return ret;
+}
+
+bool NvRtIsMicroTriangleHit()
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].opcode = NV_EXTN_OP_RT_IS_MICRO_TRIANGLE_HIT;
+    uint ret = g_NvidiaExt.IncrementCounter();
+    return ret != 0;
+}
+
+bool NvRtIsBackFacing()
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].opcode = NV_EXTN_OP_RT_IS_BACK_FACING;
+    uint ret = g_NvidiaExt.IncrementCounter();
+    return ret != 0;
+}
+
+#if __SHADER_TARGET_MAJOR > 6 || (__SHADER_TARGET_MAJOR == 6 && __SHADER_TARGET_MINOR >= 5)
+
+float3 NvRtMicroVertexObjectPosition(RaytracingAccelerationStructure AccelerationStructure, uint InstanceIndex, uint GeometryIndex, uint PrimitiveIndex, uint2 UV)
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].opcode = NV_EXTN_OP_RT_MICRO_VERTEX_OBJECT_POSITION;
+    g_NvidiaExt[index].src0u.x = InstanceIndex;
+    g_NvidiaExt[index].src0u.y = GeometryIndex;
+    g_NvidiaExt[index].src0u.z = PrimitiveIndex;
+    g_NvidiaExt[index].src0u.w = UV.x;
+    g_NvidiaExt[index].src1u.x = UV.y;
+    uint handle = g_NvidiaExt.IncrementCounter();
+    float3 ret;
+    ret.x = asfloat(g_NvidiaExt.IncrementCounter());
+    ret.y = asfloat(g_NvidiaExt.IncrementCounter());
+    ret.z = asfloat(g_NvidiaExt.IncrementCounter());
+
+    RayQuery<0> rq;
+    rq.TraceRayInline(AccelerationStructure, 0, handle, (RayDesc)0);
+
+    return ret;
+}
+
+float2 NvRtMicroVertexBarycentrics(RaytracingAccelerationStructure AccelerationStructure, uint InstanceIndex, uint GeometryIndex, uint PrimitiveIndex, uint2 UV)
+{
+    uint index = g_NvidiaExt.IncrementCounter();
+    g_NvidiaExt[index].opcode = NV_EXTN_OP_RT_MICRO_VERTEX_BARYCENTRICS;
+    g_NvidiaExt[index].src0u.x = InstanceIndex;
+    g_NvidiaExt[index].src0u.y = GeometryIndex;
+    g_NvidiaExt[index].src0u.z = PrimitiveIndex;
+    g_NvidiaExt[index].src0u.w = UV.x;
+    g_NvidiaExt[index].src1u.x = UV.y;
+    uint handle = g_NvidiaExt.IncrementCounter();
+    float2 ret;
+    ret.x = asfloat(g_NvidiaExt.IncrementCounter());
+    ret.y = asfloat(g_NvidiaExt.IncrementCounter());
+
+    RayQuery<0> rq;
+    rq.TraceRayInline(AccelerationStructure, 0, handle, (RayDesc)0);
+
+    return ret;
+}
+
+#endif
 
 //----------------------------------------------------------------------------//
 //------------------------- DXR HitObject Extension --------------------------//

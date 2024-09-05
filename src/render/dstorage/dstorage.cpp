@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -57,6 +57,12 @@ SK_DStorage_ApplyConfigOverrides (DSTORAGE_CONFIGURATION *pConfig)
 
   if (config.render.dstorage.disable_telemetry)
     pConfig->DisableTelemetry = true;
+
+  if (pConfig->NumBuiltInCpuDecompressionThreads == 0)
+      pConfig->NumBuiltInCpuDecompressionThreads = std::max (2UL, config.priority.available_cpu_cores / 4);
+
+  if (pConfig->NumSubmitThreads == 0)
+      pConfig->NumSubmitThreads                  = std::max (2UL, config.priority.available_cpu_cores / 4);
 }
 
 void

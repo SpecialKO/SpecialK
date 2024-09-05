@@ -640,7 +640,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   std::lock_guard
        lock (SK_NvAPI_Threading->locks.Disp_HdrColorControl);
 
-  if (pHdrColorData->version > NV_HDR_COLOR_DATA_VER2)
+  if (pHdrColorData->version != NV_HDR_COLOR_DATA_VER2 && pHdrColorData->version != NV_HDR_COLOR_DATA_VER1)
   {
     SK_LOGi0 (
       L"HDR: NvAPI_Disp_HdrColorControl (...) called using a struct version (%d) SK does not understand",
@@ -880,9 +880,9 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
           { L"Limited",    NV_DYNAMIC_RANGE_CEA   },
           { L"Don't Care", NV_DYNAMIC_RANGE_AUTO  } };
 
-    SK_LOGi0 ( L"HDR:  Mode: %hs", HDRModeToStr (pHdrColorData->hdrMode) );
+    SK_LOGi1 ( L"HDR:  Mode: %hs", HDRModeToStr (pHdrColorData->hdrMode) );
 
-    SK_LOG0 ( ( L"HDR:  Max Master Luma: %7.1f, Min Master Luma: %7.5f",
+    SK_LOG1 ( ( L"HDR:  Max Master Luma: %7.1f, Min Master Luma: %7.5f",
       static_cast <double> (pHdrColorData->mastering_display_data.max_display_mastering_luminance),
       static_cast <double> (
         static_cast <double>
@@ -890,12 +890,12 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
                           )
               ), __SK_SUBSYSTEM__ );
 
-    SK_LOG0 ( ( L"HDR:  Max Avg. Luma: %7.1f, Max Luma: %7.1f",
+    SK_LOG1 ( ( L"HDR:  Max Avg. Luma: %7.1f, Max Luma: %7.1f",
       static_cast <double> (pHdrColorData->mastering_display_data.max_frame_average_light_level),
       static_cast <double> (pHdrColorData->mastering_display_data.max_content_light_level)
               ), __SK_SUBSYSTEM__ );
 
-    SK_LOG0 ( ( L"HDR:  Color ( Bit-Depth: %s, Sampling: %s ), Dynamic Range: %s",
+    SK_LOG1 ( ( L"HDR:  Color ( Bit-Depth: %s, Sampling: %s ), Dynamic Range: %s",
                 bpc_map           [pHdrColorData->hdrBpc].         c_str (),
                 color_fmt_map     [pHdrColorData->hdrColorFormat]. c_str (),
                 dynamic_range_map [pHdrColorData->hdrDynamicRange].c_str ()

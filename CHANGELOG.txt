@@ -2,7 +2,7 @@
 ========
  + When a game sets HDR modes using NVAPI, do not switch active presets
      if the user has already setup an override.
- + Ingore HDR metadata set using NVAPI
+ + Ignore HDR metadata set using NVAPI
 
 24.9.5.1
 ========
