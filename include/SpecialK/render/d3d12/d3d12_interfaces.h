@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -671,7 +671,7 @@ struct SK_D3D12_RenderCtx {
   UINT getCurrentBackBufferIndex (void) const
   {
     if (_pSwapChain.p == nullptr)
-      return 0;
+      return UINT_MAX;
 
     return
       std::min ( static_cast <UINT> (frames_.size () - 1),

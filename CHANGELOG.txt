@@ -1,4 +1,9 @@
-﻿24.9.4
+﻿24.9.5
+======
+ + Improved compatibility with DLSS3 Frame Generation in Star Wars: Outlaws
+ + Detect DLSS-G as active if DLSSG.NumFrames is 0 or > 1; required for Outlaws
+
+24.9.4
 ======
  + Added extra frames of delay when capturing a snipped screenshot region for
      games that have more than 2 backbuffers, so that the screenshot does not

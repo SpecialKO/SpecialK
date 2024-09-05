@@ -535,8 +535,8 @@ SK_NGX12_UpdateDLSSGStatus (void)
 
   __SK_IsDLSSGActive =
     ReadULong64Acquire (&SK_NGX_DLSS12.frame_gen.LastFrame) >= SK_GetFramesDrawn () - 8 &&
-                       uiNumberOfFrames >= 1 &&
-                       uiEnableDLSSGInterp   && uiEnableOFA;
+                                        (uiNumberOfFrames == 0 || uiNumberOfFrames > 1) &&
+                                         uiEnableDLSSGInterp   && uiEnableOFA;
 
   if (SK_NGX_DLSS12.frame_gen.Handle != nullptr)
   {

@@ -52,6 +52,10 @@ D3D12GraphicsCommandList_ExecuteIndirect_Original      = nullptr;
 D3D12GraphicsCommandList_OMSetRenderTargets_pfn
 D3D12GraphicsCommandList_OMSetRenderTargets_Original   = nullptr;
 
+static inline constexpr GUID SKID_D3D12ParentCmdQueue = { 0x33ede230, 0xbb84, 0x4585, { 0xa6, 0xd2, 0x9a, 0x47, 0x3,  0x66, 0xc5, 0xdb } };
+static inline constexpr GUID SKID_D3D12BackbufferPtr  = { 0xa1d3a46b, 0x1ac1, 0x4e83, { 0x99, 0x83, 0x12, 0x35, 0x18, 0x34, 0x3d, 0x80 } };
+static inline constexpr GUID SKID_D3D12BackbufferIdx  = { 0x2d99b3c7, 0x169,  0x48e5, { 0x95, 0xbd, 0x3d, 0x1,  0xcf, 0x55, 0xb3, 0xe0 } };
+
 struct SK_ImGui_D3D12Ctx
 {
   SK_ComPtr <ID3D12Device>        pDevice;
@@ -2649,7 +2653,7 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
   if (pCmdList == nullptr)
     return false;
 
-  if (FAILED (pCmdList->Close ()))
+  if ((! bCmdListRecording) || FAILED (pCmdList->Close ()))
     return false;
 
   bCmdListRecording = false;
@@ -2662,24 +2666,46 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
   //   do not attempt to execute the command list, just close it.
   //
   //  Failure to skip execution will result in device removal
-  if (pRoot->getCurrentBackBufferIndex () == iBufferIdx)
+
+  UINT uiSize = sizeof (uintptr_t);
+
+  ID3D12CommandQueue*                                           pParentQueue = nullptr;
+  pCmdList->GetPrivateData (SKID_D3D12ParentCmdQueue, &uiSize, &pParentQueue);
+
+  uiSize = sizeof (uintptr_t);
+  
+  ID3D12Resource*                                              pParentBuffer = nullptr;
+  pCmdList->GetPrivateData (SKID_D3D12BackbufferPtr, &uiSize, &pParentBuffer);
+
+  uiSize = sizeof (UINT);
+
+  UINT                                                         BufferIdx = UINT_MAX-1;
+  pCmdList->GetPrivateData (SKID_D3D12BackbufferIdx, &uiSize, &BufferIdx);
+
+  SK_ComPtr <ID3D12Resource>                                                  pBackbuffer;
+  if (pRoot->_pSwapChain != nullptr)
+      pRoot->_pSwapChain->GetBuffer (BufferIdx, IID_ID3D12Resource, (void **)&pBackbuffer.p);
+
+  if (pRoot->getCurrentBackBufferIndex () == BufferIdx   &&
+                            pParentBuffer == pBackbuffer &&
+      pRoot->frames_ [BufferIdx].pCmdList == pCmdList)
   {
-    pRoot->_pCommandQueue->ExecuteCommandLists (
-      ARRAYSIZE (cmd_lists),
-                 cmd_lists
-    );
+    SK_LOGi4 (L"Drew (BufferIdx=%d)...", BufferIdx);
+
+    SK_ComPtr <ID3D12CommandQueue>                       pNativeQueue;
+    if (SK_slGetNativeInterface (pParentQueue, (void **)&pNativeQueue.p) == sl::Result::eOk)
+      pNativeQueue->ExecuteCommandLists (ARRAYSIZE (cmd_lists), cmd_lists);
+    else
+      pParentQueue->ExecuteCommandLists (ARRAYSIZE (cmd_lists), cmd_lists);
 
     return true;
   }
 
-  else
-  {
-    _d3d12_rbk->release (pRoot->_pSwapChain.p);
-
-    SK_LOGi0 (L"SwapChain Backbuffer changed while command lists were recording!");
-
-    return false;
-  }
+  _d3d12_rbk->release (pRoot->_pSwapChain.p);
+  
+  SK_LOGi0 (L"SwapChain Backbuffer changed while command lists were recording!");
+  
+  return false;
 }
 
 bool
@@ -2864,6 +2890,18 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 {
+  //SK_ComPtr <IDXGISwapChain1>                       pNativeSwapChain;
+  //SK_slGetNativeInterface (_pSwapChain.p, (void **)&pNativeSwapChain.p);
+  //
+  //if (pNativeSwapChain.p != 0 && pNativeSwapChain.p == pSwapChain)
+  //{
+  //  SK_LOGi0 (
+  //    L"Skipping SwapChain teardown because the SwapChain is a Streamline proxy!"
+  //  );
+  //
+  //  return;
+  //}
+
   drain_queue ();
 
   if (! ((_pSwapChain.p != nullptr && pSwapChain == nullptr) ||
@@ -2942,6 +2980,12 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 bool
 SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pCommandQueue)
 {
+  SK_ComPtr <IDXGISwapChain3>                       pNativeSwapChain;
+  SK_slGetNativeInterface (pSwapChain,    (void **)&pNativeSwapChain.p);
+
+  if (pNativeSwapChain != nullptr)
+            pSwapChain = pNativeSwapChain.p;
+
   if (pSwapChain != nullptr)
   {
     UINT  uiSize    = sizeof (void *);
@@ -2954,6 +2998,19 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         pCommandQueue = (ID3D12CommandQueue *)pCmdQueue;
       }
     }
+  }
+
+  SK_ComPtr <ID3D12CommandQueue>                    pNativeQueue;
+  SK_slGetNativeInterface (pCommandQueue, (void **)&pNativeQueue.p);
+
+  if (pNativeQueue != nullptr)
+     _pCommandQueue = pNativeQueue.p;
+
+  if (pNativeSwapChain != nullptr)
+  {
+    UINT uiSize = sizeof (void *);
+
+    pSwapChain->SetPrivateData (SKID_D3D12_SwapChainCommandQueue, uiSize, _pCommandQueue);
   }
 
   // Turn HDR off in dgVoodoo2 so it does not crash
@@ -3256,6 +3313,10 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
         ThrowIfFailed (
           _pSwapChain->GetBuffer (frame.iBufferIdx,                 IID_PPV_ARGS (&frame.pBackBuffer.p)));
+
+        frame.pCmdList->SetPrivateData (SKID_D3D12ParentCmdQueue, sizeof (uintptr_t), &_pCommandQueue.p);
+        frame.pCmdList->SetPrivateData (SKID_D3D12BackbufferPtr,  sizeof (uintptr_t), &frame.pBackBuffer.p);
+        frame.pCmdList->SetPrivateData (SKID_D3D12BackbufferIdx,  sizeof (UINT),      &frame.iBufferIdx);
 
         frame.hBackBufferRTV.ptr =
                   rtvHandle.ptr + ((size_t)frame.iBufferIdx * (size_t)2)             * rtvDescriptorSize;

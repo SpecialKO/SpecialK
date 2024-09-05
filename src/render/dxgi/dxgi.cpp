@@ -6277,6 +6277,12 @@ DXGIFactory_CreateSwapChain_Override (
       //
       if (pCmdQueue != nullptr && pDev12 != nullptr)
       {
+        SK_ComPtr <ID3D12CommandQueue>                pNativeCmdQueue;
+        SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p);
+
+        if (pNativeCmdQueue.p != nullptr)
+            pCmdQueue = pNativeCmdQueue.p;
+
         pTemp->SetPrivateData (SKID_D3D12_SwapChainCommandQueue, sizeof (void *), pCmdQueue);
 
         SK_ComQIPtr <IDXGISwapChain3> pSwap3 (pTemp);
@@ -6847,6 +6853,12 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       // D3D12
       else if (pCmdQueue.p != nullptr)
       {
+        SK_ComPtr <ID3D12CommandQueue>                pNativeCmdQueue;
+        SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p);
+
+        if (pNativeCmdQueue.p != nullptr)
+            pCmdQueue = pNativeCmdQueue.p;
+
         (*ppSwapChain)->SetPrivateData (SKID_D3D12_SwapChainCommandQueue, sizeof (void *), pCmdQueue);
 
         //
@@ -9270,7 +9282,8 @@ SK_DXGI_SafeCreateSwapChain ( IDXGIFactory          *pFactory,
 
   __except (EXCEPTION_EXECUTE_HANDLER)
   {
-    *ppSwapChain = nullptr;
+    if (ppSwapChain != nullptr)
+       *ppSwapChain  = nullptr;
   }
 
   return E_NOTIMPL;
@@ -9280,6 +9293,8 @@ DWORD
 __stdcall
 HookDXGI (LPVOID user)
 {
+  static SK_AutoCOMInit _autocom;
+
   SetCurrentThreadDescription (L"[SK] DXGI Hook Crawler");
 
   // "Normal" games don't change render APIs mid-game; Talos does, but it's
