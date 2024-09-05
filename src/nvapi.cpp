@@ -744,12 +744,12 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   pHdrColorData->cmd == NV_HDR_CMD_SET ? HDRModeToStr (pHdrColorData->hdrMode) : " " ),
               __SK_SUBSYSTEM__ );
 
+  void SK_HDR_RunWidgetOnce (void);
+       SK_HDR_RunWidgetOnce ();
+
   const bool sk_is_overriding_hdr =
       (__SK_HDR_UserForced);
   bool game_is_engaging_native_hdr = false;
-
-  void SK_HDR_RunWidgetOnce (void);
-       SK_HDR_RunWidgetOnce ();
 
   if ( pHdrColorData->cmd     == NV_HDR_CMD_SET &&
        pHdrColorData->hdrMode == NV_HDR_MODE_UHDA_PASSTHROUGH )
@@ -817,7 +817,9 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   if (game_is_engaging_native_hdr)
   {
     SK_HDR_RunWidgetOnce ();
-    __SK_HDR_tonemap = SK_HDR_TONEMAP_RAW_IMAGE;
+
+    if (! sk_is_overriding_hdr)
+      __SK_HDR_tonemap = SK_HDR_TONEMAP_RAW_IMAGE;
   }
 
 
@@ -1078,7 +1080,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
         }
       }
 
-      _Push_NvAPI_HDR_Metadata_to_DXGI_Backend ();
+      ///_Push_NvAPI_HDR_Metadata_to_DXGI_Backend ();
     }
 
     return ret;
@@ -1154,7 +1156,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     rb.scanout.nvapi_hdr.bpc            = pHdrColorData->hdrBpc;
     rb.scanout.nvapi_hdr.active         =(pHdrColorData->hdrMode != NV_HDR_MODE_OFF);
 
-    _Push_NvAPI_HDR_Metadata_to_DXGI_Backend ();
+    ///_Push_NvAPI_HDR_Metadata_to_DXGI_Backend ();
   }
 
   if (inputData->version == NV_HDR_COLOR_DATA_VER1 ||

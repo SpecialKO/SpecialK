@@ -1,4 +1,10 @@
-﻿24.9.5.1
+﻿24.9.5.2
+========
+ + When a game sets HDR modes using NVAPI, do not switch active presets
+     if the user has already setup an override.
+ + Ingore HDR metadata set using NVAPI
+
+24.9.5.1
 ========
  + Remove check for number of generated frames.
     * Evidently DLSS3 works no matter what values you set...?
