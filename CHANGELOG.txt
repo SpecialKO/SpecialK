@@ -1,4 +1,9 @@
-﻿24.9.5
+﻿24.9.5.1
+========
+ + Remove check for number of generated frames.
+    * Evidently DLSS3 works no matter what values you set...?
+
+24.9.5
 ======
  + Improved compatibility with DLSS3 Frame Generation in Star Wars: Outlaws
  + Detect DLSS-G as active if DLSSG.NumFrames is 0 or > 1; required for Outlaws

@@ -6277,11 +6277,9 @@ DXGIFactory_CreateSwapChain_Override (
       //
       if (pCmdQueue != nullptr && pDev12 != nullptr)
       {
-        SK_ComPtr <ID3D12CommandQueue>                pNativeCmdQueue;
-        SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p);
-
-        if (pNativeCmdQueue.p != nullptr)
-            pCmdQueue = pNativeCmdQueue.p;
+        SK_ComPtr <ID3D12CommandQueue>                    pNativeCmdQueue;
+        if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
+                                     pCmdQueue =          pNativeCmdQueue.p;
 
         pTemp->SetPrivateData (SKID_D3D12_SwapChainCommandQueue, sizeof (void *), pCmdQueue);
 
@@ -6853,11 +6851,9 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       // D3D12
       else if (pCmdQueue.p != nullptr)
       {
-        SK_ComPtr <ID3D12CommandQueue>                pNativeCmdQueue;
-        SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p);
-
-        if (pNativeCmdQueue.p != nullptr)
-            pCmdQueue = pNativeCmdQueue.p;
+        SK_ComPtr <ID3D12CommandQueue>                    pNativeCmdQueue;
+        if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
+                                     pCmdQueue =          pNativeCmdQueue.p;
 
         (*ppSwapChain)->SetPrivateData (SKID_D3D12_SwapChainCommandQueue, sizeof (void *), pCmdQueue);
 
