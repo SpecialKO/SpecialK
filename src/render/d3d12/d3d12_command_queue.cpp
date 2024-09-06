@@ -69,15 +69,26 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
       {
         if (rb.d3d12.command_queue == nullptr)
         {
+          SK_ComPtr <ID3D12Device>       pDevice;
+          SK_ComPtr <IDXGISwapChain>     pSwapChain;
+          SK_ComPtr <ID3D12CommandQueue> pCmdQueue;
+
+          if (SK_slGetNativeInterface (pLazyD3D12Device, (void **)&pDevice.p   ) != sl::Result::eOk)
+                             pDevice = pLazyD3D12Device;
+          if (SK_slGetNativeInterface (pLazyD3D12Chain,  (void **)&pSwapChain.p) != sl::Result::eOk)
+                          pSwapChain = pLazyD3D12Chain;
+          if (SK_slGetNativeInterface (This,             (void **)&pCmdQueue.p ) != sl::Result::eOk)
+                           pCmdQueue = This;
+
           // Now we are holding a ref...
-          rb.setDevice            (pLazyD3D12Device);
-          rb.swapchain           = pLazyD3D12Chain;
-          rb.d3d12.command_queue = This;
+          rb.setDevice            (pDevice.p);
+          rb.swapchain           = pSwapChain.p;
+          rb.d3d12.command_queue = pCmdQueue.p;
           rb.api                 = SK_RenderAPI::D3D12;
 
           _d3d12_rbk->init (
-            (IDXGISwapChain3 *)pLazyD3D12Chain,
-              This
+            (IDXGISwapChain3 *)pSwapChain.p,
+              pCmdQueue.p
           );
         }
       }
@@ -88,7 +99,7 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
 
   bool bDLSSG = false;
 
-  if (once && queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT)
+  if (once && queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT && This == rb.d3d12.command_queue)
   {
     const auto frame_id =
       SK_GetFramesDrawn ();
@@ -101,7 +112,7 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
     }
   }
 
-  else if (queueDesc.Type == D3D12_COMMAND_LIST_TYPE_COMPUTE)
+  else if (queueDesc.Type == D3D12_COMMAND_LIST_TYPE_COMPUTE && SK_DLSSG_CopyCommandList != nullptr)
   {
     for (UINT i = 0; i < NumCommandLists ; ++i)
     {

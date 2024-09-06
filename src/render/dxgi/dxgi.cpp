@@ -534,12 +534,20 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
 
 void ResetImGui_D3D12 (IDXGISwapChain* This)
 {
-  _d3d12_rbk->release (This);
+  SK_ComPtr <IDXGISwapChain>                   pSwapChain;
+  if (SK_slGetNativeInterface (This, (void **)&pSwapChain.p) != sl::Result::eOk)
+                                               pSwapChain = This;
+
+  _d3d12_rbk->release (pSwapChain.p);
 }
 
 void ResetImGui_D3D11 (IDXGISwapChain* This)
 {
-  _d3d11_rbk->release (This);
+  SK_ComPtr <IDXGISwapChain>                   pSwapChain;
+  if (SK_slGetNativeInterface (This, (void **)&pSwapChain.p) != sl::Result::eOk)
+                                               pSwapChain = This;
+
+  _d3d11_rbk->release (pSwapChain.p);
 }
 
 DWORD dwRenderThread = 0x0000;
@@ -2083,14 +2091,18 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
   {
     assert (rb.device == pDev);
 
-    if (ImGui_DX11Startup (This))
+    SK_ComPtr <IDXGISwapChain>                   pSwapChain;
+    if (SK_slGetNativeInterface (This, (void **)&pSwapChain.p) != sl::Result::eOk)
+                                                 pSwapChain = This;
+
+    if (ImGui_DX11Startup (pSwapChain))
     {
       SK_ComPtr   <ID3D11Texture2D>     pBackBuffer       (_d3d11_rbk->frames_ [0].pRenderOutput);
       SK_ComQIPtr <ID3D11DeviceContext> pImmediateContext (rb.d3d11.immediate_ctx);
 
       if (! pBackBuffer)
       {
-        _d3d11_rbk->release (This);
+        _d3d11_rbk->release (pSwapChain);
       }
 
       else
@@ -2461,8 +2473,12 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       if ( ret == DXGI_ERROR_DEVICE_REMOVED ||
            ret == DXGI_ERROR_DEVICE_RESET )
       {
-        _d3d11_rbk->release (This);
-        _d3d12_rbk->release (This);
+        SK_ComPtr <IDXGISwapChain>                   pSwapChain;
+        if (SK_slGetNativeInterface (This, (void **)&pSwapChain.p) != sl::Result::eOk)
+                                                     pSwapChain = This;
+
+        _d3d11_rbk->release (pSwapChain.p);
+        _d3d12_rbk->release (pSwapChain.p);
       }
 
       if ( ret != S_OK && (! rb.active_traits.bOriginallyFlip) && SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12 )
@@ -4095,10 +4111,14 @@ SK_DXGI_ResizeTarget ( IDXGISwapChain *This,
 
     if (FAILED (ret))
     {
+      SK_ComPtr <IDXGISwapChain>                   pSwapChain;
+      if (SK_slGetNativeInterface (This, (void **)&pSwapChain.p) != sl::Result::eOk)
+                                                   pSwapChain = This;
+
       if (_IsBackendD3D12 (rb.api))
-        _d3d12_rbk->release (This);
+        _d3d12_rbk->release (pSwapChain.p);
       else
-        _d3d11_rbk->release (This);
+        _d3d11_rbk->release (pSwapChain.p);
     }
 
     else
@@ -4438,10 +4458,14 @@ DXGISwap3_ResizeBuffers1_Override (IDXGISwapChain3* This,
     }
   }
 
+  SK_ComPtr <IDXGISwapChain>                   pSwapChain;
+  if (SK_slGetNativeInterface (This, (void **)&pSwapChain.p) != sl::Result::eOk)
+                                               pSwapChain = This;
+
   if (_IsBackendD3D12 (rb.api))
-    _d3d12_rbk->release (This);
+    _d3d12_rbk->release (pSwapChain.p);
   else
-    _d3d11_rbk->release (This);
+    _d3d11_rbk->release (pSwapChain.p);
 
   HRESULT     ret =
     ResizeBuffers1_Original ( This, BufferCount, Width, Height,
@@ -5796,8 +5820,9 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
 
-  SK_ComPtr <IDXGISwapChain1>                    pNativeSwapChain;
-  SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p);
+  SK_ComPtr <IDXGISwapChain1>                        pNativeSwapChain;
+  if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
+                               pSwapChain =          pNativeSwapChain;
 
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
@@ -5819,6 +5844,12 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
 
     SK_ComPtr <ID3D12CommandQueue>       pNativeCmdQueue;
     SK_ComPtr <ID3D12Device>             pNativeDev12;
+    
+    if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
+    {
+      pCmdQueue = pNativeCmdQueue;
+    }
+
     SK_ComPtr <ID3D12Device>             pDev12;
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
@@ -5887,10 +5918,11 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
 
-  SK_DXGI_HookSwapChain (pSwapChain);
+  SK_ComPtr <IDXGISwapChain1>                        pNativeSwapChain;
+  if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
+                               pSwapChain =          pNativeSwapChain;
 
-  SK_ComPtr <IDXGISwapChain1>                    pNativeSwapChain;
-  SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p);
+  SK_DXGI_HookSwapChain (pSwapChain);
 
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
@@ -5912,6 +5944,12 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
 
     SK_ComPtr <ID3D12CommandQueue>       pNativeCmdQueue;
     SK_ComPtr <ID3D12Device>             pNativeDev12;
+    
+    if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
+    {
+      pCmdQueue = pNativeCmdQueue;
+    }
+
     SK_ComPtr <ID3D12Device>             pDev12;
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
@@ -8325,6 +8363,7 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
       {
         pMetaData = &metadata;
         Size      = sizeof (DXGI_HDR_METADATA_HDR10);
+        Type      = DXGI_HDR_METADATA_TYPE_HDR10;
       }
     }
   }
@@ -9441,11 +9480,8 @@ HookDXGI (LPVOID user)
     SK_ComPtr <ID3D11Device>        pNativeDevice;
     SK_ComPtr <ID3D11DeviceContext> pNativeImmediateContext;
 
-    // Probably better named Nixxes mode, what a pain :(
     const bool bStreamlineMode =
-      false;
-      //SK_GetCurrentGameID () == SK_GAME_ID::HorizonForbiddenWest ||
-      //(SK_GetModuleHandleW (L"sl.dlss_g.dll") && config.system.global_inject_delay == 0.0f);
+      config.compatibility.init_sync_for_streamline;
 
     const bool bReShadeMode =
       (config.compatibility.reshade_mode && (! config.compatibility.using_wine));

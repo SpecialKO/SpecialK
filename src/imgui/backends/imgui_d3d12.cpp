@@ -116,11 +116,13 @@ void
 ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
               SK_D3D12_RenderCtx::FrameCtx* pFrame )
 {
+  std::scoped_lock lock (pFrame->pRoot->_ctx_lock);
+
   // Avoid rendering when minimized
   if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
     return;
 
-  if (! ( _d3d12_rbk->_pSwapChain.p || _d3d12_rbk->_pDevice.p ) )
+  if (! ( _d3d12_rbk->_pSwapChain.p && _d3d12_rbk->_pDevice.p ) )
     return;
 
   //ImGuiIO& io =
@@ -154,6 +156,16 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
   // Creation, or reallocation of vtx / idx buffers required...
   if (sync_cmd_list)
   {
+    D3D12_HEAP_TYPE                    heap_type = D3D12_HEAP_TYPE_UPLOAD;
+    D3D12_FEATURE_DATA_D3D12_OPTIONS16 opt16     = { };
+
+    pFrame->pRoot->_pDevice->
+      CheckFeatureSupport (D3D12_FEATURE_D3D12_OPTIONS16, &opt16,
+                                                   sizeof (opt16));
+
+    if (opt16.GPUUploadHeapSupported)
+      heap_type = D3D12_HEAP_TYPE_GPU_UPLOAD;
+
     if (! pFrame->wait_for_gpu ())
       return;
 
@@ -169,7 +181,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
         D3D12_HEAP_PROPERTIES
           props                 = { };
-          props.Type            = D3D12_HEAP_TYPE_UPLOAD;
+          props.Type            = heap_type;
 
         D3D12_RESOURCE_DESC
           desc                  = { };
@@ -183,7 +195,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
         ThrowIfFailed (
           _imgui_d3d12.pDevice->CreateCommittedResource (
-            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
+            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
               nullptr, IID_PPV_ARGS (&pHeap->Vb.p)));
         SK_D3D12_SetDebugName (       pHeap->Vb.p,
           L"ImGui D3D12 VertexBuffer" + std::to_wstring (_frame));
@@ -201,7 +213,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
         D3D12_HEAP_PROPERTIES
           props                 = { };
-          props.Type            = D3D12_HEAP_TYPE_UPLOAD;
+          props.Type            = heap_type;
 
         D3D12_RESOURCE_DESC
           desc                  = { };
@@ -215,7 +227,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
         ThrowIfFailed (
           _imgui_d3d12.pDevice->CreateCommittedResource (
-            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
+            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_INDEX_BUFFER,
               nullptr, IID_PPV_ARGS (&pHeap->Ib.p)));
         SK_D3D12_SetDebugName (       pHeap->Ib.p,
           L"ImGui D3D12 IndexBuffer" + std::to_wstring (_frame));
@@ -239,6 +251,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
   ImDrawVert* vtx_heap = nullptr;
   ImDrawIdx*  idx_heap = nullptr;
 
+  // Write-only
   D3D12_RANGE range = { };
 
   try
@@ -301,14 +314,17 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
           idx_ptr = std::copy_n (cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size, idx_ptr);
     }
 
-    pHeap->Vb->Unmap (0, &range);
-    pHeap->Ib->Unmap (0, &range);
+    pHeap->Vb->Unmap (0, nullptr);
+    vtx_heap = nullptr;
+
+    pHeap->Ib->Unmap (0, nullptr);
+    idx_heap = nullptr;
   }
 
   catch (const SK_ComException& e)
   {
-    if (vtx_heap != nullptr) pHeap->Vb->Unmap (0, &range);
-    if (idx_heap != nullptr) pHeap->Ib->Unmap (0, &range);
+    if (vtx_heap != nullptr) pHeap->Vb->Unmap (0, nullptr);
+    if (idx_heap != nullptr) pHeap->Ib->Unmap (0, nullptr);
 
     SK_LOG0 ( ( L" Exception: %hs [%ws]", e.what (), __FUNCTIONW__ ),
                 L"ImGuiD3D12" );
@@ -2036,6 +2052,8 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
                           ID3D12Resource            *pSrcResource,
                           ID3D12Resource            *pDstResource )
 {
+  std::scoped_lock lock (_d3d12_rbk->_ctx_lock);
+
   if (pCommandList == nullptr || pSrcResource == nullptr || pDstResource == nullptr)
   {
     SK_RunOnce (SK_LOGi0 (L"Cannot perform HDR CopyBuffer because one or more parameters are nullptr..."));
@@ -2126,7 +2144,7 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
   pCommandList->SetPipelineState               ( _d3d12_rbk->pHDRPipeline                );
   pCommandList->SetDescriptorHeaps             ( 1, &pCopyHeap.p                         );
   pCommandList->SetGraphicsRoot32BitConstants  ( 0, 4,  &cbuffer_luma,   0               );
-  pCommandList->SetGraphicsRoot32BitConstants  ( 1, 16, &cbuffer_cspace, 0               );
+  pCommandList->SetGraphicsRoot32BitConstants  ( 1, 20, &cbuffer_cspace, 0               );
   pCommandList->SetGraphicsRootDescriptorTable ( 2,  hBufferCopy.SRV.GPU                 );
   pCommandList->OMSetRenderTargets             ( 1, &hBufferCopy.RTV.CPU, FALSE, nullptr );
   pCommandList->IASetPrimitiveTopology         ( D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP    );
@@ -2143,10 +2161,12 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
 void
 SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 {
+  std::scoped_lock lock (_ctx_lock);
+
   if (! pSwapChain)
     return;
 
-  if (! _pDevice.p || frames_.empty ())
+  if ((! _pDevice.p || frames_.empty ()) || _pCommandQueue.p == nullptr)
   {
     if (! init (pSwapChain, _pCommandQueue.p))
       return;
@@ -2621,6 +2641,8 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 bool
 SK_D3D12_RenderCtx::FrameCtx::begin_cmd_list (const SK_ComPtr <ID3D12PipelineState>& state)
 {
+  std::scoped_lock lock (pRoot->_ctx_lock);
+
   if (pCmdList == nullptr)
     return false;
 
@@ -2648,12 +2670,14 @@ SK_D3D12_RenderCtx::FrameCtx::begin_cmd_list (const SK_ComPtr <ID3D12PipelineSta
 bool
 SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 {
+  std::scoped_lock lock (pRoot->_ctx_lock);
+
   assert (bCmdListRecording);
 
   if (pCmdList == nullptr)
     return false;
 
-  if ((! bCmdListRecording) || FAILED (pCmdList->Close ()))
+  if (FAILED (pCmdList->Close ()))
     return false;
 
   bCmdListRecording = false;
@@ -2667,24 +2691,25 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
   //
   //  Failure to skip execution will result in device removal
 
-  UINT uiSize = sizeof (uintptr_t);
-
-  ID3D12CommandQueue*                                           pParentQueue = nullptr;
+  UINT                                                 uiSize                 = sizeof (uintptr_t);
+  ID3D12CommandQueue*                                           pParentQueue  = nullptr;
   pCmdList->GetPrivateData (SKID_D3D12ParentCmdQueue, &uiSize, &pParentQueue);
+                                                       uiSize                 = sizeof (uintptr_t);  
+  ID3D12Resource*                                               pParentBuffer = nullptr;
+  pCmdList->GetPrivateData (SKID_D3D12BackbufferPtr,  &uiSize, &pParentBuffer);
+                                                       uiSize                 = sizeof (UINT);
+  UINT                                                          BufferIdx     = UINT_MAX-1;
+  pCmdList->GetPrivateData (SKID_D3D12BackbufferIdx,  &uiSize, &BufferIdx);
 
-  uiSize = sizeof (uintptr_t);
-  
-  ID3D12Resource*                                              pParentBuffer = nullptr;
-  pCmdList->GetPrivateData (SKID_D3D12BackbufferPtr, &uiSize, &pParentBuffer);
+  SK_ComPtr <ID3D12Resource>                                 pBackbuffer;
+  SK_ComPtr <IDXGISwapChain>                                 pRealSwapChain;
+  if (SK_slGetNativeInterface (pRoot->_pSwapChain, (void **)&pRealSwapChain.p) == sl::Result::eOk)
+  {
+    pRealSwapChain->GetBuffer (BufferIdx, IID_ID3D12Resource, (void **)&pBackbuffer.p);
+  }
 
-  uiSize = sizeof (UINT);
-
-  UINT                                                         BufferIdx = UINT_MAX-1;
-  pCmdList->GetPrivateData (SKID_D3D12BackbufferIdx, &uiSize, &BufferIdx);
-
-  SK_ComPtr <ID3D12Resource>                                                  pBackbuffer;
-  if (pRoot->_pSwapChain != nullptr)
-      pRoot->_pSwapChain->GetBuffer (BufferIdx, IID_ID3D12Resource, (void **)&pBackbuffer.p);
+  else if (pRoot->_pSwapChain != nullptr)
+    pRoot->_pSwapChain->GetBuffer (BufferIdx, IID_ID3D12Resource, (void **)&pBackbuffer.p);
 
   if (pRoot->getCurrentBackBufferIndex () == BufferIdx   &&
                             pParentBuffer == pBackbuffer &&
@@ -2692,18 +2717,14 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
   {
     SK_LOGi4 (L"Drew (BufferIdx=%d)...", BufferIdx);
 
-    SK_ComPtr <ID3D12CommandQueue>                       pNativeQueue;
-    if (SK_slGetNativeInterface (pParentQueue, (void **)&pNativeQueue.p) == sl::Result::eOk)
-      pNativeQueue->ExecuteCommandLists (ARRAYSIZE (cmd_lists), cmd_lists);
-    else
-      pParentQueue->ExecuteCommandLists (ARRAYSIZE (cmd_lists), cmd_lists);
+    pParentQueue->ExecuteCommandLists (ARRAYSIZE (cmd_lists), cmd_lists);
 
     return true;
   }
 
-  _d3d12_rbk->release (pRoot->_pSwapChain.p);
-  
   SK_LOGi0 (L"SwapChain Backbuffer changed while command lists were recording!");
+
+  _d3d12_rbk->release (pRoot->_pSwapChain.p);
   
   return false;
 }
@@ -2733,6 +2754,8 @@ SK_D3D12_RenderCtx::FrameCtx::flush_cmd_list (void)
 bool
 SK_D3D12_RenderCtx::drain_queue (void) noexcept
 {
+  std::scoped_lock lock (_ctx_lock);
+
   bool success { true };
 
   for (auto& frame : frames_)
@@ -2750,6 +2773,8 @@ SK_D3D12_RenderCtx::drain_queue (void) noexcept
 bool
 SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void) noexcept
 {
+  std::scoped_lock lock (pRoot->_ctx_lock);
+
   // Flush command list, to avoid it still referencing resources that may be destroyed after this call
   if (bCmdListRecording)
   {
@@ -2887,9 +2912,13 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/plugin/reshade.h>
 
+std::recursive_mutex SK_D3D12_RenderCtx::_ctx_lock;
+
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 {
+  std::scoped_lock lock (_ctx_lock);
+
   //SK_ComPtr <IDXGISwapChain1>                       pNativeSwapChain;
   //SK_slGetNativeInterface (_pSwapChain.p, (void **)&pNativeSwapChain.p);
   //
@@ -2973,6 +3002,7 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
   descriptorHeaps.pHDR_CopyAssist_RTV.Release ();
   descriptorHeaps.pComputeCopy.Release        ();
 
+//_pCommandQueue.Release ();
   _pSwapChain.Release ();
   _pDevice.Release    ();
 }
@@ -2980,6 +3010,8 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 bool
 SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pCommandQueue)
 {
+  std::scoped_lock lock (_ctx_lock);
+
   SK_ComPtr <IDXGISwapChain3>                        pNativeSwapChain;
   if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
                                pSwapChain =          pNativeSwapChain.p;
@@ -3002,7 +3034,8 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
   if (SK_slGetNativeInterface (pCommandQueue, (void **)&pNativeQueue.p) == sl::Result::eOk)
                               _pCommandQueue =          pNativeQueue.p;
 
-  if (pNativeSwapChain != nullptr)
+  if (pNativeSwapChain != nullptr &&
+      pNativeQueue.p   != nullptr)
   {
     UINT uiSize = sizeof (void *);
 
@@ -3033,7 +3066,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
   else frame_delay.exchange  (0);
 
 
-  if (_pDevice.p == nullptr)
+  if (_pDevice.p == nullptr || pNativeQueue.p != nullptr)
   {
     // TODO: Figure out why 32-bit D3D12 crashes when
     // pNativeDev12 is placed below _pCommandQueue...
@@ -3059,7 +3092,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
     SK_RenderBackend& rb =
       SK_GetCurrentRenderBackend ();
 
-    if (rb.swapchain == nullptr || rb.swapchain != pSwapChain)
+    if (rb.swapchain == nullptr || rb.swapchain != pSwapChain || rb.d3d12.command_queue != _pCommandQueue || rb.d3d12.device != _pDevice)
     {
       // This is unexpected, but may happen if a game destroys its original window
       //   and then creates a new SwapChain
@@ -3441,7 +3474,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         param [0].ShaderVisibility                    = D3D12_SHADER_VISIBILITY_VERTEX;
 
         param [1].ParameterType                       = D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-        param [1].Constants.Num32BitValues            = 16;// cbuffer colorSpaceTransform : register (b0)
+        param [1].Constants.Num32BitValues            = 20;// cbuffer colorSpaceTransform : register (b0)
         param [1].ShaderVisibility                    = D3D12_SHADER_VISIBILITY_PIXEL;
 
       D3D12_DESCRIPTOR_RANGE
