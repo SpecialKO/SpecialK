@@ -1557,6 +1557,7 @@ IWrapDXGISwapChain::SetHDRMetaData ( DXGI_HDR_METADATA_TYPE  Type,
       {
         pMetaData = &metadata;
         Size      = sizeof (DXGI_HDR_METADATA_HDR10);
+        Type      = DXGI_HDR_METADATA_TYPE_HDR10;
       }
     }
   }
