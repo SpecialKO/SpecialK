@@ -1641,8 +1641,8 @@ D3D12GraphicsCommandList_CopyResource_Detour (
     typelessSrc        = DirectX::MakeTypeless (src_desc.Format),
     typelessDst        = DirectX::MakeTypeless (dst_desc.Format);
 
-  if ( typelessDst == typelessBackbuffer &&
-       typelessSrc != typelessDst        &&
+  if ( (typelessDst == typelessBackbuffer || typelessBackbuffer == DXGI_FORMAT_UNKNOWN)  &&
+        typelessSrc != typelessDst        &&
          DirectX::BitsPerColor (src_desc.Format) !=
          DirectX::BitsPerColor (dst_desc.Format) )
   {
@@ -2161,7 +2161,7 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
 void
 SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 {
-  //std::scoped_lock lock (_ctx_lock);
+  std::scoped_lock lock (_ctx_lock);
 
   if (! pSwapChain)
     return;
@@ -2917,7 +2917,7 @@ std::recursive_mutex SK_D3D12_RenderCtx::_ctx_lock;
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 {
-  //std::scoped_lock lock (_ctx_lock);
+  std::scoped_lock lock (_ctx_lock);
 
   //SK_ComPtr <IDXGISwapChain1>                       pNativeSwapChain;
   //SK_slGetNativeInterface (_pSwapChain.p, (void **)&pNativeSwapChain.p);
@@ -3010,7 +3010,7 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 bool
 SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pCommandQueue)
 {
-  //std::scoped_lock lock (_ctx_lock);
+  std::scoped_lock lock (_ctx_lock);
 
   SK_ComPtr <IDXGISwapChain3>                        pNativeSwapChain;
   if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
@@ -3195,7 +3195,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
       ThrowIfFailed (
         _pDevice->CreateDescriptorHeap (
           std::array < D3D12_DESCRIPTOR_HEAP_DESC,                1 >
-            {          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,    swapDesc1.BufferCount * 8,
+            {          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,    std::max (swapDesc1.BufferCount * 32, 64U),
                        D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 }.data (),
                                        IID_PPV_ARGS (&descriptorHeaps.pComputeCopy.p)));
                               SK_D3D12_SetDebugName ( descriptorHeaps.pComputeCopy.p,
