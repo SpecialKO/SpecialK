@@ -455,8 +455,11 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
   //   if HDR is not enabled.
   if (config.apis.NvAPI.vulkan_bridge == 1 && GetModuleHandle (L"vulkan-1.dll"))
   {
-    TenBitSwap                       = true;
-    config.render.output.force_10bpc = true;
+    if (! config.compatibility.disable_dx12_vk_interop)
+    {
+      TenBitSwap                       = true;
+      config.render.output.force_10bpc = true;
+    }
   }
 
   DXGI_FORMAT fmt_new = fmt_orig;
@@ -8330,9 +8333,6 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
     }
   }
 
-  SK_RenderBackend& rb =
-    SK_GetCurrentRenderBackend ();
-
   DXGI_SWAP_CHAIN_DESC swapDesc = { };
   This->GetDesc      (&swapDesc);
 
@@ -8356,7 +8356,8 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
       if ( SK_DXGI_IsFlipModelSwapChain (swapDesc) ||
                                          swapDesc.Windowed == FALSE )
       {
-        rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
+        // Obsolete, go by calls to SetColorSpace1 instead...
+        ////rb.framebuffer_flags |= SK_FRAMEBUFFER_FLAG_HDR;
       }
     }
   }
@@ -8453,6 +8454,20 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
 
   if (pColorSpaceSupported == nullptr)
     return DXGI_ERROR_INVALID_CALL;
+
+  // NVIDIA will fallback to a D3D11 SwapChain for interop if we tell it that
+  //   G22_NONE_P709 is unsupported.
+  if (config.compatibility.disable_dx12_vk_interop)
+  {
+    if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709)
+    {
+      if (SK_GetCallingDLL () != SK_GetDLL ())
+      {
+        *pColorSpaceSupported = 0x0;
+        return S_OK;
+      }
+    }
+  }
 
   // SK has a trick where it can override PQ to scRGB, but often when that
   //   mode is active, the game's going to fail this call. We need to lie (!)

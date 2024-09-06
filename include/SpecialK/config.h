@@ -1229,6 +1229,7 @@ struct sk_config_t
     bool     init_on_separate_thread  =  true;
     bool     init_sync_for_streamline = false;
     bool     shutdown_on_window_close = false;
+    bool     disable_dx12_vk_interop  = false;
     bool     reshade_mode             = false;
     bool     fsr3_mode                = false;
   } compatibility;

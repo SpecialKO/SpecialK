@@ -3826,6 +3826,12 @@ SK_HookEngine_HookGetProcAddress (void)
 bool
 SK::Diagnostics::Debugger::Allow  (bool bAllow)
 {
+  if (SK_GetCurrentGameID () == SK_GAME_ID::StarWarsOutlaws)
+  {
+    config.window.dont_hook_wndproc = true;
+    return true;
+  }
+
   struct LocalInitOnce_s
   {
     LocalInitOnce_s (void) noexcept

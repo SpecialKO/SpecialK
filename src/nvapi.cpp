@@ -640,7 +640,8 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   std::lock_guard
        lock (SK_NvAPI_Threading->locks.Disp_HdrColorControl);
 
-  if (pHdrColorData->version != NV_HDR_COLOR_DATA_VER2 && pHdrColorData->version != NV_HDR_COLOR_DATA_VER1)
+  if (pHdrColorData->version != NV_HDR_COLOR_DATA_VER2 &&
+      pHdrColorData->version != NV_HDR_COLOR_DATA_VER1)
   {
     SK_LOGi0 (
       L"HDR: NvAPI_Disp_HdrColorControl (...) called using a struct version (%d) SK does not understand",
@@ -650,6 +651,15 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
     {
       SK_LOG0 ( ( L"HDR:  << Ignoring NvAPI HDR because user is forcing DXGI HDR (which is better!)"
                 ), __SK_SUBSYSTEM__ );
+
+      return NVAPI_OK;
+    }
+
+    if (SK_IsModuleLoaded (L"vulkan-1.dll"))
+    {
+      SK_LOGi0 (L"Disabling D3D12/Vulkan Interop in favor of D3D11/Vulkan Interop.");
+
+      config.compatibility.disable_dx12_vk_interop = true;
 
       return NVAPI_OK;
     }

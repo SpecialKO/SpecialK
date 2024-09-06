@@ -3477,7 +3477,8 @@ auto DeclKeybind =
 
       case SK_GAME_ID::StarWarsOutlaws:
       {
-        // XXX
+        // Avoid anti-debug stuff
+        config.window.dont_hook_wndproc = true;
       } break;
 
       case SK_GAME_ID::FinalFantasy7Remake:

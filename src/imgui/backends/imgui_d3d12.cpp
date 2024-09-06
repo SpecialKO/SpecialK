@@ -150,8 +150,8 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
     pFrame->pCmdList;
 
   bool sync_cmd_list =
-    ( (! pHeap->Vb.p || pHeap->Vb.size < draw_data->TotalVtxCount) ||
-      (! pHeap->Ib.p || pHeap->Ib.size < draw_data->TotalIdxCount) );
+    ( (pHeap->Vb.p == nullptr || pHeap->Vb.size < draw_data->TotalVtxCount) ||
+      (pHeap->Ib.p == nullptr || pHeap->Ib.size < draw_data->TotalIdxCount) );
 
   // Creation, or reallocation of vtx / idx buffers required...
   if (sync_cmd_list)
@@ -171,10 +171,10 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
     try
     {
-      if (! pHeap->Vb.p || pHeap->Vb.size < draw_data->TotalVtxCount)
+      if (pHeap->Vb.p == nullptr || pHeap->Vb.size < draw_data->TotalVtxCount)
       {
         auto overAlloc =
-          draw_data->TotalVtxCount + 5000;
+          draw_data->TotalVtxCount + 4096;
 
         pHeap->Vb.Release ();
         pHeap->Vb.size = 0;
@@ -203,10 +203,10 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
         pHeap->Vb.size = overAlloc;
       }
 
-      if (! pHeap->Ib.p || pHeap->Ib.size < draw_data->TotalIdxCount)
+      if (pHeap->Ib.p == nullptr || pHeap->Ib.size < draw_data->TotalIdxCount)
       {
         auto overAlloc =
-          draw_data->TotalIdxCount + 10000;
+          draw_data->TotalIdxCount + 8192;
 
         pHeap->Ib.Release ();
         pHeap->Ib.size = 0;
@@ -300,12 +300,6 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 #endif
         }
       }
-
-      //memcpy (vtx_ptr, cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size * sizeof (ImDrawVert));
-      //memcpy (idx_ptr, cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size * sizeof (ImDrawIdx));
-      //
-      //vtx_ptr += cmd_list->VtxBuffer.Size;
-      //idx_ptr += cmd_list->IdxBuffer.Size;
 
       if (vtx_ptr != nullptr)
           vtx_ptr = std::copy_n (cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size, vtx_ptr);

@@ -1,4 +1,10 @@
-﻿24.9.6.2
+﻿24.9.6.3
+========
+ + Disable D3D12 Vulkan Interop on NVIDIA drivers in favor of D3D11
+ + Disable various debug features when injecting into Star Wars: Outlaws
+     to avoid the wrath of Ubisoft's multi-layered DRM shenanigans
+
+24.9.6.2
 ========
  + Fixed all known compatibility issues for Star Wars: Outlaws Frame Generation
 
