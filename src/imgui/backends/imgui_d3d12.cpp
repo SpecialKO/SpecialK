@@ -2202,7 +2202,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   DXGI_SWAP_CHAIN_DESC1          swapDesc = { };
   pSwapChain->GetDesc1         (&swapDesc);
   if ((_imgui_d3d12.RTVFormat != swapDesc.Format &&
-       _imgui_d3d12.RTVFormat != DXGI_FORMAT_UNKNOWN) || swapIdx > frames_.size () )
+       _imgui_d3d12.RTVFormat != DXGI_FORMAT_UNKNOWN) || swapIdx >= frames_.size () )
   {
     static bool          once = false;
     if (! std::exchange (once, true))

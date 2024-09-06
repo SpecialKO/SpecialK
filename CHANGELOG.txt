@@ -1,4 +1,8 @@
-﻿24.9.6.1
+﻿24.9.6.2
+========
+ + Fixed all known compatibility issues for Star Wars: Outlaws Frame Generation
+
+24.9.6.1
 ========
  + Restrict synchronous init to games that have Streamline and DLSS-G loaded
      before SK.
