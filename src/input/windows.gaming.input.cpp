@@ -895,6 +895,7 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
       if ((! config.input.gamepad.xinput.emulate) && SK_GetCurrentGameID () != SK_GAME_ID::HorizonForbiddenWest      &&
                                                      SK_GetCurrentGameID () != SK_GAME_ID::RatchetAndClank_RiftApart &&
                                                      SK_GetCurrentGameID () != SK_GAME_ID::ForzaHorizon5             &&
+                                                     SK_GetCurrentGameID () != SK_GAME_ID::StarWarsOutlaws           &&
                                                      (! SK_GetCurrentRenderBackend ().windows.sdl))
       {
         SK_ImGui_CreateNotification ( "WindowsGamingInput.Compatibility",
