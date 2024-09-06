@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -496,7 +496,7 @@ SK_AutoCOMInit::_assert_not_dllmain (void)
 {
   SK_ASSERT_NOT_DLLMAIN_THREAD ();
 
-  if (config.compatibility.init_on_separate_thread)
+  if (config.compatibility.init_on_separate_thread && (! config.compatibility.init_sync_for_streamline))
   {
     if (ReadAcquire (&__SK_DLL_Attached))
     {

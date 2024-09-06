@@ -1227,6 +1227,7 @@ struct sk_config_t
     bool     allow_dxdiagn            =  true; // Slows game launches way down
     bool     auto_large_address_patch =  true;
     bool     init_on_separate_thread  =  true;
+    bool     init_sync_for_streamline = false;
     bool     shutdown_on_window_close = false;
     bool     reshade_mode             = false;
     bool     fsr3_mode                = false;
@@ -1666,6 +1667,7 @@ enum class SK_GAME_ID
   GodOfWar,                     // GoW.exe
   TalosPrinciple2,              // Talos2-Win64-Shipping.exe
   CrashBandicootNSaneTrilogy,   // CrashBandicootNSaneTrilogy.exe
+  StarWarsOutlaws,              // outlaws.exe
 
   UNKNOWN_GAME               = 0xffff
 };

@@ -255,6 +255,8 @@ SK_GetCurrentGameID (void)
           { L"GoW.exe",                                SK_GAME_ID::GodOfWar                     },
           { L"Talos2-Win64-Shipping.exe",              SK_GAME_ID::TalosPrinciple2              },
           { L"CrashBandicootNSaneTrilogy.exe",         SK_GAME_ID::CrashBandicootNSaneTrilogy   },
+          { L"Outlaws.exe",                            SK_GAME_ID::StarWarsOutlaws              },
+          { L"Outlaws_Plus.exe",                       SK_GAME_ID::StarWarsOutlaws              },
         };
 
     first_check  = false;
@@ -3471,6 +3473,11 @@ auto DeclKeybind =
         config.input.gamepad.xinput.placehold [1]   = false;
         config.input.gamepad.xinput.placehold [2]   = false;
         config.input.gamepad.xinput.placehold [3]   = false;
+      } break;
+
+      case SK_GAME_ID::StarWarsOutlaws:
+      {
+        // XXX
       } break;
 
       case SK_GAME_ID::FinalFantasy7Remake:
