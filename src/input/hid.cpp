@@ -1018,7 +1018,7 @@ ReadFile_Detour (HANDLE       hFile,
 
           if ((! lpOverlapped) && dev_allowed)
           {
-            if (                   cached_report.size   ()          < nNumberOfBytesRead)
+            if (                   cached_report.size   ()          < nNumberOfBytesRead && nNumberOfBytesRead > 0)
                                    cached_report.resize (             nNumberOfBytesRead);
               SK_UNTRUSTED_memcpy (cached_report.data   (), lpBuffer, nNumberOfBytesRead);
           }
@@ -1139,15 +1139,18 @@ ReadFile_Detour (HANDLE       hFile,
               if (hid_file->_cachedInputReportsByReportId [report_id].size () <= dwBytesRead)
                   hid_file->_cachedInputReportsByReportId [report_id].resize (   dwBytesRead);
 
-              hid_file->_cachedInputReportsByReportId [report_id].data ()[0] = report_id;
-
-              //if (hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead))
+              if (dwBytesRead > 0)
               {
-                SK_UNTRUSTED_memcpy (
-                  hid_file->_cachedInputReportsByReportId [report_id].data (), lpBuffer,
-                      dwBytesRead );
+                hid_file->_cachedInputReportsByReportId [report_id].data ()[0] = report_id;
 
-                hid_file->neutralizeHidInput (report_id, dwBytesRead);
+                //if (hid_file->neutralizeHidInput (report_id, nNumberOfBytesToRead))
+                {
+                  SK_UNTRUSTED_memcpy (
+                    hid_file->_cachedInputReportsByReportId [report_id].data (), lpBuffer,
+                        dwBytesRead );
+
+                  hid_file->neutralizeHidInput (report_id, dwBytesRead);
+                }
               }
             }
 
