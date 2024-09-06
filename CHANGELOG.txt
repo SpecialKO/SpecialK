@@ -1,9 +1,14 @@
-﻿24.9.6
+﻿24.9.6.1
+========
+ + Restrict synchronous init to games that have Streamline and DLSS-G loaded
+     before SK.
+
+24.9.6
 ======
  + Use D3D12 GPU Upload Heaps for ImGui vtx/idx buffers on supported systems
  + Use synchronous initialization when sl.interposer.dll is loaded before SK
  + Fix incorrect HDR_COLORSPACE_PARAMS struct size in D3D12
- + Fix HDR10 metadata override type 
+ + Fix HDR10 metadata override type
 
 24.9.5.2
 ========

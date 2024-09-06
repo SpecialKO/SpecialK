@@ -116,7 +116,7 @@ void
 ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
               SK_D3D12_RenderCtx::FrameCtx* pFrame )
 {
-  std::scoped_lock lock (pFrame->pRoot->_ctx_lock);
+  //std::scoped_lock lock (pFrame->pRoot->_ctx_lock);
 
   // Avoid rendering when minimized
   if (draw_data->DisplaySize.x <= 0.0f || draw_data->DisplaySize.y <= 0.0f)
@@ -2052,7 +2052,7 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
                           ID3D12Resource            *pSrcResource,
                           ID3D12Resource            *pDstResource )
 {
-  std::scoped_lock lock (_d3d12_rbk->_ctx_lock);
+  //std::scoped_lock lock (_d3d12_rbk->_ctx_lock);
 
   if (pCommandList == nullptr || pSrcResource == nullptr || pDstResource == nullptr)
   {
@@ -2161,7 +2161,7 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
 void
 SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 {
-  std::scoped_lock lock (_ctx_lock);
+  //std::scoped_lock lock (_ctx_lock);
 
   if (! pSwapChain)
     return;
@@ -2641,7 +2641,7 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 bool
 SK_D3D12_RenderCtx::FrameCtx::begin_cmd_list (const SK_ComPtr <ID3D12PipelineState>& state)
 {
-  std::scoped_lock lock (pRoot->_ctx_lock);
+  //std::scoped_lock lock (pRoot->_ctx_lock);
 
   if (pCmdList == nullptr)
     return false;
@@ -2670,7 +2670,7 @@ SK_D3D12_RenderCtx::FrameCtx::begin_cmd_list (const SK_ComPtr <ID3D12PipelineSta
 bool
 SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 {
-  std::scoped_lock lock (pRoot->_ctx_lock);
+  //std::scoped_lock lock (pRoot->_ctx_lock);
 
   assert (bCmdListRecording);
 
@@ -2754,7 +2754,7 @@ SK_D3D12_RenderCtx::FrameCtx::flush_cmd_list (void)
 bool
 SK_D3D12_RenderCtx::drain_queue (void) noexcept
 {
-  std::scoped_lock lock (_ctx_lock);
+  //std::scoped_lock lock (_ctx_lock);
 
   bool success { true };
 
@@ -2773,7 +2773,7 @@ SK_D3D12_RenderCtx::drain_queue (void) noexcept
 bool
 SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void) noexcept
 {
-  std::scoped_lock lock (pRoot->_ctx_lock);
+  //std::scoped_lock lock (pRoot->_ctx_lock);
 
   // Flush command list, to avoid it still referencing resources that may be destroyed after this call
   if (bCmdListRecording)
@@ -2917,7 +2917,7 @@ std::recursive_mutex SK_D3D12_RenderCtx::_ctx_lock;
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 {
-  std::scoped_lock lock (_ctx_lock);
+  //std::scoped_lock lock (_ctx_lock);
 
   //SK_ComPtr <IDXGISwapChain1>                       pNativeSwapChain;
   //SK_slGetNativeInterface (_pSwapChain.p, (void **)&pNativeSwapChain.p);
@@ -3010,7 +3010,7 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 bool
 SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pCommandQueue)
 {
-  std::scoped_lock lock (_ctx_lock);
+  //std::scoped_lock lock (_ctx_lock);
 
   SK_ComPtr <IDXGISwapChain3>                        pNativeSwapChain;
   if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
