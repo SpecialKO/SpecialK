@@ -1,4 +1,9 @@
-﻿24.9.7
+﻿24.9.7.1
+========
+ + Re-enable partial debug features in Star Wars: Outlaws, otherwise DLSS
+     cannot be properly detected.
+
+24.9.7
 ======
  + Fix window management problems for non-HDR users when disabling NVIDIA's
      D3D12/Vk interop
