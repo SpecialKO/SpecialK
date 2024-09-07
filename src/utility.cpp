@@ -2244,6 +2244,8 @@ SKX_ScanAlignedEx ( const void* pattern, size_t len,   const void* mask,
                           SK_MemScan_Params__v0 params =
                           SK_MemScan_Params__v0 ()       )
 {
+  static auto constexpr _MAX_SEARCH_TIME_IN_MS = 5000UL;
+
   DWORD dwStartTime =
     SK_timeGetTime ();
 
@@ -2337,7 +2339,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
 
   while (it < end_addr)
   {
-    if (SK_timeGetTime () - dwStartTime > 2000UL)
+    if (SK_timeGetTime () - dwStartTime > _MAX_SEARCH_TIME_IN_MS)
     {
       SK_LOG0 ( ( L"Pattern search took too long, aborting..." ),
                   L" Sig Scan " );
@@ -2387,7 +2389,7 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
 
     while (it < next_rgn)
     {
-      if (SK_timeGetTime () - dwStartTime > 2000UL)
+      if (SK_timeGetTime () - dwStartTime > _MAX_SEARCH_TIME_IN_MS)
       {
         SK_LOG0 ( ( L"Pattern search took too long, aborting..." ),
                     L" Sig Scan " );

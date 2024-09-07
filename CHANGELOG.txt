@@ -1,4 +1,11 @@
-﻿24.9.7.1
+﻿24.9.7.2
+========
+ + Increase memory pattern scan timeout from 2 seconds to 5 seconds to ensure
+     that Steam Input bypass works as expected in Tales of Arise.
+ + Scan memory addresses on a 16-byte boundary when disabling Steam Input in
+     Tales of Arise to speed up text search.
+
+24.9.7.1
 ========
  + Re-enable partial debug features in Star Wars: Outlaws, otherwise DLSS
      cannot be properly detected.
