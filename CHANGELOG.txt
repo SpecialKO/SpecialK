@@ -1,4 +1,11 @@
-﻿24.9.6.3
+﻿24.9.7
+======
+ + Fix window management problems for non-HDR users when disabling NVIDIA's
+     D3D12/Vk interop
+ + Always use D3D12_RESOURCE_STATE_GENERIC_READ for initial state on GPU upload
+     heap resources because some drivers actually validate this
+
+24.9.6.3
 ========
  + Disable D3D12 Vulkan Interop on NVIDIA drivers in favor of D3D11
  + Disable various debug features when injecting into Star Wars: Outlaws

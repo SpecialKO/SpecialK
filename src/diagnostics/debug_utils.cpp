@@ -3828,7 +3828,9 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
 {
   if (SK_GetCurrentGameID () == SK_GAME_ID::StarWarsOutlaws)
   {
-    config.window.dont_hook_wndproc = true;
+    // XXX: Rename this, it's an alternate window hook that does not
+    //        require modifying process memory.
+    SK_GetCurrentRenderBackend ().windows.capcom = true;
     return true;
   }
 
