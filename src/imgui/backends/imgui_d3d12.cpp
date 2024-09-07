@@ -74,7 +74,7 @@ struct SK_ImGui_D3D12Ctx
   struct FrameHeap
   {
     struct buffer_s : SK_ComPtr <ID3D12Resource>
-    { INT size;
+    { INT size = 0; void* data = nullptr;
     } Vb, Ib;
   } frame_heaps [DXGI_MAX_SWAP_CHAIN_BUFFERS];
 } static _imgui_d3d12;
@@ -150,8 +150,8 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
     pFrame->pCmdList;
 
   bool sync_cmd_list =
-    ( (pHeap->Vb.p == nullptr || pHeap->Vb.size < draw_data->TotalVtxCount) ||
-      (pHeap->Ib.p == nullptr || pHeap->Ib.size < draw_data->TotalIdxCount) );
+    ( (pHeap->Vb.p == nullptr || pHeap->Vb.data == nullptr || pHeap->Vb.size < draw_data->TotalVtxCount) ||
+      (pHeap->Ib.p == nullptr || pHeap->Ib.data == nullptr || pHeap->Ib.size < draw_data->TotalIdxCount) );
 
   // Creation, or reallocation of vtx / idx buffers required...
   if (sync_cmd_list)
@@ -173,11 +173,19 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
     {
       if (pHeap->Vb.p == nullptr || pHeap->Vb.size < draw_data->TotalVtxCount)
       {
+        if (pHeap->Vb.data != nullptr &&
+            pHeap->Vb.p    != nullptr)
+            pHeap->Vb->Unmap (0, nullptr);
+
         auto overAlloc =
-          draw_data->TotalVtxCount + 4096;
+          (std::max (draw_data->TotalVtxCount, pHeap->Vb.size) * 2) +
+          (std::max (draw_data->TotalVtxCount, pHeap->Vb.size) * 2) % 4096;
+
+        SK_LOGi0 (L"Growing ImGui Vertex Buffer from %d to %d", pHeap->Vb.size, overAlloc);
 
         pHeap->Vb.Release ();
         pHeap->Vb.size = 0;
+        pHeap->Vb.data = nullptr;
 
         D3D12_HEAP_PROPERTIES
           props                 = { };
@@ -195,7 +203,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
         ThrowIfFailed (
           _imgui_d3d12.pDevice->CreateCommittedResource (
-            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
+            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
               nullptr, IID_PPV_ARGS (&pHeap->Vb.p)));
         SK_D3D12_SetDebugName (       pHeap->Vb.p,
           L"ImGui D3D12 VertexBuffer" + std::to_wstring (_frame));
@@ -205,11 +213,19 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
       if (pHeap->Ib.p == nullptr || pHeap->Ib.size < draw_data->TotalIdxCount)
       {
+        if (pHeap->Ib.data != nullptr &&
+            pHeap->Ib.p    != nullptr)
+            pHeap->Ib->Unmap (0, nullptr);
+
         auto overAlloc =
-          draw_data->TotalIdxCount + 8192;
+          (std::max (draw_data->TotalIdxCount, pHeap->Ib.size) * 2) +
+          (std::max (draw_data->TotalIdxCount, pHeap->Ib.size) * 2) % 8192;
+
+        SK_LOGi0 (L"Growing ImGui Index Buffer from %d to %d", pHeap->Ib.size, overAlloc);
 
         pHeap->Ib.Release ();
         pHeap->Ib.size = 0;
+        pHeap->Ib.data = nullptr;
 
         D3D12_HEAP_PROPERTIES
           props                 = { };
@@ -227,7 +243,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
         ThrowIfFailed (
           _imgui_d3d12.pDevice->CreateCommittedResource (
-            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_INDEX_BUFFER,
+            &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
               nullptr, IID_PPV_ARGS (&pHeap->Ib.p)));
         SK_D3D12_SetDebugName (       pHeap->Ib.p,
           L"ImGui D3D12 IndexBuffer" + std::to_wstring (_frame));
@@ -247,78 +263,22 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
     }
   }
 
-  // Copy and convert all vertices into a single contiguous buffer
-  ImDrawVert* vtx_heap = nullptr;
-  ImDrawIdx*  idx_heap = nullptr;
-
-  // Write-only
-  D3D12_RANGE range = { };
-
   try
   {
-    ThrowIfFailed (pHeap->Vb->Map (0, &range, (void **)&vtx_heap));
-    ThrowIfFailed (pHeap->Ib->Map (0, &range, (void **)&idx_heap));
+    // Write-only
+    D3D12_RANGE range = { };
 
-    ImDrawVert* vtx_ptr = vtx_heap;
-    ImDrawIdx*  idx_ptr = idx_heap;
+    if (pHeap->Vb.data == nullptr && pHeap->Vb != nullptr)
+      ThrowIfFailed (pHeap->Vb->Map (0, &range, (void **)&pHeap->Vb.data));
 
-    for (int n = 0; n < draw_data->CmdListsCount; n++)
-    {
-      const ImDrawList*
-        cmd_list = draw_data->CmdLists [n];
-
-      if (config.imgui.render.strip_alpha)
-      {
-        for (INT i = 0; i < cmd_list->VtxBuffer.Size; i++)
-        {
-          ImU32 color =
-            ImColor (cmd_list->VtxBuffer.Data [i].col);
-
-          uint8_t alpha = (((color & 0xFF000000U) >> 24U) & 0xFFU);
-
-          // Boost alpha for visibility
-          if (alpha < 93 && alpha != 0)
-            alpha += (93  - alpha) / 2;
-
-          float a = ((float)                       alpha / 255.0f);
-          float r = ((float)((color & 0xFF0000U) >> 16U) / 255.0f);
-          float g = ((float)((color & 0x00FF00U) >>  8U) / 255.0f);
-          float b = ((float)((color & 0x0000FFU)       ) / 255.0f);
-
-          color =                    0xFF000000U  |
-                  ((UINT)((r * a) * 255U) << 16U) |
-                  ((UINT)((g * a) * 255U) <<  8U) |
-                  ((UINT)((b * a) * 255U)       );
-
-#if 0
-          cmd_list->VtxBuffer.Data[i].col =
-            (ImVec4)ImColor (color);
-#else
-          cmd_list->VtxBuffer.Data[i].col =
-            ImColor (color);
-          /// XXX: FIXME
-#endif
-        }
-      }
-
-      if (vtx_ptr != nullptr)
-          vtx_ptr = std::copy_n (cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size, vtx_ptr);
-
-      if (idx_ptr != nullptr)
-          idx_ptr = std::copy_n (cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size, idx_ptr);
-    }
-
-    pHeap->Vb->Unmap (0, nullptr);
-    vtx_heap = nullptr;
-
-    pHeap->Ib->Unmap (0, nullptr);
-    idx_heap = nullptr;
+    if (pHeap->Ib.data == nullptr && pHeap->Ib != nullptr)
+      ThrowIfFailed (pHeap->Ib->Map (0, &range, (void **)&pHeap->Ib.data));
   }
 
   catch (const SK_ComException& e)
   {
-    if (vtx_heap != nullptr) pHeap->Vb->Unmap (0, nullptr);
-    if (idx_heap != nullptr) pHeap->Ib->Unmap (0, nullptr);
+    if (pHeap->Vb.data != nullptr && pHeap->Vb.p != nullptr) { pHeap->Vb->Unmap (0, nullptr); pHeap->Vb.data = nullptr; }
+    if (pHeap->Ib.data != nullptr && pHeap->Ib.p != nullptr) { pHeap->Ib->Unmap (0, nullptr); pHeap->Ib.data = nullptr; }
 
     SK_LOG0 ( ( L" Exception: %hs [%ws]", e.what (), __FUNCTIONW__ ),
                 L"ImGuiD3D12" );
@@ -326,6 +286,62 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
     _d3d12_rbk->release (_d3d12_rbk->_pSwapChain);
 
     return;
+  }
+
+  // Copy and convert all vertices into a single contiguous buffer
+  ImDrawVert* vtx_heap = (ImDrawVert *)pHeap->Vb.data;
+  ImDrawIdx*  idx_heap = (ImDrawIdx  *)pHeap->Ib.data;
+
+  ImDrawVert* vtx_ptr = vtx_heap;
+  ImDrawIdx*  idx_ptr = idx_heap;
+
+  if (vtx_ptr == nullptr || idx_ptr == nullptr)
+    return;
+
+  for (int n = 0; n < draw_data->CmdListsCount; n++)
+  {
+    const ImDrawList*
+      cmd_list = draw_data->CmdLists [n];
+
+    if (config.imgui.render.strip_alpha)
+    {
+      for (INT i = 0; i < cmd_list->VtxBuffer.Size; i++)
+      {
+        ImU32 color =
+          ImColor (cmd_list->VtxBuffer.Data [i].col);
+
+        uint8_t alpha = (((color & 0xFF000000U) >> 24U) & 0xFFU);
+
+        // Boost alpha for visibility
+        if (alpha < 93 && alpha != 0)
+          alpha += (93  - alpha) / 2;
+
+        float a = ((float)                       alpha / 255.0f);
+        float r = ((float)((color & 0xFF0000U) >> 16U) / 255.0f);
+        float g = ((float)((color & 0x00FF00U) >>  8U) / 255.0f);
+        float b = ((float)((color & 0x0000FFU)       ) / 255.0f);
+
+        color =                    0xFF000000U  |
+                ((UINT)((r * a) * 255U) << 16U) |
+                ((UINT)((g * a) * 255U) <<  8U) |
+                ((UINT)((b * a) * 255U)       );
+
+#if 0
+        cmd_list->VtxBuffer.Data[i].col =
+          (ImVec4)ImColor (color);
+#else
+        cmd_list->VtxBuffer.Data[i].col =
+          ImColor (color);
+        /// XXX: FIXME
+#endif
+      }
+    }
+
+    if (vtx_ptr != nullptr)
+        vtx_ptr = std::copy_n (cmd_list->VtxBuffer.Data, cmd_list->VtxBuffer.Size, vtx_ptr);
+
+    if (idx_ptr != nullptr)
+        idx_ptr = std::copy_n (cmd_list->IdxBuffer.Data, cmd_list->IdxBuffer.Size, idx_ptr);
   }
 
   if (! pFrame->begin_cmd_list ())
@@ -764,7 +780,7 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
         &desc,  D3D12_RESOURCE_STATE_COPY_DEST,
         nullptr, IID_PPV_ARGS (&pTexture.p))
     );SK_D3D12_SetDebugName (   pTexture.p, SK_FormatStringW (
-              L"SK D3D12 Generic Texture%d", uiTexNum++ ) );
+              L"SK D3D12 Generic Texture%d", uiTexNum ) );
 
     uintptr_t uploadPitch = (width * 4 + D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u)
                                      & ~(D3D12_TEXTURE_DATA_PITCH_ALIGNMENT - 1u);
@@ -899,7 +915,7 @@ SK_D3D12_CreateDXTex ( DirectX::TexMetadata&  metadata,
 
     SK_D3D12_SetDebugName (
       texture.pTexture, SK_FormatStringW (
-    L"SK D3D12 Texture%d", uiTexNum ) );
+    L"SK D3D12 Texture%d", uiTexNum++ ) );
   }
 
   catch (const SK_ComException& e) {
@@ -1136,11 +1152,20 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
     // Create buffers with a default size (they will later be grown as needed)
     for ( auto& frame : _imgui_d3d12.frame_heaps )
     {
+      if (frame.Ib.data != nullptr)
+          frame.Ib->Unmap (0, nullptr);
+
+      if (frame.Vb.data != nullptr)
+          frame.Vb->Unmap (0, nullptr);
+
       frame.Ib.Release ();
       frame.Vb.Release ();
 
       frame.Vb.size = 25000;
       frame.Ib.size = 50000;
+
+      frame.Vb.data = nullptr;
+      frame.Ib.data = nullptr;
     }
 
     _imgui_d3d12.pLastDevice = _imgui_d3d12.pDevice;
@@ -2155,8 +2180,6 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
 void
 SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 {
-  std::scoped_lock lock (_ctx_lock);
-
   if (! pSwapChain)
     return;
 
