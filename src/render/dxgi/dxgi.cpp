@@ -455,11 +455,8 @@ SK_DXGI_PickHDRFormat ( DXGI_FORMAT fmt_orig, BOOL bWindowed,
   //   if HDR is not enabled.
   if (config.apis.NvAPI.vulkan_bridge == 1 && GetModuleHandle (L"vulkan-1.dll"))
   {
-    if (! config.compatibility.disable_dx12_vk_interop)
-    {
-      TenBitSwap                       = true;
-      config.render.output.force_10bpc = true;
-    }
+    TenBitSwap                       = true;
+    config.render.output.force_10bpc = true;
   }
 
   DXGI_FORMAT fmt_new = fmt_orig;
