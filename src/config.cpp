@@ -257,6 +257,7 @@ SK_GetCurrentGameID (void)
           { L"CrashBandicootNSaneTrilogy.exe",         SK_GAME_ID::CrashBandicootNSaneTrilogy   },
           { L"Outlaws.exe",                            SK_GAME_ID::StarWarsOutlaws              },
           { L"Outlaws_Plus.exe",                       SK_GAME_ID::StarWarsOutlaws              },
+          { L"shadPS4.exe",                            SK_GAME_ID::ShadPS4                      },
         };
 
     first_check  = false;
@@ -3407,8 +3408,9 @@ auto DeclKeybind =
       // Nintendo Switch Emulators ( OpenGL / Vulkan )
       case SK_GAME_ID::yuzu:
       case SK_GAME_ID::Ryujinx:
-      case SK_GAME_ID::cemu:  // Wii U
-      case SK_GAME_ID::RPCS3: // PS3
+      case SK_GAME_ID::cemu:    // Wii U
+      case SK_GAME_ID::RPCS3:   // PS3
+      case SK_GAME_ID::ShadPS4: // PS4
       {
         config.steam.appid                = 0;
         config.platform.silent            = true;

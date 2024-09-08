@@ -1,4 +1,10 @@
-﻿24.9.7.2
+﻿24.9.8
+======
+ + Tidy up DLSS3 Frame Gen compat hacks for Star Wars Outlaws to make them safe
+     for use in other games.
+ + Added ShadPS4 emulator to list of auto-Vulkan enabled software.
+
+24.9.7.2
 ========
  + Increase memory pattern scan timeout from 2 seconds to 5 seconds to ensure
      that Steam Input bypass works as expected in Tales of Arise.
@@ -7,7 +13,7 @@
 
 24.9.7.1
 ========
- + Re-enable partial debug features in Star Wars: Outlaws, otherwise DLSS
+ + Re-enable partial debug features in Star Wars Outlaws, otherwise DLSS
      cannot be properly detected.
 
 24.9.7
@@ -20,12 +26,12 @@
 24.9.6.3
 ========
  + Disable D3D12 Vulkan Interop on NVIDIA drivers in favor of D3D11
- + Disable various debug features when injecting into Star Wars: Outlaws
+ + Disable various debug features when injecting into Star Wars Outlaws
      to avoid the wrath of Ubisoft's multi-layered DRM shenanigans
 
 24.9.6.2
 ========
- + Fixed all known compatibility issues for Star Wars: Outlaws Frame Generation
+ + Fixed all known compatibility issues for Star Wars Outlaws Frame Generation
 
 24.9.6.1
 ========
@@ -52,7 +58,7 @@
 
 24.9.5
 ======
- + Improved compatibility with DLSS3 Frame Generation in Star Wars: Outlaws
+ + Improved compatibility with DLSS3 Frame Generation in Star Wars Outlaws
  + Detect DLSS-G as active if DLSSG.NumFrames is 0 or > 1; required for Outlaws
 
 24.9.4
