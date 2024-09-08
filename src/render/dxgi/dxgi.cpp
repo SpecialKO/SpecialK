@@ -5799,6 +5799,10 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
   SK_ComPtr <IDXGISwapChain1>                    pNativeSwapChain;
   SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p);
 
+  SK_DXGI_HookSwapChain   (pNativeSwapChain != nullptr ?
+                           pNativeSwapChain.p          :
+                                 pSwapChain);
+
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -5823,12 +5827,25 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
     if (SK_slGetNativeInterface (pDev12, (void **)&pNativeDev12.p) == sl::Result::eOk)
+                                 pDev12 =          pNativeDev12;
+
+    UINT uiSize = sizeof (void *);
+
+    if (pNativeSwapChain != nullptr)
     {
-      pDev12 = pNativeDev12;
+      if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
+                                   pCmdQueue =          pNativeCmdQueue;
+
+      pSwapChain->SetPrivateData       (SKID_D3D12_SwapChainCommandQueue, uiSize, pCmdQueue);
+      pNativeSwapChain->SetPrivateData (SKID_D3D12_SwapChainCommandQueue, uiSize, pCmdQueue);
+
+      pSwapChain = pNativeSwapChain;
     }
 
     ret = // TODO: Put these in a list somewhere for proper destruction
       new IWrapDXGISwapChain ((ID3D11Device *)pDev12.p, pSwapChain);
+
+    ret->SetPrivateData (SKID_D3D12_SwapChainCommandQueue, uiSize, pCmdQueue);
 
     rb.setDevice            (pDev12.p);
     rb.d3d12.command_queue = pCmdQueue.p;
@@ -5887,10 +5904,12 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
   if (pDevice == nullptr || pSwapChain == nullptr || ppDest == nullptr)
     return nullptr;
 
-  SK_DXGI_HookSwapChain (pSwapChain);
-
   SK_ComPtr <IDXGISwapChain1>                    pNativeSwapChain;
   SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p);
+
+  SK_DXGI_HookSwapChain   (pNativeSwapChain != nullptr ?
+                           pNativeSwapChain.p          :
+                                 pSwapChain);
 
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
@@ -5916,12 +5935,25 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
     pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
     if (SK_slGetNativeInterface (pDev12, (void **)&pNativeDev12.p) == sl::Result::eOk)
+                                 pDev12 =          pNativeDev12;
+
+    UINT uiSize = sizeof (void *);
+
+    if (pNativeSwapChain != nullptr)
     {
-      pDev12 = pNativeDev12;
+      if (SK_slGetNativeInterface (pCmdQueue, (void **)&pNativeCmdQueue.p) == sl::Result::eOk)
+                                   pCmdQueue =          pNativeCmdQueue;
+
+      pSwapChain->SetPrivateData       (SKID_D3D12_SwapChainCommandQueue, uiSize, pCmdQueue);
+      pNativeSwapChain->SetPrivateData (SKID_D3D12_SwapChainCommandQueue, uiSize, pCmdQueue);
+
+      pSwapChain = pNativeSwapChain;
     }
 
     ret = // TODO: Put these in a list somewhere for proper destruction
       new IWrapDXGISwapChain ((ID3D11Device *)pDev12.p, pSwapChain);
+
+    ret->SetPrivateData (SKID_D3D12_SwapChainCommandQueue, uiSize, pCmdQueue);
 
     rb.setDevice            (pDev12.p);
     rb.d3d12.command_queue = pCmdQueue.p;

@@ -99,7 +99,7 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
 
   bool bDLSSG = false;
 
-  if (once && queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT && This == rb.d3d12.command_queue)
+  if (once && queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT && (This == rb.d3d12.command_queue || This == _d3d12_rbk->_pCommandQueue))
   {
     const auto frame_id =
       SK_GetFramesDrawn ();
