@@ -157,6 +157,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
   if (sync_cmd_list)
   {
     D3D12_HEAP_TYPE                    heap_type = D3D12_HEAP_TYPE_UPLOAD;
+#ifdef __ID3D12GraphicsCommandList10_FWD_DEFINED__
     D3D12_FEATURE_DATA_D3D12_OPTIONS16 opt16     = { };
 
     pFrame->pRoot->_pDevice->
@@ -165,6 +166,7 @@ ImGui_ImplDX12_RenderDrawData ( ImDrawData* draw_data,
 
     if (opt16.GPUUploadHeapSupported)
       heap_type = D3D12_HEAP_TYPE_GPU_UPLOAD;
+#endif
 
     if (! pFrame->wait_for_gpu ())
       return;
