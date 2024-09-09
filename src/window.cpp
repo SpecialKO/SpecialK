@@ -6993,11 +6993,11 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
     SK_GetCurrentRenderBackend ().windows.capcom = true;
   }
 
-  if (SK_GetCurrentRenderBackend ().windows.capcom || config.steam.crapcom_mode)
+  if (SK_GetCurrentRenderBackend ().windows.capcom || config.steam.crapcom_mode || config.window.dont_hook_wndproc)
   {
     // We'll just install a new window proc, and hook that...
     //   This has complications if a game creates new windows, but CRAPCOM doesn't.
-    if (! config.window.dont_hook_wndproc)
+    //if (! config.window.dont_hook_wndproc)
     {
       // This whole thing is only needed if wnd_proc is owned by CRAPCOM's executable,
       //   which it actually will not be if REFramework is present.
