@@ -1,4 +1,8 @@
-﻿24.9.8
+﻿24.9.9
+======
+ + Fixed FSR3 Frame Gen compatibility issues in FFXVI
+
+24.9.8
 ======
  + Tidy up DLSS3 Frame Gen compat hacks for Star Wars Outlaws to make them safe
      for use in other games.

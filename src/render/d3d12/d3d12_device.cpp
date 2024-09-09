@@ -2271,6 +2271,35 @@ D3D12Device_CheckFeatureSupport_Detour (
 
 }
 
+
+D3D12Device9_CreateShaderCacheSession_pfn D3D12Device9_CreateShaderCacheSession_Original = nullptr;
+D3D12Device9_ShaderCacheControl_pfn       D3D12Device9_ShaderCacheControl_Original       = nullptr;
+
+HRESULT
+STDMETHODCALLTYPE
+D3D12Device9_CreateShaderCacheSession_Detour (      ID3D12Device9                   *This,
+                                              const D3D12_SHADER_CACHE_SESSION_DESC *pDesc,
+                                                    REFIID                           riid,
+                                                    void                           **ppvSession)
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    D3D12Device9_CreateShaderCacheSession_Original (This, pDesc, riid, ppvSession);
+}
+
+HRESULT
+STDMETHODCALLTYPE
+D3D12Device9_ShaderCacheControl_Detour ( ID3D12Device9                    *This,
+                                         D3D12_SHADER_CACHE_KIND_FLAGS     Kinds,
+                                         D3D12_SHADER_CACHE_CONTROL_FLAGS  Control )
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    D3D12Device9_ShaderCacheControl_Original (This, Kinds, Control);
+}
+
 void
 _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
 {
@@ -2450,6 +2479,18 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
   //---------------
   // 65 SetBackgroundProcessingMode
 
+  SK_ComQIPtr <ID3D12Device6>
+      pDevice6 (pDev12);
+  if (pDevice6.p != nullptr)
+  {
+    if (config.render.dxgi.allow_d3d12_footguns)
+    {
+      pDevice6->SetBackgroundProcessingMode ( D3D12_BACKGROUND_PROCESSING_MODE_ALLOW_INTRUSIVE_MEASUREMENTS,
+                                              D3D12_MEASUREMENTS_ACTION_KEEP_ALL,
+                                              nullptr, nullptr );
+    }
+  }
+
   // ID3D12Device7
   //---------------
   // 66 AddToStateObject
@@ -2479,6 +2520,20 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
   // 74 ShaderCacheControl
   // 75 CreateCommandQueue1
 
+  SK_ComQIPtr <ID3D12Device9>
+      pDevice9 (pDev12);
+  if (pDevice9.p != nullptr)
+  {
+    SK_CreateVFTableHook2 ( L"ID3D12Device9::CreateShaderCacheSession",
+                           *(void ***)*(&pDevice9), 73,
+                            D3D12Device9_CreateShaderCacheSession_Detour,
+                  (void **)&D3D12Device9_CreateShaderCacheSession_Original );
+
+    SK_CreateVFTableHook2 ( L"ID3D12Device9::ShaderCacheControl",
+                           *(void ***)*(&pDevice9), 74,
+                            D3D12Device9_ShaderCacheControl_Detour,
+                  (void **)&D3D12Device9_ShaderCacheControl_Original );
+  }
 
   //
   // Extra hooks are needed to handle SwapChain backbuffer copies between

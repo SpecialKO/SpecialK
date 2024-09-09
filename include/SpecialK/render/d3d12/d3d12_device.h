@@ -78,6 +78,16 @@ D3D12Device8_CreateCommittedResource2_pfn = HRESULT
                                      REFIID,void**);
 
 using
+D3D12Device9_CreateShaderCacheSession_pfn = HRESULT
+(STDMETHODCALLTYPE *)(ID3D12Device9*,const D3D12_SHADER_CACHE_SESSION_DESC*,
+                                           REFIID,void**);
+
+using
+D3D12Device9_ShaderCacheControl_pfn = HRESULT
+(STDMETHODCALLTYPE *)(ID3D12Device9*,D3D12_SHADER_CACHE_KIND_FLAGS,
+                                     D3D12_SHADER_CACHE_CONTROL_FLAGS);
+
+using
 D3D12Device_CreateHeap_pfn = HRESULT
 (STDMETHODCALLTYPE *)(ID3D12Device*,const D3D12_HEAP_DESC*,REFIID,_COM_Outptr_opt_ void**);
 
@@ -122,6 +132,11 @@ extern D3D12Device4_CreateCommittedResource1_pfn
 
 extern D3D12Device8_CreateCommittedResource2_pfn
        D3D12Device8_CreateCommittedResource2_Original;
+
+extern D3D12Device9_CreateShaderCacheSession_pfn
+       D3D12Device9_CreateShaderCacheSession_Original;
+extern D3D12Device9_ShaderCacheControl_pfn
+       D3D12Device9_ShaderCacheControl_Original;
 
 bool SK_D3D12_HookDeviceCreation (void);
 void SK_D3D12_InstallDeviceHooks (ID3D12Device* pDev12);

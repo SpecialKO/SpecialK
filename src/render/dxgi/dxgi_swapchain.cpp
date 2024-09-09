@@ -325,6 +325,8 @@ IWrapDXGISwapChain::Release (void)
     {
       rb.releaseOwnedResources ();
 
+      _d3d12_rbk->drain_queue ();
+
       // This is a hard reset, we're going to get a new cmd queue
       _d3d11_rbk->release (_d3d11_rbk->_pSwapChain);
       _d3d12_rbk->release (_d3d12_rbk->_pSwapChain);
@@ -361,6 +363,18 @@ IWrapDXGISwapChain::Release (void)
       InterlockedDecrement (&SK_DXGI_LiveWrappedSwapChains);
 
     pDev.Release ();
+
+    if ((! _d3d12_rbk->frames_.empty ()) ||
+           _d3d12_rbk->_pCommandQueue.p != nullptr)
+    {
+      SK_LOGi0 (
+        L"Clearing ImGui D3D12 Command Queue because SwapChain using it "
+        L"was destroyed..." );
+
+      // Finish up any queued presents, then re-initialize the command queue
+      _d3d12_rbk->drain_queue ();
+      _d3d12_rbk->_pCommandQueue = nullptr;
+    }
 
     //delete this;
   }

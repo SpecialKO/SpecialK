@@ -350,6 +350,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
   bool                  d3d12_          = false;
   bool                  waitable_       = false;
+  ID3D12CommandQueue*   d3d12_queue_    = nullptr;
 
   struct {
     bool                active          = false;

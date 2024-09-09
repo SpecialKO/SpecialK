@@ -3480,7 +3480,6 @@ auto DeclKeybind =
       case SK_GAME_ID::StarWarsOutlaws:
       {
         // Avoid anti-debug stuff
-        config.compatibility.disable_debug_features  = true;
         SK_GetCurrentRenderBackend ().windows.capcom = true;
       } break;
 
