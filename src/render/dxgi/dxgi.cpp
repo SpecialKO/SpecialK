@@ -7147,6 +7147,18 @@ STDMETHODCALLTYPE GetDesc2_Override (IDXGIAdapter2      *This,
       dll_log->LogEx (false, L"Failure! (No Match Found)\n");
   }
 
+  pDesc->DedicatedSystemMemory =
+    static_cast <SIZE_T> (config.render.dxgi.vram_budget_scale *
+                          static_cast <double> (pDesc->DedicatedSystemMemory));
+
+  pDesc->DedicatedVideoMemory =
+    static_cast <SIZE_T> (config.render.dxgi.vram_budget_scale *
+                          static_cast <double> (pDesc->DedicatedVideoMemory));
+
+  pDesc->SharedSystemMemory =
+    static_cast <SIZE_T> (config.render.dxgi.vram_budget_scale *
+                          static_cast <double> (pDesc->SharedSystemMemory));
+
   return ret;
 }
 
@@ -7184,6 +7196,18 @@ STDMETHODCALLTYPE GetDesc1_Override (IDXGIAdapter1      *This,
     else
       dll_log->LogEx (false, L"Failure! (No Match Found)\n");
   }
+
+  pDesc->DedicatedSystemMemory =
+    static_cast <SIZE_T> (config.render.dxgi.vram_budget_scale *
+                          static_cast <double> (pDesc->DedicatedSystemMemory));
+
+  pDesc->DedicatedVideoMemory =
+    static_cast <SIZE_T> (config.render.dxgi.vram_budget_scale *
+                          static_cast <double> (pDesc->DedicatedVideoMemory));
+
+  pDesc->SharedSystemMemory =
+    static_cast <SIZE_T> (config.render.dxgi.vram_budget_scale *
+                          static_cast <double> (pDesc->SharedSystemMemory));
 
   return ret;
 }
@@ -7233,6 +7257,18 @@ STDMETHODCALLTYPE GetDesc_Override (IDXGIAdapter      *This,
                        pDesc->DedicatedSystemMemory >> 20UL,
                          pDesc->SharedSystemMemory  >> 20UL );
   }
+
+  pDesc->DedicatedSystemMemory =
+    static_cast <SIZE_T> (config.render.dxgi.vram_budget_scale *
+                          static_cast <double> (pDesc->DedicatedSystemMemory));
+
+  pDesc->DedicatedVideoMemory =
+    static_cast <SIZE_T> (config.render.dxgi.vram_budget_scale *
+                          static_cast <double> (pDesc->DedicatedVideoMemory));
+
+  pDesc->SharedSystemMemory =
+    static_cast <SIZE_T> (config.render.dxgi.vram_budget_scale *
+                          static_cast <double> (pDesc->SharedSystemMemory));
 
   if ( SK_GetCurrentGameID () == SK_GAME_ID::Fallout4 &&
           SK_GetCallerName () == L"Fallout4.exe"  )
@@ -7358,6 +7394,13 @@ STDMETHODCALLTYPE EnumAdapters_Common (IDXGIFactory       *This,
     }
 
     dll_log->LogEx (false, L"\n");
+  }
+
+  if (ppAdapter != nullptr && *ppAdapter != nullptr)
+  {
+    void
+    SK_DXGI_HookAdapter (IDXGIAdapter* pAdapter);
+    SK_DXGI_HookAdapter (*ppAdapter);
   }
 
   return S_OK;
@@ -9115,6 +9158,88 @@ SK_DXGI_HookDevice1 (IDXGIDevice1* pProxyDevice)
   SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
+using IDXGIAdapter3_QueryVideoMemoryInfo_pnf = HRESULT (STDMETHODCALLTYPE *)(IDXGIAdapter3*,
+                                                                             UINT,DXGI_MEMORY_SEGMENT_GROUP,
+                                                                             DXGI_QUERY_VIDEO_MEMORY_INFO*);
+
+IDXGIAdapter3_QueryVideoMemoryInfo_pnf
+IDXGIAdapter3_QueryVideoMemoryInfo_Original = nullptr;
+
+HRESULT
+STDMETHODCALLTYPE
+IDXGIAdapter3_QueryVideoMemoryInfo_Detour ( IDXGIAdapter3                *This,
+                                      _In_  UINT                          NodeIndex,
+                                      _In_  DXGI_MEMORY_SEGMENT_GROUP     MemorySegmentGroup,
+                                      _Out_ DXGI_QUERY_VIDEO_MEMORY_INFO *pVideoMemoryInfo )
+{
+  SK_LOG_FIRST_CALL;
+
+  HRESULT hr =
+    IDXGIAdapter3_QueryVideoMemoryInfo_Original (This, NodeIndex, MemorySegmentGroup, pVideoMemoryInfo);
+
+  if (SUCCEEDED (hr))
+  {
+    pVideoMemoryInfo->Budget =
+      static_cast <UINT64> (
+      static_cast <double> (pVideoMemoryInfo->Budget) * config.render.dxgi.vram_budget_scale);
+  }
+
+  return hr;
+}
+
+void
+SK_DXGI_HookAdapter (IDXGIAdapter* pAdapter)
+{
+  static volatile
+               LONG hooked   = FALSE;
+  if (ReadAcquire (&hooked) != FALSE)
+    return;
+
+  //  0 QueryInterface
+  //  1 AddRef
+  //  2 Release
+
+  //  3 SetPrivateData
+  //  4 SetPrivateDataInterface
+  //  5 GetPrivateData
+  //  6 GetParent
+
+  // IDXGIAdapter
+  // 
+  //  7 EnumOutputs
+  //  8 GetDesc
+  //  9 CheckInterfaceSupport
+
+  // IDXGIAdapter1
+  // 
+  // 10 GetDesc1
+
+  // IDXGIAdapter2
+  // 
+  // 11 GetDesc2
+
+  // IDXGIAdapter3
+  // 
+  // 12 RegisterHardwareContentProtectionTeardownStatusEvent
+  // 13 UnregisterHardwareContentProtectionTeardownStatus
+  // 14 QueryVideoMemoryInfo        
+  // 15 SetVideoMemoryReservation
+  // 16 RegisterVideoMemoryBudgetChangeNotificationEvent
+  // 17 UnregisterVideoMemoryBudgetChangeNotification
+
+  SK_ComQIPtr <IDXGIAdapter3>
+                   pAdapter3 (pAdapter);
+  if (nullptr  !=  pAdapter3)
+  {
+    DXGI_VIRTUAL_HOOK ( &pAdapter3.p, 14,
+                        "IDXGIAdapter3::QueryVideoMemoryInfo",
+                         IDXGIAdapter3_QueryVideoMemoryInfo_Detour,
+                         IDXGIAdapter3_QueryVideoMemoryInfo_Original,
+                         IDXGIAdapter3_QueryVideoMemoryInfo_pfn );
+    SK_ApplyQueuedHooks ();
+  }
+}
+
 void
 SK_DXGI_HookFactory (IDXGIFactory* pProxyFactory)
 {
@@ -9677,10 +9802,10 @@ HookDXGI (LPVOID user)
           SK_NGX_DLSSG_LateInject = true;
         }
 
-        else
-        {
-          SK_DXGI_SafeCreateSwapChain (pFactory, pDevice.p, &desc, &pSwapChain.p);
-        }
+        SK_DXGI_SafeCreateSwapChain (pFactory, pDevice.p, &desc, &pSwapChain.p);
+
+        if (SK_slGetNativeInterface (pSwapChain.p, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
+                                     pSwapChain =            pNativeSwapChain;
 
         sk_hook_d3d11_t d3d11_hook_ctx =
           { &pDevice.p, &pImmediateContext.p };

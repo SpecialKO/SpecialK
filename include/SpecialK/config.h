@@ -805,6 +805,7 @@ struct sk_config_t
       bool    warned_low_vram      = false; // NOT SAVED: State of warn_if_vram_exceeds
       bool    allow_d3d12_footguns = false; // Allow overrides that are unsafe in D3D12
       bool    fake_fullscreen_mode = false; // Trick APIs like NvAPI into thinking FSE is on
+      float   vram_budget_scale    =  1.0f; // Over- or under-report VRAM capabilities.
       struct hooks_s {
         bool  create_swapchain     =  true;
         bool  create_swapchain4hwnd=  true;

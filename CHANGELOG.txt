@@ -1,4 +1,12 @@
-﻿24.9.9
+﻿24.9.10
+=======
+ + Added INI parameter to report increased or decreased VRAM capacity to D3D12
+     games in order to reduce memory allocation issues.
+
+   [Render.DXGI]
+   VRAMBudgetScale=[0.1,5.0] (Default=1.0)
+
+24.9.9
 ======
  + Fixed FSR3 Frame Gen compatibility issues in FFXVI
 

@@ -904,6 +904,7 @@ struct {
     sk::ParameterFloat*   warn_if_vram_exceeds    = nullptr;
     sk::ParameterBool*    allow_d3d12_footguns    = nullptr;
     sk::ParameterBool*    fake_fullscreen_mode    = nullptr;
+    sk::ParameterFloat*   vram_budget_scale       = nullptr;
   } dxgi;
 
   struct {
@@ -1930,6 +1931,7 @@ auto DeclKeybind =
     ConfigEntry (render.dxgi.allow_d3d12_footguns,       L"Feel like shooting your foot with unsafe d3d12 settings..?",dll_ini,         L"Render.DXGI",           L"AllowD3D12FootGuns"),
     ConfigEntry (render.dxgi.fake_fullscreen_mode,       L"Lie to games and tell them they're in FSE, all the while, "
                                                          L"they are actually running a fullscreen borderless window.", dll_ini,         L"Render.DXGI",           L"FakeFullscreenMode"),
+    ConfigEntry (render.dxgi.vram_budget_scale,          L"Multiplier for reported VRAM budget for D3D12 era engines.",dll_ini,         L"Render.DXGI",           L"VRAMBudgetScale"),
 
     ConfigEntry (render.dstorage.disable_bypass_io,      L"Disable DirectStorage BypassIO",                            dll_ini,         L"Render.DStorage",       L"DisableBypassIO"),
     ConfigEntry (render.dstorage.disable_telemetry,      L"Disable DirectStorage Telemetry",                           dll_ini,         L"Render.DStorage",       L"DisableTelemetry"),
@@ -4297,6 +4299,7 @@ auto DeclKeybind =
     }
   }
 
+  render.dxgi.vram_budget_scale->load    (config.render.dxgi.vram_budget_scale);
   render.dxgi.fake_fullscreen_mode->load (config.render.dxgi.fake_fullscreen_mode);
   render.dxgi.allow_d3d12_footguns->load (config.render.dxgi.allow_d3d12_footguns);
   render.dxgi.debug_layer->load          (config.render.dxgi.debug_layer);
@@ -6287,6 +6290,7 @@ SK_SaveConfig ( std::wstring name,
           break;
       }
 
+      render.dxgi.vram_budget_scale->store    (config.render.dxgi.vram_budget_scale);
       render.dxgi.fake_fullscreen_mode->store (config.render.dxgi.fake_fullscreen_mode);
       render.dxgi.debug_layer->store          (config.render.dxgi.debug_layer);
       render.dxgi.allow_d3d12_footguns->store (config.render.dxgi.allow_d3d12_footguns);
