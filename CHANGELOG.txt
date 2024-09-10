@@ -1,4 +1,8 @@
-﻿24.9.10
+﻿24.9.10.1
+=========
+ + Fixed incorrect Pixel Shader input signature for Epic overlay in D3D12
+
+24.9.10
 =======
  + Added INI parameter to report increased or decreased VRAM capacity to D3D12
      games in order to reduce memory allocation issues.
