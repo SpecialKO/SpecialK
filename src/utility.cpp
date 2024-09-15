@@ -1907,6 +1907,19 @@ SK_Assert_SameDLLVersion ( const wchar_t* wszTestFile0,
                 static_cast_p2p <void> (&wszFileDescrip),
                                         &cbProductBytes );
 
+      if (cbProductBytes == 0)
+      {
+        _snwprintf_s ( wszPropName, 63,
+                      LR"(\StringFileInfo\%04x%04x\ProductName)",
+                        lpTranslate   [0].wLanguage,
+                          lpTranslate [0].wCodePage );
+
+        SK_VerQueryValueW ( cbData,
+                              wszPropName,
+                  static_cast_p2p <void> (&wszFileDescrip),
+                                          &cbProductBytes );
+      }
+
       _snwprintf_s ( wszPropName, 63,
                       LR"(\StringFileInfo\%04x%04x\FileVersion)",
                         lpTranslate   [0].wLanguage,
@@ -1916,6 +1929,19 @@ SK_Assert_SameDLLVersion ( const wchar_t* wszTestFile0,
                             wszPropName,
                 static_cast_p2p <void> (&wszFileVersion),
                                         &cbVersionBytes );
+
+      if (cbVersionBytes == 0)
+      {
+        _snwprintf_s ( wszPropName, 63,
+                        LR"(\StringFileInfo\%04x%04x\ProductVersion)",
+                          lpTranslate   [0].wLanguage,
+                            lpTranslate [0].wCodePage );
+
+        SK_VerQueryValueW ( cbData,
+                              wszPropName,
+                  static_cast_p2p <void> (&wszFileVersion),
+                                          &cbVersionBytes );
+      }
     }
 
     if ( cbTranslatedBytes == 0 ||
@@ -1984,6 +2010,19 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
               static_cast_p2p <void> (&wszFileDescrip),
                                       &cbProductBytes );
 
+    if (cbProductBytes == 0)
+    {
+      _snwprintf_s ( wszPropName, 63,
+                     LR"(\StringFileInfo\%04x%04x\ProductName)",
+                       lpTranslate   [0].wLanguage,
+                         lpTranslate [0].wCodePage );
+
+      SK_VerQueryValueW ( cbData,
+                            wszPropName,
+                static_cast_p2p <void> (&wszFileDescrip),
+                                        &cbProductBytes );
+    }
+
     _snwprintf_s ( wszPropName, 63,
                     LR"(\StringFileInfo\%04x%04x\FileVersion)",
                       lpTranslate   [0].wLanguage,
@@ -1993,6 +2032,19 @@ SK_GetDLLVersionStr (const wchar_t* wszName)
                           wszPropName,
               static_cast_p2p <void> (&wszFileVersion),
                                       &cbVersionBytes );
+
+    if (cbVersionBytes == 0)
+    {
+      _snwprintf_s ( wszPropName, 63,
+                       LR"(\StringFileInfo\%04x%04x\ProductVersion)",
+                         lpTranslate   [0].wLanguage,
+                           lpTranslate [0].wCodePage );
+
+      SK_VerQueryValueW ( cbData,
+                            wszPropName,
+                static_cast_p2p <void> (&wszFileVersion),
+                                        &cbVersionBytes );
+    }
   }
 
   if ( cbTranslatedBytes == 0 ||
@@ -2062,6 +2114,19 @@ SK_GetDLLVersionShort (const wchar_t* wszName)
               static_cast_p2p <void> (&wszFileDescrip),
                                       &cbProductBytes );
 
+    if (cbProductBytes == 0)
+    {
+      _snwprintf_s ( wszPropName, 63,
+                    LR"(\StringFileInfo\%04x%04x\ProductName)",
+                      lpTranslate   [0].wLanguage,
+                        lpTranslate [0].wCodePage );
+
+      SK_VerQueryValueW ( cbData,
+                            wszPropName,
+                static_cast_p2p <void> (&wszFileDescrip),
+                                        &cbProductBytes );
+    }
+
     _snwprintf_s ( wszPropName, 63,
                     LR"(\StringFileInfo\%04x%04x\FileVersion)",
                       lpTranslate   [0].wLanguage,
@@ -2071,6 +2136,19 @@ SK_GetDLLVersionShort (const wchar_t* wszName)
                           wszPropName,
               static_cast_p2p <void> (&wszFileVersion),
                                       &cbVersionBytes );
+
+    if (cbVersionBytes == 0)
+    {
+      _snwprintf_s ( wszPropName, 63,
+                      LR"(\StringFileInfo\%04x%04x\ProductVersion)",
+                        lpTranslate   [0].wLanguage,
+                          lpTranslate [0].wCodePage );
+
+      SK_VerQueryValueW ( cbData,
+                            wszPropName,
+                static_cast_p2p <void> (&wszFileVersion),
+                                        &cbVersionBytes );
+    }
   }
 
   if ( cbTranslatedBytes == 0 ||

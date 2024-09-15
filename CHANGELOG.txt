@@ -1,4 +1,9 @@
-﻿24.9.10.1
+﻿24.9.14
+=======
+ + Fallback to DLL / EXE ProductName / ProductVersion for version info if
+     FileDescription / FileVersion is not available (i.e. Starwars Outlaws)
+
+24.9.10.1
 =========
  + Fixed incorrect Pixel Shader input signature for Epic overlay in D3D12
 
