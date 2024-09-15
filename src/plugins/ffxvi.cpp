@@ -28,9 +28,13 @@
 #define __SK_SUBSYSTEM__ L"FFXVI Plug"
 
 #include <SpecialK/plugin/plugin_mgr.h>
+#include <imgui/font_awesome.h>
 
 static float SK_FFXVI_JXLQuality    = 99.95f;
 static int   SK_FFXVI_JXLMaxThreads = 5;
+
+static bool SK_FFXVI_UncapCutscenes    = true;
+static bool SK_FFXVI_FramegenCutscenes = true;
 
 typedef enum {
   JXL_ENC_SUCCESS          = 0,
@@ -267,9 +271,48 @@ SK_FFXVI_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 }
 
 struct {
-  sk::ParameterFloat* jxl_quality     = nullptr;
-  sk::ParameterInt*   jxl_max_threads = nullptr;
+  sk::ParameterFloat* jxl_quality        = nullptr;
+  sk::ParameterInt*   jxl_max_threads    = nullptr;
+  sk::ParameterBool*  uncap_cutscene_fps = nullptr;
+  sk::ParameterBool*  allow_cutscene_fg  = nullptr;
 } static ini;
+
+struct patch_byte_s {
+  void*   address;
+  uint8_t original;
+  uint8_t override;
+  bool enable (void)
+  {
+    if (address)
+    {    
+      DWORD dwOrigProtection = 0x0;
+      if (VirtualProtect (address, 1, PAGE_EXECUTE_READWRITE, &dwOrigProtection))
+      {
+        *(uint8_t *)address = override;
+        VirtualProtect   (address, 1, PAGE_EXECUTE_READWRITE, &dwOrigProtection);
+        return true;
+      }
+    }
+
+    return false;
+  }
+  bool disable (void)
+  {
+    if (address)
+    {    
+      DWORD dwOrigProtection = 0x0;
+      if (VirtualProtect (address, 1, PAGE_EXECUTE_READWRITE, &dwOrigProtection))
+      {
+        *(uint8_t *)address = original;
+        VirtualProtect   (address, 1, PAGE_EXECUTE_READWRITE, &dwOrigProtection);
+        return true;
+      }
+    }
+
+    return false;
+  }
+} cutscene_unlock,
+  cutscene_fg;
 
 bool
 SK_FFXVI_PlugInCfg (void)
@@ -281,36 +324,78 @@ SK_FFXVI_PlugInCfg (void)
 
   if (ImGui::CollapsingHeader ("Final Fantasy XVI", ImGuiTreeNodeFlags_DefaultOpen))
   {
-    ImGui::TreePush ("");
+    ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
+    ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.45f, 0.45f, 0.80f));
+    ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.53f, 0.53f, 0.80f));
+    ImGui::TreePush       ("");
 
-    bool bChanged = 
-      ImGui::SliderFloat ( "JPEG XL Screenshot Quality", &SK_FFXVI_JXLQuality, 96.0f, 100.0f,
-                                                          SK_FFXVI_JXLQuality != 100.0f ?
-                           "%4.1f%%" : "Lossless" );
-
-    bChanged |=
-      ImGui::SliderInt ( "Maximum JPEG XL Threads", &SK_FFXVI_JXLMaxThreads,
-                           2, config.priority.available_cpu_cores );
-
-    if (ImGui::IsItemHovered ())
+    if (ImGui::CollapsingHeader (ICON_FA_IMAGE "\tScreenshots", 0x0))
     {
-      ImGui::BeginTooltip    ();
-      ImGui::TextUnformatted ("Reduce thread count to eliminate stutter in photo mode.");
-      ImGui::Separator       ();
-      ImGui::BulletText      ("Default Max Threads (too many): %d",
-                                JxlThreadParallelRunnerDefaultNumWorkerThreads_Original ());
-      ImGui::EndTooltip      ();
+      ImGui::TreePush ("");
+
+      bool bChanged = 
+        ImGui::SliderFloat ( "JPEG XL Screenshot Quality", &SK_FFXVI_JXLQuality, 96.0f, 100.0f,
+                                                            SK_FFXVI_JXLQuality != 100.0f ?
+                             "%4.1f%%" : "Lossless" );
+
+      bChanged |=
+        ImGui::SliderInt ( "Maximum JPEG XL Threads", &SK_FFXVI_JXLMaxThreads,
+                             2, config.priority.available_cpu_cores );
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("Reduce thread count to eliminate stutter in photo mode.");
+        ImGui::Separator       ();
+        ImGui::BulletText      ("Default Max Threads (too many): %d",
+                                  JxlThreadParallelRunnerDefaultNumWorkerThreads_Original ());
+        ImGui::EndTooltip      ();
+      }
+
+      if (bChanged)
+      {
+        ini.jxl_quality->store     (SK_FFXVI_JXLQuality);
+        ini.jxl_max_threads->store (SK_FFXVI_JXLMaxThreads);
+
+        config.utility.save_async ();
+      }
+
+      ImGui::TreePop ();
     }
 
-    if (bChanged)
+    if (ImGui::CollapsingHeader (ICON_FA_TACHOMETER_ALT "\tPerformance", ImGuiTreeNodeFlags_DefaultOpen))
     {
-      ini.jxl_quality->store     (SK_FFXVI_JXLQuality);
-      ini.jxl_max_threads->store (SK_FFXVI_JXLMaxThreads);
+      ImGui::TreePush ("");
 
-      config.utility.save_async ();
+      if (cutscene_unlock.address != nullptr && ImGui::Checkbox ("Uncap Cutscene FPS", &SK_FFXVI_UncapCutscenes))
+      {
+        ini.uncap_cutscene_fps->store (SK_FFXVI_UncapCutscenes);
+
+        if (SK_FFXVI_UncapCutscenes)
+          cutscene_unlock.enable ();
+        else
+          cutscene_unlock.disable ();
+
+        config.utility.save_async ();
+      }
+
+      if (cutscene_fg.address != nullptr && ImGui::Checkbox ("Allow Frame Generation in Cutscenes", &SK_FFXVI_FramegenCutscenes))
+      {
+        ini.allow_cutscene_fg->store (SK_FFXVI_FramegenCutscenes);
+
+        if (SK_FFXVI_FramegenCutscenes)
+          cutscene_fg.enable ();
+        else
+          cutscene_fg.disable ();
+
+        config.utility.save_async ();
+      }
+
+      ImGui::TreePop ();
     }
 
-    ImGui::TreePop  (  );
+    ImGui::PopStyleColor (3);
+    ImGui::TreePop       ( );
 
     return true;
   }
@@ -349,6 +434,50 @@ SK_FFXVI_InitPlugin (void)
   SK_FFXVI_JXLMaxThreads =
     std::min ( static_cast <DWORD> (SK_FFXVI_JXLMaxThreads),
                       config.priority.available_cpu_cores );
+
+  ini.uncap_cutscene_fps =
+    _CreateConfigParameterBool ( L"FFXVI.PlugIn",
+                                 L"UncapCutsceneFPS", SK_FFXVI_UncapCutscenes,
+                                 L"Remove 30 FPS Cutscene Limit" );
+
+  if (! ini.uncap_cutscene_fps->load  (SK_FFXVI_UncapCutscenes))
+        ini.uncap_cutscene_fps->store (SK_FFXVI_UncapCutscenes);
+
+  ini.allow_cutscene_fg =
+    _CreateConfigParameterBool ( L"FFXVI.PlugIn",
+                                 L"AllowCutsceneFG", SK_FFXVI_FramegenCutscenes,
+                                 L"Allow Frame Generation in Cutscenes" );
+
+  if (! ini.allow_cutscene_fg->load  (SK_FFXVI_FramegenCutscenes))
+        ini.allow_cutscene_fg->store (SK_FFXVI_FramegenCutscenes);
+
+  void *limit_addr =
+    SK_Scan ("\x75\x00\x85\x00\x74\x00\x40\x00\x01\x41\x00\x00\x00\x00\x00\x00\x00", 17,
+             "\xff\x00\xff\x00\xff\x00\xff\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00");
+
+  if (limit_addr != nullptr)
+  {
+    cutscene_unlock.address  = ((uint8_t *)limit_addr)+0x8;
+    cutscene_unlock.original = 1;
+    cutscene_unlock.override = 0;
+
+    if (SK_FFXVI_UncapCutscenes)
+      cutscene_unlock.enable ();
+  }
+
+  void *fg_enablement_addr =
+    SK_Scan ("\x41\x00\x00\x74\x00\x33\x00\x48\x00\x00\xE8\x00\x00\x00\x00\x8B\x00\x00\x00\x00\x00\xD1\x00", 23,
+             "\xff\x00\x00\xff\x00\xff\x00\xff\x00\x00\xff\x00\x00\x00\x00\xff\x00\x00\x00\x00\x00\xff\x00");
+
+  if (fg_enablement_addr != nullptr)
+  {
+    cutscene_fg.address  =   ((uint8_t *)fg_enablement_addr)+0x3;
+    cutscene_fg.original = *(((uint8_t *)fg_enablement_addr)+0x3);
+    cutscene_fg.override = 0xEB;
+
+    if (SK_FFXVI_FramegenCutscenes)
+      cutscene_fg.enable ();
+  }
 
 #if 1
   uint16_t* pAntiDebugBranch =
