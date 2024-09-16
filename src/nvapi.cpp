@@ -1192,38 +1192,47 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   return ret;
 }
 
-void
-SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDisplayHandle nv_disp, NvU32 tNow) noexcept
+bool
+SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDisplayHandle nv_disp, DXGI_FRAME_STATISTICS* pFrameStats, NvU32 tNow) noexcept
 {
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
-
-  //
-  // In case it was not patently obvious, NvAPI is not thread-safe :)
-  //
-  //   Without these locks -- rather than a crash -- framerate would plummet
-  //     following any display topology / capability changes.
-  //
-  if (rb.stale_display_info || (! rb.gsync_state.active))
-    return;
   
   NvU32   vblank_count =     0;
   bool bHasVBlankCount = false;
 
-  static constexpr auto                                   _PollingFreqInMs = 7;
-  if (last_polled_time <= SK::ControlPanel::current_time -_PollingFreqInMs)
+  if (! pFrameStats)
   {
-    std::scoped_lock
-      lock (SK_NvAPI_Threading->locks.Disp_GetVRRInfo,
-            SK_NvAPI_Threading->locks.D3D_IsGSyncActive);
+    //
+    // In case it was not patently obvious, NvAPI is not thread-safe :)
+    //
+    //   Without these locks -- rather than a crash -- framerate would plummet
+    //     following any display topology / capability changes.
+    //
+    if (rb.stale_display_info || (! rb.gsync_state.active))
+      return false;
 
-    bHasVBlankCount =
-      (NVAPI_OK == NvAPI_GetVBlankCounter (nv_disp, &vblank_count));
+    static constexpr auto                                   _PollingFreqInMs = 3;
+    if (last_polled_time <= SK::ControlPanel::current_time -_PollingFreqInMs)
+    {
+      std::scoped_lock
+        lock (SK_NvAPI_Threading->locks.Disp_GetVRRInfo,
+              SK_NvAPI_Threading->locks.D3D_IsGSyncActive);
+
+      bHasVBlankCount =
+        (NVAPI_OK == NvAPI_GetVBlankCounter (nv_disp, &vblank_count));
+    }
+  }
+
+  else
+  {
+    bHasVBlankCount = pFrameStats->SyncRefreshCount != 0;
+    vblank_count    = pFrameStats->SyncRefreshCount;
   }
 
   if (bHasVBlankCount)
   {
-    last_polled_time = SK::ControlPanel::current_time;
+    last_polled_time = tNow;
 
     head = std::min (head, (NvU32)MaxVBlankRecords-1);
 
@@ -1235,7 +1244,25 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDispl
 
       records [head] = { tNow, vblank_count };
     }
+
+    return true;
   }
+
+  return false;
+}
+
+void
+SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::resetStats (void) noexcept
+{
+  for (auto& record : records)
+  {
+    record.timestamp_ms = 0;
+    record.vblank_count = 0;
+  }
+  head                  = 0;
+  last_qpc_refreshed    = 0;
+  last_frame_sampled    = 0;
+  last_polled_time      = 0;
 }
 
 float
@@ -1297,21 +1324,42 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32
   if (vblank_n - vblank_t0 == 0)
     new_average = 0.0f;
 
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  float _MaxExpectedRefresh =
+    static_cast <float> (
+      static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Numerator) /
+      static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator)
+    );
+
+  if (     last_average > _MaxExpectedRefresh) last_average      = _MaxExpectedRefresh * 1.01f;
+  if (last_last_average > _MaxExpectedRefresh) last_last_average = _MaxExpectedRefresh * 1.01f;
+  if (      new_average > _MaxExpectedRefresh) new_average       = _MaxExpectedRefresh * 1.01f;
+
   if (last_average != 0.0f)
   {
-    // Rolling-average because this is really jittery
+    // Weighted rolling-average because this is really jittery
     new_average =
-      (3.0f * last_average + 2.0f * new_average) * 0.2f;
+      (1.0f * last_average + 5.0f * new_average + 2.5f * last_last_average) / 8.5f;
   }
 
-  last_average = new_average;
+  last_last_average = last_average;
+  last_average      = new_average;
 
   static DWORD dwLastUpdate = tNow;
-  static float fLastAverage = new_average;
-
-  if (dwLastUpdate < tNow - 200)
+  static float fLastAverage = last_average;
+  
+  if (dwLastUpdate < tNow - 266)
   {   dwLastUpdate = tNow;
-      fLastAverage = new_average;
+
+    float fNewAverage =
+      (fLastAverage + 3 * last_average) / 4.0f;
+
+    if (fNewAverage > _MaxExpectedRefresh)
+        fNewAverage = _MaxExpectedRefresh * 1.01f;
+
+    fLastAverage = fNewAverage;
   }
 
   return fLastAverage;

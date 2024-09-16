@@ -1,4 +1,15 @@
-﻿24.9.14
+﻿24.9.16
+=======
+ + Reduced overhead and added smoothing to real-time VRR Rate calculation
+
+  * Uses DXGI Present Statistics when available instead of NVIDIA's VBLANK
+      counter. This should translate over to AMD and Intel GPUs in the future.
+
+ 24.9.15
+========
+ + Added Cutscene FPS unlock options for Final Fantasy XVI
+
+24.9.14
 =======
  + Fallback to DLL / EXE ProductName / ProductVersion for version info if
      FileDescription / FileVersion is not available (i.e. Starwars Outlaws)

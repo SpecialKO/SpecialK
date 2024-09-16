@@ -1141,6 +1141,11 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
   _imgui_d3d12.hFontSrvGpuDescHandle = font_srv_gpu_desc_handle;
   _imgui_d3d12.hWndSwapChain         = hwnd;
 
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  rb.displays [rb.active_display].nvapi.vblank_counter.resetStats ();
+
 #ifdef SK_D3D12_PERSISTENT_IMGUI_DEV_OBJECTS
   if (_imgui_d3d12.pDevice.p != _imgui_d3d12.pLastDevice.p)
   {
