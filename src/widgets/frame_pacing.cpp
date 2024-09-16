@@ -1095,7 +1095,7 @@ SK_ImGui_DrawGraph_FramePacing (void)
   static int ver_major = { },
              ver_minor = { };
 
-  static bool has_stable_hw_flip_queue = false;
+  static bool has_stable_hw_flip_queue = true;
 
   // NVIDIA's drivers are still broken for now
 #if 0
