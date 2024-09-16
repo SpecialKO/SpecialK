@@ -1193,7 +1193,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 }
 
 bool
-SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDisplayHandle nv_disp, DXGI_FRAME_STATISTICS* pFrameStats, NvU32 tNow) noexcept
+SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDisplayHandle nv_disp, DXGI_FRAME_STATISTICS* pFrameStats, NvU64 tNow) noexcept
 {
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
@@ -1232,7 +1232,7 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDispl
 
   if (bHasVBlankCount)
   {
-    last_polled_time = tNow;
+    last_polled_time = SK::ControlPanel::current_time;
 
     head = std::min (head, (NvU32)MaxVBlankRecords-1);
 
@@ -1256,17 +1256,17 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::resetStats (void) 
 {
   for (auto& record : records)
   {
-    record.timestamp_ms = 0;
-    record.vblank_count = 0;
+    record.timestamp_qpc = 0;
+    record.vblank_count  = 0;
   }
-  head                  = 0;
-  last_qpc_refreshed    = 0;
-  last_frame_sampled    = 0;
-  last_polled_time      = 0;
+  head                   = 0;
+  last_qpc_refreshed     = 0;
+  last_frame_sampled     = 0;
+  last_polled_time       = 0;
 }
 
 float
-SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32 tNow) noexcept
+SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU64 tNow) noexcept
 {
   auto *pLimiter =
     SK::Framerate::GetLimiter (SK_GetCurrentRenderBackend ().swapchain, false);
@@ -1278,11 +1278,13 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32
 
   NvU32 num_vblanks_in_period = 0;
 
-  NvU32 vblank_count_min = UINT32_MAX,
+  NvU64 vblank_count_min = UINT64_MAX,
         vblank_count_max = 0;
 
-  NvU32 vblank_t0        = UINT32_MAX,
+  NvU64 vblank_t0        = UINT64_MAX,
         vblank_n         = 0;
+
+  static constexpr auto _MaxWindowSizeInMs = 500UL;
 
   for ( UINT record_idx = 0                ;
              record_idx < MaxVBlankRecords ;
@@ -1291,8 +1293,9 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32
     const auto& record =
                 records [record_idx];
 
-    if (vblank_t0 > record.timestamp_ms)
-        vblank_t0 = record.timestamp_ms;
+    if (vblank_t0 > record.timestamp_qpc &&
+                    record.timestamp_qpc >= tNow - SK_QpcTicksPerMs * _MaxWindowSizeInMs)
+        vblank_t0 = record.timestamp_qpc;
   }
 
   if (vblank_t0 > tNow)
@@ -1305,13 +1308,12 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32
     const auto& record =
                 records [record_idx];
 
-    if ( record.timestamp_ms != 0 &&
-         record.timestamp_ms >= (vblank_t0 - 500) )
+    if (record.timestamp_qpc >= vblank_t0)
     {
       ++num_vblanks_in_period;
 
-      if (        vblank_n < record.timestamp_ms)
-                  vblank_n = record.timestamp_ms;
+      if (vblank_n < record.timestamp_qpc)
+          vblank_n = record.timestamp_qpc;
 
       if (vblank_count_min > record.vblank_count)
           vblank_count_min = record.vblank_count;
@@ -1328,7 +1330,8 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32
   // Apply smoothing because these numbers are hyperactive
   float new_average = static_cast <float> (
                       static_cast <double> (vblank_count_max - vblank_count_min) /
-             (0.001 * static_cast <double> (vblank_n         - vblank_t0))
+                     (static_cast <double> (vblank_n         - vblank_t0) /
+                      static_cast <double> (SK_QpcFreq))
                                           );
 
   // Keep imaginary numbers out of the data set...
@@ -1358,14 +1361,14 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32
   last_last_average = last_average;
   last_average      = new_average;
 
-  static DWORD dwLastUpdate = tNow;
+  static DWORD dwLastUpdate = SK::ControlPanel::current_time;
   static float fLastAverage = last_average;
   
-  if (dwLastUpdate < tNow - 333)
-  {   dwLastUpdate = tNow;
+  if (dwLastUpdate < SK::ControlPanel::current_time - 133)
+  {   dwLastUpdate = SK::ControlPanel::current_time;
 
     float fNewAverage =
-          new_average;
+      (2.0f * fLastAverage + 3.0f * last_average) * 0.2f;
 
     if (fNewAverage > _MaxExpectedRefresh)
         fNewAverage = _MaxExpectedRefresh;

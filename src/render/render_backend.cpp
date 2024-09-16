@@ -4902,18 +4902,15 @@ SK_Render_CountVBlanks ()
           auto& nvapi_display =
             rb.displays [rb.active_display].nvapi;
 
-          if (nvapi_display.display_handle != nullptr)
-          {
-            ULONGLONG& kSyncQPC =
-              (ULONGLONG&)frameStats.SyncQPCTime.QuadPart;
+          const ULONGLONG& kSyncQPC =
+            (ULONGLONG &)frameStats.SyncQPCTime.QuadPart;
 
-            if (nvapi_display.vblank_counter.last_qpc_refreshed < kSyncQPC &&
-                nvapi_display.vblank_counter.addRecord (
-                nvapi_display.display_handle, &frameStats,(UINT32)(kSyncQPC/SK_QpcTicksPerMs)))
-            {
-              nvapi_display.vblank_counter.last_qpc_refreshed =
-                kSyncQPC;
-            }
+          if (nvapi_display.vblank_counter.last_qpc_refreshed < kSyncQPC &&
+              nvapi_display.vblank_counter.addRecord (
+              nvapi_display.display_handle, &frameStats,        kSyncQPC))
+          {
+            nvapi_display.vblank_counter.last_qpc_refreshed =
+              kSyncQPC;
           }
         }
 
@@ -4940,7 +4937,7 @@ SK_Render_CountVBlanks ()
 
               if (nvapi_display.vblank_counter.last_frame_sampled < current_frame &&
                   nvapi_display.vblank_counter.addRecord (
-                  nvapi_display.display_handle, nullptr, SK_timeGetTime ()))
+                  nvapi_display.display_handle, nullptr, SK_QueryPerf ().QuadPart))
               {
                 nvapi_display.vblank_counter.last_frame_sampled = current_frame;
                 got_new_reading = true;

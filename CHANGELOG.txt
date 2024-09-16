@@ -1,4 +1,10 @@
-﻿24.9.16.1
+﻿24.9.16.2
+=========
+ + Improved precision of real-time VRR refresh rate calculation
+ + Restored the gray bars of "animation error" (as PresentMon calls it)
+     to users with drivers that support HW GPU Scheduling + HW Flip Queue
+
+24.9.16.1
 =========
  + Added explicit DwmFlush (...) on a dedicated thread to sample DXGI's
      VBLANK timing information so that it doesn't wobble on drivers that

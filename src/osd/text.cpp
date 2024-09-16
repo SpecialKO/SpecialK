@@ -862,7 +862,7 @@ SK_DrawOSD (void)
 
       fVBlankHz =
         nvapi_display.vblank_counter.getVBlankHz (
-                  SK::ControlPanel::current_time );
+                        SK_QueryPerf ().QuadPart );
     }
 
     if (fabs (mean - INFINITY) > std::numeric_limits <double>::epsilon ())

@@ -288,8 +288,8 @@ public:
       struct vblank_history_s {
         static constexpr int  MaxVBlankRecords = 128;
         struct record_s {
-          NvU32           timestamp_ms         =   0;
-          NvU32           vblank_count         =   0;
+          NvU64           timestamp_qpc        =   0;
+          NvU64           vblank_count         =   0;
         }                 records [MaxVBlankRecords];
           NvU32           head                 =   0;
           ULONG64         last_qpc_refreshed   =   0;
@@ -298,8 +298,8 @@ public:
           float           last_last_average    =0.0f;
           NvU32           last_polled_time     =   0;
           bool  addRecord   (NvDisplayHandle nv_disp, DXGI_FRAME_STATISTICS *pFrameStats,
-                                                      NvU32 tNow) noexcept;
-          float getVBlankHz (                         NvU32 tNow) noexcept;
+                                                      NvU64 tNow) noexcept;
+          float getVBlankHz (                         NvU64 tNow) noexcept;
           void  resetStats  (                               void) noexcept;
       } vblank_counter;
 

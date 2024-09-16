@@ -5355,7 +5355,7 @@ SK_ImGui_ControlPanel (void)
 
           float fVBlankHz =
             nvapi_display.vblank_counter.getVBlankHz (
-                      SK::ControlPanel::current_time );
+                            SK_QueryPerf ().QuadPart );
 
           // Is it really "active" if we can't calculate the rate?
           if (fVBlankHz == 0.0f)
