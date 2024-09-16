@@ -1326,7 +1326,7 @@ struct sk_config_t
     bool    deny_foreign_change =  true;
     int     minimum_render_prio = THREAD_PRIORITY_ABOVE_NORMAL;
     DWORD   available_cpu_cores =   1UL;
-    int64_t cpu_affinity_mask   = 0xFFFFFFFFULL;
+    int64_t cpu_affinity_mask   = 0xFFFFFFFFFFFFFFFFULL;
   } priority;
 
   struct skif_s {

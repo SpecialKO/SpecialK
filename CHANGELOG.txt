@@ -6,8 +6,8 @@
 
  + Added CPU affinity INI option
 
-     [Scheduler.Boost]
-     ProcessorAffinityMask=[0,0xFFFFFFFFFFFFFFFF] Default=0xFFFFFFFFFFFFFFFF
+     [Scheduler.System]
+     ProcessorAffinityMask=[1,0xFFFFFFFFFFFFFFFF] Default=0xFFFFFFFFFFFFFFFF
 
     This is a bitmask, so map out the processor numbers you want in binary
       and then convert to decimal.
