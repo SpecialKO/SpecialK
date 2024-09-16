@@ -288,6 +288,8 @@ SK_GetCurrentGameID (void)
 
         else if ( StrStrIW ( SK_GetHostApp (), L"ffxvi" ) )
         {
+          config.compatibility.init_sync_for_streamline = true;
+
           current_game = SK_GAME_ID::FinalFantasyXVI;
 
           SK_FFXVI_InitPlugin ();

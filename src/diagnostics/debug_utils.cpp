@@ -38,6 +38,12 @@
 const wchar_t*
 SK_SEH_CompatibleCallerName (LPCVOID lpAddr);
 
+HRESULT WINAPI
+SHGetKnownFolderPath_Detour ( _In_     REFKNOWNFOLDERID              rfid,
+                              _In_     DWORD /* KNOWN_FOLDER_FLAG */ dwFlags,
+                              _In_opt_ HANDLE                        hToken,
+                              _Outptr_ PWSTR *                       ppszPath );
+
 using GetCommandLineW_pfn = LPWSTR (WINAPI *)(void);
       GetCommandLineW_pfn
       GetCommandLineW_Original    = nullptr;
@@ -66,6 +72,10 @@ using NtTerminateProcess_pfn = NTSTATUS (*)(HANDLE, NTSTATUS);
 using RtlExitUserThread_pfn = VOID (NTAPI *)(_In_ NTSTATUS 	Status);
       RtlExitUserThread_pfn
       RtlExitUserThread_Original  = nullptr;
+
+using SHGetKnownFolderPath_pfn = HRESULT (WINAPI *)(REFKNOWNFOLDERID,DWORD,HANDLE,PWSTR*);
+      SHGetKnownFolderPath_pfn
+      SHGetKnownFolderPath_Original = nullptr;
 
 using CloseHandle_pfn = BOOL (WINAPI *)(HANDLE);
 
@@ -3513,6 +3523,10 @@ static SK_LazyGlobal <
 > SK_SEH_ReportedCallSites;
 
 
+static SK_LazyGlobal <
+  concurrency::concurrent_unordered_map <DWORD, BOOL>
+> __SK_RaisedException;
+
 //// Detoured so we can get thread names
 //[[noreturn]]
 void
@@ -3736,17 +3750,31 @@ RaiseException_Detour (
 
     if (dwExceptionCode != EXCEPTION_BREAKPOINT || SK_IsDebuggerPresent ())
     {
-      //__try
-      //{
+      __try
+      {
+        __try
+        {
+          SK_RaiseException (
+            dwExceptionCode,    dwExceptionFlags,
+            nNumberOfArguments, lpArguments
+          );
+        }
+
+        __finally
+        {
+          SK_LOGi0 (L"Unhandled Exception...");
+        }
+      }
+
+      __except (EXCEPTION_EXECUTE_HANDLER)
+      {
+        __SK_RaisedException.get ()[GetCurrentThreadId ()] = TRUE;
+
         SK_RaiseException (
           dwExceptionCode,    dwExceptionFlags,
           nNumberOfArguments, lpArguments
         );
-      //}
-      //
-      //__except (EXCEPTION_EXECUTE_HANDLER)
-      //{
-      //}
+      }
     }
   }
 }
@@ -3855,6 +3883,11 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
                                 "TerminateProcess",
                                  TerminateProcess_Detour,
         static_cast_p2p <void> (&TerminateProcess_Original) );
+
+        SK_CreateDLLHook2 (    L"shell32.dll",
+                                "SHGetKnownFolderPath",
+                                 SHGetKnownFolderPath_Detour,
+        static_cast_p2p <void> (&SHGetKnownFolderPath_Original) );
 
         SK_Thread_InitDebugExtras ();
 
@@ -5123,4 +5156,38 @@ SK_IsModuleLoaded (const wchar_t* wszModule)
        wszModule,
         &hModule
     ) != FALSE && hModule != nullptr;
+}
+
+
+//
+// Hooked in order to defeat unwanted mini-dump & exit scenarios caused by
+//   NVIDIA Streamline.
+//
+HRESULT
+WINAPI
+SHGetKnownFolderPath_Detour ( _In_     REFKNOWNFOLDERID              rfid,
+                              _In_     DWORD /* KNOWN_FOLDER_FLAG */ dwFlags,
+                              _In_opt_ HANDLE                        hToken,
+                              _Outptr_ PWSTR *                       ppszPath )
+{
+  if (SK_GetCallerName ().find (L"sl.interposer") != std::wstring::npos)
+  {
+    // Give it an outlandish path that can't possibly exist, and then it should
+    //   perform EXCEPTION_CONTINUE_SEARCH instead of terminating.
+    static wchar_t fake_path [MAX_PATH] = L"XYZ:\\123\\456\\!#$%^@?|";
+
+    if (rfid == FOLDERID_ProgramData && dwFlags == 0x0 && hToken == nullptr)
+    {
+      if (__SK_RaisedException.get ()[GetCurrentThreadId ()] == TRUE)
+      {   __SK_RaisedException.get ()[GetCurrentThreadId ()] = FALSE;
+
+        *ppszPath = fake_path;
+
+        return S_OK;
+      }
+    }
+  }
+
+  return
+    SHGetKnownFolderPath_Original (rfid, dwFlags, hToken, ppszPath);
 }

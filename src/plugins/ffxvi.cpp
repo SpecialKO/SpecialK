@@ -36,6 +36,55 @@ static int   SK_FFXVI_JXLMaxThreads = 5;
 static bool SK_FFXVI_UncapCutscenes    = true;
 static bool SK_FFXVI_FramegenCutscenes = true;
 
+static INT64 SK_FFXVI_CutsceneFPSAddr = 0x0;
+static INT64 SK_FFXVI_CutsceneFGAddr  = 0x0;
+
+struct {
+  sk::ParameterFloat* jxl_quality        = nullptr;
+  sk::ParameterInt*   jxl_max_threads    = nullptr;
+  sk::ParameterBool*  uncap_cutscene_fps = nullptr;
+  sk::ParameterBool*  allow_cutscene_fg  = nullptr;
+  sk::ParameterInt64* cutscene_fps_addr  = nullptr;
+  sk::ParameterInt64* cutscene_fg_addr   = nullptr;
+} static ini;
+
+struct patch_byte_s {
+  void*   address  = nullptr;
+  uint8_t original = 0;
+  uint8_t override = 0;
+  bool enable (void)
+  {
+    if (address)
+    {    
+      DWORD dwOrigProtection = 0x0;
+      if (VirtualProtect (address, 1, PAGE_EXECUTE_READWRITE, &dwOrigProtection))
+      {
+        *(uint8_t *)address = override;
+        VirtualProtect   (address, 1, PAGE_EXECUTE_READWRITE, &dwOrigProtection);
+        return true;
+      }
+    }
+
+    return false;
+  }
+  bool disable (void)
+  {
+    if (address)
+    {    
+      DWORD dwOrigProtection = 0x0;
+      if (VirtualProtect (address, 1, PAGE_EXECUTE_READWRITE, &dwOrigProtection))
+      {
+        *(uint8_t *)address = original;
+        VirtualProtect   (address, 1, PAGE_EXECUTE_READWRITE, &dwOrigProtection);
+        return true;
+      }
+    }
+
+    return false;
+  }
+} cutscene_unlock,
+  cutscene_fg;
+
 typedef enum {
   JXL_ENC_SUCCESS          = 0,
   JXL_ENC_ERROR            = 1,
@@ -267,52 +316,100 @@ SK_FFXVI_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 
   SK_ApplyQueuedHooks ();
 
+  ini.uncap_cutscene_fps =
+    _CreateConfigParameterBool ( L"FFXVI.PlugIn",
+                                 L"UncapCutsceneFPS", SK_FFXVI_UncapCutscenes,
+                                 L"Remove 30 FPS Cutscene Limit" );
+
+  if (! ini.uncap_cutscene_fps->load  (SK_FFXVI_UncapCutscenes))
+        ini.uncap_cutscene_fps->store (SK_FFXVI_UncapCutscenes);
+
+  ini.allow_cutscene_fg =
+    _CreateConfigParameterBool ( L"FFXVI.PlugIn",
+                                 L"AllowCutsceneFG", SK_FFXVI_FramegenCutscenes,
+                                 L"Allow Frame Generation in Cutscenes" );
+
+  if (! ini.allow_cutscene_fg->load  (SK_FFXVI_FramegenCutscenes))
+        ini.allow_cutscene_fg->store (SK_FFXVI_FramegenCutscenes);
+
+  ini.cutscene_fps_addr =
+    _CreateConfigParameterInt64 ( L"FFXVI.PlugIn",
+                                  L"CutsceneFPSAddr", SK_FFXVI_CutsceneFPSAddr,
+                                  L"Cache Last Known Address" );
+
+  ini.cutscene_fg_addr =
+    _CreateConfigParameterInt64 ( L"FFXVI.PlugIn",
+                                  L"CutsceneFGAddr", SK_FFXVI_CutsceneFGAddr,
+                                  L"Cache Last Known Address" );
+
+  void *limit_addr = (void *)SK_FFXVI_CutsceneFPSAddr;
+
+  if (SK_FFXVI_CutsceneFPSAddr != 0)
+  {
+    DWORD                                                                               dwOrigProt;
+    if (! VirtualProtect ((void *)SK_FFXVI_CutsceneFPSAddr, 3, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+      SK_FFXVI_CutsceneFPSAddr = 0;
+  }
+
+  if (limit_addr == nullptr || (* (uint8_t *)limit_addr    != 0x75 ||
+                                *((uint8_t *)limit_addr+2) != 0x85))
+  {
+    limit_addr =
+      SK_Scan ("\x75\x00\x85\x00\x74\x00\x40\x00\x01\x41\x00\x00\x00\x00\x00\x00\x00", 17,
+               "\xff\x00\xff\x00\xff\x00\xff\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00");
+
+    if (limit_addr != nullptr)
+      ini.cutscene_fps_addr->store ((int64_t)limit_addr);
+  }
+
+  else SK_LOGi0 (L"Skipped memory address scan for FPS Limit Branch");
+
+  if (limit_addr != nullptr)
+  {
+    cutscene_unlock.address  = ((uint8_t *)limit_addr)+0x8;
+    cutscene_unlock.original = 1;
+    cutscene_unlock.override = 0;
+
+    if (SK_FFXVI_UncapCutscenes)
+      cutscene_unlock.enable ();
+  }
+
+  void *fg_enablement_addr = (void *)SK_FFXVI_CutsceneFGAddr;
+
+  if (SK_FFXVI_CutsceneFGAddr != 0)
+  {
+    DWORD                                                                              dwOrigProt;
+    if (! VirtualProtect ((void *)SK_FFXVI_CutsceneFGAddr, 6, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+      SK_FFXVI_CutsceneFGAddr = 0;
+  }
+
+  if (fg_enablement_addr == nullptr || (* (uint8_t *)fg_enablement_addr    != 0x41 ||
+                                        *((uint8_t *)fg_enablement_addr+5) != 0x33))
+  {
+    fg_enablement_addr =
+      SK_Scan ("\x41\x00\x00\x74\x00\x33\x00\x48\x00\x00\xE8\x00\x00\x00\x00\x8B\x00\x00\x00\x00\x00\xD1\x00", 23,
+               "\xff\x00\x00\xff\x00\xff\x00\xff\x00\x00\xff\x00\x00\x00\x00\xff\x00\x00\x00\x00\x00\xff\x00");
+
+    if (fg_enablement_addr != nullptr)
+      ini.cutscene_fg_addr->store ((int64_t)fg_enablement_addr);
+  }
+
+  else SK_LOGi0 (L"Skipped memory address scan for Cutscene Frame Generation Branch");
+
+  if (fg_enablement_addr != nullptr)
+  {
+    cutscene_fg.address  =   ((uint8_t *)fg_enablement_addr)+0x3;
+    cutscene_fg.original = *(((uint8_t *)fg_enablement_addr)+0x3);
+    cutscene_fg.override = 0xEB;
+
+    if (SK_FFXVI_FramegenCutscenes)
+      cutscene_fg.enable ();
+  }
+
+  config.utility.save_async ();
+
   return S_OK;
 }
-
-struct {
-  sk::ParameterFloat* jxl_quality        = nullptr;
-  sk::ParameterInt*   jxl_max_threads    = nullptr;
-  sk::ParameterBool*  uncap_cutscene_fps = nullptr;
-  sk::ParameterBool*  allow_cutscene_fg  = nullptr;
-} static ini;
-
-struct patch_byte_s {
-  void*   address;
-  uint8_t original;
-  uint8_t override;
-  bool enable (void)
-  {
-    if (address)
-    {    
-      DWORD dwOrigProtection = 0x0;
-      if (VirtualProtect (address, 1, PAGE_EXECUTE_READWRITE, &dwOrigProtection))
-      {
-        *(uint8_t *)address = override;
-        VirtualProtect   (address, 1, PAGE_EXECUTE_READWRITE, &dwOrigProtection);
-        return true;
-      }
-    }
-
-    return false;
-  }
-  bool disable (void)
-  {
-    if (address)
-    {    
-      DWORD dwOrigProtection = 0x0;
-      if (VirtualProtect (address, 1, PAGE_EXECUTE_READWRITE, &dwOrigProtection))
-      {
-        *(uint8_t *)address = original;
-        VirtualProtect   (address, 1, PAGE_EXECUTE_READWRITE, &dwOrigProtection);
-        return true;
-      }
-    }
-
-    return false;
-  }
-} cutscene_unlock,
-  cutscene_fg;
 
 bool
 SK_FFXVI_PlugInCfg (void)
@@ -435,59 +532,17 @@ SK_FFXVI_InitPlugin (void)
     std::min ( static_cast <DWORD> (SK_FFXVI_JXLMaxThreads),
                       config.priority.available_cpu_cores );
 
-  ini.uncap_cutscene_fps =
-    _CreateConfigParameterBool ( L"FFXVI.PlugIn",
-                                 L"UncapCutsceneFPS", SK_FFXVI_UncapCutscenes,
-                                 L"Remove 30 FPS Cutscene Limit" );
-
-  if (! ini.uncap_cutscene_fps->load  (SK_FFXVI_UncapCutscenes))
-        ini.uncap_cutscene_fps->store (SK_FFXVI_UncapCutscenes);
-
-  ini.allow_cutscene_fg =
-    _CreateConfigParameterBool ( L"FFXVI.PlugIn",
-                                 L"AllowCutsceneFG", SK_FFXVI_FramegenCutscenes,
-                                 L"Allow Frame Generation in Cutscenes" );
-
-  if (! ini.allow_cutscene_fg->load  (SK_FFXVI_FramegenCutscenes))
-        ini.allow_cutscene_fg->store (SK_FFXVI_FramegenCutscenes);
-
-  void *limit_addr =
-    SK_Scan ("\x75\x00\x85\x00\x74\x00\x40\x00\x01\x41\x00\x00\x00\x00\x00\x00\x00", 17,
-             "\xff\x00\xff\x00\xff\x00\xff\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00");
-
-  if (limit_addr != nullptr)
-  {
-    cutscene_unlock.address  = ((uint8_t *)limit_addr)+0x8;
-    cutscene_unlock.original = 1;
-    cutscene_unlock.override = 0;
-
-    if (SK_FFXVI_UncapCutscenes)
-      cutscene_unlock.enable ();
-  }
-
-  void *fg_enablement_addr =
-    SK_Scan ("\x41\x00\x00\x74\x00\x33\x00\x48\x00\x00\xE8\x00\x00\x00\x00\x8B\x00\x00\x00\x00\x00\xD1\x00", 23,
-             "\xff\x00\x00\xff\x00\xff\x00\xff\x00\x00\xff\x00\x00\x00\x00\xff\x00\x00\x00\x00\x00\xff\x00");
-
-  if (fg_enablement_addr != nullptr)
-  {
-    cutscene_fg.address  =   ((uint8_t *)fg_enablement_addr)+0x3;
-    cutscene_fg.original = *(((uint8_t *)fg_enablement_addr)+0x3);
-    cutscene_fg.override = 0xEB;
-
-    if (SK_FFXVI_FramegenCutscenes)
-      cutscene_fg.enable ();
-  }
-
 #if 1
   uint16_t* pAntiDebugBranch =
     (uint16_t *)((uintptr_t)(SK_Debug_GetImageBaseAddr ()) + 0x957223);
 
-  DWORD                                                          dwOrigProtection = 0x0;
-  VirtualProtect (pAntiDebugBranch, 2, PAGE_EXECUTE_READWRITE, &dwOrigProtection);
-  if (*pAntiDebugBranch == 0x0d74)
-      *pAntiDebugBranch  = 0x0deb;
-  VirtualProtect (pAntiDebugBranch, 2, dwOrigProtection,       &dwOrigProtection);
+  DWORD                                                             dwOrigProtection = 0x0;
+  if (VirtualProtect (pAntiDebugBranch, 2, PAGE_EXECUTE_READWRITE, &dwOrigProtection))
+  {
+    if (*pAntiDebugBranch == 0x0d74)
+        *pAntiDebugBranch  = 0x0deb;
+    VirtualProtect (pAntiDebugBranch, 2, dwOrigProtection,         &dwOrigProtection);
+  }
 #else
   uint8_t* pAntiDebugStart = (uint8_t *)0x1409C37DD;
   uint8_t* pAntiDebugEnd   = (uint8_t *)0x1409C383B;
