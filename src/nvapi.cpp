@@ -1236,7 +1236,7 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDispl
 
     head = std::min (head, (NvU32)MaxVBlankRecords-1);
 
-    if (vblank_count != records [head].vblank_count)
+    if (vblank_count > records [head].vblank_count)
     {
       if ( head == MaxVBlankRecords-1 )
            head  = 0;
@@ -1291,13 +1291,24 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32
     const auto& record =
                 records [record_idx];
 
+    if (vblank_t0 > record.timestamp_ms)
+        vblank_t0 = record.timestamp_ms;
+  }
+
+  if (vblank_t0 > tNow)
+      vblank_t0 = tNow;
+
+  for ( UINT record_idx = 0                ;
+             record_idx < MaxVBlankRecords ;
+           ++record_idx )
+  {
+    const auto& record =
+                records [record_idx];
+
     if ( record.timestamp_ms != 0 &&
-         record.timestamp_ms >= (tNow - 750) ) // Use the 3/4 of a second
+         record.timestamp_ms >= (vblank_t0 - 500) )
     {
       ++num_vblanks_in_period;
-
-      if (       vblank_t0 > record.timestamp_ms)
-                 vblank_t0 = record.timestamp_ms;
 
       if (        vblank_n < record.timestamp_ms)
                   vblank_n = record.timestamp_ms;
@@ -1333,15 +1344,15 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32
       static_cast <double> (rb.displays [rb.active_display].signal.timing.vsync_freq.Denominator)
     );
 
-  if (     last_average > _MaxExpectedRefresh) last_average      = _MaxExpectedRefresh * 1.01f;
-  if (last_last_average > _MaxExpectedRefresh) last_last_average = _MaxExpectedRefresh * 1.01f;
-  if (      new_average > _MaxExpectedRefresh) new_average       = _MaxExpectedRefresh * 1.01f;
+  if (     last_average > _MaxExpectedRefresh) last_average      = _MaxExpectedRefresh;
+  if (last_last_average > _MaxExpectedRefresh) last_last_average = _MaxExpectedRefresh;
+  if (      new_average > _MaxExpectedRefresh) new_average       = _MaxExpectedRefresh;
 
   if (last_average != 0.0f)
   {
     // Weighted rolling-average because this is really jittery
     new_average =
-      (1.0f * last_average + 5.0f * new_average + 2.5f * last_last_average) / 8.5f;
+      (4.0f * last_average + 15.0f * new_average + last_last_average) * 0.05f;
   }
 
   last_last_average = last_average;
@@ -1350,14 +1361,14 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU32
   static DWORD dwLastUpdate = tNow;
   static float fLastAverage = last_average;
   
-  if (dwLastUpdate < tNow - 266)
+  if (dwLastUpdate < tNow - 333)
   {   dwLastUpdate = tNow;
 
     float fNewAverage =
-      (fLastAverage + 3 * last_average) / 4.0f;
+          new_average;
 
     if (fNewAverage > _MaxExpectedRefresh)
-        fNewAverage = _MaxExpectedRefresh * 1.01f;
+        fNewAverage = _MaxExpectedRefresh;
 
     fLastAverage = fNewAverage;
   }

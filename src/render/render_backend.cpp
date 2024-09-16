@@ -4858,3 +4858,111 @@ SK_RenderBackend_V2::output_s::setSDRWhiteLevel (float fNits)
 
   return false;
 }
+
+
+void
+SK_Render_CountVBlanks ()
+{
+  static HANDLE hVRREvent =
+    SK_CreateEvent (nullptr, FALSE, TRUE, FALSE);
+
+  SK_RunOnce (
+  {
+    SK_Thread_CreateEx ([](LPVOID) -> DWORD
+    {
+      DXGI_FRAME_STATISTICS
+           frameStats = {};
+
+      auto& rb =
+        SK_GetCurrentRenderBackend ();
+
+      HANDLE                            vrr_events [] = { __SK_DLL_TeardownEvent, hVRREvent };
+      while (WaitForMultipleObjects (2, vrr_events, FALSE, 125) != WAIT_OBJECT_0)
+      {
+        SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain.p);
+        SK_ComPtr   <IDXGIOutput>    pOutput;
+
+        if (           pSwapChain.p != nullptr &&
+            SUCCEEDED (pSwapChain->GetContainingOutput (&pOutput.p)))
+        {
+          pSwapChain.Release ();
+
+          DwmFlush ();
+
+          pOutput->WaitForVBlank ();
+                       
+          pSwapChain = rb.swapchain.p;
+          pSwapChain->GetFrameStatistics (&frameStats);
+        }              
+
+        if (pSwapChain.p != nullptr)
+        {
+          pSwapChain.Release ();
+
+          auto& nvapi_display =
+            rb.displays [rb.active_display].nvapi;
+
+          if (nvapi_display.display_handle != nullptr)
+          {
+            ULONGLONG& kSyncQPC =
+              (ULONGLONG&)frameStats.SyncQPCTime.QuadPart;
+
+            if (nvapi_display.vblank_counter.last_qpc_refreshed < kSyncQPC &&
+                nvapi_display.vblank_counter.addRecord (
+                nvapi_display.display_handle, &frameStats,(UINT32)(kSyncQPC/SK_QpcTicksPerMs)))
+            {
+              nvapi_display.vblank_counter.last_qpc_refreshed =
+                kSyncQPC;
+            }
+          }
+        }
+
+        else if (sk::NVAPI::nv_hardware)
+        {
+          pSwapChain.Release ();
+
+          //
+          // Sample NVIDIA's VBlank counter from this thread, because that API
+          //   has massive performance penalties and this thread runs constantly
+          //     with little to no real workload.
+          //
+          auto& nvapi_display =
+            rb.displays [rb.active_display].nvapi;
+
+          if (nvapi_display.display_handle != nullptr)
+          {
+            bool got_new_reading = false;
+
+            while (! got_new_reading)
+            {
+              const auto current_frame =
+                SK_GetFramesDrawn ();
+
+              if (nvapi_display.vblank_counter.last_frame_sampled < current_frame &&
+                  nvapi_display.vblank_counter.addRecord (
+                  nvapi_display.display_handle, nullptr, SK_timeGetTime ()))
+              {
+                nvapi_display.vblank_counter.last_frame_sampled = current_frame;
+                got_new_reading = true;
+              }
+
+              else
+              {
+                if (WaitForSingleObject (__SK_DLL_TeardownEvent, 2) != WAIT_OBJECT_0)
+                  continue;
+
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      SK_Thread_CloseSelf ();
+
+      return 0;
+    }, L"[SK] VBlank Counter", nullptr);
+  });
+
+  SetEvent (hVRREvent);
+}

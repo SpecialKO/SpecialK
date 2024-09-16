@@ -3349,6 +3349,9 @@ void
 __stdcall
 SK_BeginBufferSwapEx (BOOL bWaitOnFail)
 {
+  void SK_Render_CountVBlanks (void);
+       SK_Render_CountVBlanks ();
+
   if (config.render.framerate.enable_mmcss)
   {
     SK_MMCS_BeginBufferSwap ();

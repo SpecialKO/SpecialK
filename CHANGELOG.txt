@@ -1,4 +1,20 @@
-﻿24.9.16
+﻿24.9.16.1
+=========
+ + Added explicit DwmFlush (...) on a dedicated thread to sample DXGI's
+     VBLANK timing information so that it doesn't wobble on drivers that
+       support HW Flip Queue.
+
+ + Added CPU affinity INI option
+
+     [Scheduler.Boost]
+     ProcessorAffinityMask=[0,0xFFFFFFFFFFFFFFFF] Default=0xFFFFFFFFFFFFFFFF
+
+    This is a bitmask, so map out the processor numbers you want in binary
+      and then convert to decimal.
+
+      (i.e. ProcessorAffinityMask=1365  ->  10101010101  (6 physical cores))
+
+24.9.16
 =======
  + Reduced overhead and added smoothing to real-time VRR Rate calculation
 

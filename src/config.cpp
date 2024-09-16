@@ -1127,6 +1127,7 @@ struct {
     sk::ParameterBool*    highest_priority        = nullptr;
     sk::ParameterBool*    deny_foreign_change     = nullptr;
     sk::ParameterInt*     min_render_priority     = nullptr;
+    sk::ParameterInt64*   cpu_affinity_mask       = nullptr;
   } priority;
 } scheduling;
 
@@ -2007,6 +2008,7 @@ auto DeclKeybind =
     ConfigEntry (scheduling.priority.highest_priority,   L"Boost process priority to High instead of Above Normal",    dll_ini,         L"Scheduler.Boost",       L"RaisePriorityToHigh"),
     ConfigEntry (scheduling.priority.deny_foreign_change,L"Do not allow third-party apps to change priority",          dll_ini,         L"Scheduler.Boost",       L"DenyForeignChanges"),
     ConfigEntry (scheduling.priority.min_render_priority,L"Minimum priority for a game's render thread",               dll_ini,         L"Scheduler.Boost",       L"MinimumRenderThreadPriority"),
+    ConfigEntry (scheduling.priority.cpu_affinity_mask,  L"Mask of CPU cores the process is eligible for scheduling.", dll_ini,         L"Scheduler.Boost",       L"ProcessorAffinityMask"),
 
     ConfigEntry (sound.minimize_latency,                 L"Minimize Audio Latency while Game is Running",              dll_ini,         L"Sound.Mixing",          L"MinimizeLatency"),
 
@@ -4105,6 +4107,12 @@ auto DeclKeybind =
   scheduling.priority.highest_priority->load    (config.priority.highest_priority);
   scheduling.priority.deny_foreign_change->load (config.priority.deny_foreign_change);
   scheduling.priority.min_render_priority->load (config.priority.minimum_render_prio);
+  scheduling.priority.cpu_affinity_mask->load   (config.priority.cpu_affinity_mask);
+
+  if (config.priority.cpu_affinity_mask != 0xFFFFFFFFULL)
+  {
+    SetProcessAffinityMask (GetCurrentProcess (), (DWORD_PTR)config.priority.cpu_affinity_mask);
+  }
 
   if (config.priority.raise_always)
     SetPriorityClass (GetCurrentProcess (), ABOVE_NORMAL_PRIORITY_CLASS);
@@ -6093,6 +6101,7 @@ SK_SaveConfig ( std::wstring name,
     scheduling.priority.highest_priority->store    (config.priority.highest_priority);
     scheduling.priority.deny_foreign_change->store (config.priority.deny_foreign_change);
     scheduling.priority.min_render_priority->store (config.priority.minimum_render_prio);
+    scheduling.priority.cpu_affinity_mask->store   (config.priority.cpu_affinity_mask);
 
     if (render.framerate.rescan_ratio != nullptr)
     {
