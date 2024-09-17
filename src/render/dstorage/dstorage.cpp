@@ -58,11 +58,13 @@ SK_DStorage_ApplyConfigOverrides (DSTORAGE_CONFIGURATION *pConfig)
   if (config.render.dstorage.disable_telemetry)
     pConfig->DisableTelemetry = true;
 
+#if 0
   if (pConfig->NumBuiltInCpuDecompressionThreads == 0)
       pConfig->NumBuiltInCpuDecompressionThreads = std::max (2UL, config.priority.available_cpu_cores / 4);
 
   if (pConfig->NumSubmitThreads == 0)
       pConfig->NumSubmitThreads                  = std::max (2UL, config.priority.available_cpu_cores / 4);
+#endif
 }
 
 void

@@ -1,4 +1,8 @@
-﻿24.9.17.2
+﻿24.9.17.3
+=========
+ + Hotfix for DirectStorage instability in Final Fantasy XVI
+
+24.9.17.2
 =========
  + Hotfix for VBlank counting thread running while a game has destroyed and
      is re-creating a SwapChain.
