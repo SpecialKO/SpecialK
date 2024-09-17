@@ -2444,9 +2444,10 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       }
     
       // Turn tearing off when using frame generation
-      if (__SK_IsDLSSGActive && _SyncInterval == 0 && rb.displays [rb.active_display].nvapi.vrr_enabled)
+      if (__SK_IsDLSSGActive && rb.displays [rb.active_display].nvapi.vrr_enabled)
       {
         _Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
+        _SyncInterval = 0;
       }
     }
 
