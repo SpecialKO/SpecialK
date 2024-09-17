@@ -1,4 +1,9 @@
-﻿24.9.16.2
+﻿24.9.17
+=======
+ + Disable tearing when using a VRR screen w/ DLSS3 Frame Generation,
+     so that FG can use G-Sync instead of ... randomly tear :)
+
+24.9.16.2
 =========
  + Improved precision of real-time VRR refresh rate calculation
  + Restored the gray bars of "animation error" (as PresentMon calls it)
