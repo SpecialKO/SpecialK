@@ -1,4 +1,8 @@
-﻿24.9.17.4
+﻿24.9.17.5
+=========
+ + Enable "Fake Fullscreen" by default in FFXVI to make HDR less of a nuisance
+
+24.9.17.4
 =========
  + Patched out graphics debugger check from Final Fantasy XVI Retail
 

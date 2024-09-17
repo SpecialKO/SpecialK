@@ -532,18 +532,23 @@ SK_FFXVI_PlugInCfg (void)
         config.utility.save_async ();
       }
 
-      if (cutscene_fg.address != nullptr && ImGui::Checkbox ("Allow Frame Generation in Cutscenes", &SK_FFXVI_FramegenCutscenes))
+      if (SK_FFXVI_UncapCutscenes && cutscene_fg.address != nullptr)
       {
-        restart_warning = true;
+        ImGui::SameLine ();
 
-        ini.allow_cutscene_fg->store (SK_FFXVI_FramegenCutscenes);
+        if (ImGui::Checkbox ("Allow Frame Generation in Cutscenes", &SK_FFXVI_FramegenCutscenes))
+        {
+          restart_warning = true;
 
-        if (SK_FFXVI_FramegenCutscenes)
-          cutscene_fg.enable ();
-        else
-          cutscene_fg.disable ();
+          ini.allow_cutscene_fg->store (SK_FFXVI_FramegenCutscenes);
 
-        config.utility.save_async ();
+          if (SK_FFXVI_FramegenCutscenes)
+            cutscene_fg.enable ();
+          else
+            cutscene_fg.disable ();
+
+          config.utility.save_async ();
+        }
       }
 
       if (SK_FFXVI_AntiGraphicsDebugAddr != 0)
@@ -564,6 +569,21 @@ SK_FFXVI_PlugInCfg (void)
             "which has performance penalties when running on SteamOS/Wine."
           );
         }
+      }
+
+      if (ImGui::Checkbox ("Optimize Fullscreen Mode", &config.render.dxgi.fake_fullscreen_mode))
+      {
+        config.utility.save_async ();
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::BeginTooltip    ();
+        ImGui::TextUnformatted ("Use Borderless Fullscreen instead of D3D12's Fake Fullscreen");
+        ImGui::Separator       ();
+        ImGui::BulletText      ("The game cannot use HDR unless it thinks it is in Fullscreen mode.");
+        ImGui::BulletText      ("This option prevents running the game at a different resolution than your desktop.");
+        ImGui::EndTooltip      ();
       }
 
       if (restart_warning)

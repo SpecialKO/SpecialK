@@ -289,6 +289,7 @@ SK_GetCurrentGameID (void)
         else if ( StrStrIW ( SK_GetHostApp (), L"ffxvi" ) )
         {
           config.compatibility.init_sync_for_streamline = true;
+          config.render.dxgi.fake_fullscreen_mode       = true;
 
           current_game = SK_GAME_ID::FinalFantasyXVI;
 
