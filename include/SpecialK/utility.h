@@ -1432,5 +1432,7 @@ std::string SK_CountToString (uint64_t count);
 std::string_view
 SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit, SK_TLS* pTLS);
 
+size_t SK_Memory_EmptyWorkingSet (void);
+
 #endif /* __SK__UTILITY_H__ */
 

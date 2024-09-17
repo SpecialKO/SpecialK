@@ -820,7 +820,7 @@ SK_InitFinishCallback (void)
 
   SK::Framerate::Init ();
 
-  gsl::not_null <SK_ICommandProcessor *> cp (
+  static gsl::not_null <SK_ICommandProcessor *> cp (
     SK_GetCommandProcessor ()
   );
 
@@ -845,6 +845,137 @@ SK_InitFinishCallback (void)
         &config.imgui.scale
       )
   );
+
+  struct MemoryManager : public SK_IVariableListener
+  {
+    MemoryManager (void)
+    {
+      SK_Thread_CreateEx ([](LPVOID pUserParam)->DWORD
+      {
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);
+
+        auto pManager =
+          (MemoryManager *)pUserParam;
+
+        while ( WAIT_OBJECT_0 !=
+                  WaitForSingleObject (__SK_DLL_TeardownEvent, 250UL) )
+        {
+          PROCESS_MEMORY_COUNTERS pmc = {
+            .cb = sizeof (PROCESS_MEMORY_COUNTERS)
+          };
+
+          if (! GetProcessMemoryInfo (SK_GetCurrentProcess (), &pmc, pmc.cb))
+          {
+            if ( WAIT_OBJECT_0 ==
+                   WaitForSingleObject (__SK_DLL_TeardownEvent, 750UL) )
+            {
+              break;
+            }
+          }
+
+          pManager->working_set = pmc.WorkingSetSize;
+
+          MEMORYSTATUSEX
+          msex          = {           };// Mmmm, sex.
+          msex.dwLength = sizeof (msex);
+
+          if (GlobalMemoryStatusEx (&msex))
+          {
+            if (msex.dwMemoryLoad >= 95)
+            {
+              SK_ImGui_CreateNotification (
+                "RAM.HighLoad", SK_ImGui_Toast::Warning,
+                  SK_FormatString ( "Total System RAM Usage:\t%d%%\r\n\r\n"
+                                    "\t * Consider closing background software...",
+                                    msex.dwMemoryLoad
+                                  ).c_str (), "Critically Low System RAM", 20000,
+                                SK_ImGui_Toast::UseDuration |
+                                SK_ImGui_Toast::ShowTitle   |
+                                SK_ImGui_Toast::ShowCaption |
+                                SK_ImGui_Toast::ShowNewest );
+            }
+          }
+        }
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, L"[SK] Memory Statistics", this);
+
+      vram_scale_var =
+        SK_CreateVar ( SK_IVariable::Float,
+                         &config.render.dxgi.vram_budget_scale, this );
+      working_set_var =
+        SK_CreateVar ( SK_IVariable::LongInt, &working_set,     this );
+
+      cp->AddVariable ("DXGI.VRAMBudgetScale",  vram_scale_var);
+      cp->AddVariable (   "Memory.WorkingSet", working_set_var);
+    }
+
+    ~MemoryManager (void)
+    {
+      if (working_set_var != nullptr)
+      {
+        cp->RemoveVariable ("Memory.WorkingSet");
+        delete working_set_var;
+      }
+
+      if (vram_scale_var != nullptr)
+      {
+        cp->RemoveVariable ("DXGI.VRAMBudgetScale");
+        delete vram_scale_var;
+      }
+    }
+
+    virtual bool OnVarChange (SK_IVariable* var, void* val = nullptr)
+    {
+      if (var != nullptr)
+      {
+        if (var->getValuePointer () == &working_set)
+        {
+          if (val != nullptr)
+          {
+            *(size_t *)val =
+              SK_Memory_EmptyWorkingSet ();
+
+            return true;
+          }
+
+          return false;
+        }
+
+        if (var->getValuePointer () == &config.render.dxgi.vram_budget_scale)
+        {
+          if (val != nullptr)
+          {
+            if (*(float *)val >= 0.1f &&
+                *(float *)val <= 5.0f)
+            {
+              config.render.dxgi.vram_budget_scale =
+                *(float *)val;
+
+              extern HANDLE __SK_DXGI_BudgetChangeEvent;
+              if (          __SK_DXGI_BudgetChangeEvent != INVALID_HANDLE_VALUE)
+                  SetEvent (__SK_DXGI_BudgetChangeEvent);
+
+              return true;
+            }
+          }
+
+          return false;
+        }
+      }
+
+      return false;
+    }
+
+  protected:
+    uint64         working_set;
+
+  private:
+    SK_IVariable*  working_set_var;
+    SK_IVariable*   vram_scale_var;
+  } static memory_manager;
 
   SK_InitRenderBackends ();
 

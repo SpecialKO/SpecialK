@@ -10221,6 +10221,8 @@ static constexpr uint32_t
   BUDGET_POLL_INTERVAL = 133UL; // How often to sample the budget
                                 //  in msecs
 
+HANDLE __SK_DXGI_BudgetChangeEvent = INVALID_HANDLE_VALUE;
+
 DWORD
 WINAPI
 SK::DXGI::BudgetThread ( LPVOID user_data )
@@ -10251,6 +10253,8 @@ SK::DXGI::BudgetThread ( LPVOID user_data )
 
     if ( params->event == nullptr )
       break;
+
+    __SK_DXGI_BudgetChangeEvent = params->event;
 
     HANDLE phEvents [] = {
       params->event, params->shutdown,

@@ -1,4 +1,21 @@
-﻿24.9.17
+﻿24.9.17.1
+=========
+ + Add RAM warning if used system RAM reaches >= 95% while a game is running
+ + Added command console variable to control DXGI Budget Scale (see 24.9.10)
+
+           DXGI.VRAMBudgetScale     (Range: 0.1 - 5.0)
+
+     * Some games will respond in real-time to changes to this.
+     
+     This allows tweaking over- or under-reporting of available VRAM to get a
+       game to load in higher detail assets or evict memory to reduce stutter.
+
+     DXGI Budget tracking is used mostly in D3D12 or very advanced D3D11 games;
+       
+     Nixxes games have a weird Dedicated VRAM => Shared Mem offload system that
+       can make tuning this worthwhile on cards with low VRAM (i.e. RTX 3070).
+
+24.9.17
 =======
  + Disable tearing when using a VRR screen w/ DLSS3 Frame Generation,
      so that FG can use G-Sync instead of ... randomly tear :)

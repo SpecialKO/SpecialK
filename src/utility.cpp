@@ -21,6 +21,11 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
+#define __SK_SUBSYSTEM__ L"Misc. Util"
+
 int
 SK_MessageBox (std::wstring caption, std::wstring title, uint32_t flags)
 {
@@ -5707,3 +5712,49 @@ SK_CharNextA (const char *szInput, int n)
 
   return szNext;
 };
+
+size_t
+SK_Memory_EmptyWorkingSet (void)
+{
+  using  K32EmptyWorkingSet_pfn = BOOL (WINAPI *)(HANDLE);
+  static K32EmptyWorkingSet_pfn
+         K32EmptyWorkingSet =
+        (K32EmptyWorkingSet_pfn) SK_GetProcAddress ( L"kernel32.dll",
+        "K32EmptyWorkingSet" );
+
+  if (K32EmptyWorkingSet != nullptr)
+  {
+    HANDLE hCurrentProcess =
+      SK_GetCurrentProcess ();
+
+    PROCESS_MEMORY_COUNTERS pmc = {
+      .cb = sizeof (PROCESS_MEMORY_COUNTERS)
+    };
+
+    size_t working_set_before = 0;
+
+    if (GetProcessMemoryInfo (hCurrentProcess, &pmc, pmc.cb))
+    { working_set_before =                      pmc.WorkingSetSize; }
+
+    if (! K32EmptyWorkingSet (hCurrentProcess))
+    {
+      SK_LOGi0 (L"Failed to Empty Working Set?! Error=%d", GetLastError ());
+    }
+
+    pmc = { .cb = sizeof (PROCESS_MEMORY_COUNTERS) };
+
+    if (GetProcessMemoryInfo (hCurrentProcess, &pmc, pmc.cb))
+    {
+      SK_LOGi0 (
+        L"Working Set Before: %zu -- Shrunk by %zu bytes",
+          working_set_before,
+          working_set_before - pmc.WorkingSetSize
+      );
+
+      return
+        pmc.WorkingSetSize;
+    }
+  }
+
+  return 0;
+}
