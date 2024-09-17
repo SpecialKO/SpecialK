@@ -881,7 +881,7 @@ SK_InitFinishCallback (void)
 
           if (GlobalMemoryStatusEx (&msex))
           {
-            if (msex.dwMemoryLoad >= 95)
+            if (msex.dwMemoryLoad >= 98)
             {
               SK_ImGui_CreateNotification (
                 "RAM.HighLoad", SK_ImGui_Toast::Warning,

@@ -4864,7 +4864,7 @@ void
 SK_Render_CountVBlanks ()
 {
   static HANDLE hVRREvent =
-    SK_CreateEvent (nullptr, FALSE, TRUE, FALSE);
+    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
 
   SK_RunOnce (
   {
@@ -4891,8 +4891,9 @@ SK_Render_CountVBlanks ()
 
           pOutput->WaitForVBlank ();
                        
-          pSwapChain = rb.swapchain.p;
-          pSwapChain->GetFrameStatistics (&frameStats);
+          if (pSwapChain = rb.swapchain.p;
+              pSwapChain.p != nullptr)
+              pSwapChain->GetFrameStatistics (&frameStats);
         }              
 
         if (pSwapChain.p != nullptr)

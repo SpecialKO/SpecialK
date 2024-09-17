@@ -1,11 +1,19 @@
-﻿24.9.17.1
+﻿24.9.17.2
 =========
- + Add RAM warning if used system RAM reaches >= 95% while a game is running
+ + Hotfix for VBlank counting thread running while a game has destroyed and
+     is re-creating a SwapChain.
+
+24.9.17.1
+=========
+ + Add RAM warning if used system RAM reaches >= 98% while a game is running
  + Added command console variable to control DXGI Budget Scale (see 24.9.10)
 
            DXGI.VRAMBudgetScale     (Range: 0.1 - 5.0)
 
-     * Some games will respond in real-time to changes to this.
+        [ Press Ctrl+Shift+Tab to Open/Close the Command Console ]
+
+      * Some games will respond in real-time to changes to this.
+      * Changes made from the command console are saved to SK's per-game INI.
      
      This allows tweaking over- or under-reporting of available VRAM to get a
        game to load in higher detail assets or evict memory to reduce stutter.
@@ -14,6 +22,9 @@
        
      Nixxes games have a weird Dedicated VRAM => Shared Mem offload system that
        can make tuning this worthwhile on cards with low VRAM (i.e. RTX 3070).
+
+      -> Using a scale slightly above 1.0 will cause Nixxes ports to keep more
+           in VRAM and page textures in/out of system memory less often.
 
 24.9.17
 =======
