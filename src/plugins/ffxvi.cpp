@@ -33,19 +33,23 @@
 static float SK_FFXVI_JXLQuality    = 99.95f;
 static int   SK_FFXVI_JXLMaxThreads = 5;
 
-static bool SK_FFXVI_UncapCutscenes    = true;
-static bool SK_FFXVI_FramegenCutscenes = true;
+static bool SK_FFXVI_UncapCutscenes     = true;
+static bool SK_FFXVI_FramegenCutscenes  = true;
+static bool SK_FFXVI_AllowGraphicsDebug = true;
 
-static INT64 SK_FFXVI_CutsceneFPSAddr = 0x0;
-static INT64 SK_FFXVI_CutsceneFGAddr  = 0x0;
+static INT64 SK_FFXVI_CutsceneFPSAddr       = 0x0;
+static INT64 SK_FFXVI_CutsceneFGAddr        = 0x0;
+static INT64 SK_FFXVI_AntiGraphicsDebugAddr = 0x0;
 
 struct {
   sk::ParameterFloat* jxl_quality        = nullptr;
   sk::ParameterInt*   jxl_max_threads    = nullptr;
   sk::ParameterBool*  uncap_cutscene_fps = nullptr;
   sk::ParameterBool*  allow_cutscene_fg  = nullptr;
+  sk::ParameterBool*  allow_gr_debug     = nullptr;
   sk::ParameterInt64* cutscene_fps_addr  = nullptr;
   sk::ParameterInt64* cutscene_fg_addr   = nullptr;
+  sk::ParameterInt64* anti_gr_debug_addr = nullptr;
 } static ini;
 
 struct patch_byte_s {
@@ -342,6 +346,11 @@ SK_FFXVI_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
                                   L"CutsceneFGAddr", SK_FFXVI_CutsceneFGAddr,
                                   L"Cache Last Known Address" );
 
+  ini.anti_gr_debug_addr =
+    _CreateConfigParameterInt64 ( L"FFXVI.PlugIn",
+                                  L"AntiGraphicsDebugAddr", SK_FFXVI_AntiGraphicsDebugAddr,
+                                  L"Cache Last Known Address" );
+
   void *limit_addr = (void *)SK_FFXVI_CutsceneFPSAddr;
 
   if (SK_FFXVI_CutsceneFPSAddr != 0)
@@ -351,8 +360,10 @@ SK_FFXVI_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
       SK_FFXVI_CutsceneFPSAddr = 0;
   }
 
-  if (limit_addr == nullptr || (* (uint8_t *)limit_addr    != 0x75 ||
-                                *((uint8_t *)limit_addr+2) != 0x85))
+  if (                     limit_addr == nullptr || 
+      !SK_ValidatePointer (limit_addr, true)     ||
+             (* (uint8_t *)limit_addr    != 0x75 ||
+              *((uint8_t *)limit_addr+2) != 0x85))
   {
     limit_addr =
       SK_Scan ("\x75\x00\x85\x00\x74\x00\x40\x00\x01\x41\x00\x00\x00\x00\x00\x00\x00", 17,
@@ -383,8 +394,10 @@ SK_FFXVI_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
       SK_FFXVI_CutsceneFGAddr = 0;
   }
 
-  if (fg_enablement_addr == nullptr || (* (uint8_t *)fg_enablement_addr    != 0x41 ||
-                                        *((uint8_t *)fg_enablement_addr+5) != 0x33))
+  if (                     fg_enablement_addr == nullptr ||
+      !SK_ValidatePointer (fg_enablement_addr, true)     ||
+             (* (uint8_t *)fg_enablement_addr    != 0x41 ||
+              *((uint8_t *)fg_enablement_addr+5) != 0x33))
   {
     fg_enablement_addr =
       SK_Scan ("\x41\x00\x00\x74\x00\x33\x00\x48\x00\x00\xE8\x00\x00\x00\x00\x8B\x00\x00\x00\x00\x00\xD1\x00", 23,
@@ -404,6 +417,45 @@ SK_FFXVI_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 
     if (SK_FFXVI_FramegenCutscenes)
       cutscene_fg.enable ();
+  }
+
+  void *anti_gr_debug_addr =
+    (void *)SK_FFXVI_AntiGraphicsDebugAddr;
+
+  if (                     anti_gr_debug_addr == nullptr ||
+      !SK_ValidatePointer (anti_gr_debug_addr, true)     ||
+             (*((uint8_t *)anti_gr_debug_addr+1) != 0x85 ||
+              *((uint8_t *)anti_gr_debug_addr+2) != 0xc0 ||
+              *((uint8_t *)anti_gr_debug_addr+3) != 0x0f))
+  {
+    anti_gr_debug_addr =
+      SK_Scan ("\x00\x85\xc0\x0f\x85\x00\x00\x00\x00\x48\x8b\x0d\x00\x00\x00\x00\x48\x85\xc9\x00\x0d\xe8\x00\x00\x00\x00\x84\xc0", 28,
+               "\x00\x85\xc0\x0f\x85\x00\x00\x00\x00\x48\x8b\x0d\x00\x00\x00\x00\x48\x85\xc9\x00\x0d\xe8\x00\x00\x00\x00\x84\xc0");
+
+    if (anti_gr_debug_addr != nullptr)
+      ini.anti_gr_debug_addr->store ((int64_t)anti_gr_debug_addr);
+  }
+
+  else SK_LOGi0 (L"Skipped memory address scan for Graphics Debugger Branch");
+
+  if (anti_gr_debug_addr != 0x0 && SK_FFXVI_AllowGraphicsDebug)
+  {
+    DWORD dwOrigProt = 0x0;
+
+    uint16_t* branch_addr =
+      (uint16_t *)((uintptr_t)anti_gr_debug_addr + 0x13);
+
+    if (*branch_addr == 0x0d74) // je
+    {
+      if (VirtualProtect (branch_addr, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+      {
+        *branch_addr  = 0x0deb; // jmp
+
+        VirtualProtect (branch_addr, 2, dwOrigProt, &dwOrigProt);
+
+        SK_LOGi0 (L"Patched out graphics debugger check");
+      }
+    }
   }
 
   config.utility.save_async ();
@@ -462,10 +514,14 @@ SK_FFXVI_PlugInCfg (void)
 
     if (ImGui::CollapsingHeader (ICON_FA_TACHOMETER_ALT "\tPerformance", ImGuiTreeNodeFlags_DefaultOpen))
     {
+      static bool restart_warning = false;
+
       ImGui::TreePush ("");
 
       if (cutscene_unlock.address != nullptr && ImGui::Checkbox ("Uncap Cutscene FPS", &SK_FFXVI_UncapCutscenes))
       {
+        restart_warning = true;
+
         ini.uncap_cutscene_fps->store (SK_FFXVI_UncapCutscenes);
 
         if (SK_FFXVI_UncapCutscenes)
@@ -478,6 +534,8 @@ SK_FFXVI_PlugInCfg (void)
 
       if (cutscene_fg.address != nullptr && ImGui::Checkbox ("Allow Frame Generation in Cutscenes", &SK_FFXVI_FramegenCutscenes))
       {
+        restart_warning = true;
+
         ini.allow_cutscene_fg->store (SK_FFXVI_FramegenCutscenes);
 
         if (SK_FFXVI_FramegenCutscenes)
@@ -486,6 +544,33 @@ SK_FFXVI_PlugInCfg (void)
           cutscene_fg.disable ();
 
         config.utility.save_async ();
+      }
+
+      if (SK_FFXVI_AntiGraphicsDebugAddr != 0)
+      {
+        if (ImGui::Checkbox ("Disable Graphics Debugger Checks", &SK_FFXVI_AllowGraphicsDebug))
+        {
+          restart_warning = true;
+
+          ini.allow_gr_debug->store (SK_FFXVI_AllowGraphicsDebug);
+
+          config.utility.save_async ();
+        }
+
+        if (ImGui::IsItemHovered ())
+        {
+          ImGui::SetTooltip (
+            "The game checks for graphics debuggers every frame, "
+            "which has performance penalties when running on SteamOS/Wine."
+          );
+        }
+      }
+
+      if (restart_warning)
+      {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+        ImGui::BulletText     ("Game Restart May Be Required");
+        ImGui::PopStyleColor  ();
       }
 
       ImGui::TreePop ();
@@ -532,30 +617,11 @@ SK_FFXVI_InitPlugin (void)
     std::min ( static_cast <DWORD> (SK_FFXVI_JXLMaxThreads),
                       config.priority.available_cpu_cores );
 
-#if 1
-  uint16_t* pAntiDebugBranch =
-    (uint16_t *)((uintptr_t)(SK_Debug_GetImageBaseAddr ()) + 0x957223);
+  ini.allow_gr_debug =
+    _CreateConfigParameterBool ( L"FFXVI.PlugIn",
+                                 L"Allow Graphics Debuggers", SK_FFXVI_AllowGraphicsDebug,
+                                 L"Bypass Graphics Debugger Checks" );
 
-  DWORD                                                             dwOrigProtection = 0x0;
-  if (VirtualProtect (pAntiDebugBranch, 2, PAGE_EXECUTE_READWRITE, &dwOrigProtection))
-  {
-    if (*pAntiDebugBranch == 0x0d74)
-        *pAntiDebugBranch  = 0x0deb;
-    VirtualProtect (pAntiDebugBranch, 2, dwOrigProtection,         &dwOrigProtection);
-  }
-#else
-  uint8_t* pAntiDebugStart = (uint8_t *)0x1409C37DD;
-  uint8_t* pAntiDebugEnd   = (uint8_t *)0x1409C383B;
-
-  size_t size = 
-    (uintptr_t)pAntiDebugEnd - (uintptr_t)pAntiDebugStart;
-
-  DWORD                                                           dwOrigProtection = 0x0;
-  VirtualProtect (pAntiDebugStart, size, PAGE_EXECUTE_READWRITE, &dwOrigProtection);
-  for ( UINT i = 0 ; i < size ; ++i )
-  {
-    *(pAntiDebugStart + i) = 0x90;
-  }
-  VirtualProtect (pAntiDebugStart, size, dwOrigProtection,       &dwOrigProtection);
-#endif
+  if (! ini.allow_gr_debug->load  (SK_FFXVI_AllowGraphicsDebug))
+        ini.allow_gr_debug->store (SK_FFXVI_AllowGraphicsDebug);
 }

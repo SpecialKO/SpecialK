@@ -1,4 +1,8 @@
-﻿24.9.17.3
+﻿24.9.17.4
+=========
+ + Patched out graphics debugger check from Final Fantasy XVI Retail
+
+24.9.17.3
 =========
  + Hotfix for DirectStorage instability in Final Fantasy XVI
 
