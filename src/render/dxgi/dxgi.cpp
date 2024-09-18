@@ -52,6 +52,10 @@
 #include <CoreWindow.h>
 #include <VersionHelpers.h>
 
+#undef IMGUI_VERSION_NUM
+#include <ReShade/reshade.hpp>
+#include <ReShade/reshade_api.hpp>
+
 BOOL _NO_ALLOW_MODE_SWITCH = FALSE;
 DXGI_SWAP_CHAIN_DESC  _ORIGINAL_SWAP_CHAIN_DESC = { };
 DXGI_SWAP_CHAIN_DESC1 _ORIGINAL_SWAP_CHAIN_DESC1 = { };
@@ -4662,6 +4666,36 @@ SK_DXGI_CreateSwapChain_PreInit (
       dxgi_caps.present.flip_sequential;
   }
 
+
+  // Use Flip Sequential if ReShade is present, so that screenshots
+  //   work as expected...
+  static bool 
+        bHasReShade = reshade::internal::get_reshade_module_handle (nullptr);
+  if (! bHasReShade)
+  {
+    SK_RunOnce (
+    {
+      for (auto& import : imports->imports)
+      {
+        if ( StrStrIW (                      import.name.c_str (), L"ReShade")
+                   || (import.filename != nullptr              &&
+             StrStrIW (import.filename->get_value_str ().c_str (), L"ReShade")) )
+        {
+          bHasReShade = true;
+          break;
+        }
+      }
+    });
+  }
+
+  const DXGI_SWAP_EFFECT
+    original_swap_effect =
+      pDesc  != nullptr  ? pDesc ->SwapEffect :
+      pDesc1 != nullptr  ? pDesc1->SwapEffect :
+        DXGI_SWAP_EFFECT_DISCARD;
+
+
+
   auto _DescribeSwapChain = [&](const wchar_t* wszLabel) noexcept -> void
   {
     wchar_t    wszMSAA [128] = { };
@@ -5238,8 +5272,16 @@ SK_DXGI_CreateSwapChain_PreInit (
 
         if ( config.render.framerate.flip_discard &&
                    dxgi_caps.present.flip_discard )
-          pDesc->SwapEffect  = (DXGI_SWAP_EFFECT)DXGI_SWAP_EFFECT_FLIP_DISCARD;
-
+        {
+          if (bHasReShade)
+            pDesc->SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+          else
+            pDesc->SwapEffect = 
+              (original_swap_effect == DXGI_SWAP_EFFECT_DISCARD ||
+               original_swap_effect == DXGI_SWAP_EFFECT_FLIP_DISCARD) ?
+                                       DXGI_SWAP_EFFECT_FLIP_DISCARD  :
+                                       DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+        }
         else // On Windows 8.1 and older, sequential must substitute for discard
           pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
       }
@@ -5260,8 +5302,16 @@ SK_DXGI_CreateSwapChain_PreInit (
     }
 
     // Option to force Flip Sequential for buggy systems
-    if (pDesc->SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD && config.render.framerate.flip_sequential)
-        pDesc->SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+    if (pDesc->SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD && (config.render.framerate.flip_sequential || bHasReShade))
+        pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+
+    if ( bHasReShade &&
+            pDesc->SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL &&
+         original_swap_effect != DXGI_SWAP_EFFECT_SEQUENTIAL      &&
+         original_swap_effect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL )
+    {
+      SK_LOGi0 (L"  >> Using DXGI Flip Sequential for compatibility with ReShade");
+    }
 
     SK_LOGs1 ( L" DXGI 1.2 ",
                L"  >> Using %s Presentation Model  [Waitable: %s - %li ms]",

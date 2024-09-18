@@ -1,4 +1,11 @@
-﻿24.9.17.5
+﻿24.9.18
+=======
+ + Use Flip Sequential by default if a game is already Flip Model and used
+     Sequential, or if upgrading to Flip Model but ReShade is loaded.
+
+    >> This helps screenshot compatibility in games that use ReShade.
+
+24.9.17.5
 =========
  + Enable "Fake Fullscreen" by default in FFXVI to make HDR less of a nuisance
 
