@@ -57,10 +57,22 @@ SK::ControlPanel::Platform::Draw (void)
       ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.14f, 0.78f, 0.87f, 0.80f));
       ImGui::TreePush       ("");
 
-      static bool
+      static bool bHasAchievements = false;
+
+      SK_RunOnce (
+      {
+        // Will test whether SteamAPI is going to throw an exception,
+        //   we need to not make these API calls if it does or NVIDIA
+        //     Streamline will cause games to crash!
+        SK_SteamAPI_GetNumPlayers ();
+
+        bool bSteamWorks =
+          (! config.platform.steam_is_b0rked);
+
         bHasAchievements =
-          ( bSteam && SK_SteamAPI_GetNumPossibleAchievements () > 0 ) ||
-          ( bEpic  &&      SK_EOS_GetNumPossibleAchievements () > 0 );
+            ( bSteamWorks && SK_SteamAPI_GetNumPossibleAchievements () > 0 ) ||
+            ( bEpic       &&      SK_EOS_GetNumPossibleAchievements () > 0 );
+      });
 
 
       if (bHasAchievements)
@@ -275,7 +287,7 @@ SK::ControlPanel::Platform::Draw (void)
         }
       }
 
-      else
+      else if (! config.platform.steam_is_b0rked)
       {
         // Handle late init situations
         bHasAchievements =
@@ -283,8 +295,9 @@ SK::ControlPanel::Platform::Draw (void)
         || ( bEpic  &&      SK_EOS_GetNumPossibleAchievements () > 0 ) );
       }
 
-      static bool bSteamOverlayEnabled = steam_ctx.Utils () != nullptr
-                                      && steam_ctx.Utils ()->IsOverlayEnabled ();
+      static bool bSteamOverlayEnabled = config.platform.steam_is_b0rked == false &&
+                                         steam_ctx.Utils () != nullptr            &&
+                                         steam_ctx.Utils ()->IsOverlayEnabled ();
 
       bool bOverlayEnabled =
         ( bSteamOverlayEnabled || SK::EOS::GetTicksRetired () > 0 );

@@ -1234,7 +1234,7 @@ SK_AchievementManager::getAchievements (size_t* pnAchievements)
   ISteamUserStats* stats =
      steam_ctx.UserStats ();
 
-  if (! stats)
+  if ((! stats) || config.platform.steam_is_b0rked)
     return nullptr;
 
   size_t           count =

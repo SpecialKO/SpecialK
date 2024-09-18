@@ -1333,6 +1333,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                                 _TRUNCATE );
 
               if ( config.steam.screenshots.enable_hook &&
+                  !config.platform.steam_is_b0rked      &&
                           steam_ctx.Screenshots ()      != nullptr )
               {
                 PathAppendW          (wszAbsolutePathToScreenshot, L"SK_SteamScreenshotImport.jpg");
@@ -1728,6 +1729,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 #endif
 
                   if ( config.steam.screenshots.enable_hook &&
+                      !config.platform.steam_is_b0rked      &&
                           steam_ctx.Screenshots () != nullptr )
                   {
                     wchar_t       wszAbsolutePathToThumbnail [ MAX_PATH + 2 ] = { };

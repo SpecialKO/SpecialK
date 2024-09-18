@@ -666,7 +666,7 @@ SK_FFXVI_InitPlugin (void)
 
   // Avoid Steam Offline Warnings
   config.platform.achievements.pull_friend_stats = false;
-  config.steam.spoof_BLoggedOn                   = true;
+  config.steam.spoof_BLoggedOn                   = false;
 
   SK_FFXVI_JXLMaxThreads =
     config.screenshots.avif.max_threads;

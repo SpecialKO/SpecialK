@@ -168,8 +168,8 @@ SK::ControlPanel::Steam::Draw (void)
 {
   if (SK::SteamAPI::AppID () != 0)
   {
-    auto* pRemote =
-      steam_ctx.RemoteStorage ();// SK_SteamAPI_RemoteStorage ();
+    auto* pRemote = (! config.platform.steam_is_b0rked) ?
+                             steam_ctx.RemoteStorage () : nullptr;
 
     static BOOL app_has_cloud_storage = -1 /* Unknown */;
 

@@ -289,7 +289,7 @@ SK_GetCurrentGameID (void)
           // Streamline shenanigans
           config.compatibility.init_sync_for_streamline = true;
           config.render.dxgi.fake_fullscreen_mode       = true;
-          config.steam.spoof_BLoggedOn                  = true;
+          config.render.dstorage.submit_threads         = 2;
 
           current_game = SK_GAME_ID::FinalFantasyXVI;
         }

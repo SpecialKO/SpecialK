@@ -1948,7 +1948,7 @@ public:
     ISteamUserStats* user_stats = steam_ctx.UserStats ();
     ISteamFriends*   friends    = steam_ctx.Friends   ();
 
-    if (! user_stats)
+    if ((! user_stats) || config.platform.steam_is_b0rked)
     {
       steam_log->Log ( L" *** Cannot get ISteamUserStats interface, bailing"
                        L"-out of Achievement Manager Init. ***" );
@@ -1998,7 +1998,7 @@ public:
   {
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
-    if (stats == nullptr)
+    if (stats == nullptr || config.platform.steam_is_b0rked)
       return;
 
     for (uint32 i = 0; i < stats->GetNumAchievements (); i++)
@@ -2063,7 +2063,7 @@ public:
     ISteamUserStats* stats   = steam_ctx.UserStats ();
     ISteamFriends*   friends = steam_ctx.Friends   ();
 
-    if (! (user && stats && friends && pParam))
+    if (! (user && stats && friends && pParam && config.platform.steam_is_b0rked == false))
       return;
 
     auto user_id =
@@ -2190,7 +2190,7 @@ public:
     ISteamUserStats* stats   = steam_ctx.UserStats ();
     ISteamFriends*   friends = steam_ctx.Friends   ();
 
-    if (! (user && stats && friends && pParam))
+    if (! (user && stats && friends && pParam && config.platform.steam_is_b0rked == false))
       return;
 
     auto user_id =
@@ -2658,7 +2658,7 @@ public:
   {
     ISteamUserStats* stats = steam_ctx.UserStats ();
 
-    if (stats)
+    if (stats && config.platform.steam_is_b0rked == false)
     {
       //
       // NOTE: Memory allocation works differently in SteamAPI than EOS,
@@ -2819,7 +2819,9 @@ SK_Steam_UnlockAchievement (uint32_t idx)
   steam_log->LogEx (true, L" >> Attempting to Unlock Achievement: %lu... ",
                     idx );
 
-  ISteamUserStats* stats = steam_ctx.UserStats ();
+  ISteamUserStats* stats =
+    config.platform.steam_is_b0rked ? nullptr
+                                    : steam_ctx.UserStats ();
 
   if ( stats                        && idx <
        stats->GetNumAchievements () )
@@ -2868,7 +2870,8 @@ void
 SK_Steam_UpdateGlobalAchievements (void)
 {
   ISteamUserStats* stats =
-    steam_ctx.UserStats ();
+    config.platform.steam_is_b0rked ? nullptr
+                                    : steam_ctx.UserStats ();
 
   if (stats != nullptr && steam_achievements != nullptr)
   {
@@ -2953,7 +2956,8 @@ public:
     if (! InterlockedCompareExchange (&num_players_call_, 1, 0))
     {
       ISteamUserStats* user_stats =
-        steam_ctx.UserStats ();
+        config.platform.steam_is_b0rked ? nullptr
+                                        : steam_ctx.UserStats ();
 
       if (user_stats != nullptr)
       {
@@ -3418,7 +3422,7 @@ SK::SteamAPI::UserSteamID (void)
   ISteamUser *pUser =
     steam_ctx.User ();
 
-  if (pUser != nullptr)
+  if (pUser != nullptr && config.platform.steam_is_b0rked == false)
   {
     usr_steam_id =
       pUser->GetSteamID ();
@@ -3927,7 +3931,7 @@ SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage when, bool allow_sound, std::st
     ISteamScreenshots* pScreenshots =
       steam_ctx.Screenshots ();
 
-    if (pScreenshots)
+    if (pScreenshots && (! config.platform.steam_is_b0rked))
     {   pScreenshots->TriggerScreenshot ();
         steam_log->LogEx (false, L"EndOfFrame (Steam Overlay)\n");
     }
@@ -4651,6 +4655,14 @@ SK_SteamAPI_InitManagers (void)
     if ( stats != nullptr && ( (! user_manager) ||
                                (! steam_achievements) ) )
     {
+      // Check if SteamAPI is going to throw exceptions or not, and disable
+      //   parts of SteamAPI integration to prevent NVIDIA Streamline crashes
+      SK_SteamAPI_GetNumPlayers ();
+
+       // Streamline initiates a memory dump and abort if any exceptions are
+       //   raised during Present (...), so various API calls cannot be used
+       //     during overlay render.
+
       if (! steam_achievements)
       {
         has_global_data = false;
@@ -4678,7 +4690,6 @@ SK_SteamAPI_InitManagers (void)
 
       if (! user_manager)
       {     user_manager = std::make_unique <SK_Steam_UserManager> ();
-
         strncpy_s ( steam_ctx.var_strings.popup_origin, 16,
               SK_Steam_PopupOriginToStr (
                 config.platform.achievements.popup.origin
@@ -4689,7 +4700,8 @@ SK_SteamAPI_InitManagers (void)
                         config.platform.notify_corner
                       ), _TRUNCATE );
 
-        SK_Steam_SetNotifyCorner ();
+        if (! config.platform.steam_is_b0rked)
+          SK_Steam_SetNotifyCorner ();
       }
     }
 
@@ -5099,23 +5111,102 @@ void
 __stdcall
 SK_SteamAPI_UpdateNumPlayers (void)
 {
-  if (user_manager != nullptr)
-    user_manager->UpdateNumPlayers ();
+  // Thanks to NVIDIA Streamline's bullshit, and the fact that
+  //   SteamAPI raises an exception if this API is used while
+  //     offline or the player is invisible... it is not safe
+  //       to call certain SteamAPI functions inside of the
+  //         overlay's render code.
+  // 
+  //  * We MUST swallow exceptions and then stop calling this API
+  //
+  if (! config.platform.steam_is_b0rked)
+  {
+    __try
+    {
+      if (user_manager != nullptr)
+        user_manager->UpdateNumPlayers ();
+
+      else
+      {
+        ISteamUserStats* user_stats =
+          steam_ctx.UserStats ();
+
+        if (user_stats != nullptr)
+            user_stats->GetNumberOfCurrentPlayers ();
+      }
+    }
+
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+      SK_LOGi0 (L"SteamAPI is not working correctly, ignoring player count.");
+
+      config.platform.steam_is_b0rked = true;
+
+      if (SK_IsModuleLoaded (L"sl.interposer.dll"))
+      {
+        SK_ImGui_Warning (
+          L"SteamAPI is not working correctly and NVIDIA Streamline is used by the game."
+          L"\r\n\r\n\t>> You may experience crashes unless SteamAPI integration is disabled."
+          L"\r\n\r\nSet [Steam.Log] Silent=true"
+        );
+      }
+    }
+  }
 }
 
 int32_t
 __stdcall
 SK_SteamAPI_GetNumPlayers (void)
 {
-  if (user_manager != nullptr)
+  // Thanks to NVIDIA Streamline's bullshit, and the fact that
+  //   SteamAPI raises an exception if this API is used while
+  //     offline or the player is invisible... it is not safe
+  //       to call certain SteamAPI functions inside of the
+  //         overlay's render code.
+  // 
+  //  * We MUST swallow exceptions and then stop calling this API
+  //
+  if (! config.platform.steam_is_b0rked)
   {
-    int32 num =
-      user_manager->GetNumPlayers ();
+    __try
+    {
+      if (user_manager != nullptr)
+      {
+        int32 num =
+          user_manager->GetNumPlayers ();
 
-    if (num <= 1)
-      user_manager->UpdateNumPlayers ();
+        if (num <= 1)
+          user_manager->UpdateNumPlayers ();
 
-    return std::max (1, user_manager->GetNumPlayers ());
+        return
+          std::max (1, user_manager->GetNumPlayers ());
+      }
+
+      else
+      {
+        ISteamUserStats* user_stats =
+          steam_ctx.UserStats ();
+
+        if (user_stats != nullptr)
+            user_stats->GetNumberOfCurrentPlayers ();
+      }
+    }
+
+    __except (EXCEPTION_EXECUTE_HANDLER)
+    {
+      SK_LOGi0 (L"SteamAPI is not working correctly, ignoring player count.");
+
+      config.platform.steam_is_b0rked = true;
+
+      if (SK_IsModuleLoaded (L"sl.interposer.dll"))
+      {
+        SK_ImGui_Warning (
+          L"SteamAPI is not working correctly and NVIDIA Streamline is used by the game."
+          L"\r\n\r\n\t>> You may experience crashes unless SteamAPI integration is disabled."
+          L"\r\n\r\nSet [Steam.Log] Silent=true"
+        );
+      }
+    }
   }
 
   return 1; // You, and only you, apparently ;)
@@ -5205,7 +5296,7 @@ SK_SteamUser_BLoggedOn (void)
     ISteamUser* pUser =
       steam_ctx.User ();
 
-    if (pUser)
+    if (pUser && !config.platform.steam_is_b0rked)
       return pUser->BLoggedOn () ? SK_SteamUser_LoggedOn_e::Online :
                                    SK_SteamUser_LoggedOn_e::Offline;
 
@@ -5216,7 +5307,7 @@ SK_SteamUser_BLoggedOn (void)
   return
     static_cast <SK_SteamUser_LoggedOn_e> (
       __SK_SteamUser_BLoggedOn
-      );
+    );
 }
 
 

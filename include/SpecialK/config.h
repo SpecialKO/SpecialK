@@ -465,6 +465,7 @@ struct sk_config_t
     bool        reuse_overlay_pause   =  false;// Use Steam's overlay pause mode for our own
                                                //   control panel
     bool        silent                = false;
+    bool        steam_is_b0rked       = false; // Need to swallow some exceptions or Streamline may crash games
   } platform;
 
   struct epic_s {

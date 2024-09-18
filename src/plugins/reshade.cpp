@@ -534,6 +534,11 @@ SK_ReShadeAddOn_ActivateOverlay (bool activate)
 {
   std::ignore = activate;
 
+  // Early-out if ReShade's not relevant to avoid acquiring and
+  //   immediately releasing a reference on the SwapChain.
+  if (ReShadeRuntimes.empty ())
+    return;
+
 #if 1
   const SK_RenderBackend &rb =
     SK_GetCurrentRenderBackend ();
