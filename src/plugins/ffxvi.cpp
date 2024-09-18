@@ -611,6 +611,10 @@ SK_FFXVI_InitPlugin (void)
   // Game always crashes at shutdown
   config.system.silent_crash = true;
 
+  // Avoid Steam Offline Warnings
+  config.platform.achievements.pull_friend_stats = false;
+  config.steam.spoof_BLoggedOn                   = true;
+
   SK_FFXVI_JXLMaxThreads =
     config.screenshots.avif.max_threads;
 

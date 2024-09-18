@@ -1154,6 +1154,22 @@ void BasicInit (void)
   if (config.system.display_debug_out)
     SK::Diagnostics::Debugger::SpawnConsole ();
 
+
+   // Games that need plug-in initialization before Steam
+   //
+   switch (SK_GetCurrentGameID ())
+   {
+#ifdef _WIN64
+     case SK_GAME_ID::FinalFantasyXVI:
+       SK_FFXVI_InitPlugin ();
+       break;
+#endif
+     case SK_GAME_ID::Launcher:
+     default:
+       break;
+   }
+
+
   // Steam Overlay and SteamAPI Manipulation
   //
   if (! config.platform.silent)

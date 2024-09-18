@@ -1,4 +1,8 @@
-﻿24.9.18.3
+﻿24.9.18.4
+=========
+ + Fixed potential "Steam is Offline" errors in Final Fantasy XVI for some users
+
+24.9.18.3
 =========
  + Fixed edge-case where DLSS3 Frame Generation is active on a VRR display, but
      SK was not disabling tearing while the game has VSYNC turned off.

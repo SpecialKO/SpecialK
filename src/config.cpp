@@ -282,18 +282,16 @@ SK_GetCurrentGameID (void)
         if ( StrStrIW ( SK_GetHostApp (), L"ffxv_" ) )
         {
           current_game = SK_GAME_ID::FinalFantasyXV;
-
-          SK_FFXV_InitPlugin ();
         }
 
         else if ( StrStrIW ( SK_GetHostApp (), L"ffxvi" ) )
         {
+          // Streamline shenanigans
           config.compatibility.init_sync_for_streamline = true;
           config.render.dxgi.fake_fullscreen_mode       = true;
+          config.steam.spoof_BLoggedOn                  = true;
 
           current_game = SK_GAME_ID::FinalFantasyXVI;
-
-          SK_FFXVI_InitPlugin ();
         }
       }
 
