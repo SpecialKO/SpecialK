@@ -3750,31 +3750,12 @@ RaiseException_Detour (
 
     if (dwExceptionCode != EXCEPTION_BREAKPOINT || SK_IsDebuggerPresent ())
     {
-      __try
-      {
-        __try
-        {
-          SK_RaiseException (
-            dwExceptionCode,    dwExceptionFlags,
-            nNumberOfArguments, lpArguments
-          );
-        }
+      __SK_RaisedException.get ()[GetCurrentThreadId ()] = TRUE;
 
-        __finally
-        {
-          SK_LOGi0 (L"Unhandled Exception...");
-        }
-      }
-
-      __except (EXCEPTION_EXECUTE_HANDLER)
-      {
-        __SK_RaisedException.get ()[GetCurrentThreadId ()] = TRUE;
-
-        SK_RaiseException (
-          dwExceptionCode,    dwExceptionFlags,
-          nNumberOfArguments, lpArguments
-        );
-      }
+      SK_RaiseException (
+        dwExceptionCode,    dwExceptionFlags,
+        nNumberOfArguments, lpArguments
+      );
     }
   }
 }

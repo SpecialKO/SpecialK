@@ -1,9 +1,14 @@
-﻿24.9.18
-=======
- + Use Flip Sequential by default if a game is already Flip Model and used
-     Sequential, or if upgrading to Flip Model but ReShade is loaded.
+﻿24.9.18.1
+=========
+ + Adjust SEH Exception logging code for compatibility with GOG Galaxy API
 
-    >> This helps screenshot compatibility in games that use ReShade.
+24.9.18
+=======
+ + Use Flip Sequential by default if a game is already Flip Model and uses
+     Sequential, or if upgrading a Blt Sequential game to  Flip Model, or
+       if ReShade is loaded.
+
+    >> This helps screenshot compatibility in games when using ReShade.
 
 24.9.17.5
 =========
