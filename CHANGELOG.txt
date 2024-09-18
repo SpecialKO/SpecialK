@@ -1,4 +1,9 @@
-﻿24.9.18.2
+﻿24.9.18.3
+=========
+ + Fixed edge-case where DLSS3 Frame Generation is active on a VRR display, but
+     SK was not disabling tearing while the game has VSYNC turned off.
+
+24.9.18.2
 =========
  + Baldur's Gate 3 has native DualSense support now, but lacks DualSense Edge
      support, so SK is configured to identify DualSense Edge controllers as
