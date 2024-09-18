@@ -2373,6 +2373,12 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
+  const auto& display =
+    rb.displays [rb.active_display];
+
+  const bool bDLSS3OnVRRDisplay =
+    (__SK_IsDLSSGActive && display.nvapi.vrr_enabled);
+
   auto _Present = [&](UINT _SyncInterval,
                       UINT _Flags) ->
   HRESULT
@@ -2381,7 +2387,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
          config.render.framerate.target_fps_bg < rb.getActiveRefreshRate () / 2.0f &&
          (! SK_IsGameWindowActive ()) )
     {
-      if ( SK_GetFramesDrawn () > 30 && rb.displays [rb.active_display].nvapi.vrr_enabled &&
+      if ( SK_GetFramesDrawn () > 30 && display.nvapi.vrr_enabled &&
            ( config.window.background_render ||
              config.window.always_on_top == SmartAlwaysOnTop ) )
       {
@@ -2448,7 +2454,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       }
     
       // Turn tearing off when using frame generation
-      if (__SK_IsDLSSGActive && rb.displays [rb.active_display].nvapi.vrr_enabled)
+      if (bDLSS3OnVRRDisplay)
       {
         _Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
         _SyncInterval = 0;
@@ -2476,7 +2482,7 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
         _d3d12_rbk->release (This);
       }
 
-      if ( ret != S_OK && (! rb.active_traits.bOriginallyFlip) && SK_GetCurrentRenderBackend ().api != SK_RenderAPI::D3D12 )
+      if ( ret != S_OK && (! rb.active_traits.bOriginallyFlip) && rb.api != SK_RenderAPI::D3D12 )
       {
         // This would recurse infinitely without the ghetto lock
         //
@@ -2588,8 +2594,8 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       );
     };
 
-  if (! config.render.dxgi.allow_tearing)
-  {
+  if ((! config.render.dxgi.allow_tearing) || bDLSS3OnVRRDisplay)
+  {                                           // Turn tearing off when using frame generation
     if (Flags & DXGI_PRESENT_ALLOW_TEARING)
     {
       SK_RunOnce (
@@ -2597,6 +2603,11 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
       );
 
       Flags &= ~DXGI_PRESENT_ALLOW_TEARING;
+    }
+
+    if (bDLSS3OnVRRDisplay)
+    {
+      SyncInterval = 0;
     }
   }
 
