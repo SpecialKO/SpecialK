@@ -551,6 +551,8 @@ SK_FFXVI_PlugInCfg (void)
         }
       }
 
+      ImGui::BeginGroup ();
+
       if (SK_FFXVI_AntiGraphicsDebugAddr != 0)
       {
         if (ImGui::Checkbox ("Disable Graphics Debugger Checks", &SK_FFXVI_AllowGraphicsDebug))
@@ -585,6 +587,57 @@ SK_FFXVI_PlugInCfg (void)
         ImGui::BulletText      ("This option prevents running the game at a different resolution than your desktop.");
         ImGui::EndTooltip      ();
       }
+
+      ImGui::EndGroup    ();
+      ImGui::SameLine    ();
+      ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine    ();
+      ImGui::BeginGroup  ();
+
+      if (ImGui::SliderInt (
+            "DirectStorage Work Submit",
+              &config.render.dstorage.submit_threads,   -1,
+               config.priority.available_cpu_cores,
+               config.render.dstorage.submit_threads == -1 ?
+                               "Default Number of Threads" : "%d Threads"))
+      {
+        if (config.render.dstorage.submit_threads == 0)
+            config.render.dstorage.submit_threads = -1;
+
+        restart_warning = true;
+        config.utility.save_async ();
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip (
+          "May improve throughput and shorter loads / less stutter, but "
+          "may also cause instability if set too high."
+        );
+      }
+
+      if (ImGui::SliderInt (
+            "DirectStorage CPU Decompression",
+              &config.render.dstorage.cpu_decomp_threads,   -1,
+               config.priority.available_cpu_cores,
+               config.render.dstorage.cpu_decomp_threads == -1 ?
+                                   "Default Number of Threads" : "%d Threads"))
+      {
+        if (config.render.dstorage.cpu_decomp_threads == 0)
+            config.render.dstorage.cpu_decomp_threads = -1;
+
+        restart_warning = true;
+        config.utility.save_async ();
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip (
+          "May improve performance if GPU Decompression is forcefully disabled."
+        );
+      }
+
+      ImGui::EndGroup ();
 
       if (restart_warning)
       {

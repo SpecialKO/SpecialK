@@ -1,4 +1,13 @@
-﻿24.9.18.4
+﻿24.9.18.5
+=========
+ + Added experimental DirectStorage Submit Thread and CPU Decompression Thread
+     count overrides to Final Fantasy XVI.
+
+  >> Default Submit Threads are 1; increasing may reduce load time and stutter.
+
+   * Experiment with conservatively, high thread count has been known to crash.
+
+24.9.18.4
 =========
  + Fixed potential "Steam is Offline" errors in Final Fantasy XVI for some users
 

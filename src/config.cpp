@@ -913,6 +913,8 @@ struct {
     sk::ParameterBool*    disable_telemetry       = nullptr;
     sk::ParameterBool*    disable_gpu_decomp      = nullptr;
     sk::ParameterBool*    force_file_buffering    = nullptr;
+    sk::ParameterInt*     submit_threads          = nullptr;
+    sk::ParameterInt*     cpu_decomp_threads      = nullptr;
   } dstorage;
 
   struct {
@@ -1939,6 +1941,8 @@ auto DeclKeybind =
     ConfigEntry (render.dstorage.disable_telemetry,      L"Disable DirectStorage Telemetry",                           dll_ini,         L"Render.DStorage",       L"DisableTelemetry"),
     ConfigEntry (render.dstorage.disable_gpu_decomp,     L"Disable DirectStorage (1.2) GPU Decompression",             dll_ini,         L"Render.DStorage",       L"DisableGPUDecompression"),
     ConfigEntry (render.dstorage.force_file_buffering,   L"Force DirectStorage File Buffering",                        dll_ini,         L"Render.DStorage",       L"ForceFileBuffering"),
+    ConfigEntry (render.dstorage.submit_threads,         L"Override default number of DirectStorage Submit threads",   dll_ini,         L"Render.DStorage",       L"NumberOfSubmitThreads"),
+    ConfigEntry (render.dstorage.cpu_decomp_threads,     L"Override default number of CPU Decompression threads",      dll_ini,         L"Render.DStorage",       L"NumberOfCPUDecompThreads"),
 
     ConfigEntry (texture.d3d9.clamp_lod_bias,            L"Clamp Negative LOD Bias",                                   dll_ini,         L"Textures.D3D9",         L"ClampNegativeLODBias"),
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -4361,6 +4365,9 @@ auto DeclKeybind =
                                     load (config.render.dstorage.disable_gpu_decomp);
   render.dstorage.force_file_buffering->
                                     load (config.render.dstorage.force_file_buffering);
+  render.dstorage.submit_threads->  load (config.render.dstorage.submit_threads);
+  render.dstorage.cpu_decomp_threads->
+                                    load (config.render.dstorage.cpu_decomp_threads);
 
   texture.d3d11.cache->load              (config.textures.d3d11.cache);
   texture.d3d11.use_l3_hash->load        (config.textures.d3d11.use_l3_hash);
@@ -6330,6 +6337,9 @@ SK_SaveConfig ( std::wstring name,
                                         store (config.render.dstorage.disable_gpu_decomp);
       render.dstorage.force_file_buffering->
                                         store (config.render.dstorage.force_file_buffering);
+      render.dstorage.submit_threads->  store (config.render.dstorage.submit_threads);
+      render.dstorage.cpu_decomp_threads->
+                                        store (config.render.dstorage.cpu_decomp_threads);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||

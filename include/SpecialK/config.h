@@ -817,6 +817,8 @@ struct sk_config_t
       bool    disable_telemetry    = false;
       bool    disable_gpu_decomp   = false;
       bool    force_file_buffering = false;
+      int     submit_threads       = -1;
+      int     cpu_decomp_threads   = -1;
     } dstorage;
 
     struct {
