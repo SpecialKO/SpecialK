@@ -597,7 +597,7 @@ SK_FFXVI_PlugInCfg (void)
       if (ImGui::SliderInt (
             "DirectStorage Work Submit",
               &config.render.dstorage.submit_threads,   -1,
-               config.priority.available_cpu_cores,
+            2/*config.priority.available_cpu_cores*/,
                config.render.dstorage.submit_threads == -1 ?
                                "Default Number of Threads" : "%d Threads"))
       {
@@ -612,7 +612,7 @@ SK_FFXVI_PlugInCfg (void)
       {
         ImGui::SetTooltip (
           "May improve throughput and shorter loads / less stutter, but "
-          "may also cause instability if set too high."
+          "may also cause instability."
         );
       }
 

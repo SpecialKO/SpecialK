@@ -95,7 +95,8 @@ SK_IWrapDStorageFactory::CreateQueue (const DSTORAGE_QUEUE_DESC *desc, REFIID ri
     }
   }
 
-  override_desc.Capacity *= 2;
+  if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXVI)
+    override_desc.Capacity = (uint16_t)((float)override_desc.Capacity * 0.75f);
 
   IDStorageQueue *pQueue = nullptr;
   
