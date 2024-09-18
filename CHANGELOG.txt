@@ -1,6 +1,12 @@
-﻿24.9.18.1
+﻿24.9.18.2
 =========
- + Adjust SEH Exception logging code for compatibility with GOG Galaxy API
+ + Baldur's Gate 3 has native DualSense support now, but lacks DualSense Edge
+     support, so SK is configured to identify DualSense Edge controllers as
+       DualSense to make them work natively in Baldur's Gate 3.
+
+24.9.18.1
+=========
+ + Adjusted SEH Exception logging code for compatibility with GOG Galaxy API
 
 24.9.18
 =======

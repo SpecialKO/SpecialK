@@ -2830,6 +2830,10 @@ auto DeclKeybind =
 
       case SK_GAME_ID::BaldursGate3:
       {
+        // Game has native support for DualSense, but not DualSense Edge
+        config.input.gamepad.scepad.hide_ds_edge_pid = true;
+        config.input.gamepad.xinput.emulate          = false;
+
         // The Vulkan executable is simply bg3.exe,
         //   D3D11 is bg3_dx11.exe
         bool bVulkan =
