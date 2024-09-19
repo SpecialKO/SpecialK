@@ -36,6 +36,7 @@ static int   SK_FFXVI_JXLMaxThreads = 5;
 static bool SK_FFXVI_UncapCutscenes     = true;
 static bool SK_FFXVI_FramegenCutscenes  = true;
 static bool SK_FFXVI_AllowGraphicsDebug = true;
+static bool SK_FFXVI_ActiveAntiStutter  = true;
 
 static INT64 SK_FFXVI_CutsceneFPSAddr       = 0x0;
 static INT64 SK_FFXVI_CutsceneFGAddr        = 0x0;
@@ -50,6 +51,7 @@ struct {
   sk::ParameterInt64* cutscene_fps_addr  = nullptr;
   sk::ParameterInt64* cutscene_fg_addr   = nullptr;
   sk::ParameterInt64* anti_gr_debug_addr = nullptr;
+  sk::ParameterBool*  active_antistutter = nullptr;
 } static ini;
 
 struct patch_byte_s {
@@ -335,6 +337,21 @@ SK_FFXVI_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 
   if (! ini.allow_cutscene_fg->load  (SK_FFXVI_FramegenCutscenes))
         ini.allow_cutscene_fg->store (SK_FFXVI_FramegenCutscenes);
+
+  ini.active_antistutter =
+    _CreateConfigParameterBool ( L"FFXVI.PlugIn",
+                                 L"ActiveAntiStutter", SK_FFXVI_ActiveAntiStutter,
+                                 L"Decrease CPU Idle Time For Better Frametime Consistency" );
+
+  if (! ini.active_antistutter->load  (SK_FFXVI_ActiveAntiStutter))
+        ini.active_antistutter->store (SK_FFXVI_ActiveAntiStutter);
+
+  if (SK_FFXVI_ActiveAntiStutter)
+  {
+    config.render.framerate.max_delta_time   = 50;
+    config.render.framerate.sleepless_render = true;
+    config.render.framerate.sleepless_window = true;
+  }
 
   ini.cutscene_fps_addr =
     _CreateConfigParameterInt64 ( L"FFXVI.PlugIn",
@@ -647,6 +664,36 @@ SK_FFXVI_PlugInCfg (void)
         ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
         ImGui::BulletText     ("Game Restart May Be Required");
         ImGui::PopStyleColor  ();
+      }
+
+      if (ImGui::Checkbox ("Aggressive Anti-Stutter", &SK_FFXVI_ActiveAntiStutter))
+      {
+        if (SK_FFXVI_ActiveAntiStutter)
+        {
+          config.render.framerate.max_delta_time   = 50;
+          config.render.framerate.sleepless_render = true;
+          config.render.framerate.sleepless_window = true;
+        }
+
+        else
+        {
+          config.render.framerate.max_delta_time   = 0;
+          config.render.framerate.sleepless_render = false;
+          config.render.framerate.sleepless_window = false;
+        }
+
+        ini.active_antistutter->store (SK_FFXVI_ActiveAntiStutter);
+
+        config.utility.save_async ();
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip (
+          "Increases overall CPU load on threads that are poorly synchronized; "
+          "these threads sleep for short intervals instead of being signaled "
+          "when they have actual work to do..."
+        );
       }
 
       ImGui::TreePop ();

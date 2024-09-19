@@ -288,6 +288,7 @@ SK_GetCurrentGameID (void)
         {
           // Streamline shenanigans
           config.compatibility.init_sync_for_streamline = true;
+
           config.render.dxgi.fake_fullscreen_mode       = true;
           config.render.dstorage.submit_threads         = 2;
           config.system.auto_load_asi_files             = true;

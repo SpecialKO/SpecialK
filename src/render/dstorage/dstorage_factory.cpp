@@ -112,14 +112,14 @@ SK_IWrapDStorageFactory::CreateQueue (const DSTORAGE_QUEUE_DESC *desc, REFIID ri
     else if (override_desc.Priority == DSTORAGE_PRIORITY_NORMAL)
     {
       override_desc.Capacity =
-        (uint16_t)((float)override_desc.Capacity * 1.25f);
+        (uint16_t)((float)override_desc.Capacity * 2.0f);
     }
 
-    else if (override_desc.Priority == DSTORAGE_PRIORITY_LOW)
-    {
-      override_desc.Capacity =
-        (uint16_t)((float)override_desc.Capacity * 1.75f);
-    }
+    //else if (override_desc.Priority == DSTORAGE_PRIORITY_LOW)
+    //{
+    //  override_desc.Capacity =
+    //    (uint16_t)((float)override_desc.Capacity * 1.25f);
+    //}
   }
 
   IDStorageQueue *pQueue = nullptr;
