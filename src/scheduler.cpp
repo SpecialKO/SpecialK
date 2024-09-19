@@ -1301,9 +1301,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   if (bFFXVI)
   {
     static thread_local uint64_t sleeps_skipped = 0;
-    if (                         sleeps_skipped++ %
-         (config.priority.available_cpu_cores *
-          config.priority.available_cpu_cores * 2) == 0 )
+    if (                         sleeps_skipped++ % 3 == 0 )
     {
       return
         SK_SleepEx (dwMilliseconds, bAlertable);

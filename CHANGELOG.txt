@@ -1,4 +1,8 @@
-﻿24.9.19.3
+﻿24.9.19.4
+=========
+ + Set DontHookWndProc=true by default in FFXVI to deal with the splash screen
+
+24.9.19.3
 =========
  + Handle Final Fantasy XVI's NVIDIA Streamline Interposer trying to
      create a new SwapChain while the game is exiting and has no window
