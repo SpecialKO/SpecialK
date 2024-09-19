@@ -1,4 +1,8 @@
-﻿24.9.19.4
+﻿24.9.19.5
+=========
+ + Fixed DLSS control panel not appearing in D3D11 games
+
+24.9.19.4
 =========
  + Set DontHookWndProc=true by default in FFXVI to deal with the splash screen
 

@@ -40,14 +40,11 @@ bool
 SK_NGX_IsUsingDLSS (void)
 {
   const auto& dlss_ss =
-    SK_NGX_DLSS12.super_sampling;
+    (SK_NGX_DLSS12.apis_called    ?
+     SK_NGX_DLSS12.super_sampling : SK_NGX_DLSS11.super_sampling);
 
-  if (SK_NGX_DLSS12.apis_called != false)
-    return                 dlss_ss.Handle     != nullptr                &&
-      ReadULong64Acquire (&dlss_ss.LastFrame) >= SK_GetFramesDrawn () - 8;
-  else
-    return                 dlss_ss.Handle     != nullptr                &&
-      ReadULong64Acquire (&dlss_ss.LastFrame) >= SK_GetFramesDrawn () - 8;
+  return                 dlss_ss.Handle     != nullptr                &&
+    ReadULong64Acquire (&dlss_ss.LastFrame) >= SK_GetFramesDrawn () - 8;
 }
 
 bool

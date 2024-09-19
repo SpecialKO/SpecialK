@@ -69,19 +69,33 @@ NVAPI_INTERFACE
 SK_NvAPI_D3D_SetLatencyMarker ( __in IUnknown                 *pDev,
                                 __in NV_LATENCY_MARKER_PARAMS *pSetLatencyMarkerParams )
 {
-  if (     NvAPI_D3D_SetLatencyMarker_Original != nullptr)
-    return NvAPI_D3D_SetLatencyMarker_Original (pDev, pSetLatencyMarkerParams);
+  if (NvAPI_D3D_SetLatencyMarker_Original != nullptr)
+  { 
+    SK_ComPtr <ID3D12Device>                     pDev12;
+    if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
+      return NvAPI_D3D_SetLatencyMarker_Original(pDev12.p, pSetLatencyMarkerParams);
+    else
+      return NvAPI_D3D_SetLatencyMarker_Original(pDev,     pSetLatencyMarkerParams);
+  }
 
-  return NVAPI_NOT_SUPPORTED;
+  return
+    NVAPI_NOT_SUPPORTED;
 }
 
 NVAPI_INTERFACE
 SK_NvAPI_D3D_Sleep (__in IUnknown *pDev)
 {
-  if (     NvAPI_D3D_Sleep_Original != nullptr)
-    return NvAPI_D3D_Sleep_Original (pDev);
+  if (NvAPI_D3D_Sleep_Original != nullptr)
+  { 
+    SK_ComPtr <ID3D12Device>                     pDev12;
+    if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
+      return NvAPI_D3D_Sleep_Original (          pDev12.p);
+    else
+      return NvAPI_D3D_Sleep_Original (          pDev);
+  }
 
-  return NVAPI_NOT_SUPPORTED;
+  return
+    NVAPI_NOT_SUPPORTED;
 }
 
 NVAPI_INTERFACE
@@ -95,18 +109,28 @@ NvAPI_D3D_Sleep_Detour (__in IUnknown *pDev)
   if (config.nvidia.reflex.disable_native)
     return NVAPI_OK;
 
-  return
-    SK_NvAPI_D3D_Sleep (pDev);
+  SK_ComPtr <ID3D12Device>                     pDev12;
+  if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
+    return SK_NvAPI_D3D_Sleep (                pDev12);
+  else
+    return SK_NvAPI_D3D_Sleep (pDev);
 }
 
 NVAPI_INTERFACE
 SK_NvAPI_D3D_SetSleepMode ( __in IUnknown                 *pDev,
                             __in NV_SET_SLEEP_MODE_PARAMS *pSetSleepModeParams )
 {
-  if (     NvAPI_D3D_SetSleepMode_Original != nullptr)
-    return NvAPI_D3D_SetSleepMode_Original (pDev, pSetSleepModeParams);
+  if (NvAPI_D3D_SetSleepMode_Original != nullptr)
+  {
+    SK_ComPtr <ID3D12Device>                     pDev12;
+    if (SK_slGetNativeInterface (pDev, (void **)&pDev12.p) == sl::Result::eOk)
+      return NvAPI_D3D_SetSleepMode_Original (   pDev12, pSetSleepModeParams);
+    else
+      return NvAPI_D3D_SetSleepMode_Original (   pDev,   pSetSleepModeParams);
+  }
 
-  return NVAPI_NOT_SUPPORTED;
+  return
+    NVAPI_NOT_SUPPORTED;
 }
 
 // If this returns true, we submitted the latency marker(s) ourselves and normal processing
