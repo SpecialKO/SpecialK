@@ -305,177 +305,184 @@ SK_FFXVI_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
   UNREFERENCED_PARAMETER (SyncInterval);
   UNREFERENCED_PARAMETER (Flags);
 
-  SK_CreateDLLHook2 (      L"jxl.dll",
-                            "JxlEncoderAddImageFrame",
-                             JxlEncoderAddImageFrame_Detour,
-    static_cast_p2p <void> (&JxlEncoderAddImageFrame_Original) );
-
-  SK_CreateDLLHook2 (      L"jxl.dll",
-                            "JxlEncoderSetBasicInfo",
-                             JxlEncoderSetBasicInfo_Detour,
-    static_cast_p2p <void> (&JxlEncoderSetBasicInfo_Original) );
-
-  SK_CreateDLLHook2 (      L"jxl_threads.dll",
-                            "JxlThreadParallelRunnerDefaultNumWorkerThreads",
-                             JxlThreadParallelRunnerDefaultNumWorkerThreads_Detour,
-    static_cast_p2p <void> (&JxlThreadParallelRunnerDefaultNumWorkerThreads_Original) );
-
-  SK_ApplyQueuedHooks ();
-
-  ini.uncap_cutscene_fps =
-    _CreateConfigParameterBool ( L"FFXVI.PlugIn",
-                                 L"UncapCutsceneFPS", SK_FFXVI_UncapCutscenes,
-                                 L"Remove 30 FPS Cutscene Limit" );
-
-  if (! ini.uncap_cutscene_fps->load  (SK_FFXVI_UncapCutscenes))
-        ini.uncap_cutscene_fps->store (SK_FFXVI_UncapCutscenes);
-
-  ini.allow_cutscene_fg =
-    _CreateConfigParameterBool ( L"FFXVI.PlugIn",
-                                 L"AllowCutsceneFG", SK_FFXVI_FramegenCutscenes,
-                                 L"Allow Frame Generation in Cutscenes" );
-
-  if (! ini.allow_cutscene_fg->load  (SK_FFXVI_FramegenCutscenes))
-        ini.allow_cutscene_fg->store (SK_FFXVI_FramegenCutscenes);
-
-  ini.active_antistutter =
-    _CreateConfigParameterBool ( L"FFXVI.PlugIn",
-                                 L"ActiveAntiStutter", SK_FFXVI_ActiveAntiStutter,
-                                 L"Decrease CPU Idle Time For Better Frametime Consistency" );
-
-  if (! ini.active_antistutter->load  (SK_FFXVI_ActiveAntiStutter))
-        ini.active_antistutter->store (SK_FFXVI_ActiveAntiStutter);
-
-  if (SK_FFXVI_ActiveAntiStutter)
+  SK_Thread_Create ([](LPVOID)->DWORD
   {
-    config.render.framerate.max_delta_time   = 15;
-    config.render.framerate.sleepless_render = true;
-    config.render.framerate.sleepless_window = true;
-  }
+    SK_CreateDLLHook2 (      L"jxl.dll",
+                              "JxlEncoderAddImageFrame",
+                               JxlEncoderAddImageFrame_Detour,
+      static_cast_p2p <void> (&JxlEncoderAddImageFrame_Original) );
 
-  ini.cutscene_fps_addr =
-    _CreateConfigParameterInt64 ( L"FFXVI.PlugIn",
-                                  L"CutsceneFPSAddr", SK_FFXVI_CutsceneFPSAddr,
-                                  L"Cache Last Known Address" );
+    SK_CreateDLLHook2 (      L"jxl.dll",
+                              "JxlEncoderSetBasicInfo",
+                               JxlEncoderSetBasicInfo_Detour,
+      static_cast_p2p <void> (&JxlEncoderSetBasicInfo_Original) );
 
-  ini.cutscene_fg_addr =
-    _CreateConfigParameterInt64 ( L"FFXVI.PlugIn",
-                                  L"CutsceneFGAddr", SK_FFXVI_CutsceneFGAddr,
-                                  L"Cache Last Known Address" );
+    SK_CreateDLLHook2 (      L"jxl_threads.dll",
+                              "JxlThreadParallelRunnerDefaultNumWorkerThreads",
+                               JxlThreadParallelRunnerDefaultNumWorkerThreads_Detour,
+      static_cast_p2p <void> (&JxlThreadParallelRunnerDefaultNumWorkerThreads_Original) );
 
-  ini.anti_gr_debug_addr =
-    _CreateConfigParameterInt64 ( L"FFXVI.PlugIn",
-                                  L"AntiGraphicsDebugAddr", SK_FFXVI_AntiGraphicsDebugAddr,
-                                  L"Cache Last Known Address" );
+    SK_ApplyQueuedHooks ();
 
-  void *limit_addr = (void *)SK_FFXVI_CutsceneFPSAddr;
+    ini.uncap_cutscene_fps =
+      _CreateConfigParameterBool ( L"FFXVI.PlugIn",
+                                   L"UncapCutsceneFPS", SK_FFXVI_UncapCutscenes,
+                                   L"Remove 30 FPS Cutscene Limit" );
 
-  if (SK_FFXVI_CutsceneFPSAddr != 0)
-  {
-    DWORD                                                                               dwOrigProt;
-    if (! VirtualProtect ((void *)SK_FFXVI_CutsceneFPSAddr, 3, PAGE_EXECUTE_READWRITE, &dwOrigProt))
-      SK_FFXVI_CutsceneFPSAddr = 0;
-  }
+    if (! ini.uncap_cutscene_fps->load  (SK_FFXVI_UncapCutscenes))
+          ini.uncap_cutscene_fps->store (SK_FFXVI_UncapCutscenes);
 
-  if (                     limit_addr == nullptr || 
-      !SK_ValidatePointer (limit_addr, true)     ||
-             (* (uint8_t *)limit_addr    != 0x75 ||
-              *((uint8_t *)limit_addr+2) != 0x85))
-  {
-    limit_addr =                              //\x01, but may have been patched, so ignore
-      SK_Scan ("\x75\x00\x85\x00\x74\x00\x40\x00\x00\x41\x00\x00\x00\x00\x00\x00\x00", 17,
-               "\xff\x00\xff\x00\xff\x00\xff\x00\x00\xff\x00\x00\x00\x00\x00\x00\x00");
+    ini.allow_cutscene_fg =
+      _CreateConfigParameterBool ( L"FFXVI.PlugIn",
+                                   L"AllowCutsceneFG", SK_FFXVI_FramegenCutscenes,
+                                   L"Allow Frame Generation in Cutscenes" );
+
+    if (! ini.allow_cutscene_fg->load  (SK_FFXVI_FramegenCutscenes))
+          ini.allow_cutscene_fg->store (SK_FFXVI_FramegenCutscenes);
+
+    ini.active_antistutter =
+      _CreateConfigParameterBool ( L"FFXVI.PlugIn",
+                                   L"ActiveAntiStutter", SK_FFXVI_ActiveAntiStutter,
+                                   L"Decrease CPU Idle Time For Better Frametime Consistency" );
+
+    if (! ini.active_antistutter->load  (SK_FFXVI_ActiveAntiStutter))
+          ini.active_antistutter->store (SK_FFXVI_ActiveAntiStutter);
+
+    if (SK_FFXVI_ActiveAntiStutter)
+    {
+      config.render.framerate.max_delta_time   = 15;
+      config.render.framerate.sleepless_render = true;
+      config.render.framerate.sleepless_window = true;
+    }
+
+    ini.cutscene_fps_addr =
+      _CreateConfigParameterInt64 ( L"FFXVI.PlugIn",
+                                    L"CutsceneFPSAddr", SK_FFXVI_CutsceneFPSAddr,
+                                    L"Cache Last Known Address" );
+
+    ini.cutscene_fg_addr =
+      _CreateConfigParameterInt64 ( L"FFXVI.PlugIn",
+                                    L"CutsceneFGAddr", SK_FFXVI_CutsceneFGAddr,
+                                    L"Cache Last Known Address" );
+
+    ini.anti_gr_debug_addr =
+      _CreateConfigParameterInt64 ( L"FFXVI.PlugIn",
+                                    L"AntiGraphicsDebugAddr", SK_FFXVI_AntiGraphicsDebugAddr,
+                                    L"Cache Last Known Address" );
+
+    void *limit_addr = (void *)SK_FFXVI_CutsceneFPSAddr;
+
+    if (SK_FFXVI_CutsceneFPSAddr != 0)
+    {
+      DWORD                                                                               dwOrigProt;
+      if (! VirtualProtect ((void *)SK_FFXVI_CutsceneFPSAddr, 3, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+        SK_FFXVI_CutsceneFPSAddr = 0;
+    }
+
+    if (                     limit_addr == nullptr || 
+        !SK_ValidatePointer (limit_addr, true)     ||
+               (* (uint8_t *)limit_addr    != 0x75 ||
+                *((uint8_t *)limit_addr+2) != 0x85))
+    {
+      limit_addr =                              //\x01, but may have been patched, so ignore
+        SK_Scan ("\x75\x00\x85\x00\x74\x00\x40\x00\x00\x41\x00\x00\x00\x00\x00\x00\x00", 17,
+                 "\xff\x00\xff\x00\xff\x00\xff\x00\x00\xff\x00\x00\x00\x00\x00\x00\x00");
+
+      if (limit_addr != nullptr)
+        ini.cutscene_fps_addr->store ((int64_t)limit_addr);
+    }
+
+    else SK_LOGi0 (L"Skipped memory address scan for FPS Limit Branch");
 
     if (limit_addr != nullptr)
-      ini.cutscene_fps_addr->store ((int64_t)limit_addr);
-  }
+    {
+      cutscene_unlock.address  = ((uint8_t *)limit_addr)+0x8;
+      cutscene_unlock.original = 1;
+      cutscene_unlock.override = 0;
 
-  else SK_LOGi0 (L"Skipped memory address scan for FPS Limit Branch");
+      if (SK_FFXVI_UncapCutscenes)
+        cutscene_unlock.enable ();
+    }
 
-  if (limit_addr != nullptr)
-  {
-    cutscene_unlock.address  = ((uint8_t *)limit_addr)+0x8;
-    cutscene_unlock.original = 1;
-    cutscene_unlock.override = 0;
+    void *fg_enablement_addr = (void *)SK_FFXVI_CutsceneFGAddr;
 
-    if (SK_FFXVI_UncapCutscenes)
-      cutscene_unlock.enable ();
-  }
+    if (SK_FFXVI_CutsceneFGAddr != 0)
+    {
+      DWORD                                                                              dwOrigProt;
+      if (! VirtualProtect ((void *)SK_FFXVI_CutsceneFGAddr, 6, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+        SK_FFXVI_CutsceneFGAddr = 0;
+    }
 
-  void *fg_enablement_addr = (void *)SK_FFXVI_CutsceneFGAddr;
+    if (                     fg_enablement_addr == nullptr ||
+        !SK_ValidatePointer (fg_enablement_addr, true)     ||
+               (* (uint8_t *)fg_enablement_addr    != 0x41 ||
+                *((uint8_t *)fg_enablement_addr+5) != 0x33))
+    {
+      fg_enablement_addr =  //\x74, but this may have been patched by other software, so count it as dontcare
+        SK_Scan ("\x41\x00\x00\x00\x00\x33\x00\x48\x00\x00\xE8\x00\x00\x00\x00\x8B\x00\x00\x00\x00\x00\xD1\x00", 23,
+                 "\xff\x00\x00\x00\x00\xff\x00\xff\x00\x00\xff\x00\x00\x00\x00\xff\x00\x00\x00\x00\x00\xff\x00");
 
-  if (SK_FFXVI_CutsceneFGAddr != 0)
-  {
-    DWORD                                                                              dwOrigProt;
-    if (! VirtualProtect ((void *)SK_FFXVI_CutsceneFGAddr, 6, PAGE_EXECUTE_READWRITE, &dwOrigProt))
-      SK_FFXVI_CutsceneFGAddr = 0;
-  }
+      if (fg_enablement_addr != nullptr)
+        ini.cutscene_fg_addr->store ((int64_t)fg_enablement_addr);
+    }
 
-  if (                     fg_enablement_addr == nullptr ||
-      !SK_ValidatePointer (fg_enablement_addr, true)     ||
-             (* (uint8_t *)fg_enablement_addr    != 0x41 ||
-              *((uint8_t *)fg_enablement_addr+5) != 0x33))
-  {
-    fg_enablement_addr =  //\x74, but this may have been patched by other software, so count it as dontcare
-      SK_Scan ("\x41\x00\x00\x00\x00\x33\x00\x48\x00\x00\xE8\x00\x00\x00\x00\x8B\x00\x00\x00\x00\x00\xD1\x00", 23,
-               "\xff\x00\x00\x00\x00\xff\x00\xff\x00\x00\xff\x00\x00\x00\x00\xff\x00\x00\x00\x00\x00\xff\x00");
+    else SK_LOGi0 (L"Skipped memory address scan for Cutscene Frame Generation Branch");
 
     if (fg_enablement_addr != nullptr)
-      ini.cutscene_fg_addr->store ((int64_t)fg_enablement_addr);
-  }
-
-  else SK_LOGi0 (L"Skipped memory address scan for Cutscene Frame Generation Branch");
-
-  if (fg_enablement_addr != nullptr)
-  {
-    cutscene_fg.address  = ((uint8_t *)fg_enablement_addr)+0x3;
-    cutscene_fg.original = 0x74;
-    cutscene_fg.override = 0xEB;
-
-    if (SK_FFXVI_FramegenCutscenes)
-      cutscene_fg.enable ();
-  }
-
-  void *anti_gr_debug_addr =
-    (void *)SK_FFXVI_AntiGraphicsDebugAddr;
-
-  if (                     anti_gr_debug_addr == nullptr ||
-      !SK_ValidatePointer (anti_gr_debug_addr, true)     ||
-             (*((uint8_t *)anti_gr_debug_addr+1) != 0x85 ||
-              *((uint8_t *)anti_gr_debug_addr+2) != 0xc0 ||
-              *((uint8_t *)anti_gr_debug_addr+3) != 0x0f))
-  {
-    anti_gr_debug_addr =
-      SK_Scan ("\x00\x85\xc0\x0f\x85\x00\x00\x00\x00\x48\x8b\x0d\x00\x00\x00\x00\x48\x85\xc9\x00\x0d\xe8\x00\x00\x00\x00\x84\xc0", 28,
-               "\x00\x85\xc0\x0f\x85\x00\x00\x00\x00\x48\x8b\x0d\x00\x00\x00\x00\x48\x85\xc9\x00\x0d\xe8\x00\x00\x00\x00\x84\xc0");
-
-    if (anti_gr_debug_addr != nullptr)
-      ini.anti_gr_debug_addr->store ((int64_t)anti_gr_debug_addr);
-  }
-
-  else SK_LOGi0 (L"Skipped memory address scan for Graphics Debugger Branch");
-
-  if (anti_gr_debug_addr != 0x0 && SK_FFXVI_AllowGraphicsDebug)
-  {
-    DWORD dwOrigProt = 0x0;
-
-    uint16_t* branch_addr =
-      (uint16_t *)((uintptr_t)anti_gr_debug_addr + 0x13);
-
-    if (*branch_addr == 0x0d74) // je
     {
-      if (VirtualProtect (branch_addr, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+      cutscene_fg.address  = ((uint8_t *)fg_enablement_addr)+0x3;
+      cutscene_fg.original = 0x74;
+      cutscene_fg.override = 0xEB;
+
+      if (SK_FFXVI_FramegenCutscenes)
+        cutscene_fg.enable ();
+    }
+
+    void *anti_gr_debug_addr =
+      (void *)SK_FFXVI_AntiGraphicsDebugAddr;
+
+    if (                     anti_gr_debug_addr == nullptr ||
+        !SK_ValidatePointer (anti_gr_debug_addr, true)     ||
+               (*((uint8_t *)anti_gr_debug_addr+1) != 0x85 ||
+                *((uint8_t *)anti_gr_debug_addr+2) != 0xc0 ||
+                *((uint8_t *)anti_gr_debug_addr+3) != 0x0f))
+    {
+      anti_gr_debug_addr =
+        SK_Scan ("\x00\x85\xc0\x0f\x85\x00\x00\x00\x00\x48\x8b\x0d\x00\x00\x00\x00\x48\x85\xc9\x00\x0d\xe8\x00\x00\x00\x00\x84\xc0", 28,
+                 "\x00\x85\xc0\x0f\x85\x00\x00\x00\x00\x48\x8b\x0d\x00\x00\x00\x00\x48\x85\xc9\x00\x0d\xe8\x00\x00\x00\x00\x84\xc0");
+
+      if (anti_gr_debug_addr != nullptr)
+        ini.anti_gr_debug_addr->store ((int64_t)anti_gr_debug_addr);
+    }
+
+    else SK_LOGi0 (L"Skipped memory address scan for Graphics Debugger Branch");
+
+    if (anti_gr_debug_addr != 0x0 && SK_FFXVI_AllowGraphicsDebug)
+    {
+      DWORD dwOrigProt = 0x0;
+
+      uint16_t* branch_addr =
+        (uint16_t *)((uintptr_t)anti_gr_debug_addr + 0x13);
+
+      if (*branch_addr == 0x0d74) // je
       {
-        *branch_addr  = 0x0deb; // jmp
+        if (VirtualProtect (branch_addr, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+        {
+          *branch_addr  = 0x0deb; // jmp
 
-        VirtualProtect (branch_addr, 2, dwOrigProt, &dwOrigProt);
+          VirtualProtect (branch_addr, 2, dwOrigProt, &dwOrigProt);
 
-        SK_LOGi0 (L"Patched out graphics debugger check");
+          SK_LOGi0 (L"Patched out graphics debugger check");
+        }
       }
     }
-  }
 
-  config.utility.save_async ();
+    config.utility.save_async ();
+
+    SK_Thread_CloseSelf ();
+
+    return 0;
+  });
 
   return S_OK;
 }
@@ -711,12 +718,14 @@ SK_FFXVI_PlugInCfg (void)
 void
 SK_FFXVI_InitPlugin (void)
 {
-  // Game always crashes at shutdown
+  // Game frequently crashes at shutdown
   config.system.silent_crash = true;
 
   // Avoid Steam Offline Warnings
   config.platform.achievements.pull_friend_stats = false;
-  config.steam.spoof_BLoggedOn                   = false;
+
+  // We must subclass the window, not hook it, due to the splashscreen
+  config.window.dont_hook_wndproc = true;
 
   SK_FFXVI_JXLMaxThreads =
     config.screenshots.avif.max_threads;
