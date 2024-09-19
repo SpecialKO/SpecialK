@@ -348,7 +348,7 @@ SK_FFXVI_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 
   if (SK_FFXVI_ActiveAntiStutter)
   {
-    config.render.framerate.max_delta_time   = 50;
+    config.render.framerate.max_delta_time   = 15;
     config.render.framerate.sleepless_render = true;
     config.render.framerate.sleepless_window = true;
   }
@@ -670,7 +670,7 @@ SK_FFXVI_PlugInCfg (void)
       {
         if (SK_FFXVI_ActiveAntiStutter)
         {
-          config.render.framerate.max_delta_time   = 50;
+          config.render.framerate.max_delta_time   = 15;
           config.render.framerate.sleepless_render = true;
           config.render.framerate.sleepless_window = true;
         }

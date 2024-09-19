@@ -1,4 +1,18 @@
-﻿24.9.19.1
+﻿24.9.19.3
+=========
+ + Handle Final Fantasy XVI's NVIDIA Streamline Interposer trying to
+     create a new SwapChain while the game is exiting and has no window
+       to create a SwapChain on in the first place... wtf?!
+ + Make sure all HDR metadata API calls bypass NVIDIA Streamline's fake
+     interposer SwapChain and are directed to the real SwapChain with a
+       real display attached.
+
+24.9.19.2
+=========
+ + Added aggressive anti-stutter mode to FFXVI; trades increased idle
+     CPU load for decreased traversal stutter.
+
+24.9.19.1
 =========
  + Added auto-loading of .asi files from a game's directory or from
      any subdirectory of Special K's Profiles\<Game Name> directory.

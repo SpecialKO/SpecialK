@@ -1295,11 +1295,15 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
                          return WAIT_IO_COMPLETION;
   }
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXVI)
-  {
-    static uint64_t sleeps_skipped = 0;
+  static const bool bFFXVI =
+    (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXVI);
 
-    if (sleeps_skipped++ % (config.priority.available_cpu_cores / 2) == 0)
+  if (bFFXVI)
+  {
+    static thread_local uint64_t sleeps_skipped = 0;
+    if (                         sleeps_skipped++ %
+         (config.priority.available_cpu_cores *
+          config.priority.available_cpu_cores * 2) == 0 )
     {
       return
         SK_SleepEx (dwMilliseconds, bAlertable);

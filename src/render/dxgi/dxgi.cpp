@@ -6701,10 +6701,17 @@ _In_opt_       DXGI_SWAP_CHAIN_FULLSCREEN_DESC *pFullscreenDesc,
 _In_opt_       IDXGIOutput                     *pRestrictToOutput,
    _Out_       IDXGISwapChain1                 **ppSwapChain )
 {
-  auto& rb =
-    SK_GetCurrentRenderBackend ();
+  SK_ReleaseAssert (pDesc   != nullptr);
+  SK_ReleaseAssert (pDevice != nullptr);
 
-  SK_ReleaseAssert (pDesc != nullptr);
+  if (! IsWindow (hWnd))
+  {
+    SK_LOGi0 (
+      L"IDXGIFactory2::CreateSwapChainForHwnd (pDevice=%p, {hWnd=%x}, ...)"
+      L" was passed an invalid window!",       pDevice,     hWnd);
+
+    return E_INVALIDARG;
+  }
 
   if (! config.render.dxgi.hooks.create_swapchain4hwnd)
   {
@@ -6714,11 +6721,10 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
                                           pRestrictToOutput, ppSwapChain );
   }
 
-  auto *pOrigDesc =
-    (DXGI_SWAP_CHAIN_DESC1 *)pDesc;
-
-  auto *pOrigFullscreenDesc =
-    (DXGI_SWAP_CHAIN_FULLSCREEN_DESC *)pFullscreenDesc;
+  IID                                                        IID_IStreamlineDXGIFactory;
+  IIDFromString (L"{ADEC44E2-61F0-45C3-AD9F-1B37379284FF}", &IID_IStreamlineDXGIFactory);
+  SK_ComPtr <IUnknown>                                           pStreamlineFactory;
+  This->QueryInterface (IID_IStreamlineDXGIFactory,    (void **)&pStreamlineFactory.p);
 
   std::wstring iname = SK_UTF8ToWideChar (
     SK_GetDXGIFactoryInterface (This)
@@ -6732,9 +6738,10 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
                          (uintptr_t)pDevice, (uintptr_t)hWnd, (uintptr_t)pDesc );
 
   // This makes no sense, so ignore it...
-  if (     pDevice == nullptr ||
-             pDesc == nullptr ||
-       ppSwapChain == nullptr || (! SK_DXGI_IsSwapChainReal1 (*pDesc, hWnd))
+  if ( pStreamlineFactory != nullptr ||
+                  pDevice == nullptr ||
+                    pDesc == nullptr ||
+              ppSwapChain == nullptr || (! SK_DXGI_IsSwapChainReal1 (*pDesc, hWnd))
      )
   {
     DXGI_CALL ( ret,
@@ -6742,8 +6749,20 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
                                                       pDesc, pFullscreenDesc,
                                                         pRestrictToOutput, ppSwapChain ) );
 
+    if (pStreamlineFactory)
+      SK_LOGi0 (L"Ignoring call because it came from a Streamline proxy factory...");
+
     return ret;
   }
+
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
+  auto *pOrigDesc =
+    (DXGI_SWAP_CHAIN_DESC1 *)pDesc;
+
+  auto *pOrigFullscreenDesc =
+    (DXGI_SWAP_CHAIN_FULLSCREEN_DESC *)pFullscreenDesc;
 
 //  if (iname == L"{Invalid-Factory-UUID}")
 //    return CreateSwapChainForHwnd_Original (This, pDevice, hWnd, pDesc, pFullscreenDesc, pRestrictToOutput, ppSwapChain);
@@ -6756,9 +6775,6 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
                        DXGI_SWAP_CHAIN_DESC1           { };
   DXGI_SWAP_CHAIN_FULLSCREEN_DESC new_fullscreen_desc  = pFullscreenDesc ? *pFullscreenDesc :
                        DXGI_SWAP_CHAIN_FULLSCREEN_DESC { };
-
-  ///bool bFlipOriginal =
-  ///  SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect);
 
   pDesc           =            &new_desc1;
   pFullscreenDesc =
@@ -6896,8 +6912,18 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       //
       if (pCmdQueue != nullptr && pDev12 != nullptr)
       {
-        SK_ComQIPtr <IDXGISwapChain3> pSwap3 (pTemp);
-        SK_D3D12_HotSwapChainHook (   pSwap3, pDev12.p);
+        SK_ComPtr <IDXGISwapChain3> pNativeSwap3;
+        SK_ComPtr <ID3D12Device>    pNativeDev12;
+
+        if (                         pDev12.p                            != nullptr &&
+            SK_slGetNativeInterface (pDev12.p, (void **)&pNativeDev12.p) == sl::Result::eOk)
+                                     pDev12  =           pNativeDev12;
+        SK_ComQIPtr<IDXGISwapChain3> pSwap3 (pTemp);
+        if (                         pSwap3.p                            != nullptr &&
+            SK_slGetNativeInterface (pSwap3.p, (void **)&pNativeSwap3.p) == sl::Result::eOk)
+                                     pSwap3  =           pNativeSwap3;
+
+        SK_D3D12_HotSwapChainHook   (pSwap3, pDev12);
 
         if (rb.active_traits.bImplicitlyWaitable)
           pSwap3->SetMaximumFrameLatency (config.render.framerate.pre_render_limit > 0 ?
@@ -6905,7 +6931,6 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       }
 
       SK_DXGI_CreateSwapChain1_PostInit (pDevice, hWnd, pOrigDesc, pOrigFullscreenDesc, &pTemp);
-      //*ppSwapChain = pTemp;
         SK_DXGI_WrapSwapChain1          (pDevice,                                        pTemp,
                                         ppSwapChain,    orig_desc1.Format);
 
@@ -8412,8 +8437,14 @@ IDXGISwapChain4_SetHDRMetaData ( IDXGISwapChain4*        This,
 
       if (display.gamut.maxLocalY == 0.0f)
       {
-        SK_ComPtr <IDXGIOutput>     pOutput;
-        This->GetContainingOutput (&pOutput.p);
+        This->SetFullscreenState (FALSE, nullptr);
+
+        // Make sure we're not screwed over by NVIDIA Streamline
+        SK_ComPtr <IDXGIOutput>                      pOutput;
+        SK_ComPtr <IDXGISwapChain4>                  pNativeSwap4;
+        if (SK_slGetNativeInterface (This, (void **)&pNativeSwap4.p) == sl::Result::eOk)
+                                                     pNativeSwap4->GetContainingOutput (&pOutput.p);
+        else                                                 This->GetContainingOutput (&pOutput.p);
 
         SK_ComQIPtr <IDXGIOutput6>
             pOutput6 (   pOutput);
@@ -9664,6 +9695,21 @@ HookDXGI (LPVOID user)
     const auto factory_flags =
       config.render.dxgi.debug_layer ?
            DXGI_CREATE_FACTORY_DEBUG : 0x0;
+
+    if (config.render.dxgi.debug_layer && SK_IsModuleLoaded (L"d3d12.dll"))
+    {
+      D3D12GetDebugInterface_pfn
+     _D3D12GetDebugInterface =
+     (D3D12GetDebugInterface_pfn)SK_GetProcAddress (L"d3d12.dll",
+     "D3D12GetDebugInterface");
+
+      if (_D3D12GetDebugInterface != nullptr)
+      {
+        SK_ComPtr <ID3D12Debug>                                pDebugD3D12;
+        if (SUCCEEDED (_D3D12GetDebugInterface (IID_PPV_ARGS (&pDebugD3D12.p))))
+                                                               pDebugD3D12->EnableDebugLayer ();
+      }
+    }
 
     SK_ComPtr <IDXGIFactory>                 pFactory;
     CreateDXGIFactory2_Import ( factory_flags,
