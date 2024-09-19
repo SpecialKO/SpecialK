@@ -2316,6 +2316,68 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
   if (! __SK_bypass)
   {
+    auto _AutoLoadASIMods = [&](void)
+    {
+      using namespace std::filesystem;
+
+      std::error_code                                                ec;
+      directory_iterator           working_dir (wszWorkDir,          ec);
+      recursive_directory_iterator profile_dir (SK_GetConfigPath (), ec);
+      
+      std::vector <directory_entry>        files;
+      for (const auto& file : working_dir) files.emplace_back (file);
+      for (const auto& file : profile_dir) files.emplace_back (file);
+      for (const auto& file :              files )
+      {
+        const auto& path =
+               file.path ();
+
+        if (          file.is_regular_file (ec) &&
+           !_wcsicmp (path.extension ().c_str (), L".asi"))
+        {
+          // It's already loaded...
+          if (GetModuleHandleW (path.filename ().c_str ()))
+            continue;
+
+          const auto filename      = path.filename ().wstring  ();
+          const auto filename_utf8 = path.filename ().u8string ();
+
+          dll_log->LogEx (
+            true, L"[ SpecialK ]  * Loading Early ASI PlugIn: '%ws' from '%ws' ... ",
+              filename.c_str (),
+            SK_StripUserNameFromPathW (path.parent_path ().wstring ().data ())
+          );
+
+          const HMODULE hModASI =
+            SK_Modules->LoadLibraryLL (
+             path.wstring ().c_str () );
+
+          if (hModASI != skModuleRegistry::INVALID_MODULE)
+          {
+            dll_log->LogEx (false, L"success!\n");
+
+            SK_ImGui_CreateNotification (
+              "PlugIn.Load", SK_ImGui_Toast::Success,
+                (const char *)filename_utf8.c_str (),
+                        "Special K ASI Plug-In Loaded",
+                          5000, SK_ImGui_Toast::UseDuration |
+                                SK_ImGui_Toast::ShowCaption |
+                                SK_ImGui_Toast::ShowTitle );
+          }
+          
+          else
+          {
+            _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+
+            dll_log->LogEx (false, L"failed: 0x%04X (%s)!\n",
+                            err.WCode (), err.ErrorMessage () );
+          }
+        }
+      }
+    };
+
+    _AutoLoadASIMods ();
+
     switch (SK_GetCurrentGameID ())
     {
 #ifdef _M_AMD64

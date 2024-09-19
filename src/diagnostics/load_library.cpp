@@ -2361,6 +2361,32 @@ BlacklistLibrary (const _T* lpFileName)
                       (LoadLibrary_pfn) &SK_LoadLibraryW :
                       (LoadLibrary_pfn) &SK_LoadLibraryA );
 
+  if (true/*config.compatibility.disable_streamline_incompatible_software*/)
+  {
+    static std::vector < const _T* > incompatible_dlls;
+
+    static bool          init = false;
+    if (! std::exchange (init, true))
+    {
+      if ( PathFileExistsW (L"sl.interposer.dll") ||
+          GetModuleHandleW (L"sl.interposer.dll") != nullptr )
+      {
+        incompatible_dlls.emplace_back (SK_TEXT("fps-mon64.dll"));
+      }
+    }
+
+    for (auto& it : incompatible_dlls)
+    {
+      if (StrStrI (lpFileName, it))
+      {
+        SK_LOGs0 ( L"DLL Loader",
+                   L"Known Streamline Incompatible DLL Blocked to Prevent Crashing" );
+
+        return TRUE;
+      }
+    }
+  }
+
   if (config.compatibility.disable_nv_bloat)
   {
     static bool init = false;

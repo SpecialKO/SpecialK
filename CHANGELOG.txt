@@ -1,4 +1,35 @@
-﻿24.9.19
+﻿24.9.19.1
+=========
+ + Added auto-loading of .asi files from a game's directory or from
+     any subdirectory of Special K's Profiles\<Game Name> directory.
+
+   * This makes SK an automatic ASI loader and eliminates the need
+       for third-party software to use ASI mods such as FFXVIFix.
+
+    > Just drop your .asi file(s) into the appropriate directory and go!
+
+
+ + Added an internal blacklist of third-party overlays that cannot be used
+     in NVIDIA Streamline games because they will crash frame generation.
+
+   * These are nothing to do with Special K itself, but blocking them puts
+       an end to really cryptic errors from the overlays being blamed on SK.
+
+    Currently only one overlay is known to be 100% incompatible and blocked:
+
+      - fpsmon-64.dll
+
+    This overlay creates useless "Operation Completed Successfully" error
+      dialogs and then proceeds to b0rk the game.
+
+    When the developer goes through the hell that is making their overlay
+      compatible with NVIDIA Streamline and DLSS3 Frame Generation, the
+        software will be removed from the blocklist.
+
+
+ + Tweaked DirectStorage queue lengths in Final Fantasy XVI
+
+24.9.19
 =======
  + Added protection against SteamAPI's internal exceptions being caught by
      NVIDIA Streamline's Interposer DLL and triggering NVIDIA's stupid

@@ -1014,6 +1014,7 @@ struct sk_config_t
       bool    allow_scrgb         =   true; // Use Compute Copy HDR10 <--> scRGB
       bool    dump_buffers        =  false;
       bool    spoof_support       =  false;
+      bool    calculate_delta_ms  =  false;
     } dlss;
     struct misc_s {
       int     force_rebar         = SK_NoPreference;
