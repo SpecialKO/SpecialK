@@ -96,7 +96,31 @@ SK_IWrapDStorageFactory::CreateQueue (const DSTORAGE_QUEUE_DESC *desc, REFIID ri
   }
 
   if (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXVI)
-    override_desc.Capacity = (uint16_t)((float)override_desc.Capacity * 0.75f);
+  {
+    if (override_desc.Priority == DSTORAGE_PRIORITY_REALTIME)
+    {
+      override_desc.Capacity =
+        (uint16_t)((float)override_desc.Capacity * 0.5f);
+    }
+
+    else if (override_desc.Priority == DSTORAGE_PRIORITY_HIGH)
+    {
+      override_desc.Capacity =
+        (uint16_t)((float)override_desc.Capacity * 0.75f);
+    }
+
+    else if (override_desc.Priority == DSTORAGE_PRIORITY_NORMAL)
+    {
+      override_desc.Capacity =
+        (uint16_t)((float)override_desc.Capacity * 1.25f);
+    }
+
+    else if (override_desc.Priority == DSTORAGE_PRIORITY_LOW)
+    {
+      override_desc.Capacity =
+        (uint16_t)((float)override_desc.Capacity * 1.75f);
+    }
+  }
 
   IDStorageQueue *pQueue = nullptr;
   
