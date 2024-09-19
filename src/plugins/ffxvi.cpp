@@ -365,9 +365,9 @@ SK_FFXVI_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
              (* (uint8_t *)limit_addr    != 0x75 ||
               *((uint8_t *)limit_addr+2) != 0x85))
   {
-    limit_addr =
-      SK_Scan ("\x75\x00\x85\x00\x74\x00\x40\x00\x01\x41\x00\x00\x00\x00\x00\x00\x00", 17,
-               "\xff\x00\xff\x00\xff\x00\xff\x00\xff\xff\x00\x00\x00\x00\x00\x00\x00");
+    limit_addr =                              //\x01, but may have been patched, so ignore
+      SK_Scan ("\x75\x00\x85\x00\x74\x00\x40\x00\x00\x41\x00\x00\x00\x00\x00\x00\x00", 17,
+               "\xff\x00\xff\x00\xff\x00\xff\x00\x00\xff\x00\x00\x00\x00\x00\x00\x00");
 
     if (limit_addr != nullptr)
       ini.cutscene_fps_addr->store ((int64_t)limit_addr);
@@ -399,9 +399,9 @@ SK_FFXVI_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
              (* (uint8_t *)fg_enablement_addr    != 0x41 ||
               *((uint8_t *)fg_enablement_addr+5) != 0x33))
   {
-    fg_enablement_addr =
-      SK_Scan ("\x41\x00\x00\x74\x00\x33\x00\x48\x00\x00\xE8\x00\x00\x00\x00\x8B\x00\x00\x00\x00\x00\xD1\x00", 23,
-               "\xff\x00\x00\xff\x00\xff\x00\xff\x00\x00\xff\x00\x00\x00\x00\xff\x00\x00\x00\x00\x00\xff\x00");
+    fg_enablement_addr =  //\x74, but this may have been patched by other software, so count it as dontcare
+      SK_Scan ("\x41\x00\x00\x00\x00\x33\x00\x48\x00\x00\xE8\x00\x00\x00\x00\x8B\x00\x00\x00\x00\x00\xD1\x00", 23,
+               "\xff\x00\x00\x00\x00\xff\x00\xff\x00\x00\xff\x00\x00\x00\x00\xff\x00\x00\x00\x00\x00\xff\x00");
 
     if (fg_enablement_addr != nullptr)
       ini.cutscene_fg_addr->store ((int64_t)fg_enablement_addr);
@@ -411,8 +411,8 @@ SK_FFXVI_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
 
   if (fg_enablement_addr != nullptr)
   {
-    cutscene_fg.address  =   ((uint8_t *)fg_enablement_addr)+0x3;
-    cutscene_fg.original = *(((uint8_t *)fg_enablement_addr)+0x3);
+    cutscene_fg.address  = ((uint8_t *)fg_enablement_addr)+0x3;
+    cutscene_fg.original = 0x74;
     cutscene_fg.override = 0xEB;
 
     if (SK_FFXVI_FramegenCutscenes)

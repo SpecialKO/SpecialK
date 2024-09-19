@@ -8,6 +8,13 @@
 
     > Just drop your .asi file(s) into the appropriate directory and go!
 
+    ( Feature is disabled-by-default in most games, but can be opted-in )
+
+      To opt-in per-game, or globally (Global\default_SpecialK.ini), set:
+
+        [SpecialK.System]
+        AutoLoadASIFiles=true
+
 
  + Added an internal blacklist of third-party overlays that cannot be used
      in NVIDIA Streamline games because they will crash frame generation.

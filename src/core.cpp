@@ -2318,6 +2318,9 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   {
     auto _AutoLoadASIMods = [&](void)
     {
+      if (! config.system.auto_load_asi_files)
+        return;
+
       using namespace std::filesystem;
 
       std::error_code                                                ec;

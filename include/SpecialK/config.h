@@ -1320,6 +1320,7 @@ struct sk_config_t
     bool    central_repository  = false;
     bool    wait_for_debugger   = false;
     bool    return_to_skif      = false;
+    bool    auto_load_asi_files = false;
   } system;
 
   struct priority_scheduling_s {

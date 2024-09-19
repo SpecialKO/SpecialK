@@ -290,6 +290,7 @@ SK_GetCurrentGameID (void)
           config.compatibility.init_sync_for_streamline = true;
           config.render.dxgi.fake_fullscreen_mode       = true;
           config.render.dstorage.submit_threads         = 2;
+          config.system.auto_load_asi_files             = true;
 
           current_game = SK_GAME_ID::FinalFantasyXVI;
         }
@@ -824,6 +825,7 @@ sk::ParameterBool*        silent                  = nullptr;
 sk::ParameterFloat*       init_delay              = nullptr;
 sk::ParameterBool*        return_to_skif          = nullptr;
 sk::ParameterInt*         skif_autostop_behavior  = nullptr;
+sk::ParameterBool*        auto_load_asi_files     = nullptr;
 sk::ParameterStringW*     version                 = nullptr;
                        // Version at last boot
 
@@ -1781,6 +1783,7 @@ auto DeclKeybind =
     ConfigEntry (game_output,                            L"Log Application's Debug Output",                            dll_ini,         L"SpecialK.System",       L"GameOutput"),
     ConfigEntry (init_delay,                             L"Delay Global Injection Initialization for x-many Seconds",  dll_ini,         L"SpecialK.System",       L"GlobalInjectDelay"),
     ConfigEntry (return_to_skif,                         L"At Application Exit, make SKIF the new Foreground Window",  dll_ini,         L"SpecialK.System",       L"ReturnToSKIF"),
+    ConfigEntry (auto_load_asi_files,                    L"Automatically load .asi files from the game's directory",   dll_ini,         L"SpecialK.System",       L"AutoLoadASIFiles"),
     ConfigEntry (version,                                L"The last version that wrote the config file",               dll_ini,         L"SpecialK.System",       L"Version"),
 
 
@@ -5265,23 +5268,24 @@ auto DeclKeybind =
   osd.viewport.scale->load (config.osd.scale);
 
 
-  silent->load            (config.system.silent);
-  trace_libraries->load   (config.system.trace_load_library);
-  strict_compliance->load (config.system.strict_compliance);
-  log_level->load         (config.system.log_level);
-  sk::logs::base_log_lvl = config.system.log_level;
-  prefer_fahrenheit->load (config.system.prefer_fahrenheit);
-  handle_crashes->load    (config.system.handle_crashes);
-  silent_crash->load      (config.system.silent_crash);
-  crash_suppression->load (config.system.suppress_crashes);
-  debug_wait->load        (config.system.wait_for_debugger);
-  debug_output->load      (config.system.display_debug_out);
-  game_output->load       (config.system.game_output);
-  init_delay->load        (config.system.global_inject_delay);
-  return_to_skif->load    (config.system.return_to_skif);
+  silent->load              (config.system.silent);
+  trace_libraries->load     (config.system.trace_load_library);
+  strict_compliance->load   (config.system.strict_compliance);
+  log_level->load           (config.system.log_level);
+  sk::logs::base_log_lvl  =  config.system.log_level;
+  prefer_fahrenheit->load   (config.system.prefer_fahrenheit);
+  handle_crashes->load      (config.system.handle_crashes);
+  silent_crash->load        (config.system.silent_crash);
+  crash_suppression->load   (config.system.suppress_crashes);
+  debug_wait->load          (config.system.wait_for_debugger);
+  debug_output->load        (config.system.display_debug_out);
+  game_output->load         (config.system.game_output);
+  init_delay->load          (config.system.global_inject_delay);
+  return_to_skif->load      (config.system.return_to_skif);
+  auto_load_asi_files->load (config.system.auto_load_asi_files);
 
-  if (version->load       (config.system.version))
-                           config.system.first_run = false;
+  if (version->load         (config.system.version))
+                             config.system.first_run = false;
 
   skif_autostop_behavior->load (config.skif.auto_stop_behavior);
 
@@ -6539,6 +6543,7 @@ SK_SaveConfig ( std::wstring name,
   strict_compliance->store                     (config.system.strict_compliance);
   init_delay->store                            (config.system.global_inject_delay);
   return_to_skif->store                        (config.system.return_to_skif);
+  auto_load_asi_files->store                   (config.system.auto_load_asi_files);
   version->store                               (SK_GetVersionStrW ());
 
   if (! SK_IsInjected ())
