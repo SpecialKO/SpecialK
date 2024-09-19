@@ -588,6 +588,9 @@ SK_FFXVI_PlugInCfg (void)
         ImGui::EndTooltip      ();
       }
 
+      //if (__SK_IsDLSSGActive)
+      //  ImGui::Checkbox ("Manually Calculate DLSS DeltaTimeMs", &config.nvidia.dlss.calculate_delta_ms);
+
       ImGui::EndGroup    ();
       ImGui::SameLine    ();
       ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
@@ -696,7 +699,7 @@ SK_FFXVI_InitPlugin (void)
 
   ini.allow_gr_debug =
     _CreateConfigParameterBool ( L"FFXVI.PlugIn",
-                                 L"Allow Graphics Debuggers", SK_FFXVI_AllowGraphicsDebug,
+                                 L"AllowGraphicsDebuggers", SK_FFXVI_AllowGraphicsDebug,
                                  L"Bypass Graphics Debugger Checks" );
 
   if (! ini.allow_gr_debug->load  (SK_FFXVI_AllowGraphicsDebug))
