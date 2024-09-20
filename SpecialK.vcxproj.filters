@@ -3192,6 +3192,9 @@
     <ClInclude Include="include\ultrahdr\ultrahdrcommon.h">
       <Filter>Header Files\External Libraries\ultrahdr</Filter>
     </ClInclude>
+    <ClInclude Include="include\SpecialK\render\ngx\streamline.h">
+      <Filter>Header Files\Backends\Render\ngx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">

@@ -1,4 +1,13 @@
-﻿24.9.19.5
+﻿24.9.20
+=======
+ + Add hook on sl.interposer.dll slInit (...) in order to override various
+     Streamline configuration for enhanced compatibility with third-party
+       overlays that do not have any Streamline compatibility measures.
+ + Change Streamline initialization, when possible, to use DXGI Factory Proxy
+     instead of vftable hooks to help fpsmon and other overlays not crash.
+ + Disable attempts by a game to divert or silence Streamline debug output.
+
+24.9.19.5
 =========
  + Fixed DLSS control panel not appearing in D3D11 games
 

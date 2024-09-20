@@ -21,6 +21,11 @@
 
 #include <SpecialK/stdafx.h>
 
+#ifdef  __SK_SUBSYSTEM__
+#undef  __SK_SUBSYSTEM__
+#endif
+#define __SK_SUBSYSTEM__ L"Compat Sys"
+
 volatile LONG __SK_TaskDialogActive = FALSE;
 
 HWND WINAPI SK_GetForegroundWindow (void);
@@ -1079,136 +1084,70 @@ bool SK_COMPAT_IgnoreEOSOVHCall (LPCVOID pReturn)
                                L"EOSOVH-Win64-Shipping.dll" ) ) );
 }
 
+using  slInit_pfn = sl::Result (*)(const sl::Preferences &pref, uint64_t sdkVersion);
+static slInit_pfn
+       slInit_Original = nullptr;
+
+sl::Result
+slInit_Detour (const sl::Preferences &pref, uint64_t sdkVersion = sl::kSDKVersion)
+{
+  SK_LOG_FIRST_CALL
+
+  SK_LOGi0 (L"[!] slInit (pref.structVersion=%d, sdkVersion=%d)",
+                          pref.structVersion,    sdkVersion);
+
+  // For versions of Streamline using a compatible preferences struct,
+  //   start overriding stuff for compatibility.
+  if (pref.structVersion == sl::kStructVersion1)
+  {
+    sl::Preferences pref_copy = pref;
+
+    //
+    // Always print Streamline debug output to Special K's game_output.log,
+    //   disable any log redirection the game would ordinarily do on its own.
+    //
+    pref_copy.logMessageCallback = nullptr;
+#ifdef _DEBUG
+    pref_copy.logLevel           = sl::LogLevel::eVerbose;
+#else
+    pref_copy.logLevel           = sl::LogLevel::eDefault;
+#endif
+
+    pref_copy.flags |=
+      sl::PreferenceFlags::eUseDXGIFactoryProxy;
+
+    return
+      slInit_Original (pref_copy, sdkVersion);
+  }
+
+  SK_LOGi0 (
+    L"WARNING: Game is using a version of Streamline too new for Special K!"
+  );
+
+  return
+    slInit_Original (pref, sdkVersion);
+}
+
 bool
 SK_COMPAT_CheckStreamlineSupport (void)
 {
+  if (SK_IsModuleLoaded (L"sl.interposer.dll"))
+  {
+    SK_RunOnce (
+      SK_CreateDLLHook2 (      L"sl.interposer.dll",
+                                "slInit",
+                                 slInit_Detour,
+        static_cast_p2p <void> (&slInit_Original));
+
+      SK_ApplyQueuedHooks ();
+    );
+  }
+
   return true;
 
   //
   // As of 23.9.13, compatibility in all known games is perfect!
   //
-
-#if 0
-  // Global without DLSS_G is good, we can skip this
-  if (SK_IsInjected () && SK_GetModuleHandleW (L"sl.dlss_g.dll") == nullptr)
-    return true;
-
-  if (config.compatibility.using_wine)
-    return true;
-
-  // HDR support will be lost, but Streamline won't puke on SK w/ an injection delay
-  if (SK_IsInjected () && config.system.global_inject_delay > 0.0f)
-    return true;
-
-  // We're compatible
-  if (SK_GetCurrentGameID () == SK_GAME_ID::DiabloIV)
-    return true;
-
-  if (config.nvidia.bugs.allow_dlss_g)
-  {
-    if (GetModuleHandleW (L"sl.dlss_g.dll"))
-      return true;
-  }
-
-  static const int _MaxTestCount = 5;
-
-  static int  iTestCount  = 0;
-  static bool bCompatible = true;
-
-  if (SK_GetModuleHandleW (L"sl.dlss_g.dll"))
-  {
-    SK_RunOnce (
-    {
-      auto path_to_dlss_g =
-        SK_GetModuleFullName (SK_GetModuleHandleW (L"sl.dlss_g.dll"));
-
-      if (config.nvidia.bugs.auto_delete_dlss_g)
-      {
-        SK_File_MoveNoFail ( path_to_dlss_g.c_str (),
-                            L"sl.dlss_g.dll-bak" );
-
-        if (! PathFileExistsW (path_to_dlss_g.c_str  ()))
-        {
-          SK_RestartGame ();
-          ExitProcess    (0xdead0cde);
-        }
-      }
-
-      SK_MessageBox (
-        L"Special K cannot be used unless you remove sl.dlss_g.dll",
-        L"DLSS 3 Frame Generation Is Incompatible With Special K",
-        MB_ICONERROR | MB_OK
-      );
-
-      PathRemoveFileSpecW (path_to_dlss_g.data  ());
-      SK_Util_ExplorePath (path_to_dlss_g.c_str ());
-
-      Sleep (250UL);
-
-      ExitProcess (0xdeadc0de);
-    });
-  }
-
-  bool bPotentiallyIncompatible =
-    SK_IsInjected () || SK_GetCurrentGameID () == SK_GAME_ID::RatchetAndClank_RiftApart;
-
-  // Handle possible late injection
-  if (bPotentiallyIncompatible && iTestCount++ < _MaxTestCount)
-  {
-    HMODULE hModSLInterposer =
-      SK_GetModuleHandleW (L"sl.interposer.dll");
-
-    if (hModSLInterposer != SK_Modules->INVALID_MODULE)
-    {
-      std::wstring module_path = SK_GetModuleFullName (hModSLInterposer);
-      std::wstring ver_str     = SK_GetDLLVersionStr  (module_path.c_str ());
-
-      if (! SK_GetProcAddress (module_path.c_str (), "skFixedVersion"))
-      {
-        bCompatible = false;
-        iTestCount  = _MaxTestCount;
-
-        std::wstring msg =
-          SK_IsInjected () ? // Global Injection: General Warning
-            L"Special K may not be compatible with this game because it uses "
-            L"NVIDIA Streamline Interposer."
-            L"\r\n\r\n   "
-
-            L">> Try Local Injection (dxgi.dll) or replace the Interposer."
-                           : // Local Injection: Known incompatible game
-            L"Special K may not be compatible with this game because it uses "
-            L"NVIDIA Streamline Interposer."
-            L"\r\n\r\n   "
-
-            L">> You must replace the Interposer in this game."
-            L"\r\n\r\n---------------------\r\n\r\n";
-
-        msg += module_path;
-        msg += L"\r\n\r\n @ ";
-        msg += ver_str;
-
-        msg += L"\r\n\r\n---------------------\r\n\r\n"
-          L" * Check the Wiki or Discord for help replacing the Interposer.";
-
-        DWORD dwRet =
-          SK_MessageBox (
-            msg.c_str (), L"Special K Incompatibility",
-              MB_ICONERROR | MB_OKCANCEL
-          );
-
-        if (dwRet == IDOK)
-        {
-          SK_Util_OpenURI (
-            LR"(https://wiki.special-k.info/Compatibility/Streamline)",
-              SW_SHOWNORMAL
-          );
-        }
-      }
-    }
-  }
-
-  return bCompatible;
-#endif
 }
 
 using PFun_slGetNativeInterface = sl::Result(void* proxyInterface, void** baseInterface);

@@ -50,14 +50,13 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
     queueDesc = This->GetDesc ();
 
   if ( pLazyD3D12Chain  != nullptr &&
-       pLazyD3D12Device != nullptr )
+       pLazyD3D12Device != nullptr && queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT )
   {
-    if (! std::exchange (once, true))
+    if ((! std::exchange (once, true)) && rb.d3d12.command_queue.p == nullptr)
     {
       SK_ComPtr <ID3D12Device> pDevice12;
 
-      if ( queueDesc.Type == D3D12_COMMAND_LIST_TYPE_DIRECT &&
-           SUCCEEDED (   This->GetDevice (
+      if ( SUCCEEDED (   This->GetDevice (
                            IID_ID3D12Device,
                           (void **)&pDevice12.p
                                          ) // We are not holding a ref, so test pointers before using
@@ -67,7 +66,7 @@ D3D12CommandQueue_ExecuteCommandLists_Detour (
                  pLazyD3D12Device                 )
          )
       {
-        if (rb.d3d12.command_queue == nullptr)
+        if (rb.d3d12.command_queue.p == nullptr)
         {
           SK_ComPtr <ID3D12Device>       pDevice;
           SK_ComPtr <IDXGISwapChain>     pSwapChain;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -49,54 +49,12 @@ bool SK_COMPAT_IgnoreDxDiagnCall  (LPCVOID pReturn = _ReturnAddress ());
 bool SK_COMPAT_IgnoreNvCameraCall (LPCVOID pReturn = _ReturnAddress ());
 bool SK_COMPAT_IgnoreEOSOVHCall   (LPCVOID pReturn = _ReturnAddress ());
 
-namespace sl
-{
-enum class Result
-{
-  eOk,
-  eErrorIO,
-  eErrorDriverOutOfDate,
-  eErrorOSOutOfDate,
-  eErrorOSDisabledHWS,
-  eErrorDeviceNotCreated,
-  eErrorNoSupportedAdapterFound,
-  eErrorAdapterNotSupported,
-  eErrorNoPlugins,
-  eErrorVulkanAPI,
-  eErrorDXGIAPI,
-  eErrorD3DAPI,
-  eErrorNRDAPI,
-  eErrorNVAPI,
-  eErrorReflexAPI,
-  eErrorNGXFailed,
-  eErrorJSONParsing,
-  eErrorMissingProxy,
-  eErrorMissingResourceState,
-  eErrorInvalidIntegration,
-  eErrorMissingInputParameter,
-  eErrorNotInitialized,
-  eErrorComputeFailed,
-  eErrorInitNotCalled,
-  eErrorExceptionHandler,
-  eErrorInvalidParameter,
-  eErrorMissingConstants,
-  eErrorDuplicatedConstants,
-  eErrorMissingOrInvalidAPI,
-  eErrorCommonConstantsMissing,
-  eErrorUnsupportedInterface,
-  eErrorFeatureMissing,
-  eErrorFeatureNotSupported,
-  eErrorFeatureMissingHooks,
-  eErrorFeatureFailedToLoad,
-  eErrorFeatureWrongPriority,
-  eErrorFeatureMissingDependency,
-  eErrorFeatureManagerInvalidState,
-  eErrorInvalidState,
-  eWarnOutOfVRAM
-};
-}
+
+#include <render/ngx/streamline.h>
 
 sl::Result SK_slGetNativeInterface (void *proxyInterface, void **baseInterface);
 sl::Result SK_slUpgradeInterface   (                      void **baseInterface);
+
+#define _ExchangeProxyForNative(x,y) { auto pOrig = (x).p; pOrig->AddRef (); (x) = (y); pOrig->Release (); }
 
 #endif /* __SK_COMPATIBILITY_H__ */

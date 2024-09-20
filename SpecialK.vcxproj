@@ -1758,6 +1758,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\SpecialK\render\ngx\ngx.h" />
     <ClInclude Include="include\SpecialK\render\ngx\ngx_defs.h" />
     <ClInclude Include="include\SpecialK\render\ngx\ngx_dlss.h" />
+    <ClInclude Include="include\SpecialK\render\ngx\streamline.h" />
     <ClInclude Include="include\SpecialK\render\present_mon\Debug.hpp" />
     <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_D3D9.h" />
     <ClInclude Include="include\SpecialK\render\present_mon\ETW\Microsoft_Windows_Dwm_Core.h" />

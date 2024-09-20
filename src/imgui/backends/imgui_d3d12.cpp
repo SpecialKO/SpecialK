@@ -2728,7 +2728,7 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
   SK_ComPtr <ID3D12Resource>                                 pBackbuffer;
   SK_ComPtr <IDXGISwapChain>                                 pRealSwapChain;
   if (SK_slGetNativeInterface (pRoot->_pSwapChain, (void **)&pRealSwapChain.p) == sl::Result::eOk)
-  {
+  {   _ExchangeProxyForNative (pRoot->_pSwapChain,           pRealSwapChain);
     pRealSwapChain->GetBuffer (BufferIdx, IID_ID3D12Resource, (void **)&pBackbuffer.p);
   }
 
@@ -3056,7 +3056,11 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
   SK_ComPtr <ID3D12CommandQueue>                        pNativeQueue;
   if (SK_slGetNativeInterface (pCommandQueue, (void **)&pNativeQueue.p) == sl::Result::eOk)
-                              _pCommandQueue =          pNativeQueue.p;
+  {
+    if (                       _pCommandQueue != nullptr)
+      _ExchangeProxyForNative (_pCommandQueue,          pNativeQueue)
+    else                       _pCommandQueue         = pNativeQueue;
+  }
 
   if (pNativeSwapChain != nullptr &&
       pNativeQueue.p   != nullptr)
@@ -3105,7 +3109,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
     }
 
     if (SK_slGetNativeInterface (_pDevice.p, (void **)&pNativeDev12.p) == sl::Result::eOk)
-                                 _pDevice =            pNativeDev12;
+        _ExchangeProxyForNative (_pDevice,             pNativeDev12);
   }
 
   if (_pDevice.p != nullptr)
@@ -3144,7 +3148,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
             SK_ComPtr <ID3D12Device>                         pNativeDev12;
             if (SK_slGetNativeInterface (_pDevice, (void **)&pNativeDev12.p) == sl::Result::eOk)
-                                         _pDevice =          pNativeDev12;
+                _ExchangeProxyForNative (_pDevice,           pNativeDev12);
           }
         }
 #endif
