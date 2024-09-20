@@ -66,6 +66,7 @@ public:
   void  resize    (float incr)                 noexcept;
   void  setScale  (float scale)                noexcept;
   float getScale  (void)                       noexcept;
+  float getExtent (void)                       noexcept;
 
   void  move      (float  x_off, float  y_off) noexcept;
   void  setPos    (float  x,     float  y)     noexcept;

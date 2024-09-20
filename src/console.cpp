@@ -98,7 +98,26 @@ SK_Console::Draw (void)
                              getTextOverlay ("SpecialK Console");
 
     if (pOverlay != nullptr)
+    {
+      // Use the height of the OSD for relative placement
+      if (config.osd.show &&
+       ! (config.osd.pos_x < 0 || config.osd.pos_y < 0)) // Not when right-aligned or bottom-aligned
+      {
+        SK_TextOverlay* pOverlayOSD =
+          SK_TextOverlayManager::getInstance    ()->
+                                 getTextOverlay ("Special K");
+
+        if (pOverlayOSD != nullptr)
+        {
+          const float y = pOverlayOSD->getExtent ( );
+
+          pOverlay->setPos (2.0f, y);
+        }
+      }
+
+      else
         pOverlay->setPos (2.0f, 0.0f);
+    }
 
     SK_DrawExternalOSD ("SpecialK Console", output);
 
