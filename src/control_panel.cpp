@@ -5350,12 +5350,12 @@ SK_ImGui_ControlPanel (void)
 
         if (rb.gsync_state.active)
         {
-          auto& nvapi_display =
-            rb.displays [rb.active_display].nvapi;
+          auto& stats =
+            rb.displays [rb.active_display].statistics;
 
           float fVBlankHz =
-            nvapi_display.vblank_counter.getVBlankHz (
-                            SK_QueryPerf ().QuadPart );
+            stats.vblank_counter.getVBlankHz (
+                    SK_QueryPerf ().QuadPart );
 
           // Is it really "active" if we can't calculate the rate?
           if (fVBlankHz == 0.0f)

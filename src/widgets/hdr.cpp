@@ -1251,10 +1251,10 @@ public:
       }
     }
 
-    static const bool bStreamline =
+    static const bool bStreamlineDLSSG =
       SK_IsModuleLoaded (L"sl.dlss_g.dll");
 
-    if (bStreamline && ImGui::IsItemHovered ())
+    if (bStreamlineDLSSG && ImGui::IsItemHovered ())
     {
       ImGui::BeginTooltip      ( );
       {

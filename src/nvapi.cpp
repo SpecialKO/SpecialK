@@ -1193,7 +1193,7 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
 }
 
 bool
-SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDisplayHandle nv_disp, DXGI_FRAME_STATISTICS* pFrameStats, NvU64 tNow) noexcept
+SK_RenderBackend_V2::output_s::statistics_s::vblank_history_s::addRecord (NvDisplayHandle nv_disp, DXGI_FRAME_STATISTICS* pFrameStats, NvU64 tNow) noexcept
 {
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
@@ -1236,23 +1236,25 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::addRecord (NvDispl
 
     head = std::min (head, (NvU32)MaxVBlankRecords-1);
 
-    if (vblank_count > records [head].vblank_count)
+    // This may not be monotonic increasing if the current monitor changes
+    //   while sampling the data, so only test for inequality.
+    if (vblank_count != records [head].vblank_count)
     {
       if ( head == MaxVBlankRecords-1 )
            head  = 0;
       else head++;
 
       records [head] = { tNow, vblank_count };
-    }
 
-    return true;
+      return true;
+    }
   }
 
   return false;
 }
 
 void
-SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::resetStats (void) noexcept
+SK_RenderBackend_V2::output_s::statistics_s::vblank_history_s::resetStats (void) noexcept
 {
   for (auto& record : records)
   {
@@ -1266,7 +1268,7 @@ SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::resetStats (void) 
 }
 
 float
-SK_RenderBackend_V2::output_s::nvapi_ctx_s::vblank_history_s::getVBlankHz (NvU64 tNow) noexcept
+SK_RenderBackend_V2::output_s::statistics_s::vblank_history_s::getVBlankHz (NvU64 tNow) noexcept
 {
   NvU32 num_vblanks_in_period = 0;
 

@@ -783,7 +783,7 @@ SK_NV_AdaptiveSyncControl (void)
         }
 
         float fEffectiveRefresh =
-          rb.displays [rb.active_display].nvapi.vblank_counter.getVBlankHz (SK_QueryPerf ().QuadPart);
+          rb.displays [rb.active_display].statistics.vblank_counter.getVBlankHz (SK_QueryPerf ().QuadPart);
 
         ImGui::Text       ("Adaptive Sync Status for %hs", SK_WideCharToUTF8 (rb.display_name).c_str ());
         ImGui::Separator  ();

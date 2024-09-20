@@ -99,7 +99,12 @@ HookD3D12 (LPVOID user)
 
     dll_log->Log (L"[  D3D 12  ]   Hooking D3D12");
 
-    if (SK_D3D12_Init ())
+    bool hooked_create_device  = SK_D3D12_Init ();
+    bool need_additional_hooks =
+      SK_D3D12_InstallDeviceHooks       (nullptr) == false ||
+      SK_D3D12_InstallCommandQueueHooks (nullptr) == false;
+
+    if (hooked_create_device && need_additional_hooks)
     {
       SK_ComPtr <ID3D12Device> pDevice;
 
@@ -137,8 +142,6 @@ HookD3D12 (LPVOID user)
       {
         SK_D3D12_InstallDeviceHooks       (pDevice.p);
         SK_D3D12_InstallCommandQueueHooks (pDevice.p);
-
-        SK_ApplyQueuedHooks ();
       }
     }
   }
@@ -164,10 +167,13 @@ SK_D3D12_HotSwapChainHook ( IDXGISwapChain3* pSwapChain,
     if (     pDev12                                  != nullptr &&
          D3D12Device_CreateRenderTargetView_Original == nullptr )
     {
-      SK_D3D12_InstallDeviceHooks       (pDev12);
-      SK_D3D12_InstallCommandQueueHooks (pDev12);
+      bool new_hooks = false;
 
-      SK_ApplyQueuedHooks ();
+      new_hooks |= SK_D3D12_InstallDeviceHooks       (pDev12);
+      new_hooks |= SK_D3D12_InstallCommandQueueHooks (pDev12);
+
+      if (new_hooks)
+        SK_ApplyQueuedHooks ();
 
       init = true;
     }

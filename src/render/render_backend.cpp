@@ -4145,7 +4145,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
 
      display_crc [idx] =
              crc32c ( 0, &display,
-                          display_size );
+                          offsetof (SK_RenderBackend_V2::output_s, cache_end) - sizeof (SK_RenderBackend_V2::output_s::cache_end) );
 
     display_changed [idx] =
       old_crc != display_crc [idx];
@@ -4866,8 +4866,7 @@ SK_Render_CountVBlanks ()
   static HANDLE hVRREvent =
     SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
 
-  SK_RunOnce (
-  {
+  static HANDLE hVBlankThread =
     SK_Thread_CreateEx ([](LPVOID) -> DWORD
     {
       DXGI_FRAME_STATISTICS
@@ -4902,15 +4901,17 @@ SK_Render_CountVBlanks ()
 
           auto& nvapi_display =
             rb.displays [rb.active_display].nvapi;
+          auto& stats =
+            rb.displays [rb.active_display].statistics;
 
           const ULONGLONG& kSyncQPC =
             (ULONGLONG &)frameStats.SyncQPCTime.QuadPart;
 
-          if (nvapi_display.vblank_counter.last_qpc_refreshed < kSyncQPC &&
-              nvapi_display.vblank_counter.addRecord (
+          if (stats.vblank_counter.last_qpc_refreshed < kSyncQPC &&
+              stats.vblank_counter.addRecord (
               nvapi_display.display_handle, &frameStats,        kSyncQPC))
           {
-            nvapi_display.vblank_counter.last_qpc_refreshed =
+            stats.vblank_counter.last_qpc_refreshed =
               kSyncQPC;
           }
         }
@@ -4927,6 +4928,9 @@ SK_Render_CountVBlanks ()
           auto& nvapi_display =
             rb.displays [rb.active_display].nvapi;
 
+          auto& stats =
+            rb.displays [rb.active_display].statistics;
+
           if (nvapi_display.display_handle != nullptr)
           {
             bool got_new_reading = false;
@@ -4936,11 +4940,11 @@ SK_Render_CountVBlanks ()
               const auto current_frame =
                 SK_GetFramesDrawn ();
 
-              if (nvapi_display.vblank_counter.last_frame_sampled < current_frame &&
-                  nvapi_display.vblank_counter.addRecord (
+              if (stats.vblank_counter.last_frame_sampled < current_frame &&
+                  stats.vblank_counter.addRecord (
                   nvapi_display.display_handle, nullptr, SK_QueryPerf ().QuadPart))
               {
-                nvapi_display.vblank_counter.last_frame_sampled = current_frame;
+                stats.vblank_counter.last_frame_sampled = current_frame;
                 got_new_reading = true;
               }
 
@@ -4960,7 +4964,6 @@ SK_Render_CountVBlanks ()
 
       return 0;
     }, L"[SK] VBlank Counter", nullptr);
-  });
 
   SetEvent (hVRREvent);
 }

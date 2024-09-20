@@ -857,12 +857,12 @@ SK_DrawOSD (void)
 
     if (gsync)
     {
-      auto& nvapi_display =
-        rb.displays [rb.active_display].nvapi;
+      auto& stats =
+        rb.displays [rb.active_display].statistics;
 
       fVBlankHz =
-        nvapi_display.vblank_counter.getVBlankHz (
-                        SK_QueryPerf ().QuadPart );
+        stats.vblank_counter.getVBlankHz (
+                SK_QueryPerf ().QuadPart );
     }
 
     if (fabs (mean - INFINITY) > std::numeric_limits <double>::epsilon ())

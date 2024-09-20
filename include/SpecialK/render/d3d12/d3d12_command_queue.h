@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -30,4 +30,4 @@ D3D12CommandQueue_ExecuteCommandLists_pfn = void
 extern D3D12CommandQueue_ExecuteCommandLists_pfn
        D3D12CommandQueue_ExecuteCommandLists_Original;
 
-void SK_D3D12_InstallCommandQueueHooks (ID3D12Device *pDev12);
+bool SK_D3D12_InstallCommandQueueHooks (ID3D12Device *pDev12);

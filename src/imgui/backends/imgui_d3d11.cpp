@@ -1852,7 +1852,7 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
     auto& rb =
       SK_GetCurrentRenderBackend ();
 
-    rb.displays [rb.active_display].nvapi.vblank_counter.resetStats ();
+    rb.displays [rb.active_display].statistics.vblank_counter.resetStats ();
 
 
     // Re-apply colorspace if necessary

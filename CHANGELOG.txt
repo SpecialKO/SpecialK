@@ -1,4 +1,11 @@
-﻿24.9.20
+﻿24.9.20.1
+=========
+ + Fixed incorrect display topology caching caused by hashing VBlank statistics
+     as part of SK_RenderBackend_V2::output_s's invariant data.
+ + Reworked Streamline initialization for games that load sl.interposer.dll
+     but have not loaded any plug-ins yet when SK is injected.
+
+24.9.20
 =======
  + Add hook on sl.interposer.dll slInit (...) in order to override various
      Streamline configuration for enhanced compatibility with third-party

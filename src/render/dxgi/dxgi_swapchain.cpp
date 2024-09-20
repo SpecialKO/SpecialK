@@ -124,6 +124,9 @@ IWrapDXGISwapChain::RegisterDestructionCallback (void)
     E_NOTIMPL;
 }
 
+struct DECLSPEC_UUID ("ADEC44E2-61F0-45C3-AD9F-1B37379284FF")
+  IStreamlineBaseInterface : IUnknown { };
+
 // IDXGISwapChain
 HRESULT
 STDMETHODCALLTYPE
@@ -141,6 +144,14 @@ IWrapDXGISwapChain::QueryInterface (REFIID riid, void **ppvObj)
     pReal->AddRef ();
 
     return S_OK;
+  }
+
+  // Keep SwapChain wrapping the hell away from Streamline!
+  else if (riid == __uuidof (IStreamlineBaseInterface))
+  {
+    SK_LOGi1 (L"Tried to get Streamline Base Interface for a SwapChain that SK has wrapped...");
+
+    return E_NOINTERFACE;
   }
 
   else if (
