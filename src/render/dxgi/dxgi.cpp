@@ -6716,6 +6716,32 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     return E_INVALIDARG;
   }
 
+  auto ex_style =
+    SK_GetWindowLongPtrW (hWnd, GWL_EXSTYLE);
+  auto style =
+    SK_GetWindowLongPtrW (hWnd, GWL_STYLE);
+
+  if (ex_style & WS_EX_TOPMOST)
+  {
+    bool style_compatible = 
+      style & (WS_POPUP   | WS_BORDER      | WS_CAPTION     |
+               WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_THICKFRAME);
+
+    bool exstyle_compatible =
+      ex_style & (WS_EX_CLIENTEDGE    | WS_EX_CONTEXTHELP |
+                  WS_EX_DLGMODALFRAME | WS_EX_TOOLWINDOW  |
+                  WS_EX_WINDOWEDGE);
+
+    if (! (style_compatible && exstyle_compatible))
+    {
+      SK_LOGi0 (
+        L"IDXGIFactory2::CreateSwapChainForHwnd (...) called on a window with"
+        L" the extended WS_EX_TOPMOST style, which is invalid... removing style!"
+      );
+      SK_SetWindowLongPtrW (hWnd, GWL_EXSTYLE, ex_style & ~WS_EX_TOPMOST);
+    }
+  }
+
   if (! config.render.dxgi.hooks.create_swapchain4hwnd)
   {
     return
@@ -6867,6 +6893,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   }
 
   pDesc = &new_desc1;
+
+  _d3d12_rbk->drain_queue ();
 
   ret =
     CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
@@ -9702,7 +9730,39 @@ HookDXGI (LPVOID user)
       config.render.dxgi.debug_layer ?
            DXGI_CREATE_FACTORY_DEBUG : 0x0;
 
-    if (config.render.dxgi.debug_layer && SK_IsModuleLoaded (L"d3d12.dll"))
+    static const char* D3D12SDKPath =
+      (const char *)GetProcAddress (nullptr, "D3D12SDKPath");
+
+    static const char* szDefaultD3D12Core = R"(.\D3D12\D3D12Core.dll)";
+
+    if (D3D12SDKPath == nullptr && PathFileExistsW (LR"(D3D12\D3D12Core.dll)"))
+    {
+      D3D12SDKPath =     szDefaultD3D12Core;
+    }
+
+    if (config.render.dxgi.debug_layer && D3D12SDKPath != nullptr)
+    {
+      wchar_t                         wszD3D12CorePath [MAX_PATH] = {};
+      GetCurrentDirectoryW (MAX_PATH, wszD3D12CorePath);
+      PathAppendW          (          wszD3D12CorePath, SK_UTF8ToWideChar (D3D12SDKPath).c_str ());
+      PathAppendW          (          wszD3D12CorePath, L"D3D12Core.dll");
+
+      using D3D12GetInterface_pfn = HRESULT (WINAPI *)(REFCLSID rclsid, REFIID riid, void **ppvDebug);
+
+      D3D12GetInterface_pfn
+     _D3D12GetInterface =
+     (D3D12GetInterface_pfn)SK_GetProcAddress (wszD3D12CorePath,
+     "D3D12GetInterface");
+
+      if (_D3D12GetInterface != nullptr)
+      {
+        SK_ComPtr <ID3D12Debug>                                             pDebugD3D12;
+        if (SUCCEEDED (_D3D12GetInterface (CLSID_D3D12Debug, IID_PPV_ARGS (&pDebugD3D12.p))))
+                                                                            pDebugD3D12->EnableDebugLayer ();
+      }
+    }
+
+    else if (config.render.dxgi.debug_layer && SK_IsModuleLoaded (L"d3d12.dll"))
     {
       D3D12GetDebugInterface_pfn
      _D3D12GetDebugInterface =
@@ -9756,6 +9816,7 @@ HookDXGI (LPVOID user)
       SK_ComPtr <ID3D12Device>       pDevice12, pNativeDevice12;
       SK_ComPtr <ID3D12CommandQueue> pCmdQueue, pNativeCmdQueue;
 
+#if 0
       D3D11CoreCreateDevice_pfn
       D3D11CoreCreateDevice = (D3D11CoreCreateDevice_pfn)SK_GetProcAddress (
              LoadLibraryExW (L"d3d11.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32),
@@ -9794,6 +9855,9 @@ HookDXGI (LPVOID user)
                             &featureLevel,
                               nullptr );
       }
+#endif
+
+      SK_LoadLibraryW (L"d3d12.dll");
       
       // Stupid NVIDIA Streamline hack; lowers software compatibility with everything else.
       //   Therfore, just it may be better to leave Streamline unsupported.

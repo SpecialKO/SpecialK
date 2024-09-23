@@ -1199,6 +1199,8 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
 void
 ImGui_ImplDX12_Shutdown (void)
 {
+  std::scoped_lock lock (_d3d12_rbk->_ctx_lock);
+
   ///ImGui_ImplDX12_Data* bd = ImGui_ImplDX12_GetBackendData();
   ///IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
 
@@ -1637,6 +1639,10 @@ D3D12GraphicsCommandList_CopyResource_Detour (
 {
   const auto src_desc = pSrcResource->GetDesc (),
              dst_desc = pDstResource->GetDesc ();
+
+  // Thanks NVIDIA Streamline, very helpful.
+  if (src_desc.Width  != dst_desc.Width ||
+      src_desc.Height != dst_desc.Height) return;
 
   // Handle scenarios where user changes HDR override mid-game
   static bool had_hdr_override = false;
@@ -2694,7 +2700,7 @@ SK_D3D12_RenderCtx::FrameCtx::begin_cmd_list (const SK_ComPtr <ID3D12PipelineSta
 bool
 SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 {
-  //std::scoped_lock lock (pRoot->_ctx_lock);
+  std::scoped_lock lock (pRoot->_ctx_lock);
 
   assert (bCmdListRecording);
 
@@ -2756,6 +2762,8 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
 bool
 SK_D3D12_RenderCtx::FrameCtx::flush_cmd_list (void)
 {
+  std::scoped_lock lock (_ctx_lock);
+
   if (exec_cmd_list ())
   {
     if ( const UINT64 sync_value = fence.value + 1;
@@ -2778,7 +2786,7 @@ SK_D3D12_RenderCtx::FrameCtx::flush_cmd_list (void)
 bool
 SK_D3D12_RenderCtx::drain_queue (void) noexcept
 {
-  //std::scoped_lock lock (_ctx_lock);
+  std::scoped_lock lock (_ctx_lock);
 
   bool success { true };
 
@@ -2797,7 +2805,7 @@ SK_D3D12_RenderCtx::drain_queue (void) noexcept
 bool
 SK_D3D12_RenderCtx::FrameCtx::wait_for_gpu (void) noexcept
 {
-  //std::scoped_lock lock (pRoot->_ctx_lock);
+  std::scoped_lock lock (pRoot->_ctx_lock);
 
   // Flush command list, to avoid it still referencing resources that may be destroyed after this call
   if (bCmdListRecording)
