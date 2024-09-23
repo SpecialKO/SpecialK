@@ -99,27 +99,47 @@ SK_IWrapDStorageFactory::CreateQueue (const DSTORAGE_QUEUE_DESC *desc, REFIID ri
   {
     if (override_desc.Priority == DSTORAGE_PRIORITY_REALTIME)
     {
-      override_desc.Capacity =
-        (uint16_t)((float)override_desc.Capacity * 0.5f);
+      static int realtime_count = 0;
+
+      if (realtime_count++ < 7)
+      {
+        override_desc.Capacity =
+          (uint16_t)((float)override_desc.Capacity);
+      }
+
+      else if (realtime_count++ < 12)
+      {
+        override_desc.Capacity =
+          (uint16_t)((float)override_desc.Capacity * 0.5f);
+      }
+
+      else
+      {
+        realtime_count++;
+        override_desc.Capacity =
+          (uint16_t)((float)override_desc.Capacity * 0.25f);
+      }
     }
 
     else if (override_desc.Priority == DSTORAGE_PRIORITY_HIGH)
     {
       override_desc.Capacity =
-        (uint16_t)((float)override_desc.Capacity * 0.75f);
+        (uint16_t)((float)override_desc.Capacity * 0.5f);
     }
 
     else if (override_desc.Priority == DSTORAGE_PRIORITY_NORMAL)
     {
-      override_desc.Capacity =
-        (uint16_t)((float)override_desc.Capacity * 2.0f);
-    }
+      static int normal_count = 0;
+      if (normal_count++ < 14)
+      {
+        override_desc.Capacity =
+          (uint16_t)((float)override_desc.Capacity);
+      }
 
-    //else if (override_desc.Priority == DSTORAGE_PRIORITY_LOW)
-    //{
-    //  override_desc.Capacity =
-    //    (uint16_t)((float)override_desc.Capacity * 1.25f);
-    //}
+      else
+        override_desc.Capacity =
+          (uint16_t)((float)override_desc.Capacity * 0.5f);
+    }
   }
 
   IDStorageQueue *pQueue = nullptr;
