@@ -1335,32 +1335,6 @@ SK::ControlPanel::Input::Draw (void)
 
           ImGui::TreePush ("");
 
-          static HMODULE hModScePad =
-            SK_GetModuleHandle (L"libscepad.dll");
-
-          if (hModScePad)
-          {
-            ImGui::Checkbox ("Hook libScePad", &config.input.gamepad.hook_scepad);
-
-            if (ImGui::IsItemHovered ())
-                ImGui::SetTooltip ("SONY's native input API; unlocks additional settings in games that use it");
-
-            if (config.input.gamepad.hook_scepad && last_scepad != 0)
-            {
-              ImGui::SameLine   (0.0f, 30);
-
-              ImGui::BeginGroup ();
-              ImGui::Checkbox   ("Disable Touchpad",             &config.input.gamepad.scepad.disable_touch);
-              ImGui::Checkbox   ("Use Share as Touchpad Click",  &config.input.gamepad.scepad.share_clicks_touch);
-              ImGui::EndGroup   ();
-
-              ImGui::SameLine   ();
-            }
-
-            else
-              ImGui::SameLine   (0.0f, 30);
-          }
-
           bool bBluetooth  = false;
           bool bDualSense  = false;
           bool bDualShock4 = false;
@@ -1996,6 +1970,34 @@ SK::ControlPanel::Input::Draw (void)
 
         if (bHasDualSenseEdge || bHasDualShock4v2 || bHasDualShock4 || bHasBluetooth)
         {
+#if 0
+          static HMODULE hModScePad =
+            SK_GetModuleHandle (L"libscepad.dll");
+
+          if (hModScePad)
+          {
+            ImGui::Checkbox ("Hook libScePad", &config.input.gamepad.hook_scepad);
+
+            if (ImGui::IsItemHovered ())
+                ImGui::SetTooltip ("SONY's native input API; unlocks additional settings in games that use it");
+
+            if (config.input.gamepad.hook_scepad && last_scepad != 0)
+            {
+              ImGui::SameLine   (0.0f, 30);
+
+              ImGui::BeginGroup ();
+              ImGui::Checkbox   ("Disable Touchpad",             &config.input.gamepad.scepad.disable_touch);
+              ImGui::Checkbox   ("Use Share as Touchpad Click",  &config.input.gamepad.scepad.share_clicks_touch);
+              ImGui::EndGroup   ();
+
+              ImGui::SameLine   ();
+            }
+
+            else
+              ImGui::SameLine   (0.0f, 30);
+          }
+#endif
+
           ImGui::BeginGroup ();
           if (ImGui::TreeNode ("Compatibility Options"))
           {

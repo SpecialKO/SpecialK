@@ -1,4 +1,12 @@
-﻿24.9.24.3
+﻿24.9.25
+=======
+ + Remove part of SK's libScePad integration now that SK can poll PlayStation
+     controllers directly using their USB HID communication protocol.
+
+    >> This fixes weird gamepad behavior in SK's control panel from polling
+         PlayStation controllers twice in games that use libScePad.
+
+24.9.24.3
 =========
  + Fixed God of War: Ragnarok's fullscreen mode without having to force
      borderless on by default.
