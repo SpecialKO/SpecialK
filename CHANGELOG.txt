@@ -1,4 +1,12 @@
-﻿24.9.20.1
+﻿24.9.23
+=======
+ + Remove WS_EX_TOPMOST style on windows with otherwise DXGI incompatible
+     window styles when calling CreateSwapChain[ForHwnd] (...) to fix an
+       obscure problem with Streamline.
+ + Fixed games using DirectStorage queues too large for the API to support
+ + Window management improvements for Final Fantasy XVI
+
+24.9.20.1
 =========
  + Fixed incorrect display topology caching caused by hashing VBlank statistics
      as part of SK_RenderBackend_V2::output_s's invariant data.

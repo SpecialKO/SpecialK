@@ -2263,7 +2263,7 @@ SK_Window_RemoveBorders (void)
     SK_SetWindowPos ( game_window.hWnd,
                                SK_HWND_TOP,
                         0, 0,
-                        0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE |
+                        0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE | SWP_NOMOVE |
                                SWP_FRAMECHANGED | SWP_NOACTIVATE   | SWP_ASYNCWINDOWPOS );
   }
 }
@@ -2281,7 +2281,7 @@ SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx)
       SK_SetWindowPos ( game_window.hWnd,
                                  SK_HWND_TOP,
                           0, 0,
-                          0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE |
+                          0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE | SWP_NOMOVE |
                                  SWP_FRAMECHANGED | SWP_NOACTIVATE   | SWP_ASYNCWINDOWPOS );
     }
   }
@@ -4172,6 +4172,12 @@ BOOL
 WINAPI
 TranslateMessage_Detour (_In_ const MSG *lpMsg)
 {
+  static bool bSkipTranslation =
+      (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXVI);
+
+  if (bSkipTranslation && lpMsg != nullptr && lpMsg->hwnd == game_window.hWnd)
+    return FALSE;
+
   if (SK_ImGui_WantTextCapture () && lpMsg != nullptr)
   {
     switch (lpMsg->message)
@@ -5260,6 +5266,22 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                       _In_  WPARAM wParam,
                       _In_  LPARAM lParam )
 {
+  // @TODO: Allow PlugIns to install callbacks for window proc
+  static bool bIgnoreKeyboardAndMouse =
+    (SK_GetCurrentGameID () == SK_GAME_ID::FinalFantasyXVI);
+
+  if (bIgnoreKeyboardAndMouse)
+  {
+    if ((uMsg >= WM_KEYFIRST   && uMsg <= WM_KEYLAST)   ||
+        (uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST))
+    {
+      IsWindowUnicode (hWnd)                       ?
+       DefWindowProcW (hWnd, uMsg, wParam, lParam) :
+       DefWindowProcA (hWnd, uMsg, wParam, lParam);
+      return 0;
+    }
+  }
+
   // If we are forcing a shutdown, then route any messages through the
   //   default Win32 handler.
   if (  const bool abnormal_dll_state =

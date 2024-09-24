@@ -1084,9 +1084,22 @@ bool SK_COMPAT_IgnoreEOSOVHCall (LPCVOID pReturn)
                                L"EOSOVH-Win64-Shipping.dll" ) ) );
 }
 
+using  slIsFeatureSupported_pfn = sl::Result (*)(sl::Feature feature, const sl::AdapterInfo& adapterInfo);
+static slIsFeatureSupported_pfn
+       slIsFeatureSupported_Original = nullptr;
+
 using  slInit_pfn = sl::Result (*)(const sl::Preferences &pref, uint64_t sdkVersion);
 static slInit_pfn
        slInit_Original = nullptr;
+
+sl::Result
+slIsFeatureSupported_Detour (sl::Feature feature, const sl::AdapterInfo& adapterInfo)
+{
+  std::ignore = feature;
+  std::ignore = adapterInfo;
+
+  return sl::Result::eOk;
+}
 
 sl::Result
 slInit_Detour (const sl::Preferences &pref, uint64_t sdkVersion = sl::kSDKVersion)
@@ -1138,6 +1151,14 @@ SK_COMPAT_CheckStreamlineSupport (void)
                                 "slInit",
                                  slInit_Detour,
         static_cast_p2p <void> (&slInit_Original));
+
+    // Feature Spoofing
+#if 0
+      SK_CreateDLLHook2 (      L"sl.interposer.dll",
+                                "slIsFeatureSupported",
+                                 slIsFeatureSupported_Detour,
+        static_cast_p2p <void> (&slIsFeatureSupported_Original));
+#endif
 
       SK_ApplyQueuedHooks ();
     );

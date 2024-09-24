@@ -6717,20 +6717,21 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   }
 
   auto ex_style =
-    SK_GetWindowLongPtrW (hWnd, GWL_EXSTYLE);
-  auto style =
+    SK_GetWindowLongPtrW (hWnd, GWL_EXSTYLE),
+          style =
     SK_GetWindowLongPtrW (hWnd, GWL_STYLE);
 
   if (ex_style & WS_EX_TOPMOST)
   {
     bool style_compatible = 
-      style & (WS_POPUP   | WS_BORDER      | WS_CAPTION     |
-               WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX | WS_THICKFRAME);
+      (style & (WS_POPUP   | WS_BORDER      | WS_CAPTION     |
+                WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX |
+                WS_THICKFRAME)) != 0UL;
 
     bool exstyle_compatible =
-      ex_style & (WS_EX_CLIENTEDGE    | WS_EX_CONTEXTHELP |
-                  WS_EX_DLGMODALFRAME | WS_EX_TOOLWINDOW  |
-                  WS_EX_WINDOWEDGE);
+      (ex_style & (WS_EX_CLIENTEDGE    | WS_EX_CONTEXTHELP |
+                   WS_EX_DLGMODALFRAME | WS_EX_TOOLWINDOW  |
+                   WS_EX_WINDOWEDGE)) != 0UL;
 
     if (! (style_compatible && exstyle_compatible))
     {
@@ -6738,7 +6739,11 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
         L"IDXGIFactory2::CreateSwapChainForHwnd (...) called on a window with"
         L" the extended WS_EX_TOPMOST style, which is invalid... removing style!"
       );
+
       SK_SetWindowLongPtrW (hWnd, GWL_EXSTYLE, ex_style & ~WS_EX_TOPMOST);
+      SK_SetWindowPos      (hWnd, SK_HWND_TOP, 0, 0, 0, 0,
+                            SWP_NOZORDER | SWP_NOREPOSITION | SWP_NOSIZE |
+                            SWP_NOMOVE   | SWP_NOACTIVATE   | SWP_NOSENDCHANGING);
     }
   }
 
@@ -6936,6 +6941,22 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
 
   if ( SUCCEEDED (ret) )
   {
+    if (SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect))
+    {
+      ex_style =
+        SK_GetWindowLongPtrW (hWnd, GWL_EXSTYLE);
+
+      if (! (ex_style & WS_EX_NOREDIRECTIONBITMAP))
+      {
+        SK_LOGi0 (L"Removing Redirection Bitmap from Flip Model Window");
+
+        SK_SetWindowLongPtrW (hWnd, GWL_EXSTYLE, ex_style | WS_EX_NOREDIRECTIONBITMAP);
+        SK_SetWindowPos      (hWnd, SK_HWND_TOP, 0, 0, 0, 0,
+                              SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE | SWP_NOMOVE |
+                              SWP_FRAMECHANGED | SWP_NOACTIVATE   | SWP_NOSENDCHANGING);
+      }
+    }
+
     if (pTemp != nullptr)
     {
       //

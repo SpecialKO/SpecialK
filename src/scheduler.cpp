@@ -1306,6 +1306,14 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       return
         SK_SleepEx (dwMilliseconds, bAlertable);
     }
+
+    if (SK_CPU_HasMWAITX)
+    {
+      static alignas(64) uint64_t monitor = 0ULL;
+
+      _mm_monitorx (&monitor, 0, 0);
+      _mm_mwaitx   (0x2, 0, ((DWORD)(0.015f * SK_QpcTicksPerMs) * SK_PerfFreqInTsc + 1));
+    }
   }
 
   return 0;

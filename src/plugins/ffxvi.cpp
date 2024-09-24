@@ -477,6 +477,21 @@ SK_FFXVI_PresentFirstFrame (IUnknown* pSwapChain, UINT SyncInterval, UINT Flags)
       }
     }
 
+    SK_SetWindowLongPtrW (  game_window.hWnd, GWL_STYLE,
+      SK_GetWindowLongPtrW (game_window.hWnd, GWL_STYLE) | WS_VISIBLE      | WS_POPUP
+                                                         | WS_MINIMIZEBOX  | WS_SYSMENU
+                                                         | WS_CLIPCHILDREN | WS_CLIPSIBLINGS );
+
+    SK_SetWindowLongPtrW (  game_window.hWnd, GWL_EXSTYLE,
+      SK_GetWindowLongPtrW (game_window.hWnd, GWL_EXSTYLE) | WS_EX_APPWINDOW | WS_EX_NOREDIRECTIONBITMAP |
+                                                             WS_EX_WINDOWEDGE );
+
+    SK_SetWindowPos ( game_window.hWnd,
+                           SK_HWND_TOP,
+                    0, 0,
+                    0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE | SWP_NOMOVE |
+                           SWP_FRAMECHANGED | SWP_NOACTIVATE   | SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS );
+
     config.utility.save_async ();
 
     SK_Thread_CloseSelf ();
