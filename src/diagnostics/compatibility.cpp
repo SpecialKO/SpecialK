@@ -1153,12 +1153,12 @@ SK_COMPAT_CheckStreamlineSupport (void)
         static_cast_p2p <void> (&slInit_Original));
 
     // Feature Spoofing
-#if 0
+/*
       SK_CreateDLLHook2 (      L"sl.interposer.dll",
                                 "slIsFeatureSupported",
                                  slIsFeatureSupported_Detour,
         static_cast_p2p <void> (&slIsFeatureSupported_Original));
-#endif
+*/
 
       SK_ApplyQueuedHooks ();
     );
