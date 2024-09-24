@@ -6716,6 +6716,9 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     return E_INVALIDARG;
   }
 
+  void SK_Window_WaitForAsyncSetWindowLong (void);
+       SK_Window_WaitForAsyncSetWindowLong ();
+
   auto ex_style =
     SK_GetWindowLongPtrW (hWnd, GWL_EXSTYLE),
           style =

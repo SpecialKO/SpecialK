@@ -1751,6 +1751,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
       pTarget    = nullptr;
       dll_log->Log ( L"[   DXGI   ]  >> Display Override "
                      L"(Requested: Fullscreen, Using: Windowed)" );
+      SK_Window_RemoveBorders ();
     }
 
     else if (request_mode_change == mode_change_request_e::Fullscreen &&

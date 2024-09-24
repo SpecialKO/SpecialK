@@ -1344,7 +1344,8 @@ _In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
   }
 
   return
-    D3D12Device_CreateSampler_Original (This, &desc, DestDescriptor);
+    D3D12Device_CreateSampler_Original (This, (pDesc == nullptr) ?
+                                                        nullptr : &desc, DestDescriptor);
 }
 
 void
@@ -1411,7 +1412,8 @@ _In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
   }
 
   return
-    D3D12Device11_CreateSampler2_Original (This, &desc, DestDescriptor);
+    D3D12Device11_CreateSampler2_Original (This, (pDesc == nullptr) ?
+                                                           nullptr : &desc, DestDescriptor);
 }
 
 D3D12_RESOURCE_ALLOCATION_INFO
@@ -1489,6 +1491,32 @@ SK_ITrackD3D12Resource final : IUnknown
       _d3d12_rbk->_pCommandQueue;
   }
 
+  SK_ITrackD3D12Resource ( ID3D12Device   *pDevice,
+                           ID3D12Resource *pResource,
+                           INT             iBufferIdx,
+                           ID3D12Fence    *pFence_,
+                           const wchar_t  *wszName,
+                  volatile UINT64         */*puiFenceValue_*/) :
+                                   pReal  (pResource),
+                                   pDev   (pDevice),
+                                   pFence (pFence_),
+                                   name_  (wszName != nullptr ? wszName
+                                                             : L"Unnamed"),
+                                   ver_   (0)
+  {
+    pResource->SetPrivateDataInterface (
+      IID_ITrackD3D12Resource, this
+    );
+
+    NextFrame =
+      SK_GetFramesDrawn ();// + _d3d12_rbk->frames_.size ();
+
+    pCmdQueue =
+      _d3d12_rbk->_pCommandQueue;
+
+    this->iBufferIdx = iBufferIdx;
+  }
+
   virtual ~SK_ITrackD3D12Resource (void)
   {
   }
@@ -1509,9 +1537,42 @@ SK_ITrackD3D12Resource final : IUnknown
   SK_ComPtr <ID3D12Device>       pDev;
   SK_ComPtr <ID3D12CommandQueue> pCmdQueue;
   SK_ComPtr <ID3D12Fence>        pFence;
-  UINT64                         uiFence   = 0;
-  UINT64                         NextFrame = 0;
+  UINT64                         uiFence    = 0;
+  UINT64                         NextFrame  = 0;
+  UINT                           iBufferIdx = 0;
 };
+
+void
+SK_D3D12_TrackResource (ID3D12Device *pDevice, ID3D12Resource *pResource, UINT iBufferIdx)
+{
+  new (std::nothrow) SK_ITrackD3D12Resource ( pDevice, pResource, iBufferIdx,
+                                                        nullptr, nullptr, nullptr );
+}
+
+bool
+SK_D3D12_IsTrackedResource (ID3D12Resource *pResource)
+{
+  SK_ComPtr <SK_ITrackD3D12Resource> pTrackedResource;
+  UINT size = sizeof (void *);
+  
+  return
+    SUCCEEDED (pResource->GetPrivateData (IID_ITrackD3D12Resource, &size, (void **)&pTrackedResource.p));
+}
+
+bool
+SK_D3D12_IsBackBufferOnActiveQueue (ID3D12Resource *pResource, ID3D12CommandQueue *pCmdQueue, UINT iBufferIdx)
+{
+  SK_ComPtr <SK_ITrackD3D12Resource> pTrackedResource;
+  UINT size = sizeof (void *);
+  
+  if (SUCCEEDED (pResource->GetPrivateData (IID_ITrackD3D12Resource, &size, (void **)&pTrackedResource.p)))
+  {
+    if (pCmdQueue == pTrackedResource.p->pCmdQueue && pTrackedResource.p->iBufferIdx == iBufferIdx)
+      return true;
+  }
+
+  return false;
+}
 
 HRESULT
 STDMETHODCALLTYPE

@@ -711,6 +711,16 @@ SK_FFXVI_PlugInCfg (void)
         );
       }
 
+      if (ImGui::Checkbox ("Force Anisotropic Filtering", &config.render.d3d12.force_anisotropic))
+      {
+        restart_warning = true;
+
+        config.utility.save_async ();
+      }
+
+      if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Upgrade standard bilinear or trilinear filtering to anisotropic");
+
       ImGui::SameLine ();
 
       if (ImGui::SliderInt ("Anistropic Level", &config.render.d3d12.max_anisotropy, -1, 16,
@@ -721,15 +731,9 @@ SK_FFXVI_PlugInCfg (void)
         config.utility.save_async ();
       }
 
-      if (ImGui::Checkbox ("Force Anisotropic Filtering", &config.render.d3d12.force_anisotropic))
-      {
-        restart_warning = true;
-
-        config.utility.save_async ();
-      }
-
       if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Upgrade standard bilinear or trilinear filtering to anisotropic");
+          ImGui::SetTooltip ("Force maximum anisotropic filtering level, for native anisotropic "
+                             "filtered render passes as well as any forced.");
 
       if (restart_warning)
       {

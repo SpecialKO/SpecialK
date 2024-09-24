@@ -1682,6 +1682,7 @@ enum class SK_GAME_ID
   CrashBandicootNSaneTrilogy,   // CrashBandicootNSaneTrilogy.exe
   StarWarsOutlaws,              // outlaws.exe
   ShadPS4,                      // shadPS4.exe
+  GodOfWarRagnarok,             // GoWR.exe
 
   UNKNOWN_GAME               = 0xffff
 };

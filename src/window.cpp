@@ -2282,7 +2282,7 @@ SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx)
                                  SK_HWND_TOP,
                           0, 0,
                           0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE | SWP_NOMOVE |
-                                 SWP_FRAMECHANGED | SWP_NOACTIVATE   | SWP_ASYNCWINDOWPOS );
+                                 SWP_FRAMECHANGED | SWP_NOACTIVATE/*   | SWP_ASYNCWINDOWPOS*/ );
     }
   }
 }
@@ -2425,6 +2425,9 @@ SetWindowLong_Marshall (
         {
           game_window.actual.style_ex =
             SK_BORDERLESS_EX;
+
+          // Must remove this or God of War: Ragnarok will fail SwapChain creation in FSR3
+          game_window.actual.style_ex &= ~WS_EX_TOPMOST;
         }
 
         else
@@ -2686,6 +2689,9 @@ SetWindowLongPtr_Marshall (
         {
           game_window.actual.style_ex =
             SK_BORDERLESS_EX;
+
+          // Must remove this or God of War: Ragnarok will fail SwapChain creation in FSR3
+          game_window.actual.style_ex &= ~WS_EX_TOPMOST;
         }
 
         else
@@ -2760,7 +2766,7 @@ SK_Window_WaitForAsyncSetWindowLong (void)
     if ( ++sleepy_spins > 1 )
       return;
 
-    SK_SleepEx (0, FALSE);
+    SK_SleepEx (1, FALSE);
   }
 }
 
@@ -3297,6 +3303,9 @@ SK_AdjustBorder (void)
        ULONG_PTR (SK_BORDERLESS);
     game_window.actual.style_ex =
        ULONG_PTR (SK_BORDERLESS_EX);
+
+    // Must remove this or God of War: Ragnarok will fail SwapChain creation in FSR3
+    game_window.actual.style_ex &= ~WS_EX_TOPMOST;
   }
 
   if (game_window.attach_border)

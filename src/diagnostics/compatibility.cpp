@@ -1126,8 +1126,9 @@ slInit_Detour (const sl::Preferences &pref, uint64_t sdkVersion = sl::kSDKVersio
     pref_copy.logLevel           = sl::LogLevel::eDefault;
 #endif
 
-    pref_copy.flags |=
-      sl::PreferenceFlags::eUseDXGIFactoryProxy;
+    // Make forcing proxies into an option
+    //pref_copy.flags |=
+    //  sl::PreferenceFlags::eUseDXGIFactoryProxy;
 
     return
       slInit_Original (pref_copy, sdkVersion);

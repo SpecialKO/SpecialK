@@ -258,6 +258,7 @@ SK_GetCurrentGameID (void)
           { L"Outlaws.exe",                            SK_GAME_ID::StarWarsOutlaws              },
           { L"Outlaws_Plus.exe",                       SK_GAME_ID::StarWarsOutlaws              },
           { L"shadPS4.exe",                            SK_GAME_ID::ShadPS4                      },
+          { L"GoWR.exe",                               SK_GAME_ID::GodOfWarRagnarok             }
         };
 
     first_check  = false;
@@ -3733,6 +3734,12 @@ auto DeclKeybind =
       {
         // Prevent crashes in the Steam and GOG versions of the game
         config.compatibility.allow_dxdiagn = false;
+      } break;
+
+      case SK_GAME_ID::GodOfWarRagnarok:
+      {
+        // Force borderless on because the game does not handle fullscreen correctly
+        config.window.borderless = true;
       } break;
 
       case SK_GAME_ID::TalosPrinciple2:

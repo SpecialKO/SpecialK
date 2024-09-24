@@ -2271,6 +2271,18 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
     }
   }
 
+  SK_ComPtr <ID3D12Resource>                                                                     pBackBuffer;
+  pSwapChain->GetBuffer (pSwapChain->GetCurrentBackBufferIndex (), IID_ID3D12Resource, (void **)&pBackBuffer.p);
+
+  bool  SK_D3D12_IsBackBufferOnActiveQueue (ID3D12Resource *pResource, ID3D12CommandQueue *pCmdQueue, UINT iBackBufferIdx);
+  if (! SK_D3D12_IsBackBufferOnActiveQueue (pBackBuffer.p, _pCommandQueue, swapIdx))
+  {
+    SK_LOGi0 (L"Attempting to Execute D3D12 Present (...) on wrong Command Queue, shutting down overlay!");
+
+    _d3d12_rbk->release (pSwapChain);
+    return;
+  }
+
   // Screenshot may have left this in a recording state
   if (! stagingFrame.bCmdListRecording)
   {
@@ -2707,11 +2719,6 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
   if (pCmdList == nullptr)
     return false;
 
-  if (FAILED (pCmdList->Close ()))
-    return false;
-
-  bCmdListRecording = false;
-
   ID3D12CommandList* const cmd_lists [] = {
     pCmdList.p
   };
@@ -2746,6 +2753,11 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
       pRoot->frames_ [BufferIdx].pCmdList == pCmdList)
   {
     SK_LOGi4 (L"Drew (BufferIdx=%d)...", BufferIdx);
+
+    if (FAILED (pCmdList->Close ()))
+      return false;
+
+    bCmdListRecording = false;
 
     pParentQueue->ExecuteCommandLists (ARRAYSIZE (cmd_lists), cmd_lists);
 
@@ -3378,6 +3390,9 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
         ThrowIfFailed (
           _pSwapChain->GetBuffer (frame.iBufferIdx,                 IID_PPV_ARGS (&frame.pBackBuffer.p)));
+
+        void SK_D3D12_TrackResource (ID3D12Device *pDevice, ID3D12Resource *pResource, UINT iBufferIdx);
+             SK_D3D12_TrackResource (_pDevice, frame.pBackBuffer.p, frame.iBufferIdx);
 
         frame.pCmdList->SetPrivateData (SKID_D3D12ParentCmdQueue, sizeof (uintptr_t), &_pCommandQueue.p);
         frame.pCmdList->SetPrivateData (SKID_D3D12BackbufferPtr,  sizeof (uintptr_t), &frame.pBackBuffer.p);

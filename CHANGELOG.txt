@@ -1,4 +1,12 @@
-﻿24.9.24
+﻿24.9.24.1
+=========
+ + Fixed God of War: Ragnarok SwapChain re-creation failing due to incompatible
+     window styles
+ + Forced Borderless on by default in God of War: Ragnarok
+ + Added additional validation to prevent executing D3D12 command lists on the
+     wrong command queue when FSR3 and Streamline are used in a game
+
+24.9.24
 =======
  + Added options to force anisotropic level and upgrade standard bilinear or
      trilinear texture filtering to anisotropic in D3D12 games.
