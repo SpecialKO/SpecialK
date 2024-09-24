@@ -6944,22 +6944,6 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
 
   if ( SUCCEEDED (ret) )
   {
-    if (SK_DXGI_IsFlipModelSwapEffect (pDesc->SwapEffect))
-    {
-      ex_style =
-        SK_GetWindowLongPtrW (hWnd, GWL_EXSTYLE);
-
-      if (! (ex_style & WS_EX_NOREDIRECTIONBITMAP))
-      {
-        SK_LOGi0 (L"Removing Redirection Bitmap from Flip Model Window");
-
-        SK_SetWindowLongPtrW (hWnd, GWL_EXSTYLE, ex_style | WS_EX_NOREDIRECTIONBITMAP);
-        SK_SetWindowPos      (hWnd, SK_HWND_TOP, 0, 0, 0, 0,
-                              SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE | SWP_NOMOVE |
-                              SWP_FRAMECHANGED | SWP_NOACTIVATE   | SWP_NOSENDCHANGING);
-      }
-    }
-
     if (pTemp != nullptr)
     {
       //
