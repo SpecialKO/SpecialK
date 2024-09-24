@@ -53,6 +53,10 @@ D3D12Device_CreateUnorderedAccessView_pfn
 D3D12Device_CreateUnorderedAccessView_Original   = nullptr;
 D3D12Device_CreateRenderTargetView_pfn
 D3D12Device_CreateRenderTargetView_Original      = nullptr;
+D3D12Device_CreateSampler_pfn
+D3D12Device_CreateSampler_Original               = nullptr;
+D3D12Device11_CreateSampler2_pfn
+D3D12Device11_CreateSampler2_Original            = nullptr;
 D3D12Device_GetResourceAllocationInfo_pfn
 D3D12Device_GetResourceAllocationInfo_Original   = nullptr;
 D3D12Device_CreateCommittedResource_pfn
@@ -1276,6 +1280,140 @@ _In_            D3D12_CPU_DESCRIPTOR_HANDLE       DestDescriptor )
     );
 }
 
+void
+STDMETHODCALLTYPE
+D3D12Device_CreateSampler_Detour (
+            ID3D12Device          *This,
+_In_  const D3D12_SAMPLER_DESC    *pDesc,
+_In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
+{
+  SK_LOG_FIRST_CALL
+
+  D3D12_SAMPLER_DESC desc =
+    (pDesc != nullptr) ?
+    *pDesc             : D3D12_SAMPLER_DESC {};
+
+  if (config.render.d3d12.force_anisotropic)
+  {
+    switch (desc.Filter)
+    {
+      case D3D12_FILTER_MIN_MAG_MIP_LINEAR:
+        desc.Filter = D3D12_FILTER_ANISOTROPIC;
+        break;
+      case D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = D3D12_FILTER_MIN_MAG_ANISOTROPIC_MIP_POINT;
+        break;
+      case D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR:
+        desc.Filter = D3D12_FILTER_COMPARISON_ANISOTROPIC;
+        break;
+      case D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_ANISOTROPIC_MIP_POINT;
+        break;
+      case D3D12_FILTER_MINIMUM_MIN_MAG_MIP_LINEAR:
+        desc.Filter = D3D12_FILTER_MINIMUM_ANISOTROPIC;
+        break;
+      case D3D12_FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = D3D12_FILTER_MINIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT;
+        break;
+      case D3D12_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR:
+        desc.Filter = D3D12_FILTER_MAXIMUM_ANISOTROPIC;
+        break;
+      case D3D12_FILTER_MAXIMUM_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = D3D12_FILTER_MAXIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT;
+        break;
+      default:
+        break;
+    }
+  }
+
+  switch (desc.Filter)
+  {
+    case D3D12_FILTER_ANISOTROPIC:
+    case D3D12_FILTER_MIN_MAG_ANISOTROPIC_MIP_POINT:
+    case D3D12_FILTER_COMPARISON_MIN_MAG_ANISOTROPIC_MIP_POINT:
+    case D3D12_FILTER_COMPARISON_ANISOTROPIC:
+    case D3D12_FILTER_MINIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT:
+    case D3D12_FILTER_MINIMUM_ANISOTROPIC:
+    case D3D12_FILTER_MAXIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT:
+    case D3D12_FILTER_MAXIMUM_ANISOTROPIC:
+      if (config.render.d3d12.max_anisotropy > 0)
+        desc.MaxAnisotropy = (UINT)config.render.d3d12.max_anisotropy;
+      break;
+    default:
+      break;
+  }
+
+  return
+    D3D12Device_CreateSampler_Original (This, &desc, DestDescriptor);
+}
+
+void
+STDMETHODCALLTYPE
+D3D12Device11_CreateSampler2_Detour (
+            ID3D12Device11        *This,
+_In_  const D3D12_SAMPLER_DESC2   *pDesc,
+_In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
+{
+  SK_LOG_FIRST_CALL
+
+  D3D12_SAMPLER_DESC2 desc =
+    (pDesc != nullptr) ?
+    *pDesc             : D3D12_SAMPLER_DESC2 {};
+
+  if (config.render.d3d12.force_anisotropic)
+  {
+    switch (desc.Filter)
+    {
+      case D3D12_FILTER_MIN_MAG_MIP_LINEAR:
+        desc.Filter = D3D12_FILTER_ANISOTROPIC;
+        break;
+      case D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = D3D12_FILTER_MIN_MAG_ANISOTROPIC_MIP_POINT;
+        break;
+      case D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR:
+        desc.Filter = D3D12_FILTER_COMPARISON_ANISOTROPIC;
+        break;
+      case D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_ANISOTROPIC_MIP_POINT;
+        break;
+      case D3D12_FILTER_MINIMUM_MIN_MAG_MIP_LINEAR:
+        desc.Filter = D3D12_FILTER_MINIMUM_ANISOTROPIC;
+        break;
+      case D3D12_FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = D3D12_FILTER_MINIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT;
+        break;
+      case D3D12_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR:
+        desc.Filter = D3D12_FILTER_MAXIMUM_ANISOTROPIC;
+        break;
+      case D3D12_FILTER_MAXIMUM_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = D3D12_FILTER_MAXIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT;
+        break;
+      default:
+        break;
+    }
+  }
+
+  switch (desc.Filter)
+  {
+    case D3D12_FILTER_ANISOTROPIC:
+    case D3D12_FILTER_MIN_MAG_ANISOTROPIC_MIP_POINT:
+    case D3D12_FILTER_COMPARISON_MIN_MAG_ANISOTROPIC_MIP_POINT:
+    case D3D12_FILTER_COMPARISON_ANISOTROPIC:
+    case D3D12_FILTER_MINIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT:
+    case D3D12_FILTER_MINIMUM_ANISOTROPIC:
+    case D3D12_FILTER_MAXIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT:
+    case D3D12_FILTER_MAXIMUM_ANISOTROPIC:
+      if (config.render.d3d12.max_anisotropy > 0)
+        desc.MaxAnisotropy = (UINT)config.render.d3d12.max_anisotropy;
+      break;
+    default:
+      break;
+  }
+
+  return
+    D3D12Device11_CreateSampler2_Original (This, &desc, DestDescriptor);
+}
+
 D3D12_RESOURCE_ALLOCATION_INFO
 STDMETHODCALLTYPE
 D3D12Device_GetResourceAllocationInfo_Detour (
@@ -2354,6 +2492,11 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
                             D3D12Device_CreateRenderTargetView_Detour,
                   (void **)&D3D12Device_CreateRenderTargetView_Original );
 
+  SK_CreateVFTableHook2 ( L"ID3D12Device::CreateSampler",
+                           *(void ***)*(&pDev12), 22,
+                            D3D12Device_CreateSampler_Detour,
+                  (void **)&D3D12Device_CreateSampler_Original );
+
   ////
   // Hooking this causes crashes, it needs to be wrapped...
   //
@@ -2533,6 +2676,26 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
                            *(void ***)*(&pDevice9), 74,
                             D3D12Device9_ShaderCacheControl_Detour,
                   (void **)&D3D12Device9_ShaderCacheControl_Original );
+  }
+
+  // ID3D12Device10
+  //---------------
+  // 76 CreateCommittedResource3
+  // 77 CreatePlacedResource2
+  // 78 CreateReservedResource2
+
+  // ID3D12Device11
+  //---------------
+  // 79 CreateSampler2
+
+  SK_ComQIPtr <ID3D12Device11>
+      pDevice11 (pDev12);
+  if (pDevice11.p != nullptr)
+  {
+    SK_CreateVFTableHook2 ( L"ID3D12Device11::CreateSampler2",
+                             *(void ***)*(&pDevice11.p), 79,
+                              D3D12Device11_CreateSampler2_Detour,
+                    (void **)&D3D12Device11_CreateSampler2_Original );
   }
 
   //

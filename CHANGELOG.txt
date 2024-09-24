@@ -1,4 +1,13 @@
-﻿24.9.23
+﻿24.9.24
+=======
+ + Added options to force anisotropic level and upgrade standard bilinear or
+     trilinear texture filtering to anisotropic in D3D12 games.
+
+    [Render.D3D12]
+    MaxAnisotropy=[1,16]           Default: -1 (No Preference)
+    ForceAnisotropic={true|false}  Default: false
+
+24.9.23
 =======
  + Remove WS_EX_TOPMOST style on windows with otherwise DXGI incompatible
      window styles when calling CreateSwapChain[ForHwnd] (...) to fix an

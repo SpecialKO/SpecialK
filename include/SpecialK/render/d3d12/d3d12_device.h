@@ -54,6 +54,16 @@ D3D12Device_CreateRenderTargetView_pfn = void
                       D3D12_CPU_DESCRIPTOR_HANDLE);
 
 using
+D3D12Device_CreateSampler_pfn = void
+(STDMETHODCALLTYPE *)(ID3D12Device*,const D3D12_SAMPLER_DESC*,
+                      D3D12_CPU_DESCRIPTOR_HANDLE);
+
+using
+D3D12Device11_CreateSampler2_pfn = void
+(STDMETHODCALLTYPE *)(ID3D12Device11*,const D3D12_SAMPLER_DESC2*,
+                      D3D12_CPU_DESCRIPTOR_HANDLE);
+
+using
 D3D12Device_GetResourceAllocationInfo_pfn = D3D12_RESOURCE_ALLOCATION_INFO
 (STDMETHODCALLTYPE *)(ID3D12Device*,UINT,UINT,const D3D12_RESOURCE_DESC*);
 

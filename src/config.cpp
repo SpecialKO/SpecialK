@@ -936,6 +936,11 @@ struct {
   } d3d9;
 
   struct {
+    sk::ParameterInt*     max_anisotropy          = nullptr;
+    sk::ParameterBool*    force_anisotropic       = nullptr;
+  } d3d12;
+
+  struct {
     sk::ParameterBool*    draw_in_vidcap          = nullptr;
     sk::ParameterFloat*   hdr_luminance           = nullptr;
   } osd;
@@ -1940,6 +1945,9 @@ auto DeclKeybind =
     ConfigEntry (render.dxgi.fake_fullscreen_mode,       L"Lie to games and tell them they're in FSE, all the while, "
                                                          L"they are actually running a fullscreen borderless window.", dll_ini,         L"Render.DXGI",           L"FakeFullscreenMode"),
     ConfigEntry (render.dxgi.vram_budget_scale,          L"Multiplier for reported VRAM budget for D3D12 era engines.",dll_ini,         L"Render.DXGI",           L"VRAMBudgetScale"),
+
+    ConfigEntry (render.d3d12.max_anisotropy,            L"Maximum Anisotropic Filter Level",                          dll_ini,         L"Render.D3D12",          L"MaxAnisotropy"),
+    ConfigEntry (render.d3d12.force_anisotropic,         L"Forced Anisotropic Filtering",                              dll_ini,         L"Render.D3D12",          L"ForceAnisotropic"),
 
     ConfigEntry (render.dstorage.disable_bypass_io,      L"Disable DirectStorage BypassIO",                            dll_ini,         L"Render.DStorage",       L"DisableBypassIO"),
     ConfigEntry (render.dstorage.disable_telemetry,      L"Disable DirectStorage Telemetry",                           dll_ini,         L"Render.DStorage",       L"DisableTelemetry"),
@@ -4363,6 +4371,9 @@ auto DeclKeybind =
   render.dxgi.skip_redundant_modes->load (config.render.dxgi.skip_mode_changes);
   render.dxgi.warn_if_vram_exceeds->load (config.render.dxgi.warn_if_vram_exceeds);
 
+  render.d3d12.max_anisotropy->load      (config.render.d3d12.max_anisotropy);
+  render.d3d12.force_anisotropic->load   (config.render.d3d12.force_anisotropic);
+
   render.dstorage.disable_bypass_io->load(config.render.dstorage.disable_bypass_io);
   render.dstorage.disable_telemetry->load(config.render.dstorage.disable_telemetry);
   render.dstorage.disable_gpu_decomp->
@@ -6335,6 +6346,9 @@ SK_SaveConfig ( std::wstring name,
       render.dxgi.enable_factory_cache->store (config.render.dxgi.use_factory_cache);
       render.dxgi.skip_redundant_modes->store (config.render.dxgi.skip_mode_changes);
       render.dxgi.warn_if_vram_exceeds->store (config.render.dxgi.warn_if_vram_exceeds);
+
+      render.d3d12.max_anisotropy->store      (config.render.d3d12.max_anisotropy);
+      render.d3d12.force_anisotropic->store   (config.render.d3d12.force_anisotropic);
 
       render.dstorage.disable_bypass_io->store(config.render.dstorage.disable_bypass_io);
       render.dstorage.disable_telemetry->store(config.render.dstorage.disable_telemetry);

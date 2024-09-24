@@ -681,13 +681,6 @@ SK_FFXVI_PlugInCfg (void)
 
       ImGui::EndGroup ();
 
-      if (restart_warning)
-      {
-        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
-        ImGui::BulletText     ("Game Restart May Be Required");
-        ImGui::PopStyleColor  ();
-      }
-
       if (ImGui::Checkbox ("Aggressive Anti-Stutter", &SK_FFXVI_ActiveAntiStutter))
       {
         if (SK_FFXVI_ActiveAntiStutter)
@@ -716,6 +709,33 @@ SK_FFXVI_PlugInCfg (void)
           "these threads sleep for short intervals instead of being signaled "
           "when they have actual work to do..."
         );
+      }
+
+      ImGui::SameLine ();
+
+      if (ImGui::SliderInt ("Anistropic Level", &config.render.d3d12.max_anisotropy, -1, 16,
+                                                 config.render.d3d12.max_anisotropy > 0 ? "%dx" : "Game Default (8x)"))
+      {
+        restart_warning = true;
+
+        config.utility.save_async ();
+      }
+
+      if (ImGui::Checkbox ("Force Anisotropic Filtering", &config.render.d3d12.force_anisotropic))
+      {
+        restart_warning = true;
+
+        config.utility.save_async ();
+      }
+
+      if (ImGui::IsItemHovered ())
+          ImGui::SetTooltip ("Upgrade standard bilinear or trilinear filtering to anisotropic");
+
+      if (restart_warning)
+      {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+        ImGui::BulletText     ("Game Restart May Be Required");
+        ImGui::PopStyleColor  ();
       }
 
       ImGui::TreePop ();

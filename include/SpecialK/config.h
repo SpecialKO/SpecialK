@@ -871,6 +871,11 @@ struct sk_config_t
       bool remaster_subnative_as_unorm = false;
       int  last_used_colorspace        = 0;
     } hdr;
+
+    struct {
+      bool force_anisotropic           = false;
+      int  max_anisotropy              = -1;
+    } d3d12;
   } render;
 
   struct display_s {
