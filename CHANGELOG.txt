@@ -1,4 +1,12 @@
-﻿24.9.24.2
+﻿24.9.24.3
+=========
+ + Fixed God of War: Ragnarok's fullscreen mode without having to force
+     borderless on by default.
+ + Fixed potential problem with Special K's global injection DLLs becoming
+     stuck in "immersive" process (UWP) due to terminating the teardown listener
+       thread early.
+
+24.9.24.2
 =========
  + Force AlwaysOnTop off in God of War: Ragnarok to prevent crashes
  + Remove option to disable redirection bitmaps on Flip Model SwapChains

@@ -1288,7 +1288,7 @@ SK_Inject_SpawnUnloadListener (void)
         {
           InterlockedIncrement (&injected_procs);
 
-          const DWORD dwTimeout   = SK_IsImmersiveProcess () ? 75UL : INFINITE;
+          const DWORD dwTimeout   = INFINITE;
           const DWORD dwWaitState =
             WaitForMultipleObjects ( 2, signals,
                                  FALSE, dwTimeout );
@@ -1353,7 +1353,7 @@ DebugProc ( _In_ int    nCode,
 {
   return
     CallNextHookEx (
-      0, nCode, wParam, lParam
+      hHookDebug, nCode, wParam, lParam
     );
 }
 
@@ -1365,7 +1365,7 @@ ShellProc ( _In_ int    nCode,
 {
   return
     CallNextHookEx (
-      0, nCode, wParam, lParam
+      hHookShell, nCode, wParam, lParam
     );
 }
 
@@ -1379,10 +1379,14 @@ CBTProc ( _In_ int    nCode,
   {
     return
       CallNextHookEx (
-        0, nCode, wParam, lParam
+        hHookCBT, nCode, wParam, lParam
       );
   }
 
+  // Enabling this is causing the DLL to become stuck in various processes
+  //   consider signaling the teardown thread to do it instead of trying to
+  //     run this code from inside the context of the program's window pump.
+#if 1
   if (game_window.hWnd == nullptr && (HWND)wParam != nullptr)
   {
     if (nCode == HCBT_MOVESIZE)
@@ -1401,10 +1405,11 @@ CBTProc ( _In_ int    nCode,
       }
     }
   }
+#endif
 
   return
     CallNextHookEx (
-      0, nCode, wParam, lParam
+      hHookCBT, nCode, wParam, lParam
     );
 }
 

@@ -3738,8 +3738,6 @@ auto DeclKeybind =
 
       case SK_GAME_ID::GodOfWarRagnarok:
       {
-        // Force borderless on because the game does not handle fullscreen correctly
-        config.window.borderless = true;
       } break;
 
       case SK_GAME_ID::TalosPrinciple2:
@@ -5334,13 +5332,14 @@ auto DeclKeybind =
   // If DXGI ever fails to create a SwapChain complaining about WS_EX_TOPMOST,
   //   it may be necessary to force this off for that game.
   //
-  //static bool bForceAlwaysOnTopOff =
-  //  (SK_GetCurrentGameID () == SK_GAME_ID::GodOfWarRagnarok);
-  //
-  //if (bForceAlwaysOnTopOff)
-  //{
-  //  config.window.always_on_top = PreventAlwaysOnTop; // DXGI SwapChain creation may fail without this
-  //}
+  static bool bDisallowAlwaysOnTop =
+    (SK_GetCurrentGameID () == SK_GAME_ID::GodOfWarRagnarok);
+
+  if (bDisallowAlwaysOnTop)
+  {
+    if (config.window.always_on_top !=  SmartAlwaysOnTop)
+        config.window.always_on_top = PreventAlwaysOnTop; // DXGI SwapChain creation may fail without this
+  }
 
 
   static bool scanned = false;
