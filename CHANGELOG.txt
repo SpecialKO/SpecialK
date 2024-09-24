@@ -1,4 +1,8 @@
-﻿24.9.24.1
+﻿24.9.24.2
+=========
+ + Force AlwaysOnTop off in God of War: Ragnarok to prevent crashes
+
+24.9.24.1
 =========
  + Fixed God of War: Ragnarok SwapChain re-creation failing due to incompatible
      window styles

@@ -2282,7 +2282,7 @@ SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx)
                                  SK_HWND_TOP,
                           0, 0,
                           0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE | SWP_NOMOVE |
-                                 SWP_FRAMECHANGED | SWP_NOACTIVATE/*   | SWP_ASYNCWINDOWPOS*/ );
+                                 SWP_FRAMECHANGED | SWP_NOACTIVATE   | SWP_ASYNCWINDOWPOS );
     }
   }
 }

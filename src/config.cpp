@@ -5329,6 +5329,18 @@ auto DeclKeybind =
   //
   config.input.ui.use_raw_input = false;
 
+  //
+  // If DXGI ever fails to create a SwapChain complaining about WS_EX_TOPMOST,
+  //   it may be necessary to force this off for that game.
+  //
+  //static bool bDisallowAlwaysOnTopOff =
+  //  (SK_GetCurrentGameID () == SK_GAME_ID::GodOfWarRagnarok);
+  //
+  //if (bForceAlwaysOnTopOff)
+  //{
+  //  config.window.always_on_top = PreventAlwaysOnTop; // DXGI SwapChain creation may fail without this
+  //}
+
   static bool scanned = false;
 
   if ((! scanned) && (! config.window.res.override.isZero ()))
