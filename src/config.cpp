@@ -3001,6 +3001,15 @@ auto DeclKeybind =
 
       case SK_GAME_ID::HorizonForbiddenWest:
       {
+        if (SK_IsInjected () && ((! PathFileExists (L"dxgi.dll")) 
+                                 (! PathFileExists (L"d3d12.dll"))))
+        {
+          SK_MessageBox (
+            L"Special K is Incompatible with this Game using Global Injection\r\n\r\n"
+            L" >> Please use Local Injection, or place SKinny in the game's directory.\r\n\r\n"
+            L"https://github.com/SpecialKO/SKinny/", L"Special K Incompatibility", MB_OK);
+        }
+
         bool bSteam = false,
              bEpic  = false;
 
@@ -3488,6 +3497,15 @@ auto DeclKeybind =
 
       case SK_GAME_ID::ForzaHorizon5:
       {
+        if (SK_IsInjected () && ((! PathFileExists (L"dxgi.dll")) 
+                                 (! PathFileExists (L"d3d12.dll"))))
+        {
+          SK_MessageBox (
+            L"Special K is Incompatible with this Game using Global Injection\r\n\r\n"
+            L" >> Please use Local Injection, or place SKinny in the game's directory.\r\n\r\n"
+            L"https://github.com/SpecialKO/SKinny/", L"Special K Incompatibility", MB_OK);
+        }
+
         // Prevent VRR disable when using game's framerate limiter
         config.render.framerate.sync_interval_clamp = 1;
 
