@@ -2260,11 +2260,23 @@ SK_Window_RemoveBorders (void)
     SK_SetWindowStyle   ( SK_BORDERLESS    );
     SK_SetWindowStyleEx ( SK_BORDERLESS_EX );
 
-    SK_SetWindowPos ( game_window.hWnd,
-                               SK_HWND_TOP,
-                        0, 0,
-                        0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE | SWP_NOMOVE |
-                               SWP_FRAMECHANGED | SWP_NOACTIVATE   | SWP_ASYNCWINDOWPOS );
+    if (GetActiveWindow () == game_window.hWnd)
+    {
+      SK_SetWindowPos ( game_window.hWnd,
+                                 SK_HWND_TOP,
+                          0, 0,
+                          0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE | SWP_NOMOVE |
+                                 SWP_FRAMECHANGED );
+    }
+
+    else
+    {
+      SK_SetWindowPos ( game_window.hWnd,
+                                 SK_HWND_TOP,
+                          0, 0,
+                          0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE | SWP_NOMOVE |
+                                 SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS );
+    }
   }
 }
 
@@ -2278,11 +2290,23 @@ SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx)
       SK_SetWindowStyle   ( dwStyle   == 0 ? dwBorderStyle   : dwStyle   );
       SK_SetWindowStyleEx ( dwStyleEx == 0 ? dwBorderStyleEx : dwStyleEx );
 
-      SK_SetWindowPos ( game_window.hWnd,
-                                 SK_HWND_TOP,
-                          0, 0,
-                          0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE | SWP_NOMOVE |
-                                 SWP_FRAMECHANGED | SWP_NOACTIVATE   | SWP_ASYNCWINDOWPOS );
+      if (GetActiveWindow () == game_window.hWnd)
+      {
+        SK_SetWindowPos ( game_window.hWnd,
+                                   SK_HWND_TOP,
+                            0, 0,
+                            0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE | SWP_NOMOVE |
+                                   SWP_FRAMECHANGED );
+      }
+
+      else
+      {
+        SK_SetWindowPos ( game_window.hWnd,
+                                   SK_HWND_TOP,
+                            0, 0,
+                            0, 0,  SWP_NOZORDER     | SWP_NOREPOSITION | SWP_NOSIZE | SWP_NOMOVE |
+                                   SWP_FRAMECHANGED | SWP_ASYNCWINDOWPOS );
+      }
     }
   }
 }
@@ -3351,8 +3375,8 @@ SK_AdjustBorder (void)
                       origin_x, origin_y,
                       new_window.right  - new_window.left,
                       new_window.bottom - new_window.top,
-                      SWP_NOZORDER     |   SWP_NOREPOSITION   |
-                    /*SWP_FRAMECHANGED |*/ SWP_NOSENDCHANGING | SWP_NOACTIVATE );
+                      SWP_NOZORDER     | SWP_NOREPOSITION   |
+                      SWP_FRAMECHANGED | SWP_NOSENDCHANGING | SWP_NOACTIVATE );
 
     ShowWindow (game_window.hWnd, SW_SHOWNA);
   }

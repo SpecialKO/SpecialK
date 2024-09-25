@@ -3738,6 +3738,12 @@ auto DeclKeybind =
 
       case SK_GAME_ID::GodOfWarRagnarok:
       {
+        // Window management tweaks to assist this game in keeping
+        //   the Windows task bar away in borderless mode
+        config.window.always_on_top     = SmartAlwaysOnTop;
+        config.window.center            = true;
+        config.window.borderless        = true;
+        config.window.background_render = true;
       } break;
 
       case SK_GAME_ID::TalosPrinciple2:
