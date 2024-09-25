@@ -58,10 +58,13 @@ D3D12Device_CreateSampler_pfn = void
 (STDMETHODCALLTYPE *)(ID3D12Device*,const D3D12_SAMPLER_DESC*,
                       D3D12_CPU_DESCRIPTOR_HANDLE);
 
+// This is pretty new, and we don't need it... allow builds to skip it
+#ifdef __ID3D12Device11_INTERFACE_DEFINED__
 using
 D3D12Device11_CreateSampler2_pfn = void
 (STDMETHODCALLTYPE *)(ID3D12Device11*,const D3D12_SAMPLER_DESC2*,
                       D3D12_CPU_DESCRIPTOR_HANDLE);
+#endif
 
 using
 D3D12Device_GetResourceAllocationInfo_pfn = D3D12_RESOURCE_ALLOCATION_INFO

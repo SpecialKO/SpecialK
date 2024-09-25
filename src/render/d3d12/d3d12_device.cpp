@@ -1348,6 +1348,8 @@ _In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
                                                         nullptr : &desc, DestDescriptor);
 }
 
+// This is pretty new, and we don't need it... allow builds to skip it
+#ifdef __ID3D12Device11_INTERFACE_DEFINED__
 void
 STDMETHODCALLTYPE
 D3D12Device11_CreateSampler2_Detour (
@@ -1415,6 +1417,7 @@ _In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
     D3D12Device11_CreateSampler2_Original (This, (pDesc == nullptr) ?
                                                            nullptr : &desc, DestDescriptor);
 }
+#endif
 
 D3D12_RESOURCE_ALLOCATION_INFO
 STDMETHODCALLTYPE
@@ -2749,6 +2752,8 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
   //---------------
   // 79 CreateSampler2
 
+// This is pretty new, and we don't need it... allow builds to skip it
+#ifdef __ID3D12Device11_INTERFACE_DEFINED__
   SK_ComQIPtr <ID3D12Device11>
       pDevice11 (pDev12);
   if (pDevice11.p != nullptr)
@@ -2758,6 +2763,7 @@ _InstallDeviceHooksImpl (ID3D12Device* pDevice12)
                               D3D12Device11_CreateSampler2_Detour,
                     (void **)&D3D12Device11_CreateSampler2_Original );
   }
+#endif
 
   //
   // Extra hooks are needed to handle SwapChain backbuffer copies between
