@@ -3676,7 +3676,9 @@ auto DeclKeybind =
       // Pain in the ass Nixxes port
       case SK_GAME_ID::RatchetAndClank_RiftApart:
         // Game has native PlayStation support
-        config.input.gamepad.xinput.emulate = false;
+        config.input.gamepad.xinput.emulate        = false;
+        config.compatibility.allow_fake_streamline = false;
+        // Workaround Nixxes quirks
         break;
 
       case SK_GAME_ID::BatmanArkhamKnight:

@@ -9947,8 +9947,6 @@ HookDXGI (LPVOID user)
 
           if (SUCCEEDED (D3D12CreateDevice (pAdapter0, D3D_FEATURE_LEVEL_11_1, IID_PPV_ARGS (&pDevice12.p))))
           {
-            hr = S_OK;
-
             if (SK_slGetNativeInterface (pDevice12.p, (void **)&pNativeDevice12.p) == sl::Result::eOk)
             {   _ExchangeProxyForNative (pDevice12,             pNativeDevice12);
               SK_LOGi0 (L"Got Native Interface for Streamline Proxy'd D3D12 Device...");
@@ -9972,7 +9970,8 @@ HookDXGI (LPVOID user)
 
       if (SUCCEEDED (hr))
       {
-        pDevice->GetImmediateContext (&pImmediateContext.p);
+        if (pDevice != nullptr)
+            pDevice->GetImmediateContext (&pImmediateContext.p);
 
         if (! pDevice12)
           SK_DXGI_SafeCreateSwapChain (pFactory, pDevice.p, &desc, &pSwapChain.p);

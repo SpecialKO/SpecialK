@@ -6,6 +6,7 @@
      of the control panel when only a PlayStation controller is attached.
  + Revert back to asynchronous initialization by default for Streamline games,
      unless the new AllowFakeStreamline setting is set to false.
+ + Force AllowFakeStreamline OFF in Ratchet & Clank
 
 24.9.25.6
 =========
