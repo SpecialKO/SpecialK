@@ -1,4 +1,8 @@
-﻿24.9.25.4
+﻿24.9.25.5
+=========
+ + Added LOD Bias and Anisotropic Filtering options to the D3D12 control panel
+
+24.9.25.4
 =========
  + Added INI option to force a Mipmap LOD bias in D3D12 games
 
@@ -8,6 +12,15 @@
    >> An LOD Bias of 0.0 is technically valid, but using this INI, it cannot
         be set... consider using -0.000001 if you want to force all LOD Bias
           in a game to 0.0 for some reason.
+
+    * Be very conservative with this setting unless you are deliberately
+        trying to radically alter the image (lol)
+
+      (i.e. single color flat texturing if a very large positive bias is used)
+
+    - Negative biases increase sharpening and shimmering in texture filtering,
+        the most likely use-case for a user to override them would be applying
+          a small negative LOD bias to sharpen textures when using DLSS/FSR.
 
 24.9.25.3
 =========
