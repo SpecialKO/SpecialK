@@ -3001,13 +3001,26 @@ auto DeclKeybind =
 
       case SK_GAME_ID::HorizonForbiddenWest:
       {
-        if (SK_IsInjected () && ((! PathFileExists (L"dxgi.dll"))  &&
+        if (SK_IsInjected () && ((! PathFileExists (L"dxgi.dll")) &&
                                  (! PathFileExists (L"d3d12.dll"))))
         {
-          SK_MessageBox (
-            L"Special K is Incompatible with this Game using Global Injection\r\n\r\n"
-            L" >> Please use Local Injection, or place SKinny in the game's directory.\r\n\r\n"
-            L"https://github.com/SpecialKO/SKinny/", L"Special K Incompatibility", MB_OK);
+          wchar_t      wszProfileSKinny [MAX_PATH] = {};
+          PathAppendW (wszProfileSKinny, SK_GetConfigPath ());
+          PathAppendW (wszProfileSKinny,    L"SKinny.ignore");
+
+          if (! (PathFileExists (L"SKinny.ignore") ||
+                 PathFileExists (wszProfileSKinny)))
+          {
+            if (IDYES ==
+                SK_MessageBox (
+                  L"Special K has Compatibility Issues with this Game\r\n\r\n"
+                  L" * Please use Local Injection or SKinny\r\n\r\n"
+                  L"Click Yes for more info on SKinny.", L"Special K Incompatibility",
+                    MB_YESNO|MB_ICONWARNING))
+            {
+              SK_Util_OpenURI (L"https://github.com/SpecialKO/SKinny/releases", SW_RESTORE);
+            }
+          }
         }
 
         bool bSteam = false,
@@ -3500,10 +3513,23 @@ auto DeclKeybind =
         if (SK_IsInjected () && ((! PathFileExists (L"dxgi.dll")) &&
                                  (! PathFileExists (L"d3d12.dll"))))
         {
-          SK_MessageBox (
-            L"Special K is Incompatible with this Game using Global Injection\r\n\r\n"
-            L" >> Please use Local Injection, or place SKinny in the game's directory.\r\n\r\n"
-            L"https://github.com/SpecialKO/SKinny/", L"Special K Incompatibility", MB_OK);
+          wchar_t      wszProfileSKinny [MAX_PATH] = {};
+          PathAppendW (wszProfileSKinny, SK_GetConfigPath ());
+          PathAppendW (wszProfileSKinny,    L"SKinny.ignore");
+
+          if (! (PathFileExists (L"SKinny.ignore") ||
+                 PathFileExists (wszProfileSKinny)))
+          {
+            if (IDYES ==
+                SK_MessageBox (
+                  L"Special K has Compatibility Issues with this Game\r\n\r\n"
+                  L" * Please use Local Injection or SKinny\r\n\r\n"
+                  L"Click Yes for more info on SKinny.", L"Special K Incompatibility",
+                    MB_YESNO|MB_ICONWARNING))
+            {
+              SK_Util_OpenURI (L"https://github.com/SpecialKO/SKinny/releases", SW_RESTORE);
+            }
+          }
         }
 
         // Prevent VRR disable when using game's framerate limiter

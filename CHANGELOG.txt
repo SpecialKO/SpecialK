@@ -1,4 +1,11 @@
-﻿24.9.25
+﻿24.9.25.1
+=========
+ + Added warning dialog with info on SKinny (a new support DLL for SK) when
+     attempting to use Global Injection in certain Streamline games.
+
+    * Currently, Horizon: Forbidden West and Forza Horizon 5
+
+24.9.25
 =======
  + Remove part of SK's libScePad integration now that SK can poll PlayStation
      controllers directly using their USB HID communication protocol.
