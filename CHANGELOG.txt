@@ -7,6 +7,10 @@
  + Revert back to asynchronous initialization by default for Streamline games,
      unless the new AllowFakeStreamline setting is set to false.
  + Force AllowFakeStreamline OFF in Ratchet & Clank
+ + Added crash_handler.exe to internal injection blacklist
+ + Added up to 100 ms spin if D3D11 hooks initialize before DXGI capabilities
+     have been determined (i.e. flip model); if initialization times out, we
+       will assume that Flip Model and Tearing are both supported.
 
 24.9.25.6
 =========
