@@ -1031,14 +1031,33 @@ SK::ControlPanel::Input::Draw (void)
           (int *)&config.input.gamepad.xinput.ui_slot;
 
         if (config.input.gamepad.xinput.ui_slot != 4)
-          ImGui::RadioButton (
-            SK_FormatString ("Auto (XInput " ICON_FA_GAMEPAD " %d)##XInputSlot",
-                              config.input.gamepad.xinput.ui_slot).c_str (), ui_slot, *ui_slot);
+        {
+          if ( ( connected [0] | connected [1] |
+                 connected [2] | connected [3] )
+                  || SK_HID_PlayStationControllers.empty () )
+          {
+            ImGui::RadioButton (
+              SK_FormatString (
+                (! SK_HID_PlayStationControllers.empty ()) ?
+                "Auto (" ICON_FA_PLAYSTATION "/" ICON_FA_XBOX " "
+                                          ICON_FA_GAMEPAD " %d)##XInputSlot":
+                "Auto (" ICON_FA_XBOX " " ICON_FA_GAMEPAD " %d)##XInputSlot",
+                  config.input.gamepad.xinput.ui_slot).c_str (),
+                                              ui_slot, *ui_slot);
+          }
+          else
+          {
+            ImGui::RadioButton (
+              "Auto (" ICON_FA_PLAYSTATION " " ICON_FA_GAMEPAD ")##XInputSlot",
+                                              ui_slot, *ui_slot);
+          }
+        }
         else
-          ImGui::RadioButton (R"(Auto##XInputSlot)",                         ui_slot, 0);
+          ImGui::RadioButton (R"(Auto##XInputSlot)",    ui_slot, 0);
 
         ImGui::SameLine    ();
-        ImGui::RadioButton ("Nothing##XInputSlot", (int *)&config.input.gamepad.xinput.ui_slot, 4);
+        ImGui::RadioButton ("Nothing##XInputSlot",
+                    (int *)&config.input.gamepad.xinput.ui_slot, 4);
 
         if (ImGui::IsItemHovered ())
           ImGui::SetTooltip ("Config menu will only respond to keyboard/mouse input");
