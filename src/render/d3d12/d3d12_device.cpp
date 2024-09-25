@@ -1312,6 +1312,8 @@ _In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
     opt19.AnisoFilterWithPointMipSupported;
 #else
     FALSE;
+
+  std::ignore = AnisoFilterWithPointMipSupported;
 #endif
 
   D3D12_SAMPLER_DESC desc =
