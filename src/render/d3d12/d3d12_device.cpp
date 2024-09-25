@@ -1293,6 +1293,27 @@ _In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
 {
   SK_LOG_FIRST_CALL
 
+#ifdef __ID3D12Device11_INTERFACE_DEFINED__
+  D3D12_FEATURE_DATA_D3D12_OPTIONS19
+      opt19 ={.AnisoFilterWithPointMipSupported=0xF};
+  if (opt19.AnisoFilterWithPointMipSupported == 0xF)
+  {
+    if (FAILED (This->CheckFeatureSupport (
+      D3D12_FEATURE_D3D12_OPTIONS19, &opt19, sizeof (opt19)
+       )       )                          )
+    {
+      opt19.AnisoFilterWithPointMipSupported = FALSE;
+    }
+  }
+#endif
+
+  BOOL AnisoFilterWithPointMipSupported =
+#ifdef __ID3D12Device11_INTERFACE_DEFINED__
+    opt19.AnisoFilterWithPointMipSupported;
+#else
+    FALSE;
+#endif
+
   D3D12_SAMPLER_DESC desc =
     (pDesc != nullptr) ?
     *pDesc             : D3D12_SAMPLER_DESC {};
@@ -1315,17 +1336,33 @@ _In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
         break;
 #ifdef __ID3D12Device11_INTERFACE_DEFINED__
       case D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT:
-        desc.Filter = D3D12_FILTER_MIN_MAG_ANISOTROPIC_MIP_POINT;
+        desc.Filter = AnisoFilterWithPointMipSupported ? D3D12_FILTER_MIN_MAG_ANISOTROPIC_MIP_POINT
+                                                       : D3D12_FILTER_ANISOTROPIC;
         break;
       case D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT:
-        desc.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_ANISOTROPIC_MIP_POINT;
+        desc.Filter = AnisoFilterWithPointMipSupported ? D3D12_FILTER_COMPARISON_MIN_MAG_ANISOTROPIC_MIP_POINT
+                                                       : D3D12_FILTER_COMPARISON_ANISOTROPIC;
         break;
       case D3D12_FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT:
-        desc.Filter = D3D12_FILTER_MINIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT;
+        desc.Filter = AnisoFilterWithPointMipSupported ? D3D12_FILTER_MINIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT
+                                                       : D3D12_FILTER_MINIMUM_ANISOTROPIC;
         break;
       case D3D12_FILTER_MAXIMUM_MIN_MAG_LINEAR_MIP_POINT:
-        desc.Filter = D3D12_FILTER_MAXIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT;
+        desc.Filter = AnisoFilterWithPointMipSupported ? D3D12_FILTER_MAXIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT
+                                                       : D3D12_FILTER_MAXIMUM_ANISOTROPIC;
         break;
+#else
+      case D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = D3D12_FILTER_ANISOTROPIC;
+        break;
+      case D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = D3D12_FILTER_COMPARISON_ANISOTROPIC;
+        break;
+      case D3D12_FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = D3D12_FILTER_MINIMUM_ANISOTROPIC;
+        break;
+      case D3D12_FILTER_MAXIMUM_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = D3D12_FILTER_MAXIMUM_ANISOTROPIC;
 #endif
       default:
         break;
@@ -1339,10 +1376,10 @@ _In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
     case D3D12_FILTER_MINIMUM_ANISOTROPIC:
     case D3D12_FILTER_MAXIMUM_ANISOTROPIC:
 #ifdef __ID3D12Device11_INTERFACE_DEFINED__
-    case D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT:
-    case D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT:
-    case D3D12_FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT:
-    case D3D12_FILTER_MAXIMUM_MIN_MAG_LINEAR_MIP_POINT:
+    case D3D12_FILTER_MIN_MAG_ANISOTROPIC_MIP_POINT:
+    case D3D12_FILTER_COMPARISON_MIN_MAG_ANISOTROPIC_MIP_POINT:
+    case D3D12_FILTER_MINIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT:
+    case D3D12_FILTER_MAXIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT:
 #endif
       if (config.render.d3d12.max_anisotropy > 0)
         desc.MaxAnisotropy = (UINT)config.render.d3d12.max_anisotropy;
@@ -1367,6 +1404,21 @@ _In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
 {
   SK_LOG_FIRST_CALL
 
+  D3D12_FEATURE_DATA_D3D12_OPTIONS19
+      opt19 ={.AnisoFilterWithPointMipSupported=0xF};
+  if (opt19.AnisoFilterWithPointMipSupported == 0xF)
+  {
+    if (FAILED (This->CheckFeatureSupport (
+      D3D12_FEATURE_D3D12_OPTIONS19, &opt19, sizeof (opt19)
+       )       )                          )
+    {
+      opt19.AnisoFilterWithPointMipSupported = FALSE;
+    }
+  }
+
+  BOOL AnisoFilterWithPointMipSupported =
+    opt19.AnisoFilterWithPointMipSupported;
+
   D3D12_SAMPLER_DESC2 desc =
     (pDesc != nullptr) ?
     *pDesc             : D3D12_SAMPLER_DESC2 {};
@@ -1378,26 +1430,30 @@ _In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
       case D3D12_FILTER_MIN_MAG_MIP_LINEAR:
         desc.Filter = D3D12_FILTER_ANISOTROPIC;
         break;
-      case D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT:
-        desc.Filter = D3D12_FILTER_MIN_MAG_ANISOTROPIC_MIP_POINT;
-        break;
       case D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR:
         desc.Filter = D3D12_FILTER_COMPARISON_ANISOTROPIC;
-        break;
-      case D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT:
-        desc.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_ANISOTROPIC_MIP_POINT;
         break;
       case D3D12_FILTER_MINIMUM_MIN_MAG_MIP_LINEAR:
         desc.Filter = D3D12_FILTER_MINIMUM_ANISOTROPIC;
         break;
-      case D3D12_FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT:
-        desc.Filter = D3D12_FILTER_MINIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT;
-        break;
       case D3D12_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR:
         desc.Filter = D3D12_FILTER_MAXIMUM_ANISOTROPIC;
         break;
+      case D3D12_FILTER_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = AnisoFilterWithPointMipSupported ? D3D12_FILTER_MIN_MAG_ANISOTROPIC_MIP_POINT
+                                                       : D3D12_FILTER_ANISOTROPIC;
+        break;
+      case D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = AnisoFilterWithPointMipSupported ? D3D12_FILTER_COMPARISON_MIN_MAG_ANISOTROPIC_MIP_POINT
+                                                       : D3D12_FILTER_COMPARISON_ANISOTROPIC;
+        break;
+      case D3D12_FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT:
+        desc.Filter = AnisoFilterWithPointMipSupported ? D3D12_FILTER_MINIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT
+                                                       : D3D12_FILTER_MINIMUM_ANISOTROPIC;
+        break;
       case D3D12_FILTER_MAXIMUM_MIN_MAG_LINEAR_MIP_POINT:
-        desc.Filter = D3D12_FILTER_MAXIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT;
+        desc.Filter = AnisoFilterWithPointMipSupported ? D3D12_FILTER_MAXIMUM_MIN_MAG_ANISOTROPIC_MIP_POINT
+                                                       : D3D12_FILTER_MAXIMUM_ANISOTROPIC;
         break;
       default:
         break;

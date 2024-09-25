@@ -1,4 +1,14 @@
-﻿24.9.25.2
+﻿24.9.25.3
+=========
+ + Check D3D12_FEATURE_DATA_D3D12_OPTIONS19::AnisoFilterWithPointMipSupported
+     at runtime before attempting to upgrade bilinear texture filters to
+       anisotropic min/mag + point mip filter.
+
+    >> This requires newer drivers and is a Vulkan interop-centric feature;
+         if not supported by the driver, bilinear will be upgraded to trilinear
+           when forcing anisotropic filtering on.
+
+24.9.25.2
 =========
  + Add workaround for implicit AMD OpenGL/DXGI Interop so that OpenGL-IK
      will always work without interference from AMD's D3D12 SwapChain.
