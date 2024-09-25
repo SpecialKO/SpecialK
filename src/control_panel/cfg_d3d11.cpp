@@ -785,13 +785,14 @@ SK::ControlPanel::D3D11::Draw (void)
       ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
       ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
       ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
-      ImGui::TreePush       ("");
 
       const bool filtering =
         ImGui::CollapsingHeader ("Texture Filtering");
 
       if (filtering)
       {
+        ImGui::TreePush ("");
+
         static bool restart_warning = false;
 
         if (ImGui::Checkbox ("Force Anisotropic Filtering", &config.render.d3d12.force_anisotropic))
