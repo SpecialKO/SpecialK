@@ -1816,7 +1816,7 @@ SK_NGX_DLSS_ControlPanel (void)
             float percent =
               config.nvidia.dlss.scale.dynamic_min * 100.0f;
 
-            if (ImGui::SliderFloat ("Dynamic Resolution Minimum", &percent, 1.0f, 100.0f, "%6.2f%%"))
+            if (ImGui::SliderFloat ("Dynamic Resolution Minimum", &percent, 20.0f, 100.0f, "%6.2f%%"))
             {
               config.nvidia.dlss.scale.dynamic_min = percent / 100.0f;
 
