@@ -55,8 +55,6 @@ D3D12Device_CreateRenderTargetView_pfn
 D3D12Device_CreateRenderTargetView_Original      = nullptr;
 D3D12Device_CreateSampler_pfn
 D3D12Device_CreateSampler_Original               = nullptr;
-D3D12Device11_CreateSampler2_pfn
-D3D12Device11_CreateSampler2_Original            = nullptr;
 D3D12Device_GetResourceAllocationInfo_pfn
 D3D12Device_GetResourceAllocationInfo_Original   = nullptr;
 D3D12Device_CreateCommittedResource_pfn
@@ -75,6 +73,12 @@ D3D12Device4_CreateCommittedResource1_Original   = nullptr;
 
 D3D12Device8_CreateCommittedResource2_pfn
 D3D12Device8_CreateCommittedResource2_Original   = nullptr;
+
+// This is pretty new, and we don't need it... allow builds to skip it
+#ifdef __ID3D12Device11_INTERFACE_DEFINED__
+D3D12Device11_CreateSampler2_pfn
+D3D12Device11_CreateSampler2_Original            = nullptr;
+#endif
 
 concurrency::concurrent_unordered_set <ID3D12PipelineState*> _criticalVertexShaders;
 concurrency::concurrent_unordered_map <ID3D12PipelineState*, bool> _vertexShaders;
