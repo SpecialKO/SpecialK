@@ -1,4 +1,9 @@
-﻿24.9.25.1
+﻿24.9.25.2
+=========
+ + Add workaround for implicit AMD OpenGL/DXGI Interop so that OpenGL-IK
+     will always work without interference from AMD's D3D12 SwapChain.
+
+24.9.25.1
 =========
  + Added warning dialog with info on SKinny (a new support DLL for SK) when
      attempting to use Global Injection in certain Streamline games.
