@@ -1,4 +1,15 @@
-﻿24.9.25.3
+﻿24.9.25.4
+=========
+ + Added INI option to force a Mipmap LOD bias in D3D12 games
+
+    [Render.D3D12]
+    ForceLODBias=[-32.0,32.0]  Default=0.0 (Unchanged)
+
+   >> An LOD Bias of 0.0 is technically valid, but using this INI, it cannot
+        be set... consider using -0.000001 if you want to force all LOD Bias
+          in a game to 0.0 for some reason.
+
+24.9.25.3
 =========
  + Check D3D12_FEATURE_DATA_D3D12_OPTIONS19::AnisoFilterWithPointMipSupported
      at runtime before attempting to upgrade bilinear texture filters to
