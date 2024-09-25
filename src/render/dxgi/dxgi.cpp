@@ -6693,6 +6693,51 @@ SK_D3D11_MakeCachedDeviceAndSwapChainForHwnd ( IDXGISwapChain *pSwapChain,
                                                HWND            hWnd,
                                                ID3D11Device   *pDevice );
 
+BOOL
+SK_AMD_CheckForOpenGLInterop (LPCVOID lpReturnAddr, HWND& hWnd)
+{
+  bool bAMDInteropOpenGL =
+    (StrStrIW (SK_GetCallerName (lpReturnAddr).c_str (), L"amdxc"));
+  if ( bAMDInteropOpenGL &&  config.apis.OpenGL.hook == true &&
+                    SK_IsModuleLoaded (L"OpenGL32.dll") )
+  {
+    // Search for common Vulkan layers, if they are loaded, then assume
+    //   the game is actually using Vulkan rather than OpenGL.
+    if (! (config.apis.Vulkan.hook && (SK_IsModuleLoaded (
+            SK_RunLHIfBitness (64, L"SteamOverlayVulkanLayer64.dll",
+                                   L"SteamOverlayVulkanLayer32.dll")) ||
+                                       SK_IsModuleLoaded (
+            SK_RunLHIfBitness (64, L"amdvlk64.dll",
+                                   L"amdvlk32.dll")))))
+    {
+      HWND hWndFake =
+        SK_Win32_CreateDummyWindow (0);
+
+      ShowWindow (
+             hWndFake, SW_HIDE);
+      hWnd = hWndFake;
+
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+BOOL
+SK_AMD_CheckForVkInterop (LPCVOID lpReturnAddr)
+{
+  bool bAMDInteropVk =
+    (StrStrIW (SK_GetCallerName (lpReturnAddr).c_str (), L"amdxc"));
+  if ( bAMDInteropVk && config.apis.Vulkan.hook == true &&
+                    SK_IsModuleLoaded (L"vulkan-1.dll") )
+  {
+    return TRUE;
+  }
+
+  return FALSE;
+}
+
 HRESULT
 STDMETHODCALLTYPE
 DXGIFactory2_CreateSwapChainForHwnd_Override (
@@ -6716,37 +6761,47 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     return E_INVALIDARG;
   }
 
-  void SK_Window_WaitForAsyncSetWindowLong (void);
-       SK_Window_WaitForAsyncSetWindowLong ();
+  const bool bAMDOpenGLInterop =
+    (SK_AMD_CheckForOpenGLInterop (_ReturnAddress (), hWnd));
 
-  auto ex_style =
-    SK_GetWindowLongPtrW (hWnd, GWL_EXSTYLE),
-          style =
-    SK_GetWindowLongPtrW (hWnd, GWL_STYLE);
+  const bool bAMDVulkanInterop =
+    (! bAMDOpenGLInterop) &&
+    (    SK_AMD_CheckForVkInterop (_ReturnAddress ()));
 
-  if (ex_style & WS_EX_TOPMOST)
+  if (! bAMDOpenGLInterop)
   {
-    bool style_compatible = 
-      (style & (WS_POPUP   | WS_BORDER      | WS_CAPTION     |
-                WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX |
-                WS_THICKFRAME)) != 0UL;
+    void SK_Window_WaitForAsyncSetWindowLong (void);
+         SK_Window_WaitForAsyncSetWindowLong ();
 
-    bool exstyle_compatible =
-      (ex_style & (WS_EX_CLIENTEDGE    | WS_EX_CONTEXTHELP |
-                   WS_EX_DLGMODALFRAME | WS_EX_TOOLWINDOW  |
-                   WS_EX_WINDOWEDGE)) != 0UL;
+    auto ex_style =
+      SK_GetWindowLongPtrW (hWnd, GWL_EXSTYLE),
+            style =
+      SK_GetWindowLongPtrW (hWnd, GWL_STYLE);
 
-    if (! (style_compatible && exstyle_compatible))
+    if (ex_style & WS_EX_TOPMOST)
     {
-      SK_LOGi0 (
-        L"IDXGIFactory2::CreateSwapChainForHwnd (...) called on a window with"
-        L" the extended WS_EX_TOPMOST style, which is invalid... removing style!"
-      );
+      bool style_compatible = 
+        (style & (WS_POPUP   | WS_BORDER      | WS_CAPTION     |
+                  WS_SYSMENU | WS_MAXIMIZEBOX | WS_MINIMIZEBOX |
+                  WS_THICKFRAME)) != 0UL;
 
-      SK_SetWindowLongPtrW (hWnd, GWL_EXSTYLE, ex_style & ~WS_EX_TOPMOST);
-      SK_SetWindowPos      (hWnd, SK_HWND_TOP, 0, 0, 0, 0,
-                            SWP_NOZORDER | SWP_NOREPOSITION | SWP_NOSIZE |
-                            SWP_NOMOVE   | SWP_NOACTIVATE   | SWP_NOSENDCHANGING);
+      bool exstyle_compatible =
+        (ex_style & (WS_EX_CLIENTEDGE    | WS_EX_CONTEXTHELP |
+                     WS_EX_DLGMODALFRAME | WS_EX_TOOLWINDOW  |
+                     WS_EX_WINDOWEDGE)) != 0UL;
+
+      if (! (style_compatible && exstyle_compatible))
+      {
+        SK_LOGi0 (
+          L"IDXGIFactory2::CreateSwapChainForHwnd (...) called on a window with"
+          L" the extended WS_EX_TOPMOST style, which is invalid... removing style!"
+        );
+
+        SK_SetWindowLongPtrW (hWnd, GWL_EXSTYLE, ex_style & ~WS_EX_TOPMOST);
+        SK_SetWindowPos      (hWnd, SK_HWND_TOP, 0, 0, 0, 0,
+                              SWP_NOZORDER | SWP_NOREPOSITION | SWP_NOSIZE |
+                              SWP_NOMOVE   | SWP_NOACTIVATE   | SWP_NOSENDCHANGING);
+      }
     }
   }
 
@@ -6776,9 +6831,10 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
 
   // This makes no sense, so ignore it...
   if ( pStreamlineFactory != nullptr ||
+                   bAMDOpenGLInterop ||
                   pDevice == nullptr ||
                     pDesc == nullptr ||
-              ppSwapChain == nullptr || (! SK_DXGI_IsSwapChainReal1 (*pDesc, hWnd))
+              ppSwapChain == nullptr || ((! SK_DXGI_IsSwapChainReal1 (*pDesc, hWnd)) && (! bAMDVulkanInterop))
      )
   {
     DXGI_CALL ( ret,
