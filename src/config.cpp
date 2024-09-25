@@ -290,6 +290,9 @@ SK_GetCurrentGameID (void)
           // Streamline shenanigans
           config.compatibility.init_sync_for_streamline = true;
 
+          // Game has native PlayStation support
+          config.input.gamepad.xinput.emulate = false;
+
           config.render.dxgi.fake_fullscreen_mode       = true;
           config.render.dstorage.submit_threads         = 2;
           config.system.auto_load_asi_files             = true;
@@ -2919,6 +2922,9 @@ auto DeclKeybind =
         config.apis.OpenGL.hook          = false;
         config.apis.d3d9.hook            = false;
         config.apis.d3d9ex.hook          = false;
+
+        // Game now has native PlayStation support
+        config.input.gamepad.xinput.emulate = false;
       } break;
 
       case SK_GAME_ID::PathOfExile:
@@ -3642,6 +3648,8 @@ auto DeclKeybind =
         // Work-around anti-cheat
         config.compatibility.disable_debug_features =  true;
         config.system.handle_crashes                = false;
+        // Game has native PlayStation support
+        config.input.gamepad.xinput.emulate         = false;
         break;
 
       case SK_GAME_ID::FinalFantasyXIV:
@@ -3667,6 +3675,8 @@ auto DeclKeybind =
 
       // Pain in the ass Nixxes port
       case SK_GAME_ID::RatchetAndClank_RiftApart:
+        // Game has native PlayStation support
+        config.input.gamepad.xinput.emulate = false;
         break;
 
       case SK_GAME_ID::BatmanArkhamKnight:
@@ -3687,6 +3697,11 @@ auto DeclKeybind =
         apis.last_known->store     ((int)config.apis.last_known     );
         apis.OpenGL.hook->store    (     config.apis.OpenGL.hook    );
         apis.d3d11.hook->store     (     config.apis.dxgi.d3d11.hook);
+        break;
+
+      case SK_GAME_ID::Cyberpunk2077:
+        // Game now has native PlayStation support
+        config.input.gamepad.xinput.emulate = false;
         break;
 
       case SK_GAME_ID::DOOMEternal:
@@ -3780,12 +3795,14 @@ auto DeclKeybind =
 
       case SK_GAME_ID::GodOfWar:
       {
-        // Prevent crashes in the Steam and GOG versions of the game
-        config.compatibility.allow_dxdiagn = false;
+        // Game has native PlayStation support
+        config.input.gamepad.xinput.emulate = false;
       } break;
 
       case SK_GAME_ID::GodOfWarRagnarok:
       {
+        // Game has native PlayStation support
+        config.input.gamepad.xinput.emulate = false;
         // Window management tweaks to assist this game in keeping
         //   the Windows task bar away in borderless mode
         config.window.always_on_top     = SmartAlwaysOnTop;

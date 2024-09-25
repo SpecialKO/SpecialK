@@ -1,8 +1,24 @@
-﻿24.9.25.6
+﻿24.9.25.7
+=========
+ + Fixed forced 10-bpc being applied to AMD's Vulkan interop; it is a compat.
+     hack for NVIDIA's interop-only and does not work on AMD's driver.
+ + Do not list XInput slot# for UI controller in the Input Management section
+     of the control panel when only a PlayStation controller is attached.
+ + Revert back to asynchronous initialization by default for Streamline games,
+     unless the new AllowFakeStreamline setting is set to false.
+
+24.9.25.6
 =========
  + Added option to disable strict Streamline compatibility, because it
      is not compatible with various DLSS3->FSR3 mods that do not implement
        all of Streamline.
+
+         [Compatibility.General]
+         AllowFakeStreamline={true|false}   Default=true
+
+     This may hurt stability in games that use real Streamline, but it is
+       unlikely the myriad of mods pretending to be Streamline will be made
+         more compatible any time soon.
 
 24.9.25.5
 =========
