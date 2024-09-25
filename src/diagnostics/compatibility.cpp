@@ -1147,11 +1147,17 @@ SK_COMPAT_CheckStreamlineSupport (void)
 {
   if (SK_IsModuleLoaded (L"sl.interposer.dll"))
   {
-    SK_RunOnce (
-      SK_CreateDLLHook2 (      L"sl.interposer.dll",
-                                "slInit",
-                                 slInit_Detour,
-        static_cast_p2p <void> (&slInit_Original));
+    if (! config.compatibility.allow_fake_streamline)
+    {
+      SK_RunOnce (
+        SK_CreateDLLHook2 (      L"sl.interposer.dll",
+                                  "slInit",
+                                   slInit_Detour,
+          static_cast_p2p <void> (&slInit_Original));
+
+        SK_ApplyQueuedHooks ();
+      );
+    }
 
     // Feature Spoofing
 /*
@@ -1160,9 +1166,6 @@ SK_COMPAT_CheckStreamlineSupport (void)
                                  slIsFeatureSupported_Detour,
         static_cast_p2p <void> (&slIsFeatureSupported_Original));
 */
-
-      SK_ApplyQueuedHooks ();
-    );
   }
 
   return true;
@@ -1183,6 +1186,7 @@ struct DECLSPEC_UUID ("ADEC44E2-61F0-45C3-AD9F-1B37379284FF")
 sl::Result
 SK_slGetNativeInterface (void *proxyInterface, void **baseInterface)
 {
+#if 0
   if (proxyInterface == nullptr || baseInterface == nullptr)
     return sl::Result::eErrorMissingInputParameter;
 
@@ -1191,13 +1195,23 @@ SK_slGetNativeInterface (void *proxyInterface, void **baseInterface)
 
   if (FAILED (pUnk->QueryInterface (__uuidof (IStreamlineBaseInterface), baseInterface)))
     return sl::Result::eErrorUnsupportedInterface;
+#else
+  slGetNativeInterface_pfn
+  slGetNativeInterface =
+ (slGetNativeInterface_pfn)SK_GetProcAddress (L"sl.interposer.dll",
+ "slGetNativeInterface");
 
-  return sl::Result::eOk;
+  if (slGetNativeInterface != nullptr)
+    return slGetNativeInterface (proxyInterface, baseInterface);
+#endif
+
+  return sl::Result::eErrorNotInitialized;
 }
 
 sl::Result
 SK_slUpgradeInterface (void **baseInterface)
 {
+#if 0
   if (baseInterface == nullptr)
     return sl::Result::eErrorMissingInputParameter;
 
@@ -1244,6 +1258,15 @@ SK_slUpgradeInterface (void **baseInterface)
 
     return result;
   }
+#else
+  slUpgradeInterface_pfn
+  slUpgradeInterface =
+ (slUpgradeInterface_pfn)SK_GetProcAddress (L"sl.interposer.dll",
+ "slUpgradeInterface");
+
+  if (slUpgradeInterface != nullptr)
+    return slUpgradeInterface (baseInterface);
+#endif
 
   return sl::Result::eErrorNotInitialized;
 }

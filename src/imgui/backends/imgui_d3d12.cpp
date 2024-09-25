@@ -2273,21 +2273,13 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   bool  SK_D3D12_IsBackBufferOnActiveQueue (ID3D12Resource *pResource, ID3D12CommandQueue *pCmdQueue, UINT iBackBufferIdx);
   if (! SK_D3D12_IsBackBufferOnActiveQueue (pBackBuffer.p, _pCommandQueue, swapIdx))
   {
-#if 0
-    // Uniscaler breaks this assumption
-    if (! SK_IsModuleLoaded (L"Uniscaler.asi"))
-    {
-      SK_LOGi0 (L"Attempting to Execute D3D12 Present (...) on wrong Command Queue, shutting down overlay!");
-
-      _d3d12_rbk->release (pSwapChain);
-      return;
-    }
-#else
     SK_RunOnce (
       SK_LOGi0 (L"WARNING: Attempting to Execute D3D12 Present (...) on wrong Command Queue (!!)");
       SK_LOGi0 (" >> Suspected cause is a third-party frame generation mod; if game crashes, it is probably the cause.");
     );
-#endif
+
+    _d3d12_rbk->release (pSwapChain);
+    return;
   }
 
   // Screenshot may have left this in a recording state

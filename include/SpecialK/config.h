@@ -1243,6 +1243,7 @@ struct sk_config_t
     bool     disable_dx12_vk_interop  = false;
     bool     reshade_mode             = false;
     bool     fsr3_mode                = false;
+    bool     allow_fake_streamline    =  true;
   } compatibility;
 
   struct apis_s {

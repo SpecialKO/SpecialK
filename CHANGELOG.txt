@@ -1,6 +1,9 @@
 ﻿24.9.25.6
 =========
  + Fixed compatibility with Uniscaler preview 11.
+ + Added option to disable strict Streamline compatibility, because it
+     is not compatible with various DLSS3->FSR3 mods that do not implement
+       all of Streamline.
 
 24.9.25.5
 =========

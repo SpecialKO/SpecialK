@@ -1156,6 +1156,7 @@ struct {
   sk::ParameterBool*      async_init              = nullptr;
   sk::ParameterBool*      reshade_mode            = nullptr;
   sk::ParameterBool*      fsr3_mode               = nullptr;
+  sk::ParameterBool*      allow_fake_streamline   = nullptr;
 } compatibility;
 
 struct {
@@ -1748,6 +1749,7 @@ auto DeclKeybind =
     ConfigEntry (compatibility.async_init,               L"Runs hook initialization on a separate thread; high safety",dll_ini,         L"Compatibility.General", L"AsyncInit"),
     ConfigEntry (compatibility.reshade_mode,             L"Initializes hooks in a way that ReShade will not interfere",dll_ini,         L"Compatibility.General", L"ReShadeMode"),
     ConfigEntry (compatibility.fsr3_mode,                L"Avoid hooks on CreateSwapChainForHwnd",                     dll_ini,         L"Compatibility.General", L"FSR3Mode"),
+    ConfigEntry (compatibility.allow_fake_streamline,    L"Allow invalid stuff, that might let fake DLSS3 mods work.", dll_ini,         L"Compatibility.General", L"AllowFakeStreamline"),
 
     ConfigEntry (apis.last_known,                        L"Last Known Render API",                                     dll_ini,         L"API.Hook",              L"LastKnown"),
 
@@ -3864,13 +3866,14 @@ auto DeclKeybind =
   //
   // Load Parameters
   //
-  compatibility.fsr3_mode->load          (config.compatibility.fsr3_mode);
-  compatibility.reshade_mode->load       (config.compatibility.reshade_mode);
-  compatibility.async_init->load         (config.compatibility.init_on_separate_thread);
-  compatibility.disable_nv_bloat->load   (config.compatibility.disable_nv_bloat);
-  compatibility.rehook_loadlibrary->load (config.compatibility.rehook_loadlibrary);
-  compatibility.using_wine->load         (config.compatibility.using_wine);
-  compatibility.allow_dxdiagn->load      (config.compatibility.allow_dxdiagn);
+  compatibility.allow_fake_streamline->load (config.compatibility.allow_fake_streamline);
+  compatibility.fsr3_mode->load             (config.compatibility.fsr3_mode);
+  compatibility.reshade_mode->load          (config.compatibility.reshade_mode);
+  compatibility.async_init->load            (config.compatibility.init_on_separate_thread);
+  compatibility.disable_nv_bloat->load      (config.compatibility.disable_nv_bloat);
+  compatibility.rehook_loadlibrary->load    (config.compatibility.rehook_loadlibrary);
+  compatibility.using_wine->load            (config.compatibility.using_wine);
+  compatibility.allow_dxdiagn->load         (config.compatibility.allow_dxdiagn);
 
 #ifdef _M_IX86
   compatibility.auto_large_address->load (config.compatibility.auto_large_address_patch);
@@ -5819,6 +5822,7 @@ SK_SaveConfig ( std::wstring name,
   compatibility.rehook_loadlibrary->store     (config.compatibility.rehook_loadlibrary);
   compatibility.using_wine->store             (config.compatibility.using_wine);
   compatibility.allow_dxdiagn->store          (config.compatibility.allow_dxdiagn);
+  compatibility.allow_fake_streamline->store  (config.compatibility.allow_fake_streamline);
 
 #ifdef _M_IX86
   compatibility.auto_large_address->store     (config.compatibility.auto_large_address_patch);
