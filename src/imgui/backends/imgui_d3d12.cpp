@@ -2273,10 +2273,21 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   bool  SK_D3D12_IsBackBufferOnActiveQueue (ID3D12Resource *pResource, ID3D12CommandQueue *pCmdQueue, UINT iBackBufferIdx);
   if (! SK_D3D12_IsBackBufferOnActiveQueue (pBackBuffer.p, _pCommandQueue, swapIdx))
   {
-    SK_LOGi0 (L"Attempting to Execute D3D12 Present (...) on wrong Command Queue, shutting down overlay!");
+#if 0
+    // Uniscaler breaks this assumption
+    if (! SK_IsModuleLoaded (L"Uniscaler.asi"))
+    {
+      SK_LOGi0 (L"Attempting to Execute D3D12 Present (...) on wrong Command Queue, shutting down overlay!");
 
-    _d3d12_rbk->release (pSwapChain);
-    return;
+      _d3d12_rbk->release (pSwapChain);
+      return;
+    }
+#else
+    SK_RunOnce (
+      SK_LOGi0 (L"WARNING: Attempting to Execute D3D12 Present (...) on wrong Command Queue (!!)");
+      SK_LOGi0 (" >> Suspected cause is a third-party frame generation mod; if game crashes, it is probably the cause.");
+    );
+#endif
   }
 
   // Screenshot may have left this in a recording state
@@ -2711,6 +2722,11 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
   if (pCmdList == nullptr)
     return false;
 
+  if (FAILED (pCmdList->Close ()))
+    return false;
+
+  bCmdListRecording = false;
+
   ID3D12CommandList* const cmd_lists [] = {
     pCmdList.p
   };
@@ -2745,11 +2761,6 @@ SK_D3D12_RenderCtx::FrameCtx::exec_cmd_list (void)
       pRoot->frames_ [BufferIdx].pCmdList == pCmdList)
   {
     SK_LOGi4 (L"Drew (BufferIdx=%d)...", BufferIdx);
-
-    if (FAILED (pCmdList->Close ()))
-      return false;
-
-    bCmdListRecording = false;
 
     pParentQueue->ExecuteCommandLists (ARRAYSIZE (cmd_lists), cmd_lists);
 

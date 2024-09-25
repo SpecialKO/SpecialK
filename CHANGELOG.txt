@@ -1,4 +1,8 @@
-﻿24.9.25.5
+﻿24.9.25.6
+=========
+ + Fixed compatibility with Uniscaler preview 11.
+
+24.9.25.5
 =========
  + Added LOD Bias and Anisotropic Filtering options to the D3D12 control panel
 
