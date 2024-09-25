@@ -939,6 +939,7 @@ struct {
   struct {
     sk::ParameterInt*     max_anisotropy          = nullptr;
     sk::ParameterBool*    force_anisotropic       = nullptr;
+    sk::ParameterFloat*   force_lod_bias          = nullptr;
   } d3d12;
 
   struct {
@@ -1949,6 +1950,7 @@ auto DeclKeybind =
 
     ConfigEntry (render.d3d12.max_anisotropy,            L"Maximum Anisotropic Filter Level",                          dll_ini,         L"Render.D3D12",          L"MaxAnisotropy"),
     ConfigEntry (render.d3d12.force_anisotropic,         L"Forced Anisotropic Filtering",                              dll_ini,         L"Render.D3D12",          L"ForceAnisotropic"),
+    ConfigEntry (render.d3d12.force_lod_bias,            L"Forced LOD Bias",                                           dll_ini,         L"Render.D3D12",          L"ForceLODBias"),
 
     ConfigEntry (render.dstorage.disable_bypass_io,      L"Disable DirectStorage BypassIO",                            dll_ini,         L"Render.DStorage",       L"DisableBypassIO"),
     ConfigEntry (render.dstorage.disable_telemetry,      L"Disable DirectStorage Telemetry",                           dll_ini,         L"Render.DStorage",       L"DisableTelemetry"),
@@ -4428,6 +4430,10 @@ auto DeclKeybind =
 
   render.d3d12.max_anisotropy->load      (config.render.d3d12.max_anisotropy);
   render.d3d12.force_anisotropic->load   (config.render.d3d12.force_anisotropic);
+  render.d3d12.force_lod_bias->load      (config.render.d3d12.force_lod_bias);
+
+  config.render.d3d12.force_lod_bias = // TODO: What are the actual limits?
+    std::clamp (config.render.d3d12.force_lod_bias, -32.0f, 32.0f);
 
   render.dstorage.disable_bypass_io->load(config.render.dstorage.disable_bypass_io);
   render.dstorage.disable_telemetry->load(config.render.dstorage.disable_telemetry);
@@ -6419,6 +6425,7 @@ SK_SaveConfig ( std::wstring name,
 
       render.d3d12.max_anisotropy->store      (config.render.d3d12.max_anisotropy);
       render.d3d12.force_anisotropic->store   (config.render.d3d12.force_anisotropic);
+      render.d3d12.force_lod_bias->store      (config.render.d3d12.force_lod_bias);
 
       render.dstorage.disable_bypass_io->store(config.render.dstorage.disable_bypass_io);
       render.dstorage.disable_telemetry->store(config.render.dstorage.disable_telemetry);

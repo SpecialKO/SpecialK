@@ -1318,6 +1318,14 @@ _In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
     (pDesc != nullptr) ?
     *pDesc             : D3D12_SAMPLER_DESC {};
 
+  if (config.render.d3d12.force_lod_bias != 0.0f)
+  {
+    if (desc.MinLOD != desc.MaxLOD)
+    {
+      desc.MipLODBias = config.render.d3d12.force_lod_bias;
+    }
+  }
+
   if (config.render.d3d12.force_anisotropic)
   {
     switch (desc.Filter)
@@ -1422,6 +1430,14 @@ _In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
   D3D12_SAMPLER_DESC2 desc =
     (pDesc != nullptr) ?
     *pDesc             : D3D12_SAMPLER_DESC2 {};
+
+  if (config.render.d3d12.force_lod_bias != 0.0f)
+  {
+    if (desc.MinLOD != desc.MaxLOD)
+    {
+      desc.MipLODBias = config.render.d3d12.force_lod_bias;
+    }
+  }
 
   if (config.render.d3d12.force_anisotropic)
   {

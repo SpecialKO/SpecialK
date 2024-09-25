@@ -873,8 +873,9 @@ struct sk_config_t
     } hdr;
 
     struct {
-      bool force_anisotropic           = false;
-      int  max_anisotropy              = -1;
+      bool  force_anisotropic          = false;
+      int   max_anisotropy             = -1;
+      float force_lod_bias             = 0.0f;
     } d3d12;
   } render;
 
