@@ -164,6 +164,7 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"obs32.exe",
 #endif
 
+  L"crash_handler.exe", // Metaphor ReFantazio
   L"postcrashdump.exe",
 
   L"launcher.exe",
