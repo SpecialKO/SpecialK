@@ -792,8 +792,6 @@ SK::ControlPanel::D3D11::Draw (void)
 
       if (filtering)
       {
-        ImGui::TreePush ("");
-
         static bool restart_warning = false;
 
         if (ImGui::Checkbox ("Force Anisotropic Filtering", &config.render.d3d12.force_anisotropic))
@@ -840,6 +838,7 @@ SK::ControlPanel::D3D11::Draw (void)
 
         ImGui::TreePop ();
       }
+      ImGui::PopStyleColor (3);
     }
 
     SK_NGX_DLSS_ControlPanel ();
