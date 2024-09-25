@@ -3001,7 +3001,7 @@ auto DeclKeybind =
 
       case SK_GAME_ID::HorizonForbiddenWest:
       {
-        if (SK_IsInjected () && ((! PathFileExists (L"dxgi.dll")) 
+        if (SK_IsInjected () && ((! PathFileExists (L"dxgi.dll"))  &&
                                  (! PathFileExists (L"d3d12.dll"))))
         {
           SK_MessageBox (
@@ -3497,7 +3497,7 @@ auto DeclKeybind =
 
       case SK_GAME_ID::ForzaHorizon5:
       {
-        if (SK_IsInjected () && ((! PathFileExists (L"dxgi.dll")) 
+        if (SK_IsInjected () && ((! PathFileExists (L"dxgi.dll")) &&
                                  (! PathFileExists (L"d3d12.dll"))))
         {
           SK_MessageBox (
