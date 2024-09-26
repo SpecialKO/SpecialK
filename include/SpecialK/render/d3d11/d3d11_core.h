@@ -1937,7 +1937,7 @@ namespace SK
   };
 };
 
-void            WaitForInitDXGI             (void);
+bool            WaitForInitDXGI             (DWORD dwTimeout = INFINITE);
 
 void  __stdcall SK_D3D11_PreLoadTextures    (void);
 

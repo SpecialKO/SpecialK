@@ -8170,29 +8170,27 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   if (SK_COMPAT_IgnoreNvCameraCall ())
     return E_NOTIMPL;
 
-  // We may have hooked CreateDeviceAndSwapChain using address cache,
-  //   and have not yet initialized DXGI hooks or setup other config yet.
-  while (CreateDXGIFactory_Import == nullptr)
+  if (! WaitForInitDXGI (0UL))
   {
-    // The reason for spinning here until factories are hooked is because
-    //   DXGI capabilities are not known until the first factory is created.
+    SK_ComPtr <IDXGIFactory>                       pFactory;
+    CreateDXGIFactory (IID_IDXGIFactory, (void **)&pFactory.p);
 
-    // * Flip model upgrades will not work without this.
-    static int  spins = 0;
-    SK_Sleep (++spins);
-    if (spins > 10)
+    if (! WaitForInitDXGI (25UL))
     {
-      SK_LOGi0 (
-        L"Timed out waiting for DXGI to init, assuming Flip Model is "
-        "supported by the current runtime..." );
+      if (! dxgi_caps.init.load ())
+      {
+        SK_LOGi0 (
+          L"Timed out waiting for DXGI to init, assuming Flip Model is "
+          L"supported by the current runtime..." );
 
-      dxgi_caps.present.flip_discard    = true;
-      dxgi_caps.present.flip_sequential = true;
-      dxgi_caps.swapchain.allow_tearing = true;
-      // These capabilities will be updated later with correct values...
-
-      break;
+        dxgi_caps.present.flip_discard    = true;
+        dxgi_caps.present.flip_sequential = true;
+        dxgi_caps.swapchain.allow_tearing = true;
+      }
     }
+
+    if (pSwapChainDesc != nullptr && SK_DXGI_IsSwapChainReal (*pSwapChainDesc))
+      WaitForInitDXGI ();
   }
 
   if (! config.render.dxgi.debug_layer)

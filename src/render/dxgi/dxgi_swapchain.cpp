@@ -743,9 +743,9 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
              texDesc.Width  == swapDesc.BufferDesc.Width  &&
              texDesc.Height == swapDesc.BufferDesc.Height &&
              DirectX::MakeTypeless (            texDesc.Format) ==
-             DirectX::MakeTypeless (swapDesc.BufferDesc.Format) &&
-             std::exchange (flip_model.last_srgb_mode, config.render.dxgi.srgb_behavior) ==
-                                                       config.render.dxgi.srgb_behavior )
+             DirectX::MakeTypeless (swapDesc.BufferDesc.Format) && !rb.active_traits.bOriginallysRGB )
+             //std::exchange (flip_model.last_srgb_mode, config.render.dxgi.srgb_behavior) ==
+             //                                          config.render.dxgi.srgb_behavior )
       {
         return
           _backbuffers [Buffer]->QueryInterface (riid, ppSurface);
@@ -775,12 +775,8 @@ IWrapDXGISwapChain::GetBuffer (UINT Buffer, REFIID riid, void **ppSurface)
           // sRGB is being turned off for Flip Model
           if (rb.active_traits.bOriginallysRGB && (! scrgb_hdr))
           {
-            if (config.render.dxgi.srgb_behavior >= 1)
-              texDesc.Format =
-                  DirectX::MakeSRGB (DirectX::MakeTypelessUNORM (typeless));
-            else
-              texDesc.Format = typeless;
-
+            texDesc.Format =
+                DirectX::MakeSRGB (DirectX::MakeTypelessUNORM (typeless));
           }
 
           // HDR Override: Firm override to a typed format is safe

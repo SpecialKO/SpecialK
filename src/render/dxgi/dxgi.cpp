@@ -560,14 +560,23 @@ DWORD dwRenderThread = 0x0000;
 
 static volatile LONG __dxgi_ready = FALSE;
 
-void WaitForInitDXGI (void)
+bool WaitForInitDXGI (DWORD dwTimeout)
 {
   // Waiting while Streamline has plugins loaded would deadlock us in local injection
   if (SK_IsModuleLoaded (L"sl.common.dll"))
-    return;
+  {
+    SK_Thread_SpinUntilFlaggedEx (&__dxgi_ready, 250UL);
+  }
 
-  // This is a hybrid spin; it will spin for up to 250 iterations before sleeping
-  SK_Thread_SpinUntilFlagged (&__dxgi_ready);
+  else
+  {
+    if (dwTimeout != INFINITE)
+         SK_Thread_SpinUntilFlaggedEx (&__dxgi_ready, dwTimeout);
+    else SK_Thread_SpinUntilFlagged   (&__dxgi_ready);
+  }
+
+  return
+    ReadAcquire (&__dxgi_ready);
 }
 
 DWORD __stdcall HookDXGI (LPVOID user);
@@ -1123,6 +1132,8 @@ SK_GetDXGIFactoryInterfaceVer (gsl::not_null <IUnknown *> pFactory)
     dxgi_caps.swapchain.allow_tearing =
       SUCCEEDED (hr) && dxgi_caps.swapchain.allow_tearing;
 
+    dxgi_caps.init.store (true);
+
     return 7;
   }
 
@@ -1144,6 +1155,8 @@ SK_GetDXGIFactoryInterfaceVer (gsl::not_null <IUnknown *> pFactory)
 
     dxgi_caps.swapchain.allow_tearing =
       SUCCEEDED (hr) && dxgi_caps.swapchain.allow_tearing;
+
+    dxgi_caps.init.store (true);
 
     return 6;
   }
@@ -1167,6 +1180,8 @@ SK_GetDXGIFactoryInterfaceVer (gsl::not_null <IUnknown *> pFactory)
     dxgi_caps.swapchain.allow_tearing =
       SUCCEEDED (hr) && dxgi_caps.swapchain.allow_tearing;
 
+    dxgi_caps.init.store (true);
+
     return 5;
   }
 
@@ -1178,6 +1193,9 @@ SK_GetDXGIFactoryInterfaceVer (gsl::not_null <IUnknown *> pFactory)
     dxgi_caps.present.flip_sequential = true;
     dxgi_caps.present.waitable        = true;
     dxgi_caps.present.flip_discard    = true;
+    
+    dxgi_caps.init.store (true);
+
     return 4;
   }
 
@@ -1188,6 +1206,9 @@ SK_GetDXGIFactoryInterfaceVer (gsl::not_null <IUnknown *> pFactory)
     dxgi_caps.device.latency_control  = true;
     dxgi_caps.present.flip_sequential = true;
     dxgi_caps.present.waitable        = true;
+
+    dxgi_caps.init.store (true);
+
     return 3;
   }
 
@@ -1197,6 +1218,9 @@ SK_GetDXGIFactoryInterfaceVer (gsl::not_null <IUnknown *> pFactory)
     dxgi_caps.device.enqueue_event    = true;
     dxgi_caps.device.latency_control  = true;
     dxgi_caps.present.flip_sequential = true;
+
+    dxgi_caps.init.store (true);
+
     return 2;
   }
 
@@ -1204,12 +1228,17 @@ SK_GetDXGIFactoryInterfaceVer (gsl::not_null <IUnknown *> pFactory)
     pFactory->QueryInterface <IDXGIFactory1> ((IDXGIFactory1 **)(void **)&pTemp)))
   {
     dxgi_caps.device.latency_control  = true;
+
+    dxgi_caps.init.store (true);
+
     return 1;
   }
 
   if (SUCCEEDED (
     pFactory->QueryInterface <IDXGIFactory> ((IDXGIFactory **)(void **)&pTemp)))
   {
+    dxgi_caps.init.store (true);
+
     return 0;
   }
 
@@ -5109,9 +5138,13 @@ SK_DXGI_CreateSwapChain_PreInit (
           case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
             SK_LOGs0 ( L" DXGI 1.2 ",
                        L" >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
-            rb.srgb_stripped                  = true;
-            rb.active_traits.bOriginallysRGB  = true;
-            [[fallthrough]];
+            rb.srgb_stripped                 = true;
+            rb.active_traits.bOriginallysRGB = true;
+            config.render.output.force_10bpc = true;
+            pDesc->BufferDesc.Format         = DXGI_FORMAT_R8G8B8A8_UNORM;
+            if (config.render.dxgi.srgb_behavior == -2)
+                config.render.dxgi.srgb_behavior = 1;
+            break;//[[fallthrough]];
           case DXGI_FORMAT_B8G8R8A8_UNORM:
           case DXGI_FORMAT_B8G8R8A8_TYPELESS:
             pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
@@ -5124,7 +5157,11 @@ SK_DXGI_CreateSwapChain_PreInit (
 
             rb.srgb_stripped                 = true;
             rb.active_traits.bOriginallysRGB = true;
-            [[fallthrough]];
+            config.render.output.force_10bpc = true;
+            pDesc->BufferDesc.Format         = DXGI_FORMAT_R8G8B8A8_UNORM;
+            if (config.render.dxgi.srgb_behavior == -2)
+                config.render.dxgi.srgb_behavior = 1;
+            break;//[[fallthrough]];
           case DXGI_FORMAT_R8G8B8A8_UNORM:
           case DXGI_FORMAT_R8G8B8A8_TYPELESS:
             pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -5828,10 +5865,13 @@ void SK_DXGI_HookDevice1     (IDXGIDevice1    *pDevice1);
 void
 SK_DXGI_LazyHookFactory (IDXGIFactory *pFactory)
 {
-  SK_RunOnce ({
-    SK_DXGI_HookFactory (pFactory);
-    SK_ApplyQueuedHooks (        );
-  });
+  if (pFactory != nullptr)
+  {
+    SK_RunOnce ({
+      SK_DXGI_HookFactory (pFactory);
+      SK_ApplyQueuedHooks (        );
+    });
+  }
 }
 
 void
@@ -7936,7 +7976,8 @@ WINAPI CreateDXGIFactory (REFIID   riid,
 
   if (SUCCEEDED (ret) && *ppFactory != nullptr)
   {
-    SK_DXGI_LazyHookFactory ((IDXGIFactory *)*ppFactory);
+    SK_GetDXGIFactoryInterfaceVer ((IUnknown *)*ppFactory);
+    SK_DXGI_LazyHookFactory   ((IDXGIFactory *)*ppFactory);
 
     if (config.render.dxgi.use_factory_cache)
     {
@@ -8048,6 +8089,8 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
 
   if (SUCCEEDED (ret) && pFactory_ != nullptr)
   {
+    SK_GetDXGIFactoryInterfaceVer ((IUnknown *)pFactory_);
+
 #if 0
     auto newFactory =
       new SK_IWrapDXGIFactory ();
@@ -8186,6 +8229,8 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
 
   if (SUCCEEDED (ret) && pFactory_ != nullptr)
   {
+    SK_GetDXGIFactoryInterfaceVer ((IUnknown *)pFactory_);
+
 #if 0
     auto newFactory =
       new SK_IWrapDXGIFactory ();
@@ -9456,6 +9501,8 @@ SK_DXGI_HookFactory (IDXGIFactory* pProxyFactory)
   if (ReadAcquire (&hooked) != FALSE)
     return;
 
+  SK_GetDXGIFactoryInterfaceVer (pProxyFactory);
+
   const bool bHasStreamline =
     SK_IsModuleLoaded (L"sl.interposer.dll");
 
@@ -9804,50 +9851,51 @@ HookDXGI (LPVOID user)
       config.render.dxgi.debug_layer ?
            DXGI_CREATE_FACTORY_DEBUG : 0x0;
 
-    static const char* D3D12SDKPath =
-      (const char *)GetProcAddress (nullptr, "D3D12SDKPath");
-
-    static const char* szDefaultD3D12Core = R"(.\D3D12\D3D12Core.dll)";
-
-    if (D3D12SDKPath == nullptr && PathFileExistsW (LR"(D3D12\D3D12Core.dll)"))
+    if (config.render.dxgi.debug_layer)
     {
-      D3D12SDKPath =     szDefaultD3D12Core;
-    }
+      static const char* D3D12SDKPath =
+        (const char *)GetProcAddress (nullptr, "D3D12SDKPath");
 
-    if (config.render.dxgi.debug_layer && D3D12SDKPath != nullptr)
-    {
-      wchar_t                         wszD3D12CorePath [MAX_PATH] = {};
-      GetCurrentDirectoryW (MAX_PATH, wszD3D12CorePath);
-      PathAppendW          (          wszD3D12CorePath, SK_UTF8ToWideChar (D3D12SDKPath).c_str ());
-      PathAppendW          (          wszD3D12CorePath, L"D3D12Core.dll");
+      wchar_t    wszD3D12CorePath [MAX_PATH] = {};
+      wcsncpy_s (wszD3D12CorePath, MAX_PATH, SK_GetHostPath (), _TRUNCATE);
 
-      using D3D12GetInterface_pfn = HRESULT (WINAPI *)(REFCLSID rclsid, REFIID riid, void **ppvDebug);
-
-      D3D12GetInterface_pfn
-     _D3D12GetInterface =
-     (D3D12GetInterface_pfn)SK_GetProcAddress (wszD3D12CorePath,
-     "D3D12GetInterface");
-
-      if (_D3D12GetInterface != nullptr)
-      {
-        SK_ComPtr <ID3D12Debug>                                             pDebugD3D12;
-        if (SUCCEEDED (_D3D12GetInterface (CLSID_D3D12Debug, IID_PPV_ARGS (&pDebugD3D12.p))))
-                                                                            pDebugD3D12->EnableDebugLayer ();
+      if (D3D12SDKPath != nullptr)
+      { PathAppendW (wszD3D12CorePath, SK_UTF8ToWideChar (D3D12SDKPath).c_str ());
+        PathAppendW (wszD3D12CorePath, L"D3D12Core.dll");
+      } else {
+        PathAppendW (wszD3D12CorePath, LR"(\D3D12\D3D12Core.dll)");
       }
-    }
 
-    else if (config.render.dxgi.debug_layer && SK_IsModuleLoaded (L"d3d12.dll"))
-    {
-      D3D12GetDebugInterface_pfn
-     _D3D12GetDebugInterface =
-     (D3D12GetDebugInterface_pfn)SK_GetProcAddress (L"d3d12.dll",
-     "D3D12GetDebugInterface");
-
-      if (_D3D12GetDebugInterface != nullptr)
+      if (PathFileExistsW (wszD3D12CorePath) && SK_LoadLibraryW (wszD3D12CorePath))
       {
-        SK_ComPtr <ID3D12Debug>                                pDebugD3D12;
-        if (SUCCEEDED (_D3D12GetDebugInterface (IID_PPV_ARGS (&pDebugD3D12.p))))
-                                                               pDebugD3D12->EnableDebugLayer ();
+        using D3D12GetInterface_pfn = HRESULT (WINAPI *)(REFCLSID rclsid, REFIID riid, void **ppvDebug);
+
+        D3D12GetInterface_pfn
+       _D3D12GetInterface =
+       (D3D12GetInterface_pfn)SK_GetProcAddress (wszD3D12CorePath,
+       "D3D12GetInterface");
+
+        if (_D3D12GetInterface != nullptr)
+        {
+          SK_ComPtr <ID3D12Debug>                                             pDebugD3D12;
+          if (SUCCEEDED (_D3D12GetInterface (CLSID_D3D12Debug, IID_PPV_ARGS (&pDebugD3D12.p))))
+                                                                              pDebugD3D12->EnableDebugLayer ();
+        }
+      }
+
+      else if (SK_IsModuleLoaded (L"d3d12.dll"))
+      {
+        D3D12GetDebugInterface_pfn
+       _D3D12GetDebugInterface =
+       (D3D12GetDebugInterface_pfn)SK_GetProcAddress (L"d3d12.dll",
+       "D3D12GetDebugInterface");
+
+        if (_D3D12GetDebugInterface != nullptr)
+        {
+          SK_ComPtr <ID3D12Debug>                                pDebugD3D12;
+          if (SUCCEEDED (_D3D12GetDebugInterface (IID_PPV_ARGS (&pDebugD3D12.p))))
+                                                                 pDebugD3D12->EnableDebugLayer ();
+        }
       }
     }
 

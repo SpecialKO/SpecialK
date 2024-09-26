@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -558,6 +558,8 @@ struct dxgi_caps_t {
   struct {
     BOOL allow_tearing   = FALSE;
   } swapchain;
+
+  std::atomic_bool init  = false;
 };
 
 extern dxgi_caps_t dxgi_caps;
