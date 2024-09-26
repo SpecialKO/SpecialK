@@ -1,4 +1,27 @@
-﻿24.9.25.7
+﻿24.9.27
+=======
+ + Use 10-bpc for sRGB bypass when upgrading games to Flip Model in SDR mode.
+ + Add Alt+F4 bypass for Metaphor
+    (Uncheck "Enable Alt+F4" to remove SK's confirmation dialog)
+ + Disable Fullscreen Exclusive in Metaphor
+ + Disable XInput slots 1,2,3 in Metaphor
+ + Enable XInput emulation by default in Metaphor
+ + Add thread scheduling fixes for Metaphor
+
+    * For proper performance, make sure to set the game's framerate limiter to
+        "Uncapped" and enable Special K's.   
+
+ + Added INI option to run games on Intel Performance Cores only
+
+     [Scheduler.System]
+     PerformanceCoresOnly={true|false}   Default=true
+
+   This will limit the entire game to running only on P-cores, it is enabled
+     by default and applies on top of any affinity mask overrides you set, or
+       affinity mask overrides set by external applications.
+
+
+24.9.25.7
 =========
  + Fixed forced 10-bpc being applied to AMD's Vulkan interop; it is a compat.
      hack for NVIDIA's interop-only and does not work on AMD's driver.

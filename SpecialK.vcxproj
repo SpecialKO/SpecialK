@@ -1645,6 +1645,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\imgui\fa_solid_900.ttf.h" />
     <ClInclude Include="include\imgui\font_awesome.h" />
     <ClInclude Include="include\imgui\imfilebrowser.h" />
+    <ClInclude Include="include\intel\HybridDetect.h" />
     <ClInclude Include="include\json\json.hpp" />
     <ClInclude Include="include\shaders\cs_histogram.h" />
     <ClInclude Include="include\shaders\epic_d3d11_vs.h" />
@@ -2121,7 +2122,12 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClCompile Include="src\render\reflex\reflex.cpp" />
     <ClCompile Include="src\render\screenshot.cpp" />
     <ClCompile Include="src\render\streamline\streamline.cpp" />
-    <ClCompile Include="src\scheduler.cpp" />
+    <ClCompile Include="src\scheduler.cpp">
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release (clang)|Win32'">false</TreatWarningAsError>
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</TreatWarningAsError>
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release (clang)|x64'">false</TreatWarningAsError>
+      <TreatWarningAsError Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</TreatWarningAsError>
+    </ClCompile>
     <ClCompile Include="src\stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release (clang)|Win32'">Create</PrecompiledHeader>

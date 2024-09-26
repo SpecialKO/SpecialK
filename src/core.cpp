@@ -655,6 +655,9 @@ extern void BasicInit (void);
     case SK_GAME_ID::StarOcean2R:
       SK_SO2R_InitPlugin ();
       break;
+    case SK_GAME_ID::Metaphor:
+      SK_Metaphor_InitPlugin ();
+      break;
 #else
     case SK_GAME_ID::SecretOfMana:
       SK_SOM_InitPlugin ();

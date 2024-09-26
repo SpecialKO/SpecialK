@@ -1001,6 +1001,35 @@ SK_Sleep (DWORD dwMilliseconds) noexcept
 
 #define _TVFIX
 
+
+//
+// Metaphor fix
+//
+using timeBeginPeriod_pfn = MMRESULT (WINAPI *)(UINT);
+using timeEndPeriod_pfn   = MMRESULT (WINAPI *)(UINT);
+
+static timeBeginPeriod_pfn timeBeginPeriod_Original = nullptr;
+static timeEndPeriod_pfn   timeEndPeriod_Original   = nullptr;
+
+MMRESULT
+WINAPI
+timeBeginPeriod_Detour(_In_ UINT uPeriod)
+{
+  std::ignore = uPeriod;
+
+  return TIMERR_NOERROR;
+}
+
+MMRESULT
+WINAPI
+timeEndPeriod_Detour(_In_ UINT uPeriod)
+{
+  std::ignore = uPeriod;
+
+  return TIMERR_NOERROR;
+}
+
+
 DWORD
 WINAPI
 SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
@@ -1646,6 +1675,10 @@ NtSetTimerResolution_Detour
   return ret;
 }
 
+#pragma warning(push, 1)
+#pragma warning(disable : 4244)
+#include <intel/HybridDetect.h>
+
 void SK_Scheduler_Init (void)
 {
   SK_ICommandProcessor
@@ -1746,6 +1779,70 @@ void SK_Scheduler_Init (void)
                                NtSetTimerResolution_Detour,
       static_cast_p2p <void> (&NtSetTimerResolution_Original) );
 
+    //
+    // Turn these into nops because they do nothing useful,
+    //   there is more overhead calling them than there is benefit.
+    //
+    SK_CreateDLLHook2 (      L"Kernel32",
+                              "timeBeginPeriod",
+                               timeBeginPeriod_Detour,
+      static_cast_p2p <void> (&timeBeginPeriod_Original) );
+
+    SK_CreateDLLHook2 (      L"Kernel32",
+                              "timeEndPeriod",
+                               timeEndPeriod_Detour,
+      static_cast_p2p <void> (&timeEndPeriod_Original) );
+
+    HybridDetect::PROCESSOR_INFO    pinfo;
+    HybridDetect::GetProcessorInfo (pinfo);
+
+    if (pinfo.IsIntel () && pinfo.hybrid && config.priority.perf_cores_only)
+    {      
+      DWORD_PTR orig_affinity    = ULONG_PTR_MAX,
+                process_affinity = 0,
+                system_affinity  = 0;
+
+      GetProcessAffinityMask ( GetCurrentProcess (),
+                                &orig_affinity,
+                              &system_affinity );
+
+      process_affinity &=
+        pinfo.coreMasks [HybridDetect::INTEL_CORE];
+
+      SK_LOGs0 (L"Scheduler",
+        L"Intel Hybrid CPU Detected:  Performance Core Mask=%x",
+          process_affinity
+      );
+
+      SetProcessAffinityMask ( GetCurrentProcess (),
+        process_affinity
+      );
+
+      // Determine number of CPU cores total, and then the subset of those
+      //   cores that the process is allowed to run threads on.
+      SYSTEM_INFO        si = { };
+      SK_GetSystemInfo (&si);
+
+      DWORD cpu_pop    = std::max (1UL, si.dwNumberOfProcessors);
+      process_affinity = 0;
+      system_affinity  = 0;
+
+      if (GetProcessAffinityMask (GetCurrentProcess (), &process_affinity,
+                                                         &system_affinity))
+      {
+        cpu_pop = 0;
+
+        for ( auto i = 0 ; i < 64 ; ++i )
+        {
+          if ((process_affinity >> i) & 0x1)
+            ++cpu_pop;
+        }
+      }
+
+      config.priority.available_cpu_cores =
+        std::max (1UL, std::min (cpu_pop, si.dwNumberOfProcessors));
+    }
+
     SK_ApplyQueuedHooks ();
 
     NtSetTimerResolution     = NtSetTimerResolution_Original;
@@ -1779,3 +1876,4 @@ SK_Scheduler_Shutdown (void)
   //SK_DisableHook (pfnSleep);
   //SK_DisableHook (pfnQueryPerformanceCounter);
 }
+#pragma warning(pop)

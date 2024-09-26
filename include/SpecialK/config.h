@@ -1339,6 +1339,7 @@ struct sk_config_t
     int     minimum_render_prio = THREAD_PRIORITY_ABOVE_NORMAL;
     DWORD   available_cpu_cores =   1UL;
     int64_t cpu_affinity_mask   = 0xFFFFFFFFFFFFFFFFULL;
+    bool    perf_cores_only     =  true;
   } priority;
 
   struct skif_s {
@@ -1685,6 +1686,7 @@ enum class SK_GAME_ID
   StarWarsOutlaws,              // outlaws.exe
   ShadPS4,                      // shadPS4.exe
   GodOfWarRagnarok,             // GoWR.exe
+  Metaphor,                     // METAPHOR.exe
 
   UNKNOWN_GAME               = 0xffff
 };

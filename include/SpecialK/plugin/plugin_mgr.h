@@ -174,6 +174,8 @@ bool SK_FFXV_PlugInCfg             (void);
 void SK_FFXV_SetupThreadPriorities (void);
 bool SK_FarCry6_PlugInCfg          (void);
 
+void SK_Metaphor_InitPlugin        (void);
+
 void SK_SO2R_InitPlugin            (void);
 bool SK_SO2R_PlugInCfg             (void);
 bool SK_SO2R_DrawHandler           (ID3D11DeviceContext *pDevCtx, uint32_t current_ps, int num_verts);

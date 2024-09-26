@@ -258,7 +258,8 @@ SK_GetCurrentGameID (void)
           { L"Outlaws.exe",                            SK_GAME_ID::StarWarsOutlaws              },
           { L"Outlaws_Plus.exe",                       SK_GAME_ID::StarWarsOutlaws              },
           { L"shadPS4.exe",                            SK_GAME_ID::ShadPS4                      },
-          { L"GoWR.exe",                               SK_GAME_ID::GodOfWarRagnarok             }
+          { L"GoWR.exe",                               SK_GAME_ID::GodOfWarRagnarok             },
+          { L"METAPHOR.exe",                           SK_GAME_ID::Metaphor                     }
         };
 
     first_check  = false;
@@ -1142,6 +1143,7 @@ struct {
     sk::ParameterBool*    deny_foreign_change     = nullptr;
     sk::ParameterInt*     min_render_priority     = nullptr;
     sk::ParameterInt64*   cpu_affinity_mask       = nullptr;
+    sk::ParameterBool*    perf_cores_only         = nullptr;
   } priority;
 } scheduling;
 
@@ -2032,6 +2034,7 @@ auto DeclKeybind =
     ConfigEntry (scheduling.priority.deny_foreign_change,L"Do not allow third-party apps to change priority",          dll_ini,         L"Scheduler.Boost",       L"DenyForeignChanges"),
     ConfigEntry (scheduling.priority.min_render_priority,L"Minimum priority for a game's render thread",               dll_ini,         L"Scheduler.Boost",       L"MinimumRenderThreadPriority"),
     ConfigEntry (scheduling.priority.cpu_affinity_mask,  L"Mask of CPU cores the process is eligible for scheduling.", dll_ini,         L"Scheduler.System",      L"ProcessorAffinityMask"),
+    ConfigEntry (scheduling.priority.perf_cores_only,    L"Limit the scheduler to Intel P-Cores",                      dll_ini,         L"Scheduler.System",      L"PerformanceCoresOnly"),
 
     ConfigEntry (sound.minimize_latency,                 L"Minimize Audio Latency while Game is Running",              dll_ini,         L"Sound.Mixing",          L"MinimizeLatency"),
 
@@ -3011,6 +3014,7 @@ auto DeclKeybind =
 
       case SK_GAME_ID::HorizonForbiddenWest:
       {
+#if 0
         if (SK_IsInjected () && ((! PathFileExists (L"dxgi.dll")) &&
                                  (! PathFileExists (L"d3d12.dll"))))
         {
@@ -3032,6 +3036,7 @@ auto DeclKeybind =
             }
           }
         }
+#endif
 
         bool bSteam = false,
              bEpic  = false;
@@ -3662,6 +3667,18 @@ auto DeclKeybind =
         config.apis.NvAPI.vulkan_bridge = 1;
         break;
 
+      case SK_GAME_ID::Metaphor:
+        config.input.keyboard.override_alt_f4    = true; // Oh lord, kill that buggy exit confirmation
+        config.window.dont_hook_wndproc          = true;
+        config.render.dxgi.fake_fullscreen_mode  = true;
+        config.render.framerate.sleepless_render = true;
+        config.render.framerate.sleepless_window = true;
+        config.input.gamepad.xinput.emulate      = true; // XInput-only
+        config.input.gamepad.xinput.disable [1]  = true;
+        config.input.gamepad.xinput.disable [2]  = true;
+        config.input.gamepad.xinput.disable [3]  = true;
+        break;
+
       case SK_GAME_ID::DiabloIV:
         config.window.dont_hook_wndproc = true;
         break;
@@ -4211,6 +4228,8 @@ auto DeclKeybind =
   {
     SetProcessAffinityMask (GetCurrentProcess (), (DWORD_PTR)config.priority.cpu_affinity_mask);
   }
+
+  scheduling.priority.perf_cores_only->load     (config.priority.perf_cores_only);
 
   if (config.priority.raise_always)
     SetPriorityClass (GetCurrentProcess (), ABOVE_NORMAL_PRIORITY_CLASS);
@@ -6227,6 +6246,7 @@ SK_SaveConfig ( std::wstring name,
     scheduling.priority.deny_foreign_change->store (config.priority.deny_foreign_change);
     scheduling.priority.min_render_priority->store (config.priority.minimum_render_prio);
     scheduling.priority.cpu_affinity_mask->store   (config.priority.cpu_affinity_mask);
+    scheduling.priority.perf_cores_only->store     (config.priority.perf_cores_only);
 
     if (render.framerate.rescan_ratio != nullptr)
     {

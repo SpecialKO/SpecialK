@@ -1457,3 +1457,126 @@ SK_SO2R_DrawHandler (ID3D11DeviceContext *pDevCtx, uint32_t current_ps, int num_
   return false;
 }
 #endif
+
+WNDPROC SK_Metaphor_OrigWndProc = nullptr;
+LRESULT
+CALLBACK
+SK_Metaphor_WindowProc ( _In_  HWND   hWnd,
+                         _In_  UINT   uMsg,
+                         _In_  WPARAM wParam,
+                         _In_  LPARAM lParam )
+{
+  switch (uMsg)
+  {
+    case WM_CLOSE:
+    {
+      if (config.input.keyboard.override_alt_f4 && hWnd == game_window.hWnd)
+      {
+        SK_ImGui_WantExit = true;
+      
+        if (! config.input.keyboard.catch_alt_f4)
+        {
+          return IsWindowUnicode (hWnd)                ?
+           DefWindowProcW (hWnd, uMsg, wParam, lParam) :
+           DefWindowProcA (hWnd, uMsg, wParam, lParam);
+        }
+      
+        return 0;
+      }
+    } break;
+    default:
+      break;
+  }
+
+  return SK_Metaphor_OrigWndProc (hWnd, uMsg, wParam, lParam);
+}
+
+
+__forceinline
+static void
+SK_AMD_MWAITX (INT64 qpcTarget = 0)
+{
+  if (! config.render.framerate.use_amd_mwaitx)
+    return YieldProcessor ();
+
+  static alignas(64) uint64_t monitor = 0ULL;
+
+  _mm_monitorx (&monitor, 0, 0);
+  _mm_mwaitx   (0x2, 0, (qpcTarget > 0) ? ((DWORD)qpcTarget * SK_PerfFreqInTsc + 1) : SK_PerfFreqInTsc);
+}
+
+bool
+SK_CPU_IsZen (void);
+
+__forceinline
+static void
+SK_YieldProcessor (INT64 qpcTarget = 0)
+{
+  static const bool bIsCompatibleZen =
+    SK_CPU_IsZen () && SK_CPU_HasMWAITX;
+
+  if (bIsCompatibleZen)
+    SK_AMD_MWAITX (qpcTarget);
+  else YieldProcessor ();
+}
+
+SleepEx_pfn SK_Metaphor_SleepEx_Original = nullptr;
+
+DWORD
+WINAPI
+SK_Metaphor_SleepEx (DWORD dwMilliseconds, BOOL bAlertable)
+{
+  if (dwMilliseconds <= 1)
+  {
+    static thread_local DWORD skipCount = 0;
+
+    if (dwMilliseconds == 0)
+    {
+      if (++skipCount > 13)
+      {
+        skipCount = 0;
+      
+        return
+          SwitchToThread ();
+      }
+
+      return 0;
+    }
+
+    dwMilliseconds = 0;
+
+    SK_YieldProcessor (SK_QpcTicksPerMs/1000);
+
+    return
+      SleepEx_Original (dwMilliseconds, bAlertable);
+  }
+
+  return
+    SK_Metaphor_SleepEx_Original (dwMilliseconds, bAlertable);
+}
+
+void
+SK_Metaphor_InitPlugin (void)
+{
+  extern LRESULT
+  CALLBACK
+  SK_DetourWindowProc ( _In_  HWND   hWnd,
+                        _In_  UINT   uMsg,
+                        _In_  WPARAM wParam,
+                        _In_  LPARAM lParam );
+
+  extern DWORD WINAPI SleepEx_Detour (DWORD, BOOL);
+
+  SK_CreateFuncHook (        L"SK_DetourWindowProc",
+                               SK_DetourWindowProc,
+                               SK_Metaphor_WindowProc,
+      static_cast_p2p <void> (&SK_Metaphor_OrigWndProc) );
+  MH_QueueEnableHook   (       SK_DetourWindowProc      );
+
+  SK_CreateFuncHook (        L"SleepEx_Detour",
+                               SleepEx_Detour,
+                               SK_Metaphor_SleepEx,
+      static_cast_p2p <void> (&SK_Metaphor_SleepEx_Original) );
+  MH_QueueEnableHook   (       SleepEx_Detour                );
+  SK_ApplyQueuedHooks  ();
+}
