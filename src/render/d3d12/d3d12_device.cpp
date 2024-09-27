@@ -1323,7 +1323,7 @@ _In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
   if (config.render.d3d12.force_lod_bias != 0.0f)
   {
     if (desc.MinLOD != desc.MaxLOD && (desc.ComparisonFunc == D3D12_COMPARISON_FUNC_ALWAYS||
-                                       desc.ComparisonFunc == D3D12_COMPARISON_FUNC_NONE||
+                                       desc.ComparisonFunc == 0||
                                        desc.ComparisonFunc == D3D12_COMPARISON_FUNC_NEVER))
     {
       desc.MipLODBias =
@@ -1439,7 +1439,7 @@ _In_  D3D12_CPU_DESCRIPTOR_HANDLE DestDescriptor)
   if (config.render.d3d12.force_lod_bias != 0.0f)
   {
     if (desc.MinLOD != desc.MaxLOD && (desc.ComparisonFunc == D3D12_COMPARISON_FUNC_ALWAYS||
-                                       desc.ComparisonFunc == D3D12_COMPARISON_FUNC_NONE||
+                                       desc.ComparisonFunc == 0||
                                        desc.ComparisonFunc == D3D12_COMPARISON_FUNC_NEVER))
     {
       desc.MipLODBias =
@@ -2980,18 +2980,6 @@ static PFN_D3D12_SERIALIZE_ROOT_SIGNATURE
 static PFN_D3D12_SERIALIZE_VERSIONED_ROOT_SIGNATURE
        D3D12SerializeVersionedRootSignature_Original = nullptr;
 
-#ifndef __ID3D12Device11_INTERFACE_DEFINED__
-enum D3D_ROOT_SIGNATURE_VERSION
-{
-  D3D_ROOT_SIGNATURE_VERSION_1   = 0x1,
-  D3D_ROOT_SIGNATURE_VERSION_1_0 = 0x1,
-  D3D_ROOT_SIGNATURE_VERSION_1_1 = 0x2,
-  D3D_ROOT_SIGNATURE_VERSION_1_2 = 0x3
-} D3D_ROOT_SIGNATURE_VERSION;
-
-#define D3D12_COMPARISON_FUNC_NONE 0
-#endif
-
 HRESULT
 WINAPI
 D3D12SerializeVersionedRootSignature_Detour (
@@ -3050,7 +3038,7 @@ D3D12SerializeVersionedRootSignature_Detour (
           if (config.render.d3d12.force_lod_bias != 0.0f)
           {
             if (static_desc.MinLOD != static_desc.MaxLOD && (static_desc.ComparisonFunc == D3D12_COMPARISON_FUNC_ALWAYS||
-                                                             static_desc.ComparisonFunc == D3D12_COMPARISON_FUNC_NONE  ||
+                                                             static_desc.ComparisonFunc == 0||
                                                              static_desc.ComparisonFunc == D3D12_COMPARISON_FUNC_NEVER))
             {
               SK_LOGi1 (L"Overriding Mip LOD Bias on Static Sampler...");
@@ -3137,9 +3125,11 @@ D3D12SerializeVersionedRootSignature_Detour (
       }
       break;
 
+#ifdef __ID3D12Device11_INTERFACE_DEFINED__
       case D3D_ROOT_SIGNATURE_VERSION_1_2:
         SK_LOGi0 (L"Cannot Override Root Signature 1.2...");
       break;
+#endif
     } break;
   }
 
@@ -3205,7 +3195,7 @@ D3D12SerializeRootSignature_Detour ( const D3D12_ROOT_SIGNATURE_DESC* pRootSigna
           if (config.render.d3d12.force_lod_bias != 0.0f)
           {
             if (static_desc.MinLOD != static_desc.MaxLOD && (static_desc.ComparisonFunc == D3D12_COMPARISON_FUNC_ALWAYS||
-                                                             static_desc.ComparisonFunc == D3D12_COMPARISON_FUNC_NONE  ||
+                                                             static_desc.ComparisonFunc == 0||
                                                              static_desc.ComparisonFunc == D3D12_COMPARISON_FUNC_NEVER))
             {
               SK_LOGi1 (L"Overriding Mip LOD Bias on Static Sampler...");
@@ -3292,9 +3282,11 @@ D3D12SerializeRootSignature_Detour ( const D3D12_ROOT_SIGNATURE_DESC* pRootSigna
       }
       break;
 
+#ifdef __ID3D12Device11_INTERFACE_DEFINED__
       case D3D_ROOT_SIGNATURE_VERSION_1_2:
         SK_LOGi0 (L"Cannot Override Root Signature 1.2...");
       break;
+#endif
     } break;
   }
 
