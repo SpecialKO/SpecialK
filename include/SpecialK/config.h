@@ -1339,7 +1339,7 @@ struct sk_config_t
     int     minimum_render_prio = THREAD_PRIORITY_ABOVE_NORMAL;
     DWORD   available_cpu_cores =   1UL;
     int64_t cpu_affinity_mask   = 0xFFFFFFFFFFFFFFFFULL;
-    bool    perf_cores_only     =  true;
+    bool    perf_cores_only     = false;
   } priority;
 
   struct skif_s {

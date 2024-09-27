@@ -3669,14 +3669,16 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Metaphor:
         config.input.keyboard.override_alt_f4    = true; // Oh lord, kill that buggy exit confirmation
-        config.window.dont_hook_wndproc          = true;
         config.render.dxgi.fake_fullscreen_mode  = true;
-        config.render.framerate.sleepless_render = true;
-        config.render.framerate.sleepless_window = true;
+        config.display.force_windowed            = true;
+        config.render.framerate.sleepless_render = false;
+        config.render.framerate.sleepless_window = false;
+        config.input.gamepad.disable_hid         = true; // XInput-only
         config.input.gamepad.xinput.emulate      = true; // XInput-only
         config.input.gamepad.xinput.disable [1]  = true;
         config.input.gamepad.xinput.disable [2]  = true;
         config.input.gamepad.xinput.disable [3]  = true;
+        config.priority.perf_cores_only          = true;
         break;
 
       case SK_GAME_ID::DiabloIV:

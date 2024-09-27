@@ -1528,27 +1528,33 @@ SK_Metaphor_SleepEx (DWORD dwMilliseconds, BOOL bAlertable)
 {
   if (dwMilliseconds <= 1)
   {
-    static thread_local DWORD skipCount = 0;
+    static thread_local DWORD  sleep0Count      = 0;
+    static thread_local DWORD  sleep1Count      = 0;
+    static thread_local UINT64 lastSkippedFrame = 0;
 
     if (dwMilliseconds == 0)
     {
-      if (++skipCount > 13)
-      {
-        skipCount = 0;
-      
-        return
-          SwitchToThread ();
-      }
-
+      YieldProcessor ();
       return 0;
     }
 
     dwMilliseconds = 0;
 
+    // Prefer to keep this thread busy, but prevent a complete runaway...
+    if (sleep1Count++ > 2 && lastSkippedFrame == SK_GetFramesDrawn ())
+    {
+      sleep1Count = 0;
+
+      return
+        SK_Metaphor_SleepEx_Original (dwMilliseconds, bAlertable);
+    }
+
+    lastSkippedFrame = SK_GetFramesDrawn ();
+
+    // Micro sleep on AMD CPUs for power efficiency on handhelds...
     SK_YieldProcessor (SK_QpcTicksPerMs/1000);
 
-    return
-      SleepEx_Original (dwMilliseconds, bAlertable);
+    return 0;
   }
 
   return

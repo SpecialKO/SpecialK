@@ -1,4 +1,9 @@
-﻿24.9.27
+﻿24.9.27.1
+=========
+ + Further optimize Metaphor; no more periodic stutter.
+ + Set PerformanceCoresOnly=false by default for all games except Metaphor.
+
+24.9.27
 =======
  + Use 10-bpc for sRGB bypass when upgrading games to Flip Model in SDR mode.
  + Add Alt+F4 bypass for Metaphor
