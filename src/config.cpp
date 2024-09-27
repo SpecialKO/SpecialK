@@ -3668,17 +3668,17 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Metaphor:
-        config.input.keyboard.override_alt_f4    = true; // Oh lord, kill that buggy exit confirmation
-        config.render.dxgi.fake_fullscreen_mode  = true;
-        config.display.force_windowed            = true;
-        config.render.framerate.sleepless_render = false;
-        config.render.framerate.sleepless_window = false;
-        config.input.gamepad.disable_hid         = true; // XInput-only
-        config.input.gamepad.xinput.emulate      = true; // XInput-only
-        config.input.gamepad.xinput.disable [1]  = true;
-        config.input.gamepad.xinput.disable [2]  = true;
-        config.input.gamepad.xinput.disable [3]  = true;
-        config.priority.perf_cores_only          = true;
+        config.compatibility.init_on_separate_thread = false;
+        config.input.keyboard.override_alt_f4        = true; // Oh lord, kill that buggy exit confirmation
+        config.render.dxgi.fake_fullscreen_mode      = true;
+        config.display.force_windowed                = true;
+        config.render.framerate.sleepless_render     = false;
+        config.render.framerate.sleepless_window     = false;
+        config.input.gamepad.xinput.emulate          = true; // XInput-only
+        config.input.gamepad.xinput.disable [1]      = true;
+        config.input.gamepad.xinput.disable [2]      = true;
+        config.input.gamepad.xinput.disable [3]      = true;
+        config.priority.perf_cores_only              = true;
         break;
 
       case SK_GAME_ID::DiabloIV:
@@ -3695,8 +3695,8 @@ auto DeclKeybind =
       // Pain in the ass Nixxes port
       case SK_GAME_ID::RatchetAndClank_RiftApart:
         // Game has native PlayStation support
-        config.input.gamepad.xinput.emulate        = false;
-        config.compatibility.allow_fake_streamline = false;
+        config.input.gamepad.xinput.emulate          = false;
+        config.compatibility.init_on_separate_thread = false;
         // Workaround Nixxes quirks
         break;
 

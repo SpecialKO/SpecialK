@@ -1534,6 +1534,12 @@ SK_Metaphor_SleepEx (DWORD dwMilliseconds, BOOL bAlertable)
 
     if (dwMilliseconds == 0)
     {
+      if (sleep0Count++ > 65536 && lastSkippedFrame != SK_GetFramesDrawn ())
+      {
+        sleep0Count = 0;
+        SwitchToThread ();
+      }
+
       YieldProcessor ();
       return 0;
     }
@@ -1546,13 +1552,11 @@ SK_Metaphor_SleepEx (DWORD dwMilliseconds, BOOL bAlertable)
       sleep1Count = 0;
 
       return
-        SK_Metaphor_SleepEx_Original (dwMilliseconds, bAlertable);
+        SleepEx_Original (dwMilliseconds, bAlertable);
     }
 
     lastSkippedFrame = SK_GetFramesDrawn ();
-
-    // Micro sleep on AMD CPUs for power efficiency on handhelds...
-    SK_YieldProcessor (SK_QpcTicksPerMs/1000);
+    sleep0Count      = 0;
 
     return 0;
   }
