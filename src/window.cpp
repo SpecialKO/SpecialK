@@ -5738,7 +5738,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         SK_LOG0 ( ( L"(?) Active window destroyed, our chicken has no head!" ),
                     __SK_SUBSYSTEM__ );
 
-        if (GetAncestor (hWnd, GA_ROOT) == game_window.hWnd)
+        if (GetAncestor (hWnd, GA_ROOTOWNER) == game_window.hWnd)
         {
           SK_Win32_DestroyBackgroundWindow ();
 
@@ -7041,7 +7041,7 @@ SK_CRAPCOM_SurrogateWindowProc ( _In_  HWND   hWnd,
 void
 SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
 {
-  hWnd = GetAncestor (hWnd, GA_ROOT);
+  hWnd = GetAncestor (hWnd, GA_ROOTOWNER);
 
   wchar_t wszClassName [128] = { };
   wchar_t wszTitle     [128] = { };
@@ -7069,14 +7069,14 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
         const bool bUnicode =
           SK_IsWindowUnicode (hWnd, SK_TLS_Bottom ());
 
-        __SK_CRAPCOM_RealWndProc = (WNDPROC)( bUnicode ?
-             SK_GetWindowLongPtrW (hWnd, GWLP_WNDPROC) :
-             SK_GetWindowLongPtrA (hWnd, GWLP_WNDPROC) );
+        //__SK_CRAPCOM_RealWndProc = (WNDPROC)( bUnicode ?
+        //     SK_GetWindowLongPtrW (hWnd, GWLP_WNDPROC) :
+        //     SK_GetWindowLongPtrA (hWnd, GWLP_WNDPROC) );
 
         if (bUnicode)
-          SK_SetWindowLongPtrW (hWnd, GWLP_WNDPROC, (LONG_PTR)SK_CRAPCOM_SurrogateWindowProc);
+          __SK_CRAPCOM_RealWndProc = (WNDPROC)SK_SetWindowLongPtrW (hWnd, GWLP_WNDPROC, (LONG_PTR)SK_CRAPCOM_SurrogateWindowProc);
         else
-          SK_SetWindowLongPtrA (hWnd, GWLP_WNDPROC, (LONG_PTR)SK_CRAPCOM_SurrogateWindowProc);
+          __SK_CRAPCOM_RealWndProc = (WNDPROC)SK_SetWindowLongPtrA (hWnd, GWLP_WNDPROC, (LONG_PTR)SK_CRAPCOM_SurrogateWindowProc);
 
         wnd_proc = SK_CRAPCOM_SurrogateWindowProc;
       }

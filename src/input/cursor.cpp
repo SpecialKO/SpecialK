@@ -680,8 +680,9 @@ SK_IsGameWindowFocused (void)
     };
 
   return (
-    SK_IsGameWindowActive () && (SK_GetFocus () == game_window.hWnd ||
-                                hWndAtCenter () == game_window.hWnd )/*|| SK_GetForegroundWindow () == game_window.hWnd*/
+    SK_IsGameWindowActive () && (SK_GetFocus            () == game_window.hWnd ||
+                                 SK_GetForegroundWindow () == game_window.hWnd ||
+                                           hWndAtCenter () == game_window.hWnd)
   );
 }
 

@@ -1,4 +1,12 @@
-﻿24.9.27.1
+﻿24.9.28
+=======
+ + Overhauled input management for keybinds to better handle games with
+     child/sibling windows (such as Metaphor's stupid exit confirmation)
+ + Add hook on msvcp140.dll!_Thrd_sleep (...) because it may call directly
+     into kernelbase.dll!SleepEx (...) instead of kernel32.dll.
+ + Re-enable HID in Metaphor because it is required on SteamOS for gamepads.
+
+24.9.27.1
 =========
  + Further optimize Metaphor; no more periodic stutter.
  + Set PerformanceCoresOnly=false by default for all games except Metaphor.

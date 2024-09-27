@@ -151,34 +151,57 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   Alt = ImGui::GetIO ().KeyAlt;
 
 
-  if (! SK_ImGui_Widgets->DispatchKeybinds (Control, Shift, Alt, vkCode))
+  static bool& visible = SK_Console::getInstance ()->visible;
+  static BYTE* keys_   = SK_Console::getInstance ()->keys_;
+
+
+  if (visible || (! SK_ImGui_Widgets->DispatchKeybinds (Control, Shift, Alt, vkCode)))
   {
+    auto masked =
+      SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 
-  }
+    if (! visible)
+    {
+      auto* kb_macros =
+        SK_KeyboardMacros.getPtr ();
 
-
-  auto masked =
-    SK_MakeKeyMask (vkCode, Control, Shift, Alt);
-
-  auto* kb_macros =
-    SK_KeyboardMacros.getPtr ();
-
-  if (kb_macros->find (masked) != kb_macros->cend ())
-  {
-    auto range =
-      kb_macros->equal_range (masked);
-
-    auto* cp =
-      SK_GetCommandProcessor ();
-
-    for_each ( range.first, range.second,
-      [&] (std::unordered_multimap <uint32_t, SK_KeyCommand>::value_type& cmd_pair)
+      if (kb_macros->find (masked) != kb_macros->cend ())
       {
-        cp->ProcessCommandLine (
-          SK_WideCharToUTF8 (cmd_pair.second.command).c_str ()
+        auto range =
+          kb_macros->equal_range (masked);
+
+        auto* cp =
+          SK_GetCommandProcessor ();
+
+        for_each ( range.first, range.second,
+          [&] (std::unordered_multimap <uint32_t, SK_KeyCommand>::value_type& cmd_pair)
+          {
+            cp->ProcessCommandLine (
+              SK_WideCharToUTF8 (cmd_pair.second.command).c_str ()
+            );
+          }
         );
       }
-    );
+    }
+
+
+    // Do not run the command console if the game window isn't active
+    if (! SK_IsGameWindowActive ())
+      return;
+
+    if (! SK_ImGui_Active ())
+    {
+      // Finally, toggle the command console
+      if ( SK_MakeKeyMask (vkCode, Control, Shift, Alt) ==
+           config.osd.keys.console_toggle.masked_code &&
+           config.osd.keys.console_toggle.masked_code != 0 /* 0 = Not Bound */ )
+      {
+        visible = ! visible;
+    
+        // This will pause/unpause the game
+        SK::SteamAPI::SetOverlayState (visible);
+      }
+    }
   }
 }
 
@@ -206,6 +229,7 @@ extern SHORT SK_ImGui_ToggleKeys [4];
 bool
 SK_ImGui_ProcessKeyPress (const BYTE& vkCode)
 {
+  return false;
   if (! vkCode) // No monkey business please
     return false;
 
@@ -390,6 +414,10 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
 
       if (keyDown)
       {
+        keys_ [VK_SHIFT]   = (SK_GetAsyncKeyState (VK_SHIFT)   & 0x8000) ? 0x81 : 0x0;
+        keys_ [VK_CONTROL] = (SK_GetAsyncKeyState (VK_CONTROL) & 0x8000) ? 0x81 : 0x0;
+        keys_ [VK_MENU]    = (SK_GetAsyncKeyState (VK_MENU)    & 0x8000) ? 0x81 : 0x0;
+
         // First trigger an event if this is a make/break
         if (SK_ImGui_ProcessKeyPress (vkCode))
           return 0;
@@ -423,6 +451,8 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
               language.keybd_layout;
           }
 
+          keys_ [VK_CONTROL] = 0x0;
+
           if (1 == ToAsciiEx ( vkCode,
                                 scanCode,
                                 keys_,
@@ -434,6 +464,8 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
             strncat (text, reinterpret_cast <char *> (key_str), 1);
             command_issued = false;
           }
+
+          keys_ [VK_CONTROL] = (SK_GetAsyncKeyState (VK_CONTROL) & 0x8000) ? 0x81 : 0x0;
         }
       }
     }

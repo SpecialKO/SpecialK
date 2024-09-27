@@ -1869,7 +1869,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
         bool now     = false;
         bool toggled = false;
       } capslock,
-        backspace;
+        backspace, tab;
 
       ULONG64 last_frame = 0;
     } static keys;
@@ -1879,8 +1879,17 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
     if (keys.last_frame < this_frame)
     {
+      if (keys.tab.toggled)
+      {
+        void
+        CALLBACK
+        SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode);
+        SK_PluginKeyPress (io.KeyCtrl, io.KeyShift, io.KeyAlt, VK_TAB);
+      }
+
       keys.capslock.last  = keys.capslock.now;
       keys.backspace.last = keys.backspace.now;
+      keys.tab.last       = keys.tab.now;
 
       keys.last_frame     = this_frame;
 
@@ -1888,9 +1897,12 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
         ImGui::IsKeyPressed (ImGuiKey_CapsLock,  false);
       keys.backspace.now  =
         ImGui::IsKeyPressed (ImGuiKey_Backspace, false);
+      keys.tab.now        =
+        (SK_GetAsyncKeyState (VK_TAB) & 0x8000);
 
       keys.capslock.toggled  = false;
       keys.backspace.toggled = false;
+      keys.tab.toggled       = false;
 
       io.KeyAlt   = false;
       io.KeyShift = false;
@@ -1905,6 +1917,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
       ImGui::IsKeyPressed (ImGuiKey_CapsLock,  false);
     keys.backspace.now |=
       ImGui::IsKeyPressed (ImGuiKey_Backspace, false);
+    keys.tab.now |=
+      ((SK_GetAsyncKeyState (VK_TAB) & 0x8000) == 0x8000);
 
     if (! keys.capslock.toggled)
     {
@@ -1924,7 +1938,14 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
       keys.backspace.toggled |= bToggleVis;
     }
+
+    if (! keys.tab.toggled)
+    {
+      keys.tab.toggled |=
+        ((! keys.tab.last) && keys.tab.now);
+    }
   }
+
 
   bool bUseGamepad =
     SK_IsGameWindowActive () ||
@@ -3326,8 +3347,9 @@ SK_ImGui_User_NewFrame (void)
     SK_IsGameWindowActive  ();
 
   if (bActive || game_window.mouse.inside)
-  { if (new_input && bActive) for ( UINT                 i = 7 ; i < 255 ; ++i )
-                                    io.KeysDown [i] = ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
+  { if (new_input && bActive) { for ( UINT                 i = 7 ; i < 255 ; ++i )
+                io.KeysDown [i] = ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
+    }
     io.MouseDown [0] = ((SK_GetAsyncKeyState (VK_LBUTTON) ) < 0);
     io.MouseDown [1] = ((SK_GetAsyncKeyState (VK_RBUTTON) ) < 0);
     io.MouseDown [2] = ((SK_GetAsyncKeyState (VK_MBUTTON) ) < 0);
@@ -3524,15 +3546,36 @@ SK_ImGui_User_NewFrame (void)
 
   if (bFocused)
   {
+    for (UINT i = 511 ; i < ImGuiKey_COUNT ; ++i)
+    {
+      void CALLBACK SK_PluginKeyPress   (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode);
+      int           SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam);
+
+      ImGuiKey       key = (ImGuiKey)i;
+      if (io.KeyMap [key] != 0)
+      {
+        auto key_data =
+          ImGui::GetKeyData (key);
+
+        if (key_data->DownDuration !=
+            key_data->DownDurationPrev)
+        {
+          bool newly_pressed = ImGui::IsKeyPressed (key, false);
+
+          if (newly_pressed)
+          {
+            SK_PluginKeyPress (io.KeyCtrl, io.KeyShift, io.KeyAlt, (BYTE)io.KeyMap [i]);
+          }
+        }
+      }
+    }
+
     if (config.input.keyboard.catch_alt_f4)
     {
-      if ( io.KeyAlt                                  &&
-           io.KeysDown             [VK_F4]            &&
-       ( ImGui::IsKeyPressed (ImGuiKey_F4,   false)   &&
-         ImGui::IsKeyPressed (ImGuiKey_Menu, false) ) &&
-       ( ImGui::GetKeyData   (ImGuiKey_F4  )->DownDuration == 0.0f ||
-         ImGui::GetKeyData   (ImGuiKey_Menu)->DownDuration == 0.0f )
-         )
+      if ( ImGui::IsKeyPressed (ImGuiKey_F4,   false) &&
+           ImGui::IsKeyPressed (ImGuiKey_Menu, false) &&
+         ( ImGui::GetKeyData   (ImGuiKey_F4  )->DownDuration == 0.0f ||
+           ImGui::GetKeyData   (ImGuiKey_Menu)->DownDuration == 0.0f ) )
       {
         WriteULong64Release (
           &config.input.keyboard.temporarily_allow,
