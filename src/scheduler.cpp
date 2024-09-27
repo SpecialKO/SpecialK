@@ -1348,6 +1348,26 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   return 0;
 }
 
+using  Thrd_sleep_pfn = void (*)(const xtime*);
+static Thrd_sleep_pfn
+       Thrd_sleep_Original = nullptr;
+
+// This simple function in msvcp140 may call into
+//   kernelbase.dll directly and avoid the hook on
+//     kernel32.dll!SleepEx (...).
+void
+__cdecl
+Thrd_sleep_Detour (const xtime* x)
+{
+  DWORD dwMilliseconds =
+    static_cast <DWORD> (
+      (x->sec * 1000UL) +
+      (x->nsec / 1000000)
+    );
+
+  SleepEx_Detour (dwMilliseconds, FALSE);
+}
+
 void
 WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
@@ -1753,6 +1773,14 @@ void SK_Scheduler_Init (void)
                               "SleepEx",
                                SleepEx_Detour,
       static_cast_p2p <void> (&SleepEx_Original) );
+
+    if (GetModuleHandleW (L"msvcp140"))
+    {
+      SK_CreateDLLHook2 (      L"msvcp140",
+                                "_Thrd_sleep",
+                                 Thrd_sleep_Detour,
+        static_cast_p2p <void> (&Thrd_sleep_Original) );
+    }
 
     SK_CreateDLLHook2 (      L"Kernel32",
                               "SleepConditionVariableSRW",
