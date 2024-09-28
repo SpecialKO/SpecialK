@@ -737,6 +737,7 @@ DWORD WINAPI
 SK_DelayExecution (double dMilliseconds, BOOL bAlertable) noexcept;
 
 BOOL
+WINAPI
 SK_SetProcessAffinityMask (HANDLE hProcess, DWORD_PTR dwProcessAffinityMask);
 
 void SK_Widget_InvokeThreadProfiler (void);

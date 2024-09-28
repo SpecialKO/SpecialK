@@ -1744,6 +1744,13 @@ SK_SetProcessAffinityMask (
   _In_ HANDLE    hProcess,
   _In_ DWORD_PTR dwProcessAffinityMask )
 {
+  DWORD_PTR dwDontCare,
+            dwSystemMask;
+
+  GetProcessAffinityMask (
+   hProcess, &dwDontCare, &dwSystemMask);
+  dwProcessAffinityMask &= dwSystemMask;
+
   if (     SetProcessAffinityMask_Original != nullptr)
     return SetProcessAffinityMask_Original (hProcess, dwProcessAffinityMask);
 
@@ -1877,6 +1884,13 @@ void SK_Scheduler_Init (void)
                               "timeEndPeriod",
                                timeEndPeriod_Detour,
       static_cast_p2p <void> (&timeEndPeriod_Original) );
+
+    if (config.priority.cpu_affinity_mask != -1)
+    {
+      SK_SetProcessAffinityMask ( GetCurrentProcess (),
+        (DWORD_PTR)config.priority.cpu_affinity_mask
+      );
+    }
 
     HybridDetect::PROCESSOR_INFO    pinfo;
     HybridDetect::GetProcessorInfo (pinfo);
