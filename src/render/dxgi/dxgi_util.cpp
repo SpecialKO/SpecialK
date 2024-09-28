@@ -1038,7 +1038,8 @@ SK_DXGI_LinearizeSRGB (IDXGISwapChain* pChainThatUsedToBeSRGB)
                        .apply       = FALSE,
                        .strip       = FALSE };
 
-    codec_params.apply       = (config.render.dxgi.srgb_behavior ==  1);
+    codec_params.apply       = (config.render.dxgi.srgb_behavior ==  1 ||
+                                config.render.dxgi.srgb_behavior == -2);
     codec_params.strip       = (config.render.dxgi.srgb_behavior ==  0);
     codec_params.passthrough = (config.render.dxgi.srgb_behavior == -1);
 

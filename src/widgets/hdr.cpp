@@ -870,7 +870,7 @@ public:
                __SK_HDR_16BitSwap )
           {
             __SK_HDR_Content_EOTF            = 1.0f;
-            config.render.dxgi.srgb_behavior = 0;
+            config.render.dxgi.srgb_behavior = 1;
 
             _SK_HDR_ContentEOTF->store (__SK_HDR_Content_EOTF);
           }
@@ -926,7 +926,8 @@ public:
 
     // Games where 8-bit Compute Remastering has problems
     //
-    if (SK_GetCurrentGameID () == SK_GAME_ID::HaroldHalibut)
+    if (SK_GetCurrentGameID () == SK_GAME_ID::HaroldHalibut ||
+        SK_GetCurrentGameID () == SK_GAME_ID::Metaphor)
       SK_HDR_UnorderedViews_8bpc->PromoteTo16Bit = false;
 
     _SK_HDR_FullRange =

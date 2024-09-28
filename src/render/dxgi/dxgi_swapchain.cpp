@@ -2197,7 +2197,9 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
   if (config.render.output.force_10bpc && (! __SK_HDR_16BitSwap))
   {
     if ( DirectX::MakeTypeless (NewFormat) ==
-         DirectX::MakeTypeless (DXGI_FORMAT_R8G8B8A8_UNORM) )
+         DirectX::MakeTypeless (DXGI_FORMAT_R8G8B8A8_UNORM) || 
+         DirectX::MakeTypeless (NewFormat) ==
+         DirectX::MakeTypeless (DXGI_FORMAT_B8G8R8A8_UNORM) )
     {
       SK_LOGi0 ( L" >> 8-bpc format (%hs) replaced with "
                  L"DXGI_FORMAT_R10G10B10A2_UNORM for 10-bpc override",
@@ -2321,13 +2323,13 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
     switch (NewFormat)
     {
       case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
-        NewFormat = DXGI_FORMAT_B8G8R8A8_UNORM;
+        NewFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
         dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (B8G8R8A8) Override "
                        L"Required to Enable Flip Model" );
         rb.srgb_stripped = true;
         break;
       case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-        NewFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+        NewFormat = DXGI_FORMAT_R10G10B10A2_UNORM;
         dll_log->Log ( L"[ DXGI 1.2 ]  >> sRGB (R8G8B8A8) Override "
                        L"Required to Enable Flip Model" );
         rb.srgb_stripped = true;

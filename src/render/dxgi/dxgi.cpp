@@ -5140,30 +5140,22 @@ SK_DXGI_CreateSwapChain_PreInit (
                        L" >> sRGB (B8G8R8A8) Override Required to Enable Flip Model" );
             rb.srgb_stripped                 = true;
             rb.active_traits.bOriginallysRGB = true;
-            config.render.output.force_10bpc = true;
-            pDesc->BufferDesc.Format         = DXGI_FORMAT_R8G8B8A8_UNORM;
-            if (config.render.dxgi.srgb_behavior == -2)
-                config.render.dxgi.srgb_behavior = 1;
+            pDesc->BufferDesc.Format         = DXGI_FORMAT_R10G10B10A2_UNORM;
             break;//[[fallthrough]];
           case DXGI_FORMAT_B8G8R8A8_UNORM:
-          case DXGI_FORMAT_B8G8R8A8_TYPELESS:
+          case DXGI_FORMAT_B8G8R8A8_TYPELESS: // WTF? Should be typed...
             pDesc->BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
             break;
           case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
-            pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
             SK_LOGs0 ( L" DXGI 1.2 ",
                        L" >> sRGB (R8G8B8A8) Override Required to Enable Flip Model" );
 
             rb.srgb_stripped                 = true;
             rb.active_traits.bOriginallysRGB = true;
-            config.render.output.force_10bpc = true;
-            pDesc->BufferDesc.Format         = DXGI_FORMAT_R8G8B8A8_UNORM;
-            if (config.render.dxgi.srgb_behavior == -2)
-                config.render.dxgi.srgb_behavior = 1;
+            pDesc->BufferDesc.Format         = DXGI_FORMAT_R10G10B10A2_UNORM;
             break;//[[fallthrough]];
           case DXGI_FORMAT_R8G8B8A8_UNORM:
-          case DXGI_FORMAT_R8G8B8A8_TYPELESS:
+          case DXGI_FORMAT_R8G8B8A8_TYPELESS: // WTF? Should be typed...
             pDesc->BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
             break;        }
 
@@ -5183,7 +5175,9 @@ SK_DXGI_CreateSwapChain_PreInit (
       if (config.render.output.force_10bpc && (! __SK_HDR_16BitSwap))
       {
         if ( DirectX::MakeTypeless (pDesc->BufferDesc.Format) ==
-             DirectX::MakeTypeless (DXGI_FORMAT_R8G8B8A8_UNORM) )
+             DirectX::MakeTypeless (DXGI_FORMAT_R8G8B8A8_UNORM) || 
+             DirectX::MakeTypeless (pDesc->BufferDesc.Format) ==
+             DirectX::MakeTypeless (DXGI_FORMAT_B8G8R8A8_UNORM) )
         {
           SK_LOGi0 ( L" >> 8-bpc format (%hs) replaced with "
                      L"DXGI_FORMAT_R10G10B10A2_UNORM for 10-bpc override",

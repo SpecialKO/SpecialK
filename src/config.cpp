@@ -3668,17 +3668,19 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Metaphor:
-        config.compatibility.init_on_separate_thread = false;
-        config.input.keyboard.override_alt_f4        = true; // Oh lord, kill that buggy exit confirmation
-        config.render.dxgi.fake_fullscreen_mode      = true;
-        config.display.force_windowed                = true;
-        config.render.framerate.sleepless_render     = false;
-        config.render.framerate.sleepless_window     = false;
-        config.input.gamepad.xinput.emulate          = true; // XInput-only
-        config.input.gamepad.xinput.disable [1]      = true;
-        config.input.gamepad.xinput.disable [2]      = true;
-        config.input.gamepad.xinput.disable [3]      = true;
-        config.priority.perf_cores_only              = true;
+        config.compatibility.init_on_separate_thread  = false;
+        config.input.keyboard.override_alt_f4         = true; // Oh lord, kill that buggy exit confirmation
+        config.render.dxgi.fake_fullscreen_mode       = true;
+        config.display.force_windowed                 = true;
+        config.render.framerate.sleepless_render      = false;
+        config.render.framerate.sleepless_window      = false;
+        config.input.gamepad.xinput.emulate           = true; // XInput-only
+        config.input.gamepad.xinput.disable [1]       = true;
+        config.input.gamepad.xinput.disable [2]       = true;
+        config.input.gamepad.xinput.disable [3]       = true;
+        config.priority.perf_cores_only               = true;
+        config.render.hdr.remaster_8bpc_as_unorm      = true;
+        config.render.hdr.remaster_subnative_as_unorm = true;
         break;
 
       case SK_GAME_ID::DiabloIV:
@@ -4226,7 +4228,7 @@ auto DeclKeybind =
   scheduling.priority.min_render_priority->load (config.priority.minimum_render_prio);
   scheduling.priority.cpu_affinity_mask->load   (config.priority.cpu_affinity_mask);
 
-  if (config.priority.cpu_affinity_mask != 0xFFFFFFFFULL)
+  if (config.priority.cpu_affinity_mask != -1)
   {
     SK_SetProcessAffinityMask (GetCurrentProcess (), (DWORD_PTR)config.priority.cpu_affinity_mask);
   }

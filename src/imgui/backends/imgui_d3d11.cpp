@@ -2137,7 +2137,9 @@ SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
       }
 #endif
 
-      if (config.render.dxgi.srgb_behavior > 0)
+      // Apply sRGB gamma curve
+      if (config.render.dxgi.srgb_behavior > 0 ||
+          config.render.dxgi.srgb_behavior == -2)
         SK_DXGI_LinearizeSRGB (_pSwapChain);
     }
 
