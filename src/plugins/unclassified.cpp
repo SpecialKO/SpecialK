@@ -1547,7 +1547,7 @@ SK_Metaphor_SleepEx (DWORD dwMilliseconds, BOOL bAlertable)
     dwMilliseconds = 0;
 
     // Prefer to keep this thread busy, but prevent a complete runaway...
-    if (sleep1Count++ > 2 && lastSkippedFrame == SK_GetFramesDrawn ())
+    if (sleep1Count++ > 0 && lastSkippedFrame == SK_GetFramesDrawn ())
     {
       sleep1Count = 0;
 
@@ -1556,7 +1556,9 @@ SK_Metaphor_SleepEx (DWORD dwMilliseconds, BOOL bAlertable)
     }
 
     lastSkippedFrame = SK_GetFramesDrawn ();
-    sleep0Count      = 0;
+
+    // Micro sleep on AMD CPUs for power efficiency on handhelds...
+    SK_YieldProcessor (SK_QpcTicksPerMs/1000);
 
     return 0;
   }

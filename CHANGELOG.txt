@@ -1,4 +1,9 @@
-﻿24.9.28.1
+﻿24.9.28.2
+=========
+ + Automatically set Linear EOTF when enabling HDR in Blt Model sRGB games
+ + Add framerate smoothing mechanism to Metaphor scheduling fix
+
+24.9.28.1
 =========
  + Add hook on SetProcessAffinityMask (...) to ensure games do not override
      any user-requested overrides.
