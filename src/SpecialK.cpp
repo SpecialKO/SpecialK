@@ -577,6 +577,8 @@ DllMain ( HMODULE hModule,
       SK_TLS_Acquire       ();
       SK_EstablishRootPath ();
 
+      SK_TLS_Bottom ()->debug.in_DllMain = true;
+
       if (dll_isolation_lvl >  0)                  return EarlyOut (TRUE);
 
       // -> Nothing below this can return FALSE until TLS is tidied up (!!)

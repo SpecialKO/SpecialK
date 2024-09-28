@@ -1,4 +1,11 @@
-﻿24.9.28.2
+﻿24.9.28.3
+=========
+ + Added option to disable Metaphor plug-in for testing
+     AllowDxDiagn={true|false}   Default=true (enabled)
+ + Reworked DXGI factory initialization when async init is disabled.
+ + Disabled window style hooks (GetWindowLong[Ptr]{A|W})
+
+24.9.28.2
 =========
  + Automatically set Linear EOTF when enabling HDR in Blt Model sRGB games
  + Add framerate smoothing mechanism to Metaphor scheduling fix

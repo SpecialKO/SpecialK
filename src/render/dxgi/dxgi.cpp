@@ -6831,9 +6831,9 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
         );
 
         SK_SetWindowLongPtrW (hWnd, GWL_EXSTYLE, ex_style & ~WS_EX_TOPMOST);
-        SK_SetWindowPos      (hWnd, SK_HWND_TOP, 0, 0, 0, 0,
-                              SWP_NOZORDER | SWP_NOREPOSITION | SWP_NOSIZE |
-                              SWP_NOMOVE   | SWP_NOACTIVATE   | SWP_NOSENDCHANGING);
+
+        if (SK_GetForegroundWindow () == hWnd)
+             SK_RealizeForegroundWindow (hWnd);
       }
     }
   }
@@ -8438,6 +8438,41 @@ SK_HookDXGI (void)
     }
 
     SK_ApplyQueuedHooks ();
+
+
+    static auto _InitDXGIFactoryInterfaces = [&](void)
+    {
+      SK_AutoCOMInit _autocom;
+      SK_ComPtr <IDXGIFactory>                       pFactory;
+      CreateDXGIFactory (IID_IDXGIFactory, (void **)&pFactory.p);
+    };
+
+    // This is going to fail if performed from DllMain
+    if (! SK_TLS_Bottom ()->debug.in_DllMain)
+    {
+      _InitDXGIFactoryInterfaces ();
+    }
+
+    else
+    {
+      // Thus we need to use a secondary thread
+      HANDLE hSecondaryThread =
+        SK_Thread_CreateEx ([](LPVOID)->DWORD
+        {
+          _InitDXGIFactoryInterfaces ();
+
+          return 0;
+        });
+
+      // And ... wait briefly on that thread, the timeout is critical
+      //   because this could deadlock otherwise.
+      if (hSecondaryThread != 0)
+      {
+        WaitForSingleObject (hSecondaryThread, 250UL);
+        SK_CloseHandle      (hSecondaryThread);
+      }
+    }
+    
 
     if (config.apis.dxgi.d3d11.hook)
     {

@@ -3328,14 +3328,14 @@ SK_AdjustBorder (void)
     game_window.actual.style_ex =
        ULONG_PTR (SK_BORDERLESS_EX);
 
-    // Must remove this or God of War: Ragnarok will fail SwapChain creation in FSR3
-    game_window.actual.style_ex &= ~WS_EX_TOPMOST;
+    //// Must remove this or God of War: Ragnarok will fail SwapChain creation in FSR3
+    //game_window.actual.style_ex &= ~WS_EX_TOPMOST;
   }
 
   if (game_window.attach_border)
   {
-    // Must remove this or God of War: Ragnarok will fail SwapChain creation in FSR3
-    game_window.actual.style_ex &= ~WS_EX_TOPMOST;
+    //// Must remove this or God of War: Ragnarok will fail SwapChain creation in FSR3
+    //game_window.actual.style_ex &= ~WS_EX_TOPMOST;
 
     game_window.actual.style    =
       ULONG_PTR (game_window.border_style);
@@ -6263,8 +6263,8 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
     game_window.GetWindowLongPtr ( hWnd, GWL_EXSTYLE );
 
 
-  // Must remove this or God of War: Ragnarok will fail SwapChain creation in FSR3
-  game_window.actual.style_ex &= ~WS_EX_TOPMOST;
+  //// Must remove this or God of War: Ragnarok will fail SwapChain creation in FSR3
+  //game_window.actual.style_ex &= ~WS_EX_TOPMOST;
 
 
   const bool has_border = SK_WindowManager::StyleHasBorder (
@@ -7575,15 +7575,17 @@ SK_HookWinAPI (void)
                        SetWindowLongW_Detour,
                        static_cast_p2p <void> (&SetWindowLongW_Original) );
 
-    SK_CreateDLLHook2 (       L"user32",
-                       "GetWindowLongA",
-                       GetWindowLongA_Detour,
-                       static_cast_p2p <void> (&GetWindowLongA_Original) );
-
-    SK_CreateDLLHook2 (       L"user32",
-                       "GetWindowLongW",
-                       GetWindowLongW_Detour,
-                       static_cast_p2p <void> (&GetWindowLongW_Original) );
+    /// These hooks are unnecessary unless trying to spoof window style
+    ///
+    ////SK_CreateDLLHook2 (       L"user32",
+    ////                   "GetWindowLongA",
+    ////                   GetWindowLongA_Detour,
+    ////                   static_cast_p2p <void> (&GetWindowLongA_Original) );
+    ////
+    ////SK_CreateDLLHook2 (       L"user32",
+    ////                   "GetWindowLongW",
+    ////                   GetWindowLongW_Detour,
+    ////                   static_cast_p2p <void> (&GetWindowLongW_Original) );
 #ifdef _WIN64
     SK_CreateDLLHook2 (       L"user32",
                        "SetWindowLongPtrA",
@@ -7595,15 +7597,15 @@ SK_HookWinAPI (void)
                        SetWindowLongPtrW_Detour,
                        static_cast_p2p <void> (&SetWindowLongPtrW_Original) );
 
-    SK_CreateDLLHook2 (       L"user32",
-                       "GetWindowLongPtrA",
-                       GetWindowLongPtrA_Detour,
-                       static_cast_p2p <void> (&GetWindowLongPtrA_Original) );
-
-    SK_CreateDLLHook2 (       L"user32",
-                       "GetWindowLongPtrW",
-                       GetWindowLongPtrW_Detour,
-                       static_cast_p2p <void> (&GetWindowLongPtrW_Original) );
+    ////SK_CreateDLLHook2 (       L"user32",
+    ////                   "GetWindowLongPtrA",
+    ////                   GetWindowLongPtrA_Detour,
+    ////                   static_cast_p2p <void> (&GetWindowLongPtrA_Original) );
+    ////
+    ////SK_CreateDLLHook2 (       L"user32",
+    ////                   "GetWindowLongPtrW",
+    ////                   GetWindowLongPtrW_Detour,
+    ////                   static_cast_p2p <void> (&GetWindowLongPtrW_Original) );
 #else
 
     // 32-bit Windows does not have these functions; just route them
