@@ -797,13 +797,13 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
 
       // We have a better solution for this now, that involves informing the
       //   user, rather than doing anything automatically...
-#if 0
+#if 1
       // Trigger AutoVRR because framerate limit is too high
       if (__target_fps > dVRROptimalFPS)
       {
         SK_RunOnce ({
           config.render.framerate.auto_low_latency.waiting = true;
-      
+
           update (true);
         });
       }

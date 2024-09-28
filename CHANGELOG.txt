@@ -3,6 +3,10 @@
  + Fixed macros and keybinds occasionally activating while a game window
      does not have input focus if the game uses a (Low-Level) Keyboard Hook.
  + Command console blocks keybinds while it has text input focus, as expected
+ + Auto-start PresentMon worker thread if AutoVRR is set to re-optimize and
+     has triggered once, or set to enabled and has not yet triggered.
+   * This allows SK to auto-optimize the framerate limiter without the users
+       having to first open the control panel or display the current FPS.
 
 24.9.28.3
 =========

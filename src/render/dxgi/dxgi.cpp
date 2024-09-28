@@ -1890,6 +1890,23 @@ SK_D3D11_InsertDuplicateFrame (int MakeBreak = 0)
   return E_UNEXPECTED;
 }
 
+// NVIDIA-only feature for now
+//
+void
+SK_Framerate_AutoVRRCheckpoint (void)
+{
+  if (sk::NVAPI::nv_hardware)
+  {
+    // PresentMon is needed to handle these two cases
+    if ((config.render.framerate.auto_low_latency.waiting) ||
+        (config.render.framerate.auto_low_latency.triggered && config.render.framerate.auto_low_latency.policy.auto_reapply))
+    {
+      extern void SK_SpawnPresentMonWorker (void);
+      SK_RunOnce (SK_SpawnPresentMonWorker (); config.apis.NvAPI.implicit_gsync = true;);
+    }
+  }
+}
+
 void
 SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
 {
@@ -1901,8 +1918,8 @@ SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
     UINT currentBuffer = 0;
 
     bool __WantGSyncUpdate =
-      ( (config.fps.show && config.osd.show ) || SK_ImGui_Visible || std::exchange (config.apis.NvAPI.implicit_gsync, false) || (SK_GetFramesDrawn () < 120 && config.render.framerate.auto_low_latency.waiting) )
-                         && ReadAcquire (&__SK_NVAPI_UpdateGSync) != 0;
+      ( (config.fps.show && config.osd.show ) || SK_ImGui_Visible || config.apis.NvAPI.implicit_gsync || config.render.framerate.auto_low_latency.waiting ) &&
+                                                                 ReadAcquire (&__SK_NVAPI_UpdateGSync) != 0;
 
     if (__WantGSyncUpdate)
     {
@@ -1922,6 +1939,7 @@ SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
         {
           rb.gsync_state.update ();
           InterlockedExchange (&__SK_NVAPI_UpdateGSync, FALSE);
+                      config.apis.NvAPI.implicit_gsync = false;
         }
 
         else rb.surface.dxgi = nullptr;
@@ -1933,6 +1951,8 @@ SK_D3D11_PostPresent (ID3D11Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
     SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::ClipboardOnly, rb);
     SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue,   rb);
     SK_D3D11_TexCacheCheckpoint (                                     );
+
+    SK_Framerate_AutoVRRCheckpoint ();
 
     if (__SK_BFI)
     {
@@ -1959,6 +1979,8 @@ SK_D3D12_PostPresent (ID3D12Device* pDev, IDXGISwapChain* pSwap, HRESULT hr)
     SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::EndOfFrame,    rb);
     SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::ClipboardOnly, rb);
     SK_Screenshot_ProcessQueue  (SK_ScreenshotStage::_FlushQueue,   rb);
+
+    SK_Framerate_AutoVRRCheckpoint ();
   }
 }
 
