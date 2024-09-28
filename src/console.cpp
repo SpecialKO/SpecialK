@@ -154,8 +154,7 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   static bool& visible = SK_Console::getInstance ()->visible;
   static BYTE* keys_   = SK_Console::getInstance ()->keys_;
 
-
-  if (visible || (! SK_ImGui_Widgets->DispatchKeybinds (Control, Shift, Alt, vkCode)))
+  if (visible || ((! visible) && (! SK_ImGui_Widgets->DispatchKeybinds (Control, Shift, Alt, vkCode))))
   {
     auto masked =
       SK_MakeKeyMask (vkCode, Control, Shift, Alt);
@@ -229,7 +228,7 @@ extern SHORT SK_ImGui_ToggleKeys [4];
 bool
 SK_ImGui_ProcessKeyPress (const BYTE& vkCode)
 {
-  return false;
+  //return false;
   if (! vkCode) // No monkey business please
     return false;
 
@@ -279,6 +278,13 @@ SK_HandleConsoleKey (bool keyDown, BYTE vkCode, LPARAM lParam)
 {
   bool&  visible = SK_Console::getInstance ()->visible;
   BYTE*  keys_   = SK_Console::getInstance ()->keys_;
+
+  if (keyDown && !SK_IsGameWindowActive ())
+  {
+    keys_ [vkCode] = 0x0;
+
+    return 1;
+  }
 
   char*                          text           = SK_Console::getInstance ()->text;
   SK_Console::command_history_t& commands       = SK_Console::getInstance ()->commands;

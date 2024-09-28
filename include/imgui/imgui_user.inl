@@ -683,7 +683,7 @@ bool
 SK_ImGui_WantMouseWarpFiltering (void)
 {
   if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
-       ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () ) )
+       ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () ) || (game_window.mouse.can_track && !game_window.mouse.inside && config.input.mouse.disabled_to_game == 2) )
   {
     return true;
   }
@@ -1258,7 +1258,7 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
   }
 
   if (msg == WM_SETCURSOR)
-  {     
+  {
   //SK_LOG0 ( (L"ImGui Witnessed WM_SETCURSOR"), L"Window Mgr" );
 
     if ( LOWORD (lParam) == HTCLIENT ||
@@ -3346,6 +3346,8 @@ SK_ImGui_User_NewFrame (void)
        bActive  =
     SK_IsGameWindowActive  ();
 
+  std::ignore = bFocused;
+
   if (bActive || game_window.mouse.inside)
   { if (new_input && bActive) { for ( UINT                 i = 7 ; i < 255 ; ++i )
                 io.KeysDown [i] = ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
@@ -3544,8 +3546,9 @@ SK_ImGui_User_NewFrame (void)
 
   __SK_EnableSetCursor = false;
 
-  if (bFocused)
+  if (bActive && new_input)
   {
+#if 0
     for (UINT i = 511 ; i < ImGuiKey_COUNT ; ++i)
     {
       void CALLBACK SK_PluginKeyPress   (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode);
@@ -3564,11 +3567,12 @@ SK_ImGui_User_NewFrame (void)
 
           if (newly_pressed)
           {
-            SK_PluginKeyPress (io.KeyCtrl, io.KeyShift, io.KeyAlt, (BYTE)io.KeyMap [i]);
+            //SK_PluginKeyPress (io.KeyCtrl, io.KeyShift, io.KeyAlt, (BYTE)io.KeyMap [i]);
           }
         }
       }
     }
+#endif
 
     if (config.input.keyboard.catch_alt_f4)
     {

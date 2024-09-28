@@ -541,6 +541,9 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
     else if ((dwReasonMask & REASON_DISABLED) && config.input.mouse.disabled_to_game == SK_InputEnablement::Disabled)
       imgui_capture = true;
 
+    if (game_window.mouse.can_track && (! game_window.mouse.inside) && config.input.mouse.disabled_to_game == SK_InputEnablement::DisabledInBackground)
+      imgui_capture = true;
+
     else if (config.input.ui.capture_hidden && (! SK_InputUtil_IsHWCursorVisible ()))
       imgui_capture = true;
 
@@ -639,6 +642,8 @@ SK_IsGameWindowActive (void)
   //   we don't want that, make the GAME the foreground.
   if (bActive && (! game_window.active))
   {
+    game_window.active = true;
+
     // This only activates the window if performed on the same thread as the
     //   game's window, so don't do this if called from a different thread.
     if (                         0 != SK_Win32_BackgroundHWND &&
@@ -680,9 +685,8 @@ SK_IsGameWindowFocused (void)
     };
 
   return (
-    SK_IsGameWindowActive () && (SK_GetFocus            () == game_window.hWnd ||
-                                 SK_GetForegroundWindow () == game_window.hWnd ||
-                                           hWndAtCenter () == game_window.hWnd)
+    SK_IsGameWindowActive () && (SK_GetFocus () == game_window.hWnd || 
+                                hWndAtCenter () == game_window.hWnd)
   );
 }
 

@@ -1,4 +1,10 @@
-﻿24.9.28.3
+﻿24.9.28.4
+=========
+ + Fixed macros and keybinds occasionally activating while a game window
+     does not have input focus if the game uses a (Low-Level) Keyboard Hook.
+ + Command console blocks keybinds while it has text input focus, as expected
+
+24.9.28.3
 =========
  + Added option to disable Metaphor plug-in for testing
      AllowDxDiagn={true|false}   Default=true (enabled)
