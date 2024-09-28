@@ -1,4 +1,9 @@
-﻿24.9.28
+﻿24.9.28.1
+=========
+ + Add hook on SetProcessAffinityMask (...) to ensure games do not override
+     any user-requested overrides.
+
+24.9.28
 =======
  + Overhauled input management for keybinds to better handle games with
      child/sibling windows (such as Metaphor's stupid exit confirmation)

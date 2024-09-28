@@ -4228,7 +4228,7 @@ auto DeclKeybind =
 
   if (config.priority.cpu_affinity_mask != 0xFFFFFFFFULL)
   {
-    SetProcessAffinityMask (GetCurrentProcess (), (DWORD_PTR)config.priority.cpu_affinity_mask);
+    SK_SetProcessAffinityMask (GetCurrentProcess (), (DWORD_PTR)config.priority.cpu_affinity_mask);
   }
 
   scheduling.priority.perf_cores_only->load     (config.priority.perf_cores_only);

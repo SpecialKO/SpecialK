@@ -736,6 +736,9 @@ struct SKWG_Thread_Entry
 DWORD WINAPI
 SK_DelayExecution (double dMilliseconds, BOOL bAlertable) noexcept;
 
+BOOL
+SK_SetProcessAffinityMask (HANDLE hProcess, DWORD_PTR dwProcessAffinityMask);
+
 void SK_Widget_InvokeThreadProfiler (void);
 void SK_ImGui_RebalanceThreadButton (void);
 extern float __SK_Thread_RebalanceEveryNSeconds;
