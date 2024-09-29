@@ -3734,10 +3734,14 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
         if (hud)
         {
           pShader->addTrackingRef     (pShader->hud, tracker->crc32c);
+
+          InterlockedIncrement (&SK_D3D11_TrackingCount->Conditional);
         }
 
         else if (pShader->hud.count (tracker->crc32c) != 0)
         {
+          InterlockedDecrement (&SK_D3D11_TrackingCount->Conditional);
+
           while (! pShader->releaseTrackingRef (pShader->hud, tracker->crc32c))
             ;
         }

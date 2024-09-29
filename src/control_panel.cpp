@@ -7094,12 +7094,12 @@ SK_ImGui_ControlPanel (void)
       };
 
     // Add a HUD Free Screenshot keybind option if HUD shaders are present
-    if (rb.api == SK_RenderAPI::D3D11 && keybinds.size () == 4 && ReadAcquire (&SK_D3D11_TrackingCount->Conditional) > 0)
+    if (rb.api == SK_RenderAPI::D3D11 && keybinds.size () == 5 && ReadAcquire (&SK_D3D11_TrackingCount->Conditional) > 0)
         keybinds.emplace (&config.screenshots.game_hud_free_keybind);
 
 #if 0
     // Experimental D3D12 HUDless
-    else if (rb.api == SK_RenderAPI::D3D12 && keybinds.size () == 4)
+    else if (rb.api == SK_RenderAPI::D3D12 && keybinds.size () == 5)
         keybinds.emplace (&config.screenshots.game_hud_free_keybind);
 #endif
 

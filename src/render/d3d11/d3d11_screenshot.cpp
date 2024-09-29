@@ -1080,7 +1080,7 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
     static const
       std::map <SK_ScreenshotStage, int>
         __stage_map = {
-          { SK_ScreenshotStage::BeforeGameHUD, 0 },
+          { SK_ScreenshotStage::BeforeGameHUD, 1 },
           { SK_ScreenshotStage::BeforeOSD,     1 },
           { SK_ScreenshotStage::PrePresent,    2 },
           { SK_ScreenshotStage::EndOfFrame,    3 },
@@ -1096,11 +1096,8 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
 
       if (when == SK_ScreenshotStage::BeforeGameHUD)
       {
-        static const auto& vertex = SK_D3D11_Shaders->vertex;
-        static const auto& pixel  = SK_D3D11_Shaders->pixel;
-
-        if ( vertex.hud.empty () &&
-              pixel.hud.empty ()    )
+        // We have no HUD shaders registered, just ignore this request
+        if (ReadAcquire (&SK_D3D11_TrackingCount->Conditional) <= 0)
         {
           return false;
         }
@@ -2239,7 +2236,7 @@ bool SK_Screenshot_D3D11_BeginFrame (void)
     // 1-frame Delay for SDR->HDR Upconversion
     else if (InterlockedCompareExchange (&__SK_D3D11_InitiateHudFreeShot, -1, -2) == -2)
     {
-      SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::BeforeOSD);
+      SK::SteamAPI::TakeScreenshot (SK_ScreenshotStage::BeforeGameHUD);
     }
 
     else if (0 == ReadAcquire (&__SK_D3D11_InitiateHudFreeShot))
