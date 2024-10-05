@@ -1169,7 +1169,7 @@ ReadFile_Detour (HANDLE       hFile,
       default:
       {
         SK_RunOnce (
-          SK_LOGi0 (L"Unexpected Device Type (%d) [%ws:%d]", dev_file_type,
+          SK_LOGi1 (L"Unexpected Device Type (%d) [%ws:%d]", dev_file_type,
                                                   __FILEW__, __LINE__) );
       } break;
     }
@@ -1250,7 +1250,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
     default:
     {
       SK_RunOnce (
-        SK_LOGi0 (L"Unexpected Device Type (%d) [%ws:%d]", dev_file_type,
+        SK_LOGi1 (L"Unexpected Device Type (%d) [%ws:%d]", dev_file_type,
                                                 __FILEW__, __LINE__) );
     } break;
   }
@@ -1717,7 +1717,7 @@ GetOverlappedResultEx_Detour (HANDLE       hFile,
     default:
     {
       SK_RunOnce (
-        SK_LOGi0 (L"Unexpected Device Type (%d) [%ws:%d]", dev_file_type,
+        SK_LOGi1 (L"Unexpected Device Type (%d) [%ws:%d]", dev_file_type,
                                                 __FILEW__, __LINE__) );
     } break;
   }
@@ -1850,7 +1850,7 @@ GetOverlappedResult_Detour (HANDLE       hFile,
     default:
     {
       SK_RunOnce (
-        SK_LOGi0 (L"Unexpected Device Type (%d) [%ws:%d]", dev_file_type,
+        SK_LOGi1 (L"Unexpected Device Type (%d) [%ws:%d]", dev_file_type,
                                                 __FILEW__, __LINE__) );
     } break;
   }
@@ -2089,9 +2089,9 @@ void
 SK_Input_HookHID (void)
 {
   if (! config.input.gamepad.hook_hid)
-    return;
+      return;
 
-  static volatile LONG hooked = FALSE;
+    static volatile LONG hooked = FALSE;
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {

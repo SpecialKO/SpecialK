@@ -1263,7 +1263,7 @@ SK_D3D11_BltCopySurface ( ID3D11Texture2D *pSrcTex,
       _Return (false);
   }
 
-  SK_ReleaseAssert (DstX == 0 && DstY == 0);
+  SK_RunOnce (SK_ReleaseAssert (DstX == 0 && DstY == 0));
 
   if ( DirectX::IsCompressed (srcTexDesc.Format)           ||
        DirectX::IsCompressed (dstTexDesc.Format)           ||
