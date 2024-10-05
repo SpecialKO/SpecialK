@@ -1,4 +1,10 @@
-﻿24.9.28.4
+﻿24.10.5
+=======
+ + Disabled thread scheduling fix by default in Metaphor;
+     it can be re-enabled by setting AllowDsDiagn=true
+ + Turn Flip Model off in Final Fantasy XV for non-HDR users.
+
+24.9.28.4
 =========
  + Fixed macros and keybinds occasionally activating while a game window
      does not have input focus if the game uses a (Low-Level) Keyboard Hook.

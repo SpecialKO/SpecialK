@@ -2729,6 +2729,7 @@ auto DeclKeybind =
         config.threads.enable_file_io_trace   = true;
 
         config.steam.preload_overlay          = true;
+        config.render.framerate.flip_discard  = false;
 
         SK_D3D11_DeclHUDShader_Vtx (0x3be1c239);
         SK_D3D11_DeclHUDShader_Vtx (0x466e477c);
@@ -3681,6 +3682,9 @@ auto DeclKeybind =
         config.priority.perf_cores_only               = true;
         config.render.hdr.remaster_8bpc_as_unorm      = true;
         config.render.hdr.remaster_subnative_as_unorm = true;
+
+        // Scheduling fixes not needed anymore.
+        config.compatibility.allow_dxdiagn            = false;
         break;
 
       case SK_GAME_ID::DiabloIV:
