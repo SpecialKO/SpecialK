@@ -437,6 +437,66 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::TextUnformatted (tracking ? szThreadLocalStr : " ");
       }
       ImGui::PopStyleColor ();
+
+      ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
+      ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
+      ImGui::TreePush ("");
+
+      const bool filtering =
+        ImGui::CollapsingHeader ("Texture Filtering");
+
+      if (filtering)
+      {
+        ImGui::TreePush ("");
+
+        static bool restart_warning = false;
+
+        if (ImGui::Checkbox ("Force Anisotropic Filtering", &config.render.d3d12.force_anisotropic))
+        {
+          restart_warning = true;
+
+          config.utility.save_async ();
+        }
+
+        if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Upgrade standard bilinear or trilinear filtering to anisotropic");
+
+        ImGui::SameLine ();
+
+        if (ImGui::SliderInt ("Anistropic Level", &config.render.d3d12.max_anisotropy, -1, 16,
+                                                   config.render.d3d12.max_anisotropy > 0 ? "%dx" : "Game Default"))
+        {
+          restart_warning = true;
+
+          config.utility.save_async ();
+        }
+
+        if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Force maximum anisotropic filtering level, for native anisotropic "
+                               "filtered render passes as well as any forced.");
+
+        if (ImGui::SliderFloat ("Mipmap LOD Bias", &config.render.d3d12.force_lod_bias, -5.0f, 5.0f,
+                                                    config.render.d3d12.force_lod_bias == 0.0f ? "Game Default" : "%3.2f"))
+        {
+          restart_warning = true;
+
+          config.utility.save_async ();
+        }
+
+        if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip    ("Use a small (i.e. -0.6'ish) negative LOD bias to sharpen DLSS and FSR games");
+
+        if (restart_warning)
+        {
+          ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+          ImGui::BulletText     ("Game Restart Required");
+          ImGui::PopStyleColor  ();
+        }
+
+        ImGui::TreePop     ( );
+      } ImGui::TreePop     ( );
+      ImGui::PopStyleColor (3);
     }
 
     // D3D12

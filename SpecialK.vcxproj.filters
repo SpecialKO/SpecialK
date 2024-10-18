@@ -3196,7 +3196,7 @@
       <Filter>Header Files\Backends\Render\ngx</Filter>
     </ClInclude>
     <ClInclude Include="include\intel\HybridDetect.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\External Libraries</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -434,10 +434,10 @@ typedef HRESULT (WINAPI *D3D11Dev_CreateRenderTargetView1_pfn)(
   _Out_opt_       ID3D11RenderTargetView1       **ppRTView
 );
 typedef void (WINAPI *D3D11_PSSetSamplers_pfn)(
-  _In_     ID3D11DeviceContext       *This,
-  _In_     UINT                       StartSlot,
-  _In_     UINT                       NumSamplers,
-  _In_opt_ ID3D11SamplerState *const *ppSamplers
+  _In_     ID3D11DeviceContext        *This,
+  _In_     UINT                        StartSlot,
+  _In_     UINT                        NumSamplers,
+  _In_opt_ ID3D11SamplerState*/*const*/*ppSamplers
 );
 typedef void (WINAPI *D3D11_RSSetScissorRects_pfn)(
   _In_           ID3D11DeviceContext *This,

@@ -1030,10 +1030,10 @@ void
 STDMETHODCALLTYPE
 D3D11_PSSetSamplers_Override
 (
-  _In_     ID3D11DeviceContext       *This,
-  _In_     UINT                       StartSlot,
-  _In_     UINT                       NumSamplers,
-  _In_opt_ ID3D11SamplerState *const *ppSamplers );
+  _In_     ID3D11DeviceContext        *This,
+  _In_     UINT                        StartSlot,
+  _In_     UINT                        NumSamplers,
+  _In_opt_ ID3D11SamplerState*/*const*/*ppSamplers);
 
 __declspec (noinline)
 void

@@ -1158,6 +1158,11 @@ D3D11Dev_CreateRasterizerState_Override (
                                                   ppRasterizerState );
 }
 
+concurrency::concurrent_unordered_set <ID3D11SamplerState *>
+  _SK_D3D11_OverrideSamplers__UserDefinedLODBias,
+  _SK_D3D11_OverrideSamplers__UserDefinedAnisotropy,
+  _SK_D3D11_OverrideSamplers__UserForcedAnisotropic;
+
 HRESULT
 STDMETHODCALLTYPE
 D3D11Dev_CreateSamplerState_Override
@@ -1171,7 +1176,8 @@ D3D11Dev_CreateSamplerState_Override
 
   D3D11_SAMPLER_DESC new_desc = *pSamplerDesc;
 
-  static bool bShenmue =
+#pragma region "UglyGameHacksThatShouldNotBeHere"
+  static const bool bShenmue =
     SK_GetCurrentGameID () == SK_GAME_ID::Shenmue;
 
   if (bShenmue)
@@ -1248,7 +1254,7 @@ D3D11Dev_CreateSamplerState_Override
   }
 #endif
 
-  static bool bLegoMarvel2 =
+  static const bool bLegoMarvel2 =
     ( SK_GetCurrentGameID () == SK_GAME_ID::LEGOMarvelSuperheroes2 );
 
   if (bLegoMarvel2)
@@ -1270,7 +1276,7 @@ D3D11Dev_CreateSamplerState_Override
     }
   }
 
-  static bool bYs8 =
+  static const bool bYs8 =
     (SK_GetCurrentGameID () == SK_GAME_ID::Ys_Eight);
 
   if (bYs8)
@@ -1321,7 +1327,10 @@ D3D11Dev_CreateSamplerState_Override
   }
 
 #ifndef _M_AMD64
-  if (SK_GetCurrentGameID () == SK_GAME_ID::ChronoCross)
+  static const bool bChronoCross =
+    (SK_GetCurrentGameID () == SK_GAME_ID::ChronoCross);
+
+  if (bChronoCross)
   {
     if (SK_GetCallingDLL () == GetModuleHandle (nullptr))
     {
@@ -1351,9 +1360,96 @@ D3D11Dev_CreateSamplerState_Override
     }
   }
 #endif
+#pragma endregion
 
-  return
-    D3D11Dev_CreateSamplerState_Original (This, pSamplerDesc, ppSamplerState);
+  //
+  // Modern codepath for generic configurable sampler overrides
+  //   (as opposed to the myriad of game-specific hacks above)
+  //
+  bool bCustomLODBias     = false;
+  bool bCustomAnisotropy  = false;
+  bool bForcedAnisotropic = false;
+
+  if (config.render.d3d12.force_lod_bias != 0.0f)
+  {
+    if ( pSamplerDesc->MinLOD !=
+         pSamplerDesc->MaxLOD && ( pSamplerDesc->ComparisonFunc == D3D11_COMPARISON_ALWAYS ||
+                                   pSamplerDesc->ComparisonFunc == 0 /*WTF does 0 imply?*/ ||
+                                   pSamplerDesc->ComparisonFunc == D3D11_COMPARISON_NEVER ) )
+    {
+      new_desc.MipLODBias =
+        config.render.d3d12.force_lod_bias;
+
+      bCustomLODBias = true;
+    }
+  }
+
+  if (config.render.d3d12.force_anisotropic)
+  {
+    bForcedAnisotropic = true;
+
+    switch (new_desc.Filter)
+    {
+      case D3D11_FILTER_MIN_MAG_MIP_LINEAR:                  new_desc.Filter =
+           D3D11_FILTER_ANISOTROPIC;                         break;
+      case D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR:       new_desc.Filter =
+           D3D11_FILTER_COMPARISON_ANISOTROPIC;              break;
+      case D3D11_FILTER_MINIMUM_MIN_MAG_MIP_LINEAR:          new_desc.Filter =
+           D3D11_FILTER_MINIMUM_ANISOTROPIC;                 break;
+      case D3D11_FILTER_MAXIMUM_MIN_MAG_MIP_LINEAR:          new_desc.Filter =
+           D3D11_FILTER_MAXIMUM_ANISOTROPIC;                 break;
+
+      // Upgrade to trilinear Anisotropic...
+      //   * Only D3D12 supports bilinear Anisotropic + Mip Nearest
+      case D3D11_FILTER_MINIMUM_MIN_MAG_LINEAR_MIP_POINT:    new_desc.Filter =
+           D3D11_FILTER_MINIMUM_ANISOTROPIC;                 break;
+      case D3D11_FILTER_MAXIMUM_MIN_MAG_LINEAR_MIP_POINT:    new_desc.Filter =
+           D3D11_FILTER_MAXIMUM_ANISOTROPIC;                 break;
+
+      // XXX: Is this a sensible thing to do?
+      case D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT: new_desc.Filter =
+           D3D11_FILTER_COMPARISON_ANISOTROPIC;              break;
+
+      default: bForcedAnisotropic = false;                   break;
+    }
+  }
+
+  switch (new_desc.Filter)
+  {
+    case D3D11_FILTER_ANISOTROPIC:
+    case D3D11_FILTER_COMPARISON_ANISOTROPIC:
+    case D3D11_FILTER_MINIMUM_ANISOTROPIC:
+    case D3D11_FILTER_MAXIMUM_ANISOTROPIC:
+      if (config.render.d3d12.max_anisotropy > 0)
+                      new_desc.MaxAnisotropy =
+    (UINT)config.render.d3d12.max_anisotropy;
+                           bCustomAnisotropy = true; break;
+    default:                                         break;
+  }
+
+  HRESULT hr =
+    D3D11Dev_CreateSamplerState_Original (This, &new_desc, ppSamplerState);
+
+  if (SUCCEEDED (hr))
+  {
+    if (bCustomLODBias)
+      _SK_D3D11_OverrideSamplers__UserDefinedLODBias.insert    (*ppSamplerState);
+    if (bCustomAnisotropy)
+      _SK_D3D11_OverrideSamplers__UserDefinedAnisotropy.insert (*ppSamplerState);
+    if (bForcedAnisotropic)
+      _SK_D3D11_OverrideSamplers__UserForcedAnisotropic.insert (*ppSamplerState);
+  }
+
+  else
+  {
+    SK_LOGi0 (L"Sampler State Override(s) Invalid; trying original params...");
+    new_desc = *pSamplerDesc;
+
+    hr =
+      D3D11Dev_CreateSamplerState_Original (This, &new_desc, ppSamplerState);
+  }
+
+  return hr;
 }
 
 HMODULE SK_KnownModule_MSMPEG2VDEC = 0;

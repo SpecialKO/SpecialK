@@ -1,7 +1,20 @@
-﻿24.10.5
+﻿24.10.18
+========
+ + Added LOD Bias and Anisotropic Filtering overrides for D3D11 games
+
+    >> The INI setting re-uses the D3D12 names, this whole thing will
+         have its INI names changed in the future.
+
+      * Use the in-game control panel to adjust Texture Filtering in
+          D3D11/12 in the meantime to avoid confusion.
+
+    Real-time adjustment for Anisotropic level and LOD Bias is planned
+      for D3D11, but not yet implemented (game restart = required).
+
+24.10.5
 =======
  + Disabled thread scheduling fix by default in Metaphor;
-     it can be re-enabled by setting AllowDsDiagn=true
+     it can be re-enabled by setting AllowDxDiagn=true
  + Turn Flip Model off in Final Fantasy XV for non-HDR users.
 
 24.9.28.4
