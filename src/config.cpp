@@ -3686,8 +3686,8 @@ auto DeclKeybind =
         config.textures.cache.allow_staging            = true;
 
         config.render.d3d12.force_anisotropic          = true;
-        config.render.d3d12.max_anisotropy             = 6.0f;
-        config.render.d3d12.force_lod_bias             =-0.01;
+        config.render.d3d12.max_anisotropy             =  6UL;
+        config.render.d3d12.force_lod_bias             =-0.01f;
 
         // Scheduling fixes still needed.
         config.compatibility.allow_dxdiagn             = true;

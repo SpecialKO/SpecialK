@@ -4,6 +4,8 @@
  + Enable DirectInput performance fixes for Metaphor
  + Turn on 6x AF by default in Metaphor (force to 16x if you have GPU to spare)
 
+    * Reset INI file for Metaphor to take advantage of this stuff...
+
 24.10.18
 ========
  + Added LOD Bias and Anisotropic Filtering overrides for D3D11 games
