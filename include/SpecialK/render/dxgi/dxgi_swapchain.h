@@ -130,15 +130,25 @@ IWrapDXGISwapChain : IDXGISwapChain4
     SK_DXGI_SetDebugName ( pReal,
         SK_FormatStringW ( L"SK_IWrapDXGISwapChain: pReal=%p", pReal ) );
 
-    SK_ComQIPtr <IDXGISwapChain2> pSwapChain2 (pReal);
-
-    if (pSwapChain2.p != nullptr)
+    SK_ComQIPtr <IDXGISwapChain2>
+        pSwapChain2 (pReal);
+    if (pSwapChain2.p != nullptr && (sd.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT))
         pSwapChain2->GetMaximumFrameLatency (&gameFrameLatency_);
+    else if (pDev12.p != nullptr)
+    {
+      SK_ComQIPtr <IDXGIDevice1>
+           pDXGIDev12 (pDev12.p);
+           pDXGIDev12->GetMaximumFrameLatency (&gameFrameLatency_);
+    }
 
     RegisterDestructionCallback ();
 
     if (! d3d12_)
     {
+      SK_ComQIPtr <IDXGIDevice1>
+           pDXGIDev11 (pDevice);
+           pDXGIDev11->GetMaximumFrameLatency (&gameFrameLatency_);
+
       SK_ComPtr <ID3D11DeviceContext> pDevCtx;
       pDevice->GetImmediateContext  (&pDevCtx);
 
@@ -237,20 +247,30 @@ IWrapDXGISwapChain : IDXGISwapChain4
     SK_DXGI_SetDebugName ( pReal,
         SK_FormatStringW ( L"SK_IWrapDXGISwapChain: pReal=%p", pReal ) );
 
-    SK_ComQIPtr <IDXGISwapChain2> pSwapChain2 (pReal);
-
-    if (pSwapChain2.p != nullptr)
+    SK_ComQIPtr <IDXGISwapChain2>
+        pSwapChain2 (pReal);
+    if (pSwapChain2.p != nullptr && (sd.Flags & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT))
         pSwapChain2->GetMaximumFrameLatency (&gameFrameLatency_);
+    else if (pDev12.p != nullptr)
+    {
+      SK_ComQIPtr <IDXGIDevice1>
+           pDXGIDev12 (pDev12.p);
+           pDXGIDev12->GetMaximumFrameLatency (&gameFrameLatency_);
+    }
 
     RegisterDestructionCallback ();
 
     if (! d3d12_)
     {
+      SK_ComQIPtr <IDXGIDevice1>
+           pDXGIDev11 (pDevice);
+           pDXGIDev11->GetMaximumFrameLatency (&gameFrameLatency_);
+
       SK_ComPtr <ID3D11DeviceContext> pDevCtx;
       pDevice->GetImmediateContext  (&pDevCtx);
 
       SK_ComQIPtr <ID3D11DeviceContext1>
-        pDevCtx1 (pDevCtx);
+          pDevCtx1 (pDevCtx);
       if (pDevCtx1.p != nullptr)
       {
         if (pDevice->GetFeatureLevel () >= D3D_FEATURE_LEVEL_11_1)

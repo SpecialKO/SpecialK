@@ -3669,22 +3669,28 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Metaphor:
-        config.compatibility.init_on_separate_thread  = false;
-        config.input.keyboard.override_alt_f4         = true; // Oh lord, kill that buggy exit confirmation
-        config.render.dxgi.fake_fullscreen_mode       = true;
-        config.display.force_windowed                 = true;
-        config.render.framerate.sleepless_render      = false;
-        config.render.framerate.sleepless_window      = false;
-        config.input.gamepad.xinput.emulate           = true; // XInput-only
-        config.input.gamepad.xinput.disable [1]       = true;
-        config.input.gamepad.xinput.disable [2]       = true;
-        config.input.gamepad.xinput.disable [3]       = true;
-        config.priority.perf_cores_only               = true;
-        config.render.hdr.remaster_8bpc_as_unorm      = true;
-        config.render.hdr.remaster_subnative_as_unorm = true;
+        config.compatibility.init_on_separate_thread   = false;
+        config.input.keyboard.override_alt_f4          = true; // Oh lord, kill that buggy exit confirmation
+        config.render.dxgi.fake_fullscreen_mode        = true;
+        config.display.force_windowed                  = true;
+        config.render.framerate.sleepless_render       = false;
+        config.render.framerate.sleepless_window       = false;
+        config.input.gamepad.xinput.emulate            = true; // XInput-only
+        config.input.gamepad.xinput.disable [1]        = true;
+        config.input.gamepad.xinput.disable [2]        = true;
+        config.input.gamepad.xinput.disable [3]        = true;
+        config.priority.perf_cores_only                = true;
+        config.render.hdr.remaster_8bpc_as_unorm       = true;
+        config.render.hdr.remaster_subnative_as_unorm  = true;
+        config.input.gamepad.dinput.block_enum_devices = true; // Avoid perf issues
+        config.textures.cache.allow_staging            = true;
 
-        // Scheduling fixes not needed anymore.
-        config.compatibility.allow_dxdiagn            = false;
+        config.render.d3d12.force_anisotropic          = true;
+        config.render.d3d12.max_anisotropy             = 6.0f;
+        config.render.d3d12.force_lod_bias             =-0.01;
+
+        // Scheduling fixes still needed.
+        config.compatibility.allow_dxdiagn             = true;
         break;
 
       case SK_GAME_ID::DiabloIV:

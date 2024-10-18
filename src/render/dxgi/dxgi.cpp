@@ -8490,7 +8490,7 @@ SK_HookDXGI (void)
       //   because this could deadlock otherwise.
       if (hSecondaryThread != 0)
       {
-        WaitForSingleObject (hSecondaryThread, 250UL);
+        WaitForSingleObject (hSecondaryThread, 400UL);
         SK_CloseHandle      (hSecondaryThread);
       }
     }
