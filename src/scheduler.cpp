@@ -1350,7 +1350,13 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   return 0;
 }
 
-using  Thrd_sleep_pfn = void (*)(const xtime*);
+
+struct __xtime { // store time with nanosecond resolution
+  __time64_t  sec;
+  long       nsec;
+};
+
+using  Thrd_sleep_pfn = void (*)(const __xtime*);
 static Thrd_sleep_pfn
        Thrd_sleep_Original = nullptr;
 
@@ -1359,7 +1365,7 @@ static Thrd_sleep_pfn
 //     kernel32.dll!SleepEx (...).
 void
 __cdecl
-Thrd_sleep_Detour (const xtime* x)
+Thrd_sleep_Detour (const __xtime* x)
 {
   DWORD dwMilliseconds =
     static_cast <DWORD> (
