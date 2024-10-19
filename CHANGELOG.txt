@@ -1,4 +1,16 @@
-﻿24.10.19
+﻿24.10.19.2
+==========
+ + Removed hook on msvcp140.dll!_Thrd_sleep(...) first introduced for Metaphor,
+     because it causes problems with many of ph3's Legend of Heroes ports.
+
+24.10.19.1
+==========
+ + Merge pull request #217 from audaki:fix-gamma-boost-color-changes
+     * Added hue-preserving SDR Gamma Boost to HDR tonemapping.
+ + Enable D3D11 Deferred Context Isolation in Metaphor ReFantazio for texture
+     caching to track redundant UI resource uploads.
+
+24.10.19
 ========
  + Auto-load MetaphorFix.asi if placed in Metaphor ReFantazio's install dir.
  + Added sanity check to prevent partially (?) implemented Core Audio APIs
