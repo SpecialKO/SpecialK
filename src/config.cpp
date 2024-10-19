@@ -3687,6 +3687,7 @@ auto DeclKeybind =
         config.render.hdr.remaster_subnative_as_unorm  = true;
         config.input.gamepad.dinput.block_enum_devices = true; // Avoid perf issues
         config.textures.cache.allow_staging            = true;
+        config.render.dxgi.deferred_isolation          = true; // Needed for correct texture caching on staging uploads
 
         config.render.d3d12.force_anisotropic          = true;
         config.render.d3d12.max_anisotropy             =  6UL;
@@ -3695,18 +3696,21 @@ auto DeclKeybind =
         // Scheduling fixes still needed.
         config.compatibility.allow_dxdiagn             = true;
 
-        // Auto-load Metaphor Fix if it is present
-        if (PathFileExistsW (L"MetaphorFix.asi")
-            && LoadLibraryW (L"MetaphorFix.asi"))
-        {
-          SK_ImGui_CreateNotification (
-            "PlugIn.Load", SK_ImGui_Toast::Success,
-               "MetaphorFix.asi",
-                 "Special K Plug-In Loaded",
-                 5000, SK_ImGui_Toast::UseDuration |
-                       SK_ImGui_Toast::ShowCaption |
-                       SK_ImGui_Toast::ShowTitle );
-        }
+        SK_RunOnce
+        (
+          // Auto-load Metaphor Fix if it is present
+          if (PathFileExistsW (L"MetaphorFix.asi")
+              && LoadLibraryW (L"MetaphorFix.asi"))
+          {
+            SK_ImGui_CreateNotification (
+              "PlugIn.Load", SK_ImGui_Toast::Success,
+                 "MetaphorFix.asi",
+                   "Special K Plug-In Loaded",
+                   5000, SK_ImGui_Toast::UseDuration |
+                         SK_ImGui_Toast::ShowCaption |
+                         SK_ImGui_Toast::ShowTitle );
+          }
+        );
         break;
 
       case SK_GAME_ID::DiabloIV:

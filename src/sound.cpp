@@ -593,6 +593,8 @@ SK_WASAPI_GetAudioSessionControl ( EDataFlow    data_flow     = eRender,
       ThrowIfFailed (
         pSessionCtl2->GetProcessId (&dwProcess));
 
+      pSessionCtl2 = nullptr;
+
       if (dwProcess == proc_id)
         return pSessionCtl;
     }
