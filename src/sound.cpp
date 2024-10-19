@@ -484,6 +484,12 @@ SK_WASAPI_GetAudioSessionControl ( EDataFlow    data_flow     = eRender,
                                    SK_IMMDevice pDevice       = nullptr,
                                    DWORD        proc_id       = GetCurrentProcessId () )
 {
+  static BOOL bCanWineCountCorrectly = SK_NoPreference;
+
+  // Prevent incorrectly implemented Windows Audio APIs from leaking memory.
+  if (! bCanWineCountCorrectly)
+    return nullptr;
+
   SK_IMMDeviceEnumerator     pDevEnum;
   SK_IAudioSessionEnumerator pSessionEnum;
   SK_IAudioSessionManager2   pSessionMgr2;
@@ -541,6 +547,25 @@ SK_WASAPI_GetAudioSessionControl ( EDataFlow    data_flow     = eRender,
     }
 
     return nullptr;
+  }
+
+  //
+  // Sanity check for Wine -- if they ever correctly implement
+  //   the Windows Core Audio APIs, audio functions in Special K
+  //     will automatically become available.
+  //
+  if (config.compatibility.using_wine)
+  {
+    // It's highly unlikely that any Linux system will have
+    //   128 audio sessions... if they do, that's too many to
+    //     sensibly manage with SK's mixing UI anyway.
+    if (num_sessions > 128)
+    {
+      // Wine indicates success for pSessionEnum->GetCount (...),
+      //   but the returned count is uninitialized garbage.
+      bCanWineCountCorrectly = FALSE;
+      return nullptr;
+    }
   }
 
   for (int i = 0; i < num_sessions; i++)

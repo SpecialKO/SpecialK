@@ -3672,6 +3672,9 @@ auto DeclKeybind =
         config.compatibility.init_on_separate_thread   = false;
         config.input.keyboard.override_alt_f4          = true; // Oh lord, kill that buggy exit confirmation
         config.render.dxgi.fake_fullscreen_mode        = true;
+        config.window.always_on_top                    = SmartAlwaysOnTop;
+        config.window.borderless                       = true;
+        config.window.fullscreen                       = true;
         config.display.force_windowed                  = true;
         config.render.framerate.sleepless_render       = false;
         config.render.framerate.sleepless_window       = false;
@@ -3687,10 +3690,23 @@ auto DeclKeybind =
 
         config.render.d3d12.force_anisotropic          = true;
         config.render.d3d12.max_anisotropy             =  6UL;
-        config.render.d3d12.force_lod_bias             =-0.01f;
+        config.render.d3d12.force_lod_bias             =-0.001f;
 
         // Scheduling fixes still needed.
         config.compatibility.allow_dxdiagn             = true;
+
+        // Auto-load Metaphor Fix if it is present
+        if (PathFileExistsW (L"MetaphorFix.asi")
+            && LoadLibraryW (L"MetaphorFix.asi"))
+        {
+          SK_ImGui_CreateNotification (
+            "PlugIn.Load", SK_ImGui_Toast::Success,
+               "MetaphorFix.asi",
+                 "Special K Plug-In Loaded",
+                 5000, SK_ImGui_Toast::UseDuration |
+                       SK_ImGui_Toast::ShowCaption |
+                       SK_ImGui_Toast::ShowTitle );
+        }
         break;
 
       case SK_GAME_ID::DiabloIV:

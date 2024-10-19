@@ -1,4 +1,12 @@
-﻿24.10.18.1
+﻿24.10.19
+========
+ + Auto-load MetaphorFix.asi if placed in Metaphor ReFantazio's install dir.
+ + Added sanity check to prevent partially (?) implemented Core Audio APIs
+     in Wine from leaking memory when enumerating Windows Audio Sessions.
+
+   * Said leak prevents Special K from working in recent releases of Proton.
+
+24.10.18.1
 ==========
  + Re-enable Metaphor ReFantazio thread scheduling performance fixes by default
  + Enable DirectInput performance fixes for Metaphor
