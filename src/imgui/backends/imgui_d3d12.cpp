@@ -2020,10 +2020,10 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
              pDst->PlacedFootprint.Footprint.RowPitch < dst_row_pitch )
         {
           SK_LOGi0 (
-            L"Skipping invalid CopyTextureRegion:"
+            L"Potentially Invalid CopyTextureRegion:"
             L" (SrcPitch: Requested = %lu, Valid >= %lu),"
             L" (DstPitch: Requested = %lu, Valid >= %lu) - SrcFmt: (%hs | %hs) /"
-            L" DstFmt: (% hs | % hs)",
+            L" DstFmt: (%hs | %hs)",
               pSrc->PlacedFootprint.Footprint.RowPitch, src_row_pitch,
               pDst->PlacedFootprint.Footprint.RowPitch, dst_row_pitch,
                 SK_DXGI_FormatToStr (pSrc->PlacedFootprint.Footprint.Format).data (),
@@ -2034,12 +2034,14 @@ D3D12GraphicsCommandList_CopyTextureRegion_Detour (
 
           InterlockedIncrement (&lSizeSkips);
 
+#if 0
           //
           // TODO: Implement a copy-from-swapchain to temporary surface w/ format conversion
           //         and allow this mismatched format subregion copy to read from it.
           //
 
           return;
+#endif
         }
       }
     }

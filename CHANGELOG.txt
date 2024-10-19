@@ -1,4 +1,9 @@
-﻿24.10.19.2
+﻿24.10.20
+========
+ + Add workaround for D3D12 HDR screenshots using 64 KiB memory alignment and
+     sometimes producing black images.
+
+24.10.19.2
 ==========
  + Removed hook on msvcp140.dll!_Thrd_sleep(...) first introduced for Metaphor,
      because it causes problems with many of ph3's Legend of Heroes ports.
