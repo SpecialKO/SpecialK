@@ -2843,7 +2843,7 @@ SK_IsServiceHost (void)
     nullptr != StrStrIW (wszHostApp, L"PerfWatson"          ) ||
     nullptr != StrStrIW (wszHostApp, L"DataExchangeHost"    ) ||
     nullptr != StrStrIW (wszHostApp, L"GamebarFTServer"     ) ||
-    nullptr != StrStrIW (wszHostApp, L"ApplicationFrameHost") ||
+  //nullptr != StrStrIW (wszHostApp, L"ApplicationFrameHost") ||
     nullptr != StrStrIW (wszHostApp, L"Service");
 
   return bSvchost;

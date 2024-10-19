@@ -2,6 +2,7 @@
 ==========
  + Removed hook on msvcp140.dll!_Thrd_sleep(...) first introduced for Metaphor,
      because it causes problems with many of ph3's Legend of Heroes ports.
+ + Removed internal injection blacklist on ApplicationFrameHost.exe.
 
 24.10.19.1
 ==========
