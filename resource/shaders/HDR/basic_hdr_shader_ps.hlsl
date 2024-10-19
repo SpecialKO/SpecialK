@@ -462,7 +462,7 @@ main (PS_INPUT input) : SV_TARGET
     if (input.color.y != 1.0f)
     {
       float fLuma = Luminance(hdr_color.rgb);
-      float fLumaWithGamma = sign(fLuma) * pow(abs(fLuma), input.color.y);
+      float fLumaWithGamma = pow(fLuma, input.color.y);
       hdr_color.rgb = hdr_color.rgb * (fLumaWithGamma / fLuma);
     }
   }
