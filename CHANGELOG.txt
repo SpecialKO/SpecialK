@@ -1,4 +1,9 @@
-﻿24.10.20
+﻿24.10.21
+========
+ + Fix double keyboard input procesing in Ys X and potentially other games that
+     use SDL2 Raw Input.
+
+24.10.20
 ========
  + Add workaround for D3D12 HDR screenshots using 64 KiB memory alignment and
      sometimes producing black images.

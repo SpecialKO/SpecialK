@@ -742,7 +742,9 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
           else
             SK_RAWINPUT_VIEW (sk_input_dev_type::Keyboard);
 
-
+        //// Leads to double-input processing, left here in case Legacy Messages are disabled and this is needed
+        ////
+#if 0
           USHORT VKey =
             (((RAWINPUT *)pData)->data.keyboard.VKey & 0xFF);
 
@@ -771,6 +773,7 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
                 break;
             }
           }
+#endif
         } break;
 
         case RIM_TYPEMOUSE:

@@ -478,12 +478,12 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 
         //// Leads to double-input processing, left here in case Legacy Messages are disabled and this is needed
         ////
+#if 0
         ////if (!(((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
         ////{
         ////  pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
         ////        io.KeysDown [VKey & 0xFF] = focus;
         ////}
-
             if (game_window.active)
             {
               switch (((RAWINPUT *) pData)->data.keyboard.Message)
@@ -501,6 +501,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                   break;
               }
             }
+#endif
           } break;
 
 
@@ -579,6 +580,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
             {
           //// Leads to double-input processing, left here in case Legacy Messages are disabled and this is needed
           ////
+#if 0
           ////if (! (((RAWINPUT *) pData)->data.keyboard.Flags & RI_KEY_BREAK))
           ////{
           ////  pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
@@ -603,6 +605,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
                     io.AddInputCharacter (VKey);
                   break;
               }
+#endif
             }
           }
 
