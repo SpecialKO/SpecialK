@@ -2353,7 +2353,7 @@ public:
 
             const bool pboost = (preset.pq_boost0 > 0.0f);
 
-            if (abs (__SK_HDR_Luma) >= 1.0f)
+            if (abs (__SK_HDR_Luma) >= 1.0f && (! bRawImageMode))
             {
               if (ImGui::Checkbox ("Tonemap Overbright Bits", &preset.tonemap_overbright))
               {
