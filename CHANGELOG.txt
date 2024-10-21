@@ -1,4 +1,9 @@
-﻿24.10.21
+﻿24.10.21.1
+==========
+ + Added Metaphor ReFantazio thread scheduling fix to SK's control panel so it
+     can be enabled/disabled in real-time for testing (always enable it...)
+
+24.10.21
 ========
  + Fix double keyboard input procesing in Ys X and potentially other games that
      use SDL2 Raw Input.

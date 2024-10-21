@@ -656,10 +656,7 @@ extern void BasicInit (void);
       SK_SO2R_InitPlugin ();
       break;
     case SK_GAME_ID::Metaphor:
-      if (config.compatibility.allow_dxdiagn)
-      {
-        SK_Metaphor_InitPlugin ();
-      }
+      SK_Metaphor_InitPlugin ();
       break;
 #else
     case SK_GAME_ID::SecretOfMana:

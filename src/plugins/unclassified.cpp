@@ -1522,10 +1522,18 @@ SK_YieldProcessor (INT64 qpcTarget = 0)
 
 SleepEx_pfn SK_Metaphor_SleepEx_Original = nullptr;
 
+bool _SK_Metaphor_FixSleepEx = true;
+
 DWORD
 WINAPI
 SK_Metaphor_SleepEx (DWORD dwMilliseconds, BOOL bAlertable)
 {
+  if (! _SK_Metaphor_FixSleepEx)
+  {
+    return
+      SK_Metaphor_SleepEx_Original (dwMilliseconds, bAlertable);
+  }
+
   if (dwMilliseconds <= 1)
   {
     static thread_local DWORD  sleep0Count      = 0;
@@ -1567,9 +1575,39 @@ SK_Metaphor_SleepEx (DWORD dwMilliseconds, BOOL bAlertable)
     SK_Metaphor_SleepEx_Original (dwMilliseconds, bAlertable);
 }
 
+sk::ParameterBool* _SK_Metaphor_FixSleepExCfg;
+
+bool
+SK_Metaphor_PlugInCfg (void)
+{
+  if (ImGui::CollapsingHeader ("Metaphor: ReFantazio", ImGuiTreeNodeFlags_DefaultOpen))
+  {
+    ImGui::TreePush ("");
+
+    bool changed = false;
+
+    if (ImGui::Checkbox ("Fix Thread Scheduling", &_SK_Metaphor_FixSleepEx))
+    {
+      changed = true;
+      _SK_Metaphor_FixSleepExCfg->store (_SK_Metaphor_FixSleepEx);
+    }
+
+    if (changed)
+      SK_SaveConfig ();
+
+    ImGui::TreePop ();
+
+    return false;
+  }
+
+  return true;
+}
+
 void
 SK_Metaphor_InitPlugin (void)
 {
+  plugin_mgr->config_fns.emplace (SK_Metaphor_PlugInCfg);
+
   extern LRESULT
   CALLBACK
   SK_DetourWindowProc ( _In_  HWND   hWnd,
@@ -1578,6 +1616,13 @@ SK_Metaphor_InitPlugin (void)
                         _In_  LPARAM lParam );
 
   extern DWORD WINAPI SleepEx_Detour (DWORD, BOOL);
+
+  _SK_Metaphor_FixSleepExCfg =
+    _CreateConfigParameterBool  ( L"Metaphor.PlugIn",
+                                  L"FixThreadScheduling", _SK_Metaphor_FixSleepEx,
+                                  L"Make Task Threads More Cooperative" );
+
+  SK_SaveConfig ();
 
   SK_CreateFuncHook (        L"SK_DetourWindowProc",
                                SK_DetourWindowProc,
