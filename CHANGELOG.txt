@@ -1,7 +1,12 @@
-﻿24.10.21.1
+﻿24.10.21.2
+==========
+ + Changed default HDR Perceptual Boost Color from 50% to 33% because gamma no
+     longer desaturates the image.
+
+24.10.21.1
 ==========
  + Added Metaphor ReFantazio thread scheduling fix to SK's control panel so it
-     can be enabled/disabled in real-time for testing (always enable it...)
+     can be enabled/disabled in real-time for testing (always enable it...).
 
 24.10.21
 ========
