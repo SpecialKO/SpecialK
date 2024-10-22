@@ -1687,6 +1687,8 @@ enum class SK_GAME_ID
   ShadPS4,                      // shadPS4.exe
   GodOfWarRagnarok,             // GoWR.exe
   Metaphor,                     // METAPHOR.exe
+  SonicXShadowGenerations,      // SONIC_X_SHADOW_GENERATIONS.exe
+  SonicGenerations,             // SONIC_GENERATIONS.exe
 
   UNKNOWN_GAME               = 0xffff
 };

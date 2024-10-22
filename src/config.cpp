@@ -259,7 +259,9 @@ SK_GetCurrentGameID (void)
           { L"Outlaws_Plus.exe",                       SK_GAME_ID::StarWarsOutlaws              },
           { L"shadPS4.exe",                            SK_GAME_ID::ShadPS4                      },
           { L"GoWR.exe",                               SK_GAME_ID::GodOfWarRagnarok             },
-          { L"METAPHOR.exe",                           SK_GAME_ID::Metaphor                     }
+          { L"METAPHOR.exe",                           SK_GAME_ID::Metaphor                     },
+          { L"SONIC_X_SHADOW_GENERATIONS.exe",         SK_GAME_ID::SonicXShadowGenerations      },
+          { L"SONIC_GENERATIONS.exe",                  SK_GAME_ID::SonicGenerations             },
         };
 
     first_check  = false;

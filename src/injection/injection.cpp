@@ -2489,6 +2489,12 @@ void SK_Inject_BroadcastExitNotify (bool force)
       return;
   }
 
+  // This is effectively a launcher, its exit indicates the real game has started
+  if (SK_IsCurrentGame (SK_GAME_ID::SonicXShadowGenerations))
+  {
+    SK_Inject_BroadcastInjectionNotify (true);
+  }
+
   // A new signal (23.6.28+) that is broadcast even for local injection
   SK_AutoHandle hInjectExitAckEx (
     OpenEvent ( EVENT_ALL_ACCESS, FALSE,
@@ -2524,6 +2530,10 @@ void SK_Inject_BroadcastExitNotify (bool force)
 
 void SK_Inject_BroadcastInjectionNotify (bool force)
 {
+  // This is effectively a launcher, ignore it.
+  if (force == false && SK_IsCurrentGame (SK_GAME_ID::SonicXShadowGenerations))
+    return;
+
   // A new signal (23.6.28+) that is broadcast even for local injection
   SK_AutoHandle hInjectAckEx (
     OpenEvent ( EVENT_ALL_ACCESS, FALSE,
