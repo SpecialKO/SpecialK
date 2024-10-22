@@ -40,6 +40,13 @@ extern DXGI_FORMAT    SK_DXGI_MakeFormatSRGB     (DXGI_FORMAT fmt);
 extern std::string_view __stdcall SK_DXGI_FormatToStr   (DXGI_FORMAT fmt) noexcept;
 extern INT              __stdcall SK_DXGI_BytesPerPixel (DXGI_FORMAT fmt);
 
+// NOTE: These are very incomplete, D3D12X has a more complete list and it would be a good idea
+//         to switch to that in the future...
+bool SK_DXGI_IsFormatCastable (DXGI_FORMAT inFormat,
+                               DXGI_FORMAT outFormat);
+bool SK_DXGI_IsUAVFormatCastable (DXGI_FORMAT from,
+                                  DXGI_FORMAT to);
+
 bool __stdcall SK_DXGI_IsFormatFloat      (DXGI_FORMAT fmt) noexcept;
 bool __stdcall SK_DXGI_IsFormatInteger    (DXGI_FORMAT fmt) noexcept;
 bool __stdcall SK_DXGI_IsFormatNormalized (DXGI_FORMAT fmt) noexcept;
