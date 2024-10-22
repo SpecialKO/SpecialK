@@ -56,7 +56,7 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
-    <VCToolsVersion>14.36.32532</VCToolsVersion>
+    <VCToolsVersion>14.41.34120</VCToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (clang)|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
