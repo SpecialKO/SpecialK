@@ -75,7 +75,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <PreferredToolArchitecture>x64</PreferredToolArchitecture>
-    <VCToolsVersion>14.36.32532</VCToolsVersion>
+    <VCToolsVersion>14.41.34120</VCToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release (clang)|x64'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
@@ -259,7 +259,7 @@
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <ExceptionHandling>Async</ExceptionHandling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <CreateHotpatchableImage>true</CreateHotpatchableImage>
       <AdditionalOptions>/GS- /Gs8192 /Ob3 /Zo /Gw /GR /cgthreads8 /Zc:implicitNoexcept /Zc:strictStrings- /Zf</AdditionalOptions>
       <ProgramDataBaseFileName>$(SolutionDir)depends\lib\lzma\$(Platform)\$(TargetName).pdb</ProgramDataBaseFileName>
@@ -354,7 +354,7 @@
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <ExceptionHandling>Async</ExceptionHandling>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <Optimization>MaxSpeed</Optimization>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
