@@ -16,7 +16,16 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+
+    - uses: SpecialKO/GA-setup-cpp-n20@master
     - uses: microsoft/setup-msbuild@v2
+    #  with:
+    #    vs-version: '[17.6]'
+
+    #- name: Restore the required Nuget packages
+    #  run: |
+    #    nuget restore SpecialK.sln
+
     - name: Build the codebase (64-bit)
       run: |
         msbuild SpecialK.sln -p:Configuration="Release" -p:Platform="x64" -m
