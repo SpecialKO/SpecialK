@@ -1,4 +1,9 @@
-﻿24.10.22 (HOTFIX)
+﻿24.10.23
+========
+ + Update SK's HDR enabled detection code to account for WCG SDR displays, as
+     Windows 11 24H2 finally makes public the API to distinguish WCG from HDR.
+
+24.10.22 (HOTFIX)
 =================
  + Downgrade compiler version used so that games that ship with an outdated
      version of msvcp140.dll in their game directory cannot break SK.

@@ -4908,7 +4908,7 @@ SK_ImGui_ControlPanel (void)
 
       if (SK_IsGameWindowActive ())
       {
-        if (effective_power_mode != EffectivePowerModeNone)
+        if ((int)effective_power_mode != EffectivePowerModeNone)
         {
           ImGui::SameLine    ();
           ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);

@@ -2783,7 +2783,7 @@ public:
               if (! bHDR10Passthrough)
               {
                 if (ImGui::SliderFloat ("SDR Gamma Boost###SK_HDR_GAMMA", &__SK_HDR_Exp,
-                                0.476f, 1.524f, "SDR -> HDR Gamma: %.3f"))
+                                0.666f, 1.333f, "SDR -> HDR Gamma: %.3f"))
                 {
                   preset.eotf =
                     __SK_HDR_Exp;

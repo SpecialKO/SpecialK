@@ -553,7 +553,7 @@ SK_FPU_SetPrecision (UINT precision)
 };
 
 
-std::atomic <EFFECTIVE_POWER_MODE> SK_Power_EffectiveMode = EffectivePowerModeNone;
+std::atomic <EFFECTIVE_POWER_MODE> SK_Power_EffectiveMode = (EFFECTIVE_POWER_MODE)EffectivePowerModeNone;
 
 VOID
 WINAPI

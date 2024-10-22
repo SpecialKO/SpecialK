@@ -38,6 +38,7 @@ struct SK_FPU_ControlWord {
 SK_FPU_ControlWord SK_FPU_SetPrecision   (UINT precision);
 SK_FPU_ControlWord SK_FPU_SetControlWord (UINT mask, SK_FPU_ControlWord *pNewControl);
 
+#if NTDDI_VERSION < NTDDI_WIN10_RS5
 typedef enum EFFECTIVE_POWER_MODE {
   EffectivePowerModeNone = -1,
 
@@ -49,11 +50,19 @@ typedef enum EFFECTIVE_POWER_MODE {
   EffectivePowerModeGameMode,
   EffectivePowerModeMixedReality,   // EFFECTIVE_POWER_MODE_V2
 } EFFECTIVE_POWER_MODE;
+#endif
+
+#if NTDDI_VERSION >= NTDDI_WIN10_RS5
+#include <powersetting.h>
+#define EffectivePowerModeNone -1
+#endif
 
 extern std::atomic <EFFECTIVE_POWER_MODE> SK_Power_EffectiveMode;
 
+#if NTDDI_VERSION < NTDDI_WIN10_RS5
 #define EFFECTIVE_POWER_MODE_V1 (0x00000001)
 #define EFFECTIVE_POWER_MODE_V2 (0x00000002)
+#endif
 
 typedef VOID WINAPI EFFECTIVE_POWER_MODE_CALLBACK (
     _In_     EFFECTIVE_POWER_MODE  Mode,
