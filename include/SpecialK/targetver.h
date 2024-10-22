@@ -39,6 +39,14 @@
 #define _WIN32_IE _WIN32_IE_IE110
 #endif
 
+
+#undef  NTDDI_VERSION 
+#define NTDDI_VERSION NTDDI_WIN11_GE
+
+#undef  _WIN32_WINNT
+#define _WIN32_WINNT  _WIN32_WINNT_WIN10
+
+
 // If you wish to build your application for a previous Windows platform, include WinSDKVer.h and
 // set the _WIN32_WINNT macro to the platform you wish to support before including SDKDDKVer.h.
 
