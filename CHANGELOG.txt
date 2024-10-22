@@ -1,7 +1,9 @@
-﻿24.10.23
-========
+﻿24.10.22.1
+==========
  + Update SK's HDR enabled detection code to account for WCG SDR displays, as
      Windows 11 24H2 finally makes public the API to distinguish WCG from HDR.
+  + Switch to statically linking MSVCRT so that compiler version issues do not
+     pop up in the future.
 
 24.10.22 (HOTFIX)
 =================
