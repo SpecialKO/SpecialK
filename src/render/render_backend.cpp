@@ -3955,7 +3955,7 @@ SK_RenderBackend_V2::updateOutputTopology (void)
         }
       }
 
-#if NTDDI_VERSION >= NTDDI_WIN11_GA
+#if (NTDDI_VERSION >= NTDDI_WIN11_GA) && defined (__ID3D12Device11_INTERFACE_DEFINED__) // Stupid stuff because GitHub is missing parts of the Windows SDK
 	    DISPLAYCONFIG_GET_ADVANCED_COLOR_INFO_2
         getColorInfo2                  = { };
         getColorInfo2.header.type      = DISPLAYCONFIG_DEVICE_INFO_GET_ADVANCED_COLOR_INFO_2;
