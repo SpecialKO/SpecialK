@@ -35,9 +35,8 @@
 
 static constexpr int SK_MAX_WINDOW_DIM = 16384;
 
-// WS_SYSMENU keeps the window's icon unchanged
-#define SK_BORDERLESS    ( WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX | WS_SYSMENU | \
-                           WS_CLIPCHILDREN | WS_CLIPSIBLINGS )
+// WS_SYSMENU keeps the window's icon unchanged (but is invalid without WS_CAPTION!)
+#define SK_BORDERLESS    ( WS_VISIBLE | WS_POPUP | WS_MINIMIZEBOX | WS_CLIPSIBLINGS )
 #define SK_BORDERLESS_EX ( WS_EX_APPWINDOW )
 
 #define SK_LOG_LEVEL_UNTESTED
@@ -3121,7 +3120,7 @@ SK_SetWindowStyle (DWORD_PTR dwStyle_ptr, SetWindowLongPtr_pfn pDispatchFunc)
   // Ensure that the border style is sane
   if (dwStyle_ptr == game_window.border_style)
   {
-    game_window.border_style |= WS_CAPTION     | WS_SYSMENU | WS_POPUP |
+    game_window.border_style |= WS_CAPTION     | WS_POPUP |
                                 WS_MINIMIZEBOX | WS_VISIBLE;
     dwStyle_ptr               = game_window.border_style;
   }
@@ -3131,7 +3130,7 @@ SK_SetWindowStyle (DWORD_PTR dwStyle_ptr, SetWindowLongPtr_pfn pDispatchFunc)
            (dwStyle_ptr & 0xFFFFFFFF);
 
   // Minimal sane set of extended window styles for sane rendering
-  dwStyle |=  ( WS_VISIBLE  | WS_SYSMENU );
+  dwStyle |=  ( WS_VISIBLE );
   dwStyle &= ~( WS_DISABLED | WS_ICONIC  | WS_CHILD );
 
   if (config.window.borderless)
