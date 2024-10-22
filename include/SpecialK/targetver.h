@@ -39,10 +39,6 @@
 #define _WIN32_IE _WIN32_IE_IE110
 #endif
 
-
-#undef  NTDDI_VERSION 
-#define NTDDI_VERSION NTDDI_WIN11_GE
-
 #undef  _WIN32_WINNT
 #define _WIN32_WINNT  _WIN32_WINNT_WIN10
 
