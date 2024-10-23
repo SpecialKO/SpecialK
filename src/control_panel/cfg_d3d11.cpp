@@ -1468,6 +1468,11 @@ SK::ControlPanel::D3D11::Draw (void)
           bool bClearLog =
             ImGui::Button ("Clear Log");
 
+          ImGui::SameLine ();
+
+          static int                         minimum_severity = 2;
+          ImGui::Combo ("Minimum Severity", &minimum_severity, "Corruption\0Error\0Warning\0Info\0Message\0\0");
+
           ImGui::BeginChild (
             ImGui::GetID ("D3D11_Debug_Panel"),
                   ImVec2 (0.0f, -1.0f),  true,
@@ -1670,7 +1675,8 @@ SK::ControlPanel::D3D11::Draw (void)
               enum _Type {
                 SK_DEBUG_MESSAGE_TYPE_UNKNOWN = 0x0,
                 SK_DEBUG_MESSAGE_TYPE_DXGI    = 0x1,
-                SK_DEBUG_MESSAGE_TYPE_D3D11   = 0x2
+                SK_DEBUG_MESSAGE_TYPE_D3D11   = 0x2,
+                SK_DEBUG_MESSAGE_TYPE_D3D12   = 0x4,
               } Type;
 
               union {
@@ -1686,6 +1692,13 @@ SK::ControlPanel::D3D11::Draw (void)
                   D3D11_MESSAGE_SEVERITY           Severity;
                   D3D11_MESSAGE_ID                 ID;
                 } d3d11;
+                
+                // Not Finished
+                struct SK_D3D12_MESSAGE {
+                  D3D12_MESSAGE_CATEGORY           Category;
+                  D3D12_MESSAGE_SEVERITY           Severity;
+                  D3D12_MESSAGE_ID                 ID;
+                } d3d12;
               };
 
               time_t                               Time;
@@ -1746,6 +1759,11 @@ SK::ControlPanel::D3D11::Draw (void)
                         ( msgIdx, pMsg, &msgLen ) )
                    )
                 {
+                  if (pMsg->Severity > (D3D11_MESSAGE_SEVERITY)minimum_severity)
+                  {
+                    continue;
+                  }
+
                   auto& timestamp =
                     debug_messages.
                       emplace_back (
@@ -1805,6 +1823,11 @@ SK::ControlPanel::D3D11::Draw (void)
                               msgIdx, pMsg, &msgLen ) )
                      )
                   {
+                    if (pMsg->Severity > (DXGI_INFO_QUEUE_MESSAGE_SEVERITY)minimum_severity)
+                    {
+                      continue;
+                    }
+
                     auto& timestamp =
                       debug_messages.
                         emplace_back (
@@ -1859,6 +1882,14 @@ SK::ControlPanel::D3D11::Draw (void)
 
             for ( const auto& debug_message : debug_messages )
             {
+              if ((debug_message.Type           == SK_DEBUG_MESSAGE::_Type::SK_DEBUG_MESSAGE_TYPE_D3D11 &&
+                   debug_message.d3d11.Severity  >           (D3D11_MESSAGE_SEVERITY)minimum_severity)  ||
+                  (debug_message.Type           == SK_DEBUG_MESSAGE::_Type::SK_DEBUG_MESSAGE_TYPE_DXGI  &&
+                   debug_message. dxgi.Severity  > (DXGI_INFO_QUEUE_MESSAGE_SEVERITY)minimum_severity))
+              {
+                continue;
+              }
+
               int message_id = 0;
 
               ImGui::Text        ("%*hs",
