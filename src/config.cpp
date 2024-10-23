@@ -2921,6 +2921,10 @@ auto DeclKeybind =
 #ifdef _M_AMD64
       case SK_GAME_ID::GenshinImpact:
       {
+        // Work-around anti-cheat
+        config.compatibility.disable_debug_features =  true;
+        config.system.handle_crashes                = false;
+
         // Game requires sRGB Passthrough for proper SDR color
         config.render.dxgi.srgb_behavior = 0;
 

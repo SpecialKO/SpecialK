@@ -7229,10 +7229,15 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
     config.textures.cache.ignore_nonmipped      =  true;
     cache_opts.ignore_non_mipped                =  true; // Push this change through immediately
 
+                   
     if (changed)
     {
       config.utility.save_async ();
-      SK_RestartGame ();
+
+      // For stuff running as admin, it's unlikely a game could be relaunched
+      //   with the correct credentials...
+      if (! SK_IsAdmin ())
+        SK_RestartGame ();
     }
   }
 
