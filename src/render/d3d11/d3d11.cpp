@@ -1188,7 +1188,7 @@ SK_D3D11Dev_CreateRenderTargetView_Impl (
 
                     else
                     {
-                      if (! config.render.dxgi.suppress_rtv_mismatch)
+                      if ((! config.render.dxgi.suppress_rtv_mismatch) && config.system.log_level > 0)
                       {
                         SK_RunOnce (
                           SK_ImGui_Warning (
@@ -1448,7 +1448,7 @@ SK_D3D11Dev_CreateRenderTargetView1_Impl (
 
                     else
                     {
-                      if (! config.render.dxgi.suppress_rtv_mismatch)
+                      if ((! config.render.dxgi.suppress_rtv_mismatch) && config.system.log_level > 0)
                       {
                         SK_RunOnce (
                           SK_ImGui_Warning (

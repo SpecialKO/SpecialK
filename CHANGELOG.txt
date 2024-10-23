@@ -1,4 +1,12 @@
-﻿24.10.23.2
+﻿24.10.24
+========
+ + Fix NVIDIA's Vulkan interop not being detected on SDR systems in newest driver
+     releases.
+ + Add support for 8-bpc Render/Compute HDR remastering in Shadow Generations.
+ + Add D3D11/DXGI Debug Layer minimum severity level to message logging UI.
+ + Add anti-cheat workaround for Genshin Impact.
+
+24.10.23.2
 ==========
  + Disable D3D11 texture cache in Sonic X Shadow Generations because it may
      exacerbate VRAM leaks during FMV playback (same as previous Sonic titles).
