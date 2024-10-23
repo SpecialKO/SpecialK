@@ -3670,6 +3670,11 @@ auto DeclKeybind =
         config.apis.NvAPI.vulkan_bridge = 1;
         break;
 
+      case SK_GAME_ID::SonicGenerations:
+      case SK_GAME_ID::SonicXShadowGenerations:
+        config.render.framerate.sleepless_window = true; // Improve performance from a terrible framerate limiter
+        break;
+
       case SK_GAME_ID::Metaphor:
         config.compatibility.init_on_separate_thread   = false;
         config.input.keyboard.override_alt_f4          = true; // Oh lord, kill that buggy exit confirmation

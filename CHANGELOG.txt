@@ -1,4 +1,12 @@
-﻿24.10.23
+﻿24.10.23.1
+==========
+ + Add additional protection from Sonic X Shadow Generations causing premature
+     injection service shutdown before Sonic Generations can launch.
+ + Enable Sleepless Window Thread by default in Sonic X Shadow Generations, for
+     a free boost to framerate... game's limiter really needs to be completely
+       patched out, but that's a hassle because there are 2 executables.
+
+24.10.23
 ========
  + Ensure that WS_SYSMENU style is never added to borderless windows, it is
      technically invalid without WS_CAPTION.

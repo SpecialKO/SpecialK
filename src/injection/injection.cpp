@@ -2492,7 +2492,9 @@ void SK_Inject_BroadcastExitNotify (bool force)
   // This is effectively a launcher, its exit indicates the real game has started
   if (SK_IsCurrentGame (SK_GAME_ID::SonicXShadowGenerations))
   {
-    SK_Inject_BroadcastInjectionNotify (true);
+    // When SONIC_GENERATIONS.exe starts, it will send a start notification.
+    if (! SK_IsProcessRunning (L"SONIC_GENERATIONS.exe"))
+      SK_Inject_BroadcastInjectionNotify (true);
   }
 
   // A new signal (23.6.28+) that is broadcast even for local injection
