@@ -3672,9 +3672,12 @@ auto DeclKeybind =
 
       case SK_GAME_ID::SonicGenerations:
       case SK_GAME_ID::SonicXShadowGenerations:
+        // Do not enable Sleepless options in this game, it will cause problems
         config.render.framerate.sleepless_render = false;
         config.render.framerate.sleepless_window = false;
         config.textures.d3d11.cache              = false;
+        config.input.cursor.manage               =  true;
+        config.input.cursor.timeout              =   500;
 
 #if 1
         SK_RunOnce (
