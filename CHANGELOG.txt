@@ -1,10 +1,12 @@
-﻿24.10.23.1
+﻿24.10.23.2
+==========
+ + Disable D3D11 texture cache in Sonic X Shadow Generations because it may
+     exacerbate VRAM leaks during FMV playback (same as previous Sonic titles).
+
+24.10.23.1
 ==========
  + Add additional protection from Sonic X Shadow Generations causing premature
      injection service shutdown before Sonic Generations can launch.
- + Enable Sleepless Window Thread by default in Sonic X Shadow Generations, for
-     a free boost to framerate... game's limiter really needs to be completely
-       patched out, but that's a hassle because there are 2 executables.
 
 24.10.23
 ========

@@ -3672,7 +3672,37 @@ auto DeclKeybind =
 
       case SK_GAME_ID::SonicGenerations:
       case SK_GAME_ID::SonicXShadowGenerations:
-        config.render.framerate.sleepless_window = true; // Improve performance from a terrible framerate limiter
+        config.render.framerate.sleepless_render = false;
+        config.render.framerate.sleepless_window = false;
+        config.textures.d3d11.cache              = false;
+
+#if 1
+        SK_RunOnce (
+        {
+          auto ptr =
+            SK_Scan ( "\x88\x47\x08\x85\xD2\x75\x11\x48\x8b", 9,
+                      "\xff\xff\xff\xff\xff\xff\xff\xff\xff" );
+
+          if (ptr != nullptr)
+          {
+            void* branch_addr =
+              ((uint8_t *)ptr + 0x5);
+
+            DWORD                                                        dwOrigProt = 0x0;
+            if (VirtualProtect (branch_addr, 2, PAGE_EXECUTE_READWRITE, &dwOrigProt))
+            {
+               //*((uint8_t *)branch_addr) = 0xEB;
+                 *((uint8_t *)branch_addr  ) = 0x90;
+                 *((uint8_t *)branch_addr+1) = 0x90;
+              VirtualProtect (branch_addr, 2, dwOrigProt, &dwOrigProt);
+            }
+          }
+        });
+#endif
+        //                                        88 47 08              - mov [rdi+08],al
+        //SONIC_X_SHADOW_GENERATIONS.exe+A258FF - 85 D2                 - test edx,edx
+        //SONIC_X_SHADOW_GENERATIONS.exe+A25901 - 75 11                 - jne SONIC_X_SHADOW_GENERATIONS.exe+A25914
+        //SONIC_X_SHADOW_GENERATIONS.exe+A25903 - 48 8B
         break;
 
       case SK_GAME_ID::Metaphor:
