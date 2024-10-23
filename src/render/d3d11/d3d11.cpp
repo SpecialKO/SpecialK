@@ -5767,13 +5767,10 @@ D3D11Dev_CreateTexture2DCore_Impl (
             SK_LOGi0 (L"MSAA Render Target allocated while SK had no active SwapChain...");
         }
 
-        //if (pDesc->SampleDesc.Count == swapDesc.SampleDesc.Count ||
-        //    pDesc->SampleDesc.Count == 1)
-
         // SK can't currently handle remastering resources that are
         //   BOTH mipmapped AND array...
         const bool remaster_compatible_subresources =
-          (pDesc->ArraySize == 1 || pDesc->MipLevels == 1);
+          (pDesc->ArraySize == 1 || (pDesc->MipLevels == 1 || pDesc->MiscFlags & D3D11_RESOURCE_MISC_GENERATE_MIPS));
 
         if (remaster_compatible_subresources)
         {
@@ -5827,8 +5824,10 @@ D3D11Dev_CreateTexture2DCore_Impl (
             bool rgba =
               ( _typeless == DXGI_FORMAT_R8G8B8A8_TYPELESS ||
                 _typeless == DXGI_FORMAT_B8G8R8X8_TYPELESS ||
-                _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS );//||
-                //_typeless == DXGI_FORMAT_R8G8_TYPELESS       ||
+                _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS);
+
+                // XXX: Make these into a config setting
+                //_typeless == DXGI_FORMAT_R8G8_TYPELESS     ||
                 //_typeless == DXGI_FORMAT_R8_TYPELESS );
 
             //@TODO: Should R8G8 and R8 also be considered for FP16 upgrade?
@@ -5839,7 +5838,8 @@ D3D11Dev_CreateTexture2DCore_Impl (
               // NieR: Automata is tricky, do not change the format of the bloom
               //   reduction series of targets.
               static const bool bNier =
-                ( SK_GetCurrentGameID () == SK_GAME_ID::NieRAutomata );
+                ( SK_GetCurrentGameID () == SK_GAME_ID::NieRAutomata ||
+                  SK_GetCurrentGameID () == SK_GAME_ID::SonicXShadowGenerations );
               if (                                    (! bNier) ||
                   ( pDesc->Width  == swapDesc.BufferDesc.Width &&
                     pDesc->Height == swapDesc.BufferDesc.Height )
@@ -5858,11 +5858,11 @@ D3D11Dev_CreateTexture2DCore_Impl (
                   InterlockedAdd64     (&p8BitTargetManager->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
                   InterlockedIncrement (&p8BitTargetManager->TargetsUpgraded);
 
-                  //if (     _typeless == DXGI_FORMAT_R8G8_TYPELESS)
-                  //  pDesc->Format     = DXGI_FORMAT_R16G16_FLOAT;
-                  //else if (_typeless == DXGI_FORMAT_R8_TYPELESS)
-                  //  pDesc->Format     = DXGI_FORMAT_R16_FLOAT;
-                  //else
+                  if (     _typeless == DXGI_FORMAT_R8G8_TYPELESS)
+                    pDesc->Format     = DXGI_FORMAT_R16G16_FLOAT;
+                  else if (_typeless == DXGI_FORMAT_R8_TYPELESS)
+                    pDesc->Format     = DXGI_FORMAT_R16_FLOAT;
+                  else
 
                   //
                   // Sometimes rendering into an FP RenderTarget is going to produce invalid blend results,

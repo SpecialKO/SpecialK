@@ -8820,8 +8820,8 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
 
   // NVIDIA will fallback to a D3D11 SwapChain for interop if we tell it that
   //   G22_NONE_P709 is unsupported.
-  if (config.compatibility.disable_dx12_vk_interop)
-  {
+  if (config.compatibility.disable_dx12_vk_interop || (SK_IsModuleLoaded (L"vulkan-1.dll") && StrStrIW (SK_GetCallerName ().c_str (), L"nvoglv")))
+  {   config.compatibility.disable_dx12_vk_interop = true; // Set this so it will trigger even if called by something wrapping the SwapChain
     if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709)
     {
       if (SK_GetCallingDLL () != SK_GetDLL ())

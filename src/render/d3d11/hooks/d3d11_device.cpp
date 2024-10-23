@@ -224,8 +224,30 @@ D3D11Dev_CreateShaderResourceView_Override (
         bInvalidType = true;
       }
 
+      // Fix invalid mip levels
+      if (                                    pDesc != nullptr &&
+                                              pDesc ->Texture2D.MostDetailedMip > texDesc.MipLevels-1)
+      {
+        SK_LOGi1 (
+          L"Invalid MostDetailedMip (%d) Fixed for SRV with Resource MipLevels=%d "
+          L"during CreateShaderResourceView!", pDesc->Texture2D.MostDetailedMip,  texDesc.MipLevels);
+          ((D3D11_SHADER_RESOURCE_VIEW_DESC *)pDesc)->Texture2D.MostDetailedMip = texDesc.MipLevels-1;
+      }
+
+      if (                                    pDesc != nullptr &&
+                                              pDesc ->Texture2D.MostDetailedMip ==  0 &&
+                                              pDesc ->Texture2D.MipLevels       != -1 &&
+                                              pDesc ->Texture2D.MipLevels       != texDesc.MipLevels)
+      {
+        SK_LOGi1 (
+          L"Invalid Mip Levels (%d) Fixed for SRV with MostDetailedMip=%d "
+          L"during CreateShaderResourceView!", pDesc->Texture2D.MipLevels, pDesc->Texture2D.MostDetailedMip);
+          ((D3D11_SHADER_RESOURCE_VIEW_DESC *)pDesc)->Texture2D.MipLevels        = (UINT)-1;
+      }
+
       // SK only overrides the format of RenderTargets, anything else is not our fault.
-      if ( bInvalidType || FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format)) )
+      if ( bInvalidType || FAILED (SK_D3D11_CheckResourceFormatManipulation (pTex, desc.Format)) || (texDesc.SampleDesc.Count > 1 && (desc.ViewDimension != D3D11_SRV_DIMENSION_TEXTURE2DMS &&
+                                                                                                                                      desc.ViewDimension != D3D11_SRV_DIMENSION_TEXTURE2DMSARRAY)) )
       {
         if (texDesc.SampleDesc.Count > 1)
         {

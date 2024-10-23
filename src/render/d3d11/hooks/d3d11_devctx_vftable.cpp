@@ -1516,7 +1516,11 @@ D3D11_CopyResource_Override (
   if (pDstResource == nullptr || pSrcResource == nullptr)
     return;
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  ////
+  // This API must be processed, even on deferred contexts, or HDR remastering
+  //   may cause the call to fail.
+  //
+  ////if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_CopyResource_Impl ( This,
@@ -1573,7 +1577,11 @@ D3D11_CopySubresourceRegion_Override (
     return;
   }
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  ////
+  // This API must be processed, even on deferred contexts, or HDR remastering
+  //   may cause the call to fail.
+  //
+  ////if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_CopySubresourceRegion_Impl (
@@ -1627,7 +1635,11 @@ D3D11_ResolveSubresource_Override (
   if (pDstResource == nullptr || pSrcResource == nullptr)
     return;
 
-  if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
+  ////
+  // This API must be processed, even on deferred contexts, or HDR remastering
+  //   may cause the call to fail.
+  //
+  ////if (! SK_D3D11_IgnoreWrappedOrDeferred (FALSE, SK_D3D11_IsDevCtxDeferred (This), This))
   {
     return
       SK_D3D11_ResolveSubresource_Impl ( This,
