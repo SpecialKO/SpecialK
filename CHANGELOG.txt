@@ -1,4 +1,9 @@
-﻿24.10.24.1
+﻿24.10.24.2
+==========
+ + Fix changes to mipmap level selection in D3D11 that may cause glitches during
+     certain lighting and shadowing render passes.
+
+24.10.24.1
 ==========
  + Disable Metaphor ReFantazio thread scheduling fix by default on Intel CPUs
      because they lack the necessary MWAITX instruction to make this beneficial.

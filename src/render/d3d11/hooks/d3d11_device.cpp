@@ -230,19 +230,8 @@ D3D11Dev_CreateShaderResourceView_Override (
       {
         SK_LOGi1 (
           L"Invalid MostDetailedMip (%d) Fixed for SRV with Resource MipLevels=%d "
-          L"during CreateShaderResourceView!", pDesc->Texture2D.MostDetailedMip,  texDesc.MipLevels);
+          L"during CreateShaderResourceView!",pDesc ->Texture2D.MostDetailedMip,  texDesc.MipLevels);
           ((D3D11_SHADER_RESOURCE_VIEW_DESC *)pDesc)->Texture2D.MostDetailedMip = texDesc.MipLevels-1;
-      }
-
-      if (                                    pDesc != nullptr &&
-                                              pDesc ->Texture2D.MostDetailedMip ==  0 &&
-                                              pDesc ->Texture2D.MipLevels       != -1 &&
-                                              pDesc ->Texture2D.MipLevels       != texDesc.MipLevels)
-      {
-        SK_LOGi1 (
-          L"Invalid Mip Levels (%d) Fixed for SRV with MostDetailedMip=%d "
-          L"during CreateShaderResourceView!", pDesc->Texture2D.MipLevels, pDesc->Texture2D.MostDetailedMip);
-          ((D3D11_SHADER_RESOURCE_VIEW_DESC *)pDesc)->Texture2D.MipLevels        = (UINT)-1;
       }
 
       // SK only overrides the format of RenderTargets, anything else is not our fault.
