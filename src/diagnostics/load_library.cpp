@@ -853,15 +853,6 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
           bVulkanLayerDisabled = true;
         }
 
-        else if (StrStrIW (compliant_path, L"VkLayer_steam_fossilize"))
-        {
-          SK_RunOnce (
-            dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
-          );
-
-          bVulkanLayerDisabled = true;
-        }
-
         //else if (StrStrIW (compliant_path, L"SteamOverlayVulkanLayer"))
         //{
         //  SK_RunOnce (
@@ -1209,15 +1200,6 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
     {
       SK_RunOnce (
         dll_log->Log (L"[DLL Loader]  ** Disabling OBS's Vulkan Layer because VulkanBridge is active.")
-      );
-
-      bVulkanLayerDisabled = true;
-    }
-
-    else if (StrStrIW (compliant_path, L"VkLayer_steam_fossilize"))
-    {
-      SK_RunOnce (
-        dll_log->Log (L"[DLL Loader]  ** Disabling Steam's Vulkan Layer because VulkanBridge is active.")
       );
 
       bVulkanLayerDisabled = true;
