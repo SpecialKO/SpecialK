@@ -5701,10 +5701,10 @@ D3D11Dev_CreateTexture2DCore_Impl (
            ((pDesc->BindFlags & D3D11_BIND_SHADER_RESOURCE)   ==
                                 D3D11_BIND_SHADER_RESOURCE &&
                  pDesc->Width == swapDesc.BufferDesc.Width &&
-                pDesc->Height == swapDesc.BufferDesc.Height//&&
+                pDesc->Height == swapDesc.BufferDesc.Height///&&
               /*pDesc->Format == swapDesc.BufferDesc.Format*/))         &&
 #endif
-           (pDesc->BindFlags & _UnwantedBindFlags) == 0 && (pDesc->MiscFlags & _UnwantedMiscFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 256 * 1024 * 1024 ) )
+           (pDesc->BindFlags & _UnwantedBindFlags) == 0 && (pDesc->MiscFlags & _UnwantedMiscFlags) == 0 && ( pDesc->Width * pDesc->Height * 8 < 512 * 1024 * 1024 ) )
        )
     {
       if ( (! ( DirectX::IsVideo        (pDesc->Format) ||
@@ -5824,25 +5824,53 @@ D3D11Dev_CreateTexture2DCore_Impl (
             bool rgba =
               ( _typeless == DXGI_FORMAT_R8G8B8A8_TYPELESS ||
                 _typeless == DXGI_FORMAT_B8G8R8X8_TYPELESS ||
-                _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS);
-
-                // XXX: Make these into a config setting
-                //_typeless == DXGI_FORMAT_R8G8_TYPELESS     ||
-                //_typeless == DXGI_FORMAT_R8_TYPELESS );
+                _typeless == DXGI_FORMAT_B8G8R8A8_TYPELESS );
 
             //@TODO: Should R8G8 and R8 also be considered for FP16 upgrade?
+            //
+            //  - This has only been tested in one game at the moment...
+            if (SK_GetCurrentGameID () == SK_GAME_ID::SonicXShadowGenerations)
+            {
+              rgba |=
+                ( _typeless == DXGI_FORMAT_R8G8_TYPELESS ||
+                  _typeless == DXGI_FORMAT_R8_TYPELESS );
+            }
 
             // 8-bit RGB(x) -> 16-bit FP
             if (rgba)
             {
               // NieR: Automata is tricky, do not change the format of the bloom
               //   reduction series of targets.
-              static const bool bNier =
-                ( SK_GetCurrentGameID () == SK_GAME_ID::NieRAutomata ||
-                  SK_GetCurrentGameID () == SK_GAME_ID::SonicXShadowGenerations );
-              if (                                    (! bNier) ||
-                  ( pDesc->Width  == swapDesc.BufferDesc.Width &&
-                    pDesc->Height == swapDesc.BufferDesc.Height )
+              static
+              const bool bIgnorePartialMatches =
+                ( SK_GetCurrentGameID () == SK_GAME_ID::NieRAutomata ) ||
+                ( SK_GetCurrentGameID () == SK_GAME_ID::SonicXShadowGenerations );
+              static
+              const bool bIgnoreSquareTargets  =
+                ( SK_GetCurrentGameID () == SK_GAME_ID::SonicXShadowGenerations );
+              static
+              const bool bIgnoreMonoTargets   =
+                ( SK_GetCurrentGameID () == SK_GAME_ID::SonicXShadowGenerations );
+              static
+              const bool bIgnoreSub100Targets =
+                ( SK_GetCurrentGameID () == SK_GAME_ID::SonicXShadowGenerations );
+
+              const bool bSquareTarget = pDesc->Height == pDesc->Width;
+              const bool bMonoTarget   = bSquareTarget && pDesc->Width == 1;
+              const bool bCloseMatch   = ( pDesc->Width  <= (swapDesc.BufferDesc.Width  + 2) && pDesc->Width  >= (swapDesc.BufferDesc.Width  - 2) &&
+                                           pDesc->Height <= (swapDesc.BufferDesc.Height + 2) && pDesc->Height >= (swapDesc.BufferDesc.Height - 2) );
+
+              const bool game_specific_reqs_met =
+                SK_GetCurrentGameID () == SK_GAME_ID::SonicXShadowGenerations &&
+                        (bCloseMatch                  ||
+                      (((bMonoTarget   && (! is_uav)) ||
+                        (bSquareTarget && (! is_uav) && ImIsPowerOfTwo ((int)pDesc->Width)))));
+
+              if (       game_specific_reqs_met  ||
+                   ( ( (! bIgnorePartialMatches) || ( pDesc->Width  == swapDesc.BufferDesc.Width &&
+                                                      pDesc->Height == swapDesc.BufferDesc.Height                    ) ) && (
+                     ( (! bIgnoreSquareTargets)  || ( (! bSquareTarget) || ( bMonoTarget && (! bIgnoreMonoTargets) ) ) ) &&
+                     ( (! bIgnoreMonoTargets)    || ( (! bMonoTarget) ) ) ) )
                  )
               {
                 if (p8BitTargetManager->PromoteTo16Bit)
@@ -5854,26 +5882,35 @@ D3D11Dev_CreateTexture2DCore_Impl (
                       SK_DXGI_FormatToStr (hdr_fmt_override).data () );
                   }
 
-                  // 32-bit total -> 64-bit
-                  InterlockedAdd64     (&p8BitTargetManager->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
                   InterlockedIncrement (&p8BitTargetManager->TargetsUpgraded);
 
+                  // nb: R8G8 and R8 do not currently respect the FP->UNORM compat setting!
                   if (     _typeless == DXGI_FORMAT_R8G8_TYPELESS)
-                    pDesc->Format     = DXGI_FORMAT_R16G16_FLOAT;
-                  else if (_typeless == DXGI_FORMAT_R8_TYPELESS)
-                    pDesc->Format     = DXGI_FORMAT_R16_FLOAT;
-                  else
-
-                  //
-                  // Sometimes rendering into an FP RenderTarget is going to produce invalid blend results,
-                  //   but we can still upgrade targets to a UNORM format with greater precision and get some
-                  //     remastering benefits...
-                  //
-                  if ( ( ( pDesc->Width  == swapDesc.BufferDesc.Width    &&
-                           pDesc->Height == swapDesc.BufferDesc.Height ) && (! bUpgradeNativeTargetsToFP) ) ||
-                           config.render.hdr.remaster_8bpc_as_unorm )
                   {
-                    hdr_fmt_override = DXGI_FORMAT_R16G16B16A16_UNORM;
+                    pDesc->Format     = DXGI_FORMAT_R16G16_FLOAT;
+                    InterlockedAdd64   (&p8BitTargetManager->BytesAllocated, 2LL * pDesc->Width * pDesc->Height);
+                  }
+                  else if (_typeless == DXGI_FORMAT_R8_TYPELESS)
+                  {
+                    pDesc->Format     = DXGI_FORMAT_R16_FLOAT;
+                    InterlockedAdd64   (&p8BitTargetManager->BytesAllocated, 1LL * pDesc->Width * pDesc->Height);
+                  }
+                  else
+                  {
+                    // 32-bit total -> 64-bit
+                    InterlockedAdd64   (&p8BitTargetManager->BytesAllocated, 4LL * pDesc->Width * pDesc->Height);
+
+                    //
+                    // Sometimes rendering into an FP RenderTarget is going to produce invalid blend results,
+                    //   but we can still upgrade targets to a UNORM format with greater precision and get some
+                    //     remastering benefits...
+                    //
+                    if ( ( ( pDesc->Width  == swapDesc.BufferDesc.Width    &&
+                             pDesc->Height == swapDesc.BufferDesc.Height ) && (! bUpgradeNativeTargetsToFP) ) ||
+                             config.render.hdr.remaster_8bpc_as_unorm )
+                    {
+                      hdr_fmt_override = DXGI_FORMAT_R16G16B16A16_UNORM;
+                    }
                   }
 
                   pDesc->Format = hdr_fmt_override;
@@ -5881,6 +5918,14 @@ D3D11Dev_CreateTexture2DCore_Impl (
                 }
 
                 InterlockedIncrement (&p8BitTargetManager->CandidatesSeen);
+              }
+
+              else
+              {
+                SK_LOGi1 (
+                  L"Ignored potentially remasterable 8-bpc texture with dimensions (%dx%d;mips=%d)",
+                    pDesc->Width, pDesc->Height, pDesc->MipLevels
+                );
               }
             }
           }
