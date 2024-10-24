@@ -3308,8 +3308,25 @@ SK_ImGui_User_NewFrame (void)
     }
   }
 
+  // Check if the mouse is within the actual render area (device HWND)
+  //   in order to stop processing mouse clicks in things like emulators
+  //     with multiple windows and drop-down menus that may overlap SK's
+  //       control panel...
+  const auto& windows =
+    SK_GetCurrentRenderBackend ().windows;
 
-  if (game_window.mouse.inside)
+  const HWND
+    hWndDevice = windows.device.hwnd,
+    hWndFocus  = windows.focus. hwnd,
+    hWndGame   =    game_window.hWnd,
+    hWndMouse  =
+       hWndDevice != 0 && IsWindow (hWndDevice) ? hWndDevice :
+       hWndFocus  != 0 && IsWindow (hWndFocus)  ? hWndFocus  :
+                                                  hWndGame;
+
+  if ( game_window.mouse.inside &&
+        ( SK_GetForegroundWindow ()    == hWndMouse ||
+          WindowFromPoint (cursor_pos) == hWndMouse ) )
   {
     SK_ImGui_Cursor.ScreenToLocal (&cursor_pos);
 
@@ -3319,15 +3336,6 @@ SK_ImGui_User_NewFrame (void)
       if ( abs (SK_ImGui_Cursor.pos.x - cursor_pos.x) > 3 ||
            abs (SK_ImGui_Cursor.pos.y - cursor_pos.y) > 3 )
       {
-#if 0
-#define SK_LOG_ONCE_N(lvl,expr,src) { static bool _once = false; if ((! std::exchange (_once, true))) SK_LOG##lvl (expr,src); }
-#define SK_LOG_ONCE(expr,src) \
-          SK_LOG_ONCE_N(0,expr,src);
-
-        SK_LOG_ONCE ( ( L"Mouse input appears to be inconsistent..." ),
-                        L"Win32Input" );
-#endif
-
         SK_ImGui_Cursor.pos = cursor_pos;
       }
     }
@@ -3341,8 +3349,11 @@ SK_ImGui_User_NewFrame (void)
   }
 
   // Cursor stops being treated as idle when it's not in the game window :)
-  else
+  else {
+    io.MousePos               = ImVec2 (-FLT_MAX, -FLT_MAX);
     SK_ImGui_Cursor.last_move = SK::ControlPanel::current_time;
+    game_window.mouse.inside  = false;
+  }
 
   bool bFocused =
     SK_IsGameWindowFocused (),
