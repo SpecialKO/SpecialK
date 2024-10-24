@@ -3355,16 +3355,12 @@ SK_ImGui_User_NewFrame (void)
     game_window.mouse.inside  = false;
   }
 
-  bool bFocused =
-    SK_IsGameWindowFocused (),
-       bActive  =
-    SK_IsGameWindowActive  ();
-
-  std::ignore = bFocused;
+  const bool bActive =
+    SK_IsGameWindowActive ();
 
   if (bActive && new_input)
   {
-    for ( UINT i = 7 ; i < 255 ; ++i )
+    for (UINT i = 7 ; i < 255 ; ++i)
     {
       io.KeysDown [i] =
         ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
