@@ -123,7 +123,6 @@ IDR_LICENSE_FILEBROWSER   TEXT                    "licenses/imgui-filebrowser.tx
 #if !(defined _WIN64)
 #else
 //IDR_LIBSCEPAD_PACKAGE   7ZIP                    "packages/libScePad_64.7z"
-//IDR_FC5_KILL_ANTI_CHEAT 7ZIP                    "packages/FC5_EasyAntiCheat_x64.7z"
 #endif
 
 
