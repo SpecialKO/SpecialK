@@ -13425,10 +13425,18 @@ static void ImGui::UpdateViewportsNewFrame()
 
 // Win32 clipboard implementation
 // We use g.ClipboardHandlerData for temporary storage to ensure it is freed on Shutdown()
+// ------------------
+//   * No we don't...
+//
+//       That would cause a crash, we use Special K's thread-local
+//         stack allocator instead of ImGui's unstable hot mess!
+//
 static const char* GetClipboardTextFn_DefaultImpl(void* user_data_ctx)
 {
-    ImGuiContext& g = *(ImGuiContext*)user_data_ctx;
-    g.ClipboardHandlerData.clear();
+    std::ignore = user_data_ctx;
+
+    wchar_t *wszTempData = nullptr;
+
     if (!::OpenClipboard(NULL))
         return NULL;
     HANDLE wbuf_handle = ::GetClipboardData(CF_UNICODETEXT);
@@ -13440,12 +13448,19 @@ static const char* GetClipboardTextFn_DefaultImpl(void* user_data_ctx)
     if (const WCHAR* wbuf_global = (const WCHAR*)::GlobalLock(wbuf_handle))
     {
         int buf_len = ::WideCharToMultiByte(CP_UTF8, 0, wbuf_global, -1, NULL, 0, NULL, NULL);
-        g.ClipboardHandlerData.resize(buf_len);
-        ::WideCharToMultiByte(CP_UTF8, 0, wbuf_global, -1, g.ClipboardHandlerData.Data, buf_len, NULL, NULL);
+
+        //
+        // Special K's temporary allocator is more stable than the buggy stuff in ImGui
+        //
+        wszTempData =
+          SK_TLS_Bottom ()->scratch_memory->log.formatted_output.alloc (buf_len*2);
+
+        ::WideCharToMultiByte(CP_UTF8, 0, wbuf_global, -1, (char *)wszTempData, buf_len, NULL, NULL);
     }
     ::GlobalUnlock(wbuf_handle);
     ::CloseClipboard();
-    return g.ClipboardHandlerData.Data;
+
+    return (char *)wszTempData;
 }
 
 static void SetClipboardTextFn_DefaultImpl(void*, const char* text)

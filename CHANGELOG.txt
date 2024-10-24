@@ -1,4 +1,17 @@
-﻿24.10.24.4
+﻿24.10.24.6
+==========
+ + Disable ImGui's g.ClipboardHandlerData temporary storage when pasting
+     into a text control and use Special K's Thread-Local Stack Allocator
+       instead to fix instability in ImGui's clipboard handler.
+
+24.10.24.5
+==========
+ + Improved mouse input in applications that use multiple windows,
+     such as emulators.
+ + Allow mouse clicks that activate the game window from background
+     state to also activate parts of Special K's control panel.
+
+24.10.24.4
 ==========
  + Enable Multitasking-on-Top mode by default
  + Make gamepad input activity hide the cursor as default policy
