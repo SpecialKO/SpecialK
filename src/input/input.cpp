@@ -508,6 +508,53 @@ SetThreadExecutionState_Detour (EXECUTION_STATE esFlags)
 // Parts of the Win32 API that are safe to hook from DLL Main
 void SK_Input_PreInit (void)
 {
+  auto SK_SDL_SetDefaultBehavior = [](const char* szVarName,
+                                      const char* szValue,
+                                      bool        force_override =
+                             config.compatibility.sdl_sanity_level > 1)
+  {
+    bool set_value = force_override;
+
+    if (! GetEnvironmentVariableA (szVarName, nullptr, 0))
+    {
+      if (GetLastError () == ERROR_ENVVAR_NOT_FOUND)
+      {
+        // No value was set, establish a default now.
+        set_value = true;
+      }
+    }
+
+    if (set_value)
+    {
+      SetEnvironmentVariableA (szVarName, szValue);
+    }
+  };
+
+  if (config.compatibility.sdl_sanity_level > 0)
+  {
+    // Disable Windows.Gaming.Input in SDL, use XInput instead
+    SK_SDL_SetDefaultBehavior ("SDL_JOYSTICK_WGI",        "0");
+    SK_SDL_SetDefaultBehavior ("SDL_XINPUT_ENABLED",      "1");
+
+    // Disable RawInput for gamepad polling, use HID instead
+    SK_SDL_SetDefaultBehavior ("SDL_JOYSTICK_RAWINPUT",   "0");
+    SK_SDL_SetDefaultBehavior ("SDL_JOYSTICK_HIDAPI",     "1");
+
+    // Disable generic DirectInput devices
+    SK_SDL_SetDefaultBehavior ("SDL_DIRECTINPUT_ENABLED", "0");
+
+    // Use a dedicated thread for input polling (default)
+    //   and allow it to run even when the game window is not foreground.
+    SK_SDL_SetDefaultBehavior ("SDL_JOYSTICK_THREAD",                  "1");
+    SK_SDL_SetDefaultBehavior ("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1");
+
+    // Disable bad window management behavior so that SK can take full control
+    SK_SDL_SetDefaultBehavior ("SDL_HINT_FORCE_RAISEWINDOW",   "0");
+    SK_SDL_SetDefaultBehavior ("SDL_ALLOW_TOPMOST",            "0");
+    SK_SDL_SetDefaultBehavior ("SDL_MOUSE_FOCUS_CLICKTHROUGH", "1");
+  }
+
+
   SK_Input_PreHookWinHook  ();
   SK_Input_PreHookCursor   ();
   SK_Input_PreHookKeyboard ();

@@ -1,4 +1,20 @@
-﻿24.10.24.6
+﻿24.10.24.7
+==========
+ + Improve SDL detection for games (i.e. Ys X) that use SDL, but have
+     overridden the default window class name.
+ + Add various default behavior overrides for SDL games to avoid double
+     input polling and buggy window management without recompiling SDL.
+
+   * An INI parameter has been added to control this,
+
+    [Compatibility.General]
+    SDLSanityLevel={0,1,2}  Default=1
+
+      0=Do Nothing
+      1=Set SK Optimized Values if no SDL environment variables are set
+      2=Force SK Optimized Values
+
+24.10.24.6
 ==========
  + Disable ImGui's g.ClipboardHandlerData temporary storage when pasting
      into a text control and use Special K's Thread-Local Stack Allocator

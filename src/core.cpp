@@ -3764,6 +3764,17 @@ SK_BackgroundRender_EndFrame (void)
   if (            first_frame ||
        (background_last_frame != config.window.background_render) )
   {
+    if (first_frame && ( SK_GetModuleHandleW (L"SDL2.dll") ||
+                         SK_GetModuleHandleW (L"SDL3.dll")) )
+    {
+      // A few games change the window class name from the default...
+      //   assume that the game uses SDL if one of its DLLs are loaded.
+      SK_GetCurrentRenderBackend ().windows.sdl = true;
+
+      // A more reasonable check might be for a thread named SDL_joystick,
+      //   but that seems to be spawned unpredictably late.
+    }
+
     first_frame = false;
 
     // Does not indicate the window was IN the background, but that it

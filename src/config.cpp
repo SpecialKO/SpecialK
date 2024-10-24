@@ -262,6 +262,7 @@ SK_GetCurrentGameID (void)
           { L"METAPHOR.exe",                           SK_GAME_ID::Metaphor                     },
           { L"SONIC_X_SHADOW_GENERATIONS.exe",         SK_GAME_ID::SonicXShadowGenerations      },
           { L"SONIC_GENERATIONS.exe",                  SK_GAME_ID::SonicGenerations             },
+          { L"BS1R.exe",                               SK_GAME_ID::BrokenSword                  }
         };
 
     first_check  = false;
@@ -1164,6 +1165,7 @@ struct {
   sk::ParameterBool*      reshade_mode            = nullptr;
   sk::ParameterBool*      fsr3_mode               = nullptr;
   sk::ParameterBool*      allow_fake_streamline   = nullptr;
+  sk::ParameterInt*       sdl_sanity_level        = nullptr;
 } compatibility;
 
 struct {
@@ -1757,6 +1759,7 @@ auto DeclKeybind =
     ConfigEntry (compatibility.reshade_mode,             L"Initializes hooks in a way that ReShade will not interfere",dll_ini,         L"Compatibility.General", L"ReShadeMode"),
     ConfigEntry (compatibility.fsr3_mode,                L"Avoid hooks on CreateSwapChainForHwnd",                     dll_ini,         L"Compatibility.General", L"FSR3Mode"),
     ConfigEntry (compatibility.allow_fake_streamline,    L"Allow invalid stuff, that might let fake DLSS3 mods work.", dll_ini,         L"Compatibility.General", L"AllowFakeStreamline"),
+    ConfigEntry (compatibility.sdl_sanity_level,         L"Set Default (1) or Override (2) SDL input/window behavior.",dll_ini,         L"Compatibility.General", L"SDLSanityLevel"),
 
     ConfigEntry (apis.last_known,                        L"Last Known Render API",                                     dll_ini,         L"API.Hook",              L"LastKnown"),
 
@@ -3684,6 +3687,11 @@ auto DeclKeybind =
         config.input.cursor.timeout              =   500;
         break;
 
+      case SK_GAME_ID::BrokenSword:
+        // Has really bad timing code that will cause major frame drops w/o.
+        config.render.framerate.max_delta_time   = 15;
+        break;
+
       case SK_GAME_ID::Metaphor:
         config.compatibility.init_on_separate_thread   = false;
         config.input.keyboard.override_alt_f4          = true; // Oh lord, kill that buggy exit confirmation
@@ -3952,6 +3960,7 @@ auto DeclKeybind =
   //
   // Load Parameters
   //
+  compatibility.sdl_sanity_level->load      (config.compatibility.sdl_sanity_level);
   compatibility.allow_fake_streamline->load (config.compatibility.allow_fake_streamline);
   compatibility.fsr3_mode->load             (config.compatibility.fsr3_mode);
   compatibility.reshade_mode->load          (config.compatibility.reshade_mode);
@@ -5911,6 +5920,7 @@ SK_SaveConfig ( std::wstring name,
   compatibility.using_wine->store             (config.compatibility.using_wine);
   compatibility.allow_dxdiagn->store          (config.compatibility.allow_dxdiagn);
   compatibility.allow_fake_streamline->store  (config.compatibility.allow_fake_streamline);
+  compatibility.sdl_sanity_level->store       (config.compatibility.sdl_sanity_level);
 
 #ifdef _M_IX86
   compatibility.auto_large_address->store     (config.compatibility.auto_large_address_patch);

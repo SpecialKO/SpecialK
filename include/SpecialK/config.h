@@ -1244,6 +1244,7 @@ struct sk_config_t
     bool     reshade_mode             = false;
     bool     fsr3_mode                = false;
     bool     allow_fake_streamline    =  true;
+    int      sdl_sanity_level         =     1;
   } compatibility;
 
   struct apis_s {
@@ -1689,6 +1690,7 @@ enum class SK_GAME_ID
   Metaphor,                     // METAPHOR.exe
   SonicXShadowGenerations,      // SONIC_X_SHADOW_GENERATIONS.exe
   SonicGenerations,             // SONIC_GENERATIONS.exe
+  BrokenSword,                  // BS1R.exe
 
   UNKNOWN_GAME               = 0xffff
 };
