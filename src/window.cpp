@@ -197,7 +197,14 @@ public:
     return ( ( style == 0x0            ) ||
              ( style  &  WS_BORDER     ) ||
              ( style  &  WS_THICKFRAME ) ||
-             ( style  &  WS_DLGFRAME   )    );
+             ( style  &  WS_DLGFRAME   ) ||
+             ( style  &  WS_CAPTION    ) ||
+             ( style  &  WS_SYSMENU    ) );
+  }
+
+  static constexpr bool StyleExHasBorder (DWORD_PTR style_ex)
+  {
+    return ( ( style_ex & WS_EX_CLIENTEDGE ) );
   }
 
   bool OnVarChange (SK_IVariable* var, void* val) override
@@ -3159,7 +3166,8 @@ SK_SetWindowStyleEx ( DWORD_PTR            dwStyleEx_ptr,
   // Minimal sane set of extended window styles for sane rendering
   dwStyleEx |=   WS_EX_APPWINDOW;
   dwStyleEx &= ~(WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_LAYOUTRTL  |
-                 WS_EX_RIGHT      | WS_EX_RTLREADING  | WS_EX_TOOLWINDOW);
+                 WS_EX_RIGHT      | WS_EX_RTLREADING  | WS_EX_TOOLWINDOW |
+                 WS_EX_CLIENTEDGE);
 
   game_window.actual.style_ex = DWORD_PTR (dwStyleEx);
 
@@ -3254,6 +3262,9 @@ SK_Window_HasBorder (HWND hWnd)
   return
     SK_WindowManager::StyleHasBorder (
         DWORD_PTR (SK_GetWindowLongW ( hWnd, GWL_STYLE ))
+    ) || 
+    SK_WindowManager::StyleExHasBorder (
+        DWORD_PTR (SK_GetWindowLongW ( hWnd, GWL_EXSTYLE ))
     );
 }
 
