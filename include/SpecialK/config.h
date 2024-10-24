@@ -1196,7 +1196,7 @@ struct sk_config_t
                      x.percent  > -0.00001F && x.percent   < 0.00001F &&
                      y.percent  > -0.00001F && y.percent   < 0.00001F; }
     } offset;
-    int     always_on_top       = NoPreferenceOnTop;
+    int     always_on_top       = SmartAlwaysOnTop;//NoPreferenceOnTop;
     bool    background_render   = false;
     bool    background_mute     = false;
     bool    confine_cursor      = false;

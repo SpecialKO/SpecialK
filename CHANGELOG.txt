@@ -1,5 +1,8 @@
 ﻿24.10.24.4
 ==========
+ + Enable Multitasking-on-Top mode by default
+ + Make gamepad input activity hide the cursor as default policy
+     when enabling cursor auto-hide
  + Consider window extended style WS_EX_CLIENTEDGE as bordered
  + Consider window style WS_CAPTION and WS_SYSMENU as bordered
 
