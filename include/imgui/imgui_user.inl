@@ -3362,17 +3362,26 @@ SK_ImGui_User_NewFrame (void)
 
   std::ignore = bFocused;
 
-  if (bActive || game_window.mouse.inside)
-  { if (new_input && bActive) { for ( UINT                 i = 7 ; i < 255 ; ++i )
-                io.KeysDown [i] = ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
+  if (bActive && new_input)
+  {
+    for ( UINT i = 7 ; i < 255 ; ++i )
+    {
+      io.KeysDown [i] =
+        ((SK_GetAsyncKeyState (i) & 0x8000) != 0x0);
     }
-    io.MouseDown [0] = ((SK_GetAsyncKeyState (VK_LBUTTON) ) < 0);
-    io.MouseDown [1] = ((SK_GetAsyncKeyState (VK_RBUTTON) ) < 0);
-    io.MouseDown [2] = ((SK_GetAsyncKeyState (VK_MBUTTON) ) < 0);
-    io.MouseDown [3] = ((SK_GetAsyncKeyState (VK_XBUTTON1)) < 0);
-    io.MouseDown [4] = ((SK_GetAsyncKeyState (VK_XBUTTON2)) < 0);
-  } else { RtlZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);
-           RtlZeroMemory ( io.MouseDown,    sizeof (bool) * 5); }
+  }
+
+  if (! bActive)
+    RtlZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);
+
+  if (game_window.mouse.inside)
+  {
+    io.MouseDown [0] = ((SK_GetAsyncKeyState (VK_LBUTTON) ) & 0x8000) != 0x0;
+    io.MouseDown [1] = ((SK_GetAsyncKeyState (VK_RBUTTON) ) & 0x8000) != 0x0;
+    io.MouseDown [2] = ((SK_GetAsyncKeyState (VK_MBUTTON) ) & 0x8000) != 0x0;
+    io.MouseDown [3] = ((SK_GetAsyncKeyState (VK_XBUTTON1)) & 0x8000) != 0x0;
+    io.MouseDown [4] = ((SK_GetAsyncKeyState (VK_XBUTTON2)) & 0x8000) != 0x0;
+  }
 
   SK_ImGui_PollGamepad ();
 
