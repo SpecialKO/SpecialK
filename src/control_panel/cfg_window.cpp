@@ -436,6 +436,15 @@ SK::ControlPanel::Window::Draw (void)
       {
         ImGui::SameLine ();
 
+        const bool fake_fullscreen =
+          config.render.dxgi.fake_fullscreen_mode;
+
+        if (fake_fullscreen)
+        {
+          background_render = true;
+          ImGui::BeginDisabled ();
+        }
+
         if ( ImGui::Checkbox ( "Continue Rendering", &background_render ) )
           SK_DeferCommand    ("Window.BackgroundRender toggle");
 
@@ -447,8 +456,15 @@ SK::ControlPanel::Window::Draw (void)
           ImGui::BulletText   ("Most Games will Continue Rendering");
           ImGui::BulletText   ("Disables a Game's Built-in Mute-on-Alt+Tab Functionality");
           ImGui::BulletText   ("See \"Input Management | Enable / Disable Devices\" to Configure Background Behavior");
+          if (fake_fullscreen)
+          {
+            ImGui::Separator  ();
+            ImGui::Text       ("This mode is always active when 'Fake Fullscreen' is enabled");
+          }
           ImGui::EndTooltip   ();
         }
+        if (fake_fullscreen)
+          ImGui::EndDisabled  ();
 
         ImGui::SameLine    ();
         ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);

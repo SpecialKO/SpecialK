@@ -6990,7 +6990,11 @@ SK_InstallWindowHook (HWND hWnd)
         {
           if (var->getValuePointer () == background_render)
           {
-            *background_render = *(bool *)val;
+            // It is unsafe to turn this off while Fake Fullscreen is enabled
+            if (config.render.dxgi.fake_fullscreen_mode)
+              *background_render = true;
+            else
+              *background_render = *(bool *)val;
 
             SK_Steam_ProcessWindowActivation (game_window.active);
           }
