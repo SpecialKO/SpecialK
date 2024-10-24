@@ -2648,6 +2648,49 @@ SK_Log_CleanupLogs (void)
   tex_log->close    ();
 }
 
+bool
+SK_Inject_IsWindowSKIF (HWND hWnd)
+{
+  DWORD                            dwPid = 0x0;
+  GetWindowThreadProcessId (hWnd, &dwPid);
+
+  if (dwPid == 0 ||
+      dwPid == GetCurrentProcessId ())
+  {
+    return false;
+  }
+
+  SK_AutoHandle hProcess (
+    OpenProcess ( PROCESS_QUERY_LIMITED_INFORMATION,
+                    FALSE, dwPid )
+  );
+
+  if (! hProcess.isValid ())
+    return false;
+
+  wchar_t wszImageName [MAX_PATH] = {};
+  DWORD    dwImageNameLen         = MAX_PATH;
+
+  if (QueryFullProcessImageNameW (hProcess, 0, wszImageName, &dwImageNameLen))
+  {
+    bool is_skif =
+      StrStrIW (wszImageName, L"SKIF") != nullptr;
+
+    if (! is_skif)
+    { // Most likely any false positive is SKIV, because it shares window code.
+      SK_RunOnce (
+        SK_LOGs0 ( L"InjectUtil",
+          L"Tested window (%x) belongs to '%ws', NOT SKIF",
+            hWnd, wszImageName );
+      );
+    }
+
+    return is_skif;
+  }
+
+  return false;
+}
+
 void
 SK_Inject_PostHeartbeatToSKIF (void)
 {
@@ -2675,6 +2718,10 @@ SK_Inject_PostHeartbeatToSKIF (void)
   
         if (SK_GetWindowLongPtrW (hWnd, GWL_EXSTYLE) & WS_EX_APPWINDOW)
         {
+          // What we thought was SKIF, is not actually SKIF...?
+          if (! SK_Inject_IsWindowSKIF (hWnd))
+            return TRUE;
+
           // Success, we found the app window!
           hWndSKIF = hWnd;
   
@@ -2705,8 +2752,8 @@ SK_Inject_PostHeartbeatToSKIF (void)
             dwLastHeartbeat = 0;
         if (dwLastHeartbeat < SK_timeGetTime () - 133)
         {   dwLastHeartbeat = SK_timeGetTime ();
-
-          if (SK_GetForegroundWindow () == hWndSKIF)
+          if ( SK_GetForegroundWindow () == hWndSKIF &&
+                    SK_Inject_IsWindowSKIF (hWndSKIF) )
           {
             // Wake SKIF up and make it redraw
             PostMessage (hWndSKIF, WM_NULL, 0x0, 0x0);
@@ -2766,6 +2813,10 @@ SK_Inject_ReturnToSKIF (void)
   
         if (SK_GetWindowLongPtrW (hWnd, GWL_EXSTYLE) & WS_EX_APPWINDOW)
         {
+          // What we thought was SKIF, is not actually SKIF...?
+          if (! SK_Inject_IsWindowSKIF (hWnd))
+            return TRUE;
+
           // Success, we found the app window!
           hWndExisting = hWnd;
   
@@ -2786,7 +2837,8 @@ SK_Inject_ReturnToSKIF (void)
     GetWindowThreadProcessId (hWndExisting, &dwPid);
   
     if ( dwPid != 0x0 &&
-         dwPid != GetCurrentProcessId () )
+         dwPid != GetCurrentProcessId () &&
+           SK_Inject_IsWindowSKIF (hWndExisting) )
     {
 #define        WM_SKIF_REPOSITION     WM_USER + 0x4096
 constexpr UINT WM_SKIF_EVENT_SIGNAL = WM_USER + 0x3000;

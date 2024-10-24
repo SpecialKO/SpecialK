@@ -1,4 +1,11 @@
-﻿24.10.24.7
+﻿24.10.25
+========
+ + Add checks to prevent confusing SKIF and SKIV when SK needs to send
+     signals to SKIF during injection.
+ + Prevent turning off "Background Render" mode while Fake Fullscreen is
+     enabled.
+
+24.10.24.7
 ==========
  + Improve SDL detection for games (i.e. Ys X) that use SDL, but have
      overridden the default window class name.
