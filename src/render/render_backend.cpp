@@ -3295,14 +3295,17 @@ sizeof (output_s));
            pSwap3 (swapchain.p);
     if (   pSwap3)
     {
-      // Windows tends to cache this stuff, we're going to build our own with
-      //   more up-to-date values instead.
-      DXGI_OUTPUT_DESC1
-        uncachedOutDesc;
-        uncachedOutDesc.BitsPerColor = pContainer->bpc;
-        uncachedOutDesc.ColorSpace   = pContainer->colorspace;
+      if (pContainer != nullptr)
+      {
+        // Windows tends to cache this stuff, we're going to build our own with
+        //   more up-to-date values instead.
+        DXGI_OUTPUT_DESC1
+          uncachedOutDesc;
+          uncachedOutDesc.BitsPerColor = pContainer->bpc;
+          uncachedOutDesc.ColorSpace   = pContainer->colorspace;
 
-      SK_DXGI_UpdateColorSpace (pSwap3.p, &uncachedOutDesc);
+        SK_DXGI_UpdateColorSpace (pSwap3.p, &uncachedOutDesc);
+      }
 
       if (config.render.dxgi.temporary_dwm_hdr)
       {
