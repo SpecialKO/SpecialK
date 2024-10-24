@@ -2693,7 +2693,7 @@ SK_Inject_PostHeartbeatToSKIF (void)
   if (SK_Inject_IsHookActive ()) 
   { // If done only when hook is running, it fixes periodic VRR loss,
     //   but alt-tab can still flicker.
-    if (hWndSKIF != nullptr && IsWindow (hWndSKIF))
+    if (hWndSKIF != game_window.hWnd && IsWindow (hWndSKIF))
     {
       DWORD                                dwPid = 0x0;
       GetWindowThreadProcessId (hWndSKIF, &dwPid);
@@ -2712,6 +2712,11 @@ SK_Inject_PostHeartbeatToSKIF (void)
             PostMessage (hWndSKIF, WM_NULL, 0x0, 0x0);
           }
         }
+      }
+
+      else
+      {
+        hWndSKIF = game_window.hWnd;
       }
     }
 
