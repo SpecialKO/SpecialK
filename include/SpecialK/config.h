@@ -1029,7 +1029,7 @@ struct sk_config_t
 
   struct input_s {
     struct cursor_s {
-      bool    gamepad_deactivates =  false;
+      bool    gamepad_deactivates =   true;
       bool    keys_activate       =  false;
       bool    manage              =  false;
       int     timeout             = 1500UL;
