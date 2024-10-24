@@ -1,4 +1,12 @@
-﻿24.10.24.2
+﻿24.10.24.3
+==========
+ + Fix endless game restart cycle in DOOM Eternal when Vulkan Bridge needs to
+     be enabled.
+ + No longer disable Valve's Vulkan "Fossilize" (shader caching) layer when
+     Vulkan Bridge is enabled.
+ + Improved AMD and NVIDIA Vulkan/DXGI Interop detection.
+
+24.10.24.2
 ==========
  + Fix changes to mipmap level selection in D3D11 that may cause glitches during
      certain lighting and shadowing render passes.
