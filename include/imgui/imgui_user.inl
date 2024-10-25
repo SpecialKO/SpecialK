@@ -3319,14 +3319,18 @@ SK_ImGui_User_NewFrame (void)
     hWndDevice = windows.device.hwnd,
     hWndFocus  = windows.focus. hwnd,
     hWndGame   =    game_window.hWnd,
-    hWndMouse  =
-       hWndDevice != 0 && IsWindow (hWndDevice) ? hWndDevice :
-       hWndFocus  != 0 && IsWindow (hWndFocus)  ? hWndFocus  :
-                                                  hWndGame;
+    hWndMouse0 =
+       hWndDevice != 0 && IsWindow (hWndDevice) ?                             hWndDevice : nullptr,
+    hWndMouse1 =
+       hWndFocus  != 0 && IsWindow (hWndFocus) && GetTopWindow (hWndFocus) == hWndDevice ?
+                                                                hWndFocus                : hWndGame != hWndFocus ?
+                                                                                           hWndGame              : nullptr;
 
   if ( game_window.mouse.inside &&
-        ( SK_GetForegroundWindow ()    == hWndMouse ||
-          WindowFromPoint (cursor_pos) == hWndMouse ) )
+        ( SK_GetForegroundWindow ()    == hWndMouse0   ||
+          WindowFromPoint (cursor_pos) == hWndMouse0 ) ||
+        ( SK_GetForegroundWindow ()    == hWndMouse1   ||
+          WindowFromPoint (cursor_pos) == hWndMouse1 ) )
   {
     SK_ImGui_Cursor.ScreenToLocal (&cursor_pos);
 

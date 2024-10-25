@@ -1,4 +1,8 @@
-﻿24.10.25.1
+﻿24.10.25.2
+==========
+ + Fixed missing mouse input in Forza Horizon 5.
+
+24.10.25.1
 ==========
  + Change compiler settings to generate code more compatible with the Steam
      overlay on some systems.
