@@ -1,4 +1,9 @@
-﻿24.10.25
+﻿24.10.25.1
+==========
+ + Change compiler settings to generate code more compatible with the Steam
+     overlay on some systems.
+
+24.10.25
 ========
  + Add checks to prevent confusing SKIF and SKIV when SK needs to send
      signals to SKIF during injection.
