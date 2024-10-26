@@ -535,105 +535,16 @@ extern void BasicInit (void);
 
   SK_FetchBuiltinSounds ();
 
-  switch (SK_GetCurrentGameID ())
-  {
-#ifdef _WIN64
-    case SK_GAME_ID::NieRAutomata:
-      SK_FAR_InitPlugin ();
-      break;
-
-    case SK_GAME_ID::BlueReflection:
-      SK_IT_InitPlugin ();
-      break;
-
-    case SK_GAME_ID::DotHackGU:
-      SK_DGPU_InitPlugin ();
-      break;
-
-    case SK_GAME_ID::NiNoKuni2:
-      SK_NNK2_InitPlugin ();
-      break;
-
-    case SK_GAME_ID::Tales_of_Vesperia:
-      SK_TVFix_InitPlugin ();
-      break;
-
-    case SK_GAME_ID::Sekiro:
-      SK_Sekiro_InitPlugin ();
-      break;
-
-    case SK_GAME_ID::Ys_Eight:
-      SK_YS8_InitPlugin ();
-      break;
-    case SK_GAME_ID::Elex2:
-      SK_ELEX2_InitPlugin ();
-      break;
-    case SK_GAME_ID::EldenRing:
-      SK_ER_InitPlugin ();
-      break;
-    case SK_GAME_ID::Starfield:
-    case SK_GAME_ID::Oblivion:
-    case SK_GAME_ID::Fallout3:
-    case SK_GAME_ID::FalloutNewVegas:
-      SK_BGS_InitPlugin ();
-      break;
-    case SK_GAME_ID::LordsOfTheFallen2:
-      SK_LOTF2_InitPlugin ();
-      break;
-    case SK_GAME_ID::StarOcean2R:
-      SK_SO2R_InitPlugin ();
-      break;
-    case SK_GAME_ID::Metaphor:
-      SK_Metaphor_InitPlugin ();
-      break;
-#else
-    case SK_GAME_ID::SecretOfMana:
-      SK_SOM_InitPlugin ();
-      break;
-
-    case SK_GAME_ID::DragonBallFighterZ:
-    {
-      wchar_t      wszPath       [MAX_PATH + 2] = { };
-      wchar_t      wszWorkingDir [MAX_PATH + 2] = { };
-      wcscpy      (wszWorkingDir, SK_GetHostPath  ());
-      PathAppendW (wszWorkingDir, LR"(RED\Binaries\Win64\)");
-
-      wcscpy      (wszPath,       wszWorkingDir);
-      PathAppendW (wszPath,       L"RED-Win64-Shipping.exe");
-
-      SK_ShellExecuteW (nullptr, L"open", wszPath, L"-eac-nop-loaded", wszWorkingDir, SW_SHOWNORMAL);
-      ExitProcess      (0);
-    } break;
-
-    case SK_GAME_ID::ChronoCross:
-    {
-      SK_CC_InitPlugin ();
-    } break;
-#endif
-  }
-
   // Setup the compatibility back end, which monitors loaded libraries,
   //   blacklists bad DLLs and detects render APIs...
-  SK_EnumLoadedModules  (SK_ModuleEnum::PostLoad);
-  SK_Memory_InitHooks   ();
-
-  if (SK_GetDLLRole () != DLL_ROLE::DInput8)
-  {
-    if (SK_GetModuleHandle (L"dinput8.dll"))
-      SK_Input_HookDI8  ();
-
-    if (SK_GetModuleHandle (L"dinput.dll"))
-      SK_Input_HookDI7  ();
-  }
+  SK_EnumLoadedModules (SK_ModuleEnum::PostLoad);
+  SK_Memory_InitHooks  ();
 
   SK_Input_Init ();
 
-  if (sk::NVAPI::nv_hardware)
+  if (sk::NVAPI::nv_hardware && config.render.framerate.target_fps_bg > 0.0f)
   {
-    if (config.render.framerate.target_fps_bg > 0.0f)
-    {
-      SK_NvAPI_DRS_SetDWORD (VSYNCMODE_ID, VSYNCMODE_PASSIVE);
-    }
+    SK_NvAPI_DRS_SetDWORD (VSYNCMODE_ID, VSYNCMODE_PASSIVE);
   }
 
   void
@@ -693,7 +604,9 @@ WaitForInit (void)
 // Stuff might be unimplemented in Wine, limp home if it throws this exception
 #define EXCEPTION_WINE_STUB 0x80000100
 
-void SK_SEH_InitFinishCallback (void)
+static
+void
+SK_SEH_InitFinishCallback (void)
 {
   __try
   {
@@ -912,37 +825,6 @@ SK_InitFinishCallback (void)
 
   cp->AddCommand ("mem",       new skMemCmd    ());
   cp->AddCommand ("GetUpdate", new skUpdateCmd ());
-
-
-  //
-  // Game-Specific Stuff that I am not proud of
-  //
-  switch (SK_GetCurrentGameID ())
-  {
-#ifdef _WIN64
-    case SK_GAME_ID::DarkSouls3:
-      SK_DS3_InitPlugin ();
-      break;
-#else
-    case SK_GAME_ID::Tales_of_Zestiria:
-      SK_GetCommandProcessor ()->ProcessCommandFormatted (
-        "TargetFPS %f",
-          config.render.framerate.target_fps
-      );
-      break;
-    default:
-    {
-      HMODULE hModEOSOVH =
-        GetModuleHandleW (L"EOSOVH-Win32-Shipping.dll");
-
-      if (hModEOSOVH)
-      {
-        MoveFileW (  SK_GetModuleFullName (hModEOSOVH).        c_str (),
-                    (SK_GetModuleFullName (hModEOSOVH) + L"_").c_str () );
-      }
-    } break;
-#endif
-  }
 
 
   // Get rid of the game output log if the user doesn't want it...
@@ -1891,8 +1773,6 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_EstablishRootPath   ();
   SK_CreateDirectoriesEx (SK_GetConfigPath (), false);
 
-  ///SK_Config_CreateSymLinks ();
-
   const bool rundll_invoked =
     (StrStrIW (SK_GetHostApp (), L"Rundll32") != nullptr);
   const bool skim           =
@@ -2322,7 +2202,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       case SK_GAME_ID::AssassinsCreed_Odyssey:
         SK_ACO_PlugInInit ();
         break;
-      case SK_GAME_ID::MonsterHunterWorld:        
+      case SK_GAME_ID::MonsterHunterWorld:
         SK_MHW_PlugInInit ();
         break;
 
@@ -2356,14 +2236,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       case SK_GAME_ID::YakuzaUnderflow:
         SK_Yakuza0_PlugInInit ();
         break;
-#endif
 
-      // May be 32-bit or 64-bit depending on which patch user is running
-      case SK_GAME_ID::Persona4:
-        SK_Persona4_InitPlugin ();
-        break;
-
-#ifdef _M_AMD64
       case SK_GAME_ID::NieR_Sqrt_1_5:
         SK_NIER_RAD_InitPlugin ();
 
@@ -2374,9 +2247,95 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         SK_FF7R_InitPlugin ();
         break;
 
-      case SK_GAME_ID::EldenRing:
+      case SK_GAME_ID::DarkSouls3:
+        SK_DS3_InitPlugin ();
         break;
+
+      case SK_GAME_ID::NieRAutomata:
+        SK_FAR_InitPlugin ();
+        break;
+
+      case SK_GAME_ID::BlueReflection:
+        SK_IT_InitPlugin ();
+        break;
+
+      case SK_GAME_ID::DotHackGU:
+        SK_DGPU_InitPlugin ();
+        break;
+
+      case SK_GAME_ID::NiNoKuni2:
+        SK_NNK2_InitPlugin ();
+        break;
+
+      case SK_GAME_ID::Tales_of_Vesperia:
+        SK_TVFix_InitPlugin ();
+        break;
+
+      case SK_GAME_ID::Sekiro:
+        SK_Sekiro_InitPlugin ();
+        break;
+
+      case SK_GAME_ID::Ys_Eight:
+        SK_YS8_InitPlugin ();
+        break;
+      case SK_GAME_ID::Elex2:
+        SK_ELEX2_InitPlugin ();
+        break;
+      case SK_GAME_ID::EldenRing:
+        SK_ER_InitPlugin ();
+        break;
+      case SK_GAME_ID::Starfield:
+      case SK_GAME_ID::Oblivion:
+      case SK_GAME_ID::Fallout3:
+      case SK_GAME_ID::FalloutNewVegas:
+        SK_BGS_InitPlugin ();
+        break;
+      case SK_GAME_ID::LordsOfTheFallen2:
+        SK_LOTF2_InitPlugin ();
+        break;
+      case SK_GAME_ID::StarOcean2R:
+        SK_SO2R_InitPlugin ();
+        break;
+      case SK_GAME_ID::Metaphor:
+        SK_Metaphor_InitPlugin ();
+        break;
+#else
+      case SK_GAME_ID::SecretOfMana:
+        SK_SOM_InitPlugin ();
+        break;
+
+      case SK_GAME_ID::DragonBallFighterZ:
+      {
+        wchar_t      wszPath       [MAX_PATH + 2] = { };
+        wchar_t      wszWorkingDir [MAX_PATH + 2] = { };
+        wcscpy      (wszWorkingDir, SK_GetHostPath  ());
+        PathAppendW (wszWorkingDir, LR"(RED\Binaries\Win64\)");
+
+        wcscpy      (wszPath,       wszWorkingDir);
+        PathAppendW (wszPath,       L"RED-Win64-Shipping.exe");
+
+        SK_ShellExecuteW (nullptr, L"open", wszPath, L"-eac-nop-loaded", wszWorkingDir, SW_SHOWNORMAL);
+        ExitProcess      (0);
+      } break;
+
+      case SK_GAME_ID::ChronoCross:
+      {
+        SK_CC_InitPlugin ();
+      } break;
+
+      case SK_GAME_ID::Tales_of_Zestiria:
+      {
+        SK_GetCommandProcessor ()->ProcessCommandFormatted (
+          "TargetFPS %f",
+            config.render.framerate.target_fps
+        );
+      } break;
 #endif
+
+      // May be 32-bit or 64-bit depending on which patch user is running
+      case SK_GAME_ID::Persona4:
+        SK_Persona4_InitPlugin ();
+        break;
     }
 
     if (config.steam.preload_overlay)
@@ -3480,19 +3439,11 @@ SK_MMCS_EndBufferSwap (void)
 
   if (task != nullptr)
       task->disassociateWithTask ();
-
-//SK_Thread_SetCurrentPriority (
-//  SK_TLS_Bottom ()->win32->thread_prio
-//);
 }
 
 void
 SK_MMCS_BeginBufferSwap (void)
 {
-//SK_TLS_Bottom ()->win32->thread_prio =
-//  SK_Thread_GetCurrentPriority (                             );
-//  SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
-
   static concurrency::concurrent_unordered_set <DWORD> render_threads;
 
   static const auto&
@@ -3518,10 +3469,7 @@ SK_MMCS_BeginBufferSwap (void)
     {
       if (game_id != SK_GAME_ID::AssassinsCreed_Odyssey)
       {
-        //if (first)
-          task->setPriority (AVRT_PRIORITY_CRITICAL);
-        //else
-          //task->setPriority (AVRT_PRIORITY_HIGH); // Assymetric priority is not desirable
+        task->setPriority (AVRT_PRIORITY_CRITICAL);
       }
 
       else
@@ -4086,7 +4034,6 @@ void SK_RandomCrapThatShouldBeInPlugIns (void)
 #endif
 }
 
-__declspec (noinline) // lol
 HRESULT
 __stdcall
 SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
@@ -4620,43 +4567,6 @@ SK_CreateEvent (
       lpEventAttributes, bManualReset, bInitialState, lpName
     );
 }
-
-auto SK_Config_CreateSymLinks = [](void) ->
-void
-{
-  if (config.system.central_repository)
-  {
-    // Create Symlink for end-user's convenience
-    if ( GetFileAttributes ( ( std::wstring (SK_GetHostPath ()) +
-                               std::wstring (LR"(\SpecialK\)")
-                             ).c_str ()
-                           ) == INVALID_FILE_ATTRIBUTES )
-    {
-      std::wstring link (SK_GetHostPath ());
-                   link += LR"(\SpecialK\)";
-
-      CreateSymbolicLink (
-        link.c_str         (),
-          SK_GetConfigPath (),
-            SYMBOLIC_LINK_FLAG_DIRECTORY
-      );
-    }
-
-    if ( GetFileAttributes ( ( std::wstring (SK_GetConfigPath ()) +
-                               std::wstring (LR"(Game\)") ).c_str ()
-                           ) == INVALID_FILE_ATTRIBUTES )
-    {
-      std::wstring link (SK_GetConfigPath ());
-                   link += LR"(Game\)";
-
-      CreateSymbolicLink (
-        link.c_str         (),
-          SK_GetHostPath   (),
-            SYMBOLIC_LINK_FLAG_DIRECTORY
-      );
-    }
-  }
-};
 
 bool
 SK_API_IsDXGIBased (SK_RenderAPI api)

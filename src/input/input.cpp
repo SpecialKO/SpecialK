@@ -607,6 +607,15 @@ SK_Input_Init (void)
   if (std::exchange (once, true))
     return;
 
+  if (SK_GetDLLRole () != DLL_ROLE::DInput8)
+  {
+    if (SK_GetModuleHandle (L"dinput8.dll"))
+      SK_Input_HookDI8  ();
+
+    if (SK_GetModuleHandle (L"dinput.dll"))
+      SK_Input_HookDI7  ();
+  }
+
   SK_Input_InitKeyboard ();
 
   auto *cp =
