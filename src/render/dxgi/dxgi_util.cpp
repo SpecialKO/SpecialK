@@ -2194,14 +2194,22 @@ SK_D3D11_EnsureMatchingDevices (ID3D11DeviceChild *pDeviceChild, ID3D11Device *p
   if (pDeviceChild == nullptr || pDevice == nullptr)
     return false;
 
-  SK_ComPtr <ID3D11Device>  pParentDevice;
-  pDeviceChild->GetDevice (&pParentDevice);
+  ID3D11Device* dev_ptr = 0;
+  UINT          size    = sizeof (uintptr_t);
+
+  if (FAILED (pDeviceChild->GetPrivateData (SKID_D3D11DeviceBasePtr, &size, &dev_ptr)))
+  {
+    SK_ComPtr <ID3D11Device>                                                    pParentDevice;
+    pDeviceChild->GetDevice                                                   (&pParentDevice.p);
+    pDeviceChild->SetPrivateData (SKID_D3D11DeviceBasePtr, sizeof (uintptr_t), &pParentDevice.p);
+
+    dev_ptr = pParentDevice.p;
+  }
 
   return
-    pParentDevice.p      ==      pDevice  ||
-    pParentDevice.IsEqualObject (pDevice) ||
+    dev_ptr ==           pDevice ||
       SK_D3D11_CheckForMatchingDevicesUsingPrivateData (
-                pParentDevice.p, pDevice );
+                dev_ptr, pDevice );
 }
 
 bool

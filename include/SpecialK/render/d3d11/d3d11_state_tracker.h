@@ -29,6 +29,11 @@ static constexpr GUID SKID_D3D11KnownShaderCrc32c =
 // {5C5298BB-0F9D-5022-A19D-A2E69792AE14}
   { 0x5c5298bb, 0xf9d,  0x5022, { 0xa1, 0x9d, 0xa2, 0xe6, 0x97, 0x92, 0xae, 0x14 } };
 
+static constexpr GUID SKID_D3D11KnownShaderDesc =
+// {F9FB7ABB-D954-49BA-B4F1-B2D5028BC7AB}
+  { 0xf9fb7abb, 0xd954, 0x49ba, { 0xb4, 0xf1, 0xb2, 0xd5, 0x2, 0x8b, 0xc7, 0xab } };
+
+
 // ID3D11DeviceContext* private data used for indexing various per-ctx lookups
 static constexpr GUID SKID_D3D11DeviceContextHandle =
 // {5C5298CA-0F9C-5932-A19D-A2E69792AE03}
@@ -972,6 +977,14 @@ SK_D3D11_CreateShader_Impl (
           );
 
           pShaderRepo->descs [This][checksum] = desc;
+
+          uintptr_t desc_ptr =
+            (uintptr_t)&pShaderRepo->descs[This][checksum];
+
+          ((ID3D11DeviceChild *)*ppShader)->SetPrivateData (
+                  SKID_D3D11KnownShaderDesc, sizeof (uintptr_t),
+                                               &desc_ptr
+          );
 
           // Only store this data if there's a chance render mod tools could access it,
           //   otherwise it's wasting memory in 32-bit games.

@@ -1,4 +1,9 @@
-﻿24.10.26
+﻿24.10.26.1
+==========
+ + Optimize SK_D3D11_SetShader_Impl (...)/SK_D3D11_EnsureMatchingDevices (...)
+     to use D3D11 Private Data lookups.
+
+24.10.26
 ========
  + Add Alt+F4 handler override to workaround Ys X's buggy Alt+F4 code that
      tends to close the game window, but leave the game running.

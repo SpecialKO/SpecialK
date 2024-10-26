@@ -337,31 +337,43 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
     }
   }
 
-
-  SK_ComPtr <ID3D11Device> pDevice;
-  pDevCtx->GetDevice     (&pDevice.p);
-
   SK_D3D11_ShaderDesc
      *pDesc    = nullptr;
   if (pShader != nullptr)
   {
-    pCritical->lock ();
+    SK_ComPtr <ID3D11Device> pDevice;
+    pDevCtx->GetDevice     (&pDevice.p);
 
-    auto& rev_map     = pShaderRepo->rev [pDevice];
-    auto  shader_desc =
-      rev_map.find (pShader);
+    UINT size = sizeof (pDesc);
 
-    pCritical->unlock ();
-
-    if (shader_desc != rev_map.end ())
+    if ( FAILED ( ((ID3D11DeviceChild *)pShader)->GetPrivateData (
+                          SKID_D3D11KnownShaderDesc, &size, &pDesc )
+                )
+       )
     {
-      pDesc =
-        shader_desc->second;
+      pCritical->lock ();
+
+      auto&  rev_map     = pShaderRepo->rev [pDevice];
+      auto   shader_desc =
+        rev_map.find (pShader);
+
+      if (shader_desc != rev_map.end ())
+      {
+        ((ID3D11DeviceChild *)pShader)->SetPrivateData (
+                SKID_D3D11KnownShaderDesc, sizeof (pDesc),
+                                             &shader_desc->second
+        );
+
+        pDesc =
+          shader_desc->second;
+      }
+
+      pCritical->unlock ();
     }
 
     if (pDesc == nullptr)
     {
-      UINT     size   =
+      size            =
         sizeof (uint32_t);
       uint32_t crc32c = 0x0;
 
@@ -378,6 +390,7 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
         pShaderRepo->descs [pDevice][crc32c].type    = pShaderRepo->type_;
         pShader->AddRef ();
 
+        auto& rev_map     = pShaderRepo->rev [pDevice];
         rev_map [pShader] =
           (pDesc = &pShaderRepo->descs [pDevice][crc32c]);
 
@@ -388,6 +401,8 @@ SK_D3D11_SetShader_Impl ( ID3D11DeviceContext        *pDevCtx,
       //   but I'm completely at a loss for how to do that :(
       else
       {
+        pDesc = nullptr;
+
         //dll_log->Log (L"Shader not in cache, and no bytecode available, so ignoring!");
         //
         //std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*pCritical);
