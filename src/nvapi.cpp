@@ -1692,8 +1692,8 @@ SK_NvAPI_PreInitHDR (void)
 BOOL
 NVAPI::InitializeLibrary (const wchar_t* wszAppName)
 {
-    std::lock_guard
-         lock (SK_NvAPI_Threading->locks.Init);
+  std::lock_guard
+       lock (SK_NvAPI_Threading->locks.Init);
 
   // It's silly to call this more than once, but not necessarily
   //  an error... just ignore repeated calls.
@@ -1749,7 +1749,7 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
     GetModuleHandleEx (GET_MODULE_HANDLE_EX_FLAG_PIN, L"nvapi.dll",   &hLib);
 #endif
 
-    if (hLib != nullptr && (! SK_IsRunDLLInvocation ()))
+    if (hLib != nullptr)
     {
       static auto NvAPI_QueryInterface =
         reinterpret_cast <NvAPI_QueryInterface_pfn> (
@@ -1803,7 +1803,7 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
         nv_hardware = false;
       }
 
-      if (NvAPI_Disp_HdrColorControl_Original == nullptr)
+      if (NvAPI_Disp_HdrColorControl_Original == nullptr && (! SK_IsRunDLLInvocation ()))
       {
         SK_CreateFuncHook (      L"NvAPI_Disp_HdrColorControl",
                                    NvAPI_QueryInterface (891134500),
@@ -1819,7 +1819,7 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
         MH_QueueEnableHook (NvAPI_QueryInterface (2230495455));
       }
 
-      if (NvAPI_Mosaic_GetDisplayViewportsByResolution_Original == nullptr)
+      if (NvAPI_Mosaic_GetDisplayViewportsByResolution_Original == nullptr && (! SK_IsRunDLLInvocation ()))
       {
         SK_CreateFuncHook (      L"NvAPI_Mosaic_GetDisplayViewportsByResolution",
                                    NvAPI_QueryInterface (0xDC6DC8D3),
@@ -1833,23 +1833,23 @@ NVAPI::InitializeLibrary (const wchar_t* wszAppName)
       if (SK_IsAdmin ())
         SK_NvAPI_AllowGFEOverlay (false, L"SKIF", L"SKIF.exe");
 
-      SK_CreateDLLHook2 ( SK_RunLHIfBitness (64, L"nvapi64.dll",
-                                                 L"nvapi.dll"),
-                                "nvapi_QueryInterface",
-                                 NvAPI_QueryInterface_Detour,
-        static_cast_p2p <void> (&NvAPI_QueryInterface_Original) );
-
-      SK_ApplyQueuedHooks ();
-
       if (! SK_IsRunDLLInvocation ())
       {
+        SK_CreateDLLHook2 ( SK_RunLHIfBitness (64, L"nvapi64.dll",
+                                                   L"nvapi.dll"),
+                                  "nvapi_QueryInterface",
+                                   NvAPI_QueryInterface_Detour,
+          static_cast_p2p <void> (&NvAPI_QueryInterface_Original) );
+
+        SK_ApplyQueuedHooks ();
+
         SK_GetCurrentRenderBackend ().nvapi.rebar =
           SK_NvAPI_DRS_GetDWORD (0x000F00BA) != 0x0;
-      }
 
 //#ifdef SK_AGGRESSIVE_HOOKS
 //      SK_ApplyQueuedHooks ();
 //#endif
+      }
     }
 
     else

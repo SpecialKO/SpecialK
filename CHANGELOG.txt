@@ -1,4 +1,10 @@
-﻿24.10.26.1
+﻿24.10.26.2
+==========
+ + Fixed SKIF not being able to disable GFE notifications due to disabled code
+ + Increase delay between first drawing an achievement unlock popup and taking
+     screenshot, so that statistics such as unlock time reliably appear.
+
+24.10.26.1
 ==========
  + Optimize SK_D3D11_SetShader_Impl (...)/SK_D3D11_EnsureMatchingDevices (...)
      to use D3D11 Private Data lookups.
