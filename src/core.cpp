@@ -3752,6 +3752,9 @@ SK_BackgroundRender_EndFrame (void)
     if (first_frame && ( SK_GetModuleHandleW (L"SDL2.dll") ||
                          SK_GetModuleHandleW (L"SDL3.dll")) )
     {
+      if (SK_GetCurrentGameID () == SK_GAME_ID::YsX)
+        config.input.keyboard.override_alt_f4 = true;
+
       // A few games change the window class name from the default...
       //   assume that the game uses SDL if one of its DLLs are loaded.
       SK_GetCurrentRenderBackend ().windows.sdl = true;

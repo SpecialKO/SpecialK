@@ -1691,6 +1691,7 @@ enum class SK_GAME_ID
   SonicXShadowGenerations,      // SONIC_X_SHADOW_GENERATIONS.exe
   SonicGenerations,             // SONIC_GENERATIONS.exe
   BrokenSword,                  // BS1R.exe
+  YsX,                          // YsX.exe
 
   UNKNOWN_GAME               = 0xffff
 };

@@ -262,7 +262,8 @@ SK_GetCurrentGameID (void)
           { L"METAPHOR.exe",                           SK_GAME_ID::Metaphor                     },
           { L"SONIC_X_SHADOW_GENERATIONS.exe",         SK_GAME_ID::SonicXShadowGenerations      },
           { L"SONIC_GENERATIONS.exe",                  SK_GAME_ID::SonicGenerations             },
-          { L"BS1R.exe",                               SK_GAME_ID::BrokenSword                  }
+          { L"BS1R.exe",                               SK_GAME_ID::BrokenSword                  },
+          { L"ysx.exe",                                SK_GAME_ID::YsX                          }
         };
 
     first_check  = false;

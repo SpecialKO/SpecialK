@@ -3320,11 +3320,12 @@ SK_ImGui_User_NewFrame (void)
     hWndFocus  = windows.focus. hwnd,
     hWndGame   =    game_window.hWnd,
     hWndMouse0 =
-       hWndDevice != 0 && IsWindow (hWndDevice) ?                             hWndDevice : nullptr,
+       hWndDevice != 0 && IsWindow (hWndDevice) ? hWndDevice : nullptr,
     hWndMouse1 =
-       hWndFocus  != 0 && IsWindow (hWndFocus) && GetTopWindow (hWndFocus) == hWndDevice ?
-                                                                hWndFocus                : hWndGame != hWndFocus ?
-                                                                                           hWndGame              : nullptr;
+       hWndFocus  != 0 && IsWindow (hWndFocus) &&
+                      GetTopWindow (hWndFocus) == hWndDevice ? hWndFocus 
+                                                             : hWndGame != hWndFocus ?
+                                                               hWndGame              : nullptr;
 
   if ( game_window.mouse.inside &&
         ( SK_GetForegroundWindow ()    == hWndMouse0   ||

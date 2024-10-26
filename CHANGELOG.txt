@@ -1,4 +1,9 @@
-﻿24.10.25.2
+﻿24.10.26
+========
+ + Add Alt+F4 handler override to workaround Ys X's buggy Alt+F4 code that
+     tends to close the game window, but leave the game running.
+
+24.10.25.2
 ==========
  + Fixed missing mouse input in Forza Horizon 5.
 
