@@ -1552,7 +1552,7 @@ SK_AchievementManager::drawPopups (void)
 
           else if (! it->final_pos)
           {
-            take_screenshot = it->achievement->unlocked_ ? 3 : take_screenshot;
+            take_screenshot = it->achievement->unlocked_ ? 5 : take_screenshot;
             it->final_pos   = true;
           }
         }
@@ -1563,7 +1563,7 @@ SK_AchievementManager::drawPopups (void)
         {
           if (eligible_for_screenshots)
           {
-            take_screenshot = it->achievement->unlocked_ ? 3 : take_screenshot;
+            take_screenshot = it->achievement->unlocked_ ? 5 : take_screenshot;
           }
           it->final_pos   = true;
         }
@@ -1676,8 +1676,10 @@ SK_AchievementManager::drawPopups (void)
           if (it->achievement->unlocked_ && it->achievement->time_ > 0)
             ImGui::TextColored (ImColor (0.85f, 0.85f, 0.85f, 1.0f),
                                 ":  %s", _ctime64 (&it->achievement->time_));
-          else
+          else if (it->achievement->progress_.getPercent () > 0.0f)
             ImGui::ProgressBar (it->achievement->progress_.getPercent () / 100.0f);
+          else
+            ImGui::Spacing     ();
 
           float x_loc = 0.0f;
           float y_loc = 0.0f;
