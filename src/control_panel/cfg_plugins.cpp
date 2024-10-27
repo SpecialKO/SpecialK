@@ -266,16 +266,24 @@ SK::ControlPanel::PlugIns::Draw (void)
 
       //if (! config.reshade.is_addon)
       {
-        changed |=
-            SK_ImGui_PlugInSelector (
-              dll_ini, "ReShade", imp_path_reshade, imp_name_reshade, reshade_official, order,
-                SK_IsInjected () ? SK_Import_LoadOrder::Lazy :
-                                   SK_Import_LoadOrder::PlugIn );
+        bool original = reshade_official;
 
-        bool compatibility = false;
+        changed |=
+          SK_ImGui_PlugInSelector (
+            dll_ini, "ReShade", imp_path_reshade, imp_name_reshade, reshade_official, order,
+              SK_IsInjected () ? SK_Import_LoadOrder::Lazy :
+                                 SK_Import_LoadOrder::PlugIn );
+
+        static bool compatibility = false;
 
         if (reshade_official)
         {
+          if (changed && !original)
+          {
+            dll_ini->get_section (imp_name_reshade).add_key_value (L"Mode", L"Compatibility");
+            config.utility.save_async ();
+          }
+
           auto& mode =
             dll_ini->get_section (imp_name_reshade).get_cvalue (L"Mode");
 
@@ -320,6 +328,11 @@ SK::ControlPanel::PlugIns::Draw (void)
             compatibility ? L"Compatibility" :
                             L"Normal"
           );
+
+          if (! compatibility)
+          {
+            dll_ini->get_section (imp_name_reshade).get_value (L"When").assign (L"Early");
+          }
 
           config.utility.save_async ();
         }
@@ -628,22 +641,22 @@ SK::ControlPanel::PlugIns::Draw (void)
       if (reshade_official)
         reshade_unofficial = false;
 
-      SK_ImGui_SavePlugInPreference (dll_ini, reshade_official,   imp_name_reshade,    L"ThirdParty", order,    imp_path_reshade   , L"");
-      SK_ImGui_SavePlugInPreference (dll_ini, reshade_unofficial, imp_name_reshade_ex, L"Unofficial", order_ex, imp_path_reshade_ex, L"");
+      SK_ImGui_SavePlugInPreference (dll_ini, reshade_official,   imp_name_reshade,    L"ThirdParty", order,    imp_path_reshade   , dll_ini->get_section (imp_name_reshade   ).get_cvalue (L"Mode").c_str ());
+      SK_ImGui_SavePlugInPreference (dll_ini, reshade_unofficial, imp_name_reshade_ex, L"Unofficial", order_ex, imp_path_reshade_ex, dll_ini->get_section (imp_name_reshade_ex).get_cvalue (L"Mode").c_str ());
 
       if (reshade_official)
       {
-        // Non-Unity engines benefit from a small (0 ms) injection delay
-        if (config.system.global_inject_delay < 0.001f)
-        {   config.system.global_inject_delay = 0.001f;
-
-          if (bUnity)
-          {
-            SK_ImGui_Warning (
-              L"NOTE: This is unlikely to work in a Unity Engine game, a local version of ReShade may be necessary."
-            );
-          }
-        }
+        ///// Non-Unity engines benefit from a small (0 ms) injection delay
+        ///if (config.system.global_inject_delay < 0.001f)
+        ///{   config.system.global_inject_delay = 0.001f;
+        ///
+        ///  if (bUnity)
+        ///  {
+        ///    SK_ImGui_Warning (
+        ///      L"NOTE: This is unlikely to work in a Unity Engine game, a local version of ReShade may be necessary."
+        ///    );
+        ///  }
+        ///}
 
         // Remove hook cache records when setting up a plug-in
         dll_ini->get_section (L"DXGI.Hooks").set_name  (L"Invalid.Section.DoNotFlush");

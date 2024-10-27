@@ -549,9 +549,11 @@ void SK_Input_PreInit (void)
     SK_SDL_SetDefaultBehavior ("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1");
 
     // Disable bad window management behavior so that SK can take full control
-    SK_SDL_SetDefaultBehavior ("SDL_HINT_FORCE_RAISEWINDOW",   "0");
-    SK_SDL_SetDefaultBehavior ("SDL_ALLOW_TOPMOST",            "0");
-    SK_SDL_SetDefaultBehavior ("SDL_MOUSE_FOCUS_CLICKTHROUGH", "1");
+    SK_SDL_SetDefaultBehavior ("SDL_HINT_FORCE_RAISEWINDOW",         "0");
+    SK_SDL_SetDefaultBehavior ("SDL_ALLOW_TOPMOST",                  "0");
+    //SK_SDL_SetDefaultBehavior ("SDL_POLL_SENTINEL",                  "0");
+    //SK_SDL_SetDefaultBehavior ("SDL_WINDOWS_ENABLE_MESSAGELOOP",     "0");
+    SK_SDL_SetDefaultBehavior ("SDL_MOUSE_FOCUS_CLICKTHROUGH",       "1");
   }
 
 
