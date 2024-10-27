@@ -937,13 +937,13 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
   {
     if (SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
     {
-      ShowCursor  (TRUE);
-      ShowWindow  ( SK_GetForegroundWindow (), SW_HIDE );
-      MessageBox  ( SK_GetForegroundWindow (),
-                      L"Please re-configure this game to run in windowed mode",
-                        L"Special K Conflict",
-                          MB_OK        | MB_SETFOREGROUND |
-                          MB_APPLMODAL | MB_ICONASTERISK );
+      ShowCursor    (TRUE);
+      SK_ShowWindow ( SK_GetForegroundWindow (), SW_HIDE );
+      MessageBox    ( SK_GetForegroundWindow (),
+                        L"Please re-configure this game to run in windowed mode",
+                          L"Special K Conflict",
+                            MB_OK        | MB_SETFOREGROUND |
+                            MB_APPLMODAL | MB_ICONASTERISK );
 
       SK_ShellExecuteW (HWND_DESKTOP, L"open", L"WOFF_config.exe", nullptr, nullptr, SW_NORMAL);
 

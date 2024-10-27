@@ -1,6 +1,10 @@
 ﻿24.10.27.4
 ==========
- + Add cached memory addresses for framerate unlock for Elden Ring 2.6.0.0
+ + Add cached memory addresses for framerate unlock for Elden Ring 2.6.0.0.
+ + Make sure SK always calls the real ShowWindow (...) instead of its hook.
+ + Handle undocumented special cases SWP_NOMOVECLIENT and SWP_NOSIZECLIENT,
+     to fix problems with Sonic Generations (presumably a Windows AppCompat
+       hack that ships with Windows).
 
 24.10.27.3
 ==========

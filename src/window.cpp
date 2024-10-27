@@ -1961,13 +1961,25 @@ SetWindowPlacement_Detour(
 
 BOOL
 WINAPI
-ShowWindow_Detour(
+SK_ShowWindow (
   _In_ HWND hWnd,
-  _In_ int  nCmdShow)
+  _In_ int  nCmdShow )
+{
+  return
+    ShowWindow_Original != nullptr       ?
+    ShowWindow_Original (hWnd, nCmdShow) :
+    ShowWindow          (hWnd, nCmdShow);
+}
+
+BOOL
+WINAPI
+ShowWindow_Detour (
+  _In_ HWND hWnd,
+  _In_ int  nCmdShow )
 {
   SK_LOG_FIRST_CALL
 
-  if (hWnd != 0 && hWnd == game_window.hWnd && SK_Window_HasBorder (game_window.hWnd))
+  if (hWnd != 0 && hWnd == game_window.hWnd && config.window.borderless)
   {
     if (nCmdShow == SW_SHOWMINIMIZED)
         nCmdShow  = SW_SHOW;
@@ -2017,7 +2029,7 @@ SetWindowPos_Detour(
 
     if (dwThreadId != SK_GetCurrentThreadId ())
     {
-      uFlags |= SWP_ASYNCWINDOWPOS;
+      //uFlags |= SWP_ASYNCWINDOWPOS;
     }
   }
 
@@ -3394,10 +3406,8 @@ SK_AdjustBorder (void)
                         origin_x, origin_y,
                         new_window.right  - new_window.left,
                         new_window.bottom - new_window.top,
-                        SWP_NOZORDER     | SWP_NOREPOSITION   |
+                        SWP_NOZORDER     | SWP_NOREPOSITION   | SWP_SHOWWINDOW |
                         SWP_FRAMECHANGED | SWP_NOSENDCHANGING | SWP_NOACTIVATE );
-
-      ShowWindow (game_window.hWnd, SW_SHOWNA);
     }
   }
 
@@ -5685,25 +5695,33 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     case WM_WINDOWPOSCHANGED:
     {
+#define SWP_NOCLIENTSIZE 0x0800
+#define SWP_NOCLIENTMOVE 0x1000
+
       if (hWnd == game_window.hWnd || hWnd == game_window.child)
       {
         const WINDOWPOS*
                pWindowPos = (WINDOWPOS *)lParam;
         if (! (pWindowPos->flags & (SWP_NOSENDCHANGING | SWP_HIDEWINDOW)) ||
-               pWindowPos->flags &  SWP_FRAMECHANGED)
+              (pWindowPos->flags &  SWP_FRAMECHANGED))
         {
           if ((pWindowPos->flags & (SWP_NOMOVE | SWP_NOSIZE)) !=
                                    (SWP_NOMOVE | SWP_NOSIZE)  ||
               (pWindowPos->flags &  SWP_FRAMECHANGED))
           {
-            repositioned = true;
+            // Sonic Generations needs this, or will endlessly change the window frame
+            if ((pWindowPos->flags &  SWP_FRAMECHANGED) &&
+                (pWindowPos->flags & (SWP_NOCLIENTSIZE | SWP_NOCLIENTMOVE)))
+            {
+              return
+                game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+            }
+
+            if (! (pWindowPos->flags & SWP_NOSENDCHANGING))
+              repositioned = true;
           }
         }
       }
-
-      // No idea what's wrong with this game
-      if (SK_GetCurrentGameID () == SK_GAME_ID::SonicGenerations)
-        repositioned = false;
     } break;
 
     case WM_SYSCOMMAND:
@@ -8272,8 +8290,8 @@ SK_Win32_CreateBackgroundWindow (void)
     if (GetWindowText (game_window.hWnd,        wszTitle, 127))
         SetWindowText (SK_Win32_BackgroundHWND, wszTitle);
 
-    ShowWindow   (SK_Win32_BackgroundHWND, SW_SHOW);
-    UpdateWindow (SK_Win32_BackgroundHWND);
+    SK_ShowWindow (SK_Win32_BackgroundHWND, SW_SHOW);
+    UpdateWindow  (SK_Win32_BackgroundHWND);
 
     // Wakes up a lot, to do nothing...
     SK_Thread_ScopedPriority priority (
@@ -8309,7 +8327,7 @@ SK_Win32_CreateBackgroundWindow (void)
         if ( std::exchange (last_state, config.display.aspect_ratio_stretch) !=
                                         config.display.aspect_ratio_stretch )
         {
-          ShowWindow ( SK_Win32_BackgroundHWND,
+          SK_ShowWindow ( SK_Win32_BackgroundHWND,
             config.display.aspect_ratio_stretch ? SW_SHOWNA
                                                 : SW_HIDE );
         }
@@ -8562,7 +8580,7 @@ SK_Window_CreateTopMostFixupThread (void)
         }
       };
 
-      ShowWindow (game_window.hWnd, SW_HIDE);
+      SK_ShowWindow (game_window.hWnd, SW_HIDE);
 
       SK_Thread_CloseSelf ();
 

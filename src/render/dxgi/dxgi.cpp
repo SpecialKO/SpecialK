@@ -6768,7 +6768,7 @@ SK_AMD_CheckForOpenGLInterop (LPCVOID lpReturnAddr, HWND& hWnd)
       HWND hWndFake =
         SK_Win32_CreateDummyWindow (0);
 
-      ShowWindow (
+      SK_ShowWindow (
              hWndFake, SW_HIDE);
       hWnd = hWndFake;
 

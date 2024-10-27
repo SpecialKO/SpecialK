@@ -2507,7 +2507,7 @@ SK_Win32_CreateDummyWindow (HWND hWndParent)
           {
             HWND hWnd = (HWND)user;
 
-            ShowWindow (hWnd, SW_HIDE);
+            SK_ShowWindow (hWnd, SW_HIDE);
 
             MSG                     msg = { };
             while (SK_GetMessageW (&msg, 0, 0, 0))
@@ -2812,10 +2812,10 @@ constexpr UINT WM_SKIF_EVENT_SIGNAL = WM_USER + 0x3000;
       if (SK_Inject_GetFocusWindow (            ) == nullptr)
           SK_Inject_SetFocusWindow (hWndExisting);
 
-      if (             IsMinimized (hWndExisting))
-        ShowWindow                 (hWndExisting, SW_SHOWNORMAL);
+      if (                IsIconic (hWndExisting))
+        SK_ShowWindow              (hWndExisting, SW_RESTORE);
       else
-        ShowWindow                 (hWndExisting, SW_SHOW);
+        SK_ShowWindow              (hWndExisting, SW_SHOW);
     }
   }
 }
@@ -3387,8 +3387,8 @@ SK_FrameCallback ( SK_RenderBackend& rb,
                 }
 
                 // Activate the window
-                if (IsMinimized (  game_window.hWnd))
-                  ShowWindowAsync (game_window.hWnd, SW_SHOWNORMAL);
+                if (IsIconic      (game_window.hWnd))
+                  ShowWindowAsync (game_window.hWnd, SW_RESTORE);
                 else
                   ShowWindowAsync (game_window.hWnd, SW_SHOW);
 
@@ -3734,9 +3734,9 @@ SK_BackgroundRender_EndFrame (void)
                       & ~WS_EX_TOOLWINDOW );
                      // And remove one that prevents taskbar activation...
 
-      if (IsMinimized (hWndGame))
+      if (IsIconic               ( hWndGame ))
         ShowWindowAsync          ( hWndGame,
-                                     SW_SHOWNORMAL );
+                                     SW_RESTORE );
       else
         ShowWindowAsync          ( hWndGame,
                                      SW_SHOW );

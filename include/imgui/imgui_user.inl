@@ -1365,6 +1365,13 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
 
     switch (LOWORD (wParam & 0xFFF0))
     {
+      case SC_MINIMIZE:
+      {
+        // Minimizing while these things are set would cause problems
+        if (config.window.borderless || !SK_Window_HasBorder (game_window.hWnd))
+          return 1;
+      } break;
+
       case SC_RESTORE:
       case SC_SIZE:
       case SC_PREVWINDOW:
@@ -2106,9 +2113,9 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
               IsMinimized (hWndLastApp) ? SW_SHOWNORMAL
                                         : SW_SHOW;
 
-            ShowWindow                 (hWndLastApp, show_cmd);
+            SK_ShowWindow              (hWndLastApp, show_cmd);
             SK_RealizeForegroundWindow (hWndLastApp);
-            ShowWindow                 (hWndLastApp, show_cmd);
+            SK_ShowWindow              (hWndLastApp, show_cmd);
           }
 
           bChordActivated = true;
@@ -3568,15 +3575,15 @@ SK_ImGui_User_NewFrame (void)
     static bool last_up   = io.KeysDown [VK_UP];
     if (     (io.KeysDown [VK_LWIN] || io.KeysDown [VK_RWIN]) && io.KeysDown [VK_DOWN] && !last_down && !SK_Window_HasBorder (game_window.hWnd))
     {
-      if (! IsIconic (game_window.hWnd))
-        ShowWindow (game_window.hWnd, SW_MINIMIZE);
+      if (! IsIconic  (game_window.hWnd))
+        SK_ShowWindow (game_window.hWnd, SW_MINIMIZE);
     }
     else if ((io.KeysDown [VK_LWIN] || io.KeysDown [VK_RWIN]) && io.KeysDown [VK_UP]   && !last_up   && !SK_Window_HasBorder (game_window.hWnd))
     {
-      if (IsIconic (game_window.hWnd))
-        ShowWindow (game_window.hWnd, SW_RESTORE);
+      if (IsIconic    (game_window.hWnd))
+        SK_ShowWindow (game_window.hWnd, SW_SHOWNOACTIVATE);
       //else
-      //  ShowWindow (game_window.hWnd, SW_MAXIMIZE); // This causes some games to break
+      //  ShowWindow (game_window.hWnd, SW_MAXIMIZE); // This causes some games to break due to implicit activation
     }
     last_down = io.KeysDown [VK_DOWN];
     last_up   = io.KeysDown [VK_DOWN];

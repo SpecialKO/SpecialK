@@ -850,6 +850,8 @@ bool
     EqualRect (&rectGame, &rectIntersect);
 };
 
+BOOL WINAPI SK_ShowWindow (HWND hWnd, int nCmdShow);
+
 bool SK_Window_HasBorder      (HWND hWnd = game_window.hWnd);
 void SK_Window_RemoveBorders  (void);
 void SK_Window_RestoreBorders (DWORD dwStyle, DWORD dwStyleEx);

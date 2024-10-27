@@ -1627,7 +1627,7 @@ SK_DXGI_SwapChain_SetFullscreenState_Impl (
                            pSwapChain1 (pSwapChain);
                                         pSwapChain1->GetHwnd (&hWnd);
           SK_RealizeForegroundWindow (                         hWnd);
-                          ShowWindow (hWnd,                 SW_SHOW);
+                       SK_ShowWindow (hWnd,                 SW_SHOW);
         }
       }
 

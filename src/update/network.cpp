@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -808,10 +808,10 @@ Update_DlgProc (
       // Initiate the update automatically.
       if (SK_IsHostAppSKIM ())
       {
-        ShowWindow (hWndBackup,                           SW_HIDE);
-        ShowWindow (hWndKeepDownloads,                    SW_HIDE);
-        ShowWindow (GetDlgItem (hWndDlg, IDC_AUTO_CMD),   SW_HIDE);
-        ShowWindow (GetDlgItem (hWndDlg, IDC_MANUAL_CMD), SW_HIDE);
+        SK_ShowWindow (hWndBackup,                           SW_HIDE);
+        SK_ShowWindow (hWndKeepDownloads,                    SW_HIDE);
+        SK_ShowWindow (GetDlgItem (hWndDlg, IDC_AUTO_CMD),   SW_HIDE);
+        SK_ShowWindow (GetDlgItem (hWndDlg, IDC_MANUAL_CMD), SW_HIDE);
 
         swprintf ( wszDownloadSize, L"Download:   %5.2f MiB",
                      (double)fsize / (1024.0 * 1024.0) );
