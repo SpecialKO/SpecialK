@@ -1,4 +1,18 @@
-﻿24.10.26.2
+﻿24.10.27
+========
+ + HDR Remastered tooltip now ONLY counts memory for remastered RenderTargets
+     and Unordered Access Views that are -still- in memory, and values decrease
+       as a game unloads remastered resources.
+
+    * It now accurately measures extra VRAM used by having remasters enabled
+
+ + Remastered D3D11 RenderTargets and Unordered Access Views now have names
+     describing the type of resource, a unique ID and the original Surface
+       format before SK upgraded it to R16[G16[B16A16]]_{FLOAT|UNORM}.
+
+    * Names appear in debug logs and the Render Mod Tools (Live Render Targets)
+
+24.10.26.2
 ==========
  + Fixed SKIF not being able to disable GFE notifications due to disabled code
  + Increase delay between first drawing an achievement unlock popup and taking
