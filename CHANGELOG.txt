@@ -1,4 +1,8 @@
-﻿24.10.27.3
+﻿24.10.27.4
+==========
+ + Add cached memory addresses for framerate unlock for Elden Ring 2.6.0.0
+
+24.10.27.3
 ==========
  + Added support for minimizing/restoring borderless games by pressing the
      normal Windows keybinds to do so (Win+Down / Win+Up).

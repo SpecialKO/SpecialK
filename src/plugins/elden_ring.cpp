@@ -634,6 +634,11 @@ SK_ER_InitConfig (void)
        { { "clock_tick0",  0x0E826B2 }, { "clock_tick1",  0x0E826D1 },
          { "clock_tick2",  0x0       }, { "clock_tick3",  0x0E821CD },
          { "clock_tick4",  0x0E826DD }, { "clock_tick5",  0x0F8CD38 } };
+  addresses [L"ELDEN RING™  2.6.0.0"].
+   cached =
+       { { "clock_tick0",  0x0E82AD2 }, { "clock_tick1",  0x0E82AF1 },
+         { "clock_tick2",  0x0       }, { "clock_tick3",  0x0E825ED },
+         { "clock_tick4",  0x0E82AFD }, { "clock_tick5",  0x0F8D158 } };
 
   uint8_t stack_size = 0x1C; // 2.2.0.0+
 
