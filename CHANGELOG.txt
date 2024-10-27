@@ -1,4 +1,9 @@
-﻿24.10.27.2
+﻿24.10.27.3
+==========
+ + Added support for minimizing/restoring borderless games by pressing the
+     normal Windows keybinds to do so (Win+Down / Win+Up).
+
+24.10.27.2
 ==========
  + Avoid unnecessary window position and border style API calls when no actual
      change is required.

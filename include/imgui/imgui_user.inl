@@ -3550,7 +3550,7 @@ SK_ImGui_User_NewFrame (void)
   else
     io.MouseDrawCursor = false;
 
-  
+
   if (bActive)
   {
     if (SK_ImGui_Active () || SK_ImGui_WantMouseCapture ())
@@ -3562,6 +3562,24 @@ SK_ImGui_User_NewFrame (void)
       SK_ClipCursor (&game_window.actual.window);
     else
       SK_ClipCursor (&game_window.cursor_clip);
+
+    // Implement Minimizing/Restoring Borderless Games Using Windows+Down/Up
+    static bool last_down = io.KeysDown [VK_DOWN];
+    static bool last_up   = io.KeysDown [VK_UP];
+    if (     (io.KeysDown [VK_LWIN] || io.KeysDown [VK_RWIN]) && io.KeysDown [VK_DOWN] && !last_down && !SK_Window_HasBorder (game_window.hWnd))
+    {
+      if (! IsIconic (game_window.hWnd))
+        ShowWindow (game_window.hWnd, SW_MINIMIZE);
+    }
+    else if ((io.KeysDown [VK_LWIN] || io.KeysDown [VK_RWIN]) && io.KeysDown [VK_UP]   && !last_up   && !SK_Window_HasBorder (game_window.hWnd))
+    {
+      if (IsIconic (game_window.hWnd))
+        ShowWindow (game_window.hWnd, SW_RESTORE);
+      //else
+      //  ShowWindow (game_window.hWnd, SW_MAXIMIZE); // This causes some games to break
+    }
+    last_down = io.KeysDown [VK_DOWN];
+    last_up   = io.KeysDown [VK_DOWN];
   }
 
 

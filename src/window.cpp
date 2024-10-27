@@ -1967,7 +1967,7 @@ ShowWindow_Detour(
 {
   SK_LOG_FIRST_CALL
 
-  if (hWnd != 0 && hWnd == game_window.hWnd)
+  if (hWnd != 0 && hWnd == game_window.hWnd && SK_Window_HasBorder (game_window.hWnd))
   {
     if (nCmdShow == SW_SHOWMINIMIZED)
         nCmdShow  = SW_SHOW;
