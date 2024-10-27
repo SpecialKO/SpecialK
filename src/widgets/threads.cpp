@@ -1446,49 +1446,49 @@ public:
               SKWG_Threads->insert (
                 std::make_pair ( dwLocalTID, ptEntry )
               );
-            }
 
-            if ( config.render.framerate.enable_mmcss &&
-                 SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey )
-            {
-              if (! ptEntry->name.empty ())
+              if ( config.render.framerate.enable_mmcss &&
+                   SK_GetCurrentGameID () == SK_GAME_ID::AssassinsCreed_Odyssey )
               {
-                std::string utf8_name =
-                  SK_WideCharToUTF8 (ptEntry->name);
-
-                if (ptEntry->name._Equal (L"AsyncFileCompletionThread"))
+                if (! ptEntry->name.empty ())
                 {
-                  SK_MMCS_TaskEntry* task_me =
-                    SK_MMCS_GetTaskForThreadIDEx (ptEntry->dwTid, utf8_name.c_str (), "Audio", "Capture");
+                  std::string utf8_name =
+                    SK_WideCharToUTF8 (ptEntry->name);
 
-                  if (task_me != nullptr)
+                  if (ptEntry->name._Equal (L"AsyncFileCompletionThread"))
                   {
-                    task_me->setMaxCharacteristics ("Audio", "Capture");
-                    task_me->setPriority           (AVRT_PRIORITY_HIGH);
+                    SK_MMCS_TaskEntry* task_me =
+                      SK_MMCS_GetTaskForThreadIDEx (ptEntry->dwTid, utf8_name.c_str (), "Audio", "Capture");
+
+                    if (task_me != nullptr)
+                    {
+                      task_me->setMaxCharacteristics ("Audio", "Capture");
+                      task_me->setPriority           (AVRT_PRIORITY_HIGH);
+                    }
                   }
-                }
 
-                if (ptEntry->name._Equal (L"Loading Thread"))
-                {
-                  SK_MMCS_TaskEntry* task_me =
-                    SK_MMCS_GetTaskForThreadIDEx (ptEntry->dwTid, utf8_name.c_str (), "Playback", "Distribution");
-
-                  if (task_me != nullptr)
+                  if (ptEntry->name._Equal (L"Loading Thread"))
                   {
-                    task_me->setMaxCharacteristics ("Playback", "Distribution");
-                    task_me->setPriority           (AVRT_PRIORITY_HIGH);
+                    SK_MMCS_TaskEntry* task_me =
+                      SK_MMCS_GetTaskForThreadIDEx (ptEntry->dwTid, utf8_name.c_str (), "Playback", "Distribution");
+
+                    if (task_me != nullptr)
+                    {
+                      task_me->setMaxCharacteristics ("Playback", "Distribution");
+                      task_me->setPriority           (AVRT_PRIORITY_HIGH);
+                    }
                   }
-                }
 
-                if (ptEntry->name._Equal (L"EngineWindowThread"))
-                {
-                  SK_MMCS_TaskEntry* task_me =
-                    SK_MMCS_GetTaskForThreadIDEx (ptEntry->dwTid, utf8_name.c_str (), "Playback", "Window Manager");
-
-                  if (task_me != nullptr)
+                  if (ptEntry->name._Equal (L"EngineWindowThread"))
                   {
-                    task_me->setMaxCharacteristics ("Playback", "Window Manager");
-                    task_me->setPriority           (AVRT_PRIORITY_NORMAL);
+                    SK_MMCS_TaskEntry* task_me =
+                      SK_MMCS_GetTaskForThreadIDEx (ptEntry->dwTid, utf8_name.c_str (), "Playback", "Window Manager");
+
+                    if (task_me != nullptr)
+                    {
+                      task_me->setMaxCharacteristics ("Playback", "Window Manager");
+                      task_me->setPriority           (AVRT_PRIORITY_NORMAL);
+                    }
                   }
                 }
               }

@@ -1,4 +1,11 @@
-﻿24.10.27.1
+﻿24.10.27.2
+==========
+ + Avoid unnecessary window position and border style API calls when no actual
+     change is required.
+ + Allow WS_ICONIC window style to be set if borderless override is not on.
+ + Add WS_EX_WINDOWEDGE to list of extended window styles that have borders.
+
+24.10.27.1
 ==========
  + Fixed rare deadlock when an application deletes the D3D11 Immediate Device
      Context for a device during shutdown.

@@ -204,7 +204,8 @@ public:
 
   static constexpr bool StyleExHasBorder (DWORD_PTR style_ex)
   {
-    return ( ( style_ex & WS_EX_CLIENTEDGE ) );
+    return ( ( style_ex & WS_EX_CLIENTEDGE ) ||
+             ( style_ex & WS_EX_WINDOWEDGE ) );
   }
 
   bool OnVarChange (SK_IVariable* var, void* val) override
@@ -3138,10 +3139,10 @@ SK_SetWindowStyle (DWORD_PTR dwStyle_ptr, SetWindowLongPtr_pfn pDispatchFunc)
 
   // Minimal sane set of extended window styles for sane rendering
   dwStyle |=  ( WS_VISIBLE );
-  dwStyle &= ~( WS_DISABLED | WS_ICONIC  | WS_CHILD );
+  dwStyle &= ~( WS_DISABLED);
 
   if (config.window.borderless)
-    dwStyle &= ~( WS_GROUP | WS_SYSMENU );
+    dwStyle &= ~( WS_GROUP | WS_SYSMENU | WS_ICONIC );
 
 
   game_window.actual.style = dwStyle;
@@ -3164,10 +3165,12 @@ SK_SetWindowStyleEx ( DWORD_PTR            dwStyleEx_ptr,
            (dwStyleEx_ptr & 0xFFFFFFFF);
 
   // Minimal sane set of extended window styles for sane rendering
-  dwStyleEx |=   WS_EX_APPWINDOW;
-  dwStyleEx &= ~(WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_LAYOUTRTL  |
-                 WS_EX_RIGHT      | WS_EX_RTLREADING  | WS_EX_TOOLWINDOW |
-                 WS_EX_CLIENTEDGE);
+  dwStyleEx |=    WS_EX_APPWINDOW;
+  dwStyleEx &= ~( WS_EX_NOACTIVATE | WS_EX_TRANSPARENT | WS_EX_LAYOUTRTL |
+                  WS_EX_RIGHT      | WS_EX_RTLREADING  | WS_EX_TOOLWINDOW );
+
+  if (config.window.borderless)
+    dwStyleEx &= ~( WS_EX_CLIENTEDGE | WS_EX_WINDOWEDGE );
 
   game_window.actual.style_ex = DWORD_PTR (dwStyleEx);
 
@@ -3232,8 +3235,8 @@ SK_IsRectTooBigForDesktop (const RECT& wndRect)
   mi.cbSize        = sizeof (mi);
   GetMonitorInfo (hMonitor, &mi);
 
-  int win_width      = wndRect.right       - wndRect.left;
-  int win_height     = wndRect.bottom      - wndRect.top;
+  int win_width  = wndRect.right  - wndRect.left;
+  int win_height = wndRect.bottom - wndRect.top;
 
   if (! config.window.res.override.isZero ())
   {
@@ -3316,10 +3319,13 @@ SK_AdjustBorder (void)
   //   actual value
   SK_Window_WaitForAsyncSetWindowLong ();
 
-  game_window.actual.style    =
-    game_window.GetWindowLongPtr ( game_window.hWnd, GWL_STYLE   );
-  game_window.actual.style_ex =
+  DWORD_PTR dwStyleBefore   =
+    game_window.GetWindowLongPtr ( game_window.hWnd, GWL_STYLE   ),
+            dwStyleExBefore =
     game_window.GetWindowLongPtr ( game_window.hWnd, GWL_EXSTYLE );
+
+  game_window.actual.style    = dwStyleBefore;
+  game_window.actual.style_ex = dwStyleExBefore;
 
   const bool has_border =
     SK_WindowManager::StyleHasBorder (
@@ -3355,40 +3361,44 @@ SK_AdjustBorder (void)
     game_window.attach_border = false;
   }
 
-  RECT                                 orig_client = { };
-  SK_GetClientRect (game_window.hWnd, &orig_client);
-
-  const RECT new_client =
-    SK_ComputeClientSize ();
-
-  RECT  new_window = new_client;
-  POINT origin     { new_client.left, new_client.top };//SK_ComputeClientOrigin ();
-
-  ClientToScreen (game_window.hWnd, &origin);
-
-  SK_SetWindowStyle   ( game_window.actual.style    );
-  SK_SetWindowStyleEx ( game_window.actual.style_ex );
-
-  if ( SK_AdjustWindowRectEx ( &new_window,
-      sk::narrow_cast <DWORD> ( game_window.actual.style    ),
-                       FALSE,
-      sk::narrow_cast <DWORD> ( game_window.actual.style_ex ) )
-     )
+  if (game_window.actual.style    != dwStyleBefore ||
+      game_window.actual.style_ex != dwStyleExBefore)
   {
-    const bool had_border = has_border;
+    RECT                                 orig_client = { };
+    SK_GetClientRect (game_window.hWnd, &orig_client);
 
-    const int origin_x = had_border ? origin.x + orig_client.left : origin.x;
-    const int origin_y = had_border ? origin.y + orig_client.top  : origin.y;
+    const RECT new_client =
+      SK_ComputeClientSize ();
 
-    SK_SetWindowPos ( game_window.hWnd,
-                      SK_HWND_TOP,
-                      origin_x, origin_y,
-                      new_window.right  - new_window.left,
-                      new_window.bottom - new_window.top,
-                      SWP_NOZORDER     | SWP_NOREPOSITION   |
-                      SWP_FRAMECHANGED | SWP_NOSENDCHANGING | SWP_NOACTIVATE );
+    RECT  new_window = new_client;
+    POINT origin     { new_client.left, new_client.top };//SK_ComputeClientOrigin ();
 
-    ShowWindow (game_window.hWnd, SW_SHOWNA);
+    ClientToScreen (game_window.hWnd, &origin);
+
+    SK_SetWindowStyle   ( game_window.actual.style    );
+    SK_SetWindowStyleEx ( game_window.actual.style_ex );
+
+    if ( SK_AdjustWindowRectEx ( &new_window,
+        sk::narrow_cast <DWORD> ( game_window.actual.style    ),
+                         FALSE,
+        sk::narrow_cast <DWORD> ( game_window.actual.style_ex ) )
+       )
+    {
+      const bool had_border = has_border;
+
+      const int origin_x = had_border ? origin.x + orig_client.left : origin.x;
+      const int origin_y = had_border ? origin.y + orig_client.top  : origin.y;
+
+      SK_SetWindowPos ( game_window.hWnd,
+                        SK_HWND_TOP,
+                        origin_x, origin_y,
+                        new_window.right  - new_window.left,
+                        new_window.bottom - new_window.top,
+                        SWP_NOZORDER     | SWP_NOREPOSITION   |
+                        SWP_FRAMECHANGED | SWP_NOSENDCHANGING | SWP_NOACTIVATE );
+
+      ShowWindow (game_window.hWnd, SW_SHOWNA);
+    }
   }
 
   GetWindowRect (game_window.hWnd, &game_window.actual.window);
@@ -3766,23 +3776,29 @@ SK_AdjustWindow (void)
     SK_LOG4 ( (L" > SK_AdjustWindow (Fullscreen)"),
              L"Window Mgr" );
 
-    SK_SetWindowPos ( game_window.hWnd,
-                      SK_HWND_TOP,
-                      mi.rcMonitor.left,
-                      mi.rcMonitor.top,
+    RECT                                 window_rect = {};
+    SK_GetWindowRect (game_window.hWnd, &window_rect);
+
+    if (! EqualRect (&mi.rcMonitor, &window_rect))
+    {
+      SK_SetWindowPos ( game_window.hWnd,
+                        SK_HWND_TOP,
+                        mi.rcMonitor.left,
+                        mi.rcMonitor.top,
+                        mi.rcMonitor.right  - mi.rcMonitor.left,
+                        mi.rcMonitor.bottom - mi.rcMonitor.top,
+                        SWP_NOSENDCHANGING | SWP_NOZORDER   | SWP_ASYNCWINDOWPOS |
+                        SWP_NOREPOSITION   | SWP_SHOWWINDOW | SWP_NOACTIVATE );
+
+      SK_LOG1 ( ( L"FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
+                      mi.rcMonitor.left,    mi.rcMonitor.top,
                       mi.rcMonitor.right  - mi.rcMonitor.left,
-                      mi.rcMonitor.bottom - mi.rcMonitor.top,
-                      SWP_NOSENDCHANGING | SWP_NOZORDER   | SWP_ASYNCWINDOWPOS |
-                      SWP_NOREPOSITION   | SWP_SHOWWINDOW | SWP_NOACTIVATE );
+                      mi.rcMonitor.bottom - mi.rcMonitor.top
+                ), L"Border Mgr" );
 
-    SK_LOG1 ( ( L"FULLSCREEN => {Left: %li, Top: %li} - (WxH: %lix%li)",
-                    mi.rcMonitor.left,    mi.rcMonitor.top,
-                    mi.rcMonitor.right  - mi.rcMonitor.left,
-                    mi.rcMonitor.bottom - mi.rcMonitor.top
-              ), L"Border Mgr" );
-
-    // Must set this or the mouse cursor clip rect will be wrong
-    CopyRect (&game_window.actual.window, &mi.rcMonitor);
+      // Must set this or the mouse cursor clip rect will be wrong
+      CopyRect (&game_window.actual.window, &mi.rcMonitor);
+    }
   }
 
   else
@@ -4040,17 +4056,28 @@ SK_AdjustWindow (void)
     if (game_window.actual.window.right  - game_window.actual.window.left > 0 &&
         game_window.actual.window.bottom - game_window.actual.window.top  > 0 )
     {
-      // Yes, so apply the new dimensions
-      SK_SetWindowPos ( game_window.hWnd,
-                        SK_HWND_TOP,
-                        game_window.actual.window.left,
-                        game_window.actual.window.top,
-                        game_window.actual.window.right  - game_window.actual.window.left,
-                        game_window.actual.window.bottom - game_window.actual.window.top,
-                        SWP_NOSENDCHANGING | SWP_NOZORDER   |
-                        SWP_NOREPOSITION   | SWP_SHOWWINDOW |
-                        (nomove ? SWP_NOMOVE : 0x00) |
-                        (nosize ? SWP_NOSIZE : 0x00) | SWP_NOACTIVATE );
+      RECT                                 window_rect = {};
+      SK_GetWindowRect (game_window.hWnd, &window_rect);
+
+      if (((! nomove) && (window_rect.left != game_window.actual.window.left  ||
+                          window_rect.top  != game_window.actual.window.top)) ||
+          ((! nosize) && ((              window_rect.right -               window_rect.left  ) !=
+                          (game_window.actual.window.right - game_window.actual.window.left  ))||
+                          (              window_rect.top   -               window_rect.bottom) !=
+                          (game_window.actual.window.top   - game_window.actual.window.bottom)))
+      {
+        // Yes, so apply the new dimensions
+        SK_SetWindowPos ( game_window.hWnd,
+                          SK_HWND_TOP,
+                          game_window.actual.window.left,
+                          game_window.actual.window.top,
+                          game_window.actual.window.right  - game_window.actual.window.left,
+                          game_window.actual.window.bottom - game_window.actual.window.top,
+                          SWP_NOSENDCHANGING | SWP_NOZORDER   |
+                          SWP_NOREPOSITION   | SWP_SHOWWINDOW |
+                          (nomove ? SWP_NOMOVE : 0x00) |
+                          (nosize ? SWP_NOSIZE : 0x00) | SWP_NOACTIVATE );
+      }
     }
     SK_GetWindowRect (game_window.hWnd, &game_window.game.window);
     SK_GetClientRect (game_window.hWnd, &game_window.game.client);
@@ -5498,6 +5525,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 #endif
 
 
+  bool repositioned = false;
+
   switch (uMsg)
   {
     case 0xf00f:
@@ -5660,9 +5689,21 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       {
         const WINDOWPOS*
                pWindowPos = (WINDOWPOS *)lParam;
-        if (! (pWindowPos->flags & SWP_NOSENDCHANGING))
-          SK_Window_RepositionIfNeeded ();
+        if (! (pWindowPos->flags & (SWP_NOSENDCHANGING | SWP_HIDEWINDOW)) ||
+               pWindowPos->flags &  SWP_FRAMECHANGED)
+        {
+          if ((pWindowPos->flags & (SWP_NOMOVE | SWP_NOSIZE)) !=
+                                   (SWP_NOMOVE | SWP_NOSIZE)  ||
+              (pWindowPos->flags &  SWP_FRAMECHANGED))
+          {
+            repositioned = true;
+          }
+        }
       }
+
+      // No idea what's wrong with this game
+      if (SK_GetCurrentGameID () == SK_GAME_ID::SonicGenerations)
+        repositioned = false;
     } break;
 
     case WM_SYSCOMMAND:
@@ -6159,6 +6200,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         return 0;
     }
   }
+
+  if (repositioned)
+    SK_Window_RepositionIfNeeded ();
 
   return lRet;
 }
