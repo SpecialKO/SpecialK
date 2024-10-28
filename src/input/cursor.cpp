@@ -125,10 +125,10 @@ ShowCursor_Detour (BOOL bShow)
 
   const bool bCanHide =
     ((config.input.cursor.manage == false || config.input.cursor.timeout == 0 || SK_Window_IsCursorActive () == false) &&
-                ((! bIsCapturing) || config.input.ui.use_hw_cursor == false)) || SK_ImGui_Cursor.force == sk_cursor_state::Hidden;
+                ((! bIsCapturing) || SK_ImGui_WantHWCursor () == false))      || SK_ImGui_Cursor.force == sk_cursor_state::Hidden;
   const bool bCanShow =
     ((config.input.cursor.manage == false ||(config.input.cursor.timeout != 0 && SK_Window_IsCursorActive () == true)) &&
-                ((! bIsCapturing) || config.input.ui.use_hw_cursor == true )) || SK_ImGui_Cursor.force == sk_cursor_state::Visible;
+                ((! bIsCapturing) || SK_ImGui_WantHWCursor () == true))       || SK_ImGui_Cursor.force == sk_cursor_state::Visible;
 
 
   static int expected_val = 0;
@@ -154,7 +154,7 @@ ShowCursor_Detour (BOOL bShow)
   {
     if (bIsCapturing)
     {
-      bShow = config.input.ui.use_hw_cursor;
+      bShow = SK_ImGui_WantHWCursor ();
     }
 
     if (bIsShowing)
@@ -200,7 +200,7 @@ ShowCursor_Detour (BOOL bShow)
   else if (bIsCapturing || SK_ImGui_Cursor.force != sk_cursor_state::None)
   {
     if (SK_ImGui_Cursor.force == sk_cursor_state::None)
-      bShow = config.input.ui.use_hw_cursor;
+      bShow = SK_ImGui_WantHWCursor ();
 
     if (bShow)
     {
@@ -399,7 +399,7 @@ sk_imgui_cursor_s::ScreenToLocal (LPPOINT lpPoint)
 HCURSOR
 ImGui_DesiredCursor (void)
 {
-  if (! config.input.ui.use_hw_cursor)
+  if (! SK_ImGui_WantHWCursor ())
     return 0;
 
   static HCURSOR last_cursor = nullptr;
@@ -445,7 +445,7 @@ ImGuiCursor_Impl (void)
   //
   // Hardware Cursor
   //
-  if (config.input.ui.use_hw_cursor)
+  if (SK_ImGui_WantHWCursor ())
   {
     io.MouseDrawCursor =
       ( (! SK_ImGui_Cursor.idle) && SK_ImGui_IsMouseRelevant () && (! SK_InputUtil_IsHWCursorVisible ()));
@@ -490,7 +490,7 @@ sk_imgui_cursor_s::showSystemCursor (bool system)
 void
 sk_imgui_cursor_s::activateWindow (bool active)
 {
-  if (active && config.input.ui.use_hw_cursor)
+  if (active && SK_ImGui_WantHWCursor ())
   {
     if (SK_ImGui_IsAnythingHovered ())//SK_ImGui_IsMouseRelevant ())
     {
@@ -558,6 +558,12 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 }
 
 
+bool
+SK_ImGui_WantHWCursor (void)
+{
+  return
+    ( config.input.ui.use_hw_cursor && config.input.cursor.manage == false );
+}
 
 bool
 SK_ImGui_WantMouseCapture (void)
@@ -809,7 +815,7 @@ SetCursor_Detour (
 
   if ((SK_ImGui_WantMouseCapture () && SK_ImGui_IsAnythingHovered ()) || ImGui::GetIO ().WantCaptureMouse)
   {
-    if (! config.input.ui.use_hw_cursor)
+    if (! SK_ImGui_WantHWCursor ())
       return 0;
 
     hCursor =
@@ -1177,7 +1183,7 @@ SK_Window_ActivateCursor (bool changed = false)
   {
     if ((! SK_IsSteamOverlayActive ()))
     {
-      if (config.input.ui.use_hw_cursor)
+      if (SK_ImGui_WantHWCursor ())
       {
         SK_SendMsgShowCursor (TRUE);
 

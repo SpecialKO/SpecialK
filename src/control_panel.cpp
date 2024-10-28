@@ -8931,7 +8931,7 @@ SK_ImGui_Toggle (void)
     config.utility.save_async ();
 
   // Move the cursor a couple of times to change the loaded image
-  if (config.input.ui.use_hw_cursor)
+  if (SK_ImGui_WantHWCursor ())
     SetEvent (hMoveCursor);
 
 

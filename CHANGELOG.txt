@@ -1,4 +1,12 @@
-﻿24.10.28.2
+﻿24.10.28.3
+==========
+ + Disable SK's Hardware Cursor when game cursor auto-hide is enabled, so that
+     mouse warping done by game mouselook does not cause the cursor to become
+       visible.
+ + Block mouse input while the control panel is open in Metaphor, otherwise
+     the camera will just spin endlessly if the cursor moves out of it.
+
+24.10.28.2
 ==========
  + Always use the fully qualified path when looking up NVIDIA driver profiles
      for the current game in order to avoid creating duplicates.
@@ -7,7 +15,6 @@
  + Query D3D11 device context type when wrapping it, and then use that rather
      than calling ID3D11DeviceContext::GetType(...) because the D3D debug layer
        will abort if GetType is called from multiple threads.
- + 
 
 24.10.28.1
 ==========
