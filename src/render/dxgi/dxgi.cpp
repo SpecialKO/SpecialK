@@ -6958,8 +6958,14 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
       rb.active_traits.bImplicitlyWaitable = false;
     }
 
-    SK_LOGs0 ( L"Direct3D12",
-               L" <*> Native D3D12 SwapChain Captured" );
+    if (config.compatibility.disable_dx12_vk_interop && pCmdQueue.p != nullptr)
+    {
+      SK_LOGs0 ( L"Vk Interop",
+                 L" <*> Vulkan/D3D12 SwapChain Disabled" );
+    }
+    else
+      SK_LOGs0 ( L"Direct3D12",
+                 L" <*> Native D3D12 SwapChain Captured" );
 
     if (! config.render.dxgi.allow_d3d12_footguns)
     {
@@ -7027,7 +7033,7 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
 
   _d3d12_rbk->drain_queue ();
 
-  ret =
+  ret = (config.compatibility.disable_dx12_vk_interop && pCmdQueue.p != nullptr) ? E_ACCESSDENIED :
     CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
                                         pRestrictToOutput, &pTemp );
 
@@ -7049,6 +7055,9 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     rb.d3d11.clearState ();
 
     rb.releaseOwnedResources ();
+
+    if (config.compatibility.disable_dx12_vk_interop && pCmdQueue.p != nullptr)
+      return E_NOTIMPL;
 
     ret =
       CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
@@ -7117,7 +7126,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
         //
         // Detect NVIDIA's Interop SwapChain
         //
-        if (bNvInterop || StrStrIW (SK_GetCallerName ().c_str (), L"nvoglv") || SK_NV_D3D11_HasInteropDevice)
+        if (bNvInterop || StrStrIW (SK_GetCallerName ().c_str (), L"nvoglv")   ||
+                          StrStrIW (SK_GetCallerName ().c_str (), L"vulkan-1") || SK_NV_D3D11_HasInteropDevice)
         {
           UINT                                 uiFlagAsInterop = SK_DXGI_VK_INTEROP_TYPE_NV;
           (*ppSwapChain)->SetPrivateData (
@@ -7162,7 +7172,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
         //
         // Detect NVIDIA's Interop SwapChain (this is not its final form)
         //
-        if (bNvInterop || StrStrIW (SK_GetCallerName ().c_str (), L"nvoglv"))
+        if (bNvInterop || StrStrIW (SK_GetCallerName ().c_str (), L"nvoglv") ||
+                          StrStrIW (SK_GetCallerName ().c_str (), L"vulkan-1"))
         {
           UINT                                 uiFlagAsInterop = SK_DXGI_VK_INTEROP_TYPE_NV;
           (*ppSwapChain)->SetPrivateData (
@@ -8015,7 +8026,8 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
     // Detect NVIDIA Vulkan/DXGI Interop Factories
     if (iver >= 7)
     {
-      if (StrStrIW (SK_GetCallerName ().c_str (), L"nvoglv"))
+      if (StrStrIW (SK_GetCallerName ().c_str (), L"nvoglv") ||
+          StrStrIW (SK_GetCallerName ().c_str (), L"vulkan-1"))
       {
         SK_NV_DisableVulkanOn12Interop ();
         
@@ -8709,7 +8721,7 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
 
   // NVIDIA will fallback to a D3D11 SwapChain for interop if we tell it that
   //   G22_NONE_P709 is unsupported.
-  if (config.compatibility.disable_dx12_vk_interop || StrStrIW (SK_GetCallerName ().c_str (), L"nvoglv"))
+  if (config.compatibility.disable_dx12_vk_interop || StrStrIW (SK_GetCallerName ().c_str (), L"nvoglv") || StrStrIW (SK_GetCallerName ().c_str (), L"vulkan-1"))
   {   config.compatibility.disable_dx12_vk_interop = true; // Set this so it will trigger even if called by something wrapping the SwapChain
     if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709)
     {
