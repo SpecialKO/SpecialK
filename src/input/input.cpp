@@ -568,7 +568,7 @@ void SK_Input_PreInit (void)
     );
   };
 
-  auto SK_SDL_SetOverride = [&](float cfg_var, const char* szName)
+  auto SK_SDL_SetOverrideFloat = [&](float cfg_var, const char* szName)
   {
     if (cfg_var == -1.0f)
       return;
@@ -581,15 +581,15 @@ void SK_Input_PreInit (void)
   const auto& sdl =
     config.compatibility.sdl;
 
-  SK_SDL_SetOverride (sdl.allow_wgi,                "SDL_JOYSTICK_WGI");
-  SK_SDL_SetOverride (sdl.allow_xinput,             "SDL_XINPUT_ENABLED");
-  SK_SDL_SetOverride (sdl.allow_raw_input,          "SDL_JOYSTICK_RAWINPUT");
-  SK_SDL_SetOverride (sdl.allow_hid,                "SDL_JOYSTICK_HIDAPI");
-  SK_SDL_SetOverride (sdl.use_joystick_thread,      "SDL_JOYSTICK_THREAD");
-  SK_SDL_SetOverride (sdl.poll_sentinel,            "SDL_POLL_SENTINEL");
-  SK_SDL_SetOverride (sdl.allow_all_ps_bt_features, "SDL_JOYSTICK_HIDAPI_PS4_RUMBLE");
-  SK_SDL_SetOverride (sdl.allow_all_ps_bt_features, "SDL_JOYSTICK_HIDAPI_PS5_RUMBLE");
-  SK_SDL_SetOverride (sdl.switch_led_brightness,    "SDL_JOYSTICK_HIDAPI_JOYCON_HOME_LED");
+  SK_SDL_SetOverride (sdl.allow_wgi,                  "SDL_JOYSTICK_WGI");
+  SK_SDL_SetOverride (sdl.allow_xinput,               "SDL_XINPUT_ENABLED");
+  SK_SDL_SetOverride (sdl.allow_raw_input,            "SDL_JOYSTICK_RAWINPUT");
+  SK_SDL_SetOverride (sdl.allow_hid,                  "SDL_JOYSTICK_HIDAPI");
+  SK_SDL_SetOverride (sdl.use_joystick_thread,        "SDL_JOYSTICK_THREAD");
+  SK_SDL_SetOverride (sdl.poll_sentinel,              "SDL_POLL_SENTINEL");
+  SK_SDL_SetOverride (sdl.allow_all_ps_bt_features,   "SDL_JOYSTICK_HIDAPI_PS4_RUMBLE");
+  SK_SDL_SetOverride (sdl.allow_all_ps_bt_features,   "SDL_JOYSTICK_HIDAPI_PS5_RUMBLE");
+  SK_SDL_SetOverrideFloat (sdl.switch_led_brightness, "SDL_JOYSTICK_HIDAPI_JOYCON_HOME_LED");
 
   SK_Input_PreHookWinHook  ();
   SK_Input_PreHookCursor   ();
