@@ -3712,14 +3712,16 @@ auto DeclKeybind =
 
       case SK_GAME_ID::YsX:
         // Reduce stutter on plugging and unplugging devices
-        config.input.gamepad.dinput.blackout_gamepads = true;
-        config.textures.d3d11.cache                   = false;
+        config.compatibility.sdl.allow_direct_input = 0;
+        config.compatibility.sdl.allow_wgi          = 0;
+        config.compatibility.sdl.allow_raw_input    = 0;
+        config.textures.d3d11.cache                 = false;
         // Cache is pointless, the game has an equivalent feature
         break;
 
       case SK_GAME_ID::BrokenSword:
         // Has really bad timing code that will cause major frame drops w/o.
-        config.render.framerate.max_delta_time   = 15;
+        config.render.framerate.max_delta_time         = 15;
         break;
 
       case SK_GAME_ID::Metaphor:
@@ -5965,17 +5967,17 @@ SK_SaveConfig ( std::wstring name,
   compatibility.allow_fake_streamline->store  (config.compatibility.allow_fake_streamline);
   compatibility.sdl_sanity_level->store       (config.compatibility.sdl_sanity_level);
 
+  compatibility.sdl.allow_xinput->store       (config.compatibility.sdl.allow_xinput);
+  compatibility.sdl.allow_direct_input->store (config.compatibility.sdl.allow_direct_input);
   compatibility.sdl.allow_wgi->store          (config.compatibility.sdl.allow_wgi);
   compatibility.sdl.allow_raw_input->store    (config.compatibility.sdl.allow_raw_input); 
-  compatibility.sdl.allow_direct_input->store (config.compatibility.sdl.allow_direct_input);
-  compatibility.sdl.allow_xinput->store       (config.compatibility.sdl.allow_xinput);
   compatibility.sdl.allow_hid->store          (config.compatibility.sdl.allow_hid);
-  compatibility.sdl.allow_all_ps_bt_features 
-                                       ->store(config.compatibility.sdl.allow_all_ps_bt_features);
   compatibility.sdl.switch_led_brightness    
                                        ->store(config.compatibility.sdl.switch_led_brightness);
   compatibility.sdl.use_joystick_thread->store(config.compatibility.sdl.use_joystick_thread);
   compatibility.sdl.poll_sentinel->store      (config.compatibility.sdl.poll_sentinel);
+  compatibility.sdl.allow_all_ps_bt_features 
+                                       ->store(config.compatibility.sdl.allow_all_ps_bt_features);
 
 #ifdef _M_IX86
   compatibility.auto_large_address->store     (config.compatibility.auto_large_address_patch);

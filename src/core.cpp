@@ -262,7 +262,7 @@ SK_LoadGPUVendorAPIs (void)
   dll_log->Log (L"[  NvAPI   ] Initializing NVIDIA API           (NvAPI)...");
 
   nvapi_init =
-    sk::NVAPI::InitializeLibrary (SK_GetHostApp ());
+    sk::NVAPI::InitializeLibrary (SK_GetFullyQualifiedApp ());
 
   dll_log->Log (L"[  NvAPI   ]              NvAPI Init         { %s }",
                                                      nvapi_init ? L"Success" :

@@ -1,4 +1,15 @@
-﻿24.10.28.1
+﻿24.10.28.2
+==========
+ + Always use the fully qualified path when looking up NVIDIA driver profiles
+     for the current game in order to avoid creating duplicates.
+ + Fix bug in Ys X where it may attempt to create 0x0 textures when its window
+     is minimized and then crash.
+ + Query D3D11 device context type when wrapping it, and then use that rather
+     than calling ID3D11DeviceContext::GetType(...) because the D3D debug layer
+       will abort if GetType is called from multiple threads.
+ + 
+
+24.10.28.1
 ==========
  + Add explicit overrides for many of the most important SDL input settings
 
@@ -14,6 +25,9 @@
           games that use DirectInput until powered off and back on...
 
       ^ If that sounds familiar, it is the entire reason ValvePlug was created.
+
+   *** Unlike the Steam Client, SDL never enables those things without consent,
+         and that means rumble may be missing from many games that use SDL.
 
 24.10.28
 ========

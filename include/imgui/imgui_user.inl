@@ -3576,7 +3576,12 @@ SK_ImGui_User_NewFrame (void)
     if (     (io.KeysDown [VK_LWIN] || io.KeysDown [VK_RWIN]) && io.KeysDown [VK_DOWN] && !last_down && !SK_Window_HasBorder (game_window.hWnd))
     {
       if (! IsIconic  (game_window.hWnd))
-        SK_ShowWindow (game_window.hWnd, SW_MINIMIZE);
+      {
+        //if (IsMaximized (game_window.hWnd))
+        //  SK_ShowWindow (game_window.hWnd, SW_RESTORE);
+        //else
+          SK_ShowWindow (game_window.hWnd, SW_MINIMIZE);
+      }
     }
     else if ((io.KeysDown [VK_LWIN] || io.KeysDown [VK_RWIN]) && io.KeysDown [VK_UP]   && !last_up   && !SK_Window_HasBorder (game_window.hWnd))
     {
