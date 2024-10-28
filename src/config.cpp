@@ -3679,7 +3679,12 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::SonicGenerations:
+        // Game uses hardcoded PlayStation 3 mappings for all SONY devices,
+        //   and those mappings do not match DualShock4/DualSense.
+        config.input.gamepad.dinput.blackout_gamepads = true;
+
       case SK_GAME_ID::SonicXShadowGenerations:
+        config.input.gamepad.xinput.emulate      = true; // Make up for missing DInput support
         // Do not enable Sleepless options in this game, it will cause problems
         config.render.framerate.sleepless_render = false;
         config.render.framerate.sleepless_window = false;

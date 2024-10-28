@@ -1,8 +1,16 @@
-﻿24.10.27.4
+﻿24.10.27.5
+==========
+ + Disable DirectInput gamepad support in Sonic Generations, because it has
+     hardcoded the button mappings for PlayStation 3 and applied them to all
+       SONY controllers.
+ + Enable XInput emulation in Sonic Generations, so that SK can perform the
+     correct button mapping for newer SONY controllers on the game's behalf.
+
+24.10.27.4
 ==========
  + Add cached memory addresses for framerate unlock for Elden Ring 2.6.0.0.
  + Make sure SK always calls the real ShowWindow (...) instead of its hook.
- + Handle undocumented special cases SWP_NOMOVECLIENT and SWP_NOSIZECLIENT,
+ + Handle undocumented special cases SWP_NOCLIENTMOVE and SWP_NOCLIENTSIZE,
      to fix problems with Sonic Generations (presumably a Windows AppCompat
        hack that ships with Windows).
 
