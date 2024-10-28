@@ -3726,18 +3726,11 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Metaphor:
         config.compatibility.init_on_separate_thread   = false;
+        config.input.ui.capture_hidden                 = true;
         config.input.keyboard.override_alt_f4          = true; // Oh lord, kill that buggy exit confirmation
-        config.render.dxgi.fake_fullscreen_mode        = true;
-        config.window.always_on_top                    = SmartAlwaysOnTop;
-        config.window.borderless                       = true;
-        config.window.fullscreen                       = true;
-        config.display.force_windowed                  = true;
         config.render.framerate.sleepless_render       = false;
         config.render.framerate.sleepless_window       = false;
         config.input.gamepad.xinput.emulate            = true; // XInput-only
-        config.input.gamepad.xinput.disable [1]        = true;
-        config.input.gamepad.xinput.disable [2]        = true;
-        config.input.gamepad.xinput.disable [3]        = true;
         config.priority.perf_cores_only                = true;
         config.render.hdr.remaster_8bpc_as_unorm       = true;
         config.render.hdr.remaster_subnative_as_unorm  = true;
@@ -4638,6 +4631,18 @@ auto DeclKeybind =
   input.cursor.block_invisible->load     (config.input.ui.capture_hidden);
   input.cursor.fix_synaptics->load       (config.input.mouse.fix_synaptics);
   input.cursor.antiwarp_deadzone->load   (config.input.mouse.antiwarp_deadzone);
+
+  //
+  // TODO: Add a utility function to check the state of HW cursor usage,
+  //         currently it just uses this single INI setting and this hack is
+  //           needed as a result.
+  //
+  if (config.input.cursor.manage)
+  {
+    // Turn off SK's HW cursor if game auto-hide is desired, otherwise
+    //   this would cause the game's cursor to become visible during mouselook
+    config.input.ui.use_hw_cursor = false;
+  }
 
   input.gamepad.disabled_to_game->load   (config.input.gamepad.disabled_to_game);
   input.gamepad.disable_hid->load        (config.input.gamepad.disable_hid);
