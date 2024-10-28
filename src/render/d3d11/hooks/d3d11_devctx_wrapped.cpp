@@ -271,6 +271,9 @@ public:
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
 
+    if (deferred_)
+      type_ = D3D11_DEVICE_CONTEXT_DEFERRED;
+
     ////pMultiThread.p =
     ////  SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
@@ -301,6 +304,9 @@ public:
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
 
+    if (deferred_)
+      type_ = D3D11_DEVICE_CONTEXT_DEFERRED;
+
     ////pMultiThread =
     ////  SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
@@ -330,6 +336,9 @@ public:
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
 
+    if (deferred_)
+      type_ = D3D11_DEVICE_CONTEXT_DEFERRED;
+
     ////pMultiThread.p =
     ////  SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
@@ -358,6 +367,9 @@ public:
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
 
+    if (deferred_)
+      type_ = D3D11_DEVICE_CONTEXT_DEFERRED;
+
     ////pMultiThread.p =
     ////  SK_D3D11_WrapperFactory->wrapMultithread (this);
   };
@@ -377,6 +389,9 @@ public:
 
     deferred_ =
       SK_D3D11_IsDevCtxDeferred (pReal);
+
+    if (deferred_)
+      type_ = D3D11_DEVICE_CONTEXT_DEFERRED;
 
     ////pMultiThread.p =
     ////  SK_D3D11_WrapperFactory->wrapMultithread (this);
@@ -2487,8 +2502,7 @@ public:
   {
     TraceAPI
 
-    return
-      pReal->GetType ();
+    return type_;
   }
 
   UINT STDMETHODCALLTYPE GetContextFlags (void) override
@@ -2978,11 +2992,12 @@ public:
 
 protected:
 private:
-  volatile LONG         refs_           = 1;
-  unsigned int          ver_            = 0;
-  bool                  deferred_       = false;
-  UINT                  dev_ctx_handle_ = UINT_MAX;
-  ID3D11DeviceContext*  pReal           = nullptr;
+  volatile LONG             refs_           = 1;
+  unsigned int              ver_            = 0;
+  bool                      deferred_       = false;
+  UINT                      dev_ctx_handle_ = UINT_MAX;
+  ID3D11DeviceContext*      pReal           = nullptr;
+  D3D11_DEVICE_CONTEXT_TYPE type_           = D3D11_DEVICE_CONTEXT_IMMEDIATE;
   ///SK_ComPtr
   ///  <SK_IWrapD3D11Multithread>
   ///                      pMultiThread    = nullptr;

@@ -88,9 +88,13 @@ enum class SK_D3D11_ShaderType {
   Invalid  = MAXINT
 };
 
+#if 1
 #define SK_D3D11_IsDevCtxDeferred(ctx)                \
                                  (ctx)->GetType () == \
                                         D3D11_DEVICE_CONTEXT_DEFERRED
+#else
+#define SK_D3D11_IsDevCtxDeferred(ctx) false
+#endif
 
 // Thanks to some particularly awful JRPGs, Special K now hooks and wraps some
 //   APIs simultaneously and needs to know whether the wrapped calls will
@@ -130,7 +134,7 @@ protected:
                  call_tally;                              \
                                                           \
   const bool bIsDevCtxDeferred =                          \
-    pDevCtx->GetType () == D3D11_DEVICE_CONTEXT_DEFERRED; \
+    SK_D3D11_IsDevCtxDeferred (pDevCtx);                  \
                                                           \
   if (! bIsDevCtxDeferred)                                \
   {                                                       \
