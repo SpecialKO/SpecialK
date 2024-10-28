@@ -3731,7 +3731,6 @@ auto DeclKeybind =
         config.render.framerate.sleepless_render       = false;
         config.render.framerate.sleepless_window       = false;
         config.input.gamepad.xinput.emulate            = true; // XInput-only
-        config.priority.perf_cores_only                = true;
         config.render.hdr.remaster_8bpc_as_unorm       = true;
         config.render.hdr.remaster_subnative_as_unorm  = true;
         config.input.gamepad.dinput.block_enum_devices = true; // Avoid perf issues

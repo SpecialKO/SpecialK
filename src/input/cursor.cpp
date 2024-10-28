@@ -561,8 +561,8 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 bool
 SK_ImGui_WantHWCursor (void)
 {
-  return
-    ( config.input.ui.use_hw_cursor && config.input.cursor.manage == false );
+  return                            // Do not enable the HW cursor if the game has never used it
+    ( config.input.ui.use_hw_cursor && ( SK_ImGui_Cursor.times_set > 0 || config.input.cursor.manage == false ) );
 }
 
 bool
@@ -812,6 +812,9 @@ SetCursor_Detour (
   _In_opt_ HCURSOR hCursor )
 {
   SK_LOG_FIRST_CALL
+
+  if (hCursor != 0)
+    SK_ImGui_Cursor.times_set++;
 
   if ((SK_ImGui_WantMouseCapture () && SK_ImGui_IsAnythingHovered ()) || ImGui::GetIO ().WantCaptureMouse)
   {
