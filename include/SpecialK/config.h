@@ -1245,6 +1245,17 @@ struct sk_config_t
     bool     fsr3_mode                = false;
     bool     allow_fake_streamline    =  true;
     int      sdl_sanity_level         =     1;
+    struct sdl_s {
+      int    allow_wgi                =    -1;
+      int    allow_raw_input          =    -1;
+      int    allow_direct_input       =    -1;
+      int    allow_xinput             =    -1;
+      int    allow_hid                =    -1;
+      int    allow_all_ps_bt_features =    -1;
+      float  switch_led_brightness    = -1.0f;
+      int    use_joystick_thread      =    -1;
+      int    poll_sentinel            =    -1;
+    } sdl;
   } compatibility;
 
   struct apis_s {

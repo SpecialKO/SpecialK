@@ -3606,9 +3606,11 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
 
           else
           {
-            SK_LOGi0 (
-              L"Cannot neutralize a DualSense HID Input Report (id=%u) with Unexpected Size=%u-bytes",
-                report_id, dwSize
+            SK_RunOnce (
+              SK_LOGi0 (
+                L"Cannot neutralize a DualSense HID Input Report (id=%u) with Unexpected Size=%u-bytes",
+                  report_id, dwSize
+              )
             );
           }
         } break;

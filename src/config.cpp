@@ -1167,6 +1167,17 @@ struct {
   sk::ParameterBool*      fsr3_mode               = nullptr;
   sk::ParameterBool*      allow_fake_streamline   = nullptr;
   sk::ParameterInt*       sdl_sanity_level        = nullptr;
+  struct {
+    sk::ParameterInt*     allow_wgi               = nullptr;
+    sk::ParameterInt*     allow_raw_input         = nullptr;
+    sk::ParameterInt*     allow_direct_input      = nullptr;
+    sk::ParameterInt*     allow_xinput            = nullptr;
+    sk::ParameterInt*     allow_hid               = nullptr;
+    sk::ParameterInt*     allow_all_ps_bt_features= nullptr;
+    sk::ParameterFloat*   switch_led_brightness   = nullptr;
+    sk::ParameterInt*     use_joystick_thread     = nullptr;
+    sk::ParameterInt*     poll_sentinel           = nullptr;
+  } sdl;
 } compatibility;
 
 struct {
@@ -1761,6 +1772,17 @@ auto DeclKeybind =
     ConfigEntry (compatibility.fsr3_mode,                L"Avoid hooks on CreateSwapChainForHwnd",                     dll_ini,         L"Compatibility.General", L"FSR3Mode"),
     ConfigEntry (compatibility.allow_fake_streamline,    L"Allow invalid stuff, that might let fake DLSS3 mods work.", dll_ini,         L"Compatibility.General", L"AllowFakeStreamline"),
     ConfigEntry (compatibility.sdl_sanity_level,         L"Set Default (1) or Override (2) SDL input/window behavior.",dll_ini,         L"Compatibility.General", L"SDLSanityLevel"),
+    // Refer to SDL_hints.h, only the most useful options are exposed here...
+    ConfigEntry (compatibility.sdl.allow_wgi,            L"SDL_JOYSTICK_WGI",                                          dll_ini,         L"Compatibility.SDL",     L"SDL_JOYSTICK_WGI"),
+    ConfigEntry (compatibility.sdl.allow_raw_input,      L"SDL_JOYSTICK_RAWINPUT",                                     dll_ini,         L"Compatibility.SDL",     L"SDL_JOYSTICK_RAWINPUT"),
+    ConfigEntry (compatibility.sdl.allow_direct_input,   L"SDL_DIRECTINPUT_ENABLED",                                   dll_ini,         L"Compatibility.SDL",     L"SDL_DIRECTINPUT_ENABLED"),
+    ConfigEntry (compatibility.sdl.allow_xinput,         L"SDL_XINPUT_ENABLED",                                        dll_ini,         L"Compatibility.SDL",     L"SDL_XINPUT_ENABLED"),
+    ConfigEntry (compatibility.sdl.allow_hid,            L"SDL_JOYSTICK_HIDAPI",                                       dll_ini,         L"Compatibility.SDL",     L"SDL_JOYSTICK_HIDAPI"),
+    ConfigEntry (compatibility.sdl.
+                                allow_all_ps_bt_features,L"SDL_JOYSTICK_HIDAPI_PS4_RUMBLE",                            dll_ini,         L"Compatibility.SDL",     L"FullPlayStationBluetoothSupport"),
+    ConfigEntry (compatibility.sdl.switch_led_brightness,L"SDL_JOYSTICK_HIDAPI_JOYCON_HOME_LED",                       dll_ini,         L"Compatibility.SDL",     L"SDL_JOYSTICK_HIDAPI_JOYCON_HOME_LED"),
+    ConfigEntry (compatibility.sdl.use_joystick_thread,  L"SDL_JOYSTICK_THREAD",                                       dll_ini,         L"Compatibility.SDL",     L"SDL_JOYSTICK_THREAD"),
+    ConfigEntry (compatibility.sdl.poll_sentinel,        L"SDL_POLL_SENTINEL",                                         dll_ini,         L"Compatibility.SDL",     L"SDL_POLL_SENTINEL"),
 
     ConfigEntry (apis.last_known,                        L"Last Known Render API",                                     dll_ini,         L"API.Hook",              L"LastKnown"),
 
@@ -3688,6 +3710,13 @@ auto DeclKeybind =
         config.input.cursor.timeout              =   500;
         break;
 
+      case SK_GAME_ID::YsX:
+        // Reduce stutter on plugging and unplugging devices
+        config.input.gamepad.dinput.blackout_gamepads = true;
+        config.textures.d3d11.cache                   = false;
+        // Cache is pointless, the game has an equivalent feature
+        break;
+
       case SK_GAME_ID::BrokenSword:
         // Has really bad timing code that will cause major frame drops w/o.
         config.render.framerate.max_delta_time   = 15;
@@ -3970,6 +3999,19 @@ auto DeclKeybind =
   compatibility.rehook_loadlibrary->load    (config.compatibility.rehook_loadlibrary);
   compatibility.using_wine->load            (config.compatibility.using_wine);
   compatibility.allow_dxdiagn->load         (config.compatibility.allow_dxdiagn);
+                                             
+  compatibility.sdl.allow_wgi->load         (config.compatibility.sdl.allow_wgi);
+  compatibility.sdl.allow_raw_input->load   (config.compatibility.sdl.allow_raw_input); 
+  compatibility.sdl.allow_direct_input->load(config.compatibility.sdl.allow_direct_input);
+  compatibility.sdl.allow_xinput->load      (config.compatibility.sdl.allow_xinput);
+  compatibility.sdl.allow_hid->load         (config.compatibility.sdl.allow_hid);
+  compatibility.sdl.allow_all_ps_bt_features 
+                                     ->load (config.compatibility.sdl.allow_all_ps_bt_features);
+  compatibility.sdl.switch_led_brightness    
+                                     ->load (config.compatibility.sdl.switch_led_brightness);
+  compatibility.sdl.use_joystick_thread
+                                     ->load (config.compatibility.sdl.use_joystick_thread);
+  compatibility.sdl.poll_sentinel->load     (config.compatibility.sdl.poll_sentinel);
 
 #ifdef _M_IX86
   compatibility.auto_large_address->load (config.compatibility.auto_large_address_patch);
@@ -5922,6 +5964,18 @@ SK_SaveConfig ( std::wstring name,
   compatibility.allow_dxdiagn->store          (config.compatibility.allow_dxdiagn);
   compatibility.allow_fake_streamline->store  (config.compatibility.allow_fake_streamline);
   compatibility.sdl_sanity_level->store       (config.compatibility.sdl_sanity_level);
+
+  compatibility.sdl.allow_wgi->store          (config.compatibility.sdl.allow_wgi);
+  compatibility.sdl.allow_raw_input->store    (config.compatibility.sdl.allow_raw_input); 
+  compatibility.sdl.allow_direct_input->store (config.compatibility.sdl.allow_direct_input);
+  compatibility.sdl.allow_xinput->store       (config.compatibility.sdl.allow_xinput);
+  compatibility.sdl.allow_hid->store          (config.compatibility.sdl.allow_hid);
+  compatibility.sdl.allow_all_ps_bt_features 
+                                       ->store(config.compatibility.sdl.allow_all_ps_bt_features);
+  compatibility.sdl.switch_led_brightness    
+                                       ->store(config.compatibility.sdl.switch_led_brightness);
+  compatibility.sdl.use_joystick_thread->store(config.compatibility.sdl.use_joystick_thread);
+  compatibility.sdl.poll_sentinel->store      (config.compatibility.sdl.poll_sentinel);
 
 #ifdef _M_IX86
   compatibility.auto_large_address->store     (config.compatibility.auto_large_address_patch);

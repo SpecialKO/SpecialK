@@ -1,4 +1,21 @@
-﻿24.10.28
+﻿24.10.28.1
+==========
+ + Add explicit overrides for many of the most important SDL input settings
+
+    ( -1 = No Override, 0 = Off, 1 = On )
+
+    * Refer to SDL_hints.h for details on each,
+
+      "FullPlayStationBluetoothSupport" is a combination of
+        SDL_JOYSTICK_HIDAPI_PS4_RUMBLE and SDL_JOYSTICK_HIDAPI_PS5_RUMBLE...
+
+      This setting is controversial, it will allow rumble and haptics over
+        Bluetooth, but will cause your gamepad to become incompatible with
+          games that use DirectInput until powered off and back on...
+
+      ^ If that sounds familiar, it is the entire reason ValvePlug was created.
+
+24.10.28
 ========
  + Allow SDL to use DirectInput gamepads at sanity level 1
  + Improve Vulkan/DXGI Layer detection for NVIDIA drivers to handle cases
