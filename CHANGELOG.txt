@@ -1,10 +1,10 @@
-﻿24.10.27.5
-==========
- + Disable DirectInput gamepad support in Sonic Generations, because it has
-     hardcoded the button mappings for PlayStation 3 and applied them to all
-       SONY controllers.
- + Enable XInput emulation in Sonic Generations, so that SK can perform the
-     correct button mapping for newer SONY controllers on the game's behalf.
+﻿24.10.28
+========
+ + Allow SDL to use DirectInput gamepads at sanity level 1
+ + Improve Vulkan/DXGI Layer detection for NVIDIA drivers to handle cases
+     where vulkan-1.dll is calling DXGI directly instead of nvoglv{32|64}.
+ + Turn Multitasking-on-Top off by default again, because at levels aggressive
+     enough to work, some windows will not be raised above the game.
 
 24.10.27.4
 ==========

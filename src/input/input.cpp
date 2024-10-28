@@ -541,7 +541,7 @@ void SK_Input_PreInit (void)
     SK_SDL_SetDefaultBehavior ("SDL_JOYSTICK_HIDAPI",     "1");
 
     // Disable generic DirectInput devices
-    SK_SDL_SetDefaultBehavior ("SDL_DIRECTINPUT_ENABLED", "0");
+  //SK_SDL_SetDefaultBehavior ("SDL_DIRECTINPUT_ENABLED", "0");
 
     // Use a dedicated thread for input polling (default)
     //   and allow it to run even when the game window is not foreground.
