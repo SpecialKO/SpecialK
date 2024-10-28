@@ -5472,6 +5472,13 @@ D3D11Dev_CreateTexture2DCore_Impl (
                     LPVOID                   lpCallerAddr,
                     SK_TLS                  *pTLS )
 {
+  // Necessary hack to keep Ys X from crashing if forcefully minimized;
+  //   it would attempt to create a 0x0 texture, but that's invalid.
+  if (pDesc0 != nullptr) { pDesc0->Width  = pDesc0->Width  == 0 ? 1 : pDesc0->Width;
+                           pDesc0->Height = pDesc0->Height == 0 ? 1 : pDesc0->Height; }
+  if (pDesc1 != nullptr) { pDesc1->Width  = pDesc1->Width  == 0 ? 1 : pDesc1->Width;
+                           pDesc1->Height = pDesc1->Height == 0 ? 1 : pDesc1->Height; }
+
   ID3D11Device3*         This3 = (ID3D11Device3 *)This;
   ID3D11Texture2D1**     ppTexture2D =
                          ppTexture2D0 != nullptr ? (ID3D11Texture2D1 **)ppTexture2D0
