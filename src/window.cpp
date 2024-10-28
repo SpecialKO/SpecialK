@@ -8365,6 +8365,8 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
       if (config.window.always_on_top == NoPreferenceOnTop && SK_GetCurrentRenderBackend ().isFakeFullscreen ())
         always_on_top = SmartAlwaysOnTop;
 
+      HWND hWndForeground = SK_GetForegroundWindow ();
+
       switch (always_on_top)
       {
         case AlwaysOnTop:
@@ -8375,6 +8377,27 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
           break;
 
         case SmartAlwaysOnTop:
+        {
+          DWORD dwProcId,
+                dwThreadId =
+              GetWindowThreadProcessId (hWndForeground, &dwProcId);
+
+            GUITHREADINFO gti         =          {   };
+                          gti.cbSize  =   sizeof (gti);
+            SK_GetGUIThreadInfo (  dwThreadId,   &gti );
+          // The passed target tends to be out-of-date, and might raise the game window
+          //   back to the top if we process an old message, so ignore the parameter and
+          //     always use the CURRENT foreground window for this test.
+          if ( MonitorFromWindow (hWndForeground,   MONITOR_DEFAULTTONEAREST) ==
+               MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST) )
+          {
+            if (gti.hwndFocus != 0)
+              hWndNewTarget = gti.hwndFocus;
+          }
+
+          else
+            hWndNewTarget = game_window.hWnd;
+
           // We have to remove TopMost to display a window (that has taken input focus away),
           //   because the game window would cover it otherwise.
           if (hWndNewTarget != game_window.hWnd && hWndNewTarget != 0 && SK_Window_TestOverlap (hWndNewTarget, game_window.hWnd))
@@ -8466,7 +8489,7 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
               }
             }
           }
-          break;
+        } break;
         default:
           bTopMost = bOrigTopMost;
           break;
