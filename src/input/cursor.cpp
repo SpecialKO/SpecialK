@@ -561,8 +561,8 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 bool
 SK_ImGui_WantHWCursor (void)
 {
-  return                            // Do not enable the HW cursor if the game has never used it
-    ( config.input.ui.use_hw_cursor && ( SK_ImGui_Cursor.times_set > 0 || config.input.cursor.manage == false ) );
+  return
+    ( config.input.ui.use_hw_cursor );
 }
 
 bool
@@ -1178,7 +1178,7 @@ SK_Window_IsCursorActive (void)
 }
 
 bool
-SK_Window_ActivateCursor (bool changed = false)
+SK_Window_ActivateCursor (bool changed)
 {
   const bool was_active = last_mouse.cursor;
 

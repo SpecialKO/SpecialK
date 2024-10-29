@@ -869,6 +869,7 @@ BOOL        SK_Window_IsTopMostOnMonitor        ( HWND hWndToTest );
 bool        SK_Window_OnFocusChange             ( HWND hWndNewTarget,
                                                   HWND hWndOld );
 bool        SK_Window_DeactivateCursor          (bool ignore_imgui = false);
+bool        SK_Window_ActivateCursor            (bool changed = false);
 BOOL WINAPI SK_GetGUIThreadInfo                 (DWORD, PGUITHREADINFO);
 
 bool SK_IsRectTooSmall        (RECT* lpRect0, RECT* lpRect1);

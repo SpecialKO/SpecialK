@@ -4631,18 +4631,6 @@ auto DeclKeybind =
   input.cursor.fix_synaptics->load       (config.input.mouse.fix_synaptics);
   input.cursor.antiwarp_deadzone->load   (config.input.mouse.antiwarp_deadzone);
 
-  //
-  // TODO: Add a utility function to check the state of HW cursor usage,
-  //         currently it just uses this single INI setting and this hack is
-  //           needed as a result.
-  //
-  if (config.input.cursor.manage)
-  {
-    // Turn off SK's HW cursor if game auto-hide is desired, otherwise
-    //   this would cause the game's cursor to become visible during mouselook
-    config.input.ui.use_hw_cursor = false;
-  }
-
   input.gamepad.disabled_to_game->load   (config.input.gamepad.disabled_to_game);
   input.gamepad.disable_hid->load        (config.input.gamepad.disable_hid);
   input.gamepad.disable_winmm->load      (config.input.gamepad.disable_winmm);

@@ -3279,25 +3279,14 @@ SK_ImGui_User_NewFrame (void)
   g.Style.AntiAliasedLines = config.imgui.render.antialias_lines;
   g.Style.AntiAliasedFill  = config.imgui.render.antialias_contours;
 
+  static constexpr auto _IdleCursorTimeout = 500;
+
   //
   // Idle Cursor Detection  (when UI is visible, but mouse does not require capture)
   //
   //          Remove the cursor after a brief timeout period (500 ms),
   //            it will come back if moved ;)
   //
-  static constexpr auto _IdleCursorTimeout = 500;
-  SK_RunOnce ({
-    SK::ControlPanel::current_time
-                              = SK_timeGetTime ();
-    POINT                           pos = { };
-    SK_GetCursorPos               (&pos);
-    SK_ImGui_Cursor.ScreenToLocal (&pos);
-    SK_ImGui_Cursor.orig_pos  =     pos;
-    SK_ImGui_Cursor.pos       =     pos;
-    SK_ImGui_Cursor.idle      =    true;
-    SK_ImGui_Cursor.last_move = SK::ControlPanel::current_time - _IdleCursorTimeout;
-    SK_Window_DeactivateCursor (true);
-  });
   static int last_x = SK_ImGui_Cursor.pos.x;
   static int last_y = SK_ImGui_Cursor.pos.y;
 
@@ -3531,15 +3520,11 @@ SK_ImGui_User_NewFrame (void)
   {
     if (SK_Window_IsCursorActive () && SK_ImGui_Cursor.force != sk_cursor_state::Hidden)
     {
-      if (SK_ImGui_WantMouseCapture () || ( SK_GetCursor () != 0 &&
-                                            SK_GetCursor () != ImGui_DesiredCursor ()))
+      if (! SK_InputUtil_IsHWCursorVisible ())
       {
-        if (! SK_InputUtil_IsHWCursorVisible ())
+        if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
         {
-          if ( 0 != SK_GetSystemMetrics (SM_MOUSEPRESENT) )
-          {
-            SK_SendMsgShowCursor (TRUE);
-          }
+          SK_SendMsgShowCursor (TRUE);
         }
       }
     }

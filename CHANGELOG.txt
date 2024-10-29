@@ -1,4 +1,8 @@
-﻿24.10.28.3
+﻿24.10.28.4
+==========
+ + Remove unintended cursor deactivation introduced in 24.10.28.3
+
+24.10.28.3
 ==========
  + Disable SK's Hardware Cursor when game cursor auto-hide is enabled, so that
      mouse warping done by game mouselook does not cause the cursor to become
