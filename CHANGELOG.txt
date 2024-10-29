@@ -2,6 +2,8 @@
 ========
  + Fixed crash.log being created in the game's working directory when local
      injection is used together with the virtual SpecialK.central file.
+ + Fixed multi-threaded race condition in BlacklistLibrary (...)'s init. and
+     SK_EstablishRootPath (...).
 
 24.10.28.4
 ==========

@@ -1499,17 +1499,20 @@ SK_EstablishRootPath (void)
             wszConfigPath);
   lstrcatW (wszConfigPath, LR"(\)");
 
-  // File permissions don't permit us to store logs in the game's directory,
-  //   so implicitly turn on the option to relocate this stuff.
-  if (! SK_File_CanUserWriteToPath (wszConfigPath))
-  {
-    config.system.central_repository = true;
-  }
+  SK_RunOnce
+  (
+    // File permissions don't permit us to store logs in the game's directory,
+    //   so implicitly turn on the option to relocate this stuff.
+    if (! SK_File_CanUserWriteToPath (wszConfigPath))
+    {
+      config.system.central_repository = true;
+    }
 
-  else if (PathFileExistsW (L"SpecialK.central"))
-  {
-    config.system.central_repository = true;
-  }
+    else if (PathFileExistsW (L"SpecialK.central"))
+    {
+      config.system.central_repository = true;
+    }
+  );
 
   RtlZeroMemory (
     wszConfigPath, sizeof (wchar_t) * (MAX_PATH + 2)
