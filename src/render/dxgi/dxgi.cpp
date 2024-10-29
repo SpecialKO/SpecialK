@@ -5351,9 +5351,7 @@ SK_DXGI_CreateSwapChain_PreInit (
         if ( config.render.framerate.flip_discard &&
                    dxgi_caps.present.flip_discard )
         {
-          if (bHasReShade)
-            pDesc->SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-          else
+
             pDesc->SwapEffect = 
               (original_swap_effect == DXGI_SWAP_EFFECT_DISCARD ||
                original_swap_effect == DXGI_SWAP_EFFECT_FLIP_DISCARD) ?
@@ -5380,16 +5378,8 @@ SK_DXGI_CreateSwapChain_PreInit (
     }
 
     // Option to force Flip Sequential for buggy systems
-    if (pDesc->SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD && (config.render.framerate.flip_sequential || bHasReShade))
+    if (pDesc->SwapEffect == DXGI_SWAP_EFFECT_FLIP_DISCARD && config.render.framerate.flip_sequential)
         pDesc->SwapEffect  = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
-
-    if ( bHasReShade &&
-            pDesc->SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL &&
-         original_swap_effect != DXGI_SWAP_EFFECT_SEQUENTIAL      &&
-         original_swap_effect != DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL )
-    {
-      SK_LOGi0 (L"  >> Using DXGI Flip Sequential for compatibility with ReShade");
-    }
 
     SK_LOGs1 ( L" DXGI 1.2 ",
                L"  >> Using %s Presentation Model  [Waitable: %s - %li ms]",

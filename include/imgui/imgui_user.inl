@@ -3185,6 +3185,13 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
       SystemParametersInfoA (SPI_GETSCREENSAVERRUNNING, 0, &bScreenSaverRunning, 0);
 
       // Deactivate screensaver on gamepad input
+      //
+      //   * This looks stupid, and it is, but attempting to send the screensaver
+      //       window a message that is supposed to cause deactivation, or
+      //         synthesizing fake input events do not work.
+      //
+      //    @ Even disabling SendInput Blockage has no effect running screensavers
+      //
       if (bScreenSaverRunning)
       {
         SK_TerminateProcesses (L"scrnsave.scr", true);
