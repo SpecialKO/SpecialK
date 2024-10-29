@@ -698,6 +698,53 @@ SK_IsProcessRunning (const wchar_t* wszProcName)
   return false;
 }
 
+bool
+SK_TerminateProcessByName (const wchar_t* wszProcName, bool all)
+{
+  BOOL killed = FALSE;
+
+  PROCESSENTRY32W pe32 = { };
+
+  SK_AutoHandle hProcSnap (
+    CreateToolhelp32Snapshot ( TH32CS_SNAPPROCESS,
+                                 0 )
+  );
+
+  if ((intptr_t)hProcSnap.m_h <= 0)
+    return false;
+
+  pe32.dwSize =
+    sizeof (PROCESSENTRY32W);
+
+  if (! Process32FirstW ( hProcSnap,
+                            &pe32    )
+     )
+  {
+    return false;
+  }
+
+  do
+  {
+    if (! SK_Path_wcsicmp ( wszProcName,
+                              pe32.szExeFile )
+       )
+    {
+      BOOL SK_TerminatePID (DWORD dwProcessId, UINT uExitCode);
+
+      killed |= SK_TerminatePID (pe32.th32ProcessID, 0x0);
+
+      if (!all && killed)
+      {
+        return killed != FALSE;
+      }
+    }
+  } while ( Process32NextW ( hProcSnap,
+                               &pe32    )
+          );
+
+  return killed != FALSE;
+}
+
 
 
 typedef FARPROC (WINAPI *GetProcAddress_pfn)(HMODULE,LPCSTR);

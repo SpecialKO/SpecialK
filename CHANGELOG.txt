@@ -1,4 +1,13 @@
-﻿24.10.29
+﻿24.10.29.1
+==========
+ + Changed screensaver activation prevention to use the Windows-defined timeout
+     interval and factor in gamepad input, since Windows only uses KB&M.
+  + Added a message when the system screensaver activates explaining how to
+     configure screensaver prevention.
+ + Default screensaver policy has been changed to "Game Default".
+ + Gamepad input will now deactivate screensavers.
+
+24.10.29
 ========
  + Fixed crash.log being created in the game's working directory when local
      injection is used together with the virtual SpecialK.central file.

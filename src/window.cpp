@@ -7375,7 +7375,15 @@ SK_Win32_IgnoreSysCommand (HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
       }
 
-      if (SK_IsGameWindowActive () || bTopMostOnMonitor)
+      DWORD                                                dwTimeoutInSeconds = 0;
+      SystemParametersInfoA (SPI_GETSCREENSAVETIMEOUT, 0, &dwTimeoutInSeconds, 0);
+
+      extern DWORD SK_Input_LastGamepadActivity;
+
+      bool bGamepadActive =
+        SK_Input_LastGamepadActivity >= (SK::ControlPanel::current_time - (dwTimeoutInSeconds * 1000UL));
+
+      if (SK_IsGameWindowActive () || bTopMostOnMonitor || bGamepadActive)
       {
         if (LOWORD (wParam & 0xFFF0) == SC_MONITORPOWER)
         {
@@ -7383,7 +7391,7 @@ SK_Win32_IgnoreSysCommand (HWND hWnd, WPARAM wParam, LPARAM lParam)
             return TRUE;
         }
 
-        if (config.window.fullscreen_no_saver)
+        if (config.window.fullscreen_no_saver || bGamepadActive)
         {
           if (LOWORD (wParam & 0xFFF0) == SC_SCREENSAVE)
           {
@@ -7392,6 +7400,9 @@ SK_Win32_IgnoreSysCommand (HWND hWnd, WPARAM wParam, LPARAM lParam)
 
             auto& display =
               rb.displays [rb.active_display];
+
+            if (bGamepadActive && lParam != -1)
+              return TRUE;
 
             if (game_window.actual.window.left   == display.rect.left   &&
                 game_window.actual.window.right  == display.rect.right  &&
@@ -7416,6 +7427,16 @@ SK_Win32_IgnoreSysCommand (HWND hWnd, WPARAM wParam, LPARAM lParam)
           }
         }
       }
+
+      SK_ImGui_CreateNotification (
+        "Screensaver.Activated", SK_ImGui_Toast::Info,
+        "Screensaver has activated because the game did not block it, "
+        "you may disable the screensaver for this game under:\r\n\r\n"
+        "\tWindow Management > Input/Output Behavior.", nullptr,
+          30000UL,
+            SK_ImGui_Toast::UseDuration |
+            SK_ImGui_Toast::ShowCaption
+      );
     }
   }
 
