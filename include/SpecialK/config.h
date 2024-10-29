@@ -1045,6 +1045,7 @@ struct sk_config_t
       bool    capture_gamepad     = false;
       bool    use_hw_cursor       =  true;
       bool    use_raw_input       =  true;
+      int     game_set_hw_cursor  =     0; // Not stored in INI, the number of times
     } ui;
 
     struct gamepad_s {

@@ -1506,6 +1506,11 @@ SK_EstablishRootPath (void)
     config.system.central_repository = true;
   }
 
+  else if (PathFileExistsW (L"SpecialK.central"))
+  {
+    config.system.central_repository = true;
+  }
+
   RtlZeroMemory (
     wszConfigPath, sizeof (wchar_t) * (MAX_PATH + 2)
   );
@@ -1765,7 +1770,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
   SK_PathCombineW (wszCentralPathVFile, SK_GetHostPath (), L"SpecialK.central");
 
   if ( SK_IsInjected   () ||
-       PathFileExistsW (wszCentralPathVFile) )
+       PathFileExistsW (wszCentralPathVFile) ||
+       PathFileExistsW (L"SpecialK.central") )
   {
     config.system.central_repository = true;
   }
