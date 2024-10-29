@@ -3187,9 +3187,7 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
       // Deactivate screensaver on gamepad input
       if (bScreenSaverRunning)
       {
-        extern bool
-        SK_TerminateProcessByName (const wchar_t* wszProcName, bool all);
-        SK_TerminateProcessByName (L"scrnsave.scr", true);
+        SK_TerminateProcesses (L"scrnsave.scr", true);
       }
     }
 

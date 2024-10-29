@@ -698,8 +698,9 @@ SK_IsProcessRunning (const wchar_t* wszProcName)
   return false;
 }
 
-bool
-SK_TerminateProcessByName (const wchar_t* wszProcName, bool all)
+BOOL
+WINAPI
+SK_TerminateProcesses (const wchar_t* wszProcName, bool all) noexcept
 {
   BOOL killed = FALSE;
 

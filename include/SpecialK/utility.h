@@ -324,13 +324,15 @@ void           SK_GetSystemInfo             (LPSYSTEM_INFO lpSystemInfo);
 PSID SK_Win32_GetTokenSid     (_TOKEN_INFORMATION_CLASS tic );
 PSID SK_Win32_ReleaseTokenSid (PSID                     pSid);
 
-extern void WINAPI  SK_ExitProcess      (      UINT      uExitCode  ) noexcept;
-extern void WINAPI  SK_ExitThread       (      DWORD     dwExitCode ) noexcept;
-extern BOOL WINAPI  SK_TerminateThread  (      HANDLE    hThread,
-                                               DWORD     dwExitCode ) noexcept;
-extern BOOL WINAPI  SK_TerminateProcess (      HANDLE    hProcess,
-                                               UINT      uExitCode  ) noexcept;
-extern void __cdecl SK__endthreadex     ( _In_ unsigned _ReturnCode ) noexcept;
+extern void WINAPI  SK_ExitProcess        (       UINT      uExitCode  ) noexcept;
+extern void WINAPI  SK_ExitThread         (       DWORD     dwExitCode ) noexcept;
+extern BOOL WINAPI  SK_TerminateThread    (       HANDLE    hThread,
+                                                  DWORD     dwExitCode ) noexcept;
+extern BOOL WINAPI  SK_TerminateProcess   (       HANDLE    hProcess,
+                                                  UINT      uExitCode  ) noexcept;
+extern BOOL WINAPI  SK_TerminateProcesses ( const wchar_t*  wszProcName,
+                                                  bool      bEndAll    ) noexcept;
+extern void __cdecl SK__endthreadex       ( _In_  unsigned _ReturnCode ) noexcept;
  
 char* SK_CharNextA (const char *szInput, int n = 1);
 
