@@ -22,6 +22,8 @@
 #include <SpecialK/stdafx.h>
 #include <SpecialK/storefront/epic.h> // Lazy EOS init
 
+#include <concurrent_unordered_set.h>
+
 __declspec (noinline)
 concurrency::concurrent_unordered_set <HMODULE>&
 SK_DbgHlp_Callers (void)
@@ -2313,6 +2315,9 @@ BOOL
 __stdcall
 BlacklistLibrary (const _T* lpFileName)
 {
+  if (lpFileName == nullptr)
+    return FALSE;
+
 #pragma push_macro ("StrStrI")
 #pragma push_macro ("GetModuleHandleEx")
 #pragma push_macro ("LoadLibrary")
@@ -2345,57 +2350,50 @@ BlacklistLibrary (const _T* lpFileName)
 
   if (true/*config.compatibility.disable_streamline_incompatible_software*/)
   {
-    static std::vector < const _T* > incompatible_dlls;
-
-    static bool          init = false;
-    if (! std::exchange (init, true))
+    static bool has_streamline =
+       PathFileExistsW (L"sl.interposer.dll") ||
+      GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+      
+    static std::initializer_list <std::basic_string <_T>> incompatible_dlls =
     {
-      if ( PathFileExistsW (L"sl.interposer.dll") ||
-          GetModuleHandleW (L"sl.interposer.dll") != nullptr )
-      {
-        incompatible_dlls.emplace_back (SK_TEXT("fps-mon64.dll"));
-      }
-    }
+      SK_TEXT("fps-mon64.dll")
+    };
 
-    for (auto& it : incompatible_dlls)
+    if (has_streamline)
     {
-      if (StrStrI (lpFileName, it))
+      for (auto& it : incompatible_dlls)
       {
-        SK_LOGs0 ( L"DLL Loader",
-                   L"Known Streamline Incompatible DLL Blocked to Prevent Crashing" );
+        if (StrStrI (lpFileName, it.c_str ()))
+        {
+          SK_LOGs0 ( L"DLL Loader",
+                     L"Known Streamline Incompatible DLL Blocked to Prevent Crashing" );
 
-        return TRUE;
+          return TRUE;
+        }
       }
     }
   }
 
   if (config.compatibility.disable_nv_bloat)
   {
-    static bool init = false;
+    static std::initializer_list <std::basic_string <_T>> nv_blacklist = {
+      SK_TEXT("rxgamepadinput.dll"),
+      SK_TEXT("rxcore.dll"),
+      SK_TEXT("nvinject.dll"),
+      SK_TEXT("rxinput.dll"),
+      SK_TEXT("nvspcap"),
+      SK_TEXT("nvSCPAPI")
+    };
 
-    static std::vector < const _T* >
-                nv_blacklist;
-
-    if (! init)
+    for ( auto& it : nv_blacklist )
     {
-      nv_blacklist.emplace_back (SK_TEXT("rxgamepadinput.dll"));
-      nv_blacklist.emplace_back (SK_TEXT("rxcore.dll"));
-      nv_blacklist.emplace_back (SK_TEXT("nvinject.dll"));
-      nv_blacklist.emplace_back (SK_TEXT("rxinput.dll"));
-      nv_blacklist.emplace_back (SK_TEXT("nvspcap"));
-      nv_blacklist.emplace_back (SK_TEXT("nvSCPAPI"));
-      init = true;
-    }
-
-    for ( auto it : nv_blacklist )
-    {
-      if (StrStrI (lpFileName, it))
+      if (StrStrI (lpFileName, it.c_str ()))
       {
         HMODULE hModNV;
 
         if ( GetModuleHandleEx (
                GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                 it, &hModNV   )
+                 it.c_str (), &hModNV)
            )
         {
           SK_FreeLibrary (hModNV);
@@ -2408,27 +2406,21 @@ BlacklistLibrary (const _T* lpFileName)
 
   if (config.nvidia.bugs.bypass_ansel)
   {
-    static bool init = false;
-
-    static std::vector < const _T* >
-                nv_blacklist;
-
-    if (! init)
+    static std::initializer_list <std::basic_string <_T>> nv_blacklist =
     {
-      nv_blacklist.emplace_back (SK_TEXT("nvcamera64.dll"));
-      nv_blacklist.emplace_back (SK_TEXT("nvcamera.dll"));
-      init = true;
-    }
+      SK_RunLHIfBitness (64, SK_TEXT("nvcamera64.dll"),
+                             SK_TEXT("nvcamera.dll"))
+    };
 
-    for ( auto it : nv_blacklist )
+    for ( auto& it : nv_blacklist )
     {
-      if (StrStrI (lpFileName, it))
+      if (StrStrI (lpFileName, it.c_str ()))
       {
         HMODULE hModNV;
 
         if ( GetModuleHandleEx (
                GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-                 it, &hModNV   )
+                 it.c_str (), &hModNV)
            )
         {
           SK_FreeLibrary (hModNV);

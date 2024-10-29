@@ -1,4 +1,9 @@
-﻿24.10.28.4
+﻿24.10.29
+========
+ + Fixed crash.log being created in the game's working directory when local
+     injection is used together with the virtual SpecialK.central file.
+
+24.10.28.4
 ==========
  + Remove unintended cursor deactivation introduced in 24.10.28.3
 
