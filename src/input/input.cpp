@@ -494,7 +494,8 @@ SetThreadExecutionState_Detour (EXECUTION_STATE esFlags)
 
   // SK has smarter control over this stuff, prevent games from using this...
   //   reset any continuous state so we can micromanage screensaver activation
-  if (config.window.disable_screensaver || config.window.fullscreen_no_saver)
+  if (config.window.disable_screensaver || config.window.fullscreen_no_saver ||
+      config.window.manage_screensaver)
   {
     //SetThreadExecutionState_Original (0x0);
 

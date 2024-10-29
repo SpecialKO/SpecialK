@@ -3179,17 +3179,18 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
 
   if (_LastGamepadTimestamp != SK_Input_LastGamepadActivity)
   {
-    BOOL                                                  bScreenSaverRunning;
-    SystemParametersInfoA (SPI_GETSCREENSAVERRUNNING, 0, &bScreenSaverRunning, 0);
-
-    // Deactivate screensaver on gamepad input
-    if (bScreenSaverRunning)
+    if (config.input.gamepad.blocks_screensaver)
     {
-      SendMessageW (GetForegroundWindow (), WM_ACTIVATE, FALSE, 0);
+      BOOL                                                  bScreenSaverRunning;
+      SystemParametersInfoA (SPI_GETSCREENSAVERRUNNING, 0, &bScreenSaverRunning, 0);
 
-      extern bool SK_TerminateProcessByName (const wchar_t* wszProcName, bool all);
-
-      SK_TerminateProcessByName (L"scrnsave.scr", true);
+      // Deactivate screensaver on gamepad input
+      if (bScreenSaverRunning)
+      {
+        extern bool
+        SK_TerminateProcessByName (const wchar_t* wszProcName, bool all);
+        SK_TerminateProcessByName (L"scrnsave.scr", true);
+      }
     }
 
     _LastGamepadTimestamp = SK_Input_LastGamepadActivity;

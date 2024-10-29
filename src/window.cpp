@@ -5341,6 +5341,9 @@ bool __ignore = false;
 
 DWORD dwLastWindowMessageProcessed = INFINITE;
 
+BOOL
+SK_Win32_IgnoreSysCommand (HWND hWnd, WPARAM wParam, LPARAM lParam);
+
 __declspec (noinline)
 LRESULT
 CALLBACK
@@ -5599,6 +5602,32 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       }
       break;
 
+    case WM_SYSCOMMAND:
+    {
+      switch (LOWORD (wParam & 0xFFF0))
+      {
+        case SC_MONITORPOWER:
+        case SC_SCREENSAVE:
+        {
+          if (config.window.manage_screensaver)
+          {
+            // User wants Special K to manage screensaver activation, so
+            //   do the idle input checks and so forth here and activate it
+            //     if needed...
+            if (! SK_Win32_IgnoreSysCommand    (hWnd,       wParam, lParam))
+              return game_window.DefWindowProc (hWnd, uMsg, wParam, lParam);
+
+            // Otherwise, block it.
+            return 0;
+          }
+        } break;
+      }
+
+      if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0)
+      {
+        return 0;
+      }
+    }
 
     case WM_QUIT:
     case WM_CLOSE:
@@ -5723,13 +5752,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         }
       }
     } break;
-
-    case WM_SYSCOMMAND:
-      if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0)
-      {
-        return 0;
-      }
-      break;
 
 
     case WM_DEVICECHANGE:
@@ -7383,7 +7405,7 @@ SK_Win32_IgnoreSysCommand (HWND hWnd, WPARAM wParam, LPARAM lParam)
       bool bGamepadActive =
         SK_Input_LastGamepadActivity >= (SK::ControlPanel::current_time - (dwTimeoutInSeconds * 1000UL));
 
-      if (SK_IsGameWindowActive () || bTopMostOnMonitor || bGamepadActive)
+      if (SK_IsGameWindowActive () || bTopMostOnMonitor || (bGamepadActive && config.input.gamepad.blocks_screensaver))
       {
         if (LOWORD (wParam & 0xFFF0) == SC_MONITORPOWER)
         {
@@ -7391,7 +7413,7 @@ SK_Win32_IgnoreSysCommand (HWND hWnd, WPARAM wParam, LPARAM lParam)
             return TRUE;
         }
 
-        if (config.window.fullscreen_no_saver || bGamepadActive)
+        if (config.window.fullscreen_no_saver || (bGamepadActive && config.input.gamepad.blocks_screensaver))
         {
           if (LOWORD (wParam & 0xFFF0) == SC_SCREENSAVE)
           {
@@ -7428,15 +7450,20 @@ SK_Win32_IgnoreSysCommand (HWND hWnd, WPARAM wParam, LPARAM lParam)
         }
       }
 
-      SK_ImGui_CreateNotification (
-        "Screensaver.Activated", SK_ImGui_Toast::Info,
-        "Screensaver has activated because the game did not block it, "
-        "you may disable the screensaver for this game under:\r\n\r\n"
-        "\tWindow Management > Input/Output Behavior.", nullptr,
-          30000UL,
-            SK_ImGui_Toast::UseDuration |
-            SK_ImGui_Toast::ShowCaption
-      );
+      if (! config.window.manage_screensaver)
+      {
+        SK_RunOnce (
+          SK_ImGui_CreateNotification (
+            "Screensaver.Activated", SK_ImGui_Toast::Info,
+            "Screensaver has activated because the game did not block it, "
+            "you may disable the screensaver for this game under:\r\n\r\n"
+            "\tWindow Management > Input/Output Behavior.", nullptr,
+              15000UL,
+                SK_ImGui_Toast::UseDuration |
+                SK_ImGui_Toast::ShowCaption
+          )
+        );
+      }
     }
   }
 

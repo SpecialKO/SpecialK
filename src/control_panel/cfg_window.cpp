@@ -497,11 +497,18 @@ SK::ControlPanel::Window::Draw (void)
         config.window.fullscreen_no_saver ? 1
                                           : 0;
 
-      if ( ImGui::Combo ( "###Screensaver_Behavior", &screensaver_opt,
-                          "Game Default\0"
-                          "Disable in (Borderless) Fullscreen\0"
-                          "Always Disable While Running\0\0",
-                            3 ) )
+      bool behavior_changed =
+       ImGui::Combo ( "###Screensaver_Behavior", &screensaver_opt,
+        config.window.manage_screensaver ?
+                        "Windows Default\0"
+                        "Disable in (Borderless) Fullscreen\0"
+                        "Always Disable While Running\0\0"
+                                         :
+                        "Game Default\0"
+                        "Disable in (Borderless) Fullscreen\0"
+                        "Always Disable While Running\0\0", 3 );
+  
+      if (behavior_changed)
       {
         switch (screensaver_opt)
         {
@@ -519,9 +526,47 @@ SK::ControlPanel::Window::Draw (void)
             config.window.fullscreen_no_saver = true;
             break;
         }
-
-        config.utility.save_async ();
       }
+
+      ImGui::SameLine ();
+
+      static bool orig_setting =                          config.window.manage_screensaver; 
+      if (ImGui::Checkbox ("Fully Managed By Special K", &config.window.manage_screensaver))
+      {
+        behavior_changed = true;
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip (
+          "Use this if you want screensaver to activate based entirely on Special K rules, "
+          "rather than allowing games to manage it."
+        );
+      }
+
+      ImGui::SameLine ();
+      if (ImGui::Checkbox ("Handle Gamepad Input", &config.input.gamepad.blocks_screensaver))
+      {
+        behavior_changed = true;
+      }
+
+      if (ImGui::IsItemHovered ())
+      {
+        ImGui::SetTooltip (
+          "Add checks for idle gamepad input to the Keyboard & Mouse idle that "
+          "Windows normally uses."
+        );
+      }
+
+      if (orig_setting != config.window.manage_screensaver)
+      {
+        ImGui::PushStyleColor (ImGuiCol_Text, ImColor::HSV (.3f, .8f, .9f).Value);
+        ImGui::BulletText     ("Game Restart May Be Required");
+        ImGui::PopStyleColor  ();
+      }
+
+      if (behavior_changed)
+        config.utility.save_async ();
 
       ImGui::TreePop ();
       ImGui::TreePop ();

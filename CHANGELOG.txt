@@ -1,4 +1,17 @@
-﻿24.10.29.1
+﻿24.10.29.2
+==========
+ + Added option block screensaver activation on controller input (default)
+ + Added option to have Special K disable all game handling of screensavers,
+     and fully manage it based on its own configurable rules.
+
+    >> Without this option, SK adds additional blocking rules, but respects
+         the game's own attempts to block screensaver activation.
+
+    * Many games unconditionally block screensaver, and you may not want
+        that behavior if you have alt-tab to work a different application
+          and then go AFK while the game continues running.
+
+24.10.29.1
 ==========
  + Changed screensaver activation prevention to use the Windows-defined timeout
      interval and factor in gamepad input, since Windows only uses KB&M.

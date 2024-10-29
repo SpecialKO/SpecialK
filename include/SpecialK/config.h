@@ -1129,6 +1129,8 @@ struct sk_config_t
         int   max_allowed_buffers =     3;
         bool  calc_latency        = false;
       } hid;
+
+      bool    blocks_screensaver  =  true;
     } gamepad;
 
     struct keyboard_s {
@@ -1208,6 +1210,7 @@ struct sk_config_t
     bool    multi_monitor_mode  = false;
     bool    disable_screensaver = false;
     bool    fullscreen_no_saver = false; // In Fullscreen, disable screensaver?
+    bool    manage_screensaver  = false;
     bool    treat_fg_as_active  = false; // Compat. hack for NiNoKuni 2
     bool    dont_hook_wndproc   = false;
     bool    activate_at_start   = false;
