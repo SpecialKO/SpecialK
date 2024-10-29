@@ -1,4 +1,9 @@
-﻿24.10.29.2
+﻿24.10.29.3
+==========
+ + Remove QueryInterface call on D3D11 Device Context during texture upload,
+     it angers the D3D11 debug layer if this happens on multiple threads.
+
+24.10.29.2
 ==========
  + Added option block screensaver activation on controller input (default)
  + Added option to have Special K disable all game handling of screensavers,

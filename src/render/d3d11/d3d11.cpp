@@ -5532,12 +5532,12 @@ D3D11Dev_CreateTexture2DCore_Impl (
   }
 #endif
 
-  SK_ComQIPtr <ID3D11Device>        pDev    (This);
-  SK_ComPtr   <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
+  SK_ComQIPtr <ID3D11Device> pDev (This);
+  ID3D11DeviceContext*       pDevCtx =
+    (ID3D11DeviceContext *)rb.swapchain.p;
 
   // Only from devices belonging to the game, no wrappers or Ansel
   SK_ComQIPtr <IDXGISwapChain> pSwapChain (rb.swapchain);
-
   if (rb.device.p == nullptr)
   {
     // Better late than never
@@ -5549,12 +5549,14 @@ D3D11Dev_CreateTexture2DCore_Impl (
 
         if (SUCCEEDED (pSwapChain->GetDevice (IID_PPV_ARGS (&pSwapDev.p))) && pDev.IsEqualObject (pSwapDev))
         {
-          This->GetImmediateContext (&pDevCtx.p);
+          This->GetImmediateContext (&pDevCtx);
              rb.d3d11.immediate_ctx = pDevCtx;
              rb.setDevice            (pDev);
 
           SK_LOG0 ( (L"Active D3D11 Device Context Established on first Texture Upload" ),
                      L"  D3D 11  " );
+
+          pDevCtx->Release ();
         }
       }
     }
