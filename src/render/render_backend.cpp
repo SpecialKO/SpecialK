@@ -4376,6 +4376,22 @@ ChangeDisplaySettingsExA_Detour (
 
   LONG lRet = 0;
 
+  static bool called = false;
+
+  // Prevent mode changes when nothing has actually changed!
+  if ( (! called) &&
+       (lpszDeviceName == nullptr && hWnd    == 0x0 && 
+             lpDevMode == nullptr && dwFlags == 0x0 &&
+                lParam == nullptr) )
+  {
+    SK_LOGi0 (
+      L"ChangeDisplaySettingsExA ({all zero}) ignored because no previous "
+      L"calls to the function were made."
+    );
+
+    return DISP_CHANGE_SUCCESSFUL;
+  }
+
   if (config.display.force_windowed || config.render.dxgi.fake_fullscreen_mode)
   {
     SK_LOGi0 (
@@ -4413,12 +4429,8 @@ ChangeDisplaySettingsExA_Detour (
       return DISP_CHANGE_SUCCESSFUL;
   }
 
-  static bool called = false;
-
   DEVMODEA dev_mode        = { };
            dev_mode.dmSize = sizeof (DEVMODEW);
-
-  EnumDisplaySettingsA_Original (lpszDeviceName, 0, &dev_mode);
 
   if (! config.window.res.override.isZero ())
   {
@@ -4429,23 +4441,32 @@ ChangeDisplaySettingsExA_Detour (
     }
   }
 
-  EnumDisplaySettingsA_Original (lpszDeviceName, 0, &dev_mode);
+  EnumDisplaySettingsA_Original (lpszDeviceName, ENUM_CURRENT_SETTINGS, &dev_mode);
 
-  if (dwFlags != CDS_TEST)
+  if (lpDevMode == nullptr || dwFlags == CDS_TEST ||
+     ((lpDevMode->dmDisplayFrequency != dev_mode.dmDisplayFrequency) && (lpDevMode->dmFields & DM_DISPLAYFREQUENCY) != 0x0) ||
+     ((lpDevMode->dmPelsWidth        != dev_mode.dmPelsWidth)        && (lpDevMode->dmFields & DM_PELSWIDTH)        != 0x0) ||
+     ((lpDevMode->dmPelsHeight       != dev_mode.dmPelsHeight)       && (lpDevMode->dmFields & DM_PELSHEIGHT)       != 0x0))
   {
-    if (called)
-      ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, CDS_RESET, lParam);
+    if (lpDevMode == nullptr)
+      return lRet;
 
-    called = true;
+    if (dwFlags != CDS_TEST)
+    {
+      if (called)
+        ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, CDS_RESET, lParam);
 
-    lRet =
-      ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, CDS_FULLSCREEN, lParam);
-  }
+      called = true;
 
-  else
-  {
-    lRet =
-      ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
+      lRet =
+        ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, CDS_FULLSCREEN, lParam);
+    }
+
+    else
+    {
+      lRet =
+        ChangeDisplaySettingsExA_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
+    }
   }
 
   for ( auto& display : SK_GetCurrentRenderBackend ().displays )
@@ -4488,6 +4509,22 @@ ChangeDisplaySettingsExW_Detour (
   _In_ LPVOID    lParam)
 {
   SK_LOG_FIRST_CALL
+
+  static bool called = false;
+
+  // Prevent mode changes when nothing has actually changed!
+  if ( (! called) &&
+       (lpszDeviceName == nullptr && hWnd    == 0x0 && 
+             lpDevMode == nullptr && dwFlags == 0x0 &&
+                lParam == nullptr) )
+  {
+    SK_LOGi0 (
+      L"ChangeDisplaySettingsExW ({all zero}) ignored because no previous "
+      L"calls to the function were made."
+    );
+
+    return DISP_CHANGE_SUCCESSFUL;
+  }
 
   LONG lRet = 0;
 
@@ -4532,13 +4569,6 @@ ChangeDisplaySettingsExW_Detour (
   DEVMODEW dev_mode        = { };
            dev_mode.dmSize = sizeof (DEVMODEW);
 
-  EnumDisplaySettingsW_Original (lpszDeviceName, 0, &dev_mode);
-
-////return
-////  ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
-
-  static bool called = false;
-
   if (! config.window.res.override.isZero ())
   {
     if (lpDevMode != nullptr)
@@ -4548,23 +4578,32 @@ ChangeDisplaySettingsExW_Detour (
     }
   }
 
-  EnumDisplaySettingsW_Original (lpszDeviceName, 0, &dev_mode);
+  EnumDisplaySettingsW_Original (lpszDeviceName, ENUM_CURRENT_SETTINGS, &dev_mode);
 
-  if (dwFlags != CDS_TEST)
+  if (lpDevMode == nullptr || dwFlags == CDS_TEST ||
+     ((lpDevMode->dmDisplayFrequency != dev_mode.dmDisplayFrequency) && (lpDevMode->dmFields & DM_DISPLAYFREQUENCY) != 0x0) ||
+     ((lpDevMode->dmPelsWidth        != dev_mode.dmPelsWidth)        && (lpDevMode->dmFields & DM_PELSWIDTH)        != 0x0) ||
+     ((lpDevMode->dmPelsHeight       != dev_mode.dmPelsHeight)       && (lpDevMode->dmFields & DM_PELSHEIGHT)       != 0x0))
   {
-    if (called)
-      ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, CDS_RESET, lParam);
+    if (lpDevMode == nullptr)
+      return lRet;
 
-    called = true;
+    if (dwFlags != CDS_TEST)
+    {
+      if (called)
+        ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, CDS_RESET, lParam);
 
-    lRet =
-      ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, CDS_FULLSCREEN, lParam);
-  }
+      called = true;
 
-  else
-  {
-    lRet =
-      ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
+      lRet =
+        ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, CDS_FULLSCREEN, lParam);
+    }
+
+    else
+    {
+      lRet =
+        ChangeDisplaySettingsExW_Original (lpszDeviceName, lpDevMode, hWnd, dwFlags, lParam);
+    }
   }
 
   for ( auto& display : SK_GetCurrentRenderBackend ().displays )

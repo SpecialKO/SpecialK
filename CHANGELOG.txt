@@ -1,4 +1,10 @@
-﻿24.10.30
+﻿24.10.30.1
+==========
+ + Prevent PH3 games from causing Fullscreen mode changes through use of
+     ChangeDisplaySettings (...) API with unchanged parameters, even
+       when configured for "Borderless" or "Windowed" modes. (ugh!)
+
+24.10.30
 ========
  + Improved/made obsolete mouse anti-warp for games that move their cursor
      to the center of the screen to implement mouselook (stupid devs...).
