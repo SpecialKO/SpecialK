@@ -3,6 +3,8 @@
  + Prevent PH3 games from causing Fullscreen mode changes through use of
      ChangeDisplaySettings (...) API with unchanged parameters, even
        when configured for "Borderless" or "Windowed" modes. (ugh!)
+ + Change compiler optimization settings to try and resolve Steam Overlay
+     problems (again).
 
 24.10.30
 ========
