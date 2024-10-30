@@ -4644,6 +4644,9 @@ auto DeclKeybind =
   input.cursor.fix_synaptics->load       (config.input.mouse.fix_synaptics);
   input.cursor.antiwarp_deadzone->load   (config.input.mouse.antiwarp_deadzone);
 
+  // Deprecated, pending removal
+  SK_ImGui_Cursor.prefs.no_warp.ui_open = false;
+
   input.gamepad.disabled_to_game->load   (config.input.gamepad.disabled_to_game);
   input.gamepad.disable_hid->load        (config.input.gamepad.disable_hid);
   input.gamepad.disable_winmm->load      (config.input.gamepad.disable_winmm);
