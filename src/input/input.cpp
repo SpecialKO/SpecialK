@@ -542,6 +542,7 @@ void SK_Input_PreInit (void)
     //   and allow it to run even when the game window is not foreground.
     SK_SDL_SetDefaultBehavior ("SDL_JOYSTICK_THREAD",                  "1");
     SK_SDL_SetDefaultBehavior ("SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS", "1");
+    SK_SDL_SetDefaultBehavior ("SDL_MOUSE_FOCUS_CLICKTHROUGH",         "1");
 
     // Disable bad window management behavior so that SK can take full control
     SK_SDL_SetDefaultBehavior ("SDL_HINT_FORCE_RAISEWINDOW",       "0");

@@ -669,10 +669,6 @@ SK_RegisterRawInputDevices (PCRAWINPUTDEVICE pRawInputDevices,
   return RegisterRawInputDevices (pRawInputDevices, uiNumDevices, cbSize);
 }
 
-//
-// Halo: Infinite was the first game ever encountered using Buffered RawInput,
-//   so this has only been tested working in that game.
-//
 UINT
 WINAPI
 GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
