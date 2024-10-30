@@ -675,7 +675,9 @@ SK_SEH_SummarizeException (_In_ struct _EXCEPTION_POINTERS* ExceptionInfo, bool 
     }
 
     log_entry.append (L"-----------------------------------------------------------\n");
-    log_entry_format (L"[! Except !] %s\n", desc));
+    if (*desc != L'\0') log_entry_format (L"[! Except !] %s\n", desc));
+    else                log_entry_format (L"[! Except !] Non-SEH Exception:\t%08x\n",
+                                ExceptionInfo->ExceptionRecord->ExceptionCode));
     log_entry.append (L"-----------------------------------------------------------\n");
 
     if (hModSource)

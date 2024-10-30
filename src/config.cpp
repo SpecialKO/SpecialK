@@ -3931,6 +3931,14 @@ auto DeclKeybind =
         // Requires synchronous init or the game will get GDI Copy
         config.compatibility.init_on_separate_thread = false;
       } break;
+
+      case SK_GAME_ID::Transistor:
+      {
+        config.apis.Vulkan.translate = 1; // Bridge it
+        config.apis.OpenGL.hook      = false;
+        config.apis.dxgi.d3d11.hook  = true;
+        config.apis.dxgi.d3d12.hook  = true;
+      } break;
     }
   }
 

@@ -1707,6 +1707,7 @@ enum class SK_GAME_ID
   SonicGenerations,             // SONIC_GENERATIONS.exe
   BrokenSword,                  // BS1R.exe
   YsX,                          // YsX.exe
+  Transistor,                   // Transistor.exe
 
   UNKNOWN_GAME               = 0xffff
 };
