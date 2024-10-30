@@ -950,18 +950,22 @@ GetCursorInfo_Detour (PCURSORINFO pci)
 
 float SK_SO4_MouseScale = 2.467f;
 
+static POINT s_GameSetCursorPos;
+
 BOOL
 WINAPI
 GetCursorPos_Detour (LPPOINT lpPoint)
 {
   SK_LOG_FIRST_CALL
 
+  if (lpPoint == nullptr)
+    return FALSE;
+
   if (SK_WantBackgroundRender () && (! SK_IsGameWindowActive ()))
   {
     SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
 
     *lpPoint = SK_ImGui_Cursor.orig_pos;
-
     SK_ImGui_Cursor.LocalToScreen (lpPoint);
 
     return TRUE;
@@ -983,13 +987,11 @@ GetCursorPos_Detour (LPPOINT lpPoint)
     if (SK_ImGui_WantMouseCapture () || implicit_capture)
     {
       SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
-
-      *lpPoint = SK_ImGui_Cursor.orig_pos;
-
-      SK_ImGui_Cursor.LocalToScreen (lpPoint);
-
-      return TRUE;
     }
+
+    *lpPoint = s_GameSetCursorPos;
+
+    return TRUE;
   }
 
 
@@ -1004,6 +1006,9 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
     SK_ImGui_Cursor.ScreenToLocal (&pos);
     SK_ImGui_Cursor.pos           = pos;
+    SK_ImGui_Cursor.orig_pos      = pos;
+
+    s_GameSetCursorPos = *lpPoint;
   }
 
 
@@ -1113,10 +1118,7 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
 {
   SK_LOG_FIRST_CALL
 
-  // Game WANTED to change its position, so remember that.
-  POINT                           pt { x, y };
-  SK_ImGui_Cursor.ScreenToLocal (&pt);
-  SK_ImGui_Cursor.orig_pos =      pt;
+  s_GameSetCursorPos = { x, y };
 
   // Don't let the game continue moving the cursor while
   //   Alt+Tabbed out
@@ -1129,9 +1131,14 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
   if (config.window.drag_lock)
     return TRUE;
 
-  if ( SK_ImGui_IsMouseRelevant () && ( SK_ImGui_Cursor.prefs.no_warp.ui_open/* && SK_ImGui_IsMouseRelevant   ()*/ ) ||
-                                      ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
+  if ( SK_ImGui_IsMouseRelevant () || (SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Active ()) ||
+                                      (SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible ()) )
   {
+    // Game WANTED to change its position, so remember that.
+    POINT                           pt { x, y };
+    SK_ImGui_Cursor.ScreenToLocal (&pt);
+    SK_ImGui_Cursor.orig_pos =      pt;
+
     //game_mouselook = SK_GetFramesDrawn ();
   }
 

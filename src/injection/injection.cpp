@@ -2507,6 +2507,21 @@ void SK_Inject_BroadcastExitNotify (bool force)
   {
     SK_Inject_WakeUpSKIF ();
 
+    if (config.window.always_on_top == SmartAlwaysOnTop)
+    {
+      SK_AutoHandle hInjectAckEx (
+        OpenEvent ( EVENT_ALL_ACCESS, FALSE,
+               LR"(Local\SKIF_InjectAckEx)" )
+      );
+      SK_AutoHandle hInjectAck (
+        OpenEvent ( EVENT_ALL_ACCESS, FALSE,
+                   LR"(Local\SKIF_InjectAck)" )
+      );
+
+      SetEvent (hInjectAckEx.m_h);
+      SetEvent (hInjectAck  .m_h);
+    }
+
     SetEvent (hInjectExitAckEx.m_h);
   }
 
@@ -2546,7 +2561,8 @@ void SK_Inject_BroadcastInjectionNotify (bool force)
   {
     SK_Inject_WakeUpSKIF ();
 
-    SetEvent (hInjectAckEx.m_h);
+    if (config.window.always_on_top != SmartAlwaysOnTop)
+      SetEvent (hInjectAckEx.m_h);
   }
 
   if (! force)
@@ -2565,7 +2581,8 @@ void SK_Inject_BroadcastInjectionNotify (bool force)
   {
     SK_Inject_WakeUpSKIF ();
 
-    SetEvent (hInjectAck.m_h);
+    if (config.window.always_on_top != SmartAlwaysOnTop)
+      SetEvent (hInjectAck.m_h);
   }
 }
 

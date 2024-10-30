@@ -386,7 +386,9 @@ SK::ControlPanel::Window::Draw (void)
         ImGui::Separator    ();
         if (! config.window.background_render)
           ImGui::Text       (ICON_FA_INFO_CIRCLE " Enable 'Continue Rendering' mode for Ultra-tasking");
-        ImGui::Text         (ICON_FA_EXCLAMATION_TRIANGLE " Advanced feature: Leave Global Injection running to raise windows dragged over the game");
+        if (! SK_IsInjected ())
+          ImGui::Text       (ICON_FA_EXCLAMATION_TRIANGLE " WARNING: This feature does not work reliably when using Local Injection!");
+        //ImGui::Text         (ICON_FA_EXCLAMATION_TRIANGLE " Advanced feature: Leave Global Injection running to raise windows dragged over the game");
         ImGui::EndTooltip   ();
       }
 

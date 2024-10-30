@@ -1119,11 +1119,6 @@ MessageProc ( const HWND&   hWnd,
 
         SK_ImGui_Cursor.ClientToLocal (&cursor_pos);
 
-        if (! SK_ImGui_WantMouseCapture ())
-        {
-          SK_ImGui_Cursor.orig_pos =    cursor_pos;
-        }
-
         // Return:
         //
         //   -1 if no filtering is desired
@@ -1355,6 +1350,24 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
     if (hWnd == game_window.hWnd)
     {
       SK_ImGui_UpdateMouseTracker ();
+
+      if (SK_ImGui_IsMouseRelevant ())
+      {
+        bool implicit_capture = false;
+
+        // Depending on warp prefs, we may not allow the game to know about mouse movement
+        //   (even if ImGui doesn't want mouse capture)
+        if ( //( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_WantMouseCapture   ()    ) ||
+             ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
+        {
+          implicit_capture = true;
+        }
+
+        if (SK_ImGui_WantMouseCapture () || implicit_capture)
+        {
+          return 1;
+        }
+      }
     }
   }
 

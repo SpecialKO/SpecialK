@@ -2754,7 +2754,9 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::EndTooltip    ();
       }
 
+      ImGui::BeginDisabled ();
       ImGui::Checkbox ("No Warp (UI open)",                     &SK_ImGui_Cursor.prefs.no_warp.ui_open);
+      ImGui::EndDisabled   ();
 
       if (ImGui::IsItemHovered ())
       {

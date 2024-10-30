@@ -1,7 +1,21 @@
-﻿24.10.29.3
+﻿24.10.30
+========
+ + Improved/made obsolete mouse anti-warp for games that move their cursor
+     to the center of the screen to implement mouselook (stupid devs...).
+ + Multitasking-on-Top mode now causes Special K's injection service to
+     continue running until the game exits, because otherwise the feature
+       is unusable and cannot track when focus changes to other apps.
+
+24.10.29.4
+==========
+ + Add exception code for Non-SEH exceptions caught by the crash handler
+
+24.10.29.3
 ==========
  + Remove QueryInterface call on D3D11 Device Context during texture upload,
      it angers the D3D11 debug layer if this happens on multiple threads.
+ + Remove old compatibility hack for ReShade that was changing Flip Model
+     SwapChains to Flip Sequential. ReShade works with Flip Discard now.
 
 24.10.29.2
 ==========

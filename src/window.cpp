@@ -4560,6 +4560,57 @@ SK_PeekMessageW (
 #define WM_NCMOUSEFIRST  WM_NCMOUSEMOVE
 #define WM_NCMOUSELAST  (WM_NCMOUSEFIRST + (WM_MOUSELAST - WM_MOUSEFIRST))
 
+using SendOrPostMessage_pfn = BOOL (WINAPI *)(HWND,UINT,WPARAM,LPARAM);
+
+SendOrPostMessage_pfn PostMessageA_Original = nullptr;
+SendOrPostMessage_pfn PostMessageW_Original = nullptr;
+SendOrPostMessage_pfn SendMessageA_Original = nullptr;
+SendOrPostMessage_pfn SendMessageW_Original = nullptr;
+
+BOOL
+WINAPI
+PostMessageA_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
+    return TRUE;
+
+  return
+    PostMessageA_Original (hWnd, Msg, wParam, lParam);
+}
+
+BOOL
+WINAPI
+PostMessageW_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
+    return TRUE;
+
+  return
+    PostMessageW_Original (hWnd, Msg, wParam, lParam);
+}
+
+BOOL
+WINAPI
+SendMessageA_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
+    return TRUE;
+
+  return
+    SendMessageA_Original (hWnd, Msg, wParam, lParam);
+}
+
+BOOL
+WINAPI
+SendMessageW_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+  if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
+    return TRUE;
+
+  return
+    SendMessageW_Original (hWnd, Msg, wParam, lParam);
+}
+
 BOOL
 WINAPI
 GetMessageA_Detour (LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax)
@@ -5918,6 +5969,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           SK_LOG2 ( ( L"WM_MOUSEACTIVATE ==> Activate and Eat" ),
                    L"Window Mgr" );
 
+          ActivateWindow (hWnd, true);
+
           if (! SK_ImGui_WantMouseCapture ())
             return MA_ACTIVATE;       // We don't want it, and the game doesn't expect it
           else
@@ -5933,6 +5986,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
         {
           SK_LOG2 ( ( L"WM_MOUSEACTIVATE (Other Window) ==> Activate" ),
                    L"Window Mgr" );
+
+          ActivateWindow (hWnd, true);
 
           return MA_ACTIVATE;
         }
@@ -5954,6 +6009,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             if (! last_active)
               SK_LOG3 ( ( L"Application Activated (Non-Client)" ),
                           L"Window Mgr" );
+
+            ActivateWindow (hWnd, true);
         
             if (SK_WantBackgroundRender ())
               SK_DetourWindowProc ( hWnd, WM_SETFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
@@ -5980,6 +6037,8 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
               HWND hWndForeground =
                 SK_GetForegroundWindow ();
+
+              ActivateWindow (hWnd, false);
 
               //// Only block the message if we're transferring activation to a different app
               if (hWnd != hWndForeground && (! IsChild (hWnd, hWndForeground)))
@@ -6018,7 +6077,10 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           }
 
           else if (SK_WantBackgroundRender ())
+          {
+            ActivateWindow (hWnd, true);
             SK_DetourWindowProc ( hWnd, WM_SETFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
+          }
         }
       }
 
@@ -6077,12 +6139,16 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                                         wParam, lParam );
 
             SK_DetourWindowProc ( hWnd, WM_KILLFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
+            ActivateWindow      ( hWnd, false );
 
             return 1;
           }
 
           else
+          {
             SK_DetourWindowProc ( hWnd, WM_SETFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
+            ActivateWindow      ( hWnd, true );
+          }
         }
       }
     }
@@ -6104,6 +6170,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           // Allow the window to be hidden, but prevent the game from seeing it
           game_window.DefWindowProc ( hWnd, uMsg,
                                         wParam, lParam );
+
           return 0;
         }
       }
@@ -6884,6 +6951,26 @@ SK_InstallWindowHook (HWND hWnd)
                               "GetMessageW",
                                GetMessageW_Detour,
       static_cast_p2p <void> (&GetMessageW_Original) );
+
+    SK_CreateDLLHook2 (      L"user32",
+                              "PostMessageA",
+                               PostMessageA_Detour,
+      static_cast_p2p <void> (&PostMessageA_Original) );
+
+    SK_CreateDLLHook2 (      L"user32",
+                              "PostMessageW",
+                               PostMessageW_Detour,
+      static_cast_p2p <void> (&PostMessageW_Original) );
+
+          SK_CreateDLLHook2 (      L"user32",
+                              "SendMessageA",
+                               SendMessageA_Detour,
+      static_cast_p2p <void> (&SendMessageA_Original) );
+
+    SK_CreateDLLHook2 (      L"user32",
+                              "SendMessageW",
+                               SendMessageW_Detour,
+      static_cast_p2p <void> (&SendMessageW_Original) );
 
 
     game_window.WndProc_Original = nullptr;
@@ -8712,6 +8799,7 @@ SK_Window_IsTopMostOnMonitor (HWND hWndToTest)
   HWND         hWndAbove  =
     GetWindow (hWndToTest, GW_HWNDPREV);
 
+#if 1
   std::set <HWND> hWndTopLevel,
                   hWndTopLevelOnWindowMonitor;
 
@@ -8739,14 +8827,17 @@ SK_Window_IsTopMostOnMonitor (HWND hWndToTest)
     {
       if (WindowFromPoint (pt) == hWnd)
       {
-        hWndTopLevelOnWindowMonitor.emplace (hWnd);
+        if (IsWindowVisible (hWndAbove) && !IsIconic (hWndAbove))
+        {
+          hWndTopLevelOnWindowMonitor.emplace (hWnd);
+        }
       }
     }
   }
 
   while (hWndAbove != nullptr && IsWindow (hWndAbove))
   {
-    if (hWndTopLevelOnWindowMonitor.contains (hWndAbove) && IsWindowVisible (hWndAbove))
+    if (hWndTopLevelOnWindowMonitor.contains (hWndAbove))
     {  
       bWindowIsTopMostOnMonitor = FALSE;
 
@@ -8756,6 +8847,36 @@ SK_Window_IsTopMostOnMonitor (HWND hWndToTest)
     hWndAbove =
       GetWindow (hWndAbove, GW_HWNDPREV);
   }
+#else
+
+  while (hWndAbove != 0 && IsWindow (hWndAbove))
+  {
+    if (IsWindowVisible (hWndAbove) && !IsIconic (hWndAbove))
+    {
+      RECT                       rcWindow = { };
+      GetWindowRect (hWndAbove, &rcWindow);
+
+      POINT pt = {
+        rcWindow.left + (rcWindow.right  - rcWindow.left) / 2,
+        rcWindow.top  + (rcWindow.bottom - rcWindow.top)  / 2
+      };
+
+      RECT rect = {
+        (LONG)(((float)rcWindow.left)   + 0.1f * (float)(rcWindow.right - rcWindow.left)),
+        (LONG)(((float)rcWindow.top)    + 0.1f * (float)(rcWindow.top   - rcWindow.bottom)),
+        (LONG)(((float)rcWindow.right)  - 0.1f * (float)(rcWindow.right - rcWindow.left)),
+        (LONG)(((float)rcWindow.bottom) - 0.1f * (float)(rcWindow.top   - rcWindow.bottom)),
+      };
+
+      if ( MonitorFromRect  (&rect, MONITOR_DEFAULTTONULL) == hMonitorWindow)
+        if (WindowFromPoint (pt) == hWndAbove && SK_Window_TestOverlap (hWndToTest, hWndAbove))
+           bWindowIsTopMostOnMonitor = FALSE; break;
+    }
+
+    hWndAbove =
+      GetWindow (hWndAbove, GW_HWNDPREV);
+  }
+#endif
 
   return
     bWindowIsTopMostOnMonitor;
