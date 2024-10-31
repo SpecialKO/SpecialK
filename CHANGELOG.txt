@@ -1,4 +1,13 @@
-﻿24.10.30.1
+﻿24.10.30.2
+==========
+ + Allow Multitasking-on-Top to be used without Global Injection service,
+     but turn off certain functionality that cannot work reliably without.
+ + Improved thread-safety of (LowLevel) Keyboard/Mouse Hook Proxy code.
+ + Handle window position changes that occur without showing up a game's
+     window message queue.
+ + Cleanup various RawInput handling code.
+
+24.10.30.1
 ==========
  + Prevent PH3 games from causing Fullscreen mode changes through use of
      ChangeDisplaySettings (...) API with unchanged parameters, even
