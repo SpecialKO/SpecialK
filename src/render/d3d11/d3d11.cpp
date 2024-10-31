@@ -8535,6 +8535,10 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     res = S_OK;
 
     SK_LOGi0 (L"[@] Returning NVIDIA Vk/DXGI Interop Singleton Device");
+
+    // Reuse the device, which was probably cleared when the SwapChain was
+    //   destroyed.
+    rb.setDevice (ret_device);
   }
 
   else

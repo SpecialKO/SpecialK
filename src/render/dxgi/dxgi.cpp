@@ -7029,6 +7029,9 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
 
   if ( ret == E_ACCESSDENIED )
   {
+    if (config.compatibility.disable_dx12_vk_interop && pCmdQueue.p != nullptr)
+      return E_NOTIMPL;
+
     if (config.system.log_level > 0)
       SK_ReleaseAssert (hWnd == rb.windows.getDevice ());
 
@@ -7045,9 +7048,6 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
     rb.d3d11.clearState ();
 
     rb.releaseOwnedResources ();
-
-    if (config.compatibility.disable_dx12_vk_interop && pCmdQueue.p != nullptr)
-      return E_NOTIMPL;
 
     ret =
       CreateSwapChainForHwnd_Original ( This, pDevice, hWnd, pDesc, pFullscreenDesc,
@@ -8709,17 +8709,14 @@ IDXGISwapChain3_CheckColorSpaceSupport_Override (
   if (pColorSpaceSupported == nullptr)
     return DXGI_ERROR_INVALID_CALL;
 
-  // NVIDIA will fallback to a D3D11 SwapChain for interop if we tell it that
-  //   G22_NONE_P709 is unsupported.
+  // NVIDIA will fallback to a D3D11 SwapChain for interop if we tell it that a colorspace is unsupported.
   if (config.compatibility.disable_dx12_vk_interop || StrStrIW (SK_GetCallerName ().c_str (), L"nvoglv") || StrStrIW (SK_GetCallerName ().c_str (), L"vulkan-1"))
   {   config.compatibility.disable_dx12_vk_interop = true; // Set this so it will trigger even if called by something wrapping the SwapChain
-    if (ColorSpace == DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709)
+    SK_ComPtr <ID3D11Device> pDevice11;
+    if (FAILED (This->GetDevice (IID_ID3D11Device, (void **)&pDevice11.p)))
     {
-      if (SK_GetCallingDLL () != SK_GetDLL ())
-      {
-        *pColorSpaceSupported = 0x0;
-        return S_OK;
-      }
+      *pColorSpaceSupported = 0x0;
+      return S_OK;
     }
   }
 
