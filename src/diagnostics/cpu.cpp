@@ -693,8 +693,6 @@ bool SK_CPU_TestForMWAITX (void)
           uint64_t monitor = 0ULL;
     _mm_monitorx (&monitor, 0, 0);
     _mm_mwaitx   (0x2,      0, 1);
-  
-    SK_CPU_HasMWAITX = true;
 
     return true;
   }
