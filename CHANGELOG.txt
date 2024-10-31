@@ -1,4 +1,14 @@
-﻿24.10.30.2
+﻿24.10.31
+========
+ + Do not invoke SK_SetupDiGetClassDevsExW (...), from
+     SK_RBkEnd_UpdateMonitorName (...), because during late injection,
+       the SK_SetupDiGetClassDevsExW function pointer may not be setup yet.
+ + Properly re-use NVIDIA Vulkan interop D3D11 device singleton, instead
+     of permanently losing overlay capabilities when games change resolution.
+ + Increase thread priority on SteamAPI delayed it and DLL enumerator threads
+ + Revert to 24.10.26 initialization order in core.cpp
+
+24.10.30.2
 ==========
  + Allow Multitasking-on-Top to be used without Global Injection service,
      but turn off certain functionality that cannot work reliably without.
