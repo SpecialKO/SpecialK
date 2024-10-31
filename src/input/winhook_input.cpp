@@ -35,17 +35,17 @@ UnhookWindowsHookEx_pfn UnhookWindowsHookEx_Original = nullptr;
 
 class SK_Win32_WindowHookManager {
 public:
-std::map <
+concurrency::concurrent_unordered_map <
   DWORD, HOOKPROC > _RealMouseProcs;
          HOOKPROC   _RealMouseProc    = nullptr;
-std::map <
+concurrency::concurrent_unordered_map <
   DWORD, HHOOK >    _RealMouseHooks;
          HHOOK      _RealMouseHook    = nullptr;
 
-std::map <
+concurrency::concurrent_unordered_map <
   DWORD, HOOKPROC > _RealKeyboardProcs;
          HOOKPROC   _RealKeyboardProc = nullptr;
-std::map <
+concurrency::concurrent_unordered_map <
   DWORD, HHOOK >    _RealKeyboardHooks;
          HHOOK      _RealKeyboardHook = nullptr;
 } __hooks;
@@ -59,96 +59,9 @@ SK_Proxy_MouseProc   (
   _In_ WPARAM wParam,
   _In_ LPARAM lParam )
 {
-  if (nCode >= 0)
+  if (nCode == HC_ACTION || nCode == HC_NOREMOVE)
   {
-    switch (wParam)
-    {
-      case WM_MOUSEMOVE:
-      case WM_LBUTTONDOWN:
-      case WM_LBUTTONDBLCLK:
-      case WM_RBUTTONDOWN:
-      case WM_RBUTTONDBLCLK:
-      case WM_MBUTTONDOWN:
-      case WM_MBUTTONDBLCLK:
-      case WM_XBUTTONDOWN:
-      case WM_XBUTTONDBLCLK:
-      {
-        MOUSEHOOKSTRUCT *mhs =
-          (MOUSEHOOKSTRUCT *)lParam;
-
-        static auto& io =
-          ImGui::GetIO ();
-
-        io.KeyCtrl  |= ((mhs->dwExtraInfo & MK_CONTROL) != 0);
-        io.KeyShift |= ((mhs->dwExtraInfo & MK_SHIFT  ) != 0);
-
-        switch (wParam)
-        {
-          case WM_MOUSEMOVE:
-          {
-            // No TrackMouseEvent available, have to do this manually
-            if (! game_window.mouse.can_track)
-            {
-              POINT                                          pt (mhs->pt);
-              ScreenToClient             (game_window.child != nullptr ?
-                                          game_window.child            :
-                                          game_window.hWnd, &pt);
-              if (ChildWindowFromPointEx (game_window.child != nullptr ?
-                                          game_window.child            :
-                                          game_window.hWnd,  pt, CWP_SKIPDISABLED) == (game_window.child != nullptr ?
-                                                                                       game_window.child            :
-                                                                                       game_window.hWnd))
-              {
-                SK_ImGui_Cursor.ClientToLocal (&pt);
-                SK_ImGui_Cursor.pos =           pt;
-
-                io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-                io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
-              }
-
-              else
-                io.MousePos = ImVec2 (-FLT_MAX, -FLT_MAX);
-            }
-
-            // Install a mouse tracker to get WM_MOUSELEAVE
-            if (! (game_window.mouse.tracking && game_window.mouse.inside))
-            {
-              if (SK_ImGui_WantMouseCapture ())
-              {
-                SK_ImGui_UpdateMouseTracker ();
-              }
-            }
-          } break;
-
-          case WM_LBUTTONDOWN:
-          case WM_LBUTTONDBLCLK:
-            io.MouseDown [0] = true;
-            break;
-
-          case WM_RBUTTONDOWN:
-          case WM_RBUTTONDBLCLK:
-            io.MouseDown [1] = true;
-            break;
-
-          case WM_MBUTTONDOWN:
-          case WM_MBUTTONDBLCLK:
-            io.MouseDown [2] = true;
-            break;
-
-          case WM_XBUTTONDOWN:
-          case WM_XBUTTONDBLCLK:
-          {
-            MOUSEHOOKSTRUCTEX* mhsx =
-              (MOUSEHOOKSTRUCTEX*)lParam;
-
-            if ((HIWORD (mhsx->mouseData)) == XBUTTON1) io.MouseDown [3] = true;
-            if ((HIWORD (mhsx->mouseData)) == XBUTTON2) io.MouseDown [4] = true;
-          } break;
-        }
-      } break;
-    }
-
-    if (SK_ImGui_WantMouseCapture ())
+    if (nCode == HC_ACTION)
     {
       switch (wParam)
       {
@@ -161,15 +74,91 @@ SK_Proxy_MouseProc   (
         case WM_MBUTTONDBLCLK:
         case WM_XBUTTONDOWN:
         case WM_XBUTTONDBLCLK:
-        case WM_MOUSEWHEEL:
-        case WM_MOUSEHWHEEL:
-          SK_WinHook_Backend->markHidden (sk_input_dev_type::Mouse);
+        {
+          MOUSEHOOKSTRUCT *mhs =
+            (MOUSEHOOKSTRUCT *)lParam;
 
-          return
-            CallNextHookEx (
-                nullptr, nCode,
-                 wParam, lParam );
+          static auto& io =
+            ImGui::GetIO ();
+
+          io.KeyCtrl  |= ((mhs->dwExtraInfo & MK_CONTROL) != 0);
+          io.KeyShift |= ((mhs->dwExtraInfo & MK_SHIFT  ) != 0);
+
+          switch (wParam)
+          {
+            case WM_MOUSEMOVE:
+            {
+              // No TrackMouseEvent available, have to do this manually
+              if (! game_window.mouse.can_track)
+              {
+                POINT                                          pt (mhs->pt);
+                ScreenToClient             (game_window.child != nullptr ?
+                                            game_window.child            :
+                                            game_window.hWnd, &pt);
+                if (ChildWindowFromPointEx (game_window.child != nullptr ?
+                                            game_window.child            :
+                                            game_window.hWnd,  pt, CWP_SKIPDISABLED) == (game_window.child != nullptr ?
+                                                                                         game_window.child            :
+                                                                                         game_window.hWnd))
+                {
+                  SK_ImGui_Cursor.ClientToLocal (&pt);
+                  SK_ImGui_Cursor.pos =           pt;
+
+                  io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+                  io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
+                }
+
+                else
+                  io.MousePos = ImVec2 (-FLT_MAX, -FLT_MAX);
+              }
+
+              // Install a mouse tracker to get WM_MOUSELEAVE
+              if (! (game_window.mouse.tracking && game_window.mouse.inside))
+              {
+                if (SK_ImGui_WantMouseCapture ())
+                {
+                  SK_ImGui_UpdateMouseTracker ();
+                }
+              }
+            } break;
+
+            case WM_LBUTTONDOWN:
+            case WM_LBUTTONDBLCLK:
+              io.MouseDown [0] = true;
+              break;
+
+            case WM_RBUTTONDOWN:
+            case WM_RBUTTONDBLCLK:
+              io.MouseDown [1] = true;
+              break;
+
+            case WM_MBUTTONDOWN:
+            case WM_MBUTTONDBLCLK:
+              io.MouseDown [2] = true;
+              break;
+
+            case WM_XBUTTONDOWN:
+            case WM_XBUTTONDBLCLK:
+            {
+              MOUSEHOOKSTRUCTEX* mhsx =
+                (MOUSEHOOKSTRUCTEX*)lParam;
+
+              if ((HIWORD (mhsx->mouseData)) == XBUTTON1) io.MouseDown [3] = true;
+              if ((HIWORD (mhsx->mouseData)) == XBUTTON2) io.MouseDown [4] = true;
+            } break;
+          }
+        } break;
       }
+    }
+
+    if (SK_ImGui_WantMouseCapture ())
+    {
+      SK_WinHook_Backend->markHidden (sk_input_dev_type::Mouse);
+
+      return
+        CallNextHookEx (
+            nullptr, nCode,
+             wParam, lParam );
     }
 
     else
@@ -192,8 +181,9 @@ SK_Proxy_MouseProc   (
         LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
 
       return
-        ((MouseProc)__hooks._RealMouseProcs.count (dwTid) ?
-                    __hooks._RealMouseProcs.at    (dwTid) :
+        ((MouseProc)__hooks._RealMouseProcs.count (dwTid) &&
+                    __hooks._RealMouseProcs.at    (dwTid) != nullptr ?
+                    __hooks._RealMouseProcs.at    (dwTid)            :
                     __hooks._RealMouseProc)( nCode, wParam,
                                                     lParam );
     }
@@ -212,7 +202,7 @@ SK_Proxy_LLMouseProc   (
   _In_ WPARAM wParam,
   _In_ LPARAM lParam )
 {
-  if (nCode >= 0)
+  if (nCode == HC_ACTION)
   {
     switch (wParam)
     {
@@ -263,26 +253,12 @@ SK_Proxy_LLMouseProc   (
 
     if (SK_ImGui_WantMouseCapture ())
     {
-      switch (wParam)
-      {
-        case WM_MOUSEMOVE:
-        case WM_LBUTTONDOWN:
-        case WM_LBUTTONDBLCLK:
-        case WM_RBUTTONDOWN:
-        case WM_RBUTTONDBLCLK:
-        case WM_MBUTTONDOWN:
-        case WM_MBUTTONDBLCLK:
-        case WM_XBUTTONDOWN:
-        case WM_XBUTTONDBLCLK:
-        case WM_MOUSEWHEEL:
-        case WM_MOUSEHWHEEL:
-          SK_WinHook_Backend->markHidden (sk_input_dev_type::Mouse);
+      SK_WinHook_Backend->markHidden (sk_input_dev_type::Mouse);
 
-          return
-            CallNextHookEx (
-                nullptr, nCode,
-                 wParam, lParam );
-      }
+      return
+        CallNextHookEx (
+            nullptr, nCode,
+             wParam, lParam );
     }
 
     else
@@ -305,8 +281,9 @@ SK_Proxy_LLMouseProc   (
         LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
 
       return
-        ((MouseProc)__hooks._RealMouseProcs.count (dwTid) ?
-                    __hooks._RealMouseProcs.at    (dwTid) :
+        ((MouseProc)__hooks._RealMouseProcs.count (dwTid) &&
+                    __hooks._RealMouseProcs.at    (dwTid) != nullptr ?
+                    __hooks._RealMouseProcs.at    (dwTid)            :
                     __hooks._RealMouseProc)( nCode, wParam,
                                                     lParam );
     }
@@ -326,31 +303,37 @@ SK_Proxy_KeyboardProc (
   _In_ WPARAM wParam,
   _In_ LPARAM lParam  )
 {
-  if (nCode >= 0)
+  if (nCode == HC_ACTION || nCode == HC_NOREMOVE)
   {
     using KeyboardProc =
       LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
 
-    bool wasPressed = (((DWORD)lParam) & (1UL << 30UL)) != 0UL,
-          isPressed = (((DWORD)lParam) & (1UL << 31UL)) == 0UL,
-          isAltDown = (((DWORD)lParam) & (1UL << 29UL)) != 0UL;
-
-    SHORT vKey =
-      static_cast <SHORT> (wParam);
-
-    if ( config.input.keyboard.override_alt_f4 &&
-            config.input.keyboard.catch_alt_f4 )
+    if (nCode == HC_ACTION)
     {
-      if (SK_IsGameWindowFocused () && vKey == VK_F4 && isAltDown && isPressed && (! wasPressed))
+      using KeyboardProc =
+        LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
+
+      bool wasPressed = (((DWORD)lParam) & (1UL << 30UL)) != 0UL,
+            isPressed = (((DWORD)lParam) & (1UL << 31UL)) == 0UL,
+            isAltDown = (((DWORD)lParam) & (1UL << 29UL)) != 0UL;
+
+      SHORT vKey =
+        static_cast <SHORT> (wParam);
+
+      if ( config.input.keyboard.override_alt_f4 &&
+              config.input.keyboard.catch_alt_f4 )
       {
-        SK_ImGui_WantExit = true;
+        if (SK_IsGameWindowFocused () && vKey == VK_F4 && isAltDown && isPressed && (! wasPressed))
+        {
+          SK_ImGui_WantExit = true;
 
-        return 1;
+          return 1;
+        }
       }
-    }
 
-    if (SK_IsGameWindowActive () || (! isPressed))
-      ImGui::GetIO ().KeysDown [vKey] = isPressed;
+      if (SK_IsGameWindowActive () || (! isPressed))
+        ImGui::GetIO ().KeysDown [vKey] = isPressed;
+    }
 
     if (SK_ImGui_WantKeyboardCapture ())
     {
@@ -379,8 +362,9 @@ SK_Proxy_KeyboardProc (
       SK_WinHook_Backend->markRead (sk_input_dev_type::Keyboard);
 
       return
-        ((KeyboardProc)__hooks._RealKeyboardProcs.count (dwTid) ?
-                       __hooks._RealKeyboardProcs.at    (dwTid) :
+        ((KeyboardProc)__hooks._RealKeyboardProcs.count (dwTid) &&
+                       __hooks._RealKeyboardProcs.at    (dwTid) != nullptr ?
+                       __hooks._RealKeyboardProcs.at    (dwTid)            :
                        __hooks._RealKeyboardProc)( nCode, wParam,
                                                           lParam );
     }
@@ -483,8 +467,9 @@ SK_Proxy_LLKeyboardProc (
       SK_WinHook_Backend->markRead (sk_input_dev_type::Keyboard);
 
       return
-        ((KeyboardProc)__hooks._RealKeyboardProcs.count (dwTid) ?
-                       __hooks._RealKeyboardProcs.at    (dwTid) :
+        ((KeyboardProc)__hooks._RealKeyboardProcs.count (dwTid) &&
+                       __hooks._RealKeyboardProcs.at    (dwTid) != nullptr ?
+                       __hooks._RealKeyboardProcs.at    (dwTid)            :
                        __hooks._RealKeyboardProc)( nCode, wParam,
                                                           lParam );
     }
@@ -504,8 +489,8 @@ UnhookWindowsHookEx_Detour ( _In_ HHOOK hhk )
   {
     if (hook.second == hhk)
     {
-      __hooks._RealMouseHooks.erase (hook.first);
-      __hooks._RealMouseProcs.erase (hook.first);
+      __hooks._RealMouseHooks [hook.first] = 0;
+      __hooks._RealMouseProcs [hook.first] = 0;
 
       return
         UnhookWindowsHookEx_Original (hhk);
@@ -525,8 +510,8 @@ UnhookWindowsHookEx_Detour ( _In_ HHOOK hhk )
   {
     if (hook.second == hhk)
     {
-      __hooks._RealKeyboardHooks.erase (hook.first);
-      __hooks._RealKeyboardProcs.erase (hook.first);
+      __hooks._RealKeyboardHooks [hook.first] = 0;
+      __hooks._RealKeyboardProcs [hook.first] = 0;
 
       return
         UnhookWindowsHookEx_Original (hhk);
@@ -546,7 +531,7 @@ UnhookWindowsHookEx_Detour ( _In_ HHOOK hhk )
   {
     if (hook.second == hhk)
     {
-      __hooks._RealKeyboardProcs.erase (hook.first);
+      __hooks._RealKeyboardProcs [hook.first] = 0;
 
       return
         UnhookWindowsHookEx_Original (hhk);
@@ -587,7 +572,8 @@ SetWindowsHookExW_Detour (
 
         if (dwThreadId != 0)
         {
-          if (! __hooks._RealKeyboardProcs.count (dwThreadId))
+          if (! __hooks._RealKeyboardProcs.count (dwThreadId) ||
+                __hooks._RealKeyboardProcs       [dwThreadId] == nullptr)
           {     __hooks._RealKeyboardProcs       [dwThreadId] = lpfn;
                                                       install = true;
           }
@@ -621,7 +607,8 @@ SetWindowsHookExW_Detour (
 
         if (dwThreadId != 0)
         {
-          if (! __hooks._RealMouseProcs.count (dwThreadId))
+          if (! __hooks._RealMouseProcs.count (dwThreadId) ||
+                __hooks._RealMouseProcs       [dwThreadId] == nullptr)
           {     __hooks._RealMouseProcs       [dwThreadId] = lpfn;
                                                    install = true;
           }
@@ -676,7 +663,8 @@ SetWindowsHookExA_Detour (
 
         if (dwThreadId != 0)
         {
-          if (! __hooks._RealKeyboardProcs.count (dwThreadId))
+          if (! __hooks._RealKeyboardProcs.count (dwThreadId) || 
+                __hooks._RealKeyboardProcs       [dwThreadId] == nullptr)
           {     __hooks._RealKeyboardProcs       [dwThreadId] = lpfn;
                                                       install = true;
           }
@@ -710,7 +698,8 @@ SetWindowsHookExA_Detour (
 
         if (dwThreadId != 0)
         {
-          if (! __hooks._RealMouseProcs.count (dwThreadId))
+          if (! __hooks._RealMouseProcs.count (dwThreadId) || 
+                __hooks._RealMouseProcs       [dwThreadId] == nullptr)
           {     __hooks._RealMouseProcs       [dwThreadId] = lpfn;
                                                    install = true;
           }
