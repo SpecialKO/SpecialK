@@ -4405,7 +4405,7 @@ SteamAPI_Delay_Init (LPVOID)
   while ( (! ReadAcquire (&__SK_Steam_init)) &&
              tries < 120 )
   {
-    SK_Sleep (std::max (25, config.steam.init_delay));
+    SK_Sleep (std::max (5, config.steam.init_delay));
 
     if (SK_GetFramesDrawn () < 1)
       continue;

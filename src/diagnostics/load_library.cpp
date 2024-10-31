@@ -2217,10 +2217,10 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       );
 
       SetCurrentThreadDescription (L"[SK] DLL Enumerator");
-      SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_LOWEST);
+      SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL);
 
       if ( WAIT_TIMEOUT ==
-             SK_WaitForSingleObject (hWalkDone.m_h, 1000UL) )
+             SK_WaitForSingleObject (hWalkDone.m_h, 7500UL) )
       {
         pLogger->Log (L"Timeout during SK_WalkModules, continuing to prevent deadlock...");
       }
@@ -2315,6 +2315,8 @@ BOOL
 __stdcall
 BlacklistLibrary (const _T* lpFileName)
 {
+  return FALSE;
+
   if (lpFileName == nullptr)
     return FALSE;
 
