@@ -1526,11 +1526,6 @@ SK_DXGI_UpdateSwapChain (IDXGISwapChain* This)
 
   if ( SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pDev.p))) )
   {
-    // These operations are not atomic / cache coherent in
-    //   ReShade (bug!!), so to avoid prematurely freeing
-    //     this stuff don't release and re-acquire a
-    //       reference to the same object.
-
     if (! pDev.IsEqualObject (rb.device))
     {
                               rb.d3d11.immediate_ctx = nullptr;
@@ -2890,30 +2885,47 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
     }
 
 
-    if (std::exchange (first_frame, false))
+    // Setup D3D11/12 Device Context Late
+    if (rb.device.p == nullptr)
     {
-      // Setup D3D11 Device Context Late (on first draw)
-      if (rb.device.p == nullptr)
+      SK_ComPtr <ID3D11Device> pSwapDev;
+      SK_ComPtr <ID3D12Device> pSwapDev12;
+
+      if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pSwapDev.p))))
       {
-        SK_ComPtr <ID3D11Device> pSwapDev;
+        if (rb.swapchain == nullptr)
+            rb.swapchain = This;
 
-        if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pSwapDev.p))))
-        {
-          if (rb.swapchain == nullptr)
-              rb.swapchain = This;
+        SK_ComPtr <ID3D11DeviceContext> pDevCtx;
+        pSwapDev->GetImmediateContext (&pDevCtx.p);
+               rb.d3d11.immediate_ctx = pDevCtx;
+               rb.setDevice            (pSwapDev);
 
-          SK_ComPtr <ID3D11DeviceContext> pDevCtx;
-          pSwapDev->GetImmediateContext (&pDevCtx.p);
-                 rb.d3d11.immediate_ctx = pDevCtx;
-                 rb.setDevice            (pSwapDev);
-
+        SK_RunOnce (
           SK_LOGs0 ( L"  D3D 11  ",
-                     L"Active D3D11 Device Context Established on first Presented Frame" );
-        }
+                     L"Active D3D11 Device Context Established on first Presented Frame" )
+                   );
+
+        rb.updateOutputTopology ();
       }
 
-      rb.updateOutputTopology ();
+      else if (SUCCEEDED (This->GetDevice (IID_PPV_ARGS (&pSwapDev12.p))))
+      {
+        if (rb.swapchain == nullptr)
+            rb.swapchain = This;
+            rb.setDevice (pSwapDev12);
 
+        SK_RunOnce (
+          SK_LOGs0 ( L"  D3D 12  ",
+                     L"Active D3D12 Device Context Established on first Presented Frame" )
+                   );
+
+        rb.updateOutputTopology ();
+      }
+    }
+
+    if (std::exchange (first_frame, false))
+    {
       if ( pDev   != nullptr ||
            pDev12 != nullptr )
       {
@@ -5595,6 +5607,8 @@ SK_DXGI_CreateSwapChain_PostInit (
     else
     {
       SK_InstallWindowHook (hWndRoot);
+
+      rb.setDevice (pDevice);
 
       windows.setDevice (hWndDevice);
       windows.setFocus  (hWndRoot);

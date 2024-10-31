@@ -1,4 +1,13 @@
-﻿24.10.31
+﻿24.10.31.1
+==========
+ + Fixed changes to SK_WindowManager::StyleHasBorder (...) in 24.10.24.4
+     that were causing added window borders to Baldur's Gate 3 when set to
+       Borderless in-game.
+ + Allow late stage re-initialization of D3D11 during SwapChain presentation,
+     rather than when a new SwapChain is created (Vulkan interop).
+ + Disable Windows+Down/Up in Vulkan games.
+
+24.10.31
 ========
  + Do not invoke SK_SetupDiGetClassDevsExW (...), from
      SK_RBkEnd_UpdateMonitorName (...), because during late injection,
