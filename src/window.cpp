@@ -197,9 +197,7 @@ public:
     return ( ( style == 0x0            ) ||
              ( style  &  WS_BORDER     ) ||
              ( style  &  WS_THICKFRAME ) ||
-             ( style  &  WS_DLGFRAME   ) ||
-             ( style  &  WS_CAPTION    ) ||
-             ( style  &  WS_SYSMENU    ) );
+             ( style  &  WS_DLGFRAME   ) );
   }
 
   static constexpr bool StyleExHasBorder (DWORD_PTR style_ex)
