@@ -2561,8 +2561,7 @@ void SK_Inject_BroadcastInjectionNotify (bool force)
   {
     SK_Inject_WakeUpSKIF ();
 
-    if (config.window.always_on_top != SmartAlwaysOnTop)
-      SetEvent (hInjectAckEx.m_h);
+    SetEvent (hInjectAckEx.m_h);
   }
 
   if (! force)
@@ -2581,8 +2580,7 @@ void SK_Inject_BroadcastInjectionNotify (bool force)
   {
     SK_Inject_WakeUpSKIF ();
 
-    if (config.window.always_on_top != SmartAlwaysOnTop)
-      SetEvent (hInjectAck.m_h);
+    SetEvent (hInjectAck.m_h);
   }
 }
 

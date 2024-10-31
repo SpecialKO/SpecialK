@@ -8517,9 +8517,10 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
                 dwThreadId =
               GetWindowThreadProcessId (hWndForeground, &dwProcId);
 
-            GUITHREADINFO gti         =          {   };
-                          gti.cbSize  =   sizeof (gti);
-            SK_GetGUIThreadInfo (  dwThreadId,   &gti );
+          GUITHREADINFO gti         =          {   };
+                        gti.cbSize  =   sizeof (gti);
+          SK_GetGUIThreadInfo (  dwThreadId,   &gti );
+
           // The passed target tends to be out-of-date, and might raise the game window
           //   back to the top if we process an old message, so ignore the parameter and
           //     always use the CURRENT foreground window for this test.
@@ -8530,97 +8531,98 @@ bool SK_Window_OnFocusChange (HWND hWndNewTarget, HWND hWndOld)
               hWndNewTarget = gti.hwndFocus;
           }
 
-          else
-            hWndNewTarget = game_window.hWnd;
-
-          // We have to remove TopMost to display a window (that has taken input focus away),
-          //   because the game window would cover it otherwise.
-          if (hWndNewTarget != game_window.hWnd && hWndNewTarget != 0 && SK_Window_TestOverlap (hWndNewTarget, game_window.hWnd))
+          // Leave advanced functionality off unless the global injection service is running...
+          if (SK_Inject_IsHookActive ())
           {
-            hWndNewTop = hWndNewTarget;
-            //dll_log->Log (L"Smart Always On Top: Decay From TopMost {1}");
-            bTopMost   = false; // Game will cease to be top-most
-          }
-
-          else if (hWndNewTarget == game_window.hWnd && hWndNewTarget != 0)
-          {
-          //dll_log->Log (L"Smart Always On Top: Promotion to TopMost {0}");
-            bTopMost = true; // Game is promoted to top-most
-          }
-
-          else if (hWndNewTarget != 0)
-          {
-            BOOL     bGameIsTopMostOnMonitor
-                                  = TRUE;
-            HMONITOR hMonitorGame = MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST);
-            HWND        hWndAbove =
-              GetWindow (game_window.hWnd, GW_HWNDPREV);
-
-            std::set <HWND> hWndTopLevel,
-                            hWndTopLevelOnGameMonitor;
-
-            EnumWindows ([](HWND hWnd, LPARAM lParam)
-           -> BOOL
+            // We have to remove TopMost to display a window (that has taken input focus away),
+            //   because the game window would cover it otherwise.
+            if (hWndNewTarget != game_window.hWnd && hWndNewTarget != 0 && SK_Window_TestOverlap (hWndNewTarget, game_window.hWnd))
             {
-              std::set <HWND>* pTopLevelSet =
-                (std::set <HWND> *)lParam;
-
-              if (pTopLevelSet != nullptr)
-                  pTopLevelSet->emplace (hWnd);
-
-              return TRUE;
-            },      (LPARAM)&hWndTopLevel);
-            for (auto hWnd : hWndTopLevel)
-            {
-              RECT                  rcWindow = { };
-              GetWindowRect (hWnd, &rcWindow);
-
-              POINT pt = {
-                rcWindow.left + (rcWindow.right  - rcWindow.left) / 2,
-                rcWindow.top  + (rcWindow.bottom - rcWindow.top)  / 2
-              };
-
-              if (MonitorFromPoint (pt, MONITOR_DEFAULTTONEAREST) == hMonitorGame)
-              //if (MonitorFromWindow (hWnd, MONITOR_DEFAULTTONEAREST) == hMonitorGame)
-                hWndTopLevelOnGameMonitor.emplace (hWnd);
+              hWndNewTop = hWndNewTarget;
+              //dll_log->Log (L"Smart Always On Top: Decay From TopMost {1}");
+              bTopMost   = false; // Game will cease to be top-most
             }
 
-            while (hWndAbove != nullptr && IsWindow (hWndAbove))
+            else if (hWndNewTarget == game_window.hWnd && hWndNewTarget != 0)
             {
-              if (IsWindowVisible (hWndAbove) && hWndTopLevelOnGameMonitor.count (hWndAbove))
+            //dll_log->Log (L"Smart Always On Top: Promotion to TopMost {0}");
+              bTopMost = true; // Game is promoted to top-most
+            }
+
+            else if (hWndNewTarget != 0)
+            {
+              BOOL     bGameIsTopMostOnMonitor
+                                    = TRUE;
+              HMONITOR hMonitorGame = MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST);
+              HWND        hWndAbove =
+                GetWindow (game_window.hWnd, GW_HWNDPREV);
+
+              std::set <HWND> hWndTopLevel,
+                              hWndTopLevelOnGameMonitor;
+
+              EnumWindows ([](HWND hWnd, LPARAM lParam)
+             -> BOOL
               {
-                wchar_t wszWindowTitle [128] = { };
+                std::set <HWND>* pTopLevelSet =
+                  (std::set <HWND> *)lParam;
 
-                // NOTE: GetWindowText calls SendMessage, which will deadlock Unity engine games
-                if (config.system.log_level > 0)
-                  GetWindowTextW (hWndAbove, wszWindowTitle, 128);
+                if (pTopLevelSet != nullptr)
+                    pTopLevelSet->emplace (hWnd);
 
-                if (config.system.log_level <= 0 || wszWindowTitle [0] != L'\0')
-                {
-                  bGameIsTopMostOnMonitor = FALSE;
+                return TRUE;
+              },      (LPARAM)&hWndTopLevel);
+              for (auto hWnd : hWndTopLevel)
+              {
+                RECT                  rcWindow = { };
+                GetWindowRect (hWnd, &rcWindow);
 
-                  if (config.system.log_level > 0)
-                    dll_log->Log (L"Window: '%ws' is above the game on its monitor...", wszWindowTitle);
+                POINT pt = {
+                  rcWindow.left + (rcWindow.right  - rcWindow.left) / 2,
+                  rcWindow.top  + (rcWindow.bottom - rcWindow.top)  / 2
+                };
 
-                  break;
-                }
+                if (MonitorFromPoint (pt, MONITOR_DEFAULTTONEAREST) == hMonitorGame)
+                //if (MonitorFromWindow (hWnd, MONITOR_DEFAULTTONEAREST) == hMonitorGame)
+                  hWndTopLevelOnGameMonitor.emplace (hWnd);
               }
 
-              hWndAbove =
-                GetWindow (hWndAbove, GW_HWNDPREV);
-            }
-
-            //  We're only interested in windows that spill-over on top of the game window
-            //                       not windows that are completely disjoint on a different monitor
-            if (                                         bGameIsTopMostOnMonitor &&
-                 (! SK_Window_TestOverlap (hWndNewTarget, game_window.hWnd)) )
-            {
-              if ( MonitorFromWindow (hWndNewTarget,    MONITOR_DEFAULTTONEAREST) !=
-                   MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST) )
+              while (hWndAbove != nullptr && IsWindow (hWndAbove))
               {
-              //dll_log->Log (L"Smart Always On Top: Promotion to TopMost {2}");
-                //hWndNewTop = game_window.hWnd;
-                bTopMost   = true; // Game is promoted to top-most
+                if (IsWindowVisible (hWndAbove) && hWndTopLevelOnGameMonitor.count (hWndAbove))
+                {
+                  wchar_t wszWindowTitle [128] = { };
+
+                  // NOTE: GetWindowText calls SendMessage, which will deadlock Unity engine games
+                  if (config.system.log_level > 0)
+                    GetWindowTextW (hWndAbove, wszWindowTitle, 128);
+
+                  if (config.system.log_level <= 0 || wszWindowTitle [0] != L'\0')
+                  {
+                    bGameIsTopMostOnMonitor = FALSE;
+
+                    if (config.system.log_level > 0)
+                      dll_log->Log (L"Window: '%ws' is above the game on its monitor...", wszWindowTitle);
+
+                    break;
+                  }
+                }
+
+                hWndAbove =
+                  GetWindow (hWndAbove, GW_HWNDPREV);
+              }
+
+              //  We're only interested in windows that spill-over on top of the game window
+              //                       not windows that are completely disjoint on a different monitor
+              if (                                         bGameIsTopMostOnMonitor &&
+                   (! SK_Window_TestOverlap (hWndNewTarget, game_window.hWnd)) )
+              {
+                if ( MonitorFromWindow (hWndNewTarget,    MONITOR_DEFAULTTONEAREST) !=
+                     MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST) )
+                {
+                //dll_log->Log (L"Smart Always On Top: Promotion to TopMost {2}");
+                  //hWndNewTop = game_window.hWnd;
+                  bTopMost   = true; // Game is promoted to top-most
+                }
               }
             }
           }
