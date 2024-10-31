@@ -1,4 +1,10 @@
-﻿24.10.31.1
+﻿24.10.31.2
+==========
+ + Add new fallback for WMAITX support testing on CPUs with CPUIDs that
+     claim the instruction is unsupported... just run the instruction and
+       see if it generates and Illegal Instruction exception or not, lol.
+
+24.10.31.1
 ==========
  + Fixed changes to SK_WindowManager::StyleHasBorder (...) in 24.10.24.4
      that were causing added window borders to Baldur's Gate 3 when set to

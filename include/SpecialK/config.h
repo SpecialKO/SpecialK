@@ -33,6 +33,7 @@
 #include <filesystem>
 #include <intsafe.h>
 
+#include <SpecialK/diagnostics/cpu.h>
 #include <SpecialK/render/backend.h>
 #include <SpecialK/window.h>
 #include <SpecialK/core.h>
@@ -187,9 +188,12 @@ struct sk_config_t
                                 cpuid [1], cpuid [2]);
 #endif
 
-
     // MWAITX = ECX Bit 29 (8000_0001h)
     SK_CPU_HasMWAITX = (cpuid [2] & (1 << 28)) != 0;
+
+    if (! SK_CPU_HasMWAITX)
+          SK_CPU_HasMWAITX =
+      SK_CPU_TestForMWAITX ();
 
     SK_PerfTicksPerMs = SK_PerfFreq / 1000LL;
 

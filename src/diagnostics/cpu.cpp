@@ -682,3 +682,23 @@ SK_Power_InitEffectiveModeCallbacks (void)
 
   return false;
 }
+
+
+// Some CPUIDs are lying about their capabilities,
+//   try the instruction and see if it's illegal...
+bool SK_CPU_TestForMWAITX (void)
+{
+  __try {
+    static alignas(64)
+          uint64_t monitor = 0ULL;
+    _mm_monitorx (&monitor, 0, 0);
+    _mm_mwaitx   (0x2,      0, 1);
+  
+    SK_CPU_HasMWAITX = true;
+
+    return true;
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER) {};
+
+  return false;
+}

@@ -76,5 +76,6 @@ bool                 SK_Power_StopEffectiveModeCallbacks (void);
 
 void                 SK_CPU_InstallHooks                 (void);
 bool                 SK_CPU_IsZen                        (void);
+bool                 SK_CPU_TestForMWAITX                (void);
 
 #endif /* __SK__CPU_H__ */
