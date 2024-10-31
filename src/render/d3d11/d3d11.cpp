@@ -8567,6 +8567,9 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
     {
       pNvInteropSingleton = ret_device;
                             ret_device->AddRef (); // Keep-Alive
+
+      if (rb.device == nullptr)
+          rb.setDevice (ret_device);
     }
 
     // Stash the pointer to this device so that we can test equality on wrapped devices

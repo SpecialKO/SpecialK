@@ -1,4 +1,8 @@
-﻿24.10.31.2
+﻿24.10.31.3
+==========
+ + Revert late stage re-initialization of D3D11, it was a bad idea.
+
+24.10.31.2
 ==========
  + Add new fallback for WMAITX support testing on CPUs with CPUIDs that
      claim the instruction is unsupported... just run the instruction and
