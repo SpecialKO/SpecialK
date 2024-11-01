@@ -2406,8 +2406,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     d3d12 |= SK_GetModuleHandle (L"d3d12.dll")    != nullptr;
     d3d9  |= SK_GetModuleHandle (L"d3d9.dll")     != nullptr;
     gl    |= SK_GetModuleHandle (L"OpenGL32.dll") != nullptr;
-    gl    |= SK_GetModuleHandle (L"gdi32.dll")    != nullptr;
-    gl    |= SK_GetModuleHandle (L"gdi32full.dll")!= nullptr;
+  //gl    |= SK_GetModuleHandle (L"gdi32.dll")    != nullptr;
+  //gl    |= SK_GetModuleHandle (L"gdi32full.dll")!= nullptr;
 
     if ( ( dxgi || d3d11 || d3d12 ||
            d3d8 || ddraw ) && ( config.apis.dxgi.d3d11.hook
