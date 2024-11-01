@@ -1,4 +1,11 @@
-﻿34.10.31.4
+﻿24.11.1
+=======
+ + Re-enable D3D11 cleanup code so that the Steam overlay does not crash
+     D3D12 games.
+ + Disable D3D11 cleanup code only in Ys X so that it does not continue
+     running forever after it should have shutdown.
+
+24.10.31.4
 ==========
  + Stop hooking OpenGL32.dll whenever gdi32.dll or gdi32full.dll are
      loaded, but OpenGL32.dll isn't.
