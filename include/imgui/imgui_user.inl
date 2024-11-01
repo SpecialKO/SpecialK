@@ -3163,8 +3163,46 @@ SK_Window_HandleOutOfBandMovement (void)
 }
 
 void
-SK_ImGui_User_NewFrame (void)
+SK_ImGui_UpdateMouseButtons (bool bActive, ImGuiIO& io)
 {
+  //
+  // Handle mouse clicks while inactive, so that users can't hold the mouse
+  //   button down then alt-tab into the game and potentially activate the UI...
+  //
+  static int         mouse_keys_unfocused [6]  = {};
+  if ((! bActive) || mouse_keys_unfocused [5] == 0 || (! game_window.mouse.inside))
+  {
+    mouse_keys_unfocused [5] = -1;
+    mouse_keys_unfocused [0] = ((SK_GetAsyncKeyState (VK_LBUTTON) ) & 0x8000) != 0x0;
+    mouse_keys_unfocused [1] = ((SK_GetAsyncKeyState (VK_RBUTTON) ) & 0x8000) != 0x0;
+    mouse_keys_unfocused [2] = ((SK_GetAsyncKeyState (VK_MBUTTON) ) & 0x8000) != 0x0;
+    mouse_keys_unfocused [3] = ((SK_GetAsyncKeyState (VK_XBUTTON1)) & 0x8000) != 0x0;
+    mouse_keys_unfocused [4] = ((SK_GetAsyncKeyState (VK_XBUTTON2)) & 0x8000) != 0x0;
+  }
+
+  if (game_window.mouse.inside && bActive)
+  {
+    int
+    mouse_keys [5] = {};
+    mouse_keys [0] = ((SK_GetAsyncKeyState (VK_LBUTTON) ) & 0x8000) != 0x0;
+    mouse_keys [1] = ((SK_GetAsyncKeyState (VK_RBUTTON) ) & 0x8000) != 0x0;
+    mouse_keys [2] = ((SK_GetAsyncKeyState (VK_MBUTTON) ) & 0x8000) != 0x0;
+    mouse_keys [3] = ((SK_GetAsyncKeyState (VK_XBUTTON1)) & 0x8000) != 0x0;
+    mouse_keys [4] = ((SK_GetAsyncKeyState (VK_XBUTTON2)) & 0x8000) != 0x0;
+
+    for (UINT i = 0 ; i < 5; ++i)
+    {
+      if (  mouse_keys [0] != mouse_keys_unfocused [0]) {
+          io.MouseDown [0]  = mouse_keys           [0] >  0;
+                              mouse_keys_unfocused [0] = -1;
+      }
+    }
+  }
+}
+
+void
+SK_ImGui_User_NewFrame (void)
+{  
   SK_Window_HandleOutOfBandMovement ();
 
   SK_HID_ProcessGamepadButtonBindings ();
@@ -3454,16 +3492,8 @@ SK_ImGui_User_NewFrame (void)
   if (! bActive)
     RtlZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);
 
-  if (game_window.mouse.inside)
-  {
-    io.MouseDown [0] = ((SK_GetAsyncKeyState (VK_LBUTTON) ) & 0x8000) != 0x0;
-    io.MouseDown [1] = ((SK_GetAsyncKeyState (VK_RBUTTON) ) & 0x8000) != 0x0;
-    io.MouseDown [2] = ((SK_GetAsyncKeyState (VK_MBUTTON) ) & 0x8000) != 0x0;
-    io.MouseDown [3] = ((SK_GetAsyncKeyState (VK_XBUTTON1)) & 0x8000) != 0x0;
-    io.MouseDown [4] = ((SK_GetAsyncKeyState (VK_XBUTTON2)) & 0x8000) != 0x0;
-  }
-
-  SK_ImGui_PollGamepad ();
+  SK_ImGui_UpdateMouseButtons (bActive, io);
+  SK_ImGui_PollGamepad        (           );
 
   // Read keyboard modifiers inputs
   io.KeyCtrl   = (io.KeysDown [VK_CONTROL]) != 0;
@@ -3583,8 +3613,9 @@ SK_ImGui_User_NewFrame (void)
     else
       SK_ClipCursor (&game_window.cursor_clip);
 
-    if (SK_Render_GetVulkanInteropSwapChainType (SK_GetCurrentRenderBackend ().swapchain) != SK_DXGI_VK_INTEROP_TYPE_NV ||
-                                                        SK_GetCurrentGameID () == SK_GAME_ID::BaldursGate3_Vulkan) // BG3 is safe, other Vk games, no...
+    static const bool
+        safely_minimizable = SK_Render_GetVulkanInteropSwapChainType (SK_GetCurrentRenderBackend ().swapchain) != SK_DXGI_VK_INTEROP_TYPE_NV;
+    if (safely_minimizable) // Vulkan interop games will not work correctly if minimized
     {
       // Implement Minimizing/Restoring Borderless Games Using Windows+Down/Up
       static bool last_down = io.KeysDown [VK_DOWN];
