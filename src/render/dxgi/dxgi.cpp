@@ -6744,7 +6744,7 @@ SK_AMD_CheckForOpenGLInterop (LPCVOID lpReturnAddr, HWND& hWnd)
   bool bAMDInteropOpenGL =
     (StrStrIW (SK_GetCallerName (lpReturnAddr).c_str (), L"amdxc"));
   if ( bAMDInteropOpenGL &&  config.apis.OpenGL.hook == true &&
-                    SK_IsModuleLoaded (L"OpenGL32.dll") )
+                    SK_IsModuleLoaded (L"OpenGL32.dll") && !SK_IsModuleLoaded (L"EOSOVH-Win64-Shipping.dll") )
   {
     // Search for common Vulkan layers, if they are loaded, then assume
     //   the game is actually using Vulkan rather than OpenGL.
@@ -9875,8 +9875,8 @@ HookDXGI (LPVOID user)
 
         //// Favor this codepath because it bypasses many things like ReShade, but
         ////   it's necessary to skip this path if NVIDIA's Vk/DXGI interop layer is active
-        if (D3D11CoreCreateDevice != nullptr && (! ( SK_GetModuleHandle (L"vulkan-1.dll") ||
-                                                     SK_GetModuleHandle (L"OpenGL32.dll") ) )) 
+        if (D3D11CoreCreateDevice != nullptr && (! ( SK_IsModuleLoaded (L"vulkan-1.dll") ||
+                                                    (SK_IsModuleLoaded (L"OpenGL32.dll") && !SK_IsModuleLoaded ((L"EOSOVH-Win64-Shipping.dll"))))))
         {
           hr =
             D3D11CoreCreateDevice (

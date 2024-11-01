@@ -388,7 +388,7 @@ UNREFERENCED_PARAMETER (user);
 
     // OpenGL
     //
-    if (gl || SK_GetModuleHandle (L"OpenGL32.dll"))
+    if (gl || (SK_IsModuleLoaded (L"OpenGL32.dll") && !SK_IsModuleLoaded (L"EOSOVH-Win64-Shipping.dll")))
       SK_BootOpenGL ();
 
 

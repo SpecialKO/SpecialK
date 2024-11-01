@@ -2,6 +2,8 @@
 ==========
  + Stop hooking OpenGL32.dll whenever gdi32.dll or gdi32full.dll are
      loaded, but OpenGL32.dll isn't.
+ + Ignore OpenGL32.dll if the Epic Overlay's DLL was loaded before
+     OpenGL32.dll was.
 
 24.10.31.3
 ==========

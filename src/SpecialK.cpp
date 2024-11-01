@@ -1395,19 +1395,20 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
                 &d3d8, &ddraw, &glide
         );
 
-        gl     |= (SK_GetModuleHandle (L"OpenGL32.dll")  != nullptr);
-        d3d9   |= (SK_GetModuleHandle (L"d3d9.dll")      != nullptr);
+                  
+        gl     |= (SK_IsModuleLoaded (L"OpenGL32.dll") && !SK_IsModuleLoaded (L"EOSOVH-Win64-Shipping.dll"));
+        d3d9   |= (SK_IsModuleLoaded (L"d3d9.dll"));
 
         // Not specific enough; some engines will pull in DXGI even if they
         //   do not use D3D10/11/12/D2D/DWrite
         //
-      //dxgi   |= (SK_GetModuleHandle (L"dxgi.dll")      != nullptr);
+      //dxgi   |= (SK_IsModuleLoaded (L"dxgi.dll"));
 
-        d3d11  |= (SK_GetModuleHandle (L"d3d11.dll")     != nullptr);
-        d3d11  |= (SK_GetModuleHandle (L"d3dx11_43.dll") != nullptr);
-        d3d11  |= (SK_GetModuleHandle (L"dxcore.dll")    != nullptr); // Unity
+        d3d11  |= (SK_IsModuleLoaded (L"d3d11.dll"));
+        d3d11  |= (SK_IsModuleLoaded (L"d3dx11_43.dll"));
+        d3d11  |= (SK_IsModuleLoaded (L"dxcore.dll")); // Unity
 
-        d3d12  |= (SK_GetModuleHandle (L"d3d12.dll")     != nullptr);
+        d3d12  |= (SK_IsModuleLoaded (L"d3d12.dll"));
 
         dxgi   |= ( d3d11 | d3d12 );
 
@@ -1423,8 +1424,8 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
         }
 
 #ifndef _M_AMD64
-        d3d8   |= (SK_GetModuleHandle (L"d3d8.dll")      != nullptr);
-        ddraw  |= (SK_GetModuleHandle (L"ddraw.dll")     != nullptr);
+        d3d8   |= (SK_IsModuleLoaded (L"d3d8.dll"));
+        ddraw  |= (SK_IsModuleLoaded (L"ddraw.dll"));
 
         // Don't use dgVoodoo Plug-In if a game is already translated
         if (config.apis.translated != SK_RenderAPI::None)
