@@ -1643,7 +1643,9 @@ SK_TestImports (          HMODULE  hMod,
                                     pTests [i].szModuleName,
                                       &hMod ) )
         {
-          pTests [i].used = true;
+          // The Epic overlay loads OpenGL32, it's a false-positive -- has nothing to do with the game.
+          if ((! StrStrIA (pTests [i].szModuleName, "OpenGL32.dll")) || !SK_IsModuleLoaded (L"EOSOVH-Win64-Shipping.dll"))
+                           pTests [i].used = true;
         }
       }
     }
