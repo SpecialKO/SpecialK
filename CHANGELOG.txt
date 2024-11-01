@@ -1,7 +1,12 @@
-﻿24.11.1
+﻿24.11.1.1
+=========
+ + Add 1 extra device context reference in Vulkan interop games to ensure
+     they do not trigger SK's cleanup code when changing to fullscreen.
+
+24.11.1
 =======
- + Re-enable D3D11 cleanup code so that the Steam overlay does not crash
-     D3D12 games.
+ + Re-enable D3D11 cleanup code so that the Steam overlay does not cause
+     D3D12 games to crash.
  + Disable D3D11 cleanup code only in Ys X so that it does not continue
      running forever after it should have shutdown.
 

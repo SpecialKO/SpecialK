@@ -618,9 +618,7 @@ public:
       SK_D3D11_ReleaseCachedShaders       (pDevice.p, sk_shader_class::Hull);
       SK_D3D11_ReleaseCachedShaders       (pDevice.p, sk_shader_class::Compute);
 
-      // This deadlocks Ys X at exit, but is needed for the Steam overlay to not
-      //   crash D3D12 games.
-      if (SK_GetCurrentGameID () != SK_GAME_ID::YsX)
+      // This prevents Ys X from exiting, be mindful of this in other games.
       SK_D3D11_SetWrappedImmediateContext (pDevice, nullptr);
       SK_DXGI_ReportLiveObjects           (pDevice);
 
