@@ -1,4 +1,9 @@
-﻿24.10.31.3
+﻿34.10.31.4
+==========
+ + Stop hooking OpenGL32.dll whenever gdi32.dll or gdi32full.dll are
+     loaded, but OpenGL32.dll isn't.
+
+24.10.31.3
 ==========
  + Revert late stage re-initialization of D3D11, it was a bad idea.
 
