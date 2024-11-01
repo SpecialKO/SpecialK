@@ -3162,7 +3162,7 @@ SK_Window_HandleOutOfBandMovement (void)
   }
 }
 
-void
+bool
 SK_ImGui_UpdateMouseButtons (bool bActive, ImGuiIO& io)
 {
   //
@@ -3178,6 +3178,10 @@ SK_ImGui_UpdateMouseButtons (bool bActive, ImGuiIO& io)
     mouse_keys_unfocused [2] = ((SK_GetAsyncKeyState (VK_MBUTTON) ) & 0x8000) != 0x0;
     mouse_keys_unfocused [3] = ((SK_GetAsyncKeyState (VK_XBUTTON1)) & 0x8000) != 0x0;
     mouse_keys_unfocused [4] = ((SK_GetAsyncKeyState (VK_XBUTTON2)) & 0x8000) != 0x0;
+
+    return mouse_keys_unfocused [4] > 0 || mouse_keys_unfocused [3] > 0 ||
+           mouse_keys_unfocused [2] > 0 || mouse_keys_unfocused [1] > 0 ||
+           mouse_keys_unfocused [0] > 0;
   }
 
   if (game_window.mouse.inside && bActive)
@@ -3197,7 +3201,13 @@ SK_ImGui_UpdateMouseButtons (bool bActive, ImGuiIO& io)
                               mouse_keys_unfocused [0] = -1;
       }
     }
+
+    return mouse_keys [4] > 0 || mouse_keys [3] > 0 ||
+           mouse_keys [2] > 0 || mouse_keys [1] > 0 ||
+           mouse_keys [0] > 0;
   }
+
+  return false;
 }
 
 void
@@ -3492,6 +3502,7 @@ SK_ImGui_User_NewFrame (void)
   if (! bActive)
     RtlZeroMemory (&io.KeysDown [7], sizeof (bool) * 248);
 
+  const bool any_button_down =
   SK_ImGui_UpdateMouseButtons (bActive, io);
   SK_ImGui_PollGamepad        (           );
 
@@ -3704,11 +3715,6 @@ SK_ImGui_User_NewFrame (void)
   {
     last_x = SK_ImGui_Cursor.pos.x;
     last_y = SK_ImGui_Cursor.pos.y;
-
-    const bool any_button_down =
-      io.MouseDown [0] || io.MouseDown [1] ||
-      io.MouseDown [2] || io.MouseDown [3] ||
-      io.MouseDown [4];      
 
     // Certain features (i.e. Render in Background) would swallow mouse events
     //   involved in window activation, so we need to activate the window.

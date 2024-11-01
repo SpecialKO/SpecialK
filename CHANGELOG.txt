@@ -1,4 +1,8 @@
-﻿24.11.1.2
+﻿24.11.1.3
+=========
+ + Activate the game's window if mouse buttons are held while alt-tabbing.
+
+24.11.1.2
 =========
  + Prevent accidental misclicks on settings in SK's control panel when
      alt-tabbing from another application while mouse buttons are held down.
