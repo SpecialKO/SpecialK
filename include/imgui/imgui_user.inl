@@ -3198,9 +3198,10 @@ SK_ImGui_UpdateMouseButtons (bool bActive, ImGuiIO& io)
 
     for (UINT i = 0 ; i < 5; ++i)
     {
-      if (  mouse_keys [i] != mouse_keys_unfocused [i]) {
-          io.MouseDown [i]  = mouse_keys           [i] >  0;
-                              mouse_keys_unfocused [i] = -1;
+      if ( mouse_keys [i] != mouse_keys_unfocused [i] ||
+                             mouse_keys           [i] == 0 )
+      {  io.MouseDown [i]  = mouse_keys           [i] >  0;
+                             mouse_keys_unfocused [i] = -1;
       }
     }
 
