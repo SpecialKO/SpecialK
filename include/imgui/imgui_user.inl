@@ -3165,12 +3165,14 @@ SK_Window_HandleOutOfBandMovement (void)
 bool
 SK_ImGui_UpdateMouseButtons (bool bActive, ImGuiIO& io)
 {
+  static bool last_active = false;
+
   //
   // Handle mouse clicks while inactive, so that users can't hold the mouse
   //   button down then alt-tab into the game and potentially activate the UI...
   //
   static int         mouse_keys_unfocused [6]  = {};
-  if ((! bActive) || mouse_keys_unfocused [5] == 0 || (! game_window.mouse.inside))
+  if ((! bActive) || mouse_keys_unfocused [5] == 0)
   {
     mouse_keys_unfocused [5] = -1;
     mouse_keys_unfocused [0] = ((SK_GetAsyncKeyState (VK_LBUTTON) ) & 0x8000) != 0x0;
@@ -3196,9 +3198,9 @@ SK_ImGui_UpdateMouseButtons (bool bActive, ImGuiIO& io)
 
     for (UINT i = 0 ; i < 5; ++i)
     {
-      if (  mouse_keys [0] != mouse_keys_unfocused [0]) {
-          io.MouseDown [0]  = mouse_keys           [0] >  0;
-                              mouse_keys_unfocused [0] = -1;
+      if (  mouse_keys [i] != mouse_keys_unfocused [i]) {
+          io.MouseDown [i]  = mouse_keys           [i] >  0;
+                              mouse_keys_unfocused [i] = -1;
       }
     }
 

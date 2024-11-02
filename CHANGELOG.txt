@@ -1,4 +1,9 @@
-﻿24.11.1.3
+﻿24.11.1.4
+=========
+ + Poll -ALL- mouse buttons while game window is inactive, not just the
+     left button...
+
+24.11.1.3
 =========
  + Activate the game's window if mouse buttons are held while alt-tabbing.
 
