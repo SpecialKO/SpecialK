@@ -1,4 +1,9 @@
-﻿24.11.2.2
+﻿24.11.2.3
+=========
+ + Workaround CAPCOM DRM catching exceptions it should not be using a
+     Vectored Exception handler during CPU test for illegal instructions.
+
+24.11.2.2
 =========
  + Fixed missing DLSS and other API functionality caused by 24.10.31.4
 

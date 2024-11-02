@@ -688,15 +688,30 @@ SK_Power_InitEffectiveModeCallbacks (void)
 //   try the instruction and see if it's illegal...
 bool SK_CPU_TestForMWAITX (void)
 {
-  __try {
-    static alignas(64)
-          uint64_t monitor = 0ULL;
-    _mm_monitorx (&monitor, 0, 0);
-    _mm_mwaitx   (0x2,      0, 1);
+  static bool supported = true;
+  auto        handler   = // Workaround CAPCOM DRM
+  AddVectoredExceptionHandler (1, [](_EXCEPTION_POINTERS *ExceptionInfo)->LONG
+  {
+    if (ExceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_ILLEGAL_INSTRUCTION)
+    {
+      supported = false;
+    }
 
-    return true;
-  }
-  __except (EXCEPTION_EXECUTE_HANDLER) {};
+#ifdef _AMD64_
+    ExceptionInfo->ContextRecord->Rip++;
+#else
+    ExceptionInfo->ContextRecord->Eip++;
+#endif
 
-  return false;
+    return EXCEPTION_CONTINUE_EXECUTION;
+  });
+
+  static alignas(64)
+        uint64_t monitor = 0ULL;
+  _mm_monitorx (&monitor, 0, 0);
+  _mm_mwaitx   (0x2,      0, 1);
+
+  RemoveVectoredExceptionHandler (handler);
+
+  return supported;
 }
