@@ -3165,8 +3165,6 @@ SK_Window_HandleOutOfBandMovement (void)
 bool
 SK_ImGui_UpdateMouseButtons (bool bActive, ImGuiIO& io)
 {
-  static bool last_active = false;
-
   //
   // Handle mouse clicks while inactive, so that users can't hold the mouse
   //   button down then alt-tab into the game and potentially activate the UI...

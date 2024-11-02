@@ -225,6 +225,9 @@ DStorageGetFactory_Detour ( REFIID riid,
 
 void SK_DStorage_Init (void)
 {
+  if (! config.render.dstorage.enable_hooks)
+    return;
+
   SK_DStorage_UsingDLL =
     SK_IsModuleLoaded (L"dstorage.dll");
 

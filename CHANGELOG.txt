@@ -1,4 +1,11 @@
-﻿24.11.1.4
+﻿24.11.1.5
+=========
+ + Added INI setting to disable DirectStorage hooks.
+
+   [Render.DStorage]
+   EnableHooks={true|false}  Default: true
+
+24.11.1.4
 =========
  + Poll -ALL- mouse buttons while game window is inactive, not just the
      left button...

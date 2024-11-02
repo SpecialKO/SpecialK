@@ -263,7 +263,9 @@ SK_GetCurrentGameID (void)
           { L"SONIC_X_SHADOW_GENERATIONS.exe",         SK_GAME_ID::SonicXShadowGenerations      },
           { L"SONIC_GENERATIONS.exe",                  SK_GAME_ID::SonicGenerations             },
           { L"BS1R.exe",                               SK_GAME_ID::BrokenSword                  },
-          { L"ysx.exe",                                SK_GAME_ID::YsX                          }
+          { L"ysx.exe",                                SK_GAME_ID::YsX                          },
+          { L"MonsterHunterWilds.exe",                 SK_GAME_ID::MonsterHunterWilds           },
+          { L"MonsterHunterWildsBeta.exe",             SK_GAME_ID::MonsterHunterWilds           }
         };
 
     first_check  = false;
@@ -927,6 +929,7 @@ struct {
     sk::ParameterBool*    force_file_buffering    = nullptr;
     sk::ParameterInt*     submit_threads          = nullptr;
     sk::ParameterInt*     cpu_decomp_threads      = nullptr;
+    sk::ParameterBool*    hook_dstorage           = nullptr;
   } dstorage;
 
   struct {
@@ -1997,6 +2000,7 @@ auto DeclKeybind =
     ConfigEntry (render.dstorage.force_file_buffering,   L"Force DirectStorage File Buffering",                        dll_ini,         L"Render.DStorage",       L"ForceFileBuffering"),
     ConfigEntry (render.dstorage.submit_threads,         L"Override default number of DirectStorage Submit threads",   dll_ini,         L"Render.DStorage",       L"NumberOfSubmitThreads"),
     ConfigEntry (render.dstorage.cpu_decomp_threads,     L"Override default number of CPU Decompression threads",      dll_ini,         L"Render.DStorage",       L"NumberOfCPUDecompThreads"),
+    ConfigEntry (render.dstorage.hook_dstorage,          L"Hook DirectStorage for additional features",                dll_ini,         L"Render.DStorage",       L"EnableHooks"),
 
     ConfigEntry (texture.d3d9.clamp_lod_bias,            L"Clamp Negative LOD Bias",                                   dll_ini,         L"Textures.D3D9",         L"ClampNegativeLODBias"),
     ConfigEntry (texture.d3d11.cache,                    L"Cache Textures",                                            dll_ini,         L"Textures.D3D11",        L"Cache"),
@@ -3728,6 +3732,11 @@ auto DeclKeybind =
         config.render.framerate.max_delta_time         = 15;
         break;
 
+      case SK_GAME_ID::MonsterHunterWilds:
+        config.steam.crapcom_mode                      = true;
+        config.render.dstorage.enable_hooks            = false;
+        break;
+
       case SK_GAME_ID::Metaphor:
         config.compatibility.init_on_separate_thread   = false;
         config.window.fullscreen_no_saver              = true;
@@ -4594,6 +4603,7 @@ auto DeclKeybind =
   render.dstorage.submit_threads->  load (config.render.dstorage.submit_threads);
   render.dstorage.cpu_decomp_threads->
                                     load (config.render.dstorage.cpu_decomp_threads);
+  render.dstorage.hook_dstorage->   load (config.render.dstorage.enable_hooks);
 
   texture.d3d11.cache->load              (config.textures.d3d11.cache);
   texture.d3d11.use_l3_hash->load        (config.textures.d3d11.use_l3_hash);
@@ -6608,6 +6618,7 @@ SK_SaveConfig ( std::wstring name,
       render.dstorage.submit_threads->  store (config.render.dstorage.submit_threads);
       render.dstorage.cpu_decomp_threads->
                                         store (config.render.dstorage.cpu_decomp_threads);
+      render.dstorage.hook_dstorage->   store (config.render.dstorage.enable_hooks);
     }
 
     if ( SK_IsInjected () || ( SK_GetDLLRole () & DLL_ROLE::D3D9    ) ||

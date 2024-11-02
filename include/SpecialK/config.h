@@ -824,6 +824,7 @@ struct sk_config_t
       bool    force_file_buffering = false;
       int     submit_threads       = -1;
       int     cpu_decomp_threads   = -1;
+      bool    enable_hooks         = true;
     } dstorage;
 
     struct {
@@ -1712,6 +1713,7 @@ enum class SK_GAME_ID
   BrokenSword,                  // BS1R.exe
   YsX,                          // YsX.exe
   Transistor,                   // Transistor.exe
+  MonsterHunterWilds,           // MonsterHunterWilds{Beta}.exe
 
   UNKNOWN_GAME               = 0xffff
 };
