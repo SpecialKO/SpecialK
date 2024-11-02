@@ -128,9 +128,6 @@ static DWORD hide_win32      = 0;
 bool
 SK::ControlPanel::Input::Draw (void)
 {
-  auto& io =
-    ImGui::GetIO ();
-
   bool bHasPlayStation  = (last_scepad != 0);
   bool bHasSimpleBluetooth = false;
   bool bHasBluetooth       = false;
@@ -2601,75 +2598,13 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::TreePop       ( );
     }
 
-    if (ImGui::CollapsingHeader ("Low-Level Mouse Settings"))//, ImGuiTreeNodeFlags_DefaultOpen))
+    if (ImGui::CollapsingHeader ("Low-Level Mouse Settings"))
     {
-      static bool  deadzone_hovered = false;
-             float float_thresh     = std::max (1.0f, std::min (100.0f, config.input.mouse.antiwarp_deadzone));
-
-      ImVec2 deadzone_pos    = io.DisplaySize;
-             deadzone_pos.x /= 2.0f;
-             deadzone_pos.y /= 2.0f;
-      const ImVec2 deadzone_size ( io.DisplaySize.x * float_thresh / 200.0f,
-                                   io.DisplaySize.y * float_thresh / 200.0f );
-
-      const ImVec2 xy0 ( deadzone_pos.x - deadzone_size.x,
-                         deadzone_pos.y - deadzone_size.y );
-      const ImVec2 xy1 ( deadzone_pos.x + deadzone_size.x,
-                         deadzone_pos.y + deadzone_size.y );
-
-      if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open ||
-             SK_ImGui_Cursor.prefs.no_warp.visible )  &&
-           ( deadzone_hovered || ImGui::IsMouseHoveringRect ( xy0, xy1, false ) ) )
-      {
-        const ImVec4 col = ImColor::HSV ( 0.18f,
-                                std::min (1.0f, 0.85f + (sin ((float)(current_time % 400) / 400.0f))),
-                                                     (float)(0.66f + (current_time % 830) / 830.0f ) );
-        const ImU32 col32 =
-          ImColor (col);
-
-        ImDrawList* draw_list =
-          ImGui::GetWindowDrawList ();
-
-        draw_list->PushClipRectFullScreen (                                     );
-        draw_list->AddRect                ( xy0, xy1, col32, 32.0f, 0xF, 3.333f );
-        draw_list->PopClipRect            (                                     );
-      }
-
       ImGui::TreePush      ("");
 
       ImGui::BeginGroup    (  );
       ImGui::Text          ("Mouse Problems?");
       ImGui::TreePush      ("");
-
-#if 0
-      int  input_backend = 1;
-      bool changed       = false;
-
-      changed |=
-        ImGui::RadioButton ("Win32",     &input_backend, 0); ImGui::SameLine ();
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Temporarily Disabled (intended for compatibility only)");
-      changed |=
-        ImGui::RadioButton ("Raw Input", &input_backend, 1);
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("More Reliable (currently the only supported input API)");
-#endif
-#if 0
-      bool non_relative = (! config.input.mouse.add_relative_motion);
-
-      ImGui::Checkbox ("Fix Jittery Mouse (in menus)", &non_relative);
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip ();
-        ImGui::Text         ("Disable RawInput Mouse Delta Processing");
-        ImGui::Separator    ();
-        ImGui::BulletText   ("In games that ONLY use DirectInput / RawInput for mouse, this may make the config menu unusable.");
-        ImGui::EndTooltip   ();
-      }
-
-      config.input.mouse.add_relative_motion = (! non_relative);
-#endif
 
       ImGui::Checkbox ("Fix Synaptics Scroll", &config.input.mouse.fix_synaptics);
 
@@ -2708,7 +2643,6 @@ extern float SK_ImGui_PulseNav_Strength;
           ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Prevent Game from Detecting Mouse Input while this UI is Visible");
           ImGui::Separator   ();
           ImGui::BulletText  ("May help with mouselook in some games");
-          //ImGui::BulletText  ("Implicitly enabled if running at a non-native Fullscreen resolution");
         ImGui::EndTooltip    ();
       }
 
@@ -2730,74 +2664,16 @@ extern float SK_ImGui_PulseNav_Strength;
         ImGui::EndTooltip    ();
       }
 
-      ImGui::Checkbox ("Block Input When No Cursor is Visible", &config.input.ui.capture_hidden);  ImGui::SameLine ();
+      ImGui::SameLine ();
+
+      ImGui::Checkbox ("Block Mouse if No Cursor is Visible", &config.input.ui.capture_hidden);
 
       if (ImGui::IsItemHovered ())
         ImGui::SetTooltip ("Generally prevents mouselook if you move your cursor away from the config UI");
 
       ImGui::EndGroup   (  );
-
-      ImGui::TreePush   ("");
-      ImGui::SameLine   (  );
-
-      ImGui::BeginGroup (  );
-
-      ImGui::Checkbox ("No Warp (cursor visible)",              &SK_ImGui_Cursor.prefs.no_warp.visible);
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip  ();
-          ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Do Not Alllow Game to Move Cursor to Center of Screen");
-          ImGui::Separator   ();
-          ImGui::BulletText  ("Any time the cursor is visible");
-          ImGui::BulletText  ("Fixes buggy games like Mass Effect Andromeda");
-        ImGui::EndTooltip    ();
-      }
-
-      ImGui::BeginDisabled ();
-      ImGui::Checkbox ("No Warp (UI open)",                     &SK_ImGui_Cursor.prefs.no_warp.ui_open);
-      ImGui::EndDisabled   ();
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip  ();
-          ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Do Not Alllow Game to Move Cursor to Center of Screen");
-          ImGui::Separator   ();
-          ImGui::BulletText  ("Any time the UI is visible");
-          ImGui::BulletText  ("May be needed if Mouselook is fighting you tooth and nail.");
-        ImGui::EndTooltip    ();
-      }
-
-      ImGui::EndGroup       ( );
-
-      if ( SK_ImGui_Cursor.prefs.no_warp.ui_open ||
-           SK_ImGui_Cursor.prefs.no_warp.visible )
-      {
-        if ( ImGui::SliderFloat ( "Anti-Warp Deadzone##CursorDeadzone",
-                                    &float_thresh, 1.0f, 100.0f, "%4.2f%% of Screen" ) )
-        {
-          if (float_thresh <= 1.0f)
-            float_thresh = 1.0f;
-
-          config.input.mouse.antiwarp_deadzone = float_thresh;
-        }
-
-        if ( ImGui::IsItemHovered () || ImGui::IsItemFocused () ||
-             ImGui::IsItemClicked () || ImGui::IsItemActive  () )
-        {
-          deadzone_hovered = true;
-        }
-
-        else
-        {
-          deadzone_hovered = false;
-        }
-      }
-
-      ImGui::TreePop        ( );
-      ImGui::TreePop        ( );
-
-      ImGui::EndGroup       ( );
+      ImGui::TreePop    (  );
+      ImGui::EndGroup   (  );
 
 #if 0
       extern bool SK_DInput8_BlockWindowsKey (bool block);

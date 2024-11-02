@@ -2462,8 +2462,6 @@ auto DeclKeybind =
         config.apis.OpenGL.hook                = false;
 
         config.input.ui.capture_hidden         = false; // Mouselook is a bitch
-        SK_ImGui_Cursor.prefs.no_warp.ui_open  = false;
-        SK_ImGui_Cursor.prefs.no_warp.visible  = false;
 
         config.textures.d3d11.cache            = true;
         config.textures.cache.ignore_nonmipped = true;
@@ -3301,8 +3299,6 @@ auto DeclKeybind =
       {
         config.window.treat_fg_as_active        = true;
         config.input.ui.use_hw_cursor           = false;
-        SK_ImGui_Cursor.prefs.no_warp.ui_open   = false;
-        SK_ImGui_Cursor.prefs.no_warp.visible   = false;
         config.textures.d3d11.uncompressed_mips = true;
         config.textures.d3d11.cache_gen_mips    = true;
         config.render.dxgi.deferred_isolation   = true; // For texture mods / HUD tracking
@@ -3461,7 +3457,6 @@ auto DeclKeybind =
         config.input.ui.use_hw_cursor                = false;
         config.input.ui.capture_hidden               = false;
         config.input.ui.capture_mouse                = false;
-        SK_ImGui_Cursor.prefs.no_warp.ui_open        =  true;
         config.render.framerate.sleepless_window     =  true;
         config.render.framerate.sleepless_render     = false; // Reshade Problems
         config.render.framerate.max_delta_time       =     1;
@@ -3834,8 +3829,6 @@ auto DeclKeybind =
         config.input.cursor.manage                    = true;
         config.input.cursor.gamepad_deactivates       = true;
         config.input.cursor.timeout                   =    0;
-        SK_ImGui_Cursor.prefs.no_warp.visible         = true;
-        SK_ImGui_Cursor.prefs.no_warp.ui_open         = true;
         config.window.disable_screensaver             = true;
         config.render.hdr.remaster_8bpc_as_unorm      = true;
         config.render.hdr.remaster_subnative_as_unorm = true;
@@ -4648,14 +4641,9 @@ auto DeclKeybind =
 
   input.cursor.ui_capture->load          (config.input.ui.capture);
   input.cursor.hw_cursor->load           (config.input.ui.use_hw_cursor);
-  input.cursor.no_warp_ui->load          (SK_ImGui_Cursor.prefs.no_warp.ui_open);
-  input.cursor.no_warp_visible->load     (SK_ImGui_Cursor.prefs.no_warp.visible);
   input.cursor.block_invisible->load     (config.input.ui.capture_hidden);
   input.cursor.fix_synaptics->load       (config.input.mouse.fix_synaptics);
   input.cursor.antiwarp_deadzone->load   (config.input.mouse.antiwarp_deadzone);
-
-  // Deprecated, pending removal
-  SK_ImGui_Cursor.prefs.no_warp.ui_open = false;
 
   input.gamepad.disabled_to_game->load   (config.input.gamepad.disabled_to_game);
   input.gamepad.disable_hid->load        (config.input.gamepad.disable_hid);
@@ -6111,8 +6099,6 @@ SK_SaveConfig ( std::wstring name,
   input.cursor.ui_capture->store              (config.input.ui.capture);
   input.cursor.hw_cursor->store               (config.input.ui.use_hw_cursor);
   input.cursor.block_invisible->store         (config.input.ui.capture_hidden);
-  input.cursor.no_warp_ui->store              (SK_ImGui_Cursor.prefs.no_warp.ui_open);
-  input.cursor.no_warp_visible->store         (SK_ImGui_Cursor.prefs.no_warp.visible);
   input.cursor.fix_synaptics->store           (config.input.mouse.fix_synaptics);
   input.cursor.antiwarp_deadzone->store       (config.input.mouse.antiwarp_deadzone);
 

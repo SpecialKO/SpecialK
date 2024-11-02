@@ -1,9 +1,14 @@
-﻿24.11.1.5
+﻿24.11.2.1
 =========
+ + Remove all cursor anti-warp config settings and control panel items
+
+24.11.2
+=======
  + Added INI setting to disable DirectStorage hooks.
 
    [Render.DStorage]
    EnableHooks={true|false}  Default: true
+ + Disable DirectStorage integration in Monster Hunter Wilds.
 
 24.11.1.4
 =========

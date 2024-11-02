@@ -605,8 +605,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
 bool
 SK_ImGui_WantMouseWarpFiltering (void)
 {
-  if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_IsMouseRelevant       () ) ||
-       ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () ) || (game_window.mouse.can_track && !game_window.mouse.inside && config.input.mouse.disabled_to_game == 2) )
+  if (game_window.mouse.can_track && !game_window.mouse.inside && config.input.mouse.disabled_to_game == 2)
   {
     return true;
   }
@@ -1273,17 +1272,7 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
 
       if (SK_ImGui_IsMouseRelevant ())
       {
-        bool implicit_capture = false;
-
-        // Depending on warp prefs, we may not allow the game to know about mouse movement
-        //   (even if ImGui doesn't want mouse capture)
-        if ( //( SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_WantMouseCapture   ()    ) ||
-             ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
-        {
-          implicit_capture = true;
-        }
-
-        if (SK_ImGui_WantMouseCapture () || implicit_capture)
+        if (SK_ImGui_WantMouseCapture ())
         {
           return 1;
         }

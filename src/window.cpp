@@ -1461,13 +1461,7 @@ bool SK_ImGui_ImplicitMouseAntiwarp (void)
 {
   if (SK_ImGui_IsMouseRelevant ())
   {
-    // Depending on warp prefs, we may not allow the game to know about mouse movement
-    //   (even if ImGui doesn't want mouse capture)
-    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open/* && SK_ImGui_IsMouseRelevant   ()*/ ) ||
-         ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
-    {
-      return true;
-    }
+    return true;
   }
 
   return false;

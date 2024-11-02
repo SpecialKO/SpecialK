@@ -138,9 +138,7 @@ struct sk_imgui_cursor_s
 
   struct {
     struct {
-      bool visible = false;
       bool gamepad = false; // TODO - Disable warping if gamepad is plugged in
-      bool ui_open = false; // Off by default (10/30/24), and pending removal
     } no_warp;
   } prefs;
 };

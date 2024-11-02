@@ -752,17 +752,7 @@ GetMouseMovePointsEx_Detour(
 
   if (SK_ImGui_IsMouseRelevant ())
   {
-    bool implicit_capture = false;
-
-    // Depending on warp prefs, we may not allow the game to know about mouse movement
-    //   (even if ImGui doesn't want mouse capture)
-    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open/* && SK_ImGui_IsMouseRelevant   ()*/ ) ||
-         ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
-    {
-      implicit_capture = true;
-    }
-
-    if (SK_ImGui_WantMouseCapture () || implicit_capture)
+    if (SK_ImGui_WantMouseCapture ())
     {
       *lpptBuf = *lppt;
 
@@ -916,15 +906,7 @@ GetCursorInfo_Detour (PCURSORINFO pci)
 
   if (ret && bMouseRelevant)
   {
-    bool implicit_capture = false;
-
-    // Depending on warp prefs, we may not allow the game to know about mouse movement
-    //   (even if ImGui doesn't want mouse capture)
-    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open/* && SK_ImGui_IsMouseRelevant   ()*/ ) ||
-         ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
-      implicit_capture = true;
-
-    if (SK_ImGui_WantMouseCapture () || implicit_capture)
+    if (SK_ImGui_WantMouseCapture ())
     {
       pci->ptScreenPos = SK_ImGui_Cursor.orig_pos;
     }
@@ -950,7 +932,9 @@ GetCursorInfo_Detour (PCURSORINFO pci)
 
 float SK_SO4_MouseScale = 2.467f;
 
-static POINT s_GameSetCursorPos;
+static const DWORD kCursorWarpCooldown = 125UL;
+static       POINT s_GameSetCursorPos;
+static       DWORD s_GameSetCursorPosTime;
 
 BOOL
 WINAPI
@@ -974,24 +958,14 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 
   if (SK_ImGui_IsMouseRelevant ())
   {
-    bool implicit_capture = false;
-
-    // Depending on warp prefs, we may not allow the game to know about mouse movement
-    //   (even if ImGui doesn't want mouse capture)
-    if ( ( SK_ImGui_Cursor.prefs.no_warp.ui_open/* && SK_ImGui_IsMouseRelevant   ()*/ ) ||
-         ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
-    {
-      implicit_capture = true;
-    }
-
-    if (SK_ImGui_WantMouseCapture () || implicit_capture)
+    if (SK_ImGui_WantMouseCapture () || s_GameSetCursorPosTime >= SK_timeGetTime () - kCursorWarpCooldown)
     {
       SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
+
+      *lpPoint = s_GameSetCursorPos;
+
+      return TRUE;
     }
-
-    *lpPoint = s_GameSetCursorPos;
-
-    return TRUE;
   }
 
 
@@ -1079,6 +1053,7 @@ GetPhysicalCursorPos_Detour (LPPOINT lpPoint)
   return FALSE;
 }
 
+#if 0
 DWORD
 WINAPI
 GetMessagePos_Detour (void)
@@ -1088,18 +1063,7 @@ GetMessagePos_Detour (void)
   static DWORD dwLastPos =
            GetMessagePos_Original ();
 
-  bool implicit_capture = false;
-
-  // Depending on warp prefs, we may not allow the game to know about mouse movement
-  //   (even if ImGui doesn't want mouse capture)
-  if ( SK_ImGui_IsMouseRelevant () && ( SK_ImGui_Cursor.prefs.no_warp.ui_open/* && SK_ImGui_IsMouseRelevant   ()*/ ) ||
-                                      ( SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible () )    )
-  {
-    implicit_capture = true;
-  }
-
-  // TODO: Use the message time to determine whether to fake this or not
-  if (SK_ImGui_WantMouseCapture () || implicit_capture)
+  if (SK_ImGui_WantMouseCapture ())
   {
     return
       dwLastPos;
@@ -1111,6 +1075,7 @@ GetMessagePos_Detour (void)
   return
     dwLastPos;
 }
+#endif
 
 BOOL
 WINAPI
@@ -1118,7 +1083,8 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
 {
   SK_LOG_FIRST_CALL
 
-  s_GameSetCursorPos = { x, y };
+  s_GameSetCursorPos     = { x, y };
+  s_GameSetCursorPosTime = SK_timeGetTime ();
 
   // Don't let the game continue moving the cursor while
   //   Alt+Tabbed out
@@ -1131,8 +1097,7 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
   if (config.window.drag_lock)
     return TRUE;
 
-  if ( SK_ImGui_IsMouseRelevant () || (SK_ImGui_Cursor.prefs.no_warp.ui_open && SK_ImGui_Active ()) ||
-                                      (SK_ImGui_Cursor.prefs.no_warp.visible && SK_InputUtil_IsHWCursorVisible ()) )
+  if (SK_ImGui_IsMouseRelevant ())
   {
     // Game WANTED to change its position, so remember that.
     POINT                           pt { x, y };

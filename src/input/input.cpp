@@ -496,6 +496,7 @@ SetThreadExecutionState_Detour (EXECUTION_STATE esFlags)
   //   reset any continuous state so we can micromanage screensaver activation
   if (config.window.manage_screensaver)
   {
+    SetThreadExecutionState_Original (ES_CONTINUOUS);
     return 0x0;
   }
 
