@@ -265,7 +265,8 @@ SK_GetCurrentGameID (void)
           { L"BS1R.exe",                               SK_GAME_ID::BrokenSword                  },
           { L"ysx.exe",                                SK_GAME_ID::YsX                          },
           { L"MonsterHunterWilds.exe",                 SK_GAME_ID::MonsterHunterWilds           },
-          { L"MonsterHunterWildsBeta.exe",             SK_GAME_ID::MonsterHunterWilds           }
+          { L"MonsterHunterWildsBeta.exe",             SK_GAME_ID::MonsterHunterWilds           },
+          { L"Dragon Age The Veilguard.exe",           SK_GAME_ID::DragonAgeTheVeilguard        }
         };
 
     first_check  = false;
@@ -3724,12 +3725,16 @@ auto DeclKeybind =
 
       case SK_GAME_ID::BrokenSword:
         // Has really bad timing code that will cause major frame drops w/o.
-        config.render.framerate.max_delta_time         = 15;
+        config.render.framerate.max_delta_time      = 15;
         break;
 
       case SK_GAME_ID::MonsterHunterWilds:
-        config.steam.crapcom_mode                      = true;
-        config.render.dstorage.enable_hooks            = false;
+        config.steam.crapcom_mode                   = true;
+        config.render.dstorage.enable_hooks         = false;
+        break;
+
+      case SK_GAME_ID::DragonAgeTheVeilguard:
+        config.input.ui.capture_mouse               = true;
         break;
 
       case SK_GAME_ID::Metaphor:

@@ -1,4 +1,8 @@
-﻿24.11.2.3
+﻿24.11.3
+=======
+ + Disable mouse while SK's control panel is open in Dragon Age The Veilguard.
+
+24.11.2.3
 =========
  + Workaround CAPCOM DRM catching exceptions it should not be using a
      Vectored Exception handler during CPU test for illegal instructions.

@@ -1714,6 +1714,7 @@ enum class SK_GAME_ID
   YsX,                          // YsX.exe
   Transistor,                   // Transistor.exe
   MonsterHunterWilds,           // MonsterHunterWilds{Beta}.exe
+  DragonAgeTheVeilguard,        // Dragon Age The Veilguard.exe
 
   UNKNOWN_GAME               = 0xffff
 };
