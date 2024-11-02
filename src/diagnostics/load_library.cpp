@@ -501,8 +501,9 @@ SK_TraceLoadLibrary (       HMODULE hCallingMod,
     else if (  (! (SK_GetDLLRole () & DLL_ROLE::OpenGL)) && config.apis.OpenGL.hook &&
               ( StrStrI  (lpFileName, SK_TEXT("OpenGL32.dll")) ||
                 StrStrIW (wszModName,        L"OpenGL32.dll") ))
-        if (!SK_IsModuleLoaded (L"EOSOVH-Win64-Shipping.dll"))
-     SK_RunOnce (SK_BootOpenGL ());
+    {   if (!SK_IsModuleLoaded (L"EOSOVH-Win64-Shipping.dll"))
+          SK_RunOnce (SK_BootOpenGL ());
+    }
     else if (   //SK_XInput_LinkedVersion.empty () &&
                 StrStrI (lpFileName, SK_TEXT("xinput1_3.dll")) )
                      SK_RunOnce (SK_Input_HookXInput1_3 ());

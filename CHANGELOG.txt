@@ -1,6 +1,10 @@
-﻿24.11.2.1
+﻿24.11.2.2
 =========
- + Remove all cursor anti-warp config settings and control panel items
+ + Fixed missing DLSS and other API functionality caused by 24.10.31.4
+
+24.11.2.1
+=========
+ + Remove all cursor anti-warp config settings and control panel items.
 
 24.11.2
 =======
