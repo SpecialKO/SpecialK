@@ -1231,6 +1231,7 @@ HCURSOR ImGui_DesiredCursor                     (void);
 bool SK_InputUtil_IsHWCursorVisible             (void);
 bool SK_Window_IsCursorActive                   (void);
 bool SK_ImGui_CursorWarpingCooledDown           (void);
+void SK_ImGui_UpdateLastCursorWarpTime          (void);
 
 enum SK_InputEnablement {
   Enabled              = 0,
