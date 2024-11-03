@@ -3734,6 +3734,12 @@ SK_ImGui_User_NewFrame (void)
 
   // Warn on low gamepad battery
   SK_Battery_UpdateRemainingPowerForAllDevices ();
+
+  // Update blocking status before proceeding to draw the next frame
+  SK_ImGui_IsMouseRelevant     (true);
+  SK_ImGui_WantKeyboardCapture (true);
+  SK_ImGui_WantMouseCapture    (true);
+  SK_ImGui_WantGamepadCapture  (true);
 }
 
 bool

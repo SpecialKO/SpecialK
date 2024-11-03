@@ -278,26 +278,44 @@ SK_ImGui_IsAnythingHovered (void)
 }
 
 bool
-SK_ImGui_IsMouseRelevantEx (void)
+SK_ImGui_IsMouseRelevantEx (bool update)
 {
-  bool relevant =
+  static std::atomic_bool relevant = false;
+
+  if (! update)
+    return relevant.load ();
+
+  bool bRelevant =
     config.input.mouse.disabled_to_game || SK_ImGui_Active ();
 
-  if (! relevant)
+  if (! bRelevant)
   {
     // SK_ImGui_Active () returns true for the full-blown config UI;
     //   we also have floating widgets that may capture mouse input.
-    relevant =
+    bRelevant =
       SK_ImGui_IsAnythingHovered ();
   }
 
-  return relevant;
+  relevant.store (bRelevant);
+
+  return bRelevant;
 }
 
 bool
-SK_ImGui_IsMouseRelevant (void)
+SK_ImGui_IsMouseRelevant (bool update)
 {
-  return SK_ImGui_IsMouseRelevantEx ();
+  static std::atomic_bool relevant = false;
+
+  if (! update)
+    return relevant.load ();
+
+  bool bRelevant =
+    SK_ImGui_IsMouseRelevantEx (update);
+
+  relevant.store (bRelevant);
+
+  return
+    bRelevant;
 }
 
 void
@@ -530,7 +548,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 
   bool imgui_capture = false;
 
-  if (SK_ImGui_IsMouseRelevantEx ())
+  if (SK_ImGui_IsMouseRelevantEx (false))
   {
     static const auto& io =
       ImGui::GetIO ();
@@ -566,10 +584,18 @@ SK_ImGui_WantHWCursor (void)
 }
 
 bool
-SK_ImGui_WantMouseCapture (void)
+SK_ImGui_WantMouseCapture (bool update)
 {
-  return
-    SK_ImGui_WantMouseCaptureEx (0xFFFF);
+  static std::atomic_bool capture = false;
+
+  if (! update)
+    return capture.load ();
+
+  capture.store (
+    SK_ImGui_WantMouseCaptureEx (0xFFFF)
+  );
+
+  return capture.load ();
 }
 
 

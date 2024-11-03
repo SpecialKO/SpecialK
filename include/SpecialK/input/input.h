@@ -43,11 +43,11 @@ extern int64_t       SK_PerfFreq;
 
 #define SK_LOG_INPUT_CALL { static int  calls  = 0; { SK_LOG0 ( (L"[!] > Call #%lu: %hs", calls++, __FUNCTION__), L"Input Mgr." ); } }
 
-bool SK_ImGui_WantGamepadCapture  (void);
+bool SK_ImGui_WantGamepadCapture  (bool update = false);
 bool SK_ImGui_WantHWCursor        (void);
-bool SK_ImGui_WantMouseCapture    (void);
+bool SK_ImGui_WantMouseCapture    (bool update = false);
 bool SK_ImGui_WantMouseCaptureEx  (DWORD dwReasonMask = 0xFFFF);
-bool SK_ImGui_WantKeyboardCapture (void);
+bool SK_ImGui_WantKeyboardCapture (bool update = false);
 bool SK_ImGui_WantTextCapture     (void);
 void SK_ImGui_UpdateMouseTracker  (void);
 
@@ -1225,7 +1225,7 @@ BOOL    WINAPI SK_SendMsgShowCursor (   BOOL bShow  );
 HCURSOR WINAPI SK_SendMsgSetCursor  (HCURSOR hCursor);
 
 bool SK_ImGui_ExemptOverlaysFromKeyboardCapture (void);
-bool SK_ImGui_IsMouseRelevant                   (void);
+bool SK_ImGui_IsMouseRelevant                   (bool update = false);
 void    ImGui_ToggleCursor                      (void);
 HCURSOR ImGui_DesiredCursor                     (void);
 bool SK_InputUtil_IsHWCursorVisible             (void);

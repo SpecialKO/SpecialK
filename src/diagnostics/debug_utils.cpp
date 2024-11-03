@@ -459,8 +459,6 @@ SteamAPI_IsSteamRunning_override (void)
 }
 
 
-extern bool SK_ImGui_WantGamepadCapture (void);
-
 #define SK_STEAM_READ(type)  SK_Steam_Backend->markRead   (type);
 #define SK_STEAM_WRITE(type) SK_Steam_Backend->markWrite  (type);
 #define SK_STEAM_VIEW(type)  SK_Steam_Backend->markViewed (type);

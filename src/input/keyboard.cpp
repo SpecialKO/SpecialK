@@ -151,23 +151,38 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 }
 
 bool
-SK_ImGui_WantKeyboardCapture (void)
+SK_ImGui_WantKeyboardCapture (bool update)
 {
+  static std::atomic_bool capture = false;
+
+  if (! update)
+    return capture.load ();
+
   // Do not block on first frame drawn unless explicitly disabled
   if (SK_GetFramesDrawn () < 1 && (config.input.keyboard.disabled_to_game != 1))
+  {
+    capture.store (false);
     return false;
+  }
 
   if (! SK_GImDefaultContext ())
+  {
+    capture.store (false);
     return false;
+  }
 
   // Allow keyboard input while ReShade overlay is active
   if (SK_ReShadeAddOn_IsOverlayActive ())
+  {
+    capture.store (false);
     return false;
+  }
 
   // Allow keyboard input while Steam /EOS overlays are active
   if (SK::SteamAPI::GetOverlayState (true) ||
            SK::EOS::GetOverlayState (true))
   {
+    capture.store (false);
     return false;
   }
 
@@ -200,6 +215,8 @@ SK_ImGui_WantKeyboardCapture (void)
 
   if ((! bWindowActive) && config.input.keyboard.disabled_to_game == SK_InputEnablement::DisabledInBackground)
     imgui_capture = true;
+
+  capture.store (imgui_capture);
 
   return
     imgui_capture;
