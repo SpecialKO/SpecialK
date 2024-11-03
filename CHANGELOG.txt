@@ -1,4 +1,9 @@
-﻿24.11.3
+﻿24.11.3.1
+=========
+ + Handle UnhookWindowsHookEx (...) correctly, by setting the HHOOK handle
+     during SetWindowsHookEx{A|W} (...).
+
+24.11.3
 =======
  + Disable mouse while SK's control panel is open in Dragon Age The Veilguard.
 
