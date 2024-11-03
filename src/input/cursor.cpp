@@ -51,6 +51,15 @@ BOOL
 WINAPI
 SK_SendMsgShowCursor (BOOL bShow)
 {
+  // Game is not mouselooking if this is true
+  if (bShow && config.input.cursor.manage && !SK_ImGui_CursorWarpingCooledDown () && !SK_ImGui_WantMouseCapture ())
+  {
+    if (!SK_ImGui_CursorWarpingCooledDown ())
+      bShow = FALSE;
+    else
+      return FALSE;
+  }
+
   if (game_window.hWnd != 0 && IsWindow (game_window.hWnd))
   {
          if (  bShow) PostMessageA (game_window.hWnd, game_window.messages [game_window.messages->ShowCursor].uiMessage, 0, 0);
@@ -961,6 +970,11 @@ float SK_SO4_MouseScale = 2.467f;
 static const DWORD kCursorWarpCooldown = 125UL;
 static       POINT s_GameSetCursorPos;
 static       DWORD s_GameSetCursorPosTime;
+
+bool SK_ImGui_CursorWarpingCooledDown(void)
+{
+  return s_GameSetCursorPosTime < SK::ControlPanel::current_time - kCursorWarpCooldown;
+}
 
 BOOL
 WINAPI

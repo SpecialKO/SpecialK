@@ -910,7 +910,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
 
   for (auto& widget : widgets)
   {
-    if (widget)
+    if (widget && SK_ImGui_GetLastKeybindEditorFrame () < SK_GetFramesDrawn () - 5)
     {
       if (uiMaskedKeyCode == widget->getToggleKey ().masked_code)
       {
@@ -986,6 +986,7 @@ SK_ImGui_WidgetRegistry::DispatchKeybinds ( BOOL Control,
   static const auto& game_id =
     SK_GetCurrentGameID ();
 
+  if (SK_ImGui_GetLastKeybindEditorFrame () < SK_GetFramesDrawn () - 5)
   for ( auto keybind : special_keys )
   {
     // Skip unbound keys!

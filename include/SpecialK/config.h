@@ -65,6 +65,9 @@ namespace sk
   class ParameterStringW;
 };
 
+void    SK_ImGui_BeginKeybindEditorFrame   (void);
+ULONG64 SK_ImGui_GetLastKeybindEditorFrame (void);
+
 // Adds a parameter to store and retrieve the keybind in an INI / XML file
 struct SK_ConfigSerializedKeybind : public SK_Keybind
 {

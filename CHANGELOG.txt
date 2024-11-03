@@ -1,4 +1,11 @@
-﻿24.11.3.2
+﻿24.11.3.3
+=========
+ + Hide mouse cursor when the game is using SetCursorPos (...) to implement
+     mouselook and cursor management is enabled.
+ + Ensure that upon closing the keybind editor dialog, the keybind configured
+     does not immediately trigger.
+
+24.11.3.2
 =========
  + Change keyboard/mouse/gamepad blocking state so that it is evaluated
      once per-frame frame and all other tests use the value set at the

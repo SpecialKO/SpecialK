@@ -1068,6 +1068,9 @@ void
 CALLBACK
 SK_FAR_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
 {
+  if (SK_ImGui_GetLastKeybindEditorFrame () >= SK_GetFramesDrawn () - 5)
+    return;
+
   auto uiMaskedKeyCode =
     SK_MakeKeyMask (vkCode, Control, Shift, Alt);
 

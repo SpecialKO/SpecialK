@@ -621,6 +621,8 @@ SK_ImGui_VolumeManager (void)
       if (binding == nullptr)
         return false;
 
+      SK_ImGui_BeginKeybindEditorFrame ();
+
       std::string label =
         SK_WideCharToUTF8      (binding->human_readable);
 

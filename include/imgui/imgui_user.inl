@@ -3561,7 +3561,14 @@ SK_ImGui_User_NewFrame (void)
 
   if (bManageCursor && game_window.mouse.inside)
   {
-    if (SK_Window_IsCursorActive () && SK_ImGui_Cursor.force != sk_cursor_state::Hidden)
+    // Hide the cursor during mouselook
+    if ((! SK_ImGui_CursorWarpingCooledDown ()) && SK_ImGui_Cursor.force != sk_cursor_state::Visible)
+    {
+      SK_SendMsgShowCursor (FALSE);
+    }
+
+    // Show the cursor during non-mouselook movement
+    else if (SK_Window_IsCursorActive () && SK_ImGui_Cursor.force != sk_cursor_state::Hidden)
     {
       if (! bHWCursorVisible)
       {
@@ -3572,6 +3579,7 @@ SK_ImGui_User_NewFrame (void)
       }
     }
 
+    // Hide the cursor when inactive
     else if (config.input.cursor.manage || SK_ImGui_Cursor.force == sk_cursor_state::Hidden)
     {
       if (bHWCursorVisible)

@@ -360,6 +360,7 @@ SK_HDR_KeyPress ( BOOL Control,
                                 (((shift)!= 0) << 10) | \
                                 (((alt)  != 0) << 11))
 
+  if (SK_ImGui_GetLastKeybindEditorFrame () < SK_GetFramesDrawn () - 5)
   for ( auto& it : hdr_presets )
   {
     if ( it.preset_activate.masked_code ==

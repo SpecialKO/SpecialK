@@ -1230,6 +1230,7 @@ void    ImGui_ToggleCursor                      (void);
 HCURSOR ImGui_DesiredCursor                     (void);
 bool SK_InputUtil_IsHWCursorVisible             (void);
 bool SK_Window_IsCursorActive                   (void);
+bool SK_ImGui_CursorWarpingCooledDown           (void);
 
 enum SK_InputEnablement {
   Enabled              = 0,

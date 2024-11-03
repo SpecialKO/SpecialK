@@ -2944,6 +2944,21 @@ SK_ImGui_KeybindSelect (SK_Keybind* keybind, const char* szLabel)
   return ret;
 }
 
+volatile ULONG64 SK_ImGui_LastKeybindEditorFrame = 0;
+
+void
+SK_ImGui_BeginKeybindEditorFrame (void)
+{
+  WriteULong64Release (&SK_ImGui_LastKeybindEditorFrame, SK_GetFramesDrawn ());
+}
+
+ULONG64
+SK_ImGui_GetLastKeybindEditorFrame (void)
+{
+  return
+    ReadULong64Acquire (&SK_ImGui_LastKeybindEditorFrame);
+}
+
 SK_API
 void
 __stdcall
@@ -2963,6 +2978,8 @@ SK_ImGui_KeybindDialog (SK_Keybind* keybind)
   if (ImGui::BeginPopupModal (keybind->bind_name, nullptr, ImGuiWindowFlags_AlwaysAutoResize |
                                                            ImGuiWindowFlags_NoCollapse       | ImGuiWindowFlags_NoSavedSettings))
   {
+    SK_ImGui_LastKeybindEditorFrame = SK_GetFramesDrawn ();
+
     io.WantCaptureKeyboard = true;
 
     int i = 0;
