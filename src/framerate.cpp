@@ -301,8 +301,16 @@ struct scanline_target_s {
               config.render.framerate.latent_sync.scanline_offset;
       }
 
-      if (        signals.resync.isValid ())
-        SetEvent (signals.resync);
+      static bool resync_once = false;
+
+      // Do not re-sync on a VRR display, that's not necessary
+      if ((! rb.gsync_state.active) || (! resync_once))
+      {
+        if (        signals.resync.isValid ())
+        { SetEvent (signals.resync);
+          resync_once = true;
+        }
+      }
     }
 
     void notifyAcquired (void)

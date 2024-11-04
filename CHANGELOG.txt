@@ -1,4 +1,9 @@
-﻿24.11.4.3
+﻿24.11.4.4
+=========
+ + Disable periodic LatentSync resync when G-Sync is active
+ + Remove warning about using LatentSync on VRR displays
+
+24.11.4.3
 =========
  + Xbox/PlayStation + Right/Left trigger will Minimize/Restore the game.
 

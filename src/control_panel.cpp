@@ -6132,10 +6132,10 @@ SK_ImGui_ControlPanel (void)
                   ///rb.gsync_state.disabled = true;
                   ///SK_NvAPI_SetVRREnablement (FALSE);
 
-                  if (rb.gsync_state.capable)
-                  {
-                    SK_RunOnce (SK_ImGui_Warning (L"Latent Sync may not work correctly while G-Sync is active"));
-                  }
+                  //if (rb.gsync_state.capable)
+                  //{
+                  //  SK_RunOnce (SK_ImGui_Warning (L"Latent Sync may not work correctly while G-Sync is active"));
+                  //}
                 }
 
                 config.render.framerate.present_interval = 0;
