@@ -303,29 +303,26 @@ SK_Proxy_KeyboardProc (
 {
   if (nCode == HC_ACTION)
   {
-    if (nCode == HC_ACTION)
+    bool wasPressed = (((DWORD)lParam) & (1UL << 30UL)) != 0UL,
+          isPressed = (((DWORD)lParam) & (1UL << 31UL)) == 0UL,
+          isAltDown = (((DWORD)lParam) & (1UL << 29UL)) != 0UL;
+
+    SHORT vKey =
+      static_cast <SHORT> (wParam);
+
+    if ( config.input.keyboard.override_alt_f4 &&
+         config.input.keyboard.   catch_alt_f4 )
     {
-      bool wasPressed = (((DWORD)lParam) & (1UL << 30UL)) != 0UL,
-            isPressed = (((DWORD)lParam) & (1UL << 31UL)) == 0UL,
-            isAltDown = (((DWORD)lParam) & (1UL << 29UL)) != 0UL;
-
-      SHORT vKey =
-        static_cast <SHORT> (wParam);
-
-      if ( config.input.keyboard.override_alt_f4 &&
-           config.input.keyboard.   catch_alt_f4 )
+      if (vKey == VK_F4 && isAltDown && isPressed && (! wasPressed) && SK_IsGameWindowFocused ())
       {
-        if (vKey == VK_F4 && isAltDown && isPressed && (! wasPressed) && SK_IsGameWindowFocused ())
-        {
-          SK_ImGui_WantExit = true;
+        SK_ImGui_WantExit = true;
 
-          return 1;
-        }
+        return 1;
       }
-
-      if ((! isPressed) || SK_IsGameWindowActive ())
-        ImGui::GetIO ().KeysDown [vKey] = isPressed;
     }
+
+    if ((! isPressed) || SK_IsGameWindowActive ())
+      ImGui::GetIO ().KeysDown [vKey] = isPressed;
 
     bool hide =
       SK_ImGui_WantKeyboardCapture ();
@@ -412,9 +409,6 @@ SK_Proxy_LLKeyboardProc (
 {
   if (nCode == HC_ACTION)
   {
-    using KeyboardProc =
-      LRESULT (CALLBACK *)(int,WPARAM,LPARAM);
-
     KBDLLHOOKSTRUCT *pHookData =
       (KBDLLHOOKSTRUCT *)lParam;
 
