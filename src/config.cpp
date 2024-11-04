@@ -597,6 +597,7 @@ struct {
   sk::ParameterBool*      disable_alpha           = nullptr;
   sk::ParameterBool*      antialias_lines         = nullptr;
   sk::ParameterBool*      antialias_contours      = nullptr;
+  sk::ParameterBool*      center_cursor_on_overlay= nullptr;
 } imgui;
 
 struct {
@@ -1598,6 +1599,7 @@ auto DeclKeybind =
     ConfigEntry (imgui.show_gsync_status,                L"Show G-Sync Status on Control Panel",                       osd_ini,         L"ImGui.Global",          L"ShowGSyncStatus"),
     ConfigEntry (imgui.mac_style_menu,                   L"Use Mac-style Menu Bar",                                    osd_ini,         L"ImGui.Global",          L"UseMacStyleMenu"),
     ConfigEntry (imgui.show_input_apis,                  L"Show Input APIs currently in-use",                          osd_ini,         L"ImGui.Global",          L"ShowActiveInputAPIs"),
+    ConfigEntry (imgui.center_cursor_on_overlay,         L"Center the mouse cursor when opening SK's overlay",         osd_ini,         L"ImGui.Global",          L"CenterCursorOnOverlayToggle"),
 
     ConfigEntry (screenshots.keep_png_copy,              L"Keep a .PNG compressed copy of each screenshot?",           osd_ini,         L"Screenshot.System",     L"KeepLosslessPNG"),
     ConfigEntry (screenshots.play_sound,                 L"Play a Sound when triggering Screenshot Capture",           osd_ini,         L"Screenshot.System",     L"PlaySoundOnCapture"),
@@ -4049,6 +4051,7 @@ auto DeclKeybind =
   imgui.show_gsync_status->load          (config.apis.NvAPI.gsync_status);
   imgui.mac_style_menu->load             (config.imgui.use_mac_style_menu);
   imgui.show_input_apis->load            (config.imgui.show_input_apis);
+  imgui.center_cursor_on_overlay->load   (config.input.ui.center_cursor);
 
   imgui.disable_alpha->load              (config.imgui.render.disable_alpha);
   imgui.antialias_lines->load            (config.imgui.render.antialias_lines);
@@ -6057,6 +6060,7 @@ SK_SaveConfig ( std::wstring name,
   imgui.disable_alpha->store                  (config.imgui.render.disable_alpha);
   imgui.antialias_lines->store                (config.imgui.render.antialias_lines);
   imgui.antialias_contours->store             (config.imgui.render.antialias_contours);
+  imgui.center_cursor_on_overlay->store       (config.input.ui.center_cursor);
 
   apis.last_known->store                      (static_cast <int> (config.apis.last_known));
 

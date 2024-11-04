@@ -4,6 +4,7 @@
      keyboard / gamepad bindings, and gamepad is always captured while they
        are waiting for a user response.
  + Make cursor centering on SK's control panel into a configurable option.
+    * Refer to:  Input Management > Mouse Cursor; this is a global preference.
 
 24.11.3.3
 =========

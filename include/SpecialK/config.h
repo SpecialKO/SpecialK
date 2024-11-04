@@ -1052,7 +1052,7 @@ struct sk_config_t
       bool    capture_keyboard    = false; // ^^^ Disabled by default because it interferes with cursor auto-hide
       bool    capture_gamepad     = false;
       bool    use_hw_cursor       =  true;
-      bool    center_cursor       =  true;
+      bool    center_cursor       = false;
       int     game_set_hw_cursor  =     0; // Not stored in INI, the number of times
     } ui;
 
