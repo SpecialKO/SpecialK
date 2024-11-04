@@ -746,6 +746,7 @@ ImGui_ToggleCursor (void)
     SK_ImGui_Cursor.orig_pos    =   pos;
     orig_pos                    =   pos;
     SK_ImGui_Cursor.idle        = false;
+    SK_ImGui_Cursor.last_toggle = SK::ControlPanel::current_time;
     io.WantCaptureMouse         =  true;
 
     if (config.input.ui.center_cursor)

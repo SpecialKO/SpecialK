@@ -119,6 +119,7 @@ struct sk_imgui_cursor_s
   bool    visible       =          false;
   bool    idle          =           true; // Hasn't moved
   DWORD   last_move     =       MAXDWORD;
+  DWORD   last_toggle   =              0;
   DWORD   refs_added    =              0;
   DWORD64 times_set     =              0; // Times the game has set a non-zero cursor
 

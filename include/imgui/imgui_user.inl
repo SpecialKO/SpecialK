@@ -3545,6 +3545,12 @@ SK_ImGui_User_NewFrame (void)
                                                         // Disabled to game is a form of capture,
                                                         //   but it is exempt from idle cursor logic
 
+  // When first opening the control panel, keep the cursor visible longer than usual
+  if (SK_ImGui_Cursor.last_toggle > SK::ControlPanel::current_time - 3333UL && SK_ImGui_Active ())
+    SK_ImGui_Cursor.idle = false;
+
+
+  // Update timestamps to block screensaver activation based on gamepad input
   SK_Input_UpdateGamepadActivityTimestamp ();
 
   if (config.input.cursor.manage && config.input.cursor.gamepad_deactivates && SK_Window_IsCursorActive ())
