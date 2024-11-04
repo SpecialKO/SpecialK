@@ -642,7 +642,7 @@ SK_IsGameWindowActive (bool activate_if_in_limbo)
   bool bActive =
     game_window.active;
 
-  if (! bActive)
+  if ((! bActive) && activate_if_in_limbo)
   {
     HWND hWndForeground = SK_GetForegroundWindow ();
 
@@ -700,11 +700,10 @@ SK_IsGameWindowActive (bool activate_if_in_limbo)
         game_window.active = true;
 
         BringWindowToTop    (game_window.hWnd);
-        SetWindowPos        ( SK_Win32_BackgroundHWND, game_window.hWnd,
-                                    0, 0,
-                                    0, 0,
-                                      SWP_NOMOVE     | SWP_NOSIZE |
-                               SWP_NOACTIVATE );
+        SetWindowPos        (SK_Win32_BackgroundHWND, game_window.hWnd,
+                                   0, 0,
+                                   0, 0,
+                                     SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
         SetForegroundWindow (game_window.hWnd);
         SetFocus            (game_window.hWnd);
       }
