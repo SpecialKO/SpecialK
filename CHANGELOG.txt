@@ -1,5 +1,9 @@
 ﻿24.11.4.2
 =========
+ + The Xbox/PlayStation button on gamepads can now be used to activate a
+     chord input without that input counting for screensaver deactivation.
+   * In other words, you can use chorded feature like volume control while
+       a screensaver is active.
  + Make UI navigation moving the mouse cursor a persistent (global) config
      option, and turn it off by default.
 

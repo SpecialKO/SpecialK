@@ -3042,7 +3042,8 @@ DWORD SK_Input_LastGamepadActivity = 0;
 void
 SK_Input_UpdateGamepadActivityTimestamp (void)
 {
-  static DWORD _LastGamepadTimestamp = SK_Input_LastGamepadActivity;
+  static DWORD _LastGamepadTimestamp  = SK_Input_LastGamepadActivity;
+  static DWORD _Ignore_TimestampUntil = 0;
 
   static XINPUT_STATE
         xi_state_last = { };
@@ -3068,7 +3069,14 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
               abs (xi_state.Gamepad.bLeftTrigger  - xi_state_last.Gamepad.bLeftTrigger ) > 40   ||
               abs (xi_state.Gamepad.bRightTrigger - xi_state_last.Gamepad.bRightTrigger) > 40 )
     {
-      SK_Input_LastGamepadActivity = SK::ControlPanel::current_time;
+      // Special treatment for the Guide button so that chords can be used while screensavers
+      //   are active.
+      if (!(xi_state_last.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE ||
+            xi_state_last.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE))
+        SK_Input_LastGamepadActivity = SK::ControlPanel::current_time;
+
+      if (xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)
+          _Ignore_TimestampUntil = SK::ControlPanel::current_time + 500UL;
     }
 
     xi_state_last = xi_state;
@@ -3098,13 +3106,21 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
               abs (hid_to_xi.Gamepad.bLeftTrigger  - hid_state.Gamepad.bLeftTrigger ) > 40   ||
               abs (hid_to_xi.Gamepad.bRightTrigger - hid_state.Gamepad.bRightTrigger) > 40 )
     {
-      SK_Input_LastGamepadActivity = SK::ControlPanel::current_time;
+      // Special treatment for the Guide button so that chords can be used while screensavers
+      //   are active.
+      if (!(hid_to_xi.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE ||
+            hid_to_xi.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE))
+        SK_Input_LastGamepadActivity = SK::ControlPanel::current_time;
+
+      if (hid_to_xi.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)
+        _Ignore_TimestampUntil = SK::ControlPanel::current_time + 500UL;
     }
 
     hid_state.Gamepad = hid_to_xi.Gamepad;
   }
 
-  if (_LastGamepadTimestamp != SK_Input_LastGamepadActivity)
+  if (_LastGamepadTimestamp != SK_Input_LastGamepadActivity &&
+      _Ignore_TimestampUntil < SK_Input_LastGamepadActivity)
   {
     if (config.input.gamepad.blocks_screensaver)
     {
@@ -3125,7 +3141,8 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
       }
     }
 
-    _LastGamepadTimestamp = SK_Input_LastGamepadActivity;
+    if (_Ignore_TimestampUntil < SK_Input_LastGamepadActivity)
+         _LastGamepadTimestamp = SK_Input_LastGamepadActivity;
   }
 }
 
