@@ -1,4 +1,12 @@
-﻿24.11.4.5
+﻿24.11.5
+=======
+ + Optimized keyboard handling in proxy Windows (Low-Level) Hook procedures
+ + Ensure that all keyboard input a game sees through a keyboard hook while
+     the window is not actually active are key releases, so that upon upon
+       alt-tabbing back, they do not do that stupid thing they usually do
+         where they think a key is permanently stuck down.
+
+24.11.4.5
 =========
  + Removed the last remaining remnants of SK's original cursor anti-warp system.
 
