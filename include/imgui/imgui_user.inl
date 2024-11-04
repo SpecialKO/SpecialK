@@ -3056,8 +3056,6 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
   bool bPolled =
     SK_XInput_PollController (0, &xi_state);
 
-  DWORD _Ignore_TimestampUntil = 0;
-
   // Native XInput Devices
   //
   if (bPolled && xi_state.dwPacketNumber > dwLastPacket)
