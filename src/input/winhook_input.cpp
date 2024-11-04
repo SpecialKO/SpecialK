@@ -323,7 +323,7 @@ SK_Proxy_KeyboardProc (
       }
     }
 
-    if ((! isPressed) || SK_IsGameWindowActive ())
+    if ((! isPressed) || game_window.active)
       ImGui::GetIO ().KeysDown [vKey] = isPressed;
 
     bool hide =
@@ -357,7 +357,7 @@ SK_Proxy_KeyboardProc (
     // Fix common keys that may be stuck in combination with Alt, Windows Key, etc.
     //   the game shouldn't have seen those keys, but the hook they are using doesn't
     //     hide them...
-    if (! SK_IsGameWindowActive ())
+    if ((! game_window.active) && config.input.keyboard.disabled_to_game = 2)
     {
       // Release these keys when alt-tabbing...
       lParam = 0;
@@ -418,8 +418,8 @@ SK_Proxy_LLKeyboardProc (
     //   * Ignore -which- window is focused; after all, the game's own use of
     //       a low-level hook does not respect window focus in any way.
     //
-    bool bWindowActive = 
-      SK_IsGameWindowActive ();
+    bool bWindowActive =
+      game_window.active;
 
     if (! bWindowActive)
     {
