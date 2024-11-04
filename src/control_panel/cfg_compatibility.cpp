@@ -300,7 +300,7 @@ SK::ControlPanel::Compatibility::Draw (void)
       ImGui::SameLine ();
       ImGui::Checkbox ("D3DKMT",   &config.apis.D3DKMT.enable_perfdata);
       if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Microsofts's hardware monitoring API, needed for the GPU stats on the OSD to supplement missing data from NvAPI or ADL. On some drivers, this may cause performance issues.");
+        ImGui::SetTooltip ("Microsoft's hardware monitoring API, needed for the GPU stats on the OSD to supplement missing data from NvAPI or ADL. On some drivers, this may cause performance issues.");
 
       ImGui::TreePop  ();
     }
