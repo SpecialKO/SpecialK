@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -33,6 +33,6 @@ namespace SK
   };
 };
 
-extern void SK_ImGui_CursorBoundaryConfig (void);
+extern void SK_ImGui_CursorBoundaryConfig (bool);
 
 #endif /* __SK__CPL_INPUT_H__ */

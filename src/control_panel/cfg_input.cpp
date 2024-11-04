@@ -641,7 +641,7 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::BeginGroup             ();
         ImGui::SeparatorEx            (ImGuiSeparatorFlags_Vertical);
         ImGui::SameLine               ();
-        SK_ImGui_CursorBoundaryConfig ();
+        SK_ImGui_CursorBoundaryConfig (false);
         ImGui::EndGroup               ();
       };
 
@@ -3158,14 +3158,17 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
 }
 
 void
-SK_ImGui_CursorBoundaryConfig (void)
+SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
 {
   ImGui::BeginGroup  (  );
   ImGui::Text        ("Cursor Boundaries");
+  if (! window_mgmt)
+  {
   ImGui::SameLine    (  );
   ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
   ImGui::SameLine    (  );
   ImGui::Checkbox    ("Center Cursor on UI When Opening Overlay", &config.input.ui.center_cursor);
+  }
   ImGui::EndGroup    (  );
   ImGui::TreePush    ("");
   

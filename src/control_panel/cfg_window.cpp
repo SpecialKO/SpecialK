@@ -488,7 +488,7 @@ SK::ControlPanel::Window::Draw (void)
 
       ImGui::TreePop ();
 
-      SK_ImGui_CursorBoundaryConfig ();
+      SK_ImGui_CursorBoundaryConfig (true);
 
       ImGui::Text     ("Screensaver Behavior");
       ImGui::TreePush ("");
