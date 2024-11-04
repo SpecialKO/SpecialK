@@ -619,6 +619,7 @@ public:
       SK_D3D11_ReleaseCachedShaders       (pDevice.p, sk_shader_class::Compute);
 
       // This prevents Ys X from exiting, be mindful of this in other games.
+      if (SK_GetCurrentGameID () != SK_GAME_ID::YsX)
       SK_D3D11_SetWrappedImmediateContext (pDevice, nullptr);
       SK_DXGI_ReportLiveObjects           (pDevice);
 

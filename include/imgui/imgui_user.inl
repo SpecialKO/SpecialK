@@ -602,73 +602,6 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     size;
 }
 
-bool
-SK_ImGui_WantMouseWarpFiltering (void)
-{
-  if (game_window.mouse.can_track && !game_window.mouse.inside && config.input.mouse.disabled_to_game == 2)
-  {
-    return true;
-  }
-
-  return false;
-}
-
-LONG
-SK_ImGui_DeltaTestMouse ( const POINTS& last_pos,
-                          const LPARAM& lParam,
-                          const short   threshold = 1 )
-{
-  bool filter_warps =
-    SK_ImGui_WantMouseWarpFiltering ();
-
-  POINT local {
-    GET_X_LPARAM (lParam),
-    GET_Y_LPARAM (lParam)
-  };
-
-  if ( filter_warps && ( last_pos.x != local.x ||
-                         last_pos.y != local.y ) )
-  {
-    bool filter = false;
-
-    // Filter out small movements / mouselook warps
-    //
-    //   This does create a weird deadzone in the center of the screen,
-    //     but most people will not notice ;)
-    //
-    if ( abs (last_pos.x - local.x) < threshold &&
-         abs (last_pos.y - local.y) < threshold )
-    {
-      filter = true;
-    }
-
-    static auto& io =
-      ImGui::GetIO ();
-
-    POINT center { static_cast <LONG> (io.DisplaySize.x / 2.0f),
-                   static_cast <LONG> (io.DisplaySize.y / 2.0f) };
-
-    SK_ImGui_Cursor.LocalToClient (&center);
-
-    // Now test the cursor against the center of the screen
-    if ( abs (center.x - local.x) <= (static_cast <float> (center.x) / (100.0f / config.input.mouse.antiwarp_deadzone)) &&
-         abs (center.y - local.y) <= (static_cast <float> (center.y) / (100.0f / config.input.mouse.antiwarp_deadzone)) )
-    {
-      filter = true;
-    }
-
-    // Dispose Without Processing
-    if (filter)
-    {
-      return
-        SK_ImGui_IsMouseRelevant ( ) ?
-                                  1  :  0;
-    }
-  }
-
-  return -1;
-}
-
 #include <dbt.h>
 
 // GetKeyboardLayout (...) is somewhat slow and it is unnecessary unless
@@ -712,52 +645,6 @@ MessageProc ( const HWND&   hWnd,
 
   switch (msg)
   {
-    // TODO: Take the bazillion different sources of input and translate them all into
-    //          a standard window message format for sanity's sake during filter evaluation.
-    case WM_APPCOMMAND:
-    {
-      if (hWnd == game_window.hWnd || IsChild (game_window.hWnd, hWnd))
-      {
-        switch (GET_DEVICE_LPARAM (lParam))
-        {
-          case FAPPCOMMAND_KEY:
-          {
-            OutputDebugStringW (L"WM_APPCOMMAND Keyboard Event");
-
-            //if (SK_ImGui_WantKeyboardCapture ())
-            //{
-            if (window_active)
-              return true;
-            //}
-          } break;
-
-          case FAPPCOMMAND_MOUSE:
-          {
-            if (SK_ImGui_WantMouseCapture ())
-            {
-              OutputDebugStringW (L"Removed WM_APPCOMMAND Mouse Event");
-              return true;
-            }
-
-            OutputDebugStringW (L"WM_APPCOMMAND Mouse Event");
-
-            LPARAM dwPos = static_cast <LPARAM> (GetMessagePos ());
-            LONG   lRet  = SK_ImGui_DeltaTestMouse (
-                                    *(const POINTS *)&last_pos,
-                   dwPos                           );
-
-            if (lRet >= 0)
-            {
-              OutputDebugStringW (L"Removed WM_APPCOMMAND Mouse Delta Failure");
-              return true;
-            }
-          } break;
-        }
-      }
-    } break;
-
-
-
     ////case WM_MOUSEACTIVATE:
     ////{
     ////  ActivateWindow (((HWND)wParam == hWnd));
@@ -1024,11 +911,8 @@ MessageProc ( const HWND&   hWnd,
       {
         SK_ImGui_UpdateMouseTracker ();
 
-        POINTS     xyPos = MAKEPOINTS (lParam);
-        LONG   lDeltaRet =
-          SK_ImGui_DeltaTestMouse (
-               std::exchange (last_pos, xyPos),
-                                       lParam);
+        POINTS                   xyPos = MAKEPOINTS (lParam);
+        std::exchange (last_pos, xyPos);
 
         POINT
           cursor_pos = {
@@ -1037,17 +921,6 @@ MessageProc ( const HWND&   hWnd,
           };
 
         SK_ImGui_Cursor.ClientToLocal (&cursor_pos);
-
-        // Return:
-        //
-        //   -1 if no filtering is desired
-        //    0 if message should propogate, but preserve internal cursor state
-        //    1 if message should be removed
-        //
-        if (     lDeltaRet >= 0 ) {
-          return lDeltaRet;
-        }
-
         SK_ImGui_Cursor.pos =           cursor_pos;
 
         io.MousePos = {
@@ -1454,8 +1327,6 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
   bool handled          = MessageProc (hWnd, msg, wParam, lParam);
   bool filter_raw_input = (msg == WM_INPUT && handled && config.input.gamepad.hook_raw_input);
 
-  bool filter_warps     = SK_ImGui_WantMouseWarpFiltering ();
-
   UINT uMsg = msg;
 
   if (handled)
@@ -1472,8 +1343,7 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
       ( ( ( uMsg >= WM_MOUSEFIRST && uMsg <= WM_MOUSELAST ) ||
           ( uMsg == WM_APPCOMMAND && GET_DEVICE_LPARAM (lParam) == FAPPCOMMAND_MOUSE ) ) &&
 
-          ( SK_ImGui_WantMouseCapture () ||
-            (filter_warps && uMsg == WM_MOUSEMOVE) )
+          ( SK_ImGui_WantMouseCapture () )
       );
 
     if ((wParam & 0xFF) < 7)
@@ -2293,7 +2163,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
               (last_state.Gamepad.bLeftTrigger <= XINPUT_GAMEPAD_TRIGGER_THRESHOLD))
           {
             if (   IsIconic (game_window.hWnd))
-              SK_ShowWindow (game_window.hWnd, SW_RESTORE);
+              SK_ShowWindow (game_window.hWnd, SW_SHOWNOACTIVATE);
 
             bChordActivated = true;
           }

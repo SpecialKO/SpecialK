@@ -1,4 +1,8 @@
-﻿24.11.4.4
+﻿24.11.4.5
+=========
+ + Removed the last remaining remnants of SK's original cursor anti-warp system.
+
+24.11.4.4
 =========
  + Disable periodic LatentSync resync when G-Sync is active
  + Remove warning about using LatentSync on VRR displays

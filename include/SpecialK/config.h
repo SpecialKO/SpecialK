@@ -1152,16 +1152,6 @@ struct sk_config_t
     } keyboard;                            //   ignore "disabled_to_game"
 
     struct mouse_s {
-      //
-      // Uses APIs such as DirectInput or RawInput that only send relative motion events
-      //   to derive the virtual position of the cursor, since the game hijacks the
-      //     physical position.
-      //
-      //   >> Ideally we want absolute cursor position every frame for the UI, but
-      //        that's not always possible. <<
-      //
-      float   antiwarp_deadzone   = 2.5F;
-
       // Translate WM_MOUSEWHEEL messages into actual events that will trigger
       //   other mouse APIs such as DirectInput and RawInput.
       //

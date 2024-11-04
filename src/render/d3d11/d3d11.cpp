@@ -8563,7 +8563,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
   if (SUCCEEDED (res) && ppDevice != nullptr && ret_device != nullptr)
   {
     // Use a single device for NVIDIA interop, it saves a ton of memory in 32-bit games.
-    if (bNvInterop || SK_GetCurrentGameID () == SK_GAME_ID::YsX)
+    if (bNvInterop)
     {                 // Ys X cannot be allowed to cleanup the device context, or it won't exit.
       pNvInteropSingleton = ret_device;
                             ret_device->AddRef (); // Keep-Alive
