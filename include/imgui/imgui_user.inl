@@ -3055,6 +3055,8 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
   bool bPolled =
     SK_XInput_PollController (0, &xi_state);
 
+  DWORD _Ignore_TimestampUntil = 0;
+
   // Native XInput Devices
   //
   if (bPolled && xi_state.dwPacketNumber > dwLastPacket)
@@ -3069,6 +3071,9 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
               abs (xi_state.Gamepad.bRightTrigger - xi_state_last.Gamepad.bRightTrigger) > 40 )
     {
       SK_Input_LastGamepadActivity = SK::ControlPanel::current_time;
+
+    if (hid_to_xi.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)
+        _Ignore_TimestampUntil = SK::ControlPanel::current_time + 250UL;
     }
 
     xi_state_last = xi_state;
@@ -3099,12 +3104,16 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
               abs (hid_to_xi.Gamepad.bRightTrigger - hid_state.Gamepad.bRightTrigger) > 40 )
     {
       SK_Input_LastGamepadActivity = SK::ControlPanel::current_time;
+
+      if (hid_to_xi.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)
+        _Ignore_TimestampUntil = SK::ControlPanel::current_time + 250UL;
     }
 
     hid_state.Gamepad = hid_to_xi.Gamepad;
   }
 
-  if (_LastGamepadTimestamp != SK_Input_LastGamepadActivity)
+  if (_LastGamepadTimestamp != SK_Input_LastGamepadActivity &&
+      _Ignore_TimestampUntil < SK_Input_LastGamepadActivity)
   {
     if (config.input.gamepad.blocks_screensaver)
     {
@@ -3125,7 +3134,8 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
       }
     }
 
-    _LastGamepadTimestamp = SK_Input_LastGamepadActivity;
+    if (SK_Input_LastGamepadActivity > _Ignore_TimestampUntil)
+      _LastGamepadTimestamp = SK_Input_LastGamepadActivity;
   }
 }
 
