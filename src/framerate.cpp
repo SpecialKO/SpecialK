@@ -301,16 +301,9 @@ struct scanline_target_s {
               config.render.framerate.latent_sync.scanline_offset;
       }
 
-      static bool resync_once = false;
-
-      // Do not re-sync on a VRR display, that's not necessary
-      if ((! rb.gsync_state.active) || (! resync_once))
-      {
-        if (        signals.resync.isValid ())
-        { SetEvent (signals.resync);
-          resync_once = true;
-        }
-      }
+      if (        signals.resync.isValid ())
+        SetEvent (signals.resync);
+      
     }
 
     void notifyAcquired (void)
@@ -1454,7 +1447,7 @@ SK::Framerate::Limiter::wait (void)
   {
     background = (! background);
 
-    __scanline.lock.requestResync ();
+    //__scanline.lock.requestResync ();
   }
 
 
@@ -2068,11 +2061,11 @@ SK::Framerate::Limiter::wait (void)
     bool bSync = false;
 
     static int                     iTry  = 0; // First time signals resync
-    if (                           iTry == 0 || (
+    if (                           iTry == 0 || (rb.gsync_state.active == false && (
       config.render.framerate.latent_sync.scanline_resync != 0 &&
                                   (iTry++ %
         config.render.framerate.latent_sync.scanline_resync) == 0
-                                                 )
+                                                 ))
        )                                bSync = true;
     if (D3DKMTGetScanLine != nullptr && bSync)
     {
