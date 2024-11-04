@@ -592,16 +592,23 @@ SK_ImGui_WantHWCursor (void)
 bool
 SK_ImGui_WantMouseCapture (bool update)
 {
-  static std::atomic_bool capture = false;
+  static std::atomic_bool               capture  = false;
+  static std::atomic <ULONG64> lastFrameCaptured = 0;
 
   if (! update)
-    return capture.load ();
+    return capture.load () || lastFrameCaptured > SK_GetFramesDrawn () - 2;
 
   capture.store (
     SK_ImGui_WantMouseCaptureEx (0xFFFF)
   );
 
-  return capture.load ();
+  bool bCapture =
+        capture.load ();
+
+  if (bCapture) lastFrameCaptured =
+              SK_GetFramesDrawn ();
+
+  return bCapture;
 }
 
 

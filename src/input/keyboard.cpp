@@ -153,10 +153,11 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 bool
 SK_ImGui_WantKeyboardCapture (bool update)
 {
-  static std::atomic_bool capture = false;
+  static std::atomic_bool               capture  = false;
+  static std::atomic <ULONG64> lastFrameCaptured = 0;
 
   if (! update)
-    return capture.load ();
+    return capture.load () || lastFrameCaptured > SK_GetFramesDrawn () - 2;
 
   // Do not block on first frame drawn unless explicitly disabled
   if (SK_GetFramesDrawn () < 1 && (config.input.keyboard.disabled_to_game != 1))
@@ -216,10 +217,9 @@ SK_ImGui_WantKeyboardCapture (bool update)
   if ((! bWindowActive) && config.input.keyboard.disabled_to_game == SK_InputEnablement::DisabledInBackground)
     imgui_capture = true;
 
-  capture.store (imgui_capture);
-
-  return
-    imgui_capture;
+  if (             imgui_capture) lastFrameCaptured = SK_GetFramesDrawn ();
+    capture.store (imgui_capture);
+  return           imgui_capture;
 }
 
 bool

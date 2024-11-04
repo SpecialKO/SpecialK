@@ -45,11 +45,12 @@ DWORD SK_WGI_GamePollingThreadId = 0;
 bool
 SK_ImGui_WantGamepadCapture (bool update)
 {
-  static std::atomic_bool capture = false;
+  static std::atomic <ULONG64> lastFrameCaptured = 0;
+  static std::atomic_bool      capture           = false;
 
   if (! update)
   {
-    return capture.load ();
+    return capture.load () || lastFrameCaptured > SK_GetFramesDrawn () - 2;
   }
 
   // Do not block on first frame drawn unless explicitly disabled
@@ -153,7 +154,10 @@ SK_ImGui_WantGamepadCapture (bool update)
       }
     }
     
-    capture.store (bCapture);
+    if    (bCapture) lastFrameCaptured = SK_GetFramesDrawn ();
+    capture.store
+          (bCapture);
+          (bCapture);
     return bCapture;
   };
 

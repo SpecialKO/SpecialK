@@ -3380,8 +3380,9 @@ SK_FrameCallback ( SK_RenderBackend& rb,
         {
           static ULONG64 toggle_frame = 0ULL;
           static bool    toggling     = false;
+          static DWORD   time_start   = SK::ControlPanel::current_time;
 
-          if ((! toggling) && (! config.input.gamepad.disable_hid) && frames_drawn > 120)
+          if ((! toggling) && (! config.input.gamepad.disable_hid) && (frames_drawn > 240 || SK::ControlPanel::current_time - time_start > 750UL))
           {
             toggling = true;
 
@@ -3395,7 +3396,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
 
           else if (toggling)
           {
-            if (frames_drawn > toggle_frame + 15)
+            if (frames_drawn > toggle_frame + 30)
             {
               SK_RunOnce (
                 config.input.gamepad.disable_hid = false;
@@ -4749,10 +4750,23 @@ SK_API_IsPlugInBased (SK_RenderAPI api)
 bool
 SK_GetStoreOverlayState (bool bReal)
 {
-  return
-    SK::SteamAPI::GetOverlayState (bReal) ||
-    SK::EOS::     GetOverlayState (bReal) ||
-    SK_ReShadeAddOn_IsOverlayActive ();
+  static std::atomic_bool     s_LastState = false;
+  static std::atomic<ULONG64> s_LastFrame = 0;
+
+  if (s_LastFrame.load () < SK_GetFramesDrawn ())
+  {
+    bool ret =
+      SK::SteamAPI::GetOverlayState (bReal) ||
+      SK::EOS::     GetOverlayState (bReal) ||
+      SK_ReShadeAddOn_IsOverlayActive ();
+
+    s_LastState.store (ret);
+    s_LastFrame.store (ret);
+
+    return ret;
+  }
+
+  return s_LastState.load ();
 }
 
 SK_LazyGlobal <iSK_Logger> dll_log;
