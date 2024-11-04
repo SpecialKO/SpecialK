@@ -3382,7 +3382,7 @@ SK_FrameCallback ( SK_RenderBackend& rb,
           static bool    toggling     = false;
           static DWORD   time_start   = SK::ControlPanel::current_time;
 
-          if ((! toggling) && (! config.input.gamepad.disable_hid) && (frames_drawn > 240 || SK::ControlPanel::current_time - time_start > 750UL))
+          if ((! toggling) && (! config.input.gamepad.disable_hid) && (frames_drawn > 500 || SK::ControlPanel::current_time - time_start > 1500UL))
           {
             toggling = true;
 

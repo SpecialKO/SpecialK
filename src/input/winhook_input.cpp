@@ -357,10 +357,13 @@ SK_Proxy_KeyboardProc (
     // Fix common keys that may be stuck in combination with Alt, Windows Key, etc.
     //   the game shouldn't have seen those keys, but the hook they are using doesn't
     //     hide them...
-    if (config.input.keyboard.disabled_to_game == 2 && (! SK_IsGameWindowActive ()))
+    if (hide)
     {
       // Release these keys when alt-tabbing...
       lParam = 0;
+
+      if (hook_fn != nullptr && config.input.keyboard.disabled_to_game != 1)
+          hook_fn (nCode, wParam, lParam);
     }
 
     if (     hook_fn != nullptr && !hide)
@@ -467,10 +470,13 @@ SK_Proxy_LLKeyboardProc (
     // Fix common keys that may be stuck in combination with Alt, Windows Key, etc.
     //   the game shouldn't have seen those keys, but the hook they are using doesn't
     //     hide them...
-    if (! bWindowActive)
+    if (hide)
     {
       // Release these keys when alt-tabbing...
       lParam = 0;
+
+      if (hook_fn != nullptr && config.input.keyboard.disabled_to_game != 1)
+          hook_fn (nCode, wParam, lParam);
     }
 
     if (     hook_fn != nullptr && !hide)
