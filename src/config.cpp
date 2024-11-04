@@ -598,6 +598,7 @@ struct {
   sk::ParameterBool*      antialias_lines         = nullptr;
   sk::ParameterBool*      antialias_contours      = nullptr;
   sk::ParameterBool*      center_cursor_on_overlay= nullptr;
+  sk::ParameterBool*      nav_moves_mouse         = nullptr;
 } imgui;
 
 struct {
@@ -1600,6 +1601,7 @@ auto DeclKeybind =
     ConfigEntry (imgui.mac_style_menu,                   L"Use Mac-style Menu Bar",                                    osd_ini,         L"ImGui.Global",          L"UseMacStyleMenu"),
     ConfigEntry (imgui.show_input_apis,                  L"Show Input APIs currently in-use",                          osd_ini,         L"ImGui.Global",          L"ShowActiveInputAPIs"),
     ConfigEntry (imgui.center_cursor_on_overlay,         L"Center the mouse cursor when opening SK's overlay",         osd_ini,         L"ImGui.Global",          L"CenterCursorOnOverlayToggle"),
+    ConfigEntry (imgui.nav_moves_mouse,                  L"Keyboard/Gamepad selection changes move the mouse cursor",  osd_ini,         L"ImGui.Global",          L"NavigationMovesMouseCursor"),
 
     ConfigEntry (screenshots.keep_png_copy,              L"Keep a .PNG compressed copy of each screenshot?",           osd_ini,         L"Screenshot.System",     L"KeepLosslessPNG"),
     ConfigEntry (screenshots.play_sound,                 L"Play a Sound when triggering Screenshot Capture",           osd_ini,         L"Screenshot.System",     L"PlaySoundOnCapture"),
@@ -4052,6 +4054,7 @@ auto DeclKeybind =
   imgui.mac_style_menu->load             (config.imgui.use_mac_style_menu);
   imgui.show_input_apis->load            (config.imgui.show_input_apis);
   imgui.center_cursor_on_overlay->load   (config.input.ui.center_cursor);
+  imgui.nav_moves_mouse->load            (config.input.ui.nav_moves_mouse);
 
   imgui.disable_alpha->load              (config.imgui.render.disable_alpha);
   imgui.antialias_lines->load            (config.imgui.render.antialias_lines);
@@ -6061,6 +6064,7 @@ SK_SaveConfig ( std::wstring name,
   imgui.antialias_lines->store                (config.imgui.render.antialias_lines);
   imgui.antialias_contours->store             (config.imgui.render.antialias_contours);
   imgui.center_cursor_on_overlay->store       (config.input.ui.center_cursor);
+  imgui.nav_moves_mouse->store                (config.input.ui.nav_moves_mouse);
 
   apis.last_known->store                      (static_cast <int> (config.apis.last_known));
 

@@ -1,4 +1,9 @@
-﻿24.11.4.1
+﻿24.11.4.2
+=========
+ + Make UI navigation moving the mouse cursor a persistent (global) config
+     option, and turn it off by default.
+
+24.11.4.1
 =========
  + Correctly restore hardware cursor image when closing the control panel and
      cursor centering is turned off.

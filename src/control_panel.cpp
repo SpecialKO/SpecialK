@@ -3257,6 +3257,9 @@ SK_ImGui_ControlPanel (void)
         io.ConfigFlags = nav_moves_mouse ?
           ( io.ConfigFlags |  ImGuiConfigFlags_NavEnableSetMousePos ) :
           ( io.ConfigFlags & ~ImGuiConfigFlags_NavEnableSetMousePos );
+
+        config.input.ui.nav_moves_mouse = nav_moves_mouse;
+        config.utility.save_async ();
       }
 
       ImGui::MenuItem ("Display Active Input APIs",       "", &config.imgui.show_input_apis);
@@ -4994,12 +4997,13 @@ SK_ImGui_ControlPanel (void)
   bool        open        = true;
 
 
+  if (config.input.ui.nav_moves_mouse)
+       io.ConfigFlags |=  ImGuiConfigFlags_NavEnableSetMousePos;
+  else io.ConfigFlags &= ~ImGuiConfigFlags_NavEnableSetMousePos;
+
   // Initialize the dialog using the user's scale preference
   if (first_frame)
   {
-    io.    ConfigFlags |=
-      ImGuiConfigFlags_NavEnableSetMousePos;
-
     // Range-restrict for sanity!
     config.imgui.scale = SK_ImGui::SanitizeFontGlobalScale (config.imgui.scale);
 

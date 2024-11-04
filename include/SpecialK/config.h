@@ -1053,6 +1053,7 @@ struct sk_config_t
       bool    capture_gamepad     = false;
       bool    use_hw_cursor       =  true;
       bool    center_cursor       = false;
+      bool    nav_moves_mouse     = false;
       int     game_set_hw_cursor  =     0; // Not stored in INI, the number of times
     } ui;
 
