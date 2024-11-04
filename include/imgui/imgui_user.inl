@@ -2178,6 +2178,15 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
           }
 
           if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
+              (     state.Gamepad.wButtons & XINPUT_GAMEPAD_A)     &&
+            (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_A)))
+          {
+            // Unassigned for now, SKIF's XInput wrapper activates the
+            //   screensaver when this is pressed...
+            bChordActivated = true;
+          }
+
+          if ((     state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) &&
               (     state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)  &&
             (!(last_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)))
           {
@@ -2275,6 +2284,26 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
           {
             SK_GetCommandProcessor ()->
               ProcessCommandLine ("Sound.Volume -= 10.0");
+
+            bChordActivated = true;
+          }
+
+          if ((     state.Gamepad.wButtons     &  XINPUT_GAMEPAD_GUIDE)             &&
+              (     state.Gamepad.bLeftTrigger >  XINPUT_GAMEPAD_TRIGGER_THRESHOLD) &&
+              (last_state.Gamepad.bLeftTrigger <= XINPUT_GAMEPAD_TRIGGER_THRESHOLD))
+          {
+            if (   IsIconic (game_window.hWnd))
+              SK_ShowWindow (game_window.hWnd, SW_RESTORE);
+
+            bChordActivated = true;
+          }
+
+          if ((     state.Gamepad.wButtons      &  XINPUT_GAMEPAD_GUIDE)             &&
+              (     state.Gamepad.bRightTrigger >  XINPUT_GAMEPAD_TRIGGER_THRESHOLD) &&
+              (last_state.Gamepad.bRightTrigger <= XINPUT_GAMEPAD_TRIGGER_THRESHOLD))
+          {
+            if (!  IsIconic (game_window.hWnd))
+              SK_ShowWindow (game_window.hWnd, SW_MINIMIZE);
 
             bChordActivated = true;
           }

@@ -1,4 +1,8 @@
-﻿24.11.4.2
+﻿24.11.4.3
+=========
+ + Xbox/PlayStation + Right/Left trigger will Minimize/Restore the game.
+
+24.11.4.2
 =========
  + The Xbox/PlayStation button on gamepads can now be used to activate a
      chord input without that input counting for screensaver deactivation.
