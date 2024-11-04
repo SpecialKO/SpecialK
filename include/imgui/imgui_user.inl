@@ -3675,6 +3675,7 @@ SK_ImGui_User_NewFrame (void)
   SK_ImGui_WantKeyboardCapture (true);
   SK_ImGui_WantMouseCapture    (true);
   SK_ImGui_WantGamepadCapture  (true);
+  SK_IsGameWindowActive        (true);
 }
 
 bool

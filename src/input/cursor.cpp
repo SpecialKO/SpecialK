@@ -637,7 +637,7 @@ HCURSOR GetGameCursor (void)
 
 bool
 __stdcall
-SK_IsGameWindowActive (void)
+SK_IsGameWindowActive (bool activate_if_in_limbo)
 {
   bool bActive =
     game_window.active;
@@ -689,22 +689,25 @@ SK_IsGameWindowActive (void)
   {
     game_window.active = true;
 
-    // This only activates the window if performed on the same thread as the
-    //   game's window, so don't do this if called from a different thread.
-    if (                         0 != SK_Win32_BackgroundHWND &&
-         SK_GetForegroundWindow () == SK_Win32_BackgroundHWND &&
-             GetCurrentThreadId () == GetWindowThreadProcessId (game_window.hWnd, nullptr) )
+    if (activate_if_in_limbo)
     {
-      game_window.active = true;
+      // This only activates the window if performed on the same thread as the
+      //   game's window, so don't do this if called from a different thread.
+      if (                         0 != SK_Win32_BackgroundHWND &&
+           SK_GetForegroundWindow () == SK_Win32_BackgroundHWND &&
+               GetCurrentThreadId () == GetWindowThreadProcessId (game_window.hWnd, nullptr) )
+      {
+        game_window.active = true;
 
-      BringWindowToTop    (game_window.hWnd);
-      SetWindowPos        ( SK_Win32_BackgroundHWND, game_window.hWnd,
-                                  0, 0,
-                                  0, 0,
-                                    SWP_NOMOVE     | SWP_NOSIZE |
-                             SWP_NOACTIVATE );
-      SetForegroundWindow (game_window.hWnd);
-      SetFocus            (game_window.hWnd);
+        BringWindowToTop    (game_window.hWnd);
+        SetWindowPos        ( SK_Win32_BackgroundHWND, game_window.hWnd,
+                                    0, 0,
+                                    0, 0,
+                                      SWP_NOMOVE     | SWP_NOSIZE |
+                               SWP_NOACTIVATE );
+        SetForegroundWindow (game_window.hWnd);
+        SetFocus            (game_window.hWnd);
+      }
     }
   }
 
