@@ -301,6 +301,8 @@ SK_Proxy_KeyboardProc (
   _In_ WPARAM wParam,
   _In_ LPARAM lParam  )
 {
+  LPARAM lParamOrig = lParam;
+
   if (nCode == HC_ACTION)
   {
     bool wasPressed = (((DWORD)lParam) & (1UL << 30UL)) != 0UL,
@@ -355,49 +357,20 @@ SK_Proxy_KeyboardProc (
     // Fix common keys that may be stuck in combination with Alt, Windows Key, etc.
     //   the game shouldn't have seen those keys, but the hook they are using doesn't
     //     hide them...
-    switch (static_cast <SHORT> (wParam))
+    if (! SK_IsGameWindowActive ())
     {
-      case VK_F4:
-      case VK_TAB:
-      case VK_RETURN:
-      case VK_SHIFT:
-      case VK_CONTROL:
-      case VK_MENU:
-      case VK_LSHIFT:
-      case VK_LCONTROL:
-      case VK_LMENU:
-      case VK_LWIN:
-      case VK_RSHIFT:
-      case VK_RCONTROL:
-      case VK_RMENU:
-      case VK_RWIN:
-      case VK_LEFT:
-      case VK_RIGHT:
-      case VK_UP:
-      case VK_DOWN:
-      case 'D':
-      case 'X':
-      {
-        if (! SK_IsGameWindowActive ())
-        {
-          hide = false;
-          // Release these keys when alt-tabbing...
-          lParam = 0;
-        }
-      } break;
-
-      default:
-        break;
+      // Release these keys when alt-tabbing...
+      lParam = 0;
     }
 
-    if (hook_fn != nullptr && !hide)
+    if (     hook_fn != nullptr && !hide)
       return hook_fn (nCode, wParam, lParam);
   }
 
   return
     CallNextHookEx (
         nullptr, nCode,
-         wParam, lParam );
+         wParam, lParamOrig );
 }
 
 LRESULT
@@ -407,6 +380,8 @@ SK_Proxy_LLKeyboardProc (
   _In_ WPARAM wParam,
   _In_ LPARAM lParam  )
 {
+  LPARAM lParamOrig = lParam;
+
   if (nCode == HC_ACTION)
   {
     KBDLLHOOKSTRUCT *pHookData =
@@ -492,49 +467,20 @@ SK_Proxy_LLKeyboardProc (
     // Fix common keys that may be stuck in combination with Alt, Windows Key, etc.
     //   the game shouldn't have seen those keys, but the hook they are using doesn't
     //     hide them...
-    switch (static_cast <SHORT> (wParam))
+    if (! bWindowActive)
     {
-      case VK_F4:
-      case VK_TAB:
-      case VK_RETURN:
-      case VK_SHIFT:
-      case VK_CONTROL:
-      case VK_MENU:
-      case VK_LSHIFT:
-      case VK_LCONTROL:
-      case VK_LMENU:
-      case VK_LWIN:
-      case VK_RSHIFT:
-      case VK_RCONTROL:
-      case VK_RMENU:
-      case VK_RWIN:
-      case VK_LEFT:
-      case VK_RIGHT:
-      case VK_UP:
-      case VK_DOWN:
-      case 'D':
-      case 'X':
-      {
-        if (! SK_IsGameWindowActive ())
-        {
-          hide = false;
-          // Release these keys when alt-tabbing...
-          lParam = 0;
-        }
-      } break;
-
-      default:
-        break;
+      // Release these keys when alt-tabbing...
+      lParam = 0;
     }
 
-    if (hook_fn != nullptr && !hide)
-      return  hook_fn (nCode, wParam, lParam);
+    if (     hook_fn != nullptr && !hide)
+      return hook_fn (nCode, wParam, lParam);
   }
 
   return
     CallNextHookEx (
         nullptr, nCode,
-         wParam, lParam );
+         wParam, lParamOrig );
 }
 
 BOOL
