@@ -743,12 +743,15 @@ ImGui_ToggleCursor (void)
     // Save original cursor position
     SK_ImGui_Cursor.orig_pos    =   pos;
     SK_ImGui_Cursor.idle        = false;
-    io.WantCaptureMouse         =  true;
-
-    // Move the cursor if it's not over any of SK's UI
-    if (! SK_ImGui_IsAnythingHovered ())
+    if (config.input.ui.center_cursor)
     {
-      SK_ImGui_CenterCursorOnWindow ();
+      io.WantCaptureMouse       =  true;
+
+      // Move the cursor if it's not over any of SK's UI
+      if (! SK_ImGui_IsAnythingHovered ())
+      {
+        SK_ImGui_CenterCursorOnWindow ();
+      }
     }
   }
 
@@ -756,13 +759,16 @@ ImGui_ToggleCursor (void)
   {
     SK_ImGui_Cursor.idle = true;
 
-    if (! SK_ImGui_IsAnythingHovered ())
+    if (config.input.ui.center_cursor)
     {
-      POINT                            screen =
-       SK_ImGui_Cursor.orig_pos;
-       SK_ImGui_Cursor.LocalToScreen (&screen);
-       SK_SetCursorPos               ( screen.x,
-                                       screen.y );
+      if (! SK_ImGui_IsAnythingHovered ())
+      {
+        POINT                            screen =
+         SK_ImGui_Cursor.orig_pos;
+         SK_ImGui_Cursor.LocalToScreen (&screen);
+         SK_SetCursorPos               ( screen.x,
+                                         screen.y );
+      }
     }
   }
 
@@ -995,24 +1001,71 @@ GetCursorPos_Detour (LPPOINT lpPoint)
   if (lpPoint == nullptr)
     return FALSE;
 
+  //
+  // Allow games running as a background window with Continue Rendering enabled
+  //   to see the real cursor position as long as there is no window on top of it...
+  //
   if (SK_WantBackgroundRender () && (! SK_IsGameWindowActive ()))
   {
-    SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
+#if 0
+    POINT             ptCursor = {};
+    SK_GetCursorPos (&ptCursor);
 
-    *lpPoint = SK_ImGui_Cursor.orig_pos;
-    SK_ImGui_Cursor.LocalToScreen (lpPoint);
+    static POINT lastCursorPt = ptCursor;
+    static HWND  lastFgWindow = SK_GetForegroundWindow ();
+           HWND      FgWindow = SK_GetForegroundWindow ();
 
-    return TRUE;
+    if ((lastFgWindow != FgWindow || (ptCursor.x != lastCursorPt.x ||
+                                      ptCursor.y != lastCursorPt.y)) && (WindowFromPoint (ptCursor) != game_window.hWnd))
+    {
+      lastFgWindow = FgWindow;
+      lastCursorPt = ptCursor;
+#endif
+
+      SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
+
+      *lpPoint = SK_ImGui_Cursor.orig_pos;
+      SK_ImGui_Cursor.LocalToScreen (lpPoint);
+
+      return TRUE;
+#if 0
+    }
+
+    lastFgWindow = FgWindow;
+    lastCursorPt = ptCursor;
+#endif
   }
 
 
   if (SK_ImGui_IsMouseRelevant ())
   {
+    //
+    // Compute delta mouse coordinates for games that use cursor warping (i.e. mouselook)
+    //
     if (SK_ImGui_WantMouseCapture () || s_GameSetCursorPosTime >= SK_timeGetTime () - kCursorWarpCooldown)
     {
       SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
-
+#if 0
+      static POINT lastCapturedPt = s_GameSetCursorPos;
+             POINT currentMousePt;
+      
+      SK_GetCursorPos (&currentMousePt);
+#endif
       *lpPoint = s_GameSetCursorPos;
+#if 0
+      if (! SK_ImGui_WantMouseCapture())
+      {
+        POINT ptDelta = { currentMousePt.x - lastCapturedPt.x,
+                          currentMousePt.y - lastCapturedPt.y };
+
+        *lpPoint = { s_GameSetCursorPos.x + ptDelta.x,
+                     s_GameSetCursorPos.y + ptDelta.y };
+
+        s_GameSetCursorPos = *lpPoint;
+      }
+
+      lastCapturedPt = currentMousePt;
+#endif
 
       return TRUE;
     }

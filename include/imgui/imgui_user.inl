@@ -1639,6 +1639,10 @@ WINAPI
 SK_ImGui_ToggleEx ( bool& toggle_ui,
                     bool& toggle_nav )
 {
+  // Do not allow dismissing dialogs using toggle buttons...
+  if (SK_ImGuiEx_Visible)
+    return SK_ImGui_Active ();
+
   //
   // Only allow one toggle per-frame, even if we wind up calling
   //   this function multiple times to translate HID to XInput...
@@ -2368,8 +2372,9 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
       RtlZeroMemory (&state.Gamepad, sizeof (XINPUT_GAMEPAD));
 
 
-    if (                 bToggleVis||bToggleNav)
+    if (                 bToggleVis||bToggleNav) {
       SK_ImGui_ToggleEx (bToggleVis, bToggleNav);
+    }
   }
 
   static bool last_haptic = false;
@@ -3202,7 +3207,7 @@ SK_ImGui_UpdateMouseButtons (bool bActive, ImGuiIO& io)
 
 void
 SK_ImGui_User_NewFrame (void)
-{  
+{
   SK_Window_HandleOutOfBandMovement ();
 
   SK_HID_ProcessGamepadButtonBindings ();

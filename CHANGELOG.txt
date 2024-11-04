@@ -1,4 +1,11 @@
-﻿24.11.3.3
+﻿24.11.4
+=======
+ + Ensure confirmation dialogs cannot be dismissed using the overlay toggle
+     keyboard / gamepad bindings, and gamepad is always captured while they
+       are waiting for a user response.
+ + Make cursor centering on SK's control panel into a configurable option.
+
+24.11.3.3
 =========
  + Hide mouse cursor when the game is using SetCursorPos (...) to implement
      mouselook and cursor management is enabled.

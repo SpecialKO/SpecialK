@@ -3160,8 +3160,14 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
 void
 SK_ImGui_CursorBoundaryConfig (void)
 {
-  ImGui::Text     ("Cursor Boundaries");
-  ImGui::TreePush ("");
+  ImGui::BeginGroup  (  );
+  ImGui::Text        ("Cursor Boundaries");
+  ImGui::SameLine    (  );
+  ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
+  ImGui::SameLine    (  );
+  ImGui::Checkbox    ("Center Cursor on UI When Opening Overlay", &config.input.ui.center_cursor);
+  ImGui::EndGroup    (  );
+  ImGui::TreePush    ("");
   
   int  ovr     = 0;
   bool changed = false;

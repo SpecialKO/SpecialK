@@ -5539,7 +5539,7 @@ auto DeclKeybind =
   //
   // EMERGENCY OVERRIDES
   //
-  config.input.ui.use_raw_input = false;
+  // ...
 
 
   //

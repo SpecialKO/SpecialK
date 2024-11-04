@@ -8746,14 +8746,17 @@ SK_ImGui_BackupAndRestoreCursorPos (void)
   else if (ptOriginalCursorPos.x != LONG_MAX ||
            ptOriginalCursorPos.y != LONG_MIN)
   {
-    if (PtInRect (&game_window.actual.window, ptCursorPos))
+    if (config.input.ui.center_cursor)
     {
-      // Only restore the cursor pos if it is over the control panel when
-      //   closing the control panel.
-      if (SK::ControlPanel::imgui_window.hovered)
+      if (PtInRect (&game_window.actual.window, ptCursorPos))
       {
-        SK_SetCursorPos (ptOriginalCursorPos.x,
-                         ptOriginalCursorPos.y);
+        // Only restore the cursor pos if it is over the control panel when
+        //   closing the control panel.
+        if (SK::ControlPanel::imgui_window.hovered)
+        {
+          SK_SetCursorPos (ptOriginalCursorPos.x,
+                           ptOriginalCursorPos.y);
+        }
       }
     }
   }
@@ -8861,78 +8864,84 @@ SK_ImGui_Toggle (void)
     SK_CreateEvent (nullptr, FALSE, FALSE, nullptr)
   );
 
-  static POINT ptCursorPos = { };
+  if (config.input.ui.center_cursor)
+  {
+    static POINT ptCursorPos = { };
 
-  SK_RunOnce (
-    SK_Thread_CreateEx ([](LPVOID) -> DWORD
-    {
-      HANDLE hEvents [] = {
-        __SK_DLL_TeardownEvent,
-        hMoveCursor.m_h
-      };
-
-      while (true)
+    SK_RunOnce (
+      SK_Thread_CreateEx ([](LPVOID) -> DWORD
       {
-        DWORD dwWait =
-          WaitForMultipleObjectsEx (2, hEvents, FALSE, INFINITE, FALSE);
+        HANDLE hEvents [] = {
+          __SK_DLL_TeardownEvent,
+          hMoveCursor.m_h
+        };
 
-        if (dwWait == WAIT_OBJECT_0)
-          break;
-
-        // Stupid hack to make sure the mouse cursor swaps between SK's and
-        //   the game's in response to opening/closing the control panel
-        if (dwWait == WAIT_OBJECT_0 + 1)
+        while (true)
         {
-          auto frames_drawn =
-            SK_GetFramesDrawn ();
+          DWORD dwWait =
+            WaitForMultipleObjectsEx (2, hEvents, FALSE, INFINITE, FALSE);
 
-          while (frames_drawn > SK_GetFramesDrawn () - 1)
-            SK_Sleep (0);
+          if (dwWait == WAIT_OBJECT_0)
+            break;
 
-          ImGuiIO& io =
-            ImGui::GetIO ();
-
-          io.WantCaptureMouse = true;
-
-          POINT                 ptCursor;
-          if (SK_GetCursorPos (&ptCursor) && SK_GetForegroundWindow () == game_window.hWnd)
+          // Stupid hack to make sure the mouse cursor swaps between SK's and
+          //   the game's in response to opening/closing the control panel
+          if (dwWait == WAIT_OBJECT_0 + 1)
           {
-            GetWindowRect (game_window.hWnd,
-                          &game_window.actual.window);
-            if (PtInRect (&game_window.actual.window, ptCursor))
+            auto frames_drawn =
+              SK_GetFramesDrawn ();
+
+            while (frames_drawn > SK_GetFramesDrawn () - 1)
+              SK_Sleep (0);
+
+            ImGuiIO& io =
+              ImGui::GetIO ();
+
+            io.WantCaptureMouse = true;
+
+            POINT                 ptCursor;
+            if (SK_GetCursorPos (&ptCursor) && SK_GetForegroundWindow () == game_window.hWnd)
             {
-              SK_SetCursorPos   (ptCursor.x + 1, ptCursor.y - 1);
-              Send_WM_SETCURSOR ();
-
-              frames_drawn =
-                SK_GetFramesDrawn ();
-
-              while (frames_drawn > SK_GetFramesDrawn () - 1)
+              GetWindowRect (game_window.hWnd,
+                            &game_window.actual.window);
+              if (PtInRect (&game_window.actual.window, ptCursor))
               {
-                SK_Sleep (0);
-              }
+                SK_SetCursorPos   (ptCursor.x + 1, ptCursor.y - 1);
+                Send_WM_SETCURSOR ();
 
-              SK_GetCursorPos   (&ptCursor);
-              SK_SetCursorPos   ( ptCursor.x - 1, ptCursor.y + 1);
-              Send_WM_SETCURSOR (         );
+                frames_drawn =
+                  SK_GetFramesDrawn ();
+
+                while (frames_drawn > SK_GetFramesDrawn () - 1)
+                {
+                  SK_Sleep (0);
+                }
+
+                SK_GetCursorPos   (&ptCursor);
+                SK_SetCursorPos   ( ptCursor.x - 1, ptCursor.y + 1);
+                Send_WM_SETCURSOR (         );
+              }
             }
           }
         }
-      }
 
-      SK_Thread_CloseSelf ();
+        SK_Thread_CloseSelf ();
 
-      return 0;
-    }, L"[SK] Rodeo Mouse Wrangler");
-  );
+        return 0;
+      }, L"[SK] Rodeo Mouse Wrangler");
+    );
+  }
 
   // Save config on control panel close, not open
   if (! SK_ImGui_Visible)
     config.utility.save_async ();
 
-  // Move the cursor a couple of times to change the loaded image
-  if (SK_ImGui_WantHWCursor ())
-    SetEvent (hMoveCursor);
+  if (config.input.ui.center_cursor)
+  {
+    // Move the cursor a couple of times to change the loaded image
+    if (SK_ImGui_WantHWCursor ())
+      SetEvent (hMoveCursor);
+  }
 
 
   // Immediately stop capturing keyboard/mouse events,

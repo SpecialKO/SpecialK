@@ -158,7 +158,8 @@ SK_ImGui_WantGamepadCapture (bool update)
   };
 
   bool imgui_capture =
-    config.input.gamepad.disabled_to_game == SK_InputEnablement::Disabled;
+    SK_ImGuiEx_Visible || config.input.gamepad.disabled_to_game == SK_InputEnablement::Disabled;
+    // ^^^ Confirmation dialogs should always capture gamepad input
 
   if (SK_GImDefaultContext ())
   {

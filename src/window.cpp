@@ -1570,6 +1570,15 @@ ClipCursor_Detour (const RECT *lpRect)
 
   if (lpRect != nullptr)
   {
+    POINT                   ptCursor = {};
+    GetCursorPos          (&ptCursor);
+    auto inside_rect =
+          PtInRect (lpRect, ptCursor);
+
+    if (!(inside_rect || EqualRect (lpRect, &game_window.actual.window)))
+    {
+      SK_ImGui_UpdateLastCursorWarpTime ();
+    }
     _rect = *lpRect;
 
     // Fix-Up Clip Rects that don't work correctly on multi-monitor systems
@@ -1637,7 +1646,6 @@ ClipCursor_Detour (const RECT *lpRect)
 
     // Check if a moved cursor would still be inside the game window
     //
-    POINT                 ptCursor = { };
     if (SK_GetCursorPos (&ptCursor))
     {
       ptCursor.x = std::max (std::min (ptCursor.x, _rect.right ), _rect.left);
