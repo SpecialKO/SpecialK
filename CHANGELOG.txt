@@ -1,4 +1,9 @@
-﻿24.11.4
+﻿24.11.4.1
+=========
+ + Correctly restore hardware cursor image when closing the control panel and
+     cursor centering is turned off.
+
+24.11.4
 =======
  + Ensure confirmation dialogs cannot be dismissed using the overlay toggle
      keyboard / gamepad bindings, and gamepad is always captured while they

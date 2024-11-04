@@ -734,6 +734,8 @@ ImGui_ToggleCursor (void)
   static auto& io =
     ImGui::GetIO ();
 
+  static POINT orig_pos;
+
   if (! SK_ImGui_Cursor.visible)
   {
     POINT                           pos = { };
@@ -742,11 +744,12 @@ ImGui_ToggleCursor (void)
 
     // Save original cursor position
     SK_ImGui_Cursor.orig_pos    =   pos;
+    orig_pos                    =   pos;
     SK_ImGui_Cursor.idle        = false;
+    io.WantCaptureMouse         =  true;
+
     if (config.input.ui.center_cursor)
     {
-      io.WantCaptureMouse       =  true;
-
       // Move the cursor if it's not over any of SK's UI
       if (! SK_ImGui_IsAnythingHovered ())
       {
@@ -758,18 +761,26 @@ ImGui_ToggleCursor (void)
   else
   {
     SK_ImGui_Cursor.idle = true;
+    io.WantCaptureMouse  = false;
 
     if (config.input.ui.center_cursor)
     {
-      if (! SK_ImGui_IsAnythingHovered ())
-      {
-        POINT                            screen =
-         SK_ImGui_Cursor.orig_pos;
-         SK_ImGui_Cursor.LocalToScreen (&screen);
-         SK_SetCursorPos               ( screen.x,
-                                         screen.y );
-      }
+      POINT                            screen = orig_pos;
+       SK_ImGui_Cursor.orig_pos               = orig_pos;
+       SK_ImGui_Cursor.LocalToScreen (&screen);
+       SK_SetCursorPos               ( screen.x,
+                                       screen.y );
     }
+
+    // Restore the game's cursor
+    static auto Send_WM_SETCURSOR = [&](void)
+    {
+      SK_COMPAT_SafeCallProc (&game_window,
+              game_window.hWnd,                       WM_SETCURSOR,
+      (WPARAM)game_window.hWnd, MAKELPARAM (HTCLIENT, WM_MOUSEMOVE));
+    };
+
+    Send_WM_SETCURSOR ();
   }
 
   SK_ImGui_Cursor.visible = (! SK_ImGui_Cursor.visible);
