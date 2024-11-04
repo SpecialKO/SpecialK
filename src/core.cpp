@@ -4761,7 +4761,7 @@ SK_GetStoreOverlayState (bool bReal)
       SK_ReShadeAddOn_IsOverlayActive ();
 
     s_LastState.store (ret);
-    s_LastFrame.store (ret);
+    s_LastFrame.store (SK_GetFramesDrawn ());
 
     return ret;
   }
