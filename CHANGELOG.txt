@@ -1,4 +1,10 @@
-﻿24.11.5
+﻿24.11.5.1
+=========
+ + Detect local ReShade DLLs as ReShade, and allow pressing the default
+     ReShade UI toggle keybind to work even if SK is blocking keyboard input
+       to the game.
+
+24.11.5
 =======
  + Optimized keyboard handling in proxy Windows (Low-Level) Hook procedures
  + Ensure that all keyboard input a game sees through a keyboard hook while

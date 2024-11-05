@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (C) 2021 Patrick Mours
  * SPDX-License-Identifier: BSD-3-Clause OR MIT
  */
@@ -242,13 +242,14 @@ namespace reshade
 		// Check that the ReShade module supports the used API
 		if (func == nullptr || !func(addon_module, RESHADE_API_VERSION))
 			return false;
-
+#if 0
 #if defined(IMGUI_VERSION_NUM)
 		const auto imgui_func = reinterpret_cast<const imgui_function_table *(*)(uint32_t)>(
 			GetProcAddress(reshade_module, "ReShadeGetImGuiFunctionTable"));
 		// Check that the ReShade module was built with Dear ImGui support and supports the used version
 		if (imgui_func == nullptr || !(imgui_function_table_instance() = imgui_func(IMGUI_VERSION_NUM)))
 			return false;
+#endif
 #endif
 
 		return true;

@@ -6399,7 +6399,8 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
 {
   if (game_window.GetWindowLongPtr == nullptr)
   {
-    return SK_InstallWindowHook (hWnd);
+    if (SK_InstallWindowHook (hWnd))
+      return;
   }
 
 
@@ -6777,20 +6778,23 @@ SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
     return false;
 
   const bool dummy_window =
-    StrStrIW (pWindowClass->lpszClassName, L"Kiero DirectX Window")                  || // CyberEngine
-    StrStrIW (pWindowClass->lpszClassName, L"RTSSWndClass")                          || // RTSS
-    StrStrIW (pWindowClass->lpszClassName, L"Special K Dummy Window Class")          || // ... that's us!
-    StrStrIW (pWindowClass->lpszClassName, L"EOSOVHDummyWindowClass")                || // Epic Online Store Overlay
-    StrStrIW (pWindowClass->lpszClassName, L"CurseOverlayTemporaryDirect3D11Window") || // Twitch
-    StrStrIW (pWindowClass->lpszClassName, L"TestDX11WindowClass")                   || // X-Ray Oxygen
-    StrStrIW (pWindowClass->lpszClassName, L"static")                                || // AMD's stupid OpenGL interop
-    StrStrIW (pWindowClass->lpszClassName, L"SKIV_NotificationIcon")                 || // SKIV's thingy...
+    (*pWindowClass->lpszClassName == L'K' && StrStrW (pWindowClass->lpszClassName, L"Kiero DirectX Window"))                  || // CyberEngine
+    (*pWindowClass->lpszClassName == L'R' && StrStrW (pWindowClass->lpszClassName, L"RTSSWndClass"))                          || // RTSS
+    (*pWindowClass->lpszClassName == L'S' && StrStrW (pWindowClass->lpszClassName, L"Special K Dummy Window Class"))          || // ... that's us!
+    (*pWindowClass->lpszClassName == L'E' && StrStrW (pWindowClass->lpszClassName, L"EOSOVHDummyWindowClass"))                || // Epic Online Store Overlay
+    (*pWindowClass->lpszClassName == L'C' && StrStrW (pWindowClass->lpszClassName, L"CurseOverlayTemporaryDirect3D11Window")) || // Twitch
+    (*pWindowClass->lpszClassName == L'T' && StrStrW (pWindowClass->lpszClassName, L"TestDX11WindowClass"))                   || // X-Ray Oxygen
+    (*pWindowClass->lpszClassName == L's' && StrStrW (pWindowClass->lpszClassName, L"static"))                                || // AMD's stupid OpenGL interop
+    (*pWindowClass->lpszClassName == L'S' && StrStrW (pWindowClass->lpszClassName, L"SKIV_NotificationIcon"))                 || // SKIV's thingy...
 
     // F' it, there's a pattern here, just ignore all dummies.
-    StrStrIW (pWindowClass->lpszClassName, L"dummy");
+    (*pWindowClass->lpszClassName == L'D'||
+     *pWindowClass->lpszClassName == L'D' ) && StrStrIW (pWindowClass->lpszClassName, L"dummy");
 
-  if (StrStrIW (pWindowClass->lpszClassName, L"Qt") &&
-   (! StrStrIW (pWindowClass->lpszClassName, L"qtopengltest")))
+  if ((*pWindowClass->lpszClassName == L'Q'  ||
+       *pWindowClass->lpszClassName == L'q') &&
+         StrStrIW (pWindowClass->lpszClassName, L"Qt") &&
+      (! StrStrIW (pWindowClass->lpszClassName, L"qtopengltest")))
     return false;
 
   if (! dummy_window)
@@ -6831,7 +6835,7 @@ SK_Win32_IsDummyWindowClass (HWND hWndInstance)
   return false; // Indeterminate
 }
 
-void
+bool
 SK_InstallWindowHook (HWND hWnd)
 {
   for ( auto& window_msg : game_window.messages)
@@ -6863,7 +6867,7 @@ SK_InstallWindowHook (HWND hWnd)
     SK_Win32_IsDummyWindowClass (hWnd);
 
   if (dummy_window != false)
-    return;
+    return false;
 
 
   DWORD                            dwWindowPid = 0;
@@ -6876,7 +6880,7 @@ SK_InstallWindowHook (HWND hWnd)
   //     >> Or at least, do not trap said processes input.
   //
   if (dwWindowPid != GetCurrentProcessId ())
-    return;
+    return false;
 
 
   // Game's window still exists, so, uh... ignore this?
@@ -6884,8 +6888,6 @@ SK_InstallWindowHook (HWND hWnd)
   {
     game_window.parent =
       GetAncestor (hWnd, GA_PARENT);
-
-    //return;
   }
 
 
@@ -6894,7 +6896,7 @@ SK_InstallWindowHook (HWND hWnd)
 
 
   if (SK_IsAddressExecutable (game_window.WndProc_Original, true))
-    return;
+    return true;
 
   auto hModUser32 =
     SK_GetModuleHandle (L"user32");
@@ -7184,6 +7186,8 @@ SK_InstallWindowHook (HWND hWnd)
 
     cmd->AddVariable ("ImGui.Visible",           SK_CreateVar (SK_IVariable::Boolean, (bool *)&SK_ImGui_Visible));
   }
+
+  return true;
 }
 
 HWND

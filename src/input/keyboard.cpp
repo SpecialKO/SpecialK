@@ -28,6 +28,8 @@
 #endif
 #define __SK_SUBSYSTEM__ L"Input Mgr."
 
+#include <ReShade/reshade.hpp>
+
 bool
 SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 {
@@ -62,18 +64,29 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 
   if (game_window.active && SK_ImGui_WantKeyboardCapture ())
   {
-    static bool           bHasReShadeDLL = false;
-    static const wchar_t* wszsReShadeDLL =
-      SK_RunLHIfBitness(32, L"ReShade32.dll",
-                            L"ReShade64.dll");
+    static HMODULE hModReShadeDLL = reshade::internal::get_reshade_module_handle ();
+    static bool    bHasReShadeDLL = hModReShadeDLL != nullptr;
+
+    static
+       int                         reshade_dll_tests = 0;
+    if (bHasReShadeDLL == false && reshade_dll_tests < 10)
+    {
+      static DWORD lastTested = SK_timeGetTime ();
+      if (         lastTested < SK_timeGetTime () - 2500UL)
+      {
+        hModReShadeDLL = reshade::internal::get_reshade_module_handle ();
+        bHasReShadeDLL = hModReShadeDLL != nullptr;
+
+        if (! bHasReShadeDLL)
+          ++reshade_dll_tests;
+      }
+    }
 
     const bool
       bSteamOverlay    =  ( bShift && bTab ),
     //bEpicOverlay     =  ( bShift && bF3  ),
       bReShadeOverlay  =  ( bHome  &&
-                        (bHasReShadeDLL ||
-      SK_IsModuleLoaded (wszsReShadeDLL)) );
-    if (bReShadeOverlay) bHasReShadeDLL = true;
+                           (bHasReShadeDLL) );
 
     if (bSteamOverlay /*|| bEpicOverlay*/ || bReShadeOverlay)
     {
@@ -153,14 +166,17 @@ SK_ImGui_ExemptOverlaysFromKeyboardCapture (void)
 bool
 SK_ImGui_WantKeyboardCapture (bool update)
 {
+  const auto framesDrawn =
+    SK_GetFramesDrawn ();
+
   static std::atomic_bool               capture  = false;
   static std::atomic <ULONG64> lastFrameCaptured = 0;
 
   if (! update)
-    return capture.load () || lastFrameCaptured > SK_GetFramesDrawn () - 2;
+    return capture.load () || lastFrameCaptured > framesDrawn - 2;
 
   // Do not block on first frame drawn unless explicitly disabled
-  if (SK_GetFramesDrawn () < 1 && (config.input.keyboard.disabled_to_game != 1))
+  if (framesDrawn < 1 && (config.input.keyboard.disabled_to_game != 1))
   {
     capture.store (false);
     return false;
@@ -207,7 +223,7 @@ SK_ImGui_WantKeyboardCapture (bool update)
     else
     {
       // Poke through input for a special-case
-      if (ReadULong64Acquire (&config.input.keyboard.temporarily_allow) > SK_GetFramesDrawn () - 20)
+      if (ReadULong64Acquire (&config.input.keyboard.temporarily_allow) > framesDrawn - 40)
       {
         imgui_capture = false;
       }
@@ -217,7 +233,7 @@ SK_ImGui_WantKeyboardCapture (bool update)
   if ((! bWindowActive) && config.input.keyboard.disabled_to_game == SK_InputEnablement::DisabledInBackground)
     imgui_capture = true;
 
-  if (             imgui_capture) lastFrameCaptured = SK_GetFramesDrawn ();
+  if (             imgui_capture) lastFrameCaptured = framesDrawn;
     capture.store (imgui_capture);
   return           imgui_capture;
 }
@@ -256,7 +272,7 @@ SK_ImGui_WantTextCapture (void)
     else if (bWindowActive)
     {
       // Poke through input for a special-case
-      if (ReadULong64Acquire (&config.input.keyboard.temporarily_allow) > SK_GetFramesDrawn () - 20)
+      if (ReadULong64Acquire (&config.input.keyboard.temporarily_allow) > SK_GetFramesDrawn () - 40)
         imgui_capture = false;
     }
   }

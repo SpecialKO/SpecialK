@@ -7292,13 +7292,18 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 
   bool bPassthrough = true;
 
-  if (mhs->wHitTestCode == HTCLIENT || mhs->wHitTestCode == HTTRANSPARENT)
+  if (mhs->hwnd != 0)
+  if ( mhs->wHitTestCode == HTCLIENT ||
+       mhs->wHitTestCode == HTTRANSPARENT )
   {
-    if (mhs->hwnd == game_window.hWnd || mhs->hwnd == game_window.child)
+    if ( mhs->hwnd == game_window.hWnd ||
+         mhs->hwnd == game_window.child )
     {
       POINT                                          pt (mhs->pt);
       ScreenToClient             (game_window.hWnd, &pt);
-      if (ChildWindowFromPointEx (game_window.hWnd,  pt, CWP_SKIPDISABLED) == game_window.hWnd)
+      if (ChildWindowFromPointEx (game_window.hWnd,  pt, CWP_SKIPDISABLED  |
+                                                         CWP_SKIPINVISIBLE |
+                                                         CWP_SKIPDISABLED) == game_window.hWnd)
       {
         bPassthrough = false;
 
@@ -7451,6 +7456,9 @@ SK_ImGui_KeyboardProc (int       code, WPARAM wParam, LPARAM lParam)
   if (code < 0 || (! SK_IsGameWindowActive ())) // We saw nothing (!!)
     return CallNextHookEx (0, code, wParam, lParam);
 
+  const bool keyboard_capture =
+    SK_ImGui_WantKeyboardCapture ();
+
   bool //wasPressed = (((DWORD)lParam) & (1UL << 30UL)) != 0UL,
           isPressed = (((DWORD)lParam) & (1UL << 31UL)) == 0UL;//,
         //isAltDown = (((DWORD)lParam) & (1UL << 29UL)) != 0UL;
@@ -7463,18 +7471,18 @@ SK_ImGui_KeyboardProc (int       code, WPARAM wParam, LPARAM lParam)
 
   if (io.KeyAlt && vKey == VK_F4 && isPressed)
   {
-    if (SK_ImGui_Active () || config.input.keyboard.catch_alt_f4 || config.input.keyboard.override_alt_f4 || SK_ImGui_WantKeyboardCapture ())
+    if (SK_ImGui_Active () || config.input.keyboard.catch_alt_f4 || config.input.keyboard.override_alt_f4 || keyboard_capture)
         SK_ImGui_WantExit = true;
 
     WriteULong64Release (
       &config.input.keyboard.temporarily_allow,
-        SK_GetFramesDrawn () + 40
+        SK_GetFramesDrawn () + 10
     );
 
-    if (SK_ImGui_Visible || SK_ImGui_WantKeyboardCapture ()) return 1;
+    if (SK_ImGui_Visible || keyboard_capture) return 1;
   }
 
-  if (SK_ImGui_WantKeyboardCapture () && (! io.WantTextInput))
+  if (keyboard_capture && (! io.WantTextInput))
   {
     if (isPressed) SK_Console::getInstance ()->KeyDown ((BYTE)(vKey & 0xFF), 0x0);
     else           SK_Console::getInstance ()->KeyUp   ((BYTE)(vKey & 0xFF), 0x0);
@@ -7503,13 +7511,16 @@ SK_ImGui_StageNextFrame (void)
   static ULONG64 last_frame         = 0;
   bool           skip_frame_history = false;
 
-  if (last_frame < SK_GetFramesDrawn () - 1)
+  const auto framesDrawn =
+       SK_GetFramesDrawn ();
+
+  if (last_frame < framesDrawn - 1)
   {
     skip_frame_history = true;
   }
 
-  if (last_frame != SK_GetFramesDrawn ())
-  {   last_frame  = SK_GetFramesDrawn ();
+  if (last_frame != framesDrawn)
+  {   last_frame  = framesDrawn;
     auto& io =
       ImGui::GetIO ();
 
@@ -7530,39 +7541,33 @@ SK_ImGui_StageNextFrame (void)
   bool d3d12 = false;
   bool gl    = false;
 
-  if (rb.api == SK_RenderAPI::OpenGL)
+  switch (static_cast <int> (rb.api))
   {
-    gl = true;
+    case static_cast <int> (SK_RenderAPI::OpenGL):
+      gl = true;
+      ImGui_ImplGL3_NewFrame ();
+      break;
 
-    ImGui_ImplGL3_NewFrame ();
+    case static_cast <int> (SK_RenderAPI::D3D9):
+      d3d9 = true;
+      ImGui_ImplDX9_NewFrame ();
+      break;
+
+    case static_cast <int> (SK_RenderAPI::D3D11):
+      d3d11 = true;
+      ImGui_ImplDX11_NewFrame ();
+      break;
+
+    case static_cast <int> (SK_RenderAPI::D3D12):
+      d3d12 = true;
+      ImGui_ImplDX12_NewFrame ();
+      break;
+
+    default:
+      SK_LOG0 ( (L"No Render API"), L"Overlay" );
+      return;
   }
 
-  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9))
-  {
-    d3d9 = true;
-
-    ImGui_ImplDX9_NewFrame ();
-  }
-
-  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
-  {
-    d3d11 = true;
-
-    ImGui_ImplDX11_NewFrame ();
-  }
-
-  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D12))
-  {
-    d3d12 = true;
-
-    ImGui_ImplDX12_NewFrame ();
-  }
-
-  else
-  {
-    SK_LOG0 ( (L"No Render API"), L"Overlay" );
-    return;
-  }
   auto& io    = ImGui::GetIO    ();
   auto& style = ImGui::GetStyle ();
 
@@ -7638,7 +7643,7 @@ SK_ImGui_StageNextFrame (void)
 
   // Don't draw widgets on the first frame, stuff may not be
   //   fully initialized yet...
-  if (SK_GetFramesDrawn () > 1)
+  if (framesDrawn > 1)
   {
     for (auto& widget : widgets)
     {
@@ -8064,7 +8069,7 @@ SK_ImGui_StageNextFrame (void)
 
 
 
-  if (SK_GetFramesDrawn () > 1) {
+  if (framesDrawn > 1) {
     SK_ImGui_ProcessWarnings   ();
     SK_ImGui_DrawNotifications ();
   }

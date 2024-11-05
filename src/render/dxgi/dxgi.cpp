@@ -2131,17 +2131,15 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
   {
     static bool          once = false;
     if (! std::exchange (once, true))
-    {
-          DXGI_SWAP_CHAIN_DESC
+    {     DXGI_SWAP_CHAIN_DESC
                       swapDesc = { };
       This->GetDesc (&swapDesc);
-
-      if (IsWindow (swapDesc.OutputWindow) &&
-                    swapDesc.OutputWindow != game_window.hWnd)
+      if (            swapDesc.OutputWindow != game_window.hWnd &&
+          IsWindow (  swapDesc.OutputWindow))
       {
-        SK_RunOnce (SK_InstallWindowHook (swapDesc.OutputWindow));
+        if (! SK_InstallWindowHook (swapDesc.OutputWindow))
+          once = false;
       }
-
       // Uh oh, try again?
       else once = false;
     }
