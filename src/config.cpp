@@ -2224,6 +2224,7 @@ auto DeclKeybind =
     dll_ini->import_file (custom_name.c_str ());
   }
 
+  sec = sections.cbegin ();
 
   SK_RunOnce (
     while (sec != sections.cend ())
@@ -2320,6 +2321,8 @@ auto DeclKeybind =
       ++sec;
     }
   );
+
+  sec = sections.cbegin ();
 
   while (sec != sections.cend ())
   {
@@ -4631,9 +4634,13 @@ auto DeclKeybind =
 
   input.keyboard.catch_alt_f4->load      (config.input.keyboard.catch_alt_f4);
   input.keyboard.bypass_alt_f4->load     (config.input.keyboard.override_alt_f4);
-  input.keyboard.disabled_to_game->load  (config.input.keyboard.disabled_to_game);
+  input.keyboard.disabled_to_game->load  (config.input.keyboard.org_disabled_to_game);
+  config.input.keyboard.
+                    org_disabled_to_game= config.input.keyboard.org_disabled_to_game;
 
   input.mouse.disabled_to_game->load     (config.input.mouse.disabled_to_game);
+  config.input.mouse.
+                 org_disabled_to_game =   config.input.mouse.disabled_to_game;
 
   input.cursor.manage->load              (config.input.cursor.manage);
   input.cursor.keys_activate->load       (config.input.cursor.keys_activate);
@@ -6093,9 +6100,9 @@ SK_SaveConfig ( std::wstring name,
 
   input.keyboard.catch_alt_f4->store          (config.input.keyboard.catch_alt_f4);
   input.keyboard.bypass_alt_f4->store         (config.input.keyboard.override_alt_f4);
-  input.keyboard.disabled_to_game->store      (config.input.keyboard.disabled_to_game);
+  input.keyboard.disabled_to_game->store      (config.input.keyboard.org_disabled_to_game);
 
-  input.mouse.disabled_to_game->store         (config.input.mouse.disabled_to_game);
+  input.mouse.disabled_to_game->store         (config.input.mouse.org_disabled_to_game);
 
   input.cursor.manage->store                  (config.input.cursor.manage);
   input.cursor.keys_activate->store           (config.input.cursor.keys_activate);

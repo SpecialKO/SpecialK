@@ -191,8 +191,17 @@ SK_ImGui_WantKeyboardCapture (bool update)
   // Allow keyboard input while ReShade overlay is active
   if (SK_ReShadeAddOn_IsOverlayActive ())
   {
+    config.input.mouse   .disabled_to_game = 2;
+    config.input.keyboard.disabled_to_game = 2;
     capture.store (false);
     return false;
+  }
+  else
+  {
+    config.input.mouse.       disabled_to_game =
+    config.input.mouse.   org_disabled_to_game;
+    config.input.keyboard.    disabled_to_game =
+    config.input.keyboard.org_disabled_to_game;
   }
 
   // Allow keyboard input while Steam /EOS overlays are active

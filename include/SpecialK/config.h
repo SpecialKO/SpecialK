@@ -1147,6 +1147,7 @@ struct sk_config_t
       bool    catch_alt_f4        =  true;
       bool    override_alt_f4     = false; // For games that have prompts (i.e. DQ XI / Yakuza)
       int     disabled_to_game    =     2; //0 = Never, 1 = Always, 2 = In Background
+      int     org_disabled_to_game=     2;
       volatile
       UINT64  temporarily_allow   =     0; // Up until temporarily_allow + 1 frames,
     } keyboard;                            //   ignore "disabled_to_game"
@@ -1160,6 +1161,7 @@ struct sk_config_t
       //
       bool    fix_synaptics       = false;
       int     disabled_to_game    =    0; //0 = Never, 1 = Always, 2 = In Background
+      int     org_disabled_to_game=    0;
       UINT64  temporarily_allow   =    0; // Up until temporarily_allow + 1 frames,
                                           //   ignore "disabled_to_game"
       bool    ignore_small_clips  = false;// Ignore mouse clipping rects < 75% the

@@ -2699,10 +2699,20 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::TreePush     ("");
       ImGui::BeginGroup   (  );
       ImGui::BeginGroup   (  );
-      ImGui::Combo        ("Mouse Input", &config.input.mouse.disabled_to_game,
+      bool mouse_changed =
+      ImGui::Combo        ("Mouse Input", &config.input.mouse.org_disabled_to_game,
                            "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
-      ImGui::Combo        ("Keyboard Input", &config.input.keyboard.disabled_to_game,
+      bool keyboard_changed =
+      ImGui::Combo        ("Keyboard Input", &config.input.keyboard.org_disabled_to_game,
                            "Enabled\0Disabled (Always)\0Disabled (in Background)\0\0");
+
+      if (mouse_changed)   config.input.mouse.       disabled_to_game =
+                           config.input.mouse.   org_disabled_to_game;
+      if (keyboard_changed)config.input.keyboard.    disabled_to_game =
+                           config.input.keyboard.org_disabled_to_game;
+
+      if (mouse_changed || keyboard_changed)
+        config.utility.save_async ();
 
       if (ImGui::IsItemHovered () && config.input.keyboard.disabled_to_game == SK_InputEnablement::DisabledInBackground)
         ImGui::SetTooltip ("Most games block keyboard input in the background to begin with...");

@@ -1,4 +1,10 @@
-﻿24.11.5.1
+﻿24.11.9
+=======
+ + Fixed INI parser not returning to the start of the INI to scan for macros
+     after looking for plug-ins to load.
+       (i.e. macros in SpecialK.ini or dxgi.ini being ignored)
+
+24.11.5.1
 =========
  + Detect local ReShade DLLs as ReShade, and allow pressing the default
      ReShade UI toggle keybind to work even if SK is blocking keyboard input
