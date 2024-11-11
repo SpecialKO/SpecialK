@@ -3739,6 +3739,8 @@ auto DeclKeybind =
 
       case SK_GAME_ID::Metaphor:
         config.compatibility.init_on_separate_thread   = false;
+        config.priority.perf_cores_only                = true;
+        config.window.background_render                = true;
         config.window.fullscreen_no_saver              = true;
         config.input.ui.capture_hidden                 = true;
         config.input.keyboard.override_alt_f4          = true; // Oh lord, kill that buggy exit confirmation
