@@ -1051,6 +1051,8 @@ struct {
     sk::ParameterBool*    hook_scepad             = nullptr;
     sk::ParameterBool*    hook_raw_input          = nullptr;
     sk::ParameterBool*    hook_windows_gaming     = nullptr;
+    sk::ParameterBool*    hook_winmm              = nullptr;
+    sk::ParameterBool*    allow_steam_winmm       = nullptr;
 
     struct {
       sk::ParameterInt*   ui_slot                 = nullptr;
@@ -1675,6 +1677,8 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.hook_dinput8,             L"Install hooks for DirectInput 8",                           dll_ini,         L"Input.Gamepad",         L"EnableDirectInput8"),
     ConfigEntry (input.gamepad.hook_dinput7,             L"Install hooks for DirectInput 7",                           dll_ini,         L"Input.Gamepad",         L"EnableDirectInput7"),
     ConfigEntry (input.gamepad.hook_hid,                 L"Install hooks for HID",                                     dll_ini,         L"Input.Gamepad",         L"EnableHID"),
+    ConfigEntry (input.gamepad.hook_winmm,               L"Install hooks for joyGet* APIs",                            dll_ini,         L"Input.Gamepad",         L"HookWinMM"),
+    ConfigEntry (input.gamepad.allow_steam_winmm,        L"Use Steam-manipulated version of WinMM input",              dll_ini,         L"Input.Gamepad",         L"AllowSteamWinMM"),
     ConfigEntry (input.gamepad.disable_rumble,           L"Disable Rumble from ALL SOURCES (across all APIs)",         dll_ini,         L"Input.Gamepad",         L"DisableRumble"),
     ConfigEntry (input.gamepad.blocks_screensaver,       L"Gamepad activity will block screensaver activation",        dll_ini,         L"Input.Gamepad",         L"BlocksScreenSaver"),
     ConfigEntry (input.gamepad.bt_input_only,            L"Prevent Bluetooth Output (PlayStation DirectInput compat.)",dll_ini,         L"Input.Gamepad",         L"BluetoothInputOnly"),
@@ -4665,6 +4669,8 @@ auto DeclKeybind =
   input.gamepad.hook_scepad->load        (config.input.gamepad.hook_scepad);
 
   // Hidden INI values; they're loaded, but never written
+  input.gamepad.hook_winmm->load         (config.input.gamepad.hook_winmm);
+  input.gamepad.allow_steam_winmm->load  (config.input.gamepad.allow_steam_winmm);
   input.gamepad.hook_windows_gaming->load(config.input.gamepad.hook_windows_gaming);
   input.gamepad.hook_raw_input->load     (config.input.gamepad.hook_raw_input);
   input.gamepad.hook_dinput8->load       (config.input.gamepad.hook_dinput8);

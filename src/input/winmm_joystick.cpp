@@ -267,59 +267,77 @@ SK_Input_HookWinMM (void)
                               joyGetPosEx_Detour,
      static_cast_p2p <void> (&joyGetPosEx_Original) );
 
-    static std::filesystem::path path_to_winmm_base =
-          (std::filesystem::path (SK_GetInstallPath ()) /
-                               LR"(Drivers\WinMM)"),
-                                     winmm_name =
-                  SK_RunLHIfBitness (64, L"WinMM_SK64.dll",
-                                         L"WinMM_SK32.dll"),
-                             path_to_winmm = 
-                             path_to_winmm_base /
-                                     winmm_name;
-
-    static const auto *pSystemDirectory =
-      SK_GetSystemDirectory ();
-
-    std::filesystem::path
-      path_to_system_winmm =
-        (std::filesystem::path (pSystemDirectory) / L"winmm.dll");
-
-    std::error_code ec =
-      std::error_code ();
-
-    if (std::filesystem::exists (path_to_system_winmm, ec))
-    {
-      if ( (! std::filesystem::exists ( path_to_winmm,         ec))||
-           (! SK_Assert_SameDLLVersion (path_to_winmm.       c_str (),
-                                        path_to_system_winmm.c_str ()) ) )
-      { SK_CreateDirectories           (path_to_winmm.       c_str ());
-
-        if (   std::filesystem::exists (path_to_system_winmm,                ec))
-        { std::filesystem::remove      (                      path_to_winmm, ec);
-          std::filesystem::copy_file   (path_to_system_winmm, path_to_winmm, ec);
-        }
-      }
-    }
-
-    HMODULE hModWinMM =
-      SK_LoadLibraryW (path_to_winmm.c_str ());
-
     extern joyGetDevCapsW_pfn _joyGetDevCapsW;
     extern joyGetPos_pfn      _joyGetPos;
     extern joyGetPosEx_pfn    _joyGetPosEx;
     extern joyGetNumDevs_pfn  _joyGetNumDevs;
 
-    _joyGetDevCapsW =
-    (joyGetDevCapsW_pfn)SK_GetProcAddress (hModWinMM, "joyGetDevCapsW");
+    if (! config.input.gamepad.allow_steam_winmm)
+    {
+      static std::filesystem::path path_to_winmm_base =
+            (std::filesystem::path (SK_GetInstallPath ()) /
+                                 LR"(Drivers\WinMM)"),
+                                       winmm_name =
+                    SK_RunLHIfBitness (64, L"WinMM_SK64.dll",
+                                           L"WinMM_SK32.dll"),
+                               path_to_winmm = 
+                               path_to_winmm_base /
+                                       winmm_name;
 
-    _joyGetPos =
-    (joyGetPos_pfn)SK_GetProcAddress      (hModWinMM, "joyGetPos");
+      static const auto *pSystemDirectory =
+        SK_GetSystemDirectory ();
 
-    _joyGetNumDevs =
-    (joyGetNumDevs_pfn)SK_GetProcAddress  (hModWinMM, "joyGetNumDevs");
+      std::filesystem::path
+        path_to_system_winmm =
+          (std::filesystem::path (pSystemDirectory) / L"winmm.dll");
 
-    _joyGetPosEx =
-    (joyGetPosEx_pfn)SK_GetProcAddress    (hModWinMM, "joyGetPosEx");
+      std::error_code ec =
+        std::error_code ();
+
+      if (std::filesystem::exists (path_to_system_winmm, ec))
+      {
+        if ( (! std::filesystem::exists ( path_to_winmm,         ec))||
+             (! SK_Assert_SameDLLVersion (path_to_winmm.       c_str (),
+                                          path_to_system_winmm.c_str ()) ) )
+        { SK_CreateDirectories           (path_to_winmm.       c_str ());
+
+          if (   std::filesystem::exists (path_to_system_winmm,                ec))
+          { std::filesystem::remove      (                      path_to_winmm, ec);
+            std::filesystem::copy_file   (path_to_system_winmm, path_to_winmm, ec);
+          }
+        }
+      }
+
+      HMODULE hModWinMM =
+        SK_LoadLibraryW (path_to_winmm.c_str ());
+
+      _joyGetDevCapsW =
+      (joyGetDevCapsW_pfn)SK_GetProcAddress (hModWinMM, "joyGetDevCapsW");
+
+      _joyGetPos =
+      (joyGetPos_pfn)SK_GetProcAddress      (hModWinMM, "joyGetPos");
+
+      _joyGetNumDevs =
+      (joyGetNumDevs_pfn)SK_GetProcAddress  (hModWinMM, "joyGetNumDevs");
+
+      _joyGetPosEx =
+      (joyGetPosEx_pfn)SK_GetProcAddress    (hModWinMM, "joyGetPosEx");
+    }
+
+    else
+    {
+      _joyGetDevCapsW =
+      (joyGetDevCapsW_pfn)SK_GetProcAddress (L"winmm.dll", "joyGetDevCapsW");
+
+      _joyGetPos =
+      (joyGetPos_pfn)joyGetPos_Original;
+
+      _joyGetNumDevs =
+      (joyGetNumDevs_pfn)SK_GetProcAddress  (L"winmm.dll", "joyGetNumDevs");
+
+      _joyGetPosEx =
+      (joyGetPosEx_pfn)joyGetPosEx_Original;
+    }
 
     if (ReadAcquire (&__SK_Init) > 0) SK_ApplyQueuedHooks ();
 

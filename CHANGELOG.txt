@@ -1,4 +1,14 @@
-﻿24.11.9
+﻿24.11.11
+========
+ + Reinstate background render mode as default policy in Metaphor: ReFantazio.
+ + Allow Steam Input to hook and override WinMM Joystick APIs by default;
+
+     Steam Input's hooks can be disabled if needed (perf overhead) by setting:
+
+       [Input.Gamepad]
+       AllowSteamWinMM=false
+
+24.11.9
 =======
  + Fixed INI parser not returning to the start of the INI to scan for macros
      after looking for plug-ins to load.
