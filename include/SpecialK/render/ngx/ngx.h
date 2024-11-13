@@ -60,6 +60,7 @@ struct SK_DLSS_Context
     static bool hasDLAAQualityLevel (void) { return ( Version.major  > 3 || ( Version.major == 3 && ( Version.minor > 1 || ( Version.minor == 1 && Version.build >= 13 ) ) ) ); };
     static bool hasAlphaUpscaling   (void) { return ( Version.major  > 3 || ( Version.major == 3 && ( Version.minor > 6 )                                                  ) ); };
     static bool hasPresetE          (void) { return ( Version.major  > 3 || ( Version.major == 3 && ( Version.minor > 6 )                                                  ) ); };
+    static bool hasPresetsAThroughD (void) { return ( Version.major  < 3 || ( Version.major == 3 && ( Version.minor < 8 || ( Version.minor == 8 && Version.build <=  9 ) ) ) ); };
 
     static void showIndicator    (bool show);
     static bool isIndicatorShown (void);

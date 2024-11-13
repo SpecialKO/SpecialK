@@ -1,4 +1,11 @@
-﻿24.11.11
+﻿24.11.13
+========
+ + Replace attempts by games to set DLSS Presets A-D with E, when DLSS version
+     is >= 3.8.10.
+   * Needed for Nixxes games, since they explicitly request Preset C instead of
+       DLSS default.
+
+24.11.11
 ========
  + Reinstate background render mode as default policy in Metaphor: ReFantazio.
  + Allow Steam Input to hook and override WinMM Joystick APIs by default;
