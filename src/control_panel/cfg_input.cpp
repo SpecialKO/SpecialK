@@ -2471,7 +2471,7 @@ extern float SK_ImGui_PulseNav_Strength;
 
       if (  count > 0) { GamepadDebug (JOYSTICKID1);
         if (count > 1) {
-          for ( UINT i = 0 ; i < count ; ++i )
+          for ( UINT i = 1 ; i < count ; ++i )
             GamepadDebug (i);
         }
       }
