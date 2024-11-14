@@ -1044,6 +1044,7 @@ void SK_ReShadeAddOn_Present (reshade::api::command_queue *queue, reshade::api::
   std::ignore = queue;
 }
 
+bool SK_ReShadeAddOn_HadLocalINI = true;
 BOOL SK_ReShade_HasRenoDX (void)
 {
   if (SK_GetFramesDrawn () < 1)
@@ -1055,6 +1056,34 @@ BOOL SK_ReShade_HasRenoDX (void)
   return _HasRenoDX;
 }
 
+const std::filesystem::path&
+SK_ReShadeGetBasePath (void)
+{
+  SK_RunOnce (
+    SK_ReShadeAddOn_HadLocalINI =
+      PathFileExistsW (L"ReShade.ini")
+  );
+
+  static std::filesystem::path
+             reshade_base_path (SK_ReShadeAddOn_HadLocalINI?
+  L".\\":std::filesystem::path (SK_GetConfigPath ()) / L"ReShade");
+
+  return reshade_base_path;
+}
+
+const char*
+SK_ReShadeGetConfigPath (void)
+{
+  static std::filesystem::path
+              reshade_ini_path
+        (SK_ReShadeGetBasePath () / L"ReShade.ini");
+
+  static auto szReShadeConfig =
+  (const char *)reshade_ini_path.u8string ().c_str ();
+
+  return szReShadeConfig;
+}
+
 bool
 SK_ReShadeAddOn_Init (HMODULE reshade_module)
 {
@@ -1063,6 +1092,18 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
   std::wstring mod_name =
     SK_GetModuleName (reshade_module);
+
+  auto reshade_base_path =
+    SK_ReShadeGetBasePath ();
+
+  if (! SK_ReShadeAddOn_HadLocalINI)
+  {
+    const auto addon_path =
+       (reshade_base_path / L"AddOns");
+
+    if (! PathIsDirectoryW (addon_path.c_str ()))
+          CreateDirectoryW (addon_path.c_str (), nullptr);
+  }
 
   if ( StrStrIW (mod_name.c_str (), L"dxgi.dll") ||
        StrStrIW (mod_name.c_str (), L"d3d12.dll") )
@@ -1095,11 +1136,14 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
   if (registered)
   {
-    std::wstring shared_base_path =
-      SK_FormatStringW (LR"(%ws\Global\ReShade\)", SK_GetInstallPath ());
+    std::filesystem::path shared_base_path (
+    std::filesystem::path (SK_GetInstallPath ()) / LR"(Global\ReShade\)");
+    std::filesystem::path shared_addon_path (
+                          (shared_base_path      / LR"(AddOns)"));
 
     // Create this directory so users have an easier time putting Textures and Shaders in-place.
-    SK_CreateDirectories (shared_base_path.c_str ());
+    SK_CreateDirectories ( shared_base_path.c_str ());
+    SK_CreateDirectories (shared_addon_path.c_str ());
 
     config.reshade.is_addon = true;
 
@@ -1110,6 +1154,69 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
     reshade::register_event <reshade::addon_event::destroy_swapchain>      (SK_ReShadeAddOn_DestroySwapChain);
     reshade::register_event <reshade::addon_event::destroy_command_queue>  (SK_ReShadeAddOn_DestroyCmdQueue);
     reshade::register_event <reshade::addon_event::reshade_open_overlay>   (SK_ReShadeAddOn_OverlayActivation);
+
+    auto _AutoLoadAddOns = [&](void)
+    {
+      using namespace std::filesystem;
+
+      std::error_code                                                          ec;
+      recursive_directory_iterator  profile_dir (SK_GetConfigPath (),          ec);
+      recursive_directory_iterator  global_dir  (shared_base_path / L"AddOns", ec);
+      std::vector <directory_entry> files;
+      
+      for (const auto& file : profile_dir) if (StrStrIW (file.path ().extension ().c_str (), L".AddOn")) files.emplace_back (file);
+      for (const auto& file :  global_dir) if (StrStrIW (file.path ().extension ().c_str (), L".AddOn")) files.emplace_back (file);
+      for (const auto& file :                                                                            files)
+      {
+        const auto& path =
+               file.path ();
+
+        if (          file.is_regular_file (ec) &&
+           !_wcsicmp (path.extension ().c_str (), SK_RunLHIfBitness (64, L".addon64",
+                                                                         L".addon32")))
+        {
+          // It's already loaded...
+          if (GetModuleHandleW (path.filename ().c_str ()))
+            continue;
+
+          const auto filename      = path.filename ().wstring  ();
+          const auto filename_utf8 = path.filename ().u8string ();
+
+          dll_log->LogEx (
+            true, L"[ SpecialK ]  * Loading ReShade AddOn: '%ws' from '%ws' ... ",
+              filename.c_str (),
+            SK_StripUserNameFromPathW (path.parent_path ().wstring ().data ())
+          );
+
+          const HMODULE hModAddOn =
+            SK_Modules->LoadLibraryLL (
+             path.wstring ().c_str () );
+
+          if (hModAddOn != skModuleRegistry::INVALID_MODULE)
+          {
+            dll_log->LogEx (false, L"success!\n");
+
+            SK_ImGui_CreateNotification (
+              "AddOn.Load", SK_ImGui_Toast::Success,
+                (const char *)filename_utf8.c_str (),
+                        "ReShade Add-on Loaded",
+                          5000, SK_ImGui_Toast::UseDuration |
+                                SK_ImGui_Toast::ShowCaption |
+                                SK_ImGui_Toast::ShowTitle );
+          }
+          
+          else
+          {
+            _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
+
+            dll_log->LogEx (false, L"failed: 0x%04X (%s)!\n",
+                            err.WCode (), err.ErrorMessage () );
+          }
+        }
+      }
+    };
+
+    _AutoLoadAddOns ();
   }
 
   return
@@ -1181,8 +1288,6 @@ void SK_ReShadeAddOn_SetupInitialINI (const wchar_t* wszINIFile)
   }
 }
 
-bool SK_ReShadeAddOn_HadLocalINI = true;
-
 reshade::api::effect_runtime*
 SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceContext *pDevCtx, IDXGISwapChain *pSwapChain)
 {
@@ -1192,27 +1297,13 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceCo
   {
     SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
 
-    SK_RunOnce (
-      SK_ReShadeAddOn_HadLocalINI =
-        PathFileExistsW (L"ReShade.ini")
-    );
-
     // Delete the INI file that some versions of ReShade 5.9.3 write (bug) to the wrong path
     if (! SK_ReShadeAddOn_HadLocalINI)
     {
       DeleteFileW (L"ReShade.ini");
     }
 
-    static std::filesystem::path
-      reshade_path (SK_ReShadeAddOn_HadLocalINI ?
-                                 L"ReShade.ini" : SK_GetConfigPath ());
-
-    SK_RunOnce (
-      if (! SK_ReShadeAddOn_HadLocalINI)
-        reshade_path /= L"ReShade/ReShade.ini";
-    );
-
-    if (! reshade::create_effect_runtime (reshade::api::device_api::d3d11, pDevice, pDevCtx, swapchain, (const char *)reshade_path.u8string ().c_str (), &runtime))
+    if (! reshade::create_effect_runtime (reshade::api::device_api::d3d11, pDevice, pDevCtx, swapchain, SK_ReShadeGetConfigPath (), &runtime))
     {
       return nullptr;
     }
@@ -1226,30 +1317,17 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (ID3D12Device *pDevice, ID3D12CommandQ
 {
   reshade::api::effect_runtime *runtime = nullptr;
 
+  // Delete the INI file that some versions of ReShade 5.9.3 write (bug) to the wrong path
+  if (! SK_ReShadeAddOn_HadLocalINI)
+  {
+    DeleteFileW (L"ReShade.ini");
+  }
+
   if (GetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", nullptr, 1) != 0)
   {
     SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
 
-    SK_RunOnce (
-      SK_ReShadeAddOn_HadLocalINI = PathFileExistsW (L"ReShade.ini");
-    );
-
-    // Delete the INI file that some versions of ReShade 5.9.3 write (bug) to the wrong path
-    if (! SK_ReShadeAddOn_HadLocalINI)
-    {
-      DeleteFileW (L"ReShade.ini");
-    }
-
-    static std::filesystem::path
-      reshade_path (SK_ReShadeAddOn_HadLocalINI ?
-                                 L"ReShade.ini" : SK_GetConfigPath ());
-
-    SK_RunOnce (
-      if (! SK_ReShadeAddOn_HadLocalINI)
-        reshade_path /= L"ReShade/ReShade.ini";
-    );
-
-    if (! reshade::create_effect_runtime (reshade::api::device_api::d3d12, pDevice, pCmdQueue, swapchain, (const char *)reshade_path.u8string ().c_str (), &runtime))
+    if (! reshade::create_effect_runtime (reshade::api::device_api::d3d12, pDevice, pCmdQueue, swapchain, SK_ReShadeGetConfigPath (), &runtime))
     {
       return nullptr;
     }

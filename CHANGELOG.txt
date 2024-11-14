@@ -1,4 +1,9 @@
-﻿24.11.14
+﻿24.11.14.1
+==========
+ + When loading ReShade as a Plug-In, automatically load all AddOns in a Game
+     Profile's ReShade\AddOns\ directory and any in Global\ReShade\AddOns\.
+
+24.11.14
 ========
  + Prevent loading/saving INI files in blacklisted processes, and do not create
      logs if blacklisted.

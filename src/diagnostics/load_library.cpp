@@ -2219,7 +2219,7 @@ SK_EnumLoadedModules (SK_ModuleEnum when)
       );
 
       SetCurrentThreadDescription (L"[SK] DLL Enumerator");
-      SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_TIME_CRITICAL);
+      SetThreadPriority           (GetCurrentThread (), THREAD_PRIORITY_ABOVE_NORMAL);
 
       if ( WAIT_TIMEOUT ==
              SK_WaitForSingleObject (hWalkDone.m_h, 7500UL) )
