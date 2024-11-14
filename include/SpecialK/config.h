@@ -926,6 +926,7 @@ struct sk_config_t
       bool    dump                 = false;
       bool    inject               =  true;
       bool    cache                =  true;
+      bool    orig_cache           =  true;// The initial setting when the game started
       bool    highlight_debug      =  true;
       bool    injection_keeps_fmt  = false;
       bool    generate_mips        = false;

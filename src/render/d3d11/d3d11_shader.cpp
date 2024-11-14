@@ -866,10 +866,10 @@ SK_D3D11_SetShaderResources_Impl (
        pDevContext, StartSlot, NumViews, ppShaderResourceViews);
   };
 
-  bool early_out =                      shader_base == nullptr ||
-    ( SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, SK_D3D11_IsDevCtxDeferred (pDevContext),
-                                                  pDevContext) ||
-    (! bMustNotIgnore) );
+  bool early_out = (! bMustNotIgnore) || shader_base == nullptr ||
+    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped,
+           SK_D3D11_IsDevCtxDeferred (pDevContext),
+                                      pDevContext);
 
   if (early_out)
   {

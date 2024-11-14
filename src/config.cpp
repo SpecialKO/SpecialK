@@ -4627,6 +4627,8 @@ auto DeclKeybind =
   texture.d3d11.inject->load             (config.textures.d3d11.inject);
         texture.res_root->load           (config.textures.d3d11.res_root);
 
+  SK_RunOnce (config.textures.d3d11.orig_cache = config.textures.d3d11.cache);
+
   texture.d3d11.injection_keeps_format->
                                    load  (config.textures.d3d11.injection_keeps_fmt);
              texture.dump_on_load->load  (config.textures.d3d11.dump);

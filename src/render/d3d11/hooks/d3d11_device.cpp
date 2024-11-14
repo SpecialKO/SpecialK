@@ -1211,6 +1211,8 @@ D3D11Dev_CreateSamplerState_Override
 
   D3D11_SAMPLER_DESC new_desc = *pSamplerDesc;
 
+
+
 #pragma region "UglyGameHacksThatShouldNotBeHere"
   static const bool bShenmue =
     SK_GetCurrentGameID () == SK_GAME_ID::Shenmue;

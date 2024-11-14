@@ -265,6 +265,48 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
               entry.mipmapped = TRUE;
               non_mipped--;
             }
+
+            else if (skip)
+            {
+              if (DirectX::MakeTypeless (entry.desc.Format) == DXGI_FORMAT_BC7_TYPELESS)
+              {
+                SK_ScopedBool decl_tex_scope (
+                  SK_D3D11_DeclareTexInjectScope (pTLS)
+                );
+
+                SK_ComPtr <ID3D11Device>        pDev    (rb.d3d11.device);
+                SK_ComPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
+                DirectX::ScratchImage                                              captured;
+                if (SUCCEEDED (DirectX::CaptureTexture (pDev, pDevCtx, entry.pTex, captured)))
+                {
+                  DXGI_FORMAT uncompressed_fmt =
+                    (entry.desc.Format == DXGI_FORMAT_BC7_TYPELESS)   ? DXGI_FORMAT_R8G8B8A8_UNORM :
+                    (entry.desc.Format == DXGI_FORMAT_BC7_UNORM)      ? DXGI_FORMAT_R8G8B8A8_UNORM :
+                    (entry.desc.Format == DXGI_FORMAT_BC7_UNORM_SRGB) ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB
+                                                                      : DXGI_FORMAT_UNKNOWN;
+                  DirectX::ScratchImage                                              converted;
+                  DirectX::Decompress (*captured.GetImage (0,0,0), uncompressed_fmt, converted);
+
+                  auto desc      = entry.desc;
+                  desc.Format    = uncompressed_fmt;
+                  desc.MipLevels = 1;
+
+                  auto metadata =
+                    converted.GetMetadata ();
+
+                  metadata.mipLevels = 1;
+
+                  SK_ComPtr <ID3D11Texture2D>                                                            pNewTex;
+                  DirectX::CreateTexture (pDev, converted.GetImages (), 1, metadata, (ID3D11Resource **)&pNewTex.p);
+
+                  if (SUCCEEDED (SK_D3D11_MipmapCacheTexture2D (pNewTex, entry.crc32c, pTLS)))
+                  {
+                    entry.mipmapped = TRUE;
+                    non_mipped--;
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -1064,50 +1106,84 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
             switch (entry.desc.Format)
             {
               // These formats take an eternity!
-              case DXGI_FORMAT_BC6H_TYPELESS: 
+              case DXGI_FORMAT_BC6H_TYPELESS:
               case DXGI_FORMAT_BC6H_UF16:
               case DXGI_FORMAT_BC6H_SF16:
               case DXGI_FORMAT_BC7_TYPELESS:
               case DXGI_FORMAT_BC7_UNORM:
               case DXGI_FORMAT_BC7_UNORM_SRGB:
-                ignore = (! bIncludeBC7andBC6H);
+                ignore = true;//(! bIncludeBC7andBC6H);
               default:
                 break;
             }
 
-            if (ignore) ImGui::BeginDisabled ();
+            //if (ignore) ImGui::BeginDisabled ();
             if (ImGui::Button ("  Generate Mipmaps  ###GenerateMipmaps"))
             {
               SK_ScopedBool decl_tex_scope (
                 SK_D3D11_DeclareTexInjectScope (pTLS)
               );
 
-              if (SUCCEEDED (SK_D3D11_MipmapCacheTexture2D (pTex, entry.crc32c, pTLS)))
+              if (ignore)
+              {
+                SK_ComPtr <ID3D11DeviceContext> pDevCtx (rb.d3d11.immediate_ctx);
+                DirectX::ScratchImage                                        captured;
+                if (SUCCEEDED (DirectX::CaptureTexture (pDev, pDevCtx, pTex, captured)))
+                {
+                  DXGI_FORMAT uncompressed_fmt =
+                    (entry.desc.Format == DXGI_FORMAT_BC7_TYPELESS)   ? DXGI_FORMAT_R8G8B8A8_UNORM :
+                    (entry.desc.Format == DXGI_FORMAT_BC7_UNORM)      ? DXGI_FORMAT_R8G8B8A8_UNORM :
+                    (entry.desc.Format == DXGI_FORMAT_BC7_UNORM_SRGB) ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB
+                                                                      : DXGI_FORMAT_UNKNOWN;
+                  DirectX::ScratchImage                                              converted;
+                  DirectX::Decompress (*captured.GetImage (0,0,0), uncompressed_fmt, converted);
+
+                  auto desc      = entry.desc;
+                  desc.Format    = uncompressed_fmt;
+                  desc.MipLevels = 1;
+
+                  auto metadata =
+                    converted.GetMetadata ();
+
+                  metadata.mipLevels = 1;
+
+                  SK_ComPtr <ID3D11Texture2D> pNewTex;
+                  DirectX::CreateTexture (pDev, converted.GetImages (), 1, metadata, (ID3D11Resource **)&pNewTex.p);
+
+                  if (SUCCEEDED (SK_D3D11_MipmapCacheTexture2D (pNewTex, entry.crc32c, pTLS)))
+                  {
+                    entry.mipmapped = TRUE;
+                    non_mipped--;
+                  }
+                }
+              }
+
+              else if (SUCCEEDED (SK_D3D11_MipmapCacheTexture2D (pTex, entry.crc32c, pTLS)))
               {
                 entry.mipmapped = TRUE;
                 non_mipped--;
               }
             }
 
-            if (ignore)
-            {     ImGui::EndDisabled   ();
-              if (ImGui::IsItemHovered ())
-              {   ImGui::BeginTooltip  ();
-                  ImGui::TextUnformatted (
-                  "This operation may take an EXTREMELY long time to complete!!"
-                                         );
-                ImGui::Separator  ();
-                ImGui::BulletText (
-                  "Mipmap generation must first Decompress BC7/BC6H textures");
-                ImGui::BulletText (
-                  "Once decompressed, mipmap generation is simple, but...");
-                ImGui::BulletText (
-                  "The mipmapped copy must be recompressed with BC7/BC6H(!!)");
-                ImGui::Separator  ();
-                ImGui::TextUnformatted ("\tCompressing BC7/BC6H is SLOW!");
-                ImGui::EndTooltip ();
-              }
-            }
+            //if (ignore)
+            //{     ImGui::EndDisabled   ();
+            //  if (ImGui::IsItemHovered ())
+            //  {   ImGui::BeginTooltip  ();
+            //      ImGui::TextUnformatted (
+            //      "This operation may take an EXTREMELY long time to complete!!"
+            //                             );
+            //    ImGui::Separator  ();
+            //    ImGui::BulletText (
+            //      "Mipmap generation must first Decompress BC7/BC6H textures");
+            //    ImGui::BulletText (
+            //      "Once decompressed, mipmap generation is simple, but...");
+            //    ImGui::BulletText (
+            //      "The mipmapped copy must be recompressed with BC7/BC6H(!!)");
+            //    ImGui::Separator  ();
+            //    ImGui::TextUnformatted ("\tCompressing BC7/BC6H is SLOW!");
+            //    ImGui::EndTooltip ();
+            //  }
+            //}
           }
         }
 

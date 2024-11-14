@@ -1617,9 +1617,6 @@ SK_D3D11_UpdateSubresource_Impl (
     early_out = true;
   }
 
-
-  static const bool __attempt_to_cache = config.textures.d3d11.cache;
-
   if ( pDstBox != nullptr && ( pDstBox->left  >= pDstBox->right  ||
                                pDstBox->top   >= pDstBox->bottom ||
                                pDstBox->front >= pDstBox->back )    )
@@ -1652,20 +1649,22 @@ SK_D3D11_UpdateSubresource_Impl (
       _Finish ();
   }
 
-  if ( __attempt_to_cache && (    (rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D) ||
+  if ( config.textures.d3d11.orig_cache &&
+                             (    (rdim == D3D11_RESOURCE_DIMENSION_TEXTURE2D) ||
       SK_D3D11_IsStagingCacheable (rdim, pDstResource) ) && DstSubresource == 0 )
   {
     auto& textures =
       SK_D3D11_Textures;
 
-    SK_ComQIPtr <ID3D11Texture2D> pTex (pDstResource);
-
+    SK_ComQIPtr <ID3D11Texture2D>
+        pTex (pDstResource);
     if (pTex != nullptr)
     {
-      D3D11_TEXTURE2D_DESC desc = { };
-           pTex->GetDesc (&desc);
+      D3D11_TEXTURE2D_DESC
+                      desc = { };
+      pTex->GetDesc (&desc);
 
-      if (__attempt_to_cache)
+      if (config.textures.d3d11.orig_cache)
       {
         const bool skip =
           ( (desc.Usage == D3D11_USAGE_STAGING     && (! SK_D3D11_IsStagingCacheable (rdim, pDstResource))) ||
@@ -2042,7 +2041,7 @@ SK_D3D11_CopySubresourceRegion_Impl (
 {
   SK_WRAP_AND_HOOK
 
-    // UB: If it's happening, pretend we never saw this...
+  // UB: If it's happening, pretend we never saw this...
   if (pDstResource == nullptr || pSrcResource == nullptr)
   {
     return;
@@ -2120,7 +2119,7 @@ SK_D3D11_CopySubresourceRegion_Impl (
                                                       pSrcResource, SrcSubresource, pSrcBox );
   };
 
-  bool early_out =
+  const bool early_out =
     (! bMustNotIgnore) ||
     SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
 
