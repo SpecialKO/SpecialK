@@ -928,8 +928,7 @@ public:
 
     // Games where 8-bit Compute Remastering has problems
     //
-    if (SK_GetCurrentGameID () == SK_GAME_ID::HaroldHalibut ||
-        SK_GetCurrentGameID () == SK_GAME_ID::Metaphor)
+    if (SK_GetCurrentGameID () == SK_GAME_ID::HaroldHalibut)
       SK_HDR_UnorderedViews_8bpc->PromoteTo16Bit = false;
 
     _SK_HDR_FullRange =
