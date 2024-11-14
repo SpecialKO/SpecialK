@@ -200,8 +200,11 @@ struct sk_config_t
 
     SK_PerfTicksPerMs = SK_PerfFreq / 1000LL;
 
-    utility.hSignalAsyncSave =
-      SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+    if (! SK_GetHostAppUtil ()->isBlacklisted ())
+    {
+      utility.hSignalAsyncSave =
+        SK_CreateEvent (nullptr, FALSE, FALSE, nullptr);
+    }
   }
   struct whats_new_s {
     float  duration       = 20.0F;

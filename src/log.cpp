@@ -668,7 +668,7 @@ SK_CreateLog (const wchar_t* const wszName)
   auto* pLog =
     new iSK_Logger ();
 
-  if (SK_GetCurrentGameID () != SK_GAME_ID::Launcher)
+  if (SK_GetCurrentGameID () != SK_GAME_ID::Launcher && (! SK_GetHostAppUtil ()->isBlacklisted ()))
   {
     if (wszName != nullptr)
     {

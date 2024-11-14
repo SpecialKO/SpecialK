@@ -1225,6 +1225,11 @@ SK_IsImmersiveProcess (HANDLE hProcess = SK_GetCurrentProcess ())
 void
 SK_Inject_SpawnUnloadListener (void)
 {
+  if (SK_GetHostAppUtil ()->isBlacklisted ())
+  {
+    return;
+  }
+
   if (! InterlockedCompareExchangePointer ((void **)&g_hModule_CBT, (void *)1, nullptr))
   {
     static SK_AutoHandle hHookTeardown (

@@ -1221,6 +1221,11 @@ bool hook_winmm_orig     = true;
 bool
 SK_LoadConfig (const std::wstring& name)
 {
+  if (SK_GetHostAppUtil ()->isBlacklisted ())
+  {
+    return false;
+  }
+
   ULARGE_INTEGER
     useable  = { }, // Amount the current user's quota allows
     capacity = { },
@@ -1352,6 +1357,11 @@ SK_CreateINIParameter ( const wchar_t *wszDescription,
 bool
 SK_LoadConfigEx (std::wstring name, bool create)
 {
+  if (SK_GetHostAppUtil ()->isBlacklisted ())
+  {
+    return false;
+  }
+
   try
   {
   if (name.empty ())
@@ -5956,8 +5966,10 @@ SK_SaveConfig ( std::wstring name,
                 bool         close_config )
 {
   // Ignore this :)
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Launcher)
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Launcher || SK_GetHostAppUtil ()->isBlacklisted ())
+  {
     return;
+  }
 
   if (name.empty ())
   {
