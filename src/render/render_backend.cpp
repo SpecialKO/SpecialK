@@ -841,13 +841,18 @@ SK_RenderBackend_V2::gsync_s::update (bool force)
           auto& display =
             rb.displays [rb.active_display];
 
-          NV_GET_VRR_INFO vrr_info            = {       NV_GET_VRR_INFO_VER };
+          static NV_GET_VRR_INFO
+                        vrr_info              = {       NV_GET_VRR_INFO_VER };
           display.nvapi.monitor_caps.version  = NV_MONITOR_CAPABILITIES_VER;
           display.nvapi.monitor_caps.infoType = NV_MONITOR_CAPS_TYPE_GENERIC;
 
-          SK_NvAPI_Disp_GetVRRInfo             (display.nvapi.display_id, &vrr_info);
-          SK_NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
-                                               &display.nvapi.monitor_caps);
+          static DWORD
+              dwLastCacheTime = 0;
+          if (dwLastCacheTime < SK::ControlPanel::current_time - 250UL)
+          {   dwLastCacheTime = SK::ControlPanel::current_time + 50UL;                    vrr_info = {NV_GET_VRR_INFO_VER};
+            SK_NvAPI_Disp_GetVRRInfo             (display.nvapi.display_id, &vrr_info);
+          } SK_NvAPI_DISP_GetMonitorCapabilities (display.nvapi.display_id,
+                                                 &display.nvapi.monitor_caps);
 
           display.nvapi.vrr_enabled =
             vrr_info.bIsVRREnabled;

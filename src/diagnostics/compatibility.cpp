@@ -28,7 +28,7 @@
 
 volatile LONG __SK_TaskDialogActive = FALSE;
 
-HWND WINAPI SK_GetForegroundWindow (void);
+HWND WINAPI SK_GetForegroundWindow (bool flush);
 HWND WINAPI SK_GetFocus            (void);
 
 HRESULT WINAPI

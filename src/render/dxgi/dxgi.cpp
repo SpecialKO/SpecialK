@@ -4366,7 +4366,7 @@ HRESULT
 STDMETHODCALLTYPE
 DXGIOutput_WaitForVBlank_Override ( IDXGIOutput *This ) noexcept
 {
-  //DXGI_LOG_CALL_I0 (L"       IDXGIOutput", L"WaitForVBlank         ");
+  SK_LOG_FIRST_CALL
 
   return
     WaitForVBlank_Original (This);

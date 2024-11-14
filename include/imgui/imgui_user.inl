@@ -3130,7 +3130,7 @@ SK_ImGui_User_NewFrame (void)
 
   bool capture_mouse    = SK_ImGui_WantMouseCapture      ();
   bool anything_hovered = SK_ImGui_IsAnythingHovered     ();
-  HWND hWndForeground   = SK_GetForegroundWindow         ();
+  HWND hWndForeground   = SK_GetForegroundWindow         (true);
   BOOL bHWCursorVisible = SK_InputUtil_IsHWCursorVisible ();
 
   __SK_EnableSetCursor = true;

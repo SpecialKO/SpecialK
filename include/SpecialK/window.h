@@ -558,7 +558,7 @@ SK_IsGameWindowFocused (void);
 
 HWND
 WINAPI
-SK_GetForegroundWindow (void);
+SK_GetForegroundWindow (bool flush = false);
 
 HWND
 WINAPI
