@@ -520,7 +520,9 @@ SK::ControlPanel::PlugIns::Draw (void)
     if (ImGui::Button ("Add Plug-In"))
     {
       fileDialog.SetTitle       ("Select a Plug-In DLL");
-      fileDialog.SetTypeFilters (  { ".dll", ".asi" }  );
+      fileDialog.SetTypeFilters (  { ".dll", ".asi",
+              SK_RunLHIfBitness (64, ".addon64"    ,
+                                     ".addon32") } );
       fileDialog.Open ();
     }
 
