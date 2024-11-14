@@ -280,6 +280,16 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"powershell.exe",
   L"devenv.exe",
 
+  L"pspcsdkappmgr.exe",
+  L"pspcsdkcore.exe",
+  L"pspcsdktelemetry.exe",
+  L"pspcsdkvoicechat.exe",
+  L"pspcsdkui.exe",
+
+  L"gamelaunchhelper.exe",
+  L"gamebarpresencewriter.exe",
+  L"gamingservicesui.exe",
+
   // OBS Stuff
   L"obs-browser-page.exe",
   L"get-graphics-offsets64.exe",
