@@ -2446,6 +2446,11 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
                       UINT _Flags) ->
   HRESULT
   {
+    // Disable fractional VSYNC for the first 120 frames in order to
+    //   detect VRR support correctly.
+    if (_SyncInterval > 1 && SK_GetFramesDrawn () < 120)
+        _SyncInterval = 1;
+
     if ( config.render.framerate.target_fps_bg > 0.0f && 
          config.render.framerate.target_fps_bg < rb.getActiveRefreshRate () / 2.0f &&
          (! SK_IsGameWindowActive ()) )

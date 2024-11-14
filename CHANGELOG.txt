@@ -1,6 +1,16 @@
-﻿24.11.13.2
+﻿24.11.14
+========
+ + Prevent loading/saving INI files in blacklisted processes, and do not create
+     logs if blacklisted.
+ + Do not spawn an global injection unload listener in blacklisted processes.
+ + Render the first 120 frames in DXGI-based games without fractional VSYNC if
+     a game tries to use it, so that SK can detect VRR support correctly.
+
+24.11.13.2
 ==========
  + Fixed SK's UI not rendering correctly in D3D9Ex games beginning in 24.11.5.1
+ + Handle EDID Display Names that do not adhere to specs and do not space-pad
+     names shorter than 13 bytes.
 
 24.11.13.1
 ==========
