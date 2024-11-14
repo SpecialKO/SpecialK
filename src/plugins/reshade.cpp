@@ -1143,7 +1143,9 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
     // Create this directory so users have an easier time putting Textures and Shaders in-place.
     SK_CreateDirectories ( shared_base_path.c_str ());
-    SK_CreateDirectories (shared_addon_path.c_str ());
+
+    if (! PathIsDirectoryW (shared_addon_path.c_str ()))
+          CreateDirectoryW (shared_addon_path.c_str (), nullptr);
 
     config.reshade.is_addon = true;
 
@@ -1196,13 +1198,17 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
           {
             dll_log->LogEx (false, L"success!\n");
 
-            SK_ImGui_CreateNotification (
-              "AddOn.Load", SK_ImGui_Toast::Success,
-                (const char *)filename_utf8.c_str (),
-                        "ReShade Add-on Loaded",
-                          5000, SK_ImGui_Toast::UseDuration |
-                                SK_ImGui_Toast::ShowCaption |
-                                SK_ImGui_Toast::ShowTitle );
+            // Don't announce global AddOns
+            if (! StrStrIW (path.c_str (), L"Global\\ReShade\\"))
+            {
+              SK_ImGui_CreateNotification (
+                "AddOn.Load", SK_ImGui_Toast::Success,
+                  (const char *)filename_utf8.c_str (),
+                          "ReShade Add-on Loaded",
+                            5000, SK_ImGui_Toast::UseDuration |
+                                  SK_ImGui_Toast::ShowCaption |
+                                  SK_ImGui_Toast::ShowTitle );
+            }
           }
           
           else
