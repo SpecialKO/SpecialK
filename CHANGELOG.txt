@@ -1,4 +1,8 @@
-﻿24.11.13.1
+﻿24.11.13.2
+==========
+ + Fixed SK's UI not rendering correctly in D3D9Ex games beginning in 24.11.5.1
+
+24.11.13.1
 ==========
  + Hide/disable "Overbright Tonemapping" when RenoDX ReShade AddOn is detected.
 

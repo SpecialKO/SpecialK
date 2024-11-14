@@ -7541,33 +7541,39 @@ SK_ImGui_StageNextFrame (void)
   bool d3d12 = false;
   bool gl    = false;
 
-  switch (static_cast <int> (rb.api))
+  if (rb.api == SK_RenderAPI::OpenGL)
   {
-    case static_cast <int> (SK_RenderAPI::OpenGL):
-      gl = true;
-      ImGui_ImplGL3_NewFrame ();
-      break;
+    gl = true;
 
-    case static_cast <int> (SK_RenderAPI::D3D9):
-      d3d9 = true;
-      ImGui_ImplDX9_NewFrame ();
-      break;
-
-    case static_cast <int> (SK_RenderAPI::D3D11):
-      d3d11 = true;
-      ImGui_ImplDX11_NewFrame ();
-      break;
-
-    case static_cast <int> (SK_RenderAPI::D3D12):
-      d3d12 = true;
-      ImGui_ImplDX12_NewFrame ();
-      break;
-
-    default:
-      SK_LOG0 ( (L"No Render API"), L"Overlay" );
-      return;
+    ImGui_ImplGL3_NewFrame ();
   }
 
+  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D9))
+  {
+    d3d9 = true;
+
+    ImGui_ImplDX9_NewFrame ();
+  }
+
+  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D11))
+  {
+    d3d11 = true;
+
+    ImGui_ImplDX11_NewFrame ();
+  }
+
+  else if (static_cast <int> (rb.api) & static_cast <int> (SK_RenderAPI::D3D12))
+  {
+    d3d12 = true;
+
+    ImGui_ImplDX12_NewFrame ();
+  }
+
+  else
+  {
+    SK_LOG0 ( (L"No Render API"), L"Overlay" );
+    return;
+  }
   auto& io    = ImGui::GetIO    ();
   auto& style = ImGui::GetStyle ();
 
