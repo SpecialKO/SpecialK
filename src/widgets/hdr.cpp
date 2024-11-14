@@ -214,7 +214,8 @@ struct SK_HDR_Preset_s {
     __SK_HDR_Saturation        = saturation;
     __SK_HDR_Gamut             = gamut;
     __SK_HDR_tonemap           = colorspace.tonemap;
-    __SK_HDR_TonemapOverbright = tonemap_overbright;
+    __SK_HDR_TonemapOverbright = SK_ReShade_HasRenoDX () ? false
+                                                         : tonemap_overbright;
     __SK_HDR_ColorBoost        = pq_colorboost;
     __SK_HDR_PQBoost0          = pq_boost0;
     __SK_HDR_PQBoost1          = pq_boost1;
@@ -2354,7 +2355,7 @@ public:
 
             const bool pboost = (preset.pq_boost0 > 0.0f);
 
-            if (abs (__SK_HDR_Luma) >= 1.0f && (! bRawImageMode))
+            if (abs (__SK_HDR_Luma) >= 1.0f && (! bRawImageMode) && (! SK_ReShade_HasRenoDX ()))
             {
               if (ImGui::Checkbox ("Tonemap Overbright Bits", &preset.tonemap_overbright))
               {

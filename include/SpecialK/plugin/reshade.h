@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -87,5 +87,7 @@ struct reshade_format
   private:
     format fmt_;
 };
+
+BOOL SK_ReShade_HasRenoDX (void);
 
 #endif /* __SK__RESHADE_H__ */

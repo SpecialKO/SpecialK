@@ -86,7 +86,33 @@ namespace reshade { namespace internal
 		static HMODULE handle = addon_module;
 		return handle;
 	}
-} }
+
+  inline BOOL has_addon(const wchar_t* name)
+  {
+    if (name == nullptr)
+      return FALSE;
+
+    HMODULE modules [1024] = { };
+    DWORD   num            =  0 ;
+
+    if (K32EnumProcessModules (SK_GetCurrentProcess (), modules,
+                                                sizeof (modules), &num))
+    {
+      if (num > sizeof (modules))
+          num = sizeof (modules);
+
+      for (DWORD i = 0; i < num / sizeof (HMODULE); ++i)
+      {
+        if (StrStrIW (SK_GetModuleFullName (modules [i]).c_str (), name))
+        {
+          return TRUE;
+        }
+      }
+    }
+
+    return FALSE;
+  }
+}}
 
 #endif
 

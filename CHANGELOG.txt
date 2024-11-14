@@ -1,4 +1,8 @@
-﻿24.11.13
+﻿24.11.13.1
+==========
+ + Hide/disable "Overbright Tonemapping" when RenoDX ReShade AddOn is detected.
+
+24.11.13
 ========
  + Replace attempts by games to set DLSS Presets A-D with E, when DLSS version
      is >= 3.8.10.

@@ -1044,6 +1044,17 @@ void SK_ReShadeAddOn_Present (reshade::api::command_queue *queue, reshade::api::
   std::ignore = queue;
 }
 
+BOOL SK_ReShade_HasRenoDX (void)
+{
+  if (SK_GetFramesDrawn () < 1)
+    return FALSE;
+
+  static BOOL _HasRenoDX =
+    reshade::internal::has_addon (L"RenoDX");
+
+  return _HasRenoDX;
+}
+
 bool
 SK_ReShadeAddOn_Init (HMODULE reshade_module)
 {
