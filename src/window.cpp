@@ -5065,19 +5065,12 @@ static GetForegroundWindow_pfn
 
 HWND
 WINAPI
-SK_GetForegroundWindow (bool update)
+SK_GetForegroundWindow (void)
 {
-  static HWND hWndForeground = nullptr;
-
-  if (update || hWndForeground == 0)
-  {
-    hWndForeground =
+  return
     GetForegroundWindow_Original != nullptr ?
     GetForegroundWindow_Original ()         :
     GetForegroundWindow          ();
-  }
-
-  return hWndForeground;
 }
 
 HWND

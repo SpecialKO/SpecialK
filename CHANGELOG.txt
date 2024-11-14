@@ -1,4 +1,8 @@
-﻿24.11.14.1
+﻿24.11.14.2
+==========
+ + Revert recent change to foreground window checks.
+
+24.11.14.1
 ==========
  + When loading ReShade as a Plug-In, automatically load all AddOns in a Game
      Profile's ReShade\AddOns\ directory and any in Global\ReShade\AddOns\.

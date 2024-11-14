@@ -5895,8 +5895,8 @@ D3D11Dev_CreateTexture2DCore_Impl (
               static
               const bool bIgnorePartialMatches =
                 ( SK_GetCurrentGameID () == SK_GAME_ID::NieRAutomata ) ||
-                ( SK_GetCurrentGameID () == SK_GAME_ID::SonicXShadowGenerations ||
-                  SK_GetCurrentGameID () == SK_GAME_ID::Metaphor );
+                ( SK_GetCurrentGameID () == SK_GAME_ID::SonicXShadowGenerations ) ||
+                ( SK_GetCurrentGameID () == SK_GAME_ID::Metaphor );
 
               const bool game_specific_reqs_met = false;
               if (       game_specific_reqs_met  ||
