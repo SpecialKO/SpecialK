@@ -161,6 +161,14 @@ D3D11Dev_CreateShaderResourceView_Override (
   if (pResource == nullptr)
     return E_INVALIDARG;
 
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Metaphor &&
+                       pDesc != nullptr              &&
+                       pDesc->ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D)
+  {
+    ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Texture2D.MostDetailedMip =        0;
+    ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Texture2D.MipLevels       = (UINT)-1;
+  }
+
 #ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
   if (pResource != nullptr)
   {
@@ -475,6 +483,14 @@ D3D11Dev_CreateShaderResourceView1_Override (
 {
   if (pResource == nullptr)
     return E_INVALIDARG;
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Metaphor &&
+                       pDesc != nullptr              &&
+                       pDesc->ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D)
+  {
+    ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Texture2D.MostDetailedMip =        0;
+    ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Texture2D.MipLevels       = (UINT)-1;
+  }
 
 #ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
   if (pResource != nullptr)
@@ -1448,6 +1464,19 @@ D3D11Dev_CreateSamplerState_Override
            D3D11_FILTER_COMPARISON_ANISOTROPIC;              break;
 
       default: bForcedAnisotropic = false;                   break;
+    }
+  }
+
+  if (SK_GetCurrentGameID () == SK_GAME_ID::Metaphor)
+  {
+    if ( new_desc.Filter         <= D3D11_FILTER_ANISOTROPIC &&
+        (new_desc.ComparisonFunc == D3D11_COMPARISON_ALWAYS ||
+         new_desc.ComparisonFunc == D3D11_COMPARISON_NEVER) )
+    {
+      new_desc.Filter     =  D3D11_FILTER_ANISOTROPIC;
+      new_desc.MipLODBias =  std::max (0.0f, new_desc.MipLODBias);
+      new_desc.MaxLOD     =  D3D11_FLOAT32_MAX;
+      new_desc.MinLOD     = -D3D11_FLOAT32_MAX;
     }
   }
 

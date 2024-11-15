@@ -592,6 +592,9 @@ SK_ImGui_WantHWCursor (void)
 bool
 SK_ImGui_WantMouseCapture (bool update)
 {
+  if (SK_ReShadeAddOn_IsOverlayActive ())
+    return false;
+
   static std::atomic_bool               capture  = false;
   static std::atomic <ULONG64> lastFrameCaptured = 0;
 

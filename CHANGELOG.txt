@@ -1,4 +1,16 @@
-﻿24.11.14.2
+﻿24.11.15.1
+==========
+ + Fixed ReShade (Add-on version) not being exempt from settings that block
+     mouse input to games.
+ + Added HUD vtx shader hashes for Metaphor: ReFantazio for hudless screenshots
+
+24.11.15
+========
+ + Add support for generating mipmaps for BC7 textures that are mip-incomplete,
+     they will be decompressed and then the mipmaps will be generated, and no
+       attempt to recompress them back to BC7 will be made because that's SLOW!
+
+24.11.14.2
 ==========
  + Revert recent change to foreground window checks.
 

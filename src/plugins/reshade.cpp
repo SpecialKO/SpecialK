@@ -605,8 +605,7 @@ SK_ReShadeAddOn_OverlayActivation (reshade::api::effect_runtime *runtime, bool o
   static bool imgui_visible     = SK_ImGui_Visible;
   static bool imgui_vis_changed = false;
 
-  static bool last_open = open;
-  
+  static bool        last_open=!open;
   if (std::exchange (last_open, open) != open)
   {
     // When the overlay activates, stop blocking

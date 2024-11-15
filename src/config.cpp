@@ -3769,7 +3769,10 @@ auto DeclKeybind =
 
         config.render.d3d12.force_anisotropic          = true;
         config.render.d3d12.max_anisotropy             =  6UL;
-        config.render.d3d12.force_lod_bias             =-0.001f;
+        config.render.d3d12.force_lod_bias             = 0.0f;
+
+        SK_D3D11_DeclHUDShader_Vtx (0x187097b5);
+        SK_D3D11_DeclHUDShader_Vtx (0x8973ba49);
 
         // Scheduling fixes still needed.
         config.compatibility.allow_dxdiagn             = true;
