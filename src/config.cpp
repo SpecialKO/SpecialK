@@ -3768,7 +3768,7 @@ auto DeclKeybind =
         config.render.hdr.remaster_8bpc_as_unorm       = true;
         config.render.hdr.remaster_subnative_as_unorm  = true;
         config.input.gamepad.dinput.block_enum_devices = true; // Avoid perf issues
-        config.textures.cache.allow_staging            = true;
+        config.textures.cache.allow_staging            = false;
         config.render.dxgi.deferred_isolation          = true; // Needed for correct texture caching on staging uploads
 
         config.render.d3d12.force_anisotropic          = true;

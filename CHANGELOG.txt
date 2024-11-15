@@ -1,4 +1,10 @@
-﻿24.11.15.3
+﻿24.11.16
+========
+ + Disable GOG Overlay in Unity Engine games with AMD GPUs, because the GOG
+     overlay will cause AMD's shitty interop to kick in when it sets up for
+       OpenGL (an API the game does not use, but AMD's driver starts interop)
+
+24.11.15.3
 ==========
  + Fix various problems with games that use (Low Level) Keyboard hooks thinking
      Alt/Tab are stuck.

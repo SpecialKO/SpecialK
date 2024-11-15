@@ -483,6 +483,15 @@ SK_BootDXGI (void)
 void
 SK_BootOpenGL (void)
 {
+  // Unity games tend to load OpenGL, but not use it...
+  //   to avoid problems with AMD's driver beginning
+  //     interop-related stuff immediately; disable OpenGL.
+  if (SK_GetModuleHandleW (L"GameAssembly.dll") ||
+      SK_GetModuleHandleW (L"UnityPlayer.dll"))
+  {
+    return;
+  }
+
   if (SK_GetCurrentGameID () == SK_GAME_ID::yuzu)
   {
     static bool          once = false;
