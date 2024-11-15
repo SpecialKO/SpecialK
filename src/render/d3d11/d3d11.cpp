@@ -7973,6 +7973,13 @@ SK_D3D11_QuickHook (void)
   if (config.render.dxgi.debug_layer)
     return;
 
+  if (config.compatibility.init_sync_for_reshade)
+  {
+    SK_LOGi0 (L" # D3D11 QuickHook disabled because a ReShade Plug-In is present...");
+
+    return;
+  }
+
   if ( PathFileExistsW (L"dxgi.dll") ||
        PathFileExistsW (L"d3d11.dll") )
   {

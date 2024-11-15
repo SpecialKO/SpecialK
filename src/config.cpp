@@ -2252,6 +2252,11 @@ auto DeclKeybind =
         const wchar_t* wszNext =
           wcschr (sec->first.c_str (), L'.');
 
+        if (StrStrIW (SK_CharNextW (wszNext), L"ReShade"))
+        {
+          config.compatibility.init_sync_for_reshade = true;
+        }
+
         import_.name =
           wszNext != nullptr       ?
             SK_CharNextW (wszNext) : L"";

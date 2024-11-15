@@ -11015,6 +11015,13 @@ SK_DXGI_QuickHook (void)
     __SK_DisableQuickHook = TRUE;
   }
 
+  if (config.compatibility.init_sync_for_reshade)
+  {
+    SK_LOGi0 (L" # DXGI QuickHook disabled because a ReShade Plug-In is present...");
+
+    __SK_DisableQuickHook = TRUE;
+  }
+
   if ( SK_IsModuleLoaded (L"sl.interposer.dll") )
   {
     SK_LOGi0 (L" # DXGI QuickHook disabled because an NVIDIA Streamline Interposer is present...");

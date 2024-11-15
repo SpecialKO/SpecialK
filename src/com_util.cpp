@@ -496,7 +496,8 @@ SK_AutoCOMInit::_assert_not_dllmain (void)
 {
   SK_ASSERT_NOT_DLLMAIN_THREAD ();
 
-  if (config.compatibility.init_on_separate_thread && (! config.compatibility.init_sync_for_streamline))
+  if (config.compatibility.init_on_separate_thread && (! config.compatibility.init_sync_for_streamline)
+                                                   && (! config.compatibility.init_sync_for_reshade))
   {
     if (ReadAcquire (&__SK_DLL_Attached))
     {

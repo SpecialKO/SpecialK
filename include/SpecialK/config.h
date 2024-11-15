@@ -1248,6 +1248,7 @@ struct sk_config_t
     bool     allow_dxdiagn            =  true; // Slows game launches way down
     bool     auto_large_address_patch =  true;
     bool     init_on_separate_thread  =  true;
+    bool     init_sync_for_reshade    = false;
     bool     init_sync_for_streamline = false;
     bool     shutdown_on_window_close = false;
     bool     disable_dx12_vk_interop  = false;
