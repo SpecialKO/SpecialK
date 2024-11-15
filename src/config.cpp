@@ -3761,10 +3761,9 @@ auto DeclKeybind =
         config.priority.perf_cores_only                = true;
         config.window.background_render                = true;
         config.window.fullscreen_no_saver              = true;
-        config.input.ui.capture_hidden                 = true;
         config.input.keyboard.override_alt_f4          = true; // Oh lord, kill that buggy exit confirmation
-        config.render.framerate.sleepless_render       = false;
-        config.render.framerate.sleepless_window       = false;
+        config.render.framerate.sleepless_render       = true;
+        config.render.framerate.sleepless_window       = true;
         config.input.gamepad.xinput.emulate            = true; // XInput-only
         config.render.hdr.remaster_8bpc_as_unorm       = true;
         config.render.hdr.remaster_subnative_as_unorm  = true;
@@ -3773,7 +3772,6 @@ auto DeclKeybind =
         config.render.dxgi.deferred_isolation          = true; // Needed for correct texture caching on staging uploads
 
         config.render.d3d12.force_anisotropic          = true;
-        config.render.d3d12.max_anisotropy             =  6UL;
         config.render.d3d12.force_lod_bias             = 0.0f;
 
         SK_D3D11_DeclHUDShader_Vtx (0x187097b5);

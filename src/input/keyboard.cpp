@@ -180,7 +180,8 @@ SK_ImGui_WantKeyboardCapture (bool update)
     config.input.mouse   .disabled_to_game = 2;
     config.input.keyboard.disabled_to_game = 2;
     capture.store (false);
-    return false;
+
+    return !SK_IsGameWindowActive ();
   }
   else
   {
