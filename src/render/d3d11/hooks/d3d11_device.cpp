@@ -165,8 +165,30 @@ D3D11Dev_CreateShaderResourceView_Override (
                        pDesc != nullptr              &&
                        pDesc->ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D)
   {
-    ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Texture2D.MostDetailedMip =        0;
-    ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Texture2D.MipLevels       = (UINT)-1;
+    SK_ComQIPtr <ID3D11Texture2D>
+                      pTex (pResource);
+    D3D11_TEXTURE2D_DESC texDesc = {};
+    pTex->GetDesc      (&texDesc);
+
+    if (DirectX::IsCompressed (pDesc->Format))
+    {
+      if (pDesc->Format == DXGI_FORMAT_BC7_UNORM_SRGB &&
+        texDesc. Format == DXGI_FORMAT_BC7_UNORM)
+      {
+        ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Format = DXGI_FORMAT_BC7_UNORM;
+        return E_INVALIDARG;
+      }
+
+      ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Texture2D.MostDetailedMip =        0;
+      ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Texture2D.MipLevels       = (UINT)-1;
+    }
+
+    else if (pDesc->Format == DXGI_FORMAT_R8_UNORM  &&
+          (texDesc. Format == DXGI_FORMAT_BC7_UNORM ||
+          (texDesc. Format == DXGI_FORMAT_BC7_UNORM_SRGB)))
+    {
+      return E_INVALIDARG;
+    }
   }
 
 #ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
@@ -488,8 +510,11 @@ D3D11Dev_CreateShaderResourceView1_Override (
                        pDesc != nullptr              &&
                        pDesc->ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D)
   {
-    ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Texture2D.MostDetailedMip =        0;
-    ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Texture2D.MipLevels       = (UINT)-1;
+    if (DirectX::IsCompressed (pDesc->Format))
+    {
+      ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Texture2D.MostDetailedMip =        0;
+      ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Texture2D.MipLevels       = (UINT)-1;
+    }
   }
 
 #ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
@@ -1467,18 +1492,24 @@ D3D11Dev_CreateSamplerState_Override
     }
   }
 
+#if 1
   if (SK_GetCurrentGameID () == SK_GAME_ID::Metaphor)
   {
-    if ( new_desc.Filter         <= D3D11_FILTER_ANISOTROPIC &&
+    if ( new_desc.Filter         <= D3D11_FILTER_ANISOTROPIC       &&
+         new_desc.Filter         >  D3D11_FILTER_MIN_MAG_MIP_POINT &&
         (new_desc.ComparisonFunc == D3D11_COMPARISON_ALWAYS ||
          new_desc.ComparisonFunc == D3D11_COMPARISON_NEVER) )
     {
-      new_desc.Filter     =  D3D11_FILTER_ANISOTROPIC;
-      new_desc.MipLODBias =  std::max (0.0f, new_desc.MipLODBias);
-      new_desc.MaxLOD     =  D3D11_FLOAT32_MAX;
-      new_desc.MinLOD     = -D3D11_FLOAT32_MAX;
+      //if (new_desc.AddressU == D3D11_TEXTURE_ADDRESS_WRAP)
+      {
+        new_desc.Filter     =  D3D11_FILTER_ANISOTROPIC;
+      //new_desc.MipLODBias =  std::max (0.0f, new_desc.MipLODBias);
+        new_desc.MaxLOD     =  D3D11_FLOAT32_MAX;
+        new_desc.MinLOD     = -D3D11_FLOAT32_MAX;
+      }
     }
   }
+#endif
 
   switch (new_desc.Filter)
   {

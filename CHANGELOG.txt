@@ -1,4 +1,11 @@
-﻿24.11.15.2
+﻿24.11.15.3
+==========
+ + Fix various problems with games that use (Low Level) Keyboard hooks thinking
+     Alt/Tab are stuck.
+ + Allow mouselook in games even if Mouse Input is set to Disable in Background
+ + Added fixes for Metaphor: ReFantazio using wrong SRV formats for textures
+
+24.11.15.2
 ==========
  + Use synchronous init when loading ReShade as a plug-in for maximum compat.
 
