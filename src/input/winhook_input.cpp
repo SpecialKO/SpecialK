@@ -354,16 +354,26 @@ SK_Proxy_KeyboardProc (
          hook_fn            :
        __hooks._RealKeyboardProc;
 
+    hide |= config.input.keyboard.disabled_to_game == 1;
+
     // Fix common keys that may be stuck in combination with Alt, Windows Key, etc.
     //   the game shouldn't have seen those keys, but the hook they are using doesn't
     //     hide them...
-    if (hide)
+    if ((hide || !game_window.active) && (wParam == VK_MENU || wParam == VK_LMENU || wParam == VK_RMENU || wParam == VK_TAB))
     {
-      // Release these keys when alt-tabbing...
-      lParam = 0;
-
       if (hook_fn != nullptr && config.input.keyboard.disabled_to_game != 1)
-          hook_fn (nCode, wParam, lParam);
+      {
+        lParam &= ~(1<<31);
+        lParam &= ~(1<<30);
+        lParam &= ~(1<<29);
+
+        hook_fn (nCode, wParam, lParam);
+
+        return
+          CallNextHookEx (
+            nullptr, nCode,
+             wParam, lParamOrig );
+      }
     }
 
     if (     hook_fn != nullptr && !hide)
@@ -467,16 +477,26 @@ SK_Proxy_LLKeyboardProc (
          hook_fn            :
        __hooks._RealKeyboardProc;
 
+    hide |= config.input.keyboard.disabled_to_game == 1;
+
     // Fix common keys that may be stuck in combination with Alt, Windows Key, etc.
     //   the game shouldn't have seen those keys, but the hook they are using doesn't
     //     hide them...
-    if (hide)
+    if ((hide || !game_window.active) && (wParam == VK_MENU || wParam == VK_LMENU || wParam == VK_RMENU || wParam == VK_TAB))
     {
-      // Release these keys when alt-tabbing...
-      lParam = 0;
-
       if (hook_fn != nullptr && config.input.keyboard.disabled_to_game != 1)
-          hook_fn (nCode, wParam, lParam);
+      {
+        lParam &= ~(1<<31);
+        lParam &= ~(1<<30);
+        lParam &= ~(1<<29);
+
+        hook_fn (nCode, wParam, lParam);
+
+        return
+          CallNextHookEx (
+            nullptr, nCode,
+             wParam, lParamOrig );
+      }
     }
 
     if (     hook_fn != nullptr && !hide)

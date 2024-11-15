@@ -1066,7 +1066,7 @@ GetCursorPos_Detour (LPPOINT lpPoint)
     //
     // Compute delta mouse coordinates for games that use cursor warping (i.e. mouselook)
     //
-    if (SK_ImGui_WantMouseCapture () || s_GameSetCursorPosTime >= SK_timeGetTime () - kCursorWarpCooldown)
+    if (SK_ImGui_WantMouseCapture () || (SK_ImGui_Active () && s_GameSetCursorPosTime >= SK_timeGetTime () - kCursorWarpCooldown))
     {
       SK_Win32_Backend->markHidden (sk_win32_func::GetCursorPos);
 #if 0
@@ -1224,7 +1224,7 @@ SetCursorPos_Detour (_In_ int x, _In_ int y)
   if (config.window.drag_lock)
     return TRUE;
 
-  if (SK_ImGui_IsMouseRelevant ())
+  if (SK_ImGui_Active ())
   {
     // Game WANTED to change its position, so remember that.
     POINT                           pt { x, y };
