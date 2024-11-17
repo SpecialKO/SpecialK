@@ -589,7 +589,7 @@ ImGui_ImplDX11_RenderDrawData (ImDrawData* draw_data)
     //
     //  * HDR processing already did the Flip Model dance for us, so we can
     //      draw straight to the Swap Chain's -real- Back Buffer.
-    if (bSkip == TRUE)
+    if (bSkip != FALSE)
     {
       SK_D3D11_HDR_ZeroCopy = true;
 

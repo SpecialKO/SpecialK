@@ -1151,25 +1151,13 @@ D3D11_UpdateSubresource1_Override (
   if (pDstResource == nullptr || pSrcData == nullptr)
     return;
 
-  bool early_out = false;
-
   SK_TLS *pTLS = nullptr;
+  bool early_out = false;
+       early_out = (! SK_D3D11_ShouldTrackRenderOp (This));
+  if ( early_out )
+  {    early_out = (! SK_D3D11_ShouldTrackMMIO     (This, &pTLS)); } 
 
-  // UB: If it's happening, pretend we never saw this...
-  if ( pDstResource == nullptr ||
-       pSrcData     == nullptr    )
-  {
-    early_out = true;
-  }
-
-  else
-  {     early_out = (! SK_D3D11_ShouldTrackRenderOp (This));
-    if (early_out)
-    {   early_out = (! SK_D3D11_ShouldTrackMMIO     (This, &pTLS)); }
-  }
-
-
-  if (early_out)
+  if ( early_out )
   {
     return
       D3D11_UpdateSubresource1_Original (

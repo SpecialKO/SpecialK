@@ -1493,7 +1493,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
 
       output_list += "  ";
       output_list +=
-        end_point.name_.c_str ();
+        end_point.name_;
 
       output_list += '\0';
 
@@ -1868,7 +1868,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       {
         // Revert to no preference
         config.display.monitor_idx      = 0;
-        config.display.monitor_path_ccd = L"";
+        config.display.monitor_path_ccd.clear ();
       }
 
       config.utility.save_async ();
@@ -1892,7 +1892,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     {
       // Revert to no preference
       config.display.monitor_idx      = 0;
-      config.display.monitor_path_ccd = L"";
+      config.display.monitor_path_ccd.clear ();
 
       config.display.resolution.override.x = 0;
       config.display.resolution.override.y = 0;

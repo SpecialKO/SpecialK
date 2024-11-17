@@ -3180,7 +3180,7 @@ WINAPI
 SK_XInput_WasLastPollSuccessful ( INT iJoyID )
 {
   return
-    iJoyID >= 0 && iJoyID <= XUSER_MAX_COUNT && _lastXInputPollState [iJoyID];
+    iJoyID >= 0 && iJoyID < XUSER_MAX_COUNT && _lastXInputPollState [iJoyID];
 }
 
 bool

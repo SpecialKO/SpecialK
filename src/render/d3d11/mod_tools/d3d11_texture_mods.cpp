@@ -971,7 +971,7 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
       last_width  = effective_width  + font_size * 28.0f;
 
       // Unsigned -> Signed so we can easily spot underflows
-      if (pTex != nullptr)
+      if (pTex.p != nullptr)
       {
         LONG refs =
           pTex.p->AddRef  () - 1;

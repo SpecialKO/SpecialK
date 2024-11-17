@@ -1245,7 +1245,7 @@ ReadFileEx_Detour (HANDLE                          hFile,
     case SK_Input_DeviceFileType::NVIDIA:
     {
       SK_MessageBus_Backend->markRead (2);
-    }
+    } break;
 
     default:
     {

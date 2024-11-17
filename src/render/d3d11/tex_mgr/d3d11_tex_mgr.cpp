@@ -947,7 +947,7 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
            SK_UTF8ToWideChar (SK_D3D11_GetDebugNameA (pTex)) :
                               SK_D3D11_GetDebugNameW (pTex);
 
-        if (wcslen (wszSubDir.c_str ()))
+        if (wszSubDir.length ())
         {
           PathAppendW (wszPath, wszSubDir.c_str ());
           lstrcatW    (wszPath, L"/");

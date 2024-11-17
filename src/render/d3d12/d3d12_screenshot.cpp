@@ -634,7 +634,7 @@ SK_D3D12_CaptureScreenshot (
 
   SK_D3D12_SetDebugName (              pStagingCtx->pFence,
        SK_FormatStringW ( L"SK Screenshot Completion Fence (%lu)",
-                                                   ulFenceFrame ).c_str () );
+                                                   ulFenceFrame ) );
 
   pStagingCtx->uiFenceVal =
                ulFenceFrame;
