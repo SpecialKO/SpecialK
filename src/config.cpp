@@ -266,7 +266,8 @@ SK_GetCurrentGameID (void)
           { L"ysx.exe",                                SK_GAME_ID::YsX                          },
           { L"MonsterHunterWilds.exe",                 SK_GAME_ID::MonsterHunterWilds           },
           { L"MonsterHunterWildsBeta.exe",             SK_GAME_ID::MonsterHunterWilds           },
-          { L"Dragon Age The Veilguard.exe",           SK_GAME_ID::DragonAgeTheVeilguard        }
+          { L"Dragon Age The Veilguard.exe",           SK_GAME_ID::DragonAgeTheVeilguard        },
+          { L"tomb123.exe",                            SK_GAME_ID::TombRaider123Remastered      }
         };
 
     first_check  = false;
@@ -3685,6 +3686,11 @@ auto DeclKeybind =
 
       case SK_GAME_ID::DragonAgeTheVeilguard:
         config.input.ui.capture_mouse               = true;
+        break;
+
+      // Game requires special sRGB treatment.
+      case SK_GAME_ID::TombRaider123Remastered:
+        config.render.dxgi.srgb_behavior            = 0;
         break;
 
       case SK_GAME_ID::Metaphor:

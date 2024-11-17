@@ -1718,6 +1718,7 @@ enum class SK_GAME_ID
   Transistor,                   // Transistor.exe
   MonsterHunterWilds,           // MonsterHunterWilds{Beta}.exe
   DragonAgeTheVeilguard,        // Dragon Age The Veilguard.exe
+  TombRaider123Remastered,      // tomb123.exe
 
   UNKNOWN_GAME               = 0xffff
 };
