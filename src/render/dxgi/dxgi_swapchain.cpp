@@ -1112,23 +1112,20 @@ IWrapDXGISwapChain::GetDesc1 (DXGI_SWAP_CHAIN_DESC1 *pDesc)
   HRESULT hr =
     static_cast <IDXGISwapChain1 *>(pReal)->GetDesc1 (pDesc);
 
+  // Potentially override the Sample Count if behind the scenes we are
+  //   handling MSAA resolve for a Flip Model SwapChain
   if (SUCCEEDED (hr))
   {
-    // Potentially override the Sample Count if behind the scenes we are
-    //   handling MSAA resolve for a Flip Model SwapChain
-    if (SUCCEEDED (hr))
+    std::scoped_lock lock (_backbufferLock);
+
+    if ( (! _backbuffers.empty ()) &&
+            _backbuffers [0].p != nullptr )
     {
-      std::scoped_lock lock (_backbufferLock);
+      D3D11_TEXTURE2D_DESC        texDesc = { };
+      _backbuffers [0]->GetDesc (&texDesc);
 
-      if ( (! _backbuffers.empty ()) &&
-              _backbuffers [0].p != nullptr )
-      {
-        D3D11_TEXTURE2D_DESC        texDesc = { };
-        _backbuffers [0]->GetDesc (&texDesc);
-
-        pDesc->SampleDesc.Count   = texDesc.SampleDesc.Count;
-        pDesc->SampleDesc.Quality = texDesc.SampleDesc.Quality;
-      }
+      pDesc->SampleDesc.Count   = texDesc.SampleDesc.Count;
+      pDesc->SampleDesc.Quality = texDesc.SampleDesc.Quality;
     }
   }
 

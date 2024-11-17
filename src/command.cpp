@@ -102,8 +102,11 @@ public:
     {
       num_lines++;
 
-      /* Remove the newline character... */
-      line [strlen (line) - 1] = '\0';
+      if (*line != '\0')
+      {
+        /* Remove the newline character... */
+        line [strlen (line) - 1] = '\0';
+      }
 
       processor_->ProcessCommandLine (line);
 
@@ -170,7 +173,7 @@ SK_ICommandProcessor::AddCommand (const char* szCommand, SK_ICommand* pCommand)
   if (FindCommand (szCommand) != nullptr)
     return nullptr;
 
-  commands_.insert (SK_CommandRecord (szCommand, std::unique_ptr <SK_ICommand> (pCommand)));
+  commands_.emplace (SK_CommandRecord (szCommand, std::unique_ptr <SK_ICommand> (pCommand)));
 
   return pCommand;
 }
@@ -722,7 +725,7 @@ SK_IVarStub <uint64>::getValueString ( _Out_opt_     char* szOut,
   uint32_t len = 0;
 
   len =
-    sk::narrow_cast <uint32_t> (strlen (std::to_string (getValue ()).c_str ()));
+    sk::narrow_cast <uint32_t> (std::to_string (getValue ()).length ());
 
   if (szOut != nullptr)
     strncpy (szOut, std::to_string (getValue ()).c_str (), *dwLen);

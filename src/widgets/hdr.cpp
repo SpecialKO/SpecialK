@@ -397,7 +397,7 @@ SK_Display_GetDeviceNameAndGUID (const wchar_t *wszPathName)
                 wszName+1;
 
       auto end =
-        name_and_guid.find (L"#");
+        name_and_guid.find (L'#');
 
       if (end != std::wstring::npos)
       {
@@ -1713,7 +1713,7 @@ public:
 
             if (eotf_sel == ContentEotf_Custom)
             {
-              list += SK_FormatString ("Custom: %3.2f", __SK_HDR_Content_EOTF).c_str ();
+              list += SK_FormatString ("Custom: %3.2f", __SK_HDR_Content_EOTF);
             }
 
             else

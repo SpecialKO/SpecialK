@@ -1686,7 +1686,7 @@ SK_EstablishRootPath (void)
     if (! bEnvironmentDefinedPath)
     {
       if ( CRegKey
-             hkInstallPath; (! bEnvironmentDefinedPath) && ERROR_SUCCESS ==
+             hkInstallPath; ERROR_SUCCESS ==
              hkInstallPath.Open ( HKEY_CURRENT_USER,
                   LR"(Software\Kaldaien\Special K)" )
           )

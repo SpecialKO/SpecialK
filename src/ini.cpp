@@ -592,7 +592,7 @@ iSK_INI::parse (void)
   if (sk::narrow_cast <size_t> (bom_size) >= data.size ())
     return; // Invalid Data
 
-  if (data.at (0) == L'\0')
+  if (data [0] == L'\0')
     return; // Empty String
 
   size_t len =

@@ -395,7 +395,7 @@ SK_ImGui_CreateNotificationEx ( const char* szID,
   if (notify_ini != nullptr && 0 == (flags & SK_ImGui_Toast::DoNotSaveINI) && (! toast.id.empty ()))
   {
     std::wstring wstr_id (
-      SK_UTF8ToWideChar (toast.id.c_str ())
+      SK_UTF8ToWideChar (toast.id)
     );
 
     bool has_section =
@@ -594,7 +594,7 @@ SK_ImGui_DrawNotifications (void)
 
   for ( auto it  = notifications.rbegin () ;
              it != notifications.rend   () ;
-             it++ )
+           ++it )
   {
     if (it->flags & SK_ImGui_Toast::ShowNewest)
     {
@@ -794,7 +794,7 @@ SK_ImGui_DrawNotifications (void)
         {
           auto& toast_cfg =
             notify_ini->get_section (
-              SK_UTF8ToWideChar (toast.id.c_str ()).c_str ()
+              SK_UTF8ToWideChar (toast.id).c_str ()
             );
 
           bool                                                  bDoNotShow =

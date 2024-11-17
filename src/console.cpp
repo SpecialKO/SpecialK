@@ -154,7 +154,7 @@ SK_PluginKeyPress (BOOL Control, BOOL Shift, BOOL Alt, BYTE vkCode)
   static bool& visible = SK_Console::getInstance ()->visible;
   static BYTE* keys_   = SK_Console::getInstance ()->keys_;
 
-  if (visible || ((! visible) && (! SK_ImGui_Widgets->DispatchKeybinds (Control, Shift, Alt, vkCode))))
+  if (visible || (! SK_ImGui_Widgets->DispatchKeybinds (Control, Shift, Alt, vkCode)))
   {
     auto masked =
       SK_MakeKeyMask (vkCode, Control, Shift, Alt);

@@ -6788,8 +6788,8 @@ SK_Win32_IsDummyWindowClass (WNDCLASSEXW* pWindowClass)
     (*pWindowClass->lpszClassName == L'S' && StrStrW (pWindowClass->lpszClassName, L"SKIV_NotificationIcon"))                 || // SKIV's thingy...
 
     // F' it, there's a pattern here, just ignore all dummies.
-    (*pWindowClass->lpszClassName == L'D'||
-     *pWindowClass->lpszClassName == L'D' ) && StrStrIW (pWindowClass->lpszClassName, L"dummy");
+    ((*pWindowClass->lpszClassName == L'D'||
+      *pWindowClass->lpszClassName == L'd' ) && StrStrIW (pWindowClass->lpszClassName, L"dummy"));
 
   if ((*pWindowClass->lpszClassName == L'Q'  ||
        *pWindowClass->lpszClassName == L'q') &&

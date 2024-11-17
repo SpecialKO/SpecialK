@@ -513,7 +513,7 @@ SK_ReShadeAddOn_DestroyCmdQueue (reshade::api::command_queue *queue)
       }
     }
 
-    else if (dxgi_rtv.isValid ())
+    if (dxgi_rtv.isValid ())
     {
       busy_rtvs.push (dxgi_rtv);
     }

@@ -2062,7 +2062,7 @@ SK::Framerate::Limiter::wait (void)
 
     static int iSkips = 0;
     static int                       iTry  = 0; // First time signals resync
-    if (                             iTry == 0 || (rb.gsync_state.active == false || (++iSkips % 50) == 0) && (
+    if (                            (iTry == 0 || (rb.gsync_state.active == false || (++iSkips % 50) == 0)) && (
         config.render.framerate.latent_sync.scanline_resync  != 0 &&
                                     (iTry++ %
         config.render.framerate.latent_sync.scanline_resync) == 0 )
@@ -2390,14 +2390,14 @@ SK::Framerate::TickEx ( bool       /*wait*/,
   auto *pLimiter =
     SK::Framerate::GetLimiter (swapchain);
 
-  auto& snapshots =
-    pLimiter->frame_history_snapshots;
-
   SK_ReleaseAssert (pLimiter != nullptr);
 
   // Should never happen, but better safe.
   if (pLimiter == nullptr)
     return;
+
+  auto& snapshots =
+    pLimiter->frame_history_snapshots;
 
   if (! snapshots.isAllocated () )
   {
@@ -2544,14 +2544,14 @@ SK::Framerate::Tick ( bool          wait,
   auto *pLimiter =
     SK::Framerate::GetLimiter (swapchain);
 
-  auto& snapshots =
-    pLimiter->frame_history_snapshots;
-
   SK_ReleaseAssert (pLimiter != nullptr);
 
   // Should never happen, but better safe.
   if (pLimiter == nullptr)
     return;
+
+  auto& snapshots =
+    pLimiter->frame_history_snapshots;
 
   if (! snapshots.isAllocated () )
   {

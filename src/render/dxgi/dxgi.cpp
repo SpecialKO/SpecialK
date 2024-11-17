@@ -339,7 +339,7 @@ ImGui_DX12Startup ( IDXGISwapChain* pSwapChain )
   {
     DXGI_SWAP_CHAIN_DESC swap_desc = { };
 
-    if (pSwapChain != nullptr && SUCCEEDED (pSwapChain->GetDesc (&swap_desc)))
+    if (SUCCEEDED (pSwapChain->GetDesc (&swap_desc)))
     {
       if (swap_desc.OutputWindow != nullptr)
       {
@@ -411,7 +411,7 @@ ImGui_DX11Startup ( IDXGISwapChain* pSwapChain )
       {
         DXGI_SWAP_CHAIN_DESC swap_desc = { };
 
-        if (pSwapChain != nullptr && SUCCEEDED (pSwapChain->GetDesc (&swap_desc)))
+        if (SUCCEEDED (pSwapChain->GetDesc (&swap_desc)))
         {
           if (swap_desc.OutputWindow != nullptr)
           {
@@ -1672,7 +1672,10 @@ SK_D3D11_ClearSwapchainBackbuffer (IDXGISwapChain *pSwapChain, const float *pCol
 #endif
 
     // NOTE: This will exist even if the system does not support HDR
-    if (                            pRawRTV   != nullptr ||
+    if (
+#ifdef __SK_NO_FLIP_MODEL
+                                    pRawRTV   != nullptr ||
+#endif
          ( _d3d11_rbk->frames_.size () > 0               &&
            _d3d11_rbk->frames_ [0].hdr.pRTV.p != nullptr &&
            SK_D3D11_EnsureMatchingDevices (_d3d11_rbk->frames_ [0].hdr.pRTV, pDev.p) )
@@ -4438,8 +4441,8 @@ DXGISwap3_ResizeBuffers1_Override (IDXGISwapChain3* This,
   //   a valid footgun license and can afford to lose a few toes.
   //
   if (                            SK_ComPtr <ID3D12Device> pSwapDev12;
-      FAILED (This->GetDevice (IID_ID3D12Device, (void **)&pSwapDev12.p) ||
-               config.render.dxgi.allow_d3d12_footguns)
+      FAILED (This->GetDevice (IID_ID3D12Device, (void **)&pSwapDev12.p)) ||
+               config.render.dxgi.allow_d3d12_footguns
      )
   {
     if (       config.render.framerate.buffer_count != SK_NoPreference &&
@@ -5491,7 +5494,7 @@ SK_DXGI_CreateSwapChain_PreInit (
 
   _ORIGINAL_SWAP_CHAIN_DESC = orig_desc;
 
-  if (memcmp (&orig_desc, pDesc, sizeof (DXGI_SWAP_CHAIN_DESC)) != 0)
+  if (pDesc != nullptr && memcmp (&orig_desc, pDesc, sizeof (DXGI_SWAP_CHAIN_DESC)) != 0)
   {
     _DescribeSwapChain (L"SPECIAL K OVERRIDES APPLIED");
   }
@@ -8098,9 +8101,6 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
   DXGI_LOG_CALL_3 ( L"                    CreateDXGIFactory2       ",
                     L"0x%04X, %hs, %08" _L(PRIxPTR) L"h",
                       Flags, iname.c_str (), (uintptr_t)ppFactory );
-
-  if (ppFactory == nullptr)
-    return DXGI_ERROR_INVALID_CALL;
 
   *ppFactory = nullptr;
 
