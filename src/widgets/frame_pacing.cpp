@@ -814,7 +814,7 @@ void ValueBar(const char *label, const float value, const ImVec2 &size, const fl
     const auto &cursor_pos = GetCursorScreenPos();
     const float fraction = (value - min_value) / max_value;
     const float frame_height = GetFrameHeight();
-    const auto &label_size = strlen(label) > 0 ? ImVec2{CalcTextSize(label).x, frame_height} : ImVec2{0, 0};
+    const auto &label_size = label[0] != '\0' ? ImVec2{CalcTextSize(label).x, frame_height} : ImVec2{0, 0};
     const auto &rect_size = is_h ? ImVec2{CalcItemWidth(), frame_height} : ImVec2{GetFontSize() * 2, size.y - label_size.y};
     const auto &rect_start = cursor_pos + ImVec2{is_h ? 0 : max(0.0f, (label_size.x - rect_size.x) / 2), 0};
 
