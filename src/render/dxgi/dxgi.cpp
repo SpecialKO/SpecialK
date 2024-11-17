@@ -5990,6 +5990,21 @@ SK_DXGI_WrapSwapChain ( IUnknown        *pDevice,
                (uintptr_t)pSwapChain
     );
 
+    // Setup D3D11 Device Context Late (on successive draw)
+    if (rb.device.p == nullptr && SK_GetFramesDrawn () > 0)
+    {
+      if (rb.swapchain == nullptr)
+          rb.swapchain = pSwapChain;
+
+      SK_ComPtr <ID3D11DeviceContext> pDevCtx;
+      pDev11.p->GetImmediateContext (&pDevCtx.p);
+             rb.d3d11.immediate_ctx = pDevCtx;
+             rb.setDevice            (pDev11.p);
+
+      SK_LOGs0 ( L"  D3D 11  ",
+                 L"Active D3D11 Device Context Established on creation of new SwapChain" );
+    }
+
     // Stash the pointer to this device so that we can test equality on wrapped devices
     pDev11->SetPrivateData (SKID_D3D11DeviceBasePtr, sizeof (uintptr_t), pNativeDev11.p != nullptr ? pNativeDev11.p : pDev11.p);
   }
@@ -6101,6 +6116,21 @@ SK_DXGI_WrapSwapChain1 ( IUnknown         *pDevice,
 
     // Stash the pointer to this device so that we can test equality on wrapped devices
     pDev11->SetPrivateData (SKID_D3D11DeviceBasePtr, sizeof (uintptr_t), pDev11.p);
+
+    // Setup D3D11 Device Context Late (on successive draw)
+    if (rb.device.p == nullptr && SK_GetFramesDrawn () > 0)
+    {
+      if (rb.swapchain == nullptr)
+          rb.swapchain = pSwapChain;
+
+      SK_ComPtr <ID3D11DeviceContext> pDevCtx;
+      pDev11.p->GetImmediateContext (&pDevCtx.p);
+             rb.d3d11.immediate_ctx = pDevCtx;
+             rb.setDevice            (pDev11.p);
+
+      SK_LOGs0 ( L"  D3D 11  ",
+                 L"Active D3D11 Device Context Established on creation of new SwapChain" );
+    }
   }
 
   if (ret != nullptr)
@@ -7138,8 +7168,8 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
         // Don't cache SwapChains, NVIDIA always creates a new device
         if (! bNvInterop)
         {
-          SK_DXGI_MakeCachedSwapChainForHwnd
-               ( *ppSwapChain, hWnd, pDev11.p );
+          //SK_DXGI_MakeCachedSwapChainForHwnd
+          //     ( *ppSwapChain, hWnd, pDev11.p );
         }
       }
 
