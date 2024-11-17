@@ -5487,6 +5487,33 @@ D3D11Dev_CreateTexture2DCore_Impl (
   // DESC1 adds a DWORD at the end, we really don't care about it for any of
   //   this logic, but will preserve its value.
 
+#if 0
+  if (pDesc != nullptr &&
+      pDesc->BindFlags & D3D11_BIND_DEPTH_STENCIL && SK_IsCurrentGame (SK_GAME_ID::Metaphor))
+  {
+    //SK_LOGi0 (L"Depth/Stencil: (%dx%d), Format=%hs", pDesc->Width, pDesc->Height, SK_DXGI_FormatToStr (pDesc->Format).data ());
+
+    if (pDesc->Format == DXGI_FORMAT_R24G8_TYPELESS)
+    {   pDesc->Format  = DXGI_FORMAT_R32G8X24_TYPELESS;
+    }
+  }
+#endif
+
+#if 0
+  if (pDesc != nullptr &&
+      pDesc->BindFlags & D3D11_BIND_RENDER_TARGET && SK_IsCurrentGame (SK_GAME_ID::Metaphor))
+  {
+    if (pDesc->Format == DXGI_FORMAT_R16G16B16A16_FLOAT)
+        pDesc->Format =  DXGI_FORMAT_R32G32B32A32_FLOAT;
+
+    if (pDesc->Format == DXGI_FORMAT_R16G16_FLOAT)
+        pDesc->Format =  DXGI_FORMAT_R32G32_FLOAT;
+
+    if (pDesc->Format == DXGI_FORMAT_R16_FLOAT)
+        pDesc->Format =  DXGI_FORMAT_R32_FLOAT;
+  }
+#endif
+
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
