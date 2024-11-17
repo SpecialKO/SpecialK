@@ -1055,32 +1055,27 @@ BOOL SK_ReShade_HasRenoDX (void)
   return _HasRenoDX;
 }
 
-const std::filesystem::path&
+const std::filesystem::path
 SK_ReShadeGetBasePath (void)
 {
-  SK_RunOnce (
-    SK_ReShadeAddOn_HadLocalINI =
-      PathFileExistsW (L"ReShade.ini")
-  );
+  SK_ReShadeAddOn_HadLocalINI =
+    PathFileExistsW (L"ReShade.ini");
 
-  static std::filesystem::path
-             reshade_base_path (SK_ReShadeAddOn_HadLocalINI?
+  std::filesystem::path
+      reshade_base_path (SK_ReShadeAddOn_HadLocalINI?
   L".\\":std::filesystem::path (SK_GetConfigPath ()) / L"ReShade");
 
   return reshade_base_path;
 }
 
-const char*
+const std::filesystem::path
 SK_ReShadeGetConfigPath (void)
 {
-  static std::filesystem::path
-              reshade_ini_path
-        (SK_ReShadeGetBasePath () / L"ReShade.ini");
+  std::filesystem::path
+       reshade_ini_path
+ (SK_ReShadeGetBasePath () / L"ReShade.ini");
 
-  static auto szReShadeConfig =
-  (const char *)reshade_ini_path.u8string ().c_str ();
-
-  return szReShadeConfig;
+  return reshade_ini_path;
 }
 
 bool
@@ -1308,7 +1303,7 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceCo
       DeleteFileW (L"ReShade.ini");
     }
 
-    if (! reshade::create_effect_runtime (reshade::api::device_api::d3d11, pDevice, pDevCtx, swapchain, SK_ReShadeGetConfigPath (), &runtime))
+    if (! reshade::create_effect_runtime (reshade::api::device_api::d3d11, pDevice, pDevCtx, swapchain, (const char *)SK_ReShadeGetConfigPath ().u8string ().c_str(), &runtime))
     {
       return nullptr;
     }
@@ -1332,7 +1327,7 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (ID3D12Device *pDevice, ID3D12CommandQ
   {
     SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
 
-    if (! reshade::create_effect_runtime (reshade::api::device_api::d3d12, pDevice, pCmdQueue, swapchain, SK_ReShadeGetConfigPath (), &runtime))
+    if (! reshade::create_effect_runtime (reshade::api::device_api::d3d12, pDevice, pCmdQueue, swapchain, (const char *)SK_ReShadeGetConfigPath ().u8string ().c_str (), &runtime))
     {
       return nullptr;
     }

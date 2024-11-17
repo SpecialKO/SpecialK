@@ -1,4 +1,11 @@
-﻿24.11.17.1
+﻿24.11.17.2
+==========
+ + Fixed problems with SK not re-initializing D3D11 when the active SwapChain
+     is destroyed and re-created.
+ + Fixed potential issues with loading ReShade as a plug-in and config files
+     not correctly being passed to create_effect_runtime (...).
+
+24.11.17.1
 ==========
  + Implement Lossy scRGB->HDR10 Quantization the correct way :)
 
