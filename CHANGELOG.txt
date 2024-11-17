@@ -1,4 +1,13 @@
-﻿24.11.16
+﻿24.11.17
+========
+ + Added texture sampling fixes for Metaphor: ReFantazio so that it actually
+     can make use of anisotropic filtering, instead of setting MaxAnisotropy
+       and then using a texture filter that doesn't support anisotropic...
+ + Revert a few ReShade integration changes (synchronous loading of PlugIn)
+ + Added Lossy scRGB->HDR10 Quantization mode to reduce filesize on HDR PNG
+     screenshots.
+
+24.11.16
 ========
  + Disable GOG Overlay in Unity Engine games with AMD GPUs, because the GOG
      overlay will cause AMD's shitty interop to kick in when it sets up for

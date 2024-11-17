@@ -253,8 +253,8 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
       int intermediate_bits = 16;
       int output_bits       = 
         (typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS)  ? 10 :
-        (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? 12 :
-                                                              12;//16;
+        (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? config.screenshots.lossy_scrgb_to_hdr10 ? 10 : 16
+                                                            : 12;//16;
 
       output_bits = 16;
 

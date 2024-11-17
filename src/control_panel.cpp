@@ -3691,14 +3691,21 @@ SK_ImGui_ControlPanel (void)
         bool hdr_changed =
             ImGui::Checkbox ( "Keep Full-Range HDR Screenshots",
                                 &config.screenshots.png_compress );
+        hdr_changed |=
+            ImGui::Checkbox ( "Use Lossy scRGB to HDR10 for PNG",
+                                &config.screenshots.lossy_scrgb_to_hdr10 );
+        ImGui::SetItemTooltip (
+          "Pre-scale 16-bpc scRGB to 10-bpc before encoding to reduce filesize.\r\n"
+          "Should not produce visibly worse images; reduces accuracy of luminance/gamut statistics."
+        );
 
-                int clipboard_selection =
+        int clipboard_selection =
           config.screenshots.copy_to_clipboard   ?
           config.screenshots.allow_hdr_clipboard ? 1 : 2 : 0;
 
         if (ImGui::Combo ( "Clipboard Format", &clipboard_selection,
                            "None (Do Not Copy)\0"
-                           "Lossless HDR\0"
+                           "Loss(less?) HDR\0"
                            "Tone-mapped SDR\0\0" ))
         {
           hdr_changed = true;
