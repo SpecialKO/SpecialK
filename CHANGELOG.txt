@@ -1,4 +1,8 @@
-﻿24.11.17
+﻿24.11.17.1
+==========
+ + Implement Lossy scRGB->HDR10 Quantization the correct way :)
+
+24.11.17
 ========
  + Added texture sampling fixes for Metaphor: ReFantazio so that it actually
      can make use of anisotropic filtering, instead of setting MaxAnisotropy

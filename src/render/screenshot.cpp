@@ -250,13 +250,14 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
         (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? pq_range_16bpc :
                                                               pq_range_32bpc;
 
-      int intermediate_bits = 16;
+      //int intermediate_bits = 16;
       int output_bits       = 
         (typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS)  ? 10 :
         (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? config.screenshots.lossy_scrgb_to_hdr10 ? 10 : 16
                                                             : 12;//16;
 
-      output_bits = 16;
+      const int scrgb_postscale = 1UL << output_bits;
+      const float scrgb_prescale = static_cast<float>(scrgb_postscale);
 
       for (size_t j = 0; j < width; ++j)
       {
@@ -271,18 +272,26 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
             LinearToPQ (XMVectorMax (XMVector3Transform (v, c_from709to2020), g_XMZero));
         }
 
-        v = // Quantize to 10- or 12-bpc before expanding to 16-bpc in order to improve
-          XMVectorRound ( // compression efficiency
-            XMVectorMultiply (
-              XMVectorSaturate (v), pq_range_out));
+        v = XMVectorSaturate (v);// Quantize to 10- or 12-bpc before expanding to 16-bpc in order to improve
+        //  XMVectorRound ( // compression efficiency
+        //    XMVectorMultiply (
+        //      XMVectorSaturate (v), pq_range_out));
 
-        *(rgb16_pixels++) =
-          static_cast <uint16_t> (DirectX::XMVectorGetX (v)) << (intermediate_bits - output_bits);
-        *(rgb16_pixels++) =
-          static_cast <uint16_t> (DirectX::XMVectorGetY (v)) << (intermediate_bits - output_bits);
-        *(rgb16_pixels++) =
-          static_cast <uint16_t> (DirectX::XMVectorGetZ (v)) << (intermediate_bits - output_bits);
-          rgb16_pixels++; // We have an unused alpha channel that needs skipping
+        if (output_bits != 16)
+        {
+          *(rgb16_pixels++) = static_cast <uint16_t> (std::min (65535, static_cast <int> (std::roundf ((XMVectorGetX (v) * scrgb_prescale)) * 65536.0f) / scrgb_postscale));
+          *(rgb16_pixels++) = static_cast <uint16_t> (std::min (65535, static_cast <int> (std::roundf ((XMVectorGetY (v) * scrgb_prescale)) * 65536.0f) / scrgb_postscale));
+          *(rgb16_pixels++) = static_cast <uint16_t> (std::min (65535, static_cast <int> (std::roundf ((XMVectorGetZ (v) * scrgb_prescale)) * 65536.0f) / scrgb_postscale));
+            rgb16_pixels++; // We have an unused alpha channel that needs skipping
+        }
+
+        else
+        {
+          *(rgb16_pixels++) = static_cast <uint16_t> (std::min (65535, static_cast <int> (XMVectorGetX (v) * 65536.0f)));
+          *(rgb16_pixels++) = static_cast <uint16_t> (std::min (65535, static_cast <int> (XMVectorGetY (v) * 65536.0f)));
+          *(rgb16_pixels++) = static_cast <uint16_t> (std::min (65535, static_cast <int> (XMVectorGetZ (v) * 65536.0f)));
+            rgb16_pixels++; // We have an unused alpha channel that needs skipping
+        }
       }
     });
   }

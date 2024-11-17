@@ -927,9 +927,6 @@ SK_GetCursorInfo (PCURSORINFO pci)
     if (     GetCursorInfo_Original != nullptr)
       return GetCursorInfo_Original (pci);
 
-    else if (GetCursorInfo_Original != nullptr)
-      return GetCursorInfo_Original (pci);
-
     return
       GetCursorInfo (pci);
   }
