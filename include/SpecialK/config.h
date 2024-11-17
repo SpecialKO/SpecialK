@@ -1376,7 +1376,7 @@ struct sk_config_t
   } network;
 
   struct utility_functions_s {
-    HANDLE hSignalAsyncSave;
+    HANDLE hSignalAsyncSave     = nullptr;
 
     void save_async (void);
   } utility;

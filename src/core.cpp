@@ -2280,12 +2280,14 @@ SK_StartupCore (const wchar_t* backend, void* callback)
         if (          file.is_regular_file (ec) &&
            !_wcsicmp (path.extension ().c_str (), L".asi"))
         {
+          const auto& path_filename = path.filename ();
+
           // It's already loaded...
-          if (GetModuleHandleW (path.filename ().c_str ()))
+          if (GetModuleHandleW (path_filename.c_str ()))
             continue;
 
-          const auto filename      = path.filename ().wstring  ();
-          const auto filename_utf8 = path.filename ().u8string ();
+          const auto filename      = path_filename.wstring  ();
+          const auto filename_utf8 = path_filename.u8string ();
 
           dll_log->LogEx (
             true, L"[ SpecialK ]  * Loading Early ASI PlugIn: '%ws' from '%ws' ... ",

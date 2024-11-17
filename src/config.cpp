@@ -6886,7 +6886,8 @@ SK_KeyMap_StandardizeNames (wchar_t* wszNameToFormalize)
 
   bool lower = true;
 
-  while (*pwszName != L'\0')
+  while ( pwszName != nullptr &&
+         *pwszName != L'\0' )
   {
     if (lower) CharLowerW (pwszName);
     else       CharUpperW (pwszName);
@@ -7190,23 +7191,28 @@ SK_AppCache_Manager::loadAppCacheForExe (const wchar_t* wszExe)
 
   if (wszPath != nullptr)
   {
-    std::wstring wszRelPath
-    (
+    auto wszRelStr =
       SK_CharNextW (
           StrStrIW (
       SK_CharNextW (
           StrStrIW ( wszPath, LR"(\)" )
-                   ),         LR"(\)"
-       )
-      )
-    ); wszRelPath += L'\0';
+                   ),         LR"(\)" )
+                   );
 
-    PathRemoveFileSpecW (
-      wszRelPath.data ()
-    );
+    std::wstring wszRelPath = L"";
 
-    //SK_LOG0 ( ( L" Relative Path: %ws ", wszRelPath.data () ),
-    //            L" AppCache " );
+    if (wszRelStr != nullptr)
+    {
+      wszRelPath = wszRelStr;
+      wszRelPath += L'\0';
+
+      PathRemoveFileSpecW (
+        wszRelPath.data ()
+      );
+
+      //SK_LOG0 ( ( L" Relative Path: %ws ", wszRelPath.data () ),
+      //            L" AppCache " );
+    }
 
     wchar_t            wszAppCache [MAX_PATH + 2] = { };
     std::wstring_view
@@ -7520,16 +7526,19 @@ SK_AppCache_Manager::addAppToCache ( const wchar_t* wszFullPath,
     wchar_t         wszAppID [32] = { };
     std::format_to (wszAppID, L"{:0}", uiAppID);
 
-    if (fwd_map.contains_key (wszRelPath))
-      fwd_map.get_value      (wszRelPath) = wszAppID;
-    else
-      fwd_map.add_key_value  (wszRelPath,   wszAppID);
+    if (wszRelPath != nullptr)
+    {
+      if (fwd_map.contains_key (wszRelPath))
+        fwd_map.get_value      (wszRelPath) = wszAppID;
+      else
+        fwd_map.add_key_value  (wszRelPath,   wszAppID);
 
 
-    if (rev_map.contains_key (wszAppID))
-      rev_map.get_value      (wszAppID) = wszRelPath;
-    else
-      rev_map.add_key_value  (wszAppID,   wszRelPath);
+      if (rev_map.contains_key (wszAppID))
+        rev_map.get_value      (wszAppID) = wszRelPath;
+      else
+        rev_map.add_key_value  (wszAppID,   wszRelPath);
+    }
 
 
     if (name_map.contains_key (wszAppID))

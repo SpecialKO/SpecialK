@@ -224,23 +224,23 @@ struct fmt_hash_matrix_s
   {
     map.resize (20);
 
-    map.at ( 1).reserve  ( 256); // Only      1x1
-    map.at ( 2).reserve  ( 512); // Up to     2x2
-    map.at ( 3).reserve  ( 512); // Up to     4x4
-    map.at ( 4).reserve  ( 512); // Up to     8x8
-    map.at ( 5).reserve  (1024); // Up to    16x16
-    map.at ( 6).reserve  ( 512); // Up to    32x32
-    map.at ( 7).reserve  ( 256); // Up to    64x64
-    map.at ( 8).reserve  ( 256); // Up to   128x128
-    map.at ( 9).reserve  (1280); // Up to   256x256
-    map.at (10).reserve  (2048); // Up to   512x512
-    map.at (11).reserve  (4096); // Up to  1024x1024
-    map.at (12).reserve  (4096); // Up to  2048x2048
-    map.at (13).reserve  (1024); // Up to  4096x4096
-    map.at (14).reserve  (  16); // Up to  8192x8192
-    map.at (15).reserve  (   8); // Up to 16384x16384
-    map.at (16).reserve  (   4); // Up to 32768x32768
-    map.at (17).reserve  (   2); // Up to 65536x65536
+    map [ 1].reserve  ( 256); // Only      1x1
+    map [ 2].reserve  ( 512); // Up to     2x2
+    map [ 3].reserve  ( 512); // Up to     4x4
+    map [ 4].reserve  ( 512); // Up to     8x8
+    map [ 5].reserve  (1024); // Up to    16x16
+    map [ 6].reserve  ( 512); // Up to    32x32
+    map [ 7].reserve  ( 256); // Up to    64x64
+    map [ 8].reserve  ( 256); // Up to   128x128
+    map [ 9].reserve  (1280); // Up to   256x256
+    map [10].reserve  (2048); // Up to   512x512
+    map [11].reserve  (4096); // Up to  1024x1024
+    map [12].reserve  (4096); // Up to  2048x2048
+    map [13].reserve  (1024); // Up to  4096x4096
+    map [14].reserve  (  16); // Up to  8192x8192
+    map [15].reserve  (   8); // Up to 16384x16384
+    map [16].reserve  (   4); // Up to 32768x32768
+    map [17].reserve  (   2); // Up to 65536x65536
   }
 
   std::vector <lod_hash_table_s> map;

@@ -347,7 +347,7 @@ struct ParamsPQ
 
 extern const ParamsPQ PQ;
 
-constexpr DirectX::XMMATRIX c_from709to2020 = // Transposed
+inline constexpr DirectX::XMMATRIX c_from709to2020 = // Transposed
 {
   { 0.627403914928436279296875f,     0.069097287952899932861328125f,    0.01639143936336040496826171875f, 0.0f },
   { 0.3292830288410186767578125f,    0.9195404052734375f,               0.08801330626010894775390625f,    0.0f },
@@ -355,7 +355,7 @@ constexpr DirectX::XMMATRIX c_from709to2020 = // Transposed
   { 0.0f,                            0.0f,                              0.0f,                             1.0f }
 };
 
-constexpr DirectX::XMMATRIX c_from2020toXYZ = // Transposed
+inline constexpr DirectX::XMMATRIX c_from2020toXYZ = // Transposed
 {
   { 0.636958062648773193359375f,  0.26270020008087158203125f,      0.0f,                           0.0f },
   { 0.144616901874542236328125f,  0.677998065948486328125f,        0.028072692453861236572265625f, 0.0f },
@@ -363,7 +363,7 @@ constexpr DirectX::XMMATRIX c_from2020toXYZ = // Transposed
   { 0.0f,                         0.0f,                            0.0f,                           1.0f }
 };
 
-constexpr DirectX::XMMATRIX c_from709toXYZ = // Transposed
+inline constexpr DirectX::XMMATRIX c_from709toXYZ = // Transposed
 {
   { 0.4123907983303070068359375f,  0.2126390039920806884765625f,   0.0193308182060718536376953125f, 0.0f },
   { 0.3575843274593353271484375f,  0.715168654918670654296875f,    0.119194783270359039306640625f,  0.0f },
@@ -371,7 +371,7 @@ constexpr DirectX::XMMATRIX c_from709toXYZ = // Transposed
   { 0.0f,                          0.0f,                           0.0f,                            1.0f }
 };
 
-constexpr DirectX::XMMATRIX c_from709toDCIP3 = // Transposed
+inline constexpr DirectX::XMMATRIX c_from709toDCIP3 = // Transposed
 {
   { 0.82246196269989013671875f,    0.03319419920444488525390625f, 0.017082631587982177734375f,  0.0f },
   { 0.17753803730010986328125f,    0.96680581569671630859375f,    0.0723974406719207763671875f, 0.0f },
@@ -379,7 +379,7 @@ constexpr DirectX::XMMATRIX c_from709toDCIP3 = // Transposed
   { 0.0f,                          0.0f,                          0.0f,                         1.0f }
 };
 
-constexpr DirectX::XMMATRIX c_from709toAP0 = // Transposed
+inline constexpr DirectX::XMMATRIX c_from709toAP0 = // Transposed
 {
   { 0.4339316189289093017578125f, 0.088618390262126922607421875f, 0.01775003969669342041015625f,  0.0f },
   { 0.3762523829936981201171875f, 0.809275329113006591796875f,    0.109447620809078216552734375f, 0.0f },
@@ -387,7 +387,7 @@ constexpr DirectX::XMMATRIX c_from709toAP0 = // Transposed
   { 0.0f,                         0.0f,                           0.0f,                           1.0f }
 };
 
-constexpr DirectX::XMMATRIX c_from709toAP1 = // Transposed
+inline constexpr DirectX::XMMATRIX c_from709toAP1 = // Transposed
 {
   { 0.61702883243560791015625f,       0.333867609500885009765625f,    0.04910354316234588623046875f,     0.0f },
   { 0.069922320544719696044921875f,   0.91734969615936279296875f,     0.012727967463433742523193359375f, 0.0f },
@@ -395,7 +395,7 @@ constexpr DirectX::XMMATRIX c_from709toAP1 = // Transposed
   { 0.0f,                             0.0f,                           0.0f,                              1.0f }
 };
 
-constexpr DirectX::XMMATRIX c_fromXYZto709 = // Transposed
+inline constexpr DirectX::XMMATRIX c_fromXYZto709 = // Transposed
 {
   {  3.2409698963165283203125f,    -0.96924364566802978515625f,       0.055630080401897430419921875f, 0.0f },
   { -1.53738319873809814453125f,    1.875967502593994140625f,        -0.2039769589900970458984375f,   0.0f },
@@ -403,7 +403,7 @@ constexpr DirectX::XMMATRIX c_fromXYZto709 = // Transposed
   {  0.0f,                          0.0f,                             0.0f,                           1.0f }
 };
 
-constexpr DirectX::XMMATRIX c_fromXYZtoLMS = // Transposed
+inline constexpr DirectX::XMMATRIX c_fromXYZtoLMS = // Transposed
 {
   {  0.3592f, -0.1922f, 0.0070f, 0.0f },
   {  0.6976f,  1.1004f, 0.0749f, 0.0f },
@@ -411,7 +411,7 @@ constexpr DirectX::XMMATRIX c_fromXYZtoLMS = // Transposed
   {  0.0f,     0.0f,    0.0f,    1.0f }
 };
 
-constexpr DirectX::XMMATRIX c_fromLMStoXYZ = // Transposed
+inline constexpr DirectX::XMMATRIX c_fromLMStoXYZ = // Transposed
 {
   {  2.070180056695613509600f,  0.364988250032657479740f, -0.049595542238932107896f, 0.0f },
   { -1.326456876103021025500f,  0.680467362852235141020f, -0.049421161186757487412f, 0.0f },
@@ -419,7 +419,7 @@ constexpr DirectX::XMMATRIX c_fromLMStoXYZ = // Transposed
   {  0.0f,                      0.0f,                      0.0f,                     1.0f }
 };
 
-constexpr DirectX::XMMATRIX c_scRGBtoBt2100 = // Transposed
+inline constexpr DirectX::XMMATRIX c_scRGBtoBt2100 = // Transposed
 {
   { 2939026994.0f /  585553224375.0f,   76515593.0f / 138420033750.0f,    12225392.0f /   93230009375.0f, 0.0f },
   { 9255011753.0f / 3513319346250.0f, 6109575001.0f / 830520202500.0f,  1772384008.0f / 2517210253125.0f, 0.0f },
@@ -427,7 +427,7 @@ constexpr DirectX::XMMATRIX c_scRGBtoBt2100 = // Transposed
   {                             0.0f,                            0.0f,                              0.0f, 1.0f }
 };
 
-constexpr DirectX::XMMATRIX c_Bt2100toscRGB = // Transposed
+inline constexpr DirectX::XMMATRIX c_Bt2100toscRGB = // Transposed
 {
   {  348196442125.0f / 1677558947.0f, -579752563250.0f / 37238079773.0f,  -12183628000.0f /  5369968309.0f, 0.0f },
   { -123225331250.0f / 1677558947.0f, 5273377093000.0f / 37238079773.0f, -472592308000.0f / 37589778163.0f, 0.0f },

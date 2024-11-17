@@ -118,22 +118,23 @@ SK_HID_DeviceFile::SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
   //   so keep a cache handy.
   if (known_paths.count (wszPath))
   {
-    hidpCaps            = known_paths.at (wszPath).hidpCaps;
+    auto& known_path = known_paths.at (wszPath);
+    hidpCaps         = known_path.hidpCaps;
 
     wcsncpy_s ( wszDevicePath, MAX_PATH,
                 wszPath,       _TRUNCATE );
 
-    wcsncpy_s (                          wszProductName,      128,
-                known_paths.at (wszPath).wszProductName,           _TRUNCATE );
-    wcsncpy_s (                          wszManufacturerName, 128,
-                known_paths.at (wszPath).wszManufacturerName,      _TRUNCATE );
-    wcsncpy_s (                          wszSerialNumber,     128,
-                known_paths.at (wszPath).wszSerialNumber,          _TRUNCATE );
+    wcsncpy_s (            wszProductName,      128,
+                known_path.wszProductName,           _TRUNCATE );
+    wcsncpy_s (            wszManufacturerName, 128,
+                known_path.wszManufacturerName,      _TRUNCATE );
+    wcsncpy_s (            wszSerialNumber,     128,
+                known_path.wszSerialNumber,          _TRUNCATE );
 
-    device_type         = known_paths.at (wszPath).device_type;
-    device_vid          = known_paths.at (wszPath).device_vid;
-    device_pid          = known_paths.at (wszPath).device_pid;
-    bDisableDevice      = known_paths.at (wszPath).bDisableDevice;
+    device_type         = known_path.device_type;
+    device_vid          = known_path.device_vid;
+    device_pid          = known_path.device_pid;
+    bDisableDevice      = known_path.bDisableDevice;
 
     hFile = file;
   }

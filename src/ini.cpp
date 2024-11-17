@@ -33,8 +33,11 @@ public:
 
       if (prev_locale_policy != -1)
       {
-        orig_locale =
-        _wsetlocale (LC_ALL, wszLocale);
+        if (auto orig = _wsetlocale (LC_ALL, wszLocale);
+                 orig != nullptr)
+        {
+          orig_locale = orig;
+        }
       }
     }
   }
@@ -632,11 +635,16 @@ iSK_INI::parse (void)
          pEnd = SK_CharNextW (pEnd);
       } pNext = SK_CharNextW (pNext);
 
-      wc = *pNext;
+      if (    pNext != nullptr)
+        wc = *pNext;
+      else break;
     }
 
-    ZeroMemory (pEnd, (SK_CharNextW (pNext) - pEnd) *
-                                     sizeof (*pEnd));
+    if (SK_CharNextW (pNext) != nullptr)
+    {
+      ZeroMemory (pEnd, (SK_CharNextW (pNext) - pEnd) *
+                                       sizeof (*pEnd));
+    }
 
     len =
       wcsnlen_s (pStart, (pEnd - pStart) /
@@ -828,11 +836,16 @@ iSK_INI::import (const wchar_t* import_data)
          pEnd = SK_CharNextW (pEnd);
       } pNext = SK_CharNextW (pNext);
 
-      wc = *pNext;
+      if (    pNext != nullptr)
+        wc = *pNext;
+      else break;
     }
 
-    ZeroMemory (pEnd, (SK_CharNextW (pNext) - pEnd) *
-                                     sizeof (*pEnd));
+    if (SK_CharNextW (pNext) != nullptr)
+    {
+      ZeroMemory (pEnd, (SK_CharNextW (pNext) - pEnd) *
+                                       sizeof (*pEnd));
+    }
 
     len =
       wcsnlen_s (pStart, (pEnd - pStart) /

@@ -382,10 +382,13 @@ SK_CreateDirectoriesEx ( const wchar_t* wszPath, bool strip_filespec )
   wszTest =
     SK_CharNextW (wszTest, len);
 
-  if ( *wszTest == L'\\' ||
-       *wszTest == L'/'     )
+  if (wszTest != nullptr)
   {
-    strip_filespec = false;
+    if ( *wszTest == L'\\' ||
+         *wszTest == L'/'     )
+    {
+      strip_filespec = false;
+    }
   }
 
   if (strip_filespec)

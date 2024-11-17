@@ -2973,8 +2973,7 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
     {
       // Special treatment for the Guide button so that chords can be used while screensavers
       //   are active.
-      if (!(xi_state_last.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE ||
-            xi_state_last.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE))
+      if (!(xi_state_last.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE))
         SK_Input_LastGamepadActivity = SK::ControlPanel::current_time;
 
       if (xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)

@@ -2318,9 +2318,9 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
               SUCCEEDED (hr)                                                     &&
                         pDevice != nullptr                                       &&
                   ( (pFactory.p != nullptr && pAdapter [0].p != nullptr)         ||
-             SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI))       &&
+            (SUCCEEDED (pDevice->QueryInterface <IDXGIDevice> (&pDevDXGI))       &&
              SUCCEEDED (pDevDXGI->GetAdapter                  (&pAdapter [0].p)) &&
-             SUCCEEDED (pAdapter [0]->GetParent (IID_PPV_ARGS (&pFactory)))
+             SUCCEEDED (pAdapter [0]->GetParent (IID_PPV_ARGS (&pFactory))))
                   )
              )
           {

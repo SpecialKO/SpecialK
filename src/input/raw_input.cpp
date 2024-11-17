@@ -480,7 +480,7 @@ RegisterRawInputDevices_Detour (
   std::vector <RAWINPUTDEVICE> actual_device_list;
 #endif
 
-  if (pDevices != nullptr)
+  if (pDevices != nullptr && pRawInputDevices != nullptr)
   {
     // We need to continue receiving window messages for the console to work
     for (     size_t i = 0            ;
