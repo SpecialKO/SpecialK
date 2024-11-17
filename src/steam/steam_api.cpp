@@ -1636,6 +1636,7 @@ SteamAPI_UnregisterCallback_Detour (class CCallbackBase *pCallback)
     case P2PSessionRequest_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Uninstalled Peer to Peer Session Request Callback",
                       caller.c_str () );
+      break;
     case GetAuthSessionTicketResponse_t::k_iCallback:
       steam_log->Log ( L" * (%-28s) Uninstalled Auth Session Ticket Response Callback",
                       caller.c_str () );
