@@ -1166,8 +1166,8 @@ DllThread (LPVOID user)
   SetThreadPriority           ( SK_GetCurrentThread (), THREAD_PRIORITY_HIGHEST       );
   SetThreadPriorityBoost      ( SK_GetCurrentThread (), TRUE                          );
 
-  if (config.compatibility.init_on_separate_thread && (! config.compatibility.init_sync_for_streamline)
-                                                   && (! config.compatibility.init_sync_for_reshade))
+  if (config.compatibility.init_on_separate_thread && (! config.compatibility.init_sync_for_streamline))
+                                                   //&& (! config.compatibility.init_sync_for_reshade))
   {
     auto* params =
       static_cast <init_params_s *> (user);
@@ -2201,8 +2201,8 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     BasicInit ();
 
     if ((! config.compatibility.init_on_separate_thread) ||
-           config.compatibility.init_sync_for_streamline ||
-           config.compatibility.init_sync_for_reshade)
+           config.compatibility.init_sync_for_streamline)// ||
+           //config.compatibility.init_sync_for_reshade)
     {
       bool gl = false, vulkan = false, d3d9  = false, d3d11 = false, d3d12 = false,
          dxgi = false, d3d8   = false, ddraw = false, glide = false;

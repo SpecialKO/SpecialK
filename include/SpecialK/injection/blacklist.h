@@ -102,10 +102,21 @@ static constexpr constexpr_module_s::list_type __blacklist = {
 #ifdef _M_AMD64
   L"msbuild.exe",
   L"systemsettings.exe",
-  L"systemsettingsbroker.exe",
+//L"systemsettingsbroker.exe",
   L"nvcplui.exe",
   L"gamebarft.exe",
   L"gamebarftserver.exe",
+  L"msedge.exe",
+//L"msedgewebview2.exe",
+
+  L"discord.exe",
+  L"spotify.exe",
+
+  // For NVIDIA's overlay (Latency-related stuff)
+  L"presentmon_x64.exe",
+  L"nvrla.exe",
+  L"nvidia overlay.exe",
+  L"nvidia app.exe",
 
   L"vhui64.exe",
   L"x64launcher.exe",
@@ -120,10 +131,10 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"winrtutil64.exe",
   L"diagnostics64.exe",
   L"applicationwallpaperinject64.exe", // Wallpaper Engine's UI app
-  L"Reloaded-II.exe",
+  L"reloaded-ii.exe",
 
 #else
-  L"Reloaded-II32.exe",
+  L"reloaded-ii32.exe",
   L"vacodeinspectionsserver.exe",
 
   L"vhui.exe",
@@ -217,7 +228,7 @@ static constexpr constexpr_module_s::list_type __blacklist = {
   L"cefsharp.browsersubprocess.exe", // Baldur's Gate 3
   L"larilauncher.exe",
   L"idtechlauncher.exe",
-  L"gamelaunchhelper.exe",
+//L"gamelaunchhelper.exe",
 
   L"coherentui_host.exe",
   L"activationui.exe",
