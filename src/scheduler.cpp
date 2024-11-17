@@ -366,8 +366,6 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
         SK_ReleaseAssert (!
                           L"Unexpected Wait State in call to "
                           L"MsgWaitForMultipleObjectsEx (...)");
-
-        return;
       }
 
       if (dwMilliseconds == 0)
@@ -1024,7 +1022,7 @@ timeBeginPeriod_Detour(_In_ UINT uPeriod)
 
 MMRESULT
 WINAPI
-timeEndPeriod_Detour(_In_ UINT uPeriod)
+timeEndPeriod_Detour(_In_ UINT uPeriod) //-V524
 {
   std::ignore = uPeriod;
 

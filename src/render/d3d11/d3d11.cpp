@@ -5755,13 +5755,12 @@ D3D11Dev_CreateTexture2DCore_Impl (
           D3D11_BIND_DEPTH_STENCIL   |/*D3D11_BIND_UNORDERED_ACCESS|*/
           D3D11_BIND_DECODER         | D3D11_BIND_VIDEO_ENCODER );
 
-    static constexpr UINT _UnwantedMiscFlags =         
-      (/*D3D11_RESOURCE_MISC_GENERATE_MIPS                |*/ D3D11_RESOURCE_MISC_GDI_COMPATIBLE     |
-        D3D11_RESOURCE_MISC_TEXTURECUBE                     | D3D11_RESOURCE_MISC_TILED              |
-        D3D11_RESOURCE_MISC_TILE_POOL                       | D3D11_RESOURCE_MISC_SHARED_NTHANDLE    |
+    static constexpr UINT _UnwantedMiscFlags =
+      ( D3D11_RESOURCE_MISC_GDI_COMPATIBLE                  | D3D11_RESOURCE_MISC_RESTRICTED_CONTENT |
+        D3D11_RESOURCE_MISC_TEXTURECUBE                     | D3D11_RESOURCE_MISC_SHARED_NTHANDLE    |
+        D3D11_RESOURCE_MISC_TILE_POOL                       | D3D11_RESOURCE_MISC_TILED              |
         D3D11_RESOURCE_MISC_SHARED_KEYEDMUTEX               | D3D11_RESOURCE_MISC_SHARED             |
-        D3D11_RESOURCE_MISC_SHARED                          | D3D11_RESOURCE_MISC_SHARED_DISPLAYABLE |
-        D3D11_RESOURCE_MISC_SHARED_EXCLUSIVE_WRITER         | D3D11_RESOURCE_MISC_RESTRICTED_CONTENT |
+        D3D11_RESOURCE_MISC_SHARED_EXCLUSIVE_WRITER         | D3D11_RESOURCE_MISC_SHARED_DISPLAYABLE | 
         D3D11_RESOURCE_MISC_RESTRICT_SHARED_RESOURCE        | D3D11_RESOURCE_MISC_DRAWINDIRECT_ARGS  |
         D3D11_RESOURCE_MISC_RESTRICT_SHARED_RESOURCE_DRIVER | D3D11_RESOURCE_MISC_BUFFER_ALLOW_RAW_VIEWS );
 
@@ -8628,8 +8627,7 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
         if ( ReadULongAcquire (&rb.thread) == 0x00 ||
              ReadULongAcquire (&rb.thread) == SK_Thread_GetCurrentId () )
         {
-          if (               windows.device != nullptr    &&
-               swap_chain_desc.OutputWindow != nullptr    &&
+          if (                      nullptr != windows.device &&
                swap_chain_desc.OutputWindow != windows.device )
             SK_LOG0 ( (L"Game created a new window?!"), __SK_SUBSYSTEM__ );
         }
@@ -8662,7 +8660,6 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
       }
     }
 
-#ifdef SK_D3D11_WRAP_IMMEDIATE_CTX
     if (ret_ctx != nullptr)
     {
     // Do Not Use: D3D11 itself will call GetImmediateContext (...)
@@ -8682,13 +8679,6 @@ D3D11CreateDeviceAndSwapChain_Detour (IDXGIAdapter          *pAdapter,
         SK_LOGi0 (L"Game Did Not Request Immediate Context...?!");
       }
     }
-
-    else
-#endif
-    if (ppImmediateContext != nullptr)
-       *ppImmediateContext = ret_ctx;
-    else if (ret_ctx != nullptr)
-      ret_ctx->Release (); // Release the reference we added...
 
     // Assume the first thing to create a D3D11 render device is
     //   the game and that devices never migrate threads; for most games

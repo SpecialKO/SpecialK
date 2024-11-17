@@ -585,7 +585,7 @@ bool  SK_ImGui_UnconfirmedDisplayChanges = false;
 DWORD SK_ImGui_DisplayChangeTime         = 0;
 
 void
-SK_ImGui_ConfirmDisplaySettings (bool *pDirty_, std::string display_name_, DEVMODEW orig_mode_)
+SK_ImGui_ConfirmDisplaySettings (bool *pDirty_, std::string display_name_, DEVMODEW& orig_mode_)
 {
   static bool              *pDirty = nullptr;
   static std::string  display_name = "";
@@ -828,31 +828,9 @@ SK_ImGui_ControlPanelTitle (void)
   auto appname =
     SK_GetFriendlyAppName ();
 
-  if (! appname.empty ())//bSteam || bEpic || *rb.windows.focus.title != L'\0')
+  if (! appname.empty ())
   {
-    //static std::string window_title =
-    //  SK_WideCharToUTF8 (rb.windows.focus.title);
-    //
-    //// For non-Steam/Epic games, if the window title changes, then update
-    ////   the control panel's title...
-    //if (! (bSteam || bEpic))
-    //{
-    //  static ULONG64     last_changed = 0;
-    //  if (std::exchange (last_changed, rb.windows.focus.last_changed) !=
-    //                                   rb.windows.focus.last_changed)
-    //  {
-    //    window_title =
-    //      SK_WideCharToUTF8 (rb.windows.focus.title);
-    //  }
-    //}
-    //
-    //std::string& appname = bSteam ?
-    //   SK::SteamAPI::AppName ()   :
-    //                       bEpic  ?
-    //        SK::EOS::AppName ()   : window_title;
-
-    if (! appname.empty ())
-      title += "      -      ";
+    title += "      -      ";
 
     if (config.platform.show_playtime)
     {
@@ -1225,7 +1203,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     display_list +=
       SK_WideCharToUTF8 (
         rb.displays [output].name
-      ).c_str ();
+      );
 
     display_list += '\0';
   }
@@ -1383,7 +1361,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
         rb.present_interval == 1 ? "  ON\0"           :
         rb.present_interval == 2 ? "  1/2 (No VRR)\0" :
         rb.present_interval == 3 ? "  1/3 (No VRR)\0" :
-        rb.present_interval == 3 ? "  1/4 (No VRR)\0" :
+        rb.present_interval == 4 ? "  1/4 (No VRR)\0" :
                                    "  ??? (Invalid)\0";
 
       static constexpr char* no_override_label = "  No Override\0";
@@ -8090,7 +8068,8 @@ SK_ImGui_StageNextFrame (void)
 
   if (SK_ImGui_UnconfirmedDisplayChanges)
   {
-    SK_ImGui_ConfirmDisplaySettings (nullptr, "", {});
+    DEVMODEW                                      dev_mode = {};
+    SK_ImGui_ConfirmDisplaySettings (nullptr, "", dev_mode);
 
     if ( ImGui::BeginPopupModal ( "Confirm Display Setting Changes",
                                     nullptr,

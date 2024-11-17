@@ -2892,9 +2892,12 @@ SK_ImGui_FallbackTrackMouseEvent (POINT& cursor_pos)
         last.hWndTop =
           WindowFromPoint (cursor_pos);
       }
+
       else
+      {
         last.hWndTop    = game_window.hWnd;
         last.cursor_pos =  cursor_pos;
+      }
     }
   
     hWndTop =

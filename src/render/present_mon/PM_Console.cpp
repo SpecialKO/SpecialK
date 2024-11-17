@@ -126,7 +126,7 @@ UpdateConsole ( uint32_t           processId,
       }
     }
 
-    if (displayCount >= 2)
+    if (displayCount >= 2 && displayN != nullptr)
     {
       dspAvg = QpcDeltaToSeconds (displayN->ScreenTime - display0ScreenTime) /
                                                           (displayCount - 1);

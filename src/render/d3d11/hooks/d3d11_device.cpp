@@ -224,17 +224,17 @@ D3D11Dev_CreateShaderResourceView_Override (
   }
 #endif
 
+  D3D11_SHADER_RESOURCE_VIEW_DESC desc =
+  {                .Format          = DXGI_FORMAT_UNKNOWN,
+                   .ViewDimension   = D3D11_SRV_DIMENSION_TEXTURE2D,
+    .Texture2D = { .MostDetailedMip = 0, .MipLevels = (UINT)-1 }
+  };
+
   D3D11_RESOURCE_DIMENSION   dim;
   pResource->GetType       (&dim);
 
   if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
   {
-    D3D11_SHADER_RESOURCE_VIEW_DESC desc =
-    {                .Format          = DXGI_FORMAT_UNKNOWN,
-                     .ViewDimension   = D3D11_SRV_DIMENSION_TEXTURE2D,
-      .Texture2D = { .MostDetailedMip = 0, .MipLevels = (UINT)-1 }
-    };
-
     if (pDesc != nullptr)
       desc = *pDesc;
 
@@ -525,6 +525,12 @@ D3D11Dev_CreateShaderResourceView1_Override (
     }
   }
 
+  D3D11_SHADER_RESOURCE_VIEW_DESC1 desc =
+  {                .Format          = DXGI_FORMAT_UNKNOWN,
+                   .ViewDimension   = D3D11_SRV_DIMENSION_TEXTURE2D,
+    .Texture2D = { .MostDetailedMip = 0, .MipLevels = (UINT)-1 }
+  };
+
 #ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
   if (pResource != nullptr)
   {
@@ -555,12 +561,6 @@ D3D11Dev_CreateShaderResourceView1_Override (
 
   if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
   {
-    D3D11_SHADER_RESOURCE_VIEW_DESC1 desc =
-    {                .Format          = DXGI_FORMAT_UNKNOWN,
-                     .ViewDimension   = D3D11_SRV_DIMENSION_TEXTURE2D,
-      .Texture2D = { .MostDetailedMip = 0, .MipLevels = (UINT)-1 }
-    };
-
     if (pDesc != nullptr)
       desc = *pDesc;
 
@@ -1130,6 +1130,12 @@ D3D11Dev_CreateUnorderedAccessView1_Override (
   }
 #endif
 
+  D3D11_UNORDERED_ACCESS_VIEW_DESC1 desc =
+  { .Format         = DXGI_FORMAT_UNKNOWN,
+    .ViewDimension  = D3D11_UAV_DIMENSION_TEXTURE2D,
+    .Texture2D      = { .MipSlice = 0 }
+  };
+
   if (SK_ComQIPtr <ID3D11Texture2D> pTex (pResource);
                                     pTex != nullptr)
   {
@@ -1138,12 +1144,6 @@ D3D11Dev_CreateUnorderedAccessView1_Override (
 
     if (dim == D3D11_RESOURCE_DIMENSION_TEXTURE2D)
     {
-      D3D11_UNORDERED_ACCESS_VIEW_DESC1 desc =
-      { .Format         = DXGI_FORMAT_UNKNOWN,
-        .ViewDimension  = D3D11_UAV_DIMENSION_TEXTURE2D,
-        .Texture2D      = { .MipSlice = 0 }
-      };
-
       if (pDesc != nullptr)
         desc = *pDesc;
 

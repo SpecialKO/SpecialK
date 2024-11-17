@@ -1558,8 +1558,7 @@ OutputDebugStringA_Detour (LPCSTR lpOutputString)
 
   game_debug->LogEx (true,   L"%-72ws:  %hs", wszModule, lpOutputString);
 
-  if (           lpOutputString != nullptr &&
-      (! strchr (lpOutputString,  '\n')) )
+  if ((! strchr (lpOutputString,  '\n')))
     game_debug->LogEx    (false, L"\n");
 
   OutputDebugStringA_Original (lpOutputString);
@@ -1630,8 +1629,7 @@ OutputDebugStringW_Detour (LPCWSTR lpOutputString)
 
   game_debug->LogEx (true,   L"%-72ws:  %ws", wszModule, lpOutputString);
 
-  if (           lpOutputString != nullptr &&
-      (! wcschr (lpOutputString, L'\n')) )
+  if ((! wcschr (lpOutputString, L'\n')))
     game_debug->LogEx    (false, L"\n");
 
   OutputDebugStringW_Original (lpOutputString);
@@ -3429,7 +3427,6 @@ extern "C" RtlRaiseException_pfn
 
 
 // Detoured to catch non-std OutputDebugString implementations
-[[noreturn]]
 VOID
 WINAPI
 RtlRaiseException_Detour ( PEXCEPTION_RECORD ExceptionRecord )

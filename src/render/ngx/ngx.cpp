@@ -120,9 +120,9 @@ NVSDK_NGX_Parameter_SetF_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
         SK_GetCurrentRenderBackend ();
 
       const double dFrameTimeDeltaInMsec =
-        1000.0 * ( static_cast <double> (rb.frame_delta.getDeltaTime ()) /
-                   static_cast <double> (SK_QpcFreq) ) * SK_NGX_IsUsingDLSS_G () ? 2.0
-                                                                                 : 1.0;
+        ( 1000.0 * ( static_cast <double> (rb.frame_delta.getDeltaTime ()) /
+                     static_cast <double> (SK_QpcFreq) ) * SK_NGX_IsUsingDLSS_G () ) ? 2.0
+                                                                                     : 1.0;
 
       NVSDK_NGX_Parameter_SetD_Original (InParameter, InName, dFrameTimeDeltaInMsec);
     }
@@ -180,9 +180,9 @@ NVSDK_NGX_Parameter_SetD_Detour (NVSDK_NGX_Parameter* InParameter, const char* I
         SK_GetCurrentRenderBackend ();
 
       const double dFrameTimeDeltaInMsec =
-        1000.0 * ( static_cast <double> (rb.frame_delta.getDeltaTime ()) /
-                   static_cast <double> (SK_QpcFreq) ) * SK_NGX_IsUsingDLSS_G () ? 2.0
-                                                                                 : 1.0;
+        ( 1000.0 * ( static_cast <double> (rb.frame_delta.getDeltaTime ()) /
+                     static_cast <double> (SK_QpcFreq) ) * SK_NGX_IsUsingDLSS_G () ) ? 2.0
+                                                                                     : 1.0;
 
       NVSDK_NGX_Parameter_SetD_Original (InParameter, InName, dFrameTimeDeltaInMsec);
 
@@ -643,7 +643,7 @@ NVSDK_NGX_Parameter_GetULL_Detour (const NVSDK_NGX_Parameter *InParameter, const
   auto ret =
     NVSDK_NGX_Parameter_GetULL_Original (InParameter, InName, OutValue);
 
-  return ret;
+  //return ret;
 
   if (ret == NVSDK_NGX_Result_Success)
   {
@@ -1244,7 +1244,6 @@ SK_NGX_DLSS_GetCurrentPresetStr (void)
     case NVSDK_NGX_DLSS_Hint_Render_Preset_F:       return "F";            break;
     case NVSDK_NGX_DLSS_Hint_Render_Preset_G:       return "G";            break;
     default:                                        return "DLSS Default"; break;
-      break;
   }
 }
 

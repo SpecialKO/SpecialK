@@ -410,9 +410,9 @@ NVSDK_NGX_D3D12_EvaluateFeature_Detour (ID3D12GraphicsCommandList *InCmdList, co
   if (config.nvidia.dlss.calculate_delta_ms)
   {
     const double dFrameTimeDeltaInMsec =
-      1000.0 * ( static_cast <double> (rb.frame_delta.getDeltaTime ()) /
-                 static_cast <double> (SK_QpcFreq) ) * SK_NGX_IsUsingDLSS_G () ? 2.0
-                                                                               : 1.0;
+      ( 1000.0 * ( static_cast <double> (rb.frame_delta.getDeltaTime ()) /
+                   static_cast <double> (SK_QpcFreq) ) * SK_NGX_IsUsingDLSS_G () ) ? 2.0
+                                                                                   : 1.0;
 
     ((NVSDK_NGX_Parameter *)InParameters)->Set (NVSDK_NGX_Parameter_FrameTimeDeltaInMsec, dFrameTimeDeltaInMsec);
   }
