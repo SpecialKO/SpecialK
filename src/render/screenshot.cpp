@@ -2129,10 +2129,14 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
         static_cast <unsigned char> (DirectX::BitsPerColor (raw_img.format))
       };
 
-      // If using compression optimization, max bits = 12
-      sbit_data.red_bits   = 16;//std::min (sbit_data.red_bits,   12ui8);
-      sbit_data.green_bits = 16;//std::min (sbit_data.green_bits, 12ui8);
-      sbit_data.blue_bits  = 16;//std::min (sbit_data.blue_bits,  12ui8);
+      // Bits in the original image is not necessarily the number of bits used
+      //   for compression...
+      if (sbit_data.red_bits == 16)
+      {
+        sbit_data.red_bits   = config.screenshots.lossy_scrgb_to_hdr10 ? 10 : 16;
+        sbit_data.green_bits = config.screenshots.lossy_scrgb_to_hdr10 ? 10 : 16;
+        sbit_data.blue_bits  = config.screenshots.lossy_scrgb_to_hdr10 ? 10 : 16;
+      }
 
       auto& rb =
         SK_GetCurrentRenderBackend ();
