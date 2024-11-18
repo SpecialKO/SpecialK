@@ -5422,7 +5422,7 @@ SK_Steam_PiratesAhoy (void)
 
   //   Older versions of SteamAPI may not support the necessary interface version
   if ( pUtils != nullptr && pApps != nullptr &&
-       validation_pass   != SK_Steam_FileSigPass_e::Done && SK_IsCurrentGame (SK_GAME_ID::Fallout4) )
+       validation_pass   != SK_Steam_FileSigPass_e::Done && !SK_IsCurrentGame (SK_GAME_ID::Fallout4) )
   {
     DepotId_t depots [16] = { };
 
