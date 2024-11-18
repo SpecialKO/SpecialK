@@ -245,16 +245,15 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
 
       pq_range_out = pq_range_16bpc;
 
-      const auto pq_range_in  =
+      const auto pq_range_in =
         (typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS)  ? pq_range_10bpc :
         (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? pq_range_16bpc :
                                                               pq_range_32bpc;
 
-      //int intermediate_bits = 16;
-      int output_bits       = 
-        (typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS)  ? 10 :
-        (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? config.screenshots.lossy_scrgb_to_hdr10 ? 10 : 16
-                                                            : 12;//16;
+      const int output_bits  = 
+        (typeless_fmt == DXGI_FORMAT_R10G10B10A2_TYPELESS)  ? std::min (10, config.screenshots.max_st2084_bits) :
+        (typeless_fmt == DXGI_FORMAT_R16G16B16A16_TYPELESS) ? std::min (16, config.screenshots.max_st2084_bits)
+                                                            : 12; // ... what?
 
       const int scrgb_postscale = 1UL << output_bits;
       const float scrgb_prescale = static_cast<float>(scrgb_postscale);
@@ -272,10 +271,7 @@ SK_HDR_ConvertImageToPNG (const DirectX::Image& raw_hdr_img, DirectX::ScratchIma
             LinearToPQ (XMVectorMax (XMVector3Transform (v, c_from709to2020), g_XMZero));
         }
 
-        v = XMVectorSaturate (v);// Quantize to 10- or 12-bpc before expanding to 16-bpc in order to improve
-        //  XMVectorRound ( // compression efficiency
-        //    XMVectorMultiply (
-        //      XMVectorSaturate (v), pq_range_out));
+        v = XMVectorSaturate (v);
 
         if (output_bits != 16)
         {
@@ -2131,12 +2127,9 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
 
       // Bits in the original image is not necessarily the number of bits used
       //   for compression...
-      if (sbit_data.red_bits == 16)
-      {
-        sbit_data.red_bits   = config.screenshots.lossy_scrgb_to_hdr10 ? 10 : 16;
-        sbit_data.green_bits = config.screenshots.lossy_scrgb_to_hdr10 ? 10 : 16;
-        sbit_data.blue_bits  = config.screenshots.lossy_scrgb_to_hdr10 ? 10 : 16;
-      }
+      sbit_data.red_bits   = std::min ((uint8_t)config.screenshots.max_st2084_bits, sbit_data.red_bits);
+      sbit_data.green_bits = std::min ((uint8_t)config.screenshots.max_st2084_bits, sbit_data.green_bits);
+      sbit_data.blue_bits  = std::min ((uint8_t)config.screenshots.max_st2084_bits, sbit_data.blue_bits);
 
       auto& rb =
         SK_GetCurrentRenderBackend ();

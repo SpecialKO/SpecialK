@@ -551,7 +551,7 @@ struct sk_config_t
   struct screenshots_s {
     bool         use_avif              = false;
     bool         use_hdr_png           = false;
-    bool         lossy_scrgb_to_hdr10  =  true;
+    int          max_st2084_bits       =    11;
     bool         use_jxl               = false;
     bool         png_compress          =  true;
     bool         show_osd_by_default   =  true;
