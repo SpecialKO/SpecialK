@@ -303,7 +303,7 @@ SK_Proxy_KeyboardProc (
 {
   LPARAM lParamOrig = lParam;
 
-  if (nCode == HC_ACTION)
+  if (nCode == HC_ACTION || nCode == HC_NOREMOVE)
   {
     bool wasPressed = (((DWORD)lParam) & (1UL << 30UL)) != 0UL,
           isPressed = (((DWORD)lParam) & (1UL << 31UL)) == 0UL,
@@ -363,9 +363,9 @@ SK_Proxy_KeyboardProc (
     {
       if (hook_fn != nullptr && config.input.keyboard.disabled_to_game != 1)
       {
-        lParam &= ~(1<<31);
-        lParam &= ~(1<<30);
-        lParam &= ~(1<<29);
+        lParam &= ~(1UL<<31UL);
+        lParam &= ~(1UL<<30UL);
+        lParam &= ~(1UL<<29UL);
 
         hook_fn (nCode, wParam, lParam);
 
@@ -486,9 +486,9 @@ SK_Proxy_LLKeyboardProc (
     {
       if (hook_fn != nullptr && config.input.keyboard.disabled_to_game != 1)
       {
-        lParam &= ~(1<<31);
-        lParam &= ~(1<<30);
-        lParam &= ~(1<<29);
+        lParam &= ~(1UL<<31UL);
+        lParam &= ~(1UL<<30UL);
+        lParam &= ~(1UL<<29UL);
 
         hook_fn (nCode, wParam, lParam);
 

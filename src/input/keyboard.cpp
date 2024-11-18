@@ -233,8 +233,10 @@ SK_ImGui_WantKeyboardCapture (bool update)
 
     else
     {
+      auto temp_poke_frame = ReadULong64Acquire (&config.input.keyboard.temporarily_allow);
+
       // Poke through input for a special-case
-      if (ReadULong64Acquire (&config.input.keyboard.temporarily_allow) > framesDrawn - 40)
+      if (temp_poke_frame > 0 && temp_poke_frame > framesDrawn - 40)
       {
         imgui_capture = false;
       }

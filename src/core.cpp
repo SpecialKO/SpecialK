@@ -3190,12 +3190,19 @@ SK_FrameCallback ( SK_RenderBackend& rb,
                    ULONG64           frames_drawn =
                                        SK_GetFramesDrawn () )
 {
+  void
+  ActivateWindow ( HWND hWnd,
+                   bool active          = false,
+                   HWND hWndDeactivated = 0 );
+
   switch (frames_drawn)
   {
     // First frame
     //
     case 0:
     {
+      ActivateWindow (game_window.hWnd, SK_GetForegroundWindow () == game_window.hWnd);
+
       // Notify anything that was waiting for injection into this game
       SK_Inject_BroadcastInjectionNotify ();
 
@@ -3268,6 +3275,8 @@ SK_FrameCallback ( SK_RenderBackend& rb,
     //
     default:
     {
+      ActivateWindow (game_window.hWnd, SK_GetForegroundWindow () == game_window.hWnd);
+
       if (game_window.active)
         SK_RunOnce (SK_Steam_ProcessWindowActivation (game_window.active));
 
