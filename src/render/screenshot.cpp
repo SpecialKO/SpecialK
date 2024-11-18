@@ -358,22 +358,27 @@ SK_PNG_CopyToClipboard (const DirectX::Image& image, const void *pData, size_t d
     wcscpy ((wchar_t*)&df [1], (const wchar_t *)pData);
 
     bool clipboard_open = false;
-    for (UINT i = 0 ; i < 20 ; ++i)
+
+    for (auto attempts = 0; attempts < 8; ++attempts)
     {
-      clipboard_open = OpenClipboard (game_window.hWnd);
+      if (attempts > 0)
+      {
+        SK_Sleep (1 << (attempts - 1));
+      }
 
-      if (clipboard_open)
+      if (OpenClipboard (game_window.hWnd))
+      {
+        clipboard_open = true;
         break;
-
-      SK_Sleep (5);
+      }
     }
 
     if (clipboard_open)
     {
       EmptyClipboard   ();
       SetClipboardData (CF_HDROP, hdrop);
-      GlobalUnlock               (hdrop);
       CloseClipboard   ();
+      GlobalUnlock     (          hdrop);
 
       return true;
     }
@@ -524,14 +529,19 @@ SK_ScreenshotManager::copyToClipboard ( const DirectX::Image& image,
     SelectObject     (hdcDst, hbmpDst);
 
     bool clipboard_open = false;
-    for (UINT i = 0 ; i < 20 ; ++i)
+
+    for (auto attempts = 0; attempts < 8; ++attempts)
     {
-      clipboard_open = OpenClipboard (game_window.hWnd);
+      if (attempts > 0)
+      {
+        SK_Sleep (1 << (attempts - 1));
+      }
 
-      if (clipboard_open)
+      if (OpenClipboard (game_window.hWnd))
+      {
+        clipboard_open = true;
         break;
-
-      SK_Sleep (5);
+      }
     }
 
     if (clipboard_open)
@@ -2182,15 +2192,7 @@ SK_PNG_MakeHDR ( const wchar_t*        wszFilePath,
 
       // Write the remainder of the original file
       fwrite (insert_ptr, size - insert_pos, 1, fPNG);
-
-      auto final_size =
-        ftell (fPNG);
-
-      auto full_png =
-        std::make_unique <unsigned char []> (final_size);
-
-      rewind (fPNG);
-      fread  (full_png.get (), final_size, 1, fPNG);
+      fflush (fPNG);
       fclose (fPNG);
 
       SK_LOGi1 (L"Applied HDR10 PNG chunks to %ws.", wszFilePath);

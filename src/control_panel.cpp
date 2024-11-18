@@ -8884,11 +8884,11 @@ SK_ImGui_Toggle (void)
     SK_CreateEvent (nullptr, FALSE, FALSE, nullptr)
   );
 
-  static POINT ptCursorPos = { };
-
   SK_RunOnce (
     SK_Thread_CreateEx ([](LPVOID) -> DWORD
     {
+      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);
+
       HANDLE hEvents [] = {
         __SK_DLL_TeardownEvent,
         hMoveCursor.m_h
@@ -8910,7 +8910,7 @@ SK_ImGui_Toggle (void)
             SK_GetFramesDrawn ();
 
           while (frames_drawn > SK_GetFramesDrawn () - 2)
-            SK_Sleep (0);
+            SwitchToThread ();
 
           POINT                 ptCursor;
           if (SK_GetCursorPos (&ptCursor) && SK_GetForegroundWindow () == game_window.hWnd)
@@ -8926,9 +8926,7 @@ SK_ImGui_Toggle (void)
                 SK_GetFramesDrawn ();
 
               while (frames_drawn > SK_GetFramesDrawn () - 2)
-              {
-                SK_Sleep (0);
-              }
+                SwitchToThread ();
 
               SK_GetCursorPos   (&ptCursor);
               SK_SetCursorPos   ( ptCursor.x - 1, ptCursor.y + 1);

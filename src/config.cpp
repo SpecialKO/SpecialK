@@ -3694,6 +3694,7 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Metaphor:
+        config.threads.enable_dynamic_spinlocks        = true;
         config.compatibility.init_on_separate_thread   = false;
         config.priority.perf_cores_only                = true;
         config.window.background_render                = true;
