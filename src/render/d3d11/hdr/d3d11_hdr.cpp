@@ -590,8 +590,8 @@ SK_HDR_SanitizeFP16SwapChain (void)
     {
       _ReadWriteBarrier ();
 
-      memcpy (          static_cast <HDR_LUMINANCE *> (mapped_resource.pData),
-               &cbuffer_luma, sizeof HDR_LUMINANCE );
+      memcpy (           static_cast <HDR_LUMINANCE *> (mapped_resource.pData),
+               &cbuffer_luma, sizeof (HDR_LUMINANCE) );
 
       pDevCtx->Unmap (hdr_base->mainSceneCBuffer, 0);
 
@@ -611,8 +611,8 @@ SK_HDR_SanitizeFP16SwapChain (void)
     {
       _ReadWriteBarrier ();
 
-      memcpy (            static_cast <HDR_COLORSPACE_PARAMS *> (mapped_resource.pData),
-               &cbuffer_cspace, sizeof HDR_COLORSPACE_PARAMS );
+      memcpy (             static_cast <HDR_COLORSPACE_PARAMS *> (mapped_resource.pData),
+               &cbuffer_cspace, sizeof (HDR_COLORSPACE_PARAMS) );
 
       pDevCtx->Unmap (hdr_base->colorSpaceCBuffer, 0);
 
@@ -945,8 +945,8 @@ SK_HDR_SnapshotSwapchain (void)
     {
       _ReadWriteBarrier ();
 
-      memcpy (          static_cast <HDR_LUMINANCE *> (mapped_resource.pData),
-               &cbuffer_luma, sizeof HDR_LUMINANCE );
+      memcpy (           static_cast <HDR_LUMINANCE *> (mapped_resource.pData),
+               &cbuffer_luma, sizeof (HDR_LUMINANCE) );
 
       pDevCtx->Unmap (hdr_base->mainSceneCBuffer, 0);
     }
@@ -1004,8 +1004,8 @@ SK_HDR_SnapshotSwapchain (void)
     {
       _ReadWriteBarrier ();
 
-      memcpy (            static_cast <HDR_COLORSPACE_PARAMS *> (mapped_resource.pData),
-               &cbuffer_cspace, sizeof HDR_COLORSPACE_PARAMS );
+      memcpy (             static_cast <HDR_COLORSPACE_PARAMS *> (mapped_resource.pData),
+               &cbuffer_cspace, sizeof (HDR_COLORSPACE_PARAMS) );
 
       pDevCtx->Unmap (hdr_base->colorSpaceCBuffer, 0);
     }
@@ -1239,7 +1239,7 @@ SK_D3D11_EndFrameHDR (void)
       HRESULT const hr =
         pDevCtx->GetData (SK_D3D11_HDRDisjointQuery.async,
                          &SK_D3D11_HDRDisjointQuery.last_results,
-                   sizeof D3D11_QUERY_DATA_TIMESTAMP_DISJOINT,
+                  sizeof (D3D11_QUERY_DATA_TIMESTAMP_DISJOINT),
                           D3D11_ASYNC_GETDATA_DONOTFLUSH);
 
       if (hr == S_OK)
@@ -1290,7 +1290,7 @@ SK_D3D11_EndFrameHDR (void)
         if (             dev_ctx != nullptr &&
              SUCCEEDED ( dev_ctx->GetData (duration->start.async,
                                           &duration->start.last_results,
-                                      sizeof UINT64, D3D11_ASYNC_GETDATA_DONOTFLUSH) )
+                                     sizeof (UINT64), D3D11_ASYNC_GETDATA_DONOTFLUSH) )
            )
         {
           duration->start.async   = nullptr;
@@ -1324,7 +1324,7 @@ SK_D3D11_EndFrameHDR (void)
         if (             dev_ctx != nullptr &&
              SUCCEEDED ( dev_ctx->GetData (duration->end.async,
                                           &duration->end.last_results,
-                                           sizeof UINT64, D3D11_ASYNC_GETDATA_DONOTFLUSH)
+                                          sizeof (UINT64), D3D11_ASYNC_GETDATA_DONOTFLUSH)
                        )
            )
         {
