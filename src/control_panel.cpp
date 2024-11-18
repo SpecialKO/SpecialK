@@ -3696,7 +3696,7 @@ SK_ImGui_ControlPanel (void)
           ImGui::SameLine        ();
           ImGui::TextColored     (ImVec4 (1.f, 1.f, 1.f, 1.f), "Special K Image Viewer");
           ImGui::SameLine        ();
-          ImGui::TextUnformatted (" (SKIV) can display HDR PNGs on SDR displays and export to SDR");
+          ImGui::TextUnformatted ("(SKIV) can display HDR PNGs on SDR displays and export to SDR");
           ImGui::PopStyleColor   ();
           ImGui::EndTooltip      ();
         }

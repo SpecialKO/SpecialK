@@ -358,12 +358,14 @@ SK_PNG_CopyToClipboard (const DirectX::Image& image, const void *pData, size_t d
     wcscpy ((wchar_t*)&df [1], (const wchar_t *)pData);
 
     bool clipboard_open = false;
-    for (UINT i = 0 ; i < 5 ; ++i)
+    for (UINT i = 0 ; i < 20 ; ++i)
     {
       clipboard_open = OpenClipboard (game_window.hWnd);
 
-      if (! clipboard_open)
-        SK_Sleep (2);
+      if (clipboard_open)
+        break;
+
+      SK_Sleep (5);
     }
 
     if (clipboard_open)
@@ -435,7 +437,7 @@ SK_ScreenshotManager::copyToClipboard ( const DirectX::Image& image,
       }
     }
   }
- 
+
   auto snip = 
     getSnipRect ();
 
@@ -522,12 +524,14 @@ SK_ScreenshotManager::copyToClipboard ( const DirectX::Image& image,
     SelectObject     (hdcDst, hbmpDst);
 
     bool clipboard_open = false;
-    for (UINT i = 0 ; i < 5 ; ++i)
+    for (UINT i = 0 ; i < 20 ; ++i)
     {
       clipboard_open = OpenClipboard (game_window.hWnd);
 
-      if (! clipboard_open)
-        SK_Sleep (2);
+      if (clipboard_open)
+        break;
+
+      SK_Sleep (5);
     }
 
     if (clipboard_open)
@@ -1200,7 +1204,7 @@ SK_Screenshot_SaveJXL (DirectX::ScratchImage &src_image, const wchar_t *wszFileP
 
     const DirectX::Image& image =
       *src_image.GetImages ();
-    
+
     if ( JXL_ENC_SUCCESS !=
            jxlEncoderSetParallelRunner ( jxl_encoder,
                                            jxlThreadParallelRunner,
@@ -1556,7 +1560,7 @@ png_crc32 (const void* typeless_data, size_t offset, size_t len, uint32_t crc)
       png_crc_table [(c ^ data [k]) & 255] ^
                     ((c >> 8)       & 0xFFFFFF);
   }
-  
+
   return
     (c ^ 0xffffffff);
 }
@@ -1598,7 +1602,7 @@ struct SK_PNG_HDR_cHRM_Payload
   SK_PNG_DeclareUint32 (green_x, 17000);
   SK_PNG_DeclareUint32 (green_y, 79700);
   SK_PNG_DeclareUint32 (blue_x,  13100);
-  SK_PNG_DeclareUint32 (blue_y,  04600);
+  SK_PNG_DeclareUint32 (blue_y,   4600);
 };
 
 struct SK_PNG_HDR_sBIT_Payload
@@ -2273,7 +2277,7 @@ SK_Image_InitializeTonemap ( std::vector <parallel_tonemap_job_s>& jobs,
         CreateEvent (nullptr, FALSE, FALSE, nullptr);
       parallel_start [i] =
         CreateEvent (nullptr, FALSE, FALSE, nullptr);
-  
+
       jobs [i].hCompletionEvent = parallel_finish [i];
       jobs [i].hStartEvent      = parallel_start  [i];
       jobs [i].job_id           =                  i;
@@ -2307,7 +2311,7 @@ SK_Image_DispatchTonemapJobs (std::vector <parallel_tonemap_job_s>& jobs)
           {
             float a = (  Ld / pow (Lc, 2.0f));
             float b = (1.0f / Ld);
-          
+
             return
               L * (1 + a * L) / (1 + b * L);
           };
@@ -2369,7 +2373,7 @@ SK_Image_DispatchTonemapJobs (std::vector <parallel_tonemap_job_s>& jobs)
       }, nullptr, &job );
     }
   }
-  
+
   for ( auto& job : jobs )
     SetEvent (job.hStartEvent);
 }
@@ -2385,12 +2389,12 @@ SK_Image_EnqueueTonemapTask ( DirectX::ScratchImage&                image,
   {
     size_t iStartRow = (image.GetMetadata ().height / config.screenshots.avif.max_threads) * i;
     size_t iEndRow   = (image.GetMetadata ().height / config.screenshots.avif.max_threads) * (i + 1);
-    
+
     jobs [i].pFirstPixel =
       &pixels [iStartRow * image.GetMetadata ().width];
     jobs [i].pLastPixel  =
       &pixels [iEndRow   * image.GetMetadata ().width - 1];
-    
+
     jobs [i].maxYInPQ    = maxLuminance;
     jobs [i].SDR_YInPQ   = sdrLuminance;
   }
@@ -2624,7 +2628,7 @@ bool isUHDREncoderAvailable (void)
       sk_uhdr_enc_set_preset                = (uhdr_enc_set_preset_pfn)               GetProcAddress (hModUHDR, "uhdr_enc_set_preset");
 
       sk_is_uhdr_image                      = (is_uhdr_image_pfn)                     GetProcAddress (hModUHDR, "is_uhdr_image");
-      
+
       sk_uhdr_create_decoder                = (uhdr_create_decoder_pfn)               GetProcAddress (hModUHDR, "uhdr_create_decoder");
       sk_uhdr_release_decoder               = (uhdr_release_decoder_pfn)              GetProcAddress (hModUHDR, "uhdr_release_decoder");
       sk_uhdr_dec_set_image                 = (uhdr_dec_set_image_pfn)                GetProcAddress (hModUHDR, "uhdr_dec_set_image");
@@ -2699,7 +2703,7 @@ SK_Screenshot_SaveUHDR (const DirectX::Image& image, const DirectX::Image& sdr_i
   {
     pHDR10_Image = &image;
   }
-  
+
   raw_hdr.planes [UHDR_PLANE_PACKED] =                             pHDR10_Image->pixels;
   raw_hdr.stride [UHDR_PLANE_PACKED] = static_cast <unsigned int> (pHDR10_Image->rowPitch / sizeof (uint32_t));
 
@@ -2752,7 +2756,7 @@ SK_Screenshot_SaveUHDR (const DirectX::Image& image, const DirectX::Image& sdr_i
     SK_LOGi0 (L"uhdr_enc_set_preset (...) failed: %d (%hs)", err.error_code, err.detail);
 
   err = sk_uhdr_encode (encoder);
- 
+
   if (err.error_code != UHDR_CODEC_OK)
     SK_LOGi0 (L"uhdr_encode (...) failed: %d (%hs)", err.error_code, err.detail);
 
