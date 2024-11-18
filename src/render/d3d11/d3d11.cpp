@@ -6236,7 +6236,7 @@ D3D11Dev_CreateTexture2DCore_Impl (
       if (cacheable)
       {
         cache_tag  =
-          safe_crc32c (top_crc32, (uint8_t *)(pDesc), sizeof D3D11_TEXTURE2D_DESC);
+          safe_crc32c (top_crc32, (uint8_t *)(pDesc), sizeof (D3D11_TEXTURE2D_DESC));
 
         // Adds and holds a reference
         pCachedTex = (ID3D11Texture2D1 *)
@@ -9371,7 +9371,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
       HRESULT const hr =
         pDevCtx->GetData (d3d11_shader_tracking_s::disjoint_query.async,
                          &d3d11_shader_tracking_s::disjoint_query.last_results,
-                   sizeof D3D11_QUERY_DATA_TIMESTAMP_DISJOINT,
+                  sizeof (D3D11_QUERY_DATA_TIMESTAMP_DISJOINT),
                           D3D11_ASYNC_GETDATA_DONOTFLUSH);
 
       if (hr == S_OK)
@@ -9427,7 +9427,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
         if (             dev_ctx != nullptr &&
              SUCCEEDED ( dev_ctx->GetData (duration->start.async,
                                           &duration->start.last_results,
-                                      sizeof UINT64, D3D11_ASYNC_GETDATA_DONOTFLUSH) )
+                                     sizeof (UINT64), D3D11_ASYNC_GETDATA_DONOTFLUSH) )
            )
         {
           duration->start.async   = nullptr;
@@ -9461,7 +9461,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
         if (             dev_ctx != nullptr &&
              SUCCEEDED ( dev_ctx->GetData (duration->end.async,
                                           &duration->end.last_results,
-                                           sizeof UINT64, D3D11_ASYNC_GETDATA_DONOTFLUSH)
+                                          sizeof (UINT64), D3D11_ASYNC_GETDATA_DONOTFLUSH)
                        )
            )
         {
