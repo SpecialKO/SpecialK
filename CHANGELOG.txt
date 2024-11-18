@@ -1,19 +1,26 @@
-﻿24.11.17.3
+﻿24.11.18
+========
+ + Disable SteamAPI file hash checks on Fallout 4
+ + Handle window activation more explicitly in Metaphor Re:Fantazio so that
+     its Keyboard Hook does not capture input events when the window is not
+       focused.
+
+24.11.16.3
 ==========
  + Fixed various problems indicated by static analysis...
 
-24.11.17.2
+24.11.16.2
 ==========
  + Fixed problems with SK not re-initializing D3D11 when the active SwapChain
      is destroyed and re-created.
  + Fixed potential issues with loading ReShade as a plug-in and config files
      not correctly being passed to create_effect_runtime (...).
 
-24.11.17.1
+24.11.16.1
 ==========
  + Implement Lossy scRGB->HDR10 Quantization the correct way :)
 
-24.11.17
+24.11.16
 ========
  + Added texture sampling fixes for Metaphor: ReFantazio so that it actually
      can make use of anisotropic filtering, instead of setting MaxAnisotropy
