@@ -143,7 +143,7 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
   auto& Textures_2D =
     textures->Textures_2D;
 
-  std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
+    std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
 
   const float font_size           = ImGui::GetFont ()->FontSize * io.FontGlobalScale;
 
@@ -418,6 +418,8 @@ SK_D3D11_LiveTextureView (bool& can_scroll, SK_TLS* pTLS = SK_TLS_Bottom ())
 
   if (list_dirty)
   {
+    std::scoped_lock <SK_Thread_CriticalSection> auto_lock1 (*cs_render_view);
+
     if (debug_tex_id == 0)
       last_ht = 0.0f;
 

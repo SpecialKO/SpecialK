@@ -3046,6 +3046,8 @@ SK_D3D11_DrawHandler ( ID3D11DeviceContext  *pDevCtx,
     return Normal;
   }
 
+  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_render_view);
+
   using _Registry =
     SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*;
 
@@ -9237,6 +9239,8 @@ D3D11Dev_GetImmediateContext3_Override (
 void
 SK_D3D11_EndFrame (SK_TLS* pTLS)
 {
+  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock2 (*cs_render_view);
+
   for ( auto end_frame_fn : plugin_mgr->end_frame_fns )
   {
     end_frame_fn ();
@@ -9273,9 +9277,6 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
 
 #ifdef TRACK_THREADS
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock>
-           auto_lock (*cs_render_view);
-
     SK_D3D11_MemoryThreads->clear_active   ();
     SK_D3D11_ShaderThreads->clear_active   ();
     SK_D3D11_DrawThreads->clear_active     ();
@@ -9288,9 +9289,6 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
   shaders->reshade_triggered = false;
 
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock>
-           auto_lock (*cs_render_view);
-
     RtlZeroMemory ( reshade_trigger_before->data (),
                     reshade_trigger_before->size () * sizeof (bool) );
     RtlZeroMemory ( reshade_trigger_after->data  (),
@@ -9304,42 +9302,32 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
   static auto& hull     = shaders->hull;
   static auto& compute  = shaders->compute;
 
+  const UINT dev_idx =
+    SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx);
+
+  vertex.tracked.deactivate   (nullptr, dev_idx);
+  pixel.tracked.deactivate    (nullptr, dev_idx);
+  geometry.tracked.deactivate (nullptr, dev_idx);
+  hull.tracked.deactivate     (nullptr, dev_idx);
+  domain.tracked.deactivate   (nullptr, dev_idx);
+  compute.tracked.deactivate  (nullptr, dev_idx);
+
+  if (dev_idx < SK_D3D11_MAX_DEV_CONTEXTS)
   {
-    const UINT dev_idx =
-      SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx);
-
-    std::scoped_lock <SK_Thread_HybridSpinlock>
-           auto_lock (*cs_render_view);
-
-    vertex.tracked.deactivate   (nullptr, dev_idx);
-    pixel.tracked.deactivate    (nullptr, dev_idx);
-    geometry.tracked.deactivate (nullptr, dev_idx);
-    hull.tracked.deactivate     (nullptr, dev_idx);
-    domain.tracked.deactivate   (nullptr, dev_idx);
-    compute.tracked.deactivate  (nullptr, dev_idx);
-
-    if (dev_idx < SK_D3D11_MAX_DEV_CONTEXTS)
-    {
-      RtlZeroMemory (vertex.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlZeroMemory (pixel.current.views    [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlZeroMemory (geometry.current.views [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlZeroMemory (domain.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlZeroMemory (hull.current.views     [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-      RtlZeroMemory (compute.current.views  [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
-    }
+    RtlZeroMemory (vertex.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+    RtlZeroMemory (pixel.current.views    [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+    RtlZeroMemory (geometry.current.views [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+    RtlZeroMemory (domain.current.views   [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+    RtlZeroMemory (hull.current.views     [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
+    RtlZeroMemory (compute.current.views  [dev_idx], sizeof (ID3D11ShaderResourceView*) * 128);
   }
 
+  tracked_rtv->clear   ();
 
-  {
-    std::scoped_lock <SK_Thread_HybridSpinlock>
-           auto_lock (*cs_render_view);
-    tracked_rtv->clear   ();
+  ////for ( auto& it : *used_textures ) it->Release ();
 
-    ////for ( auto& it : *used_textures ) it->Release ();
-
-    used_textures->clear ();
-    mem_map_stats->clear ();
-  }
+  used_textures->clear ();
+  mem_map_stats->clear ();
 
   // True if the disjoint query is complete and we can get the results of
   //   each tracked shader's timing
@@ -9614,9 +9602,6 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
       }
     }
 
-    const UINT dev_idx =
-      SK_D3D11_GetDeviceContextHandle (rb.d3d11.immediate_ctx);
-
     if (it_ctx.ctx_id_ == dev_idx)
     {
       it_ctx.temp_resources.clear ();
@@ -9628,12 +9613,7 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
     InterlockedExchange (&it_ctx.writing_, 0);
   }
 
-  {
-    std::scoped_lock <SK_Thread_HybridSpinlock>
-           auto_lock (*cs_render_view);
-
-    SK_D3D11_TempResources->clear ();
-  }
+  SK_D3D11_TempResources->clear ();
 
   SK_D3D11_Resampler_ProcessFinished (pDev, pDevCtx, pTLS);
 }

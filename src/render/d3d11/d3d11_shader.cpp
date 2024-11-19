@@ -869,7 +869,7 @@ SK_D3D11_SetShaderResources_Impl (
   bool early_out = (! bMustNotIgnore) || shader_base == nullptr ||
     SK_D3D11_IgnoreWrappedOrDeferred (bWrapped,
            SK_D3D11_IsDevCtxDeferred (pDevContext),
-                                      pDevContext);
+                                      pDevContext) || cs_lock == nullptr;
 
   if (early_out)
   {
@@ -879,7 +879,6 @@ SK_D3D11_SetShaderResources_Impl (
 
   if (dev_idx == UINT_MAX)
       dev_idx  = SK_D3D11_GetDeviceContextHandle (pDevContext);
-
 
   auto& views =
     shader_base->current.views [dev_idx];
@@ -952,8 +951,9 @@ SK_D3D11_SetShaderResources_Impl (
     //   current shader matches the debug tracker
     if ( (active && shader_crc32c == tracked.crc32c) && cs_lock != nullptr)
     {
-      std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_lock);
-
+      std::lock                                             (*cs_lock,        *cs_render_view);
+      std::lock_guard <SK_Thread_HybridSpinlock> auto_lock1 (*cs_lock,        std::adopt_lock);
+      std::lock_guard <SK_Thread_HybridSpinlock> auto_lock2 (*cs_render_view, std::adopt_lock);
       for (UINT i = 0; i < NumViews; i++)
       {
         if (StartSlot + i >= D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT)

@@ -1,4 +1,9 @@
-﻿24.11.18
+﻿24.11.19
+========
+ + Restored support for using D3D11 Render Mod Tools in games with multiple
+     deferred contexts to debug shaders without crashing :)
+
+24.11.18
 ========
  + Disable SteamAPI file hash checks on Fallout 4
  + Handle window activation more explicitly in Metaphor Re:Fantazio so that
