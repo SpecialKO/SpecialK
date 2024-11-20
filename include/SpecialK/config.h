@@ -1719,6 +1719,7 @@ enum class SK_GAME_ID
   MonsterHunterWilds,           // MonsterHunterWilds{Beta}.exe
   DragonAgeTheVeilguard,        // Dragon Age The Veilguard.exe
   TombRaider123Remastered,      // tomb123.exe
+  Stalker2,                     // Stalker2-WinGDK-Shipping.exe
 
   UNKNOWN_GAME               = 0xffff
 };

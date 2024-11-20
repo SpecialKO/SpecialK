@@ -267,7 +267,8 @@ SK_GetCurrentGameID (void)
           { L"MonsterHunterWilds.exe",                 SK_GAME_ID::MonsterHunterWilds           },
           { L"MonsterHunterWildsBeta.exe",             SK_GAME_ID::MonsterHunterWilds           },
           { L"Dragon Age The Veilguard.exe",           SK_GAME_ID::DragonAgeTheVeilguard        },
-          { L"tomb123.exe",                            SK_GAME_ID::TombRaider123Remastered      }
+          { L"tomb123.exe",                            SK_GAME_ID::TombRaider123Remastered      },
+          { L"Stalker2-WinGDK-Shipping.exe",           SK_GAME_ID::Stalker2                     }
         };
 
     first_check  = false;
@@ -3691,6 +3692,11 @@ auto DeclKeybind =
       // Game requires special sRGB treatment.
       case SK_GAME_ID::TombRaider123Remastered:
         config.render.dxgi.srgb_behavior            = 0;
+        break;
+
+      case SK_GAME_ID::Stalker2:
+        // Stupid game requires Fullscreen Exclusive (in D3D12) for HDR
+        config.render.dxgi.fake_fullscreen_mode     = true;
         break;
 
       case SK_GAME_ID::Metaphor:

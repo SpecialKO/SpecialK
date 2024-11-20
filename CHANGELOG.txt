@@ -1,4 +1,9 @@
-﻿24.11.20
+﻿24.11.21
+========
+ + Enable Fake Fullscreen mode by default in STALKER 2, because it uses that
+     crap (in D3D12) for HDR... yay!
+
+24.11.20
 ========
  + Fixed only a single monitor being listed in the Display menu.
  + Added measures to prevent various ATLUS ports from moving the game window
