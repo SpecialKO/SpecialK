@@ -1177,7 +1177,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
 
   for ( auto& display : rb.displays )
   {
-    if (display.attached)
+    //if (display.attached)
     {
       outputs.push_back (
         sk::narrow_cast <int>
@@ -1200,12 +1200,16 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       }
     }
 
-    display_list +=
+    auto utf8_name =
       SK_WideCharToUTF8 (
-        rb.displays [output].name
-      );
+          rb.displays [output].name
+        );
 
-    display_list += '\0';
+    if (*utf8_name.c_str () != '\0')
+    {
+      display_list += utf8_name.c_str ();
+      display_list += '\0';
+    }
   }
 
   // Give it another go, the monitor was no-show...
