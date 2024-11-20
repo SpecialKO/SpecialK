@@ -1,7 +1,14 @@
-﻿24.11.19
+﻿24.11.20
+========
+ + Fixed only a single monitor being listed in the Display menu.
+ + Added measures to prevent various ATLUS ports from moving the game window
+     back to the primary monitor whenever HDR is enabled/disabled or resolution
+       changes (they handle WM_DISPLAYCHANGE and WM_MOVE weirdly).
+
+24.11.19
 ========
  + Restored support for using D3D11 Render Mod Tools in games with multiple
-     deferred contexts to debug shaders without crashing :)
+     deferred contexts to debug shaders when ReShade is active.
 
 24.11.18
 ========

@@ -570,6 +570,7 @@ public:
     bool                  unreal               = false;
     bool                  capcom               = false;
     bool                  sdl                  = false;
+    bool                  atlus                = false;
 
     void setFocus  (HWND hWndFocus);
     void setDevice (HWND hWndRender);

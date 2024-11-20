@@ -3473,7 +3473,7 @@ SK_Window_RepositionIfNeeded (void)
         dwWaitState =
           WaitForMultipleObjects (2, hSignals, FALSE, INFINITE);
 
-        while (ullLastFrame == SK_GetFramesDrawn ())
+        while (ullLastFrame > SK_GetFramesDrawn () - 5)
         {
           if (WaitForSingleObject (hSignals [0], 3UL) == _EndSignal)
           {
@@ -3518,63 +3518,66 @@ SK_Window_RepositionIfNeeded (void)
 
           SK_RunOnce (rb.updateOutputTopology ());
 
+          HMONITOR hMonitorBeforeRepos =
+            MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST);
+
           if (! rb.isTrueFullscreen ())
           {
-          if ( center     ||
-               borderless ||
+            if ( center     ||
+                 borderless ||
 
-               (rb.monitor != rb.next_monitor &&
-                              rb.next_monitor != 0) ||
+                 (rb.monitor != rb.next_monitor &&
+                                rb.next_monitor != 0) ||
 
-               lastFullscreen             != fullscreen        ||
-               lastBorderless             != borderless        ||
-               lastCenter                 != center            ||
-               lastOffset.x.absolute      != config.window.offset.x.absolute ||
-               lastOffset.y.absolute      != config.window.offset.y.absolute ||
-               lastOffset.x.percent       != config.window.offset.x.percent  ||
-               lastOffset.y.percent       != config.window.offset.y.percent  ||
-               lastResOverride.override.x != config.window.res.override.x    ||
-               lastResOverride.override.y != config.window.res.override.y    ||
+                 lastFullscreen             != fullscreen        ||
+                 lastBorderless             != borderless        ||
+                 lastCenter                 != center            ||
+                 lastOffset.x.absolute      != config.window.offset.x.absolute ||
+                 lastOffset.y.absolute      != config.window.offset.y.absolute ||
+                 lastOffset.x.percent       != config.window.offset.x.percent  ||
+                 lastOffset.y.percent       != config.window.offset.y.percent  ||
+                 lastResOverride.override.x != config.window.res.override.x    ||
+                 lastResOverride.override.y != config.window.res.override.y    ||
 
-            (! EqualRect (&rcClientOrig, &rcClientLast))         ||
-            (! EqualRect (&rcWindowOrig, &rcWindowLast)) )
-          {
-            if (rb.monitor != rb.next_monitor && rb.next_monitor != 0)
+              (! EqualRect (&rcClientOrig, &rcClientLast))         ||
+              (! EqualRect (&rcWindowOrig, &rcWindowLast)) )
             {
-              // We have to either center the window or stretch it to move monitors,
-              //   if user's preference is neither, then stretch it temporarily.
-              switch (config.window.borderless)
+              if (rb.monitor != rb.next_monitor && rb.next_monitor != 0)
               {
-                case true:
-                  config.window.fullscreen |=
-                    ( center == false && fullscreen == false );
-                  break;
+                // We have to either center the window or stretch it to move monitors,
+                //   if user's preference is neither, then stretch it temporarily.
+                switch (config.window.borderless)
+                {
+                  case true:
+                    config.window.fullscreen |=
+                      ( center == false && fullscreen == false );
+                    break;
 
-                default:
-                  config.window.center = true;
-                  break;
+                  default:
+                    config.window.center = true;
+                    break;
+                }
               }
+
+              SK_AdjustBorder ();
+              SK_AdjustWindow ();
+
+              lastBorderless             = borderless;
+              lastCenter                 = center;
+              lastFullscreen             = fullscreen;
+
+              lastOffset.x.absolute      = config.window.offset.x.absolute;
+              lastOffset.y.absolute      = config.window.offset.y.absolute;
+              lastOffset.x.percent       = config.window.offset.x.percent;
+              lastOffset.y.percent       = config.window.offset.y.percent;
+
+              if (std::exchange (lastResOverride.override.x, config.window.res.override.x)
+                                                          != config.window.res.override.x)
+                                                _overrideRes = true;
+              if (std::exchange (lastResOverride.override.y, config.window.res.override.y)
+                                                          != config.window.res.override.y)
+                                                _overrideRes = true;
             }
-
-            SK_AdjustBorder ();
-            SK_AdjustWindow ();
-
-            lastBorderless             = borderless;
-            lastCenter                 = center;
-            lastFullscreen             = fullscreen;
-
-            lastOffset.x.absolute      = config.window.offset.x.absolute;
-            lastOffset.y.absolute      = config.window.offset.y.absolute;
-            lastOffset.x.percent       = config.window.offset.x.percent;
-            lastOffset.y.percent       = config.window.offset.y.percent;
-
-            if (std::exchange (lastResOverride.override.x, config.window.res.override.x)
-                                                        != config.window.res.override.x)
-                                              _overrideRes = true;
-            if (std::exchange (lastResOverride.override.y, config.window.res.override.y)
-                                                        != config.window.res.override.y)
-                                              _overrideRes = true;
-          }
           }
 
           SK_GetWindowRect (game_window.hWnd, &game_window.actual.window);
@@ -3616,16 +3619,23 @@ SK_Window_RepositionIfNeeded (void)
             SK_Display_ResolutionSelectUI (true);
             rb.gsync_state.update         (true);
 
-            PostMessage ( game_window.hWnd,                 WM_SIZE,        SIZE_RESTORED,
-              MAKELPARAM (game_window.actual.client.right -
-                          game_window.actual.client.left,   game_window.actual.client.bottom -
-                                                            game_window.actual.client.top )
-                        );
-            PostMessage ( game_window.hWnd,                 WM_DISPLAYCHANGE, 32,
-              MAKELPARAM (game_window.actual.client.right -
-                          game_window.actual.client.left,   game_window.actual.client.bottom -
-                                                            game_window.actual.client.top )
-                        );
+            // This generally helps (Unity engine games mostly) to apply SwapChain overrides
+            //   immediately, but ATLUS games will respond by moving the game back to the primary
+            //     monitor...
+            //if (rb.windows.unity || rb.windows.sdl || rb.windows.unreal)
+            if (hMonitorBeforeRepos != rb.monitor && (! rb.windows.atlus))
+            {
+              PostMessage ( game_window.hWnd,                 WM_SIZE,        SIZE_RESTORED,
+                MAKELPARAM (game_window.actual.client.right -
+                            game_window.actual.client.left,   game_window.actual.client.bottom -
+                                                              game_window.actual.client.top )
+                          );
+              PostMessage ( game_window.hWnd,                 WM_DISPLAYCHANGE, 32,
+                MAKELPARAM (game_window.actual.client.right -
+                            game_window.actual.client.left,   game_window.actual.client.bottom -
+                                                              game_window.actual.client.top )
+                          );
+            }
           }
 
           // Clear any window move requests
@@ -7437,6 +7447,14 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   else if (StrStrIW (wszClassName, L"SDL_App"))
   {
     SK_GetCurrentRenderBackend ().windows.sdl = true;
+  }
+
+  else if (SK_GetCurrentGameID () == SK_GAME_ID::Metaphor ||
+           SK_GetCurrentGameID () == SK_GAME_ID::Persona4 ||
+           SK_GetCurrentGameID () == SK_GAME_ID::Persona5 ||
+           SK_GetCurrentGameID () == SK_GAME_ID::Persona5Strikers)
+  {
+    SK_GetCurrentRenderBackend ().windows.atlus = true;
   }
 
 
