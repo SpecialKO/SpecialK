@@ -268,7 +268,8 @@ SK_GetCurrentGameID (void)
           { L"MonsterHunterWildsBeta.exe",             SK_GAME_ID::MonsterHunterWilds           },
           { L"Dragon Age The Veilguard.exe",           SK_GAME_ID::DragonAgeTheVeilguard        },
           { L"tomb123.exe",                            SK_GAME_ID::TombRaider123Remastered      },
-          { L"Stalker2-WinGDK-Shipping.exe",           SK_GAME_ID::Stalker2                     }
+          { L"Stalker2-WinGDK-Shipping.exe",           SK_GAME_ID::Stalker2                     },
+          { L"Stalker2-Win64-Shipping.exe",            SK_GAME_ID::Stalker2                     }
         };
 
     first_check  = false;
