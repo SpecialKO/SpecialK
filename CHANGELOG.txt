@@ -1,4 +1,10 @@
-﻿24.11.21
+﻿24.11.22
+========
+ + Update ReShade Add-on API headers to include new events in the next release.
+ + Reduce unnecessary WM_NCHITTEST messages sent to games when the cursor is not
+     even moving.
+
+24.11.21
 ========
  + Enable Fake Fullscreen mode by default in STALKER 2, because it uses that
      crap (in D3D12) for HDR... yay!

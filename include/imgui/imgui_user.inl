@@ -2895,11 +2895,13 @@ SK_ImGui_FallbackTrackMouseEvent (POINT& cursor_pos)
 
       else
       {
-        last.hWndTop    = game_window.hWnd;
-        last.cursor_pos =  cursor_pos;
+        last.hWndTop = game_window.hWnd;
       }
+
+      if (last.hWndTop == game_window.hWnd)
+          last.cursor_pos = cursor_pos;
     }
-  
+
     hWndTop =
       last.hWndTop;
 
@@ -3358,8 +3360,18 @@ SK_ImGui_User_NewFrame (void)
                                       hWndFocus   : hWndGame != hWndFocus ?
                                                     hWndGame              : nullptr;
 
+    static POINT last_cursor_pos;
+    static bool  last_fg_or_top;
+
     bool  bMouseIsForegroundOrTop = ( hWndForeground == hWndMouse0 ||
                                       hWndForeground == hWndMouse1 );
+                                      
+    if (std::exchange(last_cursor_pos.x,cursor_pos.x) == cursor_pos.x&&
+        std::exchange(last_cursor_pos.y,cursor_pos.y) == cursor_pos.y)
+    {
+      bMouseIsForegroundOrTop = last_fg_or_top;
+    }
+
     if (! bMouseIsForegroundOrTop)
     {
       const HWND hWndAtCursor =
@@ -3370,6 +3382,8 @@ SK_ImGui_User_NewFrame (void)
           hWndAtCursor == hWndMouse1 );
     }
 
+    last_fg_or_top = bMouseIsForegroundOrTop;
+
     if (bMouseIsForegroundOrTop)
     {
       SK_ImGui_Cursor.ScreenToLocal (&cursor_pos);
@@ -3377,8 +3391,8 @@ SK_ImGui_User_NewFrame (void)
       if ( cursor_pos.x != last_x ||
            cursor_pos.y != last_y )
       {
-        if ( abs (SK_ImGui_Cursor.pos.x - cursor_pos.x) > 3 ||
-             abs (SK_ImGui_Cursor.pos.y - cursor_pos.y) > 3 )
+        if ( abs (SK_ImGui_Cursor.pos.x - cursor_pos.x) > 0 ||
+             abs (SK_ImGui_Cursor.pos.y - cursor_pos.y) > 0 )
         {
           SK_ImGui_Cursor.pos = cursor_pos;
         }
@@ -3445,8 +3459,8 @@ SK_ImGui_User_NewFrame (void)
   //   regular mouse capture includes swallowing input for "Disabled to Game".
   bool bWantMouseCaptureForUI = SK_ImGui_WantMouseCaptureEx (0x0) && (anything_hovered || ImGui::IsPopupOpen (nullptr, ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel));
 
-  if ( abs (last_x - SK_ImGui_Cursor.pos.x) > 3 ||
-       abs (last_y - SK_ImGui_Cursor.pos.y) > 3 ||
+  if ( abs (last_x - SK_ImGui_Cursor.pos.x) > 0 ||
+       abs (last_y - SK_ImGui_Cursor.pos.y) > 0 ||
             bWantMouseCaptureForUI )
   {
     SK_ImGui_Cursor.last_move = SK::ControlPanel::current_time;
@@ -3526,7 +3540,7 @@ SK_ImGui_User_NewFrame (void)
 
   if (! SK_ImGui_Cursor.idle)
   {
-    if (capture_mouse && anything_hovered)
+    if (capture_mouse && anything_hovered && (last_x != SK_ImGui_Cursor.pos.x || last_y != SK_ImGui_Cursor.pos.y))
     {
       SK_SendMsgSetCursor (ImGui_DesiredCursor ());
     }
