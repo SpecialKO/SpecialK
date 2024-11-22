@@ -16649,3 +16649,5 @@ extern const char*    SK_VersionStrA;
 #include <format>
 
 #pragma warning ( disable : 4652 )
+
+#define RESHADE_NO_IMGUI

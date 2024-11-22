@@ -1587,6 +1587,15 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="depends\include\nvapi\nvHLSLExtns.h" />
     <ClInclude Include="depends\include\nvapi\nvHLSLExtnsInternal.h" />
     <ClInclude Include="depends\include\nvapi\nvShaderExtnEnums.h" />
+    <ClInclude Include="depends\include\ReShade\reshade.hpp" />
+    <ClInclude Include="depends\include\ReShade\reshade_api.hpp" />
+    <ClInclude Include="depends\include\ReShade\reshade_api_device.hpp" />
+    <ClInclude Include="depends\include\ReShade\reshade_api_display.hpp" />
+    <ClInclude Include="depends\include\ReShade\reshade_api_format.hpp" />
+    <ClInclude Include="depends\include\ReShade\reshade_api_pipeline.hpp" />
+    <ClInclude Include="depends\include\ReShade\reshade_api_resource.hpp" />
+    <ClInclude Include="depends\include\ReShade\reshade_events.hpp" />
+    <ClInclude Include="depends\include\ReShade\reshade_overlay.hpp" />
     <ClInclude Include="depends\include\steamapi\isteamapplist.h" />
     <ClInclude Include="depends\include\steamapi\isteamapps.h" />
     <ClInclude Include="depends\include\steamapi\isteamappticket.h" />

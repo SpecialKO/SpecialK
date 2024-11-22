@@ -10,7 +10,7 @@
 namespace reshade { namespace api
 {
 	/// <summary>
-	/// A list of flags that represent the available shader stages in the render pipeline.
+	/// Flags that specify the shader stages in the render pipeline.
 	/// </summary>
 	enum class shader_stage : uint32_t
 	{
@@ -21,14 +21,25 @@ namespace reshade { namespace api
 		pixel = 0x10,
 		compute = 0x20,
 
+		amplification = 0x40,
+		mesh = 0x80,
+
+		raygen = 0x0100,
+		any_hit = 0x0200,
+		closest_hit = 0x0400,
+		miss = 0x0800,
+		intersection = 0x1000,
+		callable = 0x2000,
+
 		all = 0x7FFFFFFF,
 		all_compute = compute,
-		all_graphics = vertex | hull | domain | geometry | pixel
+		all_graphics = vertex | hull | domain | geometry | pixel | amplification | mesh,
+		all_ray_tracing = raygen | any_hit | closest_hit | miss | intersection | callable
 	};
 	RESHADE_DEFINE_ENUM_FLAG_OPERATORS(shader_stage);
 
 	/// <summary>
-	/// A list of flags that represent the available pipeline stages in the render pipeline.
+	/// Flags that specify the pipeline stages in the render pipeline.
 	/// </summary>
 	enum class pipeline_stage : uint32_t
 	{
@@ -39,6 +50,11 @@ namespace reshade { namespace api
 		pixel_shader = 0x80,
 		compute_shader = 0x800,
 
+		amplification_shader = 0x80000,
+		mesh_shader = 0x100000,
+
+		ray_tracing_shader = 0x00200000,
+
 		input_assembler = 0x2,
 		stream_output = 0x4,
 		rasterizer = 0x100,
@@ -48,32 +64,67 @@ namespace reshade { namespace api
 		all = 0x7FFFFFFF,
 		all_compute = compute_shader,
 		all_graphics = vertex_shader | hull_shader | domain_shader | geometry_shader | pixel_shader | input_assembler | stream_output | rasterizer | depth_stencil | output_merger,
+		all_ray_tracing = ray_tracing_shader,
 		all_shader_stages = vertex_shader | hull_shader | domain_shader | geometry_shader | pixel_shader | compute_shader
 	};
 	RESHADE_DEFINE_ENUM_FLAG_OPERATORS(pipeline_stage);
 
 	/// <summary>
-	/// The available descriptor types.
+	/// Type of a descriptor.
 	/// </summary>
 	enum class descriptor_type : uint32_t
 	{
+		/// <summary>
+		/// Descriptors are an array of <see cref="sampler"/>.
+		/// </summary>
 		sampler = 0,
+		/// <summary>
+		/// Descriptors are an array of <see cref="sampler_with_resource_view"/>.
+		/// </summary>
 		sampler_with_resource_view = 1,
-		shader_resource_view = 2,
-		unordered_access_view = 3,
+		/// <summary>
+		/// Descriptors are an array of <see cref="resource_view"/>.
+		/// </summary>
+		buffer_shader_resource_view = 4,
+		/// <summary>
+		/// Descriptors are an array of <see cref="resource_view"/>.
+		/// </summary>
+		buffer_unordered_access_view = 5,
+		/// <summary>
+		/// Descriptors are an array of <see cref="resource_view"/>.
+		/// </summary>
+		texture_shader_resource_view = 2,
+		shader_resource_view = texture_shader_resource_view,
+		/// <summary>
+		/// Descriptors are an array of <see cref="resource_view"/>.
+		/// </summary>
+		texture_unordered_access_view = 3,
+		unordered_access_view = texture_unordered_access_view,
+		/// <summary>
+		/// Descriptors are an array of <see cref="buffer_range"/>.
+		/// </summary>
 		constant_buffer = 6,
-		shader_storage_buffer = 7
+		/// <summary>
+		/// Descriptors are an array of <see cref="buffer_range"/>.
+		/// </summary>
+		shader_storage_buffer = 7,
+		/// <summary>
+		/// Descriptors are an array of <see cref="acceleration_structure"/>.
+		/// </summary>
+		acceleration_structure = 8
 	};
 
 	/// <summary>
-	/// The available pipeline layout parameter types.
+	/// Type of a pipeline layout parameter.
 	/// </summary>
 	enum class pipeline_layout_param_type : uint32_t
 	{
 		push_constants = 1,
 		descriptor_table = 0,
+		descriptor_table_with_static_samplers = 4,
 		push_descriptors = 2,
-		push_descriptors_with_ranges = 3
+		push_descriptors_with_ranges = 3,
+		push_descriptors_with_static_samplers = 5
 	};
 
 	/// <summary>
@@ -141,6 +192,13 @@ namespace reshade { namespace api
 		/// </summary>
 		descriptor_type type = descriptor_type::sampler;
 	};
+	struct descriptor_range_with_static_samplers : public descriptor_range
+	{
+		/// <summary>
+		/// Optional array of sampler descriptions to statically embed into the descriptor table when the descriptor type is <see cref="descriptor_type::sampler"/> or <see cref="descriptor_type::sampler_with_resource_view"/>.
+		/// </summary>
+		const sampler_desc *static_samplers = nullptr;
+	};
 
 	/// <summary>
 	/// Describes a single parameter in a pipeline layout.
@@ -150,7 +208,9 @@ namespace reshade { namespace api
 		constexpr pipeline_layout_param() : push_descriptors() {}
 		constexpr pipeline_layout_param(const constant_range &push_constants) : type(pipeline_layout_param_type::push_constants), push_constants(push_constants) {}
 		constexpr pipeline_layout_param(const descriptor_range &push_descriptors) : type(pipeline_layout_param_type::push_descriptors), push_descriptors(push_descriptors) {}
+		constexpr pipeline_layout_param(const descriptor_range_with_static_samplers &push_descriptors) : type(pipeline_layout_param_type::push_descriptors_with_static_samplers), descriptor_table_with_static_samplers({ 1, &push_descriptors }) {}
 		constexpr pipeline_layout_param(uint32_t count, const descriptor_range *ranges) : type(pipeline_layout_param_type::descriptor_table), descriptor_table({ count, ranges }) {}
+		constexpr pipeline_layout_param(uint32_t count, const descriptor_range_with_static_samplers *ranges) : type(pipeline_layout_param_type::descriptor_table_with_static_samplers), descriptor_table_with_static_samplers({ count, ranges }) {}
 
 		/// <summary>
 		/// Type of the parameter.
@@ -177,6 +237,15 @@ namespace reshade { namespace api
 				uint32_t count;
 				const descriptor_range *ranges;
 			} descriptor_table;
+
+			/// <summary>
+			/// Used when parameter type is <see cref="pipeline_layout_param_type::descriptor_table_with_static_samplers"/> or <see cref="pipeline_layout_param_type::push_descriptors_with_static_samplers"/>.
+			/// </summary>
+			struct
+			{
+				uint32_t count;
+				const descriptor_range_with_static_samplers *ranges;
+			} descriptor_table_with_static_samplers;
 		};
 	};
 
@@ -187,7 +256,7 @@ namespace reshade { namespace api
 	RESHADE_DEFINE_HANDLE(pipeline_layout);
 
 	/// <summary>
-	/// The fill mode to use when rendering triangles.
+	/// Fill mode to use when rendering triangles.
 	/// </summary>
 	enum class fill_mode : uint32_t
 	{
@@ -209,7 +278,7 @@ namespace reshade { namespace api
 	RESHADE_DEFINE_ENUM_FLAG_OPERATORS(cull_mode);
 
 	/// <summary>
-	/// The available logic operations.
+	/// Logic operations.
 	/// </summary>
 	enum class logic_op : uint32_t
 	{
@@ -232,7 +301,7 @@ namespace reshade { namespace api
 	};
 
 	/// <summary>
-	/// The available color or alpha blending operations.
+	/// Color or alpha blending operations.
 	/// </summary>
 	enum class blend_op : uint32_t
 	{
@@ -244,7 +313,7 @@ namespace reshade { namespace api
 	};
 
 	/// <summary>
-	/// The available blend factors in color or alpha blending operations.
+	/// Blend factors in color or alpha blending operations, which modulate values between the pixel shader output and render target.
 	/// </summary>
 	enum class blend_factor : uint32_t
 	{
@@ -270,7 +339,7 @@ namespace reshade { namespace api
 	};
 
 	/// <summary>
-	/// The available stencil operations that can be performed during depth-stencil testing.
+	/// Stencil operations that can be performed during depth-stencil testing.
 	/// </summary>
 	enum class stencil_op : uint32_t
 	{
@@ -370,6 +439,96 @@ namespace reshade { namespace api
 		/// Pointer to an array of constant values, one for each specialization constant index in <see cref="spec_constant_ids"/>.
 		/// </summary>
 		const uint32_t *spec_constant_values = nullptr;
+	};
+
+	/// <summary>
+	/// Type of a ray tracing shader group.
+	/// </summary>
+	enum class shader_group_type
+	{
+		raygen = 0,
+		miss = 3,
+		hit_group_triangles = 1,
+		hit_group_aabbs = 2,
+		callable = 4,
+	};
+
+	/// <summary>
+	/// Describes a ray tracing shader group.
+	/// </summary>
+	struct shader_group
+	{
+		shader_group() : hit_group() {}
+		shader_group(shader_group_type type, uint32_t closest_hit_shader_index, uint32_t any_hit_shader_index = UINT32_MAX, uint32_t intersection_shader_index = UINT32_MAX) : type(type), hit_group({ closest_hit_shader_index, any_hit_shader_index, intersection_shader_index }) {}
+
+		/// <summary>
+		/// Type of the shader group.
+		/// </summary>
+		shader_group_type type = shader_group_type::raygen;
+
+		union
+		{
+			/// <summary>
+			/// Used when type is <see cref="shader_group_type::raygen"/>.
+			/// </summary>
+			struct
+			{
+				/// <summary>
+				/// Index of the shader in the ray generation shader pipeline subobject.
+				/// </summary>
+				/// <seealso cref="pipeline_subobject_type::raygen_shader"/>
+				uint32_t shader_index = UINT32_MAX;
+			} raygen;
+
+			/// <summary>
+			/// Used when type is <see cref="shader_group_type::miss"/>.
+			/// </summary>
+			struct
+			{
+				/// <summary>
+				/// Index of the shader in the miss shader pipeline subobject.
+				/// </summary>
+				/// <seealso cref="pipeline_subobject_type::miss_shader"/>
+				uint32_t shader_index = UINT32_MAX;
+			} miss;
+
+			/// <summary>
+			/// Used when type is <see cref="shader_group_type::hit_group_triangles"/> or <see cref="shader_group_type::hit_group_aabbs"/>.
+			/// </summary>
+			struct
+			{
+				/// <summary>
+				/// Index of the shader in the closest-hit shader pipeline subobject.
+				/// Set to -1 (UINT32_MAX) to indicate that this shader type is not used in the hit group.
+				/// </summary>
+				/// <seealso cref="pipeline_subobject_type::closest_shader"/>
+				uint32_t closest_hit_shader_index = UINT32_MAX;
+				/// <summary>
+				/// Index of the shader in the any-hit shader pipeline subobject.
+				/// Set to -1 (UINT32_MAX) to indicate that this shader type is not used in the hit group.
+				/// </summary>
+				/// <seealso cref="pipeline_subobject_type::any_hit_shader"/>
+				uint32_t any_hit_shader_index = UINT32_MAX;
+				/// <summary>
+				/// Index of the shader in the intersection shader pipeline subobject.
+				/// Set to -1 (UINT32_MAX) to indicate that this shader type is not used in the hit group.
+				/// </summary>
+				/// <seealso cref="pipeline_subobject_type::intersection_shader"/>
+				uint32_t intersection_shader_index = UINT32_MAX;
+			} hit_group;
+
+			/// <summary>
+			/// Used when type is <see cref="shader_group_type::callable"/>.
+			/// </summary>
+			struct
+			{
+				/// <summary>
+				/// Index of the shader in the callable shader pipeline subobject.
+				/// </summary>
+				/// <seealso cref="pipeline_subobject_type::callable_shader"/>
+				uint32_t shader_index = UINT32_MAX;
+			} callable;
+		};
 	};
 
 	/// <summary>
@@ -622,7 +781,19 @@ namespace reshade { namespace api
 	};
 
 	/// <summary>
-	/// The available pipeline sub-object types.
+	/// Flags that specify additional parameters of a pipeline.
+	/// </summary>
+	enum class pipeline_flags : uint32_t
+	{
+		none = 0,
+		library = (1 << 0),
+		skip_triangles = (1 << 1),
+		skip_aabbs = (1 << 2),
+	};
+	RESHADE_DEFINE_ENUM_FLAG_OPERATORS(pipeline_flags);
+
+	/// <summary>
+	/// Type of a pipeline sub-object.
 	/// </summary>
 	enum class pipeline_subobject_type : uint32_t
 	{
@@ -739,7 +910,93 @@ namespace reshade { namespace api
 		/// Maximum number of vertices a draw call with this pipeline will draw.
 		/// Sub-object data is a pointer to a 32-bit unsigned integer value.
 		/// </summary>
-		max_vertex_count
+		max_vertex_count,
+		/// <summary>
+		/// Amplification shader to use.
+		/// Sub-object data is a pointer to a <see cref="shader_desc"/>.
+		/// </summary>
+		/// <seealso cref="shader_stage::amplification"/>
+		/// <seealso cref="pipeline_stage::amplification_shader"/>
+		amplification_shader,
+		/// <summary>
+		/// Mesh shader to use.
+		/// Sub-object data is a pointer to a <see cref="shader_desc"/>.
+		/// </summary>
+		/// <seealso cref="shader_stage::mesh"/>
+		/// <seealso cref="pipeline_stage::mesh_shader"/>
+		mesh_shader,
+		/// <summary>
+		/// Ray generation shader(s) to use.
+		/// Sub-object data is a pointer to a <see cref="shader_desc"/>.
+		/// </summary>
+		/// <seealso cref="shader_stage::raygen"/>
+		/// <seealso cref="pipeline_stage::ray_tracing_shader"/>
+		raygen_shader,
+		/// <summary>
+		/// Any-hit shader(s) to use.
+		/// Sub-object data is a pointer to a <see cref="shader_desc"/>.
+		/// </summary>
+		/// <seealso cref="shader_stage::any_hit"/>
+		/// <seealso cref="pipeline_stage::ray_tracing_shader"/>
+		any_hit_shader,
+		/// <summary>
+		/// Closest-hit shader(s) to use.
+		/// Sub-object data is a pointer to a <see cref="shader_desc"/>.
+		/// </summary>
+		/// <seealso cref="shader_stage::closest_hit"/>
+		/// <seealso cref="pipeline_stage::ray_tracing_shader"/>
+		closest_hit_shader,
+		/// <summary>
+		/// Miss shader(s) to use.
+		/// Sub-object data is a pointer to a <see cref="shader_desc"/>.
+		/// </summary>
+		/// <seealso cref="shader_stage::miss"/>
+		/// <seealso cref="pipeline_stage::ray_tracing_shader"/>
+		miss_shader,
+		/// <summary>
+		/// Intersection shader(s) to use.
+		/// Sub-object data is a pointer to a <see cref="shader_desc"/>.
+		/// </summary>
+		/// <seealso cref="shader_stage::intersection"/>
+		/// <seealso cref="pipeline_stage::ray_tracing_shader"/>
+		intersection_shader,
+		/// <summary>
+		/// Callable shader(s) to use.
+		/// Sub-object data is a pointer to a <see cref="shader_desc"/>.
+		/// </summary>
+		/// <seealso cref="shader_stage::callable"/>
+		/// <seealso cref="pipeline_stage::ray_tracing_shader"/>
+		callable_shader,
+		/// <summary>
+		/// Existing shader libraries added to this pipeline.
+		/// Sub-object data is a pointer to an array of <see cref="pipeline"/> handles.
+		/// </summary>
+		libraries,
+		/// <summary>
+		/// Ray tracing shader groups to use.
+		/// Sub-object data is a pointer to an array of <see cref="shader_group"/> values.
+		/// </summary>
+		shader_groups,
+		/// <summary>
+		/// Maximum payload size of shaders executed by this pipeline.
+		/// Sub-object data is a pointer to a 32-bit unsigned integer value.
+		/// </summary>
+		max_payload_size,
+		/// <summary>
+		/// Maximum hit attribute size of shaders executed by this pipeline.
+		/// Sub-object data is a pointer to a 32-bit unsigned integer value.
+		/// </summary>
+		max_attribute_size,
+		/// <summary>
+		/// Maximum recursion depth of shaders executed by this pipeline.
+		/// Sub-object data is a pointer to a 32-bit unsigned integer value.
+		/// </summary>
+		max_recursion_depth,
+		/// <summary>
+		/// Additional pipeline creation flags.
+		/// Sub-object data is a pointer to a <see cref="pipeline_flags"/> value.
+		/// </summary>
+		flags
 	};
 
 	/// <summary>
@@ -875,7 +1132,7 @@ namespace reshade { namespace api
 		descriptor_type type = descriptor_type::sampler;
 		/// <summary>
 		/// Pointer to an array of descriptors to update in the descriptor table (which should be as large as the specified <see cref="count"/>).
-		/// Depending on the descriptor <see cref="type"/> this should be pointer to an array of <see cref="buffer_range"/>, <see cref="resource_view"/>, <see cref="sampler"/> or <see cref="sampler_with_resource_view"/>.
+		/// Depending on the descriptor <see cref="type"/> this should be pointer to an array of <see cref="buffer_range"/>, <see cref="resource_view"/>, <see cref="sampler"/>, <see cref="sampler_with_resource_view"/> or <see cref="acceleration_structure"/>.
 		/// </summary>
 		const void *descriptors = nullptr;
 	};
@@ -887,14 +1144,34 @@ namespace reshade { namespace api
 	RESHADE_DEFINE_HANDLE(descriptor_heap);
 
 	/// <summary>
-	/// The available query types.
+	/// Type of a query.
 	/// </summary>
 	enum class query_type
 	{
+		/// <summary>
+		/// Number of samples that passed the depth and stencil tests between beginning and end of the query.
+		/// Data is a 64-bit unsigned integer value.
+		/// </summary>
 		occlusion = 0,
+		/// <summary>
+		/// Zero if no samples passed, one if at least one sample passed the depth and stencil tests between beginning and end of the query.
+		/// Data is a 64-bit unsigned integer value.
+		/// </summary>
 		binary_occlusion = 1,
+		/// <summary>
+		/// GPU timestamp at the frequency returned by <see cref="command_queue::get_timestamp_frequency"/>.
+		/// Data is a 64-bit unsigned integer value.
+		/// </summary>
 		timestamp = 2,
+		/// <summary>
+		/// Pipeline statistics (such as the number of shader invocations) between beginning and end of the query.
+		/// Data is a structure of type <c>{ uint64_t ia_vertices; uint64_t ia_primitives; uint64_t vs_invocations; uint64_t gs_invocations; uint64_t gs_primitives; uint64_t invocations; uint64_t primitives; uint64_t ps_invocations; uint64_t hs_invocations; uint64_t ds_invocations; uint64_t cs_invocations; }</c>.
+		/// </summary>
 		pipeline_statistics = 3,
+		/// <summary>
+		/// Streaming output statistics for stream 0 between beginning and end of the query.
+		/// Data is a structure of type <c>{ uint64_t primitives_written; uint64_t primitives_storage_needed; }</c>.
+		/// </summary>
 		stream_output_statistics_0 = 4,
 		stream_output_statistics_1,
 		stream_output_statistics_2,
@@ -909,7 +1186,7 @@ namespace reshade { namespace api
 
 	/// <summary>
 	/// A list of all possible render pipeline states that can be set independent of pipeline state objects.
-	/// <para>Support for these varies between render APIs (e.g. modern APIs like D3D12 and Vulkan support much less dynamic states than D3D9).</para>
+	/// <para>Support for these varies between graphics APIs (e.g. modern APIs like D3D12 and Vulkan support much less dynamic states than D3D9).</para>
 	/// </summary>
 	enum class dynamic_state
 	{
@@ -970,6 +1247,10 @@ namespace reshade { namespace api
 		back_stencil_pass_op = 188,
 		back_stencil_fail_op = 186,
 		back_stencil_depth_fail_op = 187,
+
+		// Ray tracing state
+
+		ray_tracing_pipeline_stack_size = 2000
 	};
 
 	/// <summary>
@@ -1000,7 +1281,7 @@ namespace reshade { namespace api
 	};
 
 	/// <summary>
-	/// A list of flags that describe fence creation options.
+	/// Flags that specify additional parameters of a fence.
 	/// </summary>
 	enum class fence_flags : uint32_t
 	{

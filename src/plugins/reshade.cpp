@@ -566,6 +566,20 @@ SK_ReShadeAddOn_ToggleOverlay (void)
   SK_ReShadeAddOn_ActivateOverlay (!ReShadeOverlayActive);
 }
 
+void
+__cdecl
+SK_ReShadeAddOn_DisplayChange (reshade::api::effect_runtime *runtime, reshade::api::display* display)
+{
+  std::ignore = runtime;
+  std::ignore = display;
+
+#if 0
+  SK_ImGui_Warning (
+    SK_FormatStringW (L"ReShade Display Change: %ws - Max Luminance: %3.1f nits", display != nullptr ? display->get_display_name () : L"Unknown Monitor", display != nullptr ? display->get_luminance_caps ().max_nits : 0.0f).c_str ()
+  );
+#endif
+}
+
 bool
 __cdecl
 SK_ReShadeAddOn_OverlayActivation (reshade::api::effect_runtime *runtime, bool open, reshade::api::input_source source)
@@ -1150,6 +1164,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
     reshade::register_event <reshade::addon_event::destroy_swapchain>      (SK_ReShadeAddOn_DestroySwapChain);
     reshade::register_event <reshade::addon_event::destroy_command_queue>  (SK_ReShadeAddOn_DestroyCmdQueue);
     reshade::register_event <reshade::addon_event::reshade_open_overlay>   (SK_ReShadeAddOn_OverlayActivation);
+    reshade::register_event <reshade::addon_event::display_change>         (SK_ReShadeAddOn_DisplayChange);
 
     auto _AutoLoadAddOns = [&](void)
     {

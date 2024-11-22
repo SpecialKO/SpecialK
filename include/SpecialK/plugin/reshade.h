@@ -27,6 +27,7 @@
 #include <Windows.h>
 
 #include <../depends/include/ReShade/reshade_api.hpp>
+#include <../depends/include/ReShade/reshade_api_display.hpp>
 #include <../depends/include/DirectXTex/DirectXTex.h>
 
 HMODULE
