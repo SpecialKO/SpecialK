@@ -3697,6 +3697,9 @@ SK_ImGui_User_NewFrame (void)
   SK_ImGui_WantMouseCapture    (true);
   SK_ImGui_WantGamepadCapture  (true);
   SK_IsGameWindowActive        (true);
+
+  SK_GetCursorPos                 (&cursor_pos);
+  SK_ImGui_Cursor.last_screen_pos = cursor_pos;
 }
 
 bool

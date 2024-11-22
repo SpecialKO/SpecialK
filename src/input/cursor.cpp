@@ -589,15 +589,11 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 
     if ((! imgui_capture) && (! game_window.isCursorHovering ()))
     {
-      POINT                 ptCursor = {};
-      if (SK_GetCursorPos (&ptCursor))
-      {
-        DWORD                                                  dwProcId;
-        GetWindowThreadProcessId (WindowFromPoint (ptCursor), &dwProcId);
+      DWORD                                                                         dwProcId;
+      GetWindowThreadProcessId (WindowFromPoint (SK_ImGui_Cursor.last_screen_pos), &dwProcId);
 
-        if (dwProcId != GetCurrentProcessId ())
-          imgui_capture = true;
-      }
+      if (dwProcId != GetCurrentProcessId ())
+        imgui_capture = true;
     }
   }
 

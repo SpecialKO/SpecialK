@@ -105,25 +105,26 @@ enum class sk_cursor_state {
 
 struct sk_imgui_cursor_s
 {
-  HWND    child_input   =   HWND_DESKTOP;
-  RECT    child_client  = { 0, 0, 0, 0 };
-  RECT    child_rect    = { 0, 0, 0, 0 };
+  HWND    child_input     =   HWND_DESKTOP;
+  RECT    child_client    = { 0, 0, 0, 0 };
+  RECT    child_rect      = { 0, 0, 0, 0 };
 
-  HCURSOR real_img      =        nullptr;
-  POINT   orig_pos      =       { 0, 0 };
-  bool    orig_vis      =          false;
+  HCURSOR real_img        =        nullptr;
+  POINT   orig_pos        =       { 0, 0 };
+  bool    orig_vis        =          false;
 
-  HCURSOR img           =        nullptr;
-  POINT   pos           =       { 0, 0 };
+  HCURSOR img             =        nullptr;
+  POINT   pos             =       { 0, 0 };
 
-  bool    visible       =          false;
-  bool    idle          =           true; // Hasn't moved
-  DWORD   last_move     =       MAXDWORD;
-  DWORD   last_toggle   =              0;
-  DWORD   refs_added    =              0;
-  DWORD64 times_set     =              0; // Times the game has set a non-zero cursor
+  bool    visible         =          false;
+  bool    idle            =           true; // Hasn't moved
+  DWORD   last_move       =       MAXDWORD;
+  DWORD   last_toggle     =              0;
+  DWORD   refs_added      =              0;
+  POINT   last_screen_pos =       { 0, 0 };
+  DWORD64 times_set       =              0; // Times the game has set a non-zero cursor
 
-  sk_cursor_state force = sk_cursor_state::None;
+  sk_cursor_state force   = sk_cursor_state::None;
 
   void    showSystemCursor (bool system = true);
   void    showImGuiCursor  (void);
