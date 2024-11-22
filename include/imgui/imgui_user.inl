@@ -3405,6 +3405,11 @@ SK_ImGui_User_NewFrame (void)
         io.MousePos.y = static_cast <float> (SK_ImGui_Cursor.pos.y);
       }
     }
+
+    else
+    {
+      game_window.mouse.inside = false;
+    }
   }
 
   // Cursor stops being treated as idle when it's not in the game window :)

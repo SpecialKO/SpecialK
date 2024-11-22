@@ -529,6 +529,19 @@ sk_imgui_cursor_s::activateWindow (bool active)
 static constexpr const DWORD REASON_DISABLED = 0x4;
 
 bool
+sk_window_s::isCursorHovering (void)
+{
+  if (! SK_GImDefaultContext ())
+    return mouse.inside;
+
+  const auto& io =
+    ImGui::GetIO ();
+
+  return
+    mouse.inside && io.MousePos.x != -FLT_MAX && io.MousePos.y != -FLT_MAX;
+}
+
+bool
 SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 {
   if (! SK_GImDefaultContext ())
@@ -573,6 +586,19 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 
     if (game_window.active && ReadULong64Acquire (&config.input.mouse.temporarily_allow) > SK_GetFramesDrawn () - 20)
       imgui_capture = false;
+
+    if ((! imgui_capture) && (! game_window.isCursorHovering ()))
+    {
+      POINT                 ptCursor = {};
+      if (SK_GetCursorPos (&ptCursor))
+      {
+        DWORD                                                  dwProcId;
+        GetWindowThreadProcessId (WindowFromPoint (ptCursor), &dwProcId);
+
+        if (dwProcId != GetCurrentProcessId ())
+          imgui_capture = true;
+      }
+    }
   }
 
   if ((! SK_IsGameWindowActive ()) && config.input.mouse.disabled_to_game == SK_InputEnablement::DisabledInBackground)
@@ -1057,8 +1083,7 @@ GetCursorPos_Detour (LPPOINT lpPoint)
 #endif
   }
 
-
-  if (SK_ImGui_IsMouseRelevant ())
+  if (!game_window.isCursorHovering () || SK_ImGui_IsMouseRelevant())
   {
     //
     // Compute delta mouse coordinates for games that use cursor warping (i.e. mouselook)

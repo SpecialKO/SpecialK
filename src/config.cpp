@@ -269,7 +269,8 @@ SK_GetCurrentGameID (void)
           { L"Dragon Age The Veilguard.exe",           SK_GAME_ID::DragonAgeTheVeilguard        },
           { L"tomb123.exe",                            SK_GAME_ID::TombRaider123Remastered      },
           { L"Stalker2-WinGDK-Shipping.exe",           SK_GAME_ID::Stalker2                     },
-          { L"Stalker2-Win64-Shipping.exe",            SK_GAME_ID::Stalker2                     }
+          { L"Stalker2-Win64-Shipping.exe",            SK_GAME_ID::Stalker2                     },
+          { L"vlc.exe",                                SK_GAME_ID::vlc                          }
         };
 
     first_check  = false;

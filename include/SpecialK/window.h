@@ -398,7 +398,7 @@ struct sk_window_s {
 
   bool        active           = true;
 
-  struct {
+  struct cursor_s {
     bool      inside           = true;
     bool      tracking         = false;
     bool      can_track        = false; // Able to use TrackMouseEvent?
@@ -475,6 +475,7 @@ struct sk_window_s {
 
   bool    needsCoordTransform (void);
   void    updateDims          (void);
+  bool    isCursorHovering    (void);
 
   SetWindowLongPtr_pfn SetWindowLongPtr = SK_SetWindowLongPtrW;
   GetWindowLongPtr_pfn GetWindowLongPtr = SK_GetWindowLongPtrW;

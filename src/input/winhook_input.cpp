@@ -61,93 +61,93 @@ SK_Proxy_MouseProc   (
 {
   if (nCode == HC_ACTION || nCode == HC_NOREMOVE)
   {
-    if (nCode == HC_ACTION)
+    if (SK_GImDefaultContext ())
     {
-      switch (wParam)
+      if (nCode == HC_ACTION)
       {
-        case WM_MOUSEMOVE:
-        case WM_LBUTTONDOWN:
-        case WM_LBUTTONDBLCLK:
-        case WM_RBUTTONDOWN:
-        case WM_RBUTTONDBLCLK:
-        case WM_MBUTTONDOWN:
-        case WM_MBUTTONDBLCLK:
-        case WM_XBUTTONDOWN:
-        case WM_XBUTTONDBLCLK:
+        switch (wParam)
         {
-          MOUSEHOOKSTRUCT *mhs =
-            (MOUSEHOOKSTRUCT *)lParam;
-
-          static auto& io =
-            ImGui::GetIO ();
-
-          io.KeyCtrl  |= ((mhs->dwExtraInfo & MK_CONTROL) != 0);
-          io.KeyShift |= ((mhs->dwExtraInfo & MK_SHIFT  ) != 0);
-
-          switch (wParam)
+          case WM_MOUSEMOVE:
+          case WM_LBUTTONDOWN:
+          case WM_LBUTTONDBLCLK:
+          case WM_RBUTTONDOWN:
+          case WM_RBUTTONDBLCLK:
+          case WM_MBUTTONDOWN:
+          case WM_MBUTTONDBLCLK:
+          case WM_XBUTTONDOWN:
+          case WM_XBUTTONDBLCLK:
           {
-            case WM_MOUSEMOVE:
+            MOUSEHOOKSTRUCT *mhs =
+              (MOUSEHOOKSTRUCT *)lParam;
+
+            auto& io =
+              ImGui::GetIO ();
+
+            io.KeyCtrl  |= ((mhs->dwExtraInfo & MK_CONTROL) != 0);
+            io.KeyShift |= ((mhs->dwExtraInfo & MK_SHIFT  ) != 0);
+
+            // No TrackMouseEvent available, have to do this manually
+            if (! game_window.mouse.can_track)
             {
-              // No TrackMouseEvent available, have to do this manually
-              if (! game_window.mouse.can_track)
+              POINT                                          pt (mhs->pt);
+              ScreenToClient             (game_window.child != nullptr ?
+                                          game_window.child            :
+                                          game_window.hWnd, &pt);
+              if (ChildWindowFromPointEx (game_window.child != nullptr ?
+                                          game_window.child            :
+                                          game_window.hWnd,  pt, CWP_SKIPDISABLED) == (game_window.child != nullptr ?
+                                                                                       game_window.child            :
+                                                                                       game_window.hWnd))
               {
-                POINT                                          pt (mhs->pt);
-                ScreenToClient             (game_window.child != nullptr ?
-                                            game_window.child            :
-                                            game_window.hWnd, &pt);
-                if (ChildWindowFromPointEx (game_window.child != nullptr ?
-                                            game_window.child            :
-                                            game_window.hWnd,  pt, CWP_SKIPDISABLED) == (game_window.child != nullptr ?
-                                                                                         game_window.child            :
-                                                                                         game_window.hWnd))
-                {
-                  SK_ImGui_Cursor.ClientToLocal (&pt);
-                  SK_ImGui_Cursor.pos =           pt;
+                SK_ImGui_Cursor.ClientToLocal (&pt);
+                SK_ImGui_Cursor.pos =           pt;
 
-                  io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
-                  io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
-                }
-
-                else
-                  io.MousePos = ImVec2 (-FLT_MAX, -FLT_MAX);
+                io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+                io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
               }
 
-              // Install a mouse tracker to get WM_MOUSELEAVE
-              if (! (game_window.mouse.tracking && game_window.mouse.inside))
-              {
-                if (SK_ImGui_WantMouseCapture ())
-                {
-                  SK_ImGui_UpdateMouseTracker ();
-                }
-              }
-            } break;
+              else
+                io.MousePos = ImVec2 (-FLT_MAX, -FLT_MAX);
+            }
 
-            case WM_LBUTTONDOWN:
-            case WM_LBUTTONDBLCLK:
-              io.MouseDown [0] = true;
-              break;
-
-            case WM_RBUTTONDOWN:
-            case WM_RBUTTONDBLCLK:
-              io.MouseDown [1] = true;
-              break;
-
-            case WM_MBUTTONDOWN:
-            case WM_MBUTTONDBLCLK:
-              io.MouseDown [2] = true;
-              break;
-
-            case WM_XBUTTONDOWN:
-            case WM_XBUTTONDBLCLK:
+            // Install a mouse tracker to get WM_MOUSELEAVE
+            if (! (game_window.mouse.tracking && game_window.mouse.inside))
             {
-              MOUSEHOOKSTRUCTEX* mhsx =
-                (MOUSEHOOKSTRUCTEX*)lParam;
+              if (SK_ImGui_WantMouseCapture ())
+              {
+                SK_ImGui_UpdateMouseTracker ();
+              }
+            }
 
-              if ((HIWORD (mhsx->mouseData)) == XBUTTON1) io.MouseDown [3] = true;
-              if ((HIWORD (mhsx->mouseData)) == XBUTTON2) io.MouseDown [4] = true;
-            } break;
-          }
-        } break;
+            switch (wParam)
+            {
+              case WM_LBUTTONDOWN:
+              case WM_LBUTTONDBLCLK:
+                io.MouseDown [ImGuiKey_MouseLeft] = true;
+                break;
+
+              case WM_RBUTTONDOWN:
+              case WM_RBUTTONDBLCLK:
+                io.MouseDown [ImGuiKey_MouseRight] = true;
+                break;
+
+              case WM_MBUTTONDOWN:
+              case WM_MBUTTONDBLCLK:
+                io.MouseDown [ImGuiKey_MouseMiddle] = true;
+                break;
+
+              case WM_XBUTTONDOWN:
+              case WM_XBUTTONDBLCLK:
+              {
+                MOUSEHOOKSTRUCTEX* mhsx =
+                  (MOUSEHOOKSTRUCTEX*)lParam;
+
+                if ((HIWORD (mhsx->mouseData)) == XBUTTON1) io.MouseDown [ImGuiKey_MouseX1] = true;
+                if ((HIWORD (mhsx->mouseData)) == XBUTTON2) io.MouseDown [ImGuiKey_MouseX2] = true;
+              } break;
+            }
+          } break;
+        }
       }
     }
 
@@ -203,51 +203,87 @@ SK_Proxy_LLMouseProc   (
 {
   if (nCode == HC_ACTION)
   {
-    switch (wParam)
+    MSLLHOOKSTRUCT *mhs =
+   (MSLLHOOKSTRUCT *)lParam;
+
+    if (SK_GImDefaultContext ())
     {
-      case WM_MOUSEMOVE:
-      case WM_LBUTTONDOWN:
-      case WM_LBUTTONDBLCLK:
-      case WM_RBUTTONDOWN:
-      case WM_RBUTTONDBLCLK:
-      case WM_MBUTTONDOWN:
-      case WM_MBUTTONDBLCLK:
-      case WM_XBUTTONDOWN:
-      case WM_XBUTTONDBLCLK:
+      auto& io =
+        ImGui::GetIO ();
+
+      // No TrackMouseEvent available, have to do this manually
+      if (! game_window.mouse.can_track)
       {
-        MSLLHOOKSTRUCT *mhs =
-          (MSLLHOOKSTRUCT *)lParam;
-
-        static auto& io =
-          ImGui::GetIO ();
-
-        io.KeyCtrl  |= ((mhs->dwExtraInfo & MK_CONTROL) != 0);
-        io.KeyShift |= ((mhs->dwExtraInfo & MK_SHIFT  ) != 0);
-
-        switch (wParam)
+        POINT                                          pt (mhs->pt);
+        ScreenToClient             (game_window.child != nullptr ?
+                                    game_window.child            :
+                                    game_window.hWnd, &pt);
+        if (ChildWindowFromPointEx (game_window.child != nullptr ?
+                                    game_window.child            :
+                                    game_window.hWnd,  pt, CWP_SKIPDISABLED) == (game_window.child != nullptr ?
+                                                                                 game_window.child            :
+                                                                                 game_window.hWnd))
         {
-          case WM_LBUTTONDOWN:
-          case WM_LBUTTONDBLCLK:
-            io.MouseDown [0] = true;
-            break;
-
-          case WM_RBUTTONDOWN:
-          case WM_RBUTTONDBLCLK:
-            io.MouseDown [1] = true;
-            break;
-
-          case WM_MBUTTONDOWN:
-          case WM_MBUTTONDBLCLK:
-            io.MouseDown [2] = true;
-            break;
-
-          case WM_XBUTTONDOWN:
-          case WM_XBUTTONDBLCLK:
-            if ((HIWORD (mhs->mouseData)) == XBUTTON1) io.MouseDown [3] = true;
-            if ((HIWORD (mhs->mouseData)) == XBUTTON2) io.MouseDown [4] = true;
-            break;
+          SK_ImGui_Cursor.ClientToLocal (&pt);
+          SK_ImGui_Cursor.pos =           pt;
+      
+          io.MousePos.x = (float)SK_ImGui_Cursor.pos.x;
+          io.MousePos.y = (float)SK_ImGui_Cursor.pos.y;
         }
-      } break;
+      
+        else
+          io.MousePos = ImVec2 (-FLT_MAX, -FLT_MAX);
+      }
+    
+      // Install a mouse tracker to get WM_MOUSELEAVE
+      if (! (game_window.mouse.tracking && game_window.mouse.inside))
+      {
+        if (SK_ImGui_WantMouseCapture ())
+        {
+          SK_ImGui_UpdateMouseTracker ();
+        }
+      }
+
+      switch (wParam)
+      {
+        case WM_MOUSEMOVE:
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONDBLCLK:
+        case WM_RBUTTONDOWN:
+        case WM_RBUTTONDBLCLK:
+        case WM_MBUTTONDOWN:
+        case WM_MBUTTONDBLCLK:
+        case WM_XBUTTONDOWN:
+        case WM_XBUTTONDBLCLK:
+        {
+          io.KeyCtrl  |= ((mhs->dwExtraInfo & MK_CONTROL) != 0);
+          io.KeyShift |= ((mhs->dwExtraInfo & MK_SHIFT  ) != 0);
+
+          switch (wParam)
+          {
+            case WM_LBUTTONDOWN:
+            case WM_LBUTTONDBLCLK:
+              io.MouseDown [ImGuiKey_MouseLeft] = true;
+              break;
+
+            case WM_RBUTTONDOWN:
+            case WM_RBUTTONDBLCLK:
+              io.MouseDown [ImGuiKey_MouseRight] = true;
+              break;
+
+            case WM_MBUTTONDOWN:
+            case WM_MBUTTONDBLCLK:
+              io.MouseDown [ImGuiKey_MouseMiddle] = true;
+              break;
+
+            case WM_XBUTTONDOWN:
+            case WM_XBUTTONDBLCLK:
+              if ((HIWORD (mhs->mouseData)) == XBUTTON1) io.MouseDown [ImGuiKey_MouseX1] = true;
+              if ((HIWORD (mhs->mouseData)) == XBUTTON2) io.MouseDown [ImGuiKey_MouseX2] = true;
+              break;
+          }
+        } break;
+      }
     }
 
     if (SK_ImGui_WantMouseCapture ())
@@ -260,31 +296,28 @@ SK_Proxy_LLMouseProc   (
              wParam, lParam );
     }
 
-    else
+    // Game uses a mouse hook for input that the Steam overlay cannot block
+    if (SK_GetStoreOverlayState (true))
     {
-      // Game uses a mouse hook for input that the Steam overlay cannot block
-      if (SK_GetStoreOverlayState (true))
-      {
-        SK_WinHook_Backend->markHidden (sk_input_dev_type::Mouse);
+      SK_WinHook_Backend->markHidden (sk_input_dev_type::Mouse);
 
-        return
-          CallNextHookEx (0, nCode, wParam, lParam);
-      }
-
-      SK_WinHook_Backend->markRead (sk_input_dev_type::Mouse);
-
-      DWORD dwTid =
-        GetCurrentThreadId ();
-
-      auto hook_fn = __hooks._RealMouseProcs [dwTid];
-           hook_fn =
-           hook_fn != nullptr ?
-           hook_fn            :
-         __hooks._RealMouseProc;
-                    
-      if (hook_fn != nullptr)
-        return hook_fn (nCode, wParam, lParam);
+      return
+        CallNextHookEx (0, nCode, wParam, lParam);
     }
+
+    SK_WinHook_Backend->markRead (sk_input_dev_type::Mouse);
+
+    DWORD dwTid =
+      GetCurrentThreadId ();
+
+    auto hook_fn = __hooks._RealMouseProcs [dwTid];
+         hook_fn =
+         hook_fn != nullptr ?
+         hook_fn            :
+       __hooks._RealMouseProc;
+                  
+    if (hook_fn != nullptr)
+      return hook_fn (nCode, wParam, lParam);
   }
 
   return
@@ -324,7 +357,10 @@ SK_Proxy_KeyboardProc (
     }
 
     if ((! isPressed) || SK_IsGameWindowActive ())
-      ImGui::GetIO ().KeysDown [vKey] = isPressed;
+    {
+      if (SK_GImDefaultContext ())
+        ImGui::GetIO ().KeysDown [vKey] = isPressed;
+    }
 
     bool hide =
       SK_ImGui_WantKeyboardCapture ();
@@ -447,7 +483,10 @@ SK_Proxy_LLKeyboardProc (
     }
 
     if (bWindowActive || (! isPressed))
-      ImGui::GetIO ().KeysDown [vKey] = isPressed;
+    {
+      if (SK_GImDefaultContext ())
+        ImGui::GetIO ().KeysDown [vKey] = isPressed;
+    }
 
     bool hide =
       SK_ImGui_WantKeyboardCapture ();
