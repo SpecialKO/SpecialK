@@ -1503,14 +1503,22 @@ SK_HID_PlayStationDevice::request_input_report (void)
               {
                 if (config.input.gamepad.bt_input_only)
                 {
-                  SK_ImGui_CreateNotification ( "HID.Bluetooth.ModeChange", SK_ImGui_Toast::Warning,
-                    "Reconnect them to Activate DualShock 3 Compatibility Mode",
-                    "Special K has Disconnected all Bluetooth Controllers!",
-                    //"Bluetooth PlayStation Controller(s) Running in DualShock 4 / DualSense Mode!",
-                        15000UL, SK_ImGui_Toast::UseDuration | SK_ImGui_Toast::ShowTitle |
-                                 SK_ImGui_Toast::ShowCaption | SK_ImGui_Toast::ShowNewest );
+                  const bool legacy_input_detected =
+                    ( SK_WinMM_Backend->reads [2] + 
+                      SK_DI7_Backend->reads   [2] +
+                      SK_DI8_Backend->reads   [2] > 0 );
 
-                  SK_DeferCommand ("Input.Gamepad.PowerOff 1");
+                  if (legacy_input_detected)
+                  {
+                    SK_ImGui_CreateNotification ( "HID.Bluetooth.ModeChange", SK_ImGui_Toast::Warning,
+                      "Reconnect them to Activate DualShock 3 Compatibility Mode",
+                      "Special K has Disconnected all Bluetooth Controllers!",
+                      //"Bluetooth PlayStation Controller(s) Running in DualShock 4 / DualSense Mode!",
+                          15000UL, SK_ImGui_Toast::UseDuration | SK_ImGui_Toast::ShowTitle |
+                                   SK_ImGui_Toast::ShowCaption | SK_ImGui_Toast::ShowNewest );
+
+                    SK_DeferCommand ("Input.Gamepad.PowerOff 1");
+                  }
                 }
 
                 else

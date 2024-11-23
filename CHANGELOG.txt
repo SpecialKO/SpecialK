@@ -1,4 +1,24 @@
-﻿24.11.22
+﻿24.11.23
+========
+ + Cleanup Mouse Cursor section of Input Control Panel and remove the old
+     "Low-Level Mouse Settings" section.
+
+ + Auto-Bluetooth Compatibility now only powers off PlayStation controllers
+     that have advanced Bluetooth mode active if SK has seen the game attempt
+       to poll input using WinMM or DirectInput 7/8 at least one time first.
+
+    # Controllers start in "simple" Bluetooth mode when initially powered on,
+        which is a mode compatible with DirectInput and WinMM.
+
+   >> Prior to this change, it could cause an endless loop of the controller
+        powering off, Steam Input re-initializing the controller in advanced
+          Bluetooth mode when powered back on, and then SK turning it back off!
+
+    * It is a niche feature that is more likely to be accidentally enabled by
+        users not completely familiar with its purpose than the chances of
+          playing a game that requires it.
+
+24.11.22
 ========
  + Update ReShade Add-on API headers to include new events in the next release.
  + Reduce unnecessary WM_NCHITTEST messages sent to games when the cursor is not

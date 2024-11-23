@@ -759,15 +759,13 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::SameLine      ();
       ImGui::SeparatorEx   (ImGuiSeparatorFlags_Vertical);
       ImGui::SameLine      ();
-
-      ImGui::BeginGroup    ();
-      ImGui::Text          ("Mouse Input Capture");
-      ImGui::TreePush      ("");
 #endif
 
+      ImGui::Separator     (  );
       ImGui::BeginGroup    (  );
-
-      if (ImGui::Checkbox ("Block Mouse", &config.input.ui.capture_mouse))
+      ImGui::Text          ("Mouse Input Capture");
+      ImGui::TreePush      ("");
+      if (ImGui::Checkbox  ("Block Mouse Input when Overlay is Visible", &config.input.ui.capture_mouse))
       {
         SK_ImGui_UpdateCursor ();
         //SK_ImGui_AdjustCursor ();
@@ -776,18 +774,24 @@ SK::ControlPanel::Input::Draw (void)
       if (ImGui::BeginItemTooltip ())
       {
         ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f),
-                            "Prevent Game from Detecting Mouse Input while this UI is Visible");
-        ImGui::Separator   ();
-        ImGui::BulletText  ("May help with mouselook in some games");
+                            "Prevent Game from Detecting All Forms of Mouse Input while this UI is Visible.");
         ImGui::EndTooltip  ();
       }
 
-      ImGui::SameLine ();
+      if (! config.input.ui.capture_mouse)
+      {
+        ImGui::SameLine (0.0f, 15);
+        ImGui::Checkbox ("Block Mouse Input if No Cursor is Visible", &config.input.ui.capture_hidden);
 
-      ImGui::Checkbox ("Block Mouse if No Cursor is Visible", &config.input.ui.capture_hidden);
+        if (ImGui::BeginItemTooltip ())
+        {
+          ImGui::BulletText ("Normally, SK allows games to see mouse clicks and movement as long as the cursor is not hovering SK's UI.");
+          ImGui::BulletText ("If the System Cursor is not visible, games are usually in mouselook mode... which could cause UI problems.");
+          ImGui::EndTooltip ();
+        }
+      }
 
-      ImGui::SetItemTooltip ("Generally prevents mouselook if you move your cursor away from the config UI");
-
+      ImGui::TreePop  ();
       ImGui::EndGroup ();
       ImGui::TreePop  ();
     }
@@ -2017,7 +2021,10 @@ SK::ControlPanel::Input::Draw (void)
 #endif
 
           ImGui::BeginGroup ();
-          if (ImGui::TreeNode ("Compatibility Options"))
+          bool compat_expanded =
+            ImGui::TreeNode ("Compatibility Options");
+
+          if (compat_expanded)
           {
             bool hovered    = false;
             bool changed    = false;
@@ -2109,9 +2116,23 @@ SK::ControlPanel::Input::Draw (void)
                 changed = true;
               }
 
-              ImGui::SetItemTooltip (
-                "Enable this if your current game only supports DirectInput, "
-                "SK will power-off your controller(s) if it detects the game trying to use WinMM or DirectInput." );
+              if (ImGui::BeginItemTooltip ())
+              {
+                ImGui::TextUnformatted
+                                  ( "Enable this if the current game only has "
+                  "support for DirectInput"
+                                   );
+                ImGui::Separator  ();
+                ImGui::BulletText (
+                  "SK will power-off your controller(s) if it detects the game"
+                  " trying to use WinMM or DirectInput.");
+                ImGui::Separator  ();
+                ImGui::TextUnformatted
+                                  ( "When powered-on, the controller will be "
+                  "compatible with DirectInput (until something uses rumble "
+                  "or sets LEDs)." );
+                ImGui::EndTooltip ();
+              }
 
               if (! config.input.gamepad.bt_input_only)
               {
@@ -2159,6 +2180,7 @@ SK::ControlPanel::Input::Draw (void)
             ImGui::TreePop  (  );
           }
           ImGui::EndGroup   ();
+          if (!compat_expanded)
           ImGui::SameLine   ();
           ImGui::BeginGroup ();
           if (ImGui::TreeNode ("Button Mapping"))
@@ -3076,13 +3098,13 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
   ImGui::Text           ("Cursor Boundaries");
   if (! window_mgmt)
   {
-    ImGui::SameLine     (  );
+    ImGui::SameLine     (0.0f, 15);
     ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
-    ImGui::SameLine     (  );
+    ImGui::SameLine     (0.0f, 15);
     ImGui::Checkbox     ("Center Cursor on UI", &config.input.ui.center_cursor);
     ImGui::SetItemTooltip
                         ("Move the System Cursor to the center of SK's Control Panel when opening it.");
-    ImGui::SameLine     (  );
+    ImGui::SameLine     (0.0f, 15);
     if (ImGui::Checkbox ("Use Hardware Cursor", &config.input.ui.use_hw_cursor))
     {
       SK_ImGui_UpdateCursor ();
