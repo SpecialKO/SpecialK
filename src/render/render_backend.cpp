@@ -1150,6 +1150,7 @@ SK_RenderBackend_V2::requestFullscreenMode (bool override)
          SUCCEEDED (SK_DXGI_ResizeTarget (pSwapChain,
                                           &swap_desc.BufferDesc, TRUE)) )
     {
+      if (config.compatibility.allow_fake_size)
       PostMessage ( swap_desc.OutputWindow, WM_SIZE, SIZE_RESTORED,
        MAKELPARAM ( swap_desc.BufferDesc.Width,
                     swap_desc.BufferDesc.Height ) );

@@ -2172,9 +2172,11 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       {
         // Trigger the game to resize the SwapChain so we can change its aspect ratio
         //
+        if (config.compatibility.allow_fake_size)
         PostMessage ( game_window.hWnd,                 WM_SIZE,        SIZE_RESTORED,
           MAKELPARAM (config.window.res.override.x, config.window.res.override.y)
                     );
+        if (config.compatibility.allow_fake_displaychange)
         PostMessage ( game_window.hWnd,                 WM_DISPLAYCHANGE, 32,
           MAKELPARAM (config.window.res.override.x, config.window.res.override.y)
                     );
@@ -2298,11 +2300,13 @@ DisplayModeMenu (bool windowed)
 
         // Trigger the game to resize the SwapChain so we can change its format and colorspace
         //
+        if (config.compatibility.allow_fake_size)
         PostMessage ( game_window.hWnd,                 WM_SIZE,        SIZE_RESTORED,
           MAKELPARAM (game_window.actual.client.right -
                       game_window.actual.client.left,   game_window.actual.client.bottom -
                                                         game_window.actual.client.top )
                     );
+        if (config.compatibility.allow_fake_displaychange)
         PostMessage ( game_window.hWnd,                 WM_DISPLAYCHANGE, 32,
           MAKELPARAM (game_window.actual.client.right -
                       game_window.actual.client.left,   game_window.actual.client.bottom -

@@ -3518,8 +3518,8 @@ SK_Window_RepositionIfNeeded (void)
 
           SK_RunOnce (rb.updateOutputTopology ());
 
-          HMONITOR hMonitorBeforeRepos =
-            MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST);
+          //HMONITOR hMonitorBeforeRepos =
+          //  MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST);
 
           if (! rb.isTrueFullscreen ())
           {
@@ -3622,14 +3622,14 @@ SK_Window_RepositionIfNeeded (void)
             // This generally helps (Unity engine games mostly) to apply SwapChain overrides
             //   immediately, but ATLUS games will respond by moving the game back to the primary
             //     monitor...
-            //if (rb.windows.unity || rb.windows.sdl || rb.windows.unreal)
-            if (hMonitorBeforeRepos != rb.monitor && (! rb.windows.atlus))
             {
+              if (config.compatibility.allow_fake_size)
               PostMessage ( game_window.hWnd,                 WM_SIZE,        SIZE_RESTORED,
                 MAKELPARAM (game_window.actual.client.right -
                             game_window.actual.client.left,   game_window.actual.client.bottom -
                                                               game_window.actual.client.top )
                           );
+              if (config.compatibility.allow_fake_displaychange)
               PostMessage ( game_window.hWnd,                 WM_DISPLAYCHANGE, 32,
                 MAKELPARAM (game_window.actual.client.right -
                             game_window.actual.client.left,   game_window.actual.client.bottom -
@@ -7454,7 +7454,9 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
            SK_GetCurrentGameID () == SK_GAME_ID::Persona5 ||
            SK_GetCurrentGameID () == SK_GAME_ID::Persona5Strikers)
   {
-    SK_GetCurrentRenderBackend ().windows.atlus = true;
+    SK_GetCurrentRenderBackend ().windows.atlus   = true;
+    config.compatibility.allow_fake_displaychange = false;
+    config.compatibility.allow_fake_size          = false;
   }
 
 

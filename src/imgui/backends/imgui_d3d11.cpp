@@ -1945,6 +1945,9 @@ SK_D3D11_ResetTexCache (void);
 void
 SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
 {
+  extern void SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage,              bool, bool);
+              SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true,false);
+
   SK_ReShadeAddOn_CleanupRTVs (SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain), true);
 
   //SK_ComPtr <IDXGISwapChain> pSwapChain_ (pSwapChain);
@@ -1963,7 +1966,6 @@ SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
   //   )
   //{
   //}
-
   if ( (_pSwapChain.p != nullptr && pSwapChain == nullptr) ||
         _pSwapChain.IsEqualObject  (pSwapChain)            )//||
         //_pSwapChain.IsEqualObject  (pUnwrapped) )

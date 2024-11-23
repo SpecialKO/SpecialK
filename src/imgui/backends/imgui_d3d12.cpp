@@ -1197,6 +1197,9 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
 void
 ImGui_ImplDX12_Shutdown (void)
 {
+  extern void SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage,              bool, bool);
+              SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true,false); 
+
   ///ImGui_ImplDX12_Data* bd = ImGui_ImplDX12_GetBackendData();
   ///IM_ASSERT(bd != nullptr && "No renderer backend to shutdown, or already shutdown?");
 

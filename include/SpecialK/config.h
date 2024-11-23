@@ -1268,6 +1268,11 @@ struct sk_config_t
       int    use_joystick_thread      =    -1;
       int    poll_sentinel            =    -1;
     } sdl;
+    // Messages that SK may post to a game's
+    //   window in order to trigger various
+    //     window management responsibilities.
+    bool     allow_fake_displaychange =  true;
+    bool     allow_fake_size          =  true;
   } compatibility;
 
   struct apis_s {

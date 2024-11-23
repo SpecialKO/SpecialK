@@ -592,6 +592,7 @@ DllMain ( HMODULE hModule,
       if (DLL_ROLE::INVALID == SK_GetDLLRole ())   return EarlyOut (TRUE);
       if (! SK_Attach         (SK_GetDLLRole ()))  return EarlyOut (TRUE);
 
+      SK_MinHook_Init     ();
       CreateTeardownEvent ();
 
       InterlockedIncrementRelease (

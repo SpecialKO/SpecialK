@@ -701,7 +701,11 @@ void SK_SEH_InitFinishCallback (void)
   {
     if (! (SK_GetDLLRole () & DLL_ROLE::DXGI))
       SK::DXGI::StartBudgetThread_NoAdapter ();
-
+  }__except(GetExceptionCode()==EXCEPTION_WINE_STUB      ?
+                                EXCEPTION_EXECUTE_HANDLER:
+                                EXCEPTION_CONTINUE_SEARCH){ }
+  __try
+  {
     static const GUID  nil_guid = {     };
                  GUID* pGUID    = nullptr;
 
@@ -721,14 +725,15 @@ void SK_SEH_InitFinishCallback (void)
     {
       PowerSetActiveScheme (nullptr, &config.cpu.power_scheme_guid);
     }
-
+  }__except(GetExceptionCode()==EXCEPTION_WINE_STUB      ?
+                                EXCEPTION_EXECUTE_HANDLER:
+                                EXCEPTION_CONTINUE_SEARCH){ }
+  __try
+  {
     SK_LoadGPUVendorAPIs ();
-  }
-
-  __except ( GetExceptionCode () == EXCEPTION_WINE_STUB       ?
-                                    EXCEPTION_EXECUTE_HANDLER :
-                                    EXCEPTION_CONTINUE_SEARCH )
-  { }
+  }__except(GetExceptionCode()==EXCEPTION_WINE_STUB      ?
+                                EXCEPTION_EXECUTE_HANDLER:
+                                EXCEPTION_CONTINUE_SEARCH){ }
 }
 
 void
@@ -2879,8 +2884,7 @@ __stdcall
 SK_ShutdownCore (const wchar_t* backend)
 {
   SK_Inject_BroadcastExitNotify ();
-
-  SK_DisableApplyQueuedHooks ();
+  SK_DisableApplyQueuedHooks    ();
 
   if (        __SK_DLL_TeardownEvent != nullptr)
     SetEvent (__SK_DLL_TeardownEvent);

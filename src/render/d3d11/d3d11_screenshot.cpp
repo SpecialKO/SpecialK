@@ -911,6 +911,12 @@ volatile LONG __SK_D3D11_InitiateHudFreeShot   = 0;
 
 SK_LazyGlobal <concurrency::concurrent_queue <SK_D3D11_Screenshot *>> screenshot_queue;
 SK_LazyGlobal <concurrency::concurrent_queue <SK_D3D11_Screenshot *>> screenshot_write_queue;
+// Any incomplete captures are pushed onto this queue, and then the pending
+//   queue (once drained) is re-built.
+//
+//  This is faster than iterating a synchronized list in highly multi-threaded engines.
+SK_LazyGlobal <concurrency::concurrent_queue <SK_D3D11_Screenshot *>> rejected_screenshots;
+SK_LazyGlobal <concurrency::concurrent_queue <SK_Screenshot::framebuffer_s*>> raw_images_;
 
 
 static volatile LONG
@@ -1127,10 +1133,43 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
 }
 
 void
+SK_D3D11_BlockingScreenshotFlush(DWORD dwLastScreenshotRequest)
+{
+  bool long_wait = false;
+
+  if (!screenshot_queue->empty       ()) long_wait = true;
+  if (!screenshot_write_queue->empty ()) long_wait = true;
+  if (!rejected_screenshots->empty   ()) long_wait = true;
+  if (!raw_images_->empty            ()) long_wait = true;
+
+  if (! long_wait)
+  {
+    if (dwLastScreenshotRequest > SK_timeGetTime () - 1000UL)
+      long_wait = true;
+  }
+
+  SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::BeforeGameHUD, true, true);
+  SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::BeforeOSD,     true, true);
+  SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::PrePresent,    true, true);
+  SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::EndOfFrame,    true, true);
+  SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::ClipboardOnly, true, true);
+
+  if (!screenshot_queue->empty       ()) SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true, true);
+  if (!screenshot_write_queue->empty ()) SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true, true);
+  if (!rejected_screenshots->empty   ()) SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true, true);
+  if (!raw_images_->empty            ()) SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true, true);
+
+  if (long_wait) SK_SleepEx (666UL, FALSE);
+}
+
+void
 SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                                     bool               wait,
                                     bool               purge)
 {
+  static DWORD                                                                             dwLastScreenshotRequest = 0;
+  if (stage_ == SK_ScreenshotStage::_FlushQueue && wait) SK_D3D11_BlockingScreenshotFlush (dwLastScreenshotRequest);
+
   static std::atomic_int run_count = 0;
 
   if (stage_ != SK_ScreenshotStage::_FlushQueue)
@@ -1270,6 +1309,8 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
         DWORD dwWait =
           WaitForMultipleObjects ( 2, signals, FALSE, INFINITE );
+
+        dwLastScreenshotRequest = SK_timeGetTime ();
 
         bool
           purge_and_run =
@@ -1824,9 +1865,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
               continue;
             }
 
-            static concurrency::concurrent_queue <SK_Screenshot::framebuffer_s*>
-              raw_images_;
-
             SK_Screenshot::framebuffer_s* fb_orig =
               it->getFinishedData ();
 
@@ -1854,7 +1892,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
               fb_copy->PixelBuffer =
                 std::move (fb_orig->PixelBuffer);
 
-              raw_images_.push (fb_copy);
+              raw_images_->push (fb_copy);
 
               ++enqueued_lossless;
             }
@@ -2085,7 +2123,7 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
               return 0;
             }, L"[SK] D3D11 Screenshot Encoder",
-              (LPVOID)&raw_images_ );
+              (LPVOID)raw_images_.getPtr () );
           } }
 
           if (enqueued_lossless > 0)
@@ -2114,13 +2152,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
   if (stage_ != SK_ScreenshotStage::_FlushQueue && wait == false && purge == false)
     return;
-
-
-  // Any incomplete captures are pushed onto this queue, and then the pending
-  //   queue (once drained) is re-built.
-  //
-  //  This is faster than iterating a synchronized list in highly multi-threaded engines.
-  static concurrency::concurrent_queue <SK_D3D11_Screenshot *> rejected_screenshots;
 
   bool new_jobs = false;
 
@@ -2152,16 +2183,16 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
           }
 
           else
-            rejected_screenshots.push (pop_off);
+            rejected_screenshots->push (pop_off);
         }
       }
     } while ((! screenshot_queue->empty ()) && (purge || wait));
 
     do
     {
-      SK_D3D11_Screenshot*               push_back   = nullptr;
-      if ( rejected_screenshots.try_pop (push_back) &&
-                                         push_back  != nullptr )
+      SK_D3D11_Screenshot*                push_back   = nullptr;
+      if ( rejected_screenshots->try_pop (push_back) &&
+                                          push_back  != nullptr )
       {
         if (purge)
           delete push_back;
@@ -2169,13 +2200,13 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
         else
           screenshot_queue->push (push_back);
       }
-    } while ((! rejected_screenshots.empty ()) && (purge || wait));
+    } while ((! rejected_screenshots->empty ()) && (purge || wait));
 
     if ( wait ||
                  purge )
     {
-      if ( screenshot_queue->empty    () &&
-           rejected_screenshots.empty ()    )
+      if ( screenshot_queue->empty     () &&
+           rejected_screenshots->empty ()    )
       {
         if ( purge && (! screenshot_write_queue->empty ()) )
         {

@@ -1,6 +1,12 @@
-﻿24.11.23
+﻿24.11.23.1
+==========
+ + Fixed D3D11 screenshots occasionally causing display mode changes to fail if
+     a (Blt Model) game requested a mode change within 500-ms of the last screen
+       capture.
+
+24.11.23
 ========
- + Cleanup Mouse Cursor section of Input Control Panel and remove the old
+ + Cleaned-up Mouse Cursor section of Input Control Panel and removed the old
      "Low-Level Mouse Settings" section.
 
  + Auto-Bluetooth Compatibility now only powers off PlayStation controllers

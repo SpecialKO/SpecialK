@@ -615,7 +615,7 @@ SK::ControlPanel::Input::Draw (void)
     ImGui::PushStyleColor (ImGuiCol_HeaderActive,  ImVec4 (0.87f, 0.78f, 0.14f, 0.80f));
     ImGui::TreePush       ("");
 
-    if (ImGui::CollapsingHeader ("Mouse Cursor"))
+    if (ImGui::CollapsingHeader ("Mouse"))
     {
       auto _CursorBoundaryWidget = [&]()
       {

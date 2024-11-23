@@ -1939,8 +1939,18 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
   _In_ UINT            SwapChainFlags,
        BOOL            bWrapped )
 {
-  SK_RenderBackend& rb =
-    SK_GetCurrentRenderBackend ();
+  extern void SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage, bool, bool);
+  extern void SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage, bool, bool);
+
+  SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true,true);
+  SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true,true);
+
+  auto& rb = SK_GetCurrentRenderBackend ();
+  if (rb.d3d11.immediate_ctx != nullptr)
+  {
+    rb.d3d11.immediate_ctx->ClearState ();
+    rb.d3d11.immediate_ctx->Flush      ();
+  }
 
   DXGI_SWAP_CHAIN_DESC  swap_desc = { };
   pSwapChain->GetDesc (&swap_desc);
