@@ -3046,7 +3046,7 @@ SK_D3D11_DrawHandler ( ID3D11DeviceContext  *pDevCtx,
     return Normal;
   }
 
-  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_render_view);
+  std::scoped_lock <SK_Thread_HybridSpinlock> shader_lock (*cs_render_view);
 
   using _Registry =
     SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*;
@@ -3209,6 +3209,8 @@ const
 
   for ( auto* tracker : trackers )
   {
+    std::scoped_lock <SK_Thread_HybridSpinlock> tracker_lock (*cs_render_view);
+
     const bool active =
       tracker->active.get (dev_idx);
 
@@ -3274,6 +3276,8 @@ const
 
   if (SK_D3D11_ShouldSkipHUD ())
   {
+    std::scoped_lock <SK_Thread_HybridSpinlock> hud_lock (*cs_render_view);
+
     if (   vertex.hud.find (current_vs) !=   vertex.hud.cend () ||
             pixel.hud.find (current_ps) !=    pixel.hud.cend () ||
          geometry.hud.find (current_gs) != geometry.hud.cend () ||
@@ -3306,6 +3310,8 @@ const
 
   if ( blacklist_cache.count > 0 )
   {
+    std::scoped_lock <SK_Thread_HybridSpinlock> blacklist_lock (*cs_render_view);
+
     if (   vertex.blacklist.find (current_vs) !=   vertex.blacklist.cend () ||
             pixel.blacklist.find (current_ps) !=    pixel.blacklist.cend () ||
          geometry.blacklist.find (current_gs) != geometry.blacklist.cend () ||
@@ -3337,6 +3343,8 @@ const
     {
       auto& views =
         blacklist.first->current.views [dev_idx];
+
+      std::scoped_lock <SK_Thread_HybridSpinlock> blacklist_view_lock (*cs_render_view);
 
       for (auto& it2 : views)
       {
@@ -3426,6 +3434,8 @@ const
 
     if (pDev != nullptr)
     {
+      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_render_view);
+
       auto& pTLS_d3d11 =
         _SetupOverrideContext ();
 
@@ -3495,6 +3505,8 @@ const
 
     if (pDev != nullptr)
     {
+      std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock (*cs_render_view);
+
       auto& pTLS_d3d11 =
         _SetupOverrideContext ();
 
@@ -3554,6 +3566,8 @@ const
     std::array
       <d3d11_shader_tracking_s::cbuffer_override_s*, 128>
         overrides = { nullptr };
+
+    std::scoped_lock <SK_Thread_HybridSpinlock> cbuffer_lock (*cs_render_view);
 
     for (int i = 0; i < 5; i++)
     {
