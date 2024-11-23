@@ -1056,47 +1056,10 @@ SK_D3D12_CaptureScreenshot  ( SK_ScreenshotStage when =
 }
 
 void
-SK_D3D12_BlockingScreenshotFlush(DWORD dwLastScreenshotRequest)
-{
-  void
-  SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage::EndOfFrame,
-                                      bool               wait   = false,
-                                      bool               purge  = false );
-  bool long_wait = false;
-
-  if (!screenshot_queue->empty       ()) long_wait = true;
-  if (!screenshot_write_queue->empty ()) long_wait = true;
-  if (!rejected_screenshots->empty   ()) long_wait = true;
-  if (!raw_images_->empty            ()) long_wait = true;
-
-  if (! long_wait)
-  {
-    if (dwLastScreenshotRequest > SK_timeGetTime () - 1000UL)
-      long_wait = true;
-  }
-
-  SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage::BeforeGameHUD, true, true);
-  SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage::BeforeOSD,     true, true);
-  SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage::PrePresent,    true, true);
-  SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage::EndOfFrame,    true, true);
-  SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage::ClipboardOnly, true, true);
-
-  if (!screenshot_queue->empty       ()) SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true, true);
-  if (!screenshot_write_queue->empty ()) SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true, true);
-  if (!rejected_screenshots->empty   ()) SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true, true);
-  if (!raw_images_->empty            ()) SK_D3D12_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true, true);
-
-  if (long_wait) SK_SleepEx (666UL, FALSE);
-}
-
-void
 SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage::EndOfFrame,
                                     bool               wait   = false,
                                     bool               purge  = false )
 {
-  static DWORD                                                                             dwLastScreenshotRequest = 0;
-  if (stage_ == SK_ScreenshotStage::_FlushQueue && wait) SK_D3D12_BlockingScreenshotFlush (dwLastScreenshotRequest);
-
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -1232,8 +1195,6 @@ SK_D3D12_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotSta
 
         DWORD dwWait =
           WaitForMultipleObjects ( 2, signals, FALSE, INFINITE );
-
-        dwLastScreenshotRequest = SK_timeGetTime ();
 
         bool
           purge_and_run =

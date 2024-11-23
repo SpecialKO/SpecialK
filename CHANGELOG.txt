@@ -1,4 +1,11 @@
-﻿24.11.23.1
+﻿24.11.23.2
+==========
+ + Fixed the issue in 24.11.23.1 the correct way :) The staging copy of the
+     backbuffer needs to be enqueued, the reference to the backbuffer released,
+       and the command queue flushed immediately and then there are no chances
+         for the swapchain backbuffers to have outstanding references.
+
+24.11.23.1
 ==========
  + Fixed D3D11 screenshots occasionally causing display mode changes to fail if
      a (Blt Model) game requested a mode change within 500-ms of the last screen

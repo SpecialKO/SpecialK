@@ -333,12 +333,6 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
     else
       pImmediateCtx = rb.d3d11.immediate_ctx;
 
-    SK_ComQIPtr <ID3D11DeviceContext3> pImmediateCtx3 (pImmediateCtx);
-
-    if ( pImmediateCtx3 != nullptr &&
-         pImmediateCtx3 != pImmediateCtx )
-    {    pImmediateCtx   = pImmediateCtx3; }
-
     D3D11_QUERY_DESC fence_query_desc =
     {
       D3D11_QUERY_EVENT,
@@ -682,6 +676,8 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
                 pImmediateCtx->CopyResource ( pStagingBackbufferCopy,
                                               pBackbufferSurface      );
               }
+
+              pBackbufferSurface.Release ();
             }
 
             else
@@ -709,14 +705,12 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
                 pImmediateCtx->CopyResource ( pStagingBackbufferCopy,
                                               pResolvedTex );
               }
+
+              pBackbufferSurface.Release ();
             }
 
-            if (pImmediateCtx3 != nullptr)
-            {
-              pImmediateCtx3->Flush1 (D3D11_CONTEXT_TYPE_COPY, nullptr);
-            }
-
-            pImmediateCtx->End (pPixelBufferFence);
+            pImmediateCtx->End   (pPixelBufferFence);
+            pImmediateCtx->Flush ();
 
             if (bPlaySound)
               SK_Screenshot_PlaySound ();
@@ -1133,43 +1127,10 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
 }
 
 void
-SK_D3D11_BlockingScreenshotFlush(DWORD dwLastScreenshotRequest)
-{
-  bool long_wait = false;
-
-  if (!screenshot_queue->empty       ()) long_wait = true;
-  if (!screenshot_write_queue->empty ()) long_wait = true;
-  if (!rejected_screenshots->empty   ()) long_wait = true;
-  if (!raw_images_->empty            ()) long_wait = true;
-
-  if (! long_wait)
-  {
-    if (dwLastScreenshotRequest > SK_timeGetTime () - 1000UL)
-      long_wait = true;
-  }
-
-  SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::BeforeGameHUD, true, true);
-  SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::BeforeOSD,     true, true);
-  SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::PrePresent,    true, true);
-  SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::EndOfFrame,    true, true);
-  SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::ClipboardOnly, true, true);
-
-  if (!screenshot_queue->empty       ()) SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true, true);
-  if (!screenshot_write_queue->empty ()) SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true, true);
-  if (!rejected_screenshots->empty   ()) SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true, true);
-  if (!raw_images_->empty            ()) SK_D3D11_ProcessScreenshotQueueEx (SK_ScreenshotStage::_FlushQueue, true, true);
-
-  if (long_wait) SK_SleepEx (666UL, FALSE);
-}
-
-void
 SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                                     bool               wait,
                                     bool               purge)
 {
-  static DWORD                                                                             dwLastScreenshotRequest = 0;
-  if (stage_ == SK_ScreenshotStage::_FlushQueue && wait) SK_D3D11_BlockingScreenshotFlush (dwLastScreenshotRequest);
-
   static std::atomic_int run_count = 0;
 
   if (stage_ != SK_ScreenshotStage::_FlushQueue)
@@ -1309,8 +1270,6 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
 
         DWORD dwWait =
           WaitForMultipleObjects ( 2, signals, FALSE, INFINITE );
-
-        dwLastScreenshotRequest = SK_timeGetTime ();
 
         bool
           purge_and_run =
