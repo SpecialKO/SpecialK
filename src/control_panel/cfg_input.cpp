@@ -303,31 +303,22 @@ SK::ControlPanel::Input::Draw (void)
         //bool is_emulating_xinput =
         //  steam_ctx.Input ()->GetControllerForGamepadIndex (0) != 0;
 
-        if (ImGui::IsItemHovered ( ))
+        if (ImGui::BeginItemTooltip ())
         {
-          ImGui::BeginTooltip ( );
-          {
-            ImGui::BeginGroup  ( );
-              if (steam.active [0]) ImGui::TextUnformatted ("Xbox");
-              if (steam.active [1]) ImGui::TextUnformatted ("PlayStation");
-              if (steam.active [2]) ImGui::TextUnformatted ("Generic");
-              if (steam.active [3]) ImGui::TextUnformatted ("Nintendo");
-            ImGui::EndGroup    ( );
-            ImGui::SameLine    ( );
-            ImGui::BeginGroup  ( );
-              if (steam.active [0]) ImGui::Text ("%lu", steam.reads [0]);
-              if (steam.active [1]) ImGui::Text ("%lu", steam.reads [1]);
-              if (steam.active [2]) ImGui::Text ("%lu", steam.reads [2]);
-              if (steam.active [3]) ImGui::Text ("%lu", steam.reads [3]);
-            ImGui::EndGroup    ( );
-
-          //if (is_emulating_xinput)
-          //{
-          //  ImGui::Separator  ();
-          //  ImGui::BulletText ("Click to configure (XInput Emulation)");
-          //}
-          }
-          ImGui::EndTooltip ( );
+          ImGui::BeginGroup  ( );
+            if (steam.active [0]) ImGui::TextUnformatted ("Xbox");
+            if (steam.active [1]) ImGui::TextUnformatted ("PlayStation");
+            if (steam.active [2]) ImGui::TextUnformatted ("Generic");
+            if (steam.active [3]) ImGui::TextUnformatted ("Nintendo");
+          ImGui::EndGroup    ( );
+          ImGui::SameLine    ( );
+          ImGui::BeginGroup  ( );
+            if (steam.active [0]) ImGui::Text ("%lu", steam.reads [0]);
+            if (steam.active [1]) ImGui::Text ("%lu", steam.reads [1]);
+            if (steam.active [2]) ImGui::Text ("%lu", steam.reads [2]);
+            if (steam.active [3]) ImGui::Text ("%lu", steam.reads [3]);
+          ImGui::EndGroup    ( );
+          ImGui::EndTooltip  ( );
         }
 
         //if (is_emulating_xinput && ImGui::IsItemClicked ())
@@ -348,18 +339,17 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::Text           ("       %s", SK_XInput_GetPrimaryHookName ());
       ImGui::PopStyleColor  ();
 
-      if (ImGui::IsItemHovered ())
+      if (ImGui::BeginItemTooltip ())
       {
-        ImGui::BeginTooltip ();
-        ImGui::BeginGroup   ();
+        ImGui::BeginGroup ();
         for ( int i = 0 ; i < XUSER_MAX_COUNT ; ++i )
         {
           if (xinput.reads [i] > 0)
             ImGui::Text     ("Gamepad %d     %lu", i, xinput.reads [i]);
         }
-        ImGui::EndGroup     ();
-        ImGui::SameLine     ();
-        ImGui::BeginGroup   ();
+        ImGui::EndGroup   ();
+        ImGui::SameLine   ();
+        ImGui::BeginGroup ();
         for ( int i = 0 ; i < XUSER_MAX_COUNT ; ++i )
         {
           if (xinput.reads [i] > 0)
@@ -369,8 +359,8 @@ SK::ControlPanel::Input::Draw (void)
                                       "  Disabled" : "" );
           }
         }
-        ImGui::EndGroup     ();
-        ImGui::EndTooltip   ();
+        ImGui::EndGroup   ();
+        ImGui::EndTooltip ();
       }
     }
 
@@ -399,16 +389,15 @@ SK::ControlPanel::Input::Draw (void)
 
       SETUP_LABEL_COLOR (wgi, 500.0f);
 
-      ImGui::SameLine       ();
-      ImGui::Text           (SK_WGI_EmulatedPlayStation ? "    Windows.Gaming.Input  " ICON_FA_PLAYSTATION
-                                                        : "      Windows.Gaming.Input");
-      ImGui::PopStyleColor  ();
+      ImGui::SameLine      ();
+      ImGui::Text          (SK_WGI_EmulatedPlayStation ? "    Windows.Gaming.Input  " ICON_FA_PLAYSTATION
+                                                       : "      Windows.Gaming.Input");
+      ImGui::PopStyleColor ();
 
-      if (ImGui::IsItemHovered ( ))
+      if (ImGui::BeginItemTooltip ())
       {
-        ImGui::BeginTooltip ( );
-        ImGui::Text ("Gamepad     %lu", wgi.reads);
-        ImGui::EndTooltip ( );
+        ImGui::Text       ("Gamepad     %lu", wgi.reads);
+        ImGui::EndTooltip ();
       }
     }
 
@@ -431,10 +420,8 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::Text           ("       HID");
       ImGui::PopStyleColor  ();
 
-      if (ImGui::IsItemHovered ())
+      if (ImGui::BeginItemTooltip ())
       {
-        ImGui::BeginTooltip ();
-
         if (hid.kbd_reads > 0)
           ImGui::Text       ("Keyboard    %lu", hid.kbd_reads);
         if (hid.mouse_reads > 0)
@@ -451,16 +438,15 @@ SK::ControlPanel::Input::Draw (void)
     {
       SETUP_LABEL_COLOR (winmm, 500.0f);
 
-      ImGui::SameLine       ();
-      ImGui::Text           ("    WinMM Joystick");
-      ImGui::PopStyleColor  ();
+      ImGui::SameLine      ();
+      ImGui::Text          ("    WinMM Joystick");
+      ImGui::PopStyleColor ();
 
-      if (ImGui::IsItemHovered ())
+      if (ImGui::BeginItemTooltip ())
       {
-        ImGui::BeginTooltip ();
         if (winmm.reads > 0)
-          ImGui::Text       ("Gamepad     %lu", winmm.reads);
-        ImGui::EndTooltip   ();
+          ImGui::Text     ("Gamepad     %lu", winmm.reads);
+        ImGui::EndTooltip ();
       }
     }
 
@@ -475,12 +461,11 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::Text           ("       NVIDIA MessageBus");
       ImGui::PopStyleColor  ();
 
-      if (ImGui::IsItemHovered ())
+      if (ImGui::BeginItemTooltip ())
       {
-        ImGui::BeginTooltip ();
         if (messagebus.reads > 0)
-          ImGui::Text       ("Gamepad     %lu", messagebus.reads);
-        ImGui::EndTooltip   ();
+          ImGui::Text     ("Gamepad     %lu", messagebus.reads);
+        ImGui::EndTooltip ();
       }
     }
 #endif
@@ -490,25 +475,23 @@ SK::ControlPanel::Input::Draw (void)
     {
       SETUP_LABEL_COLOR (di7, 500.0f);
 
-      ImGui::SameLine       ();
-      ImGui::Text           ("       DirectInput 7");
-      ImGui::PopStyleColor  ();
+      ImGui::SameLine      ();
+      ImGui::Text          ("       DirectInput 7");
+      ImGui::PopStyleColor ();
 
-      if (ImGui::IsItemHovered ())
+      if (ImGui::BeginItemTooltip ())
       {
-        ImGui::BeginTooltip ();
-
         if (di7.kbd_reads > 0) {
-          ImGui::Text       ("Keyboard  %lu", di7.kbd_reads);
+          ImGui::Text      ("Keyboard  %lu", di7.kbd_reads);
         }
         if (di7.mouse_reads > 0) {
-          ImGui::Text       ("Mouse     %lu", di7.mouse_reads);
+          ImGui::Text      ("Mouse     %lu", di7.mouse_reads);
         }
         if (di7.gamepad_reads > 0) {
-          ImGui::Text       ("Gamepad   %lu", di7.gamepad_reads);
+          ImGui::Text      ("Gamepad   %lu", di7.gamepad_reads);
         };
 
-        ImGui::EndTooltip   ();
+        ImGui::EndTooltip  ();
       }
     }
 
@@ -517,25 +500,23 @@ SK::ControlPanel::Input::Draw (void)
     {
       SETUP_LABEL_COLOR (di8, 500.0f);
 
-      ImGui::SameLine       ();
-      ImGui::Text           ("       DirectInput 8");
-      ImGui::PopStyleColor  ();
+      ImGui::SameLine      ();
+      ImGui::Text          ("       DirectInput 8");
+      ImGui::PopStyleColor ();
 
-      if (ImGui::IsItemHovered ())
+      if (ImGui::BeginItemTooltip ())
       {
-        ImGui::BeginTooltip ();
-
         if (di8.kbd_reads > 0) {
-          ImGui::Text       ("Keyboard  %lu", di8.kbd_reads);
+          ImGui::Text      ("Keyboard  %lu", di8.kbd_reads);
         }
         if (di8.mouse_reads > 0) {
-          ImGui::Text       ("Mouse     %lu", di8.mouse_reads);
+          ImGui::Text      ("Mouse     %lu", di8.mouse_reads);
         }
         if (di8.gamepad_reads > 0) {
-          ImGui::Text       ("Gamepad   %lu", di8.gamepad_reads);
+          ImGui::Text      ("Gamepad   %lu", di8.gamepad_reads);
         };
 
-        ImGui::EndTooltip   ();
+        ImGui::EndTooltip  ();
       }
     }
 
@@ -548,14 +529,13 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::Text ("       Windows Hook");
       ImGui::PopStyleColor ();
 
-      if (ImGui::IsItemHovered ())
+      if (ImGui::BeginItemTooltip ())
       {
-        ImGui::BeginTooltip ();
         if (winhook.mouse_reads > 0)
-          ImGui::Text ("Mouse      %lu", winhook.mouse_reads);
+          ImGui::Text      ("Mouse      %lu", winhook.mouse_reads);
         if (winhook.kbd_reads > 0)
-          ImGui::Text ("Keyboard   %lu", winhook.kbd_reads);
-        ImGui::EndTooltip   ();
+          ImGui::Text      ("Keyboard   %lu", winhook.kbd_reads);
+        ImGui::EndTooltip  ();
       }
     }
 
@@ -568,33 +548,36 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::Text ("       Win32");
       ImGui::PopStyleColor ();
 
-      if (ImGui::IsItemHovered ())
+      if (ImGui::BeginItemTooltip ())
       {
-        ImGui::BeginTooltip ();
-        ImGui::BeginGroup   ();
+        ImGui::BeginGroup  ();
         if (win32.asynckeystate > 0)
-          ImGui::TextUnformatted ("GetAsyncKeyState\t");
+          ImGui::TextUnformatted
+                           ("GetAsyncKeyState\t");
         if (win32.keystate > 0)
-          ImGui::TextUnformatted ("GetKeyState\t");
+          ImGui::TextUnformatted
+                           ("GetKeyState\t");
         if (win32.keyboardstate > 0)
-          ImGui::TextUnformatted ("GetKeyboardState\t");
+          ImGui::TextUnformatted
+                           ("GetKeyboardState\t");
         if (win32.cursorpos > 0)
-          ImGui::TextUnformatted ("GetCursorPos\t");
+          ImGui::TextUnformatted
+                           ("GetCursorPos\t");
 
-        ImGui::EndGroup     ();
-        ImGui::SameLine     ();
-        ImGui::BeginGroup   ();
+        ImGui::EndGroup    ();
+        ImGui::SameLine    ();
+        ImGui::BeginGroup  ();
 
         if (win32.asynckeystate > 0)
-          ImGui::Text ("%lu", win32.asynckeystate);
+          ImGui::Text      ("%lu", win32.asynckeystate);
         if (win32.keystate > 0)
-          ImGui::Text ("%lu", win32.keystate);
+          ImGui::Text      ("%lu", win32.keystate);
         if (win32.keyboardstate > 0)
-          ImGui::Text ("%lu", win32.keyboardstate);
+          ImGui::Text      ("%lu", win32.keyboardstate);
         if (win32.cursorpos > 0)
           ImGui::Text ("%lu", win32.cursorpos);
-        ImGui::EndGroup     ();
-        ImGui::EndTooltip   ();
+        ImGui::EndGroup    ();
+        ImGui::EndTooltip  ();
       }
     }
 
@@ -604,25 +587,23 @@ SK::ControlPanel::Input::Draw (void)
     {
       SETUP_LABEL_COLOR (rawinput, 500.0f);
 
-      ImGui::SameLine       ();
-      ImGui::Text           ("       Raw Input");
-      ImGui::PopStyleColor  ();
+      ImGui::SameLine      ();
+      ImGui::Text          ("       Raw Input");
+      ImGui::PopStyleColor ();
 
-      if (ImGui::IsItemHovered ())
+      if (ImGui::BeginItemTooltip ())
       {
-        ImGui::BeginTooltip ();
-                                                                             
         if (raw_input.kbd_reads > 0) {
-          ImGui::Text       ("Keyboard   %lu", raw_input.kbd_reads);
+          ImGui::Text      ("Keyboard   %lu", raw_input.kbd_reads);
         }
         if (raw_input.mouse_reads > 0) {
-          ImGui::Text       ("Mouse      %lu", raw_input.mouse_reads);
+          ImGui::Text      ("Mouse      %lu", raw_input.mouse_reads);
         }
         if (raw_input.gamepad_reads > 0) {
-          ImGui::Text       ("Gamepad    %lu", raw_input.gamepad_reads);
+          ImGui::Text      ("Gamepad    %lu", raw_input.gamepad_reads);
         }
 
-        ImGui::EndTooltip   ();
+        ImGui::EndTooltip  ();
       }
     }
   }
@@ -657,26 +638,22 @@ SK::ControlPanel::Input::Draw (void)
 
       ImVec2 vCursorWidgetPos (0.0f, 0.0f);
 
-      if (config.input.cursor.manage) {
+      if (config.input.cursor.manage)
+      {
         ImGui::TreePush   ("");
         ImGui::BeginGroup (  );
-        ImGui::Checkbox ( "Keyboard Activates",
-                                          &config.input.cursor.keys_activate );
-#if 1
-        ImGui::Checkbox ( "Gamepad Deactivates",
-                                    &config.input.cursor.gamepad_deactivates );
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::SetTooltip (
-            "Uses XInput or HID (PlayStation) to auto-hide the cursor "
-            "on gamepad input."
-          );
-        }
-#endif
+        ImGui::Checkbox   ( "Keyboard Activates",
+                                            &config.input.cursor.keys_activate );
+        ImGui::Checkbox   ( "Gamepad Deactivates",
+                                      &config.input.cursor.gamepad_deactivates );
+        ImGui::SetItemTooltip
+                          (
+          "Auto-hide the cursor in response to XInput or HID (PlayStation) activity."
+                             );
         ImGui::EndGroup   (  );
         ImGui::SameLine   (  );
         vCursorWidgetPos =
-          ImGui::GetCursorPos ();
+         ImGui::GetCursorPos();
         ImGui::TreePop    (  );
       }
 
@@ -760,7 +737,59 @@ SK::ControlPanel::Input::Draw (void)
         _CursorBoundaryWidget ();
       }
 
-      ImGui::TreePop ();
+#if 0
+      ImGui::BeginGroup    (  );
+      ImGui::Text          ("Mouse Problems?");
+      ImGui::TreePush      ("");
+
+      ImGui::Checkbox      ("Fix Synaptics Scroll", &config.input.mouse.fix_synaptics);
+
+      if (ImGui::BeginItemTooltip ())
+      {
+        ImGui::Text        ("Generate Missing DirectInput / RawInput / HID Events for Touchpad Scroll");
+        ImGui::Separator   ();
+        ImGui::BulletText  ("Synaptics touchpads only generate Win32 API messages and scroll events go unnoticed by most games.");
+        ImGui::BulletText  ("Enabling this will attempt to fix missing input APIs for the Synaptics driver.");
+        ImGui::EndTooltip  ();
+      }
+
+      ImGui::TreePop       ();
+      ImGui::EndGroup      ();
+
+      ImGui::SameLine      ();
+      ImGui::SeparatorEx   (ImGuiSeparatorFlags_Vertical);
+      ImGui::SameLine      ();
+
+      ImGui::BeginGroup    ();
+      ImGui::Text          ("Mouse Input Capture");
+      ImGui::TreePush      ("");
+#endif
+
+      ImGui::BeginGroup    (  );
+
+      if (ImGui::Checkbox ("Block Mouse", &config.input.ui.capture_mouse))
+      {
+        SK_ImGui_UpdateCursor ();
+        //SK_ImGui_AdjustCursor ();
+      }
+
+      if (ImGui::BeginItemTooltip ())
+      {
+        ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f),
+                            "Prevent Game from Detecting Mouse Input while this UI is Visible");
+        ImGui::Separator   ();
+        ImGui::BulletText  ("May help with mouselook in some games");
+        ImGui::EndTooltip  ();
+      }
+
+      ImGui::SameLine ();
+
+      ImGui::Checkbox ("Block Mouse if No Cursor is Visible", &config.input.ui.capture_hidden);
+
+      ImGui::SetItemTooltip ("Generally prevents mouselook if you move your cursor away from the config UI");
+
+      ImGui::EndGroup ();
+      ImGui::TreePop  ();
     }
 
     if (bHasPlayStation)
@@ -868,25 +897,23 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::Columns        (2);
       if (config.input.gamepad.hook_xinput)
       {
-        ImGui::Checkbox       ("Haptic UI Feedback", &config.input.gamepad.haptic_ui);
+        ImGui::Checkbox          ("Haptic UI Feedback", &config.input.gamepad.haptic_ui);
 
-        if (ImGui::IsItemHovered ())
+        if (ImGui::BeginItemTooltip ())
         {
-          ImGui::BeginTooltip    ();
           ImGui::TextUnformatted ("Rumble when interacting with SK's control panel using a gamepad");
           ImGui::Separator       ();
           ImGui::BulletText      ("Quickly identifies when games are not receiving gamepad input because of the control panel.");
           ImGui::EndTooltip      ();
         }
 
-        ImGui::SameLine       ();
+        ImGui::SameLine ();
 
         if (config.input.gamepad.hook_xinput && config.input.gamepad.xinput.hook_setstate)
-          ImGui::Checkbox     ("Disable ALL Rumble", &config.input.gamepad.disable_rumble);
+          ImGui::Checkbox        ("Disable ALL Rumble", &config.input.gamepad.disable_rumble);
 
-        if (ImGui::IsItemHovered ())
+        if (ImGui::BeginItemTooltip ())
         {
-          ImGui::BeginTooltip    ();
           ImGui::TextUnformatted ("Prevent the GAME from making use of controller vibration");
           ImGui::Separator       ();
           ImGui::BulletText      ("In some games, there is a performance penalty for rumble and it cannot be turned off in-game...");
@@ -894,20 +921,19 @@ SK::ControlPanel::Input::Draw (void)
         }
       }
 
-      ImGui::NextColumn     ();
+      ImGui::NextColumn ();
 
       if (config.input.gamepad.hook_xinput)
       {
         ImGui::Checkbox ("Rehook XInput", &config.input.gamepad.rehook_xinput); ImGui::SameLine ();
 
-        if (ImGui::IsItemHovered ())
+        if (ImGui::BeginItemTooltip ())
         {
-          ImGui::BeginTooltip ();
           ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f),
                               "Re-installs input hooks if third-party hooks are detected.");
-          ImGui::Separator ();
-          ImGui::BulletText ("This may improve compatibility with x360ce, but will require a game restart.");
-          ImGui::EndTooltip ();
+          ImGui::Separator   ();
+          ImGui::BulletText  ("This may improve compatibility with x360ce, but will require a game restart.");
+          ImGui::EndTooltip  ();
         }
       }
 
@@ -929,9 +955,8 @@ SK::ControlPanel::Input::Draw (void)
 
           _need_restart = true;
         }
-        if (ImGui::IsItemHovered ())
+        if (ImGui::BeginItemTooltip ())
         {
-          ImGui::BeginTooltip    ();
           ImGui::TextUnformatted ("Consider blocking XInput in games that natively support non-Xbox controllers.");
           ImGui::Separator       ();
           ImGui::BulletText      ("Blocking XInput may prevent double-inputs if using something like DS4Windows.");
@@ -947,9 +972,8 @@ SK::ControlPanel::Input::Draw (void)
 
           _need_restart = true;
         }
-        if (ImGui::IsItemHovered ())
+        if (ImGui::BeginItemTooltip ())
         {
-          ImGui::BeginTooltip    ();
           ImGui::TextUnformatted ("Sometimes a game supports both HID and XInput, but XInput has more features...");
           ImGui::Separator       ();
           ImGui::BulletText      ("Blocking HID may prevent double-inputs.");
@@ -990,14 +1014,10 @@ SK::ControlPanel::Input::Draw (void)
         {
           _need_restart = true;
         }
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::SetTooltip (
-            "Work In Progress:   "
-            "You probably will not get gamepad input at all if Steam Input is active and blocked."
-          );
-        }
-        ImGui::EndGroup   ();
+        ImGui::SetItemTooltip ("Work In Progress:   "
+          "You probably will not get gamepad input at all if Steam Input is active and blocked.");
+
+        ImGui::EndGroup ( );
 
         if (_need_restart)
         {
@@ -1005,13 +1025,13 @@ SK::ControlPanel::Input::Draw (void)
           ImGui::BulletText     ("Game Restart May Be Required");
           ImGui::PopStyleColor  ();
         }
-        ImGui::EndMenu    ();
+        ImGui::EndMenu  ( );
       }
 
       ImGui::NextColumn ( );
       ImGui::Columns    (1);
 
-      ImGui::Separator ();
+      ImGui::Separator  ( );
 
       bool connected [XUSER_MAX_COUNT] = {
         SK_XInput_WasLastPollSuccessful (0), SK_XInput_WasLastPollSuccessful (1),
@@ -1056,8 +1076,7 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::RadioButton ("Nothing##XInputSlot",
                     (int *)&config.input.gamepad.xinput.ui_slot, 4);
 
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Config menu will only respond to keyboard/mouse input");
+        ImGui::SetItemTooltip ("Config menu will only respond to keyboard/mouse input");
 
         ImGui::NextColumn ( );
 
@@ -1066,8 +1085,7 @@ SK::ControlPanel::Input::Draw (void)
         {
           ImGui::Checkbox ("Dynamic XInput " ICON_FA_GAMEPAD " 0", &config.input.gamepad.xinput.auto_slot_assign);
 
-          if (ImGui::IsItemHovered ())
-            ImGui::SetTooltip ("Automatically reassign slot 0 in response to gamepad input");
+          ImGui::SetItemTooltip ("Automatically reassign slot 0 in response to gamepad input");
         }
 
         else
@@ -1089,13 +1107,14 @@ SK::ControlPanel::Input::Draw (void)
 
         ImGui::Checkbox (szChordLabel, &config.input.gamepad.scepad.enhanced_ps_button);
 
-        if (ImGui::IsItemHovered ())
+        if (ImGui::BeginItemTooltip ())
         {
           if (config.input.gamepad.xinput.ui_slot > 3)
-            ImGui::SetTooltip ("Will not work while \"UI Controller\" is set to 'Nothing'");
+          {
+            ImGui::TextUnformatted ("Will not work while \"UI Controller\" is set to 'Nothing'");
+          }
           else
           {
-            ImGui::BeginTooltip ();
             if (bHasPlayStation)
               ImGui::TextUnformatted ("Exit \"Control Panel Exclusive Input Mode\" by Holding Share/Select or Pressing Caps Lock");
             else
@@ -1164,8 +1183,8 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::TextUnformatted ("Media Next Track");
               ImGui::EndGroup    ();
             }
-            ImGui::EndTooltip ();
           }
+          ImGui::EndTooltip ();
         }
 
         ImGui::NextColumn ( );
@@ -1176,17 +1195,16 @@ SK::ControlPanel::Input::Draw (void)
           ImGui::Text     ("XInput Slots:\t");
           ImGui::SameLine ();
 
-          if (ImGui::IsItemHovered ())
+          if (ImGui::BeginItemTooltip ())
           {
-            ImGui::BeginTooltip ();
-            ImGui::TextColored  (ImVec4 (1.f, 1.f, 1.f, 1.f),
-                                 "Substitute (or Disable) XInput Controllers With Virtual Ones Until A Real One Is Connected");
-            ImGui::Separator    ();
-            ImGui::BulletText   ("Placeholding (checked) a slot is useful for games that do not normally support hot-plugging");
-            ImGui::BulletText   ("Disabling (red button) a slot is useful if Steam Input and DS4Windows are both emulating XInput");
-            ImGui::Separator    ();
-            ImGui::BulletText   ("Both may improve performance in games that poll disconnected controllers");
-            ImGui::EndTooltip   ();
+            ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f),
+                                "Substitute (or Disable) XInput Controllers With Virtual Ones Until A Real One Is Connected");
+            ImGui::Separator   ();
+            ImGui::BulletText  ("Placeholding (checked) a slot is useful for games that do not normally support hot-plugging");
+            ImGui::BulletText  ("Disabling (red button) a slot is useful if Steam Input and DS4Windows are both emulating XInput");
+            ImGui::Separator   ();
+            ImGui::BulletText  ("Both may improve performance in games that poll disconnected controllers");
+            ImGui::EndTooltip  ();
           }
 
           auto XInputPlaceholderCheckbox = [](const char* szName, DWORD dwIndex)
@@ -1253,62 +1271,56 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::PopStyleColor (4);
             }
 
-            if (ImGui::IsItemHovered ())
+            if (ImGui::BeginItemTooltip ())
             {
               const SK_XInput_PacketJournal journal =
                   SK_XInput_GetPacketJournal (dwIndex);
 
-              ImGui::BeginTooltip  ( );
-
-              ImGui::BeginGroup    ( );
+              ImGui::BeginGroup      ( );
               ImGui::TextUnformatted ("Device State: ");
               ImGui::TextUnformatted ("Placeholding: ");
-              ImGui::EndGroup      ( );
-
-              ImGui::SameLine      ( );
-
-              ImGui::BeginGroup    ( );
+              ImGui::EndGroup        ( );
+              ImGui::SameLine        ( );
+              ImGui::BeginGroup      ( );
               if (config.input.gamepad.xinput.disable [dwIndex] || config.input.gamepad.xinput.blackout_api)
-                ImGui::TextColored (ImVec4 (1.0f, 0.1f, 0.1f, 1.0f), "Disabled");
+                ImGui::TextColored   (ImVec4 (1.0f, 0.1f, 0.1f, 1.0f), "Disabled");
               else if (SK_ImGui_WantGamepadCapture ())
-                ImGui::TextColored (ImVec4 (1.0f, 1.0f, 0.1f, 1.0f), "Blocked");
+                ImGui::TextColored   (ImVec4 (1.0f, 1.0f, 0.1f, 1.0f), "Blocked");
               else
-                ImGui::TextColored (ImVec4 (0.1f, 1.0f, 0.1f, 1.0f), "Enabled");
+                ImGui::TextColored   (ImVec4 (0.1f, 1.0f, 0.1f, 1.0f), "Enabled");
 
               if (config.input.gamepad.xinput.placehold [dwIndex])
               {
                 if (SK_XInput_Holding (dwIndex))
-                  ImGui::TextColored (ImVec4 ( 0.1f,  1.0f,  0.1f, 1.0f), "Enabled and Active");
+                  ImGui::TextColored  (ImVec4 ( 0.1f,  1.0f,  0.1f, 1.0f), "Enabled and Active");
                 else
-                  ImGui::TextColored (ImVec4 (0.75f, 0.75f, 0.75f, 1.0f), "Enabled");
+                  ImGui::TextColored  (ImVec4 (0.75f, 0.75f, 0.75f, 1.0f), "Enabled");
               }
 
               else
-                  ImGui::TextColored (ImVec4 ( 0.5f,  0.5f,  0.5f, 1.0f), "N/A");
-              ImGui::EndGroup      ( );
-              
-              ImGui::Separator     ( );
-
+                  ImGui::TextColored  (ImVec4 ( 0.5f,  0.5f,  0.5f, 1.0f), "N/A");
+              ImGui::EndGroup         ( );
+              ImGui::Separator        ( );
               if (config.input.gamepad.xinput.placehold [dwIndex] && journal.packet_count.virt > 0)
               {
-                ImGui::TextColored (ImColor (255, 255, 255), "Hardware Packet Sequencing");
-                ImGui::TextColored (ImColor (160, 160, 160), "(Last: %lu | Now: %lu)",
-                                    journal.sequence.last, journal.sequence.current);
-                ImGui::Separator   ( );
-                ImGui::Columns     (2, nullptr, false);
-                ImGui::TextColored (ImColor (255, 165, 0), "Virtual Packets..."); ImGui::NextColumn ();
-                ImGui::Text        ("%+07li", journal.packet_count.virt);         ImGui::NextColumn ();
-                ImGui::TextColored (ImColor (127, 255, 0), "Real Packets...");    ImGui::NextColumn ();
-                ImGui::Text        ("%+07li", journal.packet_count.real);
-                ImGui::Columns     (1);
+                ImGui::TextColored    (ImColor (255, 255, 255), "Hardware Packet Sequencing");
+                ImGui::TextColored    (ImColor (160, 160, 160), "(Last: %lu | Now: %lu)",
+                                       journal.sequence.last, journal.sequence.current);
+                ImGui::Separator      ( );
+                ImGui::Columns        (2, nullptr, false);
+                ImGui::TextColored    (ImColor (255, 165, 0), "Virtual Packets..."); ImGui::NextColumn ();
+                ImGui::Text           ("%+07li", journal.packet_count.virt);         ImGui::NextColumn ();
+                ImGui::TextColored    (ImColor (127, 255, 0), "Real Packets...");    ImGui::NextColumn ();
+                ImGui::Text           ("%+07li", journal.packet_count.real);
+                ImGui::Columns        (1);
               }
 
               else
               {
-                ImGui::BulletText ("Inputs Processed:\t%lu", journal.packet_count.real);
+                ImGui::BulletText     ("Inputs Processed:\t%lu", journal.packet_count.real);
               }
 
-              ImGui::EndTooltip  ( );
+              ImGui::EndTooltip       ( );
             }
           };
 
@@ -1430,17 +1442,14 @@ SK::ControlPanel::Input::Draw (void)
 
             if (*ps_controller.wszSerialNumber != L'\0')
             {
-              if (ImGui::IsItemHovered ())
-              {
-                ImGui::SetTooltip (
-                  "Serial # %wc%wc:%wc%wc:%wc%wc:%wc%wc:%wc%wc:%wc%wc",
-                  (unsigned short)ps_controller.wszSerialNumber [ 0], (unsigned short)ps_controller.wszSerialNumber [ 1],
-                  (unsigned short)ps_controller.wszSerialNumber [ 2], (unsigned short)ps_controller.wszSerialNumber [ 3],
-                  (unsigned short)ps_controller.wszSerialNumber [ 4], (unsigned short)ps_controller.wszSerialNumber [ 5],
-                  (unsigned short)ps_controller.wszSerialNumber [ 6], (unsigned short)ps_controller.wszSerialNumber [ 7],
-                  (unsigned short)ps_controller.wszSerialNumber [ 8], (unsigned short)ps_controller.wszSerialNumber [ 9],
-                  (unsigned short)ps_controller.wszSerialNumber [10], (unsigned short)ps_controller.wszSerialNumber [11] );
-              }
+              ImGui::SetItemTooltip ( "Serial # %wc%wc:%wc%wc:%wc%wc:%wc%wc:%wc%wc:%wc%wc",
+                (unsigned short)ps_controller.wszSerialNumber [ 0], (unsigned short)ps_controller.wszSerialNumber [ 1],
+                (unsigned short)ps_controller.wszSerialNumber [ 2], (unsigned short)ps_controller.wszSerialNumber [ 3],
+                (unsigned short)ps_controller.wszSerialNumber [ 4], (unsigned short)ps_controller.wszSerialNumber [ 5],
+                (unsigned short)ps_controller.wszSerialNumber [ 6], (unsigned short)ps_controller.wszSerialNumber [ 7],
+                (unsigned short)ps_controller.wszSerialNumber [ 8], (unsigned short)ps_controller.wszSerialNumber [ 9],
+                (unsigned short)ps_controller.wszSerialNumber [10], (unsigned short)ps_controller.wszSerialNumber [11]
+              );
             }
           }
           ImGui::EndGroup   ();
@@ -1586,9 +1595,8 @@ SK::ControlPanel::Input::Draw (void)
                     ImGui::OpenPopup       ("PowerManagementMenu");
                   }
 
-                  else if (ImGui::IsItemHovered ())
+                  else if (ImGui::BeginItemTooltip ())
                   {
-                    ImGui::BeginTooltip    ( );
                     ImGui::BeginGroup      ( );
                     ImGui::TextColored     ( ImColor::HSV (0.18f, 0.88f, 0.94f),
                                                " Left-Click" );
@@ -1617,8 +1625,7 @@ SK::ControlPanel::Input::Draw (void)
                         config.utility.save_async ();
                       }
 
-                      if (ImGui::IsItemHovered ())
-                          ImGui::SetTooltip ("Polls gyro and touchpad less frequently to save power.");
+                      ImGui::SetItemTooltip ("Polls gyro and touchpad less frequently to save power.");
                     }
 
                     if (ImGui::SliderFloat ("Critical Battery Level", &config.input.gamepad.low_battery_percent, 0.0f, 45.0f, "%3.0f%% Remaining"))
@@ -1626,16 +1633,15 @@ SK::ControlPanel::Input::Draw (void)
                       config.utility.save_async ();
                     }
 
-                    if (ImGui::IsItemHovered ())
+                    if (ImGui::BeginItemTooltip ())
                     {
-                      ImGui::BeginTooltip    ();
                       ImGui::TextUnformatted ("Display warning notifications when PlayStation controller battery levels are critical.");
                       ImGui::Separator       ();
                       ImGui::BulletText      ("The warning is only displayed while the controller is running on battery.");
                       ImGui::BulletText      ("The warning can be disabled by setting 0%%");
                       ImGui::EndTooltip      ();
                     }
-                    ImGui::EndPopup     ();
+                    ImGui::EndPopup ();
                   }
                 }
               } break;
@@ -1690,9 +1696,8 @@ SK::ControlPanel::Input::Draw (void)
               config.utility.save_async ();
             }
 
-            if (ImGui::IsItemHovered ())
+            if (ImGui::BeginItemTooltip ())
             {
-              ImGui::BeginTooltip    ();
               ImGui::TextUnformatted ("Adds PlayStation controller support to Xbox-only games");
               ImGui::Separator       ();
               ImGui::BulletText      ("Fully supports DualSense and DualShock 4 (USB and Bluetooth)");
@@ -1733,8 +1738,10 @@ SK::ControlPanel::Input::Draw (void)
               if (SK_ImGui_IsItemRightClicked ())
                 show_debug_option = true;
 
-              else if (ImGui::IsItemHovered ())
-                       ImGui::SetTooltip ("Apply a Deadzone to Analog Stick Input (" ICON_FA_XBOX " Mode)");
+              else
+              {
+                ImGui::SetItemTooltip ("Apply a Deadzone to Analog Stick Input (" ICON_FA_XBOX " Mode)");
+              }
 
               if (show_debug_option)
               {
@@ -1813,9 +1820,9 @@ SK::ControlPanel::Input::Draw (void)
               config.utility.save_async ();
             }
 
-            if (ImGui::IsItemHovered () && bHasBluetooth)
+            if (bHasBluetooth)
             {
-              ImGui::SetTooltip ("RGB lighting can be turned off to save battery...");
+              ImGui::SetItemTooltip ("RGB lighting can be turned off to save battery...");
             }
 
             ImGui::BeginGroup ();
@@ -1862,8 +1869,7 @@ SK::ControlPanel::Input::Draw (void)
                 config.utility.save_async ();
               }
 
-              if (ImGui::IsItemHovered ())
-                  ImGui::SetTooltip ("Controls the brightness of status lights as well as RGB");
+              ImGui::SetItemTooltip ("Controls the brightness of status lights as well as RGB");
             }
             else {
               ImGui::SameLine ();
@@ -1872,9 +1878,8 @@ SK::ControlPanel::Input::Draw (void)
 
             ///if (bHasBluetooth && bHasSimpleBluetooth && (! bHasNonBluetooth))
             ///{
-            ///  if (ImGui::IsItemHovered ())
+            ///  if (ImGui::BeginItemTooltip ())
             ///  {
-            ///    ImGui::BeginTooltip    ();
             ///    ImGui::TextUnformatted ("Bluetooth Compatibility Mode is Active");
             ///    ImGui::Separator       ();
             ///    ImGui::BulletText      ("RGB Overrides may only apply after a game triggers rumble, or if you use USB.");
@@ -1888,9 +1893,8 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::SliderInt ( "HID Input Buffers",
                 &config.input.gamepad.hid.max_allowed_buffers, 2, 128, "%d-Buffer Circular Queue" );
 
-            if (ImGui::IsItemHovered ())
+            if (ImGui::BeginItemTooltip ())
             {
-              ImGui::BeginTooltip    ();
               ImGui::TextUnformatted ("Reduce Input Buffer Queue (Latency) on Gamepads");
               ImGui::Separator       ();
               ImGui::BulletText      (
@@ -1940,9 +1944,8 @@ SK::ControlPanel::Input::Draw (void)
               " Compatibility Mode:   Features newer than DualShock 3 unsupported."
             );
 
-            if (ImGui::IsItemHovered ( ))
+            if (ImGui::BeginItemTooltip ())
             {
-              ImGui::BeginTooltip    ( );
               ImGui::TextUnformatted (
                 "Plug your controller in, or trigger rumble in-game to put the "
                 "Bluetooth controller into DualShock 4 / DualSense mode; "
@@ -1952,13 +1955,13 @@ SK::ControlPanel::Input::Draw (void)
 #ifdef  SK_HID_BROKEN_DUALSHOCK4_REV2
                 if (bHasDualShock4v2_Bt)
                 {
-                  ImGui::Separator        ();
-                  ImGui::BulletText       (
+                  ImGui::Separator   ();
+                  ImGui::BulletText  (
                     "DualShock 4 v2 controllers will not work over Bluetooth with SK in Compatibility Mode."
                   );
                 }
 #endif
-              ImGui::EndTooltip      ( );
+              ImGui::EndTooltip      ();
             }
           }
 
@@ -1994,8 +1997,7 @@ SK::ControlPanel::Input::Draw (void)
           {
             ImGui::Checkbox ("Hook libScePad", &config.input.gamepad.hook_scepad);
 
-            if (ImGui::IsItemHovered ())
-                ImGui::SetTooltip ("SONY's native input API; unlocks additional settings in games that use it");
+            ImGui::SetItemTooltip ("SONY's native input API; unlocks additional settings in games that use it");
 
             if (config.input.gamepad.hook_scepad && last_scepad != 0)
             {
@@ -2091,24 +2093,25 @@ SK::ControlPanel::Input::Draw (void)
             {
               if (alt_models) ImGui::SameLine ();
 
-              ImGui::BeginGroup ();
+              ImGui::BeginGroup   ();
               if (ImGui::Checkbox ("Current Game Requires " ICON_FA_BLUETOOTH " Compatibility Mode",
                    &config.input.gamepad.bt_input_only))
               { if (config.input.gamepad.bt_input_only)
                 {
-                  SK_DeferCommand ("Input.Gamepad.PowerOff 1");
+                  if ( SK_WinMM_Backend->reads [2] + 
+                       SK_DI7_Backend->reads   [2] +
+                       SK_DI8_Backend->reads   [2] > 0 )
+                  {
+                    SK_DeferCommand ("Input.Gamepad.PowerOff 1");
+                  }
                 }
 
                 changed = true;
               }
 
-              if (ImGui::IsItemHovered ())
-              {
-                ImGui::SetTooltip (
-                  "Enable this if your current game only supports DirectInput, "
-                  "SK will power-off your controller(s) if necessary."
-                );
-              }
+              ImGui::SetItemTooltip (
+                "Enable this if your current game only supports DirectInput, "
+                "SK will power-off your controller(s) if it detects the game trying to use WinMM or DirectInput." );
 
               if (! config.input.gamepad.bt_input_only)
               {
@@ -2118,9 +2121,8 @@ SK::ControlPanel::Input::Draw (void)
                   changed = true;
                 }
 
-                if (ImGui::IsItemHovered ())
+                if (ImGui::BeginItemTooltip ())
                 {
-                  ImGui::BeginTooltip    ();
                   ImGui::TextUnformatted ("Allow SK to use your controller's full functionality, "
                                           "even if that requires enabling Advanced Bluetooth mode.");
                   ImGui::Separator       ();
@@ -2133,14 +2135,14 @@ SK::ControlPanel::Input::Draw (void)
 #ifdef  SK_HID_BROKEN_DUALSHOCK4_REV2
                   if (bHasDualShock4v2_Bt)
                   {
-                    ImGui::Separator        ();
-                    ImGui::BulletText       (
+                    ImGui::Separator     ();
+                    ImGui::BulletText    (
                       "DualShock 4 v2 controllers will not work over Bluetooth with SK unless this is enabled"
                     );
                   }
                   else
                   {
-                    ImGui::Separator ();
+                    ImGui::Separator     ();
                   }
 
                   ImGui::TextUnformatted ("This is a global setting.");
@@ -2373,16 +2375,10 @@ extern float SK_ImGui_PulseNav_Strength;
 
         bool expanded = ImGui::CollapsingHeader (SK_FormatString ("%ws##JOYSTICK_DEBUG", joy_caps.szPname).c_str ());
 
-        ImGui::Combo    ("Gamepad Type", &config.input.gamepad.predefined_layout, "PlayStation 4\0Steam\0\0", 2);
-
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::SetTooltip ("This setting is only used if XInput or DirectInput are not working.");
-        }
-
-        ImGui::SameLine ();
-
-        ImGui::Checkbox     ("Use DirectInput instead of XInput", &config.input.gamepad.native_ps4);
+        ImGui::Combo          ("Gamepad Type", &config.input.gamepad.predefined_layout, "PlayStation 4\0Steam\0\0", 2);
+        ImGui::SetItemTooltip ("This setting is only used if XInput or DirectInput are not working.");
+        ImGui::SameLine       ();
+        ImGui::Checkbox       ("Use DirectInput instead of XInput", &config.input.gamepad.native_ps4);
 
         if (expanded)
         {
@@ -2546,9 +2542,8 @@ extern float SK_ImGui_PulseNav_Strength;
           }
         }
 
-        if (ImGui::IsItemHovered ())
+        if (ImGui::BeginItemTooltip ())
         {
-          ImGui::BeginTooltip    ();
           ImGui::TextUnformatted ("Tests the latency of DS4Windows, Steam Input or a native Xbox controller");
           ImGui::Separator       ();
           ImGui::BulletText      ("If you have no Xbox controllers or third-party utilities emulating XInput, this does nothing");
@@ -2598,99 +2593,6 @@ extern float SK_ImGui_PulseNav_Strength;
       ImGui::TreePop       ( );
     }
 
-    if (ImGui::CollapsingHeader ("Low-Level Mouse Settings"))
-    {
-      ImGui::TreePush      ("");
-
-      ImGui::BeginGroup    (  );
-      ImGui::Text          ("Mouse Problems?");
-      ImGui::TreePush      ("");
-
-      ImGui::Checkbox ("Fix Synaptics Scroll", &config.input.mouse.fix_synaptics);
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip ();
-        ImGui::Text         ("Generate Missing DirectInput / RawInput / HID Events for Touchpad Scroll");
-        ImGui::Separator    ();
-        ImGui::BulletText   ("Synaptics touchpads only generate Win32 API messages and scroll events go unnoticed by most games.");
-        ImGui::BulletText   ("Enabling this will attempt to fix missing input APIs for the Synaptics driver.");
-        ImGui::EndTooltip   ();
-      }
-
-      ImGui::TreePop       ();
-      ImGui::EndGroup      ();
-
-      ImGui::SameLine      ();
-      ImGui::SeparatorEx   (ImGuiSeparatorFlags_Vertical);
-      ImGui::SameLine      ();
-
-      ImGui::BeginGroup    ();
-      ImGui::Text          ("Mouse Input Capture");
-      ImGui::TreePush      ("");
-
-      ImGui::BeginGroup    (  );
-
-      if (ImGui::Checkbox ("Block Mouse", &config.input.ui.capture_mouse))
-      {
-        SK_ImGui_UpdateCursor ();
-        //SK_ImGui_AdjustCursor ();
-      }
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip  ();
-          ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Prevent Game from Detecting Mouse Input while this UI is Visible");
-          ImGui::Separator   ();
-          ImGui::BulletText  ("May help with mouselook in some games");
-        ImGui::EndTooltip    ();
-      }
-
-      ImGui::SameLine ();
-
-      if (ImGui::Checkbox ("Use Hardware Cursor", &config.input.ui.use_hw_cursor))
-      {
-        SK_ImGui_UpdateCursor ();
-      }
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::BeginTooltip  ();
-          ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Reduce Input Latency -- (Trade Cursor Lag for UI Lag)");
-          ImGui::Separator   ();
-          ImGui::BulletText  ("You will experience several frames of lag while dragging UI windows around.");
-          ImGui::BulletText  ("Most Games use Hardware Cursors; turning this on will reduce visible cursor trails.");
-          ImGui::BulletText  ("Automatically switches to Software when the game is not using Hardware.");
-        ImGui::EndTooltip    ();
-      }
-
-      ImGui::SameLine ();
-
-      ImGui::Checkbox ("Block Mouse if No Cursor is Visible", &config.input.ui.capture_hidden);
-
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Generally prevents mouselook if you move your cursor away from the config UI");
-
-      ImGui::EndGroup   (  );
-      ImGui::TreePop    (  );
-      ImGui::EndGroup   (  );
-
-#if 0
-      extern bool SK_DInput8_BlockWindowsKey (bool block);
-      extern bool SK_DInput8_HasKeyboard     (void);
-
-      if (SK_DInput8_HasKeyboard ())
-      {
-        if (ImGui::Checkbox ("Block Windows Key", &config.input.keyboard.block_windows_key))
-        {
-          config.input.keyboard.block_windows_key = SK_DInput8_BlockWindowsKey (config.input.keyboard.block_windows_key);
-        }
-      }
-#endif
-
-      ImGui::TreePop        ();
-    }
-
     const bool devices =
       ImGui::CollapsingHeader ("Enable / Disable Devices", ImGuiTreeNodeFlags_DefaultOpen);
 
@@ -2714,8 +2616,8 @@ extern float SK_ImGui_PulseNav_Strength;
       if (mouse_changed || keyboard_changed)
         config.utility.save_async ();
 
-      if (ImGui::IsItemHovered () && config.input.keyboard.disabled_to_game == SK_InputEnablement::DisabledInBackground)
-        ImGui::SetTooltip ("Most games block keyboard input in the background to begin with...");
+      if (config.input.keyboard.disabled_to_game == SK_InputEnablement::DisabledInBackground)
+        ImGui::SetItemTooltip ("Most games block keyboard input in the background to begin with...");
 
       if (/*config.input.gamepad.hook_dinput7        ||*/ config.input.gamepad.hook_dinput8   ||
             config.input.gamepad.hook_hid            ||   config.input.gamepad.hook_xinput    ||
@@ -3170,17 +3072,32 @@ SK_ImGui_GamepadComboDialog0 (SK_GamepadCombo_V0* combo)
 void
 SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
 {
-  ImGui::BeginGroup  (  );
-  ImGui::Text        ("Cursor Boundaries");
+  ImGui::BeginGroup     (  );
+  ImGui::Text           ("Cursor Boundaries");
   if (! window_mgmt)
   {
-  ImGui::SameLine    (  );
-  ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
-  ImGui::SameLine    (  );
-  ImGui::Checkbox    ("Center Cursor on UI When Opening Overlay", &config.input.ui.center_cursor);
+    ImGui::SameLine     (  );
+    ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine     (  );
+    ImGui::Checkbox     ("Center Cursor on UI", &config.input.ui.center_cursor);
+    ImGui::SetItemTooltip
+                        ("Move the System Cursor to the center of SK's Control Panel when opening it.");
+    ImGui::SameLine     (  );
+    if (ImGui::Checkbox ("Use Hardware Cursor", &config.input.ui.use_hw_cursor))
+    {
+      SK_ImGui_UpdateCursor ();
+    }
+    if (ImGui::BeginItemTooltip ())
+    {
+      ImGui::TextColored (ImVec4 (1.f, 1.f, 1.f, 1.f), "Reduce Mouse Latency in SK's Overlay");
+      ImGui::Separator   ( );
+      ImGui::BulletText  ("Enabling this may cause some games to use SK's cursor image instead of their own.");
+      ImGui::BulletText  ("Normally the cursor will revert back to whatever the game was using when not hovering SK's UI.");
+      ImGui::EndTooltip  ( );
+    }
   }
-  ImGui::EndGroup    (  );
-  ImGui::TreePush    ("");
+  ImGui::EndGroup       (  );
+  ImGui::TreePush       ("");
   
   int  ovr     = 0;
   bool changed = false;
@@ -3193,19 +3110,17 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
   changed |= ImGui::RadioButton ("Normal Game Behavior", &ovr, 0); ImGui::SameLine ();
   changed |= ImGui::RadioButton ("Keep Inside Window",   &ovr, 1); ImGui::SameLine ();
   
-  if (ImGui::IsItemHovered ())
+  if (ImGui::BeginItemTooltip ())
   {
-    ImGui::BeginTooltip ();
-    ImGui::Text         ("Prevents Mouse Cursor from Leaving the Game Window");
-    ImGui::Separator    ();
-    ImGui::BulletText   ("This window-lock will be disengaged when you press Alt + Tab");
-    ImGui::EndTooltip   ();
+    ImGui::Text       ("Prevents Mouse Cursor from Leaving the Game Window");
+    ImGui::Separator  ();
+    ImGui::BulletText ("This window-lock will be disengaged when you press Alt + Tab");
+    ImGui::EndTooltip ();
   }
   
   changed |= ImGui::RadioButton ("Unrestrict Cursor",    &ovr, 2);
   
-  if (ImGui::IsItemHovered ())
-    ImGui::SetTooltip ("Prevent Game from Restricting Cursor to Window");
+  ImGui::SetItemTooltip ("Prevent Game from Restricting Cursor to Window");
   
   if (changed)
   {

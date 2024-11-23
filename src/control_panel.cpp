@@ -867,61 +867,12 @@ SK_ImGui_ControlPanelTitle (void)
 void
 SK_ImGui_AdjustCursor (void)
 {
-#if 0
-  static SK_AutoHandle hAdjustEvent (
-    SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
-  );
-
-  SetEvent (hAdjustEvent.m_h);
-
-  static HANDLE
-    hThread = SK_Thread_CreateEx (
-    [](LPVOID pUser)-> DWORD
-    {
-      HANDLE hSignals [] = {
-        __SK_DLL_TeardownEvent,
-             (HANDLE)pUser
-      };
-
-      DWORD dwWaitStatus =
-              WAIT_ABANDONED;
-
-      while (dwWaitStatus != WAIT_OBJECT_0)
-      {
-        dwWaitStatus =
-          WaitForMultipleObjects ( 2, hSignals, FALSE, INFINITE );
-
-        if (dwWaitStatus == (WAIT_OBJECT_0 + 1))
-        {
-          ResetEvent (hSignals [1]);
-
-          //SK_ClipCursor (nullptr);
-          //   SK_AdjustWindow   ();       // Restore game's clip cursor behavior
-
-          SK_Window_RepositionIfNeeded ();
-
-          //extern void SK_AdjustClipRect (void);
-          //            SK_AdjustClipRect ();
-        }
-      };
-
-      hAdjustEvent.Close ();
-
-      SK_Thread_CloseSelf ();
-
-      return 0;
-    },
-    L"[SK] Cursor Adjustment Thread",
-    (LPVOID)hAdjustEvent.m_h
-  );
-#else
   // This really doesn't need to be done in a second thread, it's already
   //   got a thread that waits for signaled work.
   SK_Window_RepositionIfNeeded ();
 
   // The logic used to be different, but now RepositionIfNeeded also handles
   //   any necessary changes to the cursor clipping rectangle.
-#endif
 }
 
 bool reset_frame_history = true;
@@ -8855,8 +8806,6 @@ SK_ImGui_Toggle (void)
     {
       SK_ImGui_Cursor.last_move = current_time;
 
-      //SK_ImGui_Cursor.showImGuiCursor ();
-
       if (SK::ControlPanel::Platform::WarnIfUnsupported ())
         config.imgui.show_eula = true;
       else
@@ -8884,75 +8833,78 @@ SK_ImGui_Toggle (void)
   if (SK::SteamAPI::AppID () != 0 && SK_ImGui_Visible)
       SK::SteamAPI::UpdateNumPlayers ();
 
-  static SK_AutoHandle hMoveCursor (
-    SK_CreateEvent (nullptr, FALSE, FALSE, nullptr)
-  );
+  if (config.input.ui.center_cursor)
+  {
+    static SK_AutoHandle hMoveCursor (
+      SK_CreateEvent (nullptr, FALSE, FALSE, nullptr)
+    );
 
-  SK_RunOnce (
-    SK_Thread_CreateEx ([](LPVOID) -> DWORD
-    {
-      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);
-
-      HANDLE hEvents [] = {
-        __SK_DLL_TeardownEvent,
-        hMoveCursor.m_h
-      };
-
-      while (true)
+    SK_RunOnce (
+      SK_Thread_CreateEx ([](LPVOID) -> DWORD
       {
-        DWORD dwWait =
-          WaitForMultipleObjectsEx (2, hEvents, FALSE, INFINITE, FALSE);
+        SK_Thread_SetCurrentPriority (THREAD_PRIORITY_IDLE);
 
-        if (dwWait == WAIT_OBJECT_0)
-          break;
+        HANDLE hEvents [] = {
+          __SK_DLL_TeardownEvent,
+          hMoveCursor.m_h
+        };
 
-        // Stupid hack to make sure the mouse cursor swaps between SK's and
-        //   the game's in response to opening/closing the control panel
-        if (dwWait == WAIT_OBJECT_0 + 1)
+        while (true)
         {
-          auto frames_drawn =
-            SK_GetFramesDrawn ();
+          DWORD dwWait =
+            WaitForMultipleObjectsEx (2, hEvents, FALSE, INFINITE, FALSE);
 
-          while (frames_drawn > SK_GetFramesDrawn () - 2)
-            SwitchToThread ();
+          if (dwWait == WAIT_OBJECT_0)
+            break;
 
-          POINT                 ptCursor;
-          if (SK_GetCursorPos (&ptCursor) && SK_GetForegroundWindow () == game_window.hWnd)
+          // Stupid hack to make sure the mouse cursor swaps between SK's and
+          //   the game's in response to opening/closing the control panel
+          if (dwWait == WAIT_OBJECT_0 + 1)
           {
-            GetWindowRect (game_window.hWnd,
-                          &game_window.actual.window);
-            if (PtInRect (&game_window.actual.window, ptCursor))
+            auto frames_drawn =
+              SK_GetFramesDrawn ();
+
+            while (frames_drawn > SK_GetFramesDrawn () - 2)
+              SwitchToThread ();
+
+            POINT                 ptCursor;
+            if (SK_GetCursorPos (&ptCursor) && SK_GetForegroundWindow () == game_window.hWnd)
             {
-              SK_SetCursorPos   (ptCursor.x + 1, ptCursor.y - 1);
-              Send_WM_SETCURSOR ();
+              GetWindowRect (game_window.hWnd,
+                            &game_window.actual.window);
+              if (PtInRect (&game_window.actual.window, ptCursor))
+              {
+                SK_SetCursorPos   (ptCursor.x + 1, ptCursor.y - 1);
+                Send_WM_SETCURSOR ();
 
-              frames_drawn =
-                SK_GetFramesDrawn ();
+                frames_drawn =
+                  SK_GetFramesDrawn ();
 
-              while (frames_drawn > SK_GetFramesDrawn () - 2)
-                SwitchToThread ();
+                while (frames_drawn > SK_GetFramesDrawn () - 2)
+                  SwitchToThread ();
 
-              SK_GetCursorPos   (&ptCursor);
-              SK_SetCursorPos   ( ptCursor.x - 1, ptCursor.y + 1);
-              Send_WM_SETCURSOR (         );
+                SK_GetCursorPos   (&ptCursor);
+                SK_SetCursorPos   ( ptCursor.x - 1, ptCursor.y + 1);
+                Send_WM_SETCURSOR (         );
+              }
             }
           }
         }
-      }
 
-      SK_Thread_CloseSelf ();
+        SK_Thread_CloseSelf ();
 
-      return 0;
-    }, L"[SK] Rodeo Mouse Wrangler");
-  );
+        return 0;
+      }, L"[SK] Rodeo Mouse Wrangler");
+    );
+
+    // Move the cursor a couple of times to change the loaded image
+    if (SK_ImGui_WantHWCursor ())
+      SetEvent (hMoveCursor);
+  }
 
   // Save config on control panel close, not open
   if (! SK_ImGui_Visible)
     config.utility.save_async ();
-
-  // Move the cursor a couple of times to change the loaded image
-  if (SK_ImGui_WantHWCursor ())
-    SetEvent (hMoveCursor);
 
 
   // Immediately stop capturing keyboard/mouse events,
