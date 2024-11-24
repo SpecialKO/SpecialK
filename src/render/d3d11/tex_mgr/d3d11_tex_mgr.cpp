@@ -2611,6 +2611,78 @@ SK_D3D11_UseTexture (ID3D11Texture2D* pTex)
   SK_D3D11_TextureIsCachedEx (pTex, true);
 }
 
+void
+SK_D3D11_SafeCopyDebugName (ID3D11DeviceChild* pObject, std::string& debug_name)
+{
+  if (pObject == nullptr || (! debug_name.empty ()))
+    return;
+
+  UINT uiDescLen = 127;
+
+  __try
+  {
+    wchar_t             wszDesc [128] = { };
+    uiDescLen = sizeof (wszDesc) - sizeof (wchar_t);
+
+    if ( SUCCEEDED (
+         pObject->GetPrivateData (
+           WKPDID_D3DDebugObjectNameW,
+                 &uiDescLen, wszDesc )
+                   ) && uiDescLen > sizeof (wchar_t)
+       )
+    {
+      wszDesc [127] = L'\0';
+
+      debug_name.resize (uiDescLen
+                               / sizeof (wchar_t) + 1);
+      std::string_view     d (debug_name.data (), 128);
+      SK_FormatStringView (d,"%ws",wszDesc);
+    }
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER) {};
+
+  if (! debug_name.empty ())
+    return;
+
+  __try
+  {
+    char                szDesc [128] = { };
+    uiDescLen = sizeof (szDesc) - sizeof (char);
+
+    if ( SUCCEEDED (
+           pObject->GetPrivateData (
+             WKPDID_D3DDebugObjectName,
+                   &uiDescLen, szDesc )
+                   ) && uiDescLen > sizeof (char)
+       )
+    {
+      szDesc [127] = '\0';
+
+      debug_name.assign (szDesc);
+    }
+  }
+  __except (EXCEPTION_EXECUTE_HANDLER) {};
+}
+
+void
+SK_D3D11_SafeAssignTexDebugName (ID3D11Texture2D* tex_ref)
+{
+  __try
+  {
+    auto& tex_desc =
+      SK_D3D11_Textures->Textures_2D [tex_ref];
+
+    if (tex_desc.debug_name.empty ())
+    {
+      SK_D3D11_SafeCopyDebugName (tex_ref, tex_desc.debug_name);
+    }
+  }
+
+  __except (EXCEPTION_EXECUTE_HANDLER)
+  {
+  };
+}
+
 bool
 __stdcall
 SK_D3D11_RemoveTexFromCache (ID3D11Texture2D* pTex, bool blacklist)
@@ -2696,57 +2768,10 @@ SK_D3D11_TexMgr::updateDebugNames (void)
       if ( TexRefs_2D.count  (it2.second) &&
            Textures_2D.count (it2.second) )
       {
-        const auto& tex_ref =
-          TexRefs_2D.find (it2.second);
-
-        auto& tex_desc =
-          Textures_2D [*tex_ref];
-
-        if (tex_desc.debug_name.empty ())
+        if (const auto& tex_ref  = TexRefs_2D.find (it2.second);
+                        tex_ref != TexRefs_2D.end  ())
         {
-          char     szDesc [128] = { };
-          wchar_t wszDesc [128] = { };
-          UINT uiDescLen = 127;
-
-          auto se_orig =
-          SK_SEH_ApplyTranslator (
-            SK_FilteringStructuredExceptionTranslator (
-              EXCEPTION_ACCESS_VIOLATION
-            )
-          );
-          try
-          {
-            uiDescLen = sizeof (wszDesc) - sizeof (wchar_t);
-
-            if ( SUCCEEDED (
-                 (*tex_ref)->GetPrivateData (
-                   WKPDID_D3DDebugObjectNameW,
-                         &uiDescLen, wszDesc )
-                           ) && uiDescLen > sizeof (wchar_t)
-               )
-            {
-              tex_desc.debug_name =
-                SK_WideCharToUTF8 (wszDesc);
-            }
-
-            else
-            {
-              uiDescLen = sizeof (szDesc) - sizeof (char);
-
-              if ( SUCCEEDED (
-                     (*tex_ref)->GetPrivateData (
-                       WKPDID_D3DDebugObjectName,
-                             &uiDescLen, szDesc )
-                             ) && uiDescLen > sizeof (char)
-                 )
-              {
-                tex_desc.debug_name =
-                  szDesc;
-              }
-            }
-          }
-          catch (const SK_SEH_IgnoredException&) { }
-          SK_SEH_RemoveTranslator (se_orig);
+          SK_D3D11_SafeAssignTexDebugName (*tex_ref);
         }
       }
     }
