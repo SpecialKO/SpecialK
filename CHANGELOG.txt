@@ -1,4 +1,11 @@
-﻿24.11.24
+﻿24.11.24.1
+==========
+ + Fixed accidentally using ImGuiKey_MouseLeft to index the ImGuiIO::MouseDown
+     array (which only has 5 buttons; the value of ImGuiKey_MouseLeft is 653!)
+   * It should have been ImGuiIO::AddMouseButtonEvent ImGuiKey_MouseLeft,...).
+  >> This relatively new bug only affected games w/ (Low-Level) Mouse Hooks...
+
+24.11.24
 ========
  + Unload plug-in DLLs at game exit _before_ uninstalling all hooked functions.
  + Add plug-in DLL names to the unload log entires during game shutdown.

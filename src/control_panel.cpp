@@ -7247,7 +7247,7 @@ LRESULT
 CALLBACK
 SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 {
-  if (code < 0 || (! SK_IsGameWindowActive ())) // We saw nothing (!!)
+  if (code < 0 || GImGui == nullptr || GImGui->CurrentWindow == nullptr) // We saw nothing (!!)
     return CallNextHookEx (0, code, wParam, lParam);
 
   auto& io =
@@ -7275,6 +7275,9 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 
         io.KeyCtrl  |= ((mhs->dwExtraInfo & MK_CONTROL) != 0);
         io.KeyShift |= ((mhs->dwExtraInfo & MK_SHIFT  ) != 0);
+
+        io.AddMousePosEvent (static_cast <float> (pt.x),
+                             static_cast <float> (pt.y));
       }
     }
   }
@@ -7285,7 +7288,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONDBLCLK:
       if (! bPassthrough)
       {
-        io.MouseDown [0] = true;
+        io.AddMouseButtonEvent (ImGuiKey_MouseLeft, true);
 
         // Only capture mouse clicks when the window is in the foreground, failure to let
         //   left-clicks passthrough would prevent activating the game window.
@@ -7298,6 +7301,8 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONUP:
       if (! bPassthrough)
       {
+        io.AddMouseButtonEvent (ImGuiKey_MouseLeft, false);
+
         if (SK_ImGui_WantMouseCapture ())
           return 1;
       }
@@ -7307,7 +7312,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_RBUTTONDBLCLK:
       if (! bPassthrough)
       {
-        io.MouseDown [1] = true;
+        io.AddMouseButtonEvent (ImGuiKey_MouseRight, true);
 
         if (SK_ImGui_WantMouseCapture ())
           return 1;
@@ -7317,6 +7322,8 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_RBUTTONUP:
       if (! bPassthrough)
       {
+        io.AddMouseButtonEvent (ImGuiKey_MouseRight, false);
+
         if (SK_ImGui_WantMouseCapture ())
           return 1;
       }
@@ -7326,7 +7333,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_MBUTTONDBLCLK:
       if (! bPassthrough)
       {
-        io.MouseDown [2] = true;
+        io.AddMouseButtonEvent (ImGuiKey_MouseMiddle, true);
 
         if (SK_ImGui_WantMouseCapture ())
           return 1;
@@ -7336,6 +7343,8 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_MBUTTONUP:
       if (! bPassthrough)
       {
+        io.AddMouseButtonEvent (ImGuiKey_MouseMiddle, false);
+
         if (SK_ImGui_WantMouseCapture ())
           return 1;
       }
@@ -7348,8 +7357,10 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
         MOUSEHOOKSTRUCTEX* mhsx =
        (MOUSEHOOKSTRUCTEX*)lParam;
 
-        io.MouseDown [3] |= ((HIWORD (mhsx->mouseData)) == XBUTTON1);
-        io.MouseDown [4] |= ((HIWORD (mhsx->mouseData)) == XBUTTON2);
+        if (((HIWORD (mhsx->mouseData)) == XBUTTON1))
+          io.AddMouseButtonEvent (ImGuiKey_MouseX1, true);
+        if (((HIWORD (mhsx->mouseData)) == XBUTTON2))
+          io.AddMouseButtonEvent (ImGuiKey_MouseX2, true);
 
         if (SK_ImGui_WantMouseCapture ())
           return 1;
@@ -7358,6 +7369,14 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_XBUTTONUP:
       if (! bPassthrough)
       {
+        MOUSEHOOKSTRUCTEX* mhsx =
+       (MOUSEHOOKSTRUCTEX*)lParam;
+
+        if (((HIWORD (mhsx->mouseData)) == XBUTTON1))
+          io.AddMouseButtonEvent (ImGuiKey_MouseX1, false);
+        if (((HIWORD (mhsx->mouseData)) == XBUTTON2))
+          io.AddMouseButtonEvent (ImGuiKey_MouseX2, false);
+
         if (SK_ImGui_WantMouseCapture ())
           return 1;
       } break;
@@ -7371,15 +7390,15 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 
         if (wParam == WM_MOUSEWHEEL)
         {
-          io.MouseWheel +=
+          io.AddMouseWheelEvent (0.0f,
             (float)GET_WHEEL_DELTA_WPARAM (mhsx->mouseData) /
-                (float)WHEEL_DELTA;
+                (float)WHEEL_DELTA);
         }
 
         else {
-          io.MouseWheelH +=
+          io.AddMouseWheelEvent (
             (float)GET_WHEEL_DELTA_WPARAM (mhsx->mouseData) /
-                (float)WHEEL_DELTA;
+                  (float)WHEEL_DELTA, 0.0f);
         }
 
         if (SK_ImGui_WantMouseCapture ())
@@ -7394,7 +7413,12 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
         {
           // Install a mouse tracker to get WM_MOUSELEAVE
           if (! (game_window.mouse.tracking && game_window.mouse.inside))
-            SK_ImGui_UpdateMouseTracker ();
+          {
+            if (wParam != WM_NCMOUSEMOVE)
+            {
+              SK_ImGui_UpdateMouseTracker ();
+            }
+          }
 
           // Returning 1 here breaks WM_SETCURSOR behavior;
           //

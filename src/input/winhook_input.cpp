@@ -113,9 +113,12 @@ SK_Proxy_MouseProc   (
             // Install a mouse tracker to get WM_MOUSELEAVE
             if (! (game_window.mouse.tracking && game_window.mouse.inside))
             {
-              if (SK_ImGui_WantMouseCapture ())
+              if (wParam != WM_NCMOUSEMOVE)
               {
-                SK_ImGui_UpdateMouseTracker ();
+                if (SK_ImGui_WantMouseCapture ())
+                {
+                  SK_ImGui_UpdateMouseTracker ();
+                }
               }
             }
 
@@ -123,17 +126,17 @@ SK_Proxy_MouseProc   (
             {
               case WM_LBUTTONDOWN:
               case WM_LBUTTONDBLCLK:
-                io.MouseDown [ImGuiKey_MouseLeft] = true;
+                io.AddMouseButtonEvent (ImGuiKey_MouseLeft, true);
                 break;
 
               case WM_RBUTTONDOWN:
               case WM_RBUTTONDBLCLK:
-                io.MouseDown [ImGuiKey_MouseRight] = true;
+                io.AddMouseButtonEvent (ImGuiKey_MouseRight, true);
                 break;
 
               case WM_MBUTTONDOWN:
               case WM_MBUTTONDBLCLK:
-                io.MouseDown [ImGuiKey_MouseMiddle] = true;
+                io.AddMouseButtonEvent (ImGuiKey_MouseMiddle, true);
                 break;
 
               case WM_XBUTTONDOWN:
@@ -142,8 +145,29 @@ SK_Proxy_MouseProc   (
                 MOUSEHOOKSTRUCTEX* mhsx =
                   (MOUSEHOOKSTRUCTEX*)lParam;
 
-                if ((HIWORD (mhsx->mouseData)) == XBUTTON1) io.MouseDown [ImGuiKey_MouseX1] = true;
-                if ((HIWORD (mhsx->mouseData)) == XBUTTON2) io.MouseDown [ImGuiKey_MouseX2] = true;
+                if ((HIWORD (mhsx->mouseData)) == XBUTTON1) io.AddMouseButtonEvent (ImGuiKey_MouseX1, true);
+                if ((HIWORD (mhsx->mouseData)) == XBUTTON2) io.AddMouseButtonEvent (ImGuiKey_MouseX2, true);
+              } break;
+
+              case WM_LBUTTONUP:
+                io.AddMouseButtonEvent (ImGuiKey_MouseLeft, false);
+                break;
+
+              case WM_RBUTTONUP:
+                io.AddMouseButtonEvent (ImGuiKey_MouseRight, false);
+                break;
+
+              case WM_MBUTTONUP:
+                io.AddMouseButtonEvent (ImGuiKey_MouseMiddle, false);
+                break;
+
+              case WM_XBUTTONUP:
+              {
+                MOUSEHOOKSTRUCTEX* mhsx =
+                  (MOUSEHOOKSTRUCTEX*)lParam;
+
+                if ((HIWORD (mhsx->mouseData)) == XBUTTON1) io.AddMouseButtonEvent (ImGuiKey_MouseX1, false);
+                if ((HIWORD (mhsx->mouseData)) == XBUTTON2) io.AddMouseButtonEvent (ImGuiKey_MouseX2, false);
               } break;
             }
           } break;
@@ -263,23 +287,23 @@ SK_Proxy_LLMouseProc   (
           {
             case WM_LBUTTONDOWN:
             case WM_LBUTTONDBLCLK:
-              io.MouseDown [ImGuiKey_MouseLeft] = true;
+              io.AddMouseButtonEvent (ImGuiKey_MouseLeft, true);
               break;
 
             case WM_RBUTTONDOWN:
             case WM_RBUTTONDBLCLK:
-              io.MouseDown [ImGuiKey_MouseRight] = true;
+              io.AddMouseButtonEvent (ImGuiKey_MouseRight, true);
               break;
 
             case WM_MBUTTONDOWN:
             case WM_MBUTTONDBLCLK:
-              io.MouseDown [ImGuiKey_MouseMiddle] = true;
+              io.AddMouseButtonEvent (ImGuiKey_MouseMiddle, true);
               break;
 
             case WM_XBUTTONDOWN:
             case WM_XBUTTONDBLCLK:
-              if ((HIWORD (mhs->mouseData)) == XBUTTON1) io.MouseDown [ImGuiKey_MouseX1] = true;
-              if ((HIWORD (mhs->mouseData)) == XBUTTON2) io.MouseDown [ImGuiKey_MouseX2] = true;
+              if ((HIWORD (mhs->mouseData)) == XBUTTON1) io.AddMouseButtonEvent (ImGuiKey_MouseX1, true);
+              if ((HIWORD (mhs->mouseData)) == XBUTTON2) io.AddMouseButtonEvent (ImGuiKey_MouseX2, true);
               break;
           }
         } break;
