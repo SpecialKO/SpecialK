@@ -741,6 +741,9 @@ SK_D3D11_SetShaderResources_Impl (
 
   UNREFERENCED_PARAMETER (Deferred);
 
+  auto& shaders =
+    SK_D3D11_Shaders;
+
   bool
     hooked    = ( This != nullptr );
   LPVOID
@@ -755,69 +758,115 @@ SK_D3D11_SetShaderResources_Impl (
       ( hooked ?
           This : Wrapper );
 
+
 #define pDevCtx pDevContext
   SK_WRAP_AND_HOOK
 #undef  pDevCtx
+
+  // Static analysis seems to think this is possible:
+  //   ( Both are FALSE or Both are TRUE ),
+  // but I am pretty sure it never happens.
+  SK_ReleaseAssert (hooked ^ ( _vftable != nullptr ) );
+
+  if ((! hooked) && (! _vftable))
+    return;
+
+  SK_Thread_HybridSpinlock*
+      cs_lock     = nullptr;
+
+  SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*
+      shader_base = nullptr;
+
+  int stage_id    = 0;
+
+  switch (ShaderType)
+  {
+    case SK_D3D11_ShaderType::Vertex:
+    { static auto vs_base =
+        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
+                   (&shaders->vertex);
+      shader_base =  vs_base;
+      stage_id    = VERTEX_SHADER_STAGE;
+      cs_lock     = cs_shader_vs.get ();
+      pTargetFn   = ( hooked ? D3D11_VSSetShaderResources_Original :
+                               _vftable [25] );
+    } break;
+
+    case SK_D3D11_ShaderType::Pixel:
+    {
+      static auto ps_base =
+        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
+                   (&shaders->pixel);
+      shader_base =  ps_base;
+      stage_id    = PIXEL_SHADER_STAGE;
+      cs_lock     = cs_shader_ps.get ();
+      pTargetFn   = ( hooked ? D3D11_PSSetShaderResources_Original :
+                               _vftable [8] );
+    } break;
+
+    case SK_D3D11_ShaderType::Geometry:
+    {
+      static auto gs_base =
+        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
+                   (&shaders->geometry);
+      shader_base =  gs_base;
+      stage_id    = GEOMETRY_SHADER_STAGE;
+      cs_lock     = cs_shader_gs.get ();
+      pTargetFn   = ( hooked ? D3D11_GSSetShaderResources_Original :
+                               _vftable [31] );
+    } break;
+
+    case SK_D3D11_ShaderType::Hull:
+    {
+      static auto hs_base =
+        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
+                   (&shaders->hull);
+      shader_base =  hs_base;
+      stage_id    = HULL_SHADER_STAGE;
+      cs_lock     = cs_shader_hs.get ();
+      pTargetFn   = ( hooked ? D3D11_HSSetShaderResources_Original :
+                               _vftable [59] );
+    } break;
+
+    case SK_D3D11_ShaderType::Domain:
+    {
+      static auto ds_base =
+        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
+                   (&shaders->domain);
+      shader_base =  ds_base;
+      stage_id    = DOMAIN_SHADER_STAGE;
+      cs_lock     = cs_shader_ds.get ();
+      pTargetFn   = ( hooked ? D3D11_DSSetShaderResources_Original :
+                               _vftable [63] );
+    } break;
+
+    case SK_D3D11_ShaderType::Compute:
+    {
+      static auto cs_base =
+        reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*>
+                   (&shaders->compute);
+      shader_base =  cs_base;
+      stage_id    = COMPUTE_SHADER_STAGE;
+      cs_lock     = cs_shader_cs.get ();
+      pTargetFn   = ( hooked ? D3D11_CSSetShaderResources_Original :
+                               _vftable [67] );
+    } break;
+
+    default:
+      break;
+  }
+
+  assert (shader_base != nullptr);
+  assert (cs_lock     != nullptr);
 
   auto _Finish =
   [&](void) -> void
    {
      static_cast <D3D11_VSSetShaderResources_pfn> (pTargetFn) (
        pDevContext, StartSlot, NumViews, ppShaderResourceViews);
-   };
-
-  if (! hooked)
-  {
-    switch (ShaderType)
-    {
-      case SK_D3D11_ShaderType::Vertex:   pTargetFn = _vftable [25]; break;
-      case SK_D3D11_ShaderType::Pixel:    pTargetFn = _vftable [ 8]; break;
-      case SK_D3D11_ShaderType::Geometry: pTargetFn = _vftable [31]; break;
-      case SK_D3D11_ShaderType::Hull:     pTargetFn = _vftable [59]; break;
-      case SK_D3D11_ShaderType::Domain:   pTargetFn = _vftable [63]; break;
-      case SK_D3D11_ShaderType::Compute:  pTargetFn = _vftable [67]; break;
-      // WTF?
-      default: assert (false);                                      return;
-    }
-
-    return
-      _Finish ();
-  }
-
-  static struct {
-    SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* registry;
-    SK_Thread_HybridSpinlock*                         lock;
-    void*                                             func;
-  } shader_bases [] =
-  { { reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*> (&SK_D3D11_Shaders->vertex),
-        cs_shader_vs.get (), D3D11_VSSetShaderResources_Original },
-    { reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*> (&SK_D3D11_Shaders->pixel),
-        cs_shader_ps.get (), D3D11_PSSetShaderResources_Original },
-    { reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*> (&SK_D3D11_Shaders->geometry),
-        cs_shader_gs.get (), D3D11_GSSetShaderResources_Original },
-    { reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*> (&SK_D3D11_Shaders->hull),
-        cs_shader_hs.get (), D3D11_HSSetShaderResources_Original },
-    { reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*> (&SK_D3D11_Shaders->domain),
-        cs_shader_ds.get (), D3D11_DSSetShaderResources_Original },
-    { reinterpret_cast <SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*> (&SK_D3D11_Shaders->compute),
-        cs_shader_cs.get (), D3D11_CSSetShaderResources_Original }
   };
 
-  SK_Thread_HybridSpinlock*                         cs_lock     = nullptr;
-  SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>* shader_base = nullptr;
-  int                                               stage_id    = -1;
-
-  switch (ShaderType)
-  {
-    case SK_D3D11_ShaderType::Vertex:   stage_id = 0; break;
-    case SK_D3D11_ShaderType::Pixel:    stage_id = 1; break;
-    case SK_D3D11_ShaderType::Geometry: stage_id = 2; break;
-    case SK_D3D11_ShaderType::Hull:     stage_id = 3; break;
-    case SK_D3D11_ShaderType::Domain:   stage_id = 4; break;
-    case SK_D3D11_ShaderType::Compute:  stage_id = 5; break;
-  }
-
-  bool early_out = (! bMustNotIgnore) || stage_id == -1 ||
+  bool early_out = (! bMustNotIgnore) || shader_base == nullptr ||
     SK_D3D11_IgnoreWrappedOrDeferred (bWrapped,
            SK_D3D11_IsDevCtxDeferred (pDevContext),
                                       pDevContext);
@@ -828,15 +877,9 @@ SK_D3D11_SetShaderResources_Impl (
       _Finish ();
   }
 
-  shader_base = shader_bases [stage_id].registry;
-  cs_lock     = shader_bases [stage_id].lock;
-  pTargetFn   = shader_bases [stage_id].func;
-
-  assert (shader_base != nullptr);
-  assert (cs_lock     != nullptr);
-
   if (dev_idx == UINT_MAX)
       dev_idx  = SK_D3D11_GetDeviceContextHandle (pDevContext);
+
 
   auto& views =
     shader_base->current.views [dev_idx];
@@ -912,6 +955,7 @@ SK_D3D11_SetShaderResources_Impl (
       std::lock                                             (*cs_lock,        *cs_render_view);
       std::lock_guard <SK_Thread_HybridSpinlock> auto_lock1 (*cs_lock,        std::adopt_lock);
       std::lock_guard <SK_Thread_HybridSpinlock> auto_lock2 (*cs_render_view, std::adopt_lock);
+
       for (UINT i = 0; i < NumViews; i++)
       {
         if (StartSlot + i >= D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT)
@@ -2202,7 +2246,9 @@ const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView
         {
           ImGui::TreePush ("");
 
-          std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
+          std::lock                                             (*cs_shader,      *cs_render_view);
+          std::lock_guard <SK_Thread_HybridSpinlock> auto_lock1 (*cs_shader,      std::adopt_lock);
+          std::lock_guard <SK_Thread_HybridSpinlock> auto_lock2 (*cs_render_view, std::adopt_lock);
 
           SK_ComPtr <ID3D11ShaderResourceView> pSRV2 = nullptr;
 
@@ -2372,7 +2418,9 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   ID3D11Device* pDevice =
     (ID3D11Device *)(SK_GetCurrentRenderBackend ().device.p);
 
-  std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_shader);
+  std::lock                                             (*cs_shader,      *cs_render_view);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock1 (*cs_shader,      std::adopt_lock);
+  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock2 (*cs_render_view, std::adopt_lock);
 
   auto& io =
     ImGui::GetIO ();

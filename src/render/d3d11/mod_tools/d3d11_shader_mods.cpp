@@ -265,15 +265,6 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
   const SK_RenderBackend_V2& rb =
     SK_GetCurrentRenderBackend ();
 
-  std::scoped_lock < SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
-                     SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
-                     SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
-                     SK_Thread_HybridSpinlock >
-    fort_knox ( *cs_shader,    *cs_shader_vs, *cs_shader_ps,
-                *cs_shader_gs, *cs_shader_hs, *cs_shader_ds,
-                *cs_shader_cs );
-
-
   const float font_size           = (ImGui::GetFont ()->FontSize * io.FontGlobalScale);
   const float font_size_multiline = font_size + ImGui::GetStyle ().ItemSpacing.y +
                                                 ImGui::GetStyle ().ItemInnerSpacing.y;
@@ -293,6 +284,14 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
   //      SK_D3D11_DispatchThreads.count_active (), SK_D3D11_DispatchThreads.count_all () ).c_str (),
                         &show_dlg ) )
   {
+    std::scoped_lock < SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
+                       SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
+                       SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock,
+                       SK_Thread_HybridSpinlock, SK_Thread_HybridSpinlock >
+           fort_knox ( *cs_shader,    *cs_shader_vs, *cs_shader_ps,
+                       *cs_shader_gs, *cs_shader_hs, *cs_shader_ds,
+                       *cs_shader_cs, *cs_render_view );
+
     static bool                             draw_srv_overlay = false;
     static SK_ComPtr <ID3D11ShaderResourceView> pOverlaySRV;
 

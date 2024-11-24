@@ -136,7 +136,8 @@ protected:
   const bool bIsDevCtxDeferred =                          \
     SK_D3D11_IsDevCtxDeferred (pDevCtx);                  \
                                                           \
-  if (! bIsDevCtxDeferred)                                \
+  std::ignore = bIsDevCtxDeferred;                        \
+  if (true)/*! bIsDevCtxDeferred)*/                       \
   {                                                       \
     call_tally.hooked  ( bWrapped ? 0 : 1 );              \
     call_tally.wrapped ( bWrapped ? 1 : 0 );              \
