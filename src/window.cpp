@@ -8211,7 +8211,7 @@ WINAPI
 SK_ClipCursor (const RECT *lpRect)
 {
   // Do not allow cursor clipping when the game's window is inactive
-  if (! game_window.active)
+  if ((! game_window.active) || (game_window.size_move)) // Or being moved
     lpRect = nullptr;
 
   return

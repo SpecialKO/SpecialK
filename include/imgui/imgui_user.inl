@@ -1068,7 +1068,7 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
     if (hWnd == game_window.hWnd)
     {
       game_window.size_move = (msg == WM_ENTERSIZEMOVE);
-      SK_AdjustClipRect ();
+      SK_Window_RepositionIfNeeded ();
     }
   }
 

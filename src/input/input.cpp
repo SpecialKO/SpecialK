@@ -300,7 +300,7 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
           game_window.size_move =
             (lpMsg->message == WM_ENTERSIZEMOVE);
 
-          SK_AdjustClipRect ();
+          SK_Window_RepositionIfNeeded ();
         }
         break;
 
