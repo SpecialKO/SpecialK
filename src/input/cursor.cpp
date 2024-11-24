@@ -591,7 +591,7 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
     if (game_window.active && ReadULong64Acquire (&config.input.mouse.temporarily_allow) > SK_GetFramesDrawn () - 20)
       imgui_capture = false;
 
-    if ((! imgui_capture) && (! game_window.isCursorHovering ()) && SK_GetForegroundWindow () != game_window.hWnd)
+    if ((! imgui_capture) && (! game_window.isCursorHovering ()) && (! SK_IsGameWindowActive ()))
     {
       hit_test =
         DefWindowProcW (game_window.hWnd,WM_NCHITTEST,0,MAKELPARAM(ptCursor.x,ptCursor.y));
