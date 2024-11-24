@@ -1761,6 +1761,44 @@ SK_MinHook_UnInit (void)
     SK_LOG_MINHOOK_ ( status, L"Failed to Uninitialize MinHook Library!" );
   }
 
+  LoadLibraryW_Original       = nullptr;
+  LoadLibraryA_Original       = nullptr;
+  LoadLibraryExA_Original     = nullptr;
+  LoadLibraryExW_Original     = nullptr;
+  FreeLibrary_Original        = nullptr;
+  SleepEx_Original            = nullptr;
+  Sleep_Original              = nullptr;
+  GetProcAddress_Original     = nullptr;
+  SetLastError_Original       = nullptr;
+  RaiseException_Original     = nullptr;
+  NtTerminateProcess_Original = nullptr;
+  RtlExitUserThread_Original  = nullptr;
+  ExitThread_Original         = nullptr;
+  _endthreadex_Original       = nullptr;
+  TerminateThread_Original    = nullptr;
+  TerminateProcess_Original   = nullptr;
+  ExitProcess_Original        = nullptr;
+  OutputDebugStringA_Original = nullptr;
+  OutputDebugStringW_Original = nullptr;
+
+  CloseHandle_Original        = nullptr;
+
+  GlobalAlloc_Original        = nullptr;
+  GlobalFree_Original         = nullptr;
+  LocalAlloc_Original         = nullptr;
+  LocalFree_Original          = nullptr;
+  VirtualAlloc_Original       = nullptr;
+  VirtualFree_Original        = nullptr;
+  RtlAllocateHeap_Original    = nullptr;
+  HeapFree_Original           = nullptr;
+
+  GetCommandLineW_Original    = nullptr;
+  GetCommandLineA_Original    = nullptr;
+
+  SHGetKnownFolderPath_Original = nullptr;
+
+  // ... Many, many more...
+
   return status;
 }
 

@@ -3143,29 +3143,22 @@ SK_ShutdownCore (const wchar_t* backend)
       dll_log->LogEx           (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
     }
 
+    // Unload imports before shutting down MinHook
+    SK_UnloadImports           ();
+
     dll_log->LogEx             (true, L"[ SpecialK ] Shutting down MinHook...                     ");
 
     dwTime = SK_timeGetTime    ();
     SK_MinHook_UnInit          ();
     dll_log->LogEx             (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
 
-    LoadLibraryW_Original   = nullptr;
-    LoadLibraryA_Original   = nullptr;
-    LoadLibraryExA_Original = nullptr;
-    LoadLibraryExW_Original = nullptr;
-    FreeLibrary_Original    = nullptr;
-    SleepEx_Original        = nullptr;
-
-    // ... Many, many more...
-
     dll_log->LogEx             (true, L"[ SpecialK ] Closing secondary logs...                    ");
 
     dwTime = SK_timeGetTime    ();
     SK_Log_CleanupLogs         ();
+    SK_ReShadeAddOn_CleanupConfigAndLogs
+                               ();
     dll_log->LogEx             (false, L"done! (%4u ms)\n", SK_timeGetTime () - dwTime);
-    SK_UnloadImports           ();
-
-    SK_ReShadeAddOn_CleanupConfigAndLogs ();
   }
 
 

@@ -23,6 +23,7 @@
 #define __SK__DEBUG_UTILS_H__
 
 #include <Unknwnbase.h>
+#include <shtypes.h>
 
 #include <Windows.h>
 #include <SpecialK/tls.h>
@@ -878,5 +879,39 @@ bool SK_Process_Resume      (DWORD dwPid);
 
 void WINAPI SK_OutputDebugStringW (LPCWSTR lpOutputString);
 void WINAPI SK_OutputDebugStringA (LPCSTR  lpOutputString);
+
+using SetLastError_pfn   = void (WINAPI *)(_In_ DWORD dwErrCode);
+using GetProcAddress_pfn = FARPROC (WINAPI *)(HMODULE,LPCSTR);
+using CloseHandle_pfn    = BOOL (WINAPI *)(HANDLE);
+
+using GetCommandLineW_pfn = LPWSTR (WINAPI *)(void);
+using GetCommandLineA_pfn = LPSTR  (WINAPI *)(void);
+using TerminateThread_pfn = BOOL (WINAPI *)( _In_ HANDLE hThread,
+                                             _In_ DWORD  dwExitCode );
+                                             using ExitThread_pfn = VOID (WINAPI *)(_In_ DWORD  dwExitCode);
+using _endthreadex_pfn = void (__cdecl *)( _In_ unsigned _ReturnCode );
+using NtTerminateProcess_pfn = NTSTATUS (*)(HANDLE, NTSTATUS);
+using RtlExitUserThread_pfn = VOID (NTAPI *)(_In_ NTSTATUS 	Status);
+using SHGetKnownFolderPath_pfn = HRESULT (WINAPI *)(REFKNOWNFOLDERID,DWORD,HANDLE,PWSTR*);
+
+extern SHGetKnownFolderPath_pfn SHGetKnownFolderPath_Original;
+
+extern GetCommandLineW_pfn      GetCommandLineW_Original;
+extern GetCommandLineA_pfn      GetCommandLineA_Original;
+
+extern NtTerminateProcess_pfn   NtTerminateProcess_Original;
+extern RtlExitUserThread_pfn    RtlExitUserThread_Original;
+extern ExitThread_pfn           ExitThread_Original;
+extern _endthreadex_pfn         _endthreadex_Original;
+extern TerminateThread_pfn      TerminateThread_Original;
+
+extern RaiseException_pfn     RaiseException_Original;
+extern SetLastError_pfn       SetLastError_Original;
+extern GetProcAddress_pfn     GetProcAddress_Original;
+extern TerminateProcess_pfn   TerminateProcess_Original;
+extern ExitProcess_pfn        ExitProcess_Original;
+extern OutputDebugStringA_pfn OutputDebugStringA_Original;
+extern OutputDebugStringW_pfn OutputDebugStringW_Original;
+extern CloseHandle_pfn        CloseHandle_Original;
 
 #endif /* __SK__DEBUG_UTILS_H__ */

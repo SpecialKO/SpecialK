@@ -464,69 +464,94 @@ NvAPI_Disp_GetHdrCapabilities_Override ( NvU32                displayId,
   std::lock_guard
        lock (SK_NvAPI_Threading->locks.Disp_GetHdrCapabilities);
 
-  SK_LOG0 ( ( L"NV_HDR_CAPABILITIES Version: %lu", pHdrCapabilities->version ),
-              __SK_SUBSYSTEM__ );
-  SK_LOG0 ( ( L" >> Wants Driver to Expand Default HDR Params: %s",
-                pHdrCapabilities->driverExpandDefaultHdrParameters ? L"Yes" :
-                                                                     L"No" ),
-              __SK_SUBSYSTEM__ );
+  static NvU32 version = pHdrCapabilities->version;
+  static DWORD calls   = 0;
 
-  // We don't care what the game wants, we're filling-in default values dammit!
-  pHdrCapabilities->driverExpandDefaultHdrParameters = true;
+  if (version == pHdrCapabilities->version)
+    calls++;
+  else
+  {
+    version = pHdrCapabilities->version;
+    calls = 0;
+  }
+
+  if (calls == 5)
+  {
+    SK_LOGi0 (
+      L"Repeated calls to NvAPI_Disp_GetHdrCapabilities (version=%x), silencing future calls...",
+      version
+    );
+  }
+
+  if (calls < 5)
+  {
+    // We don't care what the game wants, we're filling-in default values dammit!
+    pHdrCapabilities->driverExpandDefaultHdrParameters = true;
+  }
 
   NvAPI_Status ret =
     NvAPI_Disp_GetHdrCapabilities_Original ( displayId, pHdrCapabilities );
 
-  const SK_RenderBackend_V2::output_s* const pBackendDisplay =
-    SK_GetCurrentRenderBackend ().displays->nvapi.getDisplayFromId (displayId);
+  if (calls < 5)
+  {
+    SK_LOG0 ( ( L"NV_HDR_CAPABILITIES Version: %lu", pHdrCapabilities->version ),
+                __SK_SUBSYSTEM__ );
+    SK_LOG0 ( ( L" >> Wants Driver to Expand Default HDR Params: %s",
+                  pHdrCapabilities->driverExpandDefaultHdrParameters ? L"Yes" :
+                                                                       L"No" ),
+                __SK_SUBSYSTEM__ );
 
-  dll_log->LogEx ( true,
-      L"[ HDR Caps ]\n"
-      L"  +-----------------+---------------------\n"
-      L"  | Red Primary.... |  %f, %f\n"
-      L"  | Green Primary.. |  %f, %f\n"
-      L"  | Blue Primary... |  %f, %f\n"
-      L"  | White Point.... |  %f, %f\n"
-      L"  | =============== |\n"
-      L"  | Min Luminance.. |  %10.5f cd/m²\n"
-      L"  | Max Luminance.. |  %10.5f cd/m²\n"
-      L"  |  |- FullFrame.. |  %10.5f cd/m²\n"
-      L"  | SDR Luminance.. |  %10.5f cd/m²\n"
-      L"  | =============== |\n"
-      L"  | ST2084 EOTF.... |  %s\n"
-      L"  | CTA-861.3 HDR.. |  %s\n"
-      L"  | CTA-861.3 SDR.. |  %s\n"
-      L"  | =============== |\n"
-      L"  | HDR10+......... |  %s\n"
-      L"  | HDR10+ Gaming.. |  %s\n"
-      L"  | =============== |\n"
-      L"  | Dolby Vision... |  %s\n"
-      L"  | YUV 4:2:2 12bpc |  %s\n"
-      L"  | Low Latency.... |  %s\n"
-      L"  |  |- 4:4:4 10bpc |  %s\n"
-      L"  |  |- 4:4:4 12bpc |  %s\n"
-      L"  +-----------------+---------------------\n",
-        (float)pHdrCapabilities->display_data.displayPrimary_x0   / (float)0xC350, (float)pHdrCapabilities->display_data.displayPrimary_y0   / (float)0xC350,
-        (float)pHdrCapabilities->display_data.displayPrimary_x1   / (float)0xC350, (float)pHdrCapabilities->display_data.displayPrimary_y1   / (float)0xC350,
-        (float)pHdrCapabilities->display_data.displayPrimary_x2   / (float)0xC350, (float)pHdrCapabilities->display_data.displayPrimary_y2   / (float)0xC350,
-        (float)pHdrCapabilities->display_data.displayWhitePoint_x / (float)0xC350, (float)pHdrCapabilities->display_data.displayWhitePoint_y / (float)0xC350,
-        (float)pHdrCapabilities->display_data.desired_content_min_luminance * 0.0001f,
-        (float)pHdrCapabilities->display_data.desired_content_max_luminance,
-        (float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance,
-               pBackendDisplay != nullptr ?
-               pBackendDisplay->hdr.white_level : 
-        (float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance,
-               pHdrCapabilities->isST2084EotfSupported                          ? L"Yes" : L"No",
-               pHdrCapabilities->isTraditionalHdrGammaSupported                 ? L"Yes" : L"No",
-               pHdrCapabilities->isTraditionalSdrGammaSupported                 ? L"Yes" : L"No",
-               pHdrCapabilities->isHdr10PlusSupported                           ? L"Yes" : L"No",
-               pHdrCapabilities->isHdr10PlusGamingSupported                     ? L"Yes" : L"No",
-               pHdrCapabilities->isDolbyVisionSupported                         ? L"Yes" : L"No",
-               pHdrCapabilities->dv_static_metadata.supports_YUV422_12bit       ? L"Yes" : L"No",
-              (pHdrCapabilities->dv_static_metadata.interface_supported_by_sink
-                                                                         & 0x2) ? L"Yes" : L"No",
-              (pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x1) ? L"Yes" : L"No",
-              (pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x2) ? L"Yes" : L"No");
+    const SK_RenderBackend_V2::output_s* const pBackendDisplay =
+      SK_GetCurrentRenderBackend ().displays->nvapi.getDisplayFromId (displayId);
+
+    dll_log->LogEx ( true,
+        L"[ HDR Caps ]\n"
+        L"  +-----------------+---------------------\n"
+        L"  | Red Primary.... |  %f, %f\n"
+        L"  | Green Primary.. |  %f, %f\n"
+        L"  | Blue Primary... |  %f, %f\n"
+        L"  | White Point.... |  %f, %f\n"
+        L"  | =============== |\n"
+        L"  | Min Luminance.. |  %10.5f cd/m²\n"
+        L"  | Max Luminance.. |  %10.5f cd/m²\n"
+        L"  |  |- FullFrame.. |  %10.5f cd/m²\n"
+        L"  | SDR Luminance.. |  %10.5f cd/m²\n"
+        L"  | =============== |\n"
+        L"  | ST2084 EOTF.... |  %s\n"
+        L"  | CTA-861.3 HDR.. |  %s\n"
+        L"  | CTA-861.3 SDR.. |  %s\n"
+        L"  | =============== |\n"
+        L"  | HDR10+......... |  %s\n"
+        L"  | HDR10+ Gaming.. |  %s\n"
+        L"  | =============== |\n"
+        L"  | Dolby Vision... |  %s\n"
+        L"  | YUV 4:2:2 12bpc |  %s\n"
+        L"  | Low Latency.... |  %s\n"
+        L"  |  |- 4:4:4 10bpc |  %s\n"
+        L"  |  |- 4:4:4 12bpc |  %s\n"
+        L"  +-----------------+---------------------\n",
+          (float)pHdrCapabilities->display_data.displayPrimary_x0   / (float)0xC350, (float)pHdrCapabilities->display_data.displayPrimary_y0   / (float)0xC350,
+          (float)pHdrCapabilities->display_data.displayPrimary_x1   / (float)0xC350, (float)pHdrCapabilities->display_data.displayPrimary_y1   / (float)0xC350,
+          (float)pHdrCapabilities->display_data.displayPrimary_x2   / (float)0xC350, (float)pHdrCapabilities->display_data.displayPrimary_y2   / (float)0xC350,
+          (float)pHdrCapabilities->display_data.displayWhitePoint_x / (float)0xC350, (float)pHdrCapabilities->display_data.displayWhitePoint_y / (float)0xC350,
+          (float)pHdrCapabilities->display_data.desired_content_min_luminance * 0.0001f,
+          (float)pHdrCapabilities->display_data.desired_content_max_luminance,
+          (float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance,
+                 pBackendDisplay != nullptr ?
+                 pBackendDisplay->hdr.white_level : 
+          (float)pHdrCapabilities->display_data.desired_content_max_frame_average_luminance,
+                 pHdrCapabilities->isST2084EotfSupported                          ? L"Yes" : L"No",
+                 pHdrCapabilities->isTraditionalHdrGammaSupported                 ? L"Yes" : L"No",
+                 pHdrCapabilities->isTraditionalSdrGammaSupported                 ? L"Yes" : L"No",
+                 pHdrCapabilities->isHdr10PlusSupported                           ? L"Yes" : L"No",
+                 pHdrCapabilities->isHdr10PlusGamingSupported                     ? L"Yes" : L"No",
+                 pHdrCapabilities->isDolbyVisionSupported                         ? L"Yes" : L"No",
+                 pHdrCapabilities->dv_static_metadata.supports_YUV422_12bit       ? L"Yes" : L"No",
+                (pHdrCapabilities->dv_static_metadata.interface_supported_by_sink
+                                                                           & 0x2) ? L"Yes" : L"No",
+                (pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x1) ? L"Yes" : L"No",
+                (pHdrCapabilities->dv_static_metadata.supports_10b_12b_444 & 0x2) ? L"Yes" : L"No");
+  }
 
   return ret;
 }

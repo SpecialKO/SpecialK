@@ -44,47 +44,22 @@ SHGetKnownFolderPath_Detour ( _In_     REFKNOWNFOLDERID              rfid,
                               _In_opt_ HANDLE                        hToken,
                               _Outptr_ PWSTR *                       ppszPath );
 
-using GetCommandLineW_pfn = LPWSTR (WINAPI *)(void);
-      GetCommandLineW_pfn
-      GetCommandLineW_Original    = nullptr;
+SHGetKnownFolderPath_pfn SHGetKnownFolderPath_Original = nullptr;
 
-using GetCommandLineA_pfn = LPSTR  (WINAPI *)(void);
-      GetCommandLineA_pfn
-      GetCommandLineA_Original    = nullptr;
+GetCommandLineW_pfn      GetCommandLineW_Original    = nullptr;
+GetCommandLineA_pfn      GetCommandLineA_Original    = nullptr;
 
-using TerminateThread_pfn = BOOL (WINAPI *)( _In_ HANDLE hThread,
-                                             _In_ DWORD  dwExitCode );
-      TerminateThread_pfn
-      TerminateThread_Original    = nullptr;
-
-using ExitThread_pfn = VOID (WINAPI *)(_In_ DWORD  dwExitCode);
-      ExitThread_pfn
-      ExitThread_Original         = nullptr;
-
-using _endthreadex_pfn = void (__cdecl *)( _In_ unsigned _ReturnCode );
-      _endthreadex_pfn
-      _endthreadex_Original       = nullptr;
-
-using NtTerminateProcess_pfn = NTSTATUS (*)(HANDLE, NTSTATUS);
-      NtTerminateProcess_pfn
-      NtTerminateProcess_Original = nullptr;
-
-using RtlExitUserThread_pfn = VOID (NTAPI *)(_In_ NTSTATUS 	Status);
-      RtlExitUserThread_pfn
-      RtlExitUserThread_Original  = nullptr;
-
-using SHGetKnownFolderPath_pfn = HRESULT (WINAPI *)(REFKNOWNFOLDERID,DWORD,HANDLE,PWSTR*);
-      SHGetKnownFolderPath_pfn
-      SHGetKnownFolderPath_Original = nullptr;
-
-using CloseHandle_pfn = BOOL (WINAPI *)(HANDLE);
-
-TerminateProcess_pfn   TerminateProcess_Original   = nullptr;
-ExitProcess_pfn        ExitProcess_Original        = nullptr;
-ExitProcess_pfn        ExitProcess_Hook            = nullptr;
-OutputDebugStringA_pfn OutputDebugStringA_Original = nullptr;
-OutputDebugStringW_pfn OutputDebugStringW_Original = nullptr;
-CloseHandle_pfn        CloseHandle_Original        = nullptr;
+NtTerminateProcess_pfn   NtTerminateProcess_Original = nullptr;
+RtlExitUserThread_pfn    RtlExitUserThread_Original  = nullptr;
+ExitThread_pfn           ExitThread_Original         = nullptr;
+_endthreadex_pfn         _endthreadex_Original       = nullptr;
+TerminateThread_pfn      TerminateThread_Original    = nullptr;
+TerminateProcess_pfn     TerminateProcess_Original   = nullptr;
+ExitProcess_pfn          ExitProcess_Original        = nullptr;
+ExitProcess_pfn          ExitProcess_Hook            = nullptr;
+OutputDebugStringA_pfn   OutputDebugStringA_Original = nullptr;
+OutputDebugStringW_pfn   OutputDebugStringW_Original = nullptr;
+CloseHandle_pfn          CloseHandle_Original        = nullptr;
 
 bool SK_SEH_CompatibleCallerName (LPCVOID lpAddr, wchar_t* wszDllFullName);\
 
@@ -188,13 +163,8 @@ static SymGetTypeInfo_pfn       SymGetTypeInfo_Imp       = nullptr;
 void
 SK_SymSetOpts (void);
 
-using SetLastError_pfn = void (WINAPI *)(_In_ DWORD dwErrCode);
-      SetLastError_pfn
-      SetLastError_Original = nullptr;
-
-using GetProcAddress_pfn = FARPROC (WINAPI *)(HMODULE,LPCSTR);
-      GetProcAddress_pfn
-      GetProcAddress_Original = nullptr;
+SetLastError_pfn SetLastError_Original = nullptr;
+GetProcAddress_pfn GetProcAddress_Original = nullptr;
 
 using LdrLockLoaderLock_pfn   = NTSTATUS (WINAPI *)(ULONG Flags, ULONG *State, ULONG_PTR *Cookie);
 using LdrUnlockLoaderLock_pfn = NTSTATUS (WINAPI *)(ULONG Flags,               ULONG_PTR  Cookie);

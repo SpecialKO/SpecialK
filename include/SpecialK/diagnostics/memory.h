@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -82,7 +82,7 @@ typedef BOOL (WINAPI *HeapFree_pfn)(
   extern VirtualAlloc_pfn VirtualAlloc_Original;
   extern VirtualFree_pfn  VirtualFree_Original;
 
-  extern RtlAllocateHeap_pfn RtlAllocaeHeap_Original;
+  extern RtlAllocateHeap_pfn RtlAllocateHeap_Original;
   extern HeapFree_pfn        HeapFree_Original;
 
 
