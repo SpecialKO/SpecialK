@@ -1193,8 +1193,8 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
           const auto filename      = path.filename ().wstring  ();
           const auto filename_utf8 = path.filename ().u8string ();
 
-          dll_log->LogEx (
-            true, L"[ SpecialK ]  * Loading ReShade AddOn: '%ws' from '%ws' ... ",
+          dll_log->Log (
+            L"[ SpecialK ]  * Loading ReShade AddOn: '%ws' from '%ws' ... ",
               filename.c_str (),
             SK_StripUserNameFromPathW (path.parent_path ().wstring ().data ())
           );
@@ -1205,7 +1205,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
 
           if (hModAddOn != skModuleRegistry::INVALID_MODULE)
           {
-            dll_log->LogEx (false, L"success!\n");
+            //dll_log->LogEx (false, L"success!\n");
 
             // Don't announce global AddOns
             if (! StrStrIW (path.c_str (), L"Global\\ReShade\\"))
@@ -1224,7 +1224,7 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
           {
             _com_error err (HRESULT_FROM_WIN32 (GetLastError ()));
 
-            dll_log->LogEx (false, L"failed: 0x%04X (%s)!\n",
+            dll_log->Log (L"LoadLibrary failed: 0x%04X (%s)!\n",
                             err.WCode (), err.ErrorMessage () );
           }
         }

@@ -2,6 +2,8 @@
 ========
  + Unload plug-in DLLs at game exit _before_ uninstalling all hooked functions.
  + Add plug-in DLL names to the unload log entires during game shutdown.
+ + Run each plug-in unload attempt within its own exception handler and
+     continue unloading remaining plug-ins if there is an exception.
 
 24.11.23.2
 ==========
