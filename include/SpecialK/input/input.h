@@ -46,6 +46,8 @@ extern int64_t       SK_PerfFreq;
 bool SK_ImGui_WantGamepadCapture  (bool update = false);
 bool SK_ImGui_WantHWCursor        (void);
 bool SK_ImGui_WantMouseCapture    (bool update = false);
+bool SK_ImGui_WantMouseButtonCapture
+                                  (void);
 bool SK_ImGui_WantMouseCaptureEx  (DWORD dwReasonMask = 0xFFFF);
 bool SK_ImGui_WantKeyboardCapture (bool update = false);
 bool SK_ImGui_WantTextCapture     (void);

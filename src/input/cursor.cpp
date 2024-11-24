@@ -567,6 +567,10 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
 
   bool imgui_capture = false;
 
+  LRESULT           hit_test = 0;
+  POINT             ptCursor;
+  SK_GetCursorPos (&ptCursor);
+
   if (SK_ImGui_IsMouseRelevantEx (false))
   {
     static const auto& io =
@@ -593,7 +597,19 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
       GetWindowThreadProcessId (WindowFromPoint (SK_ImGui_Cursor.last_screen_pos), &dwProcId);
 
       if (dwProcId != GetCurrentProcessId ())
+      {
         imgui_capture = true;
+
+        hit_test =
+          DefWindowProcW (game_window.hWnd,WM_NCHITTEST,0,MAKELPARAM(ptCursor.x,ptCursor.y));
+
+        // Do not block the mouse while it is on the window's titlebar, resize grips, etc.
+        if ( hit_test != HTERROR &&
+             hit_test != HTNOWHERE )
+        {
+          imgui_capture = false;
+        }
+      }
     }
   }
 
@@ -609,6 +625,27 @@ SK_ImGui_WantHWCursor (void)
 {
   return
     ( config.input.ui.use_hw_cursor );
+}
+
+bool
+SK_ImGui_WantMouseButtonCapture (void)
+{
+  bool capture = SK_ImGui_WantMouseCapture ();
+  if ( capture )
+  {
+    POINT                 ptCursor = {};
+    if (SK_GetCursorPos (&ptCursor))
+    {
+      LRESULT hit_test =
+        DefWindowProcW (game_window.hWnd,WM_NCHITTEST,0,MAKELPARAM(ptCursor.x,ptCursor.y));
+
+      // Do not block the mouse while it is on the window's titlebar, resize grips, etc.
+      if (hit_test > HTCLIENT)
+        capture = false;
+    }
+  }
+
+  return capture;
 }
 
 bool

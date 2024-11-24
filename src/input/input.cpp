@@ -293,6 +293,17 @@ SK_ImGui_HandlesMessage (MSG *lpMsg, bool /*remove*/, bool /*peek*/)
         }
         break;
 
+      case WM_ENTERSIZEMOVE:
+      case WM_EXITSIZEMOVE:
+        if (lpMsg->hwnd == game_window.hWnd)
+        {
+          game_window.size_move =
+            (lpMsg->message == WM_ENTERSIZEMOVE);
+
+          SK_AdjustClipRect ();
+        }
+        break;
+
       case WM_CHAR:
       case WM_MENUCHAR:
       {

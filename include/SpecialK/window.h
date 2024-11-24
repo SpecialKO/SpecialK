@@ -455,6 +455,7 @@ struct sk_window_s {
   LONG        game_x           = 640; // Resolution game thinks it's running at
   LONG        game_y           = 480; // Resolution game thinks it's running at
 
+  BOOL        size_move        = FALSE;
   RECT        cursor_clip { LONG_MIN, LONG_MIN,
                             LONG_MAX, LONG_MAX };
 

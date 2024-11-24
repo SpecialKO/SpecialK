@@ -5,6 +5,12 @@
    * It should have been ImGuiIO::AddMouseButtonEvent ImGuiKey_MouseLeft,...).
   >> This relatively new bug only affected games w/ (Low-Level) Mouse Hooks...
 
+ + Ignore mouse button capture when the mouse cursor is over a non-client part
+     of a game window (i.e. title bar or resize grips).
+ + Disengage the "confine cursor" option temporarily while a game window has
+     been grabbed and is inside of the "size/move" modal loop, so that the
+       window can actually be resized or repositioned without interference.
+
 24.11.24
 ========
  + Unload plug-in DLLs at game exit _before_ uninstalling all hooked functions.

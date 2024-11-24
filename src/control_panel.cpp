@@ -7292,8 +7292,8 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 
         // Only capture mouse clicks when the window is in the foreground, failure to let
         //   left-clicks passthrough would prevent activating the game window.
-        if ( SK_ImGui_WantMouseCapture () && game_window.active &&
-                SK_GetForegroundWindow () == game_window.hWnd )
+        if ( game_window.active && SK_ImGui_WantMouseButtonCapture () &&
+             game_window.hWnd   == SK_GetForegroundWindow          () )
           return 1;
       }
       break;
@@ -7303,7 +7303,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
       {
         io.AddMouseButtonEvent (ImGuiKey_MouseLeft, false);
 
-        if (SK_ImGui_WantMouseCapture ())
+        if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
       }
       break;
@@ -7314,7 +7314,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
       {
         io.AddMouseButtonEvent (ImGuiKey_MouseRight, true);
 
-        if (SK_ImGui_WantMouseCapture ())
+        if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
       }
       break;
@@ -7324,7 +7324,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
       {
         io.AddMouseButtonEvent (ImGuiKey_MouseRight, false);
 
-        if (SK_ImGui_WantMouseCapture ())
+        if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
       }
       break;
@@ -7335,7 +7335,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
       {
         io.AddMouseButtonEvent (ImGuiKey_MouseMiddle, true);
 
-        if (SK_ImGui_WantMouseCapture ())
+        if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
       }
       break;
@@ -7345,7 +7345,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
       {
         io.AddMouseButtonEvent (ImGuiKey_MouseMiddle, false);
 
-        if (SK_ImGui_WantMouseCapture ())
+        if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
       }
       break;
@@ -7362,7 +7362,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
         if (((HIWORD (mhsx->mouseData)) == XBUTTON2))
           io.AddMouseButtonEvent (ImGuiKey_MouseX2, true);
 
-        if (SK_ImGui_WantMouseCapture ())
+        if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
       } break;
 
@@ -7377,7 +7377,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
         if (((HIWORD (mhsx->mouseData)) == XBUTTON2))
           io.AddMouseButtonEvent (ImGuiKey_MouseX2, false);
 
-        if (SK_ImGui_WantMouseCapture ())
+        if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
       } break;
 
@@ -7401,7 +7401,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
                   (float)WHEEL_DELTA, 0.0f);
         }
 
-        if (SK_ImGui_WantMouseCapture ())
+        if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
       } break;
 
@@ -7425,7 +7425,8 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
           //   Hopefully we have a subclassed window / window proc hook and
           //     can remove mouse motion that way, because returning 1 is
           //       not an option.
-          return 0;
+          if (wParam != WM_NCMOUSEMOVE)
+            return 0;
         }
       }
 

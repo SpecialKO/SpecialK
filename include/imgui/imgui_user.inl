@@ -514,23 +514,39 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
           if (self)
           {
             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_DOWN   )
-              io.MouseDown [0] = true;
+              io.AddMouseButtonEvent (ImGuiKey_MouseLeft,    true);
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_LEFT_BUTTON_UP     )
+              io.AddMouseButtonEvent (ImGuiKey_MouseLeft,   false);
             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_DOWN  )
-              io.MouseDown [1] = true;
+              io.AddMouseButtonEvent (ImGuiKey_MouseRight,   true);
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_RIGHT_BUTTON_UP    )
+              io.AddMouseButtonEvent (ImGuiKey_MouseRight,  false);
             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_DOWN )
-              io.MouseDown [2] = true;
+              io.AddMouseButtonEvent (ImGuiKey_MouseMiddle,  true);
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_MIDDLE_BUTTON_UP   )
+              io.AddMouseButtonEvent (ImGuiKey_MouseMiddle, false);
             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_DOWN      )
-              io.MouseDown [3] = true;
+              io.AddMouseButtonEvent (ImGuiKey_MouseX1,      true);
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_4_UP        )
+              io.AddMouseButtonEvent (ImGuiKey_MouseX1,     false);
             if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_DOWN      )
-              io.MouseDown [4] = true;
-          }
+              io.AddMouseButtonEvent (ImGuiKey_MouseX2,      true);
+            if ( ((RAWINPUT *)pData)->data.mouse.ulButtons & RI_MOUSE_BUTTON_5_UP        )
+              io.AddMouseButtonEvent (ImGuiKey_MouseX2,     false);
 
-          if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags == RI_MOUSE_WHEEL && self   )
-          {
-            io.MouseWheel +=
-            ((float)(short)((RAWINPUT *)pData)->data.mouse.usButtonData) /
-             (float)WHEEL_DELTA;
+            if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags & RI_MOUSE_WHEEL )
+            {
+              io.AddMouseWheelEvent (0.0f,
+                ((float)(short)((RAWINPUT *)pData)->data.mouse.usButtonData) /
+                 (float)WHEEL_DELTA);
+            }
 
+            if ( ((RAWINPUT *)pData)->data.mouse.usButtonFlags & RI_MOUSE_HWHEEL )
+            {
+              io.AddMouseWheelEvent (
+                ((float)(short)((RAWINPUT *)pData)->data.mouse.usButtonData) /
+                 (float)WHEEL_DELTA, 0.0f);
+            }
           }
         }
       } break;
@@ -1044,6 +1060,15 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
     {
       return
         SK_Input_DetermineMouseIdleState (&msg_);
+    }
+  }
+
+  if (msg == WM_ENTERSIZEMOVE || msg == WM_EXITSIZEMOVE)
+  {
+    if (hWnd == game_window.hWnd)
+    {
+      game_window.size_move = (msg == WM_ENTERSIZEMOVE);
+      SK_AdjustClipRect ();
     }
   }
 

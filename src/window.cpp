@@ -3664,6 +3664,12 @@ SK_Window_RepositionIfNeeded (void)
 void
 SK_AdjustClipRect (void)
 {
+  if (game_window.size_move)
+  {
+    SK_ClipCursor (nullptr);
+    return;
+  }
+
   // Post-Process Results:
   //
   //  If window is moved as a result of this function, we need to:
@@ -5719,6 +5725,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       }
     } break;
 
+    case WM_ENTERSIZEMOVE:
+    case WM_EXITSIZEMOVE:
+      ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
+      break;
+
     case WM_MOUSEMOVE:
       //if (hWnd == game_window.hWnd || hWnd == game_window.child)
       {
@@ -5981,7 +5992,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
           ActivateWindow (hWnd, true);
 
-          if (! SK_ImGui_WantMouseCapture ())
+          if (! SK_ImGui_WantMouseButtonCapture ())
             return MA_ACTIVATE;       // We don't want it, and the game doesn't expect it
           else
             return MA_ACTIVATEANDEAT; // We want it, game doesn't need it
