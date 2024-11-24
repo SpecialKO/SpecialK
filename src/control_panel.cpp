@@ -7275,9 +7275,6 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
 
         io.KeyCtrl  |= ((mhs->dwExtraInfo & MK_CONTROL) != 0);
         io.KeyShift |= ((mhs->dwExtraInfo & MK_SHIFT  ) != 0);
-
-        io.AddMousePosEvent (static_cast <float> (pt.x),
-                             static_cast <float> (pt.y));
       }
     }
   }
@@ -7301,7 +7298,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_LBUTTONUP:
       if (! bPassthrough)
       {
-        io.AddMouseButtonEvent (ImGuiKey_MouseLeft, false);
+        //io.AddMouseButtonEvent (ImGuiKey_MouseLeft, false);
 
         if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
@@ -7322,7 +7319,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_RBUTTONUP:
       if (! bPassthrough)
       {
-        io.AddMouseButtonEvent (ImGuiKey_MouseRight, false);
+        //io.AddMouseButtonEvent (ImGuiKey_MouseRight, false);
 
         if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
@@ -7343,7 +7340,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_MBUTTONUP:
       if (! bPassthrough)
       {
-        io.AddMouseButtonEvent (ImGuiKey_MouseMiddle, false);
+        //io.AddMouseButtonEvent (ImGuiKey_MouseMiddle, false);
 
         if (SK_ImGui_WantMouseButtonCapture ())
           return 1;
@@ -7369,13 +7366,13 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
     case WM_XBUTTONUP:
       if (! bPassthrough)
       {
-        MOUSEHOOKSTRUCTEX* mhsx =
-       (MOUSEHOOKSTRUCTEX*)lParam;
+       // MOUSEHOOKSTRUCTEX* mhsx =
+       //(MOUSEHOOKSTRUCTEX*)lParam;
 
-        if (((HIWORD (mhsx->mouseData)) == XBUTTON1))
-          io.AddMouseButtonEvent (ImGuiKey_MouseX1, false);
-        if (((HIWORD (mhsx->mouseData)) == XBUTTON2))
-          io.AddMouseButtonEvent (ImGuiKey_MouseX2, false);
+        //if (((HIWORD (mhsx->mouseData)) == XBUTTON1))
+        //  io.AddMouseButtonEvent (ImGuiKey_MouseX1, false);
+        //if (((HIWORD (mhsx->mouseData)) == XBUTTON2))
+        //  io.AddMouseButtonEvent (ImGuiKey_MouseX2, false);
 
         if (SK_ImGui_WantMouseButtonCapture ())
           return 1;

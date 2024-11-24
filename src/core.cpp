@@ -4409,6 +4409,13 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   void SK_ImGui_DrawGraph_Latency (bool predraw);
        SK_ImGui_DrawGraph_Latency (true);
 
+  // While in the size/move modal loop, continually evaluate
+  //   window size/position and unrestrict the mouse.
+  if (game_window.size_move)
+  {
+    SK_Window_RepositionIfNeeded ();
+  }
+
   return hr;
 }
 

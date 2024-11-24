@@ -1,4 +1,9 @@
-﻿24.11.24.1
+﻿24.11.24.2
+==========
+ + Allow moving windows to different monitors by dragging without triggering
+     SK's monitor-change message (causes games to maximize the game window).
+
+24.11.24.1
 ==========
  + Fixed accidentally using ImGuiKey_MouseLeft to index the ImGuiIO::MouseDown
      array (which only has 5 buttons; the value of ImGuiKey_MouseLeft is 653!)

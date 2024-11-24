@@ -3518,6 +3518,8 @@ SK_Window_RepositionIfNeeded (void)
 
           SK_RunOnce (rb.updateOutputTopology ());
 
+          bool move_monitors = rb.monitor != rb.next_monitor && rb.next_monitor != 0;
+
           //HMONITOR hMonitorBeforeRepos =
           //  MonitorFromWindow (game_window.hWnd, MONITOR_DEFAULTTONEAREST);
 
@@ -3619,6 +3621,10 @@ SK_Window_RepositionIfNeeded (void)
             SK_Display_ResolutionSelectUI (true);
             rb.gsync_state.update         (true);
 
+            // We programatically moved the window to a different monitor, so we need to
+            //   send the game a few messages to get the SwapChain to be owned by that
+            //     monitor...
+            if (move_monitors || !config.display.monitor_path_ccd.empty ())
             // This generally helps (Unity engine games mostly) to apply SwapChain overrides
             //   immediately, but ATLUS games will respond by moving the game back to the primary
             //     monitor...
