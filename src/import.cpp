@@ -1121,16 +1121,16 @@ SK_LogLastErr (void)
 void
 SK_UnloadImports (void)
 {
-  auto orig_se =
-  SK_SEH_ApplyTranslator (
-    SK_FilteringStructuredExceptionTranslator (
-      EXCEPTION_ACCESS_VIOLATION
-    )
-  );
-  try {
-    // Unload in reverse order, because that's safer :)
-    for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
-    {
+  // Unload in reverse order, because that's safer :)
+  for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
+  {
+    auto orig_se =
+    SK_SEH_ApplyTranslator (
+      SK_FilteringStructuredExceptionTranslator (
+        EXCEPTION_ACCESS_VIOLATION
+      )
+    );
+    try {
       auto& import =
         imports->imports [i];
 
@@ -1165,8 +1165,8 @@ SK_UnloadImports (void)
                                          SK_FreeLibrary (import.hLibrary) )
         {
           dll_log->LogEx ( false,
-                           L"-------------------------[ Free Lib ] \"%40ws\""
-                           L" success! (%4u ms)\n",
+                           L"-------------------------[ Free Lib ] %41ws"
+                           L" success! (%4u ms)\n", import.name.c_str (),
                              SK_timeGetTime ( ) - dwTime );
         }
 
@@ -1176,11 +1176,16 @@ SK_UnloadImports (void)
         }
       }
     }
-  }
 
-  catch (const SK_SEH_IgnoredException&)
-  { }
-  SK_SEH_RemoveTranslator (orig_se);
+    catch (const SK_SEH_IgnoredException&)
+    {
+      dll_log->Log (
+        L"Structured Exception encountered while unloading library: %ws!",
+          imports->imports [i].name.c_str ()
+      );
+    }
+    SK_SEH_RemoveTranslator (orig_se);
+  }
 }
 
 
