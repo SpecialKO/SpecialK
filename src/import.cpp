@@ -1121,54 +1121,66 @@ SK_LogLastErr (void)
 void
 SK_UnloadImports (void)
 {
-  // Unload in reverse order, because that's safer :)
-  for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
-  {
-    auto& import =
-      imports->imports [i];
-
-    // We use the sign-bit for error codes, so... negative
-    //   modules need to be ignored.
-    //
-    //  ** No module should be loaded at an address that high anyway
-    //       (in 32-bit code it's kernel-reserved memory)
-    //
-    if ((intptr_t)import.hLibrary > 0)
+  auto orig_se =
+  SK_SEH_ApplyTranslator (
+    SK_FilteringStructuredExceptionTranslator (
+      EXCEPTION_ACCESS_VIOLATION
+    )
+  );
+  try {
+    // Unload in reverse order, because that's safer :)
+    for (int i = SK_MAX_IMPORTS - 1; i >= 0; i--)
     {
-      DWORD dwTime =
-        SK_timeGetTime ();
+      auto& import =
+        imports->imports [i];
 
-      if (_IsRoleSame (import.role->get_value_ref (), SK_IMPORT_ROLE_PLUGIN))
+      // We use the sign-bit for error codes, so... negative
+      //   modules need to be ignored.
+      //
+      //  ** No module should be loaded at an address that high anyway
+      //       (in 32-bit code it's kernel-reserved memory)
+      //
+      if ((intptr_t)import.hLibrary > 0)
       {
-        auto SKPlugIn_Shutdown =
-          reinterpret_cast <SKPlugIn_Shutdown_pfn> (
-            SK_GetProcAddress ( import.hLibrary,
-                               "SKPlugIn_Shutdown" )
-          );
+        DWORD dwTime =
+          SK_timeGetTime ();
 
-        if (SKPlugIn_Shutdown != nullptr)
-            SKPlugIn_Shutdown   (nullptr);
-      }
-  
-      ///dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
-      ///              import.filename->get_value_str ().c_str () );
+        if (_IsRoleSame (import.role->get_value_ref (), SK_IMPORT_ROLE_PLUGIN))
+        {
+          auto SKPlugIn_Shutdown =
+            reinterpret_cast <SKPlugIn_Shutdown_pfn> (
+              SK_GetProcAddress ( import.hLibrary,
+                                 "SKPlugIn_Shutdown" )
+            );
 
-      // The shim will free the plug-in for us
-      if ( (import.hShim != nullptr && SK_FreeLibrary (import.hShim) ) ||
-                                       SK_FreeLibrary (import.hLibrary) )
-      {
-        dll_log->LogEx ( false,
-                         L"-------------------------[ Free Lib ]                "
-                         L"                           success! (%4u ms)\n",
-                           SK_timeGetTime ( ) - dwTime );
-      }
+          if (SKPlugIn_Shutdown != nullptr)
+              SKPlugIn_Shutdown   (nullptr);
+        }
+    
+        ///dll_log.Log ( L"[ SpecialK ] Unloading Custom Import %s...",
+        ///              import.filename->get_value_str ().c_str () );
 
-      else
-      {
-        SK_LogLastErr ();
+        // The shim will free the plug-in for us
+        if ( (import.hShim != nullptr && SK_FreeLibrary (import.hShim) ) ||
+                                         SK_FreeLibrary (import.hLibrary) )
+        {
+          dll_log->LogEx ( false,
+                           L"-------------------------[ Free Lib ] \"%40ws\""
+                           L" success! (%4u ms)\n",
+                             SK_timeGetTime ( ) - dwTime );
+        }
+
+        else
+        {
+          SK_LogLastErr ();
+        }
       }
     }
   }
+
+  catch (const SK_SEH_IgnoredException&)
+  { }
+  SK_SEH_RemoveTranslator (orig_se);
 }
 
 
