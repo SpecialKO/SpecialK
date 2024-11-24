@@ -383,14 +383,16 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
         {
           case RIM_TYPEMOUSE:
           {
-            if (SK_ImGui_WantMouseCapture ())
+            //// Block mouse input to the game while it's in the background
+            if ((! foreground) && config.input.mouse.disabled_to_game == 2)
             {
               filter = true;
             }
 
-            // Block mouse input to the game while it's in the background
-            if (SK_WantBackgroundRender () && (! focus))
+            else if (SK_ImGui_WantMouseCapture ())
+            {
               filter = true;
+            }
 
             mouse = true;
 
@@ -415,62 +417,59 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
               (((RAWINPUT *)pData)->data.keyboard.VKey & 0xFF);
 
 
-            // Only filter keydown message, not key releases
-            if (SK_ImGui_WantKeyboardCapture ())
+            if (VKey & 0xF8) // Valid Keys:  8 - 255
             {
-              if (VKey & 0xF8) // Valid Keys:  8 - 255
-                filter = true;
+              keyboard = true;
             }
 
-
-            if (SK_ImGui_WantMouseCapture ())
+            // That's actually a mouse button...
+            else if (VKey < 7)
             {
-              // That's actually a mouse button...
-              if (foreground && VKey < 7)
+              mouse = true;
+
+              if (((! foreground) && config.input.mouse.disabled_to_game == 2) || SK_ImGui_WantMouseCapture ())
               {
-                if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYDOWN)
-                  filter = true;
-
-                if (((RAWINPUT *)pData)->data.keyboard.Message == WM_SYSKEYDOWN)
-                  filter = true;
-
-                if (((RAWINPUT *)pData)->data.keyboard.Message == WM_KEYUP)
-                  filter = true;
-
-                if (((RAWINPUT *)pData)->data.keyboard.Message == WM_SYSKEYUP)
-                  filter = true;
+                switch (((RAWINPUT *)pData)->data.keyboard.Message)
+                {
+                  case WM_KEYDOWN:
+                  case WM_SYSKEYDOWN:
+                  case WM_KEYUP:
+                  case WM_SYSKEYUP:
+                    filter = true;
+                    break;
+                }
               }
             }
 
+            if (keyboard)
+            {
+              // Block keyboard input to the game while the console is active
+              if (pConsole->isVisible ())
+                filter = true;
 
-            // Block keyboard input to the game while the console is active
-            if (pConsole->isVisible () && (VKey & 0xFF) > 7)
-              filter = true;
+              // Block keyboard input to the game while it does not have keyboard focus
+              else if ((! focus))
+                filter = true;
 
-
-            // Block keyboard input to the game while it's in the background
-            if (SK_WantBackgroundRender () && (! focus))
-              filter = true;
-
-
-            if (VKey & 0xF8) // Valid Keys:  8 - 255
-              keyboard = true;
-
-            if (keyboard && ( SK_ImGui_WantKeyboardCapture () ||
-                                (((RAWINPUT *)pData)->data.keyboard.Message == WM_CHAR ||
-                                 ((RAWINPUT *)pData)->data.keyboard.Message == WM_SYSCHAR) ))
-              filter = true;
+              else if ( SK_ImGui_WantKeyboardCapture () ||
+                       (((RAWINPUT *)pData)->data.keyboard.Message == WM_CHAR ||
+                        ((RAWINPUT *)pData)->data.keyboard.Message == WM_SYSCHAR) )
+                filter = true;
+            }
 
 
             if ( (! already_processed)
                            && uiCommand == RID_INPUT )
             {
+              const auto type =
+                (keyboard ? sk_input_dev_type::Keyboard : sk_input_dev_type::Mouse);
+
               if (! filter)
               {
-                SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
-                SK_RAWINPUT_VIEW (sk_input_dev_type::Keyboard)
+                SK_RAWINPUT_READ (type)
+                SK_RAWINPUT_VIEW (type)
               }
-              else SK_RAWINPUT_HIDE (sk_input_dev_type::Keyboard)
+              else SK_RAWINPUT_HIDE (type)
             }
           } break;
 

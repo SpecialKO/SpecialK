@@ -6038,7 +6038,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
                           L"Window Mgr" );
 
             ActivateWindow (hWnd, true);
-        
+
             if (SK_WantBackgroundRender ())
               SK_DetourWindowProc ( hWnd, WM_SETFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
           }
@@ -6055,10 +6055,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
             {
               game_window.DefWindowProc ( hWnd, uMsg,
                                             wParam, lParam );
-
-              ////SK_COMPAT_SafeCallProc (&game_window,
-              ////  hWnd, uMsg, TRUE, lParam
-              ////);
 
               SK_DetourWindowProc ( hWnd, WM_KILLFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
 
@@ -6093,10 +6089,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
               game_window.DefWindowProc ( hWnd, uMsg,
                                             wParam, lParam );
 
-              //SK_COMPAT_SafeCallProc (&game_window,
-              //  hWnd, uMsg, TRUE, 0
-              //);
-
               SK_DetourWindowProc ( hWnd, WM_KILLFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
 
               return 0;
@@ -6105,7 +6097,7 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
           else if (SK_WantBackgroundRender ())
           {
-            ActivateWindow (hWnd, true);
+            ActivateWindow      ( hWnd, true );
             SK_DetourWindowProc ( hWnd, WM_SETFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
           }
         }
@@ -6136,11 +6128,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           } break;
         }
 
-        if (last_active)
+        if (game_window.active)
         {
           if (! activate)
           {
-            ActivateWindow (hWnd, activate);
+            if (! (! rb.isTrueFullscreen ()) && SK_WantBackgroundRender () )
+              ActivateWindow (hWnd, activate);
 
             SK_LOG2 ( ( L"Application Deactivated %s", source ),
                         L"Window Mgr" );
@@ -6163,12 +6156,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           if (! activate)
           {
             game_window.DefWindowProc ( hWnd, uMsg,
-                                        wParam, lParam );
+                                          wParam, lParam );
 
-            SK_DetourWindowProc ( hWnd, WM_KILLFOCUS, (WPARAM)nullptr, (LPARAM)nullptr );
-            ActivateWindow      ( hWnd, false );
-
-            return 1;
+            return 0;
           }
 
           else

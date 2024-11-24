@@ -591,23 +591,24 @@ SK_ImGui_WantMouseCaptureEx (DWORD dwReasonMask)
     if (game_window.active && ReadULong64Acquire (&config.input.mouse.temporarily_allow) > SK_GetFramesDrawn () - 20)
       imgui_capture = false;
 
-    if ((! imgui_capture) && (! game_window.isCursorHovering ()))
+    if ((! imgui_capture) && (! game_window.isCursorHovering ()) && SK_GetForegroundWindow () != game_window.hWnd)
     {
-      DWORD                                                                         dwProcId;
-      GetWindowThreadProcessId (WindowFromPoint (SK_ImGui_Cursor.last_screen_pos), &dwProcId);
+      hit_test =
+        DefWindowProcW (game_window.hWnd,WM_NCHITTEST,0,MAKELPARAM(ptCursor.x,ptCursor.y));
 
-      if (dwProcId != GetCurrentProcessId ())
+      // Do not block the mouse while it is on the window's titlebar, resize grips, etc.
+      if (hit_test == HTCLIENT)
       {
-        imgui_capture = true;
+        if (SK_WantBackgroundRender ())
+          imgui_capture = true;
 
-        hit_test =
-          DefWindowProcW (game_window.hWnd,WM_NCHITTEST,0,MAKELPARAM(ptCursor.x,ptCursor.y));
-
-        // Do not block the mouse while it is on the window's titlebar, resize grips, etc.
-        if ( hit_test != HTERROR &&
-             hit_test != HTNOWHERE )
+        else
         {
-          imgui_capture = false;
+          DWORD                                                                         dwProcId;
+          GetWindowThreadProcessId (WindowFromPoint (SK_ImGui_Cursor.last_screen_pos), &dwProcId);
+
+          if (dwProcId != GetCurrentProcessId ())
+            imgui_capture = true;
         }
       }
     }
