@@ -53,6 +53,32 @@ static constexpr int SK_MAX_WINDOW_DIM = 16384;
 # define SK_WINDOW_LOG_CALL_UNTESTED() { }
 #endif
 
+using  SetWindowDisplayAffinity_pfn = BOOL (WINAPI *)(HWND,DWORD);
+static SetWindowDisplayAffinity_pfn
+       SetWindowDisplayAffinity_Original = nullptr;
+
+BOOL
+WINAPI
+SetWindowDisplayAffinity_Detour (
+  _In_ HWND  hWnd,
+  _In_ DWORD dwAffinity )
+{
+  SK_LOG_FIRST_CALL
+
+  if (dwAffinity != WDA_NONE)
+  {
+    SK_LOGi0 (
+      L"SetWindowDisplayAffinity (...) called with dwAffinity = %x on HWND %x",
+        dwAffinity, hWnd
+    );
+  }
+
+  dwAffinity = WDA_NONE;
+
+  return
+    SetWindowDisplayAffinity_Original (hWnd, dwAffinity);
+}
+
 BOOL
 WINAPI
 SetWindowPlacement_Detour (
@@ -5731,6 +5757,9 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       }
     } break;
 
+    case WM_GETMINMAXINFO:
+      return 0;
+
     case WM_ENTERSIZEMOVE:
     case WM_EXITSIZEMOVE:
       ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam);
@@ -7290,6 +7319,10 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
   }
 
 
+  if ( SetWindowDisplayAffinity_Original != nullptr)
+       SetWindowDisplayAffinity_Original (game_window.hWnd, WDA_NONE);
+  else SetWindowDisplayAffinity          (game_window.hWnd, WDA_NONE);
+
   dll_log->Log ( L"[Window Mgr] Hooking the Window Procedure for "
                  L"%s Window Class ('%s' - \"%s\" * %x)",
                  game_window.unicode ? L"Unicode" : L"ANSI",
@@ -7939,6 +7972,11 @@ SK_HookWinAPI (void)
                                "GetGUIThreadInfo",
                                 GetGUIThreadInfo_Detour,
        static_cast_p2p <void> (&GetGUIThreadInfo_Original) );
+
+    SK_CreateDLLHook2 (       L"user32",
+                               "SetWindowDisplayAffinity",
+                                SetWindowDisplayAffinity_Detour,
+       static_cast_p2p <void> (&SetWindowDisplayAffinity_Original) );
 
      GetWindowBand =
     (GetWindowBand_pfn)SK_GetProcAddress (L"user32.dll",

@@ -1,4 +1,9 @@
-﻿24.11.24.2
+﻿24.11.25
+========
+ + Disable the option to clear Flip Model backbuffers on present by default,
+     because it prevents OBS Game Capture in some (D3D11) scenarios.
+
+24.11.24.2
 ==========
  + Allow moving windows to different monitors by dragging without triggering
      SK's monitor-change message (causes games to maximize the game window).
