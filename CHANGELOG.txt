@@ -1,4 +1,9 @@
-﻿24.11.23.2
+﻿24.11.24
+========
+ + Unload plug-in DLLs at game exit _before_ uninstalling all hooked functions.
+ + Add plug-in DLL names to the unload log entires during game shutdown.
+
+24.11.23.2
 ==========
  + Fixed the issue in 24.11.23.1 the correct way :) The staging copy of the
      backbuffer needs to be enqueued, the reference to the backbuffer released,
