@@ -1,4 +1,9 @@
-﻿24.11.25
+﻿24.11.27
+========
+ + Adjusted Tomb Raider Remastered (OpenGL)'s default settings to use 8-bpc
+     instead of 10-bpc, because the game is sRGB.
+
+24.11.25
 ========
  + Disable the option to clear Flip Model backbuffers on present by default,
      because it prevents OBS Game Capture in some (D3D11) scenarios.

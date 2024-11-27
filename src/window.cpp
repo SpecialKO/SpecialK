@@ -5797,12 +5797,11 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
     case WM_SETCURSOR:
     {
-      if ((hWnd == game_window.hWnd || hWnd == game_window.child) && HIWORD (lParam) != WM_NULL)
+      if (hWnd == game_window.hWnd && HIWORD (lParam) != WM_NULL)
       {
-        if ( LOWORD (lParam) == HTCLIENT ||
-             LOWORD (lParam) == HTTRANSPARENT )
+        if (LOWORD (lParam) == HTCLIENT)
         {
-          if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0 && (ImGui::GetIO ().WantCaptureMouse || SK_ImGui_IsAnythingHovered ()))
+          if (ImGui_WndProcHandler (hWnd, uMsg, wParam, lParam) != 0 && (SK_ImGui_IsAnythingHovered () || SK_ImGui_WantMouseButtonCapture ()))
           {
             const bool bOrig =
               std::exchange (__SK_EnableSetCursor, true);

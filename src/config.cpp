@@ -3694,6 +3694,7 @@ auto DeclKeybind =
       // Game requires special sRGB treatment.
       case SK_GAME_ID::TombRaider123Remastered:
         config.render.dxgi.srgb_behavior            = 0;
+        config.render.gl.prefer_10bpc               = false;
         break;
 
       case SK_GAME_ID::Stalker2:

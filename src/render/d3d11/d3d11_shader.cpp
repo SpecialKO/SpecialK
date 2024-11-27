@@ -2246,9 +2246,7 @@ const concurrency::concurrent_unordered_set <SK_ComPtr <ID3D11ShaderResourceView
         {
           ImGui::TreePush ("");
 
-          std::lock                                             (*cs_shader,      *cs_render_view);
-          std::lock_guard <SK_Thread_HybridSpinlock> auto_lock1 (*cs_shader,      std::adopt_lock);
-          std::lock_guard <SK_Thread_HybridSpinlock> auto_lock2 (*cs_render_view, std::adopt_lock);
+          std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_render_view);
 
           SK_ComPtr <ID3D11ShaderResourceView> pSRV2 = nullptr;
 
@@ -2418,9 +2416,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   ID3D11Device* pDevice =
     (ID3D11Device *)(SK_GetCurrentRenderBackend ().device.p);
 
-  std::lock                                             (*cs_shader,      *cs_render_view);
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock1 (*cs_shader,      std::adopt_lock);
-  std::lock_guard <SK_Thread_HybridSpinlock> auto_lock2 (*cs_render_view, std::adopt_lock);
+  std::scoped_lock <SK_Thread_CriticalSection> auto_lock (*cs_shader);
 
   auto& io =
     ImGui::GetIO ();
