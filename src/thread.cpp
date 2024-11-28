@@ -204,7 +204,8 @@ SK_Thread_SetWin10NameFromException (THREADNAME_INFO *pTni)
              pTni->dwThreadID;
 
     SK_AutoHandle hThread (
-               OpenThread ( THREAD_SET_LIMITED_INFORMATION,
+               OpenThread ( THREAD_SET_LIMITED_INFORMATION |
+                            THREAD_QUERY_LIMITED_INFORMATION,
                               FALSE,
                                 dwTid ) );
 

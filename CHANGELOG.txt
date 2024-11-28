@@ -1,7 +1,8 @@
-﻿
-24.11.28.7
+﻿24.11.28.7
 ==========
  + Adjust Unreal Engine thread priorities for reduced stutter.
+ + Disable OpenGL and D3D9 hooks in ReShade is loaded as dxgi.dll or d3d12.dll,
+     in order to speed initialization up and reduce the chances of hook races.
 
 24.11.28.6
 ==========
