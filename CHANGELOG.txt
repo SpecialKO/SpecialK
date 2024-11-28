@@ -1,4 +1,10 @@
-﻿24.11.28.2
+﻿24.11.28.3
+==========
+ + Remove warning for ReShade loaded as dxgi.dll/d3d12.dll in D3D12 games;
+     it's still not a fully compatible combination, but the UI will at least
+       work (no SK Add-On releated features will).
+
+24.11.28.2
 ==========
  + Add 1 frame delay before returning GAMEINPUT_E_READING_NOT_FOUND when
      initiating GameInput device blocking, so that the game will first read

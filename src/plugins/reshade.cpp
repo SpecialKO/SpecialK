@@ -574,8 +574,12 @@ SK_ReShadeAddOn_DisplayChange (reshade::api::effect_runtime *runtime, reshade::a
   std::ignore = display;
 
 #if 0
+  auto width    = display != nullptr ? (display->get_desktop_coords ().right-display->get_desktop_coords ().left) : 0;
+  auto height   = display != nullptr ? (display->get_desktop_coords ().bottom-display->get_desktop_coords ().top) : 0;
+  float refresh = display != nullptr ? (display->get_refresh_rate ().as_float ())                                 : 0.0f;
+
   SK_ImGui_Warning (
-    SK_FormatStringW (L"ReShade Display Change: %ws - Max Luminance: %3.1f nits", display != nullptr ? display->get_display_name () : L"Unknown Monitor", display != nullptr ? display->get_luminance_caps ().max_nits : 0.0f).c_str ()
+    SK_FormatStringW (L"ReShade Display Change: %ws (%dx%d@%3.1fHz)", display != nullptr ? display->get_display_name () : L"Unknown Monitor", width, height, refresh).c_str ()
   );
 #endif
 }
@@ -1113,6 +1117,8 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
           CreateDirectoryW (addon_path.c_str (), nullptr);
   }
 
+  bool fully_compatible = true;
+
   if ( StrStrIW (mod_name.c_str (), L"dxgi.dll") ||
        StrStrIW (mod_name.c_str (), L"d3d12.dll") )
   {
@@ -1121,16 +1127,16 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
          config.apis.     last_known == SK_RenderAPI::D3D12     ||
          config.apis.last_last_known == SK_RenderAPI::D3D12)
     {
-      SK_RunOnce (
-        SK_ImGui_WarningWithTitle (
-          L"ReShade may cause serious problems if loaded as dxgi.dll/d3d12.dll in D3D12 games rather than a plug-in.\r\n\r\n"
-          L"\tThis may be a false positive\r\n\r\n"
-          L"If you are not using D3D12, the message will go away and all of ReShade's features should work after restarting the game.",
-          L"Incompatible ReShade Install Detected"
-        )
-      );
+      //SK_RunOnce (
+      //  SK_ImGui_WarningWithTitle (
+      //    L"ReShade is not fully compatible with Special K when loaded as dxgi.dll/d3d12.dll in D3D12 games.\r\n\r\n"
+      //    L"\tThis may be a false positive\r\n\r\n"
+      //    L"If you are not using D3D12, the message will go away and all of ReShade's features should work after restarting the game.",
+      //    L"Incompatible ReShade is Detected"
+      //  )
+      //);
 
-      return false;
+      fully_compatible = false;
     }
   }
 
@@ -1139,8 +1145,8 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
   if (registered)
     return true;
 
-  registered =
-    reshade::register_addon (SK_GetDLL (), reshade_module);
+  registered = fully_compatible ?
+    reshade::register_addon (SK_GetDLL (), reshade_module) : true;
 
   if (registered)
   {
@@ -1155,16 +1161,19 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
     if (! PathIsDirectoryW (shared_addon_path.c_str ()))
           CreateDirectoryW (shared_addon_path.c_str (), nullptr);
 
-    config.reshade.is_addon = true;
+    if (fully_compatible)
+    {
+      config.reshade.is_addon = true;
 
-    reshade::register_event <reshade::addon_event::present>                (SK_ReShadeAddOn_Present);
-    reshade::register_event <reshade::addon_event::init_effect_runtime>    (SK_ReShadeAddOn_InitRuntime);
-    reshade::register_event <reshade::addon_event::destroy_effect_runtime> (SK_ReShadeAddOn_DestroyRuntime);
-    reshade::register_event <reshade::addon_event::destroy_device>         (SK_ReShadeAddOn_DestroyDevice);
-    reshade::register_event <reshade::addon_event::destroy_swapchain>      (SK_ReShadeAddOn_DestroySwapChain);
-    reshade::register_event <reshade::addon_event::destroy_command_queue>  (SK_ReShadeAddOn_DestroyCmdQueue);
-    reshade::register_event <reshade::addon_event::reshade_open_overlay>   (SK_ReShadeAddOn_OverlayActivation);
-    reshade::register_event <reshade::addon_event::display_change>         (SK_ReShadeAddOn_DisplayChange);
+      reshade::register_event <reshade::addon_event::present>                (SK_ReShadeAddOn_Present);
+      reshade::register_event <reshade::addon_event::init_effect_runtime>    (SK_ReShadeAddOn_InitRuntime);
+      reshade::register_event <reshade::addon_event::destroy_effect_runtime> (SK_ReShadeAddOn_DestroyRuntime);
+      reshade::register_event <reshade::addon_event::destroy_device>         (SK_ReShadeAddOn_DestroyDevice);
+      reshade::register_event <reshade::addon_event::destroy_swapchain>      (SK_ReShadeAddOn_DestroySwapChain);
+      reshade::register_event <reshade::addon_event::destroy_command_queue>  (SK_ReShadeAddOn_DestroyCmdQueue);
+    }
+    reshade::register_event <reshade::addon_event::reshade_open_overlay>     (SK_ReShadeAddOn_OverlayActivation);
+    reshade::register_event <reshade::addon_event::display_change>           (SK_ReShadeAddOn_DisplayChange);
 
     auto _AutoLoadAddOns = [&](void)
     {
