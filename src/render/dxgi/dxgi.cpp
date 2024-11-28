@@ -5053,6 +5053,11 @@ SK_DXGI_CreateSwapChain_PreInit (
     if (_NO_ALLOW_MODE_SWITCH)
       pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
+    if (SK_IsCurrentGame (SK_GAME_ID::Stalker2))
+    {
+      pDesc->Flags &= ~DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+    }
+
 
     if (config.render.framerate.disable_flip)
     {

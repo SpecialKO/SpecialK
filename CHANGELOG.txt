@@ -1,4 +1,9 @@
-﻿24.11.28.5
+﻿24.11.28.6
+==========
+ + Fix potential crash on non-Latency Waitable D3D12 SwapChains when SK
+     attempts to query the device latency from the D3D12 Device's DXGI Device.
+
+24.11.28.5
 ==========
  + Implemented PlayStation->GameInput translation for DualShock 3/4 and
      DualSense controllers over USB and Bluetooth (DS4/DualSense only).

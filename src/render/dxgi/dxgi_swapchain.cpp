@@ -1380,8 +1380,11 @@ IWrapDXGISwapChain::GetFrameLatencyWaitableObject (void)
       std::clamp (config.render.framerate.pre_render_limit, 1, 14) );
   }
 
+  auto& rb =
+    SK_GetCurrentRenderBackend ();
+
   // Disable waitable SwapChains when HW Flip Queue is active, they don't work right...
-  if (false)//rb.windows.unity || rb.windows.unreal)// || rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled)
+  if (rb.windows.unity || rb.windows.unreal)// || rb.displays [rb.active_display].wddm_caps._3_0.HwFlipQueueEnabled)
   {
     static HANDLE fake_waitable =
       SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);

@@ -531,10 +531,34 @@ SK::ControlPanel::Input::Draw (void)
     if ( last_gameinput > current_time - 500UL ||
          hide_gameinput > current_time - 500UL )
     {
+      bool SK_GameInput_EmulatedPlayStation = true;
+
+      if (SK_HID_PlayStationControllers.empty ())
+          SK_GameInput_EmulatedPlayStation = false;
+
+      else
+      {
+        bool bConnected = false;
+
+        for (auto& controller : SK_HID_PlayStationControllers)
+        {
+          if (controller.bConnected)
+          {
+            bConnected = true;
+            break;
+          }
+        }
+
+        if (! bConnected)
+          SK_GameInput_EmulatedPlayStation = false;
+      }
+
       SETUP_LABEL_COLOR (gameinput, 500.0f);
 
       ImGui::SameLine      ();
-      ImGui::Text          ("         GameInput");
+      ImGui::Text          (SK_GameInput_EmulatedPlayStation ?
+                  "         GameInput  " ICON_FA_PLAYSTATION :
+                  "         GameInput");
       ImGui::PopStyleColor ();
 
       if (ImGui::BeginItemTooltip ())

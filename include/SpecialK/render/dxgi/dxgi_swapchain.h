@@ -138,6 +138,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
     {
       SK_ComQIPtr <IDXGIDevice1>
            pDXGIDev12 (pDev12.p);
+      if ( pDXGIDev12 != nullptr )
            pDXGIDev12->GetMaximumFrameLatency (&gameFrameLatency_);
     }
 
@@ -147,6 +148,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
     {
       SK_ComQIPtr <IDXGIDevice1>
            pDXGIDev11 (pDevice);
+      if ( pDXGIDev11 != nullptr )
            pDXGIDev11->GetMaximumFrameLatency (&gameFrameLatency_);
 
       SK_ComPtr <ID3D11DeviceContext> pDevCtx;
@@ -255,6 +257,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
     {
       SK_ComQIPtr <IDXGIDevice1>
            pDXGIDev12 (pDev12.p);
+      if ( pDXGIDev12 != nullptr )
            pDXGIDev12->GetMaximumFrameLatency (&gameFrameLatency_);
     }
 
@@ -264,6 +267,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
     {
       SK_ComQIPtr <IDXGIDevice1>
            pDXGIDev11 (pDevice);
+      if ( pDXGIDev11 != nullptr )
            pDXGIDev11->GetMaximumFrameLatency (&gameFrameLatency_);
 
       SK_ComPtr <ID3D11DeviceContext> pDevCtx;
