@@ -740,10 +740,15 @@ NtWaitForSingleObject_Detour (
   //  Timeout = nullptr;
 #pragma endregion
 
-  auto ret =
+  auto ret = STATUS_TIMEOUT;
+
+  // Waiting while debugging occasionally causes crashes
+  __try {
     NtWaitForSingleObject_Original (
       Handle, Alertable, Timeout
     );
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER
+                                                                : EXCEPTION_CONTINUE_SEARCH) {};
 
   if (ret != STATUS_TIMEOUT)
     SK_MMCS_ApplyPendingTaskPriority ();
