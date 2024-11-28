@@ -2,6 +2,8 @@
 ==========
  + Fix potential crash on non-Latency Waitable D3D12 SwapChains when SK
      attempts to query the device latency from the D3D12 Device's DXGI Device.
+ + Remove Latency Waitable status from S.T.A.L.K.E.R. 2's SwapChain to help
+     reduce stutter slightly.
 
 24.11.28.5
 ==========

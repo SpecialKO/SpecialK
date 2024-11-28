@@ -160,6 +160,7 @@ SK_D3D12_ShouldSkipHUD (void)
        ReadAcquire    (&__SK_HUD_YesOrNo) <= 0 );
   if ( ReadAcquire    (&__SK_HUD_YesOrNo) <= 0 )
   {
+#ifdef D3D12_STATE_TRACK
     UINT size    = 1;
     bool disable = true;
 
@@ -168,6 +169,7 @@ SK_D3D12_ShouldSkipHUD (void)
       if (live && (! _criticalVertexShaders.count (ps)))
           ps->SetPrivateData ( SKID_D3D12DisablePipelineState, size, &disable );
     }
+#endif
   }
 
   return ret;
@@ -177,7 +179,7 @@ LONG
 SK_D3D12_ShowGameHUD (void)
 {
   //InterlockedDecrement (&SK_D3D11_DrawTrackingReqs);
-
+#ifdef D3D12_STATE_TRACK
   UINT size    = 1;
   bool disable = false;
 
@@ -186,6 +188,7 @@ SK_D3D12_ShowGameHUD (void)
     if (live)
       ps->SetPrivateData ( SKID_D3D12DisablePipelineState, size, &disable );
   }
+#endif
 
   return
     InterlockedIncrement (&__SK_HUD_YesOrNo);
@@ -196,6 +199,7 @@ SK_D3D12_HideGameHUD (void)
 {
   //InterlockedIncrement (&SK_D3D11_DrawTrackingReqs);
 
+#ifdef D3D12_STATE_TRACK
   UINT size    = 1;
   bool disable = true;
 
@@ -204,6 +208,7 @@ SK_D3D12_HideGameHUD (void)
     if (live && (! _criticalVertexShaders.count (ps)))
       ps->SetPrivateData ( SKID_D3D12DisablePipelineState, size, &disable );
   }
+#endif
 
   return
     InterlockedDecrement (&__SK_HUD_YesOrNo);
@@ -370,6 +375,7 @@ _COM_Outptr_ void                              **ppPipelineState )
   if (pDesc == nullptr)
     return hrPipelineCreate;
 
+#ifdef D3D12_STATE_TRACK
   static const
     std::unordered_map <SK_D3D12_ShaderType, SK_D3D12_ShaderRepo&>
       repo_map =
@@ -493,6 +499,7 @@ _COM_Outptr_ void                              **ppPipelineState )
         SK_ReleaseAssert (! "ID3DDestructionNotifier Implemented");
     }
   }
+#endif
 
   return
     hrPipelineCreate;
@@ -824,6 +831,7 @@ _COM_Outptr_  void                            **ppPipelineState )
     D3D12Device2_CreatePipelineState_Original (
            This, pDesc, riid, ppPipelineState );
 
+#ifdef D3D12_STATE_TRACK
   // Do not enable in other games for now, needs more testing
   //
   static const bool bEldenRing =
@@ -859,6 +867,7 @@ _COM_Outptr_  void                            **ppPipelineState )
       }
     }
   }
+#endif
 
   return hr;
 }

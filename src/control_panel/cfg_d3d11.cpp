@@ -637,10 +637,11 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::PopStyleColor (3);
       }
 
+#ifdef D3D12_STATE_TRACK
+#pragma region "Advanced"
       auto currentFrame =
         SK_GetFramesDrawn ();
 
-#pragma region "Advanced"
       if ( (config.render.dxgi.allow_d3d12_footguns || config.reshade.is_addon) &&
            ImGui::TreeNode ("Recently Used Shaders")
          )
@@ -841,6 +842,7 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::EndGroup ();
         ImGui::TreePop  ();
       }
+#endif
 #pragma endregion
       ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.68f, 0.02f, 0.45f));
       ImGui::PushStyleColor (ImGuiCol_HeaderHovered, ImVec4 (0.90f, 0.72f, 0.07f, 0.80f));
