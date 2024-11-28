@@ -63,7 +63,7 @@ using GameInputCreate_pfn = HRESULT (WINAPI *)(IGameInput**);
       GameInputCreate_Original = nullptr;
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::QueryInterface (REFIID riid, void **ppvObject) noexcept
 {
   if (ppvObject == nullptr)
@@ -137,7 +137,7 @@ SK_IWrapGameInput::QueryInterface (REFIID riid, void **ppvObject) noexcept
 };
 
 ULONG
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::AddRef (void) noexcept
 {
   InterlockedIncrement (&refs_);
@@ -147,7 +147,7 @@ SK_IWrapGameInput::AddRef (void) noexcept
 };
 
 ULONG
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::Release (void) noexcept
 {
   ULONG xrefs =
@@ -172,7 +172,7 @@ SK_IWrapGameInput::Release (void) noexcept
 };
 
 uint64_t
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::GetCurrentTimestamp (void) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -183,7 +183,7 @@ SK_IWrapGameInput::GetCurrentTimestamp (void) noexcept
 static concurrency::concurrent_unordered_map <IGameInputDevice*,concurrency::concurrent_unordered_map <GameInputKind,SK_ComPtr<IGameInputReading>>> _current_readings;
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::GetCurrentReading (_In_          GameInputKind      inputKind,
                                       _In_opt_     IGameInputDevice   *device,
                                       _COM_Outptr_ IGameInputReading **reading) noexcept
@@ -239,17 +239,82 @@ SK_IWrapGameInput::GetCurrentReading (_In_          GameInputKind      inputKind
 
   else
   {
-    if (reading != nullptr) {
+    if (reading != nullptr && _current_readings.count (device) &&
+                                    _current_readings [device].count (inputKind) &&
+                                    _current_readings [device][inputKind].p != nullptr) {
                   _current_readings [device][inputKind].p->AddRef ();
        *reading = _current_readings [device][inputKind];
+       return S_OK;
      }
 
-    return S_OK;
+    else if (reading != nullptr)
+    {
+      HRESULT hr =
+        pReal->GetCurrentReading (inputKind, device, reading);
+       _current_readings [device][inputKind] =      *reading;
+
+       return hr;
+    }
   }
+
+  return
+    pReal->GetCurrentReading (inputKind, device, reading);
+}
+
+using IGameInputDevice_SetHapticMotorState_pfn = HRESULT (STDMETHODCALLTYPE *)(IGameInputDevice*,uint32_t,GameInputHapticFeedbackParams const*) noexcept;
+using IGameInputDevice_SetRumbleState_pfn      = void    (STDMETHODCALLTYPE *)(IGameInputDevice*,GameInputRumbleParams const*)                  noexcept;
+
+IGameInputDevice_SetHapticMotorState_pfn IGameInputDevice_SetHapticMotorState_Original = nullptr;
+IGameInputDevice_SetRumbleState_pfn      IGameInputDevice_SetRumbleState_Original      = nullptr;
+
+HRESULT
+STDMETHODCALLTYPE
+IGameInputDevice_SetHapticMotorState_Override (IGameInputDevice *This, uint32_t motorIndex, GameInputHapticFeedbackParams const* params) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  if (params != nullptr)
+  {
+    auto params_ = params != nullptr ? *params : GameInputHapticFeedbackParams {};
+
+    if (config.input.gamepad.disable_rumble || SK_ImGui_WantGamepadCapture ())
+    {
+      params_ = {};
+    }
+
+    return
+      IGameInputDevice_SetHapticMotorState_Original (This, motorIndex, &params_);
+  }
+
+  return
+      IGameInputDevice_SetHapticMotorState_Original (This, motorIndex, nullptr);
+} 
+
+void
+STDMETHODCALLTYPE
+IGameInputDevice_SetRumbleState_Override (IGameInputDevice *This, GameInputRumbleParams const *params) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  auto params_ = params != nullptr ? *params : GameInputRumbleParams {};
+
+  //if (params_.leftTrigger > 0.0f || params_.rightTrigger > 0.0f)
+  //{
+  //  SK_RunOnce (SK_ImGui_Warning (L"Game uses Impulse Triggers!"));
+  //}
+
+  if (config.input.gamepad.disable_rumble || SK_ImGui_WantGamepadCapture ())
+  {
+    params_.highFrequency = params_.lowFrequency = 0.0f;
+    params_.leftTrigger   = params_.rightTrigger = 0.0f;
+  }
+
+  return
+    IGameInputDevice_SetRumbleState_Original (This, &params_);
 }
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceReading,
                                    _In_          GameInputKind      inputKind,
                                    _In_opt_     IGameInputDevice   *device,
@@ -258,6 +323,24 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
   SK_LOG_FIRST_CALL
 
   bool capture_input = false;
+
+  if (device != nullptr)
+  {
+    SK_RunOnce (
+      GI_VIRTUAL_HOOK ( &device, 9,
+                          "IGameInputDevice::SetHapticMotorState",
+                           IGameInputDevice_SetHapticMotorState_Override,
+                           IGameInputDevice_SetHapticMotorState_Original,
+                           IGameInputDevice_SetHapticMotorState_pfn );
+      GI_VIRTUAL_HOOK ( &device, 10,
+                          "IGameInputDevice::SetRunbleState",
+                           IGameInputDevice_SetRumbleState_Override,
+                           IGameInputDevice_SetRumbleState_Original,
+                           IGameInputDevice_SetRumbleState_pfn );
+
+      SK_ApplyQueuedHooks ();
+     );
+  }
 
   switch (inputKind)
   {
@@ -368,7 +451,7 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
 }
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::GetPreviousReading (_In_         IGameInputReading  *referenceReading,
                                        _In_          GameInputKind      inputKind,
                                        _In_opt_     IGameInputDevice   *device,
@@ -427,9 +510,18 @@ SK_IWrapGameInput::GetPreviousReading (_In_         IGameInputReading  *referenc
   else
   {
     if (reading != nullptr && readings.count (device) &&
-                              readings       [device].count (inputKind)) {
+                              readings       [device].count (inputKind) &&
+                              readings       [device]       [inputKind].p != nullptr) {
                   readings [device][inputKind].p->AddRef ();
        *reading = readings [device][inputKind];
+    }
+
+    else if (SUCCEEDED (pReal->GetPreviousReading (referenceReading, inputKind, device, reading)))
+    {
+      if (reading != nullptr)
+      {
+        readings [device][inputKind] = *reading;
+      }
     }
 
     return S_OK;
@@ -437,7 +529,7 @@ SK_IWrapGameInput::GetPreviousReading (_In_         IGameInputReading  *referenc
 }
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::GetTemporalReading (_In_         uint64_t            timestamp,
                                        _In_         IGameInputDevice   *device,
                                        _COM_Outptr_ IGameInputReading **reading) noexcept
@@ -449,7 +541,7 @@ SK_IWrapGameInput::GetTemporalReading (_In_         uint64_t            timestam
 }
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::RegisterReadingCallback (_In_opt_                         IGameInputDevice          *device,
                                             _In_                              GameInputKind             inputKind,
                                             _In_                              float                     analogThreshold,
@@ -464,7 +556,7 @@ SK_IWrapGameInput::RegisterReadingCallback (_In_opt_                         IGa
 }
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::RegisterDeviceCallback (_In_opt_                        IGameInputDevice         *device,
                                            _In_                             GameInputKind            inputKind,
                                            _In_                             GameInputDeviceStatus    statusFilter,
@@ -480,7 +572,7 @@ SK_IWrapGameInput::RegisterDeviceCallback (_In_opt_                        IGame
 }
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::RegisterSystemButtonCallback (_In_opt_                         IGameInputDevice               *device,
                                                  _In_                              GameInputSystemButtons         buttonFilter,
                                                  _In_opt_                          void                          *context,
@@ -494,7 +586,7 @@ SK_IWrapGameInput::RegisterSystemButtonCallback (_In_opt_                       
 }
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::RegisterKeyboardLayoutCallback (_In_opt_                         IGameInputDevice                 *device,
                                                    _In_opt_                          void                            *context,
                                                    _In_                              GameInputKeyboardLayoutCallback  callbackFunc,
@@ -507,7 +599,7 @@ SK_IWrapGameInput::RegisterKeyboardLayoutCallback (_In_opt_                     
 }
 
 void
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::StopCallback (_In_ GameInputCallbackToken callbackToken) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -517,7 +609,7 @@ SK_IWrapGameInput::StopCallback (_In_ GameInputCallbackToken callbackToken) noex
 }
 
 bool
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::UnregisterCallback (_In_ GameInputCallbackToken callbackToken,
                                        _In_ uint64_t               timeoutInMicroseconds) noexcept
 {
@@ -528,7 +620,7 @@ SK_IWrapGameInput::UnregisterCallback (_In_ GameInputCallbackToken callbackToken
 }
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::CreateDispatcher (_COM_Outptr_ IGameInputDispatcher **dispatcher) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -538,7 +630,7 @@ SK_IWrapGameInput::CreateDispatcher (_COM_Outptr_ IGameInputDispatcher **dispatc
 }
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::CreateAggregateDevice (_In_          GameInputKind     inputKind,
                                           _COM_Outptr_ IGameInputDevice **device) noexcept
 {
@@ -549,7 +641,7 @@ SK_IWrapGameInput::CreateAggregateDevice (_In_          GameInputKind     inputK
 }
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::FindDeviceFromId (_In_         APP_LOCAL_DEVICE_ID const  *value,
                                      _COM_Outptr_ IGameInputDevice          **device) noexcept
 {
@@ -560,7 +652,7 @@ SK_IWrapGameInput::FindDeviceFromId (_In_         APP_LOCAL_DEVICE_ID const  *va
 }
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::FindDeviceFromObject (_In_         IUnknown          *value,
                                          _COM_Outptr_ IGameInputDevice **device) noexcept
 {
@@ -571,7 +663,7 @@ SK_IWrapGameInput::FindDeviceFromObject (_In_         IUnknown          *value,
 }
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::FindDeviceFromPlatformHandle (_In_         HANDLE             value,
                                                  _COM_Outptr_ IGameInputDevice **device) noexcept
 {
@@ -582,7 +674,7 @@ SK_IWrapGameInput::FindDeviceFromPlatformHandle (_In_         HANDLE            
 }
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::FindDeviceFromPlatformString (_In_         LPCWSTR            value,
                                                  _COM_Outptr_ IGameInputDevice **device) noexcept
 {
@@ -593,7 +685,7 @@ SK_IWrapGameInput::FindDeviceFromPlatformString (_In_         LPCWSTR           
 }
 
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::EnableOemDeviceSupport (_In_ uint16_t vendorId,
                                            _In_ uint16_t productId,
                                            _In_ uint8_t interfaceNumber,
@@ -606,7 +698,7 @@ SK_IWrapGameInput::EnableOemDeviceSupport (_In_ uint16_t vendorId,
 }
 
 void
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInput::SetFocusPolicy (_In_ GameInputFocusPolicy policy) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -663,7 +755,7 @@ GameInputCreate_Detour (IGameInput** gameInput)
 
 #pragma region IUnknown
 HRESULT
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::QueryInterface (REFIID riid, void **ppvObject) noexcept
 {
   if (ppvObject == nullptr)
@@ -737,7 +829,7 @@ SK_IWrapGameInputReading::QueryInterface (REFIID riid, void **ppvObject) noexcep
 }
 
 ULONG
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::AddRef (void) noexcept
 {
   InterlockedIncrement (&refs_);
@@ -747,7 +839,7 @@ SK_IWrapGameInputReading::AddRef (void) noexcept
 }
 
 ULONG
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::Release (void) noexcept
 {
   ULONG xrefs =
@@ -772,7 +864,7 @@ SK_IWrapGameInputReading::Release (void) noexcept
 }
 
 GameInputKind
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetInputKind (void) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -782,7 +874,7 @@ SK_IWrapGameInputReading::GetInputKind (void) noexcept
 }
 
 uint64_t
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetSequenceNumber (GameInputKind inputKind) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -792,7 +884,7 @@ SK_IWrapGameInputReading::GetSequenceNumber (GameInputKind inputKind) noexcept
 }
 
 uint64_t
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetTimestamp (void) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -802,7 +894,7 @@ SK_IWrapGameInputReading::GetTimestamp (void) noexcept
 }
 
 void
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetDevice (IGameInputDevice **device) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -812,7 +904,7 @@ SK_IWrapGameInputReading::GetDevice (IGameInputDevice **device) noexcept
 }
 
 bool
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetRawReport (IGameInputRawDeviceReport **report) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -822,7 +914,7 @@ SK_IWrapGameInputReading::GetRawReport (IGameInputRawDeviceReport **report) noex
 }
 
 uint32_t
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetControllerAxisCount (void) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -832,7 +924,7 @@ SK_IWrapGameInputReading::GetControllerAxisCount (void) noexcept
 }
 
 uint32_t
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetControllerAxisState (uint32_t stateArrayCount,
                                                   float   *stateArray) noexcept
 {
@@ -843,7 +935,7 @@ SK_IWrapGameInputReading::GetControllerAxisState (uint32_t stateArrayCount,
 }
 
 uint32_t
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetControllerButtonCount (void) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -853,7 +945,7 @@ SK_IWrapGameInputReading::GetControllerButtonCount (void) noexcept
 }
 
 uint32_t
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetControllerButtonState (uint32_t stateArrayCount,
                                                     bool    *stateArray) noexcept
 {
@@ -864,7 +956,7 @@ SK_IWrapGameInputReading::GetControllerButtonState (uint32_t stateArrayCount,
 }
 
 uint32_t
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetControllerSwitchCount (void) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -874,7 +966,7 @@ SK_IWrapGameInputReading::GetControllerSwitchCount (void) noexcept
 }
 
 uint32_t
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetControllerSwitchState (uint32_t                    stateArrayCount,
                                                     GameInputSwitchPosition    *stateArray) noexcept
 {
@@ -885,7 +977,7 @@ SK_IWrapGameInputReading::GetControllerSwitchState (uint32_t                    
 }
 
 uint32_t
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetKeyCount (void) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -895,7 +987,7 @@ SK_IWrapGameInputReading::GetKeyCount (void) noexcept
 }
 
 uint32_t
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetKeyState (uint32_t           stateArrayCount,
                                        GameInputKeyState *stateArray) noexcept
 {
@@ -906,7 +998,7 @@ SK_IWrapGameInputReading::GetKeyState (uint32_t           stateArrayCount,
 }
 
 bool
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetMouseState (GameInputMouseState *state) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -916,7 +1008,7 @@ SK_IWrapGameInputReading::GetMouseState (GameInputMouseState *state) noexcept
 }
 
 uint32_t
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetTouchCount (void) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -926,7 +1018,7 @@ SK_IWrapGameInputReading::GetTouchCount (void) noexcept
 }
 
 uint32_t
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetTouchState (uint32_t             stateArrayCount,
                                          GameInputTouchState *stateArray) noexcept
 {
@@ -937,7 +1029,7 @@ SK_IWrapGameInputReading::GetTouchState (uint32_t             stateArrayCount,
 }
 
 bool
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetMotionState (GameInputMotionState *state) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -947,7 +1039,7 @@ SK_IWrapGameInputReading::GetMotionState (GameInputMotionState *state) noexcept
 }
 
 bool
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetArcadeStickState (GameInputArcadeStickState* state) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -957,7 +1049,7 @@ SK_IWrapGameInputReading::GetArcadeStickState (GameInputArcadeStickState* state)
 }
 
 bool
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetFlightStickState (GameInputFlightStickState *state) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -967,7 +1059,7 @@ SK_IWrapGameInputReading::GetFlightStickState (GameInputFlightStickState *state)
 }
 
 bool
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetGamepadState (GameInputGamepadState *state) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -1051,7 +1143,7 @@ SK_IWrapGameInputReading::GetGamepadState (GameInputGamepadState *state) noexcep
 }
 
 bool
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetRacingWheelState (GameInputRacingWheelState *state) noexcept
 {
   SK_LOG_FIRST_CALL
@@ -1061,7 +1153,7 @@ SK_IWrapGameInputReading::GetRacingWheelState (GameInputRacingWheelState *state)
 }
 
 bool
-__stdcall
+STDMETHODCALLTYPE
 SK_IWrapGameInputReading::GetUiNavigationState (GameInputUiNavigationState *state) noexcept
 {
   SK_LOG_FIRST_CALL

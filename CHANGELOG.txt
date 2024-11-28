@@ -1,4 +1,9 @@
-﻿24.11.28.3
+﻿24.11.28.4
+==========
+ + Implement haptic/rumble blocking support for GameInput; S.T.A.L.K.E.R. 2
+     uses impulse triggers, so next step is to translate those to DualSense.
+
+24.11.28.3
 ==========
  + Remove warning for ReShade loaded as dxgi.dll/d3d12.dll in D3D12 games;
      it's still not a fully compatible combination, but the UI will at least

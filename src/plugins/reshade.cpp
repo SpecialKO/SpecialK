@@ -1171,9 +1171,9 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
       reshade::register_event <reshade::addon_event::destroy_device>         (SK_ReShadeAddOn_DestroyDevice);
       reshade::register_event <reshade::addon_event::destroy_swapchain>      (SK_ReShadeAddOn_DestroySwapChain);
       reshade::register_event <reshade::addon_event::destroy_command_queue>  (SK_ReShadeAddOn_DestroyCmdQueue);
+      reshade::register_event <reshade::addon_event::reshade_open_overlay>   (SK_ReShadeAddOn_OverlayActivation);
+      reshade::register_event <reshade::addon_event::display_change>         (SK_ReShadeAddOn_DisplayChange);
     }
-    reshade::register_event <reshade::addon_event::reshade_open_overlay>     (SK_ReShadeAddOn_OverlayActivation);
-    reshade::register_event <reshade::addon_event::display_change>           (SK_ReShadeAddOn_DisplayChange);
 
     auto _AutoLoadAddOns = [&](void)
     {

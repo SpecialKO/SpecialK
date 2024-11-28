@@ -111,6 +111,65 @@ private:
   unsigned int   ver_  = 0;
 };
 
+
+class SK_IWrapGameInputDevice : IGameInputDevice
+{
+public:
+  SK_IWrapGameInputDevice (IGameInputDevice *pGameInputDevice) : pReal (pGameInputDevice),
+                                                                  ver_ (0)
+  {
+    if (pGameInputDevice == nullptr)
+      return;
+  };
+
+#pragma region IUnknown
+  virtual HRESULT                    __stdcall QueryInterface                  (REFIID riid, void **ppvObject)               noexcept override; // 0
+  virtual ULONG                      __stdcall AddRef                          (void)                                        noexcept override; // 1
+  virtual ULONG                      __stdcall Release                         (void)                                        noexcept override; // 2
+#pragma endregion
+
+#pragma region IGameInputDevice
+  virtual GameInputDeviceInfo const* __stdcall GetDeviceInfo                   (void)                                        noexcept override; // 3
+  virtual GameInputDeviceStatus      __stdcall GetDeviceStatus                 (void)                                        noexcept override; // 4
+  virtual void                       __stdcall GetBatteryState                 (GameInputBatteryState *state)                noexcept override; // 5
+
+  virtual HRESULT                    __stdcall CreateForceFeedbackEffect       (uint32_t motorIndex,
+                                                                                GameInputForceFeedbackParams const *params,
+                                                                               IGameInputForceFeedbackEffect       **effect) noexcept override; // 6
+  virtual bool                       __stdcall IsForceFeedbackMotorPoweredOn   (uint32_t motorIndex)                         noexcept override; // 7
+  virtual void                       __stdcall SetForceFeedbackMotorGain       (uint32_t motorIndex,       float masterGain) noexcept override; // 8
+  virtual HRESULT                    __stdcall SetHapticMotorState             (uint32_t motorIndex,
+                                                                                GameInputHapticFeedbackParams const *params) noexcept override; // 9
+  virtual void                       __stdcall SetRumbleState                  (GameInputRumbleParams         const *params) noexcept override; // 10
+  virtual void                       __stdcall SetInputSynchronizationState    (                               bool enabled) noexcept override; // 11
+  virtual void                       __stdcall SendInputSynchronizationHint    (void)                                        noexcept override; // 12
+  virtual void                       __stdcall PowerOff                        (void)                                        noexcept override; // 13
+                                                                               
+  virtual HRESULT                    __stdcall CreateRawDeviceReport           (uint32_t                     reportId,
+                                                                                GameInputRawDeviceReportKind reportKind,
+                                                                               IGameInputRawDeviceReport   **report)         noexcept override; // 14
+  virtual HRESULT                    __stdcall GetRawDeviceFeature             (uint32_t                     reportId,
+                                                                               IGameInputRawDeviceReport   **report)         noexcept override; // 15
+  virtual HRESULT                    __stdcall SetRawDeviceFeature             (IGameInputRawDeviceReport   *report)         noexcept override; // 16
+  virtual HRESULT                    __stdcall SendRawDeviceOutput             (IGameInputRawDeviceReport   *report)         noexcept override; // 17
+  virtual HRESULT                    __stdcall SendRawDeviceOutputWithResponse (IGameInputRawDeviceReport   *requestReport,
+                                                                                IGameInputRawDeviceReport **responseReport)  noexcept override; // 18
+  virtual HRESULT                    __stdcall ExecuteRawDeviceIoControl       (uint32_t    controlCode,
+                                                                                size_t      inputBufferSize,
+                                                                                void const *inputBuffer,
+                                                                                size_t      outputBufferSize,
+                                                                                void       *outputBuffer,
+                                                                                size_t     *outputSize)                      noexcept override; // 19
+  virtual bool                       __stdcall AcquireExclusiveRawDeviceAccess (uint64_t timeoutInMicroseconds)              noexcept override; // 20
+  virtual void                       __stdcall ReleaseExclusiveRawDeviceAccess (void)                                        noexcept override; // 21
+#pragma endregion
+
+private:
+  volatile LONG         refs_ = 1;
+  IGameInputDevice     *pReal;
+  unsigned int          ver_  = 0;
+};
+
 class SK_IWrapGameInputReading : IGameInputReading
 {
 public:
