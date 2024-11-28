@@ -710,6 +710,36 @@ SKX_DEBUG_FastSymName (LPCVOID ret_addr)
 }
 
 void
+SK_Thread_ReprioritizeUnreal (HANDLE hThread, const std::wstring& name)
+{
+  if (SK_GetFramesDrawn () > 5000)
+    return;
+
+  static int game_thread_iters = 0;
+  static int fg_thread_iters   = 0;
+  static int io_service_iters  = 0;
+
+  // Re-prioritize Unreal Engine threads
+  if (game_thread_iters < 2 && !_wcsicmp (name.c_str (), L"GameThread"))
+  {
+    if (GetThreadPriority (hThread) < THREAD_PRIORITY_HIGHEST)
+    if (SetThreadPriority (hThread,   THREAD_PRIORITY_HIGHEST)) ++game_thread_iters;
+  }
+  
+  if (fg_thread_iters < 4 && StrStrIW (name.c_str (), L"Foreground Worker #"))
+  {
+    if (GetThreadPriority (hThread) < THREAD_PRIORITY_ABOVE_NORMAL)
+    if (SetThreadPriority (hThread,   THREAD_PRIORITY_ABOVE_NORMAL)) ++fg_thread_iters;
+  }
+  
+  if (io_service_iters < 10 && !_wcsicmp (name.c_str (), L"IoService"))
+  {
+    if (GetThreadPriority (hThread) < THREAD_PRIORITY_HIGHEST)
+    if (SetThreadPriority (hThread,   THREAD_PRIORITY_HIGHEST)) ++io_service_iters;
+  }
+}
+
+void
 SK_ImGui_ThreadCallstack ( HANDLE hThread, LARGE_INTEGER userTime,
                                            LARGE_INTEGER kernelTime )
 {
@@ -1142,6 +1172,9 @@ public:
     if (config.compatibility.using_wine)
       return;
 
+    if (ReadAcquire (&__SK_DLL_Ending))
+      return;
+
     std::scoped_lock <std::mutex>
                 lock (run_lock);
 
@@ -1204,21 +1237,22 @@ public:
              blacklist.find (it.second->dwTid) !=
              blacklist.cend (                )  )
         {
+          // Give it another shot the next time around
+          if (blacklist.find  (it.second->dwTid) !=
+              blacklist.cend  (                ))
+          {   blacklist.erase (it.second->dwTid); }
+
           continue;
         }
 
         SK_TLS* pTLS =
           SK_TLS_BottomEx (it.second->dwTid);
 
-        if (pTLS != nullptr)
+        if (pTLS == nullptr)
         {
           blacklist.emplace (it.second->dwTid);
           continue;
         }
-
-        if (blacklist.find  (it.second->dwTid) !=
-            blacklist.cend  (                ))
-        {   blacklist.erase (it.second->dwTid); }
 
         rebalance_list.push_back (it.second);
       }
@@ -1258,7 +1292,7 @@ public:
           HANDLE hThreadOrig =
              it->hThread;
 
-          if (it->hThread == INVALID_HANDLE_VALUE)
+          if ((intptr_t)it->hThread <= 0 || GetThreadPriority (it->hThread) == THREAD_PRIORITY_ERROR_RETURN)
           {
             it->hThread =
               OpenThread (THREAD_ALL_ACCESS, FALSE, it->dwTid);
@@ -1273,6 +1307,8 @@ public:
 
             if ( pnum != sk::narrow_cast <DWORD> (-1) && dwExitCode == STILL_ACTIVE )
             {
+              SK_Thread_ReprioritizeUnreal (it->hThread, it->name);
+
               static SYSTEM_INFO
                   sysinfo = { };
               if (sysinfo.dwNumberOfProcessors == 0)
@@ -1309,10 +1345,10 @@ public:
             else
               ++rebalance_idx;
 
-            if (it->hThread != hThreadOrig)
+            if (it->hThread != hThreadOrig && (intptr_t)hThreadOrig > 0)
             {
               SK_CloseHandle (it->hThread);
-                              it->hThread = INVALID_HANDLE_VALUE;
+                              it->hThread = hThreadOrig;
             }
           }
 
