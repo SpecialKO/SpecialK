@@ -1,4 +1,10 @@
-﻿24.11.28
+﻿24.11.28.1
+==========
+ + Improved gamepad input blocking when using GameInput
+ + Wrapped IGameInputReading in order to implement PlayStation->GameInput
+     translation (not complete).
+
+24.11.28
 ========
  + Added initial support for GameInput; that means activity indicators in the
      active Input API section of the control panel and blocking device classes
