@@ -1,4 +1,9 @@
-﻿24.11.28.6
+﻿
+24.11.28.7
+==========
+ + Adjust Unreal Engine thread priorities for reduced stutter.
+
+24.11.28.6
 ==========
  + Fix potential crash on non-Latency Waitable D3D12 SwapChains when SK
      attempts to query the device latency from the D3D12 Device's DXGI Device.

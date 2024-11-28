@@ -218,6 +218,34 @@ SK_Thread_SetWin10NameFromException (THREADNAME_INFO *pTni)
           SK_SetThreadDescription ( hThread.m_h,
               wideDesc.c_str ()   )
                   );
+
+      if (bRet)
+      {
+        if (StrStrIW (wideDesc.c_str (), L"D3D Background Thread"))
+        {
+          // Running these threads at idle priority leads to optimal shaders
+          //   never being compiled in CPU-heavy games.
+          SetThreadPriority (hThread.m_h, THREAD_PRIORITY_NORMAL);
+        }
+
+        else if (!_wcsicmp (wideDesc.c_str (), L"GameThread"))
+        {
+          if (GetThreadPriority (hThread.m_h) < THREAD_PRIORITY_HIGHEST)
+              SetThreadPriority (hThread.m_h,   THREAD_PRIORITY_HIGHEST);
+        }
+
+        else if (StrStrIW (wideDesc.c_str (), L"Foreground Worker #"))
+        {
+          if (GetThreadPriority (hThread.m_h) < THREAD_PRIORITY_ABOVE_NORMAL)
+              SetThreadPriority (hThread.m_h,   THREAD_PRIORITY_ABOVE_NORMAL);
+        }
+
+        else if (!_wcsicmp (wideDesc.c_str (), L"IoService"))
+        {
+          if (GetThreadPriority (hThread.m_h) < THREAD_PRIORITY_HIGHEST)
+              SetThreadPriority (hThread.m_h,   THREAD_PRIORITY_HIGHEST);
+        }
+      }
     }
   }
 
