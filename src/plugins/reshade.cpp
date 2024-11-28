@@ -1122,6 +1122,17 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
   if ( StrStrIW (mod_name.c_str (), L"dxgi.dll") ||
        StrStrIW (mod_name.c_str (), L"d3d12.dll") )
   {
+    config.apis.OpenGL.hook      = false;
+    config.apis.OpenGL.hook_next = false;
+    config.apis.d3d9.hook        = false;
+    config.apis.d3d9.hook_next   = false;
+    config.apis.d3d9ex.hook      = false;
+    config.apis.d3d9ex.hook_next = false;
+    if (config.apis.last_known == SK_RenderAPI::OpenGL)
+        config.apis.last_known =  SK_RenderAPI::Reserved;
+    if (config.apis.last_last_known == SK_RenderAPI::OpenGL)
+        config.apis.last_last_known =  SK_RenderAPI::Reserved;
+
     if ((config.apis.last_last_known == SK_RenderAPI::Reserved &&
          config.apis.     last_known == SK_RenderAPI::Reserved) ||
          config.apis.     last_known == SK_RenderAPI::D3D12     ||
