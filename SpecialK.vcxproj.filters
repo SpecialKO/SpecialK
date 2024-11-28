@@ -394,6 +394,15 @@
     <Filter Include="Header Files\External Libraries\ultrahdr">
       <UniqueIdentifier>{66e76b0e-72c4-46e4-af00-6bc57613bee9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\External Libraries\ReShade">
+      <UniqueIdentifier>{dba4d6c2-fe48-4698-a44d-91be9d537dfa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Backends\Input\GameInput">
+      <UniqueIdentifier>{0ce28763-ac3a-4457-991b-9919900c43f1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Backends\Input\GameInput">
+      <UniqueIdentifier>{bd56277a-178a-4f88-bd68-60f7aa34fe67}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="depends\DirectXTex\DDS.h">
@@ -3198,6 +3207,36 @@
     <ClInclude Include="include\intel\HybridDetect.h">
       <Filter>Header Files\External Libraries</Filter>
     </ClInclude>
+    <ClInclude Include="depends\include\ReShade\reshade.hpp">
+      <Filter>Header Files\External Libraries\ReShade</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\ReShade\reshade_api.hpp">
+      <Filter>Header Files\External Libraries\ReShade</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\ReShade\reshade_api_device.hpp">
+      <Filter>Header Files\External Libraries\ReShade</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\ReShade\reshade_api_format.hpp">
+      <Filter>Header Files\External Libraries\ReShade</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\ReShade\reshade_api_pipeline.hpp">
+      <Filter>Header Files\External Libraries\ReShade</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\ReShade\reshade_api_resource.hpp">
+      <Filter>Header Files\External Libraries\ReShade</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\ReShade\reshade_events.hpp">
+      <Filter>Header Files\External Libraries\ReShade</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\ReShade\reshade_overlay.hpp">
+      <Filter>Header Files\External Libraries\ReShade</Filter>
+    </ClInclude>
+    <ClInclude Include="depends\include\ReShade\reshade_api_display.hpp">
+      <Filter>Header Files\External Libraries\ReShade</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SpecialK\input\game_input.h">
+      <Filter>Header Files\Backends\Input\GameInput</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core.cpp">
@@ -3817,6 +3856,9 @@
     </ClCompile>
     <ClCompile Include="src\input\bluetooth.cpp">
       <Filter>Source Files\Backends\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="src\input\game_input.cpp">
+      <Filter>Source Files\Backends\Input\GameInput</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

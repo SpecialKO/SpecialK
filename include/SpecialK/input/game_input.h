@@ -1,0 +1,116 @@
+﻿/**
+ * This file is part of Special K.
+ *
+ * Special K is free software : you can redistribute it
+ * and/or modify it under the terms of the GNU General Public License
+ * as published by The Free Software Foundation, either version 3 of
+ * the License, or (at your option) any later version.
+ *
+ * Special K is distributed in the hope that it will be useful,
+ *
+ * But WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Special K.
+ *
+ *   If not, see <http://www.gnu.org/licenses/>.
+ *
+**/
+
+#ifndef __SK__GAME_INPUT_H__
+#define __SK__GAME_INPUT_H__
+
+#include <GameInput.h>
+
+class SK_IWrapGameInput : IGameInput
+{
+public:
+  SK_IWrapGameInput (IGameInput *pGameInput) : pReal (pGameInput),
+                                                ver_ (0)
+  {
+    if (pGameInput == nullptr)
+      return;
+  }
+
+#pragma region IUnknown
+  virtual HRESULT  __stdcall QueryInterface      (REFIID riid, void **ppvObject) noexcept override;
+  virtual ULONG    __stdcall AddRef              (void)                          noexcept override;
+  virtual ULONG    __stdcall Release             (void)                          noexcept override;
+#pragma endregion
+
+#pragma region IGameInput
+  virtual uint64_t __stdcall GetCurrentTimestamp (void) noexcept override;
+  virtual HRESULT  __stdcall GetCurrentReading   (_In_          GameInputKind      inputKind,
+                                                  _In_opt_     IGameInputDevice   *device,
+                                                  _COM_Outptr_ IGameInputReading **reading) noexcept override;
+  virtual HRESULT  __stdcall GetNextReading      (_In_         IGameInputReading  *referenceReading,
+                                                  _In_          GameInputKind      inputKind,
+                                                  _In_opt_     IGameInputDevice   *device,
+                                                  _COM_Outptr_ IGameInputReading **reading) noexcept override;
+  virtual HRESULT  __stdcall GetPreviousReading  (_In_         IGameInputReading  *referenceReading,
+                                                  _In_          GameInputKind      inputKind,
+                                                  _In_opt_     IGameInputDevice   *device,
+                                                  _COM_Outptr_ IGameInputReading **reading) noexcept override;
+  virtual HRESULT  __stdcall GetTemporalReading  (_In_         uint64_t            timestamp,
+                                                  _In_         IGameInputDevice   *device,
+                                                  _COM_Outptr_ IGameInputReading **reading) noexcept override;
+
+  virtual HRESULT  __stdcall RegisterReadingCallback (_In_opt_                         IGameInputDevice          *device,
+                                                      _In_                              GameInputKind             inputKind,
+                                                      _In_                              float                     analogThreshold,
+                                                      _In_opt_                          void                     *context,
+                                                      _In_                              GameInputReadingCallback  callbackFunc,
+                                                      _Out_opt_ _Result_zeroonfailure_  GameInputCallbackToken   *callbackToken) noexcept override;
+  virtual HRESULT  __stdcall RegisterDeviceCallback  (_In_opt_                        IGameInputDevice         *device,
+                                                      _In_                             GameInputKind            inputKind,
+                                                      _In_                             GameInputDeviceStatus    statusFilter,
+                                                      _In_                             GameInputEnumerationKind enumerationKind,
+                                                      _In_opt_                         void                    *context,
+                                                      _In_                             GameInputDeviceCallback  callbackFunc,
+                                                      _Out_opt_ _Result_zeroonfailure_ GameInputCallbackToken  *callbackToken) noexcept override;
+
+  virtual HRESULT  __stdcall RegisterSystemButtonCallback   (_In_opt_                         IGameInputDevice               *device,
+                                                             _In_                              GameInputSystemButtons         buttonFilter,
+                                                             _In_opt_                          void                          *context,
+                                                             _In_                              GameInputSystemButtonCallback  callbackFunc,
+                                                             _Out_opt_ _Result_zeroonfailure_  GameInputCallbackToken        *callbackToken)   noexcept override;
+  virtual HRESULT  __stdcall RegisterKeyboardLayoutCallback (_In_opt_                         IGameInputDevice                 *device,
+                                                             _In_opt_                          void                            *context,
+                                                             _In_                              GameInputKeyboardLayoutCallback  callbackFunc,
+                                                             _Out_opt_ _Result_zeroonfailure_  GameInputCallbackToken          *callbackToken) noexcept override;
+
+  virtual void     __stdcall StopCallback       (_In_ GameInputCallbackToken callbackToken)         noexcept override;
+  virtual bool     __stdcall UnregisterCallback (_In_ GameInputCallbackToken callbackToken,
+                                                 _In_ uint64_t               timeoutInMicroseconds) noexcept override;
+
+  virtual HRESULT  __stdcall CreateDispatcher      (_COM_Outptr_ IGameInputDispatcher **dispatcher) noexcept override;
+  virtual HRESULT  __stdcall CreateAggregateDevice (_In_          GameInputKind     inputKind,
+                                                    _COM_Outptr_ IGameInputDevice **device)         noexcept override;
+
+  virtual HRESULT  __stdcall FindDeviceFromId             (_In_         APP_LOCAL_DEVICE_ID const  *value,
+                                                           _COM_Outptr_ IGameInputDevice          **device) noexcept override;
+  virtual HRESULT  __stdcall FindDeviceFromObject         (_In_         IUnknown          *value,
+                                                           _COM_Outptr_ IGameInputDevice **device)          noexcept override;
+  virtual HRESULT  __stdcall FindDeviceFromPlatformHandle (_In_         HANDLE             value,
+                                                           _COM_Outptr_ IGameInputDevice **device)          noexcept override;
+  virtual HRESULT  __stdcall FindDeviceFromPlatformString (_In_         LPCWSTR            value,
+                                                           _COM_Outptr_ IGameInputDevice **device)          noexcept override;
+
+  virtual HRESULT  __stdcall EnableOemDeviceSupport (_In_ uint16_t vendorId,
+                                                     _In_ uint16_t productId,
+                                                     _In_ uint8_t interfaceNumber,
+                                                     _In_ uint8_t collectionNumber)    noexcept override;
+  virtual void     __stdcall SetFocusPolicy         (_In_ GameInputFocusPolicy policy) noexcept override;
+#pragma endregion
+
+private:
+  volatile LONG  refs_ = 1;
+  IGameInput    *pReal;
+  unsigned int   ver_  = 0;
+};
+
+void SK_Input_HookGameInput (void);
+
+#endif /* __SK__GAME_INPUT_H__ */

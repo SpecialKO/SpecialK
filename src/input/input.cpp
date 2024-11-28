@@ -144,9 +144,9 @@ SK_ImGui_WantGamepadCapture (bool update)
         DWORD                                      dwForegroundPid = 0x0;
         GetWindowThreadProcessId (hWndForeground, &dwForegroundPid);
 
-        for ( auto pid : g_sHookedPIDs )
+        for ( const auto pid : g_sHookedPIDs )
         {
-          if (pid == (LONG)dwForegroundPid)
+          if (pid == static_cast <LONG>(dwForegroundPid))
           {
             bCapture = true;
           }
@@ -653,6 +653,9 @@ void SK_Input_PreInit (void)
   if (config.input.gamepad.hook_windows_gaming)
     SK_Input_HookWGI ();
 
+  if (config.input.gamepad.hook_game_input)
+    SK_Input_HookGameInput ();
+
   if (config.input.gamepad.hook_xinput)
     SK_XInput_InitHotPlugHooks ( );
 
@@ -975,6 +978,7 @@ SK_LazyGlobal <sk_input_api_context_s> SK_WGI_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_HID_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_RawInput_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_MessageBus_Backend; // NVIDIA stuff
+SK_LazyGlobal <sk_input_api_context_s> SK_GameInput_Backend;
 
 SK_LazyGlobal <sk_input_api_context_s> SK_Win32_Backend;
 SK_LazyGlobal <sk_input_api_context_s> SK_WinHook_Backend;

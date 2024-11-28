@@ -1697,6 +1697,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\SpecialK\hash.h" />
     <ClInclude Include="include\SpecialK\injection\blacklist.h" />
     <ClInclude Include="include\SpecialK\input\dinput7_backend.h" />
+    <ClInclude Include="include\SpecialK\input\game_input.h" />
     <ClInclude Include="include\SpecialK\input\sce_pad.h" />
     <ClInclude Include="include\SpecialK\input\steam.h" />
     <ClInclude Include="include\SpecialK\input\windows.gaming.input.h" />
@@ -1915,6 +1916,7 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     </ClCompile>
     <ClCompile Include="src\input\bluetooth.cpp" />
     <ClCompile Include="src\input\cursor.cpp" />
+    <ClCompile Include="src\input\game_input.cpp" />
     <ClCompile Include="src\input\hid.cpp" />
     <ClCompile Include="src\input\hid_reports\dualsense.cpp" />
     <ClCompile Include="src\input\hid_reports\dualshock4.cpp" />

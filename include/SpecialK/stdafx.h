@@ -281,6 +281,7 @@
 #include <SpecialK/input/xinput_hotplug.h>
 #include <SpecialK/input/dinput7_backend.h>
 #include <SpecialK/input/dinput8_backend.h>
+#include <SpecialK/input/game_input.h>
 
 #include <SpecialK/osd/text.h>
 

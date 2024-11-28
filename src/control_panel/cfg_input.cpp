@@ -108,6 +108,7 @@ static DWORD last_di8        = 0;
 static DWORD last_steam      = 0;
 static DWORD last_messagebus = 0;
 static DWORD last_rawinput   = 0;
+static DWORD last_gameinput  = 0;
 static DWORD last_winhook    = 0;
 static DWORD last_winmm      = 0;
 static DWORD last_win32      = 0;
@@ -121,6 +122,7 @@ static DWORD hide_di8        = 0;
 static DWORD hide_steam      = 0;
 static DWORD hide_messagebus = 0;
 static DWORD hide_rawinput   = 0;
+static DWORD hide_gameinput  = 0;
 static DWORD hide_winhook    = 0;
 static DWORD hide_winmm      = 0;
 static DWORD hide_win32      = 0;
@@ -198,13 +200,14 @@ SK::ControlPanel::Input::Draw (void)
 
     struct { ULONG kbd_reads, mouse_reads;   } winhook    { };
 
-    struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di7       { };
-    struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di8       { };
-    struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } hid       { };
-    struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } raw_input { };
+    struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di7        { };
+    struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } di8        { };
+    struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } hid        { };
+    struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } raw_input  { };
+    struct { ULONG kbd_reads, mouse_reads, gamepad_reads; } game_input { };
 
     struct { ULONG cursorpos,      keystate,
-               keyboardstate, asynckeystate;              } win32     { };
+               keyboardstate, asynckeystate;              } win32      { };
 
     xinput.reads [0]        = SK_XInput_Backend->reads     [0];
     xinput.reads [1]        = SK_XInput_Backend->reads     [1];
@@ -248,6 +251,10 @@ SK::ControlPanel::Input::Draw (void)
     raw_input.mouse_reads   = SK_RawInput_Backend->reads   [0];
     raw_input.gamepad_reads = SK_RawInput_Backend->reads   [2];
 
+    game_input.kbd_reads    = SK_GameInput_Backend->reads  [1];
+    game_input.mouse_reads  = SK_GameInput_Backend->reads  [0];
+    game_input.gamepad_reads= SK_GameInput_Backend->reads  [2];
+
     win32.asynckeystate     = SK_Win32_Backend->reads      [3];
     win32.keyboardstate     = SK_Win32_Backend->reads      [2];
     win32.keystate          = SK_Win32_Backend->reads      [1];
@@ -278,6 +285,7 @@ SK::ControlPanel::Input::Draw (void)
     UPDATE_BACKEND_TIMES (DI7,               di7, nextFrame);
     UPDATE_BACKEND_TIMES (DI8,               di8, nextFrame);
     UPDATE_BACKEND_TIMES (RawInput,     rawinput, nextFrame);
+    UPDATE_BACKEND_TIMES (GameInput,   gameinput, nextFrame);
     UPDATE_BACKEND_TIMES (WinHook,       winhook, nextFrame);
     UPDATE_BACKEND_TIMES (Win32,           win32, nextFrameWin32);
     UPDATE_BACKEND_TIMES (WinMM,           winmm, nextFrame);
@@ -515,6 +523,31 @@ SK::ControlPanel::Input::Draw (void)
         if (di8.gamepad_reads > 0) {
           ImGui::Text      ("Gamepad   %lu", di8.gamepad_reads);
         };
+
+        ImGui::EndTooltip  ();
+      }
+    }
+
+    if ( last_gameinput > current_time - 500UL ||
+         hide_gameinput > current_time - 500UL )
+    {
+      SETUP_LABEL_COLOR (gameinput, 500.0f);
+
+      ImGui::SameLine      ();
+      ImGui::Text          ("         GameInput");
+      ImGui::PopStyleColor ();
+
+      if (ImGui::BeginItemTooltip ())
+      {
+        if (game_input.kbd_reads > 0) {
+          ImGui::Text      ("Keyboard   %lu", game_input.kbd_reads);
+        }
+        if (game_input.mouse_reads > 0) {
+          ImGui::Text      ("Mouse      %lu", game_input.mouse_reads);
+        }
+        if (game_input.gamepad_reads > 0) {
+          ImGui::Text      ("Gamepad    %lu", game_input.gamepad_reads);
+        }
 
         ImGui::EndTooltip  ();
       }
