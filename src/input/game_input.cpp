@@ -228,22 +228,11 @@ SK_IWrapGameInput::GetCurrentReading (_In_          GameInputKind      inputKind
 
   if (! capture_input)
   {
-    IGameInputReading* reading_;
-
     HRESULT hr =
-      pReal->GetCurrentReading (inputKind, device, &reading_);
+      pReal->GetCurrentReading (inputKind, device, reading);
 
     if (reading != nullptr)
-    {
-      *reading = (IGameInputReading *)new SK_IWrapGameInputReading (reading_);
       _current_readings [device][inputKind] = *reading;
-    }
-
-    else
-    {
-      reading_->Release ();
-    }
-      
 
     return hr;
   }
@@ -429,7 +418,8 @@ SK_IWrapGameInput::GetPreviousReading (_In_         IGameInputReading  *referenc
 
   else
   {
-    if (reading != nullptr) {
+    if (reading != nullptr && readings.count (device) &&
+                              readings       [device].count (inputKind)) {
                   readings [device][inputKind].p->AddRef ();
        *reading = readings [device][inputKind];
     }
@@ -840,15 +830,8 @@ SK_IWrapGameInputReading::GetControllerAxisState (uint32_t stateArrayCount,
 {
   SK_LOG_FIRST_CALL
 
-  auto ret =
+  return
     pReal->GetControllerAxisState (stateArrayCount, stateArray);
-
-  if (SK_ImGui_WantGamepadCapture () && stateArray != nullptr)
-  {
-    ZeroMemory (stateArray, stateArrayCount * sizeof (float));
-  }
-
-  return ret;
 }
 
 uint32_t
@@ -868,15 +851,8 @@ SK_IWrapGameInputReading::GetControllerButtonState (uint32_t stateArrayCount,
 {
   SK_LOG_FIRST_CALL
 
-  auto ret =
+  return
     pReal->GetControllerButtonState (stateArrayCount, stateArray);
-
-  if (SK_ImGui_WantGamepadCapture () && stateArray != nullptr)
-  {
-    ZeroMemory (stateArray, stateArrayCount * sizeof (bool));
-  }
-
-  return ret;
 }
 
 uint32_t
@@ -896,15 +872,8 @@ SK_IWrapGameInputReading::GetControllerSwitchState (uint32_t                    
 {
   SK_LOG_FIRST_CALL
 
-  auto ret =
+  return
     pReal->GetControllerSwitchState (stateArrayCount, stateArray);
-
-  if (SK_ImGui_WantGamepadCapture () && stateArray != nullptr)
-  {
-    ZeroMemory (stateArray, stateArrayCount * sizeof (GameInputSwitchPosition));
-  }
-
-  return ret;
 }
 
 uint32_t
@@ -995,18 +964,15 @@ SK_IWrapGameInputReading::GetGamepadState (GameInputGamepadState *state) noexcep
 {
   SK_LOG_FIRST_CALL
 
-  auto ret =
-    pReal->GetGamepadState (state);
-
-  if (SK_ImGui_WantGamepadCapture () && ret && state != nullptr)
-    ZeroMemory (state, sizeof (GameInputGamepadState));
-
-#if 0
   if (! SK_HID_PlayStationControllers.empty ())
   {
     if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
     {
       SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
+
+      //bool
+      //SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
+      //SK_ImGui_PollGamepad_EndFrame (pState);
 
       for ( auto& controller : SK_HID_PlayStationControllers )
       {
@@ -1071,9 +1037,9 @@ SK_IWrapGameInputReading::GetGamepadState (GameInputGamepadState *state) noexcep
       }
     }
   }
-#endif
 
-  return ret;
+  return
+    pReal->GetGamepadState (state);
 }
 
 bool
