@@ -1,4 +1,12 @@
-﻿24.11.28.1
+﻿24.11.28.2
+==========
+ + Add 1 frame delay before returning GAMEINPUT_E_READING_NOT_FOUND when
+     initiating GameInput device blocking, so that the game will first read
+        safe neutralized input values.
+        
+          (i.e. you don't keep running forward when the control panel opens).
+
+24.11.28.1
 ==========
  + Improved gamepad input blocking when using GameInput
  + Wrapped IGameInputReading in order to implement PlayStation->GameInput

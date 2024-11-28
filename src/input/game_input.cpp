@@ -287,12 +287,19 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
     case GameInputKindControllerAxis:
     case GameInputKindRawDeviceReport:
     case GameInputKindUiNavigation:
+    {
+      // 1 frame delay before blocking, so we have time to neutralize input readings
+      static concurrency::concurrent_unordered_map <IGameInputDevice*, concurrency::concurrent_unordered_map <GameInputKind, bool>>
+           capture_last_frame;
+      bool capture_this_frame = SK_ImGui_WantGamepadCapture ();
       SK_GAMEINPUT_READ (sk_input_dev_type::Gamepad);
-      if (SK_ImGui_WantGamepadCapture ())
+      if (capture_this_frame && capture_last_frame [device][inputKind])
       { SK_GAMEINPUT_HIDE (sk_input_dev_type::Gamepad);
         capture_input = true;
       } else
       { SK_GAMEINPUT_VIEW (sk_input_dev_type::Gamepad); }
+      capture_last_frame [device][inputKind] = capture_this_frame;
+    } break;
 
     default:
       break;
