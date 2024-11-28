@@ -1,4 +1,10 @@
-﻿24.11.28.4
+﻿24.11.28.5
+==========
+ + Implemented PlayStation->GameInput translation for DualShock 3/4 and
+     DualSense controllers over USB and Bluetooth (DS4/DualSense only).
+ + Removed warning about needing DS4Windows in GameInput games.
+
+24.11.28.4
 ==========
  + Implement haptic/rumble blocking support for GameInput; S.T.A.L.K.E.R. 2
      uses impulse triggers, so next step is to translate those to DualSense.

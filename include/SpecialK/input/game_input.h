@@ -112,10 +112,10 @@ private:
 };
 
 
-class SK_IWrapGameInputDevice : IGameInputDevice
+class SK_IGameInputDevice : IGameInputDevice
 {
 public:
-  SK_IWrapGameInputDevice (IGameInputDevice *pGameInputDevice) : pReal (pGameInputDevice),
+  SK_IGameInputDevice (IGameInputDevice *pGameInputDevice) : pReal (pGameInputDevice),
                                                                   ver_ (0)
   {
     if (pGameInputDevice == nullptr)
@@ -219,6 +219,56 @@ public:
 private:
   volatile LONG         refs_ = 1;
   IGameInputReading    *pReal;
+  unsigned int          ver_  = 0;
+};
+
+class SK_IPlayStationGameInputReading : IGameInputReading
+{
+public:
+  SK_IPlayStationGameInputReading (HANDLE hDeviceFile) : hDevice (hDeviceFile),
+                                                            ver_ (0)
+  {
+  };
+
+#pragma region IUnknown
+  virtual HRESULT       __stdcall QueryInterface           (REFIID riid, void **ppvObject)          noexcept override;
+  virtual ULONG         __stdcall AddRef                   (void)                                   noexcept override;
+  virtual ULONG         __stdcall Release                  (void)                                   noexcept override;
+#pragma endregion
+
+#pragma region IGameInputReading
+  virtual GameInputKind __stdcall GetInputKind             (void)                                   noexcept override;
+  virtual uint64_t      __stdcall GetSequenceNumber        (GameInputKind               inputKind)  noexcept override;
+  virtual uint64_t      __stdcall GetTimestamp             (void)                                   noexcept override;
+  virtual void          __stdcall GetDevice                (IGameInputDevice           **device)    noexcept override;
+  virtual bool          __stdcall GetRawReport             (IGameInputRawDeviceReport  **report)    noexcept override;
+  virtual uint32_t      __stdcall GetControllerAxisCount   (void)                                   noexcept override;
+  virtual uint32_t      __stdcall GetControllerAxisState   (uint32_t                    stateArrayCount,
+                                                            float                      *stateArray) noexcept override;
+  virtual uint32_t      __stdcall GetControllerButtonCount (void)                                   noexcept override;
+  virtual uint32_t      __stdcall GetControllerButtonState (uint32_t                    stateArrayCount,
+                                                            bool                       *stateArray) noexcept override;
+  virtual uint32_t      __stdcall GetControllerSwitchCount (void)                                   noexcept override;
+  virtual uint32_t      __stdcall GetControllerSwitchState (uint32_t                    stateArrayCount,
+                                                            GameInputSwitchPosition    *stateArray) noexcept override;
+  virtual uint32_t      __stdcall GetKeyCount              (void)                                   noexcept override;
+  virtual uint32_t      __stdcall GetKeyState              (uint32_t                    stateArrayCount,
+                                                            GameInputKeyState          *stateArray) noexcept override;
+  virtual bool          __stdcall GetMouseState            (GameInputMouseState        *state)      noexcept override;
+  virtual uint32_t      __stdcall GetTouchCount            (void)                                   noexcept override;
+  virtual uint32_t      __stdcall GetTouchState            (uint32_t                    stateArrayCount,
+                                                            GameInputTouchState        *stateArray) noexcept override;
+  virtual bool          __stdcall GetMotionState           (GameInputMotionState       *state)      noexcept override;
+  virtual bool          __stdcall GetArcadeStickState      (GameInputArcadeStickState  *state)      noexcept override;
+  virtual bool          __stdcall GetFlightStickState      (GameInputFlightStickState  *state)      noexcept override;
+  virtual bool          __stdcall GetGamepadState          (GameInputGamepadState      *state)      noexcept override;
+  virtual bool          __stdcall GetRacingWheelState      (GameInputRacingWheelState  *state)      noexcept override;
+  virtual bool          __stdcall GetUiNavigationState     (GameInputUiNavigationState *state)      noexcept override;
+#pragma endregion
+
+private:
+  volatile LONG         refs_ = 1;
+  HANDLE                hDevice;
   unsigned int          ver_  = 0;
 };
 

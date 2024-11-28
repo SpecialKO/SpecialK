@@ -62,6 +62,8 @@ using GameInputCreate_pfn = HRESULT (WINAPI *)(IGameInput**);
       GameInputCreate_pfn
       GameInputCreate_Original = nullptr;
 
+static IGameInputDevice *s_virtual_gameinput_device = nullptr;
+
 HRESULT
 STDMETHODCALLTYPE
 SK_IWrapGameInput::QueryInterface (REFIID riid, void **ppvObject) noexcept
@@ -191,6 +193,13 @@ SK_IWrapGameInput::GetCurrentReading (_In_          GameInputKind      inputKind
   SK_LOG_FIRST_CALL
 
   bool capture_input = false;
+
+  if (device == s_virtual_gameinput_device)
+  {
+    static SK_IPlayStationGameInputReading virtual_current_reading (0);
+    *reading = (IGameInputReading *)&virtual_current_reading;
+    return S_OK;
+  }
 
   switch (inputKind)
   {
@@ -324,7 +333,7 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
 
   bool capture_input = false;
 
-  if (device != nullptr)
+  if (device != nullptr && device != s_virtual_gameinput_device)
   {
     SK_RunOnce (
       GI_VIRTUAL_HOOK ( &device, 9,
@@ -393,6 +402,51 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
   {
     if (reading != nullptr)
        *reading = nullptr;
+    return GAMEINPUT_E_READING_NOT_FOUND;
+  }
+
+  if (device == s_virtual_gameinput_device && inputKind == GameInputKindGamepad)
+  {
+    static SK_IPlayStationGameInputReading virtual_next_reading (0);
+    static UINT64                          last_virtual_active = 0;
+           UINT64                          virtual_active      = 0;
+
+    if (! SK_HID_PlayStationControllers.empty ())
+    {
+      if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+      {
+        SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
+
+        for ( auto& controller : SK_HID_PlayStationControllers )
+        {
+          if (controller.bConnected)
+          {
+            if (pNewestInputDevice == nullptr ||
+                pNewestInputDevice->xinput.last_active <= controller.xinput.last_active)
+            {
+              pNewestInputDevice = &controller;
+            }
+          }
+        }
+
+        if (pNewestInputDevice != nullptr)
+        {
+          virtual_active = pNewestInputDevice->xinput.last_active;
+        }
+      }
+    }
+
+    if (std::exchange (last_virtual_active, virtual_active) != last_virtual_active)
+    {
+      if (reading != nullptr)
+         *reading = (IGameInputReading *)&virtual_next_reading;
+
+      return S_OK;
+    }
+
+    if (reading != nullptr)
+       *reading = nullptr;
+
     return GAMEINPUT_E_READING_NOT_FOUND;
   }
 
@@ -567,8 +621,19 @@ SK_IWrapGameInput::RegisterDeviceCallback (_In_opt_                        IGame
 {
   SK_LOG_FIRST_CALL
 
-  return
+  HRESULT hr =
     pReal->RegisterDeviceCallback (device, inputKind, statusFilter, enumerationKind, context, callbackFunc, callbackToken);
+
+  if (SUCCEEDED (hr) && inputKind == GameInputKindGamepad && (statusFilter & GameInputDeviceConnected) != 0 && (config.input.gamepad.xinput.emulate || ! SK_XInput_PollController (0)))
+  {
+    // TODO: Implement hotplug
+    if (s_virtual_gameinput_device == nullptr)
+        s_virtual_gameinput_device = (IGameInputDevice *)new SK_IGameInputDevice (nullptr);
+
+    callbackFunc (callbackToken != nullptr ? *callbackToken : 0, context, s_virtual_gameinput_device, SK_QueryPerf ().QuadPart, GameInputDeviceConnected, GameInputDeviceConnected);
+  }
+
+  return hr;
 }
 
 HRESULT
@@ -714,16 +779,6 @@ GameInputCreate_Detour (IGameInput** gameInput)
 {
   SK_LOG_FIRST_CALL
 
-  if (SK_IsCurrentGame (SK_GAME_ID::Stalker2) && config.input.gamepad.xinput.emulate)
-  {
-    if (! SK_XInput_PollController (0, nullptr))
-    {
-      SK_ImGui_Warning (
-        L"This game uses GameInput and Special K cannot emulate it, you must use DS4Windows."
-      );
-    }
-  }
-
   IGameInput* pReal;
 
   HRESULT hr =
@@ -752,8 +807,281 @@ GameInputCreate_Detour (IGameInput** gameInput)
 }
 
 
+#pragma warning (disable: 4100)
 
-#pragma region IUnknown
+HRESULT
+__stdcall
+SK_IGameInputDevice::QueryInterface (REFIID riid, void **ppvObject) noexcept
+{
+  if (ppvObject == nullptr)
+  {
+    return E_POINTER;
+  }
+
+  if ( riid == __uuidof (IUnknown) ||
+       riid == __uuidof (IGameInputDevice) )
+  {
+    AddRef ();
+
+    *ppvObject = this;
+
+    return S_OK;
+  }
+
+  static
+    concurrency::concurrent_unordered_set <std::wstring> reported_guids;
+
+  wchar_t                wszGUID [41] = { };
+  StringFromGUID2 (riid, wszGUID, 40);
+
+  bool once =
+    reported_guids.count (wszGUID) > 0;
+
+  if (! once)
+  {
+    reported_guids.insert (wszGUID);
+
+    SK_LOG0 ( ( L"QueryInterface on wrapped IGameInputDevice for Mystery UUID: %s",
+                    wszGUID ), L"Game Input" );
+  }
+
+  return E_NOINTERFACE;
+}
+
+ULONG
+__stdcall
+SK_IGameInputDevice::AddRef (void) noexcept
+{
+  return InterlockedIncrement (&refs_);
+}
+
+ULONG
+__stdcall
+SK_IGameInputDevice::Release (void) noexcept
+{
+  return InterlockedDecrement (&refs_);
+}
+
+GameInputDeviceInfo const*
+__stdcall
+SK_IGameInputDevice::GetDeviceInfo (void) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  static GameInputDeviceInfo dev_info = {};
+
+  dev_info.infoSize = sizeof (GameInputDeviceInfo);
+
+  dev_info.controllerAxisCount   = 6;
+  dev_info.controllerButtonCount = 13;
+
+  dev_info.deviceId     = {1};
+  dev_info.deviceRootId = {1};
+
+  dev_info.capabilities = GameInputDeviceCapabilityPowerOff | GameInputDeviceCapabilityWireless;
+
+  dev_info.vendorId  = 0x45e;
+  dev_info.productId = 0x28e;
+
+  dev_info.deviceFamily    = GameInputFamilyXbox360;
+  dev_info.usage.id        = 5;
+  dev_info.usage.page      = 1;
+
+  dev_info.interfaceNumber = 0;
+
+  dev_info.supportedInput         = GameInputKindControllerAxis | GameInputKindControllerButton | GameInputKindGamepad | GameInputKindUiNavigation;
+  dev_info.supportedRumbleMotors  = GameInputRumbleLowFrequency | GameInputRumbleHighFrequency;
+  dev_info.supportedSystemButtons = GameInputSystemButtonGuide;
+
+  return &dev_info;
+}
+
+GameInputDeviceStatus
+__stdcall
+SK_IGameInputDevice::GetDeviceStatus (void) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  GameInputDeviceStatus ret = GameInputDeviceNoStatus;
+
+  if (SK_ImGui_HasPlayStationController ())
+  {
+    ret |= GameInputDeviceConnected | GameInputDeviceInputEnabled | GameInputDeviceOutputEnabled;
+  }
+
+  return ret;
+}
+
+void
+__stdcall
+SK_IGameInputDevice::GetBatteryState (GameInputBatteryState *state) noexcept
+{
+  SK_LOG_FIRST_CALL
+}
+
+HRESULT
+__stdcall
+SK_IGameInputDevice::CreateForceFeedbackEffect (uint32_t motorIndex,
+                                                GameInputForceFeedbackParams const *params,
+                                               IGameInputForceFeedbackEffect       **effect) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return E_NOTIMPL;
+}
+
+bool
+__stdcall
+SK_IGameInputDevice::IsForceFeedbackMotorPoweredOn (uint32_t motorIndex) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return false;
+}
+
+void
+__stdcall
+SK_IGameInputDevice::SetForceFeedbackMotorGain (uint32_t motorIndex, float masterGain) noexcept
+{
+  SK_LOG_FIRST_CALL
+}
+
+HRESULT
+__stdcall
+SK_IGameInputDevice::SetHapticMotorState (uint32_t motorIndex,
+                                          GameInputHapticFeedbackParams const *params) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  // ...
+
+  return S_OK;
+}
+
+void
+__stdcall
+SK_IGameInputDevice::SetRumbleState (GameInputRumbleParams const *params) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  if (! params)
+    return;
+
+  GameInputRumbleParams params_ = *params;
+
+  if (config.input.gamepad.disable_rumble || SK_ImGui_WantGamepadCapture ())
+  {
+    params_.highFrequency = params_.lowFrequency = 0.0f;
+    params_.leftTrigger   = params_.rightTrigger = 0.0f;
+  }
+
+  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+    SK_XInput_PulseController(0, params_.lowFrequency, params_.highFrequency);
+}
+
+void
+__stdcall
+SK_IGameInputDevice::SetInputSynchronizationState (bool enabled) noexcept
+{
+  SK_LOG_FIRST_CALL
+}
+
+void
+__stdcall
+SK_IGameInputDevice::SendInputSynchronizationHint (void) noexcept
+{
+  SK_LOG_FIRST_CALL
+}
+
+void
+__stdcall
+SK_IGameInputDevice::PowerOff (void) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  // ...
+}
+                                                                               
+HRESULT
+__stdcall
+SK_IGameInputDevice::CreateRawDeviceReport (uint32_t                     reportId,
+                                            GameInputRawDeviceReportKind reportKind,
+                                           IGameInputRawDeviceReport   **report) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return E_NOTIMPL;
+}
+
+HRESULT
+__stdcall
+SK_IGameInputDevice::GetRawDeviceFeature (uint32_t                   reportId,
+                                         IGameInputRawDeviceReport **report) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return E_NOTIMPL;
+}
+
+HRESULT
+__stdcall
+SK_IGameInputDevice::SetRawDeviceFeature (IGameInputRawDeviceReport *report) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return E_NOTIMPL;
+}
+
+HRESULT
+__stdcall
+SK_IGameInputDevice::SendRawDeviceOutput (IGameInputRawDeviceReport *report) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return E_NOTIMPL;
+}
+
+HRESULT
+__stdcall
+SK_IGameInputDevice::SendRawDeviceOutputWithResponse (IGameInputRawDeviceReport   *requestReport,
+                                                      IGameInputRawDeviceReport **responseReport)  noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return E_NOTIMPL;
+}
+
+HRESULT
+__stdcall
+SK_IGameInputDevice::ExecuteRawDeviceIoControl (uint32_t    controlCode,
+                                                size_t      inputBufferSize,
+                                                void const *inputBuffer,
+                                                size_t      outputBufferSize,
+                                                void       *outputBuffer,
+                                                size_t     *outputSize) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return E_NOTIMPL;
+}
+
+bool
+__stdcall
+SK_IGameInputDevice::AcquireExclusiveRawDeviceAccess (uint64_t timeoutInMicroseconds) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return true;
+}
+
+void
+__stdcall
+SK_IGameInputDevice::ReleaseExclusiveRawDeviceAccess(void) noexcept
+{
+  SK_LOG_FIRST_CALL
+}
+
+
 HRESULT
 STDMETHODCALLTYPE
 SK_IWrapGameInputReading::QueryInterface (REFIID riid, void **ppvObject) noexcept
@@ -1064,82 +1392,18 @@ SK_IWrapGameInputReading::GetGamepadState (GameInputGamepadState *state) noexcep
 {
   SK_LOG_FIRST_CALL
 
-  if (! SK_HID_PlayStationControllers.empty ())
+
+  if (pReal->GetGamepadState (state))
   {
-    if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+    if (SK_ImGui_WantGamepadCapture ())
     {
-      SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
-
-      //bool
-      //SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
-      //SK_ImGui_PollGamepad_EndFrame (pState);
-
-      for ( auto& controller : SK_HID_PlayStationControllers )
-      {
-        if (controller.bConnected)
-        {
-          if (pNewestInputDevice == nullptr ||
-              pNewestInputDevice->xinput.last_active <= controller.xinput.last_active)
-          {
-            pNewestInputDevice = &controller;
-          }
-        }
-      }
-
-      if (pNewestInputDevice != nullptr)
-      {
-        if (pReal->GetGamepadState (state))
-        {
-          ZeroMemory (state, sizeof (GameInputGamepadState));
-
-          if (! SK_ImGui_WantGamepadCapture ())
-          {
-            state->leftThumbstickX =
-              static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.report.Gamepad.sThumbLX) / 32767.0);
-            state->leftThumbstickY =
-              static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.report.Gamepad.sThumbLY) / 32767.0);
-
-            state->rightThumbstickX =
-              static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.report.Gamepad.sThumbRX) / 32767.0);
-            state->rightThumbstickY =
-              static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.report.Gamepad.sThumbRY) / 32767.0);
-
-            state->leftTrigger =
-              static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.report.Gamepad.bLeftTrigger) / 255.0);
-            state->rightTrigger =
-              static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.report.Gamepad.bRightTrigger) / 255.0);
-
-            state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0 ? GameInputGamepadA : GameInputGamepadNone;
-            state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0 ? GameInputGamepadB : GameInputGamepadNone;
-            state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0 ? GameInputGamepadX : GameInputGamepadNone;
-            state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0 ? GameInputGamepadY : GameInputGamepadNone;
-
-            state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0 ? GameInputGamepadMenu : GameInputGamepadNone;
-            state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)  != 0 ? GameInputGamepadView : GameInputGamepadNone;
-
-            state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)    != 0 ? GameInputGamepadDPadUp    : GameInputGamepadNone;
-            state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)  != 0 ? GameInputGamepadDPadDown  : GameInputGamepadNone;
-            state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)  != 0 ? GameInputGamepadDPadLeft  : GameInputGamepadNone;
-            state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0 ? GameInputGamepadDPadRight : GameInputGamepadNone;
-
-            state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)  != 0 ? GameInputGamepadLeftShoulder  : GameInputGamepadNone;
-            state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0 ? GameInputGamepadRightShoulder : GameInputGamepadNone;
-
-            state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB)  != 0 ? GameInputGamepadLeftThumbstick  : GameInputGamepadNone;
-            state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0 ? GameInputGamepadRightThumbstick : GameInputGamepadNone;
-          }
-
-          return true;
-        }
-
-        else
-          return false;
-      }
+      ZeroMemory (state, sizeof (GameInputGamepadState));
     }
+
+    return true;
   }
 
-  return
-    pReal->GetGamepadState (state);
+  return false;
 }
 
 bool
@@ -1180,4 +1444,381 @@ SK_Input_HookGameInput (void)
       SK_ApplyQueuedHooks ();
     }
   }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+HRESULT
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::QueryInterface (REFIID riid, void **ppvObject) noexcept
+{
+  if (ppvObject == nullptr)
+  {
+    return E_POINTER;
+  }
+
+  if ( riid == __uuidof (IUnknown) ||
+       riid == __uuidof (IGameInputReading) )
+  {
+    AddRef ();
+
+    *ppvObject = this;
+
+    return S_OK;
+  }
+
+  static
+    concurrency::concurrent_unordered_set <std::wstring> reported_guids;
+
+  wchar_t                wszGUID [41] = { };
+  StringFromGUID2 (riid, wszGUID, 40);
+
+  bool once =
+    reported_guids.count (wszGUID) > 0;
+
+  if (! once)
+  {
+    reported_guids.insert (wszGUID);
+
+    SK_LOG0 ( ( L"QueryInterface on PlayStation IGameInputReading for Mystery UUID: %s",
+                    wszGUID ), L"Game Input" );
+  }
+
+  return E_NOINTERFACE;
+}
+
+ULONG
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::AddRef (void) noexcept
+{
+  InterlockedIncrement (&refs_);
+
+  return refs_;
+}
+
+ULONG
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::Release (void) noexcept
+{
+  InterlockedDecrement (&refs_);
+
+  return refs_;
+}
+
+GameInputKind
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetInputKind (void) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return GameInputKindGamepad;
+}
+
+uint64_t
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetSequenceNumber (GameInputKind inputKind) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  SK_RunOnce (SK_LOGi0 (L"Stub"));
+
+  return 0;
+    //pReal->GetSequenceNumber (inputKind);
+}
+
+uint64_t
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetTimestamp (void) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    SK_QueryPerf ().QuadPart;//pReal->GetTimestamp ();
+}
+
+void
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetDevice (IGameInputDevice **device) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  SK_ReleaseAssert (s_virtual_gameinput_device != nullptr);
+
+  if (device != nullptr) {
+               s_virtual_gameinput_device->AddRef ();
+     *device = s_virtual_gameinput_device;
+  }
+}
+
+bool
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetRawReport (IGameInputRawDeviceReport **report) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  SK_RunOnce (SK_LOGi0 (L"Stub"));
+
+  return false;
+}
+
+uint32_t
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetControllerAxisCount (void) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return 6;
+}
+
+uint32_t
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetControllerAxisState (uint32_t stateArrayCount,
+                                                  float   *stateArray) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  SK_RunOnce (SK_LOGi0 (L"Stub"));
+
+  return 0;
+    //pReal->GetControllerAxisState (stateArrayCount, stateArray);
+}
+
+uint32_t
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetControllerButtonCount (void) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return 13;
+}
+
+uint32_t
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetControllerButtonState (uint32_t stateArrayCount,
+                                                           bool    *stateArray) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  SK_RunOnce (SK_LOGi0 (L"Stub"));
+
+  return 0;
+}
+
+uint32_t
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetControllerSwitchCount (void) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  SK_RunOnce (SK_LOGi0 (L"Stub"));
+
+  return 0;
+}
+
+uint32_t
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetControllerSwitchState (uint32_t                 stateArrayCount,
+                                                           GameInputSwitchPosition *stateArray) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  SK_RunOnce (SK_LOGi0 (L"Stub"));
+
+  return 0;
+}
+
+uint32_t
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetKeyCount (void) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return 0;
+}
+
+uint32_t
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetKeyState (uint32_t           stateArrayCount,
+                                              GameInputKeyState *stateArray) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return 0;
+}
+
+bool
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetMouseState (GameInputMouseState *state) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return false;
+}
+
+uint32_t
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetTouchCount (void) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  SK_RunOnce (SK_LOGi0 (L"Stub"));
+
+  return 0;
+}
+
+uint32_t
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetTouchState (uint32_t             stateArrayCount,
+                                                GameInputTouchState *stateArray) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  SK_RunOnce (SK_LOGi0 (L"Stub"));
+
+  return 0;
+}
+
+bool
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetMotionState (GameInputMotionState *state) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return false;
+}
+
+bool
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetArcadeStickState (GameInputArcadeStickState* state) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return false;
+}
+
+bool
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetFlightStickState (GameInputFlightStickState *state) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return false;
+}
+
+bool
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetGamepadState (GameInputGamepadState *state) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  ZeroMemory (state, sizeof (GameInputGamepadState));
+
+  if (! SK_HID_PlayStationControllers.empty ())
+  {
+    if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+    {
+      SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
+
+      for ( auto& controller : SK_HID_PlayStationControllers )
+      {
+        if (controller.bConnected)
+        {
+          if (pNewestInputDevice == nullptr ||
+              pNewestInputDevice->xinput.last_active <= controller.xinput.last_active)
+          {
+            pNewestInputDevice = &controller;
+          }
+        }
+      }
+
+      if (pNewestInputDevice != nullptr)
+      {
+        if (! SK_ImGui_WantGamepadCapture ())
+        {
+          state->leftThumbstickX =
+            static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.report.Gamepad.sThumbLX) / 32767.0);
+          state->leftThumbstickY =
+            static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.report.Gamepad.sThumbLY) / 32767.0);
+
+          state->rightThumbstickX =
+            static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.report.Gamepad.sThumbRX) / 32767.0);
+          state->rightThumbstickY =
+            static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.report.Gamepad.sThumbRY) / 32767.0);
+
+          state->leftTrigger =
+            static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.report.Gamepad.bLeftTrigger) / 255.0);
+          state->rightTrigger =
+            static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.report.Gamepad.bRightTrigger) / 255.0);
+
+          state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0 ? GameInputGamepadA : GameInputGamepadNone;
+          state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0 ? GameInputGamepadB : GameInputGamepadNone;
+          state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0 ? GameInputGamepadX : GameInputGamepadNone;
+          state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0 ? GameInputGamepadY : GameInputGamepadNone;
+
+          state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0 ? GameInputGamepadMenu : GameInputGamepadNone;
+          state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)  != 0 ? GameInputGamepadView : GameInputGamepadNone;
+
+          state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)    != 0 ? GameInputGamepadDPadUp    : GameInputGamepadNone;
+          state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)  != 0 ? GameInputGamepadDPadDown  : GameInputGamepadNone;
+          state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)  != 0 ? GameInputGamepadDPadLeft  : GameInputGamepadNone;
+          state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0 ? GameInputGamepadDPadRight : GameInputGamepadNone;
+
+          state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)  != 0 ? GameInputGamepadLeftShoulder  : GameInputGamepadNone;
+          state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0 ? GameInputGamepadRightShoulder : GameInputGamepadNone;
+
+          state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB)  != 0 ? GameInputGamepadLeftThumbstick  : GameInputGamepadNone;
+          state->buttons |= (pNewestInputDevice->xinput.report.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0 ? GameInputGamepadRightThumbstick : GameInputGamepadNone;
+        }
+      }
+    }
+  }
+
+  return true;
+}
+
+bool
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetRacingWheelState (GameInputRacingWheelState *state) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  return false;
+}
+
+bool
+STDMETHODCALLTYPE
+SK_IPlayStationGameInputReading::GetUiNavigationState (GameInputUiNavigationState *state) noexcept
+{
+  SK_LOG_FIRST_CALL
+
+  SK_RunOnce (SK_LOGi0 (L"Stub"));
+
+  return false;
 }
