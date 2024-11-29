@@ -1270,11 +1270,14 @@ SK_Inject_SpawnUnloadListener (void)
           _SetThreadDescriptionWin10 =
           (SetThreadDescription_pfn)SK_GetProcAddress (hModKernel32, "SetThreadDescription");
 
-          if (_SetThreadDescriptionWin10 != nullptr) {
-              _SetThreadDescriptionWin10 (
-                g_hPacifierThread,
-                  L"[SK] Global Hook Pacifier"
-              );
+          if (SK_IsInjected ())
+          { // Avoid changing thread names in processes we do not care about
+            if (_SetThreadDescriptionWin10 != nullptr) {
+                _SetThreadDescriptionWin10 (
+                  g_hPacifierThread,
+                    L"[SK] Global Hook Pacifier"
+                );
+            }
           }
 
           SK_FreeLibrary (hModKernel32);
