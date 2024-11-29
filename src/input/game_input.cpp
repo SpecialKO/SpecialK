@@ -788,13 +788,23 @@ GameInputCreate_Detour (IGameInput** gameInput)
   {
     if (gameInput != nullptr)
     {
-      *gameInput = (IGameInput *)new SK_IWrapGameInput (pReal);
+      // Turn on XInput emulation by default on first-run for Unreal Engine.
+      //
+      //   -> Their GameInput integration is extremely simple and SK is fully compatible.
+      //
+      if (SK_GetCurrentRenderBackend ().windows.unreal && config.system.first_run && (! SK_XInput_PollController (0)))
+      {
+        SK_HID_SetupPlayStationControllers ();
 
-      pReal->EnableOemDeviceSupport (SK_HID_VID_SONY, SK_HID_PID_DUALSHOCK4,        0, 0);
-      pReal->EnableOemDeviceSupport (SK_HID_VID_SONY, SK_HID_PID_DUALSHOCK4_REV2,   0, 0);
-      pReal->EnableOemDeviceSupport (SK_HID_VID_SONY, SK_HID_PID_DUALSHOCK4_DONGLE, 0, 0);
-      pReal->EnableOemDeviceSupport (SK_HID_VID_SONY, SK_HID_PID_DUALSENSE,         0, 0);
-      pReal->EnableOemDeviceSupport (SK_HID_VID_SONY, SK_HID_PID_DUALSENSE_EDGE,    0, 0);
+        if (SK_ImGui_HasPlayStationController ())
+        {
+          SK_LOGi0 (L"Enabling Xbox Mode because Unreal Engine is using GameInput...");
+
+          config.input.gamepad.xinput.emulate = true;
+        }
+      }
+
+      *gameInput = (IGameInput *)new SK_IWrapGameInput (pReal);
     }
 
     else
@@ -1581,8 +1591,44 @@ SK_IPlayStationGameInputReading::GetTimestamp (void) noexcept
 {
   SK_LOG_FIRST_CALL
 
+  //
+  // Obviously this is implemented wrong, it should be accessing a history buffer
+  //   of previous readings, not iterating through all PlayStation controllers and
+  //     finding the one with the newest input.
+  //
+  //  * This entire class should be encapsulating a single reading, not merely
+  //      providing the data from the newest sampled input available (!!)
+  //
+  static volatile UINT64 last_timestamp = 0;
+
+  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+  {
+          UINT64      timestamp = ReadULong64Acquire (&last_timestamp);
+    const UINT64 orig_timestamp                           { timestamp };
+
+    if (! SK_HID_PlayStationControllers.empty ())
+    {
+      for (const auto& controller : SK_HID_PlayStationControllers)
+      {
+        if (controller.bConnected)
+        {
+          timestamp =
+            std::max (timestamp, controller.xinput.last_active);
+        }
+      }
+    }
+
+    if (timestamp > orig_timestamp)
+    {
+      InterlockedCompareExchange (
+        &last_timestamp, timestamp,
+                    orig_timestamp
+      );
+    }
+  }
+
   return
-    SK_QueryPerf ().QuadPart;//pReal->GetTimestamp ();
+    ReadULong64Acquire (&last_timestamp);
 }
 
 void
