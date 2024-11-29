@@ -3854,6 +3854,7 @@ SK_BackgroundRender_EndFrame (void)
 
     static bool last_foreground = false;
 
+    static const
     DWORD     dwProcessId = GetCurrentProcessId ();
     DWORD dwForegroundPid = 0x0;
     DWORD dwForegroundTid = 0x0;
@@ -3910,19 +3911,19 @@ SK_BackgroundRender_EndFrame (void)
       if ((! std::exchange (last_foreground, true)) && (config.window.always_on_top >= AlwaysOnTop || implicit_smart_always_on_top))
         SK_DeferCommand ("Window.TopMost true");
     }
-  }
 
-  if (SK_GetForegroundWindow () != game_window.hWnd)
-  {
-    //
-    // If SKIF is in the foreground, and SK is set to background render mode,
-    //   then post a message to SKIF to keep it drawing constantly so that VRR
-    //     in the game does not disengage.
-    //
-    //  The minor overhead from SKIF drawing constantly is much less than the
-    //    performance oddities caused by the game periodically losing DirectFlip.
-    //
-    SK_Inject_PostHeartbeatToSKIF ();
+    if (hForegroundWnd != game_window.hWnd)
+    {
+      //
+      // If SKIF is in the foreground, and SK is set to background render mode,
+      //   then post a message to SKIF to keep it drawing constantly so that VRR
+      //     in the game does not disengage.
+      //
+      //  The minor overhead from SKIF drawing constantly is much less than the
+      //    performance oddities caused by the game periodically losing DirectFlip.
+      //
+      SK_Inject_PostHeartbeatToSKIF ();
+    }
   }
 }
 
