@@ -1039,18 +1039,15 @@ struct SK_HID_PlayStationDevice
 
   struct vibration_s {
     volatile ULONG left, right;
-    BYTE           last_left,
-                   last_right;
-    DWORD          last_set;
-    DWORD          last_output;
+    volatile ULONG last_set;
 
-    USHORT         max_val = 0;
+    volatile ULONG max_val = 0;
 
     // At most, allow the controller to vibrate for 1000 ms without
     //   some kind of attempt to set a new value... otherwise, it
     //     will tend to vibrate infinitely.
     static constexpr auto MAX_TTL_IN_MSECS = 1000UL;
-  } _vibration = { 0, 0, 0, 0, 0, 0 };
+  } _vibration = { 0, 0, 0, 0 };
 
   void setRGB (BYTE red, BYTE green, BYTE blue) {
     _color.r = red;

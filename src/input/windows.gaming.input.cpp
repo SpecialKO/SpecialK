@@ -725,7 +725,7 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
         if (controller.bConnected)
         {
           if (pNewestInputDevice == nullptr ||
-              pNewestInputDevice->xinput.last_active <= controller.xinput.last_active)
+              pNewestInputDevice->xinput.last_active < controller.xinput.last_active)
           {
             pNewestInputDevice = &controller;
           }
@@ -733,7 +733,7 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
       }
     }
 
-    if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active > ReadULong64Acquire (&last_time [0])))
+    if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active >= ReadULong64Acquire (&last_time [0])))
     {
       SK_WGI_VIEW (SK_WGI_Backend, 0);
 

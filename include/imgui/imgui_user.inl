@@ -2300,57 +2300,63 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     }
   }
 
+  static auto last_frame  = SK_GetFramesDrawn ();
   static bool last_haptic = false;
 
-  if (bUseGamepad && SK_ImGui_Active () && config.input.gamepad.haptic_ui && nav_usable)
+  auto this_frame = SK_GetFramesDrawn ();
+
+  if (std::exchange (last_frame, this_frame) != this_frame)
   {
-    ImGuiContext& g =
-      *GImGui;
-
-    static ImGuiID nav_id = 0;
-
-    if (g.NavId != nav_id)
+    if (bUseGamepad && SK_ImGui_Active () && config.input.gamepad.haptic_ui && nav_usable)
     {
-      if (haptic_events.PulseNav.end > static_cast <float> (SK::ControlPanel::current_time))
+      ImGuiContext& g =
+        *GImGui;
+
+      static ImGuiID nav_id = 0;
+
+      if (g.NavId != nav_id)
       {
-        haptic_events.PulseNav.end   += haptic_events.PulseNav.duration;
-        haptic_events.PulseNav.start += haptic_events.PulseNav.duration;
+        if (haptic_events.PulseNav.end > static_cast <float> (SK::ControlPanel::current_time))
+        {
+          haptic_events.PulseNav.end   += haptic_events.PulseNav.duration;
+          haptic_events.PulseNav.start += haptic_events.PulseNav.duration;
+        }
+
+        else
+        {
+          haptic_events.PulseNav.start = static_cast <float> (SK::ControlPanel::current_time);
+          haptic_events.PulseNav.end   = haptic_events.PulseNav.start +
+                                           haptic_events.PulseNav.duration;
+        }
       }
 
-      else
+      if (g.ActiveIdIsJustActivated)
       {
-        haptic_events.PulseNav.start = static_cast <float> (SK::ControlPanel::current_time);
-        haptic_events.PulseNav.end   = haptic_events.PulseNav.start +
-                                         haptic_events.PulseNav.duration;
+        haptic_events.PulseButton.start = static_cast <float> (SK::ControlPanel::current_time);
+        haptic_events.PulseButton.end   = haptic_events.PulseButton.start +
+                                            haptic_events.PulseButton.duration;
       }
-    }
 
-    if (g.ActiveIdIsJustActivated)
-    {
-      haptic_events.PulseButton.start = static_cast <float> (SK::ControlPanel::current_time);
-      haptic_events.PulseButton.end   = haptic_events.PulseButton.start +
-                                          haptic_events.PulseButton.duration;
-    }
-
-    SK_XInput_PulseController ( config.input.gamepad.xinput.ui_slot,
-                                  haptic_events.PulseTitle.run  () +
-                                  haptic_events.PulseButton.run () +
-                  std::min (0.4f, haptic_events.PulseNav.run ()),
+      SK_XInput_PulseController ( config.input.gamepad.xinput.ui_slot,
                                     haptic_events.PulseTitle.run  () +
                                     haptic_events.PulseButton.run () +
-                    std::min (0.4f, haptic_events.PulseNav.run    ()) );
+                    std::min (0.4f, haptic_events.PulseNav.run ()),
+                                      haptic_events.PulseTitle.run  () +
+                                      haptic_events.PulseButton.run () +
+                      std::min (0.4f, haptic_events.PulseNav.run    ()) );
 
-    nav_id = g.NavId;
+      nav_id = g.NavId;
 
-    last_haptic = true;
-  }
+      last_haptic = true;
+    }
 
-  else if (std::exchange (last_haptic, false))
-  {
-    // Clear haptics on the first frame after they're no longer relevant
-    SK_XInput_PulseController (
-      config.input.gamepad.xinput.ui_slot, 0.0f, 0.0f
-    );
+    else if (std::exchange (last_haptic, false))
+    {
+      // Clear haptics on the first frame after they're no longer relevant
+      SK_XInput_PulseController (
+        config.input.gamepad.xinput.ui_slot, 0.0f, 0.0f
+      );
+    }
   }
 
   if (bUseGamepad)

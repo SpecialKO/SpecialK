@@ -549,7 +549,7 @@ XInputGetState1_4_Detour (
         if (controller.bConnected)
         {
           if (pNewestInputDevice == nullptr ||
-              pNewestInputDevice->xinput.last_active <= controller.xinput.last_active)
+              pNewestInputDevice->xinput.last_active < controller.xinput.last_active)
           {
             pNewestInputDevice = &controller;
           }
@@ -820,7 +820,7 @@ XInputGetStateEx1_4_Detour (
         if (controller.bConnected)
         {
           if (pNewestInputDevice == nullptr ||
-              pNewestInputDevice->xinput.last_active <= controller.xinput.last_active)
+              pNewestInputDevice->xinput.last_active < controller.xinput.last_active)
           {
             pNewestInputDevice = &controller;
           }
@@ -1175,7 +1175,7 @@ XInputSetState1_4_Detour (
     {
       if (controller.bConnected)
       {
-        if (controller.xinput.last_active > ReadULong64Acquire (&last_time [dwUserIndex]))
+        if (controller.xinput.last_active >= ReadULong64Acquire (&last_time [dwUserIndex]))
         {
           if ( pNewestInputDevice == nullptr ||
                pNewestInputDevice->xinput.last_active < controller.xinput.last_active )
@@ -2992,9 +2992,9 @@ SK_XInput_PulseController ( INT   iJoyID,
   XINPUT_VIBRATION
     vibes {
       .wLeftMotorSpeed  =
-        sk::narrow_cast <WORD>(std::min (0.99999f, fStrengthLeft)  * 65535.0f),
+        static_cast <WORD> (std::min (65535U, static_cast <UINT> (std::clamp (fStrengthLeft,  0.0f, 1.0f) * 65536.0f))),
       .wRightMotorSpeed =
-        sk::narrow_cast <WORD>(std::min (0.99999f, fStrengthRight) * 65535.0f)
+        static_cast <WORD> (std::min (65535U, static_cast <UINT> (std::clamp (fStrengthRight, 0.0f, 1.0f) * 65536.0f)))
     };
 
 #if 0
@@ -3035,7 +3035,7 @@ SK_XInput_PulseController ( INT   iJoyID,
     {
       if (controller.bConnected)
       {
-        if (controller.xinput.last_active > ReadULong64Acquire (&last_time [iJoyID]))
+        if (controller.xinput.last_active >= ReadULong64Acquire (&last_time [iJoyID]))
         {
           if ( pNewestInputDevice == nullptr ||
                pNewestInputDevice->xinput.last_active < controller.xinput.last_active )

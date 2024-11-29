@@ -828,28 +828,35 @@ SK_HID_PlayStationDevice::setVibration (
 {
   if (max_val == 0)
   {
-    _vibration.max_val =
-      std::max ( { _vibration.max_val, left, right } );
+    const auto last_max = ReadULongAcquire (&_vibration.max_val);
 
-    if (_vibration.max_val > 255)
+    InterlockedCompareExchange (
+      &_vibration.max_val,
+        std::max ( { last_max,
+                     static_cast <DWORD> (left),
+                     static_cast <DWORD> (right) } ),
+                     last_max
+    );
+
+    if (last_max > 255)
       max_val = 65535;
     else
       max_val = 255;
   }
 
   WriteULongRelease (&_vibration.left,
-      sk::narrow_cast <ULONG> (255.0 *
-        std::clamp (
-          (static_cast <double> (left)/
-           static_cast <double> (max_val)), 0.0, 1.0)));
+    std::min (255UL,
+      static_cast <ULONG> (
+        std::clamp (static_cast <double> (left)/
+                    static_cast <double> (max_val), 0.0, 1.0) * 256.0)));
   
   WriteULongRelease (&_vibration.right,
-      sk::narrow_cast <ULONG> (255.0 *
-        std::clamp (
-          (static_cast <double> (right)/
-           static_cast <double> (max_val)), 0.0, 1.0)));
+    std::min (255UL,
+      static_cast <ULONG> (
+        std::clamp (static_cast <double> (right)/
+                    static_cast <double> (max_val), 0.0, 1.0) * 256.0)));
 
-  _vibration.last_set = SK::ControlPanel::current_time;
+  WriteULongRelease (&_vibration.last_set, SK::ControlPanel::current_time);
 }
 
 bool
@@ -2559,7 +2566,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               (BYTE *)pDevice->output_report.data ();
 
             SK_HID_DualSense_SetStateData* output =
-              (SK_HID_DualSense_SetStateData *)&pOutputRaw [1];
+           (SK_HID_DualSense_SetStateData *)&pOutputRaw [1];
 
             const ULONG dwRightMotor = ReadULongAcquire (&pDevice->_vibration.right);
             const ULONG dwLeftMotor  = ReadULongAcquire (&pDevice->_vibration.left);
@@ -2569,11 +2576,12 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             // 500 msec grace period before allowing controller to use native haptics
             output->UseRumbleNotHaptics = bRumble || 
-              (pDevice->_vibration.last_set > SK::ControlPanel::current_time - 500UL);
+              (ReadULongAcquire (&pDevice->_vibration.last_set) > SK::ControlPanel::current_time - 500UL);
 
             if (bRumble)
             {
-              pDevice->_vibration.last_set = SK::ControlPanel::current_time;
+              WriteULongRelease (&pDevice->_vibration.last_set, SK::ControlPanel::current_time);
+              output->AllowMotorPowerLevel   = true;
             }
 
             output->AllowMuteLight           = true;
@@ -2585,9 +2593,6 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             {
               output->AllowLedColor          = true;
             }
-
-            output->AllowHapticLowPassFilter = true;
-            output->AllowMotorPowerLevel     = false;
 
             // Firmware reqs
             output->
@@ -2620,9 +2625,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             output->TouchPowerSave      = config.input.gamepad.scepad.power_save_mode;
             output->MotionPowerSave     = config.input.gamepad.scepad.power_save_mode;
             output->AudioPowerSave      = config.input.gamepad.scepad.power_save_mode;
-            output->HapticLowPassFilter = true;
+            output->HapticPowerSave     = false;
 
-            output->RumbleMotorPowerReduction = 0x0;
               //config.input.gamepad.scepad.rumble_power_level == 100.0f ? 0
               //                                                         :
               //static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
@@ -2725,11 +2729,12 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             // 500 msec grace period before allowing controller to use native haptics
             output->UseRumbleNotHaptics = bRumble || 
-              (pDevice->_vibration.last_set > SK::ControlPanel::current_time - 500UL);
+              (ReadULongAcquire (&pDevice->_vibration.last_set) > SK::ControlPanel::current_time - 500UL);
 
             if (bRumble)
             {
-              pDevice->_vibration.last_set = SK::ControlPanel::current_time;
+              WriteULongRelease (&pDevice->_vibration.last_set, SK::ControlPanel::current_time);
+              output->AllowMotorPowerLevel = true;
             }
 
             output->EnableRumbleEmulation  = true;
@@ -2743,10 +2748,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               output->AllowLedColor       = true;
             }
 
-            output->AllowPlayerIndicators    = config.input.gamepad.xinput.debug;
-            output->AllowHapticLowPassFilter = true;
-            output->AllowMotorPowerLevel     = false;
-            
+            output->AllowPlayerIndicators = config.input.gamepad.xinput.debug;
+
             // Firmware reqs
             output->
                EnableImprovedRumbleEmulation = true;
@@ -2775,7 +2778,10 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                                         : On
                                         : Off;
 
-            output->HapticLowPassFilter = true;
+            output->TouchPowerSave    = config.input.gamepad.scepad.power_save_mode;
+            output->MotionPowerSave   = config.input.gamepad.scepad.power_save_mode;
+            output->AudioPowerSave    = config.input.gamepad.scepad.power_save_mode;
+            output->HapticPowerSave   = false;
 
             if (config.input.gamepad.xinput.debug)
             {
@@ -3696,13 +3702,10 @@ SK_HID_PlayStationDevice::reset_device (void)
   latency.ping      = 0;
   latency.last_poll = 0;
 
-  _vibration.left        = 0;
-  _vibration.right       = 0;
-  _vibration.last_left   = 0;
-  _vibration.last_right  = 0;
-  _vibration.last_set    = 0;
-  _vibration.last_output = 0;
-  _vibration.max_val     = 0;
+  WriteULongRelease (&_vibration.left,     0);
+  WriteULongRelease (&_vibration.right,    0);
+  WriteULongRelease (&_vibration.last_set, 0);
+  WriteULongRelease (&_vibration.max_val,  0);
 
   xinput.last_active =  0;
 

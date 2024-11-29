@@ -422,7 +422,7 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
           if (controller.bConnected)
           {
             if (pNewestInputDevice == nullptr ||
-                pNewestInputDevice->xinput.last_active <= controller.xinput.last_active)
+                pNewestInputDevice->xinput.last_active < controller.xinput.last_active)
             {
               pNewestInputDevice = &controller;
             }
@@ -1773,7 +1773,7 @@ SK_IPlayStationGameInputReading::GetGamepadState (GameInputGamepadState *state) 
         if (controller.bConnected)
         {
           if (pNewestInputDevice == nullptr ||
-              pNewestInputDevice->xinput.last_active <= controller.xinput.last_active)
+              pNewestInputDevice->xinput.last_active < controller.xinput.last_active)
           {
             pNewestInputDevice = &controller;
           }
