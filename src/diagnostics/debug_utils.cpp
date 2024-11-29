@@ -2887,8 +2887,8 @@ SK_Exception_HandleThreadName (
 
     if (non_empty)
     {
-      static auto& ThreadNames = _SK_ThreadNames.get       ();
-      static auto& SelfTitled  = _SK_SelfTitledThreads.get ();
+      auto& ThreadNames = _SK_ThreadNames.get       ();
+      auto& SelfTitled  = _SK_SelfTitledThreads.get ();
 
       DWORD dwTid  =  ( info->dwThreadID != -1 ?
                         info->dwThreadID :
@@ -2903,7 +2903,7 @@ SK_Exception_HandleThreadName (
         SK_TLS_BottomEx (dwTid);
 
       std::wstring wide_name (
-        SK_UTF8ToWideChar (info->szName)
+        SK_UTF8ToWideChar (info->szName).c_str ()
       );
 
       if (pTLS != nullptr)
@@ -2915,8 +2915,10 @@ SK_Exception_HandleThreadName (
           _TRUNCATE );
       }
 
-      ThreadNames [dwTid] =
-        wide_name;
+      if (ThreadNames.count (dwTid) == 0)
+          ThreadNames.insert ( // Do not move the string, copy it!
+            std::make_pair (dwTid, wide_name.c_str ())
+          );
 
 #ifdef _M_AMD64
       if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)

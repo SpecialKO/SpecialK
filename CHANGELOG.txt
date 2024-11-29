@@ -1,4 +1,9 @@
-﻿24.11.29
+﻿24.11.29.1
+==========
+ + Avoid memory move in SK_Exception_HandleThreadName (...) when assigning
+     wide character name, explicitly copy the string.
+
+24.11.29
 ========
  + Stop forcing latency waitable swapchains on in games that do not normally
      use them unless SwapChainWait is set to a non-zero value in INI.
