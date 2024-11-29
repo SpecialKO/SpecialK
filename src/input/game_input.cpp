@@ -792,11 +792,12 @@ GameInputCreate_Detour (IGameInput** gameInput)
       //
       //   -> Their GameInput integration is extremely simple and SK is fully compatible.
       //
-      if (SK_GetCurrentRenderBackend ().windows.unreal && config.system.first_run && (! SK_XInput_PollController (0)))
+      if (config.system.first_run && (! SK_XInput_PollController (0)))
       {
-        SK_HID_SetupPlayStationControllers ();
+        SK_RunOnce (if (! SK_ImGui_HasPlayStationController  ())
+                          SK_HID_SetupPlayStationControllers ());
 
-        if (SK_ImGui_HasPlayStationController ())
+        if (SK_ImGui_HasPlayStationController () && StrStrIW (SK_GetFullyQualifiedApp (), L"WinGDK"))
         {
           SK_LOGi0 (L"Enabling Xbox Mode because Unreal Engine is using GameInput...");
 
