@@ -964,21 +964,40 @@ SK_IGameInputDevice::SetRumbleState (GameInputRumbleParams const *params) noexce
 {
   SK_LOG_FIRST_CALL
 
-  if (! params)
+  if (config.input.gamepad.disable_rumble)
+  {
+    SK_XInput_ZeroHaptics (0);
     return;
+  }
+
+  if (! params)
+  {
+    if (! SK_ImGui_WantGamepadCapture ())
+    {
+      if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+      {
+        SK_XInput_ZeroHaptics (0);
+      }
+    }
+
+    return;
+  }
 
   GameInputRumbleParams params_ = *params;
 
-  if (config.input.gamepad.disable_rumble || SK_ImGui_WantGamepadCapture ())
+  if (config.input.gamepad.disable_rumble)
   {
-    params_.highFrequency = params_.lowFrequency = 0.0f;
-    params_.leftTrigger   = params_.rightTrigger = 0.0f;
+    SK_XInput_ZeroHaptics (0);
+    return;
   }
 
-  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+  if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api) && (! SK_ImGui_WantGamepadCapture ()))
   {
-    SK_XInput_PulseController ( 0, params_.lowFrequency  + params_.leftTrigger,
-                                   params_.highFrequency + params_.rightTrigger );
+    float left  = (params_.lowFrequency  + params_.leftTrigger  * config.input.gamepad.impulse_strength_l);
+    float right = (params_.highFrequency + params_.rightTrigger * config.input.gamepad.impulse_strength_r);
+
+    SK_XInput_PulseController ( 0, std::clamp (left,  0.0f, 1.0f),
+                                   std::clamp (right, 0.0f, 1.0f) );
   }
 }
 

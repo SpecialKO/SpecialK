@@ -1114,6 +1114,8 @@ struct {
     sk::ParameterBool*    bt_input_only           = nullptr;
     sk::ParameterFloat*   low_battery_warning     = nullptr;
     sk::ParameterBool*    blocks_screensaver      = nullptr;
+    sk::ParameterFloat*   left_impulse_strength   = nullptr;
+    sk::ParameterFloat*   right_impulse_strength  = nullptr;
   } gamepad;
 } input;
 
@@ -1699,6 +1701,8 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.allow_steam_winmm,        L"Use Steam-manipulated version of WinMM input",              dll_ini,         L"Input.Gamepad",         L"AllowSteamWinMM"),
     ConfigEntry (input.gamepad.disable_rumble,           L"Disable Rumble from ALL SOURCES (across all APIs)",         dll_ini,         L"Input.Gamepad",         L"DisableRumble"),
     ConfigEntry (input.gamepad.blocks_screensaver,       L"Gamepad activity will block screensaver activation",        dll_ini,         L"Input.Gamepad",         L"BlocksScreenSaver"),
+    ConfigEntry (input.gamepad.right_impulse_strength,   L"Scale the Right Impulse Triggers in GameInput games",       dll_ini,         L"Input.Gamepad",         L"RightImpulseStrength"),
+    ConfigEntry (input.gamepad.left_impulse_strength,    L"Scale the Right Impulse Triggers in GameInput games",       dll_ini,         L"Input.Gamepad",         L"LeftImpulseStrength"),
     ConfigEntry (input.gamepad.bt_input_only,            L"Prevent Bluetooth Output (PlayStation DirectInput compat.)",dll_ini,         L"Input.Gamepad",         L"BluetoothInputOnly"),
     ConfigEntry (input.gamepad.hid.max_allowed_buffers,  L"Maximum allowed HID buffers; 32=NS default, 8=SK default,"
                                                          L" this will lower latency at the expense of possibly missed"
@@ -4670,6 +4674,8 @@ auto DeclKeybind =
   input.gamepad.bt_input_only->load            (config.input.gamepad.bt_input_only);
   input.gamepad.disable_rumble->load           (config.input.gamepad.disable_rumble);
   input.gamepad.blocks_screensaver->load       (config.input.gamepad.blocks_screensaver);
+  input.gamepad.left_impulse_strength->load    (config.input.gamepad.impulse_strength_l);
+  input.gamepad.right_impulse_strength->load   (config.input.gamepad.impulse_strength_r);
   input.gamepad.xinput.hook_setstate->load     (config.input.gamepad.xinput.hook_setstate);
   input.gamepad.xinput.auto_slot_assign->load  (config.input.gamepad.xinput.auto_slot_assign);
   input.gamepad.xinput.blackout_api->load      (config.input.gamepad.xinput.blackout_api);
@@ -6166,6 +6172,8 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.bt_input_only->store               (config.input.gamepad.bt_input_only);
   input.gamepad.disable_rumble->store              (config.input.gamepad.disable_rumble);
   input.gamepad.blocks_screensaver->store          (config.input.gamepad.blocks_screensaver);
+  input.gamepad.left_impulse_strength->store       (config.input.gamepad.impulse_strength_l);
+  input.gamepad.right_impulse_strength->store      (config.input.gamepad.impulse_strength_r);
   input.gamepad.xinput.hook_setstate->store        (config.input.gamepad.xinput.hook_setstate);
   input.gamepad.xinput.auto_slot_assign->store     (config.input.gamepad.xinput.auto_slot_assign);
   input.gamepad.xinput.blackout_api->store         (config.input.gamepad.xinput.blackout_api);

@@ -2077,6 +2077,21 @@ SK::ControlPanel::Input::Draw (void)
           }
 #endif
 
+          static bool has_gameinput =
+            GetModuleHandleW (L"GameInput.dll") != nullptr;
+
+          if (has_gameinput && SK_GameInput_Backend->reads [2] > 0)
+          {
+            ImGui::TreePush    (""); bool changed =
+            ImGui::SliderFloat ("Left Trigger", &config.input.gamepad.impulse_strength_l, 0.0f, 1.5f, "%3.1fx Impulse Strength");
+            ImGui::SameLine    ( ); changed |=
+            ImGui::SliderFloat ("Right Trigger", &config.input.gamepad.impulse_strength_r, 0.0f, 1.5f, "%3.1fx Impulse Strength");
+            ImGui::TreePop     ( );
+
+            if (changed)
+              config.utility.save_async ();
+          }
+
           ImGui::BeginGroup ();
           bool compat_expanded =
             ImGui::TreeNode ("Compatibility Options");

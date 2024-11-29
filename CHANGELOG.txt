@@ -1,4 +1,9 @@
-﻿24.11.29.2
+﻿24.11.29.3
+==========
+ + Make Impulse Trigger Str. (Left/Right) configruable from SK's control panel.
+ + Correctly clear rumble when games pass a nullptr to SetRumbleState (...).
+
+24.11.29.2
 ==========
  + Added preliminary Xbox Impulse Triggers -> DualSense Haptics, in STALKER 2;
      think of it more as supplementary rumble for the time being.

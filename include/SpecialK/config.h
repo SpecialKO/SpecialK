@@ -1083,6 +1083,8 @@ struct sk_config_t
       bool    native_ps4          = false;
       bool    bt_input_only       = false;
       float   low_battery_percent = 25.0f;
+      float   impulse_strength_l  = 1.0f;
+      float   impulse_strength_r  = 1.0f;
 
       struct xinput_s {
         unsigned
