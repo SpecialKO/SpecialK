@@ -5501,8 +5501,10 @@ auto DeclKeybind =
   return_to_skif->load      (config.system.return_to_skif);
   auto_load_asi_files->load (config.system.auto_load_asi_files);
 
-  if (version->load         (config.system.version))
+  SK_RunOnce (
+    if (version->load       (config.system.version))
                              config.system.first_run = false;
+  );
 
   skif_autostop_behavior->load (config.skif.auto_stop_behavior);
 
