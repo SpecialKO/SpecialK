@@ -1080,9 +1080,9 @@ struct SK_HID_OverlappedRequest {
 
 struct SK_HID_DeviceFile {
   HIDP_CAPS         hidpCaps                           = { };
-  wchar_t           wszProductName      [128]          = { };
-  wchar_t           wszManufacturerName [128]          = { };
-  wchar_t           wszSerialNumber     [128]          = { };
+  wchar_t           wszProductName      [2048]         = { };
+  wchar_t           wszManufacturerName [2048]         = { };
+  wchar_t           wszSerialNumber     [2048]         = { };
   wchar_t           wszDevicePath       [MAX_PATH + 2] = { };
   sk_input_dev_type device_type                        = sk_input_dev_type::Other;
   USHORT            device_vid                         = 0x0;
