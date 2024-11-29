@@ -2915,10 +2915,10 @@ SK_Exception_HandleThreadName (
           _TRUNCATE );
       }
 
-      if (ThreadNames.count (dwTid) == 0)
-          ThreadNames.insert ( // Do not move the string, copy it!
-            std::make_pair (dwTid, wide_name.c_str ())
-          );
+      // Do not move the string, resize the existing name, clear it, and append a copy!
+      ThreadNames [dwTid].resize (MAX_THREAD_NAME_LEN+1);
+      ThreadNames [dwTid].assign (wide_name.c_str ());
+      // * Ideally this would be a wchar_t array of fixed size
 
 #ifdef _M_AMD64
       if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)
