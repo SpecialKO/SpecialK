@@ -742,22 +742,17 @@ NtWaitForSingleObject_Detour (
 
   auto ret = STATUS_TIMEOUT;
 
-  if (Handle == 0)
-    ret = STATUS_INVALID_HANDLE;
-  else
-  {
-    // Waiting while debugging occasionally causes crashes
-    __try {
-      ret =
-        NtWaitForSingleObject_Original (
-          Handle, Alertable, Timeout
-        );
-    } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER
-                                                                  : EXCEPTION_CONTINUE_SEARCH) {};
+  // Waiting while debugging occasionally causes crashes
+  __try {
+    ret =
+      NtWaitForSingleObject_Original (
+        Handle, Alertable, Timeout
+      );
+  } __except (GetExceptionCode () == EXCEPTION_ACCESS_VIOLATION ? EXCEPTION_EXECUTE_HANDLER
+                                                                : EXCEPTION_CONTINUE_SEARCH) {};
 
-    if (ret != STATUS_TIMEOUT)
-      SK_MMCS_ApplyPendingTaskPriority ();
-  }
+  if (ret != STATUS_TIMEOUT)
+    SK_MMCS_ApplyPendingTaskPriority ();
 
   return
     ret;

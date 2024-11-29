@@ -1,4 +1,11 @@
-﻿24.11.28.7
+﻿24.11.29
+========
+ + Stop forcing latency waitable swapchains on in games that do not normally
+     use them unless SwapChainWait is set to a non-zero value in INI.
+ + Optimize NVIDIA Reflex timing marker code in D3D12 games to avoid a constant
+     check for sl.interposer.dll.
+
+24.11.28.7
 ==========
  + Adjust Unreal Engine thread priorities for reduced stutter.
  + Disable OpenGL and D3D9 hooks in ReShade is loaded as dxgi.dll or d3d12.dll,
