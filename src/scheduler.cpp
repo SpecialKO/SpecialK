@@ -1832,15 +1832,15 @@ void SK_Scheduler_Init (void)
                                SwitchToThread_Detour,
       static_cast_p2p <void> (&SwitchToThread_Original) );
 
-    SK_CreateDLLHook2 (      L"NtDll",
-                              "NtWaitForSingleObject",
-                               NtWaitForSingleObject_Detour,
-      static_cast_p2p <void> (&NtWaitForSingleObject_Original) );
+    ////SK_CreateDLLHook2 (      L"NtDll",
+    ////                          "NtWaitForSingleObject",
+    ////                           NtWaitForSingleObject_Detour,
+    ////  static_cast_p2p <void> (&NtWaitForSingleObject_Original) );
 
-    SK_CreateDLLHook2 (      L"NtDll",
-                              "NtWaitForMultipleObjects",
-                               NtWaitForMultipleObjects_Detour,
-      static_cast_p2p <void> (&NtWaitForMultipleObjects_Original) );
+    ////SK_CreateDLLHook2 (      L"NtDll",
+    ////                          "NtWaitForMultipleObjects",
+    ////                           NtWaitForMultipleObjects_Detour,
+    ////  static_cast_p2p <void> (&NtWaitForMultipleObjects_Original) );
 
     SK_CreateDLLHook2 (      L"Kernel32",
                               "SetProcessAffinityMask",
