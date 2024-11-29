@@ -3709,7 +3709,6 @@ auto DeclKeybind =
         break;
 
       case SK_GAME_ID::Metaphor:
-        config.threads.enable_dynamic_spinlocks        = true;
         config.compatibility.init_on_separate_thread   = false;
         config.priority.perf_cores_only                = true;
         config.window.background_render                = true;
@@ -3720,9 +3719,8 @@ auto DeclKeybind =
         config.input.gamepad.xinput.emulate            = true; // XInput-only
         config.render.hdr.remaster_8bpc_as_unorm       = true;
         config.render.hdr.remaster_subnative_as_unorm  = true;
-        config.input.gamepad.dinput.block_enum_devices = true; // Avoid perf issues
         config.textures.cache.allow_staging            = false;
-        config.render.dxgi.deferred_isolation          = true; // Needed for correct texture caching on staging uploads
+        config.render.dxgi.deferred_isolation          = false; // Needed for correct texture caching on staging uploads
 
         config.render.d3d12.force_anisotropic          = true;
         config.render.d3d12.force_lod_bias             = 0.0f;
