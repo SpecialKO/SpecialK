@@ -3211,7 +3211,7 @@ SK_D3D11_PopulateResourceList (bool refresh)
 
     if (files > 0)
     {
-      if (config.render.dxgi.low_spec_mode)
+      if (config.render.dxgi.low_spec_mode && config.textures.cache.allow_staging)
       {   config.render.dxgi.low_spec_mode = false;
 
         dll_log->Log (

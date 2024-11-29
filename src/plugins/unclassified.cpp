@@ -1636,6 +1636,10 @@ SK_Metaphor_InitPlugin (void)
       SK_CPU_IsZen ();
   }
 
+  // This was auto-disabled for many users with texture mods, it should be enabled for performance reasons
+  config.textures.cache.allow_staging = false;
+  config.render.dxgi.low_spec_mode    = true;
+
   SK_SaveConfig ();
 
   SK_CreateFuncHook (        L"SK_DetourWindowProc",

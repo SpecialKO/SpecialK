@@ -1,4 +1,11 @@
-﻿24.11.29.3
+﻿24.11.29.4
+==========
+ + Ensure that "LowSpecMode" is enabled even for Metaphor: ReFantazio users with
+     texture mods installer, and change the auto-disable feature to only apply
+       when staging texture cache is enabled.
+ + Improved thread interlocking for XInput rumble
+
+24.11.29.3
 ==========
  + Make Impulse Trigger Str. (Left/Right) configruable from SK's control panel.
  + Correctly clear rumble when games pass a nullptr to SetRumbleState (...).
