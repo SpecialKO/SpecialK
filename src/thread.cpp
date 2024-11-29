@@ -225,7 +225,7 @@ SK_Thread_SetWin10NameFromException (THREADNAME_INFO *pTni)
         {
           // Running these threads at idle priority leads to optimal shaders
           //   never being compiled in CPU-heavy games.
-          SetThreadPriority (hThread.m_h, THREAD_PRIORITY_NORMAL);
+          SetThreadPriority (hThread.m_h, THREAD_PRIORITY_LOWEST);
         }
       }
     }
