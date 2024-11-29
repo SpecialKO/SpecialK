@@ -2045,10 +2045,10 @@ ZwSetInformationThread_Detour (
     {
       if (pTLS != nullptr) pTLS->debug.hidden = true;
 
-      SK_LOG0 ( ( L"tid=%x (%s) tried to hide itself from debuggers; please "
+      SK_LOG0 ( ( L"tid=%x (%ws) tried to hide itself from debuggers; please "
                   L"attach one and investigate!",
                   GetThreadId (ThreadHandle),
-            SK_Thread_GetName (ThreadHandle).c_str () ),
+            SK_Thread_GetName (ThreadHandle) ),
                   L"DieAntiDbg" );
     }
 
@@ -2213,8 +2213,7 @@ ZwCreateThreadEx_Detour (
     auto& ThreadNames =
      *_SK_ThreadNames;
 
-    if ( ThreadNames.find (tid) ==
-         ThreadNames.cend (   ) )
+    if (ThreadNames.count (tid) == 0)
     {
       ulLen =
         SK_GetSymbolNameFromModuleAddr (
@@ -2244,9 +2243,8 @@ ZwCreateThreadEx_Detour (
         thread_name       )
       );
 
-      ThreadNames.insert (
-        std::make_pair ( tid, thr_name )
-      );
+      wcsncpy_s (ThreadNames [tid].data (), SK_MAX_THREAD_NAME_LEN,
+                         thr_name.c_str (),             _TRUNCATE);
 
       SK_TLS* pTLS =
         SK_TLS_BottomEx (tid);
@@ -2254,7 +2252,7 @@ ZwCreateThreadEx_Detour (
       if (pTLS != nullptr)
       {
         wcsncpy_s (
-          pTLS->debug.name,          MAX_THREAD_NAME_LEN,
+          pTLS->debug.name,          SK_MAX_THREAD_NAME_LEN,
                   thr_name.c_str (), _TRUNCATE
         );
       }
@@ -2423,9 +2421,8 @@ NtCreateThreadEx_Detour (
         thread_name       )
       );
 
-      ThreadNames.insert (
-        std::make_pair ( tid, thr_name )
-      );
+      wcsncpy_s (ThreadNames [tid].data (), SK_MAX_THREAD_NAME_LEN,
+                         thr_name.c_str (),             _TRUNCATE);
 
       SK_TLS* pTLS =
         SK_TLS_BottomEx (tid);
@@ -2433,7 +2430,7 @@ NtCreateThreadEx_Detour (
       if (pTLS != nullptr)
       {
         wcsncpy_s (
-          pTLS->debug.name,          MAX_THREAD_NAME_LEN,
+          pTLS->debug.name,          SK_MAX_THREAD_NAME_LEN,
                   thr_name.c_str (), _TRUNCATE
         );
       }
@@ -2910,15 +2907,16 @@ SK_Exception_HandleThreadName (
       {
         wcsncpy_s (
           pTLS->debug.name,
-          std::min (len+1, (size_t)MAX_THREAD_NAME_LEN-1),
+          std::min (len+1, (size_t)SK_MAX_THREAD_NAME_LEN-1),
           wide_name.c_str (),
           _TRUNCATE );
       }
 
-      // Do not move the string, resize the existing name, clear it, and append a copy!
-      ThreadNames [dwTid].resize (MAX_THREAD_NAME_LEN+1);
-      ThreadNames [dwTid].assign (wide_name.c_str ());
-      // * Ideally this would be a wchar_t array of fixed size
+      // Do not move the string; truncate the string,
+      //   and replace any existing name with a copy!
+                *ThreadNames [dwTid].data () = L'\0';
+      wcsncpy_s (ThreadNames [dwTid].data (),SK_MAX_THREAD_NAME_LEN,
+                          wide_name.c_str (),            _TRUNCATE);
 
 #ifdef _M_AMD64
       if (SK_GetCurrentGameID () == SK_GAME_ID::EldenRing)

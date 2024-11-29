@@ -188,8 +188,8 @@ WSAAPI WSAWaitForMultipleEvents_Detour (
 
   if (! disable_network_code)
   {
-    dll_log->Log ( L" >> Calling Thread for Network Activity: %s",
-                     SK_Thread_GetName (SK_Thread_GetCurrentId ()).c_str () );
+    dll_log->Log ( L" >> Calling Thread for Network Activity: %ws",
+                     SK_Thread_GetName (SK_Thread_GetCurrentId ()) );
   }
 
   UNREFERENCED_PARAMETER (cEvents);
@@ -226,8 +226,8 @@ WSAAPI WSASocketW_Detour (
 
   if (! disable_network_code)
   {
-    dll_log->Log ( L" >> Calling Thread for Network Activity: %s",
-                     SK_Thread_GetName (SK_Thread_GetCurrentId () ).c_str () );
+    dll_log->Log ( L" >> Calling Thread for Network Activity: %ws",
+                     SK_Thread_GetName (SK_Thread_GetCurrentId ()) );
   }
 
   UNREFERENCED_PARAMETER (af);

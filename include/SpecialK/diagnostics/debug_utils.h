@@ -664,9 +664,9 @@ using SymLoadModule64_pfn = DWORD64 (IMAGEAPI *)( _In_     HANDLE  hProcess,
                                                   _In_     DWORD   SizeOfDll );
 
 
-std::wstring& SK_Thread_GetName    (DWORD  dwTid);
-std::wstring& SK_Thread_GetName    (HANDLE hThread);
-DWORD         SK_Thread_FindByName (std::wstring name);
+const wchar_t* SK_Thread_GetName    (DWORD  dwTid);
+const wchar_t* SK_Thread_GetName    (HANDLE hThread);
+DWORD          SK_Thread_FindByName (std::wstring name);
 
 
 #include <cassert>
@@ -866,7 +866,7 @@ SK_SetThreadPriority ( HANDLE hThread,
 
 
 extern SK_LazyGlobal <
-  concurrency::concurrent_unordered_map <DWORD, std::wstring>
+  concurrency::concurrent_unordered_map <DWORD, std::array <wchar_t, SK_MAX_THREAD_NAME_LEN+1>>
 > _SK_ThreadNames;
 extern SK_LazyGlobal <
   concurrency::concurrent_unordered_set <DWORD>

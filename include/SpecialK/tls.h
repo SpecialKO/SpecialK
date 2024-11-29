@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -19,6 +19,8 @@
  *
 **/
 #pragma once
+
+#define SK_MAX_THREAD_NAME_LEN MAX_PATH*2
 
 // Useless warning:  'typedef ': ignored on left of '' when no variable is declared
 #pragma warning (disable: 4091)
@@ -60,8 +62,6 @@ struct SK_MMCS_TaskEntry;
 #define	D3D11_COMMONSHADER_CONSTANT_BUFFER_HW_SLOT_COUNT	( 15 )
 #endif
 
-
-#define MAX_THREAD_NAME_LEN MAX_PATH
 
 class SK_ModuleAddrMap
 {
@@ -791,7 +791,7 @@ public:
     LONG             exception_repeats =     0;
     callsite_list_t  suppressed_addrs  = {   };
     wchar_t          name
-         [MAX_THREAD_NAME_LEN]         = {   };
+         [SK_MAX_THREAD_NAME_LEN+1]    = {   };
     SK_AutoHandle    handle            =
       SK_AutoHandle (INVALID_HANDLE_VALUE);
     DWORD            tls_idx           =     0;

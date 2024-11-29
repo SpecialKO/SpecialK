@@ -1260,27 +1260,27 @@ SK_Inject_SpawnUnloadListener (void)
       CreateThread (nullptr, 0, [](LPVOID) ->
       DWORD
       {
-        HMODULE hModKernel32 =
-          SK_LoadLibraryW (L"Kernel32");
+        if (SK_IsInjected ())
+        { // Avoid changing thread names in processes we do not care about
+          HMODULE hModKernel32 =
+            SK_LoadLibraryW (L"Kernel32");
 
-        if (hModKernel32 != nullptr)
-        {
-          // Try the Windows 10 API for Thread Names first, it's ideal unless ... not Win10 :)
-           SetThreadDescription_pfn
-          _SetThreadDescriptionWin10 =
-          (SetThreadDescription_pfn)SK_GetProcAddress (hModKernel32, "SetThreadDescription");
+          if (hModKernel32 != nullptr)
+          {
+            // Try the Windows 10 API for Thread Names first, it's ideal unless ... not Win10 :)
+             SetThreadDescription_pfn
+            _SetThreadDescriptionWin10 =
+            (SetThreadDescription_pfn)SK_GetProcAddress (hModKernel32, "SetThreadDescription");
 
-          if (SK_IsInjected ())
-          { // Avoid changing thread names in processes we do not care about
             if (_SetThreadDescriptionWin10 != nullptr) {
                 _SetThreadDescriptionWin10 (
                   g_hPacifierThread,
                     L"[SK] Global Hook Pacifier"
                 );
             }
-          }
 
-          SK_FreeLibrary (hModKernel32);
+            SK_FreeLibrary (hModKernel32);
+          }
         }
 
         SetThreadPriority (g_hPacifierThread, THREAD_PRIORITY_TIME_CRITICAL);

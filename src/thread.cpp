@@ -44,9 +44,9 @@ SetThreadDescription_pfn SetThreadDescription_Original = nullptr;
 
 static constexpr DWORD MAGIC_THREAD_EXCEPTION = 0x406D1388;
 
-SK_LazyGlobal <concurrency::concurrent_unordered_map <DWORD, std::wstring>> _SK_ThreadNames;
-SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>>               _SK_SelfTitledThreads;
-SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>>               _SK_UntitledThreads;
+SK_LazyGlobal <concurrency::concurrent_unordered_map <DWORD, std::array <wchar_t, SK_MAX_THREAD_NAME_LEN+1>>> _SK_ThreadNames;
+SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>>                                                 _SK_SelfTitledThreads;
+SK_LazyGlobal <concurrency::concurrent_unordered_set <DWORD>>                                                 _SK_UntitledThreads;
 
 void __make_self_titled (DWORD dwTid);
 
@@ -97,7 +97,7 @@ SK_GetThreadDescription ( _In_              HANDLE hThread,
 
 static std::wstring _noname = L"";
 
-std::wstring&
+const wchar_t*
 SK_Thread_QueryNameFromOS (DWORD dwTid)
 {
   if (_SK_UntitledThreads->find (dwTid) == _SK_UntitledThreads->cend ())
@@ -115,16 +115,15 @@ SK_Thread_QueryNameFromOS (DWORD dwTid)
         if ( wszThreadName != nullptr &&
             *wszThreadName != L'\0' ) // Empty strings are not useful :)
         {
-          auto& names =
-            _SK_ThreadNames.get ();
+          auto name =
+            _SK_ThreadNames.get()[dwTid].data();
 
           __make_self_titled (dwTid);
-                       names [dwTid] = wszThreadName;
+          wcsncpy_s (name, SK_MAX_THREAD_NAME_LEN, wszThreadName, _TRUNCATE);
       
           LocalFree (wszThreadName);
 
-          return
-            names [dwTid];
+          return name;
         }
 
         LocalFree (wszThreadName);
@@ -135,7 +134,7 @@ SK_Thread_QueryNameFromOS (DWORD dwTid)
   }
 
   return
-    _noname;
+    L"";
 }
 
 DWORD
@@ -144,16 +143,16 @@ SK_Thread_FindByName (std::wstring name)
   auto& threads =
     _SK_ThreadNames.get ();
 
-  for (auto &thread : threads)
+  for (const auto &thread : threads)
   {
-    if (thread.second._Equal (name.c_str ()))
+    if (!_wcsicmp (thread.second.data (), name.c_str ()))
       return thread.first;
   }
 
   return 0;
 }
 
-std::wstring&
+const wchar_t*
 SK_Thread_GetName (DWORD dwTid)
 {
   auto& names =
@@ -163,13 +162,13 @@ SK_Thread_GetName (DWORD dwTid)
     names.find (dwTid);
 
   if (it != names.cend ())
-    return (*it).second;
+    return (*it).second.data ();
 
   return
     SK_Thread_QueryNameFromOS (dwTid);
 }
 
-std::wstring&
+const wchar_t*
 SK_Thread_GetName (HANDLE hThread)
 {
   return
@@ -280,9 +279,9 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
 
   bool non_empty =
     SUCCEEDED ( StringCbLengthW (
-                  lpThreadDescription, MAX_THREAD_NAME_LEN-1, &len
+                  lpThreadDescription, SK_MAX_THREAD_NAME_LEN-1, &len
                 )
-              )                                             && len > 0;
+              )                                                && len > 0;
 
   if (non_empty)
   {
@@ -293,9 +292,10 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
     SK_TLS *pTLS =
       SK_TLS_Bottom ();
 
-    DWORD               dwTid  = SK_Thread_GetCurrentId ();
-    __make_self_titled (dwTid);
-           ThreadNames [dwTid] = lpThreadDescription;
+    DWORD                   dwTid  = SK_Thread_GetCurrentId ();
+    __make_self_titled     (dwTid);
+    wcsncpy_s (ThreadNames [dwTid].data (), SK_MAX_THREAD_NAME_LEN,
+               lpThreadDescription,                     _TRUNCATE);
 
     if (pTLS != nullptr)
     {
@@ -303,14 +303,14 @@ SetCurrentThreadDescription (_In_ PCWSTR lpThreadDescription)
       //   when no debugger is attached.
       wcsncpy_s (
         pTLS->debug.name,
-          std::min (MAX_THREAD_NAME_LEN, (int)len+1),
+          std::min (SK_MAX_THREAD_NAME_LEN, (int)len+1),
             lpThreadDescription,
               _TRUNCATE
       );
     }
 
-    char      szDesc                      [MAX_THREAD_NAME_LEN] = { };
-    wcstombs (szDesc, lpThreadDescription, MAX_THREAD_NAME_LEN-1);
+    char      szDesc                      [SK_MAX_THREAD_NAME_LEN] = { };
+    wcstombs (szDesc, lpThreadDescription, SK_MAX_THREAD_NAME_LEN-1);
 
     THREADNAME_INFO info = {       };
     info.dwType          =      4096;
@@ -342,10 +342,10 @@ GetCurrentThreadDescription (_Out_  PWSTR  *threadDescription)
   {
     // This is not freed here; the caller is expected to free it!
     *threadDescription =
-      (wchar_t *)SK_LocalAlloc (LPTR, sizeof (wchar_t) * MAX_THREAD_NAME_LEN);
+      (wchar_t *)SK_LocalAlloc (LPTR, sizeof (wchar_t) * SK_MAX_THREAD_NAME_LEN);
 
     wcsncpy_s (
-      *threadDescription, MAX_THREAD_NAME_LEN-1,
+      *threadDescription, SK_MAX_THREAD_NAME_LEN-1,
         pTLS->debug.name, _TRUNCATE
     );
 
@@ -434,8 +434,8 @@ SetThreadDescription_Detour (HANDLE hThread, PCWSTR lpThreadDescription)
          SK_ValidatePointer ((void *)lpThreadDescription, true)
        )
     {
-      char      szDesc                      [MAX_THREAD_NAME_LEN] = { };
-      wcstombs (szDesc, lpThreadDescription, MAX_THREAD_NAME_LEN-1);
+      char      szDesc                      [SK_MAX_THREAD_NAME_LEN] = { };
+      wcstombs (szDesc, lpThreadDescription, SK_MAX_THREAD_NAME_LEN-1);
 
       THREADNAME_INFO info = {       };
       info.dwType          =      4096;

@@ -2440,10 +2440,11 @@ public:
 
       if (! it.second->self_titled)
       {
-        auto& thread_name = SK_Thread_GetName       (it.second->dwTid);
-        auto  self_titled = SK_Thread_HasCustomName (it.second->dwTid);
+        auto thread_name = SK_Thread_GetName       (it.second->dwTid);
+        auto self_titled = SK_Thread_HasCustomName (it.second->dwTid);
 
-        if (! thread_name.empty ())
+        // Not empty?
+        if (thread_name [0] != L'\0')
         {
           it.second->name        = thread_name;
           it.second->self_titled = self_titled;
@@ -2478,9 +2479,9 @@ public:
 
         if (STATUS_SUCCESS == ntStatus)
         {
-          char  thread_name [MAX_THREAD_NAME_LEN] = { };
-          char  szSymbol    [256]                 = { };
-          ULONG ulLen                             = 191;
+          char  thread_name [SK_MAX_THREAD_NAME_LEN] = { };
+          char  szSymbol    [256]                    = { };
+          ULONG ulLen                                = 191;
 
           SK::Diagnostics::CrashHandler::InitSyms ();
 
@@ -2492,13 +2493,13 @@ public:
 
           if (ulLen > 0)
           {
-            snprintf ( thread_name, MAX_THREAD_NAME_LEN-1, "%s+%s",
+            snprintf ( thread_name, SK_MAX_THREAD_NAME_LEN-1, "%s+%s",
                          SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str ( ),
                                                                  szSymbol );
           }
 
           else {
-            snprintf ( thread_name, MAX_THREAD_NAME_LEN-1, "%s",
+            snprintf ( thread_name, SK_MAX_THREAD_NAME_LEN-1, "%s",
                          SK_WideCharToUTF8 (SK_GetCallerName ((LPCVOID)pdwStartAddress)).c_str ( ) );
           }
 
@@ -2506,15 +2507,19 @@ public:
             SK_TLS_BottomEx (it.second->dwTid);
 
           if (pTLS != nullptr)
-            wcsncpy_s ( pTLS->debug.name,               MAX_THREAD_NAME_LEN-1,
+            wcsncpy_s ( pTLS->debug.name,            SK_MAX_THREAD_NAME_LEN-1,
                         SK_UTF8ToWideChar (thread_name).c_str (), _TRUNCATE );
 
-          if (_SK_ThreadNames->find (it.second->dwTid) == _SK_ThreadNames->cend ())
-          {
-            _SK_ThreadNames [it.second->dwTid] =
-              SK_UTF8ToWideChar (thread_name);
+          auto global_name =
+            _SK_ThreadNames [it.second->dwTid].data ();
 
-            it.second->name = _SK_ThreadNames [it.second->dwTid];
+          if (*global_name == L'\0')
+          {
+            wcsncpy_s (                  global_name, SK_MAX_THREAD_NAME_LEN,
+                      SK_UTF8ToWideChar (thread_name).c_str (), _TRUNCATE);
+
+            it.second->name.resize (SK_MAX_THREAD_NAME_LEN);
+            it.second->name.assign (global_name);
           }
         }
 
