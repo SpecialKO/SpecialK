@@ -3203,16 +3203,19 @@ SK_DXGI_PresentBase ( IDXGISwapChain         *This,
 
           if (config.render.framerate.swapchain_wait > 0 || rb.active_traits.bImplicitlyWaitable)
           {
-            SK_AutoHandle               hWaitHandle (rb.getSwapWaitHandle ());
-            if (SK_WaitForSingleObject (hWaitHandle.m_h, 0) == WAIT_TIMEOUT)
+            if ((intptr_t)rb.getSwapWaitHandle () > 0)
             {
-              if (rb.active_traits.bImplicitlyWaitable || pLimiter->get_limit () > 0.0)
+              SK_AutoHandle               hWaitHandle (rb.getSwapWaitHandle ());
+              if (SK_WaitForSingleObject (hWaitHandle.m_h, 0) == WAIT_TIMEOUT)
               {
-                // Wait on the SwapChain for up to a frame to try and
-                //   shrink the queue without a full-on stutter.
-                SK_WaitForSingleObject (
-                  hWaitHandle.m_h, rb.active_traits.bImplicitlyWaitable ? INFINITE : (DWORD)pLimiter->get_ms_to_next_tick ()
-                );
+                if (rb.active_traits.bImplicitlyWaitable || pLimiter->get_limit () > 0.0)
+                {
+                  // Wait on the SwapChain for up to a frame to try and
+                  //   shrink the queue without a full-on stutter.
+                  SK_WaitForSingleObject (
+                    hWaitHandle.m_h, rb.active_traits.bImplicitlyWaitable ? INFINITE : (DWORD)pLimiter->get_ms_to_next_tick ()
+                  );
+                }
               }
             }
           }
@@ -6274,12 +6277,12 @@ DXGIFactory_CreateSwapChain_Override (
   if (pCmdQueue != nullptr)
   {   pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
-    if ((new_desc.Flags  & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) == 0)
-    {    new_desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-      rb.active_traits.bImplicitlyWaitable = true;
-    }
-
-    else
+    //if ((new_desc.Flags  & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) == 0)
+    //{    new_desc.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+    //  rb.active_traits.bImplicitlyWaitable = true;
+    //}
+    //
+    //else
     {
       rb.active_traits.bImplicitlyWaitable = false;
     }
@@ -6979,12 +6982,12 @@ _In_opt_       IDXGIOutput                     *pRestrictToOutput,
   if (pCmdQueue != nullptr)
   {   pCmdQueue->GetDevice (IID_PPV_ARGS (&pDev12.p));
 
-    if ((new_desc1.Flags  & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) == 0)
-    {    new_desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
-      rb.active_traits.bImplicitlyWaitable = true;
-    }
-
-    else
+    //if ((new_desc1.Flags  & DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT) == 0)
+    //{    new_desc1.Flags |= DXGI_SWAP_CHAIN_FLAG_FRAME_LATENCY_WAITABLE_OBJECT;
+    //  rb.active_traits.bImplicitlyWaitable = true;
+    //}
+    //
+    //else
     {
       rb.active_traits.bImplicitlyWaitable = false;
     }
