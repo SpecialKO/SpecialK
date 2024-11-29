@@ -64,7 +64,7 @@ volatile LONG
      SK_D3D11_CBufferTrackingReqs = 0L;
 
 bool
-SK_ImGui_IsDrawing_OnD3D11Ctx (UINT dev_idx, ID3D11DeviceContext* pDevCtx)
+SK_ImGui_IsDrawing_OnD3D11Ctx (UINT& dev_idx, ID3D11DeviceContext* pDevCtx)
 {
   if (pDevCtx == nullptr || dev_idx == UINT_MAX)
   {

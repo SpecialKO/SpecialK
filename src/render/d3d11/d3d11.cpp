@@ -2993,8 +2993,10 @@ SK_D3D11_DrawHandler ( ID3D11DeviceContext  *pDevCtx,
                        SK_D3D11DrawType      draw_type,
                        UINT                  num_verts,
                        SK_TLS              **ppTLS   = nullptr,
-                       UINT&                 dev_idx = NegativeOne )
+                       UINT&                _dev_idx = NegativeOne )
 {
+  UINT dev_idx = _dev_idx;
+
   std::ignore = draw_type;
   std::ignore = num_verts;
 
@@ -3036,17 +3038,19 @@ SK_D3D11_DrawHandler ( ID3D11DeviceContext  *pDevCtx,
 
   ///if (SK_D3D11_IsDevCtxDeferred (pDevCtx))
   ///  return false;
+  /// 
 
   dev_idx = ( dev_idx == NegativeOne ? SK_D3D11_GetDeviceContextHandle (pDevCtx)
             : dev_idx );
+
+  if (&_dev_idx != &NegativeOne)
+    _dev_idx = dev_idx;
 
   // ImGui gets to pass-through without invoking the hook
   if (SK_ImGui_IsDrawing_OnD3D11Ctx (dev_idx, pDevCtx))
   {
     return Normal;
   }
-
-  std::scoped_lock <SK_Thread_HybridSpinlock> shader_lock (*cs_render_view);
 
   using _Registry =
     SK_D3D11_KnownShaders::ShaderRegistry <IUnknown>*;
@@ -3161,6 +3165,8 @@ const
 
   if (SK_D3D11_EnableTracking)
   {
+    std::scoped_lock <SK_Thread_HybridSpinlock> shader_lock (*cs_render_view);
+
     SK_D3D11_DrawThreads->mark ();
 
     bool rtv_active = false;
@@ -3209,8 +3215,6 @@ const
 
   for ( auto* tracker : trackers )
   {
-    std::scoped_lock <SK_Thread_HybridSpinlock> tracker_lock (*cs_render_view);
-
     const bool active =
       tracker->active.get (dev_idx);
 
@@ -9253,8 +9257,6 @@ D3D11Dev_GetImmediateContext3_Override (
 void
 SK_D3D11_EndFrame (SK_TLS* pTLS)
 {
-  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock2 (*cs_render_view);
-
   for ( auto end_frame_fn : plugin_mgr->end_frame_fns )
   {
     end_frame_fn ();
@@ -9276,6 +9278,8 @@ SK_D3D11_EndFrame (SK_TLS* pTLS)
                 L"[  D3D 11  ]");
     return;
   }
+
+  std::scoped_lock <SK_Thread_HybridSpinlock> auto_lock2 (*cs_render_view);
 
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();

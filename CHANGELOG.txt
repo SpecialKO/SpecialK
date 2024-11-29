@@ -3,6 +3,8 @@
  + Ensure that "LowSpecMode" is enabled even for Metaphor: ReFantazio users with
      texture mods installer, and change the auto-disable feature to only apply
        when staging texture cache is enabled.
+ + Disable deferred context isolation in Metaphor by default for performance,
+     re-enable it if you need live texture modding or hudless screenshots.
  + Improved thread interlocking for XInput rumble
 
 24.11.29.3

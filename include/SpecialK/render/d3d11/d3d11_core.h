@@ -236,7 +236,7 @@ SK_D3D11_ResetContextState ( ID3D11DeviceContext *pDevCtx,
 extern std::pair <BOOL*, BOOL>
 SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
 extern bool
-SK_ImGui_IsDrawing_OnD3D11Ctx   (UINT dev_idx, ID3D11DeviceContext* pDevCtx);
+SK_ImGui_IsDrawing_OnD3D11Ctx   (UINT& dev_idx, ID3D11DeviceContext* pDevCtx);
 
 
 struct shader_stage_s
@@ -2891,7 +2891,7 @@ struct SK_IMGUI_D3D11StateBlock {
 };
 
 extern std::pair <BOOL*, BOOL> SK_ImGui_FlagDrawing_OnD3D11Ctx (UINT dev_idx);
-extern bool                    SK_ImGui_IsDrawing_OnD3D11Ctx   (UINT dev_idx, ID3D11DeviceContext* pDevCtx);
+extern bool                    SK_ImGui_IsDrawing_OnD3D11Ctx   (UINT& dev_idx, ID3D11DeviceContext* pDevCtx);
 
 void SK_D3D11_InitMutexes (void);
 BOOL SK_D3D11_SetWrappedImmediateContext ( ID3D11Device        *pDev,
