@@ -3706,6 +3706,7 @@ auto DeclKeybind =
       case SK_GAME_ID::Stalker2:
         // Stupid game requires Fullscreen Exclusive (in D3D12) for HDR
         config.render.dxgi.fake_fullscreen_mode     = true;
+        config.input.gamepad.xinput.emulate         = true; // Fix GameInput
         break;
 
       case SK_GAME_ID::Metaphor:

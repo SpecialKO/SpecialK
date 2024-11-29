@@ -1,4 +1,8 @@
-﻿24.11.29.4
+﻿24.11.29.5
+==========
+ + Enable XInput emulation by default in STALKER 2
+
+24.11.29.4
 ==========
  + Ensure that "LowSpecMode" is enabled even for Metaphor: ReFantazio users with
      texture mods installer, and change the auto-disable feature to only apply
