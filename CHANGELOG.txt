@@ -1,4 +1,17 @@
-﻿24.11.29.1
+﻿24.11.29.2
+==========
+ + Added preliminary Xbox Impulse Triggers -> DualSense Haptics, in STALKER 2;
+     think of it more as supplementary rumble for the time being.
+
+   It does give a sensation you wouldn't get from just the 2 normal high/low
+     frequency rumble motors (or emulated motors in DualSense's case), but it
+       is not as advanced as actual haptic effects or Force Feedback Triggers.
+
+   I think a combination of the two could possibly create a convincing feeling,
+     but haven't had time to implement the various force feedback effect types
+       yet.
+
+24.11.29.1
 ==========
  + Avoid memory move in SK_Exception_HandleThreadName (...) when assigning
      wide character name, explicitly copy the string.

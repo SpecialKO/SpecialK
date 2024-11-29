@@ -124,11 +124,11 @@ SK_HID_DeviceFile::SK_HID_DeviceFile (HANDLE file, const wchar_t *wszPath)
     wcsncpy_s ( wszDevicePath, MAX_PATH,
                 wszPath,       _TRUNCATE );
 
-    wcsncpy_s (            wszProductName,      4093,
+    wcsncpy_s (            wszProductName,      2047,
                 known_path.wszProductName,           _TRUNCATE );
-    wcsncpy_s (            wszManufacturerName, 4093,
+    wcsncpy_s (            wszManufacturerName, 2047,
                 known_path.wszManufacturerName,      _TRUNCATE );
-    wcsncpy_s (            wszSerialNumber,     4093,
+    wcsncpy_s (            wszSerialNumber,     2047,
                 known_path.wszSerialNumber,          _TRUNCATE );
 
     device_type         = known_path.device_type;
@@ -1355,7 +1355,7 @@ CreateFileA_Detour (LPCSTR                lpFileName,
           SK_Input_DeviceFiles.insert (hRet);
         }
 
-        auto&& dev_file =
+        auto& dev_file =
           SK_HID_DeviceFiles [hRet];
 
         for (auto& overlapped_request : dev_file._overlappedRequests)
@@ -1365,7 +1365,7 @@ CreateFileA_Detour (LPCSTR                lpFileName,
           overlapped_request.second.lpBuffer              = nullptr;
         }
 
-        dev_file = std::move (hid_file);
+        dev_file = hid_file;
       }
     }
 
@@ -1454,7 +1454,7 @@ CreateFile2_Detour (
           SK_Input_DeviceFiles.insert (hRet);
         }
 
-        auto&& dev_file =
+        auto& dev_file =
           SK_HID_DeviceFiles [hRet];
 
         for (auto& overlapped_request : dev_file._overlappedRequests)
@@ -1464,7 +1464,7 @@ CreateFile2_Detour (
           overlapped_request.second.lpBuffer              = nullptr;
         }
 
-        dev_file = std::move (hid_file);
+        dev_file = hid_file;
       }
     }
 
@@ -1555,7 +1555,7 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
           SK_Input_DeviceFiles.insert (hRet);
         }
 
-        auto&& dev_file =
+        auto& dev_file =
           SK_HID_DeviceFiles [hRet];
 
         for (auto& overlapped_request : dev_file._overlappedRequests)
@@ -1565,7 +1565,7 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
           overlapped_request.second.lpBuffer              = nullptr;
         }
 
-        dev_file = std::move (hid_file);
+        dev_file = hid_file;
       }
     }
 

@@ -976,7 +976,10 @@ SK_IGameInputDevice::SetRumbleState (GameInputRumbleParams const *params) noexce
   }
 
   if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
-    SK_XInput_PulseController(0, params_.lowFrequency, params_.highFrequency);
+  {
+    SK_XInput_PulseController ( 0, params_.lowFrequency  + params_.leftTrigger,
+                                   params_.highFrequency + params_.rightTrigger );
+  }
 }
 
 void
