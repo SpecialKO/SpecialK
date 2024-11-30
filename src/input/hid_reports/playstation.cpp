@@ -2642,6 +2642,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             {
               WriteULongRelease (&pDevice->_vibration.last_set, SK::ControlPanel::current_time);
               output->AllowMotorPowerLevel   = true;
+              output->EnableRumbleEmulation  = true;
             }
 
             output->AllowMuteLight           = true;
@@ -2673,29 +2674,32 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               { 0x06, 15, 63, 0, 0, 0, 0, 0, 0, 0, 0 },
             };
 
-            if (pDevice->_vibration.trigger.left != 0)
-            {    output->AllowLeftTriggerFFB  = true;
-              const auto                               trigger_effect = 2;
-              memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-                      output->LeftTriggerFFB [2] =
-                        static_cast <uint8_t> (std::clamp (
-                          static_cast <float> (pDevice->_vibration.trigger.left) *
-                                     config.input.gamepad.impulse_strength_l, 0.0f, 1.0f) );
-            } else {  output->AllowLeftTriggerFFB  = true;
-              const auto                               trigger_effect = 0;
-              memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-            }
-            if (pDevice->_vibration.trigger.right != 0)
-            {    output->AllowRightTriggerFFB = true;
-              const auto                                trigger_effect = 2;
-              memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-                      output->RightTriggerFFB [2] =
-                        static_cast <uint8_t> (std::clamp (
-                          static_cast <float> (pDevice->_vibration.trigger.right) *
-                                     config.input.gamepad.impulse_strength_r, 0.0f, 1.0f) );
-            } else {  output->AllowRightTriggerFFB  = true;
-              const auto                                trigger_effect = 0;
-              memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+            if (bRumble)
+            {
+              if (pDevice->_vibration.trigger.left != 0)
+              {    output->AllowLeftTriggerFFB  = true;
+                const auto                               trigger_effect = 2;
+                memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+                        output->LeftTriggerFFB [2] =
+                          static_cast <uint8_t> (std::clamp (
+                            static_cast <float> (pDevice->_vibration.trigger.left) *
+                                       config.input.gamepad.impulse_strength_l, 0.0f, 1.0f) );
+              } else {  output->AllowLeftTriggerFFB  = true;
+                const auto                               trigger_effect = 0;
+                memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+              }
+              if (pDevice->_vibration.trigger.right != 0)
+              {    output->AllowRightTriggerFFB = true;
+                const auto                                trigger_effect = 2;
+                memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+                        output->RightTriggerFFB [2] =
+                          static_cast <uint8_t> (std::clamp (
+                            static_cast <float> (pDevice->_vibration.trigger.right) *
+                                       config.input.gamepad.impulse_strength_r, 0.0f, 1.0f) );
+              } else {  output->AllowRightTriggerFFB  = true;
+                const auto                                trigger_effect = 0;
+                memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+              }
             }
 
 
@@ -2828,7 +2832,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             if (bRumble)
             {
               WriteULongRelease (&pDevice->_vibration.last_set, SK::ControlPanel::current_time);
-              output->AllowMotorPowerLevel   = true;
+              output->AllowMotorPowerLevel  = true;
+              output->EnableRumbleEmulation = true;
             }
 
             uint8_t effects[3][11] = {
@@ -2837,33 +2842,34 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               { 0x06, 15, 63, 0, 0, 0, 0, 0, 0, 0, 0 },
             };
 
-            if (pDevice->_vibration.trigger.left != 0)
-            {    output->AllowLeftTriggerFFB  = true;
-              const auto                               trigger_effect = 2;
-              memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-                      output->LeftTriggerFFB [2] =
-                        static_cast <uint8_t> (std::clamp (
-                          static_cast <float> (pDevice->_vibration.trigger.left) *
-                                     config.input.gamepad.impulse_strength_l, 0.0f, 1.0f) );
-            } else {  output->AllowLeftTriggerFFB  = true;
-              const auto                               trigger_effect = 0;
-              memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+            if (bRumble)
+            {
+              if (pDevice->_vibration.trigger.left != 0)
+              {    output->AllowLeftTriggerFFB  = true;
+                const auto                               trigger_effect = 2;
+                memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+                        output->LeftTriggerFFB [2] =
+                          static_cast <uint8_t> (std::clamp (
+                            static_cast <float> (pDevice->_vibration.trigger.left) *
+                                       config.input.gamepad.impulse_strength_l, 0.0f, 1.0f) );
+              } else {  output->AllowLeftTriggerFFB  = true;
+                const auto                               trigger_effect = 0;
+                memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+              }
+              if (pDevice->_vibration.trigger.right != 0)
+              {    output->AllowRightTriggerFFB = true;
+                const auto                                trigger_effect = 2;
+                memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+                        output->RightTriggerFFB [2] =
+                          static_cast <uint8_t> (std::clamp (
+                            static_cast <float> (pDevice->_vibration.trigger.right) *
+                                       config.input.gamepad.impulse_strength_r, 0.0f, 1.0f) );
+              } else {  output->AllowRightTriggerFFB  = true;
+                const auto                                trigger_effect = 0;
+                memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+              }
             }
-            if (pDevice->_vibration.trigger.right != 0)
-            {    output->AllowRightTriggerFFB = true;
-              const auto                                trigger_effect = 2;
-              memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-                      output->RightTriggerFFB [2] =
-                        static_cast <uint8_t> (std::clamp (
-                          static_cast <float> (pDevice->_vibration.trigger.right) *
-                                     config.input.gamepad.impulse_strength_r, 0.0f, 1.0f) );
-            } else {  output->AllowRightTriggerFFB  = true;
-              const auto                                trigger_effect = 0;
-              memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-            }
-
-            output->EnableRumbleEmulation  = true;
-            output->AllowMuteLight         = true;
+            output->AllowMuteLight           = true;
 
             if (config.input.gamepad.scepad.led_color_r    >= 0 || 
                 config.input.gamepad.scepad.led_color_g    >= 0 ||
