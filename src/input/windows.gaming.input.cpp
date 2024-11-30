@@ -650,7 +650,7 @@ WGI_Gamepad_put_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad       
     if (ps_controller.bConnected)
     {
       if (pNewestInputDevice == nullptr ||
-          pNewestInputDevice->xinput.last_active < ps_controller.xinput.last_active)
+          ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) < ReadULong64Acquire (&ps_controller.xinput.last_active))
       {
         pNewestInputDevice = &ps_controller;
       }
@@ -671,7 +671,13 @@ WGI_Gamepad_put_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad       
                   65535ui16
       );
 
-      bRedirected = true;
+      // Force an update
+      pNewestInputDevice->write_output_report (true);
+      //if (pNewestInputDevice->write_output_report (true))
+      {
+        //vibes       = value;
+        bRedirected = true;
+      }
     }
 
     // Swallow vibration while capturing gamepad input
@@ -819,7 +825,7 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
         if (controller.bConnected)
         {
           if (pNewestInputDevice == nullptr ||
-              pNewestInputDevice->xinput.last_active < controller.xinput.last_active)
+              ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) < ReadULong64Acquire (&controller.xinput.last_active))
           {
             pNewestInputDevice = &controller;
           }
@@ -827,22 +833,27 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
       }
     }
 
-    if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active >= ReadULong64Acquire (&last_time [0])))
+    if (pNewestInputDevice != nullptr && (bUseEmulation || ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) >= ReadULong64Acquire (&last_time [0])))
     {
       SK_WGI_VIEW (SK_WGI_Backend, 0);
 
             extern     XINPUT_STATE hid_to_xi;
       extern volatile ULONG64 hid_to_xi_time;
 
-      auto timestamp = ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
+      auto timestamp =
+          ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
       if (ReadULong64Acquire (&hid_to_xi_time) < timestamp)
       {  WriteULong64Release (&hid_to_xi_time,   timestamp);
          hid_to_xi = pNewestInputDevice->xinput.prev_report;
+
+         // Enable XInputSetState to redirect to this controller
+         extern bool bUseEmulationForSetState;
+                     bUseEmulationForSetState = true;
       }
 
-      memcpy (    &xi_state, &hid_to_xi, sizeof (XINPUT_STATE) );
+      memcpy (&xi_state, &hid_to_xi, sizeof (XINPUT_STATE));
 
-      value->Timestamp = pNewestInputDevice->xinput.last_active;
+      value->Timestamp = timestamp;
       value->Buttons   = GamepadButtons::GamepadButtons_None;
 
       if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP))

@@ -1,9 +1,13 @@
-﻿24.12.1
+﻿24.12.1.1
+=========
+ + Allow Starfield to read Windows.Gaming.Input and write XInput
+
+24.12.1
 =======
  + Fixed issues with games that poll XInput multiple times per-frame from more
-     than one frame.
+     than one thread.
  + Implemented support for reading XInput and writing Windows.Gaming.Input in
-     the same game (Forza Horizon 5).
+     the same game (Forza Horizon 5's Impulse Triggers now work on DualSense).
 
 24.11.30.4
 ==========
