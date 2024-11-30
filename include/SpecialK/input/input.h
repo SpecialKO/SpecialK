@@ -1044,6 +1044,8 @@ struct SK_HID_PlayStationDevice
     struct {
       volatile ULONG left;
       volatile ULONG right;
+      ULONG     last_left;
+      ULONG     last_right;
     } trigger;
 
     volatile ULONG max_val = 0;
@@ -1052,7 +1054,7 @@ struct SK_HID_PlayStationDevice
     //   some kind of attempt to set a new value... otherwise, it
     //     will tend to vibrate infinitely.
     static constexpr auto MAX_TTL_IN_MSECS = 1000UL;
-  } _vibration = { 0, 0, 0, 0, 0, 0 };
+  } _vibration = { 0, 0, 0, 0, 0, 0, 0, 0 };
 
   void setRGB (BYTE red, BYTE green, BYTE blue) {
     _color.r = red;

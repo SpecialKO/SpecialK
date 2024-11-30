@@ -1,4 +1,8 @@
-﻿24.11.30.2
+﻿24.11.30.3
+==========
+ + Properly remove Adaptive Trigger force feedback when impulse vibration stops
+
+24.11.30.2
 ==========
  + Implement PlayStation Adaptive Trigger support for DualSense controllers
      connected using Bluetooth.
