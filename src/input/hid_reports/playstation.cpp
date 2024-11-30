@@ -2629,6 +2629,9 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             const ULONG dwRightMotor = ReadULongAcquire (&pDevice->_vibration.right);
             const ULONG dwLeftMotor  = ReadULongAcquire (&pDevice->_vibration.left);
 
+            static uint8_t last_trigger_r = 0;
+            static uint8_t last_trigger_l = 0;
+
             const bool bRumble =
               (dwRightMotor != 0  ||
                dwLeftMotor  != 0) || (ReadULongAcquire (&pDevice->_vibration.trigger.left)  != 0
@@ -2636,9 +2639,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             // 500 msec grace period before allowing controller to use native haptics
             output->UseRumbleNotHaptics = bRumble || 
-              (ReadULongAcquire (&pDevice->_vibration.last_set) > SK::ControlPanel::current_time - 500UL);
+              (ReadULongAcquire (&pDevice->_vibration.last_set) > SK::ControlPanel::current_time - 500UL)
+                                                  || last_trigger_r != 0
+                                                  || last_trigger_l != 0;
 
-            if (bRumble)
+            if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0))
             {
               WriteULongRelease (&pDevice->_vibration.last_set, SK::ControlPanel::current_time);
               output->AllowMotorPowerLevel   = true;
@@ -2674,7 +2679,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               { 0x06, 15, 63, 0, 0, 0, 0, 0, 0, 0, 0 },
             };
 
-            if (bRumble)
+            if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0))
             {
               if (pDevice->_vibration.trigger.left != 0)
               {    output->AllowLeftTriggerFFB  = true;
@@ -2684,9 +2689,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                           static_cast <uint8_t> (std::clamp (
                             static_cast <float> (pDevice->_vibration.trigger.left) *
                                        config.input.gamepad.impulse_strength_l, 0.0f, 1.0f) );
+                last_trigger_l = pDevice->_vibration.trigger.left != 0;
               } else {  output->AllowLeftTriggerFFB  = true;
                 const auto                               trigger_effect = 0;
                 memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+                last_trigger_l = pDevice->_vibration.trigger.left != 0;
               }
               if (pDevice->_vibration.trigger.right != 0)
               {    output->AllowRightTriggerFFB = true;
@@ -2696,9 +2703,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                           static_cast <uint8_t> (std::clamp (
                             static_cast <float> (pDevice->_vibration.trigger.right) *
                                        config.input.gamepad.impulse_strength_r, 0.0f, 1.0f) );
+                last_trigger_r = pDevice->_vibration.trigger.right != 0;
               } else {  output->AllowRightTriggerFFB  = true;
                 const auto                                trigger_effect = 0;
                 memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+                last_trigger_r = pDevice->_vibration.trigger.right != 0;
               }
             }
 
@@ -2820,6 +2829,9 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             const ULONG dwRightMotor = ReadULongAcquire (&pDevice->_vibration.right);
             const ULONG dwLeftMotor  = ReadULongAcquire (&pDevice->_vibration.left);
 
+            static uint8_t last_trigger_r = 0;
+            static uint8_t last_trigger_l = 0;
+
             const bool bRumble =
               (dwRightMotor != 0  ||
                dwLeftMotor  != 0) || (ReadULongAcquire (&pDevice->_vibration.trigger.left)  != 0
@@ -2827,7 +2839,9 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             // 500 msec grace period before allowing controller to use native haptics
             output->UseRumbleNotHaptics = bRumble || 
-              (ReadULongAcquire (&pDevice->_vibration.last_set) > SK::ControlPanel::current_time - 500UL);
+              (ReadULongAcquire (&pDevice->_vibration.last_set) > SK::ControlPanel::current_time - 500UL)
+                                                  || last_trigger_r != 0
+                                                  || last_trigger_l != 0;
 
             if (bRumble)
             {
@@ -2842,7 +2856,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               { 0x06, 15, 63, 0, 0, 0, 0, 0, 0, 0, 0 },
             };
 
-            if (bRumble)
+            if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0))
             {
               if (pDevice->_vibration.trigger.left != 0)
               {    output->AllowLeftTriggerFFB  = true;
@@ -2852,9 +2866,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                           static_cast <uint8_t> (std::clamp (
                             static_cast <float> (pDevice->_vibration.trigger.left) *
                                        config.input.gamepad.impulse_strength_l, 0.0f, 1.0f) );
+                last_trigger_l = pDevice->_vibration.trigger.left != 0;
               } else {  output->AllowLeftTriggerFFB  = true;
                 const auto                               trigger_effect = 0;
                 memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+                last_trigger_l = pDevice->_vibration.trigger.left != 0;
               }
               if (pDevice->_vibration.trigger.right != 0)
               {    output->AllowRightTriggerFFB = true;
@@ -2864,9 +2880,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                           static_cast <uint8_t> (std::clamp (
                             static_cast <float> (pDevice->_vibration.trigger.right) *
                                        config.input.gamepad.impulse_strength_r, 0.0f, 1.0f) );
+                last_trigger_r = pDevice->_vibration.trigger.right != 0;
               } else {  output->AllowRightTriggerFFB  = true;
                 const auto                                trigger_effect = 0;
                 memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+                last_trigger_r = pDevice->_vibration.trigger.right != 0;
               }
             }
             output->AllowMuteLight           = true;
