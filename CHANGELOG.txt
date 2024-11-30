@@ -1,4 +1,11 @@
-﻿24.11.30.4
+﻿24.12.1
+=======
+ + Fixed issues with games that poll XInput multiple times per-frame from more
+     than one frame.
+ + Implemented support for reading XInput and writing Windows.Gaming.Input in
+     the same game (Forza Horizon 5).
+
+24.11.30.4
 ==========
  + Added Xbox Impulse Trigger->PlayStation Adaptive Trigger emulation for games
      using Windows.Gaming.Input (99.99% of games that support the feature).

@@ -87,10 +87,10 @@ WGI_Gamepad_GetCurrentReading_Original = nullptr;
 WGI_Gamepad_put_Vibration_pfn
 WGI_Gamepad_put_Vibration_Original = nullptr;
 
-using WGI_VectorView_Gamepads_GetAt_pfn    = HRESULT (STDMETHODCALLTYPE *)(void *This, _In_     unsigned  index,      _Out_ void     **item);
-using WGI_VectorView_Gamepads_get_Size_pfn = HRESULT (STDMETHODCALLTYPE *)(void *This, _Out_    unsigned *size);
-using WGI_VectorView_Gamepads_IndexOf_pfn  = HRESULT (STDMETHODCALLTYPE *)(void *This, _In_opt_ void     *value,      _Out_ unsigned *index,    _Out_                             boolean *found);
-using WGI_VectorView_Gamepads_GetMany_pfn  = HRESULT (STDMETHODCALLTYPE *)(void *This, _In_     unsigned  startIndex, _In_  unsigned  capacity, _Out_writes_to_(capacity,*actual) void     *value, _Out_ unsigned *actual);
+using WGI_VectorView_Gamepads_GetAt_pfn    = HRESULT (STDMETHODCALLTYPE *)(IVectorView<ABI::Windows::Gaming::Input::Gamepad*> *This, _In_     unsigned  index,      _Out_ void     **item);
+using WGI_VectorView_Gamepads_get_Size_pfn = HRESULT (STDMETHODCALLTYPE *)(IVectorView<ABI::Windows::Gaming::Input::Gamepad*> *This, _Out_    unsigned *size);
+using WGI_VectorView_Gamepads_IndexOf_pfn  = HRESULT (STDMETHODCALLTYPE *)(IVectorView<ABI::Windows::Gaming::Input::Gamepad*> *This, _In_opt_ void     *value,      _Out_ unsigned *index,    _Out_                             boolean *found);
+using WGI_VectorView_Gamepads_GetMany_pfn  = HRESULT (STDMETHODCALLTYPE *)(IVectorView<ABI::Windows::Gaming::Input::Gamepad*> *This, _In_     unsigned  startIndex, _In_  unsigned  capacity, _Out_writes_to_(capacity,*actual) void     *value, _Out_ unsigned *actual);
 
 static WGI_VectorView_Gamepads_GetAt_pfn
        WGI_VectorView_Gamepads_GetAt_Original = nullptr;
@@ -400,56 +400,58 @@ public:
   {
     SK_LOG_FIRST_CALL
 
-    bool bRedirected = false;
+    std::ignore = value;
 
-    SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
+    //bool bRedirected = false;
 
-    for ( auto& ps_controller : SK_HID_PlayStationControllers )
-    {
-      if (ps_controller.bConnected)
-      {
-        if (pNewestInputDevice == nullptr ||
-            pNewestInputDevice->xinput.last_active < ps_controller.xinput.last_active)
-        {
-          pNewestInputDevice = &ps_controller;
-        }
-      }
-    }
-
-    if (pNewestInputDevice != nullptr)
-    {
-      if (! SK_ImGui_WantGamepadCapture ())
-      {
-        pNewestInputDevice->setVibration (
-          std::min (65535ui16, static_cast <USHORT> (value.LeftMotor    * 65536.0)),
-          std::min (65535ui16, static_cast <USHORT> (value.RightMotor   * 65536.0)),
-          std::min (65535ui16, static_cast <USHORT> (value.LeftTrigger  * 65536.0)),
-          std::min (65535ui16, static_cast <USHORT> (value.RightTrigger * 65536.0)),
-                    65535ui16
-        );
-
-        // Force an update
-        //if (pNewestInputDevice->write_output_report (true))
-        {
-          vibes       = value;
-          bRedirected = true;
-        }
-      }
-
-      // Swallow vibration while capturing gamepad input
-      else
-      {
-        bRedirected = true;
-      }
-    }
-
-    // Forward the input to XInput because there was no PlayStation device
-    if (! bRedirected)
-    {
-      vibes = value;
-      SK_XInput_PulseController (0, static_cast <float>(vibes.LeftMotor),
-                                    static_cast <float>(vibes.RightMotor));
-    }
+    //SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
+    //
+    //for ( auto& ps_controller : SK_HID_PlayStationControllers )
+    //{
+    //  if (ps_controller.bConnected)
+    //  {
+    //    if (pNewestInputDevice == nullptr ||
+    //        pNewestInputDevice->xinput.last_active < ps_controller.xinput.last_active)
+    //    {
+    //      pNewestInputDevice = &ps_controller;
+    //    }
+    //  }
+    //}
+    //
+    //if (pNewestInputDevice != nullptr)
+    //{
+    //  if (! SK_ImGui_WantGamepadCapture ())
+    //  {
+    //    pNewestInputDevice->setVibration (
+    //      std::min (65535ui16, static_cast <USHORT> (value.LeftMotor    * 65536.0)),
+    //      std::min (65535ui16, static_cast <USHORT> (value.RightMotor   * 65536.0)),
+    //      std::min (65535ui16, static_cast <USHORT> (value.LeftTrigger  * 65536.0)),
+    //      std::min (65535ui16, static_cast <USHORT> (value.RightTrigger * 65536.0)),
+    //                65535ui16
+    //    );
+    //
+    //    // Force an update
+    //    //if (pNewestInputDevice->write_output_report (true))
+    //    {
+    //      vibes       = value;
+    //      bRedirected = true;
+    //    }
+    //  }
+    //
+    //  // Swallow vibration while capturing gamepad input
+    //  else
+    //  {
+    //    bRedirected = true;
+    //  }
+    //}
+    //
+    //// Forward the input to XInput because there was no PlayStation device
+    //if (! bRedirected)
+    //{
+    //  vibes = value;
+    //  SK_XInput_PulseController (0, static_cast <float>(vibes.LeftMotor),
+    //                                static_cast <float>(vibes.RightMotor));
+    //}
 
     return S_OK;
   }
@@ -474,7 +476,7 @@ SK_HID_WGI_Gamepad SK_HID_WGI_FakeGamepad;
 
 HRESULT
 STDMETHODCALLTYPE
-WGI_VectorView_Gamepads_GetAt_Override (       void     *This,
+WGI_VectorView_Gamepads_GetAt_Override (       IVectorView<ABI::Windows::Gaming::Input::Gamepad*>     *This,
                                          _In_  unsigned  index,
                                          _Out_ void    **item )
 {
@@ -482,6 +484,9 @@ WGI_VectorView_Gamepads_GetAt_Override (       void     *This,
 
   HRESULT hr =
     WGI_VectorView_Gamepads_GetAt_Original (This, index, item);
+
+  if (_wcsicmp (This->z_get_rc_name_impl (), L"Windows.Foundation.Collections.IVectorView`1<Windows.Gaming.Input.Gamepad>"))
+    return hr;
 
   if (FAILED (hr) && config.input.gamepad.xinput.emulate)
   {
@@ -494,7 +499,7 @@ WGI_VectorView_Gamepads_GetAt_Override (       void     *This,
 
 HRESULT
 STDMETHODCALLTYPE
-WGI_VectorView_Gamepads_get_Size_Override (       void     *This,
+WGI_VectorView_Gamepads_get_Size_Override (       IVectorView<ABI::Windows::Gaming::Input::Gamepad*>     *This,
                                             _Out_ unsigned *size )
 {
   SK_LOG_FIRST_CALL
@@ -502,7 +507,10 @@ WGI_VectorView_Gamepads_get_Size_Override (       void     *This,
   HRESULT hr =
     WGI_VectorView_Gamepads_get_Size_Original (This, size);
 
-  if (SUCCEEDED (hr) && config.input.gamepad.xinput.emulate)
+  if (_wcsicmp (This->z_get_rc_name_impl (), L"Windows.Foundation.Collections.IVectorView`1<Windows.Gaming.Input.Gamepad>"))
+    return hr;
+
+  if (SUCCEEDED (hr) && config.input.gamepad.xinput.emulate && *size == 0)
   {
     *size = *size + 1;
   }
@@ -513,7 +521,7 @@ WGI_VectorView_Gamepads_get_Size_Override (       void     *This,
 
 HRESULT
 STDMETHODCALLTYPE
-WGI_VectorView_Gamepads_IndexOf_Override (          void     *This,
+WGI_VectorView_Gamepads_IndexOf_Override (          IVectorView<ABI::Windows::Gaming::Input::Gamepad*>     *This,
                                            _In_opt_ void     *value,
                                            _Out_    unsigned *index,
                                            _Out_    boolean  *found )
@@ -522,6 +530,9 @@ WGI_VectorView_Gamepads_IndexOf_Override (          void     *This,
 
   HRESULT hr =
     WGI_VectorView_Gamepads_IndexOf_Original (This, value, index, found);
+
+  if (_wcsicmp (This->z_get_rc_name_impl (), L"Windows.Foundation.Collections.IVectorView`1<Windows.Gaming.Input.Gamepad>"))
+    return hr;
 
   if (FAILED (hr) && config.input.gamepad.xinput.emulate)
   {
@@ -535,7 +546,7 @@ WGI_VectorView_Gamepads_IndexOf_Override (          void     *This,
 
 HRESULT
 STDMETHODCALLTYPE
-WGI_VectorView_Gamepads_GetMany_Override (                                   void     *This,
+WGI_VectorView_Gamepads_GetMany_Override (                                   IVectorView<ABI::Windows::Gaming::Input::Gamepad*>     *This,
                                            _In_                              unsigned  startIndex,
                                            _In_                              unsigned  capacity,
                                            _Out_writes_to_(capacity,*actual) void     *value,
@@ -598,7 +609,7 @@ WGI_GamepadStatistics_get_Gamepads_Override ( ABI::Windows::Gaming::Input::IGame
                                           WGI_VectorView_Gamepads_IndexOf_Override,
                                           WGI_VectorView_Gamepads_IndexOf_Original,
                                           WGI_VectorView_Gamepads_IndexOf_pfn );
-
+      
       WGI_VIRTUAL_HOOK ( value, 9,
         "ABI::Windows::Foundation::Collections::IVectorView "
                         "<ABI::Windows::Gaming::Input::Gamepad*>::GetMany",
@@ -625,6 +636,11 @@ WGI_Gamepad_put_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad       
 
   std::ignore = This;
 
+  // Forza Horizon 5 uses XInput and Windows.Gaming.Input simultaneously...
+  //   if we did not mark this as a read, activity would not show up in SK's
+  //     control panel.
+  SK_WGI_READ (SK_WGI_Backend, sk_input_dev_type::Gamepad);
+
   bool bRedirected = false;
 
   SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
@@ -645,6 +661,8 @@ WGI_Gamepad_put_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad       
   {
     if (! SK_ImGui_WantGamepadCapture ())
     {
+      SK_WGI_VIEW (SK_WGI_Backend, 0);
+
       pNewestInputDevice->setVibration (
         std::min (65535ui16, static_cast <USHORT> (value.LeftMotor    * 65536.0)),
         std::min (65535ui16, static_cast <USHORT> (value.RightMotor   * 65536.0)),
@@ -653,12 +671,7 @@ WGI_Gamepad_put_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad       
                   65535ui16
       );
 
-      // Force an update
-      //if (pNewestInputDevice->write_output_report (true))
-      {
-        //vibes       = value;
-        bRedirected = true;
-      }
+      bRedirected = true;
     }
 
     // Swallow vibration while capturing gamepad input
@@ -671,6 +684,7 @@ WGI_Gamepad_put_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad       
   // Forward the input to XInput because there was no PlayStation device
   if (! bRedirected)
   {
+    SK_WGI_VIEW (SK_WGI_Backend, 0);
     //vibes = value;
     SK_XInput_PulseController (0, static_cast <float>(value.LeftMotor),
                                   static_cast <float>(value.RightMotor));
@@ -817,8 +831,14 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
     {
       SK_WGI_VIEW (SK_WGI_Backend, 0);
 
-      extern XINPUT_STATE hid_to_xi;
-                          hid_to_xi = pNewestInputDevice->xinput.prev_report;
+            extern     XINPUT_STATE hid_to_xi;
+      extern volatile ULONG64 hid_to_xi_time;
+
+      auto timestamp = ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
+      if (ReadULong64Acquire (&hid_to_xi_time) < timestamp)
+      {  WriteULong64Release (&hid_to_xi_time,   timestamp);
+         hid_to_xi = pNewestInputDevice->xinput.prev_report;
+      }
 
       memcpy (    &xi_state, &hid_to_xi, sizeof (XINPUT_STATE) );
 
@@ -967,10 +987,10 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
       SK_HID_SetupPlayStationControllers ()
     );
 
-    const bool bHasPlayStationControllers =
-         (! SK_HID_PlayStationControllers.empty ());
-
-    if (bHasPlayStationControllers)
+    //const bool bHasPlayStationControllers =
+    //     (! SK_HID_PlayStationControllers.empty ());
+    //
+    //if (bHasPlayStationControllers)
     { 
       if ((! config.input.gamepad.xinput.emulate) && SK_GetCurrentGameID () != SK_GAME_ID::HorizonForbiddenWest      &&
                                                      SK_GetCurrentGameID () != SK_GAME_ID::RatchetAndClank_RiftApart &&
@@ -1004,7 +1024,14 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
       SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepadStatics)");
 
     if (iid == IID_IGamepadStatics2)
+    {
       SK_LOGi0 (L"RoGetActivationFactory (IID_IGamepadStatics2)");
+
+      if (config.input.gamepad.xinput.emulate)
+      {
+        SK_LOGi0 (L" ==> Not Implemented By Special K!");
+      }
+    }
 
     if (iid == IID_IGamepadStatics)
     {
@@ -1079,11 +1106,11 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
               //             WGI_Gamepad_get_Vibration_Original,
               //             WGI_Gamepad_get_Vibration_pfn );
 
-              WGI_VIRTUAL_HOOK ( &pGamepad, 7,
-                          "ABI::Windows::Gaming::Input::IGamepad::put_Vibration",
-                           WGI_Gamepad_put_Vibration_Override,
-                           WGI_Gamepad_put_Vibration_Original,
-                           WGI_Gamepad_put_Vibration_pfn );
+                WGI_VIRTUAL_HOOK ( &pGamepad, 7,
+                            "ABI::Windows::Gaming::Input::IGamepad::put_Vibration",
+                             WGI_Gamepad_put_Vibration_Override,
+                             WGI_Gamepad_put_Vibration_Original,
+                             WGI_Gamepad_put_Vibration_pfn );
 
                 SK_ApplyQueuedHooks ();
               });

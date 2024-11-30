@@ -982,17 +982,17 @@ struct SK_HID_PlayStationDevice
   UCHAR dpad_report_id;
 
   struct hid_to_xi {
-    XINPUT_STATE   prev_report = { };
-    XINPUT_STATE   report      = { };
+    XINPUT_STATE    prev_report = { };
+    XINPUT_STATE    report      = { };
     struct {
-      XINPUT_STATE prev_report = { };
-      XINPUT_STATE report      = { };
+      XINPUT_STATE  prev_report = { };
+      XINPUT_STATE  report      = { };
     } internal; // For detection of last active gamepad,
                 //   includes an unusually strong deadzone
-    UINT64         last_active =  0 ;
+    volatile UINT64 last_active =  0 ;
     struct {
-      WORD         wLastLeft   =  0 ;
-      WORD         wLastRight  =  0 ;
+      WORD          wLastLeft   =  0 ;
+      WORD          wLastRight  =  0 ;
     } vibration;
   } xinput;
 

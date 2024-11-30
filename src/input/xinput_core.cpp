@@ -548,21 +548,29 @@ XInputGetState1_4_Detour (
       {
         if (controller.bConnected)
         {
-          if (pNewestInputDevice == nullptr ||
-              pNewestInputDevice->xinput.last_active < controller.xinput.last_active)
+          if (                     pNewestInputDevice == nullptr ||
+              ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) < ReadULong64Acquire (&controller.xinput.last_active))
           {
             pNewestInputDevice = &controller;
           }
         }
       }
 
-      if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active > ReadULong64Acquire (&last_time [0])))
+      if (pNewestInputDevice != nullptr && (bUseEmulation || ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) >= ReadULong64Acquire (&last_time [0])))
       {
         bUseEmulationForSetState = true;
 
-        extern XINPUT_STATE hid_to_xi;
-                            hid_to_xi = pNewestInputDevice->xinput.prev_report;
-        memcpy (  pState,  &hid_to_xi, sizeof (XINPUT_STATE) );
+        extern     XINPUT_STATE hid_to_xi;
+        extern volatile ULONG64 hid_to_xi_time;
+
+        auto timestamp =
+            ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
+        if (ReadULong64Acquire (&hid_to_xi_time) < timestamp)
+        {  WriteULong64Release (&hid_to_xi_time,   timestamp);
+           hid_to_xi = pNewestInputDevice->xinput.prev_report;
+        }
+
+        memcpy (pState, &hid_to_xi, sizeof (XINPUT_STATE));
 
         if (config.input.gamepad.xinput.debug)
         {
@@ -819,21 +827,29 @@ XInputGetStateEx1_4_Detour (
       {
         if (controller.bConnected)
         {
-          if (pNewestInputDevice == nullptr ||
-              pNewestInputDevice->xinput.last_active < controller.xinput.last_active)
+          if (                     pNewestInputDevice == nullptr ||
+              ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) < ReadULong64Acquire (&controller.xinput.last_active))
           {
             pNewestInputDevice = &controller;
           }
         }
       }
 
-      if (pNewestInputDevice != nullptr && (bUseEmulation || pNewestInputDevice->xinput.last_active > ReadULong64Acquire (&last_time [0])))
+      if (pNewestInputDevice != nullptr && (bUseEmulation || ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) >= ReadULong64Acquire (&last_time [0])))
       {
         bUseEmulationForSetState = true;
 
-        extern XINPUT_STATE hid_to_xi;
-                            hid_to_xi = pNewestInputDevice->xinput.prev_report;
-        memcpy ( pState,   &hid_to_xi, sizeof (XINPUT_STATE) );
+        extern     XINPUT_STATE hid_to_xi;
+        extern volatile ULONG64 hid_to_xi_time;
+
+        auto timestamp =
+            ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
+        if (ReadULong64Acquire (&hid_to_xi_time) < timestamp)
+        {  WriteULong64Release (&hid_to_xi_time,   timestamp);
+           hid_to_xi = pNewestInputDevice->xinput.prev_report;
+        }
+
+        memcpy (pState, &hid_to_xi, sizeof (XINPUT_STATE));
 
         if (config.input.gamepad.xinput.debug)
         {
@@ -1175,10 +1191,10 @@ XInputSetState1_4_Detour (
     {
       if (controller.bConnected)
       {
-        if (controller.xinput.last_active >= ReadULong64Acquire (&last_time [dwUserIndex]))
+        if (ReadULong64Acquire (&controller.xinput.last_active) >= ReadULong64Acquire (&last_time [dwUserIndex]))
         {
-          if ( pNewestInputDevice == nullptr ||
-               pNewestInputDevice->xinput.last_active < controller.xinput.last_active )
+          if (                      pNewestInputDevice == nullptr ||
+               ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) < ReadULong64Acquire (&controller.xinput.last_active) )
           {
             pNewestInputDevice = &controller;
           }
@@ -3035,10 +3051,10 @@ SK_XInput_PulseController ( INT   iJoyID,
     {
       if (controller.bConnected)
       {
-        if (controller.xinput.last_active >= ReadULong64Acquire (&last_time [iJoyID]))
+        if (ReadULong64Acquire (&controller.xinput.last_active) >= ReadULong64Acquire (&last_time [iJoyID]))
         {
-          if ( pNewestInputDevice == nullptr ||
-               pNewestInputDevice->xinput.last_active < controller.xinput.last_active )
+          if (                      pNewestInputDevice == nullptr ||
+               ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) < ReadULong64Acquire (&controller.xinput.last_active) )
           {
             pNewestInputDevice = &controller;
           }

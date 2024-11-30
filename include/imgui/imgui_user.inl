@@ -1789,7 +1789,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
   static XINPUT_STATE last_state = { 1, 0 };
 
-  hid_to_xi.Gamepad = {};
+//  hid_to_xi.Gamepad = {};
 
   bool bHasPlayStation = false;
 
@@ -1824,7 +1824,13 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
     if (pLastActiveController != nullptr)
     {
-      hid_to_xi = pLastActiveController->xinput.prev_report;
+      extern volatile ULONG64 hid_to_xi_time;
+
+      auto timestamp = ReadULong64Acquire (&pLastActiveController->xinput.last_active);
+      if (ReadULong64Acquire (&hid_to_xi_time) < timestamp)
+      {  WriteULong64Release (&hid_to_xi_time, timestamp);
+          hid_to_xi = pLastActiveController->xinput.prev_report;
+      }
 
       if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate)
       {

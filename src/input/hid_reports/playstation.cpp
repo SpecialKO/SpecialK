@@ -2359,13 +2359,13 @@ SK_HID_PlayStationDevice::request_input_report (void)
             }
 
             if (bIsInputActive)
-              pDevice->xinput.last_active = SK_QueryPerf ().QuadPart;
+              WriteULong64Release (&pDevice->xinput.last_active, SK_QueryPerf ().QuadPart);
 
             bool bIsDeviceMostRecentlyActive = true;
 
             for ( auto& ps_controller : SK_HID_PlayStationControllers )
             {
-              if (ps_controller.xinput.last_active > pDevice->xinput.last_active)
+              if (ReadULong64Acquire (&ps_controller.xinput.last_active) > ReadULong64Acquire (&pDevice->xinput.last_active))
               {
                 bIsDeviceMostRecentlyActive = false;
                 break;
@@ -2379,8 +2379,10 @@ SK_HID_PlayStationDevice::request_input_report (void)
               //     protocols and do not want repeats of the same
               //       input...
               if (bIsDeviceMostRecentlyActive)
-              {
-                pDevice->xinput.last_active += (SK_PerfFreq / 13);
+              { // Need interlock
+                auto last_active =
+                  ReadULong64Acquire (&pDevice->xinput.last_active) + (SK_PerfFreq / 13);
+                WriteULong64Release  (&pDevice->xinput.last_active, last_active);
               }
             }
 
@@ -3856,7 +3858,7 @@ SK_HID_PlayStationDevice::reset_device (void)
   WriteULongRelease (&_vibration.last_set, 0);
   WriteULongRelease (&_vibration.max_val,  0);
 
-  xinput.last_active =  0;
+  WriteULong64Release (&xinput.last_active, 0);
 
   xinput.         prev_report = {};
   xinput.              report = {};

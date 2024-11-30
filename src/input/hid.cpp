@@ -445,7 +445,8 @@ SetupDiGetDeviceInterfaceDetailW_pfn SK_SetupDiGetDeviceInterfaceDetailW = nullp
 SetupDiGetDeviceInterfaceDetailA_pfn SK_SetupDiGetDeviceInterfaceDetailA = nullptr;
 SetupDiDestroyDeviceInfoList_pfn     SK_SetupDiDestroyDeviceInfoList     = nullptr;
 
-XINPUT_STATE hid_to_xi { };
+XINPUT_STATE     hid_to_xi { };
+volatile ULONG64 hid_to_xi_time = 0;
 
 bool
 SK_HID_FilterPreparsedData (PHIDP_PREPARSED_DATA pData)

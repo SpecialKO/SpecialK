@@ -1639,7 +1639,7 @@ SK_IPlayStationGameInputReading::GetTimestamp (void) noexcept
         if (controller.bConnected)
         {
           timestamp =
-            std::max (timestamp, controller.xinput.last_active);
+            std::max (timestamp, ReadULong64Acquire (&controller.xinput.last_active));
         }
       }
     }
