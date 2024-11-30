@@ -822,6 +822,61 @@ struct SK_HID_DualShock4_GetStateDataBt : SK_HID_DualShock4_GetStateData {
 
 void
 SK_HID_PlayStationDevice::setVibration (
+  USHORT low_freq,
+  USHORT high_freq,
+  USHORT left_trigger,
+  USHORT right_trigger,
+  USHORT max_val )
+{
+  if (max_val == 0)
+  {
+    const auto last_max = ReadULongAcquire (&_vibration.max_val);
+
+    InterlockedCompareExchange (
+      &_vibration.max_val,
+        std::max ( { last_max,
+                     static_cast <DWORD> (low_freq),
+                     static_cast <DWORD> (high_freq),
+                     static_cast <DWORD> (left_trigger),
+                     static_cast <DWORD> (right_trigger),} ),
+                     last_max
+    );
+
+    if (last_max > 255)
+      max_val = 65535;
+    else
+      max_val = 255;
+  }
+
+  WriteULongRelease (&_vibration.left,
+    std::min (255UL,
+      static_cast <ULONG> (
+        std::clamp (static_cast <double> (low_freq)/
+                    static_cast <double> (max_val), 0.0, 1.0) * 256.0)));
+  
+  WriteULongRelease (&_vibration.right,
+    std::min (255UL,
+      static_cast <ULONG> (
+        std::clamp (static_cast <double> (high_freq)/
+                    static_cast <double> (max_val), 0.0, 1.0) * 256.0)));
+
+  WriteULongRelease (&_vibration.trigger.left,
+    std::min (255UL,
+      static_cast <ULONG> (
+        std::clamp (static_cast <double> (left_trigger)/
+                    static_cast <double> (max_val), 0.0, 1.0) * 256.0)));
+  
+  WriteULongRelease (&_vibration.trigger.right,
+    std::min (255UL,
+      static_cast <ULONG> (
+        std::clamp (static_cast <double> (right_trigger)/
+                    static_cast <double> (max_val), 0.0, 1.0) * 256.0)));
+
+  WriteULongRelease (&_vibration.last_set, SK::ControlPanel::current_time);
+}
+
+void
+SK_HID_PlayStationDevice::setVibration (
   USHORT left,
   USHORT right,
   USHORT max_val )
@@ -855,6 +910,9 @@ SK_HID_PlayStationDevice::setVibration (
       static_cast <ULONG> (
         std::clamp (static_cast <double> (right)/
                     static_cast <double> (max_val), 0.0, 1.0) * 256.0)));
+
+  WriteULongRelease (&_vibration.trigger.left,  0);
+  WriteULongRelease (&_vibration.trigger.right, 0);
 
   WriteULongRelease (&_vibration.last_set, SK::ControlPanel::current_time);
 }
@@ -2606,6 +2664,63 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               sk::narrow_cast <BYTE> (
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
+
+            uint8_t effects[3][11] = {
+              /* Clear trigger effect */
+              { 0x05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+              /* Constant resistance across entire trigger pull */
+              { 0x01, 0, 110, 0, 0, 0, 0, 0, 0, 0, 0 },
+              /* Resistance and vibration when trigger is pulled */
+              { 0x06, 15, 63, 0, 0, 0, 0, 0, 0, 0, 0 },
+            };
+
+            //static int trigger_effect = 0;
+            //           trigger_effect = (trigger_effect + 1) % 3;
+
+            if (pDevice->_vibration.trigger.left != 0)
+            {
+              output->AllowLeftTriggerFFB  = true;
+
+              const auto trigger_effect = 2;
+              memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+
+              output->LeftTriggerFFB [2] =
+                static_cast <uint8_t> (std::clamp (
+                  static_cast <float> (pDevice->_vibration.trigger.left) *
+                             config.input.gamepad.impulse_strength_l, 0.0f, 1.0f)
+                );
+            }
+
+            else
+            {
+              output->AllowLeftTriggerFFB  = true;
+
+              const auto trigger_effect = 0;
+              memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+            }
+
+            if (pDevice->_vibration.trigger.right != 0)
+            {
+              output->AllowRightTriggerFFB = true;
+
+              const auto trigger_effect = 2;
+              memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+
+              output->RightTriggerFFB [2] =
+                static_cast <uint8_t> (std::clamp (
+                  static_cast <float> (pDevice->_vibration.trigger.right) *
+                             config.input.gamepad.impulse_strength_r, 0.0f, 1.0f)
+                );
+            }
+
+            else
+            {
+              output->AllowRightTriggerFFB  = true;
+
+              const auto trigger_effect = 0;
+              memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+            }
+
 
             static bool       bMuted     = SK_IsGameMuted ();
             static DWORD dwLastMuteCheck = SK_timeGetTime ();

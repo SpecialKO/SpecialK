@@ -1041,13 +1041,18 @@ struct SK_HID_PlayStationDevice
     volatile ULONG left, right;
     volatile ULONG last_set;
 
+    struct {
+      volatile ULONG left;
+      volatile ULONG right;
+    } trigger;
+
     volatile ULONG max_val = 0;
 
     // At most, allow the controller to vibrate for 1000 ms without
     //   some kind of attempt to set a new value... otherwise, it
     //     will tend to vibrate infinitely.
     static constexpr auto MAX_TTL_IN_MSECS = 1000UL;
-  } _vibration = { 0, 0, 0, 0 };
+  } _vibration = { 0, 0, 0, 0, 0, 0 };
 
   void setRGB (BYTE red, BYTE green, BYTE blue) {
     _color.r = red;
@@ -1057,6 +1062,12 @@ struct SK_HID_PlayStationDevice
 
   void setVibration ( USHORT left,
                       USHORT right,
+                      USHORT max_val = std::numeric_limits <USHORT>::max () );
+
+  void setVibration ( USHORT low_freq,
+                      USHORT high_freq,
+                      USHORT left_trigger,
+                      USHORT right_trigger,
                       USHORT max_val = std::numeric_limits <USHORT>::max () );
 
   bool request_input_report (void);

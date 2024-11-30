@@ -2,6 +2,9 @@
 ========
  + For all Unreal Engine games that use GameInput, enable Xbox Emulation by
      default on first launch.
+ + Implement Adaptive Trigger response for GameInput Impulse Trigger emulation,
+     shooting guns and stabbing stuff in STALKER 2 now has Force Feedback that
+       would otherwise be Xbox exclusive!
 
 24.11.29.5
 ==========

@@ -1007,8 +1007,39 @@ SK_IGameInputDevice::SetRumbleState (GameInputRumbleParams const *params) noexce
     float left  = (params_.lowFrequency  + params_.leftTrigger  * config.input.gamepad.impulse_strength_l);
     float right = (params_.highFrequency + params_.rightTrigger * config.input.gamepad.impulse_strength_r);
 
-    SK_XInput_PulseController ( 0, std::clamp (left,  0.0f, 1.0f),
-                                   std::clamp (right, 0.0f, 1.0f) );
+    if (params_.leftTrigger != 0 && params_.rightTrigger != 0)
+    {
+      SK_XInput_PulseController ( 0, std::clamp (left,  0.0f, 1.0f),
+                                     std::clamp (right, 0.0f, 1.0f) );
+    }
+
+    else
+    {
+      if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+      {
+        SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
+
+        for ( auto& controller : SK_HID_PlayStationControllers )
+        {
+          if (controller.bConnected)
+          {
+            if (pNewestInputDevice == nullptr ||
+                pNewestInputDevice->xinput.last_active < controller.xinput.last_active)
+            {
+              pNewestInputDevice = &controller;
+            }
+          }
+        }
+
+        if (pNewestInputDevice != nullptr)
+        {
+          pNewestInputDevice->setVibration (std::min (65535ui16, static_cast <USHORT> (params_.lowFrequency  * 65536.0f)),
+                                            std::min (65535ui16, static_cast <USHORT> (params_.highFrequency * 65536.0f)),
+                                            std::min (65535ui16, static_cast <USHORT> (params_.leftTrigger   * 65536.0f)),
+                                            std::min (65535ui16, static_cast <USHORT> (params_.rightTrigger  * 65536.0f)), 65535ui16);
+        }
+      }
+    }
   }
 }
 
