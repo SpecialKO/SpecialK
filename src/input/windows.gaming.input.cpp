@@ -75,12 +75,17 @@ using WGI_GamepadStatistics_get_Gamepads_pfn = HRESULT (STDMETHODCALLTYPE *)(ABI
                                                                 IVectorView <ABI::Windows::Gaming::Input::Gamepad*>       **value);
 using WGI_Gamepad_GetCurrentReading_pfn      = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepad         *This,
                                                                              ABI::Windows::Gaming::Input::GamepadReading   *value);
+using WGI_Gamepad_put_Vibration_pfn          = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepad         *This,
+                                                                             ABI::Windows::Gaming::Input::GamepadVibration  value);
 
 WGI_GamepadStatistics_get_Gamepads_pfn
 WGI_GamepadStatistics_get_Gamepads_Original = nullptr;
 
 WGI_Gamepad_GetCurrentReading_pfn
 WGI_Gamepad_GetCurrentReading_Original = nullptr;
+
+WGI_Gamepad_put_Vibration_pfn
+WGI_Gamepad_put_Vibration_Original = nullptr;
 
 using WGI_VectorView_Gamepads_GetAt_pfn    = HRESULT (STDMETHODCALLTYPE *)(void *This, _In_     unsigned  index,      _Out_ void     **item);
 using WGI_VectorView_Gamepads_get_Size_pfn = HRESULT (STDMETHODCALLTYPE *)(void *This, _Out_    unsigned *size);
@@ -395,44 +400,56 @@ public:
   {
     SK_LOG_FIRST_CALL
 
-    vibes = value;
+    bool bRedirected = false;
 
-    //SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
-
-    bool bConnected = false;
+    SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
 
     for ( auto& ps_controller : SK_HID_PlayStationControllers )
     {
       if (ps_controller.bConnected)
       {
-        ps_controller.setVibration (
-          (std::min (255ui16, static_cast <USHORT> (vibes.LeftMotor  * 255.0 + vibes.LeftTrigger  * 255.0))),
-          (std::min (255ui16, static_cast <USHORT> (vibes.RightMotor * 255.0 + vibes.RightTrigger * 255.0))), 255ui16
-        );
-
-        if ((ps_controller.bBluetooth && config.input.gamepad.bt_input_only))
+        if (pNewestInputDevice == nullptr ||
+            pNewestInputDevice->xinput.last_active < ps_controller.xinput.last_active)
         {
-        }
-
-        else if ((! (ps_controller.bBluetooth && ps_controller.bSimpleMode)) || (vibes.LeftMotor > 0.0 || vibes.RightMotor > 0.0))
-        {
-          if (ps_controller.bBluetooth && (vibes.LeftMotor <= 0.0 && vibes.RightMotor <= 0.0))
-          {
-            if (ps_controller.write_output_report ()) // Let the device decide whether to process this or not
-              bConnected = true;
-          }
-          else
-          {
-            // Force an update
-            if (ps_controller.write_output_report (true))
-              bConnected = true;
-          }
+          pNewestInputDevice = &ps_controller;
         }
       }
     }
 
-    if (! bConnected)
-      SK_XInput_PulseController (0, (float)vibes.LeftMotor, (float)vibes.RightMotor);
+    if (pNewestInputDevice != nullptr)
+    {
+      if (! SK_ImGui_WantGamepadCapture ())
+      {
+        pNewestInputDevice->setVibration (
+          std::min (65535ui16, static_cast <USHORT> (value.LeftMotor    * 65536.0)),
+          std::min (65535ui16, static_cast <USHORT> (value.RightMotor   * 65536.0)),
+          std::min (65535ui16, static_cast <USHORT> (value.LeftTrigger  * 65536.0)),
+          std::min (65535ui16, static_cast <USHORT> (value.RightTrigger * 65536.0)),
+                    65535ui16
+        );
+
+        // Force an update
+        //if (pNewestInputDevice->write_output_report (true))
+        {
+          vibes       = value;
+          bRedirected = true;
+        }
+      }
+
+      // Swallow vibration while capturing gamepad input
+      else
+      {
+        bRedirected = true;
+      }
+    }
+
+    // Forward the input to XInput because there was no PlayStation device
+    if (! bRedirected)
+    {
+      vibes = value;
+      SK_XInput_PulseController (0, static_cast <float>(vibes.LeftMotor),
+                                    static_cast <float>(vibes.RightMotor));
+    }
 
     return S_OK;
   }
@@ -601,6 +618,69 @@ bool SK_WGI_EmulatedPlayStation = false;
 
 HRESULT
 STDMETHODCALLTYPE
+WGI_Gamepad_put_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad         *This,
+                                    ABI::Windows::Gaming::Input::GamepadVibration  value)
+{
+  SK_LOG_FIRST_CALL
+
+  std::ignore = This;
+
+  bool bRedirected = false;
+
+  SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
+
+  for ( auto& ps_controller : SK_HID_PlayStationControllers )
+  {
+    if (ps_controller.bConnected)
+    {
+      if (pNewestInputDevice == nullptr ||
+          pNewestInputDevice->xinput.last_active < ps_controller.xinput.last_active)
+      {
+        pNewestInputDevice = &ps_controller;
+      }
+    }
+  }
+
+  if (pNewestInputDevice != nullptr)
+  {
+    if (! SK_ImGui_WantGamepadCapture ())
+    {
+      pNewestInputDevice->setVibration (
+        std::min (65535ui16, static_cast <USHORT> (value.LeftMotor    * 65536.0)),
+        std::min (65535ui16, static_cast <USHORT> (value.RightMotor   * 65536.0)),
+        std::min (65535ui16, static_cast <USHORT> (value.LeftTrigger  * 65536.0)),
+        std::min (65535ui16, static_cast <USHORT> (value.RightTrigger * 65536.0)),
+                  65535ui16
+      );
+
+      // Force an update
+      //if (pNewestInputDevice->write_output_report (true))
+      {
+        //vibes       = value;
+        bRedirected = true;
+      }
+    }
+
+    // Swallow vibration while capturing gamepad input
+    else
+    {
+      bRedirected = true;
+    }
+  }
+
+  // Forward the input to XInput because there was no PlayStation device
+  if (! bRedirected)
+  {
+    //vibes = value;
+    SK_XInput_PulseController (0, static_cast <float>(value.LeftMotor),
+                                  static_cast <float>(value.RightMotor));
+  }
+
+  return S_OK;
+}
+
+HRESULT
+STDMETHODCALLTYPE
 WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad       *This,
                                         ABI::Windows::Gaming::Input::GamepadReading *value)
 {
@@ -742,7 +822,7 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
 
       memcpy (    &xi_state, &hid_to_xi, sizeof (XINPUT_STATE) );
 
-      value->Timestamp = SK_QueryPerf ().QuadPart;
+      value->Timestamp = pNewestInputDevice->xinput.last_active;
       value->Buttons   = GamepadButtons::GamepadButtons_None;
 
       if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP))
@@ -949,7 +1029,7 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
         //  9 remove_GamepadRemoved
         // 10 get_Gamepads
 
-        if (config.input.gamepad.xinput.emulate && SK_GetCurrentGameID () != SK_GAME_ID::ForzaHorizon5)
+        if (config.input.gamepad.xinput.emulate)
         {
           SK_RunOnce ({
             WGI_VIRTUAL_HOOK ( &pGamepadStatsFactory, 10,
@@ -993,19 +1073,17 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
                            WGI_Gamepad_GetCurrentReading_Original,
                            WGI_Gamepad_GetCurrentReading_pfn );
 
-/*
-              WGI_VIRTUAL_HOOK ( &pGamepad, 6,
-                          "ABI::Windows::Gaming::Input::IGamepad::get_Vibration",
-                           WGI_Gamepad_get_Vibration_Override,
-                           WGI_Gamepad_get_Vibration_Original,
-                           WGI_Gamepad_get_Vibration_pfn );
+              //WGI_VIRTUAL_HOOK ( &pGamepad, 6,
+              //            "ABI::Windows::Gaming::Input::IGamepad::get_Vibration",
+              //             WGI_Gamepad_get_Vibration_Override,
+              //             WGI_Gamepad_get_Vibration_Original,
+              //             WGI_Gamepad_get_Vibration_pfn );
 
               WGI_VIRTUAL_HOOK ( &pGamepad, 7,
                           "ABI::Windows::Gaming::Input::IGamepad::put_Vibration",
                            WGI_Gamepad_put_Vibration_Override,
                            WGI_Gamepad_put_Vibration_Original,
                            WGI_Gamepad_put_Vibration_pfn );
-*/
 
                 SK_ApplyQueuedHooks ();
               });

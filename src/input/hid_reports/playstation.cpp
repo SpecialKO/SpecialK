@@ -2691,11 +2691,9 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                           static_cast <uint8_t> (std::clamp (
                             static_cast <float> (dwLeftTrigger) *
                                        config.input.gamepad.impulse_strength_l, 0.0f, 1.0f) );
-                pDevice->_vibration.trigger.last_left = dwLeftTrigger;
               } else {  output->AllowLeftTriggerFFB = true;
                 const auto                               trigger_effect = 0;
                 memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-                pDevice->_vibration.trigger.last_left = dwLeftTrigger;
               }
               if (dwRightTrigger != 0)
               {    output->AllowRightTriggerFFB = true;
@@ -2705,12 +2703,12 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                           static_cast <uint8_t> (std::clamp (
                             static_cast <float> (dwRightTrigger) *
                                        config.input.gamepad.impulse_strength_r, 0.0f, 1.0f) );
-                pDevice->_vibration.trigger.last_right = dwRightTrigger;
               } else {  output->AllowRightTriggerFFB  = true;
                 const auto                                trigger_effect = 0;
                 memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-                pDevice->_vibration.trigger.last_right = dwRightTrigger;
               }
+              pDevice->_vibration.trigger.last_right = dwRightTrigger;
+              pDevice->_vibration.trigger.last_left  = dwLeftTrigger;
             }
 
 
@@ -2870,11 +2868,9 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                           static_cast <uint8_t> (std::clamp (
                             static_cast <float> (dwLeftTrigger) *
                                        config.input.gamepad.impulse_strength_l, 0.0f, 1.0f) );
-                pDevice->_vibration.trigger.last_left = dwLeftTrigger;
               } else {  output->AllowLeftTriggerFFB  = true;
                 const auto                               trigger_effect = 0;
                 memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-                pDevice->_vibration.trigger.last_left = dwLeftTrigger;
               }
               if (dwRightTrigger != 0)
               {    output->AllowRightTriggerFFB = true;
@@ -2884,12 +2880,12 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                           static_cast <uint8_t> (std::clamp (
                             static_cast <float> (dwRightTrigger) *
                                        config.input.gamepad.impulse_strength_r, 0.0f, 1.0f) );
-                pDevice->_vibration.trigger.last_right = dwRightTrigger;
               } else {  output->AllowRightTriggerFFB  = true;
                 const auto                                trigger_effect = 0;
                 memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-                pDevice->_vibration.trigger.last_right = dwRightTrigger;
               }
+              pDevice->_vibration.trigger.last_right = dwRightTrigger;
+              pDevice->_vibration.trigger.last_left  = dwLeftTrigger;
             }
             output->AllowMuteLight           = true;
 

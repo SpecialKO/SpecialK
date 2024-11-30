@@ -1,4 +1,11 @@
-﻿24.11.30.3
+﻿24.11.30.4
+==========
+ + Added Xbox Impulse Trigger->PlayStation Adaptive Trigger emulation for games
+     using Windows.Gaming.Input (99.99% of games that support the feature).
+
+    * Make sure Xbox Mode is enabled and restart if needed; off by default.
+
+24.11.30.3
 ==========
  + Properly remove Adaptive Trigger force feedback when impulse vibration stops
 
