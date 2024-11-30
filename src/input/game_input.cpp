@@ -1004,11 +1004,11 @@ SK_IGameInputDevice::SetRumbleState (GameInputRumbleParams const *params) noexce
 
   if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api) && (! SK_ImGui_WantGamepadCapture ()))
   {
-    float left  = (params_.lowFrequency  + params_.leftTrigger  * config.input.gamepad.impulse_strength_l);
-    float right = (params_.highFrequency + params_.rightTrigger * config.input.gamepad.impulse_strength_r);
-
-    if (params_.leftTrigger != 0 && params_.rightTrigger != 0)
+    if (params_.leftTrigger == 0 && params_.rightTrigger == 0)
     {
+      const float left  = params_.lowFrequency;
+      const float right = params_.highFrequency;
+
       SK_XInput_PulseController ( 0, std::clamp (left,  0.0f, 1.0f),
                                      std::clamp (right, 0.0f, 1.0f) );
     }
