@@ -996,12 +996,6 @@ SK_IGameInputDevice::SetRumbleState (GameInputRumbleParams const *params) noexce
 
   GameInputRumbleParams params_ = *params;
 
-  if (config.input.gamepad.disable_rumble)
-  {
-    SK_XInput_ZeroHaptics (0);
-    return;
-  }
-
   if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api) && (! SK_ImGui_WantGamepadCapture ()))
   {
     if (params_.leftTrigger == 0 && params_.rightTrigger == 0)
