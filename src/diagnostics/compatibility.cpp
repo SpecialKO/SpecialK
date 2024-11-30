@@ -1196,23 +1196,21 @@ SK_slGetNativeInterface (void *proxyInterface, void **baseInterface)
   if (FAILED (pUnk->QueryInterface (__uuidof (IStreamlineBaseInterface), baseInterface)))
     return sl::Result::eErrorUnsupportedInterface;
 #else
-  static bool has_streamline =
-       PathFileExistsW (L"sl.interposer.dll") ||
-      GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+  sl::Result result;
 
-  if (has_streamline)
-  {
-    static slGetNativeInterface_pfn
-           slGetNativeInterface =
-          (slGetNativeInterface_pfn)SK_GetProcAddress (L"sl.interposer.dll",
-          "slGetNativeInterface");
+  static
+      slGetNativeInterface_pfn
+      slGetNativeInterface  = nullptr;
+  if (slGetNativeInterface == nullptr && SK_GetFramesDrawn () < 240)
+      slGetNativeInterface =
+     (slGetNativeInterface_pfn)SK_GetProcAddress (L"sl.interposer.dll",
+     "slGetNativeInterface"); result =
+      slGetNativeInterface != nullptr                      ?
+      slGetNativeInterface (proxyInterface, baseInterface) :
+                          sl::Result::eErrorNotInitialized ;
 
-    if (slGetNativeInterface != nullptr)
-      return slGetNativeInterface (proxyInterface, baseInterface);
-  }
+  return result;
 #endif
-
-  return sl::Result::eErrorNotInitialized;
 }
 
 sl::Result
@@ -1266,21 +1264,19 @@ SK_slUpgradeInterface (void **baseInterface)
     return result;
   }
 #else
-  static bool has_streamline =
-       PathFileExistsW (L"sl.interposer.dll") ||
-      GetModuleHandleW (L"sl.interposer.dll") != nullptr;
+  sl::Result result;
 
-  if (has_streamline)
-  {
-    static slUpgradeInterface_pfn
-           slUpgradeInterface =
-          (slUpgradeInterface_pfn)SK_GetProcAddress (L"sl.interposer.dll",
-          "slUpgradeInterface");
-  
-    if (slUpgradeInterface != nullptr)
-      return slUpgradeInterface (baseInterface);
-  }
+  static
+      slUpgradeInterface_pfn
+      slUpgradeInterface  = nullptr;
+  if (slUpgradeInterface == nullptr && SK_GetFramesDrawn () < 240)
+      slUpgradeInterface =
+     (slUpgradeInterface_pfn)SK_GetProcAddress (L"sl.interposer.dll",
+     "slUpgradeInterface"); result =
+      slUpgradeInterface != nullptr      ?
+      slUpgradeInterface (baseInterface) :
+        sl::Result::eErrorNotInitialized ;
+
+  return result;
 #endif
-
-  return sl::Result::eErrorNotInitialized;
 }
