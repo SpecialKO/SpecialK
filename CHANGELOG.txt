@@ -1,4 +1,12 @@
-﻿24.11.30
+﻿24.11.30.1
+==========
+ + Bring back original slUpgradeInterface / slGetNativeInterface implementation
+     that could handle situations where sl.interposer.dll is loaded late.
+ + Increase default impulse trigger strength modifier to 0.75x, and properly
+     handle the case where setVibration (...) has zero trigger data.
+
+
+24.11.30
 ========
  + For all Unreal Engine games that use GameInput, enable Xbox Emulation by
      default on first launch.
