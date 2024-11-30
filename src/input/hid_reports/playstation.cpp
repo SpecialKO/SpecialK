@@ -2879,6 +2879,15 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             output->
                EnableImprovedRumbleEmulation = true;
 
+            output->RumbleEmulationRight =
+              sk::narrow_cast <BYTE> (
+                ReadULongAcquire (&pDevice->_vibration.right)
+              );
+            output->RumbleEmulationLeft  =
+              sk::narrow_cast <BYTE> (
+                ReadULongAcquire (&pDevice->_vibration.left)
+              );
+
             static bool       bMuted     = SK_IsGameMuted ();
             static DWORD dwLastMuteCheck = SK_timeGetTime ();
 
