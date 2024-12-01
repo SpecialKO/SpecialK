@@ -994,6 +994,13 @@ struct SK_HID_PlayStationDevice
       WORD          wLastLeft   =  0 ;
       WORD          wLastRight  =  0 ;
     } vibration;
+
+    bool isNewer (const hid_to_xi& reading) const
+    {
+      return
+        ReadULong64Acquire (        &last_active) >
+        ReadULong64Acquire (&reading.last_active);
+    }
   } xinput;
 
   bool                          chord_activated = false;

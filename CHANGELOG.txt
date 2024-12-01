@@ -1,7 +1,15 @@
-﻿24.12.1.3
+﻿24.12.1.4
+=========
+ + Support native GameInput implementations when Xbox Emulation is turned off.
+
+24.12.1.3
 =========
  + XInput emulation now bypasses GameInput.dll for systems that do not have
      this DLL.
+
+24.12.1.2
+=========
+ + Enable Impulse Trigger strength sliders in Windows.Gaming.Input games
 
 24.12.1.1
 =========

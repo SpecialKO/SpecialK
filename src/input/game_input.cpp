@@ -425,8 +425,7 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
         {
           if (controller.bConnected)
           {
-            if (pNewestInputDevice == nullptr ||
-                pNewestInputDevice->xinput.last_active < controller.xinput.last_active)
+            if (pNewestInputDevice == nullptr || controller.xinput.isNewer (pNewestInputDevice->xinput))
             {
               pNewestInputDevice = &controller;
             }
@@ -435,12 +434,13 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
 
         if (pNewestInputDevice != nullptr)
         {
-          virtual_active = pNewestInputDevice->xinput.last_active;
+          virtual_active =
+            ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
         }
       }
     }
 
-    if (std::exchange (last_virtual_active, virtual_active) != last_virtual_active)
+    if (std::exchange (last_virtual_active, virtual_active) != virtual_active)
     {
       if (reading != nullptr)
          *reading = (IGameInputReading *)&virtual_next_reading;
@@ -793,44 +793,42 @@ GameInputCreate_Detour (IGameInput** gameInput)
 {
   SK_LOG_FIRST_CALL
 
-  IGameInput* pReal;
+  IGameInput* pReal = nullptr;
 
   HRESULT hr =
     GameInputCreate_Original (&pReal);
 
   if (SUCCEEDED (hr) || config.input.gamepad.xinput.emulate)
   {
-    //if (gameInput != nullptr)
+    // Turn on XInput emulation by default on first-run for Unreal Engine.
+    //
+    //   -> Their GameInput integration is extremely simple and SK is fully compatible.
+    //
+    if (config.system.first_run && (! SK_XInput_PollController (0)))
     {
-      // Turn on XInput emulation by default on first-run for Unreal Engine.
-      //
-      //   -> Their GameInput integration is extremely simple and SK is fully compatible.
-      //
-      if (config.system.first_run && (! SK_XInput_PollController (0)))
+      SK_RunOnce (if (! SK_ImGui_HasPlayStationController  ())
+                        SK_HID_SetupPlayStationControllers ());
+
+      if (SK_ImGui_HasPlayStationController () && StrStrIW (SK_GetFullyQualifiedApp (), L"Binaries\\Win"))
       {
-        SK_RunOnce (if (! SK_ImGui_HasPlayStationController  ())
-                          SK_HID_SetupPlayStationControllers ());
+        SK_LOGi0 (L"Enabling Xbox Mode because Unreal Engine is using GameInput...");
 
-        if (SK_ImGui_HasPlayStationController () && StrStrIW (SK_GetFullyQualifiedApp (), L"WinGDK"))
-        {
-          SK_LOGi0 (L"Enabling Xbox Mode because Unreal Engine is using GameInput...");
-
-          config.input.gamepad.xinput.emulate = true;
-        }
-      }
-
-      if (config.input.gamepad.xinput.emulate)
-      {
-        *gameInput = (IGameInput *)new SK_IWrapGameInput (pReal);
-        return S_OK;
+        config.input.gamepad.xinput.emulate = true;
       }
     }
 
-    //else
-    //{
-    //  pReal->Release ();
-    //}
+    if (config.input.gamepad.xinput.emulate)
+    {
+      if (gameInput != nullptr)
+         *gameInput = (IGameInput *)new SK_IWrapGameInput (pReal);
+      else                          new SK_IWrapGameInput (pReal);
+
+      return S_OK;
+    }
   }
+
+  if (gameInput != nullptr && pReal != nullptr)
+     *gameInput = pReal;
 
   return hr;
 }
@@ -1035,8 +1033,7 @@ SK_IGameInputDevice::SetRumbleState (GameInputRumbleParams const *params) noexce
         {
           if (controller.bConnected)
           {
-            if (pNewestInputDevice == nullptr ||
-                pNewestInputDevice->xinput.last_active < controller.xinput.last_active)
+            if (pNewestInputDevice == nullptr || controller.xinput.isNewer (pNewestInputDevice->xinput))
             {
               pNewestInputDevice = &controller;
             }
@@ -1864,8 +1861,7 @@ SK_IPlayStationGameInputReading::GetGamepadState (GameInputGamepadState *state) 
       {
         if (controller.bConnected)
         {
-          if (pNewestInputDevice == nullptr ||
-              pNewestInputDevice->xinput.last_active < controller.xinput.last_active)
+          if (pNewestInputDevice == nullptr || controller.xinput.isNewer (pNewestInputDevice->xinput))
           {
             pNewestInputDevice = &controller;
           }
