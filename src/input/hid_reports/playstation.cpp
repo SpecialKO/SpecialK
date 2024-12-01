@@ -1105,7 +1105,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
     SK_Thread_CreateEx ([](LPVOID pUser)->DWORD
     {
-      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_HIGHEST);
+      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
 
       SK_HID_PlayStationDevice* pDevice =
         (SK_HID_PlayStationDevice *)pUser;

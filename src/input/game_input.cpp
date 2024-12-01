@@ -793,7 +793,7 @@ GameInputCreate_Detour (IGameInput** gameInput)
 {
   SK_LOG_FIRST_CALL
 
-  IGameInput* pReal = nullptr;
+  IGameInput* pReal ;
 
   HRESULT hr =
     GameInputCreate_Original (&pReal);

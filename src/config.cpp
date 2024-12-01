@@ -3522,6 +3522,8 @@ auto DeclKeybind =
 
       case SK_GAME_ID::ForzaHorizon5:
       {
+        config.input.gamepad.dualsense.trigger_effect_l = config.input.gamepad.dualsense.Vibration;
+        config.input.gamepad.dualsense.trigger_effect_r = config.input.gamepad.dualsense.Vibration;
         if (SK_IsInjected () && ((! PathFileExists (L"dxgi.dll")) &&
                                  (! PathFileExists (L"d3d12.dll"))))
         {

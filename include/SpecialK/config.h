@@ -1148,6 +1148,20 @@ struct sk_config_t
         bool  calc_latency        = false;
       } hid;
 
+      struct dualsense_s {
+        enum effect : int
+        {
+          Off       = 0,
+          Feedback  = 1,
+          Weapon    = 2,
+          Vibration = 3
+        };
+        float  trigger_strength_r     = 1.0f;
+        float  trigger_strength_l     = 1.0f;
+        effect trigger_effect_r       = Weapon;
+        effect trigger_effect_l       = Weapon;
+      } dualsense;
+
       bool    blocks_screensaver  =  true;
     } gamepad;
 
