@@ -115,6 +115,9 @@ SK_IWrapGameInput::QueryInterface (REFIID riid, void **ppvObject) noexcept
     return S_OK;
   }
 
+  if (! pReal)
+    return E_NOTIMPL;
+
   HRESULT hr =
     pReal->QueryInterface (riid, ppvObject);
 
@@ -145,7 +148,7 @@ SK_IWrapGameInput::AddRef (void) noexcept
   InterlockedIncrement (&refs_);
 
   return
-    pReal->AddRef ();
+    pReal != nullptr ? pReal->AddRef () : 1;
 };
 
 ULONG
@@ -154,7 +157,7 @@ SK_IWrapGameInput::Release (void) noexcept
 {
   ULONG xrefs =
     InterlockedDecrement (&refs_),
-         refs = pReal->Release ();
+         refs = pReal != nullptr ? pReal->Release () : 1;
 
   if (xrefs == 0)
   {
@@ -179,7 +182,8 @@ SK_IWrapGameInput::GetCurrentTimestamp (void) noexcept
 {
   SK_LOG_FIRST_CALL
 
-  return pReal->GetCurrentTimestamp ();
+  return
+    pReal != nullptr ? pReal->GetCurrentTimestamp () : SK_QueryPerf ().QuadPart;
 }
 
 static concurrency::concurrent_unordered_map <IGameInputDevice*,concurrency::concurrent_unordered_map <GameInputKind,SK_ComPtr<IGameInputReading>>> _current_readings;
@@ -256,7 +260,7 @@ SK_IWrapGameInput::GetCurrentReading (_In_          GameInputKind      inputKind
        return S_OK;
      }
 
-    else if (reading != nullptr)
+    else if (reading != nullptr && pReal != nullptr)
     {
       HRESULT hr =
         pReal->GetCurrentReading (inputKind, device, reading);
@@ -267,7 +271,7 @@ SK_IWrapGameInput::GetCurrentReading (_In_          GameInputKind      inputKind
   }
 
   return
-    pReal->GetCurrentReading (inputKind, device, reading);
+    pReal != nullptr ? pReal->GetCurrentReading (inputKind, device, reading) : E_NOTIMPL;
 }
 
 using IGameInputDevice_SetHapticMotorState_pfn = HRESULT (STDMETHODCALLTYPE *)(IGameInputDevice*,uint32_t,GameInputHapticFeedbackParams const*) noexcept;
@@ -622,7 +626,7 @@ SK_IWrapGameInput::RegisterDeviceCallback (_In_opt_                        IGame
   SK_LOG_FIRST_CALL
 
   HRESULT hr =
-    pReal->RegisterDeviceCallback (device, inputKind, statusFilter, enumerationKind, context, callbackFunc, callbackToken);
+    pReal == nullptr ? S_OK : pReal->RegisterDeviceCallback (device, inputKind, statusFilter, enumerationKind, context, callbackFunc, callbackToken);
 
   if (SUCCEEDED (hr) && inputKind == GameInputKindGamepad && (statusFilter & GameInputDeviceConnected) != 0 && (config.input.gamepad.xinput.emulate || ! SK_XInput_PollController (0)))
   {
@@ -647,6 +651,7 @@ SK_IWrapGameInput::RegisterSystemButtonCallback (_In_opt_                       
   SK_LOG_FIRST_CALL
 
   return
+    pReal == nullptr ? S_OK : 
     pReal->RegisterSystemButtonCallback (device, buttonFilter, context, callbackFunc, callbackToken);
 }
 
@@ -660,6 +665,7 @@ SK_IWrapGameInput::RegisterKeyboardLayoutCallback (_In_opt_                     
   SK_LOG_FIRST_CALL
 
   return
+    pReal == nullptr ? S_OK : 
     pReal->RegisterKeyboardLayoutCallback (device, context, callbackFunc, callbackToken);
 }
 
@@ -669,8 +675,8 @@ SK_IWrapGameInput::StopCallback (_In_ GameInputCallbackToken callbackToken) noex
 {
   SK_LOG_FIRST_CALL
 
-  return
-    pReal->StopCallback (callbackToken);
+  if (pReal != nullptr)
+      pReal->StopCallback (callbackToken);
 }
 
 bool
@@ -681,6 +687,7 @@ SK_IWrapGameInput::UnregisterCallback (_In_ GameInputCallbackToken callbackToken
   SK_LOG_FIRST_CALL
 
   return
+    pReal == nullptr ? S_OK : 
     pReal->UnregisterCallback (callbackToken, timeoutInMicroseconds);
 }
 
@@ -691,6 +698,7 @@ SK_IWrapGameInput::CreateDispatcher (_COM_Outptr_ IGameInputDispatcher **dispatc
   SK_LOG_FIRST_CALL
 
   return
+    pReal == nullptr ? S_OK : 
     pReal->CreateDispatcher (dispatcher);
 }
 
@@ -702,6 +710,7 @@ SK_IWrapGameInput::CreateAggregateDevice (_In_          GameInputKind     inputK
   SK_LOG_FIRST_CALL
 
   return
+    pReal == nullptr ? S_OK : 
     pReal->CreateAggregateDevice (inputKind, device);
 }
 
@@ -713,6 +722,7 @@ SK_IWrapGameInput::FindDeviceFromId (_In_         APP_LOCAL_DEVICE_ID const  *va
   SK_LOG_FIRST_CALL
 
   return
+    pReal == nullptr ? S_OK : 
     pReal->FindDeviceFromId (value, device);
 }
 
@@ -724,6 +734,7 @@ SK_IWrapGameInput::FindDeviceFromObject (_In_         IUnknown          *value,
   SK_LOG_FIRST_CALL
 
   return
+    pReal == nullptr ? S_OK : 
     pReal->FindDeviceFromObject (value, device);
 }
 
@@ -735,6 +746,7 @@ SK_IWrapGameInput::FindDeviceFromPlatformHandle (_In_         HANDLE            
   SK_LOG_FIRST_CALL
 
   return
+    pReal == nullptr ? S_OK : 
     pReal->FindDeviceFromPlatformHandle (value, device);
 }
 
@@ -746,6 +758,7 @@ SK_IWrapGameInput::FindDeviceFromPlatformString (_In_         LPCWSTR           
   SK_LOG_FIRST_CALL
 
   return
+    pReal == nullptr ? S_OK : 
     pReal->FindDeviceFromPlatformString (value, device);
 }
 
@@ -759,6 +772,7 @@ SK_IWrapGameInput::EnableOemDeviceSupport (_In_ uint16_t vendorId,
   SK_LOG_FIRST_CALL
 
   return
+    pReal == nullptr ? S_OK : 
     pReal->EnableOemDeviceSupport (vendorId, productId, interfaceNumber, collectionNumber);
 }
 
@@ -768,8 +782,8 @@ SK_IWrapGameInput::SetFocusPolicy (_In_ GameInputFocusPolicy policy) noexcept
 {
   SK_LOG_FIRST_CALL
 
-  return
-    pReal->SetFocusPolicy (policy);
+  if (pReal != nullptr)
+      pReal->SetFocusPolicy (policy);
 }
 
 
@@ -784,9 +798,9 @@ GameInputCreate_Detour (IGameInput** gameInput)
   HRESULT hr =
     GameInputCreate_Original (&pReal);
 
-  if (SUCCEEDED (hr))
+  if (SUCCEEDED (hr) || config.input.gamepad.xinput.emulate)
   {
-    if (gameInput != nullptr)
+    //if (gameInput != nullptr)
     {
       // Turn on XInput emulation by default on first-run for Unreal Engine.
       //
@@ -805,13 +819,17 @@ GameInputCreate_Detour (IGameInput** gameInput)
         }
       }
 
-      *gameInput = (IGameInput *)new SK_IWrapGameInput (pReal);
+      if (config.input.gamepad.xinput.emulate)
+      {
+        *gameInput = (IGameInput *)new SK_IWrapGameInput (pReal);
+        return S_OK;
+      }
     }
 
-    else
-    {
-      pReal->Release ();
-    }
+    //else
+    //{
+    //  pReal->Release ();
+    //}
   }
 
   return hr;
@@ -1490,11 +1508,13 @@ SK_Input_HookGameInput (void)
   if (! config.input.gamepad.hook_game_input)
     return;
 
-  if (GetModuleHandleW (L"GameInput.dll") != nullptr)
+  if (GetModuleHandleW (L"GameInput.dll") != nullptr || config.input.gamepad.xinput.emulate)
   {
     static volatile LONG               hooked = FALSE;
     if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
     {
+      if (config.input.gamepad.xinput.emulate)
+        SK_LoadLibraryW (      L"GameInput.dll");
       SK_CreateDLLHook2 (      L"GameInput.dll",
                                 "GameInputCreate",
                                  GameInputCreate_Detour,
@@ -1915,4 +1935,15 @@ SK_IPlayStationGameInputReading::GetUiNavigationState (GameInputUiNavigationStat
   SK_RunOnce (SK_LOGi0 (L"Stub"));
 
   return false;
+}
+
+
+HRESULT
+WINAPI
+GameInputCreate_BypassSystemDLL (IGameInput** gameInput)
+{
+  SK_LOG_FIRST_CALL
+
+  return
+    GameInputCreate_Detour (gameInput);
 }

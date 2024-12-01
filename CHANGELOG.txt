@@ -1,4 +1,9 @@
-﻿24.12.1.1
+﻿24.12.1.3
+=========
+ + XInput emulation now bypasses GameInput.dll for systems that do not have
+     this DLL.
+
+24.12.1.1
 =========
  + Allow Starfield to read Windows.Gaming.Input and write XInput
 

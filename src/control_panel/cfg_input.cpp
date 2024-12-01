@@ -1412,6 +1412,8 @@ SK::ControlPanel::Input::Draw (void)
         ImGui::Separator ( );
       }
 
+      SK_HID_PlayStationDevice *pNewestInput = nullptr;
+
       if (bHasPlayStation)
       {
         ImGui::PushStyleColor (ImGuiCol_Header,        ImVec4 (0.90f, 0.40f, 0.40f, 0.45f));
@@ -1430,7 +1432,6 @@ SK::ControlPanel::Input::Draw (void)
 
           ImGui::TreePop ();
           
-          SK_HID_PlayStationDevice *pNewestInput = nullptr;
           UINT64                    last_input    = 0;
 
           for ( auto& ps_controller : SK_HID_PlayStationControllers )
@@ -2080,7 +2081,7 @@ SK::ControlPanel::Input::Draw (void)
           static bool has_gameinput =
             GetModuleHandleW (L"GameInput.dll") != nullptr;
 
-          if (has_gameinput && SK_GameInput_Backend->reads [2] > 0)
+          if ((has_gameinput && SK_GameInput_Backend->reads [2] > 0) || (pNewestInput != nullptr && pNewestInput->_vibration.trigger.used))
           {
             ImGui::TreePush    (""); bool changed =
             ImGui::SliderFloat ("Left Trigger", &config.input.gamepad.impulse_strength_l, 0.0f, 1.5f, "%3.1fx Impulse Strength");

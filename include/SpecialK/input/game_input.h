@@ -116,7 +116,7 @@ class SK_IGameInputDevice : IGameInputDevice
 {
 public:
   SK_IGameInputDevice (IGameInputDevice *pGameInputDevice) : pReal (pGameInputDevice),
-                                                                  ver_ (0)
+                                                              ver_ (0)
   {
     if (pGameInputDevice == nullptr)
       return;

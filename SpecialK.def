@@ -526,6 +526,8 @@ RegisterRawInputDevices_Override = RegisterRawInputDevices_Detour            PRI
 GetRawInputData_Override         = GetRawInputData_Detour                    PRIVATE
 HidP_GetData_Override            = HidP_GetData_Detour                       PRIVATE
 
+GameInputCreate                  = GameInputCreate_BypassSystemDLL
+
 SK_Input_GetDI8Keyboard          = SK_Input_GetDI8Keyboard
 SK_Input_GetDI8Mouse             = SK_Input_GetDI8Mouse
 SK_XInput_PollController         = SK_XInput_PollController

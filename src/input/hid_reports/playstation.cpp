@@ -828,6 +828,11 @@ SK_HID_PlayStationDevice::setVibration (
   USHORT right_trigger,
   USHORT max_val )
 {
+  if (left_trigger + right_trigger != 0)
+  {
+    _vibration.trigger.used = true;
+  }
+
   if (max_val == 0)
   {
     const auto last_max = ReadULongAcquire (&_vibration.max_val);

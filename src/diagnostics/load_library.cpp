@@ -764,6 +764,11 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
   if (lpFileName == nullptr)
     return nullptr;
 
+  if (config.input.gamepad.xinput.emulate && StrStrIW (lpFileName, L"GameInput.dll"))
+  {
+    return SK_GetDLL ();
+  }
+
   SK_LockDllLoader ();
 
   HMODULE hModEarly = nullptr;
@@ -1166,6 +1171,11 @@ LoadLibraryEx_Marshal ( LPVOID   lpRet, LPCWSTR lpFileName,
 
   if (lpFileName == nullptr)
     return nullptr;
+
+  if (config.input.gamepad.xinput.emulate && StrStrIW (lpFileName, L"GameInput.dll"))
+  {
+    return SK_GetDLL ();
+  }
 
   wchar_t*          compliant_path =
           const_cast <wchar_t *> (lpFileName);
