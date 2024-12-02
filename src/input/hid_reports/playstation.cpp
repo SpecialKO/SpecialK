@@ -2436,6 +2436,13 @@ SK_HID_PlayStationDevice::request_input_report (void)
             else if (bIsInputNew)
             {
               WriteULong64Release (&pDevice->xinput.last_active, SK_QueryPerf ().QuadPart);
+
+              if (bIsDeviceMostRecentlyActive)
+              { // Need interlock
+                auto last_active =
+                  ReadULong64Acquire (&pDevice->xinput.last_active) + (SK_PerfFreq / 13);
+                WriteULong64Release  (&pDevice->xinput.last_active, last_active);
+              }
             }
 
             const bool bAllowSpecialButtons =
