@@ -83,6 +83,8 @@ SK_HID_PlayStationDevice::~SK_HID_PlayStationDevice (void)
   }
 }
 
+extern bool SK_SetThreadIOPriority (HANDLE hThread, int priority);
+
 void SK_HID_SetupPlayStationControllers (void)
 {
   // Only do this once, and make all other threads trying to do it wait
@@ -1105,7 +1107,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
     SK_Thread_CreateEx ([](LPVOID pUser)->DWORD
     {
-      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
+      SK_Thread_SetCurrentPriority (THREAD_PRIORITY_HIGHEST);
+      SK_SetThreadIOPriority       (SK_GetCurrentThread(),3);
 
       SK_HID_PlayStationDevice* pDevice =
         (SK_HID_PlayStationDevice *)pUser;
@@ -2262,7 +2265,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
             //
             // God-awful hacks for games with impulse triggers that might register
-            //   the changing analog position caused by force feedback as actual input.
+            //   the changing analog input caused by force feedback as actual input.
             //
             if (pDevice->_vibration.trigger.last_left == 0 && pDevice->_vibration.trigger.left != 0)
                 pDevice->_vibration.trigger.start_left = pDevice->xinput.report.Gamepad.bLeftTrigger;
@@ -2414,7 +2417,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
               }
             }
 
-            if (bIsInputActive)
+            if (bIsInputActive) // This indicates that the controller is active -after- deadzone checks
             {
               // Give most recently active device a +75 ms advantage,
               //   we may have the same device connected over two
@@ -2426,6 +2429,13 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   ReadULong64Acquire (&pDevice->xinput.last_active) + (SK_PerfFreq / 13);
                 WriteULong64Release  (&pDevice->xinput.last_active, last_active);
               }
+            }
+
+            // Deadzone checks make it inconclusive if this is the most recently used
+            //   controller, but it does have new input and the game should see it...
+            else if (bIsInputNew)
+            {
+              WriteULong64Release (&pDevice->xinput.last_active, SK_QueryPerf ().QuadPart);
             }
 
             const bool bAllowSpecialButtons =
@@ -2537,6 +2547,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
       SK_Thread_CreateEx ([](LPVOID pData)->DWORD
       {
         SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
+        SK_SetThreadIOPriority       (SK_GetCurrentThread (), 3);
 
         SK_HID_PlayStationDevice* pDevice =
           (SK_HID_PlayStationDevice *)pData;
@@ -3231,6 +3242,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
       SK_Thread_CreateEx ([](LPVOID pData)->DWORD
       {
         SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
+        SK_SetThreadIOPriority       (SK_GetCurrentThread (), 3);
 
         SK_HID_PlayStationDevice* pDevice =
           (SK_HID_PlayStationDevice *)pData;
@@ -3458,7 +3470,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             //                                                         :
             //static_cast <uint8_t> ((100.0f - config.input.gamepad.scepad.rumble_power_level) / 12.5f);
 
-            if (config.input.gamepad.scepad.led_color_r >= 0 || 
+            if (config.input.gamepad.scepad.led_color_r >= 0 ||
                 config.input.gamepad.scepad.led_color_g >= 0 ||
                 config.input.gamepad.scepad.led_color_b >= 0)
             {

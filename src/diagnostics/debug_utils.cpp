@@ -1628,6 +1628,16 @@ using SetThreadContext_pfn = BOOL (WINAPI *)(HANDLE,const CONTEXT *);
 GetThreadContext_pfn GetThreadContext_Original = nullptr;
 SetThreadContext_pfn SetThreadContext_Original = nullptr;
 
+enum IO_PRIORITY_HINT : int
+{
+  IoPriorityVeryLow = 0, // Defragging, content indexing and other background I/Os.
+  IoPriorityLow,         // Prefetching for applications.
+  IoPriorityNormal,      // Normal I/Os.
+  IoPriorityHigh,        // Used by filesystems for checkpoint I/O.
+  IoPriorityCritical,    // Used by memory manager. Not available for applications.
+  MaxIoPriorityTypes
+};
+
 typedef enum _SK_THREAD_INFORMATION_CLASS {
   ThreadBasicInformation,
   ThreadTimes,
@@ -1646,9 +1656,45 @@ typedef enum _SK_THREAD_INFORMATION_CLASS {
   ThreadPriorityBoost,
   ThreadSetTlsArrayAddress,
   ThreadIsIoPending_,
-  ThreadHideFromDebugger
+  ThreadHideFromDebugger,
+  ThreadBreakOnTermination,
+  ThreadSwitchLegacyState,
+  ThreadIsTerminated,
+  ThreadLastSystemCall,
+  ThreadIoPriority,
+  ThreadCycleTime,
+  ThreadPagePriority,
+  ThreadActualBasePriority,
+  ThreadTebInformation,
+  ThreadCSwitchMon,
+  ThreadCSwitchPmu,
+  ThreadWow64Context,
+  ThreadGroupInformation,
+  ThreadUmsInformation,
+  ThreadCounterProfiling,
+  ThreadIdealProcessorEx,
+  ThreadCpuAccountingInformation,
+  ThreadSuspendCount,
+  ThreadHeterogeneousCpuPolicy,
+  ThreadContainerId,
+ _ThreadNameInformation,
+  ThreadSelectedCpuSets,
+  ThreadSystemThreadInformation,
+  ThreadActualGroupAffinity,
+  ThreadDynamicCodePolicyInfo,
+  ThreadExplicitCaseSensitivity,
+  ThreadWorkOnBehalfTicket,
+  ThreadSubsystemInformation,
+  ThreadDbgkWerReportActive,
+  ThreadAttachContainer,
+  ThreadManageWritesToExecutableMemory,
+  ThreadPowerThrottlingState,
 } SK_THREAD_INFORMATION_CLASS,
 *PSK_THREAD_INFORMATION_CLASS;
+
+#ifndef  NT_SUCCESS
+# define NT_SUCCESS(Status)           (((NTSTATUS)(Status)) >= 0)
+#endif
 
 #define THREAD_CREATE_FLAGS_CREATE_SUSPENDED        0x00000001
 #define THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH      0x00000002
@@ -1700,6 +1746,18 @@ typedef void (NTAPI* RtlReleasePebLock_pfn)(void);
 
 static RtlAcquirePebLock_pfn RtlAcquirePebLock_Original = nullptr;
 static RtlReleasePebLock_pfn RtlReleasePebLock_Original = nullptr;
+
+bool
+SK_SetThreadIOPriority (HANDLE hThread, int priority)
+{
+  IO_PRIORITY_HINT io_priority =
+    (IO_PRIORITY_HINT)priority;
+  static NtSetInformationThread_pfn
+         NtSetInformationThread =
+        (NtSetInformationThread_pfn)SK_GetProcAddress (L"NtDll", "NtSetInformationThread");
+  return
+    (NT_SUCCESS (NtSetInformationThread(hThread, ThreadIoPriority, &io_priority, sizeof(IO_PRIORITY_HINT))));
+}
 
 #define SK_ANTIDEBUG_PARANOIA_STAGE2
 #define SK_ANTIDEBUG_PARANOIA_STAGE3

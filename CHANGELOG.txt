@@ -1,4 +1,13 @@
-﻿24.12.2
+﻿24.12.2.1
+=========
+ + Fixed internal deadzone on PlayStation controller input used to determine
+     which gamepad has the most recent input (i.e. if the same controller is
+       attached to USB and Bluetooth simultaneously), being applied to the
+         readings sent to games.
+
+    * This was causing stick drift.
+
+24.12.2
 =======
  + Added a trigger deadzone applied during trigger force feedback to keep
      games from registering the small force feedback movement as actual user
