@@ -1,4 +1,10 @@
-﻿24.12.1.4
+﻿24.12.2
+=======
+ + Added a trigger deadzone applied during trigger force feedback to keep
+     games from registering the small force feedback movement as actual user
+       input (i.e. pulling and releasing a gun's trigger rapidly).
+
+24.12.1.4
 =========
  + Support native GameInput implementations when Xbox Emulation is turned off.
 

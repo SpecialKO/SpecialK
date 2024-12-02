@@ -1053,6 +1053,8 @@ struct SK_HID_PlayStationDevice
       volatile ULONG right;
       ULONG     last_left;
       ULONG     last_right;
+      ULONG     start_left;
+      ULONG     start_right;
       bool      used; // Flagged the first time a game sets trigger vibration
     } trigger;
 

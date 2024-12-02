@@ -2260,6 +2260,43 @@ SK_HID_PlayStationDevice::request_input_report (void)
             }
 #endif
 
+            //
+            // God-awful hacks for games with impulse triggers that might register
+            //   the changing analog position caused by force feedback as actual input.
+            //
+            if (pDevice->_vibration.trigger.last_left == 0 && pDevice->_vibration.trigger.left != 0)
+                pDevice->_vibration.trigger.start_left = pDevice->xinput.report.Gamepad.bLeftTrigger;
+
+            if (pDevice->_vibration.trigger.last_left != 0 || pDevice->_vibration.trigger.left != 0)
+            {
+              if (pDevice->_vibration.trigger.start_left >= 127)
+                  pDevice->xinput.report.Gamepad.bLeftTrigger = pDevice->xinput.report.Gamepad.bLeftTrigger;
+              else
+              {
+                if (pDevice->xinput.report.Gamepad.bLeftTrigger >= 127)
+                    pDevice->_vibration.trigger.start_left = pDevice->xinput.report.Gamepad.bLeftTrigger;
+
+                pDevice->xinput.report.Gamepad.bLeftTrigger = (BYTE)pDevice->_vibration.trigger.start_left;
+              }
+            }
+
+            if (pDevice->_vibration.trigger.last_right == 0 && pDevice->_vibration.trigger.right != 0)
+                pDevice->_vibration.trigger.start_right = pDevice->xinput.report.Gamepad.bRightTrigger;
+
+            if (pDevice->_vibration.trigger.last_right != 0 || pDevice->_vibration.trigger.right != 0)
+            {
+              if (pDevice->_vibration.trigger.start_right >= 127)
+                  pDevice->xinput.report.Gamepad.bRightTrigger = pDevice->xinput.report.Gamepad.bRightTrigger;
+              else
+              {
+                if (pDevice->xinput.report.Gamepad.bRightTrigger >= 127)
+                    pDevice->_vibration.trigger.start_right = pDevice->xinput.report.Gamepad.bRightTrigger;
+
+                pDevice->xinput.report.Gamepad.bRightTrigger = (BYTE)pDevice->_vibration.trigger.start_right;
+              }
+            }
+
+
             bool bIsInputActive      = false;
             bool bIsInputNewInternal =
               memcmp ( &pDevice->xinput.internal.prev_report.Gamepad,
