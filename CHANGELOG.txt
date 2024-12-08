@@ -1,4 +1,9 @@
-﻿24.12.3
+﻿24.12.8
+=======
+ + Uncommented checks for PlayStation controllers when a game uses
+     Windows.Gaming.Input warning about potential incompatibility.
+
+24.12.3
 =======
  + Various changes to ensure GameInput games do not read from the same memory
      that SK's input I/O threads are actively writing to, lockless of course.

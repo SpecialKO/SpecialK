@@ -998,10 +998,10 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
       SK_HID_SetupPlayStationControllers ()
     );
 
-    //const bool bHasPlayStationControllers =
-    //     (! SK_HID_PlayStationControllers.empty ());
-    //
-    //if (bHasPlayStationControllers)
+    const bool bHasPlayStationControllers =
+         (! SK_HID_PlayStationControllers.empty ());
+    
+    if (bHasPlayStationControllers)
     { 
       if ((! config.input.gamepad.xinput.emulate) && SK_GetCurrentGameID () != SK_GAME_ID::HorizonForbiddenWest      &&
                                                      SK_GetCurrentGameID () != SK_GAME_ID::RatchetAndClank_RiftApart &&
