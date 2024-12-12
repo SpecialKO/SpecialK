@@ -1,4 +1,9 @@
-﻿24.12.8
+﻿24.12.12
+========
+ + Disabled anisotropic filtering optimizations in Metaphor: ReFantazio because
+     most textures are not mipmap-complete.
+
+24.12.8
 =======
  + Uncommented checks for PlayStation controllers when a game uses
      Windows.Gaming.Input warning about potential incompatibility.

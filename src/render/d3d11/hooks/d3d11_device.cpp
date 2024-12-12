@@ -514,17 +514,6 @@ D3D11Dev_CreateShaderResourceView1_Override (
   if (pResource == nullptr)
     return E_INVALIDARG;
 
-  if (SK_GetCurrentGameID () == SK_GAME_ID::Metaphor &&
-                       pDesc != nullptr              &&
-                       pDesc->ViewDimension == D3D11_SRV_DIMENSION_TEXTURE2D)
-  {
-    if (DirectX::IsCompressed (pDesc->Format))
-    {
-      ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Texture2D.MostDetailedMip =        0;
-      ((D3D11_SHADER_RESOURCE_VIEW_DESC*)pDesc)->Texture2D.MipLevels       = (UINT)-1;
-    }
-  }
-
   D3D11_SHADER_RESOURCE_VIEW_DESC1 desc =
   {                .Format          = DXGI_FORMAT_UNKNOWN,
                    .ViewDimension   = D3D11_SRV_DIMENSION_TEXTURE2D,
@@ -837,23 +826,6 @@ D3D11Dev_CreateDepthStencilView_Override (
   auto pDesc =
       (pDesc_ != nullptr) ?
       &_desc  :  nullptr;
-
-#if 0
-  if (pDesc != nullptr && SK_IsCurrentGame (SK_GAME_ID::Metaphor))
-  {
-    // Depth Buffer Upgrade for Less Aliasing...
-    if (pDesc->Format == DXGI_FORMAT_D24_UNORM_S8_UINT)
-        pDesc->Format  = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-    else
-    {
-      if (pDesc->Format == DXGI_FORMAT_UNKNOWN ||
-          pDesc->Format == DXGI_FORMAT_R32G8X24_TYPELESS)
-      {
-        pDesc->Format  = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
-      }
-    }
-  }
-#endif
 
 #ifdef _SK_D3D11_VALIDATE_DEVICE_RESOURCES
   if (pResource != nullptr)
@@ -1295,7 +1267,7 @@ D3D11Dev_CreateSamplerState_Override
                  new_desc.ComparisonFunc, new_desc.AddressU, new_desc.AddressV, new_desc.AddressW, SK_SummarizeCaller ().c_str () );
 #endif
 
-#pragma region "UglyGameHacksThatShouldNotBeHere"
+#pragma region UglyGameHacksThatShouldNotBeHere
   static const bool bShenmue =
     SK_GetCurrentGameID () == SK_GAME_ID::Shenmue;
 
@@ -1475,9 +1447,7 @@ D3D11Dev_CreateSamplerState_Override
     }
   }
 #endif
-#pragma endregion
-
-#if 1
+#if 0
   if (SK_GetCurrentGameID () == SK_GAME_ID::Metaphor)
   {
     if ( new_desc.Filter         <= D3D11_FILTER_ANISOTROPIC       &&
@@ -1500,6 +1470,7 @@ D3D11Dev_CreateSamplerState_Override
     }
   }
 #endif
+#pragma endregion
 
   //
   // Modern codepath for generic configurable sampler overrides
