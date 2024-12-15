@@ -92,6 +92,25 @@ void SK_HID_SetupPlayStationControllers (void)
   static volatile LONG             _init  =  0;
   if (InterlockedCompareExchange (&_init, 1, 0) == 0)
   {
+    auto cmd_proc =
+      SK_GetCommandProcessor ();
+
+    auto dualsense_impulse_str_l = new SK_IVarStub <float> (&config.input.gamepad.dualsense.trigger_strength_l);
+    auto dualsense_resist_str_l  = new SK_IVarStub <float> (&config.input.gamepad.dualsense.resist_strength_l);
+    auto dualsense_resist_pos_l  = new SK_IVarStub <float> (&config.input.gamepad.dualsense.resist_start_l);
+
+    auto dualsense_impulse_str_r = new SK_IVarStub <float> (&config.input.gamepad.dualsense.trigger_strength_r);
+    auto dualsense_resist_str_r  = new SK_IVarStub <float> (&config.input.gamepad.dualsense.resist_strength_r);
+    auto dualsense_resist_pos_r  = new SK_IVarStub <float> (&config.input.gamepad.dualsense.resist_start_r);
+
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ImpulseStrL", &dualsense_impulse_str_l->setRange (0.0f, 255.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistStrL",  &dualsense_resist_str_l-> setRange (0.0f,   1.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistPosL",  &dualsense_resist_pos_l-> setRange (0.0f,   1.0f));
+
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ImpulseStrR", &dualsense_impulse_str_r->setRange (0.0f, 255.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistStrR",  &dualsense_resist_str_r-> setRange (0.0f,   1.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistPosR",  &dualsense_resist_pos_r-> setRange (0.0f,   1.0f));
+
     SK_Input_PreHookHID ();
 
     HDEVINFO hid_device_set = 
@@ -534,6 +553,9 @@ struct SK_HID_DualSense_SetStateData // 47
 /*45  */ uint8_t LedGreen;
 /*46  */ uint8_t LedBlue;
 // Structure ends here though on BT there is padding and a CRC, see ReportOut31
+
+  void setTriggerEffectL (playstation_trigger_effect effect, float param0 = -1.0f, float param1 = -1.0f, float param2 = -1.0f);
+  void setTriggerEffectR (playstation_trigger_effect effect, float param0 = -1.0f, float param1 = -1.0f, float param2 = -1.0f);
 };
 #pragma pack(pop)
 
@@ -2724,6 +2746,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               output->AllowLedColor          = true;
             }
 
+            output->AllowPlayerIndicators    = config.input.gamepad.xinput.debug;
+
             // Firmware reqs
             output->
                EnableImprovedRumbleEmulation = true;
@@ -2737,42 +2761,54 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
 
-            uint8_t effects[3][11] = {
-              { 0x05, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0 },
-              { 0x01, 0, 110, 0, 0, 0, 0, 0, 0, 0, 0 },
-              { 0x06, 15, 63, 0, 0, 0, 0, 0, 0, 0, 0 },
-            };
+            static float fLastResistStrL = config.input.gamepad.dualsense.resist_strength_l;
+            static float fLastResistStrR = config.input.gamepad.dualsense.resist_strength_r;
+            static float fLastResistPosL = config.input.gamepad.dualsense.resist_start_l;
+            static float fLastResistPosR = config.input.gamepad.dualsense.resist_start_r;
 
-            if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0))
+            const bool bResistChange =
+              (std::exchange (fLastResistStrL, config.input.gamepad.dualsense.resist_strength_l) != config.input.gamepad.dualsense.resist_strength_l) |
+              (std::exchange (fLastResistStrR, config.input.gamepad.dualsense.resist_strength_r) != config.input.gamepad.dualsense.resist_strength_r) |
+              (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    |
+              (std::exchange (fLastResistPosL, config.input.gamepad.dualsense.resist_start_l)    != config.input.gamepad.dualsense.resist_start_l);
+
+            if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0) || bResistChange)
             {
+              auto effect =      (dwLeftTrigger != 0) ?
+                playstation_trigger_effect::Vibration :
+                  (config.input.gamepad.dualsense.resist_strength_r > 0.0f) ?
+                                            playstation_trigger_effect::Off :
+                                            playstation_trigger_effect::Feedback;
+
               if (dwLeftTrigger != 0)
-              {    output->AllowLeftTriggerFFB  = true;
-                const auto                               trigger_effect = 2;
-                memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-                        output->LeftTriggerFFB [2] =
-                          static_cast <uint8_t> (std::clamp (
-                            static_cast <float> (dwLeftTrigger) *
-                                       config.input.gamepad.impulse_strength_l, 0.0f, 1.0f) );
-              } else {  output->AllowLeftTriggerFFB = true;
-                const auto                               trigger_effect = 0;
-                memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+              {
+                output->setTriggerEffectL (effect, -1.0f, (static_cast <float> (dwLeftTrigger) * config.input.gamepad.impulse_strength_l) / 255.0f, 0.25f);
               }
+              
+              else
+              {
+                output->setTriggerEffectL (effect, config.input.gamepad.dualsense.resist_start_l, config.input.gamepad.dualsense.resist_strength_l);
+              }
+
+              effect =          (dwRightTrigger != 0) ?
+                playstation_trigger_effect::Vibration :
+                  (config.input.gamepad.dualsense.resist_strength_r > 0.0f) ? 
+                                            playstation_trigger_effect::Off :
+                                            playstation_trigger_effect::Feedback;
+
               if (dwRightTrigger != 0)
-              {    output->AllowRightTriggerFFB = true;
-                const auto                                trigger_effect = 2;
-                memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-                        output->RightTriggerFFB [2] =
-                          static_cast <uint8_t> (std::clamp (
-                            static_cast <float> (dwRightTrigger) *
-                                       config.input.gamepad.impulse_strength_r, 0.0f, 1.0f) );
-              } else {  output->AllowRightTriggerFFB  = true;
-                const auto                                trigger_effect = 0;
-                memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
+              {
+                output->setTriggerEffectR (effect, -1.0f, (static_cast <float> (dwRightTrigger) * config.input.gamepad.impulse_strength_r) / 255.0f, 0.25f);
               }
+              
+              else
+              {
+                output->setTriggerEffectR (effect, config.input.gamepad.dualsense.resist_start_r, config.input.gamepad.dualsense.resist_strength_r);
+              }
+
               pDevice->_vibration.trigger.last_right = dwRightTrigger;
               pDevice->_vibration.trigger.last_left  = dwLeftTrigger;
             }
-
 
             static bool       bMuted     = SK_IsGameMuted ();
             static DWORD dwLastMuteCheck = SK_timeGetTime ();
@@ -2898,8 +2934,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             const bool bRumble =
               (dwRightMotor != 0  ||
-               dwLeftMotor  != 0) || (dwRightTrigger != 0
-                                  ||  dwLeftTrigger  != 0);
+               dwLeftMotor  != 0) || (dwLeftTrigger  != 0
+                                  ||  dwRightTrigger != 0);
 
             // 500 msec grace period before allowing controller to use native haptics
             output->UseRumbleNotHaptics = bRumble || 
@@ -2907,63 +2943,28 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                                                   || last_trigger_r != 0
                                                   || last_trigger_l != 0;
 
-            if (bRumble)
+            if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0))
             {
               WriteULongRelease (&pDevice->_vibration.last_set, SK::ControlPanel::current_time);
               output->AllowMotorPowerLevel  = true;
               output->EnableRumbleEmulation = true;
             }
 
-            uint8_t effects[3][11] = {
-              { 0x05, 0,   0, 0, 0, 0, 0, 0, 0, 0, 0 },
-              { 0x01, 0, 110, 0, 0, 0, 0, 0, 0, 0, 0 },
-              { 0x06, 15, 63, 0, 0, 0, 0, 0, 0, 0, 0 },
-            };
-
-            if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0))
-            {
-              if (dwLeftTrigger != 0)
-              {    output->AllowLeftTriggerFFB  = true;
-                const auto                               trigger_effect = 2;
-                memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-                        output->LeftTriggerFFB [2] =
-                          static_cast <uint8_t> (std::clamp (
-                            static_cast <float> (dwLeftTrigger) *
-                                       config.input.gamepad.impulse_strength_l, 0.0f, 1.0f) );
-              } else {  output->AllowLeftTriggerFFB  = true;
-                const auto                               trigger_effect = 0;
-                memcpy (output->LeftTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-              }
-              if (dwRightTrigger != 0)
-              {    output->AllowRightTriggerFFB = true;
-                const auto                                trigger_effect = 2;
-                memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-                        output->RightTriggerFFB [2] =
-                          static_cast <uint8_t> (std::clamp (
-                            static_cast <float> (dwRightTrigger) *
-                                       config.input.gamepad.impulse_strength_r, 0.0f, 1.0f) );
-              } else {  output->AllowRightTriggerFFB  = true;
-                const auto                                trigger_effect = 0;
-                memcpy (output->RightTriggerFFB, effects [trigger_effect], sizeof (effects [trigger_effect]));
-              }
-              pDevice->_vibration.trigger.last_right = dwRightTrigger;
-              pDevice->_vibration.trigger.last_left  = dwLeftTrigger;
-            }
-            output->AllowMuteLight           = true;
+            output->AllowMuteLight          = true;
 
             if (config.input.gamepad.scepad.led_color_r    >= 0 || 
                 config.input.gamepad.scepad.led_color_g    >= 0 ||
                 config.input.gamepad.scepad.led_color_b    >= 0 ||
                 config.input.gamepad.scepad.led_brightness >= 0)
             {
-              output->AllowLedColor       = true;
+              output->AllowLedColor         = true;
             }
 
-            output->AllowPlayerIndicators = config.input.gamepad.xinput.debug;
+            output->AllowPlayerIndicators   = config.input.gamepad.xinput.debug;
 
             // Firmware reqs
             output->
-               EnableImprovedRumbleEmulation = true;
+              EnableImprovedRumbleEmulation = true;
 
             output->RumbleEmulationRight =
               sk::narrow_cast <BYTE> (
@@ -2973,6 +2974,55 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               sk::narrow_cast <BYTE> (
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
+
+            static float fLastResistStrL = config.input.gamepad.dualsense.resist_strength_l;
+            static float fLastResistStrR = config.input.gamepad.dualsense.resist_strength_r;
+            static float fLastResistPosL = config.input.gamepad.dualsense.resist_start_l;
+            static float fLastResistPosR = config.input.gamepad.dualsense.resist_start_r;
+
+            const bool bResistChange =
+              (std::exchange (fLastResistStrL, config.input.gamepad.dualsense.resist_strength_l) != config.input.gamepad.dualsense.resist_strength_l) |
+              (std::exchange (fLastResistStrR, config.input.gamepad.dualsense.resist_strength_r) != config.input.gamepad.dualsense.resist_strength_r) |
+              (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    |
+              (std::exchange (fLastResistPosL, config.input.gamepad.dualsense.resist_start_l)    != config.input.gamepad.dualsense.resist_start_l);
+
+            if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0) || bResistChange)
+            {
+              auto effect =      (dwLeftTrigger != 0) ?
+                playstation_trigger_effect::Vibration :
+                  (config.input.gamepad.dualsense.resist_strength_l > 0.0f) ?
+                                            playstation_trigger_effect::Off :
+                                            playstation_trigger_effect::Feedback;
+
+              if (dwLeftTrigger != 0)
+              {
+                output->setTriggerEffectL (effect, -1.0f, (static_cast <float> (dwLeftTrigger) * config.input.gamepad.impulse_strength_l) / 255.0f, 0.25f);
+              }
+              
+              else
+              {
+                output->setTriggerEffectL (effect, config.input.gamepad.dualsense.resist_start_l, config.input.gamepad.dualsense.resist_strength_l);
+              }
+
+              effect =          (dwRightTrigger != 0) ?
+                playstation_trigger_effect::Vibration :
+                  (config.input.gamepad.dualsense.resist_strength_r > 0.0f) ?
+                                            playstation_trigger_effect::Off :
+                                            playstation_trigger_effect::Feedback;
+
+              if (dwRightTrigger != 0)
+              {
+                output->setTriggerEffectR (effect, -1.0f, (static_cast <float> (dwRightTrigger) * config.input.gamepad.impulse_strength_r) / 255.0f, 0.25f);
+              }
+              
+              else
+              {
+                output->setTriggerEffectR (effect, config.input.gamepad.dualsense.resist_start_r, config.input.gamepad.dualsense.resist_strength_r);
+              }
+
+              pDevice->_vibration.trigger.last_right = dwRightTrigger;
+              pDevice->_vibration.trigger.last_left  = dwLeftTrigger;
+            }
 
             static bool       bMuted     = SK_IsGameMuted ();
             static DWORD dwLastMuteCheck = SK_timeGetTime ();
@@ -3944,4 +3994,48 @@ SK_HID_PlayStationDevice::reset_device (void)
   sensor_timestamp = 0;
   reset_rgb        = false;
   chord_activated  = false; // Deprecated
+}
+
+void
+SK_HID_DualSense_SetStateDataImpl (SK_HID_DualSense_SetStateData* report, bool left, playstation_trigger_effect effect, float param0, float param1, float param2)
+{
+  if (left) report->AllowLeftTriggerFFB  = true;
+  else      report->AllowRightTriggerFFB = true;
+
+  uint8_t effects [][11] = {
+    { 0x05, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0x01, 0, 63, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0x00, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0x06, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+  };
+
+  if (effect >= playstation_trigger_effect::Invalid)
+      effect  = playstation_trigger_effect::Off;
+
+  uint8_t* effect_data = effects [effect];
+
+  auto data =
+    left ? report->LeftTriggerFFB
+         : report->RightTriggerFFB;
+
+  memcpy (data, effect_data, sizeof (effects [0]));
+
+  if (effect != playstation_trigger_effect::Off)
+  {
+    if (param0 != -1.0f) data [1] = static_cast <uint8_t> (std::clamp (param0, 0.0f, 1.0f) * 255.0f);
+    if (param1 != -1.0f) data [2] = static_cast <uint8_t> (std::clamp (param1, 0.0f, 1.0f) * 255.0f);
+    if (param2 != -1.0f) data [3] = static_cast <uint8_t> (std::clamp (param2, 0.0f, 1.0f) * 255.0f);
+  }
+}
+
+void
+SK_HID_DualSense_SetStateData::setTriggerEffectL (playstation_trigger_effect effect, float param0, float param1, float param2)
+{
+  return SK_HID_DualSense_SetStateDataImpl (this, true, effect, param0, param1, param2);
+}
+
+void
+SK_HID_DualSense_SetStateData::setTriggerEffectR (sk_config_t::input_s::gamepad_s::dualsense_s::effect effect, float param0, float param1, float param2)
+{
+  return SK_HID_DualSense_SetStateDataImpl (this, false, effect, param0, param1, param2);
 }

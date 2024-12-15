@@ -1116,6 +1116,10 @@ struct {
     sk::ParameterBool*    blocks_screensaver      = nullptr;
     sk::ParameterFloat*   left_impulse_strength   = nullptr;
     sk::ParameterFloat*   right_impulse_strength  = nullptr;
+    sk::ParameterFloat*   left_resist_strength    = nullptr;
+    sk::ParameterFloat*   right_resist_strength   = nullptr;
+    sk::ParameterFloat*   left_resist_start       = nullptr;
+    sk::ParameterFloat*   right_resist_start      = nullptr;
   } gamepad;
 } input;
 
@@ -1702,7 +1706,11 @@ auto DeclKeybind =
     ConfigEntry (input.gamepad.disable_rumble,           L"Disable Rumble from ALL SOURCES (across all APIs)",         dll_ini,         L"Input.Gamepad",         L"DisableRumble"),
     ConfigEntry (input.gamepad.blocks_screensaver,       L"Gamepad activity will block screensaver activation",        dll_ini,         L"Input.Gamepad",         L"BlocksScreenSaver"),
     ConfigEntry (input.gamepad.right_impulse_strength,   L"Scale the Right Impulse Triggers in GameInput games",       dll_ini,         L"Input.Gamepad",         L"RightImpulseStrength"),
-    ConfigEntry (input.gamepad.left_impulse_strength,    L"Scale the Right Impulse Triggers in GameInput games",       dll_ini,         L"Input.Gamepad",         L"LeftImpulseStrength"),
+    ConfigEntry (input.gamepad.left_impulse_strength,    L"Scale the Left Impulse Triggers in GameInput games",        dll_ini,         L"Input.Gamepad",         L"LeftImpulseStrength"),
+    ConfigEntry (input.gamepad.right_resist_strength,    L"Apply a constant Right Trigger resistance on DualSense",    dll_ini,         L"Input.Gamepad",         L"RightTriggerResistance"),
+    ConfigEntry (input.gamepad.left_resist_strength,     L"Apply a constant Left Trigger resistance on DualSense",     dll_ini,         L"Input.Gamepad",         L"LeftTriggerResistance"),
+    ConfigEntry (input.gamepad.right_resist_start,       L"Ratio of Right Trigger pull before resistance applies",     dll_ini,         L"Input.Gamepad",         L"RightTriggerResistsAt"),
+    ConfigEntry (input.gamepad.left_resist_start,        L"Ratio of Left Trigger pull before resistance applies",      dll_ini,         L"Input.Gamepad",         L"LeftTriggerResistsAt"),
     ConfigEntry (input.gamepad.bt_input_only,            L"Prevent Bluetooth Output (PlayStation DirectInput compat.)",dll_ini,         L"Input.Gamepad",         L"BluetoothInputOnly"),
     ConfigEntry (input.gamepad.hid.max_allowed_buffers,  L"Maximum allowed HID buffers; 32=NS default, 8=SK default,"
                                                          L" this will lower latency at the expense of possibly missed"
@@ -3522,8 +3530,8 @@ auto DeclKeybind =
 
       case SK_GAME_ID::ForzaHorizon5:
       {
-        config.input.gamepad.dualsense.trigger_effect_l = config.input.gamepad.dualsense.Vibration;
-        config.input.gamepad.dualsense.trigger_effect_r = config.input.gamepad.dualsense.Vibration;
+        config.input.gamepad.dualsense.trigger_effect_l = playstation_trigger_effect::Vibration;
+        config.input.gamepad.dualsense.trigger_effect_r = playstation_trigger_effect::Vibration;
         if (SK_IsInjected () && ((! PathFileExists (L"dxgi.dll")) &&
                                  (! PathFileExists (L"d3d12.dll"))))
         {
@@ -4678,6 +4686,10 @@ auto DeclKeybind =
   input.gamepad.blocks_screensaver->load       (config.input.gamepad.blocks_screensaver);
   input.gamepad.left_impulse_strength->load    (config.input.gamepad.impulse_strength_l);
   input.gamepad.right_impulse_strength->load   (config.input.gamepad.impulse_strength_r);
+  input.gamepad.left_resist_strength->load     (config.input.gamepad.dualsense.resist_strength_l);
+  input.gamepad.right_resist_strength->load    (config.input.gamepad.dualsense.resist_strength_r);
+  input.gamepad.left_resist_start->load        (config.input.gamepad.dualsense.resist_start_l);
+  input.gamepad.right_resist_start->load       (config.input.gamepad.dualsense.resist_start_r);
   input.gamepad.xinput.hook_setstate->load     (config.input.gamepad.xinput.hook_setstate);
   input.gamepad.xinput.auto_slot_assign->load  (config.input.gamepad.xinput.auto_slot_assign);
   input.gamepad.xinput.blackout_api->load      (config.input.gamepad.xinput.blackout_api);
@@ -6178,6 +6190,10 @@ SK_SaveConfig ( std::wstring name,
   input.gamepad.blocks_screensaver->store          (config.input.gamepad.blocks_screensaver);
   input.gamepad.left_impulse_strength->store       (config.input.gamepad.impulse_strength_l);
   input.gamepad.right_impulse_strength->store      (config.input.gamepad.impulse_strength_r);
+  input.gamepad.left_resist_strength->store        (config.input.gamepad.dualsense.resist_strength_l);
+  input.gamepad.right_resist_strength->store       (config.input.gamepad.dualsense.resist_strength_r);
+  input.gamepad.left_resist_start->store           (config.input.gamepad.dualsense.resist_start_l);
+  input.gamepad.right_resist_start->store          (config.input.gamepad.dualsense.resist_start_r);
   input.gamepad.xinput.hook_setstate->store        (config.input.gamepad.xinput.hook_setstate);
   input.gamepad.xinput.auto_slot_assign->store     (config.input.gamepad.xinput.auto_slot_assign);
   input.gamepad.xinput.blackout_api->store         (config.input.gamepad.xinput.blackout_api);

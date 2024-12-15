@@ -1149,17 +1149,23 @@ struct sk_config_t
       } hid;
 
       struct dualsense_s {
-        enum effect : int
+        enum effect : uint8_t
         {
           Off       = 0,
           Feedback  = 1,
           Weapon    = 2,
-          Vibration = 3
+          Vibration = 3,
+
+          Invalid
         };
-        float  trigger_strength_r     = 1.0f;
-        float  trigger_strength_l     = 1.0f;
-        effect trigger_effect_r       = Weapon;
-        effect trigger_effect_l       = Weapon;
+        float  trigger_strength_r = 1.0f;      // Vibration intensity (can be > 1.0 to strengthen game trigger vibration)
+        float  trigger_strength_l = 1.0f;      // Vibration intensity (can be > 1.0 to strengthen game trigger vibration)
+        float  resist_strength_r  = -1.0f;     // Trigger resistance (0.0-1.0) [0.4275f]
+        float  resist_strength_l  = -1.0f;     // Trigger resistance (0.0-1.0)
+        float  resist_start_l     = -1.0f;     // Ratio (0.0-1.0) of trigger pull before resistance starts [0.18f]
+        float  resist_start_r     = -1.0f;     // Ratio (0.0-1.0) of trigger pull before resistance starts
+        effect trigger_effect_r   = Vibration; // Effect to apply for Xbox Impulse Triggers
+        effect trigger_effect_l   = Vibration; // Effect to apply for Xbox Impulse Triggers
       } dualsense;
 
       bool    blocks_screensaver  =  true;
@@ -1796,5 +1802,7 @@ extern SK_LazyGlobal <std::unordered_map <BYTE, wchar_t [32]>>  virtKeyCodeToFul
 extern SK_LazyGlobal <std::unordered_multimap <uint32_t, SK_KeyCommand>> SK_KeyboardMacros;
 
 iSK_INI* SK_GetNotifyINI (void);
+
+using playstation_trigger_effect = sk_config_t::input_s::gamepad_s::dualsense_s::effect;
 
 #endif /* __SK__CONFIG_H__ */
