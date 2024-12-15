@@ -1055,10 +1055,10 @@ struct SK_HID_PlayStationDevice
       ULONG     last_right          =     0;
       ULONG     start_left          =     0; // The analog trigger's value when vibration started
       ULONG     start_right         =     0; // The analog trigger's value when vibration started
-      float     last_resist_start_l = -1.0f;
-      float     last_resist_start_r = -1.0f;
-      float     last_resist_str_l   = -1.0f;
-      float     last_resist_str_r   = -1.0f;
+      float     last_resist_start_l = -2.0f;
+      float     last_resist_start_r = -2.0f;
+      float     last_resist_str_l   = -2.0f;
+      float     last_resist_str_r   = -2.0f;
       bool      used; // Flagged the first time a game sets trigger vibration
     } trigger;
 

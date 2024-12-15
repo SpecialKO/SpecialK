@@ -1,4 +1,9 @@
-﻿24.12.15
+﻿24.12.15.1
+==========
+ + Apply/reset trigger resistance for DualSense controllers every time they
+     connect/reconnect, and do not wait for vibration data to be written first.
+
+24.12.15
 ========
  + Added configurable constant trigger resistance for DualSense controlelrs...
 

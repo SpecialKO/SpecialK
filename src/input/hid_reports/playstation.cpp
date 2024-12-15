@@ -2718,10 +2718,21 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             const ULONG last_trigger_r = pDevice->_vibration.trigger.last_right;
             const ULONG last_trigger_l = pDevice->_vibration.trigger.last_left;
 
+            float& fLastResistStrL = pDevice->_vibration.trigger.last_resist_str_l;
+            float& fLastResistStrR = pDevice->_vibration.trigger.last_resist_str_r;
+            float& fLastResistPosL = pDevice->_vibration.trigger.last_resist_start_l;
+            float& fLastResistPosR = pDevice->_vibration.trigger.last_resist_start_r;
+
+            const bool bResistChange =
+              (std::exchange (fLastResistStrL, config.input.gamepad.dualsense.resist_strength_l) != config.input.gamepad.dualsense.resist_strength_l) |
+              (std::exchange (fLastResistStrR, config.input.gamepad.dualsense.resist_strength_r) != config.input.gamepad.dualsense.resist_strength_r) |
+              (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    |
+              (std::exchange (fLastResistPosL, config.input.gamepad.dualsense.resist_start_l)    != config.input.gamepad.dualsense.resist_start_l);
+
             const bool bRumble =
               (dwRightMotor != 0  ||
                dwLeftMotor  != 0) || (dwLeftTrigger  != 0
-                                  ||  dwRightTrigger != 0);
+                                  ||  dwRightTrigger != 0) || bResistChange;
 
             // 500 msec grace period before allowing controller to use native haptics
             output->UseRumbleNotHaptics = bRumble || 
@@ -2760,17 +2771,6 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               sk::narrow_cast <BYTE> (
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
-
-            float& fLastResistStrL = pDevice->_vibration.trigger.last_resist_str_l;
-            float& fLastResistStrR = pDevice->_vibration.trigger.last_resist_str_r;
-            float& fLastResistPosL = pDevice->_vibration.trigger.last_resist_start_l;
-            float& fLastResistPosR = pDevice->_vibration.trigger.last_resist_start_r;
-
-            const bool bResistChange =
-              (std::exchange (fLastResistStrL, config.input.gamepad.dualsense.resist_strength_l) != config.input.gamepad.dualsense.resist_strength_l) |
-              (std::exchange (fLastResistStrR, config.input.gamepad.dualsense.resist_strength_r) != config.input.gamepad.dualsense.resist_strength_r) |
-              (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    |
-              (std::exchange (fLastResistPosL, config.input.gamepad.dualsense.resist_start_l)    != config.input.gamepad.dualsense.resist_start_l);
 
             if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0) || bResistChange)
             {
@@ -2936,10 +2936,21 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             const ULONG last_trigger_r = pDevice->_vibration.trigger.last_right;
             const ULONG last_trigger_l = pDevice->_vibration.trigger.last_left;
 
+            float& fLastResistStrL = pDevice->_vibration.trigger.last_resist_str_l;
+            float& fLastResistStrR = pDevice->_vibration.trigger.last_resist_str_r;
+            float& fLastResistPosL = pDevice->_vibration.trigger.last_resist_start_l;
+            float& fLastResistPosR = pDevice->_vibration.trigger.last_resist_start_r;
+
+            const bool bResistChange =
+              (std::exchange (fLastResistStrL, config.input.gamepad.dualsense.resist_strength_l) != config.input.gamepad.dualsense.resist_strength_l) |
+              (std::exchange (fLastResistStrR, config.input.gamepad.dualsense.resist_strength_r) != config.input.gamepad.dualsense.resist_strength_r) |
+              (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    |
+              (std::exchange (fLastResistPosL, config.input.gamepad.dualsense.resist_start_l)    != config.input.gamepad.dualsense.resist_start_l);
+
             const bool bRumble =
               (dwRightMotor != 0  ||
                dwLeftMotor  != 0) || (dwLeftTrigger  != 0
-                                  ||  dwRightTrigger != 0);
+                                  ||  dwRightTrigger != 0) || bResistChange;
 
             // 500 msec grace period before allowing controller to use native haptics
             output->UseRumbleNotHaptics = bRumble || 
@@ -2978,17 +2989,6 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               sk::narrow_cast <BYTE> (
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
-
-            float& fLastResistStrL = pDevice->_vibration.trigger.last_resist_str_l;
-            float& fLastResistStrR = pDevice->_vibration.trigger.last_resist_str_r;
-            float& fLastResistPosL = pDevice->_vibration.trigger.last_resist_start_l;
-            float& fLastResistPosR = pDevice->_vibration.trigger.last_resist_start_r;
-
-            const bool bResistChange =
-              (std::exchange (fLastResistStrL, config.input.gamepad.dualsense.resist_strength_l) != config.input.gamepad.dualsense.resist_strength_l) |
-              (std::exchange (fLastResistStrR, config.input.gamepad.dualsense.resist_strength_r) != config.input.gamepad.dualsense.resist_strength_r) |
-              (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    |
-              (std::exchange (fLastResistPosL, config.input.gamepad.dualsense.resist_start_l)    != config.input.gamepad.dualsense.resist_start_l);
 
             if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0) || bResistChange)
             {
@@ -3981,10 +3981,10 @@ SK_HID_PlayStationDevice::reset_device (void)
   _vibration.trigger.last_right          =     0;
   _vibration.trigger.start_left          =     0;
   _vibration.trigger.start_right         =     0;
-  _vibration.trigger.last_resist_start_l = -1.0f;
-  _vibration.trigger.last_resist_start_r = -1.0f;
-  _vibration.trigger.last_resist_str_l   = -1.0f;
-  _vibration.trigger.last_resist_str_r   = -1.0f;
+  _vibration.trigger.last_resist_start_l = -2.0f;
+  _vibration.trigger.last_resist_start_r = -2.0f;
+  _vibration.trigger.last_resist_str_l   = -2.0f;
+  _vibration.trigger.last_resist_str_r   = -2.0f;
 
   WriteULong64Release (&xinput.last_active, 0);
 
