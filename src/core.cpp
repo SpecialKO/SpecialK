@@ -2566,7 +2566,7 @@ SK_Win32_CreateDummyWindow (HWND hWndParent)
           {
             HWND hWnd = (HWND)user;
 
-            SK_ShowWindow (hWnd, SW_HIDE);
+            SK_ShowWindowAsync (hWnd, SW_HIDE);
 
             MSG                     msg = { };
             while (SK_GetMessageW (&msg, 0, 0, 0))
@@ -2872,9 +2872,9 @@ constexpr UINT WM_SKIF_EVENT_SIGNAL = WM_USER + 0x3000;
           SK_Inject_SetFocusWindow (hWndExisting);
 
       if (                IsIconic (hWndExisting))
-        SK_ShowWindow              (hWndExisting, SW_RESTORE);
+        SK_ShowWindowAsync         (hWndExisting, SW_RESTORE);
       else
-        SK_ShowWindow              (hWndExisting, SW_SHOW);
+        SK_ShowWindowAsync         (hWndExisting, SW_SHOW);
     }
   }
 }
@@ -3448,12 +3448,12 @@ SK_FrameCallback ( SK_RenderBackend& rb,
                 }
 
                 // Activate the window
-                //if (IsMinimized (  game_window.hWnd))
-                //  ShowWindowAsync (game_window.hWnd, SW_SHOWNORMAL);
-                if (IsIconic      (game_window.hWnd))
-                  ShowWindowAsync (game_window.hWnd, SW_RESTORE);
+                //if (IsIconic         (game_window.hWnd))
+                //  SK_ShowWindowAsync (game_window.hWnd, SW_SHOWNORMAL);
+                if (IsIconic         (game_window.hWnd))
+                  SK_ShowWindowAsync (game_window.hWnd, SW_RESTORE);
                 else
-                  ShowWindowAsync (game_window.hWnd, SW_SHOW);
+                  SK_ShowWindowAsync (game_window.hWnd, SW_SHOW);
 
                 if (!    SetForegroundWindow (game_window.hWnd))
                   SK_RealizeForegroundWindow (game_window.hWnd);
@@ -3802,21 +3802,17 @@ SK_BackgroundRender_EndFrame (void)
                       & ~WS_EX_TOOLWINDOW );
                      // And remove one that prevents taskbar activation...
 
-      if (IsMinimized (hWndGame))
-        ShowWindowAsync          ( hWndGame,
-                                     SW_SHOWNORMAL );
-      else
-        ShowWindowAsync          ( hWndGame,
-                                     SW_SHOW );
+      if (IsIconic               ( hWndGame ))
+           ShowWindowAsync       ( hWndGame, SW_SHOWNORMAL );
+      else ShowWindowAsync       ( hWndGame, SW_SHOW       );
 
       if (lpStyleExNew != lpStyleEx)
       {
-        SK_SetWindowLongPtrW     ( hWndGame,
-                                     GWL_EXSTYLE,
-                                       lpStyleExNew );
+        SK_SetWindowLongPtrW     ( hWndGame, GWL_EXSTYLE,
+                                              lpStyleExNew );
       }
 
-      SK_RealizeForegroundWindow ( hWndGame );
+      SK_RealizeForegroundWindow ( hWndGame                );
     }
   }
 

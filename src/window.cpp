@@ -53,9 +53,78 @@ static constexpr int SK_MAX_WINDOW_DIM = 16384;
 # define SK_WINDOW_LOG_CALL_UNTESTED() { }
 #endif
 
-using  SetWindowDisplayAffinity_pfn = BOOL (WINAPI *)(HWND,DWORD);
-static SetWindowDisplayAffinity_pfn
-       SetWindowDisplayAffinity_Original = nullptr;
+static GetDpiForSystem_pfn                GetDpiForSystem_Original               = nullptr;
+static GetDpiForWindow_pfn                GetDpiForWindow_Original               = nullptr;
+static GetSystemDpiForProcess_pfn         GetSystemDpiForProcess_Original        = nullptr;
+static GetSystemMetricsForDpi_pfn         GetSystemMetricsForDpi_Original        = nullptr;
+static AdjustWindowRectExForDpi_pfn       AdjustWindowRectExForDpi_Original      = nullptr;
+static EnableNonClientDpiScaling_pfn      EnableNonClientDpiScaling_Original     = nullptr;
+static SystemParametersInfoForDpi_pfn     SystemParametersInfoForDpi_Original    = nullptr;
+static SetThreadDpiHostingBehavior_pfn    SetThreadDpiHostingBehavior_Original   = nullptr;
+static SetThreadDpiAwarenessContext_pfn   SetThreadDpiAwarenessContext_Original  = nullptr;
+static SetProcessDpiAwarenessContext_pfn  SetProcessDpiAwarenessContext_Original = nullptr;
+
+static GetFocus_pfn                       GetFocus_Original                      = nullptr;
+static GetGUIThreadInfo_pfn               GetGUIThreadInfo_Original              = nullptr;
+static GetActiveWindow_pfn                GetActiveWindow_Original               = nullptr;
+static SetActiveWindow_pfn                SetActiveWindow_Original               = nullptr;
+static BringWindowToTop_pfn               BringWindowToTop_Original              = nullptr;
+static GetForegroundWindow_pfn            GetForegroundWindow_Original           = nullptr;
+static SetForegroundWindow_pfn            SetForegroundWindow_Original           = nullptr;
+static SetWindowDisplayAffinity_pfn       SetWindowDisplayAffinity_Original      = nullptr;
+
+       ClipCursor_pfn                     ClipCursor_Original                    = nullptr;
+       GetCursorPos_pfn                   GetCursorPos_Original                  = nullptr;
+       SetCursorPos_pfn                   SetCursorPos_Original                  = nullptr;
+       GetCursorPos_pfn                   GetPhysicalCursorPos_Original          = nullptr;
+       SetCursorPos_pfn                   SetPhysicalCursorPos_Original          = nullptr;
+       GetMessagePos_pfn                  GetMessagePos_Original                 = nullptr;
+       SendInput_pfn                      SendInput_Original                     = nullptr;
+       mouse_event_pfn                    mouse_event_Original                   = nullptr;
+
+       ShowWindow_pfn                     ShowWindow_Original                    = nullptr;
+       SetWindowPos_pfn                   SetWindowPos_Original                  = nullptr;
+       SetWindowPlacement_pfn             SetWindowPlacement_Original            = nullptr;
+       MoveWindow_pfn                     MoveWindow_Original                    = nullptr;
+       SetWindowLong_pfn                  SetWindowLongW_Original                = nullptr;
+       SetWindowLong_pfn                  SetWindowLongA_Original                = nullptr;
+       GetWindowLong_pfn                  GetWindowLongW_Original                = nullptr;
+       GetWindowLong_pfn                  GetWindowLongA_Original                = nullptr;
+       SetWindowLongPtr_pfn               SetWindowLongPtrW_Original             = nullptr;
+       SetWindowLongPtr_pfn               SetWindowLongPtrA_Original             = nullptr;
+       GetWindowLongPtr_pfn               GetWindowLongPtrW_Original             = nullptr;
+       GetWindowLongPtr_pfn               GetWindowLongPtrA_Original             = nullptr;
+       AdjustWindowRect_pfn               AdjustWindowRect_Original              = nullptr;
+       AdjustWindowRectEx_pfn             AdjustWindowRectEx_Original            = nullptr;
+
+       DefWindowProc_pfn                  DefWindowProcA_Original                = nullptr;
+       DefWindowProc_pfn                  DefWindowProcW_Original                = nullptr;
+
+       GetSystemMetrics_pfn               GetSystemMetrics_Original              = nullptr;
+
+       GetWindowRect_pfn                  GetWindowRect_Original                 = nullptr;
+       GetClientRect_pfn                  GetClientRect_Original                 = nullptr;
+
+       SendOrPostMessage_pfn              PostMessageA_Original                  = nullptr;
+       SendOrPostMessage_pfn              PostMessageW_Original                  = nullptr;
+       SendOrPostMessage_pfn              SendMessageA_Original                  = nullptr;
+       SendOrPostMessage_pfn              SendMessageW_Original                  = nullptr;
+
+       TranslateMessage_pfn               TranslateMessage_Original              = nullptr;
+
+       PeekMessage_pfn                    PeekMessageA_Original                  = nullptr;
+       GetMessage_pfn                     GetMessageA_Original                   = nullptr;
+       DispatchMessage_pfn                DispatchMessageA_Original              = nullptr;
+
+       PeekMessage_pfn                    PeekMessageW_Original                  = nullptr;
+       GetMessage_pfn                     GetMessageW_Original                   = nullptr;
+       DispatchMessage_pfn                DispatchMessageW_Original              = nullptr;
+
+static GetWindowInfo_pfn                  GetWindowInfo_Original                 = nullptr;
+
+// These are not hooked
+static PeekMessage_pfn                    NtUserPeekMessage                      = nullptr;
+static GetMessage_pfn                     NtUserGetMessage                       = nullptr;
 
 BOOL
 WINAPI
@@ -88,7 +157,7 @@ SetWindowPlacement_Detour (
 
 BOOL
 WINAPI
-SetWindowPos$our(
+SetWindowPos_Detour(
   _In_     HWND hWnd,
   _In_opt_ HWND hWndInsertAfter,
   _In_     int  X,
@@ -96,42 +165,6 @@ SetWindowPos$our(
   _In_     int  cx,
   _In_     int  cy,
   _In_     UINT uFlags);
-
-ClipCursor_pfn           ClipCursor_Original           = nullptr;
-GetCursorPos_pfn         GetCursorPos_Original         = nullptr;
-SetCursorPos_pfn         SetCursorPos_Original         = nullptr;
-GetCursorPos_pfn         GetPhysicalCursorPos_Original = nullptr;
-SetCursorPos_pfn         SetPhysicalCursorPos_Original = nullptr;
-GetMessagePos_pfn        GetMessagePos_Original        = nullptr;
-SendInput_pfn            SendInput_Original            = nullptr;
-mouse_event_pfn          mouse_event_Original          = nullptr;
-
-ShowWindow_pfn           ShowWindow_Original           = nullptr;
-SetWindowPos_pfn         SetWindowPos_Original         = nullptr;
-SetWindowPlacement_pfn   SetWindowPlacement_Original   = nullptr;
-MoveWindow_pfn           MoveWindow_Original           = nullptr;
-SetWindowLong_pfn        SetWindowLongW_Original       = nullptr;
-SetWindowLong_pfn        SetWindowLongA_Original       = nullptr;
-GetWindowLong_pfn        GetWindowLongW_Original       = nullptr;
-GetWindowLong_pfn        GetWindowLongA_Original       = nullptr;
-SetWindowLongPtr_pfn     SetWindowLongPtrW_Original    = nullptr;
-SetWindowLongPtr_pfn     SetWindowLongPtrA_Original    = nullptr;
-GetWindowLongPtr_pfn     GetWindowLongPtrW_Original    = nullptr;
-GetWindowLongPtr_pfn     GetWindowLongPtrA_Original    = nullptr;
-AdjustWindowRect_pfn     AdjustWindowRect_Original     = nullptr;
-AdjustWindowRectEx_pfn   AdjustWindowRectEx_Original   = nullptr;
-
-DefWindowProc_pfn        DefWindowProcA_Original       = nullptr;
-DefWindowProc_pfn        DefWindowProcW_Original       = nullptr;
-
-GetSystemMetrics_pfn     GetSystemMetrics_Original     = nullptr;
-
-GetWindowRect_pfn        GetWindowRect_Original        = nullptr;
-GetClientRect_pfn        GetClientRect_Original        = nullptr;
-
-using  GetWindowInfo_pfn = BOOL (WINAPI *)(HWND, PWINDOWINFO);
-static GetWindowInfo_pfn
-       GetWindowInfo_Original = nullptr;
 
 bool
 SK_EarlyDispatchMessage (MSG *lpMsg, bool remove, bool peek = false);
@@ -194,6 +227,19 @@ SK_IsChild (HWND hWndParent, HWND hWnd)
   return
     IsChild (hWndParent, hWnd);
 #endif
+}
+
+BOOL
+WINAPI
+SK_PostMessage ( _In_opt_ HWND   hWnd,
+                 _In_     UINT   Msg,
+                 _In_     WPARAM wParam,
+                 _In_     LPARAM lParam )
+{
+  return
+    (PostMessageW_Original != nullptr)                 ?
+     PostMessageW_Original (hWnd, Msg, wParam, lParam) :
+     PostMessageW          (hWnd, Msg, wParam, lParam);
 }
 
 
@@ -1995,14 +2041,29 @@ SetWindowPlacement_Detour(
 
 BOOL
 WINAPI
-SK_ShowWindow (
+SK_ShowWindowAsync (
   _In_ HWND hWnd,
   _In_ int  nCmdShow )
 {
   return
-    ShowWindow_Original != nullptr       ?
-    ShowWindow_Original (hWnd, nCmdShow) :
-    ShowWindow          (hWnd, nCmdShow);
+    ShowWindowAsync (hWnd, nCmdShow);
+}
+
+BOOL
+WINAPI
+SK_ShowWindow (
+  _In_ HWND hWnd,
+  _In_ int  nCmdShow )
+{
+  const bool bUseShowWindowAsync = (ISMEX_SEND == 
+     ( InSendMessageEx (nullptr) & (ISMEX_SEND | ISMEX_REPLIED) ));
+
+  return
+    bUseShowWindowAsync                      ?
+     SK_ShowWindowAsync     (hWnd, nCmdShow) :
+    (   ShowWindow_Original != nullptr       ?
+        ShowWindow_Original (hWnd, nCmdShow) :
+        ShowWindow          (hWnd, nCmdShow) );
 }
 
 BOOL
@@ -2029,7 +2090,7 @@ ShowWindow_Detour (
   }
 
   return
-    ShowWindow_Original (hWnd, nCmdShow);
+    SK_ShowWindow (hWnd, nCmdShow);
 }
 
 BOOL
@@ -2063,7 +2124,11 @@ SetWindowPos_Detour(
 
     if (dwThreadId != SK_GetCurrentThreadId ())
     {
-      //uFlags |= SWP_ASYNCWINDOWPOS;
+      const bool bUseAsyncWindowPos = (ISMEX_SEND == 
+        ( InSendMessageEx (nullptr) & (ISMEX_SEND | ISMEX_REPLIED) ));
+
+      if (bUseAsyncWindowPos)
+        uFlags |= SWP_ASYNCWINDOWPOS;
     }
   }
 
@@ -4270,42 +4335,84 @@ SK_GetWindowInfo (HWND hwnd, PWINDOWINFO pwi)
     GetWindowInfo          (hwnd, pwi);
 }
 
+void
+SK_Window_UninitHooks (void)
+{
+#define UNSET_HOOK_TARGET(fn) fn##_Original = nullptr
 
-using TranslateMessage_pfn =
-BOOL (WINAPI *)(
-  _In_ const MSG *lpMsg
-);
+  SK_RunOnce (
+    UNSET_HOOK_TARGET (GetDpiForSystem);
+    UNSET_HOOK_TARGET (GetDpiForWindow);
+    UNSET_HOOK_TARGET (EnableNonClientDpiScaling);
+    UNSET_HOOK_TARGET (GetSystemDpiForProcess);
+    UNSET_HOOK_TARGET (GetSystemMetricsForDpi);
+    UNSET_HOOK_TARGET (SystemParametersInfoForDpi);
+    UNSET_HOOK_TARGET (SetThreadDpiHostingBehavior);
+    UNSET_HOOK_TARGET (SetThreadDpiAwarenessContext);
+    UNSET_HOOK_TARGET (SetProcessDpiAwarenessContext);
+    UNSET_HOOK_TARGET (AdjustWindowRectExForDpi);
 
-using NtUserDispatchMessage_pfn =
-LRESULT (NTAPI *)(
-  _In_ const MSG *lpmsg
-);
+    UNSET_HOOK_TARGET (GetFocus);
+    UNSET_HOOK_TARGET (GetWindowInfo);
+    UNSET_HOOK_TARGET (GetGUIThreadInfo);
+    UNSET_HOOK_TARGET (GetActiveWindow);
+    UNSET_HOOK_TARGET (SetActiveWindow);
+    UNSET_HOOK_TARGET (SetWindowDisplayAffinity);
+    UNSET_HOOK_TARGET (SetForegroundWindow);
+    UNSET_HOOK_TARGET (GetForegroundWindow);
+    UNSET_HOOK_TARGET (BringWindowToTop);
+    UNSET_HOOK_TARGET (ShowWindow);
+    UNSET_HOOK_TARGET (SetWindowPos);
+    UNSET_HOOK_TARGET (SetWindowPlacement);
+    UNSET_HOOK_TARGET (MoveWindow);
 
-using NtUserGetMessage_pfn =
-BOOL (NTAPI *)( LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax );
+    UNSET_HOOK_TARGET (SetWindowsHookExW);
+    UNSET_HOOK_TARGET (SetWindowsHookExA);
+    UNSET_HOOK_TARGET (UnhookWindowsHookEx);
 
-using NtUserPeekMessage_pfn =
-BOOL (NTAPI *)(
-  _Out_    LPMSG lpMsg,
-  _In_opt_ HWND  hWnd,
-  _In_     UINT  wMsgFilterMin,
-  _In_     UINT  wMsgFilterMax,
-  _In_     UINT  wRemoveMsg
+    UNSET_HOOK_TARGET (PeekMessageA);
+    UNSET_HOOK_TARGET (PeekMessageW);
+    UNSET_HOOK_TARGET (PostMessageA);
+    UNSET_HOOK_TARGET (PostMessageW);
+    UNSET_HOOK_TARGET (SendMessageA);
+    UNSET_HOOK_TARGET (SendMessageW);
+    UNSET_HOOK_TARGET (GetMessageA);
+    UNSET_HOOK_TARGET (GetMessageW);
+    UNSET_HOOK_TARGET (DispatchMessageA);
+    UNSET_HOOK_TARGET (DispatchMessageW);
+    UNSET_HOOK_TARGET (TranslateMessage);
+
+    UNSET_HOOK_TARGET (ClipCursor);
+    UNSET_HOOK_TARGET (GetCursorPos);
+    UNSET_HOOK_TARGET (SetCursorPos);
+    UNSET_HOOK_TARGET (GetPhysicalCursorPos);
+    UNSET_HOOK_TARGET (SetPhysicalCursorPos);
+    UNSET_HOOK_TARGET (GetMessagePos);
+    UNSET_HOOK_TARGET (SendInput);
+    UNSET_HOOK_TARGET (mouse_event);
+
+    UNSET_HOOK_TARGET (SetWindowLongW);
+    UNSET_HOOK_TARGET (SetWindowLongA);
+    UNSET_HOOK_TARGET (GetWindowLongW);
+    UNSET_HOOK_TARGET (GetWindowLongA);
+    UNSET_HOOK_TARGET (SetWindowLongPtrW);
+    UNSET_HOOK_TARGET (SetWindowLongPtrA);
+    UNSET_HOOK_TARGET (GetWindowLongPtrW);
+    UNSET_HOOK_TARGET (GetWindowLongPtrA);
+    UNSET_HOOK_TARGET (AdjustWindowRect);
+    UNSET_HOOK_TARGET (AdjustWindowRectEx);
+
+    UNSET_HOOK_TARGET (DefWindowProcA);
+    UNSET_HOOK_TARGET (DefWindowProcW);
+
+    UNSET_HOOK_TARGET (GetSystemMetrics);
+
+    UNSET_HOOK_TARGET (GetWindowRect);
+    UNSET_HOOK_TARGET (GetClientRect);
+
+    UNSET_HOOK_TARGET (GetWindowInfo);
   );
-
-static TranslateMessage_pfn      TranslateMessage_Original = nullptr;
-
-static NtUserPeekMessage_pfn     NtUserPeekMessage         = nullptr;
-static NtUserGetMessage_pfn      NtUserGetMessage          = nullptr;
-//static NtUserDispatchMessage_pfn NtUserDispatchMessage = nullptr;
-
-static NtUserPeekMessage_pfn     PeekMessageA_Original     = nullptr;
-static NtUserGetMessage_pfn      GetMessageA_Original      = nullptr;
-static NtUserDispatchMessage_pfn DispatchMessageA_Original = nullptr;
-
-static NtUserPeekMessage_pfn     PeekMessageW_Original     = nullptr;
-static NtUserGetMessage_pfn      GetMessageW_Original      = nullptr;
-static NtUserDispatchMessage_pfn DispatchMessageW_Original = nullptr;
+}
 
 BOOL
 WINAPI
@@ -4412,14 +4519,14 @@ PeekMessageA_Detour (
   {
     // A nasty kludge to fix the Steam overlay
     static auto early_PeekMessageA =
-                NtUserPeekMessage_pfn (
+                      PeekMessage_pfn (
     SK_GetProcAddress      (
       SK_GetModuleHandle (   L"user32"  ),
                               "PeekMessageA"
                            )          );
 
-    NtUserPeekMessage_pfn early =
-      early_PeekMessageA;
+    auto early =
+         early_PeekMessageA;
 
     PeekFunc = early != nullptr ?
                early : PeekFunc;
@@ -4518,14 +4625,14 @@ PeekMessageW_Detour (
   {
     // A nasty kludge to fix the Steam overlay
     static auto early_PeekMessageW =
-                NtUserPeekMessage_pfn (
+                      PeekMessage_pfn (
      SK_GetProcAddress      (
        SK_GetModuleHandle (   L"user32"  ),
                                "PeekMessageW"
                             )         );
 
-    NtUserPeekMessage_pfn early =
-      early_PeekMessageW;
+    auto early =
+         early_PeekMessageW;
 
     PeekFunc = early != nullptr ?
                early : PeekFunc;
@@ -4616,17 +4723,12 @@ SK_PeekMessageW (
 #define WM_NCMOUSEFIRST  WM_NCMOUSEMOVE
 #define WM_NCMOUSELAST  (WM_NCMOUSEFIRST + (WM_MOUSELAST - WM_MOUSEFIRST))
 
-using SendOrPostMessage_pfn = BOOL (WINAPI *)(HWND,UINT,WPARAM,LPARAM);
-
-SendOrPostMessage_pfn PostMessageA_Original = nullptr;
-SendOrPostMessage_pfn PostMessageW_Original = nullptr;
-SendOrPostMessage_pfn SendMessageA_Original = nullptr;
-SendOrPostMessage_pfn SendMessageW_Original = nullptr;
-
 BOOL
 WINAPI
 PostMessageA_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
+  SK_LOG_FIRST_CALL
+
   if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
     return TRUE;
 
@@ -4638,6 +4740,8 @@ BOOL
 WINAPI
 PostMessageW_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
+  SK_LOG_FIRST_CALL
+
   if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
     return TRUE;
 
@@ -4649,6 +4753,8 @@ BOOL
 WINAPI
 SendMessageA_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
+  SK_LOG_FIRST_CALL
+
   if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
     return TRUE;
 
@@ -4660,6 +4766,8 @@ BOOL
 WINAPI
 SendMessageW_Detour (HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
+  SK_LOG_FIRST_CALL
+
   if (Msg == WM_MOUSEMOVE && SK_ImGui_WantMouseCapture ())
     return TRUE;
 
@@ -4843,11 +4951,6 @@ DispatchMessageW_Detour (_In_ const MSG* lpMsg)
     DispatchMessageW_Original (lpMsg);
 }
 
-
-using  GetFocus_pfn = HWND (WINAPI *)(void);
-static GetFocus_pfn
-       GetFocus_Original = nullptr;
-
 HWND
 WINAPI
 SK_GetFocus (void)
@@ -4914,10 +5017,6 @@ GetFocus_Detour (void)
     SK_GetFocus ();
 }
 
-using  GetGUIThreadInfo_pfn = BOOL (WINAPI *)(DWORD,PGUITHREADINFO);
-static GetGUIThreadInfo_pfn
-       GetGUIThreadInfo_Original = nullptr;
-
 BOOL
 WINAPI
 SK_GetGUIThreadInfo ( _In_    DWORD          idThread,
@@ -4965,14 +5064,6 @@ GetGUIThreadInfo_Detour ( _In_    DWORD          idThread,
   return
     SK_GetGUIThreadInfo (idThread, pgui);
 }
-
-using  GetActiveWindow_pfn = HWND (WINAPI *)(void);
-using  SetActiveWindow_pfn = HWND (WINAPI *)(HWND);
-
-static GetActiveWindow_pfn
-       GetActiveWindow_Original = nullptr;
-static SetActiveWindow_pfn
-       SetActiveWindow_Original = nullptr;
 
 BOOL
 WINAPI
@@ -5114,11 +5205,6 @@ SetActiveWindow_Detour (HWND hWnd)
     SK_SetActiveWindow (hWnd);
 }
 
-
-using  GetForegroundWindow_pfn = HWND (WINAPI *)(void);
-static GetForegroundWindow_pfn
-       GetForegroundWindow_Original = nullptr;
-
 HWND
 WINAPI
 SK_GetForegroundWindow (void)
@@ -5156,10 +5242,6 @@ GetForegroundWindow_Detour (void)
     SK_GetForegroundWindow ();
 }
 
-using  BringWindowToTop_pfn = BOOL (WINAPI *)(HWND);
-static BringWindowToTop_pfn
-       BringWindowToTop_Original = nullptr;
-
 BOOL
 WINAPI
 BringWindowToTop_Detour (HWND hWnd)
@@ -5183,10 +5265,6 @@ BringWindowToTop_Detour (HWND hWnd)
     BringWindowToTop_Original (hWnd);
 #endif
 }
-
-using  SetForegroundWindow_pfn = BOOL (WINAPI *)(HWND);
-static SetForegroundWindow_pfn
-       SetForegroundWindow_Original = nullptr;
 
 BOOL
 WINAPI
@@ -5382,11 +5460,6 @@ float g_fDPIScale = 1.0f;
 bool
 __SKX_WinHook_InstallInputHooks (HWND hWnd)
 {
-  using  SetWindowsHookEx_pfn    =
-    HHOOK (WINAPI *)(int, HOOKPROC, HINSTANCE, DWORD);
-  using  UnhookWindowsHookEx_pfn =
-    BOOL (WINAPI *)(HHOOK);
-
   if (SetWindowsHookExW_Original == nullptr)
     return false;
 
@@ -6576,45 +6649,6 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
     SK_Window_RepositionIfNeeded ();
   }
 }
-
-
-using GetDpiForSystem_pfn               = UINT (WINAPI *)(void);
-using GetDpiForWindow_pfn               = UINT (WINAPI *)(HWND   hwnd);
-using EnableNonClientDpiScaling_pfn     = BOOL (WINAPI *)(HWND   hwnd);
-using GetSystemDpiForProcess_pfn        = UINT (WINAPI *)(HANDLE hProcess);
-using GetSystemMetricsForDpi_pfn        = int  (WINAPI *)(int    nIndex,
-                                                          UINT   dpi);
-using SystemParametersInfoForDpi_pfn    = BOOL (WINAPI *)(UINT   uiAction,
-                                                          UINT   uiParam,
-                                                          PVOID  pvParam,
-                                                          UINT   fWinIni,
-                                                          UINT   dpi);
-using SetThreadDpiHostingBehavior_pfn   =
-                          DPI_HOSTING_BEHAVIOR (WINAPI *)(DPI_HOSTING_BEHAVIOR  value);
-using SetThreadDpiAwarenessContext_pfn  =
-                         DPI_AWARENESS_CONTEXT (WINAPI *)(DPI_AWARENESS_CONTEXT dpiContext);
-using GetThreadDpiAwarenessContext_pfn  =
-                         DPI_AWARENESS_CONTEXT (WINAPI *)(void);
-using GetAwarenessFromDpiAwarenessContext_pfn =
-                         DPI_AWARENESS         (WINAPI *)(DPI_AWARENESS_CONTEXT value);
-using SetProcessDpiAwarenessContext_pfn = BOOL (WINAPI *)(DPI_AWARENESS_CONTEXT value);
-
-using AdjustWindowRectExForDpi_pfn      = BOOL (WINAPI *)(LPRECT lpRect,
-                                                          DWORD  dwStyle,
-                                                          BOOL   bMenu,
-                                                          DWORD  dwExStyle,
-                                                          UINT   dpi);
-
-static GetDpiForSystem_pfn                GetDpiForSystem_Original               = nullptr;
-static GetDpiForWindow_pfn                GetDpiForWindow_Original               = nullptr;
-static GetSystemDpiForProcess_pfn         GetSystemDpiForProcess_Original        = nullptr;
-static GetSystemMetricsForDpi_pfn         GetSystemMetricsForDpi_Original        = nullptr;
-static AdjustWindowRectExForDpi_pfn       AdjustWindowRectExForDpi_Original      = nullptr;
-static EnableNonClientDpiScaling_pfn      EnableNonClientDpiScaling_Original     = nullptr;
-static SystemParametersInfoForDpi_pfn     SystemParametersInfoForDpi_Original    = nullptr;
-static SetThreadDpiHostingBehavior_pfn    SetThreadDpiHostingBehavior_Original   = nullptr;
-static SetThreadDpiAwarenessContext_pfn   SetThreadDpiAwarenessContext_Original  = nullptr;
-static SetProcessDpiAwarenessContext_pfn  SetProcessDpiAwarenessContext_Original = nullptr;
 
 static GetThreadDpiAwarenessContext_pfn        GetThreadDpiAwarenessContext        = nullptr;
 static GetAwarenessFromDpiAwarenessContext_pfn GetAwarenessFromDpiAwarenessContext = nullptr;
@@ -8568,8 +8602,8 @@ SK_Win32_CreateBackgroundWindow (void)
     if (GetWindowText (game_window.hWnd,        wszTitle, 127))
         SetWindowText (SK_Win32_BackgroundHWND, wszTitle);
 
-    SK_ShowWindow (SK_Win32_BackgroundHWND, SW_SHOW);
-    UpdateWindow  (SK_Win32_BackgroundHWND);
+    SK_ShowWindowAsync (SK_Win32_BackgroundHWND, SW_SHOW);
+    SK_PostMessage     (SK_Win32_BackgroundHWND, WM_PAINT, 0, 0);
 
     // Wakes up a lot, to do nothing...
     SK_Thread_ScopedPriority priority (
@@ -8605,7 +8639,7 @@ SK_Win32_CreateBackgroundWindow (void)
         if ( std::exchange (last_state, config.display.aspect_ratio_stretch) !=
                                         config.display.aspect_ratio_stretch )
         {
-          SK_ShowWindow ( SK_Win32_BackgroundHWND,
+          SK_ShowWindowAsync ( SK_Win32_BackgroundHWND,
             config.display.aspect_ratio_stretch ? SW_SHOWNA
                                                 : SW_HIDE );
         }
@@ -8883,7 +8917,7 @@ SK_Window_CreateTopMostFixupThread (void)
         }
       };
 
-      SK_ShowWindow (game_window.hWnd, SW_HIDE);
+      SK_ShowWindowAsync (game_window.hWnd, SW_HIDE);
 
       SK_Thread_CloseSelf ();
 

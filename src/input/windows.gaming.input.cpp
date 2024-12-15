@@ -1005,8 +1005,10 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
     { 
       if ((! config.input.gamepad.xinput.emulate) && SK_GetCurrentGameID () != SK_GAME_ID::ForzaHorizon5   &&
                                                      SK_GetCurrentGameID () != SK_GAME_ID::StarWarsOutlaws &&
-                                                     (! SK_GetCurrentRenderBackend ().windows.sdl) &&
-                                                     (! SK_GetCurrentRenderBackend ().windows.nixxes))
+                                                     (! SK_GetCurrentRenderBackend ().windows.sdl)         &&
+                                                     (! SK_GetCurrentRenderBackend ().windows.nixxes)      &&
+                                                     (! SK_GetCurrentRenderBackend ().windows.unity)       &&
+                                                     (! config.input.gamepad.xinput.blackout_api))
       {
         SK_RunOnce (SK_Thread_CreateEx([](LPVOID)->DWORD
         {
@@ -1016,7 +1018,8 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
           }
 
           if ((! SK_GetCurrentRenderBackend ().windows.sdl) &&
-              (! SK_GetCurrentRenderBackend ().windows.nixxes))
+              (! SK_GetCurrentRenderBackend ().windows.nixxes) &&
+              (! SK_GetCurrentRenderBackend ().windows.unity))
           {
             SK_ImGui_CreateNotification ( "WindowsGamingInput.Compatibility",
                                           SK_ImGui_Toast::Warning,

@@ -852,7 +852,68 @@ bool
     EqualRect (&rectGame, &rectIntersect);
 };
 
-BOOL WINAPI SK_ShowWindow (HWND hWnd, int nCmdShow);
+using GetWindowInfo_pfn                 = BOOL (WINAPI *)(HWND, PWINDOWINFO);
+using GetDpiForSystem_pfn               = UINT (WINAPI *)(void);
+using GetDpiForWindow_pfn               = UINT (WINAPI *)(HWND   hwnd);
+using EnableNonClientDpiScaling_pfn     = BOOL (WINAPI *)(HWND   hwnd);
+using GetSystemDpiForProcess_pfn        = UINT (WINAPI *)(HANDLE hProcess);
+using GetSystemMetricsForDpi_pfn        = int  (WINAPI *)(int    nIndex,
+                                                          UINT   dpi);
+using SystemParametersInfoForDpi_pfn    = BOOL (WINAPI *)(UINT   uiAction,
+                                                          UINT   uiParam,
+                                                          PVOID  pvParam,
+                                                          UINT   fWinIni,
+                                                          UINT   dpi);
+using SetThreadDpiHostingBehavior_pfn   =
+                          DPI_HOSTING_BEHAVIOR (WINAPI *)(DPI_HOSTING_BEHAVIOR  value);
+using SetThreadDpiAwarenessContext_pfn  =
+                         DPI_AWARENESS_CONTEXT (WINAPI *)(DPI_AWARENESS_CONTEXT dpiContext);
+using GetThreadDpiAwarenessContext_pfn  =
+                         DPI_AWARENESS_CONTEXT (WINAPI *)(void);
+using GetAwarenessFromDpiAwarenessContext_pfn =
+                         DPI_AWARENESS         (WINAPI *)(DPI_AWARENESS_CONTEXT value);
+using SetProcessDpiAwarenessContext_pfn = BOOL (WINAPI *)(DPI_AWARENESS_CONTEXT value);
+
+using AdjustWindowRectExForDpi_pfn      = BOOL (WINAPI *)(LPRECT lpRect,
+                                                          DWORD  dwStyle,
+                                                          BOOL   bMenu,
+                                                          DWORD  dwExStyle,
+                                                          UINT   dpi);
+
+                                                          using  GetFocus_pfn = HWND (WINAPI *)(void);
+using  SetWindowDisplayAffinity_pfn = BOOL  (WINAPI *)(HWND,DWORD);
+using  GetGUIThreadInfo_pfn         = BOOL  (WINAPI *)(DWORD,PGUITHREADINFO);
+using  GetActiveWindow_pfn          = HWND  (WINAPI *)(void);
+using  SetActiveWindow_pfn          = HWND  (WINAPI *)(HWND);
+using  GetForegroundWindow_pfn      = HWND  (WINAPI *)(void);
+using  BringWindowToTop_pfn         = BOOL  (WINAPI *)(HWND);
+using  SetForegroundWindow_pfn      = BOOL  (WINAPI *)(HWND);
+using  SetWindowsHookEx_pfn         = HHOOK (WINAPI *)(int, HOOKPROC, HINSTANCE, DWORD);
+using  UnhookWindowsHookEx_pfn      = BOOL  (WINAPI *)(HHOOK);
+
+using TranslateMessage_pfn  = BOOL    (WINAPI *)(_In_ const MSG *lpMsg);
+using DispatchMessage_pfn   = LRESULT (WINAPI *)(_In_ const MSG *lpmsg);
+using GetMessage_pfn        = BOOL    (WINAPI *)(_Out_    LPMSG  lpMsg,
+                                                 _In_opt_ HWND   hWnd,
+                                                 _In_     UINT   wMsgFilterMin,
+                                                 _In_     UINT   wMsgFilterMax);
+using PeekMessage_pfn       = BOOL    (WINAPI *)(_Out_    LPMSG  lpMsg,
+                                                 _In_opt_ HWND   hWnd,
+                                                 _In_     UINT   wMsgFilterMin,
+                                                 _In_     UINT   wMsgFilterMax,
+                                                 _In_     UINT   wRemoveMsg);
+                            
+using SendOrPostMessage_pfn = BOOL (WINAPI *)(HWND,UINT,WPARAM,LPARAM);
+
+BOOL
+WINAPI
+SK_PostMessage ( _In_opt_ HWND   hWnd,
+                 _In_     UINT   Msg,
+                 _In_     WPARAM wParam,
+                 _In_     LPARAM lParam );
+
+BOOL WINAPI SK_ShowWindow      (HWND hWnd, int nCmdShow);
+BOOL WINAPI SK_ShowWindowAsync (HWND hWnd, int nCmdShow);
 
 bool SK_Window_HasBorder      (HWND hWnd = game_window.hWnd);
 void SK_Window_RemoveBorders  (void);
@@ -880,5 +941,7 @@ RECT SK_Input_RestoreClipRect (void);
 
 
 LRESULT WINAPI SK_COMPAT_SafeCallProc (sk_window_s* pWin, HWND hWnd_, UINT Msg, WPARAM wParam, LPARAM lParam);
+
+void SK_Window_UninitHooks (void);
 
 #endif /* __SK__WINDOW_H__ */

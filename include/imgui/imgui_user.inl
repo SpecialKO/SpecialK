@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#define SK_ALLOW_EXPERIMENTAL_WINDOW_MANAGEMENT
+
 #include <mmsystem.h>
 #include <Windows.h>
 
@@ -1909,12 +1911,12 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
               SK_GetForegroundWindow ();
 
             auto show_cmd = 
-              IsMinimized (game_window.hWnd) ? SW_SHOWNORMAL
-                                             : SW_SHOW;
+              IsIconic (game_window.hWnd) ? SW_SHOWNORMAL
+                                          : SW_SHOW;
 
-            ShowWindow                 (game_window.hWnd, show_cmd);
+            SK_ShowWindowAsync         (game_window.hWnd, show_cmd);
             SK_RealizeForegroundWindow (game_window.hWnd);
-            ShowWindow                 (game_window.hWnd, show_cmd);
+            SK_ShowWindowAsync         (game_window.hWnd, show_cmd);
           }
 
           bChordActivated = true;
@@ -1936,12 +1938,12 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
                                  IsWindow (hWndLastApp))
           {
             auto show_cmd = 
-              IsMinimized (hWndLastApp) ? SW_SHOWNORMAL
-                                        : SW_SHOW;
+              IsIconic (hWndLastApp) ? SW_SHOWNORMAL
+                                     : SW_SHOW;
 
-            SK_ShowWindow              (hWndLastApp, show_cmd);
+            SK_ShowWindowAsync         (hWndLastApp, show_cmd);
             SK_RealizeForegroundWindow (hWndLastApp);
-            SK_ShowWindow              (hWndLastApp, show_cmd);
+            SK_ShowWindowAsync         (hWndLastApp, show_cmd);
           }
 
           bChordActivated = true;
@@ -2192,8 +2194,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
               (     state.Gamepad.bLeftTrigger >  XINPUT_GAMEPAD_TRIGGER_THRESHOLD) &&
               (last_state.Gamepad.bLeftTrigger <= XINPUT_GAMEPAD_TRIGGER_THRESHOLD))
           {
-            if (   IsIconic (game_window.hWnd))
-              SK_ShowWindow (game_window.hWnd, SW_SHOWNOACTIVATE);
+            if (        IsIconic (game_window.hWnd))
+              SK_ShowWindowAsync (game_window.hWnd, SW_SHOWNOACTIVATE);
 
             bChordActivated = true;
           }
@@ -2202,8 +2204,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
               (     state.Gamepad.bRightTrigger >  XINPUT_GAMEPAD_TRIGGER_THRESHOLD) &&
               (last_state.Gamepad.bRightTrigger <= XINPUT_GAMEPAD_TRIGGER_THRESHOLD))
           {
-            if (!  IsIconic (game_window.hWnd))
-              SK_ShowWindow (game_window.hWnd, SW_MINIMIZE);
+            if (!       IsIconic (game_window.hWnd))
+              SK_ShowWindowAsync (game_window.hWnd, SW_MINIMIZE);
 
             bChordActivated = true;
           }
@@ -3615,20 +3617,24 @@ SK_ImGui_User_NewFrame (void)
       static bool last_up   = io.KeysDown [VK_UP];
       if (     (io.KeysDown [VK_LWIN] || io.KeysDown [VK_RWIN]) && io.KeysDown [VK_DOWN] && !last_down && !SK_Window_HasBorder (game_window.hWnd))
       {
-        if (! IsIconic  (game_window.hWnd))
+        if (!         IsIconic (game_window.hWnd))
         {
-          //if (IsMaximized (game_window.hWnd))
-          //  SK_ShowWindow (game_window.hWnd, SW_RESTORE);
-          //else
-            SK_ShowWindow (game_window.hWnd, SW_MINIMIZE);
+#ifdef SK_ALLOW_EXPERIMENTAL_WINDOW_MANAGEMENT
+          if (IsZoomed         (game_window.hWnd))
+            SK_ShowWindowAsync (game_window.hWnd, SW_RESTORE);
+          else
+#endif
+            SK_ShowWindowAsync (game_window.hWnd, SW_MINIMIZE);
         }
       }
       else if ((io.KeysDown [VK_LWIN] || io.KeysDown [VK_RWIN]) && io.KeysDown [VK_UP]   && !last_up   && !SK_Window_HasBorder (game_window.hWnd))
       {
-        if (IsIconic    (game_window.hWnd))
-          SK_ShowWindow (game_window.hWnd, SW_SHOWNOACTIVATE);
-        //else
-        //  ShowWindow (game_window.hWnd, SW_MAXIMIZE); // This causes some games to break due to implicit activation
+        if (IsIconic         (game_window.hWnd))
+          SK_ShowWindowAsync (game_window.hWnd, SW_SHOWNOACTIVATE);
+#ifdef SK_ALLOW_EXPERIMENTAL_WINDOW_MANAGEMENT
+        else
+          SK_ShowWindowAsync (game_window.hWnd, SW_MAXIMIZE); // This causes some games to break due to implicit activation
+#endif
       }
       last_down = io.KeysDown [VK_DOWN];
       last_up   = io.KeysDown [VK_DOWN];
