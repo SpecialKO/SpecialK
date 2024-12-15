@@ -1797,6 +1797,8 @@ SK_MinHook_UnInit (void)
 
   SHGetKnownFolderPath_Original = nullptr;
 
+  SK_Window_UninitHooks ();
+
   // ... Many, many more...
 
   return status;
