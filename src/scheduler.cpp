@@ -1077,36 +1077,42 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   static const auto game_id =
     SK_GetCurrentGameID ();
 
-  // TODO: Move into actual plug-in
-  if (game_id == SK_GAME_ID::ChronoCross)
-  {
-    if (dwMilliseconds == 0)
-    {
-      return
-        SwitchToThread ();
-    }
-  }
-
-  else if (game_id == SK_GAME_ID::Starfield)
-  {
-    if (dwMilliseconds == 0)
-    {
-      return
-        SwitchToThread ();
-    }
-  }
-
   if (dwMilliseconds == 0)
   {
-    return
-      SK_SleepEx (dwMilliseconds, bAlertable);
+    // TODO: Move into actual plug-in
+    switch (game_id)
+    {
+      case SK_GAME_ID::ChronoCross:
+      case SK_GAME_ID::Starfield:
+      {
+        return
+          SwitchToThread ();
+      } break;
+
+      default:
+      {
+        if (! SK_GetCurrentRenderBackend ().windows.unity)
+        {
+          return
+            SK_SleepEx (dwMilliseconds, bAlertable);
+        }
+
+        else
+        {
+          return
+            SwitchToThread ();
+        }
+      } break;
+    }
   }
 
+#if 0
   // Early-out for fmod, it uses SleepEx (...) instead of signaled waits,
   //   and it's for audio mixing, so we don't want to touch it.
   if (auto early_out = SleepEx_EarlyOutForModule (dwMilliseconds, bAlertable, hModFmodStudio, L"fmodstudio.dll", _ReturnAddress ());
            early_out != (DWORD)-1)
     return early_out;
+#endif
 
   SK_TLS*                            pTLS = nullptr;
   SK_MMCS_ApplyPendingTaskPriority (&pTLS);
