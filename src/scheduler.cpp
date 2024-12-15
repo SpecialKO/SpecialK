@@ -1281,7 +1281,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
         SK::Framerate::events.getMessagePumpStats ().wake (std::max (1UL, dwMilliseconds));
 
       auto skip_sleep =
-        SK_Thread_WaitWhilePumpingMessages (0, bAlertable, &pTLS);
+        SK_Thread_WaitWhilePumpingMessages (dwMilliseconds, bAlertable, &pTLS);
 
       // Check for I/O Wait Completion Before Going Sleepless
       if (bAlertable)
