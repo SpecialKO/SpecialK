@@ -103,13 +103,13 @@ void SK_HID_SetupPlayStationControllers (void)
     auto dualsense_resist_str_r  = new SK_IVarStub <float> (&config.input.gamepad.dualsense.resist_strength_r);
     auto dualsense_resist_pos_r  = new SK_IVarStub <float> (&config.input.gamepad.dualsense.resist_start_r);
 
-    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ImpulseStrL", &dualsense_impulse_str_l->setRange (0.0f, 255.0f));
-    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistStrL",  &dualsense_resist_str_l-> setRange (0.0f,   1.0f));
-    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistPosL",  &dualsense_resist_pos_l-> setRange (0.0f,   1.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ImpulseStrL", &dualsense_impulse_str_l->setRange ( 0.0f, 255.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistStrL",  &dualsense_resist_str_l-> setRange (-1.0f,   1.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistPosL",  &dualsense_resist_pos_l-> setRange (-1.0f,   1.0f));
 
-    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ImpulseStrR", &dualsense_impulse_str_r->setRange (0.0f, 255.0f));
-    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistStrR",  &dualsense_resist_str_r-> setRange (0.0f,   1.0f));
-    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistPosR",  &dualsense_resist_pos_r-> setRange (0.0f,   1.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ImpulseStrR", &dualsense_impulse_str_r->setRange ( 0.0f, 255.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistStrR",  &dualsense_resist_str_r-> setRange (-1.0f,   1.0f));
+    cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistPosR",  &dualsense_resist_pos_r-> setRange (-1.0f,   1.0f));
 
     SK_Input_PreHookHID ();
 

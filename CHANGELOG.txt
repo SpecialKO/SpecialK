@@ -1,4 +1,28 @@
-﻿24.12.12
+﻿24.12.15
+========
+ + Added configurable constant trigger resistance for DualSense controlelrs...
+
+   [Input.Gamepad]
+   TriggerResistance{L|R}={-1.0,[0.0,1.0]}  Default=-1.0 (not applied)
+   TriggerResistsAt{L|R}={-1.0,[0.0,1.0]}   Default=-1.0 (not applied)
+
+   TriggerResistsAt defines the ratio of trigger pull (1.0 = full pull)
+     before any resistance is applied; set to 1.0 or -1.0 to disable.
+
+   NOTE: 0.0 resistance actually has slight (minimum supported) resistance.
+
+   * This is a per-game setting, and not currently exposed in the control panel
+
+ + Added command console variables to control the settings listed above:
+
+     Input.Gamepad.DualSense.ResistStr{L|R}={-1.0f,[0.0,1.0]}
+     Input.Gamepad.DualSense.ResistPos{L|R}={-1.0f,[0.0,1.0]}
+
+ + Added command console variables to control Xbox Impulse Trigger strength:
+
+     Input.Gamepad.DualSense.ImpulseStr{L|R}=[0.0,1.0]
+
+24.12.12
 ========
  + Disabled anisotropic filtering optimizations in Metaphor: ReFantazio because
      most textures are not mipmap-complete.
