@@ -1003,25 +1003,40 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
     
     if (bHasPlayStationControllers)
     { 
-      if ((! config.input.gamepad.xinput.emulate) && SK_GetCurrentGameID () != SK_GAME_ID::HorizonForbiddenWest      &&
-                                                     SK_GetCurrentGameID () != SK_GAME_ID::RatchetAndClank_RiftApart &&
-                                                     SK_GetCurrentGameID () != SK_GAME_ID::ForzaHorizon5             &&
-                                                     SK_GetCurrentGameID () != SK_GAME_ID::StarWarsOutlaws           &&
-                                                     (! SK_GetCurrentRenderBackend ().windows.sdl))
+      if ((! config.input.gamepad.xinput.emulate) && SK_GetCurrentGameID () != SK_GAME_ID::ForzaHorizon5   &&
+                                                     SK_GetCurrentGameID () != SK_GAME_ID::StarWarsOutlaws &&
+                                                     (! SK_GetCurrentRenderBackend ().windows.sdl) &&
+                                                     (! SK_GetCurrentRenderBackend ().windows.nixxes))
       {
-        SK_ImGui_CreateNotification ( "WindowsGamingInput.Compatibility",
-                                      SK_ImGui_Toast::Warning,
-          "This game uses Windows.Gaming.Input\r\n\r\n  "
-          ICON_FA_PLAYSTATION "  "
-          "Your PlayStation controller may not work unless Xbox Mode is"
-          " enabled\r\n\r\n\t(Input Management | PlayStation > Xbox Mode)"
-          " and restart the game.",
-          "Windows.Gaming.Input Incompatibility Detected",
-                                      15000UL,
-                                    SK_ImGui_Toast::UseDuration |
-                                    SK_ImGui_Toast::ShowTitle   |
-                                    SK_ImGui_Toast::ShowCaption |
-                                    SK_ImGui_Toast::ShowOnce );
+        SK_RunOnce (SK_Thread_CreateEx([](LPVOID)->DWORD
+        {
+          while (game_window.hWnd == 0 || !IsWindow (game_window.hWnd))
+          {
+            SK_SleepEx (5, FALSE);
+          }
+
+          if ((! SK_GetCurrentRenderBackend ().windows.sdl) &&
+              (! SK_GetCurrentRenderBackend ().windows.nixxes))
+          {
+            SK_ImGui_CreateNotification ( "WindowsGamingInput.Compatibility",
+                                          SK_ImGui_Toast::Warning,
+              "This game uses Windows.Gaming.Input\r\n\r\n  "
+              ICON_FA_PLAYSTATION "  "
+              "Your PlayStation controller may not work unless Xbox Mode is"
+              " enabled\r\n\r\n\t(Input Management | PlayStation > Xbox Mode)"
+              " and restart the game.",
+              "Windows.Gaming.Input Incompatibility Detected",
+                                          15000UL,
+                                        SK_ImGui_Toast::UseDuration |
+                                        SK_ImGui_Toast::ShowTitle   |
+                                        SK_ImGui_Toast::ShowCaption |
+                                        SK_ImGui_Toast::ShowOnce );
+          }
+
+          SK_Thread_CloseSelf ();
+
+          return 0;
+        }, L"[SK] Windows.Gaming.Input Warning Thread"));
       }
     }
 

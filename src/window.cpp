@@ -7496,6 +7496,11 @@ SK_MakeWindowHook (WNDPROC class_proc, WNDPROC wnd_proc, HWND hWnd)
     SK_GetCurrentRenderBackend ().windows.sdl = true;
   }
 
+  else if (!_wcsicmp(wszClassName, L"GameNxApp"))
+  {
+    SK_GetCurrentRenderBackend ().windows.nixxes = true;
+  }
+
   else if (SK_GetCurrentGameID () == SK_GAME_ID::Metaphor ||
            SK_GetCurrentGameID () == SK_GAME_ID::Persona4 ||
            SK_GetCurrentGameID () == SK_GAME_ID::Persona5 ||

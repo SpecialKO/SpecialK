@@ -102,7 +102,7 @@ SK_MMCS_ApplyPendingTaskPriority (SK_TLS **ppTLS = nullptr)
   }
 }
 
-void
+bool
 SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TLS **ppTLS)
 {
   UNREFERENCED_PARAMETER (ppTLS);
@@ -117,7 +117,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
         bAlertable
     );
 
-    return;
+    return 0;
   }
 
 //#define SK_DISPATCH_SLEEP
@@ -237,7 +237,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
         dwMilliseconds = ReadAcquire (&_SK_NIER_RAD_InputPollingPeriod);
 
       SK_SleepEx (dwMilliseconds, bAlertable);
-      return;
+      return 0;
     }
   }
 #endif
@@ -318,10 +318,10 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     if (dwMaxWait < 5000UL)
     {
       if (! bGUIThread)
-        return;
+        return 0;
 
       if (dwMaxWait <= (DWORD)config.render.framerate.max_delta_time)
-        return;
+        return 0;
 
       DWORD dwWaitState =
         MsgWaitForMultipleObjectsEx (
@@ -335,7 +335,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       if (     dwWaitState == WAIT_IO_COMPLETION)
       {  ////SK_ReleaseAssert (  "WAIT_IO_COMPLETION"
          ////                         && bAlertable );
-        return;
+        return 0;
       }
 
       // Waiting messages
@@ -345,19 +345,19 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
         PeekAndDispatch ();
         // ...
 #endif
-        return;
+        return 1;
       }
 
       // DLL Shutdown
       else if (dwWaitState == WAIT_OBJECT_0)
       {
-        return;
+        return 0;
       }
 
       // Embarassing
       else if (dwWaitState == WAIT_TIMEOUT)
       {
-        return;
+        return 0;
       }
 
       // ???
@@ -369,19 +369,21 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       }
 
       if (dwMilliseconds == 0)
-        return;
+        return 1;
     }
 
     else
     {
       SK_SleepEx (dwMaxWait, bAlertable);
-      return;
+      return 0;
     }
 
     now =
       SK_CurrentPerf ().QuadPart;
   }
   while (now < end);
+
+  return 1;
 }
 
 float
@@ -1278,7 +1280,8 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       if (bRenderThread && SK_ImGui_Visible)
         SK::Framerate::events.getMessagePumpStats ().wake (std::max (1UL, dwMilliseconds));
 
-      SK_Thread_WaitWhilePumpingMessages (dwMilliseconds, bAlertable, &pTLS);
+      auto skip_sleep =
+        SK_Thread_WaitWhilePumpingMessages (0, bAlertable, &pTLS);
 
       // Check for I/O Wait Completion Before Going Sleepless
       if (bAlertable)
@@ -1286,6 +1289,13 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
         if (SK_SleepEx (0, TRUE) == WAIT_IO_COMPLETION)
                              return WAIT_IO_COMPLETION;
       }
+
+#ifndef SK_DISPATCH_SLEEP
+      //if (! skip_sleep)
+      //  SwitchToThread ();
+#endif
+
+      std::ignore = skip_sleep;
 
       return 0;
     }

@@ -571,6 +571,7 @@ public:
     bool                  capcom               = false;
     bool                  sdl                  = false;
     bool                  atlus                = false;
+    bool                  nixxes               = false;
 
     void setFocus  (HWND hWndFocus);
     void setDevice (HWND hWndRender);
