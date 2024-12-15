@@ -1,4 +1,16 @@
-﻿24.12.15.3
+﻿24.12.15.4
+==========
+ + Revert recent changes to Sleepless Window Thread that could hurt framerate.
+ + Unset most hooked window management trampoline functions during shutdown.
+ + Use ShowWindowAsync (...) in all cases where synchronous state change is
+     unnecessary, in order to minimize window management wait-chains.
+ + Do not show Windows.Gaming.Input warnings to PlayStation controller users
+     if theey have deliberately blocked a game from using XInput-derived APIs.
+ + Avoid IDXGISwapChain::ResizeTarget (...) when appropriate, in favor of
+     the simpler and much more likely to succeed without disrupting MPOs,
+       IDXGISwapChain::ResizeBuffers (...).
+
+24.12.15.3
 ==========
  + Add hacky workaround for Indiana Jones' Vulkan window not properly releasing
      topmost status on alt-tab.
