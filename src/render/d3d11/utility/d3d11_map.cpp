@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -75,16 +75,14 @@ SK_D3D11_Map_Impl (
       D3D11_Map_Original ( pDevCtx, pResource, Subresource,
                              MapType, MapFlags, pMappedResource );
 
-  bool early_out =
-    (! bMustNotIgnore) ||
-    SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx);
+  const bool early_out =
+    (! bMustNotIgnore);
 
   if (early_out)
   {
     return
       hr;
   }
-
 
   // UB: If it's happening, pretend we never saw this...
   if (pResource == nullptr || bIsDevCtxDeferred )
@@ -102,6 +100,12 @@ SK_D3D11_Map_Impl (
 
     if (! track)
       return hr;
+  }
+
+  if (SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx))
+  {
+    return
+      hr;
   }
 
   if (SUCCEEDED (hr))
@@ -291,8 +295,7 @@ SK_D3D11_Unmap_Impl (
   };
 
   bool early_out =
-    ( (! bMustNotIgnore) ||
-      SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx) );
+    (! bMustNotIgnore);
 
   if (early_out)
   {
@@ -325,6 +328,12 @@ SK_D3D11_Unmap_Impl (
       return
         _Finish ();
     }
+  }
+
+  if (SK_D3D11_IgnoreWrappedOrDeferred (bWrapped, bIsDevCtxDeferred, pDevCtx))
+  {
+    return
+      _Finish ();
   }
 
   SK_D3D11_MemoryThreads->mark ();

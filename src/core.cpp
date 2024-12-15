@@ -796,7 +796,7 @@ SK_InitFinishCallback (void)
           (MemoryManager *)pUserParam;
 
         while ( WAIT_OBJECT_0 !=
-                  WaitForSingleObject (__SK_DLL_TeardownEvent, 250UL) )
+                  WaitForSingleObject (__SK_DLL_TeardownEvent, 1000UL) )
         {
           PROCESS_MEMORY_COUNTERS pmc = {
             .cb = sizeof (PROCESS_MEMORY_COUNTERS)
