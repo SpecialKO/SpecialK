@@ -1275,7 +1275,7 @@ ActivateWindow ( HWND hWnd,
       if (config.window.always_on_top != NoPreferenceOnTop)
       {
         SK_Window_SetTopMost (game_window.active,
-                              game_window.active, hWnd);
+                              game_window.active, game_window.hWnd);
       }
 
       SK_ImGui_Cursor.activateWindow (game_window.active);
@@ -5803,6 +5803,12 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       _UpdateTitle (rb.windows.focus);
     } break;
 
+    case WM_CANCELMODE:
+    {
+      SK_RunOnce (SK_LOGi0 (L"WM_CANCEL_MODE"));
+      return 0;
+    } break;
+
     case WM_SETCURSOR:
     {
       if (hWnd == game_window.hWnd && HIWORD (lParam) != WM_NULL)
@@ -6383,6 +6389,12 @@ SK_Window_IsTopMost (HWND hWnd = game_window.hWnd)
 void
 SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd)
 {
+  DWORD                            dwPid = 0x0;
+  GetWindowThreadProcessId (hWnd, &dwPid);
+
+  if (dwPid != GetCurrentProcessId ())
+    return;
+
   const bool _unicode =
       IsWindowUnicode (hWnd);
 
@@ -6406,19 +6418,18 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd)
 
   const DWORD_PTR dwStyleExOrig = dwStyleEx;
 
-  SK_Inject_SetFocusWindow (game_window.hWnd);
+  if (game_window.active)
+    SK_Inject_SetFocusWindow (game_window.hWnd);
 
   if (bTop)
   {
     dwStyleEx |=   WS_EX_TOPMOST;
     dwStyleEx &= ~(WS_EX_NOACTIVATE);
-    hWndOrder  =   HWND_TOPMOST;
   }
 
   else
   {
     dwStyleEx &= ~(WS_EX_TOPMOST | WS_EX_NOACTIVATE);
-    hWndOrder  =  HWND_NOTOPMOST;
   }
 
   if (dwStyleEx != dwStyleExOrig)
@@ -6429,21 +6440,72 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd)
       SK_LOGi0 (L"Missing function pointer for SetWindowLong!");
   }
 
-  SK_SetWindowPos ( hWnd,
-                    hWndOrder,
-                    0, 0, 0, 0,
-                    SWP_NOACTIVATE     | SWP_NOMOVE         |
-                    SWP_NOSIZE         | SWP_NOSENDCHANGING |
-                    SWP_ASYNCWINDOWPOS );
+  if (bTop)
+  {
+    hWndOrder = HWND_TOPMOST;
+  }
 
-  if (bBringToTop)
+  else
+  {
+    // Vulkan sucks, this is a total hack and I don't care anymore
+    if (config.window.background_render && SK_Render_GetVulkanInteropSwapChainType (SK_GetCurrentRenderBackend ().swapchain) != SK_DXGI_VK_INTEROP_TYPE_NONE)
+      hWndOrder = HWND_BOTTOM;
+    else
+      hWndOrder = HWND_NOTOPMOST;
+  }
+
+  if (bBringToTop && (! bTop))
   {
     SK_SetWindowPos ( hWnd,
                       HWND_TOP,
                       0, 0, 0, 0,
-                      SWP_NOACTIVATE     | SWP_NOMOVE         |
-                      SWP_NOSIZE         | SWP_NOSENDCHANGING |
-                      SWP_ASYNCWINDOWPOS );
+                      SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE |
+                      SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS );
+  }
+
+  else
+  {
+    SK_SetWindowPos ( hWnd,
+                      hWndOrder,
+                      0, 0, 0, 0,
+                      SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE |
+                      SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS );
+
+    if (hWndOrder == HWND_BOTTOM && hWnd == game_window.hWnd)
+    {
+      static HANDLE hRepositionBelowForeground =
+        SK_CreateEvent (nullptr, TRUE, FALSE, nullptr);
+
+      SK_RunOnce (
+      SK_Thread_CreateEx ([](LPVOID)->DWORD
+      {
+        HANDLE hWaitHandles [] = { hRepositionBelowForeground, __SK_DLL_TeardownEvent };
+
+        while (WaitForMultipleObjects (2, hWaitHandles, FALSE, INFINITE) == WAIT_OBJECT_0)
+        {
+          // Because this is all async, just spin a loop until the window is no longer
+          //   in the foreground, then place it behind whatever is.
+          while (SK_GetForegroundWindow () == game_window.hWnd)
+          {
+            SK_SleepEx (4UL, FALSE);
+          }
+
+          SK_SetWindowPos ( game_window.hWnd,
+                            SK_GetForegroundWindow (),
+                            0, 0, 0, 0,
+                            SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE |
+                            SWP_NOSENDCHANGING | SWP_ASYNCWINDOWPOS );
+
+          ResetEvent (hRepositionBelowForeground);
+        }
+
+        SK_Thread_CloseSelf ();
+
+        return 0;
+      }, L"[SK] Vulkan Interop Z-Order Fixup"));
+
+      SetEvent (hRepositionBelowForeground);
+    }
   }
 }
 

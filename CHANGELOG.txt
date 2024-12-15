@@ -1,4 +1,9 @@
-﻿24.12.15.2
+﻿24.12.15.3
+==========
+ + Add hacky workaround for Indiana Jones' Vulkan window not properly releasing
+     topmost status on alt-tab.
+
+24.12.15.2
 ==========
  + Removed unnecessary Windows.Gaming.Input warning messages in SDL2 and Nixxes
      games if they initialize input before creating a game window.
