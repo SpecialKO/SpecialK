@@ -1046,6 +1046,14 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     return 0;
   }
 
+  if ( static HMODULE         hModFmodStudio =
+           SK_GetModuleHandleW (L"fmodstudio.dll");
+       SK_GetCallingDLL () == hModFmodStudio )
+  {
+    return SK_SleepEx (dwMilliseconds, bAlertable);
+  }
+
+
   // For sleeps longer than 1 second, let's do some consistency checks
   const bool bLongSleep = 
     (dwMilliseconds > 1000UL);
