@@ -868,7 +868,7 @@ struct {
   }
   void postMsg (WPARAM wParam, LPARAM lParam)
   {
-    if (! PostMessage (hWnd, /*WM_USER+WM_SETFOCUS*/0xfa57, wParam, lParam))
+    if (! SK_PostMessage (hWnd, /*WM_USER+WM_SETFOCUS*/0xfa57, wParam, lParam))
     {
       switch (GetLastError ())
       {
