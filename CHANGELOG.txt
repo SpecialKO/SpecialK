@@ -1,4 +1,12 @@
-﻿24.12.15.4
+﻿24.12.16
+========
+ + Improve HID->XInput timestamp management when threads are updating the state
+     concurrently.
+ + Fix potential crash while games poll keyboard input from multiple threads
+     and SK's primary render context is not active.
+ + Speed up render context re-initialization following a window resize.
+
+24.12.15.4
 ==========
  + Revert recent changes to Sleepless Window Thread that could hurt framerate.
  + Unset most hooked window management trampoline functions during shutdown.
