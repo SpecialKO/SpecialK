@@ -1,4 +1,9 @@
-﻿24.12.15.1
+﻿24.12.15.2
+==========
+ + Removed unnecessary Windows.Gaming.Input warning messages in SDL2 and Nixxes
+     games if they initialize input before creating a game window.
+
+24.12.15.1
 ==========
  + Apply/reset trigger resistance for DualSense controllers every time they
      connect/reconnect, and do not wait for vibration data to be written first.
