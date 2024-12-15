@@ -1089,11 +1089,13 @@ struct SK_HID_PlayStationDevice
   bool request_input_report (void);
   bool write_output_report  (bool force = false);
 
-  bool setPollingFrequency (DWORD dwFreq);
-  bool setBufferCount      (DWORD dwBuffers);
+  bool setPollingFrequency  (DWORD dwFreq);
+  bool setBufferCount       (DWORD dwBuffers);
 
-  bool initialize_serial   (void);
-  void reset_device        (void);
+  void reset_force_feedback (void);
+
+  bool initialize_serial    (void);
+  void reset_device         (void);
 };
 
 struct SK_HID_OverlappedRequest {
@@ -1139,7 +1141,8 @@ bool SK_ImGui_HasPlayStationController   (void);
 bool SK_ImGui_HasDualSenseController     (void);
 bool SK_ImGui_HasDualSenseEdgeController (void);
 
-void SK_HID_SetupPlayStationControllers (void);
+void SK_HID_SetupPlayStationControllers   (void);
+void SK_HID_FlushPlayStationForceFeedback (void);
 
 
 // Temporarily override game's preferences for input device window message generation

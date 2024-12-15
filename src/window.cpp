@@ -1055,6 +1055,14 @@ ActivateWindow ( HWND hWnd,
 
     if (game_window.active)
     {
+      if (is_game_window)
+      {
+        if (active)
+        {
+          SK_HID_FlushPlayStationForceFeedback ();
+        }
+      }
+
       // Release the AltKin
       for ( BYTE VKey = 0x8 ; VKey < 255 ; ++VKey )
       {

@@ -85,6 +85,22 @@ SK_HID_PlayStationDevice::~SK_HID_PlayStationDevice (void)
 
 extern bool SK_SetThreadIOPriority (HANDLE hThread, int priority);
 
+void SK_HID_FlushPlayStationForceFeedback (void)
+{
+  for (auto& ps_controller : SK_HID_PlayStationControllers)
+  {
+    if (  ps_controller.bConnected &&
+        ( ps_controller.bDualSense ||
+          ps_controller.bDualSenseEdge ) )
+    {
+      WriteRelease (
+        &ps_controller.bNeedOutput, TRUE
+      ); ps_controller.reset_force_feedback ();
+         ps_controller.write_output_report  ();
+    }
+  }
+}
+
 void SK_HID_SetupPlayStationControllers (void)
 {
   // Only do this once, and make all other threads trying to do it wait
@@ -2732,13 +2748,13 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             const bool bRumble =
               (dwRightMotor != 0  ||
                dwLeftMotor  != 0) || (dwLeftTrigger  != 0
-                                  ||  dwRightTrigger != 0) || bResistChange;
+                                  ||  dwRightTrigger != 0);
 
             // 500 msec grace period before allowing controller to use native haptics
-            output->UseRumbleNotHaptics = bRumble || 
-              (ReadULongAcquire (&pDevice->_vibration.last_set) > SK::ControlPanel::current_time - 500UL)
-                                                  || last_trigger_r != 0
-                                                  || last_trigger_l != 0;
+            output->UseRumbleNotHaptics = bRumble || last_trigger_r != 0
+                                                  || last_trigger_l != 0
+                                                  || bResistChange  ||
+              (ReadULongAcquire (&pDevice->_vibration.last_set) > SK::ControlPanel::current_time - 500UL);
 
             if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0))
             {
@@ -2772,7 +2788,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
 
-            if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0) || bResistChange)
+            if ((last_trigger_r != 0 || last_trigger_l != 0) || bResistChange)
             {
               auto effect =      (dwLeftTrigger != 0) ?
                 playstation_trigger_effect::Vibration :
@@ -2950,13 +2966,13 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             const bool bRumble =
               (dwRightMotor != 0  ||
                dwLeftMotor  != 0) || (dwLeftTrigger  != 0
-                                  ||  dwRightTrigger != 0) || bResistChange;
+                                  ||  dwRightTrigger != 0);
 
             // 500 msec grace period before allowing controller to use native haptics
-            output->UseRumbleNotHaptics = bRumble || 
-              (ReadULongAcquire (&pDevice->_vibration.last_set) > SK::ControlPanel::current_time - 500UL)
-                                                  || last_trigger_r != 0
-                                                  || last_trigger_l != 0;
+            output->UseRumbleNotHaptics = bRumble || last_trigger_r != 0
+                                                  || last_trigger_l != 0
+                                                  || bResistChange  ||
+              (ReadULongAcquire (&pDevice->_vibration.last_set) > SK::ControlPanel::current_time - 500UL);
 
             if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0))
             {
@@ -2990,7 +3006,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
 
-            if (bRumble || (last_trigger_r != 0 || last_trigger_l != 0) || bResistChange)
+            if (last_trigger_r != 0 || last_trigger_l != 0 || bResistChange)
             {
               auto effect =      (dwLeftTrigger != 0) ?
                 playstation_trigger_effect::Vibration :
@@ -3960,6 +3976,15 @@ SK_HID_PlayStationDevice::initialize_serial (void)
 }
 
 void
+SK_HID_PlayStationDevice::reset_force_feedback (void)
+{
+  _vibration.trigger.last_resist_start_l = -2.0f;
+  _vibration.trigger.last_resist_start_r = -2.0f;
+  _vibration.trigger.last_resist_str_l   = -2.0f;
+  _vibration.trigger.last_resist_str_r   = -2.0f;
+}
+
+void
 SK_HID_PlayStationDevice::reset_device (void)
 {
   battery.percentage = 100.0f;
@@ -3977,14 +4002,12 @@ SK_HID_PlayStationDevice::reset_device (void)
   WriteULongRelease (&_vibration.last_set, 0);
   WriteULongRelease (&_vibration.max_val,  0);
 
-  _vibration.trigger.last_left           =     0;
-  _vibration.trigger.last_right          =     0;
-  _vibration.trigger.start_left          =     0;
-  _vibration.trigger.start_right         =     0;
-  _vibration.trigger.last_resist_start_l = -2.0f;
-  _vibration.trigger.last_resist_start_r = -2.0f;
-  _vibration.trigger.last_resist_str_l   = -2.0f;
-  _vibration.trigger.last_resist_str_r   = -2.0f;
+  _vibration.trigger.last_left   = 0;
+  _vibration.trigger.last_right  = 0;
+  _vibration.trigger.start_left  = 0;
+  _vibration.trigger.start_right = 0;
+
+  reset_force_feedback ();
 
   WriteULong64Release (&xinput.last_active, 0);
 
@@ -3999,7 +4022,7 @@ SK_HID_PlayStationDevice::reset_device (void)
   dwLastTimeOutput  = 0;
   ulLastFrameOutput = 0;
 
-  bNeedOutput = true;
+  WriteRelease (&bNeedOutput, TRUE);
   bSimpleMode = true;
 
   for ( auto& button : buttons )
@@ -4020,10 +4043,10 @@ SK_HID_DualSense_SetStateDataImpl (SK_HID_DualSense_SetStateData* report, bool l
   else      report->AllowRightTriggerFFB = true;
 
   uint8_t effects [][11] = {
-    { 0x05, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0x01, 0, 63, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0x00, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0 },
-    { 0x06, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0x05, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Off
+    { 0x01, 0, 63, 0, 0, 0, 0, 0, 0, 0, 0 }, // Feedback
+    { 0x00, 0,  0, 0, 0, 0, 0, 0, 0, 0, 0 }, // ...
+    { 0x06, 15, 0, 0, 0, 0, 0, 0, 0, 0, 0 }, // Vibration
   };
 
   if (effect >= playstation_trigger_effect::Invalid)
