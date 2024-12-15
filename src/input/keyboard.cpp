@@ -399,6 +399,9 @@ SHORT
 WINAPI
 SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
 {
+  if (pfnGetFunc == nullptr)
+    return 0;
+
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
@@ -427,17 +430,21 @@ SK_GetSharedKeyState_Impl (int vKey, GetAsyncKeyState_pfn pfnGetFunc)
       SK_ConsumeVKey (vKey);
   }
 
-  bool fullscreen =
-    ( SK_GetFramesDrawn () && rb.isTrueFullscreen () );
-
   // Block keyboard input to the game while it's in the background
-  if ((! fullscreen) &&
-      SK_WantBackgroundRender () && (! SK_IsGameWindowActive ()))
+  if (SK_WantBackgroundRender () && (! SK_IsGameWindowActive ()))
   {
     if (pfnGetFunc == GetAsyncKeyState_Original)
     {
-      return
-        SK_ConsumeVKey (vKey);
+      bool fullscreen =
+        ( SK_GetFramesDrawn () && (rb.d3d12.command_queue.p != nullptr ||
+                                   rb.d3d11.immediate_ctx   != nullptr)
+                               &&  rb.isTrueFullscreen () );
+
+      if (fullscreen)
+      {
+        return
+          SK_ConsumeVKey (vKey);
+      }
     }
   }
 
