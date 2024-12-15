@@ -3,15 +3,15 @@
  + Added configurable constant trigger resistance for DualSense controlelrs...
 
    [Input.Gamepad]
-   TriggerResistance{L|R}={-1.0,[0.0,1.0]}  Default=-1.0 (not applied)
-   TriggerResistsAt{L|R}={-1.0,[0.0,1.0]}   Default=-1.0 (not applied)
+   {Left|Right}TriggerResistance={-1.0,[0.0,1.0]}  Default=-1.0 (not applied)
+   {Left|Right}TriggerResistsAt={-1.0,[0.0,1.0]}   Default=-1.0 (not applied)
 
    TriggerResistsAt defines the ratio of trigger pull (1.0 = full pull)
      before any resistance is applied; set to 1.0 or -1.0 to disable.
 
    NOTE: 0.0 resistance actually has slight (minimum supported) resistance.
 
-   * This is a per-game setting, and not currently exposed in the control panel
+   * This is a per-game setting, not currently exposed in the control panel.
 
  + Added command console variables to control the settings listed above:
 

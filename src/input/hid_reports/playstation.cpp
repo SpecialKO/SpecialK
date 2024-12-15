@@ -2761,10 +2761,10 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
 
-            static float fLastResistStrL = config.input.gamepad.dualsense.resist_strength_l;
-            static float fLastResistStrR = config.input.gamepad.dualsense.resist_strength_r;
-            static float fLastResistPosL = config.input.gamepad.dualsense.resist_start_l;
-            static float fLastResistPosR = config.input.gamepad.dualsense.resist_start_r;
+            float& fLastResistStrL = pDevice->_vibration.trigger.last_resist_str_l;
+            float& fLastResistStrR = pDevice->_vibration.trigger.last_resist_str_r;
+            float& fLastResistPosL = pDevice->_vibration.trigger.last_resist_start_l;
+            float& fLastResistPosR = pDevice->_vibration.trigger.last_resist_start_r;
 
             const bool bResistChange =
               (std::exchange (fLastResistStrL, config.input.gamepad.dualsense.resist_strength_l) != config.input.gamepad.dualsense.resist_strength_l) |
@@ -2979,10 +2979,10 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
 
-            static float fLastResistStrL = config.input.gamepad.dualsense.resist_strength_l;
-            static float fLastResistStrR = config.input.gamepad.dualsense.resist_strength_r;
-            static float fLastResistPosL = config.input.gamepad.dualsense.resist_start_l;
-            static float fLastResistPosR = config.input.gamepad.dualsense.resist_start_r;
+            float& fLastResistStrL = pDevice->_vibration.trigger.last_resist_str_l;
+            float& fLastResistStrR = pDevice->_vibration.trigger.last_resist_str_r;
+            float& fLastResistPosL = pDevice->_vibration.trigger.last_resist_start_l;
+            float& fLastResistPosR = pDevice->_vibration.trigger.last_resist_start_r;
 
             const bool bResistChange =
               (std::exchange (fLastResistStrL, config.input.gamepad.dualsense.resist_strength_l) != config.input.gamepad.dualsense.resist_strength_l) |
@@ -3976,6 +3976,15 @@ SK_HID_PlayStationDevice::reset_device (void)
   WriteULongRelease (&_vibration.right,    0);
   WriteULongRelease (&_vibration.last_set, 0);
   WriteULongRelease (&_vibration.max_val,  0);
+
+  _vibration.trigger.last_left           =     0;
+  _vibration.trigger.last_right          =     0;
+  _vibration.trigger.start_left          =     0;
+  _vibration.trigger.start_right         =     0;
+  _vibration.trigger.last_resist_start_l = -1.0f;
+  _vibration.trigger.last_resist_start_r = -1.0f;
+  _vibration.trigger.last_resist_str_l   = -1.0f;
+  _vibration.trigger.last_resist_str_r   = -1.0f;
 
   WriteULong64Release (&xinput.last_active, 0);
 
