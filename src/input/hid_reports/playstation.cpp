@@ -2776,34 +2776,38 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             {
               auto effect =      (dwLeftTrigger != 0) ?
                 playstation_trigger_effect::Vibration :
-                  (config.input.gamepad.dualsense.resist_strength_r > 0.0f) ?
-                                            playstation_trigger_effect::Off :
-                                            playstation_trigger_effect::Feedback;
+                playstation_trigger_effect::Feedback;
 
               if (dwLeftTrigger != 0)
               {
-                output->setTriggerEffectL (effect, -1.0f, (static_cast <float> (dwLeftTrigger) * config.input.gamepad.impulse_strength_l) / 255.0f, 0.25f);
+                output->setTriggerEffectL (effect, -1.0f, (static_cast <float> (dwLeftTrigger) * config.input.gamepad.impulse_strength_l) / 255.0f, 0.025f);
               }
               
               else
               {
-                output->setTriggerEffectL (effect, config.input.gamepad.dualsense.resist_start_l, config.input.gamepad.dualsense.resist_strength_l);
+                output->setTriggerEffectL (effect, config.input.gamepad.dualsense.resist_strength_l >= 0.0f ?
+                                                      config.input.gamepad.dualsense.resist_start_l >= 0.0f ?
+                                                      config.input.gamepad.dualsense.resist_start_l         : 1.0f
+                                                                                                            : 1.0f,
+                                                   config.input.gamepad.dualsense.resist_strength_l);
               }
 
               effect =          (dwRightTrigger != 0) ?
                 playstation_trigger_effect::Vibration :
-                  (config.input.gamepad.dualsense.resist_strength_r > 0.0f) ? 
-                                            playstation_trigger_effect::Off :
-                                            playstation_trigger_effect::Feedback;
+                playstation_trigger_effect::Feedback;
 
               if (dwRightTrigger != 0)
               {
-                output->setTriggerEffectR (effect, -1.0f, (static_cast <float> (dwRightTrigger) * config.input.gamepad.impulse_strength_r) / 255.0f, 0.25f);
+                output->setTriggerEffectR (effect, -1.0f, (static_cast <float> (dwRightTrigger) * config.input.gamepad.impulse_strength_r) / 255.0f, 0.025f);
               }
               
               else
               {
-                output->setTriggerEffectR (effect, config.input.gamepad.dualsense.resist_start_r, config.input.gamepad.dualsense.resist_strength_r);
+                output->setTriggerEffectR (effect, config.input.gamepad.dualsense.resist_strength_r >= 0.0f ?
+                                                      config.input.gamepad.dualsense.resist_start_r >= 0.0f ?
+                                                      config.input.gamepad.dualsense.resist_start_r         : 1.0f
+                                                                                                            : 1.0f,
+                                                   config.input.gamepad.dualsense.resist_strength_r);
               }
 
               pDevice->_vibration.trigger.last_right = dwRightTrigger;
@@ -2990,34 +2994,38 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             {
               auto effect =      (dwLeftTrigger != 0) ?
                 playstation_trigger_effect::Vibration :
-                  (config.input.gamepad.dualsense.resist_strength_l > 0.0f) ?
-                                            playstation_trigger_effect::Off :
-                                            playstation_trigger_effect::Feedback;
+                playstation_trigger_effect::Feedback;
 
               if (dwLeftTrigger != 0)
               {
-                output->setTriggerEffectL (effect, -1.0f, (static_cast <float> (dwLeftTrigger) * config.input.gamepad.impulse_strength_l) / 255.0f, 0.25f);
+                output->setTriggerEffectL (effect, -1.0f, (static_cast <float> (dwLeftTrigger) * config.input.gamepad.impulse_strength_l) / 255.0f, 0.025f);
               }
               
               else
               {
-                output->setTriggerEffectL (effect, config.input.gamepad.dualsense.resist_start_l, config.input.gamepad.dualsense.resist_strength_l);
+                output->setTriggerEffectL (effect, config.input.gamepad.dualsense.resist_strength_l >= 0.0f ?
+                                                      config.input.gamepad.dualsense.resist_start_l >= 0.0f ?
+                                                      config.input.gamepad.dualsense.resist_start_l         : 1.0f
+                                                                                                            : 1.0f,
+                                                   config.input.gamepad.dualsense.resist_strength_l);
               }
 
               effect =          (dwRightTrigger != 0) ?
                 playstation_trigger_effect::Vibration :
-                  (config.input.gamepad.dualsense.resist_strength_r > 0.0f) ?
-                                            playstation_trigger_effect::Off :
-                                            playstation_trigger_effect::Feedback;
+                  playstation_trigger_effect::Feedback;
 
               if (dwRightTrigger != 0)
               {
-                output->setTriggerEffectR (effect, -1.0f, (static_cast <float> (dwRightTrigger) * config.input.gamepad.impulse_strength_r) / 255.0f, 0.25f);
+                output->setTriggerEffectR (effect, -1.0f, (static_cast <float> (dwRightTrigger) * config.input.gamepad.impulse_strength_r) / 255.0f, 0.025f);
               }
               
               else
               {
-                output->setTriggerEffectR (effect, config.input.gamepad.dualsense.resist_start_r, config.input.gamepad.dualsense.resist_strength_r);
+                output->setTriggerEffectR (effect, config.input.gamepad.dualsense.resist_strength_r >= 0.0f ?
+                                                      config.input.gamepad.dualsense.resist_start_r >= 0.0f ?
+                                                      config.input.gamepad.dualsense.resist_start_r         : 1.0f
+                                                                                                            : 1.0f,
+                                                   config.input.gamepad.dualsense.resist_strength_r);
               }
 
               pDevice->_vibration.trigger.last_right = dwRightTrigger;
