@@ -1036,6 +1036,30 @@ timeEndPeriod_Detour(_In_ UINT uPeriod) //-V524
 }
 
 
+static HMODULE hModFmodStudio = 0;
+
+DWORD
+SleepEx_EarlyOutForModule (DWORD dwMilliseconds, BOOL bAlertable, HMODULE& hMod, LPCWSTR wszModuleName, LPCVOID lpCaller)
+{
+  if (hMod != (HMODULE)-1)
+  {
+    if (hMod != nullptr &&
+        hMod == SK_GetCallingDLL (lpCaller))
+    {
+      return
+        SK_SleepEx (dwMilliseconds, bAlertable);
+    }
+
+    if (  hMod == nullptr && SK_GetFramesDrawn () > 2048)
+    {     hMod = SK_GetModuleHandleW (wszModuleName);
+      if (hMod == nullptr)
+          hMod = (HMODULE)-1;
+    }
+  }
+
+  return (DWORD)-1;
+}
+
 DWORD
 WINAPI
 SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
@@ -1046,23 +1070,12 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     return 0;
   }
 
-  if ( static HMODULE         hModFmodStudio =
-           SK_GetModuleHandleW (L"fmodstudio.dll");
-       SK_GetCallingDLL () == hModFmodStudio )
-  {
-    return SK_SleepEx (dwMilliseconds, bAlertable);
-  }
-
-
   // For sleeps longer than 1 second, let's do some consistency checks
   const bool bLongSleep = 
     (dwMilliseconds > 1000UL);
 
-  static auto game_id =
+  static const auto game_id =
     SK_GetCurrentGameID ();
-
-  SK_TLS*                            pTLS = nullptr;
-  SK_MMCS_ApplyPendingTaskPriority (&pTLS);
 
   // TODO: Move into actual plug-in
   if (game_id == SK_GAME_ID::ChronoCross)
@@ -1074,7 +1087,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     }
   }
 
-  if (game_id == SK_GAME_ID::Starfield)
+  else if (game_id == SK_GAME_ID::Starfield)
   {
     if (dwMilliseconds == 0)
     {
@@ -1082,6 +1095,21 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
         SwitchToThread ();
     }
   }
+
+  if (dwMilliseconds == 0)
+  {
+    return
+      SK_SleepEx (dwMilliseconds, bAlertable);
+  }
+
+  // Early-out for fmod, it uses SleepEx (...) instead of signaled waits,
+  //   and it's for audio mixing, so we don't want to touch it.
+  if (auto early_out = SleepEx_EarlyOutForModule (dwMilliseconds, bAlertable, hModFmodStudio, L"fmodstudio.dll", _ReturnAddress ());
+           early_out != (DWORD)-1)
+    return early_out;
+
+  SK_TLS*                            pTLS = nullptr;
+  SK_MMCS_ApplyPendingTaskPriority (&pTLS);
 
   const bool sleepless_render = config.render.framerate.sleepless_render;
   const bool sleepless_window = config.render.framerate.sleepless_window;
@@ -1108,7 +1136,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
 
 #if 1
   BOOL bGUIThread    =
-    sleepless_window ? (SK_Thread_GetTEB_FAST ()->Win32ThreadInfo                != nullptr)
+    sleepless_window ? (SK_Thread_GetTEB_FAST ()->Win32ThreadInfo != nullptr)
                      : FALSE;
 #else
   GUITHREADINFO gti        = {                    };
