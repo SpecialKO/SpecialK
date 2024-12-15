@@ -563,11 +563,14 @@ XInputGetState1_4_Detour (
         extern     XINPUT_STATE hid_to_xi;
         extern volatile ULONG64 hid_to_xi_time;
 
-        auto timestamp =
-            ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
-        if (ReadULong64Acquire (&hid_to_xi_time) < timestamp)
-        {  WriteULong64Release (&hid_to_xi_time,   timestamp);
-           hid_to_xi = pNewestInputDevice->xinput.prev_report;
+        auto last_timestamp = ReadULong64Acquire (&hid_to_xi_time);
+        auto timestamp      = ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
+
+        if (last_timestamp < timestamp)
+        { if (InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp)
+          {
+            hid_to_xi = pNewestInputDevice->xinput.prev_report;
+          }
         }
 
         memcpy (pState, &hid_to_xi, sizeof (XINPUT_STATE));
@@ -842,11 +845,14 @@ XInputGetStateEx1_4_Detour (
         extern     XINPUT_STATE hid_to_xi;
         extern volatile ULONG64 hid_to_xi_time;
 
-        auto timestamp =
-            ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
-        if (ReadULong64Acquire (&hid_to_xi_time) < timestamp)
-        {  WriteULong64Release (&hid_to_xi_time,   timestamp);
-           hid_to_xi = pNewestInputDevice->xinput.prev_report;
+        auto last_timestamp = ReadULong64Acquire (&hid_to_xi_time);
+        auto timestamp      = ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
+
+        if (last_timestamp < timestamp)
+        { if (InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp)
+          {
+            hid_to_xi = pNewestInputDevice->xinput.prev_report;
+          }
         }
 
         memcpy (pState, &hid_to_xi, sizeof (XINPUT_STATE));

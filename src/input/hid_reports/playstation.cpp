@@ -2448,7 +2448,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
             for ( auto& ps_controller : SK_HID_PlayStationControllers )
             {
-              if (ReadULong64Acquire (&ps_controller.xinput.last_active) > ReadULong64Acquire (&pDevice->xinput.last_active))
+              if (ps_controller.bConnected && ReadULong64Acquire (&ps_controller.xinput.last_active) > ReadULong64Acquire (&pDevice->xinput.last_active))
               {
                 bIsDeviceMostRecentlyActive = false;
                 break;
@@ -2463,9 +2463,9 @@ SK_HID_PlayStationDevice::request_input_report (void)
               //       input...
               if (bIsDeviceMostRecentlyActive)
               { // Need interlock
-                auto last_active =
-                  ReadULong64Acquire (&pDevice->xinput.last_active) + (SK_PerfFreq / 13);
-                WriteULong64Release  (&pDevice->xinput.last_active, last_active);
+                UINT64 last_active =
+                        ReadULong64Acquire (&pDevice->xinput.last_active);
+                InterlockedCompareExchange (&pDevice->xinput.last_active, last_active + (SK_PerfTicksPerMs * 75), last_active);
               }
             }
 
@@ -2473,13 +2473,15 @@ SK_HID_PlayStationDevice::request_input_report (void)
             //   controller, but it does have new input and the game should see it...
             else if (bIsInputNew)
             {
-              WriteULong64Release (&pDevice->xinput.last_active, SK_QueryPerf ().QuadPart);
+              UINT64 last_active =
+                      ReadULong64Acquire (&pDevice->xinput.last_active);
+              InterlockedCompareExchange (&pDevice->xinput.last_active, SK_QueryPerf ().QuadPart, last_active);
 
               if (bIsDeviceMostRecentlyActive)
               { // Need interlock
-                auto last_active =
-                  ReadULong64Acquire (&pDevice->xinput.last_active) + (SK_PerfFreq / 13);
-                WriteULong64Release  (&pDevice->xinput.last_active, last_active);
+                last_active =
+                        ReadULong64Acquire (&pDevice->xinput.last_active);
+                InterlockedCompareExchange (&pDevice->xinput.last_active, last_active + (SK_PerfTicksPerMs * 75), last_active);
               }
             }
 

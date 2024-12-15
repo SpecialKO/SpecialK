@@ -1828,10 +1828,14 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
     {
       extern volatile ULONG64 hid_to_xi_time;
 
-      auto timestamp = ReadULong64Acquire (&pLastActiveController->xinput.last_active);
-      if (ReadULong64Acquire (&hid_to_xi_time) < timestamp)
-      {  WriteULong64Release (&hid_to_xi_time, timestamp);
+      auto last_timestamp = ReadULong64Acquire (&hid_to_xi_time);
+      auto timestamp      = ReadULong64Acquire (&pLastActiveController->xinput.last_active);
+
+      if (last_timestamp < timestamp)
+      { if (InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp)
+        {
           hid_to_xi = pLastActiveController->xinput.prev_report;
+        }
       }
 
       if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate)
@@ -1864,7 +1868,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
       last_native_time = SK_QueryPerf ().QuadPart;
     }
 
-    if (bHasPlayStation && ullLastActiveTimestamp > last_native_time)
+    if (bHasPlayStation && ullLastActiveTimestamp >= last_native_time)
     {
       state = hid_to_xi;
     }
@@ -3607,15 +3611,22 @@ SK_ImGui_User_NewFrame (void)
       SK_ClipCursor (&game_window.actual.window);
     else
       SK_ClipCursor (&game_window.cursor_clip);
+  }
 
+
+  ImGui::NewFrame ();
+
+
+  if (bActive)
+  {
     static const bool
         safely_minimizable = SK_Render_GetVulkanInteropSwapChainType (SK_GetCurrentRenderBackend ().swapchain) != SK_DXGI_VK_INTEROP_TYPE_NV;
-    if (safely_minimizable) // Vulkan interop games will not work correctly if minimized
+    if (safely_minimizable && (io.KeysDown [VK_LWIN] || io.KeysDown [VK_RWIN])) // Vulkan interop games will not work correctly if minimized
     {
       // Implement Minimizing/Restoring Borderless Games Using Windows+Down/Up
-      static bool last_down = io.KeysDown [VK_DOWN];
-      static bool last_up   = io.KeysDown [VK_UP];
-      if (     (io.KeysDown [VK_LWIN] || io.KeysDown [VK_RWIN]) && io.KeysDown [VK_DOWN] && !last_down && !SK_Window_HasBorder (game_window.hWnd))
+      static bool last_down = (SK_GetAsyncKeyState (VK_DOWN) & 0x8000);
+      static bool last_up   = (SK_GetAsyncKeyState (VK_UP)   & 0x8000);
+      if (     (SK_GetAsyncKeyState (VK_DOWN) & 0x8000) && !last_down && !last_up && !SK_Window_HasBorder (game_window.hWnd))
       {
         if (!         IsIconic (game_window.hWnd))
         {
@@ -3627,22 +3638,24 @@ SK_ImGui_User_NewFrame (void)
             SK_ShowWindowAsync (game_window.hWnd, SW_MINIMIZE);
         }
       }
-      else if ((io.KeysDown [VK_LWIN] || io.KeysDown [VK_RWIN]) && io.KeysDown [VK_UP]   && !last_up   && !SK_Window_HasBorder (game_window.hWnd))
+      else if ((SK_GetAsyncKeyState (VK_UP) & 0x8000)   && !last_down && !last_up && !SK_Window_HasBorder (game_window.hWnd))
       {
-        if (IsIconic         (game_window.hWnd))
-          SK_ShowWindowAsync (game_window.hWnd, SW_SHOWNOACTIVATE);
+        if (! IsZoomed         (game_window.hWnd))
+        {
+          if (IsIconic         (game_window.hWnd))
 #ifdef SK_ALLOW_EXPERIMENTAL_WINDOW_MANAGEMENT
-        else
-          SK_ShowWindowAsync (game_window.hWnd, SW_MAXIMIZE); // This causes some games to break due to implicit activation
+            SK_ShowWindowAsync (game_window.hWnd, SW_RESTORE);
+          else
+            SK_ShowWindowAsync (game_window.hWnd, SW_MAXIMIZE); // This causes some games to break due to implicit activation
+#else
+            SK_ShowWindowAsync (game_window.hWnd, SW_SHOWNOACTIVATE);
 #endif
+        }
       }
-      last_down = io.KeysDown [VK_DOWN];
-      last_up   = io.KeysDown [VK_DOWN];
+      last_down = (SK_GetAsyncKeyState (VK_DOWN) & 0x8000);
+      last_up   = (SK_GetAsyncKeyState (VK_UP)   & 0x8000);
     }
   }
-
-
-  ImGui::NewFrame ();
 
 
   // ImGui::NewFrame (...) may have changed the status of mous capture...
