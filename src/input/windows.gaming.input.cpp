@@ -75,6 +75,8 @@ using WGI_GamepadStatistics_get_Gamepads_pfn = HRESULT (STDMETHODCALLTYPE *)(ABI
                                                                 IVectorView <ABI::Windows::Gaming::Input::Gamepad*>       **value);
 using WGI_Gamepad_GetCurrentReading_pfn      = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepad         *This,
                                                                              ABI::Windows::Gaming::Input::GamepadReading   *value);
+using WGI_Gamepad_get_Vibration_pfn          = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepad         *This,
+                                                                             ABI::Windows::Gaming::Input::GamepadVibration *value);
 using WGI_Gamepad_put_Vibration_pfn          = HRESULT (STDMETHODCALLTYPE *)(ABI::Windows::Gaming::Input::IGamepad         *This,
                                                                              ABI::Windows::Gaming::Input::GamepadVibration  value);
 
@@ -83,6 +85,9 @@ WGI_GamepadStatistics_get_Gamepads_Original = nullptr;
 
 WGI_Gamepad_GetCurrentReading_pfn
 WGI_Gamepad_GetCurrentReading_Original = nullptr;
+
+WGI_Gamepad_get_Vibration_pfn
+WGI_Gamepad_get_Vibration_Original = nullptr;
 
 WGI_Gamepad_put_Vibration_pfn
 WGI_Gamepad_put_Vibration_Original = nullptr;
@@ -627,6 +632,32 @@ WGI_GamepadStatistics_get_Gamepads_Override ( ABI::Windows::Gaming::Input::IGame
 
 bool SK_WGI_EmulatedPlayStation = false;
 
+SK_LazyGlobal <
+  concurrency::concurrent_unordered_map < ABI::Windows::Gaming::Input::IGamepad*,
+                                          ABI::Windows::Gaming::Input::GamepadVibration >
+> SK_WGI_LastPutVibration;
+
+HRESULT
+STDMETHODCALLTYPE
+WGI_Gamepad_get_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad         *This,
+                                    ABI::Windows::Gaming::Input::GamepadVibration *value)
+{
+  SK_LOG_FIRST_CALL
+
+  if (value == nullptr)
+    return E_INVALIDARG;
+
+  // Forza Horizon 5 uses XInput and Windows.Gaming.Input simultaneously...
+  //   if we did not mark this as a read, activity would not show up in SK's
+  //     control panel.
+  SK_WGI_READ (SK_WGI_Backend, sk_input_dev_type::Gamepad);
+
+  *value =
+    SK_WGI_LastPutVibration.get()[This];
+
+  return S_OK;
+}
+
 HRESULT
 STDMETHODCALLTYPE
 WGI_Gamepad_put_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad         *This,
@@ -696,6 +727,8 @@ WGI_Gamepad_put_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad       
                                   static_cast <float>(value.RightMotor));
   }
 
+  SK_WGI_LastPutVibration.get()[This] = value;
+
   return S_OK;
 }
 
@@ -730,6 +763,8 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
     return hr;
   }
 
+  // Windows.Gaming.Input cannot poll controller state while the window is not technically focused.
+  //  * So we fallback to XInput, which can only give a limited subset of button state.
   else if ((! config.input.gamepad.xinput.emulate) && SK_WantBackgroundRender () && (! game_window.active) && config.input.gamepad.disabled_to_game == 0)
   {
     HRESULT hr =
@@ -840,20 +875,23 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
             extern     XINPUT_STATE hid_to_xi;
       extern volatile ULONG64 hid_to_xi_time;
 
-      auto timestamp =
-          ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
-      if (ReadULong64Acquire (&hid_to_xi_time) < timestamp)
-      {  WriteULong64Release (&hid_to_xi_time,   timestamp);
-         hid_to_xi = pNewestInputDevice->xinput.prev_report;
+      auto last_timestamp = ReadULong64Acquire (&hid_to_xi_time);
+      auto timestamp      = ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
 
-         // Enable XInputSetState to redirect to this controller
-         extern bool bUseEmulationForSetState;
-                     bUseEmulationForSetState = true;
+      if (last_timestamp < timestamp)
+      { if (InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp)
+        {
+          hid_to_xi = pNewestInputDevice->xinput.prev_report;
+        }
+
+        // Enable XInputSetState to redirect to this controller
+        extern bool bUseEmulationForSetState;
+                    bUseEmulationForSetState = true;
       }
 
       memcpy (&xi_state, &hid_to_xi, sizeof (XINPUT_STATE));
 
-      value->Timestamp = timestamp;
+      value->Timestamp = hid_to_xi_time;
       value->Buttons   = GamepadButtons::GamepadButtons_None;
 
       if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP))
@@ -887,13 +925,19 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
 
       if (pNewestInputDevice->bDualSenseEdge)
       {
-        if (pNewestInputDevice->buttons [15].state)
+        // Xbox Elite <--> DualSense Edge mapping
+        //   Paddle 1 = Right Paddle
+        //   Paddle 2 = Right Function
+        //   Paddle 3 = Left Paddle
+        //   Paddle 4 = Left Function
+
+        if (pNewestInputDevice->isButtonDown (SK_HID_PlayStationButton::RightPaddle))
           value->Buttons |= GamepadButtons::GamepadButtons_Paddle1;
-        if (pNewestInputDevice->buttons [16].state)
-          value->Buttons |= GamepadButtons::GamepadButtons_Paddle2;
-        if (pNewestInputDevice->buttons [17].state)
+        if (pNewestInputDevice->isButtonDown (SK_HID_PlayStationButton::LeftPaddle))
           value->Buttons |= GamepadButtons::GamepadButtons_Paddle3;
-        if (pNewestInputDevice->buttons [18].state)
+        if (pNewestInputDevice->isButtonDown (SK_HID_PlayStationButton::RightFn))
+          value->Buttons |= GamepadButtons::GamepadButtons_Paddle2;
+        if (pNewestInputDevice->isButtonDown (SK_HID_PlayStationButton::LeftFn))
           value->Buttons |= GamepadButtons::GamepadButtons_Paddle4;
       }
 
@@ -935,8 +979,6 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
       {
         SK_XInput_PollController (0, &xi_state);
       }
-
-      value->Buttons = GamepadButtons::GamepadButtons_None;
 
       if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP))
                       value->Buttons |= GamepadButtons::GamepadButtons_DPadUp;
@@ -1129,11 +1171,11 @@ RoGetActivationFactory_Detour ( _In_  HSTRING activatableClassId,
                            WGI_Gamepad_GetCurrentReading_Original,
                            WGI_Gamepad_GetCurrentReading_pfn );
 
-              //WGI_VIRTUAL_HOOK ( &pGamepad, 6,
-              //            "ABI::Windows::Gaming::Input::IGamepad::get_Vibration",
-              //             WGI_Gamepad_get_Vibration_Override,
-              //             WGI_Gamepad_get_Vibration_Original,
-              //             WGI_Gamepad_get_Vibration_pfn );
+                WGI_VIRTUAL_HOOK ( &pGamepad, 6,
+                            "ABI::Windows::Gaming::Input::IGamepad::get_Vibration",
+                             WGI_Gamepad_get_Vibration_Override,
+                             WGI_Gamepad_get_Vibration_Original,
+                             WGI_Gamepad_get_Vibration_pfn );
 
                 WGI_VIRTUAL_HOOK ( &pGamepad, 7,
                             "ABI::Windows::Gaming::Input::IGamepad::put_Vibration",

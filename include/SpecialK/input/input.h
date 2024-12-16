@@ -906,6 +906,13 @@ SK_DeviceIoControl (HANDLE       hDevice,
                     LPDWORD      lpBytesReturned,
                     LPOVERLAPPED lpOverlapped);
 
+#define SK_HID_BeginModelSpecificButtons(model)\
+struct model##_Buttons                  { enum : size_t {
+#define SK_HID_NextModelSpecificButtons(model,prev)\
+        SK_HID_EndModelSpecificButtons \
+struct model##_Buttons : prev##_Buttons { enum : size_t {
+#define SK_HID_EndModelSpecificButtons  };              };
+
 struct SK_HID_PlayStationDevice
 {
    SK_HID_PlayStationDevice (HANDLE file);
@@ -965,6 +972,36 @@ struct SK_HID_PlayStationDevice
 
     USAGE Usage;
     USAGE UsagePage;
+
+    SK_HID_BeginModelSpecificButtons (              DualShock3)
+      Square      =  0,
+      Cross       =  1,
+      Circle      =  2,
+      Triangle    =  3,
+      L1          =  4,
+      R1          =  5,
+      L2          =  6,
+      R2          =  7,
+      Select      =  8,
+      Start       =  9,
+      L3          = 10,
+      R3          = 11,
+      Home        = 12,
+      PlayStation = 12
+    SK_HID_NextModelSpecificButtons  (DualShock4,   DualShock3)
+      Share       =  8,
+      Options     =  9,
+      TrackPad    = 13
+    SK_HID_NextModelSpecificButtons  (DualSense,    DualShock4)
+      Create      =  8,
+      Mute        = 14
+    SK_HID_NextModelSpecificButtons  (DualSenseEdge, DualSense)
+      LeftFn      = 15,
+      RightFn     = 16,
+      LeftPaddle  = 17,
+      RightPaddle = 18,
+      TotalKnownButtons
+    SK_HID_EndModelSpecificButtons
   };
 
   struct dpad_s {
@@ -1096,7 +1133,18 @@ struct SK_HID_PlayStationDevice
 
   bool initialize_serial    (void);
   void reset_device         (void);
+
+  // Button Utilities
+  inline bool isButtonDown      (size_t button) const noexcept { return buttons.size () > button ? buttons.at (button).     state != 0 : false; };
+  inline bool wasButtonDown     (size_t button) const noexcept { return buttons.size () > button ? buttons.at (button).last_state != 0 : false; };
+  inline bool isButtonChanging  (size_t button) const noexcept { return  isButtonDown (button) !=  wasButtonDown (button); };
+  inline bool isReleasingButton (size_t button) const noexcept { return wasButtonDown (button) &&  !isButtonDown (button); };
+  inline bool isPressingButton  (size_t button) const noexcept { return  isButtonDown (button) && !wasButtonDown (button); };
+
+  using PlayStationButton = button_s::DualSenseEdge_Buttons; // Some models have more buttons than others...
 };
+
+using SK_HID_PlayStationButton = SK_HID_PlayStationDevice::PlayStationButton;
 
 struct SK_HID_OverlappedRequest {
   HANDLE hFile                 = INVALID_HANDLE_VALUE;

@@ -540,9 +540,11 @@ XInputGetState1_4_Detour (
     {
       SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
 
+      XINPUT_STATE xi_state_local = {};
+
       bool
       SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
-      SK_ImGui_PollGamepad_EndFrame (pState);
+      SK_ImGui_PollGamepad_EndFrame (&xi_state_local);
 
       for ( auto& controller : SK_HID_PlayStationControllers )
       {
@@ -820,11 +822,11 @@ XInputGetStateEx1_4_Detour (
     {
       SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
 
-      XINPUT_STATE _state = { };
+      XINPUT_STATE xi_state_local = {};
 
       bool
       SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
-      SK_ImGui_PollGamepad_EndFrame (&_state);
+      SK_ImGui_PollGamepad_EndFrame (&xi_state_local);
 
       for ( auto& controller : SK_HID_PlayStationControllers )
       {

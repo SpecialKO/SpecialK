@@ -56,6 +56,15 @@ struct SK_HID_DualSense_GetHWAddr // 0x09 : USB
 };
 #pragma pack(pop)
 
+// Sometimes device change notifications outright fail, and our first and only
+//   indication that the device was removed is one of these error codes...
+bool SK_HID_IsDisconnectedError (DWORD dwError)
+{
+  return dwError == ERROR_INVALID_HANDLE ||
+         dwError == ERROR_NO_SUCH_DEVICE ||
+         dwError == ERROR_DEVICE_NOT_CONNECTED;
+}
+
 SK_HID_PlayStationDevice::SK_HID_PlayStationDevice (HANDLE file)
 {
   DWORD dwBytesRead = 0;
@@ -1244,6 +1253,11 @@ SK_HID_PlayStationDevice::request_input_report (void)
             );
           }
 
+          if (SK_HID_IsDisconnectedError (dwLastErr))
+          {
+            pDevice->bConnected = false;
+          }
+
           if (! ReadAcquire (&__SK_DLL_Ending))
           {
             if ( dwLastErr != NOERROR &&
@@ -1563,22 +1577,22 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
                 if (pDevice->bDualSense)
                 {
-                  pDevice->buttons [13].state = pDualSense->ButtonPad           != 0;
-                  pDevice->buttons [15].state = pDualSense->ButtonLeftFunction  != 0;
-                  pDevice->buttons [16].state = pDualSense->ButtonRightFunction != 0;
-                  pDevice->buttons [17].state = pDualSense->ButtonLeftPaddle    != 0;
-                  pDevice->buttons [18].state = pDualSense->ButtonRightPaddle   != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::TrackPad   ].state = pDualSense->ButtonPad           != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::LeftFn     ].state = pDualSense->ButtonLeftFunction  != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::RightFn    ].state = pDualSense->ButtonRightFunction != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::LeftPaddle ].state = pDualSense->ButtonLeftPaddle    != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::RightPaddle].state = pDualSense->ButtonRightPaddle   != 0;
                 }
 
                 else
                 {
-                  pDevice->buttons [13].state = pDualShock4->ButtonPad != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::TrackPad   ].state = pDualShock4->ButtonPad != 0;
                   // These buttons do not exist...
-                  pDevice->buttons [14].state = false;
-                  pDevice->buttons [15].state = false;
-                  pDevice->buttons [16].state = false;
-                  pDevice->buttons [17].state = false;
-                  pDevice->buttons [18].state = false;
+                  pDevice->buttons [SK_HID_PlayStationButton::Mute       ].state = false;
+                  pDevice->buttons [SK_HID_PlayStationButton::LeftFn     ].state = false;
+                  pDevice->buttons [SK_HID_PlayStationButton::RightFn    ].state = false;
+                  pDevice->buttons [SK_HID_PlayStationButton::LeftPaddle ].state = false;
+                  pDevice->buttons [SK_HID_PlayStationButton::RightPaddle].state = false;
                 }
               }
             }
@@ -1675,33 +1689,33 @@ SK_HID_PlayStationDevice::request_input_report (void)
                     break;
                 }
 
-                pDevice->buttons [ 0].state = pData->ButtonSquare   != 0;
-                pDevice->buttons [ 1].state = pData->ButtonCross    != 0;
-                pDevice->buttons [ 2].state = pData->ButtonCircle   != 0;
-                pDevice->buttons [ 3].state = pData->ButtonTriangle != 0;
-                pDevice->buttons [ 4].state = pData->ButtonL1       != 0;
-                pDevice->buttons [ 5].state = pData->ButtonR1       != 0;
-                pDevice->buttons [ 6].state = pData->ButtonL2       != 0;
-                pDevice->buttons [ 7].state = pData->ButtonR2       != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Square  ].state = pData->ButtonSquare   != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Cross   ].state = pData->ButtonCross    != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Circle  ].state = pData->ButtonCircle   != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Triangle].state = pData->ButtonTriangle != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::L1      ].state = pData->ButtonL1       != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::R1      ].state = pData->ButtonR1       != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::L2      ].state = pData->ButtonL2       != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::R2      ].state = pData->ButtonR2       != 0;
 
-                pDevice->buttons [ 8].state = pData->ButtonCreate   != 0;
-                pDevice->buttons [ 9].state = pData->ButtonOptions  != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Create  ].state = pData->ButtonCreate   != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Options ].state = pData->ButtonOptions  != 0;
 
-                pDevice->buttons [10].state = pData->ButtonL3       != 0;
-                pDevice->buttons [11].state = pData->ButtonR3       != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::L3      ].state = pData->ButtonL3       != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::R3      ].state = pData->ButtonR3       != 0;
 
                 // Do not write buttons the HID API does not list
                 if (pDevice->buttons.size () >= 13)
-                  pDevice->buttons [12].state = pData->ButtonHome   != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::Home    ].state = pData->ButtonHome   != 0;
                 if (pDevice->buttons.size () >= 14)
-                  pDevice->buttons [13].state = pData->ButtonPad    != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::TrackPad].state = pData->ButtonPad    != 0;
                 if (pDevice->buttons.size () >= 15)
                 {
-                  pDevice->buttons [14].state = pData->ButtonMute          != 0;
-                  pDevice->buttons [15].state = pData->ButtonLeftFunction  != 0;
-                  pDevice->buttons [16].state = pData->ButtonRightFunction != 0;
-                  pDevice->buttons [17].state = pData->ButtonLeftPaddle    != 0;
-                  pDevice->buttons [18].state = pData->ButtonRightPaddle   != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::Mute       ].state = pData->ButtonMute          != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::LeftFn     ].state = pData->ButtonLeftFunction  != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::RightFn    ].state = pData->ButtonRightFunction != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::LeftPaddle ].state = pData->ButtonLeftPaddle    != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::RightPaddle].state = pData->ButtonRightPaddle   != 0;
                 }
 
                 pDevice->sensor_timestamp = pData->SensorTimestamp;
@@ -1757,28 +1771,28 @@ SK_HID_PlayStationDevice::request_input_report (void)
                     break;
                 }
 
-                pDevice->buttons [ 0].state = pSimpleData->ButtonSquare   != 0;
-                pDevice->buttons [ 1].state = pSimpleData->ButtonCross    != 0;
-                pDevice->buttons [ 2].state = pSimpleData->ButtonCircle   != 0;
-                pDevice->buttons [ 3].state = pSimpleData->ButtonTriangle != 0;
-                pDevice->buttons [ 4].state = pSimpleData->ButtonL1       != 0;
-                pDevice->buttons [ 5].state = pSimpleData->ButtonR1       != 0;
-                pDevice->buttons [ 6].state = pSimpleData->ButtonL2       != 0;
-                pDevice->buttons [ 7].state = pSimpleData->ButtonR2       != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Square  ].state = pSimpleData->ButtonSquare   != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Cross   ].state = pSimpleData->ButtonCross    != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Circle  ].state = pSimpleData->ButtonCircle   != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Triangle].state = pSimpleData->ButtonTriangle != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::L1      ].state = pSimpleData->ButtonL1       != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::R1      ].state = pSimpleData->ButtonR1       != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::L2      ].state = pSimpleData->ButtonL2       != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::R2      ].state = pSimpleData->ButtonR2       != 0;
 
-                pDevice->buttons [ 8].state = pSimpleData->ButtonShare    != 0;
-                pDevice->buttons [ 9].state = pSimpleData->ButtonOptions  != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Share   ].state = pSimpleData->ButtonShare    != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Options ].state = pSimpleData->ButtonOptions  != 0;
 
-                pDevice->buttons [10].state = pSimpleData->ButtonL3       != 0;
-                pDevice->buttons [11].state = pSimpleData->ButtonR3       != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::L3      ].state = pSimpleData->ButtonL3       != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::R3      ].state = pSimpleData->ButtonR3       != 0;
 
                 // Do not write buttons the HID API does not list
                 if (pDevice->buttons.size () >= 13)
-                  pDevice->buttons [12].state = pSimpleData->ButtonHome   != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::Home    ].state = pSimpleData->ButtonHome   != 0;
                 if (pDevice->buttons.size () >= 14)
-                  pDevice->buttons [13].state = pSimpleData->ButtonPad    != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::TrackPad].state = pSimpleData->ButtonPad    != 0;
                 if (pDevice->buttons.size () >= 15)
-                  pDevice->buttons [14].state = false; // No mute button
+                  pDevice->buttons [SK_HID_PlayStationButton::Mute    ].state = false; // No mute button
               }
 
               pDevice->battery.state =
@@ -1949,26 +1963,26 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   break;
               }
 
-              pDevice->buttons [ 0].state = pData->ButtonSquare   != 0;
-              pDevice->buttons [ 1].state = pData->ButtonCross    != 0;
-              pDevice->buttons [ 2].state = pData->ButtonCircle   != 0;
-              pDevice->buttons [ 3].state = pData->ButtonTriangle != 0;
-              pDevice->buttons [ 4].state = pData->ButtonL1       != 0;
-              pDevice->buttons [ 5].state = pData->ButtonR1       != 0;
-              pDevice->buttons [ 6].state = pData->ButtonL2       != 0;
-              pDevice->buttons [ 7].state = pData->ButtonR2       != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::Square    ].state = pData->ButtonSquare   != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::Cross     ].state = pData->ButtonCross    != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::Circle    ].state = pData->ButtonCircle   != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::Triangle  ].state = pData->ButtonTriangle != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::L1        ].state = pData->ButtonL1       != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::R1        ].state = pData->ButtonR1       != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::L2        ].state = pData->ButtonL2       != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::R2        ].state = pData->ButtonR2       != 0;
 
-              pDevice->buttons [ 8].state = pData->ButtonShare    != 0;
-              pDevice->buttons [ 9].state = pData->ButtonOptions  != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::Share     ].state = pData->ButtonShare    != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::Options   ].state = pData->ButtonOptions  != 0;
 
-              pDevice->buttons [10].state = pData->ButtonL3       != 0;
-              pDevice->buttons [11].state = pData->ButtonR3       != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::L3        ].state = pData->ButtonL3       != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::R3        ].state = pData->ButtonR3       != 0;
 
               // Do not write buttons the HID API does not list
               if (pDevice->buttons.size () >= 13)
-                pDevice->buttons [12].state = pData->ButtonHome   != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Home    ].state = pData->ButtonHome     != 0;
               if (pDevice->buttons.size () >= 14)
-                pDevice->buttons [13].state = pData->ButtonPad    != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::TrackPad].state = pData->ButtonPad      != 0;
 
               pDevice->sensor_timestamp = pData->Timestamp;
 
@@ -2109,25 +2123,25 @@ SK_HID_PlayStationDevice::request_input_report (void)
             if ( pDevice->bDualSense ||
                  pDevice->bDualShock4 )
             {
-              if (pDevice->buttons [ 0].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
-              if (pDevice->buttons [ 1].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
-              if (pDevice->buttons [ 2].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
-              if (pDevice->buttons [ 3].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
+              if (pDevice->isButtonDown (SK_HID_PlayStationButton::Square  )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_X;
+              if (pDevice->isButtonDown (SK_HID_PlayStationButton::Cross   )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_A;
+              if (pDevice->isButtonDown (SK_HID_PlayStationButton::Circle  )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
+              if (pDevice->isButtonDown (SK_HID_PlayStationButton::Triangle)) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
 
-              if (pDevice->buttons [ 4].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
-              if (pDevice->buttons [ 5].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
-              if (pDevice->buttons [ 6].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
-              if (pDevice->buttons [ 7].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
+              if (pDevice->isButtonDown (SK_HID_PlayStationButton::L1      )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_SHOULDER;
+              if (pDevice->isButtonDown (SK_HID_PlayStationButton::R1      )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_SHOULDER;
+              if (pDevice->isButtonDown (SK_HID_PlayStationButton::L2      )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_TRIGGER;
+              if (pDevice->isButtonDown (SK_HID_PlayStationButton::R2      )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_TRIGGER;
 
-              if (pDevice->buttons [ 8].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
-              if (pDevice->buttons [ 9].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
+              if (pDevice->isButtonDown (SK_HID_PlayStationButton::Select  )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_BACK;
+              if (pDevice->isButtonDown (SK_HID_PlayStationButton::Start   )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_START;
 
-              if (pDevice->buttons [10].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
-              if (pDevice->buttons [11].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
+              if (pDevice->isButtonDown (SK_HID_PlayStationButton::L3      )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_LEFT_THUMB;
+              if (pDevice->isButtonDown (SK_HID_PlayStationButton::R3      )) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_RIGHT_THUMB;
             }
 
             // Dual Shock 3
-            else if (pDevice->bDualShock3)
+            else if (pDevice->bDualShock3)  // Mappings are non-standard
             {
               if (pDevice->buttons [ 0].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_Y;
               if (pDevice->buttons [ 1].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_B;
@@ -2157,7 +2171,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
             ((SK::Framerate::Stats *)pDevice->latency.pollrate)->addSample (dt, tNow);
 
             if (pDevice->buttons.size () >= 13 &&
-                pDevice->buttons [12].state) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
+                pDevice->isButtonDown (SK_HID_PlayStationButton::PlayStation)) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
 
             const float fUserDeadzone =
               (32767.0f * config.input.gamepad.xinput.deadzone * 0.01f);
@@ -2371,12 +2385,12 @@ SK_HID_PlayStationDevice::request_input_report (void)
             }
 
             const bool bHasNewExtraButtonData =
-              (pDevice->buttons [13].state != pDevice->buttons [13].last_state) ||
-              (pDevice->buttons [14].state != pDevice->buttons [14].last_state) ||
-              (pDevice->buttons [15].state != pDevice->buttons [15].last_state) ||
-              (pDevice->buttons [16].state != pDevice->buttons [16].last_state) ||
-              (pDevice->buttons [17].state != pDevice->buttons [17].last_state) ||
-              (pDevice->buttons [18].state != pDevice->buttons [18].last_state);
+              pDevice->isButtonChanging (SK_HID_PlayStationButton::TrackPad)    ||
+              pDevice->isButtonChanging (SK_HID_PlayStationButton::Mute)        ||
+              pDevice->isButtonChanging (SK_HID_PlayStationButton::LeftFn)      ||
+              pDevice->isButtonChanging (SK_HID_PlayStationButton::RightFn)     ||
+              pDevice->isButtonChanging (SK_HID_PlayStationButton::LeftPaddle)  ||
+              pDevice->isButtonChanging (SK_HID_PlayStationButton::RightPaddle);
 
 
             // Handle some special buttons that DualSense controllers have that don't map to XInput
@@ -2495,8 +2509,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                  pDevice->bDualSense                              &&
                  pDevice->buttons.size () >= 15 )
             {
-              if (   pDevice->buttons [14].state &&
-                  (! pDevice->buttons [14].last_state) )
+              if (   pDevice->isButtonDown  (SK_HID_PlayStationButton::Mute) &&
+                  (! pDevice->wasButtonDown (SK_HID_PlayStationButton::Mute)) )
               {
                 // We need to force an HID output report to
                 //   change the state of the mute LED...
@@ -3232,6 +3246,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               );
             }
 
+            if (SK_HID_IsDisconnectedError (dwLastErr))
+            {
+              pDevice->bConnected = false;
+            }
+
             if (dwLastErr != ERROR_IO_PENDING && dwLastErr != NOERROR)
             {
               if (dwLastErr != ERROR_INVALID_HANDLE)
@@ -3648,6 +3667,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                   pDevice->wszDevicePath, dwLastErr,
                     err.ErrorMessage ()
               );
+            }
+
+            if (SK_HID_IsDisconnectedError (dwLastErr))
+            {
+              pDevice->bConnected = false;
             }
 
             if (dwLastErr != ERROR_IO_PENDING && dwLastErr != NOERROR)
