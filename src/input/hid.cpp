@@ -1310,7 +1310,7 @@ CreateFileA_Detour (LPCSTR                lpFileName,
   if (dwCreationDisposition == OPEN_EXISTING)
       hTemplateFile = 0;
 
-  if (lpFileName == nullptr || (dwCreationDisposition == OPEN_EXISTING && SK_StrSupA (lpFileName, R"(\\?\hid)", 7) && !PathFileExistsA (lpFileName)))
+  if (lpFileName == nullptr)
   {
     SetLastError (ERROR_NO_SUCH_DEVICE);
   
@@ -1423,7 +1423,7 @@ CreateFile2_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  if (lpFileName == nullptr || (dwCreationDisposition == OPEN_EXISTING && SK_StrSupW (lpFileName, LR"(\\?\hid)", 7) && !PathFileExistsW (lpFileName)))
+  if (lpFileName == nullptr)
   {
     SetLastError (ERROR_NO_SUCH_DEVICE);
   
@@ -1536,7 +1536,7 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
   if (dwCreationDisposition == OPEN_EXISTING)
       hTemplateFile = 0;
 
-  if (lpFileName == nullptr || (dwCreationDisposition == OPEN_EXISTING && SK_StrSupW (lpFileName, LR"(\\?\hid)", 7) && !PathFileExistsW (lpFileName)))
+  if (lpFileName == nullptr)
   {
     SetLastError (ERROR_NO_SUCH_DEVICE);
   

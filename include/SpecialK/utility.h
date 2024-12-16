@@ -1436,5 +1436,8 @@ SK_FormatTemperature (double in_temp, SK_UNITS in_unit, SK_UNITS out_unit, SK_TL
 
 size_t SK_Memory_EmptyWorkingSet (void);
 
+using timeGetTime_pfn = DWORD (WINAPI *)(void);
+using PlaySoundW_pfn  = BOOL  (WINAPI *)(LPCWSTR,HMODULE,DWORD);
+
 #endif /* __SK__UTILITY_H__ */
 

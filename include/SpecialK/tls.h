@@ -134,7 +134,7 @@ public:
       len  = std::max (len, needed);
 
       data = static_cast <_T *> (
-        _aligned_malloc (len * sizeof (_T) + (16 - (len * sizeof (_T)) % 16), 16)
+        _aligned_malloc (len * sizeof (_T) + (16 - ((len * sizeof (_T)) % 16)), 16)
       );
 
       if (data == nullptr)

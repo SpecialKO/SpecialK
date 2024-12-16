@@ -26,6 +26,10 @@
 #include <SpecialK/diagnostics/debug_utils.h>
 #include <winternl.h>
 
+#pragma comment (   lib, \
+         "appnotify.lib" )
+#include <appnotify.h>
+
 #include <regex>
 #include <sddl.h>
 
@@ -1225,10 +1229,10 @@ SK_IsImmersiveProcess (HANDLE hProcess = SK_GetCurrentProcess ())
 void
 SK_Inject_SpawnUnloadListener (void)
 {
-  if (SK_GetHostAppUtil ()->isBlacklisted ())
-  {
-    return;
-  }
+  //if (SK_GetHostAppUtil ()->isBlacklisted ())
+  //{
+  //  return;
+  //}
 
   if (! InterlockedCompareExchangePointer ((void **)&g_hModule_CBT, (void *)1, nullptr))
   {
@@ -1287,34 +1291,62 @@ SK_Inject_SpawnUnloadListener (void)
         SK_CloseHandle    (g_hPacifierThread);
                            g_hPacifierThread = nullptr;
 
+        static SK_AutoHandle hWinRTSuspending (
+          SK_CreateEvent (nullptr, TRUE, FALSE, nullptr)
+        );
+
+        static PAPPSTATE_REGISTRATION app_state_cookie = {};
+
         const HANDLE
           signals [] =
-          {     hHookTeardown,
+          {  hWinRTSuspending,
+                hHookTeardown,
             __SK_DLL_TeardownEvent };
 
         if (hHookTeardown.isValid ())
         {
           InterlockedIncrement (&injected_procs);
 
+          RegisterAppStateChangeNotification ([](BOOLEAN suspending, PVOID)
+          {
+            if (suspending)
+            {
+              SignalObjectAndWait ( hWinRTSuspending,
+                    __SK_DLL_TeardownEvent, INFINITE, FALSE );
+
+              UnregisterAppStateChangeNotification (app_state_cookie);
+            }
+          }, nullptr, &app_state_cookie);
+
           const DWORD dwTimeout   = INFINITE;
           const DWORD dwWaitState =
-            WaitForMultipleObjects ( 2, signals,
-                                 FALSE, dwTimeout );
+            WaitForMultipleObjects ( sizeof (signals) /
+                                     sizeof (signals [0]),
+                                             signals, FALSE,
+                                               dwTimeout );
 
           // Is Process Actively Using Special K (?)
-          if ( dwWaitState      == WAIT_OBJECT_0 &&
+          if ( dwWaitState      == WAIT_OBJECT_0+1 &&
                hModHookInstance != nullptr )
           {
             // Global Injection Shutting Down, SK is -ACTIVE- in this App.
             //
             //  ==> Must continue waiting for application exit ...
             //
-            WaitForSingleObject (
-              __SK_DLL_TeardownEvent, INFINITE
-            );
+            const HANDLE
+              tier2_events [ ] =
+                 { signals [0], signals [2] };
+
+            WaitForMultipleObjects (2, tier2_events, FALSE, INFINITE);
           }
 
-          hHookTeardown.Close ();
+          if (WAIT_TIMEOUT != WaitForSingleObject (hWinRTSuspending, 0))
+          {
+            OutputDebugStringW (L"WinRT Process Suspending... Deploying UWP Parachute!\r\n");
+          }
+
+          hHookTeardown.Close    ();
+          hWinRTSuspending.Close ();
 
           // All clear, one less process to worry about
           InterlockedDecrement  (&injected_procs);

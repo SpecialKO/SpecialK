@@ -37,7 +37,6 @@ NtSetTimerResolution_pfn   NtSetTimerResolution_Original = nullptr;
 
 NtDelayExecution_pfn       NtDelayExecution              = nullptr;
 
-
 LPVOID pfnQueryPerformanceCounter = nullptr;
 LPVOID pfnSleep                   = nullptr;
 
@@ -49,10 +48,7 @@ QueryPerformanceCounter_pfn ZwQueryPerformanceCounter          = nullptr;
 QueryPerformanceCounter_pfn RtlQueryPerformanceCounter         = nullptr;
 QueryPerformanceCounter_pfn QueryPerformanceFrequency_Original = nullptr;
 QueryPerformanceCounter_pfn RtlQueryPerformanceFrequency       = nullptr;
-
-typedef BOOL (WINAPI *SwitchToThread_pfn)(void);
-                      SwitchToThread_pfn
-                      SwitchToThread_Original = nullptr;
+SwitchToThread_pfn          SwitchToThread_Original            = nullptr;
 
 extern HWND WINAPI SK_GetActiveWindow (           SK_TLS *pTLS);
 extern BOOL WINAPI SK_IsWindowUnicode (HWND hWnd, SK_TLS *pTLS);
@@ -405,11 +401,8 @@ SK_Sched_ThreadContext::most_recent_wait_s::getRate (void)
 }
 
 
-NtWaitForSingleObject_pfn
-NtWaitForSingleObject_Original    = nullptr;
-
-NtWaitForMultipleObjects_pfn
-NtWaitForMultipleObjects_Original = nullptr;
+NtWaitForSingleObject_pfn    NtWaitForSingleObject_Original    = nullptr;
+NtWaitForMultipleObjects_pfn NtWaitForMultipleObjects_Original = nullptr;
 
 DWORD
 WINAPI
@@ -1013,9 +1006,6 @@ SK_Sleep (DWORD dwMilliseconds) noexcept
 //
 // Metaphor fix
 //
-using timeBeginPeriod_pfn = MMRESULT (WINAPI *)(UINT);
-using timeEndPeriod_pfn   = MMRESULT (WINAPI *)(UINT);
-
 static timeBeginPeriod_pfn timeBeginPeriod_Original = nullptr;
 static timeEndPeriod_pfn   timeEndPeriod_Original   = nullptr;
 
@@ -1413,13 +1403,6 @@ Sleep_Detour (DWORD dwMilliseconds)
   SleepEx_Detour (dwMilliseconds, FALSE);
 }
 
-using SleepConditionVariableSRW_pfn = BOOL (WINAPI *)(
-  _Inout_ PCONDITION_VARIABLE ConditionVariable,
-  _Inout_ PSRWLOCK            SRWLock,
-  _In_    DWORD               dwMilliseconds,
-  _In_    ULONG               Flags
-);
-
 static SleepConditionVariableSRW_pfn
        SleepConditionVariableSRW_Original = nullptr;
 
@@ -1737,9 +1720,7 @@ NtSetTimerResolution_Detour
 #pragma warning(disable : 4244)
 #include <intel/HybridDetect.h>
 
-using  SetProcessAffinityMask_pfn = BOOL (WINAPI *)(HANDLE,DWORD_PTR);
-static SetProcessAffinityMask_pfn
-       SetProcessAffinityMask_Original = nullptr;
+static SetProcessAffinityMask_pfn SetProcessAffinityMask_Original = nullptr;
 
 BOOL
 WINAPI

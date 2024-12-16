@@ -1502,7 +1502,7 @@ SK_TestImports (          HMODULE  hMod,
 
   int important_imports = 0;
 
-  const int      MAX_IMPORTS  =  16;
+  constexpr int  MAX_IMPORTS  =  16;
   size_t hashes [MAX_IMPORTS] = { };
 
   int  idx     = 0;
@@ -2380,6 +2380,9 @@ SKX_ScanAlignedEx ( const void* pattern, size_t len,   const void* mask,
                           SK_MemScan_Params__v0 params =
                           SK_MemScan_Params__v0 ()       )
 {
+  if (! (pattern || mask))
+    return nullptr;
+
   static auto constexpr _MAX_SEARCH_TIME_IN_MS = 5000UL;
 
   DWORD dwStartTime =
@@ -2525,6 +2528,9 @@ uint8_t* const PAGE_WALK_LIMIT = (base_addr + static_cast <uintptr_t>(1ULL << 36
 
     while (it < next_rgn)
     {
+      if (it == nullptr)
+        break;
+
       if (SK_timeGetTime () - dwStartTime > _MAX_SEARCH_TIME_IN_MS)
       {
         SK_LOG0 ( ( L"Pattern search took too long, aborting..." ),
@@ -2891,12 +2897,12 @@ SK_IsServiceHost (void)
   static const bool     bSvchost   =
     nullptr != StrStrIW (wszHostApp, L"svchost"             ) ||
     nullptr != StrStrIW (wszHostApp, L"dllhost"             ) ||
-    nullptr != StrStrIW (wszHostApp, L"sihost"              ) ||
-    nullptr != StrStrIW (wszHostApp, L"pwahelper"           ) ||
+  //nullptr != StrStrIW (wszHostApp, L"sihost"              ) ||
+  //nullptr != StrStrIW (wszHostApp, L"pwahelper"           ) ||
     nullptr != StrStrIW (wszHostApp, L"PerfWatson"          ) ||
     nullptr != StrStrIW (wszHostApp, L"DataExchangeHost"    ) ||
-    nullptr != StrStrIW (wszHostApp, L"GamebarFTServer"     ) ||
-    nullptr != StrStrIW (wszHostApp, L"ApplicationFrameHost") ||
+  //nullptr != StrStrIW (wszHostApp, L"GamebarFTServer"     ) ||
+  //nullptr != StrStrIW (wszHostApp, L"ApplicationFrameHost") ||
     nullptr != StrStrIW (wszHostApp, L"Service");
 
   return bSvchost;
@@ -5523,9 +5529,6 @@ SK_make_unique_nothrow (Args && ... args) noexcept
                       < Args >     (args)   ...));
 }
 
-using timeGetTime_pfn = DWORD (WINAPI *)(void);
-using PlaySoundW_pfn  = BOOL  (WINAPI *)(LPCWSTR,HMODULE,DWORD);
-
 DWORD
 WINAPI
 SK_timeGetTime (void) noexcept
@@ -5671,8 +5674,8 @@ SK_ImportRegistryValue ( const wchar_t *wszPath,
 
     SK_AutoCOMInit auto_com;
 
-    const wchar_t *wszRegedit                    = L"reg.exe";
-    wchar_t        wszCommand    [MAX_PATH * 64] = { };
+    const               wchar_t *wszRegedit                 = L"reg.exe";
+    static thread_local wchar_t  wszCommand [MAX_PATH * 64] = { };
 
     SHELLEXECUTEINFO
       sexec_info;

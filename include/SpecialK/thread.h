@@ -25,6 +25,7 @@
 #define _PROCESSTHREADSAPI_H_
 
 #include <Windows.h>
+#include <mmsyscom.h>
 #include <avrt.h>
 #include <intsafe.h>
 #include <string>
@@ -262,24 +263,20 @@ SK_Thread_CloseSelf (void);
 extern "C" BOOL WINAPI SK_Thread_SetCurrentPriority (int prio);
 extern "C" int  WINAPI SK_Thread_GetCurrentPriority (void);
 
-typedef HRESULT (WINAPI *SetThreadDescription_pfn)(
-  _In_ HANDLE hThread,
-  _In_ PCWSTR lpThreadDescription
-);
+using SetThreadDescription_pfn      = HRESULT   (WINAPI *)(HANDLE,PCWSTR);
+using GetThreadDescription_pfn      = HRESULT   (WINAPI *)(HANDLE,PWSTR*);
+using SwitchToThread_pfn            = BOOL      (WINAPI *)(void);
 
-typedef HRESULT (WINAPI *GetThreadDescription_pfn)(
-  _In_              HANDLE hThread,
-  _Outptr_result_z_ PWSTR* ppszThreadDescription
-);
+using timeBeginPeriod_pfn           = MMRESULT  (WINAPI *)(UINT);
+using timeEndPeriod_pfn             = MMRESULT  (WINAPI *)(UINT);
 
-typedef DWORD_PTR (WINAPI *SetThreadAffinityMask_pfn)(
-  _In_ HANDLE    hThread,
-  _In_ DWORD_PTR dwThreadAffinityMask
-);
+using SleepConditionVariableSRW_pfn = BOOL      (WINAPI *)(PCONDITION_VARIABLE,PSRWLOCK,DWORD,ULONG);
 
-using SetThreadIdealProcessor_pfn = DWORD (WINAPI *)(HANDLE,DWORD);
-using SetThreadPriorityBoost_pfn  = BOOL  (WINAPI *)(HANDLE, BOOL);
-using SetThreadPriority_pfn       = BOOL  (WINAPI *)(HANDLE, int);
+using SetThreadAffinityMask_pfn     = DWORD_PTR (WINAPI *)(HANDLE,DWORD_PTR);
+using SetProcessAffinityMask_pfn    = BOOL      (WINAPI *)(HANDLE,DWORD_PTR);
+using SetThreadIdealProcessor_pfn   = DWORD     (WINAPI *)(HANDLE,    DWORD);
+using SetThreadPriorityBoost_pfn    = BOOL      (WINAPI *)(HANDLE,     BOOL);
+using SetThreadPriority_pfn         = BOOL      (WINAPI *)(HANDLE,      int);
 
 extern "C" HRESULT WINAPI SK_SetThreadDescription (HANDLE, PCWSTR);
 extern "C" HRESULT WINAPI SK_GetThreadDescription (HANDLE, PWSTR*);
