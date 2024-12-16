@@ -1,4 +1,9 @@
-﻿24.12.16
+﻿24.12.16.1
+==========
+ + Fixed beeping when pressing keyboard input in some games after using chords:
+     PlayStation + R2 / PlayStation + L2 to minimize and restore a game.
+
+24.12.16
 ========
  + Improve HID->XInput timestamp management when threads are updating the state
      concurrently.

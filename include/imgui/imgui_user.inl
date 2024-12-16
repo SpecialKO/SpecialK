@@ -2199,7 +2199,7 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
               (last_state.Gamepad.bLeftTrigger <= XINPUT_GAMEPAD_TRIGGER_THRESHOLD))
           {
             if (        IsIconic (game_window.hWnd))
-              SK_ShowWindowAsync (game_window.hWnd, SW_SHOWNOACTIVATE);
+              SK_ShowWindowAsync (game_window.hWnd, SW_RESTORE);
 
             bChordActivated = true;
           }
