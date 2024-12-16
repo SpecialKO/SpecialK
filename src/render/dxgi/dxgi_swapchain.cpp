@@ -2489,42 +2489,6 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
                                          swap_desc.Flags
     );
 
-    SK_ComPtr <ID3D12Device>                           pD3D12Dev;
-    pSwapChain->GetDevice (IID_ID3D12Device, (void **)&pD3D12Dev.p);
-
-    bool d3d12 =
-      (pD3D12Dev.p != nullptr);
-
-    if (rb.swapchain.p == nullptr || ((! d3d12) && (rb.api == SK_RenderAPI::D3D11) && rb.d3d11.device.p == nullptr || rb.d3d11.immediate_ctx   == nullptr) ||
-                                     ((  d3d12) && (rb.api == SK_RenderAPI::D3D12) && rb.d3d12.device.p == nullptr || rb.d3d12.command_queue.p == nullptr))
-    {
-      // Re-initialize the Render Context / Device / SwapChain as soon as possible
-      if      (rb.api == SK_RenderAPI::D3D12) _d3d12_rbk->init ((IDXGISwapChain3 *)pSwapChain, _d3d12_rbk->_pCommandQueue);
-      else if (rb.api == SK_RenderAPI::D3D11)
-      { // The D3D11 backend releases device and device context, unlike D3D12 that has a
-        //   persistent command queue object across destruction and creation of new swapchains.
-        SK_ComPtr<ID3D11Device>        pDevice    (_d3d11_rbk->_pDevice);
-        SK_ComPtr<ID3D11DeviceContext> pDeviceCtx (_d3d11_rbk->_pDeviceCtx);
-
-        if (     pDevice    &&                 !pDeviceCtx.p)
-                 pDevice->GetImmediateContext (&pDeviceCtx.p);
-        else if (pDeviceCtx &&          !pDevice.p)
-                 pDeviceCtx->GetDevice (&pDevice.p);
-        if (SUCCEEDED(pSwapChain->GetDevice (IID_ID3D11Device,
-          reinterpret_cast<void **>(&pDevice.p))))
-                                     pDevice->
-                GetImmediateContext(&pDeviceCtx.p);
-
-        if (rb.device == nullptr)
-        {
-          rb.setDevice (pDevice);
-          rb.d3d11.immediate_ctx = pDeviceCtx;
-        }
-
-        _d3d11_rbk->init ((IDXGISwapChain3 *)pSwapChain, pDevice, pDeviceCtx);
-      }
-    }
-
     //extern bool __SK_HDR_UserForced;
     //
     //if (! __SK_HDR_UserForced)
@@ -2610,6 +2574,7 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
   _In_ const DXGI_MODE_DESC *pNewTargetParameters,
              BOOL            bWrapped )
 {
+#if 1
   // Avoid IDXGISwapChain::ResizeTarget (...) when appropriate, in favor of
   //   the simpler and much more likely to succeed without disrupting MPOs,
   //     IDXGISwapChain::ResizeBuffers (...).
@@ -2644,6 +2609,7 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
       }
     }
   }
+#endif
 
   const auto
   _Return =
