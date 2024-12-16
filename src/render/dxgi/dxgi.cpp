@@ -2127,7 +2127,8 @@ SK_ImGui_DrawD3D11 (IDXGISwapChain* This)
 
   if (InterlockedCompareExchange (&__gui_reset_dxgi, FALSE, TRUE))
   {
-    ResetImGui_D3D11 (This);
+    if (ReadULongAcquire (&__osd_frames_drawn) > 1)
+      ResetImGui_D3D11 (This);
   }
 
   else

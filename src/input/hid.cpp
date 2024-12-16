@@ -1305,6 +1305,18 @@ CreateFileA_Detour (LPCSTR                lpFileName,
 {
   SK_LOG_FIRST_CALL
 
+  // hTemplateFile is unused for OPEN_EXISTING,
+  //   remove it so that it does not trigger Application Verifier.
+  if (dwCreationDisposition == OPEN_EXISTING)
+      hTemplateFile = 0;
+
+  if (lpFileName == nullptr || (dwCreationDisposition == OPEN_EXISTING && SK_StrSupA (lpFileName, R"(\\?\hid)", 7) && !PathFileExistsA (lpFileName)))
+  {
+    SetLastError (ERROR_NO_SUCH_DEVICE);
+  
+    return INVALID_HANDLE_VALUE;
+  }
+
   HANDLE hRet =
     CreateFileA_Original (
       lpFileName, dwDesiredAccess, dwShareMode,
@@ -1411,6 +1423,13 @@ CreateFile2_Detour (
 {
   SK_LOG_FIRST_CALL
 
+  if (lpFileName == nullptr || (dwCreationDisposition == OPEN_EXISTING && SK_StrSupW (lpFileName, LR"(\\?\hid)", 7) && !PathFileExistsW (lpFileName)))
+  {
+    SetLastError (ERROR_NO_SUCH_DEVICE);
+  
+    return INVALID_HANDLE_VALUE;
+  }
+
   HANDLE hRet =
     CreateFile2_Original (
       lpFileName, dwDesiredAccess, dwShareMode,
@@ -1432,7 +1451,8 @@ CreateFile2_Detour (
       {
         SetLastError (ERROR_NO_SUCH_DEVICE);
 
-        CloseHandle (hRet);
+        if (nullptr != hRet)
+          CloseHandle (hRet);
 
         return INVALID_HANDLE_VALUE;
       }
@@ -1511,6 +1531,18 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
 {
   SK_LOG_FIRST_CALL
 
+  // hTemplateFile is unused for OPEN_EXISTING,
+  //   remove it so that it does not trigger Application Verifier.
+  if (dwCreationDisposition == OPEN_EXISTING)
+      hTemplateFile = 0;
+
+  if (lpFileName == nullptr || (dwCreationDisposition == OPEN_EXISTING && SK_StrSupW (lpFileName, LR"(\\?\hid)", 7) && !PathFileExistsW (lpFileName)))
+  {
+    SetLastError (ERROR_NO_SUCH_DEVICE);
+  
+    return INVALID_HANDLE_VALUE;
+  }
+
   HANDLE hRet =
     CreateFileW_Original (
       lpFileName, dwDesiredAccess, dwShareMode,
@@ -1533,7 +1565,8 @@ CreateFileW_Detour ( LPCWSTR               lpFileName,
       {
         SetLastError (ERROR_NO_SUCH_DEVICE);
 
-        CloseHandle (hRet);
+        if (nullptr != hRet)
+          CloseHandle (hRet);
 
         return INVALID_HANDLE_VALUE;
       }
