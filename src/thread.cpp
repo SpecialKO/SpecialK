@@ -1209,3 +1209,35 @@ SK_Thread_SpinUntilFlaggedEx ( _In_ _Interlocked_operand_ LONG volatile const *p
 
 
 volatile LONG __SK_MMCS_PendingChanges = 0;
+
+
+
+enum IO_PRIORITY_HINT : int
+{
+  IoPriorityVeryLow = 0, // Defragging, content indexing and other background I/Os.
+  IoPriorityLow,         // Prefetching for applications.
+  IoPriorityNormal,      // Normal I/Os.
+  IoPriorityHigh,        // Used by filesystems for checkpoint I/O.
+  IoPriorityCritical,    // Used by memory manager. Not available for applications.
+  MaxIoPriorityTypes
+};
+
+BOOL
+WINAPI
+SK_SetThreadIOPriority (HANDLE hThread, int ioPriority) noexcept
+{
+  auto io_priority =
+    static_cast <IO_PRIORITY_HINT> (ioPriority);
+
+  static NtSetInformationThread_pfn
+         NtSetInformationThread =
+        (NtSetInformationThread_pfn)SK_GetProcAddress (L"NtDll",
+        "NtSetInformationThread");
+
+  return        NtSetInformationThread != nullptr &&
+    NT_SUCCESS (NtSetInformationThread (
+                               hThread,
+                                ThreadIoPriority,
+                                    &io_priority,
+                             sizeof (IO_PRIORITY_HINT)));
+}

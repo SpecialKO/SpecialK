@@ -135,12 +135,6 @@ typedef struct _CLIENT_ID {
     HANDLE         UniqueThread;
 } CLIENT_ID;
 
-typedef struct _UNICODE_STRING {
-    USHORT         Length;
-    USHORT         MaximumLength;
-    PWSTR          Buffer;
-} UNICODE_STRING; //-V677
-
 typedef struct _SYSTEM_THREAD {
     FILETIME     ftKernelTime;   // 100 nsec units
     FILETIME     ftUserTime;     // 100 nsec units
@@ -174,7 +168,7 @@ typedef struct _SYSTEM_PROCESS     // common members
     LARGE_INTEGER  CreateTime;
     LARGE_INTEGER  UserTime;
     LARGE_INTEGER  KernelTime;
-    UNICODE_STRING ImageName;
+UNICODE_STRING_SK  ImageName;
     KPRIORITY      BasePriority;
     HANDLE         UniqueProcessId;
     HANDLE         InheritedFromUniqueProcessId;

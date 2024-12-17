@@ -894,6 +894,9 @@ using NtTerminateProcess_pfn = NTSTATUS (*)(HANDLE, NTSTATUS);
 using RtlExitUserThread_pfn = VOID (NTAPI *)(_In_ NTSTATUS 	Status);
 using SHGetKnownFolderPath_pfn = HRESULT (WINAPI *)(REFKNOWNFOLDERID,DWORD,HANDLE,PWSTR*);
 
+using RtlAcquirePebLock_pfn = void (NTAPI *)(void);
+using RtlReleasePebLock_pfn = void (NTAPI *)(void);
+
 extern SHGetKnownFolderPath_pfn SHGetKnownFolderPath_Original;
 
 extern GetCommandLineW_pfn      GetCommandLineW_Original;

@@ -86,8 +86,6 @@ SK_HID_PlayStationDevice::~SK_HID_PlayStationDevice (void)
 {
 }
 
-extern bool SK_SetThreadIOPriority (HANDLE hThread, int priority);
-
 void SK_HID_FlushPlayStationForceFeedback (void)
 {
   for (auto& ps_controller : SK_HID_PlayStationControllers)

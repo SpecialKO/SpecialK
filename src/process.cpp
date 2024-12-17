@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -21,6 +21,7 @@
 
 #include <SpecialK/stdafx.h>
 #include <windows.h>
+#include <winternl.h>
 
 #include <SpecialK/log.h>
 #include <SpecialK/config.h>
@@ -123,35 +124,24 @@ typedef LONG (NTAPI *NtResumeProcess_pfn)(_In_ HANDLE ProcessHandle);
                      NtResumeProcess_pfn
                      NtResumeProcess = nullptr;
 
-typedef struct _CLIENT_ID {
-    HANDLE         UniqueProcess;
-    HANDLE         UniqueThread;
-} CLIENT_ID;
-
-typedef struct _UNICODE_STRING {
-    USHORT         Length;
-    USHORT         MaximumLength;
-    PWSTR          Buffer;
-} UNICODE_STRING; //-V677
-
 typedef struct _SYSTEM_THREAD {
-    FILETIME     ftKernelTime;
-    FILETIME     ftUserTime;
-    FILETIME     ftCreateTime;
+    FILETIME     ftKernelTime;   // 100 nsec units
+    FILETIME     ftUserTime;     // 100 nsec units
+    FILETIME     ftCreateTime;   // relative to 01-01-1601
     ULONG        dWaitTime;
 #ifdef _M_AMD64
     DWORD32      dwPaddingFor64Bit;
 #endif
     PVOID        pStartAddress;
-    CLIENT_ID    Cid;           // PID / TID Pairing
+    CLIENT_ID    Cid;           // process/thread ids
     KPRIORITY    dPriority;
     LONG         dBasePriority;
     ULONG        dContextSwitches;
-    ULONG        dThreadState;  // 2 = running,  5 = waiting
+    ULONG        dThreadState;  // 2=running, 5=waiting
     KWAIT_REASON WaitReason;
 
-    // Not needed if correct packing is used, but these data structures
-    //   have tricky alignment and the whole world needs to know!
+    // Not even needed if correct packing is used, but let's just make this
+    //   obvious since it's easy to overlook!
     DWORD32      dwPaddingEveryoneGets;
 } SYSTEM_THREAD,             *PSYSTEM_THREAD;
 #define SYSTEM_THREAD_ sizeof (SYSTEM_THREAD)
@@ -193,19 +183,19 @@ typedef struct _SYSTEM_PROCESS     // common members
     LARGE_INTEGER  WriteTransferCount;
     LARGE_INTEGER  OtherTransferCount;
     SYSTEM_THREAD  aThreads [1];
-} SYSTEM_PROCESS_INFORMATION, *PSYSTEM_PROCESS_INFORMATION;
-#define SYSTEM_PROCESS_ sizeof (SYSTEM_PROCESS_INFORMATION)
+} SYSTEM_PROCESS_INFORMATION_SK, *PSYSTEM_PROCESS_INFORMATION_SK;
+#define SYSTEM_PROCESS_    sizeof (SYSTEM_PROCESS_INFORMATION_SK)
 
 // There are about 100 more enumerates; all 100 of them are useless and omitted.
-typedef enum _SYSTEM_INFORMATION_CLASS {
-    SystemProcessInformation                              = 5,
-} SYSTEM_INFORMATION_CLASS;
+typedef enum _SYSTEM_INFORMATION_CLASS_SK {
+    SystemProcessInformation_SK = 5,
+} SYSTEM_INFORMATION_CLASS_SK;
 
 typedef NTSTATUS (WINAPI *NtQuerySystemInformation_pfn)(
-  _In_      SYSTEM_INFORMATION_CLASS SystemInformationClass,
-  _Inout_   PVOID                    SystemInformation,
-  _In_      ULONG                    SystemInformationLength,
-  _Out_opt_ PULONG                   ReturnLength
+  _In_      SYSTEM_INFORMATION_CLASS_SK SystemInformationClass,
+  _Inout_   PVOID                       SystemInformation,
+  _In_      ULONG                       SystemInformationLength,
+  _Out_opt_ PULONG                      ReturnLength
 );
 
 typedef NTSTATUS (WINAPI *NtDelayExecution_pfn)(
@@ -216,18 +206,18 @@ typedef NTSTATUS (WINAPI *NtDelayExecution_pfn)(
 
 struct SK_NtDllContext
 {
-  BOOL                         _uninit                =    TRUE;
-  NtQuerySystemInformation_pfn QuerySystemInformation = nullptr;
-  NtDelayExecution_pfn         DelayExecution         = nullptr;
-  NtSuspendProcess_pfn         SuspendProcess         = nullptr;
-  NtResumeProcess_pfn          ResumeProcess          = nullptr;
+  BOOL                           _uninit                =    TRUE;
+  NtQuerySystemInformation_pfn   QuerySystemInformation = nullptr;
+  NtDelayExecution_pfn           DelayExecution         = nullptr;
+  NtSuspendProcess_pfn           SuspendProcess         = nullptr;
+  NtResumeProcess_pfn            ResumeProcess          = nullptr;
 
-  HMODULE                      Module     = nullptr;
-  HANDLE                       hHeap      = nullptr;
-  DWORD                        dwHeapSize = 0UL;
-  DWORD                        dwPadding0 = 0UL;
-  PSYSTEM_PROCESS_INFORMATION  pSnapshot  = nullptr;
-  volatile LONG                _lock      =  0L;
+  HMODULE                        Module     = nullptr;
+  HANDLE                         hHeap      = nullptr;
+  DWORD                          dwHeapSize = 0UL;
+  DWORD                          dwPadding0 = 0UL;
+  PSYSTEM_PROCESS_INFORMATION_SK pSnapshot  = nullptr;
+  volatile LONG                  _lock      =  0L;
 
   void init (void)
   {
@@ -253,7 +243,7 @@ struct SK_NtDllContext
 
       if (hHeap != nullptr)
       {
-        pSnapshot = (PSYSTEM_PROCESS_INFORMATION)
+        pSnapshot = (PSYSTEM_PROCESS_INFORMATION_SK)
           HeapAlloc (hHeap, 0x0, 262144);
 
         dwHeapSize =
@@ -332,7 +322,7 @@ struct SK_NtDllContext
 
 SK_LazyGlobal <SK_NtDllContext> SK_NtDll;
 
-PSYSTEM_PROCESS_INFORMATION
+PSYSTEM_PROCESS_INFORMATION_SK
 SK_Process_SnapshotNt (void)
 {
       SK_NtDll->init ();
@@ -345,11 +335,11 @@ SK_Process_SnapshotNt (void)
 
   RtlZeroMemory ( SK_NtDll->pSnapshot, SK_NtDll->dwHeapSize );
 
-  DWORD                      dData = 0;
-  PSYSTEM_PROCESS_INFORMATION pspi = nullptr;
+  DWORD                         dData = 0;
+  PSYSTEM_PROCESS_INFORMATION_SK pspi = nullptr;
 
   NTSTATUS                      ns =
-    SK_NtDll->QuerySystemInformation ( SystemProcessInformation,
+    SK_NtDll->QuerySystemInformation ( SystemProcessInformation_SK,
                                          SK_NtDll->pSnapshot,
                                          SK_NtDll->dwHeapSize, &dData );
 
@@ -361,7 +351,7 @@ SK_Process_SnapshotNt (void)
           (pspi == nullptr) && dSize  != 0 ;
                                dSize <<= 1  )
     {
-      if ( ( pspi = (PSYSTEM_PROCESS_INFORMATION)
+      if ( ( pspi = (PSYSTEM_PROCESS_INFORMATION_SK)
                     HeapReAlloc ( SK_NtDll->hHeap,     0x0,
                                   SK_NtDll->pSnapshot, dSize ) ) == nullptr )
       {
@@ -380,7 +370,7 @@ SK_Process_SnapshotNt (void)
       SK_NtDll->dwHeapSize = dSize;
       SK_NtDll->pSnapshot  = pspi;
 
-      ns = SK_NtDll->QuerySystemInformation ( SystemProcessInformation,
+      ns = SK_NtDll->QuerySystemInformation ( SystemProcessInformation_SK,
                                                 pspi, dSize, &dData );
 
       if (ns != STATUS_SUCCESS)
@@ -410,7 +400,7 @@ SK_Process_EnumerateThreads (PTHREAD_LIST pThreads, DWORD dwPID)
   SK_NtDll->init ();
   SK_NtDll->lock ();
 
-  PSYSTEM_PROCESS_INFORMATION pProc = nullptr;
+  PSYSTEM_PROCESS_INFORMATION_SK pProc = nullptr;
 
   if (SK_NtDll->pSnapshot == nullptr)
   {
@@ -436,7 +426,7 @@ SK_Process_EnumerateThreads (PTHREAD_LIST pThreads, DWORD dwPID)
     if ((DWORD)((uintptr_t)pProc->UniqueProcessId & 0xFFFFFFFFU) == dwPID)
       break;
 
-    pProc = (SYSTEM_PROCESS_INFORMATION *)((BYTE *)pProc + pProc->NextThreadOffset);
+    pProc = (SYSTEM_PROCESS_INFORMATION_SK *)((BYTE *)pProc + pProc->NextThreadOffset);
   } while (pProc->NextThreadOffset != 0);
 
 

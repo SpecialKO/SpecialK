@@ -730,15 +730,127 @@ struct SKWG_Thread_Entry
   std::wstring name        = L"";
 };
 
-DWORD WINAPI
-SK_DelayExecution (double dMilliseconds, BOOL bAlertable) noexcept;
+#define THREAD_CREATE_FLAGS_CREATE_SUSPENDED        0x00000001
+#define THREAD_CREATE_FLAGS_SKIP_THREAD_ATTACH      0x00000002
+#define THREAD_CREATE_FLAGS_HIDE_FROM_DEBUGGER      0x00000004
+#define THREAD_CREATE_FLAGS_HAS_SECURITY_DESCRIPTOR 0x00000010
+#define THREAD_CREATE_FLAGS_ACCESS_CHECK_IN_TARGET  0x00000020
+#define THREAD_CREATE_FLAGS_INITIAL_THREAD          0x00000080
 
-BOOL
-WINAPI
-SK_SetProcessAffinityMask (HANDLE hProcess, DWORD_PTR dwProcessAffinityMask);
+using SK_POBJECT_ATTRIBUTES = void*;
+
+using NtCreateThreadEx_pfn = NTSTATUS (NTAPI *)(
+  _Out_           PHANDLE              ThreadHandle,
+  _In_            ACCESS_MASK          DesiredAccess,
+  _In_opt_     SK_POBJECT_ATTRIBUTES   ObjectAttributes,
+  _In_            HANDLE               ProcessHandle,
+  _In_            PVOID                StartRoutine,
+  _In_opt_        PVOID                Argument,
+  _In_            ULONG                CreateFlags,
+  _In_opt_        ULONG_PTR            ZeroBits,
+  _In_opt_        SIZE_T               StackSize,
+  _In_opt_        SIZE_T               MaximumStackSize,
+  _In_opt_        PVOID                AttributeList
+);
+
+using GetThreadContext_pfn = BOOL (WINAPI *)(HANDLE,LPCONTEXT);
+using SetThreadContext_pfn = BOOL (WINAPI *)(HANDLE,const CONTEXT*);
+
+typedef enum _SK_THREAD_INFORMATION_CLASS {
+  ThreadBasicInformation,
+  ThreadTimes,
+  ThreadPriority,
+  ThreadBasePriority,
+  ThreadAffinityMask,
+  ThreadImpersonationToken,
+  ThreadDescriptorTableEntry,
+  ThreadEnableAlignmentFaultFixup,
+  ThreadEventPair_Reusable,
+  ThreadQuerySetWin32StartAddress,
+  ThreadZeroTlsCell,
+  ThreadPerformanceCount,
+  ThreadAmILastThread,
+  ThreadIdealProcessor,
+  ThreadPriorityBoost,
+  ThreadSetTlsArrayAddress,
+  ThreadIsIoPending_,
+  ThreadHideFromDebugger,
+  ThreadBreakOnTermination,
+  ThreadSwitchLegacyState,
+  ThreadIsTerminated,
+  ThreadLastSystemCall,
+  ThreadIoPriority,
+  ThreadCycleTime,
+  ThreadPagePriority,
+  ThreadActualBasePriority,
+  ThreadTebInformation,
+  ThreadCSwitchMon,
+  ThreadCSwitchPmu,
+  ThreadWow64Context,
+  ThreadGroupInformation,
+  ThreadUmsInformation,
+  ThreadCounterProfiling,
+  ThreadIdealProcessorEx,
+  ThreadCpuAccountingInformation,
+  ThreadSuspendCount,
+  ThreadHeterogeneousCpuPolicy,
+  ThreadContainerId,
+  ThreadNameInformation_,
+  ThreadSelectedCpuSets,
+  ThreadSystemThreadInformation,
+  ThreadActualGroupAffinity,
+  ThreadDynamicCodePolicyInfo,
+  ThreadExplicitCaseSensitivity,
+  ThreadWorkOnBehalfTicket,
+  ThreadSubsystemInformation,
+  ThreadDbgkWerReportActive,
+  ThreadAttachContainer,
+  ThreadManageWritesToExecutableMemory,
+  ThreadPowerThrottlingState,
+  ThreadWorkloadClass,
+  ThreadCreateStateChange,
+  ThreadApplyStateChange,
+  ThreadStrongerBadHandleChecks,
+  ThreadEffectiveIoPriority,
+  ThreadEffectivePagePriority,
+  ThreadUpdateLockOwnership,
+  ThreadSchedulerSharedDataSlot,
+  ThreadTebInformationAtomic,
+  ThreadIndexInformation,
+  MaxThreadInfoClass,
+} SK_THREAD_INFORMATION_CLASS,
+*PSK_THREAD_INFORMATION_CLASS;
+
+#ifndef NT_SUCCESS
+#define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
+#endif
+
+using ZwSetInformationThread_pfn = NTSTATUS (NTAPI *)(
+  _In_ HANDLE                      ThreadHandle,
+  _In_ SK_THREAD_INFORMATION_CLASS ThreadInformationClass,
+  _In_ PVOID                       ThreadInformation,
+  _In_ ULONG                       ThreadInformationLength
+);
+
+// The Nt function is the most obvious choice, but some sneaky
+//   software will hop right over this and call Zw... directly.
+//
+//  --> Thus, don't even bother hooking NtSetInformationThread.
+//
+using NtSetInformationThread_pfn = NTSTATUS (NTAPI *)(
+  _In_ HANDLE                      ThreadHandle,
+  _In_ SK_THREAD_INFORMATION_CLASS ThreadInformationClass,
+  _In_ PVOID                       ThreadInformation,
+  _In_ ULONG                       ThreadInformationLength
+);
+
+DWORD WINAPI SK_DelayExecution         (double dMilliseconds, BOOL bAlertable) noexcept;
+BOOL  WINAPI SK_SetThreadIOPriority    (HANDLE hThread,        int ioPriority) noexcept;
+BOOL  WINAPI SK_SetProcessAffinityMask (HANDLE hProcess, DWORD_PTR dwProcessAffinityMask);
 
 void SK_Widget_InvokeThreadProfiler (void);
 void SK_ImGui_RebalanceThreadButton (void);
+
 extern float __SK_Thread_RebalanceEveryNSeconds;
 
 #endif /* __SK__THREAD_H__ */

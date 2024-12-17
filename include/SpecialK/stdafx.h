@@ -48,6 +48,19 @@
 
 #define UNICODE 1
 
+#ifndef  NT_SUCCESS
+# define NT_SUCCESS(Status)           (((NTSTATUS)(Status)) >= 0)
+# define STATUS_SUCCESS                ((NTSTATUS)0x00000000L)
+# define STATUS_UNSUCCESSFUL           ((NTSTATUS)0xC0000001L)
+# define STATUS_INFO_LENGTH_MISMATCH   ((NTSTATUS)0xC0000004L)
+//       STATUS_INVALID_PARAMETER      ((NTSTATUS)0xC000000DL)
+# define STATUS_NO_SUCH_FILE           ((NTSTATUS)0xC000000FL)
+# define STATUS_ACCESS_DENIED          ((NTSTATUS)0xc0000022L)
+# define STATUS_BUFFER_TOO_SMALL       ((NTSTATUS)0xC0000023L)
+# define STATUS_ALERTED                ((NTSTATUS)0x00000101L)
+# define STATUS_PROCESS_IS_TERMINATING ((NTSTATUS)0xC000010AL)
+#endif
+
 #include <Windows.h>
 #include <windowsx.h>
 #include <excpt.h>
@@ -16629,19 +16642,6 @@ extern bool __SK_bypass;
 
 extern const wchar_t* SK_VersionStrW;
 extern const char*    SK_VersionStrA;
-
-#ifndef  NT_SUCCESS
-# define NT_SUCCESS(Status)           (((NTSTATUS)(Status)) >= 0)
-# define STATUS_SUCCESS                ((NTSTATUS)0x00000000L)
-# define STATUS_UNSUCCESSFUL           ((NTSTATUS)0xC0000001L)
-# define STATUS_INFO_LENGTH_MISMATCH   ((NTSTATUS)0xC0000004L)
-//       STATUS_INVALID_PARAMETER      ((NTSTATUS)0xC000000DL)
-# define STATUS_NO_SUCH_FILE           ((NTSTATUS)0xC000000FL)
-# define STATUS_ACCESS_DENIED          ((NTSTATUS)0xc0000022L)
-# define STATUS_BUFFER_TOO_SMALL       ((NTSTATUS)0xC0000023L)
-# define STATUS_ALERTED                ((NTSTATUS)0x00000101L)
-# define STATUS_PROCESS_IS_TERMINATING ((NTSTATUS)0xC000010AL)
-#endif
 
 #ifndef __cpp_lib_format
 #define __cpp_lib_format
