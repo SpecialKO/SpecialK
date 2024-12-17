@@ -4658,44 +4658,6 @@ STDMETHODCALLTYPE
 DXGISwap_ResizeTarget_Override ( IDXGISwapChain *This,
                       _In_ const DXGI_MODE_DESC *pNewTargetParameters )
 {
-#if 1
-  // Avoid IDXGISwapChain::ResizeTarget (...) when appropriate, in favor of
-  //   the simpler and much more likely to succeed without disrupting MPOs,
-  //     IDXGISwapChain::ResizeBuffers (...).
-  BOOL                                      bFullscreen = FALSE;
-  if (SUCCEEDED (This->GetFullscreenState (&bFullscreen, nullptr)) && bFullscreen == FALSE)
-  {
-    DXGI_SWAP_CHAIN_DESC
-                    swapDesc = {};
-    This->GetDesc (&swapDesc);
-
-    if (pNewTargetParameters->RefreshRate.Numerator == 0)
-    {
-      SK_LOGi0 (
-        L"Replacing unnecessary call to IDXGISwapChain::ResizeTarget (...) "
-        L"with an equivalent call to IDXGISwapChain::ResizeBuffers (...)"
-      );
-
-      HRESULT hr_early =
-        DXGISwap_ResizeBuffers_Override ( This,
-          swapDesc.BufferCount, pNewTargetParameters->Width,
-                                pNewTargetParameters->Height,
-                                pNewTargetParameters->Format,
-          swapDesc.Flags );
-
-      if (SUCCEEDED (hr_early))
-      {
-        return hr_early;
-      }
-
-      else
-      {
-        SK_LOGi0 (L"Substituted API failed with HRESULT=%x!", hr_early);
-      }
-    }
-  }
-#endif
-
   DXGI_LOG_CALL_I6 (
     L"    IDXGISwapChain", L"ResizeTarget         ",
       L"{ (%ux%u@%3.1f Hz),"

@@ -2574,43 +2574,6 @@ SK_DXGI_SwapChain_ResizeTarget_Impl (
   _In_ const DXGI_MODE_DESC *pNewTargetParameters,
              BOOL            bWrapped )
 {
-#if 1
-  // Avoid IDXGISwapChain::ResizeTarget (...) when appropriate, in favor of
-  //   the simpler and much more likely to succeed without disrupting MPOs,
-  //     IDXGISwapChain::ResizeBuffers (...).
-  BOOL                                            bFullscreen = FALSE;
-  if (SUCCEEDED (pSwapChain->GetFullscreenState (&bFullscreen, nullptr)) && bFullscreen == FALSE)
-  {
-    DXGI_SWAP_CHAIN_DESC  swapDesc = {};
-    pSwapChain->GetDesc (&swapDesc);
-
-    if (pNewTargetParameters->RefreshRate.Numerator == 0)
-    {
-      SK_LOGi0 (
-        L"Replacing unnecessary call to IDXGISwapChain::ResizeTarget (...) "
-        L"with an equivalent call to IDXGISwapChain::ResizeBuffers (...)"
-      );
-
-      HRESULT hr_early =
-        pSwapChain->ResizeBuffers (
-          swapDesc.BufferCount, pNewTargetParameters->Width,
-                                pNewTargetParameters->Height,
-                                pNewTargetParameters->Format,
-          swapDesc.Flags );
-
-      if (SUCCEEDED (hr_early))
-      {
-        return hr_early;
-      }
-
-      else
-      {
-        SK_LOGi0 (L"Substituted API failed with HRESULT=%x!", hr_early);
-      }
-    }
-  }
-#endif
-
   const auto
   _Return =
     [&](HRESULT hr)
