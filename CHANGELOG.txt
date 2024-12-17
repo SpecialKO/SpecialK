@@ -1,4 +1,9 @@
-﻿24.12.17.1
+﻿24.12.17.2
+==========
+ + Reduce latency on HID output reports (i.e. rumble, lighting changes, etc.)
+     for DualShock 4 and DualSense{Edge} controllers.
+
+24.12.17.1
 ==========
  + Revert ResizeTarget optimization from 24.12.15.4, because it only works as
      intended in D3D11 games.

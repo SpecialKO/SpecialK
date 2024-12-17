@@ -60,9 +60,8 @@ struct SK_HID_DualSense_GetHWAddr // 0x09 : USB
 //   indication that the device was removed is one of these error codes...
 bool SK_HID_IsDisconnectedError (DWORD dwError)
 {
-  return dwError == ERROR_INVALID_HANDLE ||
-         dwError == ERROR_NO_SUCH_DEVICE ||
-         dwError == ERROR_DEVICE_NOT_CONNECTED;
+  return dwError == ERROR_INVALID_HANDLE;// ||
+       //dwError == ERROR_DEVICE_NOT_CONNECTED;
 }
 
 SK_HID_PlayStationDevice::SK_HID_PlayStationDevice (HANDLE file)
@@ -1126,8 +1125,11 @@ SK_HID_PlayStationDevice::request_input_report (void)
     WriteRelease (&bNeedOutput, TRUE);
   }
 
+  InterlockedIncrement (&input_requests);
+
   if (hInputEvent == nullptr)
-  {   hInputEvent =
+  {  std::scoped_lock _initlock(*xinput.lock_report);
+     hInputEvent =
         SK_CreateEvent ( nullptr, TRUE, TRUE,
           SK_FormatStringW (L"[SK] HID Input Report %p", hDeviceFile).c_str ());
 
@@ -1290,7 +1292,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
         // Input Report Waiting
         if (dwWaitState == (WAIT_OBJECT_0 + 1))
         {
-          std::scoped_lock                       __(*pDevice->xinput.lock_report);
+          std::scoped_lock __(*pDevice->xinput.lock_report);
 
           DWORD dwBytesTransferred = 0;
 
@@ -2602,8 +2604,12 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
         return false;
     }
 
+    InterlockedIncrement (&output_requests);
+
     if (hOutputEnqueued == nullptr)
     {
+      std::scoped_lock _initlock(*xinput.lock_report);
+
       hOutputEnqueued =
         SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
 
@@ -3332,8 +3338,12 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
         return false;
     }
 
+    InterlockedIncrement (&output_requests);
+
     if (hOutputEnqueued == nullptr)
     {
+      std::scoped_lock _initlock(*xinput.lock_report);
+
       hOutputEnqueued =
         SK_CreateEvent (nullptr, TRUE, TRUE, nullptr);
 

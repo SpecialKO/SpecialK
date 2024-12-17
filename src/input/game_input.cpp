@@ -1049,6 +1049,8 @@ SK_IGameInputDevice::SetRumbleState (GameInputRumbleParams const *params) noexce
             static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.rightTrigger,  0.0f, 1.0f) * 65536.0f))),
                                             65535ui16
           );
+
+          pNewestInputDevice->write_output_report ();
         }
       }
     }

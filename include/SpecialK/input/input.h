@@ -962,6 +962,9 @@ struct SK_HID_PlayStationDevice
   USHORT               vid                      =     0x0;
   USHORT               pid                      =     0x0;
 
+  volatile UINT        output_requests          =       0;
+  volatile UINT        input_requests           =       0;
+
   // Interpretation of reports using HID APIs
   PHIDP_PREPARSED_DATA pPreparsedData           = nullptr;
 

@@ -148,14 +148,17 @@ struct SK_XInputContext
 
       if (! InterlockedCompareExchange (&haptic_warned [dwUserIndex], 1, 0))
       {
-        SK_LOG0 ( ( L"WARNING: Recursive haptic feedback loop detected on XInput controller %lu!",
-                     dwUserIndex ),
-                  L"  Input   " );
+        if (! config.input.gamepad.xinput.emulate)
+        {
+          SK_LOG0 ( ( L"WARNING: Recursive haptic feedback loop detected on XInput controller %lu!",
+                       dwUserIndex ),
+                    L"  Input   " );
 
-        SK_ImGui_Warning (L"Problematic third-party XInput software detected (infinite haptic feedback loop), disabling vibration."
-                          L"\n\n\tRestart your game to restore vibration support.");
+          SK_ImGui_Warning (L"Problematic third-party XInput software detected (infinite haptic feedback loop), disabling vibration."
+                            L"\n\n\tRestart your game to restore vibration support.");
 
-        config.input.gamepad.xinput.hook_setstate = false;
+          config.input.gamepad.xinput.hook_setstate = false;
+        }
       }
 
       return true;

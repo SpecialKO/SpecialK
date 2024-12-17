@@ -671,6 +671,12 @@ WGI_Gamepad_put_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad       
   //     control panel.
   SK_WGI_READ (SK_WGI_Backend, sk_input_dev_type::Gamepad);
 
+  if (config.input.gamepad.disable_rumble)
+  {
+    SK_XInput_ZeroHaptics (0);
+    return S_OK;
+  }
+
   bool bRedirected = false;
 
   SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
@@ -699,6 +705,8 @@ WGI_Gamepad_put_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad       
         static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (value.RightTrigger, 0.0, 1.0) * 65536.0))),
                                         65535ui16
       );
+
+      pNewestInputDevice->write_output_report ();
 
       bRedirected = true;
     }
