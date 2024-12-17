@@ -540,11 +540,8 @@ XInputGetState1_4_Detour (
     {
       SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
 
-      XINPUT_STATE xi_state_local = {};
-
-      bool
-      SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
-      SK_ImGui_PollGamepad_EndFrame (&xi_state_local);
+      XINPUT_STATE                    _state = {};
+      SK_ImGui_PollGamepad_EndFrame (&_state);
 
       for ( auto& controller : SK_HID_PlayStationControllers )
       {
@@ -560,22 +557,21 @@ XInputGetState1_4_Detour (
 
       if (pNewestInputDevice != nullptr && (bUseEmulation || ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) >= ReadULong64Acquire (&last_time [0])))
       {
-        bUseEmulationForSetState = true;
+        bUseEmulationForSetState  = true;
 
-        extern     XINPUT_STATE hid_to_xi;
-        extern volatile ULONG64 hid_to_xi_time;
+        const auto latest_state   =
+          pNewestInputDevice->xinput.getLatestState ();
 
-        auto last_timestamp = ReadULong64Acquire (&hid_to_xi_time);
-        auto timestamp      = ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
+        const auto last_timestamp = ReadULong64Acquire (&hid_to_xi_time);
+        const auto timestamp      = ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
 
-        if (last_timestamp < timestamp)
-        { if (InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp)
-          {
-            hid_to_xi = pNewestInputDevice->xinput.prev_report;
-          }
+        memcpy (pState, &latest_state, sizeof (XINPUT_STATE));
+
+        if (                                              timestamp> last_timestamp  &&
+             InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp )
+        {
+          hid_to_xi = latest_state;
         }
-
-        memcpy (pState, &hid_to_xi, sizeof (XINPUT_STATE));
 
         if (config.input.gamepad.xinput.debug)
         {
@@ -822,11 +818,8 @@ XInputGetStateEx1_4_Detour (
     {
       SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
 
-      XINPUT_STATE xi_state_local = {};
-
-      bool
-      SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
-      SK_ImGui_PollGamepad_EndFrame (&xi_state_local);
+      XINPUT_STATE                    _state = {};
+      SK_ImGui_PollGamepad_EndFrame (&_state);
 
       for ( auto& controller : SK_HID_PlayStationControllers )
       {
@@ -842,22 +835,21 @@ XInputGetStateEx1_4_Detour (
 
       if (pNewestInputDevice != nullptr && (bUseEmulation || ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) >= ReadULong64Acquire (&last_time [0])))
       {
-        bUseEmulationForSetState = true;
+        bUseEmulationForSetState  = true;
 
-        extern     XINPUT_STATE hid_to_xi;
-        extern volatile ULONG64 hid_to_xi_time;
+        const auto latest_state   =
+          pNewestInputDevice->xinput.getLatestState ();
 
-        auto last_timestamp = ReadULong64Acquire (&hid_to_xi_time);
-        auto timestamp      = ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
+        const auto last_timestamp = ReadULong64Acquire (&hid_to_xi_time);
+        const auto timestamp      = ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
 
-        if (last_timestamp < timestamp)
-        { if (InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp)
-          {
-            hid_to_xi = pNewestInputDevice->xinput.prev_report;
-          }
+        memcpy (pState, &latest_state, sizeof (XINPUT_STATE));
+
+        if (                                              timestamp> last_timestamp  &&
+             InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp )
+        {
+          hid_to_xi = latest_state;
         }
-
-        memcpy (pState, &hid_to_xi, sizeof (XINPUT_STATE));
 
         if (config.input.gamepad.xinput.debug)
         {

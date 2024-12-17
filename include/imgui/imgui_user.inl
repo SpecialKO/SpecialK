@@ -1826,16 +1826,16 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
 
     if (pLastActiveController != nullptr)
     {
-      extern volatile ULONG64 hid_to_xi_time;
+      const auto latest_state   =
+        pLastActiveController->xinput.getLatestState ();
 
-      auto last_timestamp = ReadULong64Acquire (&hid_to_xi_time);
-      auto timestamp      = ReadULong64Acquire (&pLastActiveController->xinput.last_active);
+      const auto last_timestamp = ReadULong64Acquire (&hid_to_xi_time);
+      const auto timestamp      = ReadULong64Acquire (&pLastActiveController->xinput.last_active);
 
-      if (last_timestamp < timestamp)
-      { if (InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp)
-        {
-          hid_to_xi = pLastActiveController->xinput.prev_report;
-        }
+      if (                                              timestamp> last_timestamp  &&
+           InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp )
+      {
+        hid_to_xi = latest_state;
       }
 
       if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate)
@@ -3027,8 +3027,6 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
     xi_state_last = xi_state;
   }
 
-  extern XINPUT_STATE
-            hid_to_xi;
   static XINPUT_STATE
             hid_state = { };
 
@@ -3089,6 +3087,7 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
     if (_Ignore_TimestampUntil < SK_Input_LastGamepadActivity)
          _LastGamepadTimestamp = SK_Input_LastGamepadActivity;
   }
+
 }
 
 // Handle scenarios where the Windows message queue did not

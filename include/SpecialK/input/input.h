@@ -906,6 +906,21 @@ SK_DeviceIoControl (HANDLE       hDevice,
                     LPDWORD      lpBytesReturned,
                     LPOVERLAPPED lpOverlapped);
 
+namespace SK::Framerate
+{
+  class Stats;
+};
+
+extern     XINPUT_STATE hid_to_xi;
+extern volatile ULONG64 hid_to_xi_time;
+
+// Trigger shared end-of-frame logic to load/store XInput
+//   state from translated APIs.
+//
+//  * May safely runs SK's input processing multiple times
+//      per-frame if games polling input faster than render.
+bool SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState);
+
 #define SK_HID_BeginModelSpecificButtons(model)\
 struct model##_Buttons                  { enum : size_t {
 #define SK_HID_NextModelSpecificButtons(model,prev)\
@@ -1019,6 +1034,8 @@ struct SK_HID_PlayStationDevice
   UCHAR dpad_report_id;
 
   struct hid_to_xi {
+    std::shared_ptr <SK_Thread_HybridSpinlock>
+                    lock_report;
     XINPUT_STATE    prev_report = { };
     XINPUT_STATE    report      = { };
     struct {
@@ -1032,12 +1049,14 @@ struct SK_HID_PlayStationDevice
       WORD          wLastRight  =  0 ;
     } vibration;
 
-    bool isNewer (const hid_to_xi& reading) const
+    bool isNewer (const hid_to_xi& reading) const noexcept
     {
       return
         ReadULong64Acquire (        &last_active) >
         ReadULong64Acquire (&reading.last_active);
     }
+
+    XINPUT_STATE getLatestState (void);
   } xinput;
 
   bool                          chord_activated = false;
@@ -1070,7 +1089,8 @@ struct SK_HID_PlayStationDevice
     UINT32 last_ack        = 0;
     UINT32 ping            = 0;
 
-    void*  pollrate        = nullptr;
+    std::shared_ptr <class SK::Framerate::Stats>
+           pollrate;
     UINT64 last_poll       = 0;
   } latency;
 

@@ -3563,7 +3563,8 @@ auto DeclKeybind =
 
         config.input.gamepad.xinput.emulate         =  true;
         config.input.cursor.manage                  =  true; // Mouse cursor doesn't auto-hide
-        config.input.gamepad.xinput.hook_setstate   = false; // Breaks haptic feedback
+        config.input.gamepad.impulse_strength_r     =  0.3f; // Impulse triggers are a bit STRONG...
+        config.input.gamepad.impulse_strength_l     =  0.3f; // Impulse triggers are a bit STRONG...
         config.input.gamepad.xinput.placehold [0]   =  true;
         config.input.gamepad.xinput.placehold [1]   = false;
         config.input.gamepad.xinput.placehold [2]   = false;

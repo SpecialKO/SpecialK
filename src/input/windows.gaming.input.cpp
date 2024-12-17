@@ -415,8 +415,7 @@ public:
     //{
     //  if (ps_controller.bConnected)
     //  {
-    //    if (pNewestInputDevice == nullptr ||
-    //        pNewestInputDevice->xinput.last_active < ps_controller.xinput.last_active)
+    //    if (pNewestInputDevice == nullptr || ps_controller.xinput.isNewer (pNewestInputDevice->xinput))
     //    {
     //      pNewestInputDevice = &ps_controller;
     //    }
@@ -428,11 +427,11 @@ public:
     //  if (! SK_ImGui_WantGamepadCapture ())
     //  {
     //    pNewestInputDevice->setVibration (
-    //      std::min (65535ui16, static_cast <USHORT> (value.LeftMotor    * 65536.0)),
-    //      std::min (65535ui16, static_cast <USHORT> (value.RightMotor   * 65536.0)),
-    //      std::min (65535ui16, static_cast <USHORT> (value.LeftTrigger  * 65536.0)),
-    //      std::min (65535ui16, static_cast <USHORT> (value.RightTrigger * 65536.0)),
-    //                65535ui16
+    //      static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (value.LeftMotor,    0.0, 1.0) * 65536.0))),
+    //      static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (value.RightMotor,   0.0, 1.0) * 65536.0))),
+    //      static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (value.LeftTrigger,  0.0, 1.0) * 65536.0))),
+    //      static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (value.RightTrigger, 0.0, 1.0) * 65536.0))),
+    //                                      65535ui16
     //    );
     //
     //    // Force an update
@@ -680,8 +679,7 @@ WGI_Gamepad_put_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad       
   {
     if (ps_controller.bConnected)
     {
-      if (pNewestInputDevice == nullptr ||
-          ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) < ReadULong64Acquire (&ps_controller.xinput.last_active))
+      if (pNewestInputDevice == nullptr || ps_controller.xinput.isNewer (pNewestInputDevice->xinput))
       {
         pNewestInputDevice = &ps_controller;
       }
@@ -695,20 +693,14 @@ WGI_Gamepad_put_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad       
       SK_WGI_VIEW (SK_WGI_Backend, 0);
 
       pNewestInputDevice->setVibration (
-        std::min (65535ui16, static_cast <USHORT> (value.LeftMotor    * 65536.0)),
-        std::min (65535ui16, static_cast <USHORT> (value.RightMotor   * 65536.0)),
-        std::min (65535ui16, static_cast <USHORT> (value.LeftTrigger  * 65536.0)),
-        std::min (65535ui16, static_cast <USHORT> (value.RightTrigger * 65536.0)),
-                  65535ui16
+        static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (value.LeftMotor,    0.0, 1.0) * 65536.0))),
+        static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (value.RightMotor,   0.0, 1.0) * 65536.0))),
+        static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (value.LeftTrigger,  0.0, 1.0) * 65536.0))),
+        static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (value.RightTrigger, 0.0, 1.0) * 65536.0))),
+                                        65535ui16
       );
 
-      // Force an update
-      pNewestInputDevice->write_output_report (true);
-      //if (pNewestInputDevice->write_output_report (true))
-      {
-        //vibes       = value;
-        bRedirected = true;
-      }
+      bRedirected = true;
     }
 
     // Swallow vibration while capturing gamepad input
@@ -722,7 +714,6 @@ WGI_Gamepad_put_Vibration_Override (ABI::Windows::Gaming::Input::IGamepad       
   if (! bRedirected)
   {
     SK_WGI_VIEW (SK_WGI_Backend, 0);
-    //vibes = value;
     SK_XInput_PulseController (0, static_cast <float>(value.LeftMotor),
                                   static_cast <float>(value.RightMotor));
   }
@@ -849,18 +840,20 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
     // Use emulation if there is no Xbox controller, but also if PlayStation input is newer
     bool bUseEmulation = true;
 
-    static XINPUT_STATE xi_state = { };
+    XINPUT_STATE xi_state = { };
 
     SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
 
     if (SK_HID_PlayStationControllers.size () > 0)
     {
+      XINPUT_STATE                    _state = {};
+      SK_ImGui_PollGamepad_EndFrame (&_state);
+
       for ( auto& controller : SK_HID_PlayStationControllers )
       {
         if (controller.bConnected)
         {
-          if (pNewestInputDevice == nullptr ||
-              ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) < ReadULong64Acquire (&controller.xinput.last_active))
+          if (pNewestInputDevice == nullptr || controller.xinput.isNewer (pNewestInputDevice->xinput))
           {
             pNewestInputDevice = &controller;
           }
@@ -872,26 +865,28 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
     {
       SK_WGI_VIEW (SK_WGI_Backend, 0);
 
-            extern     XINPUT_STATE hid_to_xi;
-      extern volatile ULONG64 hid_to_xi_time;
+      XINPUT_STATE                    _state = {};
+      SK_ImGui_PollGamepad_EndFrame (&_state);
 
-      auto last_timestamp = ReadULong64Acquire (&hid_to_xi_time);
-      auto timestamp      = ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
+      const auto latest_state   =
+        pNewestInputDevice->xinput.getLatestState ();
 
-      if (last_timestamp < timestamp)
-      { if (InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp)
-        {
-          hid_to_xi = pNewestInputDevice->xinput.prev_report;
-        }
+      const auto last_timestamp = ReadULong64Acquire (&hid_to_xi_time);
+      const auto timestamp      = ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
+
+      memcpy (&xi_state, &latest_state, sizeof (XINPUT_STATE));
+
+      if (                                              timestamp> last_timestamp  &&
+           InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp )
+      {
+        hid_to_xi = latest_state;
 
         // Enable XInputSetState to redirect to this controller
         extern bool bUseEmulationForSetState;
                     bUseEmulationForSetState = true;
       }
 
-      memcpy (&xi_state, &hid_to_xi, sizeof (XINPUT_STATE));
-
-      value->Timestamp = hid_to_xi_time;
+      value->Timestamp = timestamp;
       value->Buttons   = GamepadButtons::GamepadButtons_None;
 
       if ((xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP))
@@ -953,12 +948,12 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
       if (config.input.gamepad.xinput.debug)
       {
         SK_ImGui_CreateNotification (
-          "XInput.PacketNum", SK_ImGui_Toast::Info, SK_FormatString ("XInputEx Packet: %d", xi_state.dwPacketNumber).c_str (), nullptr, INFINITE,
-                              SK_ImGui_Toast::UseDuration  |
-                              SK_ImGui_Toast::ShowCaption  |
-                              SK_ImGui_Toast::ShowNewest   |
-                              SK_ImGui_Toast::Unsilencable |
-                              SK_ImGui_Toast::DoNotSaveINI );
+          "WGI.PacketNum", SK_ImGui_Toast::Info, SK_FormatString ("Windows.Gaming.Input Packet: %d", xi_state.dwPacketNumber).c_str (), nullptr, INFINITE,
+                           SK_ImGui_Toast::UseDuration  |
+                           SK_ImGui_Toast::ShowCaption  |
+                           SK_ImGui_Toast::ShowNewest   |
+                           SK_ImGui_Toast::Unsilencable |
+                           SK_ImGui_Toast::DoNotSaveINI );
       }
 
       SK_WGI_EmulatedPlayStation = true;

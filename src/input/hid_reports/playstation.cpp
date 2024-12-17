@@ -78,18 +78,13 @@ SK_HID_PlayStationDevice::SK_HID_PlayStationDevice (HANDLE file)
 
   setPollingFrequency (0);
   setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
+
+  latency.pollrate   = std::make_shared <SK::Framerate::Stats>     (     );
+  xinput.lock_report = std::make_shared <SK_Thread_HybridSpinlock> (0x400);
 }
 
 SK_HID_PlayStationDevice::~SK_HID_PlayStationDevice (void)
 {
-  SK::Framerate::Stats *pStats =
-    (SK::Framerate::Stats *)std::exchange (latency.pollrate, nullptr);
-
-  if (pStats != nullptr)
-  {
-    delete
-      std::exchange (pStats, nullptr);
-  }
 }
 
 extern bool SK_SetThreadIOPriority (HANDLE hThread, int priority);
@@ -1121,12 +1116,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
   if (! bConnected)
     return false;
-  
-  if (latency.pollrate == nullptr)
-  {
-    latency.pollrate =
-      new (std::nothrow) SK::Framerate::Stats ();
-  }
 
   // If user is overriding RGB, we need to write an output report for every input report
   if ( config.input.gamepad.scepad.led_color_r    >= 0 ||
@@ -1301,6 +1290,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
         // Input Report Waiting
         if (dwWaitState == (WAIT_OBJECT_0 + 1))
         {
+          std::scoped_lock                       __(*pDevice->xinput.lock_report);
+
           DWORD dwBytesTransferred = 0;
 
           if (! SK_GetOverlappedResult (
@@ -1353,6 +1344,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
             pDevice->xinput.report.Gamepad = { };
 
+#define __SK_HID_CalculateLatency
 #ifdef __SK_HID_CalculateLatency
             if ((config.input.gamepad.hid.calc_latency && SK_ImGui_Active ()) &&
                 (pDevice->latency.last_syn > pDevice->latency.last_ack || pDevice->latency.last_ack == 0))
@@ -2168,7 +2160,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
               static_cast <double> (tNow.QuadPart - tLast) /
               static_cast <double> (SK_QpcTicksPerMs);
 
-            ((SK::Framerate::Stats *)pDevice->latency.pollrate)->addSample (dt, tNow);
+            pDevice->latency.pollrate->addSample (dt, tNow);
 
             if (pDevice->buttons.size () >= 13 &&
                 pDevice->isButtonDown (SK_HID_PlayStationButton::PlayStation)) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
@@ -2373,6 +2365,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 if (bIsInputNewInternal)
                 {
                   pDevice->xinput.internal.report.dwPacketNumber++;
+                  std::scoped_lock                       _(*pDevice->xinput.lock_report);
                   pDevice->xinput.internal.prev_report = pDevice->xinput.internal.report;
                 }
               }
@@ -2380,6 +2373,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
               if (bIsInputNew)
               {
                 pDevice->xinput.     report.dwPacketNumber++;
+                std::scoped_lock     _(*pDevice->xinput.lock_report);
                 pDevice->xinput.prev_report = pDevice->xinput.report;
               }
             }
@@ -2551,6 +2545,17 @@ SK_HID_PlayStationDevice::request_input_report (void)
   }
 
   return true;
+}
+
+XINPUT_STATE
+SK_HID_PlayStationDevice::hid_to_xi::getLatestState (void)
+{
+  std::scoped_lock <SK_Thread_HybridSpinlock> _(*lock_report);
+
+  XINPUT_STATE
+         copy = prev_report;
+
+  return copy;
 }
 
 bool
@@ -2761,10 +2766,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    |
               (std::exchange (fLastResistPosL, config.input.gamepad.dualsense.resist_start_l)    != config.input.gamepad.dualsense.resist_start_l);
 
-            const bool bRumble =
-              (dwRightMotor != 0  ||
-               dwLeftMotor  != 0) || (dwLeftTrigger  != 0
-                                  ||  dwRightTrigger != 0);
+            const bool bRumble = (dwRightMotor != 0 || dwLeftMotor != 0);
 
             // 500 msec grace period before allowing controller to use native haptics
             output->UseRumbleNotHaptics = bRumble || last_trigger_r != 0
@@ -2804,7 +2806,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
 
-            if ((last_trigger_r != 0 || last_trigger_l != 0) || bResistChange)
+            if (dwLeftTrigger != 0 || dwRightTrigger != 0 || last_trigger_r != 0 || last_trigger_l != 0 || bResistChange)
             {
               auto effect =      (dwLeftTrigger != 0) ?
                 playstation_trigger_effect::Vibration :
@@ -2979,10 +2981,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
               (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    |
               (std::exchange (fLastResistPosL, config.input.gamepad.dualsense.resist_start_l)    != config.input.gamepad.dualsense.resist_start_l);
 
-            const bool bRumble =
-              (dwRightMotor != 0  ||
-               dwLeftMotor  != 0) || (dwLeftTrigger  != 0
-                                  ||  dwRightTrigger != 0);
+            const bool bRumble = (dwRightMotor != 0 || dwLeftMotor != 0);
 
             // 500 msec grace period before allowing controller to use native haptics
             output->UseRumbleNotHaptics = bRumble || last_trigger_r != 0
@@ -3022,7 +3021,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                 ReadULongAcquire (&pDevice->_vibration.left)
               );
 
-            if (last_trigger_r != 0 || last_trigger_l != 0 || bResistChange)
+            if (dwLeftTrigger != 0 || dwRightTrigger != 0 || last_trigger_r != 0 || last_trigger_l != 0 || bResistChange)
             {
               auto effect =      (dwLeftTrigger != 0) ?
                 playstation_trigger_effect::Vibration :
@@ -4088,9 +4087,9 @@ SK_HID_DualSense_SetStateDataImpl (SK_HID_DualSense_SetStateData* report, bool l
 
   if (effect != playstation_trigger_effect::Off)
   {
-    if (param0 != -1.0f) data [1] = static_cast <uint8_t> (std::clamp (param0, 0.0f, 1.0f) * 255.0f);
-    if (param1 != -1.0f) data [2] = static_cast <uint8_t> (std::clamp (param1, 0.0f, 1.0f) * 255.0f);
-    if (param2 != -1.0f) data [3] = static_cast <uint8_t> (std::clamp (param2, 0.0f, 1.0f) * 255.0f);
+    if (param0 != -1.0f) data [1] = static_cast <uint8_t> (std::clamp (param0 * 255.0f, 0.0f, 255.0f));
+    if (param1 != -1.0f) data [2] = static_cast <uint8_t> (std::clamp (param1 * 255.0f, 0.0f, 255.0f));
+    if (param2 != -1.0f) data [3] = static_cast <uint8_t> (std::clamp (param2 * 255.0f, 0.0f, 255.0f));
   }
 }
 
@@ -4101,7 +4100,7 @@ SK_HID_DualSense_SetStateData::setTriggerEffectL (playstation_trigger_effect eff
 }
 
 void
-SK_HID_DualSense_SetStateData::setTriggerEffectR (sk_config_t::input_s::gamepad_s::dualsense_s::effect effect, float param0, float param1, float param2)
+SK_HID_DualSense_SetStateData::setTriggerEffectR (playstation_trigger_effect effect, float param0, float param1, float param2)
 {
   return SK_HID_DualSense_SetStateDataImpl (this, false, effect, param0, param1, param2);
 }

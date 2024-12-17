@@ -1,4 +1,9 @@
-﻿24.12.16.1
+﻿24.12.17
+========
+ + Reduced default Impulse Trigger strength in Forza Horizon 5 to 33%
+ + Added PlayStation controller latency readings back to the control panel
+
+24.12.16.1
 ==========
  + Fixed beeping when pressing keyboard input in some games after using chords:
      PlayStation + R2 / PlayStation + L2 to minimize and restore a game.

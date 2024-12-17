@@ -1545,7 +1545,7 @@ SK::ControlPanel::Input::Draw (void)
             if (ps_controller.latency.pollrate != nullptr)
             {
               const double dMean =
-                ((SK::Framerate::Stats *)ps_controller.latency.pollrate)->calcMean ();
+                ps_controller.latency.pollrate->calcMean ();
 
               ImGui::Text   ( " Report Rate: %6.0f Hz",
                                 1000.0 / dMean );

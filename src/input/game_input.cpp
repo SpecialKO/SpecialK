@@ -1042,10 +1042,13 @@ SK_IGameInputDevice::SetRumbleState (GameInputRumbleParams const *params) noexce
 
         if (pNewestInputDevice != nullptr)
         {
-          pNewestInputDevice->setVibration (std::min (65535ui16, static_cast <USHORT> (params_.lowFrequency  * 65536.0f)),
-                                            std::min (65535ui16, static_cast <USHORT> (params_.highFrequency * 65536.0f)),
-                                            std::min (65535ui16, static_cast <USHORT> (params_.leftTrigger   * 65536.0f)),
-                                            std::min (65535ui16, static_cast <USHORT> (params_.rightTrigger  * 65536.0f)), 65535ui16);
+          pNewestInputDevice->setVibration (
+            static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.lowFrequency,  0.0f, 1.0f) * 65536.0f))),
+            static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.highFrequency, 0.0f, 1.0f) * 65536.0f))),
+            static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.leftTrigger,   0.0f, 1.0f) * 65536.0f))),
+            static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.rightTrigger,  0.0f, 1.0f) * 65536.0f))),
+                                            65535ui16
+          );
         }
       }
     }
@@ -1853,6 +1856,9 @@ SK_IPlayStationGameInputReading::GetGamepadState (GameInputGamepadState *state) 
 
   if (! SK_HID_PlayStationControllers.empty ())
   {
+    XINPUT_STATE                    _state = {};
+    SK_ImGui_PollGamepad_EndFrame (&_state);
+
     if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
     {
       SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
@@ -1872,39 +1878,42 @@ SK_IPlayStationGameInputReading::GetGamepadState (GameInputGamepadState *state) 
       {
         if (! SK_ImGui_WantGamepadCapture ())
         {
+          const auto latest_state =
+            pNewestInputDevice->xinput.getLatestState ();
+
           state->leftThumbstickX =
-            static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.prev_report.Gamepad.sThumbLX) / 32767.0);
+            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbLX) / 32767.0);
           state->leftThumbstickY =
-            static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.prev_report.Gamepad.sThumbLY) / 32767.0);
+            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbLY) / 32767.0);
 
           state->rightThumbstickX =
-            static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.prev_report.Gamepad.sThumbRX) / 32767.0);
+            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbRX) / 32767.0);
           state->rightThumbstickY =
-            static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.prev_report.Gamepad.sThumbRY) / 32767.0);
+            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbRY) / 32767.0);
 
           state->leftTrigger =
-            static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.prev_report.Gamepad.bLeftTrigger) / 255.0);
+            static_cast <float> (static_cast <double> (latest_state.Gamepad.bLeftTrigger) / 255.0);
           state->rightTrigger =
-            static_cast <float> (static_cast <double> (pNewestInputDevice->xinput.prev_report.Gamepad.bRightTrigger) / 255.0);
+            static_cast <float> (static_cast <double> (latest_state.Gamepad.bRightTrigger) / 255.0);
 
-          state->buttons |= (pNewestInputDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0 ? GameInputGamepadA : GameInputGamepadNone;
-          state->buttons |= (pNewestInputDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0 ? GameInputGamepadB : GameInputGamepadNone;
-          state->buttons |= (pNewestInputDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0 ? GameInputGamepadX : GameInputGamepadNone;
-          state->buttons |= (pNewestInputDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0 ? GameInputGamepadY : GameInputGamepadNone;
+          state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0 ? GameInputGamepadA : GameInputGamepadNone;
+          state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0 ? GameInputGamepadB : GameInputGamepadNone;
+          state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_X) != 0 ? GameInputGamepadX : GameInputGamepadNone;
+          state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_Y) != 0 ? GameInputGamepadY : GameInputGamepadNone;
 
-          state->buttons |= (pNewestInputDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0 ? GameInputGamepadMenu : GameInputGamepadNone;
-          state->buttons |= (pNewestInputDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)  != 0 ? GameInputGamepadView : GameInputGamepadNone;
+          state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_START) != 0 ? GameInputGamepadMenu : GameInputGamepadNone;
+          state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_BACK)  != 0 ? GameInputGamepadView : GameInputGamepadNone;
 
-          state->buttons |= (pNewestInputDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)    != 0 ? GameInputGamepadDPadUp    : GameInputGamepadNone;
-          state->buttons |= (pNewestInputDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)  != 0 ? GameInputGamepadDPadDown  : GameInputGamepadNone;
-          state->buttons |= (pNewestInputDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)  != 0 ? GameInputGamepadDPadLeft  : GameInputGamepadNone;
-          state->buttons |= (pNewestInputDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0 ? GameInputGamepadDPadRight : GameInputGamepadNone;
+          state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP)    != 0 ? GameInputGamepadDPadUp    : GameInputGamepadNone;
+          state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN)  != 0 ? GameInputGamepadDPadDown  : GameInputGamepadNone;
+          state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)  != 0 ? GameInputGamepadDPadLeft  : GameInputGamepadNone;
+          state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) != 0 ? GameInputGamepadDPadRight : GameInputGamepadNone;
 
-          state->buttons |= (pNewestInputDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)  != 0 ? GameInputGamepadLeftShoulder  : GameInputGamepadNone;
-          state->buttons |= (pNewestInputDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0 ? GameInputGamepadRightShoulder : GameInputGamepadNone;
+          state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_SHOULDER)  != 0 ? GameInputGamepadLeftShoulder  : GameInputGamepadNone;
+          state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) != 0 ? GameInputGamepadRightShoulder : GameInputGamepadNone;
 
-          state->buttons |= (pNewestInputDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB)  != 0 ? GameInputGamepadLeftThumbstick  : GameInputGamepadNone;
-          state->buttons |= (pNewestInputDevice->xinput.prev_report.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0 ? GameInputGamepadRightThumbstick : GameInputGamepadNone;
+          state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB)  != 0 ? GameInputGamepadLeftThumbstick  : GameInputGamepadNone;
+          state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0 ? GameInputGamepadRightThumbstick : GameInputGamepadNone;
         }
       }
     }
