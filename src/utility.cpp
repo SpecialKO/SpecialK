@@ -2849,8 +2849,8 @@ struct sk_host_process_s {
   std::atomic_bool sys_dir            = false;
 };
 
-SK_LazyGlobal <sk_host_process_s> host_proc;
-SK_HostAppUtil                    host_app_util;
+sk_host_process_s host_proc;
+SK_HostAppUtil    host_app_util;
 
 bool __SK_RunDLL_Bypass = false;
 
@@ -2945,21 +2945,21 @@ SK_PathRemoveExtension (wchar_t* wszInOut)
 const wchar_t*
 SK_GetBlacklistFilename (void)
 {
-  if ( host_proc->blacklist.load () )
-    return host_proc->wszBlacklist;
+  if ( host_proc.blacklist.load () )
+    return host_proc.wszBlacklist;
 
   static volatile
     LONG init = FALSE;
 
   if (! InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
-    lstrcatW (host_proc->wszBlacklist, SK_GetHostPath ());
-    lstrcatW (host_proc->wszBlacklist, L"\\SpecialK.deny.");
-    lstrcatW (host_proc->wszBlacklist, SK_GetHostApp  ());
+    lstrcatW (host_proc.wszBlacklist, SK_GetHostPath ());
+    lstrcatW (host_proc.wszBlacklist, L"\\SpecialK.deny.");
+    lstrcatW (host_proc.wszBlacklist, SK_GetHostApp  ());
 
-    SK_PathRemoveExtension (host_proc->wszBlacklist);
+    SK_PathRemoveExtension (host_proc.wszBlacklist);
 
-    host_proc->blacklist.store (true);
+    host_proc.blacklist.store (true);
 
     InterlockedIncrementRelease  (&init);
   }
@@ -2968,14 +2968,14 @@ SK_GetBlacklistFilename (void)
     SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return
-    host_proc->wszBlacklist;
+    host_proc.wszBlacklist;
 }
 
 const wchar_t*
 SK_GetHostApp (void)
 {
-  if (     host_proc->app.load () )
-  { return host_proc->wszApp;     }
+  if (     host_proc.app.load () )
+  { return host_proc.wszApp;     }
 
   static volatile
     LONG init = FALSE;
@@ -2988,12 +2988,12 @@ SK_GetHostApp (void)
 
     PathStripPathW (wszFullyQualified);
 
-    wcsncpy_s ( host_proc->wszApp, MAX_PATH,
+    wcsncpy_s ( host_proc.wszApp,  MAX_PATH,
                 wszFullyQualified, _TRUNCATE );
 
-    assert (PathFileExistsW (host_proc->wszApp));
+    assert (PathFileExistsW (host_proc.wszApp));
 
-    host_proc->app.store (true);
+    host_proc.app.store (true);
 
     InterlockedIncrementRelease (&init);
   }
@@ -3002,14 +3002,14 @@ SK_GetHostApp (void)
     SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return
-    host_proc->wszApp;
+    host_proc.wszApp;
 }
 
 const wchar_t*
 SK_GetFullyQualifiedApp (void)
 {
-  if ( host_proc->full_name.load () )
-    return host_proc->wszFullName;
+  if ( host_proc.full_name.load () )
+    return host_proc.wszFullName;
 
   static volatile
     LONG init = FALSE;
@@ -3023,12 +3023,12 @@ SK_GetFullyQualifiedApp (void)
                            wszProcessName,
                             dwProcessSize );
 
-    wcsncpy_s ( host_proc->wszFullName, MAX_PATH,
-                  wszProcessName,       _TRUNCATE );
+    wcsncpy_s ( host_proc.wszFullName, MAX_PATH,
+                  wszProcessName,      _TRUNCATE );
 
-    assert (PathFileExistsW (host_proc->wszFullName));
+    assert (PathFileExistsW (host_proc.wszFullName));
 
-    host_proc->full_name.store (true);
+    host_proc.full_name.store (true);
 
     InterlockedIncrementRelease (&init);
   }
@@ -3037,7 +3037,7 @@ SK_GetFullyQualifiedApp (void)
     SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return
-    host_proc->wszFullName;
+    host_proc.wszFullName;
 }
 
 // NOT the working directory, this is the directory that
@@ -3046,8 +3046,8 @@ SK_GetFullyQualifiedApp (void)
 const wchar_t*
 SK_GetHostPath (void)
 {
-  if ( host_proc->path.load () )
-    return host_proc->wszPath;
+  if ( host_proc.path.load () )
+    return host_proc.wszPath;
 
   static volatile
     LONG init = FALSE;
@@ -3068,12 +3068,12 @@ SK_GetHostPath (void)
     assert (bSuccess != FALSE);
 
     wcsncpy_s (
-      host_proc->wszPath, MAX_PATH,
+      host_proc.wszPath, MAX_PATH,
         wszProcessName,  _TRUNCATE  );
 
-    assert (PathFileExistsW (host_proc->wszPath));
+    assert (PathFileExistsW (host_proc.wszPath));
 
-    host_proc->path.store (true);
+    host_proc.path.store (true);
 
     InterlockedIncrementRelease (&init);
   }
@@ -3082,15 +3082,15 @@ SK_GetHostPath (void)
     SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return
-    host_proc->wszPath;
+    host_proc.wszPath;
 }
 
 
 const wchar_t*
 SK_GetSystemDirectory (void)
 {
-  if ( host_proc->sys_dir.load () )
-    return host_proc->wszSystemDir;
+  if ( host_proc.sys_dir.load () )
+    return host_proc.wszSystemDir;
 
   static volatile
     LONG init = FALSE;
@@ -3098,7 +3098,7 @@ SK_GetSystemDirectory (void)
   if (! InterlockedCompareExchangeAcquire (&init, TRUE, FALSE))
   {
 #ifdef _WIN64
-    GetSystemDirectory (host_proc->wszSystemDir, MAX_PATH);
+    GetSystemDirectory (host_proc.wszSystemDir, MAX_PATH);
 #else
     HANDLE hProc = SK_GetCurrentProcess ();
 
@@ -3106,12 +3106,12 @@ SK_GetSystemDirectory (void)
     ::IsWow64Process (hProc, &bWOW64);
 
     if (bWOW64)
-      GetSystemWow64Directory (host_proc->wszSystemDir, MAX_PATH);
+      GetSystemWow64Directory (host_proc.wszSystemDir, MAX_PATH);
     else
-      GetSystemDirectory      (host_proc->wszSystemDir, MAX_PATH);
+      GetSystemDirectory      (host_proc.wszSystemDir, MAX_PATH);
 #endif
 
-    host_proc->sys_dir.store (true);
+    host_proc.sys_dir.store (true);
 
     InterlockedIncrementRelease (&init);
   }
@@ -3120,7 +3120,7 @@ SK_GetSystemDirectory (void)
     SK_Thread_SpinUntilAtomicMin (&init, 2);
 
   return
-    host_proc->wszSystemDir;
+    host_proc.wszSystemDir;
 }
 
 LPWSTR
@@ -3506,7 +3506,7 @@ SK_RestartGame (const wchar_t* wszDLL, const wchar_t* wszFailMsg)
   {
     wchar_t      wszRunDLLCmd [MAX_PATH * 4] = { };
     swprintf_s ( wszRunDLLCmd, MAX_PATH * 4 - 1,
-                 L"RunDll32.exe \"%ws\",RunDLL_RestartGame %s %s",
+                 L"RunDll32.exe \"%ws\",RunDLL_RestartGame %ws %ws",
                    wszShortPath,
                      SK_GetFullyQualifiedApp (),
                      PathGetArgsW (GetCommandLineW ()) );

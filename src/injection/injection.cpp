@@ -2558,11 +2558,12 @@ void SK_Inject_BroadcastExitNotify (bool force)
                    LR"(Local\SKIF_InjectAck)" )
       );
 
-      SetEvent (hInjectAckEx.m_h);
-      SetEvent (hInjectAck  .m_h);
+      if (hInjectAckEx.isValid ()) SetEvent (hInjectAckEx.m_h);
+      if (hInjectAck.  isValid ()) SetEvent (hInjectAck  .m_h);
     }
 
-    SetEvent (hInjectExitAckEx.m_h);
+    if (        hInjectExitAckEx.isValid ())
+      SetEvent (hInjectExitAckEx.m_h);
   }
 
   if (! force)
