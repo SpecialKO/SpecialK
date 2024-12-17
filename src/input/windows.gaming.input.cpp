@@ -888,11 +888,11 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
            InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp )
       {
         hid_to_xi = latest_state;
-
-        // Enable XInputSetState to redirect to this controller
-        extern bool bUseEmulationForSetState;
-                    bUseEmulationForSetState = true;
       }
+
+      // Enable XInputSetState to redirect to this controller
+      extern bool bUseEmulationForSetState;
+                  bUseEmulationForSetState = true;
 
       value->Timestamp = timestamp;
       value->Buttons   = GamepadButtons::GamepadButtons_None;
