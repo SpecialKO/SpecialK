@@ -355,34 +355,36 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
 
     if (! SK_ImGui_WantGamepadCapture ())
     {
-      if ((! config.input.gamepad.scepad.share_clicks_touch) &&
-            _JustPressed ( iData->buttonMask, last_result [handle].
-                           second.buttonMask, SK_ScePadButtonBitmap::Share
-                         )
-         )
-      {
-        WriteULong64Release (&ullLastChordFrame, ullThisFrame);
-
-        SK_SteamAPI_TakeScreenshot ();
-      }
+      // Not needed, HID handles this now
+      //if ((! config.input.gamepad.scepad.share_clicks_touch) &&
+      //      _JustPressed ( iData->buttonMask, last_result [handle].
+      //                     second.buttonMask, SK_ScePadButtonBitmap::Share
+      //                   )
+      //   )
+      //{
+      //  WriteULong64Release (&ullLastChordFrame, ullThisFrame);
+      //
+      //  SK_SteamAPI_TakeScreenshot ();
+      //}
 
       if ( config.input.gamepad.scepad.enhanced_ps_button &&
            iData->buttonMask.isDown (SK_ScePadButtonBitmap::PlayStation) )
       {
+        // Not needed, HID handles this now
+        //if ( _JustPressed ( iData->buttonMask, last_result [handle].
+        //                    second.buttonMask, SK_ScePadButtonBitmap::Share
+        //                  )
+        //   )
+        //{
+        //  WriteULong64Release (&ullLastChordFrame, ullThisFrame);
+        //
+        //  SK_SteamAPI_TakeScreenshot ();
+        //}
+
         if ( _JustPressed ( iData->buttonMask, last_result [handle].
-                            second.buttonMask, SK_ScePadButtonBitmap::Share
+                            second.buttonMask, SK_ScePadButtonBitmap::L3
                           )
            )
-        {
-          WriteULong64Release (&ullLastChordFrame, ullThisFrame);
-
-          SK_SteamAPI_TakeScreenshot ();
-        }
-
-        else if ( _JustPressed ( iData->buttonMask, last_result [handle].
-                                 second.buttonMask, SK_ScePadButtonBitmap::L3
-                               )
-                )
         {
           WriteULong64Release (&ullLastChordFrame, ullThisFrame);
 
@@ -430,14 +432,15 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
       }
     }
 
-    if ( config.input.gamepad.scepad.mute_applies_to_game &&
-         _JustPressed ( iData->buttonMask, last_result [handle].
-                        second.buttonMask, SK_ScePadButtonBitmap::Mute
-                      )
-       )
-    {
-      SK_SetGameMute (! SK_IsGameMuted ());
-    }
+    // Not needed, HID handles this now
+    //if ( config.input.gamepad.scepad.mute_applies_to_game &&
+    //     _JustPressed ( iData->buttonMask, last_result [handle].
+    //                    second.buttonMask, SK_ScePadButtonBitmap::Mute
+    //                  )
+    //   )
+    //{
+    //  SK_SetGameMute (! SK_IsGameMuted ());
+    //}
 
 
     if (config.input.gamepad.scepad.disable_touch)
@@ -632,6 +635,12 @@ SK_ScePadSetTiltCorrectionState (SK_ScePadHandle handle, bool enable)
 SK_ScePadResult
 SK_ScePadSetVibration (SK_ScePadHandle handle, SK_ScePadVibrationParam *param)
 {
+  if (config.input.gamepad.disable_rumble || SK_ImGui_WantGamepadCapture ())
+  {
+    param->bigMotor   = 0;
+    param->smallMotor = 0;
+  }
+
   return sceinput_ctx.scePad.
     scePadSetVibration_Original (handle, param);
 }
