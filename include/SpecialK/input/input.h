@@ -1047,10 +1047,6 @@ struct SK_HID_PlayStationDevice
     } internal; // For detection of last active gamepad,
                 //   includes an unusually strong deadzone
     volatile UINT64 last_active =  0 ;
-    struct {
-      WORD          wLastLeft   =  0 ;
-      WORD          wLastRight  =  0 ;
-    } vibration;
 
     bool isNewer (const hid_to_xi& reading) const noexcept
     {
@@ -1061,8 +1057,6 @@ struct SK_HID_PlayStationDevice
 
     XINPUT_STATE getLatestState (void);
   } xinput;
-
-  bool                          chord_activated = false;
 
   std::vector <button_s>        buttons;
   std::vector <USAGE>           button_usages;
