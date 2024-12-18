@@ -2549,3 +2549,25 @@ SK_Input_PreHookHID (void)
 
   return false;
 }
+
+SK_HID_PlayStationDevice*
+SK_HID_GetActivePlayStationDevice (bool return_null_if_xbox_is_active = false) noexcept
+{
+  if (return_null_if_xbox_is_active && SK_Input_IsXboxControllerActive ())
+    return nullptr;
+
+  SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
+
+  for ( auto& ps_controller : SK_HID_PlayStationControllers )
+  {
+    if (ps_controller.bConnected)
+    {
+      if (pNewestInputDevice == nullptr || ps_controller.xinput.isNewer (pNewestInputDevice->xinput))
+      {
+        pNewestInputDevice = &ps_controller;
+      }
+    }
+  }
+
+  return pNewestInputDevice;
+}

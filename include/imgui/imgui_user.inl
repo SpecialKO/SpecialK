@@ -2998,11 +2998,14 @@ SK_ImGui_FallbackTrackMouseEvent (POINT& cursor_pos)
 }
 
 
-DWORD SK_Input_LastGamepadActivity = 0;
+DWORD SK_Input_LastGamepadActivity    = 0;
+DWORD SK_Input_LastNativeXboxActivity = 0;
 
 void
 SK_Input_UpdateGamepadActivityTimestamp (void)
 {
+  DWORD ui_timestamp = SK::ControlPanel::current_time;
+
   static DWORD _LastGamepadTimestamp  = SK_Input_LastGamepadActivity;
   static DWORD _Ignore_TimestampUntil = 0;
 
@@ -3031,12 +3034,15 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
               abs (xi_state.Gamepad.bRightTrigger - xi_state_last.Gamepad.bRightTrigger) > 40 )
     {
       // Special treatment for the Guide button so that chords can be used while screensavers
-      //   are active.
+      //   are active and so games are unaffected by pressing the Guide button (which they cannot see).
       if (!(xi_state_last.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE))
-        SK_Input_LastGamepadActivity = SK::ControlPanel::current_time;
+      {
+        SK_Input_LastGamepadActivity    = ui_timestamp;
+        SK_Input_LastNativeXboxActivity = ui_timestamp;
+      }
 
       if (xi_state.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)
-          _Ignore_TimestampUntil = SK::ControlPanel::current_time + 500UL;
+          _Ignore_TimestampUntil = ui_timestamp + 500UL;
     }
 
     xi_state_last = xi_state;
@@ -3065,13 +3071,13 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
               abs (hid_to_xi.Gamepad.bRightTrigger - hid_state.Gamepad.bRightTrigger) > 40 )
     {
       // Special treatment for the Guide button so that chords can be used while screensavers
-      //   are active.
+      //   are active and so games are unaffected by pressing the Guide button (which they cannot see).
       if (!(hid_to_xi.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE ||
             hid_to_xi.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE))
-        SK_Input_LastGamepadActivity = SK::ControlPanel::current_time;
+        SK_Input_LastGamepadActivity = ui_timestamp;
 
       if (hid_to_xi.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE)
-        _Ignore_TimestampUntil = SK::ControlPanel::current_time + 500UL;
+        _Ignore_TimestampUntil = ui_timestamp + 500UL;
     }
 
     hid_state.Gamepad = hid_to_xi.Gamepad;
@@ -3102,7 +3108,11 @@ SK_Input_UpdateGamepadActivityTimestamp (void)
     if (_Ignore_TimestampUntil < SK_Input_LastGamepadActivity)
          _LastGamepadTimestamp = SK_Input_LastGamepadActivity;
   }
+}
 
+bool SK_Input_IsXboxControllerActive (void) noexcept
+{
+  return SK_Input_LastNativeXboxActivity >= SK_Input_LastGamepadActivity;
 }
 
 // Handle scenarios where the Windows message queue did not

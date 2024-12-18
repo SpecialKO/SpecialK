@@ -1209,6 +1209,10 @@ bool SK_ImGui_HasDualSenseEdgeController (void);
 void SK_HID_SetupPlayStationControllers   (void);
 void SK_HID_FlushPlayStationForceFeedback (void);
 
+bool SK_Input_IsXboxControllerActive (void) noexcept;
+SK_HID_PlayStationDevice* SK_HID_GetActivePlayStationDevice (bool return_null_if_xbox_is_active = false) noexcept;
+
+
 
 // Temporarily override game's preferences for input device window message generation
 bool
