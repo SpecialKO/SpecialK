@@ -1,4 +1,12 @@
-﻿24.12.17.2
+﻿24.12.18
+========
+ + Correctly implement AVIF screenshot encoder quality; quantizer was set to
+     lossless at all quality levels before!
+
+ + When holding Xbox Guide / PlayStation / Nintendo Home button, ImGui menu
+     navigation is now temporarily blocked (if chords are enabled).
+
+24.12.17.2
 ==========
  + Reduce latency on HID output reports (i.e. rumble, lighting changes, etc.)
      for DualShock 4 and DualSense{Edge} controllers.

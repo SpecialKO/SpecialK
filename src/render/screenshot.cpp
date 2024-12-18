@@ -992,14 +992,15 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
 
     if (encoder != nullptr)
     {
-      encoder->quality         = config.screenshots.compression_quality;
-      encoder->qualityAlpha    = config.screenshots.compression_quality; // N/A?
+      encoder->quality         = std::clamp (config.screenshots.compression_quality, AVIF_QUALITY_WORST, AVIF_QUALITY_BEST);
+      encoder->qualityAlpha    = std::clamp (config.screenshots.compression_quality, AVIF_QUALITY_WORST, AVIF_QUALITY_BEST);
       encoder->timescale       = 1;
       encoder->repetitionCount = AVIF_REPETITION_COUNT_INFINITE;
       encoder->maxThreads      = config.screenshots.avif.max_threads;
       encoder->speed           = config.screenshots.avif.compression_speed;
       encoder->minQuantizer    = AVIF_QUANTIZER_BEST_QUALITY;
-      encoder->maxQuantizer    = AVIF_QUANTIZER_BEST_QUALITY;
+      encoder->maxQuantizer    = encoder->quality == AVIF_QUALITY_LOSSLESS ? AVIF_QUANTIZER_LOSSLESS :
+          (int)((100.0f - (float)encoder->quality) * 63.0f);
       encoder->codecChoice     = AVIF_CODEC_CHOICE_AUTO;
 
       image->clli.maxCLL  = max_cll;
