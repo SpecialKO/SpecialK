@@ -291,21 +291,9 @@ SK_XInput_NotifyDeviceArrival (void)
 
                                   controller.setBufferCount      (config.input.gamepad.hid.max_allowed_buffers);
                                   controller.setPollingFrequency (0);
-/*
-                                  SK_ImGui_CreateNotification (
-                                    "HID.GamepadReetached", SK_ImGui_Toast::Info,
-                                    SK_FormatString (
-                                      "%ws" ICON_FA_GAMEPAD "\tHas Risen From The Dead!",
-                                       controller.wszDevicePath ).c_str (),
-                                            "HID Compliant Zombie Gamepad is Back, and Hungers for Brains!",
-                                                                       16666, SK_ImGui_Toast::UseDuration |
-                                                                              SK_ImGui_Toast::ShowCaption |
-                                                                              SK_ImGui_Toast::ShowTitle   |
-                                                                              SK_ImGui_Toast::ShowNewest
-                                  );
-*/
 
-                                  //SK_ImGui_Warning (L"PlayStation Controller Reconnected");
+                                  if (config.system.log_level > 0)
+                                    SK_ImGui_Warning (L"PlayStation Controller Reconnected");
 
                                   has_existing = true;
 
@@ -466,7 +454,8 @@ SK_XInput_NotifyDeviceArrival (void)
 
                               iter->write_output_report ();
 
-                              //SK_ImGui_Warning (L"PlayStation Controller Connected");
+                              if (config.system.log_level > 0)
+                                SK_ImGui_Warning (L"PlayStation Controller Connected");
                             }
                           }
                         }
@@ -498,20 +487,6 @@ SK_XInput_NotifyDeviceArrival (void)
                               controller.reset_device ();
                               controller.reset_rgb          = false;
 
-/*
-                              SK_ImGui_CreateNotification (
-                                "HID.GamepadReetached", SK_ImGui_Toast::Info,
-                                SK_FormatString (
-                                  "%ws" ICON_FA_GAMEPAD "\tHas Left the Building!",
-                                   controller.wszDevicePath ).c_str (),
-                                        "HID Compliant Gamepad is MIssing In Action!",
-                                                  16666, SK_ImGui_Toast::UseDuration |
-                                                         SK_ImGui_Toast::ShowCaption |
-                                                         SK_ImGui_Toast::ShowTitle   |
-                                                         SK_ImGui_Toast::ShowNewest
-                              );
-*/
-
                               if (                (intptr_t)controller.hDeviceFile > 0)
                                 CloseHandle (std::exchange (controller.hDeviceFile,  nullptr));
 
@@ -524,7 +499,8 @@ SK_XInput_NotifyDeviceArrival (void)
                               if (        controller.hDisconnectEvent != nullptr)
                                 SetEvent (controller.hDisconnectEvent);
 
-                              //SK_ImGui_Warning (L"PlayStation Controller Disconnected");
+                              if (config.system.log_level > 0)
+                                SK_ImGui_Warning (L"PlayStation Controller Disconnected");
 
                               break;
                             }

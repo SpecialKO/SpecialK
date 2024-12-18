@@ -60,8 +60,7 @@ struct SK_HID_DualSense_GetHWAddr // 0x09 : USB
 //   indication that the device was removed is one of these error codes...
 bool SK_HID_IsDisconnectedError (DWORD dwError)
 {
-  return dwError == ERROR_INVALID_HANDLE;// ||
-       //dwError == ERROR_DEVICE_NOT_CONNECTED;
+  return dwError == ERROR_INVALID_HANDLE;
 }
 
 SK_HID_PlayStationDevice::SK_HID_PlayStationDevice (HANDLE file)
@@ -1290,8 +1289,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
         // Input Report Waiting
         if (dwWaitState == (WAIT_OBJECT_0 + 1))
         {
-          std::scoped_lock __(*pDevice->xinput.lock_report);
-
           DWORD dwBytesTransferred = 0;
 
           if (! SK_GetOverlappedResult (
@@ -1329,15 +1326,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
               SK_ReleaseAssert (pDevice->pPreparsedData != nullptr);
               continue;
             }
-
-            ////if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.emulate)
-            ////{
-            ////  //static DWORD dwLastFlush = 0;
-            ////  //if (         dwLastFlush < SK::ControlPanel::current_time - 16)
-            ////  //{            dwLastFlush = SK::ControlPanel::current_time;
-            ////    pDevice->write_output_report ();
-            ////  //}
-            ////}
 
             ULONG num_usages =
               ULONG (pDevice->button_usages.size ());
@@ -2456,7 +2444,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
             for ( auto& ps_controller : SK_HID_PlayStationControllers )
             {
-              if (ps_controller.bConnected && ReadULong64Acquire (&ps_controller.xinput.last_active) > ReadULong64Acquire (&pDevice->xinput.last_active))
+              if (ps_controller.bConnected && ps_controller.xinput.isNewer (pDevice->xinput))
               {
                 bIsDeviceMostRecentlyActive = false;
                 break;
@@ -2477,6 +2465,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
               }
             }
 
+#if 0
             // Deadzone checks make it inconclusive if this is the most recently used
             //   controller, but it does have new input and the game should see it...
             else if (bIsInputNew)
@@ -2492,6 +2481,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 InterlockedCompareExchange (&pDevice->xinput.last_active, last_active + (SK_PerfTicksPerMs * 75), last_active);
               }
             }
+#endif
 
             const bool bAllowSpecialButtons =
               ( config.input.gamepad.disabled_to_game == 0 ||
@@ -2516,16 +2506,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
             if (ReadAcquire (&pDevice->bNeedOutput))
               pDevice->write_output_report ();
-            
-            //if ( pDevice->buttons.size () >= 16 && 
-            //     pDevice->bDualSense            && bAllowSpecialButtons )
-            //{
-            //  if (pDevice->buttons [15].state && 
-            //    (!pDevice->buttons [15].last_state))
-            //  {
-            //    SK_SteamAPI_TakeScreenshot ();
-            //  }
-            //}
 
             for ( auto& button : pDevice->buttons )
             {
@@ -4020,6 +4000,10 @@ SK_HID_PlayStationDevice::reset_force_feedback (void)
 void
 SK_HID_PlayStationDevice::reset_device (void)
 {
+  SK_LOGi0 (
+    L"SK_HID_PlayStationDevice::reset_device (...) for DeviceFile='%ws'",
+                                                    wszDevicePath );
+
   battery.percentage = 100.0f;
   battery.state      = ChargingError;
 
@@ -4049,9 +4033,6 @@ SK_HID_PlayStationDevice::reset_device (void)
   xinput.internal.prev_report = {};
   xinput.internal.     report = {};
 
-  xinput.vibration.wLastLeft  = 0;
-  xinput.vibration.wLastRight = 0;
-
   dwLastTimeOutput  = 0;
   ulLastFrameOutput = 0;
 
@@ -4066,7 +4047,6 @@ SK_HID_PlayStationDevice::reset_device (void)
 
   sensor_timestamp = 0;
   reset_rgb        = false;
-  chord_activated  = false; // Deprecated
 }
 
 void

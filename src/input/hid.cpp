@@ -2529,6 +2529,8 @@ SK_Input_PreHookHID (void)
   if (! config.input.gamepad.hook_hid)
     return false;
 
+  SK_HID_SetupPlayStationControllers ();
+
   static
     sk_import_test_s tests [] = {
       { "hid.dll", false }
