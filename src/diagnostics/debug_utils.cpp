@@ -3775,6 +3775,19 @@ SK::Diagnostics::Debugger::Allow  (bool bAllow)
     }
   } finish_init_on_return;
 
+  if (SK_GetCurrentGameID () == SK_GAME_ID::ForzaHorizon5)
+  {
+    // We do not set this early enough apparently
+    config.compatibility.disable_debug_features = true;
+
+    SK_RunOnce (
+    SK_CreateDLLHook2 (      L"NtDll",
+                              "ZwCreateThreadEx",
+                               ZwCreateThreadEx_Detour,
+      static_cast_p2p <void> (&ZwCreateThreadEx_Original) )
+    );
+  }
+
   if (config.compatibility.disable_debug_features)
   {
     return false;
