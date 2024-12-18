@@ -2380,7 +2380,7 @@ SKX_ScanAlignedEx ( const void* pattern, size_t len,   const void* mask,
                           SK_MemScan_Params__v0 params =
                           SK_MemScan_Params__v0 ()       )
 {
-  if (! (pattern || mask))
+  if (! (pattern && mask))
     return nullptr;
 
   static auto constexpr _MAX_SEARCH_TIME_IN_MS = 5000UL;

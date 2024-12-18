@@ -1711,7 +1711,7 @@ ClipCursor_Detour (const RECT *lpRect)
     ////}
 
 
-    if (SK_ExpandSmallClipCursor (static_cast <RECT *> (&_rect)))
+    if (SK_ExpandSmallClipCursor (&_rect))
     {
       // Generally this only matters if [background rendering is enabled;
       //   flat-out ignore cursor clip rects if the window's not even active.
@@ -6588,6 +6588,12 @@ SK_InitWindow (HWND hWnd, bool fullscreen_exclusive)
   if (game_window.GetWindowLongPtr == nullptr)
   {
     if (SK_InstallWindowHook (hWnd))
+      return;
+
+    SK_ReleaseAssert (game_window.GetWindowLongPtr != nullptr);
+
+    // Cannot proceed safely without this...
+    if (game_window.GetWindowLongPtr == nullptr)
       return;
   }
 
