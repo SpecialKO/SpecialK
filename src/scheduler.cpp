@@ -1403,35 +1403,6 @@ Sleep_Detour (DWORD dwMilliseconds)
   SleepEx_Detour (dwMilliseconds, FALSE);
 }
 
-static SleepConditionVariableSRW_pfn
-       SleepConditionVariableSRW_Original = nullptr;
-
-BOOL
-WINAPI
-SleepConditionVariableSRW_Detour (
-  _Inout_ PCONDITION_VARIABLE ConditionVariable,
-  _Inout_ PSRWLOCK            SRWLock,
-  _In_    DWORD               dwMilliseconds,
-  _In_    ULONG               Flags )
-{
-  //SK_LOG_FIRST_CALL
-
-#if 0
-  if (SK_IsCurrentGame (SK_GAME_ID::Starfield))
-  {
-    SK_LOGs0 ( L"Scheduler ",
-                 L"SleepConditionVariableSRW (..., ..., %d, %x) - %ws",
-              dwMilliseconds, Flags,
-              SK_Thread_GetName (SK_GetCurrentThreadId ()).c_str () );
-  }
-#endif
-
-  return
-    SleepConditionVariableSRW_Original (
-         ConditionVariable, SRWLock, dwMilliseconds, Flags
-    );
-}
-
 BOOL
 WINAPI
 QueryPerformanceFrequency_Detour (_Out_ LARGE_INTEGER *lpPerfFreq) noexcept
@@ -1849,11 +1820,6 @@ void SK_Scheduler_Init (void)
                               "SleepEx",
                                SleepEx_Detour,
       static_cast_p2p <void> (&SleepEx_Original) );
-
-    SK_CreateDLLHook2 (      L"Kernel32",
-                              "SleepConditionVariableSRW",
-                               SleepConditionVariableSRW_Detour,
-      static_cast_p2p <void> (&SleepConditionVariableSRW_Original) );
 
     SK_CreateDLLHook2 (      L"Kernel32",
                               "SwitchToThread",
