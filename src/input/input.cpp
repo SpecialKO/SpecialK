@@ -180,6 +180,13 @@ SK_ImGui_WantGamepadCapture (bool update)
   if ((! SK_IsGameWindowActive ()) && config.input.gamepad.disabled_to_game != SK_InputEnablement::Enabled)
     imgui_capture = true;
 
+  // If this is enabled, then PlayStation + Triangle to turn gamepads off will
+  //   cause native Xbox controller input to be captured until gamepads are
+  //     turned back on and the state of the translated input (PlayStation button)
+  //       changes.
+  //
+  //  Ideally, translated input would be cleared upon all PlayStation controllers
+  //    disconnecting.
   if ( config.input.gamepad.scepad.enhanced_ps_button &&
             (config.input.gamepad.xinput.ui_slot >= 0 && 
              config.input.gamepad.xinput.ui_slot <  4) )
@@ -188,8 +195,10 @@ SK_ImGui_WantGamepadCapture (bool update)
     extern XINPUT_STATE
          SK_ImGui_XInputState;
     if ((SK_ImGui_XInputState.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) ||
-                   (hid_to_xi.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE))
+                  ((hid_to_xi.Gamepad.wButtons & XINPUT_GAMEPAD_GUIDE) && SK_HID_GetActivePlayStationDevice () != nullptr))
+    {                                                                  // Checking for at least one connected controller fixes the comment above
       imgui_capture = true;
+    }
   }
 
   return
