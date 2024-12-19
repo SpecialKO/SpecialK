@@ -58,6 +58,8 @@ extern SK_LazyGlobal <sk_input_api_context_s> SK_GameInput_Backend;
   }                                                                           \
 }
 
+bool SK_GameInput_EmulatedPlayStation = false;
+
 using GameInputCreate_pfn = HRESULT (WINAPI *)(IGameInput**);
       GameInputCreate_pfn
       GameInputCreate_Original = nullptr;
@@ -419,23 +421,20 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
     {
       if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
       {
-        SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
-
-        for ( auto& controller : SK_HID_PlayStationControllers )
-        {
-          if (controller.bConnected)
-          {
-            if (pNewestInputDevice == nullptr || controller.xinput.isNewer (pNewestInputDevice->xinput))
-            {
-              pNewestInputDevice = &controller;
-            }
-          }
-        }
+        SK_HID_PlayStationDevice *pNewestInputDevice =
+          SK_HID_GetActivePlayStationDevice (true);
 
         if (pNewestInputDevice != nullptr)
         {
+          SK_GameInput_EmulatedPlayStation = true;
+
           virtual_active =
             ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
+        }
+
+        else
+        {
+          SK_GameInput_EmulatedPlayStation = false;
         }
       }
     }
@@ -493,6 +492,8 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
       {
         *reading = (IGameInputReading *)new SK_IWrapGameInputReading (reading_);
         _current_readings [device][inputKind] = *reading;
+
+        SK_GameInput_EmulatedPlayStation = false;
       }
 
       else
@@ -1025,33 +1026,19 @@ SK_IGameInputDevice::SetRumbleState (GameInputRumbleParams const *params) noexce
 
     else
     {
-      if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+      if (SK_HID_PlayStationDevice *pNewestInputDevice = nullptr; config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api) && (pNewestInputDevice = SK_HID_GetActivePlayStationDevice ()) != nullptr)
       {
-        SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
+        SK_GameInput_EmulatedPlayStation = true;
 
-        for ( auto& controller : SK_HID_PlayStationControllers )
-        {
-          if (controller.bConnected)
-          {
-            if (pNewestInputDevice == nullptr || controller.xinput.isNewer (pNewestInputDevice->xinput))
-            {
-              pNewestInputDevice = &controller;
-            }
-          }
-        }
+        pNewestInputDevice->setVibration (
+          static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.lowFrequency,  0.0f, 1.0f) * 65536.0f))),
+          static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.highFrequency, 0.0f, 1.0f) * 65536.0f))),
+          static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.leftTrigger,   0.0f, 1.0f) * 65536.0f))),
+          static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.rightTrigger,  0.0f, 1.0f) * 65536.0f))),
+                                          65535ui16
+        );
 
-        if (pNewestInputDevice != nullptr)
-        {
-          pNewestInputDevice->setVibration (
-            static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.lowFrequency,  0.0f, 1.0f) * 65536.0f))),
-            static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.highFrequency, 0.0f, 1.0f) * 65536.0f))),
-            static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.leftTrigger,   0.0f, 1.0f) * 65536.0f))),
-            static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.rightTrigger,  0.0f, 1.0f) * 65536.0f))),
-                                            65535ui16
-          );
-
-          pNewestInputDevice->write_output_report ();
-        }
+        pNewestInputDevice->write_output_report ();
       }
     }
   }

@@ -1,4 +1,11 @@
-﻿24.12.19.2
+﻿24.12.19.3
+==========
+ + Correctly show PlayStation icon in GameInput games only when PlayStation
+     input/output is active, for native GameInput remove the icon.
+ + Allow DualSense users (non-Edge version) to access the Impulse Trigger
+     strength slider.
+
+24.12.19.2
 ==========
  + Add logarithmic scaling to deadzone compensation on PlayStation controllers
      and extend the option to native Xbox controllers also.
