@@ -111,13 +111,13 @@ void SK_HID_SetupPlayStationControllers (void)
     auto cmd_proc =
       SK_GetCommandProcessor ();
 
-    auto dualsense_impulse_str_l = new SK_IVarStub <float> (&config.input.gamepad.dualsense.trigger_strength_l);
-    auto dualsense_resist_str_l  = new SK_IVarStub <float> (&config.input.gamepad.dualsense.resist_strength_l);
-    auto dualsense_resist_pos_l  = new SK_IVarStub <float> (&config.input.gamepad.dualsense.resist_start_l);
+    static auto dualsense_impulse_str_l = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.trigger_strength_l);
+    static auto dualsense_resist_str_l  = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.resist_strength_l);
+    static auto dualsense_resist_pos_l  = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.resist_start_l);
 
-    auto dualsense_impulse_str_r = new SK_IVarStub <float> (&config.input.gamepad.dualsense.trigger_strength_r);
-    auto dualsense_resist_str_r  = new SK_IVarStub <float> (&config.input.gamepad.dualsense.resist_strength_r);
-    auto dualsense_resist_pos_r  = new SK_IVarStub <float> (&config.input.gamepad.dualsense.resist_start_r);
+    static auto dualsense_impulse_str_r = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.trigger_strength_r);
+    static auto dualsense_resist_str_r  = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.resist_strength_r);
+    static auto dualsense_resist_pos_r  = std::make_unique <SK_IVarStub <float>> (&config.input.gamepad.dualsense.resist_start_r);
 
     cmd_proc->AddVariable ("Input.Gamepad.DualSense.ImpulseStrL", &dualsense_impulse_str_l->setRange ( 0.0f, 255.0f));
     cmd_proc->AddVariable ("Input.Gamepad.DualSense.ResistStrL",  &dualsense_resist_str_l-> setRange (-1.0f,   1.0f));
@@ -322,7 +322,8 @@ void SK_HID_SetupPlayStationControllers (void)
 
                   for ( int idx = 0; idx < value_caps_count; ++idx )
                   {
-                    controller.value_caps [idx] = valueCapsArray [idx];
+                    controller.value_caps [idx] =
+                           valueCapsArray [idx];
                   }
                 }
 
@@ -343,7 +344,7 @@ void SK_HID_SetupPlayStationControllers (void)
               controller.bConnected         = true;
               controller.output.last_crc32c = 0;
     
-              auto iter =
+              const auto iter =
                 SK_HID_PlayStationControllers.push_back (controller);
 
               iter->setPollingFrequency (0);
@@ -1017,7 +1018,7 @@ struct cfg_binding_map_s {
     { &config.input.gamepad.scepad.right_paddle, 0, 18 } };
 
 std::wstring*
-SK_HID_GetGamepadButtonBinding (UINT idx)
+SK_HID_GetGamepadButtonBinding (UINT idx) noexcept
 {
   for ( auto& binding : binding_map )
   {
@@ -1145,7 +1146,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
       SK_Thread_SetCurrentPriority (THREAD_PRIORITY_HIGHEST);
       SK_SetThreadIOPriority       (SK_GetCurrentThread(),3);
 
-      SK_HID_PlayStationDevice* pDevice =
+      auto *pDevice =
         (SK_HID_PlayStationDevice *)pUser;
 
       HANDLE hOperationalEvents [] = {
@@ -1173,11 +1174,11 @@ SK_HID_PlayStationDevice::request_input_report (void)
                      pDevice->input_report.size () );
 
         pDevice->input_report [0] = pDevice->bBluetooth ? 49
-                                                        : pDevice->button_report_id;
+                                                           : pDevice->button_report_id;
 
         if (pDevice->bDualShock4)
           pDevice->input_report [0] = pDevice->bBluetooth ? 0x11 :
-                                      pDevice->button_report_id;
+                                         pDevice->button_report_id;
 
         bool bHasBluetooth = false;
 
@@ -1295,7 +1296,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   pDevice->hDeviceFile, &async_input_request,
                     &dwBytesTransferred, TRUE ) )
           {
-            DWORD dwLastErr =
+            const DWORD dwLastErr =
               GetLastError ();
 
             // Stop polling on the first failure, if the device comes back to life, we'll probably
@@ -1380,41 +1381,40 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 if ( HIDP_STATUS_SUCCESS ==
                   SK_HidP_GetUsageValue ( HidP_Input, pDevice->value_caps [i].UsagePage,   0,
                                                       pDevice->value_caps [i].Range.UsageMin,
-                                                                                      &value,
+                                                                                         &value,
                                                       pDevice->pPreparsedData,
-                                               (PCHAR)pDevice->input_report.data  (),
-                                 static_cast <ULONG> (pDevice->input_report.size  ()) ) )
+                                             (PCHAR) (pDevice->input_report.data ()),
+                                 static_cast <ULONG> (pDevice->input_report.size ()) ) )
                 {
                   switch (pDevice->value_caps [i].Range.UsageMin)
                   {
                     case 0x30: // X-axis
                       pDevice->xinput.report.Gamepad.sThumbLX =
-                        static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (value) - 128.0) / 127.0)));
-                        break;
+                        static_cast <SHORT> (32767 * fmax (-1, (-128.0 + value) / 127));
+                      break;
 
                     case 0x31: // Y-axis
                       pDevice->xinput.report.Gamepad.sThumbLY =
-                        static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (value)) / 127.0)));
-                        break;
+                        static_cast <SHORT> (32767 * fmax (-1, (+127.0 - value) / 127));
+                      break;
 
                     case 0x32: // Z-axis
                       pDevice->xinput.report.Gamepad.sThumbRX =
-                        static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (value) - 128.0) / 127.0)));
-                        break;
+                        static_cast <SHORT> (32767 * fmax (-1, (-128.0 + value) / 127));
+                      break;
 
                     case 0x33: // Rotate-X
-                      pDevice->xinput.report.Gamepad.bLeftTrigger =
-                        static_cast <BYTE> (static_cast <BYTE> (value));
+                      pDevice->xinput.report.Gamepad.bLeftTrigger  = sk::narrow_cast <BYTE> (value);
                       break;
 
                     case 0x34: // Rotate-Y
-                      pDevice->xinput.report.Gamepad.bRightTrigger =
-                        static_cast <BYTE> (static_cast <BYTE> (value));
+                      pDevice->xinput.report.Gamepad.bRightTrigger = sk::narrow_cast <BYTE> (value);
                       break;
 
                     case 0x35: // Rotate-Z
                       pDevice->xinput.report.Gamepad.sThumbRY =
-                        static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (value)) / 127.0)));
+                        static_cast <SHORT> (32767 * fmax (-1, (+127.0 - value) / 127));
+                      break;
 #if 0
                       if (value != 0)
                       {
@@ -1474,10 +1474,10 @@ SK_HID_PlayStationDevice::request_input_report (void)
               // Report 0x1, USB Mode
               if (dwBytesTransferred == 64)
               {
-                SK_HID_DualSense_GetStateData* pDualSense = 
+                const auto *pDualSense = 
                   (SK_HID_DualSense_GetStateData *)&(pDevice->input_report.data ()[1]);
 
-                auto pDualShock4 =
+                const auto *pDualShock4 =
                   (SK_HID_DualShock4_GetStateData *)pDualSense;
 
                 float batteryPercent = 0.0f;
@@ -1590,10 +1590,10 @@ SK_HID_PlayStationDevice::request_input_report (void)
               if (pDevice->buttons.size () < 19)
                   pDevice->buttons.resize (  19);
 
-              BYTE* pInputRaw =
-                (BYTE *)pDevice->input_report.data ();
+              auto pInputRaw =
+                pDevice->input_report.data ();
 
-              SK_HID_DualSense_GetStateData *pData =
+              const auto *pData =
                 (SK_HID_DualSense_GetStateData *)&pInputRaw [2];
 
               bool bSimple = false;
@@ -1632,24 +1632,18 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 }
 
                 pDevice->xinput.report.Gamepad.sThumbLX =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (pData->LeftStickX) - 128.0) / 127.0)));
-
+                  static_cast <SHORT> (32767 * fmax (-1, (-128.0 + pData-> LeftStickX) / 127));
                 pDevice->xinput.report.Gamepad.sThumbLY =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (pData->LeftStickY)) / 127.0)));
-
+                  static_cast <SHORT> (32767 * fmax (-1, (+127.0 - pData-> LeftStickY) / 127));
                 pDevice->xinput.report.Gamepad.sThumbRX =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (pData->RightStickX) - 128.0) / 127.0)));
-
+                  static_cast <SHORT> (32767 * fmax (-1, (-128.0 + pData->RightStickX) / 127));
                 pDevice->xinput.report.Gamepad.sThumbRY =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (pData->RightStickY)) / 127.0)));
-                
-                pDevice->xinput.report.Gamepad.bLeftTrigger =
-                  static_cast <BYTE> (static_cast <BYTE> (pData->TriggerLeft));
+                  static_cast <SHORT> (32767 * fmax (-1, (+127.0 - pData->RightStickY) / 127));
 
-                pDevice->xinput.report.Gamepad.bRightTrigger =
-                  static_cast <BYTE> (static_cast <BYTE> (pData->TriggerRight));
+                pDevice->xinput.report.Gamepad.bLeftTrigger  = pData->TriggerLeft;
+                pDevice->xinput.report.Gamepad.bRightTrigger = pData->TriggerRight;
 
-                switch ((int)pData->DPad)
+                switch (pData->DPad)
                 {
                   case 0: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;
                   case 1: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
@@ -1710,28 +1704,22 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 pDevice->battery.state      = Complete;
                 pDevice->battery.percentage = 100.0f;
 
-                SK_HID_DualSense_GetSimpleStateDataBt *pSimpleData =
+                const auto *pSimpleData =
                   (SK_HID_DualSense_GetSimpleStateDataBt *)&pInputRaw [1];
 
                 pDevice->xinput.report.Gamepad.sThumbLX =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (pSimpleData->LeftStickX) - 128.0) / 127.0)));
-
+                  static_cast <SHORT> (32767 * fmax (-1, (-128.0 + pSimpleData-> LeftStickX) / 127));
                 pDevice->xinput.report.Gamepad.sThumbLY =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (pSimpleData->LeftStickY)) / 127.0)));
-
+                  static_cast <SHORT> (32767 * fmax (-1, (+127.0 - pSimpleData-> LeftStickY) / 127));
                 pDevice->xinput.report.Gamepad.sThumbRX =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (pSimpleData->RightStickX) - 128.0) / 127.0)));
-
+                  static_cast <SHORT> (32767 * fmax (-1, (-128.0 + pSimpleData->RightStickX) / 127));
                 pDevice->xinput.report.Gamepad.sThumbRY =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (pSimpleData->RightStickY)) / 127.0)));
-                
-                pDevice->xinput.report.Gamepad.bLeftTrigger =
-                  static_cast <BYTE> (static_cast <BYTE> (pSimpleData->TriggerLeft));
+                  static_cast <SHORT> (32767 * fmax (-1, (+127.0 - pSimpleData->RightStickY) / 127));
 
-                pDevice->xinput.report.Gamepad.bRightTrigger =
-                  static_cast <BYTE> (static_cast <BYTE> (pSimpleData->TriggerRight));
+              pDevice->xinput.report.Gamepad.bLeftTrigger  = pSimpleData->TriggerLeft;
+              pDevice->xinput.report.Gamepad.bRightTrigger = pSimpleData->TriggerRight;
 
-                switch ((int)pSimpleData->DPad)
+                switch (pSimpleData->DPad)
                 {
                   case 0: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;
                   case 1: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
@@ -1899,31 +1887,25 @@ SK_HID_PlayStationDevice::request_input_report (void)
               if (pDevice->buttons.size () < 14)
                   pDevice->buttons.resize (  14);
 
-              BYTE* pInputRaw =
-                (BYTE *)pDevice->input_report.data ();
+              auto pInputRaw =
+                pDevice->input_report.data ();
 
-              SK_HID_DualShock4_GetStateData *pData =
+              const auto *pData =
                 (SK_HID_DualShock4_GetStateData *)&pInputRaw [3];
 
               pDevice->xinput.report.Gamepad.sThumbLX =
-                static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (pData->LeftStickX) - 128.0) / 127.0)));
-
+                static_cast <SHORT> (32767 * fmax (-1, (-128.0 + pData-> LeftStickX) / 127));
               pDevice->xinput.report.Gamepad.sThumbLY =
-                static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (pData->LeftStickY) - 127.0) / 127.0)));
-
+                static_cast <SHORT> (32767 * fmax (-1, (+127.0 - pData-> LeftStickY) / 127));
               pDevice->xinput.report.Gamepad.sThumbRX =
-                static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (pData->RightStickX) - 128.0) / 127.0)));
-
+                static_cast <SHORT> (32767 * fmax (-1, (-128.0 + pData->RightStickX) / 127));
               pDevice->xinput.report.Gamepad.sThumbRY =
-                static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (pData->RightStickY) - 127.0) / 127.0)));
+                static_cast <SHORT> (32767 * fmax (-1, (+127.0 - pData->RightStickY) / 127));
 
-              pDevice->xinput.report.Gamepad.bLeftTrigger =
-                static_cast <BYTE> (static_cast <BYTE> (pData->TriggerLeft));
+              pDevice->xinput.report.Gamepad.bLeftTrigger  = pData->TriggerLeft;
+              pDevice->xinput.report.Gamepad.bRightTrigger = pData->TriggerRight;
 
-              pDevice->xinput.report.Gamepad.bRightTrigger =
-                static_cast <BYTE> (static_cast <BYTE> (pData->TriggerRight));
-
-              switch ((int)pData->DPad)
+              switch (pData->DPad)
               {
                 case 0: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;    break;
                 case 1: pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_DPAD_UP;
@@ -1974,7 +1956,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                                 Charging :
                              Discharging;
 
-              float batteryPercent =
+              const float batteryPercent =
                 std::clamp (
                   ( pDevice->battery.state == Charging    ? static_cast <float> (std::min (11, (pData->PowerPercent & 0xF))) - 1 :
                     pDevice->battery.state == Discharging ? static_cast <float> (std::min (10, (pData->PowerPercent & 0xF)))     :
@@ -2033,8 +2015,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                                    SK_ImGui_Toast::Unsilencable,
                       [](void *pUserData)->bool
                       {
-                        SK_HID_PlayStationDevice::battery_s *pBatteryState =
-                          (SK_HID_PlayStationDevice::battery_s *)pUserData;
+                        const SK_HID_PlayStationDevice::battery_s *pBatteryState =
+                             (SK_HID_PlayStationDevice::battery_s *)pUserData;
 
                         static const char* szBatteryLevels [] = {
                           ICON_FA_BATTERY_EMPTY,
@@ -2144,7 +2126,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                    tNow = SK_QueryPerf ();
             INT64 tLast = std::exchange (pDevice->latency.last_poll, tNow.QuadPart);
 
-            double dt =
+            const double dt =
               static_cast <double> (tNow.QuadPart - tLast) /
               static_cast <double> (SK_QpcTicksPerMs);
 
@@ -2285,15 +2267,15 @@ SK_HID_PlayStationDevice::request_input_report (void)
             }
 
 
-            bool bIsInputActive      = false;
-            bool bIsInputNewInternal =
+                  bool bIsInputActive      = false;
+            const bool bIsInputNewInternal =
               memcmp ( &pDevice->xinput.internal.prev_report.Gamepad,
                        &pDevice->xinput.internal.     report.Gamepad, sizeof (XINPUT_GAMEPAD) );
-            bool bIsInputNew =
+            const bool bIsInputNew =
               memcmp ( &pDevice->xinput.prev_report.Gamepad,
                        &pDevice->xinput.     report.Gamepad,          sizeof (XINPUT_GAMEPAD) );
 
-            bool bIsAnyButtonDown =
+            const bool bIsAnyButtonDown =
               (pDevice->xinput.report.Gamepad.wButtons != 0);
 
                                                       // Implicitly treat gamepads with buttons pressed as active
@@ -2412,7 +2394,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
               //       input...
               if (bIsDeviceMostRecentlyActive)
               { // Need interlock
-                UINT64 last_active =
+                const UINT64 last_active =
                         ReadULong64Acquire (&pDevice->xinput.last_active);
                 InterlockedCompareExchange (&pDevice->xinput.last_active, last_active + (SK_PerfTicksPerMs * 75), last_active);
               }
@@ -2552,7 +2534,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
         SK_Thread_SetCurrentPriority (THREAD_PRIORITY_TIME_CRITICAL);
         SK_SetThreadIOPriority       (SK_GetCurrentThread (), 3);
 
-        SK_HID_PlayStationDevice* pDevice =
+        auto *pDevice =
           (SK_HID_PlayStationDevice *)pData;
 
         HANDLE hEvents [] = {
@@ -2678,11 +2660,11 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
           if (! pDevice->bBluetooth)
           {
-            BYTE* pOutputRaw =
-              (BYTE *)pDevice->output_report.data ();
+            auto pOutputRaw =
+              pDevice->output_report.data ();
 
-            SK_HID_DualSense_SetStateData* output =
-           (SK_HID_DualSense_SetStateData *)&pOutputRaw [1];
+            auto* output =
+              (SK_HID_DualSense_SetStateData *)&pOutputRaw [1];
 
             const ULONG dwRightMotor   = ReadULongAcquire (&pDevice->_vibration.right);
             const ULONG dwLeftMotor    = ReadULongAcquire (&pDevice->_vibration.left);
@@ -2698,9 +2680,9 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             float& fLastResistPosR = pDevice->_vibration.trigger.last_resist_start_r;
 
             const bool bResistChange =
-              (std::exchange (fLastResistStrL, config.input.gamepad.dualsense.resist_strength_l) != config.input.gamepad.dualsense.resist_strength_l) |
-              (std::exchange (fLastResistStrR, config.input.gamepad.dualsense.resist_strength_r) != config.input.gamepad.dualsense.resist_strength_r) |
-              (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    |
+              (std::exchange (fLastResistStrL, config.input.gamepad.dualsense.resist_strength_l) != config.input.gamepad.dualsense.resist_strength_l) +
+              (std::exchange (fLastResistStrR, config.input.gamepad.dualsense.resist_strength_r) != config.input.gamepad.dualsense.resist_strength_r) +
+              (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    +
               (std::exchange (fLastResistPosL, config.input.gamepad.dualsense.resist_start_l)    != config.input.gamepad.dualsense.resist_start_l);
 
             const bool bRumble = (dwRightMotor != 0 || dwLeftMotor != 0);
@@ -2896,8 +2878,8 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             memcpy (bt_data, &header, sizeof (header));
 
-            SK_HID_DualSense_SetStateData* output =
-           (SK_HID_DualSense_SetStateData *)&bt_data [3];
+            auto* output =
+              (SK_HID_DualSense_SetStateData *)&bt_data [3];
 
             const ULONG dwRightMotor   = ReadULongAcquire (&pDevice->_vibration.right);
             const ULONG dwLeftMotor    = ReadULongAcquire (&pDevice->_vibration.left);
@@ -2913,9 +2895,9 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             float& fLastResistPosR = pDevice->_vibration.trigger.last_resist_start_r;
 
             const bool bResistChange =
-              (std::exchange (fLastResistStrL, config.input.gamepad.dualsense.resist_strength_l) != config.input.gamepad.dualsense.resist_strength_l) |
-              (std::exchange (fLastResistStrR, config.input.gamepad.dualsense.resist_strength_r) != config.input.gamepad.dualsense.resist_strength_r) |
-              (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    |
+              (std::exchange (fLastResistStrL, config.input.gamepad.dualsense.resist_strength_l) != config.input.gamepad.dualsense.resist_strength_l) +
+              (std::exchange (fLastResistStrR, config.input.gamepad.dualsense.resist_strength_r) != config.input.gamepad.dualsense.resist_strength_r) +
+              (std::exchange (fLastResistPosR, config.input.gamepad.dualsense.resist_start_r)    != config.input.gamepad.dualsense.resist_start_r)    +
               (std::exchange (fLastResistPosL, config.input.gamepad.dualsense.resist_start_l)    != config.input.gamepad.dualsense.resist_start_l);
 
             const bool bRumble = (dwRightMotor != 0 || dwLeftMotor != 0);
@@ -3144,7 +3126,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             InterlockedIncrement (&pDevice->output.writes_retired);
 
-            uint32_t crc =
+            const uint32_t crc =
              crc32 (0x0, bt_data, 75);
 
             memcpy (                                &bt_data [75], &crc, 4);
@@ -3295,7 +3277,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
            pDevice->hOutputEnqueued
         };
 
-        OVERLAPPED async_output_request = { };
+        OVERLAPPED async_output_request = {};
 
         bool bEnqueued = false;
         bool bFinished = false;
@@ -3372,14 +3354,14 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
           // Report Type
           pDevice->output_report [0] =
-            pDevice->bBluetooth ? 0x11 : 0x05;
+            pDevice->bBluetooth  ? 0x11 : 0x05;
 
           if (! pDevice->bBluetooth)
           {
-            BYTE* pOutputRaw =
-              (BYTE *)pDevice->output_report.data ();
+            auto pOutputRaw =
+              pDevice->output_report.data ();
 
-            SK_HID_DualShock4_SetStateData* output =
+            auto output =
               (SK_HID_DualShock4_SetStateData *)&pOutputRaw [1];
 
             output->EnableRumbleUpdate = true;
@@ -3483,10 +3465,10 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             memcpy (bt_data, &header, sizeof (header));
 
-            BYTE* pOutputRaw =
-              (BYTE *)&bt_data [4];
+            auto *pOutputRaw =
+                   &bt_data [4];
 
-            SK_HID_DualShock4_SetStateDataBt* output =
+            auto* output =
               (SK_HID_DualShock4_SetStateDataBt *)&pOutputRaw [0];
 
             output->EnableRumbleUpdate = true;
@@ -3569,7 +3551,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
 
             InterlockedIncrement (&pDevice->output.writes_retired);
 
-            uint32_t crc =
+            const uint32_t crc =
              crc32 (0x0, bt_data, 75);
 
             memcpy (                                &bt_data [75], &crc, 4);
@@ -3790,12 +3772,12 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
             //  dwSize == report_id
             //);
 
-            BYTE* pInputRaw =
-              (BYTE *)_cachedInputReportsByReportId [report_id].data ();
+            auto *pInputRaw =
+              _cachedInputReportsByReportId [report_id].data ();
 
-            SK_HID_DualSense_GetStateData *pData = pInputRaw == nullptr ?
-                                                                nullptr :
-                 (SK_HID_DualSense_GetStateData *)&pInputRaw [2];
+            auto *pData = pInputRaw == nullptr ?
+                                       nullptr :
+              (SK_HID_DualSense_GetStateData *)&pInputRaw [2];
 
             bool bSimple = false;
 
@@ -3841,7 +3823,7 @@ int SK_HID_DeviceFile::neutralizeHidInput (uint8_t report_id, DWORD dwSize)
 
             else if (pInputRaw != nullptr)
             {
-              SK_HID_DualSense_GetSimpleStateDataBt *pSimpleData =
+              auto *pSimpleData =
                 (SK_HID_DualSense_GetSimpleStateDataBt *)&pInputRaw [1];
 
               // The analog axes
@@ -3914,9 +3896,9 @@ SK_HID_PlayStationDevice::initialize_serial (void)
       feature_report [0] = 0x12;
   
     if (SK_HidD_GetFeature (hDeviceFile, feature_report.data (),
-                                  (ULONG)feature_report.size ()))
+                    static_cast <ULONG> (feature_report.size ())))
     {
-      SK_HID_DualSense_GetHWAddr *pGetHWAddr =
+      const auto *pGetHWAddr =
         (SK_HID_DualSense_GetHWAddr *)&feature_report.data ()[1];
   
       // If this fails, what the hell did we just read?
@@ -3934,15 +3916,15 @@ SK_HID_PlayStationDevice::initialize_serial (void)
   
   if (*wszSerialNumber != L'\0')
   {
-    swscanf (wszSerialNumber, L"%llx", &ullHWAddr);
-    return true;
+    return
+      (1 == swscanf (wszSerialNumber, L"%llx", &ullHWAddr));
   }
 
   return false;
 }
 
 void
-SK_HID_PlayStationDevice::reset_force_feedback (void)
+SK_HID_PlayStationDevice::reset_force_feedback (void) noexcept
 {
   _vibration.trigger.last_resist_start_l = -2.0f;
   _vibration.trigger.last_resist_start_r = -2.0f;

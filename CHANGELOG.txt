@@ -1,4 +1,8 @@
-﻿24.12.19.3
+﻿24.12.19.4
+==========
+ + Fix DualShock 4 Bluetooth analog stick problems caused by typo in 24.12.19.2
+
+24.12.19.3
 ==========
  + Correctly show PlayStation icon in GameInput games only when PlayStation
      input/output is active, for native GameInput remove the icon.
