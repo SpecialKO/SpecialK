@@ -4049,6 +4049,11 @@ SK_HID_PlayStationDevice::reset_device (void)
 
   sensor_timestamp = 0;
   reset_rgb        = false;
+
+  // Reset the translated device input so that when this controller reconnects,
+  //   it will not still be reading stale input until the user pushes a button.
+  extern XINPUT_STATE hid_to_xi;
+                      hid_to_xi.Gamepad = {};
 }
 
 void

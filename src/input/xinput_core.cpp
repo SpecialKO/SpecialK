@@ -437,6 +437,12 @@ XInputEnable1_4_Detour (
 static volatile DWORD  last_packet [XUSER_MAX_COUNT] = {};
 static volatile UINT64 last_time   [XUSER_MAX_COUNT] = {};
 
+static volatile DWORD  last_native_packet  [XUSER_MAX_COUNT] = {};
+static volatile UINT64 last_native_time    [XUSER_MAX_COUNT] = {};
+
+static volatile DWORD  last_virtual_packet [XUSER_MAX_COUNT] = {};
+static volatile UINT64 last_virtual_time   [XUSER_MAX_COUNT] = {};
+
 DWORD
 WINAPI
 XInputGetState1_4_Detour (
@@ -525,12 +531,18 @@ XInputGetState1_4_Detour (
       SK_Steam_SignalEmulatedXInputActivity (dwUserIndex, nop);
   }
 
+  uint64_t native_time0  = 0;
+  uint64_t virtual_time0 = 0;
+
   if (dwUserIndex == 0)
   {
-    if (pState->dwPacketNumber > ReadULongAcquire (&last_packet [dwUserIndex]))
+    native_time0  = ReadULong64Acquire (&last_native_time  [0]);
+    virtual_time0 = ReadULong64Acquire (&last_virtual_time [0]);
+
+    if (pState->dwPacketNumber > ReadULongAcquire (&last_native_packet [0]))
     {
-      InterlockedExchange (&last_packet [dwUserIndex], pState->dwPacketNumber);
-      InterlockedExchange (&last_time   [dwUserIndex], SK_QueryPerf ().QuadPart);
+      InterlockedExchange (&last_native_packet [0], pState->dwPacketNumber);
+      InterlockedExchange (&last_native_time   [0], SK_QueryPerf ().QuadPart);
     }
   }
 
@@ -539,26 +551,12 @@ XInputGetState1_4_Detour (
     // Use emulation if there is no Xbox controller, but also if PlayStation input is newer
     bool bUseEmulation = (dwRet != ERROR_SUCCESS);
 
-    if (dwUserIndex == 0 && SK_HID_PlayStationControllers.size () > 0)
+    if (SK_HID_PlayStationDevice* pNewestInputDevice = nullptr; dwUserIndex == 0 && SK_HID_PlayStationControllers.size () > 0 && (pNewestInputDevice = SK_HID_GetActivePlayStationDevice ()) != nullptr)
     {
-      SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
-
       XINPUT_STATE                    _state = {};
       SK_ImGui_PollGamepad_EndFrame (&_state);
 
-      for ( auto& controller : SK_HID_PlayStationControllers )
-      {
-        if (controller.bConnected)
-        {
-          if (                     pNewestInputDevice == nullptr ||
-              ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) < ReadULong64Acquire (&controller.xinput.last_active))
-          {
-            pNewestInputDevice = &controller;
-          }
-        }
-      }
-
-      if (pNewestInputDevice != nullptr && (bUseEmulation || ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) >= ReadULong64Acquire (&last_time [0])))
+      if (pNewestInputDevice != nullptr && (bUseEmulation || ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) >= ReadULong64Acquire (&last_native_time [0])))
       {
         bUseEmulationForSetState  = true;
 
@@ -575,6 +573,9 @@ XInputGetState1_4_Detour (
         {
           hid_to_xi = latest_state;
         }
+
+        InterlockedExchange (&last_virtual_packet [0], pState->dwPacketNumber);
+        InterlockedExchange (&last_virtual_time   [0], timestamp);
 
         if (config.input.gamepad.xinput.debug)
         {
@@ -597,7 +598,12 @@ XInputGetState1_4_Detour (
     }
 
     else if (dwUserIndex == 0)
+    {
       bUseEmulationForSetState = false;
+
+      WriteULong64Release (&last_virtual_time   [0], 0);
+      WriteULongRelease   (&last_virtual_packet [0], 0);
+    }
   }
 
   if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
@@ -612,6 +618,37 @@ XInputGetState1_4_Detour (
     SK_XInput_TalesOfAriseButtonSwap (pState);
 
     SK_XINPUT_READ (dwUserIndex)
+  }
+
+  // This nightmare is necessary for games like DOOM Eternal and engines like SDL
+  //   that always check for sequential (increasing) packet numbers.
+  if (dwUserIndex == 0)
+  {
+          bool new_packet         = false;
+    const auto last_reported_time = ReadULong64Acquire (&last_time [0]);
+
+    const auto native_time  = ReadULong64Acquire (&last_native_time  [0]);
+    const auto virtual_time = ReadULong64Acquire (&last_virtual_time [0]);
+
+    if ((native_time > last_reported_time || virtual_time > last_reported_time) &&
+        (native_time >       native_time0 || virtual_time >      virtual_time0))
+    {
+      new_packet = true;
+
+      const bool virtual_newer =
+        (virtual_time > native_time);
+
+      WriteULong64Release (&last_time [0], virtual_newer ? virtual_time : native_time);
+    }
+
+    if (new_packet)
+    {
+      if (!(SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex]))
+      {
+        pState->dwPacketNumber =
+          InterlockedIncrement (&last_packet [0]) + 1;
+      }
+    }
   }
 
   return dwRet;
@@ -803,12 +840,18 @@ XInputGetStateEx1_4_Detour (
       SK_Steam_SignalEmulatedXInputActivity (dwUserIndex, nop);
   }
 
+  uint64_t native_time0  = 0;
+  uint64_t virtual_time0 = 0;
+
   if (dwUserIndex == 0)
   {
-    if (pState->dwPacketNumber > ReadULongAcquire (&last_packet [dwUserIndex]))
+    native_time0  = ReadULong64Acquire (&last_native_time  [0]);
+    virtual_time0 = ReadULong64Acquire (&last_virtual_time [0]);
+
+    if (pState->dwPacketNumber > ReadULongAcquire (&last_native_packet [0]))
     {
-      InterlockedExchange (&last_packet [dwUserIndex], pState->dwPacketNumber);
-      InterlockedExchange (&last_time   [dwUserIndex], SK_QueryPerf ().QuadPart);
+      InterlockedExchange (&last_native_packet [0], pState->dwPacketNumber);
+      InterlockedExchange (&last_native_time   [0], SK_QueryPerf ().QuadPart);
     }
   }
 
@@ -817,24 +860,10 @@ XInputGetStateEx1_4_Detour (
     // Use emulation if there is no Xbox controller, but also if PlayStation input is newer
     bool bUseEmulation = (dwRet != ERROR_SUCCESS);
 
-    if (dwUserIndex == 0 && SK_HID_PlayStationControllers.size () > 0)
+    if (SK_HID_PlayStationDevice* pNewestInputDevice = nullptr; dwUserIndex == 0 && SK_HID_PlayStationControllers.size () > 0 && (pNewestInputDevice = SK_HID_GetActivePlayStationDevice ()) != nullptr)
     {
-      SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
-
       XINPUT_STATE                    _state = {};
       SK_ImGui_PollGamepad_EndFrame (&_state);
-
-      for ( auto& controller : SK_HID_PlayStationControllers )
-      {
-        if (controller.bConnected)
-        {
-          if (                     pNewestInputDevice == nullptr ||
-              ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) < ReadULong64Acquire (&controller.xinput.last_active))
-          {
-            pNewestInputDevice = &controller;
-          }
-        }
-      }
 
       if (pNewestInputDevice != nullptr && (bUseEmulation || ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) >= ReadULong64Acquire (&last_time [0])))
       {
@@ -853,6 +882,9 @@ XInputGetStateEx1_4_Detour (
         {
           hid_to_xi = latest_state;
         }
+
+        InterlockedExchange (&last_virtual_packet [0], pState->dwPacketNumber);
+        InterlockedExchange (&last_virtual_time   [0], timestamp);
 
         if (config.input.gamepad.xinput.debug)
         {
@@ -874,7 +906,12 @@ XInputGetStateEx1_4_Detour (
     }
 
     else if (dwUserIndex == 0)
+    {
       bUseEmulationForSetState = false;
+
+      WriteULong64Release (&last_virtual_time   [0], 0);
+      WriteULongRelease   (&last_virtual_packet [0], 0);
+    }
   }
 
   if (SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex])
@@ -889,6 +926,37 @@ XInputGetStateEx1_4_Detour (
     SK_XInput_TalesOfAriseButtonSwap ((XINPUT_STATE *)pState);
 
     SK_XINPUT_READ (dwUserIndex)
+  }
+
+  // This nightmare is necessary for games like DOOM Eternal and engines like SDL
+  //   that always check for sequential (increasing) packet numbers.
+  if (dwUserIndex == 0)
+  {
+          bool new_packet         = false;
+    const auto last_reported_time = ReadULong64Acquire (&last_time [0]);
+
+    const auto native_time  = ReadULong64Acquire (&last_native_time  [0]);
+    const auto virtual_time = ReadULong64Acquire (&last_virtual_time [0]);
+
+    if ((native_time > last_reported_time || virtual_time > last_reported_time) &&
+        (native_time >       native_time0 || virtual_time >      virtual_time0))
+    {
+      new_packet = true;
+
+      const bool virtual_newer =
+        (virtual_time > native_time);
+
+      WriteULong64Release (&last_time [0], virtual_newer ? virtual_time : native_time);
+    }
+
+    if (new_packet)
+    {
+      if (!(SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex]))
+      {
+        pState->dwPacketNumber =
+          InterlockedIncrement (&last_packet [0]) + 1;
+      }
+    }
   }
 
   return dwRet;
@@ -3581,7 +3649,7 @@ SK_XInput_ZeroHaptics (INT iJoyID)
 void
 SK_XInput_TalesOfAriseButtonSwap (XINPUT_STATE* pState)
 {
-  static bool bIsTalesOfArise =
+  static const bool bIsTalesOfArise =
     (SK_GetCurrentGameID () == SK_GAME_ID::Tales_of_Arise);
 
   if (! bIsTalesOfArise)
@@ -3589,8 +3657,8 @@ SK_XInput_TalesOfAriseButtonSwap (XINPUT_STATE* pState)
 
   // Swap B and A buttons in Tales of Arise
   //
-  bool A = (pState->Gamepad.wButtons & XINPUT_GAMEPAD_A);
-  bool B = (pState->Gamepad.wButtons & XINPUT_GAMEPAD_B);
+  const bool A = (pState->Gamepad.wButtons & XINPUT_GAMEPAD_A);
+  const bool B = (pState->Gamepad.wButtons & XINPUT_GAMEPAD_B);
 
   pState->Gamepad.wButtons &= ~(XINPUT_GAMEPAD_A | XINPUT_GAMEPAD_B);
 

@@ -1,4 +1,19 @@
-﻿24.12.19
+﻿24.12.19.1
+==========
+ + Added system to ensure XInputGetState{Ex} (...) packet counts are always
+     monotonic increasing in mixed-native/translated hot-swap scenarios.
+
+   (i.e. Xbox and PlayStation controller are both connected and SK's
+      auto-switch-on-new-input causes the game to start reading the other)
+
+   DOOM Eternal only responds to sequential packet numbers, so exposing the
+     _real_ device packet numbers would cause it to stop responding to input.
+
+ + Clear the state of the PlayStation button when all PlayStation controllers
+     disconnect, so that SK doesn't block all other buttons because it thinks
+       the user is trying to input a PlayStation + <...> button combo.
+
+24.12.19
 ========
  + Overhauled Windows.Gaming.Input implementation to support hot-plugging
      PlayStation controllers and enabling "Xbox Mode" without requiring a
