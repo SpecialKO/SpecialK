@@ -1088,8 +1088,8 @@ SK::ControlPanel::Input::Draw (void)
 
         if (config.input.gamepad.xinput.ui_slot != 4)
         {
-          if ( ( connected [0] | connected [1] |
-                 connected [2] | connected [3] )
+          if ( ( connected [0] + connected [1] +
+                 connected [2] + connected [3] )
                   || SK_HID_PlayStationControllers.empty () )
           {
             ImGui::RadioButton (

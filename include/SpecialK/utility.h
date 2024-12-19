@@ -337,7 +337,7 @@ extern void __cdecl SK__endthreadex       ( _In_  unsigned _ReturnCode ) noexcep
 char* SK_CharNextA (const char *szInput, int n = 1);
 
 static inline wchar_t*
-SK_CharNextW (const wchar_t *wszInput, size_t n = 1)
+SK_CharNextW (const wchar_t *wszInput, size_t n = 1) noexcept
 {
   if (n <= 0 || wszInput == nullptr) [[unlikely]]
     return nullptr;
@@ -347,7 +347,7 @@ SK_CharNextW (const wchar_t *wszInput, size_t n = 1)
 };
 
 static inline wchar_t*
-SK_CharPrevW (const wchar_t *start, const wchar_t *x)
+SK_CharPrevW (const wchar_t *start, const wchar_t *x) noexcept
 {
   if (x > start) return const_cast <wchar_t *> (x - 1);
   else           return const_cast <wchar_t *> (x);

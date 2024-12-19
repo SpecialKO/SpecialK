@@ -687,7 +687,7 @@ struct DECLSPEC_UUID("bc7bb43c-0a69-3903-9e9d-a50f86a45de5")
 SK_HID_WGI_Gamepad : ABI::Windows::Gaming::Input::IGamepad
 {
 public:
-  SK_HID_WGI_Gamepad (SK_HID_WGI_GameController *virtual_controller)
+  void _setupBinding (SK_HID_WGI_GameController *virtual_controller)
   {
     virtual_controller->parent = this;
     controller = virtual_controller;
@@ -727,9 +727,8 @@ public:
     wchar_t                wszGUID [41] = { };
     StringFromGUID2 (riid, wszGUID, 40);
 
-    bool once =
-      reported_guids.count (wszGUID) > 0;
-
+    const bool
+          once = reported_guids.count (wszGUID) > 0;
     if (! once)
     {
       reported_guids.insert (wszGUID);
@@ -818,12 +817,12 @@ public:
 private:
   volatile ULONG ulRefs = 1;
 
-  ABI::Windows::Gaming::Input::GamepadVibration vibes;
-  SK_HID_WGI_GameController*                    controller;
+  ABI::Windows::Gaming::Input::GamepadVibration vibes      = {};
+  SK_HID_WGI_GameController*                    controller = nullptr;
 };
 
-SK_HID_WGI_Gamepad SK_HID_WGI_VirtualGamepad_Wired    (&SK_HID_WGI_VirtualController_USB);
-SK_HID_WGI_Gamepad SK_HID_WGI_VirtualGamepad_Wireless (&SK_HID_WGI_VirtualController_Bluetooth);
+SK_HID_WGI_Gamepad SK_HID_WGI_VirtualGamepad_Wired;
+SK_HID_WGI_Gamepad SK_HID_WGI_VirtualGamepad_Wireless;
 
 HRESULT
 STDMETHODCALLTYPE
@@ -843,8 +842,11 @@ WGI_VectorView_Gamepads_GetAt_Override (       IVectorView<ABI::Windows::Gaming:
   //   wrapper interface.
   if (FAILED (hr) && config.input.gamepad.xinput.emulate)
   {
-    *item = (void *)&SK_HID_WGI_VirtualGamepad_Wired;
-    return S_OK;
+    if (item != nullptr)
+    {
+      *item = (void *)&SK_HID_WGI_VirtualGamepad_Wired;
+      return S_OK;
+    }
   }
 
   return hr;
@@ -1587,6 +1589,9 @@ SK_Input_HookWGI (void)
 {
   SK_RunOnce (
   {
+    SK_HID_WGI_VirtualGamepad_Wired._setupBinding    (&SK_HID_WGI_VirtualController_USB);
+    SK_HID_WGI_VirtualGamepad_Wireless._setupBinding (&SK_HID_WGI_VirtualController_Bluetooth);
+
     void* pfnRoGetActivationFactory = nullptr;
 
     // This has other applications, but for now the only thing we need it

@@ -511,7 +511,7 @@ SK_ScePadReadState (SK_ScePadHandle handle, SK_ScePadData* iData)
   }
 
 
-  if (                 bToggleVis|bToggleNav)
+  if (                 bToggleVis+bToggleNav)
     SK_ImGui_ToggleEx (bToggleVis,bToggleNav);
 
 

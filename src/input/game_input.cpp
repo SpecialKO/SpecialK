@@ -1703,8 +1703,9 @@ SK_IPlayStationGameInputReading::GetDevice (IGameInputDevice **device) noexcept
 
   SK_ReleaseAssert (s_virtual_gameinput_device != nullptr);
 
-  if (device != nullptr) {
-               s_virtual_gameinput_device->AddRef ();
+  if (device != nullptr &&
+               s_virtual_gameinput_device != nullptr)
+  {            s_virtual_gameinput_device->AddRef ();
      *device = s_virtual_gameinput_device;
   }
 }
