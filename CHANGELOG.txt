@@ -1,4 +1,13 @@
-﻿24.12.18
+﻿24.12.19
+========
+ + Overhauled Windows.Gaming.Input implementation to support hot-plugging
+     PlayStation controllers and enabling "Xbox Mode" without requiring a
+       complete game restart.
+ + Add 7.5 second delay before announcing virtual PlayStation controllers
+     to games using Windows.Gaming.Input
+ + Added logging for games that try to create IID_IRawGameControllerStatics.
+
+24.12.18
 ========
  + Correctly implement AVIF screenshot encoder quality; quantizer was set to
      lossless at all quality levels before!

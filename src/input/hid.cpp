@@ -2130,9 +2130,9 @@ void
 SK_Input_HookHID (void)
 {
   if (! config.input.gamepad.hook_hid)
-      return;
+    return;
 
-    static volatile LONG hooked = FALSE;
+  static volatile LONG hooked = FALSE;
 
   if (! InterlockedCompareExchange (&hooked, TRUE, FALSE))
   {
@@ -2251,307 +2251,320 @@ SK_Input_HookHID (void)
 bool
 SK_Input_PreHookHID (void)
 {
-  static bool        once = false;
-  if (std::exchange (once,  true))
-    return true;
+  bool ret = true;
 
-  static std::filesystem::path path_to_driver_base =
-        (std::filesystem::path (SK_GetInstallPath ()) /
-                               LR"(Drivers\HID)"),
-                                     driver_name =
-                  SK_RunLHIfBitness (64, L"HID_SK64.dll",
-                                         L"HID_SK32.dll"),
-                             path_to_driver = 
-                             path_to_driver_base /
-                                     driver_name;
-
-  static std::filesystem::path path_to_setupapi_base =
-        (std::filesystem::path (SK_GetInstallPath ()) /
-                               LR"(Drivers\SetupAPI)"),
-                                     setupapi_name =
-                  SK_RunLHIfBitness (64, L"SetupAPI_SK64.dll",
-                                         L"SetupAPI_SK32.dll"),
-                             path_to_setupapi = 
-                             path_to_setupapi_base /
-                                     setupapi_name;
-
-  static std::filesystem::path path_to_kernel_base =
-        (std::filesystem::path (SK_GetInstallPath ()) /
-                               LR"(Drivers\Kernel32)"),
-                                     kernel_name =
-                  SK_RunLHIfBitness (64, L"Kernel32_SK64.dll",
-                                         L"Kernel32_SK32.dll"),
-                             path_to_kernel = 
-                             path_to_kernel_base /
-                                     kernel_name;
-
-  static const auto *pSystemDirectory =
-    SK_GetSystemDirectory ();
-
-  std::filesystem::path
-    path_to_system_hid =
-      (std::filesystem::path (pSystemDirectory) / L"hid.dll");
-
-  std::filesystem::path
-    path_to_system_kernel =
-      (std::filesystem::path (pSystemDirectory) / L"kernel32.dll");
-
-  std::filesystem::path
-    path_to_system_setupapi =
-      (std::filesystem::path (pSystemDirectory) / L"SetupAPI.dll");
-
-  std::error_code ec =
-    std::error_code ();
-
-  if (std::filesystem::exists (path_to_system_hid, ec))
+  // Only do this once, and make all other threads trying to do it wait
+  //
+  static volatile LONG             _init  =  0;
+  if (InterlockedCompareExchange (&_init, 1, 0) == 0)
   {
-    if ( (! std::filesystem::exists ( path_to_driver,      ec))||
-         (! SK_Assert_SameDLLVersion (path_to_driver.    c_str (),
-                                      path_to_system_hid.c_str ()) ) )
-    { SK_CreateDirectories           (path_to_driver.c_str ());
+    static std::filesystem::path path_to_driver_base =
+          (std::filesystem::path (SK_GetInstallPath ()) /
+                                 LR"(Drivers\HID)"),
+                                       driver_name =
+                    SK_RunLHIfBitness (64, L"HID_SK64.dll",
+                                           L"HID_SK32.dll"),
+                               path_to_driver = 
+                               path_to_driver_base /
+                                       driver_name;
 
-      if (   std::filesystem::exists (path_to_system_hid,                 ec))
-      { std::filesystem::remove      (                    path_to_driver, ec);
-        std::filesystem::copy_file   (path_to_system_hid, path_to_driver, ec);
+    static std::filesystem::path path_to_setupapi_base =
+          (std::filesystem::path (SK_GetInstallPath ()) /
+                                 LR"(Drivers\SetupAPI)"),
+                                       setupapi_name =
+                    SK_RunLHIfBitness (64, L"SetupAPI_SK64.dll",
+                                           L"SetupAPI_SK32.dll"),
+                               path_to_setupapi = 
+                               path_to_setupapi_base /
+                                       setupapi_name;
+
+    static std::filesystem::path path_to_kernel_base =
+          (std::filesystem::path (SK_GetInstallPath ()) /
+                                 LR"(Drivers\Kernel32)"),
+                                       kernel_name =
+                    SK_RunLHIfBitness (64, L"Kernel32_SK64.dll",
+                                           L"Kernel32_SK32.dll"),
+                               path_to_kernel = 
+                               path_to_kernel_base /
+                                       kernel_name;
+
+    static const auto *pSystemDirectory =
+      SK_GetSystemDirectory ();
+
+    std::filesystem::path
+      path_to_system_hid =
+        (std::filesystem::path (pSystemDirectory) / L"hid.dll");
+
+    std::filesystem::path
+      path_to_system_kernel =
+        (std::filesystem::path (pSystemDirectory) / L"kernel32.dll");
+
+    std::filesystem::path
+      path_to_system_setupapi =
+        (std::filesystem::path (pSystemDirectory) / L"SetupAPI.dll");
+
+    std::error_code ec =
+      std::error_code ();
+
+    if (std::filesystem::exists (path_to_system_hid, ec))
+    {
+      if ( (! std::filesystem::exists ( path_to_driver,      ec))||
+           (! SK_Assert_SameDLLVersion (path_to_driver.    c_str (),
+                                        path_to_system_hid.c_str ()) ) )
+      { SK_CreateDirectories           (path_to_driver.c_str ());
+
+        if (   std::filesystem::exists (path_to_system_hid,                 ec))
+        { std::filesystem::remove      (                    path_to_driver, ec);
+          std::filesystem::copy_file   (path_to_system_hid, path_to_driver, ec);
+        }
       }
     }
-  }
 
-  if (std::filesystem::exists (path_to_system_kernel, ec))
-  {
-    if ( (! std::filesystem::exists ( path_to_kernel,         ec))||
-         (! SK_Assert_SameDLLVersion (path_to_kernel.       c_str (),
-                                      path_to_system_kernel.c_str ()) ) )
-    { SK_CreateDirectories           (path_to_kernel.c_str ());
+    if (std::filesystem::exists (path_to_system_kernel, ec))
+    {
+      if ( (! std::filesystem::exists ( path_to_kernel,         ec))||
+           (! SK_Assert_SameDLLVersion (path_to_kernel.       c_str (),
+                                        path_to_system_kernel.c_str ()) ) )
+      { SK_CreateDirectories           (path_to_kernel.c_str ());
 
-      if (   std::filesystem::exists (path_to_system_kernel,                 ec))
-      { std::filesystem::remove      (                       path_to_kernel, ec);
-        std::filesystem::copy_file   (path_to_system_kernel, path_to_kernel, ec);
+        if (   std::filesystem::exists (path_to_system_kernel,                 ec))
+        { std::filesystem::remove      (                       path_to_kernel, ec);
+          std::filesystem::copy_file   (path_to_system_kernel, path_to_kernel, ec);
+        }
       }
     }
-  }
 
-  if (std::filesystem::exists (path_to_system_setupapi, ec))
-  {
-    if ( (! std::filesystem::exists ( path_to_setupapi,         ec))||
-         (! SK_Assert_SameDLLVersion (path_to_setupapi.       c_str (),
-                                      path_to_system_setupapi.c_str ()) ) )
-    { SK_CreateDirectories           (path_to_setupapi.c_str ());
+    if (std::filesystem::exists (path_to_system_setupapi, ec))
+    {
+      if ( (! std::filesystem::exists ( path_to_setupapi,         ec))||
+           (! SK_Assert_SameDLLVersion (path_to_setupapi.       c_str (),
+                                        path_to_system_setupapi.c_str ()) ) )
+      { SK_CreateDirectories           (path_to_setupapi.c_str ());
 
-      if (   std::filesystem::exists (path_to_system_setupapi,                   ec))
-      { std::filesystem::remove      (                         path_to_setupapi, ec);
-        std::filesystem::copy_file   (path_to_system_setupapi, path_to_setupapi, ec);
+        if (   std::filesystem::exists (path_to_system_setupapi,                   ec))
+        { std::filesystem::remove      (                         path_to_setupapi, ec);
+          std::filesystem::copy_file   (path_to_system_setupapi, path_to_setupapi, ec);
+        }
       }
     }
+
+    HMODULE hModHID =
+      SK_LoadLibraryW (path_to_driver.c_str ());
+
+    HMODULE hModKernel32 =
+      SK_LoadLibraryW (path_to_kernel.c_str ());
+
+    HMODULE hModSetupAPI =
+      SK_LoadLibraryW (path_to_setupapi.c_str ());
+
+    if (! (hModHID && hModKernel32 && hModSetupAPI))
+    {
+      SK_LOGi0 (L"Missing required HID DLLs (!!)");
+    }
+                                 
+    SK_HidD_GetAttributes =
+      (HidD_GetAttributes_pfn)SK_GetProcAddress (hModHID,
+      "HidD_GetAttributes");
+
+    SK_HidD_GetProductString =
+      (HidD_GetProductString_pfn)SK_GetProcAddress (hModHID,
+      "HidD_GetProductString");
+
+    SK_HidD_GetSerialNumberString =
+      (HidD_GetSerialNumberString_pfn)SK_GetProcAddress (hModHID,
+      "HidD_GetSerialNumberString");
+
+    SK_HidD_GetPreparsedData =
+      (HidD_GetPreparsedData_pfn)SK_GetProcAddress (hModHID,
+      "HidD_GetPreparsedData");
+
+    SK_HidD_FreePreparsedData =
+      (HidD_FreePreparsedData_pfn)SK_GetProcAddress (hModHID,
+      "HidD_FreePreparsedData");
+
+    SK_HidD_GetFeature =
+      (HidD_GetFeature_pfn)SK_GetProcAddress (hModHID,
+      "HidD_GetFeature");
+
+    SK_HidD_SetFeature =
+      (HidD_SetFeature_pfn)SK_GetProcAddress (hModHID,
+      "HidD_SetFeature");
+
+    SK_HidP_GetData =
+      (HidP_GetData_pfn)SK_GetProcAddress (hModHID,
+      "HidP_GetData");
+
+    SK_HidP_GetCaps =
+      (HidP_GetCaps_pfn)SK_GetProcAddress (hModHID,
+      "HidP_GetCaps");
+
+    SK_HidP_GetButtonCaps =
+      (HidP_GetButtonCaps_pfn)SK_GetProcAddress (hModHID,
+      "HidP_GetButtonCaps");
+
+    SK_HidP_GetValueCaps =
+      (HidP_GetValueCaps_pfn)SK_GetProcAddress (hModHID,
+      "HidP_GetValueCaps");
+
+    SK_HidP_GetUsages =
+      (HidP_GetUsages_pfn)SK_GetProcAddress (hModHID,
+      "HidP_GetUsages");
+
+    SK_HidP_GetUsageValue =
+      (HidP_GetUsageValue_pfn)SK_GetProcAddress (hModHID,
+      "HidP_GetUsageValue");
+
+    SK_HidP_GetUsageValueArray =
+      (HidP_GetUsageValueArray_pfn)SK_GetProcAddress (hModHID,
+      "HidP_GetUsageValueArray");
+
+    SK_HidD_GetInputReport =
+      (HidD_GetInputReport_pfn)SK_GetProcAddress (hModHID,
+      "HidD_GetInputReport");
+
+    SK_HidD_FlushQueue =
+      (HidD_FlushQueue_pfn)SK_GetProcAddress (hModHID,
+      "HidD_FlushQueue");
+
+    SK_CreateFile2 =
+      (CreateFile2_pfn)SK_GetProcAddress (hModKernel32,
+      "CreateFile2");
+
+    SK_CreateFileW =
+      (CreateFileW_pfn)SK_GetProcAddress (hModKernel32,
+      "CreateFileW");
+
+    SK_ReadFile =
+      (ReadFile_pfn)SK_GetProcAddress (hModKernel32,
+      "ReadFile");
+
+    SK_WriteFile =
+      (WriteFile_pfn)SK_GetProcAddress (hModKernel32,
+      "WriteFile");
+
+    SK_CancelIoEx =
+      (CancelIoEx_pfn)SK_GetProcAddress (hModKernel32,
+      "CancelIoEx");
+
+    SK_GetOverlappedResult =
+      (GetOverlappedResult_pfn)SK_GetProcAddress (hModKernel32,
+      "GetOverlappedResult");
+
+    SK_GetOverlappedResultEx =
+      (GetOverlappedResultEx_pfn)SK_GetProcAddress (hModKernel32,
+      "GetOverlappedResultEx");
+
+    SK_SetupDiGetClassDevsW =
+      (SetupDiGetClassDevsW_pfn)SK_GetProcAddress (hModSetupAPI,
+      "SetupDiGetClassDevsW");
+
+    SK_SetupDiGetClassDevsA =
+      (SetupDiGetClassDevsA_pfn)SK_GetProcAddress (hModSetupAPI,
+      "SetupDiGetClassDevsA");
+
+    SK_SetupDiGetClassDevsExW =
+      (SetupDiGetClassDevsExW_pfn)SK_GetProcAddress (hModSetupAPI,
+      "SetupDiGetClassDevsExW");
+
+    SK_SetupDiGetClassDevsExA =
+      (SetupDiGetClassDevsExA_pfn)SK_GetProcAddress (hModSetupAPI,
+      "SetupDiGetClassDevsExA");
+
+    SK_SetupDiEnumDeviceInfo =
+      (SetupDiEnumDeviceInfo_pfn)SK_GetProcAddress (hModSetupAPI,
+      "SetupDiEnumDeviceInfo");
+
+    SK_SetupDiEnumDeviceInterfaces =
+      (SetupDiEnumDeviceInterfaces_pfn)SK_GetProcAddress (hModSetupAPI,
+      "SetupDiEnumDeviceInterfaces");
+
+    SK_SetupDiGetDeviceInterfaceDetailW =
+      (SetupDiGetDeviceInterfaceDetailW_pfn)SK_GetProcAddress (hModSetupAPI,
+      "SetupDiGetDeviceInterfaceDetailW");
+
+    SK_SetupDiGetDeviceInterfaceDetailA =
+      (SetupDiGetDeviceInterfaceDetailA_pfn)SK_GetProcAddress (hModSetupAPI,
+      "SetupDiGetDeviceInterfaceDetailA");
+
+    SK_SetupDiDestroyDeviceInfoList =
+      (SetupDiDestroyDeviceInfoList_pfn)SK_GetProcAddress (hModSetupAPI,
+      "SetupDiDestroyDeviceInfoList");
+
+    if (config.input.gamepad.steam.disabled_to_game)
+    {
+      // These causes periodic hitches (thanks Valve), so hook them and
+      //   keep Valve's dirty hands off of them.
+      SK_RunOnce (
+        SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetClassDevsW",
+                                             SetupDiGetClassDevsW_Detour,
+                    static_cast_p2p <void> (&SetupDiGetClassDevsW_Original));
+
+        SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetClassDevsA",
+                                             SetupDiGetClassDevsA_Detour,
+                    static_cast_p2p <void> (&SetupDiGetClassDevsA_Original));
+
+        SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetClassDevsExW",
+                                             SetupDiGetClassDevsExW_Detour,
+                    static_cast_p2p <void> (&SetupDiGetClassDevsExW_Original));
+
+        SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetClassDevsExA",
+                                             SetupDiGetClassDevsExA_Detour,
+                    static_cast_p2p <void> (&SetupDiGetClassDevsExA_Original));
+
+        SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiEnumDeviceInterfaces",
+                                             SetupDiEnumDeviceInterfaces_Detour,
+                    static_cast_p2p <void> (&SetupDiEnumDeviceInterfaces_Original));
+
+        SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetDeviceInterfaceDetailW",
+                                             SetupDiGetDeviceInterfaceDetailW_Detour,
+                    static_cast_p2p <void> (&SetupDiGetDeviceInterfaceDetailW_Original));
+
+        SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetDeviceInterfaceDetailA",
+                                             SetupDiGetDeviceInterfaceDetailA_Detour,
+                    static_cast_p2p <void> (&SetupDiGetDeviceInterfaceDetailA_Original));
+
+        SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiDestroyDeviceInfoList",
+                                             SetupDiDestroyDeviceInfoList_Detour,
+                    static_cast_p2p <void> (&SetupDiDestroyDeviceInfoList_Original));
+      );
+    }
+
+    if (! config.input.gamepad.hook_hid)
+    {
+      ret = false;
+    }
+
+    else
+    {
+      static sk_import_test_s tests [] = {
+        { "hid.dll", false }
+      };
+
+      SK_TestImports (
+        SK_GetModuleHandle (nullptr), tests, 1
+      );
+
+      if (tests [0].used || SK_GetModuleHandle (L"hid.dll"))
+      {
+        SK_Input_HookHID ();
+
+        ret = true;
+      }
+    }
+
+    InterlockedIncrement (&_init);
   }
 
-  HMODULE hModHID =
-    SK_LoadLibraryW (path_to_driver.c_str ());
-
-  HMODULE hModKernel32 =
-    SK_LoadLibraryW (path_to_kernel.c_str ());
-
-  HMODULE hModSetupAPI =
-    SK_LoadLibraryW (path_to_setupapi.c_str ());
-
-  if (! (hModHID && hModKernel32 && hModSetupAPI))
+  else
   {
-    SK_LOGi0 (L"Missing required HID DLLs (!!)");
-  }
-                               
-  SK_HidD_GetAttributes =
-    (HidD_GetAttributes_pfn)SK_GetProcAddress (hModHID,
-    "HidD_GetAttributes");
-
-  SK_HidD_GetProductString =
-    (HidD_GetProductString_pfn)SK_GetProcAddress (hModHID,
-    "HidD_GetProductString");
-
-  SK_HidD_GetSerialNumberString =
-    (HidD_GetSerialNumberString_pfn)SK_GetProcAddress (hModHID,
-    "HidD_GetSerialNumberString");
-
-  SK_HidD_GetPreparsedData =
-    (HidD_GetPreparsedData_pfn)SK_GetProcAddress (hModHID,
-    "HidD_GetPreparsedData");
-
-  SK_HidD_FreePreparsedData =
-    (HidD_FreePreparsedData_pfn)SK_GetProcAddress (hModHID,
-    "HidD_FreePreparsedData");
-
-  SK_HidD_GetFeature =
-    (HidD_GetFeature_pfn)SK_GetProcAddress (hModHID,
-    "HidD_GetFeature");
-
-  SK_HidD_SetFeature =
-    (HidD_SetFeature_pfn)SK_GetProcAddress (hModHID,
-    "HidD_SetFeature");
-
-  SK_HidP_GetData =
-    (HidP_GetData_pfn)SK_GetProcAddress (hModHID,
-    "HidP_GetData");
-
-  SK_HidP_GetCaps =
-    (HidP_GetCaps_pfn)SK_GetProcAddress (hModHID,
-    "HidP_GetCaps");
-
-  SK_HidP_GetButtonCaps =
-    (HidP_GetButtonCaps_pfn)SK_GetProcAddress (hModHID,
-    "HidP_GetButtonCaps");
-
-  SK_HidP_GetValueCaps =
-    (HidP_GetValueCaps_pfn)SK_GetProcAddress (hModHID,
-    "HidP_GetValueCaps");
-
-  SK_HidP_GetUsages =
-    (HidP_GetUsages_pfn)SK_GetProcAddress (hModHID,
-    "HidP_GetUsages");
-
-  SK_HidP_GetUsageValue =
-    (HidP_GetUsageValue_pfn)SK_GetProcAddress (hModHID,
-    "HidP_GetUsageValue");
-
-  SK_HidP_GetUsageValueArray =
-    (HidP_GetUsageValueArray_pfn)SK_GetProcAddress (hModHID,
-    "HidP_GetUsageValueArray");
-
-  SK_HidD_GetInputReport =
-    (HidD_GetInputReport_pfn)SK_GetProcAddress (hModHID,
-    "HidD_GetInputReport");
-
-  SK_HidD_FlushQueue =
-    (HidD_FlushQueue_pfn)SK_GetProcAddress (hModHID,
-    "HidD_FlushQueue");
-
-  SK_CreateFile2 =
-    (CreateFile2_pfn)SK_GetProcAddress (hModKernel32,
-    "CreateFile2");
-
-  SK_CreateFileW =
-    (CreateFileW_pfn)SK_GetProcAddress (hModKernel32,
-    "CreateFileW");
-
-  SK_ReadFile =
-    (ReadFile_pfn)SK_GetProcAddress (hModKernel32,
-    "ReadFile");
-
-  SK_WriteFile =
-    (WriteFile_pfn)SK_GetProcAddress (hModKernel32,
-    "WriteFile");
-
-  SK_CancelIoEx =
-    (CancelIoEx_pfn)SK_GetProcAddress (hModKernel32,
-    "CancelIoEx");
-
-  SK_GetOverlappedResult =
-    (GetOverlappedResult_pfn)SK_GetProcAddress (hModKernel32,
-    "GetOverlappedResult");
-
-  SK_GetOverlappedResultEx =
-    (GetOverlappedResultEx_pfn)SK_GetProcAddress (hModKernel32,
-    "GetOverlappedResultEx");
-
-  SK_SetupDiGetClassDevsW =
-    (SetupDiGetClassDevsW_pfn)SK_GetProcAddress (hModSetupAPI,
-    "SetupDiGetClassDevsW");
-
-  SK_SetupDiGetClassDevsA =
-    (SetupDiGetClassDevsA_pfn)SK_GetProcAddress (hModSetupAPI,
-    "SetupDiGetClassDevsA");
-
-  SK_SetupDiGetClassDevsExW =
-    (SetupDiGetClassDevsExW_pfn)SK_GetProcAddress (hModSetupAPI,
-    "SetupDiGetClassDevsExW");
-
-  SK_SetupDiGetClassDevsExA =
-    (SetupDiGetClassDevsExA_pfn)SK_GetProcAddress (hModSetupAPI,
-    "SetupDiGetClassDevsExA");
-
-  SK_SetupDiEnumDeviceInfo =
-    (SetupDiEnumDeviceInfo_pfn)SK_GetProcAddress (hModSetupAPI,
-    "SetupDiEnumDeviceInfo");
-
-  SK_SetupDiEnumDeviceInterfaces =
-    (SetupDiEnumDeviceInterfaces_pfn)SK_GetProcAddress (hModSetupAPI,
-    "SetupDiEnumDeviceInterfaces");
-
-  SK_SetupDiGetDeviceInterfaceDetailW =
-    (SetupDiGetDeviceInterfaceDetailW_pfn)SK_GetProcAddress (hModSetupAPI,
-    "SetupDiGetDeviceInterfaceDetailW");
-
-  SK_SetupDiGetDeviceInterfaceDetailA =
-    (SetupDiGetDeviceInterfaceDetailA_pfn)SK_GetProcAddress (hModSetupAPI,
-    "SetupDiGetDeviceInterfaceDetailA");
-
-  SK_SetupDiDestroyDeviceInfoList =
-    (SetupDiDestroyDeviceInfoList_pfn)SK_GetProcAddress (hModSetupAPI,
-    "SetupDiDestroyDeviceInfoList");
-
-  if (config.input.gamepad.steam.disabled_to_game)
-  {
-    // These causes periodic hitches (thanks Valve), so hook them and
-    //   keep Valve's dirty hands off of them.
-    SK_RunOnce (
-      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetClassDevsW",
-                                           SetupDiGetClassDevsW_Detour,
-                  static_cast_p2p <void> (&SetupDiGetClassDevsW_Original));
-
-      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetClassDevsA",
-                                           SetupDiGetClassDevsA_Detour,
-                  static_cast_p2p <void> (&SetupDiGetClassDevsA_Original));
-
-      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetClassDevsExW",
-                                           SetupDiGetClassDevsExW_Detour,
-                  static_cast_p2p <void> (&SetupDiGetClassDevsExW_Original));
-
-      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetClassDevsExA",
-                                           SetupDiGetClassDevsExA_Detour,
-                  static_cast_p2p <void> (&SetupDiGetClassDevsExA_Original));
-
-      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiEnumDeviceInterfaces",
-                                           SetupDiEnumDeviceInterfaces_Detour,
-                  static_cast_p2p <void> (&SetupDiEnumDeviceInterfaces_Original));
-
-      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetDeviceInterfaceDetailW",
-                                           SetupDiGetDeviceInterfaceDetailW_Detour,
-                  static_cast_p2p <void> (&SetupDiGetDeviceInterfaceDetailW_Original));
-
-      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiGetDeviceInterfaceDetailA",
-                                           SetupDiGetDeviceInterfaceDetailA_Detour,
-                  static_cast_p2p <void> (&SetupDiGetDeviceInterfaceDetailA_Original));
-
-      SK_CreateDLLHook2 (L"SetupAPI.dll", "SetupDiDestroyDeviceInfoList",
-                                           SetupDiDestroyDeviceInfoList_Detour,
-                  static_cast_p2p <void> (&SetupDiDestroyDeviceInfoList_Original));
-    );
+    SK_Thread_SpinUntilAtomicMin (&_init, 2);
   }
 
-  if (! config.input.gamepad.hook_hid)
-    return false;
-
-  SK_HID_SetupPlayStationControllers ();
-
-  static
-    sk_import_test_s tests [] = {
-      { "hid.dll", false }
-    };
-
-  SK_TestImports (
-    SK_GetModuleHandle (nullptr), tests, 1
-  );
-
-  if (tests [0].used || SK_GetModuleHandle (L"hid.dll"))
-  {
-    SK_Input_HookHID ();
-
-    return true;
-  }
-
-  return false;
+  return ret;
 }
 
 SK_HID_PlayStationDevice*
-SK_HID_GetActivePlayStationDevice (bool return_null_if_xbox_is_active = false) noexcept
+SK_HID_GetActivePlayStationDevice (bool return_null_if_xbox_is_active) noexcept
 {
   if (return_null_if_xbox_is_active && SK_Input_IsXboxControllerActive ())
     return nullptr;

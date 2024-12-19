@@ -4000,9 +4000,11 @@ SK_HID_PlayStationDevice::reset_force_feedback (void)
 void
 SK_HID_PlayStationDevice::reset_device (void)
 {
+#ifdef _DEBUG
   SK_LOGi0 (
     L"SK_HID_PlayStationDevice::reset_device (...) for DeviceFile='%ws'",
                                                     wszDevicePath );
+#endif
 
   battery.percentage = 100.0f;
   battery.state      = ChargingError;

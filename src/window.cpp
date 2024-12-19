@@ -6006,12 +6006,13 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
 
       if (bIgnore)
       {
-        SK_LOG0 ( ( L"WM_DEVICECHANGE received for non-input device, "
-                    L"hiding it from the game..." ), __SK_SUBSYSTEM__ );
+        SK_LOG0 ( ( L"WM_DEVICECHANGE received for non-input device!" ), __SK_SUBSYSTEM__ );
 
+#if 0
         return IsWindowUnicode (hWnd) ?
                 DefWindowProcW (hWnd, uMsg, wParam, lParam) :
                 DefWindowProcA (hWnd, uMsg, wParam, lParam);
+#endif
       }
     } break;
 
@@ -6027,10 +6028,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
           SK_Win32_DestroyBackgroundWindow ();
 
           SK_Inject_SetFocusWindow (0);
-
-          // It's not clear why this was here, WM_QUIT should be where this is handled...
-          //   of course that message is never dispatched.
-          //SK_ImGui_WantExit = true;
 
           // Even if we don't exit SK in response to this message, resetting
           //   temporary display mode changes would be a good idea.
