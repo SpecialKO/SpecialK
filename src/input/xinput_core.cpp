@@ -3435,10 +3435,10 @@ SK_XInput_PollController ( INT           iJoyID,
   {
     SK_XInput_UpdateSlotForUI (TRUE, iJoyID,  xstate.dwPacketNumber);
     
-    if (xstate.dwPacketNumber > ReadULongAcquire (&last_packet [iJoyID]))
+    if (xstate.dwPacketNumber > ReadULongAcquire (&last_native_packet [iJoyID]))
     {
-      InterlockedExchange (&last_packet [iJoyID], xstate.dwPacketNumber);
-      InterlockedExchange (&last_time   [iJoyID], SK_QueryPerf ().QuadPart);
+      InterlockedExchange (&last_native_packet [iJoyID], xstate.dwPacketNumber);
+      InterlockedExchange (&last_native_time   [iJoyID], SK_QueryPerf ().QuadPart);
     }
   }
 

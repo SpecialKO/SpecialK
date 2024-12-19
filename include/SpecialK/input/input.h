@@ -1146,7 +1146,7 @@ struct SK_HID_PlayStationDevice
   bool setPollingFrequency  (DWORD dwFreq);
   bool setBufferCount       (DWORD dwBuffers);
 
-  void reset_force_feedback (void);
+  void reset_force_feedback (void) noexcept;
 
   bool initialize_serial    (void);
   void reset_device         (void);
@@ -1382,7 +1382,7 @@ void SK_ScePad_PaceMaker              (void);
 
 void SK_HID_ProcessGamepadButtonBindings (void);
 
-std::wstring* SK_HID_GetGamepadButtonBinding    (UINT idx);
+std::wstring* SK_HID_GetGamepadButtonBinding    (UINT idx) noexcept;
 void          SK_HID_AssignGamepadButtonBinding (UINT idx, const wchar_t* wszKeyName, UINT vKey);
 
 extern HidD_GetAttributes_pfn    SK_HidD_GetAttributes;

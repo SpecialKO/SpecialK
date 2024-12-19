@@ -200,6 +200,9 @@ SK_IWrapGameInput::GetCurrentReading (_In_          GameInputKind      inputKind
 
   bool capture_input = false;
 
+  // Always poll XInput 0 so we can detect native Xbox activity
+  SK_XInput_PollController (0);
+
   if (device == s_virtual_gameinput_device)
   {
     static SK_IPlayStationGameInputReading virtual_current_reading (0);
@@ -322,6 +325,12 @@ IGameInputDevice_SetRumbleState_Override (IGameInputDevice *This, GameInputRumbl
   {
     params_.highFrequency = params_.lowFrequency = 0.0f;
     params_.leftTrigger   = params_.rightTrigger = 0.0f;
+  }
+
+  // Do not rumble on Xbox controllers while a virtual controller is substituting
+  if (config.input.gamepad.xinput.emulate && SK_HID_GetActivePlayStationDevice (true))
+  {
+    return;
   }
 
   return
@@ -900,16 +909,18 @@ SK_IGameInputDevice::GetDeviceInfo (void) noexcept
 
   dev_info.infoSize = sizeof (GameInputDeviceInfo);
 
+  // Traditional Xbox 360 Controller
+#if 0
   dev_info.controllerAxisCount   = 6;
   dev_info.controllerButtonCount = 13;
 
-  dev_info.deviceId     = {1};
-  dev_info.deviceRootId = {1};
+  dev_info.deviceId        = {1};
+  dev_info.deviceRootId    = {1};
 
-  dev_info.capabilities = GameInputDeviceCapabilityPowerOff | GameInputDeviceCapabilityWireless;
+  dev_info.capabilities    = GameInputDeviceCapabilityPowerOff | GameInputDeviceCapabilityWireless;
 
-  dev_info.vendorId  = 0x45e;
-  dev_info.productId = 0x28e;
+  dev_info.vendorId        = 0x45e;
+  dev_info.productId       = 0x28e;
 
   dev_info.deviceFamily    = GameInputFamilyXbox360;
   dev_info.usage.id        = 5;
@@ -917,9 +928,36 @@ SK_IGameInputDevice::GetDeviceInfo (void) noexcept
 
   dev_info.interfaceNumber = 0;
 
-  dev_info.supportedInput         = GameInputKindControllerAxis | GameInputKindControllerButton | GameInputKindGamepad | GameInputKindUiNavigation;
+  dev_info.supportedInput         = GameInputKindControllerAxis | GameInputKindControllerButton |
+                                    GameInputKindGamepad        | GameInputKindUiNavigation;
   dev_info.supportedRumbleMotors  = GameInputRumbleLowFrequency | GameInputRumbleHighFrequency;
   dev_info.supportedSystemButtons = GameInputSystemButtonGuide;
+#else
+  // Xbox One
+  dev_info.controllerAxisCount   =  6;
+  dev_info.controllerButtonCount = 13;
+
+  dev_info.deviceId        = {1};
+  dev_info.deviceRootId    = {1};
+
+  dev_info.capabilities    = GameInputDeviceCapabilitySynchronization | GameInputDeviceCapabilityPowerOff |
+                             GameInputDeviceCapabilityWireless;
+
+  dev_info.vendorId        = 0x45e;
+  dev_info.productId       = 0xb12;
+
+  dev_info.deviceFamily    = GameInputFamilyXboxOne;
+  dev_info.usage.id        = 5;
+  dev_info.usage.page      = 1;
+
+  dev_info.interfaceNumber = 0;
+
+  dev_info.supportedInput         = GameInputKindRawDeviceReport  | GameInputKindControllerAxis |
+                                    GameInputKindControllerButton | GameInputKindGamepad        | GameInputKindUiNavigation;
+  dev_info.supportedRumbleMotors  = GameInputRumbleLowFrequency   | GameInputRumbleHighFrequency|
+                                    GameInputRumbleLeftTrigger    | GameInputRumbleRightTrigger;
+  dev_info.supportedSystemButtons = GameInputSystemButtonGuide    | GameInputSystemButtonShare;
+#endif
 
   return &dev_info;
 }
@@ -1015,33 +1053,25 @@ SK_IGameInputDevice::SetRumbleState (GameInputRumbleParams const *params) noexce
 
   if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api) && (! SK_ImGui_WantGamepadCapture ()))
   {
-    if (params_.leftTrigger == 0 && params_.rightTrigger == 0)
+    if (SK_HID_PlayStationDevice *pNewestInputDevice = nullptr; (pNewestInputDevice = SK_HID_GetActivePlayStationDevice (true)) != nullptr)
     {
-      const float left  = params_.lowFrequency;
-      const float right = params_.highFrequency;
+      SK_GameInput_EmulatedPlayStation = true;
 
-      SK_XInput_PulseController ( 0, std::clamp (left,  0.0f, 1.0f),
-                                     std::clamp (right, 0.0f, 1.0f) );
-    }
+      pNewestInputDevice->setVibration (
+        static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.lowFrequency,  0.0f, 1.0f) * 65536.0f))),
+        static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.highFrequency, 0.0f, 1.0f) * 65536.0f))),
+        static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.leftTrigger,   0.0f, 1.0f) * 65536.0f))),
+        static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.rightTrigger,  0.0f, 1.0f) * 65536.0f))),
+                                        65535ui16
+      );
 
-    else
-    {
-      if (SK_HID_PlayStationDevice *pNewestInputDevice = nullptr; config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api) && (pNewestInputDevice = SK_HID_GetActivePlayStationDevice ()) != nullptr)
-      {
-        SK_GameInput_EmulatedPlayStation = true;
+      pNewestInputDevice->write_output_report ();
 
-        pNewestInputDevice->setVibration (
-          static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.lowFrequency,  0.0f, 1.0f) * 65536.0f))),
-          static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.highFrequency, 0.0f, 1.0f) * 65536.0f))),
-          static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.leftTrigger,   0.0f, 1.0f) * 65536.0f))),
-          static_cast <USHORT> (std::min (65535UL, static_cast <ULONG> (std::clamp (params_.rightTrigger,  0.0f, 1.0f) * 65536.0f))),
-                                          65535ui16
-        );
-
-        pNewestInputDevice->write_output_report ();
-      }
+      return;
     }
   }
+
+  SK_GameInput_EmulatedPlayStation = false;
 }
 
 void
@@ -1457,7 +1487,6 @@ SK_IWrapGameInputReading::GetGamepadState (GameInputGamepadState *state) noexcep
 {
   SK_LOG_FIRST_CALL
 
-
   if (pReal->GetGamepadState (state))
   {
     if (SK_ImGui_WantGamepadCapture ())
@@ -1843,6 +1872,8 @@ SK_IPlayStationGameInputReading::GetGamepadState (GameInputGamepadState *state) 
 
   ZeroMemory (state, sizeof (GameInputGamepadState));
 
+  SK_GameInput_EmulatedPlayStation = false;
+
   if (! SK_HID_PlayStationControllers.empty ())
   {
     XINPUT_STATE                    _state = {};
@@ -1850,20 +1881,8 @@ SK_IPlayStationGameInputReading::GetGamepadState (GameInputGamepadState *state) 
 
     if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
     {
-      SK_HID_PlayStationDevice *pNewestInputDevice = nullptr;
-
-      for ( auto& controller : SK_HID_PlayStationControllers )
-      {
-        if (controller.bConnected)
-        {
-          if (pNewestInputDevice == nullptr || controller.xinput.isNewer (pNewestInputDevice->xinput))
-          {
-            pNewestInputDevice = &controller;
-          }
-        }
-      }
-
-      if (pNewestInputDevice != nullptr)
+      auto pNewestInputDevice = SK_HID_GetActivePlayStationDevice (true);
+      if ( pNewestInputDevice != nullptr )
       {
         if (! SK_ImGui_WantGamepadCapture ())
         {
@@ -1871,19 +1890,19 @@ SK_IPlayStationGameInputReading::GetGamepadState (GameInputGamepadState *state) 
             pNewestInputDevice->xinput.getLatestState ();
 
           state->leftThumbstickX =
-            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbLX) / 32767.0);
+            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbLX) / 32767);
           state->leftThumbstickY =
-            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbLY) / 32767.0);
+            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbLY) / 32767);
 
           state->rightThumbstickX =
-            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbRX) / 32767.0);
+            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbRX) / 32767);
           state->rightThumbstickY =
-            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbRY) / 32767.0);
+            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbRY) / 32767);
 
           state->leftTrigger =
-            static_cast <float> (static_cast <double> (latest_state.Gamepad.bLeftTrigger) / 255.0);
+            static_cast <float> (static_cast <double> (latest_state.Gamepad.bLeftTrigger) / 255);
           state->rightTrigger =
-            static_cast <float> (static_cast <double> (latest_state.Gamepad.bRightTrigger) / 255.0);
+            static_cast <float> (static_cast <double> (latest_state.Gamepad.bRightTrigger) / 255);
 
           state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0 ? GameInputGamepadA : GameInputGamepadNone;
           state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0 ? GameInputGamepadB : GameInputGamepadNone;
@@ -1903,6 +1922,8 @@ SK_IPlayStationGameInputReading::GetGamepadState (GameInputGamepadState *state) 
 
           state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_LEFT_THUMB)  != 0 ? GameInputGamepadLeftThumbstick  : GameInputGamepadNone;
           state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_THUMB) != 0 ? GameInputGamepadRightThumbstick : GameInputGamepadNone;
+
+          SK_GameInput_EmulatedPlayStation = true;
         }
       }
     }
