@@ -531,6 +531,9 @@ XInputGetState1_4_Detour (
       SK_Steam_SignalEmulatedXInputActivity (dwUserIndex, nop);
   }
 
+  XINPUT_STATE native_state  = {};
+  XINPUT_STATE virtual_state = {};
+
   uint64_t native_time0  = 0;
   uint64_t virtual_time0 = 0;
 
@@ -544,6 +547,10 @@ XInputGetState1_4_Detour (
       InterlockedExchange (&last_native_packet [0], pState->dwPacketNumber);
       InterlockedExchange (&last_native_time   [0], SK_QueryPerf ().QuadPart);
     }
+
+    SK_XInput_ApplyDeadzone (pState, config.input.gamepad.xinput.deadzone);
+
+    native_state = *pState;
   }
 
   if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
@@ -556,26 +563,28 @@ XInputGetState1_4_Detour (
       XINPUT_STATE                    _state = {};
       SK_ImGui_PollGamepad_EndFrame (&_state);
 
-      if (pNewestInputDevice != nullptr && (bUseEmulation || ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) >= ReadULong64Acquire (&last_native_time [0])))
+      if (pNewestInputDevice != nullptr && (bUseEmulation || ReadULong64Acquire (&pNewestInputDevice->xinput.last_active) >= ReadULong64Acquire (&last_time [0])))
       {
-        bUseEmulationForSetState  = true;
-
         const auto latest_state   =
           pNewestInputDevice->xinput.getLatestState ();
 
         const auto last_timestamp = ReadULong64Acquire (&hid_to_xi_time);
         const auto timestamp      = ReadULong64Acquire (&pNewestInputDevice->xinput.last_active);
 
-        memcpy (pState, &latest_state, sizeof (XINPUT_STATE));
+        bUseEmulationForSetState = true;
+        xinput_ctx.translated    = true;
+
+        InterlockedExchange (&last_virtual_packet [0], pState->dwPacketNumber);
+        InterlockedExchange (&last_virtual_time   [0], timestamp);
+
+        memcpy (         pState, &latest_state, sizeof (XINPUT_STATE));
+        virtual_state = *pState;
 
         if (                                              timestamp> last_timestamp  &&
              InterlockedCompareExchange (&hid_to_xi_time, timestamp, last_timestamp) == last_timestamp )
         {
           hid_to_xi = latest_state;
         }
-
-        InterlockedExchange (&last_virtual_packet [0], pState->dwPacketNumber);
-        InterlockedExchange (&last_virtual_time   [0], timestamp);
 
         if (config.input.gamepad.xinput.debug)
         {
@@ -588,18 +597,20 @@ XInputGetState1_4_Detour (
                                 SK_ImGui_Toast::DoNotSaveINI );
         }
 
-        xinput_ctx.translated = true;
-
         dwRet = ERROR_SUCCESS;
       }
 
       else
+      {
         bUseEmulationForSetState = false;
+        xinput_ctx.translated    = false;
+      }
     }
 
     else if (dwUserIndex == 0)
     {
       bUseEmulationForSetState = false;
+      xinput_ctx.translated    = false;
 
       WriteULong64Release (&last_virtual_time   [0], 0);
       WriteULongRelease   (&last_virtual_packet [0], 0);
@@ -643,7 +654,7 @@ XInputGetState1_4_Detour (
 
     if (new_packet)
     {
-      if (!(SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [dwUserIndex]))
+      if (!(SK_ImGui_WantGamepadCapture () || config.input.gamepad.xinput.disable [0]))
       {
         pState->dwPacketNumber =
           InterlockedIncrement (&last_packet [0]) + 1;
@@ -3769,4 +3780,50 @@ SK_XInput_GetProcAddress (HMODULE hModule, PCSTR lpFuncName, LPCVOID/*pCaller*/)
 
   return
     SK_GetProcAddress (hModule, lpFuncName);
+}
+
+void
+SK_XInput_ApplyDeadzone (XINPUT_STATE* state, float deadzone_percent)
+{
+  auto ApplyDeadzoneToStick = [&](SHORT& X, SHORT& Y, float deadzone_percent)
+  {
+    const float fX   = X;
+    const float fY   = Y;
+          float norm = sqrt ( fX*fX + fY*fY );
+          float unit = 1.0f;
+
+    const auto fUserDeadzone =
+      (deadzone_percent / 100.0f) * 32767.0f;
+
+    if (norm > fUserDeadzone)
+    {
+#if 1
+      // Logarithmic scaling
+      norm = (std::min (norm, 32767.0f) - fUserDeadzone) /
+                             (32767.0f  - fUserDeadzone);
+      unit = log10 (1.0f + 9.0f * norm) / log10 (10.0f);
+#else
+      // Linear scaling
+      norm = std::min (norm, 32767.0f) - fUserDeadzone;
+      unit =           norm/(32767.0f  - fUserDeadzone);
+#endif
+    }
+
+    else
+    {
+      norm = 0.0f;
+      unit = 0.0f;
+    }
+
+    const float ufX = (fX / 32767.0f) * unit;
+    const float ufY = (fY / 32767.0f) * unit;
+
+    X = static_cast <SHORT> (ufX < 0 ? std::max (-32768.0f, std::min (    0.0f, 32768.0f * ufX))
+                                     : std::max (     0.0f, std::min (32767.0f, 32767.0f * ufX)));
+    Y = static_cast <SHORT> (ufY < 0 ? std::max (-32768.0f, std::min (    0.0f, 32768.0f * ufY))
+                                     : std::max (     0.0f, std::min (32767.0f, 32767.0f * ufY)));
+  };
+
+  ApplyDeadzoneToStick (state->Gamepad.sThumbLX, state->Gamepad.sThumbLY, deadzone_percent);
+  ApplyDeadzoneToStick (state->Gamepad.sThumbRX, state->Gamepad.sThumbRY, deadzone_percent);
 }

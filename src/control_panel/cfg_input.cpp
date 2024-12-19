@@ -2470,10 +2470,10 @@ extern float SK_ImGui_PulseNav_Strength;
 
         bool expanded = ImGui::CollapsingHeader (SK_FormatString ("%ws##JOYSTICK_DEBUG", joy_caps.szPname).c_str ());
 
-        ImGui::Combo          ("Gamepad Type", &config.input.gamepad.predefined_layout, "PlayStation 4\0Steam\0\0", 2);
-        ImGui::SetItemTooltip ("This setting is only used if XInput or DirectInput are not working.");
-        ImGui::SameLine       ();
-        ImGui::Checkbox       ("Use DirectInput instead of XInput", &config.input.gamepad.native_ps4);
+        ////ImGui::Combo          ("Gamepad Type", &config.input.gamepad.predefined_layout, "PlayStation 4\0Steam\0\0", 2);
+        ////ImGui::SetItemTooltip ("This setting is only used if XInput or DirectInput are not working.");
+        ////ImGui::SameLine       ();
+        ////ImGui::Checkbox       ("Use DirectInput instead of XInput", &config.input.gamepad.native_ps4);
 
         if (expanded)
         {

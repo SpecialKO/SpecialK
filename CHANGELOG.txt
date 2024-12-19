@@ -1,4 +1,11 @@
-﻿24.12.19.1
+﻿24.12.19.2
+==========
+ + Add logarithmic scaling to deadzone compensation on PlayStation controllers
+     and extend the option to native Xbox controllers also.
+ + Fixed off-by-one issue when quantizing the x-axis in some PlayStation device
+     configurations.
+
+24.12.19.1
 ==========
  + Added system to ensure XInputGetState{Ex} (...) packet counts are always
      monotonic increasing in mixed-native/translated hot-swap scenarios.

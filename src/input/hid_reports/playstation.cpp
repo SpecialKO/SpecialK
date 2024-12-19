@@ -1389,17 +1389,17 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   {
                     case 0x30: // X-axis
                       pDevice->xinput.report.Gamepad.sThumbLX =
-                        static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (value) - 128) / 128.0);
+                        static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (value) - 128.0) / 127.0)));
                         break;
 
                     case 0x31: // Y-axis
                       pDevice->xinput.report.Gamepad.sThumbLY =
-                        static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (value)) / 128.0);
+                        static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (value)) / 127.0)));
                         break;
 
                     case 0x32: // Z-axis
                       pDevice->xinput.report.Gamepad.sThumbRX =
-                        static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (value) - 128) / 128.0);
+                        static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (value) - 128.0) / 127.0)));
                         break;
 
                     case 0x33: // Rotate-X
@@ -1414,7 +1414,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
 
                     case 0x35: // Rotate-Z
                       pDevice->xinput.report.Gamepad.sThumbRY =
-                        static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (value)) / 128.0);
+                        static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (value)) / 127.0)));
 #if 0
                       if (value != 0)
                       {
@@ -1632,16 +1632,16 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 }
 
                 pDevice->xinput.report.Gamepad.sThumbLX =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pData->LeftStickX) - 128) / 128.0);
+                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (pData->LeftStickX) - 128.0) / 127.0)));
 
                 pDevice->xinput.report.Gamepad.sThumbLY =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (pData->LeftStickY)) / 128.0);
+                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (pData->LeftStickY)) / 127.0)));
 
                 pDevice->xinput.report.Gamepad.sThumbRX =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pData->RightStickX) - 128) / 128.0);
+                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (pData->RightStickX) - 128.0) / 127.0)));
 
                 pDevice->xinput.report.Gamepad.sThumbRY =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (pData->RightStickY)) / 128.0);
+                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (pData->RightStickY)) / 127.0)));
                 
                 pDevice->xinput.report.Gamepad.bLeftTrigger =
                   static_cast <BYTE> (static_cast <BYTE> (pData->TriggerLeft));
@@ -1714,16 +1714,16 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   (SK_HID_DualSense_GetSimpleStateDataBt *)&pInputRaw [1];
 
                 pDevice->xinput.report.Gamepad.sThumbLX =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pSimpleData->LeftStickX) - 128) / 128.0);
+                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (pSimpleData->LeftStickX) - 128.0) / 127.0)));
 
                 pDevice->xinput.report.Gamepad.sThumbLY =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (pSimpleData->LeftStickY)) / 128.0);
+                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (pSimpleData->LeftStickY)) / 127.0)));
 
                 pDevice->xinput.report.Gamepad.sThumbRX =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pSimpleData->RightStickX) - 128) / 128.0);
+                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (pSimpleData->RightStickX) - 128.0) / 127.0)));
 
                 pDevice->xinput.report.Gamepad.sThumbRY =
-                  static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (pSimpleData->RightStickY)) / 128.0);
+                  static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (pSimpleData->RightStickY)) / 127.0)));
                 
                 pDevice->xinput.report.Gamepad.bLeftTrigger =
                   static_cast <BYTE> (static_cast <BYTE> (pSimpleData->TriggerLeft));
@@ -1906,16 +1906,16 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 (SK_HID_DualShock4_GetStateData *)&pInputRaw [3];
 
               pDevice->xinput.report.Gamepad.sThumbLX =
-                static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pData->LeftStickX) - 128) / 128.0);
+                static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (pData->LeftStickX) - 128.0) / 127.0)));
 
               pDevice->xinput.report.Gamepad.sThumbLY =
-                static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (pData->LeftStickY)) / 128.0);
+                static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (pData->LeftStickY) - 127.0) / 127.0)));
 
               pDevice->xinput.report.Gamepad.sThumbRX =
-                static_cast <SHORT> (32767.0 * static_cast <double> (static_cast <LONG> (pData->RightStickX) - 128) / 128.0);
+                static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (static_cast <double> (pData->RightStickX) - 128.0) / 127.0)));
 
               pDevice->xinput.report.Gamepad.sThumbRY =
-                static_cast <SHORT> (32767.0 * static_cast <double> (128 - static_cast <LONG> (pData->RightStickY)) / 128.0);
+                static_cast <SHORT> (32767.0 * static_cast <double> (fmax (-1.0, (127.0 - static_cast <double> (pData->RightStickY) - 127.0) / 127.0)));
 
               pDevice->xinput.report.Gamepad.bLeftTrigger =
                 static_cast <BYTE> (static_cast <BYTE> (pData->TriggerLeft));
@@ -2153,21 +2153,18 @@ SK_HID_PlayStationDevice::request_input_report (void)
             if (pDevice->buttons.size () >= 13 &&
                 pDevice->isButtonDown (SK_HID_PlayStationButton::PlayStation)) pDevice->xinput.report.Gamepad.wButtons |= XINPUT_GAMEPAD_GUIDE;
 
-            const float fUserDeadzone =
-              (32767.0f * config.input.gamepad.xinput.deadzone * 0.01f);
-
             //
             // Apply an aggressive deadzone, moreso than necessary for gameplay, to
             //   filter out stick drift and accidentally bumping controllers when
             //     determining which gamepad was most recently interacted with...
             //
-#pragma region (deadzone)
+#pragma region (internal_deadzone)
             pDevice->xinput.internal.report = pDevice->xinput.report;
 
-            float LX   = pDevice->xinput.internal.report.Gamepad.sThumbLX;
-            float LY   = pDevice->xinput.internal.report.Gamepad.sThumbLY;
-            float norm = sqrt ( LX*LX + LY*LY );
-            float unit = 1.0f;
+            const float LX   = pDevice->xinput.internal.report.Gamepad.sThumbLX;
+            const float LY   = pDevice->xinput.internal.report.Gamepad.sThumbLY;
+                  float norm = sqrt ( LX*LX + LY*LY );
+                  float unit = 1.0f;
 
             if (norm > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE)
             {
@@ -2180,43 +2177,20 @@ SK_HID_PlayStationDevice::request_input_report (void)
               unit = 0.0f;
             }
 
-            float uLX = (LX / 32767.0f) * unit;
-            float uLY = (LY / 32767.0f) * unit;
+            const float uLX = (LX / 32767.0f) * unit;
+            const float uLY = (LY / 32767.0f) * unit;
 
-            pDevice->xinput.internal.report.Gamepad.sThumbLX = static_cast <SHORT> (uLX < 0 ? 32768.0f * uLX
-                                                                                            : 32767.0f * uLX);
-            pDevice->xinput.internal.report.Gamepad.sThumbLY = static_cast <SHORT> (uLY < 0 ? 32768.0f * uLY
-                                                                                            : 32767.0f * uLY);
+            pDevice->xinput.internal.report.Gamepad.sThumbLX =
+              static_cast <SHORT> (uLX < 0 ? std::max (-32768.0f, std::min (    0.0f, 32768.0f * uLX))
+                                           : std::max (     0.0f, std::min (32767.0f, 32767.0f * uLX)));
+            pDevice->xinput.internal.report.Gamepad.sThumbLY =
+              static_cast <SHORT> (uLY < 0 ? std::max (-32768.0f, std::min (    0.0f, 32768.0f * uLY))
+                                           : std::max (     0.0f, std::min (32767.0f, 32767.0f * uLY)));
 
-            if (config.input.gamepad.xinput.deadzone > 0.0f)
-            {
-              norm = sqrt ( LX*LX + LY*LY );
-              unit = 1.0f;
-
-              if (norm > fUserDeadzone)
-              {
-                norm = std::min (norm, 32767.0f) - fUserDeadzone;
-                unit =           norm/(32767.0f  - fUserDeadzone);
-              }
-              else
-              {
-                norm = 0.0f;
-                unit = 0.0f;
-              }
-
-              uLX = (LX / 32767.0f) * unit;
-              uLY = (LY / 32767.0f) * unit;
-
-              pDevice->xinput.report.Gamepad.sThumbLX = static_cast <SHORT> (uLX < 0 ? 32768.0f * uLX
-                                                                                     : 32767.0f * uLX);
-              pDevice->xinput.report.Gamepad.sThumbLY = static_cast <SHORT> (uLY < 0 ? 32768.0f * uLY
-                                                                                     : 32767.0f * uLY);
-            }
-
-            float RX   = pDevice->xinput.internal.report.Gamepad.sThumbRX;
-            float RY   = pDevice->xinput.internal.report.Gamepad.sThumbRY;
-                  norm = sqrt ( RX*RX + RY*RY );
-                  unit = 1.0f;
+            const float RX   = pDevice->xinput.internal.report.Gamepad.sThumbRX;
+            const float RY   = pDevice->xinput.internal.report.Gamepad.sThumbRY;
+                        norm = sqrt ( RX*RX + RY*RY );
+                        unit = 1.0f;
 
             if (norm > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE)
             {
@@ -2229,38 +2203,15 @@ SK_HID_PlayStationDevice::request_input_report (void)
               unit = 0.0f;
             }
 
-            float uRX = (RX / 32767.0f) * unit;
-            float uRY = (RY / 32767.0f) * unit;
+            const float uRX = (RX / 32767.0f) * unit;
+            const float uRY = (RY / 32767.0f) * unit;
 
-            pDevice->xinput.internal.report.Gamepad.sThumbRX = static_cast <SHORT> (uRX < 0 ? 32768.0f * uRX
-                                                                                            : 32767.0f * uRX);
-            pDevice->xinput.internal.report.Gamepad.sThumbRY = static_cast <SHORT> (uRY < 0 ? 32768.0f * uRY
-                                                                                            : 32767.0f * uRY);
-
-            if (config.input.gamepad.xinput.deadzone > 0.0f)
-            {
-              norm = sqrt ( RX*RX + RY*RY );
-              unit = 1.0f;
-
-              if (norm > fUserDeadzone)
-              {
-                norm = std::min (norm, 32767.0f) - fUserDeadzone;
-                unit =           norm/(32767.0f  - fUserDeadzone);
-              }
-              else
-              {
-                norm = 0.0f;
-                unit = 0.0f;
-              }
-
-              uRX = (RX / 32767.0f) * unit;
-              uRY = (RY / 32767.0f) * unit;
-
-              pDevice->xinput.report.Gamepad.sThumbRX = static_cast <SHORT> (uRX < 0 ? 32768.0f * uRX
-                                                                                     : 32767.0f * uRX);
-              pDevice->xinput.report.Gamepad.sThumbRY = static_cast <SHORT> (uRY < 0 ? 32768.0f * uRY
-                                                                                     : 32767.0f * uRY);
-            }
+            pDevice->xinput.internal.report.Gamepad.sThumbRX =
+              static_cast <SHORT> (uLX < 0 ? std::max (-32768.0f, std::min (    0.0f, 32768.0f * uRX))
+                                           : std::max (     0.0f, std::min (32767.0f, 32767.0f * uRX)));
+            pDevice->xinput.internal.report.Gamepad.sThumbRY =
+              static_cast <SHORT> (uLY < 0 ? std::max (-32768.0f, std::min (    0.0f, 32768.0f * uRY))
+                                           : std::max (     0.0f, std::min (32767.0f, 32767.0f * uRY)));
 
             if (  pDevice->xinput.internal.report.Gamepad.bLeftTrigger   < XINPUT_GAMEPAD_TRIGGER_THRESHOLD)
                   pDevice->xinput.internal.report.Gamepad.bLeftTrigger  = 0;
@@ -2283,6 +2234,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                                    );
             }
 #pragma endregion
+
+            SK_XInput_ApplyDeadzone (&pDevice->xinput.report, config.input.gamepad.xinput.deadzone);
 
 #define SK_HID_BROKEN_DUALSHOCK4_REV2
 #ifdef  SK_HID_BROKEN_DUALSHOCK4_REV2
