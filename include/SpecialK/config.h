@@ -168,7 +168,7 @@ struct sk_config_t
     {
       cpu_pop = 0;
 
-      for ( auto i = 0 ; i < 64 ; ++i )
+      for ( DWORD_PTR i = 0 ; i < SK_GetBitness () ; ++i )
       {
         if ((process_affinity >> i) & 0x1)
           ++cpu_pop;
