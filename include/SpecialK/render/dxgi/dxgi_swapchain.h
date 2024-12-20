@@ -366,11 +366,11 @@ IWrapDXGISwapChain : IDXGISwapChain4
   virtual HRESULT STDMETHODCALLTYPE SetHDRMetaData (DXGI_HDR_METADATA_TYPE Type, UINT Size, void *pMetaData) override; // 40
   #pragma endregion
 
-  volatile LONG         refs_ = 1;
-  IDXGISwapChain       *pReal;
+  volatile LONG         refs_           = 1;
+  IDXGISwapChain       *pReal           = nullptr;
   SK_ComPtr <IUnknown>  pDev;
-  unsigned int          ver_;
-  HWND                  hWnd_ = 0;
+  unsigned int          ver_            = 0;
+  HWND                  hWnd_           = 0;
 
   bool                  d3d12_          = false;
   bool                  waitable_       = false;
@@ -388,30 +388,38 @@ IWrapDXGISwapChain : IDXGISwapChain4
     }
   } flip_model;
 
-  UINT                  gameWidth_        = 0;
-  UINT                  gameHeight_       = 0;
-  UINT                  gameFrameLatency_ = 2; // The latency the game expects
+  // Avoid problems caused by releasing a private data interface that
+  //   may have cyclical references back to device context, causing a
+  //     reference to be added temporarily and then removed during
+  //       destruction...
+  volatile LONG         dtor_recursion_     = 0;
 
-  struct state_cache_s {
-    DXGI_FORMAT           lastRequested_      = DXGI_FORMAT_UNKNOWN;
-    DXGI_FORMAT           lastNonHDRFormat    = DXGI_FORMAT_UNKNOWN;
-    DXGI_COLOR_SPACE_TYPE lastColorSpace_     = DXGI_COLOR_SPACE_RESERVED;
+  UINT                  gameWidth_          = 0;
+  UINT                  gameHeight_         = 0;
+  UINT                  gameFrameLatency_   = 2; // The latency the game expects
 
-    UINT                  lastWidth           = 0;
-    UINT                  lastHeight          = 0;
-    DXGI_FORMAT           lastFormat          = DXGI_FORMAT_UNKNOWN;
-    UINT                  lastBufferCount     = 0;
-    bool                  lastFullscreenState = false;
+  struct state_cache_s{
+    DXGI_FORMAT         lastRequested_      = DXGI_FORMAT_UNKNOWN;
+    DXGI_FORMAT         lastNonHDRFormat    = DXGI_FORMAT_UNKNOWN;
+    DXGI_COLOR_SPACE_TYPE
+                        lastColorSpace_     = DXGI_COLOR_SPACE_RESERVED;
 
-    bool                  _fakefullscreen     = false;
-    bool                  _stalebuffers       = false;
+    UINT                lastWidth           = 0;
+    UINT                lastHeight          = 0;
+    DXGI_FORMAT         lastFormat          = DXGI_FORMAT_UNKNOWN;
+    UINT                lastBufferCount     = 0;
+    bool                lastFullscreenState = false;
+
+    bool                _fakefullscreen     = false;
+    bool                _stalebuffers       = false;
   };
 
   std::recursive_mutex  _backbufferLock;
   std::unordered_map <UINT, SK_ComPtr <ID3D11Texture2D>>
                         _backbuffers;
 
-  D3D11_FEATURE_DATA_D3D11_OPTIONS _d3d11_feature_opts = { };
+  D3D11_FEATURE_DATA_D3D11_OPTIONS
+                        _d3d11_feature_opts = { };
 
   // Shared logic between Present (...) and Present1 (...)
   int                     PresentBase (void);

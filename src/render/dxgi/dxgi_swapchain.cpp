@@ -299,16 +299,23 @@ IWrapDXGISwapChain::Release (void)
 
   if (xrefs == 1)
   {
-    HWND hWndSwap = HWND_BROADCAST;
+    if (InterlockedIncrement (&dtor_recursion_) == 0)
+    {
+      SK_LOGi1 (
+        L"Starting deferred object cleanup on wrapped DXGI SwapChain"
+      );
 
-    if (ver_ > 0)
-      static_cast <IDXGISwapChain1*> (pReal)->GetHwnd (&hWndSwap);
+      HWND hWndSwap = HWND_BROADCAST;
 
-    // Ignore this for stuff like VLC, it's not important
-    if (config.system.log_level > 0)
-      SK_ReleaseAssert (hWnd_ == hWndSwap);
+      if (ver_ > 0)
+        static_cast <IDXGISwapChain1*> (pReal)->GetHwnd (&hWndSwap);
 
-    SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, nullptr);
+      // Ignore this for stuff like VLC, it's not important
+      if (config.system.log_level > 0)
+        SK_ReleaseAssert (hWnd_ == hWndSwap);
+
+      SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, nullptr);
+    }
   }
 
   HWND hwnd = hWnd_;
@@ -391,8 +398,6 @@ IWrapDXGISwapChain::Release (void)
 
       rb.releaseOwnedResources ();
     }
-
-    //delete this;
   }
 
   else if (hWnd_ == 0)
@@ -420,6 +425,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetPrivateDataInterface (REFGUID Name, const IUnknown *pUnknown)
 {
+  SK_LOG_FIRST_CALL
+
   return
     pReal->SetPrivateDataInterface (Name, pUnknown);
 }
@@ -1073,9 +1080,6 @@ IWrapDXGISwapChain::ResizeTarget (const DXGI_MODE_DESC *pNewTargetParameters)
 {
   return
     pReal->ResizeTarget (pNewTargetParameters);
-    //SK_DXGI_SwapChain_ResizeTarget_Impl (
-    //  pReal, pNewTargetParameters, TRUE
-    //);
 }
 
 HRESULT
@@ -1090,6 +1094,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetFrameStatistics (DXGI_FRAME_STATISTICS *pStats)
 {
+  SK_LOG_FIRST_CALL
+
   return
     pReal->GetFrameStatistics (pStats);
 }
@@ -1167,6 +1173,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetCoreWindow (REFIID refiid, void **ppUnk)
 {
+  SK_LOG_FIRST_CALL
+
   assert (ver_ >= 1);
 
   return
@@ -1208,6 +1216,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetRestrictToOutput (IDXGIOutput **ppRestrictToOutput)
 {
+  SK_LOG_FIRST_CALL
+
   assert (ver_ >= 1);
 
   return
@@ -1218,6 +1228,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetBackgroundColor (const DXGI_RGBA *pColor)
 {
+  SK_LOG_FIRST_CALL
+
   assert (ver_ >= 1);
 
   return
@@ -1228,6 +1240,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetBackgroundColor (DXGI_RGBA *pColor)
 {
+  SK_LOG_FIRST_CALL
+
   assert (ver_ >= 1);
 
   return
@@ -1238,6 +1252,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetRotation (DXGI_MODE_ROTATION Rotation)
 {
+  SK_LOG_FIRST_CALL
+
   assert (ver_ >= 1);
 
   return
@@ -1248,6 +1264,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetRotation (DXGI_MODE_ROTATION *pRotation)
 {
+  SK_LOG_FIRST_CALL
+
   assert (ver_ >= 1);
 
   return
@@ -1273,6 +1291,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetSourceSize (UINT *pWidth, UINT *pHeight)
 {
+  SK_LOG_FIRST_CALL
+
   assert (ver_ >= 2);
 
   return
@@ -1412,6 +1432,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::SetMatrixTransform (const DXGI_MATRIX_3X2_F *pMatrix)
 {
+  SK_LOG_FIRST_CALL
+
   assert(ver_ >= 2);
 
   return
@@ -1421,6 +1443,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::GetMatrixTransform (DXGI_MATRIX_3X2_F *pMatrix)
 {
+  SK_LOG_FIRST_CALL
+
   assert (ver_ >= 2);
 
   return
