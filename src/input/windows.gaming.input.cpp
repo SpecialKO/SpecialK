@@ -1603,28 +1603,50 @@ SK_Input_HookWGI (void)
                           &pfnRoGetActivationFactory );
     SK_EnableHook (        pfnRoGetActivationFactory );
 
+
     SK_Thread_CreateEx ([](LPVOID)->DWORD
     {
-      // Init COM on this thread
-      SK_AutoCOMInit _;
-    
-      PCWSTR         wszNamespace = L"Windows.Gaming.Input.Gamepad";
-      HSTRING_HEADER   hNamespaceStringHeader;
-      HSTRING          hNamespaceString;
-    
-      if (SUCCEEDED (WindowsCreateStringReference (wszNamespace,
-                     static_cast <UINT32> (wcslen (wszNamespace)),
-                                                    &hNamespaceStringHeader,
-                                                    &hNamespaceString)))
+      DWORD dwTimeoutPeriodInMs        = 25;
+      DWORD dwTimeStartedLookingForWGI = SK_timeGetTime ();
+
+      do
       {
-        SK_ComPtr <ABI::Windows::Gaming::Input::IGamepadStatics> pGamepadStatics;
-    
-        if (SUCCEEDED (RoGetActivationFactory_Original (hNamespaceString, IID_IGamepadStatics,
-                                                                    (void **)&pGamepadStatics.p)))
+        // No real need to do this if the game hasn't loaded Windows.Gaming.Input.dll yet
+        if (! SK_GetModuleHandleW (L"Windows.Gaming.Input.dll"))
         {
-          SK_WGI_DeferGamepadHooks (pGamepadStatics.p);
+          dwTimeoutPeriodInMs =
+            std::min (dwTimeoutPeriodInMs * 2, 5000UL);
+
+          if (SK_timeGetTime () - dwTimeStartedLookingForWGI > 30000)
+          {
+            // After 30 seconds, it's likely the game is never going to load Windows.Gaming.Input...
+                    break;
+          } else continue;
         }
-      }
+
+        // Init COM on this thread
+        SK_AutoCOMInit _;
+    
+        PCWSTR         wszNamespace = L"Windows.Gaming.Input.Gamepad";
+        HSTRING_HEADER   hNamespaceStringHeader;
+        HSTRING          hNamespaceString;
+    
+        if (SUCCEEDED (WindowsCreateStringReference (wszNamespace,
+                       static_cast <UINT32> (wcslen (wszNamespace)),
+                                                      &hNamespaceStringHeader,
+                                                      &hNamespaceString)))
+        {
+          SK_ComPtr <ABI::Windows::Gaming::Input::IGamepadStatics> pGamepadStatics;
+    
+          if (SUCCEEDED (RoGetActivationFactory_Original (hNamespaceString, IID_IGamepadStatics,
+                                                                      (void **)&pGamepadStatics.p)))
+          {
+            SK_WGI_DeferGamepadHooks (pGamepadStatics.p);
+          }
+        }
+
+        break;
+      } while (WaitForSingleObject (__SK_DLL_TeardownEvent, dwTimeoutPeriodInMs) != WAIT_OBJECT_0);
     
       SK_Thread_CloseSelf ();
     
