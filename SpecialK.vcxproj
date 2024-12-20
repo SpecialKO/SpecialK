@@ -1936,10 +1936,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (clang)|x64'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\plugins\ac_valhalla.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (clang)|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="src\plugins\armoredcore6.cpp" />
     <ClCompile Include="src\plugins\bethesda.cpp" />
     <ClCompile Include="src\plugins\chrono_cross.cpp">
@@ -1956,7 +1952,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release (clang)|Win32'">false</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="src\plugins\elex2.cpp" />
     <ClCompile Include="src\plugins\ff7_remake.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>

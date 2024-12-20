@@ -3602,9 +3602,6 @@
     <ClCompile Include="src\render\d3d11\utility\d3d11_map.cpp">
       <Filter>Source Files\Backends\Render\D3D11</Filter>
     </ClCompile>
-    <ClCompile Include="src\plugins\ac_valhalla.cpp">
-      <Filter>Source Files\Plugins</Filter>
-    </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d12.cpp">
       <Filter>Source Files\Backends\Render\D3D12</Filter>
     </ClCompile>
@@ -3733,9 +3730,6 @@
     </ClCompile>
     <ClCompile Include="src\render\d3d12\d3d12_pipeline_library.cpp">
       <Filter>Source Files\Backends\Render\D3D12</Filter>
-    </ClCompile>
-    <ClCompile Include="src\plugins\elex2.cpp">
-      <Filter>Source Files\Plugins</Filter>
     </ClCompile>
     <ClCompile Include="src\plugins\chrono_cross.cpp">
       <Filter>Source Files\Plugins</Filter>

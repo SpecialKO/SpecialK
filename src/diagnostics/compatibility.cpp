@@ -1,4 +1,6 @@
-﻿/**
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -938,7 +940,7 @@ SK_COMPAT_FixUpFullscreen_DXGI (bool Fullscreen)
     if (SK_GetCurrentGameID () == SK_GAME_ID::WorldOfFinalFantasy)
     {
       ShowCursor    (TRUE);
-      SK_ShowWindow ( SK_GetForegroundWindow (), SW_HIDE );
+      ( SK_GetForegroundWindow (), SW_HIDE );
       MessageBox    ( SK_GetForegroundWindow (),
                         L"Please re-configure this game to run in windowed mode",
                           L"Special K Conflict",

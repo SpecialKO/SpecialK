@@ -1,4 +1,6 @@
-﻿/**
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -4794,5 +4796,3 @@ SK_LazyGlobal <iSK_Logger> game_debug;
 SK_LazyGlobal <iSK_Logger> tex_log;
 SK_LazyGlobal <iSK_Logger> steam_log;
 SK_LazyGlobal <iSK_Logger> epic_log;
-
-

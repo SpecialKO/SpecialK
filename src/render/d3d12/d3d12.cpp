@@ -1,4 +1,6 @@
-﻿/**
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -192,4 +194,3 @@ SK_D3D12_UpdateRenderStats (IDXGISwapChain* pSwapChain)
   // Need more debug time with D3D12
   return;
 }
-

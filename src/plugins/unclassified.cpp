@@ -1,6 +1,8 @@
-﻿// A bunch of stupid "plug-ins," not even worth copyrighting.
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+ 
+// A bunch of stupid "plug-ins," not even worth copyrighting.
 //
-
 #include <SpecialK/stdafx.h>
 
 #ifdef  __SK_SUBSYSTEM__

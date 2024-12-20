@@ -1,4 +1,6 @@
-﻿/**
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -362,6 +364,8 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
         SK_ReleaseAssert (!
                           L"Unexpected Wait State in call to "
                           L"MsgWaitForMultipleObjectsEx (...)");
+
+        SK_LOGi0 (L"MsgWaitForMultipleObjectsEx (...) returned %x!", dwWaitState);
       }
 
       if (dwMilliseconds == 0)

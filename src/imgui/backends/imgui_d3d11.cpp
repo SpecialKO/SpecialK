@@ -1,4 +1,7 @@
-﻿// ImGui Win32 + DirectX11 binding
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+
+// ImGui Win32 + DirectX11 binding
 // In this binding, ImTextureID is used to store a 'ID3D11ShaderResourceView*' texture identifier. Read the FAQ about ImTextureID in imgui.cpp.
 
 // You can copy and use unmodified imgui_impl_* files in your project. See main.cpp for an example of using this.

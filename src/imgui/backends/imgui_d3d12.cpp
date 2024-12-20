@@ -1,4 +1,7 @@
-﻿// dear imgui: Renderer for DirectX12
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+
+// dear imgui: Renderer for DirectX12
 // This needs to be used along with a Platform Binding (e.g. Win32)
 
 #include <SpecialK/stdafx.h>

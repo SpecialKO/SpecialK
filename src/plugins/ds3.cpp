@@ -1,3 +1,5 @@
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
 #include <SpecialK/stdafx.h>
 
 #if (defined (NOGDI) || (! defined (_WINGDI_)))

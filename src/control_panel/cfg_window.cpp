@@ -1,4 +1,6 @@
-﻿/**
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -366,8 +368,8 @@ SK::ControlPanel::Window::Draw (void)
         }
       }
 
-      ImGui::Text     ("Window Layering");
-      ImGui::TreePush ("");
+      ImGui::SeparatorText ("Window Layering");
+      ImGui::TreePush      ("");
 
       bool changed = false;
 
@@ -425,7 +427,7 @@ SK::ControlPanel::Window::Draw (void)
       bool background_render = config.window.background_render;
       bool background_mute   = config.window.background_mute;
 
-      ImGui::Text     ("Background Behavior");
+      ImGui::SeparatorText ("Background Behavior");
       ImGui::TreePush ("");
 
       if ( ImGui::Checkbox ( "Mute Game ", &background_mute ) )
@@ -490,7 +492,7 @@ SK::ControlPanel::Window::Draw (void)
 
       SK_ImGui_CursorBoundaryConfig (true);
 
-      ImGui::Text     ("Screensaver Behavior");
+      ImGui::SeparatorText ("Screensaver Behavior");
       ImGui::TreePush ("");
 
       int screensaver_opt =

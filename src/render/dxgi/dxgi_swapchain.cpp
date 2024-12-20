@@ -1,4 +1,6 @@
-﻿/**
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -306,34 +308,31 @@ IWrapDXGISwapChain::Release (void)
   //
   if (xrefs == 0)
   {
-    if (InterlockedIncrement (&dtor_recursion_) == 0)
+    // We're going to make this available for recycling
+    if (hWnd_ != 0)
     {
-      // We're going to make this available for recycling
-      if (hWnd_ != 0)
-      {
-        SK_DXGI_ReleaseSwapChainOnHWnd (
-          this, std::exchange (hWnd_, (HWND)0), pDev
-        );
-      }
+      SK_DXGI_ReleaseSwapChainOnHWnd (
+        this, std::exchange (hWnd_, (HWND)0), pDev
+      );
+    }
 
-      auto& rb =
-        SK_GetCurrentRenderBackend ();
+    auto& rb =
+      SK_GetCurrentRenderBackend ();
 
-      _d3d12_rbk->drain_queue ();
+    _d3d12_rbk->drain_queue ();
 
-      //  If this SwapChain is the primary one that SK is rendering to,
-      //    then we must teardown our render backend to eliminate internal
-      //      references preventing the SwapChain from being destroyed.
-      if ( rb.swapchain.p == this ||
-           rb.swapchain.p == pReal )
-      {
-        // This is a hard reset, we're going to get a new cmd queue
-        _d3d11_rbk->release (_d3d11_rbk->_pSwapChain);
-        _d3d12_rbk->release (_d3d12_rbk->_pSwapChain);
-        _d3d12_rbk->_pCommandQueue.Release ();
+    //  If this SwapChain is the primary one that SK is rendering to,
+    //    then we must teardown our render backend to eliminate internal
+    //      references preventing the SwapChain from being destroyed.
+    if ( rb.swapchain.p == this ||
+         rb.swapchain.p == pReal )
+    {
+      // This is a hard reset, we're going to get a new cmd queue
+      _d3d11_rbk->release (_d3d11_rbk->_pSwapChain);
+      _d3d12_rbk->release (_d3d12_rbk->_pSwapChain);
+      _d3d12_rbk->_pCommandQueue.Release ();
 
-        rb.releaseOwnedResources ();
-      }
+      rb.releaseOwnedResources ();
     }
   }
 

@@ -1,4 +1,6 @@
-﻿/**
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -675,4 +677,3 @@ void SK_Widget_InitGPUMonitor (void)
 {
   SK_RunOnce (__gpu_monitor__.getPtr ());
 }
-

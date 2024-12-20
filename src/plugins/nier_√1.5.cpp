@@ -1,4 +1,6 @@
-﻿//
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+//
 // Copyright 2021-2024 Andon "Kaldaien" Coleman
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy

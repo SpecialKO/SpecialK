@@ -1,4 +1,6 @@
-﻿/**
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -666,111 +668,56 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::BeginGroup ();
 
       bool bIdleHideChange =
-      ImGui::Checkbox ( "Hide When Not Moved", &config.input.cursor.manage   );
+      ImGui::Checkbox ( "Auto Hide Mouse Cursor", &config.input.cursor.manage   );
+
+      auto button_size =
+        ImGui::GetItemRectSize ();
 
       if ( bIdleHideChange )
         SK_ImGui_Cursor.force = sk_cursor_state::None;
 
       ImVec2 vCursorWidgetPos (0.0f, 0.0f);
 
-      if (config.input.cursor.manage)
+      float seconds =
+        (float)config.input.cursor.timeout  / 1000.0f;
+
+      const float val =
+        config.input.cursor.manage ? 1.0f : 0.0f;
+
+      ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 ( 0.3f,  0.3f,  0.3f,  val));
+      ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 ( 0.6f,  0.6f,  0.6f,  val));
+      ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 ( 0.9f,  0.9f,  0.9f,  val));
+      ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImVec4 ( 1.0f,  1.0f,  1.0f, 1.0f));
+
+      ImGui::BeginDisabled (! config.input.cursor.manage);
+      ImGui::PushItemWidth (button_size.x);
+      if ( ImGui::SliderFloat ("###SecondsBeforeHidingCursor",
+                                 &seconds, 0.0f, 10.0f, "%.2f Second Idle") )
       {
-        ImGui::TreePush   ("");
-        ImGui::BeginGroup (  );
-        ImGui::Checkbox   ( "Keyboard Activates",
-                                            &config.input.cursor.keys_activate );
-        ImGui::Checkbox   ( "Gamepad Deactivates",
-                                      &config.input.cursor.gamepad_deactivates );
-        ImGui::SetItemTooltip
-                          (
-          "Auto-hide the cursor in response to XInput or HID (PlayStation) activity."
-                             );
-        ImGui::EndGroup   (  );
-        ImGui::SameLine   (  );
-        vCursorWidgetPos =
-         ImGui::GetCursorPos();
-        ImGui::TreePop    (  );
+        config.input.cursor.timeout =
+          static_cast <LONG> ( seconds * 1000.0f );
       }
+      ImGui::PopItemWidth( );
+      ImGui::PopStyleColor(4);
 
-      ImGui::EndGroup   ();
-      ImGui::BeginGroup ();
-
-      if (config.input.cursor.manage)
-      {
-        ImGui::SameLine ();
-
-        float seconds =
-          (float)config.input.cursor.timeout  / 1000.0f;
-
-        const float val =
-          config.input.cursor.manage ? 1.0f : 0.0f;
-
-        ImGui::PushStyleColor (ImGuiCol_FrameBg,        ImVec4 ( 0.3f,  0.3f,  0.3f,  val));
-        ImGui::PushStyleColor (ImGuiCol_FrameBgHovered, ImVec4 ( 0.6f,  0.6f,  0.6f,  val));
-        ImGui::PushStyleColor (ImGuiCol_FrameBgActive,  ImVec4 ( 0.9f,  0.9f,  0.9f,  val));
-        ImGui::PushStyleColor (ImGuiCol_SliderGrab,     ImVec4 ( 1.0f,  1.0f,  1.0f, 1.0f));
-
-        if ( ImGui::SliderFloat ( "Seconds Before Hiding",
-                                    &seconds, 0.0f, 10.0f ) )
-        {
-          config.input.cursor.timeout =
-            static_cast <LONG> ( seconds * 1000.0f );
-        }
-
-        ImGui::PopStyleColor  (4);
-        ImGui::SetCursorPos   (vCursorWidgetPos);
-        _CursorBoundaryWidget ( );
-      }
-
-#if 1
+      ImGui::TreePush   ("");
+      ImGui::Checkbox   ( "Gamepad Deactivates",
+                                    &config.input.cursor.gamepad_deactivates );
+      ImGui::SetItemTooltip
+                        (
+        "Auto-hide the cursor in response to XInput or HID (PlayStation) activity."
+                           );
       if (! config.input.cursor.manage)
-      {
-        if (SK_ImGui_Cursor.force == sk_cursor_state::None)
-        {
-          if (! SK_InputUtil_IsHWCursorVisible ())
-          {
-            if (ImGui::Button (" Force Mouse Cursor Visible "))
-            {
-              SK_ImGui_Cursor.force = sk_cursor_state::Visible;
-
-              SK_SendMsgShowCursor (TRUE);
-            }
-          }
-
-          else
-          {
-            if (ImGui::Button (" Force Mouse Cursor Hidden "))
-            {
-              SK_ImGui_Cursor.force = sk_cursor_state::Hidden;
-
-              SK_SendMsgShowCursor (FALSE);
-            }
-          }
-        }
-
-        else
-        {
-          constexpr auto stop_hiding_label  = " Stop Forcing Cursor Hidden ";
-          constexpr auto stop_showing_label = " Stop Forcing Cursor Visible ";
-
-          if ( ImGui::Button ( SK_ImGui_Cursor.force ==
-                                     sk_cursor_state::Hidden ?
-                                           stop_hiding_label :
-                                           stop_showing_label ) )
-          {
-            SK_ImGui_Cursor.force = sk_cursor_state::None;
-          }
-        }
-      }
-#endif
-      ImGui::EndGroup ();
-      ImGui::EndGroup ();
-
-      if (! config.input.cursor.manage)
-      {
-        ImGui::SameLine       ();
-        _CursorBoundaryWidget ();
-      }
+      ImGui::EndDisabled(  );
+      ImGui::SameLine   (  );
+      ImGui::TreePop    (  );
+      ImGui::EndGroup   (  );
+      ImGui::SameLine   (  );
+      ImGui::SeparatorEx(ImGuiSeparatorFlags_Vertical);
+      ImGui::EndGroup   (  );
+      ImGui::SameLine   (  );
+      _CursorBoundaryWidget
+                        (  );
 
 #if 0
       ImGui::BeginGroup    (  );
@@ -796,9 +743,8 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::SameLine      ();
 #endif
 
-      ImGui::Separator     (  );
+      ImGui::SeparatorText ("Mouse Input Capture");
       ImGui::BeginGroup    (  );
-      ImGui::Text          ("Mouse Input Capture");
       ImGui::TreePush      ("");
       if (ImGui::Checkbox  ("Block Mouse Input when Overlay is Visible", &config.input.ui.capture_mouse))
       {
@@ -3146,12 +3092,11 @@ void
 SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
 {
   ImGui::BeginGroup     (  );
-  ImGui::Text           ("Cursor Boundaries");
   if (! window_mgmt)
   {
-    ImGui::SameLine     (0.0f, 15);
-    ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
-    ImGui::SameLine     (0.0f, 15);
+    ImGui::BeginGroup   (  );
+    ImGui::SameLine     (  );
+    ImGui::BeginGroup   (  );
     ImGui::Checkbox     ("Center Cursor on UI", &config.input.ui.center_cursor);
     ImGui::SetItemTooltip
                         ("Move the System Cursor to the center of SK's Control Panel when opening it.");
@@ -3168,7 +3113,56 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
       ImGui::BulletText  ("Normally the cursor will revert back to whatever the game was using when not hovering SK's UI.");
       ImGui::EndTooltip  ( );
     }
+    ImGui::EndGroup     (  );
+    ImGui::SameLine     (0.0f, 15);
+    ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
+    ImGui::SameLine     (0.0f,  7);
+    if (! config.input.cursor.manage)
+    {
+      if (SK_ImGui_Cursor.force == sk_cursor_state::None)
+      {
+        if (! SK_InputUtil_IsHWCursorVisible ())
+        {
+          if (ImGui::Button (" Force Mouse Cursor Visible "))
+          {
+            SK_ImGui_Cursor.force = sk_cursor_state::Visible;
+
+            SK_SendMsgShowCursor (TRUE);
+          }
+        }
+
+        else
+        {
+          if (ImGui::Button (" Force Mouse Cursor Hidden "))
+          {
+            SK_ImGui_Cursor.force = sk_cursor_state::Hidden;
+
+            SK_SendMsgShowCursor (FALSE);
+          }
+        }
+      }
+
+      else
+      {
+        constexpr auto stop_hiding_label  = " Stop Forcing Cursor Hidden ";
+        constexpr auto stop_showing_label = " Stop Forcing Cursor Visible ";
+
+        if ( ImGui::Button ( SK_ImGui_Cursor.force ==
+                                   sk_cursor_state::Hidden ?
+                                         stop_hiding_label :
+                                         stop_showing_label ) )
+        {
+          SK_ImGui_Cursor.force = sk_cursor_state::None;
+        }
+      }
+    }
+    else
+
+    ImGui::Checkbox     ( "Keyboard Activates",
+                         &config.input.cursor.keys_activate );
+    ImGui::EndGroup     (  );
   }
+  ImGui::SeparatorText  ("Cursor Boundaries");
   ImGui::EndGroup       (  );
   ImGui::TreePush       ("");
   

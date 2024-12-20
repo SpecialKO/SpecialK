@@ -1,4 +1,6 @@
-﻿/**
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -1859,34 +1861,34 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       ImGui::SetTooltip ("Changes to Resolution or Refresh on 'Active Monitor'"
                          " will apply to future launches of this game");
 
-  ImGui::EndGroup    ();
+  ImGui::EndGroup     ();
   fWhitePointSliderWidth =
     ImGui::GetItemRectSize ().x;
-  ImGui::EndGroup    ();
-  ImGui::SameLine    ();
-  ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
-  ImGui::SameLine    ();
-  ImGui::BeginGroup  ();
+  ImGui::EndGroup     ();
+  ImGui::SameLine     ();
+  ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
+  ImGui::SameLine     ();
+  ImGui::BeginGroup   ();
 
   static bool restart_required = false;
          bool hovering_rebar   = false;
          bool configure_rebar  = false;
 
-  ImGui::Separator   ();
-  ImGui::BeginGroup  ();
-  ImGui::Text        ("MPO Planes: ");
-  ImGui::Text        ("HW Scheduling: ");
-  ImGui::Text        ("HW Flip Queue: ");
+  ImGui::SeparatorText("WDDM Features");
+  ImGui::BeginGroup   ();
+  ImGui::Text         ("MPO Planes: ");
+  ImGui::Text         ("HW Scheduling: ");
+  ImGui::Text         ("HW Flip Queue: ");
   if (sk::NVAPI::nv_hardware)
   {
-    ImGui::Text      ("Resizable BAR: ");
+    ImGui::Text       ("Resizable BAR: ");
 
     configure_rebar = ImGui::IsItemClicked (ImGuiMouseButton_Right);
     hovering_rebar  = ImGui::IsItemHovered ();
   }
-  ImGui::EndGroup    ();
-  ImGui::SameLine    ();
-  ImGui::BeginGroup  ();
+  ImGui::EndGroup     ();
+  ImGui::SameLine     ();
+  ImGui::BeginGroup   ();
 
   if (display.mpo_planes <= 1)
   {
