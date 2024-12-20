@@ -1,4 +1,10 @@
-﻿24.12.20
+﻿24.12.20.1
+==========
+ + Eliminate unnecessary load of Windows.Gaming.Input.dll in games that do not
+     actually use the API.
+ + Fixed various minor issues discovered using static analysis usin PVS-Studio.
+
+24.12.20
 ========
  + Fixed EOS crash in games using extremely old versions of EOS SDK lacking
      support for EOS_UI_AddNotifyDisplaySettingsUpdated (i.e. Path of Exile 2).
