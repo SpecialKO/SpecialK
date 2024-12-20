@@ -985,15 +985,26 @@ SK::EOS::Init (bool pre_load)
                static_cast_p2p <void> (&EOS_Platform_Release_Original) );
 
 
-    if (                          eos_overlay->AddNotifyDisplaySettingsUpdated_Original == nullptr)
-    SK_CreateDLLHook2 ( wszEOSDLLName, "EOS_UI_AddNotifyDisplaySettingsUpdated",
-                                        EOS_UI_AddNotifyDisplaySettingsUpdated_Detour,
-         static_cast_p2p <void> (&eos_overlay->AddNotifyDisplaySettingsUpdated_Original) );
+    // Some games using an outdated build of EOS SDK will not have these functions,
+    //   check for DLL export before trying to hook.
+    if (SK_GetProcAddress (wszEOSDLLName,"EOS_UI_AddNotifyDisplaySettingsUpdated")        != nullptr) {
+      if (                          eos_overlay->AddNotifyDisplaySettingsUpdated_Original == nullptr)
+      SK_CreateDLLHook2 ( wszEOSDLLName, "EOS_UI_AddNotifyDisplaySettingsUpdated",
+                                          EOS_UI_AddNotifyDisplaySettingsUpdated_Detour,
+           static_cast_p2p <void> (&eos_overlay->AddNotifyDisplaySettingsUpdated_Original) );
+      if (                          eos_overlay->RemoveNotifyDisplaySettingsUpdated_Original == nullptr)
+      SK_CreateDLLHook2 ( wszEOSDLLName, "EOS_UI_RemoveNotifyDisplaySettingsUpdated",
+                                          EOS_UI_RemoveNotifyDisplaySettingsUpdated_Detour,
+           static_cast_p2p <void> (&eos_overlay->RemoveNotifyDisplaySettingsUpdated_Original) );
+    }
 
-    if (                          eos_overlay->RemoveNotifyDisplaySettingsUpdated_Original == nullptr)
-    SK_CreateDLLHook2 ( wszEOSDLLName, "EOS_UI_RemoveNotifyDisplaySettingsUpdated",
-                                        EOS_UI_RemoveNotifyDisplaySettingsUpdated_Detour,
-         static_cast_p2p <void> (&eos_overlay->RemoveNotifyDisplaySettingsUpdated_Original) );
+    else
+    {
+      SK_LOGi0 (
+        L"Game is using a version of EOS SDK much older than Special K expects, if the game crashes "
+        L"consider disabling EOS platform integration. ([Steam.Log] Silent=true)"
+      );
+    }
 
     eos_achievements->GetUnlockedAchievementCount     = (EOS_Achievements_GetUnlockedAchievementCount_pfn)
       SK_GetProcAddress (wszEOSDLLName,                 "EOS_Achievements_GetUnlockedAchievementCount");
@@ -1057,7 +1068,7 @@ SK::EOS::Init (bool pre_load)
       SK_GetProcAddress (wszEOSDLLName,                 "EOS_UI_SetDisplayPreference");
 
 #if 0
-    if (epic->ProductUserId_FromString != nullptr)
+    if (epic->ProductUserId_FromString != nullptr && epic->product_user_id_ == nullptr)
     {
       char                                        szUserId [64] = { };
       if ( const char *pszId = StrStrIA (GetCommandLineA (), "-epicuserid=") ;
@@ -1067,8 +1078,11 @@ SK::EOS::Init (bool pre_load)
         EOS_ProductUserId id =
           epic->ProductUserId_FromString (szUserId);
 
-        epic->product_user_id_ = id;
-
+        if (id != nullptr)
+        {
+          SK_LOGi0 (L"Got Epic Product User ID (%x) by parsing commandline arguments.", id);
+          epic->product_user_id_ = id;
+        }
       }
     }
 #endif
@@ -1078,8 +1092,10 @@ SK::EOS::Init (bool pre_load)
 
   if ((! pre_load) && hModEOS != nullptr)
   {
-    if (SK::EOS::GetTicksRetired () == 0)
-      _SetupEOS ();
+    SK_RunOnce (
+      if (SK::EOS::GetTicksRetired () == 0)
+        _SetupEOS ();
+    );
   }
 
   // Preloading not supported, SK has no EOS Credentials
@@ -1157,14 +1173,20 @@ SK_EOSContext::InitEpicOnlineServices ( HMODULE       hEOSDLL,
 
       if (ui_ != nullptr)
       {
-        EOS_UI_AddNotifyDisplaySettingsUpdatedOptions opts =
-          { EOS_UI_ADDNOTIFYDISPLAYSETTINGSUPDATED_API_LATEST };
+        // There are games (i.e. Path of Exile 2) using a version of the EOS SDK so old
+        //   that this API does not exist, so check that we even have this function
+        //     before we crash!
+        if (eos_overlay->AddNotifyDisplaySettingsUpdated_Original != nullptr)
+        {
+          EOS_UI_AddNotifyDisplaySettingsUpdatedOptions opts =
+            { EOS_UI_ADDNOTIFYDISPLAYSETTINGSUPDATED_API_LATEST };
 
-        SK_RunOnce (
-          eos_overlay->AddNotifyDisplaySettingsUpdated_Original (
-            ui_, &opts, eos_overlay.getPtr (),
-            SK_EOS_UI_OnDisplaySettingsUpdatedCallback_Proxy)
-        );
+          SK_RunOnce (
+            eos_overlay->AddNotifyDisplaySettingsUpdated_Original (
+              ui_, &opts, eos_overlay.getPtr (),
+              SK_EOS_UI_OnDisplaySettingsUpdatedCallback_Proxy)
+          );
+        }
 
         SK_EOS_SetNotifyCorner ();
       }
@@ -1215,6 +1237,12 @@ SK_EOSContext::InitEpicOnlineServices ( HMODULE       hEOSDLL,
 
                 SK::EOS::player.user   = epic->Connect_GetLoggedInUserByIndex (epic->Connect (), 0);
                 epic->product_user_id_ = epic->Connect_GetLoggedInUserByIndex (epic->Connect (), 0);
+
+#ifdef DEBUG
+                SK_LOGi0 (
+                  L"Got Epic Product User ID (%x) via late call to EOS_UserInfo_CopyUserInfo (...).",
+                       epic->product_user_id_ );
+#endif
 
                 epic->UserInfo_Release (pUserInfo);
               }
