@@ -325,13 +325,6 @@ SK_GetCurrentGameID (void)
         current_game = SK_GAME_ID::GodOfWar;
       }
 
-      else if ( StrStrIW ( SK_GetHostApp (), L"ACValhalla" ) )
-      {
-        current_game = SK_GAME_ID::AssassinsCreed_Valhalla;
-
-        SK_ACV_InitPlugin ();
-      }
-
       // Basically, _every single Yakuza game ever_ releases more references than it acquires...
       //   so just assume this is never going to get better and anything with Yakuza in the name
       //     needs help counting.

@@ -569,9 +569,6 @@ extern void BasicInit (void);
     case SK_GAME_ID::Ys_Eight:
       SK_YS8_InitPlugin ();
       break;
-    case SK_GAME_ID::Elex2:
-      SK_ELEX2_InitPlugin ();
-      break;
     case SK_GAME_ID::EldenRing:
       SK_ER_InitPlugin ();
       break;
