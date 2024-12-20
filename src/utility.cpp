@@ -1,7 +1,4 @@
-﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
-// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
-
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -736,11 +733,9 @@ SK_TerminateProcesses (const wchar_t* wszProcName, bool all) noexcept
                               pe32.szExeFile )
        )
     {
-      BOOL SK_TerminatePID (DWORD dwProcessId, UINT uExitCode);
-
       killed |= SK_TerminatePID (pe32.th32ProcessID, 0x0);
 
-      if (!all && killed)
+      if ((! all) && killed)
       {
         return TRUE;
       }
@@ -2020,8 +2015,7 @@ SK_Assert_SameDLLVersion ( const wchar_t* wszTestFile0,
     }
   }
 
-  return (! wszVerStr0.empty ()) &&
-            wszVerStr0._Equal (wszVerStr1);
+  return wszVerStr0._Equal (wszVerStr1);
 };
 
 std::wstring
@@ -2925,6 +2919,9 @@ SK_IsSuperSpecialK (void)
 void
 SK_PathRemoveExtension (wchar_t* wszInOut)
 {
+  if (wszInOut == nullptr)
+    return;
+
   wchar_t *wszEnd  = wszInOut,
           *wszPrev;
 
@@ -5758,12 +5755,9 @@ SK_CharNextA (const char *szInput, int n)
   if (n == 1) [[likely]]
     return CharNextA (szNext);
 
-  if (n >= 2)
+  for ( int i = 0 ; i < n/2 ; ++i )
   {
-    for ( int i = 0 ; i < n/2 ; ++i )
-    {
-      szNext = CharNextA (CharNextA (szNext));
-    }
+    szNext = CharNextA (CharNextA (szNext));
   }
 
   if (n % 2 != 0)

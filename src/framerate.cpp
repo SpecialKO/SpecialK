@@ -926,7 +926,7 @@ SK::Framerate::Init (void)
 
     ULONG                         min,  max,  cur;
     if ( NtQueryTimerResolution (&min, &max, &cur) ==
-           STATUS_SUCCESS  &&  _SetTimerResolution != nullptr )
+           STATUS_SUCCESS )
     {
       dTimerRes =
         static_cast <double> (cur) / 10000.0;
@@ -1129,8 +1129,9 @@ SK_Framerate_WaitForVBlank (void)
     }
   }
 
+#if 1
   return true;
-
+#else
   // D3D10/11/12
   SK_ComQIPtr <IDXGISwapChain>     dxgi_swap (rb.swapchain);
   SK_ComPtr   <IDXGIOutput>        dxgi_output = nullptr;
@@ -1193,8 +1194,8 @@ SK_Framerate_WaitForVBlank (void)
     }
   }
 
-
   return false;
+#endif
 }
 
 void
@@ -1237,9 +1238,11 @@ SK_D3DKMT_WaitForVBlank (void)
 
   SK_Framerate_WaitForVBlank ();
 
+#if 1
   return;
-
+#else
   SK_Framerate_WaitForVBlank2 ();
+#endif
 };
 
 LONG64 __SK_VBlankLatency_QPCycles;
@@ -2154,8 +2157,7 @@ SK::Framerate::Limiter::wait (void)
                         ((qpc_t1.QuadPart - qpc_t0.QuadPart) / ticks_per_scanline) <= _MARGIN)
                     {
                       if (( getScanLine.ScanLine <=                         (_MARGIN/3) ||
-                            getScanLine.ScanLine >= scanlines - ((_MARGIN / (_MARGIN/2)) * _MARGIN) ) &&
-                            getScanLine.InVerticalBlank)
+                            getScanLine.ScanLine >= scanlines - ((_MARGIN / (_MARGIN/2)) * _MARGIN) ))
                       {
                         if (getScanLine.ScanLine < scanline_t0)
                             getScanLine.ScanLine += scanlines;

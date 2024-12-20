@@ -328,6 +328,8 @@ extern void WINAPI  SK_ExitProcess        (       UINT      uExitCode  ) noexcep
 extern void WINAPI  SK_ExitThread         (       DWORD     dwExitCode ) noexcept;
 extern BOOL WINAPI  SK_TerminateThread    (       HANDLE    hThread,
                                                   DWORD     dwExitCode ) noexcept;
+extern BOOL WINAPI  SK_TerminatePID       (       DWORD     dwProcessId,
+                                                  UINT      uExitCode  ) noexcept;
 extern BOOL WINAPI  SK_TerminateProcess   (       HANDLE    hProcess,
                                                   UINT      uExitCode  ) noexcept;
 extern BOOL WINAPI  SK_TerminateProcesses ( const wchar_t*  wszProcName,
@@ -866,7 +868,7 @@ public:
   static bool _3DNOW        (void)          { return CPU_Rep->isAMD_   &&
                                                      CPU_Rep->f_81_EDX_ [31]; }
 
-  static void deferredInit  (void)          { SK_RunOnce (CPU_Rep = std::make_unique <InstructionSet_Internal> ()); }
+  static void deferredInit  (void);
 
 private:
   static std::unique_ptr <InstructionSet_Internal> CPU_Rep;

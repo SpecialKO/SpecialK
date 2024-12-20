@@ -323,118 +323,7 @@ public:
   {
   }
 
-  void Activate (void)
-  {
-    std::scoped_lock <SK_Thread_HybridSpinlock> lock0 (activation_lock_);
-
-    try
-    {
-      SK_ComPtr <IMMDeviceEnumerator> pDevEnum;
-
-      ThrowIfFailed (
-        pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
-
-      SK_RunOnce (
-        pDevEnum->RegisterEndpointNotificationCallback (this)
-      );
-
-      SK_ComPtr <IMMDeviceCollection>                                dev_collection;
-      ThrowIfFailed (
-        pDevEnum->EnumAudioEndpoints (eRender, DEVICE_STATE_ACTIVE, &dev_collection.p));
-
-      if (dev_collection.p != nullptr)
-      {
-        UINT                         uiDevices = 0;
-        ThrowIfFailed (
-          dev_collection->GetCount (&uiDevices));
-
-        for ( UINT i = 0 ; i < uiDevices ; ++i )
-        {
-          SK_MMDev_Endpoint endpoint;
-
-          SK_ComPtr <IMMDevice>       pDevice;
-          ThrowIfFailed (
-            dev_collection->Item (i, &pDevice.p));
-
-          if (pDevice.p != nullptr)
-          {
-            wchar_t*           wszId = nullptr;
-            ThrowIfFailed (
-              pDevice->GetId (&wszId));
-
-            auto _FindRenderDevice = [&](const wchar_t *device_id) -> SK_MMDev_Endpoint *
-            {
-              for ( auto& device : render_devices_ )
-              {
-                if (device.id_._Equal (device_id))
-                  return &device;
-              }
-
-              return nullptr;
-            };
-
-            if (wszId != nullptr && !_FindRenderDevice (wszId))
-            {
-              SK_ComPtr <IPropertyStore>                props;
-              ThrowIfFailed (
-                pDevice->OpenPropertyStore (STGM_READ, &props.p));
-
-              if (props.p != nullptr)
-              {
-                PROPVARIANT       propvarName;
-                PropVariantInit (&propvarName);
-
-                ThrowIfFailed (
-                  props->GetValue (PKEY_Device_FriendlyName, &propvarName));
-
-                endpoint.flow_   = eRender;
-                endpoint.id_     = wszId;
-                endpoint.name_   = SK_WideCharToUTF8 (propvarName.pwszVal);
-                endpoint.device_ = pDevice;
-
-                ThrowIfFailed (
-                  pDevice->GetState (&endpoint.state_));
-
-                PropVariantClear (&propvarName);
-
-                if (FAILED (pDevice->Activate (
-                    __uuidof (IAudioSessionManager2),
-                      CLSCTX_ALL,
-                        nullptr,
-                          reinterpret_cast <void **>(&endpoint.control_.sessions)
-                   )       )                  ) return;
-
-                endpoint.control_.meter.Attach (
-                  SK_WASAPI_GetAudioMeterInfo (pDevice).Detach ()
-                );
-
-                endpoint.control_.volume.Attach       (SK_MMDev_GetEndpointVolumeControl (pDevice).Detach ());
-                endpoint.control_.auto_gain.Attach    (SK_MMDev_GetAutoGainControl       (pDevice).Detach ());
-                endpoint.control_.loudness.    Attach (SK_MMDev_GetLoudness              (pDevice).Detach ());
-                endpoint.control_.audio_client.Attach (SK_WASAPI_GetAudioClient          (pDevice).Detach ());
-
-                endpoint.control_.sessions->RegisterSessionNotification (&endpoint);
-
-                render_devices_.emplace_back (endpoint);
-              }
-
-              CoTaskMemFree (wszId);
-            }
-          }
-        }
-      }
-      //pDevEnum->EnumAudioEndpoints (eCapture, DEVICE_STATEMASK_ALL, &dev_collection.p);
-    }
-
-    catch (const std::exception& e)
-    {
-      SK_LOG0 ( ( L"%ws (...) Failed "
-                  L"During Endpoint Enumeration : %hs", __FUNCTIONW__, e.what ()
-                ),L"  WASAPI  " );
-
-      return;
-    }
-  }
+  void Activate (void);
 
   bool initAudioPolicyConfigFactory (void)
   {
@@ -1073,29 +962,8 @@ protected:
       inactive_sessions_.view.clear ();
   }
 
-  void AddSession (SK_WASAPI_AudioSession *pSession, AudioSessionState state)
-  {
-    bool new_session =
-      sessions_.emplace (pSession).second;
-
-    SK_ReleaseAssert (new_session);
-
-    SetSessionState (pSession, state);
-  }
-
-  void RemoveSession (SK_WASAPI_AudioSession* pSession)
-  {
-    if (! pSession)
-      return;
-
-    SetSessionState (pSession, AudioSessionStateExpired);
-
-    if (sessions_.count (pSession))
-    {
-      sessions_.erase   (pSession);
-      pSession->Release ();
-    }
-  }
+  void AddSession    (SK_WASAPI_AudioSession *pSession, AudioSessionState state);
+  void RemoveSession (SK_WASAPI_AudioSession *pSession);
 
 private:
   std::set <SK_WASAPI_AudioSession*> sessions_;

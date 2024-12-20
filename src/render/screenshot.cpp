@@ -855,7 +855,7 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
   uint32_t height = sk::narrow_cast <uint32_t> (metadata.height);
 
   int             bit_depth  = 10;
-  avifPixelFormat yuv_format = AVIF_PIXEL_FORMAT_YUV444;
+  avifPixelFormat yuv_format = AVIF_PIXEL_FORMAT_NONE;
 
   switch (config.screenshots.avif.yuv_subsampling)
   {
@@ -990,7 +990,7 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
     encoder =
       SK_avifEncoderCreate ();
 
-    if (encoder != nullptr)
+    if (encoder != nullptr && image != nullptr)
     {
       encoder->quality         = std::clamp (config.screenshots.compression_quality, AVIF_QUALITY_WORST, AVIF_QUALITY_BEST);
       encoder->qualityAlpha    = std::clamp (config.screenshots.compression_quality, AVIF_QUALITY_WORST, AVIF_QUALITY_BEST);
@@ -999,8 +999,7 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
       encoder->maxThreads      = config.screenshots.avif.max_threads;
       encoder->speed           = config.screenshots.avif.compression_speed;
       encoder->minQuantizer    = AVIF_QUANTIZER_BEST_QUALITY;
-      encoder->maxQuantizer    = encoder->quality == AVIF_QUALITY_LOSSLESS ? AVIF_QUANTIZER_LOSSLESS :
-          (int)((100.0f - (float)encoder->quality) * 63.0f);
+      encoder->maxQuantizer    = AVIF_QUANTIZER_WORST_QUALITY;
       encoder->codecChoice     = AVIF_CODEC_CHOICE_AUTO;
 
       image->clli.maxCLL  = max_cll;
@@ -1018,7 +1017,7 @@ SK_Screenshot_SaveAVIF (DirectX::ScratchImage &src_image, const wchar_t *wszFile
     SK_LOGi0 (L"rgbToYUV: %d, addImage: %d, encode: %d", rgbToYuvResult, addResult, encodeResult);
   }
 
-  if (encodeResult == AVIF_RESULT_OK)
+  if (encodeResult == AVIF_RESULT_OK && avifOutput.data != nullptr)
   {
     wchar_t    wszAVIFPath [MAX_PATH + 2] = { };
     wcsncpy_s (wszAVIFPath, wszFilePath, MAX_PATH);
@@ -1519,7 +1518,7 @@ SK_WIC_SetBasicMetadata (IWICMetadataQueryWriter *pMQW)
 
     if (*szName != '\0')
     {
-      char* names [] = { szName };
+      static char* names [] = { szName };
 
       value.vt             = VT_VECTOR | VT_LPSTR;
       value.calpstr.cElems = 1;
@@ -2327,9 +2326,7 @@ SK_Image_DispatchTonemapJobs (std::vector <parallel_tonemap_job_s>& jobs)
               Rec709toICtCp (value);
 
             float Y_in  = std::max (XMVectorGetX (ICtCp), 0.0f);
-            float Y_out = 1.0f;
-
-            Y_out =
+            float Y_out =
               TonemapHDR (Y_in, pJob->maxYInPQ, pJob->SDR_YInPQ);
 
             if (Y_out + Y_in > 0.0f)
@@ -2388,15 +2385,18 @@ SK_Image_EnqueueTonemapTask ( DirectX::ScratchImage&                image,
                               float                                 maxLuminance,
                               float                                 sdrLuminance)
 {
+  const auto& metadata =
+    image.GetMetadata ();
+
   for ( auto i = 0; i < config.screenshots.avif.max_threads; ++i )
   {
-    size_t iStartRow = (image.GetMetadata ().height / config.screenshots.avif.max_threads) * i;
-    size_t iEndRow   = (image.GetMetadata ().height / config.screenshots.avif.max_threads) * (i + 1);
+    size_t iStartRow = (metadata.height / config.screenshots.avif.max_threads) * i;
+    size_t iEndRow   = (metadata.height / config.screenshots.avif.max_threads) * (i + 1);
 
     jobs [i].pFirstPixel =
-      &pixels [iStartRow * image.GetMetadata ().width];
+      &pixels [iStartRow * metadata.width];
     jobs [i].pLastPixel  =
-      &pixels [iEndRow   * image.GetMetadata ().width - 1];
+      &pixels [iEndRow   * metadata.width - 1];
 
     jobs [i].maxYInPQ    = maxLuminance;
     jobs [i].SDR_YInPQ   = sdrLuminance;
@@ -2790,7 +2790,7 @@ SK_Screenshot_SaveUHDR (const DirectX::Image& image, const DirectX::Image& sdr_i
       //sk_uhdr_get_decoded_image
       //sk_uhdr_get_gain_map_image (decoder)
 
-      auto metadata =
+      const auto metadata =
         sk_uhdr_dec_get_gain_map_metadata (decoder);
 
       SK_LOGi0 (L"UltraHDR Min/Max Content Boost: %fx / %fx", metadata->min_content_boost, metadata->max_content_boost);

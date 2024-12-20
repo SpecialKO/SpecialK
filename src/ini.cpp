@@ -342,7 +342,7 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 {
   encoding_ = INI_UTF8;
 
-  AddRef ();
+  this->iSK_INI::AddRef ();
 
   SK_ReleaseAssert (
           filename != nullptr);
@@ -361,13 +361,13 @@ iSK_INI::iSK_INI (const wchar_t* filename)
 
   SK_StripTrailingSlashesW (name.data ());
 
-  reload ();
+  this->iSK_INI::reload ();
 }
 
 iSK_INI::~iSK_INI (void)
 {
   ULONG refs =
-    Release ();
+    this->iSK_INI::Release ();
 
   SK_ReleaseAssert (refs == 0); // Memory leak?
 
@@ -409,6 +409,12 @@ Process_Section ( iSK_INISection  &kSection,
                          wchar_t  *end,
                          SK_TLS  **ppTLS      = nullptr )
 {
+  if (start == nullptr || end == nullptr)
+  {
+    static iSK_INISection nul_section = {};
+    return                nul_section;
+  }
+
   SK_TLS *pTLS = nullptr;
 
   if (   ppTLS != nullptr &&
@@ -490,6 +496,9 @@ Import_Section ( iSK_INISection  &section,
                         wchar_t  *end,
                          SK_TLS **ppTLS = nullptr )
 {
+  if (start == nullptr || end == nullptr)
+    return false;
+
   SK_TLS *pTLS = nullptr;
 
   if (   ppTLS != nullptr &&
@@ -640,7 +649,7 @@ iSK_INI::parse (void)
       else break;
     }
 
-    if (SK_CharNextW (pNext) != nullptr)
+    if (SK_CharNextW (pNext) != nullptr && pEnd != nullptr)
     {
       ZeroMemory (pEnd, (SK_CharNextW (pNext) - pEnd) *
                                        sizeof (*pEnd));
@@ -841,7 +850,7 @@ iSK_INI::import (const wchar_t* import_data)
       else break;
     }
 
-    if (SK_CharNextW (pNext) != nullptr)
+    if (SK_CharNextW (pNext) != nullptr && pEnd != nullptr)
     {
       ZeroMemory (pEnd, (SK_CharNextW (pNext) - pEnd) *
                                        sizeof (*pEnd));
@@ -1150,7 +1159,7 @@ __stdcall
 iSK_INISection::add_key_value (const std::wstring& key, const std::wstring& value)
 {
   const auto add =
-    keys.emplace (std::make_pair (key, value));
+    keys.try_emplace (key, value);
 
   if (add.second)
   {

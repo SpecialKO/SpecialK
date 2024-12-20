@@ -1454,7 +1454,8 @@ CBTProc ( _In_ int    nCode,
 }
 
 BOOL
-SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode )
+WINAPI
+SK_TerminatePID ( DWORD dwProcessId, UINT uExitCode ) noexcept
 {
   SK_AutoHandle hProcess (
     OpenProcess ( PROCESS_TERMINATE, FALSE, dwProcessId )
