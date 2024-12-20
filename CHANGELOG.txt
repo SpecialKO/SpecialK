@@ -1,4 +1,11 @@
-﻿24.12.19.4
+﻿24.12.20
+========
+ + Fixed EOS crash in games using extremely old versions of EOS SDK lacking
+     support for EOS_UI_AddNotifyDisplaySettingsUpdated (i.e. Path of Exile 2).
+ + Add mutex to SK_IWrapD3D11DeviceContext::Release (...) to handle recursion
+     during deferred destruction of D3D11 Immediate Device Context singleton.
+
+24.12.19.4
 ==========
  + Fix DualShock 4 Bluetooth analog stick problems caused by typo in 24.12.19.2
 

@@ -594,46 +594,55 @@ public:
 
     if (refs == 1 && !deferred_) // Immediate contexts are a singleton
     {
-      SK_LOGi1 (
-        L"Starting deferred object cleanup on wrapped D3D11 Immediate Context"
-      );
+      if (InterlockedIncrement (&dtor_recursion_) == 0)
+      {
+        SK_LOGi1 (
+          L"Starting deferred object cleanup on wrapped D3D11 Immediate Context"
+        );
 
-      //
-      // Force any pending object destruction to happen immediately,
-      //   the parent device may have a circular dependency on the wrapped
-      //     device context and we need to cleanup device resources.
-      //
-      // * This deferred object destruction is only problematic in 32-bit.
-      //
-      pReal->ClearState ();
-      pReal->Flush      ();
+        //
+        // Force any pending object destruction to happen immediately,
+        //   the parent device may have a circular dependency on the wrapped
+        //     device context and we need to cleanup device resources.
+        //
+        // * This deferred object destruction is only problematic in 32-bit.
+        //
+        pReal->ClearState ();
+        pReal->Flush      ();
 
-      SK_ComPtr <ID3D11Device> pDevice;
-      pReal->GetDevice       (&pDevice.p);
+        SK_ComPtr <ID3D11Device>       pDevice;
+        pReal->GetDevice             (&pDevice.p);
+        SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Vertex);
+        SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Pixel);
+        SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Geometry);
+        SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Domain);
+        SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Hull);
+        SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Compute);
 
-      SK_D3D11_ReleaseCachedShaders       (pDevice.p, sk_shader_class::Vertex);
-      SK_D3D11_ReleaseCachedShaders       (pDevice.p, sk_shader_class::Pixel);
-      SK_D3D11_ReleaseCachedShaders       (pDevice.p, sk_shader_class::Geometry);
-      SK_D3D11_ReleaseCachedShaders       (pDevice.p, sk_shader_class::Domain);
-      SK_D3D11_ReleaseCachedShaders       (pDevice.p, sk_shader_class::Hull);
-      SK_D3D11_ReleaseCachedShaders       (pDevice.p, sk_shader_class::Compute);
+        //
+        // Here is where the potential problems begin, this releases the final reference
+        //   but may add a temporary reference and we take a trip back through this Release (...)
+        //     function with the same refcount and then deadlock on an SRWLock that
+        //       SetPrivateDataInterface (...) already acquired.
+        //
+        //  * The dtor_recursion interlocked check above avoids the problem and D3D can safely
+        //      remove the PrivateDataInterface and continue with object destruction.
+        //
+        SK_D3D11_SetWrappedImmediateContext (pDevice, nullptr);
+        SK_DXGI_ReportLiveObjects           (pDevice);
 
-      // This prevents Ys X from exiting, be mindful of this in other games.
-      if (SK_GetCurrentGameID () != SK_GAME_ID::YsX)
-      SK_D3D11_SetWrappedImmediateContext (pDevice, nullptr);
-      SK_DXGI_ReportLiveObjects           (pDevice);
+        SK_TLS *pTLS =
+          SK_TLS_Bottom ();
+        
+        // Release DXTex memory pools
+        if (pTLS != nullptr)
+            pTLS->dxtex.Cleanup (Periodic);
 
-      SK_TLS *pTLS =
-        SK_TLS_Bottom ();
-      
-      // Release DXTex memory pools
-      if (pTLS != nullptr)
-          pTLS->dxtex.Cleanup (Periodic);
-
-      SK_ComQIPtr <IDXGIDevice3>
-          pDXGIDevice3 (pDevice);
-      if (pDXGIDevice3 != nullptr)
-          pDXGIDevice3->Trim ();
+        SK_ComQIPtr <IDXGIDevice3>
+            pDXGIDevice3 (pDevice);
+        if (pDXGIDevice3 != nullptr)
+            pDXGIDevice3->Trim ();
+      }
     }
 
     return refs;
@@ -3000,6 +3009,12 @@ private:
   UINT                      dev_ctx_handle_ = UINT_MAX;
   ID3D11DeviceContext*      pReal           = nullptr;
   D3D11_DEVICE_CONTEXT_TYPE type_           = D3D11_DEVICE_CONTEXT_IMMEDIATE;
+
+  // Avoid problems caused by releasing a private data interface that
+  //   may have cyclical references back to device context, causing a
+  //     reference to be added temporarily and then removed during
+  //       destruction...
+  volatile LONG             dtor_recursion_ = 0;
   ///SK_ComPtr
   ///  <SK_IWrapD3D11Multithread>
   ///                      pMultiThread    = nullptr;
