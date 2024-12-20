@@ -161,7 +161,7 @@ public:
   bool try_lock (void) noexcept
   {
     return
-      TryEnterCriticalSection (cs_) == TRUE;
+      TryEnterCriticalSection (cs_) != FALSE;
   }
 
 protected:

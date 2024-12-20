@@ -20,7 +20,7 @@
 **/
 #pragma once
 
-#define SK_MAX_THREAD_NAME_LEN MAX_PATH*2
+#define SK_MAX_THREAD_NAME_LEN ((MAX_PATH)*2)
 
 // Useless warning:  'typedef ': ignored on left of '' when no variable is declared
 #pragma warning (disable: 4091)

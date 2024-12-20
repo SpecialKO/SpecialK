@@ -438,8 +438,8 @@ public:
 
   bool initAudioPolicyConfigFactory (void)
   {
-    static const wchar_t* name = L"Windows.Media.Internal.AudioPolicyConfig";
-           const UINT32   len  = (UINT32)wcslen (name);
+    const wchar_t* name = L"Windows.Media.Internal.AudioPolicyConfig";
+    const UINT32   len  = (UINT32)wcslen (name);
 
     HSTRING        hClassName = nullptr;
     HSTRING_HEADER header;
@@ -626,7 +626,6 @@ public:
               {
                 if (pent.th32ProcessID == proc_id)
                 {
-                  *szTitle = '\0';
                   strncat (szTitle, pent.szExeFile, 511);
                   break;
                 }
@@ -1008,39 +1007,12 @@ public:
     SK_WASAPI_EndPointMgr->Activate ();
   }
 
-  SK_IAudioMeterInformation getMeterInfo (void)
-  {
-    static SK_ComPtr <IMMDeviceEnumerator>
-        pDevEnum;
-    if (pDevEnum == nullptr)
-    {
-      if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
-        return nullptr;
-    }
-
-    // Most game audio a user will not want to hear while a game is in the
-    //   background will pass through eConsole.
-    //
-    //   eCommunication will be headset stuff and that's something a user is not
-    //     going to appreciate having muted :) Consider overloading this function
-    //       to allow independent control.
-    //
-    SK_ComPtr <IMMDevice> pDefaultDevice;
-    if ( FAILED (
-           pDevEnum->GetDefaultAudioEndpoint ( eRender,
-                                                 eMultimedia,
-                                                   &pDefaultDevice )
-                )
-       ) return nullptr;
-
-    return
-      SK_WASAPI_GetAudioMeterInfo (pDefaultDevice);
-  }
+  SK_IAudioMeterInformation getMeterInfo (void);
 
   SK_WASAPI_AudioSession** getActive   (int* pCount = nullptr) noexcept
   {
     if (pCount)
-      *pCount = (int)active_sessions_.view.size ();
+      *pCount = static_cast <int> (active_sessions_.view.size ());
 
     return active_sessions_.view.data ();
   }

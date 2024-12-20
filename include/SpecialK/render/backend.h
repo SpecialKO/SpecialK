@@ -255,11 +255,11 @@ public:
     SK_WDDM_CAPS          wddm_caps            = { };
                                                
     struct {                                   
-      bool                enabled              = false;
-      bool                supported            = false;
       float               white_level          = 80.0f;
       DISPLAYCONFIG_COLOR_ENCODING             
                           encoding             = DISPLAYCONFIG_COLOR_ENCODING_RGB;
+      bool                enabled              = false;
+      bool                supported            = false;
       bool                applied_sdr_white    = false;
     } hdr;                                     
     bool                  attached             = false;

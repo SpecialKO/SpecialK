@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -97,10 +97,7 @@ public:
     Achievement (int idx,                     EOS_Achievements_DefinitionV2* def);
 
      Achievement (const Achievement& copy) = delete;
-
-    ~Achievement (void)
-    {
-    }
+    ~Achievement (void)                    = delete;
 
     void update (ISteamUserStats* stats)
     {

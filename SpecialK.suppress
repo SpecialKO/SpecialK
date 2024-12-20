@@ -8,10 +8,11 @@
             <xs:complexType>
               <xs:sequence>
                 <xs:element name="CurrentVersion" type="xs:int" minOccurs="0" />
+                <xs:element name="IsPrimary" type="xs:boolean" minOccurs="0" />
               </xs:sequence>
             </xs:complexType>
           </xs:element>
-          <xs:element name="Table1">
+          <xs:element name="SpecialK" msdata:CaseSensitive="False">
             <xs:complexType>
               <xs:sequence>
                 <xs:element name="FileName" type="xs:string" default="" />
@@ -26,7 +27,7 @@
         </xs:choice>
       </xs:complexType>
       <xs:unique name="Constraint1" msdata:PrimaryKey="true">
-        <xs:selector xpath=".//Table1" />
+        <xs:selector xpath=".//SpecialK" />
         <xs:field xpath="FileName" />
         <xs:field xpath="ErrorCode" />
         <xs:field xpath="Message" />
@@ -37,598 +38,599 @@
     </xs:element>
   </xs:schema>
   <SuppressVersion>
-    <CurrentVersion>2</CurrentVersion>
+    <CurrentVersion>3</CurrentVersion>
+    <IsPrimary>false</IsPrimary>
   </SuppressVersion>
-  <Table1>
-    <FileName>debug_utils.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: ...FlagGroup [_];.</Message>
-    <CodePrev>123</CodePrev>
-    <CodeCurrent>13706473</CodeCurrent>
-    <CodeNext>113033</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>window.h</FileName>
-    <ErrorCode>V3515</ErrorCode>
-    <Message>All integer constants of unsigned type should have 'U' suffix.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>76424342</CodeCurrent>
-    <CodeNext>3481801062</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>com_util.cpp</FileName>
-    <ErrorCode>V3515</ErrorCode>
-    <Message>All integer constants of unsigned type should have 'U' suffix.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>5301385</CodeCurrent>
-    <CodeNext>2313359</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>sound.h</FileName>
-    <ErrorCode>V3511</ErrorCode>
-    <Message>The 'if' ... 'else if' construct should be terminated with an 'else' statement.</Message>
-    <CodePrev>3478990212</CodePrev>
-    <CodeCurrent>1507360379</CodeCurrent>
-    <CodeNext>3479015812</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>debug_utils.h</FileName>
-    <ErrorCode>V802</ErrorCode>
-    <Message>On _-bit platform, structure size can be reduced from _ to _ bytes by rearranging the fields according to their sizes in decreasing order.</Message>
-    <CodePrev>1907953360</CodePrev>
-    <CodeCurrent>123</CodeCurrent>
-    <CodeNext>14801337</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>utility.h</FileName>
-    <ErrorCode>V3501</ErrorCode>
-    <Message>Octal constant '_' should not be used.</Message>
-    <CodePrev>43</CodePrev>
-    <CodeCurrent>16759791</CodeCurrent>
-    <CodeNext>879</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>utility.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: std::bitset &lt;_&gt; f___ECX_;.</Message>
-    <CodePrev>72909</CodePrev>
-    <CodeCurrent>728950157</CodeCurrent>
-    <CodeNext>728950197</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>screenshot.h</FileName>
-    <ErrorCode>V3509</ErrorCode>
-    <Message>Unions should not be used.</Message>
-    <CodePrev>123</CodePrev>
-    <CodeCurrent>1332</CodeCurrent>
-    <CodeNext>123</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>backend.h</FileName>
-    <ErrorCode>V703</ErrorCode>
-    <Message>It is odd that the 'isMonxvYCC_Capable' field in derived class 'SK_Signal_HDMI' overwrites field in base class 'SK_SignalTransport'. Check lines: backend.h:_, backend.h:_.</Message>
-    <CodePrev>4286630476</CodePrev>
-    <CodeCurrent>4286642764</CodeCurrent>
-    <CodeNext>46135977</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>backend.h</FileName>
-    <ErrorCode>V703</ErrorCode>
-    <Message>It is odd that the 'isMonsYCC_Capable' field in derived class 'SK_Signal_HDMI' overwrites field in base class 'SK_SignalTransport'. Check lines: backend.h:_, backend.h:_.</Message>
-    <CodePrev>46135977</CodePrev>
-    <CodeCurrent>4292725331</CodeCurrent>
-    <CodeNext>4288400118</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>backend.h</FileName>
-    <ErrorCode>V703</ErrorCode>
-    <Message>It is odd that the 'isMonAdobeYCC_Capable' field in derived class 'SK_Signal_HDMI' overwrites field in base class 'SK_SignalTransport'. Check lines: backend.h:_, backend.h:_.</Message>
-    <CodePrev>4292725331</CodePrev>
-    <CodeCurrent>4288400118</CodeCurrent>
-    <CodeNext>4294147660</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>backend.h</FileName>
-    <ErrorCode>V703</ErrorCode>
-    <Message>It is odd that the 'isMonAdobeRGBCapable' field in derived class 'SK_Signal_HDMI' overwrites field in base class 'SK_SignalTransport'. Check lines: backend.h:_, backend.h:_.</Message>
-    <CodePrev>4288400118</CodePrev>
-    <CodeCurrent>4294147660</CodeCurrent>
-    <CodeNext>3989580059</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'far_gi_workgroups'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>3286675560</CodeCurrent>
-    <CodeNext>2140692</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'far_gi_min_light_extent'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>4076215292</CodeCurrent>
-    <CodeNext>2140692</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'far_uncap_fps'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>65184858</CodeCurrent>
-    <CodeNext>4279500</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'far_fastload'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>2481111658</CodeCurrent>
-    <CodeNext>4279500</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'far_rtss_warned'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>1407447144</CodeCurrent>
-    <CodeNext>68573052</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'far_osd_disclaimer'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>1944739010</CodeCurrent>
-    <CodeNext>66768</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'far_accepted_license'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>62921635</CodeCurrent>
-    <CodeNext>533012</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'far_bloom_width'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>3018061515</CodeCurrent>
-    <CodeNext>2140692</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'far_bloom_disable'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>3823548801</CodeCurrent>
-    <CodeNext>2140692</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'far_bloom_skip'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>1407347635</CodeCurrent>
-    <CodeNext>4271756</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'far_fix_motion_blur'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>3019085487</CodeCurrent>
-    <CodeNext>4271756</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'far_ao_disable'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>3823266401</CodeCurrent>
-    <CodeNext>2140692</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'far_ao_width'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>3017982515</CodeCurrent>
-    <CodeNext>2140692</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'far_ao_height'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>870491645</CodeCurrent>
-    <CodeNext>2140692</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>nier.cpp</FileName>
-    <ErrorCode>V522</ErrorCode>
-    <Message>There might be dereferencing of a potential null pointer 'ret'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>3017149831</CodeCurrent>
-    <CodeNext>0</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>sound.cpp</FileName>
-    <ErrorCode>V126</ErrorCode>
-    <Message>Be advised that the size of the type 'long' varies between LLP_/LP_ data models.</Message>
-    <CodePrev>123</CodePrev>
-    <CodeCurrent>580011500</CodeCurrent>
-    <CodeNext>123</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>io_monitor.cpp</FileName>
-    <ErrorCode>V126</ErrorCode>
-    <Message>Be advised that the size of the type 'long' varies between LLP_/LP_ data models.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>148391</CodeCurrent>
-    <CodeNext>22071445</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>io_monitor.cpp</FileName>
-    <ErrorCode>V126</ErrorCode>
-    <Message>Be advised that the size of the type 'long' varies between LLP_/LP_ data models.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>148391</CodeCurrent>
-    <CodeNext>44145301</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>dxgi_backend.h</FileName>
-    <ErrorCode>V202</ErrorCode>
-    <Message>Explicit conversion from memsize type to _-bit integer type: static_cast&lt; UINT &gt; (kName.size())</Message>
-    <CodePrev>123</CodePrev>
-    <CodeCurrent>3394563967</CodeCurrent>
-    <CodeNext>3680170855</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>file.cpp</FileName>
-    <ErrorCode>V121</ErrorCode>
-    <Message>Implicit conversion of the type of 'new' operator's argument to size_t type.</Message>
-    <CodePrev>1750813329</CodePrev>
-    <CodeCurrent>3812624690</CodeCurrent>
-    <CodeNext>0</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>cpu.cpp</FileName>
-    <ErrorCode>V202</ErrorCode>
-    <Message>Explicit conversion from memsize type to _-bit integer type.</Message>
-    <CodePrev>617749</CodePrev>
-    <CodeCurrent>1934876823</CodeCurrent>
-    <CodeNext>0</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>cpu.cpp</FileName>
-    <ErrorCode>V106</ErrorCode>
-    <Message>Implicit type conversion first argument 'len' of function 'malloc' to memsize type.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>2446304889</CodeCurrent>
-    <CodeNext>0</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>cpu.cpp</FileName>
-    <ErrorCode>V547</ErrorCode>
-    <Message>Expression 'pLogProcInfo != nullptr' is always false.</Message>
-    <CodePrev>74061967</CodePrev>
-    <CodeCurrent>1235785375</CodeCurrent>
-    <CodeNext>125</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>cpu.cpp</FileName>
-    <ErrorCode>V104</ErrorCode>
-    <Message>Implicit conversion of 'dwNeededBytes' to memsize type in an arithmetic expression.</Message>
-    <CodePrev>3682495</CodePrev>
-    <CodeCurrent>127877584</CodeCurrent>
-    <CodeNext>123</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>cfg_compatibility.cpp</FileName>
-    <ErrorCode>V126</ErrorCode>
-    <Message>Be advised that the size of the type 'long' varies between LLP_/LP_ data models.</Message>
-    <CodePrev>2156274515</CodePrev>
-    <CodeCurrent>1878572109</CodeCurrent>
-    <CodeNext>230473870</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>d3d11_devctx_wrapped.cpp</FileName>
-    <ErrorCode>V547</ErrorCode>
-    <Message>Expression 'xrefs == _' is always false.</Message>
-    <CodePrev>341319884</CodePrev>
-    <CodeCurrent>3170002416</CodeCurrent>
-    <CodeNext>125</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>dxgi.cpp</FileName>
-    <ErrorCode>V595</ErrorCode>
-    <Message>The 'pDesc' pointer was utilized before it was verified against nullptr. Check lines: _, _.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>165867353</CodeCurrent>
-    <CodeNext>959364588</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>com_util.h</FileName>
-    <ErrorCode>V3545</ErrorCode>
-    <Message>Operands of the '!' operator should have bool essential type.</Message>
-    <CodePrev>123</CodePrev>
-    <CodeCurrent>250353921</CodeCurrent>
-    <CodeNext>22275</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>com_util.h</FileName>
-    <ErrorCode>V3545</ErrorCode>
-    <Message>Operands of the '||' operator should have bool essential type.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>1776704764</CodeCurrent>
-    <CodeNext>2080120265</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>tls.h</FileName>
-    <ErrorCode>V3546</ErrorCode>
-    <Message>Conversions between pointers and integer types should not be performed. Consider inspecting the expression: 'reinterpret_cast&lt; HWND &gt; (- _)'.</Message>
-    <CodePrev>0</CodePrev>
-    <CodeCurrent>1883768256</CodeCurrent>
-    <CodeNext>1883896348</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>tls.h</FileName>
-    <ErrorCode>V3546</ErrorCode>
-    <Message>Conversions between pointers and integer types should not be performed. Consider inspecting the expression: 'reinterpret_cast&lt; HWND &gt; (- _)'.</Message>
-    <CodePrev>1883768256</CodePrev>
-    <CodeCurrent>1883896348</CodeCurrent>
-    <CodeNext>122229</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>lazy_global.h</FileName>
-    <ErrorCode>V3546</ErrorCode>
-    <Message>Instantiation of SK_LazyGlobal &lt; SK_ModuleAddrMap &gt;: Pointer to void should not be converted to a pointer to object.</Message>
-    <CodePrev>140647004</CodePrev>
-    <CodeCurrent>43029306</CodeCurrent>
-    <CodeNext>1007894832</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>debug_utils.h</FileName>
-    <ErrorCode>V117</ErrorCode>
-    <Message>Memsize type is used in the union.</Message>
-    <CodePrev>123</CodePrev>
-    <CodeCurrent>558343585</CodeCurrent>
-    <CodeNext>3030</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>debug_utils.h</FileName>
-    <ErrorCode>V117</ErrorCode>
-    <Message>Memsize type is used in the union.</Message>
-    <CodePrev>1712943</CodePrev>
-    <CodeCurrent>115376533</CodeCurrent>
-    <CodeNext>193</CodeNext>
-  </Table1>
-  <Table1>
+  <SpecialK>
     <FileName>backend.h</FileName>
     <ErrorCode>V703</ErrorCode>
     <Message>It is odd that the 'isMonxvYCC_Capable' field in derived class 'SK_Signal_HDMI' overwrites field in base class 'SK_SignalTransport'. Check lines: backend.h:_, backend.h:_.</Message>
     <CodePrev>4293678668</CodePrev>
     <CodeCurrent>4286630476</CodeCurrent>
     <CodeNext>4286642764</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>core.h</FileName>
-    <ErrorCode>V3546</ErrorCode>
-    <Message>Conversions between pointers and integer types should not be performed. Consider inspecting the expression: '(HWND) - _'.</Message>
-    <CodePrev>254868898</CodePrev>
-    <CodeCurrent>1755297290</CodeCurrent>
-    <CodeNext>0</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>dxgi_swapchain.cpp</FileName>
-    <ErrorCode>V3546</ErrorCode>
-    <Message>Conversions between pointers and integer types should not be performed. Consider inspecting the expression: '(HWND) _xffff'.</Message>
-    <CodePrev>123</CodePrev>
-    <CodeCurrent>3988206244</CodeCurrent>
-    <CodeNext>0</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>d3d11.cpp</FileName>
-    <ErrorCode>V3530</ErrorCode>
-    <Message>The 'load_end' variable should be declared in a scope that minimizes its visibility.</Message>
+  </SpecialK>
+  <SpecialK>
+    <FileName>backend.h</FileName>
+    <ErrorCode>V703</ErrorCode>
+    <Message>It is odd that the 'isMonxvYCC_Capable' field in derived class 'SK_Signal_HDMI' overwrites field in base class 'SK_SignalTransport'. Check lines: backend.h:_, backend.h:_.</Message>
+    <CodePrev>4286630476</CodePrev>
+    <CodeCurrent>4286642764</CodeCurrent>
+    <CodeNext>46135977</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>backend.h</FileName>
+    <ErrorCode>V703</ErrorCode>
+    <Message>It is odd that the 'isMonAdobeYCC_Capable' field in derived class 'SK_Signal_HDMI' overwrites field in base class 'SK_SignalTransport'. Check lines: backend.h:_, backend.h:_.</Message>
+    <CodePrev>4292725331</CodePrev>
+    <CodeCurrent>4288400118</CodeCurrent>
+    <CodeNext>4294147660</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>backend.h</FileName>
+    <ErrorCode>V703</ErrorCode>
+    <Message>It is odd that the 'isMonsYCC_Capable' field in derived class 'SK_Signal_HDMI' overwrites field in base class 'SK_SignalTransport'. Check lines: backend.h:_, backend.h:_.</Message>
+    <CodePrev>46135977</CodePrev>
+    <CodeCurrent>4292725331</CodeCurrent>
+    <CodeNext>4288400118</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>backend.h</FileName>
+    <ErrorCode>V703</ErrorCode>
+    <Message>It is odd that the 'isMonAdobeRGBCapable' field in derived class 'SK_Signal_HDMI' overwrites field in base class 'SK_SignalTransport'. Check lines: backend.h:_, backend.h:_.</Message>
+    <CodePrev>4288400118</CodePrev>
+    <CodeCurrent>4294147660</CodeCurrent>
+    <CodeNext>3989580059</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>cfg_compatibility.cpp</FileName>
+    <ErrorCode>V126</ErrorCode>
+    <Message>Be advised that the size of the type 'long' varies between LLP_/LP_ data models.</Message>
+    <CodePrev>2156274515</CodePrev>
+    <CodeCurrent>1878572109</CodeCurrent>
+    <CodeNext>230473870</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>com_util.cpp</FileName>
+    <ErrorCode>V3515</ErrorCode>
+    <Message>All integer constants of unsigned type should have 'U' suffix.</Message>
     <CodePrev>0</CodePrev>
-    <CodeCurrent>376639700</CodeCurrent>
-    <CodeNext>1807609</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
-    <CodePrev>6262201</CodePrev>
-    <CodeCurrent>2230081106</CodeCurrent>
-    <CodeNext>2817</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
-    <CodePrev>6262201</CodePrev>
-    <CodeCurrent>2230080882</CodeCurrent>
-    <CodeNext>2817</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
-    <CodePrev>6262201</CodePrev>
-    <CodeCurrent>2230081010</CodeCurrent>
-    <CodeNext>2817</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
-    <CodePrev>6262201</CodePrev>
-    <CodeCurrent>2230081202</CodeCurrent>
-    <CodeNext>2817</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
-    <CodePrev>6262201</CodePrev>
-    <CodeCurrent>2230080818</CodeCurrent>
-    <CodeNext>3633911288</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: BYTE shrink [_] = { VK...</Message>
-    <CodePrev>2230080818</CodePrev>
-    <CodeCurrent>3633911288</CodeCurrent>
-    <CodeNext>3964631669</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: BYTE expand [_] = { VK...</Message>
-    <CodePrev>3633911288</CodePrev>
-    <CodeCurrent>3964631669</CodeCurrent>
-    <CodeNext>2817</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK_...</Message>
-    <CodePrev>6262201</CodePrev>
-    <CodeCurrent>2230080690</CodeCurrent>
-    <CodeNext>2817</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
-    <CodePrev>6262201</CodePrev>
-    <CodeCurrent>2230080530</CodeCurrent>
-    <CodeNext>2817</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
-    <CodePrev>6262201</CodePrev>
-    <CodeCurrent>2230080562</CodeCurrent>
-    <CodeNext>2817</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: BYTE toggle [_] = { V...</Message>
-    <CodePrev>6262201</CodePrev>
-    <CodeCurrent>997174892</CodeCurrent>
-    <CodeNext>2817</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: BYTE toggle [_] = { V...</Message>
-    <CodePrev>6262201</CodePrev>
-    <CodeCurrent>997174988</CodeCurrent>
-    <CodeNext>2817</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: ...short_name, _,.</Message>
+    <CodeCurrent>5301385</CodeCurrent>
+    <CodeNext>2313359</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>com_util.h</FileName>
+    <ErrorCode>V3545</ErrorCode>
+    <Message>Operands of the '!' operator should have bool essential type.</Message>
     <CodePrev>123</CodePrev>
-    <CodeCurrent>697057876</CodeCurrent>
-    <CodeNext>37052589</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: ...r = _;...</Message>
-    <CodePrev>76703</CodePrev>
-    <CodeCurrent>1599581873</CodeCurrent>
-    <CodeNext>431820</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>config.h</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: ...nt_policy = _;...</Message>
-    <CodePrev>150733333</CodePrev>
-    <CodeCurrent>3143200674</CodeCurrent>
-    <CodeNext>4096489883</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>d3d11_tex_mgr.cpp</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: ...&amp; checksum, _) );.</Message>
-    <CodePrev>58</CodePrev>
-    <CodeCurrent>488623445</CodeCurrent>
-    <CodeNext>0</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>d3d11_tex_mgr.cpp</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: ..._t *)&amp;hash, _);.</Message>
-    <CodePrev>4497271</CodePrev>
-    <CodeCurrent>422217697</CodeCurrent>
-    <CodeNext>0</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>d3d11_tex_mgr.cpp</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: ..._t *)&amp;hash, _) );.</Message>
-    <CodePrev>58</CodePrev>
-    <CodeCurrent>844435421</CodeCurrent>
-    <CodeNext>0</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>d3d11_tex_mgr.cpp</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: ...)&amp;checksum, _);.</Message>
-    <CodePrev>4497271</CodePrev>
-    <CodeCurrent>244311717</CodeCurrent>
-    <CodeNext>0</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>d3d11_tex_mgr.cpp</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: ...ta.width &lt; _ ||.</Message>
+    <CodeCurrent>250353921</CodeCurrent>
+    <CodeNext>22275</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>com_util.h</FileName>
+    <ErrorCode>V3545</ErrorCode>
+    <Message>Operands of the '||' operator should have bool essential type.</Message>
     <CodePrev>0</CodePrev>
-    <CodeCurrent>93715252</CodeCurrent>
-    <CodeNext>215138234</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>d3d11_tex_mgr.cpp</FileName>
-    <ErrorCode>V112</ErrorCode>
-    <Message>Dangerous magic number _ used: ...ta.height &lt; _ ) return...</Message>
-    <CodePrev>93715252</CodePrev>
-    <CodeCurrent>215138234</CodeCurrent>
-    <CodeNext>0</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>d3d11_tex_mgr.cpp</FileName>
-    <ErrorCode>V821</ErrorCode>
-    <Message>Decreased performance. The 'load_start' variable can be constructed in a lower level scope.</Message>
-    <CodePrev>3360282241</CodePrev>
-    <CodeCurrent>1506558449</CodeCurrent>
-    <CodeNext>1807609</CodeNext>
-  </Table1>
-  <Table1>
-    <FileName>d3d9_texmgr.h</FileName>
-    <ErrorCode>V1002</ErrorCode>
-    <Message>The 'SK_Thread_HybridSpinlock' class, containing pointers, constructor and destructor, is copied by the automatically generated copy constructor.</Message>
-    <CodePrev>3926011895</CodePrev>
-    <CodeCurrent>2686529457</CodeCurrent>
-    <CodeNext>3557054494</CodeNext>
-  </Table1>
-  <Table1>
+    <CodeCurrent>1776704764</CodeCurrent>
+    <CodeNext>2080120265</CodeNext>
+  </SpecialK>
+  <SpecialK>
     <FileName>command.cpp</FileName>
     <ErrorCode>V1037</ErrorCode>
     <Message>Two or more case-branches perform the same actions. Check lines: _, _, _</Message>
     <CodePrev>1159029984</CodePrev>
     <CodeCurrent>707983</CodeCurrent>
     <CodeNext>2318059946</CodeNext>
-  </Table1>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...short_name, _,.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>697057876</CodeCurrent>
+    <CodeNext>37052589</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { V...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>997174892</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { V...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>997174988</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...r = _;...</Message>
+    <CodePrev>76703</CodePrev>
+    <CodeCurrent>1599581873</CodeCurrent>
+    <CodeNext>431820</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230080530</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230080562</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK_...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230080690</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230080818</CodeCurrent>
+    <CodeNext>3633911288</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230080882</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230081010</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230081106</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE toggle [_] = { VK...</Message>
+    <CodePrev>6262201</CodePrev>
+    <CodeCurrent>2230081202</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...nt_policy = _;...</Message>
+    <CodePrev>150733333</CodePrev>
+    <CodeCurrent>3143200674</CodeCurrent>
+    <CodeNext>4096489883</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE shrink [_] = { VK...</Message>
+    <CodePrev>2230080818</CodePrev>
+    <CodeCurrent>3633911288</CodeCurrent>
+    <CodeNext>3964631669</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>config.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: BYTE expand [_] = { VK...</Message>
+    <CodePrev>3633911288</CodePrev>
+    <CodeCurrent>3964631669</CodeCurrent>
+    <CodeNext>2817</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>core.h</FileName>
+    <ErrorCode>V3546</ErrorCode>
+    <Message>Conversions between pointers and integer types should not be performed. Consider inspecting the expression: '(HWND) - _'.</Message>
+    <CodePrev>254868898</CodePrev>
+    <CodeCurrent>1755297290</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>cpu.cpp</FileName>
+    <ErrorCode>V104</ErrorCode>
+    <Message>Implicit conversion of 'dwNeededBytes' to memsize type in an arithmetic expression.</Message>
+    <CodePrev>3682495</CodePrev>
+    <CodeCurrent>127877584</CodeCurrent>
+    <CodeNext>123</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>cpu.cpp</FileName>
+    <ErrorCode>V106</ErrorCode>
+    <Message>Implicit type conversion first argument 'len' of function 'malloc' to memsize type.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>2446304889</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>cpu.cpp</FileName>
+    <ErrorCode>V202</ErrorCode>
+    <Message>Explicit conversion from memsize type to _-bit integer type.</Message>
+    <CodePrev>617749</CodePrev>
+    <CodeCurrent>1934876823</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>cpu.cpp</FileName>
+    <ErrorCode>V547</ErrorCode>
+    <Message>Expression 'pLogProcInfo != nullptr' is always false.</Message>
+    <CodePrev>74061967</CodePrev>
+    <CodeCurrent>1235785375</CodeCurrent>
+    <CodeNext>125</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11.cpp</FileName>
+    <ErrorCode>V3530</ErrorCode>
+    <Message>The 'load_end' variable should be declared in a scope that minimizes its visibility.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>376639700</CodeCurrent>
+    <CodeNext>1807609</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11_devctx_wrapped.cpp</FileName>
+    <ErrorCode>V547</ErrorCode>
+    <Message>Expression 'xrefs == _' is always false.</Message>
+    <CodePrev>341319884</CodePrev>
+    <CodeCurrent>3170002416</CodeCurrent>
+    <CodeNext>125</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...ta.width &lt; _ ||.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>93715252</CodeCurrent>
+    <CodeNext>215138234</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...ta.height &lt; _ ) return...</Message>
+    <CodePrev>93715252</CodePrev>
+    <CodeCurrent>215138234</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...)&amp;checksum, _);.</Message>
+    <CodePrev>4497271</CodePrev>
+    <CodeCurrent>244311717</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ..._t *)&amp;hash, _);.</Message>
+    <CodePrev>4497271</CodePrev>
+    <CodeCurrent>422217697</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...&amp; checksum, _) );.</Message>
+    <CodePrev>58</CodePrev>
+    <CodeCurrent>488623445</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ..._t *)&amp;hash, _) );.</Message>
+    <CodePrev>58</CodePrev>
+    <CodeCurrent>844435421</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V821</ErrorCode>
+    <Message>Decreased performance. The 'load_start' variable can be constructed in a lower level scope.</Message>
+    <CodePrev>3360282241</CodePrev>
+    <CodeCurrent>1506558449</CodeCurrent>
+    <CodeNext>1807609</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d9_texmgr.h</FileName>
+    <ErrorCode>V1002</ErrorCode>
+    <Message>The 'SK_Thread_HybridSpinlock' class, containing pointers, constructor and destructor, is copied by the automatically generated copy constructor.</Message>
+    <CodePrev>3926011895</CodePrev>
+    <CodeCurrent>2686529457</CodeCurrent>
+    <CodeNext>3557054494</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>debug_utils.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: ...FlagGroup [_];.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>13706473</CodeCurrent>
+    <CodeNext>113033</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>debug_utils.h</FileName>
+    <ErrorCode>V117</ErrorCode>
+    <Message>Memsize type is used in the union.</Message>
+    <CodePrev>1712943</CodePrev>
+    <CodeCurrent>115376533</CodeCurrent>
+    <CodeNext>193</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>debug_utils.h</FileName>
+    <ErrorCode>V117</ErrorCode>
+    <Message>Memsize type is used in the union.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>558343585</CodeCurrent>
+    <CodeNext>3030</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>debug_utils.h</FileName>
+    <ErrorCode>V802</ErrorCode>
+    <Message>On _-bit platform, structure size can be reduced from _ to _ bytes by rearranging the fields according to their sizes in decreasing order.</Message>
+    <CodePrev>1907953360</CodePrev>
+    <CodeCurrent>123</CodeCurrent>
+    <CodeNext>14801337</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>dxgi.cpp</FileName>
+    <ErrorCode>V595</ErrorCode>
+    <Message>The 'pDesc' pointer was utilized before it was verified against nullptr. Check lines: _, _.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>165867353</CodeCurrent>
+    <CodeNext>959364588</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>dxgi_backend.h</FileName>
+    <ErrorCode>V202</ErrorCode>
+    <Message>Explicit conversion from memsize type to _-bit integer type: static_cast&lt; UINT &gt; (kName.size())</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>3394563967</CodeCurrent>
+    <CodeNext>3680170855</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>dxgi_swapchain.cpp</FileName>
+    <ErrorCode>V3546</ErrorCode>
+    <Message>Conversions between pointers and integer types should not be performed. Consider inspecting the expression: '(HWND) _xffff'.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>3988206244</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>file.cpp</FileName>
+    <ErrorCode>V121</ErrorCode>
+    <Message>Implicit conversion of the type of 'new' operator's argument to size_t type.</Message>
+    <CodePrev>1750813329</CodePrev>
+    <CodeCurrent>3812624690</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>io_monitor.cpp</FileName>
+    <ErrorCode>V126</ErrorCode>
+    <Message>Be advised that the size of the type 'long' varies between LLP_/LP_ data models.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>148391</CodeCurrent>
+    <CodeNext>22071445</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>io_monitor.cpp</FileName>
+    <ErrorCode>V126</ErrorCode>
+    <Message>Be advised that the size of the type 'long' varies between LLP_/LP_ data models.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>148391</CodeCurrent>
+    <CodeNext>44145301</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>lazy_global.h</FileName>
+    <ErrorCode>V3546</ErrorCode>
+    <Message>Instantiation of SK_LazyGlobal &lt; SK_ModuleAddrMap &gt;: Pointer to void should not be converted to a pointer to object.</Message>
+    <CodePrev>140647004</CodePrev>
+    <CodeCurrent>43029306</CodeCurrent>
+    <CodeNext>1007894832</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_accepted_license'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>62921635</CodeCurrent>
+    <CodeNext>533012</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_uncap_fps'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>65184858</CodeCurrent>
+    <CodeNext>4279500</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_ao_height'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>870491645</CodeCurrent>
+    <CodeNext>2140692</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_bloom_skip'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1407347635</CodeCurrent>
+    <CodeNext>4271756</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_rtss_warned'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1407447144</CodeCurrent>
+    <CodeNext>68573052</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_osd_disclaimer'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1944739010</CodeCurrent>
+    <CodeNext>66768</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_fastload'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>2481111658</CodeCurrent>
+    <CodeNext>4279500</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'ret'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3017149831</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_ao_width'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3017982515</CodeCurrent>
+    <CodeNext>2140692</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_bloom_width'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3018061515</CodeCurrent>
+    <CodeNext>2140692</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_fix_motion_blur'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3019085487</CodeCurrent>
+    <CodeNext>4271756</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_gi_workgroups'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3286675560</CodeCurrent>
+    <CodeNext>2140692</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_ao_disable'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3823266401</CodeCurrent>
+    <CodeNext>2140692</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_bloom_disable'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3823548801</CodeCurrent>
+    <CodeNext>2140692</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>nier.cpp</FileName>
+    <ErrorCode>V522</ErrorCode>
+    <Message>There might be dereferencing of a potential null pointer 'far_gi_min_light_extent'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>4076215292</CodeCurrent>
+    <CodeNext>2140692</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>screenshot.h</FileName>
+    <ErrorCode>V3509</ErrorCode>
+    <Message>Unions should not be used.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1332</CodeCurrent>
+    <CodeNext>123</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>sound.cpp</FileName>
+    <ErrorCode>V126</ErrorCode>
+    <Message>Be advised that the size of the type 'long' varies between LLP_/LP_ data models.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>580011500</CodeCurrent>
+    <CodeNext>123</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>sound.h</FileName>
+    <ErrorCode>V3511</ErrorCode>
+    <Message>The 'if' ... 'else if' construct should be terminated with an 'else' statement.</Message>
+    <CodePrev>3478990212</CodePrev>
+    <CodeCurrent>1507360379</CodeCurrent>
+    <CodeNext>3479015812</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>tls.h</FileName>
+    <ErrorCode>V3546</ErrorCode>
+    <Message>Conversions between pointers and integer types should not be performed. Consider inspecting the expression: 'reinterpret_cast&lt; HWND &gt; (- _)'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1883768256</CodeCurrent>
+    <CodeNext>1883896348</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>tls.h</FileName>
+    <ErrorCode>V3546</ErrorCode>
+    <Message>Conversions between pointers and integer types should not be performed. Consider inspecting the expression: 'reinterpret_cast&lt; HWND &gt; (- _)'.</Message>
+    <CodePrev>1883768256</CodePrev>
+    <CodeCurrent>1883896348</CodeCurrent>
+    <CodeNext>122229</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>utility.h</FileName>
+    <ErrorCode>V112</ErrorCode>
+    <Message>Dangerous magic number _ used: std::bitset &lt;_&gt; f___ECX_;.</Message>
+    <CodePrev>72909</CodePrev>
+    <CodeCurrent>728950157</CodeCurrent>
+    <CodeNext>728950197</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>utility.h</FileName>
+    <ErrorCode>V3501</ErrorCode>
+    <Message>Octal constant '_' should not be used.</Message>
+    <CodePrev>43</CodePrev>
+    <CodeCurrent>16759791</CodeCurrent>
+    <CodeNext>879</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>window.h</FileName>
+    <ErrorCode>V3515</ErrorCode>
+    <Message>All integer constants of unsigned type should have 'U' suffix.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>76424342</CodeCurrent>
+    <CodeNext>3481801062</CodeNext>
+  </SpecialK>
 </NewDataSet>

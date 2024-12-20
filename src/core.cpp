@@ -1840,10 +1840,10 @@ SK_StartupCore (const wchar_t* backend, void* callback)
 
         if (delay_params.parent != INVALID_HANDLE_VALUE)
         {
-          DWORD dwCount =
+          const DWORD dwCount =
             SuspendThread (    delay_params.parent );
 
-          if ( dwCount >= 0 &&
+          if ( dwCount > 0 &&
                dwCount < MAXIMUM_SUSPEND_COUNT )
           {
             if ( GetThreadContext (
@@ -2611,9 +2611,12 @@ SK_Win32_CleanupDummyWindow (HWND hwnd)
 
   std::vector <HWND> cleaned_windows;
 
-  if (dummy_windows->list.count (hwnd))
+  auto& wnd_list =
+    dummy_windows->list;
+
+  if (wnd_list.count (hwnd))
   {
-    auto& window = dummy_windows->list [hwnd];
+    auto& window = wnd_list [hwnd];
 
     if (DestroyWindow (window.hWnd))
     {
@@ -2625,7 +2628,7 @@ SK_Win32_CleanupDummyWindow (HWND hwnd)
 
   else if (hwnd == 0)
   {
-    for (auto& it : dummy_windows->list)
+    for (auto& it : wnd_list)
     {
       if (DestroyWindow (it.second.hWnd))
       {
@@ -2637,10 +2640,10 @@ SK_Win32_CleanupDummyWindow (HWND hwnd)
   }
 
   for ( auto& it : cleaned_windows )
-    if (dummy_windows->list.count (it))
-        dummy_windows->list.erase (it);
+    if (wnd_list.count (it))
+        wnd_list.erase (it);
 
-  if (dummy_windows->list.empty ())
+  if (wnd_list.empty ())
     UnregisterClassW ( L"Special K Dummy Window Class", SK_GetDLL () );
 }
 

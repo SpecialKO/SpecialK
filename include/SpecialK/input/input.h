@@ -977,7 +977,7 @@ struct SK_HID_PlayStationDevice
   bool                 bDualShock3              =   false;
   bool                 bSimpleMode              =    true;
   bool                 bTerminating             =   false;
-  volatile LONG        bNeedOutput              =    true;
+  volatile LONG        bNeedOutput              =    TRUE;
 
   struct battery_s {
     float      percentage = 100.0f;
@@ -1099,12 +1099,12 @@ struct SK_HID_PlayStationDevice
   bool     reset_rgb        = false;
 
   struct vibration_s {
-    volatile ULONG left, right;
-    volatile ULONG last_set;
+    volatile ULONG left = 0, right = 0;
+    volatile ULONG last_set        = 0;
 
     struct {
-      volatile ULONG left;
-      volatile ULONG right;
+      volatile ULONG left           =     0UL;
+      volatile ULONG right          =     0UL;
       ULONG     last_left           =     0;
       ULONG     last_right          =     0;
       ULONG     start_left          =     0; // The analog trigger's value when vibration started
@@ -1113,7 +1113,7 @@ struct SK_HID_PlayStationDevice
       float     last_resist_start_r = -2.0f;
       float     last_resist_str_l   = -2.0f;
       float     last_resist_str_r   = -2.0f;
-      bool      used; // Flagged the first time a game sets trigger vibration
+      bool      used                = false; // Flagged the first time a game sets trigger vibration
     } trigger;
 
     volatile ULONG max_val = 0;
@@ -1152,8 +1152,8 @@ struct SK_HID_PlayStationDevice
   void reset_device         (void);
 
   // Button Utilities
-  inline bool isButtonDown      (size_t button) const noexcept { return buttons.size () > button ? buttons.at (button).     state != 0 : false; };
-  inline bool wasButtonDown     (size_t button) const noexcept { return buttons.size () > button ? buttons.at (button).last_state != 0 : false; };
+  inline bool isButtonDown      (size_t button) const noexcept { return buttons.size () > button ? buttons [button].     state != 0 : false; };
+  inline bool wasButtonDown     (size_t button) const noexcept { return buttons.size () > button ? buttons [button].last_state != 0 : false; };
   inline bool isButtonChanging  (size_t button) const noexcept { return  isButtonDown (button) !=  wasButtonDown (button); };
   inline bool isReleasingButton (size_t button) const noexcept { return wasButtonDown (button) &&  !isButtonDown (button); };
   inline bool isPressingButton  (size_t button) const noexcept { return  isButtonDown (button) && !wasButtonDown (button); };

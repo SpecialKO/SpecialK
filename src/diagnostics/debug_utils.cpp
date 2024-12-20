@@ -2051,9 +2051,7 @@ ZwCreateThreadEx_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  char    thread_name [512] = { };
-  char    szSymbol    [256] = { };
-  ULONG   ulLen             =  0 ;
+  ULONG ulLen = 0;
 
   HMODULE hModStart =
     SK_GetModuleFromAddr (StartRoutine);
@@ -2145,6 +2143,9 @@ ZwCreateThreadEx_Detour (
 
     if (ThreadNames.count (tid) == 0)
     {
+      char    thread_name [512] = { };
+      char    szSymbol    [256] = { };
+
       ulLen =
         SK_GetSymbolNameFromModuleAddr (
           hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),
@@ -2227,9 +2228,7 @@ NtCreateThreadEx_Detour (
 {
   SK_LOG_FIRST_CALL
 
-  char    thread_name [512] = { };
-  char    szSymbol    [256] = { };
-  ULONG   ulLen             =  0 ;
+  ULONG ulLen = 0;
 
   HMODULE hModStart =
     SK_GetModuleFromAddr (StartRoutine);
@@ -2322,6 +2321,9 @@ NtCreateThreadEx_Detour (
     if ( ThreadNames.find (tid) ==
          ThreadNames.cend (   ) )
     {
+      char thread_name [512] = { };
+      char szSymbol    [256] = { };
+
       ulLen =
         SK_GetSymbolNameFromModuleAddr (
           hModStart, reinterpret_cast <uintptr_t> ((LPVOID)StartRoutine),

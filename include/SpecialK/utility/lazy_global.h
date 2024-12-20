@@ -139,9 +139,7 @@ public:
   SK_LazyGlobal              (      SK_LazyGlobal&&) = delete;
   SK_LazyGlobal& operator=   (      SK_LazyGlobal&&) = delete;
 
-  constexpr SK_LazyGlobal (void) noexcept {
-
-  }
+  constexpr SK_LazyGlobal (void) noexcept = default;
 
   void Deinit (void) noexcept override 
   {
@@ -165,7 +163,7 @@ public:
 
   virtual ~SK_LazyGlobal (void) noexcept
   {
-    Deinit ();
+    SK_LazyGlobal::Deinit ();
   }
 
 protected:

@@ -1152,7 +1152,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     sleepless_render ?
       (ReadULongAcquire   (&SK_GetCurrentRenderBackend ().last_thread) == dwTid ||
        ReadULongAcquire   (&SK_GetCurrentRenderBackend ().thread)      == dwTid ||
-     (!bGUIThread &&
+     (!bGUIThread &&        pTLS != nullptr &&
        ReadULong64Acquire (&pTLS->render->frames_presented)))
                      : FALSE;
 

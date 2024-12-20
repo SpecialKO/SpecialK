@@ -1333,21 +1333,20 @@ SK_EstablishDllRole (skWin32Module&& _sk_module)
            SK_Path_wcsstr (wszProcessName, LR"(Origin Games\)") != nullptr;
 
 
-
-      // Most frequently imported DLLs for games that use SteamAPI
-      //
-      //  It is trivial to use SteamAPI without linking to the DLL, so
-      //    this is not the final test to determine Steam compatibility.
-      //
-      sk_import_test_s steam_tests [] =
-      {
-        { SK_RunLHIfBitness (64, "steam_api64.dll",
-                                 "steam_api.dll"),  false },
-        {                        "steamnative.dll", false }
-      };
-
       if (! is_steamworks_game)
       {
+        // Most frequently imported DLLs for games that use SteamAPI
+        //
+        //  It is trivial to use SteamAPI without linking to the DLL, so
+        //    this is not the final test to determine Steam compatibility.
+        //
+        sk_import_test_s steam_tests [] =
+        {
+          { SK_RunLHIfBitness (64, "steam_api64.dll",
+                                   "steam_api.dll"),  false },
+          {                        "steamnative.dll", false }
+        };
+
         SK_TestImports (GetModuleHandle (nullptr), steam_tests, 2);
 
         is_steamworks_game =

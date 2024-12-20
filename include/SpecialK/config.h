@@ -990,9 +990,9 @@ struct sk_config_t
       bool    bypass_ansel        =  true;
     } bugs;
     struct reflex_s {
-      bool    use_limiter         =  false;
-      UINT    frame_interval_us   =      0;
       int     enforcement_site    =      1;
+      UINT    frame_interval_us   =      0;
+      bool    use_limiter         =  false;
       bool    low_latency         =  false;
       bool    low_latency_boost   =  false;
       bool    marker_optimization =  false;

@@ -590,7 +590,7 @@ public:
         auto& in  = (sections == nullptr) ? path        : *sections;
         auto& out = (sections == nullptr) ? heap.actual : heap.test;
 
-        out = "";
+        out.clear ();
 
         for ( auto& str : in )
         {

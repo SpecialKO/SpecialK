@@ -1202,8 +1202,8 @@ SK_AchievementManager::addAchievement (Achievement* achievement)
   {
     SK_ReleaseAssert (achv == achievements.string_map.cend ());
 
-    // Already have an entry for this
-    delete achievement;
+    //// Already have an entry for this
+    //delete achievement;
   }
 }
 

@@ -425,7 +425,7 @@ struct SK_ImGui_Toast {
     BottomLeft   = 0x20,
     MiddleLeft   = 0x40,
     MiddleCenter = 0x80
-  } anchor;
+  } anchor = MiddleCenter;
 
   std::string   id        = "";
   std::string   caption   = "";

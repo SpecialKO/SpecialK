@@ -41,12 +41,12 @@ SK_WASAPI_GetAudioClient (SK_IMMDevice pDevice, bool uncached)
   {
     dwLastUpdate = SK::ControlPanel::current_time;
 
-    SK_IMMDeviceEnumerator pDevEnum = nullptr;
-
     try
     {
       if (pDevice == nullptr)
       {
+        SK_IMMDeviceEnumerator pDevEnum = nullptr;
+
         ThrowIfFailed (
           pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
@@ -88,13 +88,14 @@ SK_IAudioMeterInformation
 __stdcall
 SK_WASAPI_GetAudioMeterInfo (SK_IMMDevice pDevice)
 {
-  SK_IMMDeviceEnumerator    pDevEnum   = nullptr;
   SK_IAudioMeterInformation pMeterInfo = nullptr;
 
   try
   {
     if (pDevice == nullptr)
     {
+      SK_IMMDeviceEnumerator pDevEnum = nullptr;
+
       ThrowIfFailed (
         pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
@@ -648,12 +649,13 @@ SK_IAudioEndpointVolume
 __stdcall
 SK_MMDev_GetEndpointVolumeControl (SK_IMMDevice pDevice)
 {
-  SK_IAudioEndpointVolume pEndVol  = nullptr;
-  SK_IMMDeviceEnumerator  pDevEnum = nullptr;
+  SK_IAudioEndpointVolume pEndVol = nullptr;
 
   try {
     if (pDevice == nullptr)
     {
+      SK_IMMDeviceEnumerator pDevEnum = nullptr;
+
       ThrowIfFailed (
         pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
@@ -688,13 +690,14 @@ SK_IAudioLoudness
 __stdcall
 SK_MMDev_GetLoudness (SK_IMMDevice pDevice)
 {
-  SK_IAudioLoudness      pLoudness = nullptr;
-  SK_IMMDeviceEnumerator pDevEnum  = nullptr;
+  SK_IAudioLoudness pLoudness = nullptr;
 
   try
   {
     if (pDevice == nullptr)
     {
+      SK_IMMDeviceEnumerator pDevEnum = nullptr;
+
       ThrowIfFailed (
         pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
@@ -731,12 +734,13 @@ __stdcall
 SK_MMDev_GetAutoGainControl (SK_IMMDevice pDevice)
 {
   SK_IAudioAutoGainControl pAutoGain = nullptr;
-  SK_IMMDeviceEnumerator   pDevEnum  = nullptr;
 
   try
   {
     if (pDevice == nullptr)
     {
+      SK_IMMDeviceEnumerator pDevEnum = nullptr;
+
       ThrowIfFailed (
         pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)));
 
@@ -833,79 +837,79 @@ SK_WASAPI_GetChannelName (int channel_idx)
     switch (DSSPEAKER_CONFIG (dwConfig))
     {
       case DSSPEAKER_HEADPHONE:
-        channel_names.emplace (0, "Headphone Left");
-        channel_names.emplace (1, "Headphone Right");
+        channel_names.try_emplace (0, "Headphone Left");
+        channel_names.try_emplace (1, "Headphone Right");
         break;
 
       case DSSPEAKER_MONO:
       //case KSAUDIO_SPEAKER_MONO:
-        channel_names.emplace (0, "Center");
+        channel_names.try_emplace (0, "Center");
         break;
 
       case DSSPEAKER_STEREO:
       //case KSAUDIO_SPEAKER_STEREO:
-        channel_names.emplace (0, "Front Left");
-        channel_names.emplace (1, "Front Right");
+        channel_names.try_emplace (0, "Front Left");
+        channel_names.try_emplace (1, "Front Right");
         break;
 
        case DSSPEAKER_QUAD:
       //case KSAUDIO_SPEAKER_QUAD:
-        channel_names.emplace (0, "Front Left");
-        channel_names.emplace (1, "Front Right");
-        channel_names.emplace (2, "Back Left");
-        channel_names.emplace (3, "Back Right");
+        channel_names.try_emplace (0, "Front Left");
+        channel_names.try_emplace (1, "Front Right");
+        channel_names.try_emplace (2, "Back Left");
+        channel_names.try_emplace (3, "Back Right");
         break;
 
       case DSSPEAKER_SURROUND:
       //case KSAUDIO_SPEAKER_SURROUND:
-        channel_names.emplace (0, "Front Left");
-        channel_names.emplace (1, "Front Right");
-        channel_names.emplace (2, "Front Center");
-        channel_names.emplace (3, "Back Center");
+        channel_names.try_emplace (0, "Front Left");
+        channel_names.try_emplace (1, "Front Right");
+        channel_names.try_emplace (2, "Front Center");
+        channel_names.try_emplace (3, "Back Center");
         break;
 
       case DSSPEAKER_5POINT1:
       //case KSAUDIO_SPEAKER_5POINT1:
-        channel_names.emplace (0, "Front Left");
-        channel_names.emplace (1, "Front Right");
-        channel_names.emplace (2, "Center");
-        channel_names.emplace (3, "Low Frequency Emitter");
-        channel_names.emplace (4, "Back Left");
-        channel_names.emplace (5, "Back Right");
+        channel_names.try_emplace (0, "Front Left");
+        channel_names.try_emplace (1, "Front Right");
+        channel_names.try_emplace (2, "Center");
+        channel_names.try_emplace (3, "Low Frequency Emitter");
+        channel_names.try_emplace (4, "Back Left");
+        channel_names.try_emplace (5, "Back Right");
         break;
 
       case DSSPEAKER_5POINT1_SURROUND:
       //case KSAUDIO_SPEAKER_5POINT1_SURROUND:
-        channel_names.emplace (0, "Front Left");
-        channel_names.emplace (1, "Front Right");
-        channel_names.emplace (2, "Center");
-        channel_names.emplace (3, "Low Frequency Emitter");
-        channel_names.emplace (4, "Side Left");
-        channel_names.emplace (5, "Side Right");
+        channel_names.try_emplace (0, "Front Left");
+        channel_names.try_emplace (1, "Front Right");
+        channel_names.try_emplace (2, "Center");
+        channel_names.try_emplace (3, "Low Frequency Emitter");
+        channel_names.try_emplace (4, "Side Left");
+        channel_names.try_emplace (5, "Side Right");
         break;
 
       case DSSPEAKER_7POINT1:
       //case KSAUDIO_SPEAKER_7POINT1:
-        channel_names.emplace (0, "Front Left");
-        channel_names.emplace (1, "Front Right");
-        channel_names.emplace (2, "Center");
-        channel_names.emplace (3, "Low Frequency Emitter");
-        channel_names.emplace (4, "Back Left");
-        channel_names.emplace (5, "Back Right");
-        channel_names.emplace (6, "Front Left of Center");
-        channel_names.emplace (7, "Front Right of Center");
+        channel_names.try_emplace (0, "Front Left");
+        channel_names.try_emplace (1, "Front Right");
+        channel_names.try_emplace (2, "Center");
+        channel_names.try_emplace (3, "Low Frequency Emitter");
+        channel_names.try_emplace (4, "Back Left");
+        channel_names.try_emplace (5, "Back Right");
+        channel_names.try_emplace (6, "Front Left of Center");
+        channel_names.try_emplace (7, "Front Right of Center");
         break;
 
       case DSSPEAKER_7POINT1_SURROUND:
       //case KSAUDIO_SPEAKER_7POINT1_SURROUND:
-        channel_names.emplace (0, "Front Left");
-        channel_names.emplace (1, "Front Right");
-        channel_names.emplace (2, "Center");
-        channel_names.emplace (3, "Low Frequency Emitter");
-        channel_names.emplace (4, "Back Left");
-        channel_names.emplace (5, "Back Right");
-        channel_names.emplace (6, "Side Left");
-        channel_names.emplace (7, "Side Right");
+        channel_names.try_emplace (0, "Front Left");
+        channel_names.try_emplace (1, "Front Right");
+        channel_names.try_emplace (2, "Center");
+        channel_names.try_emplace (3, "Low Frequency Emitter");
+        channel_names.try_emplace (4, "Back Left");
+        channel_names.try_emplace (5, "Back Right");
+        channel_names.try_emplace (6, "Side Left");
+        channel_names.try_emplace (7, "Side Right");
         break;
 
       default:
@@ -930,9 +934,8 @@ SK_WASAPI_GetChannelName (int channel_idx)
     if (! init)
       return szChannelOrdinal;
 
-    channel_names.emplace (channel_idx, szChannelOrdinal);
-
-    return channel_names [channel_idx].c_str ();
+           channel_names.try_emplace (channel_idx, szChannelOrdinal);
+    return channel_names             [channel_idx].c_str ();
   }
 }
 
@@ -1309,4 +1312,34 @@ SK_WASAPI_EndPointManager::OnPropertyValueChanged (_In_ LPCWSTR pwstrDeviceId, _
   //resetSessionManager ();
 
   return S_OK;
+}
+
+SK_IAudioMeterInformation
+SK_WASAPI_SessionManager::getMeterInfo (void)
+{
+  static SK_ComPtr <IMMDeviceEnumerator>
+      pDevEnum;
+  if (pDevEnum == nullptr)
+  {
+    if (FAILED ((pDevEnum.CoCreateInstance (__uuidof (MMDeviceEnumerator)))))
+      return nullptr;
+  }
+
+  // Most game audio a user will not want to hear while a game is in the
+  //   background will pass through eConsole.
+  //
+  //   eCommunication will be headset stuff and that's something a user is not
+  //     going to appreciate having muted :) Consider overloading this function
+  //       to allow independent control.
+  //
+  SK_ComPtr <IMMDevice> pDefaultDevice;
+  if ( FAILED (
+         pDevEnum->GetDefaultAudioEndpoint ( eRender,
+                                               eMultimedia,
+                                                 &pDefaultDevice )
+              )
+     ) return nullptr;
+
+  return
+    SK_WASAPI_GetAudioMeterInfo (pDefaultDevice);
 }

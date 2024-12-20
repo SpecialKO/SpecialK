@@ -1494,7 +1494,7 @@ public:
 
     snprintf (
       what_str,
-       1023, "%hs (...): Failed on Line %d of %hs -- (HRESULT: %08x) -- \"%ws\"",
+       1023, "%hs (...): Failed on Line %u of %hs -- (HRESULT: %08x) -- \"%ws\"",
              __src_loc.function_name (),
                       __src_loc.line (), __src_loc.file_name (),
                                  __hr, com_desc.ErrorMessage ()

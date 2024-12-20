@@ -1,0 +1,47 @@
+{
+  "analysisArguments": [
+    {
+      "solutionName": "SpecialK.sln",
+      "arguments": {
+        "platform": "",
+        "configuration": ""
+      }
+    }
+  ]
+}
+
+
+// Parameters description
+// 
+// These parameters are similar to the arguments passed to the analyzer from the command line. More information can be found in the documentation: https://pvs-studio.ru/ru/docs/manual/0035/#IDE1BD96B458
+// 
+// sourceFile - path to a plaintext file with a list of source files that will be analyzed.
+// 
+// platform - project's build platform to analyze.
+// 
+// configuration - project's build configuration to analyze.
+// 
+// msBuildProperties - set or override the specified MSBuild project-level properties. Input example: [{"property": "WarningLevel", "value": "2"}, ....]
+// 
+// excludeDefines - list of defines which will be excluded from analyzed projects (C# projects only).
+// 
+// appendDefines - list of defines which will be appended to analyzed projects (C# projects only).
+// 
+// selectProjects - allows to specify for analysis individual projects from analyzer's target.
+// 
+// excludeProjects - allows to exclude from analysis individual projects from analyzer's target.
+// 
+// rulesConfig - path to the diagnostics configuration file (.pvsconfig) or to the directory containing configuration files.
+// 
+// dependencyRoot - an optional path to directory that will be used to store all dependency caches.
+// 
+// dependencyCacheSourcesRoot - an optional path to directory that will be used as a root directory to generate relative paths in dependency caches. Input
+// example: "SkipAnalysis"
+// 
+// ignoreGlobalRulesConfig - disable loading global pvsconfig (located in %APPDATA%/PVS-Studio).
+// 
+// useSuppressFiles - path to suppress file to use.
+// 
+// regenerateDependencyCacheWithMode - regenerates compilation dependency information for each source file.
+// 
+// intermodular - C++ intermodular mode performs deeper code analysis at the cost of a longer analysis time.

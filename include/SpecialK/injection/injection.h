@@ -135,7 +135,7 @@ struct SK_SharedMemory_v1
   // Standby     = 0x2
   // Free        = 0x4
   uint32_t MemoryState = 0x0;
-  uint32_t HighDWORD;
+  uint32_t HighDWORD   = 0x0;
 
 
   struct WindowState_s {
@@ -154,8 +154,8 @@ struct SK_SharedMemory_v1
   struct EtwSessionList_s
   {
     struct SessionCtl_s {
-      uint32_t SequenceId = 0;
-      DWORD    _Reserved [28];
+      uint32_t SequenceId     =  0 ;
+      DWORD    _Reserved [28] = { };
     } SessionControl;
 
     struct EtwSessionBase_s {

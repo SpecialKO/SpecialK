@@ -1,0 +1,14 @@
+{
+  "json": [
+    {
+      "code": "",
+      "falseAlarm": false,
+      "level": 0,
+      "message": "No project files were found for analysis under the specified platform/configuration.",
+      "positions": [],
+      "favorite": false,
+      "projects": [],
+      "id": 0
+    }
+  ]
+}

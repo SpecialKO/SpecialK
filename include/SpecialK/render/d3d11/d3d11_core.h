@@ -1545,7 +1545,7 @@ struct d3d11_shader_tracking_s
   concurrency::concurrent_unordered_set <
     SK_ComPtr <ID3D11ShaderResourceView>   > set_of_views;
 
-  D3D11_TEXTURE2D_DESC first_rtv;
+  D3D11_TEXTURE2D_DESC first_rtv = {};
 
 
   struct cbuffer_override_s {
