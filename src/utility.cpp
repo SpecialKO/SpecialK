@@ -1,4 +1,7 @@
-﻿/**
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++, C#, and Java: https://pvs-studio.com
+
+/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -739,7 +742,7 @@ SK_TerminateProcesses (const wchar_t* wszProcName, bool all) noexcept
 
       if (!all && killed)
       {
-        return killed != FALSE;
+        return TRUE;
       }
     }
   } while ( Process32NextW ( hProcSnap,
@@ -1942,7 +1945,7 @@ SK_Assert_SameDLLVersion ( const wchar_t* wszTestFile0,
                                          cbData );
 
     SK_ReleaseAssert ( L"File Has No Version Info?!"
-       && bRet == TRUE );
+       && bRet != FALSE );
     if (! bRet)
     {
       return bRet;
@@ -2380,7 +2383,7 @@ SKX_ScanAlignedEx ( const void* pattern, size_t len,   const void* mask,
                           SK_MemScan_Params__v0 params =
                           SK_MemScan_Params__v0 ()       )
 {
-  if (! (pattern && mask))
+  if (! pattern)
     return nullptr;
 
   static auto constexpr _MAX_SEARCH_TIME_IN_MS = 5000UL;
@@ -5813,4 +5816,12 @@ SK_Memory_EmptyWorkingSet (void)
   }
 
   return 0;
+}
+
+void
+InstructionSet::deferredInit  (void)
+{
+  SK_RunOnce (
+    CPU_Rep = std::make_unique <InstructionSet_Internal> ()
+  );
 }
