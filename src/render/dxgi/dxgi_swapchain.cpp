@@ -277,21 +277,6 @@ IWrapDXGISwapChain::AddRef (void)
 
 ULONG
 STDMETHODCALLTYPE
-SK_SEH_ReleaseObject (IUnknown *pUnknown)
-{
-  __try {
-    return
-      pUnknown->Release ();
-  }
-
-  __except (EXCEPTION_EXECUTE_HANDLER)
-  {
-    return 0;
-  }
-}
-
-ULONG
-STDMETHODCALLTYPE
 IWrapDXGISwapChain::Release (void)
 {
   ULONG xrefs =
@@ -299,23 +284,20 @@ IWrapDXGISwapChain::Release (void)
 
   if (xrefs == 1)
   {
-    if (InterlockedIncrement (&dtor_recursion_) == 0)
-    {
-      SK_LOGi1 (
-        L"Starting deferred object cleanup on wrapped DXGI SwapChain"
-      );
+    SK_LOGi1 (
+      L"Starting deferred object cleanup on wrapped DXGI SwapChain"
+    );
 
-      HWND hWndSwap = HWND_BROADCAST;
+    HWND hWndSwap = HWND_BROADCAST;
 
-      if (ver_ > 0)
-        static_cast <IDXGISwapChain1*> (pReal)->GetHwnd (&hWndSwap);
+    if (ver_ > 0)
+      static_cast <IDXGISwapChain1*> (pReal)->GetHwnd (&hWndSwap);
 
-      // Ignore this for stuff like VLC, it's not important
-      if (config.system.log_level > 0)
-        SK_ReleaseAssert (hWnd_ == hWndSwap);
+    // Ignore this for stuff like VLC, it's not important
+    if (config.system.log_level > 0)
+      SK_ReleaseAssert (hWnd_ == hWndSwap);
 
-      SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, nullptr);
-    }
+    SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, nullptr);
   }
 
   HWND hwnd = hWnd_;
@@ -324,31 +306,34 @@ IWrapDXGISwapChain::Release (void)
   //
   if (xrefs == 0)
   {
-    // We're going to make this available for recycling
-    if (hWnd_ != 0)
+    if (InterlockedIncrement (&dtor_recursion_) == 0)
     {
-      SK_DXGI_ReleaseSwapChainOnHWnd (
-        this, std::exchange (hWnd_, (HWND)0), pDev
-      );
-    }
+      // We're going to make this available for recycling
+      if (hWnd_ != 0)
+      {
+        SK_DXGI_ReleaseSwapChainOnHWnd (
+          this, std::exchange (hWnd_, (HWND)0), pDev
+        );
+      }
 
-    auto& rb =
-      SK_GetCurrentRenderBackend ();
+      auto& rb =
+        SK_GetCurrentRenderBackend ();
 
-    _d3d12_rbk->drain_queue ();
+      _d3d12_rbk->drain_queue ();
 
-    //  If this SwapChain is the primary one that SK is rendering to,
-    //    then we must teardown our render backend to eliminate internal
-    //      references preventing the SwapChain from being destroyed.
-    if ( rb.swapchain.p == this ||
-         rb.swapchain.p == pReal )
-    {
-      // This is a hard reset, we're going to get a new cmd queue
-      _d3d11_rbk->release (_d3d11_rbk->_pSwapChain);
-      _d3d12_rbk->release (_d3d12_rbk->_pSwapChain);
-      _d3d12_rbk->_pCommandQueue.Release ();
+      //  If this SwapChain is the primary one that SK is rendering to,
+      //    then we must teardown our render backend to eliminate internal
+      //      references preventing the SwapChain from being destroyed.
+      if ( rb.swapchain.p == this ||
+           rb.swapchain.p == pReal )
+      {
+        // This is a hard reset, we're going to get a new cmd queue
+        _d3d11_rbk->release (_d3d11_rbk->_pSwapChain);
+        _d3d12_rbk->release (_d3d12_rbk->_pSwapChain);
+        _d3d12_rbk->_pCommandQueue.Release ();
 
-      rb.releaseOwnedResources ();
+        rb.releaseOwnedResources ();
+      }
     }
   }
 

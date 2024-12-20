@@ -3540,9 +3540,9 @@ SK_ImGui_User_NewFrame (void)
     SK_ImGui_Cursor.idle = false;
 
   else
-    SK_ImGui_Cursor.idle = ( config.input.mouse.disabled_to_game == SK_InputEnablement::Disabled );
-                             // Disabled to game is a form of capture,
-                             //   but it is exempt from idle cursor logic
+    SK_ImGui_Cursor.idle = ( (! bWantMouseCaptureForUI) || config.input.mouse.disabled_to_game == SK_InputEnablement::Disabled );
+                                                        // Disabled to game is a form of capture,
+                                                        //   but it is exempt from idle cursor logic
 
   // When first opening the control panel, keep the cursor visible longer than usual
   if (SK_ImGui_Cursor.last_toggle > SK::ControlPanel::current_time - 3333UL && SK_ImGui_Active ())

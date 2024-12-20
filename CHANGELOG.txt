@@ -1,8 +1,12 @@
-﻿24.12.20.1
+﻿24.12.20.2
+==========
+ + HOTFIX for NVIDIA Vulkan/DXGI interop issues introduced in 24.12.20.
+
+24.12.20.1
 ==========
  + Eliminate unnecessary load of Windows.Gaming.Input.dll in games that do not
      actually use the API.
- + Fixed various minor issues discovered using static analysis usin PVS-Studio.
+ + Fixed various minor issues discovered using static analysis with PVS-Studio.
 
 24.12.20
 ========

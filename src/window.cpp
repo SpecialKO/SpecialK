@@ -5876,12 +5876,6 @@ SK_DetourWindowProc ( _In_  HWND   hWnd,
       _UpdateTitle (rb.windows.focus);
     } break;
 
-    case WM_CANCELMODE:
-    {
-      SK_RunOnce (SK_LOGi0 (L"WM_CANCEL_MODE"));
-      return 0;
-    } break;
-
     case WM_SETCURSOR:
     {
       if (hWnd == game_window.hWnd && HIWORD (lParam) != WM_NULL)

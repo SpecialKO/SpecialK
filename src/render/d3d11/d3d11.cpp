@@ -2564,11 +2564,29 @@ SK_D3D11_CopyResource_Impl (
               if ( srcDesc.Width  != dstDesc.Width ||
                    srcDesc.Height != dstDesc.Height )
               {
-                SK_LOGi0 ( L"Using SK_D3D11_BltCopySurface (...) because of resolution mismatch"
-                           L" during ID3D11DeviceContext::CopyResources (...)" );
-                SK_LOGi0 ( L" >> Source Resolution: (%dx%d), Destination: (%dx%d)",
-                             srcDesc.Width, srcDesc.Height,
-                             dstDesc.Width, dstDesc.Height );
+                // Avoid flooding this log entry...
+                static D3D11_TEXTURE2D_DESC last_src_desc,
+                                            last_dst_desc;
+                static int                  matching_mismatches = 0;
+
+                if (last_src_desc.Width == srcDesc.Width && last_src_desc.Height == srcDesc.Height &&
+                    last_dst_desc.Width == dstDesc.Width && last_dst_desc.Height == dstDesc.Height)
+                {
+                  ++matching_mismatches;
+                } else {
+                  matching_mismatches = 0;
+                }
+
+                if (matching_mismatches < 5)
+                {
+                  SK_LOGi0 ( L"Using SK_D3D11_BltCopySurface (...) because of resolution mismatch"
+                               L" during ID3D11DeviceContext::CopyResources (...)" );
+                    SK_LOGi0 ( L" >> Source Resolution: (%dx%d), Destination: (%dx%d)",
+                                 srcDesc.Width, srcDesc.Height,
+                                 dstDesc.Width, dstDesc.Height );
+                }
+                last_src_desc.Width = srcDesc.Width; last_src_desc.Height = srcDesc.Height;
+                last_dst_desc.Width = dstDesc.Width; last_dst_desc.Height = dstDesc.Height;
               }
 
               if (srcDesc.MipLevels == dstDesc.MipLevels)
