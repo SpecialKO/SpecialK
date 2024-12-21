@@ -1636,8 +1636,8 @@ SK_Overlay_DrawGL (void)
 
   SK_GL_GhettoStateBlock_Capture ();
 
-  static RECT rect     = { -1, -1, -1, -1 };
-         RECT rect_now = {  0,  0,  0,  0 };
+  static thread_local RECT rect     = { -1, -1, -1, -1 };
+                      RECT rect_now = {  0,  0,  0,  0 };
 
   GetClientRect (SK_TLS_Bottom ()->render->gl->current_hwnd, &rect_now);
 
@@ -1730,7 +1730,7 @@ struct SK_IndirectX_InteropCtx
     SK_ComPtr <ID3D11Device>               pDevice;
     SK_ComPtr <ID3D11DeviceContext>        pDevCtx;
     HANDLE                                 hInteropDevice = nullptr;
-    D3D_FEATURE_LEVEL                      featureLevel;
+    D3D_FEATURE_LEVEL                      featureLevel   = {};
 
     struct staging_s {
       SK_ComPtr <ID3D11SamplerState>       colorSampler;
@@ -1899,13 +1899,11 @@ SK_IndirectX_PresentManager::Start (SK_IndirectX_InteropCtx *pCtx)
                                                                                  : 0x0 ) );
 
 
+            SK_ReleaseAssert (bSuccess);
             InterlockedIncrement64 (&pCtx->present_man.frames_complete);
 
 
-            if (bSuccess)
-              SetEvent (pCtx->present_man.hAckPresent);
-            else
-              SetEvent (pCtx->present_man.hAckPresent);
+            SetEvent (pCtx->present_man.hAckPresent);
 
             InterlockedCompareExchange (&lLock, 0, 1);
           }
@@ -2197,7 +2195,7 @@ SK_GL_SwapBuffers (HDC hDC, LPVOID pfnSwapFunc)
         compatible_dc = true;
     }
 
-    if (! compatible_dc)
+    if (! compatible_dc) //TODO: V1036 https://pvs-studio.com/en/docs/warnings/v1036/ Potentially unsafe double-checked locking.
     {
       // Ensure the resources we created on the primary context are meaningful
       //   on this one.
@@ -4387,7 +4385,7 @@ glNamedFramebufferTexture_SK ( GLuint framebuffer,
             }
           }
 
-          else if (textureFmt == GL_RGB10_A2)
+          else // (textureFmt == GL_RGB10_A2)
           {
             InterlockedIncrement (&SK_HDR_RenderTargets_10bpc->CandidatesSeen);
 

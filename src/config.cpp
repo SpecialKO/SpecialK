@@ -4618,9 +4618,9 @@ auto DeclKeybind =
 
   input.keyboard.catch_alt_f4->load      (config.input.keyboard.catch_alt_f4);
   input.keyboard.bypass_alt_f4->load     (config.input.keyboard.override_alt_f4);
-  input.keyboard.disabled_to_game->load  (config.input.keyboard.org_disabled_to_game);
+  input.keyboard.disabled_to_game->load  (config.input.keyboard.disabled_to_game);
   config.input.keyboard.
-                    org_disabled_to_game= config.input.keyboard.org_disabled_to_game;
+                    org_disabled_to_game= config.input.keyboard.disabled_to_game;
 
   input.mouse.disabled_to_game->load     (config.input.mouse.disabled_to_game);
   config.input.mouse.

@@ -2339,7 +2339,7 @@ SK_StartupCore (const wchar_t* backend, void* callback)
       case SK_GAME_ID::AssassinsCreed_Odyssey:
         SK_ACO_PlugInInit ();
         break;
-      case SK_GAME_ID::MonsterHunterWorld:        
+      case SK_GAME_ID::MonsterHunterWorld:
         SK_MHW_PlugInInit ();
         break;
 

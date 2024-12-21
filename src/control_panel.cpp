@@ -7270,8 +7270,7 @@ SK_ImGui_MouseProc (int code, WPARAM wParam, LPARAM lParam)
       POINT                                          pt (mhs->pt);
       ScreenToClient             (game_window.hWnd, &pt);
       if (ChildWindowFromPointEx (game_window.hWnd,  pt, CWP_SKIPDISABLED  |
-                                                         CWP_SKIPINVISIBLE |
-                                                         CWP_SKIPDISABLED) == game_window.hWnd)
+                                                         CWP_SKIPINVISIBLE) == game_window.hWnd)
       {
         bPassthrough = false;
 

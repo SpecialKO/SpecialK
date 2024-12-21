@@ -3545,11 +3545,11 @@ HMODULE hModOverlay;
 bool
 SK_Steam_LoadOverlayEarly (void)
 {
+  // Initialize this early
+  std::ignore = SK_Steam_GetLibraries (nullptr);
+
   const wchar_t* wszSteamPath =
     SK_GetSteamDir ();
-
-  if (wszSteamPath == nullptr)
-    return false;
 
   wchar_t           wszOverlayDLL [MAX_PATH + 2] = { };
   SK_PathCombineW ( wszOverlayDLL, wszSteamPath,
@@ -3575,101 +3575,97 @@ SK_Steam_LoadOverlayEarly (void)
 int
 SK_Steam_GetLibraries (steam_library_t** ppLibraries)
 {
-#define MAX_STEAM_LIBRARIES 16
+#define MAX_STEAM_LIBRARIES 32
 
-  static bool            scanned_libs = false;
+  static volatile LONG   scanned_libs = 0L;
   static int             steam_libs   = 0;
   static steam_library_t steam_lib_paths [MAX_STEAM_LIBRARIES] = { };
 
-  static const wchar_t* wszSteamPath;
-
-  if (! scanned_libs)
+  if (! InterlockedCompareExchange (&scanned_libs, 1L, 0L))
   {
-    wszSteamPath =
-      SK_GetSteamDir ();
+    const wchar_t* wszSteamPath = SK_GetSteamDir ();
 
-    if (wszSteamPath != nullptr)
+    wchar_t   wszLibraryFolders [MAX_PATH + 2] = { };
+    lstrcpyW (wszLibraryFolders, wszSteamPath);
+    lstrcatW (wszLibraryFolders, LR"(\steamapps\libraryfolders.vdf)");
+
+    CHandle hLibFolders (
+      CreateFileW ( wszLibraryFolders,
+                      GENERIC_READ,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE,
+                        nullptr,        OPEN_EXISTING,
+                          FILE_FLAG_SEQUENTIAL_SCAN,
+                            nullptr
+                  )
+    );
+
+    if (hLibFolders != INVALID_HANDLE_VALUE)
     {
-      wchar_t wszLibraryFolders [MAX_PATH + 2] = { };
+      DWORD dwSizeHigh = 0,
+            dwRead     = 0,
+            dwSize     =
+       GetFileSize (hLibFolders, &dwSizeHigh);
 
-      lstrcpyW (wszLibraryFolders, wszSteamPath);
-      lstrcatW (wszLibraryFolders, LR"(\steamapps\libraryfolders.vdf)");
+      std::unique_ptr <char []>
+        local_data;
+      char*   data = nullptr;
 
-      CHandle hLibFolders (
-        CreateFileW ( wszLibraryFolders,
-                        GENERIC_READ,
-                        FILE_SHARE_READ | FILE_SHARE_WRITE,
-                          nullptr,        OPEN_EXISTING,
-                            FILE_FLAG_SEQUENTIAL_SCAN,
-                              nullptr
-                    )
-      );
+      local_data =
+        std::make_unique <char []> (dwSize + static_cast <size_t> (4u));
+            data = local_data.get ();
 
-      if (hLibFolders != INVALID_HANDLE_VALUE)
+      if (data == nullptr)
+        return steam_libs;
+
+      dwRead = dwSize;
+
+      if (ReadFile (hLibFolders, data, dwSize, &dwRead, nullptr))
       {
-        DWORD dwSizeHigh = 0,
-              dwRead     = 0,
-              dwSize     =
-         GetFileSize (hLibFolders, &dwSizeHigh);
+        data [dwSize] = '\0';
 
-        std::unique_ptr <char []>
-          local_data;
-        char*   data = nullptr;
-
-        local_data =
-          std::make_unique <char []> (dwSize + static_cast <size_t> (4u));
-              data = local_data.get ();
-
-        if (data == nullptr)
-          return steam_libs;
-
-        dwRead = dwSize;
-
-        if (ReadFile (hLibFolders, data, dwSize, &dwRead, nullptr))
+        for (int i = 1; i < MAX_STEAM_LIBRARIES - 1; i++)
         {
-          data [dwSize] = '\0';
+          // Old libraryfolders.vdf format
+          std::wstring lib_path =
+            SK_Steam_KeyValues::getValueAsUTF16 (
+              data, { "LibraryFolders" }, std::to_string (i)
+            );
 
-          for (int i = 1; i < MAX_STEAM_LIBRARIES - 1; i++)
+          if (lib_path.empty ())
           {
-            // Old libraryfolders.vdf format
-            std::wstring lib_path =
+            // New (July 2021) libraryfolders.vdf format
+            lib_path =
               SK_Steam_KeyValues::getValueAsUTF16 (
-                data, { "LibraryFolders" }, std::to_string (i)
+                data, { "LibraryFolders", std::to_string (i) }, "path"
               );
-
-            if (lib_path.empty ())
-            {
-              // New (July 2021) libraryfolders.vdf format
-              lib_path =
-                SK_Steam_KeyValues::getValueAsUTF16 (
-                  data, { "LibraryFolders", std::to_string (i) }, "path"
-                );
-            }
-
-            if (! lib_path.empty ())
-            {
-              wcsncpy_s (
-                (wchar_t *)steam_lib_paths [steam_libs++], MAX_PATH,
-                                 lib_path.c_str (),       _TRUNCATE );
-            }
-
-            else
-              break;
           }
+
+          if (! lib_path.empty ())
+          {
+            wcsncpy_s (
+              (wchar_t *)steam_lib_paths [steam_libs++], MAX_PATH,
+                               lib_path.c_str (),       _TRUNCATE );
+          }
+
+          else
+            break;
         }
       }
-
-      // Finally, add the default Steam library
-      wcsncpy_s ( (wchar_t *)steam_lib_paths [steam_libs++],
-                                               MAX_PATH,
-                          wszSteamPath,       _TRUNCATE );
     }
 
-    scanned_libs = true;
+    // Finally, add the default Steam library
+    wcsncpy_s ( (wchar_t *)steam_lib_paths [steam_libs++],
+                                             MAX_PATH,
+                        wszSteamPath,       _TRUNCATE );
+
+    InterlockedIncrement (&scanned_libs);
   }
 
+  else
+    SK_Thread_SpinUntilAtomicMin (&scanned_libs, 2);
+
   if (ppLibraries != nullptr)
-    *ppLibraries = steam_lib_paths;
+     *ppLibraries  = steam_lib_paths;
 
   return steam_libs;
 }
@@ -6177,7 +6173,7 @@ SK_Steam_ProcessWindowActivation (bool active)
     }
   }
 
-  else if (config.input.gamepad.disabled_to_game == SK_InputEnablement::Disabled)
+  else// (config.input.gamepad.disabled_to_game == SK_InputEnablement::Disabled)
   {
     if (! SK::SteamAPI::SetWindowFocusState (false))
     {

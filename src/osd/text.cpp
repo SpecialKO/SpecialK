@@ -2090,21 +2090,13 @@ SK_TextOverlay::update (const char* szText)
     // Add 1.0 so that an X position of -1.0 is perfectly flush with the right
     x = ImGui::GetIO ().DisplaySize.x + x - longest_line + 1.0f;
 
-    if (tokenized_text != nullptr)
-    {
-      strncpy_s ( tokenized_text, data_.text_len,
-                                  data_.text, _TRUNCATE );
+    strncpy_s ( tokenized_text, data_.text_len,
+                                data_.text, _TRUNCATE );
 
-      // Restart tokenizing
-      line =
-        ( has_tokens ? strtok_ex (tokenized_text, token)
-                     :            tokenized_text );
-    }
-
-    else
-    {
-      SK_LOGs0 (L"SKTokenize", L"Tokenizer Failure!");
-    }
+    // Restart tokenizing
+    line =
+      ( has_tokens ? strtok_ex (tokenized_text, token)
+                   :            tokenized_text );
   }
 
   else x += 5.0f; // Fix-up for text off-screen

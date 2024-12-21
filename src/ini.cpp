@@ -1161,7 +1161,7 @@ __stdcall
 iSK_INISection::add_key_value (const std::wstring& key, const std::wstring& value)
 {
   const auto add =
-    keys.try_emplace (key, value);
+    keys.emplace (key, value);
 
   if (add.second)
   {

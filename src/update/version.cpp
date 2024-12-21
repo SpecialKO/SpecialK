@@ -427,7 +427,8 @@ SK_FetchVersionInfo1 (const wchar_t* wszProduct, bool force)
   else
     swprintf_s ( wszRemoteRepoURL, INTERNET_MAX_PATH_LENGTH,
                  L"/Kaldaien/%s/master/version.ini",
-                   wcslen (wszProduct) ? wszProduct : L"SpecialK" );
+                   *wszProduct != L'\0' ?
+                    wszProduct          : L"SpecialK" );
 
   ULONG ulTimeout = 5000UL;
   bool  bRet      = FALSE;

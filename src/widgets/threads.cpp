@@ -1818,22 +1818,19 @@ public:
         if (task == nullptr || task->dwTid == 0)
           continue;
 
-        if (task->dwTid != 0)
-        {
-          CHandle hThread (
-            OpenThread (THREAD_QUERY_INFORMATION, FALSE, task->dwTid)
-          );
+        CHandle hThread (
+          OpenThread (THREAD_QUERY_INFORMATION, FALSE, task->dwTid)
+        );
 
-          DWORD dwTaskCode = 0;
-          if (                      hThread.m_h == 0           ||
-              (! GetExitCodeThread (hThread.m_h, &dwTaskCode)) ||
-                                                  dwTaskCode != STILL_ACTIVE)
-          {
-            extern bool
-                SK_MMCS_RemoveTask (DWORD dwTid);
-            if (SK_MMCS_RemoveTask (task->dwTid))
-              continue;
-          }
+        DWORD dwTaskCode = 0;
+        if (                      hThread.m_h == 0           ||
+            (! GetExitCodeThread (hThread.m_h, &dwTaskCode)) ||
+                                                dwTaskCode != STILL_ACTIVE)
+        {
+          extern bool
+              SK_MMCS_RemoveTask (DWORD dwTid);
+          if (SK_MMCS_RemoveTask (task->dwTid))
+            continue;
         }
 
         fSpacingMax =

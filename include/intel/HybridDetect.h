@@ -112,7 +112,7 @@ namespace HybridDetect
 #endif
 
 // Simple conversion from an ordinal, n, to a set bit at position n
-#define IndexToMask(n)  (1UL << n)
+#define IndexToMask(n)  (1UL << (n))
 
 // Macros to store values for CPUID register ordinals
 #define CPUID_EAX								0

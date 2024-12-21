@@ -122,7 +122,7 @@ struct SK_D3D12_ShaderRepo
         for (size_t __i = 0; __i < DxilContainerHashSize; ++__i)
         {
           __h = h.Digest [__i] +
-                  (__h << 06)  +  (__h << 16)
+                  (__h <<  6)  +  (__h << 16)
                                -   __h;
         }
 
@@ -3046,7 +3046,7 @@ D3D12SerializeVersionedRootSignature_Detour (
 #endif
 
         D3D12_ROOT_SIGNATURE_DESC
-          RootSigCopy;        
+          RootSigCopy                   = { };        
           RootSigCopy.NumParameters     = pRootSignature->Desc_1_0.NumParameters;
           RootSigCopy.pParameters       = pRootSignature->Desc_1_0.pParameters;
           RootSigCopy.NumStaticSamplers = pRootSignature->Desc_1_0.NumStaticSamplers;
@@ -3203,7 +3203,7 @@ D3D12SerializeRootSignature_Detour ( const D3D12_ROOT_SIGNATURE_DESC* pRootSigna
 #endif
 
         D3D12_ROOT_SIGNATURE_DESC
-          RootSigCopy;        
+          RootSigCopy                   = { };        
           RootSigCopy.NumParameters     = pRootSignature->NumParameters;
           RootSigCopy.pParameters       = pRootSignature->pParameters;
           RootSigCopy.NumStaticSamplers = pRootSignature->NumStaticSamplers;

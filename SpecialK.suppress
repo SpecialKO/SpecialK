@@ -618,6 +618,14 @@
     <CodeNext>2140692</CodeNext>
   </SpecialK>
   <SpecialK>
+    <FileName>opengl.cpp</FileName>
+    <ErrorCode>V1020</ErrorCode>
+    <Message>The function exited without calling the 'SK_EndBufferSwap' function. Check lines: _, _.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>352761</CodeCurrent>
+    <CodeNext>125</CodeNext>
+  </SpecialK>
+  <SpecialK>
     <FileName>playstation.cpp</FileName>
     <ErrorCode>V512</ErrorCode>
     <Message>A call of the 'memset' function will lead to overflow of the buffer '&amp; pData-&gt;LeftStickX'.</Message>
@@ -632,6 +640,14 @@
     <CodePrev>123</CodePrev>
     <CodeCurrent>3170116418</CodeCurrent>
     <CodeNext>17733</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>screenshot.cpp</FileName>
+    <ErrorCode>V512</ErrorCode>
+    <Message>A call of the 'fwrite' function will lead to overflow of the buffer '&amp; len'.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>1223074885</CodeCurrent>
+    <CodeNext>2242012516</CodeNext>
   </SpecialK>
   <SpecialK>
     <FileName>screenshot.h</FileName>

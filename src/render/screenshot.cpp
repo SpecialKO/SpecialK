@@ -2664,14 +2664,14 @@ SK_Screenshot_SaveUHDR (const DirectX::Image& image, const DirectX::Image& sdr_i
   if (! isUHDREncoderAvailable ())
     return;
 
-  uhdr_raw_image raw_hdr;
-
-  raw_hdr.fmt   = UHDR_IMG_FMT_32bppRGBA1010102;
-  raw_hdr.cg    = UHDR_CG_BT_2100;
-  raw_hdr.ct    = UHDR_CT_PQ;  
-  raw_hdr.range = UHDR_CR_FULL_RANGE;  
-  raw_hdr.w     = static_cast <unsigned int> (image.width);
-  raw_hdr.h     = static_cast <unsigned int> (image.height);
+  uhdr_raw_image
+       raw_hdr       = {};
+       raw_hdr.fmt   = UHDR_IMG_FMT_32bppRGBA1010102;
+       raw_hdr.cg    = UHDR_CG_BT_2100;
+       raw_hdr.ct    = UHDR_CT_PQ;  
+       raw_hdr.range = UHDR_CR_FULL_RANGE;  
+       raw_hdr.w     = static_cast <unsigned int> (image.width);
+       raw_hdr.h     = static_cast <unsigned int> (image.height);
 
   using namespace DirectX;
 

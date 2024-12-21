@@ -698,9 +698,9 @@ NvAPI_Disp_HdrColorControl_Override ( NvU32              displayId,
   SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
 
-  static NV_HDR_COLOR_DATA_V2  expandedData = { };
-         NV_HDR_COLOR_DATA_V1   *inputData    =
-        (NV_HDR_COLOR_DATA_V1   *)pHdrColorData;
+  NV_HDR_COLOR_DATA_V2 expandedData = { };
+  NV_HDR_COLOR_DATA_V1  *inputData    =
+ (NV_HDR_COLOR_DATA_V1  *)pHdrColorData;
 
   if (pHdrColorData->version == NV_HDR_COLOR_DATA_VER1)
   {

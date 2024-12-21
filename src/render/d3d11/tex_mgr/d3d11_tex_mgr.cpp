@@ -1593,8 +1593,8 @@ SK_D3D11_DumpTexture2D (  _In_ const D3D11_TEXTURE2D_DESC   *pDesc,
 
   SK_D3D11_AddDumped (top_crc32, checksum);
 
-  DirectX::TexMetadata mdata;
-
+  DirectX::TexMetadata
+  mdata            = { };
   mdata.width      =  pDesc->Width;
   mdata.height     =  pDesc->Height;
   mdata.depth      =  1;
