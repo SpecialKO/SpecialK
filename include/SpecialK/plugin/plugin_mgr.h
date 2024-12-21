@@ -280,9 +280,10 @@ _CreateConfigParameterInt64 ( const wchar_t* wszSection,
                               const wchar_t* wszOldKeyName     = nullptr );
 
 enum class SK_Import_LoadOrder {
-  Early  = 0,
-  PlugIn = 1,
-  Lazy   = 2
+  Undefined = -1,
+  Early     =  0,
+  PlugIn    =  1,
+  Lazy      =  2
 };
 
 bool

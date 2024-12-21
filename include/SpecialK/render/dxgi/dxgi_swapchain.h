@@ -104,8 +104,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
     if (ver_ != 0)
     {
-      static_cast <IDXGISwapChain1 *>
-        (pReal)->GetHwnd (&hWnd_);
+      ((IDXGISwapChain1 *)pReal)->GetHwnd (&hWnd_);
 
       SK_ReleaseAssert (sd.OutputWindow == 0 || sd.OutputWindow == hWnd_);
 
@@ -230,8 +229,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
     InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChain1s);
 
-    static_cast <IDXGISwapChain1 *>
-      (pReal)->GetHwnd (&hWnd_);
+    ((IDXGISwapChain1 *)pReal)->GetHwnd (&hWnd_);
 
     SK_ReleaseAssert (sd.OutputWindow == 0 || sd.OutputWindow == hWnd_);
 

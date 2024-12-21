@@ -1157,7 +1157,10 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
     
     ImGui::GetIO ().Fonts->SetTexID (0);
 
-    _d3d12_rbk->descriptorHeaps.pImGui.Release ();
+    auto& descriptorHeaps =
+      _d3d12_rbk->descriptorHeaps;
+      
+    descriptorHeaps.pImGui.Release ();
 
     // Create buffers with a default size (they will later be grown as needed)
     for ( auto& frame : _imgui_d3d12.frame_heaps )
@@ -1184,12 +1187,12 @@ ImGui_ImplDX12_Init ( ID3D12Device*               device,
       std::array < D3D12_DESCRIPTOR_HEAP_DESC,                1 >
         {          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,    1024,
                    D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE, 0 }.data (),
-                                   IID_PPV_ARGS (&_d3d12_rbk->descriptorHeaps.pImGui.p));
-                          SK_D3D12_SetDebugName ( _d3d12_rbk->descriptorHeaps.pImGui.p,
+                                   IID_PPV_ARGS (&descriptorHeaps.pImGui.p));
+                          SK_D3D12_SetDebugName ( descriptorHeaps.pImGui.p,
                                     L"ImGui D3D12 DescriptorHeap" );
 
-    _imgui_d3d12.hFontSrvCpuDescHandle = _d3d12_rbk->descriptorHeaps.pImGui->GetCPUDescriptorHandleForHeapStart ();
-    _imgui_d3d12.hFontSrvGpuDescHandle = _d3d12_rbk->descriptorHeaps.pImGui->GetGPUDescriptorHandleForHeapStart ();
+    _imgui_d3d12.hFontSrvCpuDescHandle = descriptorHeaps.pImGui->GetCPUDescriptorHandleForHeapStart ();
+    _imgui_d3d12.hFontSrvGpuDescHandle = descriptorHeaps.pImGui->GetGPUDescriptorHandleForHeapStart ();
 
     _imgui_d3d12.pRootSignature.Release ();
     _imgui_d3d12.pPipelineState.Release ();
@@ -1649,6 +1652,9 @@ D3D12GraphicsCommandList_CopyResource_Detour (
         ID3D12Resource            *pDstResource,
         ID3D12Resource            *pSrcResource )
 {
+  if (pDstResource == nullptr ||
+      pSrcResource == nullptr) return;
+
   const auto src_desc = pSrcResource->GetDesc (),
              dst_desc = pDstResource->GetDesc ();
 
@@ -1663,8 +1669,7 @@ D3D12GraphicsCommandList_CopyResource_Detour (
     dst_desc.Dimension == D3D12_RESOURCE_DIMENSION_TEXTURE2D &&
       ( __SK_HDR_16BitSwap ||
         __SK_HDR_10BitSwap ||
-          had_hdr_override ) && pDstResource != nullptr &&
-                                pSrcResource != nullptr;
+          had_hdr_override );
 
   if (! bMayNeedCopyAssist)
   {
@@ -1761,9 +1766,9 @@ D3D12GraphicsCommandList_CopyResource_Detour (
       const UINT64 srvGPUHeapStart =
         descriptors.pComputeCopy->GetGPUDescriptorHandleForHeapStart ().ptr;
 
-      dstUAVHandle_GPU.ptr = srvGPUHeapStart + static_cast <UINT64> (descriptor_base_idx    ) * srvDescriptorSize;
-      dstUAVHandle_CPU.ptr = srvCPUHeapStart + static_cast <SIZE_T> (descriptor_base_idx    ) * srvDescriptorSize;
-      srcUAVHandle_CPU.ptr = srvCPUHeapStart + static_cast <SIZE_T> (descriptor_base_idx + 1) * srvDescriptorSize;
+      dstUAVHandle_GPU.ptr = srvGPUHeapStart + (static_cast <UINT64> (descriptor_base_idx)    ) * srvDescriptorSize;
+      dstUAVHandle_CPU.ptr = srvCPUHeapStart + (static_cast <SIZE_T> (descriptor_base_idx)    ) * srvDescriptorSize;
+      srcUAVHandle_CPU.ptr = srvCPUHeapStart + (static_cast <SIZE_T> (descriptor_base_idx) + 1) * srvDescriptorSize;
 
       pDevice->CreateUnorderedAccessView (pDstResource, nullptr, nullptr, dstUAVHandle_CPU);
       pDevice->CreateUnorderedAccessView (pSrcResource, nullptr, nullptr, srcUAVHandle_CPU);
@@ -3057,7 +3062,7 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 bool
 SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pCommandQueue)
 {
-  //std::scoped_lock lock (_ctx_lock);
+  std::scoped_lock lock (_ctx_lock);
 
   SK_ComPtr <IDXGISwapChain3>                        pNativeSwapChain;
   if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)
@@ -3088,9 +3093,10 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
   if (pNativeSwapChain != nullptr &&
       pNativeQueue.p   != nullptr)
   {
-    UINT uiSize = sizeof (void *);
+    const UINT uiSize = sizeof (void *);
 
-    pSwapChain->SetPrivateData (SKID_D3D12_SwapChainCommandQueue, uiSize, _pCommandQueue);
+    if (pSwapChain != nullptr)
+        pSwapChain->SetPrivateData (SKID_D3D12_SwapChainCommandQueue, uiSize, _pCommandQueue);
   }
 
   // Turn HDR off in dgVoodoo2 so it does not crash

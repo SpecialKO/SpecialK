@@ -197,7 +197,7 @@ SK::ControlPanel::Steam::Draw (void)
                   files[0].size == 0 )
       app_has_cloud_storage = 0 /* No */;
 
-    else if (app_has_cloud_storage == 1 /* Yes */ && files.empty ())
+    else if (app_has_cloud_storage != FALSE /* Yes */ && files.empty ())
     {
       const int32_t num_files =
         pRemote->GetFileCount ();
@@ -270,7 +270,7 @@ SK::ControlPanel::Steam::Draw (void)
     }
 #endif
 
-    if (app_has_cloud_storage == 1 && ImGui::CollapsingHeader ("Cloud Storage"))
+    if (app_has_cloud_storage != FALSE && ImGui::CollapsingHeader ("Cloud Storage"))
     {
       bool dirty = false;
 

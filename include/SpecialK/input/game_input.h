@@ -180,6 +180,8 @@ public:
       return;
   };
 
+  SK_IWrapGameInputReading (SK_IWrapGameInputReading&& wrapped);
+
 #pragma region IUnknown
   virtual HRESULT       __stdcall QueryInterface           (REFIID riid, void **ppvObject)          noexcept override;
   virtual ULONG         __stdcall AddRef                   (void)                                   noexcept override;

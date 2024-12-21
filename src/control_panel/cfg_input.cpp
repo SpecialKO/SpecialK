@@ -211,56 +211,71 @@ SK::ControlPanel::Input::Draw (void)
     struct { ULONG cursorpos,      keystate,
                keyboardstate, asynckeystate;              } win32      { };
 
-    xinput.reads [0]        = SK_XInput_Backend->reads     [0];
-    xinput.reads [1]        = SK_XInput_Backend->reads     [1];
-    xinput.reads [2]        = SK_XInput_Backend->reads     [2];
-    xinput.reads [3]        = SK_XInput_Backend->reads     [3];
+    static auto& xinput_reads  = SK_XInput_Backend->reads;
+    static auto& steam_reads   = SK_Steam_Backend->reads;
+    static auto& steam_views   = SK_Steam_Backend->viewed;
+    static auto& sce_reads     = SK_ScePad_Backend->reads     [2/*sk_input_dev_type::Gamepad*/];
+    static auto& wgi_reads     = SK_WGI_Backend->reads        [2/*sk_input_dev_type::Gamepad*/];
+    static auto& winmm_reads   = SK_WinMM_Backend->reads      [2];
+    static auto& mbus_reads    = SK_MessageBus_Backend->reads [2];
+    static auto& winhook_reads = SK_WinHook_Backend->reads;
+    static auto& di7_reads     = SK_DI7_Backend->reads;
+    static auto& di8_reads     = SK_DI8_Backend->reads;
+    static auto& hid_reads     = SK_HID_Backend->reads;
+    static auto& raw_reads     = SK_RawInput_Backend->reads;
+    static auto& ginput_reads  = SK_GameInput_Backend->reads;
+    static auto& win32_reads   = SK_Win32_Backend->reads;
 
-    steam.reads  [0]        = SK_Steam_Backend->reads      [0];
+    xinput.reads [0]        = xinput_reads  [0];
+    xinput.reads [1]        = xinput_reads  [1];
+    xinput.reads [2]        = xinput_reads  [2];
+    xinput.reads [3]        = xinput_reads  [3];
+
+    steam.reads  [0]        = steam_reads   [0];
     steam.active [0]        = 
-      ReadULong64Acquire (&SK_Steam_Backend->viewed.gamepad_xbox       ) > (perfNow - SK_PerfFreq / 2);
-    steam.reads  [1]        = SK_Steam_Backend->reads      [1];
+      ReadULong64Acquire (&steam_views.gamepad_xbox       ) > (perfNow - SK_PerfFreq / 2);
+    steam.reads  [1]        = steam_reads   [1];
     steam.active [1]        =
-      ReadULong64Acquire (&SK_Steam_Backend->viewed.gamepad_playstation) > (perfNow - SK_PerfFreq / 2);
-    steam.reads  [2]        = SK_Steam_Backend->reads      [2];
+      ReadULong64Acquire (&steam_views.gamepad_playstation) > (perfNow - SK_PerfFreq / 2);
+    steam.reads  [2]        = steam_reads   [2];
     steam.active [2]        =
-      ReadULong64Acquire (&SK_Steam_Backend->viewed.gamepad_generic    ) > (perfNow - SK_PerfFreq / 2);
-    steam.reads  [3]        = SK_Steam_Backend->reads      [3];
+      ReadULong64Acquire (&steam_views.gamepad_generic    ) > (perfNow - SK_PerfFreq / 2);
+    steam.reads  [3]        = steam_reads   [3];
     steam.active [3]        =
-      ReadULong64Acquire (&SK_Steam_Backend->viewed.gamepad_nintendo   ) > (perfNow - SK_PerfFreq / 2);
+      ReadULong64Acquire (&steam_views.gamepad_nintendo   ) > (perfNow - SK_PerfFreq / 2);
 
-    sce_pad.reads           = SK_ScePad_Backend->reads     [2/*sk_input_dev_type::Gamepad*/];
-    wgi.reads               = SK_WGI_Backend->reads        [2/*sk_input_dev_type::Gamepad*/];
-    winmm.reads             = SK_WinMM_Backend->reads      [2];
-    messagebus.reads        = SK_MessageBus_Backend->reads [2];
+    sce_pad.reads           = sce_reads;
+    wgi.reads               = wgi_reads;
+    winmm.reads             = winmm_reads;
+    messagebus.reads        = mbus_reads;
 
-    winhook.kbd_reads       = SK_WinHook_Backend->reads    [1];
-    winhook.mouse_reads     = SK_WinHook_Backend->reads    [0];
+    winhook.kbd_reads       = winhook_reads [1];
+    winhook.mouse_reads     = winhook_reads [0];
 
-    di7.kbd_reads           = SK_DI7_Backend->reads        [1];
-    di7.mouse_reads         = SK_DI7_Backend->reads        [0];
-    di7.gamepad_reads       = SK_DI7_Backend->reads        [2];
+    di7.kbd_reads           = di7_reads     [1];
+    di7.mouse_reads         = di7_reads     [0];
+    di7.gamepad_reads       = di7_reads     [2];
 
-    di8.kbd_reads           = SK_DI8_Backend->reads        [1];
-    di8.mouse_reads         = SK_DI8_Backend->reads        [0];
-    di8.gamepad_reads       = SK_DI8_Backend->reads        [2];
+    di8.kbd_reads           = di8_reads     [1];
+    di8.mouse_reads         = di8_reads     [0];
+    di8.gamepad_reads       = di8_reads     [2];
 
-    hid.kbd_reads           = SK_HID_Backend->reads        [1];
-    hid.mouse_reads         = SK_HID_Backend->reads        [0];
-    hid.gamepad_reads       = SK_HID_Backend->reads        [2];
+    hid.kbd_reads           = hid_reads     [1];
+    hid.mouse_reads         = hid_reads     [0];
+    hid.gamepad_reads       = hid_reads     [2];
 
-    raw_input.kbd_reads     = SK_RawInput_Backend->reads   [1];
-    raw_input.mouse_reads   = SK_RawInput_Backend->reads   [0];
-    raw_input.gamepad_reads = SK_RawInput_Backend->reads   [2];
+    raw_input.kbd_reads     = raw_reads     [1];
+    raw_input.mouse_reads   = raw_reads     [0];
+    raw_input.gamepad_reads = raw_reads     [2];
 
-    game_input.kbd_reads    = SK_GameInput_Backend->reads  [1];
-    game_input.mouse_reads  = SK_GameInput_Backend->reads  [0];
-    game_input.gamepad_reads= SK_GameInput_Backend->reads  [2];
+    game_input.kbd_reads    = ginput_reads  [1];
+    game_input.mouse_reads  = ginput_reads  [0];
+    game_input.gamepad_reads= ginput_reads  [2];
 
-    win32.asynckeystate     = SK_Win32_Backend->reads      [3];
-    win32.keyboardstate     = SK_Win32_Backend->reads      [2];
-    win32.keystate          = SK_Win32_Backend->reads      [1];
-    win32.cursorpos         = SK_Win32_Backend->reads      [0];
+    win32.asynckeystate     = win32_reads   [3];
+    win32.keyboardstate     = win32_reads   [2];
+    win32.keystate          = win32_reads   [1];
+    win32.cursorpos         = win32_reads   [0];
 
 
     // Implictly hide slots before tallying read/write activity, these slots
@@ -1227,9 +1242,7 @@ SK::ControlPanel::Input::Draw (void)
 
             if (ImGui::Checkbox (szName, &placehold_slot))
             {
-              state = (++state % 3);
-
-              switch (state)
+              switch (++state % 3)
               {
                 case 0:
                   config.input.gamepad.xinput.placehold [dwIndex] = false;
@@ -1267,7 +1280,7 @@ SK::ControlPanel::Input::Draw (void)
               ImGui::EndGroup        ( );
               ImGui::SameLine        ( );
               ImGui::BeginGroup      ( );
-              if (config.input.gamepad.xinput.disable [dwIndex] || config.input.gamepad.xinput.blackout_api)
+              if (config.input.gamepad.xinput.disable [dwIndex])
                 ImGui::TextColored   (ImVec4 (1.0f, 0.1f, 0.1f, 1.0f), "Disabled");
               else if (SK_ImGui_WantGamepadCapture ())
                 ImGui::TextColored   (ImVec4 (1.0f, 1.0f, 0.1f, 1.0f), "Blocked");
@@ -2528,7 +2541,7 @@ extern float SK_ImGui_PulseNav_Strength;
                   {
                     LARGE_INTEGER nowTime = SK_QueryPerf ();
 
-                    if (memcmp (&old.Gamepad, &now.Gamepad, sizeof (XINPUT_GAMEPAD)))
+                    if (0 != memcmp (&old.Gamepad, &now.Gamepad, sizeof (XINPUT_GAMEPAD)))
                     {
                       ULONGLONG oldTime = times_ [0];
                                           times_ [0] = times_ [1];
@@ -3156,10 +3169,9 @@ SK_ImGui_CursorBoundaryConfig (bool window_mgmt = false)
         }
       }
     }
-    else
-
-    ImGui::Checkbox     ( "Keyboard Activates",
-                         &config.input.cursor.keys_activate );
+    
+    else ImGui::Checkbox( "Keyboard Activates",
+          &config.input.cursor.keys_activate );
     ImGui::EndGroup     (  );
   }
   ImGui::SeparatorText  ("Cursor Boundaries");

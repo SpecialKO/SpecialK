@@ -208,7 +208,7 @@ SK_IWrapGameInput::GetCurrentReading (_In_          GameInputKind      inputKind
   if (device == s_virtual_gameinput_device)
   {
     static SK_IPlayStationGameInputReading virtual_current_reading (0);
-    *reading = (IGameInputReading *)&virtual_current_reading;
+    *reading =       (IGameInputReading *)&virtual_current_reading;
     return S_OK;
   }
 
@@ -261,9 +261,9 @@ SK_IWrapGameInput::GetCurrentReading (_In_          GameInputKind      inputKind
   {
     if (reading != nullptr && _current_readings.count (device) &&
                                     _current_readings [device].count (inputKind) &&
-                                    _current_readings [device][inputKind].p != nullptr) {
-                  _current_readings [device][inputKind].p->AddRef ();
-       *reading = _current_readings [device][inputKind];
+                                    _current_readings [device]       [inputKind].p != nullptr) {
+                                    _current_readings [device]       [inputKind].p->AddRef ();
+                         *reading = _current_readings [device]       [inputKind];
        return S_OK;
      }
 
@@ -271,9 +271,8 @@ SK_IWrapGameInput::GetCurrentReading (_In_          GameInputKind      inputKind
     {
       HRESULT hr =
         pReal->GetCurrentReading (inputKind, device, reading);
-       _current_readings [device][inputKind] =      *reading;
-
-       return hr;
+        _current_readings[device][inputKind] =      *reading;
+      return  hr;
     }
   }
 
@@ -295,7 +294,7 @@ IGameInputDevice_SetHapticMotorState_Override (IGameInputDevice *This, uint32_t 
 
   if (params != nullptr)
   {
-    auto params_ = params != nullptr ? *params : GameInputHapticFeedbackParams {};
+    auto params_ = *params;
 
     if (config.input.gamepad.disable_rumble || SK_ImGui_WantGamepadCapture ())
     {
@@ -418,7 +417,7 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
   if (capture_input)
   {
     if (reading != nullptr)
-       *reading = nullptr;
+       *reading  = nullptr;
     return GAMEINPUT_E_READING_NOT_FOUND;
   }
 
@@ -432,10 +431,8 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
     {
       if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
       {
-        SK_HID_PlayStationDevice *pNewestInputDevice =
-          SK_HID_GetActivePlayStationDevice (true);
-
-        if (pNewestInputDevice != nullptr)
+        if ( const auto *pNewestInputDevice =
+               SK_HID_GetActivePlayStationDevice (true) )
         {
           SK_GameInput_EmulatedPlayStation = true;
 
@@ -454,54 +451,55 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
     {
       if (reading != nullptr)
          *reading = (IGameInputReading *)&virtual_next_reading;
-
       return S_OK;
     }
 
     if (reading != nullptr)
-       *reading = nullptr;
-
+       *reading  = nullptr;
     return GAMEINPUT_E_READING_NOT_FOUND;
   }
 
   const GameInputDeviceInfo* info =
-    device->GetDeviceInfo ();
+    device != nullptr        ?
+    device->GetDeviceInfo () : nullptr;
 
-  SK_RunOnce (
+  if (info != nullptr)
   {
-    SK_LOGi0 (L"GameInputDevice: VID=%x",                   info->vendorId);
-    SK_LOGi0 (L"GameInputDevice: PID=%x",                   info->productId);
-    SK_LOGi0 (L"GameInputDevice: Revision=%d",              info->revisionNumber);
-    SK_LOGi0 (L"GameInputDevice: Id=%x",                    info->deviceId);
-    SK_LOGi0 (L"GameInputDevice: RootId=%x",                info->deviceRootId);
-    SK_LOGi0 (L"GameInputDevice: DeviceFamily=%x",          info->deviceFamily);
-    SK_LOGi0 (L"GameInputDevice: Usage={%x,%x}",            info->usage.id, info->usage.page);
-    SK_LOGi0 (L"GameInputDevice: Interface=%d",             info->interfaceNumber);
-    SK_LOGi0 (L"GameInputDevice: Collection=%d",            info->collectionNumber);
-    SK_LOGi0 (L"GameInputDevice: HW Version="
-                             "%01d.%01d.%01d.%01d",         info->hardwareVersion.major, info->hardwareVersion.minor,
-                                                            info->hardwareVersion.build, info->hardwareVersion.revision);
-    SK_LOGi0 (L"GameInputDevice: FW Version="
-                             "%01d.%01d.%01d.%01d",         info->firmwareVersion.major, info->firmwareVersion.minor,
-                                                            info->firmwareVersion.build, info->firmwareVersion.revision);
-    SK_LOGi0 (L"GameInputDevice: Capabilities=%x",          info->capabilities);
-    SK_LOGi0 (L"GameInputDevice: SupportedInput=%x",        info->supportedInput);
-    SK_LOGi0 (L"GameInputDevice: SupportedRumbleMotors=%x", info->supportedRumbleMotors);
-    SK_LOGi0 (L"GameInputDevice: SupportedSystemButtons=%x",info->supportedSystemButtons);
-  });
+    SK_RunOnce (
+    {
+      SK_LOGi0 (L"GameInputDevice: VID=%x",                   info->vendorId);
+      SK_LOGi0 (L"GameInputDevice: PID=%x",                   info->productId);
+      SK_LOGi0 (L"GameInputDevice: Revision=%u",              info->revisionNumber);
+      SK_LOGi0 (L"GameInputDevice: Id=%d",                    info->deviceId);
+      SK_LOGi0 (L"GameInputDevice: RootId=%x",                info->deviceRootId);
+      SK_LOGi0 (L"GameInputDevice: DeviceFamily=%x",          info->deviceFamily);
+      SK_LOGi0 (L"GameInputDevice: Usage={%x,%x}",            info->usage.id, info->usage.page);
+      SK_LOGi0 (L"GameInputDevice: Interface=%d",             info->interfaceNumber);
+      SK_LOGi0 (L"GameInputDevice: Collection=%d",            info->collectionNumber);
+      SK_LOGi0 (L"GameInputDevice: HW Version="
+                               "%01d.%01d.%01d.%01d",         info->hardwareVersion.major, info->hardwareVersion.minor,
+                                                              info->hardwareVersion.build, info->hardwareVersion.revision);
+      SK_LOGi0 (L"GameInputDevice: FW Version="
+                               "%01d.%01d.%01d.%01d",         info->firmwareVersion.major, info->firmwareVersion.minor,
+                                                              info->firmwareVersion.build, info->firmwareVersion.revision);
+      SK_LOGi0 (L"GameInputDevice: Capabilities=%x",          info->capabilities);
+      SK_LOGi0 (L"GameInputDevice: SupportedInput=%x",        info->supportedInput);
+      SK_LOGi0 (L"GameInputDevice: SupportedRumbleMotors=%x", info->supportedRumbleMotors);
+      SK_LOGi0 (L"GameInputDevice: SupportedSystemButtons=%x",info->supportedSystemButtons);
+    });
+  }
 
   if (inputKind == GameInputKindGamepad)
   {
-    IGameInputReading *reading_;
+    IGameInputReading *reading_ = nullptr;
 
     HRESULT hr =
       pReal->GetNextReading (referenceReading, inputKind, device, &reading_);
 
-    if (SUCCEEDED (hr))
+    if (SUCCEEDED (hr) && reading_ != nullptr)
     {
       if (reading != nullptr)
-      {
-        *reading = (IGameInputReading *)new SK_IWrapGameInputReading (reading_);
+      {  *reading  = (IGameInputReading *)new SK_IWrapGameInputReading (reading_);
         _current_readings [device][inputKind] = *reading;
 
         SK_GameInput_EmulatedPlayStation = false;
@@ -511,9 +509,9 @@ SK_IWrapGameInput::GetNextReading (_In_         IGameInputReading  *referenceRea
       {
         reading_->Release ();
       }
-
-      return hr;
     }
+
+    return hr;
   }
 
   return
@@ -582,8 +580,8 @@ SK_IWrapGameInput::GetPreviousReading (_In_         IGameInputReading  *referenc
     if (reading != nullptr && readings.count (device) &&
                               readings       [device].count (inputKind) &&
                               readings       [device]       [inputKind].p != nullptr) {
-                  readings [device][inputKind].p->AddRef ();
-       *reading = readings [device][inputKind];
+                              readings       [device]       [inputKind].p->AddRef ();
+                   *reading = readings       [device]       [inputKind];
     }
 
     else if (SUCCEEDED (pReal->GetPreviousReading (referenceReading, inputKind, device, reading)))
@@ -839,8 +837,9 @@ GameInputCreate_Detour (IGameInput** gameInput)
     }
   }
 
-  if (gameInput != nullptr && pReal != nullptr)
-     *gameInput = pReal;
+  if (gameInput != nullptr && 
+        nullptr != pReal)
+     *gameInput  = pReal;
 
   return hr;
 }
@@ -1546,33 +1545,6 @@ SK_Input_HookGameInput (void)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 HRESULT
 STDMETHODCALLTYPE
 SK_IPlayStationGameInputReading::QueryInterface (REFIID riid, void **ppvObject) noexcept
@@ -1893,19 +1865,19 @@ SK_IPlayStationGameInputReading::GetGamepadState (GameInputGamepadState *state) 
             pNewestInputDevice->xinput.getLatestState ();
 
           state->leftThumbstickX =
-            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbLX) / 32767);
+            static_cast <float> (latest_state.Gamepad.sThumbLX) / 32767;
           state->leftThumbstickY =
-            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbLY) / 32767);
+            static_cast <float> (latest_state.Gamepad.sThumbLY) / 32767;
 
           state->rightThumbstickX =
-            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbRX) / 32767);
+            static_cast <float> (latest_state.Gamepad.sThumbRX) / 32767;
           state->rightThumbstickY =
-            static_cast <float> (static_cast <double> (latest_state.Gamepad.sThumbRY) / 32767);
+            static_cast <float> (latest_state.Gamepad.sThumbRY) / 32767;
 
           state->leftTrigger =
-            static_cast <float> (static_cast <double> (latest_state.Gamepad.bLeftTrigger) / 255);
+            static_cast <float> (latest_state.Gamepad.bLeftTrigger ) / 255;
           state->rightTrigger =
-            static_cast <float> (static_cast <double> (latest_state.Gamepad.bRightTrigger) / 255);
+            static_cast <float> (latest_state.Gamepad.bRightTrigger) / 255;
 
           state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_A) != 0 ? GameInputGamepadA : GameInputGamepadNone;
           state->buttons |= (latest_state.Gamepad.wButtons & XINPUT_GAMEPAD_B) != 0 ? GameInputGamepadB : GameInputGamepadNone;

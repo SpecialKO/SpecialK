@@ -1670,7 +1670,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
     <ClInclude Include="include\shaders\uplay_d3d11_ps.h" />
     <ClInclude Include="include\shaders\uplay_d3d11_vs.h" />
     <ClInclude Include="include\shaders\vs_colorutil.h" />
-    <ClInclude Include="include\SpecialK\ansel.h" />
     <ClInclude Include="include\SpecialK\compatibility\game_traits.h" />
     <ClInclude Include="include\SpecialK\com_util.h" />
     <ClInclude Include="include\SpecialK\control_panel.h" />
@@ -1875,7 +1874,6 @@ if exist "$(TargetDir)$(TargetName).exp" ( del "$(TargetDir)$(TargetName).exp" )
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release (clang)|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="src\adl.cpp" />
-    <ClCompile Include="src\ansel.cpp" />
     <ClCompile Include="src\com_util.cpp">
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release|x64'">stdcpp20</LanguageStandard>
       <LanguageStandard Condition="'$(Configuration)|$(Platform)'=='Release (clang)|x64'">stdcpp20</LanguageStandard>

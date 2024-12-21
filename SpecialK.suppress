@@ -90,6 +90,22 @@
     <CodeNext>230473870</CodeNext>
   </SpecialK>
   <SpecialK>
+    <FileName>cfg_input.cpp</FileName>
+    <ErrorCode>V821</ErrorCode>
+    <Message>Decreased performance. The 'vButtonOrigin' variable can be constructed in a lower level scope.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>50344301</CodeCurrent>
+    <CodeNext>217079713</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>cfg_notifications.cpp</FileName>
+    <ErrorCode>V666</ErrorCode>
+    <Message>Consider inspecting sixth argument of the function 'SK_ImGui_CreateNotification'. It is possible that the value does not correspond with the length of a string which was passed with the first argument.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>1864562979</CodeCurrent>
+    <CodeNext>417053355</CodeNext>
+  </SpecialK>
+  <SpecialK>
     <FileName>com_util.cpp</FileName>
     <ErrorCode>V3515</ErrorCode>
     <Message>All integer constants of unsigned type should have 'U' suffix.</Message>
@@ -568,6 +584,14 @@
     <CodePrev>0</CodePrev>
     <CodeCurrent>4076215292</CodeCurrent>
     <CodeNext>2140692</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>playstation.cpp</FileName>
+    <ErrorCode>V512</ErrorCode>
+    <Message>A call of the 'memset' function will lead to overflow of the buffer '&amp; pData-&gt;LeftStickX'.</Message>
+    <CodePrev>604737</CodePrev>
+    <CodeCurrent>5116</CodeCurrent>
+    <CodeNext>261911641</CodeNext>
   </SpecialK>
   <SpecialK>
     <FileName>screenshot.h</FileName>

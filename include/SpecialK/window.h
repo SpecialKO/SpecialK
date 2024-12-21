@@ -382,7 +382,7 @@ SK_GetWindowLongPtrW (
   _In_ int      nIndex );
 
 struct sk_window_s {
-       sk_window_s (void) noexcept { };
+       sk_window_s (void) noexcept = default;
 
   bool        unicode          = false;
   bool        changed          = true;

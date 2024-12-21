@@ -115,4 +115,4 @@ extern HRESULT
                             _In_ INT                   BaseVertexLocation,
                             _In_ D3D11_DrawIndexed_pfn pfnD3D11DrawIndexed );
 
-extern bool SK_D3D11_ShowShaderModDlg (void);
+extern bool SK_D3D11_ShowShaderModDlg (void) noexcept;

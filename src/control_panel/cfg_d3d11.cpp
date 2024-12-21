@@ -1298,7 +1298,7 @@ SK::ControlPanel::D3D11::Draw (void)
       //ImGui::SameLine (); ImGui::BulletText ("Requires restart");
       //ImGui::PopStyleColor  ();
 
-      if (config.textures.d3d11.cache && (! indirect))
+      if (config.textures.d3d11.cache)
       {
         ImGui::SameLine ();
         ImGui::Spacing  ();
@@ -1329,19 +1329,20 @@ SK::ControlPanel::D3D11::Draw (void)
       SK_ImGui_DrawTexCache_Chart ();
     }
 
-    static bool enable_resolution_limits = ! ( config.render.dxgi.res.min.isZero () &&
-                                               config.render.dxgi.res.max.isZero () );
+    static bool enable_resolution_limits =
+      ! ( config.render.dxgi.res.min.isZero () &&
+          config.render.dxgi.res.max.isZero () );
 
     const bool res_limits =
-      ImGui::CollapsingHeader ("Resolution Limiting", enable_resolution_limits ? ImGuiTreeNodeFlags_DefaultOpen : 0x00);
+      ImGui::CollapsingHeader ( "Resolution Limiting",
+                          enable_resolution_limits ? ImGuiTreeNodeFlags_DefaultOpen : 0x00 );
 
-    if (ImGui::IsItemHovered ())
-    {
-      ImGui::BeginTooltip ();
-      ImGui::Text         ("Restrict the lowest/highest resolutions reported to a game");
-      ImGui::Separator    ();
-      ImGui::BulletText   ("Useful for games that compute aspect ratio based on the highest reported resolution.");
-      ImGui::EndTooltip   ();
+    if (
+      ImGui::BeginItemTooltip ())
+    { ImGui::Text             ("Restrict the lowest/highest resolutions reported to a game");
+      ImGui::Separator        ();
+      ImGui::BulletText       ("Useful for games that compute aspect ratio based on the highest reported resolution.");
+      ImGui::EndTooltip       ();
     }
 
     if (res_limits)
@@ -1358,21 +1359,16 @@ SK::ControlPanel::D3D11::Draw (void)
       if (config.render.dxgi.res.min.x > config.render.dxgi.res.max.x && config.render.dxgi.res.max.x > 0)    config.render.dxgi.res.min.x = config.render.dxgi.res.max.x;
       if (config.render.dxgi.res.min.y > config.render.dxgi.res.max.y && config.render.dxgi.res.max.y > 0)    config.render.dxgi.res.min.y = config.render.dxgi.res.max.y;
 
-      ImGui::TreePop   ();
+      ImGui::TreePop   (  );
      }
 
-    if (d3d11)
+    if (d3d11 && !indirect)
     {
-      if ((! indirect) && ImGui::Button (" Render Mod Tools "))
-      {
-        show_shader_mod_dlg = (!show_shader_mod_dlg);
-      }
-
-      if (! indirect) ImGui::SameLine ();
-      if (! indirect) ImGui::Checkbox ("D3D11 Deferred Mode", &config.render.dxgi.deferred_isolation);
-
-      if (! indirect) if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Try changing this option if textures / shaders are missing from the mod tools.");
+      if (ImGui::Button (" Render Mod Tools ")) show_shader_mod_dlg =
+                                             (! show_shader_mod_dlg );
+      ImGui::SameLine       ();
+      ImGui::Checkbox       ("D3D11 Deferred Mode", &config.render.dxgi.deferred_isolation);
+      ImGui::SetItemTooltip ("Try changing this option if textures / shaders are missing from the mod tools.");
     }
 
     if (! config.reshade.is_addon)
@@ -1382,19 +1378,22 @@ SK::ControlPanel::D3D11::Draw (void)
            ReadAcquire (&SK_DXGI_LiveWrappedSwapChain1s) != 0 )
       {
         if (d3d11 && !indirect) ImGui::SameLine ();
+
         OSD::DrawVideoCaptureOptions ();
       }
     }
 
-    else
+    else if (d3d11 && !indirect)
     {
-      if (d3d11 && !indirect) ImGui::SameLine ();
-      bool changed =
-        ImGui::Checkbox ("Draw ReShade First", &config.reshade.draw_first);
+      ImGui::SameLine ();
 
-      if (ImGui::IsItemHovered ())
+      if (ImGui::Checkbox ("Draw ReShade First", &config.reshade.draw_first))
       {
-        ImGui::BeginTooltip    ();
+        config.utility.save_async ();
+      }
+
+      if (ImGui::BeginItemTooltip ())
+      {
         ImGui::TextUnformatted ("Apply ReShade Before SK Image Processing");
         ImGui::Separator       ();
         ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (1.f, 1.f, 1.f, 1.f));
@@ -1414,150 +1413,143 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::BulletText      ("This mode has a slight performance penalty in D3D12.");
         ImGui::PopStyleColor   ();
         ImGui::EndTooltip      ();
-      }
+      }  
 
-      if (changed)
-        config.utility.save_async ();
-    }
+      ImGui::SameLine ();
 
-    if (d3d11 && (! indirect)) ImGui::SameLine ();
-
-    const bool advanced =
-      d3d11 && (! indirect) && ImGui::TreeNode ("Advanced (Debug)###Advanced_D3D11");
-
-    if (advanced)
-    {
-      ImGui::TreePop               ();
-      ImGui::Separator             ();
-
-      // Indirect K has no D3D11 depth buffer...
-      if (! indirect)
+      if (ImGui::TreeNode ("Advanced (Debug)###Advanced_D3D11"))
       {
-#ifdef _SUPPORT_ENHANCED_DEPTH
-        ImGui::Checkbox ("Enhanced (64-bit) Depth+Stencil Buffer", &config.render.dxgi.enhanced_depth);
+        ImGui::TreePop               ();
+        ImGui::Separator             ();
 
-        if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("Requires application restart");
-#endif
-
-        if (sk::NVAPI::nv_hardware)
+        // Indirect K has no D3D11 depth buffer...
+        if (! indirect)
         {
 #ifdef _SUPPORT_ENHANCED_DEPTH
-          ImGui::SameLine              ();
+          ImGui::Checkbox ("Enhanced (64-bit) Depth+Stencil Buffer", &config.render.dxgi.enhanced_depth);
+
+          if (ImGui::IsItemHovered ())
+            ImGui::SetTooltip ("Requires application restart");
 #endif
-          SK_ImGui_NV_DepthBoundsD3D11 ();
-        }
-      }
 
-      ImGui::Checkbox ( "Enable D3D11 Debug Layer",
-                  &config.render.dxgi.debug_layer );
-      
-      if (config.render.dxgi.debug_layer)
-      {
-        SK_ComQIPtr <ID3D11Debug>
-            pDebugD3D11 (rb.device);
-        if (pDebugD3D11 != nullptr)
-        {
-          static bool _pauseDebugOutput = false;
-
-          ImGui::SameLine ();
-
-          if (
-            ImGui::Button ( _pauseDebugOutput ? "Resume Output"
-                                              : "Pause Output" )
-             ) _pauseDebugOutput = !_pauseDebugOutput;
-
-          ImGui::SameLine ();
-          
-          bool bClearLog =
-            ImGui::Button ("Clear Log");
-
-          ImGui::SameLine ();
-
-          static int                         minimum_severity = 2;
-          ImGui::Combo ("Minimum Severity", &minimum_severity, "Corruption\0Error\0Warning\0Info\0Message\0\0");
-
-          ImGui::BeginChild (
-            ImGui::GetID ("D3D11_Debug_Panel"),
-                  ImVec2 (0.0f, -1.0f),  true,
-                    ImGuiWindowFlags_NavFlattened
-          );
-
-          static D3D11_MESSAGE_ID _debug_id;
-
-          static std::vector <D3D11_MESSAGE_ID> allow_ids;
-          static std::vector <D3D11_MESSAGE_ID> deny_ids;
-          static std::vector <D3D11_MESSAGE_ID> break_ids;
-
-          static iSK_INI *debug_ini = nullptr;
-
-          SK_ComQIPtr <ID3D11InfoQueue>
-              pInfoQueueD3D11 (rb.device);
-          if (pInfoQueueD3D11.p != nullptr)
+          if (sk::NVAPI::nv_hardware)
           {
-            static bool        once = false;
-            if (std::exchange (once, true) == false)
+#ifdef _SUPPORT_ENHANCED_DEPTH
+            ImGui::SameLine              ();
+#endif
+            SK_ImGui_NV_DepthBoundsD3D11 ();
+          }
+        }
+
+        ImGui::Checkbox ( "Enable D3D11 Debug Layer",
+                    &config.render.dxgi.debug_layer );
+      
+        if (config.render.dxgi.debug_layer)
+        {
+          SK_ComQIPtr <ID3D11Debug>
+              pDebugD3D11 (rb.device);
+          if (pDebugD3D11 != nullptr)
+          {
+            static bool _pauseDebugOutput = false;
+
+            ImGui::SameLine ();
+
+            if (
+              ImGui::Button ( _pauseDebugOutput ? "Resume Output"
+                                                : "Pause Output" )
+               ) _pauseDebugOutput = !_pauseDebugOutput;
+
+            ImGui::SameLine ();
+            
+            bool bClearLog =
+              ImGui::Button ("Clear Log");
+
+            ImGui::SameLine ();
+
+            static int                         minimum_severity = 2;
+            ImGui::Combo ("Minimum Severity", &minimum_severity, "Corruption\0Error\0Warning\0Info\0Message\0\0");
+
+            ImGui::BeginChild (
+              ImGui::GetID ("D3D11_Debug_Panel"),
+                    ImVec2 (0.0f, -1.0f),  true,
+                      ImGuiWindowFlags_NavFlattened
+            );
+
+            static D3D11_MESSAGE_ID _debug_id;
+
+            static std::vector <D3D11_MESSAGE_ID> allow_ids;
+            static std::vector <D3D11_MESSAGE_ID> deny_ids;
+            static std::vector <D3D11_MESSAGE_ID> break_ids;
+
+            static iSK_INI *debug_ini = nullptr;
+
+            SK_ComQIPtr <ID3D11InfoQueue>
+                pInfoQueueD3D11 (rb.device);
+            if (pInfoQueueD3D11.p != nullptr)
             {
-              debug_ini =
-                SK_CreateINI (
-                  SK_FormatStringW ( LR"(%ws\%ws)",
-                    SK_GetConfigPath (), L"d3d11_debug.ini" ).c_str ()
-                );
-
-              if (debug_ini->contains_section (L"Messages.Filter"))
+              static bool        once = false;
+              if (std::exchange (once, true) == false)
               {
-                auto& sec =
-                  debug_ini->get_section (L"Messages.Filter");
+                debug_ini =
+                  SK_CreateINI (
+                    SK_FormatStringW ( LR"(%ws\%ws)",
+                      SK_GetConfigPath (), L"d3d11_debug.ini" ).c_str ()
+                  );
 
-                for ( auto& kvp : sec.keys )
+                if (debug_ini->contains_section (L"Messages.Filter"))
                 {
-                  D3D11_MESSAGE_ID id = (D3D11_MESSAGE_ID)
-                    _wtoi (kvp.first.c_str ());
+                  auto& sec =
+                    debug_ini->get_section (L"Messages.Filter");
 
-                  if (     kvp.second == L"Allow")
+                  for ( auto& kvp : sec.keys )
                   {
-                    allow_ids.push_back (id);
+                    D3D11_MESSAGE_ID id = (D3D11_MESSAGE_ID)
+                      _wtoi (kvp.first.c_str ());
+
+                    if (     kvp.second == L"Allow")
+                    {
+                      allow_ids.push_back (id);
+                    }
+
+                    else if (kvp.second == L"Deny")
+                    {
+                      deny_ids.push_back (id);
+                    }
                   }
 
-                  else if (kvp.second == L"Deny")
-                  {
-                    deny_ids.push_back (id);
-                  }
+                  D3D11_INFO_QUEUE_FILTER filter = { };
+
+                  filter.AllowList.NumIDs  = (UINT)allow_ids.size ();
+                  filter.AllowList.pIDList =       allow_ids.data ();
+
+                  filter.DenyList.NumIDs   = (UINT)deny_ids.size ();
+                  filter.DenyList.pIDList  =       deny_ids.data ();
+
+                  pInfoQueueD3D11->AddRetrievalFilterEntries (&filter);
+                  pInfoQueueD3D11->AddStorageFilterEntries   (&filter);
                 }
 
-                D3D11_INFO_QUEUE_FILTER filter = { };
+                if (debug_ini->contains_section (L"Messages.Break"))
+                {
+                  auto& sec =
+                    debug_ini->get_section (L"Messages.Break");
 
-                filter.AllowList.NumIDs  = (UINT)allow_ids.size ();
-                filter.AllowList.pIDList =       allow_ids.data ();
+                  for ( auto& kvp : sec.keys )
+                  {
+                    if (kvp.second == L"Enable")
+                    {
+                      break_ids.push_back ((D3D11_MESSAGE_ID)_wtoi (kvp.first.c_str ()));
+                    }
+                  }
 
-                filter.DenyList.NumIDs   = (UINT)deny_ids.size ();
-                filter.DenyList.pIDList  =       deny_ids.data ();
-
-                pInfoQueueD3D11->AddRetrievalFilterEntries (&filter);
-                pInfoQueueD3D11->AddStorageFilterEntries   (&filter);
+                  for ( auto& msg_id : break_ids )
+                  {
+                    pInfoQueueD3D11->SetBreakOnID (msg_id, TRUE);
+                  }
+                }
               }
 
-              if (debug_ini->contains_section (L"Messages.Break"))
-              {
-                auto& sec =
-                  debug_ini->get_section (L"Messages.Break");
-
-                for ( auto& kvp : sec.keys )
-                {
-                  if (kvp.second == L"Enable")
-                  {
-                    break_ids.push_back ((D3D11_MESSAGE_ID)_wtoi (kvp.first.c_str ()));
-                  }
-                }
-
-                for ( auto& msg_id : break_ids )
-                {
-                  pInfoQueueD3D11->SetBreakOnID (msg_id, TRUE);
-                }
-              }
-            }
-
-            if (ImGui::BeginPopup ("D3D11_Debug_MessageMenu"))
+              if (ImGui::BeginPopup ("D3D11_Debug_MessageMenu"))
             {
               ImGui::Text ("Debug Message Configuration");
 
@@ -1667,167 +1659,103 @@ SK::ControlPanel::D3D11::Draw (void)
               ImGui::EndPopup   ();
             }
 
-            SK_ComPtr                     <IDXGIInfoQueue>           pInfoQueueDXGI;
-            SK_DXGI_GetDebugInterface (IID_IDXGIInfoQueue, (void **)&pInfoQueueDXGI.p);
-            SK_ComPtr                     <IDXGIDebug>               pDXGIDebug;
-            SK_DXGI_GetDebugInterface (IID_IDXGIDebug,     (void **)&pDXGIDebug.p);
+              SK_ComPtr                     <IDXGIInfoQueue>           pInfoQueueDXGI;
+              SK_DXGI_GetDebugInterface (IID_IDXGIInfoQueue, (void **)&pInfoQueueDXGI.p);
+              SK_ComPtr                     <IDXGIDebug>               pDXGIDebug;
+              SK_DXGI_GetDebugInterface (IID_IDXGIDebug,     (void **)&pDXGIDebug.p);
 
-            auto *tls_stack_buf =
-              &pTLS->scratch_memory->log.formatted_output;
+              auto *tls_stack_buf =
+                &pTLS->scratch_memory->log.formatted_output;
 
-            struct SK_DEBUG_MESSAGE {
-              enum _Type {
-                SK_DEBUG_MESSAGE_TYPE_UNKNOWN = 0x0,
-                SK_DEBUG_MESSAGE_TYPE_DXGI    = 0x1,
-                SK_DEBUG_MESSAGE_TYPE_D3D11   = 0x2,
-                SK_DEBUG_MESSAGE_TYPE_D3D12   = 0x4,
-              } Type;
+              struct SK_DEBUG_MESSAGE {
+                enum _Type {
+                  SK_DEBUG_MESSAGE_TYPE_UNKNOWN = 0x0,
+                  SK_DEBUG_MESSAGE_TYPE_DXGI    = 0x1,
+                  SK_DEBUG_MESSAGE_TYPE_D3D11   = 0x2,
+                  SK_DEBUG_MESSAGE_TYPE_D3D12   = 0x4,
+                } Type;
 
-              union {
-                struct {
-                  DXGI_DEBUG_ID                    Producer;
-                  DXGI_INFO_QUEUE_MESSAGE_CATEGORY Category;
-                  DXGI_INFO_QUEUE_MESSAGE_SEVERITY Severity;
-                  DXGI_INFO_QUEUE_MESSAGE_ID       ID;
-                } dxgi;
+                union {
+                  struct {
+                    DXGI_DEBUG_ID                    Producer;
+                    DXGI_INFO_QUEUE_MESSAGE_CATEGORY Category;
+                    DXGI_INFO_QUEUE_MESSAGE_SEVERITY Severity;
+                    DXGI_INFO_QUEUE_MESSAGE_ID       ID;
+                  } dxgi;
 
-                struct SK_D3D11_MESSAGE {
-                  D3D11_MESSAGE_CATEGORY           Category;
-                  D3D11_MESSAGE_SEVERITY           Severity;
-                  D3D11_MESSAGE_ID                 ID;
-                } d3d11;
-                
-                // Not Finished
-                struct SK_D3D12_MESSAGE {
-                  D3D12_MESSAGE_CATEGORY           Category;
-                  D3D12_MESSAGE_SEVERITY           Severity;
-                  D3D12_MESSAGE_ID                 ID;
-                } d3d12;
+                  struct SK_D3D11_MESSAGE {
+                    D3D11_MESSAGE_CATEGORY           Category;
+                    D3D11_MESSAGE_SEVERITY           Severity;
+                    D3D11_MESSAGE_ID                 ID;
+                  } d3d11;
+                  
+                  // Not Finished
+                  struct SK_D3D12_MESSAGE {
+                    D3D12_MESSAGE_CATEGORY           Category;
+                    D3D12_MESSAGE_SEVERITY           Severity;
+                    D3D12_MESSAGE_ID                 ID;
+                  } d3d12;
+                };
+
+                time_t                               Time;
+                std::string                          Timestamp;
+                std::string                          Text;
               };
 
-              time_t                               Time;
-              std::string                          Timestamp;
-              std::string                          Text;
-            };
+              static std::vector <SK_DEBUG_MESSAGE> debug_messages;
 
-            static std::vector <SK_DEBUG_MESSAGE> debug_messages;
+              if (bClearLog)
+                debug_messages.clear ();
 
-            if (bClearLog)
-              debug_messages.clear ();
-
-            static bool        once_again = false;
-            if (std::exchange (once_again, true) == false)
-            {
-              pInfoQueueD3D11->AddApplicationMessage (
-                D3D11_MESSAGE_SEVERITY_MESSAGE,
-                  "Hello From The D3D11 Debug Layer..." );
-
-              D3D11_MESSAGE_ID ia_nop =
-                D3D11_MESSAGE_ID_CREATEINPUTLAYOUT_EMPTY_LAYOUT;
-
-              D3D11_INFO_QUEUE_FILTER
-                filter                  = {     };
-                filter.DenyList.NumIDs  =       1;
-                filter.DenyList.pIDList = &ia_nop;
-
-              pInfoQueueD3D11->AddRetrievalFilterEntries (&filter);
-              pInfoQueueD3D11->AddStorageFilterEntries   (&filter);
-            }
-
-            pInfoQueueD3D11->SetMuteDebugOutput (
-                              _pauseDebugOutput );
-
-            UINT64 uiMessagesWaiting =
-              pInfoQueueD3D11->GetNumStoredMessages ();
-
-            for ( UINT64 msgIdx = 0                 ;
-                         msgIdx < uiMessagesWaiting ;
-                       ++msgIdx )
-            {
-              if (_pauseDebugOutput)
-                break;
-
-              SIZE_T msgLen = 0;
-
-              if ( SUCCEEDED (
-                     pInfoQueueD3D11->GetMessage
-                      ( msgIdx, nullptr, &msgLen ) )
-                 )
+              static bool        once_again = false;
+              if (std::exchange (once_again, true) == false)
               {
-                auto pMsg =
-                  (D3D11_MESSAGE *)
-                    tls_stack_buf->alloc (msgLen);
+                pInfoQueueD3D11->AddApplicationMessage (
+                  D3D11_MESSAGE_SEVERITY_MESSAGE,
+                    "Hello From The D3D11 Debug Layer..." );
 
-                if ( SUCCEEDED (
-                       pInfoQueueD3D11->GetMessage
-                        ( msgIdx, pMsg, &msgLen ) )
-                   )
-                {
-                  if (pMsg->Severity > (D3D11_MESSAGE_SEVERITY)minimum_severity)
-                  {
-                    continue;
-                  }
+                D3D11_MESSAGE_ID ia_nop =
+                  D3D11_MESSAGE_ID_CREATEINPUTLAYOUT_EMPTY_LAYOUT;
 
-                  auto& timestamp =
-                    debug_messages.
-                      emplace_back (
-                        SK_DEBUG_MESSAGE {
-                          .Type       = SK_DEBUG_MESSAGE::SK_DEBUG_MESSAGE_TYPE_D3D11,
-                          .d3d11      = {
-                            .Category = pMsg->Category,
-                            .Severity = pMsg->Severity,
-                            .ID       = pMsg->ID },
-                          .Time       = time (nullptr),
-                          .Text       =
-                            std::string (
-                                   pMsg->pDescription,
-                                   pMsg->DescriptionByteLength
-                            )            }
-                      ).Timestamp;
+                D3D11_INFO_QUEUE_FILTER
+                  filter                  = {     };
+                  filter.DenyList.NumIDs  =       1;
+                  filter.DenyList.pIDList = &ia_nop;
 
-                            timestamp.reserve (27);
-                  ctime_s ( timestamp.data (), 26,
-                      &debug_messages.back ().Time );
-
-                  OutputDebugStringA (debug_messages.back ().Text.c_str ());
-                }
+                pInfoQueueD3D11->AddRetrievalFilterEntries (&filter);
+                pInfoQueueD3D11->AddStorageFilterEntries   (&filter);
               }
-            }
 
-            pInfoQueueD3D11->ClearStoredMessages ();
+              pInfoQueueD3D11->SetMuteDebugOutput (
+                                _pauseDebugOutput );
 
-            if (pInfoQueueDXGI != nullptr)
-            {
-              pInfoQueueDXGI->SetMuteDebugOutput (
-                DXGI_DEBUG_ALL, _pauseDebugOutput );
-
-              uiMessagesWaiting =
-                pInfoQueueDXGI->GetNumStoredMessages (DXGI_DEBUG_ALL);
+              UINT64 uiMessagesWaiting =
+                pInfoQueueD3D11->GetNumStoredMessages ();
 
               for ( UINT64 msgIdx = 0                 ;
                            msgIdx < uiMessagesWaiting ;
                          ++msgIdx )
               {
                 if (_pauseDebugOutput)
-                break;
+                  break;
 
                 SIZE_T msgLen = 0;
 
                 if ( SUCCEEDED (
-                       pInfoQueueDXGI->GetMessage ( DXGI_DEBUG_ALL,
-                         msgIdx, nullptr, &msgLen ) )
+                       pInfoQueueD3D11->GetMessage
+                        ( msgIdx, nullptr, &msgLen ) )
                    )
                 {
                   auto pMsg =
-                    (DXGI_INFO_QUEUE_MESSAGE *)
+                    (D3D11_MESSAGE *)
                       tls_stack_buf->alloc (msgLen);
 
                   if ( SUCCEEDED (
-                         pInfoQueueDXGI->GetMessage ( DXGI_DEBUG_ALL,
-                              msgIdx, pMsg, &msgLen ) )
+                         pInfoQueueD3D11->GetMessage
+                          ( msgIdx, pMsg, &msgLen ) )
                      )
                   {
-                    if (pMsg->Severity > (DXGI_INFO_QUEUE_MESSAGE_SEVERITY)minimum_severity)
+                    if (pMsg->Severity > (D3D11_MESSAGE_SEVERITY)minimum_severity)
                     {
                       continue;
                     }
@@ -1836,9 +1764,8 @@ SK::ControlPanel::D3D11::Draw (void)
                       debug_messages.
                         emplace_back (
                           SK_DEBUG_MESSAGE {
-                            .Type       = SK_DEBUG_MESSAGE::SK_DEBUG_MESSAGE_TYPE_DXGI,
-                            .dxgi       = {
-                              .Producer = pMsg->Producer,
+                            .Type       = SK_DEBUG_MESSAGE::SK_DEBUG_MESSAGE_TYPE_D3D11,
+                            .d3d11      = {
                               .Category = pMsg->Category,
                               .Severity = pMsg->Severity,
                               .ID       = pMsg->ID },
@@ -1859,122 +1786,186 @@ SK::ControlPanel::D3D11::Draw (void)
                 }
               }
 
-              pInfoQueueDXGI->ClearStoredMessages (DXGI_DEBUG_ALL);
-            }
+              pInfoQueueD3D11->ClearStoredMessages ();
 
-            static
-              std::map < D3D11_MESSAGE_SEVERITY, ImVec4 >
-                _d3d11_colors =
+              if (pInfoQueueDXGI != nullptr)
+              {
+                pInfoQueueDXGI->SetMuteDebugOutput (
+                  DXGI_DEBUG_ALL, _pauseDebugOutput );
+
+                uiMessagesWaiting =
+                  pInfoQueueDXGI->GetNumStoredMessages (DXGI_DEBUG_ALL);
+
+                for ( UINT64 msgIdx = 0                 ;
+                             msgIdx < uiMessagesWaiting ;
+                           ++msgIdx )
                 {
-                  { D3D11_MESSAGE_SEVERITY_CORRUPTION, ImColor::HSV (0.836f, 1.0f, 1.0f) },
-                  { D3D11_MESSAGE_SEVERITY_ERROR,      ImColor::HSV (0.0f,   1.0f, 1.0f) },
-                  { D3D11_MESSAGE_SEVERITY_WARNING,    ImColor::HSV (0.169f, 1.0f, 1.0f) },
-                  { D3D11_MESSAGE_SEVERITY_INFO,       ImColor::HSV (0.336f, 1.0f, 1.0f) },
-                  { D3D11_MESSAGE_SEVERITY_MESSAGE,    ImColor::HSV (0.503f, 1.0f, 1.0f) }
+                  if (_pauseDebugOutput)
+                  break;
+
+                  SIZE_T msgLen = 0;
+
+                  if ( SUCCEEDED (
+                         pInfoQueueDXGI->GetMessage ( DXGI_DEBUG_ALL,
+                           msgIdx, nullptr, &msgLen ) )
+                     )
+                  {
+                    auto pMsg =
+                      (DXGI_INFO_QUEUE_MESSAGE *)
+                        tls_stack_buf->alloc (msgLen);
+
+                    if ( SUCCEEDED (
+                           pInfoQueueDXGI->GetMessage ( DXGI_DEBUG_ALL,
+                                msgIdx, pMsg, &msgLen ) )
+                       )
+                    {
+                      if (pMsg->Severity > (DXGI_INFO_QUEUE_MESSAGE_SEVERITY)minimum_severity)
+                      {
+                        continue;
+                      }
+
+                      auto& timestamp =
+                        debug_messages.
+                          emplace_back (
+                            SK_DEBUG_MESSAGE {
+                              .Type       = SK_DEBUG_MESSAGE::SK_DEBUG_MESSAGE_TYPE_DXGI,
+                              .dxgi       = {
+                                .Producer = pMsg->Producer,
+                                .Category = pMsg->Category,
+                                .Severity = pMsg->Severity,
+                                .ID       = pMsg->ID },
+                              .Time       = time (nullptr),
+                              .Text       =
+                                std::string (
+                                       pMsg->pDescription,
+                                       pMsg->DescriptionByteLength
+                                )            }
+                          ).Timestamp;
+
+                                timestamp.reserve (27);
+                      ctime_s ( timestamp.data (), 26,
+                          &debug_messages.back ().Time );
+
+                      OutputDebugStringA (debug_messages.back ().Text.c_str ());
+                    }
+                  }
+                }
+
+                pInfoQueueDXGI->ClearStoredMessages (DXGI_DEBUG_ALL);
+              }
+
+              static
+                std::map < D3D11_MESSAGE_SEVERITY, ImVec4 >
+                  _d3d11_colors =
+                  {
+                    { D3D11_MESSAGE_SEVERITY_CORRUPTION, ImColor::HSV (0.836f, 1.0f, 1.0f) },
+                    { D3D11_MESSAGE_SEVERITY_ERROR,      ImColor::HSV (0.0f,   1.0f, 1.0f) },
+                    { D3D11_MESSAGE_SEVERITY_WARNING,    ImColor::HSV (0.169f, 1.0f, 1.0f) },
+                    { D3D11_MESSAGE_SEVERITY_INFO,       ImColor::HSV (0.336f, 1.0f, 1.0f) },
+                    { D3D11_MESSAGE_SEVERITY_MESSAGE,    ImColor::HSV (0.503f, 1.0f, 1.0f) }
+                  };
+
+              static
+                std::map < DXGI_INFO_QUEUE_MESSAGE_SEVERITY, ImVec4 >
+                  _dxgi_colors =
+                  {
+                    { DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION, ImColor::HSV (0.836f, 1.0f, 1.0f) },
+                    { DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR,	     ImColor::HSV (0.0f,   1.0f, 1.0f) },
+                    { DXGI_INFO_QUEUE_MESSAGE_SEVERITY_WARNING,	   ImColor::HSV (0.169f, 1.0f, 1.0f) },
+                    { DXGI_INFO_QUEUE_MESSAGE_SEVERITY_INFO,	     ImColor::HSV (0.336f, 1.0f, 1.0f) },
+                    { DXGI_INFO_QUEUE_MESSAGE_SEVERITY_MESSAGE,	   ImColor::HSV (0.503f, 1.0f, 1.0f) }
+                  };
+
+              for ( const auto& debug_message : debug_messages )
+              {
+                if ((debug_message.Type           == SK_DEBUG_MESSAGE::_Type::SK_DEBUG_MESSAGE_TYPE_D3D11 &&
+                     debug_message.d3d11.Severity  >           (D3D11_MESSAGE_SEVERITY)minimum_severity)  ||
+                    (debug_message.Type           == SK_DEBUG_MESSAGE::_Type::SK_DEBUG_MESSAGE_TYPE_DXGI  &&
+                     debug_message. dxgi.Severity  > (DXGI_INFO_QUEUE_MESSAGE_SEVERITY)minimum_severity))
+                {
+                  continue;
+                }
+
+                int message_id = 0;
+
+                ImGui::Text        ("%*hs",
+                       25, debug_message.Timestamp.c_str ());
+                ImGui::SameLine    (                       );
+
+                auto _DrawMessageText = [&](void)
+                {
+                  switch (debug_message.Type)
+                  {
+                    case SK_DEBUG_MESSAGE::SK_DEBUG_MESSAGE_TYPE_D3D11:
+                      ImGui::TextColored (
+                        _d3d11_colors [debug_message.d3d11.Severity], "%hs",
+                                       debug_message.Text.c_str ()
+                                         );
+                      message_id = debug_message.d3d11.ID;
+                      break;
+
+                    case SK_DEBUG_MESSAGE::SK_DEBUG_MESSAGE_TYPE_DXGI:
+                      ImGui::TextColored (
+                         _dxgi_colors [debug_message.dxgi.Severity], "%hs",
+                                       debug_message.Text.c_str ()
+                                         );
+                      message_id = debug_message.dxgi.ID;
+                      break;
+
+                    default:
+                      ImGui::TextColored (
+                         _d3d11_colors [D3D11_MESSAGE_SEVERITY_ERROR],
+                           "UNKNOWN MESSAGE TYPE (?!)"
+                                         );
+                      message_id = -1;
+                      break;
+                  }
                 };
 
-            static
-              std::map < DXGI_INFO_QUEUE_MESSAGE_SEVERITY, ImVec4 >
-                _dxgi_colors =
+                _DrawMessageText ();
+
+                if (! _pauseDebugOutput)
+                  ImGui::SetScrollHereY (1.0f);
+
+                if (ImGui::IsItemClicked (1))
                 {
-                  { DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION, ImColor::HSV (0.836f, 1.0f, 1.0f) },
-                  { DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR,	     ImColor::HSV (0.0f,   1.0f, 1.0f) },
-                  { DXGI_INFO_QUEUE_MESSAGE_SEVERITY_WARNING,	   ImColor::HSV (0.169f, 1.0f, 1.0f) },
-                  { DXGI_INFO_QUEUE_MESSAGE_SEVERITY_INFO,	     ImColor::HSV (0.336f, 1.0f, 1.0f) },
-                  { DXGI_INFO_QUEUE_MESSAGE_SEVERITY_MESSAGE,	   ImColor::HSV (0.503f, 1.0f, 1.0f) }
-                };
+                  if (debug_message.Type == SK_DEBUG_MESSAGE::SK_DEBUG_MESSAGE_TYPE_D3D11)
+                  {
+                    _debug_id = (D3D11_MESSAGE_ID)message_id;
 
-            for ( const auto& debug_message : debug_messages )
-            {
-              if ((debug_message.Type           == SK_DEBUG_MESSAGE::_Type::SK_DEBUG_MESSAGE_TYPE_D3D11 &&
-                   debug_message.d3d11.Severity  >           (D3D11_MESSAGE_SEVERITY)minimum_severity)  ||
-                  (debug_message.Type           == SK_DEBUG_MESSAGE::_Type::SK_DEBUG_MESSAGE_TYPE_DXGI  &&
-                   debug_message. dxgi.Severity  > (DXGI_INFO_QUEUE_MESSAGE_SEVERITY)minimum_severity))
-              {
-                continue;
-              }
-
-              int message_id = 0;
-
-              ImGui::Text        ("%*hs",
-                     25, debug_message.Timestamp.c_str ());
-              ImGui::SameLine    (                       );
-
-              auto _DrawMessageText = [&](void)
-              {
-                switch (debug_message.Type)
-                {
-                  case SK_DEBUG_MESSAGE::SK_DEBUG_MESSAGE_TYPE_D3D11:
-                    ImGui::TextColored (
-                      _d3d11_colors [debug_message.d3d11.Severity], "%hs",
-                                     debug_message.Text.c_str ()
-                                       );
-                    message_id = debug_message.d3d11.ID;
-                    break;
-
-                  case SK_DEBUG_MESSAGE::SK_DEBUG_MESSAGE_TYPE_DXGI:
-                    ImGui::TextColored (
-                       _dxgi_colors [debug_message.dxgi.Severity], "%hs",
-                                     debug_message.Text.c_str ()
-                                       );
-                    message_id = debug_message.dxgi.ID;
-                    break;
-
-                  default:
-                    ImGui::TextColored (
-                       _d3d11_colors [D3D11_MESSAGE_SEVERITY_ERROR],
-                         "UNKNOWN MESSAGE TYPE (?!)"
-                                       );
-                    message_id = -1;
-                    break;
+                    ImGui::OpenPopup ("D3D11_Debug_MessageMenu");
+                  }
                 }
-              };
 
-              _DrawMessageText ();
-
-              if (! _pauseDebugOutput)
-                ImGui::SetScrollHereY (1.0f);
-
-              if (ImGui::IsItemClicked (1))
-              {
-                if (debug_message.Type == SK_DEBUG_MESSAGE::SK_DEBUG_MESSAGE_TYPE_D3D11)
+                else if (ImGui::IsItemHovered ())
                 {
-                  _debug_id = (D3D11_MESSAGE_ID)message_id;
-
-                  ImGui::OpenPopup ("D3D11_Debug_MessageMenu");
+                  ImGui::BeginTooltip ();
+                  ImGui::Text         ("Message ID: %d", message_id);
+                  ImGui::Separator    ();
+                     _DrawMessageText ();
+                  ImGui::EndTooltip   ();
                 }
-              }
-
-              else if (ImGui::IsItemHovered ())
-              {
-                ImGui::BeginTooltip ();
-                ImGui::Text         ("Message ID: %d", message_id);
-                ImGui::Separator    ();
-                   _DrawMessageText ();
-                ImGui::EndTooltip   ();
               }
             }
+
+            ImGui::EndChild ();
           }
 
-          ImGui::EndChild ();
-        }
-
-        else
-        {
-          ImGui::BulletText ("Game Restart Required");
+          else
+          {
+            ImGui::BulletText ("Game Restart Required");
+          }
         }
       }
     }
 
-    ImGui::Separator  ();
-
-    SK_ImGui_DrawVRAMGauge ();
-
+    ImGui::Separator            ();
+    SK_ImGui_DrawVRAMGauge      ();
     ImGui::OpenPopupOnItemClick ("DXGI_VRAM_BUDGET", 1);
 
-    if (ImGui::IsItemHovered ())
+    if (
+      ImGui::BeginItemTooltip())
     {
-      ImGui::BeginTooltip    ();
       ImGui::TextUnformatted ("Right-click to Configure VRAM Quotas or Reset Warnings");
       ImGui::Separator       ();
       ImGui::TreePush        ("");
@@ -2007,10 +1998,10 @@ SK::ControlPanel::D3D11::Draw (void)
 
       if (config.render.dxgi.warn_if_vram_exceeds > 0.0f)
       {
-        ImGui::SameLine ();
-
         static float limit =
           config.render.dxgi.warn_if_vram_exceeds;
+
+        ImGui::SameLine ();
 
         /// XXX: FIXME
         SK_ImGui::SliderFloatDeferred (
@@ -2019,18 +2010,13 @@ SK::ControlPanel::D3D11::Draw (void)
 
         if (config.render.dxgi.warned_low_vram)
         {
-          ImGui::SameLine ();
-
-          if (ImGui::Button ("Reset Warning"))
-          {
+          if (ImGui::SameLine ();
+              ImGui::Button   ("Reset Warning"))
             config.render.dxgi.warned_low_vram = false;
-          }
         }
       }
-
-      ImGui::EndPopup     ();
+      ImGui::EndPopup    ( );
     }
-
     ImGui::TreePop       ( );
     ImGui::PopStyleColor (3);
 
@@ -2042,7 +2028,7 @@ SK::ControlPanel::D3D11::Draw (void)
 
 
 bool
-SK_D3D11_ShowShaderModDlg (void)
+SK_D3D11_ShowShaderModDlg (void) noexcept
 {
   return
     SK::ControlPanel::D3D11::show_shader_mod_dlg;

@@ -985,11 +985,11 @@ struct SK_HID_PlayStationDevice
   } battery;
 
   struct button_s {
-    bool state;
-    bool last_state;
+    bool state      = false;
+    bool last_state = false;
 
-    USAGE Usage;
-    USAGE UsagePage;
+    USAGE Usage     = 0ui16;
+    USAGE UsagePage = 0ui16;
 
     SK_HID_BeginModelSpecificButtons (              DualShock3)
       Square      =  0,
@@ -1028,13 +1028,13 @@ struct SK_HID_PlayStationDevice
 
     USAGE Usage;
     USAGE UsagePage;
-  } dpad;
+  } dpad = {};
 
-  USAGE button_usage_min;
-  USAGE button_usage_max;
+  USAGE button_usage_min = 0;
+  USAGE button_usage_max = 0;
 
-  UCHAR button_report_id;
-  UCHAR dpad_report_id;
+  UCHAR button_report_id = 0;
+  UCHAR dpad_report_id   = 0;
 
   struct hid_to_xi {
     std::shared_ptr <SK_Thread_HybridSpinlock>

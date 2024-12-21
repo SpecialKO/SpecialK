@@ -118,14 +118,14 @@ SK::ControlPanel::Platform::Draw (void)
 
           for (uint32_t i = 0; i < (uint32_t)((float)friends * SK_SteamAPI_FriendStatPercentage ()); i++)
           {
-            size_t            len   = 0;
-            const std::string name  = SK_SteamAPI_GetFriendName (i, &len);
-
             const float percent =
               SK_SteamAPI_GetUnlockedPercentForFriend (i);
 
             if (percent > 0.0f)
             {
+              size_t            len   = 0;
+              const std::string name  = SK_SteamAPI_GetFriendName (i, &len);
+
               ImGui::ProgressBar     ( percent, ImVec2 (io.DisplaySize.x * 0.0816f, 0.0f) );
               ImGui::SameLine        ( );
               ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.81f, 0.81f, 0.81f, 1.f));

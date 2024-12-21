@@ -1295,12 +1295,10 @@ namespace SK
              LPDWORD pLen = nullptr ) ->
         LSTATUS
         {
-          LSTATUS lStat         = STATUS_INVALID_DISPOSITION;
           HKEY    hKeyToSet     = 0;
           DWORD   dwDisposition = 0;
           DWORD   dwDataSize    = 0;
-
-          lStat =
+          LSTATUS lStat         =
             RegCreateKeyExW (
               _desc.hKey,
                 _desc.wszSubKey,

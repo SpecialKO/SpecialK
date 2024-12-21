@@ -457,7 +457,7 @@ SK::ControlPanel::PlugIns::Draw (void)
       wchar_t             ini_name [64]           = L"Import.";
       std::string         label                   = "";
       std::string         version                 = "";
-      SK_Import_LoadOrder order                   = SK_Import_LoadOrder::PlugIn;
+      SK_Import_LoadOrder order                   = SK_Import_LoadOrder::Undefined;
       bool                enabled                 = true;
       bool                loaded                  = false;
       std::wstring        mode                    = L"";
@@ -509,9 +509,9 @@ SK::ControlPanel::PlugIns::Draw (void)
                 SK_WideCharToUTF8 (wide_ver_str);
             }
 
-            plugins.emplace (
-              std::make_pair (import.ini_name, import)
-            );
+            // nb: was emplace actually intended?
+            plugins.try_emplace ( import.ini_name,
+                                  import );
           }
         }
       }
@@ -559,9 +559,9 @@ SK::ControlPanel::PlugIns::Draw (void)
             SK_WideCharToUTF8 (wide_ver_str);
         }
 
-        plugins.emplace (
-          std::make_pair (import.ini_name, import)
-        );
+        // nb: was emplace actually intended?
+        plugins.try_emplace ( import.ini_name,
+                              import );
 
         SK_ImGui_SavePlugInPreference ( dll_ini,
                                             import.enabled, import.ini_name,

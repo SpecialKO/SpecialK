@@ -2714,28 +2714,27 @@ struct SK_IMGUI_D3D11StateBlock {
     if ( (iStateMask & RenderTargetState) ||
          (iStateMask & UnorderedAccessState) )
     {
-      pDevCtx->OMGetRenderTargets    (  D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT,
-                                       &RenderTargets.RenderTargetViews [0].p,
-                                       &RenderTargets.DepthStencilView.p );
+      auto ppRtv0 = &RenderTargets.RenderTargetViews   [0].p;
+      auto ppDsv  = &RenderTargets.DepthStencilView       .p;
+      auto ppUav0 = &RenderTargets.UnorderedAccessViews[0].p;
+
+      pDevCtx->OMGetRenderTargets (D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, ppRtv0, ppDsv);
 
       RenderTargets.RenderTargetViewCount =
         calc_count (&RenderTargets.RenderTargetViews [0].p, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT);
 
       if (FeatureLevel >= D3D_FEATURE_LEVEL_11_0 && (iStateMask & UnorderedAccessState))
       {
-        pDevCtx->OMGetRenderTargetsAndUnorderedAccessViews (
+        pDevCtx->OMGetRenderTargetsAndUnorderedAccessViews(
                                           RenderTargets.RenderTargetViewCount,
-                                         &RenderTargets.RenderTargetViews [0].p,
-                                         &RenderTargets.DepthStencilView.p,
-                                       RenderTargets.RenderTargetViewCount,
+                           ppRtv0, ppDsv, RenderTargets.RenderTargetViewCount,
                                        FeatureLevel >= D3D_FEATURE_LEVEL_11_1 ?
                  D3D11_1_UAV_SLOT_COUNT - RenderTargets.RenderTargetViewCount :
          D3D11_PS_CS_UAV_REGISTER_COUNT - RenderTargets.RenderTargetViewCount,
-                                         &RenderTargets.UnorderedAccessViews [0].p );
+                               ppUav0);
 
         RenderTargets.UnorderedAccessViewCount =
-          calc_count (&RenderTargets.UnorderedAccessViews [0].p,
-                                       FeatureLevel >= D3D_FEATURE_LEVEL_11_1 ?
+                   calc_count (ppUav0, FeatureLevel >= D3D_FEATURE_LEVEL_11_1 ?
                  D3D11_1_UAV_SLOT_COUNT - RenderTargets.RenderTargetViewCount :
          D3D11_PS_CS_UAV_REGISTER_COUNT - RenderTargets.RenderTargetViewCount);
       }

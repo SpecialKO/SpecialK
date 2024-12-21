@@ -60,7 +60,7 @@ GetLogicalProcessorInformation_Detour (
   BOOL bRet =
     GetLogicalProcessorInformation_Original ( Buffer, ReturnedLength );
 
-  if ( bRet == TRUE && ReturnedLength != nullptr )
+  if ( bRet != FALSE && ReturnedLength != nullptr )
   {
     struct {
       int physical = 0;
@@ -179,7 +179,7 @@ GetLogicalProcessorInformationEx_Detour (
               (char *)malloc (extraAlloc),
                  ptr    = buffer;
 
-            if (cores_ != nullptr && ptr != nullptr)
+            if (cores_ != nullptr)
             {
               extraCores = extra_cores;
 

@@ -140,17 +140,20 @@ struct sk_config_t
         (1000ULL * 1000ULL * pwi [0].MaxMhz);
 
       SK_QpcFreqInTsc = (DWORD)(SK_TscFreq / SK_QpcFreq);
-
       SK_TscInvariant =
         false;
       //(cpuid [3] & (1 << 8)) != 0;
 
       SK_PerfFreqInTsc = 1;
 
+// Using Tsc instead of QPC was experimented with a few years ago (~2023),
+//   but it broke Latent Sync at the time... it may be worth revisiting.
+#if 0
       if (SK_TscInvariant)
         SK_PerfFreq = SK_TscFreq;
 
       else
+#endif
         SK_PerfFreqInTsc = SK_QpcFreqInTsc;
     }
 

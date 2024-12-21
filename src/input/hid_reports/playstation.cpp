@@ -198,9 +198,11 @@ void SK_HID_SetupPlayStationControllers (void)
 
           SK_HidD_GetAttributes (hDeviceFile, &hidAttribs);
     
-          bool bSONY = 
-            hidAttribs.VendorID == SK_HID_VID_SONY ||
-            hidAttribs.VendorID == 0x2054c;
+          const bool bSONY = 
+            hidAttribs.VendorID == SK_HID_VID_SONY;
+
+            // (*) 0x2054c - (Too large for 16-bit VID);
+
             // The 0x2054c VID comes from Bluetooth service discovery.
             //
             //   * It should never actually show up through a call to
@@ -304,10 +306,8 @@ void SK_HID_SetupPlayStationControllers (void)
                       buttonCapsArray [i].Range.UsageMax;
 
                     controller.buttons.resize (
-                      static_cast <size_t> (
-                        controller.button_usage_max -
-                        controller.button_usage_min + 1
-                      )
+                      static_cast <size_t> (controller.button_usage_max) -
+                      static_cast <size_t> (controller.button_usage_min) + 1
                     );
                   }
                 }
@@ -1175,12 +1175,12 @@ SK_HID_PlayStationDevice::request_input_report (void)
         ZeroMemory ( pDevice->input_report.data (),
                      pDevice->input_report.size () );
 
-        pDevice->input_report [0] = pDevice->bBluetooth ? 49
-                                                           : pDevice->button_report_id;
+        pDevice->input_report [0]   = pDevice->bBluetooth ? 49
+                                                          : pDevice->button_report_id;
 
         if (pDevice->bDualShock4)
-          pDevice->input_report [0] = pDevice->bBluetooth ? 0x11 :
-                                         pDevice->button_report_id;
+          pDevice->input_report [0] = pDevice->bBluetooth ? 0x11
+                                                          : pDevice->button_report_id;
 
         bool bHasBluetooth = false;
 
@@ -1416,7 +1416,6 @@ SK_HID_PlayStationDevice::request_input_report (void)
                     case 0x35: // Rotate-Z
                       pDevice->xinput.report.Gamepad.sThumbRY =
                         static_cast <SHORT> (32767 * fmax (-1, (+127.0 - value) / 127));
-                      break;
 #if 0
                       if (value != 0)
                       {
@@ -1433,7 +1432,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                                       SK_ImGui_Toast::ShowNewest );
                       }
 #endif
-                        break;
+                      break;
 
                     case 0x39: // Hat Switch
                     {
@@ -1480,7 +1479,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   (SK_HID_DualSense_GetStateData *)&(pDevice->input_report.data ()[1]);
 
                 const auto *pDualShock4 =
-                  (SK_HID_DualShock4_GetStateData *)pDualSense;
+                  (SK_HID_DualShock4_GetStateData *)&(pDevice->input_report.data ()[1]);
 
                 float batteryPercent = 0.0f;
 
@@ -1557,13 +1556,14 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 if (pDevice->buttons.size () < 19)
                     pDevice->buttons.resize (  19);
 
-                if (pDevice->bDualSense)
+                if (pDevice->bDualSense || pDevice->bDualSenseEdge)
                 {
-                  pDevice->buttons [SK_HID_PlayStationButton::TrackPad   ].state = pDualSense->ButtonPad           != 0;
-                  pDevice->buttons [SK_HID_PlayStationButton::LeftFn     ].state = pDualSense->ButtonLeftFunction  != 0;
-                  pDevice->buttons [SK_HID_PlayStationButton::RightFn    ].state = pDualSense->ButtonRightFunction != 0;
-                  pDevice->buttons [SK_HID_PlayStationButton::LeftPaddle ].state = pDualSense->ButtonLeftPaddle    != 0;
-                  pDevice->buttons [SK_HID_PlayStationButton::RightPaddle].state = pDualSense->ButtonRightPaddle   != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::TrackPad   ].state =  pDualSense->ButtonPad           != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::Mute       ].state =  pDualSense->ButtonMute          != 0;
+                  pDevice->buttons [SK_HID_PlayStationButton::LeftFn     ].state = (pDualSense->ButtonLeftFunction  != 0) && pDevice->bDualSenseEdge;
+                  pDevice->buttons [SK_HID_PlayStationButton::RightFn    ].state = (pDualSense->ButtonRightFunction != 0) && pDevice->bDualSenseEdge;
+                  pDevice->buttons [SK_HID_PlayStationButton::LeftPaddle ].state = (pDualSense->ButtonLeftPaddle    != 0) && pDevice->bDualSenseEdge;
+                  pDevice->buttons [SK_HID_PlayStationButton::RightPaddle].state = (pDualSense->ButtonRightPaddle   != 0) && pDevice->bDualSenseEdge;
                 }
 
                 else
@@ -1680,14 +1680,13 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 pDevice->buttons [SK_HID_PlayStationButton::L3      ].state = pData->ButtonL3       != 0;
                 pDevice->buttons [SK_HID_PlayStationButton::R3      ].state = pData->ButtonR3       != 0;
 
-                // Do not write buttons the HID API does not list
-                if (pDevice->buttons.size () >= 13)
-                  pDevice->buttons [SK_HID_PlayStationButton::Home    ].state = pData->ButtonHome   != 0;
-                if (pDevice->buttons.size () >= 14)
-                  pDevice->buttons [SK_HID_PlayStationButton::TrackPad].state = pData->ButtonPad    != 0;
-                if (pDevice->buttons.size () >= 15)
+                pDevice->buttons [SK_HID_PlayStationButton::Home    ].state = pData->ButtonHome     != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::TrackPad].state = pData->ButtonPad      != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Mute    ].state = pData->ButtonMute     != 0;
+
+                // DualSense does not have these buttons...
+                if (pDevice->bDualSenseEdge)
                 {
-                  pDevice->buttons [SK_HID_PlayStationButton::Mute       ].state = pData->ButtonMute          != 0;
                   pDevice->buttons [SK_HID_PlayStationButton::LeftFn     ].state = pData->ButtonLeftFunction  != 0;
                   pDevice->buttons [SK_HID_PlayStationButton::RightFn    ].state = pData->ButtonRightFunction != 0;
                   pDevice->buttons [SK_HID_PlayStationButton::LeftPaddle ].state = pData->ButtonLeftPaddle    != 0;
@@ -1700,6 +1699,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                     pDevice->reset_rgb = false;
               }
 
+              // Simple Reporting Mode
               else
               {
                 // Prevent battery warnings, we can't actually get battery status in simple mode.
@@ -1718,8 +1718,8 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 pDevice->xinput.report.Gamepad.sThumbRY =
                   static_cast <SHORT> (32767 * fmax (-1, (+127.0 - pSimpleData->RightStickY) / 127));
 
-              pDevice->xinput.report.Gamepad.bLeftTrigger  = pSimpleData->TriggerLeft;
-              pDevice->xinput.report.Gamepad.bRightTrigger = pSimpleData->TriggerRight;
+                pDevice->xinput.report.Gamepad.bLeftTrigger  = pSimpleData->TriggerLeft;
+                pDevice->xinput.report.Gamepad.bRightTrigger = pSimpleData->TriggerRight;
 
                 switch (pSimpleData->DPad)
                 {
@@ -1749,20 +1749,15 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 pDevice->buttons [SK_HID_PlayStationButton::R1      ].state = pSimpleData->ButtonR1       != 0;
                 pDevice->buttons [SK_HID_PlayStationButton::L2      ].state = pSimpleData->ButtonL2       != 0;
                 pDevice->buttons [SK_HID_PlayStationButton::R2      ].state = pSimpleData->ButtonR2       != 0;
-
                 pDevice->buttons [SK_HID_PlayStationButton::Share   ].state = pSimpleData->ButtonShare    != 0;
                 pDevice->buttons [SK_HID_PlayStationButton::Options ].state = pSimpleData->ButtonOptions  != 0;
-
                 pDevice->buttons [SK_HID_PlayStationButton::L3      ].state = pSimpleData->ButtonL3       != 0;
                 pDevice->buttons [SK_HID_PlayStationButton::R3      ].state = pSimpleData->ButtonR3       != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::Home    ].state = pSimpleData->ButtonHome     != 0;
+                pDevice->buttons [SK_HID_PlayStationButton::TrackPad].state = pSimpleData->ButtonPad      != 0;
 
-                // Do not write buttons the HID API does not list
-                if (pDevice->buttons.size () >= 13)
-                  pDevice->buttons [SK_HID_PlayStationButton::Home    ].state = pSimpleData->ButtonHome   != 0;
-                if (pDevice->buttons.size () >= 14)
-                  pDevice->buttons [SK_HID_PlayStationButton::TrackPad].state = pSimpleData->ButtonPad    != 0;
-                if (pDevice->buttons.size () >= 15)
-                  pDevice->buttons [SK_HID_PlayStationButton::Mute    ].state = false; // No mute button
+                // No mute button in simple mode
+                pDevice->buttons [SK_HID_PlayStationButton::Mute    ].state = false;
               }
 
               pDevice->battery.state =
@@ -1798,7 +1793,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 case Charging:
                 case Discharging:
                 {
-                  if (pDevice->battery.percentage >= config.input.gamepad.low_battery_percent || pDevice->battery.state == Charging || (pDevice->bDualSense && pDevice->bBluetooth && pDevice->bSimpleMode))
+                  if (pDevice->battery.percentage >= config.input.gamepad.low_battery_percent || pDevice->battery.state == Charging || (pDevice->bDualSense && pDevice->bSimpleMode))
                     SK_ImGui_DismissNotification ("DualSense.BatteryCharge");
                   else
                     SK_ImGui_CreateNotificationEx (
@@ -1876,7 +1871,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
               }
             }
 
-            else if (pDevice->bDualShock4)
+            else// if (pDevice->bDualShock4)
             {
               pDevice->bBluetooth = true;
                     bHasBluetooth = true;
@@ -1884,7 +1879,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
               SK_RunOnce (SK_Bluetooth_InitPowerMgmt ());
 
               if (! config.input.gamepad.bt_input_only)
-                WriteRelease (&pDevice->bNeedOutput, true);
+                WriteRelease (&pDevice->bNeedOutput, TRUE);
 
               if (pDevice->buttons.size () < 14)
                   pDevice->buttons.resize (  14);
@@ -1927,26 +1922,20 @@ SK_HID_PlayStationDevice::request_input_report (void)
                   break;
               }
 
-              pDevice->buttons [SK_HID_PlayStationButton::Square    ].state = pData->ButtonSquare   != 0;
-              pDevice->buttons [SK_HID_PlayStationButton::Cross     ].state = pData->ButtonCross    != 0;
-              pDevice->buttons [SK_HID_PlayStationButton::Circle    ].state = pData->ButtonCircle   != 0;
-              pDevice->buttons [SK_HID_PlayStationButton::Triangle  ].state = pData->ButtonTriangle != 0;
-              pDevice->buttons [SK_HID_PlayStationButton::L1        ].state = pData->ButtonL1       != 0;
-              pDevice->buttons [SK_HID_PlayStationButton::R1        ].state = pData->ButtonR1       != 0;
-              pDevice->buttons [SK_HID_PlayStationButton::L2        ].state = pData->ButtonL2       != 0;
-              pDevice->buttons [SK_HID_PlayStationButton::R2        ].state = pData->ButtonR2       != 0;
-
-              pDevice->buttons [SK_HID_PlayStationButton::Share     ].state = pData->ButtonShare    != 0;
-              pDevice->buttons [SK_HID_PlayStationButton::Options   ].state = pData->ButtonOptions  != 0;
-
-              pDevice->buttons [SK_HID_PlayStationButton::L3        ].state = pData->ButtonL3       != 0;
-              pDevice->buttons [SK_HID_PlayStationButton::R3        ].state = pData->ButtonR3       != 0;
-
-              // Do not write buttons the HID API does not list
-              if (pDevice->buttons.size () >= 13)
-                pDevice->buttons [SK_HID_PlayStationButton::Home    ].state = pData->ButtonHome     != 0;
-              if (pDevice->buttons.size () >= 14)
-                pDevice->buttons [SK_HID_PlayStationButton::TrackPad].state = pData->ButtonPad      != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::Square  ].state = pData->ButtonSquare   != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::Cross   ].state = pData->ButtonCross    != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::Circle  ].state = pData->ButtonCircle   != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::Triangle].state = pData->ButtonTriangle != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::L1      ].state = pData->ButtonL1       != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::R1      ].state = pData->ButtonR1       != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::L2      ].state = pData->ButtonL2       != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::R2      ].state = pData->ButtonR2       != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::Share   ].state = pData->ButtonShare    != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::Options ].state = pData->ButtonOptions  != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::L3      ].state = pData->ButtonL3       != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::R3      ].state = pData->ButtonR3       != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::Home    ].state = pData->ButtonHome     != 0;
+              pDevice->buttons [SK_HID_PlayStationButton::TrackPad].state = pData->ButtonPad      != 0;
 
               pDevice->sensor_timestamp = pData->Timestamp;
 
@@ -1964,7 +1953,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                     pDevice->battery.state == Discharging ? static_cast <float> (std::min (10, (pData->PowerPercent & 0xF)))     :
                                                                                                       0.0f) * 10.0f +
                   ( pDevice->battery.state == Charging    ? 0.0f :
-                    pDevice->battery.state == Discharging ? 5.0f :
+                    pDevice->battery.state == Discharging ? 5.0f : //TODO: V547 https://pvs-studio.com/en/docs/warnings/v547/ Expression 'pDevice->battery.state == Discharging' is always true.
                                                             0.0f ), 0.0f, 100.0f );
 
               // Implicitly assign Charging Complete status if battery is full and plugged-in
@@ -2006,7 +1995,7 @@ SK_HID_PlayStationDevice::request_input_report (void)
                 case Charging:
                 case Discharging:
                 {
-                  if (pDevice->battery.percentage >= config.input.gamepad.low_battery_percent || pDevice->battery.state == Charging || (pDevice->bDualSense && pDevice->bBluetooth && pDevice->bSimpleMode))
+                  if (pDevice->battery.percentage >= config.input.gamepad.low_battery_percent || pDevice->battery.state == Charging || (pDevice->bDualSense && pDevice->bSimpleMode))
                     SK_ImGui_DismissNotification ("DualShock.BatteryCharge");
                   else
                     SK_ImGui_CreateNotificationEx (
@@ -2862,9 +2851,9 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             InterlockedIncrement (&pDevice->output.writes_retired);
           }
 
-          else if (pDevice->bBluetooth)
+          else //if (pDevice->bBluetooth)
           {
-            BYTE bt_data [79] = { };
+            BYTE bt_data [79] = { }; //TODO: V1048 https://pvs-studio.com/en/docs/warnings/v1048/ The 'bFinished' variable was assigned the same value.
 
             struct Header {
               uint8_t Head;
@@ -3208,7 +3197,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                       );
                     }
 
-                    if (dwLastErr != ERROR_INVALID_HANDLE && dwLastErr != NOERROR)
+                    if (dwLastErr != ERROR_INVALID_HANDLE)
                       SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
 
                     if (dwLastErr == ERROR_GEN_FAILURE || dwLastErr == ERROR_OPERATION_ABORTED)
@@ -3244,13 +3233,6 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
       {
         output_report.resize (sizeof (SK_HID_DualShock4_SetStateData) + 1);
       }
-
-      SK_ReleaseAssert (
-        output_report.size () >= sizeof (SK_HID_DualShock4_SetStateData) + 1
-      );
-
-      if (output_report.size () <= sizeof (SK_HID_DualShock4_SetStateData))
-        return false;
     }
 
     InterlockedIncrement (&output_requests);
@@ -3447,7 +3429,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             InterlockedIncrement (&pDevice->output.writes_retired);
           }
 
-          else if (pDevice->bBluetooth)
+          else //if (pDevice->bBluetooth)
           {
             BYTE bt_data [83] = { };
 
@@ -3635,7 +3617,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                       );
                     }
 
-                    if (dwLastErr != ERROR_INVALID_HANDLE && dwLastErr != NOERROR)
+                    if (dwLastErr != ERROR_INVALID_HANDLE)
                       SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
 
                     if (dwLastErr == ERROR_GEN_FAILURE || dwLastErr == ERROR_OPERATION_ABORTED)

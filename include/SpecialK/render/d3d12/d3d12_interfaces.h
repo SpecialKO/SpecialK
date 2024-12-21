@@ -528,7 +528,7 @@ struct SK_D3D12_RenderCtx {
     HRESULT WaitSequential   (void);
   };
 
-  static std::recursive_mutex _ctx_lock;
+  std::recursive_mutex _ctx_lock;
 
   SK_ComPtr <ID3D12Device>                _pDevice            = nullptr;
   SK_ComPtr <ID3D12CommandQueue>          _pCommandQueue      = nullptr;

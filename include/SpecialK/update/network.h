@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -61,7 +61,7 @@ struct sk_download_request_s
   bool (*finish_routine)( const std::vector <uint8_t>&&,
                           const std::wstring_view ) = nullptr;
 
-  sk_download_request_s (void) { };
+  sk_download_request_s (void) = default;
   sk_download_request_s (const std::wstring&    local_path,
                          const std::string_view url,
                          bool (*finisher)(const std::vector <uint8_t>&&,

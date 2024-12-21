@@ -799,14 +799,16 @@ LoadLibrary_Marshal ( LPVOID   lpRet,
                          (wchar_t *)lpFileName;
   }
 
-  if (              compliant_path != nullptr &&
-                   *compliant_path != L'\0' )
+  if (*compliant_path != L'\0')
   {
     if (! SK_GetModuleHandleExW (
             GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
               compliant_path,
                 &hModEarly      )
-       ) SK_SetLastError (0);
+       )
+    {
+      SK_SetLastError (0);
+    }
 
     if (hModEarly == nullptr && BlacklistLibrary (compliant_path))
     {
@@ -2348,8 +2350,10 @@ BOOL
 __stdcall
 BlacklistLibrary (const _T* lpFileName)
 {
-  return FALSE;
-
+// This is being phased out
+#if 1
+  std::ignore = lpFileName;
+#else
   if (lpFileName == nullptr)
     return FALSE;
 
@@ -2474,9 +2478,10 @@ BlacklistLibrary (const _T* lpFileName)
     return TRUE;
   }
 
-  return FALSE;
-
 #pragma pop_macro ("StrStrI")
 #pragma pop_macro ("GetModuleHandleEx")
 #pragma pop_macro ("LoadLibrary")
+#endif
+
+  return FALSE;
 }

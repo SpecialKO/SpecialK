@@ -1,4 +1,4 @@
-/**
+﻿/**
  * This file is part of Special K.
  *
  * Special K is free software : you can redistribute it
@@ -34,11 +34,8 @@ static const GUID IID_SK_INISection =
 { 0xb526d074, 0x2f4d, 0x4bae, { 0xb6, 0xec, 0x11, 0xcb, 0x37, 0x79, 0xb1, 0x99 } };
 
 interface iSK_INI;
-
 interface iSK_INISection : public IUnknown
 {
-//friend interface iSK_INI;
-
 public:
   iSK_INISection (void) = default;
 
@@ -54,19 +51,15 @@ public:
   iSK_INISection ( const wchar_t* section_name,
                          iSK_INI* _parent )     : name   (section_name != nullptr ?
                                                           section_name            : L""),
-                                                  parent (_parent) {
-  }
+                                                  parent (_parent) { };
 
   iSK_INISection ( const std::wstring& sec_name,
-                              iSK_INI* _parent) : name   (sec_name),
-                                                  parent (_parent) {
-  }
+                              iSK_INI* _parent ) : name   (sec_name),
+                                                   parent (_parent) { };
 
-  iSK_INISection ( const
-                    std::wstring_view& sec_name,
-                              iSK_INI* _parent) : name   (sec_name),
-                                                  parent (_parent) {
-  }
+  iSK_INISection ( std::wstring_view sec_name,
+                             iSK_INI* _parent ) : name   (sec_name),
+                                                  parent (_parent) { };
 
   virtual ~iSK_INISection (void) = default;
 

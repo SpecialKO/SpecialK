@@ -711,9 +711,6 @@
     <ClInclude Include="include\SpecialK\control_panel\steam.h">
       <Filter>Header Files\Storefronts\Steam</Filter>
     </ClInclude>
-    <ClInclude Include="include\SpecialK\ansel.h">
-      <Filter>Header Files\Backends</Filter>
-    </ClInclude>
     <ClInclude Include="include\SpecialK\diagnostics\memory.h">
       <Filter>Header Files\Stats</Filter>
     </ClInclude>
@@ -3415,9 +3412,6 @@
     </ClCompile>
     <ClCompile Include="src\diagnostics\load_library.cpp">
       <Filter>Source Files\Diagnostics</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ansel.cpp">
-      <Filter>Source Files\Backends\Render</Filter>
     </ClCompile>
     <ClCompile Include="src\render\d3d9\d3d9_swapchain.cpp">
       <Filter>Source Files\Backends\Render\D3D9</Filter>

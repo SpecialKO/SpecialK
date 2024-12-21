@@ -238,13 +238,13 @@ SK::ControlPanel::Compatibility::Draw (void)
       // The active API will be re-enabled immediately
       if (ImGui::Button (" Disable All But the Active API "))
       {
-        config.apis.d3d9ex.hook_next     = false; config.apis.d3d9.hook_next       = false;
-        config.apis.dxgi.d3d11.hook_next = false; config.apis.dxgi.d3d12.hook_next = false;
-        config.apis.OpenGL.hook_next     = false;
+        config.apis.d3d9ex.hook_next     = FALSE; config.apis.d3d9.hook_next       = FALSE;
+        config.apis.dxgi.d3d11.hook_next = FALSE; config.apis.dxgi.d3d12.hook_next = FALSE;
+        config.apis.OpenGL.hook_next     = FALSE;
 #ifdef _M_AMD64
-        config.apis.Vulkan.hook_next     = false;
+        config.apis.Vulkan.hook_next     = FALSE;
 #else
-        config.apis.d3d8.hook_next       = false; config.apis.ddraw.hook_next      = false;
+        config.apis.d3d8.hook_next       = FALSE; config.apis.ddraw.hook_next      = FALSE;
 #endif
         EnableActiveAPI (render_api);
       }
@@ -462,7 +462,7 @@ SK::ControlPanel::Compatibility::Draw (void)
         {
           std::string summary;
 
-          if ((dwStyle & WS_OVERLAPPED)   == WS_OVERLAPPED)   summary += "Overlapped, ";
+          if ((dwStyle)                   == WS_OVERLAPPED)   summary += "Overlapped, ";
           if ((dwStyle & WS_POPUP)        == WS_POPUP)        summary += "Popup, ";
           if ((dwStyle & WS_CHILD)        == WS_CHILD)        summary += "Child, ";
           if ((dwStyle & WS_MINIMIZE)     == WS_MINIMIZE)     summary += "Minimize, ";

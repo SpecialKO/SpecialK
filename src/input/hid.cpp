@@ -1022,9 +1022,11 @@ ReadFile_Detour (HANDLE       hFile,
 
           if ((! lpOverlapped) && dev_allowed)
           {
-            if (                   cached_report.size   ()          < nNumberOfBytesRead && nNumberOfBytesRead > 0)
-                                   cached_report.resize (             nNumberOfBytesRead);
-              SK_UNTRUSTED_memcpy (cached_report.data   (), lpBuffer, nNumberOfBytesRead);
+            if (cached_report.size () < nNumberOfBytesRead && nNumberOfBytesRead > 0)
+                cached_report.resize (  nNumberOfBytesRead);
+
+            if (                                          lpBuffer != nullptr)
+              SK_UNTRUSTED_memcpy (cached_report.data (), lpBuffer, nNumberOfBytesRead);
           }
 
           bool bDeviceAllowed = dev_allowed;
@@ -2531,12 +2533,9 @@ SK_Input_PreHookHID (void)
       );
     }
 
-    if (! config.input.gamepad.hook_hid)
-    {
-      ret = false;
-    }
+    ret = false;
 
-    else
+    if (config.input.gamepad.hook_hid)
     {
       static sk_import_test_s tests [] = {
         { "hid.dll", false }
