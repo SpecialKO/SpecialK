@@ -930,7 +930,7 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
           UINT rtv_idx = 0;
 
-          if (live_textures.count (it) != 0)
+          if (live_textures.contains (it))
           {
             if (! SK_D3D11_IsValidRTV (it))
             {
@@ -939,16 +939,15 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
               continue;
             }
 
-            char     szDebugDesc [128] = { };
-            wchar_t wszDebugDesc [128] = { };
-            UINT     uiDebugLen        = 127;
-
             rtv_idx =
               rt_indexes [it];
 
             if (rtv_idx != std::numeric_limits <UINT>::max ())
             {
-              uiDebugLen = sizeof (wszDebugDesc) - sizeof (wchar_t);
+              char     szDebugDesc [128] = { };
+              wchar_t wszDebugDesc [128] = { };
+              UINT     uiDebugLen        =
+                sizeof (wszDebugDesc) - sizeof (wchar_t);
 
               if ( SUCCEEDED (
                      it->GetPrivateData (
@@ -966,7 +965,8 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
 
               else
               {
-                uiDebugLen = sizeof (szDebugDesc) - sizeof (char);
+                uiDebugLen =
+                  sizeof (szDebugDesc) - sizeof (char);
 
                 if ( SUCCEEDED (
                      it->GetPrivateData (
@@ -1229,9 +1229,9 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
       }
 
 
-      if ( render_textures.size  () >      (size_t)sel   &&
-             live_textures.count (render_textures [sel]) &&
-             discard_views.count (render_textures [sel]) == 0 )
+      if ( render_textures.size  () >         (size_t)sel   &&
+             live_textures.contains (render_textures [sel]) &&
+            !discard_views.contains (render_textures [sel]) )
       {
         SK_ComPtr <ID3D11RenderTargetView>
           rt_view (render_textures [sel]);
@@ -1410,9 +1410,9 @@ SK_D3D11_ShaderModDlg (SK_TLS* pTLS = SK_TLS_Bottom ())
                 ImGui::EndChildFrame     (    );
                 ImGui::PopStyleColor     (    );
 
-                if (draw_srv_overlay && pSRV.p != nullptr)
-                                 pOverlaySRV = pSRV.p;
-                else             pOverlaySRV = nullptr;
+                if (draw_srv_overlay)
+                            pOverlaySRV = pSRV.p;
+                else        pOverlaySRV = nullptr;
               }
 
               if (bottom_list > 0)

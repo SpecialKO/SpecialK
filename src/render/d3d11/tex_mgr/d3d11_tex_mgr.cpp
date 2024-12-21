@@ -639,7 +639,7 @@ SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
 
       {
         std::scoped_lock <SK_Thread_HybridSpinlock> critical (*hash_cs);
-        textures.tex_hashes_ex.emplace (tag, name);
+        textures.tex_hashes_ex.try_emplace (tag, name);
       }
 
       SK_D3D11_AddInjectable (top_crc32, hash);
@@ -651,7 +651,7 @@ SK_D3D11_AddTexHash ( const wchar_t* name, uint32_t top_crc32, uint32_t hash )
   {
     {
       std::scoped_lock <SK_Thread_HybridSpinlock> critical (*hash_cs);
-      textures.tex_hashes.emplace (top_crc32, name);
+      textures.tex_hashes.try_emplace (top_crc32, name);
     }
 
     if (! SK_D3D11_inject_textures_ffx)
@@ -941,10 +941,9 @@ SK_D3D11_DumpTexture2D ( _In_ ID3D11Texture2D* pTex, uint32_t crc32c )
       wchar_t wszOutName [MAX_PATH + 2] = { };
 
       bool         bHasDebugName = false;
-      std::wstring wszSubDir     = L"";
-
       if (SK_D3D11_HasDebugName (pTex))
       {
+        std::wstring
         wszSubDir =           SK_D3D11_GetDebugNameW (pTex) .empty () ?
            SK_UTF8ToWideChar (SK_D3D11_GetDebugNameA (pTex)) :
                               SK_D3D11_GetDebugNameW (pTex);
@@ -2045,8 +2044,10 @@ SK_D3D11_TexCacheCheckpoint (void)
   }
 
 
+  // This needs to be static, or the texture cache manager
+  //   never releases any memory!
+  static int       iter               = 0;
 
-         int       iter               = 0;
 
   static bool      init               = false;
   static ULONGLONG ullMemoryTotal_KiB = 0;

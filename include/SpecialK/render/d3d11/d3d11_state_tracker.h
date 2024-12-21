@@ -191,7 +191,7 @@ struct memory_tracking_s
     std::atomic <uint64_t> bytes_read               = 0ULL;
     std::atomic <uint64_t> bytes_written            = 0ULL;
     std::atomic <uint64_t> bytes_copied             = 0ULL;
-  } lifetime, last_frame;
+  } lifetime = {}, last_frame = {};
 
 
   std::atomic <uint32_t>   num_maps                 = 0UL;
