@@ -1,4 +1,9 @@
-﻿24.12.21.3
+﻿24.12.21.4
+==========
+ + Revert scheduler changes related to Sleep (0) behavior in 24.12.15 that cause
+     Silent Hill 2 to crash.
+
+24.12.21.3
 ==========
  + Fixed recent change that would cause the control panel to crash in Steam games
      if Steam cloud is disabled or SteamAPI integration is turned off.

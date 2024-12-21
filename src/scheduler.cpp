@@ -39,6 +39,7 @@ NtSetTimerResolution_pfn   NtSetTimerResolution_Original = nullptr;
 
 NtDelayExecution_pfn       NtDelayExecution              = nullptr;
 
+
 LPVOID pfnQueryPerformanceCounter = nullptr;
 LPVOID pfnSleep                   = nullptr;
 
@@ -50,7 +51,10 @@ QueryPerformanceCounter_pfn ZwQueryPerformanceCounter          = nullptr;
 QueryPerformanceCounter_pfn RtlQueryPerformanceCounter         = nullptr;
 QueryPerformanceCounter_pfn QueryPerformanceFrequency_Original = nullptr;
 QueryPerformanceCounter_pfn RtlQueryPerformanceFrequency       = nullptr;
-SwitchToThread_pfn          SwitchToThread_Original            = nullptr;
+
+typedef BOOL (WINAPI *SwitchToThread_pfn)(void);
+                      SwitchToThread_pfn
+                      SwitchToThread_Original = nullptr;
 
 extern HWND WINAPI SK_GetActiveWindow (           SK_TLS *pTLS);
 extern BOOL WINAPI SK_IsWindowUnicode (HWND hWnd, SK_TLS *pTLS);
@@ -100,7 +104,7 @@ SK_MMCS_ApplyPendingTaskPriority (SK_TLS **ppTLS = nullptr)
   }
 }
 
-bool
+void
 SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TLS **ppTLS)
 {
   UNREFERENCED_PARAMETER (ppTLS);
@@ -115,7 +119,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
         bAlertable
     );
 
-    return 0;
+    return;
   }
 
 //#define SK_DISPATCH_SLEEP
@@ -235,7 +239,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
         dwMilliseconds = ReadAcquire (&_SK_NIER_RAD_InputPollingPeriod);
 
       SK_SleepEx (dwMilliseconds, bAlertable);
-      return 0;
+      return;
     }
   }
 #endif
@@ -316,10 +320,10 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
     if (dwMaxWait < 5000UL)
     {
       if (! bGUIThread)
-        return 0;
+        return;
 
       if (dwMaxWait <= (DWORD)config.render.framerate.max_delta_time)
-        return 0;
+        return;
 
       DWORD dwWaitState =
         MsgWaitForMultipleObjectsEx (
@@ -333,7 +337,7 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
       if (     dwWaitState == WAIT_IO_COMPLETION)
       {  ////SK_ReleaseAssert (  "WAIT_IO_COMPLETION"
          ////                         && bAlertable );
-        return 0;
+        return;
       }
 
       // Waiting messages
@@ -343,19 +347,19 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
         PeekAndDispatch ();
         // ...
 #endif
-        return 1;
+        return;
       }
 
       // DLL Shutdown
       else if (dwWaitState == WAIT_OBJECT_0)
       {
-        return 0;
+        return;
       }
 
       // Embarassing
       else if (dwWaitState == WAIT_TIMEOUT)
       {
-        return 0;
+        return;
       }
 
       // ???
@@ -364,26 +368,22 @@ SK_Thread_WaitWhilePumpingMessages (DWORD dwMilliseconds, BOOL bAlertable, SK_TL
         SK_ReleaseAssert (!
                           L"Unexpected Wait State in call to "
                           L"MsgWaitForMultipleObjectsEx (...)");
-
-        SK_LOGi0 (L"MsgWaitForMultipleObjectsEx (...) returned %x!", dwWaitState);
       }
 
       if (dwMilliseconds == 0)
-        return 1;
+        return;
     }
 
     else
     {
       SK_SleepEx (dwMaxWait, bAlertable);
-      return 0;
+      return;
     }
 
     now =
       SK_CurrentPerf ().QuadPart;
   }
   while (now < end);
-
-  return 1;
 }
 
 float
@@ -405,8 +405,11 @@ SK_Sched_ThreadContext::most_recent_wait_s::getRate (void)
 }
 
 
-NtWaitForSingleObject_pfn    NtWaitForSingleObject_Original    = nullptr;
-NtWaitForMultipleObjects_pfn NtWaitForMultipleObjects_Original = nullptr;
+NtWaitForSingleObject_pfn
+NtWaitForSingleObject_Original    = nullptr;
+
+NtWaitForMultipleObjects_pfn
+NtWaitForMultipleObjects_Original = nullptr;
 
 DWORD
 WINAPI
@@ -1010,6 +1013,9 @@ SK_Sleep (DWORD dwMilliseconds) noexcept
 //
 // Metaphor fix
 //
+using timeBeginPeriod_pfn = MMRESULT (WINAPI *)(UINT);
+using timeEndPeriod_pfn   = MMRESULT (WINAPI *)(UINT);
+
 static timeBeginPeriod_pfn timeBeginPeriod_Original = nullptr;
 static timeEndPeriod_pfn   timeEndPeriod_Original   = nullptr;
 
@@ -1031,31 +1037,6 @@ timeEndPeriod_Detour(_In_ UINT uPeriod) //-V524
   return TIMERR_NOERROR;
 }
 
-
-static HMODULE hModFmodStudio = 0;
-
-DWORD
-SleepEx_EarlyOutForModule (DWORD dwMilliseconds, BOOL bAlertable, HMODULE& hMod, LPCWSTR wszModuleName, LPCVOID lpCaller)
-{
-  if (hMod != (HMODULE)-1)
-  {
-    if (hMod != nullptr &&
-        hMod == SK_GetCallingDLL (lpCaller))
-    {
-      return
-        SK_SleepEx (dwMilliseconds, bAlertable);
-    }
-
-    if (  hMod == nullptr && SK_GetFramesDrawn () > 2048)
-    {     hMod = SK_GetModuleHandleW (wszModuleName);
-      if (hMod == nullptr)
-          hMod = (HMODULE)-1;
-    }
-  }
-
-  return (DWORD)-1;
-}
-
 DWORD
 WINAPI
 SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
@@ -1073,42 +1054,30 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
   static const auto game_id =
     SK_GetCurrentGameID ();
 
-  if (dwMilliseconds == 0)
+  // TODO: Move into actual plug-in
+  if (game_id == SK_GAME_ID::ChronoCross)
   {
-    // TODO: Move into actual plug-in
-    switch (game_id)
+    if (dwMilliseconds == 0)
     {
-      case SK_GAME_ID::ChronoCross:
-      case SK_GAME_ID::Starfield:
-      {
-        return
-          SwitchToThread ();
-      } break;
-
-      default:
-      {
-        if (! SK_GetCurrentRenderBackend ().windows.unity)
-        {
-          return
-            SK_SleepEx (dwMilliseconds, bAlertable);
-        }
-
-        else
-        {
-          return
-            SwitchToThread ();
-        }
-      } break;
+      return
+        SwitchToThread ();
     }
   }
 
-#if 0
-  // Early-out for fmod, it uses SleepEx (...) instead of signaled waits,
-  //   and it's for audio mixing, so we don't want to touch it.
-  if (auto early_out = SleepEx_EarlyOutForModule (dwMilliseconds, bAlertable, hModFmodStudio, L"fmodstudio.dll", _ReturnAddress ());
-           early_out != (DWORD)-1)
-    return early_out;
-#endif
+  else if (game_id == SK_GAME_ID::Starfield)
+  {
+    if (dwMilliseconds == 0)
+    {
+      return
+        SwitchToThread ();
+    }
+  }
+
+  if (dwMilliseconds == 0)
+  {
+    return
+      SK_SleepEx (dwMilliseconds, bAlertable);
+  }
 
   SK_TLS*                            pTLS = nullptr;
   SK_MMCS_ApplyPendingTaskPriority (&pTLS);
@@ -1156,7 +1125,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     sleepless_render ?
       (ReadULongAcquire   (&SK_GetCurrentRenderBackend ().last_thread) == dwTid ||
        ReadULongAcquire   (&SK_GetCurrentRenderBackend ().thread)      == dwTid ||
-     (!bGUIThread &&        pTLS != nullptr &&
+     (!bGUIThread &&
        ReadULong64Acquire (&pTLS->render->frames_presented)))
                      : FALSE;
 
@@ -1274,8 +1243,7 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
       if (bRenderThread && SK_ImGui_Visible)
         SK::Framerate::events.getMessagePumpStats ().wake (std::max (1UL, dwMilliseconds));
 
-      auto skip_sleep =
-        SK_Thread_WaitWhilePumpingMessages (dwMilliseconds, bAlertable, &pTLS);
+      SK_Thread_WaitWhilePumpingMessages (dwMilliseconds, bAlertable, &pTLS);
 
       // Check for I/O Wait Completion Before Going Sleepless
       if (bAlertable)
@@ -1283,13 +1251,6 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
         if (SK_SleepEx (0, TRUE) == WAIT_IO_COMPLETION)
                              return WAIT_IO_COMPLETION;
       }
-
-#ifndef SK_DISPATCH_SLEEP
-      //if (! skip_sleep)
-      //  SwitchToThread ();
-#endif
-
-      std::ignore = skip_sleep;
 
       return 0;
     }
@@ -1405,6 +1366,42 @@ WINAPI
 Sleep_Detour (DWORD dwMilliseconds)
 {
   SleepEx_Detour (dwMilliseconds, FALSE);
+}
+
+using SleepConditionVariableSRW_pfn = BOOL (WINAPI *)(
+  _Inout_ PCONDITION_VARIABLE ConditionVariable,
+  _Inout_ PSRWLOCK            SRWLock,
+  _In_    DWORD               dwMilliseconds,
+  _In_    ULONG               Flags
+);
+
+static SleepConditionVariableSRW_pfn
+       SleepConditionVariableSRW_Original = nullptr;
+
+BOOL
+WINAPI
+SleepConditionVariableSRW_Detour (
+  _Inout_ PCONDITION_VARIABLE ConditionVariable,
+  _Inout_ PSRWLOCK            SRWLock,
+  _In_    DWORD               dwMilliseconds,
+  _In_    ULONG               Flags )
+{
+  //SK_LOG_FIRST_CALL
+
+#if 0
+  if (SK_IsCurrentGame (SK_GAME_ID::Starfield))
+  {
+    SK_LOGs0 ( L"Scheduler ",
+                 L"SleepConditionVariableSRW (..., ..., %d, %x) - %ws",
+              dwMilliseconds, Flags,
+              SK_Thread_GetName (SK_GetCurrentThreadId ()).c_str () );
+  }
+#endif
+
+  return
+    SleepConditionVariableSRW_Original (
+         ConditionVariable, SRWLock, dwMilliseconds, Flags
+    );
 }
 
 BOOL
@@ -1695,7 +1692,9 @@ NtSetTimerResolution_Detour
 #pragma warning(disable : 4244)
 #include <intel/HybridDetect.h>
 
-static SetProcessAffinityMask_pfn SetProcessAffinityMask_Original = nullptr;
+using  SetProcessAffinityMask_pfn = BOOL (WINAPI *)(HANDLE,DWORD_PTR);
+static SetProcessAffinityMask_pfn
+       SetProcessAffinityMask_Original = nullptr;
 
 BOOL
 WINAPI
@@ -1824,6 +1823,11 @@ void SK_Scheduler_Init (void)
                               "SleepEx",
                                SleepEx_Detour,
       static_cast_p2p <void> (&SleepEx_Original) );
+
+    SK_CreateDLLHook2 (      L"Kernel32",
+                              "SleepConditionVariableSRW",
+                               SleepConditionVariableSRW_Detour,
+      static_cast_p2p <void> (&SleepConditionVariableSRW_Original) );
 
     SK_CreateDLLHook2 (      L"Kernel32",
                               "SwitchToThread",
