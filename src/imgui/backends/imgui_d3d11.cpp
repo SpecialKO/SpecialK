@@ -1823,6 +1823,8 @@ SK_D3D11_RenderCtx::init (IDXGISwapChain*      pSwapChain,
                           ID3D11Device*        pDevice,
                           ID3D11DeviceContext* pDeviceCtx)
 {
+  std::scoped_lock lock(_ctx_lock);
+
   try
   {
     if (! frames_.empty ())
@@ -1948,6 +1950,8 @@ SK_D3D11_ResetTexCache (void);
 void
 SK_D3D11_RenderCtx::release (IDXGISwapChain* pSwapChain)
 {
+  std::scoped_lock lock(_ctx_lock);
+
   SK_ReShadeAddOn_CleanupRTVs (SK_ReShadeAddOn_GetRuntimeForSwapChain (pSwapChain), true);
 
   //SK_ComPtr <IDXGISwapChain> pSwapChain_ (pSwapChain);
@@ -2059,6 +2063,8 @@ bool  ImGui_DX11Startup        (IDXGISwapChain* pSwapChain);
 void
 SK_D3D11_RenderCtx::present (IDXGISwapChain* pSwapChain)
 {
+  std::scoped_lock lock(_ctx_lock);
+
   SK_ReleaseAssert (  _d3d11_rbk->_pSwapChain.IsEqualObject (pSwapChain));
   SK_ReleaseAssert (! _d3d11_rbk->frames_.empty ());
 

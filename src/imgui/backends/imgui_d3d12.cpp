@@ -2210,6 +2210,8 @@ SK_D3D12_HDR_CopyBuffer ( ID3D12GraphicsCommandList *pCommandList,
 void
 SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 {
+  std::scoped_lock lock(_ctx_lock);
+
   if (! pSwapChain)
     return;
 
@@ -2242,8 +2244,6 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
   // This test for device equality will fail if there is a Streamline interposer; ignore it.
   if ((! pD3D12Device.IsEqualObject (_pDevice.p)) && (! SK_IsModuleLoaded (L"sl.interposer.dll")))
     return;
-
-  //std::scoped_lock lock (_d3d12_rbk->_ctx_lock);
 
   UINT swapIdx =
     getCurrentBackBufferIndex ();
@@ -2976,12 +2976,10 @@ SK_D3D12_RenderCtx::FrameCtx::~FrameCtx (void)
 #include <SpecialK/render/dxgi/dxgi_swapchain.h>
 #include <SpecialK/plugin/reshade.h>
 
-//std::recursive_mutex SK_D3D12_RenderCtx::_ctx_lock;
-
 void
 SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 {
-  //std::scoped_lock lock (_ctx_lock);
+  std::scoped_lock lock(_ctx_lock);
 
   drain_queue ();
 
@@ -3062,7 +3060,7 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
 bool
 SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pCommandQueue)
 {
-  std::scoped_lock lock (_ctx_lock);
+  std::scoped_lock lock(_ctx_lock);
 
   SK_ComPtr <IDXGISwapChain3>                        pNativeSwapChain;
   if (SK_slGetNativeInterface (pSwapChain, (void **)&pNativeSwapChain.p) == sl::Result::eOk)

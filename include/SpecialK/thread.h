@@ -853,4 +853,41 @@ void SK_ImGui_RebalanceThreadButton (void);
 
 extern float __SK_Thread_RebalanceEveryNSeconds;
 
+#include <shared_mutex>
+
+class SK_Thread_SharedRecursiveMutex : public std::shared_mutex
+{
+public:
+  void lock (void)
+  {
+    std::thread::id tid = std::this_thread::get_id ();
+    if (  owner_ == tid )
+        ++count_;
+    else
+    {
+      shared_mutex::lock ();
+
+      owner_ = tid;
+      count_ = 1;  
+    }
+  }
+
+  void unlock (void)
+  {
+    if (count_ > 1)
+        count_--;
+    else
+    {
+      owner_ = std::thread::id ();
+      count_ = 0;
+
+      shared_mutex::unlock ();
+    }
+  }
+
+private:
+  std::atomic <std::thread::id> owner_;
+  int                           count_;
+};
+
 #endif /* __SK__THREAD_H__ */

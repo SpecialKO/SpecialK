@@ -2285,6 +2285,8 @@ static const GUID IID_SKD3D11RenderCtx =
 { 0xdec73284, 0xd747, 0x44cd, { 0x8e, 0x90, 0xf6, 0xfc, 0x58, 0x75, 0x45, 0x67 } };
 
 struct SK_D3D11_RenderCtx {
+  SK_Thread_SharedRecursiveMutex            _ctx_lock;
+
   SK_ComPtr <ID3D11Device>                  _pDevice          = nullptr;
   SK_ComPtr <ID3D11DeviceContext>           _pDeviceCtx       = nullptr;
   SK_ComPtr <IDXGISwapChain>                _pSwapChain       = nullptr;
