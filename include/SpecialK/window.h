@@ -505,10 +505,10 @@ struct sk_window_s {
     UINT uiMessage   =  UINT_MAX ;
     UINT idx         =  0 ;
 
-    static const UINT ShowCursor   = 0;
-    static const UINT HideCursor   = 1;
-    static const UINT SetCursorImg = 2;
-  //static const UINT ToggleCursor = 2;
+    static constexpr UINT ShowCursor   = 0;
+    static constexpr UINT HideCursor   = 1;
+    static constexpr UINT SetCursorImg = 2;
+  //static constexpr UINT ToggleCursor = 2;
 
   } messages [8] = { { "ShowCursor",   0, message_def_s::ShowCursor   },
                      { "HideCursor",   0, message_def_s::HideCursor   },

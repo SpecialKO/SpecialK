@@ -923,7 +923,8 @@ SK_ReShadeAddOn_RenderEffectsD3D11Ex ( IDXGISwapChain1        *pSwapChain,
                         )
                )
             {
-              bHasTemporaryRTV_sRGB = true;
+              if (pRTV_sRGB != nullptr)
+                bHasTemporaryRTV_sRGB = true;
             }
           }
         }
@@ -1125,11 +1126,11 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
        StrStrIW (mod_name.c_str (), L"d3d12.dll") )
   {
     config.apis.OpenGL.hook      = false;
-    config.apis.OpenGL.hook_next = false;
+    config.apis.OpenGL.hook_next = FALSE;
     config.apis.d3d9.hook        = false;
-    config.apis.d3d9.hook_next   = false;
+    config.apis.d3d9.hook_next   = FALSE;
     config.apis.d3d9ex.hook      = false;
-    config.apis.d3d9ex.hook_next = false;
+    config.apis.d3d9ex.hook_next = FALSE;
 
     if (config.apis.last_known == SK_RenderAPI::OpenGL)
         config.apis.last_known =  SK_RenderAPI::Reserved;

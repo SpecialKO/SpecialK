@@ -792,7 +792,7 @@ SK_D3D11_SetDevice ( ID3D11Device           **ppDevice,
     if (config.render.dxgi.exception_mode != SK_NoPreference && (*ppDevice != nullptr))
       (*ppDevice)->SetExceptionMode (config.render.dxgi.exception_mode);
 
-    SK_ComQIPtr <IDXGIDevice>  pDXGIDev (ppDevice != nullptr ? *ppDevice : nullptr);
+    SK_ComQIPtr <IDXGIDevice>  pDXGIDev (*ppDevice);
     SK_ComPtr   <IDXGIAdapter> pAdapter;
 
     if (pDXGIDev != nullptr)
@@ -6614,9 +6614,6 @@ D3D11Dev_CreateTexture2DCore_Impl (
         }
 
         if (height > 1) height >>= 1;
-
-        if (error)
-          break;
       } while (false);
 
       const DirectX::Image* orig_img =

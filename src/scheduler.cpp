@@ -1125,7 +1125,8 @@ SleepEx_Detour (DWORD dwMilliseconds, BOOL bAlertable)
     sleepless_render ?
       (ReadULongAcquire   (&SK_GetCurrentRenderBackend ().last_thread) == dwTid ||
        ReadULongAcquire   (&SK_GetCurrentRenderBackend ().thread)      == dwTid ||
-     (!bGUIThread &&
+     (!bGUIThread &&       (pTLS != nullptr ? true :
+                           (pTLS  = SK_TLS_Bottom ()) != nullptr) &&
        ReadULong64Acquire (&pTLS->render->frames_presented)))
                      : FALSE;
 
@@ -1914,7 +1915,7 @@ void SK_Scheduler_Init (void)
       {
         cpu_pop = 0;
 
-        for ( auto i = 0 ; i < 64 ; ++i )
+        for ( auto i = 0 ; i < SK_GetBitness () ; ++i )
         {
           if ((process_affinity >> i) & 0x1)
             ++cpu_pop;

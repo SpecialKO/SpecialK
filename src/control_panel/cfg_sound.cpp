@@ -87,19 +87,16 @@ SK_ImGui_SelectAudioSessionDlg (void)
 
     std::set <DWORD> unique_processes;
 
-    if (pSessions != nullptr)
+    for ( auto i = 0 ; i < count ; ++i )
     {
-      for ( auto i = 0 ; i < count ; ++i )
+      if ( unique_processes.emplace (
+             pSessions [i]->getProcessId ()
+           ).second )
       {
-        if ( unique_processes.emplace (
-               pSessions [i]->getProcessId ()
-             ).second )
-        {
-          const ImVec2 size =
-            ImGui::CalcTextSize (pSessions [i]->getName ());
+        const ImVec2 size =
+          ImGui::CalcTextSize (pSessions [i]->getName ());
 
-          if (size.x > max_width) max_width = size.x;
-        }
+        if (size.x > max_width) max_width = size.x;
       }
     }
 

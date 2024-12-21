@@ -3688,11 +3688,11 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
 
       // Since SwapChains don't have a Get method, we'll just have the SwapChain remember the last one
       //   set and check it for consistency... set a colorspace override if necessary.
-      if (SUCCEEDED (pSwapChain->GetPrivateData (SKID_SwapChainColorSpace, &uiColorSpaceSize, &csp)))
+      if (SUCCEEDED (_pSwapChain->GetPrivateData (SKID_SwapChainColorSpace, &uiColorSpaceSize, &csp)))
       {
         SK_ComQIPtr <IDXGISwapChain3>
                          pSwapChain3
-                        (pSwapChain);
+                       (_pSwapChain);
 
         // Invoke our own hook using the private data, in case an external application has set this,
         //  that way we can handle HDR correctly even if the hook on SetColorSpace1 isn't working.

@@ -642,7 +642,7 @@ SK_IWrapGameInput::RegisterDeviceCallback (_In_opt_                        IGame
   {
     // TODO: Implement hotplug
     if (s_virtual_gameinput_device == nullptr)
-        s_virtual_gameinput_device = (IGameInputDevice *)new SK_IGameInputDevice (nullptr);
+        s_virtual_gameinput_device = (IGameInputDevice *)new (std::nothrow) SK_IGameInputDevice (nullptr);
 
     callbackFunc (callbackToken != nullptr ? *callbackToken : 0, context, s_virtual_gameinput_device, SK_QueryPerf ().QuadPart, GameInputDeviceConnected, GameInputDeviceConnected);
   }

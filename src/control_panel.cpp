@@ -1004,11 +1004,11 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
 
           if (dm_enum.dmBitsPerPel == dm_now.dmBitsPerPel)
           {
-            _maxWidth   = std::max (_maxWidth, dm_enum.dmPelsWidth);
-            _maxHeight  = std::max (_maxWidth, dm_enum.dmPelsHeight);
-            _maxPixels  = std::max (           dm_enum.dmPelsWidth * dm_enum.dmPelsHeight,
+            _maxWidth   = std::max ( _maxWidth, dm_enum.dmPelsWidth);
+            _maxHeight  = std::max (_maxHeight, dm_enum.dmPelsHeight);
+            _maxPixels  = std::max (            dm_enum.dmPelsWidth * dm_enum.dmPelsHeight,
             _maxPixels             );
-            _maxRefresh = std::max (           dm_enum.dmDisplayFrequency,
+            _maxRefresh = std::max (            dm_enum.dmDisplayFrequency,
             _maxRefresh            );
           }
 
@@ -1450,7 +1450,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
 
       output_list += "  ";
       output_list +=
-        end_point.name_;
+        end_point.name_.c_str ();
 
       output_list += '\0';
 

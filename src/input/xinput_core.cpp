@@ -399,9 +399,6 @@ XInputEnable1_4_Detour (
   SK_XInputContext::instance_s* pCtx =
     &xinput_ctx.XInput1_4;
 
-  if (! pCtx)
-    return;
-
   static XInputEnable_pfn
          XInputEnable_SK =
         (XInputEnable_pfn)SK_GetProcAddress (xinput_ctx.XInput_SK.hMod,
@@ -1293,9 +1290,6 @@ XInputSetState1_4_Detour (
   {
     SK_XInputContext::instance_s* pCtx =
       &xinput_ctx.XInput1_4;
-
-    if (! pCtx)
-      return ERROR_NOT_SUPPORTED;
 
     if (pCtx->XInputSetState_Original == nullptr)
       return ERROR_NOT_SUPPORTED;
@@ -2817,9 +2811,8 @@ SK_XInput_RehookIfNeeded (void)
 
     // Test for modified hooks
     if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
-                   ( pCtx->XInputGetStateEx_Target != nullptr &&
              memcmp (pCtx->orig_inst_ex,
-                     pCtx->XInputGetStateEx_Target, 6 ) )
+                     pCtx->XInputGetStateEx_Target, 6)
        )
     {
       if ( MH_OK == MH_RemoveHook (pCtx->XInputGetStateEx_Target) )
@@ -2865,9 +2858,8 @@ SK_XInput_RehookIfNeeded (void)
 
     // Test for modified hooks
     if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
-                   ( pCtx->XInputPowerOff_Target != nullptr &&
              memcmp (pCtx->orig_inst_poweroff,
-                     pCtx->XInputPowerOff_Target, 6 ) )
+                     pCtx->XInputPowerOff_Target, 6 )
        )
     {
       if ( MH_OK == MH_RemoveHook (pCtx->XInputPowerOff_Target) )
@@ -2913,9 +2905,8 @@ SK_XInput_RehookIfNeeded (void)
 
     // Test for modified hooks
     if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
-                   ( pCtx->XInputGetCapabilitiesEx_Target != nullptr &&
              memcmp (pCtx->orig_inst_caps_ex,
-                     pCtx->XInputGetCapabilitiesEx_Target, 6 ) )
+                     pCtx->XInputGetCapabilitiesEx_Target, 6 )
        )
     {
       if ( MH_OK == MH_RemoveHook (pCtx->XInputGetCapabilitiesEx_Target) )
@@ -2961,9 +2952,8 @@ SK_XInput_RehookIfNeeded (void)
 
     // Test for modified hooks
     if ( ( ret != MH_OK && ret != MH_ERROR_ENABLED ) ||
-                   ( pCtx->XInputEnable_Target != nullptr &&
              memcmp (pCtx->orig_inst_enable,
-                     pCtx->XInputEnable_Target, 6 ) )
+                     pCtx->XInputEnable_Target, 6 )
        )
     {
       if ( MH_OK == MH_RemoveHook (pCtx->XInputEnable_Target) )

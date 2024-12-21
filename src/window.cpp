@@ -6475,12 +6475,7 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd)
   HWND      hWndOrder = nullptr;
   DWORD_PTR dwStyleEx = 0;
 
-  if (            GetWindowLongFn != nullptr)
-      dwStyleEx = GetWindowLongFn (hWnd, GWL_EXSTYLE);
-  else
-  {
-    SK_LOGi0 (L"Missing function pointer for GetWindowLong!");
-  }
+  dwStyleEx = GetWindowLongFn (hWnd, GWL_EXSTYLE);
 
   const DWORD_PTR dwStyleExOrig = dwStyleEx;
 
@@ -6500,10 +6495,7 @@ SK_Window_SetTopMost (bool bTop, bool bBringToTop, HWND hWnd)
 
   if (dwStyleEx != dwStyleExOrig)
   {
-    if (SetWindowLongFn != nullptr)
-        SetWindowLongFn ( hWnd, GWL_EXSTYLE, (LONG)dwStyleEx );
-    else
-      SK_LOGi0 (L"Missing function pointer for SetWindowLong!");
+    SetWindowLongFn (hWnd, GWL_EXSTYLE, (LONG)dwStyleEx);
   }
 
   if (bTop)

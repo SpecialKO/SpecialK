@@ -749,13 +749,10 @@ SK_AchievementManager::Achievement::Achievement (int idx, const char* szName, IS
                   {
                     friends_who_own.insert (_friend_id);
 
-                    if (steam_friends != nullptr)
-                    {
-                      steam_log->Log (L"Friend: %hs owns this game...",
-                        steam_friends == nullptr ? "Unknown (SteamAPI Malfunction)" :
-                        steam_friends->GetFriendPersonaName (CSteamID (_friend_id))
-                      );
-                    }
+                    steam_log->Log (L"Friend: %hs owns this game...",
+                      steam_friends == nullptr ? "Unknown (SteamAPI Malfunction)" :
+                      steam_friends->GetFriendPersonaName (CSteamID (_friend_id))
+                    );
                   }
 
                   friends_processed.insert (_friend_id);

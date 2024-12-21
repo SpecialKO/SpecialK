@@ -134,10 +134,10 @@ SK_GL_Screenshot::SK_GL_Screenshot (const HGLRC hDevice, bool allow_sound, bool 
 
     GLboolean         PACK_SWAP_BYTES;
     glGetBooleanv (GL_PACK_SWAP_BYTES,   &PACK_SWAP_BYTES);
-    glPixelStorei (GL_PACK_SWAP_BYTES,   false);
+    glPixelStorei (GL_PACK_SWAP_BYTES,   FALSE);
     GLboolean         PACK_LSB_FIRST;
     glGetBooleanv (GL_PACK_LSB_FIRST,    &PACK_LSB_FIRST);
-    glPixelStorei (GL_PACK_LSB_FIRST,    false);
+    glPixelStorei (GL_PACK_LSB_FIRST,    FALSE);
     GLint             PACK_ROW_LENGTH;
     glGetIntegerv (GL_PACK_ROW_LENGTH,   &PACK_ROW_LENGTH);
     glPixelStorei (GL_PACK_ROW_LENGTH,       0);
@@ -1005,34 +1005,34 @@ SK_GL_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_ = SK_ScreenshotStage:
                   if (ReadAcquire (&__SK_DLL_Ending))
                     break;
 
-                  wchar_t       wszAbsolutePathToLossless [ MAX_PATH + 2 ] = { };
-                  wcsncpy_s   ( wszAbsolutePathToLossless,  MAX_PATH,
-                                  rb.screenshot_mgr->getBasePath (),
-                                    _TRUNCATE );
-
-                  bool hdr =
-                    ( SK_GetCurrentRenderBackend ().isHDRCapable () &&
-                      SK_GetCurrentRenderBackend ().isHDRActive  () );
-
-                  if (hdr)
-                  {
-                    PathAppendW ( wszAbsolutePathToLossless,
-                      SK_FormatStringW ( L"HDR\\%ws.jxr",
-                                  pFrameData->file_name.c_str () ).c_str () );
-                  }
-
-                  else
-                  {
-                    PathAppendW ( wszAbsolutePathToLossless,
-                      SK_FormatStringW ( L"Lossless\\%ws.png",
-                                  pFrameData->file_name.c_str () ).c_str () );
-                  }
-
                   // Why's it on the wait-queue if it's not finished?!
                   assert (pFrameData != nullptr);
 
                   if (pFrameData != nullptr)
                   {
+                    wchar_t       wszAbsolutePathToLossless [ MAX_PATH + 2 ] = { };
+                    wcsncpy_s   ( wszAbsolutePathToLossless,  MAX_PATH,
+                                    rb.screenshot_mgr->getBasePath (),
+                                      _TRUNCATE );
+
+                    bool hdr =
+                      ( SK_GetCurrentRenderBackend ().isHDRCapable () &&
+                        SK_GetCurrentRenderBackend ().isHDRActive  () );
+
+                    if (hdr)
+                    {
+                      PathAppendW ( wszAbsolutePathToLossless,
+                        SK_FormatStringW ( L"HDR\\%ws.jxr",
+                                    pFrameData->file_name.c_str () ).c_str () );
+                    }
+
+                    else
+                    {
+                      PathAppendW ( wszAbsolutePathToLossless,
+                        SK_FormatStringW ( L"Lossless\\%ws.png",
+                                    pFrameData->file_name.c_str () ).c_str () );
+                    }
+
                     using namespace DirectX;
 
                     Image raw_img = { };
