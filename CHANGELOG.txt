@@ -1,4 +1,12 @@
-﻿24.12.20.2
+﻿24.12.21
+========
+ + Re-aranged the window management and mouse cursor section of the control
+     panel slightly.
+ + Opted the majority of the codebase into the non-commerical open source
+     license of PVS Studio; by placing comments above the license disclaimer
+       in most source files.
+
+24.12.20.2
 ==========
  + HOTFIX for NVIDIA Vulkan/DXGI interop issues introduced in 24.12.20.
 
