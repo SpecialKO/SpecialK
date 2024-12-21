@@ -272,7 +272,7 @@ SK_ImGui_ProcessRawInput ( _In_      HRAWINPUT hRawInput,
     {
       case RID_INPUT:
         size =
-          pRawCtx->cached_input.Data [0].header.dwSize;
+          pRawCtx->cached_input.Data->header.dwSize;
         break;
 
       case RID_HEADER:
@@ -1074,8 +1074,8 @@ ImGui_WndProcHandler ( HWND   hWnd,   UINT   msg,
   {
   //SK_LOG0 ( (L"ImGui Witnessed WM_SETCURSOR"), L"Window Mgr" );
 
-    if ( LOWORD (lParam) == (WORD)HTCLIENT ||
-         LOWORD (lParam) == (WORD)HTTRANSPARENT )
+    if ( LOWORD (lParam) == HTCLIENT ||
+         LOWORD (lParam) == HTTRANSPARENT )
     {
       static POINTS lastMouse =
         { SHORT_MAX, SHORT_MAX };
@@ -1812,7 +1812,8 @@ SK_ImGui_PollGamepad_EndFrame (XINPUT_STATE* pState)
             pLastActiveController  = &ps_controller;
           }
 
-          if (config.input.gamepad.xinput.ui_slot < 4)
+          if ( config.input.gamepad.xinput.ui_slot >= 0 &&
+               config.input.gamepad.xinput.ui_slot <  4 )
           { // Use the HID data to control the UI
             bHasPlayStation = true;
           }

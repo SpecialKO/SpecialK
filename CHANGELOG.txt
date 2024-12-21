@@ -1,4 +1,8 @@
-﻿24.12.21
+﻿24.12.21.1
+==========
+ + Fixed cursor auto-hide changes accidentally introduced in 24.12.21
+
+24.12.21
 ========
  + Re-aranged the window management and mouse cursor section of the control
      panel slightly.
