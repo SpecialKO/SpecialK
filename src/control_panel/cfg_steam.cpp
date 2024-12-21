@@ -197,7 +197,7 @@ SK::ControlPanel::Steam::Draw (void)
                   files[0].size == 0 )
       app_has_cloud_storage = 0 /* No */;
 
-    else if (app_has_cloud_storage != FALSE /* Yes */ && files.empty ())
+    else if (app_has_cloud_storage == 1 /* Yes */ && files.empty ())
     {
       const int32_t num_files =
         pRemote->GetFileCount ();

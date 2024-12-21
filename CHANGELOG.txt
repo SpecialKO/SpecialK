@@ -1,4 +1,9 @@
-﻿24.12.21.2
+﻿24.12.21.3
+==========
+ + Fixed recent change that would cause the control panel to crash in Steam games
+     if Steam cloud is disabled or SteamAPI integration is turned off.
+
+24.12.21.2
 ==========
  + Fixed typo that has been preventing SK's D3D11 texture cache from evaluating
      the list of freeable textures when cache capacity exceeds user-defined
