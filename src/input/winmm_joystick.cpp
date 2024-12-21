@@ -196,8 +196,7 @@ joyGetPosEx_Detour (_In_  UINT        uJoyID,
   // Forward the data we polled
   *pjiUINT = joyInfo;
 
-  if (result == JOYERR_NOERROR)
-    SK_WinMM_Backend->markRead (sk_input_dev_type::Gamepad);
+  SK_WinMM_Backend->markRead (sk_input_dev_type::Gamepad);
 
   return result;
 }

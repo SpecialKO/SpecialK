@@ -765,12 +765,7 @@ SK_D3D11_SetShaderResources_Impl (
   SK_WRAP_AND_HOOK
 #undef  pDevCtx
 
-  // Static analysis seems to think this is possible:
-  //   ( Both are FALSE or Both are TRUE ),
-  // but I am pretty sure it never happens.
-  SK_ReleaseAssert (hooked ^ ( _vftable != nullptr ) );
-
-  if ((! hooked) && (! _vftable))
+  if (! (hooked || _vftable))
     return;
 
   SK_Thread_HybridSpinlock*
@@ -908,7 +903,7 @@ SK_D3D11_SetShaderResources_Impl (
   }
 
 
-  if (ppShaderResourceViews != nullptr && NumViews > 0 && shader_base != nullptr)
+  if (ppShaderResourceViews != nullptr && NumViews > 0)
   {
     auto&& newResourceViews =
       shader_base->current.tmp_views [dev_idx];
@@ -2463,7 +2458,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
   } static list_base;
 
   auto GetShaderList =
-    [](const sk_shader_class& type) ->
+    [](const sk_shader_class type) ->
       shader_class_imp_s*
       {
         switch (type)
@@ -2485,7 +2480,7 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
     list = GetShaderList (shader_type);
 
   auto GetShaderTracker =
-    [](const sk_shader_class& type) ->
+    [](const sk_shader_class type) ->
       d3d11_shader_tracking_s*
       {
         switch (type)
@@ -3496,12 +3491,12 @@ SK_LiveShaderClassView (sk_shader_class shader_type, bool& can_scroll)
           if (comments_end != nullptr)              *comments_end  = '\0';
           if (footer_begins!= nullptr)              *footer_begins = '\0';
 
-          disassembly->emplace ( ReadAcquire ((volatile LONG *)&tracker->crc32c),
-                                   shader_disasm_s { szDisasm,
-                                                       comments_end    ? comments_end  + 1 : szDisasmEnd,
-                                                         footer_begins ? footer_begins + 1 : szDisasmEnd
-                                                   }
-                               );
+          disassembly->try_emplace ( ReadAcquire ((volatile LONG *)&tracker->crc32c),
+                                       shader_disasm_s { szDisasm,
+                                                           comments_end    ? comments_end  + 1 : szDisasmEnd,
+                                                             footer_begins ? footer_begins + 1 : szDisasmEnd
+                                                       }
+                                   );
 
           if (pReflect != nullptr)
           {

@@ -857,8 +857,7 @@ D3D11Dev_CreateDepthStencilView_Override (
   HRESULT hr =
     E_UNEXPECTED;
 
-  if ( pDesc     != nullptr &&
-       pResource != nullptr )
+  if (pDesc != nullptr)
   {
     D3D11_RESOURCE_DIMENSION dim;
     pResource->GetType     (&dim);

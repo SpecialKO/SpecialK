@@ -199,18 +199,6 @@ SK_OPT_PlugInCfg (void)
 
       if (mouse_exit)
       {
-        if (config.window.unconfine_cursor)
-        {
-          config.window.confine_cursor   = 0;
-          config.window.unconfine_cursor = 1;
-        }
-
-        else
-        {
-          config.window.confine_cursor   = 0;
-          config.window.unconfine_cursor = 0;
-        }
-
         SK_ImGui_AdjustCursor ();
 
         changed = true;

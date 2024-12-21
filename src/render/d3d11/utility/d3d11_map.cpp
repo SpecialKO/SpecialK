@@ -184,8 +184,8 @@ SK_D3D11_Map_Impl (
 
             auto& map_ctx = (*mapped_resources)[pDevCtx];
 
-            map_ctx.textures.emplace      (std::make_pair (pResource, *pMappedResource));
-            map_ctx.texture_times.emplace (std::make_pair (pResource, SK_QueryPerf ().QuadPart));
+            map_ctx.textures.try_emplace      (pResource, *pMappedResource);
+            map_ctx.texture_times.try_emplace (pResource, SK_QueryPerf ().QuadPart);
 
             //dll_log->Log (L"[DX11TexMgr] Mapped 2D texture...");
           }
@@ -506,7 +506,7 @@ SK_D3D11_Unmap_Impl (
 
               map_ctx.dynamic_times2    [checksum]  = time_elapsed;
               map_ctx.dynamic_sizes2    [checksum]  = size;
-              map_ctx.dynamic_files2    [checksum]  = filename;
+              map_ctx.dynamic_files2    [checksum]  = std::move (filename);
             }
           }
         }

@@ -3199,8 +3199,8 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
   {
     frames_.clear ();
 
-    DXGI_SWAP_CHAIN_DESC1  swapDesc1 = { };
-    pSwapChain->GetDesc1 (&swapDesc1);
+    DXGI_SWAP_CHAIN_DESC1   swapDesc1 = { };
+    _pSwapChain->GetDesc1 (&swapDesc1);
 
     SK_ReleaseAssert (swapDesc1.BufferCount > 0);
     frames_.resize   (swapDesc1.BufferCount); // Resize does not clear, if the size is the same

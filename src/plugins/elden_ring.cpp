@@ -744,9 +744,6 @@ SK_ER_DeferredInit (void)
   if (static bool                                 init         = false;
       SK_GetFramesDrawn () > 15 && std::exchange (init, true) == false)
   {
-    std::wstring game_ver_str =
-      SK_GetDLLVersionStr (SK_GetHostApp ());
-
     SK_ER_InitConfig ();
 
     auto& addr_cache =

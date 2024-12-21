@@ -668,15 +668,11 @@ D3D11_ExecuteCommandList_Override (
     _In_  ID3D11CommandList   *pCommandList,
           BOOL                 RestoreContextState )
 {
-  if (pCommandList == nullptr)
-    return;
-
   SK_ComPtr <ID3D11Device> pDevice;
   This->GetDevice (       &pDevice.p);
 
   if (pDevice.IsEqualObject (SK_GetCurrentRenderBackend ().device))
   {
-
     SK_LOG_FIRST_CALL
 
     SK_ComPtr <ID3D11DeviceContext>

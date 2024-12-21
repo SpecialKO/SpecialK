@@ -697,173 +697,167 @@ GetRawInputBuffer_Detour (_Out_opt_ PRAWINPUT pData,
 
   using QWORD = __int64;
 
-  if (pData != nullptr)
+  const int max_items = (((size_t)*pcbSize * 16) / sizeof (RAWINPUT));
+        int count     =                              0;
+      auto *pTemp     =
+        (RAWINPUT *)SK_TLS_Bottom ()->raw_input->allocData ((size_t)*pcbSize * 16);
+  RAWINPUT *pInput    =                          pTemp;
+  RAWINPUT *pOutput   =                          pData;
+  UINT     cbSize     =                       *pcbSize;
+            *pcbSize  =                              0;
+
+  int       temp_ret  =
+    GetRawInputBuffer_Original ( pTemp, &cbSize, cbSizeHeader );
+
+  // Common usage involves calling this with a wrong sized buffer, then calling it again...
+  //   early-out if it returns -1.
+  if (sk::narrow_cast <INT> (temp_ret) < 0 || max_items == 0)
+    return temp_ret;
+
+  auto* pItem =
+        pInput;
+
+  // Sanity check required array storage even though TLS will
+  //   allocate more than enough.
+  SK_ReleaseAssert (temp_ret < max_items);
+
+  for (int i = 0; i < temp_ret; i++)
   {
-    const int max_items = (((size_t)*pcbSize * 16) / sizeof (RAWINPUT));
-          int count     =                              0;
-        auto *pTemp     =
-          (RAWINPUT *)SK_TLS_Bottom ()->raw_input->allocData ((size_t)*pcbSize * 16);
-    RAWINPUT *pInput    =                          pTemp;
-    RAWINPUT *pOutput   =                          pData;
-    UINT     cbSize     =                       *pcbSize;
-              *pcbSize  =                              0;
+    bool remove = false;
 
-    int       temp_ret  =
-      GetRawInputBuffer_Original ( pTemp, &cbSize, cbSizeHeader );
-
-    // Common usage involves calling this with a wrong sized buffer, then calling it again...
-    //   early-out if it returns -1.
-    if (sk::narrow_cast <INT> (temp_ret) < 0 || max_items == 0)
-      return temp_ret;
-
-    auto* pItem =
-          pInput;
-
-    // Sanity check required array storage even though TLS will
-    //   allocate more than enough.
-    SK_ReleaseAssert (temp_ret < max_items);
-
-    for (int i = 0; i < temp_ret; i++)
+    switch (pItem->header.dwType)
     {
-      bool remove = false;
-
-      switch (pItem->header.dwType)
+      case RIM_TYPEKEYBOARD:
       {
-        case RIM_TYPEKEYBOARD:
+        SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
+        if (filter || SK_ImGui_WantKeyboardCapture ())
         {
-          SK_RAWINPUT_READ (sk_input_dev_type::Keyboard)
-          if (filter || SK_ImGui_WantKeyboardCapture ())
-          {
-            SK_RAWINPUT_HIDE (sk_input_dev_type::Keyboard);
-            remove = true;
-          }
-          else
-            SK_RAWINPUT_VIEW (sk_input_dev_type::Keyboard);
-
-        //// Leads to double-input processing, left here in case Legacy Messages are disabled and this is needed
-        ////
-#if 0
-          USHORT VKey =
-            (((RAWINPUT *)pData)->data.keyboard.VKey & 0xFF);
-
-          static auto* pConsole =
-            SK_Console::getInstance ();
-
-        //if (!(((RAWINPUT *) pItem)->data.keyboard.Flags & RI_KEY_BREAK))
-        //{
-        //  pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
-        //        io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
-        //}
-          if (game_window.active)
-          {
-            switch (((RAWINPUT *) pData)->data.keyboard.Message)
-            {
-              case WM_KEYDOWN:
-              case WM_SYSKEYDOWN:
-                      io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
-                pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
-                break;
-
-              case WM_KEYUP:
-              case WM_SYSKEYUP:
-                    io.KeysDown [VKey & 0xFF] = false;
-                pConsole->KeyUp (VKey & 0xFF, MAXDWORD);
-                break;
-            }
-          }
-#endif
-        } break;
-
-        case RIM_TYPEMOUSE:
-          SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
-          if (filter || SK_ImGui_WantMouseCapture ())
-          {
-            SK_RAWINPUT_HIDE (sk_input_dev_type::Mouse);
-            remove = true;
-          }
-          else
-            SK_RAWINPUT_VIEW (sk_input_dev_type::Mouse);
-          break;
-
-        default:
-          SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
-          if (filter || SK_ImGui_WantGamepadCapture () || config.input.gamepad.disable_hid)
-          {
-            SK_RAWINPUT_HIDE (sk_input_dev_type::Gamepad);
-            remove = true;
-          }
-          else
-            SK_RAWINPUT_VIEW (sk_input_dev_type::Gamepad);
-          break;
-      }
-
-      if (config.input.ui.capture)
-        remove = true;
-
-      // If item is not removed, append it to the buffer of RAWINPUT
-      //   packets we are allowing the game to see
-      if (! remove)
-      {
-        memcpy (pOutput, pItem, pItem->header.dwSize);
-                pOutput = NEXTRAWINPUTBLOCK (pOutput);
-
-        ++count;
-      }
-
-      else
-      {
-        bool keyboard = pItem->header.dwType == RIM_TYPEKEYBOARD;
-        bool mouse    = pItem->header.dwType == RIM_TYPEMOUSE;
-
-        // Clearing all bytes above would have set the type to mouse, and some games
-        //   will actually read data coming from RawInput even when the size returned is 0!
-        pItem->header.dwType = keyboard ? RIM_TYPEKEYBOARD :
-                                  mouse ? RIM_TYPEMOUSE    :
-                                          RIM_TYPEHID;
-
-        // Supplying an invalid device will early-out SDL before it calls HID APIs to try
-        //   and get an input report that we don't want it to see...
-        pItem->header.hDevice = nullptr;
-  
-        //SK_ReleaseAssert (*pcbSize >= static_cast <UINT> (size) &&
-        //                  *pcbSize >= sizeof (RAWINPUTHEADER));
-  
-        pItem->header.wParam = RIM_INPUTSINK;
-    
-        if (keyboard)
-        {
-          if (! (pItem->data.keyboard.Flags & RI_KEY_BREAK))
-                 pItem->data.keyboard.VKey  = 0;
-    
-          // Fake key release
-          pItem->data.keyboard.Flags |= RI_KEY_BREAK;
+          SK_RAWINPUT_HIDE (sk_input_dev_type::Keyboard);
+          remove = true;
         }
-    
-        // Block mouse input in The Witness by zeroing-out the memory; most other 
-        //   games will see *pcbSize=0 and RIM_INPUTSINK and not process input...
         else
+          SK_RAWINPUT_VIEW (sk_input_dev_type::Keyboard);
+
+      //// Leads to double-input processing, left here in case Legacy Messages are disabled and this is needed
+      ////
+#if 0
+        USHORT VKey =
+          (((RAWINPUT *)pData)->data.keyboard.VKey & 0xFF);
+
+        static auto* pConsole =
+          SK_Console::getInstance ();
+
+      //if (!(((RAWINPUT *) pItem)->data.keyboard.Flags & RI_KEY_BREAK))
+      //{
+      //  pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
+      //        io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
+      //}
+        if (game_window.active)
         {
-          RtlZeroMemory ( &pItem->data.mouse,
-                           pItem->header.dwSize - sizeof (RAWINPUTHEADER) );
+          switch (((RAWINPUT *) pData)->data.keyboard.Message)
+          {
+            case WM_KEYDOWN:
+            case WM_SYSKEYDOWN:
+                    io.KeysDown [VKey & 0xFF] = SK_IsGameWindowActive ();
+              pConsole->KeyDown (VKey & 0xFF, MAXDWORD);
+              break;
+
+            case WM_KEYUP:
+            case WM_SYSKEYUP:
+                  io.KeysDown [VKey & 0xFF] = false;
+              pConsole->KeyUp (VKey & 0xFF, MAXDWORD);
+              break;
+          }
         }
+#endif
+      } break;
 
-        memcpy (pOutput, pItem, pItem->header.dwSize);
-                pOutput = NEXTRAWINPUTBLOCK (pOutput);
+      case RIM_TYPEMOUSE:
+        SK_RAWINPUT_READ (sk_input_dev_type::Mouse)
+        if (filter || SK_ImGui_WantMouseCapture ())
+        {
+          SK_RAWINPUT_HIDE (sk_input_dev_type::Mouse);
+          remove = true;
+        }
+        else
+          SK_RAWINPUT_VIEW (sk_input_dev_type::Mouse);
+        break;
 
-        ++count;
-      }
-
-      pItem = NEXTRAWINPUTBLOCK (pItem);
+      default:
+        SK_RAWINPUT_READ (sk_input_dev_type::Gamepad)
+        if (filter || SK_ImGui_WantGamepadCapture () || config.input.gamepad.disable_hid)
+        {
+          SK_RAWINPUT_HIDE (sk_input_dev_type::Gamepad);
+          remove = true;
+        }
+        else
+          SK_RAWINPUT_VIEW (sk_input_dev_type::Gamepad);
+        break;
     }
 
-    *pcbSize =
-      (UINT)((uintptr_t)pOutput - (uintptr_t)pData);
+    if (config.input.ui.capture)
+      remove = true;
 
-    return count;
+    // If item is not removed, append it to the buffer of RAWINPUT
+    //   packets we are allowing the game to see
+    if (! remove)
+    {
+      memcpy (pOutput, pItem, pItem->header.dwSize);
+              pOutput = NEXTRAWINPUTBLOCK (pOutput);
+
+      ++count;
+    }
+
+    else
+    {
+      bool keyboard = pItem->header.dwType == RIM_TYPEKEYBOARD;
+      bool mouse    = pItem->header.dwType == RIM_TYPEMOUSE;
+
+      // Clearing all bytes above would have set the type to mouse, and some games
+      //   will actually read data coming from RawInput even when the size returned is 0!
+      pItem->header.dwType = keyboard ? RIM_TYPEKEYBOARD :
+                                mouse ? RIM_TYPEMOUSE    :
+                                        RIM_TYPEHID;
+
+      // Supplying an invalid device will early-out SDL before it calls HID APIs to try
+      //   and get an input report that we don't want it to see...
+      pItem->header.hDevice = nullptr;
+  
+      //SK_ReleaseAssert (*pcbSize >= static_cast <UINT> (size) &&
+      //                  *pcbSize >= sizeof (RAWINPUTHEADER));
+  
+      pItem->header.wParam = RIM_INPUTSINK;
+  
+      if (keyboard)
+      {
+        if (! (pItem->data.keyboard.Flags & RI_KEY_BREAK))
+               pItem->data.keyboard.VKey  = 0;
+  
+        // Fake key release
+        pItem->data.keyboard.Flags |= RI_KEY_BREAK;
+      }
+  
+      // Block mouse input in The Witness by zeroing-out the memory; most other 
+      //   games will see *pcbSize=0 and RIM_INPUTSINK and not process input...
+      else
+      {
+        RtlZeroMemory ( &pItem->data.mouse,
+                         pItem->header.dwSize - sizeof (RAWINPUTHEADER) );
+      }
+
+      memcpy (pOutput, pItem, pItem->header.dwSize);
+              pOutput = NEXTRAWINPUTBLOCK (pOutput);
+
+      ++count;
+    }
+
+    pItem = NEXTRAWINPUTBLOCK (pItem);
   }
 
-  return
-    GetRawInputBuffer_Original (pData, pcbSize, cbSizeHeader);
+  *pcbSize =
+    (UINT)((uintptr_t)pOutput - (uintptr_t)pData);
+
+  return count;
 }
 
 INT

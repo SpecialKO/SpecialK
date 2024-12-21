@@ -104,7 +104,8 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
     if (ver_ != 0)
     {
-      ((IDXGISwapChain1 *)pReal)->GetHwnd (&hWnd_);
+      static_cast <IDXGISwapChain1 *>
+        (pReal)->GetHwnd (&hWnd_);
 
       SK_ReleaseAssert (sd.OutputWindow == 0 || sd.OutputWindow == hWnd_);
 
@@ -124,7 +125,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
         sd.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL );
     flip_model.native = rb.active_traits.bOriginallyFlip;
 
-    this->IWrapDXGISwapChain::SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
+    SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
 
     SK_DXGI_SetDebugName ( pReal,
         SK_FormatStringW ( L"SK_IWrapDXGISwapChain: pReal=%p", pReal ) );
@@ -229,7 +230,8 @@ IWrapDXGISwapChain : IDXGISwapChain4
 
     InterlockedIncrement (&SK_DXGI_LiveWrappedSwapChain1s);
 
-    ((IDXGISwapChain1 *)pReal)->GetHwnd (&hWnd_);
+    static_cast <IDXGISwapChain1 *>
+      (pReal)->GetHwnd (&hWnd_);
 
     SK_ReleaseAssert (sd.OutputWindow == 0 || sd.OutputWindow == hWnd_);
 
@@ -242,7 +244,7 @@ IWrapDXGISwapChain : IDXGISwapChain4
         sd.SwapEffect == DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL );
     flip_model.native = rb.active_traits.bOriginallyFlip;
 
-    this->IWrapDXGISwapChain::SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
+    SetPrivateDataInterface (IID_IUnwrappedDXGISwapChain, pReal);
 
     SK_DXGI_SetDebugName ( pReal,
         SK_FormatStringW ( L"SK_IWrapDXGISwapChain: pReal=%p", pReal ) );

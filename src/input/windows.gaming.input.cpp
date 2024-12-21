@@ -423,7 +423,7 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
       config.input.gamepad.xinput.emulate ? S_OK
                                           : hr_real;
 
-    if (SUCCEEDED (hr))
+    if (SUCCEEDED (hr) && value != nullptr)
     {
       SK_WGI_HIDE (SK_WGI_Backend, sk_input_dev_type::Gamepad);
 
@@ -435,6 +435,9 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
       value->LeftTrigger      = 0.0;
       value->RightTrigger     = 0.0;
     }
+
+    else
+      SK_ReleaseAssert (FAILED (hr) || value != nullptr);
 
     return hr;
   }
@@ -518,7 +521,7 @@ WGI_Gamepad_GetCurrentReading_Override (ABI::Windows::Gaming::Input::IGamepad   
     return hr;
   } 
 
-  else if (config.input.gamepad.xinput.emulate && (! config.input.gamepad.xinput.blackout_api))
+  else if (! config.input.gamepad.xinput.blackout_api)
   {
     XINPUT_STATE xi_state = { };
 
@@ -837,7 +840,7 @@ WGI_VectorView_Gamepads_GetAt_Override (       IVectorView<ABI::Windows::Gaming:
   HRESULT hr =
     WGI_VectorView_Gamepads_GetAt_Original (This, index, item);
 
-  if (_wcsicmp (This->z_get_rc_name_impl (), L"Windows.Foundation.Collections.IVectorView`1<Windows.Gaming.Input.Gamepad>"))
+  if (0 != _wcsicmp (This->z_get_rc_name_impl (), L"Windows.Foundation.Collections.IVectorView`1<Windows.Gaming.Input.Gamepad>"))
     return hr;
 
   // All controllers not found in the real list of controllers will be substituted with SK's
@@ -864,7 +867,7 @@ WGI_VectorView_Gamepads_get_Size_Override (       IVectorView<ABI::Windows::Gami
   HRESULT hr =
     WGI_VectorView_Gamepads_get_Size_Original (This, size);
 
-  if (_wcsicmp (This->z_get_rc_name_impl (), L"Windows.Foundation.Collections.IVectorView`1<Windows.Gaming.Input.Gamepad>"))
+  if (0 != _wcsicmp (This->z_get_rc_name_impl (), L"Windows.Foundation.Collections.IVectorView`1<Windows.Gaming.Input.Gamepad>"))
     return hr;
 
   // Add 1 to the size so that games never see an empty list
@@ -889,7 +892,7 @@ WGI_VectorView_Gamepads_IndexOf_Override (          IVectorView<ABI::Windows::Ga
   HRESULT hr =
     WGI_VectorView_Gamepads_IndexOf_Original (This, value, index, found);
 
-  if (_wcsicmp (This->z_get_rc_name_impl (), L"Windows.Foundation.Collections.IVectorView`1<Windows.Gaming.Input.Gamepad>"))
+  if (0 != _wcsicmp (This->z_get_rc_name_impl (), L"Windows.Foundation.Collections.IVectorView`1<Windows.Gaming.Input.Gamepad>"))
     return hr;
 
   // All failing controllers will map to the end of the list
@@ -1143,7 +1146,7 @@ public:
     return S_OK;
   }
 
-  ABI::Windows::Gaming::Input::IGamepadStatics* factory;
+  ABI::Windows::Gaming::Input::IGamepadStatics* factory = nullptr;
 
 private:
   volatile ULONG ulRefs = 1;

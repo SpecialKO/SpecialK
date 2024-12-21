@@ -116,7 +116,7 @@ struct SK_D3D12_ShaderRepo
     {
       // std::hash <DxilContainerHash>
       //
-      size_t operator ()( const DxilContainerHash& h ) const
+      size_t operator ()( const DxilContainerHash h ) const
       {
         size_t      __h = 0;
         for (size_t __i = 0; __i < DxilContainerHashSize; ++__i)
@@ -131,8 +131,8 @@ struct SK_D3D12_ShaderRepo
 
       // std::equal_to <DxilContainerHash>
       //
-      bool operator ()( const DxilContainerHash& h1,
-                        const DxilContainerHash& h2 ) const
+      bool operator ()( const DxilContainerHash h1,
+                        const DxilContainerHash h2 ) const
       {
         return
           ( 0 == memcmp ( h1.Digest,
@@ -374,8 +374,11 @@ _COM_Outptr_ void                              **ppPipelineState )
       riid, ppPipelineState
     );
 
+    // We changed this up when the weird thing at line 343 was introduced
+#if 0
   if (pDesc == nullptr)
     return hrPipelineCreate;
+#endif
 
 #ifdef D3D12_STATE_TRACK
   static const
@@ -578,15 +581,17 @@ struct CD3DX12_PIPELINE_STATE_STREAM_PARSE_HELPER_SK : public ID3DX12PipelinePar
 
 inline HRESULT D3DX12ParsePipelineStream_SK(D3D12_PIPELINE_STATE_STREAM_DESC& Desc, ID3DX12PipelineParserCallbacks_SK* pCallbacks)
 {
-    if (Desc.SizeInBytes == 0 || Desc.pPipelineStateSubobjectStream == nullptr)
+    if (pCallbacks == nullptr)
     {
-        pCallbacks->ErrorBadInputParameter(1); // first parameter issue
+        // This was a known bug in D3DX12, consider updating the code at some point!!
+        //
+        /////////pCallbacks->ErrorBadInputParameter(2); // second parameter issue
         return E_INVALIDARG;
     }
 
-    if (pCallbacks == nullptr)
+    if (Desc.SizeInBytes == 0 || Desc.pPipelineStateSubobjectStream == nullptr)
     {
-        pCallbacks->ErrorBadInputParameter(2); // second parameter issue
+        pCallbacks->ErrorBadInputParameter(1); // first parameter issue
         return E_INVALIDARG;
     }
 
@@ -1788,6 +1793,8 @@ concurrency::concurrent_queue <SK_ITrackD3D12Resource *> _resourcesToWrite_Upstr
 void
 SK_D3D12_EnqueueResource_Down (SK_ITrackD3D12Resource* pResource)
 {
+  if (! pResource) return;
+
                                      pResource->pReal->AddRef ();
                                      pResource->AddRef        ();
   _resourcesToWrite_Downstream.push (pResource);
@@ -1796,6 +1803,8 @@ SK_D3D12_EnqueueResource_Down (SK_ITrackD3D12Resource* pResource)
 void
 SK_D3D12_EnqueueResource_Up (SK_ITrackD3D12Resource* pResource)
 {
+  if (! pResource) return;
+
                                    pResource->pReal->AddRef ();
                                    pResource->AddRef        ();
   _resourcesToWrite_Upstream.push (pResource);
@@ -1852,11 +1861,14 @@ bool SK_D3D12_IsTextureInjectionNeeded (void)
   {
     for ( auto const& file : std::filesystem::directory_iterator { load_path, ec } )
     {
-      if ( file.path ().has_extension () &&
-           file.path ().extension     ().compare (L".dds") == 0 )
+      auto& file_path = 
+            file.path ();
+
+      if ( file_path.has_extension () &&
+           file_path.extension     ().compare (L".dds") == 0 )
       {
         std::string name =
-          file.path ().stem ().string ();
+          file_path.stem ().string ();
 
         if (name.find ("d3d12_sk0_crc32c_") != std::string::npos)
         {
@@ -1885,11 +1897,14 @@ bool SK_D3D12_IsTextureInjectionNeeded (void)
   {
     for ( auto const& file : std::filesystem::directory_iterator { path, ec } )
     {
-      if ( file.path ().has_extension () &&
-           file.path ().extension     ().compare (L".dds") == 0 )
+      auto& file_path =
+            file.path ();
+
+      if ( file_path.has_extension () &&
+           file_path.extension     ().compare (L".dds") == 0 )
       {
         std::string name =
-          file.path ().stem ().string ();
+          file_path.stem ().string ();
 
         if (name.find ("d3d12_sk0_crc32c_") != std::string::npos)
         {
@@ -1946,8 +1961,6 @@ SK_D3D12_WriteResources (void)
              load_path =
         SK_Resource_GetRoot () / LR"(inject\textures)";
 
-      std::error_code ec = { };
-
       if (pRes->uiFence == 0 && pRes->NextFrame <= SK_GetFramesDrawn () - 5)
       {
         auto &[pFence, uiFenceVal, ulNextFrame] =
@@ -1991,6 +2004,7 @@ SK_D3D12_WriteResources (void)
               0x0, image.GetPixels     (),
                    image.GetPixelsSize () );
 
+          std::error_code                              ec = { };
           if (! std::filesystem::is_directory   (path, ec))
             std::filesystem::create_directories (path, ec);
 

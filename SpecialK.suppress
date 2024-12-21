@@ -314,6 +314,22 @@
     <CodeNext>125</CodeNext>
   </SpecialK>
   <SpecialK>
+    <FileName>d3d11_shader.cpp</FileName>
+    <ErrorCode>V568</ErrorCode>
+    <Message>It's odd that 'sizeof()' operator evaluates the size of a pointer to a class, but not the size of the 'pDesc' class object.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>460572845</CodeCurrent>
+    <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11_shader.cpp</FileName>
+    <ErrorCode>V568</ErrorCode>
+    <Message>It's odd that 'sizeof()' operator evaluates the size of a pointer to a class, but not the size of the 'pDesc' class object.</Message>
+    <CodePrev>4051175878</CodePrev>
+    <CodeCurrent>1335475529</CodeCurrent>
+    <CodeNext>7328300</CodeNext>
+  </SpecialK>
+  <SpecialK>
     <FileName>d3d11_tex_mgr.cpp</FileName>
     <ErrorCode>V112</ErrorCode>
     <Message>Dangerous magic number _ used: ...ta.width &lt; _ ||.</Message>
@@ -360,6 +376,22 @@
     <CodePrev>58</CodePrev>
     <CodeCurrent>844435421</CodeCurrent>
     <CodeNext>0</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V547</ErrorCode>
+    <Message>Expression 'initial != initial_after_release + _' is always true.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>2953353297</CodeCurrent>
+    <CodeNext>123</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>d3d11_tex_mgr.cpp</FileName>
+    <ErrorCode>V779</ErrorCode>
+    <Message>Unreachable code detected. It is possible that an error is present.</Message>
+    <CodePrev>0</CodePrev>
+    <CodeCurrent>3525957960</CodeCurrent>
+    <CodeNext>9417071</CodeNext>
   </SpecialK>
   <SpecialK>
     <FileName>d3d11_tex_mgr.cpp</FileName>
@@ -592,6 +624,14 @@
     <CodePrev>604737</CodePrev>
     <CodeCurrent>5116</CodeCurrent>
     <CodeNext>261911641</CodeNext>
+  </SpecialK>
+  <SpecialK>
+    <FileName>playstation.cpp</FileName>
+    <ErrorCode>V547</ErrorCode>
+    <Message>Expression 'pDevice-&gt;pPreparsedData != nullptr' is always false.</Message>
+    <CodePrev>123</CodePrev>
+    <CodeCurrent>3170116418</CodeCurrent>
+    <CodeNext>17733</CodeNext>
   </SpecialK>
   <SpecialK>
     <FileName>screenshot.h</FileName>

@@ -1,4 +1,11 @@
-﻿24.12.21.1
+﻿24.12.21.2
+==========
+ + Fixed typo that has been preventing SK's D3D11 texture cache from evaluating
+     the list of freeable textures when cache capacity exceeds user-defined
+       limit for several years... oops?
+ + Fixed various other small issues, nothing as serious as the one above.
+
+24.12.21.1
 ==========
  + Fixed cursor auto-hide changes accidentally introduced in 24.12.21
 

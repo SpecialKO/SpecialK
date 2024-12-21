@@ -299,7 +299,7 @@ SK_D3D11_Screenshot::SK_D3D11_Screenshot (const SK_ComPtr <ID3D11Device>& pDevic
   if (! title.empty ())
   {
     framebuffer.file_name = SK_UTF8ToWideChar (title);
-    framebuffer.title     = title;
+    framebuffer.title     =         std::move (title);
 
     PathStripPathA (framebuffer.title.data ());
 
@@ -1108,7 +1108,7 @@ SK_D3D11_CaptureScreenshot  ( SK_ScreenshotStage when =
 
       if (! title.empty ())
       {
-        enqueued_titles.stages [stage] = title;
+        enqueued_titles.stages [stage] = std::move (title);
       }
 
       return true;
@@ -1897,29 +1897,29 @@ SK_D3D11_ProcessScreenshotQueueEx ( SK_ScreenshotStage stage_,
                                   rb.screenshot_mgr->getBasePath (),
                                     _TRUNCATE );
 
-                  bool hdr =
-                    ( SK_GetCurrentRenderBackend ().isHDRCapable () &&
-                      SK_GetCurrentRenderBackend ().isHDRActive  () );
-
-                  if (hdr)
-                  {
-                    PathAppendW ( wszAbsolutePathToLossless,
-                      SK_FormatStringW ( L"HDR\\%ws.jxr",
-                                  pFrameData->file_name.c_str () ).c_str () );
-                  }
-
-                  else
-                  {
-                    PathAppendW ( wszAbsolutePathToLossless,
-                      SK_FormatStringW ( L"Lossless\\%ws.png",
-                                  pFrameData->file_name.c_str () ).c_str () );
-                  }
-
                   // Why's it on the wait-queue if it's not finished?!
                   assert (pFrameData != nullptr);
 
                   if (pFrameData != nullptr)
                   {
+                    bool hdr =
+                      ( SK_GetCurrentRenderBackend ().isHDRCapable () &&
+                        SK_GetCurrentRenderBackend ().isHDRActive  () );
+
+                    if (hdr)
+                    {
+                      PathAppendW ( wszAbsolutePathToLossless,
+                        SK_FormatStringW ( L"HDR\\%ws.jxr",
+                                    pFrameData->file_name.c_str () ).c_str () );
+                    }
+
+                    else
+                    {
+                      PathAppendW ( wszAbsolutePathToLossless,
+                        SK_FormatStringW ( L"Lossless\\%ws.png",
+                                    pFrameData->file_name.c_str () ).c_str () );
+                    }
+
                     using namespace DirectX;
 
                     Image raw_img = { };

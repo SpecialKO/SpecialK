@@ -791,6 +791,7 @@ SK_Sekiro_InitPlugin (void)
   // Decomissioned as of 5/30/24
   return;
   
+#if 0
   plugin_mgr->config_fns.emplace      (SK_Sekiro_PlugInCfg);
   plugin_mgr->first_frame_fns.emplace (SK_Sekiro_PresentFirstFrame);
 
@@ -813,4 +814,5 @@ SK_Sekiro_InitPlugin (void)
 
   SK_WinSock_GoOffline ();
   SK_ApplyQueuedHooks  ();
+#endif
 }

@@ -115,12 +115,9 @@ SK_Proxy_MouseProc   (
             // Install a mouse tracker to get WM_MOUSELEAVE
             if (! (game_window.mouse.tracking && game_window.mouse.inside))
             {
-              if (wParam != WM_NCMOUSEMOVE)
+              if (SK_ImGui_WantMouseCapture ())
               {
-                if (SK_ImGui_WantMouseCapture ())
-                {
-                  SK_ImGui_UpdateMouseTracker ();
-                }
+                SK_ImGui_UpdateMouseTracker ();
               }
             }
 
@@ -648,39 +645,34 @@ SetWindowsHookExW_Detour (
                                    L" Low-Level " : L" " ),
                                            L"Input Hook" );
 
-      // Game seems to be using keyboard hooks instead of a normal Window Proc;
-      //   that makes life more complicated for SK/ImGui... but we got this!
-      if (idHook == WH_KEYBOARD || idHook == WH_KEYBOARD_LL)
+      bool install = false;
+
+      if (dwThreadId != 0)
       {
-        bool install = false;
-
-        if (dwThreadId != 0)
-        {
-          if (    !__hooks._RealKeyboardProcs.count (dwThreadId) ||
-                   __hooks._RealKeyboardProcs       [dwThreadId] == nullptr)
-          {        __hooks._RealKeyboardProcs       [dwThreadId] = lpfn;
-            hook =&__hooks._RealKeyboardHooks       [dwThreadId];
-                                                         install = true;
-          }
-
-          else
-            SK_LOGi0 ( L" * A keyboard hook already exists for thread %d",
-                         dwThreadId );
-        }
-
-        else if (__hooks._RealKeyboardProc == nullptr)
-        {        __hooks._RealKeyboardProc = lpfn;
-          hook =&__hooks._RealKeyboardHook;
-                                   install = true;
+        if (    !__hooks._RealKeyboardProcs.count (dwThreadId) ||
+                 __hooks._RealKeyboardProcs       [dwThreadId] == nullptr)
+        {        __hooks._RealKeyboardProcs       [dwThreadId] = lpfn;
+          hook =&__hooks._RealKeyboardHooks       [dwThreadId];
+                                                       install = true;
         }
 
         else
-          SK_LOGi0 (L" * A global keyboard hook already exists");
-
-        if (install)
-          lpfn = (idHook == WH_KEYBOARD ? SK_Proxy_KeyboardProc
-                                        : SK_Proxy_LLKeyboardProc);
+          SK_LOGi0 ( L" * A keyboard hook already exists for thread %d",
+                       dwThreadId );
       }
+
+      else if (__hooks._RealKeyboardProc == nullptr)
+      {        __hooks._RealKeyboardProc = lpfn;
+        hook =&__hooks._RealKeyboardHook;
+                                 install = true;
+      }
+
+      else
+        SK_LOGi0 (L" * A global keyboard hook already exists");
+
+      if (install)
+        lpfn = (idHook == WH_KEYBOARD ? SK_Proxy_KeyboardProc
+                                      : SK_Proxy_LLKeyboardProc);
     } break;
 
     case WH_MOUSE:
@@ -692,39 +684,34 @@ SetWindowsHookExW_Detour (
                             L" Low-Level " : L" " ),
                                     L"Input Hook" );
 
-      // Game seems to be using mouse hooks instead of a normal Window Proc;
-      //   that makes life more complicated for SK/ImGui... but we got this!
-      if (idHook == WH_MOUSE || idHook == WH_MOUSE_LL)
+      bool install = false;
+
+      if (dwThreadId != 0)
       {
-        bool install = false;
-
-        if (dwThreadId != 0)
-        {
-          if (    !__hooks._RealMouseProcs.count (dwThreadId) ||
-                   __hooks._RealMouseProcs       [dwThreadId] == nullptr)
-          {        __hooks._RealMouseProcs       [dwThreadId] = lpfn;
-            hook =&__hooks._RealMouseHooks       [dwThreadId];
-                                                      install = true;
-          }
-
-          else
-            SK_LOGi0 ( L" * A global mouse hook already exists for thread %d",
-                         dwThreadId );
-        }
-
-        else if (__hooks._RealMouseProc == nullptr)
-        {        __hooks._RealMouseProc = lpfn;
-          hook =&__hooks._RealMouseHook;
-                                install = true;
+        if (    !__hooks._RealMouseProcs.count (dwThreadId) ||
+                 __hooks._RealMouseProcs       [dwThreadId] == nullptr)
+        {        __hooks._RealMouseProcs       [dwThreadId] = lpfn;
+          hook =&__hooks._RealMouseHooks       [dwThreadId];
+                                                    install = true;
         }
 
         else
-          SK_LOGi0 (L" * A global mouse hook already exists");
-
-        if (install)
-          lpfn = (idHook == WH_MOUSE ? SK_Proxy_MouseProc
-                                     : SK_Proxy_LLMouseProc);
+          SK_LOGi0 ( L" * A global mouse hook already exists for thread %d",
+                       dwThreadId );
       }
+
+      else if (__hooks._RealMouseProc == nullptr)
+      {        __hooks._RealMouseProc = lpfn;
+        hook =&__hooks._RealMouseHook;
+                              install = true;
+      }
+
+      else
+        SK_LOGi0 (L" * A global mouse hook already exists");
+
+      if (install)
+        lpfn = (idHook == WH_MOUSE ? SK_Proxy_MouseProc
+                                   : SK_Proxy_LLMouseProc);
     } break;
   }
 
@@ -764,39 +751,34 @@ SetWindowsHookExA_Detour (
                                    L" Low-Level " : L" " ),
                                            L"Input Hook" );
 
-      // Game seems to be using keyboard hooks instead of a normal Window Proc;
-      //   that makes life more complicated for SK/ImGui... but we got this!
-      if (idHook == WH_KEYBOARD || idHook == WH_KEYBOARD_LL)
+      bool install = false;
+
+      if (dwThreadId != 0)
       {
-        bool install = false;
-
-        if (dwThreadId != 0)
-        {
-          if (    !__hooks._RealKeyboardProcs.count (dwThreadId) ||
-                   __hooks._RealKeyboardProcs       [dwThreadId] == nullptr)
-          {        __hooks._RealKeyboardProcs       [dwThreadId] = lpfn;
-            hook =&__hooks._RealKeyboardHooks       [dwThreadId];
-                                                         install = true;
-          }
-
-          else
-            SK_LOGi0 ( L" * A keyboard hook already exists for thread %d",
-                         dwThreadId );
-        }
-
-        else if (__hooks._RealKeyboardProc == nullptr)
-        {        __hooks._RealKeyboardProc = lpfn;
-          hook =&__hooks._RealKeyboardHook;
-                                   install = true;
+        if (    !__hooks._RealKeyboardProcs.count (dwThreadId) ||
+                 __hooks._RealKeyboardProcs       [dwThreadId] == nullptr)
+        {        __hooks._RealKeyboardProcs       [dwThreadId] = lpfn;
+          hook =&__hooks._RealKeyboardHooks       [dwThreadId];
+                                                       install = true;
         }
 
         else
-          SK_LOGi0 (L" * A global keyboard hook already exists");
-
-        if (install)
-          lpfn = (idHook == WH_KEYBOARD ? SK_Proxy_KeyboardProc
-                                        : SK_Proxy_LLKeyboardProc);
+          SK_LOGi0 ( L" * A keyboard hook already exists for thread %d",
+                       dwThreadId );
       }
+
+      else if (__hooks._RealKeyboardProc == nullptr)
+      {        __hooks._RealKeyboardProc = lpfn;
+        hook =&__hooks._RealKeyboardHook;
+                                 install = true;
+      }
+
+      else
+        SK_LOGi0 (L" * A global keyboard hook already exists");
+
+      if (install)
+        lpfn = (idHook == WH_KEYBOARD ? SK_Proxy_KeyboardProc
+                                      : SK_Proxy_LLKeyboardProc);
     } break;
 
     case WH_MOUSE:
@@ -808,39 +790,34 @@ SetWindowsHookExA_Detour (
                             L" Low-Level " : L" " ),
                                     L"Input Hook" );
 
-      // Game seems to be using mouse hooks instead of a normal Window Proc;
-      //   that makes life more complicated for SK/ImGui... but we got this!
-      if (idHook == WH_MOUSE || idHook == WH_MOUSE_LL)
+      bool install = false;
+
+      if (dwThreadId != 0)
       {
-        bool install = false;
-
-        if (dwThreadId != 0)
-        {
-          if (    !__hooks._RealMouseProcs.count (dwThreadId) ||
-                   __hooks._RealMouseProcs       [dwThreadId] == nullptr)
-          {        __hooks._RealMouseProcs       [dwThreadId] = lpfn;
-            hook =&__hooks._RealMouseHooks       [dwThreadId];
-                                                      install = true;
-          }
-
-          else
-            SK_LOGi0 ( L" * A mouse hook already exists for thread %d",
-                         dwThreadId );
-        }
-
-        else if (__hooks._RealMouseProc == nullptr)
-        {        __hooks._RealMouseProc = lpfn;
-          hook =&__hooks._RealMouseHook;
-                                install = true;
+        if (    !__hooks._RealMouseProcs.count (dwThreadId) ||
+                 __hooks._RealMouseProcs       [dwThreadId] == nullptr)
+        {        __hooks._RealMouseProcs       [dwThreadId] = lpfn;
+          hook =&__hooks._RealMouseHooks       [dwThreadId];
+                                                    install = true;
         }
 
         else
-          SK_LOGi0 (L" * A global mouse hook already exists");
-
-        if (install)
-          lpfn = (idHook == WH_MOUSE ? SK_Proxy_MouseProc
-                                     : SK_Proxy_LLMouseProc);
+          SK_LOGi0 ( L" * A mouse hook already exists for thread %d",
+                       dwThreadId );
       }
+
+      else if (__hooks._RealMouseProc == nullptr)
+      {        __hooks._RealMouseProc = lpfn;
+        hook =&__hooks._RealMouseHook;
+                              install = true;
+      }
+
+      else
+        SK_LOGi0 (L" * A global mouse hook already exists");
+
+      if (install)
+        lpfn = (idHook == WH_MOUSE ? SK_Proxy_MouseProc
+                                   : SK_Proxy_LLMouseProc);
     } break;
   }
 

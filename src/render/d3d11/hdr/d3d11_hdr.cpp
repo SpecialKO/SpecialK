@@ -241,8 +241,7 @@ struct SK_HDR_FIXUP
     auto pDev =
       rb.getDevice <ID3D11Device> ();
 
-    SK_ComQIPtr <IDXGISwapChain>      pSwapChain (rb.swapchain);
-    SK_ComQIPtr <ID3D11DeviceContext> pDevCtx    (rb.d3d11.immediate_ctx);
+    SK_ComQIPtr <IDXGISwapChain>          pSwapChain (rb.swapchain);
 
     // These things aren't updated atomically, apparently :)
     //
@@ -254,6 +253,9 @@ struct SK_HDR_FIXUP
     {
       if (! recompileShaders ())
         return;
+
+      SK_ComQIPtr <ID3D11DeviceContext>
+          pDevCtx (rb.d3d11.immediate_ctx);
 
       D3D11_FEATURE_DATA_D3D11_OPTIONS FeatureOpts = { };
 
@@ -280,15 +282,8 @@ struct SK_HDR_FIXUP
       desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
       desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
       desc.MiscFlags         = 0;
-
-      pDev->CreateBuffer (&desc, nullptr, &mainSceneCBuffer);
-
+      pDev->CreateBuffer (&desc, nullptr,  &mainSceneCBuffer);
       desc.ByteWidth         = sizeof (HDR_COLORSPACE_PARAMS);
-      desc.Usage             = D3D11_USAGE_DYNAMIC;
-      desc.BindFlags         = D3D11_BIND_CONSTANT_BUFFER;
-      desc.CPUAccessFlags    = D3D11_CPU_ACCESS_WRITE;
-      desc.MiscFlags         = 0;
-
       pDev->CreateBuffer (&desc, nullptr, &colorSpaceCBuffer);
     }
 

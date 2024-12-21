@@ -2171,14 +2171,14 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
   if (Width  == 0) Width  = rcClient.right  - rcClient.left;
   if (Height == 0) Height = rcClient.bottom - rcClient.top;
 
-  auto origWidth  = Width;
-  auto origHeight = Height;
+  const auto origWidth  = Width;
+  const auto origHeight = Height;
 
   const bool fake_fullscreen =
     rb.isFakeFullscreen ();
 
-  bool borderless = config.window.borderless || fake_fullscreen;
-  bool fullscreen = config.window.fullscreen || fake_fullscreen;
+  const bool borderless = config.window.borderless || fake_fullscreen;
+  const bool fullscreen = config.window.fullscreen || fake_fullscreen;
 
   if ( borderless &&
        fullscreen && (! rb.fullscreen_exclusive) )
@@ -2196,8 +2196,8 @@ SK_DXGI_SwapChain_ResizeBuffers_Impl (
       Width  = w;
       Height = h;
 
-      if ( swap_desc.BufferDesc.Width  != static_cast <UINT> (w) ||
-           swap_desc.BufferDesc.Height != static_cast <UINT> (h) )
+      if ( swap_desc.BufferDesc.Width  != sk::narrow_cast <UINT> (w) ||
+           swap_desc.BufferDesc.Height != sk::narrow_cast <UINT> (h) )
       {
         if (w != 0 && h != 0)
         {

@@ -91,8 +91,8 @@ private:
 
   struct {
     struct {
-      double global;
-      double friends;
+      double global  = 0.0;
+      double friends = 0.0;
     } unlock_percent;
 
     bool has_unlock_stats = false;
@@ -100,7 +100,7 @@ private:
 
   struct {
     struct epic_s {
-      uint16_t xp;
+      uint16_t xp = 0;
 
       enum class
       trophy_type

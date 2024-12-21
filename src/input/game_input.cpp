@@ -697,7 +697,7 @@ SK_IWrapGameInput::UnregisterCallback (_In_ GameInputCallbackToken callbackToken
   SK_LOG_FIRST_CALL
 
   return
-    pReal == nullptr ? S_OK : 
+    pReal == nullptr ? true :
     pReal->UnregisterCallback (callbackToken, timeoutInMicroseconds);
 }
 
@@ -708,7 +708,7 @@ SK_IWrapGameInput::CreateDispatcher (_COM_Outptr_ IGameInputDispatcher **dispatc
   SK_LOG_FIRST_CALL
 
   return
-    pReal == nullptr ? S_OK : 
+    pReal == nullptr ? S_OK :
     pReal->CreateDispatcher (dispatcher);
 }
 
@@ -720,7 +720,7 @@ SK_IWrapGameInput::CreateAggregateDevice (_In_          GameInputKind     inputK
   SK_LOG_FIRST_CALL
 
   return
-    pReal == nullptr ? S_OK : 
+    pReal == nullptr ? S_OK :
     pReal->CreateAggregateDevice (inputKind, device);
 }
 
@@ -732,7 +732,7 @@ SK_IWrapGameInput::FindDeviceFromId (_In_         APP_LOCAL_DEVICE_ID const  *va
   SK_LOG_FIRST_CALL
 
   return
-    pReal == nullptr ? S_OK : 
+    pReal == nullptr ? S_OK :
     pReal->FindDeviceFromId (value, device);
 }
 
@@ -744,7 +744,7 @@ SK_IWrapGameInput::FindDeviceFromObject (_In_         IUnknown          *value,
   SK_LOG_FIRST_CALL
 
   return
-    pReal == nullptr ? S_OK : 
+    pReal == nullptr ? S_OK :
     pReal->FindDeviceFromObject (value, device);
 }
 
@@ -756,7 +756,7 @@ SK_IWrapGameInput::FindDeviceFromPlatformHandle (_In_         HANDLE            
   SK_LOG_FIRST_CALL
 
   return
-    pReal == nullptr ? S_OK : 
+    pReal == nullptr ? S_OK :
     pReal->FindDeviceFromPlatformHandle (value, device);
 }
 
@@ -768,7 +768,7 @@ SK_IWrapGameInput::FindDeviceFromPlatformString (_In_         LPCWSTR           
   SK_LOG_FIRST_CALL
 
   return
-    pReal == nullptr ? S_OK : 
+    pReal == nullptr ? S_OK :
     pReal->FindDeviceFromPlatformString (value, device);
 }
 
@@ -782,7 +782,7 @@ SK_IWrapGameInput::EnableOemDeviceSupport (_In_ uint16_t vendorId,
   SK_LOG_FIRST_CALL
 
   return
-    pReal == nullptr ? S_OK : 
+    pReal == nullptr ? S_OK :
     pReal->EnableOemDeviceSupport (vendorId, productId, interfaceNumber, collectionNumber);
 }
 
