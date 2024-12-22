@@ -1236,8 +1236,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     }
   }
 
-  if (ImGui::IsItemHovered () && (_maxAvailablePixels < _maxPixels))
-      ImGui::SetTooltip ("Higher Resolutions are Available by selecting a Different Refresh Rate");
+  if (_maxAvailablePixels < _maxPixels)
+    ImGui::SetItemTooltip ("Higher Resolutions are Available by selecting a Different Refresh Rate");
 
 
   if (ImGui::Combo ( "Refresh Rate",  &refresh.idx,
@@ -1275,8 +1275,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     }
   }
 
-  if (ImGui::IsItemHovered () && (_maxAvailableRefresh < _maxRefresh))
-      ImGui::SetTooltip ("Higher Refresh Rates are Available at a Different Resolution");
+  if (_maxAvailableRefresh < _maxRefresh)
+    ImGui::SetItemTooltip ("Higher Refresh Rates are Available at a Different Resolution");
 
   if ( SK_API_IsDXGIBased (rb.api) || SK_API_IsGDIBased (rb.api) ||
       (SK_API_IsDirect3D9 (rb.api) && rb.fullscreen_exclusive) )
@@ -1407,11 +1407,13 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       }
     }
 
-    if (ImGui::IsItemHovered () && idx != VSYNC_NoOverride)
+    if (idx != VSYNC_NoOverride)
     {
-      ImGui::SetTooltip ( "NOTE: Some games perform additional limiting based"
-                          " on their VSYNC setting; consider turning in-game"
-                          " VSYNC -OFF-" );
+      ImGui::SetItemTooltip (
+        "NOTE: Some games perform additional limiting based"
+        " on their VSYNC setting; consider turning in-game"
+        " VSYNC -OFF-"
+      );
     }
 
     if (SK_API_IsGDIBased (rb.api) && config.render.framerate.present_interval == SK_NoPreference)
@@ -1500,10 +1502,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       rb.routeAudioForDisplay (&display);
     }
 
-    if (ImGui::IsItemHovered ())
-    {
-      ImGui::SetTooltip ("While the game is running on this monitor, it will use this audio device.");
-    }
+    ImGui::SetItemTooltip ("While the game is running on this monitor, it will use this audio device.");
   }
 
   if (sk::NVAPI::nv_hardware && NvAPI_Disp_GetDitherControl != nullptr)
@@ -1668,8 +1667,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       SK_ChangeDisplaySettingsEx (nullptr, nullptr, 0, 0, 0);
     }
 
-    if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Setting a monitor as primary gives it control of DWM composition rate and lowers latency when using mismatched refresh rates");
+    ImGui::SetItemTooltip ("Setting a monitor as primary gives it control of DWM composition rate and lowers latency when using mismatched refresh rates");
   }
 
   ImVec2 vHDRPos;
@@ -1723,15 +1721,36 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       case DISPLAYCONFIG_COLOR_ENCODING_YCBCR420:
         ImGui::Text ("YCbCr 4:2:0 (%lu-bpc)", rb.displays [rb.active_display].bpc);
         break;
-      case DISPLAYCONFIG_COLOR_ENCODING_INTENSITY:
-        ImGui::Text ("ICtCp (%lu-bpc)",       rb.displays [rb.active_display].bpc);
-        break;
     }
 
     ImGui::SameLine        ();
     vHDRPos.x =
       ImGui::GetCursorPosX ();
     ImGui::Spacing         ();
+
+    // Display
+    if ( rb.displays [rb.active_display].hdr.supported ||
+         rb.isHDRCapable () )
+    {
+      ImGui::SetCursorPos (vHDRPos);
+
+      bool hdr =
+        SK_ImGui_Widgets->hdr_control->isVisible ();
+
+      ImGui::TextUnformatted ("\t");
+      ImGui::SameLine        (    );
+
+      if (ImGui::Button (ICON_FA_SUN " HDR Setup"))
+      {
+        hdr = (! hdr);
+
+        SK_ImGui_Widgets->hdr_control->
+          setVisible (hdr).
+          setActive  (hdr);
+      }
+
+      ImGui::SetItemTooltip ("Right-click HDR Calibration to assign hotkeys");
+    }
   }
 
   ImGui::BeginGroup ();
@@ -1830,8 +1849,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       config.utility.save_async ();
     }
 
-    if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("Changes to 'Active Monitor' using this menu (not keybinds) will be remembered");
+    ImGui::SetItemTooltip ("Changes to 'Active Monitor' using this menu (not keybinds) will be remembered");
   }
 
   if (ImGui::Checkbox ("Remember Display Mode", &config.display.resolution.save))
@@ -1857,144 +1875,8 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     config.utility.save_async ();
   }
 
-  if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("Changes to Resolution or Refresh on 'Active Monitor'"
+  ImGui::SetItemTooltip ("Changes to Resolution or Refresh on 'Active Monitor'"
                          " will apply to future launches of this game");
-
-  ImGui::EndGroup     ();
-  fWhitePointSliderWidth =
-    ImGui::GetItemRectSize ().x;
-  ImGui::EndGroup     ();
-  ImGui::SameLine     ();
-  ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
-  ImGui::SameLine     ();
-  ImGui::BeginGroup   ();
-
-  static bool restart_required = false;
-         bool hovering_rebar   = false;
-         bool configure_rebar  = false;
-
-  ImGui::SeparatorText("WDDM Features");
-  ImGui::BeginGroup   ();
-  ImGui::Text         ("MPO Planes: ");
-  ImGui::Text         ("HW Scheduling: ");
-  ImGui::Text         ("HW Flip Queue: ");
-  if (sk::NVAPI::nv_hardware)
-  {
-    ImGui::Text       ("Resizable BAR: ");
-
-    configure_rebar = ImGui::IsItemClicked (ImGuiMouseButton_Right);
-    hovering_rebar  = ImGui::IsItemHovered ();
-  }
-  ImGui::EndGroup     ();
-  ImGui::SameLine     ();
-  ImGui::BeginGroup   ();
-
-  if (display.mpo_planes <= 1)
-  {
-    ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f), "Unsupported " ICON_FA_EXCLAMATION_TRIANGLE );
-  }
-
-  else
-  {
-    ImGui::TextColored ( ImVec4 (0.f, 1.f, 0.f, 1.f), "%d", display.mpo_planes );
-  }
-
-  auto _PrintEnabled      = [](UINT enabled)
-  {
-    if (enabled != 0)
-      ImGui::TextColored ( ImVec4 (0.f, 1.f, 0.f, 1.f), "On " );
-    else
-      ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f), "Off " );
-  };
-  auto _PrintSupportState = [](UINT state)
-  {
-    switch (state)
-    {
-      default:
-      case DXGK_FEATURE_SUPPORT_ALWAYS_OFF:   ImGui::Text ("(Always Off)");   break;
-      case DXGK_FEATURE_SUPPORT_EXPERIMENTAL: ImGui::Text ("(Experimental)"); break;
-      case DXGK_FEATURE_SUPPORT_STABLE:       ImGui::Text ("(Stable)");       break;
-      case DXGK_FEATURE_SUPPORT_ALWAYS_ON:    ImGui::Text ("(Always On)");    break;
-    };
-  };
-
-  auto _PrintWDDMCapability = [&](UINT Enabled, UINT SupportState)
-  {
-    _PrintEnabled      (Enabled);      ImGui::SameLine ();
-    _PrintSupportState (SupportState);
-  };
-
-  _PrintWDDMCapability (display.wddm_caps._2_9.HwSchEnabled,
-                        display.wddm_caps._2_9.HwSchSupportState);
-
-  _PrintWDDMCapability (display.wddm_caps._3_0.HwFlipQueueEnabled,
-                        display.wddm_caps._3_0.HwFlipQueueSupportState);
-
-  if (sk::NVAPI::nv_hardware)
-  {
-    if (rb.nvapi.rebar)
-      ImGui::TextColored ( ImVec4 (0.f, 1.f, 0.f, 1.f), "On " );
-    else
-      ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f), "Off " );
-
-    configure_rebar |= ImGui::IsItemClicked (ImGuiMouseButton_Right);
-    hovering_rebar  |= ImGui::IsItemHovered ();
-
-    if (hovering_rebar)
-    {
-      ImGui::BeginTooltip    ( );
-      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
-
-      ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
-      ImGui::SameLine        ( );
-      ImGui::TextUnformatted ("Right-click to configure");
-      ImGui::PopStyleColor   ( );
-      ImGui::EndTooltip      ( );
-    }
-
-    if (configure_rebar)
-    {
-      ImGui::OpenPopup         ("ReBarSubMenu");
-      ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
-    }
-
-    if (ImGui::BeginPopup      ("ReBarSubMenu"))
-    {
-      bool change_value =
-        ImGui::Checkbox ("Enable###EnableReBar", &rb.nvapi.rebar);
-
-      bool reset_value =
-        ImGui::Button ("Reset to Default");
-
-      if (change_value || reset_value)
-      {
-        std::wstring wszCommand =
-          SK_FormatStringW (
-            L"rundll32.exe \"%ws\", RunDLL_NvAPI_SetDWORD %x %ws %ws",
-              SK_GetModuleFullName (SK_GetDLL ()).c_str (),
-                0x000F00BA, reset_value ? L"~"   :
-                         rb.nvapi.rebar ? L"0x1" :
-                                          L"0x0",
-                  sk::NVAPI::app_name.c_str ()
-          );
-
-        SK_ElevateToAdmin (wszCommand.c_str (), false);
-        restart_required = true;
-
-        ImGui::CloseCurrentPopup ();
-      }
-
-      ImGui::EndPopup ();
-    }
-  }
-
-  ImGui::EndGroup    ();
-
-  if (restart_required)
-      ImGui::BulletText ("Game Restart Required");
-
-  ImGui::EndGroup    ();
 
   if (ImGui::Checkbox ("Aspect Ratio Stretch", &config.display.aspect_ratio_stretch))
   {
@@ -2027,11 +1909,11 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
 
   if (ImGui::BeginItemTooltip ())
   {
-    ImGui::Text         ("Fills the game's monitor with a background wherever"
-                         " the game's window does not cover");
-    ImGui::Separator    ();
-    ImGui::BulletText   ("For best results, use the game's internal Windowed"
-                         " mode option (not Borderless / Borderless Fullscreen)");
+    ImGui::Text          ("Fills the game's monitor with a background wherever"
+                          " the game's window does not cover");
+    ImGui::Separator     ();
+    ImGui::BulletText    ("For best results, use the game's internal Windowed"
+                          " mode option (not Borderless / Borderless Fullscreen)");
 
     if (display.mpo_planes <= 1)
     {
@@ -2043,7 +1925,7 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
                            " performance and latency will suffer if this is used." );
     }
 
-    ImGui::EndTooltip   ();
+    ImGui::EndTooltip    ();
   }
 
   if (config.display.aspect_ratio_stretch)
@@ -2189,10 +2071,127 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
       SK_ImGui_AdjustCursor ();
     }
 
-    if (ImGui::IsItemHovered ())
-      ImGui::SetTooltip ("Some engines may require a game restart to adjust to new aspect ratio.");
+    ImGui::SetItemTooltip ("Some engines may require a game restart to adjust to new aspect ratio.");
   }
 
+  ImGui::EndGroup     ();
+  fWhitePointSliderWidth =
+    ImGui::GetItemRectSize ().x;
+  ImGui::EndGroup     ();
+  ImGui::SameLine     ();
+  ImGui::SeparatorEx  (ImGuiSeparatorFlags_Vertical);
+  ImGui::SameLine     ();
+  ImGui::BeginGroup   ();
+
+  static bool restart_required = false;
+         bool hovering_rebar   = false;
+         bool configure_rebar  = false;
+
+  ImGui::SeparatorText("WDDM Features");
+  ImGui::BeginGroup   ();
+  ImGui::Text         ("MPO Planes: ");
+  ImGui::Text         ("HW Scheduling: ");
+  ImGui::Text         ("HW Flip Queue: ");
+  if (sk::NVAPI::nv_hardware)
+  {
+    ImGui::Text       ("Resizable BAR: ");
+
+    configure_rebar = ImGui::IsItemClicked (ImGuiMouseButton_Right);
+    hovering_rebar  = ImGui::IsItemHovered ();
+  }
+  ImGui::EndGroup     ();
+  ImGui::SameLine     ();
+  ImGui::BeginGroup   ();
+
+  if (display.mpo_planes <= 1)
+       ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f), "Unsupported " ICON_FA_EXCLAMATION_TRIANGLE );
+  else ImGui::TextColored ( ImVec4 (0.f, 1.f, 0.f, 1.f), "%d", display.mpo_planes );
+
+  auto _PrintEnabled      = [](UINT enabled)
+  {
+    if (enabled != 0)
+         ImGui::TextColored ( ImVec4 (0.f, 1.f, 0.f, 1.f), "On "  );
+    else ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f), "Off " );
+  };
+  auto _PrintSupportState = [](UINT state)
+  {
+    switch (state)
+    {
+      default:
+      case DXGK_FEATURE_SUPPORT_ALWAYS_OFF:   ImGui::Text ("(Always Off)");   break;
+      case DXGK_FEATURE_SUPPORT_EXPERIMENTAL: ImGui::Text ("(Experimental)"); break;
+      case DXGK_FEATURE_SUPPORT_STABLE:       ImGui::Text ("(Stable)");       break;
+      case DXGK_FEATURE_SUPPORT_ALWAYS_ON:    ImGui::Text ("(Always On)");    break;
+    };
+  };
+
+  auto _PrintWDDMCapability = [&](UINT Enabled, UINT SupportState)
+  {
+    _PrintEnabled      (Enabled);      ImGui::SameLine ();
+    _PrintSupportState (SupportState);
+  };
+
+  _PrintWDDMCapability (display.wddm_caps._2_9.HwSchEnabled,
+                        display.wddm_caps._2_9.HwSchSupportState);
+  _PrintWDDMCapability (display.wddm_caps._3_0.HwFlipQueueEnabled,
+                        display.wddm_caps._3_0.HwFlipQueueSupportState);
+
+  if (sk::NVAPI::nv_hardware)
+  {
+    if (rb.nvapi.rebar)
+         ImGui::TextColored ( ImVec4 (0.f, 1.f, 0.f, 1.f), "On " );
+    else ImGui::TextColored ( ImVec4 (1.f, 1.f, 0.f, 1.f), "Off " );
+
+    configure_rebar |= ImGui::IsItemClicked (ImGuiMouseButton_Right);
+    hovering_rebar  |= ImGui::IsItemHovered ();
+
+    if (hovering_rebar)
+    {
+      ImGui::BeginTooltip    ( );
+      ImGui::PushStyleColor  (ImGuiCol_Text, ImVec4 (.85f, .85f, .85f, 1.f));
+      ImGui::TextColored     (ImVec4 (.4f, .8f, 1.f, 1.f), " " ICON_FA_MOUSE);
+      ImGui::SameLine        ( );
+      ImGui::TextUnformatted ("Right-click to configure");
+      ImGui::PopStyleColor   ( );
+      ImGui::EndTooltip      ( );
+    }
+
+    if (configure_rebar)
+    {
+      ImGui::OpenPopup         ("ReBarSubMenu");
+      ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
+    }
+
+    if (ImGui::BeginPopup      ("ReBarSubMenu"))
+    {
+      bool change_value =
+        ImGui::Checkbox ("Enable###EnableReBar", &rb.nvapi.rebar);
+
+      bool reset_value =
+        ImGui::Button ("Reset to Default");
+
+      if (change_value || reset_value)
+      {
+        std::wstring wszCommand =
+          SK_FormatStringW (
+            L"rundll32.exe \"%ws\", RunDLL_NvAPI_SetDWORD %x %ws %ws",
+              SK_GetModuleFullName (SK_GetDLL ()).c_str (),
+                0x000F00BA, reset_value ? L"~"   :
+                         rb.nvapi.rebar ? L"0x1" :
+                                          L"0x0",
+                  sk::NVAPI::app_name.c_str ()
+          );
+
+        SK_ElevateToAdmin (wszCommand.c_str (), false);
+        restart_required = true;
+
+        ImGui::CloseCurrentPopup ();
+      }
+
+      ImGui::EndPopup();
+    }
+  }
+  ImGui::EndGroup    ();
   static std::set <SK_ConfigSerializedKeybind *>
     keybinds = {
       &config.monitors.monitor_primary_keybind,
@@ -2219,35 +2218,10 @@ SK_Display_ResolutionSelectUI (bool bMarkDirty)
     ImGui::EndGroup   ();
     ImGui::EndMenu    ();
   }
-
-  // Display
-  if ( rb.displays [rb.active_display].hdr.supported ||
-       rb.isHDRCapable () )
-  {
-    ImGui::SetCursorPos (vHDRPos);
-
-    bool hdr =
-      SK_ImGui_Widgets->hdr_control->isVisible ();
-
-    ImGui::TextUnformatted ("\t");
-    ImGui::SameLine        (    );
-
-    if (ImGui::Button (ICON_FA_SUN " HDR Setup"))
-    {
-      hdr = (! hdr);
-
-      SK_ImGui_Widgets->hdr_control->
-        setVisible (hdr).
-        setActive  (hdr);
-    }
-
-    if (ImGui::IsItemHovered ())
-    {
-      ImGui::SetTooltip ("Right-click HDR Calibration to assign hotkeys");
-    }
-  }
-
-  ImGui::TreePop ();
+  if (restart_required)
+    ImGui::BulletText("Game Restart Required");
+  ImGui::EndGroup    ();
+  ImGui::TreePop     ();
 }
 
 void
@@ -2356,11 +2330,8 @@ DisplayModeMenu (bool windowed)
       }
     }
 
-    if (ImGui::IsItemHovered ())
-    {
-      ImGui::SetTooltip ("This may lockup non-compliant graphics engines;"
-                         " save your game first!");
-    }
+    ImGui::SetItemTooltip ("This may lockup non-compliant graphics engines;"
+                           " save your game first!");
 
     ImGui::SameLine ();
 
@@ -2881,8 +2852,7 @@ DisplayModeMenu (bool windowed)
     if (queued_changes)
     {
       static ULONG64 next_frame =
-        SK_GetFramesDrawn ();
-
+          SK_GetFramesDrawn ();
       if (SK_GetFramesDrawn () >= next_frame)
       {
         if (! change_commands.empty ())
@@ -2964,12 +2934,8 @@ DisplayModeMenu (bool windowed)
         queued_changes = true;
     }
 
-    if (ImGui::IsItemHovered ())
-    {
-      ImGui::SetTooltip ("Your game should be set to Windowed mode in its graphics settings if you intend to override this mode.");
-    }
-
-    ImGui::Separator ();
+    ImGui::SetItemTooltip ("Your game should be set to Windowed mode in its graphics settings if you intend to override this mode.");
+    ImGui::Separator      ();
 
     SK_Display_ResolutionSelectUI ();
   }
@@ -3049,8 +3015,7 @@ SK_NV_LatencyControlPanel (void)
                          " monitors."                    );
     ImGui::EndGroup    (                                 );
 
-    if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Use the Display menu to assign Primary monitors");
+    ImGui::SetItemTooltip ("Use the Display menu to assign Primary monitors");
   }
 
   SK_ImGui_DrawConfig_Latency ();
@@ -3078,20 +3043,14 @@ SK_DXGI_FullscreenControlPanel (void)
       ImGui::CloseCurrentPopup ();
     }
 
-    if (ImGui::IsItemHovered ())
-    {
-      ImGui::SetTooltip ("For resolutions at or lower than your desktop, prevent TRUE fullscreen from engaging.");
-    }
+    ImGui::SetItemTooltip ("For resolutions at or lower than your desktop, prevent TRUE fullscreen from engaging.");
 
     if (ImGui::Checkbox ("Allow Refresh Rate Changes", &config.display.allow_refresh_change))
     {
       ImGui::CloseCurrentPopup ();
     }
 
-    if (ImGui::IsItemHovered ())
-    {
-      ImGui::SetTooltip ("If disallowed, your desktop's refresh rate will be used to avoid display mode changes.");
-    }
+    ImGui::SetItemTooltip ("If disallowed, your desktop's refresh rate will be used to avoid display mode changes.");
 
     ImGui::TreePop  ();
     ImGui::EndPopup ();
@@ -3129,8 +3088,7 @@ SK_NV_GSYNCControlPanel ()
         ImGui::CloseCurrentPopup ();
       }
 
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Requires a Game Restart");
+      ImGui::SetItemTooltip ("Requires a Game Restart");
 
       if (ImGui::Checkbox ("Enable FastSync in this Game", &bEnableFastSync))
       {
@@ -3139,8 +3097,7 @@ SK_NV_GSYNCControlPanel ()
         ImGui::CloseCurrentPopup ();
       }
 
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Requires a Game Restart");
+      ImGui::SetItemTooltip ("Requires a Game Restart");
 
       ImGui::TreePop    ();
       ImGui::EndPopup   ();
@@ -3546,13 +3503,15 @@ SK_ImGui_ControlPanel (void)
       auto HDRMenu =
       [&](void)
       {
+        ImGui::SeparatorText ("HDR Overlays");
+
         HDRLuminanceSlider (
           "Special K Luminance###IMGUI_LUMINANCE", rb.ui_luminance
         );
 
-#define STEAM_OVERLAY_VS_CRC32C  0xf48cf597
-#define STEAM_OVERLAY_VS2_CRC32C 0x749795c1
-#define UPLAY_OVERLAY_PS_CRC32C 0x35ae281c
+static constexpr uint32_t STEAM_OVERLAY_VS_CRC32C  { 0xf48cf597 };
+static constexpr uint32_t STEAM_OVERLAY_VS2_CRC32C { 0x749795c1 };
+static constexpr uint32_t UPLAY_OVERLAY_PS_CRC32C  { 0x35ae281c };
 
         static bool    steam_overlay = false;
         static ULONG64 first_try     = SK_GetFramesDrawn ();
@@ -3619,7 +3578,7 @@ SK_ImGui_ControlPanel (void)
           );
         }
 
-        ImGui::Separator ();
+        ImGui::SeparatorText ("HDR Screenshots");
 
         bool hdr_changed =
             ImGui::Checkbox ( "Keep Full-Range HDR Screenshots",
@@ -4072,8 +4031,7 @@ SK_ImGui_ControlPanel (void)
             changed |=
               ImGui::SliderInt ("Compression Quality", &config.screenshots.compression_quality, 80, 100, szCompressionQualityFormat);
 
-            if (ImGui::IsItemHovered ())
-              ImGui::SetTooltip ("You can manually enter values < 80 using ctrl+click, but the results will be terrible.");
+            ImGui::SetItemTooltip ("You can manually enter values < 80 using ctrl+click, but the results will be terrible.");
           }
 
           if (config.screenshots.use_avif)
@@ -4121,13 +4079,10 @@ SK_ImGui_ControlPanel (void)
 
           ImGui::BeginGroup (  );
           ImGui::TreePush   ("###ScreenshotSizeTotal");
-          ImGui::Text ( "%u files using %ws",
-                          repo.files,
-                            SK_File_SizeToString (repo.liSize.QuadPart, Auto, pTLS).data ()
-                      );
-
-          ImGui::SameLine ();
-
+          ImGui::Text       ("%u files using %ws",
+                               repo.files,
+                                 SK_File_SizeToString (repo.liSize.QuadPart, Auto, pTLS).data ());
+          ImGui::SameLine   (  );
           if (ImGui::Button ("Browse"))
           {
             SK_ShellExecuteW ( nullptr,
@@ -4137,15 +4092,14 @@ SK_ImGui_ControlPanel (void)
                         SW_NORMAL
             );
           }
-
-          ImGui::TreePop  ();
-          ImGui::EndGroup ();
+          ImGui::TreePop    (  );
+          ImGui::EndGroup   (  );
         }
 
         if (hdr_changed)
           config.utility.save_async ();
 
-        ImGui::Separator ();
+        ImGui::SeparatorText ("HDR Display Management");
 
         bool hdr =
           SK_ImGui_Widgets->hdr_control->isVisible ();
@@ -4168,10 +4122,7 @@ SK_ImGui_ControlPanel (void)
 
           same_line = true;
 
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::SetTooltip ("Right-click HDR Calibration to assign hotkeys");
-          }
+          ImGui::SetItemTooltip ("Right-click the HDR Calibration window for additional settings.");
         }
 
         static bool
@@ -4203,17 +4154,14 @@ SK_ImGui_ControlPanel (void)
             hdr_toggled = true;
           }
 
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::SetTooltip (
-              "Select scRGB from the HDR Calibration "
-              "tool after turning HDR on"
-              "\r\n\r\n"
-              "\t\t( The Display menu has additional settings )"
-              "\r\n\r\n"
-              "\t\t\t >> Most Games Require a Restart <<"
-            );
-          }
+          ImGui::SetItemTooltip (
+            "Select scRGB from the HDR Calibration "
+            "tool after turning HDR on"
+            "\r\n\r\n"
+            "\t\t( The Display menu has additional settings )"
+            "\r\n\r\n"
+            "\t\t\t >> Most Games Require a Restart <<"
+          );
 
           ImGui::SameLine       ();
 
@@ -4225,7 +4173,7 @@ SK_ImGui_ControlPanel (void)
         else if (rb.displays [rb.active_display].hdr.enabled)
         {
           if ( ImGui::Checkbox (
-                 "Enable / Disable HDR when this game Starts or Exits",
+                 "Temporarily Enable HDR When Playing This Game",
                    &config.render.dxgi.temporary_dwm_hdr )
              )
           {
@@ -4235,11 +4183,12 @@ SK_ImGui_ControlPanel (void)
           if (ImGui::BeginItemTooltip ())
           {
             ImGui::Text (
-              "If SK's scRGB HDR mode is active, HDR is automatically enabled"
-              " -- regardless what you set here" );
+              "Special K's own HDR modes will automatically enable HDR,"
+              " this setting is intended for games with native HDR." );
 
             ImGui::BulletText (
-              "Automatic Enable / Disable will still turn HDR off when games exit"
+              "In both cases, if you enable this setting, SK will turn"
+              " HDR off when this game exits."
             );
             ImGui::EndTooltip ();
           }
@@ -4251,7 +4200,7 @@ SK_ImGui_ControlPanel (void)
 
         static bool bOriginal = bDisable;
 
-        if (ImGui::Checkbox ("Disable Game's Native HDR", &bDisable))
+        if (ImGui::Checkbox ("Disable This Game's Native HDR", &bDisable))
         {
           config.apis.NvAPI.disable_hdr       = bDisable;
           config.render.dxgi.hide_hdr_support = bDisable;
@@ -4259,14 +4208,34 @@ SK_ImGui_ControlPanel (void)
           config.utility.save_async ();
         }
 
-        if (ImGui::IsItemHovered ())
-        {
-          ImGui::SetTooltip ("Use if game does not have a user setting to turn HDR off...");
-        }
+        ImGui::SetItemTooltip ("Use if your game does not have a user-setting to turn its own HDR off...");
 
         if (bOriginal != bDisable)
         {
-          ImGui::BulletText ("Game Restart Required");
+          hdr_toggled = true;
+        }
+
+        if (ImGui::Checkbox ("Enable \"Fake Fullscreen\" Mode", &config.render.dxgi.fake_fullscreen_mode))
+        {
+          // "Fake Fullscreen" requires background rendering
+          if (config.render.dxgi.fake_fullscreen_mode)
+            config.window.background_render = true;
+
+          SK_AdjustWindow ();
+          config.utility.save_async ();
+
+          hdr_toggled = true;
+        }
+
+        if (ImGui::BeginItemTooltip ())
+        {
+          ImGui::TextUnformatted ("Some games artificially require Fullscreen Exclusive for HDR...");
+          ImGui::Separator       ();
+          ImGui::BulletText      ("Special K can translate NVIDIA's proprietary HDR API to DXGI.");
+          ImGui::BulletText      ("DXGI-based HDR -does NOT- require Fullscreen Exclusive!");
+          ImGui::Separator       ();
+          ImGui::TextUnformatted ("For best results, set the game to match your desktop resolution.");
+          ImGui::EndTooltip      ();
         }
       };
 
@@ -4613,19 +4582,12 @@ SK_ImGui_ControlPanel (void)
         if (ImGui::BeginMenu ("ImGui Debug"))
         {
           ImGui::SeparatorText ("ImGui Debug");
-
           ImGui::MenuItem  ("Demo",      "", &imgui_demo);
-
           ImGui::MenuItem  ("Debug Log", "", &imgui_debug);
-
           ImGui::MenuItem  ("Metrics",   "", &imgui_metrics);
-
           ImGui::MenuItem  ("About",     "", &imgui_about);
-
           ImGui::SeparatorText ("ImPlot Debug");
-
-          ImGui::MenuItem  (" Demo",     "",&implot_demo);
-
+          ImGui::MenuItem  (" Demo",     "", &implot_demo);
           ImGui::EndMenu   ( );
         }
 
@@ -4774,7 +4736,6 @@ SK_ImGui_ControlPanel (void)
                 ImGui::Text (" { Crashed%s}",
                                  ( it->render.frames == 0 ? " at start? " :
                                                             " " ) );
-
               }
 
               else
@@ -4828,8 +4789,8 @@ SK_ImGui_ControlPanel (void)
        ImGui::TreePop   ();
        ImGui::Separator ();
 
-       ImGui::TreePush ("###PlugInTree0");
-       ImGui::TreePush ("###PlugInTree1");
+       ImGui::TreePush  ("###PlugInTree0");
+       ImGui::TreePush  ("###PlugInTree1");
 
        for ( auto& import : imports->imports )
        {
@@ -4906,14 +4867,11 @@ SK_ImGui_ControlPanel (void)
             ImGui::TextColored (ImVec4 (1.f, 1.f, 0.f, 1.f), ICON_FA_EXCLAMATION_TRIANGLE);
             ImGui::EndGroup ();
 
-            if (ImGui::IsItemHovered ())
-            {
-              ImGui::SetTooltip (
+            ImGui::SetItemTooltip (
                 "For best performance:\r\n\t"
                 "Set 'Remember this is a game' in Windows Game Bar settings,"
                 " ensure that Windows Game Mode is On, and restart the game."
-              );
-            }
+            );
           }
 
           else
@@ -5410,16 +5368,6 @@ SK_ImGui_ControlPanel (void)
         ImGui::OpenPopup         ("G-Sync Control Panel");
         ImGui::SetNextWindowSize (ImVec2 (-1.0f, -1.0f), ImGuiCond_Always);
       }
-
-      //if (rb.gsync_state.maybe_active)
-      //{
-      //  if (ImGui::IsItemHovered ())
-      //  {
-      //    ImGui::SetTooltip (
-      //      "The NVIDIA driver API does not report this status in OpenGL, D3D12 or Vulkan."
-      //    );
-      //  }
-      //}
     }
 
     if (sk::NVAPI::nv_hardware)
@@ -5474,38 +5422,32 @@ SK_ImGui_ControlPanel (void)
     ImGui::Columns   ( 1 );
     ImGui::Separator (   );
 
-    static bool has_own_scale = (hModTBFix != nullptr);
-
+    static bool
+           has_own_scale = (hModTBFix != nullptr);
     if ((! has_own_scale) && ImGui::CollapsingHeader ("UI Render Settings"))
     {
-      ImGui::TreePush    ("###UIRenderSettings");
+      ImGui::TreePush        ("###UIRenderSettings");
 
-      if ( ImGui::SliderFloat ( "###IMGUI_SCALE", &config.imgui.scale,
-                                  1.0f, 3.0f, "UI Scaling Factor %.2f" ) )
+      if (ImGui::SliderFloat ("###IMGUI_SCALE", &config.imgui.scale,
+                                1.0f, 3.0f, "UI Scaling Factor %.2f"))
       {
         // ImGui does not perform strict parameter validation,
         //   and values out of range for this can be catastrophic.
         config.imgui.scale = SK_ImGui::SanitizeFontGlobalScale (config.imgui.scale);
         io.FontGlobalScale = config.imgui.scale;
       }
-
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::SetTooltip ( "Optimal UI layout requires 1.0; other scales "
-                            "may not display as intended." );
-      }
+      ImGui::SetItemTooltip  ("Optimal UI layout requires 1.0; other scales "
+                              "may not display as intended." );
 
       ImGui::SameLine        ();
       ImGui::Checkbox        ("Disable Transparency", &config.imgui.render.disable_alpha);
-
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("Resolves UI flicker in frame-doubled games");
+      ImGui::SetItemTooltip  ("Resolves UI flicker in frame-doubled games");
 
       ImGui::TextUnformatted ("Anti-Aliasing:  ");                                          ImGui::SameLine ();
       ImGui::Checkbox        ("Lines",             &config.imgui.render.antialias_lines);   ImGui::SameLine ();
       ImGui::Checkbox        ("Contours",          &config.imgui.render.antialias_contours);
 
-      ImGui::TreePop     ();
+      ImGui::TreePop         ();
     }
 
 
@@ -5584,30 +5526,20 @@ SK_ImGui_ControlPanel (void)
 
         if (bRefreshRateChanged)
         {
-          ImGui::TextColored (ImVec4 (1.f, .9f, .1f, 1.f), ICON_FA_QUESTION_CIRCLE);
-
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::SetTooltip (
-              "Your display's refresh rate is different than when you last set this framerate limit, confirm the limit is correct by setting a new value."
-            );
-          }
-
-          ImGui::SameLine    ();
+          ImGui::TextColored    (ImVec4 (1.f, .9f, .1f, 1.f), ICON_FA_QUESTION_CIRCLE);
+          ImGui::SetItemTooltip (
+            "Your display's refresh rate is different than when you last set this framerate limit, confirm the limit is correct by setting a new value."
+                                 );
+          ImGui::SameLine       ();
         }
 
         else if (bDisplayChanged)
         {
-          ImGui::TextColored (ImVec4 (1.f, .9f, .1f, 1.f), ICON_FA_QUESTION_CIRCLE);
-
-          if (ImGui::IsItemHovered ())
-          {
-            ImGui::SetTooltip (
-              "Your active display device is different than when you last set this framerate limit, confirm the limit is correct by setting a new value."
-            );
-          }
-
-          ImGui::SameLine    ();
+          ImGui::TextColored    (ImVec4 (1.f, .9f, .1f, 1.f), ICON_FA_QUESTION_CIRCLE);
+          ImGui::SetItemTooltip (
+            "Your active display device is different than when you last set this framerate limit, confirm the limit is correct by setting a new value."
+                                 );
+          ImGui::SameLine       ();
         }
 
         if (ImGui::Checkbox ("Framerate Limit", &limit))
@@ -5829,15 +5761,6 @@ SK_ImGui_ControlPanel (void)
               "Graph color represents frame time variance, not proximity"
               " to your target FPS."
             );
-
-          //if ( ( rb.api == SK_RenderAPI::D3D11 ||
-          //       rb.api == SK_RenderAPI::D3D12 ) && (! (config.render.framerate.flip_discard &&
-          //                                              config.render.framerate.swapchain_wait > 0)))
-          //{
-          //  ImGui::Separator       ();
-          //  ImGui::TextUnformatted ("Did you know ... to get the most out of SK's Framerate Limiter:");
-          //  ImGui::BulletText      ("Enable Flip Model + Waitable SwapChain in D3D11/12 / SwapChain Settings");
-          //}
 
             ImGui::EndTooltip ();
           }
@@ -6535,10 +6458,7 @@ SK_ImGui_ControlPanel (void)
               if (ImGui::Checkbox ("Drop Late Frames", &config.render.framerate.drop_late_flips))
                 _ResetLimiter ();
 
-              if (ImGui::IsItemHovered ())
-              {
-                ImGui::SetTooltip ("Always Present Newest Frame (DXGI Flip Model)");
-              }
+              ImGui::SetItemTooltip ("Always Present Newest Frame (DXGI Flip Model)");
 
               ImGui::SameLine    ();
               ImGui::SeparatorEx (ImGuiSeparatorFlags_Vertical);
@@ -6600,20 +6520,17 @@ SK_ImGui_ControlPanel (void)
                 vrr_changed |=
                   ImGui::Checkbox ("Enable By Default", &config.render.framerate.auto_low_latency.policy.global_opt);
 
-                if (ImGui::IsItemHovered ())
-                  ImGui::SetTooltip ("Controls whether games automatically use this feature");
+                ImGui::SetItemTooltip ("Controls whether games automatically use this feature");
 
                 vrr_changed |=
                   ImGui::Checkbox ("Reapply If Refresh Rate Changes", &config.render.framerate.auto_low_latency.policy.auto_reapply);
 
-                if (ImGui::IsItemHovered ())
-                  ImGui::SetTooltip ("Framerate limit will be re-optimized when monitors or their refresh rates change");
+                ImGui::SetItemTooltip ("Framerate limit will be re-optimized when monitors or their refresh rates change");
 
                 vrr_changed |=
                   ImGui::Checkbox ("Ultra Low-Latency", &config.render.framerate.auto_low_latency.policy.ultra_low_latency);
 
-                if (ImGui::IsItemHovered ())
-                  ImGui::SetTooltip ("Aggressively favor low-latency even if it worsens frame pacing");
+                ImGui::SetItemTooltip ("Aggressively favor low-latency even if it worsens frame pacing");
 
                 // Turn on Auto-Low Latency after making any changes
                 if (vrr_changed)
@@ -6737,8 +6654,7 @@ SK_ImGui_ControlPanel (void)
               ( spoof ? si.dwNumberOfProcessors : -1 );
           }
 
-          if (ImGui::IsItemHovered ())
-              ImGui::SetTooltip ("Useful in Unity games -- set lower than actual to fix negative performance scaling.");
+          ImGui::SetItemTooltip ("Useful in Unity games -- set lower than actual to fix negative performance scaling.");
 
           ImGui::EndGroup ();
 
@@ -7003,11 +6919,8 @@ SK_ImGui_ControlPanel (void)
         rb.screenshot_mgr->init ();
       }
 
-      if (ImGui::IsItemHovered ())
-      {
-        ImGui::SetTooltip ( "In D3D11/12 games, integrates SK's high-performance/quality screenshot capture "
-                            "system, adding HDR -> LDR support and other things." );
-      }
+      ImGui::SetItemTooltip ( "In D3D11/12 games, integrates SK's high-performance/quality screenshot capture "
+                              "system, adding HDR -> LDR support and other things." );
 
       if (config.steam.screenshots.enable_hook)
       {
@@ -7032,8 +6945,7 @@ SK_ImGui_ControlPanel (void)
 
     if (rb.isHDRCapable ())
     {
-      if (ImGui::IsItemHovered ())
-        ImGui::SetTooltip ("See the HDR Menu to configure HDR Screenshot Format and Compression Settings.");
+      ImGui::SetItemTooltip ("See the HDR Menu to configure HDR Screenshot Format and Compression Settings.");
     }
 
     const bool bHasPlatformIntegration =
@@ -7103,11 +7015,11 @@ SK_ImGui_ControlPanel (void)
                         SK_WideCharToUTF8 (SK_File_SizeToString (repo.liSize.QuadPart, Auto, pTLS).data ()).c_str ()
                   );
 
-      if (SK::SteamAPI::AppID () > 0 && SK::SteamAPI::GetCallbacksRun () && ImGui::IsItemHovered ())
+      if (SK::SteamAPI::AppID () > 0 && SK::SteamAPI::GetCallbacksRun ())
       {
-        ImGui::SetTooltip ( rb.isHDRCapable () ?
-                              "Steam does not support HDR Screenshots, so SK maintains its own storage for .JXR Screenshots" :
-                              "Steam does not support .PNG Screenshots, so SK maintains its own storage for Lossless Screenshots." );
+        ImGui::SetItemTooltip ( rb.isHDRCapable () ?
+                                  "Steam does not support HDR Screenshots, so SK maintains its own storage for .JXR Screenshots" :
+                                  "Steam does not support .PNG Screenshots, so SK maintains its own storage for Lossless Screenshots." );
       }
 
       ImGui::SameLine ();
@@ -7722,10 +7634,8 @@ SK_ImGui_StageNextFrame (void)
     static char              szName [512] = { };
     SK_Platform_GetUserName (szName);
 
-
     ImGui::TextColored     (ImColor::HSV (.11f, 1.f, 1.f),  "%hs   ",
                                                   SK_WideCharToUTF8 (SK_GetPluginName ()).c_str ()); ImGui::SameLine ();
-
     if (*szName != '\0')
     {
       ImGui::Text            ("  Hello");                                                            ImGui::SameLine ();
@@ -7929,12 +7839,9 @@ SK_ImGui_StageNextFrame (void)
           ImGui::TextColored     ( ImVec4 (.75f, .75f, .75f, 1.f), " (Xbox)");
         }
       }
-      ImGui::SameLine ();
     }
 
-    else {
-      ImGui::SameLine ();
-    }
+    ImGui::SameLine ();
 
     ImGui::TextUnformatted (  " to open Special K's configuration menu. " );
 
@@ -7956,24 +7863,6 @@ SK_ImGui_StageNextFrame (void)
   {
     if (SK_ImGui_DrawCallback->fn (SK_ImGui_DrawCallback->data) > 0)
     {
-      if (! SK_ImGui_Active ())
-      {
-        const ImGuiWindow* pWin =
-          ImGui::FindWindowByName (
-            "ReShade 3.0.8 by crosire; modified for Special K by Kaldaien"
-            "###ReShade_Main"
-          );
-
-        if (pWin)
-        {
-          ImVec2 center =
-            pWin->Rect ().GetCenter ();
-
-          SK_ImGui_CenterCursorAtPos (center);
-          ImGui::SetWindowFocus      (pWin->Name);
-        }
-      }
-
       SK_ImGuiEx_Visible = true;
     }
 
@@ -8017,7 +7906,7 @@ SK_ImGui_StageNextFrame (void)
         if (ReadAcquire (&residency->count.PagedOut) > 0) extra_lines++;
       }
 
-      ImGui::SetNextWindowSize  (
+      ImGui::SetNextWindowSize (
         ImVec2 ( font.size * 35,
                  font.size_multiline * (7.25f + extra_lines)
                ), ImGuiCond_Always
@@ -8053,7 +7942,6 @@ SK_ImGui_StageNextFrame (void)
         ImGui::PopStyleColor  ();
       }
 
-
       SK_ImGui_DrawTexCache_Chart ( );
 
       if (ImGui::IsMouseClicked   (1) && ImGui::IsWindowHovered ())
@@ -8082,13 +7970,13 @@ SK_ImGui_StageNextFrame (void)
                                       ImGuiWindowFlags_NoScrollWithMouse )
        )
     {
-      ImGui::TextColored ( ImColor::HSV (0.075f, 1.0f, 1.0f), "\n         Display Settings Will Revert in %4.1f Seconds...\n\n",
-                                                15.0f - ( (float)SK_timeGetTime () - (float)SK_ImGui_DisplayChangeTime ) / 1000.0f );
+      ImGui::TextColored (ImColor::HSV (0.075f, 1.0f, 1.0f), "\n         Display Settings Will Revert in %4.1f Seconds...\n\n",
+                                               15.0f - ( (float)SK_timeGetTime () - (float)SK_ImGui_DisplayChangeTime ) / 1000.0f);
       ImGui::Separator   ();
-
-      ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),     " Keep Changes?");
-
-      ImGui::SameLine    (); ImGui::Spacing (); ImGui::SameLine ();
+      ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),            " Keep Changes?");
+      ImGui::SameLine    ();
+      ImGui::Spacing     ();
+      ImGui::SameLine    ();
 
       if (ImGui::Button  ("Yes"))
       {
@@ -8121,13 +8009,14 @@ SK_ImGui_StageNextFrame (void)
         ImGui::CloseCurrentPopup ();
       }
 
-      ImGui::SameLine (); ImGui::Spacing (); ImGui::SameLine ();
+      ImGui::SameLine ();
+      ImGui::Spacing  ();
+      ImGui::SameLine ();
 
       ImGui::Checkbox ( "Enable Confirmation",
                           &config.display.confirm_mode_changes );
 
-      if (ImGui::IsItemHovered ())
-          ImGui::SetTooltip ("If disabled, resolution changes will apply immediately with no confirmation.");
+      ImGui::SetItemTooltip ("If disabled, resolution changes will apply immediately with no confirmation.");
 
       ImGui::EndPopup ();
     }
@@ -8186,10 +8075,10 @@ SK_ImGui_StageNextFrame (void)
 
     ImGui::TextColored (ImColor::HSV (0.075f, 1.0f, 1.0f), "%hs", szDisclaimer);
     ImGui::Separator   ();
-
     ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),  "%hs", szConfirm);
-
-    ImGui::SameLine    (); ImGui::Spacing (); ImGui::SameLine ();
+    ImGui::SameLine    ();
+    ImGui::Spacing     ();
+    ImGui::SameLine    ();
 
     static bool
         center_mouse = false;
@@ -8283,7 +8172,7 @@ SK_ImGui_StageNextFrame (void)
       }
     }
 
-    ImGui::EndPopup       ();
+    ImGui::EndPopup         ();
   }
 
 
@@ -8339,8 +8228,9 @@ SK_ImGui_StageNextFrame (void)
       ImGui::TextColored (ImColor::HSV (0.075f, 1.0f, 1.0f), "%hs", szDescription);
       ImGui::Separator   ();
       ImGui::TextColored (ImColor::HSV (0.15f, 1.0f, 1.0f),  "%hs", szAction);
-
-      ImGui::SameLine    (); ImGui::Spacing (); ImGui::SameLine ();
+      ImGui::SameLine    ();
+      ImGui::Spacing     ();
+      ImGui::SameLine    ();
 
       if (ImGui::Button  ("Force Windowed"))
       {
@@ -8408,13 +8298,10 @@ SK_ImGui_StageNextFrame (void)
       if (ImGui::Button  ("No"))
       {
         _ClosePopup ();
-      } if (ImGui::IsItemHovered ())
-        {
-          ImGui::SetTooltip (
-            "Do nothing, stop showing this message (until the next game launch) "
-            "and hope for the best."
-          );
-        }
+      } ImGui::SetItemTooltip (
+          "Do nothing, stop showing this message (until the next game launch) "
+          "and hope for the best."
+        );
     }
 
     ImGui::EndPopup       ();

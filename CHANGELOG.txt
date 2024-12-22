@@ -4,6 +4,9 @@
      years ago...
  + Restored missing audio devices in the list of pairable display/audio output
      mappings, lost about a moth ago.
+ + Fixed CPU affinity mask potentially overflowing and not working in 32-bit.
+   ( Whether you have one of those mythical 64-core CPUs or not, chances are
+       affinity mask settings were not working in 32-bit games ).
 
 24.12.21.4
 ==========
