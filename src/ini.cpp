@@ -121,8 +121,6 @@ SK_File_GetModificationTime (const wchar_t* wszFile, FILETIME* pfModifyTime)
 bool
 iSK_INI::reload (const wchar_t *fname)
 {
-  SK_ScopedLocale _locale (L"en_us.utf8");
-
   SK_TLS* pTLS =
     SK_TLS_Bottom ();
   
@@ -588,8 +586,6 @@ void
 __stdcall
 iSK_INI::parse (void)
 {
-  SK_ScopedLocale _locale (L"en_us.utf8");
-
   SK_ReleaseAssert (data.size () > 0);
 
   if (data.empty ())
@@ -1320,8 +1316,6 @@ void
 __stdcall
 iSK_INI::write (const wchar_t* fname)
 {
-  SK_ScopedLocale _locale (L"en_us.utf8");
-
   if (ordered_sections.empty () && !allow_empty)
     return;
 
@@ -1678,8 +1672,6 @@ __declspec(nothrow)
 bool
 iSK_INI::import_file (const wchar_t* fname)
 {
-  SK_ScopedLocale _locale (L"en_us.utf8");
-
   // Invalid filename
   if (fname == nullptr || *fname == L'\0')
     return false;

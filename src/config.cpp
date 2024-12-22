@@ -1285,6 +1285,43 @@ SK_LoadConfig (const std::wstring& name)
 }
 
 
+class SK_ScopedLocale {
+public:
+  SK_ScopedLocale (const wchar_t *wszLocale)
+  {
+    if (wszLocale != nullptr)
+    {
+      prev_locale_policy =
+        _configthreadlocale (_ENABLE_PER_THREAD_LOCALE);
+
+      if (prev_locale_policy != -1)
+      {
+        if (auto orig = _wsetlocale (LC_ALL, wszLocale);
+                 orig != nullptr)
+        {
+          orig_locale = orig;
+        }
+      }
+    }
+  }
+
+  ~SK_ScopedLocale (void)
+  {
+    if (prev_locale_policy != -1)
+    {
+      if (! orig_locale.empty ())
+        _wsetlocale (LC_ALL, orig_locale.c_str ());
+
+      _configthreadlocale (prev_locale_policy);
+    }
+  }
+
+private:
+  std::wstring orig_locale        = L"";
+  int          prev_locale_policy = -1;
+};
+
+
 __declspec (noinline)
 const wchar_t*
 __stdcall
@@ -1382,6 +1419,8 @@ SK_LoadConfigEx (std::wstring name, bool create)
   static std::wstring orig_name = name;
 
   if (name.empty ()) name = orig_name;
+
+  SK_ScopedLocale _locale (L"en_us.utf8");
 
   // Load INI File
   std::wstring full_name;
@@ -5514,9 +5553,16 @@ auto DeclKeybind =
   return_to_skif->load      (config.system.return_to_skif);
   auto_load_asi_files->load (config.system.auto_load_asi_files);
 
+  // This is slow as hell thanks to the Steam overlay, so it
+  //   should only ever be done on the first launch...
+  static bool do_win_verify_trust =
+    (SK_Steam_GetAppID_NoAPI () != 0 && config.system.first_run);
+
   SK_RunOnce (
-    if (version->load       (config.system.version))
-                             config.system.first_run = false;
+    if (version->load (config.system.version)) {
+                       config.system.first_run = false;
+                       do_win_verify_trust     = false;
+    }
   );
 
   skif_autostop_behavior->load (config.skif.auto_stop_behavior);
@@ -5615,9 +5661,12 @@ auto DeclKeybind =
   bool bHasCrapcomDRM = false;
 
   // Only do DRM checks when we have a fully parsed INI file
+  //
+  //  * To be clear, we are checking for DRM that needs workarounds (CAPCOM, mostly)!
   if ( dll_ini != nullptr &&
-       osd_ini != nullptr )
+       osd_ini != nullptr && do_win_verify_trust )
   {
+    static DWORD dwVerifyTrustStartTime = SK_timeGetTime ();
     static auto code_sig =
       SK_VerifyTrust_GetCodeSignature (SK_GetFullyQualifiedApp ());
 
@@ -5641,59 +5690,73 @@ auto DeclKeybind =
         SK_GetCurrentRenderBackend ().windows.capcom = bHasCrapcomDRM;
       }
     }
-  }
 
-  if (bHasCrapcomDRM)
-  {
-#ifdef _M_IX86
-    static constexpr wchar_t *wszSteamAPIDll    =              L"steam_api.dll";
-    static constexpr wchar_t *wszKaldaienAPIDll = L"kaldaien_api/steam_api.dll";
-#else
-    static constexpr wchar_t *wszSteamAPIDll    =              L"steam_api64.dll";
-    static constexpr wchar_t *wszKaldaienAPIDll = L"kaldaien_api/steam_api64.dll";
-#endif
-
-    // Do not use CRAPCOM DRM workaround on Steam Deck
-    if (config.compatibility.using_wine)
-        config.platform.silent = true;
-
-    if (PathFileExistsW (wszSteamAPIDll))
+    if (bHasCrapcomDRM)
     {
-      if (! config.platform.silent)
-      {     config.platform.silent =
-              !((PathFileExistsW (                  wszSteamAPIDll)
-               &&PathFileExistsW (               wszKaldaienAPIDll))||
-                (PathFileExistsW (                  wszSteamAPIDll)&&
-                 SK_CreateDirectories (L"kaldaien_api/") &&
-                 CopyFile        (        wszSteamAPIDll,
-                                       wszKaldaienAPIDll, FALSE)));
+  #ifdef _M_IX86
+      static constexpr wchar_t *wszSteamAPIDll    =              L"steam_api.dll";
+      static constexpr wchar_t *wszKaldaienAPIDll = L"kaldaien_api/steam_api.dll";
+  #else
+      static constexpr wchar_t *wszSteamAPIDll    =              L"steam_api64.dll";
+      static constexpr wchar_t *wszKaldaienAPIDll = L"kaldaien_api/steam_api64.dll";
+  #endif
+  
+      // Do not use CRAPCOM DRM workaround on Steam Deck
+      if (config.compatibility.using_wine)
+          config.platform.silent = true;
+  
+      if (PathFileExistsW (wszSteamAPIDll))
+      {
+        if (! config.platform.silent)
+        {     config.platform.silent =
+                !((PathFileExistsW (                  wszSteamAPIDll)
+                 &&PathFileExistsW (               wszKaldaienAPIDll))||
+                  (PathFileExistsW (                  wszSteamAPIDll)&&
+                   SK_CreateDirectories (L"kaldaien_api/") &&
+                   CopyFile        (        wszSteamAPIDll,
+                                         wszKaldaienAPIDll, FALSE)));
+        }
+  
+        if (! config.platform.silent )
+        {if(! config.steam.crapcom_mode )
+          {   config.steam.auto_inject         =    true;
+              config.steam.auto_pump_callbacks =    true;
+              config.steam.force_load_steamapi =    true;
+              config.steam.preload_client      =    true;
+              config.steam.preload_overlay     =    true;
+              config.steam.init_delay          =      -1;
+              config.platform.silent           =   false;
+              config.steam.dll_path            =  wszKaldaienAPIDll;
+          }   config.steam.crapcom_mode        =    true;
+        }else{config.steam.crapcom_mode        =   false;
+              config.steam.dll_path            =     L"";}
       }
-
-      if (! config.platform.silent )
-      {if(! config.steam.crapcom_mode )
-        {   config.steam.auto_inject         =    true;
-            config.steam.auto_pump_callbacks =    true;
-            config.steam.force_load_steamapi =    true;
-            config.steam.preload_client      =    true;
-            config.steam.preload_overlay     =    true;
-            config.steam.init_delay          =      -1;
-            config.platform.silent           =   false;
-            config.steam.dll_path            =  wszKaldaienAPIDll;
-        }   config.steam.crapcom_mode        =    true;
-      }else{config.steam.crapcom_mode        =   false;
-            config.steam.dll_path            =     L"";}
+  
+      else
+      {
+        config.steam.preload_client  = true;
+        config.steam.preload_overlay = true;
+  
+        // Setup to use SK's own Steamworks DLL because Enigma Protector packs
+        //   the game's SteamAPI DLL into its encrypted payload
+        if ((! config.platform.silent) && config.steam.dll_path.empty ())
+          SteamAPI_ManualDispatch_Init_Detour ();
+      }
     }
-
-    else
+  
+    // Time this, because the Steam overlay is doing some bad stuff with
+    //   WinVerifyTrust that causes games to take an extremely excessive
+    //     amount of time to start! (2025)
+#ifdef DEBUG
+    static DWORD
+        dwVerifyTrustEndTime = SK_timeGetTime ();
+    if (dwVerifyTrustEndTime - dwVerifyTrustStartTime > 250UL)
     {
-      config.steam.preload_client  = true;
-      config.steam.preload_overlay = true;
-
-      // Setup to use SK's own Steamworks DLL because Enigma Protector packs
-      //   the game's SteamAPI DLL into its encrypted payload
-      if ((! config.platform.silent) && config.steam.dll_path.empty ())
-        SteamAPI_ManualDispatch_Init_Detour ();
+      SK_LOGi0 ( L"WinVerifyTrust took %d ms.",
+                    dwVerifyTrustEndTime -
+                    dwVerifyTrustStartTime );
     }
+#endif
   }
 
 
@@ -5963,6 +6026,8 @@ SK_SaveConfig ( std::wstring name,
   if ( dll_ini == nullptr ||
        osd_ini == nullptr    )
     return;
+
+  SK_ScopedLocale _locale (L"en_us.utf8");
 
   const SK_RenderBackend& rb =
     SK_GetCurrentRenderBackend ();
