@@ -707,7 +707,7 @@ SK::ControlPanel::Input::Draw (void)
       ImGui::BeginDisabled (! config.input.cursor.manage);
       ImGui::PushItemWidth (button_size.x);
       if ( ImGui::SliderFloat ("###SecondsBeforeHidingCursor",
-                                 &seconds, 0.0f, 10.0f, "%.2f Second Idle") )
+                                 &seconds, 0.0f, 10.0f, seconds > 0.0 ? "%.2f Second Idle" : "Always Hidden" ) )
       {
         config.input.cursor.timeout =
           static_cast <LONG> ( seconds * 1000.0f );
@@ -720,7 +720,7 @@ SK::ControlPanel::Input::Draw (void)
                                     &config.input.cursor.gamepad_deactivates );
       ImGui::SetItemTooltip
                         (
-        "Auto-hide the cursor in response to XInput or HID (PlayStation) activity."
+        "Auto-hide the cursor in response to XInput (Xbox) or HID (PlayStation) input activity."
                            );
       if (! config.input.cursor.manage)
       ImGui::EndDisabled(  );
