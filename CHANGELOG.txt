@@ -1,4 +1,11 @@
-﻿24.12.21.4
+﻿24.12.22
+========
+ + Fixed absent custom resolutions caused by a typo in the Display menu a few
+     years ago...
+ + Restored missing audio devices in the list of pairable display/audio output
+     mappings, lost about a moth ago.
+
+24.12.21.4
 ==========
  + Revert scheduler changes related to Sleep (0) behavior in 24.12.15 that cause
      Silent Hill 2 to crash.
