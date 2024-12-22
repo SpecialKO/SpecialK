@@ -4834,11 +4834,13 @@ SK_Display_ApplyDesktopResolution (MONITORINFOEX& mi)
 void
 SK_Vulkan_DisableThirdPartyLayers (void)
 {
-  SetEnvironmentVariableW (L"DISABLE_VK_LAYER_VALVE_steam_fossilize_1", L"1");
   SetEnvironmentVariableW (L"DISABLE_VULKAN_OBS_CAPTURE",               L"1");
 
-//SetEnvironmentVariableW (L"DISABLE_VK_LAYER_VALVE_steam_overlay_1",   L"0");
-//SetEnvironmentVariableW (L"ENABLE_VK_LAYER_VALVE_steam_overlay_1",    L"1");
+  if (config.steam.disable_overlay)
+  {
+    SetEnvironmentVariableW (L"DISABLE_VK_LAYER_VALVE_steam_overlay_1", L"1");
+    SetEnvironmentVariableW (L"ENABLE_VK_LAYER_VALVE_steam_overlay_1",  L"0");
+  }
 //SetEnvironmentVariableW (L"SteamNoOverlayUIDrawing",                  L"1");
 //SetEnvironmentVariableW (L"DISABLE_RTSS_LAYER",                       L"1");
 }
