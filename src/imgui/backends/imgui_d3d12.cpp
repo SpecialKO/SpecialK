@@ -2666,6 +2666,21 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
 
   if (stagingFrame.flush_cmd_list ())
   {
+    if (_pReShadeRuntime == nullptr)
+    {
+      if (! config.reshade.is_addon_hookless)
+      {
+        if (_pReShadeRuntime == nullptr)
+            _pReShadeRuntime = SK_ReShadeAddOn_GetRuntimeForSwapChain (_pSwapChain);
+      }
+      else
+      {
+        // Lazy initialize the runtime so that we can hot-inject ReShade
+        _pReShadeRuntime =
+          SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (_pDevice, _pCommandQueue, _pSwapChain);
+      }
+    }
+
     if (_pReShadeRuntime != nullptr)
     {
       _pReShadeRuntime->get_command_queue ()->wait (
@@ -2674,13 +2689,6 @@ SK_D3D12_RenderCtx::present (IDXGISwapChain3 *pSwapChain)
       );
 
       SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (_pReShadeRuntime);
-    }
-
-    else if (config.reshade.is_addon)
-    {
-      // Lazy initialize the runtime so that we can hot-inject ReShade
-      _pReShadeRuntime =
-        SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (_pDevice, _pCommandQueue, _pSwapChain);
     }
 
     stagingFrame.hdr.format_conversions = 0;
@@ -3025,7 +3033,7 @@ SK_D3D12_RenderCtx::release (IDXGISwapChain *pSwapChain)
   ImGui_ImplDX12_Shutdown ();
 
   ///// 1 frame delay for re-init
-  ///frame_delay.fetch_add (1);
+  frame_delay.fetch_add (1);
 
   // Steam overlay is releasing references to the SwapChain it did not acquire (!!)
   if (! SK_ValidatePointer (_pSwapChain.p, true))
@@ -3416,7 +3424,7 @@ SK_D3D12_RenderCtx::init (IDXGISwapChain3 *pSwapChain, ID3D12CommandQueue *pComm
         //
         if (config.reshade.is_addon || _pReShadeRuntime != nullptr)
         {
-          if (config.reshade.is_addon && _pReShadeRuntime == nullptr)
+          if (config.reshade.is_addon && _pReShadeRuntime == nullptr && config.reshade.is_addon_hookless)
           {
             // Lazy initialize the runtime so that we can hot-inject ReShade
             _pReShadeRuntime =

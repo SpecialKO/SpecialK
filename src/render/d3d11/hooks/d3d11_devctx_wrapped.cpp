@@ -596,55 +596,64 @@ public:
 
     if (refs == 1 && !deferred_) // Immediate contexts are a singleton
     {
-      if (InterlockedIncrement (&dtor_recursion_) == 0)
-      {
-        SK_LOGi1 (
-          L"Starting deferred object cleanup on wrapped D3D11 Immediate Context"
-        );
+      SK_LOGi1 (
+        L"Starting deferred object cleanup on wrapped D3D11 Immediate Context"
+      );
 
-        //
-        // Force any pending object destruction to happen immediately,
-        //   the parent device may have a circular dependency on the wrapped
-        //     device context and we need to cleanup device resources.
-        //
-        // * This deferred object destruction is only problematic in 32-bit.
-        //
+      // XXX: Detect ReShade's misreporting of the number of references on
+      //        the immediate device context to avoid deadlock
+      SK_ComPtr <ID3D11Device>
+                        pDevice;
+      this->GetDevice (&pDevice.p);
+      const int
+          device_refs = pDevice.p->Release ();
+
+      // Force any pending object destruction to happen immediately,
+      //   the parent device may have a circular dependency on the wrapped
+      //     device context and we need to cleanup device resources.
+      //
+      // * This deferred object destruction is only problematic in 32-bit.
+      //
+      if (device_refs > 1)
+      {
         pReal->ClearState ();
         pReal->Flush      ();
-
-        SK_ComPtr <ID3D11Device>       pDevice;
-        pReal->GetDevice             (&pDevice.p);
-        SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Vertex);
-        SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Pixel);
-        SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Geometry);
-        SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Domain);
-        SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Hull);
-        SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Compute);
-
-        //
-        // Here is where the potential problems begin, this releases the final reference
-        //   but may add a temporary reference and we take a trip back through this Release (...)
-        //     function with the same refcount and then deadlock on an SRWLock that
-        //       SetPrivateDataInterface (...) already acquired.
-        //
-        //  * The dtor_recursion interlocked check above avoids the problem and D3D can safely
-        //      remove the PrivateDataInterface and continue with object destruction.
-        //
-        SK_D3D11_SetWrappedImmediateContext (pDevice, nullptr);
-        SK_DXGI_ReportLiveObjects           (pDevice);
-
-        SK_TLS *pTLS =
-          SK_TLS_Bottom ();
-        
-        // Release DXTex memory pools
-        if (pTLS != nullptr)
-            pTLS->dxtex.Cleanup (Periodic);
-
-        SK_ComQIPtr <IDXGIDevice3>
-            pDXGIDevice3 (pDevice);
-        if (pDXGIDevice3 != nullptr)
-            pDXGIDevice3->Trim ();
       }
+
+      SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Vertex);
+      SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Pixel);
+      SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Geometry);
+      SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Domain);
+      SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Hull);
+      SK_D3D11_ReleaseCachedShaders (pDevice.p, sk_shader_class::Compute);
+
+      //
+      // Here is where the potential problems begin, this releases the final reference
+      //   but may add a temporary reference and we take a trip back through this Release (...)
+      //     function with the same refcount and then deadlock on an SRWLock that
+      //       SetPrivateDataInterface (...) already acquired.
+      //
+      //  * The dtor_recursion interlocked check above avoids the problem and D3D can safely
+      //      remove the PrivateDataInterface and continue with object destruction.
+      //
+      if (device_refs > 1){InterlockedIncrement (&dtor_recursion_);
+        SK_D3D11_SetWrappedImmediateContext     (pDevice, nullptr);}
+      SK_DXGI_ReportLiveObjects                 (pDevice);
+      if (device_refs > 1) InterlockedDecrement (&dtor_recursion_);
+
+      SK_TLS *pTLS =
+        SK_TLS_Bottom ();
+
+      // Release DXTex memory pools
+      if (pTLS != nullptr)
+          pTLS->dxtex.Cleanup (Periodic);
+
+      SK_ComQIPtr <IDXGIDevice3>
+          pDXGIDevice3 (pDevice);
+      if (pDXGIDevice3 != nullptr)
+          pDXGIDevice3->Trim ();
+
+          pDevice.p = nullptr;
     }
 
     return refs;

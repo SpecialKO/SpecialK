@@ -528,7 +528,7 @@ struct SK_D3D12_RenderCtx {
     HRESULT WaitSequential   (void);
   };
 
-  SK_Thread_SharedRecursiveMutex _ctx_lock;
+  SK_Thread_HybridSpinlock                _ctx_lock;
 
   SK_ComPtr <ID3D12Device>                _pDevice            = nullptr;
   SK_ComPtr <ID3D12CommandQueue>          _pCommandQueue      = nullptr;

@@ -1383,9 +1383,10 @@ SK::ControlPanel::D3D11::Draw (void)
       }
     }
 
-    else if (d3d11 && !indirect)
+    else
     {
-      ImGui::SameLine ();
+      if (d3d11 && !indirect)
+        ImGui::SameLine ();
 
       if (ImGui::Checkbox ("Draw ReShade First", &config.reshade.draw_first))
       {
@@ -1413,8 +1414,11 @@ SK::ControlPanel::D3D11::Draw (void)
         ImGui::BulletText      ("This mode has a slight performance penalty in D3D12.");
         ImGui::PopStyleColor   ();
         ImGui::EndTooltip      ();
-      }  
+      }
+    }
 
+    if (d3d11 && !indirect)
+    {
       ImGui::SameLine ();
 
       if (ImGui::TreeNode ("Advanced (Debug)###Advanced_D3D11"))

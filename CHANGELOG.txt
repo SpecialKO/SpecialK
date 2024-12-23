@@ -1,4 +1,15 @@
-﻿24.12.22
+﻿24.12.23
+========
+ + When ReShade is used as dxgi.dll in D3D12 games, SK no longer gives warnings
+     about compatibility problems.
+  + Avoid using explicitly constructed ReShade effect runtimes as much as
+     possible when SK is not running in Hookless ReShade (compatibility) mode,
+       to avoid confusing AddOns that think these are normal ReShade runtimes.
+ + Added checks to detect ReShade's incorrectly reported D3D11 immediate device
+     context reference counts that could cause deadlock during game exit or when
+       temporary D3D11 devices are constructed and destroyed (ie. overlay init)
+
+24.12.22
 ========
  + Fixed absent custom resolutions caused by a typo in the Display menu a few
      years ago...

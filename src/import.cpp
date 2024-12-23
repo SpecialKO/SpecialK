@@ -168,6 +168,7 @@ SK_ReShade_LoadDLL (const wchar_t *wszDllFile, const wchar_t *wszMode)
     {
       if (0 != _wcsicmp (wszMode, L"Normal"))
       {
+        config.reshade.is_addon_hookless = true;
         SetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", L"1");
       }
 

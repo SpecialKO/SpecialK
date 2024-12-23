@@ -245,7 +245,7 @@ struct dxgi_rtv_s {
     {
       SK_Sleep (0);
     }
-    
+
     return true;
   }
 };
@@ -1120,58 +1120,13 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
           CreateDirectoryW (addon_path.c_str (), nullptr);
   }
 
-  bool fully_compatible = true;
-
-  if ( StrStrIW (mod_name.c_str (), L"dxgi.dll") ||
-       StrStrIW (mod_name.c_str (), L"d3d12.dll") )
-  {
-    config.apis.OpenGL.hook      = false;
-    config.apis.OpenGL.hook_next = FALSE;
-    config.apis.d3d9.hook        = false;
-    config.apis.d3d9.hook_next   = FALSE;
-    config.apis.d3d9ex.hook      = false;
-    config.apis.d3d9ex.hook_next = FALSE;
-
-    if (config.apis.last_known == SK_RenderAPI::OpenGL)
-        config.apis.last_known =  SK_RenderAPI::Reserved;
-    if (config.apis.last_last_known == SK_RenderAPI::OpenGL)
-        config.apis.last_last_known =  SK_RenderAPI::Reserved;
-
-    if (config.apis.last_known == SK_RenderAPI::D3D9)
-        config.apis.last_known =  SK_RenderAPI::Reserved;
-    if (config.apis.last_last_known == SK_RenderAPI::D3D9)
-        config.apis.last_last_known =  SK_RenderAPI::Reserved;
-
-    if (config.apis.last_known == SK_RenderAPI::D3D9Ex)
-        config.apis.last_known =  SK_RenderAPI::Reserved;
-    if (config.apis.last_last_known == SK_RenderAPI::D3D9Ex)
-        config.apis.last_last_known =  SK_RenderAPI::Reserved;
-
-    if ((config.apis.last_last_known == SK_RenderAPI::Reserved &&
-         config.apis.     last_known == SK_RenderAPI::Reserved) ||
-         config.apis.     last_known == SK_RenderAPI::D3D12     ||
-         config.apis.last_last_known == SK_RenderAPI::D3D12)
-    {
-      //SK_RunOnce (
-      //  SK_ImGui_WarningWithTitle (
-      //    L"ReShade is not fully compatible with Special K when loaded as dxgi.dll/d3d12.dll in D3D12 games.\r\n\r\n"
-      //    L"\tThis may be a false positive\r\n\r\n"
-      //    L"If you are not using D3D12, the message will go away and all of ReShade's features should work after restarting the game.",
-      //    L"Incompatible ReShade is Detected"
-      //  )
-      //);
-
-      fully_compatible = false;
-    }
-  }
-
   static bool registered = false;
 
   if (registered)
     return true;
 
-  registered = fully_compatible ?
-    reshade::register_addon (SK_GetDLL (), reshade_module) : true;
+  registered =
+    reshade::register_addon (SK_GetDLL (), reshade_module);
 
   if (registered)
   {
@@ -1186,19 +1141,16 @@ SK_ReShadeAddOn_Init (HMODULE reshade_module)
     if (! PathIsDirectoryW (shared_addon_path.c_str ()))
           CreateDirectoryW (shared_addon_path.c_str (), nullptr);
 
-    if (fully_compatible)
-    {
-      config.reshade.is_addon = true;
+    config.reshade.is_addon = true;
 
-      reshade::register_event <reshade::addon_event::present>                (SK_ReShadeAddOn_Present);
-      reshade::register_event <reshade::addon_event::init_effect_runtime>    (SK_ReShadeAddOn_InitRuntime);
-      reshade::register_event <reshade::addon_event::destroy_effect_runtime> (SK_ReShadeAddOn_DestroyRuntime);
-      reshade::register_event <reshade::addon_event::destroy_device>         (SK_ReShadeAddOn_DestroyDevice);
-      reshade::register_event <reshade::addon_event::destroy_swapchain>      (SK_ReShadeAddOn_DestroySwapChain);
-      reshade::register_event <reshade::addon_event::destroy_command_queue>  (SK_ReShadeAddOn_DestroyCmdQueue);
-      reshade::register_event <reshade::addon_event::reshade_open_overlay>   (SK_ReShadeAddOn_OverlayActivation);
-      reshade::register_event <reshade::addon_event::display_change>         (SK_ReShadeAddOn_DisplayChange);
-    }
+    reshade::register_event <reshade::addon_event::present>                (SK_ReShadeAddOn_Present);
+    reshade::register_event <reshade::addon_event::init_effect_runtime>    (SK_ReShadeAddOn_InitRuntime);
+    reshade::register_event <reshade::addon_event::destroy_effect_runtime> (SK_ReShadeAddOn_DestroyRuntime);
+    reshade::register_event <reshade::addon_event::destroy_device>         (SK_ReShadeAddOn_DestroyDevice);
+    reshade::register_event <reshade::addon_event::destroy_swapchain>      (SK_ReShadeAddOn_DestroySwapChain);
+    reshade::register_event <reshade::addon_event::destroy_command_queue>  (SK_ReShadeAddOn_DestroyCmdQueue);
+    reshade::register_event <reshade::addon_event::reshade_open_overlay>   (SK_ReShadeAddOn_OverlayActivation);
+    reshade::register_event <reshade::addon_event::display_change>         (SK_ReShadeAddOn_DisplayChange);
 
     auto _AutoLoadAddOns = [&](void)
     {
@@ -1305,7 +1257,8 @@ SK_ReShadeAddOn_UpdateAndPresentEffectRuntime (reshade::api::effect_runtime *run
     runtime->set_color_space (reshade::api::color_space::srgb_nonlinear);
   }
 
-  reshade::update_and_present_effect_runtime (runtime);
+  if (config.reshade.is_addon_hookless)
+    reshade::update_and_present_effect_runtime (runtime);
 }
 
 void
@@ -1313,7 +1266,8 @@ SK_ReShadeAddOn_DestroyEffectRuntime (reshade::api::effect_runtime *runtime)
 {
   runtime->get_command_queue ()->wait_idle ();
 
-  reshade::destroy_effect_runtime (runtime);
+  if (config.reshade.is_addon_hookless)
+    reshade::destroy_effect_runtime (runtime);
 }
 
 void SK_ReShadeAddOn_SetupInitialINI (const wchar_t* wszINIFile)
@@ -1340,17 +1294,17 @@ void SK_ReShadeAddOn_SetupInitialINI (const wchar_t* wszINIFile)
 reshade::api::effect_runtime*
 SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceContext *pDevCtx, IDXGISwapChain *pSwapChain)
 {
+  // Delete the INI file that some versions of ReShade 5.9.3 write (bug) to the wrong path
+  if (! SK_ReShadeAddOn_HadLocalINI)
+  {
+    DeleteFileW (L"ReShade.ini");
+  }
+
   reshade::api::effect_runtime *runtime = nullptr;
 
-  if (GetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", nullptr, 1) != 0)
+  if (config.reshade.is_addon_hookless || GetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", nullptr, 1) != 0)
   {
     SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
-
-    // Delete the INI file that some versions of ReShade 5.9.3 write (bug) to the wrong path
-    if (! SK_ReShadeAddOn_HadLocalINI)
-    {
-      DeleteFileW (L"ReShade.ini");
-    }
 
     if (! reshade::create_effect_runtime (reshade::api::device_api::d3d11, pDevice, pDevCtx, swapchain, (const char *)SK_ReShadeGetConfigPath ().u8string ().c_str(), &runtime))
     {
@@ -1364,15 +1318,15 @@ SK_ReShadeAddOn_CreateEffectRuntime_D3D11 (ID3D11Device *pDevice, ID3D11DeviceCo
 reshade::api::effect_runtime*
 SK_ReShadeAddOn_CreateEffectRuntime_D3D12 (ID3D12Device *pDevice, ID3D12CommandQueue *pCmdQueue, IDXGISwapChain *pSwapChain)
 {
-  reshade::api::effect_runtime *runtime = nullptr;
-
   // Delete the INI file that some versions of ReShade 5.9.3 write (bug) to the wrong path
   if (! SK_ReShadeAddOn_HadLocalINI)
   {
     DeleteFileW (L"ReShade.ini");
   }
 
-  if (GetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", nullptr, 1) != 0)
+  reshade::api::effect_runtime *runtime = nullptr;
+
+  if (config.reshade.is_addon_hookless || GetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", nullptr, 1) != 0)
   {
     SK_ComQIPtr <IDXGISwapChain3> swapchain (pSwapChain);
 
@@ -1391,7 +1345,7 @@ void
 SK_ReShadeAddOn_CleanupConfigAndLogs (void)
 {
   // Fix bug in ReShade 5.9.3, where it writes an INI file to the wrong location
-  if (GetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", nullptr, 1) != 0)
+  if (config.reshade.is_addon_hookless || GetEnvironmentVariableW (L"RESHADE_DISABLE_GRAPHICS_HOOK", nullptr, 1) != 0)
   {
     // Didn't have a local INI file originally, and we don't want one now either!
     if (! SK_ReShadeAddOn_HadLocalINI)

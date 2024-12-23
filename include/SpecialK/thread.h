@@ -868,7 +868,7 @@ public:
       shared_mutex::lock ();
 
       owner_ = tid;
-      count_ = 1;  
+      count_ = 1;
     }
   }
 
