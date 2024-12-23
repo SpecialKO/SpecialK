@@ -62,7 +62,9 @@ struct SK_HID_DualSense_GetHWAddr // 0x09 : USB
 //   indication that the device was removed is one of these error codes...
 bool SK_HID_IsDisconnectedError (DWORD dwError)
 {
-  return dwError == ERROR_INVALID_HANDLE;
+  return dwError == ERROR_INVALID_HANDLE ||
+         dwError == ERROR_NO_SUCH_DEVICE ||
+         dwError == ERROR_DEVICE_NOT_CONNECTED;
 }
 
 SK_HID_PlayStationDevice::SK_HID_PlayStationDevice (HANDLE file)
@@ -1223,11 +1225,12 @@ SK_HID_PlayStationDevice::request_input_report (void)
                GetLastError ();
 
           // Invalid Handle and Device Not Connected get a 100 ms cooldown
-          if ( dwLastErr != NOERROR              &&
-               dwLastErr != ERROR_IO_PENDING     &&
-               dwLastErr != ERROR_INVALID_HANDLE &&
-               dwLastErr != ERROR_NO_SUCH_DEVICE &&
-               dwLastErr != ERROR_NOT_READY      &&
+          if ( dwLastErr != NOERROR                 &&
+               dwLastErr != ERROR_IO_PENDING        &&
+               dwLastErr != ERROR_INVALID_HANDLE    &&
+               dwLastErr != ERROR_NO_SUCH_DEVICE    &&
+               dwLastErr != ERROR_NOT_READY         &&
+               dwLastErr != ERROR_INVALID_PARAMETER &&
                dwLastErr != ERROR_DEVICE_NOT_CONNECTED )
           {
             _com_error err (
@@ -3138,11 +3141,12 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                  GetLastError ();
 
             // Invalid Handle and Device Not Connected get a 250 ms cooldown
-            if ( dwLastErr != NOERROR              &&
-                 dwLastErr != ERROR_IO_PENDING     &&
-                 dwLastErr != ERROR_INVALID_HANDLE &&
-                 dwLastErr != ERROR_NO_SUCH_DEVICE &&
-                 dwLastErr != ERROR_NOT_READY      &&
+            if ( dwLastErr != NOERROR                 &&
+                 dwLastErr != ERROR_IO_PENDING        &&
+                 dwLastErr != ERROR_INVALID_HANDLE    &&
+                 dwLastErr != ERROR_NO_SUCH_DEVICE    &&
+                 dwLastErr != ERROR_NOT_READY         &&
+                 dwLastErr != ERROR_INVALID_PARAMETER &&
                  dwLastErr != ERROR_DEVICE_NOT_CONNECTED )
             {
               _com_error err (dwLastErr);
@@ -3200,8 +3204,12 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                     if (dwLastErr != ERROR_INVALID_HANDLE)
                       SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
 
-                    if (dwLastErr == ERROR_GEN_FAILURE || dwLastErr == ERROR_OPERATION_ABORTED)
+                    if (dwLastErr == ERROR_GEN_FAILURE       || 
+                        dwLastErr == ERROR_OPERATION_ABORTED ||
+                        dwLastErr == ERROR_INVALID_PARAMETER)
+                    {
                       SK_SleepEx (333UL, TRUE);
+                    }
                   }
 
                   SetEvent (pDevice->hOutputFinished);
@@ -3556,14 +3564,15 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                  GetLastError ();
 
             // Invalid Handle and Device Not Connected get a 250 ms cooldown
-            if ( dwLastErr != NOERROR                 &&
-                 dwLastErr != ERROR_GEN_FAILURE       && // Happens during power-off
-                 dwLastErr != ERROR_IO_PENDING        &&
-                 dwLastErr != ERROR_INVALID_HANDLE    &&
-                 dwLastErr != ERROR_NO_SUCH_DEVICE    &&
-                 dwLastErr != ERROR_NOT_READY         &&
-                 dwLastErr != ERROR_OPERATION_ABORTED && // Happens during power-off
-                 dwLastErr != ERROR_DEVICE_NOT_CONNECTED )
+            if ( dwLastErr != NOERROR                    &&
+                 dwLastErr != ERROR_GEN_FAILURE          && // Happens during power-off
+                 dwLastErr != ERROR_IO_PENDING           &&
+                 dwLastErr != ERROR_INVALID_HANDLE       &&
+                 dwLastErr != ERROR_NO_SUCH_DEVICE       &&
+                 dwLastErr != ERROR_NOT_READY            &&
+                 dwLastErr != ERROR_OPERATION_ABORTED    && // Happens during power-off
+                 dwLastErr != ERROR_DEVICE_NOT_CONNECTED &&
+                 dwLastErr != ERROR_INVALID_PARAMETER )
             {
               _com_error err (dwLastErr);
 
@@ -3620,8 +3629,12 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
                     if (dwLastErr != ERROR_INVALID_HANDLE)
                       SK_CancelIoEx (pDevice->hDeviceFile, &async_output_request);
 
-                    if (dwLastErr == ERROR_GEN_FAILURE || dwLastErr == ERROR_OPERATION_ABORTED)
+                    if (dwLastErr == ERROR_GEN_FAILURE       ||
+                        dwLastErr == ERROR_OPERATION_ABORTED ||
+                        dwLastErr == ERROR_INVALID_PARAMETER)
+                    {
                       SK_SleepEx (333UL, TRUE);
+                    }
                   }
 
                   SetEvent (pDevice->hOutputFinished);
