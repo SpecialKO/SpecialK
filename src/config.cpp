@@ -5563,7 +5563,7 @@ auto DeclKeybind =
   // This is slow as hell thanks to the Steam overlay, so it
   //   should only ever be done on the first launch...
   static bool do_win_verify_trust =
-    (SK_Steam_GetAppID_NoAPI () != 0 && config.system.first_run);
+    (SK_Steam_GetAppID_NoAPI () != 0 && config.system.first_run) || SK_IsAdmin ();
 
   SK_RunOnce (
     if (version->load (config.system.version)) {
@@ -5676,6 +5676,11 @@ auto DeclKeybind =
     static DWORD dwVerifyTrustStartTime = SK_timeGetTime ();
     static auto code_sig =
       SK_VerifyTrust_GetCodeSignature (SK_GetFullyQualifiedApp ());
+
+    if (StrStrIW (code_sig.subject.c_str (), L"COGNOSPHERE"))
+    {
+      config.compatibility.disable_debug_features = true;
+    }
 
     if (StrStrIW (code_sig.subject.c_str (), L"CAPCOM"))
     //LR"(Private Organization, JP, 1200-01-077023, JP, Osaka, Osaka-shi, "CAPCOM CO., LTD.", "CAPCOM CO., LTD.")"
