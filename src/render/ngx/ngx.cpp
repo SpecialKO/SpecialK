@@ -1615,7 +1615,7 @@ SK_NGX_DLSS_ControlPanel (void)
           fComboBoxWidth
         );
 
-        if ( ImGui::Combo ( "",
+        if ( ImGui::Combo ( "##",
                             &preset_override, "Game Default\0"
                                               "DLSS Default\0"
                                               "Override: A\0"
