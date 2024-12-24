@@ -1,12 +1,22 @@
-﻿24.12.23
+﻿24.12.24
+========
+ + Avoid destroying the SwapChain that Special K creates during initialization
+     to setup D3D11 hooks, because poorly written ReShade addons may crash.
+ + The option to disable the Steam overlay's rendering now also blocks it from
+     installing input hooks, making it finally inert.
+ + Automatically apply anti-cheat bypass to all Hoyo games according to their
+     digital certificate, so I no longer have to manually do this when they
+       release a new game.
+
+24.12.23
 ========
  + When ReShade is used as dxgi.dll in D3D12 games, SK no longer gives warnings
      about compatibility problems.
-  + Avoid using explicitly constructed ReShade effect runtimes as much as
+ + Avoid using explicitly constructed ReShade effect runtimes as much as
      possible when SK is not running in Hookless ReShade (compatibility) mode,
        to avoid confusing AddOns that think these are normal ReShade runtimes.
  + Added checks to detect ReShade's incorrectly reported D3D11 immediate device
-     context reference counts that could cause deadlock during game exit or when
+     context reference counts that may cause deadlock during game exit or when
        temporary D3D11 devices are constructed and destroyed (ie. overlay init)
 
 24.12.22

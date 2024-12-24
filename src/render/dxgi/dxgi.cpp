@@ -9765,8 +9765,7 @@ HookDXGI (LPVOID user)
 
     D3D_FEATURE_LEVEL            levels [] = { D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_11_0,
                                                D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_10_0 };
-
-    D3D_FEATURE_LEVEL            featureLevel = D3D_FEATURE_LEVEL_11_1;
+    D3D_FEATURE_LEVEL          featureLevel  = D3D_FEATURE_LEVEL_11_1;
     SK_ComPtr <ID3D11Device>        pDevice           = nullptr;
     SK_ComPtr <ID3D11DeviceContext> pImmediateContext = nullptr;
 
@@ -10116,7 +10115,16 @@ HookDXGI (LPVOID user)
                                err_desc.c_str (), err_src.c_str () );
     }
 
+    // Let the SwapChain leak so that ReShade add-ons do not randomly crash at startup.
+#define SAFETY_LEAK
+#ifdef  SAFETY_LEAK
+    pFactory.Detach          ();
+    pDevice.Detach           ();
+    pImmediateContext.Detach ();
+    pSwapChain.Detach        ();
+#else
     SK_Win32_CleanupDummyWindow (desc.OutputWindow);
+#endif
 
     InterlockedIncrementRelease (&__hooked);
   }
