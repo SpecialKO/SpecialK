@@ -669,6 +669,38 @@ SK_Steam_GetDLLPath (void)
   return dll_file;
 }
 
+using  WaitForSingleObject_pfn = DWORD (WINAPI *)(HANDLE,DWORD);
+static WaitForSingleObject_pfn
+       WaitForSingleObject_Original = nullptr;
+
+DWORD
+WINAPI
+WaitForSingleObject_Detour (
+  _In_ HANDLE  hHandle,
+  _In_ DWORD  dwMilliseconds )
+{
+  // Steam overlay hook mutex wait
+  if (dwMilliseconds == 100)
+  {
+    static HMODULE hModSteam = SK_GetModuleHandleW (
+      SK_RunLHIfBitness ( 64, L"GameOverlayRenderer64.dll",
+                              L"GameOverlayRenderer.dll" )
+    );
+
+    if (SK_GetCallingDLL () == hModSteam)
+    {
+      if (config.steam.disable_overlay)
+      {
+        SK_RunOnce (return 0);
+        return WAIT_TIMEOUT;
+      }
+    }
+  }
+
+  return
+    WaitForSingleObject_Original (hHandle, dwMilliseconds);
+}
+
 BOOL
 SK_Steam_PreHookCore (const wchar_t* wszTry)
 {
@@ -676,6 +708,18 @@ SK_Steam_PreHookCore (const wchar_t* wszTry)
 
   if (InterlockedCompareExchange (&init, TRUE, FALSE))
     return TRUE;
+
+  //SK_CreateDLLHook2 (     L"kernel32.dll",
+  //                          "CreateMutexA",
+  //                           CreateMutexA_Detour,
+  //  static_cast_p2p <void> (&CreateMutexA_Original) );
+
+  SK_CreateDLLHook2 (     L"kernel32.dll",
+                            "WaitForSingleObject",
+                             WaitForSingleObject_Detour,
+    static_cast_p2p <void> (&WaitForSingleObject_Original) );
+
+  SK_ApplyQueuedHooks ();
 
   const wchar_t*
     wszSteamLib = wszTry;
