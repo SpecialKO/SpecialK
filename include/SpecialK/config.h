@@ -1753,6 +1753,7 @@ enum class SK_GAME_ID
   TombRaider123Remastered,      // tomb123.exe
   Stalker2,                     // Stalker2-WinGDK-Shipping.exe (Microsoft Store) Stalker2-Win64-Shipping.exe (Steam)
   vlc,                          // vlc.exe
+  ZenlessZoneZero,              // ZenlessZoneZero.exe
 
   UNKNOWN_GAME               = 0xffff
 };

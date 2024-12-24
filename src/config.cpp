@@ -272,7 +272,8 @@ SK_GetCurrentGameID (void)
           { L"tomb123.exe",                            SK_GAME_ID::TombRaider123Remastered      },
           { L"Stalker2-WinGDK-Shipping.exe",           SK_GAME_ID::Stalker2                     },
           { L"Stalker2-Win64-Shipping.exe",            SK_GAME_ID::Stalker2                     },
-          { L"vlc.exe",                                SK_GAME_ID::vlc                          }
+          { L"vlc.exe",                                SK_GAME_ID::vlc                          },
+          { L"ZenlessZoneZero.exe",                    SK_GAME_ID::ZenlessZoneZero              },
         };
 
     first_check  = false;
@@ -3690,6 +3691,12 @@ auto DeclKeybind =
         config.compatibility.init_on_separate_thread = false;
         config.display.force_windowed                = true;
         SK_GetCurrentRenderBackend ().windows.capcom = true;
+        break;
+
+      case SK_GAME_ID::ZenlessZoneZero:
+        // Work-around anti-cheat
+        config.compatibility.disable_debug_features =  true;
+        config.system.handle_crashes                = false;
         break;
 
       case SK_GAME_ID::HonkaiStarRail:
