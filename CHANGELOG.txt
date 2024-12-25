@@ -1,4 +1,11 @@
-﻿24.12.24.2
+﻿24.12.25
+========
+ + Reduced performance overhead of the Steam and battery management sections of
+     the control panel (battery overhead applies to framepacing widget too...)
+ + Ignore D3D11DeviceContext Set*Resource state tracking unless the render mod
+     tools window is open.
+
+24.12.24.2
 ==========
  + Further reduce performance overhead in D3D11 across the board for CPU-bound
      scenarios in games that make a lot of draw calls.
