@@ -9870,11 +9870,11 @@ HookDXGI (LPVOID user)
       }
     }
 
-    SK_ComPtr <IDXGIFactory>                 pFactory;
+    SK_ComPtr <IDXGIFactory2>                pFactory;
     CreateDXGIFactory2_Import ( factory_flags,
-          __uuidof (IDXGIFactory), (void **)&pFactory.p);
+         __uuidof (IDXGIFactory2), (void **)&pFactory.p);
 
-    SK_ComQIPtr    <IDXGIFactory7>           pFactory7
+    SK_ComQIPtr   <IDXGIFactory7>            pFactory7
                                             (pFactory);
     if (pFactory7 != nullptr)
         pFactory7->EnumAdapterByGpuPreference (0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS (&pAdapter0.p));

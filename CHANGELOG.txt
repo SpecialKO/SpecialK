@@ -1,4 +1,10 @@
-﻿24.12.25
+﻿24.12.25.1
+==========
+ + Create an IDXGIFactory2 rather than IDXGIFactory when initializing hooks to
+     avoid complications from ReShade calling QueryInterface to upgrade an
+       interface that SK has not yet wrapped.
+
+24.12.25
 ========
  + Reduced performance overhead of the Steam and battery management sections of
      the control panel (battery overhead applies to framepacing widget too...)
