@@ -2764,7 +2764,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             static bool       bMuted     = SK_IsGameMuted ();
             static DWORD dwLastMuteCheck = SK_timeGetTime ();
 
-            if (dwLastMuteCheck < SK::ControlPanel::current_time - 750UL)
+            if (dwLastMuteCheck < SK::ControlPanel::current_time - 50UL)
             {   dwLastMuteCheck = SK::ControlPanel::current_time;
                      bMuted     = SK_IsGameMuted ();
                      // This API is rather expensive
@@ -2979,7 +2979,7 @@ SK_HID_PlayStationDevice::write_output_report (bool force)
             static bool       bMuted     = SK_IsGameMuted ();
             static DWORD dwLastMuteCheck = SK_timeGetTime ();
 
-            if (dwLastMuteCheck < SK::ControlPanel::current_time - 750UL)
+            if (dwLastMuteCheck < SK::ControlPanel::current_time - 50UL)
             {   dwLastMuteCheck = SK::ControlPanel::current_time;
                      bMuted     = SK_IsGameMuted ();
                      // This API is rather expensive

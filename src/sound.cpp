@@ -141,6 +141,8 @@ SK_GetAudioMeterInfo (void)
     SK_WASAPI_GetAudioMeterInfo ();
 }
 
+SK_IMMDevice          SK_MMDevAPI_DefaultDevice;
+SK_IMMDevice          SK_MMDevAPI_VolumeDevice;
 SK_ISimpleAudioVolume SK_VolumeControl;
 
 SK_WASAPI_AudioLatency
@@ -484,10 +486,11 @@ SK_WASAPI_GetAudioSessionProcs (size_t* count, DWORD* procs)
 
 SK_IAudioSessionControl
 __stdcall
-SK_WASAPI_GetAudioSessionControl ( EDataFlow    data_flow     = eRender,
-                                   ERole        endpoint_role = eConsole,
-                                   SK_IMMDevice pDevice       = nullptr,
-                                   DWORD        proc_id       = GetCurrentProcessId () )
+SK_WASAPI_GetAudioSessionControl ( EDataFlow     data_flow     = eRender,
+                                   ERole         endpoint_role = eConsole,
+                                   SK_IMMDevice  pDevice       = nullptr,
+                                   DWORD         proc_id       = GetCurrentProcessId (),
+                                   IMMDevice**   ppDevice      = nullptr )
 {
   static BOOL bCanWineCountCorrectly = SK_NoPreference;
 
@@ -512,6 +515,11 @@ SK_WASAPI_GetAudioSessionControl ( EDataFlow    data_flow     = eRender,
         pDevEnum->GetDefaultAudioEndpoint ( data_flow,
                                               endpoint_role,
                                                 &pDevice.p ));
+
+      if (ppDevice != nullptr) {
+         *ppDevice  = pDevice;
+                      pDevice.p->AddRef ();
+      }
     }
 
     if (! pDevice)
@@ -636,14 +644,21 @@ SK_ISimpleAudioVolume
 __stdcall
 SK_WASAPI_GetVolumeControl (DWORD proc_id, SK_IMMDevice pDevice)
 {
+  SK_IMMDevice pVolumeDevice;
+
   SK_IAudioSessionControl pSessionCtl =
-    SK_WASAPI_GetAudioSessionControl (eRender, eConsole, pDevice, proc_id);
+    SK_WASAPI_GetAudioSessionControl (eRender, eConsole, pDevice, proc_id, &pVolumeDevice.p);
 
   if (pSessionCtl != nullptr)
   {
+    //SK_VolumeDevice = pDevice;
     SK_ISimpleAudioVolume                                      pSimpleAudioVolume;
     if (SUCCEEDED (pSessionCtl->QueryInterface (IID_PPV_ARGS (&pSimpleAudioVolume.p))))
+    {
+      SK_MMDevAPI_DefaultDevice = pVolumeDevice;
+      SK_MMDevAPI_VolumeDevice  = pVolumeDevice;
       return                                                   pSimpleAudioVolume;
+    }
   }
 
   return nullptr;
@@ -943,12 +958,17 @@ SK_WASAPI_GetChannelName (int channel_idx)
   }
 }
 
+// Rate-limit failures
+static DWORD dwLastMuteCheck = 0;
+
 void
 __stdcall
 SK_SetGameMute (bool bMute)
 {
-  if (SK_VolumeControl == nullptr)
-      SK_VolumeControl = SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+  if (dwLastMuteCheck < SK::ControlPanel::current_time - 750UL && (SK_VolumeControl == nullptr || SK_MMDevAPI_VolumeDevice != SK_MMDevAPI_DefaultDevice))
+  {   dwLastMuteCheck = SK::ControlPanel::current_time;
+    SK_VolumeControl = SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+  }
 
   SK_ComPtr<ISimpleAudioVolume> pVolume = SK_VolumeControl;
 
@@ -971,8 +991,10 @@ BOOL
 __stdcall
 SK_IsGameMuted (void)
 {
-  if (SK_VolumeControl == nullptr)
+  if (dwLastMuteCheck < SK::ControlPanel::current_time - 750UL && (SK_VolumeControl == nullptr || SK_MMDevAPI_VolumeDevice != SK_MMDevAPI_DefaultDevice))
+  {   dwLastMuteCheck = SK::ControlPanel::current_time;
       SK_VolumeControl = SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+  }
 
   BOOL bMuted = FALSE;
 
@@ -1259,10 +1281,9 @@ SK_WASAPI_EndPointManager::OnDeviceStateChanged (_In_ LPCWSTR pwstrDeviceId, _In
   if (StrStrW (pwstrDeviceId, rb.displays [rb.active_display].audio.paired_device) && dwNewState == DEVICE_STATE_ACTIVE)
     rb.routeAudioForDisplay (&rb.displays [rb.active_display], true);
 
-  if (dwNewState == DEVICE_STATE_ACTIVE)
+  if (dwNewState != DEVICE_STATE_ACTIVE)
   {
-    SK_VolumeControl =
-      SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+    SK_MMDevAPI_DefaultDevice = nullptr;
   }
 
   return S_OK;
@@ -1310,8 +1331,15 @@ SK_WASAPI_EndPointManager::OnDefaultDeviceChanged (_In_ EDataFlow flow, _In_ ERo
     //SK_ImGui_Warning (pwstrDefaultDeviceId);
     //resetSessionManager ();
 
-    SK_VolumeControl =
-      SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+    SK_IMMDevice pVolumeDevice;
+
+    SK_IAudioSessionControl pSessionCtl =
+      SK_WASAPI_GetAudioSessionControl (eRender, eConsole, nullptr, GetCurrentProcessId (), &pVolumeDevice.p);
+
+    if (pSessionCtl != nullptr)
+    {
+      SK_MMDevAPI_DefaultDevice = pVolumeDevice;
+    }
   }
 
   return S_OK;
