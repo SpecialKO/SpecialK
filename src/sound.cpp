@@ -1001,6 +1001,8 @@ SK_WASAPI_Init (void)
   if (pVolumeCtl == nullptr)
     return false;
 
+  SK_VolumeControl = pVolumeCtl;
+
   static float volume = 100.0f;
   static bool  mute   = SK_IsGameMuted ();
 
@@ -1021,9 +1023,6 @@ SK_WASAPI_Init (void)
     {
       if (val != nullptr && var != nullptr )
       {
-        SK_VolumeControl =
-          SK_WASAPI_GetVolumeControl ();
-
         if (SK_VolumeControl != nullptr && var->getValuePointer () == &volume)
         {
           volume = *(float *)val;
@@ -1249,10 +1248,6 @@ HRESULT
 STDMETHODCALLTYPE
 SK_WASAPI_EndPointManager::OnDeviceStateChanged (_In_ LPCWSTR pwstrDeviceId, _In_ DWORD dwNewState)
 {
-  SK_VolumeControl =
-    SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
-
-    SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
   std::ignore = pwstrDeviceId;
   std::ignore = dwNewState;
 
@@ -1263,6 +1258,12 @@ SK_WASAPI_EndPointManager::OnDeviceStateChanged (_In_ LPCWSTR pwstrDeviceId, _In
 
   if (StrStrW (pwstrDeviceId, rb.displays [rb.active_display].audio.paired_device) && dwNewState == DEVICE_STATE_ACTIVE)
     rb.routeAudioForDisplay (&rb.displays [rb.active_display], true);
+
+  if (dwNewState == DEVICE_STATE_ACTIVE)
+  {
+    SK_VolumeControl =
+      SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
+  }
 
   return S_OK;
 }
@@ -1301,9 +1302,6 @@ HRESULT
 STDMETHODCALLTYPE
 SK_WASAPI_EndPointManager::OnDefaultDeviceChanged (_In_ EDataFlow flow, _In_ ERole role, _In_ LPCWSTR pwstrDefaultDeviceId)
 {
-  SK_VolumeControl =
-    SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
-
   std::ignore = role;
   std::ignore = pwstrDefaultDeviceId;
 
@@ -1311,6 +1309,9 @@ SK_WASAPI_EndPointManager::OnDefaultDeviceChanged (_In_ EDataFlow flow, _In_ ERo
   {
     //SK_ImGui_Warning (pwstrDefaultDeviceId);
     //resetSessionManager ();
+
+    SK_VolumeControl =
+      SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
   }
 
   return S_OK;
@@ -1320,9 +1321,6 @@ HRESULT
 STDMETHODCALLTYPE
 SK_WASAPI_EndPointManager::OnPropertyValueChanged (_In_ LPCWSTR pwstrDeviceId, _In_ const PROPERTYKEY key)
 {
-  SK_VolumeControl =
-    SK_WASAPI_GetVolumeControl (GetCurrentProcessId ());
-
   std::ignore = pwstrDeviceId;
   std::ignore = key;
 
