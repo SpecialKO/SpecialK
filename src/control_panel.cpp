@@ -304,17 +304,32 @@ namespace SK_ImGui
   {
     static bool has_battery = true;
 
-    SYSTEM_POWER_STATUS  sps = { };
-    SYSTEM_BATTERY_STATE sbs = { };
+    static SYSTEM_POWER_STATUS  sps = { };
+    static SYSTEM_BATTERY_STATE sbs = { };
 
-    const NTSTATUS ntStatus =
-      CallNtPowerInformation ( SystemBatteryState,
-                               nullptr, 0,
-                               &sbs, sizeof (sbs) );
+    static DWORD dwLastCheckedBattery0 = 0;
+    static DWORD dwLastCheckedBattery1 = 0;
+
+    NTSTATUS ntStatus = STATUS_ACCESS_DENIED;
+
+    if (dwLastCheckedBattery0 < SK::ControlPanel::current_time - 2500)
+    {   dwLastCheckedBattery0 = SK::ControlPanel::current_time;
+      ntStatus =
+        CallNtPowerInformation ( SystemBatteryState,
+                                 nullptr, 0,
+                                 &sbs, sizeof (sbs) );
+    }
 
     if (has_battery || (SUCCEEDED (ntStatus) && sbs.Rate != 0))
     {
-      if (GetSystemPowerStatus (&sps))
+      BOOL  bGetSystemPowerStatus = (dwLastCheckedBattery1 > SK::ControlPanel::current_time - 750);
+      if (! bGetSystemPowerStatus)
+      {
+        bGetSystemPowerStatus = GetSystemPowerStatus (&sps);
+        dwLastCheckedBattery1 = SK::ControlPanel::current_time;
+      }
+
+      if (bGetSystemPowerStatus)
       {
         has_battery   = (sps.BatteryFlag & 128) == 0;
         bool charging = (sps.BatteryFlag & 8  ) == 8;

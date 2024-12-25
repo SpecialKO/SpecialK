@@ -5466,10 +5466,14 @@ SK_Steam_PiratesAhoy (void)
   if ( pUtils != nullptr && pApps != nullptr &&
        validation_pass   != SK_Steam_FileSigPass_e::Done && !SK_IsCurrentGame (SK_GAME_ID::Fallout4) )
   {
-    DepotId_t depots [16] = { };
-
-    if (! SK_Steam_GetInstalledDepots (depots))
+    static DepotId_t
+        depots [16] = { };
+    if (depots [0] != 0 ||
+        ! SK_Steam_GetInstalledDepots (depots))
+    {
+      validation_pass = SK_Steam_FileSigPass_e::Done;
       return verdict;
+    }
 
     if ( hAsyncSigCheck == 0 &&
       (! config.platform.silent) )
