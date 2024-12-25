@@ -1,4 +1,10 @@
-﻿24.12.25.1
+﻿24.12.25.2
+==========
+ + Improved compatibility with RenoDX mods, even the ones that do not check for
+     nullptr :grimacing:
+ + Slightly sped-up initialization in some D3D games.
+
+24.12.25.1
 ==========
  + Create an IDXGIFactory2 rather than IDXGIFactory when initializing hooks to
      avoid complications from ReShade calling QueryInterface to upgrade an
