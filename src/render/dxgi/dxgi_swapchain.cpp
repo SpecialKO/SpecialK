@@ -660,6 +660,8 @@ HRESULT
 STDMETHODCALLTYPE
 IWrapDXGISwapChain::Present (UINT SyncInterval, UINT Flags)
 {
+  SK_GetCurrentRenderBackend ().in_present_call = true;
+
   if (0 == PresentBase ())
   {
     SyncInterval = 0;
@@ -1172,6 +1174,8 @@ IWrapDXGISwapChain::Present1 ( UINT                     SyncInterval,
                          const DXGI_PRESENT_PARAMETERS *pPresentParameters )
 {
   assert (ver_ >= 1);
+
+  SK_GetCurrentRenderBackend ().in_present_call = true;
 
   // Almost never used by anything, so log it if it happens.
   SK_LOG_ONCE (L"Present1 ({Wrapped SwapChain})");

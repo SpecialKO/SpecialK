@@ -2080,6 +2080,12 @@ SK_StartupCore (const wchar_t* backend, void* callback)
     dll_log->LogEx (false, L"done!\n");
   }
 
+  auto suspended_threads =
+  SK_SuspendAllOtherThreads
+                       (                 );
+  SK_ReShadeAddOn_Init (                 );
+  SK_ResumeThreads     (suspended_threads);
+
   SK_RunOnce (
   {
     SK_Display_HookModeChangeAPIs ();
@@ -4414,6 +4420,8 @@ SK_EndBufferSwap (HRESULT hr, IUnknown* device, SK_TLS* pTLS)
   {
     SK_Window_RepositionIfNeeded ();
   }
+
+  SK_GetCurrentRenderBackend ().in_present_call = false;
 
   return hr;
 }

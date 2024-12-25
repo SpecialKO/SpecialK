@@ -59,8 +59,10 @@
 #include <ReShade/reshade_api.hpp>
 
 BOOL _NO_ALLOW_MODE_SWITCH = FALSE;
-DXGI_SWAP_CHAIN_DESC  _ORIGINAL_SWAP_CHAIN_DESC = { };
+DXGI_SWAP_CHAIN_DESC  _ORIGINAL_SWAP_CHAIN_DESC  = { };
 DXGI_SWAP_CHAIN_DESC1 _ORIGINAL_SWAP_CHAIN_DESC1 = { };
+
+int SK_DXGI_HighestFactorySupported = -1;
 
 #include <../depends/include/DirectXTex/d3dx12.h>
 
@@ -564,6 +566,11 @@ static volatile LONG __dxgi_ready = FALSE;
 
 bool WaitForInitDXGI (DWORD dwTimeout)
 {
+  extern thread_local bool
+      initializing_dxgi;
+  if (initializing_dxgi)
+    return true;
+
   // Waiting while Streamline has plugins loaded would deadlock us in local injection
   if (SK_IsModuleLoaded (L"sl.common.dll"))
   {
@@ -573,8 +580,8 @@ bool WaitForInitDXGI (DWORD dwTimeout)
   else
   {
     if (dwTimeout != INFINITE)
-         SK_Thread_SpinUntilFlaggedEx (&__dxgi_ready, dwTimeout);
-    else SK_Thread_SpinUntilFlagged   (&__dxgi_ready);
+         SK_Thread_SpinUntilFlaggedEx (&__dxgi_ready,      dwTimeout);
+    else SK_Thread_SpinUntilFlaggedEx (&__dxgi_ready, 333UL, 15000UL);
   }
 
   return
@@ -3307,8 +3314,6 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
   auto& rb =
     SK_GetCurrentRenderBackend ();
 
-  rb.in_present_call = true;
-
   // Backup and restore the RTV bindings Before / After Present for games that
   //   are using Flip Model but weren't originally designed to use it
   //
@@ -3341,8 +3346,6 @@ SK_DXGI_DispatchPresent (IDXGISwapChain        *This,
     pDevCtx->OMSetRenderTargets (D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT, &pOrigRTVs [0].p, pOrigDSV.p);
   }
 
-  rb.in_present_call = false;
-
   return ret;
 }
 
@@ -3353,6 +3356,8 @@ STDMETHODCALLTYPE PresentCallback ( IDXGISwapChain *This,
                                     UINT            SyncInterval,
                                     UINT            Flags )
 {
+  SK_GetCurrentRenderBackend ().in_present_call = true;
+
   return
     SK_DXGI_DispatchPresent (
       This, SyncInterval, Flags,
@@ -8086,6 +8091,8 @@ WINAPI CreateDXGIFactory1 (REFIID   riid,
   return hr;
 }
 
+thread_local bool initializing_dxgi = false;
+
 HRESULT
 WINAPI CreateDXGIFactory2 (UINT     Flags,
                            REFIID   riid_,
@@ -8096,14 +8103,25 @@ WINAPI CreateDXGIFactory2 (UINT     Flags,
 
   IID riid = riid_;
 
-  // Upgrade everything to at least IDXGIFactory5 implicitly
+  // Upgrade everything to at least IDXGIFactory7 implicitly
   if (IsEqualGUID (riid_, IID_IDXGIFactory)  ||
       IsEqualGUID (riid_, IID_IDXGIFactory1) ||
       IsEqualGUID (riid_, IID_IDXGIFactory2) ||
       IsEqualGUID (riid_, IID_IDXGIFactory3) ||
-      IsEqualGUID (riid_, IID_IDXGIFactory4))
+      IsEqualGUID (riid_, IID_IDXGIFactory4) ||
+      IsEqualGUID (riid_, IID_IDXGIFactory5))
   {
-    riid = IID_IDXGIFactory5;
+    switch (SK_DXGI_HighestFactorySupported)
+    {
+      case 7: riid = IID_IDXGIFactory5; break;
+      case 6: riid = IID_IDXGIFactory5; break;
+      case 5: riid = IID_IDXGIFactory5; break;
+      case 4: riid = IID_IDXGIFactory4; break;
+      case 3: riid = IID_IDXGIFactory3; break;
+      case 2: riid = IID_IDXGIFactory2; break;
+      case 1: riid = IID_IDXGIFactory1; break;
+      case 0: riid = IID_IDXGIFactory;  break;
+    }
   }
 
   if (SK_COMPAT_IgnoreDxDiagnCall ())
@@ -8228,6 +8246,43 @@ DXGI_STUB (HRESULT, DXGIReportAdapterConfiguration,
                    (dwUnknown) );
 
 using finish_pfn = void (WINAPI *)(void);
+
+void
+SK_DXGI_DetermineHighestSupportedFactoryVersion (void)
+{
+  if (SK_DXGI_HighestFactorySupported != -1)
+    return;
+
+  SK_ComPtr <IDXGIFactory7> pFactory7;
+  SK_ComPtr <IDXGIFactory6> pFactory6;
+  SK_ComPtr <IDXGIFactory5> pFactory5;
+  SK_ComPtr <IDXGIFactory4> pFactory4;
+  SK_ComPtr <IDXGIFactory3> pFactory3;
+  SK_ComPtr <IDXGIFactory2> pFactory2;
+  SK_ComPtr <IDXGIFactory1> pFactory1;
+  SK_ComPtr <IDXGIFactory>  pFactory;
+
+  if (     SUCCEEDED (CreateDXGIFactory2_Import (0x0, IID_IDXGIFactory7, (void **)&pFactory7.p)))
+                                                SK_DXGI_HighestFactorySupported          = 7;
+  else if (SUCCEEDED (CreateDXGIFactory2_Import (0x0, IID_IDXGIFactory6, (void **)&pFactory6.p)))
+                                                SK_DXGI_HighestFactorySupported          = 6;
+  else if (SUCCEEDED (CreateDXGIFactory2_Import (0x0, IID_IDXGIFactory5, (void **)&pFactory5.p)))
+                                                SK_DXGI_HighestFactorySupported          = 5;
+  else if (SUCCEEDED (CreateDXGIFactory2_Import (0x0, IID_IDXGIFactory4, (void **)&pFactory4.p)))
+                                                SK_DXGI_HighestFactorySupported          = 4;
+  else if (SUCCEEDED (CreateDXGIFactory2_Import (0x0, IID_IDXGIFactory3, (void **)&pFactory3.p)))
+                                                SK_DXGI_HighestFactorySupported          = 3;
+  else if (SUCCEEDED (CreateDXGIFactory2_Import (0x0, IID_IDXGIFactory2, (void **)&pFactory2.p)))
+                                                SK_DXGI_HighestFactorySupported          = 2;
+  else if (SUCCEEDED (CreateDXGIFactory2_Import (0x0, IID_IDXGIFactory1, (void **)&pFactory1.p)))
+                                                SK_DXGI_HighestFactorySupported          = 1;
+  else if (SUCCEEDED (CreateDXGIFactory2_Import (0x0, IID_IDXGIFactory,  (void **)&pFactory.p)))
+                                                SK_DXGI_HighestFactorySupported          = 0;
+  else
+  {
+    SK_LOGi0 (L"DXGI Factories Are Not Supported On This System...");
+  }
+}
 
 void
 WINAPI
@@ -8392,14 +8447,29 @@ SK_HookDXGI (void)
       SK_GetProcAddress          (L"dxgi.dll", "DXGIDisableVBlankVirtualization");
     }
 
-    SK_ApplyQueuedHooks ();
-
-
     static auto _InitDXGIFactoryInterfaces = [&](void)
     {
-      SK_AutoCOMInit _autocom;
-      SK_ComPtr <IDXGIFactory>                       pFactory;
-      CreateDXGIFactory (IID_IDXGIFactory, (void **)&pFactory.p);
+      SK_DXGI_DetermineHighestSupportedFactoryVersion ();
+
+      bool  bEnable = SK_EnableApplyQueuedHooks  ();
+      {
+        SK_ApplyQueuedHooks ();
+      }
+      if (! bEnable)  SK_DisableApplyQueuedHooks ();
+
+      static const IID iids [] = { IID_IDXGIFactory,  IID_IDXGIFactory1, IID_IDXGIFactory2,
+                                   IID_IDXGIFactory3, IID_IDXGIFactory4, IID_IDXGIFactory5,
+                                   IID_IDXGIFactory6, IID_IDXGIFactory7 };
+
+      initializing_dxgi = true;
+      {
+        // Invoke our hook, but do not -wait- for it's initialization check
+        SK_ComPtr <IDXGIFactory2>  pFactory;
+        CreateDXGIFactory2 ( 0x0,
+               iids [std::clamp (SK_DXGI_HighestFactorySupported, 0, 7)],
+                         (void **)&pFactory.p );
+      }
+      initializing_dxgi = false;
     };
 
     // This is going to fail if performed from DllMain
@@ -8410,10 +8480,14 @@ SK_HookDXGI (void)
 
     else
     {
+      auto suspended =
+        SK_SuspendAllOtherThreads ();
+
       // Thus we need to use a secondary thread
       HANDLE hSecondaryThread =
         SK_Thread_CreateEx ([](LPVOID)->DWORD
         {
+          SK_AutoCOMInit _autocom;
           _InitDXGIFactoryInterfaces ();
 
           return 0;
@@ -8423,11 +8497,14 @@ SK_HookDXGI (void)
       //   because this could deadlock otherwise.
       if (hSecondaryThread != 0)
       {
-        WaitForSingleObject (hSecondaryThread, 400UL);
+        WaitForSingleObject (hSecondaryThread, 100UL);
         SK_CloseHandle      (hSecondaryThread);
       }
+
+      SK_ResumeThreads (suspended);
     }
-    
+
+    initializing_dxgi = true;
 
     if (config.apis.dxgi.d3d11.hook)
     {
@@ -8455,10 +8532,13 @@ SK_HookDXGI (void)
 
     SK_DXGI_BeginHooking ();
 
+    initializing_dxgi = false;
+
     InterlockedIncrementRelease (&hooked);
   }
 
-  SK_Thread_SpinUntilAtomicMin (&hooked, 2);
+  if (! initializing_dxgi)
+    SK_Thread_SpinUntilAtomicMin (&hooked, 2);
 }
 
 void
@@ -9685,6 +9765,8 @@ DWORD
 __stdcall
 HookDXGI (LPVOID user)
 {
+  initializing_dxgi = true;
+
   static SK_AutoCOMInit _autocom;
 
   SetCurrentThreadDescription (L"[SK] DXGI Hook Crawler");
@@ -9741,6 +9823,7 @@ HookDXGI (LPVOID user)
 
   if (! InterlockedCompareExchangeAcquire (&__hooked, TRUE, FALSE))
   {
+    initializing_dxgi = true;
     pTLS->render->d3d11->ctx_init_thread = true;
 
     SK_AutoCOMInit auto_com;
@@ -9870,12 +9953,24 @@ HookDXGI (LPVOID user)
       }
     }
 
-    SK_ComPtr <IDXGIFactory2>                pFactory;
+    SK_ComPtr <IDXGIFactory7>                pFactory7;
     CreateDXGIFactory2_Import ( factory_flags,
-         __uuidof (IDXGIFactory2), (void **)&pFactory.p);
+         __uuidof (IDXGIFactory7), (void **)&pFactory7.p);
 
-    SK_ComQIPtr   <IDXGIFactory7>            pFactory7
-                                            (pFactory);
+    SK_ComPtr <IDXGIFactory>
+        pFactory    = (IDXGIFactory *)
+        pFactory7.p;
+    if (pFactory7.p == nullptr)
+    {
+      static const IID iids [] = { IID_IDXGIFactory,  IID_IDXGIFactory1, IID_IDXGIFactory2,
+                                   IID_IDXGIFactory3, IID_IDXGIFactory4, IID_IDXGIFactory5,
+                                   IID_IDXGIFactory6, IID_IDXGIFactory7 };
+
+      CreateDXGIFactory2_Import ( factory_flags,
+             iids [std::clamp (SK_DXGI_HighestFactorySupported, 0, 7)],
+                       (void **)&pFactory.p );
+    }
+
     if (pFactory7 != nullptr)
         pFactory7->EnumAdapterByGpuPreference (0, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS (&pAdapter0.p));
     else pFactory->EnumAdapters               (0,                                                     &pAdapter0.p);
